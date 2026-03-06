@@ -110,8 +110,3 @@ export const TRACKING_MAX_WINDOW_SAMPLES =
   SAMPLE_RATE * TRACKING_MAX_WINDOW_SECONDS;
 export const STALE_CYCLE_LIMIT = 4;
 export const LOOKAHEAD = 5;
-
-// Beam search constants for discovery mode
-export const BEAM_HISTORY_SIZE = 6; // max cycles of beam history to keep
-export const BEAM_STREAK_MIN = 2;   // consecutive top-1 appearances to commit
-export const BEAM_PRESENCE_MIN = 3; // appearances in last 4 cycles to commit

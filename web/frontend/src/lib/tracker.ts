@@ -16,9 +16,6 @@ import {
   TRACKING_MAX_WINDOW_SAMPLES,
   STALE_CYCLE_LIMIT,
   LOOKAHEAD,
-  BEAM_HISTORY_SIZE,
-  BEAM_STREAK_MIN,
-  BEAM_PRESENCE_MIN,
 } from "./types";
 
 export interface TranscribeResult {
@@ -112,10 +109,6 @@ export class RecitationTracker {
   private prevEmittedText = "";
   private hasEverMatched = false;
   private cyclesSinceEmit = Infinity; // anti-cascade: counts discovery cycles since last emit
-
-  // Beam state — tracks top candidates across discovery cycles
-  private beamHistory: {surah: number, ayah: number, score: number}[][] = [];
-  private beamLeader: {surah: number, ayah: number, streak: number} | null = null;
 
   // Tracking mode state
   private trackingVerse: QuranVerse | null = null;
@@ -527,7 +520,6 @@ export class RecitationTracker {
     this.trackingLastWordIdx = -1;
     this.silenceSamples = 0;
     this.staleCycles = 0;
-    this._resetBeam();
   }
 
   private _exitTracking(reason: string): void {
@@ -560,83 +552,5 @@ export class RecitationTracker {
     this.trackingLastWordIdx = -1;
     this.silenceSamples = 0;
     this.staleCycles = 0;
-    this._resetBeam();
-  }
-
-  private _isContinuation(surah: number, ayah: number): boolean {
-    if (!this.lastEmittedRef) return false;
-    return (
-      surah === this.lastEmittedRef[0] &&
-      ayah >= this.lastEmittedRef[1] + 1 &&
-      ayah <= this.lastEmittedRef[1] + 3
-    );
-  }
-
-  private _updateBeam(
-    candidates: {surah: number, ayah: number, score: number}[],
-  ): void {
-    this.beamHistory.push(candidates);
-    if (this.beamHistory.length > BEAM_HISTORY_SIZE) {
-      this.beamHistory.shift();
-    }
-
-    const top = candidates[0];
-    if (!top) {
-      this.beamLeader = null;
-      return;
-    }
-
-    if (
-      this.beamLeader &&
-      this.beamLeader.surah === top.surah &&
-      this.beamLeader.ayah === top.ayah
-    ) {
-      this.beamLeader.streak++;
-    } else {
-      this.beamLeader = { surah: top.surah, ayah: top.ayah, streak: 1 };
-    }
-  }
-
-  private _shouldCommitBeam(
-    match: Record<string, any>,
-    effectiveThreshold: number,
-  ): boolean {
-    if (match.score < effectiveThreshold) return false;
-
-    // Continuations commit immediately — strong prior
-    if (this._isContinuation(match.surah, match.ayah)) return true;
-
-    // First match ever — no beam history to use, commit immediately
-    if (!this.hasEverMatched) return true;
-
-    const leader = this.beamLeader;
-    if (!leader || leader.surah !== match.surah || leader.ayah !== match.ayah) {
-      return false;
-    }
-
-    // Stable leader: top-1 for BEAM_STREAK_MIN consecutive cycles
-    if (leader.streak >= BEAM_STREAK_MIN) return true;
-
-    // Consistent presence: appeared in top-5 for BEAM_PRESENCE_MIN of last 4 cycles
-    if (this.beamHistory.length >= 4) {
-      const last4 = this.beamHistory.slice(-4);
-      let appearances = 0;
-      for (const cycle of last4) {
-        if (cycle.some(c => c.surah === match.surah && c.ayah === match.ayah)) {
-          appearances++;
-        }
-      }
-      if (appearances >= BEAM_PRESENCE_MIN) return true;
-    }
-
-    // Fallback: after BEAM_HISTORY_SIZE cycles with no commit, just commit
-    if (this.beamHistory.length >= BEAM_HISTORY_SIZE) return true;
-
-    return false;
-  }
-
-  private _resetBeam(): void {
-    this.beamHistory = [];
-    this.beamLeader = null;
   }
 }
