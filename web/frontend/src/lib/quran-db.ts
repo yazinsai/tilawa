@@ -167,8 +167,14 @@ export class QuranDB {
 
     for (const v of this.verses) {
       let raw = ratio(text, v.phonemes_joined);
+      if (noSpaceText.length <= 10) {
+        raw = Math.max(raw, this._shortQueryBoost(noSpaceText, v));
+      }
       if (v.phonemes_joined_no_bsm) {
         raw = Math.max(raw, ratio(text, v.phonemes_joined_no_bsm));
+        if (noSpaceText.length <= 10) {
+          raw = Math.max(raw, this._shortQueryBoost(noSpaceText, v, true));
+        }
       }
       const bonus = bonuses.get(`${v.surah}:${v.ayah}`) ?? 0.0;
       if (bonus > 0) {
@@ -360,6 +366,25 @@ export class QuranDB {
     return [firstText]
       .concat(chunk.slice(1).map((verse) => verse.phonemes_joined))
       .join(" ");
+  }
+
+  private _shortQueryBoost(
+    noSpaceText: string,
+    verse: QuranVerse,
+    useNoBsm = false,
+  ): number {
+    const candidate = useNoBsm
+      ? verse.phonemes_joined_no_bsm_ns ?? verse.phonemes_joined_ns ?? ""
+      : verse.phonemes_joined_ns ?? "";
+    if (!candidate) return 0;
+
+    const prefixWindow = Math.min(candidate.length, noSpaceText.length + 6);
+    const prefix = ratio(noSpaceText, candidate.slice(0, prefixWindow));
+    const firstWord = useNoBsm
+      ? (verse.phonemes_joined_no_bsm ?? "").split(" ")[0] ?? ""
+      : verse.phoneme_words[0] ?? "";
+    const firstWordScore = firstWord ? ratio(noSpaceText, firstWord) : 0;
+    return Math.max(prefix, firstWordScore);
   }
 
   private _continuationBonuses(

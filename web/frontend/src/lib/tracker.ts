@@ -54,6 +54,7 @@ interface RankedCandidate {
   acousticScore: number;
   acousticMargin: number;
   feasible: boolean;
+  lengthFit: number;
 }
 
 interface TrackingPrefix {
@@ -334,6 +335,11 @@ export class RecitationTracker {
     const cumulativeCoverage = wordPos / this.trackingVerseWords.length;
     const nearEnd = this.trackingLastWordIdx >= this.trackingVerseWords.length - 2;
     if (cumulativeCoverage >= 0.8 && nearEnd) {
+      if (!(this.lastCommitEvidence?.strong)) {
+        this._exitTracking("weak completion");
+        return messages;
+      }
+
       const currentRef: [number, number] = [
         this.trackingVerse.surah,
         this.trackingVerse.ayah,
@@ -446,6 +452,7 @@ export class RecitationTracker {
     });
 
     let acousticMargin = 0;
+    let lengthFit = 1;
     if (match) {
       const matchKey = refKey(match.surah, match.ayah, match.ayah_end);
       const rescoredMatch = ranked.find(
@@ -457,6 +464,7 @@ export class RecitationTracker {
           ) === matchKey,
       );
       acousticMargin = rescoredMatch?.acousticMargin ?? 0;
+      lengthFit = rescoredMatch?.lengthFit ?? 1;
     }
 
     const threshold = this.lastEmittedRef ? VERSE_MATCH_THRESHOLD : FIRST_MATCH_THRESHOLD;
@@ -470,6 +478,7 @@ export class RecitationTracker {
 
       const isContinuation = this._isContinuation(match.surah, match.ayah);
       const clearMargin =
+        lengthFit >= 0.6 &&
         acousticMargin >=
         (isContinuation ? ACOUSTIC_CONTINUATION_MARGIN : ACOUSTIC_CLEAR_MARGIN);
       const repeatedLeader =
@@ -491,7 +500,10 @@ export class RecitationTracker {
           match.surah,
           match.ayah,
         );
-        const confidence = Math.max(match.score, Math.min(0.99, 0.55 + acousticMargin));
+        const confidence = Math.max(
+          match.score,
+          Math.min(0.99, 0.45 + acousticMargin + lengthFit * 0.2),
+        );
 
         messages.push({
           type: "verse_match",
@@ -515,7 +527,10 @@ export class RecitationTracker {
         this.lastCommitEvidence = {
           confidence,
           acousticMargin,
-          strong: confidence >= TRACKING_WEAK_COMMIT_CONFIDENCE,
+          strong:
+            confidence >= TRACKING_WEAK_COMMIT_CONFIDENCE &&
+            lengthFit >= 0.8 &&
+            clearMargin,
         };
         this.pendingLeader = null;
 
@@ -580,10 +595,12 @@ export class RecitationTracker {
           acousticScore: 0,
           acousticMargin: 0,
           feasible: false,
+          lengthFit: 1,
         }))
         .sort((a, b) => b.candidate.stage_a_score - a.candidate.stage_a_score);
     }
 
+    const observedLength = Math.max(result.tokenIds?.length ?? 0, 1);
     const scored = scoreCtcCandidates(
       result.acoustic,
       candidates.map((candidate) => ({
@@ -592,13 +609,31 @@ export class RecitationTracker {
         priorScore: candidate.stage_a_score,
       })),
     );
-    const ranked = scored.map((entry, idx) => ({
-      candidate: entry.meta,
-      acousticScore: entry.acousticScore,
-      acousticMargin:
-        (scored[idx + 1]?.acousticScore ?? entry.acousticScore) - entry.acousticScore,
-      feasible: entry.feasible,
-    }));
+    const feasibleScores = scored
+      .filter((entry) => entry.feasible)
+      .map((entry) => entry.acousticScore);
+    const minAcoustic = feasibleScores.length ? Math.min(...feasibleScores) : 0;
+    const maxAcoustic = feasibleScores.length ? Math.max(...feasibleScores) : 1;
+    const acousticRange = Math.max(maxAcoustic - minAcoustic, 1e-6);
+
+    const ranked = scored.map((entry, idx) => {
+      const candidateLength = Math.max(entry.meta.phoneme_token_ids.length, 1);
+      const lengthFit =
+        Math.min(candidateLength, observedLength) /
+        Math.max(candidateLength, observedLength);
+      const acousticFit = entry.feasible
+        ? 1 - (entry.acousticScore - minAcoustic) / acousticRange
+        : 0;
+
+      return {
+        candidate: entry.meta,
+        acousticScore: entry.acousticScore,
+        acousticMargin:
+          (scored[idx + 1]?.acousticScore ?? entry.acousticScore) - entry.acousticScore,
+        feasible: entry.feasible,
+        lengthFit,
+      };
+    });
 
     ranked.sort((a, b) => {
       if (b.candidate.stage_a_score !== a.candidate.stage_a_score) {
@@ -698,8 +733,10 @@ export class RecitationTracker {
   }
 
   private _retainTailAfterCommit(): void {
-    const keepSamples = Math.min(this.utteranceAudio.length, TRIGGER_SAMPLES);
-    this.utteranceAudio = this.utteranceAudio.slice(-keepSamples);
+    if (this.lastCommitEvidence?.strong) {
+      const keepSamples = Math.min(this.utteranceAudio.length, TRIGGER_SAMPLES);
+      this.utteranceAudio = this.utteranceAudio.slice(-keepSamples);
+    }
     this.newAudioCount = 0;
     this.silenceSamples = 0;
     this.utteranceHasSpeech = this.utteranceAudio.length > 0;
