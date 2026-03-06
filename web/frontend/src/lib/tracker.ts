@@ -191,6 +191,7 @@ export class RecitationTracker {
   private staleCycles = 0;
   private cyclesSinceCommit = Infinity;
   private lastTrackingResult: TranscribeResult | null = null;
+  private consecutiveAutoAdvances = 0;
 
   constructor(
     private db: QuranDB,
@@ -408,6 +409,15 @@ export class RecitationTracker {
             strong: true,
           };
           this._enterTracking(nextVerse);
+          this.consecutiveAutoAdvances++;
+          // After sustained auto-advances, degrade to weak so stale-exit
+          // triggers rediscovery instead of persisting
+          if (this.consecutiveAutoAdvances >= 5) {
+            this.lastCommitEvidence = {
+              ...this.lastCommitEvidence!,
+              strong: false,
+            };
+          }
         }
         // If !advanceOk, we already exited tracking — falls through to rediscovery
       }
@@ -585,6 +595,7 @@ export class RecitationTracker {
         };
         this.pendingLeader = null;
         this.cyclesSinceCommit = 0;
+        this.consecutiveAutoAdvances = 0;
 
         this._emitDiagnostic({
           type: "commit",
