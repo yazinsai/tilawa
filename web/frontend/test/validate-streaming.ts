@@ -63,7 +63,15 @@ async function transcribe(audio: Float32Array): Promise<TranscribeResult> {
     numMels,
     timeFrames,
   );
-  return decoder.decode(logprobs, timeSteps, vocabSize);
+  return {
+    ...decoder.decode(logprobs, timeSteps, vocabSize),
+    acoustic: {
+      logprobs,
+      timeSteps,
+      vocabSize,
+      blankId: decoder.getBlankId(),
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -95,7 +103,7 @@ async function main() {
 
   // 3. Load Quran data
   const quranData = JSON.parse(readFileSync(resolve(ROOT, "public/quran_phonemes.json"), "utf-8"));
-  const db = new QuranDB(quranData);
+  const db = new QuranDB(quranData, decoder);
   console.log(`Loaded ${db.totalVerses} verses from ${db.surahCount} surahs`);
 
   // 4. Load manifest

@@ -25,7 +25,15 @@ async function transcribe(audio: Float32Array): Promise<TranscribeResult> {
     numMels,
     timeFrames,
   );
-  return decoder!.decode(logprobs, timeSteps, vocabSize);
+  return {
+    ...decoder!.decode(logprobs, timeSteps, vocabSize),
+    acoustic: {
+      logprobs,
+      timeSteps,
+      vocabSize,
+      blankId: decoder!.getBlankId(),
+    },
+  };
 }
 
 async function init() {
@@ -57,7 +65,7 @@ async function init() {
     const quranRes = await fetch("/quran_phonemes.json");
     if (!quranRes.ok) throw new Error(`quran_phonemes.json fetch failed: ${quranRes.status}`);
     const quranData = await quranRes.json();
-    db = new QuranDB(quranData);
+    db = new QuranDB(quranData, decoder);
 
     // Create tracker
     tracker = new RecitationTracker(db, transcribe);

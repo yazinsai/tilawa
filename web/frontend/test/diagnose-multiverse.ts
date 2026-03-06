@@ -62,7 +62,15 @@ let decoder: CTCDecoder;
 async function transcribe(audio: Float32Array): Promise<TranscribeResult> {
   const { features, timeFrames } = await computeMelSpectrogram(audio);
   const { logprobs, timeSteps, vocabSize } = await runInference(features, 80, timeFrames);
-  return decoder.decode(logprobs, timeSteps, vocabSize);
+  return {
+    ...decoder.decode(logprobs, timeSteps, vocabSize),
+    acoustic: {
+      logprobs,
+      timeSteps,
+      vocabSize,
+      blankId: decoder.getBlankId(),
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -321,7 +329,7 @@ async function main() {
   decoder = new CTCDecoder(vocabJson);
 
   const quranData = JSON.parse(readFileSync(resolve(ROOT, "public/quran_phonemes.json"), "utf-8"));
-  const db = new QuranDB(quranData);
+  const db = new QuranDB(quranData, decoder);
   console.log(`Loaded ${db.totalVerses} verses`);
 
   const manifest = JSON.parse(readFileSync(resolve(BENCHMARK, "manifest.json"), "utf-8"));

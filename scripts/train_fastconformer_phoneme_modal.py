@@ -1,4 +1,4 @@
-"""Fine-tune NVIDIA Arabic FastConformer with phoneme CTC head for mispronunciation detection.
+"""Fine-tune NVIDIA Arabic FastConformer with phoneme CTC head for robust Quran phoneme ASR.
 
 Training target:
   nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0
@@ -8,8 +8,9 @@ Data sources:
   IqraEval/Iqra_TTS    (uses phoneme_mis field, appended to train)
 
 The CTC vocabulary is replaced with a 70-token Arabic phoneme set (vowels,
-consonants, geminated forms).  Only the CTC decoder head is retrained from
-scratch; the encoder is mostly frozen (first 14/17 layers).
+consonants, geminated forms). The pipeline is intended for robust browser-side
+Quran phoneme recognition, so the default training schedule unfreezes more of
+the encoder and trains longer than the initial clean-transcription baseline.
 
 Artifacts are written to Modal volume "fastconformer-phoneme-training":
   /training/<output_name>/
@@ -242,9 +243,9 @@ class BuildStats:
     volumes={"/training": vol},
 )
 def prepare_data(
-    output_name: str = "fastconformer-phoneme-v1",
+    output_name: str = "fastconformer-phoneme-v2",
     min_duration: float = 0.3,
-    max_duration: float = 15.0,
+    max_duration: float = 30.0,
     force_rebuild: bool = False,
 ):
     import io
@@ -483,20 +484,22 @@ def prepare_data(
     volumes={"/training": vol},
 )
 def train(
-    output_name: str = "fastconformer-phoneme-v1",
+    output_name: str = "fastconformer-phoneme-v2",
     train_batch_size: int = 16,
     grad_accum: int = 2,
-    max_steps: int = 5000,
+    max_steps: int = 8000,
     learning_rate: float = 1e-4,
     warmup_steps: int = 500,
-    freeze_encoder_layers: int = 14,
+    freeze_encoder_layers: int = 10,
     freeze_preprocessor: bool = True,
-    val_check_interval: int = 500,
+    val_check_interval: int = 250,
     num_workers: int = 8,
+    early_stopping_patience: int = 6,
 ):
     import lightning.pytorch as pl
     import torch
     import torch.nn as nn
+    from lightning.pytorch.callbacks import EarlyStopping
     from omegaconf import open_dict
 
     _install_kaldialign_fallback()
@@ -744,6 +747,14 @@ def train(
         limit_val_batches=0,
         enable_checkpointing=True,
         enable_progress_bar=True,
+        callbacks=[
+            EarlyStopping(
+                monitor="val_loss",
+                patience=int(early_stopping_patience),
+                mode="min",
+                verbose=True,
+            ),
+        ],
     )
 
     model.set_trainer(trainer)
@@ -787,6 +798,7 @@ def train(
         "warmup_steps": warmup_steps,
         "freeze_encoder_layers": freeze_encoder_layers,
         "freeze_preprocessor": freeze_preprocessor,
+        "early_stopping_patience": early_stopping_patience,
         "total_params": total_params,
         "trainable_params": trainable_params,
         "data_metadata_path": str(metadata_path),
@@ -832,19 +844,20 @@ def download_model(output_name: str = "fastconformer-phoneme-v1"):
 
 @app.local_entrypoint()
 def main(
-    output_name: str = "fastconformer-phoneme-v1",
+    output_name: str = "fastconformer-phoneme-v2",
     min_duration: float = 0.3,
-    max_duration: float = 15.0,
+    max_duration: float = 30.0,
     force_rebuild_data: bool = False,
     train_batch_size: int = 16,
     grad_accum: int = 2,
-    max_steps: int = 5000,
+    max_steps: int = 8000,
     learning_rate: float = 1e-4,
     warmup_steps: int = 500,
-    freeze_encoder_layers: int = 14,
+    freeze_encoder_layers: int = 10,
     freeze_preprocessor: bool = True,
-    val_check_interval: int = 500,
+    val_check_interval: int = 250,
     num_workers: int = 8,
+    early_stopping_patience: int = 6,
     download_only: bool = False,
     download_after_train: bool = False,
     prepare_only: bool = False,
@@ -896,6 +909,7 @@ def main(
         freeze_preprocessor=freeze_preprocessor,
         val_check_interval=val_check_interval,
         num_workers=num_workers,
+        early_stopping_patience=early_stopping_patience,
     )
 
     if not download_after_train:

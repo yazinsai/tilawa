@@ -94,7 +94,7 @@ async function main() {
 
   // Load Quran data
   const quranData = JSON.parse(readFileSync(resolve(ROOT, "public/quran_phonemes.json"), "utf-8"));
-  const db = new QuranDB(quranData);
+  const db = new QuranDB(quranData, decoder);
 
   // Expected verse info
   const expectedVerse = db.getVerse(sample.expected_verses[0].surah, sample.expected_verses[0].ayah);
@@ -116,7 +116,15 @@ async function main() {
     const { features, timeFrames } = await computeMelSpectrogram(audioSlice);
     const numMels = 80;
     const { logprobs, timeSteps, vocabSize } = await runInference(features, numMels, timeFrames);
-    return decoder.decode(logprobs, timeSteps, vocabSize);
+    return {
+      ...decoder.decode(logprobs, timeSteps, vocabSize),
+      acoustic: {
+        logprobs,
+        timeSteps,
+        vocabSize,
+        blankId: decoder.getBlankId(),
+      },
+    };
   }
 
   // --- Instrumented DB wrapper ---

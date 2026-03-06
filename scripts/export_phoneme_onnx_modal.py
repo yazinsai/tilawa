@@ -1,7 +1,7 @@
 """Export FastConformer phoneme CTC model to ONNX on Modal, quantize, and download.
 
 Usage:
-  # Export + quantize + download to web/frontend/public/
+  # Export fp32 + q8 + metadata and download to web/frontend/public/
   modal run scripts/export_phoneme_onnx_modal.py
 
   # Export only (no download)
@@ -122,6 +122,7 @@ def export_and_quantize():
     onnx_path = out_dir / "fastconformer_phoneme.onnx"
     q8_path = out_dir / "fastconformer_phoneme_q8.onnx"
     vocab_path = out_dir / "phoneme_vocab.json"
+    metadata_path = out_dir / "export_metadata.json"
 
     # Find checkpoint
     checkpoint_path = CHECKPOINT_PATH
@@ -208,6 +209,23 @@ def export_and_quantize():
         json.dump(vocab, f, ensure_ascii=False, indent=2)
     print(f"Vocabulary: {vocab_path} ({len(vocab)} tokens)")
 
+    metadata = {
+        "checkpoint_path": checkpoint_path,
+        "onnx_path": str(onnx_path),
+        "q8_path": str(q8_path),
+        "onnx_size_bytes": onnx_path.stat().st_size,
+        "q8_size_bytes": q8_path.stat().st_size,
+        "vocab_path": str(vocab_path),
+        "vocab_tokens": len(vocab),
+        "variants": [
+            {"name": "fp32", "path": str(onnx_path), "size_bytes": onnx_path.stat().st_size},
+            {"name": "q8", "path": str(q8_path), "size_bytes": q8_path.stat().st_size},
+        ],
+    }
+    with open(metadata_path, "w", encoding="utf-8") as f:
+        json.dump(metadata, f, ensure_ascii=False, indent=2)
+    print(f"Metadata:   {metadata_path}")
+
     # Commit volume
     vol.commit()
     print("Done! Files saved to Modal volume.")
@@ -216,6 +234,7 @@ def export_and_quantize():
         "onnx_size_mb": round(onnx_path.stat().st_size / 1e6, 1),
         "q8_size_mb": round(q8_path.stat().st_size / 1e6, 1),
         "vocab_tokens": len(vocab),
+        "metadata_path": str(metadata_path),
     }
 
 
@@ -248,8 +267,10 @@ def main(
     if not no_download:
         print("\n=== Downloading files ===")
         files = [
+            (f"{EXPORT_DIR}/fastconformer_phoneme.onnx", "fastconformer_phoneme.onnx"),
             (f"{EXPORT_DIR}/fastconformer_phoneme_q8.onnx", "fastconformer_phoneme_q8.onnx"),
             (f"{EXPORT_DIR}/phoneme_vocab.json", "phoneme_vocab.json"),
+            (f"{EXPORT_DIR}/export_metadata.json", "export_metadata.json"),
         ]
         for remote_path, local_name in files:
             print(f"Downloading {local_name}...")
