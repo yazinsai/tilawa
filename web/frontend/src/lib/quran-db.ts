@@ -1,33 +1,7 @@
-import { ratio } from "./levenshtein";
+import { ratio, fragmentScore } from "./levenshtein";
 import type { QuranVerse } from "./types";
 
 const _BSM_PHONEMES_JOINED = "bismi allahi arraHmaani arraHiimi";
-
-function fastPartialRatio(short: string, long: string): number {
-  if (!short || !long) return 0.0;
-  if (short.length > long.length) [short, long] = [long, short];
-  const window = short.length;
-  const maxI = Math.max(0, long.length - window);
-  if (maxI === 0) return ratio(short, long);
-
-  // Coarse pass: step by ~10% of window size
-  const step = Math.max(3, Math.floor(window / 10));
-  let best = 0.0;
-  let bestI = 0;
-  for (let i = 0; i <= maxI; i += step) {
-    const r = ratio(short, long.slice(i, i + window));
-    if (r > best) { best = r; bestI = i; }
-    if (best >= 0.92) return best;
-  }
-  // Refine: search around best position at single-char resolution
-  const refStart = Math.max(0, bestI - step);
-  const refEnd = Math.min(maxI, bestI + step);
-  for (let i = refStart; i <= refEnd; i++) {
-    const r = ratio(short, long.slice(i, i + window));
-    if (r > best) best = r;
-  }
-  return best;
-}
 
 export function partialRatio(short: string, long: string): number {
   if (!short || !long) return 0.0;
@@ -70,6 +44,12 @@ export class QuranDB {
       } else {
         v.phonemes_joined_no_bsm = null;
       }
+
+      // Pre-compute no-space versions for fragment scoring
+      v.phonemes_joined_ns = v.phonemes_joined.replace(/ /g, "");
+      v.phonemes_joined_no_bsm_ns = v.phonemes_joined_no_bsm
+        ? v.phonemes_joined_no_bsm.replace(/ /g, "")
+        : null;
     }
   }
 
@@ -165,14 +145,24 @@ export class QuranDB {
     if (!text.trim()) return null;
 
     const bonuses = this._continuationBonuses(hint);
+    const noSpaceText = text.replace(/ /g, "");
 
-    // Pass 1: score all single verses (with continuation bonus)
+    // Pass 1: score all single verses (ratio + fragment score + continuation bonus)
     const scored: [QuranVerse, number, number, number][] = [];
     for (const v of this.verses) {
       let raw = ratio(text, v.phonemes_joined);
       // Also try matching without the bismillah prefix for verse 1s
       if (v.phonemes_joined_no_bsm) {
         raw = Math.max(raw, ratio(text, v.phonemes_joined_no_bsm));
+      }
+      // Fragment score: directional matching for partial transcripts.
+      // Only when transcript is significantly shorter than verse (< 80%),
+      // since ratio() is unbiased for near-equal lengths.
+      if (noSpaceText.length < v.phonemes_joined_ns!.length * 0.8) {
+        raw = Math.max(raw, fragmentScore(noSpaceText, v.phonemes_joined_ns!));
+        if (v.phonemes_joined_no_bsm_ns) {
+          raw = Math.max(raw, fragmentScore(noSpaceText, v.phonemes_joined_no_bsm_ns));
+        }
       }
       const bonus = bonuses.get(`${v.surah}:${v.ayah}`) ?? 0.0;
       // For continuation candidates, also try suffix-prefix matching
@@ -183,33 +173,6 @@ export class QuranDB {
       scored.push([v, raw, bonus, Math.min(raw + bonus, 1.0)]);
     }
     scored.sort((a, b) => b[3] - a[3]);
-
-    // Pass 1.5: re-score medium/long verses with partial matching (character-level)
-    // ratio() penalizes length mismatches; partial scoring fixes this.
-    // - 20+ word verses: always re-score (ratio() is wrong for partial transcripts)
-    // - 15-19 word verses: only re-score when hint is set (rediscovery after stale)
-    const noSpaceText = text.replace(/ /g, "");
-    if (noSpaceText.length >= 10) {
-      let resorted = false;
-      for (let i = 0; i < scored.length; i++) {
-        const [v, raw, bonus] = scored[i];
-        const wc = v.phoneme_words.length;
-        if (wc < 15 || (!hint && wc < 20)) continue;
-        const nsVerse = v.phonemes_joined.replace(/ /g, "");
-        if (noSpaceText.length >= nsVerse.length * 0.8) continue;
-        let spanRaw = fastPartialRatio(noSpaceText, nsVerse);
-        if (v.phonemes_joined_no_bsm) {
-          const nsNoBsm = v.phonemes_joined_no_bsm.replace(/ /g, "");
-          spanRaw = Math.max(spanRaw, fastPartialRatio(noSpaceText, nsNoBsm));
-        }
-        const effectiveRaw = Math.max(raw, spanRaw * 0.85);
-        if (effectiveRaw > raw) {
-          scored[i] = [v, effectiveRaw, bonus, Math.min(effectiveRaw + bonus, 1.0)];
-          resorted = true;
-        }
-      }
-      if (resorted) scored.sort((a, b) => b[3] - a[3]);
-    }
 
     const [bestV, bestRaw, bestBonus, bestScoreInit] = scored[0];
     let bestScore = bestScoreInit;
