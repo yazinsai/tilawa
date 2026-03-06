@@ -1,5 +1,5 @@
 import { ratio as levRatio } from "./levenshtein";
-import { scoreCtcCandidates, chooseLongestStablePrefix } from "./ctc-rescore";
+import { scoreCtcSequence, scoreCtcCandidates, chooseLongestStablePrefix } from "./ctc-rescore";
 import { QuranDB, partialRatio, type QuranCandidate } from "./quran-db";
 import { computeCorrection } from "./correction";
 import type { AcousticEvidence } from "./ctc-rescore";
@@ -28,6 +28,8 @@ import {
   TRACKING_WEAK_COMMIT_CONFIDENCE,
   UTTERANCE_FINAL_SILENCE_SAMPLES,
   NON_CONTINUATION_JUMP_THRESHOLD,
+  ADVANCE_RELATIVE_MARGIN,
+  ADVANCE_PREFIX_TOKENS,
 } from "./types";
 
 export interface TranscribeResult {
@@ -188,6 +190,7 @@ export class RecitationTracker {
   private trackingProgressEstablished = false;
   private staleCycles = 0;
   private cyclesSinceCommit = Infinity;
+  private lastTrackingResult: TranscribeResult | null = null;
 
   constructor(
     private db: QuranDB,
@@ -257,6 +260,7 @@ export class RecitationTracker {
     this.newAudioCount = 0;
 
     const result = await this.transcribe(this.utteranceAudio.slice());
+    this.lastTrackingResult = result;
     const text = result.text.trim();
     if (!text && !finalFlush) {
       return messages;
@@ -346,35 +350,66 @@ export class RecitationTracker {
         this.trackingVerse.surah,
         this.trackingVerse.ayah,
       ];
+      const currentIds = this.trackingVerse.phoneme_token_ids ?? [];
       this.lastEmittedRef = currentRef;
       this.lastEmittedText = this.trackingVerse.phonemes_joined;
       const nextVerse = this.db.getNextVerse(currentRef[0], currentRef[1]);
       this._exitTracking("verse complete");
 
       if (nextVerse) {
-        messages.push({
-          type: "verse_match",
-          surah: nextVerse.surah,
-          ayah: nextVerse.ayah,
-          verse_text: nextVerse.text_uthmani,
-          surah_name: nextVerse.surah_name,
-          confidence: 0.99,
-          surrounding_verses: getSurroundingVerses(
-            this.db,
-            nextVerse.surah,
-            nextVerse.ayah,
-          ),
-        });
-        this.prevEmittedRef = currentRef;
-        this.prevEmittedText = this.lastEmittedText;
-        this.lastEmittedRef = [nextVerse.surah, nextVerse.ayah];
-        this.lastEmittedText = nextVerse.phonemes_joined;
-        this.lastCommitEvidence = {
-          confidence: 0.99,
-          acousticMargin: 1,
-          strong: true,
-        };
-        this._enterTracking(nextVerse);
+        let advanceOk = true; // default: advance (preserves behavior when no acoustic data)
+
+        const acoustic = this.lastTrackingResult?.acoustic;
+        const nextIds = nextVerse.phoneme_token_ids ?? [];
+
+        if (acoustic && currentIds.length > 0 && nextIds.length > 0) {
+          // Relative evidence gate: compare current verse suffix vs next verse prefix
+          // Both use ~ADVANCE_PREFIX_TOKENS tokens for comparable normalization
+          const n = ADVANCE_PREFIX_TOKENS;
+          const suffixIds = currentIds.slice(-Math.min(n, currentIds.length));
+          const prefixIds = nextIds.slice(0, Math.min(n, nextIds.length));
+
+          const suffixScore = scoreCtcSequence(acoustic, suffixIds);
+          const prefixScore = scoreCtcSequence(acoustic, prefixIds);
+
+          // Both must be finite (feasible). If suffix is infeasible, audio is bad — block.
+          // If prefix is infeasible, next verse isn't in the audio at all — block.
+          if (
+            !Number.isFinite(suffixScore) ||
+            !Number.isFinite(prefixScore)
+          ) {
+            advanceOk = false;
+          } else {
+            advanceOk = (prefixScore - suffixScore) < ADVANCE_RELATIVE_MARGIN;
+          }
+        }
+
+        if (advanceOk) {
+          messages.push({
+            type: "verse_match",
+            surah: nextVerse.surah,
+            ayah: nextVerse.ayah,
+            verse_text: nextVerse.text_uthmani,
+            surah_name: nextVerse.surah_name,
+            confidence: 0.99,
+            surrounding_verses: getSurroundingVerses(
+              this.db,
+              nextVerse.surah,
+              nextVerse.ayah,
+            ),
+          });
+          this.prevEmittedRef = currentRef;
+          this.prevEmittedText = this.lastEmittedText;
+          this.lastEmittedRef = [nextVerse.surah, nextVerse.ayah];
+          this.lastEmittedText = nextVerse.phonemes_joined;
+          this.lastCommitEvidence = {
+            confidence: 0.99,
+            acousticMargin: 1,
+            strong: true,
+          };
+          this._enterTracking(nextVerse);
+        }
+        // If !advanceOk, we already exited tracking — falls through to rediscovery
       }
 
       this._retainTailAfterCommit();
@@ -730,6 +765,7 @@ export class RecitationTracker {
     this.trackingLastWordIdx = -1;
     this.trackingProgressEstablished = false;
     this.staleCycles = 0;
+    this.lastTrackingResult = null;
   }
 
   private _rollbackWeakCommit(reason: string): void {

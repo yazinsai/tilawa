@@ -129,3 +129,5 @@ export const STALE_CYCLE_LIMIT = 4;
 export const LOOKAHEAD = 5;
 export const TRACKING_PREFIX_TOLERANCE = 0.12;
 export const TRACKING_WEAK_COMMIT_CONFIDENCE = 0.6;
+export const ADVANCE_RELATIVE_MARGIN = 3.0;
+export const ADVANCE_PREFIX_TOKENS = 15;
