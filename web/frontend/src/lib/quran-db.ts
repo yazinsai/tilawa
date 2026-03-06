@@ -1,33 +1,7 @@
-import { ratio } from "./levenshtein";
+import { ratio, fragmentScore } from "./levenshtein";
 import type { QuranVerse } from "./types";
 
 const _BSM_PHONEMES_JOINED = "bismi allahi arraHmaani arraHiimi";
-
-function fastPartialRatio(short: string, long: string): number {
-  if (!short || !long) return 0.0;
-  if (short.length > long.length) [short, long] = [long, short];
-  const window = short.length;
-  const maxI = Math.max(0, long.length - window);
-  if (maxI === 0) return ratio(short, long);
-
-  // Coarse pass: step by ~10% of window size
-  const step = Math.max(3, Math.floor(window / 10));
-  let best = 0.0;
-  let bestI = 0;
-  for (let i = 0; i <= maxI; i += step) {
-    const r = ratio(short, long.slice(i, i + window));
-    if (r > best) { best = r; bestI = i; }
-    if (best >= 0.92) return best;
-  }
-  // Refine: search around best position at single-char resolution
-  const refStart = Math.max(0, bestI - step);
-  const refEnd = Math.min(maxI, bestI + step);
-  for (let i = refStart; i <= refEnd; i++) {
-    const r = ratio(short, long.slice(i, i + window));
-    if (r > best) best = r;
-  }
-  return best;
-}
 
 export function partialRatio(short: string, long: string): number {
   if (!short || !long) return 0.0;
@@ -70,6 +44,12 @@ export class QuranDB {
       } else {
         v.phonemes_joined_no_bsm = null;
       }
+
+      // Pre-compute no-space versions for fragment scoring
+      v.phonemes_joined_ns = v.phonemes_joined.replace(/ /g, "");
+      v.phonemes_joined_no_bsm_ns = v.phonemes_joined_no_bsm
+        ? v.phonemes_joined_no_bsm.replace(/ /g, "")
+        : null;
     }
   }
 
@@ -165,17 +145,16 @@ export class QuranDB {
     if (!text.trim()) return null;
 
     const bonuses = this._continuationBonuses(hint);
+    const noSpaceText = text.replace(/ /g, "");
 
-    // Pass 1: score all single verses (with continuation bonus)
+    // Pass 1: score all single verses with ratio() + continuation bonus
     const scored: [QuranVerse, number, number, number][] = [];
     for (const v of this.verses) {
       let raw = ratio(text, v.phonemes_joined);
-      // Also try matching without the bismillah prefix for verse 1s
       if (v.phonemes_joined_no_bsm) {
         raw = Math.max(raw, ratio(text, v.phonemes_joined_no_bsm));
       }
       const bonus = bonuses.get(`${v.surah}:${v.ayah}`) ?? 0.0;
-      // For continuation candidates, also try suffix-prefix matching
       if (bonus > 0) {
         const sp = QuranDB._suffixPrefixScore(text, v.phonemes_joined);
         raw = Math.max(raw, sp);
@@ -184,27 +163,31 @@ export class QuranDB {
     }
     scored.sort((a, b) => b[3] - a[3]);
 
-    // Pass 1.5: re-score medium/long verses with partial matching (character-level)
-    // ratio() penalizes length mismatches; partial scoring fixes this.
-    // - 20+ word verses: always re-score (ratio() is wrong for partial transcripts)
-    // - 15-19 word verses: only re-score when hint is set (rediscovery after stale)
-    const noSpaceText = text.replace(/ /g, "");
-    if (noSpaceText.length >= 10) {
+    // Save top-20 surahs from ratio-only ranking for Pass 2 surah selection.
+    // This prevents fragmentScore from polluting which surahs get span-checked.
+    const pass2Surahs = new Set<number>();
+    for (let idx = 0; idx < Math.min(scored.length, 20); idx++) {
+      pass2Surahs.add(scored[idx][0].surah);
+    }
+
+    // Pass 1.5: boost scores with fragmentScore (directional matching).
+    // fragmentScore asks "how much of the transcript does this verse explain?"
+    // Used as a BOOST (not replacement) to avoid ranking pollution:
+    //   boosted = ratio + (fragmentScore - ratio) * 0.7
+    // This lifts correct long verses above same-length wrong ones, but can't
+    // let random long verses completely hijack the ranking.
+    if (noSpaceText.length >= 8) {
       let resorted = false;
       for (let i = 0; i < scored.length; i++) {
         const [v, raw, bonus] = scored[i];
-        const wc = v.phoneme_words.length;
-        if (wc < 15 || (!hint && wc < 20)) continue;
-        const nsVerse = v.phonemes_joined.replace(/ /g, "");
-        if (noSpaceText.length >= nsVerse.length * 0.8) continue;
-        let spanRaw = fastPartialRatio(noSpaceText, nsVerse);
-        if (v.phonemes_joined_no_bsm) {
-          const nsNoBsm = v.phonemes_joined_no_bsm.replace(/ /g, "");
-          spanRaw = Math.max(spanRaw, fastPartialRatio(noSpaceText, nsNoBsm));
+        if (noSpaceText.length >= v.phonemes_joined_ns!.length * 0.8) continue;
+        let frag = fragmentScore(noSpaceText, v.phonemes_joined_ns!);
+        if (v.phonemes_joined_no_bsm_ns) {
+          frag = Math.max(frag, fragmentScore(noSpaceText, v.phonemes_joined_no_bsm_ns));
         }
-        const effectiveRaw = Math.max(raw, spanRaw * 0.85);
-        if (effectiveRaw > raw) {
-          scored[i] = [v, effectiveRaw, bonus, Math.min(effectiveRaw + bonus, 1.0)];
+        if (frag > raw) {
+          const boosted = raw + (frag - raw) * 0.7;
+          scored[i] = [v, boosted, bonus, Math.min(boosted + bonus, 1.0)];
           resorted = true;
         }
       }
@@ -232,14 +215,9 @@ export class QuranDB {
         phonemes_joined: v.phonemes_joined.slice(0, 60),
       }));
 
-    // Pass 2: try multi-ayah spans around top 20 candidates
-    const seenSurahs = new Set<number>();
-    for (let idx = 0; idx < Math.min(scored.length, 20); idx++) {
-      const [v] = scored[idx];
-      const s = v.surah;
-      if (seenSurahs.has(s)) continue;
-      seenSurahs.add(s);
-
+    // Pass 2: try multi-ayah spans in surahs from ratio-only top-20
+    // (using pass2Surahs to avoid fragmentScore pollution)
+    for (const s of pass2Surahs) {
       const verses = this._bySurah.get(s)!;
       for (let i = 0; i < verses.length; i++) {
         for (let span = 2; span <= maxSpan; span++) {

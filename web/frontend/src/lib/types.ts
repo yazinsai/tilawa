@@ -76,6 +76,8 @@ export interface QuranVerse {
   phonemes: string;
   phonemes_joined: string;
   phonemes_joined_no_bsm?: string | null;
+  phonemes_joined_ns?: string;              // no-space version (pre-computed)
+  phonemes_joined_no_bsm_ns?: string | null; // no-space no-bismillah (pre-computed)
   phoneme_words: string[];
 }
 
