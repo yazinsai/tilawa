@@ -585,7 +585,10 @@ export class RecitationTracker {
         }
       }
 
-      if (!effectivelyBlocked && (clearMargin || repeatedLeader)) {
+      // On final flush, commit if score is above threshold (no repeat needed)
+      const finalFlushCommit = finalFlush && effectiveMatch.score >= threshold;
+
+      if (!effectivelyBlocked && (clearMargin || repeatedLeader || finalFlushCommit)) {
         const ref: [number, number] = [effectiveMatch.surah, effectiveMatch.ayah];
         if (
           this.lastEmittedRef &&
