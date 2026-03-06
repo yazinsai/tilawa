@@ -214,7 +214,12 @@ export class QuranDB {
           const combined = [firstText]
             .concat(chunk.slice(1).map((c) => c.phonemes_joined))
             .join(" ");
-          const raw = ratio(text, combined);
+          let raw = ratio(text, combined);
+          // Fragment score for spans too
+          const nsCombined = combined.replace(/ /g, "");
+          if (noSpaceText.length < nsCombined.length * 0.8) {
+            raw = Math.max(raw, fragmentScore(noSpaceText, nsCombined));
+          }
           const bonus =
             bonuses.get(`${chunk[0].surah}:${chunk[0].ayah}`) ?? 0.0;
           const score = Math.min(raw + bonus, 1.0);
