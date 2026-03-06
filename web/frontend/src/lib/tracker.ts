@@ -27,6 +27,7 @@ import {
   TRACKING_PREFIX_TOLERANCE,
   TRACKING_WEAK_COMMIT_CONFIDENCE,
   UTTERANCE_FINAL_SILENCE_SAMPLES,
+  NON_CONTINUATION_JUMP_THRESHOLD,
 } from "./types";
 
 export interface TranscribeResult {
@@ -186,6 +187,7 @@ export class RecitationTracker {
   private trackingLastWordIdx = -1;
   private trackingProgressEstablished = false;
   private staleCycles = 0;
+  private cyclesSinceCommit = Infinity;
 
   constructor(
     private db: QuranDB,
@@ -395,6 +397,7 @@ export class RecitationTracker {
 
     if (!finalFlush && this.newAudioCount < TRIGGER_SAMPLES) return messages;
     this.newAudioCount = 0;
+    this.cyclesSinceCommit++;
 
     const result = await this.transcribe(this.utteranceAudio.slice());
     const text = result.text.trim();
@@ -484,7 +487,20 @@ export class RecitationTracker {
       const repeatedLeader =
         (this.pendingLeader?.count ?? 0) >= DISCOVERY_REPEAT_CYCLES;
 
-      if (clearMargin || repeatedLeader) {
+      // Anti-cascade: shortly after a commit, require higher score for
+      // non-continuation jumps to prevent false positives
+      let effectivelyBlocked = false;
+      if (
+        !isContinuation &&
+        this.lastEmittedRef &&
+        this.cyclesSinceCommit <= 2
+      ) {
+        if (match.score < NON_CONTINUATION_JUMP_THRESHOLD && !repeatedLeader) {
+          effectivelyBlocked = true;
+        }
+      }
+
+      if (!effectivelyBlocked && (clearMargin || repeatedLeader)) {
         const ref: [number, number] = [match.surah, match.ayah];
         if (
           this.lastEmittedRef &&
@@ -533,6 +549,7 @@ export class RecitationTracker {
             clearMargin,
         };
         this.pendingLeader = null;
+        this.cyclesSinceCommit = 0;
 
         this._emitDiagnostic({
           type: "commit",
