@@ -32,6 +32,7 @@ import {
   ADVANCE_PREFIX_TOKENS,
   ACOUSTIC_OVERRIDE_TEXT_THRESHOLD,
   ACOUSTIC_OVERRIDE_MIN_MARGIN,
+  DISCOVERY_EXPANDED_CANDIDATES,
 } from "./types";
 
 export interface TranscribeResult {
@@ -476,11 +477,16 @@ export class RecitationTracker {
       this.lastEmittedRef,
       5,
     );
+    // Expand candidate set when text match is unreliable
+    const textConfidenceLow = !match || match.score < ACOUSTIC_OVERRIDE_TEXT_THRESHOLD;
+    const singleLimit = textConfidenceLow
+      ? DISCOVERY_EXPANDED_CANDIDATES
+      : DISCOVERY_TOP_SINGLE_CANDIDATES;
     const retrieved = this.db.retrieveCandidates(text, {
       maxSpan: DISCOVERY_MAX_SPAN,
       hint: this.lastEmittedRef,
-      singleLimit: DISCOVERY_TOP_SINGLE_CANDIDATES,
-      topSurahs: DISCOVERY_TOP_SURAHS,
+      singleLimit,
+      topSurahs: textConfidenceLow ? 10 : DISCOVERY_TOP_SURAHS,
       spanLimit: DISCOVERY_TOP_SINGLE_CANDIDATES,
     });
     const ranked = this._rankCandidates(retrieved.combined, result);
