@@ -140,7 +140,10 @@ async function main() {
       const result = await transcribe(audio);
       const match = db.matchVerse(result.text, 0.25, 4, null, 0);
       if (match && match.score >= 0.45) {
-        discoveredVerses.push({ surah: match.surah, ayah: match.ayah });
+        const ayahEnd = match.ayah_end ?? match.ayah;
+        for (let a = match.ayah; a <= ayahEnd; a++) {
+          discoveredVerses.push({ surah: match.surah, ayah: a });
+        }
       }
     } else {
       // Streaming: feed chunks through RecitationTracker

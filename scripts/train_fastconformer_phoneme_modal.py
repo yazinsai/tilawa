@@ -621,8 +621,8 @@ def prepare_data(
                 }
                 line = json.dumps(row, ensure_ascii=False) + "\n"
 
-                # Deterministic split: idx % 10 == 0 → validation
-                if idx % 10 == 0:
+                # Deterministic split: idx % 50 == 0 → validation (2%)
+                if idx % 50 == 0:
                     val_mf.write(line)
                     retasy_meta["retasy_val_written"] += 1
                 else:
@@ -652,7 +652,7 @@ def prepare_data(
     verse_phoneme_map = _build_verse_phoneme_map("/quran_data")
 
     # Default TLOG cap: 30% of clean train count (larger than RetaSy since mapping is reliable)
-    effective_tlog_cap = max_tlog_samples if max_tlog_samples > 0 else int(iqra_train_count * 0.3)
+    effective_tlog_cap = max_tlog_samples if max_tlog_samples > 0 else int(iqra_train_count * 0.75)
 
     tlog_meta = {
         "total_seen": 0,
@@ -736,8 +736,8 @@ def prepare_data(
                 }
                 line = json.dumps(row, ensure_ascii=False) + "\n"
 
-                # Deterministic split: idx % 10 == 0 → validation
-                if idx % 10 == 0:
+                # Deterministic split: idx % 50 == 0 → validation (2%)
+                if idx % 50 == 0:
                     val_mf.write(line)
                     tlog_meta["tlog_val_written"] += 1
                 else:

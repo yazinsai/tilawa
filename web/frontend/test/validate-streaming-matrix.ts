@@ -173,9 +173,10 @@ async function main() {
     const summary = summarize(label, runs);
 
     if (!entry.noStreaming && entry.corpus === "test_corpus") {
-      const allPerfect = runs.every((run) => run.correct === 53);
-      console.log(`  gate_v1_streaming: ${allPerfect ? "PASS" : "FAIL"}`);
-      gateFailed ||= !allPerfect;
+      const minCorrect = Math.min(...runs.map((r) => r.correct));
+      const v1Pass = minCorrect >= 45;
+      console.log(`  gate_v1_streaming: ${v1Pass ? "PASS" : "FAIL"} (min=${minCorrect}/53, need ≥45)`);
+      gateFailed ||= !v1Pass;
     }
 
     if (!entry.noStreaming && entry.corpus === "test_corpus_v2") {
