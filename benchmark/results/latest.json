@@ -378,6 +378,20 @@
     "source_file": "2026-03-01_170330.json"
   },
   {
+    "name": "quran-aligner-base/base",
+    "recall": 0.9056603773584906,
+    "precision": 0.9056603773584906,
+    "sequence_accuracy": 0.9056603773584906,
+    "total": 53,
+    "avg_latency": 3.7211593860188517,
+    "model_size": 406847488,
+    "timestamp": "2026-03-05_154432",
+    "mode": "full",
+    "category": null,
+    "chunk_seconds": null,
+    "source_file": "2026-03-05_154432.json"
+  },
+  {
     "name": "rabah-pruned-ctc/12-layer-ft-es-int8",
     "recall": 0.7345679012345678,
     "precision": 0.7407407407407407,
@@ -992,6 +1006,62 @@
     "category": "short",
     "chunk_seconds": null,
     "source_file": "2026-02-26_222155.json"
+  },
+  {
+    "name": "w2v-phonemes/base-int8",
+    "recall": 0.8837209302325582,
+    "precision": 0.8837209302325582,
+    "sequence_accuracy": 0.8837209302325582,
+    "total": 43,
+    "avg_latency": 5.544163811325551,
+    "model_size": 121634816,
+    "timestamp": "2026-03-07_160337",
+    "mode": "full",
+    "category": null,
+    "chunk_seconds": null,
+    "source_file": "2026-03-07_160337.json"
+  },
+  {
+    "name": "w2v-phonemes/base-int8",
+    "recall": 0.8867924528301887,
+    "precision": 0.8867924528301887,
+    "sequence_accuracy": 0.8867924528301887,
+    "total": 53,
+    "avg_latency": 2.8553021627170514,
+    "model_size": 121634816,
+    "timestamp": "2026-03-07_154644",
+    "mode": "full",
+    "category": null,
+    "chunk_seconds": null,
+    "source_file": "2026-03-07_154644.json"
+  },
+  {
+    "name": "w2v-phonemes/large-int8",
+    "recall": 0.9534883720930233,
+    "precision": 0.9534883720930233,
+    "sequence_accuracy": 0.9534883720930233,
+    "total": 43,
+    "avg_latency": 21.92034376865125,
+    "model_size": 1017118720,
+    "timestamp": "2026-03-07_162338",
+    "mode": "full",
+    "category": null,
+    "chunk_seconds": null,
+    "source_file": "2026-03-07_162338.json"
+  },
+  {
+    "name": "w2v-phonemes/large-int8",
+    "recall": 1.0,
+    "precision": 1.0,
+    "sequence_accuracy": 1.0,
+    "total": 53,
+    "avg_latency": 11.476452813773564,
+    "model_size": 1017118720,
+    "timestamp": "2026-03-07_154044",
+    "mode": "full",
+    "category": null,
+    "chunk_seconds": null,
+    "source_file": "2026-03-07_154044.json"
   },
   {
     "name": "whisper-lora",

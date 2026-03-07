@@ -13,6 +13,9 @@
           "surah": 3,
           "ayah": 23
         }
+      ],
+      "also_accept": [
+        [{"surah": 4, "ayah": 44}]
       ]
     },
     {
