@@ -335,6 +335,7 @@ def prepare_data(
     force_rebuild: bool = False,
     max_retasy_samples: int = 0,
     max_tlog_samples: int = 0,
+    max_tlog_per_verse: int = 5,
 ):
     import io
     import soundfile as sf
@@ -677,7 +678,7 @@ def prepare_data(
         tlog_written_total = 0
         # Track per-verse counts to limit oversampling (max 5 per verse)
         verse_counts: dict[tuple[int, int], int] = {}
-        MAX_PER_VERSE = 5
+        MAX_PER_VERSE = max_tlog_per_verse
 
         with train_manifest.open("a", encoding="utf-8") as train_mf, \
              val_manifest.open("a", encoding="utf-8") as val_mf:
@@ -1478,6 +1479,7 @@ def main(
     enable_augmentation: bool = True,
     max_retasy_samples: int = 0,
     max_tlog_samples: int = 0,
+    max_tlog_per_verse: int = 5,
     download_only: bool = False,
     download_after_train: bool = False,
     prepare_only: bool = False,
@@ -1516,6 +1518,7 @@ def main(
             force_rebuild=force_rebuild_data,
             max_retasy_samples=max_retasy_samples,
             max_tlog_samples=max_tlog_samples,
+            max_tlog_per_verse=max_tlog_per_verse,
         )
 
     if filter_tlog:
