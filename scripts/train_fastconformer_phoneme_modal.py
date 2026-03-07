@@ -1413,8 +1413,11 @@ def filter_tlog_quality(
     # Write filtered manifest (backup original first)
     # ------------------------------------------------------------------
     backup_path = base / "manifests" / "train_manifest_unfiltered.jsonl"
-    shutil.copy2(manifest_path, backup_path)
-    print(f"Backed up original manifest to {backup_path}")
+    try:
+        shutil.copy2(manifest_path, backup_path)
+        print(f"Backed up original manifest to {backup_path}")
+    except OSError:
+        print("WARNING: Could not backup manifest (disk space). Proceeding anyway.")
 
     with manifest_path.open("w", encoding="utf-8") as f:
         for line in other_entries:
