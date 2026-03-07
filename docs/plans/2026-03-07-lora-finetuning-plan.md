@@ -1,5 +1,9 @@
 # LoRA Fine-Tuning Plan — Phoneme CTC Model
 
+> Status: superseded on 2026-03-07 by `docs/plans/2026-03-07-fastconformer-phoneme-training-design.md`.
+>
+> Reason: the repository's real training and export path is full CTC-only FastConformer phoneme fine-tuning (`scripts/train_fastconformer_phoneme_modal.py` and `scripts/export_phoneme_onnx_modal.py`), not a production-ready LoRA adapter workflow for NeMo FastConformer.
+
 > **Goal:** Fine-tune `nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0` with LoRA to fix the ~20 model-quality failures that algorithms can't address. Target: 95%+ combined streaming accuracy (91/96).
 
 ## Why Fine-Tuning Is Required
