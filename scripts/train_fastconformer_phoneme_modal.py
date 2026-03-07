@@ -79,7 +79,7 @@ prepare_image = (
 # ---------------------------------------------------------------------------
 # Phoneme vocabulary (69 tokens, CTC blank added by model)
 # ---------------------------------------------------------------------------
-# CTC blank is index 0 (NeMo convention).  The blank token is handled
+# CTC blank is the last index (69).  The blank token is handled
 # internally by NeMo; this list defines the output label set.
 PHONEME_VOCAB = [
     # Vowels (12)
@@ -1335,6 +1335,10 @@ def filter_tlog_quality(
             audio_data, sr = sf.read(entry["audio_filepath"], dtype="float32")
             if len(audio_data.shape) > 1:
                 audio_data = audio_data[:, 0]
+            # Resample to 16kHz if needed (TLOG files may be at original rate)
+            if sr != 16000:
+                import librosa
+                audio_data = librosa.resample(audio_data, orig_sr=sr, target_sr=16000)
             t = torch.tensor(audio_data, dtype=torch.float32)
             signals.append(t)
             lengths.append(t.shape[0])
