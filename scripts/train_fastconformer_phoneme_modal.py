@@ -1177,6 +1177,259 @@ def train(
 
 
 # ---------------------------------------------------------------------------
+# TLOG quality filter (inference-based)
+# ---------------------------------------------------------------------------
+
+def _levenshtein_ratio_tokens(a: list[str], b: list[str]) -> float:
+    """Token-level levenshtein similarity ratio."""
+    if not a and not b:
+        return 1.0
+    la, lb = len(a), len(b)
+    if la == 0 or lb == 0:
+        return 0.0
+    if la > lb:
+        a, b = b, a
+        la, lb = lb, la
+    prev = list(range(la + 1))
+    for j in range(1, lb + 1):
+        curr = [j] + [0] * la
+        for i in range(1, la + 1):
+            cost = 0 if a[i - 1] == b[j - 1] else 1
+            curr[i] = min(prev[i] + 1, curr[i - 1] + 1, prev[i - 1] + cost)
+        prev = curr
+    return 1.0 - prev[la] / max(la, lb)
+
+
+@app.function(
+    image=image,
+    gpu="A10G",
+    cpu=4,
+    timeout=60 * 60 * 6,
+    volumes={"/training": vol},
+)
+def filter_tlog_quality(
+    output_name: str,
+    model_source: str = "fastconformer-phoneme-v2",
+    min_ratio: float = 0.3,
+    batch_size: int = 16,
+):
+    """Run CTC inference on TLOG samples and filter by phoneme match quality.
+
+    Uses an existing trained checkpoint to score each TLOG sample against its
+    expected phoneme string.  Samples below min_ratio are removed from the
+    training manifest.  A quality report is saved for Tarteel review.
+    """
+    import os
+    import shutil
+    import tarfile
+    import tempfile
+
+    import soundfile as sf
+    import torch
+
+    _install_kaldialign_fallback()
+    import nemo.collections.asr as nemo_asr
+
+    vol.reload()
+
+    # ------------------------------------------------------------------
+    # Load model (same pattern as export script)
+    # ------------------------------------------------------------------
+    checkpoint_path = f"/training/{model_source}/model/model.nemo"
+    if not os.path.exists(checkpoint_path):
+        raise FileNotFoundError(
+            f"Model checkpoint not found: {checkpoint_path}. "
+            f"Run training for {model_source} first."
+        )
+
+    print(f"Loading base model: {BASE_MODEL_ID}")
+    model = nemo_asr.models.ASRModel.from_pretrained(BASE_MODEL_ID)
+    model = model.cuda()
+
+    # Replace CTC head with phoneme vocab
+    vocab_size = len(PHONEME_VOCAB) + 1
+    old_decoder = model.ctc_decoder
+    if hasattr(old_decoder, "decoder_layers") and len(old_decoder.decoder_layers) > 0:
+        last_layer = old_decoder.decoder_layers[-1]
+        in_features = getattr(last_layer, "in_channels", getattr(last_layer, "in_features", 512))
+        old_decoder.decoder_layers[-1] = torch.nn.Conv1d(in_features, vocab_size, kernel_size=1).cuda()
+    else:
+        in_features = model.cfg.encoder.get("d_model", 512)
+        model.ctc_decoder = torch.nn.Linear(in_features, vocab_size).cuda()
+
+    # Load trained weights
+    with tempfile.TemporaryDirectory() as tmpdir:
+        try:
+            with tarfile.open(checkpoint_path, "r:gz") as tar:
+                tar.extractall(tmpdir)
+        except tarfile.ReadError:
+            with tarfile.open(checkpoint_path, "r:") as tar:
+                tar.extractall(tmpdir)
+
+        weights_path = Path(tmpdir) / "model_weights.ckpt"
+        if not weights_path.exists():
+            for p in Path(tmpdir).rglob("*.ckpt"):
+                weights_path = p
+                break
+
+        state_dict = torch.load(weights_path, map_location="cuda")
+        missing, unexpected = model.load_state_dict(state_dict, strict=False)
+        print(f"Loaded checkpoint: {len(missing)} missing, {len(unexpected)} unexpected keys")
+
+    model.eval()
+    blank_id = len(PHONEME_VOCAB)  # 69
+
+    # ------------------------------------------------------------------
+    # Read manifest and separate TLOG vs non-TLOG entries
+    # ------------------------------------------------------------------
+    base = Path(f"/training/{output_name}")
+    manifest_path = base / "manifests" / "train_manifest.jsonl"
+    if not manifest_path.exists():
+        raise FileNotFoundError(f"Training manifest not found: {manifest_path}")
+
+    tlog_entries: list[dict] = []
+    other_entries: list[str] = []
+
+    with manifest_path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            entry = json.loads(line)
+            if "/tlog/" in entry.get("audio_filepath", ""):
+                tlog_entries.append(entry)
+            else:
+                other_entries.append(line)
+
+    print(f"Manifest: {len(other_entries)} non-TLOG, {len(tlog_entries)} TLOG samples")
+
+    if not tlog_entries:
+        print("No TLOG samples found in manifest. Nothing to filter.")
+        return {}
+
+    # ------------------------------------------------------------------
+    # Run inference in batches
+    # ------------------------------------------------------------------
+    results: list[dict] = []
+    kept_lines: list[str] = []
+    ratio_buckets = {f"{i/10:.1f}-{(i+1)/10:.1f}": 0 for i in range(10)}
+    stats = {"total": len(tlog_entries), "good": 0, "uncertain": 0, "bad": 0}
+
+    for batch_start in range(0, len(tlog_entries), batch_size):
+        batch_entries = tlog_entries[batch_start : batch_start + batch_size]
+        signals = []
+        lengths = []
+
+        for entry in batch_entries:
+            audio_data, sr = sf.read(entry["audio_filepath"], dtype="float32")
+            if len(audio_data.shape) > 1:
+                audio_data = audio_data[:, 0]
+            t = torch.tensor(audio_data, dtype=torch.float32)
+            signals.append(t)
+            lengths.append(t.shape[0])
+
+        # Pad to max length in batch
+        max_len = max(lengths)
+        padded = torch.zeros(len(signals), max_len)
+        for i, sig in enumerate(signals):
+            padded[i, : sig.shape[0]] = sig
+        signal_lens = torch.tensor(lengths, dtype=torch.int64)
+
+        with torch.no_grad():
+            padded = padded.cuda()
+            signal_lens = signal_lens.cuda()
+            encoded, encoded_len = model.forward(
+                input_signal=padded, input_signal_length=signal_lens,
+            )
+            log_probs = model.ctc_decoder(encoder_output=encoded)
+            # log_probs: [B, T, V] or [B, V, T] depending on decoder type
+            if log_probs.shape[-1] != vocab_size:
+                log_probs = log_probs.transpose(1, 2)  # [B, T, V]
+
+        for i, entry in enumerate(batch_entries):
+            # CTC greedy decode
+            probs_i = log_probs[i, : encoded_len[i].item()]  # [T, V]
+            ids = probs_i.argmax(dim=-1).cpu().tolist()  # [T]
+            decoded_ids = []
+            prev = -1
+            for t in ids:
+                if t != prev and t != blank_id:
+                    decoded_ids.append(t)
+                prev = t
+            decoded_tokens = [PHONEME_VOCAB[idx] for idx in decoded_ids if idx < len(PHONEME_VOCAB)]
+            expected_tokens = entry["text"].split()
+
+            ratio = _levenshtein_ratio_tokens(decoded_tokens, expected_tokens)
+
+            # Classify
+            bucket_idx = min(int(ratio * 10), 9)
+            bucket_key = f"{bucket_idx/10:.1f}-{(bucket_idx+1)/10:.1f}"
+            ratio_buckets[bucket_key] += 1
+
+            if ratio >= 0.5:
+                status = "good"
+                stats["good"] += 1
+                kept_lines.append(json.dumps(entry, ensure_ascii=False))
+            elif ratio >= min_ratio:
+                status = "uncertain"
+                stats["uncertain"] += 1
+                kept_lines.append(json.dumps(entry, ensure_ascii=False))
+            else:
+                status = "bad"
+                stats["bad"] += 1
+                # Not added to kept_lines
+
+            results.append({
+                "filepath": entry["audio_filepath"],
+                "ratio": round(ratio, 4),
+                "status": status,
+                "decoded": " ".join(decoded_tokens[:20]),  # truncate for report
+                "expected": " ".join(expected_tokens[:20]),
+            })
+
+        processed = batch_start + len(batch_entries)
+        if processed % (batch_size * 10) == 0 or processed == len(tlog_entries):
+            print(
+                f"[filter] {processed}/{len(tlog_entries)} "
+                f"good={stats['good']} uncertain={stats['uncertain']} bad={stats['bad']}"
+            )
+
+    # ------------------------------------------------------------------
+    # Write filtered manifest (backup original first)
+    # ------------------------------------------------------------------
+    backup_path = base / "manifests" / "train_manifest_unfiltered.jsonl"
+    shutil.copy2(manifest_path, backup_path)
+    print(f"Backed up original manifest to {backup_path}")
+
+    with manifest_path.open("w", encoding="utf-8") as f:
+        for line in other_entries:
+            f.write(line + "\n")
+        for line in kept_lines:
+            f.write(line + "\n")
+
+    print(f"Filtered manifest: {len(other_entries) + len(kept_lines)} samples "
+          f"(removed {stats['bad']} bad TLOG samples)")
+
+    # ------------------------------------------------------------------
+    # Write quality report
+    # ------------------------------------------------------------------
+    report = {
+        "model_source": model_source,
+        "min_ratio_threshold": min_ratio,
+        "summary": stats,
+        "ratio_distribution": ratio_buckets,
+        "bad_samples": [r for r in results if r["status"] == "bad"],
+        "uncertain_samples": [r for r in results if r["status"] == "uncertain"],
+    }
+    report_path = base / "manifests" / "tlog_quality_report.json"
+    report_path.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+    print(f"Quality report: {report_path}")
+
+    vol.commit()
+    return stats
+
+
+# ---------------------------------------------------------------------------
 # download_model
 # ---------------------------------------------------------------------------
 
@@ -1228,6 +1481,9 @@ def main(
     download_after_train: bool = False,
     prepare_only: bool = False,
     train_only: bool = False,
+    filter_tlog: bool = False,
+    filter_model_source: str = "fastconformer-phoneme-v2",
+    filter_min_ratio: float = 0.3,
 ):
     local_out_dir = Path("data") / output_name
 
@@ -1260,6 +1516,15 @@ def main(
             max_retasy_samples=max_retasy_samples,
             max_tlog_samples=max_tlog_samples,
         )
+
+    if filter_tlog:
+        print("\nFiltering TLOG samples by inference quality...")
+        filter_stats = filter_tlog_quality.remote(
+            output_name=output_name,
+            model_source=filter_model_source,
+            min_ratio=filter_min_ratio,
+        )
+        print(f"Filter results: {filter_stats}")
 
     if prepare_only:
         print("\nData preparation complete. Skipping training (--prepare-only).")
