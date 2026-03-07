@@ -378,20 +378,6 @@
     "source_file": "2026-03-01_170330.json"
   },
   {
-    "name": "quran-aligner-base/base",
-    "recall": 0.9056603773584906,
-    "precision": 0.9056603773584906,
-    "sequence_accuracy": 0.9056603773584906,
-    "total": 53,
-    "avg_latency": 3.7211593860188517,
-    "model_size": 406847488,
-    "timestamp": "2026-03-05_154432",
-    "mode": "full",
-    "category": null,
-    "chunk_seconds": null,
-    "source_file": "2026-03-05_154432.json"
-  },
-  {
     "name": "rabah-pruned-ctc/12-layer-ft-es-int8",
     "recall": 0.7345679012345678,
     "precision": 0.7407407407407407,
