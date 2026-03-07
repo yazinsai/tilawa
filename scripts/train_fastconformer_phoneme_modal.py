@@ -65,6 +65,7 @@ IQRA_TRAIN_DATASET = "IqraEval/Iqra_train"
 IQRA_TTS_DATASET = "IqraEval/Iqra_TTS"
 RETASY_DATASET_ID = "RetaSy/quranic_audio_dataset"
 BAD_RETASY_LABELS = {"in_correct", "not_related_quran", "not_match_aya"}
+TLOG_DATASET_ID = "tarteel-ai/tlog"
 
 # Image with quran data files for RetaSy phoneme mapping
 _repo_root = Path(__file__).resolve().parent.parent
@@ -304,6 +305,17 @@ def _build_quran_phoneme_lookup(quran_data_dir: str = "/quran_data") -> dict[str
     return lookup
 
 
+def _build_verse_phoneme_map(quran_data_dir: str = "/quran_data") -> dict[tuple[int, int], str]:
+    """Build (surah, ayah) → phoneme_string lookup for TLOG mapping."""
+    data_dir = Path(quran_data_dir)
+    phonemes = json.loads((data_dir / "quran_phonemes.json").read_text(encoding="utf-8"))
+    phoneme_map: dict[tuple[int, int], str] = {}
+    for entry in phonemes:
+        phoneme_map[(int(entry["surah"]), int(entry["ayah"]))] = entry["phonemes"]
+    print(f"Verse phoneme map: {len(phoneme_map)} entries")
+    return phoneme_map
+
+
 # ---------------------------------------------------------------------------
 # prepare_data
 # ---------------------------------------------------------------------------
@@ -321,6 +333,7 @@ def prepare_data(
     max_duration: float = 30.0,
     force_rebuild: bool = False,
     max_retasy_samples: int = 0,
+    max_tlog_samples: int = 0,
 ):
     import io
     import soundfile as sf
@@ -634,12 +647,132 @@ def prepare_data(
     print(f"RetaSy: {json.dumps(retasy_meta, indent=2)}")
 
     # ------------------------------------------------------------------
+    # 4) TLOG (Tarteel app recordings, mapped via surah:ayah filenames)
+    # ------------------------------------------------------------------
+    verse_phoneme_map = _build_verse_phoneme_map("/quran_data")
+
+    # Default TLOG cap: 30% of clean train count (larger than RetaSy since mapping is reliable)
+    effective_tlog_cap = max_tlog_samples if max_tlog_samples > 0 else int(iqra_train_count * 0.3)
+
+    tlog_meta = {
+        "total_seen": 0,
+        "mapped": 0,
+        "unmapped": 0,
+        "filtered_duration": 0,
+        "filtered_unclean": 0,
+        "tlog_train_written": 0,
+        "tlog_val_written": 0,
+        "effective_cap": effective_tlog_cap,
+        "verses_seen": 0,
+    }
+
+    (audio_root / "tlog").mkdir(parents=True, exist_ok=True)
+
+    print(f"Loading {TLOG_DATASET_ID} clean split (cap={effective_tlog_cap})...")
+    try:
+        tlog_ds = load_dataset(TLOG_DATASET_ID, split="clean", streaming=True)
+        tlog_ds = tlog_ds.cast_column("audio", Audio(sampling_rate=16000, decode=False))
+
+        tlog_written_total = 0
+        # Track per-verse counts to limit oversampling (max 5 per verse)
+        verse_counts: dict[tuple[int, int], int] = {}
+        MAX_PER_VERSE = 5
+
+        with train_manifest.open("a", encoding="utf-8") as train_mf, \
+             val_manifest.open("a", encoding="utf-8") as val_mf:
+            for idx, sample in enumerate(tlog_ds):
+                if tlog_written_total >= effective_tlog_cap:
+                    break
+
+                tlog_meta["total_seen"] += 1
+
+                # Skip unclean samples
+                if not sample.get("is_clean", True):
+                    tlog_meta["filtered_unclean"] += 1
+                    continue
+
+                # Extract surah:ayah from audio filename (pattern: {surah}_{ayah}_{id}.flac)
+                audio_obj = sample.get("audio", {})
+                audio_path = audio_obj.get("path", "") if isinstance(audio_obj, dict) else ""
+                parts = audio_path.split("_")
+                if len(parts) < 3:
+                    tlog_meta["unmapped"] += 1
+                    continue
+
+                try:
+                    surah = int(parts[0])
+                    ayah = int(parts[1])
+                except (ValueError, IndexError):
+                    tlog_meta["unmapped"] += 1
+                    continue
+
+                verse_key = (surah, ayah)
+                phoneme_str = verse_phoneme_map.get(verse_key)
+                if phoneme_str is None:
+                    tlog_meta["unmapped"] += 1
+                    continue
+
+                tlog_meta["mapped"] += 1
+
+                # Limit per-verse to maintain diversity
+                current_count = verse_counts.get(verse_key, 0)
+                if current_count >= MAX_PER_VERSE:
+                    continue
+                verse_counts[verse_key] = current_count + 1
+
+                out_file = audio_root / "tlog" / f"tlog_{idx:09d}.wav"
+                measured = write_audio(sample["audio"], out_file)
+                effective_duration = measured
+
+                if effective_duration <= 0 or effective_duration < min_duration or effective_duration > max_duration:
+                    tlog_meta["filtered_duration"] += 1
+                    out_file.unlink(missing_ok=True)
+                    continue
+
+                row = {
+                    "audio_filepath": str(out_file),
+                    "duration": round(float(effective_duration), 4),
+                    "text": _safe_text(phoneme_str),
+                }
+                line = json.dumps(row, ensure_ascii=False) + "\n"
+
+                # Deterministic split: idx % 10 == 0 → validation
+                if idx % 10 == 0:
+                    val_mf.write(line)
+                    tlog_meta["tlog_val_written"] += 1
+                else:
+                    train_mf.write(line)
+                    tlog_meta["tlog_train_written"] += 1
+
+                tlog_written_total += 1
+
+                if tlog_written_total % 2000 == 0:
+                    print(
+                        f"[tlog] written={tlog_written_total:,} "
+                        f"(train={tlog_meta['tlog_train_written']:,} "
+                        f"val={tlog_meta['tlog_val_written']:,}) "
+                        f"verses={len(verse_counts):,} "
+                        f"unmapped={tlog_meta['unmapped']:,}"
+                    )
+
+        tlog_meta["verses_seen"] = len(verse_counts)
+
+    except Exception as exc:
+        print(f"Warning: failed to load {TLOG_DATASET_ID}: {exc}")
+        import traceback
+        traceback.print_exc()
+        print("Continuing without TLOG data.")
+
+    print(f"TLOG: {json.dumps(tlog_meta, indent=2)}")
+
+    # ------------------------------------------------------------------
     # Save metadata
     # ------------------------------------------------------------------
     metadata = {
         "iqra_train_dataset": IQRA_TRAIN_DATASET,
         "iqra_tts_dataset": IQRA_TTS_DATASET,
         "retasy_dataset": RETASY_DATASET_ID,
+        "tlog_dataset": TLOG_DATASET_ID,
         "phoneme_vocab_size": len(PHONEME_VOCAB),
         "min_duration": min_duration,
         "max_duration": max_duration,
@@ -647,6 +780,7 @@ def prepare_data(
         "iqra_val": val_stats.__dict__,
         "iqra_tts": tts_stats.__dict__,
         "retasy": retasy_meta,
+        "tlog": tlog_meta,
         "train_manifest": str(train_manifest),
         "val_manifest": str(val_manifest),
     }
@@ -1089,6 +1223,7 @@ def main(
     early_stopping_patience: int = 6,
     enable_augmentation: bool = True,
     max_retasy_samples: int = 0,
+    max_tlog_samples: int = 0,
     download_only: bool = False,
     download_after_train: bool = False,
     prepare_only: bool = False,
@@ -1123,6 +1258,7 @@ def main(
             max_duration=max_duration,
             force_rebuild=force_rebuild_data,
             max_retasy_samples=max_retasy_samples,
+            max_tlog_samples=max_tlog_samples,
         )
 
     if prepare_only:
