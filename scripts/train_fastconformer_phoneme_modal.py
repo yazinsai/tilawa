@@ -326,6 +326,7 @@ def _build_verse_phoneme_map(quran_data_dir: str = "/quran_data") -> dict[tuple[
     memory=32768,
     timeout=60 * 60 * 10,
     volumes={"/training": vol},
+    secrets=[modal.Secret.from_name("huggingface")],
 )
 def prepare_data(
     output_name: str = "fastconformer-phoneme-v2",
@@ -1464,7 +1465,7 @@ def main(
     min_duration: float = 0.3,
     max_duration: float = 30.0,
     force_rebuild_data: bool = False,
-    train_batch_size: int = 16,
+    train_batch_size: int = 32,
     grad_accum: int = 2,
     max_steps: int = 8000,
     learning_rate: float = 1e-4,
