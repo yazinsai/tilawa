@@ -166,6 +166,14 @@ Use **Modal** (modal.com) for GPU training jobs. Training scripts live in `scrip
 modal run --detach scripts/train_xxx_modal.py
 ```
 
+### Modal Training Lessons
+
+- **Set `cpu=8` on GPU functions.** Modal defaults to minimal CPUs. Without enough cores, `num_workers` data loaders can't keep the GPU fed and utilization drops to ~20%.
+- **Size batch to fill GPU memory.** A100-80GB can handle `batch_size=32+` for FastConformer. `batch_size=16` only uses ~20GB VRAM — wasteful.
+- **`modal.Mount` was removed in Modal 1.0+.** Use `image.add_local_file()` / `image.add_local_dir()` instead.
+- **Never `add_local_dir` on large directories.** The `data/` dir is 23GB of models/checkpoints. Mount only the specific files needed (e.g. two 1.4MB JSON files).
+- **Use `--detach` for long runs.** Local connections drop on jobs longer than a few minutes.
+
 ## Python Environment
 
 Always use `.venv/bin/python` — the system Python lacks project dependencies.
