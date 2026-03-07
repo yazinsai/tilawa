@@ -36,9 +36,6 @@ image = (
 vol = modal.Volume.from_name("fastconformer-phoneme-training", create_if_missing=True)
 
 BASE_MODEL_ID = "nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0"
-CHECKPOINT_PATH = "/vol/fastconformer-phoneme-v1/model/model.nemo"
-EXPORT_DIR = "/vol/export"
-
 PHONEME_VOCAB = [
     # Vowels (12)
     "a", "u", "i", "A", "U", "I", "aa", "uu", "ii", "AA", "UU", "II",
@@ -103,7 +100,7 @@ def _install_kaldialign_fallback() -> None:
     timeout=1800,
     volumes={"/vol": vol},
 )
-def export_and_quantize():
+def export_and_quantize(output_name: str = "fastconformer-phoneme-v2"):
     """Export the fine-tuned phoneme model to ONNX and quantize to uint8."""
     import os
     import tarfile
@@ -117,15 +114,13 @@ def export_and_quantize():
 
     vol.reload()
 
-    out_dir = Path(EXPORT_DIR)
+    checkpoint_path = f"/vol/{output_name}/model/model.nemo"
+    out_dir = Path(f"/vol/{output_name}/export")
     out_dir.mkdir(parents=True, exist_ok=True)
     onnx_path = out_dir / "fastconformer_phoneme.onnx"
     q8_path = out_dir / "fastconformer_phoneme_q8.onnx"
     vocab_path = out_dir / "phoneme_vocab.json"
     metadata_path = out_dir / "export_metadata.json"
-
-    # Find checkpoint
-    checkpoint_path = CHECKPOINT_PATH
     if not os.path.exists(checkpoint_path):
         # Try listing what's available on the entire volume
         print("Checkpoint not at expected path, searching volume...")
@@ -222,6 +217,16 @@ def export_and_quantize():
             {"name": "q8", "path": str(q8_path), "size_bytes": q8_path.stat().st_size},
         ],
     }
+    metadata["output_name"] = output_name
+    # Embed training metadata if available
+    training_meta_path = Path(f"/vol/{output_name}/model/training_metadata.json")
+    if training_meta_path.exists():
+        try:
+            training_meta = json.loads(training_meta_path.read_text(encoding="utf-8"))
+            metadata["training_metadata"] = training_meta
+        except Exception:
+            pass
+
     with open(metadata_path, "w", encoding="utf-8") as f:
         json.dump(metadata, f, ensure_ascii=False, indent=2)
     print(f"Metadata:   {metadata_path}")
@@ -252,6 +257,7 @@ def read_file(path: str) -> bytes:
 
 @app.local_entrypoint()
 def main(
+    output_name: str = "fastconformer-phoneme-v2",
     no_download: bool = False,
     download_only: bool = False,
 ):
@@ -260,17 +266,18 @@ def main(
 
     if not download_only:
         print("=== Exporting and quantizing on Modal ===")
-        result = export_and_quantize.remote()
+        result = export_and_quantize.remote(output_name=output_name)
         print(f"\nExport results: {result}")
 
     # Download files
     if not no_download:
         print("\n=== Downloading files ===")
+        export_dir = f"/vol/{output_name}/export"
         files = [
-            (f"{EXPORT_DIR}/fastconformer_phoneme.onnx", "fastconformer_phoneme.onnx"),
-            (f"{EXPORT_DIR}/fastconformer_phoneme_q8.onnx", "fastconformer_phoneme_q8.onnx"),
-            (f"{EXPORT_DIR}/phoneme_vocab.json", "phoneme_vocab.json"),
-            (f"{EXPORT_DIR}/export_metadata.json", "export_metadata.json"),
+            (f"{export_dir}/fastconformer_phoneme.onnx", "fastconformer_phoneme.onnx"),
+            (f"{export_dir}/fastconformer_phoneme_q8.onnx", "fastconformer_phoneme_q8.onnx"),
+            (f"{export_dir}/phoneme_vocab.json", "phoneme_vocab.json"),
+            (f"{export_dir}/export_metadata.json", "export_metadata.json"),
         ]
         for remote_path, local_name in files:
             print(f"Downloading {local_name}...")

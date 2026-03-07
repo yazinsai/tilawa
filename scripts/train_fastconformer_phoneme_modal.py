@@ -63,6 +63,17 @@ vol = modal.Volume.from_name("fastconformer-phoneme-training", create_if_missing
 BASE_MODEL_ID = "nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0"
 IQRA_TRAIN_DATASET = "IqraEval/Iqra_train"
 IQRA_TTS_DATASET = "IqraEval/Iqra_TTS"
+RETASY_DATASET_ID = "RetaSy/quranic_audio_dataset"
+BAD_RETASY_LABELS = {"in_correct", "not_related_quran", "not_match_aya"}
+
+# Image with quran data files for RetaSy phoneme mapping
+_repo_root = Path(__file__).resolve().parent.parent
+prepare_image = (
+    image
+    .add_local_file(str(_repo_root / "data" / "quran.json"), remote_path="/quran_data/quran.json")
+    .add_local_file(str(_repo_root / "data" / "quran_phonemes.json"), remote_path="/quran_data/quran_phonemes.json")
+    .add_local_file(str(_repo_root / "shared" / "normalizer.py"), remote_path="/quran_data/normalizer.py")
+)
 
 # ---------------------------------------------------------------------------
 # Phoneme vocabulary (69 tokens, CTC blank added by model)
@@ -217,6 +228,26 @@ def _enable_ctc_only_training_step(model) -> None:
         pass
 
 
+def _enable_ctc_only_validation_step(model) -> None:
+    """Patch NeMo hybrid model to use CTC-only validation."""
+    import torch
+
+    def _ctc_validation_step(self, batch, batch_nb, dataloader_idx=0):
+        signal, signal_len, transcript, transcript_len = batch
+        encoded, encoded_len = self.forward(input_signal=signal, input_signal_length=signal_len)
+        log_probs = self.ctc_decoder(encoder_output=encoded)
+        ctc_loss = self.ctc_loss(
+            log_probs=log_probs,
+            targets=transcript,
+            input_lengths=encoded_len,
+            target_lengths=transcript_len,
+        )
+        self.log("val_loss", ctc_loss, prog_bar=True, sync_dist=True)
+        return {"val_loss": ctc_loss}
+
+    model.validation_step = types.MethodType(_ctc_validation_step, model)
+
+
 def _safe_text(text: str) -> str:
     """Normalize whitespace in a phoneme string."""
     text = (text or "").strip()
@@ -231,12 +262,54 @@ class BuildStats:
     bytes_written: int = 0
 
 
+def _build_quran_phoneme_lookup(quran_data_dir: str = "/quran_data") -> dict[str, str | None]:
+    """Build normalized_text → phoneme_string lookup from quran data.
+
+    Returns dict where value is phoneme string if unique mapping,
+    or None if multiple distinct phoneme strings map to the same normalized text.
+    """
+    import sys
+    sys.path.insert(0, quran_data_dir)
+    from normalizer import normalize_arabic
+
+    data_dir = Path(quran_data_dir)
+    quran = json.loads((data_dir / "quran.json").read_text(encoding="utf-8"))
+    phonemes = json.loads((data_dir / "quran_phonemes.json").read_text(encoding="utf-8"))
+
+    # Build (surah, ayah) → phoneme_string
+    phoneme_map: dict[tuple[int, int], str] = {}
+    for entry in phonemes:
+        key = (int(entry["surah"]), int(entry["ayah"]))
+        phoneme_map[key] = entry["phonemes"]
+
+    # Build normalized_text → phoneme_string, marking ambiguous entries
+    lookup: dict[str, str | None] = {}
+    ambiguous_count = 0
+    for verse in quran:
+        key = (int(verse["surah"]), int(verse["ayah"]))
+        ph = phoneme_map.get(key)
+        if ph is None:
+            continue
+        norm = normalize_arabic(verse.get("text_clean", ""))
+        if not norm:
+            continue
+        if norm in lookup:
+            if lookup[norm] is not None and lookup[norm] != ph:
+                lookup[norm] = None  # ambiguous
+                ambiguous_count += 1
+        else:
+            lookup[norm] = ph
+
+    print(f"Quran phoneme lookup: {len(lookup)} entries, {ambiguous_count} ambiguous")
+    return lookup
+
+
 # ---------------------------------------------------------------------------
 # prepare_data
 # ---------------------------------------------------------------------------
 
 @app.function(
-    image=image,
+    image=prepare_image,
     cpu=8,
     memory=32768,
     timeout=60 * 60 * 10,
@@ -247,6 +320,7 @@ def prepare_data(
     min_duration: float = 0.3,
     max_duration: float = 30.0,
     force_rebuild: bool = False,
+    max_retasy_samples: int = 0,
 ):
     import io
     import soundfile as sf
@@ -447,17 +521,132 @@ def prepare_data(
     )
 
     # ------------------------------------------------------------------
+    # 3) RetaSy noisy-domain blend (mapped to canonical verse phonemes)
+    # ------------------------------------------------------------------
+    import sys
+    sys.path.insert(0, "/quran_data")
+    from normalizer import normalize_arabic
+
+    phoneme_lookup = _build_quran_phoneme_lookup("/quran_data")
+
+    # Default RetaSy cap: 20% of clean train count
+    iqra_train_count = train_stats.written + tts_stats.written
+    effective_retasy_cap = max_retasy_samples if max_retasy_samples > 0 else int(iqra_train_count * 0.2)
+
+    retasy_meta = {
+        "total_seen": 0,
+        "filtered_bad_label": 0,
+        "filtered_duration": 0,
+        "mapped": 0,
+        "unmapped": 0,
+        "ambiguous": 0,
+        "skipped_empty": 0,
+        "retasy_train_written": 0,
+        "retasy_val_written": 0,
+        "effective_cap": effective_retasy_cap,
+    }
+
+    (audio_root / "retasy").mkdir(parents=True, exist_ok=True)
+
+    print(f"Loading {RETASY_DATASET_ID} (cap={effective_retasy_cap})...")
+    try:
+        retasy_ds = load_dataset(RETASY_DATASET_ID, split="train")
+        retasy_ds = retasy_ds.cast_column("audio", Audio(sampling_rate=16000, decode=False))
+
+        retasy_written_total = 0
+        with train_manifest.open("a", encoding="utf-8") as train_mf, \
+             val_manifest.open("a", encoding="utf-8") as val_mf:
+            for idx, sample in enumerate(retasy_ds):
+                if retasy_written_total >= effective_retasy_cap:
+                    break
+
+                retasy_meta["total_seen"] += 1
+
+                label = sample.get("final_label")
+                if label in BAD_RETASY_LABELS:
+                    retasy_meta["filtered_bad_label"] += 1
+                    continue
+
+                aya_text = (sample.get("Aya") or "").strip()
+                if not aya_text:
+                    retasy_meta["skipped_empty"] += 1
+                    continue
+
+                norm_text = normalize_arabic(aya_text)
+                phoneme_str = phoneme_lookup.get(norm_text)
+                if norm_text not in phoneme_lookup:
+                    retasy_meta["unmapped"] += 1
+                    continue
+                if phoneme_str is None:
+                    retasy_meta["ambiguous"] += 1
+                    continue
+
+                retasy_meta["mapped"] += 1
+
+                duration = float(sample.get("duration_ms", 0)) / 1000.0
+                if duration <= 0:
+                    duration = -1.0
+                if duration > 0 and (duration < min_duration or duration > max_duration):
+                    retasy_meta["filtered_duration"] += 1
+                    continue
+
+                out_file = audio_root / "retasy" / f"retasy_{idx:09d}.wav"
+                measured = write_audio(sample["audio"], out_file)
+                effective_duration = duration if duration > 0 else measured
+                if effective_duration <= 0:
+                    effective_duration = measured
+
+                if effective_duration <= 0 or effective_duration < min_duration or effective_duration > max_duration:
+                    retasy_meta["filtered_duration"] += 1
+                    out_file.unlink(missing_ok=True)
+                    continue
+
+                row = {
+                    "audio_filepath": str(out_file),
+                    "duration": round(float(effective_duration), 4),
+                    "text": _safe_text(phoneme_str),
+                }
+                line = json.dumps(row, ensure_ascii=False) + "\n"
+
+                # Deterministic split: idx % 10 == 0 → validation
+                if idx % 10 == 0:
+                    val_mf.write(line)
+                    retasy_meta["retasy_val_written"] += 1
+                else:
+                    train_mf.write(line)
+                    retasy_meta["retasy_train_written"] += 1
+
+                retasy_written_total += 1
+
+                if retasy_written_total % 1000 == 0:
+                    print(
+                        f"[retasy] written={retasy_written_total:,} "
+                        f"(train={retasy_meta['retasy_train_written']:,} "
+                        f"val={retasy_meta['retasy_val_written']:,}) "
+                        f"unmapped={retasy_meta['unmapped']:,} "
+                        f"ambiguous={retasy_meta['ambiguous']:,}"
+                    )
+
+    except Exception as exc:
+        print(f"Warning: failed to load {RETASY_DATASET_ID}: {exc}")
+        print("Continuing without RetaSy data.")
+
+    print(f"RetaSy: {json.dumps(retasy_meta, indent=2)}")
+
+    # ------------------------------------------------------------------
     # Save metadata
     # ------------------------------------------------------------------
     metadata = {
         "iqra_train_dataset": IQRA_TRAIN_DATASET,
         "iqra_tts_dataset": IQRA_TTS_DATASET,
+        "retasy_dataset": RETASY_DATASET_ID,
         "phoneme_vocab_size": len(PHONEME_VOCAB),
         "min_duration": min_duration,
         "max_duration": max_duration,
         "iqra_train": train_stats.__dict__,
         "iqra_val": val_stats.__dict__,
         "iqra_tts": tts_stats.__dict__,
+        "retasy": retasy_meta,
         "train_manifest": str(train_manifest),
         "val_manifest": str(val_manifest),
     }
@@ -495,11 +684,12 @@ def train(
     val_check_interval: int = 250,
     num_workers: int = 8,
     early_stopping_patience: int = 6,
+    enable_augmentation: bool = True,
 ):
     import lightning.pytorch as pl
     import torch
     import torch.nn as nn
-    from lightning.pytorch.callbacks import EarlyStopping
+    from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
     from omegaconf import open_dict
 
     _install_kaldialign_fallback()
@@ -651,6 +841,7 @@ def train(
     # Enable CTC-only training (skip RNNT loss)
     # ------------------------------------------------------------------
     _enable_ctc_only_training_step(model)
+    _enable_ctc_only_validation_step(model)
     print("CTC-only finetune mode enabled (RNNT loss path disabled).")
 
     # ------------------------------------------------------------------
@@ -706,16 +897,30 @@ def train(
         model.cfg.train_ds.shuffle = True
         model.cfg.train_ds.num_workers = int(num_workers)
         model.cfg.train_ds.pin_memory = True
-        model.cfg.train_ds.max_duration = 15.0
+        model.cfg.train_ds.max_duration = 30.0
         model.cfg.train_ds.min_duration = 0.3
         model.cfg.train_ds.shuffle_n = 2048
         model.cfg.train_ds.use_start_end_token = False
+
+        # Augmentation (train only)
+        if enable_augmentation:
+            model.cfg.train_ds.augmentor = {
+                "speed": {"prob": 0.3, "sr": 16000, "resample_type": "kaiser_fast",
+                          "min_speed_rate": 0.9, "max_speed_rate": 1.1, "num_rates": 5},
+                "gain": {"prob": 0.3, "min_gain_dbfs": -10, "max_gain_dbfs": 5},
+                "white_noise": {"prob": 0.3, "min_level": -80, "max_level": -50},
+                "shift": {"prob": 0.2, "min_shift_ms": -200.0, "max_shift_ms": 200.0},
+                "silence": {"prob": 0.2, "min_start_silence_secs": 0.0, "max_start_silence_secs": 0.4,
+                             "min_end_silence_secs": 0.0, "max_end_silence_secs": 0.5},
+            }
 
         model.cfg.validation_ds.manifest_filepath = str(val_manifest)
         model.cfg.validation_ds.batch_size = int(train_batch_size)
         model.cfg.validation_ds.shuffle = False
         model.cfg.validation_ds.num_workers = int(num_workers)
         model.cfg.validation_ds.pin_memory = True
+        model.cfg.validation_ds.max_duration = 30.0
+        model.cfg.validation_ds.min_duration = 0.3
         model.cfg.validation_ds.use_start_end_token = False
 
         model.cfg.test_ds.manifest_filepath = str(val_manifest)
@@ -733,6 +938,18 @@ def train(
     # ------------------------------------------------------------------
     # Train
     # ------------------------------------------------------------------
+    checkpoints_dir.mkdir(parents=True, exist_ok=True)
+    checkpoint_callback = ModelCheckpoint(
+        dirpath=str(checkpoints_dir),
+        filename="phoneme-{step:06d}-{val_loss:.4f}",
+        monitor="val_loss",
+        mode="min",
+        save_top_k=5,
+        every_n_train_steps=int(val_check_interval),
+        save_last=True,
+        verbose=True,
+    )
+
     trainer = pl.Trainer(
         accelerator="gpu" if torch.cuda.is_available() else "cpu",
         devices=1,
@@ -744,7 +961,7 @@ def train(
         log_every_n_steps=20,
         num_sanity_val_steps=0,
         val_check_interval=int(val_check_interval),
-        limit_val_batches=0,
+        limit_val_batches=1.0,
         enable_checkpointing=True,
         enable_progress_bar=True,
         callbacks=[
@@ -754,11 +971,13 @@ def train(
                 mode="min",
                 verbose=True,
             ),
+            checkpoint_callback,
         ],
     )
 
     model.set_trainer(trainer)
     model.setup_training_data(model.cfg.train_ds)
+    model.setup_validation_data(model.cfg.validation_ds)
 
     print("\n" + "=" * 72)
     print("FastConformer Phoneme CTC fine-tune")
@@ -777,6 +996,11 @@ def train(
     print("=" * 72 + "\n")
 
     trainer.fit(model)
+
+    # Log best checkpoint
+    best_ckpt = checkpoint_callback.best_model_path
+    best_score = checkpoint_callback.best_model_score
+    print(f"Best checkpoint: {best_ckpt} (val_loss={best_score})")
 
     # ------------------------------------------------------------------
     # Save model
@@ -799,9 +1023,13 @@ def train(
         "freeze_encoder_layers": freeze_encoder_layers,
         "freeze_preprocessor": freeze_preprocessor,
         "early_stopping_patience": early_stopping_patience,
+        "enable_augmentation": enable_augmentation,
         "total_params": total_params,
         "trainable_params": trainable_params,
         "data_metadata_path": str(metadata_path),
+        "best_checkpoint": str(best_ckpt) if best_ckpt else None,
+        "best_val_loss": float(best_score) if best_score is not None else None,
+        "total_checkpoints_saved": len(checkpoint_callback.best_k_models),
     }
     (output_dir / "training_metadata.json").write_text(
         json.dumps(train_meta, indent=2, ensure_ascii=False),
@@ -858,6 +1086,8 @@ def main(
     val_check_interval: int = 250,
     num_workers: int = 8,
     early_stopping_patience: int = 6,
+    enable_augmentation: bool = True,
+    max_retasy_samples: int = 0,
     download_only: bool = False,
     download_after_train: bool = False,
     prepare_only: bool = False,
@@ -891,6 +1121,7 @@ def main(
             min_duration=min_duration,
             max_duration=max_duration,
             force_rebuild=force_rebuild_data,
+            max_retasy_samples=max_retasy_samples,
         )
 
     if prepare_only:
@@ -910,6 +1141,7 @@ def main(
         val_check_interval=val_check_interval,
         num_workers=num_workers,
         early_stopping_patience=early_stopping_patience,
+        enable_augmentation=enable_augmentation,
     )
 
     if not download_after_train:
