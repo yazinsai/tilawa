@@ -1211,7 +1211,7 @@ def _levenshtein_ratio_tokens(a: list[str], b: list[str]) -> float:
 )
 def filter_tlog_quality(
     output_name: str,
-    model_source: str = "fastconformer-phoneme-v2",
+    model_source: str = "fastconformer-phoneme-v3-retasy-aug-u8",
     min_ratio: float = 0.3,
     batch_size: int = 16,
 ):
@@ -1239,10 +1239,19 @@ def filter_tlog_quality(
     # ------------------------------------------------------------------
     checkpoint_path = f"/training/{model_source}/model/model.nemo"
     if not os.path.exists(checkpoint_path):
-        raise FileNotFoundError(
-            f"Model checkpoint not found: {checkpoint_path}. "
-            f"Run training for {model_source} first."
-        )
+        # Try to find any available checkpoint on the volume
+        vol_root = Path("/training")
+        available = sorted(vol_root.rglob("model.nemo")) if vol_root.exists() else []
+        if available:
+            checkpoint_path = str(available[0])
+            model_source = checkpoint_path.split("/training/")[1].split("/model/")[0]
+            print(f"Requested model not found, using: {checkpoint_path}")
+        else:
+            print(
+                f"WARNING: No trained model checkpoint found on volume. "
+                f"Skipping TLOG quality filter. Train will use unfiltered data."
+            )
+            return {"skipped": True, "reason": "no_checkpoint"}
 
     print(f"Loading base model: {BASE_MODEL_ID}")
     model = nemo_asr.models.ASRModel.from_pretrained(BASE_MODEL_ID)
@@ -1485,7 +1494,7 @@ def main(
     prepare_only: bool = False,
     train_only: bool = False,
     filter_tlog: bool = False,
-    filter_model_source: str = "fastconformer-phoneme-v2",
+    filter_model_source: str = "fastconformer-phoneme-v3-retasy-aug-u8",
     filter_min_ratio: float = 0.3,
 ):
     local_out_dir = Path("data") / output_name
