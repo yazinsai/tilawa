@@ -57,13 +57,13 @@ while true; do
     # 1. Agent proposes ONE change to train.py
     #    Writes hypothesis to file, edits train.py directly.
     #    No max-turns — agent runs until done (edits are fast).
-    #    --dangerously-skip-permissions avoids interactive prompts.
+    #    --allowedTools restricts to file ops only (no interactive prompts).
     echo "[1/5] Agent proposing change..."
     cp "$TRAIN_PY" "$TRAIN_PY.bak"
     rm -f "$HYPOTHESIS_FILE"
 
     cd "$SCRIPT_DIR"
-    timeout "$CLAUDE_TIMEOUT" claude --print --dangerously-skip-permissions -p "
+    timeout "$CLAUDE_TIMEOUT" claude --print --allowedTools "Read,Write,Edit,Bash,Glob,Grep" -p "
 You are an autonomous ML researcher optimizing a FastConformer phoneme CTC model.
 
 Read program.md for full context and rules. Read results.csv to see prior experiments.
