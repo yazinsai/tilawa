@@ -14,7 +14,7 @@ BEST_ACCURACY_FILE="$SCRIPT_DIR/.best_accuracy"
 ARTIFACTS_DIR="$SCRIPT_DIR/artifacts"
 CHECKPOINT_DIR="/tmp/autoresearch_checkpoints"
 PUBLIC_DIR="$REPO_DIR/web/frontend/public"
-CLAUDE_TIMEOUT=120  # 2 min max for agent to propose a change
+CLAUDE_TIMEOUT=300  # 5 min max for agent to propose a change
 
 # Activate venv
 source "$REPO_DIR/.venv/bin/activate"
@@ -70,7 +70,7 @@ while true; do
 
     cd "$SCRIPT_DIR"
     # Use script(1) to provide a pseudo-TTY (Claude Code requires one)
-    script -qc "timeout $CLAUDE_TIMEOUT claude --print --dangerously-skip-permissions -p '
+    script -qc "timeout $CLAUDE_TIMEOUT claude --print --dangerously-skip-permissions --max-turns 5 -p '
 You are an autonomous ML researcher optimizing a FastConformer phoneme CTC model.
 
 Read program.md for full context and rules. Read results.csv to see prior experiments.
