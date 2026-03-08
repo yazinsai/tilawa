@@ -104,6 +104,8 @@ def train():
         model.cfg.test_ds.pin_memory = True
         model.cfg.test_ds.use_start_end_token = False
 
+        model.cfg.tokenizer.dir = "/tmp"
+
         model.cfg.optim.lr = LEARNING_RATE
         model.cfg.optim.weight_decay = WEIGHT_DECAY
         if "sched" in model.cfg.optim and "warmup_steps" in model.cfg.optim.sched:
