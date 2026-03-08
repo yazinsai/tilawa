@@ -165,7 +165,7 @@ def train():
     best_ckpt = checkpoint_cb.best_model_path
     if best_ckpt and Path(best_ckpt).exists():
         import torch
-        ckpt = torch.load(best_ckpt, map_location="cuda")
+        ckpt = torch.load(best_ckpt, map_location="cuda", weights_only=False)
         model.load_state_dict(ckpt["state_dict"], strict=False)
         print(f"Reloaded best checkpoint: {best_ckpt}")
 
