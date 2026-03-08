@@ -226,20 +226,19 @@ Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-s
 
 ## Experiment summary
 
-| Experiment | Verdict | Size |
-|---|---|---|
-| **w2v-phonemes/large** | 100% recall but 970 MB + ~12s latency — too bulky/slow for real-time offline | 970 MB |
-| **nvidia-fastconformer** | Best balance of accuracy (87%), speed (0.3s), and size (115 MB) — current production pick | 115 MB |
-| **w2v-phonemes/base** | 89% recall at 116 MB — competitive with FastConformer but ~3-6s latency | 116 MB |
-| fastconformer-phoneme | 93% recall with phoneme matching but requires NeMo + extra deps | 436 MB |
-| fastconformer-ctc-rescore | No accuracy gain over FastConformer alone, just adds latency + size | 273 MB |
-| ctc-alignment | Strong 83% baseline but 1.2 GB model is 6x too large for mobile | 1.2 GB |
-| rabah-pruned-ctc | Pruning + fine-tuning recovers 72% at 145 MB but still trails top models | 145 MB |
-| two-stage | Good idea (ASR→CTC rescore) but blocked on finding a small CTC model | 1.3 GB |
-| tarteel-whisper-base | 72% recall from Tarteel's Whisper fine-tune — decent but not competitive | 290 MB |
-| distilled-ctc | Blocked: wav2vec2-base can't learn Arabic from English-only pretraining | 360 MB |
-| contrastive-v2 | Failed: wav2vec2-base produces useless Arabic features, 9% val accuracy | 900 MB |
-| embedding-search | 100% same-reciter, 0% cross-speaker — HuBERT encodes speaker not content | 397 MB |
+| Experiment | Recall | Latency | Size | Verdict |
+|---|---|---|---|---|
+| **w2v-phonemes/large** | 100% | ~12s | 970 MB | Perfect accuracy but too bulky/slow for real-time offline |
+| fastconformer-phoneme | 93% | 0.7s | 436 MB | Strong recall but requires NeMo + extra deps |
+| **w2v-phonemes/base** | 89% | ~3-6s | 116 MB | Competitive with FastConformer but 10x slower |
+| **nvidia-fastconformer** | 87% | 0.3s | 115 MB | Best balance of accuracy, speed, and size — production pick |
+| ctc-alignment | 83% | 3.2s | 1.2 GB | Strong baseline but 6x too large for mobile |
+| rabah-pruned-ctc | 74% | 7.0s | 145 MB | Pruning + fine-tuning works but still trails top models |
+| two-stage | 73% | 9.5s | 1.3 GB | Good idea (ASR→CTC rescore) but blocked on small CTC model |
+| tarteel-whisper-base | 72% | ~3s | 290 MB | Decent Whisper fine-tune but not competitive |
+| distilled-ctc | 28% | 3.4s | 360 MB | Blocked: wav2vec2-base can't learn Arabic |
+| contrastive-v2 | 0% | 0.1s | 900 MB | Failed: English encoder produces useless Arabic features |
+| embedding-search | 0% | 0.3s | 397 MB | 0% cross-speaker — HuBERT encodes speaker not content |
 
 ## Current results
 
