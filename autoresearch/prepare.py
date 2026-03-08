@@ -1042,6 +1042,14 @@ def evaluate_accuracy(checkpoint_path: str) -> tuple[int, int]:
         shutil.copy2(Path(tmpdir) / "phoneme_vocab.json", frontend_public / "phoneme_vocab.json")
         print(f"Copied q8 model and vocab to {frontend_public}")
 
+    # Fix onnxruntime-node version conflict: @huggingface/transformers bundles
+    # an older onnxruntime-node (1.21) that clashes with the top-level 1.24.
+    # Removing the nested copy forces Node to use the top-level one.
+    nested_ort = frontend_dir / "node_modules" / "@huggingface" / "transformers" / "node_modules" / "onnxruntime-node"
+    if nested_ort.exists():
+        shutil.rmtree(nested_ort)
+        print(f"Removed conflicting nested onnxruntime-node: {nested_ort}")
+
     # Run the non-streaming accuracy test
     print("Running accuracy test (non-streaming)...")
     result = subprocess.run(
@@ -1049,7 +1057,7 @@ def evaluate_accuracy(checkpoint_path: str) -> tuple[int, int]:
         cwd=str(frontend_dir),
         capture_output=True,
         text=True,
-        timeout=600,
+        timeout=1800,  # 96 test cases × ~30s each
     )
 
     stdout = result.stdout
