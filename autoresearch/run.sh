@@ -70,7 +70,7 @@ while true; do
 
     cd "$SCRIPT_DIR"
     # Use script(1) to provide a pseudo-TTY (Claude Code requires one)
-    script -qc "timeout $CLAUDE_TIMEOUT claude --print --dangerously-skip-permissions --max-turns 5 -p '
+    script -qc "timeout $CLAUDE_TIMEOUT claude --print --dangerously-skip-permissions --max-turns 10 -p '
 You are an autonomous ML researcher optimizing a FastConformer phoneme CTC model.
 
 Read program.md for full context and rules. Read results.csv to see prior experiments.
