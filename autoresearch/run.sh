@@ -69,7 +69,8 @@ while true; do
     rm -f "$HYPOTHESIS_FILE"
 
     cd "$SCRIPT_DIR"
-    timeout "$CLAUDE_TIMEOUT" claude --print --dangerously-skip-permissions -p "
+    # Use script(1) to provide a pseudo-TTY (Claude Code requires one)
+    script -qc "timeout $CLAUDE_TIMEOUT claude --print --dangerously-skip-permissions -p '
 You are an autonomous ML researcher optimizing a FastConformer phoneme CTC model.
 
 Read program.md for full context and rules. Read results.csv to see prior experiments.
@@ -80,7 +81,7 @@ Your task:
 2. Make ONE targeted change to train.py
 
 Do not change any other files. Do not run the training yourself.
-" > /tmp/autoresearch_claude_output.txt 2>&1 || true
+'" /dev/null > /tmp/autoresearch_claude_output.txt 2>&1 || true
 
     # Read hypothesis from file (agent writes it), fallback to first line of output
     if [[ -f "$HYPOTHESIS_FILE" ]]; then
