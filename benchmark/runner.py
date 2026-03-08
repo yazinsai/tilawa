@@ -43,6 +43,7 @@ EXPERIMENT_REGISTRY = {
     "fastconformer-nbest-bruteforce": EXPERIMENTS_DIR / "fastconformer-nbest-bruteforce" / "run.py",
     "contrastive-v2": EXPERIMENTS_DIR / "contrastive-v2" / "run.py",
     "fastconformer-phoneme": EXPERIMENTS_DIR / "fastconformer-phoneme" / "run.py",
+    "w2v-phonemes": EXPERIMENTS_DIR / "w2v-phonemes" / "run.py",
 }
 
 NEW_MODELS_PATH = EXPERIMENTS_DIR / "new-models" / "run.py"
@@ -243,6 +244,7 @@ def run_experiment(
         audio_path = str(CORPUS_DIR / sample["file"])
         expected = sample.get("expected_verses", [{"surah": sample["surah"], "ayah": sample["ayah"]}])
 
+        result = None
         try:
             start = time.perf_counter()
             if use_predict:
@@ -261,6 +263,11 @@ def run_experiment(
             elapsed = 0.0
 
         scores = score_sequence(expected, emissions)
+        for alt_expected in sample.get("also_accept", []):
+            alt_scores = score_sequence(alt_expected, emissions)
+            if alt_scores["sequence_accuracy"] > scores["sequence_accuracy"]:
+                scores = alt_scores
+                expected = alt_expected
         total_recall += scores["recall"]
         total_precision += scores["precision"]
         total_seq_acc += scores["sequence_accuracy"]
@@ -274,6 +281,7 @@ def run_experiment(
             "precision": scores["precision"],
             "sequence_accuracy": scores["sequence_accuracy"],
             "latency": elapsed,
+            "raw_predict": result if use_predict else None,
         })
 
     n = len(samples)
@@ -397,11 +405,19 @@ def main():
     parser = argparse.ArgumentParser(description="Benchmark all experiments (streaming)")
     parser.add_argument("--experiment", type=str, help="Run only this experiment")
     parser.add_argument("--category", type=str, help="Filter samples by category")
+    parser.add_argument("--corpus", type=str, default="test_corpus",
+                        help="Corpus directory name under benchmark/ (default: test_corpus)")
     parser.add_argument("--mode", type=str, default="full", choices=["full", "streaming"],
                         help="full = transcribe whole file; streaming = chunked audio")
     parser.add_argument("--chunk", type=float, default=3.0,
                         help="Chunk duration in seconds for streaming mode (default: 3.0)")
     args = parser.parse_args()
+
+    global CORPUS_DIR
+    CORPUS_DIR = Path(__file__).parent / args.corpus
+    if not CORPUS_DIR.exists():
+        print(f"Error: corpus directory not found: {CORPUS_DIR}")
+        return
 
     samples = load_manifest()
     if args.category:
