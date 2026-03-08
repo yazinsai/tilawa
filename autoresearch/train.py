@@ -97,6 +97,13 @@ def train():
         model.cfg.validation_ds.min_duration = 0.3
         model.cfg.validation_ds.use_start_end_token = False
 
+        model.cfg.test_ds.manifest_filepath = str(val_manifest)
+        model.cfg.test_ds.batch_size = TRAIN_BATCH_SIZE
+        model.cfg.test_ds.shuffle = False
+        model.cfg.test_ds.num_workers = NUM_WORKERS
+        model.cfg.test_ds.pin_memory = True
+        model.cfg.test_ds.use_start_end_token = False
+
         model.cfg.optim.lr = LEARNING_RATE
         model.cfg.optim.weight_decay = WEIGHT_DECAY
         if "sched" in model.cfg.optim and "warmup_steps" in model.cfg.optim.sched:
