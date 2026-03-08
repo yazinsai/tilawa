@@ -31,7 +31,7 @@ export IS_SANDBOX=1
 _restore_best_onnx() {
     # Find the latest promoted artifact dir
     local latest_artifact
-    latest_artifact=$(ls -d "$ARTIFACTS_DIR"/run-* 2>/dev/null | sort | tail -1)
+    latest_artifact=$(ls -d "$ARTIFACTS_DIR"/run-* 2>/dev/null | sort | tail -1 || true)
     if [[ -n "$latest_artifact" ]] && [[ -f "$latest_artifact/fastconformer_phoneme_q8.onnx" ]]; then
         cp "$latest_artifact/fastconformer_phoneme_q8.onnx" "$PUBLIC_DIR/" 2>/dev/null || true
         cp "$latest_artifact/phoneme_vocab.json" "$PUBLIC_DIR/" 2>/dev/null || true
