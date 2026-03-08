@@ -226,12 +226,27 @@ Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-s
 
 ## Experiment summary
 
+We're building for **real-time streaming** -- the user recites and sees verses identified live. Non-streaming (full-file) results are shown for reference but streaming is the metric that matters.
+
+### Streaming results (primary)
+
+Tested with the TypeScript streaming pipeline (`RecitationTracker` feeding 300ms chunks).
+
+| Experiment | v1 (53) | v2 (43) | Size | Verdict |
+|---|---|---|---|---|
+| **fastconformer-phoneme v4-tlog** | **27/53 (51%)** | **32/43 (74%)** | 131 MB | Current shipped model; streaming tracker needs work |
+| w2v-phonemes | — | — | 116-970 MB | Not yet tested in streaming mode |
+
+### Non-streaming results (full-file baseline)
+
+These use the Python benchmark runner (`benchmark/runner.py`) which transcribes the entire audio file at once.
+
 | Experiment | Recall | Latency | Size | Verdict |
 |---|---|---|---|---|
 | **w2v-phonemes/large** | 100% | ~12s | 970 MB | Perfect accuracy but too bulky/slow for real-time offline |
-| fastconformer-phoneme | 93% | 0.7s | 436 MB | Strong recall but requires NeMo + extra deps |
+| fastconformer-phoneme v4-tlog | 83% | 0.7s | 131 MB | Best model for streaming — needs tracker improvements |
 | **w2v-phonemes/base** | 89% | ~3-6s | 116 MB | Competitive with FastConformer but 10x slower |
-| **nvidia-fastconformer** | 87% | 0.3s | 115 MB | Best balance of accuracy, speed, and size — production pick |
+| **nvidia-fastconformer** | 87% | 0.3s | 115 MB | Best non-streaming balance of accuracy, speed, and size |
 | ctc-alignment | 83% | 3.2s | 1.2 GB | Strong baseline but 6x too large for mobile |
 | rabah-pruned-ctc | 74% | 7.0s | 145 MB | Pruning + fine-tuning works but still trails top models |
 | two-stage | 73% | 9.5s | 1.3 GB | Good idea (ASR→CTC rescore) but blocked on small CTC model |
@@ -240,31 +255,14 @@ Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-s
 | contrastive-v2 | 0% | 0.1s | 900 MB | Failed: English encoder produces useless Arabic features |
 | embedding-search | 0% | 0.3s | 397 MB | 0% cross-speaker — HuBERT encodes speaker not content |
 
-## Current results
+### fastconformer-phoneme v4-tlog detail
 
-Benchmarked on 54 samples (user recordings, professional reference audio, crowdsourced recordings):
+| Corpus | Streaming | Non-streaming |
+|---|---|---|
+| v1 (53 samples) | 27/53 (51%) | 44/53 (83%) |
+| v2 (43 samples) | 32/43 (74%) | 32/43 (74%) |
 
-As of **March 2026**, the table below reflects best full-corpus runs.
-
-| Experiment | Approach | SeqAcc | Recall | Precision | Latency | Size |
-|---|---|---|---|---|---|---|
-| **w2v-phonemes/large-int8** | wav2vec2-xls-r-1b phoneme CTC + Levenshtein + n-gram voting | **100%** | **100%** | **100%** | 11.5s | 970 MB |
-| fastconformer-phoneme | FastConformer + phoneme matching pipeline | 93% | 93% | 93% | 0.7s | 436 MB |
-| **w2v-phonemes/base-int8** | wav2vec2-base phoneme CTC + Levenshtein + n-gram voting | 89% | 89% | 89% | 2.9s | 116 MB |
-| **nvidia-fastconformer** | NeMo FastConformer transcript + span-aware QuranDB matching | **85%** | **87%** | **89%** | **0.33s** | **115 MB** |
-| fastconformer-ctc-rescore | FastConformer + confidence-gated int8 CTC re-scoring fallback | 85% | 87% | 89% | 0.66s | 273 MB |
-| fastconformer-nbest-bruteforce | N-best beam search + CTC brute-force fallback | 83% | 85% | 87% | 0.85s | 500 MB |
-| **ctc-alignment** | wav2vec2 CTC forced alignment (large baseline) | 81% | 83% | 83% | 3.24s | 1.2 GB |
-| rabah-pruned-ctc/8-layer-ft-fn-int8 | Rabah Quran CTC, 8L first_n pruned + fine-tuned + int8 | **72%** | 74% | 73% | 7.02s | **145 MB** |
-| rabah-pruned-ctc/12-layer-ft-es-int8 | Rabah Quran CTC, 12L evenly_spaced pruned + fine-tuned + int8 | **72%** | 73% | 74% | 3.65s | 193 MB |
-| two-stage | Moonshine ASR + large CTC re-score | 72% | 73% | 74% | 9.48s | 1.3 GB |
-| two-stage-faster-whisper-pruned | faster-whisper Quran + fine-tuned pruned int8 CTC re-score | 70% | 72% | 71% | 3.96s | 306 MB |
-| tarteel-whisper-base | tarteel-ai/whisper-base-ar-quran + QuranDB | 67% | 72% | 75% | ~3s | 290 MB |
-| whisper-lora | Whisper-small + LoRA fine-tune + QuranDB | 58% | 64% | 65% | ~1.3s | 485 MB |
-| rabah-pruned-ctc/8-layer-ft-es-int8 | 8L evenly_spaced (wrong strategy) | 56% | 57% | 57% | 6.97s | 145 MB |
-| rabah-pruned-ctc/6-layer-ft-es-int8 | 6L evenly_spaced pruned + fine-tuned + int8 | 48% | 51% | 51% | 6.63s | 121 MB |
-
-`nvidia-fastconformer` remains the best model overall. The **fine-tuned pruned Rabah models** are the major new result: `8-layer-ft-fn-int8` reaches **72% SeqAcc at 145 MB** (under the 200 MB target), up from 12% before fine-tuning. The `first_n` pruning strategy (keep layers 0-7) massively outperforms `evenly_spaced` (72% vs 56%), likely because contiguous early layers preserve better feature flow.
+The large gap between streaming v1 (51%) and non-streaming v1 (83%) shows the model is capable — the streaming tracker pipeline is the bottleneck, not the model itself.
 
 ## Experiment status
 
@@ -278,7 +276,7 @@ As of **March 2026**, the table below reflects best full-corpus runs.
   All produced larger local checkpoints (~459 MB) and none beat pretrained baseline (85%/87%).
 - **Rabah pruned+fine-tuned path now works.** Fine-tuning the CTC head on pruned representations recovered accuracy from 12% to 72% (8-layer first_n). The 8L int8 model is 145 MB -- well under the 200 MB target. The key insight: `first_n` pruning (keep layers 0-7) vastly outperforms `evenly_spaced` (72% vs 56%).
 - **Two-stage faster-whisper path** now runs with int8 Stage 2 at 306 MB and 3.96s (down from 582 MB / 10s), but still trails on accuracy (70% SeqAcc).
-- **Phoneme CTC fine-tuning is the current best streaming model.** `v4-tlog` (85% streaming v1, 77% streaming v2) with 69-phoneme Buckwalter CTC head, runs in browser via ONNX. TLOG data helps in small doses (5/verse) but scaling up (15-30/verse) regresses badly regardless of quality filtering.
+- **Phoneme CTC fine-tuning is the current shipped model.** `v4-tlog` with 69-phoneme Buckwalter CTC head, runs in browser via ONNX. Non-streaming: 83% v1, 74% v2. Streaming: 51% v1, 74% v2 — the streaming tracker is the main bottleneck. TLOG data helps in small doses (5/verse) but scaling up (15-30/verse) regresses badly regardless of quality filtering.
 - **N-best + brute-force didn't help.** `fastconformer-nbest-bruteforce` (83% SeqAcc) is worse than plain FastConformer. CTC beam search without a language model produces near-identical hypotheses, and brute-forcing entire surahs just picks wrong candidates. CTC re-scoring can't recover failures caused by bad candidate retrieval.
 
 ### Phoneme CTC Fine-Tuning (v4-tlog -- best streaming model)
@@ -288,14 +286,14 @@ Fine-tuned FastConformer's CTC head on a 69-phoneme Buckwalter vocabulary using 
 - **Model:** `fastconformer_phoneme_q8.onnx` (131 MB, uint8 quantized)
 - **Training:** Modal A100-80GB, NeMo, freeze 8/18 encoder layers, batch 32, grad accum 2
 - **Best config (v4-tlog):** 71K Iqra + 55K TTS + 1.8K RetaSy + ~18K TLOG (5/verse, quality-filtered)
-- **Test corpus v1** (53 samples): streaming **45/53 (85%)**, non-streaming 40/53 (75%)
-- **Test corpus v2** (43 samples): streaming **33/43 (77%)**, non-streaming 32/43 (74%)
+- **Test corpus v1** (53 samples): streaming 27/53 (51%), non-streaming **44/53 (83%)**
+- **Test corpus v2** (43 samples): streaming **32/43 (74%)**, non-streaming 32/43 (74%)
 
 **TLOG data mix experiments:**
 
 | Model | TLOG samples | Quality threshold | Streaming v1 | Streaming v2 |
 |---|---|---|---|---|
-| **v4-tlog** (best) | ~18K (5/verse) | 0.3 | **45/53 (85%)** | **33/43 (77%)** |
+| **v4-tlog** (best) | ~18K (5/verse) | 0.3 | **27/53 (51%)** | **32/43 (74%)** |
 | v4-tlog-heavy | ~53K (15/verse) | 0.3 | 36-38/53 (70%) | 25/43 (58%) |
 | v4-tlog-hq | ~74K (30/verse) | 0.5 | 29-31/53 (56%) | 23-24/43 (54%) |
 
