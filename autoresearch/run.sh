@@ -22,6 +22,8 @@ source "$REPO_DIR/.venv/bin/activate"
 # Claude Code auth (must be exported for subprocess)
 : "${CLAUDE_CODE_OAUTH_TOKEN:?Set CLAUDE_CODE_OAUTH_TOKEN}"
 export CLAUDE_CODE_OAUTH_TOKEN
+# Allow --dangerously-skip-permissions as root (Vast.ai/RunPod run as root)
+export IS_SANDBOX=1
 
 # Restore best promoted ONNX to public/ after a rejected run.
 # evaluate_accuracy() overwrites public/ with the candidate model,
@@ -61,13 +63,13 @@ while true; do
     # 1. Agent proposes ONE change to train.py
     #    Writes hypothesis to file, edits train.py directly.
     #    No max-turns — agent runs until done (edits are fast).
-    #    --allowedTools restricts to file ops only (no interactive prompts).
+    #    --dangerously-skip-permissions avoids interactive prompts.
     echo "[1/5] Agent proposing change..."
     cp "$TRAIN_PY" "$TRAIN_PY.bak"
     rm -f "$HYPOTHESIS_FILE"
 
     cd "$SCRIPT_DIR"
-    timeout "$CLAUDE_TIMEOUT" claude --print --allowedTools "Read,Write,Edit,Bash,Glob,Grep" -p "
+    timeout "$CLAUDE_TIMEOUT" claude --print --dangerously-skip-permissions -p "
 You are an autonomous ML researcher optimizing a FastConformer phoneme CTC model.
 
 Read program.md for full context and rules. Read results.csv to see prior experiments.
