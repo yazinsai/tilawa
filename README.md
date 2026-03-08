@@ -224,14 +224,34 @@ Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-s
 - **Speaker-invariant.** Must work across accents, recording quality, and recitation styles -- not just professional studio audio from a single reciter.
 - **Full Quran coverage.** All 6,236 verses, including short verses (3-4 words) that every approach currently struggles with.
 
+## Experiment summary
+
+| Experiment | Verdict | Size |
+|---|---|---|
+| **w2v-phonemes/large** | 100% recall but 970 MB + ~12s latency — too bulky/slow for real-time offline | 970 MB |
+| **nvidia-fastconformer** | Best balance of accuracy (87%), speed (0.3s), and size (115 MB) — current production pick | 115 MB |
+| **w2v-phonemes/base** | 89% recall at 116 MB — competitive with FastConformer but ~3-6s latency | 116 MB |
+| fastconformer-phoneme | 93% recall with phoneme matching but requires NeMo + extra deps | 436 MB |
+| fastconformer-ctc-rescore | No accuracy gain over FastConformer alone, just adds latency + size | 273 MB |
+| ctc-alignment | Strong 83% baseline but 1.2 GB model is 6x too large for mobile | 1.2 GB |
+| rabah-pruned-ctc | Pruning + fine-tuning recovers 72% at 145 MB but still trails top models | 145 MB |
+| two-stage | Good idea (ASR→CTC rescore) but blocked on finding a small CTC model | 1.3 GB |
+| tarteel-whisper-base | 72% recall from Tarteel's Whisper fine-tune — decent but not competitive | 290 MB |
+| distilled-ctc | Blocked: wav2vec2-base can't learn Arabic from English-only pretraining | 360 MB |
+| contrastive-v2 | Failed: wav2vec2-base produces useless Arabic features, 9% val accuracy | 900 MB |
+| embedding-search | 100% same-reciter, 0% cross-speaker — HuBERT encodes speaker not content | 397 MB |
+
 ## Current results
 
 Benchmarked on 54 samples (user recordings, professional reference audio, crowdsourced recordings):
 
-As of **February 27, 2026**, the table below reflects best full-corpus (54-sample) runs.
+As of **March 2026**, the table below reflects best full-corpus runs.
 
 | Experiment | Approach | SeqAcc | Recall | Precision | Latency | Size |
 |---|---|---|---|---|---|---|
+| **w2v-phonemes/large-int8** | wav2vec2-xls-r-1b phoneme CTC + Levenshtein + n-gram voting | **100%** | **100%** | **100%** | 11.5s | 970 MB |
+| fastconformer-phoneme | FastConformer + phoneme matching pipeline | 93% | 93% | 93% | 0.7s | 436 MB |
+| **w2v-phonemes/base-int8** | wav2vec2-base phoneme CTC + Levenshtein + n-gram voting | 89% | 89% | 89% | 2.9s | 116 MB |
 | **nvidia-fastconformer** | NeMo FastConformer transcript + span-aware QuranDB matching | **85%** | **87%** | **89%** | **0.33s** | **115 MB** |
 | fastconformer-ctc-rescore | FastConformer + confidence-gated int8 CTC re-scoring fallback | 85% | 87% | 89% | 0.66s | 273 MB |
 | fastconformer-nbest-bruteforce | N-best beam search + CTC brute-force fallback | 83% | 85% | 87% | 0.85s | 500 MB |
@@ -249,7 +269,8 @@ As of **February 27, 2026**, the table below reflects best full-corpus (54-sampl
 
 ## Experiment status
 
-- **NVIDIA FastConformer** is the top model: 85% SeqAcc, 115 MB, 0.33s latency.
+- **w2v-phonemes/large** achieves 100% recall on v1 corpus but at 970 MB + ~12s latency -- proves phoneme-based matching works perfectly, but impractical for offline mobile use.
+- **NVIDIA FastConformer** remains the best practical model: 85% SeqAcc, 115 MB, 0.33s latency.
 - **FastConformer fine-tune sweep regressed across all tested variants (v1/v2a/v2b/v3c).**  
   v1 (Rabah+RetaSy, 2K steps): 81% SeqAcc / 84% recall (`benchmark/results/2026-02-27_092540.json`)  
   v2a (Rabah+RetaSy, LR=2e-5, 1K steps): 80% SeqAcc / 81% recall (`benchmark/results/2026-02-27_104327.json`)  
@@ -286,6 +307,7 @@ experiments/             # Each approach gets its own directory
   nvidia-fastconformer/  # NeMo FastConformer Arabic benchmark
   fastconformer-ctc-rescore/  # FastConformer + CTC re-scoring fallback
   fastconformer-nbest-bruteforce/  # N-best beam search + CTC brute-force (worse than baseline)
+  w2v-phonemes/          # wav2vec2 phoneme CTC + Levenshtein (100% large, 89% base)
   contrastive-v2/        # QuranCLAP v2 audio fingerprinting (failed)
   whisper-lora/          # Whisper-small + LoRA adapter
   tarteel-whisper-base/  # Tarteel's whisper-base-ar-quran
@@ -405,6 +427,17 @@ Two-stage retrieval variant using faster-whisper for ASR and fine-tuned pruned C
 - **Stage 2:** CTC re-score top-50 candidates using fine-tuned 8L Rabah CTC with dynamic int8 (`TWO_STAGE_STAGE2_DYNAMIC_INT8=1`, default)
 - **Result:** 70% SeqAcc / 72% recall / 71% precision, 3.96s latency, 306 MB total
 - **Tradeoff:** Major speed/size gain vs prior fp32 run (10.06s, 582 MB) with small precision/recall drop
+
+### w2v-phonemes (100% large, 89% base -- high latency)
+
+Phoneme-based matching using wav2vec2 CTC models fine-tuned on Quranic recitations. Decodes audio into IPA phoneme sequences and matches against pre-phonemized Quran reference text via Levenshtein ratio + n-gram anchor voting.
+
+- **Models:** `hetchyy/r7_onnx_int8` (large, 970 MB) and `hetchyy/r15_95m_onnx_int8` (base, 116 MB)
+- **Pipeline:** audio → wav2vec2 phoneme CTC → IPA string → Pass 1 Levenshtein vs 6236 verses → Pass 1b n-gram voting → Pass 2 multi-verse spans → best match
+- **Result (large):** 100% SeqAcc on v1 corpus (53 samples), 95% on v2 (43 samples), ~12s latency
+- **Result (base):** 89% SeqAcc on v1, 88% on v2, ~3-6s latency
+- **Tradeoff:** The large model achieves perfect accuracy but is too large (970 MB) and slow (~12s) for real-time offline use. The base model is competitive with FastConformer on accuracy at similar size but 10x slower.
+- **Data files:** `data/phoneme_cache.pkl` (7.6 MB) + `data/phoneme_ngram_index_5.pkl` (6.0 MB) -- pre-computed phoneme reference for all verses
 
 ### contrastive-v2 (failed -- val accuracy stuck at 9%)
 
