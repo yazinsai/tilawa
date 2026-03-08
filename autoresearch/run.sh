@@ -19,6 +19,10 @@ CLAUDE_TIMEOUT=120  # 2 min max for agent to propose a change
 # Activate venv
 source "$REPO_DIR/.venv/bin/activate"
 
+# Claude Code auth (must be exported for subprocess)
+: "${CLAUDE_CODE_OAUTH_TOKEN:?Set CLAUDE_CODE_OAUTH_TOKEN}"
+export CLAUDE_CODE_OAUTH_TOKEN
+
 # Restore best promoted ONNX to public/ after a rejected run.
 # evaluate_accuracy() overwrites public/ with the candidate model,
 # so we must restore the best known good model after non-promotion.
