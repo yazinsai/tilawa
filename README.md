@@ -278,7 +278,42 @@ As of **March 2026**, the table below reflects best full-corpus runs.
   All produced larger local checkpoints (~459 MB) and none beat pretrained baseline (85%/87%).
 - **Rabah pruned+fine-tuned path now works.** Fine-tuning the CTC head on pruned representations recovered accuracy from 12% to 72% (8-layer first_n). The 8L int8 model is 145 MB -- well under the 200 MB target. The key insight: `first_n` pruning (keep layers 0-7) vastly outperforms `evenly_spaced` (72% vs 56%).
 - **Two-stage faster-whisper path** now runs with int8 Stage 2 at 306 MB and 3.96s (down from 582 MB / 10s), but still trails on accuracy (70% SeqAcc).
+- **Phoneme CTC fine-tuning is the current best streaming model.** `v4-tlog` (85% streaming v1, 77% streaming v2) with 69-phoneme Buckwalter CTC head, runs in browser via ONNX. TLOG data helps in small doses (5/verse) but scaling up (15-30/verse) regresses badly regardless of quality filtering.
 - **N-best + brute-force didn't help.** `fastconformer-nbest-bruteforce` (83% SeqAcc) is worse than plain FastConformer. CTC beam search without a language model produces near-identical hypotheses, and brute-forcing entire surahs just picks wrong candidates. CTC re-scoring can't recover failures caused by bad candidate retrieval.
+
+### Phoneme CTC Fine-Tuning (v4-tlog -- best streaming model)
+
+Fine-tuned FastConformer's CTC head on a 69-phoneme Buckwalter vocabulary using Iqra, TTS, RetaSy, and TLOG datasets. Runs in the browser via ONNX Runtime Web with real-time streaming recognition.
+
+- **Model:** `fastconformer_phoneme_q8.onnx` (131 MB, uint8 quantized)
+- **Training:** Modal A100-80GB, NeMo, freeze 8/18 encoder layers, batch 32, grad accum 2
+- **Best config (v4-tlog):** 71K Iqra + 55K TTS + 1.8K RetaSy + ~18K TLOG (5/verse, quality-filtered)
+- **Test corpus v1** (53 samples): streaming **45/53 (85%)**, non-streaming 40/53 (75%)
+- **Test corpus v2** (43 samples): streaming **33/43 (77%)**, non-streaming 32/43 (74%)
+
+**TLOG data mix experiments:**
+
+| Model | TLOG samples | Quality threshold | Streaming v1 | Streaming v2 |
+|---|---|---|---|---|
+| **v4-tlog** (best) | ~18K (5/verse) | 0.3 | **45/53 (85%)** | **33/43 (77%)** |
+| v4-tlog-heavy | ~53K (15/verse) | 0.3 | 36-38/53 (70%) | 25/43 (58%) |
+| v4-tlog-hq | ~74K (30/verse) | 0.5 | 29-31/53 (56%) | 23-24/43 (54%) |
+
+**Key finding:** TLOG volume is the bottleneck, not quality. Even high-quality-only TLOG (threshold 0.5) regresses when scaled up. The domain gap between phone mic recordings and clean studio data overwhelms quality filtering. Sweet spot: 5 samples/verse (~18K after filter).
+
+Scripts:
+```bash
+# Train phoneme CTC model
+modal run --detach scripts/train_fastconformer_phoneme_modal.py \
+  --output-name fastconformer-phoneme-v4-tlog --max-tlog-per-verse 5 --filter-tlog
+
+# Export to ONNX
+modal run scripts/export_phoneme_onnx_modal.py --output-name fastconformer-phoneme-v4-tlog
+
+# Test accuracy (run 3x for reliable measurement due to ONNX non-determinism)
+cd web/frontend && npx tsx test/validate-streaming.ts
+npx tsx test/validate-streaming.ts --corpus=test_corpus_v2
+```
 
 ### Two-Stage Retrieval (historical 72% setup; current pruned variant at 70%)
 Moonshine Tiny Arabic (27M params, 103 MB) does fast ASR to get a rough transcript, then CTC forced-alignment re-scores only the top 50 verse candidates. This bounds the expensive CTC computation to 50 candidates instead of 6,236. Currently falls back to the large CTC model (1.2 GB) because the small CTC model failed to train (see "What we tried"). With a working small CTC re-scorer (~95 MB), this would hit the size target.
@@ -328,6 +363,8 @@ web/                     # Live demo
   frontend/              # React frontend
 
 scripts/                 # Training scripts (Modal A100-80GB GPU)
+  train_fastconformer_phoneme_modal.py  # Phoneme CTC fine-tuning (best streaming model)
+  export_phoneme_onnx_modal.py         # Export phoneme model to ONNX + uint8 quantization
   train_pruned_ctc_modal.py    # Fine-tune pruned Rabah CTC models (the key training script)
   quantize_pruned_models.py    # PyTorch/ONNX int8 quantization
   build_rabah_pruned_models.py # Build naive-pruned Rabah checkpoints
