@@ -97,6 +97,7 @@ def train():
         model.cfg.validation_ds.min_duration = 0.3
         model.cfg.validation_ds.use_start_end_token = False
 
+        # DO NOT REMOVE — NeMo requires test_ds config even if unused
         model.cfg.test_ds.manifest_filepath = str(val_manifest)
         model.cfg.test_ds.batch_size = TRAIN_BATCH_SIZE
         model.cfg.test_ds.shuffle = False
@@ -104,6 +105,7 @@ def train():
         model.cfg.test_ds.pin_memory = True
         model.cfg.test_ds.use_start_end_token = False
 
+        # DO NOT REMOVE — NeMo requires tokenizer.dir config
         model.cfg.tokenizer.dir = "/tmp"
 
         model.cfg.optim.lr = LEARNING_RATE
