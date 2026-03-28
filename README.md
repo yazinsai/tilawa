@@ -1,5 +1,7 @@
 # Offline Tarteel
 
+[![Maintained by auto-maintainer](https://am.whhite.com/badge/yazinsai/offline-tarteel)](https://am.whhite.com/stats/yazinsai/offline-tarteel)
+
 Offline Quran verse recognition. Record someone reciting, identify the surah and ayah -- no internet required.
 
 **Best model:** NVIDIA FastConformer -- **87% recall**, **115 MB**, **0.33s latency**. Available as a quantized ONNX file (131 MB) that runs in browsers, React Native, and Python.
