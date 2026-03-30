@@ -840,6 +840,34 @@
     "source_file": "2026-02-25_115924.json"
   },
   {
+    "name": "tadabur-whisper-small",
+    "recall": 0.8437106918238992,
+    "precision": 0.8584905660377359,
+    "sequence_accuracy": 0.7735849056603774,
+    "total": 53,
+    "avg_latency": 1.0586104040757043,
+    "model_size": 483393536,
+    "timestamp": "2026-03-30_114023",
+    "mode": "full",
+    "category": null,
+    "chunk_seconds": null,
+    "source_file": "2026-03-30_114023.json"
+  },
+  {
+    "name": "tadabur-whisper-small (stream 3s)",
+    "recall": 0.8666666666666666,
+    "precision": 0.579045089750586,
+    "sequence_accuracy": 0.41509433962264153,
+    "total": 53,
+    "avg_latency": 3.874631478811421,
+    "model_size": 483393536,
+    "timestamp": "2026-03-30_113902",
+    "mode": "streaming",
+    "category": null,
+    "chunk_seconds": 3.0,
+    "source_file": "2026-03-30_113902.json"
+  },
+  {
     "name": "tarteel-whisper-base",
     "recall": 0,
     "precision": 0,
@@ -1090,5 +1118,19 @@
     "category": "short",
     "chunk_seconds": null,
     "source_file": "2026-02-26_233101.json"
+  },
+  {
+    "name": "whisper-small (stream 3s)",
+    "recall": 0.6276729559748427,
+    "precision": 0.416062806485284,
+    "sequence_accuracy": 0.2641509433962264,
+    "total": 53,
+    "avg_latency": 8.416117297905005,
+    "model_size": 483393536,
+    "timestamp": "2026-03-30_115053",
+    "mode": "streaming",
+    "category": null,
+    "chunk_seconds": 3.0,
+    "source_file": "2026-03-30_115053.json"
   }
 ]
