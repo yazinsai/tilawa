@@ -32,6 +32,8 @@ DATA_PATH = Path(__file__).parent.parent / "data" / "quran.json"
 
 
 _BSM_CLEAN = normalize_arabic("بسم الله الرحمن الرحيم")
+_FRAGMENT_MIN_WORDS = 4
+_FRAGMENT_PARTIAL_WEIGHT = 0.75
 
 
 class QuranDB:
@@ -181,6 +183,32 @@ class QuranDB:
             best = max(best, ratio(suffix, prefix))
         return best
 
+    @staticmethod
+    def _fragment_score(text: str, verse_text: str, full_ratio: float) -> float:
+        """Score a partial transcript against a longer verse.
+
+        Streaming windows often contain only a fragment of a long ayah. A
+        full-string Levenshtein ratio suppresses those matches too heavily, so
+        blend in partial matching when the query is long enough to be specific.
+        Short candidate verses are penalized to avoid spuriously matching a
+        tiny verse that happens to occur inside a longer transcript.
+        """
+        query_words = text.split()
+        verse_words = verse_text.split()
+        if len(query_words) < _FRAGMENT_MIN_WORDS or len(verse_words) < 2:
+            return full_ratio
+
+        fragment = partial_ratio(text, verse_text)
+        if fragment <= full_ratio:
+            return full_ratio
+
+        shorter_penalty = min(1.0, len(verse_words) / max(len(query_words), 1))
+        blended = (
+            (1.0 - _FRAGMENT_PARTIAL_WEIGHT) * full_ratio
+            + _FRAGMENT_PARTIAL_WEIGHT * fragment * shorter_penalty
+        )
+        return max(full_ratio, blended)
+
     def match_verse(
         self,
         text: str,
@@ -224,8 +252,15 @@ class QuranDB:
         for idx in candidate_idxs:
             v = self.verses[idx]
             raw = ratio(text, v["text_clean"])
+            raw = self._fragment_score(text, v["text_clean"], raw)
             if v["text_clean_no_bsm"]:
-                raw = max(raw, ratio(text, v["text_clean_no_bsm"]))
+                stripped_raw = ratio(text, v["text_clean_no_bsm"])
+                stripped_raw = self._fragment_score(
+                    text,
+                    v["text_clean_no_bsm"],
+                    stripped_raw,
+                )
+                raw = max(raw, stripped_raw)
             bonus = bonuses.get((v["surah"], v["ayah"]), 0.0)
             if bonus > 0:
                 sp = self._suffix_prefix_score(text, v["text_clean"])

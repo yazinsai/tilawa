@@ -51,11 +51,14 @@ FIRST_MATCH_THRESHOLD = 0.75  # higher bar before any verse is locked on
 RAW_TRANSCRIPT_THRESHOLD = 0.25
 SURROUNDING_CONTEXT = 2  # verses before/after current
 CONTINUATION_STRONG_THRESHOLD = 0.65
+LONG_VERSE_CONTINUATION_THRESHOLD = 0.80
 AMBIGUOUS_MATCH_GAP = 0.05
 LEXICAL_RERANK_MIN_WORDS = 5
 LEXICAL_RERANK_SCORE_GAP = 0.15
 LEXICAL_RERANK_SWITCH_MARGIN = 0.03
 WORD_MATCH_THRESHOLD = 0.72
+LONG_TRACKING_WORD_THRESHOLD = 20
+LONG_TRACKING_MIN_MATCHED_WORDS = 3
 
 # Tracking mode (word-level): faster cycle once a verse is locked on
 TRACKING_TRIGGER_SECONDS = 0.5
@@ -313,6 +316,15 @@ def _is_expected_followup(
             return True
         next_ref = candidate
     return False
+
+
+def _is_long_verse_ref(db: QuranDB, ref: tuple[int, int] | None) -> bool:
+    if not ref:
+        return False
+    verse = db.get_verse(*ref)
+    if not verse:
+        return False
+    return len(verse["text_clean"].split()) >= LONG_TRACKING_WORD_THRESHOLD
 
 
 def _candidate_clean_text(
@@ -619,22 +631,42 @@ async def websocket_endpoint(ws: WebSocket):
 
         verse_len = len(tracking_verse_words)
         progress = (tracking_last_word_idx + 1) / verse_len if verse_len > 0 else 0
+        long_tracking = (
+            reason.startswith("stale")
+            and verse_len >= LONG_TRACKING_WORD_THRESHOLD
+        )
+        long_partial_tracking = (
+            long_tracking
+            and tracking_last_word_idx + 1 >= LONG_TRACKING_MIN_MATCHED_WORDS
+        )
 
         if reason == "verse complete":
             pass  # caller already updated last_emitted_ref/text
-        elif reason.startswith("stale") and progress < 0.5:
+        elif reason.startswith("stale") and progress < 0.5 and not long_tracking:
             # Low progress + stale = likely misidentification (e.g. two
             # verses share a prefix but diverge). Revert to pre-tracking
             # state so discovery isn't blocked by the residual overlap check.
             log.info("  (misidentification detected, progress=%.0f%%, reverting state)", progress * 100)
             last_emitted_ref = prev_emitted_ref
             last_emitted_text = prev_emitted_text
+        elif reason.startswith("stale") and long_tracking and tracking_last_word_idx < 0:
+            log.info("  (long-verse lock retained after stale cycle)")
         elif reason.startswith("stale") and tracking_verse_words and tracking_last_word_idx >= 0:
             # Good progress + stale = was tracking correctly but user
             # paused or diverged. Trim residual text to tracked portion.
             tracked_portion = " ".join(tracking_verse_words[:tracking_last_word_idx + 1])
             last_emitted_text = tracked_portion
-            log.info("  (updated residual text to tracked portion: %d words)", tracking_last_word_idx + 1)
+            if long_partial_tracking:
+                log.info(
+                    "  (long-verse partial progress %.0f%%, keeping state with %d words)",
+                    progress * 100,
+                    tracking_last_word_idx + 1,
+                )
+            else:
+                log.info(
+                    "  (updated residual text to tracked portion: %d words)",
+                    tracking_last_word_idx + 1,
+                )
 
         tracking_verse = None
         tracking_verse_words = []
@@ -885,10 +917,15 @@ async def websocket_endpoint(ws: WebSocket):
             is_expected_followup = _is_expected_followup(
                 quran_db, last_emitted_ref, match
             )
+            continuation_threshold = (
+                LONG_VERSE_CONTINUATION_THRESHOLD
+                if _is_long_verse_ref(quran_db, last_emitted_ref)
+                else CONTINUATION_STRONG_THRESHOLD
+            )
             strong_continuation = (
                 match is not None
                 and is_expected_followup
-                and match["score"] >= CONTINUATION_STRONG_THRESHOLD
+                and match["score"] >= continuation_threshold
                 and match_gap >= AMBIGUOUS_MATCH_GAP
             )
             strong_first_match = (
