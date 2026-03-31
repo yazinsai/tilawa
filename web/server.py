@@ -52,6 +52,10 @@ RAW_TRANSCRIPT_THRESHOLD = 0.25
 SURROUNDING_CONTEXT = 2  # verses before/after current
 CONTINUATION_STRONG_THRESHOLD = 0.65
 AMBIGUOUS_MATCH_GAP = 0.05
+LEXICAL_RERANK_MIN_WORDS = 5
+LEXICAL_RERANK_SCORE_GAP = 0.15
+LEXICAL_RERANK_SWITCH_MARGIN = 0.03
+WORD_MATCH_THRESHOLD = 0.72
 
 # Tracking mode (word-level): faster cycle once a verse is locked on
 TRACKING_TRIGGER_SECONDS = 0.5
@@ -288,6 +292,169 @@ def _runner_up_gap(match: dict) -> float:
         if runner_key != current_key:
             return match["score"] - runner["score"]
     return 1.0
+
+
+def _is_expected_followup(
+    db: QuranDB,
+    last_ref: tuple[int, int] | None,
+    match: dict | None,
+    lookahead: int = 3,
+) -> bool:
+    if not last_ref or not match:
+        return False
+
+    next_ref = last_ref
+    for _ in range(lookahead):
+        next_verse = db.get_next_verse(*next_ref)
+        if not next_verse:
+            return False
+        candidate = (next_verse["surah"], next_verse["ayah"])
+        if candidate == (match["surah"], match["ayah"]):
+            return True
+        next_ref = candidate
+    return False
+
+
+def _candidate_clean_text(
+    db: QuranDB,
+    candidate: dict,
+    fallback_text: str | None = None,
+) -> str:
+    if fallback_text:
+        return normalize_arabic(fallback_text)
+
+    ayah_start = candidate["ayah"]
+    ayah_end = candidate.get("ayah_end") or ayah_start
+    parts: list[str] = []
+    for ayah in range(ayah_start, ayah_end + 1):
+        verse = db.get_verse(candidate["surah"], ayah)
+        if not verse:
+            break
+        if ayah == ayah_start:
+            parts.append(verse.get("text_clean_no_bsm") or verse["text_clean"])
+        else:
+            parts.append(verse["text_clean"])
+    return normalize_arabic(" ".join(parts).strip())
+
+
+def _candidate_display_text(db: QuranDB, candidate: dict) -> str:
+    ayah_start = candidate["ayah"]
+    ayah_end = candidate.get("ayah_end") or ayah_start
+    parts: list[str] = []
+    for ayah in range(ayah_start, ayah_end + 1):
+        verse = db.get_verse(candidate["surah"], ayah)
+        if not verse:
+            break
+        parts.append(verse["text_uthmani"])
+    return " ".join(parts).strip()
+
+
+def _words_similar(w1: str, w2: str) -> bool:
+    return lev_ratio(w1, w2) >= WORD_MATCH_THRESHOLD
+
+
+def _lexical_candidate_score(query_text: str, candidate_text: str) -> float:
+    query_words = normalize_arabic(query_text).split()
+    candidate_words = normalize_arabic(candidate_text).split()
+    if not query_words or not candidate_words:
+        return 0.0
+
+    matched = 0
+    candidate_pos = 0
+    for query_word in query_words:
+        found = False
+        for idx in range(candidate_pos, len(candidate_words)):
+            if _words_similar(query_word, candidate_words[idx]):
+                matched += 1
+                candidate_pos = idx + 1
+                found = True
+                break
+        if not found:
+            continue
+
+    prefix_matches = 0
+    for query_word, candidate_word in zip(query_words, candidate_words):
+        if _words_similar(query_word, candidate_word):
+            prefix_matches += 1
+        else:
+            break
+
+    coverage = matched / max(min(len(query_words), len(candidate_words)), 1)
+    prefix_score = prefix_matches / max(min(3, len(query_words), len(candidate_words)), 1)
+    length_fit = min(len(query_words), len(candidate_words)) / max(len(query_words), len(candidate_words))
+    leftover_penalty = max(len(query_words) - matched, 0) / max(len(query_words), 1)
+
+    lexical = (
+        0.60 * coverage
+        + 0.25 * prefix_score
+        + 0.15 * length_fit
+        - 0.15 * leftover_penalty
+    )
+    return max(0.0, min(1.0, lexical))
+
+
+def _rerank_ambiguous_match(
+    db: QuranDB,
+    query_text: str,
+    match: dict | None,
+) -> dict | None:
+    if not match or len(query_text.split()) < LEXICAL_RERANK_MIN_WORDS:
+        return match
+
+    runners_up = match.get("runners_up", [])
+    if not runners_up:
+        return match
+
+    current_key = _match_key(match)
+    candidates = [dict(match)]
+    for runner in runners_up:
+        if match["score"] - runner["score"] > LEXICAL_RERANK_SCORE_GAP:
+            continue
+        candidates.append(
+            {
+                "surah": runner["surah"],
+                "ayah": runner["ayah"],
+                "ayah_end": runner.get("ayah_end"),
+                "score": runner["score"],
+                "raw_score": runner["raw_score"],
+                "bonus": runner["bonus"],
+            }
+        )
+
+    if len(candidates) < 2:
+        return match
+
+    ranked: list[tuple[float, float, dict]] = []
+    for candidate in candidates:
+        fallback_text = match.get("text_clean") if _match_key(candidate) == current_key else None
+        candidate_text = _candidate_clean_text(db, candidate, fallback_text)
+        lexical_score = _lexical_candidate_score(query_text, candidate_text)
+        combined = 0.55 * candidate["score"] + 0.45 * lexical_score
+        ranked.append((combined, lexical_score, candidate))
+
+    ranked.sort(key=lambda item: item[0], reverse=True)
+    current_combined = next(
+        combined for combined, _lexical, candidate in ranked
+        if _match_key(candidate) == current_key
+    )
+    best_combined, _best_lexical, best_candidate = ranked[0]
+    if _match_key(best_candidate) == current_key:
+        return match
+    if best_combined < current_combined + LEXICAL_RERANK_SWITCH_MARGIN:
+        return match
+
+    reranked = dict(best_candidate)
+    reranked["text_clean"] = _candidate_clean_text(db, best_candidate)
+    reranked["text"] = _candidate_display_text(db, best_candidate)
+    reranked["runners_up"] = runners_up
+    log.info(
+        "  (lexical rerank %s -> %s, combined %.3f -> %.3f)",
+        current_key,
+        _match_key(best_candidate),
+        current_combined,
+        best_combined,
+    )
+    return reranked
 
 
 # ---------------------------------------------------------------------------
@@ -666,6 +833,7 @@ async def websocket_endpoint(ws: WebSocket):
                 hint=last_emitted_ref,
                 return_top_k=5,
             )
+            match = _rerank_ambiguous_match(quran_db, query_text, match)
 
             # --- Debug log: full prediction table ---
             hint_str = (
@@ -714,8 +882,12 @@ async def websocket_endpoint(ws: WebSocket):
             effective_threshold = FIRST_MATCH_THRESHOLD if last_emitted_ref is None else VERSE_MATCH_THRESHOLD
             match_gap = _runner_up_gap(match) if match else 0.0
             repeat_confirmed = pending_match_count >= 2
+            is_expected_followup = _is_expected_followup(
+                quran_db, last_emitted_ref, match
+            )
             strong_continuation = (
                 match is not None
+                and is_expected_followup
                 and match["score"] >= CONTINUATION_STRONG_THRESHOLD
                 and match_gap >= AMBIGUOUS_MATCH_GAP
             )
@@ -753,6 +925,7 @@ async def websocket_endpoint(ws: WebSocket):
                         "type": "verse_match",
                         "surah": match["surah"],
                         "ayah": match["ayah"],
+                        "ayah_end": match.get("ayah_end"),
                         "verse_text": (
                             verse["text_uthmani"] if verse else match.get("text", "")
                         ),

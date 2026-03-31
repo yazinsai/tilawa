@@ -30,6 +30,15 @@ TAIL_SILENCE_SECONDS = 4.0
 TAIL_SILENCE_CHUNKS = int((TAIL_SILENCE_SECONDS * SAMPLE_RATE) / CHUNK_SAMPLES)
 
 
+def _expand_verse_match(msg: dict) -> list[dict]:
+    ayah_start = msg["ayah"]
+    ayah_end = msg.get("ayah_end") or ayah_start
+    return [
+        {"surah": msg["surah"], "ayah": ayah}
+        for ayah in range(ayah_start, ayah_end + 1)
+    ]
+
+
 def _load_manifest() -> list[dict]:
     manifest_path = PROJECT_ROOT / "benchmark" / "test_corpus" / "manifest.json"
     with open(manifest_path) as f:
@@ -80,11 +89,11 @@ async def _run_sample(
 
         messages = await recv_task
 
-    predicted = [
-        {"surah": msg["surah"], "ayah": msg["ayah"]}
-        for msg in messages
-        if msg.get("type") == "verse_match"
-    ]
+    predicted: list[dict] = []
+    for msg in messages:
+        if msg.get("type") != "verse_match":
+            continue
+        predicted.extend(_expand_verse_match(msg))
     expected = sample.get(
         "expected_verses",
         [{"surah": sample["surah"], "ayah": sample["ayah"]}],
