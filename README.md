@@ -247,6 +247,8 @@ Benchmarked with `python scripts/benchmark_streaming_endpoint.py --category mult
 |---|---|---|---|---|---|
 | **FastAPI `/ws`** | multi (9 samples) | **0.759** | **0.833** | **0.667** | Span-aware `ayah_end` emissions, followup-only continuation fast path, lexical rerank for ambiguous close matches |
 
+On the same corrected harness, `main` scores `0.687` recall / `0.639` precision / `0.111` SeqAcc on this subset, so the current websocket matcher is materially better on multi-ayah live recitation.
+
 ### Non-streaming results (full-file baseline)
 
 These use the Python benchmark runner (`benchmark/runner.py`) which transcribes the entire audio file at once.

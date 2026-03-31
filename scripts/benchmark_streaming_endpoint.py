@@ -116,6 +116,12 @@ async def _main() -> None:
     parser.add_argument("--sample", default=None)
     parser.add_argument("--category", default=None)
     parser.add_argument("--idle-timeout", type=float, default=3.0)
+    parser.add_argument(
+        "--sample-grace",
+        type=float,
+        default=1.0,
+        help="Seconds to wait between samples so the server can finish cleanup",
+    )
     args = parser.parse_args()
 
     samples = _load_manifest()
@@ -142,6 +148,8 @@ async def _main() -> None:
             f"seq={metrics['sequence_accuracy']:.3f} "
             f"pred={result['predicted']}"
         )
+        if idx < len(samples) and args.sample_grace > 0:
+            await asyncio.sleep(args.sample_grace)
 
     summary = {
         "count": len(results),
