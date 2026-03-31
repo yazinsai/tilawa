@@ -239,6 +239,14 @@ Tested with the TypeScript streaming pipeline (`RecitationTracker` feeding 300ms
 | **fastconformer-phoneme v4-tlog** | **27/53 (51%)** | **32/43 (74%)** | 131 MB | Current shipped model; streaming tracker needs work |
 | w2v-phonemes | — | — | 116-970 MB | Not yet tested in streaming mode |
 
+### Live FastAPI `/ws` endpoint (current)
+
+Benchmarked with `python scripts/benchmark_streaming_endpoint.py --category multi` against the live websocket endpoint. This is the 9-sample multi-ayah subset, not the full 54-sample corpus. The run was repeated twice with identical summary metrics.
+
+| Endpoint | Corpus | Recall | Precision | SeqAcc | Notes |
+|---|---|---|---|---|---|
+| **FastAPI `/ws`** | multi (9 samples) | **0.759** | **0.833** | **0.667** | Span-aware `ayah_end` emissions, followup-only continuation fast path, lexical rerank for ambiguous close matches |
+
 ### Non-streaming results (full-file baseline)
 
 These use the Python benchmark runner (`benchmark/runner.py`) which transcribes the entire audio file at once.
@@ -280,6 +288,7 @@ The large gap between streaming v1 (51%) and non-streaming v1 (83%) shows the mo
 - **Rabah pruned+fine-tuned path now works.** Fine-tuning the CTC head on pruned representations recovered accuracy from 12% to 72% (8-layer first_n). The 8L int8 model is 145 MB -- well under the 200 MB target. The key insight: `first_n` pruning (keep layers 0-7) vastly outperforms `evenly_spaced` (72% vs 56%).
 - **Two-stage faster-whisper path** now runs with int8 Stage 2 at 306 MB and 3.96s (down from 582 MB / 10s), but still trails on accuracy (70% SeqAcc).
 - **Phoneme CTC fine-tuning is the current shipped model.** `v4-tlog` with 69-phoneme Buckwalter CTC head, runs in browser via ONNX. Non-streaming: 83% v1, 74% v2. Streaming: 51% v1, 74% v2 — the streaming tracker is the main bottleneck. TLOG data helps in small doses (5/verse) but scaling up (15-30/verse) regresses badly regardless of quality filtering.
+- **The live FastAPI websocket matcher is much better on multi-ayah streaming than the shipped baseline tracker.** Current `/ws` results on the 9-sample multi subset are 75.9% recall / 83.3% precision / 66.7% SeqAcc after adding residual trimming, followup-aware continuation commits, span-aware emissions, and lexical reranking.
 - **Tadabur-Whisper-Small** (`FaisaI/tadabur-Whisper-Small`) is the best Whisper-family model tested: 84% recall, 77% SeqAcc, 1.6s latency at 461 MB. Beats tarteel-whisper-base (+12% recall, 2x faster) but still trails FastConformer on accuracy (93%), speed (0.6s), and size (115 MB). Streaming: 87% recall / 42% SeqAcc. Failures are mostly multi-verse truncation.
 - **N-best + brute-force didn't help.** `fastconformer-nbest-bruteforce` (83% SeqAcc) is worse than plain FastConformer. CTC beam search without a language model produces near-identical hypotheses, and brute-forcing entire surahs just picks wrong candidates. CTC re-scoring can't recover failures caused by bad candidate retrieval.
 
@@ -630,6 +639,9 @@ FastAPI backend + React frontend for live recitation and verse identification.
 
 # Frontend (separate terminal)
 cd web/frontend && npm run dev
+
+# Live websocket benchmark (multi-ayah subset)
+python scripts/benchmark_streaming_endpoint.py --category multi
 ```
 
 ## Setup
