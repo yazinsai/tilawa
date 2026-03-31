@@ -39,6 +39,11 @@ MODELS = {
         "type": "wav2vec2",
         "size_mb": 360,
     },
+    "tadabur-whisper-small": {
+        "hf_id": "FaisaI/tadabur-Whisper-Small",
+        "type": "whisper",
+        "size_mb": 461,
+    },
 }
 
 _loaded_models = {}
@@ -91,6 +96,32 @@ def _load_model(model_name: str):
         _loaded_models[model_name] = ("wav2vec2", processor, model, device)
 
     return _loaded_models[model_name]
+
+
+def transcribe(audio_path: str, model_name: str = "tarteel-whisper-base") -> str:
+    """Return raw transcript text."""
+    model_type, processor, model, device = _load_model(model_name)
+    audio = load_audio(audio_path)
+
+    with torch.no_grad():
+        if model_type == "whisper":
+            inputs = processor(audio, sampling_rate=16000, return_tensors="pt").to(device)
+            ids = model.generate(inputs["input_features"], max_new_tokens=225)
+            return processor.batch_decode(ids, skip_special_tokens=True)[0]
+
+        elif model_type == "moonshine":
+            inputs = processor(audio, sampling_rate=16000, return_tensors="pt")
+            inputs = {k: v.to(device) for k, v in inputs.items()}
+            audio_len = len(audio) / 16000
+            max_tokens = int(audio_len * 13) + 10
+            ids = model.generate(**inputs, max_new_tokens=max_tokens, repetition_penalty=1.2)
+            return processor.batch_decode(ids, skip_special_tokens=True)[0]
+
+        elif model_type in ("mms", "wav2vec2"):
+            inputs = processor(audio, sampling_rate=16000, return_tensors="pt", padding=True).to(device)
+            logits = model(**inputs).logits
+            ids = torch.argmax(logits, dim=-1)
+            return processor.batch_decode(ids)[0]
 
 
 def predict(audio_path: str, model_name: str = "tarteel-whisper-base") -> dict:

@@ -252,6 +252,7 @@ These use the Python benchmark runner (`benchmark/runner.py`) which transcribes 
 | ctc-alignment | 83% | 3.2s | 1.2 GB | Strong baseline but 6x too large for mobile |
 | rabah-pruned-ctc | 74% | 7.0s | 145 MB | Pruning + fine-tuning works but still trails top models |
 | two-stage | 73% | 9.5s | 1.3 GB | Good idea (ASR→CTC rescore) but blocked on small CTC model |
+| tadabur-whisper-small | 84% | 1.6s | 461 MB | Best Whisper fine-tune; still trails FastConformer on all axes |
 | tarteel-whisper-base | 72% | ~3s | 290 MB | Decent Whisper fine-tune but not competitive |
 | distilled-ctc | 28% | 3.4s | 360 MB | Blocked: wav2vec2-base can't learn Arabic |
 | contrastive-v2 | 0% | 0.1s | 900 MB | Failed: English encoder produces useless Arabic features |
@@ -279,6 +280,7 @@ The large gap between streaming v1 (51%) and non-streaming v1 (83%) shows the mo
 - **Rabah pruned+fine-tuned path now works.** Fine-tuning the CTC head on pruned representations recovered accuracy from 12% to 72% (8-layer first_n). The 8L int8 model is 145 MB -- well under the 200 MB target. The key insight: `first_n` pruning (keep layers 0-7) vastly outperforms `evenly_spaced` (72% vs 56%).
 - **Two-stage faster-whisper path** now runs with int8 Stage 2 at 306 MB and 3.96s (down from 582 MB / 10s), but still trails on accuracy (70% SeqAcc).
 - **Phoneme CTC fine-tuning is the current shipped model.** `v4-tlog` with 69-phoneme Buckwalter CTC head, runs in browser via ONNX. Non-streaming: 83% v1, 74% v2. Streaming: 51% v1, 74% v2 — the streaming tracker is the main bottleneck. TLOG data helps in small doses (5/verse) but scaling up (15-30/verse) regresses badly regardless of quality filtering.
+- **Tadabur-Whisper-Small** (`FaisaI/tadabur-Whisper-Small`) is the best Whisper-family model tested: 84% recall, 77% SeqAcc, 1.6s latency at 461 MB. Beats tarteel-whisper-base (+12% recall, 2x faster) but still trails FastConformer on accuracy (93%), speed (0.6s), and size (115 MB). Streaming: 87% recall / 42% SeqAcc. Failures are mostly multi-verse truncation.
 - **N-best + brute-force didn't help.** `fastconformer-nbest-bruteforce` (83% SeqAcc) is worse than plain FastConformer. CTC beam search without a language model produces near-identical hypotheses, and brute-forcing entire surahs just picks wrong candidates. CTC re-scoring can't recover failures caused by bad candidate retrieval.
 
 ### Phoneme CTC Fine-Tuning (v4-tlog -- best streaming model)
