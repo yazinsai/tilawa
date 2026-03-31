@@ -174,6 +174,19 @@ modal run --detach scripts/train_xxx_modal.py
 - **Never `add_local_dir` on large directories.** The `data/` dir is 23GB of models/checkpoints. Mount only the specific files needed (e.g. two 1.4MB JSON files).
 - **Use `--detach` for long runs.** Local connections drop on jobs longer than a few minutes.
 
+## Git Worktrees
+
+Use `./.worktrees/` as the worktree directory for all git worktrees in this project.
+
+**New experiments MUST be developed in a worktree.** Create a worktree, build and validate the experiment there, then merge back to main once it's proven out. This keeps the main branch clean and lets multiple experiments run in parallel without conflicts.
+
+```bash
+git worktree add .worktrees/experiment-name -b experiment-name
+# ... develop and test in .worktrees/experiment-name/ ...
+git merge experiment-name   # merge back once done
+git worktree remove .worktrees/experiment-name
+```
+
 ## Python Environment
 
 Always use `.venv/bin/python` — the system Python lacks project dependencies.
