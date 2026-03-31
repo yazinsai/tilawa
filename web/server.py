@@ -50,6 +50,8 @@ VERSE_MATCH_THRESHOLD = 0.45
 FIRST_MATCH_THRESHOLD = 0.75  # higher bar before any verse is locked on
 RAW_TRANSCRIPT_THRESHOLD = 0.25
 SURROUNDING_CONTEXT = 2  # verses before/after current
+CONTINUATION_STRONG_THRESHOLD = 0.65
+AMBIGUOUS_MATCH_GAP = 0.05
 
 # Tracking mode (word-level): faster cycle once a verse is locked on
 TRACKING_TRIGGER_SECONDS = 0.5
@@ -272,6 +274,22 @@ def _get_surrounding_verses(db: QuranDB, surah: int, ayah: int) -> list[dict]:
     return result
 
 
+def _match_key(match: dict) -> str:
+    ayah_end = match.get("ayah_end")
+    if ayah_end and ayah_end != match["ayah"]:
+        return f"{match['surah']}:{match['ayah']}-{ayah_end}"
+    return f"{match['surah']}:{match['ayah']}"
+
+
+def _runner_up_gap(match: dict) -> float:
+    current_key = _match_key(match)
+    for runner in match.get("runners_up", []):
+        runner_key = f"{runner['surah']}:{runner['ayah']}"
+        if runner_key != current_key:
+            return match["score"] - runner["score"]
+    return 1.0
+
+
 # ---------------------------------------------------------------------------
 # Word-level alignment (for tracking mode)
 # ---------------------------------------------------------------------------
@@ -328,6 +346,40 @@ def _align_position(
     return start_from, []
 
 
+def _strip_leading_residual(
+    text: str,
+    previous_text: str,
+    min_score: float = 0.82,
+) -> tuple[str, float]:
+    """Remove a leading copy of the previously emitted verse if present.
+
+    Streaming windows often contain the full previous verse plus the start of
+    the next one. Skipping the whole transcript in that case drops recall on
+    multi-ayah recitations; trimming the residual prefix preserves the new tail.
+    """
+    text_words = text.split()
+    prev_words = previous_text.split()
+    if len(text_words) < 2 or len(prev_words) < 2:
+        return "", 0.0
+
+    best_score = 0.0
+    best_k = 0
+    min_k = max(1, len(prev_words) - 1)
+    max_k = min(len(text_words) - 1, len(prev_words) + 1)
+    for k in range(min_k, max_k + 1):
+        prefix = " ".join(text_words[:k])
+        score = lev_ratio(prefix, previous_text)
+        if score > best_score:
+            best_score = score
+            best_k = k
+
+    if best_score < min_score:
+        return "", best_score
+
+    remainder = " ".join(text_words[best_k:]).strip()
+    return remainder, best_score
+
+
 # ---------------------------------------------------------------------------
 # FastAPI app
 # ---------------------------------------------------------------------------
@@ -335,6 +387,7 @@ def _align_position(
 async def lifespan(application: FastAPI):
     global quran_db
     quran_db = QuranDB()
+    application.state.transcribe_lock = asyncio.Lock()
     log.info("QuranDB loaded: %d verses", quran_db.total_verses)
     _load_fastconformer()
     yield
@@ -366,6 +419,8 @@ async def websocket_endpoint(ws: WebSocket):
     last_emitted_text: str = ""
     prev_emitted_ref: tuple[int, int] | None = None
     prev_emitted_text: str = ""
+    pending_match_key: str | None = None
+    pending_match_count = 0
 
     # Tracking mode state
     tracking_verse: dict | None = None  # the verse we're tracking within
@@ -459,9 +514,10 @@ async def websocket_endpoint(ws: WebSocket):
                 new_audio_count = 0
 
                 # Transcribe
-                text = await asyncio.get_event_loop().run_in_executor(
-                    None, _transcribe, full_audio.copy()
-                )
+                async with ws.app.state.transcribe_lock:
+                    text = await asyncio.get_event_loop().run_in_executor(
+                        None, _transcribe, full_audio.copy()
+                    )
 
                 if not text or len(text.strip()) < 3:
                     continue
@@ -528,7 +584,10 @@ async def websocket_endpoint(ws: WebSocket):
                             tracking_verse["ayah"],
                             coverage * 100,
                         )
-                        # Advance to next verse
+                        # Mark the current verse complete, then return to
+                        # discovery mode. Blindly auto-advancing to the next
+                        # verse produces extra false verse_match events at
+                        # recitation boundaries and on single-ayah samples.
                         cur_ref = (
                             tracking_verse["surah"],
                             tracking_verse["ayah"],
@@ -537,35 +596,7 @@ async def websocket_endpoint(ws: WebSocket):
                         last_emitted_text = normalize_arabic(
                             tracking_verse["text_clean"]
                         )
-                        next_v = quran_db.get_next_verse(*cur_ref)
                         _exit_tracking("verse complete")
-
-                        if next_v:
-                            # Send verse_match for the next verse so
-                            # frontend advances highlighting
-                            next_ref = (next_v["surah"], next_v["ayah"])
-                            surrounding = _get_surrounding_verses(
-                                quran_db, next_v["surah"], next_v["ayah"]
-                            )
-                            await ws.send_json(
-                                {
-                                    "type": "verse_match",
-                                    "surah": next_v["surah"],
-                                    "ayah": next_v["ayah"],
-                                    "verse_text": next_v["text_uthmani"],
-                                    "surah_name": next_v["surah_name"],
-                                    "confidence": 0.99,
-                                    "surrounding_verses": surrounding,
-                                }
-                            )
-                            # Save completed verse state for recovery if next-verse tracking fails
-                            prev_emitted_ref = last_emitted_ref
-                            prev_emitted_text = last_emitted_text
-                            last_emitted_ref = next_ref
-                            last_emitted_text = normalize_arabic(
-                                next_v["text_clean"]
-                            )
-                            _enter_tracking(next_v, next_ref)
 
                         # Reset audio window — keep more context (last 2s)
                         # so next verse tracking has something to work with
@@ -589,9 +620,10 @@ async def websocket_endpoint(ws: WebSocket):
                 continue
 
             # Transcribe the full audio window
-            text = await asyncio.get_event_loop().run_in_executor(
-                None, _transcribe, full_audio.copy()
-            )
+            async with ws.app.state.transcribe_lock:
+                text = await asyncio.get_event_loop().run_in_executor(
+                    None, _transcribe, full_audio.copy()
+                )
 
             if not text or len(text.strip()) < 5:
                 continue
@@ -603,10 +635,23 @@ async def websocket_endpoint(ws: WebSocket):
                 text[:120],
             )
 
-            # Skip if transcription is mostly residual from the last emitted verse
+            query_text = text
+
+            # If the window starts with the previously emitted verse but also
+            # contains new words, trim the old prefix instead of skipping.
             if last_emitted_text:
                 residual = partial_ratio(text, last_emitted_text)
-                if residual > 0.70:
+                stripped_text, strip_score = _strip_leading_residual(
+                    text, last_emitted_text
+                )
+                if stripped_text and len(stripped_text.split()) >= 2:
+                    log.info(
+                        "  (trimmed residual prefix %.2f -> %s)",
+                        strip_score,
+                        stripped_text[:120],
+                    )
+                    query_text = stripped_text
+                elif residual > 0.70:
                     log.info(
                         "  (residual overlap %.2f with last emitted, skipping)",
                         residual,
@@ -615,7 +660,7 @@ async def websocket_endpoint(ws: WebSocket):
 
             # Match against QuranDB (span-aware, with continuation bias)
             match = quran_db.match_verse(
-                text,
+                query_text,
                 threshold=RAW_TRANSCRIPT_THRESHOLD,
                 max_span=4,
                 hint=last_emitted_ref,
@@ -629,6 +674,13 @@ async def websocket_endpoint(ws: WebSocket):
                 else "none"
             )
             if match:
+                match_key = _match_key(match)
+                if pending_match_key == match_key:
+                    pending_match_count += 1
+                else:
+                    pending_match_key = match_key
+                    pending_match_count = 1
+
                 ayah_end = match.get("ayah_end", "")
                 end_str = f"-{ayah_end}" if ayah_end else ""
                 log.info(
@@ -655,10 +707,35 @@ async def websocket_endpoint(ws: WebSocket):
                         tag,
                     )
             else:
+                pending_match_key = None
+                pending_match_count = 0
                 log.info("NO MATCH (below %.2f)  hint=%s", RAW_TRANSCRIPT_THRESHOLD, hint_str)
 
             effective_threshold = FIRST_MATCH_THRESHOLD if last_emitted_ref is None else VERSE_MATCH_THRESHOLD
-            if match and match["score"] >= effective_threshold:
+            match_gap = _runner_up_gap(match) if match else 0.0
+            repeat_confirmed = pending_match_count >= 2
+            strong_continuation = (
+                match is not None
+                and match["score"] >= CONTINUATION_STRONG_THRESHOLD
+                and match_gap >= AMBIGUOUS_MATCH_GAP
+            )
+            strong_first_match = (
+                match is not None
+                and last_emitted_ref is None
+                and match_gap >= AMBIGUOUS_MATCH_GAP
+            )
+
+            should_commit = (
+                match is not None
+                and match["score"] >= effective_threshold
+                and (
+                    repeat_confirmed
+                    or strong_first_match
+                    or (last_emitted_ref is not None and strong_continuation)
+                )
+            )
+
+            if should_commit:
                 ref = (match["surah"], match["ayah"])
 
                 # Dedup: skip if same verse was just sent
@@ -703,6 +780,8 @@ async def websocket_endpoint(ws: WebSocket):
                     match.get("text_clean", "")
                     or (verse["text_clean"] if verse else "")
                 )
+                pending_match_key = None
+                pending_match_count = 0
 
                 # Enter tracking mode for this verse
                 if verse:
@@ -715,7 +794,20 @@ async def websocket_endpoint(ws: WebSocket):
                     full_audio = tail.copy()
             else:
                 score = round(match["score"], 2) if match else 0.0
-                log.info("  (below threshold %.2f — sending raw_transcript, score=%.2f)", effective_threshold, score)
+                if match and match["score"] >= effective_threshold:
+                    log.info(
+                        "  (held candidate key=%s repeats=%d gap=%.3f score=%.2f)",
+                        pending_match_key,
+                        pending_match_count,
+                        match_gap,
+                        score,
+                    )
+                else:
+                    log.info(
+                        "  (below threshold %.2f — sending raw_transcript, score=%.2f)",
+                        effective_threshold,
+                        score,
+                    )
                 await ws.send_json(
                     {
                         "type": "raw_transcript",
