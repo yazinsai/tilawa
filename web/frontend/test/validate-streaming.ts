@@ -220,7 +220,12 @@ async function main() {
   console.log();
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+main()
+  .then(() => {
+    // Force clean exit — ONNX runtime can SIGABRT during cleanup
+    process.exit(0);
+  })
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });

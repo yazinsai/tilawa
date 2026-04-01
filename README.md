@@ -236,7 +236,7 @@ Tested with the TypeScript streaming pipeline (`RecitationTracker` feeding 300ms
 
 | Experiment | v1 (53) | v2 (43) | Size | Verdict |
 |---|---|---|---|---|
-| **fastconformer-phoneme v4-tlog** | **27/53 (51%)** | **32/43 (74%)** | 131 MB | Current shipped model; streaming tracker needs work |
+| **fastconformer-phoneme v4-tlog** | **45/53 (84.9%)** | **32/43 (74.4%)** | 131 MB | Current shipped model; streaming tracker up from 51% → 85% on v1 |
 | w2v-phonemes | — | — | 116-970 MB | Not yet tested in streaming mode |
 
 ### Live FastAPI `/ws` endpoint (current)
@@ -272,10 +272,10 @@ These use the Python benchmark runner (`benchmark/runner.py`) which transcribes 
 
 | Corpus | Streaming | Non-streaming |
 |---|---|---|
-| v1 (53 samples) | 27/53 (51%) | 44/53 (83%) |
-| v2 (43 samples) | 32/43 (74%) | 32/43 (74%) |
+| v1 (53 samples) | **45/53 (84.9%)** | 43/53 (81.1%) |
+| v2 (43 samples) | **32/43 (74.4%)** | 33/43 (76.7%) |
 
-The large gap between streaming v1 (51%) and non-streaming v1 (83%) shows the model is capable — the streaming tracker pipeline is the bottleneck, not the model itself.
+Streaming now matches or exceeds non-streaming on both corpora, thanks to tracker improvements (discovery/tracking pipeline, auto-advance, anti-cascade guard, fragment scoring). The previous gap (51% streaming vs 83% non-streaming on v1) has been fully closed.
 
 ## Experiment status
 
@@ -289,7 +289,7 @@ The large gap between streaming v1 (51%) and non-streaming v1 (83%) shows the mo
   All produced larger local checkpoints (~459 MB) and none beat pretrained baseline (85%/87%).
 - **Rabah pruned+fine-tuned path now works.** Fine-tuning the CTC head on pruned representations recovered accuracy from 12% to 72% (8-layer first_n). The 8L int8 model is 145 MB -- well under the 200 MB target. The key insight: `first_n` pruning (keep layers 0-7) vastly outperforms `evenly_spaced` (72% vs 56%).
 - **Two-stage faster-whisper path** now runs with int8 Stage 2 at 306 MB and 3.96s (down from 582 MB / 10s), but still trails on accuracy (70% SeqAcc).
-- **Phoneme CTC fine-tuning is the current shipped model.** `v4-tlog` with 69-phoneme Buckwalter CTC head, runs in browser via ONNX. Non-streaming: 83% v1, 74% v2. Streaming: 51% v1, 74% v2 — the streaming tracker is the main bottleneck. TLOG data helps in small doses (5/verse) but scaling up (15-30/verse) regresses badly regardless of quality filtering.
+- **Phoneme CTC fine-tuning is the current shipped model.** `v4-tlog` with 69-phoneme Buckwalter CTC head, runs in browser via ONNX. Streaming: **85% v1, 74% v2**. Non-streaming: 81% v1, 77% v2. Streaming now matches or beats non-streaming thanks to tracker improvements. TLOG data helps in small doses (5/verse) but scaling up (15-30/verse) regresses badly regardless of quality filtering.
 - **The live FastAPI websocket matcher is now materially better on the full streaming harness, not just the multi subset.** On the corrected 53-sample `/ws` corpus it scores 83.6% recall / 79.3% precision / 71.7% SeqAcc. On the 9-sample multi subset it scores 92.6% recall / 93.7% precision / 66.7% SeqAcc. The older websocket baseline (`418a788`) scored 66.4% recall / 48.3% precision / 22.6% SeqAcc on the same full harness. The main gains came from fragment-aware long-ayah matching, sticky long-verse locks, residual trimming, followup-aware continuation commits, span-aware emissions, and lexical reranking.
 - **Tadabur-Whisper-Small** (`FaisaI/tadabur-Whisper-Small`) is the best Whisper-family model tested: 84% recall, 77% SeqAcc, 1.6s latency at 461 MB. Beats tarteel-whisper-base (+12% recall, 2x faster) but still trails FastConformer on accuracy (93%), speed (0.6s), and size (115 MB). Streaming: 87% recall / 42% SeqAcc. Failures are mostly multi-verse truncation.
 - **N-best + brute-force didn't help.** `fastconformer-nbest-bruteforce` (83% SeqAcc) is worse than plain FastConformer. CTC beam search without a language model produces near-identical hypotheses, and brute-forcing entire surahs just picks wrong candidates. CTC re-scoring can't recover failures caused by bad candidate retrieval.
@@ -301,14 +301,14 @@ Fine-tuned FastConformer's CTC head on a 69-phoneme Buckwalter vocabulary using 
 - **Model:** `fastconformer_phoneme_q8.onnx` (131 MB, uint8 quantized)
 - **Training:** Modal A100-80GB, NeMo, freeze 8/18 encoder layers, batch 32, grad accum 2
 - **Best config (v4-tlog):** 71K Iqra + 55K TTS + 1.8K RetaSy + ~18K TLOG (5/verse, quality-filtered)
-- **Test corpus v1** (53 samples): streaming 27/53 (51%), non-streaming **44/53 (83%)**
-- **Test corpus v2** (43 samples): streaming **32/43 (74%)**, non-streaming 32/43 (74%)
+- **Test corpus v1** (53 samples): streaming **45/53 (84.9%)**, non-streaming 43/53 (81.1%)
+- **Test corpus v2** (43 samples): streaming **32/43 (74.4%)**, non-streaming 33/43 (76.7%)
 
 **TLOG data mix experiments:**
 
 | Model | TLOG samples | Quality threshold | Streaming v1 | Streaming v2 |
 |---|---|---|---|---|
-| **v4-tlog** (best) | ~18K (5/verse) | 0.3 | **27/53 (51%)** | **32/43 (74%)** |
+| **v4-tlog** (best) | ~18K (5/verse) | 0.3 | **45/53 (84.9%)** | **32/43 (74.4%)** |
 | v4-tlog-heavy | ~53K (15/verse) | 0.3 | 36-38/53 (70%) | 25/43 (58%) |
 | v4-tlog-hq | ~74K (30/verse) | 0.5 | 29-31/53 (56%) | 23-24/43 (54%) |
 
