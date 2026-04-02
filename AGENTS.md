@@ -144,19 +144,15 @@ def model_size() -> int:                  # model size in bytes
 - 29 RetaSy crowdsourced (curated via `benchmark/curate_corpus.py`)
 - Categories: short (17), medium (19), long (9), multi (9)
 
-## Current Experiments
+## Experiment Results
 
-| Experiment | Approach | SeqAcc | Recall | Precision | Latency | Size |
-|---|---|---|---|---|---|---|
-| ctc-alignment | wav2vec2 CTC forced alignment (fine-tuned) | **81%** | 83% | 83% | ~5s | 1.2 GB |
-| tarteel-whisper-base | tarteel-ai/whisper-base-ar-quran | 67% | 72% | 75% | ~3s | 290 MB |
-| whisper-lora | Whisper-small + LoRA | 58% | 64% | 65% | ~1.3s | 485 MB |
-| embedding-search | HuBERT → FAISS index | — | — | — | — | — |
-| contrastive | QuranCLAP (HuBERT+AraBERT) | — | — | — | — | — |
-| streaming-asr | mlx-whisper chunked | — | — | — | — | — |
-| new-models/* | Various HF models | — | — | — | — | — |
+All experiment results live in **[EXPERIMENTS.md](EXPERIMENTS.md)**. When running new experiments or re-running existing ones:
 
-**Dead ends:** Moonshine Tiny AR LoRA (character-level tokenizer makes it un-fine-tunable, see README "What we tried").
+1. **Add detailed results to `EXPERIMENTS.md`** — per-experiment writeups, streaming/batch tables, failure analysis
+2. **Update the summary table in `README.md`** — only the top-level row (experiment name, size, v1/v2 recall/precision/seqacc)
+3. **Save raw JSON to `benchmark/experiment_results/`** — use `benchmark/run_single.py <name> [--streaming]`
+
+Keep README concise — it links to EXPERIMENTS.md for details.
 
 ## Training
 
