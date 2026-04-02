@@ -3,10 +3,10 @@
     "experiment": "fastconformer-phoneme-lm",
     "corpus": "test_corpus",
     "mode": "full",
-    "recall": 0.7909,
-    "precision": 0.8491,
-    "sequence_accuracy": 0.7547,
-    "avg_latency": 0.237,
+    "recall": 0.8972,
+    "precision": 0.9057,
+    "sequence_accuracy": 0.8679,
+    "avg_latency": 1.556,
     "model_size": 131159547,
     "total": 53
   },
@@ -14,10 +14,10 @@
     "experiment": "fastconformer-phoneme-lm",
     "corpus": "test_corpus_v2",
     "mode": "full",
-    "recall": 0.8651,
+    "recall": 0.8744,
     "precision": 0.8837,
-    "sequence_accuracy": 0.8605,
-    "avg_latency": 0.352,
+    "sequence_accuracy": 0.8372,
+    "avg_latency": 1.616,
     "model_size": 131159547,
     "total": 43
   }
