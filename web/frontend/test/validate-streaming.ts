@@ -14,9 +14,11 @@ import { fileURLToPath } from "node:url";
 
 import { computeMelSpectrogram } from "../src/worker/mel.ts";
 import { CTCDecoder } from "../src/worker/ctc-decode.ts";
+import { beamSearchDecode } from "../src/worker/beam-decode.ts";
+import { buildTrie, type CompactTrie } from "../src/lib/phoneme-trie.ts";
 import { QuranDB } from "../src/lib/quran-db.ts";
 import { RecitationTracker } from "../src/lib/tracker.ts";
-import type { TranscribeResult } from "../src/lib/tracker.ts";
+import type { TranscribeResult, BeamVerseMatch } from "../src/lib/tracker.ts";
 import type { WorkerOutbound } from "../src/lib/types.ts";
 import { createSession, runInference } from "./session-node.ts";
 
@@ -54,6 +56,7 @@ function loadAudio(filePath: string): Float32Array {
 // Transcribe function (same as inference.ts)
 // ---------------------------------------------------------------------------
 let decoder: CTCDecoder;
+let trie: CompactTrie | null = null;
 
 async function transcribe(audio: Float32Array): Promise<TranscribeResult> {
   const { features, timeFrames } = await computeMelSpectrogram(audio);
@@ -63,14 +66,42 @@ async function transcribe(audio: Float32Array): Promise<TranscribeResult> {
     numMels,
     timeFrames,
   );
+
+  const greedy = decoder.decode(logprobs, timeSteps, vocabSize);
+
+  // Run trie-constrained beam search for verse-level matches
+  let beamMatches: BeamVerseMatch[] | undefined;
+  if (trie) {
+    const beamResults = beamSearchDecode(
+      logprobs, timeSteps, vocabSize,
+      decoder.getBlankId(), trie, 8,
+    );
+    const seen = new Set<string>();
+    beamMatches = [];
+    for (const result of beamResults) {
+      for (const ref of result.matchedVerses) {
+        const key = `${ref.verseIndex}:${ref.spanLength}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          beamMatches.push({
+            verseIndex: ref.verseIndex,
+            spanLength: ref.spanLength,
+            score: result.score,
+          });
+        }
+      }
+    }
+  }
+
   return {
-    ...decoder.decode(logprobs, timeSteps, vocabSize),
+    ...greedy,
     acoustic: {
       logprobs,
       timeSteps,
       vocabSize,
       blankId: decoder.getBlankId(),
     },
+    beamMatches,
   };
 }
 
@@ -105,6 +136,11 @@ async function main() {
   const quranData = JSON.parse(readFileSync(resolve(ROOT, "public/quran_phonemes.json"), "utf-8"));
   const db = new QuranDB(quranData, decoder);
   console.log(`Loaded ${db.totalVerses} verses from ${db.surahCount} surahs`);
+
+  // 4. Build verse trie for constrained beam search
+  const built = buildTrie(quranData, vocabJson, 3);
+  trie = built.trie;
+  console.log(`Trie: ${built.stats.nodeCount} nodes, ~${built.stats.memoryMB.toFixed(1)}MB`);
 
   // 4. Load manifest
   const manifest: { samples: Sample[] } = JSON.parse(

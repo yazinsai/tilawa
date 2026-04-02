@@ -35,11 +35,22 @@ import {
   DISCOVERY_EXPANDED_CANDIDATES,
 } from "./types";
 
+export interface BeamVerseMatch {
+  /** Index into the quran_phonemes array */
+  verseIndex: number;
+  /** Number of verses in the span (1 for single, 2-3 for multi) */
+  spanLength: number;
+  /** Beam log-probability score */
+  score: number;
+}
+
 export interface TranscribeResult {
   text: string;
   rawPhonemes: string;
   tokenIds?: number[];
   acoustic?: AcousticEvidence;
+  /** Verse matches from trie-constrained beam search (if available) */
+  beamMatches?: BeamVerseMatch[];
 }
 
 type TranscribeFn = (audio: Float32Array) => Promise<TranscribeResult>;
@@ -489,6 +500,7 @@ export class RecitationTracker {
       topSurahs: textConfidenceLow ? 10 : DISCOVERY_TOP_SURAHS,
       spanLimit: DISCOVERY_TOP_SINGLE_CANDIDATES,
     });
+
     const ranked = this._rankCandidates(retrieved.combined, result);
 
     this._emitDiagnostic({

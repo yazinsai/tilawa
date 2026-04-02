@@ -2,9 +2,11 @@ import { loadModel } from "./model-cache";
 import { computeMelSpectrogram } from "./mel";
 import { CTCDecoder } from "./ctc-decode";
 import { createSession, runInference } from "./session";
+import { beamSearchDecode } from "./beam-decode";
+import { buildTrie, type CompactTrie } from "../lib/phoneme-trie";
 import { QuranDB } from "../lib/quran-db";
 import { RecitationTracker } from "../lib/tracker";
-import type { TranscribeResult } from "../lib/tracker";
+import type { TranscribeResult, BeamVerseMatch } from "../lib/tracker";
 import type { WorkerInbound, WorkerOutbound } from "../lib/types";
 
 const MODEL_URL = "/fastconformer_phoneme_q8.onnx";
@@ -12,6 +14,8 @@ const MODEL_URL = "/fastconformer_phoneme_q8.onnx";
 let tracker: RecitationTracker | null = null;
 let decoder: CTCDecoder | null = null;
 let db: QuranDB | null = null;
+let trie: CompactTrie | null = null;
+let vocabJsonCache: Record<string, string> | null = null;
 
 function post(msg: WorkerOutbound) {
   self.postMessage(msg);
@@ -25,14 +29,43 @@ async function transcribe(audio: Float32Array): Promise<TranscribeResult> {
     numMels,
     timeFrames,
   );
+
+  const greedy = decoder!.decode(logprobs, timeSteps, vocabSize);
+
+  // Run trie-constrained beam search for verse-level matches
+  let beamMatches: BeamVerseMatch[] | undefined;
+  if (trie) {
+    const beamResults = beamSearchDecode(
+      logprobs, timeSteps, vocabSize,
+      decoder!.getBlankId(), trie, 8,
+    );
+    // Collect verse matches from beam hypotheses
+    const seen = new Set<string>();
+    beamMatches = [];
+    for (const result of beamResults) {
+      for (const ref of result.matchedVerses) {
+        const key = `${ref.verseIndex}:${ref.spanLength}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          beamMatches.push({
+            verseIndex: ref.verseIndex,
+            spanLength: ref.spanLength,
+            score: result.score,
+          });
+        }
+      }
+    }
+  }
+
   return {
-    ...decoder!.decode(logprobs, timeSteps, vocabSize),
+    ...greedy,
     acoustic: {
       logprobs,
       timeSteps,
       vocabSize,
       blankId: decoder!.getBlankId(),
     },
+    beamMatches,
   };
 }
 
@@ -43,6 +76,7 @@ async function init() {
     const vocabRes = await fetch("/phoneme_vocab.json");
     if (!vocabRes.ok) throw new Error(`phoneme_vocab.json fetch failed: ${vocabRes.status}`);
     const vocabJson = await vocabRes.json();
+    vocabJsonCache = vocabJson;
     decoder = new CTCDecoder(vocabJson);
 
     // Load ONNX model
@@ -66,6 +100,16 @@ async function init() {
     if (!quranRes.ok) throw new Error(`quran_phonemes.json fetch failed: ${quranRes.status}`);
     const quranData = await quranRes.json();
     db = new QuranDB(quranData, decoder);
+
+    // Build verse/span trie for constrained beam search
+    post({ type: "loading_status", message: "Building search trie..." });
+    const built = buildTrie(quranData, vocabJsonCache!, 3);
+    trie = built.trie;
+    console.log(
+      `Trie built: ${built.stats.nodeCount} nodes, ` +
+      `${built.stats.singleVerseCount} verses, ${built.stats.spanCount} spans, ` +
+      `~${built.stats.memoryMB.toFixed(1)}MB`,
+    );
 
     // Create tracker
     tracker = new RecitationTracker(db, transcribe);
