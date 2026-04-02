@@ -112,7 +112,71 @@ Fine-tuning the phoneme CTC head with varying amounts of TLOG (phone-recorded Qu
 ## Methodology
 
 - **Batch mode:** Each experiment's `transcribe()` function processes the full audio file. The `StreamingPipeline` then matches the transcript against all 6,236 Quran verses using Levenshtein distance. Recall/Precision/SeqAcc computed per-sample, then averaged.
-- **Streaming mode:** The TypeScript `RecitationTracker` processes 300ms audio chunks through the ONNX model, with 4.0s silence tail for discovery flush. Only available for the shipped ONNX phoneme model.
+- **Python streaming mode:** Audio chunked into 3s segments, each transcribed independently, accumulated text fed to `VerseTracker` for progressive verse matching.
+- **TypeScript streaming mode:** The `RecitationTracker` processes 300ms audio chunks through the ONNX model, with 4.0s silence tail for discovery flush. Only available for the shipped ONNX phoneme model.
 - **Latency:** Wall-clock time per sample including model loading warmup (first sample excluded).
 - **Model size:** As reported by each experiment's `model_size()` function.
 - All results from a single run on Apple Silicon (CPU). ONNX non-determinism can cause ±2-3 sample variance per run.
+
+## Per-experiment details
+
+### ctc-alignment
+
+CTC forced alignment using `jonatasgrosman/wav2vec2-large-xlsr-53-arabic` (1.2 GB). Scores candidate verses directly against frame-level character logits using the CTC forward algorithm, bypassing the information loss of greedy decoding. Too large (6x) and too slow (5x) for on-device use.
+
+### nvidia-fastconformer
+
+`nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0` via NeMo. Best balance of accuracy, speed, and size. Fine-tune sweep (v1/v2a/v2b/v3c) did not improve baseline -- all variants regressed.
+
+### fastconformer-ctc-rescore
+
+Two-stage: FastConformer ASR (115 MB) + CTC re-score top-50 candidates using fine-tuned 8L Rabah CTC (145 MB). CTC re-scoring does **not** recover any failures -- both models fail on the same hard cases (short isolated letters, multi-verse passages).
+
+### fastconformer-nbest-bruteforce
+
+N-best beam search + CTC brute-force. **Worse than baseline** -- introduced 2 new failures. CTC beam search without a language model produces near-identical hypotheses. A Quran-specific LM or constrained decoding would be needed.
+
+### fastconformer-quran-lm-fusion
+
+FastConformer + pyctcdecode Quran language model. Best batch SeqAcc (94% v1, 95% v2) but LM adds latency and can't easily run in browser.
+
+### fastconformer-phoneme
+
+Fine-tuned FastConformer CTC head on 69-phoneme Buckwalter vocabulary. This is the shipped ONNX model (`fastconformer_phoneme_q8.onnx`, 131 MB). Trained on 71K Iqra + 55K TTS + 1.8K RetaSy + ~18K TLOG.
+
+### w2v-phonemes
+
+Phoneme-based matching using wav2vec2 CTC models. Large model (970 MB) achieves 100% batch accuracy on v1 -- proves the approach works perfectly -- but too large/slow for real-time. Cannot stream (no `transcribe()` function).
+
+### tadabur-whisper-small
+
+`FaisaI/tadabur-Whisper-Small` -- best Whisper fine-tune. Highest streaming recall (87%) but 3x slower than FastConformer.
+
+### rabah-pruned-ctc
+
+Layer-pruned `rabah2026/wav2vec2-large-xlsr-53-arabic-quran-v_final`. Key finding: `first_n` pruning (keep layers 0-7) gets 75% vs 55% for `evenly_spaced`. Fine-tuning essential -- unpruned models score near 0%.
+
+### two-stage
+
+Moonshine Tiny Arabic (103 MB) for fast ASR + CTC re-score top 50 candidates. Falls back to large CTC model. Blocked on small CTC model.
+
+### whisper-lora / whisper-small
+
+Whisper-small variants. LoRA adapter improves over base but both trail FastConformer significantly, especially in streaming.
+
+### distilled-ctc (failed)
+
+wav2vec2-base knowledge-distilled from large CTC. English-only pretraining means no Arabic speech representations.
+
+### contrastive / contrastive-v2 / embedding-search (failed)
+
+All failed due to English-pretrained audio encoders (HuBERT/wav2vec2-base) producing useless features for Arabic speech.
+
+## Key findings
+
+1. **FastConformer dominates for streaming.** Best speed/accuracy/size tradeoff across all viable experiments.
+2. **CTC forced alignment is the most accurate batch approach** but too large (1.2 GB) for on-device.
+3. **ASR quality is the bottleneck.** All ASR-based approaches fail on the same samples.
+4. **English-pretrained audio encoders fail on Arabic.** wav2vec2-base, HuBERT cannot produce useful features.
+5. **Layer pruning + fine-tuning works.** 24→8 layers recovers most accuracy (75% at 145 MB).
+6. **Short verses are hard across all approaches.** Verses under 3-4 words don't provide enough signal.
