@@ -653,8 +653,13 @@ def prepare_data(
     # ------------------------------------------------------------------
     verse_phoneme_map = _build_verse_phoneme_map("/quran_data")
 
-    # Default TLOG cap: 30% of clean train count (larger than RetaSy since mapping is reliable)
-    effective_tlog_cap = max_tlog_samples if max_tlog_samples > 0 else int(iqra_train_count * 0.75)
+    # TLOG cap: use -1 for default (75% of clean), 0 to skip entirely
+    if max_tlog_samples == 0:
+        effective_tlog_cap = 0
+    elif max_tlog_samples > 0:
+        effective_tlog_cap = max_tlog_samples
+    else:
+        effective_tlog_cap = int(iqra_train_count * 0.75)
 
     tlog_meta = {
         "total_seen": 0,
@@ -670,100 +675,104 @@ def prepare_data(
 
     (audio_root / "tlog").mkdir(parents=True, exist_ok=True)
 
-    print(f"Loading {TLOG_DATASET_ID} clean split (cap={effective_tlog_cap})...")
-    try:
-        tlog_ds = load_dataset(TLOG_DATASET_ID, split="clean", streaming=True)
-        tlog_ds = tlog_ds.cast_column("audio", Audio(sampling_rate=16000, decode=False))
+    if effective_tlog_cap <= 0:
+        print(f"TLOG skipped (cap={effective_tlog_cap}).")
+        tlog_meta["skipped"] = True
+    else:
+        print(f"Loading {TLOG_DATASET_ID} clean split (cap={effective_tlog_cap})...")
+        try:
+            tlog_ds = load_dataset(TLOG_DATASET_ID, split="clean", streaming=True)
+            tlog_ds = tlog_ds.cast_column("audio", Audio(sampling_rate=16000, decode=False))
 
-        tlog_written_total = 0
-        # Track per-verse counts to limit oversampling (max 5 per verse)
-        verse_counts: dict[tuple[int, int], int] = {}
-        MAX_PER_VERSE = max_tlog_per_verse
+            tlog_written_total = 0
+            # Track per-verse counts to limit oversampling (max 5 per verse)
+            verse_counts: dict[tuple[int, int], int] = {}
+            MAX_PER_VERSE = max_tlog_per_verse
 
-        with train_manifest.open("a", encoding="utf-8") as train_mf, \
-             val_manifest.open("a", encoding="utf-8") as val_mf:
-            for idx, sample in enumerate(tlog_ds):
-                if tlog_written_total >= effective_tlog_cap:
-                    break
+            with train_manifest.open("a", encoding="utf-8") as train_mf, \
+                 val_manifest.open("a", encoding="utf-8") as val_mf:
+                for idx, sample in enumerate(tlog_ds):
+                    if tlog_written_total >= effective_tlog_cap:
+                        break
 
-                tlog_meta["total_seen"] += 1
+                    tlog_meta["total_seen"] += 1
 
-                # Skip unclean samples
-                if not sample.get("is_clean", True):
-                    tlog_meta["filtered_unclean"] += 1
-                    continue
+                    # Skip unclean samples
+                    if not sample.get("is_clean", True):
+                        tlog_meta["filtered_unclean"] += 1
+                        continue
 
-                # Extract surah:ayah from audio filename (pattern: {surah}_{ayah}_{id}.flac)
-                audio_obj = sample.get("audio", {})
-                audio_path = audio_obj.get("path", "") if isinstance(audio_obj, dict) else ""
-                parts = audio_path.split("_")
-                if len(parts) < 3:
-                    tlog_meta["unmapped"] += 1
-                    continue
+                    # Extract surah:ayah from audio filename (pattern: {surah}_{ayah}_{id}.flac)
+                    audio_obj = sample.get("audio", {})
+                    audio_path = audio_obj.get("path", "") if isinstance(audio_obj, dict) else ""
+                    parts = audio_path.split("_")
+                    if len(parts) < 3:
+                        tlog_meta["unmapped"] += 1
+                        continue
 
-                try:
-                    surah = int(parts[0])
-                    ayah = int(parts[1])
-                except (ValueError, IndexError):
-                    tlog_meta["unmapped"] += 1
-                    continue
+                    try:
+                        surah = int(parts[0])
+                        ayah = int(parts[1])
+                    except (ValueError, IndexError):
+                        tlog_meta["unmapped"] += 1
+                        continue
 
-                verse_key = (surah, ayah)
-                phoneme_str = verse_phoneme_map.get(verse_key)
-                if phoneme_str is None:
-                    tlog_meta["unmapped"] += 1
-                    continue
+                    verse_key = (surah, ayah)
+                    phoneme_str = verse_phoneme_map.get(verse_key)
+                    if phoneme_str is None:
+                        tlog_meta["unmapped"] += 1
+                        continue
 
-                tlog_meta["mapped"] += 1
+                    tlog_meta["mapped"] += 1
 
-                # Limit per-verse to maintain diversity
-                current_count = verse_counts.get(verse_key, 0)
-                if current_count >= MAX_PER_VERSE:
-                    continue
-                verse_counts[verse_key] = current_count + 1
+                    # Limit per-verse to maintain diversity
+                    current_count = verse_counts.get(verse_key, 0)
+                    if current_count >= MAX_PER_VERSE:
+                        continue
+                    verse_counts[verse_key] = current_count + 1
 
-                out_file = audio_root / "tlog" / f"tlog_{idx:09d}.wav"
-                measured = write_audio(sample["audio"], out_file)
-                effective_duration = measured
+                    out_file = audio_root / "tlog" / f"tlog_{idx:09d}.wav"
+                    measured = write_audio(sample["audio"], out_file)
+                    effective_duration = measured
 
-                if effective_duration <= 0 or effective_duration < min_duration or effective_duration > max_duration:
-                    tlog_meta["filtered_duration"] += 1
-                    out_file.unlink(missing_ok=True)
-                    continue
+                    if effective_duration <= 0 or effective_duration < min_duration or effective_duration > max_duration:
+                        tlog_meta["filtered_duration"] += 1
+                        out_file.unlink(missing_ok=True)
+                        continue
 
-                row = {
-                    "audio_filepath": str(out_file),
-                    "duration": round(float(effective_duration), 4),
-                    "text": _safe_text(phoneme_str),
-                }
-                line = json.dumps(row, ensure_ascii=False) + "\n"
+                    row = {
+                        "audio_filepath": str(out_file),
+                        "duration": round(float(effective_duration), 4),
+                        "text": _safe_text(phoneme_str),
+                    }
+                    line = json.dumps(row, ensure_ascii=False) + "\n"
 
-                # Deterministic split: idx % 50 == 0 → validation (2%)
-                if idx % 50 == 0:
-                    val_mf.write(line)
-                    tlog_meta["tlog_val_written"] += 1
-                else:
-                    train_mf.write(line)
-                    tlog_meta["tlog_train_written"] += 1
+                    # Deterministic split: idx % 50 == 0 → validation (2%)
+                    if idx % 50 == 0:
+                        val_mf.write(line)
+                        tlog_meta["tlog_val_written"] += 1
+                    else:
+                        train_mf.write(line)
+                        tlog_meta["tlog_train_written"] += 1
 
-                tlog_written_total += 1
+                    tlog_written_total += 1
 
-                if tlog_written_total % 2000 == 0:
-                    print(
-                        f"[tlog] written={tlog_written_total:,} "
-                        f"(train={tlog_meta['tlog_train_written']:,} "
-                        f"val={tlog_meta['tlog_val_written']:,}) "
-                        f"verses={len(verse_counts):,} "
-                        f"unmapped={tlog_meta['unmapped']:,}"
-                    )
+                    if tlog_written_total % 2000 == 0:
+                        print(
+                            f"[tlog] written={tlog_written_total:,} "
+                            f"(train={tlog_meta['tlog_train_written']:,} "
+                            f"val={tlog_meta['tlog_val_written']:,}) "
+                            f"verses={len(verse_counts):,} "
+                            f"unmapped={tlog_meta['unmapped']:,}"
+                        )
 
-        tlog_meta["verses_seen"] = len(verse_counts)
+            tlog_meta["verses_seen"] = len(verse_counts)
 
-    except Exception as exc:
-        print(f"Warning: failed to load {TLOG_DATASET_ID}: {exc}")
-        import traceback
-        traceback.print_exc()
-        print("Continuing without TLOG data.")
+        except Exception as exc:
+            print(f"Warning: failed to load {TLOG_DATASET_ID}: {exc}")
+            import traceback
+            traceback.print_exc()
+            print("Continuing without TLOG data.")
 
     print(f"TLOG: {json.dumps(tlog_meta, indent=2)}")
 
@@ -1140,6 +1149,23 @@ def train(
     print(f"Best checkpoint: {best_ckpt} (val_loss={best_score})")
 
     # ------------------------------------------------------------------
+    # Load best checkpoint weights before saving (fixes silent regression
+    # where final model != best model due to early stopping overshoot)
+    # ------------------------------------------------------------------
+    if best_ckpt and Path(best_ckpt).exists():
+        print(f"Loading best checkpoint weights from: {best_ckpt}")
+        try:
+            ckpt = torch.load(best_ckpt, map_location="cuda" if torch.cuda.is_available() else "cpu", weights_only=False)
+            state_dict = ckpt.get("state_dict", ckpt)
+            # Lightning prefixes keys with the module name; try loading as-is first
+            missing, unexpected = model.load_state_dict(state_dict, strict=False)
+            print(f"Best checkpoint loaded: {len(missing)} missing, {len(unexpected)} unexpected keys")
+        except Exception as e:
+            print(f"WARNING: Failed to load best checkpoint ({e}). Using final model state.")
+    else:
+        print("WARNING: Best checkpoint not found, saving final model state instead.")
+
+    # ------------------------------------------------------------------
     # Save model
     # ------------------------------------------------------------------
     nemo_path = output_dir / "model.nemo"
@@ -1176,6 +1202,141 @@ def train(
     vol.commit()
     print(f"Saved fine-tuned model to {nemo_path}")
     return {"model_path": str(nemo_path), "metadata_path": str(output_dir / "training_metadata.json")}
+
+
+# ---------------------------------------------------------------------------
+# Recover model from existing checkpoints (when training succeeded but save failed)
+# ---------------------------------------------------------------------------
+
+@app.function(
+    image=image,
+    gpu="A100-80GB",
+    cpu=8,
+    timeout=60 * 60 * 2,
+    volumes={"/training": vol},
+)
+def recover_model(output_name: str = "v5-robust-u6"):
+    """Load best checkpoint from a completed training run and save as model.nemo."""
+    import torch
+    import torch.nn as nn
+    from omegaconf import open_dict
+    from pathlib import Path
+
+    _install_kaldialign_fallback()
+    from nemo.collections.asr.models import EncDecHybridRNNTCTCBPEModel
+
+    vol.reload()
+
+    base = Path(f"/training/{output_name}")
+    checkpoints_dir = base / "checkpoints"
+    output_dir = base / "model"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Find best checkpoint by val_loss in filename
+    ckpts = sorted(checkpoints_dir.glob("phoneme-*.ckpt"))
+    if not ckpts:
+        raise FileNotFoundError(f"No checkpoints found in {checkpoints_dir}")
+
+    # Parse val_loss from filenames and pick best
+    best_ckpt = None
+    best_loss = float("inf")
+    for c in ckpts:
+        try:
+            loss_str = c.stem.split("val_loss=")[1]
+            loss = float(loss_str)
+            if loss < best_loss:
+                best_loss = loss
+                best_ckpt = c
+        except (IndexError, ValueError):
+            continue
+
+    if best_ckpt is None:
+        best_ckpt = ckpts[-1]  # fallback to last
+    print(f"Best checkpoint: {best_ckpt.name} (val_loss={best_loss:.4f})")
+
+    # Load base model and replace CTC head (same as training)
+    print(f"Loading base model: {BASE_MODEL_ID}")
+    model = EncDecHybridRNNTCTCBPEModel.from_pretrained(
+        model_name=BASE_MODEL_ID,
+        map_location="cuda" if torch.cuda.is_available() else "cpu",
+    )
+
+    vocab_size = len(PHONEME_VOCAB) + 1
+    if hasattr(model, "ctc_decoder"):
+        old_decoder = model.ctc_decoder
+        if hasattr(old_decoder, "decoder_layers") and len(old_decoder.decoder_layers) > 0:
+            last_layer = old_decoder.decoder_layers[-1]
+            in_features = getattr(last_layer, "in_channels", getattr(last_layer, "in_features", 512))
+            old_decoder.decoder_layers[-1] = nn.Conv1d(in_features, vocab_size, kernel_size=1)
+        else:
+            in_features = model.cfg.encoder.get("d_model", 512)
+            model.ctc_decoder = nn.Linear(in_features, vocab_size)
+
+    # Replace CTC loss
+    if hasattr(model, "ctc_loss"):
+        from nemo.collections.asr.losses.ctc import CTCLoss as NemoCTCLoss
+        model.ctc_loss = NemoCTCLoss(num_classes=len(PHONEME_VOCAB), zero_infinity=True)
+
+    # Load checkpoint weights
+    print(f"Loading checkpoint weights...")
+    ckpt_data = torch.load(str(best_ckpt), map_location="cuda" if torch.cuda.is_available() else "cpu", weights_only=False)
+    state_dict = ckpt_data.get("state_dict", ckpt_data)
+    missing, unexpected = model.load_state_dict(state_dict, strict=False)
+    print(f"Loaded: {len(missing)} missing, {len(unexpected)} unexpected keys")
+
+    # Install phoneme tokenizer
+    phoneme_to_id = {p: i for i, p in enumerate(PHONEME_VOCAB)}
+
+    class _PhonemeTokenizer:
+        def __init__(self, vocab):
+            self.vocab = vocab
+            self._token_to_id = {t: i for i, t in enumerate(vocab)}
+            self._id_to_token = {i: t for i, t in enumerate(vocab)}
+            self.vocab_size = len(vocab)
+            self.pad_id = 0
+            self.bos_id = None
+            self.eos_id = None
+            self.unk_id = None
+        @property
+        def text_to_ids(self):
+            return self._text_to_ids
+        def _text_to_ids(self, text):
+            return [self._token_to_id[t] for t in text.strip().split() if t in self._token_to_id]
+        def ids_to_text(self, ids):
+            return " ".join(self._id_to_token.get(i, "") for i in ids)
+        def ids_to_tokens(self, ids):
+            return [self._id_to_token.get(i, "") for i in ids]
+        def tokens_to_ids(self, tokens):
+            return [self._token_to_id.get(t, 0) for t in tokens]
+        def text_to_tokens(self, text):
+            return text.strip().split()
+        def __len__(self):
+            return self.vocab_size
+
+    model.tokenizer = _PhonemeTokenizer(PHONEME_VOCAB)
+    with open_dict(model.cfg):
+        model.cfg.labels = list(PHONEME_VOCAB)
+
+    # Save model
+    nemo_path = output_dir / "model.nemo"
+    model.save_to(str(nemo_path))
+
+    train_meta = {
+        "base_model": BASE_MODEL_ID,
+        "phoneme_vocab": PHONEME_VOCAB,
+        "phoneme_vocab_size": len(PHONEME_VOCAB),
+        "ctc_classes": vocab_size,
+        "best_checkpoint": str(best_ckpt),
+        "best_val_loss": best_loss,
+        "recovered": True,
+    }
+    (output_dir / "training_metadata.json").write_text(
+        json.dumps(train_meta, indent=2, ensure_ascii=False), encoding="utf-8",
+    )
+
+    vol.commit()
+    print(f"Recovered model saved to {nemo_path}")
+    return {"model_path": str(nemo_path), "best_val_loss": best_loss}
 
 
 # ---------------------------------------------------------------------------
@@ -1283,7 +1444,7 @@ def filter_tlog_quality(
                 weights_path = p
                 break
 
-        state_dict = torch.load(weights_path, map_location="cuda")
+        state_dict = torch.load(weights_path, map_location="cuda", weights_only=False)
         missing, unexpected = model.load_state_dict(state_dict, strict=False)
         print(f"Loaded checkpoint: {len(missing)} missing, {len(unexpected)} unexpected keys")
 
@@ -1500,6 +1661,7 @@ def main(
     download_after_train: bool = False,
     prepare_only: bool = False,
     train_only: bool = False,
+    recover_only: bool = False,
     filter_tlog: bool = False,
     filter_model_source: str = "fastconformer-phoneme-v3-retasy-aug-u8",
     filter_min_ratio: float = 0.3,
@@ -1523,6 +1685,12 @@ def main(
             print(f"  saved {rel} ({len(data):,} bytes)")
 
         print(f"\nDownloaded to {local_out_dir} ({total / 1e6:.1f} MB)")
+        return
+
+    if recover_only:
+        print(f"Recovering model from checkpoints for {output_name}...")
+        result = recover_model.remote(output_name=output_name)
+        print(f"Recovery result: {result}")
         return
 
     if not train_only:
