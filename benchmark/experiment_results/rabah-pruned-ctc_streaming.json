@@ -1,0 +1,156 @@
+{
+  "rabah-pruned-ctc/8-layer-ft-es-int8|test_corpus": {
+    "experiment": "rabah-pruned-ctc/8-layer-ft-es-int8",
+    "corpus": "test_corpus",
+    "mode": "streaming",
+    "recall": 0.2198,
+    "precision": 0.1817,
+    "sequence_accuracy": 0.0943,
+    "avg_latency": 2.647,
+    "model_size": 152196826,
+    "total": 53
+  },
+  "rabah-pruned-ctc/8-layer-ft-fn-int8|test_corpus": {
+    "experiment": "rabah-pruned-ctc/8-layer-ft-fn-int8",
+    "corpus": "test_corpus",
+    "mode": "streaming",
+    "recall": 0.7094,
+    "precision": 0.5461,
+    "sequence_accuracy": 0.4151,
+    "avg_latency": 2.653,
+    "model_size": 152196826,
+    "total": 53
+  },
+  "rabah-pruned-ctc/12-layer-ft-es-int8|test_corpus": {
+    "experiment": "rabah-pruned-ctc/12-layer-ft-es-int8",
+    "corpus": "test_corpus",
+    "mode": "streaming",
+    "recall": 0.6142,
+    "precision": 0.4086,
+    "sequence_accuracy": 0.2453,
+    "avg_latency": 3.445,
+    "model_size": 202785594,
+    "total": 53
+  },
+  "rabah-pruned-ctc/6-layer-ft-es-int8|test_corpus": {
+    "experiment": "rabah-pruned-ctc/6-layer-ft-es-int8",
+    "corpus": "test_corpus",
+    "mode": "streaming",
+    "recall": 0.327,
+    "precision": 0.2046,
+    "sequence_accuracy": 0.1321,
+    "avg_latency": 2.242,
+    "model_size": 126902474,
+    "total": 53
+  },
+  "rabah-pruned-ctc/12-layer-int8|test_corpus": {
+    "experiment": "rabah-pruned-ctc/12-layer-int8",
+    "corpus": "test_corpus",
+    "mode": "streaming",
+    "recall": 0.4101,
+    "precision": 0.2628,
+    "sequence_accuracy": 0.1509,
+    "avg_latency": 3.456,
+    "model_size": 202785594,
+    "total": 53
+  },
+  "rabah-pruned-ctc/8-layer-int8|test_corpus": {
+    "experiment": "rabah-pruned-ctc/8-layer-int8",
+    "corpus": "test_corpus",
+    "mode": "streaming",
+    "recall": 0.0,
+    "precision": 0.0,
+    "sequence_accuracy": 0.0,
+    "avg_latency": 2.558,
+    "model_size": 152196826,
+    "total": 53
+  },
+  "rabah-pruned-ctc/6-layer-int8|test_corpus": {
+    "experiment": "rabah-pruned-ctc/6-layer-int8",
+    "corpus": "test_corpus",
+    "mode": "streaming",
+    "recall": 0.0,
+    "precision": 0.0,
+    "sequence_accuracy": 0.0,
+    "avg_latency": 2.136,
+    "model_size": 126902474,
+    "total": 53
+  },
+  "rabah-pruned-ctc/8-layer-ft-es-int8|test_corpus_v2": {
+    "experiment": "rabah-pruned-ctc/8-layer-ft-es-int8",
+    "corpus": "test_corpus_v2",
+    "mode": "streaming",
+    "recall": 0.214,
+    "precision": 0.1661,
+    "sequence_accuracy": 0.1395,
+    "avg_latency": 3.388,
+    "model_size": 152196826,
+    "total": 43
+  },
+  "rabah-pruned-ctc/8-layer-ft-fn-int8|test_corpus_v2": {
+    "experiment": "rabah-pruned-ctc/8-layer-ft-fn-int8",
+    "corpus": "test_corpus_v2",
+    "mode": "streaming",
+    "recall": 0.6453,
+    "precision": 0.4855,
+    "sequence_accuracy": 0.3953,
+    "avg_latency": 3.406,
+    "model_size": 152196826,
+    "total": 43
+  },
+  "rabah-pruned-ctc/12-layer-ft-es-int8|test_corpus_v2": {
+    "experiment": "rabah-pruned-ctc/12-layer-ft-es-int8",
+    "corpus": "test_corpus_v2",
+    "mode": "streaming",
+    "recall": 0.5628,
+    "precision": 0.3953,
+    "sequence_accuracy": 0.3256,
+    "avg_latency": 4.428,
+    "model_size": 202785594,
+    "total": 43
+  },
+  "rabah-pruned-ctc/6-layer-ft-es-int8|test_corpus_v2": {
+    "experiment": "rabah-pruned-ctc/6-layer-ft-es-int8",
+    "corpus": "test_corpus_v2",
+    "mode": "streaming",
+    "recall": 0.3535,
+    "precision": 0.2853,
+    "sequence_accuracy": 0.2558,
+    "avg_latency": 2.88,
+    "model_size": 126902474,
+    "total": 43
+  },
+  "rabah-pruned-ctc/12-layer-int8|test_corpus_v2": {
+    "experiment": "rabah-pruned-ctc/12-layer-int8",
+    "corpus": "test_corpus_v2",
+    "mode": "streaming",
+    "recall": 0.3151,
+    "precision": 0.1849,
+    "sequence_accuracy": 0.1163,
+    "avg_latency": 4.437,
+    "model_size": 202785594,
+    "total": 43
+  },
+  "rabah-pruned-ctc/8-layer-int8|test_corpus_v2": {
+    "experiment": "rabah-pruned-ctc/8-layer-int8",
+    "corpus": "test_corpus_v2",
+    "mode": "streaming",
+    "recall": 0.0,
+    "precision": 0.0,
+    "sequence_accuracy": 0.0,
+    "avg_latency": 3.324,
+    "model_size": 152196826,
+    "total": 43
+  },
+  "rabah-pruned-ctc/6-layer-int8|test_corpus_v2": {
+    "experiment": "rabah-pruned-ctc/6-layer-int8",
+    "corpus": "test_corpus_v2",
+    "mode": "streaming",
+    "recall": 0.0,
+    "precision": 0.0,
+    "sequence_accuracy": 0.0,
+    "avg_latency": 2.772,
+    "model_size": 126902474,
+    "total": 43
+  }
+}

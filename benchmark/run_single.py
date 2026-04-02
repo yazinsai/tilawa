@@ -1,4 +1,9 @@
-"""Run a single experiment on both corpora, save to persistent file."""
+"""Run a single experiment on both corpora, save to persistent file.
+
+Usage:
+    python benchmark/run_single.py <experiment-name>              # batch (full-file)
+    python benchmark/run_single.py <experiment-name> --streaming  # streaming (3s chunks)
+"""
 import sys, json, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -8,14 +13,20 @@ from shared.streaming import StreamingPipeline
 from shared.quran_db import QuranDB
 from pathlib import Path
 
-exp_filter = sys.argv[1] if len(sys.argv) > 1 else None
+args = [a for a in sys.argv[1:] if not a.startswith('--')]
+flags = [a for a in sys.argv[1:] if a.startswith('--')]
+streaming = '--streaming' in flags
+
+exp_filter = args[0] if args else None
 if not exp_filter:
-    print("Usage: python benchmark/run_single.py <experiment-name>")
+    print("Usage: python benchmark/run_single.py <experiment-name> [--streaming]")
     sys.exit(1)
 
+mode = 'streaming' if streaming else 'full'
 safe_name = exp_filter.replace('/', '__')
+suffix = '_streaming' if streaming else ''
 RESULTS_DIR = Path('benchmark/experiment_results')
-RESULTS_FILE = RESULTS_DIR / f'{safe_name}.json'
+RESULTS_FILE = RESULTS_DIR / f'{safe_name}{suffix}.json'
 
 results = {}
 db = QuranDB()
@@ -35,9 +46,10 @@ for corpus_name in ['test_corpus', 'test_corpus_v2']:
 
     for exp in experiments:
         key = f"{exp['name']}|{corpus_name}"
-        print(f">>> {exp['name']} on {corpus_name} ({len(samples)} samples)...", flush=True)
+        label = f"[streaming 3s]" if streaming else "[batch]"
+        print(f">>> {exp['name']} {label} on {corpus_name} ({len(samples)} samples)...", flush=True)
         try:
-            result = run_experiment(exp, samples, pipeline, mode='full')
+            result = run_experiment(exp, samples, pipeline, mode=mode, chunk_seconds=3.0)
             if result is None:
                 print(f"  SKIPPED", flush=True)
                 results[key] = {'experiment': exp['name'], 'corpus': corpus_name, 'error': 'no transcribe/predict'}
@@ -45,6 +57,7 @@ for corpus_name in ['test_corpus', 'test_corpus_v2']:
             results[key] = {
                 'experiment': exp['name'],
                 'corpus': corpus_name,
+                'mode': mode,
                 'recall': round(result['recall'], 4),
                 'precision': round(result['precision'], 4),
                 'sequence_accuracy': round(result['sequence_accuracy'], 4),

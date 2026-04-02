@@ -1,0 +1,24 @@
+{
+  "whisper-lora|test_corpus": {
+    "experiment": "whisper-lora",
+    "corpus": "test_corpus",
+    "mode": "streaming",
+    "recall": 0.639,
+    "precision": 0.3954,
+    "sequence_accuracy": 0.1887,
+    "avg_latency": 5.644,
+    "model_size": 508597743,
+    "total": 53
+  },
+  "whisper-lora|test_corpus_v2": {
+    "experiment": "whisper-lora",
+    "corpus": "test_corpus_v2",
+    "mode": "streaming",
+    "recall": 0.7186,
+    "precision": 0.4856,
+    "sequence_accuracy": 0.3721,
+    "avg_latency": 6.331,
+    "model_size": 508597743,
+    "total": 43
+  }
+}

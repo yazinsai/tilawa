@@ -228,29 +228,31 @@ Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-s
 
 ## Experiment results
 
-We tested 20 approaches across two corpora. See **[EXPERIMENTS.md](EXPERIMENTS.md)** for full per-experiment breakdowns.
+We tested 20 approaches across two corpora under streaming conditions (3s audio chunks, progressive verse matching). See **[EXPERIMENTS.md](EXPERIMENTS.md)** for batch results and full breakdowns.
 
-### Batch results (full-file transcription)
+### Streaming results
 
-| Experiment | Base Model | Fine-tuned | Type | Size | v1 Recall | v1 SeqAcc | v1 Latency | v2 Recall | v2 SeqAcc | v2 Latency |
-|---|---|---|---|---|---|---|---|---|---|---|
-| **w2v-phonemes/large** | hetchyy/r7 | no | phoneme | 970 MB | **100%** | **100%** | 15.2s | **95%** | **95%** | 30.4s |
-| **fastconformer-lm-fusion** | nvidia FastConformer | no | arabic | 115 MB | 95% | **94%** | 7.2s | **95%** | **95%** | 6.6s |
-| **nvidia-fastconformer** | nvidia FastConformer | no | arabic | 115 MB | 95% | 92% | **0.7s** | 93% | 86% | **0.9s** |
-| fastconformer-phoneme | nvidia FastConformer | yes | phoneme | 436 MB | 95% | 92% | 7.9s | 93% | 86% | 7.1s |
-| fastconformer-ctc-rescore | nvidia FastConformer | yes | arabic | 260 MB | 95% | 92% | 7.3s | 93% | 86% | 6.7s |
-| tadabur-whisper-small | FaisaI/tadabur-Whisper-Small | yes | arabic | 461 MB | 86% | 79% | 1.3s | 87% | 81% | 1.4s |
-| whisper-lora | openai/whisper-small + LoRA | yes | arabic | 485 MB | 82% | 77% | 2.3s | 81% | 79% | 2.1s |
-| rabah-pruned-ctc (8L-ft-fn) | rabah wav2vec2-xlsr-quran | yes | arabic | 145 MB | 75% | 74% | 3.7s | 77% | 77% | 3.9s |
-| whisper-small | openai/whisper-small | no | arabic | 461 MB | 73% | 68% | 1.0s | 50% | 47% | 1.1s |
-| two-stage | moonshine-tiny + wav2vec2 | yes | arabic | 463 MB | 69% | 66% | 2.3s | 56% | 51% | 2.2s |
-| distilled-ctc | wav2vec2-base (distilled) | yes | arabic | 360 MB | 30% | 26% | 0.6s | 26% | 26% | 6.2s |
+All experiments tested with chunked audio (3s segments) feeding a streaming verse tracker -- the same pipeline pattern used in the browser. Sorted by v1 recall.
 
-Experiments with 0% recall (embedding-search, contrastive, contrastive-v2, streaming-asr, tarteel-whisper-base, two-stage-faster-whisper-pruned, w2v-phonemes/base) are listed in [EXPERIMENTS.md](EXPERIMENTS.md#experiments-with-0-recall-broken-or-inapplicable).
+| Experiment | Base Model | Fine-tuned | Size | v1 Recall | v1 Prec | v1 SeqAcc | v2 Recall | v2 Prec | v2 SeqAcc |
+|---|---|---|---|---|---|---|---|---|---|
+| **tadabur-whisper-small** | FaisaI/tadabur-Whisper-Small | yes | 461 MB | **87%** | 58% | 42% | **84%** | 58% | 47% |
+| **fastconformer-lm-fusion** | nvidia FastConformer | no | 115 MB | 82% | **66%** | **55%** | 74% | **59%** | **53%** |
+| fastconformer-ctc-rescore | nvidia FastConformer | yes | 260 MB | 81% | 64% | 53% | 77% | 61% | 53% |
+| fastconformer-phoneme | nvidia FastConformer | yes | 436 MB | 81% | 64% | 53% | 77% | 61% | 53% |
+| **nvidia-fastconformer** | nvidia FastConformer | no | 115 MB | 81% | 64% | 53% | 77% | 61% | 53% |
+| fastconformer-nbest-bruteforce | nvidia FastConformer | no | 550 MB | 80% | 61% | 49% | 77% | 60% | 51% |
+| rabah-pruned-ctc (8L-ft-fn) | rabah wav2vec2-xlsr-quran | yes | 145 MB | 71% | 55% | 42% | 65% | 49% | 40% |
+| whisper-lora | openai/whisper-small + LoRA | yes | 485 MB | 64% | 40% | 19% | 72% | 49% | 37% |
+| whisper-small | openai/whisper-small | no | 461 MB | 63% | 42% | 26% | 53% | 33% | 21% |
+| two-stage | moonshine-tiny + wav2vec2 | yes | 463 MB | 47% | 23% | 13% | 38% | 24% | 19% |
+| distilled-ctc | wav2vec2-base (distilled) | yes | 360 MB | 7% | 7% | 6% | 5% | 3% | 2% |
 
-### Streaming results (shipped ONNX model)
+Experiments with 0% recall (embedding-search, contrastive, contrastive-v2, w2v-phonemes/base) and experiments requiring missing dependencies (streaming-asr, tarteel-whisper-base, two-stage-faster-whisper-pruned) are listed in [EXPERIMENTS.md](EXPERIMENTS.md#experiments-with-0-recall-broken-or-inapplicable). w2v-phonemes/large (100% batch recall) cannot stream -- it only has `predict()`, not `transcribe()`.
 
-The shipped `fastconformer-phoneme v4-tlog` model (131 MB quantized ONNX) tested with the TypeScript `RecitationTracker` (300ms chunks):
+### TypeScript ONNX streaming (shipped model)
+
+The shipped `fastconformer-phoneme v4-tlog` model (131 MB quantized ONNX) tested with the browser's `RecitationTracker` (300ms chunks + discovery/tracking pipeline):
 
 | Mode | Corpus | Recall | Precision | SeqAcc |
 |---|---|---|---|---|
@@ -259,7 +261,7 @@ The shipped `fastconformer-phoneme v4-tlog` model (131 MB quantized ONNX) tested
 | Non-streaming | v1 (53) | 84.1% | 84.9% | 81.1% |
 | Non-streaming | v2 (43) | 78.1% | 79.1% | 74.4% |
 
-Streaming recall exceeds non-streaming (auto-advance finds continuation verses), but precision is lower (extra false-positive emissions). See [EXPERIMENTS.md](EXPERIMENTS.md#streaming-results-typescript-onnx-pipeline) for details.
+The TypeScript pipeline's higher recall vs the Python streaming results (87% vs 81%) is due to the `RecitationTracker`'s auto-advance, which discovers continuation verses that the simpler Python `VerseTracker` misses.
 
 ### Two-Stage Retrieval (historical 72% setup; current pruned variant at 70%)
 Moonshine Tiny Arabic (27M params, 103 MB) does fast ASR to get a rough transcript, then CTC forced-alignment re-scores only the top 50 verse candidates. This bounds the expensive CTC computation to 50 candidates instead of 6,236. Currently falls back to the large CTC model (1.2 GB) because the small CTC model failed to train (see "What we tried"). With a working small CTC re-scorer (~95 MB), this would hit the size target.

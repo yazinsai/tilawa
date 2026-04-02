@@ -19,6 +19,33 @@ The shipped model (`fastconformer-phoneme v4-tlog`, quantized ONNX) tested with 
 - Streaming SeqAcc is low because any extra emitted verse counts as an exact-match failure, even if all expected verses were found.
 - Non-streaming mode runs the full audio through the ONNX model once and does a single `matchVerse()` call.
 
+## Streaming results (Python, 3s chunks)
+
+All experiments tested with the Python `StreamingPipeline` -- audio chunked into 3s segments, each transcribed independently, accumulated text fed to `VerseTracker` for progressive verse matching. This mirrors the browser streaming pattern.
+
+### Experiments with >0% streaming recall
+
+| Experiment | Base Model | Fine-tuned | Type | Size | v1 Recall | v1 Prec | v1 SeqAcc | v1 Latency | v2 Recall | v2 Prec | v2 SeqAcc | v2 Latency |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **tadabur-whisper-small** | FaisaI/tadabur-Whisper-Small | yes | arabic | 461 MB | **87%** | 58% | 42% | 3.3s | **84%** | 58% | 47% | 3.8s |
+| **fastconformer-lm-fusion** | nvidia FastConformer | no | arabic | 115 MB | 82% | **66%** | **55%** | **0.8s** | 74% | **59%** | **53%** | **1.0s** |
+| fastconformer-ctc-rescore | nvidia FastConformer | yes | arabic | 260 MB | 81% | 64% | 53% | 1.0s | 77% | 61% | 53% | 1.2s |
+| fastconformer-phoneme | nvidia FastConformer | yes | phoneme | 436 MB | 81% | 64% | 53% | 1.0s | 77% | 61% | 53% | 1.2s |
+| nvidia-fastconformer | nvidia FastConformer | no | arabic | 115 MB | 81% | 64% | 53% | 1.0s | 77% | 61% | 53% | 1.2s |
+| fastconformer-nbest-bruteforce | nvidia FastConformer | no | arabic | 550 MB | 80% | 61% | 49% | 0.8s | 77% | 60% | 51% | 1.0s |
+| rabah-pruned-ctc/8L-ft-fn | rabah wav2vec2-xlsr-quran | yes | arabic | 145 MB | 71% | 55% | 42% | 2.7s | 65% | 49% | 40% | 3.4s |
+| whisper-lora | openai/whisper-small + LoRA | yes | arabic | 485 MB | 64% | 40% | 19% | 5.6s | 72% | 49% | 37% | 6.3s |
+| whisper-small | openai/whisper-small | no | arabic | 461 MB | 63% | 42% | 26% | 3.8s | 53% | 33% | 21% | 6.0s |
+| rabah-pruned-ctc/12L-ft-es | rabah wav2vec2-xlsr-quran | yes | arabic | 193 MB | 61% | 41% | 25% | 3.4s | 56% | 40% | 33% | 4.4s |
+| two-stage | moonshine-tiny + wav2vec2 | yes | arabic | 463 MB | 47% | 23% | 13% | 3.7s | 38% | 24% | 19% | 5.8s |
+| distilled-ctc | wav2vec2-base (distilled) | yes | arabic | 360 MB | 7% | 7% | 6% | 0.5s | 5% | 3% | 2% | 0.5s |
+
+**Notes:**
+- w2v-phonemes cannot stream -- it only has `predict()` (whole-file classification), not a `transcribe()` function that works on chunks.
+- Streaming recall is generally lower than batch because 3s audio segments often contain only partial verses, making matching harder.
+- FastConformer variants dominate: best balance of streaming accuracy, speed, and size.
+- `tadabur-whisper-small` has highest streaming recall (87%) but at 3x the latency of FastConformer.
+
 ## Batch results (Python benchmark runner)
 
 Full-file transcription using each experiment's native Python pipeline. Metrics averaged across all samples in each corpus.

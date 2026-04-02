@@ -1,0 +1,24 @@
+{
+  "tadabur-whisper-small|test_corpus": {
+    "experiment": "tadabur-whisper-small",
+    "corpus": "test_corpus",
+    "mode": "streaming",
+    "recall": 0.8667,
+    "precision": 0.579,
+    "sequence_accuracy": 0.4151,
+    "avg_latency": 3.345,
+    "model_size": 483393536,
+    "total": 53
+  },
+  "tadabur-whisper-small|test_corpus_v2": {
+    "experiment": "tadabur-whisper-small",
+    "corpus": "test_corpus_v2",
+    "mode": "streaming",
+    "recall": 0.8419,
+    "precision": 0.5794,
+    "sequence_accuracy": 0.4651,
+    "avg_latency": 3.77,
+    "model_size": 483393536,
+    "total": 43
+  }
+}

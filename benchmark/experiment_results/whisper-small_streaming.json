@@ -1,0 +1,24 @@
+{
+  "whisper-small|test_corpus": {
+    "experiment": "whisper-small",
+    "corpus": "test_corpus",
+    "mode": "streaming",
+    "recall": 0.6277,
+    "precision": 0.4161,
+    "sequence_accuracy": 0.2642,
+    "avg_latency": 3.759,
+    "model_size": 483393536,
+    "total": 53
+  },
+  "whisper-small|test_corpus_v2": {
+    "experiment": "whisper-small",
+    "corpus": "test_corpus_v2",
+    "mode": "streaming",
+    "recall": 0.5349,
+    "precision": 0.327,
+    "sequence_accuracy": 0.2093,
+    "avg_latency": 5.963,
+    "model_size": 483393536,
+    "total": 43
+  }
+}
