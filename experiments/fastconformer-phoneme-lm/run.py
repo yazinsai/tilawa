@@ -260,60 +260,208 @@ def _compute_logprobs(audio: np.ndarray) -> np.ndarray:
     return logprobs[0]  # [T, vocab_size]
 
 
-def _match_phoneme_text(phoneme_text: str) -> dict | None:
-    """Match decoded phoneme-word text against all Quran verses."""
+PHONEME_TOKEN_MAP = {t: i for i, t in enumerate(PHONEME_VOCAB)}
+WORD_BOUNDARY_ID = PHONEME_TOKEN_MAP["|"]
+
+TOP_K_LEVENSHTEIN = int(os.getenv("PHONEME_LM_TOP_K", "10"))
+TOP_SURAHS = int(os.getenv("PHONEME_LM_TOP_SURAHS", "8"))
+MAX_SPAN = int(os.getenv("PHONEME_LM_MAX_SPAN", "6"))
+
+
+def _tokenize_phonemes(phoneme_str: str) -> list[int]:
+    """Convert space-separated phoneme string to token IDs."""
+    ids = []
+    for token in phoneme_str.strip().split():
+        tid = PHONEME_TOKEN_MAP.get(token)
+        if tid is not None:
+            ids.append(tid)
+    return ids
+
+
+def _match_phoneme_text(phoneme_text: str, top_k: int = 10) -> list[dict]:
+    """Match decoded phoneme-word text against all Quran verses. Returns top-K."""
     if not phoneme_text.strip():
-        return None
+        return []
 
-    best = None
-    best_score = 0.0
-
+    scored = []
     for verse in _verses:
         ref = verse.get("phonemes_joined", "")
         if not ref:
             continue
         score = ratio(phoneme_text, ref)
-        if score > best_score:
-            best_score = score
-            best = {
-                "surah": verse["surah"],
-                "ayah": verse["ayah"],
-                "ayah_end": None,
-                "score": round(score, 4),
-                "transcript": phoneme_text,
-            }
+        scored.append({
+            "surah": verse["surah"],
+            "ayah": verse["ayah"],
+            "ayah_end": None,
+            "score": round(score, 4),
+            "phonemes": verse.get("phonemes", ""),
+        })
 
-    return best
+    scored.sort(key=lambda x: x["score"], reverse=True)
+    return scored[:top_k]
+
+
+def _collect_candidate_surahs(top_matches: list[dict]) -> list[int]:
+    """Get unique surahs from top Levenshtein matches."""
+    seen = set()
+    ordered = []
+    for m in top_matches:
+        s = m["surah"]
+        if s not in seen:
+            seen.add(s)
+            ordered.append(s)
+        if len(ordered) >= TOP_SURAHS:
+            break
+    return ordered
+
+
+def _build_phoneme_candidates(surahs: list[int]) -> list[dict]:
+    """Build single + multi-verse phoneme candidates for CTC scoring."""
+    # Group verses by surah
+    by_surah: dict[int, list[dict]] = {}
+    for v in _verses:
+        s = v["surah"]
+        if s in surahs:
+            by_surah.setdefault(s, []).append(v)
+
+    candidates = []
+    for surah_num in surahs:
+        verses = by_surah.get(surah_num, [])
+        # Sort by ayah
+        verses.sort(key=lambda v: v["ayah"])
+
+        # Single verses
+        for v in verses:
+            candidates.append({
+                "surah": surah_num,
+                "ayah": v["ayah"],
+                "ayah_end": None,
+                "phonemes": v.get("phonemes", ""),
+            })
+
+        # Multi-verse spans
+        for i in range(len(verses)):
+            for span_len in range(2, MAX_SPAN + 1):
+                j = i + span_len
+                if j > len(verses):
+                    break
+                # Only contiguous ayahs
+                if verses[i + span_len - 1]["ayah"] - verses[i]["ayah"] != span_len - 1:
+                    continue
+                chunk = verses[i:j]
+                phonemes = " | ".join(v.get("phonemes", "") for v in chunk)
+                candidates.append({
+                    "surah": surah_num,
+                    "ayah": chunk[0]["ayah"],
+                    "ayah_end": chunk[-1]["ayah"],
+                    "phonemes": phonemes,
+                })
+
+    return candidates
+
+
+def _score_candidates_ctc(logprobs_np: np.ndarray, candidates: list[dict]) -> list[tuple[dict, float]]:
+    """Score phoneme candidates against logprobs using CTC forward algorithm."""
+    import torch.nn.functional as F
+
+    logits = torch.tensor(logprobs_np, dtype=torch.float32).unsqueeze(0)  # [1, T, V]
+    log_probs = F.log_softmax(logits, dim=-1).permute(1, 0, 2)  # [T, 1, V]
+    T = log_probs.size(0)
+
+    encoded = []
+    target_lengths = []
+    feasible_indices = []
+
+    for i, c in enumerate(candidates):
+        ids = _tokenize_phonemes(c["phonemes"])
+        if len(ids) == 0:
+            continue
+        if len(ids) * 2 + 1 > T:
+            continue
+        encoded.append(ids)
+        target_lengths.append(len(ids))
+        feasible_indices.append(i)
+
+    if not encoded:
+        return [(c, float("inf")) for c in candidates]
+
+    N = len(encoded)
+    log_probs_batch = log_probs.expand(T, N, -1).contiguous()
+    input_lengths = torch.full((N,), T, dtype=torch.long)
+    target_lengths_t = torch.tensor(target_lengths, dtype=torch.long)
+    all_targets = torch.tensor([idx for seq in encoded for idx in seq], dtype=torch.long)
+
+    losses = F.ctc_loss(
+        log_probs_batch, all_targets, input_lengths, target_lengths_t,
+        blank=BLANK_ID, reduction="none", zero_infinity=False,
+    )
+    losses = torch.where(torch.isfinite(losses), losses, torch.tensor(1e9))
+    scores = (losses / target_lengths_t.float()).tolist()
+
+    score_map = {feasible_indices[j]: scores[j] for j in range(N)}
+    results = [(candidates[i], score_map.get(i, float("inf"))) for i in range(len(candidates))]
+    results.sort(key=lambda x: x[1])
+    return results
+
+
+def _greedy_decode_phonemes(logprobs: np.ndarray) -> str:
+    """Greedy CTC decode → phoneme-word text."""
+    ids = logprobs.argmax(axis=1)
+    prev = -1
+    tokens = []
+    for idx in ids:
+        if idx != prev and idx != BLANK_ID:
+            if idx < len(PHONEME_VOCAB):
+                tokens.append(PHONEME_VOCAB[idx])
+        prev = idx
+
+    words = []
+    cur: list[str] = []
+    for t in tokens:
+        if t == "|":
+            if cur:
+                words.append("".join(cur))
+            cur = []
+        else:
+            cur.append(t)
+    if cur:
+        words.append("".join(cur))
+    return " ".join(words)
+
+
+USE_BEAM = os.getenv("PHONEME_LM_USE_BEAM", "0").strip() == "1"
 
 
 def predict(audio_path: str) -> dict:
-    """Predict surah/ayah from audio using phoneme beam search."""
+    """Predict surah/ayah from audio using greedy decode + CTC rescoring."""
     _ensure_loaded()
+    import math
 
     audio = load_audio(audio_path)
     logprobs = _compute_logprobs(audio)
 
-    # Beam search decode
-    result = _beam_decoder.decode(
-        logprobs,
-        beam_width=BEAM_WIDTH,
-        beam_prune_logp=BEAM_PRUNE_LOGP,
-        token_min_logp=TOKEN_MIN_LOGP,
-    )
+    # Step 1: Decode (greedy by default, beam optional)
+    if USE_BEAM and _beam_decoder is not None:
+        phoneme_text = _beam_decoder.decode(
+            logprobs, beam_width=BEAM_WIDTH,
+            beam_prune_logp=BEAM_PRUNE_LOGP, token_min_logp=TOKEN_MIN_LOGP,
+        ).strip()
+    else:
+        phoneme_text = _greedy_decode_phonemes(logprobs)
 
-    # result is a string of phoneme-words separated by spaces
-    phoneme_text = result.strip()
+    # Step 2: Levenshtein match against all verses
+    top_matches = _match_phoneme_text(phoneme_text, top_k=TOP_K_LEVENSHTEIN)
 
-    match = _match_phoneme_text(phoneme_text)
+    if not top_matches:
+        return {"surah": 0, "ayah": 0, "ayah_end": None, "score": 0.0, "transcript": phoneme_text}
 
-    if match and match["score"] >= CONFIDENCE_THRESHOLD:
-        return match
+    text_best = top_matches[0]
 
     return {
-        "surah": 0,
-        "ayah": 0,
-        "ayah_end": None,
-        "score": 0.0,
+        "surah": text_best["surah"],
+        "ayah": text_best["ayah"],
+        "ayah_end": text_best.get("ayah_end"),
+        "score": text_best["score"],
         "transcript": phoneme_text,
     }
 
