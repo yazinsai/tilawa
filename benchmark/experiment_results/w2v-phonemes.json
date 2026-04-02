@@ -1,0 +1,42 @@
+{
+  "w2v-phonemes/base-int8|test_corpus": {
+    "experiment": "w2v-phonemes/base-int8",
+    "corpus": "test_corpus",
+    "recall": 0.0,
+    "precision": 0.0,
+    "sequence_accuracy": 0.0,
+    "avg_latency": 0.0,
+    "model_size": 121634816,
+    "total": 53
+  },
+  "w2v-phonemes/large-int8|test_corpus": {
+    "experiment": "w2v-phonemes/large-int8",
+    "corpus": "test_corpus",
+    "recall": 1.0,
+    "precision": 1.0,
+    "sequence_accuracy": 1.0,
+    "avg_latency": 15.216,
+    "model_size": 1017118720,
+    "total": 53
+  },
+  "w2v-phonemes/base-int8|test_corpus_v2": {
+    "experiment": "w2v-phonemes/base-int8",
+    "corpus": "test_corpus_v2",
+    "recall": 0.0,
+    "precision": 0.0,
+    "sequence_accuracy": 0.0,
+    "avg_latency": 0.0,
+    "model_size": 121634816,
+    "total": 43
+  },
+  "w2v-phonemes/large-int8|test_corpus_v2": {
+    "experiment": "w2v-phonemes/large-int8",
+    "corpus": "test_corpus_v2",
+    "recall": 0.9535,
+    "precision": 0.9535,
+    "sequence_accuracy": 0.9535,
+    "avg_latency": 30.369,
+    "model_size": 1017118720,
+    "total": 43
+  }
+}

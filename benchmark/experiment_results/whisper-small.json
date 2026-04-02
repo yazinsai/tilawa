@@ -1,0 +1,22 @@
+{
+  "whisper-small|test_corpus": {
+    "experiment": "whisper-small",
+    "corpus": "test_corpus",
+    "recall": 0.7343,
+    "precision": 0.7642,
+    "sequence_accuracy": 0.6792,
+    "avg_latency": 0.955,
+    "model_size": 483393536,
+    "total": 53
+  },
+  "whisper-small|test_corpus_v2": {
+    "experiment": "whisper-small",
+    "corpus": "test_corpus_v2",
+    "recall": 0.5023,
+    "precision": 0.5,
+    "sequence_accuracy": 0.4651,
+    "avg_latency": 1.141,
+    "model_size": 483393536,
+    "total": 43
+  }
+}

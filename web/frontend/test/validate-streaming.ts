@@ -125,6 +125,9 @@ async function main() {
   // 5. Run validation
   let correct = 0;
   let total = 0;
+  let totalRecall = 0;
+  let totalPrecision = 0;
+  let totalSeqAcc = 0;
   const failures: string[] = [];
 
   for (const sample of samples) {
@@ -190,6 +193,20 @@ async function main() {
       discoveredVerses.map((v) => `${v.surah}:${v.ayah}`),
     );
 
+    // Per-sample metrics
+    const matched = [...expectedSet].filter((v) => discoveredSet.has(v)).length;
+    const sampleRecall = expectedSet.size > 0 ? matched / expectedSet.size : 1.0;
+    const samplePrecision = discoveredSet.size > 0 ? matched / discoveredSet.size : 1.0;
+    const sampleSeqAcc =
+      expectedSet.size === discoveredSet.size &&
+      [...expectedSet].every((v) => discoveredSet.has(v))
+        ? 1.0
+        : 0.0;
+
+    totalRecall += sampleRecall;
+    totalPrecision += samplePrecision;
+    totalSeqAcc += sampleSeqAcc;
+
     // A sample is "correct" if all expected verses were discovered
     const allFound = [...expectedSet].every((v) => discoveredSet.has(v));
 
@@ -208,7 +225,11 @@ async function main() {
   // 6. Summary
   console.log("\n" + "=".repeat(60));
   const pct = total > 0 ? ((correct / total) * 100).toFixed(1) : "0.0";
+  const avgRecall = total > 0 ? (totalRecall / total) : 0;
+  const avgPrecision = total > 0 ? (totalPrecision / total) : 0;
+  const avgSeqAcc = total > 0 ? (totalSeqAcc / total) : 0;
   console.log(`Result: ${correct}/${total} (${pct}%)`);
+  console.log(`Recall: ${(avgRecall * 100).toFixed(1)}%  Precision: ${(avgPrecision * 100).toFixed(1)}%  SeqAcc: ${(avgSeqAcc * 100).toFixed(1)}%`);
 
   if (failures.length > 0) {
     console.log(`\nFailures (${failures.length}):`);

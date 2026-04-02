@@ -1,0 +1,22 @@
+{
+  "embedding-search|test_corpus": {
+    "experiment": "embedding-search",
+    "corpus": "test_corpus",
+    "recall": 0.0,
+    "precision": 0.0,
+    "sequence_accuracy": 0.0,
+    "avg_latency": 0.0,
+    "model_size": 416289738,
+    "total": 53
+  },
+  "embedding-search|test_corpus_v2": {
+    "experiment": "embedding-search",
+    "corpus": "test_corpus_v2",
+    "recall": 0.0,
+    "precision": 0.0,
+    "sequence_accuracy": 0.0,
+    "avg_latency": 0.0,
+    "model_size": 416289738,
+    "total": 43
+  }
+}

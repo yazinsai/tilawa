@@ -1,0 +1,22 @@
+{
+  "whisper-lora|test_corpus": {
+    "experiment": "whisper-lora",
+    "corpus": "test_corpus",
+    "recall": 0.8223,
+    "precision": 0.8585,
+    "sequence_accuracy": 0.7736,
+    "avg_latency": 2.331,
+    "model_size": 508597743,
+    "total": 53
+  },
+  "whisper-lora|test_corpus_v2": {
+    "experiment": "whisper-lora",
+    "corpus": "test_corpus_v2",
+    "recall": 0.814,
+    "precision": 0.8372,
+    "sequence_accuracy": 0.7907,
+    "avg_latency": 2.123,
+    "model_size": 508597743,
+    "total": 43
+  }
+}
