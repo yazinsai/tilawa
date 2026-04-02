@@ -293,6 +293,23 @@ Streaming now matches or exceeds non-streaming on both corpora, thanks to tracke
 - **The live FastAPI websocket matcher is now materially better on the full streaming harness, not just the multi subset.** On the corrected 53-sample `/ws` corpus it scores 83.6% recall / 79.3% precision / 71.7% SeqAcc. On the 9-sample multi subset it scores 92.6% recall / 93.7% precision / 66.7% SeqAcc. The older websocket baseline (`418a788`) scored 66.4% recall / 48.3% precision / 22.6% SeqAcc on the same full harness. The main gains came from fragment-aware long-ayah matching, sticky long-verse locks, residual trimming, followup-aware continuation commits, span-aware emissions, and lexical reranking.
 - **Tadabur-Whisper-Small** (`FaisaI/tadabur-Whisper-Small`) is the best Whisper-family model tested: 84% recall, 77% SeqAcc, 1.6s latency at 461 MB. Beats tarteel-whisper-base (+12% recall, 2x faster) but still trails FastConformer on accuracy (93%), speed (0.6s), and size (115 MB). Streaming: 87% recall / 42% SeqAcc. Failures are mostly multi-verse truncation.
 - **N-best + brute-force didn't help.** `fastconformer-nbest-bruteforce` (83% SeqAcc) is worse than plain FastConformer. CTC beam search without a language model produces near-identical hypotheses, and brute-forcing entire surahs just picks wrong candidates. CTC re-scoring can't recover failures caused by bad candidate retrieval.
+- **v5-robust fine-tuning regressed.** Both u6 (freeze 6) and u8 (freeze 8) without TLOG performed worse than v4-tlog baseline. Removing TLOG entirely hurts — the 18K TLOG sweet spot provides essential phone-mic diversity. More encoder unfreezing also hurts (u8 worse than u6). See TLOG data mix table below for details.
+
+### Next experiments to try
+
+Ranked by expected ROI:
+
+1. **Teacher-relabel TLOG/RetaSy** — Current training maps every clip to the full canonical verse phonemes, even if the clip only contains a fragment. Use `w2v-phonemes/large` (100% accuracy) as a teacher to force-align each clip and emit a trimmed phoneme span. This is likely why 5/verse works but more hurts: noisy clips labeled with wrong-length targets create conflicting gradients.
+
+2. **Partial-window curriculum** — The model never sees what streaming actually produces: 1-6s clipped windows with missing starts/ends. Synthesize short windows from clean Iqra audio, trim phoneme labels to the spoken span, and add as a late low-LR robustness phase on top of v4-tlog.
+
+3. **Phone-channel augmentation** — Current augmentation (speed/gain/white noise/shift/silence) doesn't simulate real phone recording conditions. Add: Opus/AAC codec encode-decode, band-limiting, clipping/AGC, room impulse responses, real noise beds.
+
+4. **Phoneme n-gram candidate retrieval** — The browser matcher depends on full-string Levenshtein for candidate ranking. When CTC garbles part of the output, ratio() gets diluted. Add phoneme-word trigram or token 5-gram index for candidate retrieval (yawm-style), then CTC rescore top candidates.
+
+5. **Constrained beam search** — Unconstrained N-best failed because hypotheses were near-identical. Prefix-constrained beam against a Quran phoneme trie or KenLM would force diverse, Quran-valid hypotheses.
+
+6. **Knowledge distillation** — Distill from `w2v-phonemes/large` (100% accuracy, 970 MB) into the current FastConformer, not into wav2vec2-base. Frame-level KL on TLOG/RetaSy windows, or candidate-level distillation.
 
 ### Phoneme CTC Fine-Tuning (v4-tlog -- best streaming model)
 
@@ -312,7 +329,19 @@ Fine-tuned FastConformer's CTC head on a 69-phoneme Buckwalter vocabulary using 
 | v4-tlog-heavy | ~53K (15/verse) | 0.3 | 36-38/53 (70%) | 25/43 (58%) |
 | v4-tlog-hq | ~74K (30/verse) | 0.5 | 29-31/53 (56%) | 23-24/43 (54%) |
 
-**Key finding:** TLOG volume is the bottleneck, not quality. Even high-quality-only TLOG (threshold 0.5) regresses when scaled up. The domain gap between phone mic recordings and clean studio data overwhelms quality filtering. Sweet spot: 5 samples/verse (~18K after filter).
+**Robustness fine-tuning experiments (v5-robust):**
+
+| Model | Freeze | TLOG | Streaming v1 | Streaming v2 | Combined |
+|---|---|---|---|---|---|
+| **v4-tlog** (best) | 8/18 | ~18K (5/verse) | **45/53 (84.9%)** | **32/43 (74.4%)** | **77/96** |
+| v5-robust-u6 | 6/18 | 0 (skipped) | 43/53 (81.1%) | 33/43 (76.7%) | 76/96 |
+| v5-robust-u8 | 8/18 | 0 (skipped) | 40/53 (75.5%) | 29/43 (67.4%) | 69/96 |
+
+**Key findings:**
+- TLOG volume is the bottleneck, not quality. Even high-quality-only TLOG (threshold 0.5) regresses when scaled up. The domain gap between phone mic recordings and clean studio data overwhelms quality filtering. Sweet spot: 5 samples/verse (~18K after filter).
+- Removing TLOG entirely also regresses — the 18K TLOG sweet spot provides essential phone-mic diversity that Iqra/TTS alone can't match.
+- More encoder unfreezing hurts: u8 (freeze 8, same as baseline) regressed worse than u6 (freeze 6). The pretrained Arabic encoder representations are valuable and should be preserved.
+- RetaSy mapping yields only ~1.8K samples (30% hit rate on text normalization), insufficient to compensate for missing TLOG.
 
 Scripts:
 ```bash
