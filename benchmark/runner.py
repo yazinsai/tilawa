@@ -43,6 +43,7 @@ EXPERIMENT_REGISTRY = {
     "fastconformer-nbest-bruteforce": EXPERIMENTS_DIR / "fastconformer-nbest-bruteforce" / "run.py",
     "contrastive-v2": EXPERIMENTS_DIR / "contrastive-v2" / "run.py",
     "fastconformer-phoneme": EXPERIMENTS_DIR / "fastconformer-phoneme" / "run.py",
+    "fastconformer-phoneme-lm": EXPERIMENTS_DIR / "fastconformer-phoneme-lm" / "run.py",
     "w2v-phonemes": EXPERIMENTS_DIR / "w2v-phonemes" / "run.py",
     "tadabur-whisper-small": EXPERIMENTS_DIR / "tadabur-whisper-small" / "run.py",
     "whisper-small": EXPERIMENTS_DIR / "whisper-small" / "run.py",
