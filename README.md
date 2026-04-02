@@ -263,6 +263,17 @@ The shipped `fastconformer-phoneme v4-tlog` model (131 MB quantized ONNX) tested
 
 The TypeScript pipeline's higher recall vs the Python streaming results (87% vs 81%) is due to the `RecitationTracker`'s auto-advance, which discovers continuation verses that the simpler Python `VerseTracker` misses.
 
+### Phoneme ONNX batch matching (predict path)
+
+The shipped ONNX phoneme model tested with Python `predict()` (greedy CTC decode + verse matching):
+
+| Matching strategy | v1 Recall | v1 SeqAcc | v2 Recall | v2 SeqAcc |
+|---|---|---|---|---|
+| Simple `ratio()` | 79% | 75% | 87% | 86% |
+| **Multi-pass (fragment + span)** | **90%** | **87%** | **87%** | **84%** |
+
+The multi-pass matcher (ported from the browser's `quran-db.ts`) adds fragment scoring, short-query boost, bismillah stripping, and multi-verse span matching. The +11pp gain on v1 shows matching quality was the bottleneck, not decoding.
+
 ## Project structure
 
 ```
