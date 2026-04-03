@@ -180,3 +180,92 @@ All failed due to English-pretrained audio encoders (HuBERT/wav2vec2-base) produ
 4. **English-pretrained audio encoders fail on Arabic.** wav2vec2-base, HuBERT cannot produce useful features.
 5. **Layer pruning + fine-tuning works.** 24→8 layers recovers most accuracy (75% at 145 MB).
 6. **Short verses are hard across all approaches.** Verses under 3-4 words don't provide enough signal.
+7. **Matching quality matters more than decode strategy.** Multi-pass phoneme matching (fragment scoring, spans) improved Python batch from 79%→90% v1. Beam search (pyctcdecode) is worse than greedy for this model.
+8. **Beam candidate injection into tracker causes regressions.** The verse/span trie (1.7M nodes, 2.2ms decode) works correctly but beam-matched verses override correct greedy results when injected as candidates.
+9. **TLOG removal regresses.** v5-robust fine-tunes without TLOG both performed worse than v4-tlog. The 18K TLOG sweet spot provides essential phone-mic diversity.
+
+---
+
+## Planned experiments (2026-04-03)
+
+Current streaming baseline: **45/53 (84.9%)** v1, **32/43 (74.4%)** v2.
+
+The 8 v1 failures break down as: 3 empty results (model output too short/garbage for matching), 3 wrong verse matches (phonemes match a different verse), 2 partial multi-verse (missed first/last verse in sequence).
+
+### Phase A: Inference/tracker fixes (no training)
+
+#### Experiment A1: Short-utterance rescue path
+
+**What:** When greedy text is <5 chars, fall back to `rawPhonemes`/`tokenIds` + CTC rescoring over a curated short-verse/opener candidate set instead of returning empty.
+
+**Why:** The tracker skips discovery when text is too short (`tracker.ts:463`). The 3 "empty results" failures (ref_036001, retasy_021, and one more) hit this path. `quran-db.ts` already has short-query boosts that never get reached.
+
+**Expected impact:** 2-3 of 8 failures. **Complexity:** 1-2 days. **Training:** No.
+
+#### Experiment A2: Span-aware streaming commit
+
+**What:** When discovery selects a span match (ayah_end set), emit all verses in the span or enter a synthetic span-tracking state. Currently only the first ayah is emitted while `lastEmittedRef` jumps to the span end.
+
+**Why:** The commit path emits one verse (`tracker.ts:624`), updates `lastEmittedRef` to span end (`tracker.ts:636`), then enters tracking on only the first verse (`tracker.ts:662`). This mismatch directly explains the 2 partial multi-verse failures (multi_036_001_005, multi_055_001_004).
+
+**Expected impact:** 2-3 of 8 failures. **Complexity:** ~1 day. **Training:** No.
+
+#### Experiment A3: Fix acoustic override ranking
+
+**What:** Keep text-sorted and acoustic-sorted candidate lists separate. Calibrate a combined score over `stage_a_score`, `acousticScore`, `acousticMargin`, `lengthFit`, and continuation bonus. Currently `_rankCandidates()` re-sorts by text score after pulling `acousticBest`, so the "acoustic override" isn't truly acoustic-first.
+
+**Why:** The 3 wrong-verse failures (retasy_012, retasy_016, retasy_022) have correct verses with decent acoustic scores but lower text scores. Proper acoustic-first ranking could recover them.
+
+**Expected impact:** 1-2 of 8 failures. **Complexity:** 0.5-1.5 days. **Training:** No.
+
+#### Experiment A4: Gated trie beam candidate expansion
+
+**What:** Use trie beam prefixes to expand the candidate surah set (not inject as direct candidates). When text confidence is low, beam-suggested surahs get added to `retrieveCandidates` search scope, then CTC/text consensus reranks. The beam infrastructure is already wired in `inference.ts`.
+
+**Why:** Direct beam injection regressed because it bypassed tracker heuristics. Surah-level expansion is safer — it just broadens the search without overriding the ranking.
+
+**Expected impact:** 1-3 of 8 failures. **Complexity:** 1-2 days. **Training:** No.
+
+### Phase B: Model training
+
+#### Experiment B1: Hard-example fine-tune (stage B from v4-tlog)
+
+**What:** Start from the shipped v4-tlog checkpoint (not from scratch). Short low-LR second stage focused on: short/noisy RetaSy clips, clipped-start TLOG samples, huruf-muqatta'at/openers (36:1 "Ya Sin"), and the current failure buckets. Curriculum weighting by difficulty, not more TLOG volume.
+
+**Why:** v4-tlog is the best checkpoint. v4-tlog-heavy and v4-tlog-hq both regressed from adding more TLOG. The next model experiment should be curriculum and hard-example weighting, not raw data scaling.
+
+**Expected impact:** 2-4 of 8 failures. **Complexity:** 3-5 days + export/validation. **Training:** Yes (Modal A100).
+
+#### Experiment B2: Streaming-like augmentation
+
+**What:** Extend the training augmentor with: explicit start/end truncation (not just shift), mild reverb/room coloration, random short-window crops (1-6s from longer recordings with trimmed labels), and adjacent-ayah concatenations. Current augmentor only has speed/gain/white noise/shift/silence.
+
+**Why:** The model never sees what streaming actually produces — partial windows with missing starts/ends. This directly matches the failure modes: empty outputs from clipped starts, wrong matches from partial audio.
+
+**Expected impact:** 2-3 of 8 failures. **Complexity:** 2-4 days. **Training:** Yes (Modal A100).
+
+### Phase C: Matching + distillation (lower priority)
+
+#### Experiment C1: Phoneme n-gram anchor in browser matcher
+
+**What:** Port the rare phoneme n-gram voting idea from `experiments/w2v-phonemes/` into the browser's `quran-db.ts`. When full-string `ratio()` is weak, add surah candidates from rare phoneme 5-grams before span scoring. Requires pre-computing a phoneme n-gram index as a browser asset.
+
+**Why:** w2v-phonemes is perfect on long/multi and only fails on short/noisy. Rare n-gram anchoring is a good retrieval-side complement to the current matcher.
+
+**Expected impact:** 1-2 of 8 failures. **Complexity:** 1-2 days + small JSON asset. **Training:** No.
+
+#### Experiment C2: Teacher distillation (w2v-phonemes/large → FastConformer)
+
+**What:** Use `w2v-phonemes/large` (100% batch accuracy, 970MB) as a phoneme teacher. Generate pseudo-labels or soft logits on TLOG/RetaSy clips, then distill into the current FastConformer student. Unlike the failed `train_distill_modal.py` (which used wav2vec2-base as student), this keeps the proven FastConformer architecture.
+
+**Why:** The teacher captures the task perfectly. The failed distillation attempt mostly falsified the English wav2vec2-base student choice, not the distillation approach itself.
+
+**Expected impact:** 1-3 of 8 failures. **Complexity:** 1-2 weeks. **Training:** Yes (Modal A100).
+
+### Execution order
+
+**Do first (inference-only, ~4 days total):** A1 → A2 → A3 → A4
+
+**Then (training, ~1 week):** B1 → B2
+
+**If needed:** C1 → C2
