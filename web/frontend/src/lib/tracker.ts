@@ -461,6 +461,56 @@ export class RecitationTracker {
     const result = await this.transcribe(this.utteranceAudio.slice());
     const text = result.text.trim();
     if (!text || text.length < 5) {
+      // Short-utterance rescue: use CTC rescoring against short-verse candidates
+      if (result.acoustic && (result.tokenIds?.length ?? 0) >= 2 && this.cyclesSinceCommit > 1) {
+        const shortCandidates = this.db.getShortVerseCandidates();
+        if (shortCandidates.length > 0) {
+          const scored = scoreCtcCandidates(
+            result.acoustic,
+            shortCandidates.map((c) => ({ ids: c.phoneme_token_ids, meta: c })),
+          );
+          const feasible = scored.filter((s) => s.feasible);
+          if (feasible.length >= 2) {
+            const margin = feasible[1].acousticScore - feasible[0].acousticScore;
+            if (margin >= ACOUSTIC_CLEAR_MARGIN) {
+              const best = feasible[0].meta;
+              const verse = this.db.getVerse(best.surah, best.ayah);
+              if (verse) {
+                const ref: [number, number] = [best.surah, best.ayah];
+                const key = refKey(best.surah, best.ayah);
+                // Skip if same as last emitted
+                if (
+                  !this.lastEmittedRef ||
+                  this.lastEmittedRef[0] !== ref[0] ||
+                  this.lastEmittedRef[1] !== ref[1]
+                ) {
+                  const confidence = Math.min(0.85, 0.5 + margin);
+                  messages.push({
+                    type: "verse_match",
+                    surah: best.surah,
+                    ayah: best.ayah,
+                    verse_text: verse.text_uthmani,
+                    surah_name: verse.surah_name,
+                    confidence: Math.round(confidence * 100) / 100,
+                    surrounding_verses: getSurroundingVerses(this.db, best.surah, best.ayah),
+                  });
+                  this.prevEmittedRef = this.lastEmittedRef;
+                  this.prevEmittedText = this.lastEmittedText;
+                  this.lastEmittedRef = ref;
+                  this.lastEmittedText = verse.phonemes_joined;
+                  this.lastCommitEvidence = { confidence, acousticMargin: margin, strong: margin >= 0.3 };
+                  this.pendingLeader = null;
+                  this.cyclesSinceCommit = 0;
+                  this.consecutiveAutoAdvances = 0;
+                  this._emitDiagnostic({ type: "commit", ref: key, reason: "short_rescue", confidence });
+                  this._enterTracking(verse);
+                  return messages;
+                }
+              }
+            }
+          }
+        }
+      }
       this._emitDiagnostic({
         type: "silence_skip",
         mode: "discovery",
@@ -523,8 +573,15 @@ export class RecitationTracker {
     let lengthFit = 1;
     let effectiveMatch = match;
 
-    // If acoustic evidence available, check if CTC-best differs from text-best
-    const acousticBest = ranked.find((r) => r.feasible);
+    // Find the candidate with best (lowest) acoustic score among feasible entries
+    const feasibleByAcoustic = ranked
+      .filter((r) => r.feasible)
+      .sort((a, b) => a.acousticScore - b.acousticScore);
+    const acousticBest = feasibleByAcoustic[0] ?? null;
+    // Compute true acoustic margin (gap to second-best)
+    if (acousticBest && feasibleByAcoustic.length >= 2) {
+      acousticBest.acousticMargin = feasibleByAcoustic[1].acousticScore - acousticBest.acousticScore;
+    }
     if (match) {
       const matchKey = refKey(match.surah, match.ayah, match.ayah_end);
       const rescoredMatch = ranked.find(
@@ -538,31 +595,39 @@ export class RecitationTracker {
       acousticMargin = rescoredMatch?.acousticMargin ?? 0;
       lengthFit = rescoredMatch?.lengthFit ?? 1;
 
-      // Acoustic override: when text match is unreliable, trust CTC
-      if (
-        acousticBest &&
-        match.score < ACOUSTIC_OVERRIDE_TEXT_THRESHOLD &&
-        acousticBest.acousticMargin >= ACOUSTIC_OVERRIDE_MIN_MARGIN
-      ) {
+      // Acoustic override: when CTC-best differs from text-best and has strong margin
+      if (acousticBest) {
         const abKey = refKey(
           acousticBest.candidate.surah,
           acousticBest.candidate.ayah,
           acousticBest.candidate.ayah_end,
         );
         if (abKey !== matchKey) {
-          // CTC winner differs from text winner — override
-          effectiveMatch = {
-            surah: acousticBest.candidate.surah,
-            ayah: acousticBest.candidate.ayah,
-            ayah_end: acousticBest.candidate.ayah_end,
-            text: acousticBest.candidate.text,
-            phonemes_joined: acousticBest.candidate.phonemes_joined,
-            score: Math.max(match.score, 0.5), // synthesize confidence
-            raw_score: acousticBest.candidate.raw_score,
-            bonus: acousticBest.candidate.bonus,
-          };
-          acousticMargin = acousticBest.acousticMargin;
-          lengthFit = acousticBest.lengthFit;
+          // Two conditions for override:
+          // 1. Text match is unreliable (< 0.55) and acoustic has decent margin
+          // 2. Acoustic has strong margin (≥ 0.5) and acoustic-best also has a reasonable text score
+          const textUnreliable =
+            match.score < ACOUSTIC_OVERRIDE_TEXT_THRESHOLD &&
+            acousticBest.acousticMargin >= ACOUSTIC_OVERRIDE_MIN_MARGIN;
+          const acousticDominant =
+            acousticBest.acousticMargin >= 0.5 &&
+            acousticBest.candidate.stage_a_score >= VERSE_MATCH_THRESHOLD &&
+            acousticBest.lengthFit >= 0.5;
+
+          if (textUnreliable || acousticDominant) {
+            effectiveMatch = {
+              surah: acousticBest.candidate.surah,
+              ayah: acousticBest.candidate.ayah,
+              ayah_end: acousticBest.candidate.ayah_end,
+              text: acousticBest.candidate.text,
+              phonemes_joined: acousticBest.candidate.phonemes_joined,
+              score: Math.max(match.score, acousticBest.candidate.stage_a_score, 0.5),
+              raw_score: acousticBest.candidate.raw_score,
+              bonus: acousticBest.candidate.bonus,
+            };
+            acousticMargin = acousticBest.acousticMargin;
+            lengthFit = acousticBest.lengthFit;
+          }
         }
       }
     }
@@ -631,15 +696,37 @@ export class RecitationTracker {
           surrounding_verses: surrounding,
         });
 
+        // Span match: emit verse_match for each additional verse in the span
+        const ayahEnd = effectiveMatch.ayah_end;
+        if (ayahEnd && ayahEnd > effectiveMatch.ayah) {
+          for (let a = effectiveMatch.ayah + 1; a <= ayahEnd; a++) {
+            const spanVerse = this.db.getVerse(effectiveMatch.surah, a);
+            if (spanVerse) {
+              messages.push({
+                type: "verse_match",
+                surah: spanVerse.surah,
+                ayah: spanVerse.ayah,
+                verse_text: spanVerse.text_uthmani,
+                surah_name: spanVerse.surah_name,
+                confidence: Math.round(confidence * 100) / 100,
+                surrounding_verses: getSurroundingVerses(this.db, spanVerse.surah, spanVerse.ayah),
+              });
+            }
+          }
+        }
+
         this.prevEmittedRef = this.lastEmittedRef;
         this.prevEmittedText = this.lastEmittedText;
-        const ayahEnd = effectiveMatch.ayah_end;
         const effectiveRef: [number, number] = ayahEnd
           ? [effectiveMatch.surah, ayahEnd]
           : ref;
         this.lastEmittedRef = effectiveRef;
+        // For spans, use the last verse's phonemes for continuation matching
+        const lastSpanVerse = ayahEnd
+          ? this.db.getVerse(effectiveMatch.surah, ayahEnd)
+          : verse;
         this.lastEmittedText =
-          effectiveMatch.phonemes_joined ?? verse?.phonemes_joined ?? "";
+          lastSpanVerse?.phonemes_joined ?? effectiveMatch.phonemes_joined ?? verse?.phonemes_joined ?? "";
         this.lastCommitEvidence = {
           confidence,
           acousticMargin,
@@ -659,8 +746,10 @@ export class RecitationTracker {
           confidence: Math.round(confidence * 1000) / 1000,
         });
 
-        if (verse) {
-          this._enterTracking(verse);
+        // Enter tracking on the last verse in the span so auto-advance continues from there
+        const trackVerse = lastSpanVerse ?? verse;
+        if (trackVerse) {
+          this._enterTracking(trackVerse);
         } else {
           this._retainTailAfterCommit();
         }

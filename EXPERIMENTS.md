@@ -186,11 +186,30 @@ All failed due to English-pretrained audio encoders (HuBERT/wav2vec2-base) produ
 
 ---
 
+## Phase A results (2026-04-03)
+
+Baseline: **45/53 (84.9%)** v1, **32/43 (74.4%)** v2.
+After A1+A2+A3: **~50/53 (~94.3%)** v1 (±2-3 from ONNX non-determinism). v2 pending re-measure with A3.
+
+### Implemented
+
+- **A1 (Short-utterance rescue):** When greedy text < 5 chars, CTC-rescores all short-verse candidates (≤15 phoneme tokens). Fires when ≥2 tokenIds, cyclesSinceCommit > 1, and acoustic margin ≥ ACOUSTIC_CLEAR_MARGIN. Fixed ref_036001, multi_036_001_005, multi_055_001_004.
+- **A2 (Span-aware commit):** When span match is committed (ayah_end set), emits all verses in span and enters tracking on last verse. Correct but didn't directly fix target failures (those were short first verses, fixed by A1).
+- **A3 (Acoustic override ranking):** (a) acousticBest now found by lowest acoustic score among feasible (was first feasible in text-sort order). (b) New `acousticDominant` condition: overrides when acoustic margin ≥ 0.5, candidate text ≥ VERSE_MATCH_THRESHOLD, and lengthFit ≥ 0.5. Fixed retasy_012, retasy_009 (borderline).
+
+### Remaining 3 failures (model-quality limited)
+- retasy_016 (3:2): garbage CTC output
+- retasy_021 (1:7): empty match, low-quality transcription
+- retasy_022 (1:7): wrong verse cascade (82:11)
+
+### Not implemented
+- **A4 (Gated trie beam expansion):** Deferred — remaining failures are model quality, not candidate retrieval.
+
 ## Planned experiments (2026-04-03)
 
-Current streaming baseline: **45/53 (84.9%)** v1, **32/43 (74.4%)** v2.
+Previous baseline: **45/53 (84.9%)** v1, **32/43 (74.4%)** v2.
 
-The 8 v1 failures break down as: 3 empty results (model output too short/garbage for matching), 3 wrong verse matches (phonemes match a different verse), 2 partial multi-verse (missed first/last verse in sequence).
+The 8 v1 failures broke down as: 3 empty results (model output too short/garbage for matching), 3 wrong verse matches (phonemes match a different verse), 2 partial multi-verse (missed first/last verse in sequence).
 
 ### Phase A: Inference/tracker fixes (no training)
 

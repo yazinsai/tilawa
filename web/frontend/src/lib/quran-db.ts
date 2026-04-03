@@ -137,6 +137,27 @@ export class QuranDB {
     return undefined;
   }
 
+  /** Return candidates for verses whose non-Bsm phoneme token IDs are short (≤ maxTokens). */
+  getShortVerseCandidates(maxTokens = 15): QuranCandidate[] {
+    const result: QuranCandidate[] = [];
+    for (const v of this.verses) {
+      const ids = v.phoneme_token_ids_no_bsm ?? v.phoneme_token_ids ?? [];
+      if (ids.length === 0 || ids.length > maxTokens) continue;
+      result.push({
+        surah: v.surah,
+        ayah: v.ayah,
+        text: v.phonemes_joined,
+        phonemes_joined: v.phonemes_joined,
+        phoneme_token_ids: ids,
+        stage_a_score: 0,
+        raw_score: 0,
+        bonus: 0,
+        kind: "single",
+      });
+    }
+    return result;
+  }
+
   search(text: string, topK = 5): (QuranVerse & { score: number })[] {
     const scored: (QuranVerse & { score: number })[] = [];
     for (const v of this.verses) {
