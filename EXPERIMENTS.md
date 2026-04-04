@@ -8,12 +8,13 @@ The shipped model (`fastconformer-phoneme v4-tlog`, quantized ONNX) tested with 
 
 | Mode | Corpus | Recall | Precision | SeqAcc | Correct |
 |---|---|---|---|---|---|
-| **Streaming** | v1 (53) | **86.7%** | 65.1% | 30.2% | 44/53 |
+| **Streaming** | v1 (53) | **76-83%** | 53-65% | 30-34% | 38-44/53 |
 | **Streaming** | v2 (43) | **80.5%** | 56.9% | 32.6% | 33/43 |
 | Non-streaming | v1 (53) | 84.1% | 84.9% | 81.1% | 43/53 |
 | Non-streaming | v2 (43) | 78.1% | 79.1% | 74.4% | 32/43 |
 
 **Notes:**
+- Streaming results show ranges from 3 runs (ONNX non-determinism is ±3-6 per run, NOT ±2-3 as previously assumed).
 - Streaming recall is higher than non-streaming because the tracker's auto-advance discovers continuation verses that single-shot matching misses.
 - Streaming precision is lower because auto-advance also emits false positives (extra verses beyond what was expected).
 - Streaming SeqAcc is low because any extra emitted verse counts as an exact-match failure, even if all expected verses were found.
@@ -103,11 +104,34 @@ All variants of `rabah2026/wav2vec2-large-xlsr-53-arabic-quran-v_final` with lay
 
 Fine-tuning the phoneme CTC head with varying amounts of TLOG (phone-recorded Quran recitation) data.
 
-| Model | TLOG samples | Quality threshold | Streaming v1 | Streaming v2 |
+| Model | TLOG samples | Quality threshold | Streaming v1 | Streaming v2 | Notes |
+|---|---|---|---|---|---|
+| **v4-tlog** (best) | ~18K (5/verse) | 0.3 | **45/53 (84.9%)** | **32/43 (74.4%)** | |
+| v4-tlog-heavy | ~53K (15/verse) | 0.3 | 36-38/53 (70%) | 25/43 (58%) | |
+| v4-tlog-hq | ~74K (30/verse) | 0.5 | 29-31/53 (56%) | 23-24/43 (54%) | |
+| v6-augmented | ~29K (5/verse) | unfiltered | 26/53 (49%) NS | — | +MUSAN noise +teacher relabel |
+
+## v6-augmented (REGRESSION, 2026-04-04)
+
+Fine-tuned with three data-side changes vs v4-tlog baseline: MUSAN noise augmentation, teacher pseudo-labels (wav2vec2 relabeling), and unfiltered TLOG (no quality filter on fresh Modal volume).
+
+| Mode | Corpus | Correct | Baseline (v4-tlog) | Delta |
 |---|---|---|---|---|
-| **v4-tlog** (best) | ~18K (5/verse) | 0.3 | **45/53 (84.9%)** | **32/43 (74.4%)** |
-| v4-tlog-heavy | ~53K (15/verse) | 0.3 | 36-38/53 (70%) | 25/43 (58%) |
-| v4-tlog-hq | ~74K (30/verse) | 0.5 | 29-31/53 (56%) | 23-24/43 (54%) |
+| Non-streaming | v1 (53) | **26/53 (49%)** | 43/53 (81%) | **-17** |
+| Streaming | v1 (53) | crashed (ONNX mutex) | 40-44/53 (~77%) | — |
+
+**Training details:**
+- Data: 157K entries (71K Iqra + 55K TTS + 1.8K RetaSy + 29K TLOG unfiltered)
+- Teacher relabeling: 75% relabeled by wav2vec2 ONNX teacher, 25% original labels (3 of 12 workers preempted)
+- Augmentation: MUSAN noise (prob=0.5, 0-20dB SNR) + speed/gain/white_noise/shift/silence. RIR impulse disabled (multi-channel compat issue)
+- Training: NeMo <2.7, torch 2.5.1, A100-80GB, best val_loss=58.39 at step 6500, early stopped (patience 6)
+
+**Root cause analysis:**
+1. Unfiltered TLOG (29K entries) — no quality filter since fresh volume had no checkpoint model. Previous best used filtered ~18K
+2. Teacher pseudo-labels changed 75% of training labels — teacher model may disagree with ground truth, introducing label noise
+3. Three changes combined = impossible to attribute regression to any single factor
+
+**Lesson:** Never combine multiple data-side changes in one run. The plan called for staged runs but codec resynth was skipped and the remaining changes were combined. TLOG quality filtering is critical — unfiltered TLOG has ~38% bad samples.
 
 ## Methodology
 
@@ -188,19 +212,28 @@ All failed due to English-pretrained audio encoders (HuBERT/wav2vec2-base) produ
 
 ## Phase A results (2026-04-03)
 
-Baseline: **45/53 (84.9%)** v1, **32/43 (74.4%)** v2.
-After A1+A2+A3: **~50/53 (~94.3%)** v1 (±2-3 from ONNX non-determinism). v2 pending re-measure with A3.
+Pre-Phase-A baseline: **45/53 (84.9%)** v1, **32/43 (74.4%)** v2 (single runs, before variance was understood).
+After A1+A2+A3: **38-44/53 (avg ~41, 77%)** v1 across 3 runs. ONNX non-determinism is ±3-6, much wider than initially assumed. v2 pending re-measure.
+
+**Note:** The earlier 45/53 and 50/53 figures were single-run measurements that fell within the high end of ONNX variance. The realistic streaming v1 baseline is **40-44/53**.
 
 ### Implemented
 
-- **A1 (Short-utterance rescue):** When greedy text < 5 chars, CTC-rescores all short-verse candidates (≤15 phoneme tokens). Fires when ≥2 tokenIds, cyclesSinceCommit > 1, and acoustic margin ≥ ACOUSTIC_CLEAR_MARGIN. Fixed ref_036001, multi_036_001_005, multi_055_001_004.
-- **A2 (Span-aware commit):** When span match is committed (ayah_end set), emits all verses in span and enters tracking on last verse. Correct but didn't directly fix target failures (those were short first verses, fixed by A1).
-- **A3 (Acoustic override ranking):** (a) acousticBest now found by lowest acoustic score among feasible (was first feasible in text-sort order). (b) New `acousticDominant` condition: overrides when acoustic margin ≥ 0.5, candidate text ≥ VERSE_MATCH_THRESHOLD, and lengthFit ≥ 0.5. Fixed retasy_012, retasy_009 (borderline).
+- **A1 (Short-utterance rescue):** When greedy text < 5 chars, CTC-rescores all short-verse candidates (≤15 phoneme tokens). Fires when ≥2 tokenIds, cyclesSinceCommit > 1, and acoustic margin ≥ ACOUSTIC_CLEAR_MARGIN.
+- **A2 (Span-aware commit):** When span match is committed (ayah_end set), emits all verses in span and enters tracking on last verse.
+- **A3 (Acoustic override ranking):** (a) acousticBest now found by lowest acoustic score among feasible (was first feasible in text-sort order). (b) New `acousticDominant` condition: overrides when acoustic margin ≥ 0.5, candidate text ≥ VERSE_MATCH_THRESHOLD, and lengthFit ≥ 0.5.
 
-### Remaining 3 failures (model-quality limited)
+### Consistent failures across all 3 runs
 - retasy_016 (3:2): garbage CTC output
 - retasy_021 (1:7): empty match, low-quality transcription
 - retasy_022 (1:7): wrong verse cascade (82:11)
+- retasy_023 (110:2): wrong verse match
+- retasy_026 (103:3): wrong verse match
+- multi_103_001_003: cascade after correct first verse
+
+### Variance-sensitive (fail in some runs, pass in others)
+- retasy_000, retasy_005, retasy_012, retasy_020, retasy_027
+- user_ikhlas_2_3, multi_036_001_005, multi_067_001_004, multi_002_285_286
 
 ### Not implemented
 - **A4 (Gated trie beam expansion):** Deferred — remaining failures are model quality, not candidate retrieval.

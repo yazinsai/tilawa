@@ -31,7 +31,7 @@ PHONEME_VOCAB = [
 NUM_CLASSES = len(PHONEME_VOCAB)  # 69
 BLANK_ID = NUM_CLASSES  # 69 = blank; total outputs = 70
 
-NEMO_CHECKPOINT = PROJECT_ROOT / "data" / "fastconformer-phoneme-v1" / "model.nemo"
+NEMO_CHECKPOINT = PROJECT_ROOT / "data" / "v6-augmented" / "model.nemo"
 WEB_PUBLIC = PROJECT_ROOT / "web" / "frontend" / "public"
 
 
@@ -67,7 +67,7 @@ def export_onnx():
     print(f"Loading fine-tuned weights from: {NEMO_CHECKPOINT}")
     import tempfile, tarfile
     with tempfile.TemporaryDirectory() as tmpdir:
-        with tarfile.open(NEMO_CHECKPOINT, "r:gz") as tar:
+        with tarfile.open(NEMO_CHECKPOINT, "r:*") as tar:
             tar.extractall(tmpdir)
         weights_path = Path(tmpdir) / "model_weights.ckpt"
         state_dict = torch.load(weights_path, map_location="cpu")

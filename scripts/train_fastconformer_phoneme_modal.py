@@ -48,8 +48,8 @@ image = (
     modal.Image.debian_slim(python_version="3.11")
     .apt_install("ffmpeg")
     .pip_install(
-        "torch>=2.2",
-        "nemo_toolkit[asr]>=2.7.0",
+        "torch==2.5.1",
+        "nemo_toolkit[asr]>=2.1.0,<2.7.0",
         "datasets>=3.0,<4.0",
         "lightning>=2.4,<3.0",
         "omegaconf>=2.3,<3.0",
@@ -831,6 +831,8 @@ def train(
     num_workers: int = 8,
     early_stopping_patience: int = 6,
     enable_augmentation: bool = True,
+    enable_noise_augmentation: bool = False,
+    train_manifest_override: str = "",
 ):
     import lightning.pytorch as pl
     import torch
@@ -843,7 +845,10 @@ def train(
 
     base = Path(f"/training/{output_name}")
     manifests_dir = base / "manifests"
-    train_manifest = manifests_dir / "train_manifest.jsonl"
+    train_manifest = (
+        Path(train_manifest_override) if train_manifest_override
+        else manifests_dir / "train_manifest.jsonl"
+    )
     val_manifest = manifests_dir / "val_manifest.jsonl"
     metadata_path = manifests_dir / "data_metadata.json"
     checkpoints_dir = base / "checkpoints"
@@ -851,7 +856,10 @@ def train(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     if not train_manifest.exists() or not val_manifest.exists():
-        raise FileNotFoundError("Missing manifests. Run prepare_data first.")
+        raise FileNotFoundError(
+            f"Missing manifests. Run prepare_data first. "
+            f"train={train_manifest} val={val_manifest}"
+        )
 
     print(f"CUDA available: {torch.cuda.is_available()}")
     if torch.cuda.is_available():
@@ -1050,7 +1058,7 @@ def train(
 
         # Augmentation (train only)
         if enable_augmentation:
-            model.cfg.train_ds.augmentor = {
+            augmentor = {
                 "speed": {"prob": 0.3, "sr": 16000, "resample_type": "kaiser_fast",
                           "min_speed_rate": 0.9, "max_speed_rate": 1.1, "num_rates": 5},
                 "gain": {"prob": 0.3, "min_gain_dbfs": -10, "max_gain_dbfs": 5},
@@ -1059,6 +1067,31 @@ def train(
                 "silence": {"prob": 0.2, "min_start_silence_secs": 0.0, "max_start_silence_secs": 0.4,
                              "min_end_silence_secs": 0.0, "max_end_silence_secs": 0.5},
             }
+
+            # MUSAN + RIR noise augmentation (requires download_musan_rir_modal.py first)
+            if enable_noise_augmentation:
+                aug_base = Path("/training/augmentation_data")
+                noise_manifest = aug_base / "noise_manifest.jsonl"
+                rir_manifest = aug_base / "rir_manifest.jsonl"
+                if noise_manifest.exists():
+                    augmentor["noise"] = {
+                        "prob": 0.5,
+                        "manifest_path": str(noise_manifest),
+                        "min_snr_db": 0,
+                        "max_snr_db": 20,
+                    }
+                    print(f"Noise augmentation enabled: {noise_manifest}")
+                else:
+                    print(f"WARNING: {noise_manifest} not found, skipping noise augmentation")
+                # RIR impulse disabled: some RIR files are multi-channel, causing
+                # fftconvolve dimension mismatch with mono training audio.
+                # MUSAN noise augmentation alone provides the main benefit.
+                if rir_manifest.exists():
+                    print(f"RIR impulse skipped (multi-channel compat issue). Noise-only augmentation.")
+                else:
+                    print(f"WARNING: {rir_manifest} not found")
+
+            model.cfg.train_ds.augmentor = augmentor
 
         model.cfg.validation_ds.manifest_filepath = str(val_manifest)
         model.cfg.validation_ds.batch_size = int(train_batch_size)
@@ -1139,6 +1172,8 @@ def train(
     print(f"warmup_steps:       {warmup_steps}")
     print(f"freeze_layers:      {freeze_encoder_layers}")
     print(f"freeze_preprocessor:{freeze_preprocessor}")
+    print(f"noise_augmentation: {enable_noise_augmentation}")
+    print(f"manifest_override:  {train_manifest_override or 'default'}")
     print("=" * 72 + "\n")
 
     trainer.fit(model)
@@ -1187,6 +1222,8 @@ def train(
         "freeze_preprocessor": freeze_preprocessor,
         "early_stopping_patience": early_stopping_patience,
         "enable_augmentation": enable_augmentation,
+        "enable_noise_augmentation": enable_noise_augmentation,
+        "train_manifest_override": train_manifest_override or None,
         "total_params": total_params,
         "trainable_params": trainable_params,
         "data_metadata_path": str(metadata_path),
@@ -1654,6 +1691,8 @@ def main(
     num_workers: int = 8,
     early_stopping_patience: int = 6,
     enable_augmentation: bool = True,
+    enable_noise_augmentation: bool = False,
+    train_manifest_override: str = "",
     max_retasy_samples: int = 0,
     max_tlog_samples: int = 0,
     max_tlog_per_verse: int = 5,
@@ -1732,6 +1771,8 @@ def main(
         num_workers=num_workers,
         early_stopping_patience=early_stopping_patience,
         enable_augmentation=enable_augmentation,
+        enable_noise_augmentation=enable_noise_augmentation,
+        train_manifest_override=train_manifest_override,
     )
 
     if not download_after_train:
