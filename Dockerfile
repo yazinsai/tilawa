@@ -21,8 +21,8 @@ RUN npm ci --omit=dev
 
 # Download ONNX model
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-RUN curl -L -o dist/fastconformer_ar_ctc_q8.onnx \
-    https://github.com/yazinsai/offline-tarteel/releases/download/v0.1.0/fastconformer_ar_ctc_q8.onnx
+RUN curl -L -o dist/fastconformer_phoneme_q8.onnx \
+    https://github.com/yazinsai/offline-tarteel/releases/download/v0.1.0/fastconformer_phoneme_q8.onnx
 
 # Create storage directory
 RUN mkdir -p /app/storage/reports
