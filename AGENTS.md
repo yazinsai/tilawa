@@ -170,6 +170,14 @@ modal run --detach scripts/train_xxx_modal.py
 - **Never `add_local_dir` on large directories.** The `data/` dir is 23GB of models/checkpoints. Mount only the specific files needed (e.g. two 1.4MB JSON files).
 - **Use `--detach` for long runs.** Local connections drop on jobs longer than a few minutes.
 
+### Pre-Launch Discipline
+
+- **Verify arg defaults.** Read the entrypoint signature before launching — don't assume what `0` or `""` means.
+- **Check external deps first.** Verify models/APIs still exist before writing code that depends on them.
+- **Estimate throughput upfront.** Do the math (samples × time/sample ÷ workers) before committing to a design.
+- **Diagnose before iterating.** When something fails, understand WHY before trying a different config. Research first, not after 5 failed attempts.
+- **Design for failure.** Workers get preempted. Write results to volume incrementally, not in a final merge step. Clean up stale apps after each failed attempt (`modal app list`).
+
 ## Git Worktrees
 
 Use `./.worktrees/` as the worktree directory for all git worktrees in this project.

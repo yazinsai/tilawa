@@ -256,12 +256,12 @@ The shipped `fastconformer-phoneme v4-tlog` model (131 MB quantized ONNX) tested
 
 | Mode | Corpus | Recall | Precision | SeqAcc |
 |---|---|---|---|---|
-| **Streaming** | v1 (53) | **86.7%** | 65.1% | 30.2% |
+| **Streaming** | v1 (53) | **76-83%** | 53-65% | 30-34% |
 | **Streaming** | v2 (43) | **80.5%** | 56.9% | 32.6% |
 | Non-streaming | v1 (53) | 84.1% | 84.9% | 81.1% |
 | Non-streaming | v2 (43) | 78.1% | 79.1% | 74.4% |
 
-The TypeScript pipeline's higher recall vs the Python streaming results (87% vs 81%) is due to the `RecitationTracker`'s auto-advance, which discovers continuation verses that the simpler Python `VerseTracker` misses.
+Streaming v1 shows ranges from 3 runs (38-44/53 correct). ONNX non-determinism causes ±3-6 variance per run — always run 3x and take the average for reliable measurement.
 
 ### Phoneme ONNX batch matching (predict path)
 
