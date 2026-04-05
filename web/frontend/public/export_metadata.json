@@ -1,11 +1,21 @@
 {
   "checkpoint_path": "/vol/fastconformer-phoneme-v4-tlog/model/model.nemo",
+  "default_local_checkpoint_path": "/Users/rock/ai/projects/offline-tarteel/data/fastconformer-phoneme-v4-tlog/model/model.nemo",
   "onnx_path": "/vol/fastconformer-phoneme-v4-tlog/export/fastconformer_phoneme.onnx",
   "q8_path": "/vol/fastconformer-phoneme-v4-tlog/export/fastconformer_phoneme_q8.onnx",
   "onnx_size_bytes": 456201306,
   "q8_size_bytes": 131159547,
+  "q8_sha256": "491feb1fb9a09e7ac323a25ca40e7b69d48fed57dfb80ea9a005ffca2f18f490",
   "vocab_path": "/vol/fastconformer-phoneme-v4-tlog/export/phoneme_vocab.json",
+  "vocab_sha256": "78e06bb6ab0869c3cbda475393b972e576648c0333bccd16a296fb34185d3066",
   "vocab_tokens": 70,
+  "recovered_from": {
+    "modal_profile": "ahmedbader801",
+    "volume": "fastconformer-phoneme-training",
+    "remote_export_dir": "/fastconformer-phoneme-v4-tlog/export",
+    "remote_model_path": "/fastconformer-phoneme-v4-tlog/model/model.nemo",
+    "restored_at": "2026-04-05T08:48:00+03:00"
+  },
   "variants": [
     {
       "name": "fp32",

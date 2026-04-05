@@ -27,6 +27,8 @@ data/rabah-ctc-pruned-8/
 data/rabah-ctc-pruned-12/
 data/rabah-ctc-pruned-*-finetuned/
 data/rabah-ctc-source/
+data/fastconformer-phoneme-v4-tlog/
+data/v6-augmented/
 *.onnx
 
 # Audio files (large, except benchmark test corpora which must be tracked)

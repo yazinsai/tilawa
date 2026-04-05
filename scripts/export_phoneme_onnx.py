@@ -1,15 +1,20 @@
 """Export FastConformer phoneme CTC model to ONNX and quantize for web deployment.
 
-Loads the base HuggingFace FastConformer model, replaces the CTC head with
-the 70-class phoneme vocabulary, loads fine-tuned weights, exports to ONNX,
-and quantizes to uint8.
+Defaults to the restored local v4-tlog checkpoint, but callers can override the
+checkpoint path explicitly to export other runs without silently changing the
+shipped browser artifact.
 
 Output:
   - web/frontend/public/fastconformer_phoneme_q8.onnx
   - web/frontend/public/phoneme_vocab.json
+  - web/frontend/public/export_metadata.json
 """
+import argparse
+import hashlib
 import json
+import os
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -31,11 +36,70 @@ PHONEME_VOCAB = [
 NUM_CLASSES = len(PHONEME_VOCAB)  # 69
 BLANK_ID = NUM_CLASSES  # 69 = blank; total outputs = 70
 
-NEMO_CHECKPOINT = PROJECT_ROOT / "data" / "v6-augmented" / "model.nemo"
+DEFAULT_NEMO_CHECKPOINT = (
+    PROJECT_ROOT / "data" / "fastconformer-phoneme-v4-tlog" / "model" / "model.nemo"
+)
 WEB_PUBLIC = PROJECT_ROOT / "web" / "frontend" / "public"
+METADATA_PATH = WEB_PUBLIC / "export_metadata.json"
 
 
-def export_onnx():
+def resolve_checkpoint_path(checkpoint_override: str | None) -> Path:
+    if checkpoint_override:
+        return Path(checkpoint_override).expanduser().resolve()
+
+    env_override = os.environ.get("OFFLINE_TARTEEL_NEMO_CHECKPOINT")
+    if env_override:
+        return Path(env_override).expanduser().resolve()
+
+    return DEFAULT_NEMO_CHECKPOINT
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def write_export_metadata(checkpoint_path: Path) -> None:
+    onnx_path = WEB_PUBLIC / "fastconformer_phoneme.onnx"
+    q8_path = WEB_PUBLIC / "fastconformer_phoneme_q8.onnx"
+    vocab_path = WEB_PUBLIC / "phoneme_vocab.json"
+
+    missing = [path for path in (onnx_path, q8_path, vocab_path) if not path.exists()]
+    if missing:
+        raise FileNotFoundError(f"Cannot write metadata; missing files: {missing}")
+
+    with vocab_path.open() as f:
+        vocab = json.load(f)
+
+    metadata = {
+        "checkpoint_path": str(checkpoint_path),
+        "default_checkpoint_path": str(DEFAULT_NEMO_CHECKPOINT),
+        "onnx_path": str(onnx_path),
+        "q8_path": str(q8_path),
+        "onnx_size_bytes": onnx_path.stat().st_size,
+        "q8_size_bytes": q8_path.stat().st_size,
+        "onnx_sha256": _sha256(onnx_path),
+        "q8_sha256": _sha256(q8_path),
+        "vocab_path": str(vocab_path),
+        "vocab_sha256": _sha256(vocab_path),
+        "vocab_tokens": len(vocab),
+        "variants": [
+            {"name": "fp32", "path": str(onnx_path), "size_bytes": onnx_path.stat().st_size},
+            {"name": "q8", "path": str(q8_path), "size_bytes": q8_path.stat().st_size},
+        ],
+        "output_name": checkpoint_path.parent.parent.name,
+        "exported_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    with METADATA_PATH.open("w", encoding="utf-8") as f:
+        json.dump(metadata, f, ensure_ascii=False, indent=2)
+    print(f"Metadata saved: {METADATA_PATH}")
+
+
+def export_onnx(checkpoint_path: Path):
     import nemo.collections.asr as nemo_asr
     import torch
 
@@ -60,14 +124,14 @@ def export_onnx():
         print(f"Replaced entire ctc_decoder: Linear({in_features}, {vocab_size})")
 
     # Load fine-tuned weights
-    if not NEMO_CHECKPOINT.exists():
-        print(f"ERROR: Checkpoint not found: {NEMO_CHECKPOINT}")
+    if not checkpoint_path.exists():
+        print(f"ERROR: Checkpoint not found: {checkpoint_path}")
         sys.exit(1)
 
-    print(f"Loading fine-tuned weights from: {NEMO_CHECKPOINT}")
+    print(f"Loading fine-tuned weights from: {checkpoint_path}")
     import tempfile, tarfile
     with tempfile.TemporaryDirectory() as tmpdir:
-        with tarfile.open(NEMO_CHECKPOINT, "r:*") as tar:
+        with tarfile.open(checkpoint_path, "r:*") as tar:
             tar.extractall(tmpdir)
         weights_path = Path(tmpdir) / "model_weights.ckpt"
         state_dict = torch.load(weights_path, map_location="cpu")
@@ -185,12 +249,31 @@ def quantize():
 
 
 if __name__ == "__main__":
-    if "--validate" in sys.argv:
+    parser = argparse.ArgumentParser(description="Export FastConformer phoneme ONNX.")
+    parser.add_argument(
+        "--checkpoint",
+        type=str,
+        default=None,
+        help=(
+            "Path to the .nemo checkpoint to export. Defaults to the restored "
+            "v4-tlog checkpoint, or OFFLINE_TARTEEL_NEMO_CHECKPOINT if set."
+        ),
+    )
+    parser.add_argument("--validate", action="store_true", help="Validate an existing ONNX export.")
+    parser.add_argument("--quantize", action="store_true", help="Quantize an existing fp32 ONNX export.")
+    parser.add_argument("--skip-validate", action="store_true", help="Skip validation after export.")
+    args = parser.parse_args()
+
+    checkpoint_path = resolve_checkpoint_path(args.checkpoint)
+
+    if args.validate:
         validate_onnx()
-    elif "--quantize" in sys.argv:
+    elif args.quantize:
         quantize()
+        write_export_metadata(checkpoint_path)
     else:
-        export_onnx()
+        export_onnx(checkpoint_path)
         quantize()
-        if "--skip-validate" not in sys.argv:
+        write_export_metadata(checkpoint_path)
+        if not args.skip_validate:
             validate_onnx()
