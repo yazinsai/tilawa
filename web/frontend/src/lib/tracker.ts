@@ -31,8 +31,16 @@ import {
   ADVANCE_RELATIVE_MARGIN,
   ADVANCE_PREFIX_TOKENS,
   ACOUSTIC_OVERRIDE_TEXT_THRESHOLD,
-  ACOUSTIC_OVERRIDE_MIN_MARGIN,
   DISCOVERY_EXPANDED_CANDIDATES,
+  DISCOVERY_LOW_CONFIDENCE_WORDS,
+  DISCOVERY_LOW_CONFIDENCE_CHARS,
+  DISCOVERY_FUSION_TEXT_WEIGHT,
+  DISCOVERY_FUSION_ACOUSTIC_WEIGHT,
+  DISCOVERY_FUSION_LENGTH_WEIGHT,
+  DISCOVERY_FUSION_LOW_TEXT_WEIGHT,
+  DISCOVERY_FUSION_LOW_ACOUSTIC_WEIGHT,
+  DISCOVERY_FUSION_LOW_LENGTH_WEIGHT,
+  DISCOVERY_FUSION_SELECTION_GAP,
 } from "./types";
 
 export interface BeamVerseMatch {
@@ -72,6 +80,7 @@ interface RankedCandidate {
   acousticMargin: number;
   feasible: boolean;
   lengthFit: number;
+  fusionScore: number;
 }
 
 interface TrackingPrefix {
@@ -572,69 +581,75 @@ export class RecitationTracker {
     let acousticMargin = 0;
     let lengthFit = 1;
     let effectiveMatch = match;
+    let effectiveScore = match?.score ?? 0;
+    const fusionBest = ranked[0] ?? null;
 
-    // Find the candidate with best (lowest) acoustic score among feasible entries
-    const feasibleByAcoustic = ranked
-      .filter((r) => r.feasible)
-      .sort((a, b) => a.acousticScore - b.acousticScore);
-    const acousticBest = feasibleByAcoustic[0] ?? null;
-    // Compute true acoustic margin (gap to second-best)
-    if (acousticBest && feasibleByAcoustic.length >= 2) {
-      acousticBest.acousticMargin = feasibleByAcoustic[1].acousticScore - acousticBest.acousticScore;
+    if (fusionBest) {
+      acousticMargin = fusionBest.acousticMargin;
+      lengthFit = fusionBest.lengthFit;
     }
-    if (match) {
+
+    if (match && fusionBest) {
       const matchKey = refKey(match.surah, match.ayah, match.ayah_end);
-      const rescoredMatch = ranked.find(
-        (entry) =>
-          refKey(
-            entry.candidate.surah,
-            entry.candidate.ayah,
-            entry.candidate.ayah_end,
-          ) === matchKey,
+      const fusionKey = refKey(
+        fusionBest.candidate.surah,
+        fusionBest.candidate.ayah,
+        fusionBest.candidate.ayah_end,
       );
-      acousticMargin = rescoredMatch?.acousticMargin ?? 0;
-      lengthFit = rescoredMatch?.lengthFit ?? 1;
-
-      // Acoustic override: when CTC-best differs from text-best and has strong margin
-      if (acousticBest) {
-        const abKey = refKey(
-          acousticBest.candidate.surah,
-          acousticBest.candidate.ayah,
-          acousticBest.candidate.ayah_end,
+      const fusionGap = fusionBest.fusionScore - match.score;
+      if (fusionKey === matchKey) {
+        effectiveScore = Math.max(
+          effectiveScore,
+          fusionBest.fusionScore,
+          fusionBest.candidate.stage_a_score,
         );
-        if (abKey !== matchKey) {
-          // Two conditions for override:
-          // 1. Text match is unreliable (< 0.55) and acoustic has decent margin
-          // 2. Acoustic has strong margin (≥ 0.5) and acoustic-best also has a reasonable text score
-          const textUnreliable =
-            match.score < ACOUSTIC_OVERRIDE_TEXT_THRESHOLD &&
-            acousticBest.acousticMargin >= ACOUSTIC_OVERRIDE_MIN_MARGIN;
-          const acousticDominant =
-            acousticBest.acousticMargin >= 0.5 &&
-            acousticBest.candidate.stage_a_score >= VERSE_MATCH_THRESHOLD &&
-            acousticBest.lengthFit >= 0.5;
-
-          if (textUnreliable || acousticDominant) {
-            effectiveMatch = {
-              surah: acousticBest.candidate.surah,
-              ayah: acousticBest.candidate.ayah,
-              ayah_end: acousticBest.candidate.ayah_end,
-              text: acousticBest.candidate.text,
-              phonemes_joined: acousticBest.candidate.phonemes_joined,
-              score: Math.max(match.score, acousticBest.candidate.stage_a_score, 0.5),
-              raw_score: acousticBest.candidate.raw_score,
-              bonus: acousticBest.candidate.bonus,
-            };
-            acousticMargin = acousticBest.acousticMargin;
-            lengthFit = acousticBest.lengthFit;
-          }
-        }
       }
+      const shouldOverride =
+        fusionKey !== matchKey &&
+        (
+          match.score < ACOUSTIC_OVERRIDE_TEXT_THRESHOLD ||
+          textConfidenceLow ||
+          fusionGap >= DISCOVERY_FUSION_SELECTION_GAP ||
+          (fusionBest.candidate.kind === "span" && fusionBest.lengthFit >= 0.7)
+        );
+
+      if (shouldOverride) {
+        effectiveMatch = {
+          surah: fusionBest.candidate.surah,
+          ayah: fusionBest.candidate.ayah,
+          ayah_end: fusionBest.candidate.ayah_end,
+          text: fusionBest.candidate.text,
+          phonemes_joined: fusionBest.candidate.phonemes_joined,
+          score: Math.max(
+            match.score,
+            fusionBest.fusionScore,
+            fusionBest.candidate.stage_a_score,
+            0.5,
+          ),
+          raw_score: fusionBest.candidate.raw_score,
+          bonus: fusionBest.candidate.bonus,
+        };
+        effectiveScore = effectiveMatch.score;
+        acousticMargin = fusionBest.acousticMargin;
+        lengthFit = fusionBest.lengthFit;
+      }
+    } else if (!match && fusionBest) {
+      effectiveMatch = {
+        surah: fusionBest.candidate.surah,
+        ayah: fusionBest.candidate.ayah,
+        ayah_end: fusionBest.candidate.ayah_end,
+        text: fusionBest.candidate.text,
+        phonemes_joined: fusionBest.candidate.phonemes_joined,
+        score: Math.max(fusionBest.fusionScore, fusionBest.candidate.stage_a_score),
+        raw_score: fusionBest.candidate.raw_score,
+        bonus: fusionBest.candidate.bonus,
+      };
+      effectiveScore = effectiveMatch.score;
     }
 
     const threshold = this.lastEmittedRef ? VERSE_MATCH_THRESHOLD : FIRST_MATCH_THRESHOLD;
 
-    if (effectiveMatch && effectiveMatch.score >= threshold) {
+    if (effectiveMatch && effectiveScore >= threshold) {
       const key = refKey(effectiveMatch.surah, effectiveMatch.ayah, effectiveMatch.ayah_end);
       this.pendingLeader =
         this.pendingLeader?.key === key
@@ -657,13 +672,13 @@ export class RecitationTracker {
         this.lastEmittedRef &&
         this.cyclesSinceCommit <= 2
       ) {
-        if (effectiveMatch.score < NON_CONTINUATION_JUMP_THRESHOLD && !repeatedLeader) {
+        if (effectiveScore < NON_CONTINUATION_JUMP_THRESHOLD && !repeatedLeader) {
           effectivelyBlocked = true;
         }
       }
 
       // On final flush, commit if score is above threshold (no repeat needed)
-      const finalFlushCommit = finalFlush && effectiveMatch.score >= threshold;
+      const finalFlushCommit = finalFlush && effectiveScore >= threshold;
 
       if (!effectivelyBlocked && (clearMargin || repeatedLeader || finalFlushCommit)) {
         const ref: [number, number] = [effectiveMatch.surah, effectiveMatch.ayah];
@@ -682,7 +697,7 @@ export class RecitationTracker {
           effectiveMatch.ayah,
         );
         const confidence = Math.max(
-          effectiveMatch.score,
+          effectiveScore,
           Math.min(0.99, 0.45 + acousticMargin + lengthFit * 0.2),
         );
 
@@ -757,11 +772,11 @@ export class RecitationTracker {
         messages.push({
           type: "raw_transcript",
           text,
-          confidence: Math.round(effectiveMatch.score * 100) / 100,
+          confidence: Math.round(effectiveScore * 100) / 100,
         });
       }
     } else {
-      const score = effectiveMatch ? Math.round(effectiveMatch.score * 100) / 100 : 0;
+      const score = effectiveMatch ? Math.round(effectiveScore * 100) / 100 : 0;
       messages.push({
         type: "raw_transcript",
         text,
@@ -803,11 +818,26 @@ export class RecitationTracker {
           acousticMargin: 0,
           feasible: false,
           lengthFit: 1,
+          fusionScore: candidate.stage_a_score,
         }))
         .sort((a, b) => b.candidate.stage_a_score - a.candidate.stage_a_score);
     }
 
     const observedLength = Math.max(result.tokenIds?.length ?? 0, 1);
+    const observedWords = result.text.trim().split(/\s+/).filter(Boolean).length;
+    const observedChars = result.text.replace(/\s+/g, "").length;
+    const textWeak =
+      observedWords <= DISCOVERY_LOW_CONFIDENCE_WORDS ||
+      observedChars <= DISCOVERY_LOW_CONFIDENCE_CHARS;
+    const textWeight = textWeak
+      ? DISCOVERY_FUSION_LOW_TEXT_WEIGHT
+      : DISCOVERY_FUSION_TEXT_WEIGHT;
+    const acousticWeight = textWeak
+      ? DISCOVERY_FUSION_LOW_ACOUSTIC_WEIGHT
+      : DISCOVERY_FUSION_ACOUSTIC_WEIGHT;
+    const lengthWeight = textWeak
+      ? DISCOVERY_FUSION_LOW_LENGTH_WEIGHT
+      : DISCOVERY_FUSION_LENGTH_WEIGHT;
     const scored = scoreCtcCandidates(
       result.acoustic,
       candidates.map((candidate) => ({
@@ -831,6 +861,12 @@ export class RecitationTracker {
       const acousticFit = entry.feasible
         ? 1 - (entry.acousticScore - minAcoustic) / acousticRange
         : 0;
+      const fusionScore = Math.min(
+        1,
+        entry.meta.stage_a_score * textWeight +
+          acousticFit * acousticWeight +
+          lengthFit * lengthWeight,
+      );
 
       return {
         candidate: entry.meta,
@@ -839,10 +875,14 @@ export class RecitationTracker {
           (scored[idx + 1]?.acousticScore ?? entry.acousticScore) - entry.acousticScore,
         feasible: entry.feasible,
         lengthFit,
+        fusionScore,
       };
     });
 
     ranked.sort((a, b) => {
+      if (b.fusionScore !== a.fusionScore) {
+        return b.fusionScore - a.fusionScore;
+      }
       if (b.candidate.stage_a_score !== a.candidate.stage_a_score) {
         return b.candidate.stage_a_score - a.candidate.stage_a_score;
       }

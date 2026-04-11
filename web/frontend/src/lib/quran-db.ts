@@ -183,11 +183,19 @@ export class QuranDB {
     }
 
     const bonuses = this._continuationBonuses(hint);
+    const textWords = text.split(/\s+/).filter(Boolean);
     const noSpaceText = text.replace(/ /g, "");
     const scored: [QuranVerse, number, number, number][] = [];
 
     for (const v of this.verses) {
       let raw = ratio(text, v.phonemes_joined);
+      const verseWords = v.phoneme_words;
+      const sharedWordCount = Math.min(textWords.length, verseWords.length);
+      if (sharedWordCount > 0) {
+        const textPrefix = textWords.slice(0, sharedWordCount).join(" ");
+        const versePrefix = verseWords.slice(0, sharedWordCount).join(" ");
+        raw = Math.max(raw, ratio(textPrefix, versePrefix));
+      }
       if (noSpaceText.length <= 10) {
         raw = Math.max(raw, this._shortQueryBoost(noSpaceText, v));
       }
@@ -247,7 +255,15 @@ export class QuranDB {
         for (let span = 2; span <= maxSpan; span++) {
           if (i + span > verses.length) break;
           const chunk = verses.slice(i, i + span);
-          const raw = ratio(text, this._joinedSpanPhonemes(chunk));
+          const spanText = this._joinedSpanPhonemes(chunk);
+          let raw = ratio(text, spanText);
+          const spanWords = spanText.split(/\s+/).filter(Boolean);
+          const sharedWordCount = Math.min(textWords.length, spanWords.length);
+          if (sharedWordCount > 0) {
+            const textPrefix = textWords.slice(0, sharedWordCount).join(" ");
+            const spanPrefix = spanWords.slice(0, sharedWordCount).join(" ");
+            raw = Math.max(raw, ratio(textPrefix, spanPrefix));
+          }
           const bonus = bonuses.get(`${chunk[0].surah}:${chunk[0].ayah}`) ?? 0.0;
           const score = Math.min(raw + bonus, 1.0);
           spans.push(this._candidateFromSpan(chunk, raw, bonus, score, surahRank));
