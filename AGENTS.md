@@ -144,15 +144,98 @@ def model_size() -> int:                  # model size in bytes
 - 29 RetaSy crowdsourced (curated via `benchmark/curate_corpus.py`)
 - Categories: short (17), medium (19), long (9), multi (9)
 
-## Experiment Results
+## Experiment workflow (end-to-end)
 
-All experiment results live in **[EXPERIMENTS.md](EXPERIMENTS.md)**. When running new experiments or re-running existing ones:
+Every experiment — a new model, a tracker/matcher change, a training run, a data-mix tweak — follows this protocol. Do not skip steps. The definition-of-done checklist at the bottom is the enforcement contract.
 
-1. **Add detailed results to `EXPERIMENTS.md`** — per-experiment writeups, streaming/batch tables, failure analysis
-2. **Update the summary table in `README.md`** — only the top-level row (experiment name, size, v1/v2 recall/precision/seqacc)
-3. **Save raw JSON to `benchmark/experiment_results/`** — use `benchmark/run_single.py <name> [--streaming]`
+### 1. Branch into a worktree
 
-Keep README concise — it links to EXPERIMENTS.md for details.
+```bash
+git worktree add .worktrees/<name> -b <name>
+cd .worktrees/<name>
+```
+
+New experiments MUST be developed in a worktree (see "Git Worktrees" below). Keeps main clean and lets multiple experiments run in parallel without conflicts.
+
+### 2. Implement
+
+- New ASR/matching experiment → `experiments/<name>/run.py` per the "Experiment Convention" section. Register in `benchmark/runner.py`.
+- Inference / tracker / matcher change → edit `web/frontend/src/lib/` (TS) or `shared/` (Python). Add a vitest (`test/*.test.ts`) that deterministically exercises the change without ONNX.
+- Training run → script in `scripts/*_modal.py` launched detached (see "Training" below). One data-side change per run — never combine.
+
+### 3. Measure with discipline
+
+**ONNX streaming has ±3–6 sample variance per run on v1.** Run 3+ times and report the median. A single-run improvement inside the variance envelope is not an improvement.
+
+- **Browser/RN streaming (shipped pipeline):**
+  ```bash
+  cd web/frontend
+  npx tsx test/stability-report.ts --repeats=5 --json=test/<name>-stability.json
+  npx tsx test/stability-report.ts --repeats=3 --corpus=test_corpus_v2 --json=test/<name>-v2-stability.json
+  ```
+  Produces per-sample pass-rate classification + aggregate medians. Compare against baseline JSON from the prior commit.
+- **Python batch / Python streaming:**
+  ```bash
+  .venv/bin/python -m benchmark.runner --experiment <name>
+  ```
+  Results land in `benchmark/results/<timestamp>.json`.
+- **Unit tests:** `npx vitest run` (TS) or `pytest` (Python) must stay green.
+
+If the shipped-model streaming numbers changed, also run a **v2 blind check** — same pipeline, `--corpus=test_corpus_v2`. Same-direction movement on v2 is the sanity gate. If v2 regresses while v1 improves, treat it as overfit to v1 and stop.
+
+### 4. Document in EXPERIMENTS.md
+
+EXPERIMENTS.md is the single source of truth for benchmark numbers and writeups. README only carries the shipped-model headline table.
+
+Decide which of these patterns applies (not mutually exclusive):
+
+**Inference/tracker/matcher change to the shipped pipeline:**
+- Add an entry to `## Streaming changelog` under `## Shipped model`. Use this exact format:
+  ```md
+  **YYYY-MM-DD — short title** (commit `<hash>`)
+  One paragraph: what changed, why, the invariant or structural property it adds.
+  Numbers: precision <before>% → <after>% (<±Δ>pp), SeqAcc <before>% → <after>% (<±Δ>pp), recall <before>% → <after>% (<±Δ>pp) on v1. Same pattern on v2 blind check.
+  <Optional> Measurement command, edge cases worth remembering.
+  ```
+- Update the shipped-model headline table if its cells changed.
+- Update the one-line summary in `README.md` (Goal section) if the headline metric changed.
+
+**New experiment (new `experiments/<name>/`):**
+- Add a row to `## All experiments — streaming` and/or `## All experiments — batch`, sorted by v1 recall. Use ✓/— in the FT column, MB for size, s for latency.
+- Add a `**<name>**` line to `## Per-experiment notes` — 1–3 sentences on what it does and the key finding.
+- If it fits an existing deep dive (Rabah pruning, TLOG mix), add a row there instead of a new section.
+- 0% recall or missing deps → `### 0% recall — broken or inapplicable` with a one-sentence reason.
+
+**Finding that generalizes across experiments** → add to `## Key findings` as a numbered bullet.
+
+### 5. Save raw artifacts
+
+- `benchmark/results/<timestamp>.json` (runner writes automatically) — do not delete.
+- `web/frontend/test/<name>-stability.json` for streaming stability runs.
+- Training checkpoints stay on Modal volumes (see "Training"); document the volume name + checkpoint step in the changelog entry so it's reproducible.
+
+### 6. Commit + merge
+
+- Commit subject: `<area>: <what changed>` (≤72 chars). Area is `tracker`, `matcher`, `train`, `docs`, `experiment/<name>`, etc.
+- Commit body: the why, the before→after deltas, the measurement methodology (repeats, variance).
+- Never skip hooks or bypass signing.
+- Merge with `git merge <branch> --no-ff -m "Merge branch '<name>': ..."` so the experiment is a discoverable merge commit.
+- Remove the worktree: `git worktree remove .worktrees/<name>`.
+
+### Definition of done
+
+Merge is blocked until every box is checked:
+
+- [ ] Developed in a worktree under `.worktrees/<name>/`
+- [ ] `run.py` exports the required interface (if a new experiment) and is in `EXPERIMENT_REGISTRY`
+- [ ] Measured over 3+ runs; median reported, not cherry-picked best
+- [ ] v2 blind check run if the shipped pipeline changed; v2 did not regress
+- [ ] Unit tests pass (`npx vitest run` or `pytest`) with deterministic coverage of the change
+- [ ] EXPERIMENTS.md updated: table row / changelog entry / per-experiment note / key finding, as applicable
+- [ ] README.md updated only if the shipped-model headline table or Goal-line metric changed — otherwise README stays untouched
+- [ ] Raw result JSON committed to `benchmark/results/` or `web/frontend/test/`
+- [ ] Commit body cites before→after deltas with variance context (e.g. "v1 median across 5 runs")
+- [ ] Merged to `main` with `--no-ff`; worktree removed
 
 ## Training
 
