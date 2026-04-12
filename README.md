@@ -256,12 +256,16 @@ The shipped `fastconformer-phoneme v4-tlog` model (131 MB quantized ONNX) tested
 
 | Mode | Corpus | Recall | Precision | SeqAcc |
 |---|---|---|---|---|
-| **Streaming** | v1 (53) | **76-83%** | 53-65% | 30-34% |
-| **Streaming** | v2 (43) | **80.5%** | 56.9% | 32.6% |
+| **Streaming** (deferred emission) | v1 (53) | **78.6%** | **66.8%** | **47.2%** |
+| **Streaming** (deferred emission) | v2 (43) | **82.7%** | **63.7%** | **46.5%** |
+| Streaming (pre-2026-04-11 baseline) | v1 (53) | 78.9% | 53.8% | 26.4% |
+| Streaming (pre-2026-04-11 baseline) | v2 (43) | 80.5% | 56.9% | 32.6% |
 | Non-streaming | v1 (53) | 84.1% | 84.9% | 81.1% |
 | Non-streaming | v2 (43) | 78.1% | 79.1% | 74.4% |
 
-Streaming v1 shows ranges from 3 runs (38-44/53 correct). ONNX non-determinism causes ±3-6 variance per run — always run 3x and take the average for reliable measurement.
+Streaming metrics are medians across 5 runs (3 on v2). ONNX non-determinism causes ±3-6 variance per run — always run 3+ times and take the median for reliable measurement.
+
+**Deferred emission** (2026-04-11): the tracker no longer emits auto-advanced `verse_match` messages immediately when a verse completes. Instead it holds the next verse as *pending* until fresh audio produces primary word alignment on it; if tracking stales with no progress, the pending emission is silently dropped with full state rollback. This prevents the cascade where verse N completing triggers emission of N+1, N+2, ... without audio evidence. Result: +13pp precision and +20.8pp SeqAcc on v1, with recall unchanged. See `web/frontend/test/stability-report.ts` for the measurement tool.
 
 ### Phoneme ONNX batch matching (predict path)
 

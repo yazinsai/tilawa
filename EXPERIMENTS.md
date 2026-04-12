@@ -8,16 +8,20 @@ The shipped model (`fastconformer-phoneme v4-tlog`, quantized ONNX) tested with 
 
 | Mode | Corpus | Recall | Precision | SeqAcc | Correct |
 |---|---|---|---|---|---|
-| **Streaming** | v1 (53) | **76-83%** | 53-65% | 30-34% | 38-44/53 |
-| **Streaming** | v2 (43) | **80.5%** | 56.9% | 32.6% | 33/43 |
+| **Streaming** (deferred emission, 2026-04-11) | v1 (53) | **78.6%** | **66.8%** | **47.2%** | 35-40/53 |
+| **Streaming** (deferred emission, 2026-04-11) | v2 (43) | **82.7%** | **63.7%** | **46.5%** | 34-36/43 |
+| Streaming (pre-2026-04-11 baseline) | v1 (53) | 78.9% | 53.8% | 26.4% | 35-44/53 |
+| Streaming (pre-2026-04-11 baseline) | v2 (43) | 80.5% | 56.9% | 32.6% | 33/43 |
 | Non-streaming | v1 (53) | 84.1% | 84.9% | 81.1% | 43/53 |
 | Non-streaming | v2 (43) | 78.1% | 79.1% | 74.4% | 32/43 |
 
 **Notes:**
-- Streaming results show ranges from 3 runs (ONNX non-determinism is ±3-6 per run, NOT ±2-3 as previously assumed).
-- Streaming recall is higher than non-streaming because the tracker's auto-advance discovers continuation verses that single-shot matching misses.
-- Streaming precision is lower because auto-advance also emits false positives (extra verses beyond what was expected).
-- Streaming SeqAcc is low because any extra emitted verse counts as an exact-match failure, even if all expected verses were found.
+- Streaming metrics are medians across 5 runs on v1 and 3 runs on v2. ONNX non-determinism is ±3-6 per run.
+- **Deferred emission** (commit `63774dc`, 2026-04-11): auto-advanced `verse_match` messages are held until fresh audio produces primary word alignment on the next verse. If tracking stales, the pending emission is silently dropped with full state rollback. This prevents cascades where verse N completing triggers emission of N+1, N+2, ... without audio evidence.
+- Net effect on v1: precision +13.0pp, SeqAcc +20.8pp, recall -0.3pp. Same pattern on v2 (blind check).
+- 0 stable-pass → stable-fail regressions across 5 runs.
+- Measurement tool: `npx tsx web/frontend/test/stability-report.ts --repeats=5 [--corpus=test_corpus_v2]` produces per-sample stability classification + JSON report.
+- Streaming recall remains higher than non-streaming because auto-advance discovers continuation verses; precision was the weak point fixed by deferred emission.
 - Non-streaming mode runs the full audio through the ONNX model once and does a single `matchVerse()` call.
 
 ## Streaming results (Python, 3s chunks)
