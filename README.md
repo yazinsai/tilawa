@@ -216,7 +216,7 @@ result = predict("recitation.wav")
 
 ## Goal
 
-Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-second latency**, and **under 200 MB** on disk. The current best approach (`nvidia-fastconformer`) reaches **95% recall** at **115 MB** and **0.7s** latency on the v1 corpus. The shipped ONNX phoneme model achieves **87% streaming recall** in the browser. Everything in this repo exists to close the remaining streaming gap.
+Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-second latency**, and **under 200 MB** on disk. The current best approach (`nvidia-fastconformer`) reaches **95% recall** at **115 MB** and **0.7s** latency on the v1 corpus. The shipped ONNX phoneme model achieves **78.6% streaming recall / 66.8% precision** in the browser (v1). Everything in this repo exists to close the remaining streaming gap.
 
 ## Design constraints
 
@@ -226,57 +226,20 @@ Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-s
 - **Speaker-invariant.** Must work across accents, recording quality, and recitation styles -- not just professional studio audio from a single reciter.
 - **Full Quran coverage.** All 6,236 verses, including short verses (3-4 words) that every approach currently struggles with.
 
-## Experiment results
+## Results
 
-We tested 20 approaches across two corpora under streaming conditions (3s audio chunks, progressive verse matching). See **[EXPERIMENTS.md](EXPERIMENTS.md)** for batch results and full breakdowns.
-
-### Streaming results
-
-All experiments tested with chunked audio (3s segments) feeding a streaming verse tracker -- the same pipeline pattern used in the browser. Sorted by v1 recall.
-
-| Experiment | Base Model | Fine-tuned | Size | v1 Recall | v1 Prec | v1 SeqAcc | v2 Recall | v2 Prec | v2 SeqAcc |
-|---|---|---|---|---|---|---|---|---|---|
-| **tadabur-whisper-small** | FaisaI/tadabur-Whisper-Small | yes | 461 MB | **87%** | 58% | 42% | **84%** | 58% | 47% |
-| **fastconformer-lm-fusion** | nvidia FastConformer | no | 115 MB | 82% | **66%** | **55%** | 74% | **59%** | **53%** |
-| fastconformer-ctc-rescore | nvidia FastConformer | yes | 260 MB | 81% | 64% | 53% | 77% | 61% | 53% |
-| fastconformer-phoneme | nvidia FastConformer | yes | 436 MB | 81% | 64% | 53% | 77% | 61% | 53% |
-| **nvidia-fastconformer** | nvidia FastConformer | no | 115 MB | 81% | 64% | 53% | 77% | 61% | 53% |
-| fastconformer-nbest-bruteforce | nvidia FastConformer | no | 550 MB | 80% | 61% | 49% | 77% | 60% | 51% |
-| rabah-pruned-ctc (8L-ft-fn) | rabah wav2vec2-xlsr-quran | yes | 145 MB | 71% | 55% | 42% | 65% | 49% | 40% |
-| whisper-lora | openai/whisper-small + LoRA | yes | 485 MB | 64% | 40% | 19% | 72% | 49% | 37% |
-| whisper-small | openai/whisper-small | no | 461 MB | 63% | 42% | 26% | 53% | 33% | 21% |
-| two-stage | moonshine-tiny + wav2vec2 | yes | 463 MB | 47% | 23% | 13% | 38% | 24% | 19% |
-| distilled-ctc | wav2vec2-base (distilled) | yes | 360 MB | 7% | 7% | 6% | 5% | 3% | 2% |
-
-Experiments with 0% recall (embedding-search, contrastive, contrastive-v2, w2v-phonemes/base) and experiments requiring missing dependencies (streaming-asr, tarteel-whisper-base, two-stage-faster-whisper-pruned) are listed in [EXPERIMENTS.md](EXPERIMENTS.md#experiments-with-0-recall-broken-or-inapplicable). w2v-phonemes/large (100% batch recall) cannot stream -- it only has `predict()`, not `transcribe()`.
-
-### TypeScript ONNX streaming (shipped model)
-
-The shipped `fastconformer-phoneme v4-tlog` model (131 MB quantized ONNX) tested with the browser's `RecitationTracker` (300ms chunks + discovery/tracking pipeline):
+Shipped `fastconformer-phoneme v4-tlog` (131 MB quantized ONNX) on the v1 and v2 corpora:
 
 | Mode | Corpus | Recall | Precision | SeqAcc |
 |---|---|---|---|---|
-| **Streaming** (deferred emission) | v1 (53) | **78.6%** | **66.8%** | **47.2%** |
-| **Streaming** (deferred emission) | v2 (43) | **82.7%** | **63.7%** | **46.5%** |
-| Streaming (pre-2026-04-11 baseline) | v1 (53) | 78.9% | 53.8% | 26.4% |
-| Streaming (pre-2026-04-11 baseline) | v2 (43) | 80.5% | 56.9% | 32.6% |
-| Non-streaming | v1 (53) | 84.1% | 84.9% | 81.1% |
-| Non-streaming | v2 (43) | 78.1% | 79.1% | 74.4% |
+| Browser/RN streaming (300ms chunks) | v1 (53) | 78.6% | 66.8% | 47.2% |
+| Browser/RN streaming (300ms chunks) | v2 (43) | 82.7% | 63.7% | 46.5% |
+| Non-streaming (full-file) | v1 (53) | 84.1% | 84.9% | 81.1% |
+| Non-streaming (full-file) | v2 (43) | 78.1% | 79.1% | 74.4% |
 
-Streaming metrics are medians across 5 runs (3 on v2). ONNX non-determinism causes ±3-6 variance per run — always run 3+ times and take the median for reliable measurement.
+Streaming metrics are medians across 5 runs on v1 and 3 runs on v2 (ONNX non-determinism is ±3-6 per run). Non-streaming runs the whole audio through ONNX once and does a single `matchVerse()`.
 
-**Deferred emission** (2026-04-11): the tracker no longer emits auto-advanced `verse_match` messages immediately when a verse completes. Instead it holds the next verse as *pending* until fresh audio produces primary word alignment on it; if tracking stales with no progress, the pending emission is silently dropped with full state rollback. This prevents the cascade where verse N completing triggers emission of N+1, N+2, ... without audio evidence. Result: +13pp precision and +20.8pp SeqAcc on v1, with recall unchanged. See `web/frontend/test/stability-report.ts` for the measurement tool.
-
-### Phoneme ONNX batch matching (predict path)
-
-The shipped ONNX phoneme model tested with Python `predict()` (greedy CTC decode + verse matching):
-
-| Matching strategy | v1 Recall | v1 SeqAcc | v2 Recall | v2 SeqAcc |
-|---|---|---|---|---|
-| Simple `ratio()` | 79% | 75% | 87% | 86% |
-| **Multi-pass (fragment + span)** | **90%** | **87%** | **87%** | **84%** |
-
-The multi-pass matcher (ported from the browser's `quran-db.ts`) adds fragment scoring, short-query boost, bismillah stripping, and multi-verse span matching. The +11pp gain on v1 shows matching quality was the bottleneck, not decoding.
+Full matrix across 20 approaches (Whisper variants, Rabah pruned CTC, FastConformer sweep, contrastive/embedding failures), per-experiment notes, variant deep-dives, a changelog, and key findings live in **[EXPERIMENTS.md](EXPERIMENTS.md)**.
 
 ## Project structure
 
@@ -473,7 +436,7 @@ Some experiments have additional dependencies (faiss-cpu, moonshine, mlx-whisper
 
 ## Further reading
 
-- **[EXPERIMENTS.md](EXPERIMENTS.md)** -- Full experiment results, per-experiment writeups, and failure analysis
-- `REPORT.md` -- Detailed experiment report with per-sample breakdowns and recommendations
-- `RESEARCH-audio-to-verse.md` -- Research survey of approaches
-- `docs/plans/` -- Design documents for individual experiments
+- **[EXPERIMENTS.md](EXPERIMENTS.md)** — full benchmark tables, per-experiment writeups, changelog, and roadmap
+- `REPORT.md` — detailed experiment report with per-sample breakdowns
+- `RESEARCH-audio-to-verse.md` — research survey of approaches
+- `docs/plans/` — design documents for individual experiments
