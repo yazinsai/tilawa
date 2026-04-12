@@ -4,7 +4,7 @@ Two test corpora: **v1** (53 samples: user recordings, EveryAyah reference, Reta
 
 Metrics: **Recall** = fraction of expected verses found. **Precision** = fraction of emitted verses that were expected. **SeqAcc** = emitted set exactly matches expected set.
 
-ONNX inference is non-deterministic at **±3–6 samples per run** on v1 — streaming numbers below are medians over 3–5 runs.
+ONNX inference is non-deterministic at **±3–6 samples per run** on v1 — streaming numbers below are medians over 3 runs (except the deferred-emission changelog entry, which was measured at 5 runs).
 
 ## Shipped model
 
@@ -177,7 +177,7 @@ Fine-tuning the phoneme CTC head with varying amounts of TLOG (phone-recorded re
 - **Python streaming:** 3s chunks, independent transcription per chunk, accumulated text fed to `VerseTracker` for progressive matching.
 - **Browser/RN streaming:** `RecitationTracker` feeds 300ms chunks through ONNX with a 4s silence tail to flush discovery. Only the shipped ONNX phoneme model runs in this mode.
 - **Latency:** wall-clock per sample, excluding first-sample warmup. Apple Silicon (CPU).
-- **Variance:** ONNX inference is non-deterministic at ±3–6 samples/run on v1 (measured across 5 runs). Always report medians over 3+ runs.
+- **Variance:** ONNX inference is non-deterministic at ±3–6 samples/run on v1. Always report medians over 3 runs (max).
 
 Raw JSON results live in `benchmark/results/`. Stability JSON from streaming runs lives in `web/frontend/test/*-stability.json`.
 

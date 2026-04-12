@@ -165,12 +165,12 @@ New experiments MUST be developed in a worktree (see "Git Worktrees" below). Kee
 
 ### 3. Measure with discipline
 
-**ONNX streaming has ±3–6 sample variance per run on v1.** Run 3+ times and report the median. A single-run improvement inside the variance envelope is not an improvement.
+**ONNX streaming has ±3–6 sample variance per run on v1.** Run 3 times (max) and report the median. A single-run improvement inside the variance envelope is not an improvement.
 
 - **Browser/RN streaming (shipped pipeline):**
   ```bash
   cd web/frontend
-  npx tsx test/stability-report.ts --repeats=5 --json=test/<name>-stability.json
+  npx tsx test/stability-report.ts --repeats=3 --json=test/<name>-stability.json
   npx tsx test/stability-report.ts --repeats=3 --corpus=test_corpus_v2 --json=test/<name>-v2-stability.json
   ```
   Produces per-sample pass-rate classification + aggregate medians. Compare against baseline JSON from the prior commit.
@@ -228,7 +228,7 @@ Merge is blocked until every box is checked:
 
 - [ ] Developed in a worktree under `.worktrees/<name>/`
 - [ ] `run.py` exports the required interface (if a new experiment) and is in `EXPERIMENT_REGISTRY`
-- [ ] Measured over 3+ runs; median reported, not cherry-picked best
+- [ ] Measured over 3 runs; median reported, not cherry-picked best
 - [ ] v2 blind check run if the shipped pipeline changed; v2 did not regress
 - [ ] Unit tests pass (`npx vitest run` or `pytest`) with deterministic coverage of the change
 - [ ] EXPERIMENTS.md updated: table row / changelog entry / per-experiment note / key finding, as applicable

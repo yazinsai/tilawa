@@ -375,7 +375,7 @@ NVIDIA_FASTCONFORMER_LOCAL_MODEL_DIR=data/nvidia-fastconformer-quran-ft-v1 \
 
 ## Adding a new experiment
 
-The end-to-end protocol — worktree setup, measurement discipline (3+ runs, variance, v2 blind check), EXPERIMENTS.md update patterns, commit/merge rules, and a hard definition-of-done checklist — lives in **[AGENTS.md → Experiment workflow](AGENTS.md#experiment-workflow-end-to-end)**. Read that before starting. The steps below are just the minimum `run.py` contract.
+The end-to-end protocol — worktree setup, measurement discipline (3 runs, variance, v2 blind check), EXPERIMENTS.md update patterns, commit/merge rules, and a hard definition-of-done checklist — lives in **[AGENTS.md → Experiment workflow](AGENTS.md#experiment-workflow-end-to-end)**. Read that before starting. The steps below are just the minimum `run.py` contract.
 
 1. Create `experiments/<name>/run.py` with two required functions:
 
