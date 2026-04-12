@@ -3,7 +3,7 @@ import { scoreCtcSequence, scoreCtcCandidates, chooseLongestStablePrefix } from 
 import { QuranDB, partialRatio, type QuranCandidate } from "./quran-db";
 import { computeCorrection } from "./correction";
 import type { AcousticEvidence } from "./ctc-rescore";
-import type { QuranVerse, WorkerOutbound, SurroundingVerse } from "./types";
+import type { QuranVerse, WorkerOutbound, SurroundingVerse, VerseMatchMessage } from "./types";
 import {
   SAMPLE_RATE,
   TRIGGER_SAMPLES,
@@ -216,6 +216,19 @@ export class RecitationTracker {
   private lastTrackingResult: TranscribeResult | null = null;
   private consecutiveAutoAdvances = 0;
 
+  // Deferred emission state
+  private trackingPendingEmission = false;
+  private pendingEmissionMessage: VerseMatchMessage | null = null;
+  private preAdvanceSnapshot: {
+    emittedRef: [number, number] | null;
+    emittedText: string;
+    prevEmittedRef: [number, number] | null;
+    prevEmittedText: string;
+    commitEvidence: CommitEvidence | null;
+  } | null = null;
+  private totalSamplesFed = 0;
+  private samplesAtAdvance = 0;
+
   constructor(
     private db: QuranDB,
     private transcribe: TranscribeFn,
@@ -225,6 +238,7 @@ export class RecitationTracker {
   async feed(samples: Float32Array): Promise<WorkerOutbound[]> {
     const messages: WorkerOutbound[] = [];
 
+    this.totalSamplesFed += samples.length;
     this.utteranceAudio = concatFloat32(this.utteranceAudio, samples);
     const maxSamples =
       this.trackingVerse !== null
@@ -297,6 +311,16 @@ export class RecitationTracker {
       this.trackingVerseWords,
       resumeFrom,
     );
+
+    // Confirm pending emission only on primary word alignment from fresh audio
+    if (
+      this.trackingPendingEmission &&
+      matchedIndices.length > 0 &&
+      this.totalSamplesFed > this.samplesAtAdvance
+    ) {
+      messages.push(this.pendingEmissionMessage!);
+      this._clearPendingEmission();
+    }
 
     if (matchedIndices.length === 0) {
       const acousticIdx = this._resolveTrackingAcousticWord(result);
@@ -409,7 +433,17 @@ export class RecitationTracker {
         }
 
         if (advanceOk) {
-          messages.push({
+          // Snapshot state before advance for rollback on drop
+          this.preAdvanceSnapshot = {
+            emittedRef: this.lastEmittedRef ? [...this.lastEmittedRef] as [number, number] : null,
+            emittedText: this.lastEmittedText,
+            prevEmittedRef: this.prevEmittedRef ? [...this.prevEmittedRef] as [number, number] : null,
+            prevEmittedText: this.prevEmittedText,
+            commitEvidence: this.lastCommitEvidence ? { ...this.lastCommitEvidence } : null,
+          };
+
+          // Build verse_match but defer emission until fresh audio confirms
+          this.pendingEmissionMessage = {
             type: "verse_match",
             surah: nextVerse.surah,
             ayah: nextVerse.ayah,
@@ -421,7 +455,11 @@ export class RecitationTracker {
               nextVerse.surah,
               nextVerse.ayah,
             ),
-          });
+          };
+          this.trackingPendingEmission = true;
+          this.samplesAtAdvance = this.totalSamplesFed;
+
+          // Update state as before (tracking enters next verse)
           this.prevEmittedRef = currentRef;
           this.prevEmittedText = this.lastEmittedText;
           this.lastEmittedRef = [nextVerse.surah, nextVerse.ayah];
@@ -954,6 +992,17 @@ export class RecitationTracker {
   }
 
   private _exitTracking(_reason: string): void {
+    // Full state rollback if pending emission was never confirmed
+    if (this.trackingPendingEmission && this.preAdvanceSnapshot) {
+      this.lastEmittedRef = this.preAdvanceSnapshot.emittedRef;
+      this.lastEmittedText = this.preAdvanceSnapshot.emittedText;
+      this.prevEmittedRef = this.preAdvanceSnapshot.prevEmittedRef;
+      this.prevEmittedText = this.preAdvanceSnapshot.prevEmittedText;
+      this.lastCommitEvidence = this.preAdvanceSnapshot.commitEvidence;
+      this.consecutiveAutoAdvances = 0;
+    }
+    this._clearPendingEmission();
+
     this.trackingVerse = null;
     this.trackingVerseWords = [];
     this.trackingPrefixes = [];
@@ -982,7 +1031,9 @@ export class RecitationTracker {
 
   private _retainTailAfterCommit(): void {
     if (this.lastCommitEvidence?.strong) {
-      const keepSamples = Math.min(this.utteranceAudio.length, TRIGGER_SAMPLES);
+      // Shorter retention on auto-advance: only keep 0.5s overlap, not full 2s
+      const keepAmount = this.trackingPendingEmission ? TRACKING_TRIGGER_SAMPLES : TRIGGER_SAMPLES;
+      const keepSamples = Math.min(this.utteranceAudio.length, keepAmount);
       this.utteranceAudio = this.utteranceAudio.slice(-keepSamples);
     }
     this.newAudioCount = 0;
@@ -1007,6 +1058,12 @@ export class RecitationTracker {
       ayah >= this.lastEmittedRef[1] + 1 &&
       ayah <= this.lastEmittedRef[1] + 3
     );
+  }
+
+  private _clearPendingEmission(): void {
+    this.trackingPendingEmission = false;
+    this.pendingEmissionMessage = null;
+    this.preAdvanceSnapshot = null;
   }
 
   private _emitDiagnostic(event: TrackerDiagnosticEvent): void {
