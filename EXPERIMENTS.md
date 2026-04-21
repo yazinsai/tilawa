@@ -19,6 +19,15 @@ ONNX inference is non-deterministic at **±3–6 samples per run** on v1 — str
 
 ### Streaming changelog
 
+**2026-04-21 — three matcher/tracker attempts, all falsified** (no commit — worktrees discarded)
+Three narrow attempts to close the streaming-vs-batch gap. All landed **inside** the ±3–6 sample ONNX variance envelope on 2-run v1; none shipped. Baseline: 35 stable-pass / 9 stable-fail / 9 flaky, medianRecall 80.9%, medianSeqAcc 47.2%, per-run [40, 39] correct.
+
+1. **Rare-phoneme n-gram surah expansion (always-on)** — ported the w2v-phonemes 5-gram rarity vote into `QuranDB.retrieveCandidates` to broaden the Pass 2 surah set when Levenshtein alone put the right surah outside the top-N. Result: seqAcc +0.9pp, **recall −2.2pp, precision −1.6pp**. The extra surah candidates surfaced spans whose coincidental ratio() beat the correct verse. `retasy_024` recovered but other samples regressed in compensation.
+2. **Rare-phoneme n-gram, gated to low-text-confidence paths only** — same mechanism, activated only when the primary match is weak. Ship-blocking variance: per-run correct swung **[44, 34]**. One run at 44/53 was the best observed sample count across all attempts, but seqAcc dropped −5.7pp in the median.
+3. **Short-text first-match gate** — raise `FIRST_MATCH_THRESHOLD` to 0.82/0.9 when decoded phoneme text is < 15/10 chars, to suppress the "short ambiguous chunk latches onto a distant verse" failure class (retasy_024/025: 1:7 → 82:11; multi_055: 55:1 → 20:5). Result: recall −1.7pp, seqAcc −1.0pp. Target failures still failed identically — the wrong verse wins at a cycle when text is already long enough to clear the gate.
+
+Raw per-sample JSON lives in `web/frontend/test/streaming-attempts-2026-04-21/{baseline-main,ngram-always-on,ngram-gated,short-text-gate}-v1.json`. The working hypothesis is that these nine stable-fail samples are at the **ASR quality floor** (CTC decoded phonemes that genuinely look more like the wrong verse than the right one) and cannot be fixed by matcher/tracker tuning alone. The productive next lever is training-side (v7 streaming-aug fine-tune).
+
 **2026-04-11 — deferred emission** (commit `63774dc`)  
 Auto-advanced `verse_match` messages are now held as *pending* until fresh audio produces primary word alignment on the next verse; if tracking stales, the pending emission is silently dropped with full state rollback. This prevents cascades where verse N completing triggers emission of N+1, N+2, … without audio evidence.
 
