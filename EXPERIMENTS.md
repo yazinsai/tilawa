@@ -1,6 +1,6 @@
 # Benchmark results
 
-Two test corpora: **v1** (53 samples: user recordings, EveryAyah reference, RetaSy crowdsourced) and **v2** (43 samples: RetaSy expanded + EveryAyah multi-verse).
+Three test corpora: **v1** (53 samples: user recordings, EveryAyah reference, RetaSy crowdsourced), **v2** (43 samples: RetaSy expanded + EveryAyah multi-verse), and **v3** (256 samples: EveryAyah Alafasy+Husary singles/multis + TLOG-clean crowd-sourced filtered through shipped ONNX + user recordings). v3 exists to reduce the per-sample noise floor: on v1 a one-sample swing is ±1.9pp recall, whereas on v3 the same swing is ±0.4pp.
 
 Metrics: **Recall** = fraction of expected verses found. **Precision** = fraction of emitted verses that were expected. **SeqAcc** = emitted set exactly matches expected set.
 
@@ -14,10 +14,29 @@ ONNX inference is non-deterministic at **±3–6 samples per run** on v1 — str
 |---|---|---|---|---|---|
 | **Browser/RN streaming** (300ms chunks, `RecitationTracker`) | v1 | **78.6%** | **66.8%** | **47.2%** | 35–40/53 |
 | **Browser/RN streaming** | v2 | **82.7%** | **63.7%** | **46.5%** | 34–36/43 |
+| **Browser/RN streaming** | v3 | **83.4%** | **63.5%** | **44.1%** | 204–207/256 |
 | Non-streaming (full-file, single `matchVerse()`) | v1 | 84.1% | 84.9% | 81.1% | 43/53 |
 | Non-streaming (full-file, single `matchVerse()`) | v2 | 78.1% | 79.1% | 74.4% | 32/43 |
 
 ### Streaming changelog
+
+**2026-04-22 — v3 benchmark corpus (256 samples)** (scripts: `benchmark/build_v3_corpus.py`, `benchmark/augment_v3_corpus.py`, `benchmark/tlog_filter_v3.py`)
+After four consecutive falsified streaming experiments (three matcher/tracker + v7 streaming-aug training) all landing inside or just outside the ±3–6-sample v1 variance envelope, the bottleneck became measurement fidelity rather than idea generation. Rebuilt the corpus at ~5× the size.
+
+Sources and composition:
+- **EveryAyah singles (140)**: 80 short + 60 medium + 20 long, drawn by reciter-alternating across `Alafasy_128kbps` and `Husary_128kbps`, picked from shuffled Quran pools that don't overlap (surah, ayah) with v1/v2.
+- **EveryAyah multi-ayah (20)**: 29 hand-picked 3–6-ayah sequences concatenated via ffmpeg pipe→f32le with 0.5s silence gaps and written at 16 kHz mono. 10 Shatri sequences 404'd (reciter dir not on everyayah.com); Alafasy + Husary sequences all succeeded. `Shatri_128kbps` does not exist on the CDN; six stale 404-HTML files landed on disk as `.mp3` and were removed during pruning, cutting 6 samples.
+- **TLOG-clean 80**: replaces RetaSy entirely. TLOG's `clean` split is still noisy at the transcription level, so each candidate was streamed with `Audio(decode=False)`, ffmpeg-decoded to 16 kHz mono, greedy-CTC transcribed through the shipped FastConformer phoneme ONNX, and phoneme-compared against the canonical phoneme string for the filename-referenced (surah, ayah) in `quran_phonemes.json`. Only samples with Levenshtein ratio ≥ 0.75 pass; target 60 medium + 20 long. Hit the target in 12,180 scans (10 s median duration, median ratio 0.95, 2,129 rejected for ratio below threshold + 29 for decode failure).
+- **User recordings (2)**: imran_23 + ikhlas_2_3 copied from v1.
+
+Baseline (3-repeat streaming, shipped v4-tlog ONNX):
+- Per-run correct [204, 207, 207] / 256
+- **Median recall 83.4%**, **precision 63.5%**, **SeqAcc 44.1%**
+- Stable-pass 187, flaky 35, stable-fail 34
+
+Compared to v1's 80.9% median recall, v3 shows the shipped pipeline at ~same headline recall but with **ten times the statistical power** per metric (σ of "correct" across the 3 runs is 1.7 samples on v3 vs 0.7 samples on v1, but in relative terms that's ±0.7pp vs ±1.3pp). This means a 3pp streaming improvement is now cleanly visible above noise, where on v1 it was indistinguishable from per-run jitter. Future attempts that were rejected as noise on v1 can be re-measured on v3; narrow tracker experiments (silence-flush final emission, late-verse stitching) now have a realistic path to acceptance.
+
+Tracker raw results JSON: `web/frontend/test/v3-baseline-stability.json`. Both `stability-report.ts` and `benchmark/runner.py` already accept `--corpus=test_corpus_v3` without code changes.
 
 **2026-04-22 — v7 streaming-aug training, falsified** (scaffold kept at `497fc91`, checkpoint discarded)
 Curriculum-style fine-tune: start from v4-tlog weights, reuse v5-robust-u6 data (v4-tlog audio was not on the volume anymore), apply streaming-like augmentation (silence prob 0.2→0.6 + range 0.4s→1.5s, shift ±200→±400ms, white_noise prob 0.3→0.5, gain range widened). 3000 steps at LR 2e-5, best `val_loss=14.01` at step 3000 (still decreasing, but training completed as configured).

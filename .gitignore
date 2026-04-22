@@ -37,8 +37,12 @@ data/v6-augmented/
 *.mp3
 !benchmark/test_corpus/*.m4a
 !benchmark/test_corpus/*.wav
+!benchmark/test_corpus/*.mp3
 !benchmark/test_corpus_v2/*.mp3
 !benchmark/test_corpus_v2/*.wav
+!benchmark/test_corpus_v3/*.mp3
+!benchmark/test_corpus_v3/*.wav
+!benchmark/test_corpus_v3/*.m4a
 node_modules/
 .worktrees/
 
