@@ -36,6 +36,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import os
 import types
 from dataclasses import dataclass
 from pathlib import Path
@@ -832,7 +833,10 @@ def train(
     early_stopping_patience: int = 6,
     enable_augmentation: bool = True,
     enable_noise_augmentation: bool = False,
+    enable_streaming_aug: bool = False,
     train_manifest_override: str = "",
+    val_manifest_override: str = "",
+    init_from_checkpoint: str = "",
 ):
     import lightning.pytorch as pl
     import torch
@@ -849,7 +853,10 @@ def train(
         Path(train_manifest_override) if train_manifest_override
         else manifests_dir / "train_manifest.jsonl"
     )
-    val_manifest = manifests_dir / "val_manifest.jsonl"
+    val_manifest = (
+        Path(val_manifest_override) if val_manifest_override
+        else manifests_dir / "val_manifest.jsonl"
+    )
     metadata_path = manifests_dir / "data_metadata.json"
     checkpoints_dir = base / "checkpoints"
     output_dir = base / "model"
@@ -1032,6 +1039,55 @@ def train(
     except Exception:
         pass
 
+    # ------------------------------------------------------------------
+    # Optionally initialize from a prior .nemo checkpoint (curriculum style).
+    # After the CTC head has been re-shaped to the phoneme vocab the state
+    # dict from v4-tlog loads cleanly (same architecture, same vocab size).
+    # ------------------------------------------------------------------
+    if init_from_checkpoint:
+        import tarfile
+        import tempfile
+        ckpt_path = init_from_checkpoint
+        if not os.path.exists(ckpt_path):
+            raise FileNotFoundError(
+                f"init_from_checkpoint not found: {ckpt_path}"
+            )
+        print(f"Loading initial weights from checkpoint: {ckpt_path}")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            try:
+                with tarfile.open(ckpt_path, "r:gz") as tar:
+                    tar.extractall(tmpdir)
+            except Exception:
+                with tarfile.open(ckpt_path, "r:") as tar:
+                    tar.extractall(tmpdir)
+            weights_pt = None
+            for name in ("model_weights.ckpt", "model_weights.pt"):
+                cand = Path(tmpdir) / name
+                if cand.exists():
+                    weights_pt = cand
+                    break
+            if weights_pt is None:
+                raise FileNotFoundError(
+                    f"No model_weights.ckpt inside {ckpt_path}"
+                )
+            state_dict = torch.load(
+                weights_pt,
+                map_location="cuda" if torch.cuda.is_available() else "cpu",
+                weights_only=False,
+            )
+            if isinstance(state_dict, dict) and "state_dict" in state_dict:
+                state_dict = state_dict["state_dict"]
+            missing, unexpected = model.load_state_dict(state_dict, strict=False)
+            print(
+                f"  Loaded prior checkpoint: "
+                f"{len(missing)} missing, {len(unexpected)} unexpected keys"
+            )
+            if len(missing) > 50 or len(unexpected) > 50:
+                print(
+                    "  WARNING: many missing/unexpected keys -- verify the "
+                    "checkpoint architecture matches the re-shaped model."
+                )
+
     total_params = sum(p.numel() for p in model.parameters())
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(
@@ -1058,15 +1114,37 @@ def train(
 
         # Augmentation (train only)
         if enable_augmentation:
-            augmentor = {
-                "speed": {"prob": 0.3, "sr": 16000, "resample_type": "kaiser_fast",
-                          "min_speed_rate": 0.9, "max_speed_rate": 1.1, "num_rates": 5},
-                "gain": {"prob": 0.3, "min_gain_dbfs": -10, "max_gain_dbfs": 5},
-                "white_noise": {"prob": 0.3, "min_level": -80, "max_level": -50},
-                "shift": {"prob": 0.2, "min_shift_ms": -200.0, "max_shift_ms": 200.0},
-                "silence": {"prob": 0.2, "min_start_silence_secs": 0.0, "max_start_silence_secs": 0.4,
-                             "min_end_silence_secs": 0.0, "max_end_silence_secs": 0.5},
-            }
+            if enable_streaming_aug:
+                # v7: streaming-like augmentation. The shipped model runs at 300ms
+                # chunks with a 4s silence tail in the browser; most sample audio
+                # from RetaSy / user recordings has 0.5-2s of pre/post silence and
+                # non-trivial mic noise. The v4 augmentor (below) only perturbs
+                # speed/gain and adds short silence windows, so the model has
+                # never seen inputs that *look* like the streaming distribution.
+                # This config aggressively widens silence, shift, and white-noise
+                # to close that gap. All perturbations are CTC-safe (transcript
+                # unchanged; only the audio envelope/noise profile shifts).
+                augmentor = {
+                    "speed": {"prob": 0.3, "sr": 16000, "resample_type": "kaiser_fast",
+                              "min_speed_rate": 0.9, "max_speed_rate": 1.1, "num_rates": 5},
+                    "gain": {"prob": 0.4, "min_gain_dbfs": -15, "max_gain_dbfs": 8},
+                    "white_noise": {"prob": 0.5, "min_level": -70, "max_level": -40},
+                    "shift": {"prob": 0.4, "min_shift_ms": -400.0, "max_shift_ms": 400.0},
+                    "silence": {"prob": 0.6,
+                                 "min_start_silence_secs": 0.0, "max_start_silence_secs": 1.5,
+                                 "min_end_silence_secs": 0.0, "max_end_silence_secs": 1.2},
+                }
+                print("STREAMING-AUG enabled (v7): expanded silence/shift/noise ranges.")
+            else:
+                augmentor = {
+                    "speed": {"prob": 0.3, "sr": 16000, "resample_type": "kaiser_fast",
+                              "min_speed_rate": 0.9, "max_speed_rate": 1.1, "num_rates": 5},
+                    "gain": {"prob": 0.3, "min_gain_dbfs": -10, "max_gain_dbfs": 5},
+                    "white_noise": {"prob": 0.3, "min_level": -80, "max_level": -50},
+                    "shift": {"prob": 0.2, "min_shift_ms": -200.0, "max_shift_ms": 200.0},
+                    "silence": {"prob": 0.2, "min_start_silence_secs": 0.0, "max_start_silence_secs": 0.4,
+                                 "min_end_silence_secs": 0.0, "max_end_silence_secs": 0.5},
+                }
 
             # MUSAN + RIR noise augmentation (requires download_musan_rir_modal.py first)
             if enable_noise_augmentation:
@@ -1173,7 +1251,10 @@ def train(
     print(f"freeze_layers:      {freeze_encoder_layers}")
     print(f"freeze_preprocessor:{freeze_preprocessor}")
     print(f"noise_augmentation: {enable_noise_augmentation}")
-    print(f"manifest_override:  {train_manifest_override or 'default'}")
+    print(f"streaming_aug:      {enable_streaming_aug}")
+    print(f"train_manifest:     {train_manifest_override or 'default'}")
+    print(f"val_manifest:       {val_manifest_override or 'default'}")
+    print(f"init_from:          {init_from_checkpoint or 'none (base model)'}")
     print("=" * 72 + "\n")
 
     trainer.fit(model)
@@ -1223,7 +1304,10 @@ def train(
         "early_stopping_patience": early_stopping_patience,
         "enable_augmentation": enable_augmentation,
         "enable_noise_augmentation": enable_noise_augmentation,
+        "enable_streaming_aug": enable_streaming_aug,
         "train_manifest_override": train_manifest_override or None,
+        "val_manifest_override": val_manifest_override or None,
+        "init_from_checkpoint": init_from_checkpoint or None,
         "total_params": total_params,
         "trainable_params": trainable_params,
         "data_metadata_path": str(metadata_path),
@@ -1692,7 +1776,10 @@ def main(
     early_stopping_patience: int = 6,
     enable_augmentation: bool = True,
     enable_noise_augmentation: bool = False,
+    enable_streaming_aug: bool = False,
     train_manifest_override: str = "",
+    val_manifest_override: str = "",
+    init_from_checkpoint: str = "",
     max_retasy_samples: int = 0,
     max_tlog_samples: int = 0,
     max_tlog_per_verse: int = 5,
@@ -1732,7 +1819,12 @@ def main(
         print(f"Recovery result: {result}")
         return
 
-    if not train_only:
+    # If both train and val manifest overrides are supplied (e.g. reusing
+    # manifests from a previous run like v4-tlog), we can skip prepare_data
+    # entirely — it is the slowest part of the pipeline.
+    reuse_existing_manifests = bool(train_manifest_override) and bool(val_manifest_override)
+
+    if not train_only and not reuse_existing_manifests:
         print("Preparing manifests/audio on Modal volume...")
         prepare_data.remote(
             output_name=output_name,
@@ -1742,6 +1834,12 @@ def main(
             max_retasy_samples=max_retasy_samples,
             max_tlog_samples=max_tlog_samples,
             max_tlog_per_verse=max_tlog_per_verse,
+        )
+    elif reuse_existing_manifests:
+        print(
+            f"Skipping prepare_data: reusing manifests\n"
+            f"  train={train_manifest_override}\n"
+            f"  val={val_manifest_override}"
         )
 
     if filter_tlog:
@@ -1772,7 +1870,10 @@ def main(
         early_stopping_patience=early_stopping_patience,
         enable_augmentation=enable_augmentation,
         enable_noise_augmentation=enable_noise_augmentation,
+        enable_streaming_aug=enable_streaming_aug,
         train_manifest_override=train_manifest_override,
+        val_manifest_override=val_manifest_override,
+        init_from_checkpoint=init_from_checkpoint,
     )
 
     if not download_after_train:
