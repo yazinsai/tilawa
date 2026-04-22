@@ -12,13 +12,28 @@ ONNX inference is non-deterministic at **±3–6 samples per run** on v1 — str
 
 | Mode | Corpus | Recall | Precision | SeqAcc | Correct |
 |---|---|---|---|---|---|
-| **Browser/RN streaming** (300ms chunks, `RecitationTracker`) | v1 | **78.6%** | **66.8%** | **47.2%** | 35–40/53 |
-| **Browser/RN streaming** | v2 | **82.7%** | **63.7%** | **46.5%** | 34–36/43 |
-| **Browser/RN streaming** | v3 | **83.4%** | **63.5%** | **44.1%** | 204–207/256 |
+| **Browser/RN streaming** (300ms chunks, `RecitationTracker`) | v2 | **85.6%** | **68.1%** | **48.8%** | 35–37/43 |
+| **Browser/RN streaming** | v3 | **83.7%** | **64.4%** | **46.1%** | 208–212/256 |
 | Non-streaming (full-file, single `matchVerse()`) | v1 | 84.1% | 84.9% | 81.1% | 43/53 |
 | Non-streaming (full-file, single `matchVerse()`) | v2 | 78.1% | 79.1% | 74.4% | 32/43 |
 
 ### Streaming changelog
+
+**2026-04-22 — silence-flush pending emission on final flush** (commit `508844b`)
+When the utterance ends and the tracker has auto-advanced to a pending next-verse emission that never got fresh-audio confirmation, emit the pending message instead of rolling it back — but only when the advance had strong acoustic evidence at the time. Specifically, capture `prefixScore - suffixScore` as `pendingEmissionMargin` at advance time (from the existing `ADVANCE_RELATIVE_MARGIN < 3.0` gate). On `finalFlush`, emit the pending message only when `pendingEmissionMargin < ADVANCE_FLUSH_STRICT_MARGIN` (0.5, much tighter than the normal advance gate). The tighter threshold prevents one-verse overshoot when the reciter actually stopped at the penultimate verse.
+
+Numbers (3-repeat median):
+- v3 (256 samples): recall 83.4% → 83.7% (+0.3pp), precision 63.5% → 64.4% (+0.9pp), SeqAcc 44.1% → **46.1%** (+2.0pp). Per-run correct [204, 207, 207] → [209, 212, 208]. **Stable-fail 34 → 28 (−6)** — the six samples gained are the structural win, not variance.
+- v2 blind check: recall 82.7% → **85.6%** (+2.9pp), precision 63.7% → 68.1% (+4.4pp), SeqAcc 46.5% → 48.8% (+2.3pp). Same-direction movement on v2 confirms it's not an overfit to v3.
+
+Targets specifically: `multi_114_001_006` (Al-Nas 1-6 dropping verse 6 on silence), `user_ikhlas_2_3` (Al-Ikhlas verses 2-3 dropping verse 3), and similar last-verse-of-span cases where utterance ends before the pending emission could be confirmed by fresh audio. SeqAcc gains more than recall because this fix specifically repairs the last component of ordered sequences, which is exactly what exact-match SeqAcc weighs.
+
+Measurement commands:
+```
+npx tsx test/stability-report.ts --repeats=3 --corpus=test_corpus_v3 --json=test/silence-flush-v3-stability.json
+npx tsx test/stability-report.ts --repeats=3 --corpus=test_corpus_v2 --json=test/silence-flush-v2-stability.json
+```
+Raw JSON at `web/frontend/test/silence-flush-v3-stability.json` and `…-v2-stability.json`. 38 vitest cases pass (including 2 new coverage cases for strict-margin-emits and loose-margin-suppresses).
 
 **2026-04-22 — v3 benchmark corpus (256 samples)** (scripts: `benchmark/build_v3_corpus.py`, `benchmark/augment_v3_corpus.py`, `benchmark/tlog_filter_v3.py`)
 After four consecutive falsified streaming experiments (three matcher/tracker + v7 streaming-aug training) all landing inside or just outside the ±3–6-sample v1 variance envelope, the bottleneck became measurement fidelity rather than idea generation. Rebuilt the corpus at ~5× the size.
