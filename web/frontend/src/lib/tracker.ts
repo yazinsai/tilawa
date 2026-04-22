@@ -30,6 +30,7 @@ import {
   NON_CONTINUATION_JUMP_THRESHOLD,
   ADVANCE_RELATIVE_MARGIN,
   ADVANCE_PREFIX_TOKENS,
+  ADVANCE_FLUSH_STRICT_MARGIN,
   ACOUSTIC_OVERRIDE_TEXT_THRESHOLD,
   DISCOVERY_EXPANDED_CANDIDATES,
   DISCOVERY_LOW_CONFIDENCE_WORDS,
@@ -219,6 +220,9 @@ export class RecitationTracker {
   // Deferred emission state
   private trackingPendingEmission = false;
   private pendingEmissionMessage: VerseMatchMessage | null = null;
+  // prefixScore - suffixScore at advance time; smaller/more-negative means
+  // stronger evidence that next verse is already in the tail audio.
+  private pendingEmissionMargin = Number.POSITIVE_INFINITY;
   private preAdvanceSnapshot: {
     emittedRef: [number, number] | null;
     emittedText: string;
@@ -352,8 +356,30 @@ export class RecitationTracker {
           ref: `${this.trackingVerse.surah}:${this.trackingVerse.ayah}`,
           stale_cycles: this.staleCycles,
         });
-        this._rollbackWeakCommit(finalFlush ? "final silence flush" : "stale tracking");
-        this._exitTracking(finalFlush ? "final silence flush" : "stale tracking");
+        // Final-flush emit: if an advance was queued with strong acoustic
+        // evidence (stricter than normal ADVANCE_RELATIVE_MARGIN), emit the
+        // pending next-verse match before rolling back. Addresses the
+        // multi_114 / user_ikhlas_2_3 "last verse dropped on silence" pattern.
+        if (
+          finalFlush &&
+          this.trackingPendingEmission &&
+          this.pendingEmissionMessage !== null &&
+          this.pendingEmissionMargin < ADVANCE_FLUSH_STRICT_MARGIN
+        ) {
+          messages.push(this.pendingEmissionMessage);
+          this._emitDiagnostic({
+            type: "commit",
+            ref: `${this.pendingEmissionMessage.surah}:${this.pendingEmissionMessage.ayah}`,
+            reason: "final_flush_pending_emit",
+            confidence: this.pendingEmissionMessage.confidence,
+          });
+          this._clearPendingEmission();
+          // Do NOT rollback — the pending emission has been confirmed.
+          this._exitTracking("final silence flush (pending emitted)");
+        } else {
+          this._rollbackWeakCommit(finalFlush ? "final silence flush" : "stale tracking");
+          this._exitTracking(finalFlush ? "final silence flush" : "stale tracking");
+        }
       }
       return messages;
     }
@@ -406,6 +432,10 @@ export class RecitationTracker {
 
       if (nextVerse) {
         let advanceOk = true; // default: advance (preserves behavior when no acoustic data)
+        // Evidence strength captured for optional final-flush emit. Defaults to
+        // +Inf so the default-advance (no acoustic) path never passes the
+        // stricter flush gate and still requires fresh-audio confirmation.
+        let advanceMargin = Number.POSITIVE_INFINITY;
 
         const acoustic = this.lastTrackingResult?.acoustic;
         const nextIds = nextVerse.phoneme_token_ids ?? [];
@@ -428,7 +458,8 @@ export class RecitationTracker {
           ) {
             advanceOk = false;
           } else {
-            advanceOk = (prefixScore - suffixScore) < ADVANCE_RELATIVE_MARGIN;
+            advanceMargin = prefixScore - suffixScore;
+            advanceOk = advanceMargin < ADVANCE_RELATIVE_MARGIN;
           }
         }
 
@@ -458,6 +489,7 @@ export class RecitationTracker {
           };
           this.trackingPendingEmission = true;
           this.samplesAtAdvance = this.totalSamplesFed;
+          this.pendingEmissionMargin = advanceMargin;
 
           // Update state as before (tracking enters next verse)
           this.prevEmittedRef = currentRef;
@@ -1063,6 +1095,7 @@ export class RecitationTracker {
   private _clearPendingEmission(): void {
     this.trackingPendingEmission = false;
     this.pendingEmissionMessage = null;
+    this.pendingEmissionMargin = Number.POSITIVE_INFINITY;
     this.preAdvanceSnapshot = null;
   }
 
