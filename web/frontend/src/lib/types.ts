@@ -143,3 +143,7 @@ export const TRACKING_PREFIX_TOLERANCE = 0.12;
 export const TRACKING_WEAK_COMMIT_CONFIDENCE = 0.6;
 export const ADVANCE_RELATIVE_MARGIN = 3.0;
 export const ADVANCE_PREFIX_TOKENS = 15;
+// Stricter margin required to emit a pending next-verse advance at final flush,
+// where we can't wait for fresh-audio confirmation. Must be smaller (= more
+// demanding) than ADVANCE_RELATIVE_MARGIN.
+export const ADVANCE_FLUSH_STRICT_MARGIN = 0.5;
