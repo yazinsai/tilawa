@@ -1,0 +1,2388 @@
+{
+  "corpus": "test_corpus",
+  "repeats": 3,
+  "timestamp": "2026-04-22T08:20:30.990Z",
+  "samples": [
+    {
+      "id": "user_imran_23",
+      "category": "medium",
+      "expectedVerses": [
+        "3:23"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "56:83"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "89:9",
+            "89:10"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "89:9"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "user_ikhlas_2_3",
+      "category": "multi",
+      "expectedVerses": [
+        "112:2",
+        "112:3"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "112:2"
+          ],
+          "recall": 0.5,
+          "precision": 1,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "112:2"
+          ],
+          "recall": 0.5,
+          "precision": 1,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "112:2"
+          ],
+          "recall": 0.5,
+          "precision": 1,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 1,
+      "medianRecall": 0.5
+    },
+    {
+      "id": "ref_001001",
+      "category": "medium",
+      "expectedVerses": [
+        "1:1"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:1",
+            "1:2"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:1",
+            "1:2"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:1",
+            "1:2"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_001002",
+      "category": "medium",
+      "expectedVerses": [
+        "1:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_002255",
+      "category": "long",
+      "expectedVerses": [
+        "2:255"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "3:2",
+            "3:3",
+            "3:4",
+            "3:5",
+            "3:6",
+            "3:8",
+            "3:9",
+            "3:10",
+            "3:11",
+            "2:255"
+          ],
+          "recall": 1,
+          "precision": 0.1,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "3:2",
+            "3:3",
+            "3:4",
+            "3:5",
+            "3:6",
+            "3:7"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "3:2",
+            "3:3",
+            "3:4",
+            "3:5",
+            "3:6",
+            "3:7",
+            "3:8",
+            "3:9"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0.3333333333333333,
+      "classification": "flaky",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ref_112001",
+      "category": "short",
+      "expectedVerses": [
+        "112:1"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "112:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "112:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "112:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_036001",
+      "category": "short",
+      "expectedVerses": [
+        "36:1"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "36:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "36:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "36:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_000",
+      "category": "short",
+      "expectedVerses": [
+        "1:1"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_001",
+      "category": "short",
+      "expectedVerses": [
+        "1:1"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "80:1",
+            "1:1"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_002",
+      "category": "short",
+      "expectedVerses": [
+        "1:4"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:4"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:4"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:4"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_003",
+      "category": "short",
+      "expectedVerses": [
+        "1:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:2",
+            "37:182"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:2",
+            "37:182"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_004",
+      "category": "short",
+      "expectedVerses": [
+        "114:3"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "39:10"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "114:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "114:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 0.6666666666666666,
+      "classification": "flaky",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_005",
+      "category": "short",
+      "expectedVerses": [
+        "103:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "103:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "103:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "71:27",
+            "103:2"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_006",
+      "category": "short",
+      "expectedVerses": [
+        "1:4"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:4"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:4"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:4"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_007",
+      "category": "short",
+      "expectedVerses": [
+        "1:1"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "80:1"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "51:1"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0.3333333333333333,
+      "classification": "flaky",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "retasy_008",
+      "category": "short",
+      "expectedVerses": [
+        "114:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "114:2",
+            "114:3"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "114:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "114:2",
+            "114:3"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_009",
+      "category": "short",
+      "expectedVerses": [
+        "111:3"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "84:12"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "103:1",
+            "84:12",
+            "111:3"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "103:1",
+            "84:12",
+            "111:3"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0.6666666666666666,
+      "classification": "flaky",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_010",
+      "category": "short",
+      "expectedVerses": [
+        "113:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "103:1",
+            "113:3",
+            "113:5"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "113:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "103:1",
+            "113:3",
+            "113:5"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_011",
+      "category": "short",
+      "expectedVerses": [
+        "1:6"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:6"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:6"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:6"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_012",
+      "category": "short",
+      "expectedVerses": [
+        "114:2"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "1:4"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "1:4"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "1:4"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "retasy_013",
+      "category": "short",
+      "expectedVerses": [
+        "103:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "103:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "103:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "103:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_014",
+      "category": "short",
+      "expectedVerses": [
+        "1:4"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:4"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:4"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:4"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_015",
+      "category": "medium",
+      "expectedVerses": [
+        "110:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "110:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "110:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "15:98"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0.6666666666666666,
+      "classification": "flaky",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_016",
+      "category": "medium",
+      "expectedVerses": [
+        "3:2"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "2:148"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "2:115"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "4:15",
+            "4:16"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "retasy_017",
+      "category": "medium",
+      "expectedVerses": [
+        "1:7"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:7"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:7"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:7"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_018",
+      "category": "medium",
+      "expectedVerses": [
+        "110:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "110:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "110:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "89:1",
+            "89:4"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0.6666666666666666,
+      "classification": "flaky",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_020",
+      "category": "medium",
+      "expectedVerses": [
+        "1:7"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:7",
+            "44:46"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:7",
+            "44:46"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "82:11",
+            "44:46"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0.6666666666666666,
+      "classification": "flaky",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_021",
+      "category": "medium",
+      "expectedVerses": [
+        "1:7"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "68:3"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "68:3"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "78:22",
+            "78:23",
+            "78:24"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "retasy_022",
+      "category": "medium",
+      "expectedVerses": [
+        "1:7"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:7"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:7"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:7"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_023",
+      "category": "medium",
+      "expectedVerses": [
+        "110:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "110:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "114:2"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "114:2"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0.3333333333333333,
+      "classification": "flaky",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "retasy_024",
+      "category": "medium",
+      "expectedVerses": [
+        "1:7"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:7"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "96:9"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:7"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 0.6666666666666666,
+      "classification": "flaky",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_025",
+      "category": "medium",
+      "expectedVerses": [
+        "1:7"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "82:11"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "82:11"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "82:11"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "retasy_026",
+      "category": "medium",
+      "expectedVerses": [
+        "103:3"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "10:63",
+            "15:64"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "10:63"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "10:63",
+            "10:64"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "retasy_027",
+      "category": "medium",
+      "expectedVerses": [
+        "111:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "111:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "111:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "114:2",
+            "111:2"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_029",
+      "category": "medium",
+      "expectedVerses": [
+        "103:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "84:25",
+            "103:3"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "84:25"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "69:1",
+            "69:2",
+            "69:4"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0.3333333333333333,
+      "classification": "flaky",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ref_024035",
+      "category": "long",
+      "expectedVerses": [
+        "24:35"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "24:35",
+            "24:36"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "24:35",
+            "24:36"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "24:35",
+            "24:36"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_003191",
+      "category": "long",
+      "expectedVerses": [
+        "3:191"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "3:191"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "3:191"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "3:191"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_059023",
+      "category": "long",
+      "expectedVerses": [
+        "59:23"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "59:22",
+            "59:23",
+            "59:24"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "59:22",
+            "59:23"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "59:22",
+            "59:23"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_059024",
+      "category": "long",
+      "expectedVerses": [
+        "59:24"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "39:62"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "39:62",
+            "39:63",
+            "30:27"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "39:62",
+            "39:63",
+            "59:24"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0.3333333333333333,
+      "classification": "flaky",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ref_048029",
+      "category": "long",
+      "expectedVerses": [
+        "48:29"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "48:29",
+            "49:1"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "48:29",
+            "49:1"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "48:29",
+            "49:1"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_002285",
+      "category": "long",
+      "expectedVerses": [
+        "2:285"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "2:285"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "2:285"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "2:285"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_002286",
+      "category": "long",
+      "expectedVerses": [
+        "2:286"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "65:7",
+            "65:8",
+            "65:9",
+            "18:69",
+            "18:70",
+            "18:71",
+            "18:72",
+            "10:86"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "65:7",
+            "65:8",
+            "65:9",
+            "65:10",
+            "65:11",
+            "65:12",
+            "66:1",
+            "3:147"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "65:7",
+            "2:286",
+            "3:1",
+            "3:2",
+            "3:3",
+            "3:4",
+            "3:5",
+            "3:6"
+          ],
+          "recall": 1,
+          "precision": 0.125,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0.3333333333333333,
+      "classification": "flaky",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ref_023115",
+      "category": "medium",
+      "expectedVerses": [
+        "23:115"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "23:115"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "23:115"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "23:115"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_033056",
+      "category": "medium",
+      "expectedVerses": [
+        "33:56"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "33:56",
+            "33:57"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "33:56",
+            "33:57"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "33:56",
+            "33:57"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_074031",
+      "category": "long",
+      "expectedVerses": [
+        "74:31"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "78:33",
+            "78:38",
+            "78:39",
+            "27:53",
+            "27:54",
+            "27:55",
+            "100:7",
+            "100:8",
+            "100:9",
+            "100:10"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "78:33",
+            "78:35",
+            "78:38",
+            "78:40",
+            "79:1",
+            "79:2"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "78:33",
+            "78:35",
+            "78:36",
+            "78:37",
+            "78:38",
+            "78:39",
+            "78:40",
+            "79:1",
+            "79:2",
+            "79:4",
+            "79:5"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "multi_036_001_005",
+      "category": "multi",
+      "expectedVerses": [
+        "36:1",
+        "36:2",
+        "36:3",
+        "36:4",
+        "36:5"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "36:1",
+            "36:3",
+            "36:4"
+          ],
+          "recall": 0.6,
+          "precision": 1,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "36:1",
+            "36:3",
+            "36:2",
+            "36:4",
+            "36:5"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "36:1",
+            "36:2",
+            "36:3",
+            "36:4",
+            "36:5"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 0.6666666666666666,
+      "classification": "flaky",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "multi_113_001_005",
+      "category": "multi",
+      "expectedVerses": [
+        "113:1",
+        "113:2",
+        "113:3",
+        "113:4",
+        "113:5"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "113:1",
+            "113:2",
+            "113:3",
+            "113:4",
+            "113:5"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "113:1",
+            "113:2",
+            "113:3",
+            "113:4",
+            "113:5"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "113:1",
+            "113:2",
+            "113:3"
+          ],
+          "recall": 0.6,
+          "precision": 1,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0.6666666666666666,
+      "classification": "flaky",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "multi_114_001_006",
+      "category": "multi",
+      "expectedVerses": [
+        "114:1",
+        "114:2",
+        "114:3",
+        "114:4",
+        "114:5",
+        "114:6"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "114:1",
+            "114:2",
+            "114:3",
+            "114:4",
+            "114:5"
+          ],
+          "recall": 0.8333333333333334,
+          "precision": 1,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "114:1",
+            "114:2",
+            "114:3",
+            "114:4",
+            "114:5",
+            "114:6"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "114:1",
+            "114:2",
+            "114:3",
+            "114:4",
+            "114:5"
+          ],
+          "recall": 0.8333333333333334,
+          "precision": 1,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0.3333333333333333,
+      "classification": "flaky",
+      "medianPrecision": 1,
+      "medianRecall": 0.8333333333333334
+    },
+    {
+      "id": "multi_059_022_024",
+      "category": "multi",
+      "expectedVerses": [
+        "59:22",
+        "59:23",
+        "59:24"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "3:1",
+            "3:2",
+            "3:3",
+            "59:24"
+          ],
+          "recall": 0.3333333333333333,
+          "precision": 0.25,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "59:22",
+            "59:23",
+            "59:24",
+            "30:26",
+            "30:27"
+          ],
+          "recall": 1,
+          "precision": 0.6,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "59:22",
+            "59:23",
+            "59:24",
+            "60:1",
+            "60:2"
+          ],
+          "recall": 1,
+          "precision": 0.6,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0.6666666666666666,
+      "classification": "flaky",
+      "medianPrecision": 0.6,
+      "medianRecall": 1
+    },
+    {
+      "id": "multi_055_001_004",
+      "category": "multi",
+      "expectedVerses": [
+        "55:1",
+        "55:2",
+        "55:3",
+        "55:4"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "1:3",
+            "55:2",
+            "55:3",
+            "55:5",
+            "55:4"
+          ],
+          "recall": 0.75,
+          "precision": 0.6,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "1:3",
+            "55:2",
+            "55:3"
+          ],
+          "recall": 0.5,
+          "precision": 0.6666666666666666,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "1:3",
+            "55:2",
+            "55:3",
+            "55:5",
+            "55:4"
+          ],
+          "recall": 0.75,
+          "precision": 0.6,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0.6,
+      "medianRecall": 0.75
+    },
+    {
+      "id": "multi_067_001_004",
+      "category": "multi",
+      "expectedVerses": [
+        "67:1",
+        "67:2",
+        "67:3",
+        "67:4"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "25:10",
+            "25:11",
+            "25:12",
+            "25:13",
+            "67:3",
+            "67:4",
+            "67:5",
+            "67:6",
+            "67:7"
+          ],
+          "recall": 0.5,
+          "precision": 0.2222222222222222,
+          "seqAcc": 0
+        },
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "25:10",
+            "25:11",
+            "25:13",
+            "25:14"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "25:10",
+            "67:1",
+            "67:2",
+            "67:3",
+            "67:4"
+          ],
+          "recall": 1,
+          "precision": 0.8,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0.3333333333333333,
+      "classification": "flaky",
+      "medianPrecision": 0.2222222222222222,
+      "medianRecall": 0.5
+    },
+    {
+      "id": "multi_002_285_286",
+      "category": "multi",
+      "expectedVerses": [
+        "2:285",
+        "2:286"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "2:285",
+            "2:286",
+            "3:1",
+            "3:2",
+            "3:3",
+            "3:4",
+            "3:5"
+          ],
+          "recall": 1,
+          "precision": 0.2857142857142857,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "2:285",
+            "2:286",
+            "3:1",
+            "3:2",
+            "3:3",
+            "3:4",
+            "3:5"
+          ],
+          "recall": 1,
+          "precision": 0.2857142857142857,
+          "seqAcc": 0
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "2:285",
+            "2:286",
+            "3:1",
+            "3:2",
+            "3:3",
+            "3:4",
+            "3:5"
+          ],
+          "recall": 1,
+          "precision": 0.2857142857142857,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.2857142857142857,
+      "medianRecall": 1
+    },
+    {
+      "id": "multi_103_001_003",
+      "category": "multi",
+      "expectedVerses": [
+        "103:1",
+        "103:2",
+        "103:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "103:1",
+            "103:2",
+            "103:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "103:1",
+            "103:2",
+            "103:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        },
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "103:1",
+            "103:2",
+            "103:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    }
+  ],
+  "aggregate": {
+    "totalSamples": 53,
+    "stablePass": 27,
+    "stableFail": 9,
+    "flaky": 17,
+    "medianPrecision": 0.6061245882000599,
+    "medianRecall": 0.7169811320754716,
+    "medianSeqAcc": 0.4339622641509434,
+    "perRunCorrect": [
+      35,
+      37,
+      35
+    ],
+    "perRunPrecision": [
+      0.6061245882000599,
+      0.6204851752021563,
+      0.5737870619946092
+    ],
+    "perRunRecall": [
+      0.7267295597484278,
+      0.7169811320754716,
+      0.7110062893081762
+    ],
+    "perRunSeqAcc": [
+      0.4339622641509434,
+      0.49056603773584906,
+      0.37735849056603776
+    ]
+  }
+}
