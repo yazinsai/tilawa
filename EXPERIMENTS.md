@@ -19,6 +19,17 @@ ONNX inference is non-deterministic at **±3–6 samples per run** on v1 — str
 
 ### Streaming changelog
 
+**2026-04-22 — v7 streaming-aug training, falsified** (scaffold kept at `497fc91`, checkpoint discarded)
+Curriculum-style fine-tune: start from v4-tlog weights, reuse v5-robust-u6 data (v4-tlog audio was not on the volume anymore), apply streaming-like augmentation (silence prob 0.2→0.6 + range 0.4s→1.5s, shift ±200→±400ms, white_noise prob 0.3→0.5, gain range widened). 3000 steps at LR 2e-5, best `val_loss=14.01` at step 3000 (still decreasing, but training completed as configured).
+
+Ran 3-repeat v1 stability report against the shipped pipeline with the v7 ONNX swapped in. Per-run correct [35, 37, 35] vs v4 baseline [40, 39]; median **recall 71.7% (−9.2pp)**, **precision 60.6% (−6.2pp)**, **SeqAcc 43.4% (−3.8pp)**. Stable-pass 27 (−8), flaky samples 17 (+8). Outside ONNX variance — real regression.
+
+Hypothesized cause: the expanded silence / shift windows shifted the model's output distribution such that in-distribution samples (v5-robust-u6 training data) got noisier CTC decodes at 300ms browser-streaming chunk sizes, not cleaner. The training signal optimizes full-utterance val_loss on full-audio inputs; streaming chunks see more of the augmentation than the full 10–30s training clip does (relative to its content). Put differently: the augmentor perturbs *seconds* of silence on a clip whose content is also seconds long, but at 300ms streaming that same perturbation is a qualitatively different signal.
+
+Shipped ONNX restored to v4-tlog; v7 checkpoint discarded (stays on `fastconformer-phoneme-training` volume for possible revisit). Scaffold code (streaming-aug flag, init-from-checkpoint, manifest-reuse) kept in `scripts/train_fastconformer_phoneme_modal.py` for future training experiments. Raw stability JSON at `web/frontend/test/streaming-attempts-2026-04-21/v7-stream-aug-v1.json`.
+
+**Takeaway:** data-augmentation matching the inference-time distribution is not obviously CTC-safe, even when the transcript is unchanged. A streaming-aware loss (e.g. compute CTC on random sub-windows of the clip) or direct streaming inference during training would be a more faithful approach.
+
 **2026-04-21 — three matcher/tracker attempts, all falsified** (no commit — worktrees discarded)
 Three narrow attempts to close the streaming-vs-batch gap. All landed **inside** the ±3–6 sample ONNX variance envelope on 2-run v1; none shipped. Baseline: 35 stable-pass / 9 stable-fail / 9 flaky, medianRecall 80.9%, medianSeqAcc 47.2%, per-run [40, 39] correct.
 
