@@ -293,6 +293,73 @@ describe("Deferred emission", () => {
     expect(verseMatches).not.toContain("2:2");
   });
 
+  it("final flush emits pending next-verse when advance margin is strict", async () => {
+    // Reproduces the multi_114 / user_ikhlas_2_3 "last verse dropped" pattern.
+    // After auto-advance with strong acoustic evidence, simulate the stream
+    // ending (final flush) before any fresh audio can confirm the pending
+    // emission. With the silence-flush fix, the next verse should still emit.
+    const transcribeFn = createTranscribeFn([
+      makeResult("alif laam miim"), // VERSE_1 complete → auto-advance
+      makeResult(UNRELATED_TEXT), // no match on fresh audio
+    ]);
+
+    const db = createMockDB();
+    const tracker = new RecitationTracker(db, transcribeFn);
+    injectTrackingState(tracker, VERSE_1);
+    const allMessages: WorkerOutbound[] = [];
+
+    // Complete VERSE_1 → auto-advance (deferred)
+    for (let i = 0; i < 5; i++) {
+      const msgs = await tracker.feed(makeSpeechChunk());
+      allMessages.push(...msgs);
+    }
+
+    // Simulate strong advance margin (as if the acoustic gate had seen
+    // next-verse content strongly in the tail audio).
+    const t = tracker as any;
+    expect(t.trackingPendingEmission).toBe(true);
+    t.pendingEmissionMargin = -1.0; // well below ADVANCE_FLUSH_STRICT_MARGIN (0.5)
+
+    // Trigger final flush via extended silence.
+    for (let i = 0; i < 30; i++) {
+      const msgs = await tracker.feed(makeSilenceChunk());
+      allMessages.push(...msgs);
+    }
+
+    const verseMatches = collectVerseMatches(allMessages);
+    expect(verseMatches).toContain("2:2"); // pending emission DID fire on flush
+  });
+
+  it("final flush does NOT emit pending when advance margin is loose", async () => {
+    const transcribeFn = createTranscribeFn([
+      makeResult("alif laam miim"),
+      makeResult(UNRELATED_TEXT),
+    ]);
+
+    const db = createMockDB();
+    const tracker = new RecitationTracker(db, transcribeFn);
+    injectTrackingState(tracker, VERSE_1);
+    const allMessages: WorkerOutbound[] = [];
+
+    for (let i = 0; i < 5; i++) {
+      const msgs = await tracker.feed(makeSpeechChunk());
+      allMessages.push(...msgs);
+    }
+
+    const t = tracker as any;
+    // Loose margin: just barely passed the normal advance gate (3.0) but far
+    // from the strict flush gate (0.5).
+    t.pendingEmissionMargin = 2.0;
+
+    for (let i = 0; i < 30; i++) {
+      const msgs = await tracker.feed(makeSilenceChunk());
+      allMessages.push(...msgs);
+    }
+
+    const verseMatches = collectVerseMatches(allMessages);
+    expect(verseMatches).not.toContain("2:2");
+  });
+
   it("audio buffer retains 0.5s on auto-advance, not full 2s", async () => {
     const transcribeFn = createTranscribeFn([
       makeResult("alif laam miim"),
