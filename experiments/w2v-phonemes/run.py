@@ -313,29 +313,65 @@ def _ensure_model_loaded(model_name: str = "base"):
 # ── Public API ───────────────────────────────────────────────────────────────
 
 def list_models() -> list[str]:
-    return [k for k in MODELS if k.endswith("-int8")]
+    # base-int8 repo (hetchyy/r15_95m_onnx_int8) doesn't exist on HF.
+    # Only report variants that can actually load.
+    return ["large-int8"]
 
 
-def _decode_phonemes(audio_path: str, model_name: str = "base") -> list[str]:
-    """Load audio, run full CTC decode, return phoneme list."""
-    m = _ensure_model_loaded(model_name)
-    audio = load_audio(audio_path)
+CHUNK_SECONDS = 25.0          # max audio per forward pass (wav2vec2 attention is O(T^2))
+CHUNK_OVERLAP_SECONDS = 1.0   # tiny overlap; CTC collapse absorbs duplicate tokens
 
+
+def _run_single_chunk(m, audio_chunk: np.ndarray) -> list[int]:
     if "onnx_session" in m:
-        inputs = m["processor"](audio, sampling_rate=16000, return_tensors="np", padding=True)
+        inputs = m["processor"](audio_chunk, sampling_rate=16000, return_tensors="np", padding=True)
         logits = m["onnx_session"].run(
             ["logits"], {"input_values": inputs["input_values"]}
         )[0]
-        pred_ids = np.argmax(logits, axis=-1)[0].tolist()
-    else:
-        inputs = m["processor"](audio, sampling_rate=16000, return_tensors="pt", padding=True)
-        inputs = {k: v.to(m["device"]) for k, v in inputs.items()}
-        with torch.no_grad():
-            logits = m["model"](**inputs).logits
-        pred_ids = torch.argmax(logits, dim=-1)[0].cpu().tolist()
+        return np.argmax(logits, axis=-1)[0].tolist()
+    inputs = m["processor"](audio_chunk, sampling_rate=16000, return_tensors="pt", padding=True)
+    inputs = {k: v.to(m["device"]) for k, v in inputs.items()}
+    with torch.no_grad():
+        logits = m["model"](**inputs).logits
+    return torch.argmax(logits, dim=-1)[0].cpu().tolist()
 
+
+def _decode_phonemes(audio_path: str, model_name: str = "base") -> list[str]:
+    """Load audio, run full CTC decode, return phoneme list.
+
+    For audio longer than CHUNK_SECONDS, decode in windowed chunks with a
+    small overlap. Each chunk's ids are independently CTC-collapsed to
+    phonemes, then concatenated. The small overlap means the last phoneme
+    of chunk N and first phoneme of chunk N+1 may duplicate; since we
+    collapse repeats *within* each chunk (via `_ids_to_phoneme_list`), a
+    single duplicate at the boundary is acceptable for Levenshtein matching.
+    """
+    m = _ensure_model_loaded(model_name)
+    audio = load_audio(audio_path)
+    sr = 16000
+    chunk_samples = int(CHUNK_SECONDS * sr)
+    overlap_samples = int(CHUNK_OVERLAP_SECONDS * sr)
     pad_id = m["processor"].tokenizer.pad_token_id or 0
-    return _ids_to_phoneme_list(pred_ids, m["processor"].tokenizer, pad_id)
+
+    if len(audio) <= chunk_samples:
+        pred_ids = _run_single_chunk(m, audio)
+        return _ids_to_phoneme_list(pred_ids, m["processor"].tokenizer, pad_id)
+
+    all_phonemes: list[str] = []
+    step = chunk_samples - overlap_samples
+    start = 0
+    while start < len(audio):
+        end = min(start + chunk_samples, len(audio))
+        chunk = audio[start:end]
+        if len(chunk) < 1600:  # less than 0.1s; skip
+            break
+        pred_ids = _run_single_chunk(m, chunk)
+        chunk_phonemes = _ids_to_phoneme_list(pred_ids, m["processor"].tokenizer, pad_id)
+        all_phonemes.extend(chunk_phonemes)
+        if end == len(audio):
+            break
+        start += step
+    return all_phonemes
 
 
 

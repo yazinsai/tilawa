@@ -198,7 +198,9 @@ Fine-tuning the phoneme CTC head with varying amounts of TLOG (phone-recorded re
 
 **fastconformer-phoneme** — Fine-tuned FastConformer CTC head on a 69-phoneme Buckwalter vocab. Shipped ONNX model (`fastconformer_phoneme_q8.onnx`, 131 MB). Trained on 71K Iqra + 55K TTS + 1.8K RetaSy + ~18K filtered TLOG.
 
-**w2v-phonemes** — Phoneme CTC + Levenshtein matching. Large variant (970 MB) hits 100% batch on v1, proving the approach works; too large/slow for real-time. No streaming path.
+**w2v-phonemes** — Phoneme CTC + Levenshtein matching. `large-int8` (r7, 970 MB INT8 ONNX) hits **100% batch on v1 and 96.1% / 96.1% / 96.1% (recall/precision/SeqAcc) on v3** — the strongest batch oracle we have, but 1 GB is too large to ship to browser. No streaming path (O(T²) wav2vec2 attention blows up on long audio). As of 2026-04-22 `_decode_phonemes` chunks audio >25s into 25s windows with 1s overlap, each independently CTC-collapsed then concatenated — without chunking, a single 200s sample bloats memory to 22 GB and effectively hangs on Apple Silicon's ArmKleidiAI MatMul path. `base-int8` (r15_95m_onnx_int8) is listed in the HF card but the repo doesn't exist; `list_models()` returns only `large-int8`. HF token required (Ahmed's `Yazin` token grants read access).
+
+Use case: distillation teacher for a streaming-friendly student (future), or server-side batch verifier paired with the shipped streaming pipeline.
 
 **tadabur-whisper-small** — Best Whisper fine-tune we tested. Highest streaming recall (87% v1) at 3× FastConformer latency.
 
@@ -224,6 +226,7 @@ Fine-tuning the phoneme CTC head with varying amounts of TLOG (phone-recorded re
 8. **Beam-candidate injection into the tracker regressed.** The verse/span trie (1.7M nodes, 2.2ms decode) works correctly, but beam-matched verses override correct greedy results. Surah-level expansion is the safer next step.
 9. **TLOG: one quality-filtered bucket wins.** ~18K filtered at 0.3 is the sweet spot; more volume, lower filter, no TLOG, or combined data changes all regress.
 10. **Streaming precision had a cascade bug.** Auto-advanced `verse_match` messages emitted without audio evidence. Deferred emission (2026-04-11) fixes it: +13pp precision, +20.8pp SeqAcc on v1.
+11. **r7 (Ahmed's 1B wav2vec2 phoneme CTC) is the batch accuracy ceiling.** 96.1% / 96.1% / 96.1% on v3 (256 samples, full-file batch) vs our shipped v4-tlog streaming at 83.7% / 64.4% / 46.1% — a 12.4pp recall gap and 50pp SeqAcc gap. The ceiling is not "our architecture can't do better"; it's "our 131 MB on-device model can't do better alone." Implications: r7 is a viable (a) distillation teacher for a same-size FastConformer student, or (b) server-side second-pass verifier. Shipping r7 directly is blocked on size (1 GB) and streaming-friendliness (wav2vec2 attention is O(T²)).
 
 ## Methodology
 
