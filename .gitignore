@@ -1,10 +1,80 @@
+# =====================================================================
+# offline-tarteel .gitignore
+#
+# Goal: a fresh clone in a cloud env should be able to run the streaming
+# tests and launch experiments without extra setup, while keeping
+# secrets, large training artifacts, and local tooling state out of the
+# public repo.
+#
+# The streaming-test ONNX model lives under web/frontend/public/ and is
+# tracked via Git LFS — see .gitattributes.
+# =====================================================================
+
+# ---------- OS / editor noise ----------
+.DS_Store
+*.swp
+*~
+
+# ---------- Local env / secrets (NEVER commit) ----------
+.env
+.env.*
+!.env.example
+
+# ---------- Local tooling state ----------
+.beads/
+.claude/
+.cursor/
+.worktrees/
+
+# ---------- Python ----------
 .venv/
+.venv-web/
 __pycache__/
-.pytest_cache
+.pytest_cache/
 *.pyc
 *.egg-info/
 dist/
 build/
+
+# ---------- Node ----------
+node_modules/
+
+# ONNX Runtime WASM files (copied to public/ via vite postinstall)
+web/frontend/public/*.wasm
+web/frontend/public/*.mjs
+
+# Vite/TS build output
+web/frontend/dist/
+web/frontend/dist-server/
+
+# ---------- Personal/local notes (not for public repo) ----------
+MEETING_PREP.md
+NEXT_STEPS.md
+RESEARCH.md
+ml-intern-runs/
+tasks/lessons.md
+tasks/todo.md
+
+# ---------- Test debug artifacts ----------
+web/frontend/test/debug/
+web/frontend/test/stab-gate-*.json
+
+# ---------- Audio (large; allow tracked test corpora) ----------
+*.m4a
+*.wav
+*.mp3
+!benchmark/test_corpus/**
+!benchmark/test_corpus_v2/**
+!benchmark/test_corpus_v3/**
+
+# ---------- Model weights ----------
+# Default: ignore all ONNX. The q8 model under web/frontend/public/ is
+# tracked via Git LFS so streaming tests work after a fresh clone.
+*.onnx
+*.onnx.data
+!web/frontend/public/fastconformer_phoneme_q8.onnx
+
+# Training checkpoints / model dirs (downloaded via Modal volumes / HF)
 data/lora-adapter/
 data/lora-adapter-small/
 data/lora-checkpoints/
@@ -15,7 +85,6 @@ data/train_subset/
 data/training/
 data/*.log
 
-# Model weights (too large for git)
 data/ctc-base-distilled/
 data/ctc-base-finetuned/
 data/ctc-model/
@@ -27,35 +96,21 @@ data/rabah-ctc-pruned-8/
 data/rabah-ctc-pruned-12/
 data/rabah-ctc-pruned-*-finetuned/
 data/rabah-ctc-source/
+data/fastconformer-phoneme-v1/
+!data/fastconformer-phoneme-v1/training_metadata.json
 data/fastconformer-phoneme-v4-tlog/
+data/fastconformer-phoneme-v7-stream-aug/
 data/v6-augmented/
-*.onnx
+data/r7/
+data/kenlm_phoneme/
 
-# Audio files (large, except benchmark test corpora which must be tracked)
-*.m4a
-*.wav
-*.mp3
-!benchmark/test_corpus/*.m4a
-!benchmark/test_corpus/*.wav
-!benchmark/test_corpus/*.mp3
-!benchmark/test_corpus_v2/*.mp3
-!benchmark/test_corpus_v2/*.wav
-!benchmark/test_corpus_v3/*.mp3
-!benchmark/test_corpus_v3/*.wav
-!benchmark/test_corpus_v3/*.m4a
-node_modules/
-.worktrees/
-
-# ONNX Runtime WASM files (copied to public/ via postinstall)
-web/frontend/public/*.wasm
-web/frontend/public/*.mjs
-
-# Benchmark timestamped results (latest.json is tracked)
+# ---------- Benchmark / experiment outputs ----------
+# Timestamped benchmark results (latest.json is tracked)
 benchmark/results/2026-*.json
 
-# Experiment artifacts
 experiments/contrastive/checkpoints/
 experiments/contrastive/logs/
 experiments/embedding-search/audio_corpus/
 experiments/embedding-search/indices/
+experiments/streaming-asr/benchmark_results_*.json
 data/fastconformer-phoneme-v1/model.nemo
