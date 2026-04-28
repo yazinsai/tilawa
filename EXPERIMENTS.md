@@ -12,12 +12,38 @@ ONNX inference is non-deterministic at **±3–6 samples per run** on v1 — str
 
 | Mode | Corpus | Recall | Precision | SeqAcc | Correct |
 |---|---|---|---|---|---|
-| **Browser/RN streaming** (300ms chunks, `RecitationTracker`) | v2 | **85.6%** | **68.1%** | **48.8%** | 35–37/43 |
-| **Browser/RN streaming** | v3 | **83.7%** | **64.4%** | **46.1%** | 208–212/256 |
+| **Browser/RN streaming** (300ms chunks, `RecitationTracker`) | v2 | **87.9%** | **68.9%** | **55.8%** | 37/43 |
+| **Browser/RN streaming** | v3 | **89.3%** | **73.4%** | **58.2%** | 223–225/256 |
 | Non-streaming (full-file, single `matchVerse()`) | v1 | 84.1% | 84.9% | 81.1% | 43/53 |
 | Non-streaming (full-file, single `matchVerse()`) | v2 | 78.1% | 79.1% | 74.4% | 32/43 |
 
 ### Streaming changelog
+
+**2026-04-25 — decode-stability gate on single-cycle commits** (file: `web/frontend/src/lib/tracker.ts`)
+A context-sweep diagnostic (`web/frontend/test/diagnose-context-sweep.ts`) measured how the model's CTC greedy decode of audio prefixes compares to its decode of the full audio. On v1 the result was striking: across prefix lengths from 1s to 5s, **~50% of every prefix-decode token gets revised** when full audio context arrives (median LCP / |prefix-decode| ≈ 0.50). Full-audio WER vs the expected phoneme reference is 14%, so the offline ceiling is fine — but every short-prefix decode sits in a regime where half its emissions are non-final because the FastConformer encoder uses bidirectional attention to refine early frames once more audio is in.
+
+The browser's `RecitationTracker` was committing `verse_match` on single-cycle `clearMargin` paths — riding those unstable predictions. The fix gates that one path: track `lastRawPhonemes`, and require the current decode's Levenshtein ratio to the previous cycle's decode be ≥ 0.70 before allowing a single-cycle clearMargin commit. Repeated-leader and finalFlush commits are not gated (they have their own multi-cycle protection). Commit is denied with no diagnostic noise — the tracker either commits in this cycle, defers to the next, or eventually fires via the existing `repeatedLeader` path. Continuation jumps (the next ayah of the verse currently being tracked) are not gated either, since they're not the "early-frame instability" failure mode.
+
+The gate is on by default; set `DECODE_STABILITY_GATE_OFF=1` in env to disable for benchmarking.
+
+Numbers (3-repeat median):
+- v3 (256 samples): recall 82.1% → **89.3%** (+7.2pp), precision 64.1% → **73.4%** (+9.3pp), SeqAcc 46.1% → **58.2%** (+12.1pp). Per-run correct [213, 204, 204] → [223, 225, 224]. **Stable-pass 186 → 216 (+30), stable-fail 30 → 25 (−5), flaky 40 → 15 (−25)** — the gate doesn't just lift the median, it makes the pipeline noticeably more deterministic.
+- v2 blind check: recall 85.6% → **87.9%** (+2.3pp), precision 66.6% → **68.9%** (+2.3pp), SeqAcc 53.5% → **55.8%** (+2.3pp). Per-run correct [37, 36, 36] → [37, 37, 37]. Smaller gain than v3, consistent with v2 being mostly clean professional recitations where short-prefix decodes are less ambiguous to begin with — the bigger v3 win comes from the 80 noisier TLOG-clean samples where decode stability matters more.
+
+The improvement is roughly an order of magnitude bigger than the prior streaming experiments because it targets a different failure class: not "score threshold tuning" (which the matcher/tracker attempts on 2026-04-21 exhausted) but "the upstream signal that scores are computed from is unreliable until enough context arrives." Three matcher tweaks moved nothing measurable on v1; this one moved v3 SeqAcc 12pp.
+
+Targets specifically: long single-verse and multi-verse samples where an early streaming chunk happened to score well against a wrong verse and got committed before the correct verse's evidence accumulated. On v3 baseline-vs-gated diffs, samples like `tlog_m020_010_105` (got `[20:34]` baseline, suppressed and recovered with gate), `ea_alafasy_034005` (`[22:51, 22:52, 22:53]` → `[22:51]`), `multi_055_001_004` (`[20:5, 55:2, 55:3, 55:4]` → correct on gated runs in v1) flip from stable-fail to stable-pass.
+
+The diagnostic that motivated this: `npx tsx test/diagnose-context-sweep.ts` — for each test sample, runs inference on prefixes [1, 2, 3, 5, 10]s of audio and reports phoneme WER vs the expected reference plus prefix-vs-full-decode stability. Reproduces the ~50% instability finding in ~2 min on a Mac.
+
+Measurement commands:
+```
+DECODE_STABILITY_GATE_OFF=1 npx tsx test/stability-report.ts --repeats=3 --corpus=test_corpus_v3 --json=test/stab-gate-baseline-v3.json
+                            npx tsx test/stability-report.ts --repeats=3 --corpus=test_corpus_v3 --json=test/stab-gate-on-v3.json
+DECODE_STABILITY_GATE_OFF=1 npx tsx test/stability-report.ts --repeats=3 --corpus=test_corpus_v2 --json=test/stab-gate-baseline-v2.json
+                            npx tsx test/stability-report.ts --repeats=3 --corpus=test_corpus_v2 --json=test/stab-gate-on-v2.json
+```
+Raw JSON at `web/frontend/test/stab-gate-{baseline,on}-{v2,v3}.json`. 38 vitest cases pass (no new cases — existing coverage exercises the unchanged commit paths; the gated path is exercised by `stability-report` on real audio because mocked tests run a single cycle and never hit the multi-cycle stability comparison).
 
 **2026-04-22 — silence-flush pending emission on final flush** (commit `508844b`)
 When the utterance ends and the tracker has auto-advanced to a pending next-verse emission that never got fresh-audio confirmation, emit the pending message instead of rolling it back — but only when the advance had strong acoustic evidence at the time. Specifically, capture `prefixScore - suffixScore` as `pendingEmissionMargin` at advance time (from the existing `ADVANCE_RELATIVE_MARGIN < 3.0` gate). On `finalFlush`, emit the pending message only when `pendingEmissionMargin < ADVANCE_FLUSH_STRICT_MARGIN` (0.5, much tighter than the normal advance gate). The tighter threshold prevents one-verse overshoot when the reciter actually stopped at the penultimate verse.

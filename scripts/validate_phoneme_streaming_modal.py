@@ -36,8 +36,14 @@ image = (
 vol = modal.Volume.from_name("fastconformer-phoneme-training", create_if_missing=True)
 
 BASE_MODEL_ID = "nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0"
-ONNX_PATH = "/vol/export/fastconformer_phoneme_q8.onnx"
-VOCAB_PATH = "/vol/export/phoneme_vocab.json"
+
+
+def get_export_paths(output_name: str) -> tuple[str, str]:
+    export_dir = Path(f"/vol/{output_name}/export")
+    return (
+        str(export_dir / "fastconformer_phoneme_q8.onnx"),
+        str(export_dir / "phoneme_vocab.json"),
+    )
 
 # --- Constants matching web app exactly ---
 SAMPLE_RATE = 16000
@@ -551,7 +557,10 @@ def upload_corpus(manifest_json: str, quran_phonemes_json: str, audio_files: dic
     timeout=3600,
     volumes={"/vol": vol},
 )
-def validate_streaming(first_match_threshold: float = FIRST_MATCH_THRESHOLD):
+def validate_streaming(
+    first_match_threshold: float = FIRST_MATCH_THRESHOLD,
+    output_name: str = "fastconformer-phoneme-v2",
+):
     """Run streaming validation: simulate browser audio pipeline."""
     import numpy as np
     import onnxruntime as ort
@@ -576,7 +585,13 @@ def validate_streaming(first_match_threshold: float = FIRST_MATCH_THRESHOLD):
     with open("/vol/quran_phonemes.json") as f:
         quran_phonemes = json.load(f)
 
-    with open(VOCAB_PATH) as f:
+    onnx_path, vocab_path = get_export_paths(output_name)
+    if not Path(onnx_path).exists():
+        raise FileNotFoundError(f"Missing ONNX export: {onnx_path}")
+    if not Path(vocab_path).exists():
+        raise FileNotFoundError(f"Missing vocab export: {vocab_path}")
+
+    with open(vocab_path) as f:
         vocab = json.load(f)
     blank_id = max(int(k) for k in vocab.keys())
 
@@ -590,8 +605,8 @@ def validate_streaming(first_match_threshold: float = FIRST_MATCH_THRESHOLD):
     base_model.eval()
 
     # Load ONNX session
-    print(f"Loading ONNX model: {ONNX_PATH}")
-    sess = ort.InferenceSession(ONNX_PATH, providers=["CPUExecutionProvider"])
+    print(f"Loading ONNX model for {output_name}: {onnx_path}")
+    sess = ort.InferenceSession(onnx_path, providers=["CPUExecutionProvider"])
     input_names = [inp.name for inp in sess.get_inputs()]
 
     def transcribe(audio: np.ndarray) -> str:
@@ -715,7 +730,10 @@ def validate_streaming(first_match_threshold: float = FIRST_MATCH_THRESHOLD):
 
 
 @app.local_entrypoint()
-def main(threshold: float = 0.75):
+def main(
+    threshold: float = 0.75,
+    output_name: str = "fastconformer-phoneme-v2",
+):
     # Upload corpus if needed
     print("=== Uploading test corpus to Modal volume ===")
     manifest_path = CORPUS_DIR / "manifest.json"
@@ -737,8 +755,14 @@ def main(threshold: float = 0.75):
     upload_corpus.remote(manifest_json, quran_phonemes_json, audio_files)
 
     # Run streaming validation
-    print(f"\n=== Running streaming validation (threshold={threshold}) ===\n")
-    result = validate_streaming.remote(first_match_threshold=threshold)
+    print(
+        f"\n=== Running streaming validation "
+        f"(threshold={threshold}, output_name={output_name}) ===\n"
+    )
+    result = validate_streaming.remote(
+        first_match_threshold=threshold,
+        output_name=output_name,
+    )
 
     print(f"\n{'='*60}")
     print(f"SINGLE VERSE:  {result['single_correct']}/{result['single_total']}")

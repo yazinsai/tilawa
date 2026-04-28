@@ -111,6 +111,24 @@ export interface RecitationTrackerOptions {
   onDiagnostic?: (event: TrackerDiagnosticEvent) => void;
 }
 
+// Decode-stability gate: single-cycle clearMargin commits require the
+// current decode to be similar (>= STABILITY_RATIO) to the previous cycle's
+// decode. The context-sweep diagnostic showed ~50% of every short-context
+// prefix decode gets revised when full audio arrives, so single-cycle
+// commits during streaming were riding unstable predictions. Repeated-leader
+// and finalFlush commits are not gated (they have their own protection).
+//
+// Default on. Set DECODE_STABILITY_GATE_OFF=1 to disable (benchmarking).
+const DECODE_STABILITY_GATE: boolean = (() => {
+  try {
+    return (globalThis as { process?: { env?: Record<string, string> } })
+      .process?.env?.DECODE_STABILITY_GATE_OFF !== "1";
+  } catch {
+    return true;
+  }
+})();
+const STABILITY_RATIO = 0.70;
+
 function concatFloat32(a: Float32Array, b: Float32Array): Float32Array {
   const result = new Float32Array(a.length + b.length);
   result.set(a);
@@ -216,6 +234,9 @@ export class RecitationTracker {
   private cyclesSinceCommit = Infinity;
   private lastTrackingResult: TranscribeResult | null = null;
   private consecutiveAutoAdvances = 0;
+
+  // Decode-stability gate state
+  private lastRawPhonemes: string | null = null;
 
   // Deferred emission state
   private trackingPendingEmission = false;
@@ -750,7 +771,20 @@ export class RecitationTracker {
       // On final flush, commit if score is above threshold (no repeat needed)
       const finalFlushCommit = finalFlush && effectiveScore >= threshold;
 
-      if (!effectivelyBlocked && (clearMargin || repeatedLeader || finalFlushCommit)) {
+      // Decode-stability gate: deny single-cycle clearMargin commits when the
+      // current decode hasn't stabilized vs the previous cycle. Forces
+      // commits onto the repeated-leader path (≥ DISCOVERY_REPEAT_CYCLES)
+      // when the underlying decode is volatile.
+      let clearMarginAllowed = clearMargin;
+      if (DECODE_STABILITY_GATE && clearMargin && !isContinuation) {
+        const prev = this.lastRawPhonemes;
+        const stable =
+          prev !== null && prev.length > 0 &&
+          levRatio(prev, result.rawPhonemes) >= STABILITY_RATIO;
+        if (!stable) clearMarginAllowed = false;
+      }
+
+      if (!effectivelyBlocked && (clearMarginAllowed || repeatedLeader || finalFlushCommit)) {
         const ref: [number, number] = [effectiveMatch.surah, effectiveMatch.ayah];
         if (
           this.lastEmittedRef &&
@@ -854,6 +888,7 @@ export class RecitationTracker {
       });
     }
 
+    this.lastRawPhonemes = result.rawPhonemes;
     return messages;
   }
 
@@ -1081,6 +1116,7 @@ export class RecitationTracker {
     this.utteranceHasSpeech = false;
     this.didFinalFlush = false;
     this.pendingLeader = null;
+    this.lastRawPhonemes = null;
   }
 
   private _isContinuation(surah: number, ayah: number): boolean {

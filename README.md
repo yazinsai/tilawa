@@ -216,7 +216,7 @@ result = predict("recitation.wav")
 
 ## Goal
 
-Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-second latency**, and **under 200 MB** on disk. The current best approach (`nvidia-fastconformer`) reaches **95% recall** at **115 MB** and **0.7s** latency on the v1 corpus. The shipped ONNX phoneme model achieves **78.6% streaming recall / 66.8% precision** in the browser (v1). Everything in this repo exists to close the remaining streaming gap.
+Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-second latency**, and **under 200 MB** on disk. The current best approach (`nvidia-fastconformer`) reaches **95% recall** at **115 MB** and **0.7s** latency on the v1 corpus. The shipped ONNX phoneme model with the decode-stability tracker gate achieves **89.3% streaming recall / 73.4% precision** in the browser (v3). Everything in this repo exists to close the remaining streaming gap.
 
 ## Design constraints
 
@@ -228,16 +228,16 @@ Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-s
 
 ## Results
 
-Shipped `fastconformer-phoneme v4-tlog` (131 MB quantized ONNX) on the v1 and v2 corpora:
+Shipped `fastconformer-phoneme v4-tlog` (131 MB quantized ONNX) on the v2 and v3 corpora, streaming with the decode-stability tracker gate (default on):
 
 | Mode | Corpus | Recall | Precision | SeqAcc |
 |---|---|---|---|---|
-| Browser/RN streaming (300ms chunks) | v1 (53) | 78.6% | 66.8% | 47.2% |
-| Browser/RN streaming (300ms chunks) | v2 (43) | 82.7% | 63.7% | 46.5% |
+| Browser/RN streaming (300ms chunks) | v2 (43) | 87.9% | 68.9% | 55.8% |
+| Browser/RN streaming (300ms chunks) | v3 (256) | 89.3% | 73.4% | 58.2% |
 | Non-streaming (full-file) | v1 (53) | 84.1% | 84.9% | 81.1% |
 | Non-streaming (full-file) | v2 (43) | 78.1% | 79.1% | 74.4% |
 
-Streaming metrics are medians across 5 runs on v1 and 3 runs on v2 (ONNX non-determinism is ±3-6 per run). Non-streaming runs the whole audio through ONNX once and does a single `matchVerse()`.
+Streaming metrics are medians across 3 runs (ONNX non-determinism is ±3-6 per run on v1, ±0.7 on v3). Non-streaming runs the whole audio through ONNX once and does a single `matchVerse()`. See the streaming changelog in **[EXPERIMENTS.md](EXPERIMENTS.md)** for the per-change provenance.
 
 Full matrix across 20 approaches (Whisper variants, Rabah pruned CTC, FastConformer sweep, contrastive/embedding failures), per-experiment notes, variant deep-dives, a changelog, and key findings live in **[EXPERIMENTS.md](EXPERIMENTS.md)**.
 
