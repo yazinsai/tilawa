@@ -19,6 +19,15 @@ ONNX inference is non-deterministic at **±3–6 samples per run** on v1 — str
 
 ### Streaming changelog
 
+**2026-04-28 — tracker tightening attempts, falsified** (no code shipped)
+Three narrow tracker-side attempts targeted the visible precision/SeqAcc problem where stable-pass single-ayah clips sometimes emit several continuation verses after the true verse. None survived blind-check discipline, so all code and temporary smoke artifacts were discarded.
+
+1. **Auto-advance margin tightening + chain cap** — reduced the next-verse acoustic advance margin and capped repeated strong auto-advances. v2 one-run smoke dropped to **31/43** correct with large recall loss; rejected immediately.
+2. **Margin-only auto-advance tightening** — kept the normal chain behavior but made next-verse advance acoustically stricter. v2 one-run smoke reached **35/43**, but v3 first-80 smoke dropped to **59/80** versus the silence-flush baseline's **65–67/80** first-80 runs; rejected as a v3 regression.
+3. **Tracking acoustic prefix-jump gate** — limited `chooseLongestStablePrefix()` from jumping many words ahead on weak CTC prefix evidence. Deterministic unit coverage passed locally, but v2 one-run smoke regressed to **32/43** with recall **77.7%**, precision **63.7%**, SeqAcc **48.8%**; rejected.
+
+Takeaway: the over-emission symptoms are not a simple stale-tail or acoustic-prefix gating bug. Tightening tracker gates tends to suppress legitimate short/noisy continuations before it reliably removes false positives. Together with the earlier n-gram/short-gate failures, the remaining streaming gap is more likely an ASR/model distribution problem than a matcher/tracker threshold problem. The next high-probability path is a training-side change: use the `w2v-phonemes/large` r7 teacher to supervise the shipped FastConformer phoneme student on streaming subwindows / hard buckets, with CTC targets matched to the window rather than full-clip labels plus silence.
+
 **2026-04-22 — silence-flush pending emission on final flush** (commit `508844b`)
 When the utterance ends and the tracker has auto-advanced to a pending next-verse emission that never got fresh-audio confirmation, emit the pending message instead of rolling it back — but only when the advance had strong acoustic evidence at the time. Specifically, capture `prefixScore - suffixScore` as `pendingEmissionMargin` at advance time (from the existing `ADVANCE_RELATIVE_MARGIN < 3.0` gate). On `finalFlush`, emit the pending message only when `pendingEmissionMargin < ADVANCE_FLUSH_STRICT_MARGIN` (0.5, much tighter than the normal advance gate). The tighter threshold prevents one-verse overshoot when the reciter actually stopped at the penultimate verse.
 
