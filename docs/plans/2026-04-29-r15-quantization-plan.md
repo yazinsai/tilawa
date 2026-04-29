@@ -24,11 +24,21 @@ distillation teacher.
   - same 97.1% / 97.1% / 97.1% on the 174-sample EveryAyah-v3 slice
   - same five failures as fp32
   - 1.11s average CPU latency on this cloud VM
+- Full v3 batch result for int8 ONNX:
+  - 256 samples
+  - 96.0% recall / 96.1% precision / 95.7% SeqAcc
+  - 0.89s average CPU latency
+- Naive phoneme-aware 3s chunk streaming for int8 ONNX:
+  - 20.6% recall / 12.2% precision / 3.9% SeqAcc
+  - This is a diagnostic baseline only; r15/wav2vec2 is not cache-aware or
+    streaming-trained.
 
 Raw results:
 
 - fp32 HF checkpoint: `benchmark/results/2026-04-29_091708.json`
 - int8 ONNX: `benchmark/results/2026-04-29_100633.json`
+- int8 ONNX full v3: `benchmark/results/2026-04-29_103225.json`
+- int8 ONNX naive 3s streaming v3: `benchmark/results/2026-04-29_103627.json`
 
 ## Step 1: Export and quantize r15
 
@@ -89,9 +99,9 @@ Promotion criteria status:
   0.90s fp32). Still acceptable for server-side verification; measure on target
   hardware before productizing.
 - Model artifact around 100-130 MB: **passed** (123 MB ONNX).
-- Full v3 including TLOG/user recordings: **pending** because this cloud checkout
-  only had public EveryAyah audio; run once the private/local v3 audio is
-  available.
+- Full v3 including TLOG/user recordings: **passed as verifier** (95.7% SeqAcc).
+- Streaming: **failed** for naive 3s chunks (3.9% SeqAcc). Do not ship r15 as a
+  streaming model without a fundamentally different cache/segment design.
 
 ## Step 4: Product decision
 

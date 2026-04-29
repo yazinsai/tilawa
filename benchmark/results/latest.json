@@ -1094,6 +1094,21 @@
   },
   {
     "name": "w2v-phonemes/base-local-int8",
+    "recall": 0.96015625,
+    "precision": 0.9609375,
+    "sequence_accuracy": 0.95703125,
+    "total": 256,
+    "avg_latency": 0.8945405627459877,
+    "model_size": 123731968,
+    "timestamp": "2026-04-29_103225",
+    "mode": "full",
+    "category": null,
+    "source": null,
+    "chunk_seconds": null,
+    "source_file": "2026-04-29_103225.json"
+  },
+  {
+    "name": "w2v-phonemes/base-local-int8",
     "recall": 0.9712643678160919,
     "precision": 0.9712643678160919,
     "sequence_accuracy": 0.9712643678160919,
@@ -1106,6 +1121,21 @@
     "source": "everyayah",
     "chunk_seconds": null,
     "source_file": "2026-04-29_100633.json"
+  },
+  {
+    "name": "w2v-phonemes/base-local-int8 (stream 3s)",
+    "recall": 0.20591517857142858,
+    "precision": 0.1215972937652625,
+    "sequence_accuracy": 0.0390625,
+    "total": 256,
+    "avg_latency": 0.62754583749998,
+    "model_size": 123731968,
+    "timestamp": "2026-04-29_103627",
+    "mode": "streaming",
+    "category": null,
+    "source": null,
+    "chunk_seconds": 3.0,
+    "source_file": "2026-04-29_103627.json"
   },
   {
     "name": "w2v-phonemes/large-int8",

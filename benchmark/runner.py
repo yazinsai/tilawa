@@ -178,6 +178,12 @@ def _predict_to_emissions(predict_result: dict) -> list[dict]:
     return emissions
 
 
+def _call_model_fn(fn, audio_path: str, model_name: str | None):
+    if model_name:
+        return fn(audio_path, model_name=model_name)
+    return fn(audio_path)
+
+
 def run_experiment(
     exp: dict,
     samples: list[dict],
@@ -197,16 +203,22 @@ def run_experiment(
     """
     mod = _load_module(exp["name"].replace("/", "_").replace("-", "_"), exp["run_path"])
 
+    has_predict_streaming = hasattr(mod, "predict_streaming")
+
     # Prefer transcribe() + streaming pipeline over predict().
     # predict() does a single match_verse() call which can't handle multi-verse
     # recordings. Only fall back to predict() for experiments without transcribe().
     use_predict = hasattr(mod, "predict") and not hasattr(mod, "transcribe") and mode == "full"
 
-    if not use_predict and not hasattr(mod, "transcribe"):
+    if mode == "streaming" and has_predict_streaming:
+        use_predict = False
+    elif not use_predict and not hasattr(mod, "transcribe"):
         print(f"  Skipping {exp['name']} — no transcribe() or predict() function")
         return None
 
-    if use_predict:
+    if mode == "streaming" and has_predict_streaming:
+        predict_streaming_fn = mod.predict_streaming
+    elif use_predict:
         predict_fn = mod.predict
         if exp["model_name"]:
             base_fn = predict_fn
@@ -221,7 +233,9 @@ def run_experiment(
     warmup_sample = samples[0]
     audio_path = str(CORPUS_DIR / warmup_sample["file"])
     try:
-        if use_predict:
+        if mode == "streaming" and has_predict_streaming:
+            _call_model_fn(predict_streaming_fn, audio_path, exp["model_name"])
+        elif use_predict:
             predict_fn(audio_path)
         else:
             transcribe_fn(audio_path)
@@ -250,7 +264,9 @@ def run_experiment(
         result = None
         try:
             start = time.perf_counter()
-            if use_predict:
+            if mode == "streaming" and has_predict_streaming:
+                emissions = _call_model_fn(predict_streaming_fn, audio_path, exp["model_name"])
+            elif use_predict:
                 result = predict_fn(audio_path)
                 emissions = _predict_to_emissions(result)
             elif mode == "streaming":
