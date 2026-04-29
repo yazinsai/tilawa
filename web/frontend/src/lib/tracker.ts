@@ -102,7 +102,25 @@ export type TrackerDiagnosticEvent =
       }>;
     }
   | { type: "silence_skip"; mode: "discovery" | "tracking"; reason: string }
-  | { type: "commit"; ref: string; reason: string; confidence: number }
+  | {
+      type: "commit";
+      ref: string;
+      reason: string;
+      confidence: number;
+      selected_rank?: number | null;
+      selected_feasible?: boolean | null;
+      selected_fusion?: number | null;
+      top_ref?: string | null;
+      top_fusion?: number | null;
+      effective_score?: number;
+      threshold?: number;
+      acoustic_margin?: number;
+      length_fit?: number;
+      clear_margin?: boolean;
+      repeated_leader?: boolean;
+      final_flush_commit?: boolean;
+      is_continuation?: boolean;
+    }
   | { type: "rollback"; reason: string; restored_ref: string | null }
   | { type: "stale_exit"; ref: string; stale_cycles: number }
   | { type: "flush"; mode: "discovery" | "tracking"; duration_sec: number };
@@ -825,6 +843,21 @@ export class RecitationTracker {
           effectiveScore,
           Math.min(0.99, 0.45 + acousticMargin + lengthFit * 0.2),
         );
+        const selectedKey = refKey(
+          effectiveMatch.surah,
+          effectiveMatch.ayah,
+          effectiveMatch.ayah_end,
+        );
+        const selectedRank = ranked.findIndex(
+          (entry) =>
+            refKey(
+              entry.candidate.surah,
+              entry.candidate.ayah,
+              entry.candidate.ayah_end,
+            ) === selectedKey,
+        );
+        const selectedDiagnostic = selectedRank >= 0 ? ranked[selectedRank] : null;
+        const topDiagnostic = ranked[0] ?? null;
 
         messages.push({
           type: "verse_match",
@@ -884,6 +917,29 @@ export class RecitationTracker {
           ref: key,
           reason: clearMargin ? "acoustic_margin" : "repeat_leader",
           confidence: Math.round(confidence * 1000) / 1000,
+          selected_rank: selectedRank >= 0 ? selectedRank + 1 : null,
+          selected_feasible: selectedDiagnostic?.feasible ?? null,
+          selected_fusion: selectedDiagnostic
+            ? Math.round(selectedDiagnostic.fusionScore * 1000) / 1000
+            : null,
+          top_ref: topDiagnostic
+            ? refKey(
+                topDiagnostic.candidate.surah,
+                topDiagnostic.candidate.ayah,
+                topDiagnostic.candidate.ayah_end,
+              )
+            : null,
+          top_fusion: topDiagnostic
+            ? Math.round(topDiagnostic.fusionScore * 1000) / 1000
+            : null,
+          effective_score: Math.round(effectiveScore * 1000) / 1000,
+          threshold,
+          acoustic_margin: Math.round(acousticMargin * 1000) / 1000,
+          length_fit: Math.round(lengthFit * 1000) / 1000,
+          clear_margin: clearMarginAllowed,
+          repeated_leader: repeatedLeader,
+          final_flush_commit: finalFlushCommit,
+          is_continuation: isContinuation,
         });
 
         // Enter tracking on the last verse in the span so auto-advance continues from there
