@@ -327,6 +327,7 @@ def save_results(
     *,
     mode: str = "full",
     category: str | None = None,
+    source: str | None = None,
     chunk_seconds: float = 3.0,
 ):
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -349,6 +350,7 @@ def save_results(
             entry.get("name"),
             entry.get("mode", "full"),
             entry.get("category"),
+            entry.get("source"),
             entry.get("total"),
             entry.get("chunk_seconds"),
         )
@@ -367,6 +369,7 @@ def save_results(
             "timestamp": timestamp,
             "mode": mode,
             "category": category,
+            "source": source,
             "chunk_seconds": effective_chunk,
             "source_file": path.name,
         }
@@ -375,6 +378,7 @@ def save_results(
             summary["name"],
             summary["mode"],
             summary["category"],
+            summary["source"],
             summary["total"],
             summary["chunk_seconds"],
         )
@@ -393,6 +397,7 @@ def save_results(
                     x.get("name", ""),
                     x.get("mode", "full"),
                     x.get("category") or "",
+                    x.get("source") or "",
                     x.get("total", 0),
                     x.get("chunk_seconds") or 0,
                 ),
@@ -408,6 +413,7 @@ def main():
     parser = argparse.ArgumentParser(description="Benchmark all experiments (streaming)")
     parser.add_argument("--experiment", type=str, help="Run only this experiment")
     parser.add_argument("--category", type=str, help="Filter samples by category")
+    parser.add_argument("--source", type=str, help="Filter samples by source")
     parser.add_argument("--corpus", type=str, default="test_corpus",
                         help="Corpus directory name under benchmark/ (default: test_corpus)")
     parser.add_argument("--mode", type=str, default="full", choices=["full", "streaming"],
@@ -426,6 +432,9 @@ def main():
     if args.category:
         samples = [s for s in samples if s["category"] == args.category]
         print(f"Filtered to {len(samples)} samples in category '{args.category}'")
+    if args.source:
+        samples = [s for s in samples if s.get("source") == args.source]
+        print(f"Filtered to {len(samples)} samples from source '{args.source}'")
 
     experiments = discover_experiments(args.experiment)
     if not experiments:
@@ -452,6 +461,7 @@ def main():
         results,
         mode=args.mode,
         category=args.category,
+        source=args.source,
         chunk_seconds=args.chunk,
     )
 

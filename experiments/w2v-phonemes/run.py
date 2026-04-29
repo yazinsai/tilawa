@@ -18,6 +18,7 @@ Pipeline:
 
 import os
 import sys
+import json
 import pickle
 from collections import defaultdict
 from dataclasses import dataclass
@@ -46,6 +47,7 @@ MODELS = {
 }
 
 PHONEME_CACHE_PATH = PROJECT_ROOT / "data" / "phoneme_cache.pkl"
+QURAN_PHONEMES_PATH = PROJECT_ROOT / "data" / "quran_phonemes.json"
 NGRAM_INDEX_PATH = PROJECT_ROOT / "data" / "phoneme_ngram_index_5.pkl"
 ENV_PATH = PROJECT_ROOT / ".env"
 
@@ -153,7 +155,30 @@ def _ids_to_phoneme_list(ids, tokenizer, pad_id):
 
 
 def _build_verse_phoneme_db():
-    """Load phoneme_cache.pkl and build per-verse phoneme strings."""
+    """Load per-verse phoneme strings.
+
+    Prefer the richer historical pickle when present, but fall back to the
+    checked-in JSON so private model access can be evaluated from a fresh clone.
+    """
+    if not PHONEME_CACHE_PATH.exists():
+        with open(QURAN_PHONEMES_PATH, encoding="utf-8") as f:
+            rows = json.load(f)
+
+        verse_phonemes = []
+        surah_verses = {}
+        for row in rows:
+            entry = {
+                "surah": int(row["surah"]),
+                "ayah": int(row["ayah"]),
+                "phoneme_str": row["phonemes"],
+            }
+            verse_phonemes.append(entry)
+            surah_verses.setdefault(entry["surah"], []).append(entry)
+
+        for verses in surah_verses.values():
+            verses.sort(key=lambda v: v["ayah"])
+        return verse_phonemes, surah_verses
+
     with open(PHONEME_CACHE_PATH, "rb") as f:
         chapters = _StubUnpickler(f).load()
 
@@ -315,7 +340,7 @@ def _ensure_model_loaded(model_name: str = "base"):
 def list_models() -> list[str]:
     # base-int8 repo (hetchyy/r15_95m_onnx_int8) doesn't exist on HF.
     # Only report variants that can actually load.
-    return ["large-int8"]
+    return ["base", "large-int8"]
 
 
 CHUNK_SECONDS = 25.0          # max audio per forward pass (wav2vec2 attention is O(T^2))
@@ -372,7 +397,6 @@ def _decode_phonemes(audio_path: str, model_name: str = "base") -> list[str]:
             break
         start += step
     return all_phonemes
-
 
 
 def predict(audio_path: str, model_name: str = "base", debug: bool = False) -> dict:
