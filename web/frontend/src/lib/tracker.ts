@@ -336,6 +336,7 @@ export class RecitationTracker {
       this.trackingVerseWords,
       resumeFrom,
     );
+    const primaryMatchedIndices = matchedIndices.slice();
 
     // Confirm pending emission only on primary word alignment from fresh audio
     if (
@@ -344,16 +345,20 @@ export class RecitationTracker {
       this.totalSamplesFed > this.samplesAtAdvance
     ) {
       messages.push(this.pendingEmissionMessage!);
+      this._emitPendingDiagnostic("confirmed", matchedIndices);
       this._clearPendingEmission();
     }
 
+    let acousticWord: number | null = null;
     if (matchedIndices.length === 0) {
       const acousticIdx = this._resolveTrackingAcousticWord(result);
       if (acousticIdx > this.trackingLastWordIdx) {
+        acousticWord = acousticIdx;
         matchedIndices = [acousticIdx];
       }
     }
 
+    let charWord: number | null = null;
     if (
       matchedIndices.length === 0 &&
       text.length >= 5 &&
@@ -361,6 +366,7 @@ export class RecitationTracker {
     ) {
       const charWordIdx = this._charLevelProgress(text);
       if (charWordIdx > this.trackingLastWordIdx) {
+        charWord = charWordIdx;
         matchedIndices = [charWordIdx];
       }
     }
@@ -368,6 +374,17 @@ export class RecitationTracker {
     const advanced =
       matchedIndices.length > 0 &&
       matchedIndices[matchedIndices.length - 1] > this.trackingLastWordIdx;
+
+    this._emitDiagnostic({
+      type: "tracking_cycle",
+      ref: `${this.trackingVerse.surah}:${this.trackingVerse.ayah}`,
+      text_length: text.length,
+      word_matches: primaryMatchedIndices.length,
+      acoustic_word: acousticWord,
+      char_word: charWord,
+      advanced,
+      final_flush: finalFlush,
+    });
 
     if (!advanced) {
       this.staleCycles++;
@@ -666,6 +683,10 @@ export class RecitationTracker {
         kind: entry.candidate.kind,
         stageA: Math.round(entry.candidate.stage_a_score * 1000) / 1000,
         acoustic: Math.round(entry.acousticScore * 1000) / 1000,
+        acousticMargin: Math.round(entry.acousticMargin * 1000) / 1000,
+        lengthFit: Math.round(entry.lengthFit * 1000) / 1000,
+        fusion: Math.round(entry.fusionScore * 1000) / 1000,
+        feasible: entry.feasible,
       })),
     });
 
