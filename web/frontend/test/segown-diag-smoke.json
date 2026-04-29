@@ -1,0 +1,3940 @@
+{
+  "corpus": "test_corpus_v3",
+  "results": [
+    {
+      "id": "ea_husary_002177",
+      "category": "long",
+      "source": "everyayah",
+      "expected": [
+        "2:177"
+      ],
+      "emitted": [
+        "101:11",
+        "102:1",
+        "102:2",
+        "102:3",
+        "102:4",
+        "102:5",
+        "102:7",
+        "44:46",
+        "44:47",
+        "79:23",
+        "75:11",
+        "75:12",
+        "75:13",
+        "75:14",
+        "75:16",
+        "8:4"
+      ],
+      "exact": false,
+      "diagnostics": [
+        {
+          "sampleCursor": 4800,
+          "seconds": 0.3,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "no speech detected"
+          }
+        },
+        {
+          "sampleCursor": 9600,
+          "seconds": 0.6,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "no speech detected"
+          }
+        },
+        {
+          "sampleCursor": 14400,
+          "seconds": 0.9,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "no speech detected"
+          }
+        },
+        {
+          "sampleCursor": 19200,
+          "seconds": 1.2,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "no speech detected"
+          }
+        },
+        {
+          "sampleCursor": 33600,
+          "seconds": 2.1,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 67200,
+          "seconds": 4.2,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 100800,
+          "seconds": 6.3,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 134400,
+          "seconds": 8.4,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "aysa albira <an tuwaluu wujuuhakum",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "53:58",
+                "kind": "single",
+                "stageA": 0.671,
+                "acoustic": 4.821,
+                "acousticMargin": 0.031,
+                "lengthFit": 0.889,
+                "fusion": 0.786,
+                "feasible": true
+              },
+              {
+                "ref": "75:36",
+                "kind": "single",
+                "stageA": 0.662,
+                "acoustic": 4.852,
+                "acousticMargin": 0.577,
+                "lengthFit": 0.842,
+                "fusion": 0.772,
+                "feasible": true
+              },
+              {
+                "ref": "56:2",
+                "kind": "single",
+                "stageA": 0.667,
+                "acoustic": 5.564,
+                "acousticMargin": 0.19,
+                "lengthFit": 0.844,
+                "fusion": 0.747,
+                "feasible": true
+              },
+              {
+                "ref": "83:14",
+                "kind": "single",
+                "stageA": 0.687,
+                "acoustic": 5.526,
+                "acousticMargin": 0.039,
+                "lengthFit": 0.667,
+                "fusion": 0.734,
+                "feasible": true
+              },
+              {
+                "ref": "44:14",
+                "kind": "single",
+                "stageA": 0.676,
+                "acoustic": 5.429,
+                "acousticMargin": 0.096,
+                "lengthFit": 0.667,
+                "fusion": 0.732,
+                "feasible": true
+              },
+              {
+                "ref": "35:20",
+                "kind": "single",
+                "stageA": 0.662,
+                "acoustic": 6.324,
+                "acousticMargin": 0.043,
+                "lengthFit": 0.844,
+                "fusion": 0.715,
+                "feasible": true
+              },
+              {
+                "ref": "26:93",
+                "kind": "single",
+                "stageA": 0.662,
+                "acoustic": 5.825,
+                "acousticMargin": 0.008,
+                "lengthFit": 0.667,
+                "fusion": 0.708,
+                "feasible": true
+              },
+              {
+                "ref": "15:5",
+                "kind": "single",
+                "stageA": 0.667,
+                "acoustic": 5.809,
+                "acousticMargin": 0.016,
+                "lengthFit": 0.627,
+                "fusion": 0.705,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 168000,
+          "seconds": 10.5,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 201600,
+          "seconds": 12.6,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "waqmm",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "7:4-5",
+                "kind": "span",
+                "stageA": 0.8,
+                "acoustic": 22.653,
+                "acousticMargin": 0.06,
+                "lengthFit": 0.027,
+                "fusion": 0.764,
+                "feasible": true
+              },
+              {
+                "ref": "13:42",
+                "kind": "single",
+                "stageA": 0.8,
+                "acoustic": 24.522,
+                "acousticMargin": 0.441,
+                "lengthFit": 0.03,
+                "fusion": 0.757,
+                "feasible": true
+              },
+              {
+                "ref": "28:58",
+                "kind": "single",
+                "stageA": 0.8,
+                "acoustic": 24.963,
+                "acousticMargin": 0.735,
+                "lengthFit": 0.031,
+                "fusion": 0.756,
+                "feasible": true
+              },
+              {
+                "ref": "17:53",
+                "kind": "single",
+                "stageA": 0.8,
+                "acoustic": 25.698,
+                "acousticMargin": 0.749,
+                "lengthFit": 0.032,
+                "fusion": 0.753,
+                "feasible": true
+              },
+              {
+                "ref": "53:26",
+                "kind": "single",
+                "stageA": 0.8,
+                "acoustic": 27.281,
+                "acousticMargin": 0.026,
+                "lengthFit": 0.034,
+                "fusion": 0.748,
+                "feasible": true
+              },
+              {
+                "ref": "17:80",
+                "kind": "single",
+                "stageA": 0.8,
+                "acoustic": 29.353,
+                "acousticMargin": 0.352,
+                "lengthFit": 0.037,
+                "fusion": 0.741,
+                "feasible": true
+              },
+              {
+                "ref": "50:36",
+                "kind": "single",
+                "stageA": 0.8,
+                "acoustic": 31.043,
+                "acousticMargin": 1.111,
+                "lengthFit": 0.04,
+                "fusion": 0.735,
+                "feasible": true
+              },
+              {
+                "ref": "11:121-122",
+                "kind": "span",
+                "stageA": 0.8,
+                "acoustic": 32.154,
+                "acousticMargin": 0.701,
+                "lengthFit": 0.041,
+                "fusion": 0.732,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 235200,
+          "seconds": 14.7,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 268800,
+          "seconds": 16.8,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 302400,
+          "seconds": 18.9,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "s<al<wkn<man",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "10:91",
+                "kind": "single",
+                "stageA": 0.696,
+                "acoustic": 2.934,
+                "acousticMargin": 0.011,
+                "lengthFit": 0.222,
+                "fusion": 0.722,
+                "feasible": true
+              },
+              {
+                "ref": "7:6",
+                "kind": "single",
+                "stageA": 0.64,
+                "acoustic": 2.775,
+                "acousticMargin": 0.122,
+                "lengthFit": 0.185,
+                "fusion": 0.716,
+                "feasible": true
+              },
+              {
+                "ref": "16:5",
+                "kind": "single",
+                "stageA": 0.667,
+                "acoustic": 2.973,
+                "acousticMargin": 0.001,
+                "lengthFit": 0.179,
+                "fusion": 0.697,
+                "feasible": true
+              },
+              {
+                "ref": "36:10",
+                "kind": "single",
+                "stageA": 0.636,
+                "acoustic": 2.898,
+                "acousticMargin": 0.036,
+                "lengthFit": 0.19,
+                "fusion": 0.696,
+                "feasible": true
+              },
+              {
+                "ref": "43:8",
+                "kind": "single",
+                "stageA": 0.652,
+                "acoustic": 3.015,
+                "acousticMargin": 0.02,
+                "lengthFit": 0.207,
+                "fusion": 0.688,
+                "feasible": true
+              },
+              {
+                "ref": "32:18",
+                "kind": "single",
+                "stageA": 0.632,
+                "acoustic": 2.974,
+                "acousticMargin": 0.003,
+                "lengthFit": 0.222,
+                "fusion": 0.687,
+                "feasible": true
+              },
+              {
+                "ref": "44:58",
+                "kind": "single",
+                "stageA": 0.682,
+                "acoustic": 3.128,
+                "acousticMargin": 0.004,
+                "lengthFit": 0.214,
+                "fusion": 0.685,
+                "feasible": true
+              },
+              {
+                "ref": "7:98",
+                "kind": "single",
+                "stageA": 0.636,
+                "acoustic": 2.963,
+                "acousticMargin": 0.01,
+                "lengthFit": 0.174,
+                "fusion": 0.684,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 336000,
+          "seconds": 21,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "tsaaaaaa wantu",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "109:3",
+                "kind": "single",
+                "stageA": 0.731,
+                "acoustic": 3.492,
+                "acousticMargin": 0,
+                "lengthFit": 0.355,
+                "fusion": 0.763,
+                "feasible": true
+              },
+              {
+                "ref": "109:5",
+                "kind": "single",
+                "stageA": 0.731,
+                "acoustic": 3.492,
+                "acousticMargin": 0.004,
+                "lengthFit": 0.355,
+                "fusion": 0.763,
+                "feasible": true
+              },
+              {
+                "ref": "55:78",
+                "kind": "single",
+                "stageA": 0.75,
+                "acoustic": 3.274,
+                "acousticMargin": 0.076,
+                "lengthFit": 0.239,
+                "fusion": 0.762,
+                "feasible": true
+              },
+              {
+                "ref": "77:38",
+                "kind": "single",
+                "stageA": 0.731,
+                "acoustic": 3.227,
+                "acousticMargin": 0.02,
+                "lengthFit": 0.256,
+                "fusion": 0.758,
+                "feasible": true
+              },
+              {
+                "ref": "79:45",
+                "kind": "single",
+                "stageA": 0.75,
+                "acoustic": 3.776,
+                "acousticMargin": 0.002,
+                "lengthFit": 0.333,
+                "fusion": 0.758,
+                "feasible": true
+              },
+              {
+                "ref": "53:15",
+                "kind": "single",
+                "stageA": 0.733,
+                "acoustic": 4.218,
+                "acousticMargin": 0.01,
+                "lengthFit": 0.478,
+                "fusion": 0.756,
+                "feasible": true
+              },
+              {
+                "ref": "80:10",
+                "kind": "single",
+                "stageA": 0.741,
+                "acoustic": 4.536,
+                "acousticMargin": 0.013,
+                "lengthFit": 0.524,
+                "fusion": 0.754,
+                "feasible": true
+              },
+              {
+                "ref": "55:27",
+                "kind": "single",
+                "stageA": 0.75,
+                "acoustic": 3.538,
+                "acousticMargin": 0.026,
+                "lengthFit": 0.244,
+                "fusion": 0.753,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 369600,
+          "seconds": 23.1,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 403200,
+          "seconds": 25.2,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 403200,
+          "seconds": 25.2,
+          "event": {
+            "type": "flush",
+            "mode": "discovery",
+            "duration_sec": 25.2
+          }
+        },
+        {
+          "sampleCursor": 436800,
+          "seconds": 27.3,
+          "event": {
+            "type": "commit",
+            "ref": "101:11",
+            "reason": "short_rescue",
+            "confidence": 0.6373436054995807,
+            "origin": "short_rescue",
+            "acoustic_margin": 0.137
+          }
+        },
+        {
+          "sampleCursor": 446400,
+          "seconds": 27.9,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "101:11",
+            "text_length": 4,
+            "word_matches": 0,
+            "acoustic_word": 1,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 480000,
+          "seconds": 30,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "ialbirwamaaa",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "15:61",
+                "kind": "single",
+                "stageA": 0.7,
+                "acoustic": 3.503,
+                "acousticMargin": 0.442,
+                "lengthFit": 0.314,
+                "fusion": 0.762,
+                "feasible": true
+              },
+              {
+                "ref": "91:8",
+                "kind": "single",
+                "stageA": 0.708,
+                "acoustic": 3.945,
+                "acousticMargin": 0.061,
+                "lengthFit": 0.367,
+                "fusion": 0.643,
+                "feasible": true
+              },
+              {
+                "ref": "79:13",
+                "kind": "single",
+                "stageA": 0.727,
+                "acoustic": 4.006,
+                "acousticMargin": 0.115,
+                "lengthFit": 0.344,
+                "fusion": 0.63,
+                "feasible": true
+              },
+              {
+                "ref": "56:81",
+                "kind": "single",
+                "stageA": 0.708,
+                "acoustic": 4.121,
+                "acousticMargin": 0.3,
+                "lengthFit": 0.297,
+                "fusion": 0.581,
+                "feasible": true
+              },
+              {
+                "ref": "102:1",
+                "kind": "single",
+                "stageA": 0.749,
+                "acoustic": 4.564,
+                "acousticMargin": 0.212,
+                "lengthFit": 0.55,
+                "fusion": 0.507,
+                "feasible": true
+              },
+              {
+                "ref": "102:1-2",
+                "kind": "span",
+                "stageA": 0.811,
+                "acoustic": 4.522,
+                "acousticMargin": 0.042,
+                "lengthFit": 0.25,
+                "fusion": 0.502,
+                "feasible": true
+              },
+              {
+                "ref": "15:79",
+                "kind": "single",
+                "stageA": 0.708,
+                "acoustic": 4.421,
+                "acousticMargin": 0.101,
+                "lengthFit": 0.216,
+                "fusion": 0.48,
+                "feasible": true
+              },
+              {
+                "ref": "102:1-3",
+                "kind": "span",
+                "stageA": 0.811,
+                "acoustic": 1000000000,
+                "acousticMargin": 0,
+                "lengthFit": 0.169,
+                "fusion": 0.39,
+                "feasible": false
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 513600,
+          "seconds": 32.1,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "llbira man <aamana ilaha",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "80:8",
+                "kind": "single",
+                "stageA": 0.706,
+                "acoustic": 5.104,
+                "acousticMargin": 0.035,
+                "lengthFit": 0.958,
+                "fusion": 0.835,
+                "feasible": true
+              },
+              {
+                "ref": "102:5",
+                "kind": "single",
+                "stageA": 0.706,
+                "acoustic": 4.886,
+                "acousticMargin": 0.124,
+                "lengthFit": 0.676,
+                "fusion": 0.819,
+                "feasible": true
+              },
+              {
+                "ref": "26:89",
+                "kind": "single",
+                "stageA": 0.787,
+                "acoustic": 5.14,
+                "acousticMargin": 0.186,
+                "lengthFit": 0.605,
+                "fusion": 0.815,
+                "feasible": true
+              },
+              {
+                "ref": "88:6",
+                "kind": "single",
+                "stageA": 0.712,
+                "acoustic": 5.01,
+                "acousticMargin": 0.094,
+                "lengthFit": 0.605,
+                "fusion": 0.796,
+                "feasible": true
+              },
+              {
+                "ref": "37:144",
+                "kind": "single",
+                "stageA": 0.717,
+                "acoustic": 5.325,
+                "acousticMargin": 0.194,
+                "lengthFit": 0.548,
+                "fusion": 0.752,
+                "feasible": true
+              },
+              {
+                "ref": "3:2",
+                "kind": "single",
+                "stageA": 0.714,
+                "acoustic": 5.52,
+                "acousticMargin": 0.034,
+                "lengthFit": 0.548,
+                "fusion": 0.727,
+                "feasible": true
+              },
+              {
+                "ref": "102:2-3",
+                "kind": "span",
+                "stageA": 0.716,
+                "acoustic": 5.519,
+                "acousticMargin": 0.001,
+                "lengthFit": 0.511,
+                "fusion": 0.723,
+                "feasible": true
+              },
+              {
+                "ref": "102:3-4",
+                "kind": "span",
+                "stageA": 0.72,
+                "acoustic": 5.554,
+                "acousticMargin": 0.021,
+                "lengthFit": 0.479,
+                "fusion": 0.716,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 547200,
+          "seconds": 34.2,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "walatanaaaaa aahi wau",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "42:43",
+                "kind": "single",
+                "stageA": 0.727,
+                "acoustic": 3.003,
+                "acousticMargin": 0.131,
+                "lengthFit": 0.316,
+                "fusion": 0.775,
+                "feasible": true
+              },
+              {
+                "ref": "37:78",
+                "kind": "single",
+                "stageA": 0.773,
+                "acoustic": 3.603,
+                "acousticMargin": 0,
+                "lengthFit": 0.563,
+                "fusion": 0.771,
+                "feasible": true
+              },
+              {
+                "ref": "37:108",
+                "kind": "single",
+                "stageA": 0.773,
+                "acoustic": 3.603,
+                "acousticMargin": 0,
+                "lengthFit": 0.563,
+                "fusion": 0.771,
+                "feasible": true
+              },
+              {
+                "ref": "37:129",
+                "kind": "single",
+                "stageA": 0.773,
+                "acoustic": 3.603,
+                "acousticMargin": 0.008,
+                "lengthFit": 0.563,
+                "fusion": 0.771,
+                "feasible": true
+              },
+              {
+                "ref": "102:1-3",
+                "kind": "span",
+                "stageA": 0.82,
+                "acoustic": 3.474,
+                "acousticMargin": 0.027,
+                "lengthFit": 0.277,
+                "fusion": 0.762,
+                "feasible": true
+              },
+              {
+                "ref": "43:87",
+                "kind": "single",
+                "stageA": 0.727,
+                "acoustic": 3.134,
+                "acousticMargin": 0.202,
+                "lengthFit": 0.257,
+                "fusion": 0.752,
+                "feasible": true
+              },
+              {
+                "ref": "102:1-2",
+                "kind": "span",
+                "stageA": 0.82,
+                "acoustic": 3.782,
+                "acousticMargin": 0.009,
+                "lengthFit": 0.409,
+                "fusion": 0.751,
+                "feasible": true
+              },
+              {
+                "ref": "37:129-130",
+                "kind": "span",
+                "stageA": 0.773,
+                "acoustic": 3.465,
+                "acousticMargin": 0.009,
+                "lengthFit": 0.327,
+                "fusion": 0.75,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 547200,
+          "seconds": 34.2,
+          "event": {
+            "type": "commit",
+            "ref": "102:1",
+            "reason": "repeat_leader",
+            "confidence": 0.848,
+            "origin": "discovery",
+            "selected_rank": 56,
+            "selected_feasible": true,
+            "selected_fusion": 0.623,
+            "top_ref": "42:43",
+            "top_fusion": 0.775,
+            "effective_score": 0.848,
+            "threshold": 0.45,
+            "acoustic_margin": 0.131,
+            "length_fit": 0.316,
+            "clear_margin": false,
+            "repeated_leader": true,
+            "final_flush_commit": false,
+            "is_continuation": false
+          }
+        },
+        {
+          "sampleCursor": 556800,
+          "seconds": 34.8,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:1",
+            "text_length": 2,
+            "word_matches": 0,
+            "acoustic_word": 5,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 590400,
+          "seconds": 36.9,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "wwwataqmm",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "102:2-5",
+                "kind": "span",
+                "stageA": 0.753,
+                "acoustic": 6.924,
+                "acousticMargin": 0.003,
+                "lengthFit": 0.075,
+                "fusion": 0.737,
+                "feasible": true
+              },
+              {
+                "ref": "47:13",
+                "kind": "single",
+                "stageA": 0.734,
+                "acoustic": 6.877,
+                "acousticMargin": 0.047,
+                "lengthFit": 0.073,
+                "fusion": 0.729,
+                "feasible": true
+              },
+              {
+                "ref": "2:48",
+                "kind": "single",
+                "stageA": 0.722,
+                "acoustic": 6.676,
+                "acousticMargin": 0.034,
+                "lengthFit": 0.065,
+                "fusion": 0.727,
+                "feasible": true
+              },
+              {
+                "ref": "2:123",
+                "kind": "single",
+                "stageA": 0.722,
+                "acoustic": 6.71,
+                "acousticMargin": 0.167,
+                "lengthFit": 0.067,
+                "fusion": 0.727,
+                "feasible": true
+              },
+              {
+                "ref": "11:114",
+                "kind": "single",
+                "stageA": 0.706,
+                "acoustic": 6.655,
+                "acousticMargin": 0.021,
+                "lengthFit": 0.066,
+                "fusion": 0.721,
+                "feasible": true
+              },
+              {
+                "ref": "10:13",
+                "kind": "single",
+                "stageA": 0.688,
+                "acoustic": 6.358,
+                "acousticMargin": 0.031,
+                "lengthFit": 0.056,
+                "fusion": 0.718,
+                "feasible": true
+              },
+              {
+                "ref": "11:96-97",
+                "kind": "span",
+                "stageA": 0.688,
+                "acoustic": 6.399,
+                "acousticMargin": 0.076,
+                "lengthFit": 0.06,
+                "fusion": 0.717,
+                "feasible": true
+              },
+              {
+                "ref": "8:25",
+                "kind": "single",
+                "stageA": 0.722,
+                "acoustic": 7.191,
+                "acousticMargin": 0.17,
+                "lengthFit": 0.078,
+                "fusion": 0.717,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 624000,
+          "seconds": 39,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 657600,
+          "seconds": 41.1,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "walaakina albira man <aamana biallahi walyawmi al<aaxiri walmalaaaa<ikati walkitaabi",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "102:2-4",
+                "kind": "span",
+                "stageA": 0.86,
+                "acoustic": 7.239,
+                "acousticMargin": 0.121,
+                "lengthFit": 0.923,
+                "fusion": 0.883,
+                "feasible": true
+              },
+              {
+                "ref": "102:2-5",
+                "kind": "span",
+                "stageA": 0.847,
+                "acoustic": 6.441,
+                "acousticMargin": 0.042,
+                "lengthFit": 0.736,
+                "fusion": 0.852,
+                "feasible": true
+              },
+              {
+                "ref": "2:8",
+                "kind": "single",
+                "stageA": 0.753,
+                "acoustic": 4.094,
+                "acousticMargin": 0.877,
+                "lengthFit": 0.94,
+                "fusion": 0.843,
+                "feasible": true
+              },
+              {
+                "ref": "102:3-5",
+                "kind": "span",
+                "stageA": 0.766,
+                "acoustic": 6.229,
+                "acousticMargin": 0.046,
+                "lengthFit": 0.951,
+                "fusion": 0.837,
+                "feasible": true
+              },
+              {
+                "ref": "4:39",
+                "kind": "single",
+                "stageA": 0.783,
+                "acoustic": 4.971,
+                "acousticMargin": 0.088,
+                "lengthFit": 0.672,
+                "fusion": 0.814,
+                "feasible": true
+              },
+              {
+                "ref": "3:87",
+                "kind": "single",
+                "stageA": 0.716,
+                "acoustic": 5.059,
+                "acousticMargin": 0.005,
+                "lengthFit": 0.918,
+                "fusion": 0.81,
+                "feasible": true
+              },
+              {
+                "ref": "50:26",
+                "kind": "single",
+                "stageA": 0.712,
+                "acoustic": 5.942,
+                "acousticMargin": 0.118,
+                "lengthFit": 0.962,
+                "fusion": 0.808,
+                "feasible": true
+              },
+              {
+                "ref": "25:25",
+                "kind": "single",
+                "stageA": 0.717,
+                "acoustic": 6.155,
+                "acousticMargin": 0.07,
+                "lengthFit": 0.897,
+                "fusion": 0.8,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 657600,
+          "seconds": 41.1,
+          "event": {
+            "type": "commit",
+            "ref": "102:2-4",
+            "reason": "acoustic_margin",
+            "confidence": 0.883,
+            "origin": "discovery",
+            "selected_rank": 1,
+            "selected_feasible": true,
+            "selected_fusion": 0.883,
+            "top_ref": "102:2-4",
+            "top_fusion": 0.883,
+            "effective_score": 0.883,
+            "threshold": 0.45,
+            "acoustic_margin": 0.121,
+            "length_fit": 0.923,
+            "clear_margin": true,
+            "repeated_leader": false,
+            "final_flush_commit": false,
+            "is_continuation": true
+          }
+        },
+        {
+          "sampleCursor": 667200,
+          "seconds": 41.7,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:4",
+            "text_length": 1,
+            "word_matches": 0,
+            "acoustic_word": 1,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 676800,
+          "seconds": 42.3,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:4",
+            "text_length": 10,
+            "word_matches": 0,
+            "acoustic_word": 3,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 696000,
+          "seconds": 43.5,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:5",
+            "text_length": 4,
+            "word_matches": 0,
+            "acoustic_word": 2,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 705600,
+          "seconds": 44.1,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:5",
+            "text_length": 5,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 715200,
+          "seconds": 44.7,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:5",
+            "text_length": 11,
+            "word_matches": 1,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 734400,
+          "seconds": 45.9,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:6",
+            "text_length": 3,
+            "word_matches": 0,
+            "acoustic_word": 0,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 744000,
+          "seconds": 46.5,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:6",
+            "text_length": 8,
+            "word_matches": 0,
+            "acoustic_word": 1,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 763200,
+          "seconds": 47.7,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:7",
+            "text_length": 3,
+            "word_matches": 0,
+            "acoustic_word": 1,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 772800,
+          "seconds": 48.3,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:7",
+            "text_length": 8,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 782400,
+          "seconds": 48.9,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:7",
+            "text_length": 1,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 792000,
+          "seconds": 49.5,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:7",
+            "text_length": 19,
+            "word_matches": 1,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 801600,
+          "seconds": 50.1,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:7",
+            "text_length": 8,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 811200,
+          "seconds": 50.7,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:7",
+            "text_length": 18,
+            "word_matches": 1,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 830400,
+          "seconds": 51.9,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:7",
+            "text_length": 5,
+            "word_matches": 0,
+            "acoustic_word": 3,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 840000,
+          "seconds": 52.5,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:8",
+            "text_length": 1,
+            "word_matches": 0,
+            "acoustic_word": 0,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 849600,
+          "seconds": 53.1,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:8",
+            "text_length": 2,
+            "word_matches": 0,
+            "acoustic_word": 1,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 859200,
+          "seconds": 53.7,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:8",
+            "text_length": 9,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 868800,
+          "seconds": 54.3,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:8",
+            "text_length": 6,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 878400,
+          "seconds": 54.9,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "102:8",
+            "text_length": 0,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": true
+          }
+        },
+        {
+          "sampleCursor": 878400,
+          "seconds": 54.9,
+          "event": {
+            "type": "stale_exit",
+            "ref": "102:8",
+            "stale_cycles": 3
+          }
+        },
+        {
+          "sampleCursor": 878400,
+          "seconds": 54.9,
+          "event": {
+            "type": "flush",
+            "mode": "discovery",
+            "duration_sec": 3.5
+          }
+        },
+        {
+          "sampleCursor": 883200,
+          "seconds": 55.2,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "no speech detected"
+          }
+        },
+        {
+          "sampleCursor": 888000,
+          "seconds": 55.5,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "no speech detected"
+          }
+        },
+        {
+          "sampleCursor": 892800,
+          "seconds": 55.8,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "no speech detected"
+          }
+        },
+        {
+          "sampleCursor": 897600,
+          "seconds": 56.1,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "no speech detected"
+          }
+        },
+        {
+          "sampleCursor": 902400,
+          "seconds": 56.4,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "no speech detected"
+          }
+        },
+        {
+          "sampleCursor": 907200,
+          "seconds": 56.7,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "no speech detected"
+          }
+        },
+        {
+          "sampleCursor": 912000,
+          "seconds": 57,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "no speech detected"
+          }
+        },
+        {
+          "sampleCursor": 916800,
+          "seconds": 57.3,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "no speech detected"
+          }
+        },
+        {
+          "sampleCursor": 921600,
+          "seconds": 57.6,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 955200,
+          "seconds": 59.7,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "residual=0.750"
+          }
+        },
+        {
+          "sampleCursor": 988800,
+          "seconds": 61.8,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "residual=0.714"
+          }
+        },
+        {
+          "sampleCursor": 1022400,
+          "seconds": 63.9,
+          "event": {
+            "type": "commit",
+            "ref": "44:46",
+            "reason": "short_rescue",
+            "confidence": 0.7277465156958574,
+            "origin": "short_rescue",
+            "acoustic_margin": 0.228
+          }
+        },
+        {
+          "sampleCursor": 1032000,
+          "seconds": 64.5,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "44:46",
+            "text_length": 22,
+            "word_matches": 1,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1041600,
+          "seconds": 65.1,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "44:46",
+            "text_length": 5,
+            "word_matches": 0,
+            "acoustic_word": 1,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1075200,
+          "seconds": 67.2,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "awwaqmm",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "29:67",
+                "kind": "single",
+                "stageA": 0.714,
+                "acoustic": 27.188,
+                "acousticMargin": 1.084,
+                "lengthFit": 0.046,
+                "fusion": 0.728,
+                "feasible": true
+              },
+              {
+                "ref": "7:100",
+                "kind": "single",
+                "stageA": 0.714,
+                "acoustic": 32.95,
+                "acousticMargin": 0.305,
+                "lengthFit": 0.043,
+                "fusion": 0.718,
+                "feasible": true
+              },
+              {
+                "ref": "21:30",
+                "kind": "single",
+                "stageA": 0.714,
+                "acoustic": 33.529,
+                "acousticMargin": 1.135,
+                "lengthFit": 0.043,
+                "fusion": 0.717,
+                "feasible": true
+              },
+              {
+                "ref": "32:27",
+                "kind": "single",
+                "stageA": 0.714,
+                "acoustic": 34.91,
+                "acousticMargin": 0.483,
+                "lengthFit": 0.045,
+                "fusion": 0.715,
+                "feasible": true
+              },
+              {
+                "ref": "32:26",
+                "kind": "single",
+                "stageA": 0.714,
+                "acoustic": 35.776,
+                "acousticMargin": 0.569,
+                "lengthFit": 0.047,
+                "fusion": 0.714,
+                "feasible": true
+              },
+              {
+                "ref": "16:48",
+                "kind": "single",
+                "stageA": 0.714,
+                "acoustic": 36.345,
+                "acousticMargin": 0.116,
+                "lengthFit": 0.048,
+                "fusion": 0.713,
+                "feasible": true
+              },
+              {
+                "ref": "44:47-49",
+                "kind": "span",
+                "stageA": 0.72,
+                "acoustic": 38.654,
+                "acousticMargin": 0.018,
+                "lengthFit": 0.051,
+                "fusion": 0.713,
+                "feasible": true
+              },
+              {
+                "ref": "13:41",
+                "kind": "single",
+                "stageA": 0.714,
+                "acoustic": 37.642,
+                "acousticMargin": 0.748,
+                "lengthFit": 0.05,
+                "fusion": 0.712,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 1108800,
+          "seconds": 69.3,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 1142400,
+          "seconds": 71.4,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "waamn*aribaa wlataamaawamasaa",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "78:11",
+                "kind": "single",
+                "stageA": 0.69,
+                "acoustic": 3.776,
+                "acousticMargin": 0.006,
+                "lengthFit": 0.923,
+                "fusion": 0.818,
+                "feasible": true
+              },
+              {
+                "ref": "79:41",
+                "kind": "single",
+                "stageA": 0.7,
+                "acoustic": 3.749,
+                "acousticMargin": 0.01,
+                "lengthFit": 0.828,
+                "fusion": 0.812,
+                "feasible": true
+              },
+              {
+                "ref": "92:13",
+                "kind": "single",
+                "stageA": 0.682,
+                "acoustic": 3.612,
+                "acousticMargin": 0.062,
+                "lengthFit": 0.706,
+                "fusion": 0.804,
+                "feasible": true
+              },
+              {
+                "ref": "87:4",
+                "kind": "single",
+                "stageA": 0.732,
+                "acoustic": 4.117,
+                "acousticMargin": 0.016,
+                "lengthFit": 0.96,
+                "fusion": 0.796,
+                "feasible": true
+              },
+              {
+                "ref": "84:17",
+                "kind": "single",
+                "stageA": 0.686,
+                "acoustic": 3.917,
+                "acousticMargin": 0.017,
+                "lengthFit": 0.875,
+                "fusion": 0.79,
+                "feasible": true
+              },
+              {
+                "ref": "79:31",
+                "kind": "single",
+                "stageA": 0.688,
+                "acoustic": 3.934,
+                "acousticMargin": 0.008,
+                "lengthFit": 0.8,
+                "fusion": 0.777,
+                "feasible": true
+              },
+              {
+                "ref": "53:11",
+                "kind": "single",
+                "stageA": 0.7,
+                "acoustic": 4.095,
+                "acousticMargin": 0.022,
+                "lengthFit": 0.889,
+                "fusion": 0.774,
+                "feasible": true
+              },
+              {
+                "ref": "53:42",
+                "kind": "single",
+                "stageA": 0.689,
+                "acoustic": 3.973,
+                "acousticMargin": 0.006,
+                "lengthFit": 0.8,
+                "fusion": 0.772,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 1142400,
+          "seconds": 71.4,
+          "event": {
+            "type": "commit",
+            "ref": "44:47",
+            "reason": "repeat_leader",
+            "confidence": 0.762,
+            "origin": "discovery",
+            "selected_rank": 42,
+            "selected_feasible": true,
+            "selected_fusion": 0.699,
+            "top_ref": "78:11",
+            "top_fusion": 0.818,
+            "effective_score": 0.762,
+            "threshold": 0.45,
+            "acoustic_margin": 0.006,
+            "length_fit": 0.923,
+            "clear_margin": false,
+            "repeated_leader": true,
+            "final_flush_commit": false,
+            "is_continuation": true
+          }
+        },
+        {
+          "sampleCursor": 1152000,
+          "seconds": 72,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "44:47",
+            "text_length": 2,
+            "word_matches": 0,
+            "acoustic_word": 4,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1185600,
+          "seconds": 74.1,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 1219200,
+          "seconds": 76.2,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "u asaSabr",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "56:8",
+                "kind": "single",
+                "stageA": 0.722,
+                "acoustic": 3.063,
+                "acousticMargin": 0.056,
+                "lengthFit": 0.205,
+                "fusion": 0.749,
+                "feasible": true
+              },
+              {
+                "ref": "18:75",
+                "kind": "single",
+                "stageA": 0.71,
+                "acoustic": 3.023,
+                "acousticMargin": 0.016,
+                "lengthFit": 0.158,
+                "fusion": 0.743,
+                "feasible": true
+              },
+              {
+                "ref": "18:72",
+                "kind": "single",
+                "stageA": 0.71,
+                "acoustic": 3.039,
+                "acousticMargin": 0.024,
+                "lengthFit": 0.176,
+                "fusion": 0.743,
+                "feasible": true
+              },
+              {
+                "ref": "18:67",
+                "kind": "single",
+                "stageA": 0.71,
+                "acoustic": 3.119,
+                "acousticMargin": 0.016,
+                "lengthFit": 0.231,
+                "fusion": 0.737,
+                "feasible": true
+              },
+              {
+                "ref": "36:78",
+                "kind": "single",
+                "stageA": 0.75,
+                "acoustic": 3.139,
+                "acousticMargin": 0.052,
+                "lengthFit": 0.122,
+                "fusion": 0.735,
+                "feasible": true
+              },
+              {
+                "ref": "56:27",
+                "kind": "single",
+                "stageA": 0.722,
+                "acoustic": 3.19,
+                "acousticMargin": 0.007,
+                "lengthFit": 0.237,
+                "fusion": 0.731,
+                "feasible": true
+              },
+              {
+                "ref": "56:9",
+                "kind": "single",
+                "stageA": 0.722,
+                "acoustic": 3.201,
+                "acousticMargin": 0.012,
+                "lengthFit": 0.214,
+                "fusion": 0.726,
+                "feasible": true
+              },
+              {
+                "ref": "44:48",
+                "kind": "single",
+                "stageA": 0.791,
+                "acoustic": 3.406,
+                "acousticMargin": 0.002,
+                "lengthFit": 0.2,
+                "fusion": 0.718,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 1252800,
+          "seconds": 78.3,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 1286400,
+          "seconds": 80.4,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 1320000,
+          "seconds": 82.5,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 1353600,
+          "seconds": 84.6,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 1368000,
+          "seconds": 85.5,
+          "event": {
+            "type": "commit",
+            "ref": "79:23",
+            "reason": "short_rescue",
+            "confidence": 0.7095436654584777,
+            "origin": "short_rescue",
+            "acoustic_margin": 0.21
+          }
+        },
+        {
+          "sampleCursor": 1368000,
+          "seconds": 85.5,
+          "event": {
+            "type": "flush",
+            "mode": "tracking",
+            "duration_sec": 30
+          }
+        },
+        {
+          "sampleCursor": 1377600,
+          "seconds": 86.1,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "79:23",
+            "text_length": 4,
+            "word_matches": 0,
+            "acoustic_word": 1,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1411200,
+          "seconds": 88.2,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "<snskh",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "27:30",
+                "kind": "single",
+                "stageA": 0.692,
+                "acoustic": 3.043,
+                "acousticMargin": 0.03,
+                "lengthFit": 0.095,
+                "fusion": 0.726,
+                "feasible": true
+              },
+              {
+                "ref": "21:110",
+                "kind": "single",
+                "stageA": 0.692,
+                "acoustic": 3.073,
+                "acousticMargin": 0.01,
+                "lengthFit": 0.102,
+                "fusion": 0.722,
+                "feasible": true
+              },
+              {
+                "ref": "43:3",
+                "kind": "single",
+                "stageA": 0.667,
+                "acoustic": 3.097,
+                "acousticMargin": 0.004,
+                "lengthFit": 0.105,
+                "fusion": 0.708,
+                "feasible": true
+              },
+              {
+                "ref": "20:48",
+                "kind": "single",
+                "stageA": 0.667,
+                "acoustic": 3.083,
+                "acousticMargin": 0.014,
+                "lengthFit": 0.091,
+                "fusion": 0.707,
+                "feasible": true
+              },
+              {
+                "ref": "12:2",
+                "kind": "single",
+                "stageA": 0.667,
+                "acoustic": 3.102,
+                "acousticMargin": 0.064,
+                "lengthFit": 0.103,
+                "fusion": 0.707,
+                "feasible": true
+              },
+              {
+                "ref": "37:81",
+                "kind": "single",
+                "stageA": 0.692,
+                "acoustic": 3.271,
+                "acousticMargin": 0,
+                "lengthFit": 0.188,
+                "fusion": 0.705,
+                "feasible": true
+              },
+              {
+                "ref": "37:111",
+                "kind": "single",
+                "stageA": 0.692,
+                "acoustic": 3.271,
+                "acousticMargin": 0,
+                "lengthFit": 0.188,
+                "fusion": 0.705,
+                "feasible": true
+              },
+              {
+                "ref": "37:132",
+                "kind": "single",
+                "stageA": 0.692,
+                "acoustic": 3.271,
+                "acousticMargin": 0.009,
+                "lengthFit": 0.188,
+                "fusion": 0.705,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 1444800,
+          "seconds": 90.3,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "yam<s",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "75:6-8",
+                "kind": "span",
+                "stageA": 0.727,
+                "acoustic": 3.287,
+                "acousticMargin": 0.03,
+                "lengthFit": 0.071,
+                "fusion": 0.724,
+                "feasible": true
+              },
+              {
+                "ref": "5:56",
+                "kind": "single",
+                "stageA": 0.7,
+                "acoustic": 3.206,
+                "acousticMargin": 0.019,
+                "lengthFit": 0.057,
+                "fusion": 0.724,
+                "feasible": true
+              },
+              {
+                "ref": "6:4",
+                "kind": "single",
+                "stageA": 0.7,
+                "acoustic": 3.225,
+                "acousticMargin": 0.021,
+                "lengthFit": 0.068,
+                "fusion": 0.722,
+                "feasible": true
+              },
+              {
+                "ref": "79:35-37",
+                "kind": "span",
+                "stageA": 0.7,
+                "acoustic": 3.246,
+                "acousticMargin": 0.006,
+                "lengthFit": 0.061,
+                "fusion": 0.717,
+                "feasible": true
+              },
+              {
+                "ref": "3:85",
+                "kind": "single",
+                "stageA": 0.7,
+                "acoustic": 3.252,
+                "acousticMargin": 0.017,
+                "lengthFit": 0.054,
+                "fusion": 0.715,
+                "feasible": true
+              },
+              {
+                "ref": "3:166",
+                "kind": "single",
+                "stageA": 0.7,
+                "acoustic": 3.269,
+                "acousticMargin": 0.018,
+                "lengthFit": 0.064,
+                "fusion": 0.713,
+                "feasible": true
+              },
+              {
+                "ref": "75:6-9",
+                "kind": "span",
+                "stageA": 0.727,
+                "acoustic": 3.374,
+                "acousticMargin": 0.002,
+                "lengthFit": 0.052,
+                "fusion": 0.705,
+                "feasible": true
+              },
+              {
+                "ref": "79:35-38",
+                "kind": "span",
+                "stageA": 0.7,
+                "acoustic": 3.317,
+                "acousticMargin": 0.014,
+                "lengthFit": 0.046,
+                "fusion": 0.702,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 1478400,
+          "seconds": 92.4,
+          "event": {
+            "type": "commit",
+            "ref": "75:11",
+            "reason": "short_rescue",
+            "confidence": 0.639145966019488,
+            "origin": "short_rescue",
+            "acoustic_margin": 0.139
+          }
+        },
+        {
+          "sampleCursor": 1488000,
+          "seconds": 93,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:11",
+            "text_length": 2,
+            "word_matches": 0,
+            "acoustic_word": 2,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1521600,
+          "seconds": 95.1,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 1555200,
+          "seconds": 97.2,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 1588800,
+          "seconds": 99.3,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 1622400,
+          "seconds": 101.4,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 1646400,
+          "seconds": 102.9,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "transcript too short"
+          }
+        },
+        {
+          "sampleCursor": 1646400,
+          "seconds": 102.9,
+          "event": {
+            "type": "flush",
+            "mode": "discovery",
+            "duration_sec": 30
+          }
+        },
+        {
+          "sampleCursor": 1651200,
+          "seconds": 103.2,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "no speech detected"
+          }
+        },
+        {
+          "sampleCursor": 1656000,
+          "seconds": 103.5,
+          "event": {
+            "type": "silence_skip",
+            "mode": "discovery",
+            "reason": "no speech detected"
+          }
+        },
+        {
+          "sampleCursor": 1680000,
+          "seconds": 105,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "uqhhhh",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "69:30",
+                "kind": "single",
+                "stageA": 0.615,
+                "acoustic": 3.85,
+                "acousticMargin": 999999996.15,
+                "lengthFit": 0.375,
+                "fusion": 0.733,
+                "feasible": true
+              },
+              {
+                "ref": "75:12",
+                "kind": "single",
+                "stageA": 0.675,
+                "acoustic": 1000000000,
+                "acousticMargin": 0,
+                "lengthFit": 0.167,
+                "fusion": 0.329,
+                "feasible": false
+              },
+              {
+                "ref": "75:12-13",
+                "kind": "span",
+                "stageA": 0.675,
+                "acoustic": 1000000000,
+                "acousticMargin": 0,
+                "lengthFit": 0.067,
+                "fusion": 0.314,
+                "feasible": false
+              },
+              {
+                "ref": "75:12-14",
+                "kind": "span",
+                "stageA": 0.675,
+                "acoustic": 1000000000,
+                "acousticMargin": 0,
+                "lengthFit": 0.048,
+                "fusion": 0.311,
+                "feasible": false
+              },
+              {
+                "ref": "75:12-15",
+                "kind": "span",
+                "stageA": 0.675,
+                "acoustic": 1000000000,
+                "acousticMargin": 0,
+                "lengthFit": 0.041,
+                "fusion": 0.31,
+                "feasible": false
+              },
+              {
+                "ref": "44:47",
+                "kind": "single",
+                "stageA": 0.615,
+                "acoustic": 1000000000,
+                "acousticMargin": 0,
+                "lengthFit": 0.158,
+                "fusion": 0.301,
+                "feasible": false
+              },
+              {
+                "ref": "69:30-31",
+                "kind": "span",
+                "stageA": 0.615,
+                "acoustic": 1000000000,
+                "acousticMargin": 0,
+                "lengthFit": 0.158,
+                "fusion": 0.301,
+                "feasible": false
+              },
+              {
+                "ref": "22:20",
+                "kind": "single",
+                "stageA": 0.615,
+                "acoustic": 1000000000,
+                "acousticMargin": 0,
+                "lengthFit": 0.15,
+                "fusion": 0.299,
+                "feasible": false
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 1713600,
+          "seconds": 107.1,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "wSaabiriina fifahaaa",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "78:23",
+                "kind": "single",
+                "stageA": 0.842,
+                "acoustic": 3.453,
+                "acousticMargin": 0.238,
+                "lengthFit": 0.739,
+                "fusion": 0.89,
+                "feasible": true
+              },
+              {
+                "ref": "18:3",
+                "kind": "single",
+                "stageA": 0.757,
+                "acoustic": 3.691,
+                "acousticMargin": 0.447,
+                "lengthFit": 0.773,
+                "fusion": 0.829,
+                "feasible": true
+              },
+              {
+                "ref": "74:13",
+                "kind": "single",
+                "stageA": 0.711,
+                "acoustic": 4.138,
+                "acousticMargin": 0.631,
+                "lengthFit": 0.941,
+                "fusion": 0.783,
+                "feasible": true
+              },
+              {
+                "ref": "38:38",
+                "kind": "single",
+                "stageA": 0.711,
+                "acoustic": 4.768,
+                "acousticMargin": 0.628,
+                "lengthFit": 0.472,
+                "fusion": 0.641,
+                "feasible": true
+              },
+              {
+                "ref": "56:53",
+                "kind": "single",
+                "stageA": 0.711,
+                "acoustic": 5.397,
+                "acousticMargin": 0.203,
+                "lengthFit": 0.68,
+                "fusion": 0.6,
+                "feasible": true
+              },
+              {
+                "ref": "75:12",
+                "kind": "single",
+                "stageA": 0.835,
+                "acoustic": 5.727,
+                "acousticMargin": 0.032,
+                "lengthFit": 0.472,
+                "fusion": 0.588,
+                "feasible": true
+              },
+              {
+                "ref": "18:108",
+                "kind": "single",
+                "stageA": 0.811,
+                "acoustic": 5.6,
+                "acousticMargin": 0.077,
+                "lengthFit": 0.447,
+                "fusion": 0.587,
+                "feasible": true
+              },
+              {
+                "ref": "23:67",
+                "kind": "single",
+                "stageA": 0.711,
+                "acoustic": 5.677,
+                "acousticMargin": 0.051,
+                "lengthFit": 0.486,
+                "fusion": 0.539,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 1747200,
+          "seconds": 109.2,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "wwSSaabiriina fiaa alba<saa",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "78:23",
+                "kind": "single",
+                "stageA": 0.764,
+                "acoustic": 3.286,
+                "acousticMargin": 0.156,
+                "lengthFit": 1,
+                "fusion": 0.881,
+                "feasible": true
+              },
+              {
+                "ref": "89:10",
+                "kind": "single",
+                "stageA": 0.736,
+                "acoustic": 3.518,
+                "acousticMargin": 0.489,
+                "lengthFit": 0.958,
+                "fusion": 0.836,
+                "feasible": true
+              },
+              {
+                "ref": "79:39",
+                "kind": "single",
+                "stageA": 0.741,
+                "acoustic": 3.442,
+                "acousticMargin": 0.046,
+                "lengthFit": 0.821,
+                "fusion": 0.826,
+                "feasible": true
+              },
+              {
+                "ref": "38:38",
+                "kind": "single",
+                "stageA": 0.702,
+                "acoustic": 3.173,
+                "acousticMargin": 0.113,
+                "lengthFit": 0.639,
+                "fusion": 0.812,
+                "feasible": true
+              },
+              {
+                "ref": "79:41",
+                "kind": "single",
+                "stageA": 0.707,
+                "acoustic": 3.488,
+                "acousticMargin": 0.03,
+                "lengthFit": 0.793,
+                "fusion": 0.801,
+                "feasible": true
+              },
+              {
+                "ref": "18:3",
+                "kind": "single",
+                "stageA": 0.731,
+                "acoustic": 4.008,
+                "acousticMargin": 0.355,
+                "lengthFit": 0.957,
+                "fusion": 0.778,
+                "feasible": true
+              },
+              {
+                "ref": "75:12",
+                "kind": "single",
+                "stageA": 0.912,
+                "acoustic": 4.846,
+                "acousticMargin": 0.023,
+                "lengthFit": 0.639,
+                "fusion": 0.717,
+                "feasible": true
+              },
+              {
+                "ref": "55:8",
+                "kind": "single",
+                "stageA": 0.696,
+                "acoustic": 4.363,
+                "acousticMargin": 0.152,
+                "lengthFit": 0.92,
+                "fusion": 0.717,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 1747200,
+          "seconds": 109.2,
+          "event": {
+            "type": "commit",
+            "ref": "75:12",
+            "reason": "acoustic_margin",
+            "confidence": 0.912,
+            "origin": "discovery",
+            "selected_rank": 7,
+            "selected_feasible": true,
+            "selected_fusion": 0.717,
+            "top_ref": "78:23",
+            "top_fusion": 0.881,
+            "effective_score": 0.912,
+            "threshold": 0.45,
+            "acoustic_margin": 0.156,
+            "length_fit": 1,
+            "clear_margin": true,
+            "repeated_leader": false,
+            "final_flush_commit": false,
+            "is_continuation": true
+          }
+        },
+        {
+          "sampleCursor": 1766400,
+          "seconds": 110.4,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:12",
+            "text_length": 5,
+            "word_matches": 0,
+            "acoustic_word": 1,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1776000,
+          "seconds": 111,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:12",
+            "text_length": 1,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1785600,
+          "seconds": 111.6,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:12",
+            "text_length": 3,
+            "word_matches": 0,
+            "acoustic_word": 2,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1795200,
+          "seconds": 112.2,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:12",
+            "text_length": 1,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1804800,
+          "seconds": 112.8,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:12",
+            "text_length": 12,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1814400,
+          "seconds": 113.4,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:12",
+            "text_length": 12,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1824000,
+          "seconds": 114,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:12",
+            "text_length": 10,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1824000,
+          "seconds": 114,
+          "event": {
+            "type": "stale_exit",
+            "ref": "75:12",
+            "stale_cycles": 4
+          }
+        },
+        {
+          "sampleCursor": 1857600,
+          "seconds": 116.1,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "walba<saa<i wDDarr<i w",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "86:11",
+                "kind": "single",
+                "stageA": 0.681,
+                "acoustic": 3.239,
+                "acousticMargin": 0.124,
+                "lengthFit": 0.913,
+                "fusion": 0.817,
+                "feasible": true
+              },
+              {
+                "ref": "85:20",
+                "kind": "single",
+                "stageA": 0.667,
+                "acoustic": 3.051,
+                "acousticMargin": 0.188,
+                "lengthFit": 0.677,
+                "fusion": 0.802,
+                "feasible": true
+              },
+              {
+                "ref": "86:1",
+                "kind": "single",
+                "stageA": 0.711,
+                "acoustic": 3.557,
+                "acousticMargin": 0.048,
+                "lengthFit": 1,
+                "fusion": 0.798,
+                "feasible": true
+              },
+              {
+                "ref": "70:25",
+                "kind": "single",
+                "stageA": 0.667,
+                "acoustic": 3.437,
+                "acousticMargin": 0.021,
+                "lengthFit": 0.913,
+                "fusion": 0.782,
+                "feasible": true
+              },
+              {
+                "ref": "88:18",
+                "kind": "single",
+                "stageA": 0.66,
+                "acoustic": 3.378,
+                "acousticMargin": 0.059,
+                "lengthFit": 0.724,
+                "fusion": 0.76,
+                "feasible": true
+              },
+              {
+                "ref": "78:29",
+                "kind": "single",
+                "stageA": 0.667,
+                "acoustic": 3.364,
+                "acousticMargin": 0.014,
+                "lengthFit": 0.656,
+                "fusion": 0.754,
+                "feasible": true
+              },
+              {
+                "ref": "75:15",
+                "kind": "single",
+                "stageA": 0.677,
+                "acoustic": 3.857,
+                "acousticMargin": 0.087,
+                "lengthFit": 0.955,
+                "fusion": 0.734,
+                "feasible": true
+              },
+              {
+                "ref": "75:14",
+                "kind": "single",
+                "stageA": 0.725,
+                "acoustic": 3.605,
+                "acousticMargin": 0.042,
+                "lengthFit": 0.568,
+                "fusion": 0.733,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 1857600,
+          "seconds": 116.1,
+          "event": {
+            "type": "commit",
+            "ref": "75:13",
+            "reason": "acoustic_margin",
+            "confidence": 0.824,
+            "origin": "discovery",
+            "selected_rank": 10,
+            "selected_feasible": true,
+            "selected_fusion": 0.73,
+            "top_ref": "86:11",
+            "top_fusion": 0.817,
+            "effective_score": 0.824,
+            "threshold": 0.45,
+            "acoustic_margin": 0.124,
+            "length_fit": 0.913,
+            "clear_margin": true,
+            "repeated_leader": false,
+            "final_flush_commit": false,
+            "is_continuation": true
+          }
+        },
+        {
+          "sampleCursor": 1896000,
+          "seconds": 118.5,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:13",
+            "text_length": 10,
+            "word_matches": 0,
+            "acoustic_word": 1,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": true
+          }
+        },
+        {
+          "sampleCursor": 1896000,
+          "seconds": 118.5,
+          "event": {
+            "type": "flush",
+            "mode": "tracking",
+            "duration_sec": 4.4
+          }
+        },
+        {
+          "sampleCursor": 1905600,
+          "seconds": 119.1,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:13",
+            "text_length": 4,
+            "word_matches": 0,
+            "acoustic_word": 3,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1915200,
+          "seconds": 119.7,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:13",
+            "text_length": 3,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1934400,
+          "seconds": 120.9,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:13",
+            "text_length": 14,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1944000,
+          "seconds": 121.5,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:13",
+            "text_length": 31,
+            "word_matches": 0,
+            "acoustic_word": 5,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1963200,
+          "seconds": 122.7,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:14",
+            "text_length": 2,
+            "word_matches": 0,
+            "acoustic_word": 1,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1972800,
+          "seconds": 123.3,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:14",
+            "text_length": 6,
+            "word_matches": 0,
+            "acoustic_word": 2,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1982400,
+          "seconds": 123.9,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:14",
+            "text_length": 25,
+            "word_matches": 1,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 1992000,
+          "seconds": 124.5,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:14",
+            "text_length": 6,
+            "word_matches": 1,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 2001600,
+          "seconds": 125.1,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:14",
+            "text_length": 27,
+            "word_matches": 0,
+            "acoustic_word": 3,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 2011200,
+          "seconds": 125.7,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:14",
+            "text_length": 29,
+            "word_matches": 0,
+            "acoustic_word": 4,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 2030400,
+          "seconds": 126.9,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:15",
+            "text_length": 3,
+            "word_matches": 0,
+            "acoustic_word": 1,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 2040000,
+          "seconds": 127.5,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:15",
+            "text_length": 8,
+            "word_matches": 0,
+            "acoustic_word": 2,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 2059200,
+          "seconds": 128.7,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:16",
+            "text_length": 4,
+            "word_matches": 0,
+            "acoustic_word": 2,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 2068800,
+          "seconds": 129.3,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:16",
+            "text_length": 7,
+            "word_matches": 0,
+            "acoustic_word": 3,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 2078400,
+          "seconds": 129.9,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:16",
+            "text_length": 1,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 2088000,
+          "seconds": 130.5,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:16",
+            "text_length": 16,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 2097600,
+          "seconds": 131.1,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:16",
+            "text_length": 21,
+            "word_matches": 1,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 2107200,
+          "seconds": 131.7,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "75:16",
+            "text_length": 3,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 2107200,
+          "seconds": 131.7,
+          "event": {
+            "type": "stale_exit",
+            "ref": "75:16",
+            "stale_cycles": 4
+          }
+        },
+        {
+          "sampleCursor": 2140800,
+          "seconds": 133.8,
+          "event": {
+            "type": "discovery_cycle",
+            "text": "<ul<ika humu almutaquuna",
+            "final_flush": false,
+            "candidates": [
+              {
+                "ref": "23:10",
+                "kind": "single",
+                "stageA": 0.796,
+                "acoustic": 2.659,
+                "acousticMargin": 0.14,
+                "lengthFit": 0.923,
+                "fusion": 0.897,
+                "feasible": true
+              },
+              {
+                "ref": "80:42",
+                "kind": "single",
+                "stageA": 0.75,
+                "acoustic": 2.799,
+                "acousticMargin": 1.003,
+                "lengthFit": 0.649,
+                "fusion": 0.823,
+                "feasible": true
+              },
+              {
+                "ref": "56:11",
+                "kind": "single",
+                "stageA": 0.745,
+                "acoustic": 3.802,
+                "acousticMargin": 0.247,
+                "lengthFit": 1,
+                "fusion": 0.787,
+                "feasible": true
+              },
+              {
+                "ref": "37:42",
+                "kind": "single",
+                "stageA": 0.686,
+                "acoustic": 4.049,
+                "acousticMargin": 0.032,
+                "lengthFit": 0.96,
+                "fusion": 0.733,
+                "feasible": true
+              },
+              {
+                "ref": "36:3",
+                "kind": "single",
+                "stageA": 0.725,
+                "acoustic": 4.301,
+                "acousticMargin": 0.035,
+                "lengthFit": 0.923,
+                "fusion": 0.724,
+                "feasible": true
+              },
+              {
+                "ref": "68:6",
+                "kind": "single",
+                "stageA": 0.702,
+                "acoustic": 4.336,
+                "acousticMargin": 0.016,
+                "lengthFit": 0.917,
+                "fusion": 0.709,
+                "feasible": true
+              },
+              {
+                "ref": "78:3",
+                "kind": "single",
+                "stageA": 0.709,
+                "acoustic": 4.352,
+                "acousticMargin": 0.11,
+                "lengthFit": 0.857,
+                "fusion": 0.702,
+                "feasible": true
+              },
+              {
+                "ref": "7:15",
+                "kind": "single",
+                "stageA": 0.691,
+                "acoustic": 4.299,
+                "acousticMargin": 0.002,
+                "lengthFit": 0.828,
+                "fusion": 0.694,
+                "feasible": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 2140800,
+          "seconds": 133.8,
+          "event": {
+            "type": "commit",
+            "ref": "8:4",
+            "reason": "acoustic_margin",
+            "confidence": 0.833,
+            "origin": "discovery",
+            "selected_rank": 44,
+            "selected_feasible": false,
+            "selected_fusion": 0.413,
+            "top_ref": "23:10",
+            "top_fusion": 0.897,
+            "effective_score": 0.833,
+            "threshold": 0.45,
+            "acoustic_margin": 0.14,
+            "length_fit": 0.923,
+            "clear_margin": true,
+            "repeated_leader": false,
+            "final_flush_commit": false,
+            "is_continuation": false
+          }
+        },
+        {
+          "sampleCursor": 2160000,
+          "seconds": 135,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "8:4",
+            "text_length": 0,
+            "word_matches": 0,
+            "acoustic_word": 0,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": true
+          }
+        },
+        {
+          "sampleCursor": 2160000,
+          "seconds": 135,
+          "event": {
+            "type": "flush",
+            "mode": "tracking",
+            "duration_sec": 3.2
+          }
+        },
+        {
+          "sampleCursor": 2178593,
+          "seconds": 136.162,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "8:4",
+            "text_length": 1,
+            "word_matches": 0,
+            "acoustic_word": 1,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 2188193,
+          "seconds": 136.762,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "8:4",
+            "text_length": 4,
+            "word_matches": 0,
+            "acoustic_word": 2,
+            "char_word": null,
+            "advanced": true,
+            "final_flush": false
+          }
+        },
+        {
+          "sampleCursor": 2207393,
+          "seconds": 137.962,
+          "event": {
+            "type": "tracking_cycle",
+            "ref": "8:4",
+            "text_length": 1,
+            "word_matches": 0,
+            "acoustic_word": null,
+            "char_word": null,
+            "advanced": false,
+            "final_flush": false
+          }
+        }
+      ],
+      "messages": [
+        {
+          "sampleCursor": 134400,
+          "seconds": 8.4,
+          "message": {
+            "type": "raw_transcript",
+            "text": "aysa albira <an tuwaluu wujuuhakum",
+            "confidence": 0.94
+          }
+        },
+        {
+          "sampleCursor": 201600,
+          "seconds": 12.6,
+          "message": {
+            "type": "raw_transcript",
+            "text": "waqmm",
+            "confidence": 0.8
+          }
+        },
+        {
+          "sampleCursor": 302400,
+          "seconds": 18.9,
+          "message": {
+            "type": "raw_transcript",
+            "text": "s<al<wkn<man",
+            "confidence": 0.72
+          }
+        },
+        {
+          "sampleCursor": 336000,
+          "seconds": 21,
+          "message": {
+            "type": "raw_transcript",
+            "text": "tsaaaaaa wantu",
+            "confidence": 0.76
+          }
+        },
+        {
+          "sampleCursor": 436800,
+          "seconds": 27.3,
+          "message": {
+            "type": "verse_match",
+            "surah": 101,
+            "ayah": 11,
+            "verse_text": "نَارٌ حَامِيَةٌۢ",
+            "surah_name": "سُورَةُ القَارِعَةِ",
+            "confidence": 0.64,
+            "surrounding_verses": [
+              {
+                "surah": 101,
+                "ayah": 9,
+                "text": "فَأُمُّهُۥ هَاوِيَةٌۭ",
+                "is_current": false
+              },
+              {
+                "surah": 101,
+                "ayah": 10,
+                "text": "وَمَآ أَدْرَىٰكَ مَا هِيَهْ",
+                "is_current": false
+              },
+              {
+                "surah": 101,
+                "ayah": 11,
+                "text": "نَارٌ حَامِيَةٌۢ",
+                "is_current": true
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 480000,
+          "seconds": 30,
+          "message": {
+            "type": "raw_transcript",
+            "text": "ialbirwamaaa",
+            "confidence": 0.81
+          }
+        },
+        {
+          "sampleCursor": 513600,
+          "seconds": 32.1,
+          "message": {
+            "type": "raw_transcript",
+            "text": "llbira man <aamana ilaha",
+            "confidence": 0.9
+          }
+        },
+        {
+          "sampleCursor": 547200,
+          "seconds": 34.2,
+          "message": {
+            "type": "verse_match",
+            "surah": 102,
+            "ayah": 1,
+            "verse_text": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ أَلْهَىٰكُمُ ٱلتَّكَاثُرُ",
+            "surah_name": "سُورَةُ التَّكَاثُرِ",
+            "confidence": 0.85,
+            "surrounding_verses": [
+              {
+                "surah": 102,
+                "ayah": 1,
+                "text": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ أَلْهَىٰكُمُ ٱلتَّكَاثُرُ",
+                "is_current": true
+              },
+              {
+                "surah": 102,
+                "ayah": 2,
+                "text": "حَتَّىٰ زُرْتُمُ ٱلْمَقَابِرَ",
+                "is_current": false
+              },
+              {
+                "surah": 102,
+                "ayah": 3,
+                "text": "كَلَّا سَوْفَ تَعْلَمُونَ",
+                "is_current": false
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 590400,
+          "seconds": 36.9,
+          "message": {
+            "type": "raw_transcript",
+            "text": "wwwataqmm",
+            "confidence": 0.75
+          }
+        },
+        {
+          "sampleCursor": 657600,
+          "seconds": 41.1,
+          "message": {
+            "type": "verse_match",
+            "surah": 102,
+            "ayah": 2,
+            "verse_text": "حَتَّىٰ زُرْتُمُ ٱلْمَقَابِرَ",
+            "surah_name": "سُورَةُ التَّكَاثُرِ",
+            "confidence": 0.88,
+            "surrounding_verses": [
+              {
+                "surah": 102,
+                "ayah": 1,
+                "text": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ أَلْهَىٰكُمُ ٱلتَّكَاثُرُ",
+                "is_current": false
+              },
+              {
+                "surah": 102,
+                "ayah": 2,
+                "text": "حَتَّىٰ زُرْتُمُ ٱلْمَقَابِرَ",
+                "is_current": true
+              },
+              {
+                "surah": 102,
+                "ayah": 3,
+                "text": "كَلَّا سَوْفَ تَعْلَمُونَ",
+                "is_current": false
+              },
+              {
+                "surah": 102,
+                "ayah": 4,
+                "text": "ثُمَّ كَلَّا سَوْفَ تَعْلَمُونَ",
+                "is_current": false
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 657600,
+          "seconds": 41.1,
+          "message": {
+            "type": "verse_match",
+            "surah": 102,
+            "ayah": 3,
+            "verse_text": "كَلَّا سَوْفَ تَعْلَمُونَ",
+            "surah_name": "سُورَةُ التَّكَاثُرِ",
+            "confidence": 0.88,
+            "surrounding_verses": [
+              {
+                "surah": 102,
+                "ayah": 1,
+                "text": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ أَلْهَىٰكُمُ ٱلتَّكَاثُرُ",
+                "is_current": false
+              },
+              {
+                "surah": 102,
+                "ayah": 2,
+                "text": "حَتَّىٰ زُرْتُمُ ٱلْمَقَابِرَ",
+                "is_current": false
+              },
+              {
+                "surah": 102,
+                "ayah": 3,
+                "text": "كَلَّا سَوْفَ تَعْلَمُونَ",
+                "is_current": true
+              },
+              {
+                "surah": 102,
+                "ayah": 4,
+                "text": "ثُمَّ كَلَّا سَوْفَ تَعْلَمُونَ",
+                "is_current": false
+              },
+              {
+                "surah": 102,
+                "ayah": 5,
+                "text": "كَلَّا لَوْ تَعْلَمُونَ عِلْمَ ٱلْيَقِينِ",
+                "is_current": false
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 657600,
+          "seconds": 41.1,
+          "message": {
+            "type": "verse_match",
+            "surah": 102,
+            "ayah": 4,
+            "verse_text": "ثُمَّ كَلَّا سَوْفَ تَعْلَمُونَ",
+            "surah_name": "سُورَةُ التَّكَاثُرِ",
+            "confidence": 0.88,
+            "surrounding_verses": [
+              {
+                "surah": 102,
+                "ayah": 2,
+                "text": "حَتَّىٰ زُرْتُمُ ٱلْمَقَابِرَ",
+                "is_current": false
+              },
+              {
+                "surah": 102,
+                "ayah": 3,
+                "text": "كَلَّا سَوْفَ تَعْلَمُونَ",
+                "is_current": false
+              },
+              {
+                "surah": 102,
+                "ayah": 4,
+                "text": "ثُمَّ كَلَّا سَوْفَ تَعْلَمُونَ",
+                "is_current": true
+              },
+              {
+                "surah": 102,
+                "ayah": 5,
+                "text": "كَلَّا لَوْ تَعْلَمُونَ عِلْمَ ٱلْيَقِينِ",
+                "is_current": false
+              },
+              {
+                "surah": 102,
+                "ayah": 6,
+                "text": "لَتَرَوُنَّ ٱلْجَحِيمَ",
+                "is_current": false
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 715200,
+          "seconds": 44.7,
+          "message": {
+            "type": "verse_match",
+            "surah": 102,
+            "ayah": 5,
+            "verse_text": "كَلَّا لَوْ تَعْلَمُونَ عِلْمَ ٱلْيَقِينِ",
+            "surah_name": "سُورَةُ التَّكَاثُرِ",
+            "confidence": 0.99,
+            "surrounding_verses": [
+              {
+                "surah": 102,
+                "ayah": 3,
+                "text": "كَلَّا سَوْفَ تَعْلَمُونَ",
+                "is_current": false
+              },
+              {
+                "surah": 102,
+                "ayah": 4,
+                "text": "ثُمَّ كَلَّا سَوْفَ تَعْلَمُونَ",
+                "is_current": false
+              },
+              {
+                "surah": 102,
+                "ayah": 5,
+                "text": "كَلَّا لَوْ تَعْلَمُونَ عِلْمَ ٱلْيَقِينِ",
+                "is_current": true
+              },
+              {
+                "surah": 102,
+                "ayah": 6,
+                "text": "لَتَرَوُنَّ ٱلْجَحِيمَ",
+                "is_current": false
+              },
+              {
+                "surah": 102,
+                "ayah": 7,
+                "text": "ثُمَّ لَتَرَوُنَّهَا عَيْنَ ٱلْيَقِينِ",
+                "is_current": false
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 792000,
+          "seconds": 49.5,
+          "message": {
+            "type": "verse_match",
+            "surah": 102,
+            "ayah": 7,
+            "verse_text": "ثُمَّ لَتَرَوُنَّهَا عَيْنَ ٱلْيَقِينِ",
+            "surah_name": "سُورَةُ التَّكَاثُرِ",
+            "confidence": 0.99,
+            "surrounding_verses": [
+              {
+                "surah": 102,
+                "ayah": 5,
+                "text": "كَلَّا لَوْ تَعْلَمُونَ عِلْمَ ٱلْيَقِينِ",
+                "is_current": false
+              },
+              {
+                "surah": 102,
+                "ayah": 6,
+                "text": "لَتَرَوُنَّ ٱلْجَحِيمَ",
+                "is_current": false
+              },
+              {
+                "surah": 102,
+                "ayah": 7,
+                "text": "ثُمَّ لَتَرَوُنَّهَا عَيْنَ ٱلْيَقِينِ",
+                "is_current": true
+              },
+              {
+                "surah": 102,
+                "ayah": 8,
+                "text": "ثُمَّ لَتُسْـَٔلُنَّ يَوْمَئِذٍ عَنِ ٱلنَّعِيمِ",
+                "is_current": false
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 1022400,
+          "seconds": 63.9,
+          "message": {
+            "type": "verse_match",
+            "surah": 44,
+            "ayah": 46,
+            "verse_text": "كَغَلْىِ ٱلْحَمِيمِ",
+            "surah_name": "سُورَةُ الدُّخَانِ",
+            "confidence": 0.73,
+            "surrounding_verses": [
+              {
+                "surah": 44,
+                "ayah": 44,
+                "text": "طَعَامُ ٱلْأَثِيمِ",
+                "is_current": false
+              },
+              {
+                "surah": 44,
+                "ayah": 45,
+                "text": "كَٱلْمُهْلِ يَغْلِى فِى ٱلْبُطُونِ",
+                "is_current": false
+              },
+              {
+                "surah": 44,
+                "ayah": 46,
+                "text": "كَغَلْىِ ٱلْحَمِيمِ",
+                "is_current": true
+              },
+              {
+                "surah": 44,
+                "ayah": 47,
+                "text": "خُذُوهُ فَٱعْتِلُوهُ إِلَىٰ سَوَآءِ ٱلْجَحِيمِ",
+                "is_current": false
+              },
+              {
+                "surah": 44,
+                "ayah": 48,
+                "text": "ثُمَّ صُبُّوا۟ فَوْقَ رَأْسِهِۦ مِنْ عَذَابِ ٱلْحَمِيمِ",
+                "is_current": false
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 1075200,
+          "seconds": 67.2,
+          "message": {
+            "type": "raw_transcript",
+            "text": "awwaqmm",
+            "confidence": 0.72
+          }
+        },
+        {
+          "sampleCursor": 1142400,
+          "seconds": 71.4,
+          "message": {
+            "type": "verse_match",
+            "surah": 44,
+            "ayah": 47,
+            "verse_text": "خُذُوهُ فَٱعْتِلُوهُ إِلَىٰ سَوَآءِ ٱلْجَحِيمِ",
+            "surah_name": "سُورَةُ الدُّخَانِ",
+            "confidence": 0.76,
+            "surrounding_verses": [
+              {
+                "surah": 44,
+                "ayah": 45,
+                "text": "كَٱلْمُهْلِ يَغْلِى فِى ٱلْبُطُونِ",
+                "is_current": false
+              },
+              {
+                "surah": 44,
+                "ayah": 46,
+                "text": "كَغَلْىِ ٱلْحَمِيمِ",
+                "is_current": false
+              },
+              {
+                "surah": 44,
+                "ayah": 47,
+                "text": "خُذُوهُ فَٱعْتِلُوهُ إِلَىٰ سَوَآءِ ٱلْجَحِيمِ",
+                "is_current": true
+              },
+              {
+                "surah": 44,
+                "ayah": 48,
+                "text": "ثُمَّ صُبُّوا۟ فَوْقَ رَأْسِهِۦ مِنْ عَذَابِ ٱلْحَمِيمِ",
+                "is_current": false
+              },
+              {
+                "surah": 44,
+                "ayah": 49,
+                "text": "ذُقْ إِنَّكَ أَنتَ ٱلْعَزِيزُ ٱلْكَرِيمُ",
+                "is_current": false
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 1219200,
+          "seconds": 76.2,
+          "message": {
+            "type": "raw_transcript",
+            "text": "u asaSabr",
+            "confidence": 0.79
+          }
+        },
+        {
+          "sampleCursor": 1368000,
+          "seconds": 85.5,
+          "message": {
+            "type": "verse_match",
+            "surah": 79,
+            "ayah": 23,
+            "verse_text": "فَحَشَرَ فَنَادَىٰ",
+            "surah_name": "سُورَةُ النَّازِعَاتِ",
+            "confidence": 0.71,
+            "surrounding_verses": [
+              {
+                "surah": 79,
+                "ayah": 21,
+                "text": "فَكَذَّبَ وَعَصَىٰ",
+                "is_current": false
+              },
+              {
+                "surah": 79,
+                "ayah": 22,
+                "text": "ثُمَّ أَدْبَرَ يَسْعَىٰ",
+                "is_current": false
+              },
+              {
+                "surah": 79,
+                "ayah": 23,
+                "text": "فَحَشَرَ فَنَادَىٰ",
+                "is_current": true
+              },
+              {
+                "surah": 79,
+                "ayah": 24,
+                "text": "فَقَالَ أَنَا۠ رَبُّكُمُ ٱلْأَعْلَىٰ",
+                "is_current": false
+              },
+              {
+                "surah": 79,
+                "ayah": 25,
+                "text": "فَأَخَذَهُ ٱللَّهُ نَكَالَ ٱلْءَاخِرَةِ وَٱلْأُولَىٰٓ",
+                "is_current": false
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 1411200,
+          "seconds": 88.2,
+          "message": {
+            "type": "raw_transcript",
+            "text": "<snskh",
+            "confidence": 0.7
+          }
+        },
+        {
+          "sampleCursor": 1444800,
+          "seconds": 90.3,
+          "message": {
+            "type": "raw_transcript",
+            "text": "yam<s",
+            "confidence": 0.73
+          }
+        },
+        {
+          "sampleCursor": 1478400,
+          "seconds": 92.4,
+          "message": {
+            "type": "verse_match",
+            "surah": 75,
+            "ayah": 11,
+            "verse_text": "كَلَّا لَا وَزَرَ",
+            "surah_name": "سُورَةُ القِيَامَةِ",
+            "confidence": 0.64,
+            "surrounding_verses": [
+              {
+                "surah": 75,
+                "ayah": 9,
+                "text": "وَجُمِعَ ٱلشَّمْسُ وَٱلْقَمَرُ",
+                "is_current": false
+              },
+              {
+                "surah": 75,
+                "ayah": 10,
+                "text": "يَقُولُ ٱلْإِنسَٰنُ يَوْمَئِذٍ أَيْنَ ٱلْمَفَرُّ",
+                "is_current": false
+              },
+              {
+                "surah": 75,
+                "ayah": 11,
+                "text": "كَلَّا لَا وَزَرَ",
+                "is_current": true
+              },
+              {
+                "surah": 75,
+                "ayah": 12,
+                "text": "إِلَىٰ رَبِّكَ يَوْمَئِذٍ ٱلْمُسْتَقَرُّ",
+                "is_current": false
+              },
+              {
+                "surah": 75,
+                "ayah": 13,
+                "text": "يُنَبَّؤُا۟ ٱلْإِنسَٰنُ يَوْمَئِذٍۭ بِمَا قَدَّمَ وَأَخَّرَ",
+                "is_current": false
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 1680000,
+          "seconds": 105,
+          "message": {
+            "type": "raw_transcript",
+            "text": "uqhhhh",
+            "confidence": 0.67
+          }
+        },
+        {
+          "sampleCursor": 1713600,
+          "seconds": 107.1,
+          "message": {
+            "type": "raw_transcript",
+            "text": "wSaabiriina fifahaaa",
+            "confidence": 0.89
+          }
+        },
+        {
+          "sampleCursor": 1747200,
+          "seconds": 109.2,
+          "message": {
+            "type": "verse_match",
+            "surah": 75,
+            "ayah": 12,
+            "verse_text": "إِلَىٰ رَبِّكَ يَوْمَئِذٍ ٱلْمُسْتَقَرُّ",
+            "surah_name": "سُورَةُ القِيَامَةِ",
+            "confidence": 0.91,
+            "surrounding_verses": [
+              {
+                "surah": 75,
+                "ayah": 10,
+                "text": "يَقُولُ ٱلْإِنسَٰنُ يَوْمَئِذٍ أَيْنَ ٱلْمَفَرُّ",
+                "is_current": false
+              },
+              {
+                "surah": 75,
+                "ayah": 11,
+                "text": "كَلَّا لَا وَزَرَ",
+                "is_current": false
+              },
+              {
+                "surah": 75,
+                "ayah": 12,
+                "text": "إِلَىٰ رَبِّكَ يَوْمَئِذٍ ٱلْمُسْتَقَرُّ",
+                "is_current": true
+              },
+              {
+                "surah": 75,
+                "ayah": 13,
+                "text": "يُنَبَّؤُا۟ ٱلْإِنسَٰنُ يَوْمَئِذٍۭ بِمَا قَدَّمَ وَأَخَّرَ",
+                "is_current": false
+              },
+              {
+                "surah": 75,
+                "ayah": 14,
+                "text": "بَلِ ٱلْإِنسَٰنُ عَلَىٰ نَفْسِهِۦ بَصِيرَةٌۭ",
+                "is_current": false
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 1857600,
+          "seconds": 116.1,
+          "message": {
+            "type": "verse_match",
+            "surah": 75,
+            "ayah": 13,
+            "verse_text": "يُنَبَّؤُا۟ ٱلْإِنسَٰنُ يَوْمَئِذٍۭ بِمَا قَدَّمَ وَأَخَّرَ",
+            "surah_name": "سُورَةُ القِيَامَةِ",
+            "confidence": 0.82,
+            "surrounding_verses": [
+              {
+                "surah": 75,
+                "ayah": 11,
+                "text": "كَلَّا لَا وَزَرَ",
+                "is_current": false
+              },
+              {
+                "surah": 75,
+                "ayah": 12,
+                "text": "إِلَىٰ رَبِّكَ يَوْمَئِذٍ ٱلْمُسْتَقَرُّ",
+                "is_current": false
+              },
+              {
+                "surah": 75,
+                "ayah": 13,
+                "text": "يُنَبَّؤُا۟ ٱلْإِنسَٰنُ يَوْمَئِذٍۭ بِمَا قَدَّمَ وَأَخَّرَ",
+                "is_current": true
+              },
+              {
+                "surah": 75,
+                "ayah": 14,
+                "text": "بَلِ ٱلْإِنسَٰنُ عَلَىٰ نَفْسِهِۦ بَصِيرَةٌۭ",
+                "is_current": false
+              },
+              {
+                "surah": 75,
+                "ayah": 15,
+                "text": "وَلَوْ أَلْقَىٰ مَعَاذِيرَهُۥ",
+                "is_current": false
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 1982400,
+          "seconds": 123.9,
+          "message": {
+            "type": "verse_match",
+            "surah": 75,
+            "ayah": 14,
+            "verse_text": "بَلِ ٱلْإِنسَٰنُ عَلَىٰ نَفْسِهِۦ بَصِيرَةٌۭ",
+            "surah_name": "سُورَةُ القِيَامَةِ",
+            "confidence": 0.99,
+            "surrounding_verses": [
+              {
+                "surah": 75,
+                "ayah": 12,
+                "text": "إِلَىٰ رَبِّكَ يَوْمَئِذٍ ٱلْمُسْتَقَرُّ",
+                "is_current": false
+              },
+              {
+                "surah": 75,
+                "ayah": 13,
+                "text": "يُنَبَّؤُا۟ ٱلْإِنسَٰنُ يَوْمَئِذٍۭ بِمَا قَدَّمَ وَأَخَّرَ",
+                "is_current": false
+              },
+              {
+                "surah": 75,
+                "ayah": 14,
+                "text": "بَلِ ٱلْإِنسَٰنُ عَلَىٰ نَفْسِهِۦ بَصِيرَةٌۭ",
+                "is_current": true
+              },
+              {
+                "surah": 75,
+                "ayah": 15,
+                "text": "وَلَوْ أَلْقَىٰ مَعَاذِيرَهُۥ",
+                "is_current": false
+              },
+              {
+                "surah": 75,
+                "ayah": 16,
+                "text": "لَا تُحَرِّكْ بِهِۦ لِسَانَكَ لِتَعْجَلَ بِهِۦٓ",
+                "is_current": false
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 2097600,
+          "seconds": 131.1,
+          "message": {
+            "type": "verse_match",
+            "surah": 75,
+            "ayah": 16,
+            "verse_text": "لَا تُحَرِّكْ بِهِۦ لِسَانَكَ لِتَعْجَلَ بِهِۦٓ",
+            "surah_name": "سُورَةُ القِيَامَةِ",
+            "confidence": 0.99,
+            "surrounding_verses": [
+              {
+                "surah": 75,
+                "ayah": 14,
+                "text": "بَلِ ٱلْإِنسَٰنُ عَلَىٰ نَفْسِهِۦ بَصِيرَةٌۭ",
+                "is_current": false
+              },
+              {
+                "surah": 75,
+                "ayah": 15,
+                "text": "وَلَوْ أَلْقَىٰ مَعَاذِيرَهُۥ",
+                "is_current": false
+              },
+              {
+                "surah": 75,
+                "ayah": 16,
+                "text": "لَا تُحَرِّكْ بِهِۦ لِسَانَكَ لِتَعْجَلَ بِهِۦٓ",
+                "is_current": true
+              },
+              {
+                "surah": 75,
+                "ayah": 17,
+                "text": "إِنَّ عَلَيْنَا جَمْعَهُۥ وَقُرْءَانَهُۥ",
+                "is_current": false
+              },
+              {
+                "surah": 75,
+                "ayah": 18,
+                "text": "فَإِذَا قَرَأْنَٰهُ فَٱتَّبِعْ قُرْءَانَهُۥ",
+                "is_current": false
+              }
+            ]
+          }
+        },
+        {
+          "sampleCursor": 2140800,
+          "seconds": 133.8,
+          "message": {
+            "type": "verse_match",
+            "surah": 8,
+            "ayah": 4,
+            "verse_text": "أُو۟لَٰٓئِكَ هُمُ ٱلْمُؤْمِنُونَ حَقًّۭا ۚ لَّهُمْ دَرَجَٰتٌ عِندَ رَبِّهِمْ وَمَغْفِرَةٌۭ وَرِزْقٌۭ كَرِيمٌۭ",
+            "surah_name": "سُورَةُ الأَنفَالِ",
+            "confidence": 0.83,
+            "surrounding_verses": [
+              {
+                "surah": 8,
+                "ayah": 2,
+                "text": "إِنَّمَا ٱلْمُؤْمِنُونَ ٱلَّذِينَ إِذَا ذُكِرَ ٱللَّهُ وَجِلَتْ قُلُوبُهُمْ وَإِذَا تُلِيَتْ عَلَيْهِمْ ءَايَٰتُهُۥ زَادَتْهُمْ إِيمَٰنًۭا وَعَلَىٰ رَبِّهِمْ يَتَوَكَّلُونَ",
+                "is_current": false
+              },
+              {
+                "surah": 8,
+                "ayah": 3,
+                "text": "ٱلَّذِينَ يُقِيمُونَ ٱلصَّلَوٰةَ وَمِمَّا رَزَقْنَٰهُمْ يُنفِقُونَ",
+                "is_current": false
+              },
+              {
+                "surah": 8,
+                "ayah": 4,
+                "text": "أُو۟لَٰٓئِكَ هُمُ ٱلْمُؤْمِنُونَ حَقًّۭا ۚ لَّهُمْ دَرَجَٰتٌ عِندَ رَبِّهِمْ وَمَغْفِرَةٌۭ وَرِزْقٌۭ كَرِيمٌۭ",
+                "is_current": true
+              },
+              {
+                "surah": 8,
+                "ayah": 5,
+                "text": "كَمَآ أَخْرَجَكَ رَبُّكَ مِنۢ بَيْتِكَ بِٱلْحَقِّ وَإِنَّ فَرِيقًۭا مِّنَ ٱلْمُؤْمِنِينَ لَكَٰرِهُونَ",
+                "is_current": false
+              },
+              {
+                "surah": 8,
+                "ayah": 6,
+                "text": "يُجَٰدِلُونَكَ فِى ٱلْحَقِّ بَعْدَمَا تَبَيَّنَ كَأَنَّمَا يُسَاقُونَ إِلَى ٱلْمَوْتِ وَهُمْ يَنظُرُونَ",
+                "is_current": false
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
