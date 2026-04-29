@@ -143,14 +143,6 @@ export type TrackerDiagnosticEvent =
       final_flush_commit?: boolean;
       is_continuation?: boolean;
     }
-  | {
-      type: "pending_emission";
-      action: "created" | "confirmed" | "final_flush_emit" | "dropped";
-      ref: string;
-      margin: number | null;
-      fresh_samples: number;
-      matched_indices?: number[];
-    }
   | { type: "rollback"; reason: string; restored_ref: string | null }
   | { type: "stale_exit"; ref: string; stale_cycles: number }
   | { type: "flush"; mode: "discovery" | "tracking"; duration_sec: number };
