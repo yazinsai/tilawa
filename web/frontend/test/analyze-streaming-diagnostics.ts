@@ -49,6 +49,17 @@ type DiagnosticEvent =
       ref: string;
       reason: string;
       confidence: number;
+      selected_rank?: number | null;
+      selected_feasible?: boolean | null;
+      selected_fusion?: number | null;
+      top_ref?: string | null;
+      top_fusion?: number | null;
+      acoustic_margin?: number | null;
+      length_fit?: number | null;
+      clear_margin?: boolean;
+      repeated_leader?: boolean;
+      final_flush_commit?: boolean;
+      is_continuation?: boolean;
       time_sec: number;
     }
   | {
@@ -277,6 +288,17 @@ function main() {
   );
   const missingCandidateCommits = commits.filter((commit) => commit.selectedRank === null);
   const infeasibleCommits = commits.filter((commit) => commit.selectedFeasible === false);
+  const weakDominanceCommits = commits.filter(
+    (commit) =>
+      commit.selectedRank !== null &&
+      commit.selectedRank > 1 &&
+      commit.selectedFusion !== null &&
+      commit.topFusion !== null &&
+      commit.selectedFusion < commit.topFusion,
+  );
+  const evidenceBackedStaleExits = staleExits.filter(
+    (exit) => exit.trackingCycles > 0 && exit.advancedCycles > 0,
+  );
   const staleAfterProgress = staleExits.filter(
     (exit) =>
       exit.advancedCycles > 0 ||
@@ -302,12 +324,21 @@ function main() {
 
   console.log(`Commits: ${commits.length}`);
   console.log(`  non-top selected candidate: ${nonTopCommits.length}`);
+  console.log(`  non-top and lower-fusion than leader: ${weakDominanceCommits.length}`);
   console.log(`  selected candidate missing from last discovery list: ${missingCandidateCommits.length}`);
   console.log(`  selected candidate infeasible by CTC: ${infeasibleCommits.length}`);
   for (const commit of nonTopCommits.slice(0, 12)) {
     console.log(
       `    ${commit.sampleId} @${commit.timeSec.toFixed(1)}s ${commit.ref} rank=${commit.selectedRank} top=${commit.topRef} reason=${commit.reason} fusion=${commit.selectedFusion ?? "?"}/${commit.topFusion ?? "?"}`,
     );
+  }
+  if (weakDominanceCommits.length > 0) {
+    console.log("  Weak dominance commits:");
+    for (const commit of weakDominanceCommits.slice(0, 12)) {
+      console.log(
+        `    ${commit.sampleId} @${commit.timeSec.toFixed(1)}s ${commit.ref} rank=${commit.selectedRank} top=${commit.topRef} selectedFusion=${commit.selectedFusion} topFusion=${commit.topFusion}`,
+      );
+    }
   }
   if (missingCandidateCommits.length > 0) {
     console.log("  Missing-candidate commits:");
@@ -321,6 +352,7 @@ function main() {
 
   console.log(`Stale exits: ${staleExits.length}`);
   console.log(`  stale exits after some tracking evidence: ${staleAfterProgress.length}`);
+  console.log(`  stale exits after successful advancement: ${evidenceBackedStaleExits.length}`);
   for (const exit of staleAfterProgress.slice(0, 12)) {
     console.log(
       `    ${exit.sampleId} @${exit.timeSec.toFixed(1)}s ${exit.ref} cycles=${exit.trackingCycles} advanced=${exit.advancedCycles} primary=${exit.primaryWordEvidenceCycles} acoustic=${exit.acousticFallbackCycles} char=${exit.charFallbackCycles} maxText=${exit.maxTextLength}`,
