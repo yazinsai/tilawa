@@ -99,9 +99,31 @@ export type TrackerDiagnosticEvent =
         kind: "single" | "span";
         stageA: number;
         acoustic: number;
+        acousticMargin?: number;
+        lengthFit?: number;
+        fusion?: number;
+        feasible?: boolean;
       }>;
     }
   | { type: "silence_skip"; mode: "discovery" | "tracking"; reason: string }
+  | {
+      type: "tracking_cycle";
+      ref: string;
+      text_length: number;
+      word_matches: number;
+      acoustic_word: number | null;
+      char_word: number | null;
+      advanced: boolean;
+      final_flush: boolean;
+    }
+  | {
+      type: "pending_emission";
+      action: "confirmed" | "final_flush_emit" | "dropped";
+      ref: string;
+      margin: number | null;
+      fresh_samples: number;
+      matched_indices?: number[];
+    }
   | {
       type: "commit";
       ref: string;
@@ -120,6 +142,14 @@ export type TrackerDiagnosticEvent =
       repeated_leader?: boolean;
       final_flush_commit?: boolean;
       is_continuation?: boolean;
+    }
+  | {
+      type: "pending_emission";
+      action: "created" | "confirmed" | "final_flush_emit" | "dropped";
+      ref: string;
+      margin: number | null;
+      fresh_samples: number;
+      matched_indices?: number[];
     }
   | { type: "rollback"; reason: string; restored_ref: string | null }
   | { type: "stale_exit"; ref: string; stale_cycles: number }
