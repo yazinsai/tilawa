@@ -263,6 +263,32 @@ describe("Deferred emission", () => {
     expect(verseMatches).not.toContain("2:2");
   });
 
+  it("acoustic tail progress without primary match does NOT auto-advance (anti-cascade)", async () => {
+    // Near end of a long verse, acoustic fallback can jump the word index while
+    // primary alignment stays empty. That must not count as "verse complete" or
+    // we emit the next verse spuriously (long-clip SeqAcc killer).
+    const transcribeFn = createTranscribeFn([makeResult(UNRELATED_TEXT)]);
+
+    const db = createMockDB();
+    const tracker = new RecitationTracker(db, transcribeFn);
+    injectTrackingState(tracker, VERSE_2);
+    const t = tracker as any;
+    t.trackingLastWordIdx = 7; // one word before "near end" window edge
+    let acousticCalls = 0;
+    const realResolve = t._resolveTrackingAcousticWord.bind(t);
+    t._resolveTrackingAcousticWord = (result: TranscribeResult) => {
+      acousticCalls++;
+      if (acousticCalls === 1) return 8;
+      return realResolve(result);
+    };
+
+    await tracker.feed(makeSpeechChunk());
+
+    expect(t.trackingVerse?.ayah).toBe(2);
+    expect(t.trackingPendingEmission).toBe(false);
+    expect(t.consecutiveAutoAdvances).toBe(0);
+  });
+
   it("acoustic/char-level fallback do NOT trigger pending emission", async () => {
     const transcribeFn = createTranscribeFn([
       makeResult("alif laam miim"), // VERSE_1 complete → auto-advance
