@@ -119,6 +119,8 @@ interface Comparison {
   fullFileTranscriptChars: number;
   streamingExact: boolean;
   fullFileExact: boolean;
+  streamingShape: string;
+  fullFileShape: string;
   shape: string;
 }
 
@@ -137,6 +139,21 @@ function refsEqual(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && a.every((ref, idx) => b[idx] === ref);
 }
 
+function classifySingle(expected: string[], actual: string[]): string {
+  if (refsEqual(expected, actual)) return "exact";
+  if (actual.length === 0) return "no_emit";
+
+  const expectedSet = new Set(expected);
+  const actualSet = new Set(actual);
+  const matched = expected.filter((ref) => actualSet.has(ref)).length;
+  const extras = actual.filter((ref) => !expectedSet.has(ref));
+  if (matched === 0) return "wrong_only";
+  if (matched < expected.length && extras.length === 0) return "missing_only";
+  if (matched < expected.length) return "partial_with_extra";
+  if (extras.length > 0) return "expected_plus_extra";
+  return "other";
+}
+
 function classify(expected: string[], streaming: string[], fullFile: string[]): string {
   const streamingExact = refsEqual(expected, streaming);
   const fullFileExact = refsEqual(expected, fullFile);
@@ -152,6 +169,17 @@ function classify(expected: string[], streaming: string[], fullFile: string[]): 
   if (fullHasAny && !streamingHasAny) return "streaming_lost_expected";
   if (!fullHasAny && streamingHasAny) return "full_file_lost_expected";
   return "both_partial_or_extra";
+}
+
+function increment(map: Map<string, number>, key: string): void {
+  map.set(key, (map.get(key) ?? 0) + 1);
+}
+
+function printCounts(title: string, counts: Map<string, number>): void {
+  console.log(title);
+  for (const [key, count] of [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))) {
+    console.log(`  ${key}: ${count}`);
+  }
 }
 
 async function transcribe(audio: Float32Array): Promise<TranscribeResult> {
@@ -342,6 +370,8 @@ async function main() {
       fullFileTranscriptChars: fullFile.transcriptChars,
       streamingExact: refsEqual(expected, streaming),
       fullFileExact: refsEqual(expected, fullFile.refs),
+      streamingShape: classifySingle(expected, streaming),
+      fullFileShape: classifySingle(expected, fullFile.refs),
       shape: classify(expected, streaming, fullFile.refs),
     };
     comparisons.push(comparison);
@@ -352,13 +382,23 @@ async function main() {
   }
 
   const shapeCounts = new Map<string, number>();
+  const streamingShapeCounts = new Map<string, number>();
+  const fullFileShapeCounts = new Map<string, number>();
+  const byCategory = new Map<string, number>();
+  const bySource = new Map<string, number>();
   for (const comparison of comparisons) {
-    shapeCounts.set(comparison.shape, (shapeCounts.get(comparison.shape) ?? 0) + 1);
+    increment(shapeCounts, comparison.shape);
+    increment(streamingShapeCounts, comparison.streamingShape);
+    increment(fullFileShapeCounts, comparison.fullFileShape);
+    increment(byCategory, `${comparison.category}:${comparison.shape}`);
+    increment(bySource, `${comparison.source}:${comparison.shape}`);
   }
-  console.log("\nSummary:");
-  for (const [shape, count] of [...shapeCounts.entries()].sort((a, b) => b[1] - a[1])) {
-    console.log(`  ${shape}: ${count}`);
-  }
+  console.log();
+  printCounts("Summary:", shapeCounts);
+  printCounts("\nStreaming shapes:", streamingShapeCounts);
+  printCounts("\nOracle shapes:", fullFileShapeCounts);
+  printCounts("\nBy category:", byCategory);
+  printCounts("\nBy source:", bySource);
 
   if (jsonOut) {
     writeFileSync(
