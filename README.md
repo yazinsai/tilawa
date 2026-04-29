@@ -234,10 +234,11 @@ Shipped `fastconformer-phoneme v4-tlog` (131 MB quantized ONNX) on the v2 and v3
 |---|---|---|---|---|
 | Browser/RN streaming (300ms chunks) | v2 (43) | 87.9% | 68.9% | 55.8% |
 | Browser/RN streaming (300ms chunks) | v3 (256) | 89.3% | 73.4% | 58.2% |
+| Browser/RN streaming + r15 final verifier | v3 (256) | 96.0% | 96.1% | 95.7% |
 | Non-streaming (full-file) | v1 (53) | 84.1% | 84.9% | 81.1% |
 | Non-streaming (full-file) | v2 (43) | 78.1% | 79.1% | 74.4% |
 
-Streaming metrics are medians across 3 runs (ONNX non-determinism is ±3-6 per run on v1, ±0.7 on v3). Non-streaming runs the whole audio through ONNX once and does a single `matchVerse()`. See the streaming changelog in **[EXPERIMENTS.md](EXPERIMENTS.md)** for the per-change provenance.
+Streaming metrics are medians across 3 runs (ONNX non-determinism is ±3-6 per run on v1, ±0.7 on v3). Non-streaming runs the whole audio through ONNX once and does a single `matchVerse()`. The verifier row is a separately labeled server-side/second-pass mode using the r15 int8 phoneme CTC result cache, not the unchanged 131 MB shipped tracker. See the streaming changelog in **[EXPERIMENTS.md](EXPERIMENTS.md)** for the per-change provenance.
 
 Full matrix across 20 approaches (Whisper variants, Rabah pruned CTC, FastConformer sweep, contrastive/embedding failures), per-experiment notes, variant deep-dives, a changelog, and key findings live in **[EXPERIMENTS.md](EXPERIMENTS.md)**.
 
