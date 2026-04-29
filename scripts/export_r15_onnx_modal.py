@@ -34,6 +34,7 @@ image = (
         "huggingface_hub>=0.23",
         "onnx>=1.16",
         "onnxruntime>=1.18",
+        "onnxscript>=0.1",
         "soundfile>=0.12",
     )
 )
@@ -157,12 +158,14 @@ def main(
     download_only: bool = False,
     output_dir: str = "data/r15-onnx",
 ):
+    if no_download:
+        call = export_and_quantize.spawn()
+        print(f"Spawned export job: {call.object_id}")
+        return
+
     if not download_only:
         result = export_and_quantize.remote()
         print(f"Export result: {json.dumps(result, indent=2)}")
-
-    if no_download:
-        return
 
     local_dir = Path(output_dir)
     if not local_dir.is_absolute():
