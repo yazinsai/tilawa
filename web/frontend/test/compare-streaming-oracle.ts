@@ -9,6 +9,7 @@
  * Usage:
  *   npx tsx test/compare-streaming-oracle.ts --corpus=test_corpus_v3 --sample=ea_alafasy_002143
  *   npx tsx test/compare-streaming-oracle.ts --corpus=test_corpus_v3 --limit=10 --json=test/oracle.json
+ *   npx tsx test/compare-streaming-oracle.ts --stability-json=test/stab-gate-on-v3.json --only-exact-fail --limit=20
  */
 
 import { execSync } from "node:child_process";
@@ -41,6 +42,11 @@ const limitArg = args.find((arg) => arg.startsWith("--limit="));
 const limit = limitArg ? Number(limitArg.split("=")[1]) : null;
 const jsonArg = args.find((arg) => arg.startsWith("--json="));
 const jsonOut = jsonArg ? jsonArg.split("=")[1] : null;
+const stabilityArg = args.find((arg) => arg.startsWith("--stability-json="));
+const stabilityJsonPath = stabilityArg ? stabilityArg.split("=")[1] : null;
+const runIndexArg = args.find((arg) => arg.startsWith("--run-index="));
+const runIndex = runIndexArg ? Number(runIndexArg.split("=")[1]) : 0;
+const onlyExactFail = args.includes("--only-exact-fail");
 const BENCHMARK = resolve(ROOT, `../../benchmark/${corpusName}`);
 
 interface Sample {
@@ -52,6 +58,22 @@ interface Sample {
   category: string;
   source: string;
   expected_verses: { surah: number; ayah: number }[];
+}
+
+interface StabilityRun {
+  discoveredVerses: string[];
+  seqAcc: number;
+}
+
+interface StabilitySample {
+  id: string;
+  expectedVerses: string[];
+  runs: StabilityRun[];
+}
+
+interface StabilityReport {
+  corpus: string;
+  samples: StabilitySample[];
 }
 
 interface Comparison {
@@ -162,6 +184,21 @@ async function runStreaming(db: QuranDB, audio: Float32Array): Promise<string[]>
   return refs;
 }
 
+function loadStabilityStreamingRefs(): Map<string, string[]> | null {
+  if (!stabilityJsonPath) return null;
+  const report: StabilityReport = JSON.parse(
+    readFileSync(resolve(process.cwd(), stabilityJsonPath), "utf-8"),
+  );
+  const refsBySample = new Map<string, string[]>();
+  for (const sample of report.samples) {
+    const run = sample.runs[runIndex];
+    if (!run) continue;
+    if (onlyExactFail && run.seqAcc === 1) continue;
+    refsBySample.set(sample.id, run.discoveredVerses);
+  }
+  return refsBySample;
+}
+
 async function runFullFile(db: QuranDB, audio: Float32Array): Promise<{
   refs: string[];
   score: number;
@@ -192,7 +229,11 @@ async function main() {
   const manifest: { samples: Sample[] } = JSON.parse(
     readFileSync(resolve(BENCHMARK, "manifest.json"), "utf-8"),
   );
+  const stabilityStreamingRefs = loadStabilityStreamingRefs();
   let samples = manifest.samples;
+  if (stabilityStreamingRefs) {
+    samples = samples.filter((sample) => stabilityStreamingRefs.has(sample.id));
+  }
   if (sampleFilter) samples = samples.filter((sample) => sample.id === sampleFilter);
   if (limit !== null) samples = samples.slice(0, limit);
   if (sampleFilter && samples.length === 0) {
@@ -203,7 +244,7 @@ async function main() {
   for (const sample of samples) {
     const audio = loadAudio(resolve(BENCHMARK, sample.file));
     const expected = sample.expected_verses.map((verse) => `${verse.surah}:${verse.ayah}`);
-    const streaming = await runStreaming(db, audio);
+    const streaming = stabilityStreamingRefs?.get(sample.id) ?? await runStreaming(db, audio);
     const fullFile = await runFullFile(db, audio);
     const comparison: Comparison = {
       id: sample.id,
