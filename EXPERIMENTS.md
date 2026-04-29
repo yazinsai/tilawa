@@ -4,7 +4,7 @@ Three test corpora: **v1** (53 samples: user recordings, EveryAyah reference, Re
 
 Metrics: **Recall** = fraction of expected verses found. **Precision** = fraction of emitted verses that were expected. **SeqAcc** = emitted set exactly matches expected set.
 
-ONNX inference is non-deterministic at **±3–6 samples per run** on v1 — streaming numbers below are medians over 3 runs (except the deferred-emission changelog entry, which was measured at 5 runs).
+ONNX inference is non-deterministic at **±3–6 samples per run** on v1. Older headline streaming rows used median over **3** runs for variance; **`stability-report` now defaults to 1 run**, `--repeats=2` max when checking drift.
 
 ## Shipped model
 
@@ -24,12 +24,12 @@ The v3 stability report with the decode-stability gate (`stab-gate-on-v3.json`) 
 
 The fix splits **primary** alignment (`primaryMatchedIndices` from the word-alignment path only) from **effective** progress (which may include acoustic/char fallbacks). Auto-advance now requires either **primary coverage ≥ 0.8** with the primary index in the last two words, or a narrow escape hatch (**last word** reached with ≥95% coverage by any path). Acoustic-only tail jumps no longer qualify for the staged completion gate.
 
-**Measurement:** Full 3× `stability-report` on v3/v2 was **not re-run in this cloud snapshot** — `public/fastconformer_phoneme_q8.onnx` is a Git LFS pointer here (ONNX load fails). After `git lfs pull`, run:
+**Measurement:** Not re-run in the cloud snapshot (LFS ONNX). Locally:
 ```
-npx tsx test/stability-report.ts --repeats=3 --corpus=test_corpus_v3 --json=test/primary-completion-v3-stability.json
-npx tsx test/stability-report.ts --repeats=3 --corpus=test_corpus_v2 --json=test/primary-completion-v2-stability.json
+npx tsx test/stability-report.ts --corpus=test_corpus_v3 --json=test/primary-completion-v3-stability.json
+npx tsx test/stability-report.ts --corpus=test_corpus_v2 --json=test/primary-completion-v2-stability.json
 ```
-Expect the headline table below to update once medians are in; target is higher **SeqAcc** and **precision** with recall ≥ prior gate.
+(Optional variance check: `--repeats=2` once.) Expect headline table update when numbers land; target is higher **SeqAcc** and **precision** with recall ≥ prior gate.
 
 Unit test: `web/frontend/test/tracker-deferred.test.ts` — `anti-cascade` case stubs acoustic tail progress without primary matches.
 

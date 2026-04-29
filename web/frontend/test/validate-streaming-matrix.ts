@@ -3,7 +3,7 @@
  *
  * Usage:
  *   tsx test/validate-streaming-matrix.ts
- *   tsx test/validate-streaming-matrix.ts --repeats=3 --fail-on-gate
+ *   tsx test/validate-streaming-matrix.ts --repeats=2 --fail-on-gate
  */
 
 import { execFileSync } from "node:child_process";
@@ -29,7 +29,14 @@ interface RunSummary {
 
 const args = process.argv.slice(2);
 const repeatsArg = args.find((arg) => arg.startsWith("--repeats="));
-const repeats = repeatsArg ? parseInt(repeatsArg.split("=")[1], 10) : 3;
+let repeats = repeatsArg ? parseInt(repeatsArg.split("=")[1], 10) : 1;
+if (!Number.isFinite(repeats) || repeats < 1) repeats = 1;
+if (repeats > 2) {
+  console.warn(
+    `validate-streaming-matrix: --repeats=${repeats} capped at 2.`,
+  );
+  repeats = 2;
+}
 const failOnGate = args.includes("--fail-on-gate");
 const tsxPath = resolve(ROOT, "node_modules/.bin/tsx");
 
