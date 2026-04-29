@@ -10,6 +10,7 @@
  *   npx tsx test/compare-streaming-oracle.ts --corpus=test_corpus_v3 --sample=ea_alafasy_002143
  *   npx tsx test/compare-streaming-oracle.ts --corpus=test_corpus_v3 --limit=10 --json=test/oracle.json
  *   npx tsx test/compare-streaming-oracle.ts --stability-json=test/stab-gate-on-v3.json --only-exact-fail --limit=20
+ *   npx tsx test/compare-streaming-oracle.ts --stability-json=test/stab-gate-on-v3.json --oracle-results=../../benchmark/results/r7-v3-batch.json
  */
 
 import { execSync } from "node:child_process";
@@ -44,6 +45,13 @@ const jsonArg = args.find((arg) => arg.startsWith("--json="));
 const jsonOut = jsonArg ? jsonArg.split("=")[1] : null;
 const stabilityArg = args.find((arg) => arg.startsWith("--stability-json="));
 const stabilityJsonPath = stabilityArg ? stabilityArg.split("=")[1] : null;
+const oracleArg = args.find((arg) => arg.startsWith("--oracle-results="));
+const oracleResultsPath = oracleArg ? oracleArg.split("=")[1] : null;
+const fullFileModeArg = args.find((arg) => arg.startsWith("--full-file="));
+const skipFullFile = fullFileModeArg?.split("=")[1] === "skip";
+if (skipFullFile && !oracleResultsPath) {
+  throw new Error("--full-file=skip requires --oracle-results=<benchmark-json>");
+}
 const runIndexArg = args.find((arg) => arg.startsWith("--run-index="));
 const runIndex = runIndexArg ? Number(runIndexArg.split("=")[1]) : 0;
 const onlyExactFail = args.includes("--only-exact-fail");
@@ -74,6 +82,30 @@ interface StabilitySample {
 interface StabilityReport {
   corpus: string;
   samples: StabilitySample[];
+}
+
+interface BenchmarkPrediction {
+  surah: number;
+  ayah: number;
+  ayah_end?: number | null;
+  score?: number;
+}
+
+interface BenchmarkSampleResult {
+  id: string;
+  predicted?: BenchmarkPrediction[];
+  raw_predict?: {
+    surah?: number;
+    ayah?: number;
+    ayah_end?: number | null;
+    score?: number;
+    transcript?: string;
+  };
+}
+
+interface BenchmarkExperimentResult {
+  name?: string;
+  per_sample?: BenchmarkSampleResult[];
 }
 
 interface Comparison {
@@ -199,6 +231,45 @@ function loadStabilityStreamingRefs(): Map<string, string[]> | null {
   return refsBySample;
 }
 
+function refsFromPrediction(prediction: BenchmarkPrediction): string[] {
+  if (!prediction.surah || !prediction.ayah) return [];
+  const end = prediction.ayah_end ?? prediction.ayah;
+  const refs: string[] = [];
+  for (let ayah = prediction.ayah; ayah <= end; ayah++) {
+    refs.push(`${prediction.surah}:${ayah}`);
+  }
+  return refs;
+}
+
+function loadBenchmarkOracle(): Map<string, { refs: string[]; score: number; transcriptChars: number }> | null {
+  if (!oracleResultsPath) return null;
+  const raw = JSON.parse(readFileSync(resolve(process.cwd(), oracleResultsPath), "utf-8"));
+  const result: BenchmarkExperimentResult = Array.isArray(raw) ? raw[0] : raw;
+  if (!result?.per_sample) {
+    throw new Error(`No per_sample array found in oracle results: ${oracleResultsPath}`);
+  }
+
+  const bySample = new Map<string, { refs: string[]; score: number; transcriptChars: number }>();
+  for (const sample of result.per_sample) {
+    const predicted = sample.predicted ?? [];
+    const refs = predicted.flatMap(refsFromPrediction);
+    if (refs.length === 0 && sample.raw_predict?.surah && sample.raw_predict?.ayah) {
+      refs.push(...refsFromPrediction({
+        surah: sample.raw_predict.surah,
+        ayah: sample.raw_predict.ayah,
+        ayah_end: sample.raw_predict.ayah_end,
+        score: sample.raw_predict.score,
+      }));
+    }
+    bySample.set(sample.id, {
+      refs,
+      score: predicted[0]?.score ?? sample.raw_predict?.score ?? 0,
+      transcriptChars: sample.raw_predict?.transcript?.length ?? 0,
+    });
+  }
+  return bySample;
+}
+
 async function runFullFile(db: QuranDB, audio: Float32Array): Promise<{
   refs: string[];
   score: number;
@@ -219,17 +290,24 @@ async function runFullFile(db: QuranDB, audio: Float32Array): Promise<{
 }
 
 async function main() {
-  await createSession(resolve(ROOT, "public/fastconformer_phoneme_q8.onnx"));
-  const vocabJson = JSON.parse(readFileSync(resolve(ROOT, "public/phoneme_vocab.json"), "utf-8"));
-  decoder = new CTCDecoder(vocabJson);
-  const quranData = JSON.parse(readFileSync(resolve(ROOT, "public/quran_phonemes.json"), "utf-8"));
-  const db = new QuranDB(quranData, decoder);
-  trie = buildTrie(quranData, vocabJson, 3).trie;
+  const stabilityStreamingRefs = loadStabilityStreamingRefs();
+  const benchmarkOracle = loadBenchmarkOracle();
+  const needsRuntimeStreaming = !stabilityStreamingRefs;
+  const needsRuntimeFullFile = !benchmarkOracle && !skipFullFile;
+
+  let db: QuranDB | null = null;
+  if (needsRuntimeStreaming || needsRuntimeFullFile) {
+    await createSession(resolve(ROOT, "public/fastconformer_phoneme_q8.onnx"));
+    const vocabJson = JSON.parse(readFileSync(resolve(ROOT, "public/phoneme_vocab.json"), "utf-8"));
+    decoder = new CTCDecoder(vocabJson);
+    const quranData = JSON.parse(readFileSync(resolve(ROOT, "public/quran_phonemes.json"), "utf-8"));
+    db = new QuranDB(quranData, decoder);
+    trie = buildTrie(quranData, vocabJson, 3).trie;
+  }
 
   const manifest: { samples: Sample[] } = JSON.parse(
     readFileSync(resolve(BENCHMARK, "manifest.json"), "utf-8"),
   );
-  const stabilityStreamingRefs = loadStabilityStreamingRefs();
   let samples = manifest.samples;
   if (stabilityStreamingRefs) {
     samples = samples.filter((sample) => stabilityStreamingRefs.has(sample.id));
@@ -242,10 +320,17 @@ async function main() {
 
   const comparisons: Comparison[] = [];
   for (const sample of samples) {
-    const audio = loadAudio(resolve(BENCHMARK, sample.file));
+    const audioPath = resolve(BENCHMARK, sample.file);
+    const audio = needsRuntimeStreaming || needsRuntimeFullFile
+      ? loadAudio(audioPath)
+      : new Float32Array(0);
     const expected = sample.expected_verses.map((verse) => `${verse.surah}:${verse.ayah}`);
-    const streaming = stabilityStreamingRefs?.get(sample.id) ?? await runStreaming(db, audio);
-    const fullFile = await runFullFile(db, audio);
+    const streaming = stabilityStreamingRefs?.get(sample.id) ?? await runStreaming(db!, audio);
+    const fullFile =
+      benchmarkOracle?.get(sample.id) ??
+      (skipFullFile
+        ? { refs: [], score: 0, transcriptChars: 0 }
+        : await runFullFile(db!, audio));
     const comparison: Comparison = {
       id: sample.id,
       category: sample.category,
