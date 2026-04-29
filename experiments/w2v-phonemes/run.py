@@ -356,6 +356,8 @@ def list_models() -> list[str]:
 
 CHUNK_SECONDS = 25.0          # max audio per forward pass (wav2vec2 attention is O(T^2))
 CHUNK_OVERLAP_SECONDS = 1.0   # tiny overlap; CTC collapse absorbs duplicate tokens
+STREAM_CHUNK_SECONDS = 3.0
+MIN_STREAM_CHUNK_SECONDS = 0.5
 
 
 def _run_single_chunk(m, audio_chunk: np.ndarray) -> list[int]:
@@ -370,6 +372,14 @@ def _run_single_chunk(m, audio_chunk: np.ndarray) -> list[int]:
     with torch.no_grad():
         logits = m["model"](**inputs).logits
     return torch.argmax(logits, dim=-1)[0].cpu().tolist()
+
+
+def _decode_audio_phonemes(audio: np.ndarray, model_name: str = "base") -> list[str]:
+    """Decode an in-memory audio buffer into collapsed phoneme tokens."""
+    m = _ensure_model_loaded(model_name)
+    pad_id = m["processor"].tokenizer.pad_token_id or 0
+    pred_ids = _run_single_chunk(m, audio)
+    return _ids_to_phoneme_list(pred_ids, m["processor"].tokenizer, pad_id)
 
 
 def _decode_phonemes(audio_path: str, model_name: str = "base") -> list[str]:
@@ -390,8 +400,7 @@ def _decode_phonemes(audio_path: str, model_name: str = "base") -> list[str]:
     pad_id = m["processor"].tokenizer.pad_token_id or 0
 
     if len(audio) <= chunk_samples:
-        pred_ids = _run_single_chunk(m, audio)
-        return _ids_to_phoneme_list(pred_ids, m["processor"].tokenizer, pad_id)
+        return _decode_audio_phonemes(audio, model_name)
 
     all_phonemes: list[str] = []
     step = chunk_samples - overlap_samples
@@ -401,8 +410,7 @@ def _decode_phonemes(audio_path: str, model_name: str = "base") -> list[str]:
         chunk = audio[start:end]
         if len(chunk) < 1600:  # less than 0.1s; skip
             break
-        pred_ids = _run_single_chunk(m, chunk)
-        chunk_phonemes = _ids_to_phoneme_list(pred_ids, m["processor"].tokenizer, pad_id)
+        chunk_phonemes = _decode_audio_phonemes(chunk, model_name)
         all_phonemes.extend(chunk_phonemes)
         if end == len(audio):
             break
@@ -410,11 +418,8 @@ def _decode_phonemes(audio_path: str, model_name: str = "base") -> list[str]:
     return all_phonemes
 
 
-def predict(audio_path: str, model_name: str = "base", debug: bool = False) -> dict:
-    _ensure_model_loaded(model_name)
-
-    # ASR phase
-    phonemes = _decode_phonemes(audio_path, model_name)
+def _match_phonemes(phonemes: list[str], debug: bool = False) -> dict:
+    """Match a decoded phoneme sequence against the Quran phoneme reference."""
     asr_str = " ".join(phonemes)
 
     if not asr_str.strip():
@@ -519,6 +524,71 @@ def predict(audio_path: str, model_name: str = "base", debug: bool = False) -> d
         }
 
     return result
+
+
+def predict(audio_path: str, model_name: str = "base", debug: bool = False) -> dict:
+    _ensure_model_loaded(model_name)
+    phonemes = _decode_phonemes(audio_path, model_name)
+    return _match_phonemes(phonemes, debug=debug)
+
+
+def _result_to_emissions(result: dict) -> list[dict]:
+    if not result or result.get("surah", 0) == 0:
+        return []
+    surah = result["surah"]
+    ayah_start = result["ayah"]
+    ayah_end = result.get("ayah_end") or ayah_start
+    score = result.get("score", 0.0)
+    return [
+        {"surah": surah, "ayah": ayah, "score": score}
+        for ayah in range(ayah_start, ayah_end + 1)
+    ]
+
+
+def predict_streaming(
+    audio_path: str,
+    model_name: str = "base",
+    chunk_seconds: float = STREAM_CHUNK_SECONDS,
+    overlap_seconds: float = 0.0,
+) -> list[dict]:
+    """Naive phoneme-aware streaming baseline.
+
+    Wav2Vec2 has no cache-aware streaming path here, so this intentionally
+    decodes independent fixed audio chunks and runs the phoneme matcher on each
+    chunk. It is a real chunked baseline, not a production streaming design.
+    """
+    _ensure_model_loaded(model_name)
+    audio = load_audio(audio_path)
+    sr = 16000
+    chunk_samples = int(chunk_seconds * sr)
+    overlap_samples = int(overlap_seconds * sr)
+    step_samples = max(chunk_samples - overlap_samples, 1)
+    min_samples = int(MIN_STREAM_CHUNK_SECONDS * sr)
+
+    emissions = []
+    emitted_refs = set()
+    start = 0
+    while start < len(audio):
+        end = min(start + chunk_samples, len(audio))
+        chunk = audio[start:end]
+        if len(chunk) < min_samples:
+            break
+        if len(chunk) < sr:
+            chunk = np.pad(chunk, (0, sr - len(chunk)))
+
+        result = _match_phonemes(_decode_audio_phonemes(chunk, model_name))
+        for emission in _result_to_emissions(result):
+            ref = (emission["surah"], emission["ayah"])
+            if ref in emitted_refs:
+                continue
+            emissions.append(emission)
+            emitted_refs.add(ref)
+
+        if end == len(audio):
+            break
+        start += step_samples
+
+    return emissions
 
 
 def model_size(model_name: str = "base") -> int:
