@@ -1,0 +1,6090 @@
+{
+  "corpus": "test_corpus_v3",
+  "repeats": 1,
+  "timestamp": "2026-04-28T22:10:27.063Z",
+  "samples": [
+    {
+      "id": "ea_alafasy_002143",
+      "category": "long",
+      "expectedVerses": [
+        "2:143"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "2:143",
+            "44:46",
+            "75:11"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_002177",
+      "category": "long",
+      "expectedVerses": [
+        "2:177"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "2:177",
+            "2:178",
+            "75:11",
+            "114:6",
+            "79:23",
+            "79:24",
+            "79:25",
+            "79:26",
+            "79:27",
+            "79:30",
+            "6:90",
+            "6:91",
+            "6:92"
+          ],
+          "recall": 1,
+          "precision": 0.07692307692307693,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.07692307692307693,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_002282",
+      "category": "long",
+      "expectedVerses": [
+        "2:282"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "2:282",
+            "2:283",
+            "2:284",
+            "2:285",
+            "2:286",
+            "3:1",
+            "3:2",
+            "3:3",
+            "3:4",
+            "3:5",
+            "3:6",
+            "3:7"
+          ],
+          "recall": 1,
+          "precision": 0.08333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.08333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_003008",
+      "category": "medium",
+      "expectedVerses": [
+        "3:8"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "3:8",
+            "3:9",
+            "3:10"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_003173",
+      "category": "long",
+      "expectedVerses": [
+        "3:173"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "3:173",
+            "3:174",
+            "3:175",
+            "3:176"
+          ],
+          "recall": 1,
+          "precision": 0.25,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.25,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_005003",
+      "category": "long",
+      "expectedVerses": [
+        "5:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "5:3",
+            "5:4",
+            "5:5",
+            "11:27",
+            "11:28",
+            "11:29",
+            "11:30",
+            "68:12"
+          ],
+          "recall": 1,
+          "precision": 0.125,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.125,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_009060",
+      "category": "long",
+      "expectedVerses": [
+        "9:60"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "9:60",
+            "9:61"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_017085",
+      "category": "medium",
+      "expectedVerses": [
+        "17:85"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "2:222",
+            "2:223",
+            "2:224"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_alafasy_024061",
+      "category": "long",
+      "expectedVerses": [
+        "24:61"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "24:61",
+            "90:13",
+            "2:213"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_033006",
+      "category": "long",
+      "expectedVerses": [
+        "33:6"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "33:6",
+            "88:14",
+            "88:17",
+            "88:18",
+            "88:19",
+            "88:20"
+          ],
+          "recall": 1,
+          "precision": 0.16666666666666666,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.16666666666666666,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_043036",
+      "category": "medium",
+      "expectedVerses": [
+        "43:36"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "43:36"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_057020",
+      "category": "long",
+      "expectedVerses": [
+        "57:20"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "47:36",
+            "47:37",
+            "47:38",
+            "57:20",
+            "57:21",
+            "92:21",
+            "86:16",
+            "6:32"
+          ],
+          "recall": 1,
+          "precision": 0.125,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.125,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_065012",
+      "category": "long",
+      "expectedVerses": [
+        "65:12"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "14:32",
+            "14:33",
+            "14:34"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_076005",
+      "category": "medium",
+      "expectedVerses": [
+        "76:5"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "76:5",
+            "76:6",
+            "76:7"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_multi_001_001_007",
+      "category": "multi",
+      "expectedVerses": [
+        "1:1",
+        "1:2",
+        "1:3",
+        "1:4",
+        "1:5",
+        "1:6",
+        "1:7"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "1:1",
+            "1:2",
+            "1:3",
+            "1:4",
+            "1:5",
+            "1:6",
+            "1:7",
+            "2:1",
+            "2:2"
+          ],
+          "recall": 1,
+          "precision": 0.7777777777777778,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.7777777777777778,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_multi_025_063_068",
+      "category": "multi",
+      "expectedVerses": [
+        "25:63",
+        "25:64",
+        "25:65",
+        "25:66",
+        "25:67",
+        "25:68"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "25:63",
+            "25:64",
+            "25:65",
+            "86:16",
+            "86:17",
+            "25:66",
+            "25:67",
+            "25:68",
+            "25:69",
+            "25:70",
+            "25:71"
+          ],
+          "recall": 1,
+          "precision": 0.5454545454545454,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5454545454545454,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_multi_027_087_090",
+      "category": "multi",
+      "expectedVerses": [
+        "27:87",
+        "27:88",
+        "27:89",
+        "27:90"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "27:87",
+            "27:88",
+            "27:89",
+            "27:90",
+            "27:91",
+            "27:92",
+            "9:105"
+          ],
+          "recall": 1,
+          "precision": 0.5714285714285714,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5714285714285714,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_multi_029_045_049",
+      "category": "multi",
+      "expectedVerses": [
+        "29:45",
+        "29:46",
+        "29:47",
+        "29:48",
+        "29:49"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "29:45",
+            "29:46",
+            "13:8",
+            "7:162",
+            "7:163",
+            "7:164",
+            "29:47",
+            "2:136",
+            "29:48",
+            "29:49"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_multi_044_001_005",
+      "category": "multi",
+      "expectedVerses": [
+        "44:1",
+        "44:2",
+        "44:3",
+        "44:4",
+        "44:5"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "43:2",
+            "43:3",
+            "43:4",
+            "43:5",
+            "43:6",
+            "43:7"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_multi_050_001_005",
+      "category": "multi",
+      "expectedVerses": [
+        "50:1",
+        "50:2",
+        "50:3",
+        "50:4",
+        "50:5"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "50:1",
+            "50:2",
+            "50:3",
+            "37:16",
+            "114:3",
+            "114:4",
+            "114:5"
+          ],
+          "recall": 0.6,
+          "precision": 0.42857142857142855,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0.42857142857142855,
+      "medianRecall": 0.6
+    },
+    {
+      "id": "ea_alafasy_multi_053_001_005",
+      "category": "multi",
+      "expectedVerses": [
+        "53:1",
+        "53:2",
+        "53:3",
+        "53:4",
+        "53:5"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "53:1",
+            "53:3"
+          ],
+          "recall": 0.4,
+          "precision": 1,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 1,
+      "medianRecall": 0.4
+    },
+    {
+      "id": "ea_husary_multi_054_001_005",
+      "category": "multi",
+      "expectedVerses": [
+        "54:1",
+        "54:2",
+        "54:3",
+        "54:4",
+        "54:5"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "54:1",
+            "54:2",
+            "54:3",
+            "54:4",
+            "74:6",
+            "74:7",
+            "54:5"
+          ],
+          "recall": 1,
+          "precision": 0.7142857142857143,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.7142857142857143,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_multi_069_001_006",
+      "category": "multi",
+      "expectedVerses": [
+        "69:1",
+        "69:2",
+        "69:3",
+        "69:4",
+        "69:5",
+        "69:6"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "69:1",
+            "75:11",
+            "6:22"
+          ],
+          "recall": 0.16666666666666666,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 0.16666666666666666
+    },
+    {
+      "id": "ea_husary_multi_070_001_005",
+      "category": "multi",
+      "expectedVerses": [
+        "70:1",
+        "70:2",
+        "70:3",
+        "70:4",
+        "70:5"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "70:1",
+            "70:2",
+            "70:3",
+            "70:4",
+            "70:5",
+            "70:6"
+          ],
+          "recall": 1,
+          "precision": 0.8333333333333334,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.8333333333333334,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_multi_073_001_005",
+      "category": "multi",
+      "expectedVerses": [
+        "73:1",
+        "73:2",
+        "73:3",
+        "73:4",
+        "73:5"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "73:1",
+            "73:2",
+            "73:3",
+            "73:4",
+            "73:5",
+            "73:6"
+          ],
+          "recall": 1,
+          "precision": 0.8333333333333334,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.8333333333333334,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_multi_077_001_007",
+      "category": "multi",
+      "expectedVerses": [
+        "77:1",
+        "77:2",
+        "77:3",
+        "77:4",
+        "77:5",
+        "77:6",
+        "77:7"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "77:1",
+            "77:3",
+            "77:4",
+            "77:5",
+            "77:6",
+            "77:7"
+          ],
+          "recall": 0.8571428571428571,
+          "precision": 1,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 1,
+      "medianRecall": 0.8571428571428571
+    },
+    {
+      "id": "ea_alafasy_multi_079_001_005",
+      "category": "multi",
+      "expectedVerses": [
+        "79:1",
+        "79:2",
+        "79:3",
+        "79:4",
+        "79:5"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "79:1"
+          ],
+          "recall": 0.2,
+          "precision": 1,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 1,
+      "medianRecall": 0.2
+    },
+    {
+      "id": "ea_husary_multi_080_001_005",
+      "category": "multi",
+      "expectedVerses": [
+        "80:1",
+        "80:2",
+        "80:3",
+        "80:4",
+        "80:5"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "80:1",
+            "80:3",
+            "80:7",
+            "80:8"
+          ],
+          "recall": 0.4,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0.5,
+      "medianRecall": 0.4
+    },
+    {
+      "id": "ea_alafasy_multi_089_001_005",
+      "category": "multi",
+      "expectedVerses": [
+        "89:1",
+        "89:2",
+        "89:3",
+        "89:4",
+        "89:5"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "89:2"
+          ],
+          "recall": 0.2,
+          "precision": 1,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 1,
+      "medianRecall": 0.2
+    },
+    {
+      "id": "ea_husary_multi_090_001_006",
+      "category": "multi",
+      "expectedVerses": [
+        "90:1",
+        "90:2",
+        "90:3",
+        "90:4",
+        "90:5",
+        "90:6"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "90:1",
+            "90:2",
+            "90:3",
+            "90:4",
+            "90:5",
+            "90:6",
+            "90:7"
+          ],
+          "recall": 1,
+          "precision": 0.8571428571428571,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.8571428571428571,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_multi_095_001_005",
+      "category": "multi",
+      "expectedVerses": [
+        "95:1",
+        "95:2",
+        "95:3",
+        "95:4",
+        "95:5"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "4:128",
+            "4:129",
+            "4:130",
+            "95:3",
+            "95:4",
+            "95:5"
+          ],
+          "recall": 0.6,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0.5,
+      "medianRecall": 0.6
+    },
+    {
+      "id": "ea_husary_multi_105_001_005",
+      "category": "multi",
+      "expectedVerses": [
+        "105:1",
+        "105:2",
+        "105:3",
+        "105:4",
+        "105:5"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "105:1",
+            "105:2",
+            "105:3",
+            "105:4",
+            "105:5"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_multi_108_001_003",
+      "category": "multi",
+      "expectedVerses": [
+        "108:1",
+        "108:2",
+        "108:3"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "114:3",
+            "114:4",
+            "114:5",
+            "114:6",
+            "53:42",
+            "53:43"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_multi_109_001_006",
+      "category": "multi",
+      "expectedVerses": [
+        "109:1",
+        "109:2",
+        "109:3",
+        "109:4",
+        "109:5",
+        "109:6"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "109:1",
+            "109:2",
+            "109:3",
+            "109:4",
+            "109:5",
+            "109:6"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_056058",
+      "category": "short",
+      "expectedVerses": [
+        "56:58"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "56:58"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_081008",
+      "category": "short",
+      "expectedVerses": [
+        "81:8"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "81:8"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_082016",
+      "category": "short",
+      "expectedVerses": [
+        "82:16"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "82:16"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_106003",
+      "category": "short",
+      "expectedVerses": [
+        "106:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "103:1",
+            "106:3"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_053033",
+      "category": "short",
+      "expectedVerses": [
+        "53:33"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "19:77"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_010063",
+      "category": "short",
+      "expectedVerses": [
+        "10:63"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:63"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_080008",
+      "category": "short",
+      "expectedVerses": [
+        "80:8"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "18:88"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_078034",
+      "category": "short",
+      "expectedVerses": [
+        "78:34"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "78:34"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_056040",
+      "category": "short",
+      "expectedVerses": [
+        "56:40"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "56:40"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_089019",
+      "category": "short",
+      "expectedVerses": [
+        "89:19"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "89:19"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_055053",
+      "category": "short",
+      "expectedVerses": [
+        "55:53"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "55:13",
+            "55:16"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_044034",
+      "category": "short",
+      "expectedVerses": [
+        "44:34"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "44:34"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_037100",
+      "category": "short",
+      "expectedVerses": [
+        "37:100"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "37:100"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_052002",
+      "category": "short",
+      "expectedVerses": [
+        "52:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "52:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_088016",
+      "category": "short",
+      "expectedVerses": [
+        "88:16"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "88:16"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_088014",
+      "category": "short",
+      "expectedVerses": [
+        "88:14"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "88:14"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_079031",
+      "category": "short",
+      "expectedVerses": [
+        "79:31"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "79:31"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_037155",
+      "category": "short",
+      "expectedVerses": [
+        "37:155"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "37:155"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_084022",
+      "category": "short",
+      "expectedVerses": [
+        "84:22"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "84:22"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_080027",
+      "category": "short",
+      "expectedVerses": [
+        "80:27"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "80:27"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_085022",
+      "category": "short",
+      "expectedVerses": [
+        "85:22"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "85:22"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_037141",
+      "category": "short",
+      "expectedVerses": [
+        "37:141"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "37:141"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_037161",
+      "category": "short",
+      "expectedVerses": [
+        "37:161"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "37:161"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_026220",
+      "category": "short",
+      "expectedVerses": [
+        "26:220"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "26:220"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_056018",
+      "category": "short",
+      "expectedVerses": [
+        "56:18"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "114:2",
+            "114:3"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_043034",
+      "category": "short",
+      "expectedVerses": [
+        "43:34"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "43:34",
+            "43:35"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_081019",
+      "category": "short",
+      "expectedVerses": [
+        "81:19"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "86:13"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_026054",
+      "category": "short",
+      "expectedVerses": [
+        "26:54"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "114:3"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_alafasy_037050",
+      "category": "short",
+      "expectedVerses": [
+        "37:50"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "37:50",
+            "37:51"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_075011",
+      "category": "short",
+      "expectedVerses": [
+        "75:11"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "75:11"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_055058",
+      "category": "short",
+      "expectedVerses": [
+        "55:58"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "86:16",
+            "86:17"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_014020",
+      "category": "short",
+      "expectedVerses": [
+        "14:20"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "14:20"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_021070",
+      "category": "short",
+      "expectedVerses": [
+        "21:70"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "21:70",
+            "21:71"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_079041",
+      "category": "short",
+      "expectedVerses": [
+        "79:41"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "79:41"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_085014",
+      "category": "short",
+      "expectedVerses": [
+        "85:14"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "85:14"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_053051",
+      "category": "short",
+      "expectedVerses": [
+        "53:51"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "53:51"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_080029",
+      "category": "short",
+      "expectedVerses": [
+        "80:29"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "80:29"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_101002",
+      "category": "short",
+      "expectedVerses": [
+        "101:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "101:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_037068",
+      "category": "short",
+      "expectedVerses": [
+        "37:68"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "37:68",
+            "37:69"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_091011",
+      "category": "short",
+      "expectedVerses": [
+        "91:11"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "54:23",
+            "91:11"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_074005",
+      "category": "short",
+      "expectedVerses": [
+        "74:5"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [],
+          "recall": 0,
+          "precision": 1,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 1,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_089012",
+      "category": "short",
+      "expectedVerses": [
+        "89:12"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "89:12"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_083023",
+      "category": "short",
+      "expectedVerses": [
+        "83:23"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "83:23"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_086009",
+      "category": "short",
+      "expectedVerses": [
+        "86:9"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "86:9"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_023048",
+      "category": "short",
+      "expectedVerses": [
+        "23:48"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "23:48"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_081024",
+      "category": "short",
+      "expectedVerses": [
+        "81:24"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "81:24"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_037153",
+      "category": "short",
+      "expectedVerses": [
+        "37:153"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "37:153"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_037082",
+      "category": "short",
+      "expectedVerses": [
+        "37:82"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "74:23"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_alafasy_078036",
+      "category": "short",
+      "expectedVerses": [
+        "78:36"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "78:36"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_026100",
+      "category": "short",
+      "expectedVerses": [
+        "26:100"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "26:100"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_030001",
+      "category": "short",
+      "expectedVerses": [
+        "30:1"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [],
+          "recall": 0,
+          "precision": 1,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 1,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_068010",
+      "category": "short",
+      "expectedVerses": [
+        "68:10"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "26:151",
+            "68:10"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_080007",
+      "category": "short",
+      "expectedVerses": [
+        "80:7"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "80:7",
+            "80:8"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_037025",
+      "category": "short",
+      "expectedVerses": [
+        "37:25"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "37:25",
+            "37:26"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_056019",
+      "category": "short",
+      "expectedVerses": [
+        "56:19"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "56:19",
+            "41:2"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_037089",
+      "category": "short",
+      "expectedVerses": [
+        "37:89"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "37:89"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_092005",
+      "category": "short",
+      "expectedVerses": [
+        "92:5"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "28:67",
+            "92:5"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_026122",
+      "category": "short",
+      "expectedVerses": [
+        "26:122"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "103:1",
+            "26:9"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_alafasy_055012",
+      "category": "short",
+      "expectedVerses": [
+        "55:12"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "55:12"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_056016",
+      "category": "short",
+      "expectedVerses": [
+        "56:16"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "52:20",
+            "56:16"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_007052",
+      "category": "medium",
+      "expectedVerses": [
+        "7:52"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "7:52",
+            "9:105"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_025039",
+      "category": "medium",
+      "expectedVerses": [
+        "25:39"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "25:39",
+            "25:40"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_027023",
+      "category": "medium",
+      "expectedVerses": [
+        "27:23"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "27:23"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_024038",
+      "category": "medium",
+      "expectedVerses": [
+        "24:38"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "24:38",
+            "24:39"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_025028",
+      "category": "medium",
+      "expectedVerses": [
+        "25:28"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "25:28"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_044030",
+      "category": "medium",
+      "expectedVerses": [
+        "44:30"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "44:30"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_005058",
+      "category": "medium",
+      "expectedVerses": [
+        "5:58"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "5:58"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_019068",
+      "category": "medium",
+      "expectedVerses": [
+        "19:68"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "19:68"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_051058",
+      "category": "medium",
+      "expectedVerses": [
+        "51:58"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "108:3"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_019047",
+      "category": "medium",
+      "expectedVerses": [
+        "19:47"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "19:47"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_027079",
+      "category": "medium",
+      "expectedVerses": [
+        "27:79"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "27:79"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_015002",
+      "category": "medium",
+      "expectedVerses": [
+        "15:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "15:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_034005",
+      "category": "medium",
+      "expectedVerses": [
+        "34:5"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "22:51",
+            "22:52",
+            "45:11"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_028014",
+      "category": "medium",
+      "expectedVerses": [
+        "28:14"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "12:22",
+            "12:23",
+            "37:110"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_alafasy_010007",
+      "category": "medium",
+      "expectedVerses": [
+        "10:7"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:7",
+            "10:8",
+            "10:9"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_052036",
+      "category": "medium",
+      "expectedVerses": [
+        "52:36"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "56:22",
+            "56:24"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_alafasy_008045",
+      "category": "medium",
+      "expectedVerses": [
+        "8:45"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "8:45",
+            "8:46"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_004045",
+      "category": "medium",
+      "expectedVerses": [
+        "4:45"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "4:45"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_015015",
+      "category": "medium",
+      "expectedVerses": [
+        "15:15"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "70:15",
+            "70:16"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_012099",
+      "category": "medium",
+      "expectedVerses": [
+        "12:99"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "12:99",
+            "12:100"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_018069",
+      "category": "medium",
+      "expectedVerses": [
+        "18:69"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "18:69"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_006058",
+      "category": "medium",
+      "expectedVerses": [
+        "6:58"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "6:58",
+            "6:59",
+            "6:60"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_092019",
+      "category": "medium",
+      "expectedVerses": [
+        "92:19"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "92:19"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_036052",
+      "category": "medium",
+      "expectedVerses": [
+        "36:52"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "36:52",
+            "36:53"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_036023",
+      "category": "medium",
+      "expectedVerses": [
+        "36:23"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "36:23",
+            "36:24"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_020117",
+      "category": "medium",
+      "expectedVerses": [
+        "20:117"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "20:117",
+            "20:118",
+            "20:119"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_011086",
+      "category": "medium",
+      "expectedVerses": [
+        "11:86"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "11:86",
+            "11:87"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_036076",
+      "category": "medium",
+      "expectedVerses": [
+        "36:76"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "36:76",
+            "36:77",
+            "36:78"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_006075",
+      "category": "medium",
+      "expectedVerses": [
+        "6:75"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "6:75"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_021094",
+      "category": "medium",
+      "expectedVerses": [
+        "21:94"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "21:94",
+            "20:112",
+            "20:113"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_022001",
+      "category": "medium",
+      "expectedVerses": [
+        "22:1"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "31:33"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_025038",
+      "category": "medium",
+      "expectedVerses": [
+        "25:38"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "25:38",
+            "25:39"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_003069",
+      "category": "medium",
+      "expectedVerses": [
+        "3:69"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "103:1",
+            "103:2",
+            "3:69"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_003157",
+      "category": "medium",
+      "expectedVerses": [
+        "3:157"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "2:190",
+            "2:191",
+            "2:192"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_alafasy_040013",
+      "category": "medium",
+      "expectedVerses": [
+        "40:13"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "79:23",
+            "79:24",
+            "79:25",
+            "40:13"
+          ],
+          "recall": 1,
+          "precision": 0.25,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.25,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_068049",
+      "category": "medium",
+      "expectedVerses": [
+        "68:49"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "68:49"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_020006",
+      "category": "medium",
+      "expectedVerses": [
+        "20:6"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "6:127",
+            "20:6"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_006100",
+      "category": "medium",
+      "expectedVerses": [
+        "6:100"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "78:11",
+            "78:12",
+            "78:13",
+            "75:11",
+            "75:12",
+            "17:93"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_alafasy_002263",
+      "category": "medium",
+      "expectedVerses": [
+        "2:263"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "2:263",
+            "2:264"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_021043",
+      "category": "medium",
+      "expectedVerses": [
+        "21:43"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "21:43",
+            "21:44",
+            "21:45"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_042043",
+      "category": "medium",
+      "expectedVerses": [
+        "42:43"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "89:2",
+            "89:6"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_028055",
+      "category": "medium",
+      "expectedVerses": [
+        "28:55"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "28:55"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_006043",
+      "category": "medium",
+      "expectedVerses": [
+        "6:43"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "6:43",
+            "114:3"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_018081",
+      "category": "medium",
+      "expectedVerses": [
+        "18:81"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "18:81"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_003133",
+      "category": "medium",
+      "expectedVerses": [
+        "3:133"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "3:133"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_050027",
+      "category": "medium",
+      "expectedVerses": [
+        "50:27"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "50:27",
+            "50:28"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_007136",
+      "category": "medium",
+      "expectedVerses": [
+        "7:136"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "74:21",
+            "74:27",
+            "74:28",
+            "74:30"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_048019",
+      "category": "medium",
+      "expectedVerses": [
+        "48:19"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "103:1",
+            "48:19",
+            "48:20"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_023021",
+      "category": "medium",
+      "expectedVerses": [
+        "23:21"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "16:66"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_007067",
+      "category": "medium",
+      "expectedVerses": [
+        "7:67"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "7:67"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_007005",
+      "category": "medium",
+      "expectedVerses": [
+        "7:5"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "7:5",
+            "79:23",
+            "79:24"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_027038",
+      "category": "medium",
+      "expectedVerses": [
+        "27:38"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "103:1",
+            "27:38",
+            "27:39",
+            "27:40"
+          ],
+          "recall": 1,
+          "precision": 0.25,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.25,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_024052",
+      "category": "medium",
+      "expectedVerses": [
+        "24:52"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "24:52"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_029051",
+      "category": "medium",
+      "expectedVerses": [
+        "29:51"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "29:51",
+            "11:103",
+            "7:203",
+            "9:71"
+          ],
+          "recall": 1,
+          "precision": 0.25,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.25,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_005081",
+      "category": "medium",
+      "expectedVerses": [
+        "5:81"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "5:81",
+            "5:82",
+            "5:83",
+            "5:84"
+          ],
+          "recall": 1,
+          "precision": 0.25,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.25,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_024009",
+      "category": "medium",
+      "expectedVerses": [
+        "24:9"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "24:9",
+            "24:10"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_015027",
+      "category": "medium",
+      "expectedVerses": [
+        "15:27"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "52:8"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_026062",
+      "category": "medium",
+      "expectedVerses": [
+        "26:62"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "44:46",
+            "26:62",
+            "26:63"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_039039",
+      "category": "medium",
+      "expectedVerses": [
+        "39:39"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "6:135"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_041046",
+      "category": "medium",
+      "expectedVerses": [
+        "41:46"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "16:97",
+            "45:15",
+            "41:46"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_003052",
+      "category": "long",
+      "expectedVerses": [
+        "3:52"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "3:52",
+            "3:54",
+            "3:55"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_003170",
+      "category": "long",
+      "expectedVerses": [
+        "3:170"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "95:2",
+            "95:3",
+            "95:6",
+            "95:7",
+            "95:8",
+            "96:1",
+            "96:2"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_alafasy_002130",
+      "category": "long",
+      "expectedVerses": [
+        "2:130"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "2:130",
+            "2:131",
+            "2:132"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_007033",
+      "category": "long",
+      "expectedVerses": [
+        "7:33"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "7:33",
+            "7:34",
+            "112:2"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_022067",
+      "category": "long",
+      "expectedVerses": [
+        "22:67"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "22:67"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_025042",
+      "category": "long",
+      "expectedVerses": [
+        "25:42"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "114:3",
+            "25:42"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_005077",
+      "category": "long",
+      "expectedVerses": [
+        "5:77"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "37:153",
+            "37:154",
+            "37:155"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_husary_022014",
+      "category": "long",
+      "expectedVerses": [
+        "22:14"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "114:3",
+            "114:5",
+            "114:6",
+            "38:47",
+            "75:11"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_alafasy_062006",
+      "category": "long",
+      "expectedVerses": [
+        "62:6"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "62:6",
+            "75:11"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_002079",
+      "category": "long",
+      "expectedVerses": [
+        "2:79"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "33:57",
+            "33:58",
+            "33:59",
+            "33:60",
+            "33:61",
+            "33:63"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "ea_alafasy_008001",
+      "category": "long",
+      "expectedVerses": [
+        "8:1"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "44:46",
+            "8:1",
+            "8:2"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_002085",
+      "category": "long",
+      "expectedVerses": [
+        "2:85"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "2:85",
+            "2:86",
+            "2:87",
+            "15:13",
+            "3:99"
+          ],
+          "recall": 1,
+          "precision": 0.2,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.2,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_007189",
+      "category": "long",
+      "expectedVerses": [
+        "7:189"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "6:2",
+            "6:3",
+            "7:189"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_041043",
+      "category": "long",
+      "expectedVerses": [
+        "41:43"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "41:43",
+            "79:23",
+            "79:24"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_024050",
+      "category": "long",
+      "expectedVerses": [
+        "24:50"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "24:50"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_008049",
+      "category": "long",
+      "expectedVerses": [
+        "8:49"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "8:49",
+            "8:50"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_003146",
+      "category": "long",
+      "expectedVerses": [
+        "3:146"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "3:146"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_002061",
+      "category": "long",
+      "expectedVerses": [
+        "2:61"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "2:55",
+            "2:61",
+            "2:62",
+            "79:44",
+            "79:45",
+            "79:46",
+            "80:1",
+            "95:2",
+            "95:3",
+            "3:112",
+            "3:113",
+            "3:114",
+            "3:115",
+            "3:116",
+            "3:117",
+            "3:118"
+          ],
+          "recall": 1,
+          "precision": 0.0625,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.0625,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_alafasy_029033",
+      "category": "long",
+      "expectedVerses": [
+        "29:33"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "29:33",
+            "29:34"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "ea_husary_016124",
+      "category": "long",
+      "expectedVerses": [
+        "16:124"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "16:124",
+            "16:125"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "user_imran_23",
+      "category": "medium",
+      "expectedVerses": [
+        "3:23"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "3:23"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "user_ikhlas_2_3",
+      "category": "multi",
+      "expectedVerses": [
+        "112:2",
+        "112:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "112:2",
+            "112:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m000_100_001",
+      "category": "medium",
+      "expectedVerses": [
+        "100:1"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "1:1"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m001_100_009",
+      "category": "medium",
+      "expectedVerses": [
+        "100:9"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "100:9"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m002_100_009",
+      "category": "medium",
+      "expectedVerses": [
+        "100:9"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "100:9"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m003_103_003",
+      "category": "medium",
+      "expectedVerses": [
+        "103:3"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "26:227",
+            "27:1"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m004_103_003",
+      "category": "medium",
+      "expectedVerses": [
+        "103:3"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "26:227",
+            "73:11"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m005_106_001",
+      "category": "medium",
+      "expectedVerses": [
+        "106:1"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "106:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m006_106_004",
+      "category": "medium",
+      "expectedVerses": [
+        "106:4"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "106:4"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m007_106_004",
+      "category": "medium",
+      "expectedVerses": [
+        "106:4"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "106:4"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m008_107_001",
+      "category": "medium",
+      "expectedVerses": [
+        "107:1"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "107:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m009_108_001",
+      "category": "medium",
+      "expectedVerses": [
+        "108:1"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "1:1",
+            "1:2",
+            "1:3"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m010_109_001",
+      "category": "medium",
+      "expectedVerses": [
+        "109:1"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "109:1",
+            "109:2"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m011_010_100",
+      "category": "medium",
+      "expectedVerses": [
+        "10:100"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:100"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m012_010_100",
+      "category": "medium",
+      "expectedVerses": [
+        "10:100"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "79:23",
+            "10:100",
+            "10:101"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m013_010_101",
+      "category": "medium",
+      "expectedVerses": [
+        "10:101"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "53:17",
+            "53:18",
+            "53:19",
+            "10:101"
+          ],
+          "recall": 1,
+          "precision": 0.25,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.25,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m014_010_101",
+      "category": "medium",
+      "expectedVerses": [
+        "10:101"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:101",
+            "10:102"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m015_010_102",
+      "category": "medium",
+      "expectedVerses": [
+        "10:102"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:102",
+            "10:103"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m016_010_102",
+      "category": "medium",
+      "expectedVerses": [
+        "10:102"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "68:18"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m017_010_103",
+      "category": "medium",
+      "expectedVerses": [
+        "10:103"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "74:21",
+            "74:22",
+            "10:103"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m018_010_103",
+      "category": "medium",
+      "expectedVerses": [
+        "10:103"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "74:21"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m019_010_105",
+      "category": "medium",
+      "expectedVerses": [
+        "10:105"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "30:30"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m020_010_105",
+      "category": "medium",
+      "expectedVerses": [
+        "10:105"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:105"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m021_010_109",
+      "category": "medium",
+      "expectedVerses": [
+        "10:109"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:109"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m022_010_109",
+      "category": "medium",
+      "expectedVerses": [
+        "10:109"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:109"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m023_010_010",
+      "category": "medium",
+      "expectedVerses": [
+        "10:10"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "2:162",
+            "2:163",
+            "2:164"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m024_010_010",
+      "category": "medium",
+      "expectedVerses": [
+        "10:10"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:10",
+            "10:11"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m025_010_014",
+      "category": "medium",
+      "expectedVerses": [
+        "10:14"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "23:13",
+            "23:14"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m026_010_014",
+      "category": "medium",
+      "expectedVerses": [
+        "10:14"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:14"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m027_010_017",
+      "category": "medium",
+      "expectedVerses": [
+        "10:17"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "7:37",
+            "7:38"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m028_010_017",
+      "category": "medium",
+      "expectedVerses": [
+        "10:17"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "7:37",
+            "10:17"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m029_010_025",
+      "category": "medium",
+      "expectedVerses": [
+        "10:25"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:25"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m030_010_025",
+      "category": "medium",
+      "expectedVerses": [
+        "10:25"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "6:3",
+            "6:4",
+            "10:25"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m031_010_029",
+      "category": "medium",
+      "expectedVerses": [
+        "10:29"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:29"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m032_010_029",
+      "category": "medium",
+      "expectedVerses": [
+        "10:29"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:29"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m033_010_032",
+      "category": "medium",
+      "expectedVerses": [
+        "10:32"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "37:42",
+            "37:43",
+            "37:44"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m034_010_032",
+      "category": "medium",
+      "expectedVerses": [
+        "10:32"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:32"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m035_010_033",
+      "category": "medium",
+      "expectedVerses": [
+        "10:33"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:33",
+            "10:34"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m036_010_033",
+      "category": "medium",
+      "expectedVerses": [
+        "10:33"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:33",
+            "10:34"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m037_010_040",
+      "category": "medium",
+      "expectedVerses": [
+        "10:40"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:40",
+            "10:41"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m038_010_040",
+      "category": "medium",
+      "expectedVerses": [
+        "10:40"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "9:61",
+            "10:40"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m039_010_041",
+      "category": "medium",
+      "expectedVerses": [
+        "10:41"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:41",
+            "10:42",
+            "10:43",
+            "10:44"
+          ],
+          "recall": 1,
+          "precision": 0.25,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.25,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m040_010_041",
+      "category": "medium",
+      "expectedVerses": [
+        "10:41"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:41",
+            "10:42",
+            "10:43"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m041_010_042",
+      "category": "medium",
+      "expectedVerses": [
+        "10:42"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "26:55",
+            "26:56",
+            "26:57"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m042_010_042",
+      "category": "medium",
+      "expectedVerses": [
+        "10:42"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:42"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m043_010_043",
+      "category": "medium",
+      "expectedVerses": [
+        "10:43"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "10:42"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m044_010_043",
+      "category": "medium",
+      "expectedVerses": [
+        "10:43"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "6:25"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m045_010_044",
+      "category": "medium",
+      "expectedVerses": [
+        "10:44"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:44"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m046_010_044",
+      "category": "medium",
+      "expectedVerses": [
+        "10:44"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:44"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m047_010_046",
+      "category": "medium",
+      "expectedVerses": [
+        "10:46"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:46",
+            "10:47",
+            "7:97"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m048_010_046",
+      "category": "medium",
+      "expectedVerses": [
+        "10:46"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "89:16"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m049_010_047",
+      "category": "medium",
+      "expectedVerses": [
+        "10:47"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:47",
+            "10:48"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m050_010_047",
+      "category": "medium",
+      "expectedVerses": [
+        "10:47"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:47"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m051_010_048",
+      "category": "medium",
+      "expectedVerses": [
+        "10:48"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:48"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m052_010_048",
+      "category": "medium",
+      "expectedVerses": [
+        "10:48"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:48",
+            "56:87"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m053_010_050",
+      "category": "medium",
+      "expectedVerses": [
+        "10:50"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "56:58",
+            "56:59",
+            "10:50"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m054_010_050",
+      "category": "medium",
+      "expectedVerses": [
+        "10:50"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "55:4",
+            "55:5"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m055_010_051",
+      "category": "medium",
+      "expectedVerses": [
+        "10:51"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "74:21",
+            "74:22"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m056_010_051",
+      "category": "medium",
+      "expectedVerses": [
+        "10:51"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "74:21"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_m057_010_052",
+      "category": "medium",
+      "expectedVerses": [
+        "10:52"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:52",
+            "10:53"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m058_010_052",
+      "category": "medium",
+      "expectedVerses": [
+        "10:52"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:52"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_m059_010_053",
+      "category": "medium",
+      "expectedVerses": [
+        "10:53"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "107:7",
+            "108:1",
+            "10:53"
+          ],
+          "recall": 1,
+          "precision": 0.3333333333333333,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.3333333333333333,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_l000_010_104",
+      "category": "long",
+      "expectedVerses": [
+        "10:104"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:104",
+            "10:105",
+            "10:106",
+            "26:101",
+            "26:102"
+          ],
+          "recall": 1,
+          "precision": 0.2,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.2,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_l001_010_104",
+      "category": "long",
+      "expectedVerses": [
+        "10:104"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:104"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_l002_010_106",
+      "category": "long",
+      "expectedVerses": [
+        "10:106"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:106"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_l003_010_106",
+      "category": "long",
+      "expectedVerses": [
+        "10:106"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:106"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_l004_010_107",
+      "category": "long",
+      "expectedVerses": [
+        "10:107"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [],
+          "recall": 0,
+          "precision": 1,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 1,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_l005_010_107",
+      "category": "long",
+      "expectedVerses": [
+        "10:107"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "68:3"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_l006_010_108",
+      "category": "long",
+      "expectedVerses": [
+        "10:108"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [],
+          "recall": 0,
+          "precision": 1,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 1,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_l007_010_108",
+      "category": "long",
+      "expectedVerses": [
+        "10:108"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:108",
+            "10:109"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_l008_010_011",
+      "category": "long",
+      "expectedVerses": [
+        "10:11"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:11",
+            "10:12"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_l009_010_011",
+      "category": "long",
+      "expectedVerses": [
+        "10:11"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:11"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_l010_010_012",
+      "category": "long",
+      "expectedVerses": [
+        "10:12"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "55:3",
+            "55:7",
+            "55:8",
+            "74:41"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_l011_010_012",
+      "category": "long",
+      "expectedVerses": [
+        "10:12"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "39:8",
+            "39:9",
+            "39:10"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_l012_010_013",
+      "category": "long",
+      "expectedVerses": [
+        "10:13"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "5:47",
+            "10:13"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_l013_010_013",
+      "category": "long",
+      "expectedVerses": [
+        "10:13"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:13"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_l014_010_015",
+      "category": "long",
+      "expectedVerses": [
+        "10:15"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:15"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_l015_010_015",
+      "category": "long",
+      "expectedVerses": [
+        "10:15"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:15",
+            "10:16"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_l016_010_016",
+      "category": "long",
+      "expectedVerses": [
+        "10:16"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "discoveredVerses": [
+            "17:42",
+            "17:43",
+            "17:44"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "tlog_l017_010_016",
+      "category": "long",
+      "expectedVerses": [
+        "10:16"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "16:93",
+            "10:16"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_l018_010_018",
+      "category": "long",
+      "expectedVerses": [
+        "10:18"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "112:4",
+            "10:18"
+          ],
+          "recall": 1,
+          "precision": 0.5,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 0.5,
+      "medianRecall": 1
+    },
+    {
+      "id": "tlog_l019_010_018",
+      "category": "long",
+      "expectedVerses": [
+        "10:18"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "discoveredVerses": [
+            "10:18"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    }
+  ],
+  "aggregate": {
+    "totalSamples": 256,
+    "stablePass": 192,
+    "stableFail": 64,
+    "flaky": 0,
+    "medianPrecision": 0.5606149113473329,
+    "medianRecall": 0.763374255952381,
+    "medianSeqAcc": 0.35546875,
+    "perRunCorrect": [
+      192
+    ],
+    "perRunPrecision": [
+      0.5606149113473329
+    ],
+    "perRunRecall": [
+      0.763374255952381
+    ],
+    "perRunSeqAcc": [
+      0.35546875
+    ]
+  }
+}
