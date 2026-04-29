@@ -99,10 +99,56 @@ export type TrackerDiagnosticEvent =
         kind: "single" | "span";
         stageA: number;
         acoustic: number;
+        acousticMargin?: number;
+        lengthFit?: number;
+        fusion?: number;
+        feasible?: boolean;
+      }>;
+      beam?: Array<{
+        ref: string;
+        spanLength: number;
+        score: number;
       }>;
     }
   | { type: "silence_skip"; mode: "discovery" | "tracking"; reason: string }
-  | { type: "commit"; ref: string; reason: string; confidence: number }
+  | {
+      type: "tracking_cycle";
+      ref: string;
+      text_length: number;
+      word_matches: number;
+      acoustic_word: number | null;
+      char_word: number | null;
+      advanced: boolean;
+      final_flush: boolean;
+    }
+  | {
+      type: "pending_emission";
+      action: "confirmed" | "final_flush_emit" | "dropped";
+      ref: string;
+      margin: number | null;
+      fresh_samples: number;
+      matched_indices?: number[];
+    }
+  | {
+      type: "commit";
+      ref: string;
+      reason: string;
+      confidence: number;
+      origin?: "discovery" | "short_rescue" | "tracking_auto";
+      selected_rank?: number | null;
+      selected_feasible?: boolean | null;
+      selected_fusion?: number | null;
+      top_ref?: string | null;
+      top_fusion?: number | null;
+      effective_score?: number;
+      threshold?: number;
+      acoustic_margin?: number;
+      length_fit?: number;
+      clear_margin?: boolean;
+      repeated_leader?: boolean;
+      final_flush_commit?: boolean;
+      is_continuation?: boolean;
+    }
   | { type: "rollback"; reason: string; restored_ref: string | null }
   | { type: "stale_exit"; ref: string; stale_cycles: number }
   | { type: "flush"; mode: "discovery" | "tracking"; duration_sec: number };
@@ -336,6 +382,7 @@ export class RecitationTracker {
       this.trackingVerseWords,
       resumeFrom,
     );
+    const primaryMatchedIndices = matchedIndices.slice();
 
     // Confirm pending emission only on primary word alignment from fresh audio
     if (
@@ -347,13 +394,16 @@ export class RecitationTracker {
       this._clearPendingEmission();
     }
 
+    let acousticWord: number | null = null;
     if (matchedIndices.length === 0) {
       const acousticIdx = this._resolveTrackingAcousticWord(result);
       if (acousticIdx > this.trackingLastWordIdx) {
+        acousticWord = acousticIdx;
         matchedIndices = [acousticIdx];
       }
     }
 
+    let charWord: number | null = null;
     if (
       matchedIndices.length === 0 &&
       text.length >= 5 &&
@@ -361,6 +411,7 @@ export class RecitationTracker {
     ) {
       const charWordIdx = this._charLevelProgress(text);
       if (charWordIdx > this.trackingLastWordIdx) {
+        charWord = charWordIdx;
         matchedIndices = [charWordIdx];
       }
     }
@@ -368,6 +419,17 @@ export class RecitationTracker {
     const advanced =
       matchedIndices.length > 0 &&
       matchedIndices[matchedIndices.length - 1] > this.trackingLastWordIdx;
+
+    this._emitDiagnostic({
+      type: "tracking_cycle",
+      ref: `${this.trackingVerse.surah}:${this.trackingVerse.ayah}`,
+      text_length: text.length,
+      word_matches: primaryMatchedIndices.length,
+      acoustic_word: acousticWord,
+      char_word: charWord,
+      advanced,
+      final_flush: finalFlush,
+    });
 
     if (!advanced) {
       this.staleCycles++;
@@ -602,7 +664,14 @@ export class RecitationTracker {
                   this.pendingLeader = null;
                   this.cyclesSinceCommit = 0;
                   this.consecutiveAutoAdvances = 0;
-                  this._emitDiagnostic({ type: "commit", ref: key, reason: "short_rescue", confidence });
+                  this._emitDiagnostic({
+                    type: "commit",
+                    ref: key,
+                    reason: "short_rescue",
+                    confidence,
+                    origin: "short_rescue",
+                    acoustic_margin: Math.round(margin * 1000) / 1000,
+                  });
                   this._enterTracking(verse);
                   return messages;
                 }
@@ -666,6 +735,10 @@ export class RecitationTracker {
         kind: entry.candidate.kind,
         stageA: Math.round(entry.candidate.stage_a_score * 1000) / 1000,
         acoustic: Math.round(entry.acousticScore * 1000) / 1000,
+        acousticMargin: Math.round(entry.acousticMargin * 1000) / 1000,
+        lengthFit: Math.round(entry.lengthFit * 1000) / 1000,
+        fusion: Math.round(entry.fusionScore * 1000) / 1000,
+        feasible: entry.feasible,
       })),
     });
 
@@ -804,6 +877,21 @@ export class RecitationTracker {
           effectiveScore,
           Math.min(0.99, 0.45 + acousticMargin + lengthFit * 0.2),
         );
+        const selectedKey = refKey(
+          effectiveMatch.surah,
+          effectiveMatch.ayah,
+          effectiveMatch.ayah_end,
+        );
+        const selectedRank = ranked.findIndex(
+          (entry) =>
+            refKey(
+              entry.candidate.surah,
+              entry.candidate.ayah,
+              entry.candidate.ayah_end,
+            ) === selectedKey,
+        );
+        const selectedDiagnostic = selectedRank >= 0 ? ranked[selectedRank] : null;
+        const topDiagnostic = ranked[0] ?? null;
 
         messages.push({
           type: "verse_match",
@@ -863,6 +951,30 @@ export class RecitationTracker {
           ref: key,
           reason: clearMargin ? "acoustic_margin" : "repeat_leader",
           confidence: Math.round(confidence * 1000) / 1000,
+          origin: "discovery",
+          selected_rank: selectedRank >= 0 ? selectedRank + 1 : null,
+          selected_feasible: selectedDiagnostic?.feasible ?? null,
+          selected_fusion: selectedDiagnostic
+            ? Math.round(selectedDiagnostic.fusionScore * 1000) / 1000
+            : null,
+          top_ref: topDiagnostic
+            ? refKey(
+                topDiagnostic.candidate.surah,
+                topDiagnostic.candidate.ayah,
+                topDiagnostic.candidate.ayah_end,
+              )
+            : null,
+          top_fusion: topDiagnostic
+            ? Math.round(topDiagnostic.fusionScore * 1000) / 1000
+            : null,
+          effective_score: Math.round(effectiveScore * 1000) / 1000,
+          threshold,
+          acoustic_margin: Math.round(acousticMargin * 1000) / 1000,
+          length_fit: Math.round(lengthFit * 1000) / 1000,
+          clear_margin: clearMarginAllowed,
+          repeated_leader: repeatedLeader,
+          final_flush_commit: finalFlushCommit,
+          is_continuation: isContinuation,
         });
 
         // Enter tracking on the last verse in the span so auto-advance continues from there

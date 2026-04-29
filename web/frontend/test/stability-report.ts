@@ -10,6 +10,7 @@
  *   npx tsx test/stability-report.ts --repeats=3        # custom repeats
  *   npx tsx test/stability-report.ts --corpus=test_v2   # different corpus
  *   npx tsx test/stability-report.ts --json=out.json    # save JSON report
+ *   npx tsx test/stability-report.ts --focus=exact      # print exact-match failures
  */
 
 import { execSync } from "node:child_process";
@@ -44,6 +45,8 @@ const corpusArg = args.find((a) => a.startsWith("--corpus="));
 const corpusName = corpusArg ? corpusArg.split("=")[1] : "test_corpus";
 const jsonArg = args.find((a) => a.startsWith("--json="));
 const jsonOutPath = jsonArg ? jsonArg.split("=")[1] : null;
+const focusArg = args.find((a) => a.startsWith("--focus="));
+const focus = focusArg?.split("=")[1] === "exact" ? "exact" : "recall";
 const BENCHMARK = resolve(ROOT, `../../benchmark/${corpusName}`);
 
 // ---------------------------------------------------------------------------
@@ -125,6 +128,7 @@ interface Sample {
 
 interface SampleRunResult {
   passed: boolean;
+  exactPassed: boolean;
   discoveredVerses: string[];
   recall: number;
   precision: number;
@@ -138,6 +142,8 @@ interface SampleStability {
   runs: SampleRunResult[];
   passRate: number;
   classification: "stable-pass" | "stable-fail" | "flaky";
+  exactPassRate: number;
+  exactClassification: "exact-stable-pass" | "exact-stable-fail" | "exact-flaky";
   medianPrecision: number;
   medianRecall: number;
 }
@@ -152,6 +158,9 @@ interface StabilityReport {
     stablePass: number;
     stableFail: number;
     flaky: number;
+    exactStablePass: number;
+    exactStableFail: number;
+    exactFlaky: number;
     medianPrecision: number;
     medianRecall: number;
     medianSeqAcc: number;
@@ -225,8 +234,9 @@ async function runSample(
       : 0.0;
 
   const passed = [...expectedSet].every((v) => discoveredSet.has(v));
+  const exactPassed = seqAcc === 1.0;
 
-  return { passed, discoveredVerses, recall, precision, seqAcc };
+  return { passed, exactPassed, discoveredVerses, recall, precision, seqAcc };
 }
 
 // ---------------------------------------------------------------------------
@@ -272,15 +282,17 @@ async function main() {
   for (let run = 0; run < repeats; run++) {
     console.log(`--- Run ${run + 1}/${repeats} ---`);
     let correct = 0;
+    let exactCorrect = 0;
     for (const sample of samples) {
       const audio = audioCache.get(sample.id)!;
       const result = await runSample(sample, db, audio);
       sampleResults.get(sample.id)!.push(result);
       if (result.passed) correct++;
-      const status = result.passed ? "PASS" : "FAIL";
+      if (result.exactPassed) exactCorrect++;
+      const status = result.exactPassed ? "EXACT" : result.passed ? "PASS " : "FAIL ";
       process.stdout.write(`  ${status}  ${sample.id} [${result.discoveredVerses.join(", ")}]\n`);
     }
-    console.log(`  Run ${run + 1}: ${correct}/${samples.length}\n`);
+    console.log(`  Run ${run + 1}: recall-pass ${correct}/${samples.length}, exact ${exactCorrect}/${samples.length}\n`);
   }
 
   // Build stability report
@@ -288,11 +300,18 @@ async function main() {
     const runs = sampleResults.get(sample.id)!;
     const passCount = runs.filter((r) => r.passed).length;
     const passRate = passCount / repeats;
+    const exactPassCount = runs.filter((r) => r.exactPassed).length;
+    const exactPassRate = exactPassCount / repeats;
 
     let classification: "stable-pass" | "stable-fail" | "flaky";
     if (passCount === repeats) classification = "stable-pass";
     else if (passCount === 0) classification = "stable-fail";
     else classification = "flaky";
+
+    let exactClassification: "exact-stable-pass" | "exact-stable-fail" | "exact-flaky";
+    if (exactPassCount === repeats) exactClassification = "exact-stable-pass";
+    else if (exactPassCount === 0) exactClassification = "exact-stable-fail";
+    else exactClassification = "exact-flaky";
 
     const precisions = runs.map((r) => r.precision);
     const recalls = runs.map((r) => r.recall);
@@ -304,6 +323,8 @@ async function main() {
       runs,
       passRate,
       classification,
+      exactPassRate,
+      exactClassification,
       medianPrecision: median(precisions),
       medianRecall: median(recalls),
     };
@@ -311,22 +332,26 @@ async function main() {
 
   // Aggregate per-run metrics
   const perRunCorrect: number[] = [];
+  const perRunExactCorrect: number[] = [];
   const perRunPrecision: number[] = [];
   const perRunRecall: number[] = [];
   const perRunSeqAcc: number[] = [];
   for (let run = 0; run < repeats; run++) {
     let correct = 0;
+    let exactCorrect = 0;
     let totalP = 0;
     let totalR = 0;
     let totalS = 0;
     for (const sample of samples) {
       const r = sampleResults.get(sample.id)![run];
       if (r.passed) correct++;
+      if (r.exactPassed) exactCorrect++;
       totalP += r.precision;
       totalR += r.recall;
       totalS += r.seqAcc;
     }
     perRunCorrect.push(correct);
+    perRunExactCorrect.push(exactCorrect);
     perRunPrecision.push(totalP / samples.length);
     perRunRecall.push(totalR / samples.length);
     perRunSeqAcc.push(totalS / samples.length);
@@ -342,10 +367,14 @@ async function main() {
       stablePass: sampleStabilities.filter((s) => s.classification === "stable-pass").length,
       stableFail: sampleStabilities.filter((s) => s.classification === "stable-fail").length,
       flaky: sampleStabilities.filter((s) => s.classification === "flaky").length,
+      exactStablePass: sampleStabilities.filter((s) => s.exactClassification === "exact-stable-pass").length,
+      exactStableFail: sampleStabilities.filter((s) => s.exactClassification === "exact-stable-fail").length,
+      exactFlaky: sampleStabilities.filter((s) => s.exactClassification === "exact-flaky").length,
       medianPrecision: median(perRunPrecision),
       medianRecall: median(perRunRecall),
       medianSeqAcc: median(perRunSeqAcc),
       perRunCorrect,
+      perRunExactCorrect,
       perRunPrecision,
       perRunRecall,
       perRunSeqAcc,
@@ -358,24 +387,35 @@ async function main() {
   console.log("=".repeat(60));
   console.log(`Corpus: ${corpusName} | Repeats: ${repeats}`);
   console.log(`Stable-pass: ${report.aggregate.stablePass}  Stable-fail: ${report.aggregate.stableFail}  Flaky: ${report.aggregate.flaky}`);
+  console.log(`Exact stable-pass: ${report.aggregate.exactStablePass}  Exact stable-fail: ${report.aggregate.exactStableFail}  Exact flaky: ${report.aggregate.exactFlaky}`);
   console.log(`Per-run correct: [${perRunCorrect.join(", ")}]`);
+  console.log(`Per-run exact:   [${perRunExactCorrect.join(", ")}]`);
   console.log(`Median precision: ${(report.aggregate.medianPrecision * 100).toFixed(1)}%`);
   console.log(`Median recall:    ${(report.aggregate.medianRecall * 100).toFixed(1)}%`);
   console.log(`Median SeqAcc:    ${(report.aggregate.medianSeqAcc * 100).toFixed(1)}%`);
 
   // Flaky samples detail
-  const flaky = sampleStabilities.filter((s) => s.classification === "flaky");
+  const flaky = sampleStabilities.filter((s) =>
+    focus === "exact"
+      ? s.exactClassification === "exact-flaky"
+      : s.classification === "flaky",
+  );
   if (flaky.length > 0) {
-    console.log(`\nFlaky samples (${flaky.length}):`);
+    console.log(`\n${focus === "exact" ? "Exact-flaky" : "Flaky"} samples (${flaky.length}):`);
     for (const s of flaky) {
-      console.log(`  ${s.id} — pass rate: ${(s.passRate * 100).toFixed(0)}% | P: ${(s.medianPrecision * 100).toFixed(0)}% R: ${(s.medianRecall * 100).toFixed(0)}%`);
+      const passRate = focus === "exact" ? s.exactPassRate : s.passRate;
+      console.log(`  ${s.id} — pass rate: ${(passRate * 100).toFixed(0)}% | P: ${(s.medianPrecision * 100).toFixed(0)}% R: ${(s.medianRecall * 100).toFixed(0)}%`);
     }
   }
 
   // Stable-fail samples
-  const stableFails = sampleStabilities.filter((s) => s.classification === "stable-fail");
+  const stableFails = sampleStabilities.filter((s) =>
+    focus === "exact"
+      ? s.exactClassification === "exact-stable-fail"
+      : s.classification === "stable-fail",
+  );
   if (stableFails.length > 0) {
-    console.log(`\nStable-fail samples (${stableFails.length}):`);
+    console.log(`\n${focus === "exact" ? "Exact stable-fail" : "Stable-fail"} samples (${stableFails.length}):`);
     for (const s of stableFails) {
       const lastRun = s.runs[s.runs.length - 1];
       console.log(`  ${s.id} — expected [${s.expectedVerses.join(", ")}] got [${lastRun.discoveredVerses.join(", ")}]`);
