@@ -178,6 +178,12 @@ def _predict_to_emissions(predict_result: dict) -> list[dict]:
     return emissions
 
 
+def _call_model_fn(fn, audio_path: str, model_name: str | None):
+    if model_name:
+        return fn(audio_path, model_name=model_name)
+    return fn(audio_path)
+
+
 def run_experiment(
     exp: dict,
     samples: list[dict],
@@ -197,16 +203,22 @@ def run_experiment(
     """
     mod = _load_module(exp["name"].replace("/", "_").replace("-", "_"), exp["run_path"])
 
+    has_predict_streaming = hasattr(mod, "predict_streaming")
+
     # Prefer transcribe() + streaming pipeline over predict().
     # predict() does a single match_verse() call which can't handle multi-verse
     # recordings. Only fall back to predict() for experiments without transcribe().
     use_predict = hasattr(mod, "predict") and not hasattr(mod, "transcribe") and mode == "full"
 
-    if not use_predict and not hasattr(mod, "transcribe"):
+    if mode == "streaming" and has_predict_streaming:
+        use_predict = False
+    elif not use_predict and not hasattr(mod, "transcribe"):
         print(f"  Skipping {exp['name']} — no transcribe() or predict() function")
         return None
 
-    if use_predict:
+    if mode == "streaming" and has_predict_streaming:
+        predict_streaming_fn = mod.predict_streaming
+    elif use_predict:
         predict_fn = mod.predict
         if exp["model_name"]:
             base_fn = predict_fn
@@ -221,7 +233,9 @@ def run_experiment(
     warmup_sample = samples[0]
     audio_path = str(CORPUS_DIR / warmup_sample["file"])
     try:
-        if use_predict:
+        if mode == "streaming" and has_predict_streaming:
+            _call_model_fn(predict_streaming_fn, audio_path, exp["model_name"])
+        elif use_predict:
             predict_fn(audio_path)
         else:
             transcribe_fn(audio_path)
@@ -250,7 +264,9 @@ def run_experiment(
         result = None
         try:
             start = time.perf_counter()
-            if use_predict:
+            if mode == "streaming" and has_predict_streaming:
+                emissions = _call_model_fn(predict_streaming_fn, audio_path, exp["model_name"])
+            elif use_predict:
                 result = predict_fn(audio_path)
                 emissions = _predict_to_emissions(result)
             elif mode == "streaming":
@@ -327,6 +343,7 @@ def save_results(
     *,
     mode: str = "full",
     category: str | None = None,
+    source: str | None = None,
     chunk_seconds: float = 3.0,
 ):
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -349,6 +366,7 @@ def save_results(
             entry.get("name"),
             entry.get("mode", "full"),
             entry.get("category"),
+            entry.get("source"),
             entry.get("total"),
             entry.get("chunk_seconds"),
         )
@@ -367,6 +385,7 @@ def save_results(
             "timestamp": timestamp,
             "mode": mode,
             "category": category,
+            "source": source,
             "chunk_seconds": effective_chunk,
             "source_file": path.name,
         }
@@ -375,6 +394,7 @@ def save_results(
             summary["name"],
             summary["mode"],
             summary["category"],
+            summary["source"],
             summary["total"],
             summary["chunk_seconds"],
         )
@@ -393,6 +413,7 @@ def save_results(
                     x.get("name", ""),
                     x.get("mode", "full"),
                     x.get("category") or "",
+                    x.get("source") or "",
                     x.get("total", 0),
                     x.get("chunk_seconds") or 0,
                 ),
@@ -408,6 +429,7 @@ def main():
     parser = argparse.ArgumentParser(description="Benchmark all experiments (streaming)")
     parser.add_argument("--experiment", type=str, help="Run only this experiment")
     parser.add_argument("--category", type=str, help="Filter samples by category")
+    parser.add_argument("--source", type=str, help="Filter samples by source")
     parser.add_argument("--corpus", type=str, default="test_corpus",
                         help="Corpus directory name under benchmark/ (default: test_corpus)")
     parser.add_argument("--mode", type=str, default="full", choices=["full", "streaming"],
@@ -426,6 +448,9 @@ def main():
     if args.category:
         samples = [s for s in samples if s["category"] == args.category]
         print(f"Filtered to {len(samples)} samples in category '{args.category}'")
+    if args.source:
+        samples = [s for s in samples if s.get("source") == args.source]
+        print(f"Filtered to {len(samples)} samples from source '{args.source}'")
 
     experiments = discover_experiments(args.experiment)
     if not experiments:
@@ -452,6 +477,7 @@ def main():
         results,
         mode=args.mode,
         category=args.category,
+        source=args.source,
         chunk_seconds=args.chunk,
     )
 

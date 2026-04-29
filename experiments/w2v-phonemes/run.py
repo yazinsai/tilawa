@@ -18,6 +18,7 @@ Pipeline:
 
 import os
 import sys
+import json
 import pickle
 from collections import defaultdict
 from dataclasses import dataclass
@@ -41,11 +42,15 @@ MODELS = {
     "large": {"id": "hetchyy/r7", "size_mb": 1200},
     "base-int8": {"id": "hetchyy/r15_95m_onnx_int8", "size_mb": 116, "onnx": True,
                   "onnx_file": "model.onnx"},
+    "base-local-int8": {"id": "data/r15-onnx", "size_mb": 118, "onnx": True,
+                        "onnx_file": "model_int8.onnx", "local": True,
+                        "env_path": "R15_ONNX_DIR"},
     "large-int8": {"id": "hetchyy/r7_onnx_int8", "size_mb": 970, "onnx": True,
                    "onnx_file": "model_quantized.onnx"},
 }
 
 PHONEME_CACHE_PATH = PROJECT_ROOT / "data" / "phoneme_cache.pkl"
+QURAN_PHONEMES_PATH = PROJECT_ROOT / "data" / "quran_phonemes.json"
 NGRAM_INDEX_PATH = PROJECT_ROOT / "data" / "phoneme_ngram_index_5.pkl"
 ENV_PATH = PROJECT_ROOT / ".env"
 
@@ -153,7 +158,30 @@ def _ids_to_phoneme_list(ids, tokenizer, pad_id):
 
 
 def _build_verse_phoneme_db():
-    """Load phoneme_cache.pkl and build per-verse phoneme strings."""
+    """Load per-verse phoneme strings.
+
+    Prefer the richer historical pickle when present, but fall back to the
+    checked-in JSON so private model access can be evaluated from a fresh clone.
+    """
+    if not PHONEME_CACHE_PATH.exists():
+        with open(QURAN_PHONEMES_PATH, encoding="utf-8") as f:
+            rows = json.load(f)
+
+        verse_phonemes = []
+        surah_verses = {}
+        for row in rows:
+            entry = {
+                "surah": int(row["surah"]),
+                "ayah": int(row["ayah"]),
+                "phoneme_str": row["phonemes"],
+            }
+            verse_phonemes.append(entry)
+            surah_verses.setdefault(entry["surah"], []).append(entry)
+
+        for verses in surah_verses.values():
+            verses.sort(key=lambda v: v["ayah"])
+        return verse_phonemes, surah_verses
+
     with open(PHONEME_CACHE_PATH, "rb") as f:
         chapters = _StubUnpickler(f).load()
 
@@ -281,7 +309,11 @@ def _ensure_model_loaded(model_name: str = "base"):
         import onnxruntime as ort
         from huggingface_hub import snapshot_download
         onnx_file = model_info.get("onnx_file", "model_quantized.onnx")
-        local_dir = snapshot_download(model_id, token=token)
+        if model_info.get("local"):
+            local_dir = os.environ.get(model_info.get("env_path", ""), model_id)
+            local_dir = str((PROJECT_ROOT / local_dir).resolve())
+        else:
+            local_dir = snapshot_download(model_id, token=token)
         onnx_path = os.path.join(local_dir, onnx_file)
         print(f"Loading ONNX model ({model_name}) from {model_id}...")
         processor = AutoProcessor.from_pretrained(local_dir)
@@ -315,11 +347,17 @@ def _ensure_model_loaded(model_name: str = "base"):
 def list_models() -> list[str]:
     # base-int8 repo (hetchyy/r15_95m_onnx_int8) doesn't exist on HF.
     # Only report variants that can actually load.
-    return ["large-int8"]
+    models = ["base", "large-int8"]
+    local_r15 = Path(os.environ.get("R15_ONNX_DIR", PROJECT_ROOT / "data" / "r15-onnx"))
+    if (local_r15 / "model_int8.onnx").exists():
+        models.append("base-local-int8")
+    return models
 
 
 CHUNK_SECONDS = 25.0          # max audio per forward pass (wav2vec2 attention is O(T^2))
 CHUNK_OVERLAP_SECONDS = 1.0   # tiny overlap; CTC collapse absorbs duplicate tokens
+STREAM_CHUNK_SECONDS = 3.0
+MIN_STREAM_CHUNK_SECONDS = 0.5
 
 
 def _run_single_chunk(m, audio_chunk: np.ndarray) -> list[int]:
@@ -334,6 +372,14 @@ def _run_single_chunk(m, audio_chunk: np.ndarray) -> list[int]:
     with torch.no_grad():
         logits = m["model"](**inputs).logits
     return torch.argmax(logits, dim=-1)[0].cpu().tolist()
+
+
+def _decode_audio_phonemes(audio: np.ndarray, model_name: str = "base") -> list[str]:
+    """Decode an in-memory audio buffer into collapsed phoneme tokens."""
+    m = _ensure_model_loaded(model_name)
+    pad_id = m["processor"].tokenizer.pad_token_id or 0
+    pred_ids = _run_single_chunk(m, audio)
+    return _ids_to_phoneme_list(pred_ids, m["processor"].tokenizer, pad_id)
 
 
 def _decode_phonemes(audio_path: str, model_name: str = "base") -> list[str]:
@@ -354,8 +400,7 @@ def _decode_phonemes(audio_path: str, model_name: str = "base") -> list[str]:
     pad_id = m["processor"].tokenizer.pad_token_id or 0
 
     if len(audio) <= chunk_samples:
-        pred_ids = _run_single_chunk(m, audio)
-        return _ids_to_phoneme_list(pred_ids, m["processor"].tokenizer, pad_id)
+        return _decode_audio_phonemes(audio, model_name)
 
     all_phonemes: list[str] = []
     step = chunk_samples - overlap_samples
@@ -365,8 +410,7 @@ def _decode_phonemes(audio_path: str, model_name: str = "base") -> list[str]:
         chunk = audio[start:end]
         if len(chunk) < 1600:  # less than 0.1s; skip
             break
-        pred_ids = _run_single_chunk(m, chunk)
-        chunk_phonemes = _ids_to_phoneme_list(pred_ids, m["processor"].tokenizer, pad_id)
+        chunk_phonemes = _decode_audio_phonemes(chunk, model_name)
         all_phonemes.extend(chunk_phonemes)
         if end == len(audio):
             break
@@ -374,12 +418,8 @@ def _decode_phonemes(audio_path: str, model_name: str = "base") -> list[str]:
     return all_phonemes
 
 
-
-def predict(audio_path: str, model_name: str = "base", debug: bool = False) -> dict:
-    _ensure_model_loaded(model_name)
-
-    # ASR phase
-    phonemes = _decode_phonemes(audio_path, model_name)
+def _match_phonemes(phonemes: list[str], debug: bool = False) -> dict:
+    """Match a decoded phoneme sequence against the Quran phoneme reference."""
     asr_str = " ".join(phonemes)
 
     if not asr_str.strip():
@@ -484,6 +524,71 @@ def predict(audio_path: str, model_name: str = "base", debug: bool = False) -> d
         }
 
     return result
+
+
+def predict(audio_path: str, model_name: str = "base", debug: bool = False) -> dict:
+    _ensure_model_loaded(model_name)
+    phonemes = _decode_phonemes(audio_path, model_name)
+    return _match_phonemes(phonemes, debug=debug)
+
+
+def _result_to_emissions(result: dict) -> list[dict]:
+    if not result or result.get("surah", 0) == 0:
+        return []
+    surah = result["surah"]
+    ayah_start = result["ayah"]
+    ayah_end = result.get("ayah_end") or ayah_start
+    score = result.get("score", 0.0)
+    return [
+        {"surah": surah, "ayah": ayah, "score": score}
+        for ayah in range(ayah_start, ayah_end + 1)
+    ]
+
+
+def predict_streaming(
+    audio_path: str,
+    model_name: str = "base",
+    chunk_seconds: float = STREAM_CHUNK_SECONDS,
+    overlap_seconds: float = 0.0,
+) -> list[dict]:
+    """Naive phoneme-aware streaming baseline.
+
+    Wav2Vec2 has no cache-aware streaming path here, so this intentionally
+    decodes independent fixed audio chunks and runs the phoneme matcher on each
+    chunk. It is a real chunked baseline, not a production streaming design.
+    """
+    _ensure_model_loaded(model_name)
+    audio = load_audio(audio_path)
+    sr = 16000
+    chunk_samples = int(chunk_seconds * sr)
+    overlap_samples = int(overlap_seconds * sr)
+    step_samples = max(chunk_samples - overlap_samples, 1)
+    min_samples = int(MIN_STREAM_CHUNK_SECONDS * sr)
+
+    emissions = []
+    emitted_refs = set()
+    start = 0
+    while start < len(audio):
+        end = min(start + chunk_samples, len(audio))
+        chunk = audio[start:end]
+        if len(chunk) < min_samples:
+            break
+        if len(chunk) < sr:
+            chunk = np.pad(chunk, (0, sr - len(chunk)))
+
+        result = _match_phonemes(_decode_audio_phonemes(chunk, model_name))
+        for emission in _result_to_emissions(result):
+            ref = (emission["surah"], emission["ayah"])
+            if ref in emitted_refs:
+                continue
+            emissions.append(emission)
+            emitted_refs.add(ref)
+
+        if end == len(audio):
+            break
+        start += step_samples
+
+    return emissions
 
 
 def model_size(model_name: str = "base") -> int:
