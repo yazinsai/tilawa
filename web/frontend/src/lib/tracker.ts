@@ -497,7 +497,27 @@ export class RecitationTracker {
 
     const cumulativeCoverage = wordPos / this.trackingVerseWords.length;
     const nearEnd = this.trackingLastWordIdx >= this.trackingVerseWords.length - 2;
-    if (cumulativeCoverage >= 0.8 && nearEnd) {
+    const primaryEnd =
+      primaryMatchedIndices.length > 0
+        ? primaryMatchedIndices[primaryMatchedIndices.length - 1]
+        : -1;
+    const primaryCoverage =
+      this.trackingVerseWords.length > 0
+        ? (primaryEnd + 1) / this.trackingVerseWords.length
+        : 0;
+    const primaryNearEnd = primaryEnd >= this.trackingVerseWords.length - 2;
+    // Auto-advance used to run when acoustic/char fallbacks pushed the word
+    // index to the verse tail without primary alignment, causing false "verse
+    // complete" and cascading bogus next-verse emissions on long clips.
+    // Require primary word matches for the staged completion gate; allow a
+    // narrow escape hatch only when we have reached the final word via any path.
+    const allowVerseComplete =
+      primaryCoverage >= 0.8 && primaryNearEnd
+        ? true
+        : this.trackingLastWordIdx >= this.trackingVerseWords.length - 1 &&
+          cumulativeCoverage >= 0.95;
+
+    if (cumulativeCoverage >= 0.8 && nearEnd && allowVerseComplete) {
       if (!(this.lastCommitEvidence?.strong)) {
         this._exitTracking("weak completion");
         return messages;

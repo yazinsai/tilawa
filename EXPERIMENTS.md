@@ -19,6 +19,20 @@ ONNX inference is non-deterministic at **±3–6 samples per run** on v1 — str
 
 ### Streaming changelog
 
+**2026-04-29 — primary-alignment gate for verse-complete auto-advance** (file: `web/frontend/src/lib/tracker.ts`)
+The v3 stability report with the decode-stability gate (`stab-gate-on-v3.json`) still shows **57 samples** where recall is perfect but SeqAcc is zero because the tracker emits **many verses after the correct one** on long single-verse clips (`ea_alafasy_002143`, `ea_husary_002177`, …). Tracing `_handleTracking`: near the end of a long verse, **acoustic** or **char-level** fallback can advance `trackingLastWordIdx` without any primary fuzzy word alignment, while `cumulativeCoverage` and `nearEnd` still cross the **0.8 / last-two-words** threshold. That fired `verse complete` → deferred auto-advance → discovery commits on spurious continuations.
+
+The fix splits **primary** alignment (`primaryMatchedIndices` from the word-alignment path only) from **effective** progress (which may include acoustic/char fallbacks). Auto-advance now requires either **primary coverage ≥ 0.8** with the primary index in the last two words, or a narrow escape hatch (**last word** reached with ≥95% coverage by any path). Acoustic-only tail jumps no longer qualify for the staged completion gate.
+
+**Measurement:** Full 3× `stability-report` on v3/v2 was **not re-run in this cloud snapshot** — `public/fastconformer_phoneme_q8.onnx` is a Git LFS pointer here (ONNX load fails). After `git lfs pull`, run:
+```
+npx tsx test/stability-report.ts --repeats=3 --corpus=test_corpus_v3 --json=test/primary-completion-v3-stability.json
+npx tsx test/stability-report.ts --repeats=3 --corpus=test_corpus_v2 --json=test/primary-completion-v2-stability.json
+```
+Expect the headline table below to update once medians are in; target is higher **SeqAcc** and **precision** with recall ≥ prior gate.
+
+Unit test: `web/frontend/test/tracker-deferred.test.ts` — `anti-cascade` case stubs acoustic tail progress without primary matches.
+
 **2026-04-25 — decode-stability gate on single-cycle commits** (file: `web/frontend/src/lib/tracker.ts`)
 A context-sweep diagnostic (`web/frontend/test/diagnose-context-sweep.ts`) measured how the model's CTC greedy decode of audio prefixes compares to its decode of the full audio. On v1 the result was striking: across prefix lengths from 1s to 5s, **~50% of every prefix-decode token gets revised** when full audio context arrives (median LCP / |prefix-decode| ≈ 0.50). Full-audio WER vs the expected phoneme reference is 14%, so the offline ceiling is fine — but every short-prefix decode sits in a regime where half its emissions are non-final because the FastConformer encoder uses bidirectional attention to refine early frames once more audio is in.
 
