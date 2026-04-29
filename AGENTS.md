@@ -165,15 +165,15 @@ New experiments MUST be developed in a worktree (see "Git Worktrees" below). Kee
 
 ### 3. Measure with discipline
 
-**ONNX streaming has ±3–6 sample variance per run on v1.** Run 3 times (max) and report the median. A single-run improvement inside the variance envelope is not an improvement.
+**ONNX streaming has ±3–6 sample variance per run on v1.** Default is **one** `stability-report` pass; optionally `--repeats=2` when you need to sanity-check drift (hard cap 2). Report the median only when you ran 2 repeats.
 
 - **Browser/RN streaming (shipped pipeline):**
   ```bash
   cd web/frontend
-  npx tsx test/stability-report.ts --repeats=3 --json=test/<name>-stability.json
-  npx tsx test/stability-report.ts --repeats=3 --corpus=test_corpus_v2 --json=test/<name>-v2-stability.json
+  npx tsx test/stability-report.ts --json=test/<name>-stability.json
+  npx tsx test/stability-report.ts --corpus=test_corpus_v2 --json=test/<name>-v2-stability.json
   ```
-  Produces per-sample pass-rate classification + aggregate medians. Compare against baseline JSON from the prior commit.
+  Optional second pass: append `--repeats=2`. Produces per-sample pass-rate classification + aggregates. Compare against baseline JSON from the prior commit.
 - **Python batch / Python streaming:**
   ```bash
   .venv/bin/python -m benchmark.runner --experiment <name>
@@ -217,7 +217,7 @@ Decide which of these patterns applies (not mutually exclusive):
 ### 6. Commit + merge
 
 - Commit subject: `<area>: <what changed>` (≤72 chars). Area is `tracker`, `matcher`, `train`, `docs`, `experiment/<name>`, etc.
-- Commit body: the why, the before→after deltas, the measurement methodology (repeats, variance).
+- Commit body: the why, the before→after deltas, the measurement methodology (repeats 1–2, variance if applicable).
 - Never skip hooks or bypass signing.
 - Merge with `git merge <branch> --no-ff -m "Merge branch '<name>': ..."` so the experiment is a discoverable merge commit.
 - Remove the worktree: `git worktree remove .worktrees/<name>`.
@@ -228,13 +228,13 @@ Merge is blocked until every box is checked:
 
 - [ ] Developed in a worktree under `.worktrees/<name>/`
 - [ ] `run.py` exports the required interface (if a new experiment) and is in `EXPERIMENT_REGISTRY`
-- [ ] Measured over 3 runs; median reported, not cherry-picked best
+- [ ] Measured (default 1 run on `stability-report`; use `--repeats=2` only when variance-checking); median reported when repeats ≥ 2
 - [ ] v2 blind check run if the shipped pipeline changed; v2 did not regress
 - [ ] Unit tests pass (`npx vitest run` or `pytest`) with deterministic coverage of the change
 - [ ] EXPERIMENTS.md updated: table row / changelog entry / per-experiment note / key finding, as applicable
 - [ ] README.md updated only if the shipped-model headline table or Goal-line metric changed — otherwise README stays untouched
 - [ ] Raw result JSON committed to `benchmark/results/` or `web/frontend/test/`
-- [ ] Commit body cites before→after deltas with variance context (e.g. "v1 median across 5 runs")
+- [ ] Commit body cites before→after deltas with variance context if repeats ≥ 2 (e.g. "median across 2 runs")
 - [ ] Merged to `main` with `--no-ff`; worktree removed
 
 ## Training
