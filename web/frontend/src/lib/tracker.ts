@@ -104,6 +104,11 @@ export type TrackerDiagnosticEvent =
         fusion?: number;
         feasible?: boolean;
       }>;
+      beam?: Array<{
+        ref: string;
+        spanLength: number;
+        score: number;
+      }>;
     }
   | { type: "silence_skip"; mode: "discovery" | "tracking"; reason: string }
   | {
@@ -727,6 +732,7 @@ export class RecitationTracker {
         fusion: Math.round(entry.fusionScore * 1000) / 1000,
         feasible: entry.feasible,
       })),
+      beam: this._beamDiagnostics(result.beamMatches),
     });
 
     let acousticMargin = 0;
