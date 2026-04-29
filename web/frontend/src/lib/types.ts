@@ -147,9 +147,3 @@ export const ADVANCE_PREFIX_TOKENS = 15;
 // where we can't wait for fresh-audio confirmation. Must be smaller (= more
 // demanding) than ADVANCE_RELATIVE_MARGIN.
 export const ADVANCE_FLUSH_STRICT_MARGIN = 0.5;
-// A deferred auto-advanced verse is not made public on the first fuzzy word hit.
-// The next verse has to own a meaningful fraction of fresh audio first. This is
-// a structural guard against replaying the previous verse's retained tail as a
-// cascade of "continuations" on long single-verse clips.
-export const PENDING_EMISSION_MIN_PRIMARY_WORDS = 2;
-export const PENDING_EMISSION_MIN_PRIMARY_COVERAGE = 0.3;

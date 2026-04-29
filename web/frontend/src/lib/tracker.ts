@@ -31,8 +31,6 @@ import {
   ADVANCE_RELATIVE_MARGIN,
   ADVANCE_PREFIX_TOKENS,
   ADVANCE_FLUSH_STRICT_MARGIN,
-  PENDING_EMISSION_MIN_PRIMARY_WORDS,
-  PENDING_EMISSION_MIN_PRIMARY_COVERAGE,
   ACOUSTIC_OVERRIDE_TEXT_THRESHOLD,
   DISCOVERY_EXPANDED_CANDIDATES,
   DISCOVERY_LOW_CONFIDENCE_WORDS,
@@ -91,8 +89,6 @@ interface TrackingPrefix {
   ids: number[];
 }
 
-type TrackingProgressKind = "primary" | "acoustic" | "char";
-
 export type TrackerDiagnosticEvent =
   | {
       type: "discovery_cycle";
@@ -132,7 +128,6 @@ export type TrackerDiagnosticEvent =
       margin: number | null;
       fresh_samples: number;
       matched_indices?: number[];
-      primary_coverage?: number;
     }
   | {
       type: "commit";
@@ -281,8 +276,6 @@ export class RecitationTracker {
   private trackingPrefixes: TrackingPrefix[] = [];
   private trackingLastWordIdx = -1;
   private trackingProgressEstablished = false;
-  private trackingProgressSample: number | null = null;
-  private trackingProgressKind: TrackingProgressKind | null = null;
   private staleCycles = 0;
   private cyclesSinceCommit = Infinity;
   private lastTrackingResult: TranscribeResult | null = null;
@@ -306,7 +299,6 @@ export class RecitationTracker {
   } | null = null;
   private totalSamplesFed = 0;
   private samplesAtAdvance = 0;
-  private primaryWordsSinceAdvance = 0;
 
   constructor(
     private db: QuranDB,
@@ -392,34 +384,14 @@ export class RecitationTracker {
     );
     const primaryMatchedIndices = matchedIndices.slice();
 
-    // Confirm pending emission only after the next verse owns meaningful fresh
-    // primary-alignment evidence. A single fuzzy word in the retained tail is
-    // too weak and caused long single-verse clips to leak many continuations.
+    // Confirm pending emission only on primary word alignment from fresh audio
     if (
       this.trackingPendingEmission &&
-      this.pendingEmissionMessage !== null &&
-      primaryMatchedIndices.length >= PENDING_EMISSION_MIN_PRIMARY_WORDS &&
+      matchedIndices.length > 0 &&
       this.totalSamplesFed > this.samplesAtAdvance
     ) {
-      const primaryEnd = primaryMatchedIndices[primaryMatchedIndices.length - 1];
-      const primaryCoverage =
-        this.trackingVerseWords.length > 0
-          ? (primaryEnd + 1) / this.trackingVerseWords.length
-          : 0;
-      if (primaryCoverage >= PENDING_EMISSION_MIN_PRIMARY_COVERAGE) {
-        messages.push(this.pendingEmissionMessage);
-        this._emitDiagnostic({
-          type: "pending_emission",
-          action: "confirmed",
-          ref: `${this.pendingEmissionMessage.surah}:${this.pendingEmissionMessage.ayah}`,
-          margin: Number.isFinite(this.pendingEmissionMargin)
-            ? Math.round(this.pendingEmissionMargin * 1000) / 1000
-            : null,
-          fresh_samples: this.totalSamplesFed - this.samplesAtAdvance,
-          matched_indices: primaryMatchedIndices,
-        });
-        this._clearPendingEmission();
-      }
+      messages.push(this.pendingEmissionMessage!);
+      this._clearPendingEmission();
     }
 
     let acousticWord: number | null = null;
@@ -497,13 +469,6 @@ export class RecitationTracker {
 
     this.staleCycles = 0;
     this.trackingProgressEstablished = true;
-    this.trackingProgressSample = this.totalSamplesFed;
-    this.trackingProgressKind =
-      primaryMatchedIndices.length > 0
-        ? "primary"
-        : acousticWord !== null
-          ? "acoustic"
-          : "char";
     this.trackingLastWordIdx = matchedIndices[matchedIndices.length - 1];
     const wordPos = this.trackingLastWordIdx + 1;
 
@@ -1242,8 +1207,6 @@ export class RecitationTracker {
     this.trackingPrefixes = [];
     this.trackingLastWordIdx = -1;
     this.trackingProgressEstablished = false;
-    this.trackingProgressSample = null;
-    this.trackingProgressKind = null;
     this.staleCycles = 0;
     this.lastTrackingResult = null;
   }
