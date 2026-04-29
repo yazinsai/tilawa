@@ -385,7 +385,6 @@ export class RecitationTracker {
       this.totalSamplesFed > this.samplesAtAdvance
     ) {
       messages.push(this.pendingEmissionMessage!);
-      this._emitPendingDiagnostic("confirmed", matchedIndices);
       this._clearPendingEmission();
     }
 
