@@ -8,6 +8,7 @@
  *
  * Usage:
  *   npx tsx test/stability-report-oracle.ts --repeats=2 --corpus=test_corpus_v3 --json=test/oracle-v3.json
+ *   npx tsx test/stability-report-oracle.ts --oracle-results=../../benchmark/results/r7-v3-batch.json
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
@@ -30,6 +31,7 @@ const oracleArg = args.find((a) => a.startsWith("--oracle-results="));
 const oracleResultsPath = oracleArg
   ? resolve(process.cwd(), oracleArg.split("=")[1])
   : resolve(ROOT, "../../benchmark/results/2026-04-29_103225.json");
+const allowMissingOracle = args.includes("--allow-missing-oracle");
 
 interface Sample {
   id: string;
@@ -83,6 +85,17 @@ const oracle: OracleExperiment[] = JSON.parse(readFileSync(oracleResultsPath, "u
 const oracleById = new Map<string, string[]>();
 for (const sample of oracle[0]?.per_sample ?? []) {
   oracleById.set(sample.id, refsFromPrediction(sample.predicted ?? sample.raw_predict));
+}
+
+const missingOracleSamples = manifest.samples
+  .map((sample) => sample.id)
+  .filter((id) => !oracleById.has(id));
+if (missingOracleSamples.length > 0 && !allowMissingOracle) {
+  throw new Error(
+    `Oracle results do not cover ${missingOracleSamples.length}/${manifest.samples.length} ` +
+      `samples in ${corpusName}. First missing: ${missingOracleSamples.slice(0, 8).join(", ")}. ` +
+      `Pass --allow-missing-oracle only for diagnostics.`,
+  );
 }
 
 const perRunSeqAcc: number[] = [];
