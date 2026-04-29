@@ -372,6 +372,33 @@ function main() {
         : "none"
     }`,
   );
+  console.log();
+  console.log("Invariant candidates to investigate (diagnostic only):");
+  if (evidenceBackedStaleExits.length > 0) {
+    console.log(
+      `  - evidence-backed stale exits: ${evidenceBackedStaleExits.length} ` +
+        "(tracking made monotonic progress before stale exit; open rediscovery may replay assigned audio)",
+    );
+  }
+  if (weakDominanceCommits.length > 0) {
+    console.log(
+      `  - weak dominance commits: ${weakDominanceCommits.length} ` +
+        "(selected ref loses to the current ranking leader; ranking must be improved before it can be a hard gate)",
+    );
+  }
+  if (missingCandidateCommits.length > 0) {
+    console.log(
+      `  - missing provenance commits: ${missingCandidateCommits.length} ` +
+        "(short-rescue/tracking-origin commits need richer provenance before dominance analysis)",
+    );
+  }
+  if (
+    evidenceBackedStaleExits.length === 0 &&
+    weakDominanceCommits.length === 0 &&
+    missingCandidateCommits.length === 0
+  ) {
+    console.log("  none");
+  }
 }
 
 main();
