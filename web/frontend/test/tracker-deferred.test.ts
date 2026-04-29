@@ -177,7 +177,9 @@ describe("Deferred emission", () => {
   it("valid multi-verse continuation emits after primary word alignment confirms", async () => {
     const transcribeFn = createTranscribeFn([
       makeResult("alif laam miim"), // VERSE_1 complete → auto-advance
-      makeResult("dhaalika alkitaabu laaa"), // VERSE_2: primary word alignment matches
+      // VERSE_2: primary word alignment covers enough of the verse to prove
+      // fresh next-verse ownership, not just retained-tail replay.
+      makeResult("dhaalika alkitaabu laaa rayba fiihi"),
     ]);
 
     const db = createMockDB();
