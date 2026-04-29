@@ -14,6 +14,8 @@ ONNX inference is non-deterministic at **±3–6 samples per run** on v1. Older 
 |---|---|---|---|---|---|
 | **Browser/RN streaming** (300ms chunks, `RecitationTracker`) | v2 | **87.9%** | **68.9%** | **55.8%** | 37/43 |
 | **Browser/RN streaming** | v3 | **89.3%** | **73.4%** | **58.2%** | 223–225/256 |
+
+*Headline figures above are **3-run medians** after the decode-stability gate (2026-04-25). Single-run probe on the **primary-alignment completion gate** branch (2026-04-29): v3 **89.4% / 72.1% / 54.7%** (222/256 recall-pass); v2 **85.6% / 66.4% / 51.2%** (36/43) — raw JSON `web/frontend/test/primary-completion-{v2,v3}-stability.json`. Not adopted as headline until repeated; SeqAcc **below** prior median on this snapshot (likely mixed variance + incomplete fix — extras still come from discovery).*
 | Non-streaming (full-file, single `matchVerse()`) | v1 | 84.1% | 84.9% | 81.1% | 43/53 |
 | Non-streaming (full-file, single `matchVerse()`) | v2 | 78.1% | 79.1% | 74.4% | 32/43 |
 
@@ -24,12 +26,19 @@ The v3 stability report with the decode-stability gate (`stab-gate-on-v3.json`) 
 
 The fix splits **primary** alignment (`primaryMatchedIndices` from the word-alignment path only) from **effective** progress (which may include acoustic/char fallbacks). Auto-advance now requires either **primary coverage ≥ 0.8** with the primary index in the last two words, or a narrow escape hatch (**last word** reached with ≥95% coverage by any path). Acoustic-only tail jumps no longer qualify for the staged completion gate.
 
-**Measurement:** Not re-run in the cloud snapshot (LFS ONNX). Locally:
+Numbers (**single run**, 2026-04-29, CPU ONNX — `primary-completion-v*-stability.json`). Compared to decode-stability **3-run median** row above:
+- **v3** (256 samples): recall **89.4%** (+0.1pp vs 89.3%), precision **72.1%** (−1.3pp vs 73.4%), SeqAcc **54.7%** (−3.5pp vs 58.2%). Recall-pass **222/256** (prior median per-run **223–225**); exact **140/256**. Stable-pass **222**, stable-fail **34**.
+- **v2** (43 samples): recall **85.6%** (−2.3pp vs 87.9%), precision **66.4%** (−2.5pp vs 68.9%), SeqAcc **51.2%** (−4.6pp vs 55.8%). Recall-pass **36/43** (prior **37/43**).
+
+Verdict: blocking acoustic-only **verse-complete** does **not** clear the SeqAcc bar yet — long clips still show extras via **discovery** after tracking (e.g. `ea_alafasy_002143` still emits `2:144`). Next lever is constraining discovery commits after a strong partial track, not only the tracking completion gate.
+
+Measurement commands:
 ```
+cd web/frontend
 npx tsx test/stability-report.ts --corpus=test_corpus_v3 --json=test/primary-completion-v3-stability.json
 npx tsx test/stability-report.ts --corpus=test_corpus_v2 --json=test/primary-completion-v2-stability.json
 ```
-(Optional variance check: `--repeats=2` once.) Expect headline table update when numbers land; target is higher **SeqAcc** and **precision** with recall ≥ prior gate.
+(Optional: `--repeats=2` and report median — recommended before merging.)
 
 Unit test: `web/frontend/test/tracker-deferred.test.ts` — `anti-cascade` case stubs acoustic tail progress without primary matches.
 
