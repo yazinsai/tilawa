@@ -42,6 +42,9 @@ MODELS = {
     "large": {"id": "hetchyy/r7", "size_mb": 1200},
     "base-int8": {"id": "hetchyy/r15_95m_onnx_int8", "size_mb": 116, "onnx": True,
                   "onnx_file": "model.onnx"},
+    "base-local-int8": {"id": "data/r15-onnx", "size_mb": 118, "onnx": True,
+                        "onnx_file": "model_int8.onnx", "local": True,
+                        "env_path": "R15_ONNX_DIR"},
     "large-int8": {"id": "hetchyy/r7_onnx_int8", "size_mb": 970, "onnx": True,
                    "onnx_file": "model_quantized.onnx"},
 }
@@ -306,7 +309,11 @@ def _ensure_model_loaded(model_name: str = "base"):
         import onnxruntime as ort
         from huggingface_hub import snapshot_download
         onnx_file = model_info.get("onnx_file", "model_quantized.onnx")
-        local_dir = snapshot_download(model_id, token=token)
+        if model_info.get("local"):
+            local_dir = os.environ.get(model_info.get("env_path", ""), model_id)
+            local_dir = str((PROJECT_ROOT / local_dir).resolve())
+        else:
+            local_dir = snapshot_download(model_id, token=token)
         onnx_path = os.path.join(local_dir, onnx_file)
         print(f"Loading ONNX model ({model_name}) from {model_id}...")
         processor = AutoProcessor.from_pretrained(local_dir)
@@ -340,7 +347,11 @@ def _ensure_model_loaded(model_name: str = "base"):
 def list_models() -> list[str]:
     # base-int8 repo (hetchyy/r15_95m_onnx_int8) doesn't exist on HF.
     # Only report variants that can actually load.
-    return ["base", "large-int8"]
+    models = ["base", "large-int8"]
+    local_r15 = Path(os.environ.get("R15_ONNX_DIR", PROJECT_ROOT / "data" / "r15-onnx"))
+    if (local_r15 / "model_int8.onnx").exists():
+        models.append("base-local-int8")
+    return models
 
 
 CHUNK_SECONDS = 25.0          # max audio per forward pass (wav2vec2 attention is O(T^2))

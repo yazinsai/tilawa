@@ -17,8 +17,18 @@ distillation teacher.
   - 388 MB fp32 size
 - The five failures are repeated/short-phrase collisions, not obvious acoustic
   failures.
+- Modal export produced our own dynamic-int8 ONNX:
+  - `data/r15-onnx/model_int8.onnx`
+  - 123,183,175 bytes for the ONNX file; 123,731,968 bytes including tokenizer
+    files
+  - same 97.1% / 97.1% / 97.1% on the 174-sample EveryAyah-v3 slice
+  - same five failures as fp32
+  - 1.11s average CPU latency on this cloud VM
 
-Raw result: `benchmark/results/2026-04-29_091708.json`.
+Raw results:
+
+- fp32 HF checkpoint: `benchmark/results/2026-04-29_091708.json`
+- int8 ONNX: `benchmark/results/2026-04-29_100633.json`
 
 ## Step 1: Export and quantize r15
 
@@ -48,15 +58,20 @@ Download after completion:
 modal run scripts/export_r15_onnx_modal.py --download-only --output-dir data/r15-onnx
 ```
 
+Status: completed on 2026-04-29. Modal app runs:
+
+- failed missing `onnxscript`: `ap-jLVHwCWXgaSGy2CS6RWrVp`
+- successful export: `ap-on2dvsqGII2mZ9bXGUTNjj`
+- download: `ap-efIh6Dud7nsepM46qfIe6A`
+
 ## Step 2: Add an ONNX-backed r15 model entry
 
-If `model_int8.onnx` is sane:
+Completed:
 
-1. Add a `base-local-int8` or `base-modal-int8` model entry to
-   `experiments/w2v-phonemes/run.py`.
-2. Point it at `data/r15-onnx/model_int8.onnx` by default, with an env override
-   for local paths.
-3. Keep `base` as the fp32 HF checkpoint for reproducibility.
+1. Added `base-local-int8` to `experiments/w2v-phonemes/run.py`.
+2. It points at `data/r15-onnx/model_int8.onnx` by default, with
+   `R15_ONNX_DIR` as an env override.
+3. Kept `base` as the fp32 HF checkpoint for reproducibility.
 
 ## Step 3: Benchmark gates
 
@@ -67,15 +82,16 @@ Run:
 .venv/bin/python -m benchmark.runner --experiment w2v-phonemes/base-local-int8 --corpus test_corpus_v3
 ```
 
-Promotion criteria:
+Promotion criteria status:
 
-- EveryAyah-v3 SeqAcc within 1pp of fp32 r15.
-- Full v3 SeqAcc meaningfully above shipped FastConformer full-file and close to
-  r7; target `>= 94%`.
-- Average CPU latency no worse than fp32 r15; target `<= 1.0s` on the 174-sample
-  EveryAyah slice.
-- Model artifact around 100-130 MB. If it is much larger, try ORT external-data
-  int8 or PyTorch dynamic quantization only as a server-side artifact.
+- EveryAyah-v3 SeqAcc within 1pp of fp32 r15: **passed** (identical 97.1%).
+- Average CPU latency target `<= 1.0s`: **near miss** on this VM (1.11s vs
+  0.90s fp32). Still acceptable for server-side verification; measure on target
+  hardware before productizing.
+- Model artifact around 100-130 MB: **passed** (123 MB ONNX).
+- Full v3 including TLOG/user recordings: **pending** because this cloud checkout
+  only had public EveryAyah audio; run once the private/local v3 audio is
+  available.
 
 ## Step 4: Product decision
 

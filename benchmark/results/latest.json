@@ -1093,6 +1093,21 @@
     "source_file": "2026-03-07_154644.json"
   },
   {
+    "name": "w2v-phonemes/base-local-int8",
+    "recall": 0.9712643678160919,
+    "precision": 0.9712643678160919,
+    "sequence_accuracy": 0.9712643678160919,
+    "total": 174,
+    "avg_latency": 1.1132019476320227,
+    "model_size": 123731968,
+    "timestamp": "2026-04-29_100633",
+    "mode": "full",
+    "category": null,
+    "source": "everyayah",
+    "chunk_seconds": null,
+    "source_file": "2026-04-29_100633.json"
+  },
+  {
     "name": "w2v-phonemes/large-int8",
     "recall": 0.9534883720930233,
     "precision": 0.9534883720930233,
