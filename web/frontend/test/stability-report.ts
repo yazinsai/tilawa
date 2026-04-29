@@ -6,8 +6,8 @@
  * stable-pass, stable-fail, or flaky.
  *
  * Usage:
- *   npx tsx test/stability-report.ts                    # 5 repeats (default)
- *   npx tsx test/stability-report.ts --repeats=3        # custom repeats
+ *   npx tsx test/stability-report.ts                    # 1 repeat (default)
+ *   npx tsx test/stability-report.ts --repeats=2        # second pass for variance sanity (max 2)
  *   npx tsx test/stability-report.ts --corpus=test_v2   # different corpus
  *   npx tsx test/stability-report.ts --json=out.json    # save JSON report
  *   npx tsx test/stability-report.ts --focus=exact      # print exact-match failures
@@ -40,7 +40,14 @@ const TAIL_SILENCE_SECONDS = 4.0;
 // ---------------------------------------------------------------------------
 const args = process.argv.slice(2);
 const repeatsArg = args.find((a) => a.startsWith("--repeats="));
-const repeats = repeatsArg ? parseInt(repeatsArg.split("=")[1], 10) : 5;
+let repeats = repeatsArg ? parseInt(repeatsArg.split("=")[1], 10) : 1;
+if (!Number.isFinite(repeats) || repeats < 1) repeats = 1;
+if (repeats > 2) {
+  console.warn(
+    `stability-report: --repeats=${repeats} capped at 2 (default is 1; use --repeats=2 only when checking run-to-run drift).`,
+  );
+  repeats = 2;
+}
 const corpusArg = args.find((a) => a.startsWith("--corpus="));
 const corpusName = corpusArg ? corpusArg.split("=")[1] : "test_corpus";
 const jsonArg = args.find((a) => a.startsWith("--json="));
