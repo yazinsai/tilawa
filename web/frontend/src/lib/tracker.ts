@@ -28,6 +28,7 @@ import {
   TRACKING_WEAK_COMMIT_CONFIDENCE,
   UTTERANCE_FINAL_SILENCE_SAMPLES,
   NON_CONTINUATION_JUMP_THRESHOLD,
+  NON_CONTINUATION_MIN_CYCLES_AFTER_STRONG,
   ADVANCE_RELATIVE_MARGIN,
   ADVANCE_PREFIX_TOKENS,
   ADVANCE_FLUSH_STRICT_MARGIN,
@@ -889,9 +890,10 @@ export class RecitationTracker {
       if (
         !isContinuation &&
         this.lastEmittedRef &&
-        this.cyclesSinceCommit <= 2
+        this.lastCommitEvidence?.strong &&
+        this.cyclesSinceCommit <= NON_CONTINUATION_MIN_CYCLES_AFTER_STRONG
       ) {
-        if (effectiveScore < NON_CONTINUATION_JUMP_THRESHOLD && !repeatedLeader) {
+        if (effectiveScore < NON_CONTINUATION_JUMP_THRESHOLD || !repeatedLeader) {
           effectivelyBlocked = true;
         }
       }

@@ -117,6 +117,11 @@ export const DISCOVERY_MAX_SPAN = 4;
 export const ACOUSTIC_CLEAR_MARGIN = 0.12;
 export const ACOUSTIC_CONTINUATION_MARGIN = 0.08;
 export const NON_CONTINUATION_JUMP_THRESHOLD = 0.65;
+// After a strong commit, unrelated discovery jumps need multiple fresh cycles
+// before they can emit. Immediate non-continuation commits usually reuse the
+// retained overlap from the prior segment and are the main expected+extra
+// cascade source on long single-verse clips.
+export const NON_CONTINUATION_MIN_CYCLES_AFTER_STRONG = 3;
 export const ACOUSTIC_OVERRIDE_TEXT_THRESHOLD = 0.55;
 export const ACOUSTIC_OVERRIDE_MIN_MARGIN = 0.25;
 export const DISCOVERY_EXPANDED_CANDIDATES = 200;
@@ -129,6 +134,11 @@ export const DISCOVERY_FUSION_LOW_TEXT_WEIGHT = 0.45;
 export const DISCOVERY_FUSION_LOW_ACOUSTIC_WEIGHT = 0.4;
 export const DISCOVERY_FUSION_LOW_LENGTH_WEIGHT = 0.15;
 export const DISCOVERY_FUSION_SELECTION_GAP = 0.08;
+// Very short acoustic-only rescues are useful at final silence, but in the
+// middle of a long utterance they often latch onto retained-tail fragments and
+// start a wrong cascade. Require final flush unless the candidate is a same-
+// surah continuation from the last confirmed verse.
+export const SHORT_RESCUE_MIDSTREAM_MARGIN = 0.35;
 
 export const TRACKING_TRIGGER_SECONDS = 0.5;
 export const TRACKING_TRIGGER_SAMPLES = SAMPLE_RATE * TRACKING_TRIGGER_SECONDS;
