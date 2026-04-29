@@ -104,6 +104,7 @@ interface CommitAnalysis {
   timeSec: number;
   ref: string;
   reason: string;
+  origin: "discovery" | "short_rescue" | "tracking_auto";
   selectedRank: number | null;
   topRef: string | null;
   topFusion: number | null;
@@ -207,24 +208,35 @@ function analyzeSample(sample: DiagnosedSample): {
       pendingActions.push(event);
     } else if (event.type === "commit") {
       const candidates = lastDiscovery?.candidates ?? [];
-      const selectedRank = candidates.findIndex((candidate) =>
+      const localSelectedRank = candidates.findIndex((candidate) =>
         refMatches(event.ref, candidate.ref),
       );
-      const selected = selectedRank >= 0 ? candidates[selectedRank] : null;
+      const selectedRank = event.selected_rank ?? (localSelectedRank >= 0 ? localSelectedRank + 1 : null);
+      const selected =
+        localSelectedRank >= 0
+          ? candidates[localSelectedRank]
+          : null;
       const top = candidates[0] ?? null;
       commits.push({
         sampleId: sample.id,
         timeSec: event.time_sec,
         ref: event.ref,
         reason: event.reason,
-        selectedRank: selectedRank >= 0 ? selectedRank + 1 : null,
-        topRef: top?.ref ?? null,
-        topFusion: top?.fusion ?? null,
-        selectedFusion: selected?.fusion ?? null,
-        selectedFeasible: selected?.feasible ?? null,
-        selectedAcousticMargin: selected?.acousticMargin ?? null,
-        selectedLengthFit: selected?.lengthFit ?? null,
-        finalFlush: lastDiscovery?.final_flush ?? null,
+        origin:
+          event.origin ??
+          (event.reason === "short_rescue"
+            ? "short_rescue"
+            : event.selected_rank === undefined
+              ? "tracking_auto"
+              : "discovery"),
+        selectedRank,
+        topRef: event.top_ref ?? top?.ref ?? null,
+        topFusion: event.top_fusion ?? top?.fusion ?? null,
+        selectedFusion: event.selected_fusion ?? selected?.fusion ?? null,
+        selectedFeasible: event.selected_feasible ?? selected?.feasible ?? null,
+        selectedAcousticMargin: event.acoustic_margin ?? selected?.acousticMargin ?? null,
+        selectedLengthFit: event.length_fit ?? selected?.lengthFit ?? null,
+        finalFlush: event.final_flush_commit ?? lastDiscovery?.final_flush ?? null,
         transcriptChars: lastDiscovery?.text.length ?? null,
       });
       trackingSinceCommit = [];

@@ -134,6 +134,7 @@ export type TrackerDiagnosticEvent =
       ref: string;
       reason: string;
       confidence: number;
+      origin?: "discovery" | "short_rescue" | "tracking_auto";
       selected_rank?: number | null;
       selected_feasible?: boolean | null;
       selected_fusion?: number | null;
@@ -663,7 +664,14 @@ export class RecitationTracker {
                   this.pendingLeader = null;
                   this.cyclesSinceCommit = 0;
                   this.consecutiveAutoAdvances = 0;
-                  this._emitDiagnostic({ type: "commit", ref: key, reason: "short_rescue", confidence });
+                  this._emitDiagnostic({
+                    type: "commit",
+                    ref: key,
+                    reason: "short_rescue",
+                    confidence,
+                    origin: "short_rescue",
+                    acoustic_margin: Math.round(margin * 1000) / 1000,
+                  });
                   this._enterTracking(verse);
                   return messages;
                 }
@@ -732,7 +740,6 @@ export class RecitationTracker {
         fusion: Math.round(entry.fusionScore * 1000) / 1000,
         feasible: entry.feasible,
       })),
-      beam: this._beamDiagnostics(result.beamMatches),
     });
 
     let acousticMargin = 0;
@@ -944,6 +951,7 @@ export class RecitationTracker {
           ref: key,
           reason: clearMargin ? "acoustic_margin" : "repeat_leader",
           confidence: Math.round(confidence * 1000) / 1000,
+          origin: "discovery",
           selected_rank: selectedRank >= 0 ? selectedRank + 1 : null,
           selected_feasible: selectedDiagnostic?.feasible ?? null,
           selected_fusion: selectedDiagnostic
