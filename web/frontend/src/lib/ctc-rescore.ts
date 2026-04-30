@@ -17,6 +17,14 @@ export interface ScoredCtcCandidate<T = unknown> extends CtcCandidate<T> {
   minFramesRequired: number;
 }
 
+export interface CtcAlignment {
+  feasible: boolean;
+  score: number;
+  startFrame: number;
+  endFrame: number;
+  tokenFrames: number[];
+}
+
 const NEG_INF = Number.NEGATIVE_INFINITY;
 const IMPOSSIBLE_SCORE = 1e9;
 
@@ -108,6 +116,135 @@ export function scoreCtcSequence(
   }
 
   return -finalScore / targetLength;
+}
+
+function impossibleAlignment(): CtcAlignment {
+  return {
+    feasible: false,
+    score: IMPOSSIBLE_SCORE,
+    startFrame: -1,
+    endFrame: -1,
+    tokenFrames: [],
+  };
+}
+
+export function alignCtcSequence(
+  evidence: AcousticEvidence,
+  targetIds: readonly number[],
+): CtcAlignment {
+  const { logprobs, timeSteps, vocabSize, blankId } = evidence;
+  const targetLength = targetIds.length;
+
+  if (targetLength === 0 || minFramesRequired(targetIds) > timeSteps) {
+    return impossibleAlignment();
+  }
+
+  const stateCount = targetLength * 2 + 1;
+  const states = new Int32Array(stateCount);
+  for (let s = 0; s < stateCount; s++) {
+    states[s] = s % 2 === 0 ? blankId : targetIds[(s - 1) >> 1];
+  }
+
+  let prev = new Float64Array(stateCount);
+  let curr = new Float64Array(stateCount);
+  prev.fill(NEG_INF);
+  curr.fill(NEG_INF);
+
+  // Backpointer stores the previous state chosen for each (time, state).
+  // -1 means unreachable/uninitialized.
+  const back = new Int32Array(timeSteps * stateCount);
+  back.fill(-1);
+
+  prev[0] = logprobs[blankId];
+  back[0] = 0;
+  if (stateCount > 1) {
+    prev[1] = logprobs[states[1]];
+    back[1] = 1;
+  }
+
+  for (let t = 1; t < timeSteps; t++) {
+    curr.fill(NEG_INF);
+    const frameOffset = t * vocabSize;
+    const backOffset = t * stateCount;
+
+    for (let s = 0; s < stateCount; s++) {
+      let best = prev[s];
+      let bestPrev = s;
+
+      if (s > 0 && prev[s - 1] > best) {
+        best = prev[s - 1];
+        bestPrev = s - 1;
+      }
+      if (
+        s > 1 &&
+        states[s] !== blankId &&
+        states[s] !== states[s - 2] &&
+        prev[s - 2] > best
+      ) {
+        best = prev[s - 2];
+        bestPrev = s - 2;
+      }
+
+      if (best !== NEG_INF) {
+        curr[s] = best + logprobs[frameOffset + states[s]];
+        back[backOffset + s] = bestPrev;
+      }
+    }
+
+    const tmp = prev;
+    prev = curr;
+    curr = tmp;
+  }
+
+  let finalState = stateCount - 1;
+  let bestLogProb = prev[finalState];
+  if (stateCount > 1 && prev[stateCount - 2] > bestLogProb) {
+    finalState = stateCount - 2;
+    bestLogProb = prev[finalState];
+  }
+
+  if (!Number.isFinite(bestLogProb)) {
+    return impossibleAlignment();
+  }
+
+  const path = new Int32Array(timeSteps);
+  let state = finalState;
+  for (let t = timeSteps - 1; t >= 0; t--) {
+    path[t] = state;
+    const prevState = back[t * stateCount + state];
+    if (t > 0 && prevState < 0) {
+      return impossibleAlignment();
+    }
+    state = prevState;
+  }
+
+  const firstTokenFrame = new Int32Array(targetLength);
+  firstTokenFrame.fill(-1);
+  let startFrame = -1;
+  let endFrame = -1;
+  for (let t = 0; t < timeSteps; t++) {
+    const s = path[t];
+    if (s % 2 === 1) {
+      const tokenIndex = (s - 1) >> 1;
+      if (firstTokenFrame[tokenIndex] < 0) {
+        firstTokenFrame[tokenIndex] = t;
+      }
+      if (startFrame < 0) startFrame = t;
+      endFrame = t;
+    }
+  }
+
+  if (startFrame < 0 || endFrame < 0) {
+    return impossibleAlignment();
+  }
+
+  return {
+    feasible: true,
+    score: -bestLogProb / targetLength,
+    startFrame,
+    endFrame,
+    tokenFrames: Array.from(firstTokenFrame),
+  };
 }
 
 export function scoreCtcCandidates<T>(
