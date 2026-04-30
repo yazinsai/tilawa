@@ -289,6 +289,30 @@ describe("Deferred emission", () => {
     expect(t.consecutiveAutoAdvances).toBe(0);
   });
 
+  it("session max primary alignment + acoustic tail can complete (sliding window)", async () => {
+    // Earlier cycles may have matched 80%+ of words while the current window
+    // decode has no primary hits (tail-only). Max-primary gate must still allow
+    // completion when effective progress reaches the verse end — unlike
+    // acoustic-only with primaryMax never set.
+    const transcribeFn = createTranscribeFn([makeResult(UNRELATED_TEXT)]);
+
+    const db = createMockDB();
+    const tracker = new RecitationTracker(db, transcribeFn);
+    injectTrackingState(tracker, VERSE_2);
+    const t = tracker as any;
+    t.trackingPrimaryMaxIdx = 8; // primary saw through word 8 in a prior window
+    t.trackingLastWordIdx = 7;
+    t._resolveTrackingAcousticWord = () => 9;
+
+    for (let i = 0; i < 2; i++) {
+      await tracker.feed(makeSpeechChunk());
+    }
+
+    expect(t.trackingVerse?.ayah).toBe(3);
+    expect(t.trackingPendingEmission).toBe(true);
+    expect(t.consecutiveAutoAdvances).toBe(1);
+  });
+
   it("acoustic/char-level fallback do NOT trigger pending emission", async () => {
     const transcribeFn = createTranscribeFn([
       makeResult("alif laam miim"), // VERSE_1 complete → auto-advance

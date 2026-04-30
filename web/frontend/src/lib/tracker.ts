@@ -275,6 +275,8 @@ export class RecitationTracker {
   private trackingVerseWords: string[] = [];
   private trackingPrefixes: TrackingPrefix[] = [];
   private trackingLastWordIdx = -1;
+  /** Max word index ever reached via primary (fuzzy word) alignment this session */
+  private trackingPrimaryMaxIdx = -1;
   private trackingProgressEstablished = false;
   private staleCycles = 0;
   private cyclesSinceCommit = Infinity;
@@ -383,6 +385,10 @@ export class RecitationTracker {
       resumeFrom,
     );
     const primaryMatchedIndices = matchedIndices.slice();
+    if (primaryMatchedIndices.length > 0) {
+      const pe = primaryMatchedIndices[primaryMatchedIndices.length - 1];
+      if (pe > this.trackingPrimaryMaxIdx) this.trackingPrimaryMaxIdx = pe;
+    }
 
     // Confirm pending emission only on primary word alignment from fresh audio
     if (
@@ -497,25 +503,21 @@ export class RecitationTracker {
 
     const cumulativeCoverage = wordPos / this.trackingVerseWords.length;
     const nearEnd = this.trackingLastWordIdx >= this.trackingVerseWords.length - 2;
-    const primaryEnd =
-      primaryMatchedIndices.length > 0
-        ? primaryMatchedIndices[primaryMatchedIndices.length - 1]
-        : -1;
+    const primaryBest = this.trackingPrimaryMaxIdx;
     const primaryCoverage =
-      this.trackingVerseWords.length > 0
-        ? (primaryEnd + 1) / this.trackingVerseWords.length
+      this.trackingVerseWords.length > 0 && primaryBest >= 0
+        ? (primaryBest + 1) / this.trackingVerseWords.length
         : 0;
-    const primaryNearEnd = primaryEnd >= this.trackingVerseWords.length - 2;
+    const primaryNearEnd = primaryBest >= this.trackingVerseWords.length - 2;
     // Auto-advance used to run when acoustic/char fallbacks pushed the word
     // index to the verse tail without primary alignment, causing false "verse
     // complete" and cascading bogus next-verse emissions on long clips.
-    // Require primary word matches for the staged completion gate; allow a
-    // narrow escape hatch only when we have reached the final word via any path.
+    // Gate on cumulative primary alignment (max over sliding-window cycles) so
+    // we still complete when the 30s window only shows the tail but earlier
+    // chunks already matched 80%+ of words — without the old 0.95
+    // cumulative-only escape hatch that acoustic/char could satisfy alone.
     const allowVerseComplete =
-      primaryCoverage >= 0.8 && primaryNearEnd
-        ? true
-        : this.trackingLastWordIdx >= this.trackingVerseWords.length - 1 &&
-          cumulativeCoverage >= 0.95;
+      primaryCoverage >= 0.8 && primaryNearEnd;
 
     if (cumulativeCoverage >= 0.8 && nearEnd && allowVerseComplete) {
       if (!(this.lastCommitEvidence?.strong)) {
@@ -1177,6 +1179,7 @@ export class RecitationTracker {
     this.trackingVerse = verse;
     this.trackingVerseWords = verse.phoneme_words;
     this.trackingLastWordIdx = -1;
+    this.trackingPrimaryMaxIdx = -1;
     this.trackingProgressEstablished = false;
     this.staleCycles = 0;
     const tokenIds = verse.phoneme_token_ids ?? [];
@@ -1206,6 +1209,7 @@ export class RecitationTracker {
     this.trackingVerseWords = [];
     this.trackingPrefixes = [];
     this.trackingLastWordIdx = -1;
+    this.trackingPrimaryMaxIdx = -1;
     this.trackingProgressEstablished = false;
     this.staleCycles = 0;
     this.lastTrackingResult = null;

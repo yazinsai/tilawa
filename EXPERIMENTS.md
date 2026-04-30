@@ -21,6 +21,22 @@ ONNX inference is non-deterministic at **±3–6 samples per run** on v1. Older 
 
 ### Streaming changelog
 
+**2026-04-30 — cumulative primary alignment for verse-complete** (file: `web/frontend/src/lib/tracker.ts`)
+
+The 2026-04-29 primary gate used **single-cycle** `primaryEnd` for `allowVerseComplete`. On long verses the tracking window is shorter than the verse, so the decode often shows only the **tail** while `trackingLastWordIdx` is advanced by acoustic/char fallback — `primaryEnd` in that window can stay low, which re-opened the old **0.95 cumulative-only** escape hatch and let acoustic/char-only tail progress complete the verse without enough fuzzy word matches in the **current** window.
+
+Changes: (1) remove the 0.95 cumulative-only branch entirely; (2) track `trackingPrimaryMaxIdx`, the maximum word index ever hit via **primary** alignment since `_enterTracking`, and use that for `primaryCoverage` / `primaryNearEnd` in the completion gate. Same 0.8 / last-two-words thresholds as before — evidence is now **session-accurate** under sliding windows instead of single-snapshot or acoustic-only.
+
+Re-measure before merging headline numbers:
+
+```
+cd web/frontend
+npx tsx test/stability-report.ts --repeats=2 --corpus=test_corpus_v3 --json=test/streaming-primary-max-v3-stability.json
+npx tsx test/stability-report.ts --repeats=2 --corpus=test_corpus_v2 --json=test/streaming-primary-max-v2-stability.json
+```
+
+Unit tests: `web/frontend/test/tracker-deferred.test.ts` — added `session max primary alignment + acoustic tail can complete`.
+
 **2026-04-30 — r15 utterance-level verifier restored and measured** (files: `web/frontend/test/stability-report-oracle.ts`, results `web/frontend/test/r15-verifier-v*-stability.json`)
 The tracker-only segment ownership probes were falsified: tightening pending continuation evidence and delaying non-continuation rediscovery both reduced extra cascades in some long clips but also suppressed true early anchors or let worse short-rescue anchors take over. Those attempts were reverted. The structural conclusion is that the 131 MB shipped FastConformer streaming tracker is not the right place to manufacture 90%+ v3 SeqAcc with thresholds; it needs an utterance-level verifier.
 
