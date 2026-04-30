@@ -1,0 +1,1403 @@
+{
+  "corpus": "test_corpus",
+  "repeats": 1,
+  "verifier": "w2v-phonemes/base-local-int8 full-utterance oracle",
+  "oracleResults": "/workspace/benchmark/results/2026-04-30_031130.json",
+  "samples": [
+    {
+      "id": "user_imran_23",
+      "category": "medium",
+      "expectedVerses": [
+        "3:23"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "3:23"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "user_ikhlas_2_3",
+      "category": "multi",
+      "expectedVerses": [
+        "112:2",
+        "112:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "112:2",
+            "112:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_001001",
+      "category": "medium",
+      "expectedVerses": [
+        "1:1"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "1:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_001002",
+      "category": "medium",
+      "expectedVerses": [
+        "1:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "1:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_002255",
+      "category": "long",
+      "expectedVerses": [
+        "2:255"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "2:255"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_112001",
+      "category": "short",
+      "expectedVerses": [
+        "112:1"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "112:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_036001",
+      "category": "short",
+      "expectedVerses": [
+        "36:1"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "36:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_000",
+      "category": "short",
+      "expectedVerses": [
+        "1:1"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "1:1"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_001",
+      "category": "short",
+      "expectedVerses": [
+        "1:1"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "exactPassed": false,
+          "discoveredVerses": [
+            "68:11"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "exactPassRate": 0,
+      "exactClassification": "exact-stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "retasy_002",
+      "category": "short",
+      "expectedVerses": [
+        "1:4"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "1:4"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_003",
+      "category": "short",
+      "expectedVerses": [
+        "1:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "1:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_004",
+      "category": "short",
+      "expectedVerses": [
+        "114:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "114:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_005",
+      "category": "short",
+      "expectedVerses": [
+        "103:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "103:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_006",
+      "category": "short",
+      "expectedVerses": [
+        "1:4"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "1:4"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_007",
+      "category": "short",
+      "expectedVerses": [
+        "1:1"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "exactPassed": false,
+          "discoveredVerses": [
+            "37:163"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "exactPassRate": 0,
+      "exactClassification": "exact-stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "retasy_008",
+      "category": "short",
+      "expectedVerses": [
+        "114:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "114:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_009",
+      "category": "short",
+      "expectedVerses": [
+        "111:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "111:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_010",
+      "category": "short",
+      "expectedVerses": [
+        "113:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "113:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_011",
+      "category": "short",
+      "expectedVerses": [
+        "1:6"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "1:6"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_012",
+      "category": "short",
+      "expectedVerses": [
+        "114:2"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "exactPassed": false,
+          "discoveredVerses": [
+            "69:2"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "exactPassRate": 0,
+      "exactClassification": "exact-stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "retasy_013",
+      "category": "short",
+      "expectedVerses": [
+        "103:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "103:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_014",
+      "category": "short",
+      "expectedVerses": [
+        "1:4"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "exactPassed": false,
+          "discoveredVerses": [
+            "56:22"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "exactPassRate": 0,
+      "exactClassification": "exact-stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "retasy_015",
+      "category": "medium",
+      "expectedVerses": [
+        "110:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "110:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_016",
+      "category": "medium",
+      "expectedVerses": [
+        "3:2"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "exactPassed": false,
+          "discoveredVerses": [
+            "19:57"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "exactPassRate": 0,
+      "exactClassification": "exact-stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "retasy_017",
+      "category": "medium",
+      "expectedVerses": [
+        "1:7"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "1:7"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_018",
+      "category": "medium",
+      "expectedVerses": [
+        "110:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "110:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_020",
+      "category": "medium",
+      "expectedVerses": [
+        "1:7"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "1:7"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_021",
+      "category": "medium",
+      "expectedVerses": [
+        "1:7"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "exactPassed": false,
+          "discoveredVerses": [
+            "36:26"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "exactPassRate": 0,
+      "exactClassification": "exact-stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "retasy_022",
+      "category": "medium",
+      "expectedVerses": [
+        "1:7"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "1:7"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_023",
+      "category": "medium",
+      "expectedVerses": [
+        "110:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "110:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_024",
+      "category": "medium",
+      "expectedVerses": [
+        "1:7"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "1:7"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_025",
+      "category": "medium",
+      "expectedVerses": [
+        "1:7"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "exactPassed": false,
+          "discoveredVerses": [
+            "10:96"
+          ],
+          "recall": 0,
+          "precision": 0,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "exactPassRate": 0,
+      "exactClassification": "exact-stable-fail",
+      "medianPrecision": 0,
+      "medianRecall": 0
+    },
+    {
+      "id": "retasy_026",
+      "category": "medium",
+      "expectedVerses": [
+        "103:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "103:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_027",
+      "category": "medium",
+      "expectedVerses": [
+        "111:2"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "111:2"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "retasy_029",
+      "category": "medium",
+      "expectedVerses": [
+        "103:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "103:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_024035",
+      "category": "long",
+      "expectedVerses": [
+        "24:35"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "24:35"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_003191",
+      "category": "long",
+      "expectedVerses": [
+        "3:191"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "3:191"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_059023",
+      "category": "long",
+      "expectedVerses": [
+        "59:23"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "59:23"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_059024",
+      "category": "long",
+      "expectedVerses": [
+        "59:24"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "59:24"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_048029",
+      "category": "long",
+      "expectedVerses": [
+        "48:29"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "48:29"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_002285",
+      "category": "long",
+      "expectedVerses": [
+        "2:285"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "2:285"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_002286",
+      "category": "long",
+      "expectedVerses": [
+        "2:286"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "2:286"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_023115",
+      "category": "medium",
+      "expectedVerses": [
+        "23:115"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "23:115"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_033056",
+      "category": "medium",
+      "expectedVerses": [
+        "33:56"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "33:56"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "ref_074031",
+      "category": "long",
+      "expectedVerses": [
+        "74:31"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "74:31"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "multi_036_001_005",
+      "category": "multi",
+      "expectedVerses": [
+        "36:1",
+        "36:2",
+        "36:3",
+        "36:4",
+        "36:5"
+      ],
+      "runs": [
+        {
+          "passed": false,
+          "exactPassed": false,
+          "discoveredVerses": [
+            "36:2",
+            "36:3",
+            "36:4",
+            "36:5"
+          ],
+          "recall": 0.8,
+          "precision": 1,
+          "seqAcc": 0
+        }
+      ],
+      "passRate": 0,
+      "classification": "stable-fail",
+      "exactPassRate": 0,
+      "exactClassification": "exact-stable-fail",
+      "medianPrecision": 1,
+      "medianRecall": 0.8
+    },
+    {
+      "id": "multi_113_001_005",
+      "category": "multi",
+      "expectedVerses": [
+        "113:1",
+        "113:2",
+        "113:3",
+        "113:4",
+        "113:5"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "113:1",
+            "113:2",
+            "113:3",
+            "113:4",
+            "113:5"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "multi_114_001_006",
+      "category": "multi",
+      "expectedVerses": [
+        "114:1",
+        "114:2",
+        "114:3",
+        "114:4",
+        "114:5",
+        "114:6"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "114:1",
+            "114:2",
+            "114:3",
+            "114:4",
+            "114:5",
+            "114:6"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "multi_059_022_024",
+      "category": "multi",
+      "expectedVerses": [
+        "59:22",
+        "59:23",
+        "59:24"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "59:22",
+            "59:23",
+            "59:24"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "multi_055_001_004",
+      "category": "multi",
+      "expectedVerses": [
+        "55:1",
+        "55:2",
+        "55:3",
+        "55:4"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "55:1",
+            "55:2",
+            "55:3",
+            "55:4"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "multi_067_001_004",
+      "category": "multi",
+      "expectedVerses": [
+        "67:1",
+        "67:2",
+        "67:3",
+        "67:4"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "67:1",
+            "67:2",
+            "67:3",
+            "67:4"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "multi_002_285_286",
+      "category": "multi",
+      "expectedVerses": [
+        "2:285",
+        "2:286"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "2:285",
+            "2:286"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    },
+    {
+      "id": "multi_103_001_003",
+      "category": "multi",
+      "expectedVerses": [
+        "103:1",
+        "103:2",
+        "103:3"
+      ],
+      "runs": [
+        {
+          "passed": true,
+          "exactPassed": true,
+          "discoveredVerses": [
+            "103:1",
+            "103:2",
+            "103:3"
+          ],
+          "recall": 1,
+          "precision": 1,
+          "seqAcc": 1
+        }
+      ],
+      "passRate": 1,
+      "classification": "stable-pass",
+      "exactPassRate": 1,
+      "exactClassification": "exact-stable-pass",
+      "medianPrecision": 1,
+      "medianRecall": 1
+    }
+  ],
+  "aggregate": {
+    "totalSamples": 53,
+    "exactStablePass": 45,
+    "exactStableFail": 8,
+    "exactFlaky": 0,
+    "medianPrecision": 0.8679245283018868,
+    "medianRecall": 0.8641509433962263,
+    "medianSeqAcc": 0.8490566037735849,
+    "perRunExactCorrect": [
+      45
+    ],
+    "perRunPrecision": [
+      0.8679245283018868
+    ],
+    "perRunRecall": [
+      0.8641509433962263
+    ],
+    "perRunSeqAcc": [
+      0.8490566037735849
+    ]
+  }
+}
