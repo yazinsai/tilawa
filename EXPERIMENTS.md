@@ -21,23 +21,30 @@ ONNX inference is non-deterministic at **±3–6 samples per run** on v1. Older 
 
 ### Streaming changelog
 
-**2026-04-29 — r15 utterance-level verifier ceiling** (files: `web/frontend/test/stability-report-oracle.ts`, result `web/frontend/test/oracle-expected-v3-stability.json`)
+**2026-04-30 — r15 utterance-level verifier restored and measured** (files: `web/frontend/test/stability-report-oracle.ts`, results `web/frontend/test/r15-verifier-v*-stability.json`)
 The tracker-only segment ownership probes were falsified: tightening pending continuation evidence and delaying non-continuation rediscovery both reduced extra cascades in some long clips but also suppressed true early anchors or let worse short-rescue anchors take over. Those attempts were reverted. The structural conclusion is that the 131 MB shipped FastConformer streaming tracker is not the right place to manufacture 90%+ v3 SeqAcc with thresholds; it needs an utterance-level verifier.
 
-This diagnostic reports the explicit verifier ceiling using the existing r15 local-int8 full-utterance result (`benchmark/results/2026-04-29_103225.json`) as the final verifier output for the same v3 samples. It is intentionally labeled separately from Browser/RN streaming: **Browser/RN streaming + r15 final verifier**. It does not alter `RecitationTracker` or benchmark chunking.
+After Modal auth was restored, downloaded the r15 local-int8 ONNX artifact from volume `w2v-phonemes-r15` into `data/r15-onnx/` and re-ran the full-utterance verifier locally. This path is intentionally labeled separately from Browser/RN streaming: **Browser/RN streaming + r15 final verifier**. It does not alter `RecitationTracker` or benchmark chunking; it is an explicit second pass over the completed utterance at final silence.
 
-Numbers (**2-repeat verifier report**, deterministic because it replays cached verifier predictions):
-- v3 (256 samples): precision **96.1%**, recall **96.0%**, SeqAcc **95.7%**. Per-run exact **[245, 245] / 256**. This clears the requested 90%+ SeqAcc target with 11 exact failures remaining, mostly repeated short-phrase collisions (`55:53→55:13`, `81:19→69:40`, etc.) already documented in the w2v-phonemes notes.
+Numbers:
+- v3 (256 samples): precision **96.1%**, recall **96.1%**, SeqAcc **96.1%**. Per-run exact **[246, 246] / 256** in the 2-repeat verifier report (`r15-verifier-v3-stability.json`). This clears the requested 90%+ SeqAcc target with 10 exact failures remaining, mostly repeated short-phrase collisions (`55:53→55:13`, `81:19→69:40`, etc.) already documented in the w2v-phonemes notes.
+- v2 blind check (43 samples): precision **88.4%**, recall **88.4%**, SeqAcc **88.4%**, exact **[38, 38] / 43** (`r15-verifier-v2-stability.json`). This beats the shipped streaming v2 SeqAcc headline (55.8%) but still exposes short RetaSy repeated-phrase collisions.
+- v1 sanity check (53 samples): precision **86.8%**, recall **86.4%**, SeqAcc **84.9%**, exact **45/53** (`r15-verifier-v1-stability.json`).
 
 Measurement commands:
 ```
+python3 -m modal run scripts/export_r15_onnx_modal.py --download-only --output-dir data/r15-onnx
+python3 -m benchmark.runner --experiment w2v-phonemes/base-local-int8 --corpus test_corpus_v3
+python3 -m benchmark.runner --experiment w2v-phonemes/base-local-int8 --corpus test_corpus_v2
+python3 -m benchmark.runner --experiment w2v-phonemes/base-local-int8 --corpus test_corpus
 cd web/frontend
-npx tsx test/stability-report-oracle.ts --repeats=2 --corpus=test_corpus_v3 --json=test/oracle-expected-v3-stability.json
-npx tsx test/analyze-v3-stability.ts test/oracle-expected-v3-stability.json
+npx tsx test/stability-report-oracle.ts --repeats=2 --corpus=test_corpus_v3 --oracle-results=../../benchmark/results/2026-04-30_030922.json --json=test/r15-verifier-v3-stability.json
+npx tsx test/stability-report-oracle.ts --repeats=2 --corpus=test_corpus_v2 --oracle-results=../../benchmark/results/2026-04-30_031031.json --json=test/r15-verifier-v2-stability.json
+npx tsx test/stability-report-oracle.ts --corpus=test_corpus --oracle-results=../../benchmark/results/2026-04-30_031130.json --json=test/r15-verifier-v1-stability.json
 npx vitest run --testTimeout=20000
 ```
 
-Product note: the actual `data/r15-onnx/model_int8.onnx` artifact is not present in this checkout (tokenizer files only); the result is therefore a verifier-ceiling artifact backed by the committed raw benchmark JSON, not a browser-shipped implementation. To productize it, restore/download the documented Modal artifact and run it server-side or as an explicit optional second-pass verifier at final silence.
+Product note: `model_int8.onnx` is 118 MB and ignored by git, so a fresh checkout must restore it from Modal before running the verifier. The committed raw benchmark JSON and verifier stability JSON are the reproducibility artifacts; shipping this requires wiring the r15 second pass into a server-side or optional local final-silence path.
 
 **2026-04-29 — primary-alignment gate for verse-complete auto-advance** (file: `web/frontend/src/lib/tracker.ts`)
 The v3 stability report with the decode-stability gate (`stab-gate-on-v3.json`) still shows **57 samples** where recall is perfect but SeqAcc is zero because the tracker emits **many verses after the correct one** on long single-verse clips (`ea_alafasy_002143`, `ea_husary_002177`, …). Tracing `_handleTracking`: near the end of a long verse, **acoustic** or **char-level** fallback can advance `trackingLastWordIdx` without any primary fuzzy word alignment, while `cumulativeCoverage` and `nearEnd` still cross the **0.8 / last-two-words** threshold. That fired `verse complete` → deferred auto-advance → discovery commits on spurious continuations.
