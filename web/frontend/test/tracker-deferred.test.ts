@@ -11,7 +11,6 @@ import { RecitationTracker } from "../src/lib/tracker";
 import type { TranscribeResult } from "../src/lib/tracker";
 import type { QuranVerse, WorkerOutbound } from "../src/lib/types";
 import { SAMPLE_RATE, TRACKING_TRIGGER_SAMPLES } from "../src/lib/types";
-import type { AcousticEvidence } from "../src/lib/ctc-rescore";
 
 // ---------------------------------------------------------------------------
 // Mock verse data
@@ -104,47 +103,6 @@ function makeResult(text: string): TranscribeResult {
   };
 }
 
-function makeTextOnlyResult(text: string): TranscribeResult {
-  return {
-    text,
-    rawPhonemes: text,
-    tokenIds: text
-      .split(" ")
-      .filter(Boolean)
-      .map((_, i) => i + 1),
-  };
-}
-
-function makeAcousticEvidence(frameIds: number[], vocabSize = 16, blankId = 0): AcousticEvidence {
-  const logprobs = new Float32Array(frameIds.length * vocabSize);
-  logprobs.fill(Math.log(0.001));
-  for (let t = 0; t < frameIds.length; t++) {
-    logprobs[t * vocabSize + frameIds[t]] = Math.log(0.99);
-  }
-  return { logprobs, timeSteps: frameIds.length, vocabSize, blankId };
-}
-
-function makeResultWithAdvanceEvidence(text: string, includeNextPrefix = true): TranscribeResult {
-  const verse1Ids = VERSE_1.phoneme_token_ids ?? [];
-  const verse2PrefixIds = includeNextPrefix
-    ? (VERSE_2.phoneme_token_ids ?? []).slice(0, 10)
-    : [];
-  // Make the current verse alignment end before the next-prefix frames.
-  // Otherwise Viterbi can stretch the last repeated token across the tail and
-  // correctly leave no post-owned evidence for auto-advance.
-  const afterCurrent = includeNextPrefix
-    ? [0, ...verse2PrefixIds.flatMap((id) => [id, 0])]
-    : [0];
-  return {
-    ...makeResult(text),
-    acoustic: makeAcousticEvidence(
-      [0, ...verse1Ids, 0, ...afterCurrent],
-      16,
-      15,
-    ),
-  };
-}
-
 function collectVerseMatches(messages: WorkerOutbound[]) {
   return messages
     .filter((m) => m.type === "verse_match")
@@ -191,7 +149,7 @@ function injectTrackingState(tracker: RecitationTracker, verse: QuranVerse): voi
 describe("Deferred emission", () => {
   it("stale pending verse drops silently (no verse_match emitted)", async () => {
     const transcribeFn = createTranscribeFn([
-      makeResultWithAdvanceEvidence("alif laam miim"), // VERSE_1 complete → auto-advance
+      makeResult("alif laam miim"), // VERSE_1 complete → auto-advance
       makeResult(UNRELATED_TEXT), // VERSE_2 tracking: no match → stale
     ]);
 
@@ -218,7 +176,7 @@ describe("Deferred emission", () => {
 
   it("valid multi-verse continuation emits after primary word alignment confirms", async () => {
     const transcribeFn = createTranscribeFn([
-      makeResultWithAdvanceEvidence("alif laam miim"), // VERSE_1 complete → auto-advance
+      makeResult("alif laam miim"), // VERSE_1 complete → auto-advance
       makeResult("dhaalika alkitaabu laaa"), // VERSE_2: primary word alignment matches
     ]);
 
@@ -245,7 +203,7 @@ describe("Deferred emission", () => {
 
   it("end-of-stream with pending emission does not leak a verse", async () => {
     const transcribeFn = createTranscribeFn([
-      makeResultWithAdvanceEvidence("alif laam miim", false), // no next-verse tail evidence
+      makeResult("alif laam miim"), // VERSE_1 complete → auto-advance
       makeResult(UNRELATED_TEXT), // silence period: unrelated
     ]);
 
@@ -272,7 +230,7 @@ describe("Deferred emission", () => {
 
   it("state rollback on drop restores all fields correctly", async () => {
     const transcribeFn = createTranscribeFn([
-      makeResultWithAdvanceEvidence("alif laam miim"), // VERSE_1 complete → auto-advance
+      makeResult("alif laam miim"), // VERSE_1 complete → auto-advance
       makeResult(UNRELATED_TEXT), // stale
     ]);
 
@@ -307,7 +265,7 @@ describe("Deferred emission", () => {
 
   it("acoustic/char-level fallback do NOT trigger pending emission", async () => {
     const transcribeFn = createTranscribeFn([
-      makeResultWithAdvanceEvidence("alif laam miim"), // VERSE_1 complete → auto-advance
+      makeResult("alif laam miim"), // VERSE_1 complete → auto-advance
       // Single short word — won't match any VERSE_2 word via primary alignment
       // (ratio < 0.7 for all). Could potentially match via char-level but
       // VERSE_2 has < 10 words so char-level is disabled.
@@ -341,7 +299,7 @@ describe("Deferred emission", () => {
     // ending (final flush) before any fresh audio can confirm the pending
     // emission. With the silence-flush fix, the next verse should still emit.
     const transcribeFn = createTranscribeFn([
-      makeResultWithAdvanceEvidence("alif laam miim"), // VERSE_1 complete → auto-advance
+      makeResult("alif laam miim"), // VERSE_1 complete → auto-advance
       makeResult(UNRELATED_TEXT), // no match on fresh audio
     ]);
 
@@ -374,7 +332,7 @@ describe("Deferred emission", () => {
 
   it("final flush does NOT emit pending when advance margin is loose", async () => {
     const transcribeFn = createTranscribeFn([
-      makeResultWithAdvanceEvidence("alif laam miim"),
+      makeResult("alif laam miim"),
       makeResult(UNRELATED_TEXT),
     ]);
 
@@ -404,7 +362,7 @@ describe("Deferred emission", () => {
 
   it("audio buffer retains 0.5s on auto-advance, not full 2s", async () => {
     const transcribeFn = createTranscribeFn([
-      makeResultWithAdvanceEvidence("alif laam miim"),
+      makeResult("alif laam miim"),
       makeResult(UNRELATED_TEXT),
     ]);
 

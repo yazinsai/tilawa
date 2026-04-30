@@ -1,11 +1,5 @@
 import { ratio as levRatio } from "./levenshtein";
-import {
-  alignCtcSequence,
-  minFramesRequired,
-  scoreCtcSequence,
-  scoreCtcCandidates,
-  chooseLongestStablePrefix,
-} from "./ctc-rescore";
+import { scoreCtcSequence, scoreCtcCandidates, chooseLongestStablePrefix } from "./ctc-rescore";
 import { QuranDB, partialRatio, type QuranCandidate } from "./quran-db";
 import { computeCorrection } from "./correction";
 import type { AcousticEvidence } from "./ctc-rescore";
@@ -95,13 +89,6 @@ interface TrackingPrefix {
   ids: number[];
 }
 
-interface ConfirmedSegment {
-  ref: string;
-  startFrame: number;
-  endFrame: number;
-  evidenceScore: number;
-}
-
 export type TrackerDiagnosticEvent =
   | {
       type: "discovery_cycle";
@@ -136,7 +123,7 @@ export type TrackerDiagnosticEvent =
     }
   | {
       type: "pending_emission";
-      action: "created" | "confirmed" | "final_flush_emit" | "dropped";
+      action: "confirmed" | "final_flush_emit" | "dropped";
       ref: string;
       margin: number | null;
       fresh_samples: number;
@@ -293,7 +280,6 @@ export class RecitationTracker {
   private cyclesSinceCommit = Infinity;
   private lastTrackingResult: TranscribeResult | null = null;
   private consecutiveAutoAdvances = 0;
-  private lastConfirmedSegment: ConfirmedSegment | null = null;
 
   // Decode-stability gate state
   private lastRawPhonemes: string | null = null;
@@ -398,6 +384,16 @@ export class RecitationTracker {
     );
     const primaryMatchedIndices = matchedIndices.slice();
 
+    // Confirm pending emission only on primary word alignment from fresh audio
+    if (
+      this.trackingPendingEmission &&
+      matchedIndices.length > 0 &&
+      this.totalSamplesFed > this.samplesAtAdvance
+    ) {
+      messages.push(this.pendingEmissionMessage!);
+      this._clearPendingEmission();
+    }
+
     let acousticWord: number | null = null;
     if (matchedIndices.length === 0) {
       const acousticIdx = this._resolveTrackingAcousticWord(result);
@@ -418,37 +414,6 @@ export class RecitationTracker {
         charWord = charWordIdx;
         matchedIndices = [charWordIdx];
       }
-    }
-
-      const pendingRefKey = this.pendingEmissionMessage
-        ? `${this.pendingEmissionMessage.surah}:${this.pendingEmissionMessage.ayah}`
-        : "";
-      const pendingLooksReal =
-        primaryMatchedIndices.length > 0 &&
-        this.trackingVerse &&
-        pendingRefKey === refKey(this.trackingVerse.surah, this.trackingVerse.ayah);
-      const canConfirmPending =
-        this.trackingPendingEmission &&
-        this.totalSamplesFed > this.samplesAtAdvance &&
-        pendingLooksReal;
-    if (canConfirmPending) {
-      messages.push(this.pendingEmissionMessage!);
-      const pendingRef: [number, number] = [
-        this.pendingEmissionMessage!.surah,
-        this.pendingEmissionMessage!.ayah,
-      ];
-      this._emitDiagnostic({
-        type: "pending_emission",
-        action: "confirmed",
-        ref: `${this.pendingEmissionMessage!.surah}:${this.pendingEmissionMessage!.ayah}`,
-        margin: Number.isFinite(this.pendingEmissionMargin)
-          ? Math.round(this.pendingEmissionMargin * 1000) / 1000
-          : null,
-        fresh_samples: this.totalSamplesFed - this.samplesAtAdvance,
-        matched_indices: primaryMatchedIndices,
-      });
-      this._clearPendingEmission();
-      this.lastEmittedRef = pendingRef;
     }
 
     const advanced =
@@ -485,15 +450,6 @@ export class RecitationTracker {
           this.pendingEmissionMargin < ADVANCE_FLUSH_STRICT_MARGIN
         ) {
           messages.push(this.pendingEmissionMessage);
-          this._emitDiagnostic({
-            type: "pending_emission",
-            action: "final_flush_emit",
-            ref: `${this.pendingEmissionMessage.surah}:${this.pendingEmissionMessage.ayah}`,
-            margin: Number.isFinite(this.pendingEmissionMargin)
-              ? Math.round(this.pendingEmissionMargin * 1000) / 1000
-              : null,
-            fresh_samples: this.totalSamplesFed - this.samplesAtAdvance,
-          });
           this._emitDiagnostic({
             type: "commit",
             ref: `${this.pendingEmissionMessage.surah}:${this.pendingEmissionMessage.ayah}`,
@@ -551,75 +507,37 @@ export class RecitationTracker {
         this.trackingVerse.surah,
         this.trackingVerse.ayah,
       ];
-      const currentKey = refKey(currentRef[0], currentRef[1]);
       const currentIds = this.trackingVerse.phoneme_token_ids ?? [];
       this.lastEmittedRef = currentRef;
       this.lastEmittedText = this.trackingVerse.phonemes_joined;
       const nextVerse = this.db.getNextVerse(currentRef[0], currentRef[1]);
-      const acoustic = this.lastTrackingResult?.acoustic;
-      const completedAlignment =
-        acoustic && currentIds.length > 0
-          ? alignCtcSequence(acoustic, currentIds)
-          : null;
-      if (completedAlignment?.feasible) {
-        this.lastConfirmedSegment = {
-          ref: currentKey,
-          startFrame: completedAlignment.startFrame,
-          endFrame: completedAlignment.endFrame,
-          evidenceScore: completedAlignment.score,
-        };
-      }
+      this._exitTracking("verse complete");
+
       if (nextVerse) {
-        let advanceOk = false;
+        let advanceOk = true; // default: advance (preserves behavior when no acoustic data)
         // Evidence strength captured for optional final-flush emit. Defaults to
         // +Inf so the default-advance (no acoustic) path never passes the
         // stricter flush gate and still requires fresh-audio confirmation.
         let advanceMargin = Number.POSITIVE_INFINITY;
 
+        const acoustic = this.lastTrackingResult?.acoustic;
         const nextIds = nextVerse.phoneme_token_ids ?? [];
 
-        if (!acoustic) {
-          // Unit-test/mocked transcribe paths do not provide acoustic evidence;
-          // preserve the pre-ownership behavior there. Real browser/RN
-          // streaming always supplies acoustic evidence and takes the segment
-          // ownership gate below.
-          advanceOk = true;
-        } else if (
-          currentIds.length > 0 &&
-          nextIds.length > 0 &&
-          completedAlignment?.feasible
-        ) {
+        if (acoustic && currentIds.length > 0 && nextIds.length > 0) {
           // Relative evidence gate: compare current verse suffix vs next verse prefix
           // Both use ~ADVANCE_PREFIX_TOKENS tokens for comparable normalization
           const n = ADVANCE_PREFIX_TOKENS;
           const suffixIds = currentIds.slice(-Math.min(n, currentIds.length));
           const prefixIds = nextIds.slice(0, Math.min(n, nextIds.length));
-          const freshStartFrame =
-            completedAlignment.endFrame + 1 < acoustic.timeSteps
-              ? completedAlignment.endFrame + 1
-              : Math.min(acoustic.timeSteps, completedAlignment.endFrame);
-          const freshEvidence = this._sliceAcousticEvidence(acoustic, freshStartFrame);
-          const suffixEvidence = this._sliceAcousticEvidence(
-            acoustic,
-            Math.max(0, completedAlignment.startFrame),
-            completedAlignment.endFrame + 1,
-          );
 
-          const suffixScore = scoreCtcSequence(suffixEvidence, suffixIds);
-          const prefixAlignment =
-            freshEvidence.timeSteps >= minFramesRequired(prefixIds)
-              ? alignCtcSequence(freshEvidence, prefixIds)
-              : null;
-          const prefixScore = prefixAlignment?.feasible
-            ? prefixAlignment.score
-            : Number.POSITIVE_INFINITY;
+          const suffixScore = scoreCtcSequence(acoustic, suffixIds);
+          const prefixScore = scoreCtcSequence(acoustic, prefixIds);
 
           // Both must be finite (feasible). If suffix is infeasible, audio is bad — block.
           // If prefix is infeasible, next verse isn't in the audio at all — block.
           if (
             !Number.isFinite(suffixScore) ||
-            !Number.isFinite(prefixScore) ||
-            !prefixAlignment?.feasible
+            !Number.isFinite(prefixScore)
           ) {
             advanceOk = false;
           } else {
@@ -628,13 +546,6 @@ export class RecitationTracker {
           }
         }
 
-        if (!advanceOk && !acoustic) {
-          // Unit-test/mocked transcribe paths do not provide acoustic evidence;
-          // preserve the pre-ownership behavior there. Real browser/RN
-          // streaming always supplies acoustic evidence and takes the segment
-          // ownership gate above.
-          advanceOk = true;
-        }
         if (advanceOk) {
           // Snapshot state before advance for rollback on drop
           this.preAdvanceSnapshot = {
@@ -661,18 +572,7 @@ export class RecitationTracker {
           };
           this.trackingPendingEmission = true;
           this.samplesAtAdvance = this.totalSamplesFed;
-          this.pendingEmissionMargin = Number.isFinite(advanceMargin)
-            ? advanceMargin
-            : Number.POSITIVE_INFINITY;
-          this._emitDiagnostic({
-            type: "pending_emission",
-            action: "created",
-            ref: `${nextVerse.surah}:${nextVerse.ayah}`,
-            margin: Number.isFinite(advanceMargin)
-              ? Math.round(advanceMargin * 1000) / 1000
-              : null,
-            fresh_samples: 0,
-          });
+          this.pendingEmissionMargin = advanceMargin;
 
           // Update state as before (tracking enters next verse)
           this.prevEmittedRef = currentRef;
@@ -761,11 +661,6 @@ export class RecitationTracker {
                   this.lastEmittedRef = ref;
                   this.lastEmittedText = verse.phonemes_joined;
                   this.lastCommitEvidence = { confidence, acousticMargin: margin, strong: margin >= 0.3 };
-                  this._storeConfirmedSegment(
-                    key,
-                    result.acoustic,
-                    best.phoneme_token_ids,
-                  );
                   this.pendingLeader = null;
                   this.cyclesSinceCommit = 0;
                   this.consecutiveAutoAdvances = 0;
@@ -1047,14 +942,6 @@ export class RecitationTracker {
             lengthFit >= 0.8 &&
             clearMargin,
         };
-        this._storeConfirmedSegment(
-          selectedKey,
-          result.acoustic,
-          selectedDiagnostic?.candidate.phoneme_token_ids ??
-            fusionBest?.candidate.phoneme_token_ids ??
-            verse?.phoneme_token_ids ??
-            [],
-        );
         this.pendingLeader = null;
         this.cyclesSinceCommit = 0;
         this.consecutiveAutoAdvances = 0;
@@ -1266,45 +1153,6 @@ export class RecitationTracker {
     return words.length - 1;
   }
 
-  private _sliceAcousticEvidence(
-    evidence: AcousticEvidence,
-    startFrame: number,
-    endFrame = evidence.timeSteps,
-  ): AcousticEvidence {
-    const start = Math.max(0, Math.min(evidence.timeSteps, startFrame));
-    const end = Math.max(start, Math.min(evidence.timeSteps, endFrame));
-    const frames = end - start;
-    const logprobs = new Float32Array(frames * evidence.vocabSize);
-    logprobs.set(
-      evidence.logprobs.subarray(
-        start * evidence.vocabSize,
-        end * evidence.vocabSize,
-      ),
-    );
-    return {
-      logprobs,
-      timeSteps: frames,
-      vocabSize: evidence.vocabSize,
-      blankId: evidence.blankId,
-    };
-  }
-
-  private _storeConfirmedSegment(
-    ref: string,
-    evidence: AcousticEvidence | undefined,
-    tokenIds: readonly number[],
-  ): void {
-    if (!evidence || tokenIds.length === 0) return;
-    const alignment = alignCtcSequence(evidence, tokenIds);
-    if (!alignment.feasible) return;
-    this.lastConfirmedSegment = {
-      ref,
-      startFrame: alignment.startFrame,
-      endFrame: alignment.endFrame,
-      evidenceScore: alignment.score,
-    };
-  }
-
   private _enterTracking(verse: QuranVerse): void {
     this.trackingVerse = verse;
     this.trackingVerseWords = verse.phoneme_words;
@@ -1325,17 +1173,6 @@ export class RecitationTracker {
   private _exitTracking(_reason: string): void {
     // Full state rollback if pending emission was never confirmed
     if (this.trackingPendingEmission && this.preAdvanceSnapshot) {
-      if (this.pendingEmissionMessage) {
-        this._emitDiagnostic({
-          type: "pending_emission",
-          action: "dropped",
-          ref: `${this.pendingEmissionMessage.surah}:${this.pendingEmissionMessage.ayah}`,
-          margin: Number.isFinite(this.pendingEmissionMargin)
-            ? Math.round(this.pendingEmissionMargin * 1000) / 1000
-            : null,
-          fresh_samples: this.totalSamplesFed - this.samplesAtAdvance,
-        });
-      }
       this.lastEmittedRef = this.preAdvanceSnapshot.emittedRef;
       this.lastEmittedText = this.preAdvanceSnapshot.emittedText;
       this.prevEmittedRef = this.preAdvanceSnapshot.prevEmittedRef;
