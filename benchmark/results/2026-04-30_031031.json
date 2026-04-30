@@ -1,0 +1,1309 @@
+[
+  {
+    "name": "w2v-phonemes/base-local-int8",
+    "recall": 0.8837209302325582,
+    "precision": 0.8837209302325582,
+    "sequence_accuracy": 0.8837209302325582,
+    "total": 43,
+    "avg_latency": 1.0743863058610152,
+    "model_size": 123731968,
+    "per_sample": [
+      {
+        "id": "retasy_v2_000",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 3,
+            "score": 0.7385
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.12688790500396863,
+        "raw_predict": {
+          "surah": 1,
+          "ayah": 3,
+          "ayah_end": null,
+          "score": 0.7385,
+          "transcript": "\u0294 a: n a \u0127 a n i: \u0295 a \u0127 i: m"
+        }
+      },
+      {
+        "id": "retasy_v2_001",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 3,
+            "score": 0.7879
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.07779030299570877,
+        "raw_predict": {
+          "surah": 1,
+          "ayah": 3,
+          "ayah_end": null,
+          "score": 0.7879,
+          "transcript": "\u0294 a r\u02e4 a\u02e4 \u0127 a: l i m a \u0127 i: n"
+        }
+      },
+      {
+        "id": "retasy_v2_002",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 5
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 5,
+            "score": 0.887
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.13016249700740445,
+        "raw_predict": {
+          "surah": 1,
+          "ayah": 5,
+          "ayah_end": null,
+          "score": 0.887,
+          "transcript": "jj a: k a n \u0295 b u d u ww a jj a: k a n a s t a j i: n"
+        }
+      },
+      {
+        "id": "retasy_v2_003",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 40,
+            "ayah": 1,
+            "score": 0.5455
+          }
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "sequence_accuracy": 0.0,
+        "latency": 0.040096398995956406,
+        "raw_predict": {
+          "surah": 40,
+          "ayah": 1,
+          "ayah_end": null,
+          "score": 0.5455,
+          "transcript": "\u0127 \u0295 a d h i"
+        }
+      },
+      {
+        "id": "retasy_v2_004",
+        "expected": [
+          {
+            "surah": 114,
+            "ayah": 5
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 114,
+            "ayah": 5,
+            "score": 0.7347
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.10461483399558347,
+        "raw_predict": {
+          "surah": 114,
+          "ayah": 5,
+          "ayah_end": null,
+          "score": 0.7347,
+          "transcript": "\u0294 a a d i j u s i s f i s d u \u0294 i n \u0295 a s"
+        }
+      },
+      {
+        "id": "retasy_v2_005",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 5
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 84,
+            "ayah": 23,
+            "score": 0.6374
+          }
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "sequence_accuracy": 0.0,
+        "latency": 0.17858748300932348,
+        "raw_predict": {
+          "surah": 84,
+          "ayah": 23,
+          "ayah_end": null,
+          "score": 0.6374,
+          "transcript": "l\u02e4l\u02e4 a\u02e4: h u u \u0295 b u d u a m a s\u02e4 t\u02e4 a\u02e4:"
+        }
+      },
+      {
+        "id": "retasy_v2_006",
+        "expected": [
+          {
+            "surah": 114,
+            "ayah": 4
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 114,
+            "ayah": 4,
+            "score": 0.8966
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.11642739101080224,
+        "raw_predict": {
+          "surah": 114,
+          "ayah": 4,
+          "ayah_end": null,
+          "score": 0.8966,
+          "transcript": "m i \u014b \u0283 a rr i l w a s r\u02e4 a s i l \u0127 a \u00f1 a:"
+        }
+      },
+      {
+        "id": "retasy_v2_007",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 5
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 94,
+            "ayah": 7,
+            "score": 0.6437
+          }
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "sequence_accuracy": 0.0,
+        "latency": 0.08907486099633388,
+        "raw_predict": {
+          "surah": 94,
+          "ayah": 7,
+          "ayah_end": null,
+          "score": 0.6437,
+          "transcript": "j a k n a \u0294 a q l u h j a f n a s s\u02e4 a\u02e4 j n"
+        }
+      },
+      {
+        "id": "retasy_v2_008",
+        "expected": [
+          {
+            "surah": 112,
+            "ayah": 2
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 112,
+            "ayah": 2,
+            "score": 0.8214
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.07278004799445625,
+        "raw_predict": {
+          "surah": 112,
+          "ayah": 2,
+          "ayah_end": null,
+          "score": 0.8214,
+          "transcript": "\u0294 a l\u02e4l\u02e4 a\u02e4: h u s\u02e4 a\u02e4 l"
+        }
+      },
+      {
+        "id": "retasy_v2_009",
+        "expected": [
+          {
+            "surah": 109,
+            "ayah": 6
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 109,
+            "ayah": 6,
+            "score": 0.775
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.08857429299678188,
+        "raw_predict": {
+          "surah": 109,
+          "ayah": 6,
+          "ayah_end": null,
+          "score": 0.775,
+          "transcript": "l a k u: \u0292 i \u00f0 Q k u w a l j a t i: m"
+        }
+      },
+      {
+        "id": "retasy_v2_010",
+        "expected": [
+          {
+            "surah": 112,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 112,
+            "ayah": 3,
+            "score": 0.7778
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.06333450900274329,
+        "raw_predict": {
+          "surah": 112,
+          "ayah": 3,
+          "ayah_end": null,
+          "score": 0.7778,
+          "transcript": "l a m j a l a t w a l a m n u: n"
+        }
+      },
+      {
+        "id": "retasy_v2_011",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 5
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 5,
+            "score": 0.8205
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.12735318999330048,
+        "raw_predict": {
+          "surah": 1,
+          "ayah": 5,
+          "ayah_end": null,
+          "score": 0.8205,
+          "transcript": "j a: k a n a: \u00f0\u02e4 u d u w a a\u02e4 jj a: k a n a ss a \u0295 i: r"
+        }
+      },
+      {
+        "id": "retasy_v2_012",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 3,
+            "score": 0.7647
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.21653232201060746,
+        "raw_predict": {
+          "surah": 1,
+          "ayah": 3,
+          "ayah_end": null,
+          "score": 0.7647,
+          "transcript": "x a\u02e4 r\u02e4 a\u02e4 \u0127 m a m r\u02e4 a\u02e4 h i: h"
+        }
+      },
+      {
+        "id": "retasy_v2_013",
+        "expected": [
+          {
+            "surah": 112,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 112,
+            "ayah": 3,
+            "score": 0.7324
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.08309500500035938,
+        "raw_predict": {
+          "surah": 112,
+          "ayah": 3,
+          "ayah_end": null,
+          "score": 0.7324,
+          "transcript": "l a m j a l i: t u w a j a h u:"
+        }
+      },
+      {
+        "id": "retasy_v2_014",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 3,
+            "score": 0.9487
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.08353237000119407,
+        "raw_predict": {
+          "surah": 1,
+          "ayah": 3,
+          "ayah_end": null,
+          "score": 0.9487,
+          "transcript": "w a \u0294 a r\u02e4r\u02e4 a\u02e4 \u0127 m a: n i r\u02e4r\u02e4 a\u02e4 \u0127 i: m"
+        }
+      },
+      {
+        "id": "retasy_v2_015",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 5
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 5,
+            "score": 0.8276
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.1477121089992579,
+        "raw_predict": {
+          "surah": 1,
+          "ayah": 5,
+          "ayah_end": null,
+          "score": 0.8276,
+          "transcript": "\u0294 i jj a: k a l \u0295 a m u d u w a jj a: t a n a \u0283 \u0295 i: n"
+        }
+      },
+      {
+        "id": "retasy_v2_016",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 5
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 5,
+            "score": 0.7818
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.12092291399312671,
+        "raw_predict": {
+          "surah": 1,
+          "ayah": 5,
+          "ayah_end": null,
+          "score": 0.7818,
+          "transcript": "j a: k a m a q u t u w a jj a: k a m a s t a j n"
+        }
+      },
+      {
+        "id": "retasy_v2_017",
+        "expected": [
+          {
+            "surah": 109,
+            "ayah": 2
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 53,
+            "ayah": 61,
+            "score": 0.7119
+          }
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "sequence_accuracy": 0.0,
+        "latency": 0.09283977799350396,
+        "raw_predict": {
+          "surah": 53,
+          "ayah": 61,
+          "ayah_end": null,
+          "score": 0.7119,
+          "transcript": "a: \u0294 a x t u m a: t a x t u:"
+        }
+      },
+      {
+        "id": "retasy_v2_018",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 55,
+            "ayah": 1,
+            "score": 0.8889
+          }
+        ],
+        "recall": 0.0,
+        "precision": 0.0,
+        "sequence_accuracy": 0.0,
+        "latency": 0.0606803060072707,
+        "raw_predict": {
+          "surah": 55,
+          "ayah": 1,
+          "ayah_end": null,
+          "score": 0.8889,
+          "transcript": "\u0294 a r\u02e4r\u02e4 a\u02e4 \u0127 m a: n u: h"
+        }
+      },
+      {
+        "id": "retasy_v2_019",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 5
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 5,
+            "score": 0.9322
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.11058331301319413,
+        "raw_predict": {
+          "surah": 1,
+          "ayah": 5,
+          "ayah_end": null,
+          "score": 0.9322,
+          "transcript": "\u0294 i jj a: k a n a \u0295 b u d u w a \u0294 jj a: t a n a s \u0295 i: n"
+        }
+      },
+      {
+        "id": "retasy_v2_020",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 5
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 5,
+            "score": 0.7736
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.09304702999361325,
+        "raw_predict": {
+          "surah": 1,
+          "ayah": 5,
+          "ayah_end": null,
+          "score": 0.7736,
+          "transcript": "k a n a x u l u w a \u0294 i j a: k a n a s a j n"
+        }
+      },
+      {
+        "id": "retasy_v2_021",
+        "expected": [
+          {
+            "surah": 113,
+            "ayah": 5
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 113,
+            "ayah": 5,
+            "score": 0.6863
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.11046951300522778,
+        "raw_predict": {
+          "surah": 113,
+          "ayah": 5,
+          "ayah_end": null,
+          "score": 0.6863,
+          "transcript": "b i m i \u0283\u0283 i z i \u0127 \u0127 a f s t i n \u0294 i z \u0127 a s i t"
+        }
+      },
+      {
+        "id": "retasy_v2_022",
+        "expected": [
+          {
+            "surah": 114,
+            "ayah": 6
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 114,
+            "ayah": 6,
+            "score": 0.9231
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.17469113699917216,
+        "raw_predict": {
+          "surah": 114,
+          "ayah": 6,
+          "ayah_end": null,
+          "score": 0.9231,
+          "transcript": "m i n a l \u0292 i \u00f1 a z i w a \u00f1 a: r\u02e4"
+        }
+      },
+      {
+        "id": "retasy_v2_023",
+        "expected": [
+          {
+            "surah": 114,
+            "ayah": 4
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 114,
+            "ayah": 4,
+            "score": 0.6923
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.07563327699608635,
+        "raw_predict": {
+          "surah": 114,
+          "ayah": 4,
+          "ayah_end": null,
+          "score": 0.6923,
+          "transcript": "\u0294 i n \u0283 a w a s w a \u0127\u0127 a l n a: s"
+        }
+      },
+      {
+        "id": "retasy_v2_024",
+        "expected": [
+          {
+            "surah": 109,
+            "ayah": 2
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 109,
+            "ayah": 2,
+            "score": 0.7111
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.15792641798907425,
+        "raw_predict": {
+          "surah": 109,
+          "ayah": 2,
+          "ayah_end": null,
+          "score": 0.7111,
+          "transcript": "l a \u014b u \u0127 a: j u d\u02e4 u h f a \u014b t a \u0295 b u d u n i: h"
+        }
+      },
+      {
+        "id": "retasy_v2_025",
+        "expected": [
+          {
+            "surah": 42,
+            "ayah": 4
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 42,
+            "ayah": 4,
+            "score": 0.7186
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.15016174600168597,
+        "raw_predict": {
+          "surah": 42,
+          "ayah": 4,
+          "ayah_end": null,
+          "score": 0.7186,
+          "transcript": "l a f u: m a: f i ss a m a: w a: t i w a m a: \u014b f i l \u0294 a r\u02e4 d\u02e4"
+        }
+      },
+      {
+        "id": "ea_016090",
+        "expected": [
+          {
+            "surah": 16,
+            "ayah": 90
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 16,
+            "ayah": 90,
+            "score": 0.9758
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 1.5167024499969557,
+        "raw_predict": {
+          "surah": 16,
+          "ayah": 90,
+          "ayah_end": null,
+          "score": 0.9758,
+          "transcript": "\u0294 i \u00f1 a l\u02e4l\u02e4 a\u02e4: h a j a \u0294 m u r\u02e4 u b i l \u0295 a d Q l i w a l \u0294 i \u0127 s a: n i w a \u0294 i: t a: \u0294 i \u00f0 i l q u r\u02e4 b a: w a j a n h a: \u0295 a n i l f a \u0127 \u0283 a: \u0294 i w a l m u \u014b k a r i w a l b a \u0263 n j a \u0295 i \u00f0\u02e4 u k u m l k u m l a \u0295 a ll a k u m t a \u00f0 a kk a r\u02e4 u: n"
+        }
+      },
+      {
+        "id": "ea_031013",
+        "expected": [
+          {
+            "surah": 31,
+            "ayah": 13
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 31,
+            "ayah": 13,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 1.2034458830021322,
+        "raw_predict": {
+          "surah": 31,
+          "ayah": 13,
+          "ayah_end": null,
+          "score": 1.0,
+          "transcript": "w a \u0294 i \u00f0 q a\u02e4: l a l u q Q m a: n u l i b Q n i h i: w a h u w a j a \u0295 i \u00f0\u02e4 u h u: j a: b u n a jj a l a: t u \u0283 r i k b i ll a: h i \u0294 i \u00f1 a \u0283\u0283 i r k a l a \u00f0\u02e4 u l m u n \u0295 a \u00f0\u02e4 i: m"
+        }
+      },
+      {
+        "id": "ea_049013",
+        "expected": [
+          {
+            "surah": 49,
+            "ayah": 13
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 49,
+            "ayah": 13,
+            "score": 0.9818
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 2.1214432639972074,
+        "raw_predict": {
+          "surah": 49,
+          "ayah": 13,
+          "ayah_end": null,
+          "score": 0.9818,
+          "transcript": "j a: \u0294 a jj u h a \u00f1 a: s u \u0294 i \u00f1 a: x a\u02e4 l a q Q n a: k u m\u0303 i \u014b \u00f0 a k a r i w\u0303 a \u0294 u \u014b \u03b8 a: w a \u0292 a \u0295 a l n a: k u m \u0283 u \u0295 u: b a w\u0303 a q a\u02e4 b a: \u0294 i l a l i t a \u0295 a: r\u02e4 a\u02e4 f u: r\u02e4 a\u02e4 f u: \u0294 i \u00f1 a \u0294 a k r\u02e4 a\u02e4 m a k u m \u0295 i \u014b d a l\u02e4l\u02e4 a\u02e4: h i \u0294 a t q a\u02e4: k u m \u0294 i \u00f1 a l\u02e4l\u02e4 a\u02e4: h a \u0295 a l i: m u n x a\u02e4 b i: r"
+        }
+      },
+      {
+        "id": "ea_039053",
+        "expected": [
+          {
+            "surah": 39,
+            "ayah": 53
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 39,
+            "ayah": 53,
+            "score": 0.9734
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 1.7170685400051298,
+        "raw_predict": {
+          "surah": 39,
+          "ayah": 53,
+          "ayah_end": null,
+          "score": 0.9734,
+          "transcript": "q u l j a: \u0295 i b a: d i j a ll a \u00f0 i: n a \u0294 a s r\u02e4 a\u02e4 f u: \u0295 a l a: \u0294 a \u014b f u s i h i m l a: t a q Q n a t\u02e4 u: m i r\u02e4r\u02e4 a\u02e4 \u0127 m a t i ll a: h \u0294 i \u00f1 a l\u02e4l\u02e4 a\u02e4: h a j a \u0263 f i r\u02e4 u: x i r\u02e4 u \u00f0\u00f0 u n u: b a \u0292 a m i: \u0295 a \u0294 i \u00f1 a h u: h u w a l \u0263 a\u02e4 f u: r\u02e4 u r\u02e4r\u02e4 a\u02e4 \u0127 i: m"
+        }
+      },
+      {
+        "id": "ea_021087",
+        "expected": [
+          {
+            "surah": 21,
+            "ayah": 87
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 21,
+            "ayah": 87,
+            "score": 0.9645
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 1.5243591430044034,
+        "raw_predict": {
+          "surah": 21,
+          "ayah": 87,
+          "ayah_end": null,
+          "score": 0.9645,
+          "transcript": "w a \u00f0 a \u00f1 u: n i \u0294 i \u00f0\u00f0 a h a b a m u \u0263 a\u02e4: d\u02e4 i b a \u014b f a \u00f0\u02e4 a\u02e4 \u00f1 a \u0294 a ll a \u00f1 a q Q d i r\u02e4 a\u02e4 \u0295 a l a j h i f a n a: d a: f a n a: d a: f i \u00f0\u02e4\u00f0\u02e4 u l u m a: t i \u0294 a ll a: \u0294 i l a: h a \u0294 i ll a: l a: \u0294 a \u014b t a s u b Q \u0127 a: n a k a \u0294 i \u00f1 i: k u \u014b t u m i n a \u00f0\u02e4\u00f0\u02e4 a\u02e4: l i m i: n"
+        }
+      },
+      {
+        "id": "ea_003026",
+        "expected": [
+          {
+            "surah": 3,
+            "ayah": 26
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 3,
+            "ayah": 26,
+            "score": 0.9797
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 1.7977677229937399,
+        "raw_predict": {
+          "surah": 3,
+          "ayah": 26,
+          "ayah_end": null,
+          "score": 0.9797,
+          "transcript": "q u l i ll a: h u m\u0303 a m a: l i k a l m u l k i t u \u0294 t i l m u l k a m a \u014b t a \u0283 a: \u0294 u w a t a \u014b z i \u0295 u l m u l k a m i m\u0303 a \u014b t a \u0283 a: \u0294 u w a t u \u0295 i zz u m a t a \u0283 a: \u0294 u w a t u \u00f0 i ll u m a \u014b t a \u0283 a: Q a: b i j a d i k a l x a\u02e4 j r \u0294 i \u00f1 a k a \u0295 a l a: k u ll i \u0283 a j \u0294 i \u014b q a\u02e4 d i:"
+        }
+      },
+      {
+        "id": "ea_007023",
+        "expected": [
+          {
+            "surah": 7,
+            "ayah": 23
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 7,
+            "ayah": 23,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 1.216226093005389,
+        "raw_predict": {
+          "surah": 7,
+          "ayah": 23,
+          "ayah_end": null,
+          "score": 1.0,
+          "transcript": "q a\u02e4: l a: r\u02e4 a\u02e4 bb a n a: \u00f0\u02e4 a\u02e4 l a m n a: \u0294 a \u014b f u s a n a: w a \u0294 i ll a m t a \u0263 f i r l a n a: w a t a r\u02e4 \u0127 a m n a: l a n a k u: n a \u00f1 a m i n a l x a\u02e4: s i r i: n"
+        }
+      },
+      {
+        "id": "ea_040060",
+        "expected": [
+          {
+            "surah": 40,
+            "ayah": 60
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 40,
+            "ayah": 60,
+            "score": 0.9783
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 1.4105179330072133,
+        "raw_predict": {
+          "surah": 40,
+          "ayah": 60,
+          "ayah_end": null,
+          "score": 0.9783,
+          "transcript": "w a q a\u02e4: l a r\u02e4 a\u02e4 bb u k u m u d Q \u0295 u: n i: \u0294 a s t a \u0292 i b Q l a k u m \u0294 i \u00f1 a ll a \u00f0 i: n a j a s t a k b i r\u02e4 u: n a \u0295 a n \u0295 i b a: d a t i: s a j a d Q x u l u: n a \u0292 a h a \u00f1 a m a d a: m a d a: x i r i: n"
+        }
+      },
+      {
+        "id": "ea_004012",
+        "expected": [
+          {
+            "surah": 4,
+            "ayah": 12
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 4,
+            "ayah": 12,
+            "score": 0.9486
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 6.960866036009975,
+        "raw_predict": {
+          "surah": 4,
+          "ayah": 12,
+          "ayah_end": null,
+          "score": 0.9486,
+          "transcript": "w a l a k u m n i s\u02e4 f u m a: t a r\u02e4 a\u02e4 k a \u0294 a z w a: \u0292 u k u m \u0294 i ll a m j a k u ll a h u \u00f1 a w a l a d Q f a \u0294 i \u014b k a: n a l a h u \u00f1 a w a l a d u \u014b f a l a k u m u r\u02e4r\u02e4 u b u m i m\u0303 a: t m a: t a r\u02e4 a\u02e4 t m m i m\u0303 b a \u0295 d i w a s\u02e4 i jj a t i j\u0303 u: s\u02e4 i: n a b i h a: \u0294 a w d a j n w a l a h u \u00f1 a r\u02e4r\u02e4 u b u \u0295 u m i m\u0303 a: t a r\u02e4 a\u02e4 l a: t a r\u02e4 a\u02e4 k t u m \u0294 i ll a m j a k u ll a k u m w a l a d Q f a \u0294 i \u014b k a: n a l a k u m w a l a d u \u014b f a l a h u \u00f1 a \u03b8\u03b8 u m u n u m i m\u0303 a: t a r\u02e4 a\u02e4 k t u m m i m\u0303 b a \u0295 d i w a s\u02e4 r\u02e4 q a\u02e4 d i w a s\u02e4 i jj a t i \u014b t u: s\u02e4 u: n a b i h a: \u0294 a w d a j n w a \u0294 i \u014b k a: n a r\u02e4 a\u02e4 \u0292 u l u j\u0303 u: r\u02e4 a\u02e4 \u03b8 u k a l a: l a t a n \u0294 a w i m r\u02e4 a\u02e4 \u0294 a t u w\u0303 a l a h u: m h u: \u0294 a x u n \u0294 a w \u0294 u x t u \u014b f a l i k u ll i w a: \u0127 i d i m\u0303 i n h u m a ss u d u s f a \u0294 i \u014b k a: n u: \u0294 a k \u03b8 a r\u02e4 a\u02e4 m i \u014b \u00f0 a: l i k a f a h u m \u0283 u r\u02e4 a\u02e4 k a: h a: \u0294 u f i \u03b8\u03b8 u l u \u03b8 m i m\u0303 b a \u0295 d i w a s\u02e4 i jj a t i j\u0303 u: s\u02e4 a\u02e4: b i h a: \u0294 a w d a j n i n \u0263 a\u02e4 j r\u02e4 a\u02e4 m u d\u02e4 a\u02e4: r\u02e4r\u02e4 w a s\u02e4 i jj a t a m j a t a m\u0303 i n a l\u02e4l\u02e4 a\u02e4: h w a l\u02e4l\u02e4 a\u02e4: h u \u0295 a l i: m u n \u0127 a l i: m"
+        }
+      },
+      {
+        "id": "ea_005006",
+        "expected": [
+          {
+            "surah": 5,
+            "ayah": 6
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 5,
+            "ayah": 6,
+            "score": 0.9542
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 5.4975655549933435,
+        "raw_predict": {
+          "surah": 5,
+          "ayah": 6,
+          "ayah_end": null,
+          "score": 0.9542,
+          "transcript": "j a: \u0294 a jj u h a ll a \u00f0 i: n a \u0294 a: m a n u: \u0294 i \u00f0 a: q u m t u m \u0294 i l a s\u02e4s\u02e4 a\u02e4 l a: t i f a \u0263 s i l u: w u \u0292 u: h a k u m w a \u0294 a j d i j a k u m \u0294 i l a l m a r\u02e4 a\u02e4: f i q i w a m s a \u0127 u: b i r\u02e4 u \u0294 u: s i k u m w k u m w a \u0294 a r\u02e4 \u0292 u l a k u m \u0294 i l a l k a \u0295 b a j n w a \u0294 i \u014b k u \u014b t u m \u0292 u n u b a \u014b f a t\u02e4t\u02e4 a\u02e4 hh a r\u02e4 u: w a \u0294 i \u014b k u \u014b t u m\u0303 a r\u02e4 d\u02e4 a\u02e4: \u0294 a w \u0295 a l u: w a a w \u0295 a l a: s a f a r i n \u0294 a w \u0292 a: \u0294 a \u0294 a \u0127 a d u m\u0303 i \u014b k u m\u0303 i n a l \u0263 a\u02e4: \u0294 i t\u02e4 i \u0294 a w l a: m a s t u m u \u00f1 i s a: \u0294 \u0294 a w l a: m a s t u m u \u00f1 i s \u0294 \u00f1 i s a: \u0294 a f a l a m t a \u0292 i d u: m a: \u0294 a \u014b f a t a j a m\u0303 a m u: s\u02e4 a\u02e4 \u0295 i: d a \u014b t\u02e4 a\u02e4 jj i b a \u014b f a m s a \u0127 u: b i w u \u0292 u: h i k u m w a \u0294 a j d i: k u m\u0303 i n h m a: j u r i: d u l\u02e4l\u02e4 a\u02e4: h u l i j a \u0292 Q \u0295 a l a \u0295 a l a j k u m\u0303 i n \u0127 a r\u02e4 a\u02e4 \u0292 i w\u0303 a l a: k i j\u0303 u r i: d u l i j u t\u02e4 a\u02e4 hh i r\u02e4 a\u02e4 k u m w a l i j u t i m\u0303 a n i \u0295 m a t a h u: \u0295 a l a j k u m l a \u0295 a ll a k u m t a \u0283 k u r\u02e4 u: n k u r\u02e4 u: m"
+        }
+      },
+      {
+        "id": "ea_006151",
+        "expected": [
+          {
+            "surah": 6,
+            "ayah": 151
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 6,
+            "ayah": 151,
+            "score": 0.9624
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 3.776508330993238,
+        "raw_predict": {
+          "surah": 6,
+          "ayah": 151,
+          "ayah_end": null,
+          "score": 0.9624,
+          "transcript": "q u l t a \u0295 a: l a w \u0294 a t l u m a: \u0127 a r\u02e4r\u02e4 a\u02e4 m a r\u02e4 a\u02e4 bb u k u m \u0295 a l a j k u m \u0294 a ll a: t u \u0283 r i k u: b i h w a b i l w a: l i d a j n i \u0294 i \u0127 s a: n a: n a: w a l a: t a q Q t u l u: \u0294 a w l a: d a k u m\u0303 i n \u0294 i m l a: q Q n a \u0127 n u n a r\u02e4 z u q u k u m w a \u0294 i jj a: h u m w a l a: w a l a: t a q Q r\u02e4 a\u02e4 b u l f a w a: \u0127 i \u0283 a m a: \u00f0\u02e4 a\u02e4 h a r\u02e4 a\u02e4 m i n h a: w a m a: b a t\u02e4 a\u02e4 n w a l a: t a q Q t u l u \u00f1 a f s a ll a t i: \u0127 a r\u02e4r\u02e4 a\u02e4 m a l\u02e4l\u02e4 a\u02e4: h u \u0294 i ll a: b i l \u0127 a qq Q q \u00f0 a: l i k u m w a s\u02e4s\u02e4 a\u02e4: k u m\u0303 b i h i: l a \u0295 a ll a k u m t a \u0295 q i l u: n"
+        }
+      },
+      {
+        "id": "ea_017023",
+        "expected": [
+          {
+            "surah": 17,
+            "ayah": 23
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 17,
+            "ayah": 23,
+            "score": 0.8838
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 2.7452909010025905,
+        "raw_predict": {
+          "surah": 17,
+          "ayah": 23,
+          "ayah_end": null,
+          "score": 0.8838,
+          "transcript": "w a q a\u02e4 d\u02e4 a\u02e4: r\u02e4 a\u02e4 bb u k a \u0294 a ll a: t a \u0295 b u d u: \u0294 i ll a: \u0294 i jj a: h u w a b i l w a: l i d a j n i \u0294 i \u0127 s a: n a: \u0294 i m\u0303 a: j a b Q l u \u0263 a\u02e4 \u00f1 a \u0295 i \u014b d a k d a k a l k i b a r\u02e4 a\u02e4 \u0294 a \u0127 a d u h u m a: \u0294 a w k i l a: h u m a: f a l a: t a q u ll a h u m a: \u0294 u ff i w\u0303 a l a: t a n h a r\u02e4 h u m a: f a l a: t a q u ll a h u m a: \u0294 u ff i n \u0294 u ff i w\u0303 a l a: t a n h a r\u02e4 h u m a: w a q u ll a h u m a: q a\u02e4 w l a \u014b k a r i: m a:"
+        }
+      },
+      {
+        "id": "ea_004034",
+        "expected": [
+          {
+            "surah": 4,
+            "ayah": 34
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 4,
+            "ayah": 34,
+            "score": 0.9624
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 2.801919113000622,
+        "raw_predict": {
+          "surah": 4,
+          "ayah": 34,
+          "ayah_end": null,
+          "score": 0.9624,
+          "transcript": "\u0294 a rr i \u0292 a: l u q a\u02e4 ww a: m u: n a \u0295 a l a \u014b b i s a: \u0294 i b i m a: f a d\u02e4d\u02e4 a\u02e4 l a l\u02e4l\u02e4 a\u02e4: h u b a \u0295 d\u02e4 a\u02e4 h u m \u0295 a l a: b a \u0295 d\u02e4 i w\u0303 a b i m a: \u0294 a \u014b f a q u: m i n \u0294 a m w a: l i h i m f a s\u02e4s\u02e4 a\u02e4: l i \u0127 a: t u q a\u02e4: n i t a: t u n \u0127 a: f i \u00f0\u02e4 a\u02e4: t u ll i n q a\u02e4: t u ll i l \u0263 a\u02e4 j b i b i m a: \u0127 a f i \u00f0\u02e4 a\u02e4 l\u02e4l\u02e4 a\u02e4: h w a ll a: t i: t a x a\u02e4: f u: n a n u \u0283 u: z a h u \u00f1 a f a \u0295 i \u00f0\u02e4 u: h u \u00f1 a w a h \u0292 u r\u02e4 u: h u \u00f1 a f i l m a d\u02e4 a\u02e4: d i \u0295 i w a d\u02e4 r i b u: h u \u00f1 f a \u0294 i n \u0294 a t\u02e4 a\u02e4 \u0295 n a k u m f a l a: t a b Q \u0263 u: l a: t a b Q \u0263 u: \u0295 a l a j h i \u00f1 a s a b i: l a \u0294 i \u00f1 a l\u02e4l\u02e4 a\u02e4: h a k a: n a \u0295 a l i jj a \u014b k a b i: r\u02e4 a\u02e4:"
+        }
+      },
+      {
+        "id": "ea_multi_002_001_005",
+        "expected": [
+          {
+            "surah": 2,
+            "ayah": 1
+          },
+          {
+            "surah": 2,
+            "ayah": 2
+          },
+          {
+            "surah": 2,
+            "ayah": 3
+          },
+          {
+            "surah": 2,
+            "ayah": 4
+          },
+          {
+            "surah": 2,
+            "ayah": 5
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 2,
+            "ayah": 1,
+            "score": 0.9734
+          },
+          {
+            "surah": 2,
+            "ayah": 2,
+            "score": 0.9734
+          },
+          {
+            "surah": 2,
+            "ayah": 3,
+            "score": 0.9734
+          },
+          {
+            "surah": 2,
+            "ayah": 4,
+            "score": 0.9734
+          },
+          {
+            "surah": 2,
+            "ayah": 5,
+            "score": 0.9734
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 3.4347419630066724,
+        "raw_predict": {
+          "surah": 2,
+          "ayah": 1,
+          "ayah_end": 5,
+          "score": 0.9734,
+          "transcript": "\u0294 a l i f l a: m\u0303 i: \u00f0 a: l i k a l k i t a: b u l a: r\u02e4 a\u02e4 j b Q f i: h i h u d a ll i l m u tt a q i: n \u0294 a ll a \u00f0 i: \u0294 a ll a \u00f0 i: n a j u \u0294 m i n u: n a b i l \u0263 a\u02e4 j b i w a j u q i: m u: n a s\u02e4s\u02e4 a\u02e4 l a: t a w a m i m\u0303 a: r\u02e4 a\u02e4 z a q Q n a: h u m j u \u014b f i q u: n w a ll a \u00f0 i: n a j u \u0294 m i n u: n a b i m a: \u0294 u \u014b z i l a \u0294 i l a j k a w a m a: Q \u0294 a: \u0294 u \u014b z i l a m i \u014b q a\u02e4 b Q l i k a w a b i l \u0294 a: x i r\u02e4 a\u02e4 t i h u m j u: q i n u: n \u0294 u l a: \u0294 i k a \u0295 a l a: h u d a m\u0303 i r\u02e4r\u02e4 a\u02e4 bb i h i m w a \u0294 u l a: Q l \u0294 i k a h u m u l m u f l i \u0127 u: n"
+        }
+      },
+      {
+        "id": "ea_multi_019_001_005",
+        "expected": [
+          {
+            "surah": 19,
+            "ayah": 1
+          },
+          {
+            "surah": 19,
+            "ayah": 2
+          },
+          {
+            "surah": 19,
+            "ayah": 3
+          },
+          {
+            "surah": 19,
+            "ayah": 4
+          },
+          {
+            "surah": 19,
+            "ayah": 5
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 19,
+            "ayah": 1,
+            "score": 0.9788
+          },
+          {
+            "surah": 19,
+            "ayah": 2,
+            "score": 0.9788
+          },
+          {
+            "surah": 19,
+            "ayah": 3,
+            "score": 0.9788
+          },
+          {
+            "surah": 19,
+            "ayah": 4,
+            "score": 0.9788
+          },
+          {
+            "surah": 19,
+            "ayah": 5,
+            "score": 0.9788
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 2.73833363900485,
+        "raw_predict": {
+          "surah": 19,
+          "ayah": 1,
+          "ayah_end": 5,
+          "score": 0.9788,
+          "transcript": "k a: hh a: j a: \u0295 a j \u014b s\u02e4 a\u02e4: d Q \u00f0 i k r\u02e4 u r\u02e4 a\u02e4 \u0127 m a t i r\u02e4 a\u02e4 bb i k a \u0295 a b Q d a h u: z a k a r i jj a: \u0294 i \u00f0 n a: d a: r\u02e4 a\u02e4 bb a h u: n i d a: h a: \u0294 a n x a\u02e4 f i jj a: q a\u02e4: l a r\u02e4 a\u02e4 bb i \u0294 i \u00f1 i: w a h a n a l \u0295 a \u00f0\u02e4 m u m i \u00f1 i: w a \u0283 t a \u0295 a l a r\u02e4r\u02e4 a\u02e4 \u0294 s u \u0283 a j b a w\u0303 a l a m \u0294 a k u m\u0303 b i d u \u0295 a: \u0294 i k a r\u02e4 a\u02e4 bb i \u0283 a q i jj a: w a \u0294 i \u00f1 i: x i f t u l m a w a: l m a w a: l i j a m i w\u0303 a r\u02e4 a\u02e4: \u0294 i: w a k a: n a t i m r\u02e4 a\u02e4 \u0294 a t i: \u0295 a: q i r\u02e4 a\u02e4 \u014b f a h a b Q l i: m i ll a d u \u014b k a w a l i jj a:"
+        }
+      },
+      {
+        "id": "ea_multi_056_001_004",
+        "expected": [
+          {
+            "surah": 56,
+            "ayah": 1
+          },
+          {
+            "surah": 56,
+            "ayah": 2
+          },
+          {
+            "surah": 56,
+            "ayah": 3
+          },
+          {
+            "surah": 56,
+            "ayah": 4
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 56,
+            "ayah": 1,
+            "score": 0.9674
+          },
+          {
+            "surah": 56,
+            "ayah": 2,
+            "score": 0.9674
+          },
+          {
+            "surah": 56,
+            "ayah": 3,
+            "score": 0.9674
+          },
+          {
+            "surah": 56,
+            "ayah": 4,
+            "score": 0.9674
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 1.2644183119991794,
+        "raw_predict": {
+          "surah": 56,
+          "ayah": 1,
+          "ayah_end": 4,
+          "score": 0.9674,
+          "transcript": "\u0294 i \u00f0 a: w a q a\u02e4 \u0295 a t i l w a: q i \u0295 a l a j s a l i w a q Q \u0295 a t i h a: k a: \u00f0 i b a h x a\u02e4: f i d\u02e4 a\u02e4 t u r\u02e4r\u02e4 a\u02e4: f i \u0295 a h \u0294 i \u00f0 a: r\u02e4 u \u0292\u0292 a t i l \u0294 a r\u02e4 d\u02e4 \u0294 a r\u02e4 d\u02e4 u r\u02e4 a\u02e4 \u0292\u0292 a:"
+        }
+      },
+      {
+        "id": "ea_multi_091_001_005",
+        "expected": [
+          {
+            "surah": 91,
+            "ayah": 1
+          },
+          {
+            "surah": 91,
+            "ayah": 2
+          },
+          {
+            "surah": 91,
+            "ayah": 3
+          },
+          {
+            "surah": 91,
+            "ayah": 4
+          },
+          {
+            "surah": 91,
+            "ayah": 5
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 91,
+            "ayah": 1,
+            "score": 0.9726
+          },
+          {
+            "surah": 91,
+            "ayah": 2,
+            "score": 0.9726
+          },
+          {
+            "surah": 91,
+            "ayah": 3,
+            "score": 0.9726
+          },
+          {
+            "surah": 91,
+            "ayah": 4,
+            "score": 0.9726
+          },
+          {
+            "surah": 91,
+            "ayah": 5,
+            "score": 0.9726
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 1.5779253219952807,
+        "raw_predict": {
+          "surah": 91,
+          "ayah": 1,
+          "ayah_end": 5,
+          "score": 0.9726,
+          "transcript": "w a \u0283\u0283 a m s i w a d\u02e4 u \u0127 a: h a: w a l q a\u02e4 m a r i \u0294 i \u00f0 a: t a l a: h a: a \u00f1 a h a: r i \u0294 i \u00f0 a: \u0292 a ll a: h a: w a ll a j l i \u0294 i \u00f0 a: j a \u0263 \u0283 a: h a: w a ss a m a: s a m a: \u0294 i w a m a: b a n a: h a:"
+        }
+      }
+    ]
+  }
+]
