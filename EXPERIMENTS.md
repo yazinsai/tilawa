@@ -19,6 +19,20 @@ ONNX inference is non-deterministic at **±3–6 samples per run** on v1 — str
 
 ### Streaming changelog
 
+**2026-04-30 — segment-ownership diagnostics and CTC alignment prototype, falsified for shipping** (files: `web/frontend/test/diagnose-wrong-initial-candidates.ts`, `web/frontend/test/oracle-prune-stability.ts`, `web/frontend/src/lib/ctc-rescore.ts`)
+Added a Viterbi CTC forced-alignment helper (`alignCtcSequence`) plus two v3 diagnostics to test the segment/audio-ownership hypothesis before doing more tracker surgery. The oracle prune diagnostic confirms the upside is real in principle: cached `stab-gate-on-v3.json` exact SeqAcc is **440/768 = 57.3%**; a conservative oracle that removes only post-expected extras recovers all 124 `extra_after_expected` and all 29 `wrong_surah_jump` runs for **593/768 = 77.2%**; an aggressive oracle that also drops wrong prefixes reaches **668/768 = 87.0%**. So cascade prevention is worth pursuing, but a naive CTC-frame ownership gate is not sufficient.
+
+The wrong-initial audit was intentionally capped at 24 replayed runs because full replay of all 136 cached wrong-initial runs is too slow with per-cycle ONNX diagnostics. In that subset, the expected ref was present in the expanded candidate set for **18/24**, CTC-best differed from the committed wrong ref for **14/24**, and "defer on text/CTC disagreement" would have prevented **9/24** wrong first commits; CTC-best was exactly expected in only **4/24**, so the diagnostic supports conservative first-commit deferral, not direct CTC-best emission.
+
+A minimal tracker prototype then aligned the completed verse and required post-owned frames to align to the next-verse prefix before auto-advance. Unit tests were made to pass, but v3 smoke/stability runs regressed immediately (early long samples produced wrong initials/no-emits and wrong-surah jumps), so the production tracker change was reverted. No shipped Browser/RN streaming headline metrics change; README stays untouched. Raw diagnostics are committed at `web/frontend/test/wrong-initial-candidate-audit-v3.json` and `web/frontend/test/oracle-prune-upper-bound-v3.json`.
+
+Validation:
+```
+npx tsx test/diagnose-wrong-initial-candidates.ts
+npx tsx test/oracle-prune-stability.ts
+npx vitest run --testTimeout=20000
+```
+
 **2026-04-25 — decode-stability gate on single-cycle commits** (file: `web/frontend/src/lib/tracker.ts`)
 A context-sweep diagnostic (`web/frontend/test/diagnose-context-sweep.ts`) measured how the model's CTC greedy decode of audio prefixes compares to its decode of the full audio. On v1 the result was striking: across prefix lengths from 1s to 5s, **~50% of every prefix-decode token gets revised** when full audio context arrives (median LCP / |prefix-decode| ≈ 0.50). Full-audio WER vs the expected phoneme reference is 14%, so the offline ceiling is fine — but every short-prefix decode sits in a regime where half its emissions are non-final because the FastConformer encoder uses bidirectional attention to refine early frames once more audio is in.
 
