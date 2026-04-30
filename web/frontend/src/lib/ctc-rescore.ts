@@ -25,6 +25,10 @@ export interface CtcAlignment {
   tokenFrames: number[];
 }
 
+export interface CtcPrefixAlignment extends CtcAlignment {
+  tokensAligned: number;
+}
+
 const NEG_INF = Number.NEGATIVE_INFINITY;
 const IMPOSSIBLE_SCORE = 1e9;
 
@@ -125,6 +129,13 @@ function impossibleAlignment(): CtcAlignment {
     startFrame: -1,
     endFrame: -1,
     tokenFrames: [],
+  };
+}
+
+function impossiblePrefixAlignment(tokensAligned = 0): CtcPrefixAlignment {
+  return {
+    ...impossibleAlignment(),
+    tokensAligned,
   };
 }
 
@@ -244,6 +255,127 @@ export function alignCtcSequence(
     startFrame,
     endFrame,
     tokenFrames: Array.from(firstTokenFrame),
+  };
+}
+
+export function alignCtcPrefix(
+  evidence: AcousticEvidence,
+  targetIds: readonly number[],
+): CtcPrefixAlignment {
+  const { logprobs, timeSteps, vocabSize, blankId } = evidence;
+  if (targetIds.length === 0 || timeSteps <= 0) {
+    return impossiblePrefixAlignment();
+  }
+
+  const stateCount = targetIds.length * 2 + 1;
+  const states = new Int32Array(stateCount);
+  for (let s = 0; s < stateCount; s++) {
+    states[s] = s % 2 === 0 ? blankId : targetIds[(s - 1) >> 1];
+  }
+
+  let prev = new Float64Array(stateCount);
+  let curr = new Float64Array(stateCount);
+  prev.fill(NEG_INF);
+  curr.fill(NEG_INF);
+  const back = new Int32Array(timeSteps * stateCount);
+  back.fill(-1);
+
+  prev[0] = logprobs[blankId];
+  back[0] = 0;
+  if (stateCount > 1) {
+    prev[1] = logprobs[states[1]];
+    back[1] = 1;
+  }
+
+  for (let t = 1; t < timeSteps; t++) {
+    curr.fill(NEG_INF);
+    const frameOffset = t * vocabSize;
+    const backOffset = t * stateCount;
+
+    for (let s = 0; s < stateCount; s++) {
+      let best = prev[s];
+      let bestPrev = s;
+      if (s > 0 && prev[s - 1] > best) {
+        best = prev[s - 1];
+        bestPrev = s - 1;
+      }
+      if (
+        s > 1 &&
+        states[s] !== blankId &&
+        states[s] !== states[s - 2] &&
+        prev[s - 2] > best
+      ) {
+        best = prev[s - 2];
+        bestPrev = s - 2;
+      }
+      if (best !== NEG_INF) {
+        curr[s] = best + logprobs[frameOffset + states[s]];
+        back[backOffset + s] = bestPrev;
+      }
+    }
+
+    const tmp = prev;
+    prev = curr;
+    curr = tmp;
+  }
+
+  let finalState = -1;
+  let bestLogProb = NEG_INF;
+  for (let s = 1; s < stateCount; s++) {
+    const tokensAligned = Math.floor((s + 1) / 2);
+    if (tokensAligned <= 0) continue;
+    const normalized = prev[s] / tokensAligned;
+    if (Number.isFinite(normalized) && normalized > bestLogProb) {
+      bestLogProb = normalized;
+      finalState = s;
+    }
+  }
+
+  if (finalState < 0 || !Number.isFinite(bestLogProb)) {
+    return impossiblePrefixAlignment();
+  }
+
+  const path = new Int32Array(timeSteps);
+  let state = finalState;
+  for (let t = timeSteps - 1; t >= 0; t--) {
+    path[t] = state;
+    const prevState = back[t * stateCount + state];
+    if (t > 0 && prevState < 0) {
+      return impossiblePrefixAlignment();
+    }
+    state = prevState;
+  }
+
+  const tokensAligned = Math.floor((finalState + 1) / 2);
+  const firstTokenFrame = new Int32Array(tokensAligned);
+  firstTokenFrame.fill(-1);
+  let startFrame = -1;
+  let endFrame = -1;
+  let pathLogProb = 0;
+  for (let t = 0; t < timeSteps; t++) {
+    const s = path[t];
+    pathLogProb += logprobs[t * vocabSize + states[s]];
+    if (s % 2 === 1) {
+      const tokenIndex = (s - 1) >> 1;
+      if (tokenIndex < tokensAligned && firstTokenFrame[tokenIndex] < 0) {
+        firstTokenFrame[tokenIndex] = t;
+      }
+      if (startFrame < 0) startFrame = t;
+      endFrame = t;
+    }
+  }
+
+  if (startFrame < 0 || endFrame < 0) {
+    return impossiblePrefixAlignment(tokensAligned);
+  }
+
+  return {
+    feasible: true,
+    score: -pathLogProb / tokensAligned,
+    startFrame,
+    endFrame,
+    tokenFrames: Array.from(firstTokenFrame),
+    tokensAligned,
   };
 }
 
