@@ -1,6 +1,6 @@
 import * as ort from "onnxruntime-node";
 
-let session: ort.InferenceSession | null = null;
+let session: import("onnxruntime-node").InferenceSession | null = null;
 
 export async function createSession(modelPath: string): Promise<void> {
   session = await ort.InferenceSession.create(modelPath);

@@ -68,6 +68,13 @@ export interface RawTranscriptMessage {
   confidence: number;
 }
 
+export interface DebugMessage {
+  type: "debug";
+  event: string;
+  at: number;
+  data: Record<string, unknown>;
+}
+
 export interface SurroundingVerse {
   surah: number;
   ayah: number;
@@ -79,7 +86,8 @@ export interface SurroundingVerse {
 export type WorkerInbound =
   | { type: "init" }
   | { type: "audio"; samples: Float32Array }
-  | { type: "reset" };
+  | { type: "reset" }
+  | { type: "set_debug"; enabled: boolean };
 
 // Worker -> Main
 export type WorkerOutbound =
@@ -92,7 +100,8 @@ export type WorkerOutbound =
   | FinalSequenceMessage
   | WordProgressMessage
   | WordCorrectionMessage
-  | RawTranscriptMessage;
+  | RawTranscriptMessage
+  | DebugMessage;
 
 // ---------------------------------------------------------------------------
 // Quran data (from quran.json)
@@ -171,6 +180,7 @@ export const STALE_CYCLE_LIMIT = 4;
 export const LOOKAHEAD = 5;
 export const TRACKING_PREFIX_TOLERANCE = 0.12;
 export const TRACKING_WEAK_COMMIT_CONFIDENCE = 0.6;
+export const TRACKING_COMPLETION_COVERAGE = 0.95;
 export const ADVANCE_RELATIVE_MARGIN = 3.0;
 export const ADVANCE_PREFIX_TOKENS = 15;
 // Stricter margin required to emit a pending next-verse advance at final flush,

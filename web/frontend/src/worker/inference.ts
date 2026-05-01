@@ -7,7 +7,7 @@ import { buildTrie, type CompactTrie } from "../lib/phoneme-trie";
 import { QuranDB } from "../lib/quran-db";
 import { RecitationTracker } from "../lib/tracker";
 import type { TranscribeResult, BeamVerseMatch } from "../lib/tracker";
-import type { WorkerInbound, WorkerOutbound } from "../lib/types";
+import type { QuranVerse, WorkerInbound, WorkerOutbound } from "../lib/types";
 
 const MODEL_URL = "/fastconformer_phoneme_q8.onnx";
 
@@ -16,9 +16,21 @@ let decoder: CTCDecoder | null = null;
 let db: QuranDB | null = null;
 let trie: CompactTrie | null = null;
 let vocabJsonCache: Record<string, string> | null = null;
+let quranDataCache: QuranVerse[] | null = null;
+let debugEnabled = false;
 
 function post(msg: WorkerOutbound) {
   self.postMessage(msg);
+}
+
+function postDebug(event: string, data: Record<string, unknown>) {
+  if (!debugEnabled) return;
+  post({
+    type: "debug",
+    event,
+    at: Date.now(),
+    data,
+  });
 }
 
 async function transcribe(audio: Float32Array): Promise<TranscribeResult> {
@@ -34,6 +46,11 @@ async function transcribe(audio: Float32Array): Promise<TranscribeResult> {
 
   // Run trie-constrained beam search for verse-level matches
   let beamMatches: BeamVerseMatch[] | undefined;
+  const beamDebug: Array<{
+    ref: string;
+    spanLength: number;
+    score: number;
+  }> = [];
   if (trie) {
     const beamResults = beamSearchDecode(
       logprobs, timeSteps, vocabSize,
@@ -52,10 +69,26 @@ async function transcribe(audio: Float32Array): Promise<TranscribeResult> {
             spanLength: ref.spanLength,
             score: result.score,
           });
+          if (debugEnabled) {
+            const verse = quranDataCache?.[ref.verseIndex];
+            beamDebug.push({
+              ref: verse ? `${verse.surah}:${verse.ayah}` : `idx:${ref.verseIndex}`,
+              spanLength: ref.spanLength,
+              score: Math.round(result.score * 1000) / 1000,
+            });
+          }
         }
       }
     }
   }
+
+  postDebug("transcribe", {
+    audioSec: Math.round((audio.length / 16000) * 100) / 100,
+    text: greedy.text,
+    rawPhonemes: greedy.rawPhonemes,
+    tokenCount: greedy.tokenIds?.length ?? 0,
+    beam: beamDebug.slice(0, 8),
+  });
 
   return {
     ...greedy,
@@ -99,6 +132,7 @@ async function init() {
     const quranRes = await fetch("/quran_phonemes.json");
     if (!quranRes.ok) throw new Error(`quran_phonemes.json fetch failed: ${quranRes.status}`);
     const quranData = await quranRes.json();
+    quranDataCache = quranData;
     db = new QuranDB(quranData, decoder);
 
     // Build verse/span trie for constrained beam search
@@ -112,7 +146,9 @@ async function init() {
     );
 
     // Create tracker
-    tracker = new RecitationTracker(db, transcribe);
+    tracker = new RecitationTracker(db, transcribe, {
+      onDiagnostic: (event) => postDebug("tracker", { ...event }),
+    });
     post({ type: "ready" });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -127,8 +163,12 @@ self.onmessage = async (e: MessageEvent<WorkerInbound>) => {
     await init();
   } else if (msg.type === "reset") {
     if (db) {
-      tracker = new RecitationTracker(db, transcribe);
+      tracker = new RecitationTracker(db, transcribe, {
+        onDiagnostic: (event) => postDebug("tracker", { ...event }),
+      });
     }
+  } else if (msg.type === "set_debug") {
+    debugEnabled = msg.enabled;
   } else if (msg.type === "audio") {
     if (!tracker) return;
     const messages = await tracker.feed(msg.samples);

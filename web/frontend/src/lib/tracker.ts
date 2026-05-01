@@ -27,6 +27,7 @@ import {
   TRACKING_MAX_WINDOW_SAMPLES,
   STALE_CYCLE_LIMIT,
   LOOKAHEAD,
+  TRACKING_COMPLETION_COVERAGE,
   DISCOVERY_REPEAT_CYCLES,
   DISCOVERY_TOP_SINGLE_CANDIDATES,
   DISCOVERY_TOP_SURAHS,
@@ -392,17 +393,70 @@ class StreamingHypothesis {
 }
 
 function transitionScore(prev: VerseCandidate, next: VerseCandidate): number {
+  const params = streamingHypothesisParams();
   if (prev.surah !== next.surah) {
-    return next.confidence >= 0.85 ? -0.35 : -1.25;
+    return next.confidence >= 0.85
+      ? params.surahJumpHighConfidence
+      : params.surahJump;
   }
 
   const prevEnd = prev.ayah_end && prev.ayah_end > prev.ayah ? prev.ayah_end : prev.ayah;
   const delta = next.ayah - prevEnd;
-  if (delta === 0) return 0.15;
-  if (delta === 1) return 0.35;
-  if (delta > 1 && delta <= 3) return -0.15 * delta;
-  if (delta < 0) return -1.0;
-  return -0.65;
+  if (delta === 0) return params.sameAyah;
+  if (delta === 1) return params.nextAyah;
+  if (delta > 1 && delta <= 3) return params.smallForwardPerAyah * delta;
+  if (delta < 0) return params.backward;
+  return params.farForward;
+}
+
+interface StreamingHypothesisParams {
+  surahJumpHighConfidence: number;
+  surahJump: number;
+  sameAyah: number;
+  nextAyah: number;
+  smallForwardPerAyah: number;
+  backward: number;
+  farForward: number;
+}
+
+const DEFAULT_STREAMING_HYPOTHESIS_PARAMS: StreamingHypothesisParams = {
+  surahJumpHighConfidence: -0.35,
+  surahJump: -1.25,
+  sameAyah: 0.15,
+  nextAyah: 0.35,
+  smallForwardPerAyah: -0.15,
+  backward: -1.0,
+  farForward: -0.65,
+};
+
+function envNumber(name: string, fallback: number): number {
+  const value = (globalThis as { process?: { env?: Record<string, string> } })
+    .process?.env?.[`STREAMING_HYPOTHESIS_${name}`];
+  if (value === undefined) return fallback;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+let cachedStreamingHypothesisParams: StreamingHypothesisParams | null = null;
+
+function streamingHypothesisParams(): StreamingHypothesisParams {
+  if (cachedStreamingHypothesisParams) return cachedStreamingHypothesisParams;
+  cachedStreamingHypothesisParams = {
+    surahJumpHighConfidence: envNumber(
+      "SURAH_JUMP_HIGH_CONFIDENCE",
+      DEFAULT_STREAMING_HYPOTHESIS_PARAMS.surahJumpHighConfidence,
+    ),
+    surahJump: envNumber("SURAH_JUMP", DEFAULT_STREAMING_HYPOTHESIS_PARAMS.surahJump),
+    sameAyah: envNumber("SAME_AYAH", DEFAULT_STREAMING_HYPOTHESIS_PARAMS.sameAyah),
+    nextAyah: envNumber("NEXT_AYAH", DEFAULT_STREAMING_HYPOTHESIS_PARAMS.nextAyah),
+    smallForwardPerAyah: envNumber(
+      "SMALL_FORWARD_PER_AYAH",
+      DEFAULT_STREAMING_HYPOTHESIS_PARAMS.smallForwardPerAyah,
+    ),
+    backward: envNumber("BACKWARD", DEFAULT_STREAMING_HYPOTHESIS_PARAMS.backward),
+    farForward: envNumber("FAR_FORWARD", DEFAULT_STREAMING_HYPOTHESIS_PARAMS.farForward),
+  };
+  return cachedStreamingHypothesisParams;
 }
 
 export class RecitationTracker {
@@ -657,8 +711,9 @@ export class RecitationTracker {
     }
 
     const cumulativeCoverage = wordPos / this.trackingVerseWords.length;
-    const nearEnd = this.trackingLastWordIdx >= this.trackingVerseWords.length - 2;
-    if (cumulativeCoverage >= 0.8 && nearEnd) {
+    const finalWordReached =
+      this.trackingLastWordIdx >= this.trackingVerseWords.length - 1;
+    if (cumulativeCoverage >= TRACKING_COMPLETION_COVERAGE && finalWordReached) {
       if (!(this.lastCommitEvidence?.strong)) {
         this._exitTracking("weak completion");
         return messages;
