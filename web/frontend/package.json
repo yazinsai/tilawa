@@ -22,15 +22,10 @@
   },
   "devDependencies": {
     "esbuild": "^0.27.3",
-    "onnxruntime-node": "^1.24.2",
+    "onnxruntime-node": "1.21.0",
     "tsx": "^4.19.0",
     "typescript": "~5.9.3",
     "vite": "^7.3.1",
     "vite-plugin-pwa": "^1.2.0"
-  },
-  "overrides": {
-    "@huggingface/transformers": {
-      "onnxruntime-node": "1.24.2"
-    }
   }
 }

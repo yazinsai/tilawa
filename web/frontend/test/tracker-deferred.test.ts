@@ -10,7 +10,11 @@ import { describe, it, expect, vi } from "vitest";
 import { RecitationTracker } from "../src/lib/tracker";
 import type { TranscribeResult } from "../src/lib/tracker";
 import type { QuranVerse, WorkerOutbound } from "../src/lib/types";
-import { SAMPLE_RATE, TRACKING_TRIGGER_SAMPLES } from "../src/lib/types";
+import {
+  SAMPLE_RATE,
+  TRACKING_COMPLETION_COVERAGE,
+  TRACKING_TRIGGER_SAMPLES,
+} from "../src/lib/types";
 
 // ---------------------------------------------------------------------------
 // Mock verse data
@@ -147,6 +151,28 @@ function injectTrackingState(tracker: RecitationTracker, verse: QuranVerse): voi
 // Tests
 // ---------------------------------------------------------------------------
 describe("Deferred emission", () => {
+  it("does not enter the next verse until the final word is reached", async () => {
+    const almostComplete = VERSE_2.phoneme_words.slice(0, -1).join(" ");
+    const transcribeFn = createTranscribeFn([
+      makeResult(almostComplete),
+    ]);
+
+    const db = createMockDB();
+    const tracker = new RecitationTracker(db, transcribeFn);
+    injectTrackingState(tracker, VERSE_2);
+
+    for (let i = 0; i < 2; i++) {
+      await tracker.feed(makeSpeechChunk());
+    }
+
+    const t = tracker as any;
+    expect((VERSE_2.phoneme_words.length - 1) / VERSE_2.phoneme_words.length)
+      .toBeLessThan(TRACKING_COMPLETION_COVERAGE);
+    expect(t.trackingVerse).toEqual(VERSE_2);
+    expect(t.trackingPendingEmission).toBe(false);
+    expect(t.pendingEmissionMessage).toBeNull();
+  });
+
   it("stale pending verse drops silently (no verse_match emitted)", async () => {
     const transcribeFn = createTranscribeFn([
       makeResult("alif laam miim"), // VERSE_1 complete → auto-advance

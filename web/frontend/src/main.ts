@@ -13,6 +13,7 @@ import type {
   WordCorrectionMessage,
   WorkerOutbound,
   QuranVerse,
+  DebugMessage,
 } from "./lib/types";
 
 // ---------------------------------------------------------------------------
@@ -49,6 +50,7 @@ interface DiagnosticEvent {
 }
 
 const MAX_DIAGNOSTIC_EVENTS = 50;
+const MAX_DEBUG_EVENTS = 80;
 const DIAGNOSTIC_COOLDOWN_MS = 30_000;
 
 const state = {
@@ -64,6 +66,7 @@ const state = {
   sessionAudioChunks: [] as Float32Array[],
   lastModelPrediction: null as { surah: number; ayah: number; confidence: number } | null,
   diagnosticEvents: [] as DiagnosticEvent[],
+  debugEvents: [] as DebugMessage[],
   lastDiagnosticSentAt: 0,
   recentVerseMatches: [] as { surah: number; ayah: number; timestamp: number }[],
   finalSequence: [] as { surah: number; ayah: number; confidence: number }[],
@@ -89,6 +92,9 @@ const $btnStop = document.getElementById("btn-stop")!;
 const $btnReport = document.getElementById("btn-report")!;
 const $btnRestart = document.getElementById("btn-restart")!;
 const $candidateStatus = document.getElementById("candidate-status")!;
+const $debugPanel = document.getElementById("debug-panel") as HTMLDetailsElement;
+const $debugSummary = document.getElementById("debug-summary")!;
+const $debugContent = document.getElementById("debug-content")!;
 
 // ---------------------------------------------------------------------------
 // Arabic numeral converter
@@ -427,6 +433,130 @@ async function handleFinalSequence(msg: FinalSequenceMessage): Promise<void> {
   $candidateStatus.hidden = false;
 }
 
+function handleDebugMessage(msg: DebugMessage): void {
+  state.debugEvents.push(msg);
+  if (state.debugEvents.length > MAX_DEBUG_EVENTS) {
+    state.debugEvents.shift();
+  }
+  renderDebugPanel();
+}
+
+function syncDebugEnabled(): void {
+  state.worker?.postMessage({ type: "set_debug", enabled: $debugPanel.open });
+  renderDebugPanel();
+}
+
+function formatDebugValue(value: unknown): string {
+  if (typeof value === "number") return Number.isInteger(value) ? String(value) : value.toFixed(3);
+  if (typeof value === "string") return value;
+  if (typeof value === "boolean") return value ? "true" : "false";
+  if (value === null || value === undefined) return "null";
+  return JSON.stringify(value);
+}
+
+function truncateDebugText(value: unknown, max = 70): string {
+  const text = formatDebugValue(value).replace(/\s+/g, " ").trim();
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+}
+
+function debugChip(label: string, value: unknown, variant = ""): HTMLElement {
+  const chip = document.createElement("span");
+  chip.className = `debug-chip ${variant}`.trim();
+  chip.textContent = `${label}: ${truncateDebugText(value)}`;
+  return chip;
+}
+
+function refsFromDebugList(value: unknown, limit = 4): string {
+  if (!Array.isArray(value)) return "";
+  return value
+    .slice(0, limit)
+    .map((entry) => {
+      if (!entry || typeof entry !== "object") return formatDebugValue(entry);
+      const obj = entry as Record<string, unknown>;
+      const score = typeof obj.score === "number" ? ` ${obj.score.toFixed(2)}` : "";
+      const fusion = typeof obj.fusion === "number" ? ` ${obj.fusion.toFixed(2)}` : "";
+      const ref = obj.ref ?? obj.top_ref ?? "?";
+      return `${ref}${score}${fusion}`;
+    })
+    .join("  ");
+}
+
+function summarizeDebugEvent(event: DebugMessage): { label: string; chips: HTMLElement[] } {
+  const data = event.data;
+  const chips: HTMLElement[] = [];
+
+  if (event.event === "transcribe") {
+    chips.push(debugChip("sec", data.audioSec));
+    chips.push(debugChip("text", data.text, "debug-chip--wide"));
+    chips.push(debugChip("phon", data.rawPhonemes, "debug-chip--wide"));
+    const beam = refsFromDebugList(data.beam);
+    if (beam) chips.push(debugChip("beam", beam, "debug-chip--wide"));
+    return { label: "asr", chips };
+  }
+
+  const trackerType = typeof data.type === "string" ? data.type : "tracker";
+  if (trackerType === "discovery_cycle") {
+    chips.push(debugChip("text", data.text, "debug-chip--wide"));
+    chips.push(debugChip("cands", refsFromDebugList(data.candidates), "debug-chip--wide"));
+    return { label: "discover", chips };
+  }
+  if (trackerType === "tracking_cycle") {
+    chips.push(debugChip("ref", data.ref));
+    chips.push(debugChip("words", data.word_matches));
+    chips.push(debugChip("advanced", data.advanced));
+    chips.push(debugChip("final", data.final_flush));
+    return { label: "track", chips };
+  }
+  if (trackerType === "commit") {
+    chips.push(debugChip("ref", data.ref, "debug-chip--strong"));
+    chips.push(debugChip("why", data.reason));
+    chips.push(debugChip("conf", data.confidence));
+    chips.push(debugChip("rank", data.selected_rank));
+    return { label: "commit", chips };
+  }
+  if (trackerType === "pending_emission") {
+    chips.push(debugChip("action", data.action));
+    chips.push(debugChip("ref", data.ref));
+    chips.push(debugChip("margin", data.margin));
+    return { label: "pending", chips };
+  }
+  if (trackerType === "rollback" || trackerType === "stale_exit" || trackerType === "flush") {
+    for (const [key, value] of Object.entries(data)) {
+      if (key !== "type") chips.push(debugChip(key, value));
+    }
+    return { label: trackerType, chips };
+  }
+
+  for (const [key, value] of Object.entries(data).slice(0, 5)) {
+    if (key !== "type") chips.push(debugChip(key, value));
+  }
+  return { label: trackerType, chips };
+}
+
+function renderDebugPanel(): void {
+  $debugSummary.textContent = `${state.debugEvents.length} events`;
+  if (!$debugPanel.open) return;
+
+  $debugContent.textContent = "";
+  for (const event of state.debugEvents.slice().reverse()) {
+    const summary = summarizeDebugEvent(event);
+    const item = document.createElement("div");
+    item.className = `debug-row debug-row--${summary.label}`;
+
+    const time = document.createElement("span");
+    time.className = "debug-time";
+    time.textContent = new Date(event.at).toLocaleTimeString();
+
+    const label = document.createElement("span");
+    label.className = "debug-label";
+    label.textContent = summary.label;
+
+    item.append(time, label, ...summary.chips);
+
+    $debugContent.appendChild(item);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Diagnostics
 // ---------------------------------------------------------------------------
@@ -586,6 +716,8 @@ function handleWorkerMessage(msg: WorkerOutbound): void {
       text: msg.text, confidence: msg.confidence,
     });
     handleRawTranscript(msg);
+  } else if (msg.type === "debug") {
+    handleDebugMessage(msg);
   }
 }
 
@@ -693,8 +825,11 @@ document.addEventListener("DOMContentLoaded", () => {
     $loadingDetail.textContent = `Worker error: ${e.message || "unknown"}`;
   };
 
+  $debugPanel.addEventListener("toggle", syncDebugEnabled);
+
   // Initialize worker (loads model, vocab, quranDB)
   worker.postMessage({ type: "init" });
+  syncDebugEnabled();
 
   // Button handlers
   $btnStart.addEventListener("click", async () => {
@@ -705,6 +840,7 @@ document.addEventListener("DOMContentLoaded", () => {
     state.hasFirstMatch = false;
     state.groups = [];
     state.diagnosticEvents = [];
+    state.debugEvents = [];
     state.recentVerseMatches = [];
     state.finalSequence = [];
     $verses.innerHTML = "";
@@ -713,6 +849,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $candidateStatus.textContent = "";
     $candidateStatus.hidden = true;
     $candidateStatus.classList.remove("candidate-status--stable");
+    renderDebugPanel();
     // Reset tracker in worker
     state.worker?.postMessage({ type: "reset" });
     await startAudio();
@@ -729,6 +866,7 @@ document.addEventListener("DOMContentLoaded", () => {
     state.lastModelPrediction = null;
     state.hasFirstMatch = false;
     state.groups = [];
+    state.debugEvents = [];
     state.finalSequence = [];
     $verses.innerHTML = "";
     $rawTranscript.textContent = "";
@@ -736,6 +874,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $candidateStatus.textContent = "";
     $candidateStatus.hidden = true;
     $candidateStatus.classList.remove("candidate-status--stable");
+    renderDebugPanel();
     $postRecording.hidden = true;
     $readyState.hidden = false;
   });

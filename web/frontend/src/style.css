@@ -301,6 +301,93 @@ body {
   opacity: 1;
 }
 
+/* ── Debug view ── */
+.debug-panel {
+  margin: 1.25rem auto 0;
+  max-width: 760px;
+  border: 1px solid rgba(44, 36, 22, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--text-light);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.76rem;
+  overflow: hidden;
+}
+
+.debug-panel summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0.9rem;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.debug-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+#debug-summary {
+  color: var(--text-muted);
+}
+
+.debug-content {
+  max-height: 220px;
+  overflow: auto;
+  border-top: 1px solid rgba(44, 36, 22, 0.08);
+  padding: 0.35rem;
+}
+
+.debug-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: max-content;
+  padding: 0.22rem 0.35rem;
+  border-radius: 7px;
+  white-space: nowrap;
+}
+
+.debug-row:nth-child(odd) {
+  background: rgba(250, 248, 243, 0.78);
+}
+
+.debug-time {
+  width: 4.6rem;
+  flex: 0 0 4.6rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.debug-label {
+  width: 4.7rem;
+  flex: 0 0 4.7rem;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.debug-chip {
+  display: inline-flex;
+  max-width: 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0.1rem 0.38rem;
+  border-radius: 999px;
+  background: rgba(44, 36, 22, 0.055);
+  color: var(--text-light);
+}
+
+.debug-chip--wide {
+  max-width: 22rem;
+}
+
+.debug-chip--strong {
+  color: var(--text);
+  background: rgba(184, 152, 106, 0.18);
+}
+
 /* ── Listening indicator ── */
 #listening-indicator {
   position: fixed;

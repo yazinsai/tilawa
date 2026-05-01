@@ -2,7 +2,9 @@
 
 Three test corpora: **v1** (53 samples: user recordings, EveryAyah reference, RetaSy crowdsourced), **v2** (43 samples: RetaSy expanded + EveryAyah multi-verse), and **v3** (256 samples: EveryAyah Alafasy+Husary singles/multis + TLOG-clean crowd-sourced filtered through shipped ONNX + user recordings). v3 exists to reduce the per-sample noise floor: on v1 a one-sample swing is ±1.9pp recall, whereas on v3 the same swing is ±0.4pp.
 
-Metrics: **Recall** = fraction of expected verses found. **Precision** = fraction of emitted verses that were expected. **SeqAcc** = emitted set exactly matches expected set.
+Metrics: **Recall** = fraction of expected verses found. **Precision** = fraction of emitted verses that were expected. **ExactSetAcc** = deduped emitted set exactly matches expected set, order ignored. **OrderedSeqAcc** = deduped emitted sequence exactly equals the expected ordered sequence. Older changelog entries and tables that say "SeqAcc" used the pre-rename set metric, so read them as ExactSetAcc unless a row explicitly says ordered.
+
+Browser streaming reports now separate durable raw `verse_match` commits from silence-time `final_sequence`. Raw commit metrics remain the engineering guardrail for bad visible emissions. Final-sequence metrics measure the product contract after accumulated streaming evidence has had a chance to smooth or repair early hypotheses.
 
 ONNX inference is non-deterministic at **±3–6 samples per run** on v1 — streaming numbers below are medians over 3 runs (except the deferred-emission changelog entry, which was measured at 5 runs).
 
@@ -10,7 +12,7 @@ ONNX inference is non-deterministic at **±3–6 samples per run** on v1 — str
 
 `fastconformer-phoneme v4-tlog` (131 MB quantized ONNX), used in the browser and React Native:
 
-| Mode | Corpus | Recall | Precision | SeqAcc | Correct |
+| Mode | Corpus | Recall | Precision | ExactSetAcc | Correct |
 |---|---|---|---|---|---|
 | **Browser/RN streaming** (300ms chunks, `RecitationTracker`) | v2 | **87.9%** | **68.9%** | **55.8%** | 37/43 |
 | **Browser/RN streaming** | v3 | **89.3%** | **73.4%** | **58.2%** | 223–225/256 |
