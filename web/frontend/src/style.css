@@ -261,6 +261,29 @@ body {
   color: var(--text-muted);
 }
 
+/* ── Provisional streaming candidate ── */
+#candidate-status {
+  width: fit-content;
+  max-width: min(520px, 100%);
+  margin: 1.25rem auto 0;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 152, 106, 0.22);
+  background: rgba(184, 152, 106, 0.08);
+  color: var(--text-light);
+  font-family: var(--font-system);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  text-align: center;
+  animation: fade-in 0.25s ease-out;
+}
+
+#candidate-status.candidate-status--stable {
+  color: var(--text);
+  background: rgba(184, 152, 106, 0.14);
+  border-color: rgba(184, 152, 106, 0.35);
+}
+
 /* ── Raw transcript fallback ── */
 #raw-transcript {
   font-family: var(--font-arabic);

@@ -11,6 +11,34 @@ export interface VerseMatchMessage {
   surrounding_verses: SurroundingVerse[];
 }
 
+export interface VerseCandidate {
+  surah: number;
+  ayah: number;
+  ayah_end?: number | null;
+  confidence: number;
+  rank: number;
+  source: "discovery" | "tracking";
+}
+
+export interface VerseCandidateMessage {
+  type: "verse_candidate";
+  candidates: VerseCandidate[];
+  stable: boolean;
+  final_flush: boolean;
+}
+
+export interface FinalSequenceVerse {
+  surah: number;
+  ayah: number;
+  confidence: number;
+}
+
+export interface FinalSequenceMessage {
+  type: "final_sequence";
+  verses: FinalSequenceVerse[];
+  confidence: number;
+}
+
 export interface WordProgressMessage {
   type: "word_progress";
   surah: number;
@@ -60,6 +88,8 @@ export type WorkerOutbound =
   | { type: "ready" }
   | { type: "error"; message: string }
   | VerseMatchMessage
+  | VerseCandidateMessage
+  | FinalSequenceMessage
   | WordProgressMessage
   | WordCorrectionMessage
   | RawTranscriptMessage;

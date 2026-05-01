@@ -3,7 +3,16 @@ import { scoreCtcSequence, scoreCtcCandidates, chooseLongestStablePrefix } from 
 import { QuranDB, partialRatio, type QuranCandidate } from "./quran-db";
 import { computeCorrection } from "./correction";
 import type { AcousticEvidence } from "./ctc-rescore";
-import type { QuranVerse, WorkerOutbound, SurroundingVerse, VerseMatchMessage } from "./types";
+import type {
+  FinalSequenceMessage,
+  FinalSequenceVerse,
+  QuranVerse,
+  VerseCandidate,
+  VerseCandidateMessage,
+  VerseMatchMessage,
+  WorkerOutbound,
+  SurroundingVerse,
+} from "./types";
 import {
   SAMPLE_RATE,
   TRIGGER_SAMPLES,
@@ -87,6 +96,10 @@ interface RankedCandidate {
 interface TrackingPrefix {
   wordIndex: number;
   ids: number[];
+}
+
+interface HypothesisCycle {
+  candidates: VerseCandidate[];
 }
 
 export type TrackerDiagnosticEvent =
@@ -257,6 +270,141 @@ function refKey(surah: number, ayah: number, ayahEnd?: number | null): string {
     : `${surah}:${ayah}`;
 }
 
+function expandCandidate(candidate: VerseCandidate): FinalSequenceVerse[] {
+  const end = candidate.ayah_end && candidate.ayah_end > candidate.ayah
+    ? candidate.ayah_end
+    : candidate.ayah;
+  const verses: FinalSequenceVerse[] = [];
+  for (let ayah = candidate.ayah; ayah <= end; ayah++) {
+    verses.push({
+      surah: candidate.surah,
+      ayah,
+      confidence: candidate.confidence,
+    });
+  }
+  return verses;
+}
+
+function isSameRef(a: FinalSequenceVerse, b: FinalSequenceVerse): boolean {
+  return a.surah === b.surah && a.ayah === b.ayah;
+}
+
+class StreamingHypothesis {
+  private cycles: HypothesisCycle[] = [];
+  private committed: FinalSequenceVerse[] = [];
+
+  observeCandidates(message: VerseCandidateMessage): void {
+    if (message.candidates.length === 0) return;
+    this.cycles.push({ candidates: message.candidates.slice(0, 5) });
+    if (this.cycles.length > 80) {
+      this.cycles.shift();
+    }
+  }
+
+  observeCommit(message: VerseMatchMessage): void {
+    const verse = {
+      surah: message.surah,
+      ayah: message.ayah,
+      confidence: message.confidence,
+    };
+    if (!this.committed.some((entry) => isSameRef(entry, verse))) {
+      this.committed.push(verse);
+    }
+  }
+
+  finalize(): FinalSequenceMessage | null {
+    const path = this.bestPath();
+    const verses = path.length > 0 ? path : this.committed;
+    if (verses.length === 0) return null;
+
+    const deduped: FinalSequenceVerse[] = [];
+    for (const verse of verses) {
+      if (!deduped.some((entry) => isSameRef(entry, verse))) {
+        deduped.push(verse);
+      }
+    }
+
+    const confidence =
+      deduped.reduce((sum, verse) => sum + verse.confidence, 0) / deduped.length;
+    return {
+      type: "final_sequence",
+      verses: deduped,
+      confidence: Math.round(confidence * 100) / 100,
+    };
+  }
+
+  reset(): void {
+    this.cycles = [];
+    this.committed = [];
+  }
+
+  private bestPath(): FinalSequenceVerse[] {
+    if (this.cycles.length === 0) return [];
+
+    type State = {
+      candidate: VerseCandidate;
+      score: number;
+      prev: number;
+      verses: FinalSequenceVerse[];
+    };
+
+    let previous: State[] = [];
+    for (const cycle of this.cycles) {
+      const current: State[] = [];
+      for (const candidate of cycle.candidates) {
+        const verses = expandCandidate(candidate);
+        if (previous.length === 0) {
+          current.push({
+            candidate,
+            score: candidate.confidence,
+            prev: -1,
+            verses,
+          });
+          continue;
+        }
+
+        let bestPrev = 0;
+        let bestScore = Number.NEGATIVE_INFINITY;
+        for (let i = 0; i < previous.length; i++) {
+          const score = previous[i].score + candidate.confidence + transitionScore(
+            previous[i].candidate,
+            candidate,
+          );
+          if (score > bestScore) {
+            bestScore = score;
+            bestPrev = i;
+          }
+        }
+        current.push({
+          candidate,
+          score: bestScore,
+          prev: bestPrev,
+          verses: previous[bestPrev].verses.concat(verses),
+        });
+      }
+
+      previous = current;
+    }
+
+    const best = previous.reduce((a, b) => (b.score > a.score ? b : a));
+    return best.verses;
+  }
+}
+
+function transitionScore(prev: VerseCandidate, next: VerseCandidate): number {
+  if (prev.surah !== next.surah) {
+    return next.confidence >= 0.85 ? -0.35 : -1.25;
+  }
+
+  const prevEnd = prev.ayah_end && prev.ayah_end > prev.ayah ? prev.ayah_end : prev.ayah;
+  const delta = next.ayah - prevEnd;
+  if (delta === 0) return 0.15;
+  if (delta === 1) return 0.35;
+  if (delta > 1 && delta <= 3) return -0.15 * delta;
+  if (delta < 0) return -1.0;
+  return -0.65;
+}
+
 export class RecitationTracker {
   private utteranceAudio = new Float32Array(0);
   private newAudioCount = 0;
@@ -299,6 +447,7 @@ export class RecitationTracker {
   } | null = null;
   private totalSamplesFed = 0;
   private samplesAtAdvance = 0;
+  private hypothesis = new StreamingHypothesis();
 
   constructor(
     private db: QuranDB,
@@ -340,7 +489,19 @@ export class RecitationTracker {
       messages.push(...(await this._handleDiscovery(finalFlush)));
     }
 
+    for (const message of messages) {
+      if (message.type === "verse_candidate") {
+        this.hypothesis.observeCandidates(message);
+      } else if (message.type === "verse_match") {
+        this.hypothesis.observeCommit(message);
+      }
+    }
+
     if (finalFlush) {
+      const finalSequence = this.hypothesis.finalize();
+      if (finalSequence) {
+        messages.push(finalSequence);
+      }
       this.didFinalFlush = true;
       this._emitDiagnostic({
         type: "flush",
@@ -827,6 +988,16 @@ export class RecitationTracker {
         (isContinuation ? ACOUSTIC_CONTINUATION_MARGIN : ACOUSTIC_CLEAR_MARGIN);
       const repeatedLeader =
         (this.pendingLeader?.count ?? 0) >= DISCOVERY_REPEAT_CYCLES;
+      const candidateMessage = this._candidateMessage(
+        effectiveMatch,
+        effectiveScore,
+        ranked,
+        repeatedLeader || finalFlush,
+        finalFlush,
+      );
+      if (candidateMessage) {
+        messages.push(candidateMessage);
+      }
 
       // Anti-cascade: shortly after a commit, require higher score for
       // non-continuation jumps to prevent false positives
@@ -1002,6 +1173,65 @@ export class RecitationTracker {
 
     this.lastRawPhonemes = result.rawPhonemes;
     return messages;
+  }
+
+  private _candidateMessage(
+    effectiveMatch: {
+      surah: number;
+      ayah: number;
+      ayah_end?: number | null;
+    } | null,
+    effectiveScore: number,
+    ranked: RankedCandidate[],
+    stable: boolean,
+    finalFlush: boolean,
+  ): VerseCandidateMessage | null {
+    const candidates: VerseCandidate[] = [];
+    const seen = new Set<string>();
+    const addCandidate = (
+      surah: number,
+      ayah: number,
+      ayahEnd: number | null | undefined,
+      confidence: number,
+    ) => {
+      const key = refKey(surah, ayah, ayahEnd);
+      if (seen.has(key)) return;
+      seen.add(key);
+      candidates.push({
+        surah,
+        ayah,
+        ayah_end: ayahEnd ?? null,
+        confidence: Math.round(Math.max(0, Math.min(1, confidence)) * 100) / 100,
+        rank: candidates.length + 1,
+        source: "discovery",
+      });
+    };
+
+    if (effectiveMatch) {
+      addCandidate(
+        effectiveMatch.surah,
+        effectiveMatch.ayah,
+        effectiveMatch.ayah_end,
+        effectiveScore,
+      );
+    }
+
+    for (const entry of ranked.slice(0, 4)) {
+      addCandidate(
+        entry.candidate.surah,
+        entry.candidate.ayah,
+        entry.candidate.ayah_end,
+        entry.fusionScore,
+      );
+    }
+
+    if (candidates.length === 0) return null;
+    return {
+      type: "verse_candidate",
+      candidates,
+      stable,
+      final_flush: finalFlush,
+    };
   }
 
   private _resolveTrackingAcousticWord(result: TranscribeResult): number {
@@ -1229,6 +1459,7 @@ export class RecitationTracker {
     this.didFinalFlush = false;
     this.pendingLeader = null;
     this.lastRawPhonemes = null;
+    this.hypothesis.reset();
   }
 
   private _isContinuation(surah: number, ayah: number): boolean {
