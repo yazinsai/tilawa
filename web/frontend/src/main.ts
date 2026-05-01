@@ -6,6 +6,8 @@ import { initSurahDropdown, openReportDialog } from "./report-dialog";
 
 import type {
   VerseMatchMessage,
+  VerseCandidateMessage,
+  FinalSequenceMessage,
   RawTranscriptMessage,
   WordProgressMessage,
   WordCorrectionMessage,
@@ -64,6 +66,7 @@ const state = {
   diagnosticEvents: [] as DiagnosticEvent[],
   lastDiagnosticSentAt: 0,
   recentVerseMatches: [] as { surah: number; ayah: number; timestamp: number }[],
+  finalSequence: [] as { surah: number; ayah: number; confidence: number }[],
 };
 
 // ---------------------------------------------------------------------------
@@ -85,6 +88,7 @@ const $btnStart = document.getElementById("btn-start")!;
 const $btnStop = document.getElementById("btn-stop")!;
 const $btnReport = document.getElementById("btn-report")!;
 const $btnRestart = document.getElementById("btn-restart")!;
+const $candidateStatus = document.getElementById("candidate-status")!;
 
 // ---------------------------------------------------------------------------
 // Arabic numeral converter
@@ -273,6 +277,7 @@ function scrollToActiveVerse(): void {
 async function handleVerseMatch(msg: VerseMatchMessage): Promise<void> {
   $rawTranscript.textContent = "";
   $rawTranscript.classList.remove("visible");
+  $candidateStatus.hidden = true;
 
   state.lastModelPrediction = { surah: msg.surah, ayah: msg.ayah, confidence: msg.confidence };
 
@@ -382,6 +387,44 @@ function handleWordCorrection(msg: WordCorrectionMessage): void {
 function handleRawTranscript(msg: RawTranscriptMessage): void {
   $rawTranscript.textContent = msg.text;
   $rawTranscript.classList.add("visible");
+}
+
+async function handleVerseCandidate(msg: VerseCandidateMessage): Promise<void> {
+  const best = msg.candidates[0];
+  if (!best || state.hasFirstMatch) {
+    return;
+  }
+
+  const surah = await fetchSurah(best.surah);
+  const range =
+    best.ayah_end && best.ayah_end > best.ayah
+      ? `${best.ayah}-${best.ayah_end}`
+      : String(best.ayah);
+  const label = msg.stable ? "Likely" : "Listening near";
+
+  $candidateStatus.textContent =
+    `${label}: ${surah.surah_name_en} ${range} (${Math.round(best.confidence * 100)}%)`;
+  $candidateStatus.classList.toggle("candidate-status--stable", msg.stable);
+  $candidateStatus.hidden = false;
+  $listeningStatus.hidden = true;
+}
+
+async function handleFinalSequence(msg: FinalSequenceMessage): Promise<void> {
+  state.finalSequence = msg.verses;
+  if (!msg.verses.length) return;
+
+  const first = msg.verses[0];
+  const last = msg.verses[msg.verses.length - 1];
+  const surah = await fetchSurah(first.surah);
+  const range =
+    first.surah === last.surah && first.ayah !== last.ayah
+      ? `${first.ayah}-${last.ayah}`
+      : String(first.ayah);
+
+  $candidateStatus.textContent =
+    `Final from streaming evidence: ${surah.surah_name_en} ${range} (${Math.round(msg.confidence * 100)}%)`;
+  $candidateStatus.classList.add("candidate-status--stable");
+  $candidateStatus.hidden = false;
 }
 
 // ---------------------------------------------------------------------------
@@ -517,6 +560,19 @@ function handleWorkerMessage(msg: WorkerOutbound): void {
     });
     checkAnomalyAndSend(msg);
     handleVerseMatch(msg);
+  } else if (msg.type === "verse_candidate") {
+    pushDiagnosticEvent("verse_candidate", {
+      best: msg.candidates[0] ? `${msg.candidates[0].surah}:${msg.candidates[0].ayah}` : null,
+      confidence: msg.candidates[0]?.confidence ?? 0,
+      stable: msg.stable,
+    });
+    handleVerseCandidate(msg);
+  } else if (msg.type === "final_sequence") {
+    pushDiagnosticEvent("final_sequence", {
+      verses: msg.verses.map((v) => `${v.surah}:${v.ayah}`),
+      confidence: msg.confidence,
+    });
+    handleFinalSequence(msg);
   } else if (msg.type === "word_progress") {
     pushDiagnosticEvent("word_progress", {
       surah: msg.surah, ayah: msg.ayah,
@@ -650,9 +706,13 @@ document.addEventListener("DOMContentLoaded", () => {
     state.groups = [];
     state.diagnosticEvents = [];
     state.recentVerseMatches = [];
+    state.finalSequence = [];
     $verses.innerHTML = "";
     $rawTranscript.textContent = "";
     $rawTranscript.classList.remove("visible");
+    $candidateStatus.textContent = "";
+    $candidateStatus.hidden = true;
+    $candidateStatus.classList.remove("candidate-status--stable");
     // Reset tracker in worker
     state.worker?.postMessage({ type: "reset" });
     await startAudio();
@@ -669,9 +729,13 @@ document.addEventListener("DOMContentLoaded", () => {
     state.lastModelPrediction = null;
     state.hasFirstMatch = false;
     state.groups = [];
+    state.finalSequence = [];
     $verses.innerHTML = "";
     $rawTranscript.textContent = "";
     $rawTranscript.classList.remove("visible");
+    $candidateStatus.textContent = "";
+    $candidateStatus.hidden = true;
+    $candidateStatus.classList.remove("candidate-status--stable");
     $postRecording.hidden = true;
     $readyState.hidden = false;
   });
