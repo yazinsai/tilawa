@@ -131,6 +131,8 @@ interface Sample {
   category: string;
   source: string;
   expected_verses: { surah: number; ayah: number }[];
+  also_accept?: { surah: number; ayah: number }[][];
+  ignore_prefix_refs?: { surah: number; ayah: number }[];
 }
 
 interface SampleRunResult {
@@ -186,6 +188,70 @@ function median(values: number[]): number {
     : sorted[mid];
 }
 
+function refKey(ref: { surah: number; ayah: number }): string {
+  return `${ref.surah}:${ref.ayah}`;
+}
+
+function stripIgnoredPrefixRefs(sample: Sample, discoveredVerses: string[]): string[] {
+  const ignored = new Set((sample.ignore_prefix_refs ?? []).map(refKey));
+  if (ignored.size === 0) return discoveredVerses;
+
+  let firstKept = 0;
+  while (firstKept < discoveredVerses.length && ignored.has(discoveredVerses[firstKept])) {
+    firstKept++;
+  }
+  return discoveredVerses.slice(firstKept);
+}
+
+function scoreAgainstExpected(
+  expectedVerses: string[],
+  discoveredVerses: string[],
+): Pick<SampleRunResult, "passed" | "exactPassed" | "recall" | "precision" | "seqAcc"> {
+  const expectedSet = new Set(expectedVerses);
+  const discoveredSet = new Set(discoveredVerses);
+
+  const matched = [...expectedSet].filter((v) => discoveredSet.has(v)).length;
+  const recall = expectedSet.size > 0 ? matched / expectedSet.size : 1.0;
+  const precision = discoveredSet.size > 0 ? matched / discoveredSet.size : 1.0;
+  const seqAcc =
+    expectedSet.size === discoveredSet.size &&
+    [...expectedSet].every((v) => discoveredSet.has(v))
+      ? 1.0
+      : 0.0;
+
+  return {
+    passed: [...expectedSet].every((v) => discoveredSet.has(v)),
+    exactPassed: seqAcc === 1.0,
+    recall,
+    precision,
+    seqAcc,
+  };
+}
+
+function scoreSample(sample: Sample, discoveredVerses: string[]): SampleRunResult {
+  const scoredDiscoveredVerses = stripIgnoredPrefixRefs(sample, discoveredVerses);
+  const expectedOptions = [
+    sample.expected_verses.map(refKey),
+    ...(sample.also_accept ?? []).map((accepted) => accepted.map(refKey)),
+  ];
+
+  const best = expectedOptions
+    .map((expected) => scoreAgainstExpected(expected, scoredDiscoveredVerses))
+    .sort(
+      (a, b) =>
+        Number(b.exactPassed) - Number(a.exactPassed) ||
+        Number(b.passed) - Number(a.passed) ||
+        b.recall - a.recall ||
+        b.precision - a.precision ||
+        b.seqAcc - a.seqAcc,
+    )[0];
+
+  return {
+    ...best,
+    discoveredVerses,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Run one sample through streaming validation
 // ---------------------------------------------------------------------------
@@ -226,24 +292,7 @@ async function runSample(
     }
   }
 
-  const expectedSet = new Set(
-    sample.expected_verses.map((v) => `${v.surah}:${v.ayah}`),
-  );
-  const discoveredSet = new Set(discoveredVerses);
-
-  const matched = [...expectedSet].filter((v) => discoveredSet.has(v)).length;
-  const recall = expectedSet.size > 0 ? matched / expectedSet.size : 1.0;
-  const precision = discoveredSet.size > 0 ? matched / discoveredSet.size : 1.0;
-  const seqAcc =
-    expectedSet.size === discoveredSet.size &&
-    [...expectedSet].every((v) => discoveredSet.has(v))
-      ? 1.0
-      : 0.0;
-
-  const passed = [...expectedSet].every((v) => discoveredSet.has(v));
-  const exactPassed = seqAcc === 1.0;
-
-  return { passed, exactPassed, discoveredVerses, recall, precision, seqAcc };
+  return scoreSample(sample, discoveredVerses);
 }
 
 // ---------------------------------------------------------------------------

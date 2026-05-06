@@ -1,6 +1,6 @@
 # Benchmark results
 
-Three test corpora: **v1** (53 samples: user recordings, EveryAyah reference, RetaSy crowdsourced), **v2** (43 samples: RetaSy expanded + EveryAyah multi-verse), and **v3** (256 samples: EveryAyah Alafasy+Husary singles/multis + TLOG-clean crowd-sourced filtered through shipped ONNX + user recordings). v3 exists to reduce the per-sample noise floor: on v1 a one-sample swing is ±1.9pp recall, whereas on v3 the same swing is ±0.4pp.
+Three test corpora: **v1** (53 samples: user recordings, EveryAyah reference, RetaSy crowdsourced), **v2** (43 samples: RetaSy expanded + EveryAyah multi-verse), and **v3** (249 samples after corpus cleanup: EveryAyah Alafasy+Husary singles/multis + TLOG-clean crowd-sourced filtered through shipped ONNX + user recordings). v3 exists to reduce the per-sample noise floor: on v1 a one-sample swing is ±1.9pp recall, whereas on v3 the same swing is ±0.4pp.
 
 Metrics: **Recall** = fraction of expected verses found. **Precision** = fraction of emitted verses that were expected. **SeqAcc** = emitted set exactly matches expected set.
 
@@ -18,6 +18,19 @@ ONNX inference is non-deterministic at **±3–6 samples per run** on v1. Older 
 *Headline figures above are **3-run medians** after the decode-stability gate (2026-04-25). Single-run probe on the **primary-alignment completion gate** branch (2026-04-29): v3 **89.4% / 72.1% / 54.7%** (222/256 recall-pass); v2 **85.6% / 66.4% / 51.2%** (36/43) — raw JSON `web/frontend/test/primary-completion-{v2,v3}-stability.json`. Not adopted as headline until repeated; SeqAcc **below** prior median on this snapshot (likely mixed variance + incomplete fix — extras still come from discovery).*
 | Non-streaming (full-file, single `matchVerse()`) | v1 | 84.1% | 84.9% | 81.1% | 43/53 |
 | Non-streaming (full-file, single `matchVerse()`) | v2 | 78.1% | 79.1% | 74.4% | 32/43 |
+
+## Corpus notes
+
+**2026-05-06 — v3 TLOG cleanup** (files: `benchmark/test_corpus_v3/manifest.json`, `web/frontend/test/stability-report.ts`, `benchmark/runner.py`)
+Manual audit of the promoted `same-model-final-pass` failures found several TLOG rows where the audio, not the model, was wrong: very low volume, leading basmala, mislabeled TLOG filenames, ambiguous copied endings, and partial clips that start mid-verse.
+
+Changes:
+- Removed seven bad TLOG rows and audio files: five low-volume clips (`tlog_l004_010_107`, `tlog_l006_010_108`, `tlog_m048_010_046`, `tlog_m047_010_046`, `tlog_l011_010_012`) and two partial-start clips (`tlog_l010_010_012`, `tlog_l018_010_018`). v3 is now **249 samples**.
+- Relabeled obvious filename/reference mismatches: `tlog_m008_107_001` is `106:4,107:1`; `tlog_m043_010_043` and `tlog_m044_010_043` are `10:42`.
+- Added `ignore_prefix_refs` for leading basmala clips (`1:1` before the target) and taught the stability/batch scorers to strip those refs only when they appear as the emitted prefix.
+- Added `also_accept` support in `stability-report.ts` to match the existing batch runner behavior, but v3 does not currently use an alternate for the `tlog_m059_010_053` ambiguous-ending clip.
+
+Re-scoring the 2026-05-05 promoted `same-model-final-pass` artifact under the cleaned manifest/rules moves exact-set accuracy from **197/256 = 76.95%** to **201/249 = 80.72%**. Historical rows below still refer to the original 256-sample corpus unless explicitly rerun.
 
 ### Streaming changelog
 

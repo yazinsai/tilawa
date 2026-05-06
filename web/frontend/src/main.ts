@@ -541,6 +541,7 @@ async function startAudio(): Promise<void> {
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: {
         channelCount: 1,
+        autoGainControl: true,
         echoCancellation: true,
         noiseSuppression: true,
       },

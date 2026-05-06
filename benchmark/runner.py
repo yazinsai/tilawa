@@ -109,6 +109,20 @@ def score_sequence(expected: list[dict], predicted: list[dict]) -> dict:
     return {"recall": recall, "precision": precision, "sequence_accuracy": seq_acc}
 
 
+def strip_ignored_prefix_refs(sample: dict, emissions: list[dict]) -> list[dict]:
+    ignored = {(r["surah"], r["ayah"]) for r in sample.get("ignore_prefix_refs", [])}
+    if not ignored:
+        return emissions
+
+    first_kept = 0
+    while first_kept < len(emissions):
+        emission = emissions[first_kept]
+        if (emission["surah"], emission["ayah"]) not in ignored:
+            break
+        first_kept += 1
+    return emissions[first_kept:]
+
+
 def discover_experiments(filter_name: str | None = None) -> list[dict]:
     """Return list of {name, run_path, model_name (optional)}."""
     experiments = []
@@ -281,9 +295,10 @@ def run_experiment(
             emissions = []
             elapsed = 0.0
 
-        scores = score_sequence(expected, emissions)
+        scored_emissions = strip_ignored_prefix_refs(sample, emissions)
+        scores = score_sequence(expected, scored_emissions)
         for alt_expected in sample.get("also_accept", []):
-            alt_scores = score_sequence(alt_expected, emissions)
+            alt_scores = score_sequence(alt_expected, scored_emissions)
             if alt_scores["sequence_accuracy"] > scores["sequence_accuracy"]:
                 scores = alt_scores
                 expected = alt_expected

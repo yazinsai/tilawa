@@ -3181,7 +3181,14 @@
           "surah": 100,
           "ayah": 1
         }
-      ]
+      ],
+      "ignore_prefix_refs": [
+        {
+          "surah": 1,
+          "ayah": 1
+        }
+      ],
+      "label_note": "Audio contains a leading basmala before the target verse; exact scoring should ignore that prefix if emitted."
     },
     {
       "id": "tlog_m001_100_009",
@@ -3266,7 +3273,14 @@
           "surah": 106,
           "ayah": 1
         }
-      ]
+      ],
+      "ignore_prefix_refs": [
+        {
+          "surah": 1,
+          "ayah": 1
+        }
+      ],
+      "label_note": "Audio contains a leading basmala before the target verse; exact scoring should ignore that prefix if emitted."
     },
     {
       "id": "tlog_m006_106_004",
@@ -3305,8 +3319,8 @@
     {
       "id": "tlog_m008_107_001",
       "file": "tlog_m008_107_001.wav",
-      "surah": 107,
-      "ayah": 1,
+      "surah": 106,
+      "ayah": 4,
       "ayah_end": null,
       "category": "medium",
       "source": "tlog",
@@ -3314,10 +3328,15 @@
       "duration_s": 11.86,
       "expected_verses": [
         {
+          "surah": 106,
+          "ayah": 4
+        },
+        {
           "surah": 107,
           "ayah": 1
         }
-      ]
+      ],
+      "label_note": "Corrected after manual audio audit; original TLOG filename/ref did not match the spoken passage."
     },
     {
       "id": "tlog_m009_108_001",
@@ -3334,7 +3353,14 @@
           "surah": 108,
           "ayah": 1
         }
-      ]
+      ],
+      "ignore_prefix_refs": [
+        {
+          "surah": 1,
+          "ayah": 1
+        }
+      ],
+      "label_note": "Audio contains a leading basmala before the target verse; exact scoring should ignore that prefix if emitted."
     },
     {
       "id": "tlog_m010_109_001",
@@ -3901,7 +3927,7 @@
       "id": "tlog_m043_010_043",
       "file": "tlog_m043_010_043.wav",
       "surah": 10,
-      "ayah": 43,
+      "ayah": 42,
       "ayah_end": null,
       "category": "medium",
       "source": "tlog",
@@ -3910,15 +3936,16 @@
       "expected_verses": [
         {
           "surah": 10,
-          "ayah": 43
+          "ayah": 42
         }
-      ]
+      ],
+      "label_note": "Corrected after manual audio audit; original TLOG filename/ref did not match the spoken passage."
     },
     {
       "id": "tlog_m044_010_043",
       "file": "tlog_m044_010_043.wav",
       "surah": 10,
-      "ayah": 43,
+      "ayah": 42,
       "ayah_end": null,
       "category": "medium",
       "source": "tlog",
@@ -3927,9 +3954,10 @@
       "expected_verses": [
         {
           "surah": 10,
-          "ayah": 43
+          "ayah": 42
         }
-      ]
+      ],
+      "label_note": "Corrected after manual audio audit; original TLOG filename/ref did not match the spoken passage."
     },
     {
       "id": "tlog_m045_010_044",
@@ -3962,40 +3990,6 @@
         {
           "surah": 10,
           "ayah": 44
-        }
-      ]
-    },
-    {
-      "id": "tlog_m047_010_046",
-      "file": "tlog_m047_010_046.wav",
-      "surah": 10,
-      "ayah": 46,
-      "ayah_end": null,
-      "category": "medium",
-      "source": "tlog",
-      "ratio": 0.853,
-      "duration_s": 19.03,
-      "expected_verses": [
-        {
-          "surah": 10,
-          "ayah": 46
-        }
-      ]
-    },
-    {
-      "id": "tlog_m048_010_046",
-      "file": "tlog_m048_010_046.wav",
-      "surah": 10,
-      "ayah": 46,
-      "ayah_end": null,
-      "category": "medium",
-      "source": "tlog",
-      "ratio": 0.759,
-      "duration_s": 9.22,
-      "expected_verses": [
-        {
-          "surah": 10,
-          "ayah": 46
         }
       ]
     },
@@ -4255,23 +4249,6 @@
       ]
     },
     {
-      "id": "tlog_l004_010_107",
-      "file": "tlog_l004_010_107.wav",
-      "surah": 10,
-      "ayah": 107,
-      "ayah_end": null,
-      "category": "long",
-      "source": "tlog",
-      "ratio": 0.951,
-      "duration_s": 19.41,
-      "expected_verses": [
-        {
-          "surah": 10,
-          "ayah": 107
-        }
-      ]
-    },
-    {
       "id": "tlog_l005_010_107",
       "file": "tlog_l005_010_107.wav",
       "surah": 10,
@@ -4285,23 +4262,6 @@
         {
           "surah": 10,
           "ayah": 107
-        }
-      ]
-    },
-    {
-      "id": "tlog_l006_010_108",
-      "file": "tlog_l006_010_108.wav",
-      "surah": 10,
-      "ayah": 108,
-      "ayah_end": null,
-      "category": "long",
-      "source": "tlog",
-      "ratio": 0.829,
-      "duration_s": 19.5,
-      "expected_verses": [
-        {
-          "surah": 10,
-          "ayah": 108
         }
       ]
     },
@@ -4353,40 +4313,6 @@
         {
           "surah": 10,
           "ayah": 11
-        }
-      ]
-    },
-    {
-      "id": "tlog_l010_010_012",
-      "file": "tlog_l010_010_012.wav",
-      "surah": 10,
-      "ayah": 12,
-      "ayah_end": null,
-      "category": "long",
-      "source": "tlog",
-      "ratio": 0.949,
-      "duration_s": 25.6,
-      "expected_verses": [
-        {
-          "surah": 10,
-          "ayah": 12
-        }
-      ]
-    },
-    {
-      "id": "tlog_l011_010_012",
-      "file": "tlog_l011_010_012.wav",
-      "surah": 10,
-      "ayah": 12,
-      "ayah_end": null,
-      "category": "long",
-      "source": "tlog",
-      "ratio": 0.814,
-      "duration_s": 26.84,
-      "expected_verses": [
-        {
-          "surah": 10,
-          "ayah": 12
         }
       ]
     },
@@ -4489,23 +4415,6 @@
         {
           "surah": 10,
           "ayah": 16
-        }
-      ]
-    },
-    {
-      "id": "tlog_l018_010_018",
-      "file": "tlog_l018_010_018.wav",
-      "surah": 10,
-      "ayah": 18,
-      "ayah_end": null,
-      "category": "long",
-      "source": "tlog",
-      "ratio": 0.937,
-      "duration_s": 19.46,
-      "expected_verses": [
-        {
-          "surah": 10,
-          "ayah": 18
         }
       ]
     },
