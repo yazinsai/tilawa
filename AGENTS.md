@@ -167,6 +167,16 @@ New experiments MUST be developed in a worktree (see "Git Worktrees" below). Kee
 
 **ONNX streaming has ±3–6 sample variance per run on v1.** Run 3 times (max) and report the median. A single-run improvement inside the variance envelope is not an improvement.
 
+**Autonomous promotion preflight is mandatory before full corpus.** Before a Cursor Cloud/autonomous run spends Tier-2 `--limit 0` on `test_corpus_v3`, read the latest champion with `python -m lab_tools.experiment_ledger champion`, open its run record, and name which subsystem moved the needle versus the runner-up. Target that subsystem unless a cheap preflight proves another path is better.
+
+- Run candidate and current champion on the same fixed Tier-2 slice first (`--limit 32` unless a task names another repo-standard slice).
+- Promotion requires strictly greater candidate accuracy and strictly greater composite objective on that preflight. Tie = fail. "No regression" is not success; record `champion_objective_not_improved`.
+- If preflight does not strictly beat the champion, do not run full Tier-2 `--limit 0` for promotion. Record an honest rejection in run/queue/ledger artifacts, revert candidate code unless explicitly kept for human review, and keep any PR state-only.
+- If the champion is a joint ASR + matcher stack, do not keep probing matcher-only reranks/blends/shortlist tweaks on the same decode unless preflight already shows a strict win. Prefer decode/search changes with CPU/time caps, hypothesis merge/rescore or two-pass procedures, or true ASR-side work when Modal is allowed.
+- If a shard pulls a `joint_model_runtime` task while queued reference-port/`model_only` ASR tasks are the real dependency and notes say the plateau is smoke/runtime, record `blocked: wrong task ordering` instead of shipping another matcher-only probe.
+- On failed probes, append compact negative memory under `artifacts/autonomy_failures/` or ledger metadata with `autopilot_key` or `experiment_family`, `change_class`, `tier2_delta_correct`, and `reason` so later runs avoid the same dead pattern.
+- Scoring intuition: with current objective weights, roughly +1 correct / 256 is about +0.35pp accuracy; promotion needs a visible bump toward >=230/256, not repeated 229/256 ties.
+
 - **Browser/RN streaming (shipped pipeline):**
   ```bash
   cd web/frontend
@@ -228,6 +238,7 @@ Merge is blocked until every box is checked:
 
 - [ ] Developed in a worktree under `.worktrees/<name>/`
 - [ ] `run.py` exports the required interface (if a new experiment) and is in `EXPERIMENT_REGISTRY`
+- [ ] For autonomous promotion runs, champion forensics were read and same-slice Tier-2 preflight beat the champion strictly; ties were rejected without full-corpus spend
 - [ ] Measured over 3 runs; median reported, not cherry-picked best
 - [ ] v2 blind check run if the shipped pipeline changed; v2 did not regress
 - [ ] Unit tests pass (`npx vitest run` or `pytest`) with deterministic coverage of the change
@@ -244,6 +255,8 @@ Use **Modal** (modal.com) for GPU training jobs. Training scripts live in `scrip
 ```bash
 modal run --detach scripts/train_xxx_modal.py
 ```
+
+Cursor Cloud/autonomous runs may use Modal for `model_only` and ASR-side `joint_model_runtime` tasks when `LAB_AUTONOMY_ALLOW_MODAL=auto` has credentials available or when it is explicitly `true`. Record the Modal app/run ID, volume/checkpoint path, and follow-up eval plan in artifacts; never commit model binaries/checkpoints. If Modal is unavailable, mark ASR/model work blocked rather than substituting another matcher-only tweak.
 
 ### Modal Training Lessons
 
