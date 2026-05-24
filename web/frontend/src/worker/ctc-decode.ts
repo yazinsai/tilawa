@@ -63,25 +63,8 @@ export class CTCDecoder {
     // Raw phonemes: all tokens space-separated
     const rawPhonemes = tokens.join(" ");
 
-    // Joined text: concatenate within words, split on |
-    const words: string[] = [];
-    let currentWord: string[] = [];
-    for (const tok of tokens) {
-      if (tok === "|") {
-        if (currentWord.length > 0) {
-          words.push(currentWord.join(""));
-        }
-        currentWord = [];
-      } else {
-        currentWord.push(tok);
-      }
-    }
-    if (currentWord.length > 0) {
-      words.push(currentWord.join(""));
-    }
-
     return {
-      text: words.join(" "),
+      text: this.tokensToText(tokens),
       rawPhonemes,
       tokenIds: tokens
         .map((token) => this.tokenToId.get(token) ?? -1)
@@ -103,5 +86,32 @@ export class CTCDecoder {
       }
     }
     return ids;
+  }
+
+  tokenIdsToText(tokenIds: readonly number[]): string {
+    const tokens = tokenIds
+      .map((id) => this.vocab.get(id) ?? "")
+      .filter((token) => token && token !== "<blank>");
+    return this.tokensToText(tokens);
+  }
+
+  private tokensToText(tokens: readonly string[]): string {
+    // Joined text: concatenate within words, split on |
+    const words: string[] = [];
+    let currentWord: string[] = [];
+    for (const tok of tokens) {
+      if (tok === "|") {
+        if (currentWord.length > 0) {
+          words.push(currentWord.join(""));
+        }
+        currentWord = [];
+      } else {
+        currentWord.push(tok);
+      }
+    }
+    if (currentWord.length > 0) {
+      words.push(currentWord.join(""));
+    }
+    return words.join(" ");
   }
 }
