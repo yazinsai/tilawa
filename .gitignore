@@ -114,3 +114,6 @@ experiments/embedding-search/audio_corpus/
 experiments/embedding-search/indices/
 experiments/streaming-asr/benchmark_results_*.json
 data/fastconformer-phoneme-v1/model.nemo
+
+offline-tarteel-lab/
+offline-tarteel-sdk/

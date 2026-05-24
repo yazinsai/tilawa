@@ -7,6 +7,7 @@ Usage:
     python -m benchmark.runner --category short           # filter by category
 """
 
+import os
 import sys
 import json
 import time
@@ -50,6 +51,26 @@ EXPERIMENT_REGISTRY = {
 }
 
 NEW_MODELS_PATH = EXPERIMENTS_DIR / "new-models" / "run.py"
+
+
+def _merge_auto_discovered_experiments() -> None:
+    """Append experiments/*/run.py when LAB_AUTO_DISCOVER=1 (no manual registry edit)."""
+    flag = os.environ.get("LAB_AUTO_DISCOVER", "").lower()
+    if flag not in ("1", "true", "yes"):
+        return
+    for child in sorted(EXPERIMENTS_DIR.iterdir()):
+        if not child.is_dir() or child.name.startswith("."):
+            continue
+        run_py = child / "run.py"
+        if not run_py.is_file():
+            continue
+        name = child.name
+        if name not in EXPERIMENT_REGISTRY:
+            EXPERIMENT_REGISTRY[name] = run_py
+            print(f"[lab] auto-discovered experiment: {name}")
+
+
+_merge_auto_discovered_experiments()
 
 
 def _load_module(name: str, file_path: Path):
