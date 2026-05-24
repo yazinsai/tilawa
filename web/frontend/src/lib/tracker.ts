@@ -1,6 +1,6 @@
 import { ratio as levRatio } from "./levenshtein";
 import { scoreCtcSequence, scoreCtcCandidates, chooseLongestStablePrefix } from "./ctc-rescore";
-import { QuranDB, partialRatio, type QuranCandidate } from "./quran-db";
+import { QuranDB, partialRatio, type QuranCandidate, type QuranChampionMatch } from "./quran-db";
 import { computeCorrection } from "./correction";
 import type { AcousticEvidence } from "./ctc-rescore";
 import type {
@@ -70,6 +70,9 @@ export interface TranscribeResult {
   acoustic?: AcousticEvidence;
   /** Verse matches from trie-constrained beam search (if available) */
   beamMatches?: BeamVerseMatch[];
+  /** Final match from the champion joint03 decode/matcher path. */
+  championMatch?: QuranChampionMatch;
+  championTranscript?: string;
 }
 
 type TranscribeFn = (audio: Float32Array) => Promise<TranscribeResult>;
@@ -916,7 +919,8 @@ export class RecitationTracker {
       }
     }
 
-    const match = this.db.matchVerse(
+    const championMatch = result.championMatch ?? null;
+    const match = championMatch ?? this.db.matchVerse(
       text,
       RAW_TRANSCRIPT_THRESHOLD,
       DISCOVERY_MAX_SPAN,
@@ -985,6 +989,7 @@ export class RecitationTracker {
         );
       }
       const shouldOverride =
+        !championMatch &&
         fusionKey !== matchKey &&
         (
           match.score < ACOUSTIC_OVERRIDE_TEXT_THRESHOLD ||
@@ -1025,6 +1030,26 @@ export class RecitationTracker {
         bonus: fusionBest.candidate.bonus,
       };
       effectiveScore = effectiveMatch.score;
+    }
+
+    if (effectiveMatch) {
+      const effectiveKey = refKey(
+        effectiveMatch.surah,
+        effectiveMatch.ayah,
+        effectiveMatch.ayah_end,
+      );
+      const selectedRanked = ranked.find(
+        (entry) =>
+          refKey(
+            entry.candidate.surah,
+            entry.candidate.ayah,
+            entry.candidate.ayah_end,
+          ) === effectiveKey,
+      );
+      if (selectedRanked) {
+        acousticMargin = selectedRanked.acousticMargin;
+        lengthFit = selectedRanked.lengthFit;
+      }
     }
 
     const threshold = this.lastEmittedRef ? VERSE_MATCH_THRESHOLD : FIRST_MATCH_THRESHOLD;

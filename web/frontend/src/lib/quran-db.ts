@@ -24,6 +24,19 @@ export interface QuranCandidate {
   surah_rank?: number;
 }
 
+export interface QuranChampionMatch {
+  surah: number;
+  ayah: number;
+  ayah_end?: number | null;
+  text: string;
+  phonemes_joined: string;
+  score: number;
+  raw_score: number;
+  bonus: number;
+  _prefix_rescue?: boolean;
+  _global_span_rescue?: boolean;
+}
+
 export interface CandidateRetrieval {
   singles: QuranCandidate[];
   spans: QuranCandidate[];
@@ -36,6 +49,32 @@ interface RetrievalOptions {
   singleLimit?: number;
   topSurahs?: number;
   spanLimit?: number;
+}
+
+const JOINT_TOP_K_LEVENSHTEIN = 18;
+const JOINT_TOP_SURAHS = 32;
+const JOINT_MAX_SPAN = 6;
+const JOINT_FRAGMENT_BLEND = 0.82;
+const JOINT_PREFIX_MAX_SPAN = 7;
+const JOINT_PREFIX_MIN_CHARS = 34;
+const JOINT_PREFIX_MIN_SCORE = 0.50;
+const JOINT_PREFIX_MARGIN = -0.02;
+const JOINT_GLOBAL_SPAN_MIN_CHARS = 80;
+const JOINT_GLOBAL_SPAN_MIN_SCORE = 0.54;
+const JOINT_GLOBAL_SPAN_MARGIN = -0.015;
+const JOINT_GLOBAL_SPAN_SHORTLIST = 320;
+const JOINT_OPENING_COLLAPSE_MIN_CHARS = 34;
+const JOINT_OPENING_COLLAPSE_MAX_CHARS = 115;
+const JOINT_OPENING_COLLAPSE_MIN_SCORE = 0.50;
+
+interface GlobalSpanRow {
+  surah: number;
+  ayah: number;
+  ayah_end: number;
+  phonemes: string;
+  phonemesNs: string;
+  bigrams: Set<string>;
+  trigrams: Set<string>;
 }
 
 export function partialRatio(short: string, long: string): number {
@@ -57,6 +96,8 @@ export class QuranDB {
   verses: QuranVerse[];
   private _byRef: Map<string, QuranVerse> = new Map();
   private _bySurah: Map<number, QuranVerse[]> = new Map();
+  private _jointPrefixSpans: QuranChampionMatch[] | null = null;
+  private _jointGlobalSpans: GlobalSpanRow[] | null = null;
 
   constructor(
     data: QuranVerse[],
@@ -325,6 +366,301 @@ export class QuranDB {
     return result;
   }
 
+  matchPhonemeTextJoint03(text: string, topK = JOINT_TOP_K_LEVENSHTEIN): QuranChampionMatch[] {
+    return this._joint02MatchPhonemeText(text, topK);
+  }
+
+  bestJoint03Match(text: string): QuranChampionMatch | null {
+    const top = this._joint02MatchPhonemeText(text, JOINT_TOP_K_LEVENSHTEIN);
+    if (!top.length) return null;
+
+    const best = top[0];
+    const bestScore = best.score;
+    const bestIsLateSpan = best.ayah_end != null && best.ayah > 1;
+    const lowConfidence = bestScore < 0.62;
+    if (!bestIsLateSpan && !lowConfidence) return best;
+
+    const noSpaceLen = text.replace(/ /g, "").length;
+    const prefix = this._jointSurahPrefixCandidates(text);
+    const globalSpan = this._jointGlobalSpanCandidates(text);
+    const candidates = [best]
+      .concat(prefix.filter((p) => p.score >= bestScore + JOINT_PREFIX_MARGIN))
+      .concat(globalSpan.filter((g) => g.score >= bestScore + JOINT_GLOBAL_SPAN_MARGIN));
+    candidates.sort((a, b) => b.score - a.score);
+    const chosen = candidates[0];
+
+    if (
+      noSpaceLen >= JOINT_OPENING_COLLAPSE_MIN_CHARS &&
+      noSpaceLen <= JOINT_OPENING_COLLAPSE_MAX_CHARS &&
+      best.ayah_end != null &&
+      best.ayah > 1
+    ) {
+      const sameSurahPrefix = prefix
+        .filter((p) =>
+          p.surah === best.surah &&
+          p.score >= JOINT_OPENING_COLLAPSE_MIN_SCORE &&
+          (p.ayah_end == null || best.ayah_end == null || p.ayah_end >= best.ayah_end),
+        )
+        .sort((a, b) => b.score - a.score);
+      if (sameSurahPrefix.length > 0) return sameSurahPrefix[0];
+    }
+
+    return chosen;
+  }
+
+  bestJoint03MatchForHypotheses(
+    hypotheses: readonly string[],
+  ): { match: QuranChampionMatch; transcript: string } | null {
+    let best: { match: QuranChampionMatch; transcript: string } | null = null;
+    for (const transcript of hypotheses) {
+      const match = this.bestJoint03Match(transcript);
+      if (!match) continue;
+      if (!best || match.score > best.match.score) {
+        best = { match, transcript };
+      }
+    }
+    return best;
+  }
+
+  private _joint02MatchPhonemeText(
+    phonemeText: string,
+    topK = JOINT_TOP_K_LEVENSHTEIN,
+  ): QuranChampionMatch[] {
+    if (!phonemeText.trim()) return [];
+
+    const noSpaceText = phonemeText.replace(/ /g, "");
+    const scored: [QuranVerse, number, number][] = [];
+    for (const verse of this._jointCandidateVerses(noSpaceText)) {
+      const ref = verse.phonemes_joined;
+      if (!ref) continue;
+
+      let raw = ratio(phonemeText, ref);
+      if (noSpaceText.length <= 10) {
+        raw = Math.max(raw, this._shortQueryBoost(noSpaceText, verse));
+      }
+      const noBsm = verse.phonemes_joined_no_bsm;
+      if (noBsm) {
+        raw = Math.max(raw, ratio(phonemeText, noBsm));
+        if (noSpaceText.length <= 10) {
+          raw = Math.max(raw, this._shortQueryBoost(noSpaceText, verse, true));
+        }
+      }
+      scored.push([verse, raw, raw]);
+    }
+    scored.sort((a, b) => b[2] - a[2]);
+
+    const pass2Surahs: number[] = [];
+    for (const [verse] of scored) {
+      if (!pass2Surahs.includes(verse.surah)) {
+        pass2Surahs.push(verse.surah);
+      }
+      if (pass2Surahs.length >= JOINT_TOP_SURAHS) break;
+    }
+
+    if (noSpaceText.length >= 8) {
+      let resorted = false;
+      for (let i = 0; i < scored.length; i++) {
+        const [verse, raw] = scored[i];
+        const refNs = verse.phonemes_joined_ns ?? "";
+        if (!refNs || noSpaceText.length >= refNs.length * 0.8) continue;
+
+        let frag = fragmentScore(noSpaceText, refNs);
+        const noBsmNs = verse.phonemes_joined_no_bsm_ns;
+        if (noBsmNs) {
+          frag = Math.max(frag, fragmentScore(noSpaceText, noBsmNs));
+        }
+        if (frag > raw) {
+          const boosted = raw + (frag - raw) * JOINT_FRAGMENT_BLEND;
+          scored[i] = [verse, boosted, boosted];
+          resorted = true;
+        }
+      }
+      if (resorted) scored.sort((a, b) => b[2] - a[2]);
+    }
+
+    const spanResults: QuranChampionMatch[] = [];
+    for (const surahNum of pass2Surahs) {
+      const verses = this._bySurah.get(surahNum) ?? [];
+      for (let i = 0; i < verses.length; i++) {
+        for (let span = 2; span <= JOINT_MAX_SPAN; span++) {
+          if (i + span > verses.length) break;
+          const chunk = verses.slice(i, i + span);
+          const spanPhonemes = this._joinedSpanPhonemes(chunk);
+          const score = QuranDB._round4(ratio(phonemeText, spanPhonemes));
+          spanResults.push({
+            surah: surahNum,
+            ayah: chunk[0].ayah,
+            ayah_end: chunk[chunk.length - 1].ayah,
+            text: chunk.map((verse) => verse.text_uthmani).join(" "),
+            phonemes_joined: spanPhonemes,
+            score,
+            raw_score: score,
+            bonus: 0,
+          });
+        }
+      }
+    }
+
+    const singles = scored.slice(0, Math.max(topK, 32)).map(([verse, raw, boosted]) => {
+      const score = QuranDB._round4(boosted);
+      return {
+        surah: verse.surah,
+        ayah: verse.ayah,
+        ayah_end: null,
+        text: verse.text_uthmani,
+        phonemes_joined: verse.phonemes_joined,
+        score,
+        raw_score: QuranDB._round4(raw),
+        bonus: 0,
+      } satisfies QuranChampionMatch;
+    });
+
+    return singles
+      .concat(spanResults)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, topK);
+  }
+
+  private _jointSurahPrefixCandidates(phonemeText: string): QuranChampionMatch[] {
+    if (!phonemeText.trim()) return [];
+    const noSpaceText = phonemeText.replace(/ /g, "");
+    if (noSpaceText.length < JOINT_PREFIX_MIN_CHARS) return [];
+
+    const out: QuranChampionMatch[] = [];
+    for (const row of this._jointPrefixSpanTable()) {
+      const raw = ratio(phonemeText, row.phonemes_joined);
+      const frag = fragmentScore(noSpaceText, row.phonemes_joined.replace(/ /g, ""));
+      const score = Math.max(raw, raw + (frag - raw) * JOINT_FRAGMENT_BLEND);
+      if (score < JOINT_PREFIX_MIN_SCORE) continue;
+      out.push({
+        ...row,
+        score: QuranDB._round4(score),
+        raw_score: QuranDB._round4(raw),
+        bonus: 0,
+        _prefix_rescue: true,
+      });
+    }
+    return out.sort((a, b) => b.score - a.score).slice(0, 12);
+  }
+
+  private _jointGlobalSpanCandidates(phonemeText: string): QuranChampionMatch[] {
+    if (!phonemeText.trim()) return [];
+    const noSpaceText = phonemeText.replace(/ /g, "");
+    if (noSpaceText.length < JOINT_GLOBAL_SPAN_MIN_CHARS) return [];
+
+    const qb = QuranDB._jointNgrams(noSpaceText, 2);
+    const qt = QuranDB._jointNgrams(noSpaceText, 3);
+    const rough: [number, GlobalSpanRow][] = [];
+    for (const row of this._jointGlobalSpanTable()) {
+      const ov =
+        QuranDB._intersectionSize(qb, row.bigrams) +
+        0.48 * QuranDB._intersectionSize(qt, row.trigrams);
+      if (ov > 0) rough.push([ov, row]);
+    }
+    rough.sort((a, b) => b[0] - a[0]);
+
+    const out: QuranChampionMatch[] = [];
+    for (const [, row] of rough.slice(0, JOINT_GLOBAL_SPAN_SHORTLIST)) {
+      const raw = ratio(phonemeText, row.phonemes);
+      const frag = fragmentScore(noSpaceText, row.phonemesNs);
+      const score = Math.max(raw, raw + (frag - raw) * JOINT_FRAGMENT_BLEND);
+      if (score < JOINT_GLOBAL_SPAN_MIN_SCORE) continue;
+      out.push({
+        surah: row.surah,
+        ayah: row.ayah,
+        ayah_end: row.ayah_end,
+        text: this._spanText(row.surah, row.ayah, row.ayah_end),
+        phonemes_joined: row.phonemes,
+        score: QuranDB._round4(score),
+        raw_score: QuranDB._round4(raw),
+        bonus: 0,
+        _global_span_rescue: true,
+      });
+    }
+    return out.sort((a, b) => b.score - a.score).slice(0, 12);
+  }
+
+  private _jointCandidateVerses(noSpaceText: string, maxCandidates = 950): QuranVerse[] {
+    if (noSpaceText.length < 4) return this.verses;
+
+    const qb = QuranDB._jointNgrams(noSpaceText, 2);
+    const qt = QuranDB._jointNgrams(noSpaceText, 3);
+    if (qb.size === 0 && qt.size === 0) return this.verses;
+
+    const scored: [number, number][] = [];
+    for (let i = 0; i < this.verses.length; i++) {
+      const refNs = this.verses[i].phonemes_joined_ns ?? "";
+      if (refNs.length < 2) continue;
+      const ov =
+        QuranDB._intersectionSize(qb, QuranDB._jointNgrams(refNs, 2)) +
+        0.48 * QuranDB._intersectionSize(qt, QuranDB._jointNgrams(refNs, 3));
+      if (ov > 0) scored.push([ov, i]);
+    }
+    if (scored.length < 80) return this.verses;
+    scored.sort((a, b) => b[0] - a[0]);
+    return scored.slice(0, maxCandidates).map(([, index]) => this.verses[index]);
+  }
+
+  private _jointPrefixSpanTable(): QuranChampionMatch[] {
+    if (this._jointPrefixSpans) return this._jointPrefixSpans;
+
+    const spans: QuranChampionMatch[] = [];
+    for (const [surahNum, verses] of this._bySurah.entries()) {
+      if (!verses.length || verses[0].ayah !== 1) continue;
+      const maxSpan = Math.min(JOINT_PREFIX_MAX_SPAN, verses.length);
+      for (let span = 2; span <= maxSpan; span++) {
+        const chunk = verses.slice(0, span);
+        spans.push({
+          surah: surahNum,
+          ayah: 1,
+          ayah_end: chunk[chunk.length - 1].ayah,
+          text: chunk.map((verse) => verse.text_uthmani).join(" "),
+          phonemes_joined: this._joinedSpanPhonemes(chunk),
+          score: 0,
+          raw_score: 0,
+          bonus: 0,
+        });
+      }
+    }
+    this._jointPrefixSpans = spans;
+    return spans;
+  }
+
+  private _jointGlobalSpanTable(): GlobalSpanRow[] {
+    if (this._jointGlobalSpans) return this._jointGlobalSpans;
+
+    const spans: GlobalSpanRow[] = [];
+    for (const [surahNum, verses] of this._bySurah.entries()) {
+      for (let i = 0; i < verses.length; i++) {
+        const maxSpan = Math.min(JOINT_PREFIX_MAX_SPAN, verses.length - i);
+        for (let span = 2; span <= maxSpan; span++) {
+          const chunk = verses.slice(i, i + span);
+          const phonemes = this._joinedSpanPhonemes(chunk);
+          const phonemesNs = phonemes.replace(/ /g, "");
+          spans.push({
+            surah: surahNum,
+            ayah: chunk[0].ayah,
+            ayah_end: chunk[chunk.length - 1].ayah,
+            phonemes,
+            phonemesNs,
+            bigrams: QuranDB._jointNgrams(phonemesNs, 2),
+            trigrams: QuranDB._jointNgrams(phonemesNs, 3),
+          });
+        }
+      }
+    }
+    this._jointGlobalSpans = spans;
+    return spans;
+  }
+
+  private _spanText(surah: number, ayah: number, ayahEnd: number): string {
+    const verses = this._bySurah.get(surah) ?? [];
+    return verses
+      .filter((verse) => verse.ayah >= ayah && verse.ayah <= ayahEnd)
+      .map((verse) => verse.text_uthmani)
+      .join(" ");
+  }
+
   private _computeWordTokenEnds(tokens: readonly string[]): number[] {
     const ends: number[] = [];
     let rawTokenIndex = 0;
@@ -465,5 +801,26 @@ export class QuranDB {
       best = Math.max(best, ratio(suffix, prefix));
     }
     return best;
+  }
+
+  private static _jointNgrams(s: string, n: number): Set<string> {
+    const out = new Set<string>();
+    if (s.length < n) return out;
+    for (let i = 0; i <= s.length - n; i++) {
+      out.add(s.slice(i, i + n));
+    }
+    return out;
+  }
+
+  private static _intersectionSize(a: Set<string>, b: Set<string>): number {
+    let count = 0;
+    for (const item of a) {
+      if (b.has(item)) count++;
+    }
+    return count;
+  }
+
+  private static _round4(value: number): number {
+    return Math.round(value * 10000) / 10000;
   }
 }

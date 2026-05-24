@@ -151,6 +151,48 @@ function injectTrackingState(tracker: RecitationTracker, verse: QuranVerse): voi
 // Tests
 // ---------------------------------------------------------------------------
 describe("Deferred emission", () => {
+  it("uses championMatch as the authoritative discovery match", async () => {
+    const db = createMockDB();
+    db.matchVerse.mockReturnValue({
+      surah: VERSE_1.surah,
+      ayah: VERSE_1.ayah,
+      ayah_end: null,
+      text: VERSE_1.text_uthmani,
+      phonemes_joined: VERSE_1.phonemes_joined,
+      score: 0.99,
+      raw_score: 0.99,
+      bonus: 0,
+    });
+
+    const championMatch = {
+      surah: VERSE_3.surah,
+      ayah: VERSE_3.ayah,
+      ayah_end: null,
+      text: VERSE_3.text_uthmani,
+      phonemes_joined: VERSE_3.phonemes_joined,
+      score: 0.9,
+      raw_score: 0.9,
+      bonus: 0,
+    };
+    const transcribeFn = createTranscribeFn([
+      {
+        ...makeResult(VERSE_3.phonemes_joined),
+        championMatch,
+        championTranscript: VERSE_3.phonemes_joined,
+      },
+    ]);
+
+    const tracker = new RecitationTracker(db, transcribeFn);
+    const t = tracker as any;
+    t.utteranceHasSpeech = true;
+    t.utteranceAudio = makeSpeechChunk();
+
+    const messages = await t._handleDiscovery(true);
+
+    expect(db.matchVerse).not.toHaveBeenCalled();
+    expect(collectVerseMatches(messages)).toEqual(["2:3"]);
+  });
+
   it("does not enter the next verse until the final word is reached", async () => {
     const almostComplete = VERSE_2.phoneme_words.slice(0, -1).join(" ");
     const transcribeFn = createTranscribeFn([
