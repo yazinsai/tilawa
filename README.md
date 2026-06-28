@@ -15,7 +15,7 @@ This tree remains the **reference research + benchmark** codebase. New work is o
 
 Optional: `LAB_AUTO_DISCOVER=1` with `python -m benchmark.runner` auto-picks up new `experiments/<name>/run.py` without editing the registry.
 
-**Best model:** NVIDIA FastConformer -- **95% recall**, **115 MB**, **0.7s latency**. Available as a quantized ONNX file (131 MB) that runs in browsers, React Native, and Python.
+**Best model:** `c2c-direct-mixed-tta` -- **100% recall**, **100% sequence accuracy**, **88 MB**, **0.84s latency** on the v1 53-sample corpus. It uses Cyberistic's mixed int4+int8 FastConformer ONNX plus confidence-gated 0.9x/1.0x/1.1x test-time augmentation.
 
 ## Use in your app
 
@@ -215,19 +215,20 @@ result = predict("recitation.wav")
 
 | | Value |
 |---|---|
-| **Model** | `nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0` |
-| **ONNX file** | `fastconformer_ar_ctc_q8.onnx` (131 MB, uint8 quantized) |
-| **Input** | 80-bin mel spectrogram, 16 kHz, mono |
-| **Output** | CTC logprobs over 1025-token Arabic BPE vocabulary |
-| **Recall** | 95% on 53-sample benchmark (user recordings, professional, crowdsourced) |
-| **Latency** | 0.7s on Apple Silicon (CPU), ~0.5-1s in browser WASM |
+| **Best batch experiment** | `c2c-direct-mixed-tta` |
+| **Base model** | `nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0` |
+| **ONNX file** | `data/onnx_export/fastconformer_full_mixed.onnx` (88 MB, int4 MatMul + int8 Conv/LayerNorm) |
+| **Input** | 16 kHz mono audio |
+| **Output** | CTC logprobs over 1025-token Arabic BPE vocabulary, then CTC re-rank against Quran candidates |
+| **Recall / Precision / SeqAcc** | 100% / 100% / 100% on the v1 53-sample benchmark, median across 3 reproduced runs |
+| **Latency** | 0.84s average on Apple Silicon CPU |
 | **License** | [CC-BY-4.0](https://huggingface.co/nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0) (NVIDIA model) |
 
 ---
 
 ## Goal
 
-Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-second latency**, and **under 200 MB** on disk. The current best approach (`nvidia-fastconformer`) reaches **95% recall** at **115 MB** and **0.7s** latency on the v1 corpus. The shipped ONNX phoneme model with the decode-stability tracker gate achieves **89.3% streaming recall / 73.4% precision** in the browser (v3). Everything in this repo exists to close the remaining streaming gap.
+Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-second latency**, and **under 200 MB** on disk. The current best batch approach (`c2c-direct-mixed-tta`) reaches **100% recall / 100% precision / 100% sequence accuracy** at **88 MB** and **0.84s** latency on the v1 corpus. The shipped ONNX phoneme model with the decode-stability tracker gate achieves **89.3% streaming recall / 73.4% precision** in the browser (v3). Everything in this repo exists to bring the streaming path up to the new batch ceiling.
 
 ## Design constraints
 
@@ -239,16 +240,18 @@ Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-s
 
 ## Results
 
-Shipped `fastconformer-phoneme v4-tlog` (131 MB quantized ONNX) on the v2 and v3 corpora, streaming with the decode-stability tracker gate (default on):
+Best reproduced batch result and shipped streaming result:
 
 | Mode | Corpus | Recall | Precision | SeqAcc |
 |---|---|---|---|---|
+| `c2c-direct-mixed-tta` full-file batch | v1 (53) | **100%** | **100%** | **100%** |
+| `c2c-direct-mixed` full-file batch | v1 (53) | 98% | 98% | 98% |
 | Browser/RN streaming (300ms chunks) | v2 (43) | 87.9% | 68.9% | 55.8% |
 | Browser/RN streaming (300ms chunks) | v3 (256) | 89.3% | 73.4% | 58.2% |
 | Non-streaming (full-file) | v1 (53) | 84.1% | 84.9% | 81.1% |
 | Non-streaming (full-file) | v2 (43) | 78.1% | 79.1% | 74.4% |
 
-Streaming metrics are medians across 3 runs (ONNX non-determinism is ±3-6 per run on v1, ±0.7 on v3). Non-streaming runs the whole audio through ONNX once and does a single `matchVerse()`. See the streaming changelog in **[EXPERIMENTS.md](EXPERIMENTS.md)** for the per-change provenance.
+The `c2c-direct-mixed-tta` row is the median of 3 reproduced benchmark runs from Cyberistic's imported champion. Streaming metrics are medians across 3 runs (ONNX non-determinism is ±3-6 per run on v1, ±0.7 on v3). See **[EXPERIMENTS.md](EXPERIMENTS.md)** for per-change provenance.
 
 Full matrix across 20 approaches (Whisper variants, Rabah pruned CTC, FastConformer sweep, contrastive/embedding failures), per-experiment notes, variant deep-dives, a changelog, and key findings live in **[EXPERIMENTS.md](EXPERIMENTS.md)**.
 
