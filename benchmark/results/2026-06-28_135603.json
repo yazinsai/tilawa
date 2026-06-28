@@ -1,0 +1,1298 @@
+[
+  {
+    "name": "c2c-direct-mixed-tta",
+    "recall": 1.0,
+    "precision": 1.0,
+    "sequence_accuracy": 1.0,
+    "total": 53,
+    "avg_latency": 0.8418627538674902,
+    "model_size": 88307366,
+    "per_sample": [
+      {
+        "id": "user_imran_23",
+        "expected": [
+          {
+            "surah": 3,
+            "ayah": 23
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 3,
+            "ayah": 23,
+            "score": 0.8648153522455198
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.4623399169940967
+      },
+      {
+        "id": "user_ikhlas_2_3",
+        "expected": [
+          {
+            "surah": 112,
+            "ayah": 2
+          },
+          {
+            "surah": 112,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 112,
+            "ayah": 2,
+            "score": 0.9811320754716981
+          },
+          {
+            "surah": 112,
+            "ayah": 3,
+            "score": 0.9811320754716981
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.31571104101021774
+      },
+      {
+        "id": "ref_001001",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 1
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 1,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.29896920899045654
+      },
+      {
+        "id": "ref_001002",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 2
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 2,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.29119216700200923
+      },
+      {
+        "id": "ref_002255",
+        "expected": [
+          {
+            "surah": 2,
+            "ayah": 255
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 2,
+            "ayah": 255,
+            "score": 0.9640591966173362
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 1.9164528330002213
+      },
+      {
+        "id": "ref_112001",
+        "expected": [
+          {
+            "surah": 112,
+            "ayah": 1
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 112,
+            "ayah": 1,
+            "score": 0.98
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.24308308299805503
+      },
+      {
+        "id": "ref_036001",
+        "expected": [
+          {
+            "surah": 36,
+            "ayah": 1
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 36,
+            "ayah": 1,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.13728729099966586
+      },
+      {
+        "id": "retasy_000",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 1
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 1,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.23543537499790546
+      },
+      {
+        "id": "retasy_001",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 1
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 1,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.2667143330036197
+      },
+      {
+        "id": "retasy_002",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 4
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 4,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.07761195799685083
+      },
+      {
+        "id": "retasy_003",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 2
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 2,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.2622317499917699
+      },
+      {
+        "id": "retasy_004",
+        "expected": [
+          {
+            "surah": 114,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 114,
+            "ayah": 3,
+            "score": 0.18790453520016853
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.3478577500063693
+      },
+      {
+        "id": "retasy_005",
+        "expected": [
+          {
+            "surah": 103,
+            "ayah": 2
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 103,
+            "ayah": 2,
+            "score": 0.9444444444444444
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.26180841599125415
+      },
+      {
+        "id": "retasy_006",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 4
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 4,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.12933770900417585
+      },
+      {
+        "id": "retasy_007",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 1
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 1,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.26538141700439155
+      },
+      {
+        "id": "retasy_008",
+        "expected": [
+          {
+            "surah": 114,
+            "ayah": 2
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 114,
+            "ayah": 2,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.07376341600320302
+      },
+      {
+        "id": "retasy_009",
+        "expected": [
+          {
+            "surah": 111,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 111,
+            "ayah": 3,
+            "score": 0.972972972972973
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.26294304100156296
+      },
+      {
+        "id": "retasy_010",
+        "expected": [
+          {
+            "surah": 113,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 113,
+            "ayah": 3,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.3107381670124596
+      },
+      {
+        "id": "retasy_011",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 6
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 6,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.12272749999829102
+      },
+      {
+        "id": "retasy_012",
+        "expected": [
+          {
+            "surah": 114,
+            "ayah": 2
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 114,
+            "ayah": 2,
+            "score": 0.9473684210526316
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.2631083329906687
+      },
+      {
+        "id": "retasy_013",
+        "expected": [
+          {
+            "surah": 103,
+            "ayah": 2
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 103,
+            "ayah": 2,
+            "score": 0.9444444444444444
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.2597148750064662
+      },
+      {
+        "id": "retasy_014",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 4
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 4,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.07533158299338538
+      },
+      {
+        "id": "retasy_015",
+        "expected": [
+          {
+            "surah": 110,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 110,
+            "ayah": 3,
+            "score": 0.9459459459459459
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.319428250004421
+      },
+      {
+        "id": "retasy_016",
+        "expected": [
+          {
+            "surah": 3,
+            "ayah": 2
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 3,
+            "ayah": 2,
+            "score": 0.8524590163934427
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.289509750000434
+      },
+      {
+        "id": "retasy_017",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 7
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 7,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.36202791599498596
+      },
+      {
+        "id": "retasy_018",
+        "expected": [
+          {
+            "surah": 110,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 110,
+            "ayah": 3,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.3632977500092238
+      },
+      {
+        "id": "retasy_020",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 7
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 7,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.38070316599623766
+      },
+      {
+        "id": "retasy_021",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 7
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 7,
+            "score": 0.9090909090909091
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.3378391250007553
+      },
+      {
+        "id": "retasy_022",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 7
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 7,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.3390490419988055
+      },
+      {
+        "id": "retasy_023",
+        "expected": [
+          {
+            "surah": 110,
+            "ayah": 2
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 110,
+            "ayah": 2,
+            "score": 0.9589041095890412
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.280912417001673
+      },
+      {
+        "id": "retasy_024",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 7
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 7,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.38533504100632854
+      },
+      {
+        "id": "retasy_025",
+        "expected": [
+          {
+            "surah": 1,
+            "ayah": 7
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 1,
+            "ayah": 7,
+            "score": 0.0032712524988415723
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.9891202919970965
+      },
+      {
+        "id": "retasy_026",
+        "expected": [
+          {
+            "surah": 103,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 103,
+            "ayah": 3,
+            "score": 0.9672131147540983
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.37230762500257697
+      },
+      {
+        "id": "retasy_027",
+        "expected": [
+          {
+            "surah": 111,
+            "ayah": 2
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 111,
+            "ayah": 2,
+            "score": 0.9795918367346939
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.30292258400004357
+      },
+      {
+        "id": "retasy_029",
+        "expected": [
+          {
+            "surah": 103,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 103,
+            "ayah": 3,
+            "score": 0.9917355371900827
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.34524858300574124
+      },
+      {
+        "id": "ref_024035",
+        "expected": [
+          {
+            "surah": 24,
+            "ayah": 35
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 24,
+            "ayah": 35,
+            "score": 0.9219047619047619
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 2.8189620830089552
+      },
+      {
+        "id": "ref_003191",
+        "expected": [
+          {
+            "surah": 3,
+            "ayah": 191
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 3,
+            "ayah": 191,
+            "score": 0.8897338403041826
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 1.1033748750051018
+      },
+      {
+        "id": "ref_059023",
+        "expected": [
+          {
+            "surah": 59,
+            "ayah": 23
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 59,
+            "ayah": 23,
+            "score": 0.985781990521327
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.7306240409961902
+      },
+      {
+        "id": "ref_059024",
+        "expected": [
+          {
+            "surah": 59,
+            "ayah": 24
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 59,
+            "ayah": 24,
+            "score": 0.9787234042553191
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.683133957994869
+      },
+      {
+        "id": "ref_048029",
+        "expected": [
+          {
+            "surah": 48,
+            "ayah": 29
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 48,
+            "ayah": 29,
+            "score": 0.9560975609756097
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 2.901719499990577
+      },
+      {
+        "id": "ref_002285",
+        "expected": [
+          {
+            "surah": 2,
+            "ayah": 285
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 2,
+            "ayah": 285,
+            "score": 0.993103448275862
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 1.0376474999939092
+      },
+      {
+        "id": "ref_002286",
+        "expected": [
+          {
+            "surah": 2,
+            "ayah": 286
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 2,
+            "ayah": 286,
+            "score": 0.9897750511247444
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 1.9581646249862388
+      },
+      {
+        "id": "ref_023115",
+        "expected": [
+          {
+            "surah": 23,
+            "ayah": 115
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 23,
+            "ayah": 115,
+            "score": 1.0
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.3923124589928193
+      },
+      {
+        "id": "ref_033056",
+        "expected": [
+          {
+            "surah": 33,
+            "ayah": 56
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 33,
+            "ayah": 56,
+            "score": 0.9605263157894737
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.5784189160040114
+      },
+      {
+        "id": "ref_074031",
+        "expected": [
+          {
+            "surah": 74,
+            "ayah": 31
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 74,
+            "ayah": 31,
+            "score": 0.9788617886178862
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 2.5285875830013538
+      },
+      {
+        "id": "multi_036_001_005",
+        "expected": [
+          {
+            "surah": 36,
+            "ayah": 1
+          },
+          {
+            "surah": 36,
+            "ayah": 2
+          },
+          {
+            "surah": 36,
+            "ayah": 3
+          },
+          {
+            "surah": 36,
+            "ayah": 4
+          },
+          {
+            "surah": 36,
+            "ayah": 5
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 36,
+            "ayah": 1,
+            "score": 0.09866351671096632
+          },
+          {
+            "surah": 36,
+            "ayah": 2,
+            "score": 0.09866351671096632
+          },
+          {
+            "surah": 36,
+            "ayah": 3,
+            "score": 0.09866351671096632
+          },
+          {
+            "surah": 36,
+            "ayah": 4,
+            "score": 0.09866351671096632
+          },
+          {
+            "surah": 36,
+            "ayah": 5,
+            "score": 0.09866351671096632
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 2.22205541699077
+      },
+      {
+        "id": "multi_113_001_005",
+        "expected": [
+          {
+            "surah": 113,
+            "ayah": 1
+          },
+          {
+            "surah": 113,
+            "ayah": 2
+          },
+          {
+            "surah": 113,
+            "ayah": 3
+          },
+          {
+            "surah": 113,
+            "ayah": 4
+          },
+          {
+            "surah": 113,
+            "ayah": 5
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 113,
+            "ayah": 1,
+            "score": 4.404094716388247e-05
+          },
+          {
+            "surah": 113,
+            "ayah": 2,
+            "score": 4.404094716388247e-05
+          },
+          {
+            "surah": 113,
+            "ayah": 3,
+            "score": 4.404094716388247e-05
+          },
+          {
+            "surah": 113,
+            "ayah": 4,
+            "score": 4.404094716388247e-05
+          },
+          {
+            "surah": 113,
+            "ayah": 5,
+            "score": 4.404094716388247e-05
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 2.0301790840021567
+      },
+      {
+        "id": "multi_114_001_006",
+        "expected": [
+          {
+            "surah": 114,
+            "ayah": 1
+          },
+          {
+            "surah": 114,
+            "ayah": 2
+          },
+          {
+            "surah": 114,
+            "ayah": 3
+          },
+          {
+            "surah": 114,
+            "ayah": 4
+          },
+          {
+            "surah": 114,
+            "ayah": 5
+          },
+          {
+            "surah": 114,
+            "ayah": 6
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 114,
+            "ayah": 1,
+            "score": 0.19207553344397396
+          },
+          {
+            "surah": 114,
+            "ayah": 2,
+            "score": 0.19207553344397396
+          },
+          {
+            "surah": 114,
+            "ayah": 3,
+            "score": 0.19207553344397396
+          },
+          {
+            "surah": 114,
+            "ayah": 4,
+            "score": 0.19207553344397396
+          },
+          {
+            "surah": 114,
+            "ayah": 5,
+            "score": 0.19207553344397396
+          },
+          {
+            "surah": 114,
+            "ayah": 6,
+            "score": 0.19207553344397396
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 3.745781416990212
+      },
+      {
+        "id": "multi_059_022_024",
+        "expected": [
+          {
+            "surah": 59,
+            "ayah": 22
+          },
+          {
+            "surah": 59,
+            "ayah": 23
+          },
+          {
+            "surah": 59,
+            "ayah": 24
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 59,
+            "ayah": 22,
+            "score": 0.9427480916030534
+          },
+          {
+            "surah": 59,
+            "ayah": 23,
+            "score": 0.9427480916030534
+          },
+          {
+            "surah": 59,
+            "ayah": 24,
+            "score": 0.9427480916030534
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 2.252966166997794
+      },
+      {
+        "id": "multi_055_001_004",
+        "expected": [
+          {
+            "surah": 55,
+            "ayah": 1
+          },
+          {
+            "surah": 55,
+            "ayah": 2
+          },
+          {
+            "surah": 55,
+            "ayah": 3
+          },
+          {
+            "surah": 55,
+            "ayah": 4
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 55,
+            "ayah": 1,
+            "score": 0.016176232154593198
+          },
+          {
+            "surah": 55,
+            "ayah": 2,
+            "score": 0.016176232154593198
+          },
+          {
+            "surah": 55,
+            "ayah": 3,
+            "score": 0.016176232154593198
+          },
+          {
+            "surah": 55,
+            "ayah": 4,
+            "score": 0.016176232154593198
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 1.4595716250041733
+      },
+      {
+        "id": "multi_067_001_004",
+        "expected": [
+          {
+            "surah": 67,
+            "ayah": 1
+          },
+          {
+            "surah": 67,
+            "ayah": 2
+          },
+          {
+            "surah": 67,
+            "ayah": 3
+          },
+          {
+            "surah": 67,
+            "ayah": 4
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 67,
+            "ayah": 1,
+            "score": 0.9480249480249481
+          },
+          {
+            "surah": 67,
+            "ayah": 2,
+            "score": 0.9480249480249481
+          },
+          {
+            "surah": 67,
+            "ayah": 3,
+            "score": 0.9480249480249481
+          },
+          {
+            "surah": 67,
+            "ayah": 4,
+            "score": 0.9480249480249481
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 2.0520598750008503
+      },
+      {
+        "id": "multi_002_285_286",
+        "expected": [
+          {
+            "surah": 2,
+            "ayah": 285
+          },
+          {
+            "surah": 2,
+            "ayah": 286
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 2,
+            "ayah": 285,
+            "score": 0.9275730622617535
+          },
+          {
+            "surah": 2,
+            "ayah": 286,
+            "score": 0.9275730622617535
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 3.538450666004792
+      },
+      {
+        "id": "multi_103_001_003",
+        "expected": [
+          {
+            "surah": 103,
+            "ayah": 1
+          },
+          {
+            "surah": 103,
+            "ayah": 2
+          },
+          {
+            "surah": 103,
+            "ayah": 3
+          }
+        ],
+        "predicted": [
+          {
+            "surah": 103,
+            "ayah": 1,
+            "score": 0.8901734104046243
+          },
+          {
+            "surah": 103,
+            "ayah": 2,
+            "score": 0.8901734104046243
+          },
+          {
+            "surah": 103,
+            "ayah": 3,
+            "score": 0.8901734104046243
+          }
+        ],
+        "recall": 1.0,
+        "precision": 1.0,
+        "sequence_accuracy": 1.0,
+        "latency": 0.6372734589967877
+      }
+    ]
+  }
+]
