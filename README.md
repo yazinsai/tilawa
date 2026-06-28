@@ -15,7 +15,7 @@ This tree remains the **reference research + benchmark** codebase. New work is o
 
 Optional: `LAB_AUTO_DISCOVER=1` with `python -m benchmark.runner` auto-picks up new `experiments/<name>/run.py` without editing the registry.
 
-**Best model:** `c2c-direct-mixed-tta` -- **100% recall**, **100% sequence accuracy**, **88 MB**, **0.84s latency** on the v1 53-sample corpus. It uses Cyberistic's mixed int4+int8 FastConformer ONNX plus confidence-gated 0.9x/1.0x/1.1x test-time augmentation.
+**Winning entry:** Cyberistic's `c2c-direct-mixed-tta` -- **100% recall**, **100% sequence accuracy**, **88 MB**, **0.84s latency** on the v1 53-sample corpus. It uses a mixed int4+int8 FastConformer ONNX plus confidence-gated 0.9x/1.0x/1.1x test-time augmentation.
 
 ## Use in your app
 
@@ -215,7 +215,7 @@ result = predict("recitation.wav")
 
 | | Value |
 |---|---|
-| **Best batch experiment** | `c2c-direct-mixed-tta` |
+| **Winning entry** | Cyberistic's `c2c-direct-mixed-tta` |
 | **Base model** | `nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0` |
 | **ONNX file** | `data/onnx_export/fastconformer_full_mixed.onnx` (88 MB, int4 MatMul + int8 Conv/LayerNorm) |
 | **Input** | 16 kHz mono audio |
