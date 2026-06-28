@@ -20,20 +20,19 @@ def partial_ratio(short: str, long: str) -> float:
     window = len(short)
     best = 0.0
     for i in range(max(1, len(long) - window + 1)):
-        r = ratio(short, long[i:i + window])
+        r = ratio(short, long[i : i + window])
         if r > best:
             best = r
             if best == 1.0:
                 break
     return best
 
+
 # Resolve to project root / data / quran.json
 DATA_PATH = Path(__file__).parent.parent / "data" / "quran.json"
 
 
 _BSM_CLEAN = normalize_arabic("بسم الله الرحمن الرحيم")
-_FRAGMENT_MIN_WORDS = 4
-_FRAGMENT_PARTIAL_WEIGHT = 0.75
 
 
 class QuranDB:
@@ -42,10 +41,9 @@ class QuranDB:
             self.verses = json.load(f)
         self._by_ref = {}
         self._by_surah = {}
-        # Strip BOM from text_clean (quran.json verse 1:1 has a stray BOM)
         for v in self.verses:
-            v["text_clean"] = v["text_clean"].lstrip('\ufeff')
-        for v in self.verses:
+            v["text_clean"] = v["text_clean"].lstrip("\ufeff")
+            v["text_clean_alt"] = normalize_arabic(v["text_uthmani"]).lstrip("\ufeff")
             self._by_ref[(v["surah"], v["ayah"])] = v
             self._by_surah.setdefault(v["surah"], []).append(v)
             # Pre-compute bismillah-stripped text for verse 1 of each surah
@@ -55,12 +53,12 @@ class QuranDB:
                 and v["surah"] not in (1, 9)
                 and v["text_clean"].startswith(_BSM_CLEAN)
             ):
-                stripped = v["text_clean"][len(_BSM_CLEAN):].strip()
+                stripped = v["text_clean"][len(_BSM_CLEAN) :].strip()
                 v["text_clean_no_bsm"] = stripped if stripped else None
             else:
                 v["text_clean_no_bsm"] = None
 
-        # Build reverse-lookup and trigram index for fast candidate retrieval
+        # Reverse lookup for trigram index
         self._ref_to_idx: dict[tuple, int] = {}
         for i, v in enumerate(self.verses):
             self._ref_to_idx[(v["surah"], v["ayah"])] = i
@@ -95,10 +93,30 @@ class QuranDB:
         text = normalize_arabic(text)
         scored = []
         for v in self.verses:
-            score = ratio(text, v["text_clean"])
+            score = self._best_fragment_score(text, v)
             scored.append({**v, "score": score, "text": v["text_uthmani"]})
         scored.sort(key=lambda x: x["score"], reverse=True)
         return scored[:top_k]
+
+    @staticmethod
+    def _best_text_ratio(text: str, verse: dict) -> float:
+        return max(ratio(text, verse["text_clean"]), ratio(text, verse["text_clean_alt"]))
+
+    @staticmethod
+    def _best_fragment_score(text: str, verse: dict) -> float:
+        return max(
+            QuranDB._fragment_score(text, verse["text_clean"], ratio(text, verse["text_clean"])),
+            QuranDB._fragment_score(text, verse["text_clean_alt"], ratio(text, verse["text_clean_alt"])),
+        )
+
+    @staticmethod
+    def _best_spaceless_ratio(text: str, spaceless: str, verse: dict) -> float:
+        return max(
+            ratio(text, verse["text_clean"]),
+            ratio(spaceless, verse["text_clean"].replace(" ", "")),
+            ratio(text, verse["text_clean_alt"]),
+            ratio(spaceless, verse["text_clean_alt"].replace(" ", "")),
+        )
 
     def _continuation_bonuses(
         self, hint: tuple[int, int] | None
@@ -126,24 +144,31 @@ class QuranDB:
     @staticmethod
     def _char_trigrams(text: str) -> set[str]:
         """Extract character trigrams from text."""
-        return {text[i:i + 3] for i in range(len(text) - 2)} if len(text) >= 3 else set()
+        return (
+            {text[i : i + 3] for i in range(len(text) - 2)} if len(text) >= 3 else set()
+        )
 
     def _build_trigram_index(self):
-        """Build char-trigram inverted index over all verses for fast retrieval."""
+        """Build char-trigram inverted index over all verses for fast retrieval.
+
+        Posting list is stored as ``array.array('H', sorted)`` for compactness
+        (~3 MB at 6,236 verses). Inverse document frequency is precomputed
+        for each trigram so candidate scoring weights rare trigrams higher.
+        """
         posting: dict[str, set[int]] = defaultdict(set)
-        N = len(self.verses)
+        n = len(self.verses)
         for idx, v in enumerate(self.verses):
             trigrams = self._char_trigrams(v["text_clean"])
+            trigrams |= self._char_trigrams(v["text_clean_alt"])
             if v.get("text_clean_no_bsm"):
                 trigrams |= self._char_trigrams(v["text_clean_no_bsm"])
             for tri in trigrams:
                 posting[tri].add(idx)
-        # Convert to sorted array.array('H') for compactness (~3MB)
         self._trigram_index: dict[str, array.array] = {}
         self._idf: dict[str, float] = {}
         for tri, indices in posting.items():
-            self._trigram_index[tri] = array.array('H', sorted(indices))
-            self._idf[tri] = math.log(N / len(indices))
+            self._trigram_index[tri] = array.array("H", sorted(indices))
+            self._idf[tri] = math.log(n / len(indices))
 
     def _trigram_candidates(self, text: str, top_k: int = 50) -> list[int]:
         """Return top_k verse indices by IDF-weighted trigram overlap with text."""
@@ -152,9 +177,9 @@ class QuranDB:
             return []
         scores: dict[int, float] = {}
         for tri in trigrams:
-            if tri not in self._trigram_index:
+            w = self._idf.get(tri)
+            if w is None:
                 continue
-            w = self._idf[tri]
             for idx in self._trigram_index[tri]:
                 scores[idx] = scores.get(idx, 0.0) + w
         ranked = sorted(scores, key=scores.__getitem__, reverse=True)
@@ -179,7 +204,7 @@ class QuranDB:
         for trim in range(1, max_trim + 1):
             suffix = " ".join(words_t[trim:])
             n = len(words_t) - trim
-            prefix = " ".join(words_v[:min(n, len(words_v))])
+            prefix = " ".join(words_v[: min(n, len(words_v))])
             best = max(best, ratio(suffix, prefix))
         return best
 
@@ -190,12 +215,17 @@ class QuranDB:
         Streaming windows often contain only a fragment of a long ayah. A
         full-string Levenshtein ratio suppresses those matches too heavily, so
         blend in partial matching when the query is long enough to be specific.
-        Short candidate verses are penalized to avoid spuriously matching a
+        Short candidate verses are penalised to avoid spuriously matching a
         tiny verse that happens to occur inside a longer transcript.
         """
         query_words = text.split()
         verse_words = verse_text.split()
-        if len(query_words) < _FRAGMENT_MIN_WORDS or len(verse_words) < 2:
+        # Exact substring matches from short fragments like "وما كفر سليمان"
+        # should rank strongly even when the full ayah is much longer.
+        if len(query_words) >= 3 and f" {text} " in f" {verse_text} ":
+            return max(full_ratio, 0.98)
+
+        if len(query_words) < 4 or len(verse_words) < 2:
             return full_ratio
 
         fragment = partial_ratio(text, verse_text)
@@ -203,11 +233,13 @@ class QuranDB:
             return full_ratio
 
         shorter_penalty = min(1.0, len(verse_words) / max(len(query_words), 1))
-        blended = (
-            (1.0 - _FRAGMENT_PARTIAL_WEIGHT) * full_ratio
-            + _FRAGMENT_PARTIAL_WEIGHT * fragment * shorter_penalty
-        )
+        blended = (1.0 - 0.75) * full_ratio + 0.75 * fragment * shorter_penalty
         return max(full_ratio, blended)
+
+    def trigram_candidates(self, text: str, top_k: int = 50) -> list[int]:
+        """Public wrapper around :meth:`_trigram_candidates` for experiments
+        that want raw verse indices from the trigram index."""
+        return self._trigram_candidates(text, top_k=top_k)
 
     def match_verse(
         self,
@@ -216,6 +248,7 @@ class QuranDB:
         max_span: int = 3,
         hint: tuple[int, int] | None = None,
         return_top_k: int = 0,
+        use_trigram_index: bool = False,
     ) -> dict | None:
         """Find the best matching verse or consecutive verse span.
 
@@ -228,6 +261,11 @@ class QuranDB:
 
         If *return_top_k* > 0, the returned dict includes a ``"runners_up"``
         list with the next-best candidates (each with raw_score and bonus).
+
+        If *use_trigram_index* is True, restrict Pass 1 to ~50 trigram-
+        retrieved candidates with a full-scan fallback when the index
+        returns too few hits. Reduces per-call cost from O(6236) Lev
+        ratios to O(50).
         """
         text = normalize_arabic(text)
         if not text.strip():
@@ -235,44 +273,49 @@ class QuranDB:
 
         bonuses = self._continuation_bonuses(hint)
 
-        # Pass 1: trigram retrieval → Levenshtein rerank on small candidate set
-        candidate_idxs = set(self._trigram_candidates(text, top_k=50))
-
-        # Always inject continuation bonus candidates
-        for ref in bonuses:
-            idx = self._ref_to_idx.get(ref)
-            if idx is not None:
-                candidate_idxs.add(idx)
-
-        # Fallback: if trigram retrieval returns too few, full scan
-        if len(candidate_idxs) < 20:
-            candidate_idxs = set(range(len(self.verses)))
+        # Pass 1: score single verses (with continuation bonus). If the
+        # trigram index is available, restrict the candidate set.
+        if use_trigram_index:
+            candidate_idxs = set(self._trigram_candidates(text, top_k=50))
+            for ref in bonuses:
+                idx = self._ref_to_idx.get(ref)
+                if idx is not None:
+                    candidate_idxs.add(idx)
+            if len(candidate_idxs) < 20:
+                candidate_idxs = set(range(len(self.verses)))
+            iter_verses = [self.verses[i] for i in candidate_idxs]
+        else:
+            iter_verses = self.verses
 
         scored = []
-        for idx in candidate_idxs:
-            v = self.verses[idx]
-            raw = ratio(text, v["text_clean"])
-            raw = self._fragment_score(text, v["text_clean"], raw)
+        for v in iter_verses:
+            raw = self._best_fragment_score(text, v)
+            # Also try matching without the bismillah prefix for verse 1s
             if v["text_clean_no_bsm"]:
                 stripped_raw = ratio(text, v["text_clean_no_bsm"])
                 stripped_raw = self._fragment_score(
-                    text,
-                    v["text_clean_no_bsm"],
-                    stripped_raw,
+                    text, v["text_clean_no_bsm"], stripped_raw
                 )
                 raw = max(raw, stripped_raw)
             bonus = bonuses.get((v["surah"], v["ayah"]), 0.0)
+            # For continuation candidates, also try suffix-prefix matching
+            # to handle residual text from the previous verse in the window
             if bonus > 0:
-                sp = self._suffix_prefix_score(text, v["text_clean"])
+                sp = max(
+                    self._suffix_prefix_score(text, v["text_clean"]),
+                    self._suffix_prefix_score(text, v["text_clean_alt"]),
+                )
                 raw = max(raw, sp)
             scored.append((v, raw, bonus, min(raw + bonus, 1.0)))
         scored.sort(key=lambda x: x[3], reverse=True)
 
-        if not scored:
-            return None
-
         best_v, best_raw, best_bonus, best_score = scored[0]
-        best = {**best_v, "score": best_score, "raw_score": best_raw, "bonus": best_bonus}
+        best = {
+            **best_v,
+            "score": best_score,
+            "raw_score": best_raw,
+            "bonus": best_bonus,
+        }
 
         # Collect single-verse runners-up before span pass
         top_singles = [
@@ -284,13 +327,12 @@ class QuranDB:
                 "score": round(total, 3),
                 "text_clean": v["text_clean"][:60],
             }
-            for v, raw, bon, total in scored[:max(return_top_k, 5)]
+            for v, raw, bon, total in scored[: max(return_top_k, 5)]
         ]
 
-        # Pass 2: try multi-ayah spans around all candidate surahs
-        # (candidate set is already small from trigram retrieval)
+        # Pass 2: try multi-ayah spans around top 20 candidates
         seen_surahs = set()
-        for v, _raw, _bon, _total in scored:
+        for v, _raw, _bon, _total in scored[:20]:
             s = v["surah"]
             if s in seen_surahs:
                 continue
@@ -300,11 +342,9 @@ class QuranDB:
                 for span in range(2, max_span + 1):
                     if i + span > len(verses):
                         break
-                    chunk = verses[i:i + span]
+                    chunk = verses[i : i + span]
                     # Use no-bismillah text for the first verse in a span
-                    first_text = (
-                        chunk[0]["text_clean_no_bsm"] or chunk[0]["text_clean"]
-                    )
+                    first_text = chunk[0]["text_clean_no_bsm"] or chunk[0]["text_clean"]
                     combined = " ".join(
                         [first_text] + [c["text_clean"] for c in chunk[1:]]
                     )

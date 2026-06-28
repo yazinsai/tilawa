@@ -1,5 +1,33 @@
 [
   {
+    "name": "c2c-direct-mixed",
+    "recall": 0.9811320754716981,
+    "precision": 0.9811320754716981,
+    "sequence_accuracy": 0.9811320754716981,
+    "total": 53,
+    "avg_latency": 0.7167646304719625,
+    "model_size": 88307366,
+    "timestamp": "2026-06-28_135450",
+    "mode": "full",
+    "category": null,
+    "chunk_seconds": null,
+    "source_file": "2026-06-28_135450.json"
+  },
+  {
+    "name": "c2c-direct-mixed-tta",
+    "recall": 1.0,
+    "precision": 1.0,
+    "sequence_accuracy": 1.0,
+    "total": 53,
+    "avg_latency": 0.8418627538674902,
+    "model_size": 88307366,
+    "timestamp": "2026-06-28_135603",
+    "mode": "full",
+    "category": null,
+    "chunk_seconds": null,
+    "source_file": "2026-06-28_135603.json"
+  },
+  {
     "name": "contrastive",
     "recall": 0,
     "precision": 0,
@@ -1094,21 +1122,6 @@
   },
   {
     "name": "w2v-phonemes/base-local-int8",
-    "recall": 0.96015625,
-    "precision": 0.9609375,
-    "sequence_accuracy": 0.95703125,
-    "total": 256,
-    "avg_latency": 0.8945405627459877,
-    "model_size": 123731968,
-    "timestamp": "2026-04-29_103225",
-    "mode": "full",
-    "category": null,
-    "source": null,
-    "chunk_seconds": null,
-    "source_file": "2026-04-29_103225.json"
-  },
-  {
-    "name": "w2v-phonemes/base-local-int8",
     "recall": 0.9712643678160919,
     "precision": 0.9712643678160919,
     "sequence_accuracy": 0.9712643678160919,
@@ -1121,6 +1134,21 @@
     "source": "everyayah",
     "chunk_seconds": null,
     "source_file": "2026-04-29_100633.json"
+  },
+  {
+    "name": "w2v-phonemes/base-local-int8",
+    "recall": 0.96015625,
+    "precision": 0.9609375,
+    "sequence_accuracy": 0.95703125,
+    "total": 256,
+    "avg_latency": 0.8945405627459877,
+    "model_size": 123731968,
+    "timestamp": "2026-04-29_103225",
+    "mode": "full",
+    "category": null,
+    "source": null,
+    "chunk_seconds": null,
+    "source_file": "2026-04-29_103225.json"
   },
   {
     "name": "w2v-phonemes/base-local-int8 (stream 3s)",

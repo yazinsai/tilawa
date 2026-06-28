@@ -28,26 +28,39 @@ RESULTS_DIR = Path(__file__).parent / "results"
 
 EXPERIMENT_REGISTRY = {
     "whisper-lora": EXPERIMENTS_DIR / "whisper-lora" / "run.py",
-
     "embedding-search": EXPERIMENTS_DIR / "embedding-search" / "run.py",
     "contrastive": EXPERIMENTS_DIR / "contrastive" / "run.py",
     "streaming-asr": EXPERIMENTS_DIR / "streaming-asr" / "run.py",
     "ctc-alignment": EXPERIMENTS_DIR / "ctc-alignment" / "run.py",
     "tarteel-whisper-base": EXPERIMENTS_DIR / "tarteel-whisper-base" / "run.py",
     "two-stage": EXPERIMENTS_DIR / "two-stage" / "run.py",
-    "two-stage-faster-whisper-pruned": EXPERIMENTS_DIR / "two-stage-faster-whisper-pruned" / "run.py",
+    "two-stage-faster-whisper-pruned": EXPERIMENTS_DIR
+    / "two-stage-faster-whisper-pruned"
+    / "run.py",
     "distilled-ctc": EXPERIMENTS_DIR / "distilled-ctc" / "run.py",
     "rabah-pruned-ctc": EXPERIMENTS_DIR / "rabah-pruned-ctc" / "run.py",
     "nvidia-fastconformer": EXPERIMENTS_DIR / "nvidia-fastconformer" / "run.py",
-    "fastconformer-quran-lm-fusion": EXPERIMENTS_DIR / "fastconformer-quran-lm-fusion" / "run.py",
-    "fastconformer-ctc-rescore": EXPERIMENTS_DIR / "fastconformer-ctc-rescore" / "run.py",
-    "fastconformer-nbest-bruteforce": EXPERIMENTS_DIR / "fastconformer-nbest-bruteforce" / "run.py",
+    "fastconformer-ctc-rescore": EXPERIMENTS_DIR
+    / "fastconformer-ctc-rescore"
+    / "run.py",
+    "fastconformer-nbest-bruteforce": EXPERIMENTS_DIR
+    / "fastconformer-nbest-bruteforce"
+    / "run.py",
     "contrastive-v2": EXPERIMENTS_DIR / "contrastive-v2" / "run.py",
-    "fastconformer-phoneme": EXPERIMENTS_DIR / "fastconformer-phoneme" / "run.py",
-    "fastconformer-phoneme-lm": EXPERIMENTS_DIR / "fastconformer-phoneme-lm" / "run.py",
-    "w2v-phonemes": EXPERIMENTS_DIR / "w2v-phonemes" / "run.py",
-    "tadabur-whisper-small": EXPERIMENTS_DIR / "tadabur-whisper-small" / "run.py",
-    "whisper-small": EXPERIMENTS_DIR / "whisper-small" / "run.py",
+    "fastconformer-contrastive": EXPERIMENTS_DIR
+    / "fastconformer-contrastive"
+    / "run.py",
+    "c2c-direct": EXPERIMENTS_DIR / "c2c-direct" / "run.py",
+    "c2c-direct-onnx": EXPERIMENTS_DIR / "c2c-direct-onnx" / "run.py",
+    "c2c-direct-mixed": EXPERIMENTS_DIR / "c2c-direct-mixed" / "run.py",
+    "c2c-direct-mixed-pruned": EXPERIMENTS_DIR / "c2c-direct-mixed-pruned" / "run.py",
+    "c2c-direct-phoneme": EXPERIMENTS_DIR / "c2c-direct-phoneme" / "run.py",
+    "c2c-direct-mixed-tta": EXPERIMENTS_DIR / "c2c-direct-mixed-tta" / "run.py",
+    "c2c-direct-mixed-streaming": EXPERIMENTS_DIR / "c2c-direct-mixed-streaming" / "run.py",
+    "c2c-direct-mixed-streaming-v2": EXPERIMENTS_DIR / "c2c-direct-mixed-streaming-v2" / "run.py",
+    "c2c-direct-mixed-streaming-v3": EXPERIMENTS_DIR / "c2c-direct-mixed-streaming-v3" / "run.py",
+    "c2c-direct-mixed-streaming-v4": EXPERIMENTS_DIR / "c2c-direct-mixed-streaming-v4" / "run.py",
+    "c2c-direct-trie": EXPERIMENTS_DIR / "c2c-direct-trie" / "run.py",
 }
 
 NEW_MODELS_PATH = EXPERIMENTS_DIR / "new-models" / "run.py"
@@ -135,7 +148,11 @@ def discover_experiments(filter_name: str | None = None) -> list[dict]:
     experiments = []
 
     for name, run_path in EXPERIMENT_REGISTRY.items():
-        if filter_name and filter_name != name and not filter_name.startswith(f"{name}/"):
+        if (
+            filter_name
+            and filter_name != name
+            and not filter_name.startswith(f"{name}/")
+        ):
             continue
         if not run_path.exists():
             print(f"Warning: {name} run.py not found at {run_path}")
@@ -145,13 +162,19 @@ def discover_experiments(filter_name: str | None = None) -> list[dict]:
             if hasattr(mod, "list_models"):
                 for model_name in mod.list_models():
                     entry_name = f"{name}/{model_name}"
-                    if filter_name and filter_name != entry_name and filter_name != name:
+                    if (
+                        filter_name
+                        and filter_name != entry_name
+                        and filter_name != name
+                    ):
                         continue
-                    experiments.append({
-                        "name": entry_name,
-                        "run_path": run_path,
-                        "model_name": model_name,
-                    })
+                    experiments.append(
+                        {
+                            "name": entry_name,
+                            "run_path": run_path,
+                            "model_name": model_name,
+                        }
+                    )
                 continue
         except Exception as e:
             # Fall back to treating this as a single experiment; the runtime
@@ -166,13 +189,19 @@ def discover_experiments(filter_name: str | None = None) -> list[dict]:
             mod = _load_module("new_models_run", NEW_MODELS_PATH)
             for model_name in mod.list_models():
                 entry_name = f"new-models/{model_name}"
-                if filter_name and filter_name != entry_name and filter_name != "new-models":
+                if (
+                    filter_name
+                    and filter_name != entry_name
+                    and filter_name != "new-models"
+                ):
                     continue
-                experiments.append({
-                    "name": entry_name,
-                    "run_path": NEW_MODELS_PATH,
-                    "model_name": model_name,
-                })
+                experiments.append(
+                    {
+                        "name": entry_name,
+                        "run_path": NEW_MODELS_PATH,
+                        "model_name": model_name,
+                    }
+                )
         except Exception as e:
             print(f"Warning: could not load new-models: {e}")
 
@@ -199,12 +228,6 @@ def _predict_to_emissions(predict_result: dict) -> list[dict]:
     return emissions
 
 
-def _call_model_fn(fn, audio_path: str, model_name: str | None):
-    if model_name:
-        return fn(audio_path, model_name=model_name)
-    return fn(audio_path)
-
-
 def run_experiment(
     exp: dict,
     samples: list[dict],
@@ -224,39 +247,32 @@ def run_experiment(
     """
     mod = _load_module(exp["name"].replace("/", "_").replace("-", "_"), exp["run_path"])
 
-    has_predict_streaming = hasattr(mod, "predict_streaming")
+    use_predict = hasattr(mod, "predict") and (mode == "full" or mode == "streaming")
 
-    # Prefer transcribe() + streaming pipeline over predict().
-    # predict() does a single match_verse() call which can't handle multi-verse
-    # recordings. Only fall back to predict() for experiments without transcribe().
-    use_predict = hasattr(mod, "predict") and not hasattr(mod, "transcribe") and mode == "full"
-
-    if mode == "streaming" and has_predict_streaming:
-        use_predict = False
-    elif not use_predict and not hasattr(mod, "transcribe"):
+    if not use_predict and not hasattr(mod, "transcribe"):
         print(f"  Skipping {exp['name']} — no transcribe() or predict() function")
         return None
 
-    if mode == "streaming" and has_predict_streaming:
-        predict_streaming_fn = mod.predict_streaming
-    elif use_predict:
+    if use_predict:
         predict_fn = mod.predict
         if exp["model_name"]:
             base_fn = predict_fn
-            predict_fn = lambda path, _mn=exp["model_name"]: base_fn(path, model_name=_mn)
+            predict_fn = lambda path, _mn=exp["model_name"]: base_fn(
+                path, model_name=_mn
+            )
     else:
         transcribe_fn = mod.transcribe
         if exp["model_name"]:
             base_fn = transcribe_fn
-            transcribe_fn = lambda path, _mn=exp["model_name"]: base_fn(path, model_name=_mn)
+            transcribe_fn = lambda path, _mn=exp["model_name"]: base_fn(
+                path, model_name=_mn
+            )
 
     # Warmup
     warmup_sample = samples[0]
     audio_path = str(CORPUS_DIR / warmup_sample["file"])
     try:
-        if mode == "streaming" and has_predict_streaming:
-            _call_model_fn(predict_streaming_fn, audio_path, exp["model_name"])
-        elif use_predict:
+        if use_predict:
             predict_fn(audio_path)
         else:
             transcribe_fn(audio_path)
@@ -280,19 +296,25 @@ def run_experiment(
 
     for sample in samples:
         audio_path = str(CORPUS_DIR / sample["file"])
-        expected = sample.get("expected_verses", [{"surah": sample["surah"], "ayah": sample["ayah"]}])
+        if not Path(audio_path).exists():
+            # Don't count missing audio as a wrong answer. Common in our
+            # test corpus — manifest was generated for 54 but only ~36
+            # files were downloaded.
+            continue
+        expected = sample.get(
+            "expected_verses", [{"surah": sample["surah"], "ayah": sample["ayah"]}]
+        )
 
-        result = None
         try:
             start = time.perf_counter()
-            if mode == "streaming" and has_predict_streaming:
-                emissions = _call_model_fn(predict_streaming_fn, audio_path, exp["model_name"])
-            elif use_predict:
+            if use_predict:
                 result = predict_fn(audio_path)
                 emissions = _predict_to_emissions(result)
             elif mode == "streaming":
                 emissions = pipeline.run_on_audio_chunked(
-                    audio_path, transcribe_fn, chunk_seconds=chunk_seconds,
+                    audio_path,
+                    transcribe_fn,
+                    chunk_seconds=chunk_seconds,
                 )
             else:
                 emissions = pipeline.run_on_full_transcript(audio_path, transcribe_fn)
@@ -303,31 +325,31 @@ def run_experiment(
             elapsed = 0.0
 
         scores = score_sequence(expected, emissions)
-        for alt_expected in sample.get("also_accept", []):
-            alt_scores = score_sequence(alt_expected, emissions)
-            if alt_scores["sequence_accuracy"] > scores["sequence_accuracy"]:
-                scores = alt_scores
-                expected = alt_expected
         total_recall += scores["recall"]
         total_precision += scores["precision"]
         total_seq_acc += scores["sequence_accuracy"]
         latencies.append(elapsed)
 
-        per_sample.append({
-            "id": sample["id"],
-            "expected": expected,
-            "predicted": emissions,
-            "recall": scores["recall"],
-            "precision": scores["precision"],
-            "sequence_accuracy": scores["sequence_accuracy"],
-            "latency": elapsed,
-            "raw_predict": result if use_predict else None,
-        })
+        per_sample.append(
+            {
+                "id": sample["id"],
+                "expected": expected,
+                "predicted": emissions,
+                "recall": scores["recall"],
+                "precision": scores["precision"],
+                "sequence_accuracy": scores["sequence_accuracy"],
+                "latency": elapsed,
+            }
+        )
 
-    n = len(samples)
+    n = len(per_sample)
     avg_latency = sum(latencies) / n if n else 0
 
-    exp_name = exp["name"] if mode == "full" else f"{exp['name']} (stream {chunk_seconds:.0f}s)"
+    exp_name = (
+        exp["name"]
+        if mode == "full"
+        else f"{exp['name']} (stream {chunk_seconds:.0f}s)"
+    )
 
     return {
         "name": exp_name,
@@ -347,14 +369,16 @@ def format_size(size_bytes: int) -> str:
 
 def print_table(results: list[dict]):
     print()
-    print(f"{'Experiment':<30} {'Recall':>8} {'Precision':>10} {'SeqAcc':>8} {'Latency':>10} {'Size':>10}")
+    print(
+        f"{'Experiment':<30} {'Recall':>8} {'Precision':>10} {'SeqAcc':>8} {'Latency':>10} {'Size':>10}"
+    )
     print("-" * 78)
     for r in results:
         rec = f"{r['recall']:.0%}"
         prec = f"{r['precision']:.0%}"
         seq = f"{r['sequence_accuracy']:.0%}"
         lat = f"{r['avg_latency']:.2f}s"
-        size = format_size(r['model_size'])
+        size = format_size(r["model_size"])
         print(f"{r['name']:<30} {rec:>8} {prec:>10} {seq:>8} {lat:>10} {size:>10}")
     print()
 
@@ -364,7 +388,6 @@ def save_results(
     *,
     mode: str = "full",
     category: str | None = None,
-    source: str | None = None,
     chunk_seconds: float = 3.0,
 ):
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -387,7 +410,6 @@ def save_results(
             entry.get("name"),
             entry.get("mode", "full"),
             entry.get("category"),
-            entry.get("source"),
             entry.get("total"),
             entry.get("chunk_seconds"),
         )
@@ -406,7 +428,6 @@ def save_results(
             "timestamp": timestamp,
             "mode": mode,
             "category": category,
-            "source": source,
             "chunk_seconds": effective_chunk,
             "source_file": path.name,
         }
@@ -415,14 +436,17 @@ def save_results(
             summary["name"],
             summary["mode"],
             summary["category"],
-            summary["source"],
             summary["total"],
             summary["chunk_seconds"],
         )
         prev = latest.get(key)
-        if prev is None or r["sequence_accuracy"] > prev.get("sequence_accuracy", 0) or (
-            r["sequence_accuracy"] == prev.get("sequence_accuracy", 0)
-            and r["avg_latency"] < prev.get("avg_latency", float("inf"))
+        if (
+            prev is None
+            or r["sequence_accuracy"] > prev.get("sequence_accuracy", 0)
+            or (
+                r["sequence_accuracy"] == prev.get("sequence_accuracy", 0)
+                and r["avg_latency"] < prev.get("avg_latency", float("inf"))
+            )
         ):
             latest[key] = summary
 
@@ -434,7 +458,6 @@ def save_results(
                     x.get("name", ""),
                     x.get("mode", "full"),
                     x.get("category") or "",
-                    x.get("source") or "",
                     x.get("total", 0),
                     x.get("chunk_seconds") or 0,
                 ),
@@ -447,31 +470,30 @@ def save_results(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Benchmark all experiments (streaming)")
+    parser = argparse.ArgumentParser(
+        description="Benchmark all experiments (streaming)"
+    )
     parser.add_argument("--experiment", type=str, help="Run only this experiment")
     parser.add_argument("--category", type=str, help="Filter samples by category")
-    parser.add_argument("--source", type=str, help="Filter samples by source")
-    parser.add_argument("--corpus", type=str, default="test_corpus",
-                        help="Corpus directory name under benchmark/ (default: test_corpus)")
-    parser.add_argument("--mode", type=str, default="full", choices=["full", "streaming"],
-                        help="full = transcribe whole file; streaming = chunked audio")
-    parser.add_argument("--chunk", type=float, default=3.0,
-                        help="Chunk duration in seconds for streaming mode (default: 3.0)")
+    parser.add_argument(
+        "--mode",
+        type=str,
+        default="full",
+        choices=["full", "streaming"],
+        help="full = transcribe whole file; streaming = chunked audio",
+    )
+    parser.add_argument(
+        "--chunk",
+        type=float,
+        default=3.0,
+        help="Chunk duration in seconds for streaming mode (default: 3.0)",
+    )
     args = parser.parse_args()
-
-    global CORPUS_DIR
-    CORPUS_DIR = Path(__file__).parent / args.corpus
-    if not CORPUS_DIR.exists():
-        print(f"Error: corpus directory not found: {CORPUS_DIR}")
-        return
 
     samples = load_manifest()
     if args.category:
         samples = [s for s in samples if s["category"] == args.category]
         print(f"Filtered to {len(samples)} samples in category '{args.category}'")
-    if args.source:
-        samples = [s for s in samples if s.get("source") == args.source]
-        print(f"Filtered to {len(samples)} samples from source '{args.source}'")
 
     experiments = discover_experiments(args.experiment)
     if not experiments:
@@ -481,24 +503,33 @@ def main():
     db = QuranDB()
     pipeline = StreamingPipeline(db=db)
 
-    mode_label = f"streaming ({args.chunk:.0f}s chunks)" if args.mode == "streaming" else "full transcript"
-    print(f"Running {len(experiments)} experiment(s) on {len(samples)} sample(s) [{mode_label}]...")
+    mode_label = (
+        f"streaming ({args.chunk:.0f}s chunks)"
+        if args.mode == "streaming"
+        else "full transcript"
+    )
+    print(
+        f"Running {len(experiments)} experiment(s) on {len(samples)} sample(s) [{mode_label}]..."
+    )
 
     results = []
     for exp in experiments:
         print(f"\n>>> {exp['name']}")
-        result = run_experiment(exp, samples, pipeline, mode=args.mode, chunk_seconds=args.chunk)
+        result = run_experiment(
+            exp, samples, pipeline, mode=args.mode, chunk_seconds=args.chunk
+        )
         if result is None:
             continue
         results.append(result)
-        print(f"    Recall: {result['recall']:.0%}  Precision: {result['precision']:.0%}  SeqAcc: {result['sequence_accuracy']:.0%}")
+        print(
+            f"    Recall: {result['recall']:.0%}  Precision: {result['precision']:.0%}  SeqAcc: {result['sequence_accuracy']:.0%}"
+        )
 
     print_table(results)
     save_results(
         results,
         mode=args.mode,
         category=args.category,
-        source=args.source,
         chunk_seconds=args.chunk,
     )
 
