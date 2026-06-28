@@ -138,6 +138,8 @@ Full-file transcription then single `matchVerse()` call.
 
 | Experiment | Base model | FT | Type | Size | v1 Rec | v1 Prec | v1 Seq | v1 Lat | v2 Rec | v2 Prec | v2 Seq | v2 Lat |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **c2c-direct-mixed-tta** | nvidia FastConformer | — | arabic | **88 MB** | **100%** | **100%** | **100%** | **0.84s** | — | — | — | — |
+| **c2c-direct-mixed** | nvidia FastConformer | — | arabic | **88 MB** | 98% | 98% | 98% | **0.72s** | — | — | — | — |
 | **w2v-phonemes/large** | hetchyy/r7 | — | phoneme | 970 MB | **100%** | **100%** | **100%** | 15.2s | **95%** | **95%** | **95%** | 30.4s |
 | **w2v-phonemes/base** | hetchyy/r15_95m | — | phoneme | 388 MB | — | — | — | — | — | — | — | — |
 | **w2v-phonemes/base-local-int8** | hetchyy/r15_95m | — | phoneme | 118 MB | — | — | — | — | — | — | — | — |
@@ -214,6 +216,10 @@ Fine-tuning the phoneme CTC head with varying amounts of TLOG (phone-recorded re
 **v6-augmented failure detail:** unfiltered TLOG (29K) + teacher pseudo-labels on 75% of samples + MUSAN noise aug, all together. Training metrics looked healthy (val_loss=58.39 at step 6500) but downstream accuracy collapsed. Unfiltered TLOG alone contains ~38% bad samples per the quality filter; the teacher relabeler added an unknown additional error rate on the rest. Streaming export also crashed with an ONNX mutex error (NeMo <2.7 compat).
 
 ## Per-experiment notes
+
+**c2c-direct-mixed-tta** — Cyberistic's current champion. It runs the mixed int4+int8 FastConformer ONNX once at 1.0x speed, skips augmentation for confident predictions, and only runs 0.9x/1.1x speed-perturbed passes on low-confidence samples. Reproduced locally over 3 runs at 100% recall, 100% precision, and 100% sequence accuracy on v1 (53 samples), with 0.84s average latency.
+
+**c2c-direct-mixed** — Same CTC re-rank algorithm without TTA, using `data/onnx_export/fastconformer_full_mixed.onnx` (88 MB). Reproduced at 98% recall / 98% precision / 98% sequence accuracy on v1 at 0.72s average latency; TTA recovers the remaining miss.
 
 **ctc-alignment** — CTC forced alignment with `jonatasgrosman/wav2vec2-large-xlsr-53-arabic` (1.2 GB). Scores verses directly against frame-level logits via the CTC forward algorithm, skipping greedy-decode information loss. Too large (6×) and too slow (5×) for on-device.
 
