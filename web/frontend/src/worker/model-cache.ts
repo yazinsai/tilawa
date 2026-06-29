@@ -1,6 +1,6 @@
 const DB_NAME = "tarteel-models";
 const STORE_NAME = "models";
-const MODEL_KEY = "fastconformer-text-ctc-v1";
+const MODEL_KEY = "fastconformer-full-mixed-text-ctc";
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {

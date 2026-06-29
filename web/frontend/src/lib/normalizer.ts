@@ -1,5 +1,5 @@
 const DIACRITICS_RE =
-  /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED\u0640]/g;
+  /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DE\u06DF-\u06ED\u0640]/g;
 
 const NORM_MAP: Record<string, string> = {
   "\u0623": "\u0627", // أ -> ا
@@ -11,6 +11,7 @@ const NORM_MAP: Record<string, string> = {
 };
 
 export function normalizeArabic(text: string): string {
+  text = text.replace(/\ufeff/g, "");
   text = text.replace(DIACRITICS_RE, "");
   text = text.replace(/./g, (ch) => NORM_MAP[ch] ?? ch);
   text = text.split(/\s+/).filter(Boolean).join(" ");

@@ -3,6 +3,16 @@ class AudioStreamProcessor extends AudioWorkletProcessor {
     super();
     this._buffer = [];
     this._bufferSize = 4800; // send every 300ms at 16kHz
+    this.port.onmessage = (event) => {
+      const msg = event.data || {};
+      if (msg.type === "set_config") {
+        const chunkMs = Number(msg.audioChunkMs);
+        if (Number.isFinite(chunkMs)) {
+          const clamped = Math.min(1000, Math.max(100, chunkMs));
+          this._bufferSize = Math.max(1, Math.round((16000 * clamped) / 1000));
+        }
+      }
+    };
   }
 
   process(inputs) {

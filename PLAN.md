@@ -6,16 +6,16 @@ todos:
     status: completed
   - id: "cache-metadata-polish"
     content: "Align model-cache key with export_metadata output_name and verify metadata/hash fields are internally consistent."
-    status: pending
+    status: completed
   - id: "decode-rerank"
     content: "Finish Arabic text CTC decode/rerank path: greedy decode exists; still need Quran asset adapter, candidate retrieval, and JS log-space CTC rerank constants/gates."
     status: in_progress
   - id: "stream-tracker"
     content: "Replace worker phoneme/mel/trie wiring with raw-audio ONNX inference plus a rolling-window text tracker that emits existing UI messages."
-    status: pending
+    status: completed
   - id: "types-ui-data"
     content: "Move frontend display data to quran.json, remove word_correction handling, and make remaining phoneme-prefixed fields legacy/internal adapter details only."
-    status: pending
+    status: completed
   - id: "drop-dead-phoneme-stack"
     content: "Delete or stop importing obsolete phoneme files/data after the text path compiles: mel.ts, beam-decode.ts, phoneme-trie.ts, correction.ts, quran_phonemes.json, phoneme_vocab.json, old CTC decoder usage."
     status: pending
@@ -60,6 +60,14 @@ Current branch state after the first implementation pass:
 - **Hot path not wired yet**: `web/frontend/src/worker/inference.ts` still loads the old phoneme model/data and still imports `computeMelSpectrogram`, old `CTCDecoder`, trie beam search, and `RecitationTracker`.
 - **Session still expects mels**: `web/frontend/src/worker/session.ts` still takes mel features; it has not been switched to raw `audio_signal` + `length` ONNX inputs.
 - **UI/types still include phoneme correction**: `web/frontend/src/lib/types.ts`, `web/frontend/src/lib/tracker.ts`, and `web/frontend/src/main.ts` still include `WordCorrectionMessage` / `computeCorrection` / `handleWordCorrection` paths that should be removed for the text pipeline.
+
+Progress after continuation pass:
+
+- **Worker hot path swapped**: `web/frontend/src/worker/inference.ts` now loads `fastconformer_full_mixed.onnx`, `vocab.json`, `quran.json`, and `quran_ctc_tokens.json`; old mel decode, phoneme vocab, trie beam search, and phoneme model imports are gone from the browser worker.
+- **Raw-audio ONNX session wired**: `web/frontend/src/worker/session.ts` now feeds `audio_signal: float32[1,N]` and `length: int64[1]`, with wasm SIMD and up to 4 threads.
+- **Quran text adapter added**: `web/frontend/src/worker/quran-text-adapter.ts` adapts normalized `text_clean` and precomputed CTC ids into the legacy tracker fields until the tracker is fully renamed.
+- **UI display source swapped**: `web/frontend/src/main.ts` fetches `/quran.json`, and `word_correction` protocol/UI handling has been removed.
+- **CTC feasibility aligned**: `web/frontend/src/lib/ctc-rescore.ts` now uses the Cyberistic `target.length * 2 + 1 <= T` gate.
 
 Remaining implementation should be ruthless about the user's cleanup direction: keep the UI contract that matters (`raw_transcript`, `verse_candidate`, `verse_match`, `word_progress`, `final_sequence`, diagnostics), but remove the phoneme/mel/trie/correction code once the text path owns the worker.
 
