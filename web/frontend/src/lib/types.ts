@@ -187,3 +187,152 @@ export const ADVANCE_PREFIX_TOKENS = 15;
 // where we can't wait for fresh-audio confirmation. Must be smaller (= more
 // demanding) than ADVANCE_RELATIVE_MARGIN.
 export const ADVANCE_FLUSH_STRICT_MARGIN = 0.5;
+
+export type NextVerseEmitMode =
+  | "deferred_confirm"
+  | "candidate_until_confirmed"
+  | "immediate_on_completion";
+
+export interface StreamingConfig {
+  audioChunkMs: number;
+  discoveryTriggerSec: number;
+  trackingTriggerSec: number;
+  discoveryMaxWindowSec: number;
+  trackingMaxWindowSec: number;
+  tailAfterCommitSec: number;
+  tailAfterPendingAdvanceSec: number;
+  finalSilenceSec: number;
+  silenceRmsThreshold: number;
+  firstMatchThreshold: number;
+  verseMatchThreshold: number;
+  discoveryRepeatCycles: number;
+  acousticClearMargin: number;
+  acousticContinuationMargin: number;
+  decodeStabilityEnabled: boolean;
+  decodeStabilityRatio: number;
+  nonContinuationJumpThreshold: number;
+  nextVerseEmitMode: NextVerseEmitMode;
+  trackingCompletionCoverage: number;
+  trackingPrefixTolerance: number;
+  lookaheadWords: number;
+  staleCycleLimit: number;
+  trackingSilenceTimeoutSec: number;
+  advanceRelativeMargin: number;
+  advancePrefixTokens: number;
+  advanceFlushStrictMargin: number;
+}
+
+export const CONSERVATIVE_STREAMING_CONFIG: StreamingConfig = {
+  audioChunkMs: 300,
+  discoveryTriggerSec: TRIGGER_SECONDS,
+  trackingTriggerSec: TRACKING_TRIGGER_SECONDS,
+  discoveryMaxWindowSec: MAX_WINDOW_SECONDS,
+  trackingMaxWindowSec: TRACKING_MAX_WINDOW_SECONDS,
+  tailAfterCommitSec: TRIGGER_SECONDS,
+  tailAfterPendingAdvanceSec: TRACKING_TRIGGER_SECONDS,
+  finalSilenceSec: UTTERANCE_FINAL_SILENCE_SECONDS,
+  silenceRmsThreshold: SILENCE_RMS_THRESHOLD,
+  firstMatchThreshold: FIRST_MATCH_THRESHOLD,
+  verseMatchThreshold: VERSE_MATCH_THRESHOLD,
+  discoveryRepeatCycles: DISCOVERY_REPEAT_CYCLES,
+  acousticClearMargin: ACOUSTIC_CLEAR_MARGIN,
+  acousticContinuationMargin: ACOUSTIC_CONTINUATION_MARGIN,
+  decodeStabilityEnabled: true,
+  decodeStabilityRatio: 0.70,
+  nonContinuationJumpThreshold: NON_CONTINUATION_JUMP_THRESHOLD,
+  nextVerseEmitMode: "deferred_confirm",
+  trackingCompletionCoverage: TRACKING_COMPLETION_COVERAGE,
+  trackingPrefixTolerance: TRACKING_PREFIX_TOLERANCE,
+  lookaheadWords: LOOKAHEAD,
+  staleCycleLimit: STALE_CYCLE_LIMIT,
+  trackingSilenceTimeoutSec: TRACKING_SILENCE_TIMEOUT,
+  advanceRelativeMargin: ADVANCE_RELATIVE_MARGIN,
+  advancePrefixTokens: ADVANCE_PREFIX_TOKENS,
+  advanceFlushStrictMargin: ADVANCE_FLUSH_STRICT_MARGIN,
+};
+
+export const BALANCED_STREAMING_CONFIG: StreamingConfig = {
+  ...CONSERVATIVE_STREAMING_CONFIG,
+  audioChunkMs: 150,
+  trackingTriggerSec: 0.25,
+  trackingMaxWindowSec: 12,
+  tailAfterCommitSec: 0.75,
+  nextVerseEmitMode: "candidate_until_confirmed",
+  trackingCompletionCoverage: 0.82,
+  acousticContinuationMargin: 0.06,
+  advanceRelativeMargin: 3.5,
+};
+
+export const AGGRESSIVE_ADVANCE_STREAMING_CONFIG: StreamingConfig = {
+  ...BALANCED_STREAMING_CONFIG,
+  audioChunkMs: 150,
+  discoveryTriggerSec: 1.5,
+  trackingTriggerSec: 0.25,
+  trackingMaxWindowSec: 12,
+  tailAfterCommitSec: 0.75,
+  trackingCompletionCoverage: 0.85,
+  discoveryRepeatCycles: 1,
+  acousticContinuationMargin: 0.04,
+  advanceRelativeMargin: 4.0,
+  advanceFlushStrictMargin: 1.0,
+};
+
+export type StreamingPresetName = "conservative" | "balanced" | "aggressiveAdvance";
+
+export const STREAMING_PRESETS: Record<StreamingPresetName, StreamingConfig> = {
+  conservative: CONSERVATIVE_STREAMING_CONFIG,
+  balanced: BALANCED_STREAMING_CONFIG,
+  aggressiveAdvance: AGGRESSIVE_ADVANCE_STREAMING_CONFIG,
+};
+
+export const DEFAULT_STREAMING_CONFIG = BALANCED_STREAMING_CONFIG;
+
+export function normalizeStreamingConfig(
+  partial: Partial<StreamingConfig> | null | undefined,
+): StreamingConfig {
+  const config = { ...DEFAULT_STREAMING_CONFIG, ...(partial ?? {}) };
+  return {
+    audioChunkMs: clamp(config.audioChunkMs, 100, 1000),
+    discoveryTriggerSec: clamp(config.discoveryTriggerSec, 0.5, 6),
+    trackingTriggerSec: clamp(config.trackingTriggerSec, 0.15, 3),
+    discoveryMaxWindowSec: clamp(config.discoveryMaxWindowSec, 3, 45),
+    trackingMaxWindowSec: clamp(config.trackingMaxWindowSec, 3, 45),
+    tailAfterCommitSec: clamp(config.tailAfterCommitSec, 0, 6),
+    tailAfterPendingAdvanceSec: clamp(config.tailAfterPendingAdvanceSec, 0, 3),
+    finalSilenceSec: clamp(config.finalSilenceSec, 0.3, 5),
+    silenceRmsThreshold: clamp(config.silenceRmsThreshold, 0.001, 0.05),
+    firstMatchThreshold: clamp(config.firstMatchThreshold, 0.1, 0.99),
+    verseMatchThreshold: clamp(config.verseMatchThreshold, 0.1, 0.99),
+    discoveryRepeatCycles: Math.round(clamp(config.discoveryRepeatCycles, 1, 5)),
+    acousticClearMargin: clamp(config.acousticClearMargin, 0, 1),
+    acousticContinuationMargin: clamp(config.acousticContinuationMargin, 0, 1),
+    decodeStabilityEnabled: Boolean(config.decodeStabilityEnabled),
+    decodeStabilityRatio: clamp(config.decodeStabilityRatio, 0, 1),
+    nonContinuationJumpThreshold: clamp(config.nonContinuationJumpThreshold, 0.1, 0.99),
+    nextVerseEmitMode: isNextVerseEmitMode(config.nextVerseEmitMode)
+      ? config.nextVerseEmitMode
+      : DEFAULT_STREAMING_CONFIG.nextVerseEmitMode,
+    trackingCompletionCoverage: clamp(config.trackingCompletionCoverage, 0.5, 1),
+    trackingPrefixTolerance: clamp(config.trackingPrefixTolerance, 0, 1),
+    lookaheadWords: Math.round(clamp(config.lookaheadWords, 1, 15)),
+    staleCycleLimit: Math.round(clamp(config.staleCycleLimit, 1, 12)),
+    trackingSilenceTimeoutSec: clamp(config.trackingSilenceTimeoutSec, 0.5, 10),
+    advanceRelativeMargin: clamp(config.advanceRelativeMargin, -2, 8),
+    advancePrefixTokens: Math.round(clamp(config.advancePrefixTokens, 3, 60)),
+    advanceFlushStrictMargin: clamp(config.advanceFlushStrictMargin, -2, 8),
+  };
+}
+
+function clamp(value: number, min: number, max: number): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return min;
+  return Math.min(max, Math.max(min, parsed));
+}
+
+function isNextVerseEmitMode(value: unknown): value is NextVerseEmitMode {
+  return (
+    value === "deferred_confirm" ||
+    value === "candidate_until_confirmed" ||
+    value === "immediate_on_completion"
+  );
+}
