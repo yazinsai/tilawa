@@ -19,10 +19,11 @@ COPY --from=builder /app/dist-server ./dist-server
 COPY --from=builder /app/package.json /app/package-lock.json ./
 RUN npm ci --omit=dev
 
-# Download ONNX model
+# Download ONNX model. The source file is tracked with Git LFS, but Dokku's
+# git remote does not receive LFS objects, so materialize it during image build.
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-RUN curl -L -o dist/fastconformer_phoneme_q8.onnx \
-    https://github.com/yazinsai/offline-tarteel/releases/download/v0.1.0/fastconformer_phoneme_q8.onnx
+RUN curl -L -o dist/fastconformer_full_mixed.onnx \
+    https://media.githubusercontent.com/media/yazinsai/offline-tarteel/main/web/frontend/public/fastconformer_full_mixed.onnx
 
 # Create storage directory
 RUN mkdir -p /app/storage/reports
