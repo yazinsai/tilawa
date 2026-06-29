@@ -68,11 +68,11 @@ web/frontend/test/stab-gate-*.json
 !benchmark/test_corpus_v3/**
 
 # ---------- Model weights ----------
-# Default: ignore all ONNX. The q8 model under web/frontend/public/ is
-# tracked via Git LFS so streaming tests work after a fresh clone.
+# Default: ignore all ONNX. The streaming model under web/frontend/public/
+# is tracked via Git LFS so streaming tests work after a fresh clone.
 *.onnx
 *.onnx.data
-!web/frontend/public/fastconformer_phoneme_q8.onnx
+!web/frontend/public/fastconformer_full_mixed.onnx
 
 # Training checkpoints / model dirs (downloaded via Modal volumes / HF)
 data/lora-adapter/
