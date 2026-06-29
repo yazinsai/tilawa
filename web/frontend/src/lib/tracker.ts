@@ -1,12 +1,12 @@
 import { ratio as levRatio } from "./levenshtein";
 import { scoreCtcSequence, scoreCtcCandidates, chooseLongestStablePrefix } from "./ctc-rescore";
 import { QuranDB, partialRatio, type QuranCandidate, type QuranChampionMatch } from "./quran-db";
-import { computeCorrection } from "./correction";
 import type { AcousticEvidence } from "./ctc-rescore";
 import type {
   FinalSequenceMessage,
   FinalSequenceVerse,
   QuranVerse,
+  StreamingConfig,
   VerseCandidate,
   VerseCandidateMessage,
   VerseMatchMessage,
@@ -14,34 +14,14 @@ import type {
   SurroundingVerse,
 } from "./types";
 import {
+  DEFAULT_STREAMING_CONFIG,
   SAMPLE_RATE,
-  TRIGGER_SAMPLES,
-  MAX_WINDOW_SAMPLES,
-  SILENCE_RMS_THRESHOLD,
-  VERSE_MATCH_THRESHOLD,
-  FIRST_MATCH_THRESHOLD,
   RAW_TRANSCRIPT_THRESHOLD,
   SURROUNDING_CONTEXT,
-  TRACKING_TRIGGER_SAMPLES,
-  TRACKING_SILENCE_SAMPLES,
-  TRACKING_MAX_WINDOW_SAMPLES,
-  STALE_CYCLE_LIMIT,
-  LOOKAHEAD,
-  TRACKING_COMPLETION_COVERAGE,
-  DISCOVERY_REPEAT_CYCLES,
   DISCOVERY_TOP_SINGLE_CANDIDATES,
   DISCOVERY_TOP_SURAHS,
   DISCOVERY_MAX_SPAN,
-  ACOUSTIC_CLEAR_MARGIN,
-  ACOUSTIC_CONTINUATION_MARGIN,
-  TRACKING_PREFIX_TOLERANCE,
   TRACKING_WEAK_COMMIT_CONFIDENCE,
-  UTTERANCE_FINAL_SILENCE_SAMPLES,
-  NON_CONTINUATION_JUMP_THRESHOLD,
-  ADVANCE_RELATIVE_MARGIN,
-  ADVANCE_PREFIX_TOKENS,
-  ADVANCE_FLUSH_STRICT_MARGIN,
-  ACOUSTIC_OVERRIDE_TEXT_THRESHOLD,
   DISCOVERY_EXPANDED_CANDIDATES,
   DISCOVERY_LOW_CONFIDENCE_WORDS,
   DISCOVERY_LOW_CONFIDENCE_CHARS,
@@ -52,6 +32,7 @@ import {
   DISCOVERY_FUSION_LOW_ACOUSTIC_WEIGHT,
   DISCOVERY_FUSION_LOW_LENGTH_WEIGHT,
   DISCOVERY_FUSION_SELECTION_GAP,
+  normalizeStreamingConfig,
 } from "./types";
 
 export interface BeamVerseMatch {
@@ -137,14 +118,35 @@ export type TrackerDiagnosticEvent =
       char_word: number | null;
       advanced: boolean;
       final_flush: boolean;
+      word_position: number;
+      total_words: number;
+      coverage: number;
+      pending: boolean;
     }
   | {
       type: "pending_emission";
-      action: "confirmed" | "final_flush_emit" | "dropped";
+      action: "armed" | "confirmed" | "final_flush_emit" | "dropped" | "cascade_blocked";
       ref: string;
       margin: number | null;
       fresh_samples: number;
       matched_indices?: number[];
+    }
+  | {
+      type: "advance_decision";
+      from_ref: string;
+      to_ref: string | null;
+      action: "wait" | "armed" | "blocked";
+      reason: string;
+      word_position: number;
+      total_words: number;
+      coverage: number;
+      completion_target: number;
+      final_word: boolean;
+      advance_ok: boolean;
+      early_advance_ok: boolean;
+      margin: number | null;
+      normal_margin: number;
+      strict_margin: number;
     }
   | {
       type: "commit";
@@ -172,6 +174,7 @@ export type TrackerDiagnosticEvent =
 
 export interface RecitationTrackerOptions {
   onDiagnostic?: (event: TrackerDiagnosticEvent) => void;
+  config?: Partial<StreamingConfig>;
 }
 
 // Decode-stability gate: single-cycle clearMargin commits require the
@@ -190,7 +193,6 @@ const DECODE_STABILITY_GATE: boolean = (() => {
     return true;
   }
 })();
-const STABILITY_RATIO = 0.70;
 
 function concatFloat32(a: Float32Array, b: Float32Array): Float32Array {
   const result = new Float32Array(a.length + b.length);
@@ -199,14 +201,14 @@ function concatFloat32(a: Float32Array, b: Float32Array): Float32Array {
   return result;
 }
 
-function isSilence(audio: Float32Array): boolean {
+function isSilence(audio: Float32Array, threshold: number): boolean {
   if (audio.length === 0) return true;
   let sumSq = 0;
   for (let i = 0; i < audio.length; i++) {
     sumSq += audio[i] * audio[i];
   }
   const rms = Math.sqrt(sumSq / audio.length);
-  return rms < SILENCE_RMS_THRESHOLD;
+  return rms < threshold;
 }
 
 function wordsMatch(w1: string, w2: string, threshold = 0.7): boolean {
@@ -219,6 +221,7 @@ function alignPosition(
   recognizedWords: string[],
   verseWords: string[],
   startFrom = 0,
+  lookahead = DEFAULT_STREAMING_CONFIG.lookaheadWords,
 ): { position: number; matchedIndices: number[] } {
   if (!recognizedWords.length || !verseWords.length) {
     return { position: 0, matchedIndices: [] };
@@ -229,7 +232,7 @@ function alignPosition(
 
   for (const rec of recognizedWords) {
     if (versePtr >= verseWords.length) break;
-    const limit = Math.min(versePtr + LOOKAHEAD, verseWords.length);
+    const limit = Math.min(versePtr + lookahead, verseWords.length);
     for (let j = versePtr; j < limit; j++) {
       if (wordsMatch(rec, verseWords[j])) {
         matchedIndices.push(j);
@@ -246,6 +249,21 @@ function alignPosition(
     };
   }
   return { position: startFrom, matchedIndices: [] };
+}
+
+function hasStrongPendingPrefixEvidence(
+  matchedIndices: number[],
+  totalWords: number,
+): boolean {
+  if (matchedIndices.length === 0) return false;
+
+  const first = matchedIndices[0];
+  const last = matchedIndices[matchedIndices.length - 1];
+  if (totalWords <= 3) {
+    return first === 0;
+  }
+
+  return first <= 1 && (matchedIndices.length >= 2 || last >= 2);
 }
 
 function getSurroundingVerses(
@@ -505,12 +523,19 @@ export class RecitationTracker {
   private totalSamplesFed = 0;
   private samplesAtAdvance = 0;
   private hypothesis = new StreamingHypothesis();
+  private config: StreamingConfig;
 
   constructor(
     private db: QuranDB,
     private transcribe: TranscribeFn,
     private options: RecitationTrackerOptions = {},
-  ) {}
+  ) {
+    this.config = normalizeStreamingConfig(options.config);
+  }
+
+  setConfig(config: Partial<StreamingConfig>): void {
+    this.config = normalizeStreamingConfig(config);
+  }
 
   async feed(samples: Float32Array): Promise<WorkerOutbound[]> {
     const messages: WorkerOutbound[] = [];
@@ -519,15 +544,15 @@ export class RecitationTracker {
     this.utteranceAudio = concatFloat32(this.utteranceAudio, samples);
     const maxSamples =
       this.trackingVerse !== null
-        ? TRACKING_MAX_WINDOW_SAMPLES
-        : MAX_WINDOW_SAMPLES;
+        ? this.samplesForSeconds(this.config.trackingMaxWindowSec)
+        : this.samplesForSeconds(this.config.discoveryMaxWindowSec);
     if (this.utteranceAudio.length > maxSamples) {
       this.utteranceAudio = this.utteranceAudio.slice(-maxSamples);
     }
 
     this.newAudioCount += samples.length;
 
-    if (isSilence(samples)) {
+    if (isSilence(samples, this.config.silenceRmsThreshold)) {
       this.silenceSamples += samples.length;
     } else {
       this.silenceSamples = 0;
@@ -538,7 +563,7 @@ export class RecitationTracker {
     const finalFlush =
       this.utteranceHasSpeech &&
       !this.didFinalFlush &&
-      this.silenceSamples >= UTTERANCE_FINAL_SILENCE_SAMPLES;
+      this.silenceSamples >= this.samplesForSeconds(this.config.finalSilenceSec);
 
     if (this.trackingVerse !== null) {
       messages.push(...(await this._handleTracking(finalFlush)));
@@ -577,8 +602,8 @@ export class RecitationTracker {
     const messages: WorkerOutbound[] = [];
     if (!this.trackingVerse) return messages;
 
-    if (!finalFlush && this.newAudioCount < TRACKING_TRIGGER_SAMPLES) {
-      if (this.silenceSamples >= TRACKING_SILENCE_SAMPLES) {
+    if (!finalFlush && this.newAudioCount < this.samplesForSeconds(this.config.trackingTriggerSec)) {
+      if (this.silenceSamples >= this.samplesForSeconds(this.config.trackingSilenceTimeoutSec)) {
         this._rollbackWeakCommit("tracking silence timeout");
         this._exitTracking("extended silence");
       }
@@ -595,21 +620,35 @@ export class RecitationTracker {
 
     const recognizedWords = text.split(" ").filter(Boolean);
     const resumeFrom = Math.max(this.trackingLastWordIdx, 0);
+    let confirmedPendingEmission = false;
     let { matchedIndices } = alignPosition(
       recognizedWords,
       this.trackingVerseWords,
       resumeFrom,
+      this.config.lookaheadWords,
     );
     const primaryMatchedIndices = matchedIndices.slice();
 
     // Confirm pending emission only on primary word alignment from fresh audio
     if (
       this.trackingPendingEmission &&
-      matchedIndices.length > 0 &&
+      hasStrongPendingPrefixEvidence(matchedIndices, this.trackingVerseWords.length) &&
       this.totalSamplesFed > this.samplesAtAdvance
     ) {
-      messages.push(this.pendingEmissionMessage!);
+      const pending = this.pendingEmissionMessage!;
+      messages.push(pending);
+      this._emitDiagnostic({
+        type: "pending_emission",
+        action: "confirmed",
+        ref: `${pending.surah}:${pending.ayah}`,
+        margin: Number.isFinite(this.pendingEmissionMargin)
+          ? Math.round(this.pendingEmissionMargin * 1000) / 1000
+          : null,
+        fresh_samples: this.totalSamplesFed - this.samplesAtAdvance,
+        matched_indices: matchedIndices,
+      });
       this._clearPendingEmission();
+      confirmedPendingEmission = true;
     }
 
     let acousticWord: number | null = null;
@@ -647,11 +686,21 @@ export class RecitationTracker {
       char_word: charWord,
       advanced,
       final_flush: finalFlush,
+      word_position: advanced
+        ? matchedIndices[matchedIndices.length - 1] + 1
+        : this.trackingLastWordIdx + 1,
+      total_words: this.trackingVerseWords.length,
+      coverage: Math.round(
+        ((advanced
+          ? matchedIndices[matchedIndices.length - 1] + 1
+          : this.trackingLastWordIdx + 1) / this.trackingVerseWords.length) * 1000,
+      ) / 1000,
+      pending: this.trackingPendingEmission,
     });
 
     if (!advanced) {
       this.staleCycles++;
-      if (this.staleCycles >= STALE_CYCLE_LIMIT || finalFlush) {
+      if (this.staleCycles >= this.config.staleCycleLimit || finalFlush) {
         this._emitDiagnostic({
           type: "stale_exit",
           ref: `${this.trackingVerse.surah}:${this.trackingVerse.ayah}`,
@@ -665,7 +714,7 @@ export class RecitationTracker {
           finalFlush &&
           this.trackingPendingEmission &&
           this.pendingEmissionMessage !== null &&
-          this.pendingEmissionMargin < ADVANCE_FLUSH_STRICT_MARGIN
+          this.pendingEmissionMargin < this.config.advanceFlushStrictMargin
         ) {
           messages.push(this.pendingEmissionMessage);
           this._emitDiagnostic({
@@ -673,6 +722,15 @@ export class RecitationTracker {
             ref: `${this.pendingEmissionMessage.surah}:${this.pendingEmissionMessage.ayah}`,
             reason: "final_flush_pending_emit",
             confidence: this.pendingEmissionMessage.confidence,
+          });
+          this._emitDiagnostic({
+            type: "pending_emission",
+            action: "final_flush_emit",
+            ref: `${this.pendingEmissionMessage.surah}:${this.pendingEmissionMessage.ayah}`,
+            margin: Number.isFinite(this.pendingEmissionMargin)
+              ? Math.round(this.pendingEmissionMargin * 1000) / 1000
+              : null,
+            fresh_samples: this.totalSamplesFed - this.samplesAtAdvance,
           });
           this._clearPendingEmission();
           // Do NOT rollback — the pending emission has been confirmed.
@@ -689,35 +747,94 @@ export class RecitationTracker {
     this.trackingProgressEstablished = true;
     this.trackingLastWordIdx = matchedIndices[matchedIndices.length - 1];
     const wordPos = this.trackingLastWordIdx + 1;
+    const totalWords = this.trackingVerseWords.length;
+    const coverage = Math.round((wordPos / totalWords) * 1000) / 1000;
 
-    messages.push({
-      type: "word_progress",
-      surah: this.trackingVerse.surah,
-      ayah: this.trackingVerse.ayah,
-      word_index: wordPos,
-      total_words: this.trackingVerseWords.length,
-      matched_indices: matchedIndices,
-    });
-
-    const corrections = computeCorrection(
-      result.rawPhonemes,
-      this.trackingVerse.phonemes,
-      wordPos,
+    const completionWordCount = Math.ceil(
+      totalWords * this.config.trackingCompletionCoverage,
     );
-    if (corrections.length > 0) {
+    const completedEnough = wordPos >= completionWordCount;
+    const finalWordReached =
+      this.trackingLastWordIdx >= totalWords - 1;
+
+    if (
+      completedEnough &&
+      this.trackingPendingEmission &&
+      this.pendingEmissionMessage !== null
+    ) {
+      const pending = this.pendingEmissionMessage;
+      messages.push(pending);
+      this._emitDiagnostic({
+        type: "pending_emission",
+        action: "confirmed",
+        ref: `${pending.surah}:${pending.ayah}`,
+        margin: Number.isFinite(this.pendingEmissionMargin)
+          ? Math.round(this.pendingEmissionMargin * 1000) / 1000
+          : null,
+        fresh_samples: this.totalSamplesFed - this.samplesAtAdvance,
+        matched_indices: matchedIndices,
+      });
+      this._clearPendingEmission();
+      confirmedPendingEmission = true;
+    }
+
+    if (!this.trackingPendingEmission) {
       messages.push({
-        type: "word_correction",
+        type: "word_progress",
         surah: this.trackingVerse.surah,
         ayah: this.trackingVerse.ayah,
-        corrections,
+        word_index: wordPos,
+        total_words: totalWords,
+        matched_indices: matchedIndices,
       });
     }
 
-    const cumulativeCoverage = wordPos / this.trackingVerseWords.length;
-    const finalWordReached =
-      this.trackingLastWordIdx >= this.trackingVerseWords.length - 1;
-    if (cumulativeCoverage >= TRACKING_COMPLETION_COVERAGE && finalWordReached) {
-      if (!(this.lastCommitEvidence?.strong)) {
+    if (completedEnough && confirmedPendingEmission && !finalWordReached) {
+      this._emitDiagnostic({
+        type: "pending_emission",
+        action: "cascade_blocked",
+        ref: `${this.trackingVerse.surah}:${this.trackingVerse.ayah}`,
+        margin: null,
+        fresh_samples: this.totalSamplesFed - this.samplesAtAdvance,
+        matched_indices: matchedIndices,
+      });
+      this._emitDiagnostic({
+        type: "advance_decision",
+        from_ref: `${this.trackingVerse.surah}:${this.trackingVerse.ayah}`,
+        to_ref: null,
+        action: "blocked",
+        reason: "pending confirmed before final word",
+        word_position: wordPos,
+        total_words: totalWords,
+        coverage,
+        completion_target: completionWordCount,
+        final_word: finalWordReached,
+        advance_ok: false,
+        early_advance_ok: false,
+        margin: null,
+        normal_margin: this.config.advanceRelativeMargin,
+        strict_margin: this.config.advanceFlushStrictMargin,
+      });
+    }
+    if (completedEnough && (!confirmedPendingEmission || finalWordReached)) {
+      if (!(this.lastCommitEvidence?.strong) && !this.trackingProgressEstablished) {
+        this._emitDiagnostic({
+          type: "advance_decision",
+          from_ref: `${this.trackingVerse.surah}:${this.trackingVerse.ayah}`,
+          to_ref: null,
+          action: "blocked",
+          reason: "weak commit evidence",
+          word_position: wordPos,
+          total_words: totalWords,
+          coverage,
+          completion_target: completionWordCount,
+          final_word: finalWordReached,
+          advance_ok: false,
+          early_advance_ok: false,
+          margin: null,
+          normal_margin: this.config.advanceRelativeMargin,
+          strict_margin: this.config.advanceFlushStrictMargin,
+        });
         this._exitTracking("weak completion");
         return messages;
       }
@@ -727,44 +844,66 @@ export class RecitationTracker {
         this.trackingVerse.ayah,
       ];
       const currentIds = this.trackingVerse.phoneme_token_ids ?? [];
+      const nextVerse = this.db.getNextVerse(currentRef[0], currentRef[1]);
+      let advanceOk = true; // default: advance (preserves behavior when no acoustic data)
+      let earlyAdvanceOk = completedEnough;
+      // Evidence strength captured for optional final-flush emit. Defaults to
+      // +Inf so the default-advance (no acoustic) path never passes the
+      // stricter flush gate and still requires fresh-audio confirmation.
+      let advanceMargin = Number.POSITIVE_INFINITY;
+      const acoustic = this.lastTrackingResult?.acoustic;
+      const nextIds = nextVerse?.phoneme_token_ids ?? [];
+
+      if (nextVerse && acoustic && currentIds.length > 0 && nextIds.length > 0) {
+        // Relative evidence gate: compare current verse suffix vs next verse prefix.
+        const n = this.config.advancePrefixTokens;
+        const suffixIds = currentIds.slice(-Math.min(n, currentIds.length));
+        const prefixIds = nextIds.slice(0, Math.min(n, nextIds.length));
+
+        const suffixScore = scoreCtcSequence(acoustic, suffixIds);
+        const prefixScore = scoreCtcSequence(acoustic, prefixIds);
+
+        if (
+          !Number.isFinite(suffixScore) ||
+          !Number.isFinite(prefixScore)
+        ) {
+          advanceOk = false;
+        } else {
+          advanceMargin = prefixScore - suffixScore;
+          advanceOk = advanceMargin < this.config.advanceRelativeMargin;
+          earlyAdvanceOk = earlyAdvanceOk ||
+            advanceMargin < this.config.advanceFlushStrictMargin;
+        }
+      }
+
+      if (!finalWordReached && !earlyAdvanceOk) {
+        this._emitDiagnostic({
+          type: "advance_decision",
+          from_ref: `${this.trackingVerse.surah}:${this.trackingVerse.ayah}`,
+          to_ref: nextVerse ? `${nextVerse.surah}:${nextVerse.ayah}` : null,
+          action: "wait",
+          reason: "coverage reached without final word or next-prefix evidence",
+          word_position: wordPos,
+          total_words: totalWords,
+          coverage,
+          completion_target: completionWordCount,
+          final_word: finalWordReached,
+          advance_ok: advanceOk,
+          early_advance_ok: earlyAdvanceOk,
+          margin: Number.isFinite(advanceMargin)
+            ? Math.round(advanceMargin * 1000) / 1000
+            : null,
+          normal_margin: this.config.advanceRelativeMargin,
+          strict_margin: this.config.advanceFlushStrictMargin,
+        });
+        return messages;
+      }
+
       this.lastEmittedRef = currentRef;
       this.lastEmittedText = this.trackingVerse.phonemes_joined;
-      const nextVerse = this.db.getNextVerse(currentRef[0], currentRef[1]);
-      this._exitTracking("verse complete");
+      this._exitTracking(finalWordReached ? "verse complete" : "near-complete with next prefix");
 
       if (nextVerse) {
-        let advanceOk = true; // default: advance (preserves behavior when no acoustic data)
-        // Evidence strength captured for optional final-flush emit. Defaults to
-        // +Inf so the default-advance (no acoustic) path never passes the
-        // stricter flush gate and still requires fresh-audio confirmation.
-        let advanceMargin = Number.POSITIVE_INFINITY;
-
-        const acoustic = this.lastTrackingResult?.acoustic;
-        const nextIds = nextVerse.phoneme_token_ids ?? [];
-
-        if (acoustic && currentIds.length > 0 && nextIds.length > 0) {
-          // Relative evidence gate: compare current verse suffix vs next verse prefix
-          // Both use ~ADVANCE_PREFIX_TOKENS tokens for comparable normalization
-          const n = ADVANCE_PREFIX_TOKENS;
-          const suffixIds = currentIds.slice(-Math.min(n, currentIds.length));
-          const prefixIds = nextIds.slice(0, Math.min(n, nextIds.length));
-
-          const suffixScore = scoreCtcSequence(acoustic, suffixIds);
-          const prefixScore = scoreCtcSequence(acoustic, prefixIds);
-
-          // Both must be finite (feasible). If suffix is infeasible, audio is bad — block.
-          // If prefix is infeasible, next verse isn't in the audio at all — block.
-          if (
-            !Number.isFinite(suffixScore) ||
-            !Number.isFinite(prefixScore)
-          ) {
-            advanceOk = false;
-          } else {
-            advanceMargin = prefixScore - suffixScore;
-            advanceOk = advanceMargin < ADVANCE_RELATIVE_MARGIN;
-          }
-        }
-
         if (advanceOk) {
           // Snapshot state before advance for rollback on drop
           this.preAdvanceSnapshot = {
@@ -792,6 +931,36 @@ export class RecitationTracker {
           this.trackingPendingEmission = true;
           this.samplesAtAdvance = this.totalSamplesFed;
           this.pendingEmissionMargin = advanceMargin;
+          this._emitDiagnostic({
+            type: "advance_decision",
+            from_ref: `${currentRef[0]}:${currentRef[1]}`,
+            to_ref: `${nextVerse.surah}:${nextVerse.ayah}`,
+            action: "armed",
+            reason: finalWordReached
+              ? "final word reached"
+              : earlyAdvanceOk ? "completion coverage reached" : "next-prefix evidence",
+            word_position: wordPos,
+            total_words: totalWords,
+            coverage,
+            completion_target: completionWordCount,
+            final_word: finalWordReached,
+            advance_ok: advanceOk,
+            early_advance_ok: earlyAdvanceOk,
+            margin: Number.isFinite(advanceMargin)
+              ? Math.round(advanceMargin * 1000) / 1000
+              : null,
+            normal_margin: this.config.advanceRelativeMargin,
+            strict_margin: this.config.advanceFlushStrictMargin,
+          });
+          this._emitDiagnostic({
+            type: "pending_emission",
+            action: "armed",
+            ref: `${nextVerse.surah}:${nextVerse.ayah}`,
+            margin: Number.isFinite(advanceMargin)
+              ? Math.round(advanceMargin * 1000) / 1000
+              : null,
+            fresh_samples: 0,
+          });
 
           // Update state as before (tracking enters next verse)
           this.prevEmittedRef = currentRef;
@@ -805,6 +974,24 @@ export class RecitationTracker {
           };
           this._enterTracking(nextVerse);
           this.consecutiveAutoAdvances++;
+          if (this.config.nextVerseEmitMode === "candidate_until_confirmed") {
+            messages.push({
+              type: "verse_candidate",
+              candidates: [{
+                surah: nextVerse.surah,
+                ayah: nextVerse.ayah,
+                ayah_end: null,
+                confidence: 0.99,
+                rank: 1,
+                source: "tracking",
+              }],
+              stable: true,
+              final_flush: false,
+            });
+          } else if (this.config.nextVerseEmitMode === "immediate_on_completion") {
+            messages.push(this.pendingEmissionMessage);
+            this._clearPendingEmission();
+          }
           // After sustained auto-advances, degrade to weak so stale-exit
           // triggers rediscovery instead of persisting
           if (this.consecutiveAutoAdvances >= 5) {
@@ -814,7 +1001,27 @@ export class RecitationTracker {
             };
           }
         }
-        // If !advanceOk, we already exited tracking — falls through to rediscovery
+        if (!advanceOk) {
+          this._emitDiagnostic({
+            type: "advance_decision",
+            from_ref: `${currentRef[0]}:${currentRef[1]}`,
+            to_ref: `${nextVerse.surah}:${nextVerse.ayah}`,
+            action: "blocked",
+            reason: "advance margin failed",
+            word_position: wordPos,
+            total_words: totalWords,
+            coverage,
+            completion_target: completionWordCount,
+            final_word: finalWordReached,
+            advance_ok: advanceOk,
+            early_advance_ok: earlyAdvanceOk,
+            margin: Number.isFinite(advanceMargin)
+              ? Math.round(advanceMargin * 1000) / 1000
+              : null,
+            normal_margin: this.config.advanceRelativeMargin,
+            strict_margin: this.config.advanceFlushStrictMargin,
+          });
+        }
       }
 
       this._retainTailAfterCommit();
@@ -835,7 +1042,9 @@ export class RecitationTracker {
       return messages;
     }
 
-    if (!finalFlush && this.newAudioCount < TRIGGER_SAMPLES) return messages;
+    if (!finalFlush && this.newAudioCount < this.samplesForSeconds(this.config.discoveryTriggerSec)) {
+      return messages;
+    }
     this.newAudioCount = 0;
     this.cyclesSinceCommit++;
 
@@ -853,7 +1062,7 @@ export class RecitationTracker {
           const feasible = scored.filter((s) => s.feasible);
           if (feasible.length >= 2) {
             const margin = feasible[1].acousticScore - feasible[0].acousticScore;
-            if (margin >= ACOUSTIC_CLEAR_MARGIN) {
+            if (margin >= this.config.acousticClearMargin) {
               const best = feasible[0].meta;
               const verse = this.db.getVerse(best.surah, best.ayah);
               if (verse) {
@@ -909,7 +1118,10 @@ export class RecitationTracker {
 
     if (this.lastEmittedText && this.lastCommitEvidence?.strong) {
       const residual = partialRatio(text, this.lastEmittedText);
-      if (residual > 0.7 && !finalFlush) {
+      const textChars = text.replace(/\s+/g, "").length;
+      const emittedChars = this.lastEmittedText.replace(/\s+/g, "").length;
+      const looksLikeLeftover = textChars <= Math.ceil(emittedChars * 1.15);
+      if (residual > 0.7 && looksLikeLeftover && !finalFlush) {
         this._emitDiagnostic({
           type: "silence_skip",
           mode: "discovery",
@@ -928,7 +1140,7 @@ export class RecitationTracker {
       5,
     );
     // Expand candidate set when text match is unreliable
-    const textConfidenceLow = !match || match.score < ACOUSTIC_OVERRIDE_TEXT_THRESHOLD;
+    const textConfidenceLow = !match || match.score < this.config.verseMatchThreshold + 0.10;
     const singleLimit = textConfidenceLow
       ? DISCOVERY_EXPANDED_CANDIDATES
       : DISCOVERY_TOP_SINGLE_CANDIDATES;
@@ -992,7 +1204,7 @@ export class RecitationTracker {
         !championMatch &&
         fusionKey !== matchKey &&
         (
-          match.score < ACOUSTIC_OVERRIDE_TEXT_THRESHOLD ||
+          match.score < this.config.verseMatchThreshold + 0.10 ||
           textConfidenceLow ||
           fusionGap >= DISCOVERY_FUSION_SELECTION_GAP ||
           (fusionBest.candidate.kind === "span" && fusionBest.lengthFit >= 0.7)
@@ -1032,6 +1244,43 @@ export class RecitationTracker {
       effectiveScore = effectiveMatch.score;
     }
 
+    if (effectiveMatch && fusionBest && this.lastEmittedRef && !finalFlush) {
+      const nextAyah = this.lastEmittedRef[1] + 1;
+      const effectiveEnd =
+        effectiveMatch.ayah_end && effectiveMatch.ayah_end > effectiveMatch.ayah
+          ? effectiveMatch.ayah_end
+          : effectiveMatch.ayah;
+      const top = fusionBest.candidate;
+      const broadMatchCoversNext =
+        effectiveMatch.surah === this.lastEmittedRef[0] &&
+        effectiveMatch.ayah < nextAyah &&
+        effectiveEnd >= nextAyah;
+      const topIsNearbyForwardContinuation =
+        top.surah === this.lastEmittedRef[0] &&
+        top.ayah > nextAyah &&
+        top.ayah <= this.lastEmittedRef[1] + 3;
+      const topClearlyBetter =
+        (fusionBest.feasible || !result.acoustic) &&
+        fusionBest.lengthFit >= 0.6 &&
+        fusionBest.fusionScore >= effectiveScore + 0.05;
+
+      if (broadMatchCoversNext && topIsNearbyForwardContinuation && topClearlyBetter) {
+        effectiveMatch = {
+          surah: top.surah,
+          ayah: top.ayah,
+          ayah_end: top.ayah_end,
+          text: top.text,
+          phonemes_joined: top.phonemes_joined,
+          score: Math.max(fusionBest.fusionScore, top.stage_a_score),
+          raw_score: top.raw_score,
+          bonus: top.bonus,
+        };
+        effectiveScore = effectiveMatch.score;
+        acousticMargin = fusionBest.acousticMargin;
+        lengthFit = fusionBest.lengthFit;
+      }
+    }
+
     if (effectiveMatch) {
       const effectiveKey = refKey(
         effectiveMatch.surah,
@@ -1052,7 +1301,54 @@ export class RecitationTracker {
       }
     }
 
-    const threshold = this.lastEmittedRef ? VERSE_MATCH_THRESHOLD : FIRST_MATCH_THRESHOLD;
+    if (effectiveMatch && this.lastEmittedRef && !finalFlush) {
+      const nextAyah = this.lastEmittedRef[1] + 1;
+      const effectiveEnd =
+        effectiveMatch.ayah_end && effectiveMatch.ayah_end > effectiveMatch.ayah
+          ? effectiveMatch.ayah_end
+          : effectiveMatch.ayah;
+      const shouldRebaseToNext =
+        effectiveMatch.surah === this.lastEmittedRef[0] &&
+        effectiveMatch.ayah !== nextAyah &&
+        effectiveMatch.ayah <= nextAyah &&
+        effectiveEnd >= nextAyah;
+      const nextVerse = this.db.getVerse(effectiveMatch.surah, nextAyah);
+      if (shouldRebaseToNext && nextVerse) {
+        this._emitDiagnostic({
+          type: "advance_decision",
+          from_ref: refKey(
+            effectiveMatch.surah,
+            effectiveMatch.ayah,
+            effectiveMatch.ayah_end,
+          ),
+          to_ref: `${nextVerse.surah}:${nextVerse.ayah}`,
+          action: "blocked",
+          reason: "live span rebased to next ayah",
+          word_position: 0,
+          total_words: 0,
+          coverage: 0,
+          completion_target: 0,
+          final_word: false,
+          advance_ok: false,
+          early_advance_ok: false,
+          margin: null,
+          normal_margin: this.config.advanceRelativeMargin,
+          strict_margin: this.config.advanceFlushStrictMargin,
+        });
+        effectiveMatch = {
+          surah: nextVerse.surah,
+          ayah: nextVerse.ayah,
+          ayah_end: null,
+          text: nextVerse.text_uthmani,
+          phonemes_joined: nextVerse.phonemes_joined,
+          score: effectiveScore,
+          raw_score: effectiveScore,
+          bonus: 0,
+        };
+      }
+    }
+
+    const threshold = this.lastEmittedRef ? this.config.verseMatchThreshold : this.config.firstMatchThreshold;
 
     if (effectiveMatch && effectiveScore >= threshold) {
       const key = refKey(effectiveMatch.surah, effectiveMatch.ayah, effectiveMatch.ayah_end);
@@ -1065,9 +1361,9 @@ export class RecitationTracker {
       const clearMargin =
         lengthFit >= 0.6 &&
         acousticMargin >=
-        (isContinuation ? ACOUSTIC_CONTINUATION_MARGIN : ACOUSTIC_CLEAR_MARGIN);
+        (isContinuation ? this.config.acousticContinuationMargin : this.config.acousticClearMargin);
       const repeatedLeader =
-        (this.pendingLeader?.count ?? 0) >= DISCOVERY_REPEAT_CYCLES;
+        (this.pendingLeader?.count ?? 0) >= this.config.discoveryRepeatCycles;
       const candidateMessage = this._candidateMessage(
         effectiveMatch,
         effectiveScore,
@@ -1082,12 +1378,38 @@ export class RecitationTracker {
       // Anti-cascade: shortly after a commit, require higher score for
       // non-continuation jumps to prevent false positives
       let effectivelyBlocked = false;
+      if (this.lastEmittedRef && !isContinuation && !finalFlush) {
+        effectivelyBlocked = true;
+        this._emitDiagnostic({
+          type: "advance_decision",
+          from_ref: this.lastEmittedRef
+            ? `${this.lastEmittedRef[0]}:${this.lastEmittedRef[1]}`
+            : "none",
+          to_ref: refKey(
+            effectiveMatch.surah,
+            effectiveMatch.ayah,
+            effectiveMatch.ayah_end,
+          ),
+          action: "blocked",
+          reason: "live non-continuation discovery blocked",
+          word_position: 0,
+          total_words: 0,
+          coverage: 0,
+          completion_target: 0,
+          final_word: false,
+          advance_ok: false,
+          early_advance_ok: false,
+          margin: null,
+          normal_margin: this.config.advanceRelativeMargin,
+          strict_margin: this.config.advanceFlushStrictMargin,
+        });
+      }
       if (
         !isContinuation &&
         this.lastEmittedRef &&
         this.cyclesSinceCommit <= 2
       ) {
-        if (effectiveScore < NON_CONTINUATION_JUMP_THRESHOLD && !repeatedLeader) {
+        if (effectiveScore < this.config.nonContinuationJumpThreshold && !repeatedLeader) {
           effectivelyBlocked = true;
         }
       }
@@ -1100,11 +1422,16 @@ export class RecitationTracker {
       // commits onto the repeated-leader path (≥ DISCOVERY_REPEAT_CYCLES)
       // when the underlying decode is volatile.
       let clearMarginAllowed = clearMargin;
-      if (DECODE_STABILITY_GATE && clearMargin && !isContinuation) {
+      if (
+        DECODE_STABILITY_GATE &&
+        this.config.decodeStabilityEnabled &&
+        clearMargin &&
+        !isContinuation
+      ) {
         const prev = this.lastRawPhonemes;
         const stable =
           prev !== null && prev.length > 0 &&
-          levRatio(prev, result.rawPhonemes) >= STABILITY_RATIO;
+          levRatio(prev, result.rawPhonemes) >= this.config.decodeStabilityRatio;
         if (!stable) clearMarginAllowed = false;
       }
 
@@ -1154,10 +1481,38 @@ export class RecitationTracker {
           surrounding_verses: surrounding,
         });
 
-        // Span match: emit verse_match for each additional verse in the span
         const ayahEnd = effectiveMatch.ayah_end;
-        if (ayahEnd && ayahEnd > effectiveMatch.ayah) {
-          for (let a = effectiveMatch.ayah + 1; a <= ayahEnd; a++) {
+        const liveSpanCollapsed = Boolean(
+          ayahEnd && ayahEnd > effectiveMatch.ayah && !finalFlush,
+        );
+        const committedAyahEnd =
+          ayahEnd && ayahEnd > effectiveMatch.ayah && finalFlush
+            ? ayahEnd
+            : effectiveMatch.ayah;
+        if (liveSpanCollapsed) {
+          this._emitDiagnostic({
+            type: "advance_decision",
+            from_ref: refKey(effectiveMatch.surah, effectiveMatch.ayah, ayahEnd),
+            to_ref: `${effectiveMatch.surah}:${effectiveMatch.ayah}`,
+            action: "blocked",
+            reason: "live span collapsed to first ayah",
+            word_position: 0,
+            total_words: 0,
+            coverage: 0,
+            completion_target: 0,
+            final_word: false,
+            advance_ok: false,
+            early_advance_ok: false,
+            margin: null,
+            normal_margin: this.config.advanceRelativeMargin,
+            strict_margin: this.config.advanceFlushStrictMargin,
+          });
+        }
+
+        // Only final flush commits every verse in a span. During live recitation,
+        // committing the whole span jumps the UI past the ayah the user just began.
+        if (committedAyahEnd > effectiveMatch.ayah) {
+          for (let a = effectiveMatch.ayah + 1; a <= committedAyahEnd; a++) {
             const spanVerse = this.db.getVerse(effectiveMatch.surah, a);
             if (spanVerse) {
               messages.push({
@@ -1175,14 +1530,15 @@ export class RecitationTracker {
 
         this.prevEmittedRef = this.lastEmittedRef;
         this.prevEmittedText = this.lastEmittedText;
-        const effectiveRef: [number, number] = ayahEnd
-          ? [effectiveMatch.surah, ayahEnd]
-          : ref;
+        const effectiveRef: [number, number] = [
+          effectiveMatch.surah,
+          committedAyahEnd,
+        ];
         this.lastEmittedRef = effectiveRef;
-        // For spans, use the last verse's phonemes for continuation matching
-        const lastSpanVerse = ayahEnd
-          ? this.db.getVerse(effectiveMatch.surah, ayahEnd)
-          : verse;
+        const lastSpanVerse =
+          committedAyahEnd > effectiveMatch.ayah
+            ? this.db.getVerse(effectiveMatch.surah, committedAyahEnd)
+            : verse;
         this.lastEmittedText =
           lastSpanVerse?.phonemes_joined ?? effectiveMatch.phonemes_joined ?? verse?.phonemes_joined ?? "";
         this.lastCommitEvidence = {
@@ -1199,8 +1555,10 @@ export class RecitationTracker {
 
         this._emitDiagnostic({
           type: "commit",
-          ref: key,
-          reason: clearMargin ? "acoustic_margin" : "repeat_leader",
+          ref: liveSpanCollapsed ? `${effectiveMatch.surah}:${effectiveMatch.ayah}` : key,
+          reason: liveSpanCollapsed
+            ? "live_span_collapsed"
+            : clearMargin ? "acoustic_margin" : "repeat_leader",
           confidence: Math.round(confidence * 1000) / 1000,
           origin: "discovery",
           selected_rank: selectedRank >= 0 ? selectedRank + 1 : null,
@@ -1228,7 +1586,7 @@ export class RecitationTracker {
           is_continuation: isContinuation,
         });
 
-        // Enter tracking on the last verse in the span so auto-advance continues from there
+        // Live spans track the first committed ayah; final-flush spans track the last.
         const trackVerse = lastSpanVerse ?? verse;
         if (trackVerse) {
           this._enterTracking(trackVerse);
@@ -1329,7 +1687,7 @@ export class RecitationTracker {
         priorScore: prefix.wordIndex + 1,
       })),
     );
-    const stable = chooseLongestStablePrefix(scored, TRACKING_PREFIX_TOLERANCE);
+    const stable = chooseLongestStablePrefix(scored, this.config.trackingPrefixTolerance);
     return stable?.meta.wordIndex ?? -1;
   }
 
@@ -1520,8 +1878,10 @@ export class RecitationTracker {
 
   private _retainTailAfterCommit(): void {
     if (this.lastCommitEvidence?.strong) {
-      // Shorter retention on auto-advance: only keep 0.5s overlap, not full 2s
-      const keepAmount = this.trackingPendingEmission ? TRACKING_TRIGGER_SAMPLES : TRIGGER_SAMPLES;
+      const keepSeconds = this.trackingPendingEmission
+        ? this.config.tailAfterPendingAdvanceSec
+        : this.config.tailAfterCommitSec;
+      const keepAmount = this.samplesForSeconds(keepSeconds);
       const keepSamples = Math.min(this.utteranceAudio.length, keepAmount);
       this.utteranceAudio = this.utteranceAudio.slice(-keepSamples);
     }
@@ -1560,5 +1920,9 @@ export class RecitationTracker {
 
   private _emitDiagnostic(event: TrackerDiagnosticEvent): void {
     this.options.onDiagnostic?.(event);
+  }
+
+  private samplesForSeconds(seconds: number): number {
+    return Math.max(1, Math.round(SAMPLE_RATE * seconds));
   }
 }

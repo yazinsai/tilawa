@@ -38,7 +38,11 @@
       <details id="debug-panel" class="debug-panel">
         <summary>
           <span>Debug view</span>
-          <span id="debug-summary">0 events</span>
+          <span class="debug-summary-actions">
+            <span id="debug-copy-status" class="debug-copy-status" aria-live="polite"></span>
+            <button id="debug-copy" class="debug-copy-btn" type="button">Copy JSON</button>
+            <span id="debug-summary">0 events</span>
+          </span>
         </summary>
         <div id="debug-content" class="debug-content"></div>
       </details>
