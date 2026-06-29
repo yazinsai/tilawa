@@ -10,11 +10,11 @@ import type {
   FinalSequenceMessage,
   RawTranscriptMessage,
   WordProgressMessage,
-  WordCorrectionMessage,
   WorkerOutbound,
   QuranVerse,
   DebugMessage,
 } from "./lib/types";
+import { DEFAULT_STREAMING_CONFIG } from "./lib/types";
 
 // ---------------------------------------------------------------------------
 // Types (UI-only)
@@ -70,6 +70,8 @@ const state = {
   lastDiagnosticSentAt: 0,
   recentVerseMatches: [] as { surah: number; ayah: number; timestamp: number }[],
   finalSequence: [] as { surah: number; ayah: number; confidence: number }[],
+  streamingConfig: DEFAULT_STREAMING_CONFIG,
+  audioProcessor: null as AudioWorkletNode | null,
 };
 
 // ---------------------------------------------------------------------------
@@ -95,6 +97,16 @@ const $candidateStatus = document.getElementById("candidate-status")!;
 const $debugPanel = document.getElementById("debug-panel") as HTMLDetailsElement;
 const $debugSummary = document.getElementById("debug-summary")!;
 const $debugContent = document.getElementById("debug-content")!;
+const $debugCopy = document.getElementById("debug-copy") as HTMLButtonElement;
+const $debugCopyStatus = document.getElementById("debug-copy-status")!;
+
+function pushStreamingConfig(): void {
+  state.worker?.postMessage({ type: "set_config", config: state.streamingConfig });
+  state.audioProcessor?.port.postMessage({
+    type: "set_config",
+    audioChunkMs: state.streamingConfig.audioChunkMs,
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Arabic numeral converter
@@ -112,7 +124,8 @@ function toArabicNum(n: number): string {
 // ---------------------------------------------------------------------------
 async function loadQuranData(): Promise<void> {
   if (state.quranData) return;
-  const res = await fetch("/quran_phonemes.json");
+  const res = await fetch("/quran.json");
+  if (!res.ok) throw new Error(`quran.json fetch failed: ${res.status}`);
   state.quranData = await res.json();
   initSurahDropdown(state.quranData);
 }
@@ -367,29 +380,6 @@ function handleWordProgress(msg: WordProgressMessage): void {
   }
 }
 
-function handleWordCorrection(msg: WordCorrectionMessage): void {
-  const lastGroup = state.groups[state.groups.length - 1];
-  if (!lastGroup || lastGroup.surah !== msg.surah) return;
-
-  const verseEl = lastGroup.element.querySelector<HTMLElement>(
-    `.verse[data-ayah="${msg.ayah}"]`,
-  );
-  if (!verseEl) return;
-
-  // Build set of error word indices
-  const errorIndices = new Set(msg.corrections.map((c) => c.word_index));
-
-  const wordEls = verseEl.querySelectorAll<HTMLElement>(".word");
-  for (const wordEl of wordEls) {
-    const idx = parseInt(wordEl.getAttribute("data-word-idx") || "-1");
-    if (errorIndices.has(idx)) {
-      wordEl.classList.add("word--error");
-    } else {
-      wordEl.classList.remove("word--error");
-    }
-  }
-}
-
 function handleRawTranscript(msg: RawTranscriptMessage): void {
   $rawTranscript.textContent = msg.text;
   $rawTranscript.classList.add("visible");
@@ -397,20 +387,24 @@ function handleRawTranscript(msg: RawTranscriptMessage): void {
 
 async function handleVerseCandidate(msg: VerseCandidateMessage): Promise<void> {
   const best = msg.candidates[0];
-  if (!best || state.hasFirstMatch) {
+  if (!best) {
     return;
   }
+  if (state.hasFirstMatch && best.source !== "tracking") return;
 
   const surah = await fetchSurah(best.surah);
   const range =
     best.ayah_end && best.ayah_end > best.ayah
       ? `${best.ayah}-${best.ayah_end}`
       : String(best.ayah);
-  const label = msg.stable ? "Likely" : "Listening near";
+  const label = best.source === "tracking"
+    ? "Pending next"
+    : msg.stable ? "Likely" : "Listening near";
 
   $candidateStatus.textContent =
     `${label}: ${surah.surah_name_en} ${range} (${Math.round(best.confidence * 100)}%)`;
   $candidateStatus.classList.toggle("candidate-status--stable", msg.stable);
+  $candidateStatus.classList.toggle("candidate-status--pending", best.source === "tracking");
   $candidateStatus.hidden = false;
   $listeningStatus.hidden = true;
 }
@@ -444,6 +438,75 @@ function handleDebugMessage(msg: DebugMessage): void {
 function syncDebugEnabled(): void {
   state.worker?.postMessage({ type: "set_debug", enabled: $debugPanel.open });
   renderDebugPanel();
+}
+
+function buildDebugBundle() {
+  const totalSamples = state.sessionAudioChunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const activeGroup = state.groups[state.groups.length - 1] ?? null;
+  return {
+    schema: "offline-tarteel-debug-bundle/v1",
+    createdAt: new Date().toISOString(),
+    pageUrl: location.href,
+    userAgent: navigator.userAgent,
+    modelReady: state.modelReady,
+    isActive: state.isActive,
+    streamingConfig: state.streamingConfig,
+    audio: {
+      sampleRate: 16000,
+      chunkCount: state.sessionAudioChunks.length,
+      totalSamples,
+      durationSec: Math.round((totalSamples / 16000) * 1000) / 1000,
+    },
+    ui: {
+      hasFirstMatch: state.hasFirstMatch,
+      lastModelPrediction: state.lastModelPrediction,
+      activeGroup: activeGroup
+        ? {
+            surah: activeGroup.surah,
+            surahNameEn: activeGroup.surahNameEn,
+            currentAyah: activeGroup.currentAyah,
+          }
+        : null,
+      candidateStatus: {
+        text: $candidateStatus.textContent ?? "",
+        hidden: $candidateStatus.hidden,
+      },
+      rawTranscript: {
+        text: $rawTranscript.textContent ?? "",
+        visible: $rawTranscript.classList.contains("visible"),
+      },
+      finalSequence: state.finalSequence,
+      recentVerseMatches: state.recentVerseMatches,
+    },
+    diagnostics: state.diagnosticEvents,
+    debugEvents: state.debugEvents,
+  };
+}
+
+async function copyDebugBundle(): Promise<void> {
+  const json = JSON.stringify(buildDebugBundle(), null, 2);
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(json);
+    } else {
+      const textarea = document.createElement("textarea");
+      textarea.value = json;
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      textarea.remove();
+    }
+    $debugCopyStatus.textContent = "Copied";
+  } catch (err) {
+    console.error("Failed to copy debug bundle:", err);
+    $debugCopyStatus.textContent = "Copy failed";
+  }
+
+  setTimeout(() => {
+    $debugCopyStatus.textContent = "";
+  }, 1800);
 }
 
 function formatDebugValue(value: unknown): string {
@@ -502,10 +565,24 @@ function summarizeDebugEvent(event: DebugMessage): { label: string; chips: HTMLE
   }
   if (trackerType === "tracking_cycle") {
     chips.push(debugChip("ref", data.ref));
-    chips.push(debugChip("words", data.word_matches));
+    chips.push(debugChip("words", `${data.word_position}/${data.total_words}`));
+    chips.push(debugChip("cov", data.coverage));
+    chips.push(debugChip("primary", data.word_matches));
     chips.push(debugChip("advanced", data.advanced));
+    chips.push(debugChip("pending", data.pending));
     chips.push(debugChip("final", data.final_flush));
     return { label: "track", chips };
+  }
+  if (trackerType === "advance_decision") {
+    chips.push(debugChip("from", data.from_ref));
+    chips.push(debugChip("to", data.to_ref));
+    chips.push(debugChip("action", data.action, data.action === "armed" ? "debug-chip--strong" : ""));
+    chips.push(debugChip("why", data.reason, "debug-chip--wide"));
+    chips.push(debugChip("words", `${data.word_position}/${data.total_words}`));
+    chips.push(debugChip("target", data.completion_target));
+    chips.push(debugChip("margin", data.margin));
+    chips.push(debugChip("strict", data.strict_margin));
+    return { label: "advance", chips };
   }
   if (trackerType === "commit") {
     chips.push(debugChip("ref", data.ref, "debug-chip--strong"));
@@ -518,6 +595,7 @@ function summarizeDebugEvent(event: DebugMessage): { label: string; chips: HTMLE
     chips.push(debugChip("action", data.action));
     chips.push(debugChip("ref", data.ref));
     chips.push(debugChip("margin", data.margin));
+    chips.push(debugChip("fresh", data.fresh_samples));
     return { label: "pending", chips };
   }
   if (trackerType === "rollback" || trackerType === "stale_exit" || trackerType === "flush") {
@@ -709,8 +787,6 @@ function handleWorkerMessage(msg: WorkerOutbound): void {
       word_index: msg.word_index, total_words: msg.total_words,
     });
     handleWordProgress(msg);
-  } else if (msg.type === "word_correction") {
-    handleWordCorrection(msg);
   } else if (msg.type === "raw_transcript") {
     pushDiagnosticEvent("raw_transcript", {
       text: msg.text, confidence: msg.confidence,
@@ -742,6 +818,11 @@ async function startAudio(): Promise<void> {
     await audioCtx.audioWorklet.addModule("/audio-processor.js");
     const source = audioCtx.createMediaStreamSource(stream);
     const processor = new AudioWorkletNode(audioCtx, "audio-stream-processor");
+    state.audioProcessor = processor;
+    processor.port.postMessage({
+      type: "set_config",
+      audioChunkMs: state.streamingConfig.audioChunkMs,
+    });
 
     processor.port.onmessage = (e: MessageEvent) => {
       const samples = new Float32Array(e.data as ArrayBuffer);
@@ -801,6 +882,7 @@ function stopAudio(): void {
     state.audioCtx.close();
     state.audioCtx = null;
   }
+  state.audioProcessor = null;
   state.isActive = false;
   $indicator.classList.remove("active", "audio-detected", "silence", "has-verses");
 }
@@ -826,9 +908,15 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   $debugPanel.addEventListener("toggle", syncDebugEnabled);
+  $debugCopy.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    copyDebugBundle();
+  });
 
   // Initialize worker (loads model, vocab, quranDB)
   worker.postMessage({ type: "init" });
+  pushStreamingConfig();
   syncDebugEnabled();
 
   // Button handlers
@@ -848,10 +936,11 @@ document.addEventListener("DOMContentLoaded", () => {
     $rawTranscript.classList.remove("visible");
     $candidateStatus.textContent = "";
     $candidateStatus.hidden = true;
-    $candidateStatus.classList.remove("candidate-status--stable");
+    $candidateStatus.classList.remove("candidate-status--stable", "candidate-status--pending");
     renderDebugPanel();
     // Reset tracker in worker
     state.worker?.postMessage({ type: "reset" });
+    pushStreamingConfig();
     await startAudio();
   });
 
@@ -873,7 +962,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $rawTranscript.classList.remove("visible");
     $candidateStatus.textContent = "";
     $candidateStatus.hidden = true;
-    $candidateStatus.classList.remove("candidate-status--stable");
+    $candidateStatus.classList.remove("candidate-status--stable", "candidate-status--pending");
     renderDebugPanel();
     $postRecording.hidden = true;
     $readyState.hidden = false;

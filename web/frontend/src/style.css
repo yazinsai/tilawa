@@ -284,6 +284,10 @@ body {
   border-color: rgba(184, 152, 106, 0.35);
 }
 
+#candidate-status.candidate-status--pending {
+  border-style: dashed;
+}
+
 /* ── Raw transcript fallback ── */
 #raw-transcript {
   font-family: var(--font-arabic);
@@ -331,6 +335,33 @@ body {
 
 #debug-summary {
   color: var(--text-muted);
+}
+
+.debug-summary-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.debug-copy-btn {
+  border: 1px solid rgba(184, 152, 106, 0.28);
+  border-radius: 999px;
+  background: rgba(250, 248, 243, 0.82);
+  color: var(--text-light);
+  font: inherit;
+  padding: 0.24rem 0.55rem;
+  cursor: pointer;
+}
+
+.debug-copy-btn:hover {
+  color: var(--text);
+  border-color: rgba(184, 152, 106, 0.45);
+}
+
+.debug-copy-status {
+  min-width: 4.5rem;
+  color: var(--text-muted);
+  text-align: right;
 }
 
 .debug-content {
