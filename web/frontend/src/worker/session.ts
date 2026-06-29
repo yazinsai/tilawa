@@ -3,7 +3,10 @@ import * as ort from "onnxruntime-web/wasm";
 let session: ort.InferenceSession | null = null;
 
 export async function createSession(modelBuffer: ArrayBuffer): Promise<void> {
-  ort.env.wasm.numThreads = Math.min(4, navigator.hardwareConcurrency || 1);
+  // Browser pthread startup can hang in deployed worker contexts even when
+  // COOP/COEP headers look correct. Prefer a reliable single-threaded session;
+  // inference can be tuned separately once production init is stable.
+  ort.env.wasm.numThreads = 1;
   ort.env.wasm.simd = true;
 
   session = await ort.InferenceSession.create(modelBuffer, {
