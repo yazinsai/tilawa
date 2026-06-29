@@ -3,7 +3,7 @@ import * as ort from "onnxruntime-web/wasm";
 let session: ort.InferenceSession | null = null;
 
 export async function createSession(modelBuffer: ArrayBuffer): Promise<void> {
-  ort.env.wasm.numThreads = 1;
+  ort.env.wasm.numThreads = Math.min(4, navigator.hardwareConcurrency || 1);
   ort.env.wasm.simd = true;
 
   session = await ort.InferenceSession.create(modelBuffer, {
@@ -12,27 +12,20 @@ export async function createSession(modelBuffer: ArrayBuffer): Promise<void> {
 }
 
 export async function runInference(
-  melFeatures: Float32Array,
-  numMels: number,
-  timeFrames: number,
+  audio: Float32Array,
 ): Promise<{ logprobs: Float32Array; timeSteps: number; vocabSize: number }> {
   if (!session) throw new Error("Session not initialized");
 
-  const inputTensor = new ort.Tensor("float32", melFeatures, [
-    1,
-    numMels,
-    timeFrames,
-  ]);
+  const inputTensor = new ort.Tensor("float32", audio, [1, audio.length]);
   const lengthTensor = new ort.Tensor(
     "int64",
-    BigInt64Array.from([BigInt(timeFrames)]),
+    BigInt64Array.from([BigInt(audio.length)]),
     [1],
   );
 
-  const inputNames = session.inputNames;
   const feeds: Record<string, ort.Tensor> = {
-    [inputNames[0]]: inputTensor,
-    [inputNames[1]]: lengthTensor,
+    audio_signal: inputTensor,
+    length: lengthTensor,
   };
 
   const results = await session.run(feeds);

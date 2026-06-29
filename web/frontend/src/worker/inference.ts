@@ -1,31 +1,28 @@
-import { loadModel } from "./model-cache";
-import { computeMelSpectrogram } from "./mel";
-import { CTCDecoder } from "./ctc-decode";
-import { createSession, runInference } from "./session";
-import { beamSearchDecode } from "./beam-decode";
-import { buildTrie, type CompactTrie } from "../lib/phoneme-trie";
 import { QuranDB } from "../lib/quran-db";
+import type { WorkerInbound, WorkerOutbound } from "../lib/types";
 import { RecitationTracker } from "../lib/tracker";
-import type { TranscribeResult, BeamVerseMatch } from "../lib/tracker";
-import type { QuranVerse, WorkerInbound, WorkerOutbound } from "../lib/types";
+import type { TranscribeResult } from "../lib/tracker";
+import { loadModel } from "./model-cache";
+import {
+  adaptQuranTextData,
+  validateCtcTokenRoundTrip,
+  type CtcTokenTable,
+} from "./quran-text-adapter";
+import { DEFAULT_STREAMING_CONFIG, normalizeStreamingConfig, type StreamingConfig } from "../lib/types";
+import { createSession, runInference } from "./session";
+import { TextCTCDecoder } from "./text-ctc-decode";
 
-const MODEL_URL = "/fastconformer_phoneme_q8.onnx";
-const JOINT03_BEAM_WIDTH = 6;
-const JOINT03_TOP_SYMBOLS = 8;
-const JOINT03_MAX_HYPOTHESES = 4;
-const JOINT03_SECOND_PASS_MATCH_GATE = 0.63;
-const JOINT03_SECOND_PASS_FRAME_MEAN_MAX_LOGP = -0.42;
-const JOINT03_DECODE2_BEAM_WIDTH = 11;
-const JOINT03_DECODE2_TOP_SYMBOLS = 12;
-const JOINT03_DECODE2_MAX_EXTRA_STRINGS = 4;
+const MODEL_URL = "/fastconformer_full_mixed.onnx";
+const VOCAB_URL = "/vocab.json";
+const QURAN_URL = "/quran.json";
+const CTC_TOKENS_URL = "/quran_ctc_tokens.json";
+const METADATA_URL = "/export_metadata.json";
 
 let tracker: RecitationTracker | null = null;
-let decoder: CTCDecoder | null = null;
+let decoder: TextCTCDecoder | null = null;
 let db: QuranDB | null = null;
-let trie: CompactTrie | null = null;
-let vocabJsonCache: Record<string, string> | null = null;
-let quranDataCache: QuranVerse[] | null = null;
 let debugEnabled = false;
+let activeConfig: StreamingConfig = DEFAULT_STREAMING_CONFIG;
 
 function post(msg: WorkerOutbound) {
   self.postMessage(msg);
@@ -41,252 +38,97 @@ function postDebug(event: string, data: Record<string, unknown>) {
   });
 }
 
-function logAddExp(a: number | undefined, b: number): number {
-  if (a === undefined) return b;
-  const hi = Math.max(a, b);
-  const lo = Math.min(a, b);
-  return hi + Math.log1p(Math.exp(lo - hi));
+async function sha256Hex(data: ArrayBuffer): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 }
 
-function topSymbolsForFrame(
-  logprobs: Float32Array,
-  offset: number,
-  vocabSize: number,
-  topSymbols: number,
-): number[] {
-  const keep = Math.min(topSymbols, vocabSize);
-  const out: Array<{ id: number; value: number }> = [];
-  for (let id = 0; id < vocabSize; id++) {
-    const value = logprobs[offset + id];
-    if (out.length < keep) {
-      out.push({ id, value });
-      out.sort((a, b) => b.value - a.value);
-    } else if (value > out[out.length - 1].value) {
-      out[out.length - 1] = { id, value };
-      out.sort((a, b) => b.value - a.value);
-    }
-  }
-  return out.map((entry) => entry.id);
+async function fetchJsonWithHash<T>(url: string): Promise<{ json: T; sha256: string }> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${url} fetch failed: ${res.status}`);
+  const buffer = await res.arrayBuffer();
+  const sha256 = await sha256Hex(buffer.slice(0));
+  const json = JSON.parse(new TextDecoder().decode(buffer)) as T;
+  return { json, sha256 };
 }
 
-function ctcPrefixBeamDecode(
-  logprobs: Float32Array,
-  timeSteps: number,
-  vocabSize: number,
-  blankId: number,
-  beamWidth: number,
-  topSymbols: number,
-): Array<{ ids: number[]; score: number }> {
-  let beam = new Map<string, { ids: number[]; score: number }>();
-  beam.set("", { ids: [], score: 0 });
-
-  for (let t = 0; t < timeSteps; t++) {
-    const offset = t * vocabSize;
-    const symbols = topSymbolsForFrame(logprobs, offset, vocabSize, topSymbols);
-    const nextBeam = new Map<string, { ids: number[]; score: number }>();
-    const items = [...beam.values()]
-      .sort((a, b) => b.score - a.score)
-      .slice(0, Math.max(beamWidth * 3, beamWidth));
-
-    for (const item of items) {
-      for (const c of symbols) {
-        const logp = item.score + logprobs[offset + c];
-        let ids = item.ids;
-        if (c !== blankId && item.ids[item.ids.length - 1] !== c) {
-          ids = [...item.ids, c];
-        }
-        const key = ids.join(",");
-        nextBeam.set(key, {
-          ids,
-          score: logAddExp(nextBeam.get(key)?.score, logp),
-        });
-      }
-    }
-
-    beam = new Map(
-      [...nextBeam.entries()]
-        .sort((a, b) => b[1].score - a[1].score)
-        .slice(0, beamWidth),
-    );
-  }
-
-  return [...beam.values()].sort((a, b) => b.score - a.score).slice(0, beamWidth);
+function makeTracker(): RecitationTracker {
+  if (!db) throw new Error("QuranDB not initialized");
+  return new RecitationTracker(db, transcribe, {
+    config: activeConfig,
+    onDiagnostic: (event) => postDebug("tracker", { ...event }),
+  });
 }
 
-function appendBeamHypotheses(
-  hypotheses: string[],
-  seen: Set<string>,
-  logprobs: Float32Array,
-  timeSteps: number,
-  vocabSize: number,
-  blankId: number,
-  beamWidth: number,
-  topSymbols: number,
-  maxExtra: number,
-) {
-  for (const result of ctcPrefixBeamDecode(
-    logprobs,
-    timeSteps,
-    vocabSize,
-    blankId,
-    beamWidth,
-    topSymbols,
-  )) {
-    const text = decoder!.tokenIdsToText(result.ids);
-    if (!text.trim() || seen.has(text)) continue;
-    seen.add(text);
-    hypotheses.push(text);
-    if (hypotheses.length >= maxExtra) break;
-  }
-}
-
-function meanFrameMaxLogp(
-  logprobs: Float32Array,
-  timeSteps: number,
-  vocabSize: number,
-): number {
-  let sum = 0;
-  for (let t = 0; t < timeSteps; t++) {
-    const offset = t * vocabSize;
-    let max = logprobs[offset];
-    for (let v = 1; v < vocabSize; v++) {
-      max = Math.max(max, logprobs[offset + v]);
-    }
-    sum += max;
-  }
-  return sum / Math.max(1, timeSteps);
+function setConfig(config: Partial<StreamingConfig>): void {
+  activeConfig = normalizeStreamingConfig(config);
+  tracker?.setConfig(activeConfig);
+  postDebug("config", activeConfig as unknown as Record<string, unknown>);
 }
 
 async function transcribe(audio: Float32Array): Promise<TranscribeResult> {
-  const { features, timeFrames } = await computeMelSpectrogram(audio);
-  const numMels = 80;
-  const { logprobs, timeSteps, vocabSize } = await runInference(
-    features,
-    numMels,
-    timeFrames,
-  );
+  if (!decoder || !db) throw new Error("Worker not initialized");
 
-  const greedy = decoder!.decode(logprobs, timeSteps, vocabSize);
-  const blankId = decoder!.getBlankId();
-  const hypotheses: string[] = [];
-  const seenHypotheses = new Set<string>();
-  if (greedy.text.trim()) {
-    hypotheses.push(greedy.text);
-    seenHypotheses.add(greedy.text);
-  }
-  appendBeamHypotheses(
-    hypotheses,
-    seenHypotheses,
-    logprobs,
-    timeSteps,
-    vocabSize,
-    blankId,
-    JOINT03_BEAM_WIDTH,
-    JOINT03_TOP_SYMBOLS,
-    JOINT03_MAX_HYPOTHESES,
-  );
-  const firstPass = db!.bestJoint03MatchForHypotheses(hypotheses);
-  if (
-    !firstPass ||
-    firstPass.match.score < JOINT03_SECOND_PASS_MATCH_GATE ||
-    meanFrameMaxLogp(logprobs, timeSteps, vocabSize) < JOINT03_SECOND_PASS_FRAME_MEAN_MAX_LOGP
-  ) {
-    const before = hypotheses.length;
-    appendBeamHypotheses(
-      hypotheses,
-      seenHypotheses,
-      logprobs,
-      timeSteps,
-      vocabSize,
-      blankId,
-      JOINT03_DECODE2_BEAM_WIDTH,
-      JOINT03_DECODE2_TOP_SYMBOLS,
-      before + JOINT03_DECODE2_MAX_EXTRA_STRINGS,
-    );
-  }
-  const champion = db!.bestJoint03MatchForHypotheses(hypotheses);
-  const championTranscript = champion?.transcript;
-
-  // Run trie-constrained beam search for verse-level matches
-  let beamMatches: BeamVerseMatch[] | undefined;
-  const beamDebug: Array<{
-    ref: string;
-    spanLength: number;
-    score: number;
-  }> = [];
-  if (trie) {
-    const beamResults = beamSearchDecode(
-      logprobs, timeSteps, vocabSize,
-      decoder!.getBlankId(), trie, 8,
-    );
-    // Collect verse matches from beam hypotheses
-    const seen = new Set<string>();
-    beamMatches = [];
-    for (const result of beamResults) {
-      for (const ref of result.matchedVerses) {
-        const key = `${ref.verseIndex}:${ref.spanLength}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          beamMatches.push({
-            verseIndex: ref.verseIndex,
-            spanLength: ref.spanLength,
-            score: result.score,
-          });
-          if (debugEnabled) {
-            const verse = quranDataCache?.[ref.verseIndex];
-            beamDebug.push({
-              ref: verse ? `${verse.surah}:${verse.ayah}` : `idx:${ref.verseIndex}`,
-              spanLength: ref.spanLength,
-              score: Math.round(result.score * 1000) / 1000,
-            });
-          }
-        }
-      }
-    }
-  }
+  const { logprobs, timeSteps, vocabSize } = await runInference(audio);
+  const greedy = decoder.decode(logprobs, timeSteps, vocabSize);
+  const champion = db.bestJoint03Match(greedy.text);
 
   postDebug("transcribe", {
     audioSec: Math.round((audio.length / 16000) * 100) / 100,
-    text: championTranscript ?? greedy.text,
-    rawPhonemes: greedy.rawPhonemes,
-    tokenCount: greedy.tokenIds?.length ?? 0,
-    beam: beamDebug.slice(0, 8),
+    text: greedy.text,
+    tokenCount: greedy.tokenIds.length,
     champion: champion
       ? {
-          ref: `${champion.match.surah}:${champion.match.ayah}` +
-            (champion.match.ayah_end ? `-${champion.match.ayah_end}` : ""),
-          score: champion.match.score,
-          transcript: champion.transcript,
+          ref: `${champion.surah}:${champion.ayah}` +
+            (champion.ayah_end ? `-${champion.ayah_end}` : ""),
+          score: champion.score,
         }
       : null,
   });
 
+  const trustedChampion = champion?.score && champion.score >= 0.8 ? champion : null;
   return {
-    ...greedy,
-    text: championTranscript ?? greedy.text,
+    text: greedy.text,
+    rawPhonemes: greedy.text,
+    tokenIds: greedy.tokenIds,
     acoustic: {
       logprobs,
       timeSteps,
       vocabSize,
-      blankId,
+      blankId: decoder.getBlankId(),
     },
-    beamMatches,
-    championMatch: champion?.match,
-    championTranscript,
+    championMatch: trustedChampion ?? undefined,
   };
 }
 
 async function init() {
   try {
-    // Load vocab
-    post({ type: "loading_status", message: "Loading vocabulary..." });
-    const vocabRes = await fetch("/phoneme_vocab.json");
-    if (!vocabRes.ok) throw new Error(`phoneme_vocab.json fetch failed: ${vocabRes.status}`);
-    const vocabJson = await vocabRes.json();
-    vocabJsonCache = vocabJson;
-    decoder = new CTCDecoder(vocabJson);
+    post({ type: "loading_status", message: "Loading metadata..." });
+    const { json: metadata } = await fetchJsonWithHash<Record<string, unknown>>(METADATA_URL);
 
-    // Load ONNX model
+    post({ type: "loading_status", message: "Loading vocabulary..." });
+    const { json: vocabJson, sha256: vocabSha256 } =
+      await fetchJsonWithHash<Record<string, string>>(VOCAB_URL);
+    const expectedVocabSha = metadata.vocab_sha256;
+    if (typeof expectedVocabSha === "string" && expectedVocabSha !== vocabSha256) {
+      throw new Error("vocab.json sha256 does not match export_metadata.json");
+    }
+    decoder = new TextCTCDecoder(vocabJson, Number(metadata.blank_id ?? 1024));
+
+    post({ type: "loading_status", message: "Loading Quran token table..." });
+    const { json: ctcTokens } = await fetchJsonWithHash<CtcTokenTable>(CTC_TOKENS_URL);
+
+    post({ type: "loading_status", message: "Loading Quran data..." });
+    const { json: quranRaw } = await fetchJsonWithHash<unknown[]>(QURAN_URL);
+    const quranData = adaptQuranTextData(quranRaw as any[], ctcTokens, decoder);
+    const tokenErrors = validateCtcTokenRoundTrip(quranData, decoder);
+    if (tokenErrors.length > 0) {
+      console.warn("Quran CTC token round-trip warnings:", tokenErrors.slice(0, 8));
+    }
+    db = new QuranDB(quranData, undefined, ctcTokens);
+
     post({ type: "loading_status", message: "Downloading model..." });
     const modelBuffer = await loadModel(
       MODEL_URL,
@@ -301,28 +143,7 @@ async function init() {
     post({ type: "loading_status", message: "Creating inference session..." });
     await createSession(modelBuffer);
 
-    // Load QuranDB (phoneme data)
-    post({ type: "loading_status", message: "Loading Quran data..." });
-    const quranRes = await fetch("/quran_phonemes.json");
-    if (!quranRes.ok) throw new Error(`quran_phonemes.json fetch failed: ${quranRes.status}`);
-    const quranData = await quranRes.json();
-    quranDataCache = quranData;
-    db = new QuranDB(quranData, decoder);
-
-    // Build verse/span trie for constrained beam search
-    post({ type: "loading_status", message: "Building search trie..." });
-    const built = buildTrie(quranData, vocabJsonCache!, 3);
-    trie = built.trie;
-    console.log(
-      `Trie built: ${built.stats.nodeCount} nodes, ` +
-      `${built.stats.singleVerseCount} verses, ${built.stats.spanCount} spans, ` +
-      `~${built.stats.memoryMB.toFixed(1)}MB`,
-    );
-
-    // Create tracker
-    tracker = new RecitationTracker(db, transcribe, {
-      onDiagnostic: (event) => postDebug("tracker", { ...event }),
-    });
+    tracker = makeTracker();
     post({ type: "ready" });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -336,13 +157,11 @@ self.onmessage = async (e: MessageEvent<WorkerInbound>) => {
   if (msg.type === "init") {
     await init();
   } else if (msg.type === "reset") {
-    if (db) {
-      tracker = new RecitationTracker(db, transcribe, {
-        onDiagnostic: (event) => postDebug("tracker", { ...event }),
-      });
-    }
+    if (db) tracker = makeTracker();
   } else if (msg.type === "set_debug") {
     debugEnabled = msg.enabled;
+  } else if (msg.type === "set_config") {
+    setConfig(msg.config);
   } else if (msg.type === "audio") {
     if (!tracker) return;
     const messages = await tracker.feed(msg.samples);

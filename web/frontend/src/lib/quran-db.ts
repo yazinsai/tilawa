@@ -10,6 +10,8 @@ export interface QuranTokenEncoder {
   encodeRawPhonemes(rawPhonemes: string): number[];
 }
 
+export type QuranCtcTokenTable = Record<string, number[]>;
+
 export interface QuranCandidate {
   surah: number;
   ayah: number;
@@ -102,6 +104,7 @@ export class QuranDB {
   constructor(
     data: QuranVerse[],
     private tokenEncoder?: QuranTokenEncoder,
+    private ctcTokenTable?: QuranCtcTokenTable,
   ) {
     this.verses = data;
     for (const v of data) {
@@ -712,12 +715,8 @@ export class QuranDB {
     surahRank: number,
   ): QuranCandidate {
     const first = chunk[0];
-    const tokenIds: number[] = [];
-    const firstIds = first.phoneme_token_ids_no_bsm ?? first.phoneme_token_ids ?? [];
-    tokenIds.push(...firstIds);
-    for (let i = 1; i < chunk.length; i++) {
-      tokenIds.push(...(chunk[i].phoneme_token_ids ?? []));
-    }
+    const spanKey = `${first.surah}:${first.ayah}:${chunk[chunk.length - 1].ayah}`;
+    const tokenIds = this.ctcTokenTable?.[spanKey] ?? this._concatenatedSpanTokenIds(chunk);
 
     return {
       surah: first.surah,
@@ -739,6 +738,16 @@ export class QuranDB {
     return [firstText]
       .concat(chunk.slice(1).map((verse) => verse.phonemes_joined))
       .join(" ");
+  }
+
+  private _concatenatedSpanTokenIds(chunk: QuranVerse[]): number[] {
+    const tokenIds: number[] = [];
+    const firstIds = chunk[0].phoneme_token_ids_no_bsm ?? chunk[0].phoneme_token_ids ?? [];
+    tokenIds.push(...firstIds);
+    for (let i = 1; i < chunk.length; i++) {
+      tokenIds.push(...(chunk[i].phoneme_token_ids ?? []));
+    }
+    return tokenIds;
   }
 
   private _shortQueryBoost(

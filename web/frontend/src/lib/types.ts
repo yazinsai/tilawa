@@ -48,20 +48,6 @@ export interface WordProgressMessage {
   matched_indices: number[];
 }
 
-export interface WordCorrection {
-  word_index: number;
-  expected: string;
-  got: string;
-  error_type: "substitution" | "deletion" | "insertion";
-}
-
-export interface WordCorrectionMessage {
-  type: "word_correction";
-  surah: number;
-  ayah: number;
-  corrections: WordCorrection[];
-}
-
 export interface RawTranscriptMessage {
   type: "raw_transcript";
   text: string;
@@ -87,7 +73,8 @@ export type WorkerInbound =
   | { type: "init" }
   | { type: "audio"; samples: Float32Array }
   | { type: "reset" }
-  | { type: "set_debug"; enabled: boolean };
+  | { type: "set_debug"; enabled: boolean }
+  | { type: "set_config"; config: StreamingConfig };
 
 // Worker -> Main
 export type WorkerOutbound =
@@ -99,7 +86,6 @@ export type WorkerOutbound =
   | VerseCandidateMessage
   | FinalSequenceMessage
   | WordProgressMessage
-  | WordCorrectionMessage
   | RawTranscriptMessage
   | DebugMessage;
 
@@ -110,8 +96,10 @@ export interface QuranVerse {
   surah: number;
   ayah: number;
   text_uthmani: string;
+  text_clean?: string;
   surah_name: string;
   surah_name_en: string;
+  /** Legacy tracker adapter fields. For the text CTC pipeline these contain normalized Arabic text/tokens. */
   phonemes: string;
   phonemes_joined: string;
   phoneme_tokens?: string[];
