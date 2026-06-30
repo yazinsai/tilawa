@@ -1,6 +1,8 @@
-# Offline Tarteel
+# Tilawa
 
-[![Maintained by auto-maintainer](https://am.whhite.com/badge/yazinsai/offline-tarteel)](https://am.whhite.com/stats/yazinsai/offline-tarteel)
+> Formerly called offline-tarteel.
+
+[![Maintained by auto-maintainer](https://am.whhite.com/badge/yazinsai/tilawa)](https://am.whhite.com/stats/yazinsai/tilawa)
 
 Offline Quran verse recognition. Record someone reciting, identify the surah and ayah -- no internet required.
 
@@ -17,10 +19,10 @@ The current model takes 16 kHz mono audio directly and returns a surah/ayah pred
 
 ### Get the model
 
-Download the Cyberistic full-mixed ONNX model (88 MB, int4 MatMul + int8 Conv/LayerNorm) and its runtime data from [GitHub Releases](https://github.com/yazinsai/offline-tarteel/releases/tag/v0.2.0):
+Download the Cyberistic full-mixed ONNX model (88 MB, int4 MatMul + int8 Conv/LayerNorm) and its runtime data from [GitHub Releases](https://github.com/yazinsai/tilawa/releases/tag/v0.2.0):
 
 ```bash
-base=https://github.com/yazinsai/offline-tarteel/releases/download/v0.2.0
+base=https://github.com/yazinsai/tilawa/releases/download/v0.2.0
 
 curl -L -O "$base/fastconformer_full_mixed.onnx"
 curl -L -O "$base/vocab.json"
@@ -160,8 +162,8 @@ transcript = model.transcribe(["recitation.wav"])[0]
 **Option C: Use this repo directly**
 
 ```bash
-git clone https://github.com/yazinsai/offline-tarteel.git
-cd offline-tarteel
+git clone https://github.com/yazinsai/tilawa.git
+cd tilawa
 pip install -e ".[nemo]"
 ```
 
