@@ -10,7 +10,16 @@ ONNX inference is non-deterministic at **±3–6 samples per run** on v1 — str
 
 ## Shipped model
 
-`fastconformer-phoneme v4-tlog` (131 MB quantized ONNX), used in the browser and React Native:
+Current browser/runtime model: Cyberistic's full-mixed text CTC FastConformer, `web/frontend/public/fastconformer_full_mixed.onnx` (88 MB, mixed int4 MatMul + int8 Conv/LayerNorm). It takes raw 16 kHz waveform input (`audio_signal`, `length`), emits 1025-token Arabic BPE CTC logprobs, then uses greedy text retrieval plus CTC reranking against `quran_ctc_tokens.json`.
+
+| Mode | Corpus | Recall | Precision | ExactSetAcc | Notes |
+|---|---|---|---|---|---|
+| **`c2c-direct-mixed-tta` full-file batch** | v1 | **100%** | **100%** | **100%** | Cyberistic champion, median across 3 reproduced runs |
+| **`c2c-direct-mixed` full-file batch** | v1 | 98% | 98% | 98% | Same ONNX without 0.9x/1.1x TTA |
+
+The browser worker now uses the non-TTA full-mixed ONNX (`fastconformer_full_mixed.onnx`) because TTA is too expensive for live streaming. Run the v2/v3 stability reports before replacing the historical streaming rows below with post-swap numbers.
+
+Historical pre-Cyberistic browser/RN streaming baseline, using `fastconformer-phoneme v4-tlog` (131 MB quantized ONNX):
 
 | Mode | Corpus | Recall | Precision | ExactSetAcc | Correct |
 |---|---|---|---|---|---|
@@ -72,7 +81,7 @@ Sources and composition:
 - **TLOG-clean 80**: replaces RetaSy entirely. TLOG's `clean` split is still noisy at the transcription level, so each candidate was streamed with `Audio(decode=False)`, ffmpeg-decoded to 16 kHz mono, greedy-CTC transcribed through the shipped FastConformer phoneme ONNX, and phoneme-compared against the canonical phoneme string for the filename-referenced (surah, ayah) in `quran_phonemes.json`. Only samples with Levenshtein ratio ≥ 0.75 pass; target 60 medium + 20 long. Hit the target in 12,180 scans (10 s median duration, median ratio 0.95, 2,129 rejected for ratio below threshold + 29 for decode failure).
 - **User recordings (2)**: imran_23 + ikhlas_2_3 copied from v1.
 
-Baseline (3-repeat streaming, shipped v4-tlog ONNX):
+Baseline at the time (3-repeat streaming, then-shipped v4-tlog phoneme ONNX):
 - Per-run correct [204, 207, 207] / 256
 - **Median recall 83.4%**, **precision 63.5%**, **SeqAcc 44.1%**
 - Stable-pass 187, flaky 35, stable-fail 34
@@ -160,7 +169,7 @@ Full-file transcription then single `matchVerse()` call.
 
 ### Phoneme matcher: strategy comparison
 
-Shipped ONNX phoneme model via Python `predict()`, swapping out the matching strategy:
+Historical ONNX phoneme model via Python `predict()`, swapping out the matching strategy:
 
 | Matching strategy | v1 Recall | v1 SeqAcc | v2 Recall | v2 SeqAcc |
 |---|---|---|---|---|
@@ -219,7 +228,7 @@ Fine-tuning the phoneme CTC head with varying amounts of TLOG (phone-recorded re
 
 **c2c-direct-mixed-tta** — Cyberistic's winning entry and current champion. It runs the mixed int4+int8 FastConformer ONNX once at 1.0x speed, skips augmentation for confident predictions, and only runs 0.9x/1.1x speed-perturbed passes on low-confidence samples. Reproduced locally over 3 runs at 100% recall, 100% precision, and 100% sequence accuracy on v1 (53 samples), with 0.84s average latency.
 
-**c2c-direct-mixed** — Same CTC re-rank algorithm without TTA, using `data/onnx_export/fastconformer_full_mixed.onnx` (88 MB). Reproduced at 98% recall / 98% precision / 98% sequence accuracy on v1 at 0.72s average latency; TTA recovers the remaining miss.
+**c2c-direct-mixed** — Same CTC re-rank algorithm without TTA, using `data/onnx_export/fastconformer_full_mixed.onnx` and `web/frontend/public/fastconformer_full_mixed.onnx` (88 MB). This is the model now loaded by the browser worker. Reproduced at 98% recall / 98% precision / 98% sequence accuracy on v1 at 0.72s average latency; TTA recovers the remaining miss.
 
 **ctc-alignment** — CTC forced alignment with `jonatasgrosman/wav2vec2-large-xlsr-53-arabic` (1.2 GB). Scores verses directly against frame-level logits via the CTC forward algorithm, skipping greedy-decode information loss. Too large (6×) and too slow (5×) for on-device.
 
@@ -231,7 +240,7 @@ Fine-tuning the phoneme CTC head with varying amounts of TLOG (phone-recorded re
 
 **fastconformer-lm-fusion** — FastConformer + pyctcdecode Quran LM. Best batch SeqAcc (94% v1, 95% v2) but too much added latency for streaming and awkward in-browser.
 
-**fastconformer-phoneme** — Fine-tuned FastConformer CTC head on a 69-phoneme Buckwalter vocab. Shipped ONNX model (`fastconformer_phoneme_q8.onnx`, 131 MB). Trained on 71K Iqra + 55K TTS + 1.8K RetaSy + ~18K filtered TLOG.
+**fastconformer-phoneme** — Fine-tuned FastConformer CTC head on a 69-phoneme Buckwalter vocab. Former shipped ONNX model (`fastconformer_phoneme_q8.onnx`, 131 MB), now kept for historical experiments and streaming-regression comparisons. Trained on 71K Iqra + 55K TTS + 1.8K RetaSy + ~18K filtered TLOG.
 
 **w2v-phonemes** — Phoneme CTC + Levenshtein matching. `large-int8` (r7, 970 MB INT8 ONNX) hits **100% batch on v1 and 96.1% / 96.1% / 96.1% (recall/precision/SeqAcc) on v3** — the strongest batch oracle we have, but 1 GB is too large to ship to browser. `base` (r15_95m, 388 MB fp32) is now accessible with Ahmed's read token and hit **97.1% / 97.1% / 97.1%** on the downloadable EveryAyah slice of v3 (174 samples, avg 0.90s CPU, result `benchmark/results/2026-04-29_091708.json`). A Modal-exported local dynamic-int8 ONNX (`base-local-int8`, 118 MB, artifacts in `data/r15-onnx/` or Modal volume `w2v-phonemes-r15`) preserved the same **97.1% / 97.1% / 97.1%** on that slice, with avg CPU latency 1.11s (result `benchmark/results/2026-04-29_100633.json`), and scored **96.0% / 96.1% / 95.7%** on full v3 (256 samples, avg 0.89s CPU, result `benchmark/results/2026-04-29_103225.json`). Both fp32 and int8 fail the same five EveryAyah short/repeated-phrase collisions (`55:53→55:13`, `81:19→69:40`, `37:82→26:66`, `30:1→2:1`, `26:122→26:9`), so the remaining batch error is mostly context/ambiguity rather than acoustic quality. A phoneme-aware naive chunked baseline (`predict_streaming`, 3s independent chunks) scored only **20.6% / 12.2% / 3.9%** on full v3 (result `benchmark/results/2026-04-29_103627.json`), confirming r15 is a batch/verifier model, not a true streaming model. O(T²) wav2vec2 attention and independent chunk CTC collapse are the blockers; use r15/r7 as verifier/teacher while true streaming should be cache-aware FastConformer RNNT/CTC. As of 2026-04-22 `_decode_phonemes` chunks audio >25s into 25s windows with 1s overlap, each independently CTC-collapsed then concatenated — without chunking, a single 200s sample bloats memory to 22 GB and effectively hangs on Apple Silicon's ArmKleidiAI MatMul path. Upstream `base-int8` (`hetchyy/r15_95m_onnx_int8`) still returns 404 on HF; our local `base-local-int8` entry is shown only when `data/r15-onnx/model_int8.onnx` or `R15_ONNX_DIR/model_int8.onnx` exists. HF token required for fp32.
 
@@ -261,14 +270,15 @@ Use case: r7 remains the highest-accuracy distillation teacher; r15 is now a pla
 8. **Beam-candidate injection into the tracker regressed.** The verse/span trie (1.7M nodes, 2.2ms decode) works correctly, but beam-matched verses override correct greedy results. Surah-level expansion is the safer next step.
 9. **TLOG: one quality-filtered bucket wins.** ~18K filtered at 0.3 is the sweet spot; more volume, lower filter, no TLOG, or combined data changes all regress.
 10. **Streaming precision had a cascade bug.** Auto-advanced `verse_match` messages emitted without audio evidence. Deferred emission (2026-04-11) fixes it: +13pp precision, +20.8pp SeqAcc on v1.
-11. **r7 (Ahmed's 1B wav2vec2 phoneme CTC) is the batch accuracy ceiling.** 96.1% / 96.1% / 96.1% on v3 (256 samples, full-file batch) vs our shipped v4-tlog streaming at 83.7% / 64.4% / 46.1% — a 12.4pp recall gap and 50pp SeqAcc gap. The ceiling is not "our architecture can't do better"; it's "our 131 MB on-device model can't do better alone." Implications: r7 is a viable (a) distillation teacher for a same-size FastConformer student, or (b) server-side second-pass verifier. Shipping r7 directly is blocked on size (1 GB) and streaming-friendliness (wav2vec2 attention is O(T²)).
-12. **v3 SeqAcc is mostly a tracker state problem, not a recognizability problem.** Exact-match diagnostics (`web/frontend/test/analyze-v3-stability.ts`) show the v3 gap is dominated by extra emissions: cached streaming exact-fail runs include 124 `extra_after_expected` and 29 `wrong_surah_jump` cases across 768 runs. Comparing those cached streaming outputs against the r7 batch oracle (`web/frontend/test/compare-streaming-oracle.ts --stability-json=... --oracle-results=benchmark/results/r7-v3-batch.json`) shows the first long/medium exact-fail samples are `streaming_tracker_loss`: r7 predicts the exact expected verse while streaming emits expected+extras. The shipped ONNX full-file path is too weak to serve as this oracle; it often misses the expected verse on those same long clips. Two tempting runtime invariants were falsified and reverted: consuming the buffer after evidence-backed stale exits, and blocking selected candidates dominated by the current fusion leader. The next tracker attempt needs explicit segment ownership / active-hypothesis comparison, not score-threshold or rank gates.
+11. **Cyberistic's text CTC rerank moved the batch ceiling.** `c2c-direct-mixed-tta` is now the v1 champion at 100% / 100% / 100% with an 88 MB ONNX. The previous v4-tlog phoneme model remains useful as a historical streaming baseline, but new shipped runtime work should start from `fastconformer_full_mixed.onnx`, `vocab.json`, and `quran_ctc_tokens.json`.
+12. **r7 (Ahmed's 1B wav2vec2 phoneme CTC) is still a strong v3 batch oracle.** 96.1% / 96.1% / 96.1% on v3 (256 samples, full-file batch), but 1 GB is too large to ship and wav2vec2 attention is not streaming-friendly. Use r7/r15 as teacher/verifier candidates, not the browser runtime.
+13. **v3 SeqAcc is mostly a tracker state problem, not a recognizability problem.** Exact-match diagnostics (`web/frontend/test/analyze-v3-stability.ts`) show the v3 gap is dominated by extra emissions: cached streaming exact-fail runs include 124 `extra_after_expected` and 29 `wrong_surah_jump` cases across 768 runs. Comparing those cached streaming outputs against the r7 batch oracle (`web/frontend/test/compare-streaming-oracle.ts --stability-json=... --oracle-results=benchmark/results/r7-v3-batch.json`) shows the first long/medium exact-fail samples are `streaming_tracker_loss`: r7 predicts the exact expected verse while streaming emits expected+extras. The old phoneme ONNX full-file path was too weak to serve as this oracle; it often missed the expected verse on those same long clips. Two tempting runtime invariants were falsified and reverted: consuming the buffer after evidence-backed stale exits, and blocking selected candidates dominated by the current fusion leader. The next tracker attempt needs explicit segment ownership / active-hypothesis comparison, not score-threshold or rank gates.
 
 ## Methodology
 
 - **Batch:** experiment's `transcribe()` processes the full audio file. `StreamingPipeline` matches transcript against all 6,236 verses via Levenshtein. Per-sample R/P/SeqAcc, averaged.
 - **Python streaming:** 3s chunks, independent transcription per chunk, accumulated text fed to `VerseTracker` for progressive matching.
-- **Browser/RN streaming:** `RecitationTracker` feeds 300ms chunks through ONNX with a 4s silence tail to flush discovery. Only the shipped ONNX phoneme model runs in this mode.
+- **Browser/RN streaming:** `RecitationTracker` feeds 300ms chunks through ONNX with a 4s silence tail to flush discovery. Current runtime uses Cyberistic's raw-audio `fastconformer_full_mixed.onnx`; older stability artifacts before the swap used `fastconformer_phoneme_q8.onnx`.
 - **Latency:** wall-clock per sample, excluding first-sample warmup. Apple Silicon (CPU).
 - **Variance:** ONNX inference is non-deterministic at ±3–6 samples/run on v1. Always report medians over 3 runs (max).
 

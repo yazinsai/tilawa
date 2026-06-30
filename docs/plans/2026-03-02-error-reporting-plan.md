@@ -120,10 +120,10 @@ COPY --from=builder /app/dist-server ./dist-server
 COPY --from=builder /app/package.json /app/package-lock.json ./
 RUN npm ci --omit=dev
 
-# Download ONNX model
+# Download current Cyberistic ONNX model
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-RUN curl -L -o dist/fastconformer_ar_ctc_q8.onnx \
-    https://github.com/yazinsai/offline-tarteel/releases/download/v0.1.0/fastconformer_ar_ctc_q8.onnx
+RUN curl -L -o dist/fastconformer_full_mixed.onnx \
+    https://github.com/yazinsai/offline-tarteel/releases/download/v0.2.0/fastconformer_full_mixed.onnx
 
 # Create storage directory
 RUN mkdir -p /app/storage/reports

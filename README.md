@@ -8,41 +8,41 @@ Offline Quran verse recognition. Record someone reciting, identify the surah and
 
 ## Use in your app
 
-The model takes 16 kHz audio and returns a surah/ayah prediction. The pipeline has 4 steps:
+The current model takes 16 kHz mono audio directly and returns a surah/ayah prediction. The pipeline has 4 steps:
 
-1. **Audio** -- Record or load a `.wav` at 16 kHz mono
-2. **Mel spectrogram** -- 80-bin NeMo-compatible features
-3. **ONNX inference** -- Run the model, get CTC logprobs
-4. **Decode + match** -- Greedy CTC decode, then fuzzy-match against all 6,236 Quran verses
+1. **Audio** -- Record or load 16 kHz mono `Float32` samples
+2. **ONNX inference** -- Run Cyberistic's mixed int4/int8 FastConformer export; preprocessing is embedded in the graph
+3. **Decode** -- CTC-collapse 1025-token Arabic BPE output into normalized text
+4. **Match + rerank** -- Retrieve Quran candidates, then CTC-rerank with precomputed verse token IDs
 
 ### Get the model
 
-Download the quantized ONNX model (131 MB, uint8) from [GitHub Releases](https://github.com/yazinsai/offline-tarteel/releases/tag/v0.1.0):
+Download the Cyberistic full-mixed ONNX model (88 MB, int4 MatMul + int8 Conv/LayerNorm) and its runtime data from [GitHub Releases](https://github.com/yazinsai/offline-tarteel/releases/tag/v0.2.0):
 
 ```bash
-curl -L -o fastconformer_ar_ctc_q8.onnx \
-  https://github.com/yazinsai/offline-tarteel/releases/download/v0.1.0/fastconformer_ar_ctc_q8.onnx
+base=https://github.com/yazinsai/offline-tarteel/releases/download/v0.2.0
+
+curl -L -O "$base/fastconformer_full_mixed.onnx"
+curl -L -O "$base/vocab.json"
+curl -L -O "$base/quran_ctc_tokens.json"
+curl -L -O "$base/tokenizer.model"
+curl -L -O "$base/export_metadata.json"
 ```
 
-You also need two data files from this repo:
+You also need Quran text from this repo:
 
-- [`data/vocab.json`](data/vocab.json) -- CTC vocabulary (token ID -> character mapping)
-- [`data/quran.json`](data/quran.json) -- All 6,236 verses (for matching decoded text to surah:ayah)
+- [`web/frontend/public/quran.json`](web/frontend/public/quran.json) -- all 6,236 verses
+- [`web/frontend/public/quran_ctc_tokens.json`](web/frontend/public/quran_ctc_tokens.json) -- precomputed candidate token IDs for CTC reranking
 
-Or generate the ONNX model yourself from the NeMo checkpoint:
+The old `fastconformer_ar_ctc_q8.onnx` and `fastconformer_phoneme_q8.onnx` assets are historical. New integrations should use `fastconformer_full_mixed.onnx`.
+
+To regenerate the full-mixed export yourself, reproduce Cyberistic's `c2c-direct-mixed` path: export the CTC FastConformer with raw waveform input, then quantize MatMul weights to int4 and the remaining Conv/LayerNorm weights to int8. The runtime contract is captured in [`web/frontend/public/export_metadata.json`](web/frontend/public/export_metadata.json).
+
+For local validation:
 
 ```bash
-pip install nemo_toolkit[asr]
-python -c "
-from nemo.collections.asr.models import EncDecHybridRNNTCTCBPEModel
-import torch, onnx
-from onnxruntime.quantization import quantize_dynamic, QuantType
-
-model = EncDecHybridRNNTCTCBPEModel.from_pretrained('nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0')
-model.change_decoding_strategy(decoder_type='ctc')
-model.export('fastconformer_ar_ctc.onnx')
-quantize_dynamic('fastconformer_ar_ctc.onnx', 'fastconformer_ar_ctc_q8.onnx', weight_type=QuantType.QUInt8)
-"
+.venv/bin/python -m benchmark.runner --experiment c2c-direct-mixed
+.venv/bin/python -m benchmark.runner --experiment c2c-direct-mixed-tta
 ```
 
 ### Web / React (ONNX Runtime Web)
@@ -50,7 +50,7 @@ quantize_dynamic('fastconformer_ar_ctc.onnx', 'fastconformer_ar_ctc_q8.onnx', we
 Runs entirely in the browser using WebAssembly. See [`web/frontend/`](web/frontend/) for a complete working example.
 
 ```bash
-npm install onnxruntime-web @huggingface/transformers
+npm install onnxruntime-web
 ```
 
 ```typescript
@@ -63,31 +63,30 @@ const session = await ort.InferenceSession.create(modelBuffer, {
   executionProviders: ["wasm"],
 });
 
-// 2. Compute mel spectrogram (80-bin, NeMo-compatible)
-//    See web/frontend/src/worker/mel.ts for the full implementation
-//    Uses @huggingface/transformers mel_filter_bank + spectrogram
-const { features, timeFrames } = computeMelSpectrogram(audioFloat32Array);
-
-// 3. Run inference
-const input = new ort.Tensor("float32", features, [1, 80, timeFrames]);
-const length = new ort.Tensor("int64", BigInt64Array.from([BigInt(timeFrames)]), [1]);
+// 2. Run raw 16 kHz mono audio through the full-mixed Cyberistic ONNX.
+//    No JS mel-spectrogram step: preprocessing is inside the model graph.
+const input = new ort.Tensor("float32", audioFloat32Array, [1, audioFloat32Array.length]);
+const length = new ort.Tensor(
+  "int64",
+  BigInt64Array.from([BigInt(audioFloat32Array.length)]),
+  [1],
+);
 const results = await session.run({
-  [session.inputNames[0]]: input,
-  [session.inputNames[1]]: length,
+  audio_signal: input,
+  length,
 });
 const logprobs = results[session.outputNames[0]];
 
-// 4. CTC greedy decode (see web/frontend/src/worker/ctc-decode.ts)
-//    argmax per timestep, collapse repeats, remove blanks, join tokens
-
-// 5. Match decoded text against QuranDB (see web/frontend/src/lib/quran-db.ts)
-//    Levenshtein fuzzy match against all 6,236 verses
+// 3. Decode + match.
+// See TextCTCDecoder, QuranDB.bestJoint03Match(), and the CTC rerank path in:
+// web/frontend/src/worker/inference.ts
 ```
 
 Key files to reference for a complete implementation:
-- [`web/frontend/src/worker/mel.ts`](web/frontend/src/worker/mel.ts) -- Mel spectrogram (NeMo-compatible)
-- [`web/frontend/src/worker/ctc-decode.ts`](web/frontend/src/worker/ctc-decode.ts) -- CTC greedy decoder
-- [`web/frontend/src/lib/quran-db.ts`](web/frontend/src/lib/quran-db.ts) -- Verse matching with Levenshtein distance
+- [`web/frontend/src/worker/session.ts`](web/frontend/src/worker/session.ts) -- ONNX Runtime Web session and raw-audio inputs
+- [`web/frontend/src/worker/text-ctc-decode.ts`](web/frontend/src/worker/text-ctc-decode.ts) -- 1025-token BPE CTC greedy decoder
+- [`web/frontend/src/worker/quran-text-adapter.ts`](web/frontend/src/worker/quran-text-adapter.ts) -- attaches precomputed CTC token IDs to Quran rows
+- [`web/frontend/src/lib/quran-db.ts`](web/frontend/src/lib/quran-db.ts) -- candidate retrieval and Cyberistic-style reranking
 - [`web/frontend/src/lib/normalizer.ts`](web/frontend/src/lib/normalizer.ts) -- Arabic text normalization
 
 ### React Native (ONNX Runtime Mobile)
@@ -102,70 +101,43 @@ npm install onnxruntime-react-native
 import { InferenceSession, Tensor } from "onnxruntime-react-native";
 
 // Bundle the model in your app assets, or download on first launch
-const session = await InferenceSession.create("path/to/fastconformer_ar_ctc_q8.onnx");
+const session = await InferenceSession.create("path/to/fastconformer_full_mixed.onnx");
 
 // Same inference pattern as the web version:
-// 1. Compute 80-bin mel spectrogram from 16kHz audio
-// 2. Create input tensors: features [1, 80, T] + length [1]
-// 3. session.run() -> CTC logprobs
-// 4. Greedy decode + QuranDB match
+// 1. Create input tensors: audio_signal [1, samples] + length [1]
+// 2. session.run() -> CTC logprobs
+// 3. Greedy BPE CTC decode + QuranDB candidate retrieval/CTC rerank
 ```
 
-The mel spectrogram, CTC decoder, and QuranDB matching logic from [`web/frontend/src/`](web/frontend/src/) works directly in React Native -- it's pure TypeScript with no browser-specific APIs.
+The decoder and QuranDB matching logic from [`web/frontend/src/`](web/frontend/src/) works directly in React Native -- it's pure TypeScript with no browser-specific APIs. You do not need to port `mel.ts` for the current model.
 
 ### Python
 
 **Option A: ONNX Runtime (recommended for production)**
 
+Use the repo experiment for the exact Cyberistic algorithm, including candidate retrieval and CTC rerank:
+
 ```bash
-pip install onnxruntime numpy soundfile librosa
+.venv/bin/python -m benchmark.runner --experiment c2c-direct-mixed
 ```
+
+The ONNX contract is raw audio in, CTC logprobs out:
 
 ```python
 import numpy as np
 import onnxruntime as ort
-import json
-import librosa
+import soundfile as sf
 
-# Load model + vocab
-session = ort.InferenceSession("fastconformer_ar_ctc_q8.onnx")
-vocab = json.load(open("vocab.json"))
-id_to_char = {int(k): v for k, v in vocab.items()}
-blank_id = max(id_to_char.keys())
+session = ort.InferenceSession("fastconformer_full_mixed.onnx")
+audio, sr = sf.read("recitation.wav", dtype="float32")
+assert sr == 16000
+if audio.ndim > 1:
+    audio = audio.mean(axis=1)
 
-# Load audio at 16kHz
-audio, sr = librosa.load("recitation.wav", sr=16000)
-
-# Compute NeMo-compatible mel spectrogram
-audio = audio + 1e-5 * np.random.randn(len(audio))  # dither
-audio = np.append(audio[0], audio[1:] - 0.97 * audio[:-1])  # preemphasis
-mel = librosa.feature.melspectrogram(
-    y=audio, sr=16000, n_fft=512, hop_length=160, win_length=400,
-    n_mels=80, fmax=8000, htk=True, norm="slaney"
-)
-mel = np.log(mel + 1e-5)
-# Per-feature normalization
-mel = (mel - mel.mean(axis=1, keepdims=True)) / (mel.std(axis=1, keepdims=True) + 1e-10)
-
-# Run inference
-features = mel.astype(np.float32)[np.newaxis]  # [1, 80, T]
-length = np.array([mel.shape[1]], dtype=np.int64)
 logprobs = session.run(None, {
-    session.get_inputs()[0].name: features,
-    session.get_inputs()[1].name: length,
-})[0]  # [1, T, vocab_size]
-
-# CTC greedy decode
-ids = logprobs[0].argmax(axis=1)
-prev, tokens = -1, []
-for i in ids:
-    if i != prev and i != blank_id:
-        tokens.append(id_to_char.get(i, ""))
-    prev = i
-transcript = "".join(tokens).replace("\u2581", " ").strip()
-
-print(f"Transcript: {transcript}")
-# Then match against quran.json using Levenshtein distance
+    "audio_signal": audio.reshape(1, -1).astype(np.float32),
+    "length": np.array([audio.shape[0]], dtype=np.int64),
+})[0]
 ```
 
 **Option B: NeMo (full pipeline, heavier dependencies)**
@@ -194,9 +166,15 @@ pip install -e ".[nemo]"
 ```
 
 ```python
-from experiments.nvidia_fastconformer.run import predict
+import importlib.util
+from pathlib import Path
 
-result = predict("recitation.wav")
+run_py = Path("experiments/c2c-direct-mixed/run.py").resolve()
+spec = importlib.util.spec_from_file_location("c2c_direct_mixed", run_py)
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+
+result = mod.predict("recitation.wav")
 # {"surah": 1, "ayah": 1, "ayah_end": 3, "score": 0.92, "transcript": "..."}
 ```
 
@@ -206,7 +184,7 @@ result = predict("recitation.wav")
 |---|---|
 | **Winning entry** | Cyberistic's `c2c-direct-mixed-tta` |
 | **Base model** | `nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0` |
-| **ONNX file** | `data/onnx_export/fastconformer_full_mixed.onnx` (88 MB, int4 MatMul + int8 Conv/LayerNorm) |
+| **ONNX file** | `web/frontend/public/fastconformer_full_mixed.onnx` and `data/onnx_export/fastconformer_full_mixed.onnx` (88 MB, int4 MatMul + int8 Conv/LayerNorm) |
 | **Input** | 16 kHz mono audio |
 | **Output** | CTC logprobs over 1025-token Arabic BPE vocabulary, then CTC re-rank against Quran candidates |
 | **Recall / Precision / SeqAcc** | 100% / 100% / 100% on the v1 53-sample benchmark, median across 3 reproduced runs |
@@ -217,7 +195,7 @@ result = predict("recitation.wav")
 
 ## Goal
 
-Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-second latency**, and **under 200 MB** on disk. The current best batch approach (`c2c-direct-mixed-tta`) reaches **100% recall / 100% precision / 100% sequence accuracy** at **88 MB** and **0.84s** latency on the v1 corpus. The shipped ONNX phoneme model with the decode-stability tracker gate achieves **89.3% streaming recall / 73.4% precision** in the browser (v3). Everything in this repo exists to bring the streaming path up to the new batch ceiling.
+Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-second latency**, and **under 200 MB** on disk. The current champion (`c2c-direct-mixed-tta`) reaches **100% recall / 100% precision / 100% sequence accuracy** at **88 MB** and **0.84s** latency on the v1 corpus. The browser worker now loads Cyberistic's non-TTA full-mixed text CTC model (`fastconformer_full_mixed.onnx`) directly from raw audio; the older phoneme ONNX path is kept for historical experiments.
 
 ## Design constraints
 
@@ -229,18 +207,18 @@ Ship a model that runs on-device (phone or laptop) with **95%+ recall**, **sub-s
 
 ## Results
 
-Best reproduced batch result and shipped streaming result:
+Best reproduced batch result, plus the last fully measured browser streaming baseline before the Cyberistic worker swap:
 
 | Mode | Corpus | Recall | Precision | SeqAcc |
 |---|---|---|---|---|
 | `c2c-direct-mixed-tta` full-file batch | v1 (53) | **100%** | **100%** | **100%** |
 | `c2c-direct-mixed` full-file batch | v1 (53) | 98% | 98% | 98% |
-| Browser/RN streaming (300ms chunks) | v2 (43) | 87.9% | 68.9% | 55.8% |
-| Browser/RN streaming (300ms chunks) | v3 (256) | 89.3% | 73.4% | 58.2% |
-| Non-streaming (full-file) | v1 (53) | 84.1% | 84.9% | 81.1% |
-| Non-streaming (full-file) | v2 (43) | 78.1% | 79.1% | 74.4% |
+| Browser/RN streaming, pre-Cyberistic phoneme path (300ms chunks) | v2 (43) | 87.9% | 68.9% | 55.8% |
+| Browser/RN streaming, pre-Cyberistic phoneme path (300ms chunks) | v3 (256) | 89.3% | 73.4% | 58.2% |
+| Pre-Cyberistic non-streaming phoneme path (full-file) | v1 (53) | 84.1% | 84.9% | 81.1% |
+| Pre-Cyberistic non-streaming phoneme path (full-file) | v2 (43) | 78.1% | 79.1% | 74.4% |
 
-The `c2c-direct-mixed-tta` row is the median of 3 reproduced benchmark runs from Cyberistic's imported champion. Streaming metrics are medians across 3 runs (ONNX non-determinism is ±3-6 per run on v1, ±0.7 on v3). See **[EXPERIMENTS.md](EXPERIMENTS.md)** for per-change provenance.
+The `c2c-direct-mixed-tta` row is the median of 3 reproduced benchmark runs from Cyberistic's imported champion. The browser now loads `fastconformer_full_mixed.onnx`; rerun the stability reports before replacing the pre-swap streaming rows. See **[EXPERIMENTS.md](EXPERIMENTS.md)** for per-change provenance.
 
 Full matrix across 20 approaches (Whisper variants, Rabah pruned CTC, FastConformer sweep, contrastive/embedding failures), per-experiment notes, variant deep-dives, a changelog, and key findings live in **[EXPERIMENTS.md](EXPERIMENTS.md)**.
 
@@ -284,7 +262,7 @@ web/                     # Live demo
 
 scripts/                 # Training scripts (Modal A100-80GB GPU)
   train_fastconformer_phoneme_modal.py  # Phoneme CTC fine-tuning (best streaming model)
-  export_phoneme_onnx_modal.py         # Export phoneme model to ONNX + uint8 quantization
+  export_phoneme_onnx_modal.py         # Historical phoneme ONNX export
   train_pruned_ctc_modal.py    # Fine-tune pruned Rabah CTC models (the key training script)
   quantize_pruned_models.py    # PyTorch/ONNX int8 quantization
   build_rabah_pruned_models.py # Build naive-pruned Rabah checkpoints
