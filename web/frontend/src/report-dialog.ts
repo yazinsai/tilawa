@@ -5,6 +5,7 @@ interface ReportDialogOptions {
   audioChunks: Float32Array[];
   modelPrediction: { surah: number; ayah: number; confidence: number } | null;
   quranData: QuranVerse[];
+  debugBundle?: unknown;
 }
 
 const $dialog = document.getElementById("report-dialog") as HTMLDialogElement;
@@ -19,6 +20,7 @@ const $status = document.getElementById("report-status")!;
 
 let currentAudioBlob: Blob | null = null;
 let currentQuranData: QuranVerse[] = [];
+let currentDebugBundle: unknown = null;
 
 // Build surah list (called once after quran.json loads)
 export function initSurahDropdown(quranData: QuranVerse[]): void {
@@ -51,6 +53,8 @@ function updateAyahDropdown(surahNum: number): void {
 }
 
 export function openReportDialog(opts: ReportDialogOptions): void {
+  currentDebugBundle = opts.debugBundle ?? null;
+
   // Encode audio
   const combined = concatChunks(opts.audioChunks);
   currentAudioBlob = encodeWav(combined);
@@ -88,6 +92,7 @@ $submit.addEventListener("click", async () => {
     ayah: parseInt($ayah.value),
     modelPrediction: $prediction.textContent,
     notes: $notes.value.trim(),
+    debugBundle: currentDebugBundle,
   };
 
   const formData = new FormData();
