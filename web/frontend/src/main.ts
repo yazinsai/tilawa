@@ -1013,6 +1013,7 @@ document.addEventListener("DOMContentLoaded", () => {
       audioChunks: state.sessionAudioChunks,
       modelPrediction: state.lastModelPrediction,
       quranData: state.quranData!,
+      debugBundle: buildDebugBundle(),
     });
   });
 });
