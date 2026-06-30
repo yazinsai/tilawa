@@ -24,6 +24,23 @@
         <button id="btn-start" class="rec-btn rec-btn--start">Start</button>
       </div>
       <div id="recording-state" hidden>
+        <div class="listening-card" aria-live="polite">
+          <p class="listening-eyebrow">Mic is live</p>
+          <div class="waveform" id="listening-waveform" aria-hidden="true">
+            <span class="waveform-bar"></span>
+            <span class="waveform-bar"></span>
+            <span class="waveform-bar"></span>
+            <span class="waveform-bar"></span>
+            <span class="waveform-bar"></span>
+            <span class="waveform-bar"></span>
+            <span class="waveform-bar"></span>
+            <span class="waveform-bar"></span>
+            <span class="waveform-bar"></span>
+            <span class="waveform-bar"></span>
+            <span class="waveform-bar"></span>
+          </div>
+          <p class="listening-callout">Read now</p>
+        </div>
         <button id="btn-stop" class="rec-btn rec-btn--stop">Stop</button>
       </div>
       <div id="post-recording" hidden>

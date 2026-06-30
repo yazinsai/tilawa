@@ -99,6 +99,31 @@ const $debugSummary = document.getElementById("debug-summary")!;
 const $debugContent = document.getElementById("debug-content")!;
 const $debugCopy = document.getElementById("debug-copy") as HTMLButtonElement;
 const $debugCopyStatus = document.getElementById("debug-copy-status")!;
+const $waveform = document.getElementById("listening-waveform")!;
+const $waveformBars = Array.from($waveform.querySelectorAll<HTMLElement>(".waveform-bar"));
+
+const WAVEFORM_BAR_PHASES = [0.34, 0.72, 0.48, 0.95, 0.58, 1, 0.68, 0.86, 0.42, 0.76, 0.52];
+
+function updateListeningWaveform(rms: number): void {
+  const strength = Math.min(1, Math.max(0, (rms - 0.004) * 24));
+  const drift = performance.now() / 180;
+  $waveform.style.setProperty("--waveform-strength", strength.toFixed(3));
+
+  for (let i = 0; i < $waveformBars.length; i++) {
+    const phase = WAVEFORM_BAR_PHASES[i % WAVEFORM_BAR_PHASES.length];
+    const motion = 0.55 + 0.45 * Math.sin(drift + i * 0.78);
+    const level = 0.18 + strength * (phase * 0.62 + motion * 0.34);
+    $waveformBars[i].style.setProperty("--bar-level", Math.min(1, level).toFixed(3));
+  }
+}
+
+function resetListeningWaveform(): void {
+  $waveform.style.setProperty("--waveform-strength", "0");
+  for (let i = 0; i < $waveformBars.length; i++) {
+    const idleLevel = 0.18 + (i % 3) * 0.035;
+    $waveformBars[i].style.setProperty("--bar-level", idleLevel.toFixed(3));
+  }
+}
 
 function pushStreamingConfig(): void {
   state.worker?.postMessage({ type: "set_config", config: state.streamingConfig });
@@ -800,7 +825,7 @@ function handleWorkerMessage(msg: WorkerOutbound): void {
 // ---------------------------------------------------------------------------
 // Audio capture
 // ---------------------------------------------------------------------------
-async function startAudio(): Promise<void> {
+async function startAudio(): Promise<boolean> {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: {
@@ -843,6 +868,10 @@ async function startAudio(): Promise<void> {
     source.connect(processor);
 
     const levelBuf = new Float32Array(analyser.fftSize);
+    state.isActive = true;
+    $indicator.classList.add("active");
+    resetListeningWaveform();
+
     const checkLevel = () => {
       if (!state.isActive) return;
       analyser.getFloatTimeDomainData(levelBuf);
@@ -851,6 +880,7 @@ async function startAudio(): Promise<void> {
         sum += levelBuf[i] * levelBuf[i];
       }
       const rms = Math.sqrt(sum / levelBuf.length);
+      updateListeningWaveform(rms);
       if (rms > 0.01) {
         $indicator.classList.add("audio-detected");
         $indicator.classList.remove("silence");
@@ -862,11 +892,12 @@ async function startAudio(): Promise<void> {
     };
     checkLevel();
 
-    state.isActive = true;
-    $indicator.classList.add("active");
+    return true;
   } catch (err) {
     console.error("Failed to start audio:", err);
     $permissionPrompt.hidden = false;
+    resetListeningWaveform();
+    return false;
   }
 }
 
@@ -885,6 +916,7 @@ function stopAudio(): void {
   state.audioProcessor = null;
   state.isActive = false;
   $indicator.classList.remove("active", "audio-detected", "silence", "has-verses");
+  resetListeningWaveform();
 }
 
 // ---------------------------------------------------------------------------
@@ -923,6 +955,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $btnStart.addEventListener("click", async () => {
     $readyState.hidden = true;
     $recordingState.hidden = false;
+    $listeningStatus.hidden = false;
     state.sessionAudioChunks = [];
     state.lastModelPrediction = null;
     state.hasFirstMatch = false;
@@ -941,12 +974,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // Reset tracker in worker
     state.worker?.postMessage({ type: "reset" });
     pushStreamingConfig();
-    await startAudio();
+    const started = await startAudio();
+    if (!started) {
+      $recordingState.hidden = true;
+      $listeningStatus.hidden = true;
+      $readyState.hidden = false;
+    }
   });
 
   $btnStop.addEventListener("click", () => {
     stopAudio();
     $recordingState.hidden = true;
+    $listeningStatus.hidden = true;
     $postRecording.hidden = false;
   });
 
@@ -965,6 +1004,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $candidateStatus.classList.remove("candidate-status--stable", "candidate-status--pending");
     renderDebugPanel();
     $postRecording.hidden = true;
+    $listeningStatus.hidden = true;
     $readyState.hidden = false;
   });
 
