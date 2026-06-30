@@ -600,6 +600,105 @@ body {
   animation: fade-in 0.4s ease-out;
 }
 
+#recording-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.35rem;
+}
+
+#recording-state[hidden] {
+  display: none;
+}
+
+.listening-card {
+  width: min(100%, 340px);
+  padding: 1.15rem 1.25rem 1.05rem;
+  border: 1px solid rgba(184, 152, 106, 0.22);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(184, 152, 106, 0.18), transparent 56%),
+    rgba(255, 255, 255, 0.62);
+  box-shadow: 0 14px 42px rgba(44, 36, 22, 0.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.listening-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-system);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #9b763a;
+  text-transform: uppercase;
+}
+
+.listening-eyebrow::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b8986a;
+  box-shadow: 0 0 0 6px rgba(184, 152, 106, 0.14);
+}
+
+.waveform {
+  --waveform-strength: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 58px;
+  margin: 0.8rem auto 0.65rem;
+}
+
+.waveform-bar {
+  width: 6px;
+  height: 42px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #d7b57d 0%, #a07830 100%);
+  opacity: calc(0.32 + var(--waveform-strength) * 0.5);
+  transform: scaleY(var(--bar-level, 0.22));
+  transform-origin: center;
+  transition: transform 90ms ease-out, opacity 160ms ease-out;
+}
+
+.waveform-bar:nth-child(2n) {
+  height: 34px;
+}
+
+.waveform-bar:nth-child(3n) {
+  height: 50px;
+}
+
+.listening-callout {
+  font-family: var(--font-system);
+  font-size: 1.28rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.listening-callout::after {
+  content: "";
+  display: inline-block;
+  width: 0.38em;
+  height: 0.38em;
+  margin-left: 0.25em;
+  border-radius: 50%;
+  background: #b8986a;
+  vertical-align: 0.12em;
+  animation: read-now-blink 1.1s ease-in-out infinite;
+}
+
+@keyframes read-now-blink {
+  0%, 100% { opacity: 0.25; transform: scale(0.72); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
 .ready-prompt {
   font-family: var(--font-system);
   font-size: 1.1rem;
