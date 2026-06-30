@@ -493,7 +493,7 @@ function buildDebugBundle() {
   const totalSamples = state.sessionAudioChunks.reduce((sum, chunk) => sum + chunk.length, 0);
   const activeGroup = state.groups[state.groups.length - 1] ?? null;
   return {
-    schema: "offline-tarteel-debug-bundle/v1",
+    schema: "tilawa-debug-bundle/v1",
     createdAt: new Date().toISOString(),
     pageUrl: location.href,
     userAgent: navigator.userAgent,

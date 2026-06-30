@@ -573,7 +573,7 @@ async def lifespan(application: FastAPI):
 
 
 app = FastAPI(
-    title="Offline Tarteel",
+    title="Tilawa",
     docs_url=None,
     redoc_url=None,
     lifespan=lifespan,
@@ -1076,7 +1076,7 @@ else:
     async def _root():
         return {
             "status": "ok",
-            "message": "Offline Tarteel backend. Frontend not built yet.",
+            "message": "Tilawa backend. Frontend not built yet.",
         }
 
 
