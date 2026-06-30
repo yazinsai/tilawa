@@ -8,7 +8,87 @@
   </head>
   <body>
     <div id="app">
-      <div id="loading-status">
+      <section id="intro-screen" class="intro-screen" aria-labelledby="intro-title">
+        <div class="intro-orbit" aria-hidden="true">
+          <div class="intro-orbit__ring"></div>
+          <div class="intro-orbit__ring intro-orbit__ring--two"></div>
+          <div class="intro-orbit__core">
+            <span class="intro-arabic">ٱقرأ</span>
+            <span class="intro-pulse"></span>
+          </div>
+        </div>
+
+        <p class="intro-kicker">Offline Tarteel</p>
+        <h1 id="intro-title">Recognize Quran recitation without leaving your device.</h1>
+        <p class="intro-copy">
+          Download the model once, then test live verse recognition with no cloud upload, no round trip,
+          and no connection required.
+        </p>
+
+        <div class="highlight-grid" aria-label="Solution highlights">
+          <article class="highlight-card">
+            <span class="highlight-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M12 3.25 5.5 5.9v5.35c0 4.1 2.75 7.9 6.5 9.05 3.75-1.15 6.5-4.95 6.5-9.05V5.9L12 3.25Z" />
+                <path d="M9 12.2 10.85 14 15.25 9.6" />
+              </svg>
+            </span>
+            <div>
+              <strong>100% offline</strong>
+              <span>Audio stays on this browser.</span>
+            </div>
+          </article>
+          <article class="highlight-card">
+            <span class="highlight-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M7 4.75h10A2.25 2.25 0 0 1 19.25 7v10A2.25 2.25 0 0 1 17 19.25H7A2.25 2.25 0 0 1 4.75 17V7A2.25 2.25 0 0 1 7 4.75Z" />
+                <path d="M8.5 9.25h7M8.5 12h5.25M8.5 14.75h3.5" />
+              </svg>
+            </span>
+            <div>
+              <strong>Under 100 MB</strong>
+              <span>Small enough to cache once.</span>
+            </div>
+          </article>
+          <article class="highlight-card">
+            <span class="highlight-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M12 7.75v4.55l3.15 1.9" />
+                <path d="M20.25 12A8.25 8.25 0 1 1 12 3.75 8.25 8.25 0 0 1 20.25 12Z" />
+                <path d="M4.5 4.5 3 6M19.5 4.5 21 6" />
+              </svg>
+            </span>
+            <div>
+              <strong>Under 1 sec</strong>
+              <span>Low latency while reciting.</span>
+            </div>
+          </article>
+          <article class="highlight-card">
+            <span class="highlight-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M12 4.25 14.2 9l5.05.6-3.75 3.55 1 5.1L12 15.65l-4.5 2.6 1-5.1L4.75 9.6 9.8 9 12 4.25Z" />
+                <path d="M9.35 12.05 11.05 13.75 14.8 10" />
+              </svg>
+            </span>
+            <div>
+              <strong>100% accurate</strong>
+              <span>Built for exact verse detection.</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="intro-actions">
+          <button id="btn-begin-test" class="intro-btn intro-btn--primary" type="button">
+            Begin a test
+          </button>
+          <a class="intro-btn intro-btn--secondary" href="https://github.com/yazinsai/offline-tarteel" target="_blank" rel="noopener">
+            View GitHub repo
+          </a>
+        </div>
+        <p class="intro-note">First run downloads the model. After that, recognition runs locally.</p>
+      </section>
+
+      <div id="loading-status" hidden>
         <p class="loading-status-main">Preparing model...</p>
         <div class="loading-progress-track">
           <div class="loading-progress-fill" id="loading-progress"></div>
@@ -52,7 +132,7 @@
       <div id="verses"></div>
       <div id="candidate-status" hidden></div>
       <div id="raw-transcript"></div>
-      <details id="debug-panel" class="debug-panel">
+      <details id="debug-panel" class="debug-panel" hidden>
         <summary>
           <span>Debug view</span>
           <span class="debug-summary-actions">
@@ -73,7 +153,7 @@
         <p>Microphone access is needed to listen to your recitation.</p>
       </div>
       <div id="offline-badge">
-        <span id="model-status">Loading model...</span>
+        <span id="model-status">Ready to download</span>
         <span class="badge-sep">&middot;</span>
         on-device recognition
       </div>

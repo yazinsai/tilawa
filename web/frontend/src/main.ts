@@ -52,6 +52,7 @@ interface DiagnosticEvent {
 const MAX_DIAGNOSTIC_EVENTS = 50;
 const MAX_DEBUG_EVENTS = 80;
 const DIAGNOSTIC_COOLDOWN_MS = 30_000;
+const DEBUG_VIEW_ENABLED = Boolean(import.meta.env.VITE_DEBUG_MODE);
 
 const state = {
   groups: [] as VerseGroup[],
@@ -86,9 +87,11 @@ const $modelStatus = document.getElementById("model-status")!;
 const $loadingStatus = document.getElementById("loading-status")!;
 const $loadingProgress = document.getElementById("loading-progress")!;
 const $loadingDetail = document.getElementById("loading-detail")!;
+const $introScreen = document.getElementById("intro-screen")!;
 const $readyState = document.getElementById("ready-state")!;
 const $recordingState = document.getElementById("recording-state")!;
 const $postRecording = document.getElementById("post-recording")!;
+const $btnBeginTest = document.getElementById("btn-begin-test") as HTMLButtonElement;
 const $btnStart = document.getElementById("btn-start")!;
 const $btnStop = document.getElementById("btn-stop")!;
 const $btnReport = document.getElementById("btn-report")!;
@@ -922,8 +925,18 @@ function stopAudio(): void {
 // ---------------------------------------------------------------------------
 // Init
 // ---------------------------------------------------------------------------
-document.addEventListener("DOMContentLoaded", () => {
-  // Create inference worker
+let modelInitStarted = false;
+
+function initializeModel(): void {
+  if (modelInitStarted) return;
+  modelInitStarted = true;
+
+  $introScreen.hidden = true;
+  $loadingStatus.hidden = false;
+  $debugPanel.hidden = !DEBUG_VIEW_ENABLED;
+  $modelStatus.textContent = "Loading model...";
+  $loadingDetail.textContent = "Starting download";
+
   const worker = new Worker(
     new URL("./worker/inference.ts", import.meta.url),
     { type: "module" },
@@ -939,6 +952,12 @@ document.addEventListener("DOMContentLoaded", () => {
     $loadingDetail.textContent = `Worker error: ${e.message || "unknown"}`;
   };
 
+  worker.postMessage({ type: "init" });
+  pushStreamingConfig();
+  syncDebugEnabled();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
   $debugPanel.addEventListener("toggle", syncDebugEnabled);
   $debugCopy.addEventListener("click", (event) => {
     event.preventDefault();
@@ -946,9 +965,11 @@ document.addEventListener("DOMContentLoaded", () => {
     copyDebugBundle();
   });
 
-  // Initialize worker (loads model, vocab, quranDB)
-  worker.postMessage({ type: "init" });
-  pushStreamingConfig();
+  $btnBeginTest.addEventListener("click", () => {
+    $btnBeginTest.disabled = true;
+    initializeModel();
+  });
+
   syncDebugEnabled();
 
   // Button handlers
