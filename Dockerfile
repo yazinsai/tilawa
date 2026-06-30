@@ -24,7 +24,7 @@ RUN npm ci --omit=dev
 # image build from the immutable release asset.
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 RUN curl -L -o dist/fastconformer_full_mixed.onnx \
-    https://github.com/yazinsai/offline-tarteel/releases/download/v0.2.0/fastconformer_full_mixed.onnx
+    https://github.com/yazinsai/tilawa/releases/download/v0.2.0/fastconformer_full_mixed.onnx
 
 # Create storage directory
 RUN mkdir -p /app/storage/reports
