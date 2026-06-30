@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Offline Tarteel - On-device Quran recitation recognition</title>
-    <meta name="title" content="Offline Tarteel - On-device Quran recitation recognition" />
-    <meta name="description" content="Recognize Quran recitation in your browser with a fast, fully offline model. Audio stays on your device." />
+    <title>Offline Tarteel - Find the ayah while you recite</title>
+    <meta name="title" content="Offline Tarteel - Find the ayah while you recite" />
+    <meta name="description" content="Find the surah and ayah as you recite. After the first download, Offline Tarteel works locally with no account and no audio upload." />
     <meta name="keywords" content="Offline Tarteel, Quran recitation recognition, Quran verse detection, offline Quran AI, on-device speech recognition" />
     <meta name="robots" content="index, follow" />
     <meta name="application-name" content="Offline Tarteel" />
@@ -13,8 +13,8 @@
     <link rel="canonical" href="https://offlinetarteel.com" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Offline Tarteel" />
-    <meta property="og:title" content="Offline Tarteel - On-device Quran recitation recognition" />
-    <meta property="og:description" content="Recognize Quran recitation in your browser with a fast, fully offline model. Audio stays on your device." />
+    <meta property="og:title" content="Offline Tarteel - Find the ayah while you recite" />
+    <meta property="og:description" content="Find the surah and ayah as you recite. After the first download, Offline Tarteel works locally with no account and no audio upload." />
     <meta property="og:url" content="https://offlinetarteel.com" />
     <meta property="og:image" content="https://offlinetarteel.com/meta-image.png" />
     <meta property="og:image:secure_url" content="https://offlinetarteel.com/meta-image.png" />
@@ -23,8 +23,8 @@
     <meta property="og:image:height" content="420" />
     <meta property="og:image:alt" content="Offline Tarteel preview showing Quran recitation recognition running fully on-device." />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Offline Tarteel - On-device Quran recitation recognition" />
-    <meta name="twitter:description" content="Recognize Quran recitation in your browser with a fast, fully offline model. Audio stays on your device." />
+    <meta name="twitter:title" content="Offline Tarteel - Find the ayah while you recite" />
+    <meta name="twitter:description" content="Find the surah and ayah as you recite. After the first download, Offline Tarteel works locally with no account and no audio upload." />
     <meta name="twitter:image" content="https://offlinetarteel.com/meta-image.png" />
     <meta name="twitter:image:alt" content="Offline Tarteel preview showing Quran recitation recognition running fully on-device." />
   </head>
@@ -32,73 +32,60 @@
     <div id="app">
       <section id="intro-screen" class="intro-screen" aria-labelledby="intro-title">
         <p class="intro-kicker">Offline Tarteel</p>
-        <h1 id="intro-title">Recognize Quran recitation without leaving your device.</h1>
+        <h1 id="intro-title">Find the ayah while you recite, even offline.</h1>
         <p class="intro-copy">
-          Download the model once, then test live verse recognition with no cloud upload, no round trip,
-          and no connection required.
+          Open the page, allow the mic, and let the verse catch up to your voice. First visit
+          downloads the model. After that, no account, no upload.
         </p>
 
         <div class="highlight-grid" aria-label="Solution highlights">
           <article class="highlight-card">
             <span class="highlight-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M12 3.25 5.5 5.9v5.35c0 4.1 2.75 7.9 6.5 9.05 3.75-1.15 6.5-4.95 6.5-9.05V5.9L12 3.25Z" />
-                <path d="M9 12.2 10.85 14 15.25 9.6" />
-              </svg>
+              <iconify-icon icon="solar:shield-check-broken"></iconify-icon>
             </span>
             <div>
-              <strong>100% offline</strong>
-              <span>Audio stays on this browser.</span>
+              <strong>Keep recitation private</strong>
+              <span>Your audio stays in this browser.</span>
             </div>
           </article>
           <article class="highlight-card">
             <span class="highlight-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M7 4.75h10A2.25 2.25 0 0 1 19.25 7v10A2.25 2.25 0 0 1 17 19.25H7A2.25 2.25 0 0 1 4.75 17V7A2.25 2.25 0 0 1 7 4.75Z" />
-                <path d="M8.5 9.25h7M8.5 12h5.25M8.5 14.75h3.5" />
-              </svg>
+              <iconify-icon icon="solar:cloud-cross-broken"></iconify-icon>
             </span>
             <div>
-              <strong>Under 100 MB</strong>
-              <span>Small enough to cache once.</span>
+              <strong>Practice when Wi-Fi drops</strong>
+              <span>Use it later without a connection.</span>
             </div>
           </article>
           <article class="highlight-card">
             <span class="highlight-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M12 7.75v4.55l3.15 1.9" />
-                <path d="M20.25 12A8.25 8.25 0 1 1 12 3.75 8.25 8.25 0 0 1 20.25 12Z" />
-                <path d="M4.5 4.5 3 6M19.5 4.5 21 6" />
-              </svg>
+              <iconify-icon icon="solar:map-point-wave-broken"></iconify-icon>
             </span>
             <div>
-              <strong>Under 1 sec</strong>
-              <span>Low latency while reciting.</span>
+              <strong>Know where you are</strong>
+              <span>Surah and ayah appear as you read.</span>
             </div>
           </article>
           <article class="highlight-card">
             <span class="highlight-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M12 4.25 14.2 9l5.05.6-3.75 3.55 1 5.1L12 15.65l-4.5 2.6 1-5.1L4.75 9.6 9.8 9 12 4.25Z" />
-                <path d="M9.35 12.05 11.05 13.75 14.8 10" />
-              </svg>
+              <iconify-icon icon="solar:document-text-broken"></iconify-icon>
             </span>
             <div>
-              <strong>100% accurate</strong>
-              <span>Built for exact verse detection.</span>
+              <strong>Review the match</strong>
+              <span>Stop recording and check what it heard.</span>
             </div>
           </article>
         </div>
 
         <div class="intro-actions">
           <button id="btn-begin-test" class="intro-btn intro-btn--primary" type="button">
-            Begin a test
+            Try with my voice
           </button>
           <a class="intro-btn intro-btn--secondary" href="https://github.com/yazinsai/offline-tarteel" target="_blank" rel="noopener">
-            View GitHub repo
+            Check github
           </a>
         </div>
-        <p class="intro-note">First run downloads the model. After that, recognition runs locally.</p>
+        <p class="intro-note">The first run takes a moment. The next one starts locally.</p>
       </section>
 
       <div id="loading-status" hidden>
