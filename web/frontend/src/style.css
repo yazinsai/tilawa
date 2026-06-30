@@ -63,93 +63,6 @@ body {
   display: none;
 }
 
-.intro-orbit {
-  position: relative;
-  width: min(66vw, 260px);
-  aspect-ratio: 1;
-  margin: 0 auto 1.6rem;
-  display: grid;
-  place-items: center;
-  color: #9b763a;
-}
-
-.intro-orbit::before,
-.intro-orbit::after {
-  content: "";
-  position: absolute;
-  border-radius: 999px;
-  background: #a9b6ad;
-  opacity: 0.78;
-  filter: drop-shadow(0 10px 24px rgba(79, 99, 92, 0.18));
-}
-
-.intro-orbit::before {
-  width: 12px;
-  height: 12px;
-  top: 22%;
-  right: 9%;
-}
-
-.intro-orbit::after {
-  width: 8px;
-  height: 8px;
-  bottom: 20%;
-  left: 13%;
-  background: #b8986a;
-}
-
-.intro-orbit__ring {
-  position: absolute;
-  inset: 7%;
-  border: 1px solid rgba(155, 118, 58, 0.24);
-  border-radius: 48% 52% 53% 47% / 50% 44% 56% 50%;
-  transform: rotate(-12deg);
-  background:
-    radial-gradient(circle at 50% 0%, rgba(184, 152, 106, 0.13), transparent 36%),
-    radial-gradient(circle at 14% 68%, rgba(79, 99, 92, 0.11), transparent 34%);
-}
-
-.intro-orbit__ring--two {
-  inset: 17%;
-  border-style: dashed;
-  border-color: rgba(79, 99, 92, 0.22);
-  transform: rotate(22deg);
-}
-
-.intro-orbit__core {
-  position: relative;
-  width: 42%;
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
-  border-radius: 32px;
-  border: 1px solid rgba(155, 118, 58, 0.28);
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(245, 240, 232, 0.66)),
-    #f5f0e8;
-  box-shadow:
-    0 26px 70px rgba(44, 36, 22, 0.13),
-    inset 0 1px 0 rgba(255, 255, 255, 0.88);
-}
-
-.intro-arabic {
-  font-family: var(--font-arabic);
-  font-size: clamp(1.9rem, 8vw, 3.2rem);
-  line-height: 1;
-  color: #4f635c;
-}
-
-.intro-pulse {
-  position: absolute;
-  right: 18%;
-  bottom: 18%;
-  width: 0.55rem;
-  height: 0.55rem;
-  border-radius: 50%;
-  background: #b8986a;
-  box-shadow: 0 0 0 8px rgba(184, 152, 106, 0.14);
-}
-
 .intro-kicker {
   margin-bottom: 0.8rem;
   font-size: 0.78rem;
@@ -1200,15 +1113,6 @@ body {
     min-height: calc(100dvh - 9rem);
     justify-content: flex-start;
     padding-top: 3.5rem;
-  }
-
-  .intro-orbit {
-    width: min(62vw, 210px);
-    margin-bottom: 1.25rem;
-  }
-
-  .intro-orbit__core {
-    border-radius: 24px;
   }
 
   .intro-screen h1 {
