@@ -1,0 +1,12 @@
+Running 1 experiment(s) on 54 sample(s) [full transcript]...
+
+>>> rabah-pruned-ctc/12-layer-ft-es-int8
+Loading Rabah CTC from /Users/rock/ai/projects/offline-tarteel/data/rabah-ctc-pruned-12 (target layers=12, int8=True)...
+    Recall: 63%  Precision: 62%  SeqAcc: 61%
+
+Experiment                       Recall  Precision   SeqAcc    Latency       Size
+------------------------------------------------------------------------------
+rabah-pruned-ctc/12-layer-ft-es-int8      63%        62%      61%      3.48s     0.2 GB
+
+Results saved to /Users/rock/ai/projects/offline-tarteel/benchmark/results/2026-02-26_224931.json
+Updated /Users/rock/ai/projects/offline-tarteel/benchmark/results/latest.json

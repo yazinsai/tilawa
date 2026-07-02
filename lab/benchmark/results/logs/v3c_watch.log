@@ -1,0 +1,4 @@
+[2026-02-27T12:55:46+03:00] watcher started app=ap-UEI3cAoVSNeULScLb7yXYD output=nvidia-fastconformer-quran-ft-v3c-lr1e5-s6000-quranonly
+[2026-02-27T12:55:48+03:00] state=ephemeral (detached) tasks=1 stopped_at=null
+[2026-02-27T12:57:09+03:00] watcher started prep_app=ap-YqmCFFWsidPA4mFgraiqBg
+[2026-02-27T12:57:11+03:00] prep_state=ephemeral (detached) tasks=1 stopped_at=null

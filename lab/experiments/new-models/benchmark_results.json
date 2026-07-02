@@ -1,0 +1,642 @@
+[
+  {
+    "model": "Whisper Large-v3-Turbo (HF)",
+    "model_id": "openai/whisper-large-v3-turbo",
+    "type": "whisper-hf",
+    "param_count": 808878080,
+    "size_mb": 3085.6,
+    "load_time_s": 13.2,
+    "results": [
+      {
+        "test": "An-Nisa:51 (user recording)",
+        "expected": "4:51",
+        "transcription_raw": "ألم تر إلى الذين أوتوا نصيبا من الكتاب يدعون إلى كتاب الله نحكم بينهم",
+        "transcription_clean": "الم تر الي الذين اوتوا نصيبا من الكتاب يدعون الي كتاب الله نحكم بينهم",
+        "match": "Aal-i-Imraan (3):23",
+        "match_score": 0.7904,
+        "correct": false,
+        "time_s": 3.486
+      },
+      {
+        "test": "Al-Ikhlas:2-3 (user, multi-ayah)",
+        "expected": "112:2",
+        "transcription_raw": "الله الصمد لم يند ولم يوند",
+        "transcription_clean": "الله الصمد لم يند ولم يوند",
+        "match": "Al-Inshiqaaq (84):23",
+        "match_score": 0.6522,
+        "correct": false,
+        "time_s": 1.854
+      },
+      {
+        "test": "Al-Fatiha:1 (ref)",
+        "expected": "1:1",
+        "transcription_raw": "بسم الله الرحمن الرحيم",
+        "transcription_clean": "بسم الله الرحمن الرحيم",
+        "match": "Al-Faatiha (1):1",
+        "match_score": 0.9778,
+        "correct": true,
+        "time_s": 1.677
+      },
+      {
+        "test": "Al-Fatiha:2 (ref)",
+        "expected": "1:2",
+        "transcription_raw": "الحمد لله رب العالمين",
+        "transcription_clean": "الحمد لله رب العالمين",
+        "match": "Al-Faatiha (1):2",
+        "match_score": 0.9756,
+        "correct": true,
+        "time_s": 1.704
+      },
+      {
+        "test": "Ayat al-Kursi (ref)",
+        "expected": "2:255",
+        "transcription_raw": "الله لا إله إلا هو الحي القيوم لا تأخذه سنة ولا نوم له ما في السماوات وما في الأرض من ذا الذي يشفع عنده إلا بإذنه يعلم ما بين أيديهم وما خلفهم",
+        "transcription_clean": "الله لا اله الا هو الحي القيوم لا تاخذه سنه ولا نوم له ما في السماوات وما في الارض من ذا الذي يشفع عنده الا باذنه يعلم ما بين ايديهم وما خلفهم",
+        "match": "Al-Baqara (2):255",
+        "match_score": 0.7349,
+        "correct": true,
+        "time_s": 2.326
+      },
+      {
+        "test": "Al-Ikhlas:1 (ref)",
+        "expected": "112:1",
+        "transcription_raw": "قل هو الله أحد",
+        "transcription_clean": "قل هو الله احد",
+        "match": "Al-Fajr (89):26",
+        "match_score": 0.6061,
+        "correct": false,
+        "time_s": 1.647
+      },
+      {
+        "test": "Ya-Sin:1 (ref)",
+        "expected": "36:1",
+        "transcription_raw": "ياسين",
+        "transcription_clean": "ياسين",
+        "match": "An-Naba (78):4",
+        "match_score": 0.5,
+        "correct": false,
+        "time_s": 1.586
+      }
+    ]
+  },
+  {
+    "model": "Tarteel Whisper Base (mlx-whisper)",
+    "model_id": "tarteel-ai/whisper-base-ar-quran",
+    "type": "whisper-hf-tarteel",
+    "param_count": 72593920,
+    "size_mb": 276.9,
+    "load_time_s": 13.3,
+    "results": [
+      {
+        "test": "An-Nisa:51 (user recording)",
+        "expected": "4:51",
+        "transcription_raw": "أَلَمْ تَوَإِنَ الَّذِينَ أُوتُوا نَصِيبًا مِنَ الْكِتَابِ يُدْعَوْنَ إِلَى كِتَابِ اللَّهِ وَمَحْكُمَ بَيْنَهُمْ",
+        "transcription_clean": "الم توان الذين اوتوا نصيبا من الكتاب يدعون الي كتاب الله ومحكم بينهم",
+        "match": "Aal-i-Imraan (3):23",
+        "match_score": 0.747,
+        "correct": false,
+        "time_s": 3.998
+      },
+      {
+        "test": "Al-Ikhlas:2-3 (user, multi-ayah)",
+        "expected": "112:2",
+        "transcription_raw": "اللَّهُ الصَّمَدُ لَمْ يَلِتْ وَلَمْ يُولَتْ",
+        "transcription_clean": "الله الصمد لم يلت ولم يولت",
+        "match": "Al-Ikhlaas (112):3",
+        "match_score": 0.6341,
+        "correct": false,
+        "time_s": 0.803
+      },
+      {
+        "test": "Al-Fatiha:1 (ref)",
+        "expected": "1:1",
+        "transcription_raw": "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ",
+        "transcription_clean": "بسم الله الرحمن الرحيم",
+        "match": "Al-Faatiha (1):1",
+        "match_score": 0.9778,
+        "correct": true,
+        "time_s": 0.505
+      },
+      {
+        "test": "Al-Fatiha:2 (ref)",
+        "expected": "1:2",
+        "transcription_raw": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+        "transcription_clean": "الحمد لله رب العالمين",
+        "match": "Al-Faatiha (1):2",
+        "match_score": 0.9756,
+        "correct": true,
+        "time_s": 0.551
+      },
+      {
+        "test": "Ayat al-Kursi (ref)",
+        "expected": "2:255",
+        "transcription_raw": "اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ مَنْ ذَا الَّذِي يَشْفَعُ عِنْدَهُ إِلَّا بِإِذْنِهِ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُ أَلِيمٌ",
+        "transcription_clean": "الله لا اله الا هو الحي القيوم لا تاخذه سنه ولا نوم له ما في السماوات وما في الارض من ذا الذي يشفع عنده الا باذنه يعلم ما بين ايديهم وما خلفه اليم",
+        "match": "Al-Baqara (2):255",
+        "match_score": 0.7481,
+        "correct": true,
+        "time_s": 8.038
+      },
+      {
+        "test": "Al-Ikhlas:1 (ref)",
+        "expected": "112:1",
+        "transcription_raw": "قُلْ هُوَ اللَّهُ أَحَدٌ",
+        "transcription_clean": "قل هو الله احد",
+        "match": "Al-Fajr (89):26",
+        "match_score": 0.6061,
+        "correct": false,
+        "time_s": 0.472
+      },
+      {
+        "test": "Ya-Sin:1 (ref)",
+        "expected": "36:1",
+        "transcription_raw": "يس",
+        "transcription_clean": "يس",
+        "match": "Ash-Shura (42):2",
+        "match_score": 0.4,
+        "correct": false,
+        "time_s": 0.187
+      }
+    ]
+  },
+  {
+    "model": "Distil-Whisper Large-v3",
+    "model_id": "distil-whisper/distil-large-v3",
+    "type": "whisper-hf",
+    "param_count": 756405760,
+    "size_mb": 2885.5,
+    "load_time_s": 14.2,
+    "results": [
+      {
+        "test": "An-Nisa:51 (user recording)",
+        "expected": "4:51",
+        "transcription_raw": "I'm tauten thou'em to the same t'em'en't'en'en'en'n't'n't",
+        "transcription_clean": "I'm tauten thou'em to the same t'em'en't'en'en'en'n't'n't",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 1.992
+      },
+      {
+        "test": "Al-Ikhlas:2-3 (user, multi-ayah)",
+        "expected": "112:2",
+        "transcription_raw": "Allah islamad.",
+        "transcription_clean": "Allah islamad.",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 1.66
+      },
+      {
+        "test": "Al-Fatiha:1 (ref)",
+        "expected": "1:1",
+        "transcription_raw": "In the name of Allah, the",
+        "transcription_clean": "In the name of Allah, the",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 1.617
+      },
+      {
+        "test": "Al-Fatiha:2 (ref)",
+        "expected": "1:2",
+        "transcription_raw": "Al-Lahmdhav-Lah-N-N-N-N-N-",
+        "transcription_clean": "Al-Lahmdhav-Lah-N-N-N-N-N-",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 1.678
+      },
+      {
+        "test": "Ayat al-Kursi (ref)",
+        "expected": "2:255",
+        "transcription_raw": "Allah, Allah, Allah, Allah, Allah,",
+        "transcription_clean": "Allah, Allah, Allah, Allah, Allah,",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 1.599
+      },
+      {
+        "test": "Al-Ikhlas:1 (ref)",
+        "expected": "112:1",
+        "transcription_raw": "Tell,",
+        "transcription_clean": "Tell,",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 1.518
+      },
+      {
+        "test": "Ya-Sin:1 (ref)",
+        "expected": "36:1",
+        "transcription_raw": "Yesin.",
+        "transcription_clean": "Yesin.",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 1.541
+      }
+    ]
+  },
+  {
+    "model": "Moonshine Tiny Arabic",
+    "model_id": "UsefulSensors/moonshine-tiny-ar",
+    "type": "moonshine",
+    "param_count": 27092736,
+    "size_mb": 103.4,
+    "load_time_s": 11.9,
+    "results": [
+      {
+        "test": "An-Nisa:51 (user recording)",
+        "expected": "4:51",
+        "transcription_raw": "أَلَمْ تَرَ إِلَى الَّذِينَ أُوتُوا النَّصِيبَ مِنْ الْكِتَابِ وَدَعَوْنَا إِلَى كِتَابِ اللَّهِ مَعَكُمْ وَبَيِّنَهُ",
+        "transcription_clean": "الم تر الي الذين اوتوا النصيب من الكتاب ودعونا الي كتاب الله معكم وبينه",
+        "match": "Aal-i-Imraan (3):23",
+        "match_score": 0.7337,
+        "correct": false,
+        "time_s": 1.726
+      },
+      {
+        "test": "Al-Ikhlas:2-3 (user, multi-ayah)",
+        "expected": "112:2",
+        "transcription_raw": "الله اصطمد لم ينج ولم يولد",
+        "transcription_clean": "الله اصطمد لم ينج ولم يولد",
+        "match": "Al-Ikhlaas (112):3",
+        "match_score": 0.6341,
+        "correct": false,
+        "time_s": 0.187
+      },
+      {
+        "test": "Al-Fatiha:1 (ref)",
+        "expected": "1:1",
+        "transcription_raw": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+        "transcription_clean": "بسم الله الرحمن الرحيم",
+        "match": "Al-Faatiha (1):1",
+        "match_score": 0.9778,
+        "correct": true,
+        "time_s": 0.215
+      },
+      {
+        "test": "Al-Fatiha:2 (ref)",
+        "expected": "1:2",
+        "transcription_raw": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+        "transcription_clean": "الحمد لله رب العالمين",
+        "match": "Al-Faatiha (1):2",
+        "match_score": 0.9756,
+        "correct": true,
+        "time_s": 0.212
+      },
+      {
+        "test": "Ayat al-Kursi (ref)",
+        "expected": "2:255",
+        "transcription_raw": "اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ  لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ  لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ  مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ  وَمَا خَلْفَهُمْ وَلَا يُحِيطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ  وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ  وَلَا يَأْتِيَ الْعَظِيمُ مِنْ عِلْمٍ وَلَا يَأْتِي الْعَظِيمُ مِنْ عِلْمٍ  وَلَا يَأْتِي الْعَظِيمُ مِنْ عِلْمٍ  وَلَا يَأْتِي الْعَظِيمُ مِنْ عِلْمٍ غَيْرُ مَا يَشَاءُ  وَاسْتَعْجِلُوا مَا يَشَاءُ الْآخِرِينَ",
+        "transcription_clean": "الله لا اله الا هو الحي القيوم لا تاخذه سنه ولا نوم له ما في السماوات وما في الارض من ذا الذي يشفع عنده الا باذنه وما خلفهم ولا يحيطون بشيء من علمه الا بما شاء وسع كرسيه السماوات والارض ولا ياتي العظيم من علم ولا ياتي العظيم من علم ولا ياتي العظيم من علم ولا ياتي العظيم من علم غير ما يشاء واستعجلوا ما يشاء الاخرين",
+        "match": "Al-Baqara (2):255",
+        "match_score": 0.7437,
+        "correct": true,
+        "time_s": 6.159
+      },
+      {
+        "test": "Al-Ikhlas:1 (ref)",
+        "expected": "112:1",
+        "transcription_raw": "قُلْ هُوَ اللَّهُ أَحَدٌ",
+        "transcription_clean": "قل هو الله احد",
+        "match": "Al-Fajr (89):26",
+        "match_score": 0.6061,
+        "correct": false,
+        "time_s": 0.185
+      },
+      {
+        "test": "Ya-Sin:1 (ref)",
+        "expected": "36:1",
+        "transcription_raw": "يا سين",
+        "transcription_clean": "يا سين",
+        "match": "An-Naba (78):4",
+        "match_score": 0.5882,
+        "correct": false,
+        "time_s": 0.113
+      }
+    ]
+  },
+  {
+    "model": "SeamlessM4T-v2 Large",
+    "model_id": "facebook/seamless-m4t-v2-large",
+    "type": "seamless-m4t",
+    "param_count": 1501842240,
+    "size_mb": 5729.1,
+    "load_time_s": 36.3,
+    "results": [
+      {
+        "test": "An-Nisa:51 (user recording)",
+        "expected": "4:51",
+        "transcription_raw": "",
+        "transcription_clean": "",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 16.645
+      },
+      {
+        "test": "Al-Ikhlas:2-3 (user, multi-ayah)",
+        "expected": "112:2",
+        "transcription_raw": "",
+        "transcription_clean": "",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 1.51
+      },
+      {
+        "test": "Al-Fatiha:1 (ref)",
+        "expected": "1:1",
+        "transcription_raw": "",
+        "transcription_clean": "",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 1.13
+      },
+      {
+        "test": "Al-Fatiha:2 (ref)",
+        "expected": "1:2",
+        "transcription_raw": "",
+        "transcription_clean": "",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 0.882
+      },
+      {
+        "test": "Ayat al-Kursi (ref)",
+        "expected": "2:255",
+        "transcription_raw": "",
+        "transcription_clean": "",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 59.313
+      },
+      {
+        "test": "Al-Ikhlas:1 (ref)",
+        "expected": "112:1",
+        "transcription_raw": "",
+        "transcription_clean": "",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 31.592
+      },
+      {
+        "test": "Ya-Sin:1 (ref)",
+        "expected": "36:1",
+        "transcription_raw": "",
+        "transcription_clean": "",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 10.203
+      }
+    ]
+  },
+  {
+    "model": "MMS-1B-All (Arabic)",
+    "model_id": "facebook/mms-1b-all",
+    "type": "wav2vec2-mms",
+    "param_count": 964803577,
+    "size_mb": 3680.4,
+    "load_time_s": 36.0,
+    "results": [
+      {
+        "test": "An-Nisa:51 (user recording)",
+        "expected": "4:51",
+        "transcription_raw": "لم إن الذين أوتون صلبا من الكتاب يدعون إلى كتاب لا نحكم بينهم",
+        "transcription_clean": "لم ان الذين اوتون صلبا من الكتاب يدعون الي كتاب لا نحكم بينهم",
+        "match": "Aal-i-Imraan (3):23",
+        "match_score": 0.6792,
+        "correct": false,
+        "time_s": 12.046
+      },
+      {
+        "test": "Al-Ikhlas:2-3 (user, multi-ayah)",
+        "expected": "112:2",
+        "transcription_raw": "الله الصمد لم يند ولم يوند",
+        "transcription_clean": "الله الصمد لم يند ولم يوند",
+        "match": "Al-Inshiqaaq (84):23",
+        "match_score": 0.6522,
+        "correct": false,
+        "time_s": 0.479
+      },
+      {
+        "test": "Al-Fatiha:1 (ref)",
+        "expected": "1:1",
+        "transcription_raw": "بباسم الله الرحمن الرحيم",
+        "transcription_clean": "بباسم الله الرحمن الرحيم",
+        "match": "Al-Faatiha (1):1",
+        "match_score": 0.9362,
+        "correct": true,
+        "time_s": 0.35
+      },
+      {
+        "test": "Al-Fatiha:2 (ref)",
+        "expected": "1:2",
+        "transcription_raw": "احالحم لله رب العا لمين",
+        "transcription_clean": "احالحم لله رب العا لمين",
+        "match": "Al-Faatiha (1):2",
+        "match_score": 0.8837,
+        "correct": true,
+        "time_s": 0.389
+      },
+      {
+        "test": "Ayat al-Kursi (ref)",
+        "expected": "2:255",
+        "transcription_raw": "الل لا  إلها إلا هو الحي القي لا تأخذه سنة ولانوو لهما في السماوات وما في الأرض منذا الذي يشفع عنده إلا بإذنه يعلم ما بين أيديهم وما خلفهم ولا يحيطون بشيء من علمه إلا بماشا وسع كرسيه السماوات والأرض ولا يؤوده حففهما وهو العلي العظين",
+        "transcription_clean": "الل لا الها الا هو الحي القي لا تاخذه سنه ولانوو لهما في السماوات وما في الارض منذا الذي يشفع عنده الا باذنه يعلم ما بين ايديهم وما خلفهم ولا يحيطون بشيء من علمه الا بماشا وسع كرسيه السماوات والارض ولا يؤوده حففهما وهو العلي العظين",
+        "match": "Al-Baqara (2):255",
+        "match_score": 0.9447,
+        "correct": true,
+        "time_s": 13.879
+      },
+      {
+        "test": "Al-Ikhlas:1 (ref)",
+        "expected": "112:1",
+        "transcription_raw": "قل ه الله أحد",
+        "transcription_clean": "قل ه الله احد",
+        "match": "Al-Ikhlaas (112):2",
+        "match_score": 0.6087,
+        "correct": false,
+        "time_s": 0.613
+      },
+      {
+        "test": "Ya-Sin:1 (ref)",
+        "expected": "36:1",
+        "transcription_raw": "يا",
+        "transcription_clean": "يا",
+        "match": "Al-Fajr (89):2",
+        "match_score": 0.3636,
+        "correct": false,
+        "time_s": 0.288
+      }
+    ]
+  },
+  {
+    "model": "Nuwaisir Quran Recognizer",
+    "model_id": "Nuwaisir/Quran_speech_recognizer",
+    "type": "wav2vec2-quran",
+    "param_count": 315496120,
+    "size_mb": 1203.5,
+    "load_time_s": 13.7,
+    "results": [
+      {
+        "test": "An-Nisa:51 (user recording)",
+        "expected": "4:51",
+        "transcription_raw": ">alamo/tara/<ila/Al~a*iynap/>ytuw/naSiybFA/mila/AlokitaAbi/mudoEFAla/<ilaY/kitaAbK~aAayoli/yaHokumo/>aboray~ahuwmK",
+        "transcription_clean": ">alamo/tara/<ila/Al~a*iynap/>ytuw/naSiybFA/mila/AlokitaAbi/mudoEFAla/<ilaY/kitaAbK~aAayoli/yaHokumo/>aboray~ahuwmK",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 7.047
+      },
+      {
+        "test": "Al-Ikhlas:2-3 (user, multi-ayah)",
+        "expected": "112:2",
+        "transcription_raw": "All~ahu/AlS~amato/lamo/yalido/walamo/yuwnado",
+        "transcription_clean": "All~ahu/AlS~amato/lamo/yalido/walamo/yuwnado",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 0.201
+      },
+      {
+        "test": "Al-Fatiha:1 (ref)",
+        "expected": "1:1",
+        "transcription_raw": "bisomi/All~ahi/Alr~aHomani/Alr~aHiymm",
+        "transcription_clean": "bisomi/All~ahi/Alr~aHomani/Alr~aHiymm",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 0.157
+      },
+      {
+        "test": "Al-Fatiha:2 (ref)",
+        "expected": "1:2",
+        "transcription_raw": "AloHamodu/lil~ahi/rab~i/AloEaAlamiy",
+        "transcription_clean": "AloHamodu/lil~ahi/rab~i/AloEaAlamiy",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 0.126
+      },
+      {
+        "test": "Ayat al-Kursi (ref)",
+        "expected": "2:255",
+        "transcription_raw": "ll~ahu/laA/<ilahaA/<i/l~ahua/AloHay~u/Aloqay~umK/laA/ta>oxu*uw/sinatuwwalaA/lamK/lahumaA/fiy/Als~amaAwati/walaA/fiy/Alo>aroD/malll~aA/Al~a*iy/ya$ofaEu/Ei/lbahu/<i/l~aA/bi}i*Khi/yaEolamu/maA/baAl~a>yodKhimo/wamaAxa/Alfahu/m/walaA/yuHy/Tuwna/bi$ayo'KK/EilomK/<il~aA/bimaA/$aA/wa/siEokurosiy~u/Als~amaAwaAti/a/Alo>aroDD/walaA/ya'uwduw/Hif~uwmaA/wahuwa/AloEalay~u/AloEaZiy",
+        "transcription_clean": "ll~ahu/laA/<ilahaA/<i/l~ahua/AloHay~u/Aloqay~umK/laA/ta>oxu*uw/sinatuwwalaA/lamK/lahumaA/fiy/Als~amaAwati/walaA/fiy/Alo>aroD/malll~aA/Al~a*iy/ya$ofaEu/Ei/lbahu/<i/l~aA/bi}i*Khi/yaEolamu/maA/baAl~a>yodKhimo/wamaAxa/Alfahu/m/walaA/yuHy/Tuwna/bi$ayo'KK/EilomK/<il~aA/bimaA/$aA/wa/siEokurosiy~u/Als~amaAwaAti/a/Alo>aroDD/walaA/ya'uwduw/Hif~uwmaA/wahuwa/AloEalay~u/AloEaZiy",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 11.194
+      },
+      {
+        "test": "Al-Ikhlas:1 (ref)",
+        "expected": "112:1",
+        "transcription_raw": "qulo/huwa/All~ahu/>aHadN",
+        "transcription_clean": "qulo/huwa/All~ahu/>aHadN",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 2.651
+      },
+      {
+        "test": "Ya-Sin:1 (ref)",
+        "expected": "36:1",
+        "transcription_raw": "yaA/siy",
+        "transcription_clean": "yaA/siy",
+        "match": "NO MATCH",
+        "match_score": 0.0,
+        "correct": false,
+        "time_s": 0.151
+      }
+    ]
+  },
+  {
+    "model": "HamzaSidhu Quran ASR",
+    "model_id": "HamzaSidhu786/wav2vec2-base-word-by-word-quran-asr",
+    "type": "wav2vec2-quran",
+    "param_count": 94420159,
+    "size_mb": 360.2,
+    "load_time_s": 9.4,
+    "results": [
+      {
+        "test": "An-Nisa:51 (user recording)",
+        "expected": "4:51",
+        "transcription_raw": "لمْكَُهُنَمُفُمْصُمَمّملنْكِتَفُدَعَمئَِكِكََِلِكِكُمَلِيمُ",
+        "transcription_clean": "لمكهنمفمصممملنكتفدعمئككلككمليم",
+        "match": "Saad (38):85",
+        "match_score": 0.4179,
+        "correct": false,
+        "time_s": 11.387
+      },
+      {
+        "test": "Al-Ikhlas:2-3 (user, multi-ayah)",
+        "expected": "112:2",
+        "transcription_raw": "اللَّاظْصَمَنِلَلْيَنِتُنَمُّونَت",
+        "transcription_clean": "اللاظصمنللينتنمونت",
+        "match": "An-Najm (53):24",
+        "match_score": 0.5143,
+        "correct": false,
+        "time_s": 0.265
+      },
+      {
+        "test": "Al-Fatiha:1 (ref)",
+        "expected": "1:1",
+        "transcription_raw": "بِسمِلَّانَِحْمَانِرَّحِ",
+        "transcription_clean": "بسملانحمانرح",
+        "match": "Al-Faatiha (1):1",
+        "match_score": 0.5714,
+        "correct": true,
+        "time_s": 0.116
+      },
+      {
+        "test": "Al-Fatiha:2 (ref)",
+        "expected": "1:2",
+        "transcription_raw": "الْحَنُّرِلَْارهِّلْعلَنِينَ",
+        "transcription_clean": "الحنرلارهلعلنين",
+        "match": "Al-Mursalaat (77):16",
+        "match_score": 0.5806,
+        "correct": false,
+        "time_s": 0.098
+      },
+      {
+        "test": "Ayat al-Kursi (ref)",
+        "expected": "2:255",
+        "transcription_raw": "أَلخلالَاكَِاَئِاحَيُلقَلنتَُُوِنَتُوَنَنََمَفُسَمَاتِومَاََِمَلََرِييشَعِدَكِلَابِِرَّيَعلَنمَابَنَدِنُمَاخَفَلَاُحِقُونَبِشِكِنِنّعلنِئِلَابِنَشَاسَفُسِيسَنَاكُِنَََيَردُوحِشُونلْعلُِنوننَ",
+        "transcription_clean": "الخلالاكائاحيلقلنتونتوننمفسماتوماملرييشعدكلابريعلنمابندنماخفلاحقونبشكننعلنئلابنشاسفسيسناكنيردوحشونلعلنونن",
+        "match": "Al-Baqara (2):255",
+        "match_score": 0.4302,
+        "correct": true,
+        "time_s": 12.885
+      },
+      {
+        "test": "Al-Ikhlas:1 (ref)",
+        "expected": "112:1",
+        "transcription_raw": "قُلْظُرَُؤَحَدُ",
+        "transcription_clean": "قلظرؤحد",
+        "match": "Taa-Haa (20):25",
+        "match_score": 0.3846,
+        "correct": false,
+        "time_s": 0.61
+      },
+      {
+        "test": "Ya-Sin:1 (ref)",
+        "expected": "36:1",
+        "transcription_raw": "سِين",
+        "transcription_clean": "سين",
+        "match": "At-Tin (95):2",
+        "match_score": 0.4615,
+        "correct": false,
+        "time_s": 0.123
+      }
+    ]
+  }
+]

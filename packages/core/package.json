@@ -1,0 +1,39 @@
+{
+  "name": "@tilawa/core",
+  "version": "0.1.0",
+  "description": "Offline Quran verse recognition. Give it 16kHz audio, get surah:ayah. Pure TypeScript core with a pluggable ONNX runtime seam — works in web, node, and React Native.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "quran",
+    "tarteel",
+    "asr",
+    "speech-recognition",
+    "onnx",
+    "offline",
+    "arabic"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  },
+  "sideEffects": false
+}

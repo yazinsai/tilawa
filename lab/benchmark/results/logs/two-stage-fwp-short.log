@@ -1,0 +1,14 @@
+Filtered to 17 samples in category 'short'
+Running 1 experiment(s) on 17 sample(s) [full transcript]...
+
+>>> two-stage-faster-whisper-pruned
+Loading faster-whisper Stage 1 from OdyAsh/faster-whisper-base-ar-quran...
+Loading Stage 2 CTC from /Users/rock/ai/projects/offline-tarteel/data/rabah-ctc-pruned-8...
+    Recall: 29%  Precision: 29%  SeqAcc: 29%
+
+Experiment                       Recall  Precision   SeqAcc    Latency       Size
+------------------------------------------------------------------------------
+two-stage-faster-whisper-pruned      29%        29%      29%      0.56s     0.6 GB
+
+Results saved to /Users/rock/ai/projects/offline-tarteel/benchmark/results/2026-02-26_222155.json
+Updated /Users/rock/ai/projects/offline-tarteel/benchmark/results/latest.json

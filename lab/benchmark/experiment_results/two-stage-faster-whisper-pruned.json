@@ -1,0 +1,22 @@
+{
+  "two-stage-faster-whisper-pruned|test_corpus": {
+    "experiment": "two-stage-faster-whisper-pruned",
+    "corpus": "test_corpus",
+    "recall": 0.0,
+    "precision": 0.0,
+    "sequence_accuracy": 0.0,
+    "avg_latency": 0.0,
+    "model_size": 0,
+    "total": 53
+  },
+  "two-stage-faster-whisper-pruned|test_corpus_v2": {
+    "experiment": "two-stage-faster-whisper-pruned",
+    "corpus": "test_corpus_v2",
+    "recall": 0.0,
+    "precision": 0.0,
+    "sequence_accuracy": 0.0,
+    "avg_latency": 0.0,
+    "model_size": 0,
+    "total": 43
+  }
+}

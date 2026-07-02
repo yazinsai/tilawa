@@ -1,0 +1,4530 @@
+{
+  "samples": [
+    {
+      "id": "ea_alafasy_002143",
+      "file": "ea_alafasy_002143.mp3",
+      "surah": 2,
+      "ayah": 143,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 2,
+          "ayah": 143
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_002177",
+      "file": "ea_husary_002177.mp3",
+      "surah": 2,
+      "ayah": 177,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 2,
+          "ayah": 177
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_002282",
+      "file": "ea_alafasy_002282.mp3",
+      "surah": 2,
+      "ayah": 282,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 2,
+          "ayah": 282
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_003008",
+      "file": "ea_husary_003008.mp3",
+      "surah": 3,
+      "ayah": 8,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 3,
+          "ayah": 8
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_003173",
+      "file": "ea_alafasy_003173.mp3",
+      "surah": 3,
+      "ayah": 173,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 3,
+          "ayah": 173
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_005003",
+      "file": "ea_husary_005003.mp3",
+      "surah": 5,
+      "ayah": 3,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 5,
+          "ayah": 3
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_009060",
+      "file": "ea_alafasy_009060.mp3",
+      "surah": 9,
+      "ayah": 60,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 9,
+          "ayah": 60
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_017085",
+      "file": "ea_husary_017085.mp3",
+      "surah": 17,
+      "ayah": 85,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 17,
+          "ayah": 85
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_024061",
+      "file": "ea_alafasy_024061.mp3",
+      "surah": 24,
+      "ayah": 61,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 24,
+          "ayah": 61
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_033006",
+      "file": "ea_husary_033006.mp3",
+      "surah": 33,
+      "ayah": 6,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 33,
+          "ayah": 6
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_043036",
+      "file": "ea_alafasy_043036.mp3",
+      "surah": 43,
+      "ayah": 36,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 43,
+          "ayah": 36
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_057020",
+      "file": "ea_husary_057020.mp3",
+      "surah": 57,
+      "ayah": 20,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 57,
+          "ayah": 20
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_065012",
+      "file": "ea_alafasy_065012.mp3",
+      "surah": 65,
+      "ayah": 12,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 65,
+          "ayah": 12
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_076005",
+      "file": "ea_husary_076005.mp3",
+      "surah": 76,
+      "ayah": 5,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 76,
+          "ayah": 5
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_multi_001_001_007",
+      "file": "ea_alafasy_multi_001_001_007.wav",
+      "surah": 1,
+      "ayah": 1,
+      "ayah_end": 7,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 1,
+          "ayah": 1
+        },
+        {
+          "surah": 1,
+          "ayah": 2
+        },
+        {
+          "surah": 1,
+          "ayah": 3
+        },
+        {
+          "surah": 1,
+          "ayah": 4
+        },
+        {
+          "surah": 1,
+          "ayah": 5
+        },
+        {
+          "surah": 1,
+          "ayah": 6
+        },
+        {
+          "surah": 1,
+          "ayah": 7
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_multi_025_063_068",
+      "file": "ea_husary_multi_025_063_068.wav",
+      "surah": 25,
+      "ayah": 63,
+      "ayah_end": 68,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 25,
+          "ayah": 63
+        },
+        {
+          "surah": 25,
+          "ayah": 64
+        },
+        {
+          "surah": 25,
+          "ayah": 65
+        },
+        {
+          "surah": 25,
+          "ayah": 66
+        },
+        {
+          "surah": 25,
+          "ayah": 67
+        },
+        {
+          "surah": 25,
+          "ayah": 68
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_multi_027_087_090",
+      "file": "ea_alafasy_multi_027_087_090.wav",
+      "surah": 27,
+      "ayah": 87,
+      "ayah_end": 90,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 27,
+          "ayah": 87
+        },
+        {
+          "surah": 27,
+          "ayah": 88
+        },
+        {
+          "surah": 27,
+          "ayah": 89
+        },
+        {
+          "surah": 27,
+          "ayah": 90
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_multi_029_045_049",
+      "file": "ea_husary_multi_029_045_049.wav",
+      "surah": 29,
+      "ayah": 45,
+      "ayah_end": 49,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 29,
+          "ayah": 45
+        },
+        {
+          "surah": 29,
+          "ayah": 46
+        },
+        {
+          "surah": 29,
+          "ayah": 47
+        },
+        {
+          "surah": 29,
+          "ayah": 48
+        },
+        {
+          "surah": 29,
+          "ayah": 49
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_multi_044_001_005",
+      "file": "ea_alafasy_multi_044_001_005.wav",
+      "surah": 44,
+      "ayah": 1,
+      "ayah_end": 5,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 44,
+          "ayah": 1
+        },
+        {
+          "surah": 44,
+          "ayah": 2
+        },
+        {
+          "surah": 44,
+          "ayah": 3
+        },
+        {
+          "surah": 44,
+          "ayah": 4
+        },
+        {
+          "surah": 44,
+          "ayah": 5
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_multi_050_001_005",
+      "file": "ea_husary_multi_050_001_005.wav",
+      "surah": 50,
+      "ayah": 1,
+      "ayah_end": 5,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 50,
+          "ayah": 1
+        },
+        {
+          "surah": 50,
+          "ayah": 2
+        },
+        {
+          "surah": 50,
+          "ayah": 3
+        },
+        {
+          "surah": 50,
+          "ayah": 4
+        },
+        {
+          "surah": 50,
+          "ayah": 5
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_multi_053_001_005",
+      "file": "ea_alafasy_multi_053_001_005.wav",
+      "surah": 53,
+      "ayah": 1,
+      "ayah_end": 5,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 53,
+          "ayah": 1
+        },
+        {
+          "surah": 53,
+          "ayah": 2
+        },
+        {
+          "surah": 53,
+          "ayah": 3
+        },
+        {
+          "surah": 53,
+          "ayah": 4
+        },
+        {
+          "surah": 53,
+          "ayah": 5
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_multi_054_001_005",
+      "file": "ea_husary_multi_054_001_005.wav",
+      "surah": 54,
+      "ayah": 1,
+      "ayah_end": 5,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 54,
+          "ayah": 1
+        },
+        {
+          "surah": 54,
+          "ayah": 2
+        },
+        {
+          "surah": 54,
+          "ayah": 3
+        },
+        {
+          "surah": 54,
+          "ayah": 4
+        },
+        {
+          "surah": 54,
+          "ayah": 5
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_multi_069_001_006",
+      "file": "ea_alafasy_multi_069_001_006.wav",
+      "surah": 69,
+      "ayah": 1,
+      "ayah_end": 6,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 69,
+          "ayah": 1
+        },
+        {
+          "surah": 69,
+          "ayah": 2
+        },
+        {
+          "surah": 69,
+          "ayah": 3
+        },
+        {
+          "surah": 69,
+          "ayah": 4
+        },
+        {
+          "surah": 69,
+          "ayah": 5
+        },
+        {
+          "surah": 69,
+          "ayah": 6
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_multi_070_001_005",
+      "file": "ea_husary_multi_070_001_005.wav",
+      "surah": 70,
+      "ayah": 1,
+      "ayah_end": 5,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 70,
+          "ayah": 1
+        },
+        {
+          "surah": 70,
+          "ayah": 2
+        },
+        {
+          "surah": 70,
+          "ayah": 3
+        },
+        {
+          "surah": 70,
+          "ayah": 4
+        },
+        {
+          "surah": 70,
+          "ayah": 5
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_multi_073_001_005",
+      "file": "ea_alafasy_multi_073_001_005.wav",
+      "surah": 73,
+      "ayah": 1,
+      "ayah_end": 5,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 73,
+          "ayah": 1
+        },
+        {
+          "surah": 73,
+          "ayah": 2
+        },
+        {
+          "surah": 73,
+          "ayah": 3
+        },
+        {
+          "surah": 73,
+          "ayah": 4
+        },
+        {
+          "surah": 73,
+          "ayah": 5
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_multi_077_001_007",
+      "file": "ea_husary_multi_077_001_007.wav",
+      "surah": 77,
+      "ayah": 1,
+      "ayah_end": 7,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 77,
+          "ayah": 1
+        },
+        {
+          "surah": 77,
+          "ayah": 2
+        },
+        {
+          "surah": 77,
+          "ayah": 3
+        },
+        {
+          "surah": 77,
+          "ayah": 4
+        },
+        {
+          "surah": 77,
+          "ayah": 5
+        },
+        {
+          "surah": 77,
+          "ayah": 6
+        },
+        {
+          "surah": 77,
+          "ayah": 7
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_multi_079_001_005",
+      "file": "ea_alafasy_multi_079_001_005.wav",
+      "surah": 79,
+      "ayah": 1,
+      "ayah_end": 5,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 79,
+          "ayah": 1
+        },
+        {
+          "surah": 79,
+          "ayah": 2
+        },
+        {
+          "surah": 79,
+          "ayah": 3
+        },
+        {
+          "surah": 79,
+          "ayah": 4
+        },
+        {
+          "surah": 79,
+          "ayah": 5
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_multi_080_001_005",
+      "file": "ea_husary_multi_080_001_005.wav",
+      "surah": 80,
+      "ayah": 1,
+      "ayah_end": 5,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 80,
+          "ayah": 1
+        },
+        {
+          "surah": 80,
+          "ayah": 2
+        },
+        {
+          "surah": 80,
+          "ayah": 3
+        },
+        {
+          "surah": 80,
+          "ayah": 4
+        },
+        {
+          "surah": 80,
+          "ayah": 5
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_multi_089_001_005",
+      "file": "ea_alafasy_multi_089_001_005.wav",
+      "surah": 89,
+      "ayah": 1,
+      "ayah_end": 5,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 89,
+          "ayah": 1
+        },
+        {
+          "surah": 89,
+          "ayah": 2
+        },
+        {
+          "surah": 89,
+          "ayah": 3
+        },
+        {
+          "surah": 89,
+          "ayah": 4
+        },
+        {
+          "surah": 89,
+          "ayah": 5
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_multi_090_001_006",
+      "file": "ea_husary_multi_090_001_006.wav",
+      "surah": 90,
+      "ayah": 1,
+      "ayah_end": 6,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 90,
+          "ayah": 1
+        },
+        {
+          "surah": 90,
+          "ayah": 2
+        },
+        {
+          "surah": 90,
+          "ayah": 3
+        },
+        {
+          "surah": 90,
+          "ayah": 4
+        },
+        {
+          "surah": 90,
+          "ayah": 5
+        },
+        {
+          "surah": 90,
+          "ayah": 6
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_multi_095_001_005",
+      "file": "ea_alafasy_multi_095_001_005.wav",
+      "surah": 95,
+      "ayah": 1,
+      "ayah_end": 5,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 95,
+          "ayah": 1
+        },
+        {
+          "surah": 95,
+          "ayah": 2
+        },
+        {
+          "surah": 95,
+          "ayah": 3
+        },
+        {
+          "surah": 95,
+          "ayah": 4
+        },
+        {
+          "surah": 95,
+          "ayah": 5
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_multi_105_001_005",
+      "file": "ea_husary_multi_105_001_005.wav",
+      "surah": 105,
+      "ayah": 1,
+      "ayah_end": 5,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 105,
+          "ayah": 1
+        },
+        {
+          "surah": 105,
+          "ayah": 2
+        },
+        {
+          "surah": 105,
+          "ayah": 3
+        },
+        {
+          "surah": 105,
+          "ayah": 4
+        },
+        {
+          "surah": 105,
+          "ayah": 5
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_multi_108_001_003",
+      "file": "ea_alafasy_multi_108_001_003.wav",
+      "surah": 108,
+      "ayah": 1,
+      "ayah_end": 3,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 108,
+          "ayah": 1
+        },
+        {
+          "surah": 108,
+          "ayah": 2
+        },
+        {
+          "surah": 108,
+          "ayah": 3
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_multi_109_001_006",
+      "file": "ea_husary_multi_109_001_006.wav",
+      "surah": 109,
+      "ayah": 1,
+      "ayah_end": 6,
+      "category": "multi",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 109,
+          "ayah": 1
+        },
+        {
+          "surah": 109,
+          "ayah": 2
+        },
+        {
+          "surah": 109,
+          "ayah": 3
+        },
+        {
+          "surah": 109,
+          "ayah": 4
+        },
+        {
+          "surah": 109,
+          "ayah": 5
+        },
+        {
+          "surah": 109,
+          "ayah": 6
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_056058",
+      "file": "ea_alafasy_056058.mp3",
+      "surah": 56,
+      "ayah": 58,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 56,
+          "ayah": 58
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_081008",
+      "file": "ea_husary_081008.mp3",
+      "surah": 81,
+      "ayah": 8,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 81,
+          "ayah": 8
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_082016",
+      "file": "ea_alafasy_082016.mp3",
+      "surah": 82,
+      "ayah": 16,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 82,
+          "ayah": 16
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_106003",
+      "file": "ea_husary_106003.mp3",
+      "surah": 106,
+      "ayah": 3,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 106,
+          "ayah": 3
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_053033",
+      "file": "ea_alafasy_053033.mp3",
+      "surah": 53,
+      "ayah": 33,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 53,
+          "ayah": 33
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_010063",
+      "file": "ea_husary_010063.mp3",
+      "surah": 10,
+      "ayah": 63,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 63
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_080008",
+      "file": "ea_alafasy_080008.mp3",
+      "surah": 80,
+      "ayah": 8,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 80,
+          "ayah": 8
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_078034",
+      "file": "ea_husary_078034.mp3",
+      "surah": 78,
+      "ayah": 34,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 78,
+          "ayah": 34
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_056040",
+      "file": "ea_alafasy_056040.mp3",
+      "surah": 56,
+      "ayah": 40,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 56,
+          "ayah": 40
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_089019",
+      "file": "ea_husary_089019.mp3",
+      "surah": 89,
+      "ayah": 19,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 89,
+          "ayah": 19
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_055053",
+      "file": "ea_alafasy_055053.mp3",
+      "surah": 55,
+      "ayah": 53,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 55,
+          "ayah": 53
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_044034",
+      "file": "ea_husary_044034.mp3",
+      "surah": 44,
+      "ayah": 34,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 44,
+          "ayah": 34
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_037100",
+      "file": "ea_alafasy_037100.mp3",
+      "surah": 37,
+      "ayah": 100,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 37,
+          "ayah": 100
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_052002",
+      "file": "ea_husary_052002.mp3",
+      "surah": 52,
+      "ayah": 2,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 52,
+          "ayah": 2
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_088016",
+      "file": "ea_alafasy_088016.mp3",
+      "surah": 88,
+      "ayah": 16,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 88,
+          "ayah": 16
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_088014",
+      "file": "ea_husary_088014.mp3",
+      "surah": 88,
+      "ayah": 14,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 88,
+          "ayah": 14
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_079031",
+      "file": "ea_alafasy_079031.mp3",
+      "surah": 79,
+      "ayah": 31,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 79,
+          "ayah": 31
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_037155",
+      "file": "ea_husary_037155.mp3",
+      "surah": 37,
+      "ayah": 155,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 37,
+          "ayah": 155
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_084022",
+      "file": "ea_alafasy_084022.mp3",
+      "surah": 84,
+      "ayah": 22,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 84,
+          "ayah": 22
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_080027",
+      "file": "ea_husary_080027.mp3",
+      "surah": 80,
+      "ayah": 27,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 80,
+          "ayah": 27
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_085022",
+      "file": "ea_alafasy_085022.mp3",
+      "surah": 85,
+      "ayah": 22,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 85,
+          "ayah": 22
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_037141",
+      "file": "ea_husary_037141.mp3",
+      "surah": 37,
+      "ayah": 141,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 37,
+          "ayah": 141
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_037161",
+      "file": "ea_alafasy_037161.mp3",
+      "surah": 37,
+      "ayah": 161,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 37,
+          "ayah": 161
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_026220",
+      "file": "ea_husary_026220.mp3",
+      "surah": 26,
+      "ayah": 220,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 26,
+          "ayah": 220
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_056018",
+      "file": "ea_alafasy_056018.mp3",
+      "surah": 56,
+      "ayah": 18,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 56,
+          "ayah": 18
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_043034",
+      "file": "ea_husary_043034.mp3",
+      "surah": 43,
+      "ayah": 34,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 43,
+          "ayah": 34
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_081019",
+      "file": "ea_alafasy_081019.mp3",
+      "surah": 81,
+      "ayah": 19,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 81,
+          "ayah": 19
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_026054",
+      "file": "ea_husary_026054.mp3",
+      "surah": 26,
+      "ayah": 54,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 26,
+          "ayah": 54
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_037050",
+      "file": "ea_alafasy_037050.mp3",
+      "surah": 37,
+      "ayah": 50,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 37,
+          "ayah": 50
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_075011",
+      "file": "ea_husary_075011.mp3",
+      "surah": 75,
+      "ayah": 11,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 75,
+          "ayah": 11
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_055058",
+      "file": "ea_alafasy_055058.mp3",
+      "surah": 55,
+      "ayah": 58,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 55,
+          "ayah": 58
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_014020",
+      "file": "ea_husary_014020.mp3",
+      "surah": 14,
+      "ayah": 20,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 14,
+          "ayah": 20
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_021070",
+      "file": "ea_alafasy_021070.mp3",
+      "surah": 21,
+      "ayah": 70,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 21,
+          "ayah": 70
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_079041",
+      "file": "ea_husary_079041.mp3",
+      "surah": 79,
+      "ayah": 41,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 79,
+          "ayah": 41
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_085014",
+      "file": "ea_alafasy_085014.mp3",
+      "surah": 85,
+      "ayah": 14,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 85,
+          "ayah": 14
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_053051",
+      "file": "ea_husary_053051.mp3",
+      "surah": 53,
+      "ayah": 51,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 53,
+          "ayah": 51
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_080029",
+      "file": "ea_alafasy_080029.mp3",
+      "surah": 80,
+      "ayah": 29,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 80,
+          "ayah": 29
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_101002",
+      "file": "ea_husary_101002.mp3",
+      "surah": 101,
+      "ayah": 2,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 101,
+          "ayah": 2
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_037068",
+      "file": "ea_alafasy_037068.mp3",
+      "surah": 37,
+      "ayah": 68,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 37,
+          "ayah": 68
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_091011",
+      "file": "ea_husary_091011.mp3",
+      "surah": 91,
+      "ayah": 11,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 91,
+          "ayah": 11
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_074005",
+      "file": "ea_alafasy_074005.mp3",
+      "surah": 74,
+      "ayah": 5,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 74,
+          "ayah": 5
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_089012",
+      "file": "ea_husary_089012.mp3",
+      "surah": 89,
+      "ayah": 12,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 89,
+          "ayah": 12
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_083023",
+      "file": "ea_alafasy_083023.mp3",
+      "surah": 83,
+      "ayah": 23,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 83,
+          "ayah": 23
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_086009",
+      "file": "ea_husary_086009.mp3",
+      "surah": 86,
+      "ayah": 9,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 86,
+          "ayah": 9
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_023048",
+      "file": "ea_alafasy_023048.mp3",
+      "surah": 23,
+      "ayah": 48,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 23,
+          "ayah": 48
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_081024",
+      "file": "ea_husary_081024.mp3",
+      "surah": 81,
+      "ayah": 24,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 81,
+          "ayah": 24
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_037153",
+      "file": "ea_alafasy_037153.mp3",
+      "surah": 37,
+      "ayah": 153,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 37,
+          "ayah": 153
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_037082",
+      "file": "ea_husary_037082.mp3",
+      "surah": 37,
+      "ayah": 82,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 37,
+          "ayah": 82
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_078036",
+      "file": "ea_alafasy_078036.mp3",
+      "surah": 78,
+      "ayah": 36,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 78,
+          "ayah": 36
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_026100",
+      "file": "ea_husary_026100.mp3",
+      "surah": 26,
+      "ayah": 100,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 26,
+          "ayah": 100
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_030001",
+      "file": "ea_alafasy_030001.mp3",
+      "surah": 30,
+      "ayah": 1,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 30,
+          "ayah": 1
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_068010",
+      "file": "ea_husary_068010.mp3",
+      "surah": 68,
+      "ayah": 10,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 68,
+          "ayah": 10
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_080007",
+      "file": "ea_alafasy_080007.mp3",
+      "surah": 80,
+      "ayah": 7,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 80,
+          "ayah": 7
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_037025",
+      "file": "ea_husary_037025.mp3",
+      "surah": 37,
+      "ayah": 25,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 37,
+          "ayah": 25
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_056019",
+      "file": "ea_alafasy_056019.mp3",
+      "surah": 56,
+      "ayah": 19,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 56,
+          "ayah": 19
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_037089",
+      "file": "ea_husary_037089.mp3",
+      "surah": 37,
+      "ayah": 89,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 37,
+          "ayah": 89
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_092005",
+      "file": "ea_alafasy_092005.mp3",
+      "surah": 92,
+      "ayah": 5,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 92,
+          "ayah": 5
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_026122",
+      "file": "ea_husary_026122.mp3",
+      "surah": 26,
+      "ayah": 122,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 26,
+          "ayah": 122
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_055012",
+      "file": "ea_alafasy_055012.mp3",
+      "surah": 55,
+      "ayah": 12,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 55,
+          "ayah": 12
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_056016",
+      "file": "ea_husary_056016.mp3",
+      "surah": 56,
+      "ayah": 16,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 56,
+          "ayah": 16
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_007052",
+      "file": "ea_alafasy_007052.mp3",
+      "surah": 7,
+      "ayah": 52,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 7,
+          "ayah": 52
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_025039",
+      "file": "ea_husary_025039.mp3",
+      "surah": 25,
+      "ayah": 39,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 25,
+          "ayah": 39
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_027023",
+      "file": "ea_alafasy_027023.mp3",
+      "surah": 27,
+      "ayah": 23,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 27,
+          "ayah": 23
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_024038",
+      "file": "ea_husary_024038.mp3",
+      "surah": 24,
+      "ayah": 38,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 24,
+          "ayah": 38
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_025028",
+      "file": "ea_alafasy_025028.mp3",
+      "surah": 25,
+      "ayah": 28,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 25,
+          "ayah": 28
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_044030",
+      "file": "ea_husary_044030.mp3",
+      "surah": 44,
+      "ayah": 30,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 44,
+          "ayah": 30
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_005058",
+      "file": "ea_alafasy_005058.mp3",
+      "surah": 5,
+      "ayah": 58,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 5,
+          "ayah": 58
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_019068",
+      "file": "ea_husary_019068.mp3",
+      "surah": 19,
+      "ayah": 68,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 19,
+          "ayah": 68
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_051058",
+      "file": "ea_alafasy_051058.mp3",
+      "surah": 51,
+      "ayah": 58,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 51,
+          "ayah": 58
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_019047",
+      "file": "ea_husary_019047.mp3",
+      "surah": 19,
+      "ayah": 47,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 19,
+          "ayah": 47
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_027079",
+      "file": "ea_alafasy_027079.mp3",
+      "surah": 27,
+      "ayah": 79,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 27,
+          "ayah": 79
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_015002",
+      "file": "ea_husary_015002.mp3",
+      "surah": 15,
+      "ayah": 2,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 15,
+          "ayah": 2
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_034005",
+      "file": "ea_alafasy_034005.mp3",
+      "surah": 34,
+      "ayah": 5,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 34,
+          "ayah": 5
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_028014",
+      "file": "ea_husary_028014.mp3",
+      "surah": 28,
+      "ayah": 14,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 28,
+          "ayah": 14
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_010007",
+      "file": "ea_alafasy_010007.mp3",
+      "surah": 10,
+      "ayah": 7,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 7
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_052036",
+      "file": "ea_husary_052036.mp3",
+      "surah": 52,
+      "ayah": 36,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 52,
+          "ayah": 36
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_008045",
+      "file": "ea_alafasy_008045.mp3",
+      "surah": 8,
+      "ayah": 45,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 8,
+          "ayah": 45
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_004045",
+      "file": "ea_husary_004045.mp3",
+      "surah": 4,
+      "ayah": 45,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 4,
+          "ayah": 45
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_015015",
+      "file": "ea_alafasy_015015.mp3",
+      "surah": 15,
+      "ayah": 15,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 15,
+          "ayah": 15
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_012099",
+      "file": "ea_husary_012099.mp3",
+      "surah": 12,
+      "ayah": 99,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 12,
+          "ayah": 99
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_018069",
+      "file": "ea_alafasy_018069.mp3",
+      "surah": 18,
+      "ayah": 69,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 18,
+          "ayah": 69
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_006058",
+      "file": "ea_husary_006058.mp3",
+      "surah": 6,
+      "ayah": 58,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 6,
+          "ayah": 58
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_092019",
+      "file": "ea_alafasy_092019.mp3",
+      "surah": 92,
+      "ayah": 19,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 92,
+          "ayah": 19
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_036052",
+      "file": "ea_husary_036052.mp3",
+      "surah": 36,
+      "ayah": 52,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 36,
+          "ayah": 52
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_036023",
+      "file": "ea_alafasy_036023.mp3",
+      "surah": 36,
+      "ayah": 23,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 36,
+          "ayah": 23
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_020117",
+      "file": "ea_husary_020117.mp3",
+      "surah": 20,
+      "ayah": 117,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 20,
+          "ayah": 117
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_011086",
+      "file": "ea_alafasy_011086.mp3",
+      "surah": 11,
+      "ayah": 86,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 11,
+          "ayah": 86
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_036076",
+      "file": "ea_husary_036076.mp3",
+      "surah": 36,
+      "ayah": 76,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 36,
+          "ayah": 76
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_006075",
+      "file": "ea_alafasy_006075.mp3",
+      "surah": 6,
+      "ayah": 75,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 6,
+          "ayah": 75
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_021094",
+      "file": "ea_husary_021094.mp3",
+      "surah": 21,
+      "ayah": 94,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 21,
+          "ayah": 94
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_022001",
+      "file": "ea_alafasy_022001.mp3",
+      "surah": 22,
+      "ayah": 1,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 22,
+          "ayah": 1
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_025038",
+      "file": "ea_husary_025038.mp3",
+      "surah": 25,
+      "ayah": 38,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 25,
+          "ayah": 38
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_003069",
+      "file": "ea_alafasy_003069.mp3",
+      "surah": 3,
+      "ayah": 69,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 3,
+          "ayah": 69
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_003157",
+      "file": "ea_husary_003157.mp3",
+      "surah": 3,
+      "ayah": 157,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 3,
+          "ayah": 157
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_040013",
+      "file": "ea_alafasy_040013.mp3",
+      "surah": 40,
+      "ayah": 13,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 40,
+          "ayah": 13
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_068049",
+      "file": "ea_husary_068049.mp3",
+      "surah": 68,
+      "ayah": 49,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 68,
+          "ayah": 49
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_020006",
+      "file": "ea_alafasy_020006.mp3",
+      "surah": 20,
+      "ayah": 6,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 20,
+          "ayah": 6
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_006100",
+      "file": "ea_husary_006100.mp3",
+      "surah": 6,
+      "ayah": 100,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 6,
+          "ayah": 100
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_002263",
+      "file": "ea_alafasy_002263.mp3",
+      "surah": 2,
+      "ayah": 263,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 2,
+          "ayah": 263
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_021043",
+      "file": "ea_husary_021043.mp3",
+      "surah": 21,
+      "ayah": 43,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 21,
+          "ayah": 43
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_042043",
+      "file": "ea_alafasy_042043.mp3",
+      "surah": 42,
+      "ayah": 43,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 42,
+          "ayah": 43
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_028055",
+      "file": "ea_husary_028055.mp3",
+      "surah": 28,
+      "ayah": 55,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 28,
+          "ayah": 55
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_006043",
+      "file": "ea_alafasy_006043.mp3",
+      "surah": 6,
+      "ayah": 43,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 6,
+          "ayah": 43
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_018081",
+      "file": "ea_husary_018081.mp3",
+      "surah": 18,
+      "ayah": 81,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 18,
+          "ayah": 81
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_003133",
+      "file": "ea_alafasy_003133.mp3",
+      "surah": 3,
+      "ayah": 133,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 3,
+          "ayah": 133
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_050027",
+      "file": "ea_husary_050027.mp3",
+      "surah": 50,
+      "ayah": 27,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 50,
+          "ayah": 27
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_007136",
+      "file": "ea_alafasy_007136.mp3",
+      "surah": 7,
+      "ayah": 136,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 7,
+          "ayah": 136
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_048019",
+      "file": "ea_husary_048019.mp3",
+      "surah": 48,
+      "ayah": 19,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 48,
+          "ayah": 19
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_023021",
+      "file": "ea_alafasy_023021.mp3",
+      "surah": 23,
+      "ayah": 21,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 23,
+          "ayah": 21
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_007067",
+      "file": "ea_husary_007067.mp3",
+      "surah": 7,
+      "ayah": 67,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 7,
+          "ayah": 67
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_007005",
+      "file": "ea_alafasy_007005.mp3",
+      "surah": 7,
+      "ayah": 5,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 7,
+          "ayah": 5
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_027038",
+      "file": "ea_husary_027038.mp3",
+      "surah": 27,
+      "ayah": 38,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 27,
+          "ayah": 38
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_024052",
+      "file": "ea_alafasy_024052.mp3",
+      "surah": 24,
+      "ayah": 52,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 24,
+          "ayah": 52
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_029051",
+      "file": "ea_husary_029051.mp3",
+      "surah": 29,
+      "ayah": 51,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 29,
+          "ayah": 51
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_005081",
+      "file": "ea_alafasy_005081.mp3",
+      "surah": 5,
+      "ayah": 81,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 5,
+          "ayah": 81
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_024009",
+      "file": "ea_husary_024009.mp3",
+      "surah": 24,
+      "ayah": 9,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 24,
+          "ayah": 9
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_015027",
+      "file": "ea_alafasy_015027.mp3",
+      "surah": 15,
+      "ayah": 27,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 15,
+          "ayah": 27
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_026062",
+      "file": "ea_husary_026062.mp3",
+      "surah": 26,
+      "ayah": 62,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 26,
+          "ayah": 62
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_039039",
+      "file": "ea_alafasy_039039.mp3",
+      "surah": 39,
+      "ayah": 39,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 39,
+          "ayah": 39
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_041046",
+      "file": "ea_husary_041046.mp3",
+      "surah": 41,
+      "ayah": 46,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 41,
+          "ayah": 46
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_003052",
+      "file": "ea_alafasy_003052.mp3",
+      "surah": 3,
+      "ayah": 52,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 3,
+          "ayah": 52
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_003170",
+      "file": "ea_husary_003170.mp3",
+      "surah": 3,
+      "ayah": 170,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 3,
+          "ayah": 170
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_002130",
+      "file": "ea_alafasy_002130.mp3",
+      "surah": 2,
+      "ayah": 130,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 2,
+          "ayah": 130
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_007033",
+      "file": "ea_husary_007033.mp3",
+      "surah": 7,
+      "ayah": 33,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 7,
+          "ayah": 33
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_022067",
+      "file": "ea_alafasy_022067.mp3",
+      "surah": 22,
+      "ayah": 67,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 22,
+          "ayah": 67
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_025042",
+      "file": "ea_husary_025042.mp3",
+      "surah": 25,
+      "ayah": 42,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 25,
+          "ayah": 42
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_005077",
+      "file": "ea_alafasy_005077.mp3",
+      "surah": 5,
+      "ayah": 77,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 5,
+          "ayah": 77
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_022014",
+      "file": "ea_husary_022014.mp3",
+      "surah": 22,
+      "ayah": 14,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 22,
+          "ayah": 14
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_062006",
+      "file": "ea_alafasy_062006.mp3",
+      "surah": 62,
+      "ayah": 6,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 62,
+          "ayah": 6
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_002079",
+      "file": "ea_husary_002079.mp3",
+      "surah": 2,
+      "ayah": 79,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 2,
+          "ayah": 79
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_008001",
+      "file": "ea_alafasy_008001.mp3",
+      "surah": 8,
+      "ayah": 1,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 8,
+          "ayah": 1
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_002085",
+      "file": "ea_husary_002085.mp3",
+      "surah": 2,
+      "ayah": 85,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 2,
+          "ayah": 85
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_007189",
+      "file": "ea_alafasy_007189.mp3",
+      "surah": 7,
+      "ayah": 189,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 7,
+          "ayah": 189
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_041043",
+      "file": "ea_husary_041043.mp3",
+      "surah": 41,
+      "ayah": 43,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 41,
+          "ayah": 43
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_024050",
+      "file": "ea_alafasy_024050.mp3",
+      "surah": 24,
+      "ayah": 50,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 24,
+          "ayah": 50
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_008049",
+      "file": "ea_husary_008049.mp3",
+      "surah": 8,
+      "ayah": 49,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 8,
+          "ayah": 49
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_003146",
+      "file": "ea_alafasy_003146.mp3",
+      "surah": 3,
+      "ayah": 146,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 3,
+          "ayah": 146
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_002061",
+      "file": "ea_husary_002061.mp3",
+      "surah": 2,
+      "ayah": 61,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 2,
+          "ayah": 61
+        }
+      ]
+    },
+    {
+      "id": "ea_alafasy_029033",
+      "file": "ea_alafasy_029033.mp3",
+      "surah": 29,
+      "ayah": 33,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "alafasy",
+      "expected_verses": [
+        {
+          "surah": 29,
+          "ayah": 33
+        }
+      ]
+    },
+    {
+      "id": "ea_husary_016124",
+      "file": "ea_husary_016124.mp3",
+      "surah": 16,
+      "ayah": 124,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah",
+      "reciter": "husary",
+      "expected_verses": [
+        {
+          "surah": 16,
+          "ayah": 124
+        }
+      ]
+    },
+    {
+      "id": "user_imran_23",
+      "file": "nisa_51.m4a",
+      "surah": 3,
+      "ayah": 23,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "user",
+      "expected_verses": [
+        {
+          "surah": 3,
+          "ayah": 23
+        }
+      ],
+      "also_accept": [
+        [
+          {
+            "surah": 4,
+            "ayah": 44
+          }
+        ]
+      ]
+    },
+    {
+      "id": "user_ikhlas_2_3",
+      "file": "ikhlas_2_3.m4a",
+      "surah": 112,
+      "ayah": 2,
+      "ayah_end": 3,
+      "category": "multi",
+      "source": "user",
+      "expected_verses": [
+        {
+          "surah": 112,
+          "ayah": 2
+        },
+        {
+          "surah": 112,
+          "ayah": 3
+        }
+      ]
+    },
+    {
+      "id": "tlog_m000_100_001",
+      "file": "tlog_m000_100_001.wav",
+      "surah": 100,
+      "ayah": 1,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.862,
+      "duration_s": 5.25,
+      "expected_verses": [
+        {
+          "surah": 100,
+          "ayah": 1
+        }
+      ]
+    },
+    {
+      "id": "tlog_m001_100_009",
+      "file": "tlog_m001_100_009.wav",
+      "surah": 100,
+      "ayah": 9,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.984,
+      "duration_s": 7.17,
+      "expected_verses": [
+        {
+          "surah": 100,
+          "ayah": 9
+        }
+      ]
+    },
+    {
+      "id": "tlog_m002_100_009",
+      "file": "tlog_m002_100_009.wav",
+      "surah": 100,
+      "ayah": 9,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.88,
+      "duration_s": 3.97,
+      "expected_verses": [
+        {
+          "surah": 100,
+          "ayah": 9
+        }
+      ]
+    },
+    {
+      "id": "tlog_m003_103_003",
+      "file": "tlog_m003_103_003.wav",
+      "surah": 103,
+      "ayah": 3,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.97,
+      "duration_s": 9.81,
+      "expected_verses": [
+        {
+          "surah": 103,
+          "ayah": 3
+        }
+      ]
+    },
+    {
+      "id": "tlog_m004_103_003",
+      "file": "tlog_m004_103_003.wav",
+      "surah": 103,
+      "ayah": 3,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.896,
+      "duration_s": 16.65,
+      "expected_verses": [
+        {
+          "surah": 103,
+          "ayah": 3
+        }
+      ]
+    },
+    {
+      "id": "tlog_m005_106_001",
+      "file": "tlog_m005_106_001.wav",
+      "surah": 106,
+      "ayah": 1,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.849,
+      "duration_s": 4.2,
+      "expected_verses": [
+        {
+          "surah": 106,
+          "ayah": 1
+        }
+      ]
+    },
+    {
+      "id": "tlog_m006_106_004",
+      "file": "tlog_m006_106_004.wav",
+      "surah": 106,
+      "ayah": 4,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.918,
+      "duration_s": 6.97,
+      "expected_verses": [
+        {
+          "surah": 106,
+          "ayah": 4
+        }
+      ]
+    },
+    {
+      "id": "tlog_m007_106_004",
+      "file": "tlog_m007_106_004.wav",
+      "surah": 106,
+      "ayah": 4,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.957,
+      "duration_s": 9.28,
+      "expected_verses": [
+        {
+          "surah": 106,
+          "ayah": 4
+        }
+      ]
+    },
+    {
+      "id": "tlog_m008_107_001",
+      "file": "tlog_m008_107_001.wav",
+      "surah": 107,
+      "ayah": 1,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.782,
+      "duration_s": 11.86,
+      "expected_verses": [
+        {
+          "surah": 107,
+          "ayah": 1
+        }
+      ]
+    },
+    {
+      "id": "tlog_m009_108_001",
+      "file": "tlog_m009_108_001.wav",
+      "surah": 108,
+      "ayah": 1,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.915,
+      "duration_s": 8.22,
+      "expected_verses": [
+        {
+          "surah": 108,
+          "ayah": 1
+        }
+      ]
+    },
+    {
+      "id": "tlog_m010_109_001",
+      "file": "tlog_m010_109_001.wav",
+      "surah": 109,
+      "ayah": 1,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.796,
+      "duration_s": 9.47,
+      "expected_verses": [
+        {
+          "surah": 109,
+          "ayah": 1
+        }
+      ]
+    },
+    {
+      "id": "tlog_m011_010_100",
+      "file": "tlog_m011_010_100.wav",
+      "surah": 10,
+      "ayah": 100,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.947,
+      "duration_s": 9.54,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 100
+        }
+      ]
+    },
+    {
+      "id": "tlog_m012_010_100",
+      "file": "tlog_m012_010_100.wav",
+      "surah": 10,
+      "ayah": 100,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.985,
+      "duration_s": 11.43,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 100
+        }
+      ]
+    },
+    {
+      "id": "tlog_m013_010_101",
+      "file": "tlog_m013_010_101.wav",
+      "surah": 10,
+      "ayah": 101,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.87,
+      "duration_s": 7.92,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 101
+        }
+      ]
+    },
+    {
+      "id": "tlog_m014_010_101",
+      "file": "tlog_m014_010_101.wav",
+      "surah": 10,
+      "ayah": 101,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.95,
+      "duration_s": 20.6,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 101
+        }
+      ]
+    },
+    {
+      "id": "tlog_m015_010_102",
+      "file": "tlog_m015_010_102.wav",
+      "surah": 10,
+      "ayah": 102,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.983,
+      "duration_s": 16.51,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 102
+        }
+      ]
+    },
+    {
+      "id": "tlog_m016_010_102",
+      "file": "tlog_m016_010_102.wav",
+      "surah": 10,
+      "ayah": 102,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.889,
+      "duration_s": 10.63,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 102
+        }
+      ]
+    },
+    {
+      "id": "tlog_m017_010_103",
+      "file": "tlog_m017_010_103.wav",
+      "surah": 10,
+      "ayah": 103,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.929,
+      "duration_s": 8.71,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 103
+        }
+      ]
+    },
+    {
+      "id": "tlog_m018_010_103",
+      "file": "tlog_m018_010_103.wav",
+      "surah": 10,
+      "ayah": 103,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.907,
+      "duration_s": 12.24,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 103
+        }
+      ]
+    },
+    {
+      "id": "tlog_m019_010_105",
+      "file": "tlog_m019_010_105.wav",
+      "surah": 10,
+      "ayah": 105,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.88,
+      "duration_s": 6.13,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 105
+        }
+      ]
+    },
+    {
+      "id": "tlog_m020_010_105",
+      "file": "tlog_m020_010_105.wav",
+      "surah": 10,
+      "ayah": 105,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.761,
+      "duration_s": 4.88,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 105
+        }
+      ]
+    },
+    {
+      "id": "tlog_m021_010_109",
+      "file": "tlog_m021_010_109.wav",
+      "surah": 10,
+      "ayah": 109,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.971,
+      "duration_s": 16.07,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 109
+        }
+      ]
+    },
+    {
+      "id": "tlog_m022_010_109",
+      "file": "tlog_m022_010_109.wav",
+      "surah": 10,
+      "ayah": 109,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.981,
+      "duration_s": 9.9,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 109
+        }
+      ]
+    },
+    {
+      "id": "tlog_m023_010_010",
+      "file": "tlog_m023_010_010.wav",
+      "surah": 10,
+      "ayah": 10,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.917,
+      "duration_s": 17.28,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 10
+        }
+      ]
+    },
+    {
+      "id": "tlog_m024_010_010",
+      "file": "tlog_m024_010_010.wav",
+      "surah": 10,
+      "ayah": 10,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.962,
+      "duration_s": 22.94,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 10
+        }
+      ]
+    },
+    {
+      "id": "tlog_m025_010_014",
+      "file": "tlog_m025_010_014.wav",
+      "surah": 10,
+      "ayah": 14,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.971,
+      "duration_s": 14.59,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 14
+        }
+      ]
+    },
+    {
+      "id": "tlog_m026_010_014",
+      "file": "tlog_m026_010_014.wav",
+      "surah": 10,
+      "ayah": 14,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 1.0,
+      "duration_s": 15.62,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 14
+        }
+      ]
+    },
+    {
+      "id": "tlog_m027_010_017",
+      "file": "tlog_m027_010_017.wav",
+      "surah": 10,
+      "ayah": 17,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.981,
+      "duration_s": 12.38,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 17
+        }
+      ]
+    },
+    {
+      "id": "tlog_m028_010_017",
+      "file": "tlog_m028_010_017.wav",
+      "surah": 10,
+      "ayah": 17,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.981,
+      "duration_s": 13.23,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 17
+        }
+      ]
+    },
+    {
+      "id": "tlog_m029_010_025",
+      "file": "tlog_m029_010_025.wav",
+      "surah": 10,
+      "ayah": 25,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.969,
+      "duration_s": 14.58,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 25
+        }
+      ]
+    },
+    {
+      "id": "tlog_m030_010_025",
+      "file": "tlog_m030_010_025.wav",
+      "surah": 10,
+      "ayah": 25,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.957,
+      "duration_s": 8.11,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 25
+        }
+      ]
+    },
+    {
+      "id": "tlog_m031_010_029",
+      "file": "tlog_m031_010_029.wav",
+      "surah": 10,
+      "ayah": 29,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.949,
+      "duration_s": 8.62,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 29
+        }
+      ]
+    },
+    {
+      "id": "tlog_m032_010_029",
+      "file": "tlog_m032_010_029.wav",
+      "surah": 10,
+      "ayah": 29,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 1.0,
+      "duration_s": 10.15,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 29
+        }
+      ]
+    },
+    {
+      "id": "tlog_m033_010_032",
+      "file": "tlog_m033_010_032.wav",
+      "surah": 10,
+      "ayah": 32,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.775,
+      "duration_s": 7.94,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 32
+        }
+      ]
+    },
+    {
+      "id": "tlog_m034_010_032",
+      "file": "tlog_m034_010_032.wav",
+      "surah": 10,
+      "ayah": 32,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.949,
+      "duration_s": 11.15,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 32
+        }
+      ]
+    },
+    {
+      "id": "tlog_m035_010_033",
+      "file": "tlog_m035_010_033.wav",
+      "surah": 10,
+      "ayah": 33,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.91,
+      "duration_s": 10.77,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 33
+        }
+      ]
+    },
+    {
+      "id": "tlog_m036_010_033",
+      "file": "tlog_m036_010_033.wav",
+      "surah": 10,
+      "ayah": 33,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.984,
+      "duration_s": 8.36,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 33
+        }
+      ]
+    },
+    {
+      "id": "tlog_m037_010_040",
+      "file": "tlog_m037_010_040.wav",
+      "surah": 10,
+      "ayah": 40,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.959,
+      "duration_s": 9.66,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 40
+        }
+      ]
+    },
+    {
+      "id": "tlog_m038_010_040",
+      "file": "tlog_m038_010_040.wav",
+      "surah": 10,
+      "ayah": 40,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.888,
+      "duration_s": 17.83,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 40
+        }
+      ]
+    },
+    {
+      "id": "tlog_m039_010_041",
+      "file": "tlog_m039_010_041.wav",
+      "surah": 10,
+      "ayah": 41,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.828,
+      "duration_s": 28.84,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 41
+        }
+      ]
+    },
+    {
+      "id": "tlog_m040_010_041",
+      "file": "tlog_m040_010_041.wav",
+      "surah": 10,
+      "ayah": 41,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.954,
+      "duration_s": 13.86,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 41
+        }
+      ]
+    },
+    {
+      "id": "tlog_m041_010_042",
+      "file": "tlog_m041_010_042.wav",
+      "surah": 10,
+      "ayah": 42,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.988,
+      "duration_s": 10.44,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 42
+        }
+      ]
+    },
+    {
+      "id": "tlog_m042_010_042",
+      "file": "tlog_m042_010_042.wav",
+      "surah": 10,
+      "ayah": 42,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.929,
+      "duration_s": 14.49,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 42
+        }
+      ]
+    },
+    {
+      "id": "tlog_m043_010_043",
+      "file": "tlog_m043_010_043.wav",
+      "surah": 10,
+      "ayah": 43,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.862,
+      "duration_s": 9.9,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 43
+        }
+      ]
+    },
+    {
+      "id": "tlog_m044_010_043",
+      "file": "tlog_m044_010_043.wav",
+      "surah": 10,
+      "ayah": 43,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.796,
+      "duration_s": 8.79,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 43
+        }
+      ]
+    },
+    {
+      "id": "tlog_m045_010_044",
+      "file": "tlog_m045_010_044.wav",
+      "surah": 10,
+      "ayah": 44,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.903,
+      "duration_s": 6.4,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 44
+        }
+      ]
+    },
+    {
+      "id": "tlog_m046_010_044",
+      "file": "tlog_m046_010_044.wav",
+      "surah": 10,
+      "ayah": 44,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.959,
+      "duration_s": 8.96,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 44
+        }
+      ]
+    },
+    {
+      "id": "tlog_m047_010_046",
+      "file": "tlog_m047_010_046.wav",
+      "surah": 10,
+      "ayah": 46,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.853,
+      "duration_s": 19.03,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 46
+        }
+      ]
+    },
+    {
+      "id": "tlog_m048_010_046",
+      "file": "tlog_m048_010_046.wav",
+      "surah": 10,
+      "ayah": 46,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.759,
+      "duration_s": 9.22,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 46
+        }
+      ]
+    },
+    {
+      "id": "tlog_m049_010_047",
+      "file": "tlog_m049_010_047.wav",
+      "surah": 10,
+      "ayah": 47,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.971,
+      "duration_s": 16.81,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 47
+        }
+      ]
+    },
+    {
+      "id": "tlog_m050_010_047",
+      "file": "tlog_m050_010_047.wav",
+      "surah": 10,
+      "ayah": 47,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.858,
+      "duration_s": 10.92,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 47
+        }
+      ]
+    },
+    {
+      "id": "tlog_m051_010_048",
+      "file": "tlog_m051_010_048.wav",
+      "surah": 10,
+      "ayah": 48,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.985,
+      "duration_s": 11.05,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 48
+        }
+      ]
+    },
+    {
+      "id": "tlog_m052_010_048",
+      "file": "tlog_m052_010_048.wav",
+      "surah": 10,
+      "ayah": 48,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 1.0,
+      "duration_s": 8.53,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 48
+        }
+      ]
+    },
+    {
+      "id": "tlog_m053_010_050",
+      "file": "tlog_m053_010_050.wav",
+      "surah": 10,
+      "ayah": 50,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.855,
+      "duration_s": 7.58,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 50
+        }
+      ]
+    },
+    {
+      "id": "tlog_m054_010_050",
+      "file": "tlog_m054_010_050.wav",
+      "surah": 10,
+      "ayah": 50,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.972,
+      "duration_s": 8.57,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 50
+        }
+      ]
+    },
+    {
+      "id": "tlog_m055_010_051",
+      "file": "tlog_m055_010_051.wav",
+      "surah": 10,
+      "ayah": 51,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.955,
+      "duration_s": 16.13,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 51
+        }
+      ]
+    },
+    {
+      "id": "tlog_m056_010_051",
+      "file": "tlog_m056_010_051.wav",
+      "surah": 10,
+      "ayah": 51,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.884,
+      "duration_s": 11.95,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 51
+        }
+      ]
+    },
+    {
+      "id": "tlog_m057_010_052",
+      "file": "tlog_m057_010_052.wav",
+      "surah": 10,
+      "ayah": 52,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.976,
+      "duration_s": 11.26,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 52
+        }
+      ]
+    },
+    {
+      "id": "tlog_m058_010_052",
+      "file": "tlog_m058_010_052.wav",
+      "surah": 10,
+      "ayah": 52,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.983,
+      "duration_s": 10.33,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 52
+        }
+      ]
+    },
+    {
+      "id": "tlog_m059_010_053",
+      "file": "tlog_m059_010_053.wav",
+      "surah": 10,
+      "ayah": 53,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "tlog",
+      "ratio": 0.795,
+      "duration_s": 10.09,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 53
+        }
+      ]
+    },
+    {
+      "id": "tlog_l000_010_104",
+      "file": "tlog_l000_010_104.wav",
+      "surah": 10,
+      "ayah": 104,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.951,
+      "duration_s": 23.47,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 104
+        }
+      ]
+    },
+    {
+      "id": "tlog_l001_010_104",
+      "file": "tlog_l001_010_104.wav",
+      "surah": 10,
+      "ayah": 104,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.931,
+      "duration_s": 17.35,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 104
+        }
+      ]
+    },
+    {
+      "id": "tlog_l002_010_106",
+      "file": "tlog_l002_010_106.wav",
+      "surah": 10,
+      "ayah": 106,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.974,
+      "duration_s": 9.78,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 106
+        }
+      ]
+    },
+    {
+      "id": "tlog_l003_010_106",
+      "file": "tlog_l003_010_106.wav",
+      "surah": 10,
+      "ayah": 106,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.971,
+      "duration_s": 12.37,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 106
+        }
+      ]
+    },
+    {
+      "id": "tlog_l004_010_107",
+      "file": "tlog_l004_010_107.wav",
+      "surah": 10,
+      "ayah": 107,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.951,
+      "duration_s": 19.41,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 107
+        }
+      ]
+    },
+    {
+      "id": "tlog_l005_010_107",
+      "file": "tlog_l005_010_107.wav",
+      "surah": 10,
+      "ayah": 107,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.861,
+      "duration_s": 14.79,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 107
+        }
+      ]
+    },
+    {
+      "id": "tlog_l006_010_108",
+      "file": "tlog_l006_010_108.wav",
+      "surah": 10,
+      "ayah": 108,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.829,
+      "duration_s": 19.5,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 108
+        }
+      ]
+    },
+    {
+      "id": "tlog_l007_010_108",
+      "file": "tlog_l007_010_108.wav",
+      "surah": 10,
+      "ayah": 108,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.961,
+      "duration_s": 18.77,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 108
+        }
+      ]
+    },
+    {
+      "id": "tlog_l008_010_011",
+      "file": "tlog_l008_010_011.wav",
+      "surah": 10,
+      "ayah": 11,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.956,
+      "duration_s": 20.74,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 11
+        }
+      ]
+    },
+    {
+      "id": "tlog_l009_010_011",
+      "file": "tlog_l009_010_011.wav",
+      "surah": 10,
+      "ayah": 11,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.789,
+      "duration_s": 13.75,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 11
+        }
+      ]
+    },
+    {
+      "id": "tlog_l010_010_012",
+      "file": "tlog_l010_010_012.wav",
+      "surah": 10,
+      "ayah": 12,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.949,
+      "duration_s": 25.6,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 12
+        }
+      ]
+    },
+    {
+      "id": "tlog_l011_010_012",
+      "file": "tlog_l011_010_012.wav",
+      "surah": 10,
+      "ayah": 12,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.814,
+      "duration_s": 26.84,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 12
+        }
+      ]
+    },
+    {
+      "id": "tlog_l012_010_013",
+      "file": "tlog_l012_010_013.wav",
+      "surah": 10,
+      "ayah": 13,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.993,
+      "duration_s": 24.36,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 13
+        }
+      ]
+    },
+    {
+      "id": "tlog_l013_010_013",
+      "file": "tlog_l013_010_013.wav",
+      "surah": 10,
+      "ayah": 13,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.969,
+      "duration_s": 16.3,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 13
+        }
+      ]
+    },
+    {
+      "id": "tlog_l014_010_015",
+      "file": "tlog_l014_010_015.wav",
+      "surah": 10,
+      "ayah": 15,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.931,
+      "duration_s": 23.98,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 15
+        }
+      ]
+    },
+    {
+      "id": "tlog_l015_010_015",
+      "file": "tlog_l015_010_015.wav",
+      "surah": 10,
+      "ayah": 15,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.938,
+      "duration_s": 23.81,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 15
+        }
+      ]
+    },
+    {
+      "id": "tlog_l016_010_016",
+      "file": "tlog_l016_010_016.wav",
+      "surah": 10,
+      "ayah": 16,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.977,
+      "duration_s": 16.3,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 16
+        }
+      ]
+    },
+    {
+      "id": "tlog_l017_010_016",
+      "file": "tlog_l017_010_016.wav",
+      "surah": 10,
+      "ayah": 16,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.916,
+      "duration_s": 11.35,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 16
+        }
+      ]
+    },
+    {
+      "id": "tlog_l018_010_018",
+      "file": "tlog_l018_010_018.wav",
+      "surah": 10,
+      "ayah": 18,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.937,
+      "duration_s": 19.46,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 18
+        }
+      ]
+    },
+    {
+      "id": "tlog_l019_010_018",
+      "file": "tlog_l019_010_018.wav",
+      "surah": 10,
+      "ayah": 18,
+      "ayah_end": null,
+      "category": "long",
+      "source": "tlog",
+      "ratio": 0.961,
+      "duration_s": 26.79,
+      "expected_verses": [
+        {
+          "surah": 10,
+          "ayah": 18
+        }
+      ]
+    }
+  ]
+}

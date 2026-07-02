@@ -1,0 +1,43 @@
+Filtered to 19 samples in category 'medium'
+Running 7 experiment(s) on 19 sample(s) [full transcript]...
+
+>>> rabah-pruned-ctc/8-layer-ft-es-int8
+Loading Rabah CTC from /Users/rock/ai/projects/offline-tarteel/data/rabah-ctc-pruned-8 (target layers=8, int8=True)...
+    Recall: 5%  Precision: 1%  SeqAcc: 0%
+
+>>> rabah-pruned-ctc/8-layer-ft-fn-int8
+Loading Rabah CTC from /Users/rock/ai/projects/offline-tarteel/data/rabah-ctc-pruned-8 (target layers=8, int8=True)...
+    Recall: 5%  Precision: 1%  SeqAcc: 0%
+
+>>> rabah-pruned-ctc/12-layer-ft-es-int8
+Loading Rabah CTC from /Users/rock/ai/projects/offline-tarteel/data/rabah-ctc-pruned-12 (target layers=12, int8=True)...
+    Recall: 58%  Precision: 58%  SeqAcc: 58%
+
+>>> rabah-pruned-ctc/6-layer-ft-es-int8
+Loading Rabah CTC from /Users/rock/ai/projects/offline-tarteel/data/rabah-ctc-pruned-6 (target layers=6, int8=True)...
+    Recall: 0%  Precision: 0%  SeqAcc: 0%
+
+>>> rabah-pruned-ctc/12-layer-int8
+Loading Rabah CTC from /Users/rock/ai/projects/offline-tarteel/data/rabah-ctc-pruned-12 (target layers=12, int8=True)...
+    Recall: 58%  Precision: 58%  SeqAcc: 58%
+
+>>> rabah-pruned-ctc/8-layer-int8
+Loading Rabah CTC from /Users/rock/ai/projects/offline-tarteel/data/rabah-ctc-pruned-8 (target layers=8, int8=True)...
+    Recall: 5%  Precision: 1%  SeqAcc: 0%
+
+>>> rabah-pruned-ctc/6-layer-int8
+Loading Rabah CTC from /Users/rock/ai/projects/offline-tarteel/data/rabah-ctc-pruned-6 (target layers=6, int8=True)...
+    Recall: 0%  Precision: 0%  SeqAcc: 0%
+
+Experiment                       Recall  Precision   SeqAcc    Latency       Size
+------------------------------------------------------------------------------
+rabah-pruned-ctc/8-layer-ft-es-int8       5%         1%       0%      0.64s     0.1 GB
+rabah-pruned-ctc/8-layer-ft-fn-int8       5%         1%       0%      0.64s     0.1 GB
+rabah-pruned-ctc/12-layer-ft-es-int8      58%        58%      58%      1.03s     0.2 GB
+rabah-pruned-ctc/6-layer-ft-es-int8       0%         0%       0%      0.40s     0.1 GB
+rabah-pruned-ctc/12-layer-int8      58%        58%      58%      1.02s     0.2 GB
+rabah-pruned-ctc/8-layer-int8        5%         1%       0%      0.65s     0.1 GB
+rabah-pruned-ctc/6-layer-int8        0%         0%       0%      0.41s     0.1 GB
+
+Results saved to /Users/rock/ai/projects/offline-tarteel/benchmark/results/2026-02-26_223202.json
+Updated /Users/rock/ai/projects/offline-tarteel/benchmark/results/latest.json

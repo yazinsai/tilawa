@@ -1,0 +1,22 @@
+{
+  "w2v-phonemes/base-int8|test_corpus": {
+    "experiment": "w2v-phonemes/base-int8",
+    "corpus": "test_corpus",
+    "error": "no transcribe/predict"
+  },
+  "w2v-phonemes/large-int8|test_corpus": {
+    "experiment": "w2v-phonemes/large-int8",
+    "corpus": "test_corpus",
+    "error": "no transcribe/predict"
+  },
+  "w2v-phonemes/base-int8|test_corpus_v2": {
+    "experiment": "w2v-phonemes/base-int8",
+    "corpus": "test_corpus_v2",
+    "error": "no transcribe/predict"
+  },
+  "w2v-phonemes/large-int8|test_corpus_v2": {
+    "experiment": "w2v-phonemes/large-int8",
+    "corpus": "test_corpus_v2",
+    "error": "no transcribe/predict"
+  }
+}
