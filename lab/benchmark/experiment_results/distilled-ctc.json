@@ -1,0 +1,22 @@
+{
+  "distilled-ctc|test_corpus": {
+    "experiment": "distilled-ctc",
+    "corpus": "test_corpus",
+    "recall": 0.2956,
+    "precision": 0.2925,
+    "sequence_accuracy": 0.2642,
+    "avg_latency": 0.618,
+    "model_size": 377712038,
+    "total": 53
+  },
+  "distilled-ctc|test_corpus_v2": {
+    "experiment": "distilled-ctc",
+    "corpus": "test_corpus_v2",
+    "recall": 0.2558,
+    "precision": 0.2558,
+    "sequence_accuracy": 0.2558,
+    "avg_latency": 6.17,
+    "model_size": 377712038,
+    "total": 43
+  }
+}

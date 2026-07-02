@@ -1,0 +1,24 @@
+{
+  "fastconformer-quran-lm-fusion|test_corpus": {
+    "experiment": "fastconformer-quran-lm-fusion",
+    "corpus": "test_corpus",
+    "mode": "streaming",
+    "recall": 0.8192,
+    "precision": 0.6646,
+    "sequence_accuracy": 0.5472,
+    "avg_latency": 0.845,
+    "model_size": 120586240,
+    "total": 53
+  },
+  "fastconformer-quran-lm-fusion|test_corpus_v2": {
+    "experiment": "fastconformer-quran-lm-fusion",
+    "corpus": "test_corpus_v2",
+    "mode": "streaming",
+    "recall": 0.7395,
+    "precision": 0.5895,
+    "sequence_accuracy": 0.5349,
+    "avg_latency": 1.031,
+    "model_size": 120586240,
+    "total": 43
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "nvidia-fastconformer|test_corpus": {
+    "experiment": "nvidia-fastconformer",
+    "corpus": "test_corpus",
+    "recall": 0.9472,
+    "precision": 0.9491,
+    "sequence_accuracy": 0.9245,
+    "avg_latency": 0.727,
+    "model_size": 120586240,
+    "total": 53
+  },
+  "nvidia-fastconformer|test_corpus_v2": {
+    "experiment": "nvidia-fastconformer",
+    "corpus": "test_corpus_v2",
+    "recall": 0.9302,
+    "precision": 0.8953,
+    "sequence_accuracy": 0.8605,
+    "avg_latency": 0.948,
+    "model_size": 120586240,
+    "total": 43
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "ctc-alignment|test_corpus": {
+    "experiment": "ctc-alignment",
+    "corpus": "test_corpus",
+    "recall": 0.0,
+    "precision": 0.0,
+    "sequence_accuracy": 0.0,
+    "avg_latency": 1.158,
+    "model_size": 1258291200,
+    "total": 53
+  },
+  "ctc-alignment|test_corpus_v2": {
+    "experiment": "ctc-alignment",
+    "corpus": "test_corpus_v2",
+    "recall": 0.0,
+    "precision": 0.0,
+    "sequence_accuracy": 0.0,
+    "avg_latency": 10.993,
+    "model_size": 1258291200,
+    "total": 43
+  }
+}

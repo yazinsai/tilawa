@@ -176,7 +176,7 @@ async function loadQuranData(): Promise<void> {
   const res = await fetch("/quran.json");
   if (!res.ok) throw new Error(`quran.json fetch failed: ${res.status}`);
   state.quranData = await res.json();
-  initSurahDropdown(state.quranData);
+  initSurahDropdown(state.quranData!);
 }
 
 async function fetchSurah(surahNum: number): Promise<SurahData> {

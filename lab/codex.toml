@@ -1,0 +1,6 @@
+# Codex project config — full auto, no approvals
+sandbox_mode = "danger-full-access"
+approval_policy = "never"
+
+[sandbox_workspace_write]
+network_access = true

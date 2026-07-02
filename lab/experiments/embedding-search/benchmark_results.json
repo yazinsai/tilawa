@@ -1,0 +1,340 @@
+{
+  "timestamp": "2026-02-24 10:49:45",
+  "benchmarks": [
+    {
+      "model": "hubert",
+      "reciter": "alafasy",
+      "index_size": 6236,
+      "load_time_s": 9.1,
+      "results": [
+        {
+          "description": "An-Nisa:51 (user recording)",
+          "category": "user",
+          "expected": "4:51",
+          "top1_match": false,
+          "top3_match": false,
+          "top5_match": false,
+          "top10_match": false,
+          "surah_top1": false,
+          "surah_top5": false,
+          "embed_time_ms": 1228.9,
+          "search_time_ms": 4.259,
+          "total_time_ms": 1233.2,
+          "top5_results": [
+            {
+              "verse": "68:39",
+              "name": "Al-Qalam",
+              "score": 0.8605
+            },
+            {
+              "verse": "28:2",
+              "name": "Al-Qasas",
+              "score": 0.8597
+            },
+            {
+              "verse": "21:1",
+              "name": "Al-Anbiyaa",
+              "score": 0.8592
+            },
+            {
+              "verse": "15:55",
+              "name": "Al-Hijr",
+              "score": 0.8585
+            },
+            {
+              "verse": "5:26",
+              "name": "Al-Maaida",
+              "score": 0.8577
+            }
+          ],
+          "status": "ok"
+        },
+        {
+          "description": "Al-Ikhlas:2-3 (user recording, multi-verse)",
+          "category": "user",
+          "expected": "112:2",
+          "top1_match": false,
+          "top3_match": false,
+          "top5_match": false,
+          "top10_match": false,
+          "surah_top1": false,
+          "surah_top5": true,
+          "embed_time_ms": 132.7,
+          "search_time_ms": 0.545,
+          "total_time_ms": 133.3,
+          "top5_results": [
+            {
+              "verse": "53:62",
+              "name": "An-Najm",
+              "score": 0.7208
+            },
+            {
+              "verse": "112:4",
+              "name": "Al-Ikhlaas",
+              "score": 0.6744
+            },
+            {
+              "verse": "97:5",
+              "name": "Al-Qadr",
+              "score": 0.6731
+            },
+            {
+              "verse": "96:19",
+              "name": "Al-Alaq",
+              "score": 0.6715
+            },
+            {
+              "verse": "101:11",
+              "name": "Al-Qaari'a",
+              "score": 0.6691
+            }
+          ],
+          "status": "ok"
+        },
+        {
+          "description": "Al-Fatiha:1 (ref)",
+          "category": "reference",
+          "expected": "1:1",
+          "top1_match": true,
+          "top3_match": true,
+          "top5_match": true,
+          "top10_match": true,
+          "surah_top1": true,
+          "surah_top5": true,
+          "embed_time_ms": 96.6,
+          "search_time_ms": 0.457,
+          "total_time_ms": 97.1,
+          "top5_results": [
+            {
+              "verse": "1:1",
+              "name": "Al-Faatiha",
+              "score": 1.0
+            },
+            {
+              "verse": "39:66",
+              "name": "Az-Zumar",
+              "score": 0.9379
+            },
+            {
+              "verse": "37:182",
+              "name": "As-Saaffaat",
+              "score": 0.9355
+            },
+            {
+              "verse": "36:58",
+              "name": "Yaseen",
+              "score": 0.9326
+            },
+            {
+              "verse": "39:40",
+              "name": "Az-Zumar",
+              "score": 0.9315
+            }
+          ],
+          "status": "ok"
+        },
+        {
+          "description": "Al-Fatiha:2 (ref)",
+          "category": "reference",
+          "expected": "1:2",
+          "top1_match": true,
+          "top3_match": true,
+          "top5_match": true,
+          "top10_match": true,
+          "surah_top1": true,
+          "surah_top5": true,
+          "embed_time_ms": 214.6,
+          "search_time_ms": 0.62,
+          "total_time_ms": 215.2,
+          "top5_results": [
+            {
+              "verse": "1:2",
+              "name": "Al-Faatiha",
+              "score": 1.0
+            },
+            {
+              "verse": "37:76",
+              "name": "As-Saaffaat",
+              "score": 0.9453
+            },
+            {
+              "verse": "15:17",
+              "name": "Al-Hijr",
+              "score": 0.9419
+            },
+            {
+              "verse": "37:40",
+              "name": "As-Saaffaat",
+              "score": 0.9417
+            },
+            {
+              "verse": "21:106",
+              "name": "Al-Anbiyaa",
+              "score": 0.94
+            }
+          ],
+          "status": "ok"
+        },
+        {
+          "description": "Ayat al-Kursi (ref)",
+          "category": "reference",
+          "expected": "2:255",
+          "top1_match": true,
+          "top3_match": true,
+          "top5_match": true,
+          "top10_match": true,
+          "surah_top1": true,
+          "surah_top5": true,
+          "embed_time_ms": 672.8,
+          "search_time_ms": 0.701,
+          "total_time_ms": 673.5,
+          "top5_results": [
+            {
+              "verse": "2:255",
+              "name": "Al-Baqara",
+              "score": 0.974
+            },
+            {
+              "verse": "65:5",
+              "name": "At-Talaaq",
+              "score": 0.9679
+            },
+            {
+              "verse": "9:82",
+              "name": "At-Tawba",
+              "score": 0.9671
+            },
+            {
+              "verse": "11:19",
+              "name": "Hud",
+              "score": 0.9669
+            },
+            {
+              "verse": "30:9",
+              "name": "Ar-Room",
+              "score": 0.9662
+            }
+          ],
+          "status": "ok"
+        },
+        {
+          "description": "Al-Ikhlas:1 (ref)",
+          "category": "reference",
+          "expected": "112:1",
+          "top1_match": true,
+          "top3_match": true,
+          "top5_match": true,
+          "top10_match": true,
+          "surah_top1": true,
+          "surah_top5": true,
+          "embed_time_ms": 167.5,
+          "search_time_ms": 0.9,
+          "total_time_ms": 168.4,
+          "top5_results": [
+            {
+              "verse": "112:1",
+              "name": "Al-Ikhlaas",
+              "score": 1.0
+            },
+            {
+              "verse": "104:6",
+              "name": "Al-Humaza",
+              "score": 0.9291
+            },
+            {
+              "verse": "112:2",
+              "name": "Al-Ikhlaas",
+              "score": 0.9251
+            },
+            {
+              "verse": "74:17",
+              "name": "Al-Muddaththir",
+              "score": 0.8981
+            },
+            {
+              "verse": "79:24",
+              "name": "An-Naazi'aat",
+              "score": 0.8884
+            }
+          ],
+          "status": "ok"
+        },
+        {
+          "description": "Ya-Sin:1 (ref)",
+          "category": "reference",
+          "expected": "36:1",
+          "top1_match": true,
+          "top3_match": true,
+          "top5_match": true,
+          "top10_match": true,
+          "surah_top1": true,
+          "surah_top5": true,
+          "embed_time_ms": 115.9,
+          "search_time_ms": 0.615,
+          "total_time_ms": 116.5,
+          "top5_results": [
+            {
+              "verse": "36:1",
+              "name": "Yaseen",
+              "score": 1.0
+            },
+            {
+              "verse": "44:46",
+              "name": "Ad-Dukhaan",
+              "score": 0.9144
+            },
+            {
+              "verse": "77:45",
+              "name": "Al-Mursalaat",
+              "score": 0.9113
+            },
+            {
+              "verse": "41:1",
+              "name": "Fussilat",
+              "score": 0.9005
+            },
+            {
+              "verse": "77:37",
+              "name": "Al-Mursalaat",
+              "score": 0.8968
+            }
+          ],
+          "status": "ok"
+        }
+      ]
+    }
+  ],
+  "summaries": [
+    {
+      "model": "hubert",
+      "reciter": "alafasy",
+      "index_size": 6236,
+      "all": {
+        "count": 7,
+        "top1_acc": 71.4,
+        "top3_acc": 71.4,
+        "top5_acc": 71.4,
+        "top10_acc": 71.4,
+        "surah_top1_acc": 71.4,
+        "surah_top5_acc": 85.7,
+        "avg_embed_ms": 375.6,
+        "avg_search_ms": 1.2,
+        "avg_total_ms": 376.7
+      },
+      "reference": {
+        "count": 5,
+        "top1_acc": 100.0,
+        "top3_acc": 100.0,
+        "top5_acc": 100.0
+      },
+      "user": {
+        "count": 2,
+        "top1_acc": 0.0,
+        "top3_acc": 0.0,
+        "top5_acc": 0.0,
+        "surah_top1_acc": 0.0,
+        "surah_top5_acc": 50.0
+      }
+    }
+  ]
+}

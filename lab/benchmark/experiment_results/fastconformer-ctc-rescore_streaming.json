@@ -1,0 +1,24 @@
+{
+  "fastconformer-ctc-rescore|test_corpus": {
+    "experiment": "fastconformer-ctc-rescore",
+    "corpus": "test_corpus",
+    "mode": "streaming",
+    "recall": 0.811,
+    "precision": 0.6397,
+    "sequence_accuracy": 0.5283,
+    "avg_latency": 0.955,
+    "model_size": 272783066,
+    "total": 53
+  },
+  "fastconformer-ctc-rescore|test_corpus_v2": {
+    "experiment": "fastconformer-ctc-rescore",
+    "corpus": "test_corpus_v2",
+    "mode": "streaming",
+    "recall": 0.7674,
+    "precision": 0.6085,
+    "sequence_accuracy": 0.5349,
+    "avg_latency": 1.24,
+    "model_size": 272783066,
+    "total": 43
+  }
+}

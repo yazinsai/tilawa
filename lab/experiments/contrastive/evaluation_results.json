@@ -1,0 +1,77 @@
+{
+  "zero_shot": {
+    "model": "Zero-Shot (HuBERT + AraBERT, no projection)",
+    "total_test_cases": 5,
+    "top1_accuracy": 0.0,
+    "top3_accuracy": 0.0,
+    "top5_accuracy": 0.0,
+    "text_embedding_time_s": 19.8,
+    "text_embedding_shape": [6236, 768]
+  },
+  "zero_shot_ref": {
+    "description": "23 reference audio files against all 6236 verses",
+    "total": 23,
+    "top1": 0.0,
+    "top3": 0.0,
+    "top5": 0.0,
+    "top10": 0.0
+  },
+  "zero_shot_indomain": {
+    "description": "789 audio files (surahs 1-5) against 789 verse candidates",
+    "total": 789,
+    "top1": 0.001,
+    "top3": 0.004,
+    "top5": 0.005,
+    "top10": 0.008
+  },
+  "trained": {
+    "model": "Trained (Phase 1 only, 5 epochs, surahs 1-5)",
+    "total_test_cases": 5,
+    "top1_accuracy": 0.0,
+    "top3_accuracy": 0.0,
+    "top5_accuracy": 0.0,
+    "text_embedding_time_s": 18.5,
+    "text_embedding_shape": [6236, 256]
+  },
+  "trained_ref": {
+    "description": "23 reference audio files against all 6236 verses",
+    "total": 23,
+    "top1": 0.0,
+    "top3": 0.0,
+    "top5": 0.0,
+    "top10": 0.0
+  },
+  "trained_indomain": {
+    "description": "789 audio files (surahs 1-5) against 789 verse candidates",
+    "total": 789,
+    "top1": 0.001,
+    "top3": 0.006,
+    "top5": 0.006,
+    "top10": 0.016
+  },
+  "trained_all_candidates": {
+    "description": "789 audio files (surahs 1-5) against all 6236 verse candidates",
+    "total": 789,
+    "top1": 0.0,
+    "top3": 0.001,
+    "top5": 0.003,
+    "top10": 0.005
+  },
+  "training_summary": {
+    "data": "Alafasy recitations, surahs 1-5 (789 verses)",
+    "train_samples": 552,
+    "val_samples": 118,
+    "batch_size": 4,
+    "phase1_epochs": 5,
+    "phase2_epochs": 0,
+    "total_training_time_s": 1719,
+    "total_training_time_min": 28.6,
+    "best_val_loss": 1.076,
+    "best_val_batch_acc": 0.449,
+    "final_train_loss": 1.106,
+    "trainable_params": 525313,
+    "total_params": 230090369,
+    "model_size_mb": 878,
+    "device": "Apple M-series MPS"
+  }
+}

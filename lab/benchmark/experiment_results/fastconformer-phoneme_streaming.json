@@ -1,0 +1,24 @@
+{
+  "fastconformer-phoneme|test_corpus": {
+    "experiment": "fastconformer-phoneme",
+    "corpus": "test_corpus",
+    "mode": "streaming",
+    "recall": 0.811,
+    "precision": 0.6397,
+    "sequence_accuracy": 0.5283,
+    "avg_latency": 0.981,
+    "model_size": 457268504,
+    "total": 53
+  },
+  "fastconformer-phoneme|test_corpus_v2": {
+    "experiment": "fastconformer-phoneme",
+    "corpus": "test_corpus_v2",
+    "mode": "streaming",
+    "recall": 0.7674,
+    "precision": 0.6085,
+    "sequence_accuracy": 0.5349,
+    "avg_latency": 1.213,
+    "model_size": 457268504,
+    "total": 43
+  }
+}

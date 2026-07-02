@@ -1,0 +1,24 @@
+{
+  "fastconformer-nbest-bruteforce|test_corpus": {
+    "experiment": "fastconformer-nbest-bruteforce",
+    "corpus": "test_corpus",
+    "mode": "streaming",
+    "recall": 0.7972,
+    "precision": 0.6098,
+    "sequence_accuracy": 0.4906,
+    "avg_latency": 0.839,
+    "model_size": 576438107,
+    "total": 53
+  },
+  "fastconformer-nbest-bruteforce|test_corpus_v2": {
+    "experiment": "fastconformer-nbest-bruteforce",
+    "corpus": "test_corpus_v2",
+    "mode": "streaming",
+    "recall": 0.7674,
+    "precision": 0.597,
+    "sequence_accuracy": 0.5116,
+    "avg_latency": 1.016,
+    "model_size": 576438107,
+    "total": 43
+  }
+}

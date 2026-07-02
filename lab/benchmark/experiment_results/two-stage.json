@@ -1,0 +1,22 @@
+{
+  "two-stage|test_corpus": {
+    "experiment": "two-stage",
+    "corpus": "test_corpus",
+    "recall": 0.6918,
+    "precision": 0.6887,
+    "sequence_accuracy": 0.6604,
+    "avg_latency": 2.338,
+    "model_size": 485715366,
+    "total": 53
+  },
+  "two-stage|test_corpus_v2": {
+    "experiment": "two-stage",
+    "corpus": "test_corpus_v2",
+    "recall": 0.5628,
+    "precision": 0.5601,
+    "sequence_accuracy": 0.5116,
+    "avg_latency": 2.217,
+    "model_size": 485715366,
+    "total": 43
+  }
+}

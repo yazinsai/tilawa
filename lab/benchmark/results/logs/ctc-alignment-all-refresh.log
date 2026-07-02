@@ -1,0 +1,12 @@
+Running 1 experiment(s) on 54 sample(s) [full transcript]...
+
+>>> ctc-alignment
+Loading CTC model from /Users/rock/ai/projects/offline-tarteel/data/ctc-model...
+    Recall: 83%  Precision: 83%  SeqAcc: 81%
+
+Experiment                       Recall  Precision   SeqAcc    Latency       Size
+------------------------------------------------------------------------------
+ctc-alignment                       83%        83%      81%      3.24s     1.2 GB
+
+Results saved to /Users/rock/ai/projects/offline-tarteel/benchmark/results/2026-02-26_225951.json
+Updated /Users/rock/ai/projects/offline-tarteel/benchmark/results/latest.json

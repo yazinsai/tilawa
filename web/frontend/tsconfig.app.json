@@ -14,6 +14,10 @@
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@tilawa/core": ["../../packages/core/src/index.ts"]
+    },
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,

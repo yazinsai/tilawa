@@ -1,0 +1,141 @@
+Filtered to 9 samples in category 'long'
+Running 1 experiment(s) on 9 sample(s) [full transcript]...
+
+>>> nvidia-fastconformer
+Loading NVIDIA FastConformer from nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0 on cpu...
+[NeMo I 2026-02-26 22:29:10 mixins:184] Tokenizer SentencePieceTokenizer initialized with 1024 tokens
+[NeMo I 2026-02-26 22:29:10 rnnt_models:226] Using RNNT Loss : warprnnt_numba
+    Loss warprnnt_numba_kwargs: {'fastemit_lambda': 0.0, 'clamp': -1.0}
+[NeMo I 2026-02-26 22:29:10 rnnt_models:226] Using RNNT Loss : warprnnt_numba
+    Loss warprnnt_numba_kwargs: {'fastemit_lambda': 0.0, 'clamp': -1.0}
+[NeMo I 2026-02-26 22:29:10 rnnt_models:226] Using RNNT Loss : warprnnt_numba
+    Loss warprnnt_numba_kwargs: {'fastemit_lambda': 0.0, 'clamp': -1.0}
+[NeMo I 2026-02-26 22:29:11 save_restore_connector:285] Model EncDecHybridRNNTCTCBPEModel was successfully restored from /Users/rock/.cache/huggingface/hub/models--nvidia--stt_ar_fastconformer_hybrid_large_pcd_v1.0/snapshots/7f32349d952f42a28dce979ba73270aa2bbdfa89/stt_ar_fastconformer_hybrid_large_pcd_v1.0.nemo.
+[NeMo I 2026-02-26 22:29:11 hybrid_rnnt_ctc_bpe_models:488] No `decoding_cfg` passed when changing decoding strategy, using internal config
+[NeMo I 2026-02-26 22:29:11 hybrid_rnnt_ctc_bpe_models:513] Changed decoding strategy of the CTC decoder to 
+    strategy: greedy
+    preserve_alignments: null
+    compute_timestamps: null
+    word_seperator: ' '
+    segment_seperators:
+    - .
+    - '!'
+    - '?'
+    segment_gap_threshold: null
+    ctc_timestamp_type: all
+    batch_dim_index: 0
+    greedy:
+      preserve_alignments: false
+      compute_timestamps: false
+      preserve_frame_confidence: false
+      confidence_method_cfg:
+        name: entropy
+        entropy_type: tsallis
+        alpha: 0.33
+        entropy_norm: exp
+        temperature: DEPRECATED
+      ngram_lm_model: null
+      ngram_lm_alpha: 0.0
+      boosting_tree:
+        model_path: null
+        key_phrases_file: null
+        key_phrases_list: null
+        key_phrase_items_list: null
+        context_score: 1.0
+        depth_scaling: 2.0
+        unk_score: 0.0
+        final_eos_score: 1.0
+        score_per_phrase: 0.0
+        source_lang: en
+        use_triton: true
+        uniform_weights: false
+        use_bpe_dropout: false
+        num_of_transcriptions: 5
+        bpe_alpha: 0.3
+      boosting_tree_alpha: 0.0
+      allow_cuda_graphs: true
+    beam:
+      beam_size: 4
+      search_type: default
+      preserve_alignments: false
+      compute_timestamps: false
+      return_best_hypothesis: true
+      allow_cuda_graphs: true
+      beam_alpha: null
+      beam_beta: 1.0
+      beam_threshold: 20.0
+      kenlm_path: null
+      ngram_lm_alpha: 1.0
+      ngram_lm_model: null
+      boosting_tree:
+        model_path: null
+        key_phrases_file: null
+        key_phrases_list: null
+        key_phrase_items_list: null
+        context_score: 1.0
+        depth_scaling: 2.0
+        unk_score: 0.0
+        final_eos_score: 1.0
+        score_per_phrase: 0.0
+        source_lang: en
+        use_triton: true
+        uniform_weights: false
+        use_bpe_dropout: false
+        num_of_transcriptions: 5
+        bpe_alpha: 0.3
+      boosting_tree_alpha: 0.0
+      flashlight_cfg:
+        lexicon_path: null
+        boost_path: null
+        beam_size_token: 16
+        beam_threshold: 20.0
+        unk_weight: -.inf
+        sil_weight: 0.0
+      pyctcdecode_cfg:
+        beam_prune_logp: -10.0
+        token_min_logp: -5.0
+        prune_history: false
+        hotwords: null
+        hotword_weight: 10.0
+    wfst:
+      beam_size: 4
+      search_type: riva
+      return_best_hypothesis: true
+      preserve_alignments: false
+      compute_timestamps: false
+      decoding_mode: nbest
+      open_vocabulary_decoding: false
+      beam_width: 10.0
+      lm_weight: 1.0
+      device: cuda
+      arpa_lm_path: null
+      wfst_lm_path: null
+      riva_decoding_cfg: {}
+      k2_decoding_cfg:
+        search_beam: 20.0
+        output_beam: 10.0
+        min_active_states: 30
+        max_active_states: 10000
+    confidence_cfg:
+      preserve_frame_confidence: false
+      preserve_token_confidence: false
+      preserve_word_confidence: false
+      exclude_blank: true
+      aggregation: min
+      tdt_include_duration: false
+      method_cfg:
+        name: entropy
+        entropy_type: tsallis
+        alpha: 0.33
+        entropy_norm: exp
+        temperature: DEPRECATED
+    temperature: 1.0
+    
+    Recall: 100%  Precision: 100%  SeqAcc: 100%
+
+Experiment                       Recall  Precision   SeqAcc    Latency       Size
+------------------------------------------------------------------------------
+nvidia-fastconformer               100%       100%     100%      0.67s     0.1 GB
+
+Results saved to /Users/rock/ai/projects/offline-tarteel/benchmark/results/2026-02-26_222918.json
+Updated /Users/rock/ai/projects/offline-tarteel/benchmark/results/latest.json

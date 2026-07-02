@@ -1,0 +1,104 @@
+{
+  "samples": [
+    {
+      "id": "shadow_003022",
+      "file": "003022.mp3",
+      "surah": 3,
+      "ayah": 22,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah-shadow",
+      "expected_verses": [{ "surah": 3, "ayah": 22 }]
+    },
+    {
+      "id": "shadow_003024",
+      "file": "003024.mp3",
+      "surah": 3,
+      "ayah": 24,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah-shadow",
+      "expected_verses": [{ "surah": 3, "ayah": 24 }]
+    },
+    {
+      "id": "shadow_004049",
+      "file": "004049.mp3",
+      "surah": 4,
+      "ayah": 49,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah-shadow",
+      "expected_verses": [{ "surah": 4, "ayah": 49 }]
+    },
+    {
+      "id": "shadow_004050",
+      "file": "004050.mp3",
+      "surah": 4,
+      "ayah": 50,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah-shadow",
+      "expected_verses": [{ "surah": 4, "ayah": 50 }]
+    },
+    {
+      "id": "shadow_004051",
+      "file": "004051.mp3",
+      "surah": 4,
+      "ayah": 51,
+      "ayah_end": null,
+      "category": "long",
+      "source": "everyayah-shadow",
+      "expected_verses": [{ "surah": 4, "ayah": 51 }]
+    },
+    {
+      "id": "shadow_004052",
+      "file": "004052.mp3",
+      "surah": 4,
+      "ayah": 52,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah-shadow",
+      "expected_verses": [{ "surah": 4, "ayah": 52 }]
+    },
+    {
+      "id": "shadow_004053",
+      "file": "004053.mp3",
+      "surah": 4,
+      "ayah": 53,
+      "ayah_end": null,
+      "category": "medium",
+      "source": "everyayah-shadow",
+      "expected_verses": [{ "surah": 4, "ayah": 53 }]
+    },
+    {
+      "id": "shadow_036002",
+      "file": "036002.mp3",
+      "surah": 36,
+      "ayah": 2,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah-shadow",
+      "expected_verses": [{ "surah": 36, "ayah": 2 }]
+    },
+    {
+      "id": "shadow_036003",
+      "file": "036003.mp3",
+      "surah": 36,
+      "ayah": 3,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah-shadow",
+      "expected_verses": [{ "surah": 36, "ayah": 3 }]
+    },
+    {
+      "id": "shadow_112004",
+      "file": "112004.mp3",
+      "surah": 112,
+      "ayah": 4,
+      "ayah_end": null,
+      "category": "short",
+      "source": "everyayah-shadow",
+      "expected_verses": [{ "surah": 112, "ayah": 4 }]
+    }
+  ]
+}

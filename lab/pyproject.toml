@@ -1,0 +1,27 @@
+[project]
+name = "offline-tarteel"
+version = "0.1.0"
+description = "Offline Quran verse recognition - multi-approach benchmark"
+requires-python = ">=3.12"
+dependencies = [
+    "mlx-whisper>=0.4.0",
+    "numpy",
+    "python-Levenshtein",
+    "soundfile",
+    "librosa",
+    "transformers",
+    "peft",
+    "torch",
+    "accelerate",
+    "datasets",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+fingerprint = ["pyacoustid", "chromaprint"]
+faster_whisper = ["faster-whisper>=1.1.0"]
+nemo = ["nemo_toolkit[asr]>=2.2.0"]
+
+[project.scripts]
+recognize = "offline_tarteel.cli:main"
+benchmark = "offline_tarteel.benchmark:main"

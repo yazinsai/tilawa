@@ -1,0 +1,641 @@
+[
+  {
+    "name": "whisper-lora",
+    "accuracy": 0.7837837837837838,
+    "correct": 29,
+    "total": 37,
+    "avg_latency": 0.9572283681623663,
+    "model_size": 508597743,
+    "per_sample": [
+      {
+        "id": "user_nisa_51",
+        "expected": {
+          "surah": 4,
+          "ayah": 51,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 3,
+          "ayah": 23,
+          "ayah_end": null,
+          "score": 0.6785714285714286,
+          "transcript": "\u0623\u064e\u0644\u064e\u0645\u0652 \u062a\u064e\u0639\u0650\u0644\u064f \u0627\u0644\u0651\u064e\u0630\u0650\u064a\u0646\u064e \u0623\u064f\u0648\u062a\u064f\u0648\u0627 \u0627\u0644\u0646\u0651\u064e\u0635\u0650\u064a\u0628\u064b\u0627 \u0645\u0650\u0646\u064e \u0627\u0644\u0652\u0643\u0650\u062a\u064e\u0627\u0628\u0650 \u064a\u064f\u062f\u0652\u0639\u064e\u0647\u064f\u0646\u064e \u0625\u0650\u0646\u064e \u0627\u0644\u0652\u0643\u0650\u062a\u064e\u0627\u0628\u0650 \u0627\u0644\u0644\u0651\u064e\u0647\u0650 \u0646\u064e\u062d\u0652\u0642\u064f\u0648\u0646\u064e \u0628\u064e\u0631\u0650\u064a\u0651\u064e\u0647\u064f\u0645\u0652"
+        },
+        "correct": false,
+        "latency": 1.7984001670120051
+      },
+      {
+        "id": "user_ikhlas_2_3",
+        "expected": {
+          "surah": 112,
+          "ayah": 2,
+          "ayah_end": 3
+        },
+        "predicted": {
+          "surah": 112,
+          "ayah": 2,
+          "ayah_end": 3,
+          "score": 0.8461538461538461,
+          "transcript": "\u0627\u0644\u0644\u0651\u064e\u0647\u064f \u0627\u0644\u0635\u0651\u0650\u0645\u064e\u062f\u0652 \u0644\u064e\u0645\u0652 \u064a\u064e\u0646\u0650\u062a\u064f \u0648\u064e\u0644\u064e\u0645\u0652 \u064a\u064f\u0648\u0646\u064e\u062a\u064f"
+        },
+        "correct": true,
+        "latency": 0.8766110830038087
+      },
+      {
+        "id": "ref_001001",
+        "expected": {
+          "surah": 1,
+          "ayah": 1,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 1,
+          "ayah": 1,
+          "ayah_end": null,
+          "score": 0.9777777777777777,
+          "transcript": "\u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u064e\u0647\u0650 \u0627\u0644\u0631\u0651\u064e\u062d\u0652\u0645\u064e\u0646\u0650 \u0627\u0644\u0631\u0651\u064e\u062d\u0650\u064a\u0645\u064f"
+        },
+        "correct": true,
+        "latency": 0.7759245829947758
+      },
+      {
+        "id": "ref_001002",
+        "expected": {
+          "surah": 1,
+          "ayah": 2,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 1,
+          "ayah": 2,
+          "ayah_end": null,
+          "score": 0.975609756097561,
+          "transcript": "\u0627\u0644\u0652\u062d\u064e\u0645\u0652\u062f\u064f \u0644\u0650\u0644\u0651\u064e\u0647\u0650 \u0631\u064e\u0628\u0651\u0650 \u0627\u0644\u0652\u0639\u064e\u0627\u0644\u064e\u0645\u0650\u064a\u0646\u064e"
+        },
+        "correct": true,
+        "latency": 0.8382739160006167
+      },
+      {
+        "id": "ref_002255",
+        "expected": {
+          "surah": 2,
+          "ayah": 255,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 3,
+          "ayah": 2,
+          "ayah_end": null,
+          "score": 0.8928571428571429,
+          "transcript": "\u0627\u0644\u0644\u0651\u064e\u0647\u064f \u0644\u064e\u0627 \u0625\u0650\u0644\u064e\u0649 \u0647\u064f\u0648\u064e \u0627\u0644\u0652\u062d\u064e\u064a\u0651\u064f \u0627\u0644\u0652\u0642\u064e\u064a\u0651\u064f\u0648\u0645\u064e"
+        },
+        "correct": false,
+        "latency": 0.9135536249959841
+      },
+      {
+        "id": "ref_112001",
+        "expected": {
+          "surah": 112,
+          "ayah": 1,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 89,
+          "ayah": 26,
+          "ayah_end": null,
+          "score": 0.6060606060606061,
+          "transcript": "\u0642\u064f\u0644\u0652 \u0647\u064f\u0648\u064e \u0627\u0644\u0644\u0651\u064e\u0647\u064f \u0623\u064e\u062d\u064e\u062f\u064c"
+        },
+        "correct": false,
+        "latency": 0.6916502500098431
+      },
+      {
+        "id": "ref_036001",
+        "expected": {
+          "surah": 36,
+          "ayah": 1,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 78,
+          "ayah": 4,
+          "ayah_end": null,
+          "score": 0.5,
+          "transcript": "\u064a\u064e\u0627\u0633\u0650\u064a\u0646\u064f"
+        },
+        "correct": false,
+        "latency": 0.44007549999514595
+      },
+      {
+        "id": "retasy_000",
+        "expected": {
+          "surah": 1,
+          "ayah": 1,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 1,
+          "ayah": 1,
+          "ayah_end": null,
+          "score": 0.9302325581395349,
+          "transcript": "\u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u064e\u0647\u0650 \u0631\u064e\u062d\u0652\u0645\u064e\u0646\u0650 \u0627\u0644\u0631\u0651\u064e\u062d\u0650\u064a\u0645\u064f"
+        },
+        "correct": true,
+        "latency": 0.7663621249957941
+      },
+      {
+        "id": "retasy_001",
+        "expected": {
+          "surah": 1,
+          "ayah": 1,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 1,
+          "ayah": 1,
+          "ayah_end": null,
+          "score": 0.9090909090909091,
+          "transcript": "\u0628\u0650\u0633\u0652\u0645\u064e \u0627\u0644\u0644\u0651\u064e\u0647\u0650 \u0627\u0644\u0631\u0651\u064e\u062d\u0652\u0644\u0650 \u0627\u0644\u0652\u0631\u0651\u064e\u062d\u0650\u064a\u0645\u064f"
+        },
+        "correct": true,
+        "latency": 0.788389792011003
+      },
+      {
+        "id": "retasy_002",
+        "expected": {
+          "surah": 1,
+          "ayah": 4,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 20,
+          "ayah": 17,
+          "ayah_end": null,
+          "score": 0.6,
+          "transcript": "\u0645\u064e\u0627 \u0644\u0650\u0643\u0651\u0650 \u064a\u064f\u0646\u0652\u062a\u0650\u064a"
+        },
+        "correct": false,
+        "latency": 0.572389833003399
+      },
+      {
+        "id": "retasy_003",
+        "expected": {
+          "surah": 1,
+          "ayah": 2,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 1,
+          "ayah": 2,
+          "ayah_end": null,
+          "score": 0.926829268292683,
+          "transcript": "\u0627\u0644\u0652\u062d\u064e\u0648\u0652\u062f\u0650 \u0644\u0650\u0644\u0651\u064e\u0647\u064f \u0631\u064e\u0628\u0651\u0650 \u0627\u0644\u0652\u0639\u064e\u0627\u0644\u064e\u0645\u0650\u064a\u0646\u064e"
+        },
+        "correct": true,
+        "latency": 0.8145797500037588
+      },
+      {
+        "id": "retasy_004",
+        "expected": {
+          "surah": 114,
+          "ayah": 3,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 114,
+          "ayah": 3,
+          "ayah_end": null,
+          "score": 1.0,
+          "transcript": "\u0625\u0650\u0644\u0651\u064e\u0647\u0650 \u0627\u0644\u0646\u0651\u064e\u0627\u0633\u064f"
+        },
+        "correct": true,
+        "latency": 0.562789707997581
+      },
+      {
+        "id": "retasy_005",
+        "expected": {
+          "surah": 103,
+          "ayah": 2,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 103,
+          "ayah": 2,
+          "ayah_end": null,
+          "score": 0.9142857142857143,
+          "transcript": "\u0625\u0650\u0646\u0651\u064e \u0627\u0644\u0652\u0625\u0650\u0646\u0633\u064e\u0627\u0646\u064e \u0644\u064e\u0641\u0650\u064a \u062e\u064f\u0635\u0651\u064e\u0631\u064c"
+        },
+        "correct": true,
+        "latency": 0.7157679579977412
+      },
+      {
+        "id": "retasy_006",
+        "expected": {
+          "surah": 1,
+          "ayah": 4,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 26,
+          "ayah": 66,
+          "ayah_end": null,
+          "score": 0.625,
+          "transcript": "\u0645\u064e\u0627\u0631\u0650\u0642\u0650 \u0623\u064e\u0644\u0652\u0646\u0650 \u0627\u0644\u062f\u0651\u0650\u064a\u0646\u064f"
+        },
+        "correct": false,
+        "latency": 0.6314792909979587
+      },
+      {
+        "id": "retasy_007",
+        "expected": {
+          "surah": 1,
+          "ayah": 1,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 1,
+          "ayah": 1,
+          "ayah_end": null,
+          "score": 0.8636363636363636,
+          "transcript": "\u0628\u0650\u0633\u0652\u0645\u064e \u0627\u0644\u0644\u0651\u064e\u0647\u0650 \u0627\u0644\u0631\u0651\u064e\u062d\u0652\u0645\u064e\u0639\u064e \u0644\u0650\u0644\u0651\u064e\u062d\u0650\u064a\u0645\u064f"
+        },
+        "correct": true,
+        "latency": 0.8392867079965072
+      },
+      {
+        "id": "retasy_008",
+        "expected": {
+          "surah": 114,
+          "ayah": 2,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 114,
+          "ayah": 2,
+          "ayah_end": null,
+          "score": 1.0,
+          "transcript": "\u0645\u064e\u0644\u0650\u0643\u064f \u0627\u0644\u0652\u0646\u064e\u0627\u0633\u0650"
+        },
+        "correct": true,
+        "latency": 0.5297934999980498
+      },
+      {
+        "id": "retasy_009",
+        "expected": {
+          "surah": 111,
+          "ayah": 3,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 111,
+          "ayah": 3,
+          "ayah_end": null,
+          "score": 0.7567567567567568,
+          "transcript": "\u0633\u064e\u064a\u0651\u064e\u0635\u0652\u062c\u064e\u0627 \u0646\u064e\u0627\u0631\u064f\u0646\u0652 \u0630\u064e\u0627\u062f\u0650 \u0627\u0644\u0652\u0647\u064e\u0628\u0650"
+        },
+        "correct": true,
+        "latency": 0.7317277080001077
+      },
+      {
+        "id": "retasy_010",
+        "expected": {
+          "surah": 113,
+          "ayah": 3,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 113,
+          "ayah": 3,
+          "ayah_end": null,
+          "score": 0.8947368421052632,
+          "transcript": "\u0648\u064e\u0645\u0650\u0646\u0652 \u0634\u064e\u0631\u0651\u0650 \u0648\u064e\u0627\u0633\u0650\u0628\u064d \u0625\u0650\u0630\u064b\u0627 \u0648\u064e\u0642\u064e\u0628\u064f"
+        },
+        "correct": true,
+        "latency": 0.8365932500018971
+      },
+      {
+        "id": "retasy_011",
+        "expected": {
+          "surah": 1,
+          "ayah": 6,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 1,
+          "ayah": 6,
+          "ayah_end": null,
+          "score": 0.75,
+          "transcript": "\u0625\u0650\u0647\u0652\u062a\u0650\u0646\u064e \u0627\u0644\u0635\u0651\u0650\u0631\u064e\u0627\u062a\u064e \u0627\u0644\u0652\u0645\u064f\u0634\u0652\u062f\u064e\u0642\u0650\u064a\u0645\u0650"
+        },
+        "correct": true,
+        "latency": 0.8037585830024909
+      },
+      {
+        "id": "retasy_012",
+        "expected": {
+          "surah": 114,
+          "ayah": 2,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 114,
+          "ayah": 2,
+          "ayah_end": null,
+          "score": 0.6666666666666667,
+          "transcript": "\u0645\u064e\u0644\u0652\u0643\u0650\u0631\u0650\u0646\u064f \u0627\u0644\u0651\u064e\u0647\u0650"
+        },
+        "correct": true,
+        "latency": 0.623994749999838
+      },
+      {
+        "id": "retasy_013",
+        "expected": {
+          "surah": 103,
+          "ayah": 2,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 103,
+          "ayah": 2,
+          "ayah_end": null,
+          "score": 0.8571428571428572,
+          "transcript": "\u0625\u0650\u0646\u0651\u064e \u0627\u0644\u0652\u0625\u0650\u0645\u0652\u0633\u064e\u0627\u0646\u064e \u0644\u064e\u0641\u0650\u064a \u062e\u064f\u0635\u064e\u0631\u064c"
+        },
+        "correct": true,
+        "latency": 0.7644543750066077
+      },
+      {
+        "id": "retasy_014",
+        "expected": {
+          "surah": 1,
+          "ayah": 4,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 1,
+          "ayah": 4,
+          "ayah_end": null,
+          "score": 0.8461538461538461,
+          "transcript": "\u0645\u064e\u0627\u0644\u0650\u0643\u0650 \u0648\u064f\u0645\u0651\u064e \u0627\u0644\u0652\u062a\u0650\u064a\u0646\u0650"
+        },
+        "correct": true,
+        "latency": 0.6357175000011921
+      },
+      {
+        "id": "retasy_015",
+        "expected": {
+          "surah": 110,
+          "ayah": 3,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 110,
+          "ayah": 3,
+          "ayah_end": null,
+          "score": 0.8157894736842105,
+          "transcript": "\u0635\u064e\u0628\u0651\u0650\u062d\u0652 \u0628\u0650\u0634\u064e\u0645\u0652\u062f\u0650 \u0631\u064e\u0628\u0651\u0650\u0643\u064e \u0648\u064e\u0627\u0633\u0652\u062a\u064e\u062e\u0652\u0641\u0650\u0631\u0652\u0647\u064f \u0625\u0650\u0646\u064e\u0651\u0627 \u0641\u064f\u0648 \u0643\u064e\u0627\u0646\u064e \u062a\u064e\u0648\u0652\u0639\u064e\u0627\u0628\u064b\u0627"
+        },
+        "correct": true,
+        "latency": 1.2907922500016866
+      },
+      {
+        "id": "retasy_016",
+        "expected": {
+          "surah": 3,
+          "ayah": 2,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 3,
+          "ayah": 2,
+          "ayah_end": null,
+          "score": 0.6551724137931034,
+          "transcript": "\u0648\u064e\u0644\u0651\u064e\u0647\u064f \u0646\u064e\u0633\u0652 \u0625\u0650\u0646\u064e\u0647\u064e\u0627 \u0625\u0650\u0644\u064e\u0649 \u0648\u064e\u0627\u0644\u062d\u064e\u0632\u0651\u064f \u0627\u0644\u0652\u062a\u064e\u064a\u0651\u064f\u0648\u0646\u064e"
+        },
+        "correct": true,
+        "latency": 0.9955782500037458
+      },
+      {
+        "id": "retasy_017",
+        "expected": {
+          "surah": 1,
+          "ayah": 7,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 1,
+          "ayah": 7,
+          "ayah_end": null,
+          "score": 0.6666666666666667,
+          "transcript": "\u0633\u0650\u0631\u064e\u0627\u062a\u064f \u0627\u0644\u0651\u064e\u0630\u0650\u064a\u0646\u064e \u0623\u064e\u0644\u0652\u0639\u064e\u0645\u0652\u062a\u064e \u0639\u064e\u0644\u064e\u064a\u0652\u0647\u0650 \u0648\u064e\u0627\u0643\u0652\u0637\u064f\u0648\u0645\u064f \u0639\u064e\u0644\u064e\u064a\u0652\u0647\u0650\u0645\u0652 \u0648\u064e\u0627\u0644\u064e\u0637\u064e\u0627\u0631\u0650\u062f\u064c"
+        },
+        "correct": true,
+        "latency": 1.3125188749982044
+      },
+      {
+        "id": "retasy_018",
+        "expected": {
+          "surah": 110,
+          "ayah": 3,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 110,
+          "ayah": 3,
+          "ayah_end": null,
+          "score": 0.8947368421052632,
+          "transcript": "\u0641\u064e\u0633\u0651\u0650\u0628\u0652\u062d\u064f \u0644\u0650\u062d\u064e\u0645\u0652\u062f\u0650 \u0631\u064e\u0628\u0651\u0650\u0643\u064e \u0648\u064e\u0627\u0633\u0652\u062a\u064e\u063a\u0652\u0641\u0650\u0631\u0652\u0647\u064f \u0625\u0650\u0646\u064e\u0651\u0627 \u0641\u064f\u0648 \u0643\u064e\u0627\u0646\u064e \u062a\u064e\u0648\u0651\u064e\u0627\u0628\u064b\u0627"
+        },
+        "correct": true,
+        "latency": 1.2594882910052547
+      },
+      {
+        "id": "retasy_019",
+        "expected": {
+          "surah": 3,
+          "ayah": 2,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 1,
+          "ayah": 1,
+          "ayah_end": null,
+          "score": 0.6666666666666667,
+          "transcript": "\u0627\u0644\u0644\u0651\u064e\u0647\u0650 \u0627\u0644\u0652\u062d\u064f\u0648\u064e\u0649 \u0627\u0644\u0652\u062d\u064e\u064a\u064f\u0643\u064e"
+        },
+        "correct": false,
+        "latency": 0.674413957996876
+      },
+      {
+        "id": "retasy_020",
+        "expected": {
+          "surah": 1,
+          "ayah": 7,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 1,
+          "ayah": 7,
+          "ayah_end": null,
+          "score": 0.7128712871287128,
+          "transcript": "\u0627\u0644\u0633\u0651\u0650\u0631\u064e\u0627\u062a\u064e \u0627\u0644\u0651\u064e\u0630\u0650\u064a\u0646\u064e \u0623\u064e\u0646\u0652 \u0623\u064e\u0645\u0652\u062a\u064e \u0639\u064e\u0644\u064e\u064a\u0652\u0647\u0650\u0645\u0652 \u062e\u064e\u0627\u0626\u0650\u0631\u0650 \u0627\u0644\u0652\u0645\u064e\u062d\u0652\u0636\u064f\u0648\u0628\u0650 \u0623\u064e\u0644\u0650\u064a\u0652\u0647\u0650\u0645\u0652 \u0648\u064e\u0644\u064e\u0628\u0652\u062f\u064b\u0627"
+        },
+        "correct": true,
+        "latency": 1.4638250839925604
+      },
+      {
+        "id": "retasy_021",
+        "expected": {
+          "surah": 1,
+          "ayah": 7,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 1,
+          "ayah": 7,
+          "ayah_end": null,
+          "score": 0.6534653465346535,
+          "transcript": "\u0635\u0650\u0631\u064e\u0627\u062a\u064f \u0627\u0644\u0651\u064e\u0632\u0650\u064a\u0646\u064e \u0645\u064e\u0646\u0652\u062a\u064e\u0627\u0644\u064e\u0645\u0652\u0647\u0650\u0645\u0652 \u063a\u064e\u064a\u0652\u0631\u064d \u0645\u064e\u063a\u0652\u0636\u064f\u0648\u0645\u064b\u0627 \u0648\u064e\u0639\u064e\u0644\u0652\u0648\u0643\u0650 \u0628\u064e\u0639\u064e\u0644\u064e\u0649 \u0627\u0644\u0644\u0651\u064e\u0630\u0651\u064e\u064a\u0652\u062f\u0650\u064a\u0646\u064e"
+        },
+        "correct": true,
+        "latency": 1.562594083006843
+      },
+      {
+        "id": "retasy_022",
+        "expected": {
+          "surah": 1,
+          "ayah": 7,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 1,
+          "ayah": 7,
+          "ayah_end": null,
+          "score": 0.7708333333333334,
+          "transcript": "\u0633\u0650\u0631\u064e\u0627\u062a\u064e \u0627\u0644\u0651\u064e\u0630\u0650\u064a\u0646\u064e \u0623\u064e\u0646\u0652\u0645\u0652\u062a\u064e \u0639\u064e\u0644\u064e\u064a\u0652\u0647\u064f \u063a\u064e\u064a\u0652\u0631\u064d \u0645\u064e\u0639\u0652\u062f\u064f\u0648\u0628\u0650 \u0639\u064e\u0644\u064e\u064a\u0652\u062d\u064c \u0648\u064e\u0627\u0644\u0636\u0651\u064e\u0648\u064e\u0627\u0644\u0652\u064a\u064e\u0628\u0650"
+        },
+        "correct": true,
+        "latency": 1.4217564999999013
+      },
+      {
+        "id": "retasy_023",
+        "expected": {
+          "surah": 110,
+          "ayah": 2,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 110,
+          "ayah": 2,
+          "ayah_end": null,
+          "score": 0.8333333333333334,
+          "transcript": "\u0648\u064e\u0631\u0652\u0642\u064e\u0626\u0650\u062a\u064e \u0627\u0644\u0646\u0651\u064e\u0627\u0633\u064e \u064a\u064e\u062f\u064f\u062d\u064f\u0644\u0651\u064f \u0646\u064e\u0634\u0650\u064a \u062f\u0650\u0646\u0650 \u0627\u0644\u0644\u0651\u064e\u0647\u0650 \u0623\u064e\u0641\u0652\u0648\u0627\u062c\u064b\u0627"
+        },
+        "correct": true,
+        "latency": 1.0933124169969233
+      },
+      {
+        "id": "retasy_024",
+        "expected": {
+          "surah": 1,
+          "ayah": 7,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 1,
+          "ayah": 7,
+          "ayah_end": null,
+          "score": 0.7142857142857143,
+          "transcript": "\u0635\u0650\u0631\u064e\u0627\u0637\u064e \u0627\u0644\u0652\u0647\u064e\u062f\u0650\u064a\u0646\u064e \u0623\u064e\u0646\u0652 \u0623\u064e\u0645\u0652\u062a\u064e\u0649 \u0644\u064e\u064a\u0652\u0647\u0650 \u0642\u064e\u0648\u0652\u0631\u0650 \u0627\u0644\u0652\u0645\u064e\u0643\u0652\u0637\u064f\u0648\u0628\u0650 \u0648\u064e\u0644\u064e\u0627 \u062a\u064e\u0627\u0647\u064e\u0627\u0644\u0650\u064a\u0646\u064e"
+        },
+        "correct": true,
+        "latency": 1.3539573749876581
+      },
+      {
+        "id": "retasy_025",
+        "expected": {
+          "surah": 1,
+          "ayah": 7,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 1,
+          "ayah": 7,
+          "ayah_end": null,
+          "score": 0.5869565217391304,
+          "transcript": "\u0634\u0650\u0631\u064e\u0627\u062a\u064b\u0627 \u0644\u064e\u0647\u0652\u062f\u0650\u0646\u064b\u0627 \u0623\u0645\u0651\u064e\u062a\u064e\u0644\u064e\u064a\u0652\u0641\u064e\u0629\u064c \u0644\u0650\u0645\u064e\u0643\u064f\u0648\u0628\u064d \u0623\u064e\u0644\u064e\u064a\u0652\u0648\u064e \u0627\u0644\u0652\u0639\u064e\u0627\u0644\u0652\u062d\u064e\u0627\u0644\u0650\u064a\u0646\u064e"
+        },
+        "correct": true,
+        "latency": 1.2769851250050124
+      },
+      {
+        "id": "retasy_026",
+        "expected": {
+          "surah": 103,
+          "ayah": 3,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 103,
+          "ayah": 3,
+          "ayah_end": null,
+          "score": 0.8305084745762712,
+          "transcript": "\u0625\u0650\u0644\u0651\u064e\u0627 \u0627\u0644\u0651\u064e\u0630\u0650\u064a\u0646\u064e \u0622\u0645\u064e\u0646\u064f\u0648\u0627 \u0648\u064e\u0639\u064e\u0647\u0650 \u0627\u0644\u0652\u0635\u064e\u0627\u0644\u0650 \u0634\u064e\u0627\u062a\u0650 \u0648\u064e\u062a\u064e\u0648\u064e\u0627\u0633\u064f\u0648\u0627 \u0628\u0650\u0627\u0644\u0634\u064e\u0642\u0650 \u0648\u064e\u062a\u064e\u0648\u064e\u0627\u0633\u064f\u0648\u0627 \u0628\u0650\u0627\u0644\u0635\u064e\u0651\u0627\u0645\u0650\u0631\u0650"
+        },
+        "correct": true,
+        "latency": 1.4717772089934442
+      },
+      {
+        "id": "retasy_027",
+        "expected": {
+          "surah": 111,
+          "ayah": 2,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 111,
+          "ayah": 2,
+          "ayah_end": null,
+          "score": 0.8,
+          "transcript": "\u0645\u064e\u0646\u0652 \u0623\u064e\u062e\u0652\u0644\u064e\u0649 \u0639\u064e\u0646\u0652\u0641\u064f \u0645\u064e\u0627 \u0644\u064f\u0647\u064f \u0648\u064e\u0645\u064e\u0627 \u0643\u064e\u0633\u064e\u0628\u064c"
+        },
+        "correct": true,
+        "latency": 0.8757011249981588
+      },
+      {
+        "id": "retasy_028",
+        "expected": {
+          "surah": 42,
+          "ayah": 4,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 4,
+          "ayah": 132,
+          "ayah_end": null,
+          "score": 0.6666666666666667,
+          "transcript": "\u0644\u064e\u0641\u064f\u0648 \u0645\u064e\u0627 \u0641\u0650\u064a \u0627\u0644\u0633\u0651\u064e\u0645\u064e\u0627\u063a\u064e\u0627\u062a\u0650 \u0648\u064e\u0645\u064e\u0627 \u0641\u0650\u064a \u0627\u0644\u0652\u0623\u064e\u0631\u0652\u0628\u0650"
+        },
+        "correct": false,
+        "latency": 0.949431832996197
+      },
+      {
+        "id": "retasy_029",
+        "expected": {
+          "surah": 103,
+          "ayah": 3,
+          "ayah_end": null
+        },
+        "predicted": {
+          "surah": 103,
+          "ayah": 3,
+          "ayah_end": null,
+          "score": 0.782608695652174,
+          "transcript": "\u0625\u0650\u0644\u0651\u064e\u0627 \u0627\u0644\u0651\u064e\u0630\u0650\u064a\u0646\u064e \u0622\u0645\u064e\u0646\u064f\u0648\u0627 \u0648\u064e\u0623\u064e\u0645\u0652\u0646\u064f\u0635\u0651\u064f\u0648\u0644\u0650 \u0647\u064e\u0643\u0652\u062a\u0650 \u0648\u064e \u062a\u064e\u0648\u064e\u0627\u0633\u064b\u0627 \u0628\u0650\u0627\u0644\u062d\u064e\u0642\u0650 \u0648\u064e \u062a\u064e\u0648\u064e\u0627\u0635\u064e\u0649\u064f\u0628\u0650 \u0627\u0644\u0635\u064e\u0651\u0628\u0631\u0650"
+        },
+        "correct": true,
+        "latency": 1.4637432919989806
+      }
+    ]
+  }
+]

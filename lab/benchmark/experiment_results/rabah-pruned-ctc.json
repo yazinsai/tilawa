@@ -1,0 +1,142 @@
+{
+  "rabah-pruned-ctc/8-layer-ft-es-int8|test_corpus": {
+    "experiment": "rabah-pruned-ctc/8-layer-ft-es-int8",
+    "corpus": "test_corpus",
+    "recall": 0.5472,
+    "precision": 0.5472,
+    "sequence_accuracy": 0.5472,
+    "avg_latency": 3.963,
+    "model_size": 152196826,
+    "total": 53
+  },
+  "rabah-pruned-ctc/8-layer-ft-fn-int8|test_corpus": {
+    "experiment": "rabah-pruned-ctc/8-layer-ft-fn-int8",
+    "corpus": "test_corpus",
+    "recall": 0.7547,
+    "precision": 0.7453,
+    "sequence_accuracy": 0.7358,
+    "avg_latency": 3.72,
+    "model_size": 152196826,
+    "total": 53
+  },
+  "rabah-pruned-ctc/12-layer-ft-es-int8|test_corpus": {
+    "experiment": "rabah-pruned-ctc/12-layer-ft-es-int8",
+    "corpus": "test_corpus",
+    "recall": 0.6321,
+    "precision": 0.6321,
+    "sequence_accuracy": 0.6038,
+    "avg_latency": 5.329,
+    "model_size": 202785594,
+    "total": 53
+  },
+  "rabah-pruned-ctc/6-layer-ft-es-int8|test_corpus": {
+    "experiment": "rabah-pruned-ctc/6-layer-ft-es-int8",
+    "corpus": "test_corpus",
+    "recall": 0.5377,
+    "precision": 0.5377,
+    "sequence_accuracy": 0.5094,
+    "avg_latency": 3.34,
+    "model_size": 126902474,
+    "total": 53
+  },
+  "rabah-pruned-ctc/12-layer-int8|test_corpus": {
+    "experiment": "rabah-pruned-ctc/12-layer-int8",
+    "corpus": "test_corpus",
+    "recall": 0.6226,
+    "precision": 0.6226,
+    "sequence_accuracy": 0.6226,
+    "avg_latency": 5.485,
+    "model_size": 202785594,
+    "total": 53
+  },
+  "rabah-pruned-ctc/8-layer-int8|test_corpus": {
+    "experiment": "rabah-pruned-ctc/8-layer-int8",
+    "corpus": "test_corpus",
+    "recall": 0.0189,
+    "precision": 0.0189,
+    "sequence_accuracy": 0.0189,
+    "avg_latency": 3.983,
+    "model_size": 152196826,
+    "total": 53
+  },
+  "rabah-pruned-ctc/6-layer-int8|test_corpus": {
+    "experiment": "rabah-pruned-ctc/6-layer-int8",
+    "corpus": "test_corpus",
+    "recall": 0.0,
+    "precision": 0.0,
+    "sequence_accuracy": 0.0,
+    "avg_latency": 3.211,
+    "model_size": 126902474,
+    "total": 53
+  },
+  "rabah-pruned-ctc/8-layer-ft-es-int8|test_corpus_v2": {
+    "experiment": "rabah-pruned-ctc/8-layer-ft-es-int8",
+    "corpus": "test_corpus_v2",
+    "recall": 0.4651,
+    "precision": 0.4651,
+    "sequence_accuracy": 0.4651,
+    "avg_latency": 3.987,
+    "model_size": 152196826,
+    "total": 43
+  },
+  "rabah-pruned-ctc/8-layer-ft-fn-int8|test_corpus_v2": {
+    "experiment": "rabah-pruned-ctc/8-layer-ft-fn-int8",
+    "corpus": "test_corpus_v2",
+    "recall": 0.7674,
+    "precision": 0.7674,
+    "sequence_accuracy": 0.7674,
+    "avg_latency": 3.875,
+    "model_size": 152196826,
+    "total": 43
+  },
+  "rabah-pruned-ctc/12-layer-ft-es-int8|test_corpus_v2": {
+    "experiment": "rabah-pruned-ctc/12-layer-ft-es-int8",
+    "corpus": "test_corpus_v2",
+    "recall": 0.6744,
+    "precision": 0.6744,
+    "sequence_accuracy": 0.6744,
+    "avg_latency": 5.218,
+    "model_size": 202785594,
+    "total": 43
+  },
+  "rabah-pruned-ctc/6-layer-ft-es-int8|test_corpus_v2": {
+    "experiment": "rabah-pruned-ctc/6-layer-ft-es-int8",
+    "corpus": "test_corpus_v2",
+    "recall": 0.5581,
+    "precision": 0.5581,
+    "sequence_accuracy": 0.5581,
+    "avg_latency": 3.144,
+    "model_size": 126902474,
+    "total": 43
+  },
+  "rabah-pruned-ctc/12-layer-int8|test_corpus_v2": {
+    "experiment": "rabah-pruned-ctc/12-layer-int8",
+    "corpus": "test_corpus_v2",
+    "recall": 0.5116,
+    "precision": 0.5116,
+    "sequence_accuracy": 0.5116,
+    "avg_latency": 5.039,
+    "model_size": 202785594,
+    "total": 43
+  },
+  "rabah-pruned-ctc/8-layer-int8|test_corpus_v2": {
+    "experiment": "rabah-pruned-ctc/8-layer-int8",
+    "corpus": "test_corpus_v2",
+    "recall": 0.0,
+    "precision": 0.0,
+    "sequence_accuracy": 0.0,
+    "avg_latency": 3.719,
+    "model_size": 152196826,
+    "total": 43
+  },
+  "rabah-pruned-ctc/6-layer-int8|test_corpus_v2": {
+    "experiment": "rabah-pruned-ctc/6-layer-int8",
+    "corpus": "test_corpus_v2",
+    "recall": 0.0,
+    "precision": 0.0,
+    "sequence_accuracy": 0.0,
+    "avg_latency": 3.083,
+    "model_size": 126902474,
+    "total": 43
+  }
+}
