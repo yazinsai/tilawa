@@ -5,6 +5,7 @@ const _BSM_PHONEMES_JOINED = "bismi allahi arraHmaani arraHiimi";
 const _BSM_PHONEME_TOKENS = "b i s m i | a l l a h i | a r r a H m aa n i | a r r a H ii m i".split(
   " ",
 );
+const _BSM_ARABIC_WORDS = ["بسم", "الله", "الرحمن", "الرحيم"];
 
 export interface QuranTokenEncoder {
   encodeRawPhonemes(rawPhonemes: string): number[];
@@ -68,6 +69,10 @@ const JOINT_GLOBAL_SPAN_SHORTLIST = 320;
 const JOINT_OPENING_COLLAPSE_MIN_CHARS = 34;
 const JOINT_OPENING_COLLAPSE_MAX_CHARS = 115;
 const JOINT_OPENING_COLLAPSE_MIN_SCORE = 0.50;
+const JOINT_SHORT_OPENING_MAX_CHARS = 10;
+const JOINT_SHORT_OPENING_MIN_QUERY_CHARS = 8;
+const JOINT_SHORT_OPENING_MIN_SCORE = 0.48;
+const JOINT_SHORT_OPENING_MARGIN = -0.18;
 
 interface GlobalSpanRow {
   surah: number;
@@ -113,7 +118,9 @@ export class QuranDB {
       arr.push(v);
       this._bySurah.set(v.surah, arr);
 
-      v.phoneme_tokens = v.phonemes.trim().split(/\s+/).filter(Boolean);
+      v.phoneme_tokens = v.phoneme_tokens?.length
+        ? v.phoneme_tokens
+        : v.phonemes.trim().split(/\s+/).filter(Boolean);
 
       if (
         v.ayah === 1 &&
@@ -134,6 +141,26 @@ export class QuranDB {
         v.phoneme_tokens_no_bsm = null;
       }
 
+      if (
+        v.ayah === 1 &&
+        v.surah !== 1 &&
+        v.surah !== 9 &&
+        this._startsWithArabicBismillah(v.phoneme_words)
+      ) {
+        const strippedWords = v.phoneme_words.slice(_BSM_ARABIC_WORDS.length);
+        v.phonemes_joined_no_bsm = strippedWords.length ? strippedWords.join(" ") : null;
+
+        const bsmTokenEnd = v.word_token_ends?.[_BSM_ARABIC_WORDS.length - 1] ?? 0;
+        v.phoneme_tokens_no_bsm =
+          bsmTokenEnd > 0 && v.phoneme_tokens.length > bsmTokenEnd
+            ? v.phoneme_tokens.slice(bsmTokenEnd)
+            : null;
+        v.phoneme_token_ids_no_bsm =
+          bsmTokenEnd > 0 && (v.phoneme_token_ids?.length ?? 0) > bsmTokenEnd
+            ? v.phoneme_token_ids!.slice(bsmTokenEnd)
+            : null;
+      }
+
       v.phonemes_joined_ns = v.phonemes_joined.replace(/ /g, "");
       v.phonemes_joined_no_bsm_ns = v.phonemes_joined_no_bsm
         ? v.phonemes_joined_no_bsm.replace(/ /g, "")
@@ -145,11 +172,13 @@ export class QuranDB {
           ? this.tokenEncoder.encodeRawPhonemes(v.phoneme_tokens_no_bsm.join(" "))
           : null;
       } else {
-        v.phoneme_token_ids = [];
-        v.phoneme_token_ids_no_bsm = null;
+        v.phoneme_token_ids = v.phoneme_token_ids ?? [];
+        v.phoneme_token_ids_no_bsm = v.phoneme_token_ids_no_bsm ?? null;
       }
 
-      v.word_token_ends = this._computeWordTokenEnds(v.phoneme_tokens);
+      v.word_token_ends = v.word_token_ends?.length
+        ? v.word_token_ends
+        : this._computeWordTokenEnds(v.phoneme_tokens);
     }
   }
 
@@ -179,6 +208,11 @@ export class QuranDB {
       }
     }
     return undefined;
+  }
+
+  private _startsWithArabicBismillah(words: readonly string[] | undefined): boolean {
+    if (!words || words.length <= _BSM_ARABIC_WORDS.length) return false;
+    return _BSM_ARABIC_WORDS.every((word, index) => words[index] === word);
   }
 
   /** Return candidates for verses whose non-Bsm phoneme token IDs are short (≤ maxTokens). */
@@ -379,6 +413,11 @@ export class QuranDB {
 
     const best = top[0];
     const bestScore = best.score;
+    const shortOpening = this._jointShortOpeningSpanCandidate(text, bestScore);
+    if (shortOpening) {
+      return shortOpening;
+    }
+
     const bestIsLateSpan = best.ayah_end != null && best.ayah > 1;
     const lowConfidence = bestScore < 0.62;
     if (!bestIsLateSpan && !lowConfidence) return best;
@@ -581,6 +620,56 @@ export class QuranDB {
       });
     }
     return out.sort((a, b) => b.score - a.score).slice(0, 12);
+  }
+
+  private _jointShortOpeningSpanCandidate(
+    phonemeText: string,
+    bestScore: number,
+  ): QuranChampionMatch | null {
+    const noSpaceText = phonemeText.replace(/ /g, "");
+    if (noSpaceText.length < JOINT_SHORT_OPENING_MIN_QUERY_CHARS) return null;
+
+    let best: QuranChampionMatch | null = null;
+    for (const row of this._jointPrefixSpanTable()) {
+      const first = this.getVerse(row.surah, 1);
+      const second = this.getVerse(row.surah, 2);
+      if (!first || !second) continue;
+      const firstNs =
+        first.phonemes_joined_no_bsm_ns ??
+        first.phonemes_joined_ns ??
+        first.phonemes_joined.replace(/ /g, "");
+      if (!firstNs || firstNs.length > JOINT_SHORT_OPENING_MAX_CHARS) continue;
+      if (!noSpaceText.startsWith(firstNs)) continue;
+      const remainder = noSpaceText.slice(firstNs.length);
+      const secondNs =
+        second.phonemes_joined_ns ?? second.phonemes_joined.replace(/ /g, "");
+      const compareLen = Math.min(secondNs.length, remainder.length, 12);
+      if (
+        compareLen >= 4 &&
+        ratio(remainder.slice(0, compareLen), secondNs.slice(0, compareLen)) < 0.72
+      ) {
+        continue;
+      }
+
+      const raw = ratio(phonemeText, row.phonemes_joined);
+      const frag = fragmentScore(noSpaceText, row.phonemes_joined.replace(/ /g, ""));
+      const score = Math.max(raw, raw + (frag - raw) * JOINT_FRAGMENT_BLEND);
+      if (
+        score >= JOINT_SHORT_OPENING_MIN_SCORE &&
+        score >= bestScore + JOINT_SHORT_OPENING_MARGIN &&
+        (!best || score > best.score)
+      ) {
+        best = {
+          ...row,
+          score: QuranDB._round4(score),
+          raw_score: QuranDB._round4(raw),
+          bonus: 0,
+          _prefix_rescue: true,
+        };
+      }
+    }
+
+    return best;
   }
 
   private _jointCandidateVerses(noSpaceText: string, maxCandidates = 950): QuranVerse[] {

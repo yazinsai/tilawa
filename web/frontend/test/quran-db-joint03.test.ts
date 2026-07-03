@@ -16,6 +16,20 @@ function verse(surah: number, ayah: number, phonemes: string): QuranVerse {
 }
 
 describe("QuranDB joint03 champion matcher", () => {
+  it("preserves precomputed CTC token ids from the text adapter", () => {
+    const db = new QuranDB([
+      {
+        ...verse(2, 1, "الم"),
+        phoneme_tokens: ["▁الم"],
+        phoneme_token_ids: [101, 102, 103],
+        word_token_ends: [3],
+      },
+    ]);
+
+    expect(db.getVerse(2, 1)?.phoneme_token_ids).toEqual([101, 102, 103]);
+    expect(db.getVerse(2, 1)?.word_token_ends).toEqual([3]);
+  });
+
   it("keeps single-ayah joint02 matches shaped like the Python champion", () => {
     const db = new QuranDB([
       verse(1, 1, "bismi allahi arraHmaani arraHiimi"),
@@ -44,6 +58,23 @@ describe("QuranDB joint03 champion matcher", () => {
       ayah: 1,
       ayah_end: 3,
       _prefix_rescue: true,
+    });
+  });
+
+  it("keeps a short opening ayah when the transcript continues into the next ayah", () => {
+    const db = new QuranDB([
+      verse(2, 1, "بسم الله الرحمن الرحيم الم"),
+      verse(2, 2, "ذلك الكتاب لا ريب فيه هدى للمتقين"),
+      verse(114, 2, "ملك الناس"),
+      verse(114, 3, "اله الناس"),
+    ]);
+
+    const match = db.bestJoint03Match("الم ذلك الكتاب لا");
+
+    expect(match).toMatchObject({
+      surah: 2,
+      ayah: 1,
+      ayah_end: 2,
     });
   });
 });

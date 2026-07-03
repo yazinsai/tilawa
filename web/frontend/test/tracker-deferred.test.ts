@@ -197,6 +197,31 @@ function injectTrackingState(tracker: RecitationTracker, verse: QuranVerse): voi
 // Tests
 // ---------------------------------------------------------------------------
 describe("Deferred emission", () => {
+  it("does not commit a short first live discovery from a single unstable cycle", async () => {
+    const db = createMockDB();
+    const first = makeCandidate(VERSE_1, 0.95, null);
+    db.matchVerse.mockReturnValue({
+      ...first,
+      score: first.stage_a_score,
+    });
+    db.retrieveCandidates.mockReturnValue({ combined: [first] });
+
+    const tracker = new RecitationTracker(
+      db,
+      createTranscribeFn([makeResult(VERSE_1.phonemes_joined)]),
+      { config: { discoveryRepeatCycles: 2 } },
+    );
+    const t = tracker as any;
+    t.utteranceHasSpeech = true;
+    t.utteranceAudio = makeSpeechChunk(SAMPLE_RATE * 2);
+    t.newAudioCount = SAMPLE_RATE * 2;
+
+    const messages = await t._handleDiscovery(false);
+
+    expect(collectVerseMatches(messages)).toEqual([]);
+    expect(collectVerseCandidates(messages)).toContain("2:1");
+  });
+
   it("uses championMatch as the authoritative discovery match", async () => {
     const db = createMockDB();
     db.matchVerse.mockReturnValue({
