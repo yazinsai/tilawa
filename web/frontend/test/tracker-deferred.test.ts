@@ -570,6 +570,27 @@ describe("Deferred emission", () => {
     expect((tracker as any).trackingPendingEmission).toBe(true);
   });
 
+  it("short pending verse waits for dwell before confirming", async () => {
+    const transcribeFn = createTranscribeFn([
+      makeResult("alif laam miim"), // VERSE_1 complete → auto-advance
+      makeResult(VERSE_2.phoneme_words.join(" ")), // VERSE_2 complete, but too soon
+    ]);
+
+    const db = createMockDB();
+    const tracker = new RecitationTracker(db, transcribeFn);
+    injectTrackingState(tracker, VERSE_1);
+
+    await tracker.feed(makeSpeechChunk());
+    const messages = await tracker.feed(makeSpeechChunk());
+
+    expect(collectVerseMatches(messages)).not.toContain("2:2");
+    expect((tracker as any).trackingVerse).toEqual(VERSE_2);
+    expect((tracker as any).trackingPendingEmission).toBe(true);
+    expect((tracker as any).pendingEmissionMessage?.surah).toBe(VERSE_2.surah);
+    expect((tracker as any).pendingEmissionMessage?.ayah).toBe(VERSE_2.ayah);
+    expect((tracker as any).trackingLastWordIdx).toBe(-1);
+  });
+
   it("confirmed pending verse can arm the next verse in the same tracking cycle", async () => {
     const transcribeFn = createTranscribeFn([
       makeResult("alif laam miim"), // VERSE_1 complete → auto-advance
@@ -585,7 +606,7 @@ describe("Deferred emission", () => {
     expect((tracker as any).trackingVerse).toEqual(VERSE_2);
     expect((tracker as any).trackingPendingEmission).toBe(true);
 
-    const second = await tracker.feed(makeSpeechChunk());
+    const second = await tracker.feed(makeSpeechChunk(SAMPLE_RATE));
 
     expect(collectVerseMatches(second)).toContain("2:2");
     expect((tracker as any).trackingVerse).toEqual(VERSE_3);
@@ -605,7 +626,7 @@ describe("Deferred emission", () => {
     injectTrackingState(tracker, VERSE_1);
 
     await tracker.feed(makeSpeechChunk());
-    const messages = await tracker.feed(makeSpeechChunk());
+    const messages = await tracker.feed(makeSpeechChunk(SAMPLE_RATE));
 
     expect(collectVerseMatches(messages)).toContain("2:2");
     expect((tracker as any).trackingVerse).toEqual(VERSE_2);
@@ -633,7 +654,7 @@ describe("Deferred emission", () => {
     t.trackingLastWordIdx = 7;
     t.trackingProgressEstablished = true;
 
-    const messages = await tracker.feed(makeSpeechChunk());
+    const messages = await tracker.feed(makeSpeechChunk(SAMPLE_RATE));
 
     expect(collectVerseMatches(messages)).toContain("2:2");
     expect(t.trackingVerse).toEqual(VERSE_2);

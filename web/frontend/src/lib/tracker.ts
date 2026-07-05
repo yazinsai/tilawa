@@ -194,6 +194,9 @@ const DECODE_STABILITY_GATE: boolean = (() => {
   }
 })();
 
+const SHORT_PENDING_CONFIRM_MAX_WORDS = 12;
+const SHORT_PENDING_CONFIRM_MIN_SAMPLES = SAMPLE_RATE;
+
 function concatFloat32(a: Float32Array, b: Float32Array): Float32Array {
   const result = new Float32Array(a.length + b.length);
   result.set(a);
@@ -618,6 +621,33 @@ export class RecitationTracker {
       return messages;
     }
 
+    if (
+      finalFlush &&
+      this.trackingPendingEmission &&
+      this.pendingEmissionMessage !== null &&
+      this.pendingEmissionMargin < this.config.advanceFlushStrictMargin
+    ) {
+      messages.push(this.pendingEmissionMessage);
+      this._emitDiagnostic({
+        type: "commit",
+        ref: `${this.pendingEmissionMessage.surah}:${this.pendingEmissionMessage.ayah}`,
+        reason: "final_flush_pending_emit",
+        confidence: this.pendingEmissionMessage.confidence,
+      });
+      this._emitDiagnostic({
+        type: "pending_emission",
+        action: "final_flush_emit",
+        ref: `${this.pendingEmissionMessage.surah}:${this.pendingEmissionMessage.ayah}`,
+        margin: Number.isFinite(this.pendingEmissionMargin)
+          ? Math.round(this.pendingEmissionMargin * 1000) / 1000
+          : null,
+        fresh_samples: this.totalSamplesFed - this.samplesAtAdvance,
+      });
+      this._clearPendingEmission();
+      this._exitTracking("final silence flush (pending emitted)");
+      return messages;
+    }
+
     const recognizedWords = text.split(" ").filter(Boolean);
     const resumeFrom = Math.max(this.trackingLastWordIdx, 0);
     let confirmedPendingEmission = false;
@@ -629,9 +659,18 @@ export class RecitationTracker {
     );
     const primaryMatchedIndices = matchedIndices.slice();
 
-    // Confirm pending emission only on primary word alignment from fresh audio
+    const freshSamplesSinceAdvance = this.totalSamplesFed - this.samplesAtAdvance;
+    const pendingHasEnoughDwell =
+      !this.trackingPendingEmission ||
+      this.trackingVerseWords.length > SHORT_PENDING_CONFIRM_MAX_WORDS ||
+      freshSamplesSinceAdvance >= SHORT_PENDING_CONFIRM_MIN_SAMPLES;
+
+    // Confirm pending emission only on primary word alignment from fresh audio.
+    // Short verses need a small dwell so back-to-back final-word decodes do not
+    // visibly skip over the verse the user just reached.
     if (
       this.trackingPendingEmission &&
+      pendingHasEnoughDwell &&
       hasStrongPendingPrefixEvidence(matchedIndices, this.trackingVerseWords.length) &&
       this.totalSamplesFed > this.samplesAtAdvance
     ) {
@@ -743,16 +782,46 @@ export class RecitationTracker {
       return messages;
     }
 
-    this.staleCycles = 0;
-    this.trackingProgressEstablished = true;
-    this.trackingLastWordIdx = matchedIndices[matchedIndices.length - 1];
-    const wordPos = this.trackingLastWordIdx + 1;
+    const observedWordIdx = matchedIndices[matchedIndices.length - 1];
+    const observedWordPos = observedWordIdx + 1;
     const totalWords = this.trackingVerseWords.length;
-    const coverage = Math.round((wordPos / totalWords) * 1000) / 1000;
-
+    const observedCoverage = Math.round((observedWordPos / totalWords) * 1000) / 1000;
     const completionWordCount = Math.ceil(
       totalWords * this.config.trackingCompletionCoverage,
     );
+    const observedFinalWordReached = observedWordIdx >= totalWords - 1;
+
+    if (
+      this.trackingPendingEmission &&
+      this.pendingEmissionMessage !== null &&
+      !pendingHasEnoughDwell
+    ) {
+      this._emitDiagnostic({
+        type: "advance_decision",
+        from_ref: `${this.trackingVerse.surah}:${this.trackingVerse.ayah}`,
+        to_ref: null,
+        action: "blocked",
+        reason: "pending confirmation dwell",
+        word_position: observedWordPos,
+        total_words: totalWords,
+        coverage: observedCoverage,
+        completion_target: completionWordCount,
+        final_word: observedFinalWordReached,
+        advance_ok: false,
+        early_advance_ok: false,
+        margin: null,
+        normal_margin: this.config.advanceRelativeMargin,
+        strict_margin: this.config.advanceFlushStrictMargin,
+      });
+      return messages;
+    }
+
+    this.staleCycles = 0;
+    this.trackingProgressEstablished = true;
+    this.trackingLastWordIdx = observedWordIdx;
+    const wordPos = this.trackingLastWordIdx + 1;
+    const coverage = Math.round((wordPos / totalWords) * 1000) / 1000;
+
     const completedEnough = wordPos >= completionWordCount;
     const finalWordReached =
       this.trackingLastWordIdx >= totalWords - 1;
@@ -760,7 +829,8 @@ export class RecitationTracker {
     if (
       completedEnough &&
       this.trackingPendingEmission &&
-      this.pendingEmissionMessage !== null
+      this.pendingEmissionMessage !== null &&
+      pendingHasEnoughDwell
     ) {
       const pending = this.pendingEmissionMessage;
       messages.push(pending);
