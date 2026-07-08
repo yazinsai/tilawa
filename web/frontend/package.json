@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "test:streaming": "tsx test/validate-streaming.ts",
     "test:streaming:matrix": "tsx test/validate-streaming-matrix.ts",
-    "test:streaming:diagnostics": "tsx test/diagnose-streaming.ts"
+    "test:streaming:diagnostics": "tsx test/diagnose-streaming.ts",
+    "test:user-reports": "tsx test/user-report-regressions.ts"
   },
   "dependencies": {
     "@fontsource/amiri": "^5.2.8",
