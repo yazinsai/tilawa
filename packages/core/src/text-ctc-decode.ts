@@ -1,4 +1,4 @@
-import { normalizeArabic } from "./normalizer";
+import { normalizeArabic } from "./normalizer.js";
 
 export interface TextCTCResult {
   text: string;

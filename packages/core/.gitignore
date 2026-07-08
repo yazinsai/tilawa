@@ -1,0 +1,7 @@
+dist/
+node_modules/
+*.tgz
+
+# Synced from repo root at pack time by `npm run sync-docs`
+README.md
+LICENSE

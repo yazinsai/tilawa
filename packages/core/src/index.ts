@@ -1,44 +1,44 @@
-import { QuranDB } from "./quran-db";
-import type { QuranChampionMatch } from "./quran-db";
-import { RecitationTracker } from "./tracker";
-import type { TranscribeResult, TrackerDiagnosticEvent } from "./tracker";
-import { TextCTCDecoder } from "./text-ctc-decode";
+import { QuranDB } from "./quran-db.js";
+import type { QuranChampionMatch } from "./quran-db.js";
+import { RecitationTracker } from "./tracker.js";
+import type { TranscribeResult, TrackerDiagnosticEvent } from "./tracker.js";
+import { TextCTCDecoder } from "./text-ctc-decode.js";
 import {
   adaptQuranTextData,
   validateCtcTokenRoundTrip,
   type CtcTokenTable,
-} from "./quran-text-adapter";
+} from "./quran-text-adapter.js";
 import {
   DEFAULT_STREAMING_CONFIG,
   normalizeStreamingConfig,
   type StreamingConfig,
   type WorkerOutbound,
-} from "./types";
-import type { SessionRunner } from "./session";
+} from "./types.js";
+import type { SessionRunner } from "./session.js";
 
-export type { SessionRunner, SessionOutput } from "./session";
+export type { SessionRunner, SessionOutput } from "./session.js";
 
 // Full config + type surface for app developers.
-export * from "./types";
-export { QuranDB } from "./quran-db";
+export * from "./types.js";
+export { QuranDB } from "./quran-db.js";
 export type {
   QuranChampionMatch,
   QuranTokenEncoder,
   QuranCtcTokenTable,
   QuranCandidate,
-} from "./quran-db";
-export { TextCTCDecoder } from "./text-ctc-decode";
-export type { TextCTCResult } from "./text-ctc-decode";
-export { RecitationTracker } from "./tracker";
+} from "./quran-db.js";
+export { TextCTCDecoder } from "./text-ctc-decode.js";
+export type { TextCTCResult } from "./text-ctc-decode.js";
+export { RecitationTracker } from "./tracker.js";
 export type {
   TranscribeResult,
   TrackerDiagnosticEvent,
   RecitationTrackerOptions,
   BeamVerseMatch,
-} from "./tracker";
-export type { AcousticEvidence } from "./ctc-rescore";
-export { adaptQuranTextData, validateCtcTokenRoundTrip } from "./quran-text-adapter";
-export type { CtcTokenTable } from "./quran-text-adapter";
+} from "./tracker.js";
+export type { AcousticEvidence } from "./ctc-rescore.js";
+export { adaptQuranTextData, validateCtcTokenRoundTrip } from "./quran-text-adapter.js";
+export type { CtcTokenTable } from "./quran-text-adapter.js";
 
 /**
  * JSON assets the app developer loads and hands to the SDK. Model bytes go into

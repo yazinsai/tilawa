@@ -1,5 +1,5 @@
-import { ratio, fragmentScore } from "./levenshtein";
-import type { QuranVerse } from "./types";
+import { ratio, fragmentScore } from "./levenshtein.js";
+import type { QuranVerse } from "./types.js";
 
 const _BSM_PHONEMES_JOINED = "bismi allahi arraHmaani arraHiimi";
 const _BSM_PHONEME_TOKENS = "b i s m i | a l l a h i | a r r a H m aa n i | a r r a H ii m i".split(

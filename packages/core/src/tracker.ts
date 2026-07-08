@@ -1,7 +1,7 @@
-import { ratio as levRatio } from "./levenshtein";
-import { scoreCtcSequence, scoreCtcCandidates, chooseLongestStablePrefix } from "./ctc-rescore";
-import { QuranDB, partialRatio, type QuranCandidate, type QuranChampionMatch } from "./quran-db";
-import type { AcousticEvidence } from "./ctc-rescore";
+import { ratio as levRatio } from "./levenshtein.js";
+import { scoreCtcSequence, scoreCtcCandidates, chooseLongestStablePrefix } from "./ctc-rescore.js";
+import { QuranDB, partialRatio, type QuranCandidate, type QuranChampionMatch } from "./quran-db.js";
+import type { AcousticEvidence } from "./ctc-rescore.js";
 import type {
   FinalSequenceMessage,
   FinalSequenceVerse,
@@ -12,7 +12,7 @@ import type {
   VerseMatchMessage,
   WorkerOutbound,
   SurroundingVerse,
-} from "./types";
+} from "./types.js";
 import {
   DEFAULT_STREAMING_CONFIG,
   SAMPLE_RATE,
@@ -33,7 +33,7 @@ import {
   DISCOVERY_FUSION_LOW_LENGTH_WEIGHT,
   DISCOVERY_FUSION_SELECTION_GAP,
   normalizeStreamingConfig,
-} from "./types";
+} from "./types.js";
 
 export interface BeamVerseMatch {
   /** Index into the quran_phonemes array */

@@ -1,6 +1,6 @@
-import { normalizeArabic } from "./normalizer";
-import type { QuranVerse } from "./types";
-import { TextCTCDecoder } from "./text-ctc-decode";
+import { normalizeArabic } from "./normalizer.js";
+import type { QuranVerse } from "./types.js";
+import { TextCTCDecoder } from "./text-ctc-decode.js";
 
 export type CtcTokenTable = Record<string, number[]>;
 
