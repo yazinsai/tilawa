@@ -2,11 +2,15 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { QuranDB } from "../src/lib/quran-db.ts";
-import { RecitationTracker, type TranscribeResult } from "../src/lib/tracker.ts";
-import { SAMPLE_RATE } from "../src/lib/types.ts";
-import { adaptQuranTextData, type CtcTokenTable } from "../src/worker/quran-text-adapter.ts";
-import { TextCTCDecoder } from "../src/worker/text-ctc-decode.ts";
+import {
+  QuranDB,
+  RecitationTracker,
+  SAMPLE_RATE,
+  adaptQuranTextData,
+  TextCTCDecoder,
+  type TranscribeResult,
+  type CtcTokenTable,
+} from "@tilawa/core";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
