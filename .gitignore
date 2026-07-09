@@ -66,7 +66,6 @@ web/frontend/test/stab-gate-*.json
 !benchmark/test_corpus/**
 !benchmark/test_corpus_v2/**
 !benchmark/test_corpus_v3/**
-!benchmark/user_reports_july/**
 
 # ---------- Model weights ----------
 # Default: ignore all ONNX. The streaming model under web/frontend/public/

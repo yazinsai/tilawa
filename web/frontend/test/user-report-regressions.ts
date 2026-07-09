@@ -10,23 +10,27 @@ import { TextCTCDecoder } from "../src/worker/text-ctc-decode.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
-const REPORT_CORPUS = resolve(ROOT, "../../benchmark/user_reports_july");
 const CHUNK_SAMPLES = SAMPLE_RATE * 2;
 
 interface TranscriptCase {
   id: string;
+  expected: [number, number][];
   transcripts: string[];
   knownModelMiss?: string;
-}
-
-interface ManifestSample {
-  id: string;
-  expected_verses: { surah: number; ayah: number }[];
 }
 
 const CASES: TranscriptCase[] = [
   {
     id: "report_18_082_stuck_to_88",
+    expected: [
+      [18, 82],
+      [18, 83],
+      [18, 84],
+      [18, 85],
+      [18, 86],
+      [18, 87],
+      [18, 88],
+    ],
     transcripts: [
       "وكان وراءهم ملك ياخذ كل سفينه غصبا واما الغلام فكان ابواه مؤمنين فخشينا ان يرهقهما طغيانا وكفرا",
       "كان ربهما خيرا منه زكاه واقرب رحما واما الجدتار فكان لغلامين يتيمين في المدينه وكان تحته كن",
@@ -36,6 +40,7 @@ const CASES: TranscriptCase[] = [
   },
   {
     id: "report_18_057_wrong_38_002",
+    expected: [[18, 57]],
     transcripts: [
       "وما يحسن المين",
       "وما نرسل المرسلين الا مبشرين",
@@ -47,6 +52,10 @@ const CASES: TranscriptCase[] = [
   },
   {
     id: "report_18_055_056_skip",
+    expected: [
+      [18, 55],
+      [18, 56],
+    ],
     transcripts: [
       "ولقد صرفنا في هذا القران للناس من كل مثل",
       "وما منع الناس ان يؤمنوا اذ جاءهم الهدي ويستغفروا ربهمم ال",
@@ -56,6 +65,7 @@ const CASES: TranscriptCase[] = [
   },
   {
     id: "report_002_001_no_prediction",
+    expected: [[2, 1]],
     transcripts: [
       "الم ذلك الكتاب لنا",
       "الم ذلك الكتاب لا ريب فيه هدي للمين",
@@ -63,6 +73,7 @@ const CASES: TranscriptCase[] = [
   },
   {
     id: "report_18_109_no_prediction",
+    expected: [[18, 109]],
     knownModelMiss:
       "Captured ASR transcript is Baqarah-like text, so matcher/tracker fixes cannot recover 18:109 from this decode.",
     transcripts: [
@@ -124,18 +135,6 @@ function createTranscriber(transcripts: string[]) {
   };
 }
 
-function loadExpectedVerses(): Map<string, string[]> {
-  const manifest = JSON.parse(
-    readFileSync(resolve(REPORT_CORPUS, "manifest.json"), "utf-8"),
-  ) as { samples: ManifestSample[] };
-  return new Map(
-    manifest.samples.map((sample) => [
-      sample.id,
-      sample.expected_verses.map((verse) => verseKey(verse.surah, verse.ayah)),
-    ]),
-  );
-}
-
 async function runCase(testCase: TranscriptCase): Promise<string[]> {
   const tracker = new RecitationTracker(db, createTranscriber(testCase.transcripts));
   const speech = makeSpeechChunk();
@@ -166,7 +165,6 @@ async function main() {
   ) as CtcTokenTable;
   const quranRaw = JSON.parse(readFileSync(resolve(ROOT, "public/quran.json"), "utf-8"));
   db = new QuranDB(adaptQuranTextData(quranRaw, ctcTokens, decoder), undefined, ctcTokens);
-  const expectedByCase = loadExpectedVerses();
 
   let failures = 0;
   for (const testCase of CASES) {
@@ -175,10 +173,7 @@ async function main() {
       continue;
     }
 
-    const expected = expectedByCase.get(testCase.id);
-    if (!expected) {
-      throw new Error(`Missing manifest sample for ${testCase.id}`);
-    }
+    const expected = testCase.expected.map(([surah, ayah]) => verseKey(surah, ayah));
 
     const actual = await runCase(testCase);
     const passed = containsOrdered(expected, actual);
