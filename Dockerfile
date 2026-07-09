@@ -1,8 +1,12 @@
 # Stage 1: Build frontend + server
 FROM node:22-slim AS builder
-WORKDIR /app
+# Mirror the repo layout so the demo's `@tilawa/core` alias
+# (../../packages/core/src/index.ts, resolved by Vite + tsconfig paths)
+# points at real files. Core is pure TS with no runtime deps of its own.
+WORKDIR /app/web/frontend
 COPY web/frontend/package.json web/frontend/package-lock.json ./
 RUN npm ci
+COPY packages/core /app/packages/core
 COPY web/frontend/ .
 RUN npm run build
 RUN npm run build:server
@@ -12,11 +16,11 @@ FROM node:22-slim
 WORKDIR /app
 
 # Copy built frontend
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/dist-server ./dist-server
+COPY --from=builder /app/web/frontend/dist ./dist
+COPY --from=builder /app/web/frontend/dist-server ./dist-server
 
 # Copy package files for production deps only
-COPY --from=builder /app/package.json /app/package-lock.json ./
+COPY --from=builder /app/web/frontend/package.json /app/web/frontend/package-lock.json ./
 RUN npm ci --omit=dev
 
 # Download the current Cyberistic ONNX. The source file is tracked with Git LFS,
