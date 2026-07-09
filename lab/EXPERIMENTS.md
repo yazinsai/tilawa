@@ -228,7 +228,7 @@ Fine-tuning the phoneme CTC head with varying amounts of TLOG (phone-recorded re
 
 **c2c-direct-mixed-tta** — Cyberistic's winning entry and current champion. It runs the mixed int4+int8 FastConformer ONNX once at 1.0x speed, skips augmentation for confident predictions, and only runs 0.9x/1.1x speed-perturbed passes on low-confidence samples. Reproduced locally over 3 runs at 100% recall, 100% precision, and 100% sequence accuracy on v1 (53 samples), with 0.84s average latency.
 
-**c2c-direct-mixed** — Same CTC re-rank algorithm without TTA, using `data/onnx_export/fastconformer_full_mixed.onnx` and `web/frontend/public/fastconformer_full_mixed.onnx` (88 MB). This is the model now loaded by the browser worker. Reproduced at 98% recall / 98% precision / 98% sequence accuracy on v1 at 0.72s average latency; TTA recovers the remaining miss.
+**c2c-direct-mixed** — Same CTC re-rank algorithm without TTA, using `web/frontend/public/fastconformer_full_mixed.onnx` (88 MB). This is the model now loaded by the browser worker. Reproduced at 98% recall / 98% precision / 98% sequence accuracy on v1 at 0.72s average latency; TTA recovers the remaining miss.
 
 **ctc-alignment** — CTC forced alignment with `jonatasgrosman/wav2vec2-large-xlsr-53-arabic` (1.2 GB). Scores verses directly against frame-level logits via the CTC forward algorithm, skipping greedy-decode information loss. Too large (6×) and too slow (5×) for on-device.
 
