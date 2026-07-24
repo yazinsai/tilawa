@@ -17,7 +17,12 @@ export interface SessionRunner {
   /**
    * Run one forward pass of the acoustic model.
    *
-   * @param audio - mono 16kHz PCM, float32, shape `[N]`.
+   * `audio` is **borrowed, not owned**: implementations must treat it as read-only
+   * and must not write into it. The streaming tracker hands over its live window
+   * buffer directly rather than copying it on every cycle. Copy first if you need
+   * to pad, resample, or otherwise modify the samples.
+   *
+   * @param audio - mono 16kHz PCM, float32, shape `[N]`. Read-only.
    * @returns flattened log-probs (`timeSteps * vocabSize`) plus the two dims
    *   needed to reshape them into `[T, vocab]`.
    */

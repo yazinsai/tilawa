@@ -191,6 +191,11 @@ interface SessionRunner {
 }
 ```
 
+`audio` is **borrowed, not owned** — treat it as read-only. The streaming tracker
+hands over its live window buffer instead of copying it on every cycle, so a runner
+that writes into the samples (padding, resampling, normalizing in place) will corrupt
+the tracker's state. Copy first if you need to modify them.
+
 **`TilawaSession`** — what you get back:
 
 | Method | Purpose |
