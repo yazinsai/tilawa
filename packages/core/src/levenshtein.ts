@@ -1,3 +1,15 @@
+// Scratch rows reused across calls. These functions run tens of thousands of times
+// per recognition cycle and on an interpreter (Hermes) the per-call typed-array
+// allocation dominates. `distance` and `semiGlobalDistance` never nest and never
+// yield, so a shared pair per function is safe; they get separate pairs so that
+// stays true if a caller ever nests them.
+//
+// Every cell read in `0..m` is written before it is read (`prev` by the seed loop,
+// `curr[0]` each row and `curr[1..m]` by the inner loop), so stale data left beyond
+// `m` by an earlier, larger call is never observed. Results are identical.
+let _distPrev = new Uint16Array(0);
+let _distCurr = new Uint16Array(0);
+
 /**
  * Levenshtein edit distance between two strings.
  * Uses a single-row DP approach for O(min(m,n)) space.
@@ -12,8 +24,12 @@ export function distance(a: string, b: string): number {
 
   const m = a.length;
   const n = b.length;
-  let prev = new Uint16Array(m + 1);
-  let curr = new Uint16Array(m + 1);
+  if (_distPrev.length < m + 1) {
+    _distPrev = new Uint16Array(m + 1);
+    _distCurr = new Uint16Array(m + 1);
+  }
+  let prev = _distPrev;
+  let curr = _distCurr;
 
   for (let i = 0; i <= m; i++) prev[i] = i;
 
@@ -27,7 +43,9 @@ export function distance(a: string, b: string): number {
         prev[i - 1] + cost, // substitution
       );
     }
-    [prev, curr] = [curr, prev];
+    const tmp = prev;
+    prev = curr;
+    curr = tmp;
   }
 
   return prev[m];
@@ -45,6 +63,10 @@ export function ratio(a: string, b: string): number {
   return (lenSum - distance(a, b)) / lenSum;
 }
 
+// Scratch rows for `semiGlobalDistance` — see the note on `_distPrev` above.
+let _sgPrev = new Uint16Array(0);
+let _sgCurr = new Uint16Array(0);
+
 /**
  * Semi-global edit distance: finds the minimum edit distance to align
  * the entire query against any substring of ref.
@@ -56,8 +78,12 @@ export function semiGlobalDistance(query: string, ref: string): number {
   if (ref.length === 0) return query.length;
   const m = query.length;
   const n = ref.length;
-  let prev = new Uint16Array(m + 1);
-  let curr = new Uint16Array(m + 1);
+  if (_sgPrev.length < m + 1) {
+    _sgPrev = new Uint16Array(m + 1);
+    _sgCurr = new Uint16Array(m + 1);
+  }
+  let prev = _sgPrev;
+  let curr = _sgCurr;
   for (let i = 0; i <= m; i++) prev[i] = i;
   let best = prev[m];
   for (let j = 1; j <= n; j++) {
@@ -67,7 +93,9 @@ export function semiGlobalDistance(query: string, ref: string): number {
       curr[i] = Math.min(prev[i] + 1, curr[i - 1] + 1, prev[i - 1] + cost);
     }
     best = Math.min(best, curr[m]); // Free to end anywhere in ref
-    [prev, curr] = [curr, prev];
+    const tmp = prev;
+    prev = curr;
+    curr = tmp;
   }
   return best;
 }

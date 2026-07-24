@@ -624,7 +624,10 @@ export class RecitationTracker {
     }
     this.newAudioCount = 0;
 
-    const result = await this.transcribe(this.utteranceAudio.slice());
+    // `utteranceAudio` is only ever reassigned, never mutated in place, so the
+    // callee can borrow it instead of taking a copy of the whole window (768 KB at
+    // 12s, 1.9 MB at 30s, every cycle). See the `SessionRunner.run` contract.
+    const result = await this.transcribe(this.utteranceAudio);
     this.lastTrackingResult = result;
     const text = result.text.trim();
     if (!text && !finalFlush) {
@@ -1128,7 +1131,10 @@ export class RecitationTracker {
     this.newAudioCount = 0;
     this.cyclesSinceCommit++;
 
-    const result = await this.transcribe(this.utteranceAudio.slice());
+    // `utteranceAudio` is only ever reassigned, never mutated in place, so the
+    // callee can borrow it instead of taking a copy of the whole window (768 KB at
+    // 12s, 1.9 MB at 30s, every cycle). See the `SessionRunner.run` contract.
+    const result = await this.transcribe(this.utteranceAudio);
     const text = result.text.trim();
     if (!text || text.length < 5) {
       // Short-utterance rescue: use CTC rescoring against short-verse candidates

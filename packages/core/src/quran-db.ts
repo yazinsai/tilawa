@@ -82,14 +82,37 @@ const JOINT_SHORT_OPENING_MIN_QUERY_CHARS = 8;
 const JOINT_SHORT_OPENING_MIN_SCORE = 0.48;
 const JOINT_SHORT_OPENING_MARGIN = -0.18;
 
+const EMPTY_NGRAMS = new Int32Array(0);
+
+/**
+ * Bits per character in a packed n-gram key. Trigrams pack three characters, so
+ * this caps a key at 30 bits — comfortably inside a positive int32. Character ids
+ * run `1..NGRAM_MAX_CHAR_ID`; id `0` is reserved for "not in the corpus alphabet",
+ * so any key containing it can never equal a key packed from corpus text.
+ */
+const NGRAM_CHAR_BITS = 10;
+const NGRAM_MAX_CHAR_ID = (1 << NGRAM_CHAR_BITS) - 1;
+/** Size of the charCode -> id lookup table: every UTF-16 code unit. */
+const NGRAM_CHAR_CODE_SPACE = 0x10000;
+
+/** Packed n-gram sets for one verse or span, parallel to the `Set<string>` form. */
+interface PackedNgrams {
+  bigrams: Int32Array;
+  trigrams: Int32Array;
+}
+
 interface GlobalSpanRow {
   surah: number;
   ayah: number;
   ayah_end: number;
   phonemes: string;
   phonemesNs: string;
-  bigrams: Set<string>;
-  trigrams: Set<string>;
+  /** Packed form; empty when the corpus alphabet is too large to pack (see `_ngramCharIds`). */
+  bigrams: Int32Array;
+  trigrams: Int32Array;
+  /** Legacy `Set` form, populated only on the unpackable fallback path. */
+  bigramSet: Set<string> | null;
+  trigramSet: Set<string> | null;
 }
 
 export function partialRatio(short: string, long: string): number {
@@ -113,6 +136,10 @@ export class QuranDB {
   private _bySurah: Map<number, QuranVerse[]> = new Map();
   private _jointPrefixSpans: QuranChampionMatch[] | null = null;
   private _jointGlobalSpans: GlobalSpanRow[] | null = null;
+  /** charCode -> character id, or `null` if the corpus alphabet doesn't fit (see `_ngramCharTable`). */
+  private _ngramCharIds: Int32Array | null = null;
+  private _ngramCharIdsBuilt = false;
+  private _verseNgrams: PackedNgrams[] | null = null;
   private tokenEncoder?: QuranTokenEncoder;
   private ctcTokenTable?: QuranCtcTokenTable;
 
@@ -602,14 +629,26 @@ export class QuranDB {
     const noSpaceText = phonemeText.replace(/ /g, "");
     if (noSpaceText.length < JOINT_GLOBAL_SPAN_MIN_CHARS) return [];
 
-    const qb = QuranDB._jointNgrams(noSpaceText, 2);
-    const qt = QuranDB._jointNgrams(noSpaceText, 3);
+    const charIds = this._ngramCharTable();
     const rough: [number, GlobalSpanRow][] = [];
-    for (const row of this._jointGlobalSpanTable()) {
-      const ov =
-        QuranDB._intersectionSize(qb, row.bigrams) +
-        0.48 * QuranDB._intersectionSize(qt, row.trigrams);
-      if (ov > 0) rough.push([ov, row]);
+    if (charIds) {
+      const qb = QuranDB._packNgrams(noSpaceText, 2, charIds);
+      const qt = QuranDB._packNgrams(noSpaceText, 3, charIds);
+      for (const row of this._jointGlobalSpanTable()) {
+        const ov =
+          QuranDB._intersectionSizePacked(qb, row.bigrams) +
+          0.48 * QuranDB._intersectionSizePacked(qt, row.trigrams);
+        if (ov > 0) rough.push([ov, row]);
+      }
+    } else {
+      const qb = QuranDB._jointNgrams(noSpaceText, 2);
+      const qt = QuranDB._jointNgrams(noSpaceText, 3);
+      for (const row of this._jointGlobalSpanTable()) {
+        const ov =
+          QuranDB._intersectionSize(qb, row.bigramSet!) +
+          0.48 * QuranDB._intersectionSize(qt, row.trigramSet!);
+        if (ov > 0) rough.push([ov, row]);
+      }
     }
     rough.sort((a, b) => b[0] - a[0]);
 
@@ -687,19 +726,38 @@ export class QuranDB {
   private _jointCandidateVerses(noSpaceText: string, maxCandidates = 950): QuranVerse[] {
     if (noSpaceText.length < 4) return this.verses;
 
-    const qb = QuranDB._jointNgrams(noSpaceText, 2);
-    const qt = QuranDB._jointNgrams(noSpaceText, 3);
-    if (qb.size === 0 && qt.size === 0) return this.verses;
-
+    const charIds = this._ngramCharTable();
     const scored: [number, number][] = [];
-    for (let i = 0; i < this.verses.length; i++) {
-      const refNs = this.verses[i].phonemes_joined_ns ?? "";
-      if (refNs.length < 2) continue;
-      const ov =
-        QuranDB._intersectionSize(qb, QuranDB._jointNgrams(refNs, 2)) +
-        0.48 * QuranDB._intersectionSize(qt, QuranDB._jointNgrams(refNs, 3));
-      if (ov > 0) scored.push([ov, i]);
+
+    if (charIds) {
+      const qb = QuranDB._packNgrams(noSpaceText, 2, charIds);
+      const qt = QuranDB._packNgrams(noSpaceText, 3, charIds);
+      if (qb.length === 0 && qt.length === 0) return this.verses;
+
+      const ngrams = this._verseNgramTable(charIds);
+      for (let i = 0; i < ngrams.length; i++) {
+        const row = ngrams[i];
+        if (row.bigrams.length === 0) continue;
+        const ov =
+          QuranDB._intersectionSizePacked(qb, row.bigrams) +
+          0.48 * QuranDB._intersectionSizePacked(qt, row.trigrams);
+        if (ov > 0) scored.push([ov, i]);
+      }
+    } else {
+      const qb = QuranDB._jointNgrams(noSpaceText, 2);
+      const qt = QuranDB._jointNgrams(noSpaceText, 3);
+      if (qb.size === 0 && qt.size === 0) return this.verses;
+
+      for (let i = 0; i < this.verses.length; i++) {
+        const refNs = this.verses[i].phonemes_joined_ns ?? "";
+        if (refNs.length < 2) continue;
+        const ov =
+          QuranDB._intersectionSize(qb, QuranDB._jointNgrams(refNs, 2)) +
+          0.48 * QuranDB._intersectionSize(qt, QuranDB._jointNgrams(refNs, 3));
+        if (ov > 0) scored.push([ov, i]);
+      }
     }
+
     if (scored.length < 80) return this.verses;
     scored.sort((a, b) => b[0] - a[0]);
     return scored.slice(0, maxCandidates).map(([, index]) => this.verses[index]);
@@ -730,9 +788,18 @@ export class QuranDB {
     return spans;
   }
 
+  /**
+   * Every 2..7-verse span in the corpus (~37k rows), with its n-grams precomputed.
+   *
+   * The n-grams are packed (~4 bytes/entry) rather than `Set<string>` (~64
+   * bytes/entry): at ~800 distinct n-grams per row the `Set` form is 1–2 GB, which
+   * is a hard out-of-memory on a phone. Packed it is ~120 MB. Scores are unchanged —
+   * every span is still enumerated and still scored.
+   */
   private _jointGlobalSpanTable(): GlobalSpanRow[] {
     if (this._jointGlobalSpans) return this._jointGlobalSpans;
 
+    const charIds = this._ngramCharTable();
     const spans: GlobalSpanRow[] = [];
     for (const [surahNum, verses] of this._bySurah.entries()) {
       for (let i = 0; i < verses.length; i++) {
@@ -747,8 +814,10 @@ export class QuranDB {
             ayah_end: chunk[chunk.length - 1].ayah,
             phonemes,
             phonemesNs,
-            bigrams: QuranDB._jointNgrams(phonemesNs, 2),
-            trigrams: QuranDB._jointNgrams(phonemesNs, 3),
+            bigrams: charIds ? QuranDB._packNgrams(phonemesNs, 2, charIds) : EMPTY_NGRAMS,
+            trigrams: charIds ? QuranDB._packNgrams(phonemesNs, 3, charIds) : EMPTY_NGRAMS,
+            bigramSet: charIds ? null : QuranDB._jointNgrams(phonemesNs, 2),
+            trigramSet: charIds ? null : QuranDB._jointNgrams(phonemesNs, 3),
           });
         }
       }
@@ -928,6 +997,114 @@ export class QuranDB {
       if (b.has(item)) count++;
     }
     return count;
+  }
+
+  /**
+   * Lazily interns every character the corpus can contribute to an n-gram, mapping
+   * charCode -> a dense id in `1..NGRAM_MAX_CHAR_ID`.
+   *
+   * Covers `phonemes_joined` and `phonemes_joined_no_bsm` for every verse, which
+   * between them are the only sources of packed corpus text (the `_ns` variants and
+   * every span's phonemes are built by joining and de-spacing those two). So no
+   * corpus n-gram ever contains id `0`, and a query character the corpus has never
+   * seen — which packs to `0` — can never produce a spurious match.
+   *
+   * Returns `null` when the corpus has more than `NGRAM_MAX_CHAR_ID` distinct
+   * characters, i.e. more than a phoneme or Arabic alphabet could plausibly need.
+   * Callers then fall back to the `Set<string>` n-gram path, which is slower but
+   * scores identically.
+   */
+  private _ngramCharTable(): Int32Array | null {
+    if (this._ngramCharIdsBuilt) return this._ngramCharIds;
+    this._ngramCharIdsBuilt = true;
+
+    const table = new Int32Array(NGRAM_CHAR_CODE_SPACE);
+    let next = 1;
+    for (const verse of this.verses) {
+      for (let source = 0; source < 2; source++) {
+        const text = source === 0 ? verse.phonemes_joined : verse.phonemes_joined_no_bsm;
+        if (!text) continue;
+        for (let i = 0; i < text.length; i++) {
+          const code = text.charCodeAt(i);
+          if (table[code] !== 0) continue;
+          if (next > NGRAM_MAX_CHAR_ID) return null;
+          table[code] = next++;
+        }
+      }
+    }
+
+    this._ngramCharIds = table;
+    return table;
+  }
+
+  /**
+   * Packs the n-grams of `s` into a sorted, deduplicated `Int32Array`.
+   *
+   * Same information as `_jointNgrams`, at ~4 bytes per entry instead of the ~64 a
+   * `Set<string>` entry costs — the difference between ~6 MB and ~100 MB once cached
+   * across all 6,236 verses. Intersection becomes a two-pointer merge over typed
+   * arrays, which also beats iterating a `Set` of strings.
+   */
+  private static _packNgrams(s: string, n: number, charIds: Int32Array): Int32Array {
+    const span = s.length - n + 1;
+    if (span <= 0) return EMPTY_NGRAMS;
+
+    const keys = new Int32Array(span);
+    for (let i = 0; i < span; i++) {
+      let key = 0;
+      for (let j = 0; j < n; j++) {
+        key = (key << NGRAM_CHAR_BITS) | charIds[s.charCodeAt(i + j)];
+      }
+      keys[i] = key;
+    }
+    keys.sort(); // Int32Array sorts numerically ascending by default
+
+    // Dedupe in place. Track `last` rather than reading keys[i - 1], which may already
+    // have been overwritten by a compaction write.
+    let write = 0;
+    let last = 0;
+    for (let i = 0; i < span; i++) {
+      const key = keys[i];
+      if (i === 0 || key !== last) {
+        keys[write++] = key;
+        last = key;
+      }
+    }
+    return keys.slice(0, write);
+  }
+
+  /** Two-pointer intersection over sorted, deduped packed n-grams. */
+  private static _intersectionSizePacked(a: Int32Array, b: Int32Array): number {
+    let i = 0;
+    let j = 0;
+    let count = 0;
+    while (i < a.length && j < b.length) {
+      const av = a[i];
+      const bv = b[j];
+      if (av === bv) {
+        count++;
+        i++;
+        j++;
+      } else if (av < bv) {
+        i++;
+      } else {
+        j++;
+      }
+    }
+    return count;
+  }
+
+  /** Lazily built per-verse packed n-gram cache, parallel to `this.verses`. */
+  private _verseNgramTable(charIds: Int32Array): PackedNgrams[] {
+    if (this._verseNgrams) return this._verseNgrams;
+    this._verseNgrams = this.verses.map((verse) => {
+      const ns = verse.phonemes_joined_ns ?? "";
+      return {
+        bigrams: QuranDB._packNgrams(ns, 2, charIds),
+        trigrams: QuranDB._packNgrams(ns, 3, charIds),
+      };
+    });
+    return this._verseNgrams;
   }
 
   private static _round4(value: number): number {
