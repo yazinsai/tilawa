@@ -32,6 +32,7 @@ packages/core/     # @tilawa/core SDK (the shipped product)
 web/                     # live browser demo (Vite + worker), consumes @tilawa/core src
   frontend/src/worker/zipformer-backend.ts  # the web Zipformer host (onnxruntime-web)
   frontend/scripts/fetch-zipformer-assets.sh  # model + corpus -> public/ (gitignored, NPL-1.2)
+  frontend/public/help/, frontend/server/help/  # tilawa.dev/help: volunteers record deliberate mistakes (correction eval)
 lab/                     # Python research/training/benchmark harness — see lab/AGENTS.md
 .github/workflows/ci.yml # core (vitest), browser (test:browser), demo (build)
 README.md, Dockerfile, LICENSE
