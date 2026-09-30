@@ -60,9 +60,8 @@
         <div><svg class="icon" aria-hidden="true"><use href="icons.svg#check-circle-linear" /></svg><span data-i18n="stepSend"></span></div>
       </div>
       <p class="quiet-tip" data-i18n="note1"></p>
-      <details class="profile">
+      <details class="profile" open>
         <summary><svg class="icon" aria-hidden="true"><use href="icons.svg#settings-linear" /></svg><span data-i18n="details"></span></summary>
-        <p class="profile-note" data-i18n="detailsWhy"></p>
         <div class="fields">
 
           <fieldset class="choice-group" id="gender">
@@ -71,7 +70,6 @@
               <label class="choice"><input type="radio" name="gender" value="male" /><svg class="icon" aria-hidden="true"><use href="icons.svg#men-linear" /></svg><span data-i18n="gender.male"></span><svg class="icon" aria-hidden="true"><use href="icons.svg#check-circle-linear" /></svg></label>
               <label class="choice"><input type="radio" name="gender" value="female" /><svg class="icon" aria-hidden="true"><use href="icons.svg#women-linear" /></svg><span data-i18n="gender.female"></span><svg class="icon" aria-hidden="true"><use href="icons.svg#check-circle-linear" /></svg></label>
             </div>
-            <label class="choice-skip"><input type="radio" name="gender" value="" checked /><span data-i18n="na"></span></label>
           </fieldset>          <fieldset class="choice-group" id="level">
             <legend><span data-i18n="level"></span> <span class="opt" data-i18n="optional"></span></legend>
             <div class="choices level-choices">
@@ -79,9 +77,8 @@
               <label class="choice"><input type="radio" name="level" value="intermediate" /><svg class="icon" aria-hidden="true"><use href="icons.svg#book-2-linear" /></svg><span data-i18n="level.intermediate"></span><svg class="icon" aria-hidden="true"><use href="icons.svg#check-circle-linear" /></svg></label>
               <label class="choice"><input type="radio" name="level" value="hafiz" /><svg class="icon" aria-hidden="true"><use href="icons.svg#square-academic-cap-linear" /></svg><span data-i18n="level.hafiz"></span><svg class="icon" aria-hidden="true"><use href="icons.svg#check-circle-linear" /></svg></label>
             </div>
-            <label class="choice-skip"><input type="radio" name="level" value="" checked /><span data-i18n="na"></span></label>
           </fieldset>
-          <label><span data-i18n="device"></span>
+          <label class="device-field"><span data-i18n="device"></span>
             <select id="device">
               <option value="phone" data-i18n="device.phone"></option>
               <option value="laptop" data-i18n="device.laptop"></option>
@@ -97,8 +94,10 @@
         <input type="checkbox" id="consent" />
         <span data-i18n-html="consent"></span>
       </label>
+      <div class="start-dock">
       <button id="start" class="primary" disabled><span data-i18n="start"></span><svg class="icon directional" aria-hidden="true"><use href="icons.svg#arrow-right-linear" /></svg></button>
       <p id="intro-error" class="error" role="alert"></p>
+      </div>
       <p class="privacy-tip"><svg class="icon" aria-hidden="true"><use href="icons.svg#shield-check-linear" /></svg><span data-i18n="note2"></span></p>
     </section>
 
