@@ -73,7 +73,7 @@ helpApi.get("/config", (c) => c.json({ consent: CONSENT_VERSION }));
 
 helpApi.get("/prompt", (c) => {
   const kind = c.req.query("kind");
-  const p = generatePrompt(getQuran(), randomInt(0, 2 ** 32 - 1), kind && kind in KIND_WEIGHTS ? kind : undefined);
+  const p = generatePrompt(getQuran(), randomInt(0, 2 ** 32 - 1), kind && Object.hasOwn(KIND_WEIGHTS, kind) ? kind : undefined);
   return c.json({ v: p.v, token: signPrompt(p, PROMPT_SECRET), seed: p.seed, kind: p.label.kind, display: p.display, instruction: p.instruction });
 });
 
@@ -101,11 +101,11 @@ helpApi.post(
     if (used.has(`${q.speaker}:${seed}`)) return c.json({ error: "Already submitted." }, 409);
 
     // Legacy clients have neither v nor token. Reconstruct using the frozen
-    // v1 generator; v2 clients must submit the signed label that they saw.
+    // v1 generator; v2/v3 clients must submit the signed label that they saw.
     const prompt = q.v === undefined && q.token === undefined
       ? generatePrompt(getQuran(), seed, undefined, 1)
-      : q.v === "2" ? verifyPrompt(q.token, seed, PROMPT_SECRET) : null;
-    if (!prompt) return c.json({ error: "Invalid prompt. Load another ayah and try again." }, 400);
+      : ["2", "3"].includes(q.v) ? verifyPrompt(q.token, seed, PROMPT_SECRET) : null;
+    if (!prompt || (q.v && String(prompt.v) !== q.v)) return c.json({ error: "Invalid prompt. Load another ayah and try again." }, 400);
 
     const audio = Buffer.from(await c.req.arrayBuffer());
     if (audio.length < MIN_BYTES) return c.json({ error: "Recording is empty or too short." }, 400);
@@ -124,6 +124,7 @@ helpApi.post(
       prompt_version: prompt.v,
       scenario: prompt.label.scenario ?? null,
       mechanism: prompt.label.mechanism ?? null,
+      passage_family: prompt.label.passage_family ?? null,
       elicitation: prompt.label.elicitation ?? "legacy_acted_or_normal",
       fluency_control: prompt.label.fluency_control ?? false,
       speaker: q.speaker,
