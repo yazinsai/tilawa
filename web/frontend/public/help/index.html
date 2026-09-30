@@ -41,6 +41,16 @@
       <p class="eyebrow" data-i18n="eyebrow">Lend your voice</p>
       <h1 data-i18n="h1">Your voice helps us catch mistakes.</h1>
       <p class="lede" data-i18n-html="lede">Read a short ayah with the mistake we show you, or read it normally when asked. Each recording takes about 20 seconds.</p>
+      <details class="learn-more">
+        <summary><span data-i18n="learnMore">Learn more</span><svg class="icon" aria-hidden="true"><use href="icons.svg#arrow-right-linear" /></svg></summary>
+        <div class="mission">
+          <h2 data-i18n="missionTitle">Better Quran apps, for everyone.</h2>
+          <p data-i18n="missionBody">We’re building a free engine that Quran apps can use to follow each verse as you recite and help catch mistakes.</p>
+          <p data-i18n="missionGoal">Our mission is to give developers the tools to build better Quran reading experiences for Muslims around the world.</p>
+          <p data-i18n="missionHelp">Your recordings help us teach and test the engine with real voices and real recitation mistakes.</p>
+          <div class="mission-links"><a href="/" data-i18n="tryTilawa">Try Tilawa</a><a href="https://github.com/yazinsai/tilawa" data-i18n="forDevelopers">For developers ↗</a></div>
+        </div>
+      </details>
     </header>
 
     <section id="intro" class="card">
@@ -52,7 +62,25 @@
       <p class="quiet-tip" data-i18n="note1"></p>
       <details class="profile">
         <summary><svg class="icon" aria-hidden="true"><use href="icons.svg#settings-linear" /></svg><span data-i18n="details"></span></summary>
+        <p class="profile-note" data-i18n="detailsWhy"></p>
         <div class="fields">
+
+          <fieldset class="choice-group" id="gender">
+            <legend><span data-i18n="voice"></span> <span class="opt" data-i18n="optional"></span></legend>
+            <div class="choices gender-choices">
+              <label class="choice"><input type="radio" name="gender" value="male" /><svg class="icon" aria-hidden="true"><use href="icons.svg#men-linear" /></svg><span data-i18n="gender.male"></span><svg class="icon" aria-hidden="true"><use href="icons.svg#check-circle-linear" /></svg></label>
+              <label class="choice"><input type="radio" name="gender" value="female" /><svg class="icon" aria-hidden="true"><use href="icons.svg#women-linear" /></svg><span data-i18n="gender.female"></span><svg class="icon" aria-hidden="true"><use href="icons.svg#check-circle-linear" /></svg></label>
+            </div>
+            <label class="choice-skip"><input type="radio" name="gender" value="" checked /><span data-i18n="na"></span></label>
+          </fieldset>          <fieldset class="choice-group" id="level">
+            <legend><span data-i18n="level"></span> <span class="opt" data-i18n="optional"></span></legend>
+            <div class="choices level-choices">
+              <label class="choice"><input type="radio" name="level" value="beginner" /><svg class="icon" aria-hidden="true"><use href="icons.svg#book-linear" /></svg><span data-i18n="level.beginner"></span><svg class="icon" aria-hidden="true"><use href="icons.svg#check-circle-linear" /></svg></label>
+              <label class="choice"><input type="radio" name="level" value="intermediate" /><svg class="icon" aria-hidden="true"><use href="icons.svg#book-2-linear" /></svg><span data-i18n="level.intermediate"></span><svg class="icon" aria-hidden="true"><use href="icons.svg#check-circle-linear" /></svg></label>
+              <label class="choice"><input type="radio" name="level" value="hafiz" /><svg class="icon" aria-hidden="true"><use href="icons.svg#square-academic-cap-linear" /></svg><span data-i18n="level.hafiz"></span><svg class="icon" aria-hidden="true"><use href="icons.svg#check-circle-linear" /></svg></label>
+            </div>
+            <label class="choice-skip"><input type="radio" name="level" value="" checked /><span data-i18n="na"></span></label>
+          </fieldset>
           <label><span data-i18n="device"></span>
             <select id="device">
               <option value="phone" data-i18n="device.phone"></option>
@@ -61,21 +89,6 @@
               <option value="tablet" data-i18n="device.tablet"></option>
               <option value="headset" data-i18n="device.headset"></option>
               <option value="other" data-i18n="device.other"></option>
-            </select>
-          </label>
-          <label><span><span data-i18n="voice"></span> <span class="opt" data-i18n="optional"></span></span>
-            <select id="gender">
-              <option value="" data-i18n="na"></option>
-              <option value="male" data-i18n="gender.male"></option>
-              <option value="female" data-i18n="gender.female"></option>
-            </select>
-          </label>
-          <label><span><span data-i18n="level"></span> <span class="opt" data-i18n="optional"></span></span>
-            <select id="level">
-              <option value="" data-i18n="na"></option>
-              <option value="beginner" data-i18n="level.beginner"></option>
-              <option value="intermediate" data-i18n="level.intermediate"></option>
-              <option value="hafiz" data-i18n="level.hafiz"></option>
             </select>
           </label>
         </div>

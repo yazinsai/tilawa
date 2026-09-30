@@ -37,7 +37,7 @@ h2 { font-size: 20px; margin: 0 0 12px; font-weight: 600; }
 
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px; }
 
-.fields { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 16px 0 8px; }
+.fields { display: grid; gap: 14px; grid-template-columns: 1fr; margin: 16px 0 8px; }
 .fields label { display: grid; gap: 6px; font-size: 14px; font-weight: 500; }
 .opt { color: var(--muted); font-weight: 400; }
 select { font: inherit; font-size: 15px; padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: #fff; color: var(--ink); }
@@ -184,3 +184,31 @@ footer a { color: var(--accent); }
 header > .eyebrow { font-size: 12px; letter-spacing: .12em; margin-bottom: 16px; }
 body.recording header > .eyebrow { display: none; }
 @media (hover: hover) { button.primary:not(:disabled):hover { background: #333; } .lang:hover { background: var(--card); } }
+
+/* Native radios keep the tap choices accessible to keyboards and screen readers. */
+.profile-note { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 8px 0 20px; }
+.choice-group { border: 0; padding: 0; margin: 0 0 12px; min-width: 0; }
+.choice-group legend { font-size: 14px; font-weight: 500; margin-bottom: 12px; padding: 0; }
+.choices { display: grid; gap: 8px; }
+.gender-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.fields .choice { position: relative; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; cursor: pointer; font-size: 15px; }
+.choice input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.choice > .icon:last-child { width: 18px; height: 18px; margin-inline-start: auto; visibility: hidden; }
+.choice:has(input:checked) { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.choice:has(input:checked) > .icon:last-child { visibility: visible; }
+.choice:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 3px; }
+.fields .choice-skip { display: flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; color: var(--muted); font-weight: 400; font-size: 13px; }
+.choice-skip input { width: 16px; height: 16px; margin: 0; }
+.learn-more { margin: -12px 0 28px; }
+.learn-more summary { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; cursor: pointer; list-style: none; text-decoration: underline; text-underline-offset: 4px; }
+.learn-more summary::-webkit-details-marker { display: none; }
+.learn-more summary .icon { width: 18px; height: 18px; }
+[dir='rtl'] .learn-more summary .icon { transform: scaleX(-1); }
+.learn-more[open] summary .icon { transform: rotate(90deg); }
+.mission { padding: 20px 0 8px; border-top: 1px solid var(--line); margin-top: 8px; }
+.mission h2 { font-size: 22px; letter-spacing: -.02em; }
+.mission p { font-size: 15px; line-height: 1.65; color: var(--muted); margin: 0 0 12px; }
+.mission-links { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.mission-links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); font-size: 14px; text-underline-offset: 4px; }
+body.recording .learn-more { display: none; }
+@media (max-width: 360px) { .fields .choice { gap: 8px; padding: 10px; font-size: 14px; } .gender-choices .choice > .icon:last-child { display: none; } }

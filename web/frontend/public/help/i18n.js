@@ -1,5 +1,14 @@
 export const STRINGS = {
   en: {
+    detailsWhy: "Optional. Helps us check how Tilawa works for different readers.",
+    learnMore: "Learn more",
+    missionTitle: "Better Quran apps, for everyone.",
+    missionBody: "We’re building a free engine that Quran apps can use to follow each verse as you recite and help catch mistakes.",
+    missionGoal: "Our mission is to give developers the tools to build better Quran reading experiences for Muslims around the world.",
+    missionHelp: "Your recordings help us teach and test the engine with real voices and real recitation mistakes.",
+    tryTilawa: "Try Tilawa",
+    forDevelopers: "For developers ↗",
+
     stepRead: "Read the prompt",
     stepRecord: "Record your voice",
     stepSend: "Check & send",
@@ -79,6 +88,15 @@ export const STRINGS = {
     more: 'Record a few more',
   },
   ar: {
+    detailsWhy: "اختياري. يساعدنا نعرف كيف تعمل تلاوة مع قرّاء مختلفين.",
+    learnMore: "اعرف أكثر",
+    missionTitle: "تطبيقات قرآن أفضل للجميع.",
+    missionBody: "نبني محرّكًا مجانيًا تستطيع تطبيقات القرآن استخدامه لتتبّع الآيات أثناء التلاوة والمساعدة في اكتشاف الأخطاء.",
+    missionGoal: "هدفنا أن نوفّر للمطوّرين الأدوات لبناء تجارب أفضل لقراءة القرآن للمسلمين حول العالم.",
+    missionHelp: "تسجيلاتك تساعدنا على تدريب المحرّك واختباره بأصوات وأخطاء تلاوة حقيقية.",
+    tryTilawa: "جرّب تلاوة",
+    forDevelopers: "للمطوّرين ↖",
+
     stepRead: "اقرأ المطلوب",
     stepRecord: "سجّل صوتك",
     stepSend: "راجع وأرسل",

@@ -49,9 +49,22 @@ $('lang').addEventListener('click', () => {
   applyLang();
 });
 
+function profileValue(key) {
+  return key === 'device' ? $('device').value : document.querySelector(`input[name="${key}"]:checked`)?.value ?? '';
+}
+
+function saveProfile() {
+  localStorage.profile = JSON.stringify(Object.fromEntries(['device', 'gender', 'level'].map(key => [key, profileValue(key)])));
+}
+
 const saved = JSON.parse(localStorage.profile ?? '{}');
-for (const k of ['device', 'gender', 'level']) if (saved[k] !== undefined) $(k).value = saved[k];
-if (!saved.device) $('device').value = guessDevice();
+$('device').value = saved.device || guessDevice();
+for (const key of ['gender', 'level']) {
+  for (const input of document.querySelectorAll(`input[name="${key}"]`)) {
+    input.checked = input.value === (saved[key] ?? '');
+  }
+}
+document.querySelector('.profile').addEventListener('change', saveProfile);
 
 // iPadOS reports a Mac UA, so touch support is the tell; Android tablets omit "Mobile".
 function guessDevice() {
@@ -78,7 +91,7 @@ $('start').addEventListener('click', async () => {
   introErrorKey = '';
   $('intro-error').textContent = '';
   localStorage.consent = consentVersion;
-  localStorage.profile = JSON.stringify({ device: $('device').value, gender: $('gender').value, level: $('level').value });
+  saveProfile();
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true, channelCount: 1 } });
   } catch {
@@ -308,8 +321,8 @@ $('submit').addEventListener('click', async () => {
     extra: $('extra').checked ? '1' : '0',
     duration: duration.toFixed(2),
     device: $('device').value,
-    gender: $('gender').value,
-    level: $('level').value,
+    gender: profileValue('gender'),
+    level: profileValue('level'),
   });
   try {
     const res = await fetch(`api/submit?${q}`, { method: 'POST', headers: { 'content-type': blob.type.split(';')[0] }, body: blob });
