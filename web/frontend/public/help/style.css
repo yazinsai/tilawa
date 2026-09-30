@@ -144,3 +144,5 @@ select, .subscribe input { font-size: 16px; }
   .lede { font-size: 15px; line-height: 1.5; margin-bottom: 18px; }
   .notes { font-size: 14px; margin-bottom: 16px; }
 }
+footer a { color: var(--accent); }
+.sid { font-size: 12px; background: var(--line); padding: 1px 5px; border-radius: 4px; user-select: all; }

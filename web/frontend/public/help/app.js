@@ -28,6 +28,7 @@ function applyLang() {
   document.title = t('title');
   for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
   for (const el of document.querySelectorAll('[data-i18n-html]')) el.innerHTML = t(el.dataset.i18nHtml);
+  for (const el of document.querySelectorAll('.sid')) el.textContent = speaker;
   $('rec').setAttribute('aria-label', t('recAria'));
   $('rec-status').textContent = t(recState);
   $('error').textContent = errorKey ? t(errorKey) : '';
