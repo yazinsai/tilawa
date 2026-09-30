@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<rect width="1200" height="630" fill="#ffffff"/>
+<g font-family="Arial, Helvetica, sans-serif" fill="#171717">
+<text x="64" y="91" font-size="44" font-weight="700" letter-spacing="-2">tilawa</text>
+<text x="1136" y="85" text-anchor="end" font-size="18" letter-spacing="3">LEND YOUR VOICE</text>
+<path d="M64 124H1136" stroke="#dedede"/>
+<text x="60" y="240" font-size="76" font-weight="700" letter-spacing="-3">Your voice helps</text>
+<text x="60" y="324" font-size="76" font-weight="700" letter-spacing="-3">us catch mistakes.</text>
+<text x="64" y="391" font-size="25" fill="#626262">Help improve Quran recitation,</text>
+<text x="64" y="429" font-size="25" fill="#626262">one short recording at a time.</text>
+<circle cx="994" cy="294" r="106" fill="#171717"/>
+<g fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round">
+<rect x="976" y="241" width="36" height="64" rx="18"/>
+<path d="M958 282v6a36 36 0 0 0 72 0v-6M994 324v26M976 350h36"/>
+</g>
+<path d="M64 511H1136" stroke="#dedede"/>
+<text x="64" y="565" font-size="21">20 seconds per recording</text>
+<text x="358" y="565" font-size="21" fill="#626262">/</text>
+<text x="391" y="565" font-size="21">No account needed</text>
+<text x="1136" y="565" font-size="21" text-anchor="end">tilawa.dev/help ↗</text>
+</g></svg>

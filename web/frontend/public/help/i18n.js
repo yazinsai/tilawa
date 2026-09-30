@@ -10,9 +10,9 @@ export const STRINGS = {
     retry: "Try again",
     errConfig: "Couldn’t connect. Refresh the page to try again.",
 
-    title: 'Tilawa — Help an app learn to catch recitation mistakes',
+    title: "Lend your voice to better Quran recitation \u2014 Tilawa",
     toggle: 'العربية',
-    eyebrow: "Tilawa · lend your voice",
+    eyebrow: "Lend your voice",
     h1: "Your voice helps us catch mistakes.",
     lede: "Read a short ayah with the mistake we show you, or read it normally when asked. Each recording takes about 20 seconds.",
     before: 'Before you start',
@@ -89,9 +89,9 @@ export const STRINGS = {
     retry: "حاول مرة أخرى",
     errConfig: "تعذّر الاتصال. حدّث الصفحة وحاول مرة أخرى.",
 
-    title: 'تلاوة — ساعدنا في تعليم تطبيق اكتشافَ أخطاء التلاوة',
+    title: 'ساهم بصوتك لتحسين التلاوة — تلاوة',
     toggle: 'English',
-    eyebrow: "تلاوة · ساهم بصوتك",
+    eyebrow: "ساهم بصوتك",
     h1: "بصوتك، نعرف أخطاء التلاوة.",
     lede: "اقرأ آية قصيرة مع الخطأ الذي نوضّحه لك، أو اقرأها بشكل صحيح إذا طلبنا ذلك. كل تسجيل حوالي ٢٠ ثانية.",
     before: 'قبل أن تبدأ',
