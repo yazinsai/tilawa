@@ -6,6 +6,7 @@
 const FATHA = '\u064E', DAMMA = '\u064F', KASRA = '\u0650';
 const SHORT_VOWELS = [FATHA, DAMMA, KASRA];
 const VOWEL_NAME = { [FATHA]: 'fatha', [DAMMA]: 'damma', [KASRA]: 'kasra' };
+const VOWEL_AR = { fatha: 'فتحة', damma: 'ضمة', kasra: 'كسرة' };
 const SHADDA = '\u0651', MADDAH = '\u0653';
 const ARABIC_LETTER = /[\u0621-\u064A\u0671-\u06D3]/;
 const MARK_ONLY = /^[\u06D6-\u06ED\u06DE\u06E9\s]+$/;
@@ -46,7 +47,7 @@ export function loadQuran(verses) {
     const uthmani = v.text_uthmani.replace(/^\uFEFF/, '').split(/\s+/).filter(Boolean);
     const words = uthmani.filter(w => !MARK_ONLY.test(w));
     const clean = v.text_clean.replace(/^\uFEFF/, '').split(/\s+/).filter(Boolean);
-    const verse = { surah: v.surah, ayah: v.ayah, words, clean, surahName: v.surah_name_en };
+    const verse = { surah: v.surah, ayah: v.ayah, words, clean, surahName: v.surah_name_en, surahNameAr: v.surah_name };
     byRef.set(`${v.surah}:${v.ayah}`, verse);
     return verse;
   });
@@ -112,7 +113,7 @@ function tajweedSites(word) {
 }
 
 function ayahDisplay(v, marks = {}) {
-  return { ref: `${v.surah}:${v.ayah}`, surahName: v.surahName, words: v.words.map((text, i) => ({ text, ...(marks[i + 1] ?? {}) })) };
+  return { ref: `${v.surah}:${v.ayah}`, surahName: v.surahName, surahNameAr: v.surahNameAr, words: v.words.map((text, i) => ({ text, ...(marks[i + 1] ?? {}) })) };
 }
 
 const INSTRUCTIONS = {
@@ -120,7 +121,7 @@ const INSTRUCTIONS = {
   skip_word: w => ({ en: 'Skip the highlighted word. Read everything else normally.', ar: `اترك الكلمة المظللة «${w}» واقرأ الباقي كالمعتاد.` }),
   substitution: (w, alt) => ({ en: 'Say the word below instead of the highlighted word.', ar: `قل «${alt}» بدلاً من «${w}».` }),
   repeat: w => ({ en: 'Say the highlighted word twice in a row, then continue.', ar: `كرر الكلمة المظللة «${w}» مرتين ثم أكمل.` }),
-  vowel: (w, alt, from, to) => ({ en: `Read the highlighted word as written below (a ${from} becomes a ${to}).`, ar: `اقرأ الكلمة المظللة هكذا «${alt}».` }),
+  vowel: (w, alt, from, to) => ({ en: `Read the highlighted word as written below (a ${from} becomes a ${to}).`, ar: `اقرأ الكلمة المظللة كما هي مكتوبة في الأسفل (من ${VOWEL_AR[from]} إلى ${VOWEL_AR[to]}).` }),
   madd_short: w => ({ en: 'In the highlighted word, cut the long madd short (2 counts or less).', ar: `في «${w}» اقصر المد (حركتان أو أقل).` }),
   no_ghunna: w => {
     const meem = /م[\u064E-\u0650]?\u0651/.test(w) && !/ن[\u064E-\u0650]?\u0651/.test(w);

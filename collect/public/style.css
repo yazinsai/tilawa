@@ -23,14 +23,20 @@
 body { margin: 0; }
 main { max-width: 680px; margin: 0 auto; padding: 32px 18px 48px; }
 
-.eyebrow { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin: 0 0 12px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+.eyebrow { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin: 0; }
+.lang { font-family: 'IBM Plex Sans Arabic', 'IBM Plex Sans', sans-serif; font-size: 14px; padding: 6px 14px; border-radius: 999px; border-color: var(--accent); color: var(--accent); background: transparent; flex-shrink: 0; }
+[dir='rtl'] .lang { font-family: 'IBM Plex Sans', sans-serif; }
+[dir='rtl'] body { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+[dir='rtl'] .eyebrow { letter-spacing: 0; }
+[dir='rtl'] h1 { letter-spacing: 0; line-height: 1.35; }
 h1 { font-size: clamp(34px, 7vw, 48px); line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 16px; font-weight: 600; }
 h2 { font-size: 20px; margin: 0 0 12px; font-weight: 600; }
 .lede { font-size: 17px; line-height: 1.55; color: var(--muted); margin: 0 0 28px; }
 .lede em { color: var(--ink); font-style: normal; font-weight: 600; }
 
 .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
-.notes { margin: 0 0 20px; padding-left: 18px; line-height: 1.55; color: var(--muted); font-size: 15px; }
+.notes { margin: 0 0 20px; padding-inline-start: 18px; line-height: 1.55; color: var(--muted); font-size: 15px; }
 .notes li + li { margin-top: 6px; }
 
 .fields { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 20px; }
@@ -51,8 +57,7 @@ button.link { background: none; border: none; padding: 6px 0; color: var(--muted
 .task-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
 .badge { font-size: 13px; font-weight: 600; padding: 5px 11px; border-radius: 999px; color: #fff; background: var(--k, var(--none)); }
 .ref { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.instruction { font-size: 18px; line-height: 1.45; font-weight: 500; margin: 0 0 6px; }
-.instruction-ar { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 16px; color: var(--muted); margin: 0 0 18px; }
+.instruction { font-size: 18px; line-height: 1.5; font-weight: 500; margin: 0 0 18px; }
 
 .quran { font-family: 'Amiri Quran', 'Amiri', serif; font-size: 30px; line-height: 2.3; padding: 16px 18px; background: var(--paper); border-radius: 12px; margin-bottom: 20px; }
 .ayah + .ayah { margin-top: 6px; }

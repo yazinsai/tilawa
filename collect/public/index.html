@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Tilawa — Help teach an app to catch recitation mistakes</title>
+  <title>Tilawa — Help an app learn to catch recitation mistakes</title>
   <meta name="description" content="Record short Quran recitations with a deliberate mistake. Each recording helps an offline app learn to catch skipped words, wrong harakat and tajweed slips." />
   <meta property="og:title" content="Help Tilawa learn to catch recitation mistakes" />
   <meta property="og:description" content="Read a short ayah, make the mistake we ask for, submit. Takes 20 seconds per recording." />
@@ -15,50 +15,53 @@
 <body>
   <main>
     <header>
-      <p class="eyebrow">Tilawa · open recitation dataset</p>
-      <h1>Help an app learn to catch recitation mistakes.</h1>
-      <p class="lede">We're building an offline app that listens to your recitation and gently points out mistakes. To teach it, we need recordings of <em>real</em> mistakes: skipped words, wrong harakat, a missed ghunna. Most prompts ask you to make one specific mistake; some ask you to read normally so we have correct readings to compare. About 20 seconds each.</p>
+      <div class="topbar">
+        <p class="eyebrow" data-i18n="eyebrow"></p>
+        <button id="lang" class="lang" lang="ar" data-i18n="toggle"></button>
+      </div>
+      <h1 data-i18n="h1"></h1>
+      <p class="lede" data-i18n-html="lede"></p>
     </header>
 
     <section id="intro" class="card">
-      <h2>Before you start</h2>
+      <h2 data-i18n="before"></h2>
       <ul class="notes">
-        <li>Use a quiet room. Phone or laptop mic is fine — we want both.</li>
-        <li>Don't say your name or anything personal. We never ask who you are.</li>
-        <li>Each prompt tells you exactly which mistake to make, highlighted in the text. About 1 in 5 asks you to just read normally.</li>
+        <li data-i18n="note1"></li>
+        <li data-i18n="note2"></li>
+        <li data-i18n="note3"></li>
       </ul>
       <div class="fields">
-        <label>Recording on
+        <label><span data-i18n="device"></span>
           <select id="device">
-            <option value="phone">Phone</option>
-            <option value="laptop">Laptop</option>
-            <option value="desktop">Desktop mic</option>
-            <option value="tablet">Tablet</option>
-            <option value="headset">Headset / earbuds</option>
-            <option value="other">Other</option>
+            <option value="phone" data-i18n="device.phone"></option>
+            <option value="laptop" data-i18n="device.laptop"></option>
+            <option value="desktop" data-i18n="device.desktop"></option>
+            <option value="tablet" data-i18n="device.tablet"></option>
+            <option value="headset" data-i18n="device.headset"></option>
+            <option value="other" data-i18n="device.other"></option>
           </select>
         </label>
-        <label>Voice <span class="opt">(optional)</span>
+        <label><span><span data-i18n="voice"></span> <span class="opt" data-i18n="optional"></span></span>
           <select id="gender">
-            <option value="">Prefer not to say</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
+            <option value="" data-i18n="na"></option>
+            <option value="male" data-i18n="gender.male"></option>
+            <option value="female" data-i18n="gender.female"></option>
           </select>
         </label>
-        <label>Recitation level <span class="opt">(optional)</span>
+        <label><span><span data-i18n="level"></span> <span class="opt" data-i18n="optional"></span></span>
           <select id="level">
-            <option value="">Prefer not to say</option>
-            <option value="beginner">Learning to read</option>
-            <option value="intermediate">Comfortable reader</option>
-            <option value="hafiz">Hafiz / teacher</option>
+            <option value="" data-i18n="na"></option>
+            <option value="beginner" data-i18n="level.beginner"></option>
+            <option value="intermediate" data-i18n="level.intermediate"></option>
+            <option value="hafiz" data-i18n="level.hafiz"></option>
           </select>
         </label>
       </div>
       <label class="consent">
         <input type="checkbox" id="consent" />
-        <span>I agree that my recordings are released under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> and may be used to train and evaluate speech models and published as a research dataset. I'm 18 or older, or have a guardian's permission.</span>
+        <span data-i18n-html="consent"></span>
       </label>
-      <button id="start" class="primary" disabled>Start recording</button>
+      <button id="start" class="primary" data-i18n="start" disabled></button>
     </section>
 
     <section id="task" class="card" hidden>
@@ -67,17 +70,16 @@
         <span id="ref" class="ref"></span>
       </div>
       <p id="instruction" class="instruction"></p>
-      <p id="instruction-ar" class="instruction-ar" dir="rtl" lang="ar"></p>
       <div id="text" class="quran" dir="rtl" lang="ar"></div>
       <div id="say" class="say" hidden>
-        <span class="say-label">Say instead</span>
+        <span class="say-label"></span>
         <span id="say-word" class="say-word" dir="rtl" lang="ar"></span>
       </div>
 
       <div class="recorder">
-        <button id="rec" class="rec" aria-label="Start recording"><span class="dot"></span></button>
+        <button id="rec" class="rec"><span class="dot"></span></button>
         <div class="rec-meta">
-          <span id="rec-status">Tap to record</span>
+          <span id="rec-status"></span>
           <span id="timer" class="timer">0:00</span>
         </div>
       </div>
@@ -87,20 +89,20 @@
         <label class="check"><input type="checkbox" id="followed" /> <span id="followed-label"></span></label>
         <label class="check"><input type="checkbox" id="extra" /> <span id="extra-label"></span></label>
         <div class="actions">
-          <button id="redo">Record again</button>
-          <button id="submit" class="primary" disabled>Submit</button>
+          <button id="redo" data-i18n="redo"></button>
+          <button id="submit" class="primary" data-i18n="submit" disabled></button>
         </div>
       </div>
 
       <div class="footer-actions">
-        <button id="skip" class="link">Skip this prompt</button>
+        <button id="skip" class="link" data-i18n="skip"></button>
         <span id="count" class="count"></span>
       </div>
       <p id="error" class="error" role="alert"></p>
     </section>
 
     <footer>
-      <p>Recordings are stored without names or accounts. Questions or removal requests: reply to the post that sent you here.</p>
+      <p data-i18n="footer"></p>
     </footer>
   </main>
   <script type="module" src="/app.js"></script>
