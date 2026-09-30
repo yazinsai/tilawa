@@ -1,0 +1,68 @@
+{
+  "version": 3,
+  "uniqueLexicalTemplates": 75852,
+  "passageFamilies": 5731,
+  "largestPassageFamily": 55,
+  "mistakeScenarios": 77136,
+  "normalPassages": 5334,
+  "kinds": {
+    "repeat": {
+      "scenarios": 41156,
+      "verses": 5146,
+      "surahs": 114,
+      "mechanisms": {
+        "hesitation_repeat": 41156
+      }
+    },
+    "tajweed": {
+      "scenarios": 18461,
+      "verses": 4788,
+      "surahs": 114,
+      "mechanisms": {
+        "gemination_loss": 9420,
+        "emphasis_loss": 3974,
+        "madd_duration": 58,
+        "ghunna_duration": 5009
+      }
+    },
+    "skip_word": {
+      "scenarios": 8478,
+      "verses": 3343,
+      "surahs": 112,
+      "mechanisms": {
+        "repeated_phrase_omission": 4101,
+        "short_word_omission": 4377
+      }
+    },
+    "substitution": {
+      "scenarios": 5280,
+      "verses": 3021,
+      "surahs": 110,
+      "mechanisms": {
+        "letter_confusion": 4838,
+        "similar_passage": 442
+      }
+    },
+    "vowel": {
+      "scenarios": 3580,
+      "verses": 2215,
+      "surahs": 111,
+      "mechanisms": {
+        "attested_vowel_confusion": 3576,
+        "person_ending": 1,
+        "short_vowel_confusion": 3
+      }
+    },
+    "skip_ayah": {
+      "scenarios": 181,
+      "verses": 181,
+      "surahs": 60,
+      "mechanisms": {
+        "similar_ending_omission": 91,
+        "parallel_verse_omission": 90
+      }
+    }
+  },
+  "uniqueTargetPassages": 5282,
+  "uniqueTargetSurahs": 114
+}

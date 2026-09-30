@@ -84,7 +84,7 @@ test('curated mechanisms have coverage and are preserved in labels', () => {
   const seen = new Set();
   for (const kind of Object.keys(KIND_WEIGHTS).filter(k => k !== 'none')) {
     for (const seed of SEEDS.slice(0, 200)) {
-      const p = generatePrompt(quran, seed, kind);
+      const p = generatePrompt(quran, seed, kind, 2);
       assert.equal(p.v, 2);
       const scenario = SCENARIOS.find(s => s.id === p.label.scenario);
       assert.ok(scenario);
