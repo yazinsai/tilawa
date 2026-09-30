@@ -250,3 +250,18 @@ body.recording .learn-more { display: none; }
   .start-dock { position: static; padding: 12px 0 0; background: var(--card); }
   body:not(.recording) main { padding-bottom: 24px; }
 }
+
+/* A short, quiet celebration when the thank-you screen opens. */
+#done { position: relative; overflow: hidden; }
+.celebration { display: flex; justify-content: space-around; color: #a47b32; font-size: 24px; margin-bottom: 12px; pointer-events: none; }
+.celebration span { animation: celebrate 900ms ease-out both; }
+.celebration span:nth-child(even) { color: #607c60; animation-delay: 100ms; }
+@keyframes celebrate { from { opacity: 0; transform: translateY(18px) rotate(-35deg) scale(.4); } to { opacity: 1; transform: translateY(0) rotate(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .celebration span { animation: none; } }
+.share-invitation { border-block: 1px solid var(--line); padding-block: 20px; margin-bottom: 24px; }
+.share-invitation h3 { font-size: 18px; margin: 0 0 8px; }
+.share-invitation > p { color: var(--muted); line-height: 1.55; margin: 0 0 16px; }
+#share-message { display: block; width: 100%; resize: vertical; font: inherit; font-size: 14px; line-height: 1.6; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-block: 8px 12px; }
+.share-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+#share-whatsapp { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 18px; background: #255b3b; color: white; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 500; }
+.share-invitation #share-status { margin: 8px 0 0; }
