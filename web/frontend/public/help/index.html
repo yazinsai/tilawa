@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Tilawa — Help an app learn to catch recitation mistakes</title>
+  <title>Tilawa — Help improve recitation</title>
   <meta name="description" content="Record short Quran recitations with a deliberate mistake. Each recording helps an offline app learn to catch skipped words, wrong harakat and tajweed slips." />
   <meta property="og:title" content="Help Tilawa learn to catch recitation mistakes" />
   <meta property="og:description" content="Read a short ayah, make the mistake we ask for, submit. Takes 20 seconds per recording." />
@@ -24,44 +24,49 @@
     </header>
 
     <section id="intro" class="card">
-      <h2 data-i18n="before"></h2>
-      <ul class="notes">
-        <li data-i18n="note1"></li>
-        <li data-i18n="note2"></li>
-        <li data-i18n="note3"></li>
-      </ul>
-      <div class="fields">
-        <label><span data-i18n="device"></span>
-          <select id="device">
-            <option value="phone" data-i18n="device.phone"></option>
-            <option value="laptop" data-i18n="device.laptop"></option>
-            <option value="desktop" data-i18n="device.desktop"></option>
-            <option value="tablet" data-i18n="device.tablet"></option>
-            <option value="headset" data-i18n="device.headset"></option>
-            <option value="other" data-i18n="device.other"></option>
-          </select>
-        </label>
-        <label><span><span data-i18n="voice"></span> <span class="opt" data-i18n="optional"></span></span>
-          <select id="gender">
-            <option value="" data-i18n="na"></option>
-            <option value="male" data-i18n="gender.male"></option>
-            <option value="female" data-i18n="gender.female"></option>
-          </select>
-        </label>
-        <label><span><span data-i18n="level"></span> <span class="opt" data-i18n="optional"></span></span>
-          <select id="level">
-            <option value="" data-i18n="na"></option>
-            <option value="beginner" data-i18n="level.beginner"></option>
-            <option value="intermediate" data-i18n="level.intermediate"></option>
-            <option value="hafiz" data-i18n="level.hafiz"></option>
-          </select>
-        </label>
+      <div class="how-it-works">
+        <div><svg class="icon" aria-hidden="true"><use href="icons.svg#book-2-linear" /></svg><span data-i18n="stepRead"></span></div>
+        <div><svg class="icon" aria-hidden="true"><use href="icons.svg#microphone-3-linear" /></svg><span data-i18n="stepRecord"></span></div>
+        <div><svg class="icon" aria-hidden="true"><use href="icons.svg#check-circle-linear" /></svg><span data-i18n="stepSend"></span></div>
       </div>
+      <p class="quiet-tip" data-i18n="note1"></p>
+      <details class="profile">
+        <summary><svg class="icon" aria-hidden="true"><use href="icons.svg#settings-linear" /></svg><span data-i18n="details"></span></summary>
+        <div class="fields">
+          <label><span data-i18n="device"></span>
+            <select id="device">
+              <option value="phone" data-i18n="device.phone"></option>
+              <option value="laptop" data-i18n="device.laptop"></option>
+              <option value="desktop" data-i18n="device.desktop"></option>
+              <option value="tablet" data-i18n="device.tablet"></option>
+              <option value="headset" data-i18n="device.headset"></option>
+              <option value="other" data-i18n="device.other"></option>
+            </select>
+          </label>
+          <label><span><span data-i18n="voice"></span> <span class="opt" data-i18n="optional"></span></span>
+            <select id="gender">
+              <option value="" data-i18n="na"></option>
+              <option value="male" data-i18n="gender.male"></option>
+              <option value="female" data-i18n="gender.female"></option>
+            </select>
+          </label>
+          <label><span><span data-i18n="level"></span> <span class="opt" data-i18n="optional"></span></span>
+            <select id="level">
+              <option value="" data-i18n="na"></option>
+              <option value="beginner" data-i18n="level.beginner"></option>
+              <option value="intermediate" data-i18n="level.intermediate"></option>
+              <option value="hafiz" data-i18n="level.hafiz"></option>
+            </select>
+          </label>
+        </div>
+      </details>
       <label class="consent">
         <input type="checkbox" id="consent" />
         <span data-i18n-html="consent"></span>
       </label>
-      <button id="start" class="primary" data-i18n="start" disabled></button>
+      <button id="start" class="primary" disabled><span data-i18n="start"></span><svg class="icon directional" aria-hidden="true"><use href="icons.svg#arrow-right-linear" /></svg></button>
+      <p id="intro-error" class="error" role="alert"></p>
+      <p class="privacy-tip"><svg class="icon" aria-hidden="true"><use href="icons.svg#shield-check-linear" /></svg><span data-i18n="note2"></span></p>
     </section>
 
     <section id="task" class="card" hidden>
@@ -69,13 +74,13 @@
         <span id="kind-badge" class="badge"></span>
         <span id="ref" class="ref"></span>
       </div>
-      <p id="instruction" class="instruction"></p>
+      <p id="instruction" class="instruction" tabindex="-1"></p>
       <div id="text" class="quran" dir="rtl" lang="ar"></div>
       <div class="dock">
       <div class="recorder">
-        <button id="rec" class="rec"><span class="dot"></span></button>
+        <button id="rec" class="rec"><svg class="icon mic-icon" aria-hidden="true"><use href="icons.svg#microphone-3-linear" /></svg><svg class="icon stop-icon" aria-hidden="true"><use href="icons.svg#stop-bold" /></svg></button>
         <div class="rec-meta">
-          <span id="rec-status"></span>
+          <span id="rec-status" role="status"></span>
           <span id="timer" class="timer">0:00</span>
         </div>
       </div>
@@ -85,22 +90,22 @@
         <label class="check"><input type="checkbox" id="followed" /> <span id="followed-label"></span></label>
         <label class="check"><input type="checkbox" id="extra" /> <span id="extra-label"></span></label>
         <div class="actions">
-          <button id="redo" data-i18n="redo"></button>
-          <button id="submit" class="primary" data-i18n="submit" disabled></button>
+          <button id="redo"><svg class="icon" aria-hidden="true"><use href="icons.svg#restart-linear" /></svg><span data-i18n="redo"></span></button>
+          <button id="submit" class="primary" disabled><span data-i18n="submit"></span><svg class="icon directional" aria-hidden="true"><use href="icons.svg#arrow-right-linear" /></svg></button>
         </div>
       </div>
       </div>
 
       <div class="footer-actions">
         <button id="skip" class="link" data-i18n="skip"></button>
-        <span id="count" class="count"></span>
+        <span id="count" class="count" role="status"></span>
       </div>
       <p id="error" class="error" role="alert"></p>
       <button id="finish" class="finish" data-i18n="finish" hidden></button>
     </section>
 
     <section id="done" class="card" hidden>
-      <h2 id="done-title"></h2>
+      <div class="thank-you"><svg class="icon" aria-hidden="true"><use href="icons.svg#heart-linear" /></svg></div><h2 id="done-title" tabindex="-1"></h2>
       <p class="done-body" data-i18n="doneBody"></p>
       <form id="subscribe" class="subscribe">
         <label for="email" data-i18n="emailLabel"></label>

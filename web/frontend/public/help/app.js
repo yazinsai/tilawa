@@ -21,6 +21,8 @@ let duration = 0;
 let tick = null;
 let recState = 'recIdle';
 let errorKey = '';
+let introErrorKey = '';
+let busy = false;
 
 function applyLang() {
   document.documentElement.lang = lang;
@@ -28,8 +30,13 @@ function applyLang() {
   document.title = t('title');
   for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
   for (const el of document.querySelectorAll('[data-i18n-html]')) el.innerHTML = t(el.dataset.i18nHtml);
-  $('rec').setAttribute('aria-label', t('recAria'));
+  $('lang').lang = lang === 'ar' ? 'en' : 'ar';
+  $('rec').setAttribute('aria-label', t(recState === 'recOn' ? 'recStop' : 'recAria'));
+  $('rec').setAttribute('aria-pressed', String(recState === 'recOn'));
+  $('intro-error').textContent = introErrorKey ? t(introErrorKey) : '';
   $('rec-status').textContent = t(recState);
+  if (errorKey === 'errLoad') $('skip').textContent = t('retry');
+  if (busy && blob) $('submit').querySelector('[data-i18n]').textContent = t('sending');
   $('error').textContent = errorKey ? t(errorKey) : '';
   renderCount();
   if (prompt) renderPrompt();
@@ -56,24 +63,34 @@ function guessDevice() {
 }
 applyLang();
 
-fetch('api/config').then(r => r.json()).then(c => {
+fetch('api/config').then(r => { if (!r.ok) throw new Error(); return r.json(); }).then(c => {
   consentVersion = c.consent;
   if (localStorage.consent === consentVersion) $('consent').checked = true;
   $('start').disabled = !$('consent').checked;
-});
+}).catch(() => { introErrorKey = 'errConfig'; $('intro-error').textContent = t(introErrorKey); });
 $('consent').addEventListener('change', () => { $('start').disabled = !$('consent').checked || !consentVersion; });
 
 $('start').addEventListener('click', async () => {
+  if (busy) return;
+  busy = true;
+  $('start').disabled = true;
+  introErrorKey = '';
+  $('intro-error').textContent = '';
   localStorage.consent = consentVersion;
   localStorage.profile = JSON.stringify({ device: $('device').value, gender: $('gender').value, level: $('level').value });
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true, channelCount: 1 } });
   } catch {
-    return alert(t('errMic'));
+    introErrorKey = 'errMic';
+    $('intro-error').textContent = t(introErrorKey);
+    $('start').disabled = false;
+    busy = false;
+    return;
   }
   $('intro').hidden = true;
   document.body.classList.add('recording');
   $('task').hidden = false;
+  busy = false;
   await nextPrompt();
 });
 
@@ -85,6 +102,10 @@ function showError(key) {
 function setRecState(key) {
   recState = key;
   $('rec-status').textContent = t(key);
+  $('rec').setAttribute('aria-label', t(key === 'recOn' ? 'recStop' : 'recAria'));
+  $('rec').setAttribute('aria-pressed', String(key === 'recOn'));
+  $('skip').disabled = key === 'recOn';
+  $('finish').disabled = key === 'recOn';
 }
 
 function renderCount() {
@@ -95,6 +116,9 @@ function renderCount() {
 
 $('finish').addEventListener('click', () => {
   if (recorder?.state === 'recording') recorder.stop();
+  stream?.getTracks().forEach(track => track.stop());
+  stream = null;
+  $('playback').pause();
   $('task').hidden = true;
   $('done').hidden = false;
   if (localStorage.subscribed) {
@@ -102,6 +126,7 @@ $('finish').addEventListener('click', () => {
     $('subscribed').hidden = false;
   }
   scrollTo({ top: 0 });
+  $('done-title').focus({ preventScroll: true });
 });
 
 $('more').addEventListener('click', () => {
@@ -127,13 +152,37 @@ $('subscribe').addEventListener('submit', async e => {
   $('subscribed').hidden = false;
 });
 
+function setBusy(value) {
+  busy = value;
+  for (const id of ['rec', 'redo', 'skip', 'finish', 'followed', 'extra']) $(id).disabled = value;
+  $('submit').disabled = value || !$('followed').checked;
+  $('task').setAttribute('aria-busy', String(value));
+}
+
 async function nextPrompt() {
   resetRecording();
   showError('');
+  setBusy(true);
+  prompt = null;
+  $('text').replaceChildren();
+  $('instruction').textContent = '';
+  $('ref').textContent = '';
+  $('kind-badge').textContent = '';
   const kind = new URLSearchParams(location.search).get('kind');
-  prompt = await (await fetch(`api/prompt${kind ? `?kind=${encodeURIComponent(kind)}` : ''}`)).json();
-  renderPrompt();
-  scrollTo({ top: 0 });
+  try {
+    const res = await fetch(`api/prompt${kind ? `?kind=${encodeURIComponent(kind)}` : ''}`);
+    if (!res.ok) throw new Error();
+    prompt = await res.json();
+    renderPrompt();
+    scrollTo({ top: 0 });
+    $('instruction').focus({ preventScroll: true });
+  } catch {
+    showError('errLoad');
+  } finally {
+    setBusy(false);
+    $('rec').disabled = !prompt;
+    $('skip').textContent = t(prompt ? 'skip' : 'retry');
+  }
 }
 
 function renderPrompt() {
@@ -175,6 +224,10 @@ function resetRecording() {
   chunks = [];
   duration = 0;
   $('review').hidden = true;
+  $('task').classList.remove('reviewing');
+  $('playback').pause();
+  if ($('playback').src) URL.revokeObjectURL($('playback').src);
+  $('playback').removeAttribute('src');
   $('followed').checked = false;
   $('extra').checked = false;
   $('submit').disabled = true;
@@ -195,8 +248,21 @@ function fmt(s) {
   return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 }
 
-$('rec').addEventListener('click', () => {
+$('rec').addEventListener('click', async () => {
+  if (busy || !prompt) return;
   if (recorder?.state === 'recording') return recorder.stop();
+  if (!stream?.active) {
+    setBusy(true);
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true, channelCount: 1 } });
+    } catch {
+      showError('errMic');
+      return;
+    } finally {
+      setBusy(false);
+    }
+  }
+  showError('');
   resetRecording();
   const mime = pickMime();
   recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
@@ -209,6 +275,8 @@ $('rec').addEventListener('click', () => {
     setRecState('recDone');
     $('playback').src = URL.createObjectURL(blob);
     $('review').hidden = false;
+    $('task').classList.add('reviewing');
+    $('followed').focus({ preventScroll: true });
   };
   recorder.start();
   startedAt = performance.now();
@@ -222,13 +290,14 @@ $('rec').addEventListener('click', () => {
 });
 
 $('followed').addEventListener('change', () => { $('submit').disabled = !$('followed').checked; });
-$('redo').addEventListener('click', resetRecording);
+$('redo').addEventListener('click', () => { resetRecording(); $('rec').focus(); });
 $('skip').addEventListener('click', () => { if (recorder?.state !== 'recording') nextPrompt(); });
 
 $('submit').addEventListener('click', async () => {
-  if (!blob || !prompt) return;
+  if (busy || !blob || !prompt || !$('followed').checked) return;
   if (duration < 1) return showError('errShort');
-  $('submit').disabled = true;
+  setBusy(true);
+  $('submit').querySelector('[data-i18n]').textContent = t('sending');
   showError('');
   const q = new URLSearchParams({
     seed: String(prompt.seed),
@@ -250,7 +319,10 @@ $('submit').addEventListener('click', async () => {
     renderCount();
     await nextPrompt();
   } catch (err) {
-    $('submit').disabled = false;
     showError(typeof err === 'string' ? err : 'errUpload');
+  } finally {
+    setBusy(false);
+    $('rec').disabled = !prompt;
+    $('submit').querySelector('[data-i18n]').textContent = t('submit');
   }
 });
