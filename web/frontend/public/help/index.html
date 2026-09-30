@@ -137,8 +137,20 @@
     </section>
 
     <section id="done" class="card" hidden>
+      <div class="celebration" aria-hidden="true"><span>✦</span><span>✧</span><span>✦</span><span>✧</span><span>✦</span></div>
       <div class="thank-you"><svg class="icon" aria-hidden="true"><use href="icons.svg#heart-linear" /></svg></div><h2 id="done-title" tabindex="-1"></h2>
       <p class="done-body" data-i18n="doneBody"></p>
+      <section class="share-invitation" aria-labelledby="share-title">
+        <h3 id="share-title" data-i18n="shareTitle"></h3>
+        <p data-i18n="shareBody"></p>
+        <label for="share-message" class="fine" data-i18n="shareDraft"></label>
+        <textarea id="share-message" rows="4" readonly></textarea>
+        <div class="share-actions">
+          <a id="share-whatsapp" target="_blank" rel="noopener noreferrer" data-i18n="shareWhatsApp"></a>
+          <button id="share-copy" type="button" data-i18n="shareCopy"></button>
+        </div>
+        <p id="share-status" class="fine" role="status" aria-live="polite"></p>
+      </section>
       <form id="subscribe" class="subscribe">
         <label for="email" data-i18n="emailLabel"></label>
         <div class="subscribe-row">

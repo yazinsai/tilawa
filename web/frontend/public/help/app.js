@@ -39,6 +39,9 @@ function applyLang() {
   if (errorKey === 'errLoad') $('skip').textContent = t('retry');
   if (busy && blob) $('submit').querySelector('[data-i18n]').textContent = t('sending');
   $('error').textContent = errorKey ? t(errorKey) : '';
+  $('share-message').value = t('shareMessage');
+  $('share-whatsapp').href = `https://wa.me/?text=${encodeURIComponent(t('shareMessage'))}`;
+  $('share-status').textContent = '';
   renderCount();
   if (prompt) renderPrompt();
 }
@@ -147,6 +150,17 @@ $('more').addEventListener('click', () => {
   $('done').hidden = true;
   $('task').hidden = false;
   nextPrompt();
+});
+
+$('share-copy').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(t('shareMessage'));
+    $('share-status').textContent = t('shareCopied');
+  } catch {
+    $('share-message').focus();
+    $('share-message').select();
+    $('share-status').textContent = t('shareCopyFallback');
+  }
 });
 
 $('subscribe').addEventListener('submit', async e => {
