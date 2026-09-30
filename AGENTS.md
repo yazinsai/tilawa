@@ -29,6 +29,7 @@ packages/core/     # @tilawa/core SDK (the shipped product)
     browser/index.html   # no-bundler page: import map -> dist + onnxruntime-web, file + mic input
     browser/test.mjs     # headless Chromium regression over test_corpus (npm run test:browser)
     session-*.ts, react-native.md  # copy-paste runtime adapters
+collect/                 # public mistake-recording site (no deps): prompts.mjs labels, server.mjs stores audio + submissions.jsonl
 web/                     # live browser demo (Vite + worker), consumes @tilawa/core src
   frontend/src/worker/zipformer-backend.ts  # the web Zipformer host (onnxruntime-web)
   frontend/scripts/fetch-zipformer-assets.sh  # model + corpus -> public/ (gitignored, NPL-1.2)

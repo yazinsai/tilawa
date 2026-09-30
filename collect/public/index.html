@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Tilawa — Help teach an app to catch recitation mistakes</title>
+  <meta name="description" content="Record short Quran recitations with a deliberate mistake. Each recording helps an offline app learn to catch skipped words, wrong harakat and tajweed slips." />
+  <meta property="og:title" content="Help Tilawa learn to catch recitation mistakes" />
+  <meta property="og:description" content="Read a short ayah, make the mistake we ask for, submit. Takes 20 seconds per recording." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">Tilawa · open recitation dataset</p>
+      <h1>Make a mistake on purpose.</h1>
+      <p class="lede">We're building an offline app that listens to your recitation and gently points out mistakes. To teach it, we need recordings of <em>real</em> mistakes: skipped words, wrong harakat, a missed ghunna. Read the ayah, make the mistake shown, submit. About 20 seconds each.</p>
+    </header>
+
+    <section id="intro" class="card">
+      <h2>Before you start</h2>
+      <ul class="notes">
+        <li>Use a quiet room. Phone or laptop mic is fine — we want both.</li>
+        <li>Don't say your name or anything personal. We never ask who you are.</li>
+        <li>Each prompt tells you exactly which mistake to make, highlighted in the text. About 1 in 5 asks you to read correctly.</li>
+      </ul>
+      <div class="fields">
+        <label>Recording on
+          <select id="device">
+            <option value="phone">Phone</option>
+            <option value="laptop">Laptop</option>
+            <option value="desktop">Desktop mic</option>
+            <option value="tablet">Tablet</option>
+            <option value="headset">Headset / earbuds</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label>Voice <span class="opt">(optional)</span>
+          <select id="gender">
+            <option value="">Prefer not to say</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </label>
+        <label>Recitation level <span class="opt">(optional)</span>
+          <select id="level">
+            <option value="">Prefer not to say</option>
+            <option value="beginner">Learning to read</option>
+            <option value="intermediate">Comfortable reader</option>
+            <option value="hafiz">Hafiz / teacher</option>
+          </select>
+        </label>
+      </div>
+      <label class="consent">
+        <input type="checkbox" id="consent" />
+        <span>I agree that my recordings are released under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> and may be used to train and evaluate speech models and published as a research dataset. I'm 18 or older, or have a guardian's permission.</span>
+      </label>
+      <button id="start" class="primary" disabled>Start recording</button>
+    </section>
+
+    <section id="task" class="card" hidden>
+      <div class="task-head">
+        <span id="kind-badge" class="badge"></span>
+        <span id="ref" class="ref"></span>
+      </div>
+      <p id="instruction" class="instruction"></p>
+      <p id="instruction-ar" class="instruction-ar" dir="rtl" lang="ar"></p>
+      <div id="text" class="quran" dir="rtl" lang="ar"></div>
+      <div id="say" class="say" hidden>
+        <span class="say-label">Say instead</span>
+        <span id="say-word" class="say-word" dir="rtl" lang="ar"></span>
+      </div>
+
+      <div class="recorder">
+        <button id="rec" class="rec" aria-label="Start recording"><span class="dot"></span></button>
+        <div class="rec-meta">
+          <span id="rec-status">Tap to record</span>
+          <span id="timer" class="timer">0:00</span>
+        </div>
+      </div>
+
+      <div id="review" hidden>
+        <audio id="playback" controls></audio>
+        <label class="check"><input type="checkbox" id="followed" /> I made the mistake as asked (or read correctly, if asked)</label>
+        <label class="check"><input type="checkbox" id="extra" /> I also made another mistake by accident</label>
+        <div class="actions">
+          <button id="redo">Record again</button>
+          <button id="submit" class="primary" disabled>Submit</button>
+        </div>
+      </div>
+
+      <div class="footer-actions">
+        <button id="skip" class="link">Skip this prompt</button>
+        <span id="count" class="count"></span>
+      </div>
+      <p id="error" class="error" role="alert"></p>
+    </section>
+
+    <footer>
+      <p>Recordings are stored without names or accounts. Questions or removal requests: reply to the post that sent you here.</p>
+    </footer>
+  </main>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
