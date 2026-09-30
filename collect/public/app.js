@@ -2,8 +2,6 @@ import { STRINGS } from './i18n.js';
 
 const $ = id => document.getElementById(id);
 const MAX_SECONDS = 60;
-const TAG = { repeat: '×2' };
-
 let lang = localStorage.lang ?? (navigator.language?.startsWith('ar') ? 'ar' : 'en');
 const t = (key, ...args) => {
   const v = STRINGS[lang][key] ?? STRINGS.en[key];
@@ -102,7 +100,6 @@ function renderPrompt() {
 
   const text = $('text');
   text.replaceChildren();
-  let say = '';
   for (const ayah of prompt.display) {
     const div = document.createElement('div');
     div.className = `ayah ${ayah.mark ?? ''}`;
@@ -115,13 +112,6 @@ function renderPrompt() {
       if (w.mark) {
         span.classList.add('mark', w.mark);
         span.dataset.kind = w.mark;
-        if (TAG[w.mark]) {
-          const tag = document.createElement('span');
-          tag.className = 'tag';
-          tag.textContent = TAG[w.mark];
-          span.append(tag);
-        }
-        if (w.alt) say = w.alt;
       }
       div.append(span);
     });
@@ -131,10 +121,6 @@ function renderPrompt() {
     div.append(' ', no);
     text.append(div);
   }
-  $('say').hidden = !say;
-  $('say').dataset.kind = prompt.kind;
-  $('say').querySelector('.say-label').textContent = t(prompt.kind === 'vowel' ? 'readAs' : 'sayInstead');
-  $('say-word').textContent = say;
 }
 
 function resetRecording() {
