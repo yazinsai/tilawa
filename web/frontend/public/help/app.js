@@ -267,24 +267,74 @@ function resetRecording() {
   $('rec').disabled = false;
 }
 
-// Apple WebKit (every iOS browser, desktop Safari) records WebM but can't
-// play the blob back, and canPlayType still claims it can. Use MP4 there.
 $('playback').addEventListener('error', () => {
   if (!$('playback').getAttribute('src')) return;
   $('playback').hidden = true;
   $('playback-note').hidden = false;
 });
 
-function pickMime() {
-  const ua = navigator.userAgent;
-  const appleWebKit =
-    /iPhone|iPad|iPod/.test(ua) ||
-    (/Macintosh/.test(ua) && navigator.maxTouchPoints > 0) ||
-    (/Safari/.test(ua) && !/Chrome|Chromium|Edg|Firefox|Android/.test(ua));
-  const order = appleWebKit
-    ? ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm']
-    : ['audio/webm;codecs=opus', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/webm'];
-  return order.find(m => window.MediaRecorder?.isTypeSupported?.(m)) ?? '';
+// MediaRecorder is unreliable on iOS Safari (empty MP4s, unplayable WebM), so
+// capture raw PCM with Web Audio and encode 16 kHz mono WAV ourselves. WAV
+// plays back everywhere and is lossless for training.
+const WAV_RATE = 16000;
+let audioCtx = null;
+
+function startWavRecorder(stream, onstop) {
+  audioCtx ??= new (window.AudioContext || window.webkitAudioContext)();
+  audioCtx.resume();
+  const source = audioCtx.createMediaStreamSource(stream);
+  const node = audioCtx.createScriptProcessor(4096, 1, 1);
+  const parts = [];
+  node.onaudioprocess = e => parts.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+  source.connect(node);
+  node.connect(audioCtx.destination);
+  const rec = {
+    state: 'recording',
+    stop() {
+      if (rec.state !== 'recording') return;
+      rec.state = 'inactive';
+      node.disconnect();
+      source.disconnect();
+      encodeWav(parts, audioCtx.sampleRate).then(onstop);
+    },
+  };
+  return rec;
+}
+
+async function encodeWav(parts, rate) {
+  const n = parts.reduce((a, p) => a + p.length, 0);
+  let pcm = new Float32Array(n);
+  let o = 0;
+  for (const p of parts) { pcm.set(p, o); o += p.length; }
+  let outRate = rate;
+  if (n && rate !== WAV_RATE) {
+    try {
+      const off = new OfflineAudioContext(1, Math.ceil((n * WAV_RATE) / rate), WAV_RATE);
+      const buf = off.createBuffer(1, n, rate);
+      buf.copyToChannel(pcm, 0);
+      const src = off.createBufferSource();
+      src.buffer = buf;
+      src.connect(off.destination);
+      src.start();
+      pcm = (await off.startRendering()).getChannelData(0);
+      outRate = WAV_RATE;
+    } catch {
+      /* keep the native rate; the lab resamples anyway */
+    }
+  }
+  const view = new DataView(new ArrayBuffer(44 + pcm.length * 2));
+  const str = (at, s) => [...s].forEach((c, i) => view.setUint8(at + i, c.charCodeAt(0)));
+  str(0, 'RIFF'); view.setUint32(4, 36 + pcm.length * 2, true); str(8, 'WAVE');
+  str(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+  view.setUint32(24, outRate, true); view.setUint32(28, outRate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+  str(36, 'data'); view.setUint32(40, pcm.length * 2, true);
+  let peak = 0;
+  for (let i = 0; i < pcm.length; i++) {
+    const v = Math.max(-1, Math.min(1, pcm[i]));
+    peak = Math.max(peak, Math.abs(v));
+    view.setInt16(44 + i * 2, v * 0x7fff, true);
+  }
+  return { blob: new Blob([view], { type: 'audio/wav' }), seconds: pcm.length / outRate, peak };
 }
 
 function fmt(s) {
@@ -294,6 +344,8 @@ function fmt(s) {
 $('rec').addEventListener('click', async () => {
   if (busy || !prompt) return;
   if (recorder?.state === 'recording') return recorder.stop();
+  audioCtx ??= new (window.AudioContext || window.webkitAudioContext)();
+  audioCtx.resume();
   if (!stream?.active) {
     setBusy(true);
     try {
@@ -307,14 +359,18 @@ $('rec').addEventListener('click', async () => {
   }
   showError('');
   resetRecording();
-  const mime = pickMime();
-  recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
-  recorder.ondataavailable = e => e.data.size && chunks.push(e.data);
-  recorder.onstop = () => {
+  recorder = startWavRecorder(stream, take => {
     clearInterval(tick);
     duration = (performance.now() - startedAt) / 1000;
-    blob = new Blob(chunks, { type: recorder.mimeType || mime || 'audio/webm' });
     $('rec').classList.remove('on');
+    if (take.seconds < 0.5 || take.peak === 0) {
+      setRecState('recIdle');
+      showError('errEmpty');
+      stream?.getTracks().forEach(track => track.stop());
+      stream = null;
+      return;
+    }
+    blob = take.blob;
     setRecState('recDone');
     $('playback').hidden = false;
     $('playback-note').hidden = true;
@@ -322,8 +378,7 @@ $('rec').addEventListener('click', async () => {
     $('review').hidden = false;
     $('task').classList.add('reviewing');
     $('followed').focus({ preventScroll: true });
-  };
-  recorder.start();
+  });
   startedAt = performance.now();
   $('rec').classList.add('on');
   setRecState('recOn');
