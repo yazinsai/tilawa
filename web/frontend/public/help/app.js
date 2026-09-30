@@ -346,6 +346,8 @@ $('submit').addEventListener('click', async () => {
   showError('');
   const q = new URLSearchParams({
     seed: String(prompt.seed),
+    v: String(prompt.v),
+    token: prompt.token,
     speaker,
     consent: consentVersion,
     followed: '1',
