@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && node scripts/version-help-assets.mjs",
     "build:server": "npx esbuild server/index.ts --bundle --platform=node --format=esm --outfile=dist-server/index.mjs --packages=external",
     "start": "node dist-server/index.mjs",
     "preview": "vite preview",
