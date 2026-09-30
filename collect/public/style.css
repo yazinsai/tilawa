@@ -105,3 +105,42 @@ footer { margin-top: 28px; font-size: 13px; color: var(--muted); line-height: 1.
 .subscribe input { flex: 1 1 200px; font: inherit; font-size: 16px; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: #fff; color: var(--ink); }
 .fine { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0; }
 .subscribed { color: var(--accent); font-weight: 500; line-height: 1.5; }
+
+.badge { white-space: nowrap; }
+.task-head { flex-wrap: wrap; gap: 6px 12px; }
+.lang { min-height: 40px; }
+button.link { min-height: 44px; }
+select, .subscribe input { font-size: 16px; }
+.eyebrow { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 600px) {
+  main { padding: 12px 12px calc(24px + env(safe-area-inset-bottom)); }
+  .card { padding: 16px; }
+  .eyebrow { font-size: 12px; letter-spacing: 0.04em; }
+  .topbar { margin-bottom: 10px; }
+  .instruction { font-size: 16px; margin-bottom: 12px; }
+  .quran { font-size: 26px; line-height: 2.05; padding: 10px 12px; margin-bottom: 12px; }
+  .dock {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    margin: 0 -16px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: var(--card);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -8px 16px -12px rgb(0 0 0 / 0.25);
+  }
+  .recorder { margin-bottom: 0; gap: 12px; }
+  .rec { width: 56px; height: 56px; }
+  #review { margin-top: 10px; }
+  #review audio { height: 40px; margin-bottom: 8px; }
+  .check { font-size: 14px; margin-bottom: 6px; min-height: 32px; }
+  .actions { margin-top: 8px; }
+  .footer-actions { margin-top: 8px; }
+}
+.ayah-no { display: inline-block; text-decoration: none; }
+@media (max-width: 600px) {
+  h1 { font-size: 29px; margin-bottom: 10px; }
+  .lede { font-size: 15px; line-height: 1.5; margin-bottom: 18px; }
+  .notes { font-size: 14px; margin-bottom: 16px; }
+}
