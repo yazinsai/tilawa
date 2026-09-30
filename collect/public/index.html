@@ -94,6 +94,23 @@
         <span id="count" class="count"></span>
       </div>
       <p id="error" class="error" role="alert"></p>
+      <button id="finish" class="finish" data-i18n="finish" hidden></button>
+    </section>
+
+    <section id="done" class="card" hidden>
+      <h2 id="done-title"></h2>
+      <p class="done-body" data-i18n="doneBody"></p>
+      <form id="subscribe" class="subscribe">
+        <label for="email" data-i18n="emailLabel"></label>
+        <div class="subscribe-row">
+          <input id="email" type="email" autocomplete="email" inputmode="email" dir="ltr" required />
+          <button class="primary" type="submit" data-i18n="emailSubmit"></button>
+        </div>
+        <p class="fine" data-i18n="emailFine"></p>
+      </form>
+      <p id="subscribed" class="subscribed" data-i18n="emailThanks" hidden></p>
+      <p id="sub-error" class="error" role="alert"></p>
+      <button id="more" class="link" data-i18n="more"></button>
     </section>
 
     <footer>

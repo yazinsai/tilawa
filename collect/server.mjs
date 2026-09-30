@@ -117,6 +117,31 @@ async function submit(req, res, url) {
   json(res, 200, { ok: true, id });
 }
 
+const SUBSCRIBERS = join(DATA_DIR, 'subscribers.jsonl');
+const EMAIL = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,}$/;
+const subscribed = new Set(
+  existsSync(SUBSCRIBERS) ? readFileSync(SUBSCRIBERS, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l).email) : [],
+);
+
+// Deliberately no speaker id: emails must not be linkable to recordings.
+async function subscribe(req, res) {
+  const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() ?? req.socket.remoteAddress ?? '';
+  if (rateLimited(createHash('sha256').update(IP_SALT + ip).digest('hex').slice(0, 16))) return json(res, 429, { error: 'rate' });
+  let body;
+  try {
+    body = JSON.parse((await readBody(req)).toString('utf8'));
+  } catch {
+    return json(res, 400, { error: 'bad json' });
+  }
+  const email = String(body.email ?? '').trim().toLowerCase();
+  if (!EMAIL.test(email)) return json(res, 400, { error: 'email' });
+  if (!subscribed.has(email)) {
+    subscribed.add(email);
+    await appendFile(SUBSCRIBERS, JSON.stringify({ email, lang: body.lang === 'ar' ? 'ar' : 'en', ts: new Date().toISOString() }) + '\n');
+  }
+  json(res, 200, { ok: true });
+}
+
 async function serveStatic(res, pathname) {
   const rel = pathname === '/' ? 'index.html' : pathname.slice(1);
   const file = resolve(here, 'public', rel);
@@ -138,7 +163,13 @@ const server = createServer(async (req, res) => {
       return json(res, 200, { seed: p.seed, kind: p.label.kind, display: p.display, instruction: p.instruction });
     }
     if (req.method === 'POST' && url.pathname === '/api/submit') return await submit(req, res, url);
+    if (req.method === 'POST' && url.pathname === '/api/subscribe') return await subscribe(req, res);
     const admin = ADMIN_TOKEN && req.headers.authorization === `Bearer ${ADMIN_TOKEN}`;
+    if (req.method === 'GET' && url.pathname === '/api/subscribers') {
+      if (!admin) return json(res, 401, { error: 'unauthorized' });
+      res.writeHead(200, { 'content-type': 'application/x-ndjson' });
+      return res.end(existsSync(SUBSCRIBERS) ? await readFile(SUBSCRIBERS) : '');
+    }
     if (req.method === 'GET' && url.pathname.startsWith('/api/audio/')) {
       const name = url.pathname.slice('/api/audio/'.length);
       if (!admin) return json(res, 401, { error: 'unauthorized' });
