@@ -256,6 +256,8 @@ function resetRecording() {
   $('playback').pause();
   if ($('playback').src) URL.revokeObjectURL($('playback').src);
   $('playback').removeAttribute('src');
+  $('playback').hidden = false;
+  $('playback-note').hidden = true;
   $('followed').checked = false;
   $('extra').checked = false;
   $('submit').disabled = true;
@@ -265,11 +267,24 @@ function resetRecording() {
   $('rec').disabled = false;
 }
 
+// Apple WebKit (every iOS browser, desktop Safari) records WebM but can't
+// play the blob back, and canPlayType still claims it can. Use MP4 there.
+$('playback').addEventListener('error', () => {
+  if (!$('playback').getAttribute('src')) return;
+  $('playback').hidden = true;
+  $('playback-note').hidden = false;
+});
+
 function pickMime() {
-  for (const m of ['audio/webm;codecs=opus', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/webm']) {
-    if (window.MediaRecorder?.isTypeSupported?.(m)) return m;
-  }
-  return '';
+  const ua = navigator.userAgent;
+  const appleWebKit =
+    /iPhone|iPad|iPod/.test(ua) ||
+    (/Macintosh/.test(ua) && navigator.maxTouchPoints > 0) ||
+    (/Safari/.test(ua) && !/Chrome|Chromium|Edg|Firefox|Android/.test(ua));
+  const order = appleWebKit
+    ? ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm']
+    : ['audio/webm;codecs=opus', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/webm'];
+  return order.find(m => window.MediaRecorder?.isTypeSupported?.(m)) ?? '';
 }
 
 function fmt(s) {
@@ -301,6 +316,8 @@ $('rec').addEventListener('click', async () => {
     blob = new Blob(chunks, { type: recorder.mimeType || mime || 'audio/webm' });
     $('rec').classList.remove('on');
     setRecState('recDone');
+    $('playback').hidden = false;
+    $('playback-note').hidden = true;
     $('playback').src = URL.createObjectURL(blob);
     $('review').hidden = false;
     $('task').classList.add('reviewing');
