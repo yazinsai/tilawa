@@ -1,28 +1,14 @@
+import { STRINGS } from './i18n.js';
+
 const $ = id => document.getElementById(id);
 const MAX_SECONDS = 60;
-const KIND_LABEL = {
-  none: 'No mistake',
-  skip_word: 'Skip a word',
-  skip_ayah: 'Skip an ayah',
-  substitution: 'Change a word',
-  repeat: 'Repeat a word',
-  vowel: 'Wrong haraka',
-  tajweed: 'Tajweed slip',
-};
-const CONFIRM = {
-  none: 'I read it correctly',
-  skip_word: 'I skipped the highlighted word',
-  skip_ayah: 'I skipped the crossed-out ayah',
-  substitution: 'I said the other word instead',
-  repeat: 'I said the highlighted word twice',
-  vowel: 'I read the word with the changed haraka',
-  tajweed: 'I made the tajweed slip',
-};
-const EXTRA = {
-  none: 'I slipped up by accident somewhere',
-  other: 'I also made a different mistake by accident',
-};
 const TAG = { repeat: '×2' };
+
+let lang = localStorage.lang ?? (navigator.language?.startsWith('ar') ? 'ar' : 'en');
+const t = (key, ...args) => {
+  const v = STRINGS[lang][key] ?? STRINGS.en[key];
+  return typeof v === 'function' ? v(...args) : v;
+};
 
 const speaker = localStorage.speaker ?? (localStorage.speaker = crypto.randomUUID().replaceAll('-', '').slice(0, 20));
 let count = Number(localStorage.count ?? 0);
@@ -35,11 +21,32 @@ let blob = null;
 let startedAt = 0;
 let duration = 0;
 let tick = null;
+let recState = 'recIdle';
+let errorKey = '';
+
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.title = t('title');
+  for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n);
+  for (const el of document.querySelectorAll('[data-i18n-html]')) el.innerHTML = t(el.dataset.i18nHtml);
+  $('rec').setAttribute('aria-label', t('recAria'));
+  $('rec-status').textContent = t(recState);
+  $('error').textContent = errorKey ? t(errorKey) : '';
+  renderCount();
+  if (prompt) renderPrompt();
+}
+
+$('lang').addEventListener('click', () => {
+  lang = lang === 'ar' ? 'en' : 'ar';
+  localStorage.lang = lang;
+  applyLang();
+});
 
 const saved = JSON.parse(localStorage.profile ?? '{}');
 for (const k of ['device', 'gender', 'level']) if (saved[k] !== undefined) $(k).value = saved[k];
-if (!saved.device && /Mobi|Android|iPhone/i.test(navigator.userAgent)) $('device').value = 'phone';
-if (!saved.device && !/Mobi|Android|iPhone/i.test(navigator.userAgent)) $('device').value = 'laptop';
+if (!saved.device) $('device').value = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'phone' : 'laptop';
+applyLang();
 
 fetch('/api/config').then(r => r.json()).then(c => {
   consentVersion = c.consent;
@@ -54,39 +61,44 @@ $('start').addEventListener('click', async () => {
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true, channelCount: 1 } });
   } catch {
-    return showError('Microphone access is needed to record. Allow it in your browser settings and try again.');
+    return alert(t('errMic'));
   }
   $('intro').hidden = true;
   document.body.classList.add('recording');
   $('task').hidden = false;
-  renderCount();
   await nextPrompt();
 });
 
-function showError(msg) {
-  $('error').textContent = msg;
-  if (!$('intro').hidden) alert(msg);
+function showError(key) {
+  errorKey = key;
+  $('error').textContent = key ? t(key) : '';
+}
+
+function setRecState(key) {
+  recState = key;
+  $('rec-status').textContent = t(key);
 }
 
 function renderCount() {
-  $('count').textContent = count ? `${count} submitted — thank you` : '';
+  $('count').textContent = count ? t('count', count) : '';
 }
 
 async function nextPrompt() {
   resetRecording();
-  $('error').textContent = '';
+  showError('');
   const kind = new URLSearchParams(location.search).get('kind');
   prompt = await (await fetch(`/api/prompt${kind ? `?kind=${encodeURIComponent(kind)}` : ''}`)).json();
-  const task = $('task');
-  task.dataset.kind = prompt.kind;
-  $('kind-badge').textContent = KIND_LABEL[prompt.kind];
-  $('ref').textContent = prompt.display.map(a => a.ref).join(' · ') + ` — ${prompt.display[0].surahName}`;
-  $('instruction').textContent = prompt.kind === 'none'
-    ? 'No mistake this time. Read it normally — we need correct readings to compare against.'
-    : prompt.instruction.en;
-  $('followed-label').textContent = CONFIRM[prompt.kind];
-  $('extra-label').textContent = prompt.kind === 'none' ? EXTRA.none : EXTRA.other;
-  $('instruction-ar').textContent = prompt.instruction.ar;
+  renderPrompt();
+}
+
+function renderPrompt() {
+  $('task').dataset.kind = prompt.kind;
+  $('kind-badge').textContent = t(`kind.${prompt.kind}`);
+  const first = prompt.display[0];
+  $('ref').textContent = `${prompt.display.map(a => a.ref).join(' · ')} — ${lang === 'ar' ? first.surahNameAr : first.surahName}`;
+  $('instruction').textContent = prompt.kind === 'none' ? t('noneInstruction') : prompt.instruction[lang];
+  $('followed-label').textContent = t(`confirm.${prompt.kind}`);
+  $('extra-label').textContent = t(prompt.kind === 'none' ? 'extra.none' : 'extra.other');
 
   const text = $('text');
   text.replaceChildren();
@@ -104,10 +116,10 @@ async function nextPrompt() {
         span.classList.add('mark', w.mark);
         span.dataset.kind = w.mark;
         if (TAG[w.mark]) {
-          const t = document.createElement('span');
-          t.className = 'tag';
-          t.textContent = TAG[w.mark];
-          span.append(t);
+          const tag = document.createElement('span');
+          tag.className = 'tag';
+          tag.textContent = TAG[w.mark];
+          span.append(tag);
         }
         if (w.alt) say = w.alt;
       }
@@ -121,7 +133,7 @@ async function nextPrompt() {
   }
   $('say').hidden = !say;
   $('say').dataset.kind = prompt.kind;
-  $('say').querySelector('.say-label').textContent = prompt.kind === 'vowel' ? 'Read it as' : 'Say instead';
+  $('say').querySelector('.say-label').textContent = t(prompt.kind === 'vowel' ? 'readAs' : 'sayInstead');
   $('say-word').textContent = say;
 }
 
@@ -134,7 +146,7 @@ function resetRecording() {
   $('extra').checked = false;
   $('submit').disabled = true;
   $('timer').textContent = '0:00';
-  $('rec-status').textContent = 'Tap to record';
+  setRecState('recIdle');
   $('rec').classList.remove('on');
   $('rec').disabled = false;
 }
@@ -161,14 +173,14 @@ $('rec').addEventListener('click', () => {
     duration = (performance.now() - startedAt) / 1000;
     blob = new Blob(chunks, { type: recorder.mimeType || mime || 'audio/webm' });
     $('rec').classList.remove('on');
-    $('rec-status').textContent = 'Listen back, then submit';
+    setRecState('recDone');
     $('playback').src = URL.createObjectURL(blob);
     $('review').hidden = false;
   };
   recorder.start();
   startedAt = performance.now();
   $('rec').classList.add('on');
-  $('rec-status').textContent = 'Recording — tap to stop';
+  setRecState('recOn');
   tick = setInterval(() => {
     const s = (performance.now() - startedAt) / 1000;
     $('timer').textContent = fmt(s);
@@ -182,9 +194,9 @@ $('skip').addEventListener('click', () => { if (recorder?.state !== 'recording')
 
 $('submit').addEventListener('click', async () => {
   if (!blob || !prompt) return;
-  if (duration < 1) return showError('That recording is too short. Record the whole ayah.');
+  if (duration < 1) return showError('errShort');
   $('submit').disabled = true;
-  $('error').textContent = '';
+  showError('');
   const q = new URLSearchParams({
     seed: String(prompt.seed),
     speaker,
@@ -198,13 +210,14 @@ $('submit').addEventListener('click', async () => {
   });
   try {
     const res = await fetch(`/api/submit?${q}`, { method: 'POST', headers: { 'content-type': blob.type.split(';')[0] }, body: blob });
-    const body = await res.json();
-    if (!res.ok) throw new Error(body.error ?? 'Upload failed');
+    if (res.status === 429) throw 'errRate';
+    if (res.status === 409) throw 'errDup';
+    if (!res.ok) throw 'errUpload';
     localStorage.count = ++count;
     renderCount();
     await nextPrompt();
   } catch (err) {
     $('submit').disabled = false;
-    showError(`${err.message}. Try again.`);
+    showError(typeof err === 'string' ? err : 'errUpload');
   }
 });
