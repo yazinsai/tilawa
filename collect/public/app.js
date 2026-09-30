@@ -56,7 +56,7 @@ function guessDevice() {
 }
 applyLang();
 
-fetch('/api/config').then(r => r.json()).then(c => {
+fetch('api/config').then(r => r.json()).then(c => {
   consentVersion = c.consent;
   if (localStorage.consent === consentVersion) $('consent').checked = true;
   $('start').disabled = !$('consent').checked;
@@ -113,7 +113,7 @@ $('more').addEventListener('click', () => {
 $('subscribe').addEventListener('submit', async e => {
   e.preventDefault();
   $('sub-error').textContent = '';
-  const res = await fetch('/api/subscribe', {
+  const res = await fetch('api/subscribe', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ email: $('email').value, lang }),
@@ -131,7 +131,7 @@ async function nextPrompt() {
   resetRecording();
   showError('');
   const kind = new URLSearchParams(location.search).get('kind');
-  prompt = await (await fetch(`/api/prompt${kind ? `?kind=${encodeURIComponent(kind)}` : ''}`)).json();
+  prompt = await (await fetch(`api/prompt${kind ? `?kind=${encodeURIComponent(kind)}` : ''}`)).json();
   renderPrompt();
   scrollTo({ top: 0 });
 }
@@ -242,7 +242,7 @@ $('submit').addEventListener('click', async () => {
     level: $('level').value,
   });
   try {
-    const res = await fetch(`/api/submit?${q}`, { method: 'POST', headers: { 'content-type': blob.type.split(';')[0] }, body: blob });
+    const res = await fetch(`api/submit?${q}`, { method: 'POST', headers: { 'content-type': blob.type.split(';')[0] }, body: blob });
     if (res.status === 429) throw 'errRate';
     if (res.status === 409) throw 'errDup';
     if (!res.ok) throw 'errUpload';
