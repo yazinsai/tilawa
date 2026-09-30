@@ -1,9 +1,9 @@
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { generatePrompt, KIND_WEIGHTS, loadQuran } from '../prompts.mjs';
+import { generatePrompt, KIND_WEIGHTS, loadQuran } from '../server/help/prompts.mjs';
 
-const quran = loadQuran(JSON.parse(readFileSync(new URL('../../lab/data/quran.json', import.meta.url), 'utf8')));
+const quran = loadQuran(JSON.parse(readFileSync(new URL('../public/quran.json', import.meta.url), 'utf8')));
 const SEEDS = Array.from({ length: 3000 }, (_, i) => i * 7919 + 13);
 
 test('prompts are deterministic per seed', () => {

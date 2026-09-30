@@ -3,6 +3,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { adminApp } from "./admin.js";
 import { diagnosticsApp } from "./diagnostics.js";
+import { helpApi } from "./help/index.js";
 import { reportsApp } from "./reports.js";
 
 const app = new Hono();
@@ -10,10 +11,15 @@ const app = new Hono();
 // COOP/COEP for SharedArrayBuffer + cache control
 app.use("*", async (c, next) => {
   await next();
+  const path = new URL(c.req.url).pathname;
+  // /help loads Google Fonts cross-origin and needs no SharedArrayBuffer.
+  if (path === "/help" || path.startsWith("/help/")) {
+    c.header("Cache-Control", "no-cache");
+    return;
+  }
   c.header("Cross-Origin-Opener-Policy", "same-origin");
   c.header("Cross-Origin-Embedder-Policy", "require-corp");
 
-  const path = new URL(c.req.url).pathname;
   if (path === "/sw.js" || path === "/index.html" || path === "/") {
     c.header("Cache-Control", "no-cache, no-store, must-revalidate");
   } else if (path.startsWith("/assets/")) {
@@ -36,6 +42,11 @@ app.route("/api/diagnostics", diagnosticsApp);
 
 // Mount admin dashboard
 app.route("/admin", adminApp);
+
+// Mistake-recording site: static page in dist/help, API here.
+app.route("/help/api", helpApi);
+app.get("/help", (c) => c.redirect("/help/", 301));
+app.get("/help/", serveStatic({ root: "./dist", path: "help/index.html" }));
 
 // Serve static files from Vite build
 app.use("/*", serveStatic({ root: "./dist" }));
