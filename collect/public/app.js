@@ -1,7 +1,7 @@
 const $ = id => document.getElementById(id);
 const MAX_SECONDS = 60;
 const KIND_LABEL = {
-  none: 'Read correctly',
+  none: 'No mistake',
   skip_word: 'Skip a word',
   skip_ayah: 'Skip an ayah',
   substitution: 'Change a word',
@@ -9,7 +9,20 @@ const KIND_LABEL = {
   vowel: 'Wrong haraka',
   tajweed: 'Tajweed slip',
 };
-const TAG = { skip_word: 'skip', repeat: '×2', tajweed: '' };
+const CONFIRM = {
+  none: 'I read it correctly',
+  skip_word: 'I skipped the highlighted word',
+  skip_ayah: 'I skipped the crossed-out ayah',
+  substitution: 'I said the other word instead',
+  repeat: 'I said the highlighted word twice',
+  vowel: 'I read the word with the changed haraka',
+  tajweed: 'I made the tajweed slip',
+};
+const EXTRA = {
+  none: 'I slipped up by accident somewhere',
+  other: 'I also made a different mistake by accident',
+};
+const TAG = { repeat: '×2' };
 
 const speaker = localStorage.speaker ?? (localStorage.speaker = crypto.randomUUID().replaceAll('-', '').slice(0, 20));
 let count = Number(localStorage.count ?? 0);
@@ -68,7 +81,11 @@ async function nextPrompt() {
   task.dataset.kind = prompt.kind;
   $('kind-badge').textContent = KIND_LABEL[prompt.kind];
   $('ref').textContent = prompt.display.map(a => a.ref).join(' · ') + ` — ${prompt.display[0].surahName}`;
-  $('instruction').textContent = prompt.instruction.en;
+  $('instruction').textContent = prompt.kind === 'none'
+    ? 'No mistake this time. Read it normally — we need correct readings to compare against.'
+    : prompt.instruction.en;
+  $('followed-label').textContent = CONFIRM[prompt.kind];
+  $('extra-label').textContent = prompt.kind === 'none' ? EXTRA.none : EXTRA.other;
   $('instruction-ar').textContent = prompt.instruction.ar;
 
   const text = $('text');

@@ -16,8 +16,8 @@
   <main>
     <header>
       <p class="eyebrow">Tilawa · open recitation dataset</p>
-      <h1>Make a mistake on purpose.</h1>
-      <p class="lede">We're building an offline app that listens to your recitation and gently points out mistakes. To teach it, we need recordings of <em>real</em> mistakes: skipped words, wrong harakat, a missed ghunna. Read the ayah, make the mistake shown, submit. About 20 seconds each.</p>
+      <h1>Help an app learn to catch recitation mistakes.</h1>
+      <p class="lede">We're building an offline app that listens to your recitation and gently points out mistakes. To teach it, we need recordings of <em>real</em> mistakes: skipped words, wrong harakat, a missed ghunna. Most prompts ask you to make one specific mistake; some ask you to read normally so we have correct readings to compare. About 20 seconds each.</p>
     </header>
 
     <section id="intro" class="card">
@@ -25,7 +25,7 @@
       <ul class="notes">
         <li>Use a quiet room. Phone or laptop mic is fine — we want both.</li>
         <li>Don't say your name or anything personal. We never ask who you are.</li>
-        <li>Each prompt tells you exactly which mistake to make, highlighted in the text. About 1 in 5 asks you to read correctly.</li>
+        <li>Each prompt tells you exactly which mistake to make, highlighted in the text. About 1 in 5 asks you to just read normally.</li>
       </ul>
       <div class="fields">
         <label>Recording on
@@ -84,8 +84,8 @@
 
       <div id="review" hidden>
         <audio id="playback" controls></audio>
-        <label class="check"><input type="checkbox" id="followed" /> I made the mistake as asked (or read correctly, if asked)</label>
-        <label class="check"><input type="checkbox" id="extra" /> I also made another mistake by accident</label>
+        <label class="check"><input type="checkbox" id="followed" /> <span id="followed-label"></span></label>
+        <label class="check"><input type="checkbox" id="extra" /> <span id="extra-label"></span></label>
         <div class="actions">
           <button id="redo">Record again</button>
           <button id="submit" class="primary" disabled>Submit</button>
