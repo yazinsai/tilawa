@@ -116,8 +116,8 @@ button.link { min-height: 48px; }
 .how-it-works > div { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; font-size: 14px; font-weight: 500; line-height: 1.4; }
 .how-it-works .icon { box-sizing: content-box; width: 26px; height: 26px; padding: 14px; border-radius: 12px; background: #ecede8; color: var(--accent); }
 .quiet-tip { color: var(--muted); font-size: 14px; text-align: center; line-height: 1.5; margin: 0 0 24px; }
-.profile { border-block: 1px solid var(--line); margin-bottom: 24px; padding-block: 4px; }
-.profile summary { cursor: pointer; min-height: 48px; display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); list-style: none; }
+.profile { border: 1px solid var(--line); border-radius: 12px; background: var(--paper); margin-bottom: 24px; padding: 4px 12px; }
+.profile summary { cursor: pointer; min-height: 48px; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; color: var(--ink); list-style: none; }
 .profile summary::-webkit-details-marker { display: none; }
 .profile summary::after { content: '+'; margin-inline-start: auto; font-size: 22px; }
 .profile[open] summary::after { content: '−'; }
@@ -214,6 +214,7 @@ body.recording .learn-more { display: none; }
 .fields { gap: 16px; margin-top: 8px; }
 .profile { margin-bottom: 16px; }
 .profile[open] { padding-bottom: 12px; }
+.profile[open] summary { border-bottom: 1px solid var(--line); margin-bottom: 16px; }
 .fields .choice { min-height: 44px; padding: 10px 12px; }
 .level-choices { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .fields .level-choices .choice { flex-direction: column; justify-content: center; gap: 6px; text-align: center; font-size: 13px; line-height: 1.4; min-height: 76px; padding: 10px 4px; }
