@@ -8,11 +8,14 @@ import { join, resolve } from "node:path";
 import { Hono, type Context } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { generatePrompt, KIND_WEIGHTS, loadQuran } from "./prompts.mjs";
+import { signPrompt, verifyPrompt } from "./prompt-token.mjs";
 
 const DATA_DIR = resolve(process.env.HELP_DATA_DIR ?? "./storage/help");
 const QURAN_JSON = resolve(process.env.QURAN_JSON ?? "./dist/quran.json");
 const ADMIN_TOKEN = process.env.HELP_ADMIN_TOKEN ?? "";
 const IP_SALT = process.env.IP_SALT ?? randomBytes(16).toString("hex");
+// Configure a stable key to let pending prompts survive server restarts.
+const PROMPT_SECRET = process.env.HELP_PROMPT_SECRET ?? randomBytes(32).toString("hex");
 const MAX_BYTES = 8 * 1024 * 1024;
 const MIN_BYTES = 4 * 1024;
 const MAX_PER_HOUR = 60;
@@ -71,7 +74,7 @@ helpApi.get("/config", (c) => c.json({ consent: CONSENT_VERSION }));
 helpApi.get("/prompt", (c) => {
   const kind = c.req.query("kind");
   const p = generatePrompt(getQuran(), randomInt(0, 2 ** 32 - 1), kind && kind in KIND_WEIGHTS ? kind : undefined);
-  return c.json({ seed: p.seed, kind: p.label.kind, display: p.display, instruction: p.instruction });
+  return c.json({ v: p.v, token: signPrompt(p, PROMPT_SECRET), seed: p.seed, kind: p.label.kind, display: p.display, instruction: p.instruction });
 });
 
 helpApi.post(
@@ -97,11 +100,17 @@ helpApi.post(
     if (problems.length) return c.json({ error: `Invalid: ${problems.join(", ")}` }, 400);
     if (used.has(`${q.speaker}:${seed}`)) return c.json({ error: "Already submitted." }, 409);
 
+    // Legacy clients have neither v nor token. Reconstruct using the frozen
+    // v1 generator; v2 clients must submit the signed label that they saw.
+    const prompt = q.v === undefined && q.token === undefined
+      ? generatePrompt(getQuran(), seed, undefined, 1)
+      : q.v === "2" ? verifyPrompt(q.token, seed, PROMPT_SECRET) : null;
+    if (!prompt) return c.json({ error: "Invalid prompt. Load another ayah and try again." }, 400);
+
     const audio = Buffer.from(await c.req.arrayBuffer());
     if (audio.length < MIN_BYTES) return c.json({ error: "Recording is empty or too short." }, 400);
 
     await ready;
-    const prompt = generatePrompt(getQuran(), seed);
     const id = `${Date.now().toString(36)}_${randomBytes(4).toString("hex")}`;
     const file = `audio/${id}.${AUDIO_EXT[mime]}`;
     await writeFile(join(DATA_DIR, file), audio);
@@ -113,6 +122,10 @@ helpApi.post(
       ts: new Date().toISOString(),
       seed,
       prompt_version: prompt.v,
+      scenario: prompt.label.scenario ?? null,
+      mechanism: prompt.label.mechanism ?? null,
+      elicitation: prompt.label.elicitation ?? "legacy_acted_or_normal",
+      fluency_control: prompt.label.fluency_control ?? false,
       speaker: q.speaker,
       device: q.device,
       gender: q.gender || null,

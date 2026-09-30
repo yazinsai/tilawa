@@ -1,230 +1,138 @@
-// Prompt generation. A prompt is a fully specified label: the reciter is told
-// exactly which mistake to make, so the recording needs no labelling afterwards.
-// Word indices are 1-based over `text_clean` words, which drops standalone
-// waqf marks (ۚ ۖ ...) that appear as separate tokens in `text_uthmani`.
+import { generatePrompt as generateLegacyPrompt, loadQuran, mulberry32, KIND_WEIGHTS } from './prompts-v1.mjs';
+import { SCENARIOS } from './scenarios.mjs';
+export { loadQuran, mulberry32, KIND_WEIGHTS, SCENARIOS };
 
-const FATHA = '\u064E', DAMMA = '\u064F', KASRA = '\u0650';
-const SHORT_VOWELS = [FATHA, DAMMA, KASRA];
-const VOWEL_NAME = { [FATHA]: 'fatha', [DAMMA]: 'damma', [KASRA]: 'kasra' };
+const VOWELS = { fatha: '\u064e', damma: '\u064f', kasra: '\u0650' };
 const VOWEL_AR = { fatha: 'فتحة', damma: 'ضمة', kasra: 'كسرة' };
-const SHADDA = '\u0651', MADDAH = '\u0653';
-const ARABIC_LETTER = /[\u0621-\u064A\u0671-\u06D3]/;
-const MARK_ONLY = /^[\u06D6-\u06ED\u06DE\u06E9\s]+$/;
-
-export const KIND_WEIGHTS = {
-  none: 20,
-  skip_word: 15,
-  substitution: 15,
-  repeat: 10,
-  vowel: 15,
-  tajweed: 10,
-  skip_ayah: 15,
-};
-
-export function mulberry32(seed) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
+const LETTER = /[\u0621-\u064a\u0671-\u06d3]/u;
 const pick = (rng, xs) => xs[Math.floor(rng() * xs.length)];
+const refOf = v => `${v.surah}:${v.ayah}`;
+const bankCache = new WeakMap();
 
-function pickWeighted(rng, weights) {
-  const entries = Object.entries(weights);
-  let r = rng() * entries.reduce((s, [, w]) => s + w, 0);
-  for (const [k, w] of entries) if ((r -= w) < 0) return k;
-  return entries[entries.length - 1][0];
+// Build once per corpus. Missing verses in a partial corpus are allowed; a
+// mismatched existing site is a data error, never a silent random replacement.
+function scenarioBank(quran) {
+  if (bankCache.has(quran)) return bankCache.get(quran);
+  const bank = {};
+  for (const scenario of SCENARIOS) {
+    const v = quran.byRef.get(scenario.ref);
+    if (!v || (scenario.source && !quran.byRef.has(scenario.source)) || (scenario.skip && (!quran.byRef.has(scenario.skip) || !quran.byRef.has(scenario.end)))) continue;
+    if (v.words.length !== v.clean.length || (scenario.word && !v.words[scenario.word - 1])) throw new Error(`Invalid scenario site: ${scenario.id}`);
+    (bank[scenario.kind] ??= []).push(scenario);
+  }
+  bankCache.set(quran, bank);
+  return bank;
 }
 
-export function loadQuran(verses) {
-  const byRef = new Map();
-  const list = verses.map(v => {
-    const uthmani = v.text_uthmani.replace(/^\uFEFF/, '').split(/\s+/).filter(Boolean);
-    const words = uthmani.filter(w => !MARK_ONLY.test(w));
-    const clean = v.text_clean.replace(/^\uFEFF/, '').split(/\s+/).filter(Boolean);
-    const verse = { surah: v.surah, ayah: v.ayah, words, clean, surahName: v.surah_name_en, surahNameAr: v.surah_name };
-    byRef.set(`${v.surah}:${v.ayah}`, verse);
-    return verse;
-  });
-  return { list, byRef };
+function display(v, word, mark) {
+  return { ref: refOf(v), surahName: v.surahName, surahNameAr: v.surahNameAr,
+    words: v.words.flatMap((text, i) => {
+      const w = { n: i + 1, text, ...(i + 1 === word ? mark : {}) };
+      return w.mark === 'repeat' ? [w, { ...w }] : [w];
+    }) };
 }
 
-// Familiar surahs are recited more naturally, so half the prompts come from them.
-const FAMILIAR = new Set([1, 18, 36, 55, 56, 67, ...Array.from({ length: 36 }, (_, i) => 78 + i)]);
-
-function candidateVerses(quran, rng, minWords, maxWords) {
-  const pool = quran.list.filter(v => v.words.length >= minWords && v.words.length <= maxWords && v.words.length === v.clean.length);
-  const familiar = pool.filter(v => FAMILIAR.has(v.surah));
-  return rng() < 0.5 && familiar.length ? familiar : pool;
-}
-
-function innerWordIndex(rng, n) {
-  return n >= 3 ? 2 + Math.floor(rng() * (n - 2)) : 1 + Math.floor(rng() * n);
-}
-
-// Letters with a short vowel that is not on the final letter (the final vowel
-// is dropped at waqf, so changing it is not a detectable mistake).
-function vowelSites(word) {
+function modifyLetter(word, letter, mutation) {
   const chars = [...word];
-  let lastLetter = -1;
-  chars.forEach((c, i) => { if (ARABIC_LETTER.test(c)) lastLetter = i; });
-  const sites = [];
-  for (let i = 0; i < chars.length; i++) {
-    if (!SHORT_VOWELS.includes(chars[i])) continue;
-    let base = i - 1;
-    while (base >= 0 && !ARABIC_LETTER.test(chars[base])) base--;
-    if (base < 0 || base >= lastLetter || opensLongVowel(chars, i)) continue;
-    sites.push({ index: i, base });
-  }
-  return sites;
+  const at = chars.indexOf(letter);
+  if (at < 0) throw new Error(`Missing ${letter} in ${word}`);
+  let end = at + 1;
+  while (end < chars.length && !LETTER.test(chars[end])) end++;
+  const marks = chars.slice(at + 1, end);
+  mutation(chars, at, marks);
+  return chars.join('');
 }
 
-// A short vowel followed by a madd letter (or dagger alif) is half of a long
-// vowel; swapping it yields an unpronounceable spelling like هَٰذُا.
-function opensLongVowel(chars, vowelIndex) {
-  let j = vowelIndex + 1;
-  while (j < chars.length && !ARABIC_LETTER.test(chars[j])) {
-    if (chars[j] === '\u0670') return true;
-    j++;
-  }
-  if (j >= chars.length || !/[اىويٰ]/.test(chars[j])) return false;
-  const next = chars[j + 1] ?? '';
-  return !/[\u064B-\u0652]/.test(next);
-}
-
-// Only mandatory madds: muttasil (hamza after the maddah in the same word) or
-// lazim (shadda / sukun after it). Word-final maddah is munfasil, where a
-// short reading is a valid riwaya variant, not a mistake.
-function hasMandatoryMadd(word) {
-  const i = word.indexOf(MADDAH);
-  return i >= 0 && /[ءأإئؤ\u0651\u0652]/.test(word.slice(i + 1));
-}
-
-function tajweedSites(word) {
-  const sites = [];
-  if (hasMandatoryMadd(word)) sites.push('madd_short');
-  if (/[نم][\u064E-\u0650]?\u0651/.test(word)) sites.push('no_ghunna');
-  return sites;
-}
-
-// The display is the script to read aloud: a mark's `text` replaces the word
-// and `repeat` writes it twice. `n` is the 1-based word index in the ayah.
-function ayahDisplay(v, marks = {}) {
-  const words = v.words.flatMap((text, i) => {
-    const mark = marks[i + 1];
-    const w = { n: i + 1, text, ...mark };
-    return mark?.mark === 'repeat' ? [w, { ...w }] : [w];
-  });
-  return { ref: `${v.surah}:${v.ayah}`, surahName: v.surahName, surahNameAr: v.surahNameAr, words };
-}
-
-const INSTRUCTIONS = {
-  none: () => ({ en: 'Read it correctly, the way you normally would.', ar: 'اقرأ الآية قراءة صحيحة كما تقرؤها عادةً.' }),
-  skip_word: w => ({ en: 'Skip the highlighted word. Read everything else normally.', ar: `اترك الكلمة المظللة «${w}» واقرأ الباقي كالمعتاد.` }),
-  substitution: () => ({ en: 'Read the ayah exactly as written. The highlighted word has been swapped for a wrong one on purpose.', ar: 'اقرأ الآية كما هي مكتوبة تمامًا. الكلمة المظللة استُبدلت عمدًا بكلمة خاطئة.' }),
-  repeat: () => ({ en: 'Read the ayah exactly as written. The highlighted word appears twice on purpose — say it twice.', ar: 'اقرأ الآية كما هي مكتوبة تمامًا. الكلمة المظللة مكتوبة مرتين عمدًا، فقلها مرتين.' }),
-  vowel: (letter, from, to) => ({ en: `Read the ayah exactly as written. The highlighted word has a wrong haraka on purpose: the letter «${letter}» has a ${to} instead of a ${from}.`, ar: `اقرأ الآية كما هي مكتوبة تمامًا. في الكلمة المظللة حركة خاطئة عمدًا: على حرف «${letter}» ${VOWEL_AR[to]} بدل ${VOWEL_AR[from]}.` }),
-  madd_short: w => ({ en: 'In the highlighted word, cut the long madd short (2 counts or less).', ar: `في «${w}» اقصر المد (حركتان أو أقل).` }),
-  no_ghunna: w => {
-    const meem = /م[\u064E-\u0650]?\u0651/.test(w) && !/ن[\u064E-\u0650]?\u0651/.test(w);
-    return {
-      en: `In the highlighted word, read the doubled ${meem ? 'meem' : 'noon'} without ghunna (no nasal hum).`,
-      ar: `في «${w}» اقرأ ${meem ? 'الميم' : 'النون'} المشددة بلا غنة.`,
-    };
-  },
-  skip_ayah: ref => ({ en: `Read these ayahs but skip the crossed-out ayah ${ref} entirely.`, ar: `اقرأ هذه الآيات واترك الآية المشطوبة ${ref} كاملة.` }),
-};
-
-function build(kind, quran, rng) {
-  if (kind === 'skip_ayah') {
-    const starts = quran.list.filter((v, i) => {
-      const run = quran.list.slice(i, i + 3);
-      return run.length === 3 && run.every(r => r.surah === v.surah && r.words.length >= 2 && r.words.length <= 14);
-    });
-    const familiar = starts.filter(v => FAMILIAR.has(v.surah));
-    const first = pick(rng, rng() < 0.5 && familiar.length ? familiar : starts);
-    const i = quran.list.indexOf(first);
-    const run = quran.list.slice(i, i + 3);
-    const skipped = `${run[1].surah}:${run[1].ayah}`;
-    return {
-      label: { kind, ref: `${first.surah}:${first.ayah}-${run[2].surah}:${run[2].ayah}`, mistakes: [{ kind, ayah: skipped }] },
-      display: run.map((v, j) => ({ ...ayahDisplay(v), ...(j === 1 ? { mark: 'skip_ayah' } : {}) })),
-      instruction: INSTRUCTIONS.skip_ayah(skipped),
-    };
-  }
-
-  for (let attempt = 0; attempt < 200; attempt++) {
-    const v = pick(rng, candidateVerses(quran, rng, 4, 22));
-    const ref = `${v.surah}:${v.ayah}`;
-    const base = { kind, ref };
-
-    if (kind === 'none') {
-      return { label: { ...base, mistakes: [] }, display: [ayahDisplay(v)], instruction: INSTRUCTIONS.none() };
-    }
-
-    const word = innerWordIndex(rng, v.words.length);
-    const w = v.words[word - 1];
-    const m = { kind, ayah: ref, word, expected: v.clean[word - 1] };
-
-    if (kind === 'skip_word' || kind === 'repeat') {
-      return { label: { ...base, mistakes: [m] }, display: [ayahDisplay(v, { [word]: { mark: kind } })], instruction: INSTRUCTIONS[kind](w) };    }
-
-    if (kind === 'substitution') {
-      const others = quran.list.filter(o => o.surah === v.surah && o !== v && o.words.length === o.clean.length);
-      const o = pick(rng, others.length ? others : quran.list);
-      const j = Math.floor(rng() * o.words.length);
-      // Context-dependent marks (iqlab meem, idgham tanween) are wrong once the
-      // word is moved; show it in its pausal form.
-      const alt = o.words[j].replace(/[\u06D6-\u06ED]/g, '');
-      if (!o.clean[j] || o.clean[j] === v.clean[word - 1] || v.clean.includes(o.clean[j])) continue;
-      return {
-        label: { ...base, mistakes: [{ ...m, said: o.clean[j], said_uthmani: alt, said_from: `${o.surah}:${o.ayah}:${j + 1}` }] },
-        display: [ayahDisplay(v, { [word]: { mark: kind, text: alt } })],
-        instruction: INSTRUCTIONS.substitution(),
-      };
-    }
-
-    if (kind === 'vowel') {
-      const sites = vowelSites(w);
-      if (!sites.length) continue;
-      const site = pick(rng, sites);
-      const chars = [...w];
-      const from = chars[site.index];
-      const to = pick(rng, SHORT_VOWELS.filter(x => x !== from));
-      chars[site.index] = to;
-      const alt = chars.join('');
-      const letterIndex = [...w].slice(0, site.base + 1).filter(c => ARABIC_LETTER.test(c)).length;
-      return {
-        label: { ...base, mistakes: [{ ...m, said_uthmani: alt, letter: letterIndex, from: VOWEL_NAME[from], to: VOWEL_NAME[to] }] },
-        display: [ayahDisplay(v, { [word]: { mark: kind, text: alt } })],
-        instruction: INSTRUCTIONS.vowel(chars[site.base], VOWEL_NAME[from], VOWEL_NAME[to]),
-      };
-    }
-
-    if (kind === 'tajweed') {
-      const wordsWithSites = v.words.map((x, i) => ({ i: i + 1, sites: tajweedSites(x) })).filter(x => x.sites.length);
-      if (!wordsWithSites.length) continue;
-      const chosen = pick(rng, wordsWithSites);
-      const rule = pick(rng, chosen.sites);
-      const cw = v.words[chosen.i - 1];
-      return {
-        label: { ...base, mistakes: [{ kind, rule, ayah: ref, word: chosen.i, expected: v.clean[chosen.i - 1] }] },
-        display: [ayahDisplay(v, { [chosen.i]: { mark: kind, rule } })],
-        instruction: INSTRUCTIONS[rule](cw),
-      };
-    }
-  }
-  return build('none', quran, rng);
-}
-
-export function generatePrompt(quran, seed, kind) {
+export function generatePrompt(quran, seed, kind, version = 2) {
+  if (version === 1) return generateLegacyPrompt(quran, seed, kind);
+  if (version !== 2) throw new Error('Unsupported prompt version');
   const rng = mulberry32(seed);
-  const k = kind ?? pickWeighted(rng, KIND_WEIGHTS);
-  const p = build(k, quran, rng);
-  return { v: 1, seed, ...p };
+  if (kind === undefined) {
+    let roll = rng() * Object.values(KIND_WEIGHTS).reduce((a, b) => a + b, 0);
+    kind = Object.entries(KIND_WEIGHTS).find(([, weight]) => (roll -= weight) < 0)?.[0] ?? 'none';
+  }
+  if (!(kind in KIND_WEIGHTS)) throw new Error('Unknown prompt kind');
+  if (kind === 'none') {
+    const legacy = generateLegacyPrompt(quran, seed, 'none');
+    return { ...legacy, v: 2, label: { ...legacy.label, elicitation: 'normal_recitation' } };
+  }
+  const candidates = scenarioBank(quran)[kind];
+  if (!candidates?.length) throw new Error(`No curated scenarios for ${kind} in this corpus`);
+  const s = pick(rng, candidates);
+  const v = quran.byRef.get(s.ref);
+  const label = { kind, ref: s.ref, elicitation: 'acted_scenario', scenario: s.id, mechanism: s.mechanism, mistakes: [] };
+  let instruction;
+  if (kind === 'skip_ayah') {
+    const verses = [v, quran.byRef.get(s.skip), quran.byRef.get(s.end)];
+    label.ref = `${s.ref}-${s.end}`;
+    label.mistakes = [{ kind, ayah: s.skip }];
+    instruction = { en: `Read these ayahs, skipping the crossed-out ayah ${s.skip}, as if you lost your place between similar lines.`, ar: `اقرأ هذه الآيات واترك الآية المشطوبة ${s.skip}، كأنك فقدت موضعك بين آيات متشابهة.` };
+    return { v: 2, seed, label, instruction, display: verses.map((verse, i) => ({ ...display(verse), ...(i === 1 ? { mark: 'skip_ayah' } : {}) })) };
+  }
+  const w = v.words[s.word - 1];
+  const m = { kind, ayah: s.ref, word: s.word, expected: v.clean[s.word - 1] };
+  const mark = { mark: kind };
+  if (kind === 'substitution') {
+    let alt;
+    if (s.source) {
+      const source = quran.byRef.get(s.source);
+      alt = source.words[s.sourceWord - 1];
+      if (!alt || source.words.length !== source.clean.length) throw new Error(`Invalid source: ${s.id}`);
+      // These curated pairs have matching neighbours, so retain contextual
+      // Uthmani marks instead of indiscriminately deleting them.
+      m.said = source.clean[s.sourceWord - 1];
+      m.said_from = `${s.source}:${s.sourceWord}`;
+      instruction = { en: 'Read exactly as shown. The highlighted word comes from a similar ayah, as if you mixed up the two passages.', ar: 'اقرأ كما هو مكتوب. الكلمة المظللة من آية مشابهة، كأنك خلطت بين الموضعين.' };
+    } else {
+      alt = modifyLetter(w, s.fromLetter, (chars, at) => { chars[at] = s.toLetter; });
+      m.said = m.expected.replace(s.fromLetter, s.toLetter);
+      m.rule = 'letter_confusion';
+      m.from_letter = s.fromLetter;
+      m.to_letter = s.toLetter;
+      instruction = { en: `In the highlighted word, say «${s.toLetter}» instead of «${s.fromLetter}», exactly as shown. Keep the other letters and vowels unchanged.`, ar: `في الكلمة المظللة انطق «${s.toLetter}» بدل «${s.fromLetter}» كما هو مكتوب، وأبقِ بقية الحروف والحركات كما هي.` };
+    }
+    if (m.said === m.expected) throw new Error(`Unchanged substitution: ${s.id}`);
+    m.said_uthmani = mark.text = alt;
+  } else if (kind === 'vowel') {
+    let letterIndex;
+    const alt = modifyLetter(w, s.letter, (chars, at, marks) => {
+      const offset = marks.indexOf(VOWELS[s.from]);
+      if (offset < 0) throw new Error(`Missing vowel: ${s.id}`);
+      letterIndex = chars.slice(0, at + 1).filter(c => LETTER.test(c)).length;
+      chars[at + 1 + offset] = VOWELS[s.to];
+    });
+    Object.assign(m, { said_uthmani: alt, letter: letterIndex, from: s.from, to: s.to, ...(s.continue ? { continuous_reading: true } : {}) });
+    mark.text = alt;
+    instruction = { en: `Read as shown: on «${s.letter}» in the highlighted word, use ${s.to} instead of ${s.from}.${s.continue ? ' Continue directly into the next word without pausing, so the changed vowel is audible.' : ' Read the rest normally.'}`, ar: `اقرأ كما هو مكتوب: على «${s.letter}» في الكلمة المظللة ${VOWEL_AR[s.to]} بدل ${VOWEL_AR[s.from]}.${s.continue ? ' أكمل إلى الكلمة التالية دون وقف، حتى تُسمع الحركة المتغيّرة.' : ' اقرأ الباقي كالمعتاد.'}` };
+  } else if (kind === 'skip_word') {
+    instruction = { en: `Skip only the highlighted word «${w}», as if you missed it while reading. Read the rest normally.`, ar: `اترك الكلمة المظللة «${w}» فقط، كأنك تجاوزتها أثناء القراءة. اقرأ الباقي كالمعتاد.` };
+  } else if (kind === 'repeat') {
+    instruction = { en: 'Read as shown: say the highlighted word twice, with a brief hesitation before repeating it. Then continue normally.', ar: 'اقرأ كما هو مكتوب: قل الكلمة المظللة مرتين، مع تردّد بسيط قبل إعادتها، ثم أكمل كالمعتاد.' };
+    // Keep the legacy class, but identify this as a fluency event rather than
+    // asserting that every legitimate restart is a recitation violation.
+    label.fluency_control = true;
+  } else if (kind === 'tajweed') {
+    m.rule = mark.rule = s.rule;
+    if (s.rule === 'madd_short') {
+      if (!w.includes('\u0653') || !w.includes('\u0651')) throw new Error(`Missing madd lazim: ${s.id}`);
+      instruction = { en: 'In the highlighted word, shorten the internal alif madd to 2 counts instead of 6. Keep the doubled letters and the ending normal.', ar: 'في الكلمة المظللة اقصر مد الألف الداخلي إلى حركتين بدل ست حركات. أبقِ التشديد ونهاية الكلمة كالمعتاد.' };
+    } else if (s.rule === 'no_ghunna') {
+      modifyLetter(w, s.letter, (_, __, marks) => { if (!marks.includes('\u0651')) throw new Error(`Missing doubled letter: ${s.id}`); });
+      instruction = { en: `Keep the doubled ${s.letter === 'م' ? 'meem' : 'noon'} in the highlighted word, but omit its sustained nasal hum (ghunna). Read everything else normally.`, ar: `أبقِ تشديد ${s.letter === 'م' ? 'الميم' : 'النون'} في الكلمة المظللة، لكن دون إطالة الغنة. اقرأ الباقي كالمعتاد.` };
+    } else if (s.rule === 'light_emphatic') {
+      if (!w.includes(s.letter)) throw new Error(`Missing emphatic letter: ${s.id}`);
+      m.letter = s.letter;
+      instruction = { en: 'In the highlighted word, read the sad (ص) too lightly, without its usual heavy resonance. Keep it a sad, not a seen (س), and read the rest normally.', ar: 'في الكلمة المظللة اقرأ الصاد بترقيق بدل التفخيم، مع إبقائها صادًا لا سينًا. اقرأ الباقي كالمعتاد.' };
+    } else if (s.rule === 'no_shadda') {
+      const alt = modifyLetter(w, s.letter, (chars, at, marks) => {
+        const offset = marks.indexOf('\u0651');
+        if (offset < 0) throw new Error(`Missing shadda: ${s.id}`);
+        chars.splice(at + 1 + offset, 1);
+      });
+      m.said_uthmani = mark.text = alt;
+      instruction = { en: 'Read as shown: pronounce the noon in the highlighted word once, without doubling it. Keep the other letters and vowels normal.', ar: 'اقرأ كما هو مكتوب: انطق النون في الكلمة المظللة مرة واحدة دون تشديد، وأبقِ بقية الحروف والحركات كالمعتاد.' };
+    }
+  }
+  label.mistakes = [m];
+  return { v: 2, seed, label, instruction, display: [display(v, s.word, mark)] };
 }
