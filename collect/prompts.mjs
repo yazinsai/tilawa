@@ -112,16 +112,23 @@ function tajweedSites(word) {
   return sites;
 }
 
+// The display is the script to read aloud: a mark's `text` replaces the word
+// and `repeat` writes it twice. `n` is the 1-based word index in the ayah.
 function ayahDisplay(v, marks = {}) {
-  return { ref: `${v.surah}:${v.ayah}`, surahName: v.surahName, surahNameAr: v.surahNameAr, words: v.words.map((text, i) => ({ text, ...(marks[i + 1] ?? {}) })) };
+  const words = v.words.flatMap((text, i) => {
+    const mark = marks[i + 1];
+    const w = { n: i + 1, text, ...mark };
+    return mark?.mark === 'repeat' ? [w, { ...w }] : [w];
+  });
+  return { ref: `${v.surah}:${v.ayah}`, surahName: v.surahName, surahNameAr: v.surahNameAr, words };
 }
 
 const INSTRUCTIONS = {
   none: () => ({ en: 'Read it correctly, the way you normally would.', ar: 'اقرأ الآية قراءة صحيحة كما تقرؤها عادةً.' }),
   skip_word: w => ({ en: 'Skip the highlighted word. Read everything else normally.', ar: `اترك الكلمة المظللة «${w}» واقرأ الباقي كالمعتاد.` }),
-  substitution: (w, alt) => ({ en: 'Say the word below instead of the highlighted word.', ar: `قل «${alt}» بدلاً من «${w}».` }),
-  repeat: w => ({ en: 'Say the highlighted word twice in a row, then continue.', ar: `كرر الكلمة المظللة «${w}» مرتين ثم أكمل.` }),
-  vowel: (w, alt, from, to) => ({ en: `Read the highlighted word as written below (a ${from} becomes a ${to}).`, ar: `اقرأ الكلمة المظللة كما هي مكتوبة في الأسفل (من ${VOWEL_AR[from]} إلى ${VOWEL_AR[to]}).` }),
+  substitution: () => ({ en: 'Read the ayah exactly as written. The highlighted word has been swapped for a wrong one on purpose.', ar: 'اقرأ الآية كما هي مكتوبة تمامًا. الكلمة المظللة استُبدلت عمدًا بكلمة خاطئة.' }),
+  repeat: () => ({ en: 'Read the ayah exactly as written. The highlighted word appears twice on purpose — say it twice.', ar: 'اقرأ الآية كما هي مكتوبة تمامًا. الكلمة المظللة مكتوبة مرتين عمدًا، فقلها مرتين.' }),
+  vowel: (letter, from, to) => ({ en: `Read the ayah exactly as written. The highlighted word has a wrong haraka on purpose: the letter «${letter}» has a ${to} instead of a ${from}.`, ar: `اقرأ الآية كما هي مكتوبة تمامًا. في الكلمة المظللة حركة خاطئة عمدًا: على حرف «${letter}» ${VOWEL_AR[to]} بدل ${VOWEL_AR[from]}.` }),
   madd_short: w => ({ en: 'In the highlighted word, cut the long madd short (2 counts or less).', ar: `في «${w}» اقصر المد (حركتان أو أقل).` }),
   no_ghunna: w => {
     const meem = /م[\u064E-\u0650]?\u0651/.test(w) && !/ن[\u064E-\u0650]?\u0651/.test(w);
@@ -165,8 +172,7 @@ function build(kind, quran, rng) {
     const m = { kind, ayah: ref, word, expected: v.clean[word - 1] };
 
     if (kind === 'skip_word' || kind === 'repeat') {
-      return { label: { ...base, mistakes: [m] }, display: [ayahDisplay(v, { [word]: { mark: kind } })], instruction: INSTRUCTIONS[kind](w) };
-    }
+      return { label: { ...base, mistakes: [m] }, display: [ayahDisplay(v, { [word]: { mark: kind } })], instruction: INSTRUCTIONS[kind](w) };    }
 
     if (kind === 'substitution') {
       const others = quran.list.filter(o => o.surah === v.surah && o !== v && o.words.length === o.clean.length);
@@ -178,8 +184,8 @@ function build(kind, quran, rng) {
       if (!o.clean[j] || o.clean[j] === v.clean[word - 1] || v.clean.includes(o.clean[j])) continue;
       return {
         label: { ...base, mistakes: [{ ...m, said: o.clean[j], said_uthmani: alt, said_from: `${o.surah}:${o.ayah}:${j + 1}` }] },
-        display: [ayahDisplay(v, { [word]: { mark: kind, alt } })],
-        instruction: INSTRUCTIONS.substitution(w, alt),
+        display: [ayahDisplay(v, { [word]: { mark: kind, text: alt } })],
+        instruction: INSTRUCTIONS.substitution(),
       };
     }
 
@@ -195,8 +201,8 @@ function build(kind, quran, rng) {
       const letterIndex = [...w].slice(0, site.base + 1).filter(c => ARABIC_LETTER.test(c)).length;
       return {
         label: { ...base, mistakes: [{ ...m, said_uthmani: alt, letter: letterIndex, from: VOWEL_NAME[from], to: VOWEL_NAME[to] }] },
-        display: [ayahDisplay(v, { [word]: { mark: kind, alt, altLetter: site.base } })],
-        instruction: INSTRUCTIONS.vowel(w, alt, VOWEL_NAME[from], VOWEL_NAME[to]),
+        display: [ayahDisplay(v, { [word]: { mark: kind, text: alt } })],
+        instruction: INSTRUCTIONS.vowel(chars[site.base], VOWEL_NAME[from], VOWEL_NAME[to]),
       };
     }
 

@@ -124,7 +124,7 @@ async function serveStatic(res, pathname) {
     res.writeHead(404);
     return res.end('Not found');
   }
-  res.writeHead(200, { 'content-type': STATIC_TYPES[extname(file)] ?? 'application/octet-stream' });
+  res.writeHead(200, { 'content-type': STATIC_TYPES[extname(file)] ?? 'application/octet-stream', 'cache-control': 'no-cache' });
   res.end(await readFile(file));
 }
 

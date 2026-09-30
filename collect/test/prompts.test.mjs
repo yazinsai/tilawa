@@ -41,8 +41,12 @@ test('labels point at real words and match the display', () => {
     const verse = quran.byRef.get(m.ayah);
     assert.ok(m.word >= 1 && m.word <= verse.clean.length, `${seed} word index`);
     assert.equal(m.expected, verse.clean[m.word - 1]);
-    const marked = p.display[0].words.flatMap((w, i) => (w.mark ? [i + 1] : []));
-    assert.deepEqual(marked, [m.word], `${seed} highlighted word`);
+    const marked = p.display[0].words.filter(w => w.mark);
+    assert.deepEqual(marked.map(w => w.n), kind === 'repeat' ? [m.word, m.word] : [m.word], `${seed} highlighted word`);
+    const shown = marked[0].text;
+    if (kind === 'substitution') assert.equal(shown, m.said_uthmani, `${seed} shows the word to say`);
+    if (kind === 'vowel') assert.equal(shown, m.said_uthmani, `${seed} shows the wrong haraka inline`);
+    if (['skip_word', 'repeat', 'tajweed'].includes(kind)) assert.equal(shown, verse.words[m.word - 1]);
     if (kind === 'substitution') assert.notEqual(m.said, m.expected);
     if (kind === 'vowel') {
       assert.notEqual(m.said_uthmani, verse.words[m.word - 1]);
