@@ -265,3 +265,5 @@ body.recording .learn-more { display: none; }
 .share-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 #share-whatsapp { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 18px; background: #255b3b; color: white; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 500; }
 .share-invitation #share-status { margin: 8px 0 0; }
+
+.playback-note { font-size: 14px; color: var(--muted); background: var(--line); border-radius: 10px; padding: 10px 12px; margin: 0 0 10px; }
