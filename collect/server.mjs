@@ -28,6 +28,11 @@ if (existsSync(SUBMISSIONS)) {
   }
 }
 
+// Behind Cloudflare -> Dokku nginx, X-Forwarded-For carries Cloudflare's edge IP.
+function clientIp(req) {
+  return String(req.headers['cf-connecting-ip'] ?? req.headers['x-forwarded-for']?.split(',')[0] ?? req.socket.remoteAddress ?? '').trim();
+}
+
 const hits = new Map();
 function rateLimited(ipHash) {
   const now = Date.now();
@@ -63,7 +68,7 @@ async function readBody(req) {
 }
 
 async function submit(req, res, url) {
-  const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() ?? req.socket.remoteAddress ?? '';
+  const ip = clientIp(req);
   const ipHash = createHash('sha256').update(IP_SALT + ip).digest('hex').slice(0, 16);
   if (rateLimited(ipHash)) return json(res, 429, { error: 'Too many submissions, try again later.' });
 
@@ -125,7 +130,7 @@ const subscribed = new Set(
 
 // Deliberately no speaker id: emails must not be linkable to recordings.
 async function subscribe(req, res) {
-  const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() ?? req.socket.remoteAddress ?? '';
+  const ip = clientIp(req);
   if (rateLimited(createHash('sha256').update(IP_SALT + ip).digest('hex').slice(0, 16))) return json(res, 429, { error: 'rate' });
   let body;
   try {
