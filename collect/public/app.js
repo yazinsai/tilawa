@@ -123,6 +123,7 @@ async function nextPrompt() {
   const kind = new URLSearchParams(location.search).get('kind');
   prompt = await (await fetch(`/api/prompt${kind ? `?kind=${encodeURIComponent(kind)}` : ''}`)).json();
   renderPrompt();
+  scrollTo({ top: 0 });
 }
 
 function renderPrompt() {
