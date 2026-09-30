@@ -9,6 +9,7 @@
     "build:server": "npx esbuild server/index.ts --bundle --platform=node --format=esm --outfile=dist-server/index.mjs --packages=external",
     "start": "node dist-server/index.mjs",
     "preview": "vite preview",
+    "help:dashboard": "node scripts/help-dashboard.mjs",
     "test:correction": "tsx test/correction-audio.ts",
     "test:streaming": "tsx test/stability-report.ts --repeats=1",
     "test:streaming:matrix": "tsx test/stability-report.ts --repeats=3",
