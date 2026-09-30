@@ -79,7 +79,43 @@ function setRecState(key) {
 
 function renderCount() {
   $('count').textContent = count ? t('count', count) : '';
+  $('finish').hidden = !count;
+  $('done-title').textContent = t('doneTitle', count);
 }
+
+$('finish').addEventListener('click', () => {
+  if (recorder?.state === 'recording') recorder.stop();
+  $('task').hidden = true;
+  $('done').hidden = false;
+  if (localStorage.subscribed) {
+    $('subscribe').hidden = true;
+    $('subscribed').hidden = false;
+  }
+  scrollTo({ top: 0 });
+});
+
+$('more').addEventListener('click', () => {
+  $('done').hidden = true;
+  $('task').hidden = false;
+  nextPrompt();
+});
+
+$('subscribe').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('sub-error').textContent = '';
+  const res = await fetch('/api/subscribe', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email: $('email').value, lang }),
+  }).catch(() => null);
+  if (!res?.ok) {
+    $('sub-error').textContent = t(res?.status === 400 ? 'errEmail' : res?.status === 429 ? 'errRate' : 'errUpload');
+    return;
+  }
+  localStorage.subscribed = '1';
+  $('subscribe').hidden = true;
+  $('subscribed').hidden = false;
+});
 
 async function nextPrompt() {
   resetRecording();

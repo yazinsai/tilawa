@@ -97,3 +97,11 @@ body.recording main { padding-top: 18px; }
 .error { color: var(--skip); font-size: 14px; min-height: 1em; margin: 8px 0 0; }
 
 footer { margin-top: 28px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+.finish { width: 100%; margin-top: 14px; background: transparent; border-color: var(--accent); color: var(--accent); }
+.done-body { color: var(--muted); line-height: 1.55; margin: 0 0 20px; }
+.subscribe { display: grid; gap: 8px; margin-bottom: 16px; }
+.subscribe label { font-weight: 500; font-size: 15px; }
+.subscribe-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.subscribe input { flex: 1 1 200px; font: inherit; font-size: 16px; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: #fff; color: var(--ink); }
+.fine { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0; }
+.subscribed { color: var(--accent); font-weight: 500; line-height: 1.5; }
