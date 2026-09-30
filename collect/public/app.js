@@ -43,7 +43,17 @@ $('lang').addEventListener('click', () => {
 
 const saved = JSON.parse(localStorage.profile ?? '{}');
 for (const k of ['device', 'gender', 'level']) if (saved[k] !== undefined) $(k).value = saved[k];
-if (!saved.device) $('device').value = /Mobi|Android|iPhone/i.test(navigator.userAgent) ? 'phone' : 'laptop';
+if (!saved.device) $('device').value = guessDevice();
+
+// iPadOS reports a Mac UA, so touch support is the tell; Android tablets omit "Mobile".
+function guessDevice() {
+  const ua = navigator.userAgent;
+  if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 0)) return 'tablet';
+  if (/Android/.test(ua) && !/Mobile/.test(ua)) return 'tablet';
+  if (navigator.userAgentData?.mobile || /iPhone|iPod|Android.*Mobile|Mobi/.test(ua)) return 'phone';
+  if (matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600) return 'phone';
+  return 'laptop';
+}
 applyLang();
 
 fetch('/api/config').then(r => r.json()).then(c => {
