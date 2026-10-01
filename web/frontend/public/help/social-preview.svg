@@ -4,10 +4,10 @@
 <text x="64" y="91" font-size="44" font-weight="700" letter-spacing="-2">tilawa</text>
 <text x="1136" y="85" text-anchor="end" font-size="18" letter-spacing="3">LEND YOUR VOICE</text>
 <path d="M64 124H1136" stroke="#dedede"/>
-<text x="60" y="240" font-size="76" font-weight="700" letter-spacing="-3">Your voice helps</text>
-<text x="60" y="324" font-size="76" font-weight="700" letter-spacing="-3">us catch mistakes.</text>
-<text x="64" y="391" font-size="25" fill="#626262">Help improve Quran recitation,</text>
-<text x="64" y="429" font-size="25" fill="#626262">one short recording at a time.</text>
+<text x="60" y="240" font-size="76" font-weight="700" letter-spacing="-3">Lend your voice to</text>
+<text x="60" y="324" font-size="76" font-weight="700" letter-spacing="-3">the Quran engine.</text>
+<text x="64" y="391" font-size="25" fill="#626262">Help improve Quran apps,</text>
+<text x="64" y="429" font-size="25" fill="#626262">one short recitation at a time.</text>
 <circle cx="994" cy="294" r="106" fill="#171717"/>
 <g fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round">
 <rect x="976" y="241" width="36" height="64" rx="18"/>

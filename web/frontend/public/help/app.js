@@ -215,12 +215,12 @@ async function nextPrompt() {
 
 function renderPrompt() {
   $('task').dataset.kind = prompt.kind;
-  $('kind-badge').textContent = t(`kind.${prompt.kind}`);
+  $('kind-badge').textContent = t('kind.none');
   const first = prompt.display[0];
   $('ref').textContent = `${prompt.display.map(a => a.ref).join(' · ')} — ${lang === 'ar' ? first.surahNameAr : first.surahName}`;
-  $('instruction').textContent = prompt.kind === 'none' ? t('noneInstruction') : prompt.instruction[lang];
-  $('followed-label').textContent = t(`confirm.${prompt.kind}`);
-  $('extra-label').textContent = t(prompt.kind === 'none' ? 'extra.none' : 'extra.other');
+  $('instruction').textContent = prompt.instruction[lang];
+  $('followed-label').textContent = t('confirm.none');
+  $('extra-label').textContent = t('extra.none');
 
   const text = $('text');
   text.replaceChildren();
