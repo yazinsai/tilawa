@@ -18,7 +18,7 @@ export function verifyPrompt(token, seed, secret) {
   if (received.length !== expected.length || !timingSafeEqual(received, expected)) return null;
   try {
     const prompt = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-    return [2, 3].includes(prompt.v) && prompt.seed === seed && prompt.label ? prompt : null;
+    return [2, 3, 4].includes(prompt.v) && prompt.seed === seed && prompt.label ? prompt : null;
   } catch {
     return null;
   }

@@ -1,13 +1,14 @@
-// tilawa.dev/help — volunteers record deliberate recitation mistakes for the
-// correction eval. Labels are derived from the prompt seed server-side, so a
-// recording can never carry a label other than the one that was shown.
+// tilawa.dev/help — volunteers record correct recitations. Only v4 (correct
+// recitation) prompts are issued or accepted: deliberately altering the Quran
+// is not permissible, so mistake prompts from older versions are retired.
 import { createHash, randomBytes, randomInt } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { Hono, type Context } from "hono";
 import { bodyLimit } from "hono/body-limit";
-import { generatePrompt, KIND_WEIGHTS, loadQuran } from "./prompts.mjs";
+import { loadQuran } from "./prompts.mjs";
+import { generatePrompt } from "./prompts-v4.mjs";
 import { signPrompt, verifyPrompt } from "./prompt-token.mjs";
 
 const DATA_DIR = resolve(process.env.HELP_DATA_DIR ?? "./storage/help");
@@ -72,8 +73,7 @@ export const helpApi = new Hono();
 helpApi.get("/config", (c) => c.json({ consent: CONSENT_VERSION }));
 
 helpApi.get("/prompt", (c) => {
-  const kind = c.req.query("kind");
-  const p = generatePrompt(getQuran(), randomInt(0, 2 ** 32 - 1), kind && Object.hasOwn(KIND_WEIGHTS, kind) ? kind : undefined);
+  const p = generatePrompt(getQuran(), randomInt(0, 2 ** 32 - 1));
   return c.json({ v: p.v, token: signPrompt(p, PROMPT_SECRET), seed: p.seed, kind: p.label.kind, display: p.display, instruction: p.instruction });
 });
 
@@ -100,12 +100,9 @@ helpApi.post(
     if (problems.length) return c.json({ error: `Invalid: ${problems.join(", ")}` }, 400);
     if (used.has(`${q.speaker}:${seed}`)) return c.json({ error: "Already submitted." }, 409);
 
-    // Legacy clients have neither v nor token. Reconstruct using the frozen
-    // v1 generator; v2/v3 clients must submit the signed label that they saw.
-    const prompt = q.v === undefined && q.token === undefined
-      ? generatePrompt(getQuran(), seed, undefined, 1)
-      : ["2", "3"].includes(q.v) ? verifyPrompt(q.token, seed, PROMPT_SECRET) : null;
-    if (!prompt || (q.v && String(prompt.v) !== q.v)) return c.json({ error: "Invalid prompt. Load another ayah and try again." }, 400);
+    // Tabs opened before v4 may still hold mistake prompts; never store those.
+    const prompt = q.v === "4" ? verifyPrompt(q.token, seed, PROMPT_SECRET) : null;
+    if (!prompt || prompt.v !== 4 || prompt.label.kind !== "none") return c.json({ error: "Invalid prompt. Load another ayah and try again." }, 400);
 
     const audio = Buffer.from(await c.req.arrayBuffer());
     if (audio.length < MIN_BYTES) return c.json({ error: "Recording is empty or too short." }, 400);
@@ -125,7 +122,9 @@ helpApi.post(
       scenario: prompt.label.scenario ?? null,
       mechanism: prompt.label.mechanism ?? null,
       passage_family: prompt.label.passage_family ?? null,
-      elicitation: prompt.label.elicitation ?? "legacy_acted_or_normal",
+      elicitation: prompt.label.elicitation,
+      ayahs: prompt.label.ayahs,
+      passage: prompt.label.passage,
       fluency_control: prompt.label.fluency_control ?? false,
       speaker: q.speaker,
       device: q.device,
