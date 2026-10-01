@@ -1,5 +1,5 @@
 """Post-training routine for one arm: export 6 variants, Modal eval, gates,
-local tracker + correction on the best gate-passing blend, report with CIs.
+local tracker on the best gate-passing blend, report with CIs.
 
 Variants: epoch 1 and 2, raw and WiSE-FT blended with v3 at alpha 0.5 / 0.7.
 
@@ -56,7 +56,7 @@ def gates(name: str, extra: bool) -> dict:
            "--corpus-manifests", f"heldout={WORK}/heldout_multi,dev={WORK}/dev_everyayah",
            "--json", str(WORK / f"gates_{name}.json")]
     if extra:
-        cmd += ["--tracker-dir", str(WORK / "tracker"), "--correction-dir", str(WORK / "correction")]
+        cmd += ["--tracker-dir", str(WORK / "tracker")]
     sh(cmd, WORK / "logs" / f"gates-{name}.log")
     return json.loads((WORK / f"gates_{name}.json").read_text())
 
@@ -72,8 +72,6 @@ def local_checks(name: str) -> None:
     for corpus, tag in ((WORK / "heldout_multi", "heldout_multi"), (WORK / "v1", "v1")):
         sh([PY, "scripts/tracker_corpus_eval.py", "--corpus", str(corpus), "--out", str(WORK / "tracker" / f"{name}_{tag}.jsonl")],
            WORK / "logs" / f"tracker-{name}-{tag}.log", env)
-    sh([PY, "scripts/correction_eval.py", "--corpus", str(WORK / "correction_test"),
-        "--out", str(WORK / "correction" / f"{name}_test.jsonl")], WORK / "logs" / f"corr-{name}.log", env)
 
 
 def main() -> None:
@@ -94,7 +92,7 @@ def main() -> None:
     best = min(ok or names, key=lambda n: results[n]["metrics"]["cand"]["headline"]["per"])
     passing = [n for n in ok if results[n]["promote"]]
     picks = sorted({best, *(passing[:1])})
-    print("local tracker + correction on", picks, flush=True)
+    print("local tracker on", picks, flush=True)
     for n in picks:
         local_checks(n)
         gates(n, extra=True)

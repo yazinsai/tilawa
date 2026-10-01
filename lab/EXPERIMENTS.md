@@ -467,7 +467,7 @@ The 21 clips still missed by the v3.1 base and/or interp-gentle-a0.5 were indepe
 
 **Headline PER** (promotion metric) = Quran-Lab v1.1 references over all 600 clips: their `quran_text2phoneme` gold where the table has the reference (503), else ordered phonemes × repeats with waqf madd at 2 harakat (97). Madd-free = secondary. **v3 control: headline 4.45 (EA 3.10 / nufais 4.64 / tlog 6.35), madd-free 3.76.**
 
-**Correction eval (synthetic).** `benchmark/build_correction_synth.py`: omission / substitution / repetition / skipped-ayah edits spliced into clean ayahs at CTC-Viterbi word boundaries (30 ms crossfade); test = three q-lab reciters (255 clips: 58 clean, 51 omission, 49 substitution, 52 repetition, 45 skip-ayah), dev = six dev reciters (206). v3 test: omission recall 0.039, substitution 0.020, skip-ayah 0.733, repetition 0 (no rule), overall recall 0.248 / precision 0.947, 0 false flags on 58 clean clips (dev: 0.286 / 0.944 / 0). The shipped rules almost never fire on word-level edits.
+**Correction eval (synthetic) — withdrawn.** An earlier version of this entry measured the correction engine on mistakes spliced into clean recitation. Deliberately creating incorrect Quran recitation, including by editing audio, is not permissible; the builder, the audio and the numbers were removed (2026-10-01). Correction is now evaluated only on genuine slips (see the correction entries below).
 
 **A0** (`ap-yqax5YcK7boRkMdpshQumQ`, H100:4, init v3 `.pt`, `everyayah_rx,qua_rx,iqra_rx,retasy_rx,tlog_clean_v3`, 2 ep, lr 0.001, warmup 1000; leak-check 0 flags on all five sources; valid 0.0292 ep1 / 0.0110 mid-ep2; `/vol/exp/a0-v3-clean`). Exports `/vol/exports/a0-ep{1,2}[-a0.5|-a0.7]` (α on FT, init v3). Eval: `scripts/eval_modal.py` + `promotion_gates.py`.
 
@@ -482,7 +482,6 @@ The 21 clips still missed by the v3.1 base and/or interp-gentle-a0.5 were indepe
 | dev multi drops | 0 | 12 | 0 | 0 | 28 | 0 | 0 |
 | tlog dev | 3.76 | 1.94 | 1.97 | 1.76 | 1.92 | 1.74 | 1.73 |
 | tracker held-out multi / v1 | 56/58, 52/53 | | 56/58, 52/53 | | | 56/58, 53/53 | |
-| correction test recall / precision / clean FF/min | 0.248 / 0.947 / 0 | | 0.262 / 1.000 / 0 | | | 0.248 / 1.000 / 0 | |
 | **gates** | | 3 fail | **all pass** | ins | all fail | ins (8.67 < 8.83) | ins |
 
 Paired bootstrap (2,000 resamples, clip level) of the headline delta vs v3: ep1-α0.5 [−0.36, +0.17] (not significant), ep1-α0.7 [−0.54, +0.17], ep2-α0.5 [−0.56, −0.01]. Raw FT again deletes whole ayahs in multi-ayah audio (ep2: 40/157 held-out, 28 dev) even trained leak-free from v3, and suppresses insertions on deviant speech; the blends repair both. Headline − madd-free is 0.69 for v3 and ~1.2 for FT/blends: our training labels put waqf madd at 4 harakat while the v1.1 gold uses 2, costing FT ≈ 0.5 pp of headline. **Verdict: ep1-α0.5 passes every gate but its headline gain is inside noise; ep2-α0.5 has the only significant gain and misses the insertion floor by 0.16 pp. Not promoted.** Next single-change arms: waqf-madd label convention (2 harakat at ayah end), multi-ayah windows (A0w).
@@ -495,25 +494,25 @@ One change per arm, same recipe as A0 (v3 init, lr 0.001, warmup 1000, H100:4), 
 - **A0w — multi-ayah windows** on A0e (`ap-86NAkX4OJwTIkzMaBNcE7j`, + `everyayah_multi_rx_w2x3` = the leak-free window set repeated ×3 → 30% of epoch hours; lhotse `CutSet.mux` does not stop early, so mux weights alone never changed exposure — E4's "2.5× weight" was a no-op on totals). Raw FT ayah drops 11/25 → 2/1 (ep1/ep2). **a0w-ep1-a0.5: 3.60, all gates, CI vs A0e counterpart −0.17 [−0.27, −0.07]** — new best. a0w-ep2-a0.5 also passes (3.60, best insertion 9.60) but vs A0e it is +0.05 [−0.04, +0.16].
 - **A0t — relabelled TLOG** on A0w (+ `tlog_relab_v3_w2_rx`: 3,690 non-clean clips whose decode is within PER 0.10 of a different ayah, relabelled; 1 clip dropped as a holdout twin after relabel — the train-time leak check refused the first launch). No gain vs A0w: ep1-α0.5 +0.01 [−0.07, +0.10], ep2-α0.5 +0.11 [+0.02, +0.20]. **Killed** (plan rule: no gain); A0w stays the base.
 
-| variant | headline | madd-free | drops | ins holdout / tlog-dev | tracker held-out, v1 | correction R / P / FF | gates failed | CI vs v3 | CI vs previous arm |
-|---|---|---|---|---|---|---|---|---|---|
-| v3 | 4.45 | 3.76 | 0 | 10.38 / 22.01 (floors 8.83 / 18.71) | 56/58, 52/53 | 0.248 / 0.947 / 0 | — | — | — |
-| a0-ep1-a0.5 | 4.37 | 3.15 | 0 | 9.29 / 22.12 | 56, 52 | 0.262 / 1.0 / 0 | — | −0.09 [−0.35, 0.18] | — |
-| a0e-ep1-a0.5 | 3.77 | 3.09 | 0 | 8.98 / 21.90 | 56, 53 | 0.262 / 1.0 / 0 | — | −0.69 [−0.96, −0.43] | vs A0 −0.60 [−0.76, −0.43] |
-| a0e-ep2-a0.7 | 3.46 | 2.77 | 0 | 6.48 / 19.37 | 56, 53 | 0.248 / 1.0 / 0 | ins holdout | −1.00 [−1.38, −0.64] | vs A0 −0.81 [−1.12, −0.55] |
-| **a0w-ep1-a0.5** | **3.60** | 2.93 | 0 | 9.29 / 22.16 | 56, 53 | 0.255 / 1.0 / 0 | — | −0.86 [−1.12, −0.60] | vs A0e −0.17 [−0.27, −0.07] |
-| a0w-ep2-a0.5 | 3.60 | 2.93 | 0 | 9.60 / 22.16 | — | — | — | −0.86 [−1.10, −0.62] | vs A0e +0.05 [−0.04, 0.16] |
-| a0w-ep2-a0.7 | 3.41 | 2.74 | 0 | 7.81 / 20.75 | 56, 53 | 0.255 / 1.0 / 0 | ins holdout | −1.04 [−1.37, −0.72] | vs A0e −0.04 [−0.19, 0.11] |
-| a0t-ep1-a0.5 | 3.61 | 2.95 | 0 | 9.45 / 22.07 | 56, — | 0.262 / 1.0 / 0 | — | −0.84 [−1.10, −0.60] | vs A0w +0.01 [−0.07, 0.10] |
-| a0t-ep2-a0.7 | 3.37 | 2.68 | 0 | 7.03 / 20.42 | 56, — | 0.255 / 1.0 / 0 | ins holdout | −1.09 [−1.45, −0.74] | vs A0w −0.05 [−0.18, 0.08] |
-| a1-ep1-a0.5 | 3.95 | 3.25 | 0 | 10.23 / 22.75 | 56, 53 | 0.255 / 1.0 / 0 | — | −0.51 [−0.77, −0.25] | vs A0w +0.35 [+0.23, +0.48] |
-| a1-ep1-a0.7 | 3.49 | 2.81 | 0 | 7.57 / 20.78 | 56, 53 | 0.262 / 1.0 / 0 | ins holdout | −0.97 [−1.28, −0.67] | vs A0w −0.05 [−0.24, 0.12] |
+| variant | headline | madd-free | drops | ins holdout / tlog-dev | tracker held-out, v1 | gates failed | CI vs v3 | CI vs previous arm |
+|---|---|---|---|---|---|---|---|---|
+| v3 | 4.45 | 3.76 | 0 | 10.38 / 22.01 (floors 8.83 / 18.71) | 56/58, 52/53 | — | — | — |
+| a0-ep1-a0.5 | 4.37 | 3.15 | 0 | 9.29 / 22.12 | 56, 52 | — | −0.09 [−0.35, 0.18] | — |
+| a0e-ep1-a0.5 | 3.77 | 3.09 | 0 | 8.98 / 21.90 | 56, 53 | — | −0.69 [−0.96, −0.43] | vs A0 −0.60 [−0.76, −0.43] |
+| a0e-ep2-a0.7 | 3.46 | 2.77 | 0 | 6.48 / 19.37 | 56, 53 | ins holdout | −1.00 [−1.38, −0.64] | vs A0 −0.81 [−1.12, −0.55] |
+| **a0w-ep1-a0.5** | **3.60** | 2.93 | 0 | 9.29 / 22.16 | 56, 53 | — | −0.86 [−1.12, −0.60] | vs A0e −0.17 [−0.27, −0.07] |
+| a0w-ep2-a0.5 | 3.60 | 2.93 | 0 | 9.60 / 22.16 | — | — | −0.86 [−1.10, −0.62] | vs A0e +0.05 [−0.04, 0.16] |
+| a0w-ep2-a0.7 | 3.41 | 2.74 | 0 | 7.81 / 20.75 | 56, 53 | ins holdout | −1.04 [−1.37, −0.72] | vs A0e −0.04 [−0.19, 0.11] |
+| a0t-ep1-a0.5 | 3.61 | 2.95 | 0 | 9.45 / 22.07 | 56, — | — | −0.84 [−1.10, −0.60] | vs A0w +0.01 [−0.07, 0.10] |
+| a0t-ep2-a0.7 | 3.37 | 2.68 | 0 | 7.03 / 20.42 | 56, — | ins holdout | −1.09 [−1.45, −0.74] | vs A0w −0.05 [−0.18, 0.08] |
+| a1-ep1-a0.5 | 3.95 | 3.25 | 0 | 10.23 / 22.75 | 56, 53 | — | −0.51 [−0.77, −0.25] | vs A0w +0.35 [+0.23, +0.48] |
+| a1-ep1-a0.7 | 3.49 | 2.81 | 0 | 7.57 / 20.78 | 56, 53 | ins holdout | −0.97 [−1.28, −0.67] | vs A0w −0.05 [−0.24, 0.12] |
 
 - **A1 — CR-CTC** on A0w (`--use-cr-ctc 1 --enable-spec-aug 0 --cr-loss-scale 0.2 --time-mask-ratio 2.5`, `--max-duration 600` per the recipe, 1 epoch — every best variant so far is epoch 1 and Eden's schedule does not depend on total epochs). Worse at α 0.5 (+0.35 [+0.23, +0.48] vs a0w-ep1-a0.5; raw ep1 +0.21 [0.00, +0.43]); α 0.7 ties (−0.05, CI crosses 0) and fails the insertion floor. It does keep more insertions (10.23 at α 0.5, above v3's floor comfortably). **Killed** (no PER gain vs A0w). Confound: halved max-duration at the same LR means 2× optimizer steps of half-size batches.
 
-**Current best: a0w-ep1-a0.5** (waqf-2 labels + ×3 multi-ayah windows, epoch 1, 50/50 with v3; `/vol/exports/a0w-ep1-a0.5`): headline 3.60 vs v3 4.45 (−0.86 [−1.12, −0.60]), madd-free 2.93 vs 3.76, 0 dropped ayahs, insertions 9.29 / 22.16, tracker 56/58 + v1 53/53, correction 0.255 / 1.0 / 0. Not promoted to the shipped model (no browser/int8/latency row yet).
+**Current best: a0w-ep1-a0.5** (waqf-2 labels + ×3 multi-ayah windows, epoch 1, 50/50 with v3; `/vol/exports/a0w-ep1-a0.5`): headline 3.60 vs v3 4.45 (−0.86 [−1.12, −0.60]), madd-free 2.93 vs 3.76, 0 dropped ayahs, insertions 9.29 / 22.16, tracker 56/58 + v1 53/53. Not promoted to the shipped model (no browser/int8/latency row yet).
 
-- **A0w50 — windows at ~50% of epoch hours** (`ap-H1WZ2wrjkdk0WDzm2Fe6xC`, `everyayah_multi_rx_w2x7`, 735,693 cuts; otherwise identical to A0w; leak-check 0 flags; valid 0.0116 / 0.0048). No gain: best gate-passing variant ep1-α0.5 = 3.66 vs a0w-ep1-a0.5 3.60, CI +0.06 [−0.02, +0.15]; ep2-α0.5 3.78, +0.18 [+0.08, +0.28] (worse). α 0.7 variants score 3.40–3.43 but fail the insertion floor, as in every arm. ep1-α0.5: tracker 56/58, correction 0.255 / 1.0 / 0. Raw drops 2 / 1, same as ×3. **Killed** — 30% windows stay; 70% not run. Spend ~$31.8.
+- **A0w50 — windows at ~50% of epoch hours** (`ap-H1WZ2wrjkdk0WDzm2Fe6xC`, `everyayah_multi_rx_w2x7`, 735,693 cuts; otherwise identical to A0w; leak-check 0 flags; valid 0.0116 / 0.0048). No gain: best gate-passing variant ep1-α0.5 = 3.66 vs a0w-ep1-a0.5 3.60, CI +0.06 [−0.02, +0.15]; ep2-α0.5 3.78, +0.18 [+0.08, +0.28] (worse). α 0.7 variants score 3.40–3.43 but fail the insertion floor, as in every arm. ep1-α0.5: tracker 56/58. Raw drops 2 / 1, same as ×3. **Killed** — 30% windows stay; 70% not run. Spend ~$31.8.
 
 **int8 + browser (2026-10-01).** Dynamic-int8 exports, same eval:
 
@@ -525,7 +524,7 @@ One change per arm, same recipe as A0 (v3 init, lr 0.001, warmup 1000, H100:4), 
 
 a0w int8 − fp32: headline −0.01, madd-free −0.01, insertions +0.08 / −0.05, tracker unchanged. a0w int8 also passes vs v3 int8. The currently shipped model fails the insertion floor (it suppresses deviant speech). Browser latency is end-to-end over the 6 default clips (134 s audio, ~13.5 s wall); identical for both models.
 
-Full 6-variant rows per arm (raw ep1/ep2 + α 0.5/0.7) are in the per-arm reports. Pattern across every arm: α 0.7 and raw epochs score lower headline but fail the insertion floor (they learn to not transcribe deviations); α 0.5 at epoch 1 is the only setting that passes everything each time. Correction recall does not move (≈0.25, driven by skipped-ayah flags) — acoustic FT does not fix a rules problem.
+Full 6-variant rows per arm (raw ep1/ep2 + α 0.5/0.7) are in the per-arm reports. Pattern across every arm: α 0.7 and raw epochs score lower headline but fail the insertion floor (they learn to not transcribe deviations); α 0.5 at epoch 1 is the only setting that passes everything each time.
 
 ## Per-experiment notes
 
