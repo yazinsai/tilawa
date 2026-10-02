@@ -62,6 +62,11 @@ export interface CorrectionThresholds {
    * queued on {@link CorrectionController.takeNotes} (the session emits a
    * `correction_note`) and the reciter carries on. */
   repetitionMode?: 'off' | 'note' | 'flag';
+  /** Slip head. Flag a word whose `slip` probability is at or above this.
+   * `Infinity` (the default) leaves it off. The kind still comes from the
+   * aligner: skipped → omission, distance ≤ 0.15 → vowel, otherwise
+   * substitution. Neighbours must be anchored, same guard as GOP. */
+  slipFlag?: number;
 }
 /** GOP is off by default: on real clean takes it still raises false flags
  * that the other rules do not. The other GOP fields are the gating to use with
@@ -70,7 +75,7 @@ export const DEFAULT_CORRECTION_THRESHOLDS: Required<CorrectionThresholds> = {
   vowelMargin: 0.05, vowelWordMargin: 0.8, omissionMaxHeard: 1, gopFlag: -Infinity, gopAnchor: -1, settle: true,
   repetitionGain: 5, gopOnWrong: true, gopOnSkipped: false, gopOmission: false, gopSubstitution: true,
   gopNoneMargin: 2, gopNoneMin: -3, gopLocalMin: true, gopPersistFrames: 12, settleGop: false,
-  repetitionMode: 'note', substitutionDistance: 0.6,
+  repetitionMode: 'note', substitutionDistance: 0.6, slipFlag: Infinity,
 };
 const PERSIST_FRAMES = 12;
 const withDefaults = (th: Partial<CorrectionThresholds>): Required<CorrectionThresholds> =>
@@ -114,7 +119,18 @@ function gopIssue(v: WordVerdict, before: WordVerdict, after: WordVerdict, th: R
   return th.gopSubstitution ? 'possible_substitution' : null;
 }
 
-type Rule = 'aligner' | 'gop' | 'repetition';
+type Rule = 'aligner' | 'gop' | 'repetition' | 'slip';
+
+/** Slip head: the score says the word is off, the aligner names the kind.
+ * Same-ayah neighbours are required by the caller. A clear-word anchor on top
+ * of that drops the skips the head exists to catch. */
+function slipIssue(v: WordVerdict, _before: WordVerdict, _after: WordVerdict, th: Required<CorrectionThresholds>): CorrectionIssue['kind'] | null {
+  if (!(th.slipFlag < Infinity) || v.state === 'pending') return null;
+  if (typeof v.slip !== 'number' || !Number.isFinite(v.slip) || v.slip < th.slipFlag) return null;
+  if (v.state === 'skipped') return 'possible_omission';
+  if (Number.isFinite(v.distance) && v.distance <= 0.15) return 'possible_vowel';
+  return 'possible_substitution';
+}
 interface RuledIssue { issue: CorrectionIssue; rule: Rule }
 
 /** One word said twice. Going back over several words in a row is a phrase
@@ -145,7 +161,8 @@ function ruledWordIssues(verdicts: readonly WordVerdict[], th: Required<Correcti
     const gopKind = gopIssue(v, before, after, th);
     const rep = !gopKind && th.repetitionMode !== 'off' && repetitionIssue(v, before, after, th);
     const extra = gopKind ? at(gopKind, 'gop') : rep ? at('possible_repetition', 'repetition') : [];
-    if (!clearWord(before) || !clearWord(after)) return extra;
+    const slip = !gopKind && !rep ? slipIssue(v, before, after, th) : null;
+    if (!clearWord(before) || !clearWord(after)) return slip ? at(slip, 'slip') : extra;
     // A partly heard word (the aligner lent it a few chars of its neighbours,
     // or the reciter said only its onset) is still an omission.
     const omission = v.state === 'skipped' && (v.heardRatio === 0 || v.heardRatio <= th.omissionMaxHeard);
@@ -160,7 +177,8 @@ function ruledWordIssues(verdicts: readonly WordVerdict[], th: Required<Correcti
       && v.heardRatio >= 0.75 && v.heardRatio <= 1.3;
     const kind = omission ? 'possible_omission' as const : substitution ? 'possible_substitution' as const
       : vowel ? 'possible_vowel' as const : null;
-    return kind ? at(kind, 'aligner') : extra;
+    if (kind) return at(kind, 'aligner');
+    return slip ? at(slip, 'slip') : extra;
   });
 }
 
@@ -262,7 +280,8 @@ export class CorrectionController {
     if (this.mode !== 'correction' || this.state.phase !== 'idle' || !th.settle) return false;
     const ruled = ruledWordIssues(verdicts, th)
       .filter(r => !this.suppressed.has(r.issue.wordIndex) && !seen.has(r.issue.wordIndex)
-        && r.issue.kind !== 'possible_vowel' && (th.settleGop || r.rule !== 'gop'))
+        && (r.issue.kind !== 'possible_vowel' || r.rule === 'slip')
+        && (th.settleGop || r.rule !== 'gop'))
       .sort((a, b) => a.issue.wordIndex - b.issue.wordIndex);
     const first = ruled.find(r => !this.queueNote(r.issue, r.rule, th));
     if (!first) return false;

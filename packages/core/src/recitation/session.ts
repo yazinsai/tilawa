@@ -54,6 +54,7 @@ import DEFAULT_IO from "./zipformer-io.json" with { type: "json" };
 
 import { CorrectionController, type CorrectionAction, type RecitationMode } from "./correction.js";
 import { FramePosteriors } from "./posteriors.js";
+import { A0W_SLIP_HEAD, EncoderFrames, slipThreshold, type SlipHead, type SlipSensitivity } from "./slipHead.js";
 
 const TAIL_SECONDS = 2.0;
 /** Mean heard ratio over an unmatched ayah's words at or above which the gap
@@ -177,6 +178,12 @@ export interface ZipformerSessionOptions {
   onEvent?: (msg: WorkerOutbound) => void;
   /** Emit `debug` messages for engine events. Default false. */
   debug?: boolean;
+  /**
+   * Slip head over encoder frames. Off by default. `true` or `"strict"` uses
+   * the zero-extra-clean-flags threshold; `"high"` uses the +0.10/min point.
+   * If the model does not return encoder frames, the head stays off.
+   */
+  slipHead?: boolean | SlipSensitivity;
 }
 
 export class ZipformerSession {
@@ -198,6 +205,12 @@ export class ZipformerSession {
   private fbank = new KaldiFbank();
   private decoder = new GreedyCtcDecoder(TOKENS, BLANK_ID);
   private readonly posteriors: FramePosteriors;
+  private readonly encoderFrames = new EncoderFrames();
+  private readonly slipWeights: SlipHead = A0W_SLIP_HEAD;
+  /** Requested sensitivity. False until the caller turns the head on. */
+  private slipMode: false | SlipSensitivity = false;
+  /** Flips off, silently, when a producing chunk has no encoder frames. */
+  private slipLive = true;
   private engine: RecitationEngine;
   private accumulated = new Map<string, AyahTally>();
   private emitted = new Set<string>();
@@ -233,6 +246,8 @@ export class ZipformerSession {
     this.gapMaxWords = opts.gapMaxWords ?? GAP_MAX_WORDS;
     this.onEvent = opts.onEvent ?? null;
     this.debugEnabled = opts.debug ?? false;
+    this.slipMode = opts.slipHead === true || opts.slipHead === "strict" ? "strict"
+      : opts.slipHead === "high" ? "high" : false;
     this.posteriors = new FramePosteriors(runner.io.vocabSize);
     this.corpus = new QuranCorpus(corpusJson);
     this.index = new QuranIndex(this.corpus, this.cfg);
@@ -356,6 +371,18 @@ export class ZipformerSession {
     return out;
   }
 
+  /**
+   * Turn the slip head on or off. `"strict"` is the zero-extra-clean-flags
+   * threshold; `"high"` is the +0.10/min point. A model without encoder
+   * frames keeps the head off either way.
+   */
+  setSlipHead(mode: false | SlipSensitivity): void {
+    this.slipMode = mode;
+    this.slipLive = true;
+    this.attachPosteriors(this.engine);
+    if (this.practiceEngine) this.attachPosteriors(this.practiceEngine);
+  }
+
   correct(action: CorrectionAction): WorkerOutbound[] {
     if (!this.correction.act(action)) return [];
     const state = this.correction.state;
@@ -475,10 +502,18 @@ export class ZipformerSession {
     return engine;
   }
 
-  /** GOP scoring costs a few CTC Viterbi passes per word; only correction mode reads it. */
+  /** GOP scoring costs a few CTC Viterbi passes per word; only correction mode reads it.
+   * The slip head is the same: tracking never sees `slip`. */
   private attachPosteriors(engine: RecitationEngine): void {
-    engine.setPosteriors(this.correction.mode === "correction" ? this.posteriors : null);
-    engine.setCorrection(this.correction.mode === "correction");
+    const correction = this.correction.mode === "correction";
+    engine.setPosteriors(correction ? this.posteriors : null);
+    engine.setCorrection(correction);
+    const slipOn = correction && this.slipMode !== false && this.slipLive;
+    engine.setSlip(slipOn ? this.encoderFrames : null, slipOn ? this.slipWeights : null);
+    const thr = slipOn ? slipThreshold(this.slipWeights, this.slipMode as SlipSensitivity) : Infinity;
+    if (this.correction.thresholds.slipFlag !== thr) {
+      this.correction.thresholds = { ...this.correction.thresholds, slipFlag: thr };
+    }
   }
 
   private resetDecoder(): void {
@@ -486,6 +521,8 @@ export class ZipformerSession {
     this.decoder.reset();
     this.runner.reset();
     this.posteriors.clear(0);
+    this.encoderFrames.clear(0);
+    this.slipLive = true;
   }
 
   wordCount = (surah: number, ayah: number): number =>
@@ -516,9 +553,20 @@ export class ZipformerSession {
 
   private async runFrames(frames: Float32Array[]): Promise<WorkerOutbound[]> {
     if (!frames.length) return [];
-    const { logProbs, frames: out } = await this.runner.accept(frames);
+    const { logProbs, frames: out, encoder, encoderFrames } = await this.runner.accept(frames);
     if (out === 0) return [];
     this.posteriors.push(logProbs, out, this.decoder.framesDecoded);
+    if (this.slipMode && this.slipLive) {
+      if (encoder && encoderFrames) {
+        this.encoderFrames.push(encoder, encoderFrames, this.decoder.framesDecoded);
+      } else {
+        // The graph has no encoder-frame output. Leave the rules as they were.
+        this.slipLive = false;
+        this.encoderFrames.clear(0);
+        this.attachPosteriors(this.engine);
+        if (this.practiceEngine) this.attachPosteriors(this.practiceEngine);
+      }
+    }
     const tokens = this.decoder.consume(logProbs, out, this.runner.io.vocabSize);
     return this.consumeTokens(tokens);
   }

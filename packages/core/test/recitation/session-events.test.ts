@@ -136,8 +136,15 @@ describe("ZipformerSession", () => {
 
     const shipped = findModelIo();
     if (shipped) {
-      expect(DEFAULT_ZIPFORMER_IO).toEqual(JSON.parse(readFileSync(shipped, "utf8")));
+      const bundled = structuredClone(DEFAULT_ZIPFORMER_IO) as {
+        encoderFrames?: string;
+        outputs?: Array<{ name: string; optional?: boolean }>;
+      };
+      delete bundled.encoderFrames;
+      if (bundled.outputs) bundled.outputs = bundled.outputs.filter((o) => !o.optional);
+      expect(bundled).toEqual(JSON.parse(readFileSync(shipped, "utf8")));
     }
+    expect(DEFAULT_ZIPFORMER_IO.encoderFrames).toBe("/Transpose_226_output_0");
   });
 
   it("rejects an incomplete runtime seam", async () => {

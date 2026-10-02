@@ -4,6 +4,7 @@ import { expandTokens } from "./ctcDecoder.js";
 import { alignSemiGlobal } from "./alignment.js";
 import { preamblePending, stripPreambles, type QuranIndex } from "./search.js";
 import type { FramePosteriors } from "./posteriors.js";
+import type { EncoderFrames, SlipHead } from "./slipHead.js";
 import { Tracker } from "./tracker.js";
 import { VerdictTracer } from "./verdicts.js";
 import type {
@@ -47,6 +48,8 @@ export class RecitationEngine {
   private lastStruggleChars = 0;
   onBeforeRelocate: (() => void) | null = null;
   private posteriors: FramePosteriors | null = null;
+  private encoder: EncoderFrames | null = null;
+  private slipHead: SlipHead | null = null;
   private correction = false;
   private expected: { surah: number; ayah: number; firstWord: number; endWord: number } | null = null;
   private expectedLocked = false;
@@ -65,6 +68,16 @@ export class RecitationEngine {
   setPosteriors(posteriors: FramePosteriors | null): void {
     this.posteriors = posteriors;
     if (this.tracer) this.tracer.posteriors = posteriors;
+  }
+
+  /** Encoder frames for the slip head. Null leaves `WordVerdict.slip` unset. */
+  setSlip(encoder: EncoderFrames | null, head: SlipHead | null): void {
+    this.encoder = encoder;
+    this.slipHead = head;
+    if (this.tracer) {
+      this.tracer.encoder = encoder;
+      this.tracer.slipHead = head;
+    }
   }
 
   /** Correction mode: the back-fill and stop-time alignment knobs apply. */
@@ -175,6 +188,8 @@ export class RecitationEngine {
     this.tracer.anchorAyahEnd = this.correction ? this.cfg.anchorAyahEnd : 0;
     if (win) this.expectedLocked = true;
     this.tracer.posteriors = this.posteriors;
+    this.tracer.encoder = this.encoder;
+    this.tracer.slipHead = this.slipHead;
     this.state = "tracking";
     this.lostEmitted = false;
     this.completedEmitted = false;

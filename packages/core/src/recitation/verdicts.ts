@@ -4,6 +4,7 @@ import type { CostTable } from "./phonemeCost.js";
 import type { Tracker } from "./tracker.js";
 import type { HeardChar, VerdictState, WordVerdict } from "./types.js";
 import { encodePhonemeSpan, encodePhonemes, pairScores, wordGop, type FramePosteriors, type WordGop } from "./posteriors.js";
+import { poolEncoderSpan, slipProbability, wordSpansFromTrail, type EncoderFrames, type SlipHead } from "./slipHead.js";
 import { BLANK_ID } from "./tokens.js";
 
 const SEGMENT_CUT = 300;
@@ -92,6 +93,9 @@ export class VerdictTracer {
   anchorAyahEnd = 0;
   /** When set, non-pending interior words also get GOP scores (correction mode). */
   posteriors: FramePosteriors | null = null;
+  /** Encoder frames + logistic. Both set only when the slip head is on. */
+  encoder: EncoderFrames | null = null;
+  slipHead: SlipHead | null = null;
 
   constructor(tracker: Tracker, table: CostTable, cfg: EngineConfig = DEFAULT_CONFIG) {
     this.tracker = tracker;
@@ -135,6 +139,7 @@ export class VerdictTracer {
     }
     const out = this.judge(spans, settled);
     if (this.posteriors) this.score(out, spans);
+    if (this.encoder && this.slipHead) this.attachSlip(out);
     return out;
   }
 
@@ -149,6 +154,21 @@ export class VerdictTracer {
     while (end < t.wordStarts.length && t.ayahAtStart[end] === ayah) end++;
     if (end - w > this.anchorAyahEnd) return cell;
     return end < t.wordStarts.length ? t.wordStarts[end]! : t.len;
+  }
+
+  /** P(slip) on each non-pending word, pooled over the tracker's own span. */
+  private attachSlip(out: WordVerdict[]): void {
+    const head = this.slipHead!;
+    const enc = this.encoder!;
+    const by = new Map(wordSpansFromTrail(this.tracker).map((s) => [s.wordIndex, s]));
+    for (const v of out) {
+      if (v.state === "pending") continue;
+      const sp = by.get(v.wordIndex);
+      if (!sp) continue;
+      const pooled = poolEncoderSpan(enc, sp.a, sp.b);
+      if (!pooled) continue;
+      v.slip = slipProbability(head, pooled.mean, pooled.max);
+    }
   }
 
   /** Attach GOP scores to settled words whose two neighbours were heard. The

@@ -43,6 +43,9 @@ export interface WordVerdict {
   repGain?: number;
   /** GOP of the word + next word forced together over both their windows (~0: they fit together). */
   pairGop?: number;
+  /** Correction mode, slip head on: P(this word is a slip) from the encoder-frame
+   * logistic. Unset when the head is off or the model has no encoder frames. */
+  slip?: number;
 }
 
 /** The passage the reciter is expected to read (correction mode), inclusive. */

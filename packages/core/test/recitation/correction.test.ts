@@ -231,6 +231,36 @@ describe('conservative word correction', () => {
     expect(f.settle(tail, cursor)).toBe(false);
     expect(new CorrectionController().settle(tail, cursor)).toBe(false);
   });
+  it('slip head is off unless slipFlag is set, and the aligner still names the kind', () => {
+    const hot = { slip: 0.9 };
+    const ctx = (mid: Partial<WordVerdict>) => [word(0), word(1, { ...hot, ...mid }), word(2)];
+    // Default threshold is Infinity: a high score on a word the aligner accepts does not flag.
+    expect(possibleWordIssues(ctx({ state: 'ok', distance: 0.02, vowelErrors: 0 }))).toEqual([]);
+    const on = { slipFlag: 0.5 };
+    expect(possibleWordIssues(ctx({ state: 'skipped', distance: 1, heardRatio: 0, margin: 0 }), on)[0])
+      .toMatchObject({ word: 1, kind: 'possible_omission' });
+    // distance ≤ 0.15 is a vowel even when the aligner counted no vowel error.
+    expect(possibleWordIssues(ctx({ state: 'ok', distance: 0.02, vowelErrors: 0 }), on)[0])
+      .toMatchObject({ word: 1, kind: 'possible_vowel' });
+    // Wrong, but under the aligner's distance/margin gates: the head still flags it as a substitution.
+    expect(possibleWordIssues(ctx({ state: 'wrong', distance: 0.4, margin: 0.4, heardRatio: 0.8 }), on)[0])
+      .toMatchObject({ word: 1, kind: 'possible_substitution' });
+    // Below the cutoff: no head flag. A neighbour that is not itself clear still
+    // counts; the head only needs both neighbours in the same ayah.
+    expect(possibleWordIssues(ctx({ state: 'ok', distance: 0.02, vowelErrors: 0, slip: 0.4 }), on)).toEqual([]);
+    expect(possibleWordIssues([word(0, { margin: 0.2 }), word(1, { state: 'skipped', distance: 1, heardRatio: 0, margin: 0, slip: 0.9 }), word(2)], on)[0])
+      .toMatchObject({ word: 1, kind: 'possible_omission' });
+    // The aligner already flagged it: that kind wins, the head does not replace it.
+    const both = possibleWordIssues(ctx({ state: 'skipped', distance: 1, heardRatio: 0, margin: 0 }), on);
+    expect(both).toHaveLength(1);
+    expect(both[0]).toMatchObject({ kind: 'possible_omission' });
+    // A slip vowel can be raised at settle. An aligner vowel still cannot.
+    const c = new CorrectionController(); c.setMode('correction');
+    c.thresholds = { ...c.thresholds, ...on };
+    const slipVowel = [word(0), word(1, { distance: 0.02, vowelErrors: 0, slip: 0.9 }), word(2), word(3)];
+    expect(c.settle(slipVowel, cursor)).toBe(true);
+    expect(c.state.issue).toMatchObject({ word: 1, kind: 'possible_vowel' });
+  });
   it('closing or reviewing later never claims success', () => {
     for (const action of ['close', 'review_later'] as const) {
       const c = flag(); c.act('retry'); c.act(action);

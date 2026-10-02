@@ -89,6 +89,8 @@ const require = createRequire(path.join(ORT_DIR, "/"));
 const ort = require("onnxruntime-node");
 const lpState: { key: string; calls: Float32Array[]; next: number } = { key: "", calls: [], next: 0 };
 let encCalls: Float32Array[] = [];
+let encReplay: Float32Array[] = [];
+let encNext = 0;
 if (LP_MODE === "record") {
   const create = ort.InferenceSession.create.bind(ort.InferenceSession);
   ort.InferenceSession.create = async (model: unknown, opts: Record<string, unknown> = {}) => {
@@ -127,6 +129,10 @@ function replaySession(): { run(feeds: Record<string, unknown>): Promise<Record<
       const out: Record<string, unknown> = {
         log_probs: new ort.Tensor("float32", data, [1, data.length / io.vocabSize, io.vocabSize]),
       };
+      const enc = encReplay[encNext++];
+      if (enc && io.encoderFrames) {
+        out[io.encoderFrames] = new ort.Tensor("float32", enc, [1, enc.length / 512, 512]);
+      }
       for (const [k, v] of Object.entries(feeds)) if (k !== "x") out[`new_${k}`] = v;
       return out;
     },
@@ -156,6 +162,15 @@ function loadLp(key: string): void {
   const all = new Float32Array(buf.buffer.slice(buf.byteOffset + 8, buf.byteOffset + 8 + n * per * 4));
   lpState.calls = Array.from({ length: n }, (_, i) => all.subarray(i * per, (i + 1) * per));
   lpState.next = 0;
+  encReplay = [];
+  encNext = 0;
+  const encPath = path.join(LP_CACHE, `${key}.enc.f32`);
+  if (!existsSync(encPath)) return;
+  const eb = readFileSync(encPath);
+  const en = eb.readUInt32LE(0);
+  const eper = eb.readUInt32LE(4);
+  const eraw = new Float32Array(eb.buffer.slice(eb.byteOffset + 8, eb.byteOffset + 8 + en * eper * 4));
+  encReplay = Array.from({ length: en }, (_, i) => eraw.subarray(i * eper, (i + 1) * eper));
 }
 
 async function createHost(): Promise<ZipformerSession> {
@@ -199,6 +214,16 @@ async function recognize(host: ZipformerSession, pcm: Float32Array, mode = "trac
     engine: { corpus: { wordSurah: Int32Array | number[]; wordAyah: Int32Array | number[]; wordInAyah: Int32Array | number[] }; state: string; tracker: { surah: number; cursorWordIndex: number; lost: boolean; costRate(): number | null } | null };
   };
   delete (hostInternals as unknown as Record<string, unknown>).resetDecoder;
+  const readTrack = (): Array<[string, number, number, number, number]> | null => {
+    const tr = (hostInternals.engine as unknown as { tracker: { heard: Array<{ ch: string; frame: number }>; trail: number[]; firstWord: number; localWordOfPos: Int32Array; len: number } | null }).tracker;
+    if (!tr) return null;
+    const c = hostInternals.engine.corpus;
+    return tr.heard.map((h, i) => {
+      const cell = tr.trail[i]!;
+      const w = tr.firstWord + (cell <= 0 ? 0 : tr.localWordOfPos[Math.min(cell, tr.len) - 1]!);
+      return [h.ch, h.frame, c.wordSurah[w] as number, c.wordAyah[w] as number, c.wordInAyah[w] as number];
+    });
+  };
   if (LP_MODE) {
     lpState.key = key;
     lpState.calls = [];
@@ -227,6 +252,9 @@ async function recognize(host: ZipformerSession, pcm: Float32Array, mode = "trac
   const trace: unknown[] = [];
   const ctl = host.correction;
   ctl.thresholds = { ...ctl.thresholds, ...(THRESHOLDS ?? {}) };
+  const slipEnv = process.env.ZIPFORMER_SLIP;
+  if (slipEnv === "strict" || slipEnv === "high") host.setSlipHead(slipEnv);
+  else if (slipEnv === "0" || slipEnv === "off") host.setSlipHead(false);
   const own = ctl as unknown as Record<string, unknown>;
   for (const k of ["observe", "clearEvidence", "raise", "settle"]) delete own[k];
   delete (host as unknown as Record<string, unknown>).dumpTallies;
@@ -315,19 +343,9 @@ async function recognize(host: ZipformerSession, pcm: Float32Array, mode = "trac
         tr?.lost ? 1 : 0, rate === null ? null : Math.round(rate * 1000) / 1000]);
     }
   }
-  const dumpTrack = () => {
-    const tr = (hostInternals.engine as unknown as { tracker: { heard: Array<{ ch: string; frame: number }>; trail: number[]; firstWord: number; localWordOfPos: Int32Array; len: number } | null }).tracker;
-    if (!tr) return null;
-    const c = hostInternals.engine.corpus;
-    return tr.heard.map((h, i) => {
-      const cell = tr.trail[i]!;
-      const w = tr.firstWord + (cell <= 0 ? 0 : tr.localWordOfPos[Math.min(cell, tr.len) - 1]!);
-      return [h.ch, h.frame, c.wordSurah[w], c.wordAyah[w], c.wordInAyah[w]];
-    });
-  };
-  const preStop = process.env.ZIPFORMER_DIAG_TRACK === "1" ? dumpTrack() : null;
+  const preStop = process.env.ZIPFORMER_DIAG_TRACK === "1" ? readTrack() : null;
   collect(await host.stop());
-  const postStop = process.env.ZIPFORMER_DIAG_TRACK === "1" ? dumpTrack() : null;
+  const postStop = process.env.ZIPFORMER_DIAG_TRACK === "1" ? readTrack() : null;
   if (LP_MODE === "record") {
     if (process.env.ZIPFORMER_SKIP_LP !== "1") saveLp(key);
     if (encCalls.length) {
