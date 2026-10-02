@@ -3,11 +3,21 @@
 Same logistic as ``train_eval.py``: L2, C=0.01, class-weighted, on the
 concatenated mean and max of encoder frames. Training rows are acted dev
 speakers plus the clean calibration pool (help clean dev, EveryAyah dev,
-TLOG clean train). No splices. Test speakers never enter the fit or the
-threshold. The two cutoffs are the probe's: zero extra OOF clean flags
-(``strict``) and +0.10 extra clean flags per minute (``high``).
+TLOG clean train). No splices. Test speakers never enter the fit.
 
-Prints aggregates. The JSON is weights and those two thresholds only.
+``high`` is the probe's sensitivity point: +0.10 extra out-of-fold clean
+flags per calibration minute.
+
+``strict`` is the no-extra-false-flag point, 0.987. A calibration-only rule
+(median OOF score of each word type that occurs at least 8 times, then one
+step above the highest of those medians) was tried first. It lands near
+0.765, because the scores that sit above 0.99 are a few takes, not the
+typical take of that word. Yazin set strict to 0.987. That cutoff is
+test-informed: it is the probe's no-extra-false-flag row, not a number
+read off the calibration pool.
+
+Prints calibration aggregates only. The JSON is weights and the two
+thresholds.
 """
 from __future__ import annotations
 
@@ -26,18 +36,15 @@ from train_eval import (  # noqa: E402
     SET_HELP_ACTED,
     SET_HELP_CLEAN,
     SET_SYNTH,
-    SET_TLOG_DEV,
     SET_TLOG_TRAIN,
-    SET_V1,
-    _bootstrap,
     _fit_linear,
     _load,
-    _metrics,
     _predict_linear,
-    _rate,
 )
 
-OPS = (0.0, 0.10)
+HIGH_RATE = 0.10
+# No-extra-false-flag operating point. Test-informed; see the module docstring.
+STRICT = 0.987
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_OUT = ROOT / "packages" / "core" / "src" / "recitation" / "slip-weights.json"
 
@@ -89,39 +96,39 @@ def main() -> None:
         raise SystemExit(f"calibration words {len(calib_words)} < 50000")
     order = calib_words[np.argsort(-oof[calib_words])]
     desc = oof[order]
+    # Calibration-only candidate: median per word type, types with >=8 takes.
+    type_key = np.stack([z["surah"], z["ayah"], z["word"]], axis=1)[calib_words]
+    medians: list[float] = []
+    # Pack the triple so identical words share one key without a Python loop
+    # over 64k rows twice.
+    packed = (
+        type_key[:, 0].astype(np.int64) * 1_000_000
+        + type_key[:, 1].astype(np.int64) * 1_000
+        + type_key[:, 2].astype(np.int64)
+    )
+    scores_c = oof[calib_words]
+    for key in np.unique(packed):
+        taken = scores_c[packed == key]
+        if len(taken) >= 8:
+            medians.append(float(np.median(taken)))
+    if not medians:
+        raise SystemExit("no calibration word type had 8 takes")
+    calib_median_rule = max(medians) + 1e-6
+    print(
+        f"calib type-median rule thr={calib_median_rule:.6f} "
+        f"(not used; |delta| vs {STRICT} is {abs(calib_median_rule - STRICT):.3f})",
+        flush=True,
+    )
     final = _fit_linear(x_word[idx], y[idx], "logistic")
     if final[0] != "model":
         raise SystemExit("logistic fit collapsed to a constant")
     _tag, model, mu, sd = final
-    word_set = sett[clip]
-    word_test = test[clip]
-    score_at = np.where(
-        ((word_set == SET_HELP_ACTED) & (word_test == 1))
-        | ((word_set == SET_HELP_CLEAN) & (word_test == 1))
-        | (word_set == SET_TLOG_DEV)
-        | (word_set == SET_V1)
-    )[0]
-    scores = oof.copy()
-    scores[score_at] = _predict_linear(final, x_word[score_at])
-    base = _metrics(z, None, None)
     from common import k_for_rate, threshold_at_k  # noqa: E402
 
-    thresholds = {}
-    for rate, name in ((0.0, "strict"), (0.10, "high")):
-        thr = float(threshold_at_k(desc, k_for_rate(rate, minutes)))
-        thresholds[name] = thr
-        m = _metrics(z, scores, thr)
-        boot = _bootstrap(base["rows"], m["rows"])
-        ff = " ".join(
-            f"{k} {_rate(m, k):.3f}({m['ff'][k]})" for k in ("help", "tlog", "v1")
-        )
-        print(
-            f"{name} thr={thr:.6f} P={m['P']:.3f} R={m['R']:.3f} "
-            f"caught={m['caught']}/{m['n']} dR={boot['dR']:+.3f}"
-            f"[{boot['dR_lo']:+.3f},{boot['dR_hi']:+.3f}] ff {ff} "
-            f"kind={m['per_kind']}",
-            flush=True,
-        )
+    high = float(threshold_at_k(desc, k_for_rate(HIGH_RATE, minutes)))
+    thresholds = {"strict": STRICT, "high": high}
+    print(f"strict thr={STRICT:.6f} source=test-informed", flush=True)
+    print(f"high thr={high:.6f} source=oof +{HIGH_RATE:.2f}/min", flush=True)
     coef = np.asarray(model.coef_, dtype=np.float64).reshape(-1)
     intercept = float(np.asarray(model.intercept_).reshape(-1)[0])
     payload = {
@@ -141,6 +148,8 @@ def main() -> None:
             "calib_words": int(len(calib_words)),
             "calib_minutes": round(minutes, 2),
             "dev_auc": None if dev_auc is None else round(dev_auc, 3),
+            "strict_source": "test-informed",
+            "calib_type_median": round(calib_median_rule, 6),
         },
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)

@@ -180,7 +180,7 @@ export interface ZipformerSessionOptions {
   debug?: boolean;
   /**
    * Slip head over encoder frames. Off by default. `true` or `"strict"` uses
-   * the zero-extra-clean-flags threshold; `"high"` uses the +0.10/min point.
+   * the no-extra-false-flag cutoff; `"high"` uses the sensitivity point.
    * If the model does not return encoder frames, the head stays off.
    */
   slipHead?: boolean | SlipSensitivity;
@@ -372,8 +372,8 @@ export class ZipformerSession {
   }
 
   /**
-   * Turn the slip head on or off. `"strict"` is the zero-extra-clean-flags
-   * threshold; `"high"` is the +0.10/min point. A model without encoder
+   * Turn the slip head on or off. `"strict"` is the no-extra-false-flag
+   * cutoff; `"high"` is the sensitivity point. A model without encoder
    * frames keeps the head off either way.
    */
   setSlipHead(mode: false | SlipSensitivity): void {

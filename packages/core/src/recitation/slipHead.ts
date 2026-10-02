@@ -25,9 +25,9 @@ export interface SlipHead {
   /** Logistic coefficients on the standardized features. Length 1024. */
   coef: Float32Array;
   intercept: number;
-  /** P(slip) cutoff: zero extra OOF clean flags. */
+  /** P(slip) cutoff: no extra false flags. Test-informed (0.987). */
   strict: number;
-  /** P(slip) cutoff: +0.10 extra clean flags per minute on the OOF pool. */
+  /** P(slip) cutoff: sensitivity trade-off, about +0.10 flags per minute. */
   high: number;
 }
 
