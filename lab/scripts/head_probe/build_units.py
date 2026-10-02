@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import HEAD_KINDS, IN_SCOPE, pool_span, units_from_track, word_flags
+from common import HEAD_KINDS, IN_SCOPE, units_from_track, word_flags
 
 SETS = ("help-acted", "help-clean", "ea", "tlog-train", "tlog-dev", "v1", "synth")
 SET_ID = {name: i for i, name in enumerate(SETS)}
@@ -71,7 +71,15 @@ def main() -> None:
     ap.add_argument("--labels", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True, help="units npz path; frames written beside it")
     ap.add_argument("--sets", default=",".join(SETS))
+    ap.add_argument("--synth-manifest", type=Path,
+                    help="synth.jsonl; the eval row does not keep the splice label")
     args = ap.parse_args()
+    synth_meta: dict[str, dict] = {}
+    if args.synth_manifest and args.synth_manifest.is_file():
+        for line in args.synth_manifest.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                row = json.loads(line)
+                synth_meta[row["id"]] = row
     labels = {}
     if args.labels.is_file():
         for line in args.labels.read_text(encoding="utf-8").splitlines():
@@ -88,7 +96,7 @@ def main() -> None:
     args.out.parent.mkdir(parents=True, exist_ok=True)
     hop_dur: list[float] = []
     hop_n: list[int] = []
-    n_missing = n_err = n_clips = 0
+    n_missing = n_err = n_clips = n_drop_synth = 0
     train_speakers: set[str] = set()
     test_speakers: set[str] = set()
 
@@ -105,6 +113,20 @@ def main() -> None:
                 rec = json.loads(line)
                 seen[rec["id"]] = rec  # last write wins (resume retries)
             for rec in seen.values():
+                if set_name == "synth":
+                    meta = synth_meta.get(rec["id"])
+                    if not meta:
+                        n_missing += 1
+                        continue
+                    rec = {
+                        **rec,
+                        "surah": meta["surah"],
+                        "ayah": meta["ayah"],
+                        "word": meta["word"],
+                        "label_kind": meta["label_kind"],
+                        "span_s": meta.get("span_s"),
+                        "speaker": meta.get("speaker") or rec.get("speaker"),
+                    }
                 n_clips += 1
                 if rec.get("error"):
                     n_err += 1
@@ -142,13 +164,7 @@ def main() -> None:
                     lab_w = -1 if lab.get("word_index") is None else int(lab["word_index"])
                     span_s = lab.get("span_s")
                 rule_keys, extra = word_flags(rec.get("issues"))
-                clip_i = len(clips)
-                for surah_i, ayah_i, word_i in rule_keys:
-                    issues.append((clip_i, surah_i, ayah_i, word_i))
-                clips.append((
-                    SET_ID[set_name], 1 if split == "test" else 0, gid, dur,
-                    in_scope, kind, lab_s, lab_a, lab_w, mapped, extra,
-                ))
+                pending = []
                 for unit in units_from_track(rec.get("trackPost")):
                     a, b = int(unit["a"]), int(unit["b"])
                     if b < a:
@@ -159,7 +175,6 @@ def main() -> None:
                     lo = max(0, a - 1)
                     hi = min(len(enc), max(lo + 1, b + 1))
                     sl = np.asarray(enc[lo:hi], dtype=np.float32)
-                    mean, mx, _ = pool_span(enc, a, b, pad=1)
                     y = 0
                     ign = 0
                     if lab and mapped and unit["ayah"] == lab_a and (lab_s < 0 or unit["surah"] == lab_s):
@@ -167,26 +182,38 @@ def main() -> None:
                             ign = 1
                         elif lab_w >= 0:
                             dist = abs(int(unit["word"]) - lab_w)
+                            # A synth splice only counts when the tracker still
+                            # emits that word. A gap-filled span is not the splice.
+                            landed = dist == 0 and not (set_name == "synth" and unit["skipped"])
                             if lab["label_kind"] in HEAD_KINDS:
-                                y = int(dist == 0)
+                                y = int(landed)
                                 ign = int(0 < dist <= 1)
                             else:
                                 ign = int(dist <= 1)
-                    span0 = span1 = -1
-                    if y and span_s and len(span_s) == 2:
-                        # Filled in after hop is known; store seconds in a side list.
-                        pass
+                    pending.append((
+                        y, ign, int((unit["surah"], unit["ayah"], unit["word"]) in rule_keys),
+                        unit["surah"], unit["ayah"], unit["word"], lo, a, b, sl,
+                    ))
+                # Dev splices whose word the tracker lost are not labels. Drop the clip.
+                if set_name == "synth" and not any(row[0] for row in pending):
+                    n_drop_synth += 1
+                    continue
+                clip_i = len(clips)
+                for surah_i, ayah_i, word_i in rule_keys:
+                    issues.append((clip_i, surah_i, ayah_i, word_i))
+                clips.append((
+                    SET_ID[set_name], 1 if split == "test" else 0, gid, dur,
+                    in_scope, kind, lab_s, lab_a, lab_w, mapped, extra,
+                    span_s if (lab and mapped) else None,
+                ))
+                for y, ign, ruled, surah_i, ayah_i, word_i, lo, a, b, sl in pending:
                     raw = sl.astype(np.float16)
                     raw.tofile(frames_out)
                     words.append((
-                        y, ign, int((unit["surah"], unit["ayah"], unit["word"]) in rule_keys),
-                        unit["surah"], unit["ayah"], unit["word"], clip_i,
+                        y, ign, ruled, surah_i, ayah_i, word_i, clip_i,
                         cursor, cursor + len(sl), lo, a, b,
                     ))
                     cursor += len(sl)
-                # span seconds stashed on the clip for a second fill — kept on the word via y.
-                # Re-read is wasteful; store seconds now in the clip and patch words after hop.
-                clips[-1] = (*clips[-1], span_s if (lab and mapped) else None)
 
     crossed = test_speakers & train_speakers
     if crossed:
@@ -251,7 +278,8 @@ def main() -> None:
     print(
         f"clips={len(clips)} err={n_err} missing_enc={n_missing} words={len(words)} "
         f"pos={int(y.sum())} ign={int(col(1, np.int8).sum())} frames={cursor} hop={hop:.3f} "
-        f"train_speakers={len(train_speakers)} test_speakers={len(test_speakers)}"
+        f"train_speakers={len(train_speakers)} test_speakers={len(test_speakers)} "
+        f"synth_dropped={n_drop_synth}"
     )
 
 
