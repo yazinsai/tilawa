@@ -195,6 +195,10 @@ def main(argv: list[str] | None = None) -> None:
                     if args.diag:
                         row["diag"] = res.get("diag") or []
                         row["seen"] = res.get("seen") or {}
+                        if res.get("trackPost"):
+                            row["trackPost"] = res["trackPost"]
+                        if res.get("trace"):
+                            row["trace"] = res["trace"]
                         if res.get("track"):
                             row["track"] = res["track"]
                 except Exception as exc:

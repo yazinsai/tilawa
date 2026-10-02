@@ -88,6 +88,7 @@ const DIAG = process.env.ZIPFORMER_DIAG === "1";
 const require = createRequire(path.join(ORT_DIR, "/"));
 const ort = require("onnxruntime-node");
 const lpState: { key: string; calls: Float32Array[]; next: number } = { key: "", calls: [], next: 0 };
+let encCalls: Float32Array[] = [];
 if (LP_MODE === "record") {
   const create = ort.InferenceSession.create.bind(ort.InferenceSession);
   ort.InferenceSession.create = async (model: unknown, opts: Record<string, unknown> = {}) => {
@@ -96,6 +97,8 @@ if (LP_MODE === "record") {
     s.run = async (feeds: unknown) => {
       const out = await run(feeds);
       lpState.calls.push(Float32Array.from(out.log_probs.data as Float32Array));
+      const enc = out["/Transpose_226_output_0"];
+      if (enc) encCalls.push(Float32Array.from(enc.data as Float32Array));
       return out;
     };
     return s;
@@ -199,6 +202,7 @@ async function recognize(host: ZipformerSession, pcm: Float32Array, mode = "trac
   if (LP_MODE) {
     lpState.key = key;
     lpState.calls = [];
+    encCalls = [];
     lpState.next = 0;
     if (LP_MODE === "replay") loadLp(key);
     hostInternals.resetDecoder = () => {
@@ -323,7 +327,16 @@ async function recognize(host: ZipformerSession, pcm: Float32Array, mode = "trac
   };
   const preStop = process.env.ZIPFORMER_DIAG_TRACK === "1" ? dumpTrack() : null;
   collect(await host.stop());
-  if (LP_MODE === "record") saveLp(key);
+  const postStop = process.env.ZIPFORMER_DIAG_TRACK === "1" ? dumpTrack() : null;
+  if (LP_MODE === "record") {
+    saveLp(key);
+    if (encCalls.length) {
+      const per = encCalls[0]!.length; const b = Buffer.alloc(8 + encCalls.length * per * 4);
+      b.writeUInt32LE(encCalls.length, 0); b.writeUInt32LE(per, 4);
+      encCalls.forEach((c, i) => Buffer.from(c.buffer, c.byteOffset, c.byteLength).copy(b, 8 + i * per * 4));
+      writeFileSync(path.join(LP_CACHE, `${key}.enc.f32`), b);
+    }
+  }
 
   const tallies = host.tallies;
   const verses: BridgedAyahTally[] = host.verses;
@@ -355,6 +368,7 @@ async function recognize(host: ZipformerSession, pcm: Float32Array, mode = "trac
     ...(TRACE ? { trace } : {}),
     ...(DIAG ? { diag, seen } : {}),
     ...(preStop ? { track: preStop } : {}),
+    ...(postStop ? { trackPost: postStop } : {}),
     transcript: host.transcript,
     events,
     state: host.engineState,
