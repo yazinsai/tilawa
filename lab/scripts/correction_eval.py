@@ -329,6 +329,7 @@ def help_clips(manifest: Path, audio_dir: Path, use: str) -> list[dict]:
                 "gender": row.get("gender"),
                 "level": row.get("level"),
                 "split": row.get("split"),
+                "speaker": row.get("speaker"),
                 "ayah_span": "single" if n_ayahs <= 1 else "multi",
                 "use": use,
             }

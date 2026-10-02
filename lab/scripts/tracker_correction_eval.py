@@ -110,6 +110,12 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--dev-ids", type=Path, default=Path("/tmp/tlog_meta/dev_ids.txt"))
     ap.add_argument("--fetch", action="store_true")
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--extra", action="append", default=[],
+                    help="NAME=clips.jsonl (id, audio, split, speaker, duration_s) added to --sets")
+    ap.add_argument("--track", action="store_true",
+                    help="record the post-stop tracker (encoder-frame word spans)")
+    ap.add_argument("--slim", action="store_true", help="omit events and diag from the jsonl")
+    ap.add_argument("--resume", action="store_true", help="skip clip ids already written without error")
     args = ap.parse_args(argv)
     out = args.out.resolve()
     if str(out).startswith(str(REPO.resolve())):
@@ -144,10 +150,18 @@ def main(argv: list[str] | None = None) -> None:
         env["ZIPFORMER_LP_MODE"] = args.lp
     if args.diag:
         env["ZIPFORMER_DIAG"] = "1"
+    if args.track:
+        env["ZIPFORMER_DIAG_TRACK"] = "1"
     for kv in args.env:
         k, v = kv.split("=", 1)
         env[k] = v
 
+    for spec in args.extra:
+        name, path = spec.split("=", 1)
+        clips = [json.loads(line) for line in Path(path).read_text(encoding="utf-8").splitlines() if line.strip()]
+        builders[name] = lambda clips=clips: clips
+        if name not in want:
+            want.append(name)
     jobs: list[tuple[str, dict]] = []
     for name in want:
         clips = builders[name]()
@@ -157,8 +171,20 @@ def main(argv: list[str] | None = None) -> None:
             clips = clips[: args.limit]
         jobs.extend((name, c) for c in clips)
     out.mkdir(parents=True, exist_ok=True)
+    done_ids: dict[str, set[str]] = {}
     for name in want:
-        (out / f"{name}.jsonl").unlink(missing_ok=True)
+        dest = out / f"{name}.jsonl"
+        done_ids[name] = set()
+        if args.resume and dest.is_file():
+            for line in dest.read_text(encoding="utf-8").splitlines():
+                if not line.strip():
+                    continue
+                row = json.loads(line)
+                if "error" not in row:
+                    done_ids[name].add(str(row["id"]))
+        elif dest.is_file():
+            dest.unlink()
+    jobs = [(name, clip) for name, clip in jobs if str(clip["id"]) not in done_ids.get(name, set())]
 
     q: queue.Queue = queue.Queue()
     for j in jobs:
@@ -176,6 +202,7 @@ def main(argv: list[str] | None = None) -> None:
                 except queue.Empty:
                     return
                 row = {"id": clip["id"], "duration_s": clip.get("duration_s"), "split": clip.get("split"),
+                       "speaker": clip.get("speaker"), "set": name,
                        "expected_verses": clip.get("expected_verses") or [], "issues": [], "notes": []}
                 try:
                     audio = load_audio(clip["audio"])
@@ -190,13 +217,16 @@ def main(argv: list[str] | None = None) -> None:
                     row["issues"] = [ce.slim_issue(i) for i in res.get("corrections") or []]
                     row["notes"] = res.get("notes") or []
                     row["verses"] = [[v["surah"], v["ayah"]] for v in res.get("verses") or []]
-                    row["events"] = res.get("events") or []
                     row["decode_ms"] = res.get("decodeMs")
-                    if args.diag:
+                    if res.get("lpKey"):
+                        row["lpKey"] = res["lpKey"]
+                    if res.get("trackPost"):
+                        row["trackPost"] = res["trackPost"]
+                    if not args.slim:
+                        row["events"] = res.get("events") or []
+                    if args.diag and not args.slim:
                         row["diag"] = res.get("diag") or []
                         row["seen"] = res.get("seen") or {}
-                        if res.get("trackPost"):
-                            row["trackPost"] = res["trackPost"]
                         if res.get("trace"):
                             row["trace"] = res["trace"]
                         if res.get("track"):

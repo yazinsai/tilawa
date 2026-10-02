@@ -322,15 +322,16 @@ async function recognize(host: ZipformerSession, pcm: Float32Array, mode = "trac
     return tr.heard.map((h, i) => {
       const cell = tr.trail[i]!;
       const w = tr.firstWord + (cell <= 0 ? 0 : tr.localWordOfPos[Math.min(cell, tr.len) - 1]!);
-      return [h.ch, h.frame, c.wordAyah[w], c.wordInAyah[w]];
+      return [h.ch, h.frame, c.wordSurah[w], c.wordAyah[w], c.wordInAyah[w]];
     });
   };
   const preStop = process.env.ZIPFORMER_DIAG_TRACK === "1" ? dumpTrack() : null;
   collect(await host.stop());
   const postStop = process.env.ZIPFORMER_DIAG_TRACK === "1" ? dumpTrack() : null;
   if (LP_MODE === "record") {
-    saveLp(key);
+    if (process.env.ZIPFORMER_SKIP_LP !== "1") saveLp(key);
     if (encCalls.length) {
+      mkdirSync(LP_CACHE, { recursive: true });
       const per = encCalls[0]!.length; const b = Buffer.alloc(8 + encCalls.length * per * 4);
       b.writeUInt32LE(encCalls.length, 0); b.writeUInt32LE(per, 4);
       encCalls.forEach((c, i) => Buffer.from(c.buffer, c.byteOffset, c.byteLength).copy(b, 8 + i * per * 4));
@@ -369,6 +370,7 @@ async function recognize(host: ZipformerSession, pcm: Float32Array, mode = "trac
     ...(DIAG ? { diag, seen } : {}),
     ...(preStop ? { track: preStop } : {}),
     ...(postStop ? { trackPost: postStop } : {}),
+    ...(key ? { lpKey: key } : {}),
     transcript: host.transcript,
     events,
     state: host.engineState,
