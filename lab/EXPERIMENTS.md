@@ -927,6 +927,90 @@ Seen / unseen (a test label is unseen when no acted-dev label of its kind names 
 
 Other kinds are unchanged. New-hit latency is 3.3 s on a0w and 4.0 s on shipped after the label start. With the similar-verse check on as well, a0w + passage goes 48 → 91/207 and a0w without a passage 37 → 61/207, with help clean / v1 FF equal to rules-only. **Caveat:** 31/36 test skip_ayah labels sit on dev-labelled prompts, and every new catch is on those; the 5 prompt-disjoint labels gain 0 (4/5 already caught). The two shipped clean flags are decode-driven: a partial ayah read as a restart, and an ayah decoded as garbage before a cheap jump. a0w raises neither. Two textually identical neighbour pairs (94:5/6, 109:3/5) make 8/34 dev labels uncatchable by text.
 
+## Correction research loop (2026-09-30 – 10-04)
+
+Goal: catch real learner letter / vowel / tajweed mistakes with no extra clean false alarms. Every bar below was locked before scoring. Shared gates:
+
+- **Letters**: sobolev Hafs `Letters`, 39 real learner letter errors, eval only. A hit is a slip on the labelled word ±1 ("near").
+- **Clean guards**: v1, EveryAyah dev (6 reciters in no training manifest) and the usable-QC TLOG subset. Acoustic arms must keep clean slips/min ≤ 1.5× a0w.
+- **PER**: q-lab headline on v1.1 refs (600 clips). Fine-tunes of a0w need ≤ 3.90. Own-weights models need ≤ 4.45 (v3) to matter.
+- **Tracking**: v1 53/53 and held-out multi 56/58.
+
+All acted, help and Iqra numbers are aggregates only. Tags: **SHIPPED**, **PARKED** (kept, off), **KILLED**. Spend is Modal, rounded. The loop spent roughly $680 of a $1,000 budget, about three quarters of it on B0, the LibriSpeech run and the two OTC arms.
+
+### 0.4.0: a0w + structural rules (SHIPPED)
+
+`@tilawa/core` 0.4.0 (PR #31 `a6f4e92`, PR #32 `4ba6bb4`). The default model is a0w-ep1-a0.5 int8 (released-file PER **3.59** vs v3 4.45; weights on the `zipformer-a0w-ep1-a0.5` GitHub release, NPL-1.2). Two text-only rules run at `stop()`:
+
+- **Ayah-order check.** Segments the free decode at pauses and flags a skipped ayah. Acted skip_ayah with no passage: 8 → **21/36** (all 13 new flags correct). Synthetic held-out passages: **103/120**.
+- **Similar-verse check.** Flags a jump into a look-alike ayah. With the passage known: substitution 9 → **28/46**, skip_word 23 → **35/56**, precision ≈ 0.99. Synthetic sister-ayah: **54/100** (engine alone 11). It failed its unseen-word gate (1/18), so it ships as a structural rule, not a generalisation claim.
+
+Together on the acted test: 37 → **61/207** without the passage and 48 → **91/207** with it, at rules-only false flags. **0 flags in 211 clean minutes** and on 220 synthetic controls. About 5 ms at stop. Rules v2 (F1 0.150 → 0.259) and the correction-mode tracker (F1 0.267 → 0.335) were already in. **Limit:** real learners are untouched. Shipped defaults catch 0/42 sobolev letter/vowel words, 0/11 tajweed and 4/502 RetaSy mistake clips. The release catches structure (skips, jumps), not pronunciation.
+
+### Own-weights acoustic models (no Quran-Lab weights as init, blend or teacher)
+
+- **B0, from scratch (KILLED, ~$293).** Same graph, B0 leak-free six-source mix (3,514 h/epoch), waqf-2 labels, 25 epochs. Bar: headline < v3 and holdout insertions ≥ 8.83. Best epoch 23: **4.74** (v3 4.45, +0.29 [−0.26, +0.80]; a0w 3.60). Insertions 7.34 < 8.83, so it hears deviant speech less than v3. Tracking 56/58 and 53/53. The gap to a0w is the v3 init, not compute: raw a0w-ep1 on the same data, labels and windows reaches 3.64 after ~3.3k steps, while B0 needs ~75k steps for 4.74.
+- **B0 checkpoint averaging (KILLED, $0.34).** Bar: gain ≥ 0.3. The dev-picked window (epochs 20–25) is **5.06**, 0.32 *worse* than epoch 23. Substitutions fall and insertions rise by more.
+- **LibriSpeech-init gate (GO, $14.82).** icefall LibriSpeech streaming Zipformer2 encoder (same graph, `--pos-dim 48`, fresh 251-unit CTC head), one epoch on B0's mix. Bar: ≤ B0 epoch-1 − 0.5 and dev-EveryAyah insertions not worse. Result: **11.18** vs 16.78, insertions 0.96 vs 1.17.
+- **LibriSpeech-init long run (KILLED, $130.73).** Bar: final raw headline ≤ 4.0. Halfway (epoch 4) was 6.31, under the 8.94 continue line. Epoch 10: **5.07** (avg-5 5.09). Correction was not scored. Even with no Quran-Lab tensor inside, it isn't cleanly MIT: the waqf-2 lexicon traces to NPL-1.2.
+- **S1/S2 reciter diversity + noise (KILLED as a correction lever, $45.21).** S1 added 25 new named reciters (17 QUA Hafs, 8 mp3quran), with 0 fingerprint matches ≥ 0.6, plus MUSAN noise/music and 30% RIR. S2 ran one epoch from B0 epoch 23: C (old mix) vs D (S1 mix + augmentation + left 256). The dev-EveryAyah PER go bar fired (D − C **−0.439**). But holdout insertions went the wrong way (7.26 vs C 8.51; floor 8.83), and the headline is 4.41 against a0w's 3.60. No S3.
+- **Learner-deviation probe (GO, $0.07).** On learner-like cuts in the mix, a0w's free decode exceeds an EveryAyah-dev line that 0.97% of dev cuts cross on **9.2%** (Iqra 9.4%, RetaSy 6.7%, usable TLOG 0%). Muaalem deviates on 97% of the same words. So canonical labels are training the "write the canonical phone" pull on real deviations. This motivated OTC.
+- **Weak-label OTC on Iqra (KILLED, $42.54 + $44.32).** icefall OTC graph with a ⋆ token on Iqra cuts only, RetaSy out of the mix, one epoch. The first arm, on the LibriSpeech base, was stopped unscored when that base died. The second, on S2-D, failed three gates: Letters **9/39** (bar 20), EveryAyah-dev slips 2.61/min (bar 1.52) and PER 4.97 (bar 3.90). ⋆ added 0 catches and put 0 star-flagged words on the calibration set.
+
+### Acoustic fine-tunes of a0w and heads on its frames
+
+- **Word-shuffle fine-tune (KILLED, ~$58).** Real Quran words in random order (~30% of epoch hours) to remove ayah context. Bar: Letters ≥ 20/39. Result: **11/39**.
+- **Phone-splice fine-tune (KILLED, ~$45).** One phone swapped in real audio from the same reciter, labelled with what is there. Result: Letters **13/39**, PER 3.60 → 3.81. Unseen acted vowels rose (1 → 5/5), but the model learned the splice seam: it wrote the swapped token on 82% of consonant splices, where Muaalem heard the swap only 32% of the time. The dataset is kept.
+- **Splice checker (KILLED, $0).** A per-phoneme checker over a0w frames plus the expected phonemes, trained on splices. Bar: +3 unseen real catches with no FF rise. Result: **+1**, and help-clean flags 2 → 3.
+- **Final-frame heavy-letter (tafkheem) head (KILLED, $0.02).** 0/7 gating catches, sobolev tajweed 0/11, Letters 0/39. Usable-TLOG clean flags 2 → 5. Do not retry.
+- **Stack-2 vowel scorer (PARKED, ~$0.10).** An early-layer (stack-2) readout of a0w scoring short-vowel swaps. Unseen acted vowels 1 → **4/5**, at about 10× the shipped false alarms. It is a high-sensitivity-mode idea only, not shipped.
+
+### Hearing probes on a0w
+
+- **SSL readout (idea 1, KILLED, ~$1).** A linear 251-unit CTC on frozen w2v-BERT 2.0 layers, compared with the same head on a0w's final frame. Bar: control + 6 at matched clean slips. Layer 8 reaches 39/39 but bottoms out at **27.5 slips/min** against the control's 6.8 (control: 20/39), so the rates never match.
+- **Context window (idea 4, INCONCLUSIVE, $0.61).** a0w exported at chunks 8/16/24/32: Letters 11/11/13/11. Muaalem cut right after the labelled word went *up*, 31 → 37/39. Neither bar fired. Right context isn't the lever, and there is no full-context arm.
+
+### Ideas 1–28
+
+Ideas 1, 3 and 4 have entries above. "Strict FF" means engine false flags ≤ the shipped stack's count on each clean guard. "Guard bar" means at most 1 / 2 / 2 flagged clips on v1 / EveryAyah dev / usable TLOG, about a 95% cut from a0w raw.
+
+| # | idea | bar | result | $ | tag |
+|---|---|---|---|---:|---|
+| 2 | cross-model agreement gate | clean-slip Jaccard ≤ 0.3, hit Jaccard ≥ 0.6 | a0w × phone-splice: clean 0.42, letters 0.86; the AND rule was unscorable (flags never stored) | 0 | INCONCLUSIVE → see 21 |
+| 5 | stack-2 consonant-pair scorer | +3 Letters at strict FF | unscorable: head weights and v1 frames were never stored | 0 | PARKED |
+| 6 | TTS counterfactual errors (Iqra_TTS) | a0w–Muaalem gap ≥ 15 pp, canonical edits ≤ 2× | gap 26 pp, 1.71×: proxy GO. On listening the audio isn't human | 0.16 | KILLED |
+| 7 | foreign-phone (L1) units | Muaalem's alternatives outside the 251 units | 18/22 of Muaalem's exact-hit alternatives are in-inventory | 0 | KILLED |
+| 8 | learner-edit likelihood gate (edit-type table) | ≥ 16/39 at strict FF | **1/39**: learner and clean edits share types | 0.21 | KILLED |
+| 9 | audit of public "what was said" labels | ≥ 1,000 divergent rows, Muaalem agrees ≥ 60% | no natural human labels anywhere; IS26 is acted, 68 words | 0.16 | KILLED |
+| 10 | listened realised-label fine-tune | needs a human listen | not started | 0 | PARKED |
+| 11 | natural-learner eval from held-out Iqra | ≥ 150 words from ≥ 15 speakers | not started; Iqra has no speaker ids | 0 | PARKED |
+| 12 | voice-clone letter swaps (Chatterbox) | correct takes ≤ 2× Muaalem's EveryAyah-dev edits | **4.8×** per phone (6.1×/min); yield 33.7% | 1.5 | KILLED |
+| 13 | inpaint-both edit pairs (Arabic F5) | canonical take ≤ 2×, yield ≥ 30% | 3.87× whole clip, 14.1× at the seam, edited word 48.8% per phone; yield 16.8% | 3.26 | KILLED |
+| 14 | confidence-feature slip detector | +3 Letters at strict FF | overlaps the margin/GOP/heard-ratio gates already in `correction.ts`; not probed | 0 | KILLED |
+| 15 | IS26 as a second Letters gate | no overlap with any training mix | support-only; catches nothing | 0 | PARKED |
+| 16 | Muaalem-confidence realised labels | IS26 precision ≥ 85% at recall ≥ 30% | **81.7%** at 31.6%: it hears *that* a phone deviated, not *what* was said | 0.27 | KILLED |
+| 17 | EveryAyah manifest hygiene | report only | bad audio is one reciter (Juhaynee); see below | 0 | SHIPPED (data) |
+| 18 | synthetic-edit paths | a recitation-trained editor | none exists | 0 | PARKED |
+| 19 | Muaalem → B0 distillation, teacher ceiling | ≥ 20/39, clean slips ≤ 1.5× a0w | 32/39, but clean slips **11× / 43× / 12×** a0w (≥ 3.1× on whole clips); gated to a0w's rate: 1/39 | 0.11 | KILLED |
+| 20 | Juhaynee-clean B0 continuation | bundled into 19's arm | died with 19 | 0 | KILLED |
+| 21 | two-judge confirm (a0w ∧ Muaalem, same consonant class) | ≥ 8/39 and the guard bar | 15/39, but **13 / 36 / 54** flagged clips; Muaalem confirms ~60% of a0w's clean edits | 0.11 | KILLED |
+| 22 | cross-reciter reference audit | ≥ 50% of clean slips on spots ≥ 3 of 6 pros share | **5/75** (6.7%); 80 of 96 edit ops occur on none of the 6 reciters | 0 | KILLED |
+| 23 | perturbation-stability vote | — | same bet as jitter (clean edits are stable); not run | 0 | KILLED |
+| 24 | pro-variant lattice | guard bar | 22's table caps it at ~17% of clean edits | 0 | KILLED |
+| 25 | ear-confirmed reference fixes | needs a listener | not started | 0 | PARKED |
+| 26 | per-speaker habit exclusion | ≥ 50% of clean edits are the speaker's own habits | **8/97** (8.2%); 73/97 occur on no other clip of that reciter | 0 | KILLED |
+| 27 | in-clip contrast | — | same premise as 26; not run | 0 | KILLED |
+| 28 | channel-matched front end | low/high-bandwidth edit-rate ratio ≥ 2 | **1.14** (0.72–1.81) | 0 | KILLED |
+
+**Cheap-probe phase: closed after idea 28.** Every post-decode route decides whether an a0w edit is real using evidence outside the edit, and every source of that evidence has now been tried: edit type (8), confidence (14), a second model (2, 19, 21), stability (jitter, 23), context (4), the reference text (22), the speaker (26), the channel (28) and human labels (9, 10, 16). Reopening needs a lifted constraint: training on our own base (B0 epoch 23, Juhaynee out) with a real-learner signal, a human listen, or an opt-in high-sensitivity product mode.
+
+### Eval and data hygiene
+
+- **Clean-guard listen (60 blind items).** Pre-registered call: ≥ 50% real lapses on help edits means the guard is mislabelled. Result: help **8/16** real lapses (Wilson 0.28–0.72) → mislabelled. Help clean dev/test are now report-only and untrusted. Calibration moves to EveryAyah dev.
+- **Eval window fix ($0).** Word times now come from the shipped tracker's spans, not the correction locator. Basmala-prefixed clips and words no tracker span covers are dropped. Shipped flags don't move (help / v1 / EveryAyah dev / TLOG = 2 / 2 / 0 / 3). Raw a0w slips fall mainly through the dropped clips (v1 4.07 → 2.59/min). The clean-guard call becomes **3/9**, inconclusive, and help clean stays untrusted.
+- **Juhaynee removed (2026-10-04).** `Abdullaah_3awwaad_Al-Juhaynee_128kbps` audio doesn't match its labels. 48 of 52 sampled ayahs failed, his early-layer clips have a median PER of 77%, and Muaalem alignment failed on 131/140 cuts. He is dropped from every EveryAyah training and fit manifest (≈ 119 h, about 3.4% of B0's epoch hours), and backups are kept. a0w, B0 and S2 were trained with him and have not been retrained.
+- **v1's EveryAyah clips are Alafasy.** v1's 23 EveryAyah clips match Alafasy's CDN recordings (md5 and duration). Alafasy is in a0w's training mix, so v1 is partly seen audio. v1 clean-flag numbers lean optimistic.
+
 ## Per-experiment notes
 
 **c2c-direct-mixed-tta** — Cyberistic's winning entry and current champion. It runs the mixed int4+int8 FastConformer ONNX once at 1.0x speed, skips augmentation for confident predictions, and only runs 0.9x/1.1x speed-perturbed passes on low-confidence samples. Reproduced locally over 3 runs at 100% recall, 100% precision, and 100% sequence accuracy on v1 (53 samples), with 0.84s average latency.
@@ -982,6 +1066,16 @@ Use case: r7 remains the highest-accuracy distillation teacher; r15 is now a pla
 15. **A 5-epoch full-mix fine-tune of v3.1 at lr 0.005 dropped tracker SeqAcc even as CTC valid loss fell 0.088→0.032 and ONNX PER 5.56%→4.37%.** ft-v31: v1 53→45, v3 247→231, qlab 571→566 (tlog −6, nufais +1). Failures are mostly multi-ayah truncations, not wrong-surah. Lower LR / fewer epochs / freeze encoder next — do not ship this checkpoint.
 16. **Fine-tuning v3.1 on isolated-ayah data lowers PER but breaks multi-ayah tracking.** Epoch sweep (fp32): v1 53→46→44→45 and v3 247→225→214→231 at init/ep1/ep2/ep5. CTC skips short connecting ayahs (acoustic); `MIN_WORD_FRACTION=0.5` plus `_contiguous_head` then report only the prefix (matcher). **E1 B1 windows repair that failure** (ft-v31 9/21 multi → ft-multi ep2 19/21) but a reduced studio-heavy mix wrecks tlog (194→174). **E4** put the same windows in the full mix at mux ×2.5 (~27% of hours) + E2's gentle LR: raw multi stays broken (11/21) because qua still dominates; α=0.5 blends (interp-mf1-a0.5 / interp-mf2-a0.5) **tie** interp-gentle-a0.5 on 53/43/248/572 with an identical miss set and worse PER (4.27% vs 4.09%). α=0.5 of a mild FT is an attractor, not a knob that stacks data recipes. interp-gentle-a0.5 stays the promoted candidate. Matcher-only (E3) recovered 0 misses.
 17. **Gemini 3.1 Pro oracle on remaining Zipformer misses: 0 genuine model errors.** Independent `gemini-3.1-pro-preview` transcripts of the 21 reference/interp-gentle misses (2026-09-16): 14/16 confusable pairs are verbatim-identical in `quran.json` and undecidable from audio. v3 gold has two confirmed mislabels (`tlog_m043_010_043`, `tlog_m044_010_043` are 10:42) plus an incomplete span (`tlog_m008_107_001` is 106:4 then 107:1); qlab `qul_alnufais__8_51` uses بظلام (3:182 wording). Effective ceiling is **251/256** v3 (not 249) and **≈573–574/583** q-lab without context priors — further gains need the tracker's `hint` (previous ayah / surah continuity), not more isolated-ayah FT. Manifests unchanged; see `artifacts/gemini_oracle/misses_oracle.json` and `benchmark/test_corpus_v3/KNOWN_LABEL_ISSUES.md`.
+18. **a0w hears some real learner letter errors, but its clean false edits can't be filtered out after decoding.** a0w raw hears **~16/39** sobolev Letters in tracker windows (23/39 on whole clips). The shipped engine passes 0/39 through. Its false edits on clean audio are one-off errors of the model:
+    - not shared by professional reciters (80/96 ops on none of 6);
+    - not habits of the speaker (8/97);
+    - not driven by the channel (1.14×);
+    - not split off by a second model (Muaalem confirms ~60% of them).
+
+    No post-decode rule tried separates them from real slips at a clean-safe operating point. Muaalem hears **31/39** at roughly **10×** a0w's clean flags in the same windows. Closing the gap needs acoustic-model change.
+19. **Synthetic mistakes teach the synthesis, not the learner.** Word-shuffle (11/39) and phone-splice (13/39, learned the seam) left Letters flat. TTS, voice-clone and inpainted takes all failed on their *correct* takes: not human, 4.8× and 3.87× Muaalem's clean edit rate. Any synthetic source must first pass a clean-take check against real recitation.
+20. **Own-weights Zipformers trail a0w by its v3 init, and none recovers deviation hearing.** B0 scored 4.74, the LibriSpeech init 5.07, S2-D 4.41 and OTC on S2-D 4.97, against a0w's 3.60. Every one stays under the holdout insertion floor. Neither more reciters, noise/reverb, averaging nor an English pretrained encoder closed the gap within budget.
+21. **The only correction gain that shipped is structural.** Ayah-order and similar-verse rules (37 → 61/207 without a passage, 0 flags in 211 clean minutes) are text rules over the decode. Pronunciation catches on real learners are still ~0 at the strict default.
 
 ## Methodology
 
@@ -995,7 +1089,15 @@ Raw JSON results live in `benchmark/results/`. Stability JSON from streaming run
 
 ## Roadmap
 
-Designs in `docs/plans/` for the work remaining between 78.6% streaming recall and the 95% target:
+Verse recognition is at 100% on v1/v2 with the Zipformer engine, so the open problem is correction (key findings 18–21). The cheap-probe phase is closed. Each remaining option needs a constraint lifted:
+
+- **Acoustic training on our own base** (B0 epoch 23, Juhaynee out), but only with a real-learner training signal. No public human "what was said" labels exist (idea 9), and Muaalem labels are not precise enough (idea 16).
+- **A human listen** to build verified learner labels (ideas 10, 11, 25). This is the one input no probe could replace.
+- **An opt-in high-sensitivity mode**: a0w raw letter flags (~15–16/39 Letters at ~0.4–2.6 flags/min on the guards), plus the parked stack-2 vowel scorer, clearly labelled as noisy. This is a product decision, not a probe.
+
+Don't retry decode-time thresholds, priors, stability or duration variants; synthetic-mistake training without a clean-take check; more clean recitation hours; or Quran-Lab weights in an own model.
+
+Historical, FastConformer streaming era (superseded by the Zipformer engine). Designs in `docs/plans/` for the work then remaining between 78.6% streaming recall and the 95% target:
 
 - **Curriculum / hard-example fine-tune (v7)** — start from v4-tlog, short low-LR second stage weighted by current failure buckets: short/noisy RetaSy, huruf-muqatta'at openers, clipped-start TLOG.
 - **Streaming-like augmentation** — explicit start/end truncation, mild reverb, random short-window crops, adjacent-ayah concatenation. Current augmentor only has speed/gain/noise/shift/silence; the model never sees what streaming actually produces.
