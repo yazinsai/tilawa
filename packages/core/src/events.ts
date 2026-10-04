@@ -1,0 +1,78 @@
+export const EVENT_SCHEMA_VERSION = 1;
+
+export interface WordRef {
+  surah: number;
+  ayah: number;
+  word: number;
+}
+
+export interface WordSpan {
+  start: WordRef;
+  end: WordRef;
+}
+
+export interface PositionCandidate {
+  /** The most recently recited word. */
+  word: WordRef;
+  /** Words covered by the evidence so far; may cross ayahs. */
+  span: WordSpan;
+  confidence: number;
+  /** Normalised weighted alignment cost used for ranking. 0 is an exact match. */
+  cost: number;
+}
+
+export type TrackerState = "acquiring" | "locked" | "ambiguous" | "lost";
+
+export interface PositionEvent {
+  type: "position";
+  v: typeof EVENT_SCHEMA_VERSION;
+  timeMs: number;
+  referenceVersion: string;
+  expected: WordRef | null;
+  /** Ranked best first; deduplicated so each entry is a distinct location. */
+  observed: PositionCandidate[];
+  state: TrackerState;
+}
+
+export type MemorizationErrorClass = "wrong_word" | "omitted_word" | "added_word" | "skipped_passage";
+
+export type PronunciationErrorClass =
+  | "short_vowel"
+  | "consonant_h_ha"
+  | "consonant_ain_hamza"
+  | "consonant_sad_sin"
+  | "consonant_dad_dal"
+  | "consonant_ta_ta"
+  | "consonant_qaf_kaf"
+  | "consonant_dhal_zay"
+  | "consonant_tha_sin"
+  | "missing_shadda"
+  | "madd_natural";
+
+export type ErrorClass = MemorizationErrorClass | PronunciationErrorClass;
+
+export type CheckerState = "suspected" | "confirmed" | "resolved" | "uncertain";
+
+export interface CheckerEvent {
+  type: "checker";
+  v: typeof EVENT_SCHEMA_VERSION;
+  id: string;
+  timeMs: number;
+  state: CheckerState;
+  errorClass: ErrorClass;
+  location: WordRef;
+  expected?: string;
+  observed?: string;
+  confidence: number;
+}
+
+export interface CapabilityEvent {
+  type: "capabilities";
+  v: typeof EVENT_SCHEMA_VERSION;
+  modelVersion: string;
+  referenceVersion: string;
+  supported: ErrorClass[];
+  unsupported: ErrorClass[];
+}
+
+export type EngineEvent = PositionEvent | CheckerEvent | CapabilityEvent;
