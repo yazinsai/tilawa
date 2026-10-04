@@ -24,6 +24,28 @@ export interface EngineConfig {
   idleFrames: number;
   maxStruggles: number;
   settleFrames: number;
+  /** Correction mode: on lock, start the tracker at the hit ayah's first word
+   * and replay up to this many heard chars per expected char of the words
+   * before the hit (0 = off). */
+  backfillRatio: number;
+  /** Correction mode: when the take ends before any lock, align the buffered
+   * chars to the best search hit at or under this distance for the final word
+   * check (0 = off). */
+  stopAlignDistance: number;
+  /** Correction mode with an expected passage: extra cost of a tracker jump
+   * to a word outside the passage (similar passages elsewhere in the surah). */
+  outsideJumpCost: number;
+  /** Expected passage, interior ayah A the tracker sits in: A counts as
+   * skipped when at least `skipMinChars` heard chars aligned to A fit A+1 with
+   * distance at most `skipMaxDistance`, and better than A by `skipMargin`.
+   * `skipMinChars` 0 disables. */
+  skipMinChars: number;
+  skipMaxDistance: number;
+  skipMargin: number;
+  /** Max fraction of those chars the A+1 reading may leave unaligned at its head. */
+  skipMaxHead: number;
+  /** Correction mode: see `VerdictTracer.anchorAyahEnd` (0 = off). */
+  anchorAyahEnd: number;
 }
 
 export const DEFAULT_CONFIG: EngineConfig = {
@@ -52,6 +74,14 @@ export const DEFAULT_CONFIG: EngineConfig = {
   idleFrames: 200,
   maxStruggles: 3,
   settleFrames: 25,
+  backfillRatio: 1.5,
+  stopAlignDistance: 0.35,
+  outsideJumpCost: 0,
+  skipMinChars: 10,
+  skipMaxDistance: 0.35,
+  skipMargin: 0.25,
+  skipMaxHead: 0.1,
+  anchorAyahEnd: 2,
 };
 
 export const BUFFER_CAP = 1000;

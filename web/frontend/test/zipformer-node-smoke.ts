@@ -21,10 +21,10 @@ const SAMPLE_RATE = 16000;
 
 const MODEL =
   process.env.ZIPFORMER_MODEL ??
-  resolve(FRONTEND, "public/models/zipformer_interp_gentle_a05.int8.onnx");
+  resolve(FRONTEND, "public/models/zipformer_a0w_ep1_a05.int8.onnx");
 const IO_PATH =
   process.env.ZIPFORMER_IO ??
-  resolve(FRONTEND, "public/models/zipformer_interp_gentle_a05.io.json");
+  resolve(FRONTEND, "public/models/zipformer_a0w_ep1_a05.io.json");
 const CORPUS =
   process.env.ZIPFORMER_CORPUS ??
   resolve(FRONTEND, "public/zipformer_quran.json");

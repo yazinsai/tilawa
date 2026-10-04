@@ -39,10 +39,11 @@ import { KaldiFbank } from "./fbank.js";
 import { QuranCorpus } from "./corpus.js";
 import { QuranIndex, stripPreambles } from "./search.js";
 import { RecitationEngine } from "./engine.js";
+import type { Tracker } from "./tracker.js";
 import { BLANK_ID, TOKENS } from "./tokens.js";
 import { costTable } from "./phonemeCost.js";
 import { normalizedDistance } from "./alignment.js";
-import type { EngineEvent, FallbackHit, WordVerdict } from "./types.js";
+import type { EngineEvent, ExpectedPassage, FallbackHit, WordVerdict } from "./types.js";
 import {
   ZipformerRunner,
   type OrtLike,
@@ -51,14 +52,33 @@ import {
 } from "./zipformerRunner.js";
 import DEFAULT_IO from "./zipformer-io.json" with { type: "json" };
 
-import { CorrectionController, type CorrectionAction, type RecitationMode } from "./correction.js";
+import { CorrectionController, type CorrectionAction, type CorrectionIssue, type RecitationMode } from "./correction.js";
+import { FramePosteriors } from "./posteriors.js";
+import { A0W_SLIP_HEAD, EncoderFrames, slipThreshold, type SlipHead, type SlipSensitivity } from "./slipHead.js";
+import {
+  AYAH_ORDER_PARAMS,
+  AYAH_ORDER_RULE,
+  AYAH_ORDER_RULE_GUARDED,
+  SIMILAR_VERSE_RULE,
+  StructuralRules,
+  ayahOrderFlags,
+  similarVerseEligible,
+  similarVersePick,
+  type Ayah,
+  type AyahOrderRule,
+  type StructuralFlag,
+  type StructuralIndexJson,
+  type TimedToken,
+} from "./structural.js";
 
 const TAIL_SECONDS = 2.0;
 /** Mean heard ratio over an unmatched ayah's words at or above which the gap
  * counts as heard-but-unfollowed (`unclear_ayah`) rather than skipped. */
 export const AYAH_HEARD_FRACTION = 0.5;
+const SKIP_PERSIST_FRAMES = 12;
 
-/** I/O manifest of the shipped `zipformer_interp_gentle_a05.int8.onnx`. */
+/** I/O manifest of the default `zipformer_a0w_ep1_a05.int8.onnx` (its encoder-frame
+ * output is optional, so the same manifest drives `zipformer_interp_gentle_a05.int8.onnx`). */
 export const DEFAULT_ZIPFORMER_IO = DEFAULT_IO as ZipformerIo;
 
 /** Model bytes, or a loader that produces them (fetch, fs, asset bundle). */
@@ -174,6 +194,65 @@ export interface ZipformerSessionOptions {
   onEvent?: (msg: WorkerOutbound) => void;
   /** Emit `debug` messages for engine events. Default false. */
   debug?: boolean;
+  /**
+   * Slip head over encoder frames. Off by default. `true` or `"strict"` uses
+   * the no-extra-false-flag cutoff; `"high"` uses the sensitivity point.
+   * If the model does not return encoder frames, the head stays off.
+   */
+  slipHead?: boolean | SlipSensitivity;
+  /** Structural correction rules (correction mode). Default
+   * {@link DEFAULT_STRUCTURAL}: both rules on, run at `stop()`. `false` turns them off. */
+  structural?: StructuralOptions | false;
+}
+
+/**
+ * Structural correction rules over the free decode, validated with the a0w
+ * model. Correction mode only; both are on by default ({@link DEFAULT_STRUCTURAL}),
+ * running once over the take at `stop()`.
+ *
+ * - `ayahOrder` raises `possible_skipped_ayah`. Works without
+ *   {@link ZipformerSession.setExpected}: the window is the first located ayah
+ *   −1 .. +4. With an expected passage the window is that passage.
+ * - `similarVerse` raises `possible_substitution` (a look-alike ayah's
+ *   wording) and `possible_omission` (one dropped word). Substitutions need
+ *   {@link ZipformerSession.setExpected}: without a passage a swapped-in
+ *   look-alike word usually reads as the other ayah, so only drops fire.
+ *   Flags on or next to an ayah flagged as skipped are suppressed.
+ */
+export interface StructuralOptions {
+  /** `true`: the a0w rule. `"guarded"`: adds the two guards frozen for the
+   * shipped model (restart onto the skipped ayah's ending, undecoded audio). */
+  ayahOrder?: boolean | "guarded";
+  similarVerse?: boolean;
+  /** Drop similar-verse flags on or next to an ayah flagged as skipped
+   * (they land on the ayah beside the cut). Default true. */
+  suppressNearSkip?: boolean;
+  /**
+   * When the rules run. `"stop"` (default): once over the whole take at
+   * {@link ZipformerSession.stop}, the setting the rules were validated in;
+   * the flags then come one per `correct()` call. `"pause"`: also each time a
+   * pause closes a segment, so a flag can interrupt mid-recitation. A
+   * similar-verse slot is judged only once a later ayah has been reached, and
+   * an ayah-order jump must hold over two pauses with an ayah past the skipped
+   * one already located.
+   */
+  timing?: "stop" | "pause";
+  /** The look-alike index. Defaults to the bundled `structural-index.json`,
+   * loaded on first use. */
+  index?: StructuralIndexJson;
+}
+
+/** Both structural rules, run once over the take at `stop()`. */
+export const DEFAULT_STRUCTURAL: Readonly<StructuralOptions> = { ayahOrder: true, similarVerse: true, timing: "stop" };
+
+/** Audio after which the structural rules start a new block (bounds their cost). */
+const STRUCTURAL_BLOCK_SECONDS = 120;
+const STRUCTURAL_ERROR_KINDS = new Set(["possible_omission", "possible_substitution", "possible_vowel",
+  "possible_skipped_ayah", "unclear_ayah"]);
+
+async function loadStructuralIndex(): Promise<StructuralIndexJson> {
+  const mod = await import("./structural-index.json", { with: { type: "json" } });
+  return mod.default as StructuralIndexJson;
 }
 
 export class ZipformerSession {
@@ -194,6 +273,13 @@ export class ZipformerSession {
   private readonly onEvent: ((msg: WorkerOutbound) => void) | null;
   private fbank = new KaldiFbank();
   private decoder = new GreedyCtcDecoder(TOKENS, BLANK_ID);
+  private readonly posteriors: FramePosteriors;
+  private readonly encoderFrames = new EncoderFrames();
+  private readonly slipWeights: SlipHead = A0W_SLIP_HEAD;
+  /** Requested sensitivity. False until the caller turns the head on. */
+  private slipMode: false | SlipSensitivity = false;
+  /** Flips off, silently, when a producing chunk has no encoder frames. */
+  private slipLive = true;
   private engine: RecitationEngine;
   private accumulated = new Map<string, AyahTally>();
   private emitted = new Set<string>();
@@ -205,7 +291,15 @@ export class ZipformerSession {
   private ayahIssuesRaised = new Set<string>();
   readonly correction = new CorrectionController();
   private practiceEngine: RecitationEngine | null = null;
+  private expected: ExpectedPassage | null = null;
+  private skipCandidate: { key: string; frame: number } | null = null;
   private stopping = false;
+  private structuralRules: StructuralRules | null = null;
+  private aoRule: AyahOrderRule | null = null;
+  private svOn = false;
+  private svNearSkip = true;
+  private structuralLive = false;
+  private st = ZipformerSession.freshStructural();
   lastFallback: FallbackHit | null = null;
   debugEnabled = false;
 
@@ -227,6 +321,9 @@ export class ZipformerSession {
     this.gapMaxWords = opts.gapMaxWords ?? GAP_MAX_WORDS;
     this.onEvent = opts.onEvent ?? null;
     this.debugEnabled = opts.debug ?? false;
+    this.slipMode = opts.slipHead === true || opts.slipHead === "strict" ? "strict"
+      : opts.slipHead === "high" ? "high" : false;
+    this.posteriors = new FramePosteriors(runner.io.vocabSize);
     this.corpus = new QuranCorpus(corpusJson);
     this.index = new QuranIndex(this.corpus, this.cfg);
     for (const s of this.corpus.surahs) {
@@ -267,7 +364,54 @@ export class ZipformerSession {
         opts.executionProviders,
       );
     }
-    return new ZipformerSession(runner, corpusJson, quranDb, opts);
+    const session = new ZipformerSession(runner, corpusJson, quranDb, opts);
+    const structural = opts.structural === undefined ? DEFAULT_STRUCTURAL : opts.structural;
+    if (structural) await session.setStructural(structural);
+    return session;
+  }
+
+  /**
+   * Turn the structural rules on or off (see {@link StructuralOptions}).
+   * Loads the bundled look-alike index the first time a rule is turned on.
+   */
+  async setStructural(opts: StructuralOptions): Promise<void> {
+    const ao = opts.ayahOrder ?? false;
+    const sv = opts.similarVerse ?? false;
+    if (!ao && !sv) {
+      this.structuralRules = null;
+      this.aoRule = null;
+      this.svOn = false;
+      this.st = ZipformerSession.freshStructural();
+      return;
+    }
+    if (!this.structuralRules || opts.index) {
+      this.structuralRules = new StructuralRules(this.corpus, opts.index ?? await loadStructuralIndex());
+    }
+    this.aoRule = ao === "guarded" ? AYAH_ORDER_RULE_GUARDED : ao ? AYAH_ORDER_RULE : null;
+    this.svOn = sv;
+    this.svNearSkip = opts.suppressNearSkip ?? true;
+    this.structuralLive = opts.timing === "pause";
+  }
+
+  private static freshStructural() {
+    return {
+      tokens: [] as TimedToken[],
+      absFrames: 0,
+      samples: 0,
+      /** Tokens already seen by the last evaluation. */
+      evalAt: 0,
+      blockTok: 0,
+      blockT0: 0,
+      blockEmitted: new Set<string>(),
+      aoSeen: new Set<string>(),
+      /** Ayah-order flags found by the previous evaluation (pause timing). */
+      aoLast: new Set<string>(),
+      svSeen: new Set<string>(),
+      skips: [] as Array<{ surah: number; ayah: number }>,
+      pending: [] as StructuralFlag[],
+      issues: [] as CorrectionIssue[],
+      final: false,
+    };
   }
 
   /** Every ayah the tracker has scored so far, in the order it first saw them. */
@@ -317,7 +461,9 @@ export class ZipformerSession {
     this.lastCursor = null;
     this.lastMatch = null;
     this.ayahIssuesRaised = new Set();
+    this.skipCandidate = null;
     this.lastFallback = null;
+    this.st = ZipformerSession.freshStructural();
     this.resetDecoder();
     this.engine = this.makeEngine();
     return [];
@@ -325,14 +471,40 @@ export class ZipformerSession {
 
   /** Push one chunk of mono 16 kHz float32 PCM. Any size; 480 ms works well. */
   async feed(samples: Float32Array): Promise<WorkerOutbound[]> {
+    if (this.structuralRules) this.st.samples += samples.length;
     if (this.correction.state.phase === "error" || this.correction.state.phase === "corrected") return [];
     return this.dispatch(await this.feedSamples(samples));
+  }
+
+  /**
+   * Correction mode: the passage the reciter is about to read (e.g. the ayahs
+   * on screen). The tracker then locks onto it at once, stays inside it, and
+   * cannot be pulled into a similar passage. Ignored in tracking mode. Kept
+   * across {@link reset}; pass null to clear.
+   */
+  setExpected(passage: ExpectedPassage | null): void {
+    this.expected = passage ? { ...passage } : null;
+    this.engine.setExpected(this.expected);
   }
 
   setMode(mode: RecitationMode): WorkerOutbound[] {
     const out = this.correction.state.phase !== 'idle' ? this.correct('close') : [];
     this.correction.setMode(mode);
+    this.attachPosteriors(this.engine);
+    if (this.practiceEngine) this.attachPosteriors(this.practiceEngine);
     return out;
+  }
+
+  /**
+   * Turn the slip head on or off. `"strict"` is the no-extra-false-flag
+   * cutoff; `"high"` is the sensitivity point. A model without encoder
+   * frames keeps the head off either way.
+   */
+  setSlipHead(mode: false | SlipSensitivity): void {
+    this.slipMode = mode;
+    this.slipLive = true;
+    this.attachPosteriors(this.engine);
+    if (this.practiceEngine) this.attachPosteriors(this.practiceEngine);
   }
 
   correct(action: CorrectionAction): WorkerOutbound[] {
@@ -342,6 +514,7 @@ export class ZipformerSession {
     if (state.phase === 'retrying') {
       this.practiceEngine = new RecitationEngine(this.corpus, this.index, this.cfg);
       this.practiceEngine.setStayOnSurah(true);
+      this.attachPosteriors(this.practiceEngine);
       this.practiceEngine.track(state.issue!.surah, state.issue!.ayah, 0);
     } else {
       this.practiceEngine = null;
@@ -352,7 +525,9 @@ export class ZipformerSession {
         this.lastCursor = { ...state.resume };
       }
     }
-    return this.dispatch([this.correctionMessage()]);
+    const out = [this.correctionMessage()];
+    if (this.structuralRules && state.phase === 'idle') out.push(...this.raiseStructural());
+    return this.dispatch(out);
   }
 
   private correctionMessage(): WorkerOutbound {
@@ -382,10 +557,11 @@ export class ZipformerSession {
     if (frames.length) {
       out.push(...await this.runFrames(frames));
     }
-    const flushed = this.decoder.flush();
+    const flushed = this.logTokens(this.decoder.flush(), this.st.absFrames - this.decoder.framesDecoded);
     if (flushed.length) {
       out.push(...this.consumeTokens(flushed));
     }
+    out.push(...this.settleCorrection());
 
     this.dumpTallies();
     const live = newlyEligibleAyahs(this.accumulated, this.emitted, this.minWordFraction);
@@ -393,6 +569,7 @@ export class ZipformerSession {
       this.emitted.add(ayahKey(t));
       out.push(this.toVerseMatch(t));
     }
+    for (const t of live) out.push(...this.checkAyahGap(t));
 
     let fallback: FallbackHit | null = null;
     if (this.enableFallback && shouldRunFallback([...this.emitted])) {
@@ -427,6 +604,11 @@ export class ZipformerSession {
       }
     }
 
+    if (this.structuralRules) {
+      this.st.final = true;
+      out.push(...this.structuralTick(true));
+    }
+
     const seq = buildFinalSequence([...this.accumulated.values()], fallback, this.minWordFraction);
     out.push({
       type: "final_sequence",
@@ -446,13 +628,32 @@ export class ZipformerSession {
     engine.setStayOnSurah(this.stayOnSurah);
     engine.startSearch();
     engine.onBeforeRelocate = () => this.dumpTallies();
+    this.attachPosteriors(engine);
+    engine.setExpected(this.expected);
     return engine;
+  }
+
+  /** GOP scoring costs a few CTC Viterbi passes per word; only correction mode reads it.
+   * The slip head is the same: tracking never sees `slip`. */
+  private attachPosteriors(engine: RecitationEngine): void {
+    const correction = this.correction.mode === "correction";
+    engine.setPosteriors(correction ? this.posteriors : null);
+    engine.setCorrection(correction);
+    const slipOn = correction && this.slipMode !== false && this.slipLive;
+    engine.setSlip(slipOn ? this.encoderFrames : null, slipOn ? this.slipWeights : null);
+    const thr = slipOn ? slipThreshold(this.slipWeights, this.slipMode as SlipSensitivity) : Infinity;
+    if (this.correction.thresholds.slipFlag !== thr) {
+      this.correction.thresholds = { ...this.correction.thresholds, slipFlag: thr };
+    }
   }
 
   private resetDecoder(): void {
     this.fbank.reset();
     this.decoder.reset();
     this.runner.reset();
+    this.posteriors.clear(0);
+    this.encoderFrames.clear(0);
+    this.slipLive = true;
   }
 
   wordCount = (surah: number, ayah: number): number =>
@@ -472,6 +673,11 @@ export class ZipformerSession {
   }
 
   private dispatch(messages: WorkerOutbound[]): WorkerOutbound[] {
+    if (this.structuralRules) {
+      for (const msg of messages) {
+        if (msg.type === "correction" && msg.state.phase === "error" && msg.state.issue) this.st.issues.push(msg.state.issue);
+      }
+    }
     if (this.onEvent) for (const msg of messages) this.onEvent(msg);
     return messages;
   }
@@ -483,10 +689,34 @@ export class ZipformerSession {
 
   private async runFrames(frames: Float32Array[]): Promise<WorkerOutbound[]> {
     if (!frames.length) return [];
-    const { logProbs, frames: out } = await this.runner.accept(frames);
+    const { logProbs, frames: out, encoder, encoderFrames } = await this.runner.accept(frames);
     if (out === 0) return [];
+    this.posteriors.push(logProbs, out, this.decoder.framesDecoded);
+    if (this.slipMode && this.slipLive) {
+      if (encoder && encoderFrames) {
+        this.encoderFrames.push(encoder, encoderFrames, this.decoder.framesDecoded);
+      } else {
+        // The graph has no encoder-frame output. Leave the rules as they were.
+        this.slipLive = false;
+        this.encoderFrames.clear(0);
+        this.attachPosteriors(this.engine);
+        if (this.practiceEngine) this.attachPosteriors(this.practiceEngine);
+      }
+    }
+    const base = this.st.absFrames - this.decoder.framesDecoded;
     const tokens = this.decoder.consume(logProbs, out, this.runner.io.vocabSize);
+    if (this.structuralRules) {
+      this.st.absFrames += out;
+      this.logTokens(tokens, base);
+    }
     return this.consumeTokens(tokens);
+  }
+
+  private logTokens<T extends { sym: string; frame: number }>(tokens: T[], base: number): T[] {
+    if (!this.structuralRules) return tokens;
+    const t = this.st.samples / SAMPLE_RATE;
+    for (const tok of tokens) this.st.tokens.push({ sym: tok.sym, frame: base + tok.frame, t });
+    return tokens;
   }
 
   private consumeTokens(tokens: Array<{ sym: string; frame: number; margin: number }>): WorkerOutbound[] {
@@ -498,8 +728,10 @@ export class ZipformerSession {
         ? this.decoder.framesDecoded - engine.tracker.heard[engine.tracker.heard.length - 1]!.frame >= this.cfg.settleFrames : false;
       if (engine.tracer && engine.tracker && !engine.tracker.lost
         && (engine.tracker.costRate(this.cfg.holdWindow) ?? 0) < this.cfg.holdRate) {
-        if (this.correction.observe(engine.tracer.verdicts(Boolean(settled)),
-          this.correction.state.resume!, this.decoder.framesDecoded)) out.push(this.correctionMessage());
+        const raised = this.correction.observe(engine.tracer.verdicts(Boolean(settled)),
+          this.correction.state.resume!, this.decoder.framesDecoded);
+        out.push(...this.noteMessages());
+        if (raised) out.push(this.correctionMessage());
       } else this.correction.clearEvidence();
       return out;
     }
@@ -513,12 +745,18 @@ export class ZipformerSession {
       && (tracker.costRate(this.cfg.holdWindow) ?? 0) < this.cfg.holdRate) {
       const last = tracker.heard[tracker.heard.length - 1];
       const settled = !!last && this.decoder.framesDecoded - last.frame >= this.cfg.settleFrames;
-      if (this.correction.observe(this.engine.tracer.verdicts(settled), this.lastCursor, this.decoder.framesDecoded)) {
+      const raised = this.correction.observe(this.engine.tracer.verdicts(settled), this.lastCursor, this.decoder.framesDecoded);
+      out.push(...this.noteMessages());
+      if (raised) {
         // Retain main-session coverage before a practice exit replaces its tracker.
         this.dumpTallies();
         out.push(this.correctionMessage());
-      }
-    } else this.correction.clearEvidence();
+      } else out.push(...this.checkSkippedAyah(false));
+    } else {
+      this.correction.clearEvidence();
+      this.skipCandidate = null;
+    }
+    if (this.structuralRules) out.push(...this.structuralTick(false));
     if (tokens.length) {
       out.push({
         type: "raw_transcript",
@@ -527,6 +765,130 @@ export class ZipformerSession {
       });
     }
     return out;
+  }
+
+  /**
+   * Run the structural rules once a pause closes a segment (and at the end of
+   * audio), then raise the next queued flag if the controller is idle.
+   */
+  private structuralTick(final: boolean): WorkerOutbound[] {
+    if (this.correction.mode !== "correction") return [];
+    const st = this.st;
+    if (final) {
+      if (st.tokens.length) this.structuralEvaluate();
+    } else if (this.structuralLive && st.tokens.length > st.evalAt) {
+      const last = st.tokens[st.tokens.length - 1]!;
+      const gap = AYAH_ORDER_PARAMS.gap;
+      const pending = this.decoder.pendingFrame;
+      const base = st.absFrames - this.decoder.framesDecoded;
+      if (st.absFrames - last.frame >= gap && (pending === null || base + pending - last.frame >= gap)) {
+        this.structuralEvaluate();
+      }
+    }
+    return this.raiseStructural();
+  }
+
+  private structuralVerses(): Ayah[] {
+    const st = this.st;
+    let tallies: AyahTally[];
+    if (st.final) {
+      tallies = this.verses;
+      if (!tallies.length && this.lastFallback) return [[this.lastFallback.surah, this.lastFallback.ayah]];
+    } else {
+      tallies = [...mergeTallies(this.accumulated, this.currentSnapshot()).values()]
+        .filter((t) => ayahMeetsGate(t, this.minWordFraction))
+        .sort((a, b) => a.firstSeen - b.firstSeen);
+    }
+    const out: Ayah[] = [];
+    const seen = new Set<string>();
+    for (const t of tallies) {
+      const key = ayahKey(t);
+      if (seen.has(key) || st.blockEmitted.has(key)) continue;
+      seen.add(key);
+      out.push([t.surah, t.ayah]);
+    }
+    return out;
+  }
+
+  private structuralEvaluate(): void {
+    const rules = this.structuralRules!;
+    const st = this.st;
+    st.evalAt = st.tokens.length;
+    const tokens = st.blockTok ? st.tokens.slice(st.blockTok) : st.tokens;
+    const verses = this.structuralVerses();
+    const expected = this.expected;
+    const sameAyah = (a: { surah: number; ayah: number }, b: { surah: number; ayah: number }) =>
+      a.surah === b.surah && a.ayah === b.ayah;
+    const blocked = (f: { surah: number; ayah: number }) =>
+      this.ayahIssuesRaised.has(ayahKey(f))
+      || st.issues.some((i) => STRUCTURAL_ERROR_KINDS.has(i.kind) && sameAyah(i, f))
+      || st.pending.some((p) => sameAyah(p, f));
+    if (this.aoRule) {
+      const win = rules.ayahOrderWindow(expected, verses[0] ?? null);
+      const found = ayahOrderFlags(rules.ayahOrderCandidate(tokens, win), this.aoRule);
+      const last = st.aoLast;
+      st.aoLast = new Set(found.map((f) => ayahKey(f)));
+      for (const f of found) {
+        const key = ayahKey(f);
+        // Pause timing: the jump must hold over two pauses and the tracker must have reached a later ayah.
+        if (st.aoSeen.has(key) || (!st.final && (!last.has(key)
+          || !verses.some(([s, a]) => s === f.surah && a > f.ayah)))) continue;
+        st.aoSeen.add(key);
+        if (blocked(f)) continue;
+        st.skips.push({ surah: f.surah, ayah: f.ayah });
+        st.pending.push(f);
+      }
+    }
+    if (this.svOn) {
+      const passage: Ayah[] = [];
+      if (expected) {
+        for (let a = expected.ayah; a <= (expected.ayahEnd ?? expected.ayah); a++) passage.push([expected.surah, a]);
+      } else passage.push(...verses);
+      const durationS = st.samples / SAMPLE_RATE - st.blockT0;
+      const cands = rules.similarVerseCandidates(tokens, passage, !!expected, durationS, (c) => similarVerseEligible(c));
+      const skips = [...st.skips, ...st.issues.filter((i) => i.kind === "possible_skipped_ayah")];
+      // Pause timing: a slot is judged once the recitation has reached a later ayah.
+      const reached = (t: number): boolean => st.final || (expected
+        ? verses.some(([s, a]) => s === passage[t]![0] && a > passage[t]![1])
+        : t < passage.length - 1);
+      for (const c of similarVersePick(cands, SIMILAR_VERSE_RULE)) {
+        const key = ayahKey(c);
+        if (st.svSeen.has(key) || !reached(c.slot)) continue;
+        if (st.issues.some((i) => !i.source && sameAyah(i, c) && Math.abs(i.word - c.word) <= 1)) continue;
+        if (this.svNearSkip && skips.some((s) => s.surah === c.surah && Math.abs(s.ayah - c.ayah) <= 1)) continue;
+        st.svSeen.add(key);
+        st.pending.push({ kind: c.kind, surah: c.surah, ayah: c.ayah, word: c.word, atSeconds: c.at ?? 0, source: "similar_verse" });
+      }
+    }
+    const now = st.samples / SAMPLE_RATE;
+    if (!st.final && now - st.blockT0 > STRUCTURAL_BLOCK_SECONDS) {
+      st.blockTok = st.tokens.length;
+      st.blockT0 = now;
+      for (const [s, a] of verses) st.blockEmitted.add(`${s}:${a}`);
+    }
+  }
+
+  private raiseStructural(): WorkerOutbound[] {
+    const st = this.st;
+    while (st.pending.length && this.correction.mode === "correction" && this.correction.state.phase === "idle") {
+      const f = st.pending.shift()!;
+      const key = ayahKey(f);
+      const ayahLevel = f.kind === "possible_skipped_ayah";
+      if (ayahLevel && this.ayahIssuesRaised.has(key)) continue;
+      const issue: CorrectionIssue = {
+        surah: f.surah, ayah: f.ayah, word: f.word,
+        wordIndex: this.corpus.ayahFirstWord(f.surah, f.ayah) + f.word,
+        kind: f.kind,
+        ...(ayahLevel ? { words: this.wordCount(f.surah, f.ayah) } : {}),
+        source: f.source,
+      };
+      const cursor = this.lastCursor ?? { surah: f.surah, ayah: f.ayah, word: f.word };
+      if (!this.correction.raise(issue, cursor)) continue;
+      if (ayahLevel) this.ayahIssuesRaised.add(key);
+      this.dumpTallies();
+      return [this.correctionMessage()];
+    }
+    return [];
   }
 
   private handle(ev: EngineEvent): WorkerOutbound[] {
@@ -575,6 +937,7 @@ export class ZipformerSession {
       }
       case "idle":
       case "completed": {
+        if (ev.type === "completed" || ev.reason === "silent") out.push(...this.settleCorrection());
         this.correction.clearEvidence();
         this.lastMatch = null;
         this.dumpTallies();
@@ -596,6 +959,70 @@ export class ZipformerSession {
       });
     }
     return out;
+  }
+
+  /** Correction mode: last word-level check before the main tracker is dropped. */
+  private settleCorrection(): WorkerOutbound[] {
+    if (this.practiceEngine) return [];
+    const tracker = this.engine.tracer && this.engine.tracker;
+    let verdicts: WordVerdict[];
+    let cursor = this.lastCursor;
+    let tracer = this.engine.tracer;
+    if (!tracker) {
+      tracer = this.engine.alignBuffer();
+      if (!tracer) return [];
+      verdicts = tracer.verdicts(true);
+      const w = tracer.cursorWordIndex;
+      cursor = { surah: this.corpus.wordSurah[w]!, ayah: this.corpus.wordAyah[w]!, word: this.corpus.wordInAyah[w]! };
+    } else {
+      if (tracker.lost || !cursor) return [];
+      verdicts = tracer!.verdicts(true);
+    }
+    const raised = this.correction.settle(verdicts, cursor);
+    const notes = this.noteMessages();
+    if (!raised) return [...notes, ...this.checkSkippedAyah(true, tracer!.tracker)];
+    this.dumpTallies();
+    return [...notes, this.correctionMessage()];
+  }
+
+  /**
+   * Correction mode with an expected passage: raise `possible_skipped_ayah`
+   * when the engine reads the audio on the current ayah as the next one. Live
+   * checks must hold for 12 frames; `atSettle` raises at once.
+   */
+  private checkSkippedAyah(atSettle: boolean, tracker?: Tracker): WorkerOutbound[] {
+    if (this.correction.mode !== "correction" || !this.expected || !this.lastCursor && !atSettle) return [];
+    const hit = this.engine.skippedAyah(tracker ?? this.engine.tracker);
+    const key = hit ? ayahKey(hit) : null;
+    const frame = this.decoder.framesDecoded;
+    if (!hit || !key || this.ayahIssuesRaised.has(key)) {
+      this.skipCandidate = null;
+      return [];
+    }
+    if (!atSettle) {
+      if (!this.skipCandidate || this.skipCandidate.key !== key || frame < this.skipCandidate.frame) {
+        this.skipCandidate = { key, frame };
+        return [];
+      }
+      if (frame - this.skipCandidate.frame < SKIP_PERSIST_FRAMES) return [];
+    }
+    this.skipCandidate = null;
+    const words = this.wordCount(hit.surah, hit.ayah);
+    const issue = {
+      surah: hit.surah, ayah: hit.ayah, word: 0,
+      wordIndex: this.corpus.ayahFirstWord(hit.surah, hit.ayah),
+      kind: "possible_skipped_ayah" as const,
+      words,
+    };
+    const cursor = this.lastCursor ?? { surah: hit.surah, ayah: hit.ayah, word: 0 };
+    if (!this.correction.raise(issue, cursor)) return [];
+    this.ayahIssuesRaised.add(key);
+    this.dumpTallies();
+    return [this.correctionMessage()];
+  }
+
+  private noteMessages(): WorkerOutbound[] {
+    return this.correction.takeNotes().map(issue => ({ type: 'correction_note' as const, issue }));
   }
 
   private wordProgress(): WorkerOutbound {
@@ -628,7 +1055,7 @@ export class ZipformerSession {
   private checkAyahGap(t: AyahTally): WorkerOutbound[] {
     const prev = this.lastMatch;
     this.lastMatch = { surah: t.surah, ayah: t.ayah };
-    if (this.stopping || this.correction.mode !== "correction" || !prev || !this.lastCursor) return [];
+    if ((this.stopping && !this.expected) || this.correction.mode !== "correction" || !prev || !this.lastCursor) return [];
     if (prev.surah !== t.surah || t.ayah !== prev.ayah + 2) return [];
     const surah = t.surah;
     const ayah = t.ayah - 1;
@@ -693,7 +1120,7 @@ export class ZipformerSession {
  * import * as ort from "onnxruntime-node";
  * const session = await createZipformerSession({
  *   ort,
- *   model: () => readFile("zipformer_interp_gentle_a05.int8.onnx"),
+ *   model: () => readFile("zipformer_a0w_ep1_a05.int8.onnx"),
  *   corpus: async () => JSON.parse(await readFile("zipformer_quran.json", "utf8")),
  *   quran: async () => JSON.parse(await readFile("quran.json", "utf8")),
  *   onEvent: (msg) => console.log(msg.type),

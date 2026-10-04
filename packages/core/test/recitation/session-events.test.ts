@@ -15,10 +15,11 @@ import {
   ZipformerSession,
   createZipformerSession,
 } from "../../src/recitation/session";
-import { BLANK_ID, TOKENS, VOCAB_SIZE } from "../../src/recitation/tokens";
+import { encodePhonemes } from "../../src/recitation/posteriors";
+import { BLANK_ID, VOCAB_SIZE } from "../../src/recitation/tokens";
 import type { OrtSessionLike, TensorLike } from "../../src/recitation/zipformerRunner";
 import type { WorkerOutbound } from "../../src/types";
-import { findModelIo, requireCorpus } from "./paths";
+import { findLegacyModelIo, findModelIo, requireCorpus } from "./paths";
 
 const SAMPLE_RATE = 16000;
 const CHUNK = 7680; // 480 ms — one Zipformer hop worth of fbank frames
@@ -29,18 +30,11 @@ const LOW = Math.log(0.001);
 const corpusJson = JSON.parse(readFileSync(requireCorpus(), "utf8"));
 const corpus = new QuranCorpus(corpusJson);
 
-const TOKEN_ID = new Map<string, number>();
-for (let id = 0; id < TOKENS.length; id++) {
-  const sym = TOKENS[id]!;
-  if (sym.length === 1 && !TOKEN_ID.has(sym)) TOKEN_ID.set(sym, id);
-}
-
+/** Greedy longest-match tokens, as the model was trained to emit them. */
 function tokenIds(phonemes: string): number[] {
-  return [...phonemes].map((ch) => {
-    const id = TOKEN_ID.get(ch);
-    if (id === undefined) throw new Error(`no CTC token for phoneme ${JSON.stringify(ch)}`);
-    return id;
-  });
+  const ids = encodePhonemes(phonemes);
+  if (!ids) throw new Error(`no CTC tokenization for ${JSON.stringify(phonemes)}`);
+  return ids;
 }
 
 class StubTensor implements TensorLike {
@@ -140,10 +134,25 @@ describe("ZipformerSession", () => {
     expect(DEFAULT_ZIPFORMER_IO.vocabSize).toBe(VOCAB_SIZE);
     expect(DEFAULT_ZIPFORMER_IO.inputs[0]?.name).toBe("x");
 
-    const shipped = findModelIo();
-    if (shipped) {
-      expect(DEFAULT_ZIPFORMER_IO).toEqual(JSON.parse(readFileSync(shipped, "utf8")));
+    // The default a0w export carries the encoder-frame output: the bundled manifest is its manifest.
+    const a0w = findModelIo();
+    if (a0w) {
+      const { model: _m, ...shippedA0w } = JSON.parse(readFileSync(a0w, "utf8"));
+      const { model: _b, ...bundledA0w } = structuredClone(DEFAULT_ZIPFORMER_IO) as unknown as Record<string, unknown>;
+      expect(bundledA0w).toEqual(shippedA0w);
     }
+    // The previous default has no encoder-frame output; the optional output is dropped for it.
+    const shipped = findLegacyModelIo();
+    if (shipped) {
+      const bundled = structuredClone(DEFAULT_ZIPFORMER_IO) as {
+        encoderFrames?: string;
+        outputs?: Array<{ name: string; optional?: boolean }>;
+      };
+      delete bundled.encoderFrames;
+      if (bundled.outputs) bundled.outputs = bundled.outputs.filter((o) => !o.optional);
+      expect(bundled).toEqual(JSON.parse(readFileSync(shipped, "utf8")));
+    }
+    expect(DEFAULT_ZIPFORMER_IO.encoderFrames).toBe("/Transpose_226_output_0");
   });
 
   it("rejects an incomplete runtime seam", async () => {
@@ -278,6 +287,27 @@ describe('live correction through the injected ONNX boundary', () => {
   });
 });
 
+describe('GOP word scores', () => {
+  async function run(mode: 'tracking' | 'correction') {
+    const text = [1, 2, 3, 4].map(a => corpus.ayahPhonemes(112, a)).join('');
+    const ort = new ScriptedOrtSession(tokenIds(text));
+    const session = await ZipformerSession.create({ session: ort, Tensor: TensorCtor, corpus: corpusJson });
+    session.setMode(mode);
+    const seen: WorkerOutbound[] = [];
+    for (let i = 0; i < 60 && ort.pending > 0; i++) seen.push(...await session.feed(new Float32Array(CHUNK)));
+    return { session, seen };
+  }
+  it('scores interior words in correction mode only; a correct decode fits (~0)', async () => {
+    const tracking = await run('tracking');
+    expect(tracking.session.verdicts().some(v => v.gop !== undefined)).toBe(false);
+    const { session, seen } = await run('correction');
+    const scored = session.verdicts().filter(v => v.gop !== undefined);
+    expect(scored.length).toBeGreaterThan(5);
+    for (const v of scored) expect(v.gop).toBeGreaterThan(-0.5);
+    expect([...seen, ...await session.stop()].some(m => m.type === 'correction')).toBe(false);
+  });
+});
+
 describe('ayah-level gaps in correction mode', () => {
   /** Deterministic scramble of one ayah: audio was heard, but it matches nothing. */
   function mush(phonemes: string): string {
@@ -371,5 +401,67 @@ describe('ayah-level gaps in correction mode', () => {
     const seen: WorkerOutbound[] = [];
     for (let i = 0; i < 40; i++) seen.push(...await session.feed(new Float32Array(CHUNK)));
     expect(seen.filter(m => m.type === 'correction')).toEqual([]);
+  });
+});
+
+describe('expected passage (correction mode)', () => {
+  async function run(script: string, mode: 'tracking' | 'correction', expected: { surah: number; ayah: number; ayahEnd?: number } | null) {
+    const ort = new ScriptedOrtSession(tokenIds(script));
+    const session = await ZipformerSession.create({ session: ort, Tensor: TensorCtor, corpus: corpusJson });
+    session.setMode(mode);
+    session.setExpected(expected);
+    const seen: WorkerOutbound[] = [];
+    for (let i = 0; i < Math.ceil(script.length * 2 / FRAMES_PER_RUN) + 6; i++) {
+      seen.push(...await session.feed(new Float32Array(CHUNK)));
+      if (session.correction.state.phase !== 'idle') session.correct('dismiss');
+    }
+    seen.push(...await session.stop());
+    const flags = seen.flatMap(m => m.type === 'correction' && m.state.phase === 'error' && m.state.issue ? [m.state.issue] : []);
+    const located = seen.flatMap(m => m.type === 'verse_candidate' ? [`${m.candidates[0]!.surah}:${m.candidates[0]!.ayah}`] : []);
+    return { seen, flags, located };
+  }
+
+  // 55:16 is one of the 31 copies of "fa-bi-ayyi ala'i rabbikuma tukadhdhiban".
+  const refrain = (ayah: number, swapWord: number | null) => {
+    const first = corpus.ayahFirstWord(55, ayah);
+    return Array.from({ length: corpus.ayahWordCount(55, ayah) }, (_, i) =>
+      i === swapWord ? corpus.wordPhonemes(corpus.wordIndex(109, 1, 2)) : corpus.wordPhonemes(first + i)).join('');
+  };
+
+  it('locks onto the expected copy of a repeated ayah and flags the word there', async () => {
+    const { flags, located } = await run(refrain(16, 1), 'correction', { surah: 55, ayah: 16 });
+    expect(located[0]).toBe('55:16');
+    expect(flags).toEqual([expect.objectContaining({ surah: 55, ayah: 16, word: 1, kind: 'possible_substitution' })]);
+    // Without it the take never locks and the word lands on the first copy.
+    const free = await run(refrain(16, 1), 'correction', null);
+    expect(free.located).toEqual([]);
+    expect(free.flags.some(f => f.ayah === 16)).toBe(false);
+  });
+
+  it('waits out an isti\'adha before locking at the passage start', async () => {
+    const istiadha = 'ءَعُۥۥذُبِللَااهِمِنَششَييطَاانِررَجِۦۦم';
+    const { flags, located, seen } = await run(istiadha + corpus.ayahPhonemes(112, 1) + corpus.ayahPhonemes(112, 2), 'correction', { surah: 112, ayah: 1, ayahEnd: 2 });
+    expect(located[0]).toBe('112:1');
+    expect(flags).toEqual([]);
+    expect(seen.filter(m => m.type === 'verse_match').map(m => m.type === 'verse_match' ? m.ayah : 0)).toEqual([1, 2]);
+  });
+
+  it('a clean passage raises nothing', async () => {
+    const text = [1, 2, 3].map(a => corpus.ayahPhonemes(104, a)).join('');
+    const { flags } = await run(text, 'correction', { surah: 104, ayah: 1, ayahEnd: 3 });
+    expect(flags).toEqual([]);
+  });
+
+  it('a skipped middle ayah is raised once', async () => {
+    const { flags } = await run(corpus.ayahPhonemes(104, 1) + corpus.ayahPhonemes(104, 3), 'correction', { surah: 104, ayah: 1, ayahEnd: 3 });
+    expect(flags).toEqual([expect.objectContaining({ surah: 104, ayah: 2, kind: 'possible_skipped_ayah' })]);
+  });
+
+  it('tracking mode ignores it: identical output with or without', async () => {
+    const text = corpus.ayahPhonemes(55, 15) + refrain(16, 1);
+    const a = await run(text, 'tracking', null);
+    const b = await run(text, 'tracking', { surah: 55, ayah: 15, ayahEnd: 16 });
+    expect(b.seen).toEqual(a.seen);
+    expect(b.flags).toEqual([]);
   });
 });

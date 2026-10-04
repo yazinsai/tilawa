@@ -53,6 +53,7 @@ export type {
   SearchHit,
   SearchResult,
   SearchHint,
+  ExpectedPassage,
   FallbackHit,
   StripResult,
 } from "./types.js";
@@ -91,9 +92,11 @@ export {
   displayQuranFromRaw,
   DEFAULT_ZIPFORMER_IO,
   AYAH_HEARD_FRACTION,
+  DEFAULT_STRUCTURAL,
 } from "./session.js";
 export type {
   ZipformerSessionOptions,
+  StructuralOptions,
   ModelSource,
   CorpusSource,
   QuranSource,
@@ -101,4 +104,41 @@ export type {
 
 export { CorrectionController, possibleWordIssues, DEFAULT_CORRECTION_THRESHOLDS, AYAH_ISSUE_KINDS } from "./correction.js";
 export type { RecitationMode, CorrectionAction, CorrectionIssue, CorrectionState, CorrectionThresholds, RecitationPosition } from "./correction.js";
+export {
+  A0W_SLIP_HEAD,
+  EncoderFrames,
+  ENCODER_DIM,
+  SLIP_PAD,
+  poolEncoderSpan,
+  slipHeadFromJson,
+  slipProbability,
+  slipThreshold,
+  wordSpansFromTrail,
+} from "./slipHead.js";
+export type { SlipHead, SlipSensitivity, SlipWeightJson, TrailWordSpan } from "./slipHead.js";
 export { vowelMismatches } from "./verdicts.js";
+export { FramePosteriors, GOP_FLOOR, encodePhonemes, forcedLogLik, freeLogLik, pairScores, wordGop } from "./posteriors.js";
+export type { WordGop } from "./posteriors.js";
+export {
+  StructuralRules,
+  AYAH_ORDER_PARAMS,
+  AYAH_ORDER_RULE,
+  AYAH_ORDER_RULE_GUARDED,
+  SIMILAR_VERSE_RULE,
+  ayahOrderFlags,
+  similarVerseEligible,
+  similarVersePick,
+  segmentTokens,
+  pyRound,
+} from "./structural.js";
+export type {
+  TimedToken,
+  StructuralIndexJson,
+  AyahOrderParams,
+  AyahOrderRule,
+  AyahOrderCandidate,
+  AyahOrderJump,
+  SimilarVerseRule,
+  SimilarVerseCandidate,
+  StructuralFlag,
+} from "./structural.js";

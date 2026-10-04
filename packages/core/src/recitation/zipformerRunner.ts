@@ -69,6 +69,8 @@ export interface ZipformerIoInput {
   name: string;
   dims: number[];
   dtype: string;
+  /** Present on outputs the graph may omit. A missing tensor is not an error. */
+  optional?: boolean;
 }
 
 export interface ZipformerIo {
@@ -76,6 +78,12 @@ export interface ZipformerIo {
   hop: number;
   featureDim: number;
   vocabSize: number;
+  /**
+   * Encoder-frame output (fp32 `[1, frames, 512]`), one row per `log_probs`
+   * frame. Models that don't expose it leave this unset or simply don't
+   * return the tensor; the slip head then stays off.
+   */
+  encoderFrames?: string;
   inputs: ZipformerIoInput[];
   outputs?: ZipformerIoInput[];
 }
@@ -154,13 +162,22 @@ export class ZipformerRunner {
     this.initStates();
   }
 
-  async accept(frames: Float32Array[]): Promise<{ logProbs: Float32Array; frames: number }> {
+  async accept(frames: Float32Array[]): Promise<{
+    logProbs: Float32Array;
+    frames: number;
+    /** Encoder rows, row-major `[encoderFrames, 512]`. Absent when the model has no such output. */
+    encoder?: Float32Array;
+    encoderFrames?: number;
+  }> {
     for (const f of frames) this.buffer.push(f);
     const T = this.io.T;
     const hop = this.io.hop;
     const dim = this.io.featureDim;
     const vocab = this.io.vocabSize;
+    const encName = this.io.encoderFrames;
     const chunks: Float32Array[] = [];
+    const encChunks: Float32Array[] = [];
+    let encDim = 0;
     while (this.buffer.length >= T) {
       const x = new Float32Array(T * dim);
       for (let t = 0; t < T; t++) x.set(this.buffer[t]!, t * dim);
@@ -174,6 +191,16 @@ export class ZipformerRunner {
       const data = lp.data instanceof Float32Array ? lp.data : new Float32Array(lp.data as ArrayLike<number>);
       const F = lp.dims.length >= 2 ? Number(lp.dims[1]) : data.length / vocab;
       chunks.push(data.slice(0, F * vocab));
+      if (encName && out[encName]) {
+        const enc = out[encName]!;
+        const raw = enc.data instanceof Float32Array ? enc.data : new Float32Array(enc.data as ArrayLike<number>);
+        const width = enc.dims.length >= 3 ? Number(enc.dims[enc.dims.length - 1]) : 0;
+        const rows = enc.dims.length >= 2 ? Number(enc.dims[1]) : width > 0 ? raw.length / width : 0;
+        if (width > 0 && rows > 0) {
+          encDim = width;
+          encChunks.push(raw.slice(0, rows * width));
+        }
+      }
       for (const name of this.stateNames) {
         const neu = out[`new_${name}`];
         if (!neu) throw new Error(`model missing new_${name}`);
@@ -194,7 +221,23 @@ export class ZipformerRunner {
       logProbs.set(c, o);
       o += c.length;
     }
-    return { logProbs, frames: total / vocab };
+    const got: { logProbs: Float32Array; frames: number; encoder?: Float32Array; encoderFrames?: number } = {
+      logProbs,
+      frames: total / vocab,
+    };
+    if (encChunks.length && encDim > 0) {
+      let n = 0;
+      for (const c of encChunks) n += c.length;
+      const encoder = new Float32Array(n);
+      let e = 0;
+      for (const c of encChunks) {
+        encoder.set(c, e);
+        e += c.length;
+      }
+      got.encoder = encoder;
+      got.encoderFrames = n / encDim;
+    }
+    return got;
   }
 
   private initStates(): void {

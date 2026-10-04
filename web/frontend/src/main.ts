@@ -861,6 +861,7 @@ function recordAnomaly(msg: VerseMatchMessage): void {
 // ---------------------------------------------------------------------------
 async function handleWorkerMessage(msg: WorkerOutbound): Promise<void> {
   if (msg.type === 'correction') { await handleCorrection(msg); return; }
+  if (msg.type === 'correction_note') { pushDiagnosticEvent('correction_note', { ...msg.issue }); return; }
   if (msg.type === 'debug_verdicts') { state.lastVerdicts = msg.verdicts; return; }
   if (practice.open && ['verse_match', 'verse_candidate', 'word_progress', 'raw_transcript', 'final_sequence'].includes(msg.type)) return;
   if (msg.type === "loading") {

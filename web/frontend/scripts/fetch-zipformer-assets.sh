@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
-# Copy interp-gentle-a0.5 int8 ONNX + I/O manifest + zipformer phoneme corpus
-# into the Vite public/ tree. The ONNX and lexicon are gitignored (NPL-derived).
-# io.json is committed in-repo; this script only copies it when missing.
+# Copy the default a0w-ep1-a0.5 int8 ONNX + I/O manifest + zipformer phoneme
+# corpus into the Vite public/ tree, plus the previous default
+# interp-gentle-a0.5 (kept for comparison; skip it with ZIPFORMER_SKIP_LEGACY=1).
+# The ONNX and lexicon are gitignored (NPL-1.2 derived); the interp io.json is
+# committed in-repo.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 FRONTEND="$(cd "$HERE/.." && pwd)"
 DEST_MODELS="$FRONTEND/public/models"
+A0W_ONNX="zipformer_a0w_ep1_a05.int8.onnx"
+A0W_IO="zipformer_a0w_ep1_a05.io.json"
+A0W_BASE="https://github.com/yazinsai/tilawa/releases/download/zipformer-a0w-ep1-a0.5"
 ONNX_NAME="zipformer_interp_gentle_a05.int8.onnx"
 IO_NAME="zipformer_interp_gentle_a05.io.json"
 CORPUS_NAME="zipformer_quran.json"
@@ -50,11 +55,24 @@ resolve_corpus() {
   echo ""
 }
 
+# Default model: a0w-ep1-a0.5 int8 (with the encoder-frame output), from its own release.
+for f in "$A0W_ONNX" "$A0W_IO"; do
+  if [[ -n "${ZIPFORMER_A0W_DIR:-}" && -f "$ZIPFORMER_A0W_DIR/$f" ]]; then
+    cp "$ZIPFORMER_A0W_DIR/$f" "$DEST_MODELS/$f"
+  elif [[ -f "$MAIN_PUBLIC/models/$f" ]]; then
+    cp "$MAIN_PUBLIC/models/$f" "$DEST_MODELS/$f"
+  elif [[ ! -f "$DEST_MODELS/$f" ]]; then
+    download "$A0W_BASE/$f" "$DEST_MODELS/$f"
+  fi
+done
+
 ONNX_SRC="$(resolve_onnx)"
 IO_SRC="$(resolve_io)"
 CORPUS_SRC="$(resolve_corpus)"
 
-if [[ -n "$ONNX_SRC" ]]; then
+if [[ "${ZIPFORMER_SKIP_LEGACY:-0}" == "1" ]]; then
+  :
+elif [[ -n "$ONNX_SRC" ]]; then
   cp "$ONNX_SRC" "$DEST_MODELS/$ONNX_NAME"
 else
   download "$RELEASE_BASE/$ONNX_NAME" "$DEST_MODELS/$ONNX_NAME"
@@ -70,7 +88,7 @@ else
   download "$RELEASE_BASE/$CORPUS_NAME" "$FRONTEND/public/$CORPUS_NAME"
 fi
 
-if [[ ! -f "$DEST_MODELS/$ONNX_NAME" || ! -f "$FRONTEND/public/$CORPUS_NAME" ]]; then
+if [[ ! -f "$DEST_MODELS/$A0W_ONNX" || ! -f "$DEST_MODELS/$A0W_IO" || ! -f "$FRONTEND/public/$CORPUS_NAME" ]]; then
   echo "Failed to materialize Zipformer browser assets."
   echo "Tried local export ($SRC_DIR), main checkout public/, and $RELEASE_BASE"
   echo "Manual fallback:"
@@ -79,7 +97,9 @@ if [[ ! -f "$DEST_MODELS/$ONNX_NAME" || ! -f "$FRONTEND/public/$CORPUS_NAME" ]];
 fi
 
 echo "Ready:"
-echo "  $DEST_MODELS/$ONNX_NAME"
+echo "  $DEST_MODELS/$A0W_ONNX (default)"
+echo "  $DEST_MODELS/$A0W_IO"
+echo "  $DEST_MODELS/$ONNX_NAME (previous default)"
 echo "  $DEST_MODELS/$IO_NAME"
 echo "  $FRONTEND/public/$CORPUS_NAME"
-echo "sha256 int8: $(shasum -a 256 "$DEST_MODELS/$ONNX_NAME" | awk '{print $1}')"
+echo "sha256 a0w int8: $(shasum -a 256 "$DEST_MODELS/$A0W_ONNX" | awk '{print $1}')"

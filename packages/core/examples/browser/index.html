@@ -65,7 +65,7 @@ ort.env.wasm.simd = true;
 setStatus("Fetching model + corpus…");
 const t0 = performance.now();
 const [model, corpus, quran] = await Promise.all([
-  get("models/zipformer_interp_gentle_a05.int8.onnx").then((r) => r.arrayBuffer()),
+  get("models/zipformer_a0w_ep1_a05.int8.onnx").then((r) => r.arrayBuffer()),
   get("zipformer_quran.json").then((r) => r.json()),
   get("quran.json").then((r) => r.json()),
 ]);

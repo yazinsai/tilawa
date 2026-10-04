@@ -49,9 +49,8 @@ Three files: the 66 MB `.onnx`, the phoneme corpus, and (optionally) `quran.json
 for Arabic verse text in `verse_match` events.
 
 ```bash
-base=https://github.com/yazinsai/tilawa/releases/download/v0.3.0
-curl -L -O "$base/zipformer_interp_gentle_a05.int8.onnx"
-curl -L -O "$base/zipformer_quran.json"
+curl -L -O https://github.com/yazinsai/tilawa/releases/download/zipformer-a0w-ep1-a0.5/zipformer_a0w_ep1_a05.int8.onnx
+curl -L -O https://github.com/yazinsai/tilawa/releases/download/v0.3.0/zipformer_quran.json
 ```
 
 Bundling a 66 MB binary in the app is usually the wrong trade — download it on
@@ -61,10 +60,10 @@ first launch and cache it in the documents dir:
 import RNFS from "react-native-fs";
 
 const MODEL_URL =
-  "https://github.com/yazinsai/tilawa/releases/download/v0.3.0/zipformer_interp_gentle_a05.int8.onnx";
+  "https://github.com/yazinsai/tilawa/releases/download/zipformer-a0w-ep1-a0.5/zipformer_a0w_ep1_a05.int8.onnx";
 
 async function ensureModel(): Promise<string> {
-  const dest = `${RNFS.DocumentDirectoryPath}/zipformer_interp_gentle_a05.int8.onnx`;
+  const dest = `${RNFS.DocumentDirectoryPath}/zipformer_a0w_ep1_a05.int8.onnx`;
   if (await RNFS.exists(dest)) return dest;
   await RNFS.downloadFile({ fromUrl: MODEL_URL, toFile: dest }).promise;
   return dest;

@@ -38,6 +38,11 @@ export class GreedyCtcDecoder {
     return this.frameIndex;
   }
 
+  /** Start frame of the token still being decoded (not yet emitted), if any. */
+  get pendingFrame(): number | null {
+    return this.run ? this.run.frame : null;
+  }
+
   reset(): void {
     this.previousBest = this.blank;
     this.frameIndex = 0;

@@ -73,6 +73,17 @@ function growingIstiadha(query: string, table: CostTable): boolean {
   return normalizedDistance(table.encode(query), table.encode(target), table) <= GROWING_DISTANCE;
 }
 
+/** True while `rest` could still grow into an isti'adha or basmala. */
+export function preamblePending(rest: string, table: CostTable): boolean {
+  if (!rest.length) return true;
+  for (const phrase of [ISTIADHA, BASMALA]) {
+    if (rest.length > phrase.length + 4) continue;
+    const target = phrase.slice(0, Math.min(phrase.length, rest.length));
+    if (normalizedDistance(table.encode(rest), table.encode(target), table) <= GROWING_DISTANCE) return true;
+  }
+  return false;
+}
+
 export class QuranIndex {
   readonly corpus: QuranCorpus;
   readonly table: CostTable;

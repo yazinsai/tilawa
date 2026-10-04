@@ -11,8 +11,8 @@ import { TOKENS, BLANK_ID } from "../../src/recitation/tokens";
 import { SAMPLE_RATE } from "../../src/recitation/config";
 import {
   findClip,
-  findModel,
-  findModelIo,
+  findLegacyModel,
+  findLegacyModelIo,
   findOrtDir,
   findPython,
   findPythonRoot,
@@ -22,8 +22,9 @@ import {
 const PY = findPython();
 const PY_ROOT = findPythonRoot();
 const CLIP = findClip();
-const MODEL = findModel();
-const IO_PATH = findModelIo();
+// The recorded ctc_001002.json stream comes from the previous default model.
+const MODEL = findLegacyModel();
+const IO_PATH = findLegacyModelIo();
 const ORT_DIR = findOrtDir();
 const CHUNK = 7680;
 const TAIL_SECONDS = 2.0;

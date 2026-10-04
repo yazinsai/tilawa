@@ -431,6 +431,502 @@ Blind + A/B informed listen of the 22 v3.1/interp-gentle misses (21 v3+qlab + `r
 
 The 21 clips still missed by the v3.1 base and/or interp-gentle-a0.5 were independently transcribed with `gemini-3.1-pro-preview` (raw transcripts scored against `quran.json`; see `artifacts/gemini_oracle/`). 14 of 16 confusable pairs are verbatim-identical text — 55:53/55:30/55:40↔55:13, 81:19↔69:40, 37:82↔26:66, 26:122↔26:9, 37:43↔56:12, 21:38↔10:48, 83:13↔68:15, 37:176↔26:204, 70:29↔23:5, 77:45↔77:15, 38:73↔15:30, 38:79↔15:36 — so the ID is undecidable from audio alone. Two `test_corpus_v3` labels are wrong: `tlog_m043_010_043` and `tlog_m044_010_043` are 10:42 (the model's prediction); `tlog_m008_107_001` is 106:4 followed by 107:1 (label incomplete); `qul_alnufais__8_51` uses بظلام (3:182 wording) — a probable label/recitation variant. Zero genuine model errors remain on distinguishable unique text, so the effective ceiling is **251/256** on v3 (not 249) and **≈573–574/583** on q-lab without context priors. Remaining SeqAcc has to come from previous-ayah / surah continuity, which the tracker's `hint` mechanism already supports. Manifests are unchanged; gold issues are in `benchmark/test_corpus_v3/KNOWN_LABEL_ISSUES.md`.
 
+### Phase 0 (Beyond-QLab v3): leak audit, TLOG filter, v3 control (2026-09-30)
+
+**Held-out reciters were in the FT mix.** `greentechapps/everyayah_curated_1s_20s` was re-split after q-lab was cut (q-lab wavs are `test-000NN-of-00013`; the repo now has 31 test shards whose reciters are Husary_128kbps / Saood_ash-Shuraym / Ahmed_Neana / Mohammad_al_Tablaway). The three `everyayah_heldout` reciters (Sahl_Yassin, Akram_AlAlaqimy, Muhsin_Al_Qasim — 12/12 sampled clips matched by duration on everyayah.com) now sit in train/validation, which staging ingested. `everyayah_cuts_fbank`: 44,376 cuts / 120 h (×3 perturb) from them; `everyayah_multi`: 66.7 h more; 11/12 sampled benchmark clips are the same recording in training (Δdur ≤ 0.05 s). **Every FT/interp EA-slice number above (ft-v31, ft-gentle, interp-*, E1, E4) is leaked.** Also: 101/127 `test_corpus_v3` Alafasy ayahs are in the FT mix, so v3-corpus EA/multi tracker counts are on seen audio for FT runs. Fix: `shared/leak_guard.py`, `*_rx_cuts_fbank` manifests (re-verified at 0 flags), staging drops the reciters at ingest, `train()` refuses leaky manifests. Audit: `scripts/phase0_modal.py --action leak-audit` (apps `ap-O2XdOsOiehSl4JOODDYYxp`, `ap-eGr0HK4nfcPaOHG43dG88N`).
+
+**q-lab PER, ONNX streaming greedy fp32, two golds** (`scripts/qlab_per_eval.py` + `qlab_per_report.py`). `ordered` = `ordered_quran_phonemes[surah:ayah]` (all prior numbers); `text` = Quran-Lab gold `quran_text2phoneme[norm(reference_text)]` with v1.1 references (misses 82 tlog / 11 nufais / 4 EA clips — their `quran_per_eval.py` drops misses). The golds disagree at ayah-final madd (4 vs 2 harakat) on 259/486 shared clips; `madd-free` collapses madd runs. The 11 v1.1 nufais clips recite the ayah twice, so `ordered` scores correct transcription as insertions (v3 nufais I 7.16 on 200 vs 3.31 on 189).
+
+| model | ordered ALL / EA / nufais / tlog (583) | madd-free ALL / tlog | text ALL / tlog (486 / 117) |
+|---|---|---|---|
+| **v3 (control)** | 6.27 / 4.24 / 7.91 / 6.90 | 5.26 / 5.42 | 4.15 / 5.89 |
+| v3 int8 | 6.27 / 4.23 / 7.97 / 6.83 | — | 4.12 / 5.75 |
+| v3.1 | 5.56 / 2.39 / 7.78 / 7.06 | 4.96 / 5.93 | 4.19 / 7.24 |
+| ft-gentle † | 4.32 / 1.47 / 4.55 / 8.39 (D 6.27) | 4.17 / 8.17 | 4.00 / 8.62 |
+| interp α=0.1 † | 5.14 / 1.96 / 7.55 / 6.36 | 4.73 / 5.54 | 4.16 / 7.24 |
+| interp α=0.3 † | 4.49 / 1.53 / 7.22 / 4.89 | 4.33 / 4.66 | 4.15 / 7.24 |
+| interp-gentle α=0.5 † | 4.09 / 1.48 / 6.57 / 4.35 | 4.00 / 4.22 | 4.06 / 6.85 |
+| interp α=0.7 † | 3.73 / 1.44 / 5.70 / 4.25 | 3.63 / 4.11 | 3.87 / 6.35 |
+| interp α=0.9 † | 3.67 / 1.35 / 4.82 / 5.50 (D 3.21) | 3.55 / 5.32 | 3.77 / 6.85 |
+
+† EA leaked (above). Interp = v3.1 ⊕ ft-gentle epoch-1 (α on FT); exports `/vol/exports/interp-gentle-a{0.1,0.3,0.7,0.9}`.
+
+**Interp artifact check.** The tlog gain is a smooth interior minimum of the α curve (madd-free 5.93 → 5.54 → 4.66 → 4.22 → 4.11 → 5.32 → 8.17), not an artifact: FT deletions only take off at α ≥ 0.9. It is gold-dependent — under the 2-harakat text gold every blend is worse than v3 on tlog (best 6.35 vs 5.89) because FT labels put 4-harakat madd at waqf. **FT learns to not hear deviations:** tlog insertions fall monotonically with α (2.24 → 0.57); on the 46 v3-non-clean holdout clips (repeats / restarts) insertions go v3 10.4 → interp 5.5 → ft-gentle 2.7; on the 11 doubled-recitation nufais clips hyp/ref (single-ayah gold) goes v3 2.00 (10/11 transcribe both) → ft-gentle 1.37 (3/11). Part of every FT "gain" on tlog/nufais is suppressing real speech the labels omit.
+
+**Held-out multi-ayah windows** (`benchmark/build_heldout_multi.py`, 58 windows of 2–4 ayahs from the three q-lab reciters, 0.5 s gaps, 30 with a ≤4-word bridge ayah; audio + manifest off-repo). v3 PER 2.33, 0/157 ayahs dropped (≥50% deleted); v3.1 1.60, 0; interp α=0.3 / 0.5 / 0.7 † 0.70 / 0.63 / 0.70, 0; α=0.9 † 12.48, 17 dropped; **ft-gentle † 27.16 (D 26.90), 48/157 ayahs dropped (26/72 short), 36/58 windows** — on audio it trained on.
+
+**TLOG filter** (`phase0_modal.py --action tlog-filter --model v3`, app `ap-V5UTfjexs1ZWUT89ZCy68M`, 64 × 2-CPU shards, 0 errors; per-clip scores at `/vol/phase0/tlog_filter/v3/`). All 41,083 staged TLOG clips vs their training label: **clean (PER ≤ 0.10) 14,521 / 31.6 h; suspect 5,882 / 13.0 h; > 0.35 20,680 / 55.4 h**; median PER 0.36. Forced-score medians per token: −0.06 / −0.90 / −10.8. 3,732 non-clean clips (10.3 h) decode within PER 0.10 of a *different* ayah — 2,568 of them the previous ayah (label = audio + 1); across all clips with ayah ≥ 2, 6,904 match the previous ayah better than the label (not a basmala-numbering shift: 0 ayah-1 clips are the basmala). The FT mix trained on all 100 h. `tlog_clean_v3_cuts_fbank` = 14,354 cuts (clean ∩ `tlog_rx`). q-lab `tlog_holdout` under the same filter: 154 clean / 39 suspect / 7 > 0.35, and 0/46 non-clean decode closer to another ayah (only identical-text pairs) — the holdout was curated, its residual error is reciter deviation, not wrong labels. tlog PER on the v3-clean 154 (selection favours v3): v3 3.11, v3.1 3.36, ft-gentle 5.86, interp-gentle-a0.5 1.67.
+
+### Phase 0 completion + A0 (2026-09-30, afternoon)
+
+**Dev split (reciter-disjoint).** Six everyayah.com Hafs reciters that sit outside the curated 35-reciter set *and* outside every training manifest (EA 28 dirs + 34 QUA mushaf names): Ghamadi_40kbps, Ali_Jaber_64kbps, Fares_Abbad_64kbps, khalefa_al_tunaiji_64kbps, Karim_Mansoori_40kbps, Parhizgar_48kbps. 569 single ayahs + 48 2–4-ayah windows, 1.91 h (`benchmark/build_heldout_multi.py --reciters dev`, off-repo; on the volume at `/vol/phase0/corpora/dev_everyayah`). Quran-Lab says v3 saw "36 EveryAyah reciters"; the curated set is 35, so these six are *probably* not in v3's EA tier, but could be in its 1,161-reciter archive tier (unknowable). Phone-domain dev: 267 clean TLOG clips hash-held out of `tlog_clean_v3` (clip-disjoint only) + 300 non-clean TLOG clips (never trained on) for the insertion gate. All three q-lab reciters stay test-only. Excluded as dev: Ibrahim Akhdar, Mahmoud Ali Al-Banna, Mustafa Ismail, Saud Al-Shuraim (QUA mushafs), Ahmed_Neana / Mohammad_al_Tablaway (likely in v3's EA tier).
+
+**QUA fingerprint.** 399 QUA clips are (surah, ayah, ±60 ms) twins of held-out EA / nufais clips. Best-lag fbank cosine: twins max 0.377, same-ayah other-recording controls max 0.371, same-recording positive control (q-lab wav vs everyayah.com mp3) 0.80–0.87 → 0 copies of held-out recordings in QUA.
+
+**Perturbed-copy bug.** fbank manifests hold `_sp0.9` / `_sp1.1` copies under their own ids; the first `tlog_clean_v3` kept only the 1.0× cut (14,090 of 42,270). Fixed (flags follow the base id) before A0; `tlog_clean_v3` = 42,270 cuts.
+
+**Headline PER** (promotion metric) = Quran-Lab v1.1 references over all 600 clips: their `quran_text2phoneme` gold where the table has the reference (503), else ordered phonemes × repeats with waqf madd at 2 harakat (97). Madd-free = secondary. **v3 control: headline 4.45 (EA 3.10 / nufais 4.64 / tlog 6.35), madd-free 3.76.**
+
+**Correction eval (synthetic) — withdrawn.** An earlier version of this entry measured the correction engine on mistakes spliced into clean recitation. Deliberately creating incorrect Quran recitation, including by editing audio, is not permissible; the builder, the audio and the numbers were removed (2026-10-01). Correction is now evaluated only on genuine slips (see the correction entries below).
+
+**A0** (`ap-yqax5YcK7boRkMdpshQumQ`, H100:4, init v3 `.pt`, `everyayah_rx,qua_rx,iqra_rx,retasy_rx,tlog_clean_v3`, 2 ep, lr 0.001, warmup 1000; leak-check 0 flags on all five sources; valid 0.0292 ep1 / 0.0110 mid-ep2; `/vol/exp/a0-v3-clean`). Exports `/vol/exports/a0-ep{1,2}[-a0.5|-a0.7]` (α on FT, init v3). Eval: `scripts/eval_modal.py` + `promotion_gates.py`.
+
+| metric | v3 | ep1 | ep1 α0.5 | ep1 α0.7 | ep2 | ep2 α0.5 | ep2 α0.7 |
+|---|---|---|---|---|---|---|---|
+| headline | 4.45 | 4.42 | 4.37 | 4.26 | 4.46 | **4.17** | 4.26 |
+| madd-free headline | 3.76 | 3.11 | 3.15 | 2.99 | 3.23 | **2.96** | 3.03 |
+| madd-free EA / nufais / tlog | 2.89 / 3.62 / 5.41 | 1.54 / 4.22 / 3.91 | 2.06 / 3.45 / 4.42 | 1.76 / 3.52 / 4.13 | 1.47 / 4.66 / 3.83 | 1.80 / 3.42 / 4.09 | 1.63 / 4.02 / 3.73 |
+| held-out multi: ayahs dropped (PER) | 0 (2.34) | 11 (7.37) | 0 (1.14) | 0 (1.36) | 40 (22.25) | 0 (1.02) | 0 (1.19) |
+| non-clean ins: holdout / tlog dev (floor 0.85×v3) | 10.38 / 22.01 | 5.62 / 16.56 | 9.29 / 22.12 | 7.57 / 20.61 | 5.78 / 15.29 | 8.67 / 21.51 | 7.03 / 19.48 |
+| dev single ordered / madd-free | 2.89 / 1.00 | 0.79 / 0.73 | 1.66 / 1.53 | 1.28 / 1.20 | 0.63 / 0.60 | 1.14 / 1.03 | 0.83 / 0.78 |
+| dev multi drops | 0 | 12 | 0 | 0 | 28 | 0 | 0 |
+| tlog dev | 3.76 | 1.94 | 1.97 | 1.76 | 1.92 | 1.74 | 1.73 |
+| tracker held-out multi / v1 | 56/58, 52/53 | | 56/58, 52/53 | | | 56/58, 53/53 | |
+| **gates** | | 3 fail | **all pass** | ins | all fail | ins (8.67 < 8.83) | ins |
+
+Paired bootstrap (2,000 resamples, clip level) of the headline delta vs v3: ep1-α0.5 [−0.36, +0.17] (not significant), ep1-α0.7 [−0.54, +0.17], ep2-α0.5 [−0.56, −0.01]. Raw FT again deletes whole ayahs in multi-ayah audio (ep2: 40/157 held-out, 28 dev) even trained leak-free from v3, and suppresses insertions on deviant speech; the blends repair both. Headline − madd-free is 0.69 for v3 and ~1.2 for FT/blends: our training labels put waqf madd at 4 harakat while the v1.1 gold uses 2, costing FT ≈ 0.5 pp of headline. **Verdict: ep1-α0.5 passes every gate but its headline gain is inside noise; ep2-α0.5 has the only significant gain and misses the insertion floor by 0.16 pp. Not promoted.** Next single-change arms: waqf-madd label convention (2 harakat at ayah end), multi-ayah windows (A0w).
+
+### Arms after A0 (2026-09-30, evening): A0e, A0w, A0t, A1
+
+One change per arm, same recipe as A0 (v3 init, lr 0.001, warmup 1000, H100:4), same eval + gates; CIs are paired clip-level bootstraps of the headline delta (2,000 resamples, 95%). Best control logged: **a0-ep1-a0.5** (4.37, passes all gates, CI vs v3 [−0.35, +0.18]).
+
+- **A0e — waqf-2 labels** (`ap-WQyAQPHJXwB01o9ZoMLrRB`, sources `*_w2`). Ayah-final 4-beat madd (optionally before ≤2 closing chars) → 2 beats; matches the v1.1 gold on 406/487 shared clips (was 228); 51–82% of cuts per source change, rebuilt labels = originals on every cut. Headline drops ~0.6 pp at every variant (CI vs A0 all negative, e.g. ep1-α0.5 −0.60 [−0.76, −0.43]); madd-free vs A0 ≈ 0 for blends (it is a label-convention fix, not acoustics). **a0e-ep1-a0.5: 3.77, all gates pass, CI vs v3 [−0.96, −0.43].**
+- **A0w — multi-ayah windows** on A0e (`ap-86NAkX4OJwTIkzMaBNcE7j`, + `everyayah_multi_rx_w2x3` = the leak-free window set repeated ×3 → 30% of epoch hours; lhotse `CutSet.mux` does not stop early, so mux weights alone never changed exposure — E4's "2.5× weight" was a no-op on totals). Raw FT ayah drops 11/25 → 2/1 (ep1/ep2). **a0w-ep1-a0.5: 3.60, all gates, CI vs A0e counterpart −0.17 [−0.27, −0.07]** — new best. a0w-ep2-a0.5 also passes (3.60, best insertion 9.60) but vs A0e it is +0.05 [−0.04, +0.16].
+- **A0t — relabelled TLOG** on A0w (+ `tlog_relab_v3_w2_rx`: 3,690 non-clean clips whose decode is within PER 0.10 of a different ayah, relabelled; 1 clip dropped as a holdout twin after relabel — the train-time leak check refused the first launch). No gain vs A0w: ep1-α0.5 +0.01 [−0.07, +0.10], ep2-α0.5 +0.11 [+0.02, +0.20]. **Killed** (plan rule: no gain); A0w stays the base.
+
+| variant | headline | madd-free | drops | ins holdout / tlog-dev | tracker held-out, v1 | gates failed | CI vs v3 | CI vs previous arm |
+|---|---|---|---|---|---|---|---|---|
+| v3 | 4.45 | 3.76 | 0 | 10.38 / 22.01 (floors 8.83 / 18.71) | 56/58, 52/53 | — | — | — |
+| a0-ep1-a0.5 | 4.37 | 3.15 | 0 | 9.29 / 22.12 | 56, 52 | — | −0.09 [−0.35, 0.18] | — |
+| a0e-ep1-a0.5 | 3.77 | 3.09 | 0 | 8.98 / 21.90 | 56, 53 | — | −0.69 [−0.96, −0.43] | vs A0 −0.60 [−0.76, −0.43] |
+| a0e-ep2-a0.7 | 3.46 | 2.77 | 0 | 6.48 / 19.37 | 56, 53 | ins holdout | −1.00 [−1.38, −0.64] | vs A0 −0.81 [−1.12, −0.55] |
+| **a0w-ep1-a0.5** | **3.60** | 2.93 | 0 | 9.29 / 22.16 | 56, 53 | — | −0.86 [−1.12, −0.60] | vs A0e −0.17 [−0.27, −0.07] |
+| a0w-ep2-a0.5 | 3.60 | 2.93 | 0 | 9.60 / 22.16 | — | — | −0.86 [−1.10, −0.62] | vs A0e +0.05 [−0.04, 0.16] |
+| a0w-ep2-a0.7 | 3.41 | 2.74 | 0 | 7.81 / 20.75 | 56, 53 | ins holdout | −1.04 [−1.37, −0.72] | vs A0e −0.04 [−0.19, 0.11] |
+| a0t-ep1-a0.5 | 3.61 | 2.95 | 0 | 9.45 / 22.07 | 56, — | — | −0.84 [−1.10, −0.60] | vs A0w +0.01 [−0.07, 0.10] |
+| a0t-ep2-a0.7 | 3.37 | 2.68 | 0 | 7.03 / 20.42 | 56, — | ins holdout | −1.09 [−1.45, −0.74] | vs A0w −0.05 [−0.18, 0.08] |
+| a1-ep1-a0.5 | 3.95 | 3.25 | 0 | 10.23 / 22.75 | 56, 53 | — | −0.51 [−0.77, −0.25] | vs A0w +0.35 [+0.23, +0.48] |
+| a1-ep1-a0.7 | 3.49 | 2.81 | 0 | 7.57 / 20.78 | 56, 53 | ins holdout | −0.97 [−1.28, −0.67] | vs A0w −0.05 [−0.24, 0.12] |
+
+- **A1 — CR-CTC** on A0w (`--use-cr-ctc 1 --enable-spec-aug 0 --cr-loss-scale 0.2 --time-mask-ratio 2.5`, `--max-duration 600` per the recipe, 1 epoch — every best variant so far is epoch 1 and Eden's schedule does not depend on total epochs). Worse at α 0.5 (+0.35 [+0.23, +0.48] vs a0w-ep1-a0.5; raw ep1 +0.21 [0.00, +0.43]); α 0.7 ties (−0.05, CI crosses 0) and fails the insertion floor. It does keep more insertions (10.23 at α 0.5, above v3's floor comfortably). **Killed** (no PER gain vs A0w). Confound: halved max-duration at the same LR means 2× optimizer steps of half-size batches.
+
+**Current best: a0w-ep1-a0.5** (waqf-2 labels + ×3 multi-ayah windows, epoch 1, 50/50 with v3; `/vol/exports/a0w-ep1-a0.5`): headline 3.60 vs v3 4.45 (−0.86 [−1.12, −0.60]), madd-free 2.93 vs 3.76, 0 dropped ayahs, insertions 9.29 / 22.16, tracker 56/58 + v1 53/53. Not promoted to the shipped model (no browser/int8/latency row yet).
+
+- **A0w50 — windows at ~50% of epoch hours** (`ap-H1WZ2wrjkdk0WDzm2Fe6xC`, `everyayah_multi_rx_w2x7`, 735,693 cuts; otherwise identical to A0w; leak-check 0 flags; valid 0.0116 / 0.0048). No gain: best gate-passing variant ep1-α0.5 = 3.66 vs a0w-ep1-a0.5 3.60, CI +0.06 [−0.02, +0.15]; ep2-α0.5 3.78, +0.18 [+0.08, +0.28] (worse). α 0.7 variants score 3.40–3.43 but fail the insertion floor, as in every arm. ep1-α0.5: tracker 56/58. Raw drops 2 / 1, same as ×3. **Killed** — 30% windows stay; 70% not run. Spend ~$31.8.
+
+**int8 + browser (2026-10-01).** Dynamic-int8 exports, same eval:
+
+| model | headline | madd-free | drops | ins holdout / tlog-dev | gates vs v3 | tracker held-out, v1 | browser `test:browser` |
+|---|---|---|---|---|---|---|---|
+| a0w-ep1-a0.5 int8 | 3.59 | 2.92 | 0 | 9.37 / 22.10 | pass | 56/58, 53/53 | 6/6, RTF 0.100, ready 1112 ms |
+| v3 int8 | 4.47 | 3.79 | 0 | 10.46 / 22.05 | headline (4.468 vs 4.452) | 56/58, 52/53 | — |
+| shipped interp-gentle-a0.5 int8 | 4.16 | 2.95 | 0 | 5.70 / 15.91 | **both insertion gates** | — | 6/6, RTF 0.100, ready 1437 ms |
+
+a0w int8 − fp32: headline −0.01, madd-free −0.01, insertions +0.08 / −0.05, tracker unchanged. a0w int8 also passes vs v3 int8. The currently shipped model fails the insertion floor (it suppresses deviant speech). Browser latency is end-to-end over the 6 default clips (134 s audio, ~13.5 s wall); identical for both models.
+
+Full 6-variant rows per arm (raw ep1/ep2 + α 0.5/0.7) are in the per-arm reports. Pattern across every arm: α 0.7 and raw epochs score lower headline but fail the insertion floor (they learn to not transcribe deviations); α 0.5 at epoch 1 is the only setting that passes everything each time.
+
+## Correction eval on real recordings (baseline)
+
+2026-10-01. Correction mode of the shipped recitation engine (`recognize(..., mode="correction")`, issues dismissed on sight) over real audio. One CPU pass per model (RTF 0.052 shipped int8, 0.068 v3 fp32, 0.062 a0w fp32). Engine rules were not changed. Scorer: `lab/scripts/correction_eval.py`.
+
+Real slips only. No audio was spliced, deleted, duplicated, swapped, or resynthesized, and no acted-mistake set was used. Help `use=slip` is a reciter's self-reported accidental slip at an unknown spot. TLOG rows are an unverified recall set from `locate_slips.py` (no one has listened; substitutions in particular may be a shared model mis-hear). Per-clip rows stay in `/tmp/correction_eval/`.
+
+A slip counts as caught when any issue is on the same surah:ayah and `word` is within ±1 of the located word. Kind-correct: omitted → `possible_omission`, substituted → `possible_substitution`, repeated/restarted → any word kind or `unclear_ayah`. Exact-word is distance 0. Latency is the earliest catching issue's `atSeconds` minus the slip span start (median over catches that have a span).
+
+### Data
+
+| set | clips | minutes | what it is |
+|---|---:|---:|---|
+| Help clean (dev+test) | 266 | 48.79 | `use=clean`. Dev 105 / 19.82 min, test 161 / 28.98 min |
+| Help slip | 10 | 3.38 | Self-reported slips. 8 single-ayah, 2 multi-ayah |
+| Help slips located | 5 clips, 10 slips | — | v3 and a0w agree on a review-grade word. 9 substituted, 1 repeated. Both multi-ayah clips stayed unlocated |
+| TLOG clean dev | 267 | 33.68 | `phase0/tlog_filter/v3/dev_ids.txt` (PER ≤ 0.10) |
+| v1 | 53 | 16.95 | `test_corpus` manifest |
+| TLOG candidates | 1,119 clips / 1,519 slips | 202.72 | Every omitted (1,027), repeated (74), restarted (18), plus 400/2,795 substituted rows (seed 0). Unverified |
+
+Help locations use the same review bar as the TLOG file (`is_review_slip`: whole-word edit, repeat, restart, or a partial edit of ≥2 tokens covering at least half the word) and keep a word only when v3 and a0w both mark it. Multi-ayah takes are aligned as one passage (`ayah_local_slip`) and the word index is mapped back into its ayah. Both 2-ayah clips produced a review slip on at least one model; the models did not share a word, so those slips are unlocated and are not in the recall denominator. Three single-ayah clips produced no review slip on either model.
+
+### False flags per clean minute
+
+Primary guardrail. Parentheses are issue count and clips with any flag.
+
+| model | help clean | TLOG clean dev | v1 |
+|---|---|---|---|
+| shipped interp-gentle-a0.5 int8 | 0.020 (1, 1/266) | 0.119 (4, 4/267) | 0 (0/53) |
+| v3 fp32 | 0.041 (2, 2/266) | 0.119 (4, 4/267) | 0.059 (1, 1/53) |
+| a0w-ep1-a0.5 fp32 | 0.061 (3, 3/266) | 0.089 (3, 3/267) | 0 (0/53) |
+
+Shipped help-clean's only issue is `unclear_ayah`. Shipped v1 is clean. TLOG-dev flags are mostly `possible_vowel`.
+
+### Recall
+
+Help, on the 10 located slips (unverified word spot; the clip itself is a real self-report):
+
+| model | recall | kind-correct | exact word | median latency |
+|---|---|---|---|---|
+| shipped | 1/10 | 0/10 | 1/10 | 5.12 s |
+| v3 | 2/10 | 1/10 | 1/10 | 4.56 s |
+| a0w | 1/10 | 0/10 | 1/10 | 5.12 s |
+
+The shipped and a0w catch is a `possible_vowel` on a partial substitution (exact word, wrong kind). v3's kind-correct hit is `possible_substitution` on one of those nine. The one repeated slip was missed by all three. No omitted or restarted slip was located in this set.
+
+TLOG candidates, unverified, by kind. Cells are caught/n.
+
+| model | omitted (1027) | repeated (74) | restarted (18) | substituted sample (400) | all (1519) |
+|---|---|---|---|---|---|
+| shipped recall | 2 | 1 | 0 | 4 | 7 |
+| shipped kind-correct | 2 | 1 | 0 | 0 | 3 |
+| shipped exact | 2 | 0 | 0 | 2 | 4 |
+| shipped median latency | 3.48 s | 2.20 s | — | 5.09 s | 4.48 s |
+| v3 recall | 2 | 1 | 0 | 7 | 10 |
+| v3 kind-correct | 2 | 1 | 0 | 3 | 6 |
+| v3 exact | 2 | 0 | 0 | 3 | 5 |
+| v3 median latency | 3.48 s | 2.20 s | — | 2.88 s | 2.78 s |
+| a0w recall | 3 | 2 | 1 | 6 | 12 |
+| a0w kind-correct | 2 | 2 | 1 | 3 | 8 |
+| a0w exact | 3 | 1 | 0 | 2 | 6 |
+| a0w median latency | 2.88 s | 3.00 s | 3.92 s | 2.62 s | 2.76 s |
+
+811/1,519 TLOG slips are the first or last word of the ayah. Every model caught 0 of those. All catches are among the 708 middle words (shipped 7/708, v3 10/708, a0w 12/708).
+
+### Help clean, false flags per minute by slice
+
+Same minutes for every model. Cell is flags/min (issues).
+
+| slice | value | clips | min | shipped | v3 | a0w |
+|---|---|---:|---:|---:|---:|---:|
+| device | phone | 196 | 36.48 | 0.027 (1) | 0.055 (2) | 0.055 (2) |
+| device | laptop | 55 | 8.93 | 0 | 0 | 0 |
+| device | desktop | 6 | 1.66 | 0 | 0 | 0 |
+| device | tablet | 6 | 1.29 | 0 | 0 | 0.777 (1) |
+| device | headset | 3 | 0.43 | 0 | 0 | 0 |
+| gender | unknown | 134 | 25.44 | 0.039 (1) | 0.039 (1) | 0.118 (3) |
+| gender | male | 128 | 22.45 | 0 | 0.045 (1) | 0 |
+| gender | female | 4 | 0.91 | 0 | 0 | 0 |
+| level | unknown | 134 | 25.44 | 0.039 (1) | 0.039 (1) | 0.118 (3) |
+| level | intermediate | 80 | 15.07 | 0 | 0 | 0 |
+| level | hafiz | 25 | 4.31 | 0 | 0 | 0 |
+| level | beginner | 27 | 3.98 | 0 | 0.251 (1) | 0 |
+| ayah | single | 223 | 36.15 | 0 | 0.028 (1) | 0.055 (2) |
+| ayah | multi | 43 | 12.65 | 0.079 (1) | 0.079 (1) | 0.079 (1) |
+| split | dev | 105 | 19.82 | 0 | 0.050 (1) | 0 |
+| split | test | 161 | 28.98 | 0.035 (1) | 0.035 (1) | 0.104 (3) |
+
+Gender and level are missing on 134 help-clean clips (recorded as unknown). Shipped's single help-clean flag is on a multi-ayah test clip from a phone.
+
+### Why recall stays low
+
+The word rules in `packages/core/src/recitation/correction.ts` are written for a gross mismatch between two clearly heard words. That is what the numbers show.
+
+1. **Both neighbours must already be clear, so edges never flag.** `possibleWordIssues` returns nothing unless the previous and next word are the same ayah and `clearWord`: `ok`, distance ≤ 0.15, margin ≥ 0.55, heardRatio in [0.75, 1.3]. The comment on that gate is explicit: do not infer leading or trailing omissions. 811/1,519 TLOG slips sit on word 0 or the last word, and all three models caught none of them.
+2. **Omission and substitution require a gross hole, not a partial edit.** Omission fires only for `state === 'skipped'` and `heardRatio === 0`. Substitution fires only for `wrong` with distance ≥ 0.6, margin ≥ 0.65, and heardRatio in [0.5, 1.5]. On the shipped model, partial omissions were 0/259 and whole-word omissions 2/768; kind-correct substitutions were 0/400. Of the 49 issues on the shipped candidate run, 41 are `possible_vowel`, which needs the consonant skeleton to already match (distance ≤ 0.15) plus a sure vowel error. A partial substitution the aligner marks is often inside that vowel gate and outside the substitution gate, so it can count as a catch and still miss kind-correct.
+3. **Nothing in `possibleWordIssues` represents a repeat or a restart, and a candidate must hold for 12 frames.** Repeated and restarted slips are kind-correct only if some other word kind or `unclear_ayah` happens to land on them. `unclear_ayah` is an ayah-level kind: the session raises it when ayah N+2 is matched immediately after N, which a restart inside one ayah does not do. Shipped recall is 1/74 repeated and 0/18 restarted. `CorrectionController.observe` also waits until the same kind has persisted for 12 frames before it raises, then a dismiss suppresses that `wordIndex` for the rest of the clip. Median latency on the catches that exist is 2–5 s after the slip span start.
+
+## Correction rules v2 (real recordings)
+
+2026-10-01. Four rule changes in `packages/core/src/recitation/correction.ts`, made one at a time, each ablated, then frozen and scored once on held-out data. Same data, scorer and no-synthetic-mistakes rule as the baseline above. Aggregates only; per-clip rows stay in `/tmp/correction_eval/`.
+
+**Split.** Tuning: help clean `split=dev` (105 clips, 19.82 min), TLOG clean dev (267, 33.68 min), and the TLOG candidate half with an even sha1 of the clip id (699 slips: 476 omitted, 31 repeated, 7 restarted, 185 substituted). Held-out: help clean `split=test` (161, 28.98 min), help slips (all 10 located slips are in test, so tuning had no help recall data), the odd TLOG half (820 slips: 551 / 43 / 11 / 215), and v1 (53, 16.95 min). TLOG clean dev has no split and is reported in both.
+
+**Two measurements.**
+- *Live*: `correction_eval.py run`, the same harness as the baseline (issues dismissed on sight). This is the headline.
+- *Paired replay*: `run --trace` records every controller input (verdicts, cursor, frame, settle snapshots) with a controller that never flags. Then `replay_correction.ts` re-runs any rule set offline over the same trace, so two rule sets are compared on identical engine output. All ablations use it.
+
+Two things make the measurements differ.
+- *Inference noise.* onnxruntime CPU inference is not bit-identical between runs with 4 intra-op threads; it is with 1. Margins move in the third decimal, and that can flip a word state. Any single live run, the baseline included, carries per-clip noise of a catch or two. Paired replay removes it.
+- *Dismiss on sight.* After a dismiss the session resets the streaming encoder and re-tracks from the resume cursor, behind the reciter. The next 1–2 s decode poorly (words come back unsure or wrong, and the tracker briefly loses lock), so a second slip in the same clip is rarely flagged live. In the app, audio is dropped while the dialog is open, so this harness artifact affects baseline and v2 alike. Replay does not dismiss, so it reads higher (shipped tuning: 13 live-equivalent catches in replay versus 9 live).
+
+Cells below are caught / kind-correct / exact-word / median latency. FF is false flags per clean minute (issues).
+
+### Changes
+
+1. **Partial omission** (`omissionMaxHeard`, default 1). A `skipped` word (heard ratio < 0.34) with clear neighbours is an omission even when part of it was heard. Before, only heard ratio 0 counted.
+2. **GOP rule** (`gopFlag` −3, `gopAnchor` −2). Correction mode now attaches CTC posteriors, and interior verdicts carry goodness-of-pronunciation scores: `gop`, the per-token log ratio of forcing the expected word against the free best path over its window, plus `gopNone`, `gopTwice`, `repGain` and `pairGop`. A word the aligner already marks `wrong` or `skipped` is flagged when its GOP is ≤ −3, it is the local minimum, and both same-ayah neighbours fit (clear, or GOP ≥ −2 and not skipped). The neighbours do not have to be `clear`. Kind: omission if the word is skipped or silence fits the window clearly better (`gopNone − gop ≥ 2` and `gopNone ≥ −3`), else substitution. `ok`, `unsure` and `pending` words are never flagged by GOP.
+3. **Settle** (`settle`). When the tracker is dropped (stop, surah completed, silent idle), the session runs `CorrectionController.settle()` once on settled verdicts, covering only the words `observe()` never judged with both neighbours and the word after settled. No persistence is needed, because settled verdicts do not change. Vowel flags stay observe-only.
+4. **`possible_repetition`** (`repetitionGain` 5). A word that fits once (GOP ≥ −2) but gains ≥ 5 nats per token from forcing a second copy, with a clear left neighbour. A neighbour that also repeats vetoes it, since a phrase restart (waqf then ibtida') is accepted practice. A retry that repeats the word again is not accepted.
+
+New kind and thresholds are optional fields with defaults, so older thresholds objects and switch statements keep working. The web demo has a label for the new kind.
+
+### Ablations (tuning part, paired replay)
+
+Each row replays the final code with later rules switched off (cumulative) or one rule switched off (leave-one-out). TLOG columns are the 699 tuning-half slips (omitted 476, repeated 31, restarted 7, substituted 185).
+
+| rules | model | FF help clean dev | FF TLOG clean dev | omitted | repeated | restarted | substituted | all |
+|---|---|---|---|---|---|---|---|---|
+| baseline | shipped | 0.000 (0) | 0.119 (4) | 1/1/1/5.16s | 1/1/0/2.20s | 0/0/0/— | 1/0/0/4.48s | 3/2/1/4.48s |
+| baseline | a0w | 0.000 (0) | 0.089 (3) | 2/1/2/4.02s | 2/2/1/3.00s | 0/0/0/— | 4/2/1/2.62s | 8/5/4/2.76s |
+| +partial omission | shipped | 0.000 (0) | 0.119 (4) | 2/2/2/3.94s | 1/1/0/2.20s | 0/0/0/— | 2/0/1/3.16s | 5/3/3/2.72s |
+| +partial omission | a0w | 0.000 (0) | 0.089 (3) | 4/3/3/2.80s | 2/2/1/3.00s | 0/0/0/— | 6/2/2/2.62s | 12/7/6/2.68s |
+| +GOP | shipped | 0.000 (0) | 0.119 (4) | 3/3/2/2.72s | 2/2/0/7.34s | 0/0/0/— | 7/4/3/4.48s | 12/9/5/3.60s |
+| +GOP | a0w | 0.000 (0) | 0.089 (3) | 4/3/3/2.80s | 2/2/1/3.00s | 0/0/0/— | 13/9/5/3.44s | 19/14/9/2.88s |
+| +settle | shipped | 0.000 (0) | 0.119 (4) | 3/3/2/2.72s | 2/2/0/7.34s | 0/0/0/— | 7/4/3/4.48s | 12/9/5/3.60s |
+| +settle | a0w | 0.000 (0) | 0.089 (3) | 5/4/4/2.88s | 2/2/1/3.00s | 0/0/0/— | 13/9/5/3.44s | 20/15/10/3.16s |
+| +repetition (final) | shipped | 0.000 (0) | 0.119 (4) | 3/3/2/2.72s | 2/2/0/7.34s | 1/1/1/3.16s | 7/4/3/4.48s | 13/10/6/3.16s |
+| +repetition (final) | a0w | 0.000 (0) | 0.089 (3) | 5/4/4/2.88s | 2/2/1/3.00s | 1/1/1/3.16s | 13/9/5/3.44s | 21/16/11/3.16s |
+| final − partial omission | shipped | 0.000 (0) | 0.119 (4) | 3/3/2/2.72s | 2/2/0/7.34s | 1/1/1/3.16s | 7/4/3/4.48s | 13/10/6/3.16s |
+| final − partial omission | a0w | 0.000 (0) | 0.089 (3) | 5/4/4/2.88s | 2/2/1/3.00s | 1/1/1/3.16s | 13/9/5/3.44s | 21/16/11/3.16s |
+| final − GOP | shipped | 0.000 (0) | 0.119 (4) | 2/2/2/3.94s | 1/1/0/2.20s | 1/1/1/3.16s | 2/0/1/3.16s | 6/4/4/2.94s |
+| final − GOP | a0w | 0.000 (0) | 0.089 (3) | 4/3/3/2.80s | 2/2/1/3.00s | 1/1/1/3.16s | 6/2/2/2.62s | 13/8/7/2.72s |
+| final − settle | shipped | 0.000 (0) | 0.119 (4) | 3/3/2/2.72s | 2/2/0/7.34s | 1/1/1/3.16s | 7/4/3/4.48s | 13/10/6/3.16s |
+| final − settle | a0w | 0.000 (0) | 0.089 (3) | 4/3/3/2.80s | 2/2/1/3.00s | 1/1/1/3.16s | 13/9/5/3.44s | 20/15/10/3.02s |
+| final − repetition | shipped | 0.000 (0) | 0.119 (4) | 3/3/2/2.72s | 2/2/0/7.34s | 0/0/0/— | 7/4/3/4.48s | 12/9/5/3.60s |
+| final − repetition | a0w | 0.000 (0) | 0.089 (3) | 5/4/4/2.88s | 2/2/1/3.00s | 0/0/0/— | 13/9/5/3.44s | 20/15/10/3.16s |
+
+- GOP carries most of the gain: shipped 5 → 12, a0w 12 → 19, mostly substitutions, which gain kind-correct catches (shipped 0 → 4).
+- Partial omission is subsumed once GOP is on (removing it from the final rules changes nothing). It is kept because it holds without GOP scores (tracking-mode verdicts, custom hosts).
+- Settle and repetition add one catch each, at no FF cost.
+- FF did not move in any row. Every catch is an interior slip (span more than 0.3 s from either clip edge).
+
+Live on the tuning part, final rules: shipped 9/699 (kind-correct 8, exact 3, 4.48 s) versus 3/699 at baseline. a0w 18/699 (12, 8, 3.02 s) versus 8/699. FF: help clean dev 0 / 0, TLOG clean dev 4 / 3, identical to baseline.
+
+### Rejected (raised FF, or recall that was an artifact)
+
+| change | why rejected |
+|---|---|
+| GOP alone (any word state) at −3 / −5 / −8 | Shipped TLOG clean dev 4 → 5 at every threshold |
+| GOP on `unsure` words too | Shipped TLOG clean dev 4 → 5; a0w help clean dev 0 → 4, TLOG clean dev 3 → 6 |
+| `gopFlag` −2 / −2.5 | Help clean dev 0 → 1–2 |
+| Stricter anchors or heard-ratio gates on the GOP rule | Raised FF on one of the clean sets, no recall gain |
+| Neighbours from the adjacent ayah | +1 help clean FF on both models, no recall gain |
+| First/last word with only the inner neighbour | +4 / +6 catches, all at clip boundaries (segmentation cuts), 0 interior |
+| `repetitionGain` 2 / 3 | +1 help clean FF on shipped. 4 was clean but sits next to that cliff, so 5 was kept |
+| Repetition from backward tracker jumps | 8 same-ayah backward jumps per clean set on clean takes |
+| `persistFrames` 0 (raise on first sight) | Recall unchanged on shipped, latency 3.6 → 3.1 s. Removes the guard against revised hypotheses |
+| `persistFrames` 18 / 24 | Latency only. 6 and 8 behave like 12 at the 480 ms chunk size |
+
+A GOP veto for the three shipped `possible_vowel` flags on TLOG clean dev was not attempted: those words have GOP near 0, and so do real single-vowel errors.
+
+### Held-out (scored once, rules frozen)
+
+Live, same harness as the baseline:
+
+| set | shipped baseline | shipped v2 | a0w baseline | a0w v2 |
+|---|---|---|---|---|
+| FF help clean test | 0.035 (1) | 0.035 (1) | 0.104 (3) | 0.104 (3) |
+| FF TLOG clean dev | 0.119 (4) | 0.119 (4) | 0.089 (3) | 0.089 (3) |
+| FF v1 | 0 | 0 | 0 | 0 |
+| Help slips (10) | 1/0/1/5.12s | 1/1/1/4.16s | 1/0/1/5.12s | 1/0/1/5.12s |
+| TLOG omitted (551) | 1/1/1/1.80s | 7/6/7/2.76s | 1/1/1/1.80s | 7/6/7/2.72s |
+| TLOG repeated (43) | 0/0/0/— | 1/1/1/2.10s | 0/0/0/— | 1/1/1/8.36s |
+| TLOG restarted (11) | 0/0/0/— | 0/0/0/— | 1/1/0/3.92s | 2/2/0/3.84s |
+| TLOG substituted (215) | 3/0/2/5.71s | 9/2/6/2.88s | 2/1/1/2.72s | 11/9/6/2.56s |
+| TLOG all (820) | 4/1/3/4.13s | 17/9/14/2.76s | 4/3/2/2.72s | 21/18/14/2.76s |
+| TLOG interior (323) | 4/1/3 | 16/8/13 | 4/3/2 | 21/18/14 |
+
+Paired replay on held-out traces (baseline rules versus final rules on identical engine output; TLOG clean dev reuses its tuning trace):
+
+| set | shipped baseline | shipped v2 | a0w baseline | a0w v2 |
+|---|---|---|---|---|
+| FF help clean test | 0.035 (1) | 0.035 (1) | 0.104 (3) | 0.104 (3) |
+| FF TLOG clean dev | 0.119 (4) | 0.119 (4) | 0.089 (3) | 0.089 (3) |
+| FF v1 | 0 | 0 | 0 | 0 |
+| Help slips (10) | 1/0/1/5.12s | 1/0/1/5.12s | 1/0/1/5.12s | 1/0/1/5.12s |
+| TLOG omitted (551) | 1/1/1/1.80s | 7/6/7/2.76s | 1/1/1/1.80s | 7/6/7/2.72s |
+| TLOG repeated (43) | 0/0/0/— | 2/2/2/5.23s | 0/0/0/— | 1/1/1/8.36s |
+| TLOG restarted (11) | 0/0/0/— | 0/0/0/— | 1/1/0/3.92s | 2/2/0/3.84s |
+| TLOG substituted (215) | 3/0/2/5.71s | 10/3/7/2.92s | 2/1/1/2.72s | 12/10/7/2.70s |
+| TLOG all (820) | 4/1/3/4.13s | 19/11/16/2.88s | 4/3/2/2.72s | 22/19/15/2.80s |
+| TLOG interior (323) | 4/1/3 | 18/10/15 | 4/3/2 | 22/19/15 |
+
+**FF did not rise.** On every clean set and both models, v2 raises exactly the same issues on the same clips as the baseline.
+- Help clean, dev+test: shipped 0.020 (1 issue in 48.79 min, the `unclear_ayah`), a0w 0.061 (3).
+- TLOG clean dev: shipped 0.119 (4), a0w 0.089 (3).
+- v1: 0 on both.
+
+Help slips did not move: 1/10 on both models, the same word as the baseline. It is `possible_vowel` in the paired replay; the live v2 run labels it `possible_substitution`, which is inference noise, not a rule effect. Nine of the ten located help slips are substitutions.
+
+**What is still missed.** 438 of the 820 held-out slips sit within 0.3 s of a clip edge. Most of those are probably segmentation cuts rather than slips, and leading or trailing words have no live rule because a reciter may start or stop anywhere. On the 323 interior slips, recall is 5% (shipped) and 7% (a0w). On the tuning half, 78 of the 103 interior substitutions shipped still misses end as `ok` (44) or `unsure` (34) in the aligner (wrong 8, skipped 2, not aligned 15). Letting GOP flag those states raised FF in every variant tried.
+
+## Correction rules on acted help mistakes (re-tune)
+
+2026-10-02. Acted takes from tilawa.dev/help (`kind != "none"`) used privately as a labelled correction set. Never published: audio, ids, labels and per-clip outputs stay on the Modal volume (`/help/`, manifest `use="acted"`) and in `/tmp`. Only these aggregates are committed.
+
+**Export (743 rows).** `kind`: none 305 (12 with `extra_mistake`), skip_word 95, substitution 85, vowel 76, skip_ayah 70, repeat 63, tajweed 49. Every acted row has exactly one `mistakes` entry with `ayah` and a 1-based `word` (none for skip_ayah) plus `expected`. Substitutions also carry `said` / `said_from`, vowels `letter` / `from` / `to`, tajweed `rule`. `mechanism` (14 values) and `scenario` (33) are set on 339 rows.
+
+**Split.** Speaker-disjoint. The 74 speakers in the earlier clean-only manifest keep their split (0 moved). The 46 new speakers are split by the same hash order. Dev: 56 speakers; clean 110 (20.7 min), acted 204 (29.9 min). Test: 64 speakers; clean 183 (32.6 min), acted 234 (34.2 min). Acted per kind, dev/test: skip_word 39/56, substitution 39/46, vowel 37/39, skip_ayah 34/36, repeat 33/30, tajweed 22/27. TLOG clean dev (267, 33.7 min) and v1 (53, 17.0 min) have no split and guard both halves.
+
+**Localisation** (`correction_eval.py locate-acted`). Label to phoneme-corpus word: 437/438 (0.998 [0.987, 1.000]). Forced-alignment span: 435. An edit at or next to that word in the free decode of either model: 348/438 (0.795 [0.754, 0.830]); both models 320; exact word 321. Confirmed by kind: skip_word 95/95, repeat 62/63, skip_ayah 67/70, substitution 73/85, vowel 38/76, tajweed 13/49.
+
+**Scoring** (`acted_eval.py`). A flag hits a label on the same ayah within ±1 word (skip_ayah: anywhere in the ayah). Recall covers the five in-scope kinds. Tajweed is reported but left out, because the engine does not grade tajweed. Precision counts every error flag on the split's acted and clean help takes, and a flag that hits no label is a false alarm. Repetition notes are counted separately. CIs: Wilson for P and R, speaker-cluster bootstrap for F1 and paired deltas.
+
+**Tuning (dev only, paired trace replay, 1 thread).** Hard constraint: clean false flags on help clean dev, TLOG clean dev and v1 no higher than the shipped engine (shipped model, old rules). The GOP grid had 2017 rule sets, crossing flag, anchor, states, kinds, persistence, settle and local-min. The other-rules grid had 864, crossing partial omission, settle, repetition mode and gain, and the vowel margins. Findings:
+- GOP adds at most +1 dev catch on shipped and +3 on a0w over GOP off. FF is unchanged at `gopFlag` −5 when GOP is gated to wrong words and substitutions only, and kept out of settle. v2's −3 adds a help clean dev flag on a0w.
+- Settle adds most of v2's gain (shipped dev 20 → 27 catches). Its 4 dev false alarms are all on a short ayah outside the take, from a lock onto a similar ayah. They look the same as its hits in every verdict field.
+- Partial omission doubles skip_word catches (7 → 14 on dev).
+- `vowelWordMargin` 0.5 → 0.8 halves TLOG clean dev FF (shipped 4 → 2, a0w 3 → 2) and costs one shipped dev vowel catch.
+- Repetition as a note: at gain 5, 5 of 6 dev notes hit a label (shipped) and 6 of 8 (a0w). There are 0 notes on clean sets.
+- Structural misses that no threshold reaches. On dev, 26 of 39 substitution and 15 of 39 skip_word labelled words never appear in any verdict snapshot: the tracker follows the reciter into the similar passage or loses lock. Every skip_ayah take skips the middle of 3 ayahs, and the tracker then aligns ayah N+2's audio onto N+1, so N+2 is never matched and the ayah-gap rule fires on 2 of 34.
+
+Frozen re-tuned set: `gopFlag −5, gopAnchor −1, gopOnSkipped false, gopOmission false, settleGop false, vowelWordMargin 0.8, repetitionMode note, repetitionGain 5`. Everything else is as in v2.
+
+**Test (scored once).** Replay on identical traces. Cells are P / R / F1 over 207 in-scope labels, then flags, then clean FF per minute (issues).
+
+| model · rules | P | R | F1 | flags | help clean | TLOG clean dev | v1 |
+|---|---|---|---|---|---|---|---|
+| shipped · old | 0.895 [0.69, 0.97] | 0.082 | 0.150 [0.08, 0.22] | 19 | 0.031 (1) | 0.119 (4) | 0 |
+| shipped · v2 | 0.884 | 0.184 | 0.304 | 43 | 0.092 (3) | 0.119 (4) | 0 |
+| shipped · v2 GOP off | 0.944 | 0.164 | 0.280 | 36 | 0.031 (1) | 0.119 (4) | 0 |
+| shipped · re-tuned | 0.944 | 0.164 | 0.280 | 36 | 0.061 (2) | 0.059 (2) | 0 |
+| shipped · re-tuned GOP off | 0.970 | 0.155 | 0.267 | 33 | 0.031 (1) | 0.059 (2) | 0 |
+| a0w · old | 0.885 | 0.111 | 0.197 | 26 | 0.092 (3) | 0.089 (3) | 0 |
+| a0w · v2 | 0.920 | 0.217 | 0.352 | 50 | 0.123 (4) | 0.089 (3) | 0 |
+| a0w · v2 GOP off | 0.930 | 0.188 | 0.313 | 43 | 0.092 (3) | 0.089 (3) | 0 |
+| a0w · re-tuned | 0.953 | 0.198 | 0.328 | 43 | 0.061 (2) | 0.059 (2) | 0 |
+| a0w · re-tuned GOP off | 0.950 | 0.184 | 0.308 | 40 | 0.061 (2) | 0.059 (2) | 0 |
+
+Paired F1 vs shipped · old: v2 +0.154 [+0.098, +0.201]; v2 GOP off +0.129 [+0.071, +0.174]; re-tuned +0.129 [+0.063, +0.182]; re-tuned GOP off +0.116 [+0.049, +0.165]. GOP's own contribution: re-tuned vs v2 GOP off on shipped is +0.000 [−0.030, +0.033], and a0w re-tuned vs a0w v2 GOP off is +0.015 [−0.012, +0.046]. The extra shipped help clean flag in re-tuned is a GOP `possible_substitution`, the same flag v2 raises.
+
+Live, same harness as the baseline (1 thread, issues dismissed on sight):
+
+| model · rules | P | R | F1 | exact | median latency | help clean | TLOG clean dev | v1 | RTF |
+|---|---|---|---|---|---|---|---|---|---|
+| shipped · old | 0.895 [0.69, 0.97] | 0.082 [0.05, 0.13] | 0.150 [0.08, 0.22] | 17 | 3.48 s | 0.031 (1) | 0.089 (3) | 0.059 (1) | 0.060 |
+| shipped · new defaults | 0.969 [0.84, 0.99] | 0.150 [0.11, 0.20] | 0.259 [0.16, 0.35] | 30 | 2.96 s | 0.031 (1) | 0.059 (2) | 0 | 0.060 |
+| a0w · new defaults | 0.949 [0.83, 0.99] | 0.179 [0.13, 0.24] | 0.301 [0.21, 0.39] | 35 | 3.28 s | 0.061 (2) | 0.059 (2) | 0 | 0.093 |
+
+Paired vs shipped · old (live): shipped new defaults have ΔF1 +0.109 [+0.040, +0.160], ΔR +0.068 [+0.023, +0.104], ΔP +0.074 [0.000, +0.233]. a0w new defaults have ΔF1 +0.150 [+0.088, +0.203].
+
+Per kind on test, shipped new defaults (live), as kind-correct R / F1, then caught any kind / n: skip_word 0.38 / 0.55, 21/56; substitution 0.11 / 0.20, 5/46; vowel 0.03 / 0.05, 1/39; skip_ayah 0.08 / 0.15, 3/36; repeat 0 (1/30 caught by an error flag; the live harness does not record notes, and the replay has 0/30 notes); tajweed 0/27. The baseline was skip_word 9/56, substitution 3/46, vowel 1/39, skip_ayah 3/36, repeat 1/30. Every flag that hits is on the exact word except one repeat. Precision per kind is 1.00 except skip_ayah at 0.75.
+
+Replay versus live: the trace rounds margins to 3 decimals, so a borderline vowel or substitution flag can flip (shipped old TLOG clean dev 4 replay vs 3 live, v1 0 vs 1).
+
+**Listening-check queue A (by-ear tags, re-traced with 1 thread, paired replay).** Precision of the flags on the 29 tagged slips, lenient / strict:
+
+| model · rules | flagged | lenient | strict |
+|---|---|---|---|
+| shipped · old | 4 | 3/4 | 2/4 |
+| shipped · v2 | 18 | 11/17 | 7/17 |
+| shipped · v2 GOP off | 6 | 5/6 | 3/6 |
+| shipped · re-tuned | 4 | 4/4 [0.51, 1.0] | 3/4 |
+| shipped · re-tuned GOP off | 3 | 3/3 [0.44, 1.0] | 3/3 |
+| a0w · re-tuned | 11 | 8/10 | 4/10 |
+| a0w · re-tuned GOP off | 8 | 6/7 | 4/7 |
+
+Queue B (100): no rule set flags a real slip (0/40). v2 flags 3 not_slip, and the new defaults flag 0 on shipped.
+
+**Call.** Ship v2 with GOP off, `vowelWordMargin` 0.8 and repetition as a soft note. These are the new SDK defaults, and they pass every gate on the shipped model. GOP stays opt-in with the re-tuned gating as its default shape: it now passes the by-ear check, but it adds no test F1 on shipped and adds one help clean false flag. The GOP-off variant of the re-tuned set was named after the test run. GOP off was the pre-declared fallback from the listening check, and every other field was fixed on dev.
+
+Not done: a synthetic set. The dev acted half already has 181 in-scope labels, and the limits above are structural (tracker lock), which splicing cannot probe.
+
+## Tracker in correction mode (acted mistakes)
+
+2026-10-02. Same private acted set, split, labels and scorer as the section above. Aggregates only. Shipped model, correction rules at the current defaults throughout; only the tracker changes. Tracking mode is untouched: every new knob acts only in correction mode, and with all knobs at 0 and no passage the engine reproduces the previous issues and verses on all 634 dev clips.
+
+**Method.** `harness.ts` can record each clip's model log_probs (`ZIPFORMER_LP_CACHE`, `ZIPFORMER_LP_MODE=record`) and replay them with no ONNX. That lets engine variants run on identical acoustic output: a paired replay. Both modes keep the encoder running across idle / dismiss resets, which the live session restarts. `scripts/tracker_correction_eval.py` runs the sets in 4 parallel harnesses (1 thread each). `scripts/tracker_diag.py` classifies each missed label from the per-word verdict states and the tracker timeline. Live runs are not reproducible run to run: two identical full live passes differ on 3 of 183 help clean clips and 1 acted clip, verses included, even at 1 intra-op thread. Paired replay is the headline here, and live is reported for reference.
+
+**Dev diagnosis (replay, current defaults).** "Untracked" means the labelled word never reached a controller snapshot.
+- substitution (39): 26 untracked, of which 16 locked only onto another ayah and 10 never locked (fallback only). Of the 11 tracked, 9 read `ok`, 1 `unsure`, 1 `wrong`. 2 caught.
+- skip_word (39): 15 untracked (8 no lock, 6 other ayah, 1 late lock), 9 tracked but not flagged, 15 caught.
+- The other ayah is usually a near-identical copy (refrains 55:13…, 37:80 / 37:131, 7:111 / 26:36, 79:39 / 79:41). On a 4–7 s single-ayah take nothing in the audio separates them, so this is a missing-information problem, not a threshold one.
+- skip_ayah (34): N matched, then N+1 unmatched and N+2 unmatched in 15, N+1 matched (N+2's audio bent onto it) in 10, caught 2. N+2 typically completes only while `stop()` flushes the tail, where the ayah-gap rule did not run.
+- The tracked skip_word misses include 6 on an ayah's second-to-last word with no verdict on the last word. The take ended, the open segment stopped at the cursor inside word n−2, and the last word's audio was aligned onto n−2.
+
+**Changes** (correction mode only):
+1. `ZipformerSession.setExpected(passage)`. Lock at the passage start after any isti'adha / basmala, search only inside it, no relocation, optional `outsideJumpCost`. The harness passes the manifest passage per clip (`--expected`); TLOG clean dev has none.
+2. Skipped-ayah check. Heard chars on interior ayah A that fit A+1 (semi-global distance ≤ 0.35, ≥ 0.25 better than A, ≥ 10 chars, A+1 reading starts within the first 10% of them) raise `possible_skipped_ayah`. With a passage, the ayah-gap rule also runs at stop.
+3. `anchorAyahEnd` 2. Settled verdicts realign through the ayah end when the cursor stopped within 2 words of it.
+4. No passage: stop-time alignment of a take that never locked (`stopAlignDistance` 0.35, a detached tracer that never feeds tallies), with a mid-ayah lock started at the ayah's first word (`backfillRatio` 1.5).
+
+**Dev tuning (replay; FF = help clean dev / TLOG clean dev / v1 issues).**
+
+| step | P | R | F1 | FF |
+|---|---|---|---|---|
+| current defaults | 0.844 | 0.149 | 0.254 | 0 / 2 / 0 |
+| + passage lock | 1.000 | 0.215 | 0.355 | 0 / 2 / 0 |
+| + gap rule at stop | 1.000 | 0.221 | 0.362 | 0 / 2 / 0 |
+| + skipped-ayah check | 1.000 | 0.249 | 0.398 | 0 / 2 / 0 |
+| + anchorAyahEnd 2 (final, passage) | 1.000 | 0.276 | 0.433 | 0 / 2 / 0 |
+| final, no passage | 0.829 | 0.188 | 0.306 | 0 / 2 / 0 |
+
+Rejected or neutral on dev:
+- `skipMaxHead` 0.25: +1 help clean FF. A free-ended A+1 match hides inside "badly decoded A, then A+1".
+- Prefix-anchored skip fit: no gain at FF-safe thresholds.
+- `substitutionDistance` 0.5: +4 catches, +1 help clean FF. 0.55 gave +1 catch next to that cliff, so 0.6 stays.
+- `outsideJumpCost` 12: no change; the takes are too short for in-surah jumps.
+- `anchorAyahEnd` 3: same as 2.
+- `backfillRatio` alone: no change.
+- The skip thresholds sit on a plateau: R 0.260–0.282 over maxDistance 0.3–0.45, margin 0.15–0.3, head 0.05–0.15, all at 0 FF.
+
+**Dev after (final, passage).** substitution untracked 26 → 5. The remaining 24 tracked misses read `ok` 9, `unsure` 8, `wrong` 7; 5 of the `wrong` ones have clear neighbours and distance 0.54–0.59, and the substitution rule needs 0.6. skip_word untracked 15 → 7. skip_ayah caught 2 → 8.
+
+**Test (scored once; paired replay).** CIs: Wilson for P and R, speaker bootstrap for F1.
+
+| config | P | R | F1 | exact | median latency | help clean FF | TLOG clean dev FF | v1 FF |
+|---|---|---|---|---|---|---|---|---|
+| shipped engine (old rules) | 0.895 [0.69, 0.97] | 0.082 [0.05, 0.13] | 0.150 [0.08, 0.22] | 17 | 3.52 s | 0.031 (1) | 0.119 (4) | 0 |
+| current defaults | 0.970 [0.85, 0.99] | 0.155 [0.11, 0.21] | 0.267 [0.18, 0.35] | 30 | 3.01 s | 0.031 (1) | 0.059 (2) | 0 |
+| new tracker, no passage | 0.955 [0.85, 0.99] | 0.203 [0.15, 0.26] | 0.335 [0.25, 0.42] | 40 | 2.88 s | 0 | 0.059 (2) | 0 |
+| **new tracker + passage** | **0.983 [0.91, 1.00]** | **0.280 [0.22, 0.34]** | **0.436 [0.33, 0.52]** | 56 | 2.95 s | 0.031 (1) | 0.059 (2) | 0 |
+
+- Paired ΔF1 against the current defaults: +0.169 [+0.116, +0.227] with a passage, +0.068 [+0.035, +0.107] without. ΔR: +0.126 [+0.084, +0.174] and +0.048 [+0.025, +0.075].
+- Against the shipped engine: +0.286 [+0.195, +0.370] and +0.184 [+0.113, +0.243].
+- Every hit is on the exact word.
+
+Per kind, test, new tracker + passage. Kind-correct R / F1, then caught / n (current defaults in brackets):
+- skip_word: 0.61 / 0.76, 35/56 (21)
+- substitution: 0.20 / 0.33, 9/46 (5)
+- skip_ayah: 0.31 / 0.46, 11/36 (3), P 0.92
+- vowel: 1/39 (1)
+- repeat: 0 kind-correct, 2/30 caught by an error flag (2)
+- tajweed: 0/27
+
+Live, one pass each (1 thread, issues dismissed on sight), as P / R / F1, then help / TLOG clean dev / v1 issues:
+- shipped engine: 0.895 / 0.082 / 0.150; 1 / 4 / 2
+- current defaults (two passes): 0.912 / 0.150 / 0.257 and 0.941 / 0.155 / 0.266; 3 / 2 / 0 and 2 / 2 / 0
+- new, no passage: 0.955 / 0.203 / 0.335; 0 / 2 / 0
+- new + passage: 0.967 / 0.285 / 0.440; 2 / 2 / 0
+- The two live help clean flags with a passage are both `possible_skipped_ayah`. In one (83:35), the transcript runs from the end of 83:34 straight into 83:36 with nothing of 83:35, which looks like a real skip in a take labelled clean (not verified by ear). The other (23:40) is false: 40 was partly heard, and the check fired after a dismiss reset. Replay, which has no reset, raises neither.
+- RTF 0.059–0.068 for every config.
+
+**Gates.** Clean FF is no worse than the shipped engine on any set in replay. In live, help clean is 2 against the shipped engine's 1, with one of the 2 a likely real skip; TLOG clean dev and v1 are better. Tracking mode: v1 SeqAcc 53/53 and held-out multi 56/58, unchanged. vitest: 125 passed, plus 1 failure that is pre-existing on this machine (the int8 `runner.node` margin is 2.5e-4 off the dump, tolerance 1e-4, and fails the same with the change stashed). `test:browser` 6/6, `test:correction` 0 flags on 8 runs plus silence, demo build ok.
+
+**Headline.** The main app does not know the passage in correction mode, so its path is "new tracker, no passage": test F1 goes from 0.267 to 0.335 and recall from 0.155 to 0.203, with clean false flags no higher than the shipped engine. `setExpected` is opt-in for hosts that know the passage (0.436).
+
+**Next ideas.** Auto-infer the expected passage from the first confident lock (the session calls `setExpected` on itself after N seconds), to recover most of the passage gain for free recitation.
+
+Bug found while checking order independence on test: the session kept its skipped-ayah candidate across `reset()`. Fixed (a reset bug, not a re-tune), and all test numbers above are after the fix.
+
+## Similar-verse check (acted mistakes; KILLED on the unseen-word gate)
+
+2026-10-02. Same private acted set, split, labels and scorer as above; aggregates only. Main `04337ab` engine at defaults (slip head off = rules only), paired replay on recorded log_probs for a0w-ep1-a0.5 int8 and the shipped int8. Lab-only prototype (`scripts/similar_verse.py`, `scripts/similar_verse_eval.py`); no SDK change.
+
+**Rule.** Nothing is fit on labels. Index: for every ayah, up to 8 other ayahs sharing ≥3 words and ≥50% of its words in a word-level alignment (diacritic-free keys); 1,803 ayahs have look-alikes (5,067 pairs). Per take, the free-decode phonemes are aligned (reference-global, query ends skippable at 0.5/char, SDK phoneme cost table) to the passage, and to the passage with one region of one ayah swapped for a look-alike's wording ("lookalike"), with 1–2 interior words dropped ("drop"), or with an eye-skip between a repeated phrase ("eyeskip"). A variant that beats the canonical text by `margin` cost units, whose region plus one word each side aligns at ≤ `loc` cost per char and whose ayah aligns at ≤ 0.5, flags the region's first word (`possible_substitution` / `possible_omission`), at most one per ayah, and only when no engine issue sits within ±1 word. Without a passage the slot's alternatives are the tracker's verse and its look-alikes, and the variant must also beat every pure reading of that slot. The flag time is when the region plus one following word has been decoded.
+
+**Dev (tuning only).** Two guards came from dev clean false flags: takes whose audio is not the expected ayah (garbage alignment favours shorter variants) and skipped ayahs; the local-fit and ayah-fit checks remove both. Eyeskip never added a catch. a0w + passage, look-alike margin 3–4: substitution 11 → 20/39 with 9/9 new flags correct; drop margin 8–10 at loc ≤ 0.25: skip_word 19 → 25–26/39; FF unchanged (1 / 2 / 0). Without a passage, look-alike adds 0 (a swapped-in look-alike word on a single-ayah take reads as the other ayah) and drop adds skip_words only. Drop margin 8 cost shipped + passage one help clean dev flag, so 10 was fixed. Frozen before test: lookalike + drop, margin 3.5 / drop 10, one-word swaps, loc 0.25, ayah fit 0.5.
+
+**Test (scored once).** P / R / F1 over 207 in-scope labels; FF is clean issues on help clean test / TLOG clean dev / v1.
+
+| config | P | R | F1 | ΔF1 [95%] | substitution | skip_word | new flags correct | FF base → new |
+|---|---|---|---|---|---|---|---|---|
+| a0w + passage | 0.980 → 0.988 | 0.232 → 0.382 | 0.375 → 0.551 | +0.176 [+0.114, +0.231] | 9 → 28/46 | 23 → 35/56 | 31/31 | 1/2/0 → 1/2/0 |
+| a0w, no passage | 0.950 → 0.942 | 0.184 → 0.237 | 0.308 → 0.378 | +0.071 [+0.036, +0.108] | 5 → 5 | 22 → 33 | 11/12 | 1/2/0 → 1/2/0 |
+| shipped + passage | 0.967 → 0.975 | 0.285 → 0.382 | 0.440 → 0.549 | +0.108 [+0.067, +0.150] | 8 → 27 | 35 → 36 | 20/20 | 2/2/0 → 2/2/0 |
+| shipped, no passage | 0.955 → 0.957 | 0.203 → 0.217 | 0.335 → 0.354 | +0.020 [0.000, +0.040] | 4 → 4 | 31 → 34 | 3/3 | 0/2/0 → 0/2/0 |
+
+Seen / unseen (a test label is unseen when no acted-dev label of its kind names the same word). a0w + passage: substitution seen 4 → 23/34 (+19), unseen 5 → 5/12 (+0); skip_word seen 20 → 31/50 (+11), unseen 3 → 4/6 (+1). **Unseen extra = 1 of 18 < 3: kill.** shipped + passage: unseen +1 (skip_word). Median latency of the new hits 2.2 s (a0w) / 2.7 s (shipped) after the label's start, against 3.3 s / 2.9 s for engine hits.
+
+**Why the gate cannot move.** All 12 unseen test substitutions are ordinary word swaps on ayahs that have no look-alike anywhere in the Quran (index coverage 0/12). All 30 seen `similar_passage` substitutions borrow their word from an indexed look-alike. The help prompts that elicit look-alike slips repeat across speakers, so every such word is a dev label too. The rule has no learned parameters beyond five dev thresholds, so the seen gain is not lexical memorisation in the slip-head sense, but the thresholds were chosen on dev takes of the same verses, and this split cannot show transfer to new verse pairs. The unseen skip_word drops sit at margins 5–14; the frozen 10 takes two (one already an engine catch).
+
+## Ayah-order check (acted skip_ayah; KEEP on a0w, KILL on shipped emissions)
+
+2026-10-02. Same private acted set, split, labels and scorer; aggregates only. Main `04337ab` engine at defaults (rules only), live 1-thread runs recording the free-decode tokens. Lab-only (`scripts/ayah_order.py`, `scripts/ayah_order_eval.py`); no SDK or tracker change.
+
+**Rule.** Nothing is fit on labels. Cut the free-decode token stream at pauses (≥ 12 blank frames = 0.48 s). Align each segment to every contiguous word span of a window of ayahs (tracker's first verse −1 .. +4, or the expected passage), or call it isti'adha/basmala, or garbage at 0.5/char. Chain the segments twice: in order (restarts cost 2, forward gaps cost 0.5/char but may not contain a whole ayah) and free (whole-ayah jumps cost 0.5). Flag `possible_skipped_ayah` on the jumped ayah when the free chain wins by ≥ 0.04 per char of the post-jump segment, both flanking segments fit ≤ 0.3/char, ≤ 8 unexplained chars sit between them, and the ayah is not read later.
+
+**Pre-declared.** No-passage skip_ayah 8/36 → ≥ 16/36. Kill if < +3 or FF rises on help clean test or v1.
+
+**Test (scored once).** FF = clean issues help clean test / v1 / TLOG clean dev (TLOG provisional).
+
+| config | skip_ayah | all 207 | U_test 62 | new flags correct | FF base → new |
+|---|---|---|---|---|---|
+| a0w, no passage | 8 → 21/36 | 37 → 50 | 17 → 30 | 13/13 | 1/0/2 → 1/0/2 |
+| a0w + passage | 14 → 26/36 | 48 → 60 | 23 → 35 | 12/12 | 2/0/2 → 2/0/2 |
+| shipped, no passage | 3 → 9/36 | 42 → 48 | 12 → 18 | 6/6 | 0/0/2 → **2**/0/2 |
+| shipped + passage | 12 → 17/36 | 59 → 64 | 21 → 26 | 5/5 | 2/0/3 → **4**/0/3 |
+
+Other kinds are unchanged. New-hit latency is 3.3 s on a0w and 4.0 s on shipped after the label start. With the similar-verse check on as well, a0w + passage goes 48 → 91/207 and a0w without a passage 37 → 61/207, with help clean / v1 FF equal to rules-only. **Caveat:** 31/36 test skip_ayah labels sit on dev-labelled prompts, and every new catch is on those; the 5 prompt-disjoint labels gain 0 (4/5 already caught). The two shipped clean flags are decode-driven: a partial ayah read as a restart, and an ayah decoded as garbage before a cheap jump. a0w raises neither. Two textually identical neighbour pairs (94:5/6, 109:3/5) make 8/34 dev labels uncatchable by text.
+
 ## Per-experiment notes
 
 **c2c-direct-mixed-tta** — Cyberistic's winning entry and current champion. It runs the mixed int4+int8 FastConformer ONNX once at 1.0x speed, skips augmentation for confident predictions, and only runs 0.9x/1.1x speed-perturbed passes on low-confidence samples. Reproduced locally over 3 runs at 100% recall, 100% precision, and 100% sequence accuracy on v1 (53 samples), with 0.84s average latency.

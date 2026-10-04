@@ -4,6 +4,7 @@
     "hop": 48,
     "featureDim": 80,
     "vocabSize": 251,
+    "encoderFrames": "/Transpose_226_output_0",
     "inputs": [
         {
             "name": "x",
@@ -921,6 +922,16 @@
                 251
             ],
             "dtype": "float32"
+        },
+        {
+            "name": "/Transpose_226_output_0",
+            "dims": [
+                1,
+                12,
+                512
+            ],
+            "dtype": "float32",
+            "optional": true
         },
         {
             "name": "new_cached_key_0",

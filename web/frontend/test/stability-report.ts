@@ -403,9 +403,9 @@ function finishSampleRun(
 
 async function loadZipformerSession(): Promise<ZipformerSession> {
   const modelPath = process.env.ZIPFORMER_MODEL
-    ?? resolve(ROOT, "public/models/zipformer_interp_gentle_a05.int8.onnx");
+    ?? resolve(ROOT, "public/models/zipformer_a0w_ep1_a05.int8.onnx");
   const ioPath = process.env.ZIPFORMER_IO
-    ?? resolve(ROOT, "public/models/zipformer_interp_gentle_a05.io.json");
+    ?? resolve(ROOT, "public/models/zipformer_a0w_ep1_a05.io.json");
   const corpusPath = process.env.ZIPFORMER_CORPUS
     ?? resolve(ROOT, "public/zipformer_quran.json");
   const quranPath = resolve(ROOT, "public/quran.json");

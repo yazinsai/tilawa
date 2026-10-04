@@ -25,8 +25,9 @@ jobs:
       - uses: actions/cache@v4
         id: zipformer
         with:
-          key: zipformer-assets-v0.3.0
+          key: zipformer-assets-a0w-ep1-a0.5-v1
           path: |
+            web/frontend/public/models/zipformer_a0w_ep1_a05.int8.onnx
             web/frontend/public/models/zipformer_interp_gentle_a05.int8.onnx
             web/frontend/public/zipformer_quran.json
       - if: steps.zipformer.outputs.cache-hit != 'true'
@@ -46,8 +47,9 @@ jobs:
       - uses: actions/cache@v4
         id: zipformer
         with:
-          key: zipformer-assets-v0.3.0
+          key: zipformer-assets-a0w-ep1-a0.5-v1
           path: |
+            web/frontend/public/models/zipformer_a0w_ep1_a05.int8.onnx
             web/frontend/public/models/zipformer_interp_gentle_a05.int8.onnx
             web/frontend/public/zipformer_quran.json
       - if: steps.zipformer.outputs.cache-hit != 'true'

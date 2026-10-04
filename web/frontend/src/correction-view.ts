@@ -66,6 +66,7 @@ export class CorrectionView {
     this.dialog.dataset.phase = phase;
     this.dialog.dataset.kind = issue.kind;
     const vowel = issue.kind === 'possible_vowel';
+    const repeated = issue.kind === 'possible_repetition';
     const skippedAyah = issue.kind === 'possible_skipped_ayah';
     const unclearAyah = issue.kind === 'unclear_ayah';
     const wholeAyah = skippedAyah || unclearAyah;
@@ -73,6 +74,7 @@ export class CorrectionView {
     set('practice-status', phase === 'retrying' ? tr('RETRYING · MICROPHONE ON', 'نستمع لمحاولتك · الميكروفون يعمل')
       : phase === 'corrected' ? tr('RETRY COMPLETE', 'اكتملت المحاولة')
       : vowel ? tr('FOCUSED PRACTICE · POSSIBLE VOWEL SLIP', 'تدريب مركّز · خطأ محتمل في الحركة')
+      : repeated ? tr('FOCUSED PRACTICE · WORD REPEATED', 'تدريب مركّز · كلمة مكرّرة')
       : skippedAyah ? tr('FOCUSED PRACTICE · POSSIBLE SKIPPED AYAH', 'تدريب مركّز · آية ربما سقطت')
       : unclearAyah ? tr('FOCUSED PRACTICE · AYAH NOT FOLLOWED', 'تدريب مركّز · لم نتمكّن من متابعة الآية')
       : tr('FOCUSED PRACTICE · POSSIBLE MISTAKE', 'تدريب مركّز · خطأ محتمل'));
@@ -90,6 +92,7 @@ export class CorrectionView {
     set('practice-title', phase === 'retrying' ? tr('Take your time.', 'خذ وقتك.') : phase === 'corrected'
       ? tr('That’s corrected.', 'تمّ التصحيح.')
       : vowel ? tr('Check the vowel on this word.', 'راجع حركة هذه الكلمة.')
+      : repeated ? tr('This word was said twice.', 'تكرّرت هذه الكلمة.')
       : skippedAyah ? tr(`Ayah ${issue.ayah} may have been skipped.`, `ربما سقطت الآية ${num(issue.ayah)}.`)
       : unclearAyah ? tr(`We couldn't follow ayah ${issue.ayah}. Recite it again.`, `لم نتمكّن من متابعة الآية ${num(issue.ayah)}. أعد تلاوتها.`)
       : tr('One word. Try again.', 'كلمة واحدة. حاول مجددًا.'));
@@ -101,6 +104,7 @@ export class CorrectionView {
       : skippedAyah ? tr(`We heard ayah ${issue.ayah - 1} and then ayah ${issue.ayah + 1}, but not ayah ${issue.ayah}. Recite it before you continue.`, `سمعنا الآية ${num(issue.ayah - 1)} ثم الآية ${num(issue.ayah + 1)}، ولم نسمع الآية ${num(issue.ayah)}. اتلُها قبل أن تتابع.`)
       : unclearAyah ? tr(`We heard you recite, but could not match ayah ${issue.ayah}. Recite it from the beginning at a steady pace.`, `سمعنا تلاوتك، لكن لم نتمكّن من مطابقة الآية ${num(issue.ayah)}. اتلُها من بدايتها بوتيرة ثابتة.`)
       : vowel ? tr(`Recite ayah ${issue.ayah} again and listen for the highlighted word's harakah.`, `أعد الآية ${num(issue.ayah)} وانتبه لحركة الكلمة المظلّلة.`)
+      : repeated ? tr(`Recite ayah ${issue.ayah} again, saying the highlighted word once.`, `أعد الآية ${num(issue.ayah)} وانطق الكلمة المظلّلة مرة واحدة.`)
       : tr('Recite the ayah above, including the highlighted word.', 'اتلُ الآية أعلاه، بما فيها الكلمة المظلّلة.'));
     const primary = this.dialog.querySelector<HTMLButtonElement>('#practice-primary')!;
     const secondary = this.dialog.querySelector<HTMLButtonElement>('#practice-secondary')!;

@@ -36,7 +36,7 @@ if (clipsArg) {
 
 const ort = createRequire(resolve(frontend, 'package.json'))('onnxruntime-node');
 const session = await ZipformerSession.create({ ort,
-  model: new Uint8Array(readFileSync(resolve(frontend, 'public/models/zipformer_interp_gentle_a05.int8.onnx'))),
+  model: new Uint8Array(readFileSync(resolve(frontend, 'public/models/zipformer_a0w_ep1_a05.int8.onnx'))),
   corpus: JSON.parse(readFileSync(resolve(frontend, 'public/zipformer_quran.json'), 'utf8')),
   quran: JSON.parse(readFileSync(resolve(frontend, 'public/quran.json'), 'utf8')),
 });

@@ -10,8 +10,10 @@ QuranTTS is NPL-1.2 and is excluded from that mix; pass `--sources qurantts`
 explicitly only for an internal ablation.
 
 EveryAyah uses `greentechapps/everyayah_curated_1s_20s` **train + validation**
-only. The curated **test** split is the leak into q-lab `everyayah_heldout`
-(wav names like `test-00009-of-00013_332.wav`) and is never ingested.
+only, and drops the three q-lab held-out reciters by name: the repo was
+re-split after q-lab was cut, so its current train/validation hold the
+`everyayah_heldout` reciters (and the exact benchmark clips). Split-only
+exclusion is not enough; see `shared/leak_guard.py`.
 
 Tlog clips whose filename stem is in q-lab `tlog_holdout`, and QUA catalog
 rows whose slug/name contains `nufais`, are dropped as held-out leaks.
@@ -57,6 +59,7 @@ _REPO = Path(__file__).resolve().parent.parent
 for _p in (_REPO, Path("/app")):
     if _p.is_dir() and str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
+from shared.leak_guard import match_heldout_reciter  # noqa: E402
 from shared.paths import resolve_data_file  # noqa: E402
 
 # ---------------------------------------------------------------------------
@@ -224,6 +227,11 @@ def tlog_holdout_key(name: str) -> str:
 def is_nufais_holdout(**fields: object) -> bool:
     blob = " ".join(str(v).lower() for v in fields.values() if v not in (None, ""))
     return "nufais" in blob
+
+
+def is_heldout_reciter(**fields: object) -> bool:
+    """Any q-lab held-out reciter (3 EveryAyah + Al-Nufais), by name."""
+    return match_heldout_reciter(*fields.values()) is not None
 
 
 def qlab_exclusions_from_samples(samples: list[dict]) -> dict:
@@ -932,6 +940,7 @@ image = (
     .add_local_file(str(_SHARED / "normalizer.py"), remote_path="/app/shared/normalizer.py")
     .add_local_file(str(_SHARED / "quran_db.py"), remote_path="/app/shared/quran_db.py")
     .add_local_file(str(_SHARED / "fbank.py"), remote_path="/app/shared/fbank.py")
+    .add_local_file(str(_SHARED / "leak_guard.py"), remote_path="/app/shared/leak_guard.py")
     .add_local_file(str(_ZIPFORMER_QURAN), remote_path="/app/data/zipformer/quran.json")
     .add_local_file(str(_QURAN_JSON), remote_path="/app/data/quran.json")
     .add_local_file(str(_TOKENS_TXT), remote_path="/app/tokens.txt")
@@ -1494,6 +1503,10 @@ def _prepare_everyayah(limit: int, force: bool, crash_after: int = 0) -> dict:
                     _finish_row("everyayah", state, stats, crash_after, limit, kept=False)
                     continue
                 surah, ayah = sa
+                if is_heldout_reciter(qari=row.get("qari"), reciter=row.get("reciter")):
+                    _bump_skip(stats, "heldout_reciter")
+                    _finish_row("everyayah", state, stats, crash_after, limit, kept=False)
+                    continue
                 wav, dur = _audio_for_clip(
                     source="everyayah",
                     idx=idx,
@@ -1540,6 +1553,10 @@ def _prepare_everyayah(limit: int, force: bool, crash_after: int = 0) -> dict:
             hit = _match_ayah(db, row.get("text") or "")
             if hit is None:
                 _bump_skip(stats, "low_match")
+                _finish_row("everyayah", state, stats, crash_after, limit, kept=False)
+                continue
+            if is_heldout_reciter(reciter=row.get("reciter")):
+                _bump_skip(stats, "heldout_reciter")
                 _finish_row("everyayah", state, stats, crash_after, limit, kept=False)
                 continue
             wav, dur = _audio_for_clip(
@@ -1600,7 +1617,7 @@ def _prepare_qua(limit: int, force: bool, crash_after: int = 0) -> dict:
         ):
             _bump_skip(stats, "tarteel_dupe")
             continue
-        if is_nufais_holdout(
+        if is_heldout_reciter(
             slug=slug,
             reciter=row.get("name_en") or "",
             reciter_id=row.get("reciter_id") or "",

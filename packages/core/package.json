@@ -1,6 +1,6 @@
 {
   "name": "@tilawa/core",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Offline Quran verse recognition. Give it 16kHz audio, get surah:ayah. Pure TypeScript core with a pluggable ONNX runtime seam — works in web, node, and React Native.",
   "type": "module",
   "types": "./dist/index.d.ts",

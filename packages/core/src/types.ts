@@ -81,6 +81,9 @@ export type WorkerInbound =
 // Worker -> Main
 export type WorkerOutbound =
   | { type: "correction"; state: import("./recitation/correction.js").CorrectionState; totalWords: number }
+  /** Correction mode: a soft note (e.g. `possible_repetition` in `note` mode).
+   * Recitation is not interrupted and no action is needed. */
+  | { type: "correction_note"; issue: import("./recitation/correction.js").CorrectionIssue }
   | { type: "loading"; percent: number }
   | { type: "loading_status"; message: string }
   | { type: "ready" }

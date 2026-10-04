@@ -175,6 +175,7 @@ def _build_image() -> modal.Image:
         ("shared/paths.py", "/app/shared/paths.py"),
         ("shared/phoneme_labels.py", "/app/shared/phoneme_labels.py"),
         ("shared/fbank.py", "/app/shared/fbank.py"),
+        ("shared/leak_guard.py", "/app/shared/leak_guard.py"),
         ("scripts/zipformer_ctc_utils.py", "/app/zipformer_ctc_utils.py"),
         ("scripts/zipformer_asr_datamodule.py", "/app/zipformer_asr_datamodule.py"),
         (
@@ -1013,6 +1014,8 @@ def train(
     init_from: str = DEFAULT_INIT_FROM,
     base_lr: float = DEFAULT_BASE_LR,
     warmup_batches: float = DEFAULT_WARMUP_BATCHES,
+    allow_leaks: bool = False,
+    extra_train_flags: str = "",
 ) -> dict:
     import subprocess
     import time
@@ -1043,6 +1046,21 @@ def train(
         synthetic=synthetic,
     )
     sources = ",".join(src_list)
+    leak_summary = None
+    if not synthetic and not smoke:
+        from shared.leak_guard import assert_no_leaks, check_manifests, load_heldout_clips
+
+        clips_path = Path("/vol/phase0/qlab_clips.json")
+        if not clips_path.is_file():
+            raise FileNotFoundError(f"{clips_path} missing: run `phase0_modal.py --action qlab-clips` first")
+        reports = check_manifests(src_list, Path("/vol/manifests"), load_heldout_clips(clips_path))
+        leak_summary = [r.to_json() for r in reports]
+        for r in leak_summary:
+            print(f"leak-check {r['source']}: cuts={r['n_cuts']} flagged={r['n_flagged']} {r['policy']}")
+        if allow_leaks:
+            print("WARNING: --allow-leaks set; held-out reciters/clips may be in training")
+        else:
+            assert_no_leaks(reports)
     if synthetic:
         print("using synthetic cuts (explicit --synthetic or --smoke fallback)")
         _build_synthetic_cuts(20)
@@ -1082,6 +1100,7 @@ def train(
             limit_cuts=limit_cuts,
             smoke=smoke,
         ),
+        *extra_train_flags.split(),
     ]
 
     env = os.environ.copy()
@@ -1108,6 +1127,9 @@ def train(
         "synthetic": synthetic,
         "sources": sources,
         "source_weights": source_weights,
+        "leak_check": leak_summary,
+        "extra_train_flags": extra_train_flags,
+        "allow_leaks": allow_leaks,
         "init_from": init_from,
         "init_meta": init_meta,
         "base_lr": base_lr,
@@ -1222,6 +1244,8 @@ def main(
     warmup_batches: float = DEFAULT_WARMUP_BATCHES,
     skip_export: bool = False,
     export_interp: str = "",
+    allow_leaks: bool = False,
+    extra_train_flags: str = "",
 ):
     """Fine-tune from Quran-Lab v3.1 (or from scratch if ``init_from=""``).
 
@@ -1234,7 +1258,7 @@ def main(
         "--run-name ft-v31 --num-epochs 5 --max-duration 1200 --avg 3 "
         "--base-lr 0.005 --warmup-batches 500 "
         "--init-from /vol/reference/zipformer_p_arabic_v3.1.pt "
-        "--sources everyayah,qua,iqra,retasy,tlog"
+        f"--sources {DEFAULT_TRAIN_SOURCES}"
     )
     export_cmd = (
         "modal run --detach scripts/train_zipformer_ctc_modal.py "
@@ -1278,6 +1302,8 @@ def main(
         init_from=init_from,
         base_lr=base_lr,
         warmup_batches=warmup_batches,
+        allow_leaks=allow_leaks,
+        extra_train_flags=extra_train_flags,
     )
     print("train result:", result)
     should_export = (not skip_export) and (smoke or num_epochs >= 1)

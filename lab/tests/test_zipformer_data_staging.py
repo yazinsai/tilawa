@@ -147,6 +147,11 @@ def test_qlab_exclusion_set_from_fake_manifest():
     assert prep.is_nufais_holdout(slug="yasser_al_nufais_qul") is True
     assert prep.is_nufais_holdout(name_en="Mishary Alnufais") is True
     assert prep.is_nufais_holdout(slug="maher_al_muaiqly_qdc") is False
+    assert prep.is_heldout_reciter(qari="Sahl_Yassin_128kbps") is True
+    assert prep.is_heldout_reciter(qari="Akram_AlAlaqimy_128kbps", reciter=None) is True
+    assert prep.is_heldout_reciter(name_en="Muhsin Al-Qasim", slug="x") is True
+    assert prep.is_heldout_reciter(slug="yasser_al_nufais_qul") is True
+    assert prep.is_heldout_reciter(qari="Alafasy_128kbps") is False
 
 
 def test_qlab_exclusion_load_tmp_manifest(tmp_path):

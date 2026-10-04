@@ -15,9 +15,15 @@ function load<T>(name: string): T {
 }
 
 describe("config", () => {
+  // Correction-mode tracker knobs are SDK-only; the shared engine keys must
+  // still match the reference vector exactly.
+  const CORRECTION_ONLY = ["anchorAyahEnd", "backfillRatio", "outsideJumpCost", "skipMargin",
+    "skipMaxDistance", "skipMaxHead", "skipMinChars", "stopAlignDistance"];
   it("matches default_config.json", () => {
     const vec = load<Record<string, number>>("default_config.json");
-    expect(DEFAULT_CONFIG).toEqual(vec);
+    const shared = Object.fromEntries(Object.entries(DEFAULT_CONFIG).filter(([k]) => !CORRECTION_ONLY.includes(k)));
+    expect(shared).toEqual(vec);
+    expect(Object.keys(DEFAULT_CONFIG).filter((k) => !(k in vec)).sort()).toEqual(CORRECTION_ONLY);
   });
 });
 

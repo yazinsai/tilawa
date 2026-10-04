@@ -3,8 +3,8 @@
 // existing clients replace this file and drop stale precaches.
 const CACHE_VERSION = "tilawa-zipformer-default-v2";
 const PRECACHE_URLS = [
-  "/models/zipformer_interp_gentle_a05.int8.onnx",
-  "/models/zipformer_interp_gentle_a05.io.json",
+  "/models/zipformer_a0w_ep1_a05.int8.onnx",
+  "/models/zipformer_a0w_ep1_a05.io.json",
   "/zipformer_quran.json",
 ];
 

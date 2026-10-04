@@ -488,9 +488,9 @@ def test_interpolate_alpha_endpoints_and_ctc_permute_before_blend():
 def test_default_train_sources_exclude_qurantts():
     parts = DEFAULT_TRAIN_SOURCES.split(",")
     assert "qurantts" not in parts
-    assert parts == ["everyayah", "qua", "iqra", "retasy", "tlog"]
+    assert parts == ["everyayah_rx", "qua_rx", "iqra_rx", "retasy_rx", "tlog_clean_v3"]
     train_py = (ROOT / "scripts" / "train_zipformer_ctc_modal.py").read_text()
     data_py = (ROOT / "scripts" / "zipformer_asr_datamodule.py").read_text()
     assert train_py.count("sources: str = DEFAULT_TRAIN_SOURCES") == 2
-    assert 'default="everyayah,qua,iqra,retasy,tlog"' in data_py
+    assert 'default="everyayah_rx,qua_rx,iqra_rx,retasy_rx,tlog_clean_v3"' in data_py
     assert "--sources everyayah,qua,qurantts" not in train_py

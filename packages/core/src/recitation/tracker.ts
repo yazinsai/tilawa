@@ -21,6 +21,8 @@ export class Tracker {
   readonly ayahAtStart: Int32Array;
   readonly localWordOfPos: Int32Array;
   readonly startLocal: number;
+  /** Per word: extra jump cost into it (0 inside the expected window). */
+  readonly jumpExtra: Float32Array;
 
   column: Float32Array;
   cursorCell: number;
@@ -47,6 +49,7 @@ export class Tracker {
     surah: number,
     startWordIndex: number,
     cfg: EngineConfig = DEFAULT_CONFIG,
+    window: { firstWord: number; endWord: number } | null = null,
   ) {
     this.corpus = corpus;
     this.table = table;
@@ -73,6 +76,13 @@ export class Tracker {
       const b = i + 1 < nWords ? this.wordStarts[i + 1]! : this.len;
       for (let p = a; p < b; p++) this.localWordOfPos[p] = i;
     }
+    this.jumpExtra = new Float32Array(nWords);
+    if (window && cfg.outsideJumpCost > 0) {
+      for (let i = 0; i < nWords; i++) {
+        const w = rec.firstWord + i;
+        if (w < window.firstWord || w >= window.endWord) this.jumpExtra[i] = cfg.outsideJumpCost;
+      }
+    }
     this.startLocal = Math.max(
       0,
       corpus.wordStart[startWordIndex]! - this.surahStart,
@@ -83,7 +93,7 @@ export class Tracker {
     const jump = cfg.jumpCost;
     for (let i = 0; i < nWords; i++) {
       const m = this.wordStarts[i]!;
-      this.column[m] = m === this.startLocal ? 0 : jump;
+      this.column[m] = m === this.startLocal ? 0 : jump + this.jumpExtra[i]!;
     }
     for (let m = 1; m <= this.len; m++) {
       this.column[m] = Math.min(this.column[m]!, this.column[m - 1]! + 1);
@@ -133,7 +143,7 @@ export class Tracker {
     this.column.fill(Number.POSITIVE_INFINITY);
     for (let i = 0; i < this.wordStarts.length; i++) {
       const m = this.wordStarts[i]!;
-      this.column[m] = m === this.startLocal ? 0 : jump;
+      this.column[m] = m === this.startLocal ? 0 : jump + this.jumpExtra[i]!;
     }
     for (let m = 1; m <= this.len; m++) {
       this.column[m] = Math.min(this.column[m]!, this.column[m - 1]! + 1);
@@ -167,7 +177,7 @@ export class Tracker {
 
     next[0] = prev[0]! + 1;
     if (this.wordStarts[0] === 0) {
-      const r = this.ayahAtStart[0] === cursorAyah ? repeat : jump;
+      const r = this.ayahAtStart[0] === cursorAyah ? repeat : jump + this.jumpExtra[0]!;
       if (r < next[0]!) next[0] = r;
     }
     for (let m = 1; m <= this.len; m++) {
@@ -179,7 +189,7 @@ export class Tracker {
     }
     for (let i = 0; i < this.wordStarts.length; i++) {
       const m = this.wordStarts[i]!;
-      const restart = m <= cursorPos && this.ayahAtStart[i] === cursorAyah ? repeat : jump;
+      const restart = m <= cursorPos && this.ayahAtStart[i] === cursorAyah ? repeat : jump + this.jumpExtra[i]!;
       if (restart < next[m]!) {
         next[m] = restart;
         for (let j = m + 1; j <= this.len && next[j - 1]! + 1 < next[j]!; j++) {

@@ -22,17 +22,16 @@ npm i onnxruntime-node           # node
 npm i onnxruntime-react-native   # React Native
 ```
 
-Default-engine assets from [release v0.3.0](https://github.com/yazinsai/tilawa/releases/tag/v0.3.0):
+Default-engine assets: the model from [release zipformer-a0w-ep1-a0.5](https://github.com/yazinsai/tilawa/releases/tag/zipformer-a0w-ep1-a0.5), the corpus from [v0.3.0](https://github.com/yazinsai/tilawa/releases/tag/v0.3.0):
 
 ```bash
-base=https://github.com/yazinsai/tilawa/releases/download/v0.3.0
-curl -L -O "$base/zipformer_interp_gentle_a05.int8.onnx"  # 66 MB
-curl -L -O "$base/zipformer_quran.json"                    # 5.5 MB, NPL-1.2
+curl -L -O https://github.com/yazinsai/tilawa/releases/download/zipformer-a0w-ep1-a0.5/zipformer_a0w_ep1_a05.int8.onnx  # 66 MB, NPL-1.2
+curl -L -O https://github.com/yazinsai/tilawa/releases/download/v0.3.0/zipformer_quran.json                            # 5.5 MB, NPL-1.2
 # optional — Arabic text on verse_match events
 curl -L -O https://github.com/yazinsai/tilawa/releases/download/v0.2.0/quran.json
 ```
 
-The model's I/O manifest is bundled (`DEFAULT_ZIPFORMER_IO`). `quran.json` is display text only; matching works without it.
+The model's I/O manifest is bundled (`DEFAULT_ZIPFORMER_IO`). The previous default, `zipformer_interp_gentle_a05.int8.onnx` (v0.3.0), still works with the same manifest. `quran.json` is display text only; matching works without it.
 
 ## Browser
 
@@ -47,7 +46,7 @@ import { createRecognitionSession } from "@tilawa/core";
 
 const session = await createRecognitionSession({
   ort,
-  model: () => fetch("/zipformer_interp_gentle_a05.int8.onnx").then((r) => r.arrayBuffer()),
+  model: () => fetch("/zipformer_a0w_ep1_a05.int8.onnx").then((r) => r.arrayBuffer()),
   corpus: () => fetch("/zipformer_quran.json").then((r) => r.json()),
   quran: () => fetch("/quran.json").then((r) => r.json()), // optional
   onEvent: (msg) => {
@@ -73,7 +72,7 @@ import { createRecognitionSession } from "@tilawa/core";
 
 const session = await createRecognitionSession({
   ort,
-  model: () => readFile("zipformer_interp_gentle_a05.int8.onnx"),
+  model: () => readFile("zipformer_a0w_ep1_a05.int8.onnx"),
   corpus: async () => JSON.parse(await readFile("zipformer_quran.json", "utf8")),
   quran: async () => JSON.parse(await readFile("quran.json", "utf8")),
   onEvent: (msg) => {
@@ -188,6 +187,17 @@ Both engines emit the same `WorkerOutbound` union — via `onEvent` / `onOutput`
 
 Also: `transcript`, `tallies` / `verses`, `engineState`, `config`.
 
+#### Structural correction rules (on by default in correction mode)
+
+Correction mode (`setMode("correction")`) adds two text-only rules over the free decode, validated with the a0w model. They are on by default (`DEFAULT_STRUCTURAL`). Pass `structural: false` to turn them off, or `structural: {...}` / `await session.setStructural({...})` to choose; the look-alike index (56 KB gzipped) loads when the session is created. Tracking mode never runs them.
+
+| Rule | Raises | Needs `setExpected`? |
+|---|---|---|
+| `ayahOrder: true` (`"guarded"` for the previous interp model) | `possible_skipped_ayah` — a whole ayah skipped between two read ones, found by matching pause-delimited segments to a local ayah window | No. Without a passage the window is the first located ayah −1 .. +4; with one it is the passage |
+| `similarVerse: true` | `possible_substitution` (a word from a look-alike ayah), `possible_omission` (a dropped word) | For substitutions, yes: without a passage a swapped-in look-alike word reads as the other ayah. Drops work either way |
+
+Issues they raise carry `source: "ayah_order" | "similar_verse"`. By default (`timing: "stop"`) they run once over the whole take at `stop()`, which is how they were validated; each `correct()` that closes an issue raises the next one. `timing: "pause"` also runs them at each pause so a flag can interrupt mid-recitation (more false flags). Similar-verse flags on or next to an ayah flagged as skipped are dropped.
+
 ### `createTilawaSession(runner, assets, options?)` → `TilawaSession`
 
 `assets`: `{ vocab, quranCtcTokens, quran, blankId? }`. `transcribe()` / `transcribeRaw()` / `feed()` / `reset()` / `setConfig()` / `getConfig()`. Streaming presets: `"conservative"` / `"balanced"` / `"aggressiveAdvance"`.
@@ -198,9 +208,10 @@ Also: `transcript`, `tallies` / `verses`, `engineState`, `config`.
 
 | | Zipformer (default) | FastConformer |
 |---|---|---|
-| **File** | `zipformer_interp_gentle_a05.int8.onnx` (66 MB) | `fastconformer_full_mixed.onnx` (88 MB) |
+| **File** | `zipformer_a0w_ep1_a05.int8.onnx` (66 MB; previous: `zipformer_interp_gentle_a05.int8.onnx`) | `fastconformer_full_mixed.onnx` (88 MB) |
 | **Input** | 16 kHz mono `Float32Array`, streamed | same, preprocessing in-graph |
-| **Recall / Precision / SeqAcc** | 100% / 100% / 100% on v1 (53/53) and v2 (43/43) | 100% / 100% / 100% on v1 (53/53) |
+| **Recall / Precision / SeqAcc** | 100% / 100% / 100% on v1 (53/53); held-out multi-ayah windows 56/58 | 100% / 100% / 100% on v1 (53/53) |
+| **Phoneme error rate** | 3.59% on the 600-clip q-lab benchmark (Quran-Lab v3: 4.45%) | — |
 | **Licence** | **NPL-1.2** non-commercial share-alike | NVIDIA [CC-BY-4.0](https://huggingface.co/nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0) |
 
 ## This repository

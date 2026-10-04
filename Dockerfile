@@ -27,8 +27,10 @@ RUN npm ci --omit=dev
 # immutable GitHub release assets.
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p dist/models \
- && curl -fL -o dist/models/zipformer_interp_gentle_a05.int8.onnx \
-    https://github.com/yazinsai/tilawa/releases/download/v0.3.0/zipformer_interp_gentle_a05.int8.onnx \
+ && curl -fL -o dist/models/zipformer_a0w_ep1_a05.int8.onnx \
+    https://github.com/yazinsai/tilawa/releases/download/zipformer-a0w-ep1-a0.5/zipformer_a0w_ep1_a05.int8.onnx \
+ && curl -fL -o dist/models/zipformer_a0w_ep1_a05.io.json \
+    https://github.com/yazinsai/tilawa/releases/download/zipformer-a0w-ep1-a0.5/zipformer_a0w_ep1_a05.io.json \
  && curl -fL -o dist/zipformer_quran.json \
     https://github.com/yazinsai/tilawa/releases/download/v0.3.0/zipformer_quran.json
 

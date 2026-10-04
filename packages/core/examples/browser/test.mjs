@@ -26,7 +26,7 @@ const DEFAULT_IDS = [
   "multi_002_285_286",
 ];
 
-for (const f of ["models/zipformer_interp_gentle_a05.int8.onnx", "zipformer_quran.json", "quran.json"]) {
+for (const f of ["models/zipformer_a0w_ep1_a05.int8.onnx", "zipformer_quran.json", "quran.json"]) {
   if (!existsSync(join(PUBLIC, f))) {
     console.error(`missing ${join(PUBLIC, f)} — run web/frontend/scripts/fetch-zipformer-assets.sh`);
     process.exit(1);

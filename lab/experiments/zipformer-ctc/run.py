@@ -174,8 +174,10 @@ def _shutdown() -> None:
     _proc = None
 
 
-def recognize(audio_path: str) -> dict:
-    """Raw harness result: verses (accepted ayahs), all tallies, transcript, events."""
+def recognize(audio_path: str, mode: str = "tracking") -> dict:
+    """Raw harness result: verses (accepted ayahs), all tallies, transcript, events.
+
+    ``mode="correction"`` also returns ``corrections`` (issues, dismissed on sight)."""
     global _req_id
     proc = _ensure_proc()
     audio = load_audio(audio_path)
@@ -184,7 +186,7 @@ def recognize(audio_path: str) -> dict:
         pcm_path = f.name
     try:
         _req_id += 1
-        proc.stdin.write(json.dumps({"id": _req_id, "pcm": pcm_path}) + "\n")
+        proc.stdin.write(json.dumps({"id": _req_id, "pcm": pcm_path, "mode": mode}) + "\n")
         proc.stdin.flush()
         line = proc.stdout.readline()
     finally:

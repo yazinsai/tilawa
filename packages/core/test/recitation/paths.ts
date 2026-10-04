@@ -39,17 +39,33 @@ export function findCorpus(): string | null {
   );
 }
 
+/** The default model (a0w-ep1-a0.5 int8). */
 export function findModel(): string | null {
   return firstExisting(
     process.env.ZIPFORMER_MODEL,
-    ...bothRoots("web/frontend/public/models/zipformer_interp_gentle_a05.int8.onnx"),
-    ...bothRoots("lab/data/zipformer/zipformer_interp_gentle_a05.int8.onnx"),
+    ...bothRoots("web/frontend/public/models/zipformer_a0w_ep1_a05.int8.onnx"),
   );
 }
 
 export function findModelIo(): string | null {
   return firstExisting(
     process.env.ZIPFORMER_IO,
+    ...bothRoots("web/frontend/public/models/zipformer_a0w_ep1_a05.io.json"),
+  );
+}
+
+/** The previous default (interp-gentle-a0.5 int8); the recorded CTC vectors come from it. */
+export function findLegacyModel(): string | null {
+  return firstExisting(
+    process.env.ZIPFORMER_LEGACY_MODEL,
+    ...bothRoots("web/frontend/public/models/zipformer_interp_gentle_a05.int8.onnx"),
+    ...bothRoots("lab/data/zipformer/zipformer_interp_gentle_a05.int8.onnx"),
+  );
+}
+
+export function findLegacyModelIo(): string | null {
+  return firstExisting(
+    process.env.ZIPFORMER_LEGACY_IO,
     ...bothRoots("web/frontend/public/models/zipformer_interp_gentle_a05.io.json"),
   );
 }
