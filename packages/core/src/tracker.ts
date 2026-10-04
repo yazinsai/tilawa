@@ -1,5 +1,6 @@
+import { align } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
-import type { EngineEvent, PositionCandidate, PositionEvent, TrackerState, WordRef } from "./events.js";
+import type { EngineEvent, PositionCandidate, PositionEvent, TrackerState, TrackerTrace, WordRef } from "./events.js";
 import { EvidenceError } from "./evidence.js";
 import type { PhonemeEvidence } from "./evidence.js";
 import type { ReferenceIndex } from "./reference.js";
@@ -9,6 +10,8 @@ export interface TrackerOptions {
   /** Grams occurring more often than this carry too little location information to vote. */
   maxGramOccurrences?: number;
   maxCandidates?: number;
+  /** Attach shortlist, state transition and alignment path to every position event. */
+  trace?: boolean;
 }
 
 export interface Tracker {
@@ -20,6 +23,7 @@ interface Match {
   offset: number;
   length: number;
   cost: number;
+  votes: number;
 }
 
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
@@ -47,7 +51,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     const found: Match[] = [];
     if (query.length < index.gramSize) {
       for (let at = index.phonemes.indexOf(query); at !== -1 && found.length < maxCandidates; at = index.phonemes.indexOf(query, at + 1)) {
-        found.push({ offset: at, length: query.length, cost: 0 });
+        found.push({ offset: at, length: query.length, cost: 0, votes: 0 });
       }
       return found;
     }
@@ -61,14 +65,14 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       }
     }
     const ranked = [...votes.entries()].sort((a, b) => b[1] - a[1] || a[0] - b[0]);
-    for (const [offset] of ranked) {
-      if (index.phonemes.startsWith(query, offset)) found.push({ offset, length: query.length, cost: 0 });
+    for (const [offset, count] of ranked) {
+      if (index.phonemes.startsWith(query, offset)) found.push({ offset, length: query.length, cost: 0, votes: count });
       if (found.length >= maxCandidates) break;
     }
     if (found.length === 0 && votes.size === 0) {
       // Every gram was too common to vote; fall back to a direct scan.
       for (let at = index.phonemes.indexOf(query); at !== -1 && found.length < maxCandidates; at = index.phonemes.indexOf(query, at + 1)) {
-        found.push({ offset: at, length: query.length, cost: 0 });
+        found.push({ offset: at, length: query.length, cost: 0, votes: 0 });
       }
     }
     return found.sort((a, b) => a.cost - b.cost || a.offset - b.offset);
@@ -101,8 +105,22 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     };
     const changed = !last || JSON.stringify({ ...last, timeMs: 0 }) !== JSON.stringify({ ...event, timeMs: 0 });
     if (!changed && !final) return [];
+    const from = last?.state ?? null;
     last = event;
-    return [event];
+    if (!options.trace) return [event];
+    const top = matches[0];
+    const trace: TrackerTrace = {
+      shortlist: matches.map((m) => ({
+        span: toCandidate(m, 0).span,
+        offset: m.offset,
+        length: m.length,
+        votes: m.votes,
+        cost: m.cost,
+      })),
+      transition: { from, to: state },
+      path: top ? align(index.phonemes.slice(top.offset, top.offset + top.length), observed) : null,
+    };
+    return [{ ...event, trace }];
   };
 
   return {

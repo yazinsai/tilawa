@@ -1,3 +1,5 @@
+import type { AlignmentOp } from "./align.js";
+
 export const EVENT_SCHEMA_VERSION = 1;
 
 export interface WordRef {
@@ -23,6 +25,22 @@ export interface PositionCandidate {
 
 export type TrackerState = "acquiring" | "locked" | "ambiguous" | "lost";
 
+export interface TraceCandidate {
+  span: WordSpan;
+  /** Half-open phoneme range in the reference index. */
+  offset: number;
+  length: number;
+  votes: number;
+  cost: number;
+}
+
+export interface TrackerTrace {
+  shortlist: TraceCandidate[];
+  transition: { from: TrackerState | null; to: TrackerState };
+  /** Alignment of the observed phonemes against the top candidate; null without a candidate. */
+  path: AlignmentOp[] | null;
+}
+
 export interface PositionEvent {
   type: "position";
   v: typeof EVENT_SCHEMA_VERSION;
@@ -32,6 +50,8 @@ export interface PositionEvent {
   /** Ranked best first; deduplicated so each entry is a distinct location. */
   observed: PositionCandidate[];
   state: TrackerState;
+  /** Present only when the tracker was created with `trace: true`. */
+  trace?: TrackerTrace;
 }
 
 export type MemorizationErrorClass = "wrong_word" | "omitted_word" | "added_word" | "skipped_passage";

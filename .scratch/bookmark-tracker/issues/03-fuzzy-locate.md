@@ -18,3 +18,4 @@
 - [ ] A ض→د substitution locates to the correct ayah, with nonzero PER and the substitution visible in the edit path.
 - [ ] Real tlog fixtures (100:6 containing 100:6 plus 100:7, 100:7 apparently containing 100:8, and 100:1 with ض→د) are added. Their expected labels are asserted only after the audio has been independently checked; until then they are regression snapshots.
 - [ ] The alignment cost and PER are exposed as separate fields.
+- [ ] A synthetic substitution shows in the traced alignment path (the `it.todo` carried over from 02).

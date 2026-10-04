@@ -10,9 +10,15 @@
 
 **Blocked by:** 01.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Fixtures round-trip: convert, replay, and get identical events across runs.
+- [x] Fixtures round-trip: convert, replay, and get identical events across runs.
 - [ ] A synthetic fixture generated with a known edit replays and shows the edit in the traced alignment path.
-- [ ] Real-clip fixtures carry an `audioVerified` flag. Tests assert expected labels only for verified fixtures; unverified ones are regression snapshots only.
-- [ ] Turning tracing on doesn't change any non-trace event content.
+- [x] Real-clip fixtures carry an `audioVerified` flag. Tests assert expected labels only for verified fixtures; unverified ones are regression snapshots only.
+- [x] Turning tracing on doesn't change any non-trace event content.
+
+## Comments
+
+- Built: the fixture format with provenance and an `audioVerified` flag; a Python converter that turns pass1 parquet rows into fixtures (its greedy decode reproduces Muaalem's output exactly); the synthetic generator (sub, del, ins, repeat, noise, gap); the `trace` option (shortlist, transition, alignment path); and the `pnpm replay <fixtures>` CLI.
+- Not yet done: "a synthetic edit shows in the traced path". The exact-match tracker can't locate edited input, so there's no path to show. The test is an `it.todo` and moves to ticket 03.
+- Four real fixtures are committed as snapshots (unverified): 100:3 is locked, while 100:1 (ض→د and د→ل), 100:6 (contains 100:6–7) and 100:7 come out lost. The 100:7 clip looks like the end of 100:8 plus the start of 100:9, not 100:8 alone.
