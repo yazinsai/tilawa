@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc -b",
     "test": "vitest run",
-    "replay": "tsx src/fixtures/cli.ts"
+    "replay": "tsx src/fixtures/cli.ts",
+    "relabel": "tsx src/relabel/cli.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",

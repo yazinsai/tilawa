@@ -44,6 +44,8 @@ export interface TrackerTrace {
   transition: { from: TrackerState | null; to: TrackerState };
   /** Alignment of the observed phonemes against the top candidate; null without a candidate. */
   path: AlignmentOp[] | null;
+  /** The top fitting candidate's confidence terms; null when nothing fits. `confidence = fit * separation`. */
+  decision: { fit: number; separation: number; leadEdits: number; requiredEdits: number } | null;
 }
 
 export interface PositionEvent {

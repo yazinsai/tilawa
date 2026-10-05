@@ -200,10 +200,13 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     const lead = (c: (typeof fitting)[number]) => Math.min(...fitting.filter((o) => o !== c).map((o) => o.score - c.score), Infinity);
     const top = fitting[0];
     const separated = top !== undefined && lead(top) >= required;
+    const terms = (c: (typeof fitting)[number]) => ({
+      fit: Math.max(0, 1 - c.m.per / maxPer) * Math.max(0, 1 - normCost(c.m) / maxCost),
+      separation: Math.min(1, Math.max(0, 0.5 + lead(c) / (2 * required))),
+    });
     const confidence = (c: (typeof fitting)[number]) => {
-      const fit = Math.max(0, 1 - c.m.per / maxPer) * Math.max(0, 1 - normCost(c.m) / maxCost);
-      const separation = Math.min(1, Math.max(0, 0.5 + lead(c) / (2 * required)));
-      return fit * separation;
+      const t = terms(c);
+      return t.fit * t.separation;
     };
     const enough =
       n >= minPhonemes && top !== undefined && lastWord(top.m) - firstWord(top.m) + 1 >= minWords && confidence(top) >= minLockConfidence;
@@ -238,6 +241,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       })),
       transition: { from, to: state },
       path: best ? best.path : null,
+      decision: top ? { ...terms(top), leadEdits: lead(top) / UNIT, requiredEdits: required / UNIT } : null,
     };
     return [{ ...event, trace }];
   };
