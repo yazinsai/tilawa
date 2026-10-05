@@ -129,7 +129,7 @@ describe("skip", () => {
     expect(followedBy(words, "2:255:10", ["2:255:14", "2:255:15"])).toBe(true);
     expect(words.at(-1)).toBe("2:255:25");
     // The run restarts at the landing word, so the skip is visible in the span too.
-    const landed = events.find((e) => key(e.observed[0]?.word ?? w(0, 0, 0)) === "2:255:15")!;
+    const landed = events.find((e) => e.state === "locked" && key(e.observed[0].word) === "2:255:14")!;
     expect(key(landed.observed[0].span.start)).toBe("2:255:14");
   });
 

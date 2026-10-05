@@ -34,11 +34,6 @@ export interface TrackerOptions {
   prior?: { surah: number; ayah: number; weight: number };
   /** Attach shortlist, state transition and alignment path to every position event. */
   trace?: boolean;
-  /**
-   * While acquiring, at most this many earlier phonemes are kept when a new chunk arrives; the chunk itself is always
-   * searched whole, so a single-push clip is unaffected. Default 512.
-   */
-  maxHistory?: number;
 }
 
 export interface Tracker {
@@ -69,6 +64,12 @@ const MAX_PRIOR_BONUS = UNIT / 2;
 const NATS_PER_EDIT = 3;
 /** Posteriors are rejected when fewer decoded phonemes than this appear in the top-k over their frames. */
 const MIN_LISTED = 0.5;
+/**
+ * While acquiring, at most this many earlier phonemes are kept when a new chunk arrives. The chunk itself is always
+ * searched whole, so a single-push clip is unaffected; streamed acquisitions longer than this depend on chunking.
+ */
+const MAX_HISTORY = 512;
+
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
   const maxGramOccurrences = options.maxGramOccurrences ?? 5000;
   const maxCandidates = options.maxCandidates ?? 64;
@@ -95,13 +96,12 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   let frameMs: number | null = null;
   let lastFrame = 0;
   let last: PositionEvent | null = null;
-  const maxHistory = options.maxHistory ?? 512;
   /** Set once locked: from then on the tracker follows the reciter locally, phoneme by phoneme. */
   let local: LocalSearch | null = null;
   let lockedOn: Match | null = null;
   /** The event that reported the lock, kept with its trace until a local event replaces it. */
   let lockEvent: PositionEvent | null = null;
-  let followed = false;
+  let emittedSinceLock = false;
 
   const validate = (e: PhonemeEvidence) => {
     if (e.inventory !== index.inventoryId) {
@@ -265,7 +265,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   /** Overlapping or touching ranges describe one location, e.g. shifted spans of the same ayah. */
   const sameLocation = (a: Match, b: Match) => a.offset <= b.offset + b.length && b.offset <= a.offset + a.length;
 
-  const evaluate = (final: boolean): EngineEvent[] => {
+  const evaluate = (final: boolean): PositionEvent[] => {
     if (!observed) return [];
     const frames = posteriors;
     const self = frames ? frames.nll(toIds([...observed]), observedFrames[0].start, observedFrames.at(-1)!.end + 1) : 0;
@@ -306,8 +306,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       state,
     };
     const changed = !last || JSON.stringify({ ...last, timeMs: 0 }) !== JSON.stringify({ ...event, timeMs: 0 });
-    if (state === "locked" && !final) lockedOn = top.m;
     if (!changed && !final) return [];
+    if (state === "locked" && !final) lockedOn = top.m;
     const from = last?.state ?? null;
     last = event;
     if (!options.trace) return [event];
@@ -356,15 +356,15 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       };
       const from = last!.state;
       last = event;
-      followed = true;
+      emittedSinceLock = true;
       events.push(options.trace ? { ...event, trace: localTrace(from) } : event);
     }
     return events;
   };
 
-  /** Drop all but `maxHistory` phonemes of earlier chunks, and the posterior rows before what's kept. */
+  /** Drop all but `MAX_HISTORY` phonemes of earlier chunks, and the posterior rows before what's kept. */
   const trimHistory = () => {
-    const drop = observed.length - maxHistory;
+    const drop = observed.length - MAX_HISTORY;
     if (drop <= 0) return;
     observed = observed.slice(drop);
     observedConf = observedConf.slice(drop);
@@ -391,7 +391,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       }
       const events = evaluate(false);
       if (lockedOn) {
-        lockEvent = events.at(-1) as PositionEvent;
+        lockEvent = events[0];
         const m = lockedOn;
         local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
         observed = "";
@@ -404,7 +404,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       if (!local) return evaluate(true);
       const timeMs = lastFrame * (frameMs ?? 0);
       // Nothing followed the lock: its event, with the global search's trace, is still the answer.
-      if (!followed) {
+      if (!emittedSinceLock) {
         const e = { ...lockEvent!, timeMs };
         return [e.trace ? { ...e, trace: { ...e.trace, transition: { from: "locked" as const, to: "locked" as const } } } : e];
       }

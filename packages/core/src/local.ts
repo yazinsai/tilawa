@@ -1,4 +1,4 @@
-import { UNIT, indelCost, isLengthening, runAt, subCost } from "./fuzzy.js";
+import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
 
 /**
@@ -35,7 +35,7 @@ export interface LocalSearch {
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: { offset: number; origin: number; edits: number }): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost">): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -57,7 +57,7 @@ export function createLocalSearch(index: ReferenceIndex, start: { offset: number
   let ayah = -1;
   const recent: number[] = [];
 
-  const window = (offset: number) => {
+  const recentre = (offset: number) => {
     const a = ayahOf(offset);
     if (a === ayah) return;
     ayah = a;
@@ -80,19 +80,11 @@ export function createLocalSearch(index: ReferenceIndex, start: { offset: number
     edits = e;
   };
 
-  window(start.offset);
+  recentre(start.offset);
   cost[start.offset - lo] = 0;
   origin[start.offset - lo] = start.origin;
   edits[start.offset - lo] = start.edits;
 
-  const sub = (at: number, p: string) => subCost(ref[at], p);
-  // Inserting `p` beside a reference run of `p` lengthens it; dropping one shortens the run it sits in.
-  const insCost = (at: number, p: string) => {
-    const before = at > 0 && ref[at - 1] === p ? runAt(ref, at - 1) : 0;
-    const after = at < ref.length && ref[at] === p ? runAt(ref, at) : 0;
-    return indelCost(p, isLengthening(p, Math.max(before, after) + 1));
-  };
-  const delCost = (at: number) => indelCost(ref[at], isLengthening(ref[at], runAt(ref, at)));
 
   return {
     step(p) {
@@ -103,12 +95,13 @@ export function createLocalSearch(index: ReferenceIndex, start: { offset: number
       const e = new Int32Array(n);
       for (let i = 0; i < n; i++) {
         const at = lo + i;
-        let bc = cost[i] + insCost(at, p);
+        let bc = cost[i] + insertionCost(ref, at, p);
         let bo = origin[i];
         let be = edits[i] + 1;
         if (i > 0) {
-          const s = sub(at - 1, p);
+          const s = subCost(ref[at - 1], p);
           const edit = ref[at - 1] === p ? 0 : 1;
+          // On a tie, consuming the reference beats an insertion, so a correct recitation keeps advancing.
           if (cost[i - 1] + s <= bc) {
             bc = cost[i - 1] + s;
             bo = origin[i - 1];
@@ -123,7 +116,7 @@ export function createLocalSearch(index: ReferenceIndex, start: { offset: number
               be = edit;
             }
           }
-          const d = c[i - 1] + delCost(at - 1);
+          const d = c[i - 1] + deletionCost(ref, at - 1);
           if (d < bc) {
             bc = d;
             bo = o[i - 1];
@@ -148,7 +141,7 @@ export function createLocalSearch(index: ReferenceIndex, start: { offset: number
       origin = o;
       edits = e;
       best = lo + k;
-      window(best);
+      recentre(best);
     },
     position() {
       const i = best - lo;

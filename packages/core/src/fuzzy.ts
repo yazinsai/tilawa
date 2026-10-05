@@ -26,7 +26,7 @@ const GHUNNA_DOUBLED = new Set(["ن", "م"]);
  * Whether a run of `p` that is `run` long before an edit and `run ± 1` after it is still the same sound, held
  * longer or shorter. A doubled noon or meem shorter than 3 is a shadda, so shortening it is a real error.
  */
-export function isLengthening(p: string, run: number): boolean {
+function isLengthening(p: string, run: number): boolean {
   if (MADD_LETTERS.has(p) || GHUNNA_RUNS.has(p)) return run >= 2;
   if (GHUNNA_DOUBLED.has(p)) return run >= 3;
   return false;
@@ -53,19 +53,34 @@ export function collapseHeld(tokens: string[]): string[] {
   return out;
 }
 
-export function indelCost(p: string, lengthening: boolean): number {
+function indelCost(p: string, lengthening: boolean): number {
   if (lengthening) return LENGTH_CHANGE;
   if (SHORT_VOWELS.has(p)) return SHORT_VOWEL;
   return UNIT;
 }
 
 /** Length of the run of `s[k]` that contains `k`. */
-export function runAt(s: string, k: number): number {
+function runAt(s: string, k: number): number {
   let a = k;
   let b = k;
   while (a > 0 && s[a - 1] === s[k]) a--;
   while (b + 1 < s.length && s[b + 1] === s[k]) b++;
   return b - a + 1;
+}
+
+/**
+ * Inserting `p` before `ref[at]`: lengthening when it sits beside a reference run of `p`. Only `ref` before `end` counts
+ * as a neighbour.
+ */
+export function insertionCost(ref: string, at: number, p: string, end = ref.length): number {
+  const before = at > 0 && ref[at - 1] === p ? runAt(ref, at - 1) : 0;
+  const after = at < end && ref[at] === p ? runAt(ref, at) : 0;
+  return indelCost(p, isLengthening(p, Math.max(before, after) + 1));
+}
+
+/** Dropping `ref[at]`: shortening when it's part of a held run. */
+export function deletionCost(ref: string, at: number): number {
+  return indelCost(ref[at], isLengthening(ref[at], runAt(ref, at)));
 }
 
 export interface SpanAlignment {
@@ -114,14 +129,8 @@ export function alignSubstring(
   const d = new Float64Array((n + 1) * w);
   const at = (i: number, j: number) => i * w + j;
   const r = (i: number) => ref[lo + i - 1];
-  // Inserting `p` beside a reference run of `p` lengthens it; dropping one shortens the run it sits in.
-  const insCost = (i: number, j: number) => {
-    const p = obs[j - 1];
-    const before = i > 0 && r(i) === p ? runAt(ref, lo + i - 1) : 0;
-    const after = i < n && ref[lo + i] === p ? runAt(ref, lo + i) : 0;
-    return indelCost(p, isLengthening(p, Math.max(before, after) + 1)) + EDIT;
-  };
-  const delCost = (i: number) => indelCost(r(i), isLengthening(r(i), runAt(ref, lo + i - 1))) + EDIT;
+  const insCost = (i: number, j: number) => insertionCost(ref, lo + i, obs[j - 1], hi) + EDIT;
+  const delCost = (i: number) => deletionCost(ref, lo + i - 1) + EDIT;
   const sub = (i: number, j: number) => (r(i) === obs[j - 1] ? 0 : subCost(r(i), obs[j - 1]) + EDIT);
   const startCost = (i: number) => (isStart(lo + i) ? 0 : options.strictStart ? INF : MID_WORD_START);
   const skip = new Float64Array(m + 1).fill(INF);
