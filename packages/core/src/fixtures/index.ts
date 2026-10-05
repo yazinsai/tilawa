@@ -29,6 +29,7 @@ export interface TlogProvenance {
   filenameLabel: { surah: number; ayah: number };
   /** True only after someone listened to the clip and confirmed `expect`. */
   audioVerified: boolean;
+  reviewNote?: string;
 }
 
 export interface Fixture {

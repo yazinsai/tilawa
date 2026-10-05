@@ -39,7 +39,7 @@ const stripTrace = (events: EngineEvent[]) =>
   events.map((e) => (e.type === "position" ? (({ trace: _, ...rest }: PositionEvent) => rest)(e) : e));
 
 describe("fixture harness", () => {
-  it("has real tlog fixtures, none of them audio-verified yet", () => {
+  it("has real tlog fixtures", () => {
     expect(tlogFixtures.length).toBeGreaterThanOrEqual(4);
     for (const f of tlogFixtures) expect(f.provenance.kind).toBe("tlog");
   });
@@ -56,6 +56,24 @@ describe("fixture harness", () => {
   it.each(synthetic.filter(isAssertable).map((f) => [f.id, f] as const))("%s meets its expectation", (_, f) => {
     expect(diffExpectation(f, replay(index, f))).toEqual([]);
   });
+
+  // Verified clips the exact-match tracker can't locate yet; each must move out of this list once fuzzy locate handles it.
+  const pendingFuzzyLocate = new Set(["tlog-clean-00000-of-00411-303", "tlog-clean-00000-of-00411-816"]);
+  const verified = tlogFixtures.filter(isAssertable);
+
+  it.each(verified.filter((f) => !pendingFuzzyLocate.has(f.id)).map((f) => [f.id, f] as const))(
+    "%s (audio-verified) meets its expectation",
+    (_, f) => {
+      expect(diffExpectation(f, replay(index, f))).toEqual([]);
+    },
+  );
+
+  it.fails.each(verified.filter((f) => pendingFuzzyLocate.has(f.id)).map((f) => [f.id, f] as const))(
+    "%s (audio-verified) meets its expectation — pending ticket 03",
+    (_, f) => {
+      expect(diffExpectation(f, replay(index, f))).toEqual([]);
+    },
+  );
 
   it.each(tlogFixtures.filter((f) => !isAssertable(f)).map((f) => [f.id, f] as const))(
     "%s (unverified) matches its regression snapshot",
