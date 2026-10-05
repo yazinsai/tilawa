@@ -6,3 +6,4 @@ __pycache__
 .DS_Store
 .scratch/bookmark-tracker/review/audio/
 .scratch/bench/
+.scratch/e2e/

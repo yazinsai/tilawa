@@ -11,7 +11,8 @@
     "relabel": "tsx src/relabel/cli.ts",
     "review": "tsx src/review/cli.ts",
     "bench": "tsx src/bench/cli.ts",
-    "perf": "tsx src/bench/perf-cli.ts"
+    "perf": "tsx src/bench/perf-cli.ts",
+    "e2e": "tsx src/e2e/cli.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",

@@ -89,6 +89,11 @@ const WINDOW = 48;
 const LOST_AFTER = 24;
 /** A global lock within this many ayahs of the local bookmark is the local search's to follow, not a jump. */
 const NEAR_AYAHS = 2;
+/** Phonemes by which recent cost lags a deviation: half the local search's recent-cost window. */
+const WEAK_LAG = 8;
+/** A new local run shows once its last this many phonemes cost at most `CONFIRM_COST` plain edits each on average. */
+const CONFIRM = 3;
+const CONFIRM_COST = 0.34;
 /**
  * After a skipped takbir, al-Fatiha's opening gets this bonus: in prayer each rak'ah restarts with it, and its al-hamd
  * opening is shared with five other passages, so the half-edit `prior` bonus couldn't separate it.
@@ -158,8 +163,15 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   let reacquiring = false;
   /** Memorization mode: the expected bookmark held in place after the reciter jumped away from it. */
   let frozen: WordRef | null = null;
-  /** The expected bookmark when local fit last turned weak. */
+  /** The expected bookmark from before local fit last turned weak. */
   let steady: WordRef | null = null;
+  /**
+   * The expected bookmark after each recent phoneme. Recent cost lags a deviation by several phonemes, during which
+   * local skips can already have moved the bookmark; the one from before that lag is what weakness should freeze.
+   */
+  const expectedHistory: (WordRef | null)[] = [];
+  /** The local search's cost for each of the last `CONFIRM` phonemes. */
+  const stepCosts: number[] = [];
 
   const phraseList = options.phrases ? [...options.phrases.phrases, { name: "basmala", text: "", p: basmala }] : [];
   /** The latest phonemes, with the local search's cost for each and its state before each, for phrase detection. */
@@ -173,6 +185,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   let basmalaHeard = false;
   /** A takbir was skipped: in prayer al-Fatiha comes next (`fatihaNext`), promoted from `takbirHeard` like the basmala. */
   let fatihaNext = false;
+  /** Re-acquiring after a basmala ended a locked passage: where it ended, and phonemes since. */
+  let afterBasmala: { from: WordRef; held: number } | null = null;
   let takbirHeard = false;
   /** A phrase was just skipped while locked: a boundary, so the next distant lock needn't wait for persistence. */
   let afterPhrase = false;
@@ -346,10 +360,11 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const priorBonus = (m: Match): number => {
     const first = index.words[firstWord(m)];
     const opening = first.word === 1 && (first.ayah === 1 || (first.surah === 1 && first.ayah === 2));
-    const afterBasmala = surahStart && opening ? MAX_PRIOR_BONUS : 0;
+    const nextSurah = afterBasmala && opening && first.ayah === 1 && first.surah === afterBasmala.from.surah + 1 ? MAX_PRIOR_BONUS : 0;
+    const openingBonus = (surahStart && opening ? MAX_PRIOR_BONUS : 0) + nextSurah;
     // Only once the span reaches "rabbi": "al-hamdu lillahi" alone is also how 6:1, 18:1, 34:1 and 35:1 open.
     if (fatihaNext && first.surah === 1 && first.word === 1 && first.ayah <= 2 && lastWord(m) >= fatihaRabbi) return FATIHA_BONUS;
-    if (!prior) return afterBasmala;
+    if (!prior) return openingBonus;
     let best = 0;
     for (let i = firstWord(m); i <= lastWord(m); i++) {
       const w = index.words[i];
@@ -357,7 +372,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       const d = Math.abs(w.ayah - prior.ayah);
       best = Math.max(best, d === 0 ? 1 : d === 1 ? 0.5 : 0);
     }
-    return Math.max(afterBasmala, best * MAX_PRIOR_BONUS * Math.min(1, Math.max(0, prior.weight)));
+    return Math.max(openingBonus, best * MAX_PRIOR_BONUS * Math.min(1, Math.max(0, prior.weight)));
   };
 
   /** Overlapping or touching ranges describe one location, e.g. shifted spans of the same ayah. */
@@ -416,7 +431,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       path: scored[0]?.m.path ?? null,
       decision: top ? { ...terms(top), leadEdits: lead(top) / UNIT, requiredEdits: required / UNIT } : null,
     });
-    return { event, lock: state === "locked" ? top.m : null, trace };
+    return { event, lock: state === "locked" ? top.m : null, trace, top: top && n >= minPhonemes && confidence(top) > 0 ? top.m : null };
   };
 
   const emit = (event: PositionEvent, trace: (from: TrackerState | null) => TrackerTrace): PositionEvent => {
@@ -506,7 +521,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     const a = assess();
     if (!a.lock || !phraseList.length || (!phraseInProgress() && !repeatInProgress())) return a;
     const event: PositionEvent = { ...a.event, state: "acquiring", expected: null };
-    return { event, lock: null, trace: (from: TrackerState | null) => ({ ...a.trace(from), transition: { from, to: "acquiring" as const } }) };
+    return { ...a, event, lock: null, top: null, trace: (from: TrackerState | null) => ({ ...a.trace(from), transition: { from, to: "acquiring" as const } }) };
   };
   /**
    * An immediately repeated block at the end of the window ("Alif Lam Mim" twice) is a repetition, not two ayahs: keep
@@ -549,6 +564,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     basmalaHeard = false;
     fatihaNext = false;
     takbirHeard = false;
+    afterBasmala = null;
     afterPhrase = false;
     keepLast(0);
   };
@@ -574,8 +590,11 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     const candidate: PositionCandidate = { word, span: { start: ref(index.wordAt(pos.origin)), end: word }, confidence, cost: pos.recentCost, per };
     const prev = last!.observed[0];
     if (last!.state === "locked" && JSON.stringify([prev.word, prev.span.start]) === JSON.stringify([word, candidate.span.start])) return null;
+    const newRun = JSON.stringify(prev.span.start) !== JSON.stringify(candidate.span.start);
     // A weak local search jumps around chasing evidence that may belong elsewhere; only its current run may advance.
-    if (weak && JSON.stringify(prev.span.start) !== JSON.stringify(candidate.span.start)) return null;
+    if (weak && newRun) return null;
+    // A skip or restart shows once its landing fits: at a jump's onset, local skips chase audio that belongs elsewhere.
+    if (newRun && stepCosts.length >= CONFIRM && stepCosts.slice(-CONFIRM).reduce((a, b) => a + b, 0) / CONFIRM > CONFIRM_COST) return null;
     const event: PositionEvent = {
       type: "position",
       v: EVENT_SCHEMA_VERSION,
@@ -603,10 +622,27 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     keepLast(WINDOW);
     if (phraseList.length) collapseRepeat();
     const a = assessOutsidePhrases();
+    // After a basmala ends a surah, the next surah is the expected continuation: its opening on top is enough.
+    // Al-Fatiha excepted: in prayer any surah follows it.
+    if (!a.lock && afterBasmala && afterBasmala.from.surah !== 1 && a.top) {
+      const first = index.words[firstWord(a.top)];
+      if (first.surah === afterBasmala.from.surah + 1 && first.ayah === 1) {
+        a.lock = a.top;
+        const c = toCandidate(a.top, a.event.observed[0]?.confidence ?? 0);
+        a.event = { ...a.event, state: "locked", observed: [c], expected: c.word };
+      }
+    }
     if (a.lock) {
+      if (memorization && afterBasmala) {
+        const first = index.words[firstWord(a.lock)];
+        if (!(first.surah === afterBasmala.from.surah + 1 && first.ayah === 1)) frozen ??= steady;
+      }
+      afterBasmala = null;
       startLocal(a.lock);
       return [emit({ ...a.event, expected: expectedFor(a.event.observed[0].word) }, a.trace)];
     }
+    // Between surahs the last position stays on screen, unless nothing locks for a while.
+    if (afterBasmala && ++afterBasmala.held < WINDOW) return [];
     const event = { ...a.event, expected: expectedWhileLost() };
     // Junk that fits nowhere would otherwise favour passages with text before the recited phrase to absorb it.
     if (a.event.state === "lost") keepLast(LOOKBACK);
@@ -636,14 +672,26 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       }
       const before = local.save();
       local.step(ph.p);
+      stepCosts.push(local.position().stepCost);
+      if (stepCosts.length > CONFIRM) stepCosts.shift();
       const heardPhrase = hear(ph.p, before, local.position().stepCost);
       if (heardPhrase) {
         const from = heardCost.length - heardPhrase.length;
         const cost = heardCost.slice(from).reduce((a, b) => a + b, 0) / heardPhrase.length;
         if (cost >= PHRASE_LOCAL_COST) {
           // Not Quran text where we are: rewind the local search to before the phrase, as if it was never heard.
+          if (heardPhrase.name === "basmala") {
+            // A surah starts, not necessarily the next one: hand over to global search, favouring openings.
+            afterBasmala = { from: last!.observed[0].word, held: 0 };
+            if (memorization) steady = last!.expected;
+            local = null;
+            reacquiring = true;
+            surahStart = true;
+            forget();
+            keepLast(0);
+            continue;
+          }
           local.restore(heardState[from]);
-          if (heardPhrase.name === "basmala") local.openSurah();
           if (heardPhrase.name === "takbir") fatihaNext = true;
           afterPhrase = true;
           forget();
@@ -657,7 +705,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       const pos = local.position();
       if (!weak && pos.recentCost > WEAK_COST) {
         weak = true;
-        steady = last!.expected;
+        steady = expectedHistory[0] ?? last!.expected;
       } else if (weak && pos.recentCost <= WEAK_COST) {
         weak = false;
         pending = null;
@@ -682,6 +730,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       }
       const e = localEvent(shortlist);
       if (e) events.push(e);
+      expectedHistory.push(last!.expected);
+      if (expectedHistory.length > WEAK_LAG) expectedHistory.shift();
     }
     return events;
   };

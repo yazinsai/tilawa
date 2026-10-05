@@ -12,12 +12,10 @@ const JUMP_DISTANCE = 1e-3;
 const BACK_AYAHS = 2;
 const AHEAD_AYAHS = 2;
 /**
- * Entering the next surah without a basmala: reciters say one between surahs, so what follows a surah's end without it
- * (a takbir, a new passage) shouldn't slide into the next surah's opening.
+ * Entering the next surah: reciters say a basmala between surahs, which the tracker hands to global search, so what
+ * reaches a surah's end here (a takbir, a new passage) shouldn't slide into the next surah's opening.
  */
 const SURAH_ENTRY = 3 * UNIT;
-/** How long a basmala keeps the next surah open. */
-const OPEN_PHONEMES = 40;
 /** Recent cost is averaged over this many observed phonemes. */
 const RECENT = 16;
 
@@ -38,8 +36,6 @@ export interface LocalSearch {
   /** Consume one observed phoneme. */
   step(p: string): void;
   position(): LocalPosition;
-  /** A basmala was just heard: the next surah may be entered freely for a while. */
-  openSurah(): void;
   /** The search state, to rewind to with `restore`. */
   save(): unknown;
   restore(state: unknown): void;
@@ -64,10 +60,8 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   // At-Tawba is the one surah entered without a basmala.
   const surahFirst = new Set(index.words.filter((w, i) => i > 0 && w.surah !== index.words[i - 1].surah && w.surah !== 9).map((w) => w.start));
   const surahOf = (offset: number) => index.words[index.wordAt(offset)].surah;
-  /** Phonemes left during which a new surah may be entered without `SURAH_ENTRY`, after a basmala. */
-  let open = 0;
-  const entry = (offset: number) => (open > 0 || !surahFirst.has(offset) ? 0 : SURAH_ENTRY);
-  const crossing = (offset: number) => (open > 0 || surahOf(offset) === surahOf(Math.max(0, best - 1)) ? 0 : SURAH_ENTRY);
+  const entry = (offset: number) => (surahFirst.has(offset) ? SURAH_ENTRY : 0);
+  const crossing = (offset: number) => (surahOf(offset) === surahOf(Math.max(0, best - 1)) ? 0 : SURAH_ENTRY);
   const ayahOf = (offset: number) => ayahOfWord[index.wordAt(Math.max(0, offset - 1))];
 
   let lo = 0;
@@ -109,7 +103,6 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
 
   return {
     step(p) {
-      if (open > 0) open--;
       const n = cost.length;
       const base = cost[best - lo];
       const c = new Float64Array(n);
@@ -169,9 +162,6 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       const i = best - lo;
       const recentCost = recent.length ? recent.reduce((a, b) => a + b, 0) / UNIT / recent.length : 0;
       return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
-    },
-    openSurah() {
-      open = OPEN_PHONEMES;
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
     save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
