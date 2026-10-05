@@ -96,6 +96,24 @@ export interface SpanAlignment {
 }
 
 const INF = Infinity;
+
+const codes = new Map<string, number>();
+const tokenCode = (p: string) => {
+  let c = codes.get(p);
+  if (c === undefined) codes.set(p, (c = codes.size));
+  return c;
+};
+/** `subCost(ref, obs) + EDIT` by observed token code, or 0 on a match; rows grow as new tokens appear. */
+const subRows: { row: Float64Array; filled: number }[] = [];
+function subTable(refCode: number): Float64Array {
+  const have = subRows[refCode];
+  if (have && have.filled === codes.size) return have.row;
+  const ref = [...codes.keys()][refCode];
+  const row = new Float64Array(codes.size);
+  for (const [obs, c] of codes) row[c] = ref === obs ? 0 : subCost(ref, obs) + EDIT;
+  subRows[refCode] = { row, filled: codes.size };
+  return row;
+}
 /**
  * Each plain edit adds this to the DP key, so equal weighted costs resolve to the path with fewer edits and the PER
  * isn't inflated by an arbitrary choice. A power of two keeps the sums exact; it stays below 1 for up to 2^20 edits.
@@ -137,15 +155,28 @@ export function alignSubstring(
   skip[0] = 0;
   if (options.conf) for (let j = 1; j <= m; j++) skip[j] = skip[j - 1] + Math.round(UNIT * options.conf[j - 1]) + EDIT;
 
+  // The fill below is the hot loop of global search; it reads costs from small tables instead of the closures above.
+  const obsCode = new Int32Array(m + 1);
+  const insBase = new Float64Array(m + 1);
+  for (let j = 1; j <= m; j++) {
+    obsCode[j] = tokenCode(obs[j - 1]);
+    insBase[j] = indelCost(obs[j - 1], false) + EDIT;
+  }
   for (let i = 0; i <= n; i++) {
     const start = startCost(i);
-    d[at(i, 0)] = start;
+    const row = i * w;
+    d[row] = start;
+    // Insertion before ref[lo + i] only differs from its base cost beside a reference run of the same sound.
+    const prevCode = lo + i > 0 ? tokenCode(ref[lo + i - 1]) : -1;
+    const nextCode = lo + i < hi ? tokenCode(ref[lo + i]) : -1;
+    const del = i > 0 ? delCost(i) : INF;
+    const subRow = i > 0 ? subTable(prevCode) : null;
     for (let j = 1; j <= m; j++) {
-      let best = Math.min(d[at(i, j - 1)] + insCost(i, j), start + skip[j]);
-      if (i > 0) {
-        best = Math.min(best, d[at(i - 1, j - 1)] + sub(i, j), d[at(i - 1, j)] + delCost(i));
-      }
-      d[at(i, j)] = best;
+      const c = obsCode[j];
+      const ins = c === prevCode || c === nextCode ? insCost(i, j) : insBase[j];
+      let best = Math.min(d[row + j - 1] + ins, start + skip[j]);
+      if (subRow) best = Math.min(best, d[row - w + j - 1] + subRow[c], d[row - w + j] + del);
+      d[row + j] = best;
     }
   }
 

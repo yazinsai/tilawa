@@ -73,7 +73,7 @@ const MIN_LISTED = 0.5;
  * While acquiring, at most this many earlier phonemes are kept when a new chunk arrives. The chunk itself is always
  * searched whole, so a single-push clip is unaffected; streamed acquisitions longer than this depend on chunking.
  */
-const MAX_HISTORY = 512;
+const MAX_HISTORY = 96;
 /** Local recent cost, in plain edits per phoneme, above which global search runs alongside local tracking. */
 const WEAK_COST = 0.3;
 /** Phonemes before the weakness was noticed that the global search also sees: recent cost lags the deviation. */
@@ -190,18 +190,37 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
 
     // Learner insertions and deletions shift the diagonal, so nearby diagonals vote for one location.
     const slack = Math.max(4, Math.ceil(query.length * 0.25));
-    const bins: { lo: number; hi: number; votes: number }[] = [];
-    for (const diagonal of [...votes.keys()].sort((a, b) => a - b)) {
-      const bin = bins.at(-1);
-      if (bin && diagonal - bin.hi <= slack) {
-        bin.hi = diagonal;
-        bin.votes += votes.get(diagonal)!;
-      } else bins.push({ lo: diagonal, hi: diagonal, votes: votes.get(diagonal)! });
+    // Bins are centred on vote peaks with a fixed width: chaining nearby diagonals lets common grams join one bin
+    // across the whole Quran on long clips.
+    const diagonals = [...votes.keys()].sort((a, b) => a - b);
+    const prefix = [0];
+    for (const d of diagonals) prefix.push(prefix.at(-1)! + votes.get(d)!);
+    const firstAtLeast = (x: number) => {
+      let a = 0;
+      let b = diagonals.length;
+      while (a < b) {
+        const mid = (a + b) >> 1;
+        if (diagonals[mid] < x) a = mid + 1;
+        else b = mid;
+      }
+      return a;
+    };
+    const windowed = diagonals.map((d, k) => {
+      const a = firstAtLeast(d - slack);
+      const b = firstAtLeast(d + slack + 1);
+      return { k, lo: diagonals[a], hi: diagonals[b - 1], votes: prefix[b] - prefix[a] };
+    });
+    windowed.sort((x, y) => y.votes - x.votes || diagonals[x.k] - diagonals[y.k]);
+    const bins: { lo: number; hi: number; votes: number; centre: number }[] = [];
+    for (const c of windowed) {
+      if (bins.length >= maxCandidates) break;
+      const centre = diagonals[c.k];
+      if (bins.some((b) => Math.abs(b.centre - centre) <= slack)) continue;
+      bins.push({ lo: c.lo, hi: c.hi, votes: c.votes, centre });
     }
-    bins.sort((a, b) => b.votes - a.votes || a.lo - b.lo);
 
     const byStart = new Map<number, Match>();
-    for (const bin of bins.slice(0, maxCandidates)) {
+    for (const bin of bins) {
       const lo = Math.max(0, bin.lo - slack);
       const hi = Math.min(index.phonemes.length, bin.hi + query.length + slack);
       const a = alignSubstring(index.phonemes, lo, hi, query, isWordStart, { conf: queryConf });
@@ -449,6 +468,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       return [emit({ ...a.event, expected: expectedFor(a.event.observed[0].word) }, a.trace)];
     }
     const event = { ...a.event, expected: expectedWhileLost() };
+    // Junk that fits nowhere would otherwise favour passages with text before the recited phrase to absorb it.
+    if (a.event.state === "lost") keepLast(LOOKBACK);
     return unchanged(event) ? [] : [emit(event, a.trace)];
   };
 
@@ -497,12 +518,35 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     return events;
   };
 
-  /** Drop all but `MAX_HISTORY` phonemes of earlier chunks, and the posterior rows before what's kept. */
+  /**
+   * Before a new chunk: drop all but `MAX_HISTORY` phonemes of earlier chunks, or all but `LOOKBACK` after `lost`, and
+   * the posterior rows before what's kept. Done here rather than after evaluating, so `end` sees what the last push saw.
+   */
   const trimHistory = () => {
-    const drop = observed.length - MAX_HISTORY;
-    if (drop <= 0) return;
-    keepLast(MAX_HISTORY);
-    posteriors?.dropBefore(observedFrames[0].start);
+    const keep = last?.state === "lost" ? LOOKBACK : MAX_HISTORY;
+    if (observed.length <= keep) return;
+    keepLast(keep);
+    if (observedFrames.length) posteriors?.dropBefore(observedFrames[0].start);
+  };
+
+  /**
+   * Leading junk (a takbir, a cough) costs every candidate the same insertions, which can hold a stream in
+   * `acquiring` long after the recitation itself is clear. So when the history doesn't lock, try its latest phonemes.
+   */
+  const evaluateSuffix = (fresh: number): PositionEvent[] => {
+    const keep = Math.max(WINDOW, fresh);
+    if (observed.length <= keep) return [];
+    const saved = { observed, observedConf, frames: [...observedFrames] };
+    keepLast(keep);
+    const a = assess();
+    if (a.lock) {
+      lockedOn = a.lock;
+      return [emit(a.event, a.trace)];
+    }
+    observed = saved.observed;
+    observedConf = saved.observedConf;
+    observedFrames.splice(0, observedFrames.length, ...saved.frames);
+    return [];
   };
 
   return {
@@ -516,8 +560,9 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       if (evidence.posteriors) (posteriors ??= new PosteriorFrames(index.tokens.size)).append(evidence.posteriors);
       for (const ph of evidence.phonemes) observe(ph);
       const events = evaluate(false);
+      if (!lockedOn) events.push(...evaluateSuffix(evidence.phonemes.length));
       if (lockedOn) {
-        lockEvent = events[0];
+        lockEvent = events.at(-1)!;
         startLocal(lockedOn);
         posteriors = null;
       }

@@ -5,3 +5,4 @@ __pycache__
 .env
 .DS_Store
 .scratch/bookmark-tracker/review/audio/
+.scratch/bench/

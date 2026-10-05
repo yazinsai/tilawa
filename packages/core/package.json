@@ -9,7 +9,9 @@
     "test": "vitest run",
     "replay": "tsx src/fixtures/cli.ts",
     "relabel": "tsx src/relabel/cli.ts",
-    "review": "tsx src/review/cli.ts"
+    "review": "tsx src/review/cli.ts",
+    "bench": "tsx src/bench/cli.ts",
+    "perf": "tsx src/bench/perf-cli.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",

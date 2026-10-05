@@ -1,0 +1,630 @@
+{
+  "version": 1,
+  "dataset": "QUD-Technologies/quran-alignment-benchmark v1",
+  "referenceVersion": "ref-v2",
+  "inventory": "muaalem-v3_2-phonemes",
+  "commit": "26acd8f",
+  "configuration": {
+    "reranking": false,
+    "chunkSeconds": 1
+  },
+  "summary": {
+    "recordings": 16,
+    "audioMinutes": 356.74799999999993,
+    "starts": 39,
+    "within5s": 27,
+    "falseLockStarts": 4,
+    "unresolved": 0,
+    "falseLockTimeShare": 0.01758536897301445,
+    "jumps": 100,
+    "falseJumps": 9,
+    "shortlistRecall": 0.5255653883972468,
+    "medianTimeToFirstLockS": 4.245,
+    "sharedOpenings": 36,
+    "medianDistinguishLatencyS": 0.7649999999999864,
+    "maxRtf": 0.006516176665457793,
+    "meanRtf": 0.0022604380437887353
+  },
+  "recordings": [
+    {
+      "id": "abdulbasit-raad",
+      "style": "mujawwad",
+      "content": "quran_only",
+      "noisy": false,
+      "audioS": 2284.84,
+      "processMs": 826.846625,
+      "rtf": 0.00036188381899826685,
+      "starts": [
+        {
+          "word": "13:1:1",
+          "atS": 1.9,
+          "latencyS": 17.35,
+          "falseLock": false,
+          "distinguishWords": 1,
+          "distinguishLatencyS": null
+        }
+      ],
+      "lockedSamples": 8929,
+      "wrongLockedSamples": 52,
+      "scoredSamples": 8993,
+      "jumps": 0,
+      "falseJumps": 0,
+      "shortlists": 6,
+      "shortlistHits": 6
+    },
+    {
+      "id": "afasy-baqarah",
+      "style": "hadr",
+      "content": "quran_only",
+      "noisy": false,
+      "audioS": 4796.76,
+      "processMs": 6387.211459,
+      "rtf": 0.0013315678622653625,
+      "starts": [
+        {
+          "word": "2:1:1",
+          "atS": 6.497,
+          "latencyS": 8.753,
+          "falseLock": true,
+          "distinguishWords": 2,
+          "distinguishLatencyS": 0.47300000000000075
+        }
+      ],
+      "lockedSamples": 19166,
+      "wrongLockedSamples": 71,
+      "scoredSamples": 19186,
+      "jumps": 2,
+      "falseJumps": 1,
+      "shortlists": 35,
+      "shortlistHits": 1
+    },
+    {
+      "id": "ayyub-juz-amma",
+      "style": "murattal",
+      "content": "quran_only",
+      "noisy": false,
+      "audioS": 3474.68,
+      "processMs": 6113.517542,
+      "rtf": 0.001759447644675193,
+      "starts": [
+        {
+          "word": "78:1:1",
+          "atS": 6.54,
+          "latencyS": 2.71,
+          "falseLock": false,
+          "distinguishWords": 2,
+          "distinguishLatencyS": 0
+        }
+      ],
+      "lockedSamples": 13858,
+      "wrongLockedSamples": 172,
+      "scoredSamples": 13897,
+      "jumps": 2,
+      "falseJumps": 1,
+      "shortlists": 87,
+      "shortlistHits": 18
+    },
+    {
+      "id": "badri-juz-tabarak",
+      "style": "hadr",
+      "content": "quran_only",
+      "noisy": false,
+      "audioS": 1450.88,
+      "processMs": 1859.8280000000013,
+      "rtf": 0.0012818620423467146,
+      "starts": [
+        {
+          "word": "67:1:1",
+          "atS": 3.48,
+          "latencyS": 1.52,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 0.23000000000000043
+        }
+      ],
+      "lockedSamples": 5779,
+      "wrongLockedSamples": 15,
+      "scoredSamples": 5804,
+      "jumps": 0,
+      "falseJumps": 0,
+      "shortlists": 50,
+      "shortlistHits": 18
+    },
+    {
+      "id": "diban-sad",
+      "style": "hadr",
+      "content": "quran_only",
+      "noisy": false,
+      "audioS": 262.56,
+      "processMs": 1380.2048340000001,
+      "rtf": 0.005256721640767825,
+      "starts": [
+        {
+          "word": "38:1:1",
+          "atS": 2.1,
+          "latencyS": 1.9,
+          "falseLock": false,
+          "distinguishWords": 2,
+          "distinguishLatencyS": 0.71
+        }
+      ],
+      "lockedSamples": 856,
+      "wrongLockedSamples": 6,
+      "scoredSamples": 1044,
+      "jumps": 3,
+      "falseJumps": 1,
+      "shortlists": 438,
+      "shortlistHits": 259
+    },
+    {
+      "id": "husary-fath",
+      "style": "mujawwad",
+      "content": "quran_only",
+      "noisy": false,
+      "audioS": 1490.12,
+      "processMs": 551.1447920000028,
+      "rtf": 0.00036986604568759753,
+      "starts": [
+        {
+          "word": "48:1:1",
+          "atS": 0,
+          "latencyS": 3.75,
+          "falseLock": false,
+          "distinguishWords": 2,
+          "distinguishLatencyS": 0
+        }
+      ],
+      "lockedSamples": 5728,
+      "wrongLockedSamples": 60,
+      "scoredSamples": 5743,
+      "jumps": 0,
+      "falseJumps": 0,
+      "shortlists": 4,
+      "shortlistHits": 2
+    },
+    {
+      "id": "jaber-inshiqaq",
+      "style": "murattal",
+      "content": "quran_only",
+      "noisy": false,
+      "audioS": 128.2,
+      "processMs": 82.13424999999916,
+      "rtf": 0.00064067277691107,
+      "starts": [
+        {
+          "word": "84:1:1",
+          "atS": 5.78,
+          "latencyS": 3.4699999999999998,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 0
+        }
+      ],
+      "lockedSamples": 476,
+      "wrongLockedSamples": 0,
+      "scoredSamples": 511,
+      "jumps": 0,
+      "falseJumps": 0,
+      "shortlists": 6,
+      "shortlistHits": 2
+    },
+    {
+      "id": "jaber-nisa",
+      "style": "hadr",
+      "content": "quran_only",
+      "noisy": false,
+      "audioS": 58.36,
+      "processMs": 136.59583399999974,
+      "rtf": 0.002340572892392045,
+      "starts": [
+        {
+          "word": "4:100:1",
+          "atS": 0.42,
+          "latencyS": 1.58,
+          "falseLock": false,
+          "distinguishWords": 2,
+          "distinguishLatencyS": 0.26
+        }
+      ],
+      "lockedSamples": 226,
+      "wrongLockedSamples": 1,
+      "scoredSamples": 234,
+      "jumps": 0,
+      "falseJumps": 0,
+      "shortlists": 4,
+      "shortlistHits": 3
+    },
+    {
+      "id": "luhaidan-fatir",
+      "style": "murattal",
+      "content": "quran_only",
+      "noisy": true,
+      "audioS": 1092.28,
+      "processMs": 4906.938542,
+      "rtf": 0.004492381570659538,
+      "starts": [
+        {
+          "word": "35:1:1",
+          "atS": 0.38,
+          "latencyS": 4.62,
+          "falseLock": true,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 1.69
+        }
+      ],
+      "lockedSamples": 3700,
+      "wrongLockedSamples": 375,
+      "scoredSamples": 4370,
+      "jumps": 14,
+      "falseJumps": 6,
+      "shortlists": 870,
+      "shortlistHits": 404
+    },
+    {
+      "id": "luhaidan-haqqah",
+      "style": "murattal",
+      "content": "quran_only",
+      "noisy": true,
+      "audioS": 145.16,
+      "processMs": 425.7024999999994,
+      "rtf": 0.0029326432901625754,
+      "starts": [
+        {
+          "word": "69:25:1",
+          "atS": 0.06,
+          "latencyS": 5.94,
+          "falseLock": false,
+          "distinguishWords": 5,
+          "distinguishLatencyS": 0
+        }
+      ],
+      "lockedSamples": 498,
+      "wrongLockedSamples": 82,
+      "scoredSamples": 581,
+      "jumps": 1,
+      "falseJumps": 0,
+      "shortlists": 89,
+      "shortlistHits": 42
+    },
+    {
+      "id": "luhaidan-qiyamah",
+      "style": "murattal",
+      "content": "quran_only",
+      "noisy": true,
+      "audioS": 241.2,
+      "processMs": 619.6568750000006,
+      "rtf": 0.0025690583540630206,
+      "starts": [
+        {
+          "word": "1:2:1",
+          "atS": 0.28,
+          "latencyS": 5.72,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 3.95
+        },
+        {
+          "word": "75:1:1",
+          "atS": 48.45,
+          "latencyS": 9.799999999999997,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 7.82
+        }
+      ],
+      "lockedSamples": 884,
+      "wrongLockedSamples": 42,
+      "scoredSamples": 958,
+      "jumps": 1,
+      "falseJumps": 0,
+      "shortlists": 85,
+      "shortlistHits": 40
+    },
+    {
+      "id": "mandour-taha",
+      "style": "murattal",
+      "content": "quran_only",
+      "noisy": true,
+      "audioS": 1285.68,
+      "processMs": 789.6522499999992,
+      "rtf": 0.0006141903506315718,
+      "starts": [
+        {
+          "word": "20:1:1",
+          "atS": 0.38,
+          "latencyS": 3.87,
+          "falseLock": false,
+          "distinguishWords": 2,
+          "distinguishLatencyS": 0
+        }
+      ],
+      "lockedSamples": 5108,
+      "wrongLockedSamples": 36,
+      "scoredSamples": 5143,
+      "jumps": 0,
+      "falseJumps": 0,
+      "shortlists": 58,
+      "shortlistHits": 16
+    },
+    {
+      "id": "minshawi-luqman",
+      "style": "muallim",
+      "content": "quran_only",
+      "noisy": true,
+      "audioS": 1159.44,
+      "processMs": 875.8682499999995,
+      "rtf": 0.0007554235234251014,
+      "starts": [
+        {
+          "word": "31:1:1",
+          "atS": 0.06,
+          "latencyS": 15.44,
+          "falseLock": true,
+          "distinguishWords": 2,
+          "distinguishLatencyS": 1.5099999999999998
+        }
+      ],
+      "lockedSamples": 4606,
+      "wrongLockedSamples": 104,
+      "scoredSamples": 4638,
+      "jumps": 1,
+      "falseJumps": 0,
+      "shortlists": 13,
+      "shortlistHits": 10
+    },
+    {
+      "id": "prayer-baqarah-yasin",
+      "style": "murattal",
+      "content": "prayer",
+      "noisy": false,
+      "audioS": 752.64,
+      "processMs": 1996.211000000003,
+      "rtf": 0.0026522786458333374,
+      "starts": [
+        {
+          "word": "1:2:1",
+          "atS": 54.41,
+          "latencyS": 4.840000000000003,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 1.8999999999999986
+        },
+        {
+          "word": "2:285:1",
+          "atS": 108.135,
+          "latencyS": 2.614999999999995,
+          "falseLock": false,
+          "distinguishWords": 2,
+          "distinguishLatencyS": 0.3850000000000051
+        },
+        {
+          "word": "1:2:1",
+          "atS": 295.79,
+          "latencyS": 3.2099999999999795,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 0.7699999999999818
+        },
+        {
+          "word": "36:77:1",
+          "atS": 344.135,
+          "latencyS": 3.365000000000009,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 0.045000000000015916
+        }
+      ],
+      "lockedSamples": 1292,
+      "wrongLockedSamples": 35,
+      "scoredSamples": 1327,
+      "jumps": 6,
+      "falseJumps": 0,
+      "shortlists": 33,
+      "shortlistHits": 25
+    },
+    {
+      "id": "taraweeh-maryam",
+      "style": "murattal",
+      "content": "prayer",
+      "noisy": false,
+      "audioS": 2065.16,
+      "processMs": 4733.886917000003,
+      "rtf": 0.0022922615763427546,
+      "starts": [
+        {
+          "word": "1:2:1",
+          "atS": 15.78,
+          "latencyS": 7.220000000000001,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 4.550000000000001
+        },
+        {
+          "word": "19:12:1",
+          "atS": 67.245,
+          "latencyS": 2.5049999999999955,
+          "falseLock": false,
+          "distinguishWords": 1,
+          "distinguishLatencyS": null
+        },
+        {
+          "word": "1:2:1",
+          "atS": 417.54,
+          "latencyS": 3.7099999999999795,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 0.8899999999999864
+        },
+        {
+          "word": "19:37:1",
+          "atS": 465.185,
+          "latencyS": 8.314999999999998,
+          "falseLock": false,
+          "distinguishWords": 7,
+          "distinguishLatencyS": 0
+        },
+        {
+          "word": "1:2:1",
+          "atS": 763.55,
+          "latencyS": 2.9500000000000455,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 0.7799999999999727
+        },
+        {
+          "word": "25:61:1",
+          "atS": 802.46,
+          "latencyS": 3.2899999999999636,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 0.5900000000000318
+        },
+        {
+          "word": "1:2:1",
+          "atS": 1081.43,
+          "latencyS": 3.5699999999999363,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 0.9400000000000546
+        },
+        {
+          "word": "78:1:1",
+          "atS": 1128.8,
+          "latencyS": 3.9500000000000455,
+          "falseLock": false,
+          "distinguishWords": 2,
+          "distinguishLatencyS": 0
+        },
+        {
+          "word": "78:40:5",
+          "atS": 1339.845,
+          "latencyS": 1.4049999999999727,
+          "falseLock": false,
+          "distinguishWords": 2,
+          "distinguishLatencyS": 0
+        },
+        {
+          "word": "1:2:1",
+          "atS": 1379.555,
+          "latencyS": 5.944999999999936,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 3.255000000000109
+        },
+        {
+          "word": "100:1:1",
+          "atS": 1429.125,
+          "latencyS": 3.375,
+          "falseLock": false,
+          "distinguishWords": 1,
+          "distinguishLatencyS": null
+        },
+        {
+          "word": "1:2:1",
+          "atS": 1504.045,
+          "latencyS": 5.954999999999927,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 3.0950000000000273
+        },
+        {
+          "word": "97:1:1",
+          "atS": 1549.395,
+          "latencyS": 9.355000000000018,
+          "falseLock": false,
+          "distinguishWords": 5,
+          "distinguishLatencyS": 1.375
+        },
+        {
+          "word": "1:2:1",
+          "atS": 1599.145,
+          "latencyS": 6.355000000000018,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 3.4349999999999454
+        },
+        {
+          "word": "107:1:1",
+          "atS": 1646.73,
+          "latencyS": 4.019999999999982,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 0.7599999999999909
+        }
+      ],
+      "lockedSamples": 6273,
+      "wrongLockedSamples": 196,
+      "scoredSamples": 6421,
+      "jumps": 33,
+      "falseJumps": 0,
+      "shortlists": 200,
+      "shortlistHits": 173
+    },
+    {
+      "id": "witr-muawwidhat",
+      "style": "murattal",
+      "content": "prayer",
+      "noisy": false,
+      "audioS": 716.92,
+      "processMs": 4671.577375000001,
+      "rtf": 0.006516176665457793,
+      "starts": [
+        {
+          "word": "1:2:1",
+          "atS": 20.435,
+          "latencyS": 3.5650000000000013,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 1.1149999999999984
+        },
+        {
+          "word": "112:1:1",
+          "atS": 62.385,
+          "latencyS": 3.365000000000002,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 1.4150000000000063
+        },
+        {
+          "word": "1:2:1",
+          "atS": 127.47,
+          "latencyS": 4.530000000000001,
+          "falseLock": true,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 2.259999999999991
+        },
+        {
+          "word": "113:1:1",
+          "atS": 172.22,
+          "latencyS": 2.780000000000001,
+          "falseLock": false,
+          "distinguishWords": 4,
+          "distinguishLatencyS": 0
+        },
+        {
+          "word": "1:2:1",
+          "atS": 239.045,
+          "latencyS": 3.4550000000000125,
+          "falseLock": false,
+          "distinguishWords": 3,
+          "distinguishLatencyS": 1.1550000000000011
+        },
+        {
+          "word": "114:1:1",
+          "atS": 283.87,
+          "latencyS": 2.6299999999999955,
+          "falseLock": false,
+          "distinguishWords": 4,
+          "distinguishLatencyS": 0
+        }
+      ],
+      "lockedSamples": 811,
+      "wrongLockedSamples": 128,
+      "scoredSamples": 855,
+      "jumps": 37,
+      "falseJumps": 0,
+      "shortlists": 56,
+      "shortlistHits": 50
+    }
+  ]
+}
