@@ -89,6 +89,11 @@ const WINDOW = 48;
 const LOST_AFTER = 24;
 /** A global lock within this many ayahs of the local bookmark is the local search's to follow, not a jump. */
 const NEAR_AYAHS = 2;
+/**
+ * After a skipped takbir, al-Fatiha's opening gets this bonus: in prayer each rak'ah restarts with it, and its al-hamd
+ * opening is shared with five other passages, so the half-edit `prior` bonus couldn't separate it.
+ */
+const FATIHA_BONUS = 2 * UNIT;
 /** A phrase is heard when it aligns to the latest phonemes at most this weighted cost per phrase phoneme. */
 const PHRASE_MAX_COST = 0.3;
 /** While locked, a heard phrase is skipped only if local search fit it this badly, per phoneme: else it's Quran text. */
@@ -126,6 +131,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const fatiha = index.words.filter((w) => w.surah === 1 && w.ayah === 1);
   const basmala = index.phonemes.slice(fatiha[0].start, fatiha.at(-1)!.end);
   const fatihaAyah2 = index.words.find((w) => w.surah === 1 && w.ayah === 2)!.start;
+  const fatihaRabbi = index.words.findIndex((w) => w.surah === 1 && w.ayah === 2 && w.word === 3);
 
   let observed = "";
   let observedConf: number[] = [];
@@ -165,6 +171,9 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   /** A basmala was skipped in an earlier push (`surahStart`) or this one (`basmalaHeard`): favour surah openings. */
   let surahStart = false;
   let basmalaHeard = false;
+  /** A takbir was skipped: in prayer al-Fatiha comes next (`fatihaNext`), promoted from `takbirHeard` like the basmala. */
+  let fatihaNext = false;
+  let takbirHeard = false;
   /** A phrase was just skipped while locked: a boundary, so the next distant lock needn't wait for persistence. */
   let afterPhrase = false;
   let pushes = 0;
@@ -338,6 +347,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     const first = index.words[firstWord(m)];
     const opening = first.word === 1 && (first.ayah === 1 || (first.surah === 1 && first.ayah === 2));
     const afterBasmala = surahStart && opening ? MAX_PRIOR_BONUS : 0;
+    // Only once the span reaches "rabbi": "al-hamdu lillahi" alone is also how 6:1, 18:1, 34:1 and 35:1 open.
+    if (fatihaNext && first.surah === 1 && first.word === 1 && first.ayah <= 2 && lastWord(m) >= fatihaRabbi) return FATIHA_BONUS;
     if (!prior) return afterBasmala;
     let best = 0;
     for (let i = firstWord(m); i <= lastWord(m); i++) {
@@ -536,6 +547,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     reacquiring = false;
     surahStart = false;
     basmalaHeard = false;
+    fatihaNext = false;
+    takbirHeard = false;
     afterPhrase = false;
     keepLast(0);
   };
@@ -615,6 +628,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
           forget();
           dropLast(heardPhrase.length);
           if (heardPhrase.name === "basmala") surahStart = true;
+          if (heardPhrase.name === "takbir") fatihaNext = true;
           continue;
         }
         events.push(...reacquire());
@@ -630,6 +644,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
           // Not Quran text where we are: rewind the local search to before the phrase, as if it was never heard.
           local.restore(heardState[from]);
           if (heardPhrase.name === "basmala") local.openSurah();
+          if (heardPhrase.name === "takbir") fatihaNext = true;
           afterPhrase = true;
           forget();
           // The phrase is a boundary: global search restarts after it.
@@ -681,6 +696,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       phraseCut = 0;
     }
     if (basmalaHeard) surahStart = true;
+    if (takbirHeard) fatihaNext = true;
     const keep = last?.state === "lost" ? LOOKBACK : MAX_HISTORY;
     if (observed.length <= keep) return;
     keepLast(keep);
@@ -723,6 +739,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
           forget();
           phraseCut = observed.length;
           basmalaHeard ||= heardPhrase.name === "basmala";
+          takbirHeard ||= heardPhrase.name === "takbir";
         }
       }
       if (pushes++ > 0 && phraseList.length) collapseRepeat();

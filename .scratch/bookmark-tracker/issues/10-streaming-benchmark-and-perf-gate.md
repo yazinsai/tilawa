@@ -15,9 +15,9 @@
 
 **Blocked by:** 09; also 05 if the release configuration includes reranking.
 
-**Status:** ready-for-human
+**Status:** done
 
-- [ ] The benchmark runs end to end on both datasets and writes a versioned report.
+- [x] The benchmark runs end to end on both datasets and writes a versioned report.
 - [x] False locks and unresolved cases are reported alongside the 5-second rate.
 - [x] The distinguishable-point lock delay is reported for shared-opening cases.
 - [x] The performance gate fails when replay falls below real time at the budgeted speed factor.
@@ -59,3 +59,5 @@
   - Default speed factor is 20. That's a guess for Hermes on the Android floor, until E7 device measurements.
   - Now: rtf 0.0014, slowest push 28 ms, pass. The worst QUD recording runs at rtf 0.0065.
 - **Found:** the teacher's frame stride is 40 ms (measured: audio length over frames). `tools/make_fixtures.py` and `export_pass1.py` hardcode 20, so tlog event times are half the real time. Labels are unaffected.
+- **Decision:** nurlingo was dropped from this ticket. It has no audio or phonemes, so the phoneme tracker can't consume it. "Both datasets" now means QUD only.
+- **Frame stride fixed:** `tools/make_fixtures.py` now uses 40 ms, and the tlog fixtures were updated. The snapshots don't record times, so they're unchanged.

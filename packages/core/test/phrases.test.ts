@@ -66,6 +66,19 @@ describe("takbir", () => {
   });
 });
 
+describe("al-Fatiha after a takbir", () => {
+  it("doesn't override the audio when another al-hamd opening is recited", () => {
+    for (const [s, words] of [[6, 1], [35, 1], [18, 1]] as const) {
+      const end = w(s, words, lastWord(s, words));
+      for (const parts of [[{ recite: [w(s, 1, 1), end] as [WordRef, WordRef] }], [{ say: phrase("takbir") }, { recite: [w(s, 1, 1), end] as [WordRef, WordRef] }]]) {
+        const { events } = run(parts);
+        for (const e of locked(events)) expect(e.observed[0].word.surah, `${s} after ${parts.length > 1 ? "takbir" : "nothing"}`).toBe(s);
+        expect(events.at(-1)!.observed[0].word).toEqual(end);
+      }
+    }
+  });
+});
+
 describe("Alif Lam Mim twice", () => {
   it("stays ambiguous and doesn't lock on 3:1–2", () => {
     const alm = asset.ayahs.find((x) => x.s === 2 && x.a === 1)!.p;

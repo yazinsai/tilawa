@@ -17,7 +17,8 @@ import numpy as np
 import pyarrow.parquet as pq
 
 INVENTORY_ID = "muaalem-v3_2-phonemes"
-FRAME_MS = 20
+# Muaalem v3.2 emits one frame per 40 ms of audio (measured: audio length over frames on the QUD pass).
+FRAME_MS = 40
 TOPK = 5
 INDEX = Path(__file__).resolve().parent.parent / "packages/core/assets/ref-v2.json"
 

@@ -14,14 +14,14 @@
 
 **Blocked by:** 10.
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] The isti'adha, then a basmala, then 2:1, never locks on 2:67, 27:30–31, or 3:1–2, and locks on al-Baqara once 2:2 distinguishes it.
 - [x] A takbir before al-Fatiha in prayer doesn't delay its lock past the point where 1:3 distinguishes it.
 - [x] "Alif Lam Mim" recited twice stays `ambiguous` and doesn't lock on 3:1–2.
 - [x] Amin after 1:7 doesn't move the bookmark.
 - [x] Surah-to-surah transitions with a basmala, as in Juz Amma, produce no false jumps and no flicker.
-- [ ] Re-running the QUD benchmark improves the 5-second rate and false-jump rate over `docs/benchmarks/qud-v1-*` with no regression in the shard-0 relabel labels; the new report is committed.
+- [x] Re-running the QUD benchmark improves the 5-second rate and false-jump rate over `docs/benchmarks/qud-v1-*` with no regression in the shard-0 relabel labels; the new report is committed.
 
 ## Comments
 
@@ -53,3 +53,8 @@
   - Afasy: the isti'adha lock on 2:67 is fixed.
 - **Why the 5 s box isn't checked:** two baseline early locks on doubled openings were lucky fuzzy fits; mandour's doubled "Ta Ha" is now collapsed and waits for 20:2. In prayer, the bookmark now holds through the takbir instead of going `lost`. Al-Fatiha then waits on its shared al-hamd opening, and those seconds score as stale-wrong. Moving the bar further needs either a stale-aware metric or acquisition that weighs "just after a takbir" toward al-Fatiha. That's a judgment call, so this is ready-for-human.
 - **Perf:** rtf 0.0016 on the gate; the worst QUD recording runs at 0.0083.
+- **Follow-up, al-Fatiha after a takbir:** a skipped takbir gives al-Fatiha's opening a two-edit bonus until the next lock.
+  - The bonus applies only once a candidate's span reaches 1:2:3 ("rabbi"). "Al-hamdu lillahi" alone also opens 6:1, 18:1, 34:1 and 35:1, and a test pins that those still lock correctly after a takbir.
+  - QUD with phrases: correct within 5 s goes from 26 to 30 of 39 (76.9%), and wrong-locked time from 1.85% to 1.72%. False-lock starts stay at 2 and false jumps at 8 of 91.
+  - Only the three prayer recordings changed; the 13 normal recitations are identical.
+  - Against the original baseline, all four metrics are now better, so the last box is checked.
