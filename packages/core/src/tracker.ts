@@ -2,9 +2,9 @@ import type { AlignmentOp } from "./align.js";
 import { PosteriorFrames } from "./ctc.js";
 import { MID_WORD_START, UNIT, alignSubstring, collapseHeld, isHeld } from "./fuzzy.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
-import type { EngineEvent, PositionCandidate, PositionEvent, TrackerState, TrackerTrace, WordRef } from "./events.js";
+import type { EngineEvent, PositionCandidate, PositionEvent, TraceCandidate, TrackerState, TrackerTrace, WordRef } from "./events.js";
 import { EvidenceError } from "./evidence.js";
-import type { PhonemeEvidence } from "./evidence.js";
+import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { createLocalSearch } from "./local.js";
 import type { LocalSearch } from "./local.js";
 import type { ReferenceIndex } from "./reference.js";
@@ -32,6 +32,11 @@ export interface TrackerOptions {
   minLockConfidence?: number;
   /** Bonus for the intended or filename ayah (full) and its neighbours (half). Bounded so it can't override fit or separation. */
   prior?: { surah: number; ayah: number; weight: number };
+  /**
+   * Once locked, a distant location must hold a global lock for this many consecutive observed phonemes before the
+   * tracker jumps there. Default 8.
+   */
+  jumpPhonemes?: number;
   /** Attach shortlist, state transition and alignment path to every position event. */
   trace?: boolean;
 }
@@ -69,6 +74,16 @@ const MIN_LISTED = 0.5;
  * searched whole, so a single-push clip is unaffected; streamed acquisitions longer than this depend on chunking.
  */
 const MAX_HISTORY = 512;
+/** Local recent cost, in plain edits per phoneme, above which global search runs alongside local tracking. */
+const WEAK_COST = 0.3;
+/** Phonemes before the weakness was noticed that the global search also sees: recent cost lags the deviation. */
+const LOOKBACK = 6;
+/** Global search while weak or after `lost` looks at only the latest this many phonemes. */
+const WINDOW = 48;
+/** While weak: `lost` once the window (lookback included) holds this many phonemes, nothing fits globally and local cost exceeds `maxCost`. */
+const LOST_AFTER = 24;
+/** A global lock within this many ayahs of the local bookmark is the local search's to follow, not a jump. */
+const NEAR_AYAHS = 2;
 
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
   const maxGramOccurrences = options.maxGramOccurrences ?? 5000;
@@ -81,6 +96,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const separationScale = options.separationScale ?? 30;
   const minLockConfidence = options.minLockConfidence ?? 0.08;
   const prior = options.prior;
+  const jumpPhonemes = options.jumpPhonemes ?? 8;
+  const memorization = options.mode === "memorization";
   const wordStarts = new Set(index.words.map((w) => w.start));
   const isWordStart = (offset: number) => wordStarts.has(offset);
   const fatiha = index.words.filter((w) => w.surah === 1 && w.ayah === 1);
@@ -91,8 +108,10 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   let observedConf: number[] = [];
   const observedFrames: { start: number; end: number }[] = [];
   const tokenIds = new Map([...index.tokens].map((t, i) => [t, i + 1]));
+  /** Only the first acquisition reranks with posteriors; dropped at lock, so later global searches are decoded-only. */
   let posteriors: PosteriorFrames | null = null;
   let decodedOnly = false;
+  let withPosteriors = false;
   let frameMs: number | null = null;
   let lastFrame = 0;
   let last: PositionEvent | null = null;
@@ -102,6 +121,16 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   /** The event that reported the lock, kept with its trace until a local event replaces it. */
   let lockEvent: PositionEvent | null = null;
   let emittedSinceLock = false;
+  /** Local fit has degraded: global search over the latest phonemes runs alongside the local search. */
+  let weak = false;
+  /** A distant global lock seen while weak, and for how many consecutive phonemes it has held. */
+  let pending: { m: Match; held: number } | null = null;
+  /** After `lost`: global search over a rolling window, one phoneme at a time, until it locks again. */
+  let reacquiring = false;
+  /** Memorization mode: the expected bookmark held in place after the reciter jumped away from it. */
+  let frozen: WordRef | null = null;
+  /** The expected bookmark when local fit last turned weak. */
+  let steady: WordRef | null = null;
 
   const validate = (e: PhonemeEvidence) => {
     if (e.inventory !== index.inventoryId) {
@@ -113,7 +142,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     for (const ph of e.phonemes) {
       if (!index.tokens.has(ph.p)) throw new EvidenceError(`Phoneme "${ph.p}" is not in inventory "${index.inventoryId}"`);
     }
-    if (e.posteriors ? decodedOnly : posteriors) throw new EvidenceError("Every chunk in a session must carry posteriors, or none");
+    if (e.posteriors ? decodedOnly : withPosteriors) throw new EvidenceError("Every chunk in a session must carry posteriors, or none");
     const p = e.posteriors;
     if (!p) return;
     if (p.ids.length !== p.nFrames * p.k || p.probs.length !== p.nFrames * p.k) {
@@ -265,8 +294,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   /** Overlapping or touching ranges describe one location, e.g. shifted spans of the same ayah. */
   const sameLocation = (a: Match, b: Match) => a.offset <= b.offset + b.length && b.offset <= a.offset + a.length;
 
-  const evaluate = (final: boolean): PositionEvent[] => {
-    if (!observed) return [];
+  /** Global search over the observed phonemes: the event it supports, the lock if any, and its trace. */
+  const assess = () => {
     const frames = posteriors;
     const self = frames ? frames.nll(toIds([...observed]), observedFrames[0].start, observedFrames.at(-1)!.end + 1) : 0;
     const matches = frames ? locate().map((m) => ({ ...m, cost: posteriorCost(frames, m, self), decodedCost: m.cost })) : locate();
@@ -305,14 +334,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       observed: candidates,
       state,
     };
-    const changed = !last || JSON.stringify({ ...last, timeMs: 0 }) !== JSON.stringify({ ...event, timeMs: 0 });
-    if (!changed && !final) return [];
-    if (state === "locked" && !final) lockedOn = top.m;
-    const from = last?.state ?? null;
-    last = event;
-    if (!options.trace) return [event];
-    const best = scored[0]?.m;
-    const trace: TrackerTrace = {
+    const trace = (from: TrackerState | null): TrackerTrace => ({
       shortlist: scored.map(({ m }) => ({
         span: toCandidate(m, 0).span,
         offset: m.offset,
@@ -322,42 +344,155 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         per: m.per,
       })),
       transition: { from, to: state },
-      path: best ? best.path : null,
+      path: scored[0]?.m.path ?? null,
       decision: top ? { ...terms(top), leadEdits: lead(top) / UNIT, requiredEdits: required / UNIT } : null,
-    };
-    return [{ ...event, trace }];
+    });
+    return { event, lock: state === "locked" ? top.m : null, trace };
   };
 
-  const localTrace = (from: TrackerState): TrackerTrace => ({ shortlist: [], transition: { from, to: "locked" }, path: null, decision: null });
+  const emit = (event: PositionEvent, trace: (from: TrackerState | null) => TrackerTrace): PositionEvent => {
+    const from = last?.state ?? null;
+    last = event;
+    return options.trace ? { ...event, trace: trace(from) } : event;
+  };
+  const unchanged = (event: PositionEvent) => !!last && JSON.stringify({ ...last, timeMs: 0 }) === JSON.stringify({ ...event, timeMs: 0 });
 
-  /** One event per change of word, run start or state; confidence and cost ride along without forcing an event. */
+  const evaluate = (final: boolean): PositionEvent[] => {
+    if (!observed) return [];
+    const a = assess();
+    if (unchanged(a.event) && !final) return [];
+    if (a.lock && !final) lockedOn = a.lock;
+    return [emit(a.event, a.trace)];
+  };
+
+  const quietTrace = (from: TrackerState | null, to: TrackerState, shortlist: TraceCandidate[] = []): TrackerTrace => ({
+    shortlist,
+    transition: { from, to },
+    path: null,
+    decision: null,
+  });
+
+  const observe = (ph: DecodedPhoneme) => {
+    observedFrames.push({ start: ph.start, end: ph.end });
+    observed += ph.p;
+    observedConf.push(ph.conf);
+    lastFrame = Math.max(lastFrame, ph.end + 1);
+  };
+  /** Keep only the latest `n` observed phonemes. */
+  const keepLast = (n: number) => {
+    const drop = observed.length - n;
+    if (drop <= 0) return;
+    observed = observed.slice(drop);
+    observedConf = observedConf.slice(drop);
+    observedFrames.splice(0, drop);
+  };
+
+  const startLocal = (m: Match) => {
+    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+    weak = false;
+    pending = null;
+    reacquiring = false;
+    keepLast(0);
+  };
+
+  /** Memorization holds the expected bookmark where a jump left it; free mode follows the reciter. */
+  const expectedFor = (word: WordRef): WordRef => frozen ?? word;
+  /** Neither a jump nor a passage change happened, so the bookmark stays where local tracking last trusted it. */
+  const expectedWhileLost = () => frozen ?? steady;
+
+  const near = (m: Match, offset: number) => {
+    const a = index.words[lastWord(m)];
+    const b = index.words[index.wordAt(Math.max(0, offset - 1))];
+    return a.surah === b.surah && Math.abs(a.ayah - b.ayah) <= NEAR_AYAHS;
+  };
+
+  /** The local search's position as an event, or null when its word and run start haven't changed. */
+  const localEvent = (shortlist: TraceCandidate[]): PositionEvent | null => {
+    const pos = local!.position();
+    const word = ref(index.wordAt(pos.offset - 1));
+    const length = pos.offset - pos.origin;
+    const per = length ? pos.edits / length : 0;
+    const confidence = Math.max(0, 1 - per / maxPer) * Math.max(0, 1 - pos.recentCost / maxCost);
+    const candidate: PositionCandidate = { word, span: { start: ref(index.wordAt(pos.origin)), end: word }, confidence, cost: pos.recentCost, per };
+    const prev = last!.observed[0];
+    if (last!.state === "locked" && JSON.stringify([prev.word, prev.span.start]) === JSON.stringify([word, candidate.span.start])) return null;
+    // A weak local search jumps around chasing evidence that may belong elsewhere; only its current run may advance.
+    if (weak && JSON.stringify(prev.span.start) !== JSON.stringify(candidate.span.start)) return null;
+    const event: PositionEvent = {
+      type: "position",
+      v: EVENT_SCHEMA_VERSION,
+      timeMs: lastFrame * (frameMs ?? 0),
+      referenceVersion: index.version,
+      expected: expectedFor(word),
+      observed: [candidate],
+      state: "locked",
+    };
+    emittedSinceLock = true;
+    return emit(event, (from) => quietTrace(from, "locked", shortlist));
+  };
+
+  const goLost = (a: ReturnType<typeof assess>): PositionEvent => {
+    if (memorization) frozen ??= steady;
+    local = null;
+    weak = false;
+    pending = null;
+    reacquiring = true;
+    return emit({ ...a.event, expected: expectedWhileLost() }, a.trace);
+  };
+
+  /** After `lost`: global search over the latest phonemes, until it locks somewhere. */
+  const reacquire = (): PositionEvent[] => {
+    keepLast(WINDOW);
+    const a = assess();
+    if (a.lock) {
+      startLocal(a.lock);
+      return [emit({ ...a.event, expected: expectedFor(a.event.observed[0].word) }, a.trace)];
+    }
+    const event = { ...a.event, expected: expectedWhileLost() };
+    return unchanged(event) ? [] : [emit(event, a.trace)];
+  };
+
+  /**
+   * Phoneme by phoneme after the first lock. Local tracking emits one event per change of word or run start. When its
+   * fit degrades, global search over the latest phonemes runs alongside: a distant global lock that holds for
+   * `jumpPhonemes` commits a jump, and nothing fitting anywhere for long enough is `lost`.
+   */
   const follow = (evidence: PhonemeEvidence): EngineEvent[] => {
-    const search = local!;
     const events: EngineEvent[] = [];
     for (const ph of evidence.phonemes) {
-      search.step(ph.p);
-      lastFrame = Math.max(lastFrame, ph.end + 1);
-      const pos = search.position();
-      const word = ref(index.wordAt(pos.offset - 1));
-      const length = pos.offset - pos.origin;
-      const per = length ? pos.edits / length : 0;
-      const confidence = Math.max(0, 1 - per / maxPer) * Math.max(0, 1 - pos.recentCost / maxCost);
-      const candidate: PositionCandidate = { word, span: { start: ref(index.wordAt(pos.origin)), end: word }, confidence, cost: pos.recentCost, per };
-      const prev = last!.observed[0];
-      if (last!.state === "locked" && JSON.stringify([prev.word, prev.span.start]) === JSON.stringify([word, candidate.span.start])) continue;
-      const event: PositionEvent = {
-        type: "position",
-        v: EVENT_SCHEMA_VERSION,
-        timeMs: lastFrame * evidence.frameMs,
-        referenceVersion: index.version,
-        expected: word,
-        observed: [candidate],
-        state: "locked",
-      };
-      const from = last!.state;
-      last = event;
-      emittedSinceLock = true;
-      events.push(options.trace ? { ...event, trace: localTrace(from) } : event);
+      observe(ph);
+      if (!local) {
+        events.push(...reacquire());
+        continue;
+      }
+      local.step(ph.p);
+      const pos = local.position();
+      if (!weak && pos.recentCost > WEAK_COST) {
+        weak = true;
+        steady = last!.expected;
+      } else if (weak && pos.recentCost <= WEAK_COST) {
+        weak = false;
+        pending = null;
+      }
+      let shortlist: TraceCandidate[] = [];
+      if (!weak) keepLast(LOOKBACK);
+      else {
+        keepLast(WINDOW);
+        const a = assess();
+        if (options.trace) shortlist = a.trace(null).shortlist;
+        if (a.lock && !near(a.lock, pos.offset)) {
+          pending = { m: a.lock, held: pending && sameLocation(pending.m, a.lock) ? pending.held + 1 : 1 };
+        } else pending = null;
+        if (pending && pending.held >= jumpPhonemes) {
+          if (memorization) frozen ??= steady;
+          startLocal(pending.m);
+        } else if (a.event.state === "lost" && pos.recentCost > maxCost && observed.length >= LOST_AFTER) {
+          events.push(goLost(a));
+          continue;
+        }
+      }
+      const e = localEvent(shortlist);
+      if (e) events.push(e);
     }
     return events;
   };
@@ -366,9 +501,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const trimHistory = () => {
     const drop = observed.length - MAX_HISTORY;
     if (drop <= 0) return;
-    observed = observed.slice(drop);
-    observedConf = observedConf.slice(drop);
-    observedFrames.splice(0, drop);
+    keepLast(MAX_HISTORY);
     posteriors?.dropBefore(observedFrames[0].start);
   };
 
@@ -376,40 +509,30 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     push(evidence) {
       validate(evidence);
       frameMs = evidence.frameMs;
-      if (local) {
-        if (!evidence.posteriors) decodedOnly = true;
-        return follow(evidence);
-      }
+      if (evidence.posteriors) withPosteriors = true;
+      else decodedOnly = true;
+      if (local || reacquiring) return follow(evidence);
       trimHistory();
       if (evidence.posteriors) (posteriors ??= new PosteriorFrames(index.tokens.size)).append(evidence.posteriors);
-      else decodedOnly = true;
-      for (const ph of evidence.phonemes) {
-        observedFrames.push({ start: ph.start, end: ph.end });
-        observed += ph.p;
-        observedConf.push(ph.conf);
-        lastFrame = Math.max(lastFrame, ph.end + 1);
-      }
+      for (const ph of evidence.phonemes) observe(ph);
       const events = evaluate(false);
       if (lockedOn) {
         lockEvent = events[0];
-        const m = lockedOn;
-        local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
-        observed = "";
-        observedConf = [];
-        observedFrames.length = 0;
+        startLocal(lockedOn);
+        posteriors = null;
       }
       return events;
     },
     end() {
-      if (!local) return evaluate(true);
+      if (!local && !reacquiring) return evaluate(true);
       const timeMs = lastFrame * (frameMs ?? 0);
       // Nothing followed the lock: its event, with the global search's trace, is still the answer.
-      if (!emittedSinceLock) {
+      if (local && !emittedSinceLock) {
         const e = { ...lockEvent!, timeMs };
         return [e.trace ? { ...e, trace: { ...e.trace, transition: { from: "locked" as const, to: "locked" as const } } } : e];
       }
       const final = { ...last!, timeMs };
-      return [options.trace ? { ...final, trace: localTrace(final.state) } : final];
+      return [options.trace ? { ...final, trace: quietTrace(final.state, final.state) } : final];
     },
   };
 }

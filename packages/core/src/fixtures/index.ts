@@ -57,6 +57,40 @@ export function finalPosition(events: EngineEvent[]): PositionEvent | undefined 
   return events.filter((e): e is PositionEvent => e.type === "position").at(-1);
 }
 
+export interface JumpReport {
+  /** Time of the first locked event on the jump target; null if the tracker never got there. */
+  committedMs: number | null;
+  /** `committedMs` minus the onset of the jump in the audio. */
+  latencyMs: number | null;
+  /** Locked runs that reported a word off the recited path and away from it. */
+  falseJumps: number;
+  /** Locked runs off the path but `near` it: the local search briefly taking a skip or restart. */
+  localFlashes: number;
+}
+
+/** Jump commit latency and false jumps, from events alone, given which words the recitation actually covered. */
+export function jumpReport(
+  events: EngineEvent[],
+  o: { onsetMs: number; target: (w: WordRef) => boolean; path: (w: WordRef) => boolean; near?: (w: WordRef) => boolean },
+): JumpReport {
+  let committedMs: number | null = null;
+  let falseJumps = 0;
+  let localFlashes = 0;
+  let off = false;
+  for (const e of events) {
+    if (e.type !== "position" || e.state !== "locked") continue;
+    const word = e.observed[0].word;
+    if (committedMs === null && o.target(word)) committedMs = e.timeMs;
+    const now = !o.path(word) && !o.target(word);
+    if (now && !off) {
+      if (o.near?.(word)) localFlashes++;
+      else falseJumps++;
+    }
+    off = now;
+  }
+  return { committedMs, latencyMs: committedMs === null ? null : committedMs - o.onsetMs, falseJumps, localFlashes };
+}
+
 const fmt = (r: WordRef) => `${r.surah}:${r.ayah}:${r.word}`;
 export const formatSpan = (s: WordSpan) => `${fmt(s.start)}–${fmt(s.end)}`;
 
