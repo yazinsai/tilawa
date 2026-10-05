@@ -2,7 +2,7 @@ import type { AlignmentOp } from "./align.js";
 
 /** Integer cost units; one plain edit costs `UNIT`. */
 export const UNIT = 10;
-const MADD = 2;
+const LENGTH_CHANGE = 2;
 const CONFUSABLE = 5;
 const SHORT_VOWEL = 5;
 
@@ -18,11 +18,33 @@ export function subCost(ref: string, obs: string): number {
   return UNIT;
 }
 
-/** Inserting or dropping `p` next to the same madd letter only changes the elongation length. */
-function indelCost(p: string, neighbours: string[]): number {
-  if (MADD_LETTERS.has(p) && neighbours.includes(p)) return MADD;
+/** Ghunna is written as a run: `ں` for ikhfaa, `نننن`/`مممم` for a mushaddad noon or meem. */
+const GHUNNA_RUN = "ں";
+const GHUNNA_DOUBLED = new Set(["ن", "م"]);
+
+/**
+ * Whether a run of `p` that is `run` long before an edit and `run ± 1` after it is still the same sound, held
+ * longer or shorter. A doubled noon or meem shorter than 3 is a shadda, so shortening it is a real error.
+ */
+function isLengthening(p: string, run: number): boolean {
+  if (MADD_LETTERS.has(p) || p === GHUNNA_RUN) return run >= 2;
+  if (GHUNNA_DOUBLED.has(p)) return run >= 3;
+  return false;
+}
+
+function indelCost(p: string, lengthening: boolean): number {
+  if (lengthening) return LENGTH_CHANGE;
   if (SHORT_VOWELS.has(p)) return SHORT_VOWEL;
   return UNIT;
+}
+
+/** Length of the run of `s[k]` that contains `k`. */
+function runAt(s: string, k: number): number {
+  let a = k;
+  let b = k;
+  while (a > 0 && s[a - 1] === s[k]) a--;
+  while (b + 1 < s.length && s[b + 1] === s[k]) b++;
+  return b - a + 1;
 }
 
 export interface SpanAlignment {
@@ -37,9 +59,14 @@ export interface SpanAlignment {
   path: AlignmentOp[];
 }
 
-const INF = 0x3fffffff;
+const INF = Infinity;
+/**
+ * Each plain edit adds this to the DP key, so equal weighted costs resolve to the path with fewer edits and the PER
+ * isn't inflated by an arbitrary choice. A power of two keeps the sums exact; it stays below 1 for up to 2^20 edits.
+ */
+const EDIT = 2 ** -20;
 /** Starting inside a word: the clip was cut mid-word. */
-const MID_WORD_START = 15;
+const MID_WORD_START = 10;
 
 export interface AlignOptions {
   /** Per-phoneme decoder confidence. Leading observed phonemes can be dropped at `UNIT * conf` each. */
@@ -63,15 +90,22 @@ export function alignSubstring(
   const n = hi - lo;
   const m = obs.length;
   const w = m + 1;
-  const d = new Int32Array((n + 1) * w);
+  const d = new Float64Array((n + 1) * w);
   const at = (i: number, j: number) => i * w + j;
   const r = (i: number) => ref[lo + i - 1];
-  const insCost = (i: number, j: number) => indelCost(obs[j - 1], [i > 0 ? r(i) : "", i < n ? ref[lo + i] : "", j > 1 ? obs[j - 2] : ""]);
-  const delCost = (i: number, j: number) => indelCost(r(i), [i > 1 ? r(i - 1) : "", i < n ? ref[lo + i] : "", j > 0 ? obs[j - 1] : ""]);
+  // Inserting `p` beside a reference run of `p` lengthens it; dropping one shortens the run it sits in.
+  const insCost = (i: number, j: number) => {
+    const p = obs[j - 1];
+    const before = i > 0 && r(i) === p ? runAt(ref, lo + i - 1) : 0;
+    const after = i < n && ref[lo + i] === p ? runAt(ref, lo + i) : 0;
+    return indelCost(p, isLengthening(p, Math.max(before, after) + 1)) + EDIT;
+  };
+  const delCost = (i: number) => indelCost(r(i), isLengthening(r(i), runAt(ref, lo + i - 1))) + EDIT;
+  const sub = (i: number, j: number) => (r(i) === obs[j - 1] ? 0 : subCost(r(i), obs[j - 1]) + EDIT);
   const startCost = (i: number) => (isStart(lo + i) ? 0 : options.strictStart ? INF : MID_WORD_START);
-  const skip = new Int32Array(m + 1).fill(INF);
+  const skip = new Float64Array(m + 1).fill(INF);
   skip[0] = 0;
-  if (options.conf) for (let j = 1; j <= m; j++) skip[j] = skip[j - 1] + Math.round(UNIT * options.conf[j - 1]);
+  if (options.conf) for (let j = 1; j <= m; j++) skip[j] = skip[j - 1] + Math.round(UNIT * options.conf[j - 1]) + EDIT;
 
   for (let i = 0; i <= n; i++) {
     const start = startCost(i);
@@ -79,9 +113,9 @@ export function alignSubstring(
     for (let j = 1; j <= m; j++) {
       let best = Math.min(d[at(i, j - 1)] + insCost(i, j), start + skip[j]);
       if (i > 0) {
-        best = Math.min(best, d[at(i - 1, j - 1)] + subCost(r(i), obs[j - 1]), d[at(i - 1, j)] + delCost(i, j));
+        best = Math.min(best, d[at(i - 1, j - 1)] + sub(i, j), d[at(i - 1, j)] + delCost(i));
       }
-      d[at(i, j)] = Math.min(best, INF);
+      d[at(i, j)] = best;
     }
   }
 
@@ -99,11 +133,11 @@ export function alignSubstring(
       for (let k = j; k > 0; k--) ops.push({ op: "ins", obs: obs[k - 1], obsAt: k - 1 });
       break;
     }
-    if (i > 0 && j > 0 && here === d[at(i - 1, j - 1)] + subCost(r(i), obs[j - 1])) {
+    if (i > 0 && j > 0 && here === d[at(i - 1, j - 1)] + sub(i, j)) {
       ops.push(r(i) === obs[j - 1] ? { op: "match", ref: r(i), refAt: i - 1, obsAt: j - 1 } : { op: "sub", ref: r(i), obs: obs[j - 1], refAt: i - 1, obsAt: j - 1 });
       i--;
       j--;
-    } else if (i > 0 && here === d[at(i - 1, j)] + delCost(i, j)) {
+    } else if (i > 0 && here === d[at(i - 1, j)] + delCost(i)) {
       ops.push({ op: "del", ref: r(i), refAt: i - 1 });
       i--;
     } else {
@@ -116,5 +150,5 @@ export function alignSubstring(
 
   const length = endI - i;
   const edits = ops.filter((o) => o.op !== "match").length;
-  return { start: lo + i, end: lo + endI, cost: d[at(endI, m)], per: length ? edits / length : edits ? Infinity : 0, path: ops };
+  return { start: lo + i, end: lo + endI, cost: Math.floor(d[at(endI, m)]), per: length ? edits / length : edits ? Infinity : 0, path: ops };
 }

@@ -42,6 +42,25 @@ describe("fuzzy locate", () => {
     expect(extended.path.filter((o) => o.op === "ins")).toEqual([expect.objectContaining({ obs: "ۥ" })]);
   });
 
+  it("charges a shortened ghunna like a madd change but counts it in the PER", () => {
+    const ghunna = ayah(100, 6).p.indexOf("ںںں");
+    const shortened = locate(...whole, [{ kind: "del", at: ghunna, count: 1 }]);
+    const dropped = locate(...whole, [{ kind: "del", at: consonant, count: 1 }]);
+    expect(shortened.top.cost).toBeLessThan(dropped.top.cost);
+    expect(shortened.path.filter((o) => o.op !== "match")).toEqual([expect.objectContaining({ op: "del", ref: "ں" })]);
+  });
+
+  it("charges a dropped plain noon in full but a shortened ghunna run cheaply", () => {
+    // Noon and meem runs are 1 (plain) or 4 (mushaddad with ghunna) in this inventory.
+    const text = ayah(100, 6).p;
+    const plain = text.search(/(?<!ن)ن(?!ن)/);
+    // `cost` is per observed phoneme, so this is the cost in plain edits.
+    const edits = (r: ReturnType<typeof locate>) => r.top.cost * r.path.filter((o) => o.op !== "del").length;
+    expect(edits(locate(...whole, [{ kind: "del", at: plain, count: 1 }]))).toBeCloseTo(1);
+    expect(edits(locate(...whole, [{ kind: "del", at: text.indexOf("نننن"), count: 1 }]))).toBeCloseTo(0.2);
+    expect(edits(locate(...whole, [{ kind: "del", at: ayah(100, 6).p.indexOf("ںںں"), count: 1 }]))).toBeCloseTo(0.2);
+  });
+
   it("locates 100:1 with ض→د, reporting a nonzero PER and the substitution in the edit path", () => {
     const at = ayah(100, 1).p.indexOf("ض");
     const r = locate(w(100, 1, 1), w(100, 1, 2), [{ kind: "sub", at, to: "د" }]);

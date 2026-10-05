@@ -17,4 +17,4 @@
 
 ## Comments
 
-- Context from 04 (2026-10-05): verified clip 875 (low-volume audio) locks at confidence 0.11, just above `minLockConfidence` 0.08. Three of its four edits are elongations decoded short (ghunna `ںںں`→`ں` twice, one madd `ا`), not low-confidence phonemes, so posterior scoring should be checked on whether it recovers held-sound length. Two deferred options if it doesn't: make ghunna-length indels cheap in the ranking cost like madd, and compute confidence fit from weighted cost only (PER kept as the `lost` gate). Re-run the shard-0 sweep after either.
+- Context from 04 (2026-10-05): verified clip 875 (low-volume audio) locks at confidence 0.11, just above `minLockConfidence` 0.08. Three of its four edits are elongations decoded short (ghunna `ںںں`→`ں` twice, one madd `ا`), not low-confidence phonemes, so posterior scoring should be checked on whether it recovers held-sound length. Ghunna-length cost was done in 04 (875 now 0.25); confidence-from-cost-only was tried and rejected, see 04.

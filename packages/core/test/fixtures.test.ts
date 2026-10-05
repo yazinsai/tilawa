@@ -110,6 +110,12 @@ describe("fixture harness", () => {
     },
   );
 
+  it("locks the low-volume 875 clip clear of the confidence floor despite its shortened ghunna", () => {
+    const final = finalPosition(replay(index, tlogFixtures.find((f) => f.id === "tlog-clean-00000-of-00411-875")!))!;
+    expect(final.state).toBe("locked");
+    expect(final.observed[0].confidence).toBeGreaterThan(0.2);
+  });
+
   it("reports the learner errors of the verified 100:1 clip in its PER and edit path", () => {
     const final = finalPosition(replay(index, tlogFixtures.find((f) => f.id === "tlog-clean-00000-of-00411-303")!, { trace: true }))!;
     expect(final.observed[0].per).toBeGreaterThan(0);
