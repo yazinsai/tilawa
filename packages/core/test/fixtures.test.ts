@@ -96,10 +96,7 @@ describe("fixture harness", () => {
   });
 
   // Verified clips the tracker still gets wrong; each must move out of this list once fixed.
-  const pending = new Set([
-    // Leading background reader is matched as 99:8:6.
-    "tlog-clean-00000-of-00411-160",
-  ]);
+  const pending = new Set<string>([]);
   const verified = tlogFixtures.filter(isAssertable);
 
   it.each(verified.filter((f) => !pending.has(f.id)).map((f) => [f.id, f] as const))("%s (audio-verified) meets its expectation", (_, f) => {

@@ -23,6 +23,8 @@ export interface PositionCandidate {
   cost: number;
   /** Unweighted phoneme error rate against the matched span, from the same alignment path. */
   per: number;
+  /** Set when a leading basmala was recited before the span; it is excluded from `span` and `per`. */
+  prefix?: "basmala";
 }
 
 export type TrackerState = "acquiring" | "locked" | "ambiguous" | "lost";

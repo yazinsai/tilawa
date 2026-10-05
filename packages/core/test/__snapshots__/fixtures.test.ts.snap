@@ -22,21 +22,119 @@ exports[`fixture harness > tlog-clean-00000-of-00411-51 (unverified) matches its
 
 exports[`fixture harness > tlog-clean-00000-of-00411-200 (unverified) matches its regression snapshot 1`] = `
 {
-  "spans": [],
-  "state": "lost",
+  "spans": [
+    {
+      "end": {
+        "ayah": 2,
+        "surah": 100,
+        "word": 1,
+      },
+      "start": {
+        "ayah": 1,
+        "surah": 100,
+        "word": 1,
+      },
+    },
+  ],
+  "state": "locked",
 }
 `;
 
 exports[`fixture harness > tlog-clean-00000-of-00411-318 (unverified) matches its regression snapshot 1`] = `
 {
-  "spans": [],
-  "state": "lost",
+  "spans": [
+    {
+      "end": {
+        "ayah": 133,
+        "surah": 6,
+        "word": 17,
+      },
+      "start": {
+        "ayah": 133,
+        "surah": 6,
+        "word": 16,
+      },
+    },
+    {
+      "end": {
+        "ayah": 6,
+        "surah": 13,
+        "word": 3,
+      },
+      "start": {
+        "ayah": 6,
+        "surah": 13,
+        "word": 2,
+      },
+    },
+    {
+      "end": {
+        "ayah": 92,
+        "surah": 17,
+        "word": 12,
+      },
+      "start": {
+        "ayah": 92,
+        "surah": 17,
+        "word": 11,
+      },
+    },
+    {
+      "end": {
+        "ayah": 23,
+        "surah": 19,
+        "word": 6,
+      },
+      "start": {
+        "ayah": 23,
+        "surah": 19,
+        "word": 5,
+      },
+    },
+    {
+      "end": {
+        "ayah": 46,
+        "surah": 27,
+        "word": 6,
+      },
+      "start": {
+        "ayah": 46,
+        "surah": 27,
+        "word": 5,
+      },
+    },
+  ],
+  "state": "ambiguous",
 }
 `;
 
 exports[`fixture harness > tlog-clean-00000-of-00411-450 (unverified) matches its regression snapshot 1`] = `
 {
   "spans": [
+    {
+      "end": {
+        "ayah": 3,
+        "surah": 100,
+        "word": 2,
+      },
+      "start": {
+        "ayah": 3,
+        "surah": 100,
+        "word": 1,
+      },
+    },
+    {
+      "end": {
+        "ayah": 43,
+        "surah": 52,
+        "word": 6,
+      },
+      "start": {
+        "ayah": 43,
+        "surah": 52,
+        "word": 5,
+      },
+    },
     {
       "end": {
         "ayah": 57,
@@ -50,7 +148,7 @@ exports[`fixture harness > tlog-clean-00000-of-00411-450 (unverified) matches it
       },
     },
   ],
-  "state": "locked",
+  "state": "ambiguous",
 }
 `;
 
@@ -64,30 +162,6 @@ exports[`fixture harness > tlog-clean-00000-of-00411-523 (unverified) matches it
 exports[`fixture harness > tlog-clean-00000-of-00411-572 (unverified) matches its regression snapshot 1`] = `
 {
   "spans": [
-    {
-      "end": {
-        "ayah": 127,
-        "surah": 4,
-        "word": 39,
-      },
-      "start": {
-        "ayah": 127,
-        "surah": 4,
-        "word": 38,
-      },
-    },
-    {
-      "end": {
-        "ayah": 15,
-        "surah": 84,
-        "word": 5,
-      },
-      "start": {
-        "ayah": 15,
-        "surah": 84,
-        "word": 4,
-      },
-    },
     {
       "end": {
         "ayah": 159,
@@ -149,7 +223,7 @@ exports[`fixture harness > tlog-clean-00000-of-00411-880 (unverified) matches it
       "start": {
         "ayah": 7,
         "surah": 100,
-        "word": 2,
+        "word": 1,
       },
     },
   ],

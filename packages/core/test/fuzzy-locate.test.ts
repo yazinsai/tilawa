@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { loadReferenceIndex } from "../src/index.js";
-import type { ReferenceAsset, WordRef } from "../src/index.js";
+import { createTracker, loadReferenceIndex } from "../src/index.js";
+import type { PhonemeEvidence, PositionEvent, ReferenceAsset, WordRef } from "../src/index.js";
 import { finalPosition, replay, syntheticFixture } from "../src/fixtures/index.js";
 import type { Edit } from "../src/fixtures/index.js";
 
@@ -58,10 +58,54 @@ describe("fuzzy locate", () => {
     expect(top.cost).not.toBe(top.per);
   });
 
-  it("matches only from a word start", () => {
-    const start = index.words.find((x) => x.surah === 2 && x.ayah === 255 && x.word === 3)!.start;
-    const { top } = locate(w(2, 255, 3), w(2, 255, 12), [{ kind: "del", at: 0, count: 2 }]);
-    expect(top.span.start).toEqual(w(2, 255, 3));
-    expect(index.words.some((x) => x.start === start)).toBe(true);
+  it("locates a clip cut mid-word to the word it starts inside", () => {
+    const { final, top } = locate(w(2, 255, 3), w(2, 255, 12), [{ kind: "del", at: 0, count: 2 }]);
+    expect(final.state).toBe("locked");
+    expect(top.span).toEqual({ start: w(2, 255, 3), end: w(2, 255, 12) });
+    expect(top.per).toBe(0);
+  });
+});
+
+const evidence = (text: string, conf: (i: number) => number = () => 0.99): PhonemeEvidence => ({
+  inventory: index.inventoryId,
+  frameMs: 20,
+  phonemes: [...text].map((p, i) => ({ p, start: i * 3, end: i * 3 + 1, conf: conf(i) })),
+});
+const textOf = (from: WordRef, to: WordRef) => {
+  const find = (r: WordRef) => index.words.find((x) => x.surah === r.surah && x.ayah === r.ayah && x.word === r.word)!;
+  return index.phonemes.slice(find(from).start, find(to).end);
+};
+const run = (e: PhonemeEvidence) => {
+  const t = createTracker(index, { trace: true });
+  t.push(e);
+  return t.end().at(-1) as PositionEvent;
+};
+
+describe("clip edges", () => {
+  it("drops low-confidence leading phonemes instead of stretching the span backwards", () => {
+    const junk = "يرَب";
+    const e = run(evidence(junk + textOf(w(100, 1, 1), w(100, 1, 2)), (i) => (i < junk.length ? 0.2 : 0.99)));
+    expect(e.state).toBe("locked");
+    expect(e.observed[0].span).toEqual({ start: w(100, 1, 1), end: w(100, 1, 2) });
+    expect(e.observed[0].per).toBeGreaterThan(0);
+    expect(e.trace!.path!.slice(0, junk.length).every((o) => o.op === "ins")).toBe(true);
+  });
+
+  it("keeps confident leading speech as part of the span", () => {
+    const e = run(evidence(textOf(w(99, 8, 6), w(100, 1, 2))));
+    expect(e.observed[0].span).toEqual({ start: w(99, 8, 6), end: w(100, 1, 2) });
+  });
+
+  it("locates the passage after a leading basmala and flags the prefix", () => {
+    const e = run(evidence(textOf(w(1, 1, 1), w(1, 1, 4)) + textOf(w(100, 1, 1), w(100, 2, 2))));
+    expect(e.state).toBe("locked");
+    expect(e.observed[0]).toMatchObject({ span: { start: w(100, 1, 1), end: w(100, 2, 2) }, per: 0, prefix: "basmala" });
+  });
+
+  it("still reads the basmala of al-Fatiha as 1:1", () => {
+    const e = run(evidence(textOf(w(1, 1, 1), w(1, 2, 4))));
+    expect(e.state).toBe("locked");
+    expect(e.observed[0].span).toEqual({ start: w(1, 1, 1), end: w(1, 2, 4) });
+    expect(e.observed[0].prefix).toBeUndefined();
   });
 });

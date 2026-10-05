@@ -30,7 +30,10 @@ interface Match {
   per: number;
   votes: number;
   path: AlignmentOp[];
+  basmala?: boolean;
 }
+
+const MAX_BASMALA_PER = 0.25;
 
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
   const maxGramOccurrences = options.maxGramOccurrences ?? 5000;
@@ -38,8 +41,12 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const maxPer = options.maxPer ?? 0.35;
   const wordStarts = new Set(index.words.map((w) => w.start));
   const isWordStart = (offset: number) => wordStarts.has(offset);
+  const fatiha = index.words.filter((w) => w.surah === 1 && w.ayah === 1);
+  const basmala = index.phonemes.slice(fatiha[0].start, fatiha.at(-1)!.end);
+  const fatihaAyah2 = index.words.find((w) => w.surah === 1 && w.ayah === 2)!.start;
 
   let observed = "";
+  let observedConf: number[] = [];
   let frameMs: number | null = null;
   let lastFrame = 0;
   let last: PositionEvent | null = null;
@@ -65,7 +72,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     return found;
   };
 
-  const fuzzyMatches = (query: string): Match[] => {
+  const fuzzyMatches = (query: string, queryConf: number[]): Match[] => {
     if (query.length < index.gramSize) return exactScan(query);
     const votes = new Map<number, number>();
     for (let q = 0; q + index.gramSize <= query.length; q++) {
@@ -95,12 +102,32 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     for (const bin of bins.slice(0, maxCandidates)) {
       const lo = Math.max(0, bin.lo - slack);
       const hi = Math.min(index.phonemes.length, bin.hi + query.length + slack);
-      const a = alignSubstring(index.phonemes, lo, hi, query, isWordStart);
+      const a = alignSubstring(index.phonemes, lo, hi, query, isWordStart, { conf: queryConf });
       if (!a || a.per > maxPer) continue;
       const prev = byStart.get(a.start);
       if (prev && prev.cost <= a.cost) continue;
       byStart.set(a.start, { offset: a.start, length: a.end - a.start, cost: a.cost, per: a.per, votes: bin.votes, path: a.path });
     }
+    return [...byStart.values()].sort((a, b) => a.cost - b.cost || a.offset - b.offset);
+  };
+
+  /** Matches for the evidence, plus matches for what follows a leading basmala, which the index only holds as 1:1. */
+  const locate = (): Match[] => {
+    const plain = fuzzyMatches(observed, observedConf);
+    const prefix = alignSubstring(observed, 0, observed.length, basmala, (o) => o === 0, { strictStart: true });
+    if (!prefix || prefix.per > MAX_BASMALA_PER || observed.length - prefix.end < index.gramSize) return plain;
+    const k = prefix.end;
+    const after = fuzzyMatches(observed.slice(k), observedConf.slice(k))
+      // Basmala then 1:2 is just 1:1–1:2, which the plain search already found.
+      .filter((m) => m.offset !== fatihaAyah2)
+      .map((m) => ({
+        ...m,
+        cost: m.cost + prefix.cost,
+        basmala: true,
+        path: m.path.map((o) => (o.op === "del" ? o : { ...o, obsAt: o.obsAt + k })),
+      }));
+    const byStart = new Map<number, Match>();
+    for (const m of [...plain, ...after]) if (!byStart.has(m.offset) || byStart.get(m.offset)!.cost > m.cost) byStart.set(m.offset, m);
     return [...byStart.values()].sort((a, b) => a.cost - b.cost || a.offset - b.offset);
   };
 
@@ -113,12 +140,12 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
 
   const toCandidate = (m: Match, confidence: number): PositionCandidate => {
     const end = ref(index.wordAt(m.offset + Math.max(0, m.length - 1)));
-    return { word: end, span: { start: ref(index.wordAt(m.offset)), end }, confidence, cost: normCost(m), per: m.per };
+    return { word: end, span: { start: ref(index.wordAt(m.offset)), end }, confidence, cost: normCost(m), per: m.per, ...(m.basmala ? { prefix: "basmala" as const } : {}) };
   };
 
   const evaluate = (final: boolean): EngineEvent[] => {
     if (!observed) return [];
-    const matches = fuzzyMatches(observed);
+    const matches = locate();
     // Anything closer to the best than one confusable substitution is indistinguishable from it.
     const tied = matches.filter((m) => m.cost - matches[0].cost < UNIT / 2);
     const state: TrackerState = tied.length === 0 ? "lost" : tied.length === 1 ? "locked" : "ambiguous";
@@ -160,6 +187,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       frameMs = evidence.frameMs;
       for (const ph of evidence.phonemes) {
         observed += ph.p;
+        observedConf.push(ph.conf);
         lastFrame = Math.max(lastFrame, ph.end + 1);
       }
       return evaluate(false);

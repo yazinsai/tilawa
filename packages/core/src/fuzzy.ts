@@ -38,12 +38,28 @@ export interface SpanAlignment {
 }
 
 const INF = 0x3fffffff;
+/** Starting inside a word: the clip was cut mid-word. */
+const MID_WORD_START = 15;
+
+export interface AlignOptions {
+  /** Per-phoneme decoder confidence. Leading observed phonemes can be dropped at `UNIT * conf` each. */
+  conf?: ArrayLike<number>;
+  /** Only allow starts where this holds. Other starts cost `MID_WORD_START`. */
+  strictStart?: boolean;
+}
 
 /**
  * Semi-global weighted alignment of all of `obs` against a substring of `ref[lo, hi)`.
- * The substring must begin where `isStart` is true; its end is free so an in-progress word can match.
+ * Word starts (`isStart`) are free; its end is free so an in-progress word can match.
  */
-export function alignSubstring(ref: string, lo: number, hi: number, obs: string, isStart: (offset: number) => boolean): SpanAlignment | null {
+export function alignSubstring(
+  ref: string,
+  lo: number,
+  hi: number,
+  obs: string,
+  isStart: (offset: number) => boolean,
+  options: AlignOptions = {},
+): SpanAlignment | null {
   const n = hi - lo;
   const m = obs.length;
   const w = m + 1;
@@ -52,11 +68,16 @@ export function alignSubstring(ref: string, lo: number, hi: number, obs: string,
   const r = (i: number) => ref[lo + i - 1];
   const insCost = (i: number, j: number) => indelCost(obs[j - 1], [i > 0 ? r(i) : "", i < n ? ref[lo + i] : "", j > 1 ? obs[j - 2] : ""]);
   const delCost = (i: number, j: number) => indelCost(r(i), [i > 1 ? r(i - 1) : "", i < n ? ref[lo + i] : "", j > 0 ? obs[j - 1] : ""]);
+  const startCost = (i: number) => (isStart(lo + i) ? 0 : options.strictStart ? INF : MID_WORD_START);
+  const skip = new Int32Array(m + 1).fill(INF);
+  skip[0] = 0;
+  if (options.conf) for (let j = 1; j <= m; j++) skip[j] = skip[j - 1] + Math.round(UNIT * options.conf[j - 1]);
 
   for (let i = 0; i <= n; i++) {
-    d[at(i, 0)] = isStart(lo + i) ? 0 : INF;
+    const start = startCost(i);
+    d[at(i, 0)] = start;
     for (let j = 1; j <= m; j++) {
-      let best = d[at(i, j - 1)] + insCost(i, j);
+      let best = Math.min(d[at(i, j - 1)] + insCost(i, j), start + skip[j]);
       if (i > 0) {
         best = Math.min(best, d[at(i - 1, j - 1)] + subCost(r(i), obs[j - 1]), d[at(i - 1, j)] + delCost(i, j));
       }
@@ -73,6 +94,11 @@ export function alignSubstring(ref: string, lo: number, hi: number, obs: string,
   let j = m;
   while (j > 0) {
     const here = d[at(i, j)];
+    if (here === startCost(i) + skip[j]) {
+      // Dropped leading phonemes stay in the path as insertions so the PER still counts them.
+      for (let k = j; k > 0; k--) ops.push({ op: "ins", obs: obs[k - 1], obsAt: k - 1 });
+      break;
+    }
     if (i > 0 && j > 0 && here === d[at(i - 1, j - 1)] + subCost(r(i), obs[j - 1])) {
       ops.push(r(i) === obs[j - 1] ? { op: "match", ref: r(i), refAt: i - 1, obsAt: j - 1 } : { op: "sub", ref: r(i), obs: obs[j - 1], refAt: i - 1, obsAt: j - 1 });
       i--;
