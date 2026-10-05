@@ -3,4 +3,4 @@ dist
 *.tsbuildinfo
 __pycache__
 .env
-.scratch/clips/
+.DS_Store
