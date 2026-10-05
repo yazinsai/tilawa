@@ -19,8 +19,10 @@ export interface PositionCandidate {
   /** Words covered by the evidence so far; may cross ayahs. */
   span: WordSpan;
   confidence: number;
-  /** Normalised weighted alignment cost used for ranking. 0 is an exact match. */
+  /** Weighted alignment cost per observed phoneme, used only for ranking. 0 is an exact match. */
   cost: number;
+  /** Unweighted phoneme error rate against the matched span, from the same alignment path. */
+  per: number;
 }
 
 export type TrackerState = "acquiring" | "locked" | "ambiguous" | "lost";
@@ -32,6 +34,7 @@ export interface TraceCandidate {
   length: number;
   votes: number;
   cost: number;
+  per: number;
 }
 
 export interface TrackerTrace {

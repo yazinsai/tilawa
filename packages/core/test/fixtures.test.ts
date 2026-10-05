@@ -32,6 +32,44 @@ const synthetic: Fixture[] = [
   }),
   syntheticFixture(index, { id: "gap-1-2", from: w(1, 2, 1), to: w(1, 2, 4), edits: [{ kind: "gap", at: 10, frames: 200 }] }),
   syntheticFixture(index, { id: "sub-1-2", from: w(1, 2, 1), to: w(1, 2, 4), edits: [{ kind: "sub", at: 3, to: "ه" }] }),
+  ...(
+    [
+      ["fuzzy-sub", [{ kind: "sub", at: 12, to: "ق" }]],
+      [
+        "fuzzy-multi-sub",
+        [
+          { kind: "sub", at: 5, to: "ق" },
+          { kind: "sub", at: 20, to: "ك" },
+          { kind: "sub", at: 33, to: "ز" },
+        ],
+      ],
+      ["fuzzy-del", [{ kind: "del", at: 10, count: 2 }]],
+      ["fuzzy-ins", [{ kind: "ins", at: 15, text: "كم" }]],
+      [
+        "fuzzy-mixed",
+        [
+          { kind: "sub", at: 8, to: "ط" },
+          { kind: "del", at: 25, count: 1 },
+          { kind: "ins", at: 40, text: "ي" },
+        ],
+      ],
+    ] as const
+  ).map(([id, edits]) =>
+    syntheticFixture(index, {
+      id: `${id}-2-255`,
+      from: w(2, 255, 3),
+      to: w(2, 255, 12),
+      edits: [...edits],
+      expect: { state: "locked", span: { start: w(2, 255, 3), end: w(2, 255, 12) } },
+    }),
+  ),
+  syntheticFixture(index, {
+    id: "fuzzy-cross-ayah-100-6-7",
+    from: w(100, 6, 1),
+    to: w(100, 7, 3),
+    edits: [{ kind: "sub", at: 7, to: "م" }],
+    expect: { state: "locked", span: { start: w(100, 6, 1), end: w(100, 7, 3) } },
+  }),
 ];
 
 const allFixtures = [...tlogFixtures, ...synthetic];
@@ -57,23 +95,16 @@ describe("fixture harness", () => {
     expect(diffExpectation(f, replay(index, f))).toEqual([]);
   });
 
-  // Verified clips the exact-match tracker can't locate yet; each must move out of this list once fuzzy locate handles it.
-  const pendingFuzzyLocate = new Set(["tlog-clean-00000-of-00411-303", "tlog-clean-00000-of-00411-816"]);
-  const verified = tlogFixtures.filter(isAssertable);
+  it.each(tlogFixtures.filter(isAssertable).map((f) => [f.id, f] as const))("%s (audio-verified) meets its expectation", (_, f) => {
+    expect(diffExpectation(f, replay(index, f))).toEqual([]);
+  });
 
-  it.each(verified.filter((f) => !pendingFuzzyLocate.has(f.id)).map((f) => [f.id, f] as const))(
-    "%s (audio-verified) meets its expectation",
-    (_, f) => {
-      expect(diffExpectation(f, replay(index, f))).toEqual([]);
-    },
-  );
-
-  it.fails.each(verified.filter((f) => pendingFuzzyLocate.has(f.id)).map((f) => [f.id, f] as const))(
-    "%s (audio-verified) meets its expectation — pending ticket 03",
-    (_, f) => {
-      expect(diffExpectation(f, replay(index, f))).toEqual([]);
-    },
-  );
+  it("reports the learner errors of the verified 100:1 clip in its PER and edit path", () => {
+    const final = finalPosition(replay(index, tlogFixtures.find((f) => f.id === "tlog-clean-00000-of-00411-303")!, { trace: true }))!;
+    expect(final.observed[0].per).toBeGreaterThan(0);
+    const subs = final.trace!.path!.filter((o) => o.op === "sub").map((o) => o.op === "sub" && o.ref + o.obs);
+    expect(subs).toEqual(expect.arrayContaining(["ضد", "دل"]));
+  });
 
   it.each(tlogFixtures.filter((f) => !isAssertable(f)).map((f) => [f.id, f] as const))(
     "%s (unverified) matches its regression snapshot",
@@ -95,7 +126,8 @@ describe("tracing", () => {
     const events = replay(index, synthetic[0], { trace: true }) as PositionEvent[];
     expect(events[0].trace?.transition).toEqual({ from: null, to: "locked" });
     const final = events.at(-1)!;
-    expect(final.trace?.shortlist).toHaveLength(1);
+    expect(final.observed).toHaveLength(1);
+    expect(final.trace?.shortlist[0]).toMatchObject({ span: final.observed[0].span, cost: 0, per: 0 });
     expect(final.trace?.path?.every((o) => o.op === "match")).toBe(true);
   });
 
@@ -107,5 +139,10 @@ describe("tracing", () => {
     expect(transitions.at(-1)?.to).toBe("locked");
   });
 
-  it.todo("shows a synthetic substitution in the traced alignment path (needs fuzzy locate, ticket 03)");
+  it("shows a synthetic substitution in the traced alignment path", () => {
+    const f = synthetic.find((s) => s.id === "fuzzy-sub-2-255")!;
+    const final = finalPosition(replay(index, f, { trace: true }))!;
+    const subs = final.trace!.path!.filter((o) => o.op !== "match");
+    expect(subs).toEqual([expect.objectContaining({ op: "sub", obs: "ق", refAt: 12, obsAt: 12 })]);
+  });
 });

@@ -11,14 +11,14 @@
 
 **Blocked by:** 01, 02.
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Synthetic fixtures with single and multiple substitutions, deletions and insertions locate to the correct span.
-- [ ] A madd-length change lowers the alignment cost penalty but still shows up in the PER.
-- [ ] A ض→د substitution locates to the correct ayah, with nonzero PER and the substitution visible in the edit path.
-- [ ] Real tlog fixtures (100:6 containing 100:6 plus 100:7, 100:7 apparently containing 100:8, and 100:1 with ض→د) are added. Their expected labels are asserted only after the audio has been independently checked; until then they are regression snapshots.
-- [ ] The alignment cost and PER are exposed as separate fields.
-- [ ] A synthetic substitution shows in the traced alignment path (the `it.todo` carried over from 02).
+- [x] Synthetic fixtures with single and multiple substitutions, deletions and insertions locate to the correct span.
+- [x] A madd-length change lowers the alignment cost penalty but still shows up in the PER.
+- [x] A ض→د substitution locates to the correct ayah, with nonzero PER and the substitution visible in the edit path.
+- [x] Real tlog fixtures (100:6 containing 100:6 plus 100:7, 100:7 apparently containing 100:8, and 100:1 with ض→د) are added. Their expected labels are asserted only after the audio has been independently checked; until then they are regression snapshots.
+- [x] The alignment cost and PER are exposed as separate fields.
+- [x] A synthetic substitution shows in the traced alignment path (the `it.todo` carried over from 02).
 
 ## Comments
 
@@ -35,3 +35,7 @@ Context carried over from tickets 01 and 02. The current state is at commit `835
 - The index asset is `packages/core/assets/ref-v1.json`. Word boundaries come from alignment, one word has an empty span, and `wordAt` handles it.
 - Run tests with `corepack pnpm -C packages/core test` (global pnpm 7 is broken on Node 22). Debug with `corepack pnpm replay <fixtures>` from `packages/core`.
 - The clip audio is in `.scratch/clips/`, which is gitignored. `tools/make_fixtures.py` regenerates the fixtures from `/tmp/s0.parquet`, or from `modal volume get tilawa-tlog pass1/<shard>.parquet`.
+
+- Implemented in `packages/core/src/fuzzy.ts` (weighted semi-global DP; start pinned to word starts, end free so an in-progress word matches). Costs in integer units: plain edit 10, confusable pair / short vowel 5, madd-letter indel next to the same letter 2. PER counts every non-match op on the same path.
+- Candidates with PER > `maxPer` (default 0.35) are dropped; 926's best is 100:8:3–100:9:4 at PER 0.47, so it stays `lost`. Candidates within half a unit of the best cost count as tied (→ `ambiguous`).
+- 303 locks to 100:1 at PER 0.087 (next best 79:3 at cost 0.217 vs 0.065); 816 locks to 100:6:1–100:7:3 at PER 0.063.
