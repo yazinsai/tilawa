@@ -14,3 +14,7 @@
 - [ ] Where decoded phonemes are mangled but the posteriors favour the true span, the true span is ranked first.
 - [ ] Mismatched frame stride or token inventory is rejected.
 - [ ] A comparison report is produced across the full fixture set.
+
+## Comments
+
+- Context from 04 (2026-10-05): verified clip 875 (low-volume audio) locks at confidence 0.11, just above `minLockConfidence` 0.08. Three of its four edits are elongations decoded short (ghunna `ںںں`→`ں` twice, one madd `ا`), not low-confidence phonemes, so posterior scoring should be checked on whether it recovers held-sound length. Two deferred options if it doesn't: make ghunna-length indels cheap in the ranking cost like madd, and compute confidence fit from weighted cost only (PER kept as the `lost` gate). Re-run the shard-0 sweep after either.
