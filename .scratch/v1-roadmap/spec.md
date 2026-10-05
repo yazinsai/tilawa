@@ -36,3 +36,4 @@ Nothing else in PLAN.md exists yet: the checker, the full tlog pass, ground trut
 | 08 | Student distillation (E2, E3, E5, E6) | 01, 02, 06 |
 | 09 | SDK runtimes and session API | 04, 08 |
 | 10 | E7 quantize, export, device measurements | 08, 09 |
+| 11 | E1b spliced-error probe for classes E1 couldn't judge | 01 |
