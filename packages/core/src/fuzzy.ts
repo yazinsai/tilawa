@@ -66,7 +66,7 @@ const INF = Infinity;
  */
 const EDIT = 2 ** -20;
 /** Starting inside a word: the clip was cut mid-word. */
-const MID_WORD_START = 10;
+export const MID_WORD_START = 10;
 
 export interface AlignOptions {
   /** Per-phoneme decoder confidence. Leading observed phonemes can be dropped at `UNIT * conf` each. */

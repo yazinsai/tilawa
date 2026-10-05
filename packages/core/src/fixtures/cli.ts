@@ -14,8 +14,31 @@ const renderPath = (path: AlignmentOp[]) =>
     .map((o) => (o.op === "match" ? o.ref : o.op === "sub" ? `[${o.ref}→${o.obs}]` : o.op === "del" ? `[-${o.ref}]` : `[+${o.obs}]`))
     .join("");
 
+const args = process.argv.slice(2);
+const files = args.filter((a) => !a.startsWith("--"));
+
+if (args.includes("--compare-posteriors")) {
+  // Same fixtures, decoded only vs with posteriors, one line per fixture.
+  let changed = 0;
+  const describe = (e: ReturnType<typeof finalPosition>) =>
+    e ? `${e.state} ${e.observed[0] ? `${formatSpan(e.observed[0].span)} conf=${e.observed[0].confidence.toFixed(2)}` : "-"}` : "none";
+  for (const file of files) {
+    const fixture: Fixture = JSON.parse(readFileSync(file, "utf8"));
+    if (!fixture.evidence.some((e) => e.posteriors)) {
+      console.log(`${fixture.id}  no posteriors`);
+      continue;
+    }
+    const decoded = describe(finalPosition(replay(index, { ...fixture, evidence: fixture.evidence.map(({ posteriors: _, ...e }) => e) })));
+    const reranked = describe(finalPosition(replay(index, fixture)));
+    if (decoded !== reranked) changed++;
+    console.log(`${decoded === reranked ? " " : "*"} ${fixture.id}  decoded: ${decoded}   posteriors: ${reranked}`);
+  }
+  console.log(`\n${changed} of ${files.length} fixtures differ`);
+  process.exit(0);
+}
+
 let failed = 0;
-for (const file of process.argv.slice(2)) {
+for (const file of files) {
   const fixture: Fixture = JSON.parse(readFileSync(file, "utf8"));
   const events = replay(index, fixture, { trace: true });
   const final = finalPosition(events);

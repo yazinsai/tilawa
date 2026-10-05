@@ -77,6 +77,39 @@ export function diffExpectation(fixture: Fixture, events: EngineEvent[]): string
 
 const FRAMES_PER_PHONEME = 3;
 
+/**
+ * Synthetic top-k posteriors for one chunk: each decoded phoneme's frames favour its token, and every other frame
+ * favours the blank. `override(j)` replaces the distribution on phoneme `j`'s frames, as `[token, p]` pairs.
+ */
+export function withPosteriors(
+  index: ReferenceIndex,
+  evidence: PhonemeEvidence,
+  override: (j: number) => [string, number][] | undefined = () => undefined,
+  k = 5,
+): PhonemeEvidence {
+  const ids = [...index.tokens];
+  const id = (t: string) => ids.indexOf(t) + 1;
+  const startFrame = evidence.phonemes[0]?.start ?? 0;
+  const nFrames = (evidence.phonemes.at(-1)?.end ?? startFrame) + 2 - startFrame;
+  const rows: [number, number][][] = Array.from({ length: nFrames }, () => [[0, 0.95]]);
+  evidence.phonemes.forEach((ph, j) => {
+    const dist = override(j) ?? [[ph.p, 0.9], ["", 0.05]];
+    for (let f = ph.start; f <= ph.end; f++) rows[f - startFrame] = dist.map(([t, p]) => [t ? id(t) : 0, p]);
+  });
+  const flatIds: number[] = [];
+  const flatProbs: number[] = [];
+  for (const row of rows) {
+    const sorted = [...row].sort((a, b) => b[1] - a[1]);
+    // Pad with distinct unlisted-looking filler so every row has k entries.
+    for (let t = 1; sorted.length < k; t++) if (!sorted.some(([i]) => i === t)) sorted.push([t, 0]);
+    for (const [i, p] of sorted.slice(0, k)) {
+      flatIds.push(i);
+      flatProbs.push(p);
+    }
+  }
+  return { ...evidence, posteriors: { k, startFrame, nFrames, ids: flatIds, probs: flatProbs } };
+}
+
 function seededTokens(tokens: string, length: number, seed: number): string {
   let s = seed >>> 0 || 1;
   let out = "";

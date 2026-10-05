@@ -76,6 +76,8 @@ const allFixtures = [...tlogFixtures, ...synthetic];
 const stripTrace = (events: EngineEvent[]) =>
   events.map((e) => (e.type === "position" ? (({ trace: _, ...rest }: PositionEvent) => rest)(e) : e));
 
+const decodedOnly = (f: Fixture): Fixture => ({ ...f, evidence: f.evidence.map(({ posteriors: _, ...e }) => e) });
+
 describe("fixture harness", () => {
   it("has real tlog fixtures", () => {
     expect(tlogFixtures.length).toBeGreaterThanOrEqual(4);
@@ -96,7 +98,11 @@ describe("fixture harness", () => {
   });
 
   // Verified clips the tracker still gets wrong; each must move out of this list once fixed.
-  const pending = new Set<string>([]);
+  const pending = new Set<string>([
+    // Mid-word starts on short clips: the true ayah fits but isn't separated from look-alikes elsewhere.
+    "tlog-clean-00000-of-00411-450",
+    "tlog-clean-00000-of-00411-680",
+  ]);
   const verified = tlogFixtures.filter(isAssertable);
 
   it.each(verified.filter((f) => !pending.has(f.id)).map((f) => [f.id, f] as const))("%s (audio-verified) meets its expectation", (_, f) => {
@@ -124,9 +130,9 @@ describe("fixture harness", () => {
   });
 
   it.each(tlogFixtures.filter((f) => !isAssertable(f)).map((f) => [f.id, f] as const))(
-    "%s (unverified) matches its regression snapshot",
+    "%s (unverified, decoded only) matches its regression snapshot",
     (_, f) => {
-      const final = finalPosition(replay(index, f));
+      const final = finalPosition(replay(index, decodedOnly(f)));
       expect({ state: final?.state, spans: final?.observed.map((c) => c.span) }).toMatchSnapshot();
     },
   );

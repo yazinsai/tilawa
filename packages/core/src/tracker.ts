@@ -1,5 +1,6 @@
 import type { AlignmentOp } from "./align.js";
-import { UNIT, alignSubstring } from "./fuzzy.js";
+import { PosteriorFrames } from "./ctc.js";
+import { MID_WORD_START, UNIT, alignSubstring } from "./fuzzy.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { EngineEvent, PositionCandidate, PositionEvent, TrackerState, TrackerTrace, WordRef } from "./events.js";
 import { EvidenceError } from "./evidence.js";
@@ -47,11 +48,20 @@ interface Match {
   votes: number;
   path: AlignmentOp[];
   basmala?: boolean;
+  /** The decoded alignment cost, kept when posteriors replace `cost` for ranking. */
+  decodedCost?: number;
+  /** With `basmala`: observed phonemes before this index are the prefix, which costs `prefixCost`. */
+  prefixEnd?: number;
+  prefixCost?: number;
 }
 
 const MAX_BASMALA_PER = 0.25;
 /** The largest prior bonus, in `UNIT`s; below `minSeparation` so a prior alone never separates. */
 const MAX_PRIOR_BONUS = UNIT / 2;
+/** Nats of CTC likelihood, relative to the decoded sequence, that cost as much as one plain edit. */
+const NATS_PER_EDIT = 3;
+/** Posteriors are rejected when fewer decoded phonemes than this appear in the top-k over their frames. */
+const MIN_LISTED = 0.5;
 
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
   const maxGramOccurrences = options.maxGramOccurrences ?? 5000;
@@ -72,6 +82,10 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
 
   let observed = "";
   let observedConf: number[] = [];
+  const observedFrames: { start: number; end: number }[] = [];
+  const tokenIds = new Map([...index.tokens].map((t, i) => [t, i + 1]));
+  let posteriors: PosteriorFrames | null = null;
+  let decodedOnly = false;
   let frameMs: number | null = null;
   let lastFrame = 0;
   let last: PositionEvent | null = null;
@@ -85,6 +99,27 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     }
     for (const ph of e.phonemes) {
       if (!index.tokens.has(ph.p)) throw new EvidenceError(`Phoneme "${ph.p}" is not in inventory "${index.inventoryId}"`);
+    }
+    if (e.posteriors ? decodedOnly : posteriors) throw new EvidenceError("Every chunk in a session must carry posteriors, or none");
+    const p = e.posteriors;
+    if (!p) return;
+    if (p.ids.length !== p.nFrames * p.k || p.probs.length !== p.nFrames * p.k) {
+      throw new EvidenceError(`Posterior rows hold ${p.ids.length} ids and ${p.probs.length} probs, expected nFrames x k = ${p.nFrames * p.k}`);
+    }
+    let listed = 0;
+    for (const ph of e.phonemes) {
+      if (ph.start < p.startFrame || ph.end >= p.startFrame + p.nFrames) {
+        throw new EvidenceError(`Phoneme frames ${ph.start}..${ph.end} fall outside posterior frames ${p.startFrame}..${p.startFrame + p.nFrames - 1}; check the frame stride`);
+      }
+      const id = tokenIds.get(ph.p)!;
+      let found = false;
+      for (let f = ph.start; f <= ph.end && !found; f++) {
+        for (let c = 0; c < p.k; c++) if (p.ids[(f - p.startFrame) * p.k + c] === id) found = true;
+      }
+      if (found) listed++;
+    }
+    if (e.phonemes.length && listed < MIN_LISTED * e.phonemes.length) {
+      throw new EvidenceError(`Only ${listed} of ${e.phonemes.length} decoded phonemes appear in their frames' top-k; posterior ids don't follow the inventory order`);
     }
   };
 
@@ -149,11 +184,36 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         ...m,
         cost: m.cost + prefix.cost,
         basmala: true,
+        prefixEnd: k,
+        prefixCost: prefix.cost,
         path: m.path.map((o) => (o.op === "del" ? o : { ...o, obsAt: o.obsAt + k })),
       }));
     const byStart = new Map<number, Match>();
     for (const m of [...plain, ...after]) if (!byStart.has(m.offset) || byStart.get(m.offset)!.cost > m.cost) byStart.set(m.offset, m);
     return [...byStart.values()].sort((a, b) => a.cost - b.cost || a.offset - b.offset);
+  };
+
+  /**
+   * Reranking cost: the CTC likelihood, over every frame of the evidence, of the candidate's alignment read as labels
+   * (reference tokens where it matches, substitutes or deletes; observed tokens where it inserts), relative to the
+   * decoded sequence. Insertions, a mid-word start and a basmala prefix add their decoded costs on top.
+   */
+  const posteriorCost = (frames: PosteriorFrames, m: Match, self: number): number => {
+    const from = observedFrames[0].start;
+    const to = observedFrames.at(-1)!.end + 1;
+    const labels: number[] = [];
+    const prefixEnd = m.basmala ? m.prefixEnd! : 0;
+    for (let j = 0; j < prefixEnd; j++) labels.push(tokenIds.get(observed[j])!);
+    let edits = (m.basmala ? m.prefixCost! : 0) + (isWordStart(m.offset) ? 0 : MID_WORD_START);
+    for (const o of m.path) {
+      if (o.op === "ins") {
+        labels.push(tokenIds.get(o.obs)!);
+        edits += UNIT * observedConf[o.obsAt];
+      } else labels.push(tokenIds.get(o.ref)!);
+    }
+    const nll = frames.nll(labels, from, to);
+    if (!Number.isFinite(nll) || !Number.isFinite(self)) return m.cost;
+    return Math.max(0, edits + ((nll - self) * UNIT) / NATS_PER_EDIT);
   };
 
   const ref = (i: number): WordRef => {
@@ -162,6 +222,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const normCost = (m: Match) => m.cost / UNIT / observed.length;
+  /** Fit takes the better of the two costs: posteriors can rescue a mangled decode, but CTC charges held-sound length in full. */
+  const fitCost = (m: Match) => Math.min(m.cost, m.decodedCost ?? m.cost) / UNIT / observed.length;
 
   const firstWord = (m: Match) => index.wordAt(m.offset);
   const lastWord = (m: Match) => index.wordAt(m.offset + Math.max(0, m.length - 1));
@@ -188,11 +250,13 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
 
   const evaluate = (final: boolean): EngineEvent[] => {
     if (!observed) return [];
-    const matches = locate();
+    const frames = posteriors;
+    const self = frames ? frames.nll([...observed].map((t) => tokenIds.get(t)!), observedFrames[0].start, observedFrames.at(-1)!.end + 1) : 0;
+    const matches = frames ? locate().map((m) => ({ ...m, cost: posteriorCost(frames, m, self), decodedCost: m.cost })) : locate();
     const scored = matches.map((m) => ({ m, score: m.cost - priorBonus(m) })).sort((a, b) => a.score - b.score || a.m.offset - b.m.offset);
     const distinct: typeof scored = [];
     for (const c of scored) if (!distinct.some((k) => sameLocation(k.m, c.m))) distinct.push(c);
-    const fitting = distinct.filter((c) => c.m.per <= maxPer && normCost(c.m) <= maxCost);
+    const fitting = distinct.filter((c) => c.m.per <= maxPer && fitCost(c.m) <= maxCost);
 
     const n = observed.length;
     const required = UNIT * Math.max(minSeparation, separationScale / n);
@@ -201,7 +265,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     const top = fitting[0];
     const separated = top !== undefined && lead(top) >= required;
     const terms = (c: (typeof fitting)[number]) => ({
-      fit: Math.max(0, 1 - c.m.per / maxPer) * Math.max(0, 1 - normCost(c.m) / maxCost),
+      fit: Math.max(0, 1 - c.m.per / maxPer) * Math.max(0, 1 - fitCost(c.m) / maxCost),
       separation: Math.min(1, Math.max(0, 0.5 + lead(c) / (2 * required))),
     });
     const confidence = (c: (typeof fitting)[number]) => {
@@ -249,8 +313,11 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   return {
     push(evidence) {
       validate(evidence);
+      if (evidence.posteriors) (posteriors ??= new PosteriorFrames(index.tokens.size)).append(evidence.posteriors);
+      else decodedOnly = true;
       frameMs = evidence.frameMs;
       for (const ph of evidence.phonemes) {
+        observedFrames.push({ start: ph.start, end: ph.end });
         observed += ph.p;
         observedConf.push(ph.conf);
         lastFrame = Math.max(lastFrame, ph.end + 1);
