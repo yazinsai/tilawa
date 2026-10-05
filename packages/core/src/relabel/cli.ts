@@ -19,6 +19,12 @@ if (positionals.length !== 1 || !values.out) {
   process.exit(2);
 }
 
+const priorWeight = Number(values["prior-weight"]);
+if (!(priorWeight >= 0 && priorWeight <= 1)) {
+  console.error(`--prior-weight must be in 0..1, got "${values["prior-weight"]}"`);
+  process.exit(2);
+}
+
 const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../../assets/ref-v1.json", import.meta.url), "utf8"));
 const index = loadReferenceIndex(asset);
 const clips: Pass1Clip[] = readFileSync(positionals[0], "utf8")
@@ -27,7 +33,7 @@ const clips: Pass1Clip[] = readFileSync(positionals[0], "utf8")
   .map((l) => JSON.parse(l));
 clips.sort((a, b) => (a.shard < b.shard ? -1 : a.shard > b.shard ? 1 : a.row - b.row));
 
-const options = { posteriors: values.posteriors, priorWeight: Number(values["prior-weight"]) };
+const options = { posteriors: values.posteriors, priorWeight };
 const labels = clips.map((c) => relabelClip(index, c, options));
 const summary = { ...summarize(labels), input: positionals[0], referenceVersion: index.version, options };
 

@@ -41,7 +41,7 @@ export interface ProposedLabel {
   leadEdits: number | null;
   cost: number | null;
   per: number | null;
-  /** Distinct locations from the shortlist, best first by alignment cost (the prior is not applied here). */
+  /** Distinct locations from the shortlist, including the proposed one, best first by alignment cost (the prior is not applied here). */
   candidates: RelabelCandidate[];
   /** Exactly one reason for every clip that isn't locked; null when locked. */
   exclusion: Exclusion | null;
@@ -71,6 +71,21 @@ export function offsetPattern(label: { surah: number; ayah: number } | null, spa
   return start.word === 1 && end.word === lastWordOf(end.surah, end.ayah) ? "filename ayah" : "part of filename ayah";
 }
 
+const lengths = new WeakMap<ReferenceIndex, (s: number, a: number) => number>();
+function ayahLengths(index: ReferenceIndex) {
+  let f = lengths.get(index);
+  if (!f) {
+    const m = new Map<string, number>();
+    for (const w of index.words) m.set(`${w.surah}:${w.ayah}`, Math.max(m.get(`${w.surah}:${w.ayah}`) ?? 0, w.word));
+    f = (s, a) => m.get(`${s}:${a}`) ?? 0;
+    lengths.set(index, f);
+  }
+  return f;
+}
+
+const withinAyah = (span: WordSpan, label: { surah: number; ayah: number } | null) =>
+  label !== null && [span.start, span.end].every((r) => r.surah === label.surah && r.ayah === label.ayah);
+
 export function relabelClip(index: ReferenceIndex, clip: Pass1Clip, options: RelabelOptions = {}): ProposedLabel {
   const base = {
     labelKind: "proposed" as const,
@@ -80,7 +95,8 @@ export function relabelClip(index: ReferenceIndex, clip: Pass1Clip, options: Rel
     filenameLabel: clip.filenameLabel,
   };
   const empty = { proposed: null, state: null, confidence: null, fit: null, separation: null, leadEdits: null, cost: null, per: null, candidates: [], pattern: null, agrees: null };
-  if (clip.status !== "ok" || !clip.evidence) return { ...base, ...empty, exclusion: clip.status === "too_long" ? "too_long" : "decode_failed" };
+  if (clip.status !== "ok") return { ...base, ...empty, exclusion: clip.status };
+  if (!clip.evidence) throw new Error(`Row ${clip.shard}/${clip.row} is "ok" but has no evidence; re-export it`);
 
   const label = clip.filenameLabel;
   const tracker = createTracker(index, {
@@ -97,12 +113,7 @@ export function relabelClip(index: ReferenceIndex, clip: Pass1Clip, options: Rel
   const top = final.observed[0];
   const decision = final.trace!.decision;
   const proposed = final.state === "locked" ? top.span : null;
-  const lastWordOf = (s: number, a: number) => {
-    let n = 0;
-    for (const w of index.words) if (w.surah === s && w.ayah === a) n = Math.max(n, w.word);
-    return n;
-  };
-  const pattern = proposed ? offsetPattern(label, proposed, lastWordOf) : null;
+  const pattern = proposed ? offsetPattern(label, proposed, ayahLengths(index)) : null;
   const exclusion: Exclusion | null =
     final.state === "locked" ? null : final.state === "ambiguous" ? "ambiguous" : final.state === "lost" ? "lost" : "insufficient_evidence";
 
@@ -119,7 +130,7 @@ export function relabelClip(index: ReferenceIndex, clip: Pass1Clip, options: Rel
     candidates: distinct.slice(0, options.maxCandidates ?? 5).map((c) => ({ span: c.span, cost: c.cost, per: c.per })),
     exclusion,
     pattern,
-    agrees: pattern === null ? null : pattern === "filename ayah" || pattern === "part of filename ayah",
+    agrees: proposed === null ? null : withinAyah(proposed, label),
   };
 }
 
