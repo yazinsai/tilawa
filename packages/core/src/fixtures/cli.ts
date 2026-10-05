@@ -60,7 +60,7 @@ for (const file of files) {
     }
   }
 
-  const problems = diffExpectation(fixture, events);
+  const problems = diffExpectation(fixture, events, index);
   if (fixture.expect) {
     const mode = isAssertable(fixture) ? "asserted" : "snapshot only";
     console.log(`  expected (${mode}): ${fixture.expect.state}${fixture.expect.span ? ` ${formatSpan(fixture.expect.span)}` : ""}`);

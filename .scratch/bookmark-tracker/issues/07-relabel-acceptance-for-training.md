@@ -11,12 +11,12 @@
 
 **Blocked by:** 06.
 
-**Status:** ready-for-human
+**Status:** done
 
-- [ ] The reviewed sample exists, with blind human spans.
-- [ ] Precision, false locks and exclusions are reported per outcome type, with uncertainty estimated by clip.
-- [ ] An ADR records the adoption thresholds and the measured precision.
-- [ ] Only clips passing the adopted thresholds are marked eligible for training.
+- [x] The reviewed sample exists, with blind human spans.
+- [x] Precision, false locks and exclusions are reported per outcome type, with uncertainty estimated by clip.
+- [x] An ADR records the adoption thresholds and the measured precision.
+- [x] Only clips passing the adopted thresholds are marked eligible for training.
 
 ## Comments
 
@@ -31,3 +31,5 @@
   - The teacher drops whole words at clip edges (often `إِنَّ` / `وَإِنَّهُۥ` at the start, the last 1–2 words at the end), and the reviewer's half-word edges vary. Snapping spans to ayah edges was tried and rejected: it broke 17 correct locks.
 - Decision (reviewer): a lock is right when both edges are within 1 word of the reviewer's span, across ayah boundaries (`--edge-words 1`, the default). Exact precision is still reported.
 - At that bar, with the decoded run: weighted precision 93.7% (87–100%), false locks 4.5%, excluded 28%. Posteriors make no measurable difference on this sample. Remaining wrong locks: 2 faint clips the reviewer marked "no Quran" (212, 823; probably right), 2 low-confidence noise locks (513 at 0.17, 637 at 0.10), 1 repeated ayah stretched into the next (597), and 4 where the teacher dropped 2 edge words (20, 28, 323, 925).
+- Done. All 302 reviewed; the reviewer re-listened to 212 (100:1) and 823 (2:285, tracker right): both were faint. Decision in `docs/adr/0001-tlog-relabel-adoption.md`: decoded run, confidence ≥ 0.2, ±1-word edges, which gives 98.2% precision (low end 94.7%) and keeps 66% of the shard. `eligible.jsonl` has 717 of 970 clips, with reviewer spans overriding the tracker.
+- Fixtures: 45 audio-verified clips (stratified correct locks, every reviewed miss, and clean clips the tracker won't lock) added via `make_fixtures.py --review`, with `expect.edgeWords: 1`. The 14 the tracker still gets wrong are in the pending list in `fixtures.test.ts`, grouped by cause. Row 235 was skipped: re-decoding its top-k doesn't reproduce the stored hyp.

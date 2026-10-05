@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { drawSample, score, stratumOf, wilson } from "../src/review/index.js";
+import { drawSample, eligibleClips, score, stratumOf, wilson } from "../src/review/index.js";
 import type { ReviewAnswer } from "../src/review/index.js";
 import type { ProposedLabel } from "../src/relabel/index.js";
 import type { WordSpan } from "../src/events.js";
@@ -67,6 +67,26 @@ describe("drawSample", () => {
     const rows = (seed: number) => drawSample(labels, { seed, quota: { agrees: 10 } }).clips.map((c) => c.row);
     expect(rows(1)).toEqual(rows(1));
     expect(rows(2)).not.toEqual(rows(1));
+  });
+});
+
+describe("eligibleClips", () => {
+  it("keeps confident locks, and lets a review add, correct or drop a clip", () => {
+    const confident = agree();
+    const shaky = label({ proposed: span(1), pattern: "filename ayah", confidence: 0.1 });
+    const corrected = agree();
+    const rescued = label({ state: "lost", confidence: null });
+    const noise = agree();
+    const unsure = agree();
+    const labels = [confident, shaky, corrected, rescued, noise, unsure];
+    const answers = [answer(corrected, span(2)), answer(rescued, span(3)), answer(noise, null), answer(unsure, null, "unsure")];
+    const out = eligibleClips(labels, answers, 0.2);
+    expect(out.map((c) => [c.row, c.source, c.span.start.ayah])).toEqual([
+      [confident.row, "tracker", 1],
+      [corrected.row, "human", 2],
+      [rescued.row, "human", 3],
+      [unsure.row, "tracker", 1],
+    ]);
   });
 });
 

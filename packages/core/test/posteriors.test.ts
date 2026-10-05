@@ -66,13 +66,11 @@ describe("posterior reranking", () => {
     expect(e.observed[0].cost).toBe(0);
   });
 
-  it("only reorders candidates that retrieval produced", () => {
-    for (const f of tlog) {
-      const stripped = { ...f, evidence: f.evidence.map(({ posteriors: _, ...e }) => e) };
-      const before = new Set(finalPosition(replay(index, stripped, { trace: true }))!.trace!.shortlist.map((c) => formatSpan(c.span)));
-      const after = finalPosition(replay(index, f, { trace: true }))!.trace!.shortlist.map((c) => formatSpan(c.span));
-      for (const s of after) expect(before.has(s)).toBe(true);
-    }
+  it.each(tlog.map((f) => [f.id, f] as const))("%s: reranking only reorders candidates that retrieval produced", (_, f) => {
+    const stripped = { ...f, evidence: f.evidence.map(({ posteriors: _, ...e }) => e) };
+    const before = new Set(finalPosition(replay(index, stripped, { trace: true }))!.trace!.shortlist.map((c) => formatSpan(c.span)));
+    const after = finalPosition(replay(index, f, { trace: true }))!.trace!.shortlist.map((c) => formatSpan(c.span));
+    for (const s of after) expect(before.has(s)).toBe(true);
   });
 
   it("produces valid events on every real fixture", () => {

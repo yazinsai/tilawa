@@ -10,6 +10,7 @@
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -18,7 +19,7 @@ import pyarrow.parquet as pq
 INVENTORY_ID = "muaalem-v3_2-phonemes"
 FRAME_MS = 20
 TOPK = 5
-INDEX = Path(__file__).resolve().parent.parent / "packages/core/assets/ref-v1.json"
+INDEX = Path(__file__).resolve().parent.parent / "packages/core/assets/ref-v2.json"
 
 
 def decode(top_ids: np.ndarray, top_p: np.ndarray, tokens: str) -> list[dict]:
@@ -40,7 +41,14 @@ def main() -> None:
     ap.add_argument("--parquet", required=True)
     ap.add_argument("--rows", required=True, help="comma-separated `row` values from the pass1 output")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--review", help="review dir: rows with a blind span in its answers.jsonl become audio-verified fixtures")
     args = ap.parse_args()
+
+    spans = {}
+    if args.review:
+        for line in (Path(args.review) / "answers.jsonl").read_text().splitlines():
+            a = json.loads(line)
+            spans[a["row"]] = a["span"] if a["verdict"] == "span" else None
 
     tokens = json.loads(INDEX.read_text())["inventory"]["tokens"]
     wanted = {int(r) for r in args.rows.split(",")}
@@ -55,7 +63,9 @@ def main() -> None:
         ids = np.frombuffer(r["top5_ids"], dtype=np.uint8).reshape(n, TOPK)
         probs = np.frombuffer(r["top5_p"], dtype=np.float16).astype(np.float32).reshape(n, TOPK)
         phonemes = decode(ids, probs, tokens)
-        assert "".join(p["p"] for p in phonemes) == r["hyp"], f"decode mismatch for row {r['row']}"
+        if "".join(p["p"] for p in phonemes) != r["hyp"]:
+            print(f"skipping row {r['row']}: re-decoding its top-k doesn't reproduce the stored hyp", file=sys.stderr)
+            continue
         fixture = {
             "id": f"tlog-{r['shard']}-{r['row']}",
             "provenance": {
@@ -64,7 +74,8 @@ def main() -> None:
                 "row": r["row"],
                 "path": r["path"],
                 "filenameLabel": {"surah": r["surah"], "ayah": r["ayah"]},
-                "audioVerified": False,
+                "audioVerified": spans.get(r["row"]) is not None,
+                **({"reviewNote": "blind review, ticket 07; edges within 1 word"} if spans.get(r["row"]) else {}),
             },
             "evidence": [
                 {
@@ -81,6 +92,8 @@ def main() -> None:
                 }
             ],
         }
+        if spans.get(r["row"]):
+            fixture["expect"] = {"state": "locked", "span": spans[r["row"]], "edgeWords": 1}
         (out / f"{fixture['id']}.json").write_text(json.dumps(fixture, ensure_ascii=False, separators=(",", ":")))
         print(fixture["id"], r["path"], len(phonemes), "phonemes")
 

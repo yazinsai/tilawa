@@ -176,6 +176,35 @@ const fullAyah = (label: ProposedLabel, lastWord: (s: number, a: number) => numb
 };
 const ayahs = (s: WordSpan) => [s.start, s.end].map((r: WordRef) => `${r.surah}:${r.ayah}`).join("-");
 
+/** A clip accepted for training, with the span to train on. */
+export interface EligibleClip {
+  labelKind: "accepted";
+  shard: string;
+  row: number;
+  path: string;
+  span: WordSpan;
+  /** `human`: a reviewer's blind span, which overrides the tracker. `tracker`: a lock at or above the adopted confidence. */
+  source: "human" | "tracker";
+  confidence: number | null;
+}
+
+/**
+ * Locks at or above `minConfidence`, with reviewed clips taking the reviewer's answer instead: their span when they
+ * heard one (even where the tracker didn't lock), and nothing when they heard no Quran. `unsure` falls back to the rule.
+ */
+export function eligibleClips(labels: ProposedLabel[], answers: ReviewAnswer[], minConfidence: number): EligibleClip[] {
+  const latest = latestAnswers(answers);
+  const out: EligibleClip[] = [];
+  for (const l of labels) {
+    const a = latest.get(`${l.shard}:${l.row}`);
+    const base = { labelKind: "accepted" as const, shard: l.shard, row: l.row, path: l.path, confidence: l.confidence };
+    if (a && a.verdict === "span" && a.span) out.push({ ...base, span: a.span, source: "human" });
+    else if (a && a.verdict === "not_recitation") continue;
+    else if (l.state === "locked" && l.proposed && (l.confidence ?? 0) >= minConfidence) out.push({ ...base, span: l.proposed, source: "tracker" });
+  }
+  return out;
+}
+
 export interface Score {
   run: string;
   edgeWords: number;

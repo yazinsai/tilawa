@@ -37,7 +37,8 @@ export interface Fixture {
   provenance: SyntheticProvenance | TlogProvenance;
   evidence: PhonemeEvidence[];
   /** Asserted only for synthetic fixtures and audio-verified real clips. */
-  expect?: { state: TrackerState; span?: WordSpan };
+  /** `edgeWords`: span edges may differ by this many words, for reviewer spans whose half-word edges vary. */
+  expect?: { state: TrackerState; span?: WordSpan; edgeWords?: number };
 }
 
 export function isAssertable(f: Fixture): boolean {
@@ -60,7 +61,7 @@ const fmt = (r: WordRef) => `${r.surah}:${r.ayah}:${r.word}`;
 export const formatSpan = (s: WordSpan) => `${fmt(s.start)}–${fmt(s.end)}`;
 
 /** Human-readable mismatches between a fixture's expectation and its replayed events. */
-export function diffExpectation(fixture: Fixture, events: EngineEvent[]): string[] {
+export function diffExpectation(fixture: Fixture, events: EngineEvent[], index?: ReferenceIndex): string[] {
   if (!fixture.expect) return [];
   const final = finalPosition(events);
   if (!final) return ["no position event emitted"];
@@ -70,9 +71,18 @@ export function diffExpectation(fixture: Fixture, events: EngineEvent[]): string
     const got = final.observed[0]?.span;
     const want = formatSpan(fixture.expect.span);
     if (!got) problems.push(`span: expected ${want}, got none`);
-    else if (formatSpan(got) !== want) problems.push(`span: expected ${want}, got ${formatSpan(got)}`);
+    else if (!spanWithin(got, fixture.expect.span, fixture.expect.edgeWords ?? 0, index)) {
+      problems.push(`span: expected ${want}${fixture.expect.edgeWords ? ` ±${fixture.expect.edgeWords} words` : ""}, got ${formatSpan(got)}`);
+    }
   }
   return problems;
+}
+
+function spanWithin(got: WordSpan, want: WordSpan, edgeWords: number, index?: ReferenceIndex): boolean {
+  if (!edgeWords) return formatSpan(got) === formatSpan(want);
+  if (!index) throw new Error("an edgeWords expectation needs the reference index");
+  const at = (r: WordRef) => index.words.findIndex((w) => w.surah === r.surah && w.ayah === r.ayah && w.word === r.word);
+  return Math.abs(at(got.start) - at(want.start)) <= edgeWords && Math.abs(at(got.end) - at(want.end)) <= edgeWords;
 }
 
 const FRAMES_PER_PHONEME = 3;

@@ -94,7 +94,7 @@ describe("fixture harness", () => {
   });
 
   it.each(synthetic.filter(isAssertable).map((f) => [f.id, f] as const))("%s meets its expectation", (_, f) => {
-    expect(diffExpectation(f, replay(index, f))).toEqual([]);
+    expect(diffExpectation(f, replay(index, f), index)).toEqual([]);
   });
 
   // Verified clips the tracker still gets wrong; each must move out of this list once fixed.
@@ -102,17 +102,25 @@ describe("fixture harness", () => {
     // Mid-word starts on short clips: the true ayah fits but isn't separated from look-alikes elsewhere.
     "tlog-clean-00000-of-00411-450",
     "tlog-clean-00000-of-00411-680",
+    // Blind review (ticket 07): the teacher dropped 2+ words at a clip edge, so the span is short.
+    ...[20, 28, 805, 925].map((r) => `tlog-clean-00000-of-00411-${r}`),
+    // Blind review: a repeated ayah is stretched over the next one instead of staying put.
+    "tlog-clean-00000-of-00411-597",
+    // Blind review: the span runs 2 words past the reviewer's end.
+    "tlog-clean-00000-of-00411-323",
+    // Blind review: clean recitation the tracker won't lock (acquiring, ambiguous or lost).
+    ...[7, 18, 53, 126, 201, 246, 536, 913].map((r) => `tlog-clean-00000-of-00411-${r}`),
   ]);
   const verified = tlogFixtures.filter(isAssertable);
 
   it.each(verified.filter((f) => !pending.has(f.id)).map((f) => [f.id, f] as const))("%s (audio-verified) meets its expectation", (_, f) => {
-    expect(diffExpectation(f, replay(index, f))).toEqual([]);
+    expect(diffExpectation(f, replay(index, f), index)).toEqual([]);
   });
 
   it.fails.each(verified.filter((f) => pending.has(f.id)).map((f) => [f.id, f] as const))(
     "%s (audio-verified) meets its expectation — known failure",
     (_, f) => {
-      expect(diffExpectation(f, replay(index, f))).toEqual([]);
+      expect(diffExpectation(f, replay(index, f), index)).toEqual([]);
     },
   );
 

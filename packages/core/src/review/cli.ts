@@ -4,12 +4,13 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 import type { ReferenceAsset } from "../reference.js";
 import type { ProposedLabel } from "../relabel/index.js";
-import { STRATA, drawSample, latestAnswers, score } from "./index.js";
+import { STRATA, drawSample, eligibleClips, latestAnswers, score } from "./index.js";
 import type { ReviewAnswer, Sample, Score, WordOrder } from "./index.js";
 
 const USAGE = `usage:
   review sample --labels <proposed-labels.jsonl> [--posterior-labels <proposed-labels.posteriors.jsonl>] --dir <dir> [--seed 1]
   review serve  --dir <dir> [--port 5177]
+  review eligible --dir <dir> --labels <proposed-labels.jsonl> --min-confidence <t>
   review score  --dir <dir> --labels <proposed-labels.jsonl> [--posterior-labels <...>] [--target 0.98] [--edge-words 1]`;
 
 const { values, positionals } = parseArgs({
@@ -22,6 +23,7 @@ const { values, positionals } = parseArgs({
     port: { type: "string", default: "5177" },
     target: { type: "string", default: "0.98" },
     "edge-words": { type: "string", default: "1" },
+    "min-confidence": { type: "string" },
   },
 });
 const fail = (msg: string): never => {
@@ -125,6 +127,16 @@ switch (positionals[0]) {
     const md = scores.map((s) => report(s, target)).join("\n\n");
     writeFileSync(join(dir, "score.md"), md + "\n");
     console.log(md);
+    break;
+  }
+
+  case "eligible": {
+    const t = Number(values["min-confidence"] ?? fail("--min-confidence is required"));
+    const labels = readJsonl<ProposedLabel>(values.labels ?? fail("--labels is required"));
+    const clips = eligibleClips(labels, readJsonl<ReviewAnswer>(answersPath), t);
+    writeFileSync(join(dir, "eligible.jsonl"), clips.map((c) => JSON.stringify(c)).join("\n") + "\n");
+    const human = clips.filter((c) => c.source === "human").length;
+    console.log(`${clips.length} of ${labels.length} clips eligible at min confidence ${t} (${human} from review) -> ${join(dir, "eligible.jsonl")}`);
     break;
   }
 
