@@ -46,6 +46,16 @@ export class PosteriorFrames {
     }
   }
 
+  /** Forget rows before `frame`. */
+  dropBefore(frame: number) {
+    const drop = Math.min(this.ids.length / Math.max(1, this.k), frame - this.start);
+    if (drop <= 0) return;
+    this.ids.splice(0, drop * this.k);
+    this.probs.splice(0, drop * this.k);
+    this.start += drop;
+    for (const f of this.cache.keys()) if (f < this.start) this.cache.delete(f);
+  }
+
   /** Whether token `id` is among the listed top-k at `frame`. */
   lists(frame: number, id: number): boolean {
     const r = (frame - this.start) * this.k;

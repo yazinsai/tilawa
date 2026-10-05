@@ -5,6 +5,8 @@ import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { EngineEvent, PositionCandidate, PositionEvent, TrackerState, TrackerTrace, WordRef } from "./events.js";
 import { EvidenceError } from "./evidence.js";
 import type { PhonemeEvidence } from "./evidence.js";
+import { createLocalSearch } from "./local.js";
+import type { LocalSearch } from "./local.js";
 import type { ReferenceIndex } from "./reference.js";
 
 export interface TrackerOptions {
@@ -32,6 +34,11 @@ export interface TrackerOptions {
   prior?: { surah: number; ayah: number; weight: number };
   /** Attach shortlist, state transition and alignment path to every position event. */
   trace?: boolean;
+  /**
+   * While acquiring, at most this many earlier phonemes are kept when a new chunk arrives; the chunk itself is always
+   * searched whole, so a single-push clip is unaffected. Default 512.
+   */
+  maxHistory?: number;
 }
 
 export interface Tracker {
@@ -62,7 +69,6 @@ const MAX_PRIOR_BONUS = UNIT / 2;
 const NATS_PER_EDIT = 3;
 /** Posteriors are rejected when fewer decoded phonemes than this appear in the top-k over their frames. */
 const MIN_LISTED = 0.5;
-
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
   const maxGramOccurrences = options.maxGramOccurrences ?? 5000;
   const maxCandidates = options.maxCandidates ?? 64;
@@ -89,6 +95,13 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   let frameMs: number | null = null;
   let lastFrame = 0;
   let last: PositionEvent | null = null;
+  const maxHistory = options.maxHistory ?? 512;
+  /** Set once locked: from then on the tracker follows the reciter locally, phoneme by phoneme. */
+  let local: LocalSearch | null = null;
+  let lockedOn: Match | null = null;
+  /** The event that reported the lock, kept with its trace until a local event replaces it. */
+  let lockEvent: PositionEvent | null = null;
+  let followed = false;
 
   const validate = (e: PhonemeEvidence) => {
     if (e.inventory !== index.inventoryId) {
@@ -293,6 +306,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       state,
     };
     const changed = !last || JSON.stringify({ ...last, timeMs: 0 }) !== JSON.stringify({ ...event, timeMs: 0 });
+    if (state === "locked" && !final) lockedOn = top.m;
     if (!changed && !final) return [];
     const from = last?.state ?? null;
     last = event;
@@ -314,22 +328,88 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     return [{ ...event, trace }];
   };
 
+  const localTrace = (from: TrackerState): TrackerTrace => ({ shortlist: [], transition: { from, to: "locked" }, path: null, decision: null });
+
+  /** One event per change of word, run start or state; confidence and cost ride along without forcing an event. */
+  const follow = (evidence: PhonemeEvidence): EngineEvent[] => {
+    const search = local!;
+    const events: EngineEvent[] = [];
+    for (const ph of evidence.phonemes) {
+      search.step(ph.p);
+      lastFrame = Math.max(lastFrame, ph.end + 1);
+      const pos = search.position();
+      const word = ref(index.wordAt(pos.offset - 1));
+      const length = pos.offset - pos.origin;
+      const per = length ? pos.edits / length : 0;
+      const confidence = Math.max(0, 1 - per / maxPer) * Math.max(0, 1 - pos.recentCost / maxCost);
+      const candidate: PositionCandidate = { word, span: { start: ref(index.wordAt(pos.origin)), end: word }, confidence, cost: pos.recentCost, per };
+      const prev = last!.observed[0];
+      if (last!.state === "locked" && JSON.stringify([prev.word, prev.span.start]) === JSON.stringify([word, candidate.span.start])) continue;
+      const event: PositionEvent = {
+        type: "position",
+        v: EVENT_SCHEMA_VERSION,
+        timeMs: lastFrame * evidence.frameMs,
+        referenceVersion: index.version,
+        expected: word,
+        observed: [candidate],
+        state: "locked",
+      };
+      const from = last!.state;
+      last = event;
+      followed = true;
+      events.push(options.trace ? { ...event, trace: localTrace(from) } : event);
+    }
+    return events;
+  };
+
+  /** Drop all but `maxHistory` phonemes of earlier chunks, and the posterior rows before what's kept. */
+  const trimHistory = () => {
+    const drop = observed.length - maxHistory;
+    if (drop <= 0) return;
+    observed = observed.slice(drop);
+    observedConf = observedConf.slice(drop);
+    observedFrames.splice(0, drop);
+    posteriors?.dropBefore(observedFrames[0].start);
+  };
+
   return {
     push(evidence) {
       validate(evidence);
+      frameMs = evidence.frameMs;
+      if (local) {
+        if (!evidence.posteriors) decodedOnly = true;
+        return follow(evidence);
+      }
+      trimHistory();
       if (evidence.posteriors) (posteriors ??= new PosteriorFrames(index.tokens.size)).append(evidence.posteriors);
       else decodedOnly = true;
-      frameMs = evidence.frameMs;
       for (const ph of evidence.phonemes) {
         observedFrames.push({ start: ph.start, end: ph.end });
         observed += ph.p;
         observedConf.push(ph.conf);
         lastFrame = Math.max(lastFrame, ph.end + 1);
       }
-      return evaluate(false);
+      const events = evaluate(false);
+      if (lockedOn) {
+        lockEvent = events.at(-1) as PositionEvent;
+        const m = lockedOn;
+        local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+        observed = "";
+        observedConf = [];
+        observedFrames.length = 0;
+      }
+      return events;
     },
     end() {
-      return evaluate(true);
+      if (!local) return evaluate(true);
+      const timeMs = lastFrame * (frameMs ?? 0);
+      // Nothing followed the lock: its event, with the global search's trace, is still the answer.
+      if (!followed) {
+        const e = { ...lockEvent!, timeMs };
+        return [e.trace ? { ...e, trace: { ...e.trace, transition: { from: "locked" as const, to: "locked" as const } } } : e];
+      }
+      const final = { ...last!, timeMs };
+      return [options.trace ? { ...final, trace: localTrace(final.state) } : final];
     },
   };
 }

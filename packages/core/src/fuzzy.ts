@@ -26,7 +26,7 @@ const GHUNNA_DOUBLED = new Set(["ن", "م"]);
  * Whether a run of `p` that is `run` long before an edit and `run ± 1` after it is still the same sound, held
  * longer or shorter. A doubled noon or meem shorter than 3 is a shadda, so shortening it is a real error.
  */
-function isLengthening(p: string, run: number): boolean {
+export function isLengthening(p: string, run: number): boolean {
   if (MADD_LETTERS.has(p) || GHUNNA_RUNS.has(p)) return run >= 2;
   if (GHUNNA_DOUBLED.has(p)) return run >= 3;
   return false;
@@ -53,14 +53,14 @@ export function collapseHeld(tokens: string[]): string[] {
   return out;
 }
 
-function indelCost(p: string, lengthening: boolean): number {
+export function indelCost(p: string, lengthening: boolean): number {
   if (lengthening) return LENGTH_CHANGE;
   if (SHORT_VOWELS.has(p)) return SHORT_VOWEL;
   return UNIT;
 }
 
 /** Length of the run of `s[k]` that contains `k`. */
-function runAt(s: string, k: number): number {
+export function runAt(s: string, k: number): number {
   let a = k;
   let b = k;
   while (a > 0 && s[a - 1] === s[k]) a--;
