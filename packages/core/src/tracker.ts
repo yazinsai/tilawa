@@ -11,8 +11,24 @@ export interface TrackerOptions {
   /** Grams occurring more often than this carry too little location information to vote. */
   maxGramOccurrences?: number;
   maxCandidates?: number;
-  /** Candidates whose phoneme error rate exceeds this are discarded; with none left the tracker is lost. */
+  /** Fit: a candidate fits only with PER at most this. Default 0.35. */
   maxPer?: number;
+  /** Fit: and weighted cost per observed phoneme at most this. Default 0.35. */
+  maxCost?: number;
+  /** Evidence: `locked` needs at least this many observed phonemes. Default 10. */
+  minPhonemes?: number;
+  /** Evidence: and a span of at least this many words. Default 2. */
+  minWords?: number;
+  /**
+   * Separation: `locked` needs the best distinct candidate to trail by `max(minSeparation, separationScale / n)`
+   * plain edits for `n` observed phonemes, so short clips need a wider margin. Defaults 1 and 30.
+   */
+  minSeparation?: number;
+  separationScale?: number;
+  /** `locked` also needs the top candidate's confidence at least this; a unique but poor fit stays `acquiring`. Default 0.08. */
+  minLockConfidence?: number;
+  /** Bonus for the intended or filename ayah (full) and its neighbours (half). Bounded so it can't override fit or separation. */
+  prior?: { surah: number; ayah: number; weight: number };
   /** Attach shortlist, state transition and alignment path to every position event. */
   trace?: boolean;
 }
@@ -34,11 +50,20 @@ interface Match {
 }
 
 const MAX_BASMALA_PER = 0.25;
+/** The largest prior bonus, in `UNIT`s; below `minSeparation` so a prior alone never separates. */
+const MAX_PRIOR_BONUS = UNIT / 2;
 
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
   const maxGramOccurrences = options.maxGramOccurrences ?? 5000;
   const maxCandidates = options.maxCandidates ?? 64;
   const maxPer = options.maxPer ?? 0.35;
+  const maxCost = options.maxCost ?? 0.35;
+  const minPhonemes = options.minPhonemes ?? 10;
+  const minWords = options.minWords ?? 2;
+  const minSeparation = options.minSeparation ?? 1;
+  const separationScale = options.separationScale ?? 30;
+  const minLockConfidence = options.minLockConfidence ?? 0.08;
+  const prior = options.prior;
   const wordStarts = new Set(index.words.map((w) => w.start));
   const isWordStart = (offset: number) => wordStarts.has(offset);
   const fatiha = index.words.filter((w) => w.surah === 1 && w.ayah === 1);
@@ -138,19 +163,55 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
 
   const normCost = (m: Match) => m.cost / UNIT / observed.length;
 
+  const firstWord = (m: Match) => index.wordAt(m.offset);
+  const lastWord = (m: Match) => index.wordAt(m.offset + Math.max(0, m.length - 1));
+
   const toCandidate = (m: Match, confidence: number): PositionCandidate => {
-    const end = ref(index.wordAt(m.offset + Math.max(0, m.length - 1)));
-    return { word: end, span: { start: ref(index.wordAt(m.offset)), end }, confidence, cost: normCost(m), per: m.per, ...(m.basmala ? { prefix: "basmala" as const } : {}) };
+    const end = ref(lastWord(m));
+    return { word: end, span: { start: ref(firstWord(m)), end }, confidence, cost: normCost(m), per: m.per, ...(m.basmala ? { prefix: "basmala" as const } : {}) };
   };
+
+  const priorBonus = (m: Match): number => {
+    if (!prior) return 0;
+    let best = 0;
+    for (let i = firstWord(m); i <= lastWord(m); i++) {
+      const w = index.words[i];
+      if (w.surah !== prior.surah) continue;
+      const d = Math.abs(w.ayah - prior.ayah);
+      best = Math.max(best, d === 0 ? 1 : d === 1 ? 0.5 : 0);
+    }
+    return best * MAX_PRIOR_BONUS * Math.min(1, Math.max(0, prior.weight));
+  };
+
+  /** Overlapping or touching ranges describe one location, e.g. shifted spans of the same ayah. */
+  const sameLocation = (a: Match, b: Match) => a.offset <= b.offset + b.length && b.offset <= a.offset + a.length;
 
   const evaluate = (final: boolean): EngineEvent[] => {
     if (!observed) return [];
     const matches = locate();
-    // Anything closer to the best than one confusable substitution is indistinguishable from it.
-    const tied = matches.filter((m) => m.cost - matches[0].cost < UNIT / 2);
-    const state: TrackerState = tied.length === 0 ? "lost" : tied.length === 1 ? "locked" : "ambiguous";
-    const confidence = tied.length ? 1 / tied.length : 0;
-    const candidates = tied.map((m) => toCandidate(m, confidence));
+    const scored = matches.map((m) => ({ m, score: m.cost - priorBonus(m) })).sort((a, b) => a.score - b.score || a.m.offset - b.m.offset);
+    const distinct: typeof scored = [];
+    for (const c of scored) if (!distinct.some((k) => sameLocation(k.m, c.m))) distinct.push(c);
+    const fitting = distinct.filter((c) => c.m.per <= maxPer && normCost(c.m) <= maxCost);
+
+    const n = observed.length;
+    const required = UNIT * Math.max(minSeparation, separationScale / n);
+    // How far each candidate leads the best other fitting candidate; negative when it trails.
+    const lead = (c: (typeof fitting)[number]) => Math.min(...fitting.filter((o) => o !== c).map((o) => o.score - c.score), Infinity);
+    const top = fitting[0];
+    const separated = top !== undefined && lead(top) >= required;
+    const confidence = (c: (typeof fitting)[number]) => {
+      const fit = Math.max(0, 1 - c.m.per / maxPer) * Math.max(0, 1 - normCost(c.m) / maxCost);
+      const separation = Math.min(1, Math.max(0, 0.5 + lead(c) / (2 * required)));
+      return fit * separation;
+    };
+    const enough =
+      n >= minPhonemes && top !== undefined && lastWord(top.m) - firstWord(top.m) + 1 >= minWords && confidence(top) >= minLockConfidence;
+    const state: TrackerState = !top ? "lost" : !separated ? "ambiguous" : !enough ? "acquiring" : "locked";
+
+    // Ambiguous lists every candidate within the margin of the best; otherwise only the best.
+    const shown = !top ? [] : separated ? [top] : fitting.filter((c) => c.score - top.score < required);
+    const candidates = shown.map((c) => toCandidate(c.m, confidence(c)));
     const event: PositionEvent = {
       type: "position",
       v: EVENT_SCHEMA_VERSION,
@@ -165,9 +226,9 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     const from = last?.state ?? null;
     last = event;
     if (!options.trace) return [event];
-    const top = matches[0];
+    const best = scored[0]?.m;
     const trace: TrackerTrace = {
-      shortlist: matches.map((m) => ({
+      shortlist: scored.map(({ m }) => ({
         span: toCandidate(m, 0).span,
         offset: m.offset,
         length: m.length,
@@ -176,7 +237,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         per: m.per,
       })),
       transition: { from, to: state },
-      path: top ? top.path : null,
+      path: best ? best.path : null,
     };
     return [{ ...event, trace }];
   };
