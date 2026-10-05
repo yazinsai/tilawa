@@ -1,25 +1,5 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`fixture harness > tlog-clean-00000-of-00411-31 (unverified) matches its regression snapshot 1`] = `
-{
-  "spans": [
-    {
-      "end": {
-        "ayah": 1,
-        "surah": 97,
-        "word": 5,
-      },
-      "start": {
-        "ayah": 1,
-        "surah": 97,
-        "word": 1,
-      },
-    },
-  ],
-  "state": "locked",
-}
-`;
-
 exports[`fixture harness > tlog-clean-00000-of-00411-51 (unverified) matches its regression snapshot 1`] = `
 {
   "spans": [
@@ -33,46 +13,6 @@ exports[`fixture harness > tlog-clean-00000-of-00411-51 (unverified) matches its
         "ayah": 5,
         "surah": 102,
         "word": 2,
-      },
-    },
-  ],
-  "state": "locked",
-}
-`;
-
-exports[`fixture harness > tlog-clean-00000-of-00411-160 (unverified) matches its regression snapshot 1`] = `
-{
-  "spans": [
-    {
-      "end": {
-        "ayah": 1,
-        "surah": 100,
-        "word": 2,
-      },
-      "start": {
-        "ayah": 8,
-        "surah": 99,
-        "word": 6,
-      },
-    },
-  ],
-  "state": "locked",
-}
-`;
-
-exports[`fixture harness > tlog-clean-00000-of-00411-199 (unverified) matches its regression snapshot 1`] = `
-{
-  "spans": [
-    {
-      "end": {
-        "ayah": 1,
-        "surah": 100,
-        "word": 2,
-      },
-      "start": {
-        "ayah": 8,
-        "surah": 99,
-        "word": 6,
       },
     },
   ],
@@ -190,26 +130,6 @@ exports[`fixture harness > tlog-clean-00000-of-00411-680 (unverified) matches it
         "ayah": 132,
         "surah": 7,
         "word": 3,
-      },
-    },
-  ],
-  "state": "locked",
-}
-`;
-
-exports[`fixture harness > tlog-clean-00000-of-00411-875 (unverified) matches its regression snapshot 1`] = `
-{
-  "spans": [
-    {
-      "end": {
-        "ayah": 6,
-        "surah": 100,
-        "word": 3,
-      },
-      "start": {
-        "ayah": 6,
-        "surah": 100,
-        "word": 2,
       },
     },
   ],
