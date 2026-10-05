@@ -82,7 +82,7 @@ Untagged-license data: training accepted at our risk. NC-tagged and Quran-Lab da
 
 ## Ground truth (no labelling budget)
 
-- **Scripted-error recordings:** 5–15 volunteers reading generated scripts with planted errors, so labels are known by construction. Mixed gender, mostly non-Arab, several phones. Held out by speaker.
+- **Scripted-error recordings:** 5–15 volunteers reading generated scripts with planted errors, so labels are known by construction. Mixed gender, mostly non-Arab, several phones. Held out by speaker. Consent covers commercial training as well as evaluation; the audio is stored privately, never in git.
 - **RetaSy clips:** flagged by the pipeline, then reviewed word by word.
 - **Mined tlog `deviant` clips:** become natural errors once reviewed.
 - **After launch:** an opt-in "report wrong feedback" button.
@@ -100,7 +100,7 @@ Untagged-license data: training accepted at our risk. NC-tagged and Quran-Lab da
 |---|---|
 | Memorization events | Precision ≥ 90%, recall ≥ 80% on the scripted-error test; ≤ 1 false warning per 5 min of correct recitation |
 | Each pronunciation class | Precision ≥ 80% at whatever recall it achieves; otherwise `unsupported` |
-| Tracker | Correct ayah within 5 s in ≥ 95% of starts; ≤ 2% false jumps |
+| Tracker | Correct ayah within 5 s in ≥ 95% of starts; ≤ 2% false jumps. Measured on scripted-error recordings and ambiguous tlog clips; QUD is a regression report, not a gate |
 | Latency | Word highlight p95 ≤ 600 ms on the device floor; `suspected` within ~1 s; `confirmed` within 2–3 s or at the next word onset (the confirm delay is a policy setting) |
 
 ## Budget
