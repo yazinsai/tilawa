@@ -206,13 +206,15 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     const prefixEnd = m.basmala ? m.prefixEnd! : 0;
     for (let j = 0; j < prefixEnd; j++) labels.push(observed[j]);
     let edits = (m.basmala ? m.prefixCost! : 0) + (isWordStart(m.offset) ? 0 : MID_WORD_START);
-    for (const o of m.path) {
+    const token = (o: AlignmentOp | undefined) => (!o ? undefined : o.op === "ins" ? o.obs : o.ref);
+    m.path.forEach((o, i) => {
       if (o.op === "ins") {
         // An inserted held sound beside the same sound only lengthens it; the collapse drops it, so don't charge it.
-        if (!(isHeld(o.obs) && labels.at(-1) === o.obs)) edits += UNIT * observedConf[o.obsAt];
+        const lengthens = isHeld(o.obs) && (labels.at(-1) === o.obs || token(m.path[i + 1]) === o.obs);
+        if (!lengthens) edits += UNIT * observedConf[o.obsAt];
         labels.push(o.obs);
       } else labels.push(o.ref);
-    }
+    });
     const nll = frames.nll(toIds(labels), from, to);
     if (!Number.isFinite(nll) || !Number.isFinite(self)) return m.cost;
     return Math.max(0, edits + ((nll - self) * UNIT) / NATS_PER_EDIT);

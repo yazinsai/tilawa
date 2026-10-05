@@ -51,6 +51,21 @@ describe("posterior reranking", () => {
     expect(reranked.observed[0].span.start.ayah).toBe(39);
   });
 
+  it.each([
+    ["shortened", -1],
+    ["lengthened", 1],
+  ])("doesn't charge a %s held sound", (_, delta) => {
+    // 2:255 words 3..12, with its first madd run held one step shorter or longer.
+    const words = index.words.filter((w) => w.surah === 2 && w.ayah === 255 && w.word >= 3 && w.word <= 12);
+    const ref = index.phonemes.slice(words[0].start, words.at(-1)!.end);
+    const at = ref.search(/ا{2,}/);
+    expect(at).toBeGreaterThan(-1);
+    const recited = delta < 0 ? ref.slice(0, at) + ref.slice(at + 1) : ref.slice(0, at) + "ا" + ref.slice(at);
+    const e = run([withPosteriors(index, decoded(recited))]);
+    expect(e.state).toBe("locked");
+    expect(e.observed[0].cost).toBe(0);
+  });
+
   it("only reorders candidates that retrieval produced", () => {
     for (const f of tlog) {
       const stripped = { ...f, evidence: f.evidence.map(({ posteriors: _, ...e }) => e) };

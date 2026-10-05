@@ -18,24 +18,22 @@ export function subCost(ref: string, obs: string): number {
   return UNIT;
 }
 
-/** Ghunna is written as a run: `ں` for ikhfaa, `نننن`/`مممم` for a mushaddad noon or meem. */
-const GHUNNA_RUN = "ں";
+/** Ghunna is written as a run: `ں` for ikhfaa, `۾` for ikhfaa shafawi, `نننن`/`مممم` for a mushaddad noon or meem. */
+const GHUNNA_RUNS = new Set(["ں", "۾"]);
 const GHUNNA_DOUBLED = new Set(["ن", "م"]);
-/** Meem ghunna (ikhfaa shafawi) run. The decoded alignment doesn't yet treat its length as cheap. */
-const MEEM_GHUNNA_RUN = "۾";
 
 /**
  * Whether a run of `p` that is `run` long before an edit and `run ± 1` after it is still the same sound, held
  * longer or shorter. A doubled noon or meem shorter than 3 is a shadda, so shortening it is a real error.
  */
 function isLengthening(p: string, run: number): boolean {
-  if (MADD_LETTERS.has(p) || p === GHUNNA_RUN) return run >= 2;
+  if (MADD_LETTERS.has(p) || GHUNNA_RUNS.has(p)) return run >= 2;
   if (GHUNNA_DOUBLED.has(p)) return run >= 3;
   return false;
 }
 
 /** Sounds whose held length varies between reciters; runs of them collapse before posterior scoring. */
-const HELD = new Set([...MADD_LETTERS, GHUNNA_RUN, MEEM_GHUNNA_RUN]);
+const HELD = new Set([...MADD_LETTERS, ...GHUNNA_RUNS]);
 export const isHeld = (p: string) => HELD.has(p);
 
 /**
