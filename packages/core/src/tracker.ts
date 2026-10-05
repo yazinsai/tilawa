@@ -1,6 +1,6 @@
 import type { AlignmentOp } from "./align.js";
 import { PosteriorFrames } from "./ctc.js";
-import { MID_WORD_START, UNIT, alignSubstring, collapseHeld } from "./fuzzy.js";
+import { MID_WORD_START, UNIT, alignSubstring, collapseHeld, isHeld } from "./fuzzy.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { EngineEvent, PositionCandidate, PositionEvent, TrackerState, TrackerTrace, WordRef } from "./events.js";
 import { EvidenceError } from "./evidence.js";
@@ -193,12 +193,12 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     return [...byStart.values()].sort((a, b) => a.cost - b.cost || a.offset - b.offset);
   };
 
+  const toIds = (tokens: string[]) => collapseHeld(tokens).map((t) => tokenIds.get(t)!);
   /**
    * Reranking cost: the CTC likelihood, over every frame of the evidence, of the candidate's alignment read as labels
    * (reference tokens where it matches, substitutes or deletes; observed tokens where it inserts), relative to the
    * decoded sequence. Insertions, a mid-word start and a basmala prefix add their decoded costs on top.
    */
-  const toIds = (tokens: string[]) => collapseHeld(tokens).map((t) => tokenIds.get(t)!);
   const posteriorCost = (frames: PosteriorFrames, m: Match, self: number): number => {
     const from = observedFrames[0].start;
     const to = observedFrames.at(-1)!.end + 1;
@@ -208,8 +208,9 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     let edits = (m.basmala ? m.prefixCost! : 0) + (isWordStart(m.offset) ? 0 : MID_WORD_START);
     for (const o of m.path) {
       if (o.op === "ins") {
+        // An inserted held sound beside the same sound only lengthens it; the collapse drops it, so don't charge it.
+        if (!(isHeld(o.obs) && labels.at(-1) === o.obs)) edits += UNIT * observedConf[o.obsAt];
         labels.push(o.obs);
-        edits += UNIT * observedConf[o.obsAt];
       } else labels.push(o.ref);
     }
     const nll = frames.nll(toIds(labels), from, to);

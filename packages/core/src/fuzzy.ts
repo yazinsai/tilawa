@@ -21,6 +21,8 @@ export function subCost(ref: string, obs: string): number {
 /** Ghunna is written as a run: `ں` for ikhfaa, `نننن`/`مممم` for a mushaddad noon or meem. */
 const GHUNNA_RUN = "ں";
 const GHUNNA_DOUBLED = new Set(["ن", "م"]);
+/** Meem ghunna (ikhfaa shafawi) run. The decoded alignment doesn't yet treat its length as cheap. */
+const MEEM_GHUNNA_RUN = "۾";
 
 /**
  * Whether a run of `p` that is `run` long before an edit and `run ± 1` after it is still the same sound, held
@@ -33,7 +35,8 @@ function isLengthening(p: string, run: number): boolean {
 }
 
 /** Sounds whose held length varies between reciters; runs of them collapse before posterior scoring. */
-const HELD = new Set([...MADD_LETTERS, GHUNNA_RUN, "۾"]);
+const HELD = new Set([...MADD_LETTERS, GHUNNA_RUN, MEEM_GHUNNA_RUN]);
+export const isHeld = (p: string) => HELD.has(p);
 
 /**
  * Collapse held-sound runs so CTC scoring doesn't charge length: a madd or ghunna run becomes one token, and a noon or

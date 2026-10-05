@@ -82,6 +82,7 @@ export class PosteriorFrames {
   /** CTC negative log-likelihood, in nats, of `labels` (token ids, no blanks) over frames `[from, to)`. */
   nll(labels: ArrayLike<number>, from: number, to: number): number {
     const L = labels.length;
+    if (to <= from) return L ? Infinity : 0;
     const S = 2 * L + 1;
     const label = (s: number) => (s % 2 === 0 ? 0 : labels[(s - 1) >> 1]);
     let prev = new Float64Array(S).fill(-Infinity);
