@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>tlog review</title>
+<link rel="icon" href="data:," />
+<style>
+  :root { --bg: #14161a; --panel: #1c1f25; --line: #2a2e36; --text: #e6e6e6; --dim: #8a8f99; --sel: #2f6f4f; --edge: #48b07a; --warn: #d9a441; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 -apple-system, system-ui, sans-serif; }
+  header { display: flex; gap: 16px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 2; }
+  header .bar { flex: 1; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  header .bar div { height: 100%; background: var(--edge); }
+  .dim { color: var(--dim); }
+  main { display: grid; grid-template-columns: 1fr 280px; gap: 16px; padding: 16px; }
+  .ayahs { display: flex; flex-direction: column; gap: 6px; }
+  .ayah { display: flex; gap: 12px; align-items: baseline; padding: 8px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; }
+  .ayah .key { flex: 0 0 28px; font: 600 13px ui-monospace, monospace; color: var(--dim); text-align: center; border: 1px solid var(--line); border-radius: 4px; padding: 2px 0; }
+  .ayah .words { direction: rtl; flex: 1; font: 26px/1.9 "KFGQPC HAFS Uthmanic Script", "Amiri Quran", "Geeza Pro", "Noto Naskh Arabic", serif; }
+  .w { cursor: pointer; padding: 0 3px; border-radius: 4px; }
+  .w:hover { outline: 1px solid var(--line); }
+  .w.in { background: var(--sel); }
+  .w.edge { background: var(--edge); color: #08130d; }
+  aside { display: flex; flex-direction: column; gap: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px; }
+  .answer { font: 600 18px ui-monospace, monospace; }
+  .answer.none { color: var(--warn); }
+  kbd { font: 12px ui-monospace, monospace; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; color: var(--text); background: var(--bg); }
+  .keys div { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
+  progress { width: 100%; }
+  .flash { animation: flash .35s; }
+  @keyframes flash { from { background: var(--edge); } }
+</style>
+</head>
+<body>
+<header>
+  <strong id="pos">–</strong>
+  <div class="bar"><div id="done"></div></div>
+  <span id="stats" class="dim"></span>
+</header>
+<main>
+  <div class="ayahs" id="ayahs"></div>
+  <aside>
+    <div class="card" id="card">
+      <div class="dim">Your answer</div>
+      <div class="answer none" id="answer">nothing marked</div>
+      <div class="dim" id="note"></div>
+      <div class="dim" id="saved"></div>
+    </div>
+    <div class="card">
+      <progress id="time" max="1" value="0"></progress>
+      <div class="dim" id="clock">0.0 / 0.0 s · 1×</div>
+    </div>
+    <div class="card keys">
+      <div><span>play / pause</span><kbd>space</kbd></div>
+      <div><span>replay from start</span><kbd>R</kbd></div>
+      <div><span>back / ahead 2 s</span><span><kbd>←</kbd> <kbd>→</kbd></span></div>
+      <div><span>slower / faster</span><span><kbd>↓</kbd> <kbd>↑</kbd></span></div>
+      <div><span>mark ayah 1–9, 10, 11</span><span><kbd>1</kbd>…<kbd>9</kbd> <kbd>0</kbd> <kbd>-</kbd></span></div>
+      <div><span>second ayah key = range</span><span><kbd>3</kbd> <kbd>4</kbd></span></div>
+      <div><span>first word − / +</span><span><kbd>A</kbd> <kbd>S</kbd></span></div>
+      <div><span>last word − / +</span><span><kbd>K</kbd> <kbd>L</kbd></span></div>
+      <div><span>pick words</span><span>click, shift-click</span></div>
+      <div><span>other surah</span><kbd>O</kbd></div>
+      <div><span>clear</span><kbd>C</kbd></div>
+      <div><span><b>save + next</b></span><kbd>enter</kbd></div>
+      <div><span>no Quran / unusable</span><kbd>X</kbd></div>
+      <div><span>can't tell (skipped)</span><kbd>U</kbd></div>
+      <div><span>note</span><kbd>N</kbd></div>
+      <div><span>previous / next clip</span><span><kbd>B</kbd> <kbd>F</kbd></span></div>
+      <div><span>first unanswered</span><kbd>J</kbd></div>
+    </div>
+  </aside>
+</main>
+<audio id="audio" preload="auto"></audio>
+<script>
+const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "="];
+const SPEEDS = [0.75, 1, 1.25, 1.5, 2];
+const $ = (id) => document.getElementById(id);
+const audio = $("audio");
+let clips = [], answers = {}, text = {}, lengths = {}, i = 0, span = null, note = "", started = 0, speed = 1, anchor = null;
+
+const key = (c) => `${c.shard}:${c.row}`;
+const ref = (r) => `${r.surah}:${r.ayah}:${r.word}`;
+const words = (s, a) => lengths[s]?.[a - 1] ?? 0;
+const cmp = (x, y) => x.surah - y.surah || x.ayah - y.ayah || x.word - y.word;
+
+async function load() {
+  const s = await (await fetch("/api/state")).json();
+  ({ clips, answers, text, lengths } = s);
+  i = Math.max(0, clips.findIndex((c) => !answers[key(c)]));
+  if (i === -1) i = 0;
+  show();
+}
+
+function show() {
+  const c = clips[i];
+  const prev = answers[key(c)];
+  span = prev?.span ?? null;
+  note = prev?.note ?? "";
+  anchor = span ? span.start.ayah : null;
+  started = performance.now();
+  audio.src = `/audio/${c.row}`;
+  audio.playbackRate = speed;
+  audio.play().catch(() => {});
+  render(prev);
+}
+
+function render(prev = answers[key(clips[i])]) {
+  const c = clips[i];
+  const done = Object.keys(answers).length;
+  $("pos").textContent = `clip ${i + 1} / ${clips.length}`;
+  $("done").style.width = `${(100 * done) / clips.length}%`;
+  const times = Object.values(answers).map((a) => a.ms).filter((m) => m > 0 && m < 120000);
+  const avg = times.length ? times.reduce((a, b) => a + b, 0) / times.length : 0;
+  const left = clips.length - done;
+  $("stats").textContent = `${done} done · ${left} left` + (avg ? ` · ${(avg / 1000).toFixed(1)} s/clip · ~${Math.ceil((avg * left) / 60000)} min to go` : "");
+
+  const ayahs = text[c.surah] ?? [];
+  $("ayahs").innerHTML = ayahs
+    .map((ws, a) => `<div class="ayah"><span class="key">${KEYS[a] ?? ""}</span><span class="words">${ws
+      .map((w, k) => `<span class="w" data-a="${a + 1}" data-w="${k + 1}">${w}</span>`)
+      .join(" ")}</span><span class="dim">${c.surah}:${a + 1}</span></div>`)
+    .join("");
+  for (const el of document.querySelectorAll(".w")) {
+    const r = { surah: c.surah, ayah: +el.dataset.a, word: +el.dataset.w };
+    if (span && cmp(r, span.start) >= 0 && cmp(r, span.end) <= 0) el.classList.add(cmp(r, span.start) === 0 || cmp(r, span.end) === 0 ? "edge" : "in");
+  }
+  const a = $("answer");
+  a.className = "answer" + (span ? "" : " none");
+  a.textContent = span ? (cmp(span.start, span.end) === 0 ? ref(span.start) : `${ref(span.start)} → ${ref(span.end)}`) : "nothing marked";
+  $("note").textContent = note ? `note: ${note}` : "";
+  $("saved").textContent = prev ? `saved: ${prev.verdict === "span" ? "span" : prev.verdict === "not_recitation" ? "no Quran" : "can't tell"}` : "";
+}
+
+const wholeAyah = (s, a) => ({ surah: s, ayah: a, word: 1 });
+const ayahEnd = (s, a) => ({ surah: s, ayah: a, word: words(s, a) });
+
+function markAyah(a) {
+  const s = clips[i].surah;
+  if (a > (lengths[s]?.length ?? 0)) return;
+  if (anchor === null || anchor === a || !span) {
+    anchor = a;
+    span = { start: wholeAyah(s, a), end: ayahEnd(s, a) };
+  } else {
+    const lo = Math.min(anchor, a), hi = Math.max(anchor, a);
+    span = { start: wholeAyah(s, lo), end: ayahEnd(s, hi) };
+  }
+  render();
+}
+
+/** Move one end of the span by one word, crossing into the neighbouring ayah if needed. */
+function nudge(which, d) {
+  if (!span) return;
+  const s = span[which].surah;
+  let { ayah, word } = span[which];
+  word += d;
+  if (word < 1) { if (ayah === 1) return; ayah--; word = words(s, ayah); }
+  if (word > words(s, ayah)) { if (ayah === (lengths[s]?.length ?? 0)) return; ayah++; word = 1; }
+  const next = { ...span, [which]: { surah: s, ayah, word } };
+  if (cmp(next.start, next.end) > 0) return;
+  span = next;
+  render();
+}
+
+function parseOther(v) {
+  const m = /^\s*(\d+):(\d+)(?::(\d+))?\s*(?:-\s*(?:(\d+):)?(\d+)(?::(\d+))?)?\s*$/.exec(v);
+  if (!m) return null;
+  const s = +m[1], a = +m[2];
+  const start = { surah: s, ayah: a, word: m[3] ? +m[3] : 1 };
+  const es = m[4] ? +m[4] : s, ea = m[5] ? +m[5] : a;
+  const ew = m[6] ? +m[6] : null;
+  if (!words(s, a) || !words(es, ea)) return null;
+  // Without a word, the end runs to the ayah's last word.
+  const end = { surah: es, ayah: ea, word: ew ?? words(es, ea) };
+  return { start, end };
+}
+
+async function save(verdict) {
+  const c = clips[i];
+  if (verdict === "span" && !span) return flash();
+  const a = { shard: c.shard, row: c.row, verdict, span: verdict === "span" ? span : null, ...(note ? { note } : {}), ms: Math.round(performance.now() - started) };
+  answers[key(c)] = a;
+  await fetch("/api/answer", { method: "POST", body: JSON.stringify(a) });
+  go(1);
+}
+
+function go(d) {
+  const n = i + d;
+  if (n < 0 || n >= clips.length) return render();
+  i = n;
+  show();
+}
+
+function flash() {
+  $("card").classList.remove("flash");
+  void $("card").offsetWidth;
+  $("card").classList.add("flash");
+}
+
+document.addEventListener("click", (e) => {
+  const el = e.target.closest(".w");
+  if (!el) return;
+  const r = { surah: clips[i].surah, ayah: +el.dataset.a, word: +el.dataset.w };
+  if (e.shiftKey && span) span = cmp(r, span.start) < 0 ? { start: r, end: span.end } : { start: span.start, end: r };
+  else span = { start: r, end: r };
+  anchor = r.ayah;
+  render();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  const ayah = KEYS.indexOf(e.key);
+  if (ayah !== -1) return markAyah(ayah + 1);
+  const handled = {
+    " ": () => (audio.paused ? audio.play() : audio.pause()),
+    r: () => { audio.currentTime = 0; audio.play(); },
+    ArrowLeft: () => (audio.currentTime = Math.max(0, audio.currentTime - 2)),
+    ArrowRight: () => (audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 2)),
+    ArrowUp: () => { speed = SPEEDS[Math.min(SPEEDS.length - 1, SPEEDS.indexOf(speed) + 1)]; audio.playbackRate = speed; },
+    ArrowDown: () => { speed = SPEEDS[Math.max(0, SPEEDS.indexOf(speed) - 1)]; audio.playbackRate = speed; },
+    a: () => nudge("start", -1),
+    s: () => nudge("start", 1),
+    k: () => nudge("end", -1),
+    l: () => nudge("end", 1),
+    c: () => { span = null; anchor = null; render(); },
+    o: () => {
+      const v = prompt("Where? e.g. 97:1  or  2:285-2:286  or  2:285:3-2:285:9", span ? `${ref(span.start)}-${ref(span.end)}` : "");
+      if (v === null) return;
+      const p = parseOther(v);
+      if (!p) return alert("Couldn't read that. Use surah:ayah[:word], optionally -surah:ayah[:word].");
+      span = p;
+      render();
+    },
+    n: () => { const v = prompt("Note", note); if (v !== null) { note = v.trim(); render(); } },
+    Enter: () => save("span"),
+    x: () => save("not_recitation"),
+    u: () => save("unsure"),
+    b: () => go(-1),
+    Backspace: () => go(-1),
+    f: () => go(1),
+    j: () => { const n = clips.findIndex((c) => !answers[key(c)]); if (n !== -1) { i = n; show(); } },
+  }[k];
+  if (!handled) return;
+  e.preventDefault();
+  handled();
+});
+
+audio.addEventListener("timeupdate", () => {
+  $("time").value = audio.duration ? audio.currentTime / audio.duration : 0;
+  $("clock").textContent = `${audio.currentTime.toFixed(1)} / ${(audio.duration || 0).toFixed(1)} s · ${speed}×`;
+});
+load();
+</script>
+</body>
+</html>

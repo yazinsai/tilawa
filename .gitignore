@@ -4,3 +4,4 @@ dist
 __pycache__
 .env
 .DS_Store
+.scratch/bookmark-tracker/review/audio/
