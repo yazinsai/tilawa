@@ -25,7 +25,7 @@ if (!(priorWeight >= 0 && priorWeight <= 1)) {
   process.exit(2);
 }
 
-const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../../assets/ref-v1.json", import.meta.url), "utf8"));
+const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../../assets/ref-v2.json", import.meta.url), "utf8"));
 const index = loadReferenceIndex(asset);
 const clips: Pass1Clip[] = readFileSync(positionals[0], "utf8")
   .split("\n")

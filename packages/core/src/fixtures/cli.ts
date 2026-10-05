@@ -6,7 +6,7 @@ import type { ReferenceAsset } from "../reference.js";
 import { diffExpectation, finalPosition, formatSpan, isAssertable, replay } from "./index.js";
 import type { Fixture } from "./index.js";
 
-const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../../assets/ref-v1.json", import.meta.url), "utf8"));
+const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../../assets/ref-v2.json", import.meta.url), "utf8"));
 const index = loadReferenceIndex(asset);
 
 const renderPath = (path: AlignmentOp[]) =>

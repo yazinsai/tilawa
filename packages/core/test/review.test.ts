@@ -6,6 +6,8 @@ import type { WordSpan } from "../src/events.js";
 
 const span = (a: number, b = a, sw = 1, ew = 4): WordSpan => ({ start: { surah: 100, ayah: a, word: sw }, end: { surah: 100, ayah: b, word: ew } });
 const lastWord = () => 4;
+/** Surah 100 with 4 words per ayah. */
+const order = { lastWord, ordinal: (r: { ayah: number; word: number }) => (r.ayah - 1) * 4 + r.word - 1 };
 
 let row = 0;
 const label = (o: Partial<ProposedLabel>): ProposedLabel => ({
@@ -96,7 +98,7 @@ describe("score", () => {
       answer(lost, span(3)),
       answer(unsure, null, "unsure"),
     ];
-    const s = score("t", sample, labels, answers, lastWord);
+    const s = score("t", sample, labels, answers, order, 0);
     const agrees = s.strata.find((x) => x.stratum === "agrees")!;
     expect(agrees.reviewed).toBe(3);
     expect(agrees.precision).toMatchObject({ k: 1, n: 3 });
@@ -111,6 +113,24 @@ describe("score", () => {
     expect(lostScore.missed).toMatchObject({ k: 1, n: 1 });
   });
 
+  it("counts a lock right when both edges are within one word, across ayah boundaries too", () => {
+    const shifted = agree();
+    const crossing = label({ proposed: span(2), pattern: "off by +1 ayah" });
+    const far = agree();
+    const labels = [shifted, crossing, far];
+    const answers = [
+      answer(shifted, span(1, 1, 2, 4)),
+      // The reviewer started on the previous ayah's last word: one word before 2:1.
+      answer(crossing, { start: { surah: 100, ayah: 1, word: 4 }, end: { surah: 100, ayah: 2, word: 4 } }),
+      answer(far, span(1, 1, 3, 4)),
+    ];
+    const s = score("t", drawSample(labels), labels, answers, order, 1);
+    const agrees = s.strata.find((x) => x.stratum === "agrees")!;
+    expect(agrees.precision).toMatchObject({ k: 1, n: 2 });
+    expect(agrees.exactPrecision).toMatchObject({ k: 0, n: 2 });
+    expect(s.strata.find((x) => x.stratum === "offset")!.precision).toMatchObject({ k: 1, n: 1 });
+  });
+
   it("weights strata by their share of the run, not of the sample", () => {
     // 90 agreeing clips, all right; 10 offset clips, all wrong. Review 5 of each.
     const good = Array.from({ length: 90 }, agree);
@@ -119,7 +139,7 @@ describe("score", () => {
     const sample = drawSample(labels, { quota: { agrees: 5, offset: 5 } });
     const byRow = new Map(labels.map((l) => [l.row, l]));
     const answers = sample.clips.map((c) => answer(byRow.get(c.row)!, c.stratum === "agrees" ? span(1) : span(3)));
-    const s = score("t", sample, labels, answers, lastWord);
+    const s = score("t", sample, labels, answers, order, 0);
     expect(s.weighted.precision.rate).toBeCloseTo(0.9);
     expect(s.sweep[0].coverage).toBeCloseTo(1);
   });
@@ -130,7 +150,7 @@ describe("score", () => {
     const labels = [...sure, ...shaky];
     const sample = drawSample(labels);
     const answers = labels.map((l) => answer(l, span(1)));
-    const s = score("t", sample, labels, answers, lastWord);
+    const s = score("t", sample, labels, answers, order, 0);
     const at = (t: number) => s.sweep.find((x) => x.minConfidence === t)!;
     expect(at(0.2).precision.rate).toBeCloseTo(0.5);
     expect(at(0.3).precision.rate).toBe(1);

@@ -15,7 +15,7 @@ from pathlib import Path
 from quran_transcript import Aya, MoshafAttributes, quran_phonetizer
 from rapidfuzz.distance import Levenshtein
 
-INDEX_VERSION = "ref-v1"
+INDEX_VERSION = "ref-v2"
 INVENTORY_ID = "muaalem-v3_2-phonemes"
 # Phoneme level of obadx/muaalem-model-v3_2 vocab.json in id order (1..42); id 0 is the CTC blank.
 INVENTORY = [chr(c) for c in (
@@ -65,6 +65,12 @@ def word_offsets(continuous: str, isolated: list[str]) -> list[int]:
     for i in range(1, len(starts)):
         starts[i] = max(starts[i], starts[i - 1])
         end = starts[i + 1] if i + 1 < len(starts) else len(continuous)
+        # A run of one sound split across the boundary belongs to the earlier word unless this word also starts with it
+        # on its own: in "إِنَّ ٱلَّذِينَ" the whole doubled noon is إِنَّ's, while in "مِن نَّ" the merged noon is shared.
+        s = starts[i]
+        if 0 < s < end and continuous[s - 1] == continuous[s] and not isolated[i].startswith(continuous[s]):
+            while starts[i] < end and continuous[starts[i]] == continuous[s]:
+                starts[i] += 1
         # A short vowel belongs to the consonant before it, so a word never starts with one.
         while starts[i] < end and continuous[starts[i]] in SHORT_VOWELS:
             starts[i] += 1

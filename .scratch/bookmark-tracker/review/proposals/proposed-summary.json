@@ -4,8 +4,8 @@
   "clips": 970,
   "outcomes": {
     "locked": 698,
-    "lost": 153,
-    "insufficient_evidence": 64,
+    "lost": 154,
+    "insufficient_evidence": 63,
     "ambiguous": 55
   },
   "agreement": {
@@ -14,12 +14,12 @@
     "rate": 0.667621776504298
   },
   "patterns": {
-    "filename ayah": 444,
+    "filename ayah": 450,
     "contains 2 ayahs (-1..+0)": 50,
     "off by -1 ayah": 50,
     "contains 2 ayahs (+0..+1)": 45,
-    "part of filename ayah": 22,
     "other surah": 21,
+    "part of filename ayah": 16,
     "contains 2 ayahs (-2..-1)": 10,
     "off by +1 ayah": 8,
     "contains 2 ayahs (+2..+3)": 6,
@@ -48,7 +48,7 @@
     "off by +5 ayah": 1
   },
   "input": "/tmp/s0.pass1.jsonl",
-  "referenceVersion": "ref-v1",
+  "referenceVersion": "ref-v2",
   "options": {
     "posteriors": false,
     "priorWeight": 1

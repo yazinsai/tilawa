@@ -134,15 +134,33 @@ export interface Rate {
 }
 const rate = (k: number, n: number): Rate => ({ k, n, rate: n ? k / n : null, ci: wilson(k, n) });
 
+/** Where a word sits in the mushaf, for measuring how far apart two span edges are. */
+export interface WordOrder {
+  lastWord(surah: number, ayah: number): number;
+  ordinal(r: WordRef): number;
+}
+
+/**
+ * Both edges within `edgeWords` words of the human's, counted across ayah boundaries. Clip edges are often a half
+ * word that the listener drops or the reviewer includes either way, so an exact match is too strict a bar.
+ */
+export function closeSpan(a: WordSpan | null, b: WordSpan | null, order: WordOrder, edgeWords: number): boolean {
+  if (!a || !b) return a === b;
+  const d = (x: WordRef, y: WordRef) => Math.abs(order.ordinal(x) - order.ordinal(y));
+  return d(a.start, b.start) <= edgeWords && d(a.end, b.end) <= edgeWords;
+}
+
 export interface StratumScore {
   stratum: Stratum;
   population: number;
   reviewed: number;
-  /** Of locked clips: the proposed span equals the human span word for word. */
+  /** Of locked clips: both edges within `edgeWords` of the human span. The headline number. */
   precision: Rate;
+  /** Of locked clips: the proposed span equals the human span word for word. */
+  exactPrecision: Rate;
   /** Of locked clips: same ayahs, words may differ. */
   ayahPrecision: Rate;
-  /** Of reviewed clips: locked on a wrong span or on no recitation. */
+  /** Of reviewed clips: locked on a span not close to the human's, or on no recitation. */
   falseLock: Rate;
   /** Of reviewed clips: not locked. */
   exclusion: Rate;
@@ -160,6 +178,7 @@ const ayahs = (s: WordSpan) => [s.start, s.end].map((r: WordRef) => `${r.surah}:
 
 export interface Score {
   run: string;
+  edgeWords: number;
   strata: StratumScore[];
   /** Weighted by each stratum's share of the run, so oversampled strata don't skew it. Normal-approximation 95% CI. */
   weighted: { precision: WeightedRate; falseLock: WeightedRate; exclusion: WeightedRate };
@@ -192,7 +211,8 @@ function weightedRate(parts: { weight: number; k: number; n: number }[]): Weight
 
 export const SWEEP = [0.08, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7];
 
-export function score(run: string, sample: Sample, labels: ProposedLabel[], answers: ReviewAnswer[], lastWord: (s: number, a: number) => number): Score {
+export function score(run: string, sample: Sample, labels: ProposedLabel[], answers: ReviewAnswer[], order: WordOrder, edgeWords = 1): Score {
+  const lastWord = order.lastWord;
   const byKey = new Map(labels.map((l) => [`${l.shard}:${l.row}`, l]));
   const latest = latestAnswers(answers);
   const rows = sample.clips
@@ -204,13 +224,15 @@ export function score(run: string, sample: Sample, labels: ProposedLabel[], answ
     const rs = rows.filter((r) => r.clip.stratum === s);
     const locked = rs.filter((r) => r.label.state === "locked");
     const excluded = rs.filter((r) => r.label.state !== "locked");
-    const correct = locked.filter((r) => sameSpan(r.label.proposed, human(r)));
+    const correct = locked.filter((r) => closeSpan(r.label.proposed, human(r), order, edgeWords));
+    const exact = locked.filter((r) => sameSpan(r.label.proposed, human(r)));
     const sameAyahs = locked.filter((r) => human(r) && ayahs(r.label.proposed!) === ayahs(human(r)!));
     return {
       stratum: s,
       population: sample.strata[s].population,
       reviewed: rs.length,
       precision: rate(correct.length, locked.length),
+      exactPrecision: rate(exact.length, locked.length),
       ayahPrecision: rate(sameAyahs.length, locked.length),
       falseLock: rate(locked.length - correct.length, rs.length),
       exclusion: rate(excluded.length, rs.length),
@@ -228,7 +250,7 @@ export function score(run: string, sample: Sample, labels: ProposedLabel[], answ
       const rs = rows.filter((r) => r.clip.stratum === s);
       const kept = rs.filter((r) => r.label.state === "locked" && (r.label.confidence ?? 0) >= t);
       const population = sample.strata[s].population;
-      const k = kept.filter((r) => sameSpan(r.label.proposed, human(r))).length;
+      const k = kept.filter((r) => closeSpan(r.label.proposed, human(r), order, edgeWords)).length;
       return { weight: rs.length ? (population * kept.length) / rs.length : 0, k, n: kept.length };
     });
     // The share of the run kept: each stratum's estimated kept count over the whole run.
@@ -236,5 +258,5 @@ export function score(run: string, sample: Sample, labels: ProposedLabel[], answ
     return { minConfidence: t, precision: weightedRate(parts), coverage };
   });
 
-  return { run, strata, weighted: { precision: weighted((s) => s.precision), falseLock: weighted((s) => s.falseLock), exclusion: weighted((s) => s.exclusion) }, sweep };
+  return { run, edgeWords, strata, weighted: { precision: weighted((s) => s.precision), falseLock: weighted((s) => s.falseLock), exclusion: weighted((s) => s.exclusion) }, sweep };
 }

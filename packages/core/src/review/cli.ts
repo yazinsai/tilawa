@@ -5,12 +5,12 @@ import { parseArgs } from "node:util";
 import type { ReferenceAsset } from "../reference.js";
 import type { ProposedLabel } from "../relabel/index.js";
 import { STRATA, drawSample, latestAnswers, score } from "./index.js";
-import type { ReviewAnswer, Sample, Score } from "./index.js";
+import type { ReviewAnswer, Sample, Score, WordOrder } from "./index.js";
 
 const USAGE = `usage:
   review sample --labels <proposed-labels.jsonl> [--posterior-labels <proposed-labels.posteriors.jsonl>] --dir <dir> [--seed 1]
   review serve  --dir <dir> [--port 5177]
-  review score  --dir <dir> --labels <proposed-labels.jsonl> [--posterior-labels <...>] [--target 0.98]`;
+  review score  --dir <dir> --labels <proposed-labels.jsonl> [--posterior-labels <...>] [--target 0.98] [--edge-words 1]`;
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -21,6 +21,7 @@ const { values, positionals } = parseArgs({
     seed: { type: "string", default: "1" },
     port: { type: "string", default: "5177" },
     target: { type: "string", default: "0.98" },
+    "edge-words": { type: "string", default: "1" },
   },
 });
 const fail = (msg: string): never => {
@@ -35,8 +36,11 @@ const readJsonl = <T>(path: string): T[] =>
         .filter(Boolean)
         .map((l) => JSON.parse(l))
     : [];
-const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../../assets/ref-v1.json", import.meta.url), "utf8"));
+const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../../assets/ref-v2.json", import.meta.url), "utf8"));
 const lastWord = (s: number, a: number) => asset.ayahs.find((x) => x.s === s && x.a === a)?.w.length ?? 0;
+const ordinals = new Map<string, number>();
+for (const a of asset.ayahs) a.w.forEach((_, k) => ordinals.set(`${a.s}:${a.a}:${k + 1}`, ordinals.size));
+const order: WordOrder = { lastWord, ordinal: (r) => ordinals.get(`${r.surah}:${r.ayah}:${r.word}`) ?? -1e9 };
 const samplePath = join(dir, "sample.json");
 const answersPath = join(dir, "answers.jsonl");
 const loadSample = (): Sample => (existsSync(samplePath) ? JSON.parse(readFileSync(samplePath, "utf8")) : fail(`no ${samplePath}; run "review sample" first`));
@@ -116,7 +120,7 @@ switch (positionals[0]) {
     const target = Number(values.target);
     const runs: [string, string][] = [["decoded", values.labels ?? fail("--labels is required")]];
     if (values["posterior-labels"]) runs.push(["posteriors", values["posterior-labels"]]);
-    const scores = runs.map(([name, path]) => score(name, sample, readJsonl<ProposedLabel>(path), answers, lastWord));
+    const scores = runs.map(([name, path]) => score(name, sample, readJsonl<ProposedLabel>(path), answers, order, Number(values["edge-words"])));
     writeFileSync(join(dir, "score.json"), JSON.stringify(scores, null, 2) + "\n");
     const md = scores.map((s) => report(s, target)).join("\n\n");
     writeFileSync(join(dir, "score.md"), md + "\n");
@@ -135,11 +139,13 @@ function report(s: Score, target: number): string {
   const lines = [
     `## ${s.run}`,
     "",
+    `A lock counts as right when both edges are within ${s.edgeWords} word${s.edgeWords === 1 ? "" : "s"} of the reviewer's.`,
+    "",
     `Weighted to the whole run: precision ${pct(s.weighted.precision.rate)} (${ci(s.weighted.precision.ci)}), false locks ${pct(s.weighted.falseLock.rate)} (${ci(s.weighted.falseLock.ci)}), excluded ${pct(s.weighted.exclusion.rate)} (${ci(s.weighted.exclusion.ci)}).`,
     "",
-    "| stratum | population | reviewed | precision (exact) | precision (ayahs) | false locks | excluded | excluded but clean | filename wrong |",
-    "|---|---|---|---|---|---|---|---|---|",
-    ...s.strata.map((x) => `| ${x.stratum} | ${x.population} | ${x.reviewed} | ${cell(x.precision)} | ${cell(x.ayahPrecision)} | ${cell(x.falseLock)} | ${cell(x.exclusion)} | ${cell(x.missed)} | ${cell(x.filenameWrong)} |`),
+    `| stratum | population | reviewed | precision (±${s.edgeWords} word) | precision (exact) | precision (ayahs) | false locks | excluded | excluded but clean | filename wrong |`,
+    "|---|---|---|---|---|---|---|---|---|---|",
+    ...s.strata.map((x) => `| ${x.stratum} | ${x.population} | ${x.reviewed} | ${cell(x.precision)} | ${cell(x.exactPrecision)} | ${cell(x.ayahPrecision)} | ${cell(x.falseLock)} | ${cell(x.exclusion)} | ${cell(x.missed)} | ${cell(x.filenameWrong)} |`),
     "",
     "| min confidence | precision | 95% CI | share of run kept |",
     "|---|---|---|---|",

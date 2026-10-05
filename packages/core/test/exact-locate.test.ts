@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { EvidenceError, createTracker, loadReferenceIndex } from "../src/index.js";
 import type { PhonemeEvidence, PositionEvent, ReferenceAsset, WordRef } from "../src/index.js";
 
-const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../assets/ref-v1.json", import.meta.url), "utf8"));
+const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../assets/ref-v2.json", import.meta.url), "utf8"));
 const index = loadReferenceIndex(asset);
 
 const wordIndex = (r: WordRef) => index.words.findIndex((w) => w.surah === r.surah && w.ayah === r.ayah && w.word === r.word);
@@ -30,11 +30,21 @@ const lastWord = (surah: number, ayah: number) => asset.ayahs.find((a) => a.s ==
 
 describe("reference index", () => {
   it("records the versions it was built from", () => {
-    expect(index.version).toBe("ref-v1");
+    expect(index.version).toBe("ref-v2");
     expect(asset.text).toMatch(/^quran-transcript \d/);
     expect(asset.profile).toMatchObject({ rewaya: "hafs" });
     expect(index.tokens.size).toBe(42);
     expect(asset.ayahs).toHaveLength(6236);
+  });
+
+  // In "إِنَّ ٱلْإِنسَـٰنَ" the doubled noon and its vowel are إِنَّ's; hamzat al-wasl gives the next word nothing to start with.
+  it("keeps a doubled consonant before hamzat al-wasl in the earlier word", () => {
+    const e = evidenceFor(w(100, 6, 1), w(100, 6, 4));
+    // The decoder missed the onset: only the tail of إِنَّ survives.
+    const clipped = { ...e, phonemes: e.phonemes.slice(2) };
+    expect(locate(clipped).observed[0].span.start).toEqual(w(100, 6, 1));
+    expect(index.phonemes[index.words[wordIndex(w(100, 6, 2))].start]).toBe("ل");
+    expect(index.phonemes[index.words[wordIndex(w(2, 29, 10))].start]).toBe("س");
   });
 });
 
@@ -45,7 +55,7 @@ describe("exact locate", () => {
     expect(e.observed).toHaveLength(1);
     expect(e.observed[0].span).toEqual({ start: w(1, 2, 1), end: w(1, 2, 4) });
     expect(e.observed[0].word).toEqual(w(1, 2, 4));
-    expect(e.referenceVersion).toBe("ref-v1");
+    expect(e.referenceVersion).toBe("ref-v2");
   });
 
   it("finds the starting word of a mid-ayah start", () => {

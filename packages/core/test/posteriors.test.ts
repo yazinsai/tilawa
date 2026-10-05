@@ -5,7 +5,7 @@ import type { DecodedPhoneme, PhonemeEvidence, PositionEvent, ReferenceAsset } f
 import { finalPosition, formatSpan, replay, withPosteriors } from "../src/fixtures/index.js";
 import type { Fixture } from "../src/fixtures/index.js";
 
-const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../assets/ref-v1.json", import.meta.url), "utf8"));
+const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../assets/ref-v2.json", import.meta.url), "utf8"));
 const index = loadReferenceIndex(asset);
 
 const tlogDir = new URL("./fixtures/tlog/", import.meta.url);

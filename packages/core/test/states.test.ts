@@ -5,7 +5,7 @@ import type { PositionEvent, ReferenceAsset, TrackerOptions, WordRef } from "../
 import { finalPosition, replay, syntheticFixture } from "../src/fixtures/index.js";
 import type { Edit } from "../src/fixtures/index.js";
 
-const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../assets/ref-v1.json", import.meta.url), "utf8"));
+const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../assets/ref-v2.json", import.meta.url), "utf8"));
 const index = loadReferenceIndex(asset);
 const w = (surah: number, ayah: number, word: number): WordRef => ({ surah, ayah, word });
 const lastWord = (s: number, a: number) => asset.ayahs.find((x) => x.s === s && x.a === a)!.w.length;

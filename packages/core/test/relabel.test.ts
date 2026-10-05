@@ -7,7 +7,7 @@ import type { Edit } from "../src/fixtures/index.js";
 import { relabelClip, summarize } from "../src/relabel/index.js";
 import type { Pass1Clip } from "../src/relabel/index.js";
 
-const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../assets/ref-v1.json", import.meta.url), "utf8"));
+const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../assets/ref-v2.json", import.meta.url), "utf8"));
 const index = loadReferenceIndex(asset);
 const w = (surah: number, ayah: number, word: number): WordRef => ({ surah, ayah, word });
 const lastWord = (s: number, a: number) => asset.ayahs.find((x) => x.s === s && x.a === a)!.w.length;
