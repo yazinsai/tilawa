@@ -28,6 +28,13 @@
   kbd { font: 12px ui-monospace, monospace; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; color: var(--text); background: var(--bg); }
   .keys div { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
   progress { width: 100%; }
+  .finder { display: none; gap: 8px; align-items: center; padding: 8px 12px; background: var(--panel); border: 1px solid var(--edge); border-radius: 6px; }
+  .finder.open { display: flex; }
+  .finder input { flex: 1; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; font: 18px "Geeza Pro", "Noto Naskh Arabic", -apple-system, sans-serif; }
+  .viewing { padding: 6px 12px; color: var(--warn); position: sticky; top: 45px; background: var(--bg); z-index: 1; }
+  .ayah.target { border-color: var(--warn); }
+  .hit { cursor: pointer; }
+  .hit:hover, .hit.on { border-color: var(--edge); }
   .flash { animation: flash .35s; }
   @keyframes flash { from { background: var(--edge); } }
 </style>
@@ -39,7 +46,10 @@
   <span id="stats" class="dim"></span>
 </header>
 <main>
-  <div class="ayahs" id="ayahs"></div>
+  <div class="ayahs">
+    <div class="finder" id="finder"><span class="dim">find</span><input id="q" placeholder="97  ·  2:255  ·  or Arabic words you heard" autocomplete="off" /><span class="dim"><kbd>esc</kbd> back</span></div>
+    <div id="ayahs" class="ayahs"></div>
+  </div>
   <aside>
     <div class="card" id="card">
       <div class="dim">Your answer</div>
@@ -61,7 +71,8 @@
       <div><span>first word − / +</span><span><kbd>A</kbd> <kbd>S</kbd></span></div>
       <div><span>last word − / +</span><span><kbd>K</kbd> <kbd>L</kbd></span></div>
       <div><span>pick words</span><span>click, shift-click</span></div>
-      <div><span>other surah</span><kbd>O</kbd></div>
+      <div><span>other surah / search</span><kbd>O</kbd></div>
+      <div><span>back to this clip's surah</span><kbd>esc</kbd></div>
       <div><span>clear</span><kbd>C</kbd></div>
       <div><span><b>save + next</b></span><kbd>enter</kbd></div>
       <div><span>no Quran / unusable</span><kbd>X</kbd></div>
@@ -78,6 +89,7 @@ const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "="];
 const SPEEDS = [0.75, 1, 1.25, 1.5, 2];
 const $ = (id) => document.getElementById(id);
 const audio = $("audio");
+let view = null, results = null, scrollTo = null, target = null, hit = 0;
 let clips = [], answers = {}, text = {}, lengths = {}, i = 0, span = null, note = "", started = 0, speed = 1, anchor = null;
 
 const key = (c) => `${c.shard}:${c.row}`;
@@ -99,6 +111,9 @@ function show() {
   span = prev?.span ?? null;
   note = prev?.note ?? "";
   anchor = span ? span.start.ayah : null;
+  view = span && span.start.surah !== c.surah ? span.start.surah : c.surah;
+  results = null;
+  closeFinder();
   started = performance.now();
   audio.src = `/audio/${c.row}`;
   audio.playbackRate = speed;
@@ -116,16 +131,37 @@ function render(prev = answers[key(clips[i])]) {
   const left = clips.length - done;
   $("stats").textContent = `${done} done · ${left} left` + (avg ? ` · ${(avg / 1000).toFixed(1)} s/clip · ~${Math.ceil((avg * left) / 60000)} min to go` : "");
 
-  const ayahs = text[c.surah] ?? [];
-  $("ayahs").innerHTML = ayahs
-    .map((ws, a) => `<div class="ayah"><span class="key">${KEYS[a] ?? ""}</span><span class="words">${ws
-      .map((w, k) => `<span class="w" data-a="${a + 1}" data-w="${k + 1}">${w}</span>`)
-      .join(" ")}</span><span class="dim">${c.surah}:${a + 1}</span></div>`)
-    .join("");
+  if (results) {
+    $("ayahs").innerHTML = results.length
+      ? `<div class="viewing">${results.length >= 40 ? "first 40 matches" : `${results.length} match${results.length === 1 ? "" : "es"}`} · <kbd>↑</kbd> <kbd>↓</kbd> pick, <kbd>enter</kbd> open</div>` +
+        results.map((h, k) => `<div class="ayah hit${k === hit ? " on" : ""}" data-s="${h.s}" data-a="${h.a}"><span class="key">${k + 1}</span><span class="words">${h.text}</span><span class="dim">${h.s}:${h.a}</span></div>`).join("")
+      : `<div class="viewing">no matches</div>`;
+    return renderAnswer(prev);
+  }
+  if (!text[view]) {
+    fetch(`/api/surah/${view}`).then((r) => r.json()).then((j) => { text[view] = j; render(); });
+    return;
+  }
+  const ayahs = text[view];
+  $("ayahs").innerHTML =
+    (view !== c.surah ? `<div class="viewing">viewing surah ${view} · <kbd>esc</kbd> back to ${c.surah}</div>` : "") +
+    ayahs
+      .map((ws, a) => `<div class="ayah${view !== c.surah && a + 1 === target ? " target" : ""}" id="a${a + 1}"><span class="key">${KEYS[a] ?? ""}</span><span class="words">${ws
+        .map((w, k) => `<span class="w" data-a="${a + 1}" data-w="${k + 1}">${w}</span>`)
+        .join(" ")}</span><span class="dim">${view}:${a + 1}</span></div>`)
+      .join("");
+  if (scrollTo) {
+    document.getElementById(`a${scrollTo}`)?.scrollIntoView({ block: "center" });
+    scrollTo = null;
+  }
   for (const el of document.querySelectorAll(".w")) {
-    const r = { surah: c.surah, ayah: +el.dataset.a, word: +el.dataset.w };
+    const r = { surah: view, ayah: +el.dataset.a, word: +el.dataset.w };
     if (span && cmp(r, span.start) >= 0 && cmp(r, span.end) <= 0) el.classList.add(cmp(r, span.start) === 0 || cmp(r, span.end) === 0 ? "edge" : "in");
   }
+  renderAnswer(prev);
+}
+
+function renderAnswer(prev) {
   const a = $("answer");
   a.className = "answer" + (span ? "" : " none");
   a.textContent = span ? (cmp(span.start, span.end) === 0 ? ref(span.start) : `${ref(span.start)} → ${ref(span.end)}`) : "nothing marked";
@@ -137,7 +173,7 @@ const wholeAyah = (s, a) => ({ surah: s, ayah: a, word: 1 });
 const ayahEnd = (s, a) => ({ surah: s, ayah: a, word: words(s, a) });
 
 function markAyah(a) {
-  const s = clips[i].surah;
+  const s = view;
   if (a > (lengths[s]?.length ?? 0)) return;
   if (anchor === null || anchor === a || !span) {
     anchor = a;
@@ -163,20 +199,6 @@ function nudge(which, d) {
   render();
 }
 
-function parseOther(v) {
-  const m = /^\s*(\d+):(\d+)(?::(\d+))?\s*(?:-\s*(?:(\d+):)?(\d+)(?::(\d+))?)?\s*$/.exec(v);
-  if (!m) return null;
-  const s = +m[1], a = +m[2];
-  const start = { surah: s, ayah: a, word: m[3] ? +m[3] : 1 };
-  const es = m[4] ? +m[4] : s, ea = m[5] ? +m[5] : a;
-  // A lone `s:a:w` is that one word; a lone `s:a` is the whole ayah.
-  const ew = m[6] ? +m[6] : !m[5] && m[3] ? +m[3] : null;
-  if (!words(s, a) || !words(es, ea)) return null;
-  // Without a word, the end runs to the ayah's last word.
-  const end = { surah: es, ayah: ea, word: ew ?? words(es, ea) };
-  return { start, end };
-}
-
 async function save(verdict) {
   const c = clips[i];
   if (verdict === "span" && !span) return flash();
@@ -200,16 +222,64 @@ function flash() {
 }
 
 document.addEventListener("click", (e) => {
+  const h = e.target.closest(".hit");
+  if (h) return openSurah(+h.dataset.s, +h.dataset.a);
   const el = e.target.closest(".w");
   if (!el) return;
-  const r = { surah: clips[i].surah, ayah: +el.dataset.a, word: +el.dataset.w };
+  const r = { surah: view, ayah: +el.dataset.a, word: +el.dataset.w };
   if (e.shiftKey && span) span = cmp(r, span.start) < 0 ? { start: r, end: span.end } : { start: span.start, end: r };
   else span = { start: r, end: r };
   anchor = r.ayah;
   render();
 });
 
+async function openSurah(s, a) {
+  if (!text[s]) text[s] = await (await fetch(`/api/surah/${s}`)).json();
+  if (!text[s].length) return flash();
+  view = s;
+  results = null;
+  anchor = null;
+  scrollTo = a ?? null;
+  target = a ?? null;
+  closeFinder();
+  render();
+}
+
+function openFinder() {
+  $("finder").classList.add("open");
+  $("q").value = "";
+  $("q").focus();
+}
+
+function closeFinder() {
+  $("finder").classList.remove("open");
+  $("q").blur();
+}
+
+$("q").addEventListener("keydown", async (e) => {
+  e.stopPropagation();
+  if (e.key === "Escape") { closeFinder(); return; }
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  const v = $("q").value.trim();
+  const ref = /^(\d+)(?::(\d+))?$/.exec(v);
+  if (ref) return openSurah(+ref[1], ref[2] ? +ref[2] : null);
+  if (!v) return closeFinder();
+  results = await (await fetch(`/api/search?q=${encodeURIComponent(v)}`)).json();
+  hit = 0;
+  closeFinder();
+  render();
+});
+
 document.addEventListener("keydown", (e) => {
+  if (results && ["ArrowUp", "ArrowDown", "Enter"].includes(e.key)) {
+    e.preventDefault();
+    if (e.key === "Enter") return results[hit] && openSurah(results[hit].s, results[hit].a);
+    hit = Math.max(0, Math.min(results.length - 1, hit + (e.key === "ArrowDown" ? 1 : -1)));
+    render();
+    document.querySelector(".hit.on")?.scrollIntoView({ block: "nearest" });
+    return;
+  }
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
   const ayah = KEYS.indexOf(e.key);
@@ -226,14 +296,8 @@ document.addEventListener("keydown", (e) => {
     k: () => nudge("end", -1),
     l: () => nudge("end", 1),
     c: () => { span = null; anchor = null; render(); },
-    o: () => {
-      const v = prompt("Where? e.g. 97:1  or  2:285-2:286  or  2:285:3-2:285:9", span ? `${ref(span.start)}-${ref(span.end)}` : "");
-      if (v === null) return;
-      const p = parseOther(v);
-      if (!p) return alert("Couldn't read that. Use surah:ayah[:word], optionally -surah:ayah[:word].");
-      span = p;
-      render();
-    },
+    o: () => openFinder(),
+    Escape: () => { if (view !== clips[i].surah || results) { results = null; view = clips[i].surah; render(); } },
     n: () => { const v = prompt("Note", note); if (v !== null) { note = v.trim(); render(); } },
     Enter: () => save("span"),
     x: () => save("not_recitation"),

@@ -64,6 +64,18 @@ switch (positionals[0]) {
     // Word counts for every ayah, so a span typed in for another surah still ends on a real word.
     const lengths: Record<number, number[]> = {};
     for (const a of asset.ayahs) (lengths[a.s] ??= [])[a.a - 1] = a.w.length;
+    // Search ignores harakat, Quranic marks and every alef and hamza form: Uthmani writes many long "a" as a dagger
+    // alef or not at all, so plain spellings of what you heard would otherwise miss.
+    const bare = (t: string) =>
+      t
+        .replace(/[\u0610-\u061A\u064B-\u065F\u06D6-\u06ED\u0640]/g, "")
+        .replace(/[اٱأإآٰء]/g, "")
+        .replace(/[ىۦئ]/g, "ي")
+        .replace(/[ۥؤ]/g, "و")
+        .replace(/ة/g, "ه")
+        .replace(/\s+/g, " ")
+        .trim();
+    const searchable = asset.ayahs.map((a) => ({ s: a.s, a: a.a, text: a.w.join(" "), bare: bare(a.w.join(" ")) }));
     const page = readFileSync(new URL("./page.html", import.meta.url), "utf8");
     const server = createServer((req, res) => {
       const url = new URL(req.url ?? "/", "http://x");
@@ -73,6 +85,13 @@ switch (positionals[0]) {
         const clips = sample.clips.map((c) => ({ shard: c.shard, row: c.row, surah: surahOf(c.path) }));
         const answers = Object.fromEntries(latestAnswers(readJsonl<ReviewAnswer>(answersPath)));
         res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ clips, answers, text, lengths }));
+      } else if (req.method === "GET" && url.pathname.startsWith("/api/surah/")) {
+        const s = Number(url.pathname.slice(11));
+        res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(asset.ayahs.filter((a) => a.s === s).map((a) => a.w)));
+      } else if (req.method === "GET" && url.pathname === "/api/search") {
+        const q = bare(url.searchParams.get("q") ?? "");
+        const hits = q ? searchable.filter((a) => a.bare.includes(q)).slice(0, 40).map(({ s, a, text }) => ({ s, a, text })) : [];
+        res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(hits));
       } else if (req.method === "GET" && url.pathname.startsWith("/audio/")) {
         const file = join(dir, "audio", `${Number(url.pathname.slice(7))}.flac`);
         if (!existsSync(file)) res.writeHead(404).end("missing audio; run tools/extract_review_audio.py");
