@@ -169,7 +169,8 @@ function parseOther(v) {
   const s = +m[1], a = +m[2];
   const start = { surah: s, ayah: a, word: m[3] ? +m[3] : 1 };
   const es = m[4] ? +m[4] : s, ea = m[5] ? +m[5] : a;
-  const ew = m[6] ? +m[6] : null;
+  // A lone `s:a:w` is that one word; a lone `s:a` is the whole ayah.
+  const ew = m[6] ? +m[6] : !m[5] && m[3] ? +m[3] : null;
   if (!words(s, a) || !words(es, ea)) return null;
   // Without a word, the end runs to the ayah's last word.
   const end = { surah: es, ayah: ea, word: ew ?? words(es, ea) };
