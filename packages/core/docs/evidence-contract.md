@@ -22,3 +22,11 @@ The tracker accepts `PhonemeEvidence` chunks. Every listener (the Muaalem teache
 - If no blank appears in a row, the blank is treated as an omitted token.
 - Rows cover frames `startFrame .. startFrame + nFrames - 1` and must line up with the decoded phonemes of the same chunk.
 - Leaving out `posteriors` is valid. The tracker then uses decoded phonemes only.
+- Either every chunk in a session carries posteriors or none does. The tracker rejects posteriors when `ids`/`probs` don't hold `nFrames x k` entries, when rows don't continue the previous chunk's frames, when an id falls outside `0..N`, when a decoded phoneme's frames fall outside the rows (a stride mismatch), or when fewer than half the decoded phonemes appear in their own frames' top-k (a different token order).
+
+## Posterior reranking
+
+- Retrieval and PER always use the decoded phonemes. Posteriors only rescore the shortlist that retrieval returned.
+- A candidate's alignment is read as a label sequence: reference tokens where it matches, substitutes or deletes, and observed tokens where it inserts. The ranking cost is that sequence's CTC negative log-likelihood over every frame of the evidence, minus the decoded sequence's own, at 3 nats per edit. Insertions, a mid-word start and a basmala prefix add their decoded costs on top.
+- Held-sound runs (madd letters, `ں`, `۾`, and noon/meem runs of 3 or more, which become 2) collapse before scoring on both sides, so reciters' lengths aren't charged. Length stays the decoded alignment's job.
+- Fit uses the lower of the decoded and posterior costs, so posteriors can rescue a mangled decode but never fail a candidate that the decode fits.

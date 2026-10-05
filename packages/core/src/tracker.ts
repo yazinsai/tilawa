@@ -1,6 +1,6 @@
 import type { AlignmentOp } from "./align.js";
 import { PosteriorFrames } from "./ctc.js";
-import { MID_WORD_START, UNIT, alignSubstring } from "./fuzzy.js";
+import { MID_WORD_START, UNIT, alignSubstring, collapseHeld } from "./fuzzy.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { EngineEvent, PositionCandidate, PositionEvent, TrackerState, TrackerTrace, WordRef } from "./events.js";
 import { EvidenceError } from "./evidence.js";
@@ -198,20 +198,21 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
    * (reference tokens where it matches, substitutes or deletes; observed tokens where it inserts), relative to the
    * decoded sequence. Insertions, a mid-word start and a basmala prefix add their decoded costs on top.
    */
+  const toIds = (tokens: string[]) => collapseHeld(tokens).map((t) => tokenIds.get(t)!);
   const posteriorCost = (frames: PosteriorFrames, m: Match, self: number): number => {
     const from = observedFrames[0].start;
     const to = observedFrames.at(-1)!.end + 1;
-    const labels: number[] = [];
+    const labels: string[] = [];
     const prefixEnd = m.basmala ? m.prefixEnd! : 0;
-    for (let j = 0; j < prefixEnd; j++) labels.push(tokenIds.get(observed[j])!);
+    for (let j = 0; j < prefixEnd; j++) labels.push(observed[j]);
     let edits = (m.basmala ? m.prefixCost! : 0) + (isWordStart(m.offset) ? 0 : MID_WORD_START);
     for (const o of m.path) {
       if (o.op === "ins") {
-        labels.push(tokenIds.get(o.obs)!);
+        labels.push(o.obs);
         edits += UNIT * observedConf[o.obsAt];
-      } else labels.push(tokenIds.get(o.ref)!);
+      } else labels.push(o.ref);
     }
-    const nll = frames.nll(labels, from, to);
+    const nll = frames.nll(toIds(labels), from, to);
     if (!Number.isFinite(nll) || !Number.isFinite(self)) return m.cost;
     return Math.max(0, edits + ((nll - self) * UNIT) / NATS_PER_EDIT);
   };
@@ -251,7 +252,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const evaluate = (final: boolean): EngineEvent[] => {
     if (!observed) return [];
     const frames = posteriors;
-    const self = frames ? frames.nll([...observed].map((t) => tokenIds.get(t)!), observedFrames[0].start, observedFrames.at(-1)!.end + 1) : 0;
+    const self = frames ? frames.nll(toIds([...observed]), observedFrames[0].start, observedFrames.at(-1)!.end + 1) : 0;
     const matches = frames ? locate().map((m) => ({ ...m, cost: posteriorCost(frames, m, self), decodedCost: m.cost })) : locate();
     const scored = matches.map((m) => ({ m, score: m.cost - priorBonus(m) })).sort((a, b) => a.score - b.score || a.m.offset - b.m.offset);
     const distinct: typeof scored = [];

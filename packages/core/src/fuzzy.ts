@@ -32,6 +32,26 @@ function isLengthening(p: string, run: number): boolean {
   return false;
 }
 
+/** Sounds whose held length varies between reciters; runs of them collapse before posterior scoring. */
+const HELD = new Set([...MADD_LETTERS, GHUNNA_RUN, "۾"]);
+
+/**
+ * Collapse held-sound runs so CTC scoring doesn't charge length: a madd or ghunna run becomes one token, and a noon or
+ * meem run of 3 or more (ghunna on a shadda) becomes two. Length stays the decoded alignment's job.
+ */
+export function collapseHeld(tokens: string[]): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < tokens.length; ) {
+    let j = i;
+    while (j < tokens.length && tokens[j] === tokens[i]) j++;
+    const run = j - i;
+    const keep = HELD.has(tokens[i]) ? 1 : GHUNNA_DOUBLED.has(tokens[i]) && run >= 3 ? 2 : run;
+    for (let k = 0; k < keep; k++) out.push(tokens[i]);
+    i = j;
+  }
+  return out;
+}
+
 function indelCost(p: string, lengthening: boolean): number {
   if (lengthening) return LENGTH_CHANGE;
   if (SHORT_VOWELS.has(p)) return SHORT_VOWEL;
