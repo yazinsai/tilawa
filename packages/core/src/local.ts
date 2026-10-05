@@ -11,6 +11,13 @@ const JUMP_DISTANCE = 1e-3;
 /** The window spans this many ayahs before and after the bookmark's ayah. */
 const BACK_AYAHS = 2;
 const AHEAD_AYAHS = 2;
+/**
+ * Entering the next surah without a basmala: reciters say one between surahs, so what follows a surah's end without it
+ * (a takbir, a new passage) shouldn't slide into the next surah's opening.
+ */
+const SURAH_ENTRY = 3 * UNIT;
+/** How long a basmala keeps the next surah open. */
+const OPEN_PHONEMES = 40;
 /** Recent cost is averaged over this many observed phonemes. */
 const RECENT = 16;
 
@@ -23,19 +30,26 @@ export interface LocalPosition {
   edits: number;
   /** Weighted cost per observed phoneme over the last `RECENT` phonemes, in plain edits. */
   recentCost: number;
+  /** Weighted cost of the last observed phoneme, in plain edits. */
+  stepCost: number;
 }
 
 export interface LocalSearch {
   /** Consume one observed phoneme. */
   step(p: string): void;
   position(): LocalPosition;
+  /** A basmala was just heard: the next surah may be entered freely for a while. */
+  openSurah(): void;
+  /** The search state, to rewind to with `restore`. */
+  save(): unknown;
+  restore(state: unknown): void;
 }
 
 /**
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -47,6 +61,13 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     ayahEnd[ayahStart.length - 1] = w.end;
   });
   const wordStarts = new Set(index.words.map((w) => w.start));
+  // At-Tawba is the one surah entered without a basmala.
+  const surahFirst = new Set(index.words.filter((w, i) => i > 0 && w.surah !== index.words[i - 1].surah && w.surah !== 9).map((w) => w.start));
+  const surahOf = (offset: number) => index.words[index.wordAt(offset)].surah;
+  /** Phonemes left during which a new surah may be entered without `SURAH_ENTRY`, after a basmala. */
+  let open = 0;
+  const entry = (offset: number) => (open > 0 || !surahFirst.has(offset) ? 0 : SURAH_ENTRY);
+  const crossing = (offset: number) => (open > 0 || surahOf(offset) === surahOf(Math.max(0, best - 1)) ? 0 : SURAH_ENTRY);
   const ayahOf = (offset: number) => ayahOfWord[index.wordAt(Math.max(0, offset - 1))];
 
   let lo = 0;
@@ -88,6 +109,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
 
   return {
     step(p) {
+      if (open > 0) open--;
       const n = cost.length;
       const base = cost[best - lo];
       const c = new Float64Array(n);
@@ -99,7 +121,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
         let bo = origin[i];
         let be = edits[i] + 1;
         if (i > 0) {
-          const s = subCost(ref[at - 1], p);
+          const s = subCost(ref[at - 1], p) + entry(at - 1);
           const edit = ref[at - 1] === p ? 0 : 1;
           // On a tie, consuming the reference beats an insertion, so a correct recitation keeps advancing.
           if (cost[i - 1] + s <= bc) {
@@ -109,14 +131,14 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
           }
           const from = at - 1;
           if (from !== best && wordStarts.has(from)) {
-            const j = base + JUMP_COST + Math.abs(from - best) * JUMP_DISTANCE + s;
+            const j = base + JUMP_COST + Math.abs(from - best) * JUMP_DISTANCE + s + (entry(at - 1) ? 0 : crossing(from));
             if (j < bc) {
               bc = j;
               bo = from;
               be = edit;
             }
           }
-          const d = c[i - 1] + deletionCost(ref, at - 1);
+          const d = c[i - 1] + deletionCost(ref, at - 1) + entry(at - 1);
           if (d < bc) {
             bc = d;
             bo = o[i - 1];
@@ -146,7 +168,17 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     position() {
       const i = best - lo;
       const recentCost = recent.length ? recent.reduce((a, b) => a + b, 0) / UNIT / recent.length : 0;
-      return { offset: best, origin: origin[i], edits: edits[i], recentCost };
+      return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
+    },
+    openSurah() {
+      open = OPEN_PHONEMES;
+    },
+    // Steps replace the arrays rather than writing into them, so a saved state can share them.
+    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    restore(state) {
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
+      ({ lo, cost, origin, edits, best, ayah } = s);
+      recent.splice(0, recent.length, ...s.recent);
     },
   };
 }

@@ -7,7 +7,7 @@ import { EvidenceError } from "./evidence.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { createLocalSearch } from "./local.js";
 import type { LocalSearch } from "./local.js";
-import type { ReferenceIndex } from "./reference.js";
+import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 
 export interface TrackerOptions {
   mode?: "free" | "memorization";
@@ -37,6 +37,11 @@ export interface TrackerOptions {
    * tracker jumps there. Default 8.
    */
   jumpPhonemes?: number;
+  /**
+   * Non-Quran phrases to recognise and skip in a stream. A basmala outside 1:1 and 27:30 is skipped too, and then
+   * favours surah openings. Skipping only acts on earlier pushes, so a single-push clip is unaffected.
+   */
+  phrases?: PhraseAsset;
   /** Attach shortlist, state transition and alignment path to every position event. */
   trace?: boolean;
 }
@@ -84,6 +89,24 @@ const WINDOW = 48;
 const LOST_AFTER = 24;
 /** A global lock within this many ayahs of the local bookmark is the local search's to follow, not a jump. */
 const NEAR_AYAHS = 2;
+/** A phrase is heard when it aligns to the latest phonemes at most this weighted cost per phrase phoneme. */
+const PHRASE_MAX_COST = 0.3;
+/** While locked, a heard phrase is skipped only if local search fit it this badly, per phoneme: else it's Quran text. */
+const PHRASE_LOCAL_COST = 0.25;
+/** Phonemes kept for phrase detection; longer than any phrase as recited. */
+const HEARD = 64;
+/**
+ * A phrase in progress holds off locking once this many of its phonemes, and this share of it, are heard. Shorter
+ * prefixes ("Allahu" of the takbir) are everyday Quran text.
+ */
+const PHRASE_PREFIX = 12;
+const PHRASE_PREFIX_SHARE = 0.4;
+/** A restart in progress holds off locking once this many phonemes restate the window's start. */
+const RESTART_PREFIX = 6;
+/** Repeated blocks this long, at most this weighted cost per phoneme apart, collapse to one copy in a stream. */
+const MIN_REPEAT = 8;
+const MAX_REPEAT = 40;
+const REPEAT_MAX_COST = 0.15;
 
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
   const maxGramOccurrences = options.maxGramOccurrences ?? 5000;
@@ -132,6 +155,19 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   /** The expected bookmark when local fit last turned weak. */
   let steady: WordRef | null = null;
 
+  const phraseList = options.phrases ? [...options.phrases.phrases, { name: "basmala", text: "", p: basmala }] : [];
+  /** The latest phonemes, with the local search's cost for each and its state before each, for phrase detection. */
+  let heard = "";
+  let heardCost: number[] = [];
+  let heardState: unknown[] = [];
+  /** While acquiring: observed phonemes up to here end with a phrase, to drop at the next push. */
+  let phraseCut = 0;
+  /** A basmala was skipped in an earlier push (`surahStart`) or this one (`basmalaHeard`): favour surah openings. */
+  let surahStart = false;
+  let basmalaHeard = false;
+  /** A phrase was just skipped while locked: a boundary, so the next distant lock needn't wait for persistence. */
+  let afterPhrase = false;
+  let pushes = 0;
   const validate = (e: PhonemeEvidence) => {
     if (e.inventory !== index.inventoryId) {
       throw new EvidenceError(`Evidence inventory "${e.inventory}" does not match index inventory "${index.inventoryId}"`);
@@ -299,7 +335,10 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const priorBonus = (m: Match): number => {
-    if (!prior) return 0;
+    const first = index.words[firstWord(m)];
+    const opening = first.word === 1 && (first.ayah === 1 || (first.surah === 1 && first.ayah === 2));
+    const afterBasmala = surahStart && opening ? MAX_PRIOR_BONUS : 0;
+    if (!prior) return afterBasmala;
     let best = 0;
     for (let i = firstWord(m); i <= lastWord(m); i++) {
       const w = index.words[i];
@@ -307,7 +346,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       const d = Math.abs(w.ayah - prior.ayah);
       best = Math.max(best, d === 0 ? 1 : d === 1 ? 0.5 : 0);
     }
-    return best * MAX_PRIOR_BONUS * Math.min(1, Math.max(0, prior.weight));
+    return Math.max(afterBasmala, best * MAX_PRIOR_BONUS * Math.min(1, Math.max(0, prior.weight)));
   };
 
   /** Overlapping or touching ranges describe one location, e.g. shifted spans of the same ayah. */
@@ -378,7 +417,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
 
   const evaluate = (final: boolean): PositionEvent[] => {
     if (!observed) return [];
-    const a = assess();
+    const a = assessOutsidePhrases();
     if (unchanged(a.event) && !final) return [];
     if (a.lock && !final) lockedOn = a.lock;
     return [emit(a.event, a.trace)];
@@ -406,11 +445,98 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     observedFrames.splice(0, drop);
   };
 
+  /**
+   * Record one phoneme for phrase detection, with the local search's state before it and its cost; returns how many
+   * of the latest phonemes form a whole phrase that ends here, and which.
+   */
+  const hear = (p: string, state: unknown, cost: number): { name: string; length: number } | null => {
+    if (!phraseList.length) return null;
+    heard += p;
+    heardCost.push(cost);
+    heardState.push(state);
+    if (heard.length > HEARD) {
+      heard = heard.slice(1);
+      heardCost = heardCost.slice(1);
+      heardState = heardState.slice(1);
+    }
+    for (const phrase of phraseList) {
+      const n = phrase.p.length;
+      const lo = Math.max(0, heard.length - Math.ceil(n * 1.6) - 4);
+      const a = alignSubstring(heard, lo, heard.length, phrase.p, () => true);
+      if (!a || a.end < heard.length - 1 || a.cost / UNIT / n > PHRASE_MAX_COST) continue;
+      // The phrase must be finished: its last two phonemes heard, not just cheap to leave out.
+      const heardEnd = a.path.filter((o) => o.op === "match" && o.obsAt >= n - 2).length;
+      if (heardEnd < 2) continue;
+      return { name: phrase.name, length: heard.length - a.start };
+    }
+    return null;
+  };
+  /** The latest phonemes are a phrase still being said: hold off locking, a prefix like "a'udhu billahi" is Quran text too. */
+  const phraseInProgress = (): boolean => {
+    for (const phrase of phraseList) {
+      const n = phrase.p.length;
+      for (let k = Math.min(n - 2, heard.length); k >= Math.max(PHRASE_PREFIX, PHRASE_PREFIX_SHARE * n); k -= 2) {
+        const a = alignSubstring(phrase.p, 0, n - 2, heard.slice(-k), (o) => o === 0, { strictStart: true });
+        if (a && a.cost / UNIT / k <= PHRASE_MAX_COST / 2) return true;
+      }
+    }
+    return false;
+  };
+  /** The window's latest phonemes restate its start: a restart still being said, not yet a repeat to collapse. */
+  const repeatInProgress = (): boolean => {
+    for (let k = Math.min(MAX_REPEAT, observed.length >> 1); k >= RESTART_PREFIX; k--) {
+      const a = alignSubstring(observed, 0, observed.length - k, observed.slice(-k), (o) => o === 0, { strictStart: true });
+      if (a && a.cost / UNIT / k <= REPEAT_MAX_COST) return true;
+    }
+    return false;
+  };
+  /** Assess, but never lock while a phrase or a repeat is in progress. */
+  const assessOutsidePhrases = () => {
+    const a = assess();
+    if (!a.lock || !phraseList.length || (!phraseInProgress() && !repeatInProgress())) return a;
+    const event: PositionEvent = { ...a.event, state: "acquiring", expected: null };
+    return { event, lock: null, trace: (from: TrackerState | null) => ({ ...a.trace(from), transition: { from, to: "acquiring" as const } }) };
+  };
+  /**
+   * An immediately repeated block at the end of the window ("Alif Lam Mim" twice) is a repetition, not two ayahs: keep
+   * one copy, so global search doesn't prefer passages that happen to continue like the repeat.
+   */
+  const collapseRepeat = () => {
+    for (let n = Math.min(MAX_REPEAT, observed.length >> 1); n >= MIN_REPEAT; n--) {
+      const tail = observed.slice(-n);
+      const before = observed.slice(-2 * n, -n);
+      const a = alignSubstring(before, 0, n, tail, (o) => o === 0, { strictStart: true });
+      if (a && a.end >= n - 1 && a.cost / UNIT / n <= REPEAT_MAX_COST) {
+        const at = observed.length - 2 * n;
+        observed = observed.slice(0, at) + tail;
+        observedConf = [...observedConf.slice(0, at), ...observedConf.slice(-n)];
+        observedFrames.splice(at, n);
+        return;
+      }
+    }
+  };
+  const forget = () => {
+    heard = "";
+    heardCost = [];
+    heardState = [];
+  };
+
+  /** Drop the latest `n` observed phonemes. */
+  const dropLast = (n: number) => {
+    const keep = Math.max(0, observed.length - n);
+    observed = observed.slice(0, keep);
+    observedConf = observedConf.slice(0, keep);
+    observedFrames.length = keep;
+  };
+
   const startLocal = (m: Match) => {
     local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
     weak = false;
     pending = null;
     reacquiring = false;
+    surahStart = false;
+    basmalaHeard = false;
+    afterPhrase = false;
     keepLast(0);
   };
 
@@ -462,7 +588,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   /** After `lost`: global search over the latest phonemes, until it locks somewhere. */
   const reacquire = (): PositionEvent[] => {
     keepLast(WINDOW);
-    const a = assess();
+    if (phraseList.length) collapseRepeat();
+    const a = assessOutsidePhrases();
     if (a.lock) {
       startLocal(a.lock);
       return [emit({ ...a.event, expected: expectedFor(a.event.observed[0].word) }, a.trace)];
@@ -483,10 +610,35 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     for (const ph of evidence.phonemes) {
       observe(ph);
       if (!local) {
+        const heardPhrase = hear(ph.p, null, NaN);
+        if (heardPhrase) {
+          forget();
+          dropLast(heardPhrase.length);
+          if (heardPhrase.name === "basmala") surahStart = true;
+          continue;
+        }
         events.push(...reacquire());
         continue;
       }
+      const before = local.save();
       local.step(ph.p);
+      const heardPhrase = hear(ph.p, before, local.position().stepCost);
+      if (heardPhrase) {
+        const from = heardCost.length - heardPhrase.length;
+        const cost = heardCost.slice(from).reduce((a, b) => a + b, 0) / heardPhrase.length;
+        if (cost >= PHRASE_LOCAL_COST) {
+          // Not Quran text where we are: rewind the local search to before the phrase, as if it was never heard.
+          local.restore(heardState[from]);
+          if (heardPhrase.name === "basmala") local.openSurah();
+          afterPhrase = true;
+          forget();
+          // The phrase is a boundary: global search restarts after it.
+          keepLast(0);
+          const e = localEvent([]);
+          if (e) events.push(e);
+          continue;
+        }
+      }
       const pos = local.position();
       if (!weak && pos.recentCost > WEAK_COST) {
         weak = true;
@@ -494,17 +646,18 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       } else if (weak && pos.recentCost <= WEAK_COST) {
         weak = false;
         pending = null;
+        afterPhrase = false;
       }
       let shortlist: TraceCandidate[] = [];
       if (!weak) keepLast(LOOKBACK);
       else {
         keepLast(WINDOW);
-        const a = assess();
+        const a = assessOutsidePhrases();
         if (options.trace) shortlist = a.trace(null).shortlist;
         if (a.lock && !near(a.lock, pos.offset)) {
           pending = { m: a.lock, held: pending && sameLocation(pending.m, a.lock) ? pending.held + 1 : 1 };
         } else pending = null;
-        if (pending && pending.held >= jumpPhonemes) {
+        if (pending && pending.held >= (afterPhrase ? 1 : jumpPhonemes)) {
           if (memorization) frozen ??= steady;
           startLocal(pending.m);
         } else if (a.event.state === "lost" && pos.recentCost > maxCost && observed.length >= LOST_AFTER) {
@@ -523,6 +676,11 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
    * the posterior rows before what's kept. Done here rather than after evaluating, so `end` sees what the last push saw.
    */
   const trimHistory = () => {
+    if (phraseCut) {
+      keepLast(observed.length - phraseCut);
+      phraseCut = 0;
+    }
+    if (basmalaHeard) surahStart = true;
     const keep = last?.state === "lost" ? LOOKBACK : MAX_HISTORY;
     if (observed.length <= keep) return;
     keepLast(keep);
@@ -538,7 +696,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     if (observed.length <= keep) return [];
     const saved = { observed, observedConf, frames: [...observedFrames] };
     keepLast(keep);
-    const a = assess();
+    const a = assessOutsidePhrases();
     if (a.lock) {
       lockedOn = a.lock;
       return [emit(a.event, a.trace)];
@@ -558,7 +716,16 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       if (local || reacquiring) return follow(evidence);
       trimHistory();
       if (evidence.posteriors) (posteriors ??= new PosteriorFrames(index.tokens.size)).append(evidence.posteriors);
-      for (const ph of evidence.phonemes) observe(ph);
+      for (const ph of evidence.phonemes) {
+        observe(ph);
+        const heardPhrase = hear(ph.p, null, NaN);
+        if (heardPhrase) {
+          forget();
+          phraseCut = observed.length;
+          basmalaHeard ||= heardPhrase.name === "basmala";
+        }
+      }
+      if (pushes++ > 0 && phraseList.length) collapseRepeat();
       const events = evaluate(false);
       if (!lockedOn) events.push(...evaluateSuffix(evidence.phonemes.length));
       if (lockedOn) {

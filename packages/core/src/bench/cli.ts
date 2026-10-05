@@ -3,7 +3,7 @@ import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { loadReferenceIndex } from "../reference.js";
-import type { ReferenceAsset } from "../reference.js";
+import type { PhraseAsset, ReferenceAsset } from "../reference.js";
 import { BENCH_REPORT_VERSION, benchRecording, summarise } from "./index.js";
 import type { QudRecording, RecordingResult } from "./index.js";
 
@@ -13,11 +13,15 @@ const { values } = parseArgs({
     out: { type: "string", default: "../../docs/benchmarks" },
     posteriors: { type: "boolean", default: false },
     only: { type: "string" },
+    "no-phrases": { type: "boolean", default: false },
   },
 });
 
 const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../../assets/ref-v2.json", import.meta.url), "utf8"));
 const index = loadReferenceIndex(asset);
+const phrases: PhraseAsset | undefined = values["no-phrases"]
+  ? undefined
+  : JSON.parse(readFileSync(new URL("../../assets/phrases-v1.json", import.meta.url), "utf8"));
 const config = values.posteriors ? "posteriors" : "decoded";
 const files = readdirSync(values.dir!)
   .filter((f) => f.endsWith(".json"))
@@ -27,7 +31,7 @@ const files = readdirSync(values.dir!)
 const results: RecordingResult[] = [];
 for (const f of files) {
   const rec: QudRecording = JSON.parse(readFileSync(join(values.dir!, f), "utf8"));
-  const r = benchRecording(index, rec, { posteriors: values.posteriors! });
+  const r = benchRecording(index, rec, { posteriors: values.posteriors!, phrases });
   results.push(r);
   const ok = r.starts.filter((s) => s.latencyS !== null && s.latencyS <= 5).length;
   console.log(`${r.id}: ${ok}/${r.starts.length} starts in 5 s, false jumps ${r.falseJumps}/${r.jumps}, rtf ${r.rtf.toFixed(4)}`);
@@ -41,12 +45,12 @@ const report = {
   referenceVersion: index.version,
   inventory: index.inventoryId,
   commit,
-  configuration: { reranking: values.posteriors, chunkSeconds: 1 },
+  configuration: { reranking: values.posteriors, phrases: phrases?.version ?? null, chunkSeconds: 1 },
   summary,
   recordings: results,
 };
 mkdirSync(values.out!, { recursive: true });
-const base = join(values.out!, `qud-v1-${config}`);
+const base = join(values.out!, `qud-v1-${config}${phrases ? "-phrases" : ""}`);
 writeFileSync(`${base}.json`, JSON.stringify(report, null, 2) + "\n");
 
 const pct = (n: number, d: number) => (d ? `${((100 * n) / d).toFixed(1)}%` : "–");
@@ -54,7 +58,7 @@ const s = summary;
 const md = [
   `# QUD alignment benchmark v1: ${config}`,
   "",
-  `Report v${BENCH_REPORT_VERSION}, reference ${index.version}, commit ${commit}. Posterior reranking: ${values.posteriors ? "on" : "off"}. Streamed in 1 s chunks.`,
+  `Report v${BENCH_REPORT_VERSION}, reference ${index.version}, commit ${commit}. Posterior reranking: ${values.posteriors ? "on" : "off"}. Phrases: ${phrases?.version ?? "off"}. Streamed in 1 s chunks.`,
   "",
   `${s.recordings} recordings, ${s.audioMinutes.toFixed(0)} min, ${s.starts} passage starts.`,
   "",

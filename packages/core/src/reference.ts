@@ -8,6 +8,12 @@ export interface ReferenceAsset {
   ayahs: { s: number; a: number; w: string[]; p: string; o: number[]; iso: string[] }[];
 }
 
+/** Non-Quran phrases said around a recitation (isti'adha, takbir, amin...), phonemized with the reference profile. */
+export interface PhraseAsset {
+  version: string;
+  phrases: { name: string; text: string; p: string }[];
+}
+
 export interface ReferenceWord extends WordRef {
   /** Half-open range in `ReferenceIndex.phonemes`. Empty when fully assimilated into a neighbour. */
   start: number;
