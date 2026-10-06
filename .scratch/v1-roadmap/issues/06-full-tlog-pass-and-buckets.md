@@ -4,16 +4,34 @@
 
 **Blocked by:** 03.
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] Teacher pass over a 10% stratified shard sample, then all shards: greedy phonemes, per-phoneme confidence, and top-5 fp16 posteriors per frame. Log the cost against the $150–400 estimate.
 - [x] Relabel with the threshold from ticket 03 (confirmed: 0.2).
 - [x] Text-only labels for repeated text: an `ambiguous` clip whose candidates all share the same canonical phonemes (the ar-Rahman refrain, for example) gets that text as its label, without a location. See ADR 0001.
 - [x] Buckets: `clean-match`, `deviant`, `ambiguous`, `reject`, with proposed cutoffs.
-- [ ] **Human:** tune the cutoffs on about 300 hand-checked clips. The review pack and tool are ready; see "How to run", step 1.
+- [x] **Human:** tune the cutoffs on about 300 hand-checked clips (done 2026-10-06; see "Cutoff review").
 - [x] Speaker clusters from WavLM-SV embeddings; splits by cluster.
 - [x] Remove Quran-Lab benchmark IDs, including `tlog_holdout`.
 - [x] Manifest per bucket and split, versioned (`tlog-v1`, cutoffs marked untuned).
+
+## Cutoff review, 2026-10-06
+
+298 of the 300 clips were answered and 2 were marked unsure. The full table is in `.scratch/v1-roadmap/bucket-review/score.md`.
+
+- **PER from 3% to 12% is teacher noise, not recitation error.** Of the sampled deviant clips, 77 of 80 were exact recitations. Clean-match precision is flat at 96–98% across the whole grid, from PER 0 to 0.12 and teacher confidence 0.8 to 0.95.
+- **Adopted** `cleanMaxPer 0.12` and `cleanMinTeacherConf 0.8`, which keeps 98.3% precision (92.8–100%). This is `tlog-v2`, with `cutoffsTuned: true`. The grid stops at 0.12, so the 0.08–0.12 band rests mostly on the 30 sampled `deviant_core` clips.
+
+| bucket | tlog-v1 clips | tlog-v2 clips | tlog-v2 hours (train / val / test) |
+|---|---|---|---|
+| clean-match | 84,098 | 254,786 | 577 / 32 / 29 |
+| deviant | 286,301 | 115,613 | 282 / 15 / 15 |
+| ambiguous | 115,033 | 115,033 | 199 / 13 / 12 |
+| reject | 234,217 | 234,217 | 604 / 29 / 31 |
+
+- **Text-only labels:** 27 of the 30 sampled clips were exact recitations, so the refrain-style labels are safe for training.
+- **Rejects:** none of the sampled reject or ambiguous clips was an exact recitation, so the reject rules hold.
+- **For ticket 08:** even in `tlog-v2`, the deviant bucket is still mostly correct recitation: at PER 0.12, about 10% of deviant clips contain a mistake. Mining it for natural errors would be low-yield. Using it as weakly-labelled training data, at a lower weight, is an option for the E2 ablation.
 
 ## Results, 2026-10-06
 
