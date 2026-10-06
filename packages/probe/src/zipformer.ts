@@ -41,7 +41,16 @@ export const MODELS: ModelSpec[] = [
   },
 ];
 
-const fetchBytes = async (url: string) => new Uint8Array(await (await fetch(url)).arrayBuffer());
+const fetchBytes = async (url: string) => {
+  const cache = await caches.open("probe-models");
+  let res = await cache.match(url);
+  if (!res) {
+    res = await fetch(url);
+    if (!res.ok) throw new Error(`${res.status} fetching ${url}`);
+    await cache.put(url, res.clone());
+  }
+  return new Uint8Array(await res.arrayBuffer());
+};
 
 const dims = (shape: readonly (number | string)[]) => shape.map((d) => (typeof d === "number" ? d : 1));
 
