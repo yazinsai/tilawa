@@ -14,6 +14,8 @@ alphabet-mapping differences are never counted as errors.
 """
 
 import json
+import os
+import re
 import subprocess
 import sys
 from collections import Counter, defaultdict
@@ -168,7 +170,7 @@ def score_clip(row: dict, canon: str, modal: str, stats: dict[str, dict], sites:
     """Score every class site in the clip, or only the canonical indices in sites."""
     said, hyp = row["said"], row["greedy"]
     a_said, a_hyp, a_modal = align(canon, said), align(canon, hyp), align(canon, modal)
-    lp = log_probs(row)
+    lp = row["lp"] if "lp" in row else log_probs(row)
     base, spans = viterbi(lp, said)
     if spans is None:
         row["skipped"] = "too few frames"
@@ -520,5 +522,112 @@ def render_e1b(r: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+HELP_DIR = Path(os.environ.get("HELP_DIR", ROOT / ".scratch/help"))
+HELP_OUT = ROOT / "docs/benchmarks/acceptance-v1-e1.json"
+ARABIC_LETTER = re.compile(r"[\u0621-\u064a\u0671]")
+# Clips whose said text differs from the canonical only at the planted site; other kinds change words or add repeats.
+HELP_KINDS = {"none", "vowel", "tajweed"}
+
+
+def letters(word: str) -> list[tuple[str, str]]:
+    """Each letter with the marks that follow it."""
+    out: list[tuple[str, str]] = []
+    for ch in word:
+        if ARABIC_LETTER.match(ch) or not out:
+            out.append((ch, ""))
+        else:
+            out[-1] = (out[-1][0], out[-1][1] + ch)
+    return out
+
+
+def said_word(canonical: str, said: str) -> str | None:
+    """The canonical word with only the short vowel the reciter changed, or None if they differ otherwise."""
+    a, b = letters(canonical), letters(said)
+    if [x for x, _ in a] != [x for x, _ in b]:
+        return None
+    vowel = lambda m: next((c for c in m if c in VOWELS), None)  # noqa: E731
+    diff = [i for i, (x, y) in enumerate(zip(a, b)) if vowel(x[1]) != vowel(y[1])]
+    if len(diff) != 1 or not vowel(a[diff[0]][1]) or not vowel(b[diff[0]][1]):
+        return None
+    i = diff[0]
+    marks = a[i][1].replace(vowel(a[i][1]), vowel(b[i][1]))
+    return "".join(x + (marks if k == i else m) for k, (x, m) in enumerate(a))
+
+
+def help_main() -> None:
+    """E1 scoring on the held-out help clips: real acted short-vowel and ص/س errors, scored only at the planted site."""
+    moshaf = MoshafAttributes(**PROFILE)
+    labels = [json.loads(s) for s in (HELP_DIR / "labels.jsonl").read_text().splitlines()]
+    raw = {r["id"]: r for r in map(json.loads, (HELP_DIR / "raw/submissions.jsonl").read_text().splitlines())}
+    stats = {c["key"]: empty() for c in classes()}
+    sites: dict[str, set] = defaultdict(set)
+    counts = Counter()
+    for lab in labels:
+        if lab["split"] != "eval" or not lab["scored"] or lab["kind"] not in HELP_KINDS:
+            continue
+        rules = {m.get("rule") for m in raw[lab["id"]].get("mistakes", [])}
+        if lab["kind"] == "tajweed" and rules != {"light_emphatic"}:
+            continue
+        counts["clips"] += 1
+        uthmani = {a: Aya(*map(int, a.split(":"))).get().uthmani.split(" ") for a in lab["ayahs"]}
+        said = {a: list(ws) for a, ws in uthmani.items()}
+        site_word = None
+        for e in lab["events"]:
+            loc = e["location"]
+            a = f"{loc['surah']}:{loc['ayah']}"
+            w = loc["word"] - 1
+            if e["errorClass"] == "short_vowel":
+                word = said_word(uthmani[a][w], e["observed"])
+            elif e["errorClass"] == "consonant_sad_sin":
+                word = uthmani[a][w].replace("ص", "س", 1)
+            else:
+                word = None
+            if word is None:
+                counts["skipped: planted site not mappable"] += 1
+                break
+            said[a][w] = word
+            site_word = (a, w)
+        else:
+            phon = lambda ws: "".join(quran_phonetizer(" ".join(x), moshaf, remove_spaces=True).phonemes for x in ws)  # noqa: E731
+            canon, said_ph = phon(uthmani.values()), phon(said.values())
+            ev = json.loads((HELP_DIR / lab["wav"].replace(".wav", ".evidence.json")).read_text())
+            greedy = "".join(p["p"] for p in ev["phonemes"])
+            if Levenshtein.distance(said_ph, greedy) / max(1, len(said_ph)) > MAX_CLIP_PER:
+                counts["skipped: teacher decode too far from label"] += 1
+                continue
+            n, k = ev["nFrames"], ev["posteriors"]["k"]
+            lp = np.full((n, len(INVENTORY) + 1), LOG_FLOOR)
+            ids = np.array(ev["posteriors"]["ids"], dtype=np.int64).reshape(n, k)
+            p = np.array(ev["posteriors"]["probs"], dtype=np.float64).reshape(n, k)
+            np.put_along_axis(lp, ids, np.log(np.maximum(p, 1e-12)), axis=1)
+            row = {"id": lab["id"], "ayah": ",".join(lab["ayahs"]), "said": said_ph, "greedy": greedy, "label": said_ph, "lp": lp}
+            # Positives only at the planted site; every other class site is a negative.
+            tmp = {c["key"]: empty() for c in classes()}
+            score_clip(row, canon, canon, tmp)
+            if row.get("skipped"):
+                counts["skipped: too few frames"] += 1
+                continue
+            counts["scored"] += 1
+            for c, s in tmp.items():
+                # A geminate ص said as سس is a letter error, not a dropped shadda.
+                if c == "shadda" and lab["kind"] == "tajweed":
+                    continue
+                stats[c]["examples"] += s.pop("examples")
+                add(stats[c], s)
+                if s["pos"]:
+                    sites[c].add((lab["speaker"], site_word[0]))
+    commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=ROOT).stdout.strip()
+    result = {
+        "commit": commit, "model": "obadx/muaalem-model-v3_2", "clips": dict(counts), "scored": counts["scored"],
+        "skipped": sum(v for k, v in counts.items() if k.startswith("skipped")),
+        "classes": [{"name": c["name"], "verdict": verdict(stats[c["key"]]), "sites": len(sites[c["key"]]), **stats[c["key"]]} for c in classes()],
+    }
+    HELP_OUT.write_text(json.dumps(result, ensure_ascii=False, indent=1) + "\n")
+    for c in result["classes"]:
+        if c["pos"] or c["neg"]:
+            print(c["name"], c["pos"], c["sites"], c["greedy_hit"], c["llr_hit"], c["neg"], c["greedy_fp"], c["llr_fp"], c["verdict"])
+    print(dict(counts))
+
+
 if __name__ == "__main__":
-    e1b_main() if "--e1b" in sys.argv else main()
+    e1b_main() if "--e1b" in sys.argv else help_main() if "--help-clips" in sys.argv else main()
