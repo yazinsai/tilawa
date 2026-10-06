@@ -4,7 +4,7 @@
 
 **Blocked by:** 01, 02, 06.
 
-**Status:** needs-triage
+**Status:** claimed
 
 - [ ] E2: initialise from the multilingual sherpa-onnx streaming Zipformer versus training from scratch, on `clean-match` plus the other training sources, with augmentation.
 - [ ] E3: spliced errors from QUD letter timestamps at 10–20% of each batch.
