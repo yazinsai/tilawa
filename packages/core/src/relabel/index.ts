@@ -13,6 +13,8 @@ export interface Pass1Clip {
   filenameLabel: { surah: number; ayah: number } | null;
   /** Null unless `status` is "ok". */
   evidence: PhonemeEvidence | null;
+  /** Mean teacher phoneme confidence and clip length; absent in exports older than ticket 06. */
+  teacher?: { meanConf: number; durationS: number } | null;
 }
 
 export type Exclusion = "ambiguous" | "lost" | "insufficient_evidence" | "decode_failed" | "too_long";
@@ -48,6 +50,7 @@ export interface ProposedLabel {
   /** How the proposed span relates to the filename label; null when nothing is proposed. */
   pattern: string | null;
   agrees: boolean | null;
+  teacher: { meanConf: number; durationS: number } | null;
 }
 
 export interface RelabelOptions {
@@ -93,6 +96,7 @@ export function relabelClip(index: ReferenceIndex, clip: Pass1Clip, options: Rel
     row: clip.row,
     path: clip.path,
     filenameLabel: clip.filenameLabel,
+    teacher: clip.teacher ?? null,
   };
   const empty = { proposed: null, state: null, confidence: null, fit: null, separation: null, leadEdits: null, cost: null, per: null, candidates: [], pattern: null, agrees: null };
   if (clip.status !== "ok") return { ...base, ...empty, exclusion: clip.status };

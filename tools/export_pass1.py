@@ -56,6 +56,7 @@ def main() -> None:
                 "status": r["status"],
                 "filenameLabel": {"surah": r["surah"], "ayah": r["ayah"]} if r["surah"] else None,
                 "evidence": evidence,
+                "teacher": {"meanConf": r["mean_conf"], "durationS": r["duration_s"]} if r["status"] == "ok" else None,
             }
             f.write(json.dumps(clip, ensure_ascii=False, separators=(",", ":")) + "\n")
     print(f"{len(rows)} rows -> {args.out} ({mismatched} top-k decodes differ from stored hyp)")

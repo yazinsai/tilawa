@@ -12,7 +12,8 @@
     "review": "tsx src/review/cli.ts",
     "bench": "tsx src/bench/cli.ts",
     "perf": "tsx src/bench/perf-cli.ts",
-    "e2e": "tsx src/e2e/cli.ts"
+    "e2e": "tsx src/e2e/cli.ts",
+    "buckets": "tsx src/buckets/cli.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",

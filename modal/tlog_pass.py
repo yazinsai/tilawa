@@ -5,9 +5,13 @@ scores the decode against the filename ayah as a first-pass prior. Global
 relabelling and bucketing happen downstream in the tracker.
 
     modal run modal/tlog_pass.py                  # 10% stratified sample
-    modal run modal/tlog_pass.py --every 1        # full corpus
     modal run modal/tlog_pass.py --limit 2        # smoke test on 2 shards
     modal run modal/tlog_pass.py --shard clean-00258-of-00411   # one named shard
+
+Long runs: a killed client stops even a `--detach` run, so deploy and spawn instead.
+
+    modal deploy modal/tlog_pass.py
+    python -c "import modal; modal.Function.from_name('tilawa-tlog-pass', 'run_all').spawn(1, 0, 'clean,unclean')"
 """
 
 import io
@@ -256,19 +260,29 @@ def list_shards() -> list[str]:
     return sorted(f for f in files if f.startswith("data/") and f.endswith(".parquet"))
 
 
-@app.local_entrypoint()
-def main(every: int = 10, limit: int = 0, shard: str = ""):
-    if shard:
-        print(TeacherPass().run_shard.remote(f"data/{shard}.parquet"))
-        return
-    shards = list_shards.remote()
+@app.function(secrets=[hf_secret], timeout=24 * 60 * 60)
+def run_all(every: int, limit: int, splits: str) -> list:
+    shards = list_shards.local()
     # Stratify: every Nth shard within each split, so clean and unclean are both sampled.
     picked = []
-    for split in ("clean", "unclean"):
+    for split in splits.split(","):
         group = [s for s in shards if f"/{split}-" in s]
         picked += group[::every]
     if limit:
         picked = picked[:limit]
     print(f"{len(picked)} of {len(shards)} shards")
-    for res in TeacherPass().run_shard.map(picked, return_exceptions=True):
+    results = []
+    for res in TeacherPass().run_shard.map(picked, return_exceptions=True, wrap_returned_exceptions=False):
+        print(res)
+        results.append(res if isinstance(res, dict) else {"error": repr(res)})
+    return results
+
+
+@app.local_entrypoint()
+def main(every: int = 10, limit: int = 0, shard: str = "", splits: str = "clean,unclean"):
+    if shard:
+        print(TeacherPass().run_shard.remote(f"data/{shard}.parquet"))
+        return
+    # Fanned out remotely so `modal run --detach` survives the client exiting.
+    for res in run_all.remote(every, limit, splits):
         print(res)

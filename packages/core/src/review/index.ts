@@ -70,7 +70,7 @@ export interface Sample {
 }
 
 /** FNV-1a: a stable pseudo-random order that only depends on the seed and the row. */
-function hash(s: string): number {
+export function hash(s: string): number {
   let h = 0x811c9dc5;
   for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193) >>> 0;
   return h;
@@ -220,7 +220,7 @@ export interface WeightedRate {
   ci: [number, number];
 }
 
-function weightedRate(parts: { weight: number; k: number; n: number }[]): WeightedRate {
+export function weightedRate(parts: { weight: number; k: number; n: number }[]): WeightedRate {
   const used = parts.filter((p) => p.n > 0);
   const total = used.reduce((a, p) => a + p.weight, 0);
   if (!total) return { rate: null, ci: [0, 1] };
