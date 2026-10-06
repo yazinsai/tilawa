@@ -112,11 +112,14 @@ export interface ManifestOptions {
   /** Filename stems (`surah_ayah_id`, no extension) to drop, e.g. Quran-Lab's `tlog_holdout`. */
   excludeStems: ReadonlySet<string>;
   fractions: { val: number; test: number };
+  /** Clusters holding more than this share of clips always go to train. Default 0.01. */
+  maxClusterShare?: number;
 }
 
 export interface Manifest {
   version: string;
   fractions: { val: number; test: number };
+  maxClusterShare: number;
   counts: Record<Bucket, Record<Split, { clips: number; hours: number; clusters: number }>>;
   excluded: { benchmark: number };
 }
@@ -133,24 +136,39 @@ export const stemOf = (path: string) => path.replace(/^.*\//, "").replace(/\.\w+
 export function buildManifests(clips: ManifestClip[], o: ManifestOptions): { manifest: Manifest; files: Record<string, ManifestClip[]> } {
   const files: Record<string, ManifestClip[]> = {};
   const counts = Object.fromEntries(BUCKETS.map((b) => [b, Object.fromEntries(SPLITS.map((s) => [s, { clips: 0, hours: 0, clusters: 0 }]))])) as Manifest["counts"];
-  const seen = new Set<string>();
-  let benchmark = 0;
-  for (const c of clips) {
-    if (o.excludeStems.has(stemOf(c.path))) {
-      benchmark++;
-      continue;
+  const maxClusterShare = o.maxClusterShare ?? 0.01;
+  const clusterKey = (c: ManifestClip) => c.cluster ?? `clip:${c.shard}/${c.row}`;
+  const kept = clips.filter((c) => !o.excludeStems.has(stemOf(c.path)));
+  const benchmark = clips.length - kept.length;
+
+  // Whole clusters in a stable pseudo-random order fill test, then val; the rest, and any oversized cluster, is train.
+  const sizes = new Map<string, number>();
+  for (const c of kept) sizes.set(clusterKey(c), (sizes.get(clusterKey(c)) ?? 0) + 1);
+  const splitOf = new Map<string, Split>();
+  const filled = { test: 0, val: 0 };
+  const total = kept.length;
+  for (const [k, n] of [...sizes].sort((a, b) => unit(a[0]) - unit(b[0]) || (a[0] < b[0] ? -1 : 1))) {
+    let split: Split = "train";
+    if (n <= maxClusterShare * total) {
+      if (filled.test < o.fractions.test * total) split = "test";
+      else if (filled.val < o.fractions.val * total) split = "val";
     }
-    const u = unit(c.cluster ?? `clip:${c.shard}/${c.row}`);
-    const split: Split = u < o.fractions.test ? "test" : u < o.fractions.test + o.fractions.val ? "val" : "train";
+    if (split !== "train") filled[split] += n;
+    splitOf.set(k, split);
+  }
+
+  const seen = new Set<string>();
+  for (const c of kept) {
+    const split = splitOf.get(clusterKey(c))!;
     (files[`${c.bucket}/${split}`] ??= []).push(c);
     const n = counts[c.bucket][split];
     n.clips++;
     n.hours += (c.durationS ?? 0) / 3600;
-    const k = `${c.bucket}/${split}/${c.cluster ?? `clip:${c.shard}/${c.row}`}`;
+    const k = `${c.bucket}/${split}/${clusterKey(c)}`;
     if (!seen.has(k)) {
       seen.add(k);
       n.clusters++;
     }
   }
-  return { manifest: { version: o.version, fractions: o.fractions, counts, excluded: { benchmark } }, files };
+  return { manifest: { version: o.version, fractions: o.fractions, maxClusterShare, counts, excluded: { benchmark } }, files };
 }

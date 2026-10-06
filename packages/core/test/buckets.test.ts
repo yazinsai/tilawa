@@ -116,6 +116,17 @@ describe("buildManifests", () => {
     expect(m.manifest.counts["clean-match"].train.clips).toBeGreaterThan(3000);
   });
 
+  it("fills test and val to their fractions with whole clusters, keeping oversized clusters in train", () => {
+    // One cluster holds 30% of the clips; the rest are 700 clusters of 2.
+    const m = buildManifests(clips(2000, (i) => (i < 600 ? "giant" : `c${i % 700}`)), { ...opts, maxClusterShare: 0.01 });
+    const c = m.manifest.counts["clean-match"];
+    expect(c.test.clips).toBeGreaterThanOrEqual(100);
+    expect(c.test.clips).toBeLessThanOrEqual(102);
+    expect(c.val.clips).toBeGreaterThanOrEqual(100);
+    expect(c.val.clips).toBeLessThanOrEqual(102);
+    expect(m.files["clean-match/train"].filter((r) => r.cluster === "giant")).toHaveLength(600);
+  });
+
   it("removes benchmark IDs, by filename stem, and counts them", () => {
     const m = buildManifests(clips(10, () => "c"), { ...opts, excludeStems: new Set(["100_6_1000000003", "100_6_1000000007"]) });
     const paths = Object.values(m.files).flat().map((r) => r.path);

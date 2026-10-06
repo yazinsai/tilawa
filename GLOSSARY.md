@@ -53,3 +53,14 @@ The listener's bias to output the correct recitation instead of what was actuall
 
 **Scripted-error recording**:
 A volunteer reading of a generated script with planted errors, so the labels are known by construction.
+
+## Training data
+
+**Bucket**:
+Where a tlog clip lands after relabelling: `clean-match` (distillation), `deviant` (located, with mismatches; mined for natural errors), `ambiguous` (no single location), or `reject`.
+
+**Text-only label**:
+A label that gives a clip's text but not its location, for clips whose candidate locations all have the same canonical phonemes, like the ar-Rahman refrain.
+
+**Speaker cluster**:
+A group of tlog clips with similar speaker embeddings. tlog has no speaker IDs, so splits are made per cluster.

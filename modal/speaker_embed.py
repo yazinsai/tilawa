@@ -6,7 +6,7 @@ linkage on a kNN graph chains 99% of clips into one cluster.
 
     modal deploy modal/speaker_embed.py && python -c "import modal; modal.Function.from_name('tilawa-speaker-embed', 'run_all').spawn()"
     modal run modal/speaker_embed.py --shard clean-00258-of-00411    # one shard
-    modal run modal/speaker_embed.py --cluster-only --threshold 0.3
+    modal run modal/speaker_embed.py --cluster-only --thresholds 0.3,0.4,0.5
 """
 
 import io
@@ -114,8 +114,8 @@ class Embedder:
 
 
 @app.function(gpu="L4", volumes={OUT: out_vol}, timeout=6 * 60 * 60, memory=98304, image=image.pip_install("scipy"))
-def cluster(threshold: float, per_centroid: int) -> dict:
-    """Mean-centred cosine; k-means micro-clusters, then average linkage over centroids at `threshold` distance."""
+def cluster(thresholds: str, per_centroid: int) -> list:
+    """Mean-centred cosine; k-means micro-clusters, then average linkage over centroids, cut at each threshold distance."""
     import glob
     import json
     import os
@@ -144,47 +144,54 @@ def cluster(threshold: float, per_centroid: int) -> dict:
         c = torch.where(counts[:, None] > 0, torch.nn.functional.normalize(sums, dim=-1), c)
 
     cn = c.cpu().numpy().astype(np.float64)
-    if k > 1:
-        d = 1 - cn @ cn.T
-        iu = np.triu_indices(k, 1)
-        cond = np.clip(d[iu], 0, 2)
-        del d
-        top = fcluster(linkage(cond, "average"), threshold, "distance") - 1
-    else:
-        top = np.zeros(1, dtype=np.int64)
-    cid = top[assign.cpu().numpy()]
+    d = 1 - cn @ cn.T
+    cond = np.clip(d[np.triu_indices(k, 1)], 0, 2)
+    del d
+    tree = linkage(cond, "average")
+    micro = assign.cpu().numpy()
 
-    # Leak diagnostic: confident same-speaker neighbours that ended up in another cluster.
-    cid_t = torch.from_numpy(cid).cuda()
+    g = torch.Generator(device="cuda").manual_seed(1)
     probe = torch.randperm(n, device="cuda", generator=g)[: min(n, 50_000)]
-    sims = x[probe] @ x.T
-    sims[torch.arange(len(probe)), probe] = -1
-    v, j = sims.max(-1)
-    strong = v >= 0.9
-    leak = float(((cid_t[j] != cid_t[probe]) & strong).sum() / max(1, int(strong.sum())))
+    vs, js = [], []
+    for s in range(0, len(probe), 1024):
+        p = probe[s : s + 1024]
+        sims = x[p] @ x.T
+        sims[torch.arange(len(p)), p] = -1
+        v, j = sims.max(-1)
+        vs.append(v)
+        js.append(j)
+    v, j = torch.cat(vs).cpu().numpy(), torch.cat(js).cpu().numpy()
+    probe = probe.cpu().numpy()
 
     os.makedirs(f"{OUT}/clusters", exist_ok=True)
-    name = f"clusters-t{threshold}-c{per_centroid}"
-    pq.write_table(
-        pa.table({"shard": t.column("shard"), "row": t.column("row"), "path": t.column("path"), "cluster": cid.astype(np.int32)}),
-        f"{OUT}/clusters/{name}.parquet",
-    )
+    out = []
+    for threshold in [float(t) for t in thresholds.split(",")]:
+        cid = (fcluster(tree, threshold, "distance") - 1)[micro]
+        # Leak diagnostic: a clip's nearest neighbour above a similarity, filed under another cluster.
+        across = {str(th): float(((cid[j] != cid[probe]) & (v >= th)).sum() / max(1, int((v >= th).sum()))) for th in (0.9, 0.95)}
+        name = f"clusters-t{threshold}-c{per_centroid}"
+        pq.write_table(
+            pa.table({"shard": t.column("shard"), "row": t.column("row"), "path": t.column("path"), "cluster": cid.astype(np.int32)}),
+            f"{OUT}/clusters/{name}.parquet",
+        )
+        sizes = np.bincount(cid)
+        sizes = np.sort(sizes[sizes > 0])[::-1]
+        stats = {
+            "file": f"clusters/{name}.parquet",
+            "threshold": threshold,
+            "clips": n,
+            "centroids": k,
+            "clusters": int(len(sizes)),
+            "singletons": int((sizes == 1).sum()),
+            "largest": sizes[:10].tolist(),
+            "largest_share": float(sizes[0] / n),
+            "nearest_neighbour_at_least": {str(th): float((v >= th).mean()) for th in (0.9, 0.95)},
+            "nearest_neighbour_across_clusters": across,
+        }
+        print(json.dumps(stats))
+        out.append(stats)
     out_vol.commit()
-    sizes = np.bincount(cid)
-    sizes = np.sort(sizes[sizes > 0])[::-1]
-    stats = {
-        "file": f"clusters/{name}.parquet",
-        "clips": n,
-        "centroids": k,
-        "clusters": int(len(sizes)),
-        "singletons": int((sizes == 1).sum()),
-        "largest": sizes[:10].tolist(),
-        "largest_share": float(sizes[0] / n),
-        "strong_neighbour_share": float(strong.float().mean()),
-        "strong_neighbours_across_clusters": leak,
-    }
-    print(json.dumps(stats))
-    return stats
+    return out
 
 
 @app.function(secrets=[hf_secret], timeout=24 * 60 * 60)
@@ -198,11 +205,12 @@ def run_all() -> list:
 
 
 @app.local_entrypoint()
-def main(shard: str = "", cluster_only: bool = False, threshold: float = 0.3, per_centroid: int = 20):
+def main(shard: str = "", cluster_only: bool = False, thresholds: str = "0.3", per_centroid: int = 20):
     if shard:
         print(Embedder().run_shard.remote(shard))
         return
     if not cluster_only:
         for r in run_all.remote():
             print(r)
-    print(cluster.remote(threshold, per_centroid))
+    for stats in cluster.remote(thresholds, per_centroid):
+        print(stats)

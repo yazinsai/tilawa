@@ -260,6 +260,34 @@ def list_shards() -> list[str]:
     return sorted(f for f in files if f.startswith("data/") and f.endswith(".parquet"))
 
 
+@app.function(volumes={OUT: out_vol, "/cache": cache_vol}, secrets=[hf_secret], timeout=60 * 60)
+def extract_shard(shard: str, rows: list[int], dest: str) -> int:
+    import os
+
+    import pyarrow.parquet as pq
+    from huggingface_hub import hf_hub_download
+
+    audio = pq.read_table(hf_hub_download(REPO, f"data/{shard}.parquet", repo_type="dataset"), columns=["audio"]).column("audio")
+    os.makedirs(f"{OUT}/{dest}", exist_ok=True)
+    for r in rows:
+        with open(f"{OUT}/{dest}/{shard}-{r}.flac", "wb") as f:
+            f.write(audio[r].as_py()["bytes"])
+    out_vol.commit()
+    return len(rows)
+
+
+@app.local_entrypoint()
+def extract(rows_tsv: str, dest: str):
+    """Review-pack audio from the shard cache: `modal run modal/tlog_pass.py::extract --rows-tsv <rows.tsv> --dest review/<name>`."""
+    by: dict[str, list[int]] = {}
+    for line in open(rows_tsv).read().splitlines():
+        if line:
+            shard, row = line.split("\t")
+            by.setdefault(shard, []).append(int(row))
+    n = sum(extract_shard.starmap([(s, r, dest) for s, r in by.items()]))
+    print(f"{n} clips -> volume {dest}")
+
+
 @app.function(secrets=[hf_secret], timeout=24 * 60 * 60)
 def run_all(every: int, limit: int, splits: str) -> list:
     shards = list_shards.local()
