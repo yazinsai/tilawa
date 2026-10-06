@@ -15,3 +15,9 @@
 - [ ] Tracker gate on this audio plus ambiguous tlog clips: correct ayah within 5 s in ≥ 95% of starts, ≤ 2% false jumps. QUD stays a regression report.
 - [ ] E0 attribution for each missed error: not visible in the evidence, lost by the tracker, or rejected by the checker.
 - [ ] Versioned report under `docs/benchmarks/`.
+
+## To explore: declared-passage mode
+
+On the provisional help-clip run (`docs/benchmarks/help-memorization-v1`), wrong_word recall is 1/29. Most misses are a substitution that forms another valid ayah: the tracker follows it, and the checker (Decision 3: it consumes the tracker's lock) sees no error. Passing the intended ayah as the tracker `prior` (`help-cli.ts --prior`) doesn't change this, because `MAX_PRIOR_BONUS` is capped below `minSeparation` on purpose.
+
+Idea: when the session declares the passage (memorization), the checker aligns against that passage. The tracker lock is used only without a declared passage, or to detect a deliberate jump (several consecutive wrong words that fit elsewhere). This would amend Decision 3, and it needs the session API (09) to accept a declared passage. Free recitation keeps the ambiguity, so report it separately. The help clips already carry their prompted passage, so the idea can be tested on them directly.

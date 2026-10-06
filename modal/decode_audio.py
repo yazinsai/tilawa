@@ -28,7 +28,7 @@ app = modal.App("tilawa-decode-audio", image=image)
 cache_vol = modal.Volume.from_name("tilawa-hf-cache", create_if_missing=True)
 
 
-@app.cls(gpu="L4", volumes={"/cache": cache_vol}, timeout=60 * 60)
+@app.cls(gpu="L4", volumes={"/cache": cache_vol}, timeout=60 * 60, max_containers=4)
 class Listener:
     @modal.enter()
     def load(self):
@@ -72,6 +72,8 @@ class Listener:
                 top_p, top_i = p.topk(TOPK, dim=-1)
                 ids.append(top_i.numpy())
                 probs.append(top_p.numpy())
+        if not ids:
+            return {"frameMs": 40, "nFrames": max(1, round(len(wave) / SR / 0.04)), "phonemes": [], "posteriors": {"k": TOPK, "ids": [], "probs": []}}
         ids_all, probs_all = np.concatenate(ids), np.concatenate(probs)
         n = ids_all.shape[0]
         # Greedy CTC collapse with frame spans, as tools/make_fixtures.py decodes.
@@ -93,10 +95,17 @@ class Listener:
 
 
 @app.local_entrypoint()
-def main(files: str = ""):
+def main(files: str = "", help_eval: bool = False):
     index = json.loads((ROOT / "packages/core/assets/ref-v2.json").read_text())
     tokens, inventory = index["inventory"]["tokens"], index["inventory"]["id"]
-    paths = [Path(f) for f in files.split(",")] if files else sorted((ROOT / ".scratch/e2e").glob("*.wav"))
+    if help_eval:
+        help_dir = ROOT / ".scratch/help"
+        labels = [json.loads(line) for line in (help_dir / "labels.jsonl").read_text().splitlines()]
+        paths = [help_dir / row["wav"] for row in labels if row["split"] == "eval"]
+        paths = [p for p in paths if not p.with_suffix(".evidence.json").exists()]
+        print(f"Decoding {len(paths)} remaining held-out help clips; existing evidence is kept.")
+    else:
+        paths = [Path(f) for f in files.split(",")] if files else sorted((ROOT / ".scratch/e2e").glob("*.wav"))
     listener = Listener()
     for path, out in zip(paths, listener.decode.starmap([(p.read_bytes(), tokens) for p in paths])):
         dest = path.with_suffix(".evidence.json")
