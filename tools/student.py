@@ -44,6 +44,19 @@ def corpus_per(pairs) -> float:
     return edits / max(1, sum(len(r) for _, r in pairs))
 
 
+def mix_noise(wave, noise, snr_db: float, rng):
+    """Add `noise`, looped from a random offset to the clip length, at `snr_db` below the clip's power."""
+    import numpy as np
+
+    start = int(rng.integers(len(noise)))
+    n = np.resize(np.roll(noise, -start), len(wave))
+    p_wave = float(np.mean(np.square(wave, dtype=np.float64)))
+    p_noise = float(np.mean(np.square(n, dtype=np.float64)))
+    if p_wave == 0 or p_noise == 0:
+        return wave
+    return (wave + n * np.sqrt(p_wave / (p_noise * 10 ** (snr_db / 10)))).astype(np.float32)
+
+
 def teacher_frames(n_student: int, n_teacher: int, delay: int = 0):
     """Teacher frame index for each student frame. Both run at 50 Hz; `delay` makes the student lag the teacher."""
     import numpy as np

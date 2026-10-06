@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from student import TOKENS, corpus_per, ctc_collapse, ids_phonemes, phoneme_ids, reference_phonemes, soft_target_loss, teacher_frames  # noqa: E402
+from student import TOKENS, corpus_per, ctc_collapse, ids_phonemes, mix_noise, phoneme_ids, reference_phonemes, soft_target_loss, teacher_frames  # noqa: E402
 
 REF = json.loads((Path(__file__).resolve().parent.parent / "packages/core/assets/ref-v2.json").read_text())
 
@@ -47,6 +47,19 @@ def test_greedy_ctc_collapses_repeats_between_blanks_only():
 def test_corpus_per_is_total_edits_over_total_reference_length():
     # "abd" vs "abc": 1 substitution; "x" vs "xy": 1 deletion; 2 edits over 5 reference phonemes.
     assert corpus_per([("abd", "abc"), ("x", "xy")]) == 0.4
+
+
+def test_noise_is_mixed_at_the_requested_snr_and_looped_to_the_clip_length():
+    import numpy as np
+
+    rng = np.random.default_rng(0)
+    clean = np.sin(np.arange(16000) / 5).astype(np.float32)
+    noise = rng.standard_normal(4000).astype(np.float32)
+    mixed = mix_noise(clean, noise, snr_db=10.0, rng=rng)
+    added = mixed - clean
+    assert len(mixed) == len(clean)
+    # 10 dB: signal power is 10x the added noise power.
+    assert abs(np.mean(clean**2) / np.mean(added**2) - 10.0) < 0.01
 
 
 def test_soft_target_loss_is_cross_entropy_to_renormalised_top_k_over_valid_frames():
