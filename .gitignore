@@ -12,3 +12,4 @@ __pycache__
 .scratch/help/
 packages/probe/public/models/
 packages/probe/public/clips/
+packages/probe/public/ort/

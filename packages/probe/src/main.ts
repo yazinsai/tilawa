@@ -35,6 +35,7 @@ $("run").onclick = async () => {
     const ep = $<HTMLSelectElement>("ep").value as "wasm" | "webgpu";
     ort.env.wasm.numThreads = Number(threadSel.value);
     ort.env.wasm.simd = true;
+    ort.env.wasm.wasmPaths = new URL("ort/", location.href).href;
     let peakHeap = heap() ?? 0;
     const sample = () => (peakHeap = Math.max(peakHeap, heap() ?? 0));
 

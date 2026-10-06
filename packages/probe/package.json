@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "fetch-assets": "bash scripts/fetch-assets.sh",
-    "dev": "vite",
-    "build": "vite build",
+    "copy-ort": "mkdir -p public/ort && cp node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.jsep.* public/ort/",
+    "dev": "pnpm copy-ort && vite",
+    "build": "pnpm copy-ort && vite build",
     "preview": "vite preview",
     "test": "vitest run"
   },
