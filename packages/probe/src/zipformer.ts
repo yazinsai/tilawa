@@ -43,13 +43,19 @@ export const MODELS: ModelSpec[] = [
 
 const fetchBytes = async (url: string) => {
   const cache = await caches.open("probe-models");
-  let res = await cache.match(url);
-  if (!res) {
-    res = await fetch(url);
-    if (!res.ok) throw new Error(`${res.status} fetching ${url}`);
-    await cache.put(url, res.clone());
+  const cached = await cache.match(url);
+  if (cached) {
+    const bytes = new Uint8Array(await cached.arrayBuffer());
+    if (bytes.length === Number(cached.headers.get("content-length"))) return bytes;
+    await cache.delete(url);
   }
-  return new Uint8Array(await res.arrayBuffer());
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`${res.status} fetching ${url}`);
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  const expected = Number(res.headers.get("content-length"));
+  if (expected && bytes.length !== expected) throw new Error(`Truncated ${url}: ${bytes.length} of ${expected} bytes, retry`);
+  await cache.put(url, new Response(bytes, { headers: { "content-length": String(bytes.length) } }));
+  return bytes;
 };
 
 const dims = (shape: readonly (number | string)[]) => shape.map((d) => (typeof d === "number" ? d : 1));
