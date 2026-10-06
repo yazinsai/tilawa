@@ -1,7 +1,8 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import type { PositionEvent, WordRef } from "../events.js";
+import { createChecker } from "../checker.js";
+import type { CheckerEvent, PositionEvent, WordRef } from "../events.js";
 import { loadReferenceIndex } from "../reference.js";
 import type { PhraseAsset, ReferenceAsset } from "../reference.js";
 import { createTracker } from "../tracker.js";
@@ -42,6 +43,8 @@ const AFTER_UNIQUE_S = 3;
 const key = (r: WordRef | null | undefined) => (r ? `${r.surah}:${r.ayah}:${r.word}` : "–");
 
 let failed = 0;
+let totalWarnings = 0;
+let totalMinutes = 0;
 const dir = values.dir!;
 for (const f of readdirSync(dir).filter((x) => x.endsWith(".truth.json")).sort()) {
   const truth: Truth = JSON.parse(readFileSync(join(dir, f), "utf8"));
@@ -72,9 +75,22 @@ for (const f of readdirSync(dir).filter((x) => x.endsWith(".truth.json")).sort()
   const r = benchRecording(index, rec, { posteriors: false, phrases, mode: truth.mode });
 
   const tracker = createTracker(index, { phrases, mode: truth.mode });
+  const checker = createChecker(index, { phrases });
   const events: PositionEvent[] = [];
-  for (const e of chunk(rec, 1, false)) for (const x of tracker.push(e)) if (x.type === "position") events.push(x);
-  for (const x of tracker.end()) if (x.type === "position") events.push(x);
+  const checks: CheckerEvent[] = [];
+  for (const e of chunk(rec, 1, false)) {
+    const out = tracker.push(e);
+    for (const x of out) if (x.type === "position") events.push(x);
+    checks.push(...checker.push(e, out));
+  }
+  const last = tracker.end();
+  for (const x of last) if (x.type === "position") events.push(x);
+  checks.push(...checker.end(last));
+  // Professional recitations: every confirmed checker error is a false warning.
+  const minutes = (ev.nFrames * ev.frameMs) / 60_000;
+  const warnings = checks.filter((c) => c.state === "confirmed");
+  totalWarnings += warnings.length;
+  totalMinutes += minutes;
 
   /**
    * When a start's audio first allows a lock: its text unique in the Quran, and the tracker's minimum evidence of 2 words
@@ -122,6 +138,9 @@ for (const f of readdirSync(dir).filter((x) => x.endsWith(".truth.json")).sort()
     console.log(`  start ${s.word.replace(/:1$/, "").padEnd(7)} at ${s.atS.toFixed(1).padStart(6)} s: located after ${s.latencyS?.toFixed(1) ?? "never"} s, ${after?.toFixed(1) ?? "–"} s after the audio allowed it`);
   }
   console.log(`  wrong-locked time ${((100 * r.wrongLockedSamples) / Math.max(1, r.lockedSamples)).toFixed(1)}%, jumps ${r.jumps} (false ${r.falseJumps}), final ${final?.state} ${key(final?.observed[0]?.word)} expected ${key(final?.expected)}, rtf ${r.rtf.toFixed(4)}`);
+  const suspected = checks.filter((c) => c.state === "suspected").length;
+  console.log(`  checker: ${warnings.length} false warning(s) in ${minutes.toFixed(1)} min (${((5 * warnings.length) / minutes).toFixed(2)} per 5 min), ${suspected} suspected`);
+  for (const c of warnings) console.log(`    ✗ ${c.errorClass} at ${key(c.location)} ${(c.timeMs / 1000).toFixed(1)} s: expected ${c.expected}, heard ${c.observed ?? "–"}, conf ${c.confidence.toFixed(2)}`);
   for (const p of problems) console.log(`  ✗ ${p}`);
   if (values.verbose) {
     const timeline = [
@@ -131,5 +150,6 @@ for (const f of readdirSync(dir).filter((x) => x.endsWith(".truth.json")).sort()
     for (const [t, line] of timeline) console.log(`    ${t.toFixed(2).padStart(7)}  ${line}`);
   }
 }
-console.log(`\n${failed ? `${failed} session(s) failed` : "all sessions passed"}`);
+console.log(`\nchecker: ${totalWarnings} false warning(s) in ${totalMinutes.toFixed(1)} min, ${((5 * totalWarnings) / Math.max(totalMinutes, 1e-9)).toFixed(2)} per 5 min`);
+console.log(`${failed ? `${failed} session(s) failed` : "all sessions passed"}`);
 process.exit(failed ? 1 : 0);

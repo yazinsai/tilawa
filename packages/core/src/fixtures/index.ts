@@ -1,4 +1,6 @@
-import type { EngineEvent, PositionEvent, TrackerState, WordRef, WordSpan } from "../events.js";
+import { createChecker } from "../checker.js";
+import type { CheckerOptions } from "../checker.js";
+import type { CheckerEvent, EngineEvent, PositionEvent, TrackerState, WordRef, WordSpan } from "../events.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "../evidence.js";
 import type { ReferenceIndex } from "../reference.js";
 import { createTracker } from "../tracker.js";
@@ -51,6 +53,16 @@ export function replay(index: ReferenceIndex, fixture: Fixture, options: Tracker
   for (const chunk of fixture.evidence) events.push(...tracker.push(chunk));
   events.push(...tracker.end());
   return events;
+}
+
+/** Replay through the tracker and a checker fed with its events; returns the checker events only. */
+export function replayChecked(index: ReferenceIndex, fixture: Fixture, options: TrackerOptions = {}, checkerOptions: CheckerOptions = {}): CheckerEvent[] {
+  const tracker = createTracker(index, options);
+  const checker = createChecker(index, checkerOptions);
+  const out: CheckerEvent[] = [];
+  for (const chunk of fixture.evidence) out.push(...checker.push(chunk, tracker.push(chunk)));
+  out.push(...checker.end(tracker.end()));
+  return out;
 }
 
 export function finalPosition(events: EngineEvent[]): PositionEvent | undefined {
