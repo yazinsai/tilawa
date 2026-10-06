@@ -70,3 +70,15 @@ Do not use Cloudflare Pages: its 25 MiB per-file limit rejects the 41–85 MB en
 RTF 0.133 (real time). Chunk p50 40.7 ms, p95 48.1 ms, max 170.3 ms. JS heap peak 62.3 MB; UA memory 139.2 MB.
 Load took 83.5 s over the cloudflared tunnel, which is network-bound and not a device number.
 Not the Android floor (4 GB Snapdragon 7xx), which still needs its own run.
+
+Same phone, same clip:
+
+| Model | Threads | RTF | p95 ms | max ms | UA memory MB | Load |
+|---|---|---|---|---|---|---|
+| 20m-int8 | 1 | 0.133 | 48.1 | 170.3 | 139.2 | 83.5 s over the tunnel |
+| 20m-int8 | 4 | 0.132 | 44.6 | 78.7 | 194.4 | 2.2 s from the cache |
+| 70m-int8 | 1 | 0.266 | 87.3 | 117.4 | 282.7 | 75.2 s over the tunnel |
+
+- Threads don't speed up a model this small: 4 threads keep the same RTF and cost about 55 MB more. They only cut the worst chunk. For `lite`, use 1 thread.
+- The 70M model costs about 2× the time for 3.5× the parameters, so a bigger `full` looks affordable on mid-range phones. That's a guess from one device.
+- Still open: the 4 GB Snapdragon 7xx floor and an iPhone XR or 11.
