@@ -7,6 +7,7 @@ relabelling and bucketing happen downstream in the tracker.
     modal run modal/tlog_pass.py                  # 10% stratified sample
     modal run modal/tlog_pass.py --every 1        # full corpus
     modal run modal/tlog_pass.py --limit 2        # smoke test on 2 shards
+    modal run modal/tlog_pass.py --shard clean-00258-of-00411   # one named shard
 """
 
 import io
@@ -256,7 +257,10 @@ def list_shards() -> list[str]:
 
 
 @app.local_entrypoint()
-def main(every: int = 10, limit: int = 0):
+def main(every: int = 10, limit: int = 0, shard: str = ""):
+    if shard:
+        print(TeacherPass().run_shard.remote(f"data/{shard}.parquet"))
+        return
     shards = list_shards.remote()
     # Stratify: every Nth shard within each split, so clean and unclean are both sampled.
     picked = []

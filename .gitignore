@@ -5,6 +5,7 @@ __pycache__
 .env
 .DS_Store
 .scratch/bookmark-tracker/review/audio/
+.scratch/v1-roadmap/review-55/audio/
 .scratch/bench/
 .scratch/e2e/
 .scratch/clips/

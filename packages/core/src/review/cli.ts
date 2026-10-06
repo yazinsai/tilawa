@@ -8,7 +8,7 @@ import { STRATA, drawSample, eligibleClips, latestAnswers, score } from "./index
 import type { ReviewAnswer, Sample, Score, WordOrder } from "./index.js";
 
 const USAGE = `usage:
-  review sample --labels <proposed-labels.jsonl> [--posterior-labels <proposed-labels.posteriors.jsonl>] --dir <dir> [--seed 1]
+  review sample --labels <proposed-labels.jsonl> [--posterior-labels <proposed-labels.posteriors.jsonl>] --dir <dir> [--seed 1] [--quota near_threshold=35,agrees=15,...]
   review serve  --dir <dir> [--port 5177]
   review eligible --dir <dir> --labels <proposed-labels.jsonl> --min-confidence <t>
   review score  --dir <dir> --labels <proposed-labels.jsonl> [--posterior-labels <...>] [--target 0.98] [--edge-words 1]`;
@@ -24,6 +24,7 @@ const { values, positionals } = parseArgs({
     target: { type: "string", default: "0.98" },
     "edge-words": { type: "string", default: "1" },
     "min-confidence": { type: "string" },
+    quota: { type: "string" },
   },
 });
 const fail = (msg: string): never => {
@@ -52,7 +53,17 @@ switch (positionals[0]) {
     const labels = readJsonl<ProposedLabel>(values.labels ?? fail("--labels is required"));
     const post = values["posterior-labels"] ? readJsonl<ProposedLabel>(values["posterior-labels"]) : undefined;
     if (existsSync(samplePath)) fail(`${samplePath} exists; a new sample would orphan its answers. Delete it first if you mean it.`);
-    const sample = drawSample(labels, { seed: Number(values.seed), withPosteriors: post });
+    const quota = Object.fromEntries(
+      (values.quota ?? "")
+        .split(",")
+        .filter(Boolean)
+        .map((kv) => {
+          const [k, v] = kv.split("=");
+          if (!(STRATA as readonly string[]).includes(k) || !(Number(v) >= 0)) fail(`bad --quota entry "${kv}"`);
+          return [k, Number(v)];
+        }),
+    );
+    const sample = drawSample(labels, { seed: Number(values.seed), quota, withPosteriors: post });
     mkdirSync(join(dir, "audio"), { recursive: true });
     writeFileSync(samplePath, JSON.stringify(sample, null, 2) + "\n");
     writeFileSync(join(dir, "rows.txt"), sample.clips.map((c) => c.row).join("\n") + "\n");

@@ -48,6 +48,7 @@
 <main>
   <div class="ayahs">
     <div class="finder" id="finder"><span class="dim">find</span><input id="q" placeholder="97  ·  2:255  ·  or Arabic words you heard" autocomplete="off" /><span class="dim"><kbd>esc</kbd> back</span></div>
+    <div class="finder" id="spanbox"><span class="dim">span</span><input id="sq" placeholder="34  ·  34-36  ·  34:2-36:5  (this surah)" autocomplete="off" /><span class="dim"><kbd>enter</kbd> mark</span></div>
     <div id="ayahs" class="ayahs"></div>
   </div>
   <aside>
@@ -67,6 +68,7 @@
       <div><span>back / ahead 2 s</span><span><kbd>←</kbd> <kbd>→</kbd></span></div>
       <div><span>slower / faster</span><span><kbd>↓</kbd> <kbd>↑</kbd></span></div>
       <div><span>mark ayah 1–9, 10, 11</span><span><kbd>1</kbd>…<kbd>9</kbd> <kbd>0</kbd> <kbd>-</kbd></span></div>
+      <div><span>type a span (any ayah)</span><kbd>G</kbd></div>
       <div><span>second ayah key = range</span><span><kbd>3</kbd> <kbd>4</kbd></span></div>
       <div><span>first word − / +</span><span><kbd>A</kbd> <kbd>S</kbd></span></div>
       <div><span>last word − / +</span><span><kbd>K</kbd> <kbd>L</kbd></span></div>
@@ -253,8 +255,37 @@ function openFinder() {
 
 function closeFinder() {
   $("finder").classList.remove("open");
+  $("spanbox").classList.remove("open");
+  $("sq").blur();
   $("q").blur();
 }
+
+/** "34", "34-36", "34:2", "34:2-36:5": ayahs or ayah:word refs in the surah on screen. */
+function parseSpan(v) {
+  const m = /^(\d+)(?::(\d+))?(?:\s*-\s*(\d+)(?::(\d+))?)?$/.exec(v.replace(/\s+/g, ""));
+  if (!m) return null;
+  const s = view, a1 = +m[1], a2 = m[3] ? +m[3] : a1;
+  if (!words(s, a1) || !words(s, a2)) return null;
+  const start = { surah: s, ayah: a1, word: m[2] ? +m[2] : 1 };
+  const end = { surah: s, ayah: a2, word: m[4] ? +m[4] : m[3] ? words(s, a2) : m[2] ? +m[2] : words(s, a2) };
+  if (start.word > words(s, a1) || end.word < 1 || end.word > words(s, a2) || cmp(start, end) > 0) return null;
+  return { start, end };
+}
+
+$("sq").addEventListener("keydown", (e) => {
+  e.stopPropagation();
+  if (e.key === "Escape") { $("spanbox").classList.remove("open"); $("sq").blur(); return; }
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  const next = parseSpan($("sq").value.trim());
+  if (!next) return flash();
+  span = next;
+  anchor = null;
+  scrollTo = span.start.ayah;
+  $("spanbox").classList.remove("open");
+  $("sq").blur();
+  render();
+});
 
 $("q").addEventListener("keydown", async (e) => {
   e.stopPropagation();
@@ -297,6 +328,7 @@ document.addEventListener("keydown", (e) => {
     l: () => nudge("end", 1),
     c: () => { span = null; anchor = null; render(); },
     o: () => openFinder(),
+    g: () => { $("spanbox").classList.add("open"); $("sq").value = ""; $("sq").focus(); },
     Escape: () => { if (view !== clips[i].surah || results) { results = null; view = clips[i].surah; render(); } },
     n: () => { const v = prompt("Note", note); if (v !== null) { note = v.trim(); render(); } },
     Enter: () => save("span"),

@@ -1,0 +1,947 @@
+{
+  "seed": 1,
+  "strata": {
+    "near_threshold": {
+      "population": 68,
+      "sampled": 50
+    },
+    "posteriors_disagree": {
+      "population": 10,
+      "sampled": 10
+    },
+    "agrees": {
+      "population": 144,
+      "sampled": 15
+    },
+    "part_of_ayah": {
+      "population": 8,
+      "sampled": 8
+    },
+    "offset": {
+      "population": 77,
+      "sampled": 15
+    },
+    "multi_ayah": {
+      "population": 122,
+      "sampled": 15
+    },
+    "other_surah": {
+      "population": 29,
+      "sampled": 10
+    },
+    "ambiguous": {
+      "population": 178,
+      "sampled": 15
+    },
+    "lost": {
+      "population": 181,
+      "sampled": 8
+    },
+    "insufficient": {
+      "population": 26,
+      "sampled": 4
+    }
+  },
+  "clips": [
+    {
+      "row": 581,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_9660512243.flac",
+      "stratum": "posteriors_disagree"
+    },
+    {
+      "row": 216,
+      "shard": "clean-00258-of-00411",
+      "path": "55_59_5564796896.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 360,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_3872402314.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 268,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_1886146458.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 421,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_5261058983.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 442,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_5857819939.flac",
+      "stratum": "offset"
+    },
+    {
+      "row": 423,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_5291727757.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 441,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_5811573117.flac",
+      "stratum": "posteriors_disagree"
+    },
+    {
+      "row": 455,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_6064478825.flac",
+      "stratum": "offset"
+    },
+    {
+      "row": 426,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_5470043995.flac",
+      "stratum": "offset"
+    },
+    {
+      "row": 430,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_5576493255.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 284,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_2152801931.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 427,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_5473897407.flac",
+      "stratum": "offset"
+    },
+    {
+      "row": 457,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_6088167533.flac",
+      "stratum": "offset"
+    },
+    {
+      "row": 444,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_5885739923.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 456,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_6085006637.flac",
+      "stratum": "offset"
+    },
+    {
+      "row": 286,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_2215131705.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 452,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_6045771136.flac",
+      "stratum": "offset"
+    },
+    {
+      "row": 459,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_6137281042.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 743,
+      "shard": "clean-00258-of-00411",
+      "path": "55_62_9439437804.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 790,
+      "shard": "clean-00258-of-00411",
+      "path": "55_64_1640492848.flac",
+      "stratum": "insufficient"
+    },
+    {
+      "row": 791,
+      "shard": "clean-00258-of-00411",
+      "path": "55_64_1674762158.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 785,
+      "shard": "clean-00258-of-00411",
+      "path": "55_63_undefined_2bon1Zk.flac",
+      "stratum": "ambiguous"
+    },
+    {
+      "row": 735,
+      "shard": "clean-00258-of-00411",
+      "path": "55_62_5637792029.flac",
+      "stratum": "posteriors_disagree"
+    },
+    {
+      "row": 796,
+      "shard": "clean-00258-of-00411",
+      "path": "55_64_3327498590.flac",
+      "stratum": "ambiguous"
+    },
+    {
+      "row": 784,
+      "shard": "clean-00258-of-00411",
+      "path": "55_63_undefined.flac",
+      "stratum": "ambiguous"
+    },
+    {
+      "row": 797,
+      "shard": "clean-00258-of-00411",
+      "path": "55_64_3330348844.flac",
+      "stratum": "multi_ayah"
+    },
+    {
+      "row": 794,
+      "shard": "clean-00258-of-00411",
+      "path": "55_64_2949160250.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 798,
+      "shard": "clean-00258-of-00411",
+      "path": "55_64_3833139607.flac",
+      "stratum": "insufficient"
+    },
+    {
+      "row": 718,
+      "shard": "clean-00258-of-00411",
+      "path": "55_62_2434987223.flac",
+      "stratum": "agrees"
+    },
+    {
+      "row": 799,
+      "shard": "clean-00258-of-00411",
+      "path": "55_64_3851282872.flac",
+      "stratum": "ambiguous"
+    },
+    {
+      "row": 719,
+      "shard": "clean-00258-of-00411",
+      "path": "55_62_2775494106.flac",
+      "stratum": "lost"
+    },
+    {
+      "row": 789,
+      "shard": "clean-00258-of-00411",
+      "path": "55_64_1473437659.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 788,
+      "shard": "clean-00258-of-00411",
+      "path": "55_64_1020345387.flac",
+      "stratum": "insufficient"
+    },
+    {
+      "row": 712,
+      "shard": "clean-00258-of-00411",
+      "path": "55_62_1577165221.flac",
+      "stratum": "agrees"
+    },
+    {
+      "row": 713,
+      "shard": "clean-00258-of-00411",
+      "path": "55_62_1623047468.flac",
+      "stratum": "agrees"
+    },
+    {
+      "row": 710,
+      "shard": "clean-00258-of-00411",
+      "path": "55_62_1242659631.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 711,
+      "shard": "clean-00258-of-00411",
+      "path": "55_62_1537460757.flac",
+      "stratum": "agrees"
+    },
+    {
+      "row": 716,
+      "shard": "clean-00258-of-00411",
+      "path": "55_62_2165351173.flac",
+      "stratum": "lost"
+    },
+    {
+      "row": 714,
+      "shard": "clean-00258-of-00411",
+      "path": "55_62_1664725818.flac",
+      "stratum": "agrees"
+    },
+    {
+      "row": 715,
+      "shard": "clean-00258-of-00411",
+      "path": "55_62_2157243372.flac",
+      "stratum": "agrees"
+    },
+    {
+      "row": 648,
+      "shard": "clean-00258-of-00411",
+      "path": "55_60_8007643614.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 614,
+      "shard": "clean-00258-of-00411",
+      "path": "55_60_275601415.flac",
+      "stratum": "part_of_ayah"
+    },
+    {
+      "row": 954,
+      "shard": "clean-00258-of-00411",
+      "path": "55_68_8582818060.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 956,
+      "shard": "clean-00258-of-00411",
+      "path": "55_68_9670002442.flac",
+      "stratum": "agrees"
+    },
+    {
+      "row": 641,
+      "shard": "clean-00258-of-00411",
+      "path": "55_60_6902639788.flac",
+      "stratum": "other_surah"
+    },
+    {
+      "row": 642,
+      "shard": "clean-00258-of-00411",
+      "path": "55_60_7105589325.flac",
+      "stratum": "part_of_ayah"
+    },
+    {
+      "row": 950,
+      "shard": "clean-00258-of-00411",
+      "path": "55_68_724871077.flac",
+      "stratum": "agrees"
+    },
+    {
+      "row": 951,
+      "shard": "clean-00258-of-00411",
+      "path": "55_68_7368217302.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 644,
+      "shard": "clean-00258-of-00411",
+      "path": "55_60_7550420648.flac",
+      "stratum": "other_surah"
+    },
+    {
+      "row": 952,
+      "shard": "clean-00258-of-00411",
+      "path": "55_68_7705924371.flac",
+      "stratum": "lost"
+    },
+    {
+      "row": 619,
+      "shard": "clean-00258-of-00411",
+      "path": "55_60_3265561963.flac",
+      "stratum": "other_surah"
+    },
+    {
+      "row": 868,
+      "shard": "clean-00258-of-00411",
+      "path": "55_66_1882196858.flac",
+      "stratum": "multi_ayah"
+    },
+    {
+      "row": 646,
+      "shard": "clean-00258-of-00411",
+      "path": "55_60_7902631892.flac",
+      "stratum": "other_surah"
+    },
+    {
+      "row": 183,
+      "shard": "clean-00258-of-00411",
+      "path": "55_58_5851941084.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 182,
+      "shard": "clean-00258-of-00411",
+      "path": "55_58_4639490016.flac",
+      "stratum": "agrees"
+    },
+    {
+      "row": 181,
+      "shard": "clean-00258-of-00411",
+      "path": "55_58_3831772512.flac",
+      "stratum": "agrees"
+    },
+    {
+      "row": 180,
+      "shard": "clean-00258-of-00411",
+      "path": "55_58_3766435316.flac",
+      "stratum": "multi_ayah"
+    },
+    {
+      "row": 187,
+      "shard": "clean-00258-of-00411",
+      "path": "55_58_7807611992.flac",
+      "stratum": "ambiguous"
+    },
+    {
+      "row": 633,
+      "shard": "clean-00258-of-00411",
+      "path": "55_60_5951344426.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 186,
+      "shard": "clean-00258-of-00411",
+      "path": "55_58_7447928123.flac",
+      "stratum": "agrees"
+    },
+    {
+      "row": 185,
+      "shard": "clean-00258-of-00411",
+      "path": "55_58_69897450.flac",
+      "stratum": "agrees"
+    },
+    {
+      "row": 119,
+      "shard": "clean-00258-of-00411",
+      "path": "55_56_null_azFdnwW.flac",
+      "stratum": "agrees"
+    },
+    {
+      "row": 184,
+      "shard": "clean-00258-of-00411",
+      "path": "55_58_6771033776.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 178,
+      "shard": "clean-00258-of-00411",
+      "path": "55_58_3730526524.flac",
+      "stratum": "offset"
+    },
+    {
+      "row": 802,
+      "shard": "clean-00258-of-00411",
+      "path": "55_64_4922006695.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 179,
+      "shard": "clean-00258-of-00411",
+      "path": "55_58_3735851014.flac",
+      "stratum": "agrees"
+    },
+    {
+      "row": 800,
+      "shard": "clean-00258-of-00411",
+      "path": "55_64_4224051920.flac",
+      "stratum": "insufficient"
+    },
+    {
+      "row": 110,
+      "shard": "clean-00258-of-00411",
+      "path": "55_56_8723191473.flac",
+      "stratum": "multi_ayah"
+    },
+    {
+      "row": 111,
+      "shard": "clean-00258-of-00411",
+      "path": "55_56_8898289577.flac",
+      "stratum": "multi_ayah"
+    },
+    {
+      "row": 112,
+      "shard": "clean-00258-of-00411",
+      "path": "55_56_9114788008.flac",
+      "stratum": "lost"
+    },
+    {
+      "row": 13,
+      "shard": "clean-00258-of-00411",
+      "path": "55_54_1997611302.flac",
+      "stratum": "multi_ayah"
+    },
+    {
+      "row": 816,
+      "shard": "clean-00258-of-00411",
+      "path": "55_64_null_Kx9rihY.flac",
+      "stratum": "posteriors_disagree"
+    },
+    {
+      "row": 113,
+      "shard": "clean-00258-of-00411",
+      "path": "55_56_9203986505.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 12,
+      "shard": "clean-00258-of-00411",
+      "path": "55_54_1939951472.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 875,
+      "shard": "clean-00258-of-00411",
+      "path": "55_66_5467555439.flac",
+      "stratum": "multi_ayah"
+    },
+    {
+      "row": 805,
+      "shard": "clean-00258-of-00411",
+      "path": "55_64_5719594084.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 114,
+      "shard": "clean-00258-of-00411",
+      "path": "55_56_941170097.flac",
+      "stratum": "part_of_ayah"
+    },
+    {
+      "row": 115,
+      "shard": "clean-00258-of-00411",
+      "path": "55_56_970392690.flac",
+      "stratum": "agrees"
+    },
+    {
+      "row": 85,
+      "shard": "clean-00258-of-00411",
+      "path": "55_56_1330652111.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 309,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_2646447635.flac",
+      "stratum": "posteriors_disagree"
+    },
+    {
+      "row": 308,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_2640138246.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 329,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_3245477665.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 574,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_9568528345.flac",
+      "stratum": "multi_ayah"
+    },
+    {
+      "row": 575,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_9574678097.flac",
+      "stratum": "multi_ayah"
+    },
+    {
+      "row": 572,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_9541630730.flac",
+      "stratum": "other_surah"
+    },
+    {
+      "row": 306,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_2636499293.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 570,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_9506846421.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 571,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_9513208303.flac",
+      "stratum": "offset"
+    },
+    {
+      "row": 239,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_1145279455.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 561,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_9103173009.flac",
+      "stratum": "other_surah"
+    },
+    {
+      "row": 563,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_9156793527.flac",
+      "stratum": "multi_ayah"
+    },
+    {
+      "row": 562,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_9136941911.flac",
+      "stratum": "other_surah"
+    },
+    {
+      "row": 490,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_7091026331.flac",
+      "stratum": "posteriors_disagree"
+    },
+    {
+      "row": 248,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_1335367082.flac",
+      "stratum": "part_of_ayah"
+    },
+    {
+      "row": 516,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_7761265866.flac",
+      "stratum": "part_of_ayah"
+    },
+    {
+      "row": 492,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_7108058360.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 566,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_9336325618.flac",
+      "stratum": "offset"
+    },
+    {
+      "row": 510,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_7625945069.flac",
+      "stratum": "offset"
+    },
+    {
+      "row": 495,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_7123996102.flac",
+      "stratum": "part_of_ayah"
+    },
+    {
+      "row": 504,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_7408418217.flac",
+      "stratum": "other_surah"
+    },
+    {
+      "row": 291,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_2409449009.flac",
+      "stratum": "posteriors_disagree"
+    },
+    {
+      "row": 496,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_7147541213.flac",
+      "stratum": "offset"
+    },
+    {
+      "row": 499,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_7222247747.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 500,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_7224595915.flac",
+      "stratum": "other_surah"
+    },
+    {
+      "row": 294,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_2474068461.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 462,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_6286756550.flac",
+      "stratum": "offset"
+    },
+    {
+      "row": 483,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_6757032220.flac",
+      "stratum": "posteriors_disagree"
+    },
+    {
+      "row": 769,
+      "shard": "clean-00258-of-00411",
+      "path": "55_63_4907846870.flac",
+      "stratum": "offset"
+    },
+    {
+      "row": 768,
+      "shard": "clean-00258-of-00411",
+      "path": "55_63_4166485591.flac",
+      "stratum": "lost"
+    },
+    {
+      "row": 709,
+      "shard": "clean-00258-of-00411",
+      "path": "55_61_undefined_bNvXYVF.flac",
+      "stratum": "ambiguous"
+    },
+    {
+      "row": 916,
+      "shard": "clean-00258-of-00411",
+      "path": "55_67_8773107893.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 762,
+      "shard": "clean-00258-of-00411",
+      "path": "55_63_2477938662.flac",
+      "stratum": "ambiguous"
+    },
+    {
+      "row": 767,
+      "shard": "clean-00258-of-00411",
+      "path": "55_63_4026137285.flac",
+      "stratum": "ambiguous"
+    },
+    {
+      "row": 766,
+      "shard": "clean-00258-of-00411",
+      "path": "55_63_3241831119.flac",
+      "stratum": "ambiguous"
+    },
+    {
+      "row": 754,
+      "shard": "clean-00258-of-00411",
+      "path": "55_63_1163390028.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 706,
+      "shard": "clean-00258-of-00411",
+      "path": "55_61_undefined.flac",
+      "stratum": "ambiguous"
+    },
+    {
+      "row": 675,
+      "shard": "clean-00258-of-00411",
+      "path": "55_61_1847941029.flac",
+      "stratum": "multi_ayah"
+    },
+    {
+      "row": 765,
+      "shard": "clean-00258-of-00411",
+      "path": "55_63_2858997103.flac",
+      "stratum": "ambiguous"
+    },
+    {
+      "row": 674,
+      "shard": "clean-00258-of-00411",
+      "path": "55_61_1719269954.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 764,
+      "shard": "clean-00258-of-00411",
+      "path": "55_63_2838529228.flac",
+      "stratum": "ambiguous"
+    },
+    {
+      "row": 700,
+      "shard": "clean-00258-of-00411",
+      "path": "55_61_9764594776.flac",
+      "stratum": "lost"
+    },
+    {
+      "row": 677,
+      "shard": "clean-00258-of-00411",
+      "path": "55_61_2707547006.flac",
+      "stratum": "ambiguous"
+    },
+    {
+      "row": 676,
+      "shard": "clean-00258-of-00411",
+      "path": "55_61_2553362599.flac",
+      "stratum": "ambiguous"
+    },
+    {
+      "row": 702,
+      "shard": "clean-00258-of-00411",
+      "path": "55_61_null_5mkMjtk.flac",
+      "stratum": "ambiguous"
+    },
+    {
+      "row": 678,
+      "shard": "clean-00258-of-00411",
+      "path": "55_61_3368130236.flac",
+      "stratum": "other_surah"
+    },
+    {
+      "row": 949,
+      "shard": "clean-00258-of-00411",
+      "path": "55_68_6903687909.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 850,
+      "shard": "clean-00258-of-00411",
+      "path": "55_65_9386052006.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 20,
+      "shard": "clean-00258-of-00411",
+      "path": "55_54_2937298416.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 945,
+      "shard": "clean-00258-of-00411",
+      "path": "55_68_4942623506.flac",
+      "stratum": "posteriors_disagree"
+    },
+    {
+      "row": 22,
+      "shard": "clean-00258-of-00411",
+      "path": "55_54_3086718215.flac",
+      "stratum": "part_of_ayah"
+    },
+    {
+      "row": 43,
+      "shard": "clean-00258-of-00411",
+      "path": "55_54_null_UxUxYWH.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 32,
+      "shard": "clean-00258-of-00411",
+      "path": "55_54_4944291850.flac",
+      "stratum": "lost"
+    },
+    {
+      "row": 941,
+      "shard": "clean-00258-of-00411",
+      "path": "55_68_3376454958.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 31,
+      "shard": "clean-00258-of-00411",
+      "path": "55_54_4741624909.flac",
+      "stratum": "lost"
+    },
+    {
+      "row": 30,
+      "shard": "clean-00258-of-00411",
+      "path": "55_54_4216414960.flac",
+      "stratum": "multi_ayah"
+    },
+    {
+      "row": 37,
+      "shard": "clean-00258-of-00411",
+      "path": "55_54_8476874159.flac",
+      "stratum": "multi_ayah"
+    },
+    {
+      "row": 682,
+      "shard": "clean-00258-of-00411",
+      "path": "55_61_3911630903.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 28,
+      "shard": "clean-00258-of-00411",
+      "path": "55_54_4187502740.flac",
+      "stratum": "multi_ayah"
+    },
+    {
+      "row": 35,
+      "shard": "clean-00258-of-00411",
+      "path": "55_54_7407994842.flac",
+      "stratum": "multi_ayah"
+    },
+    {
+      "row": 135,
+      "shard": "clean-00258-of-00411",
+      "path": "55_57_2810943791.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 350,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_3741986749.flac",
+      "stratum": "posteriors_disagree"
+    },
+    {
+      "row": 385,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_4537573780.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 554,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_8958632027.flac",
+      "stratum": "part_of_ayah"
+    },
+    {
+      "row": 590,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_9906326002.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 213,
+      "shard": "clean-00258-of-00411",
+      "path": "55_59_4600977387.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 591,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_9937163102.flac",
+      "stratum": "offset"
+    },
+    {
+      "row": 584,
+      "shard": "clean-00258-of-00411",
+      "path": "55_5_9689789368.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 206,
+      "shard": "clean-00258-of-00411",
+      "path": "55_59_2504509877.flac",
+      "stratum": "near_threshold"
+    },
+    {
+      "row": 210,
+      "shard": "clean-00258-of-00411",
+      "path": "55_59_4205369960.flac",
+      "stratum": "near_threshold"
+    }
+  ]
+}
