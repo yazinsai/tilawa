@@ -1,13 +1,27 @@
-# 05: Scripted-error generator, recorder, consent
+# 05: Gap recordings: pairs, shadda, long sessions, self-correction
 
-**What to build:** Ground truth with labels known by construction. Generated scripts with planted errors, a web recorder, and consent, ready for 5–15 volunteers.
+**What to build:** Scripted-error recordings for what the existing help-page clips (ticket 12) don't cover. They supply ≥ 50 positives for the memorization classes and short vowels, plus 464 clean clips. This ticket fills the rest.
 
-**Status:** ready-for-agent
+**Blocked by:** 12 (so the audit numbers are final before scripts are weighted).
 
-- [ ] Script generator in core, using the reference index. It plants about one error per 2–3 ayahs from the v1 memorization and pronunciation classes, from Juz Amma, Juz Tabarak and a few long surahs. The mix is weighted so each class reaches at least 50 positives across volunteers. Each script records its planted labels.
-- [ ] One clean script per volunteer, with no planted errors.
-- [ ] Web recorder: shows the script with planted errors highlighted, records in the phone browser, uploads to a private bucket (Modal volume or R2) with speaker ID, device and script ID.
-- [ ] Consent form covering evaluation and commercial training use, retention, and deletion on request.
-- [ ] Speaker split: designate the held-out eval speakers before any training uses the audio.
-- [ ] Volunteer recordings never enter git; `.gitignore` covers any local download path, as it already does for `.scratch/clips/`.
-- [ ] Recruitment (human): mixed gender, mostly non-Arab, several phones.
+**Status:** needs-triage
+
+## What the help clips lack
+
+- Letter pairs: only ق/ك (11 clips from 2 sites: خلق and الفلق). There are also 15 "light ص" clips from 2 sites (الصمد and صدور), which are weakened emphasis, not a clean ص→س swap. The other 7 pairs have none.
+- Missing shadda: 5 clips, all in الخنّاس.
+- Long sessions: clips average about 11 s, mostly a single ayah that contains the error. Nothing tests staying quiet across minutes of clean recitation between errors.
+- Self-correction: no scenario says a mistake and then fixes it (`hesitate-*` are repeats).
+- Speakers: about 18 clips from women, and native language was never asked.
+- Short vowels: concentrated on about 4 v2 sites, mostly with fatha as the original vowel. Damma and kasra as the original vowel have ≤ 3 clips each.
+
+## Tasks
+
+- [ ] Script generator in core, using the reference index. Long multi-ayah scripts from Juz Amma, Juz Tabarak and a few long surahs, with about one planted error per 2–3 ayahs. Weight the mix toward the gaps above until each pronunciation class has ≥ 50 positives from ≥ 15 distinct sites. Each script records its planted labels.
+- [ ] Self-correction items: say the error, then re-say the word or ayah correctly. Label both the error and the fix.
+- [ ] One long clean script per volunteer, for false warnings per 5 minutes on real session lengths.
+- [ ] Recorder: extend the existing help page (`offline-tarteel/web/frontend/server/help`) with a v5 prompt set rather than building a new one. Keep the same storage and export, and add the script ID and planted-label JSON per recording.
+- [ ] Add a native-language field (Arabic / not) to the speaker form.
+- [ ] Consent: keep CC BY 4.0, and add retention and deletion on request. Deletion needs a speaker-held deletion code, because emails are not linked to recordings.
+- [ ] Recruitment (human): women and non-Arab reciters first, several phones.
+- [ ] Recordings stay out of git.

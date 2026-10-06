@@ -30,10 +30,11 @@ Nothing else in PLAN.md exists yet: the checker, the full tlog pass, ground trut
 | 02 | Device probe page | — |
 | 03 | Second-shard relabel review | — |
 | 04 | Checker: memorization events | — |
-| 05 | Scripted-error generator, recorder, consent | — |
+| 05 | Gap recordings: pairs, shadda, long sessions, self-correction | 12 |
 | 06 | Full tlog teacher pass and bucketing | 03 |
-| 07 | E0 and acceptance eval on scripted recordings | 04, 05 |
+| 07 | E0 and acceptance eval on scripted recordings | 04, 12 (phase 2: 05) |
 | 08 | Student distillation (E2, E3, E5, E6) | 01, 02, 06 |
 | 09 | SDK runtimes and session API | 04, 08 |
 | 10 | E7 quantize, export, device measurements | 08, 09 |
 | 11 | E1b spliced-error probe for classes E1 couldn't judge | 01 |
+| 12 | Import and audit the help-page clips | — |
