@@ -4,7 +4,7 @@ const isolation = { "Cross-Origin-Opener-Policy": "same-origin", "Cross-Origin-E
 
 export default defineConfig({
   base: "./",
-  server: { headers: isolation, host: true },
-  preview: { headers: isolation, host: true },
+  server: { headers: isolation, host: true, allowedHosts: [".trycloudflare.com"] },
+  preview: { headers: isolation, host: true, allowedHosts: [".trycloudflare.com"] },
   optimizeDeps: { exclude: ["onnxruntime-web"] },
 });
