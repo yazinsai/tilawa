@@ -183,10 +183,19 @@ def sample() -> None:
     for k, ids in by_kind.items():
         for i in rng.sample(ids, min(RANDOM_PER_KIND, len(ids))):
             picked.setdefault(i, []).append(f"random: {k}")
+    swap_path = DIR / "version_swap.json"
+    swaps = json.loads(swap_path.read_text()) if swap_path.exists() else {}
+    for i in swaps:
+        picked.setdefault(i, []).append("v1 stored, v2 shown")
     index = {r["id"]: r for r in rows}
     items = []
     for i, why in picked.items():
         r = index[i]
+        stored = None
+        if i in swaps:
+            stored = {"ref": r["ref"], "kind": r["kind"], "mistakes": r.get("mistakes") or []}
+            s = swaps[i]
+            r = {**r, "ref": s["ref"], "kind": s["kind"], "mistakes": s.get("mistakes") or [], "scenario": s.get("scenario"), "prompt_version": 2}
         items.append(
             {
                 "id": i,
@@ -200,6 +209,7 @@ def sample() -> None:
                 "mistakes": r.get("mistakes") or [],
                 "ayahs": [{"ref": a, "words": words(q[a]["text_uthmani"])} for a in ayahs_of(r) if a in q],
                 "teacher": passage.get(i),
+                "stored": stored,
             }
         )
     rng.shuffle(items)
@@ -256,7 +266,7 @@ function task(it){
 function render(){
   const it=items[i],a=answers[it.id]||{};
   $("pos").textContent=`${i+1}/${items.length} · ${Object.keys(answers).length} answered · ${it.id}`;
-  $("task").innerHTML=task(it);
+  $("task").innerHTML=task(it)+(it.stored?`<div class="meta">Shown on screen (v2 from the same seed). Stored label was ${it.stored.ref}: ${task(it.stored)}</div>`:"");
   $("text").innerHTML=it.ayahs.map(ay=>{
     const ms=it.mistakes.filter(m=>m.ayah===ay.ref);
     if(ms.some(m=>m.kind==="skip_ayah"))return `<span class="skip">${ay.words.join(" ")}</span><span class="ref">${ay.ref}</span>`;
