@@ -47,7 +47,11 @@ function setSpeed(s) {
   speed = s;
   localStorage.setItem("speed", s);
   $("speed").value = s;
-  $("audio").defaultPlaybackRate = $("audio").playbackRate = s;
+  applySpeed();
+}
+// Unlocated clips stay at 1×: there's no text to follow, so you have to recognise the passage by ear.
+function applySpeed() {
+  $("audio").defaultPlaybackRate = $("audio").playbackRate = clips[i] && !clips[i].label ? 1 : speed;
 }
 $("speed").onchange = (e) => (setSpeed(Number(e.target.value)), e.target.blur());
 setSpeed(speed);
@@ -94,6 +98,7 @@ function show() {
   $("text").innerHTML = c.label ? c.label.text : '<span class="none">The tracker found no passage. Use 3 if you hear Quran, 4 if not.</span>';
   const url = `/audio/${encodeURIComponent(`${c.shard}-${c.row}`)}`;
   $("audio").src = url;
+  applySpeed();
   normalize(url).catch(() => {});
   for (const b of document.querySelectorAll(".keys button")) b.classList.toggle("on", answers[key(c)]?.verdict === b.dataset.v);
   started = performance.now();
