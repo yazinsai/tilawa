@@ -2,7 +2,7 @@
 
 **What to build:** Synthetic audio positives for the classes E1 couldn't judge (every letter pair and missing shadda), made by splicing phoneme segments between clean recitations. Then re-run the E1 report on them. Spliced errors are cleaner than real learner errors, so a pass is an upper bound on what the teacher can hear. A fail rules the class out before ticket 05's recordings arrive.
 
-**Status:** ready-for-human
+**Status:** done
 
 Everything but the spot-listen is done.
 
@@ -13,7 +13,7 @@ Everything but the spot-listen is done.
 - [x] Controls: splice the *same* phoneme from another word, with an identical seam and no error. If the teacher flags these, it is reacting to the seam, and the class's numbers are void. (letters: host cut points identical, donor is the same consonant plus vowel; shadda: the same kind of midpoint cut, removing 15%, so the seam is similar but not identical)
 - [x] Produce the clips as an E1-format parquet so `tools/e1_report.py` scores them unchanged. Add a dataset entry plus a spliced/control flag, and report control FP next to each class. (`e1b-spliced`, `kind` = spliced/control/clean; `tools/e1_report.py --e1b`. Scoring logic is E1's `score_clip`, now with an optional site filter so a clip is scored only where it was spliced)
 - [x] Commit `docs/benchmarks/e1b-spliced-v1.md` with per-class verdicts, labelled as upper bounds. Update the 01 verdicts only from `unsupported` to "dead" (fails even on clean splices), never upward.
-- [ ] Spot-listen to ~20 splices per class and record a pass/fail on whether each sounds like the target error. (Pack built at `.scratch/e1b/listen/`: 20 spliced + 20 controls per class, with a pass column in its README. Needs a human.)
+- [x] Spot-listen to ~20 splices per class and record a pass/fail on whether each sounds like the target error. (Pack built at `.scratch/e1b/listen/`: 20 spliced + 20 controls per class, with a pass column in its README. Needs a human.)
   - Run `uv run tools/e1b_listen.py` and open http://localhost:8766. It is blind and shuffled: y = heard the error, n = sounds clean, 0 = unsure, space = replay. Answering auto-advances and fills the README pass column. Then run `uv run tools/e1b_listen.py report` for the per-class table.
 
 ## Answer
@@ -33,3 +33,7 @@ Upper bounds, Husary and Minshawy, judged against seamed controls:
 - Speculative: the splicer is reusable for ticket 08's E3 training data, so build it as a library, not a one-off. (`tools/splice.py` is DSP only: `boundaries`, `replace`, `shorten`)
 - Iqra_TTS (E4) is an alternative positive source. It's left out of scope here, because synthetic voices add a second domain gap.
 - Rebuild: `tools/e1b_build.py clean`, `modal run modal/e1b_pass.py --stage clean`, `tools/e1b_build.py splice`, `modal run modal/e1b_pass.py --stage spliced`, `tools/e1_report.py --e1b`. The Modal client needs pyarrow: `uv run --with modal --with pyarrow modal run ...`.
+
+## Comments
+
+- **Spot-listen, 2026-10-06:** abandoned after a partial pass. Most splices are barely distinguishable from the canonical letter by ear, so a human can't confirm that the splices are the target error. The verdicts above stay upper bounds that nothing has validated. They gate nothing, because no `dead` verdict was carried into ticket 01. One open question: the teacher still separates the viable classes from seamed controls (52–72% recall, ≤ 1% FP) where a human can't, so it is either hearing real cues or reacting to donor artifacts (pitch, loudness). Ticket 05's self-recorded pilot settles which. Decision: ت→ط, ذ/ز and ث/س ship as `unsupported` in v1 and aren't recorded.
