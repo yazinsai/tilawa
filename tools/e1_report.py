@@ -16,7 +16,7 @@ alphabet-mapping differences are never counted as errors.
 import json
 import subprocess
 import sys
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 
 import numpy as np
@@ -161,10 +161,11 @@ def confusables(ch: str) -> list[str]:
 
 def empty() -> dict:
     return {"pos": 0, "greedy_hit": 0, "greedy_canon": 0, "greedy_other": 0, "top5_hit": 0, "llr_hit": 0,
-            "neg": 0, "greedy_fp": 0, "top5_fp": 0, "llr_fp": 0, "examples": []}
+            "neg": 0, "greedy_ok": 0, "greedy_fp": 0, "top5_fp": 0, "llr_fp": 0, "examples": []}
 
 
-def score_clip(row: dict, canon: str, modal: str, stats: dict[str, dict]) -> None:
+def score_clip(row: dict, canon: str, modal: str, stats: dict[str, dict], sites: set[int] | None = None) -> None:
+    """Score every class site in the clip, or only the canonical indices in sites."""
     said, hyp = row["said"], row["greedy"]
     a_said, a_hyp, a_modal = align(canon, said), align(canon, hyp), align(canon, modal)
     lp = log_probs(row)
@@ -179,7 +180,7 @@ def score_clip(row: dict, canon: str, modal: str, stats: dict[str, dict]) -> Non
     # Substitution classes: short vowels and letter pairs.
     for i, c in enumerate(canon):
         key = class_of(c)
-        if key is None or at(modal, a_modal, i) != c:
+        if key is None or at(modal, a_modal, i) != c or (sites is not None and i not in sites):
             continue
         s = at(said, a_said, i)
         st = stats[key]
@@ -187,6 +188,7 @@ def score_clip(row: dict, canon: str, modal: str, stats: dict[str, dict]) -> Non
             j = a_said[i]
             g = at(hyp, a_hyp, i)
             st["neg"] += 1
+            st["greedy_ok"] += g == c
             st["greedy_fp"] += g in confusables(c)
             lo, hi = spans[j]
             top = np.argsort(lp[lo:hi], axis=1)[:, -5:]
@@ -211,7 +213,7 @@ def score_clip(row: dict, canon: str, modal: str, stats: dict[str, dict]) -> Non
     modal_runs = {r[0] for r in runs(modal)}
     for lo, hi in runs(canon):
         c = canon[lo]
-        if a_modal[lo] is None or a_modal[lo] not in modal_runs:
+        if a_modal[lo] is None or a_modal[lo] not in modal_runs or (sites is not None and lo not in sites):
             continue
         said_idx = [a_said[k] for k in range(lo, hi) if a_said[k] is not None]
         kept = sum(said[k] == c for k in said_idx)
@@ -221,6 +223,7 @@ def score_clip(row: dict, canon: str, modal: str, stats: dict[str, dict]) -> Non
         s0, s1 = min(said_idx), max(said_idx) + 1
         if kept >= 2:
             st["neg"] += 1
+            st["greedy_ok"] += g >= 2
             st["greedy_fp"] += g == 1
             st["llr_fp"] += viterbi(lp, said[:s0] + c + said[s1:])[0] > base
         elif kept <= 1:
@@ -361,5 +364,161 @@ def render(r: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+E1B_VERSION = "v1"
+E1B_OUT = ROOT / "docs/benchmarks" / f"e1b-spliced-{E1B_VERSION}"
+E1B_CLASSES = [c for c in classes() if c["key"] != "vowel"]
+# Below this share of controls decoded as the canonical, the seam itself garbles the phoneme.
+MIN_CONTROL_INTACT = 0.8
+MIN_SITES = 30
+
+
+def add(dst: dict, src: dict) -> None:
+    for k, v in src.items():
+        dst[k] += v
+
+
+def e1b_verdict(sp: dict, ctl: dict, sites: int) -> str:
+    """Spliced positives judged against control negatives, so both sides carry the same seam."""
+    if ctl["neg"] and ctl["greedy_ok"] / ctl["neg"] < MIN_CONTROL_INTACT:
+        return "void"
+    base = verdict({**sp, **{k: ctl[k] for k in ("neg", "greedy_fp", "top5_fp", "llr_fp")}})
+    if base != "unsupported":
+        return base
+    if sp["pos"] < MIN_POSITIVES or sites < MIN_SITES:
+        return "insufficient"
+    heard = max(sp["greedy_hit"], sp["llr_hit"]) / sp["pos"] >= POSTERIOR_ONLY["recall"]
+    return "inconclusive" if heard else "dead"
+
+
+def e1b_main() -> None:
+    clean = pq.read_table(PASS / "e1b-clean.parquet").to_pylist()
+    rows = clean + pq.read_table(PASS / "e1b-spliced.parquet").to_pylist()
+    # Keyed by class, and by "class:canonical letter" for one pair direction.
+    stats = {kind: defaultdict(empty) for kind in ("spliced", "control", "clean")}
+    sites: dict[str, set] = defaultdict(set)
+    counts = Counter()
+    for r in rows:
+        counts[r["kind"]] += 1
+        if Levenshtein.distance(r["label"], r["greedy"]) / max(1, len(r["label"])) > MAX_CLIP_PER:
+            counts[f"{r['kind']} skipped"] += 1
+            continue
+        r["said"] = r["label"]
+        tmp = {c["key"]: empty() for c in classes()}
+        score_clip(r, r["canonical"], r["canonical"], tmp, set(r["sites"]))
+        if r["kind"] == "clean":
+            for k, v in tmp.items():
+                add(stats["clean"][k], v)
+            continue
+        # س is in two pairs, so a clip's class is the one it was spliced for, not class_of's first match.
+        shadda = r["cls"] == "shadda"
+        total = empty()
+        for k, v in tmp.items():
+            if (k == "shadda") == shadda and k != "vowel":
+                add(total, v)
+        keys = [r["cls"]] if shadda else [r["cls"], f"{r['cls']}:{r['canonical'][r['sites'][0]]}"]
+        for k in keys:
+            add(stats[r["kind"]][k], total)
+            if total["pos"]:
+                sites[k].add((r["ayah"], r["ayah_site"]))
+
+    commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, cwd=ROOT).stdout.strip()
+    result = {
+        "version": E1B_VERSION,
+        "commit": commit,
+        "model": "obadx/muaalem-model-v3_2",
+        "thresholds": {"min_positives": MIN_POSITIVES, "min_sites": MIN_SITES, "min_control_intact": MIN_CONTROL_INTACT,
+                       "viable": VIABLE, "posterior_only": POSTERIOR_ONLY, "max_clip_per": MAX_CLIP_PER},
+        "clips": dict(counts),
+        "classes": [],
+    }
+    def entry(k: str, name: str, clean_key: str | None) -> dict:
+        sp, ctl = stats["spliced"][k], stats["control"][k]
+        out = {"name": name, "key": k, "verdict": e1b_verdict(sp, ctl, len(sites[k])), "sites": len(sites[k]),
+               "spliced": {x: v for x, v in sp.items() if x != "examples"}, "control": {x: v for x, v in ctl.items() if x != "examples"}}
+        if clean_key:
+            out["clean"] = {x: v for x, v in stats["clean"][clean_key].items() if x != "examples"}
+        return out
+
+    for c in E1B_CLASSES:
+        k = c["key"]
+        e = entry(k, c["name"], k)
+        if "pair" in c:
+            e["directions"] = [entry(f"{k}:{a}", f"{a}→{b}", None) for a, b in (c["pair"], c["pair"][::-1])]
+            # Pooling can hide a void or inconclusive direction behind a dead one.
+            if e["verdict"] == "dead" and any(d["verdict"] != "dead" for d in e["directions"]):
+                e["verdict"] = "mixed"
+        result["classes"].append(e)
+    E1B_OUT.with_suffix(".json").write_text(json.dumps(result, ensure_ascii=False, indent=1) + "\n")
+    E1B_OUT.with_suffix(".md").write_text(render_e1b(result))
+    print(E1B_OUT.with_suffix(".md").read_text())
+
+
+def render_e1b(r: dict) -> str:
+    t = r["thresholds"]
+    n = r["clips"]
+    lines = [
+        f"# E1b spliced-error probe {r['version']}",
+        "",
+        f"Report {r['version']}, teacher `{r['model']}`, commit {r['commit']}. Built by `tools/e1b_build.py`, scored by `tools/e1_report.py --e1b`.",
+        "",
+        "**Every number here is an upper bound.** A splice is a clean, isolated phoneme from the same reciter, so it is easier to hear than a learner's error. "
+        "A class that fails here is `dead`; a class that passes still needs ticket 05's real recordings.",
+        "",
+        f"Source: everyayah Husary and Minshawy murattal, juz 29–30 (surahs 67–114). {n.get('spliced', 0)} spliced clips, {n.get('control', 0)} controls, "
+        f"{n.get('clean', 0)} clean ayahs; skipped as too far from the label: {n.get('spliced skipped', 0)} spliced, {n.get('control skipped', 0)} control, {n.get('clean skipped', 0)} clean.",
+        "",
+        "## Per class",
+        "",
+        "| class | positives | sites | in greedy | canonicalized | greedy other | in top-5 | posterior prefers error | controls | control intact | control greedy FP | control posterior FP | clean greedy FP | clean posterior FP | verdict |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
+
+    def row(c: dict) -> str:
+        sp, ctl, cl = c["spliced"], c["control"], c.get("clean")
+        shadda = c["key"] == "shadda"
+        clean = f"{pct(cl['greedy_fp'], cl['neg'])} | {pct(cl['llr_fp'], cl['neg'])}" if cl else "— | —"
+        return (
+            f"| {c['name']} | {sp['pos']} | {c['sites']} | {pct(sp['greedy_hit'], sp['pos'])} | {pct(sp['greedy_canon'], sp['pos'])} | {pct(sp['greedy_other'], sp['pos'])} | "
+            f"{'—' if shadda else pct(sp['top5_hit'], sp['pos'])} | {pct(sp['llr_hit'], sp['pos'])} | {ctl['neg']} | {pct(ctl['greedy_ok'], ctl['neg'])} | "
+            f"{pct(ctl['greedy_fp'], ctl['neg'])} | {pct(ctl['llr_fp'], ctl['neg'])} | {clean} | {c['verdict']} |"
+        )
+
+    lines += [row(c) for c in r["classes"]]
+    lines += [
+        "",
+        "## Per direction",
+        "",
+        "A direction is canonical→said: ت→ط is a ت in the text recited as ط. Controls are the same canonical letter spliced from another word.",
+        "",
+        "| direction | positives | sites | in greedy | canonicalized | greedy other | in top-5 | posterior prefers error | controls | control intact | control greedy FP | control posterior FP | clean greedy FP | clean posterior FP | verdict |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    lines += [row(d) for c in r["classes"] for d in c.get("directions", [])]
+    lines += [
+        "",
+        "## How the clips are made",
+        "",
+        "- Each clean ayah's canonical phonemes are CTC force-aligned on the teacher's own posteriors (`viterbi` in `tools/e1_report.py`). Each blank gap between two tokens is split at its midpoint, giving contiguous per-phoneme segments.",
+        "- **Letter pairs**: a pair consonant plus its short vowel is replaced by the partner consonant plus the same vowel, cut from another ayah by the same reciter (segment duration within 0.6–1.6×). Cuts snap to zero crossings and join with an 8 ms raised-cosine crossfade, loudness-matched.",
+        "- **Missing shadda**: the middle of a doubled consonant is cut out until it lasts as long as that reciter's median single consonant of the same letter. Only geminates at least 1/0.7 that long are used.",
+        "- **Controls** carry the same seam with no error. Letters: the same consonant plus vowel from another ayah. Shadda: the same kind of internal cut at the hold's midpoint, removing only 15%, so the consonant stays doubled.",
+        "- **Clean** is the unspliced ayah scored at the same kinds of sites: the teacher's floor without any seam.",
+        "- Clips are trimmed at pauses at least 1.5 s from the splice and scored only at the spliced site.",
+        "",
+        "## Verdict rule",
+        "",
+        f"- Positives come from splices; negatives come from **controls**, so the FP side carries the same seam as the positives.",
+        f"- `void`: fewer than {t['min_control_intact']:.0%} of controls decode as the canonical phoneme. The seam garbles the sound, so the class's numbers mean nothing.",
+        f"- `viable`: greedy recall ≥ {t['viable']['recall']:.0%} and control greedy FP ≤ {t['viable']['fp']:.0%}.",
+        f"- `posterior-only`: posterior-preference recall ≥ {t['posterior_only']['recall']:.0%} and control posterior FP ≤ {t['posterior_only']['fp']:.0%}.",
+        f"- `dead`: neither, with ≥ {t['min_positives']} positives from ≥ {t['min_sites']} sites, and both greedy and posterior recall under {t['posterior_only']['recall']:.0%}. The teacher can't hear the class even on clean splices.",
+        "- `mixed`: a pair that pools to `dead` but has a direction that isn't. Read its directions instead.",
+        "- `inconclusive`: the recall is there, but control FP is over the bound. The teacher reacts to the seam, so the splice can't separate the error from the artifact either way.",
+        "- Clean FP for ث/س counts only ث sites: a clean س is filed under ص/س. Its FP still counts both of س's confusables (ص and ث), as in E1.",
+        "- Definitions of the other columns match `e1-teacher-bias-v1.md`. **control intact** is the share of controls whose greedy decode keeps the canonical phoneme (for shadda, both copies).",
+    ]
+    return "\n".join(lines) + "\n"
+
+
 if __name__ == "__main__":
-    main()
+    e1b_main() if "--e1b" in sys.argv else main()
