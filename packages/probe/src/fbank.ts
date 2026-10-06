@@ -77,8 +77,8 @@ export class Fbank {
       for (let i = 0; i < WIN; i++) mean += buf[off + i];
       mean /= WIN;
       for (let i = WIN - 1; i >= 0; i--) {
-        const x = (buf[off + i] - mean) * 32768;
-        const prev = i > 0 ? (buf[off + i - 1] - mean) * 32768 : x;
+        const x = (buf[off + i] - mean);
+        const prev = i > 0 ? (buf[off + i - 1] - mean) : x;
         re[i] = (x - 0.97 * prev) * povey[i];
       }
       fft(re, im);
