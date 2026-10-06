@@ -2,12 +2,12 @@
 
 **What to build:** The 902 help-page recordings (offline-tarteel `/help`, consent CC BY 4.0) turned into a labelled eval set, after a human spot-check.
 
-**Status:** ready-for-human
+**Status:** done
 
 Source: `root@dokku-server:/var/lib/dokku/data/storage/offline-tarteel/help/` (`submissions.jsonl`, `audio/`). Ignore `subscribers.jsonl`.
 
-- [ ] Audit first: `tools/help_audit.py` pulls the clips, samples them (all risky strata plus random), and serves a review page. Record the per-stratum label error rate in `docs/benchmarks/help-audit-v1.md`, and drop or fix any stratum that fails.
-- [ ] Wrong-passage clips: `modal/help_pass.py` + `help_audit.py check` flag 20 clips whose teacher decode fits another passage (≤ 25% PER and ≥ 15 points better than expected), plus 56 with poor fit to anything.
+- [x] Audit first: `tools/help_audit.py` pulls the clips, samples them (all risky strata plus random), and serves a review page. Record the per-stratum label error rate in `docs/benchmarks/help-audit-v1.md`, and drop or fix any stratum that fails.
+- [x] Wrong-passage clips: `modal/help_pass.py` + `help_audit.py check` flag 20 clips whose teacher decode fits another passage (≤ 25% PER and ≥ 15 points better than expected), plus 56 with poor fit to anything.
   - Root cause for most of them: 20 of 27 wrong v1 clips match the **v2** prompt regenerated from the same seed. The screen showed v2, but the server stored the v1 label. `.scratch/help/version_swap.json` holds the v2 labels. Relabel them after the audit confirms them by ear, rather than dropping them.
   - Stored labels are otherwise faithful: all 583 v1/v2 records regenerate exactly from their seeds.
   - 10 parallel-ayah substitutions (79:39 and 79:41) legitimately decode closer to the borrowed ayah, and are excluded from the flag.
@@ -48,3 +48,4 @@ Set `HELP_DIR` when running from a worktree, since `.scratch/help/` lives in the
   - Only the memorization classes and short_vowel clear 15 sites in eval. The rare tajweed classes can't be scored from this set.
 - **Storage:** private Modal volume `tilawa-help` holds `/wav` (902 files) and `/labels.jsonl`. The labels uploaded there are the unswapped ones.
 
+- **Audit closed, 2026-10-06:** 232 clips reviewed by ear (`docs/benchmarks/help-audit-v1.md`). The 17 sampled version swaps were all right by ear, so `build --swap` is applied: 18 clips relabelled. Every clip judged wrong (verdicts 2–5) is now unscored with an `audit: …` reason (54 clips), plus 1 unanswered clip from a failed stratum (`teacher: poor match`, `seconds per word out of range`). That's 56 audit exclusions in total. Eval sites after the drops: wrong_word 31, omitted_word 36, skipped_passage 17, short_vowel 27. The swapped and filtered labels are on the `tilawa-help` volume.

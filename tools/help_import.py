@@ -27,6 +27,18 @@ VOLUME = "tilawa-help"
 EXCLUDED = {"muo3pp0v_f7928cdd": "v1 repeat planted on the basmala word الرحمن before 104:1; ref-v2 has no basmala there"}
 ARABIC_LETTER = re.compile(r"[\u0621-\u064a\u0671]")
 BASMALA = ["بسم", "الله", "الرحمن", "الرحيم"]
+AUDIT_FAIL = {"2": "mistake not made", "3": "other or extra mistake", "4": "wrong or incomplete passage", "5": "audio unusable"}
+# Strata whose audit error rate failed: an unanswered clip from one of these is dropped too.
+FAILED_STRATA = {"teacher: poor match", "seconds per word out of range"}
+
+
+def audit_exclusions() -> dict[str, str]:
+    answers = {a["id"]: a for a in map(json.loads, (DIR / "answers.jsonl").open())}
+    out = {i: f"audit: {AUDIT_FAIL[a['verdict']]}" for i, a in answers.items() if a.get("verdict") in AUDIT_FAIL}
+    for s in json.loads((DIR / "sample.json").read_text()):
+        if s["id"] not in out and answers.get(s["id"], {}).get("verdict") in (None, "0") and FAILED_STRATA & set(s["why"]):
+            out[s["id"]] = "audit: unconfirmed clip in a failed stratum"
+    return out
 
 
 class WordCountMismatch(ValueError):
@@ -193,10 +205,11 @@ def build(swap: bool) -> None:
     split = split_speakers([{"speaker": r["speaker"], "kind": r["kind"]} for r in records])
     if swap:
         records = apply_swaps(records, json.loads((DIR / "version_swap.json").read_text()))
+    excluded = EXCLUDED | audit_exclusions()
     labels = []
     for r in records:
-        if r["id"] in EXCLUDED:
-            labels.append({"id": r["id"], "speaker": r["speaker"], "kind": r["kind"], "ayahs": ayahs_of(r), "events": [], "non_errors": [], "unsupported": [], "scored": False, "excluded": EXCLUDED[r["id"]], "split": split[r["speaker"]], "wav": f"wav/{r['id']}.wav"})
+        if r["id"] in excluded:
+            labels.append({"id": r["id"], "speaker": r["speaker"], "kind": r["kind"], "ayahs": ayahs_of(r), "events": [], "non_errors": [], "unsupported": [], "scored": False, "excluded": excluded[r["id"]], "split": split[r["speaker"]], "wav": f"wav/{r['id']}.wav"})
             continue
         lab = label(quran, ref, r)
         for a in lab["ayahs"]:
