@@ -320,6 +320,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *a):
         pass
 
+    def end_headers(self):
+        # sample.json is rewritten by `sample` while a page may be open.
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+
     def send_json(self, body: str, ctype="application/json") -> None:
         data = body.encode()
         self.send_response(200)
