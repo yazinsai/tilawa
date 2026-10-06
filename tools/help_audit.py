@@ -1,10 +1,13 @@
 # /// script
 # requires-python = ">=3.12"
+# dependencies = ["rapidfuzz==3.14.1"]
 # ///
 """Human spot-check of the offline-tarteel help-page clips before they become eval labels.
 
     uv run tools/help_audit.py pull      # rsync submissions + audio, convert to 16 kHz WAV
-    uv run tools/help_audit.py sample    # risky strata in full-ish, plus random per kind
+    modal run modal/help_pass.py         # optional: teacher decode -> .scratch/help/teacher.json
+    uv run tools/help_audit.py check     # teacher decode vs expected passage -> passage.json
+    uv run tools/help_audit.py sample    # risky strata in full-ish, plus random per kind; appends on re-run
     uv run tools/help_audit.py serve     # http://localhost:8765, answers -> .scratch/help/answers.jsonl
     uv run tools/help_audit.py report    # docs/benchmarks/help-audit-v1.md
 
@@ -27,6 +30,11 @@ RAW, WAV = DIR / "raw", DIR / "wav"
 REMOTE = "root@dokku-server:/var/lib/dokku/data/storage/offline-tarteel/help/"
 QURAN = Path.home() / "ai/projects/offline-tarteel/web/frontend/public/quran.json"
 REPORT = ROOT / "docs/benchmarks/help-audit-v1.md"
+INDEX = ROOT / "packages/core/assets/ref-v2.json"
+# Flag a clip when another passage beats the expected one by this much phoneme error rate.
+PASSAGE_MARGIN = 0.15
+# ...and only when that other passage really fits; otherwise the decode is just garbled.
+BEST_MAX_PER = 0.25
 PORT = 8765
 SEED = 12
 RANDOM_PER_KIND = 8
@@ -92,8 +100,47 @@ def words(text: str) -> list[str]:
     return [w for w in text.replace("\ufeff", "").split() if ARABIC_LETTER.search(w)]
 
 
-def risks(r: dict, q: dict, dur: float | None) -> list[str]:
+def check() -> None:
+    """Score each clip's teacher decode against its expected passage and against every same-length run of ayahs."""
+    from rapidfuzz import process
+    from rapidfuzz.distance import Levenshtein
+
+    hyps = json.loads((DIR / "teacher.json").read_text())
+    ayahs = json.loads(INDEX.read_text())["ayahs"]
+    refs = [f"{a['s']}:{a['a']}" for a in ayahs]
+    phon = {r: a["p"] for r, a in zip(refs, ayahs)}
+    windows: dict[int, tuple[list[str], list[str]]] = {}
+    out = {}
+    for r in records():
+        hyp = hyps.get(r["id"], "")
+        exp = ayahs_of(r)
+        if r["kind"] == "skip_ayah":
+            exp = [a for a in exp if a not in {m["ayah"] for m in r["mistakes"]}]
+        n = len(exp)
+        if n not in windows:
+            keys = [refs[i : i + n] for i in range(len(refs) - n + 1)]
+            windows[n] = (["-".join(k) for k in keys], ["".join(phon[x] for x in k) for k in keys])
+        names, texts = windows[n]
+        per_exp = Levenshtein.normalized_distance(hyp, "".join(phon[a] for a in exp))
+        _, d, i = process.extractOne(hyp, texts, scorer=Levenshtein.normalized_distance)
+        best = names[i]
+        borrowed = {m["said_from"].rsplit(":", 1)[0] for m in r["mistakes"] if m.get("said_from")}
+        wrong = per_exp - d > PASSAGE_MARGIN and d <= BEST_MAX_PER and best not in borrowed
+        out[r["id"]] = {"hyp": hyp, "per_expected": round(per_exp, 3), "best": best, "per_best": round(d, 3), "wrong_passage": wrong}
+    (DIR / "passage.json").write_text(json.dumps(out, ensure_ascii=False))
+    bad = [k for k, v in out.items() if v["wrong_passage"]]
+    print(f"{len(bad)}/{len(out)} clips decode closer to another passage")
+    by_v = Counter(next(r["prompt_version"] for r in records() if r["id"] == k) for k in bad)
+    print("by prompt version:", dict(by_v))
+
+
+def risks(r: dict, q: dict, dur: float | None, passage: dict) -> list[str]:
     out = []
+    p = passage.get(r["id"])
+    if p and p["wrong_passage"]:
+        out.append("teacher: other passage")
+    elif p and p["per_expected"] > 0.5:
+        out.append("teacher: poor match")
     if r.get("extra_mistake"):
         out.append("extra_mistake flagged")
     if r["prompt_version"] == 1 and r["kind"] != "none":
@@ -117,15 +164,18 @@ def risks(r: dict, q: dict, dur: float | None) -> list[str]:
 def sample() -> None:
     q = quran()
     durations = json.loads((DIR / "durations.json").read_text())
+    passage_path = DIR / "passage.json"
+    passage = json.loads(passage_path.read_text()) if passage_path.exists() else {}
     rng = random.Random(SEED)
     rows = records()
     picked: dict[str, list[str]] = {}
     by_risk = defaultdict(list)
     for r in rows:
-        for k in risks(r, q, durations.get(r["id"])):
+        for k in risks(r, q, durations.get(r["id"]), passage):
             by_risk[k].append(r["id"])
-    for k, ids in by_risk.items():
-        for i in rng.sample(ids, min(RISKY_CAP, len(ids))):
+    for k, ids in sorted(by_risk.items()):
+        cap = len(ids) if k.startswith("teacher") else RISKY_CAP
+        for i in rng.sample(ids, min(cap, len(ids))):
             picked.setdefault(i, []).append(k)
     by_kind = defaultdict(list)
     for r in rows:
@@ -149,10 +199,16 @@ def sample() -> None:
                 "duration": durations.get(i),
                 "mistakes": r.get("mistakes") or [],
                 "ayahs": [{"ref": a, "words": words(q[a]["text_uthmani"])} for a in ayahs_of(r) if a in q],
+                "teacher": passage.get(i),
             }
         )
     rng.shuffle(items)
-    (DIR / "sample.json").write_text(json.dumps(items, ensure_ascii=False, indent=1))
+    # Keep an existing sample's order so answers in progress stay where they were; new picks go on the end.
+    path = DIR / "sample.json"
+    if path.exists():
+        old = {it["id"]: n for n, it in enumerate(json.loads(path.read_text()))}
+        items.sort(key=lambda it: old.get(it["id"], len(old)))
+    path.write_text(json.dumps(items, ensure_ascii=False, indent=1))
     print(f"{len(items)} clips sampled")
     for k, v in sorted(Counter(w for it in items for w in it["why"]).items()):
         print(f"  {v:4} {k}")
@@ -212,7 +268,9 @@ function render(){
   $("au").src=`/wav/${it.id}.wav`;
   $("vs").innerHTML=Object.entries(V).map(([k,t])=>`<span class="v ${a.verdict===k?"on":""}" onclick="pick('${k}')">${k} ${t}</span>`).join("");
   $("note").value=a.note||"";
-  $("meta").textContent=`why: ${it.why.join(", ")} · v${it.prompt_version} · ${it.scenario||"-"} · level ${it.level||"-"} · ${it.duration?.toFixed(1)}s`;
+  const t=it.teacher;
+  $("meta").textContent=`why: ${it.why.join(", ")} · v${it.prompt_version} · ${it.scenario||"-"} · level ${it.level||"-"} · ${it.duration?.toFixed(1)}s`
+    +(t?` · teacher: expected PER ${t.per_expected}, best ${t.best} PER ${t.per_best}`:"");
 }
 async function save(patch){
   const it=items[i];answers[it.id]={...(answers[it.id]||{}),...patch,id:it.id,why:it.why,kind:it.kind};
@@ -311,4 +369,4 @@ def report() -> None:
 
 
 if __name__ == "__main__":
-    {"pull": pull, "sample": sample, "serve": serve, "report": report}[sys.argv[1] if len(sys.argv) > 1 else "serve"]()
+    {"pull": pull, "check": check, "sample": sample, "serve": serve, "report": report}[sys.argv[1] if len(sys.argv) > 1 else "serve"]()
