@@ -63,3 +63,10 @@ Do not use Cloudflare Pages: its 25 MiB per-file limit rejects the 41–85 MB en
 - Hosting box: unchecked.
 - Android floor (Snapdragon 7xx, 4 GB) and iPhone XR/11 results: unchecked.
 - Verdict on `lite`: if `20m-int8` with 1 thread shows RTF ≥ 1, or p95 above about 320 ms, on the Android floor, reopen the tier sizes in PLAN.md.
+
+### Phone run 1 (6 October 2026): Android 10, Chrome 154, 8 GB, 6 cores. Above the floor; model unknown.
+
+`20m-int8`, WASM, 1 thread, cross-origin isolated, 60 s Quran clip in 320 ms chunks:
+RTF 0.133 (real time). Chunk p50 40.7 ms, p95 48.1 ms, max 170.3 ms. JS heap peak 62.3 MB; UA memory 139.2 MB.
+Load took 83.5 s over the cloudflared tunnel, which is network-bound and not a device number.
+Not the Android floor (4 GB Snapdragon 7xx), which still needs its own run.
