@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tilawa device probe</title>
+    <style>
+      body { font: 15px/1.4 system-ui, sans-serif; margin: 16px; max-width: 720px; }
+      label { display: block; margin: 8px 0; }
+      select, button { font: inherit; padding: 6px 10px; }
+      pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; word-break: break-word; font-size: 12px; }
+      #status { color: #555; }
+    </style>
+  </head>
+  <body>
+    <h1>Tilawa device probe</h1>
+    <label>Model <select id="model"></select></label>
+    <label>Clip <select id="clip">
+      <option value="clips/quran-60s.wav">Quran recitation, 60 s</option>
+      <option value="clips/english-check.wav">English sanity check (transcript should be readable)</option>
+    </select></label>
+    <label>Backend <select id="ep">
+      <option value="wasm">WASM SIMD</option>
+      <option value="webgpu">WebGPU</option>
+    </select></label>
+    <label>WASM threads <select id="threads"></select></label>
+    <button id="run">Run</button>
+    <button id="copy" disabled>Copy JSON</button>
+    <p id="status"></p>
+    <pre id="out"></pre>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

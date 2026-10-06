@@ -10,3 +10,6 @@ __pycache__
 .scratch/clips/
 .scratch/e1b/
 .scratch/help/
+packages/probe/public/models/
+packages/probe/public/clips/
+packages/probe/public/ort/
