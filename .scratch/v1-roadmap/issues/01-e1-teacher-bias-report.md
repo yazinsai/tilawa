@@ -14,7 +14,7 @@
 
 - Short vowels: `posterior-only`, provisional. 21 positives from only 5 sites. 43% show in greedy and 29% are canonicalized. A CTC score comparison catches 57% at 1.1% FP.
 - Every letter pair: `unsupported`. Neither dataset labels a single pair error except one ع/ء case. ذ/ز and ث/س letters don't occur at all.
-    - Ticket 11 (E1b, `docs/benchmarks/e1b-spliced-v1.md`) moves three directions to `dead`: ت→ط, ذ→ز and س→ث (a ت recited as ط, and so on). The teacher misses them even on clean same-reciter splices, writing the canonical letter over 53–82% of them. Every other pair and direction stays `unsupported` until ticket 05, because a splice pass is only an upper bound.
+    - Ticket 11 (E1b, `docs/benchmarks/e1b-spliced-v1.md`) leaves every pair `unsupported`. Its `dead` directions (ت→ط, ذ→ز, س→ث) don't hold up. On listening, many splices are jarring, and the teacher's pull toward the expected letter fills in the canonical over an unintelligible splice. The controls can't tell that apart from real deafness. Only real recordings of the error can settle these.
 - Missing shadda: `unsupported`. There are 4 positives, all from one site (unassimilated noon in يَكُن لَّهُۥ), and 3 of the 4 are canonicalized.
 - Top-5 presence can't serve as a detector: a confusable sits in the top-5 of 55–91% of correct tokens.
 - FP floors on correct speech worth knowing for the checker: ص→س 4.5% greedy (10% posterior), ق/ك 2.1% greedy, missing shadda 5.6% greedy. All other pairs are ≤ 0.2%.

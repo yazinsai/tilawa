@@ -21,7 +21,8 @@ Upper bounds, Husary and Minshawy, judged against seamed controls:
 
 - `viable`: ح/ه, ع/ء, ص/س, ض/د, ق/ك, missing shadda. Greedy recall 52–72%, control FP ≤ 1%. Canonicalization is still 16–43%, so on real learners expect well under these.
 - `posterior-only`: ط/ت, carried by ط→ت (70% greedy). Treat ط→ت with care: only 80.7% of its controls stay intact, just over the void line. ت→ط is `dead` (23% greedy, 53% canonicalized).
-- `dead` directions: ت→ط, ذ→ز (13% greedy, 82% canonicalized) and س→ث (13%). The teacher writes the canonical letter over a clean partner splice. Ticket 01 updated for these three directions only.
+- `dead` in the report: ت→ط, ذ→ز (13% greedy, 82% canonicalized) and س→ث (13%). **Not carried into ticket 01.** On listening, the splices are often jarring. When a splice is unintelligible, the teacher's pull toward the expected letter writes the canonical, and a control can't tell that apart from deafness, because there the pull and the ear agree.
+    - Check: hit rate vs whether the donor's neighbouring phonemes match the host's (0/1/2 neighbours matched) is flat. 53% / 53% / 43%; 2-match n = 72. ت→ط stays ~21–29% at 0–1 matches, while ط→ت holds ~70%. So the asymmetry isn't caused by coarticulation mismatch. But that rules out only one source of jarring: pitch, loudness and the seam itself are unchecked.
 - `mixed`: ذ/ز and ث/س pool to `dead`, but their other directions aren't settled. ز→ذ is `inconclusive` (54% recall, but 7% control FP against a 0.2% clean floor). ث→س is `void`, because only 73% of ث controls decode as ث. The weak interdentals don't survive the seam.
 - Asymmetry is the rule. ح→ه 45% vs ه→ح 69%, and ص→س 55% vs س→ص 65%. The checker should gate per direction, not per pair.
 - Control FP tracks clean FP closely everywhere except ز/ث, so the seam is not what's driving the passes.
