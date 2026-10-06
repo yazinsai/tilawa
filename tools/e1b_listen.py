@@ -77,11 +77,13 @@ PAGE = """<!doctype html><meta charset=utf-8><title>E1b listen</title>
 #cls{font-size:64px;text-align:center}#canon{font-size:30px;direction:rtl;text-align:center;margin:12px 0 28px}
 .b{display:inline-block;padding:10px 18px;margin:4px;border:1px solid #555;border-radius:8px;cursor:pointer}
 .on{background:#2a6;border-color:#2a6}#pos,#keys{color:#999;font-size:14px}audio{width:100%}</style>
-<div id=pos></div><div id=cls></div><div id=canon></div><audio id=au controls></audio>
+<div id=pos></div><div id=sp style='float:right;color:#999'></div><div id=cls></div><div id=canon></div><audio id=au controls></audio>
 <div><span class=b data-k=y>y · heard the error</span><span class=b data-k=n>n · sounds clean</span><span class=b data-k=?>0 · unsure</span></div>
-<p id=keys>y/1 error · n/2 clean · 0 unsure · space replay · j/k next/prev · answering auto-advances</p>
+<p id=keys>y/1 error · n/2 clean · 0 unsure · space replay · [/] slower/faster · j/k next/prev · answering auto-advances</p>
 <script>
 let items=[],ans={},i=0;const $=id=>document.getElementById(id);
+const SP=[1,1.25,1.5,2,2.5,3];let sp=Number(localStorage.getItem('speed'))||1;
+function setSp(s){sp=s;localStorage.setItem('speed',s);$('au').defaultPlaybackRate=$('au').playbackRate=s;$('sp').textContent=s+'×'}
 async function load(){const s=await (await fetch('/api/state')).json();items=s.items;ans=s.answers;
  i=items.findIndex(x=>!(x.file in ans));if(i<0)i=0;render()}
 function render(){const it=items[i];const done=Object.keys(ans).length;
@@ -94,8 +96,9 @@ document.querySelectorAll('.b').forEach(b=>b.onclick=()=>pick(b.dataset.k));
 const K={y:'y','1':'y',n:'n','2':'n','0':'?'};
 document.addEventListener('keydown',e=>{if(K[e.key])pick(K[e.key]);
  else if(e.key===' '){e.preventDefault();$('au').currentTime=0;$('au').play()}
+ else if(e.key==='['||e.key===']'){const k=SP.indexOf(sp)+(e.key===']'?1:-1);setSp(SP[Math.max(0,Math.min(SP.length-1,k))])}
  else if(e.key==='j'&&i<items.length-1){i++;render()}else if(e.key==='k'&&i>0){i--;render()}});
-load()</script>"""
+setSp(sp);load()</script>"""
 
 
 class Handler(http.server.BaseHTTPRequestHandler):

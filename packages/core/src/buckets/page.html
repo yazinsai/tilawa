@@ -22,6 +22,7 @@
 <div class="where" id="where"></div>
 <div class="text" id="text"></div>
 <audio id="audio" controls autoplay></audio>
+<div class="bar">speed <select id="speed"></select></div>
 <div class="keys">
   <button data-v="exact"><kbd>1</kbd> exact</button>
   <button data-v="mistakes"><kbd>2</kbd> right passage, mistakes</button>
@@ -33,11 +34,23 @@
   Judge the audio against the text shown. <b>exact</b>: every word recited as written, nothing extra (a dropped half-word at a clip edge is fine).
   <b>mistakes</b>: it's this passage, but with wrong, skipped or repeated words, or clear pronunciation errors.
   <b>wrong passage</b>: Quran, but not this text (or no text shown and you can hear Quran). <b>no usable recitation</b>: silence, noise, speech, cut to nothing.
-  <br /><kbd>space</kbd> play/pause · <kbd>r</kbd> replay · <kbd>←</kbd>/<kbd>→</kbd> previous/next · <kbd>n</kbd> note · <kbd>j</kbd> next unanswered
+  <br /><kbd>space</kbd> play/pause · <kbd>r</kbd> replay · <kbd>←</kbd>/<kbd>→</kbd> previous/next · <kbd>n</kbd> note · <kbd>j</kbd> next unanswered · <kbd>[</kbd>/<kbd>]</kbd> slower/faster
 </p>
 <script>
 let clips = [], answers = {}, i = 0, started = 0, note = "";
 const $ = (id) => document.getElementById(id);
+const SPEEDS = [1, 1.25, 1.5, 1.75, 2, 2.5, 3];
+let speed = Number(localStorage.getItem("speed")) || 1;
+$("speed").innerHTML = SPEEDS.map((s) => `<option value="${s}">${s}×</option>`).join("");
+// A new src resets playbackRate to defaultPlaybackRate, so set both.
+function setSpeed(s) {
+  speed = s;
+  localStorage.setItem("speed", s);
+  $("speed").value = s;
+  $("audio").defaultPlaybackRate = $("audio").playbackRate = s;
+}
+$("speed").onchange = (e) => (setSpeed(Number(e.target.value)), e.target.blur());
+setSpeed(speed);
 const key = (c) => `${c.shard}:${c.row}`;
 async function load() {
   const s = await (await fetch("/api/state")).json();
@@ -76,7 +89,10 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "r") ((au.currentTime = 0), au.play());
   else if (e.key === "ArrowRight" && i < clips.length - 1) (i++, show());
   else if (e.key === "ArrowLeft" && i > 0) (i--, show());
-  else if (e.key === "j") ((i = Math.max(0, clips.findIndex((c) => !answers[key(c)]))), show());
+  else if (e.key === "[" || e.key === "]") {
+    const k = SPEEDS.indexOf(speed) + (e.key === "]" ? 1 : -1);
+    setSpeed(SPEEDS[Math.max(0, Math.min(SPEEDS.length - 1, k))]);
+  } else if (e.key === "j") ((i = Math.max(0, clips.findIndex((c) => !answers[key(c)]))), show());
   else if (e.key === "n") {
     note = prompt("Note for this clip (saved with the next answer):", note) ?? note;
     $("saved").textContent = note ? `note: ${note}` : "";
