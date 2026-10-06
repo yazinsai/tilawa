@@ -33,11 +33,11 @@ def test_phonemes_map_to_teacher_vocab_ids_with_blank_zero():
     assert TOKENS == REF["inventory"]["tokens"]
 
 
-def test_student_frame_j_reads_teacher_frame_j_plus_one_clamped_to_the_teacher_length():
-    # Student frame j is centred on fbank frame 2j+3 ((T-7)//2 subsampling); teacher frame i on 2i+0.5.
-    assert teacher_frames(4, 6).tolist() == [1, 2, 3, 4]
-    assert teacher_frames(5, 5).tolist() == [1, 2, 3, 4, 4]
-    assert teacher_frames(3, 6, delay=2).tolist() == [0, 0, 1]
+def test_student_frame_j_reads_teacher_frame_j_clamped_to_the_teacher_length():
+    # 25 Hz both: student frame j is centred near fbank frame 4j+4, teacher frame i (w2v-BERT stack + adapter) near 4i+2.5.
+    assert teacher_frames(4, 6).tolist() == [0, 1, 2, 3]
+    assert teacher_frames(5, 4).tolist() == [0, 1, 2, 3, 3]
+    assert teacher_frames(3, 6, delay=2).tolist() == [0, 0, 0]
 
 
 def test_greedy_ctc_collapses_repeats_between_blanks_only():

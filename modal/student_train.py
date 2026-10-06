@@ -2,7 +2,7 @@
 
 The CTC target is the teacher's greedy path from the tlog pass. `--kd-weight` adds cross-entropy to the teacher's
 renormalised top-5 posteriors per frame (E5). `--init librispeech-m` starts `full` from icefall's streaming
-Zipformer-M (E2). Output runs at 50 Hz, the teacher's frame rate: Zipformer2's final 2x downsample is dropped.
+Zipformer-M (E2). Student and teacher both emit at 25 Hz.
 
     modal run modal/student_train.py --name smoke --size lite --max-hours 5 --epochs 1 --eval-max 200
     modal deploy modal/student_train.py
@@ -31,7 +31,7 @@ image = (
     .apt_install("git", "libsndfile1")
     .pip_install("torch==2.8.0", "torchaudio==2.8.0", K2)
     .pip_install("lhotse", "kaldialign", "sentencepiece", "tensorboard", "pypinyin==0.50.0", "typeguard", "dill",
-                 "pyarrow", "soundfile", "numpy", "scipy", "huggingface_hub")
+                 "pyarrow", "soundfile", "numpy", "scipy", "huggingface_hub", "urllib3", "requests")
     .run_commands(f"git clone https://github.com/k2-fsa/icefall /icefall && cd /icefall && git checkout {ICEFALL}")
     .env({"PYTHONPATH": "/icefall:/icefall/egs/librispeech/ASR/zipformer:/root/tools", "HF_HOME": "/cache/hf"})
     .add_local_file("tools/student.py", "/root/tools/student.py")
@@ -124,16 +124,14 @@ def build_model(size: str):
                 chunk_size=ints(p["chunk_size"]),
                 left_context_frames=ints(p["left_context_frames"]),
             )
-            # 50 Hz output, one frame per teacher frame. Zipformer2 still reports halved lengths; they are ignored.
-            self.encoder.downsample_output = nn.Identity()
             self.ctc_output = nn.Sequential(nn.Dropout(p=0.1), nn.Linear(max(dims), VOCAB))
 
         def forward(self, feats, feat_lens):
             from icefall.utils import make_pad_mask
 
             x, x_lens = self.encoder_embed(feats, feat_lens)
-            out, _ = self.encoder(x.permute(1, 0, 2), x_lens, make_pad_mask(x_lens))
-            return self.ctc_output(out.permute(1, 0, 2)).log_softmax(-1), x_lens
+            out, out_lens = self.encoder(x.permute(1, 0, 2), x_lens, make_pad_mask(x_lens))
+            return self.ctc_output(out.permute(1, 0, 2)).log_softmax(-1), out_lens
 
         def streaming_eval(self, chunk: int = 16, left: int = 128):
             self.encoder.chunk_size, self.encoder.left_context_frames = (chunk,), (left,)
@@ -314,7 +312,7 @@ def losses(model, b, cfg, device):
     if cfg["kd_weight"]:
         B, T, _ = log_probs.shape
         n_t = b["n_teacher"].to(device)
-        idx = (torch.arange(T, device=device)[None] + 1 - cfg["kd_delay"]).clamp(min=0)
+        idx = (torch.arange(T, device=device)[None] - cfg["kd_delay"]).clamp(min=0)
         idx = torch.minimum(idx, (n_t - 1)[:, None])
         top_ids = b["top_ids"].to(device).gather(1, idx[..., None].expand(B, T, 5))
         top_p = b["top_p"].to(device).gather(1, idx[..., None].expand(B, T, 5))
@@ -379,7 +377,7 @@ def init_from(model, init: str, size: str):
 @app.function(
     gpu="H100",
     cpu=16,
-    memory=65536,
+    memory=131072,
     volumes={"/student": vol, "/cache": cache_vol},
     timeout=24 * 60 * 60,
     secrets=[modal.Secret.from_name("huggingface")],
@@ -456,7 +454,7 @@ def train(args: dict) -> dict:
             state["step"] += 1
             state["batch"] += 1
             seen_s += b["feat_lens"].sum().item() / 100.0
-            if state["step"] % 50 == 0:
+            if state["step"] % 20 == 0:
                 el = time.time() - tick
                 emit(event="train", **state, lr=sched.get_last_lr()[0],
                      **{k: float(v) for k, v in out.items() if k != "frames"}, audio_x_realtime=seen_s / el)

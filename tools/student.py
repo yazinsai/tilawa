@@ -58,10 +58,10 @@ def mix_noise(wave, noise, snr_db: float, rng):
 
 
 def teacher_frames(n_student: int, n_teacher: int, delay: int = 0):
-    """Teacher frame index for each student frame. Both run at 50 Hz; `delay` makes the student lag the teacher."""
+    """Teacher frame index for each student frame. Both run at 25 Hz; `delay` makes the student lag the teacher."""
     import numpy as np
 
-    return np.clip(np.arange(n_student) + 1 - delay, 0, n_teacher - 1)
+    return np.clip(np.arange(n_student) - delay, 0, n_teacher - 1)
 
 
 def soft_target_loss(log_probs, top_ids, top_p, valid):
