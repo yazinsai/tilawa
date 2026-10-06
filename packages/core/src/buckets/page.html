@@ -51,6 +51,31 @@ function setSpeed(s) {
 }
 $("speed").onchange = (e) => (setSpeed(Number(e.target.value)), e.target.blur());
 setSpeed(speed);
+// Loudness normalization: 90th-percentile 20 ms frame RMS (ignores silence) to TARGET, then a limiter.
+const TARGET = 0.1, MAX_GAIN = 40;
+let ctx, gain;
+function graph() {
+  if (ctx) return ctx.resume();
+  ctx = new AudioContext();
+  gain = ctx.createGain();
+  const lim = new DynamicsCompressorNode(ctx, { threshold: -3, knee: 0, ratio: 20, attack: 0.002, release: 0.1 });
+  ctx.createMediaElementSource($("audio")).connect(gain).connect(lim).connect(ctx.destination);
+}
+async function normalize(url) {
+  graph();
+  const buf = await ctx.decodeAudioData(await (await fetch(url)).arrayBuffer());
+  const x = buf.getChannelData(0), n = Math.round(buf.sampleRate * 0.02), rms = [];
+  for (let k = 0; k + n <= x.length; k += n) {
+    let s = 0;
+    for (let j = k; j < k + n; j++) s += x[j] * x[j];
+    rms.push(Math.sqrt(s / n));
+  }
+  rms.sort((a, b) => a - b);
+  const loud = rms[Math.floor(rms.length * 0.9)] || 0;
+  if ($("audio").src.endsWith(url)) gain.gain.value = loud > 1e-4 ? Math.min(MAX_GAIN, TARGET / loud) : 1;
+}
+addEventListener("keydown", graph, { capture: true, once: true });
+addEventListener("pointerdown", graph, { capture: true, once: true });
 const key = (c) => `${c.shard}:${c.row}`;
 async function load() {
   const s = await (await fetch("/api/state")).json();
@@ -67,7 +92,9 @@ function show() {
   $("saved").textContent = note ? `note: ${note}` : "";
   $("where").textContent = c.label ? c.label.heading : "no located passage";
   $("text").innerHTML = c.label ? c.label.text : '<span class="none">The tracker found no passage. Use 3 if you hear Quran, 4 if not.</span>';
-  $("audio").src = `/audio/${encodeURIComponent(`${c.shard}-${c.row}`)}`;
+  const url = `/audio/${encodeURIComponent(`${c.shard}-${c.row}`)}`;
+  $("audio").src = url;
+  normalize(url).catch(() => {});
   for (const b of document.querySelectorAll(".keys button")) b.classList.toggle("on", answers[key(c)]?.verdict === b.dataset.v);
   started = performance.now();
 }

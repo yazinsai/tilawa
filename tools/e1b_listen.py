@@ -84,11 +84,20 @@ PAGE = """<!doctype html><meta charset=utf-8><title>E1b listen</title>
 let items=[],ans={},i=0;const $=id=>document.getElementById(id);
 const SP=[1,1.25,1.5,2,2.5,3];let sp=Number(localStorage.getItem('speed'))||1;
 function setSp(s){sp=s;localStorage.setItem('speed',s);$('au').defaultPlaybackRate=$('au').playbackRate=s;$('sp').textContent=s+'×'}
+let ctx,gain;function graph(){if(ctx)return ctx.resume();ctx=new AudioContext();gain=ctx.createGain();
+ const lim=new DynamicsCompressorNode(ctx,{threshold:-3,knee:0,ratio:20,attack:0.002,release:0.1});
+ ctx.createMediaElementSource($('au')).connect(gain).connect(lim).connect(ctx.destination)}
+async function norm(url){graph();const b=await ctx.decodeAudioData(await (await fetch(url)).arrayBuffer());
+ const x=b.getChannelData(0),n=Math.round(b.sampleRate*0.02),r=[];
+ for(let k=0;k+n<=x.length;k+=n){let s=0;for(let j=k;j<k+n;j++)s+=x[j]*x[j];r.push(Math.sqrt(s/n))}
+ r.sort((a,c)=>a-c);const loud=r[Math.floor(r.length*0.9)]||0;
+ if($('au').src.endsWith(url))gain.gain.value=loud>1e-4?Math.min(40,0.1/loud):1}
+addEventListener('keydown',graph,{capture:true,once:true});addEventListener('pointerdown',graph,{capture:true,once:true});
 async function load(){const s=await (await fetch('/api/state')).json();items=s.items;ans=s.answers;
  i=items.findIndex(x=>!(x.file in ans));if(i<0)i=0;render()}
 function render(){const it=items[i];const done=Object.keys(ans).length;
  $('pos').textContent=`${i+1}/${items.length} · ${done} answered`+(done===items.length?' · ALL DONE, run report':'');
- $('cls').textContent=it.cls;$('canon').textContent=it.canon;$('au').src='/audio/'+encodeURIComponent(it.file);$('au').play();
+ $('cls').textContent=it.cls;$('canon').textContent=it.canon;const u='/audio/'+encodeURIComponent(it.file);$('au').src=u;norm(u).catch(()=>{});$('au').play();
  document.querySelectorAll('.b').forEach(b=>b.classList.toggle('on',ans[it.file]===b.dataset.k))}
 async function pick(k){const f=items[i].file;ans[f]=k;await fetch('/api/answer',{method:'POST',body:JSON.stringify({file:f,heard:k})});
  const next=items.findIndex((x,j)=>j>i&&!(x.file in ans));i=next>=0?next:Math.min(i+1,items.length-1);render()}
