@@ -2,12 +2,12 @@
 
 **What to build:** A blind review of a second tlog shard on a long surah with repeated phrases, re-checking ADR 0001's precision outside surah 100.
 
-**Status:** ready-for-human
+**Status:** done
 
-- [ ] Choose a shard filename-labelled ar-Rahman (preferred, because of the refrain) or al-Baqarah.
-- [ ] Run the relabel and draw a stratified sample of about 150 clips, weighted toward low-confidence and posterior-disagreement strata.
-- [ ] Review blind with the existing page and score at ±1 word.
-- [ ] Update ADR 0001 with the second shard: confirm confidence ≥ 0.2 or move the threshold.
+- [x] Choose a shard filename-labelled ar-Rahman (preferred, because of the refrain) or al-Baqarah.
+- [x] Run the relabel and draw a stratified sample of about 150 clips, weighted toward low-confidence and posterior-disagreement strata.
+- [x] Review blind with the existing page and score at ±1 word.
+- [x] Update ADR 0001 with the second shard: confirm confidence ≥ 0.2 or move the threshold.
 
 ## How to run
 
@@ -38,3 +38,5 @@ To rebuild from scratch:
     uv run --python cpython-3.12-macos-aarch64-none tools/export_pass1.py --parquet /tmp/s258.parquet --out /tmp/s258.pass1.jsonl
     pnpm --filter @tilawa/core relabel /tmp/s258.pass1.jsonl --out $PWD/.scratch/v1-roadmap/review-55/proposals [--posteriors]
     cd packages/core && pnpm review sample --labels ... --posterior-labels ... --dir ../../.scratch/v1-roadmap/review-55 --quota near_threshold=50,posteriors_disagree=30,agrees=15,part_of_ayah=8,offset=15,multi_ayah=15,other_surah=10,ambiguous=15,lost=8,insufficient=4
+
+**Result, 2026-10-06.** 0.2 confirmed: 97.9% precision on the decoded run, 45% of the shard kept. Refrain-only clips are never locked. See the second-shard section of ADR 0001.
