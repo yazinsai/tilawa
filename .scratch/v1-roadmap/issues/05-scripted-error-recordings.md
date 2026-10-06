@@ -17,6 +17,8 @@
 
 ## Tasks
 
+- [ ] Pilot ahead of the full script, needed by ticket 11: 5–10 real clips per direction for ت→ط, ذ→ز, س→ث, ز→ذ and ث→س. Each clip is the word recited in context with the wrong letter said on purpose (e.g. ط in place of ت). Splicing couldn't settle these directions: the splices are jarring, and the teacher fills in the canonical letter. Score the pilot with `tools/e1_report.py` before weighting the full script.
+- [ ] Count pair positives per direction, not per pair. E1b (ticket 11) shows the teacher hears one direction far better than the other (ط→ت 70% vs ت→ط 23% on splices).
 - [ ] Script generator in core, using the reference index. Long multi-ayah scripts from Juz Amma, Juz Tabarak and a few long surahs, with about one planted error per 2–3 ayahs. Weight the mix toward the gaps above until each pronunciation class has ≥ 50 positives from ≥ 15 distinct sites. Each script records its planted labels.
 - [ ] Self-correction items: say the error, then re-say the word or ayah correctly. Label both the error and the fix.
 - [ ] One long clean script per volunteer, for false warnings per 5 minutes on real session lengths.
