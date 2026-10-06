@@ -2,13 +2,13 @@
 
 **What to build:** A throwaway web page that answers "can a student-sized streaming model run in real time on WASM SIMD on the Android floor?" before distillation starts.
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] Static page loading an off-the-shelf sherpa-onnx streaming Zipformer, at around 25 MB int8 and around 100 MB, through onnxruntime-web WASM SIMD with no WebGPU.
 - [x] Streams a bundled 60 s clip in chunks; reports real-time factor, p95 chunk latency, peak memory, and load time.
 - [x] Optional WebGPU toggle for comparison.
-- [ ] Hosted somewhere the user can open on a phone, with results copyable as JSON.
-- [ ] Results recorded on this ticket. If `lite` misses 1× real time on the Android floor, reopen the tier sizes in PLAN.md.
+- [x] Hosted somewhere the user can open on a phone, with results copyable as JSON.
+- [x] Results recorded on this ticket. If `lite` misses 1× real time on the Android floor, reopen the tier sizes in PLAN.md.
 
 ## Comments
 
@@ -82,3 +82,5 @@ Same phone, same clip:
 - Threads don't speed up a model this small: 4 threads keep the same RTF and cost about 55 MB more. They only cut the worst chunk. For `lite`, use 1 thread.
 - The 70M model costs about 2× the time for 3.5× the parameters, so a bigger `full` looks affordable on mid-range phones. That's a guess from one device.
 - Still open: the 4 GB Snapdragon 7xx floor and an iPhone XR or 11.
+
+**Closed, 2026-10-06.** Closed on the 8 GB Android results. `lite` is comfortably real time (RTF 0.133 at 1 thread), so the tier sizes stand. The 4 GB Snapdragon 7xx floor and the iPhone runs move to ticket 10.

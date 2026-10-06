@@ -14,6 +14,7 @@ Everything but the spot-listen is done.
 - [x] Produce the clips as an E1-format parquet so `tools/e1_report.py` scores them unchanged. Add a dataset entry plus a spliced/control flag, and report control FP next to each class. (`e1b-spliced`, `kind` = spliced/control/clean; `tools/e1_report.py --e1b`. Scoring logic is E1's `score_clip`, now with an optional site filter so a clip is scored only where it was spliced)
 - [x] Commit `docs/benchmarks/e1b-spliced-v1.md` with per-class verdicts, labelled as upper bounds. Update the 01 verdicts only from `unsupported` to "dead" (fails even on clean splices), never upward.
 - [ ] Spot-listen to ~20 splices per class and record a pass/fail on whether each sounds like the target error. (Pack built at `.scratch/e1b/listen/`: 20 spliced + 20 controls per class, with a pass column in its README. Needs a human.)
+  - Run `uv run tools/e1b_listen.py` and open http://localhost:8766. It is blind and shuffled: y = heard the error, n = sounds clean, 0 = unsure, space = replay. Answering auto-advances and fills the README pass column. Then run `uv run tools/e1b_listen.py report` for the per-class table.
 
 ## Answer
 
