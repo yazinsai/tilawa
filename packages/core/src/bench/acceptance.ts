@@ -7,10 +7,7 @@ import { createTracker } from "../tracker.js";
 import { chunk } from "./index.js";
 import type { QudRecording } from "./index.js";
 
-/**
- * `free`: the checker follows the tracker's lock (Decision 3). `declared`: the checker is anchored once to the clip's
- * prompted passage and never moved, as a memorization session that declares its passage would be.
- */
+/** `free`: the checker follows the tracker's lock (Decision 3). `declared`: the session declares the prompted passage. */
 export type Arm = "free" | "declared";
 
 export interface LabelEvent {
@@ -70,23 +67,15 @@ const signature = (e: { errorClass: string; location: WordRef }) => `${e.errorCl
 
 export function scoreClip(index: ReferenceIndex, clip: AcceptanceClip, o: { arm: Arm; phrases: PhraseAsset; chunkS?: number }): ClipScore {
   const tracker = createTracker(index, { mode: "memorization", phrases: o.phrases });
-  const checker = createChecker(index, { phrases: o.phrases });
-  const declared = o.arm === "declared" ? declaredLock(index, clip.ayahs) : null;
+  const checker = createChecker(index, { phrases: o.phrases, ...(o.arm === "declared" ? { passage: declaredPassage(index, clip.ayahs) } : {}) });
   const checks: CheckerEvent[] = [];
   const positions: PositionEvent[] = [];
-  let anchored = false;
-  const feed = (out: EngineEvent[], heard: boolean): EngineEvent[] => {
+  const feed = (out: EngineEvent[]): EngineEvent[] => {
     positions.push(...out.filter((x): x is PositionEvent => x.type === "position"));
-    if (!declared) return out;
-    if (anchored || !heard) return [];
-    anchored = true;
-    return [declared];
+    return out;
   };
-  for (const e of chunk(clip.evidence as QudRecording, o.chunkS ?? 1, false)) {
-    const out = feed(tracker.push(e), e.phonemes.length > 0);
-    checks.push(...checker.push(e, out));
-  }
-  checks.push(...checker.end(feed(tracker.end(), false)));
+  for (const e of chunk(clip.evidence as QudRecording, o.chunkS ?? 1, false)) checks.push(...checker.push(e, feed(tracker.push(e))));
+  checks.push(...checker.end(feed(tracker.end())));
 
   const latest = new Map<string, CheckerEvent>();
   for (const e of checks) latest.set(e.id, e);
@@ -118,21 +107,11 @@ export function scoreClip(index: ReferenceIndex, clip: AcceptanceClip, o: { arm:
   };
 }
 
-/** A lock on the first word of the prompted passage, spanning it, as a session that declares its passage would send. */
-function declaredLock(index: ReferenceIndex, ayahs: string[]): PositionEvent {
+/** The prompted passage's first and last words. */
+function declaredPassage(index: ReferenceIndex, ayahs: string[]): { from: WordRef; to: WordRef } {
   const inAyah = (a: string) => index.words.filter((w) => ayahKey(w) === a && w.end > w.start);
-  const first = inAyah(ayahs[0])[0];
-  const last = inAyah(ayahs.at(-1)!).at(-1)!;
   const ref = (w: WordRef): WordRef => ({ surah: w.surah, ayah: w.ayah, word: w.word });
-  return {
-    type: "position",
-    v: EVENT_SCHEMA_VERSION,
-    timeMs: 0,
-    referenceVersion: index.version,
-    expected: ref(first),
-    observed: [{ word: ref(first), span: { start: ref(first), end: ref(last) }, confidence: 1, cost: 0, per: 0 }],
-    state: "locked",
-  };
+  return { from: ref(inAyah(ayahs[0])[0]), to: ref(inAyah(ayahs.at(-1)!).at(-1)!) };
 }
 
 function startGate(index: ReferenceIndex, clip: AcceptanceClip, positions: PositionEvent[]): StartGate {

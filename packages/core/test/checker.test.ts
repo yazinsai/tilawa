@@ -169,9 +169,52 @@ describe("unclear evidence", () => {
     expect(events.some((e) => e.state === "uncertain")).toBe(true);
   });
 
-  it("never confirms a wrong word the session ended on", () => {
+  it("leaves a wrong word uncertain when the session ends inside the confirm delay", () => {
     const events = run(replaceWord(w(2, 255, 48), ALIEN), { to: w(2, 255, 50) });
     expect(confirmed(events)).toEqual([]);
+  });
+
+  it("never confirms a wrong word the session ended on", () => {
+    // لعظيم said as لعزيز, the last word.
+    const last = at(w(2, 255, 50));
+    const events = run([{ kind: "sub", at: last + 2, to: "ز" }, { kind: "sub", at: last + 6, to: "ز" }], { to: w(2, 255, 50) });
+    expect(confirmed(events)).toEqual([]);
+  });
+});
+
+describe("declared passage", () => {
+  const passage = { from, to: w(2, 255, 50) };
+  /** The checker alone, with the tracker's events optionally withheld. */
+  const declared = (edits: Edit[], o: { to?: WordRef; withhold?: boolean; policy?: CheckerOptions["policy"] } = {}) => {
+    const f = syntheticFixture(index, { id: "c", from, to: o.to ?? w(2, 255, 50), edits, chunkSize: 8 });
+    const tracker = createTracker(index, { mode: "memorization", phrases });
+    const checker = createChecker(index, { phrases, passage, policy: o.policy });
+    const out: CheckerEvent[] = [];
+    for (const e of f.evidence) {
+      const events = tracker.push(e);
+      out.push(...checker.push(e, o.withhold ? [] : events));
+    }
+    out.push(...checker.end(o.withhold ? [] : tracker.end()));
+    return out;
+  };
+
+  it("aligns against the passage without a tracker lock", () => {
+    expect(summary(confirmed(declared(replaceWord(target, ALIEN), { withhold: true })))).toEqual(["confirmed wrong_word 2:255:23"]);
+  });
+
+  it("emits nothing on clean recitation", () => {
+    expect(confirmed(declared([]))).toEqual([]);
+  });
+
+  it("confirms at session end a wrong word a later word followed, inside the confirm delay", () => {
+    const events = declared(replaceWord(w(2, 255, 48), ALIEN), { policy: { confirm: { after: "delay", ms: 60_000 } } });
+    expect(summary(confirmed(events))).toEqual(["confirmed wrong_word 2:255:48"]);
+  });
+
+  it("follows a deliberate jump out of the passage and back without flagging it", () => {
+    const away = [w(112, 1, 1), w(112, 4, 5)].map(find);
+    const jump = index.phonemes.slice(away[0].start, away[1].end);
+    expect(confirmed(declared([{ kind: "ins", at: at(w(2, 255, 10)), text: jump }]))).toEqual([]);
   });
 });
 
