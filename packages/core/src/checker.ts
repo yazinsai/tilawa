@@ -47,7 +47,7 @@ const WRONG = 0.3;
 const CONSONANTS = new Set("ءبتثجحخدذرزسشصضطظعغفقكلمنهوي");
 const SOFT = 3;
 const HELD = 2;
-/** A wrong word needs this many hard edits, or one in a word with a single consonant. */
+/** A wrong word needs this many hard edits, or one in a word with at most one consonant. */
 const MIN_HARD = 2;
 /** Inserted phonemes between two words that make an added word. */
 const MIN_ADDED = 3;
@@ -341,7 +341,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (hard) consonants++;
     }
     const length = words[last].end - words[v.word].start;
-    return v.cost / ((weight * v.covered) / length) > WRONG && v.hard >= Math.min(MIN_HARD, consonants);
+    return v.cost / ((weight * v.covered) / length) > WRONG && v.hard >= Math.max(1, Math.min(MIN_HARD, consonants));
   };
 
   const skeleton = (wi: number) => [...ref.slice(words[wi].start, words[wi].end)].filter((p) => CONSONANTS.has(p)).join("");

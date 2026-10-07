@@ -54,6 +54,16 @@ describe("clean recitation", () => {
   });
 });
 
+describe("words without consonants", () => {
+  it("are never wrong words: a held ghunna heard as ن is how it's said", () => {
+    const start = w(67, 16, 1);
+    const ghunna = find(w(67, 16, 3));
+    expect(index.phonemes.slice(ghunna.start, ghunna.end)).toBe("ںںں");
+    const f = syntheticFixture(index, { id: "c", from: start, to: w(67, 17, 5), edits: [{ kind: "del", at: ghunna.start - find(start).start, count: 3 }, { kind: "ins", at: ghunna.start - find(start).start, text: "ن" }], chunkSize: 8 });
+    expect(confirmed(replayChecked(index, f, {}, { passage: { from: start, to: w(67, 17, 5) } }))).toEqual([]);
+  });
+});
+
 describe("memorization errors", () => {
   it("confirms a wrong word", () => {
     expect(summary(run(replaceWord(target, ALIEN)))).toEqual(["suspected wrong_word 2:255:23", "confirmed wrong_word 2:255:23"]);
