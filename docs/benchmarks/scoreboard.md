@@ -6,7 +6,7 @@ One row per commit × listener, recomputed from evidence on disk (no GPU). Bars 
 
 **Dashboard.** `uv run tools/scoreboard_serve.py` serves the dashboard on http://127.0.0.1:8765/scoreboard.html. Choose a listener model to see end-to-end precision and recall, listener/tracker/checker summaries and trends, and missed-error attribution. The change history shows module tags, key figures and deltas, with filters for Listener, Tracker and Checker. Full notes are expandable; comparisons always use the previous run for that model, even when filtered. Expand “Explore all measurements” for sample counts, targets and backing reports. It reads `scoreboard.json`, so a new row appears on reload.
 
-## Latest: teacher @ 2bdd2be (2026-10-07)
+## Latest: teacher @ 6343815 (2026-10-07)
 
 Delta is against the baseline row 3e91183 (2026-10-07).
 
@@ -29,7 +29,7 @@ Delta is against the baseline row 3e91183 (2026-10-07).
 | End to end | Pronunciation: consonant_sad_sin | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 4 positives in eval split |
 | End to end | Pronunciation: madd_natural | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 1 positives in eval split |
 | End to end | Pronunciation: other pairs, shadda | — |  | unmeasurable |  | no recordings with positives (ticket 05, phase 2) |
-| End to end | Tracker real-time factor (this machine) | 0.002 | ≤ 0.05 | pass | 0 | perf.ts gate: device floor assumed 20× slower; slowest push 28.7 ms |
+| End to end | Tracker real-time factor (this machine) | 0.002 | ≤ 0.05 | pass | 0 | perf.ts gate: device floor assumed 20× slower; slowest push 28.2 ms |
 | End to end | Word highlight p95 / suspected / confirmed latency | — |  | unmeasurable |  | pass --latency <pnpm bench:help report> (packages/sdk); device runs: ticket 10 |
 | Listener | Gold PER (canon vs spliced, human-verified exact) | 3.39% (233 clips) | ≤ 3.7% | pass |  | bar: gold PER where fitted declared.precision falls 2 pts below the teacher (3.39%) |
 | Listener | Gold PER: laptop | 7.61% (16 clips) |  | info |  |  |
@@ -62,6 +62,7 @@ Delta is against the baseline row 3e91183 (2026-10-07).
 | Tracker | QUD regression: correct ayah within 5 s | 76.9% (30/39) | ≥ 95.0% | fail | 0 | 16 recordings, 357 min; regression report, not a gate (Decision 2) |
 | Tracker | QUD regression: false jumps | 8.8% (8/91) | ≤ 2.0% | fail | 0 |  |
 | Tracker | QUD regression: median time to first lock | 4.11 s |  | info | 0 |  |
+| End to end | Stitched sessions: false wrong/added words per 5 min (free) | 2.04 (305 in 747 min) | ≤ 1 | fail |  | clean clips stitched end to end with real jumps (ticket 13); `pnpm jumps` |
 | Tracker | Ambiguous tlog clips (PLAN gate set) | — |  | unmeasurable |  | no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06) |
 | Tracker | Scripted-error recordings (PLAN gate set) | — |  | unmeasurable |  | no recordings yet (ticket 05) |
 | Checker | Declared passage: Memorization precision | 77.0% (57/74) | ≥ 90.0% | fail | +15.6 pp | declared passage (CheckerOptions.passage): the prompted passage, real tracker and evidence |
@@ -1146,3 +1147,4 @@ Delta is against the baseline row 7fb8fff (2026-10-07).
 | 2026-10-07 | 2bdd2be | spliced-clean-fp16 | 80.0% (28/35) | 43.8% (28/64) | 0.324 | 4.79% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | 93.8% (60/64) | spliced-clean fp16 export on onnxruntime-node, 20 ms pushes, 40 ms evidence cells |
 | 2026-10-07 | 7fb8fff | spliced-clean-lite-onnx | 63.4% (26/41) | 40.6% (26/64) | 1.081 | 5.75% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | 93.8% (60/64) | spliced-clean-lite (22M, spliced-clean recipe at size lite, 12 epochs from scratch, gold excluded) onnx export on onnxruntime-node, 20 ms pushes |
 | 2026-10-07 | 7fb8fff | spliced-clean-lite-int8 | 63.4% (26/41) | 40.6% (26/64) | 1.081 | 5.74% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | 93.8% (60/64) | spliced-clean-lite (22M, spliced-clean recipe at size lite, 12 epochs from scratch, gold excluded) int8 export on onnxruntime-node, 20 ms pushes |
+| 2026-10-07 | 6343815 | teacher | 76.7% (33/43) | 51.6% (33/64) | 0.215 | 3.39% (233 clips) | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | 93.8% (60/64) | Baseline for free-recitation latching: stitched-session free-checker false wrong/added words (ticket 13 sessions) |
