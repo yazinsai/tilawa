@@ -9,6 +9,7 @@ import { parseArgs } from "node:util";
 import { loadReferenceIndex } from "@tilawa/core";
 import type { PhraseAsset, ReferenceAsset } from "@tilawa/core";
 import { loadNodeModel } from "../node.js";
+import { percentile } from "../latency.js";
 import { runHelpBench } from "./help.js";
 
 const { values } = parseArgs({ options: {
@@ -17,8 +18,8 @@ const { values } = parseArgs({ options: {
   out: { type: "string", default: "../../../tilawa/.scratch/sdk-help/spliced-clean-onnx-node" },
   torch: { type: "string", default: "../../../tilawa/.scratch/gold/spliced-clean", description: "PyTorch evidence of the same clips" },
   report: { type: "string", default: "../../docs/benchmarks/sdk-help-spliced-clean-v1.json" },
-  push: { type: "string", default: "320" },
-  "evidence-ms": { type: "string", default: "1000" },
+  push: { type: "string", default: "20", description: "ms per push; the web microphone pushes every AudioWorklet block" },
+  "evidence-ms": { type: "string" },
   limit: { type: "string" },
 } });
 const asset = (p: string) => JSON.parse(readFileSync(new URL(`../../../core/assets/${p}`, import.meta.url), "utf8"));
@@ -30,7 +31,7 @@ const model = await loadNodeModel(resolve(values.model!));
 
 let same = 0, compared = 0;
 const res = await runHelpBench({
-  helpDir: resolve(values.help!), reference, phrases, model, pushMs: Number(values.push), evidenceMs: Number(values["evidence-ms"]), limit: values.limit ? Number(values.limit) : undefined,
+  helpDir: resolve(values.help!), reference, phrases, model, pushMs: Number(values.push), evidenceMs: values["evidence-ms"] ? Number(values["evidence-ms"]) : undefined, limit: values.limit ? Number(values.limit) : undefined,
   onClip(c, done, total) {
     writeFileSync(resolve(out, `${c.id}.evidence.json`), JSON.stringify({ inventory: reference.inventoryId, frameMs: model.manifest.frameMs, nFrames: c.nFrames, phonemes: c.phonemes }));
     const torch = resolve(values.torch!, `${c.id}.evidence.json`);
@@ -44,10 +45,11 @@ const res = await runHelpBench({
 });
 const pct = (x: number) => `${(100 * x).toFixed(1)}%`;
 const summary = {
-  model: model.manifest.id, format: model.manifest.format, runtime: model.backend.name, pushMs: Number(values.push), evidenceMs: Number(values["evidence-ms"]),
+  model: model.manifest.id, format: model.manifest.format, runtime: model.backend.name, pushMs: Number(values.push), evidenceMs: values["evidence-ms"] ? Number(values["evidence-ms"]) : model.manifest.frameMs,
   clips: res.clips.length, audioS: res.seconds.audio, rtf: res.seconds.compute / res.seconds.audio / 2,
   decodeIdenticalToPyTorch: `${same}/${compared}`,
   free: res.free, declared: res.declared,
+  latencyMs: Object.fromEntries(Object.entries(res.latency).map(([k, xs]) => [k, { n: xs.length, p50: percentile(xs, 50), p95: percentile(xs, 95), max: percentile(xs, 100) }])),
 };
 writeFileSync(resolve(values.report!), JSON.stringify(summary, null, 1) + "\n");
 console.log(JSON.stringify(summary, null, 1));

@@ -51,7 +51,8 @@ describe("sessions", () => {
   it("report a self-correction as suspected then resolved, and count it only when the policy says so", async () => {
     const e = await engine();
     const run = (countSelfCorrections?: boolean) => {
-      const s = e.startMemorization({ surah: 2, fromAyah: 255, toAyah: 256 }, { countSelfCorrections });
+      // Synthetic phonemes are 60 ms apart: a cell per phoneme shows the wrong word before its correction.
+      const s = e.startMemorization({ surah: 2, fromAyah: 255, toAyah: 256 }, { countSelfCorrections, evidenceMs: 60 });
       const out: EngineEvent[] = [];
       for (const c of evidence(selfCorrection)) out.push(...s.pushEvidence(c));
       out.push(...s.endEvidence());
@@ -61,6 +62,27 @@ describe("sessions", () => {
     expect(summary(byDefault.out)).toEqual(["suspected wrong_word 2:255:23", "resolved wrong_word 2:255:23"]);
     expect(byDefault.mistakes).toEqual([]);
     expect(summary(run(true).mistakes)).toEqual(["resolved wrong_word 2:255:23"]);
+  });
+
+  it("give the same events however the evidence is chunked", async () => {
+    const e = await engine();
+    const wrong: Edit[] = [
+      { kind: "del", at: at(target), count: text(target).length },
+      { kind: "ins", at: at(target), text: text(target).replace("ش", "س").replace("ف", "م") },
+    ];
+    const run = (chunkSize: number, free: boolean) => {
+      const s = free ? e.startFreeRecitation() : e.startMemorization({ surah: 2, fromAyah: 255, toAyah: 256 });
+      const out: EngineEvent[] = [];
+      for (const c of syntheticFixture(index, { id: "c", from, to: w(2, 256, 10), edits: wrong, chunkSize }).evidence) out.push(...s.pushEvidence(c));
+      out.push(...s.endEvidence());
+      return out;
+    };
+    for (const free of [true, false]) {
+      const fine = run(3, free);
+      expect(summary(fine)).toContain(`confirmed wrong_word ${key(target)}`);
+      expect(run(25, free)).toEqual(fine);
+      expect(run(10_000, free)).toEqual(fine);
+    }
   });
 
   it("run audio through the listener into position events", async () => {

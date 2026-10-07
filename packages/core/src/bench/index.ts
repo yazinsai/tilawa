@@ -31,7 +31,7 @@ export function chunk(rec: QudRecording, seconds: number, posteriors: boolean): 
       b = Math.max(b, rec.phonemes[p].end + 1);
       p++;
     }
-    const e: PhonemeEvidence = { inventory: rec.inventory, frameMs: rec.frameMs, phonemes };
+    const e: PhonemeEvidence = { inventory: rec.inventory, frameMs: rec.frameMs, phonemes, decodedTo: b };
     if (posteriors) {
       const { k, ids, probs } = rec.posteriors;
       e.posteriors = { k, startFrame: a, nFrames: b - a, ids: ids.slice(a * k, b * k), probs: probs.slice(a * k, b * k) };

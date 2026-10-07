@@ -44,6 +44,12 @@ export interface TrackerOptions {
   phrases?: PhraseAsset;
   /** Attach shortlist, state transition and alignment path to every position event. */
   trace?: boolean;
+  /**
+   * Streaming: before the first lock, run global search once per this much audio on a fixed grid of evidence time
+   * rather than once per push. How often a stream is searched decides how short a prefix can lock, so with this set
+   * the events don't depend on how the caller chunks evidence. Default: once per push (offline locate of a whole clip).
+   */
+  acquireMs?: number;
 }
 
 export interface Tracker {
@@ -773,6 +779,45 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     return [];
   };
 
+  /** One acquisition step: a push's phonemes, or one `acquireMs` cell's, searched globally. */
+  const acquire = (phonemes: DecodedPhoneme[]): EngineEvent[] => {
+    trimHistory();
+    for (const ph of phonemes) {
+      observe(ph);
+      const heardPhrase = hear(ph.p, null, NaN);
+      if (heardPhrase) {
+        forget();
+        phraseCut = observed.length;
+        basmalaHeard ||= heardPhrase.name === "basmala";
+        takbirHeard ||= heardPhrase.name === "takbir";
+      }
+    }
+    if (pushes++ > 0 && phraseList.length) collapseRepeat();
+    const events: EngineEvent[] = evaluate(false);
+    if (!lockedOn) events.push(...evaluateSuffix(phonemes.length));
+    if (lockedOn) {
+      lockEvent = events.at(-1) as PositionEvent;
+      startLocal(lockedOn);
+      posteriors = null;
+    }
+    return events;
+  };
+
+  const endLocal = (): PositionEvent[] => {
+    const timeMs = lastFrame * (frameMs ?? 0);
+    // Nothing followed the lock: its event, with the global search's trace, is still the answer.
+    if (local && !emittedSinceLock) {
+      const e = { ...lockEvent!, timeMs };
+      return [e.trace ? { ...e, trace: { ...e.trace, transition: { from: "locked" as const, to: "locked" as const } } } : e];
+    }
+    const final = { ...last!, timeMs };
+    return [options.trace ? { ...final, trace: quietTrace(final.state, final.state) } : final];
+  };
+
+  /** Phonemes of the current acquisition cell, held until a phoneme from a later cell shows the cell is complete. */
+  let cell: DecodedPhoneme[] = [];
+  let cellAt = 0;
+
   return {
     push(evidence) {
       validate(evidence);
@@ -780,38 +825,35 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       if (evidence.posteriors) withPosteriors = true;
       else decodedOnly = true;
       if (local || reacquiring) return follow(evidence);
-      trimHistory();
       if (evidence.posteriors) (posteriors ??= new PosteriorFrames(index.tokens.size)).append(evidence.posteriors);
-      for (const ph of evidence.phonemes) {
-        observe(ph);
-        const heardPhrase = hear(ph.p, null, NaN);
-        if (heardPhrase) {
-          forget();
-          phraseCut = observed.length;
-          basmalaHeard ||= heardPhrase.name === "basmala";
-          takbirHeard ||= heardPhrase.name === "takbir";
+      if (!options.acquireMs) return acquire(evidence.phonemes);
+      const events: EngineEvent[] = [];
+      const phs = evidence.phonemes;
+      for (let i = 0; i < phs.length; i++) {
+        const at = Math.floor((phs[i].start * frameMs) / options.acquireMs);
+        while (at > cellAt && !local) {
+          events.push(...acquire(cell));
+          cell = [];
+          cellAt++;
         }
+        if (local) return [...events, ...follow({ ...evidence, phonemes: phs.slice(i), posteriors: undefined })];
+        cell.push(phs[i]);
       }
-      if (pushes++ > 0 && phraseList.length) collapseRepeat();
-      const events = evaluate(false);
-      if (!lockedOn) events.push(...evaluateSuffix(evidence.phonemes.length));
-      if (lockedOn) {
-        lockEvent = events.at(-1)!;
-        startLocal(lockedOn);
-        posteriors = null;
+      const complete = evidence.decodedTo === undefined ? 0 : Math.floor((evidence.decodedTo * frameMs) / options.acquireMs);
+      while (complete > cellAt && !local) {
+        events.push(...acquire(cell));
+        cell = [];
+        cellAt++;
       }
       return events;
     },
     end() {
-      if (!local && !reacquiring) return evaluate(true);
-      const timeMs = lastFrame * (frameMs ?? 0);
-      // Nothing followed the lock: its event, with the global search's trace, is still the answer.
-      if (local && !emittedSinceLock) {
-        const e = { ...lockEvent!, timeMs };
-        return [e.trace ? { ...e, trace: { ...e.trace, transition: { from: "locked" as const, to: "locked" as const } } } : e];
+      if (!local && !reacquiring) {
+        const events = cell.length ? acquire(cell) : [];
+        cell = [];
+        return [...events, ...(local ? endLocal() : evaluate(true))];
       }
-      const final = { ...last!, timeMs };
-      return [options.trace ? { ...final, trace: quietTrace(final.state, final.state) } : final];
+      return endLocal();
     },
   };
 }

@@ -5,7 +5,7 @@
 """Quantised variants of a streaming student export (ticket 10).
 
     uv run --python cpython-3.12-macos-aarch64-none tools/quantize_onnx.py .scratch/models/spliced-clean int8
-    ... fp16 | int8-qdq (static, calibrated on help clips' fbank windows; needs --calib <dir of .wav>)
+    ... fp16
 
 Writes `<src>-<variant>/{model.onnx,manifest.json}` next to the source dir. int8 is icefall's recipe: dynamic,
 MatMul weights only (ConvInteger is missing from onnxruntime-web). fp16 keeps fp32 inputs and outputs, so the SDK's

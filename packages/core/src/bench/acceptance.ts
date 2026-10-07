@@ -66,7 +66,7 @@ const ayahKey = (r: { surah: number; ayah: number }) => `${r.surah}:${r.ayah}`;
 const signature = (e: { errorClass: string; location: WordRef }) => `${e.errorClass}/${key(e.location)}`;
 
 export function scoreClip(index: ReferenceIndex, clip: AcceptanceClip, o: { arm: Arm; phrases: PhraseAsset; chunkS?: number }): ClipScore {
-  const tracker = createTracker(index, { mode: "memorization", phrases: o.phrases });
+  const tracker = createTracker(index, { mode: "memorization", phrases: o.phrases, acquireMs: 1000 });
   const checker = createChecker(index, { phrases: o.phrases, ...(o.arm === "declared" ? { passage: declaredPassage(index, clip.ayahs) } : {}) });
   const checks: CheckerEvent[] = [];
   const positions: PositionEvent[] = [];
@@ -74,7 +74,7 @@ export function scoreClip(index: ReferenceIndex, clip: AcceptanceClip, o: { arm:
     positions.push(...out.filter((x): x is PositionEvent => x.type === "position"));
     return out;
   };
-  for (const e of chunk(clip.evidence as QudRecording, o.chunkS ?? 1, false)) checks.push(...checker.push(e, feed(tracker.push(e))));
+  for (const e of chunk(clip.evidence as QudRecording, o.chunkS ?? 0.32, false)) checks.push(...checker.push(e, feed(tracker.push(e))));
   checks.push(...checker.end(feed(tracker.end())));
 
   const latest = new Map<string, CheckerEvent>();

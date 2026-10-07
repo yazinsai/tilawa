@@ -3,6 +3,7 @@ import type {
   CapabilityEvent,
   CheckerEvent,
   CheckerPolicy,
+  DecodedPhoneme,
   EngineEvent,
   PhonemeEvidence,
   PhraseAsset,
@@ -22,9 +23,8 @@ export interface SessionPolicy {
   /** Below this mean decoder confidence an error ends `uncertain`. Default 0.6. */
   minConfidence?: number;
   /**
-   * Batch listener output into evidence chunks of at least this much audio before the tracker and checker see it.
-   * Default 1000, the cadence every scoreboard number is measured at: at 320 ms the free-recitation checker raises
-   * more false warnings on the help clips (precision 81.8% → 73.0%); the declared arm is unchanged.
+   * The tracker and checker see evidence in cells of this much audio on a fixed grid, so their events don't depend on
+   * how the caller chunks audio or evidence. Default: one CTC frame (40 ms), so a cell is passed on as soon as it is decoded.
    */
   evidenceMs?: number;
 }
@@ -91,7 +91,7 @@ export function createEngine(options: EngineOptions): Engine {
   }
 
   function start(mode: Session["mode"], passage: Session["passage"], policy: SessionPolicy = {}): Session {
-    const tracker = createTracker(index, { mode, phrases });
+    const tracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
     const checker = createChecker(index, {
       phrases,
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
@@ -105,22 +105,8 @@ export function createEngine(options: EngineOptions): Engine {
       return events;
     };
     const recorded: PhonemeEvidence[] = [];
-    const evidenceMs = policy.evidenceMs ?? 1000;
-    let held: PhonemeEvidence[] = [];
-    let heldFrom = 0;
-    let heldTo = 0;
-    /** Listener chunks end at the start of the open token run; the batch spans up to the last one's end. */
-    const batch = (e: PhonemeEvidence | null, final: boolean) => {
-      if (e) {
-        if (!held.length) heldFrom = heldTo;
-        held.push(e);
-        heldTo = Math.max(heldTo, e.posteriors ? e.posteriors.startFrame + e.posteriors.nFrames : (e.phonemes.at(-1)?.end ?? heldTo - 1) + 1);
-      }
-      if (!held.length || (!final && (heldTo - heldFrom) * model.manifest.frameMs < evidenceMs)) return [];
-      const merged = merge(held);
-      held = [];
-      return step(merged);
-    };
+    const cells = evidenceGrid(policy.evidenceMs ?? model.manifest.frameMs);
+    const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
       if (options.recordEvidence) recorded.push(e);
       const out = tracker.push(e);
@@ -147,14 +133,21 @@ export function createEngine(options: EngineOptions): Engine {
       },
       pushAudio: (samples, rate) =>
         serial(async () => {
-          return batch(await listener.push(samples, rate), false);
+          const e = await listener.push(samples, rate);
+          if (e) cells.add(e);
+          return feed(cells.ready(listener.decoded));
         }),
       end: () =>
         serial(async () => {
-          return [...batch(await listener.end(), true), ...finish()];
+          const e = await listener.end();
+          if (e) cells.add(e);
+          return [...feed(cells.rest()), ...finish()];
         }),
-      pushEvidence: step,
-      endEvidence: finish,
+      pushEvidence: (e) => {
+        cells.add(e);
+        return feed(cells.ready(e.posteriors && e.posteriors.startFrame + e.posteriors.nFrames));
+      },
+      endEvidence: () => [...feed(cells.rest()), ...finish()],
       mistakes: () => checker.mistakes(),
       evidence: () => recorded,
     };
@@ -166,19 +159,56 @@ export function createEngine(options: EngineOptions): Engine {
   };
 }
 
-function merge(chunks: PhonemeEvidence[]): PhonemeEvidence {
-  if (chunks.length === 1) return chunks[0];
-  const e: PhonemeEvidence = { inventory: chunks[0].inventory, frameMs: chunks[0].frameMs, phonemes: chunks.flatMap((c) => c.phonemes) };
-  const ps = chunks.map((c) => c.posteriors);
-  if (ps.every((p) => p)) {
-    const k = ps[0]!.k;
-    e.posteriors = {
-      k,
-      startFrame: ps[0]!.startFrame,
-      nFrames: ps.reduce((n, p) => n + p!.nFrames, 0),
-      ids: ps.flatMap((p) => Array.from(p!.ids)),
-      probs: ps.flatMap((p) => Array.from(p!.probs)),
-    };
-  }
-  return e;
+/** Before its first lock the tracker searches once per second of evidence: shorter prefixes lock on the wrong ayah. */
+const ACQUIRE_MS = 1000;
+
+/**
+ * Cuts an evidence stream into cells of `ms` audio by phoneme start, whatever chunks it arrives in. A cell is ready once
+ * a phoneme from a later cell arrives or decoding has passed its end.
+ */
+function evidenceGrid(ms: number) {
+  let held: DecodedPhoneme[] = [];
+  let frameMs = 0;
+  let inventory = "";
+  let post: { k: number; startFrame: number; ids: number[]; probs: number[] } | null = null;
+  const cellOf = (frame: number) => Math.floor((frame * frameMs) / ms);
+  const cut = (n: number, until: number, decodedTo?: number): PhonemeEvidence => {
+    const e: PhonemeEvidence = { inventory, frameMs, phonemes: held.slice(0, n), ...(decodedTo !== undefined && { decodedTo }) };
+    held = held.slice(n);
+    if (post) {
+      const take = Math.max(0, Math.min(until, post.startFrame + post.ids.length / post.k) - post.startFrame);
+      e.posteriors = { k: post.k, startFrame: post.startFrame, nFrames: take, ids: post.ids.splice(0, take * post.k), probs: post.probs.splice(0, take * post.k) };
+      post.startFrame += take;
+    }
+    return e;
+  };
+  return {
+    add(e: PhonemeEvidence) {
+      frameMs = e.frameMs;
+      inventory = e.inventory;
+      held.push(...e.phonemes);
+      if (e.posteriors) {
+        post ??= { k: e.posteriors.k, startFrame: e.posteriors.startFrame, ids: [], probs: [] };
+        post.ids.push(...Array.from(e.posteriors.ids));
+        post.probs.push(...Array.from(e.posteriors.probs));
+      }
+    },
+    /** Complete cells; `decoded`: the first frame whose phonemes may still be coming, when the source knows it. */
+    ready(decoded?: number): PhonemeEvidence[] {
+      const out: PhonemeEvidence[] = [];
+      while (held.length) {
+        const c = cellOf(held[0].start);
+        const n = held.findIndex((p) => cellOf(p.start) > c);
+        if (n < 0 && !(decoded !== undefined && cellOf(decoded) > c)) break;
+        const end = Math.ceil(((c + 1) * ms) / frameMs);
+        out.push(cut(n < 0 ? held.length : n, n < 0 ? end : held[n].start, end));
+      }
+      return out;
+    },
+    rest(): PhonemeEvidence[] {
+      const out = this.ready();
+      if (held.length || post?.ids.length) out.push(cut(held.length, Infinity));
+      return out;
+    },
+  };
 }

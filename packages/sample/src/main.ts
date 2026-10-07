@@ -29,11 +29,10 @@ $("load").onclick = async () => {
       providers: ($<HTMLSelectElement>("provider").value.split(",") as WebProvider[]),
       threads: Number($<HTMLSelectElement>("threads").value),
       wasmPaths: new URL("ort/", location.href).href,
-      allowOverBudget: true,
       onProgress: (n, total) => status(`Downloading model ${(n / 1e6).toFixed(0)} / ${(total / 1e6).toFixed(0)} MB`),
     });
     engine = createEngine({ reference: index, phrases: phrases as PhraseAsset, model });
-    const tier = MODEL_REGISTRY.tiers[0];
+    const tier = MODEL_REGISTRY.tiers.find((t) => t.tier === "full")!;
     $("model-note").textContent = `${model.manifest.id} (${model.manifest.format}, ${(tier.bytes / 1e6).toFixed(0)} MB) on ${model.backend.name}, ` +
       `${model.fromCache ? "from cache" : "downloaded"} in ${((performance.now() - t0) / 1000).toFixed(1)} s; crossOriginIsolated=${crossOriginIsolated}. ` +
       `${model.fallbacks.length ? `Fell back: ${model.fallbacks.join("; ")}. ` : ""}${tier.note ?? ""}`;

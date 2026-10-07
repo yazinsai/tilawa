@@ -4,10 +4,10 @@
   {
    "tier": "full",
    "id": "spliced-clean",
-   "version": "1-fp32",
-   "base": "models/spliced-clean/1-fp32/",
-   "bytes": 257650014,
-   "sha256": "a8552d517fa1393b91c9fe00145fafe0c80166e2aa408aeda08b2685930c71a8",
+   "version": "1-int8",
+   "base": "models/spliced-clean/1-int8/",
+   "bytes": 67759744,
+   "sha256": "714e98addee73b1b8781ad7d99b6d3c745acd9116638baf4e12891f53a15af1b",
    "supported": [
     "wrong_word",
     "omitted_word",
@@ -17,7 +17,7 @@
    "manifest": {
     "schema": 1,
     "id": "spliced-clean",
-    "format": "onnx-fp32",
+    "format": "onnx-int8",
     "arch": "zipformer2-streaming-ctc",
     "inventory": "muaalem-v3_2-phonemes",
     "tokens": "ءبتثجحخدذرزسشصضطظعغفقكلمنهوياۦۥَُِ۪ـٲڇں۾ؙۜ",
@@ -936,17 +936,18 @@
      }
     ],
     "file": "model.onnx",
-    "bytes": 257650014,
-    "sha256": "a8552d517fa1393b91c9fe00145fafe0c80166e2aa408aeda08b2685930c71a8",
+    "bytes": 67759744,
+    "sha256": "714e98addee73b1b8781ad7d99b6d3c745acd9116638baf4e12891f53a15af1b",
     "trainStep": 30287,
     "supported": [
      "wrong_word",
      "omitted_word",
      "added_word",
      "skipped_passage"
-    ]
+    ],
+    "quantizedFrom": "a8552d517fa1393b91c9fe00145fafe0c80166e2aa408aeda08b2685930c71a8"
    },
-   "note": "Ticket 08 student, fp32 streaming export (257.7 MB): over the 200 MB budget until ticket 10 quantises it; load with allowOverBudget. No lite tier yet."
+   "note": "Ticket 10: spliced-clean, dynamic int8 (MatMul weights), 67.8 MB. Gold PER 4.82% vs 4.80% fp32 ONNX."
   }
  ]
 }

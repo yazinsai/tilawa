@@ -25,6 +25,8 @@ export interface PhonemeEvidence {
   frameMs: number;
   phonemes: DecodedPhoneme[];
   posteriors?: TopKPosteriors;
+  /** Frames before this one are final: no later evidence has a phoneme starting earlier. Optional; streams set it. */
+  decodedTo?: number;
 }
 
 export class EvidenceError extends Error {}

@@ -625,6 +625,23 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return next;
   };
 
+  /** Start aligning: from the declared passage, or where the tracker locked. */
+  const anchorOn = (next: number | null, events: EngineEvent[]) => {
+    if (anchor === null && next === null && declared && obs.length) {
+      anchor = passage!.from;
+      lead = obs.length;
+      fromLock = false;
+      furthest = -1;
+    } else if (anchor === null && next !== null) {
+      anchor = next;
+      const end = events.filter((e): e is PositionEvent => e.type === "position").at(-1)!.observed[0].word;
+      const span = words[wordIndex(end)].end - words[next].start;
+      lead = Math.max(0, obs.length - span - 4);
+      fromLock = true;
+      furthest = -1;
+    }
+  };
+
   return {
     push(evidence, events) {
       const out: CheckerEvent[] = [];
@@ -635,19 +652,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       markPhrases(before);
       const lastPh = obs.at(-1);
       if (lastPh) nowMs = Math.max(nowMs, (lastPh.end + 1) * frameMs);
-      if (anchor === null && next === null && declared && obs.length) {
-        anchor = passage!.from;
-        lead = obs.length;
-        fromLock = false;
-        furthest = -1;
-      } else if (anchor === null && next !== null) {
-        anchor = next;
-        const end = events.filter((e): e is PositionEvent => e.type === "position").at(-1)!.observed[0].word;
-        const span = words[wordIndex(end)].end - words[next].start;
-        lead = Math.max(0, obs.length - span - 4);
-        fromLock = true;
-        furthest = -1;
-      }
+      anchorOn(next, events);
       if (anchor === null) {
         if (obs.length > HISTORY) obs = obs.slice(-HISTORY);
         return out;
@@ -657,7 +662,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     },
     end(events = []) {
       const out: CheckerEvent[] = [];
-      track(events, out);
+      anchorOn(track(events, out), events);
       evaluate(out, true);
       return out;
     },

@@ -6,6 +6,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { CheckerEvent, DecodedPhoneme, EngineEvent, PhraseAsset, ReferenceIndex, WordRef } from "@tilawa/core";
 import type { LoadedModel } from "../model.js";
+import { measureLatency } from "../latency.js";
 import { createEngine } from "../session.js";
 import type { Session } from "../session.js";
 import { decodeWav } from "../wav.js";
@@ -37,6 +38,8 @@ export interface HelpBenchResult {
   free: ArmScore & { precision: number; recall: number };
   declared: ArmScore & { precision: number; recall: number };
   seconds: { audio: number; compute: number };
+  /** Per-event latencies in ms (`measureLatency`), every clip, both arms. */
+  latency: { highlight: number[]; suspected: number[] };
 }
 
 const key = (r: WordRef) => `${r.surah}:${r.ayah}:${r.word}`;
@@ -78,7 +81,7 @@ export async function runHelpBench(o: {
     ? jsonl("raw/submissions.jsonl").filter((r) => (r.mistakes ?? []).some((m: any) => m.rule === "letter_confusion")).map((r) => r.id)
     : []);
   const engine = createEngine({ reference: o.reference, phrases: o.phrases, model: o.model, recordEvidence: true });
-  const push = Math.round(((o.pushMs ?? 320) * 16000) / 1000);
+  const latency = { highlight: [] as number[], suspected: [] as number[] };
   const clips: HelpBenchClip[] = [];
   let compute = 0;
   for (const l of labels) {
@@ -89,10 +92,10 @@ export async function runHelpBench(o: {
     const free = engine.startFreeRecitation({ evidenceMs: o.evidenceMs });
     const declared = engine.startMemorization({ surah, fromAyah, toAyah }, { evidenceMs: o.evidenceMs });
     const run = async (s: Session) => {
-      const out: EngineEvent[] = [];
-      for (let a = 0; a < wav.samples.length; a += push) out.push(...(await s.pushAudio(wav.samples.subarray(a, a + push), wav.sampleRate)));
-      out.push(...(await s.end()));
-      return out;
+      const r = await measureLatency(s, wav.samples, wav.sampleRate, o.pushMs ?? 320);
+      latency.highlight.push(...r.highlight);
+      latency.suspected.push(...r.suspected);
+      return r.events;
     };
     const freeEvents = await run(free);
     const declaredEvents = await run(declared);
@@ -121,5 +124,5 @@ export async function runHelpBench(o: {
       repeatFalsePositives: clips.reduce((n, c) => n + c[k].repeatFalsePositives, 0),
     };
   };
-  return { clips, free: arm("free"), declared: arm("declared"), seconds: { audio: clips.reduce((n, c) => n + c.audioS, 0), compute } };
+  return { clips, free: arm("free"), declared: arm("declared"), seconds: { audio: clips.reduce((n, c) => n + c.audioS, 0), compute }, latency };
 }

@@ -29,6 +29,8 @@ const { values } = parseArgs({ options: {
   note: { type: "string" },
   /** Comma-separated engine modules changed: listener,tracker,checker. */
   modules: { type: "string" },
+  /** `pnpm bench:help` report (packages/sdk) for this listener: end-to-end latency on the shipped runtime. */
+  latency: { type: "string" },
 } });
 const moduleNames = ["listener", "tracker", "checker"] as const;
 const modules = values.modules === undefined ? undefined : [...new Set(values.modules.split(",").map((m) => m.trim()))];
@@ -127,7 +129,14 @@ for (const c of PRONUNCIATION) {
 add({ id: "e2e.pron.phase2", group: E2E, name: "Pronunciation: other pairs, shadda", value: null, status: "unmeasurable", note: "no recordings with positives (ticket 05, phase 2)" });
 const perf = perfGate(index);
 add({ id: "e2e.perfRtf", group: E2E, name: "Tracker real-time factor (this machine)", value: perf.rtf, bar: { op: "<=", target: perf.budgetRtf }, note: `perf.ts gate: device floor assumed ${perf.speedFactor}× slower; slowest push ${perf.maxPushMs.toFixed(1)} ms` });
-add({ id: "e2e.latency", group: E2E, name: "Word highlight p95 / suspected / confirmed latency", value: null, status: "unmeasurable", note: "needs word onsets and device runs (E7, ticket 10)" });
+if (values.latency) {
+  const r = JSON.parse(readFileSync(resolve(values.latency), "utf8")) as { runtime: string; pushMs: number; latencyMs: Record<"highlight" | "suspected", { n: number; p50: number; p95: number }> };
+  const note = `${r.runtime}, ${r.pushMs} ms pushes, this machine; measureLatency (packages/sdk): from the decoded phoneme, not a labelled onset. Device runs: ticket 10`;
+  const ms = (x: number) => `${Math.round(x)} ms`;
+  const h = r.latencyMs.highlight, q = r.latencyMs.suspected;
+  add({ id: "e2e.latency.highlight", group: E2E, name: "Word highlight latency p95", value: h.p95, bar: { op: "<=", target: 600 }, display: `${ms(h.p95)} (p50 ${ms(h.p50)}, ${h.n} words)`, note });
+  add({ id: "e2e.latency.suspected", group: E2E, name: "Suspected latency p95", value: q.p95, bar: { op: "<=", target: 1000 }, display: `${ms(q.p95)} (p50 ${ms(q.p50)}, ${q.n} errors)`, note: "from the onset of the word after the error; PLAN: within about 1 s" });
+} else add({ id: "e2e.latency", group: E2E, name: "Word highlight p95 / suspected / confirmed latency", value: null, status: "unmeasurable", note: "pass --latency <pnpm bench:help report> (packages/sdk); device runs: ticket 10" });
 
 // ---- Listener.
 const LISTENER = "Listener";

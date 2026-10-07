@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tilawa device measurements</title>
+    <style>
+      body { font: 15px/1.45 system-ui, sans-serif; margin: 12px; max-width: 760px; }
+      fieldset { border: 1px solid #ddd; margin: 8px 0; }
+      label { margin-right: 12px; white-space: nowrap; }
+      input[type="number"] { width: 4.5em; }
+      button, select, input { font: inherit; padding: 4px 8px; }
+      #status { color: #555; }
+      table { border-collapse: collapse; font-size: 13px; }
+      td, th { border: 1px solid #ddd; padding: 2px 6px; text-align: right; }
+      #json { font: 12px/1.35 ui-monospace, monospace; background: #f4f4f4; padding: 8px; max-height: 40vh; overflow: auto; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <h2>Tilawa device measurements</h2>
+    <p><a href="./">Sample app</a>. Plug out the charger for the battery run; keep the page in front.</p>
+    <fieldset>
+      <legend>Model</legend>
+      <label>Tier <select id="tier"><option value="full">full</option><option value="lite">lite</option></select></label>
+      <label>Provider <select id="provider"><option value="wasm">WASM SIMD</option><option value="webgpu,wasm">WebGPU → WASM</option></select></label>
+      <label>Threads <select id="threads"><option>1</option><option>2</option><option>4</option></select></label>
+      <button id="load">Load model</button>
+      <p id="model-note"></p>
+    </fieldset>
+    <fieldset>
+      <legend>Runs</legend>
+      <button id="clips" disabled>1. Clips: RTF + latency (~2 min)</button>
+      <label>Battery run <input id="minutes" type="number" min="1" value="10" /> min</label>
+      <button id="soak" disabled>2. Battery run (real time)</button><br />
+      <label>Battery % at start <input id="bat0" type="number" min="0" max="100" /></label>
+      <label>at end <input id="bat1" type="number" min="0" max="100" /></label>
+      <span id="battery-note"></span>
+    </fieldset>
+    <button id="copy">Copy results JSON</button>
+    <p id="status">Load a model first.</p>
+    <table id="table"></table>
+    <details open><summary>Results JSON</summary><div id="json"></div></details>
+    <script type="module" src="/src/device.ts"></script>
+  </body>
+</html>

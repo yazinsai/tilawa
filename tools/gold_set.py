@@ -35,7 +35,8 @@ DECODES = MAIN / ".scratch/gold"
 OUT = ROOT / "docs/benchmarks/gold-per-v1"
 LISTENERS = ("teacher", "e5-top1-lite", "e5-soft5-lite", "e2-scratch-full", "e2-libri-full")
 # Scored but not in the listener-bar fit, which stays on the five listeners it was calibrated on.
-SCORED = LISTENERS + ("combo-libri-soft5-full", "combo-clean", "spliced-clean")
+SCORED = LISTENERS + ("combo-libri-soft5-full", "combo-clean", "spliced-clean", "spliced-clean-onnx", "spliced-clean-int8",
+                       "spliced-clean-fp16", "spliced-clean-lite", "spliced-clean-lite-onnx", "spliced-clean-lite-int8")
 
 GROUPS = {
     "pharyngeals": set("حع"),

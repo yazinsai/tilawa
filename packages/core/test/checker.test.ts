@@ -335,3 +335,21 @@ describe("corrupted teacher evidence", () => {
     });
   }
 });
+
+describe("a lock the tracker reaches only at the end of the session", () => {
+  it("still gets the recitation checked", () => {
+    const start = w(94, 5, 1);
+    const skip = find(w(94, 5, 2));
+    const f = syntheticFixture(index, { id: "end-lock", from: start, to: w(94, 5, 4), edits: [{ kind: "del", at: skip.start - find(start).start, count: skip.end - skip.start }], chunkSize: 4 });
+    const checker = createChecker(index, { phrases });
+    const events: CheckerEvent[] = [];
+    for (const e of f.evidence) events.push(...checker.push(e, []));
+    const end = f.evidence.at(-1)!.phonemes.at(-1)!.end;
+    const lock = {
+      type: "position" as const, v: 1, timeMs: (end + 1) * 20, referenceVersion: index.version, state: "locked" as const, expected: w(94, 5, 4),
+      observed: [{ word: w(94, 5, 4), span: { start, end: w(94, 5, 4) }, confidence: 0.4, cost: 0.1, per: 0.1 }],
+    };
+    events.push(...checker.end([lock]));
+    expect(summary(confirmed(events))).toEqual(["confirmed omitted_word 94:5:2"]);
+  });
+});

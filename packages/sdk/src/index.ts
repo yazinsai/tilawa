@@ -8,3 +8,4 @@ export * from "./wav.js";
 export * from "./session.js";
 export * from "./models.js";
 export * from "./registry.js";
+export * from "./latency.js";

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { PhonemeEvidence } from "@tilawa/core";
 import { createListener } from "../src/listener.js";
+import type { InferenceBackend, Tensor } from "../src/model.js";
 import { loadNodeModel } from "../src/node.js";
 import { decodeWav } from "../src/wav.js";
 
@@ -59,6 +60,33 @@ describe("streaming listener on onnxruntime-node", () => {
       prev = id;
     }
     expect(flat(a).length).toBe(greedy.length);
+  });
+
+  it("holds nothing back past the last complete window: a token run still open there is returned with it, once", async () => {
+    const tiny = await loadNodeModel(fixture("tiny").pathname);
+    const m = tiny.manifest;
+    const vocab = m.tokens.length + 1;
+    // Every frame is token 1: one run across every window.
+    const backend: InferenceBackend = {
+      name: "stub",
+      async run(feeds) {
+        const out: Record<string, Tensor> = Object.fromEntries(m.states.map((s) => [`new_${s.name}`, feeds[s.name]]));
+        const lp = new Float32Array((m.chunk / 2) * vocab).fill(-10);
+        for (let t = 0; t < m.chunk / 2; t++) lp[t * vocab + 1] = 0;
+        out.log_probs = { type: "float32", data: lp, dims: [1, m.chunk / 2, vocab] };
+        return out;
+      },
+    };
+    const listener = createListener({ ...tiny, backend });
+    const got: PhonemeEvidence[] = [];
+    for (let a = 0; a < wav.samples.length; a += 1600) {
+      const e = await listener.push(wav.samples.subarray(a, a + 1600), wav.sampleRate);
+      if (e) got.push(e);
+      expect(listener.decoded % (m.chunk / 2)).toBe(0);
+    }
+    expect(got[0].phonemes.map((p) => p.p)).toEqual([m.tokens[0]]);
+    const last = await listener.end();
+    expect([...got, ...(last ? [last] : [])].flatMap((e) => e.phonemes)).toHaveLength(1);
   });
 
   it("resamples 44.1 kHz input to the model rate", async () => {

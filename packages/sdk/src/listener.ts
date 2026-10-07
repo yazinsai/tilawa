@@ -16,13 +16,16 @@ export interface Listener {
   end(): Promise<PhonemeEvidence | null>;
   /** Fbank frames consumed so far; audio time is `frames * 10 ms`. */
   readonly frames: number;
+  /** Output frames before this one are final: every phoneme starting earlier has been returned. */
+  readonly decoded: number;
 }
 
 const round4 = (x: number) => Math.round(x * 1e4) / 1e4;
 
 /**
  * Streaming phoneme listener: fbank, then the streaming Zipformer one window at a time, then a greedy CTC decode.
- * A chunk covers frames up to the start of the still-open token run, so each emitted phoneme is final.
+ * A chunk covers every frame decoded so far. A token run cut by a window's end is emitted with that window, its end
+ * frame where the window ended.
  */
 export function createListener(model: LoadedModel, options: ListenerOptions = {}): Listener {
   const m = model.manifest;
@@ -44,6 +47,8 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   let emitted = 0;
   let prev = 0;
   let open: DecodedPhoneme | null = null;
+  /** The run at the end of the previous window was emitted; its continuation is the same phoneme. */
+  let carried = false;
   let done: DecodedPhoneme[] = [];
   let ids: number[] = [];
   let probs: number[] = [];
@@ -64,13 +69,21 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
       if (id !== 0 && id === prev && open) {
         open.end = frame;
         open.conf = Math.max(open.conf, round4(p));
-      } else {
+      } else if (!(id !== 0 && id === prev && carried)) {
         if (open) done.push(open);
         open = id !== 0 ? { p: m.tokens[id - 1], start: frame, end: frame, conf: round4(p) } : null;
+        carried = false;
       }
+      if (id !== prev) carried = false;
       prev = id;
     }
     outFrames += n;
+    // A run still open at the window's end goes out with it: continuing it in the next window can't change the token.
+    if (open) {
+      done.push(open);
+      open = null;
+      carried = true;
+    }
   }
 
   function flush(final: boolean): PhonemeEvidence | null {
@@ -108,6 +121,9 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   return {
     get frames() {
       return fbankFrames;
+    },
+    get decoded() {
+      return emitted;
     },
     async push(samples, sampleRate) {
       if (sampleRate !== m.sampleRate) {

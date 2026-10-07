@@ -13,7 +13,9 @@
   "scripts": {
     "build": "tsc -b",
     "test": "vitest run",
-    "bench:help": "tsx src/bench/help-cli.ts"
+    "bench:help": "tsx src/bench/help-cli.ts",
+    "bench:gold": "tsx src/bench/gold-cli.ts",
+    "register": "tsx src/bench/register-cli.ts"
   },
   "dependencies": {
     "@tilawa/core": "workspace:*"

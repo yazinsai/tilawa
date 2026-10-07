@@ -18,4 +18,5 @@ export default defineConfig({
   server: { headers: isolation, host: true, allowedHosts: [".trycloudflare.com"], fs: { allow: ["../.."] } },
   preview: { headers: isolation, host: true, allowedHosts: [".trycloudflare.com"] },
   optimizeDeps: { exclude: ["onnxruntime-web"] },
+  build: { rollupOptions: { input: { main: src("index.html"), device: src("device.html") } } },
 });
