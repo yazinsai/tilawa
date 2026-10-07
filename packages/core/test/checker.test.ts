@@ -77,6 +77,10 @@ describe("memorization errors", () => {
     expect(events[1].timeMs).toBeLessThan(ended * 20);
   });
 
+  it("doesn't count vowels and a glottal stop between words as an added word", () => {
+    expect(confirmed(run([{ kind: "ins", at: at(target), text: "ااءِ" }]))).toEqual([]);
+  });
+
   it("confirms an added word", () => {
     expect(summary(run([{ kind: "ins", at: at(target), text: ALIEN }]))).toEqual(["suspected added_word 2:255:23", "confirmed added_word 2:255:23"]);
   });

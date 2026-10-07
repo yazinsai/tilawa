@@ -413,7 +413,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         const prev: Visit | null = cur;
         close();
         // Only between two consecutive words of one run: elsewhere an insertion is junk around a jump or the lock edge.
-        if (block.length >= MIN_ADDED && prev && nextWord(prev.word) === wi) {
+        if (block.length >= MIN_ADDED && block.filter((k) => CONSONANTS.has(obs[k].p)).length >= 2 && prev && nextWord(prev.word) === wi) {
           const text = block.map((k) => obs[k].p).join("");
           added.push({ cls: "added_word", word: wi, last: wi, obsFrom: block[0], obsTo: block.at(-1)! + 1, observed: text });
         }
