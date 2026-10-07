@@ -4,7 +4,7 @@
 
 **Blocked by:** 04, 08.
 
-**Status:** needs-triage
+**Status:** claimed
 
 - [ ] Microphone capture, resampling and VAD into streaming listener inference on each runtime. WebGPU falls back to WASM SIMD on web.
 - [ ] Model tiers downloaded on first use, versioned separately, cached, within the 200 MB budget.
