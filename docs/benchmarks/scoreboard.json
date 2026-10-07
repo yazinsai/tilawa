@@ -4,6 +4,7 @@
   {
    "sha": "3e91183",
    "date": "2026-10-07",
+   "recordedAt": "2026-10-07T06:42:20+03:00",
    "listener": "teacher",
    "note": "Baseline: engine at 3e91183, offline Muaalem teacher evidence; first scoreboard row",
    "metrics": [
@@ -795,6 +796,7 @@
   {
    "sha": "3e91183",
    "date": "2026-10-07",
+   "recordedAt": "2026-10-07T06:42:20+03:00",
    "listener": "e2-libri-full",
    "note": "Baseline student: e2-libri-full (E2 LibriSpeech init); PER only, help-clip evidence not decoded yet",
    "metrics": [
@@ -1033,6 +1035,7 @@
   {
    "sha": "8aca172",
    "date": "2026-10-07",
+   "recordedAt": "2026-10-07T07:02:42+03:00",
    "listener": "teacher",
    "metrics": [
     {
@@ -1856,6 +1859,7 @@
   {
    "sha": "004986d",
    "date": "2026-10-07",
+   "recordedAt": "2026-10-07T07:19:31+03:00",
    "listener": "teacher",
    "metrics": [
     {
@@ -2679,6 +2683,7 @@
   {
    "sha": "46a068e",
    "date": "2026-10-07",
+   "recordedAt": "2026-10-07T07:22:22+03:00",
    "listener": "teacher",
    "metrics": [
     {
@@ -3502,6 +3507,7 @@
   {
    "sha": "16d6396",
    "date": "2026-10-07",
+   "recordedAt": "2026-10-07T07:25:11+03:00",
    "listener": "teacher",
    "note": "Added word between words needs two consonants, as inside a word; declared 77.0%/89.1%, free 76.2%/50.0%, oracle 100%/92.2%",
    "metrics": [
@@ -4403,6 +4409,7 @@
   {
    "sha": "bfc52cb",
    "date": "2026-10-07",
+   "recordedAt": "2026-10-07T10:33:19+03:00",
    "listener": "teacher",
    "note": "Gold PER (233 human-verified exact clips) is the primary listener PER, bar 3.65% calibrated on declared precision; teacher 3.39% gold PER",
    "metrics": [
@@ -5398,6 +5405,7 @@
   {
    "sha": "bfc52cb",
    "date": "2026-10-07",
+   "recordedAt": "2026-10-07T10:33:19+03:00",
    "listener": "e5-top1-lite",
    "note": "First help-clip decode (CPU fp32, chunk 16/left 128) and gold PER for e5-top1-lite; calibration point for listener-target-v1",
    "metrics": [
@@ -6319,6 +6327,7 @@
   {
    "sha": "bfc52cb",
    "date": "2026-10-07",
+   "recordedAt": "2026-10-07T10:33:19+03:00",
    "listener": "e5-soft5-lite",
    "note": "First help-clip decode (CPU fp32, chunk 16/left 128) and gold PER for e5-soft5-lite; calibration point for listener-target-v1",
    "metrics": [
@@ -7240,6 +7249,7 @@
   {
    "sha": "bfc52cb",
    "date": "2026-10-07",
+   "recordedAt": "2026-10-07T10:33:19+03:00",
    "listener": "e2-scratch-full",
    "note": "First help-clip decode (CPU fp32, chunk 16/left 128) and gold PER for e2-scratch-full; calibration point for listener-target-v1",
    "metrics": [
@@ -8161,6 +8171,7 @@
   {
    "sha": "bfc52cb",
    "date": "2026-10-07",
+   "recordedAt": "2026-10-07T10:33:19+03:00",
    "listener": "e2-libri-full",
    "note": "First help-clip decode (CPU fp32, chunk 16/left 128) and gold PER for e2-libri-full; calibration point for listener-target-v1",
    "metrics": [
@@ -9082,6 +9093,7 @@
   {
    "sha": "72d1f04",
    "date": "2026-10-07",
+   "recordedAt": "2026-10-07T10:50:18+03:00",
    "listener": "combo-libri-soft5-full",
    "note": "Score the completed pretrained soft-target full student on existing held-out help evidence to measure mistake detection.",
    "metrics": [
@@ -10038,6 +10050,7 @@
   {
    "sha": "2d94ea0",
    "date": "2026-10-07",
+   "recordedAt": "2026-10-07T12:21:52+03:00",
    "listener": "combo-libri-soft5-full",
    "note": "LibriSpeech init + soft top-5, 12 epochs; trained on gold tlog clips, so gold PER is optimistic (use held-out slice)",
    "metrics": [
@@ -10984,6 +10997,7 @@
   {
    "sha": "2d94ea0",
    "date": "2026-10-07",
+   "recordedAt": "2026-10-07T12:21:52+03:00",
    "listener": "combo-clean",
    "note": "combo retrained with the 150 gold tlog clips excluded from train; same recipe",
    "metrics": [
@@ -11930,6 +11944,7 @@
   {
    "sha": "2d94ea0",
    "date": "2026-10-07",
+   "recordedAt": "2026-10-07T12:21:52+03:00",
    "listener": "spliced-clean",
    "note": "spliced-reference CTC target (reference between teacher anchors, runs collapsed) + soft top-5 at weight 2, gold excluded",
    "metrics": [
@@ -12876,6 +12891,7 @@
   {
    "sha": "457e2f0",
    "date": "2026-10-07",
+   "recordedAt": "2026-10-07T18:42:52+03:00",
    "listener": "spliced-clean-onnx",
    "note": "Ticket 09: spliced-clean as shipped: fp32 streaming ONNX on onnxruntime-node via the SDK listener (TS fbank, 320 ms windows); help evidence decoded from WAV, 381/388 decodes identical to PyTorch",
    "metrics": [

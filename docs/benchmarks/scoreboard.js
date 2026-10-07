@@ -55,13 +55,21 @@ function historyFigure(entry,old,id,label){
  const direction=changed?(lowerBetter(id,m)?d<0:d>0)?'Improved':'Worsened':'';
  return `<div class="history-figure"><span class="small">${esc(label)}</span><div class="history-value">${numeric(m)?value(m):'—'}<span class="history-movement ${changed?'changed':''}" title="${esc(direction || movement)}">${direction?direction==='Improved'?'↗ ':'↘ ':''}${movement}</span></div></div>`;
 }
-function historyEntry(entry,old){
+const when = r => r.recordedAt || r.date;
+function ago(r){
+ if(!r.recordedAt) return r.date;
+ const s=(Date.now()-Date.parse(r.recordedAt))/1000;
+ if(s<60) return 'just now';
+ const [n,u]=s<3600?[s/60,'min']:s<86400?[s/3600,'hr']:s<86400*30?[s/86400,'day']:[s/86400/30,'mo'];
+ const k=Math.floor(n);return `${k} ${u}${k===1||u==='min'?'':'s'} ago`;
+}
+function historyEntry(entry,old,showModel){
  const modules=impacted(entry),baseline=Array.isArray(entry.modules)&&entry.modules.length===0;
- const tags=modules.length?modules.map(m=>`<span class="module-tag">${moduleLabels[m]}</span>`).join(''):`<span class="module-tag neutral">${baseline?'Baseline':'Module not tagged'}</span>`;
+ const tags=(showModel?`<span class="module-tag neutral" title="Listener model">${esc(entry.listener)}</span>`:'')+(modules.length?modules.map(m=>`<span class="module-tag">${moduleLabels[m]}</span>`).join(''):`<span class="module-tag neutral">${baseline?'Baseline':'Module not tagged'}</span>`);
  const figures=[['e2e.precision','End-to-end precision'],['e2e.recall','End-to-end recall'],...modules.map(m=>impactMetric[m])];
  const note=entry.note || 'No change note recorded.';
  const headline=note.split(';')[0];
- return `<article class="history-item"><div class="history-meta"><div class="history-tags">${tags}</div><time>${esc(entry.date)}</time><code>${esc(entry.sha.slice(0,7))}</code></div><div class="history-body"><h3 class="history-note">${esc(headline)}</h3><div class="history-figures">${figures.map(([id,label])=>historyFigure(entry,old,id,label)).join('')}</div><details class="change-details"><summary>Change details</summary><p>${esc(note)}</p><p class="small">Figures compare against the previous recorded run for this model, even when the list is filtered. Isolated checker recall uses perfect passage and sound evidence.</p></details></div></article>`;
+ return `<article class="history-item"><div class="history-meta"><div class="history-tags">${tags}</div><time datetime="${esc(when(entry))}" title="${esc(entry.recordedAt?new Date(entry.recordedAt).toLocaleString():entry.date)}">${esc(ago(entry))}</time><code>${esc(entry.sha.slice(0,7))}</code></div><div class="history-body"><h3 class="history-note">${esc(headline)}</h3><div class="history-figures">${figures.map(([id,label])=>historyFigure(entry,old,id,label)).join('')}</div><details class="change-details"><summary>Change details</summary><p>${esc(note)}</p><p class="small">Figures compare against the previous recorded run for this model, even when the list is filtered. Isolated checker recall uses perfect passage and sound evidence.</p></details></div></article>`;
 }
 let data=[];
 function render(){
@@ -83,16 +91,21 @@ function render(){
  const losses=[['checker.e0.evidence','Listener evidence'],['checker.e0.tracker','Tracker'],['checker.e0.checker','Checker']].map(([id,label])=>({m:metric(row,id),label}));
  const total=losses.reduce((n,l)=>n+(numeric(l.m)?l.m.value:0),0);
  if(losses.every(l=>numeric(l.m))&&total>0){losses.forEach(l=>{html+=`<div class="loss"><div class="loss-label"><span>${l.label}</span><strong>${l.m.value} of ${total} misses · ${Math.round(l.m.value/total*100)}%</strong></div><div class="track"><div class="fill" style="width:${l.m.value/total*100}%"></div></div></div>`;});html+='<p class="small">Diagnostic attribution, not independent component accuracy.</p>';}else html+='<div class="empty">Miss attribution has not been measured for this model.</div>';
- html+='</article></section><div class="section-heading"><div><h2>What changed?</h2><p>Filter by the module changed. See the result at a glance.</p></div></div><section class="panel history-panel"><div class="history-toolbar"><div class="history-filters" role="group" aria-label="Filter changes by module">'+['all',...MODULES].map(m=>`<button type="button" data-module="${m}" aria-pressed="${m==='all'}">${m==='all'?'All changes':moduleLabels[m]}</button>`).join('')+'</div><span class="small" id="history-count"></span></div><div id="history-list"></div>';
+ html+='</article></section><div class="section-heading"><div><h2>What changed?</h2><p>Latest runs across every model. Filter by module or model.</p></div></div><section class="panel history-panel"><div class="history-toolbar"><div class="history-filters" role="group" aria-label="Filter changes by module">'+['all',...MODULES].map(m=>`<button type="button" data-module="${m}" aria-pressed="${m==='all'}">${m==='all'?'All changes':moduleLabels[m]}</button>`).join('')+`</div><label class="small history-model">Model <select id="history-model"><option value="">All models</option>${[...new Set(data.map(r=>r.listener))].map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('')}</select></label><span class="small" id="history-count"></span></div><div id="history-list"></div>`;
  html+='</section><details class="details"><summary>Explore all measurements <span class="small">· targets, sample counts & reports</span></summary><p>Meets / outside target applies only to that metric. Pending means an evaluation hasn’t run; no measurement means the data or capability is missing.</p><div class="detail-tools"><label>Find a metric <input id="search" type="search" placeholder="e.g. pronunciation, false jumps"></label><label>Area <select id="area"><option value="">All areas</option><option>End to end</option><option>Listener</option><option>Tracker</option><option>Checker</option></select></label></div><div class="table-wrap"><table><thead><tr><th>Measurement</th><th>Latest result</th><th>Target / status</th><th>Change vs previous run</th></tr></thead><tbody id="metrics"></tbody></table></div></details>';
  document.getElementById('content').innerHTML=html;
- function history(filter='all'){
-  const entries=rows.map((entry,i)=>({entry,old:rows[i-1]})).filter(({entry})=>filter==='all'||impacted(entry).includes(filter)).reverse();
-  document.getElementById('history-count').textContent=`${entries.length} of ${rows.length} runs`;
-  document.getElementById('history-list').innerHTML=entries.map(({entry,old})=>historyEntry(entry,old)).join('') || `<div class="empty">No recorded ${esc(moduleLabels[filter]?.toLowerCase() || '')} changes for this model.</div>`;
+ const timeline=data.map((r,i)=>({r,i})).sort((a,b)=>String(when(a.r)).localeCompare(String(when(b.r)))||a.i-b.i).map(x=>x.r);
+ const last={},all=timeline.map(entry=>{const old=last[entry.listener];last[entry.listener]=entry;return {entry,old};});
+ let filter='all';
+ function history(){
+  const model=document.getElementById('history-model').value;
+  const pool=all.filter(({entry})=>!model||entry.listener===model);
+  const entries=pool.filter(({entry})=>filter==='all'||impacted(entry).includes(filter)).reverse();
+  document.getElementById('history-count').textContent=`${entries.length} of ${pool.length} runs`;
+  document.getElementById('history-list').innerHTML=entries.map(({entry,old})=>historyEntry(entry,old,!model)).join('') || `<div class="empty">No recorded ${esc(moduleLabels[filter]?.toLowerCase() || '')} changes${model?' for this model':''}.</div>`;
   document.querySelectorAll('[data-module]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.module===filter)));
  }
- history();document.querySelectorAll('[data-module]').forEach(button=>button.addEventListener('click',()=>history(button.dataset.module)));
+ history();document.querySelectorAll('[data-module]').forEach(button=>button.addEventListener('click',()=>{filter=button.dataset.module;history();}));document.getElementById('history-model').addEventListener('change',history);
  function details(){const q=document.getElementById('search').value.toLowerCase(),area=document.getElementById('area').value;const matches=row.metrics.filter(m=>(!area||m.group===area)&&`${m.name} ${m.group} ${m.note || ''}`.toLowerCase().includes(q));document.getElementById('metrics').innerHTML=matches.map(m=>`<tr><td><span class="small">${esc(m.group)}</span><br>${esc(m.name)}<small>${esc(m.note)} ${source(m)}</small></td><td>${esc(m.display || (numeric(m)?value(m):m.status==='pending'?'Awaiting evaluation':'No measurement'))}</td><td>${badge(m)}<div class="target">${target(m)}</div></td><td>${delta(m,metric(prev,m.id),m.id)}</td></tr>`).join('')||'<tr><td colspan="4">No matching measurements.</td></tr>';}
  details();document.getElementById('search').addEventListener('input',details);document.getElementById('area').addEventListener('change',details);
 }

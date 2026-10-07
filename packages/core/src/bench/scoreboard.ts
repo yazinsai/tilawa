@@ -26,6 +26,8 @@ export interface Metric {
 export interface ScoreRow {
   sha: string;
   date: string;
+  /** ISO timestamp of when the row was recorded; absent on early rows. */
+  recordedAt?: string;
   /** `teacher`, or a student run name. */
   listener: string;
   /** One line: what changed and why. */
