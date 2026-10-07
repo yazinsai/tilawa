@@ -5,8 +5,10 @@
    "sha": "3e91183",
    "date": "2026-10-07",
    "listener": "teacher",
+   "note": "Baseline: engine at 3e91183, offline Muaalem teacher evidence; first scoreboard row",
    "metrics": [
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.precision",
      "group": "End to end",
      "name": "Memorization precision",
@@ -21,6 +23,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.recall",
      "group": "End to end",
      "name": "Memorization recall",
@@ -34,6 +37,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.wrong_word.precision",
      "group": "End to end",
      "name": "wrong_word precision",
@@ -47,6 +51,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.wrong_word.recall",
      "group": "End to end",
      "name": "wrong_word recall",
@@ -61,6 +66,7 @@
      "note": ""
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.omitted_word.precision",
      "group": "End to end",
      "name": "omitted_word precision",
@@ -74,6 +80,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.omitted_word.recall",
      "group": "End to end",
      "name": "omitted_word recall",
@@ -88,6 +95,7 @@
      "note": ""
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.added_word.precision",
      "group": "End to end",
      "name": "added_word precision",
@@ -101,6 +109,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.added_word.recall",
      "group": "End to end",
      "name": "added_word recall",
@@ -111,6 +120,7 @@
      "note": "no confirmed positives in the eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.skipped_passage.precision",
      "group": "End to end",
      "name": "skipped_passage precision",
@@ -124,6 +134,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.skipped_passage.recall",
      "group": "End to end",
      "name": "skipped_passage recall",
@@ -134,6 +145,7 @@
      "note": "no confirmed positives in the eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.cleanPerClip",
      "group": "End to end",
      "name": "False warnings per clean clip",
@@ -142,6 +154,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.cleanPer5",
      "group": "End to end",
      "name": "False warnings per 5 min (short clips)",
@@ -154,6 +167,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.repeatFp",
      "group": "End to end",
      "name": "False positives on repeats",
@@ -166,6 +180,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.pron.short_vowel",
      "group": "End to end",
      "name": "Pronunciation: short_vowel",
@@ -175,6 +190,7 @@
      "note": "checker has no pronunciation classes; 30 positives in eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.pron.consonant_sad_sin",
      "group": "End to end",
      "name": "Pronunciation: consonant_sad_sin",
@@ -184,6 +200,7 @@
      "note": "checker has no pronunciation classes; 4 positives in eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.pron.madd_natural",
      "group": "End to end",
      "name": "Pronunciation: madd_natural",
@@ -193,6 +210,7 @@
      "note": "checker has no pronunciation classes; 1 positives in eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.pron.phase2",
      "group": "End to end",
      "name": "Pronunciation: other pairs, shadda",
@@ -201,18 +219,20 @@
      "note": "no recordings with positives (ticket 05, phase 2)"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.perfRtf",
      "group": "End to end",
      "name": "Tracker real-time factor (this machine)",
-     "value": 0.002157900215119853,
+     "value": 0.0016600919061155125,
      "bar": {
       "op": "<=",
       "target": 0.05
      },
-     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 40.3 ms",
+     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 29.1 ms",
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.latency",
      "group": "End to end",
      "name": "Word highlight p95 / suspected / confirmed latency",
@@ -221,27 +241,36 @@
      "note": "needs word onsets and device runs (E7, ticket 10)"
     },
     {
-     "id": "listener.perRef",
+     "source": "teacher-per-breakdown-v1.md",
+     "id": "listener.perFair",
      "group": "Listener",
-     "name": "PER vs reference (tlog clean-match test)",
-     "value": 0.0852,
+     "name": "Fair PER (canon vs spliced reference)",
+     "value": 0.0244183782002307,
      "unit": "%",
-     "bar": {
-      "op": "<=",
-      "target": 0.0365
-     },
-     "note": "bar: Quran-Lab zipformer 3.65% (phone audio; a reference, not a gate)",
-     "status": "fail"
+     "status": "info",
+     "note": "teacher floor; canon PER vs spliced reference (teacher-per-breakdown-v1): nasal spelling and qalqala unified, runs collapsed, clip edges from the teacher; ignores shadda and duration"
     },
     {
+     "source": "student-v1.md",
+     "id": "listener.perRef",
+     "group": "Listener",
+     "name": "Raw PER vs reference (tlog clean-match test)",
+     "value": 0.0852,
+     "unit": "%",
+     "status": "info",
+     "note": "mostly clip edges and madd/ghunna length, not mishearing (teacher-per-breakdown-v1)"
+    },
+    {
+     "source": "student-v1.md",
      "id": "listener.perTeacher",
      "group": "Listener",
-     "name": "PER vs teacher",
+     "name": "Raw PER vs teacher",
      "value": 0,
      "unit": "%",
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "listener.visible",
      "group": "Listener",
      "name": "Planted memorization errors visible in the decode",
@@ -252,6 +281,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "listener.e1help.svRecall",
      "group": "Listener",
      "name": "E1 help clips: short vowel greedy recall",
@@ -266,6 +296,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "listener.e1help.svCanon",
      "group": "Listener",
      "name": "E1 help clips: short vowel canonicalised",
@@ -275,6 +306,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "listener.e1help.svFp",
      "group": "Listener",
      "name": "E1 help clips: short vowel clean greedy FP",
@@ -288,6 +320,7 @@
      "status": "pass"
     },
     {
+     "source": "e1-teacher-bias-v1.md",
      "id": "listener.e1.classes",
      "group": "Listener",
      "name": "E1 (qdat_bench + Ikhlas): classes the teacher hears",
@@ -297,6 +330,7 @@
      "status": "info"
     },
     {
+     "source": "e1b-spliced-v1.md",
      "id": "listener.e1b.classes",
      "group": "Listener",
      "name": "E1b splices (upper bound): classes the teacher hears",
@@ -306,6 +340,7 @@
      "status": "info"
     },
     {
+     "source": "e1b-spliced-v1.md",
      "id": "listener.e1b.canon",
      "group": "Listener",
      "name": "E1b splices: canonicalised share (all classes)",
@@ -315,6 +350,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.clean.within5s",
      "group": "Tracker",
      "name": "help clean: correct ayah within 5 s",
@@ -329,6 +365,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.clean.falseJumps",
      "group": "Tracker",
      "name": "help clean: clips with a false jump",
@@ -342,6 +379,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.clean.outside",
      "group": "Tracker",
      "name": "help clean: clips with any lock outside the passage",
@@ -351,6 +389,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.clean.lockS",
      "group": "Tracker",
      "name": "help clean: median time to correct lock",
@@ -360,6 +399,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.all.within5s",
      "group": "Tracker",
      "name": "help all: correct ayah within 5 s",
@@ -374,6 +414,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.all.falseJumps",
      "group": "Tracker",
      "name": "help all: clips with a false jump",
@@ -387,6 +428,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.all.outside",
      "group": "Tracker",
      "name": "help all: clips with any lock outside the passage",
@@ -396,6 +438,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.all.lockS",
      "group": "Tracker",
      "name": "help all: median time to correct lock",
@@ -405,6 +448,7 @@
      "status": "info"
     },
     {
+     "source": "qud-v1-decoded-phrases.md",
      "id": "tracker.qud.within5s",
      "group": "Tracker",
      "name": "QUD regression: correct ayah within 5 s",
@@ -419,6 +463,7 @@
      "status": "fail"
     },
     {
+     "source": "qud-v1-decoded-phrases.md",
      "id": "tracker.qud.falseJumps",
      "group": "Tracker",
      "name": "QUD regression: false jumps",
@@ -432,6 +477,7 @@
      "status": "fail"
     },
     {
+     "source": "qud-v1-decoded-phrases.md",
      "id": "tracker.qud.lockS",
      "group": "Tracker",
      "name": "QUD regression: median time to first lock",
@@ -440,6 +486,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.tlog",
      "group": "Tracker",
      "name": "Ambiguous tlog clips (PLAN gate set)",
@@ -448,6 +495,7 @@
      "note": "no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06)"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.scripted",
      "group": "Tracker",
      "name": "Scripted-error recordings (PLAN gate set)",
@@ -456,6 +504,7 @@
      "note": "no recordings yet (ticket 05)"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.precision",
      "group": "Checker",
      "name": "Oracle lock: Memorization precision",
@@ -470,6 +519,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.recall",
      "group": "Checker",
      "name": "Oracle lock: Memorization recall",
@@ -483,6 +533,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.cleanPerClip",
      "group": "Checker",
      "name": "Oracle lock: False warnings per clean clip",
@@ -491,6 +542,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.cleanPer5",
      "group": "Checker",
      "name": "Oracle lock: False warnings per 5 min (short clips)",
@@ -503,6 +555,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.repeatFp",
      "group": "Checker",
      "name": "Oracle lock: False positives on repeats",
@@ -515,6 +568,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.precision",
      "group": "Checker",
      "name": "Oracle lock + evidence: Memorization precision",
@@ -529,6 +583,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.recall",
      "group": "Checker",
      "name": "Oracle lock + evidence: Memorization recall",
@@ -542,6 +597,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.wrong_word.precision",
      "group": "Checker",
      "name": "Oracle lock + evidence: wrong_word precision",
@@ -555,6 +611,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.wrong_word.recall",
      "group": "Checker",
      "name": "Oracle lock + evidence: wrong_word recall",
@@ -569,6 +626,7 @@
      "note": ""
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.omitted_word.precision",
      "group": "Checker",
      "name": "Oracle lock + evidence: omitted_word precision",
@@ -582,6 +640,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.omitted_word.recall",
      "group": "Checker",
      "name": "Oracle lock + evidence: omitted_word recall",
@@ -596,6 +655,7 @@
      "note": ""
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.added_word.precision",
      "group": "Checker",
      "name": "Oracle lock + evidence: added_word precision",
@@ -609,6 +669,7 @@
      "status": "unmeasurable"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.added_word.recall",
      "group": "Checker",
      "name": "Oracle lock + evidence: added_word recall",
@@ -619,6 +680,7 @@
      "note": "no confirmed positives in the eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.skipped_passage.precision",
      "group": "Checker",
      "name": "Oracle lock + evidence: skipped_passage precision",
@@ -632,6 +694,7 @@
      "status": "unmeasurable"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.skipped_passage.recall",
      "group": "Checker",
      "name": "Oracle lock + evidence: skipped_passage recall",
@@ -642,6 +705,7 @@
      "note": "no confirmed positives in the eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.cleanPerClip",
      "group": "Checker",
      "name": "Oracle lock + evidence: False warnings per clean clip",
@@ -650,6 +714,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.cleanPer5",
      "group": "Checker",
      "name": "Oracle lock + evidence: False warnings per 5 min (short clips)",
@@ -662,6 +727,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.repeatFp",
      "group": "Checker",
      "name": "Oracle lock + evidence: False positives on repeats",
@@ -674,6 +740,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.raised",
      "group": "Checker",
      "name": "Oracle lock + evidence: positives raised in any state",
@@ -684,6 +751,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.e0.evidence",
      "group": "Checker",
      "name": "E0: misses lost to evidence",
@@ -693,6 +761,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.e0.tracker",
      "group": "Checker",
      "name": "E0: misses lost to tracker",
@@ -702,6 +771,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.e0.checker",
      "group": "Checker",
      "name": "E0: misses lost to checker",
@@ -711,6 +781,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.selfCorrection",
      "group": "Checker",
      "name": "Self-correction / long-session false warnings",
@@ -724,8 +795,10 @@
    "sha": "3e91183",
    "date": "2026-10-07",
    "listener": "e2-libri-full",
+   "note": "Baseline student: e2-libri-full (E2 LibriSpeech init); PER only, help-clip evidence not decoded yet",
    "metrics": [
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.precision",
      "group": "End to end",
      "name": "Memorization precision",
@@ -734,6 +807,7 @@
      "note": "no help-clip evidence from e2-libri-full on disk (needs a GPU decode of the 388 eval clips)"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.recall",
      "group": "End to end",
      "name": "Memorization recall",
@@ -742,6 +816,7 @@
      "note": "no help-clip evidence from e2-libri-full on disk (needs a GPU decode of the 388 eval clips)"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.cleanPer5",
      "group": "End to end",
      "name": "False warnings per 5 min",
@@ -750,6 +825,7 @@
      "note": "no help-clip evidence from e2-libri-full on disk (needs a GPU decode of the 388 eval clips)"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.pron.short_vowel",
      "group": "End to end",
      "name": "Pronunciation: short_vowel",
@@ -759,6 +835,7 @@
      "note": "checker has no pronunciation classes; 30 positives in eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.pron.consonant_sad_sin",
      "group": "End to end",
      "name": "Pronunciation: consonant_sad_sin",
@@ -768,6 +845,7 @@
      "note": "checker has no pronunciation classes; 4 positives in eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.pron.madd_natural",
      "group": "End to end",
      "name": "Pronunciation: madd_natural",
@@ -777,6 +855,7 @@
      "note": "checker has no pronunciation classes; 1 positives in eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.pron.phase2",
      "group": "End to end",
      "name": "Pronunciation: other pairs, shadda",
@@ -785,18 +864,20 @@
      "note": "no recordings with positives (ticket 05, phase 2)"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.perfRtf",
      "group": "End to end",
      "name": "Tracker real-time factor (this machine)",
-     "value": 0.0016345906000307317,
+     "value": 0.0016299709665027657,
      "bar": {
       "op": "<=",
       "target": 0.05
      },
-     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 30.0 ms",
+     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 29.9 ms",
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.latency",
      "group": "End to end",
      "name": "Word highlight p95 / suspected / confirmed latency",
@@ -805,27 +886,40 @@
      "note": "needs word onsets and device runs (E7, ticket 10)"
     },
     {
-     "id": "listener.perRef",
+     "source": "teacher-per-breakdown-v1.md",
+     "id": "listener.perFair",
      "group": "Listener",
-     "name": "PER vs reference (tlog clean-match test)",
-     "value": 0.0988,
+     "name": "Fair PER (canon vs spliced reference)",
+     "value": 0.05395263134241158,
      "unit": "%",
      "bar": {
       "op": "<=",
-      "target": 0.0365
+      "target": 0.0344183782002307
      },
-     "note": "bar: Quran-Lab zipformer 3.65% (phone audio; a reference, not a gate)",
-     "status": "fail"
+     "status": "fail",
+     "note": "bar: teacher floor 2.44% + 1 pp (proposed); canon PER vs spliced reference (teacher-per-breakdown-v1): nasal spelling and qalqala unified, runs collapsed, clip edges from the teacher; ignores shadda and duration"
     },
     {
+     "source": "student-v1.md",
+     "id": "listener.perRef",
+     "group": "Listener",
+     "name": "Raw PER vs reference (tlog clean-match test)",
+     "value": 0.0988,
+     "unit": "%",
+     "status": "info",
+     "note": "Quran-Lab zipformer 3.65% on phone audio: reference only, not a gate"
+    },
+    {
+     "source": "student-v1.md",
      "id": "listener.perTeacher",
      "group": "Listener",
-     "name": "PER vs teacher",
+     "name": "Raw PER vs teacher",
      "value": 0.0555,
      "unit": "%",
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "listener.visible",
      "group": "Listener",
      "name": "Planted memorization errors visible in the decode",
@@ -834,6 +928,7 @@
      "note": "no help-clip evidence from e2-libri-full on disk (needs a GPU decode of the 388 eval clips)"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "listener.e1help.svRecall",
      "group": "Listener",
      "name": "E1 help clips: short vowel greedy recall",
@@ -842,6 +937,7 @@
      "note": "E1/E1b not run on e2-libri-full's posteriors"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "listener.e1.classes",
      "group": "Listener",
      "name": "E1: classes heard",
@@ -850,6 +946,7 @@
      "note": "E1/E1b not run on e2-libri-full's posteriors"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "listener.e1b.classes",
      "group": "Listener",
      "name": "E1b: classes heard",
@@ -858,6 +955,7 @@
      "note": "E1/E1b not run on e2-libri-full's posteriors"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.clean.within5s",
      "group": "Tracker",
      "name": "help clean: correct ayah within 5 s",
@@ -866,6 +964,7 @@
      "note": "no help-clip evidence from e2-libri-full on disk (needs a GPU decode of the 388 eval clips)"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.all.within5s",
      "group": "Tracker",
      "name": "help all: correct ayah within 5 s",
@@ -874,6 +973,7 @@
      "note": "no help-clip evidence from e2-libri-full on disk (needs a GPU decode of the 388 eval clips)"
     },
     {
+     "source": "qud-v1-decoded-phrases.md",
      "id": "tracker.qud.within5s",
      "group": "Tracker",
      "name": "QUD regression: correct ayah within 5 s",
@@ -882,6 +982,7 @@
      "note": "no QUD evidence from e2-libri-full"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.tlog",
      "group": "Tracker",
      "name": "Ambiguous tlog clips (PLAN gate set)",
@@ -890,6 +991,7 @@
      "note": "no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06)"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.scripted",
      "group": "Tracker",
      "name": "Scripted-error recordings (PLAN gate set)",
@@ -898,6 +1000,7 @@
      "note": "no recordings yet (ticket 05)"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.recall",
      "group": "Checker",
      "name": "Oracle lock: recall",
@@ -906,6 +1009,7 @@
      "note": "no help-clip evidence from e2-libri-full on disk (needs a GPU decode of the 388 eval clips)"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.e0.checker",
      "group": "Checker",
      "name": "E0 attribution",
@@ -914,6 +1018,7 @@
      "note": "no help-clip evidence from e2-libri-full on disk (needs a GPU decode of the 388 eval clips)"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.selfCorrection",
      "group": "Checker",
      "name": "Self-correction / long-session false warnings",
@@ -1740,7 +1845,8 @@
      "status": "unmeasurable",
      "note": "no recordings (ticket 05)"
     }
-   ]
+   ],
+   "note": "Declared-passage mode in core (CheckerOptions.passage) + end-of-session finalisation in declared sessions; declared arm 62.6%/89.1%, free unchanged"
   },
   {
    "sha": "004986d",
@@ -2559,7 +2665,8 @@
      "status": "unmeasurable",
      "note": "no recordings (ticket 05)"
     }
-   ]
+   ],
+   "note": "Skip placement: prefer the equal placement on an ayah start when a word recurs across the skip; oracle false omitted_word 9 -> 0"
   },
   {
    "sha": "46a068e",
@@ -3378,14 +3485,17 @@
      "status": "unmeasurable",
      "note": "no recordings (ticket 05)"
     }
-   ]
+   ],
+   "note": "A word with no consonants (ghunna/madd only) needs a hard edit to be a wrong word"
   },
   {
    "sha": "16d6396",
    "date": "2026-10-07",
    "listener": "teacher",
+   "note": "Added word between words needs two consonants, as inside a word; declared 77.0%/89.1%, free 76.2%/50.0%, oracle 100%/92.2%",
    "metrics": [
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.precision",
      "group": "End to end",
      "name": "Memorization precision",
@@ -3400,6 +3510,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.recall",
      "group": "End to end",
      "name": "Memorization recall",
@@ -3413,6 +3524,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.wrong_word.precision",
      "group": "End to end",
      "name": "wrong_word precision",
@@ -3426,6 +3538,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.wrong_word.recall",
      "group": "End to end",
      "name": "wrong_word recall",
@@ -3440,6 +3553,7 @@
      "note": ""
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.omitted_word.precision",
      "group": "End to end",
      "name": "omitted_word precision",
@@ -3453,6 +3567,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.omitted_word.recall",
      "group": "End to end",
      "name": "omitted_word recall",
@@ -3467,6 +3582,7 @@
      "note": ""
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.added_word.precision",
      "group": "End to end",
      "name": "added_word precision",
@@ -3480,6 +3596,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.added_word.recall",
      "group": "End to end",
      "name": "added_word recall",
@@ -3490,6 +3607,7 @@
      "note": "no confirmed positives in the eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.skipped_passage.precision",
      "group": "End to end",
      "name": "skipped_passage precision",
@@ -3503,6 +3621,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.skipped_passage.recall",
      "group": "End to end",
      "name": "skipped_passage recall",
@@ -3513,6 +3632,7 @@
      "note": "no confirmed positives in the eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.cleanPerClip",
      "group": "End to end",
      "name": "False warnings per clean clip",
@@ -3521,6 +3641,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.cleanPer5",
      "group": "End to end",
      "name": "False warnings per 5 min (short clips)",
@@ -3533,6 +3654,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.repeatFp",
      "group": "End to end",
      "name": "False positives on repeats",
@@ -3545,6 +3667,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.pron.short_vowel",
      "group": "End to end",
      "name": "Pronunciation: short_vowel",
@@ -3554,6 +3677,7 @@
      "note": "checker has no pronunciation classes; 30 positives in eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.pron.consonant_sad_sin",
      "group": "End to end",
      "name": "Pronunciation: consonant_sad_sin",
@@ -3563,6 +3687,7 @@
      "note": "checker has no pronunciation classes; 4 positives in eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.pron.madd_natural",
      "group": "End to end",
      "name": "Pronunciation: madd_natural",
@@ -3572,6 +3697,7 @@
      "note": "checker has no pronunciation classes; 1 positives in eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.pron.phase2",
      "group": "End to end",
      "name": "Pronunciation: other pairs, shadda",
@@ -3580,18 +3706,20 @@
      "note": "no recordings with positives (ticket 05, phase 2)"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.perfRtf",
      "group": "End to end",
      "name": "Tracker real-time factor (this machine)",
-     "value": 0.0016125641863859552,
+     "value": 0.0015873951598033298,
      "bar": {
       "op": "<=",
       "target": 0.05
      },
-     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 28.3 ms",
+     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 28.0 ms",
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "e2e.latency",
      "group": "End to end",
      "name": "Word highlight p95 / suspected / confirmed latency",
@@ -3600,27 +3728,36 @@
      "note": "needs word onsets and device runs (E7, ticket 10)"
     },
     {
-     "id": "listener.perRef",
+     "source": "teacher-per-breakdown-v1.md",
+     "id": "listener.perFair",
      "group": "Listener",
-     "name": "PER vs reference (tlog clean-match test)",
-     "value": 0.0852,
+     "name": "Fair PER (canon vs spliced reference)",
+     "value": 0.0244183782002307,
      "unit": "%",
-     "bar": {
-      "op": "<=",
-      "target": 0.0365
-     },
-     "note": "bar: Quran-Lab zipformer 3.65% (phone audio; a reference, not a gate)",
-     "status": "fail"
+     "status": "info",
+     "note": "teacher floor; canon PER vs spliced reference (teacher-per-breakdown-v1): nasal spelling and qalqala unified, runs collapsed, clip edges from the teacher; ignores shadda and duration"
     },
     {
+     "source": "student-v1.md",
+     "id": "listener.perRef",
+     "group": "Listener",
+     "name": "Raw PER vs reference (tlog clean-match test)",
+     "value": 0.0852,
+     "unit": "%",
+     "status": "info",
+     "note": "mostly clip edges and madd/ghunna length, not mishearing (teacher-per-breakdown-v1)"
+    },
+    {
+     "source": "student-v1.md",
      "id": "listener.perTeacher",
      "group": "Listener",
-     "name": "PER vs teacher",
+     "name": "Raw PER vs teacher",
      "value": 0,
      "unit": "%",
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "listener.visible",
      "group": "Listener",
      "name": "Planted memorization errors visible in the decode",
@@ -3631,6 +3768,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "listener.e1help.svRecall",
      "group": "Listener",
      "name": "E1 help clips: short vowel greedy recall",
@@ -3645,6 +3783,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "listener.e1help.svCanon",
      "group": "Listener",
      "name": "E1 help clips: short vowel canonicalised",
@@ -3654,6 +3793,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "listener.e1help.svFp",
      "group": "Listener",
      "name": "E1 help clips: short vowel clean greedy FP",
@@ -3667,6 +3807,7 @@
      "status": "pass"
     },
     {
+     "source": "e1-teacher-bias-v1.md",
      "id": "listener.e1.classes",
      "group": "Listener",
      "name": "E1 (qdat_bench + Ikhlas): classes the teacher hears",
@@ -3676,6 +3817,7 @@
      "status": "info"
     },
     {
+     "source": "e1b-spliced-v1.md",
      "id": "listener.e1b.classes",
      "group": "Listener",
      "name": "E1b splices (upper bound): classes the teacher hears",
@@ -3685,6 +3827,7 @@
      "status": "info"
     },
     {
+     "source": "e1b-spliced-v1.md",
      "id": "listener.e1b.canon",
      "group": "Listener",
      "name": "E1b splices: canonicalised share (all classes)",
@@ -3694,6 +3837,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.clean.within5s",
      "group": "Tracker",
      "name": "help clean: correct ayah within 5 s",
@@ -3708,6 +3852,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.clean.falseJumps",
      "group": "Tracker",
      "name": "help clean: clips with a false jump",
@@ -3721,6 +3866,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.clean.outside",
      "group": "Tracker",
      "name": "help clean: clips with any lock outside the passage",
@@ -3730,6 +3876,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.clean.lockS",
      "group": "Tracker",
      "name": "help clean: median time to correct lock",
@@ -3739,6 +3886,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.all.within5s",
      "group": "Tracker",
      "name": "help all: correct ayah within 5 s",
@@ -3753,6 +3901,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.all.falseJumps",
      "group": "Tracker",
      "name": "help all: clips with a false jump",
@@ -3766,6 +3915,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.all.outside",
      "group": "Tracker",
      "name": "help all: clips with any lock outside the passage",
@@ -3775,6 +3925,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.all.lockS",
      "group": "Tracker",
      "name": "help all: median time to correct lock",
@@ -3784,6 +3935,7 @@
      "status": "info"
     },
     {
+     "source": "qud-v1-decoded-phrases.md",
      "id": "tracker.qud.within5s",
      "group": "Tracker",
      "name": "QUD regression: correct ayah within 5 s",
@@ -3798,6 +3950,7 @@
      "status": "fail"
     },
     {
+     "source": "qud-v1-decoded-phrases.md",
      "id": "tracker.qud.falseJumps",
      "group": "Tracker",
      "name": "QUD regression: false jumps",
@@ -3811,6 +3964,7 @@
      "status": "fail"
     },
     {
+     "source": "qud-v1-decoded-phrases.md",
      "id": "tracker.qud.lockS",
      "group": "Tracker",
      "name": "QUD regression: median time to first lock",
@@ -3819,6 +3973,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.tlog",
      "group": "Tracker",
      "name": "Ambiguous tlog clips (PLAN gate set)",
@@ -3827,6 +3982,7 @@
      "note": "no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06)"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "tracker.scripted",
      "group": "Tracker",
      "name": "Scripted-error recordings (PLAN gate set)",
@@ -3835,6 +3991,7 @@
      "note": "no recordings yet (ticket 05)"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.precision",
      "group": "Checker",
      "name": "Declared passage: Memorization precision",
@@ -3849,6 +4006,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.recall",
      "group": "Checker",
      "name": "Declared passage: Memorization recall",
@@ -3862,6 +4020,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.wrong_word.precision",
      "group": "Checker",
      "name": "Declared passage: wrong_word precision",
@@ -3875,6 +4034,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.wrong_word.recall",
      "group": "Checker",
      "name": "Declared passage: wrong_word recall",
@@ -3889,6 +4049,7 @@
      "note": ""
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.omitted_word.precision",
      "group": "Checker",
      "name": "Declared passage: omitted_word precision",
@@ -3902,6 +4063,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.omitted_word.recall",
      "group": "Checker",
      "name": "Declared passage: omitted_word recall",
@@ -3916,6 +4078,7 @@
      "note": ""
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.added_word.precision",
      "group": "Checker",
      "name": "Declared passage: added_word precision",
@@ -3929,6 +4092,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.added_word.recall",
      "group": "Checker",
      "name": "Declared passage: added_word recall",
@@ -3939,6 +4103,7 @@
      "note": "no confirmed positives in the eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.skipped_passage.precision",
      "group": "Checker",
      "name": "Declared passage: skipped_passage precision",
@@ -3952,6 +4117,7 @@
      "status": "fail"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.skipped_passage.recall",
      "group": "Checker",
      "name": "Declared passage: skipped_passage recall",
@@ -3962,6 +4128,7 @@
      "note": "no confirmed positives in the eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.cleanPerClip",
      "group": "Checker",
      "name": "Declared passage: False warnings per clean clip",
@@ -3970,6 +4137,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.cleanPer5",
      "group": "Checker",
      "name": "Declared passage: False warnings per 5 min (short clips)",
@@ -3982,6 +4150,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleLock.repeatFp",
      "group": "Checker",
      "name": "Declared passage: False positives on repeats",
@@ -3994,6 +4163,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.precision",
      "group": "Checker",
      "name": "Oracle lock + evidence: Memorization precision",
@@ -4008,6 +4178,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.recall",
      "group": "Checker",
      "name": "Oracle lock + evidence: Memorization recall",
@@ -4021,6 +4192,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.wrong_word.precision",
      "group": "Checker",
      "name": "Oracle lock + evidence: wrong_word precision",
@@ -4034,6 +4206,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.wrong_word.recall",
      "group": "Checker",
      "name": "Oracle lock + evidence: wrong_word recall",
@@ -4048,6 +4221,7 @@
      "note": ""
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.omitted_word.precision",
      "group": "Checker",
      "name": "Oracle lock + evidence: omitted_word precision",
@@ -4061,6 +4235,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.omitted_word.recall",
      "group": "Checker",
      "name": "Oracle lock + evidence: omitted_word recall",
@@ -4075,6 +4250,7 @@
      "note": ""
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.added_word.precision",
      "group": "Checker",
      "name": "Oracle lock + evidence: added_word precision",
@@ -4088,6 +4264,7 @@
      "status": "unmeasurable"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.added_word.recall",
      "group": "Checker",
      "name": "Oracle lock + evidence: added_word recall",
@@ -4098,6 +4275,7 @@
      "note": "no confirmed positives in the eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.skipped_passage.precision",
      "group": "Checker",
      "name": "Oracle lock + evidence: skipped_passage precision",
@@ -4111,6 +4289,7 @@
      "status": "unmeasurable"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.skipped_passage.recall",
      "group": "Checker",
      "name": "Oracle lock + evidence: skipped_passage recall",
@@ -4121,6 +4300,7 @@
      "note": "no confirmed positives in the eval split"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.cleanPerClip",
      "group": "Checker",
      "name": "Oracle lock + evidence: False warnings per clean clip",
@@ -4129,6 +4309,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.cleanPer5",
      "group": "Checker",
      "name": "Oracle lock + evidence: False warnings per 5 min (short clips)",
@@ -4141,6 +4322,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.repeatFp",
      "group": "Checker",
      "name": "Oracle lock + evidence: False positives on repeats",
@@ -4153,6 +4335,7 @@
      "status": "pass"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.oracleAll.raised",
      "group": "Checker",
      "name": "Oracle lock + evidence: positives raised in any state",
@@ -4163,6 +4346,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.e0.evidence",
      "group": "Checker",
      "name": "E0: misses lost to evidence",
@@ -4172,6 +4356,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.e0.tracker",
      "group": "Checker",
      "name": "E0: misses lost to tracker",
@@ -4181,6 +4366,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.e0.checker",
      "group": "Checker",
      "name": "E0: misses lost to checker",
@@ -4190,6 +4376,7 @@
      "status": "info"
     },
     {
+     "source": "acceptance-v1.md",
      "id": "checker.selfCorrection",
      "group": "Checker",
      "name": "Self-correction / long-session false warnings",

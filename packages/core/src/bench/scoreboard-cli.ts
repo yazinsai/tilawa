@@ -14,7 +14,7 @@ import type { AcceptanceClip, ClipScore } from "./acceptance.js";
 import { benchRecording, summarise } from "./index.js";
 import type { QudRecording } from "./index.js";
 import { perfGate } from "./perf.js";
-import { oracleClip, renderScoreboard, scored } from "./scoreboard.js";
+import { oracleClip, renderScoreboard, scored, upsertRow } from "./scoreboard.js";
 import type { Metric, OracleLabel, ScoreRow } from "./scoreboard.js";
 
 const { values } = parseArgs({ options: {
@@ -25,6 +25,8 @@ const { values } = parseArgs({ options: {
   qud: { type: "string", default: process.env.QUD_DIR ?? "../../.scratch/bench/qud" },
   out: { type: "string", default: "../../docs/benchmarks/scoreboard" },
   sha: { type: "string" },
+  /** One line: what changed and why. */
+  note: { type: "string" },
 } });
 const bench = resolve(values.out!, "..");
 const read = (f: string) => JSON.parse(readFileSync(join(bench, f), "utf8"));
@@ -39,7 +41,9 @@ const ratio = (n: number, d: number) => (d ? n / d : null);
 const median = (xs: number[]) => { const s = [...xs].sort((a, b) => a - b); return s.length ? (s.length % 2 ? s[s.length >> 1] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2) : null; };
 const frac = (n: number, d: number) => `${d ? ((100 * n) / d).toFixed(1) : "—"}% (${n}/${d})`;
 const metrics: Metric[] = [];
-const add = (m: Parameters<typeof scored>[0]) => metrics.push(scored(m));
+/** Backing report for the metrics added next. */
+let source = "acceptance-v1.md";
+const add = (m: Parameters<typeof scored>[0]) => metrics.push(scored({ source, ...m }));
 const MEM = { precision: { op: ">=", target: 0.9 }, recall: { op: ">=", target: 0.8 }, per5: { op: "<=", target: 1 } } as const;
 
 // ---- Help clips: end to end, tracker on user-like audio, checker with oracle upstream.
@@ -122,14 +126,31 @@ add({ id: "e2e.latency", group: E2E, name: "Word highlight p95 / suspected / con
 const LISTENER = "Listener";
 const student = read("student-v1.json");
 const run = student.runs.find((r: any) => r.name === values.listener);
+const breakdown = read("teacher-per-breakdown-v1.json");
+/** The student re-decoded for the PER breakdown; other students have no fair PER yet. */
+const BREAKDOWN_RUN = "e2-libri-full";
+const teacherFloor: number = breakdown.per.teacherVsSpliced.canon;
+/** Proposed: a student may lose at most this much fair PER against the teacher floor. */
+const STUDENT_MARGIN = 0.01;
+const CANON_NOTE = "canon PER vs spliced reference (teacher-per-breakdown-v1): nasal spelling and qalqala unified, runs collapsed, clip edges from the teacher; ignores shadda and duration";
+source = "teacher-per-breakdown-v1.md";
+if (teacher) add({ id: "listener.perFair", group: LISTENER, name: "Fair PER (canon vs spliced reference)", value: teacherFloor, unit: "%", status: "info", note: `teacher floor; ${CANON_NOTE}` });
+else {
+  const v = values.listener === BREAKDOWN_RUN ? breakdown.per.studentVsSpliced.canon : null;
+  add({ id: "listener.perFair", group: LISTENER, name: "Fair PER (canon vs spliced reference)", value: v, unit: "%", bar: { op: "<=", target: teacherFloor + STUDENT_MARGIN },
+    status: v === null ? "pending" : undefined, note: v === null ? "not in the PER breakdown; run tools/per_breakdown.py on this run's decode" : `bar: teacher floor ${(100 * teacherFloor).toFixed(2)}% + ${100 * STUDENT_MARGIN} pp (proposed); ${CANON_NOTE}` });
+}
+source = "student-v1.md";
 const teacherPer = student.runs[0]?.teacherPerVsRef ?? null;
-add({ id: "listener.perRef", group: LISTENER, name: "PER vs reference (tlog clean-match test)", value: teacher ? teacherPer : run?.perVsRef ?? null, unit: "%", bar: { op: "<=", target: 0.0365 }, note: "bar: Quran-Lab zipformer 3.65% (phone audio; a reference, not a gate)" });
-add({ id: "listener.perTeacher", group: LISTENER, name: "PER vs teacher", value: teacher ? 0 : run?.perVsTeacher ?? null, unit: "%", status: teacher ? "info" : undefined });
+add({ id: "listener.perRef", group: LISTENER, name: "Raw PER vs reference (tlog clean-match test)", value: teacher ? teacherPer : run?.perVsRef ?? null, unit: "%", status: "info", note: teacher ? "mostly clip edges and madd/ghunna length, not mishearing (teacher-per-breakdown-v1)" : "Quran-Lab zipformer 3.65% on phone audio: reference only, not a gate" });
+add({ id: "listener.perTeacher", group: LISTENER, name: "Raw PER vs teacher", value: teacher ? 0 : run?.perVsTeacher ?? null, unit: "%", status: "info" });
+source = "acceptance-v1.md";
 if (rows.length) {
   const pos = rows.flatMap((r) => r.clip.events.filter((e) => e.state === "confirmed" && MEMORIZATION_CLASSES.includes(e.errorClass)).map((e) => visibleInEvidence(index, r.clip, e.location)));
   add({ id: "listener.visible", group: LISTENER, name: "Planted memorization errors visible in the decode", value: ratio(pos.filter(Boolean).length, pos.length), unit: "%", display: frac(pos.filter(Boolean).length, pos.length), note: "E0 heuristic: under half the planted word's consonants decode as written" });
 } else pendingHelp(LISTENER, [["listener.visible", "Planted memorization errors visible in the decode"]], NO_EVIDENCE);
 if (teacher) {
+  source = "acceptance-v1.md";
   const e1h = read("acceptance-v1-e1.json");
   const sv = e1h.classes.find((c: any) => c.name === "short vowel");
   add({ id: "listener.e1help.svRecall", group: LISTENER, name: "E1 help clips: short vowel greedy recall", value: sv.greedy_hit / sv.pos, unit: "%", display: frac(sv.greedy_hit, sv.pos), bar: { op: ">=", target: 0.5 }, note: `E1 viable rule; ${sv.sites} sites; report ${e1h.commit}` });
@@ -137,8 +158,10 @@ if (teacher) {
   add({ id: "listener.e1help.svFp", group: LISTENER, name: "E1 help clips: short vowel clean greedy FP", value: sv.greedy_fp / sv.neg, unit: "%", display: frac(sv.greedy_fp, sv.neg), bar: { op: "<=", target: 0.02 } });
   const verdicts = (cs: any[]) => Object.entries(cs.reduce((o: Record<string, number>, c) => ({ ...o, [c.verdict]: (o[c.verdict] ?? 0) + 1 }), {})).map(([k, n]) => `${n} ${k}`).join(", ");
   const e1 = read("e1-teacher-bias-v1.json"), e1b = read("e1b-spliced-v1.json");
+  source = "e1-teacher-bias-v1.md";
   const viable = (cs: any[]) => cs.filter((c) => c.verdict === "viable" || c.verdict === "posterior-only").length;
   add({ id: "listener.e1.classes", group: LISTENER, name: "E1 (qdat_bench + Ikhlas): classes the teacher hears", value: viable(e1.classes), display: `${viable(e1.classes)}/${e1.classes.length}: ${verdicts(e1.classes)}`, note: `report ${e1.commit}; most classes have < 20 positives` });
+  source = "e1b-spliced-v1.md";
   add({ id: "listener.e1b.classes", group: LISTENER, name: "E1b splices (upper bound): classes the teacher hears", value: viable(e1b.classes), display: `${viable(e1b.classes)}/${e1b.classes.length}: ${verdicts(e1b.classes)}`, note: `report ${e1b.commit}` });
   const canon = e1b.classes.map((c: any) => [c.spliced.greedy_canon, c.spliced.pos]).reduce((a: number[], b: number[]) => [a[0] + b[0], a[1] + b[1]], [0, 0]);
   add({ id: "listener.e1b.canon", group: LISTENER, name: "E1b splices: canonicalised share (all classes)", value: canon[0] / canon[1], unit: "%", display: frac(canon[0], canon[1]) });
@@ -149,6 +172,7 @@ if (teacher) {
 }
 
 // ---- Tracker.
+source = "acceptance-v1.md";
 const TRACKER = "Tracker";
 const T = { within: { op: ">=", target: 0.95 }, jumps: { op: "<=", target: 0.02 } } as const;
 if (rows.length) {
@@ -163,12 +187,14 @@ if (rows.length) {
   }
 } else pendingHelp(TRACKER, [["tracker.clean.within5s", "help clean: correct ayah within 5 s"], ["tracker.all.within5s", "help all: correct ayah within 5 s"]], NO_EVIDENCE);
 const qudFiles = existsSync(values.qud!) ? readdirSync(values.qud!).filter((f) => f.endsWith(".json")).sort() : [];
+source = "qud-v1-decoded-phrases.md";
 if (teacher && qudFiles.length) {
   const s = summarise(qudFiles.map((f) => benchRecording(index, JSON.parse(readFileSync(join(values.qud!, f), "utf8")) as QudRecording, { posteriors: false, phrases })));
   add({ id: "tracker.qud.within5s", group: TRACKER, name: "QUD regression: correct ayah within 5 s", value: s.within5s / s.starts, unit: "%", display: frac(s.within5s, s.starts), bar: T.within, note: `${s.recordings} recordings, ${s.audioMinutes.toFixed(0)} min; regression report, not a gate (Decision 2)` });
   add({ id: "tracker.qud.falseJumps", group: TRACKER, name: "QUD regression: false jumps", value: s.falseJumps / s.jumps, unit: "%", display: frac(s.falseJumps, s.jumps), bar: T.jumps });
   add({ id: "tracker.qud.lockS", group: TRACKER, name: "QUD regression: median time to first lock", value: s.medianTimeToFirstLockS, unit: "s" });
 } else add({ id: "tracker.qud.within5s", group: TRACKER, name: "QUD regression: correct ayah within 5 s", value: null, status: "pending", note: teacher ? "QUD evidence not on disk" : `no QUD evidence from ${values.listener}` });
+source = "acceptance-v1.md";
 add({ id: "tracker.tlog", group: TRACKER, name: "Ambiguous tlog clips (PLAN gate set)", value: null, status: "unmeasurable", note: "no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06)" });
 add({ id: "tracker.scripted", group: TRACKER, name: "Scripted-error recordings (PLAN gate set)", value: null, status: "unmeasurable", note: "no recordings yet (ticket 05)" });
 
@@ -190,18 +216,17 @@ add({ id: "checker.selfCorrection", group: CHECKER, name: "Self-correction / lon
 
 // ---- Row.
 const sha = values.sha ?? execSync("git rev-parse --short HEAD").toString().trim();
-const row: ScoreRow = { sha, date: new Date().toISOString().slice(0, 10), listener: values.listener!, metrics };
+const row: ScoreRow = { sha, date: new Date().toISOString().slice(0, 10), listener: values.listener!, note: values.note, metrics };
 const jsonPath = `${resolve(values.out!)}.json`;
 const board: { version: number; rows: ScoreRow[] } = existsSync(jsonPath) ? JSON.parse(readFileSync(jsonPath, "utf8")) : { version: 1, rows: [] };
-const at = board.rows.findIndex((r) => r.sha === row.sha && r.listener === row.listener);
-if (at >= 0) board.rows[at] = row;
-else board.rows.push(row);
+board.rows = upsertRow(board.rows, row);
 writeFileSync(jsonPath, JSON.stringify(board, null, 1) + "\n");
-const HEADLINE = ["e2e.precision", "e2e.recall", "e2e.cleanPer5", "listener.perRef", "tracker.clean.within5s", "tracker.qud.within5s", "tracker.qud.falseJumps", "checker.oracleLock.recall", "checker.oracleAll.recall"];
+const HEADLINE = ["e2e.precision", "e2e.recall", "e2e.cleanPer5", "listener.perFair", "tracker.clean.within5s", "tracker.qud.within5s", "tracker.qud.falseJumps", "checker.oracleLock.recall", "checker.oracleAll.recall"];
 const md = [
   "# Engine scoreboard", "",
   "One row per commit × listener, recomputed from evidence on disk (no GPU). Bars are PLAN.md's v1 acceptance bars; `unmeasurable` means the data to score it doesn't exist yet, `pending` means the evidence exists in principle but hasn't been produced for this listener.", "",
-  "**How to run / add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard` (teacher). For a student, decode the help eval clips with it into a directory of `<clip>.evidence.json` and run `pnpm scoreboard --listener <run-name> --evidence <dir>`; without `--evidence` its help metrics are `pending`. Each run replaces the row with the same commit and listener, else appends one; commit the updated `scoreboard.json` and `scoreboard.md` with the change they measure. Listener PER comes from `student-v1.json`, E1/E1b from their reports; rerun those first if the listener changed. Help clips: 388 scored eval clips, 29 held-out speakers; letter-confusion substitutions count as negatives. `Declared passage` gives the checker the prompted passage (`CheckerOptions.passage`), the memorization-session arm; `oracle evidence` replaces the decode with a perfect one synthesised from the label, so its losses are the checker's own.", "",
+  "**How to run / add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard --note '<what changed and why>'` (teacher). The note is required by AGENTS.md. For a student, decode the help eval clips with it into a directory of `<clip>.evidence.json` and run `pnpm scoreboard --listener <run-name> --evidence <dir> --note '...'`; without `--evidence` its help metrics are `pending`. Each run replaces the row with the same commit and listener, else appends one; commit the updated `scoreboard.json` and `scoreboard.md` with the change they measure. Listener PER comes from `student-v1.json`, E1/E1b from their reports; rerun those first if the listener changed. Help clips: 388 scored eval clips, 29 held-out speakers; letter-confusion substitutions count as negatives. `Declared passage` gives the checker the prompted passage (`CheckerOptions.passage`), the memorization-session arm; `oracle evidence` replaces the decode with a perfect one synthesised from the label, so its losses are the checker's own.", "",
+  "**Dashboard.** `uv run tools/scoreboard_serve.py` serves `docs/benchmarks/` on http://127.0.0.1:8765/scoreboard.html: per-metric charts over time with the bar as a line and failing points in red, a listener filter, and the change log with each row's note, deltas and backing reports. It reads `scoreboard.json`, so a new row shows up on reload.", "",
   renderScoreboard(board.rows, HEADLINE),
 ].join("\n");
 writeFileSync(`${resolve(values.out!)}.md`, md);
