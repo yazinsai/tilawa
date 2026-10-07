@@ -39,3 +39,15 @@ Data prep (743 shards to 16 kHz FLAC, plus noise/RIR bank) and four smoke runs c
 Soft top-5 targets help, and so does pretrained init. E2 initialised from LibriSpeech-M because the multilingual PengChengStarling model is ~330M parameters. Spend was about $75: four runs ≈ 11 GPU-h ≈ $61, plus prep, smoke runs and one diverged init run.
 
 The scripted-error column is still empty. `transcribe` (L4) writes student evidence in the teacher row format for ticket 07's scorer. `tools/e1_report.py --e1b --in <dir> --model <run> --out <stem>` scores a student on the E1b spliced set. E3 and E6 have not started. Proposed E3 design: splice letter pairs and shadda within the same tlog train clip, using teacher alignment, with only the CTC loss on spliced clips.
+
+**Agent, 2026-10-07. Ticket 08 student: `spliced-clean`; see `docs/benchmarks/student-v2.md`.** Both runs were retrained with the gold PER clips excluded (225,401 train clips) and scored on gold PER, PER on clean-match, E1b and the help eval split:
+
+| run | gold PER | gold, never in train (62) | fair PER clean-match | declared P / R | E1b canonicalised |
+|---|---|---|---|---|---|
+| teacher | 3.39% | 7.27% | 2.44% | 77.0% / 89.1% | 34.5% |
+| combo-clean (teacher-greedy target) | 4.97% | 9.45% | 4.14% | 75.0% / 79.7% | 34.0% |
+| spliced-clean (spliced-reference target, KD 2) | 4.71% | 8.80% | 3.87% | 83.6% / 87.5% | 41.7% |
+
+Neither run passes the 3.7% gold bar. Spend was about $40: two H100 runs ≈ 7 GPU-h, plus CPU decodes and ~3 min lost to two launches that got cancelled.
+
+Proposal: defer E3 and E6 past v1. The teacher-target students canonicalise no more than the teacher (34.0–34.2% vs 34.5%), and v1's checker has no pronunciation classes, so neither experiment moves a v1 bar. One caveat for the human: the chosen spliced-target student does canonicalise more (41.7%), which is the thing E3 is meant to fix. If post-v1 pronunciation work builds on this student, E3 comes first. Status stays claimed until a human confirms.
