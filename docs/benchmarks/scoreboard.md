@@ -4,30 +4,30 @@ One row per commit × listener, recomputed from evidence on disk (no GPU). Bars 
 
 **How to run / add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard` (teacher). For a student, decode the help eval clips with it into a directory of `<clip>.evidence.json` and run `pnpm scoreboard --listener <run-name> --evidence <dir>`; without `--evidence` its help metrics are `pending`. Each run replaces the row with the same commit and listener, else appends one; commit the updated `scoreboard.json` and `scoreboard.md` with the change they measure. Listener PER comes from `student-v1.json`, E1/E1b from their reports; rerun those first if the listener changed. Help clips: 388 scored eval clips, 29 held-out speakers; letter-confusion substitutions count as negatives. `Declared passage` gives the checker the prompted passage (`CheckerOptions.passage`), the memorization-session arm; `oracle evidence` replaces the decode with a perfect one synthesised from the label, so its losses are the checker's own.
 
-## Latest: teacher @ 46a068e (2026-10-07)
+## Latest: teacher @ 16d6396 (2026-10-07)
 
 Delta is against the baseline row 3e91183 (2026-10-07).
 
 | Area | Metric | Value | Bar | Status | Δ baseline | Note |
 |---|---|---:|---|---|---:|---|
-| End to end | Memorization precision | 71.1% (32/45) | ≥ 90.0% | fail | +15.9 pp | help eval split, held-out speakers: 388 clips, 29 speakers; free recitation, default policy |
+| End to end | Memorization precision | 76.2% (32/42) | ≥ 90.0% | fail | +21.0 pp | help eval split, held-out speakers: 388 clips, 29 speakers; free recitation, default policy |
 | End to end | Memorization recall | 50.0% (32/64) | ≥ 80.0% | fail | 0 |  |
 | End to end | wrong_word precision | 14.3% (1/7) | ≥ 90.0% | fail | +4.3 pp |  |
 | End to end | wrong_word recall | 3.4% (1/29) | ≥ 80.0% | fail | 0 |  |
 | End to end | omitted_word precision | 96.9% (31/32) | ≥ 90.0% | pass | +21.3 pp |  |
 | End to end | omitted_word recall | 88.6% (31/35) | ≥ 80.0% | pass | 0 |  |
-| End to end | added_word precision | 0.0% (0/4) | ≥ 90.0% | fail | 0 |  |
+| End to end | added_word precision | 0.0% (0/1) | ≥ 90.0% | fail | 0 |  |
 | End to end | added_word recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
 | End to end | skipped_passage precision | 0.0% (0/2) | ≥ 90.0% | fail | 0 |  |
 | End to end | skipped_passage recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
-| End to end | False warnings per clean clip | 0.022 (5/225) |  | info | -0.013 |  |
-| End to end | False warnings per 5 min (short clips) | 0.538 | ≤ 1 | pass | -0.323 | short clips; the gating number needs phase-2 long sessions |
+| End to end | False warnings per clean clip | 0.009 (2/225) |  | info | -0.027 |  |
+| End to end | False warnings per 5 min (short clips) | 0.215 | ≤ 1 | pass | -0.645 | short clips; the gating number needs phase-2 long sessions |
 | End to end | False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass | 0 |  |
 | End to end | Pronunciation: short_vowel | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 30 positives in eval split |
 | End to end | Pronunciation: consonant_sad_sin | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 4 positives in eval split |
 | End to end | Pronunciation: madd_natural | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 1 positives in eval split |
 | End to end | Pronunciation: other pairs, shadda | — |  | unmeasurable |  | no recordings with positives (ticket 05, phase 2) |
-| End to end | Tracker real-time factor (this machine) | 0.002 | ≤ 0.05 | pass | -0.001 | perf.ts gate: device floor assumed 20× slower; slowest push 28.4 ms |
+| End to end | Tracker real-time factor (this machine) | 0.002 | ≤ 0.05 | pass | -0.001 | perf.ts gate: device floor assumed 20× slower; slowest push 28.3 ms |
 | End to end | Word highlight p95 / suspected / confirmed latency | — |  | unmeasurable |  | needs word onsets and device runs (E7, ticket 10) |
 | Listener | PER vs reference (tlog clean-match test) | 8.5% | ≤ 3.6% | fail | 0 | bar: Quran-Lab zipformer 3.65% (phone audio; a reference, not a gate) |
 | Listener | PER vs teacher | 0.0% |  | info | 0 |  |
@@ -51,18 +51,18 @@ Delta is against the baseline row 3e91183 (2026-10-07).
 | Tracker | QUD regression: median time to first lock | 4.11 s |  | info | 0 |  |
 | Tracker | Ambiguous tlog clips (PLAN gate set) | — |  | unmeasurable |  | no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06) |
 | Tracker | Scripted-error recordings (PLAN gate set) | — |  | unmeasurable |  | no recordings yet (ticket 05) |
-| Checker | Declared passage: Memorization precision | 74.0% (57/77) | ≥ 90.0% | fail | +12.6 pp | declared passage (CheckerOptions.passage): the prompted passage, real tracker and evidence |
+| Checker | Declared passage: Memorization precision | 77.0% (57/74) | ≥ 90.0% | fail | +15.6 pp | declared passage (CheckerOptions.passage): the prompted passage, real tracker and evidence |
 | Checker | Declared passage: Memorization recall | 89.1% (57/64) | ≥ 80.0% | pass | +21.9 pp |  |
 | Checker | Declared passage: wrong_word precision | 66.7% (24/36) | ≥ 90.0% | fail |  |  |
 | Checker | Declared passage: wrong_word recall | 82.8% (24/29) | ≥ 80.0% | pass |  |  |
 | Checker | Declared passage: omitted_word precision | 94.3% (33/35) | ≥ 90.0% | pass |  |  |
 | Checker | Declared passage: omitted_word recall | 94.3% (33/35) | ≥ 80.0% | pass |  |  |
-| Checker | Declared passage: added_word precision | 0.0% (0/4) | ≥ 90.0% | fail |  |  |
+| Checker | Declared passage: added_word precision | 0.0% (0/1) | ≥ 90.0% | fail |  |  |
 | Checker | Declared passage: added_word recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
 | Checker | Declared passage: skipped_passage precision | 0.0% (0/2) | ≥ 90.0% | fail |  |  |
 | Checker | Declared passage: skipped_passage recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
-| Checker | Declared passage: False warnings per clean clip | 0.040 (9/225) |  | info | +0.004 |  |
-| Checker | Declared passage: False warnings per 5 min (short clips) | 0.968 | ≤ 1 | pass | +0.108 | short clips; the gating number needs phase-2 long sessions |
+| Checker | Declared passage: False warnings per clean clip | 0.027 (6/225) |  | info | -0.009 |  |
+| Checker | Declared passage: False warnings per 5 min (short clips) | 0.645 | ≤ 1 | pass | -0.215 | short clips; the gating number needs phase-2 long sessions |
 | Checker | Declared passage: False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass | 0 |  |
 | Checker | Oracle lock + evidence: Memorization precision | 100.0% (59/59) | ≥ 90.0% | pass | +19.1 pp | oracle lock + oracle evidence synthesised from labels (Decision 7); 0 clips with an unphonemizable planted word skipped |
 | Checker | Oracle lock + evidence: Memorization recall | 92.2% (59/64) | ≥ 80.0% | pass | +32.8 pp |  |
@@ -122,3 +122,4 @@ Delta is against the baseline row 3e91183 (2026-10-07).
 | 2026-10-07 | 8aca172 | teacher | 55.2% (32/58) | 50.0% (32/64) | 0.861 | 8.5% | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | 92.2% (59/64) |
 | 2026-10-07 | 004986d | teacher | 66.7% (32/48) | 50.0% (32/64) | 0.861 | 8.5% | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | 92.2% (59/64) |
 | 2026-10-07 | 46a068e | teacher | 71.1% (32/45) | 50.0% (32/64) | 0.538 | 8.5% | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | 92.2% (59/64) |
+| 2026-10-07 | 16d6396 | teacher | 76.2% (32/42) | 50.0% (32/64) | 0.215 | 8.5% | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | 92.2% (59/64) |
