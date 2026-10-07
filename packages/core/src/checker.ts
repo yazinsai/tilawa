@@ -149,7 +149,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
   const wordIndex = (r: WordRef) => words.findIndex((w) => w.surah === r.surah && w.ayah === r.ayah && w.word === r.word);
   const toRef = (i: number): WordRef => ({ surah: words[i].surah, ayah: words[i].ayah, word: words[i].word });
-  const passage = options.passage && { from: wordIndex(options.passage.from), to: wordIndex(options.passage.to) };
+  /**
+   * Free recitation latches onto the tracker's first lock as if it were declared, growing it as the reciter goes on,
+   * so a wrong word that forms another ayah is still wrong; only a deliberate jump moves it.
+   */
+  const latched = !options.passage;
+  let passage = options.passage && { from: wordIndex(options.passage.from), to: wordIndex(options.passage.to) };
   /** Off the passage by more than an ayah either side. */
   const offPassage = (wi: number) => !!passage && (ayahOf[wi] < ayahOf[passage.from] - 1 || ayahOf[wi] > ayahOf[passage.to] + 1);
   const fitsPassage = (from: number, to: number) => {
@@ -209,7 +214,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const decide = (o: Open, out: CheckerEvent[], state?: "uncertain") => {
     open.delete(o.issue.word);
     decided.add(o.issue.word);
-    out.push(event(o, state ?? ((declared || trackerLocked) && clarity(o.issue) >= minConfidence ? "confirmed" : "uncertain")));
+    out.push(event(o, state ?? (((declared && !latched) || trackerLocked) && clarity(o.issue) >= minConfidence ? "confirmed" : "uncertain")));
   };
 
   const dropAnchor = (out: CheckerEvent[]) => {
@@ -551,11 +556,15 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         ? final || ayahOf[reached] >= ayahOf[issue.last] + 2
         : head !== issue.word &&
           onset(steps, issue) &&
-          (confirm.after === "next-word" || nowMs - o.sinceMs >= confirm.ms || (final && declared && [...right].some((wi) => wi > issue.last)));
+          (confirm.after === "next-word" || nowMs - o.sinceMs >= confirm.ms || (final && declared && !latched && [...right].some((wi) => wi > issue.last)));
       if (due) decide(o, out);
       // The session ended first. A declared passage confirms once a later word was recited right; free recitation can't
       // tell a wrong word from the tracker's next guess, so it ends uncertain.
       else if (final) decide(o, out, "uncertain");
+    }
+    if (latched && passage) {
+      passage.from = Math.max(passage.from, ayahFirst[Math.max(0, ayahOf[anchor] - 1)]);
+      passage.to = Math.max(passage.to, furthest, anchor);
     }
     if (!final && obs.length > MAX_WINDOW) commit(steps, out);
   };
@@ -593,6 +602,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const p = e as PositionEvent;
       if (p.state !== "locked") {
         trackerLocked = false;
+        // Lost, it latches again on the next lock.
+        if (latched && passage) {
+          passage = undefined;
+          declared = false;
+        }
         if (declared) continue;
         if (anchor !== null) dropAnchor(out);
         next = null;
@@ -601,9 +615,16 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       trackerLocked = true;
       const start = wordIndex(p.observed[0].span.start);
       const end = wordIndex(p.observed[0].word);
+      if (latched && !passage) {
+        passage = { from: start, to: end };
+        declared = true;
+        next = start;
+        continue;
+      }
       if (declared) {
         if (end - start + 1 < JUMP_WORDS || !offPassage(start) || !offPassage(end) || fitsPassage(start, end)) continue;
-        declared = false;
+        if (latched) passage = { from: start, to: end };
+        else declared = false;
         if (anchor !== null) dropAnchor(out);
         next = start;
         continue;

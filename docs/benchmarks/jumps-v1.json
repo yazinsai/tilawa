@@ -23,8 +23,8 @@
    "followLatencyP90Ms": 6440,
    "followedWithin5s": 153,
    "startWithin5s": 111,
-   "checkerWarnings": 305,
-   "checkerWarningsPer5Min": 2.0418893032672014
+   "checkerWarnings": 309,
+   "checkerWarningsPer5Min": 2.0686681793756234
   },
   "Contiguous (tlog)": {
    "sessions": 84,
@@ -45,8 +45,8 @@
    "followLatencyP90Ms": null,
    "followedWithin5s": 0,
    "startWithin5s": 71,
-   "checkerWarnings": 236,
-   "checkerWarningsPer5Min": 2.1293924734998906
+   "checkerWarnings": 238,
+   "checkerWarningsPer5Min": 2.1474381724278557
   },
   "Planted jumps (tlog)": {
    "sessions": 35,
@@ -67,8 +67,8 @@
    "followLatencyP90Ms": 6720,
    "followedWithin5s": 35,
    "startWithin5s": 32,
-   "checkerWarnings": 47,
-   "checkerWarningsPer5Min": 1.6105009228969833
+   "checkerWarnings": 48,
+   "checkerWarningsPer5Min": 1.644766899979898
   },
   "Hard runs (tlog)": {
    "sessions": 2,
@@ -111,8 +111,8 @@
    "followLatencyP90Ms": 5920,
    "followedWithin5s": 117,
    "startWithin5s": 6,
-   "checkerWarnings": 22,
-   "checkerWarningsPer5Min": 2.7184657967576116
+   "checkerWarnings": 23,
+   "checkerWarningsPer5Min": 2.8420324238829577
   },
   "Any session with 3+ near-duplicate segments": {
    "sessions": 9,

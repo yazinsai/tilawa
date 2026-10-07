@@ -336,6 +336,49 @@ describe("corrupted teacher evidence", () => {
   }
 });
 
+describe("free recitation", () => {
+  const free = (o: { from: WordRef; to: WordRef; edits?: Edit[] }) =>
+    confirmed(replayChecked(index, syntheticFixture(index, { id: "c", from: o.from, to: o.to, edits: o.edits ?? [], chunkSize: 8 }), { phrases }, { phrases }));
+  const offset = (start: WordRef, word: WordRef) => find(word).start - find(start).start;
+
+  it("checks a wrong word that sends the tracker to another ayah against where it latched", () => {
+    // 26:124 and 26:142 differ in their fifth word only; the tracker follows the wrong word there for one chunk.
+    const start = w(26, 123, 1);
+    const wrong = w(26, 124, 5);
+    const edits: Edit[] = [
+      { kind: "del", at: offset(start, wrong), count: text(wrong).length },
+      { kind: "ins", at: offset(start, wrong), text: text(w(26, 142, 5)) },
+    ];
+    const f = syntheticFixture(index, { id: "c", from: start, to: w(26, 127, 4), edits, chunkSize: 8 });
+    const tracker = createTracker(index, { phrases });
+    const checker = createChecker(index, { phrases });
+    const out: CheckerEvent[] = [];
+    let sent = 0;
+    let injected = false;
+    for (const e of f.evidence) {
+      const events = tracker.push(e);
+      sent += e.phonemes.length;
+      const inject = !injected && sent >= offset(start, w(26, 125, 2));
+      if (inject) injected = true;
+      const elsewhere = { word: w(26, 142, 5), span: { start: w(26, 142, 1), end: w(26, 142, 5) }, confidence: 0.5, cost: 0.1, per: 0.1 };
+      const lock = { type: "position" as const, v: 1, timeMs: (e.phonemes.at(-1)!.end + 1) * e.frameMs, referenceVersion: index.version, state: "locked" as const, expected: elsewhere.word, observed: [elsewhere] };
+      out.push(...checker.push(e, inject ? [lock] : events));
+    }
+    out.push(...checker.end(tracker.end()));
+    expect(summary(confirmed(out))).toEqual(["confirmed wrong_word 26:124:5"]);
+  });
+
+  it("follows a sustained jump elsewhere without flagging it", () => {
+    const away = [w(112, 1, 1), w(112, 4, 5)].map(find);
+    const jump = index.phonemes.slice(away[0].start, away[1].end);
+    expect(free({ from, to: w(2, 256, 10), edits: [{ kind: "ins", at: at(w(2, 255, 10)), text: jump }] })).toEqual([]);
+  });
+
+  it("follows on across a surah boundary", () => {
+    expect(free({ from: w(113, 4, 1), to: w(114, 3, 2) })).toEqual([]);
+  });
+});
+
 describe("a lock the tracker reaches only at the end of the session", () => {
   it("still gets the recitation checked", () => {
     const start = w(94, 5, 1);

@@ -18,7 +18,7 @@ A jump is a non-local lock change: to an ayah more than 2 from the previous lock
 | Sessions with a false jump | 2/129 (1.6%) | 1/84 (1.2%) | 0/35 (0.0%) | 0/2 (0.0%) | 1/8 (12.5%) | 1/9 (11.1%) |  |
 | False jumps per session | 0.02 | 0.01 | 0.00 | 0.00 | 0.25 | 0.22 |  |
 | False jumps per 5 min | 0.02 | 0.01 | 0.00 | 0.00 | 0.25 | 0.13 |  |
-| Free-recitation checker: false wrong/added words (per 5 min) | 305 (2.04) | 236 (2.13) | 47 (1.61) | 0 (0.00) | 22 (2.72) | 44 (2.84) | ≤ 1 per 5 min |
+| Free-recitation checker: false wrong/added words (per 5 min) | 309 (2.07) | 238 (2.15) | 48 (1.64) | 0 (0.00) | 23 (2.84) | 44 (2.84) | ≤ 1 per 5 min |
 | Planted jumps followed | 192/216 (88.9%) | 0/0 | 48/48 (100.0%) | 2/2 (100.0%) | 142/166 (85.5%) | 14/18 (77.8%) |  |
 | Followed within 5 s | 153/216 (70.8%) | 0/0 | 35/48 (72.9%) | 1/2 (50.0%) | 117/166 (70.5%) | 7/18 (38.9%) |  |
 | Follow latency median / p90 | 3.4 s / 6.4 s | — / — | 3.4 s / 6.7 s | 7.7 s / 7.7 s | 3.4 s / 5.9 s | 5.4 s / 6.6 s |  |
