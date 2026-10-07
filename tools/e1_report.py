@@ -283,7 +283,7 @@ def main() -> None:
     result = {
         "version": REPORT_VERSION,
         "commit": commit,
-        "model": "obadx/muaalem-model-v3_2",
+        "model": flag("--model", "obadx/muaalem-model-v3_2"),
         "thresholds": {"min_positives": MIN_POSITIVES, "viable": VIABLE, "posterior_only": POSTERIOR_ONLY, "max_clip_per": MAX_CLIP_PER},
         "datasets": {k: dict(v) for k, v in per_ds.items()},
         "canonicals": canon,
@@ -390,9 +390,16 @@ def e1b_verdict(sp: dict, ctl: dict, sites: int) -> str:
     return "inconclusive" if heard else "dead"
 
 
+def flag(name: str, default):
+    """`--name value` from argv, for scoring a student's pass in place of the teacher's."""
+    return sys.argv[sys.argv.index(name) + 1] if name in sys.argv else default
+
+
 def e1b_main() -> None:
-    clean = pq.read_table(PASS / "e1b-clean.parquet").to_pylist()
-    rows = clean + pq.read_table(PASS / "e1b-spliced.parquet").to_pylist()
+    src = Path(flag("--in", PASS))
+    out_stem = Path(flag("--out", E1B_OUT))
+    clean = pq.read_table(src / "e1b-clean.parquet").to_pylist()
+    rows = clean + pq.read_table(src / "e1b-spliced.parquet").to_pylist()
     # Keyed by class, and by "class:canonical letter" for one pair direction.
     stats = {kind: defaultdict(empty) for kind in ("spliced", "control", "clean")}
     sites: dict[str, set] = defaultdict(set)
@@ -425,7 +432,7 @@ def e1b_main() -> None:
     result = {
         "version": E1B_VERSION,
         "commit": commit,
-        "model": "obadx/muaalem-model-v3_2",
+        "model": flag("--model", "obadx/muaalem-model-v3_2"),
         "thresholds": {"min_positives": MIN_POSITIVES, "min_sites": MIN_SITES, "min_control_intact": MIN_CONTROL_INTACT,
                        "viable": VIABLE, "posterior_only": POSTERIOR_ONLY, "max_clip_per": MAX_CLIP_PER},
         "clips": dict(counts),
@@ -448,9 +455,9 @@ def e1b_main() -> None:
             if e["verdict"] == "dead" and any(d["verdict"] != "dead" for d in e["directions"]):
                 e["verdict"] = "mixed"
         result["classes"].append(e)
-    E1B_OUT.with_suffix(".json").write_text(json.dumps(result, ensure_ascii=False, indent=1) + "\n")
-    E1B_OUT.with_suffix(".md").write_text(render_e1b(result))
-    print(E1B_OUT.with_suffix(".md").read_text())
+    out_stem.with_suffix(".json").write_text(json.dumps(result, ensure_ascii=False, indent=1) + "\n")
+    out_stem.with_suffix(".md").write_text(render_e1b(result))
+    print(out_stem.with_suffix(".md").read_text())
 
 
 def render_e1b(r: dict) -> str:

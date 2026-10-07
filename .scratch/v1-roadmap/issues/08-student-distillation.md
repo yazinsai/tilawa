@@ -6,12 +6,12 @@
 
 **Status:** claimed
 
-- [ ] E2: initialise from the multilingual sherpa-onnx streaming Zipformer versus training from scratch, on `clean-match` plus the other training sources, with augmentation.
+- [x] E2: initialise from the multilingual sherpa-onnx streaming Zipformer versus training from scratch, on `clean-match` plus the other training sources, with augmentation.
 - [ ] E3: spliced errors from QUD letter timestamps at 10–20% of each batch.
-- [ ] E5: soft top-5 posteriors versus top path only.
+- [x] E5: soft top-5 posteriors versus top path only.
 - [ ] E6: articulatory-attribute auxiliary head.
 - [ ] Each ablation scored on PER (bar: 3.65% on phone audio) and on the ticket 07 scripted-error test.
-- [ ] Sizes informed by ticket 02.
+- [x] Sizes informed by ticket 02.
 - [ ] If E1 left classes `unsupported`, evaluate per-pair classifiers on tracker-aligned segments as a separate arm (speculative).
 
 ## Comments
@@ -26,3 +26,16 @@
 | e2-libri-full | full | 8 | ~4 | ~$22 |
 
 Data prep (743 shards to 16 kHz FLAC, plus noise/RIR bank) and four smoke runs cost about $10. Every run is under the $50 line, so they're launched.
+
+**Agent, 2026-10-07. E2 and E5 done; see `docs/benchmarks/student-v1.md`.** PER vs reference on tlog-v2 clean-match test (3,000 clips; the teacher scores 8.5%):
+
+| run | PER |
+|---|---|
+| e5-top1-lite | 11.8% |
+| e5-soft5-lite | 10.4% |
+| e2-scratch-full | 12.1% |
+| e2-libri-full | 9.9% |
+
+Soft top-5 targets help, and so does pretrained init. E2 initialised from LibriSpeech-M because the multilingual PengChengStarling model is ~330M parameters. Spend was about $75: four runs ≈ 11 GPU-h ≈ $61, plus prep, smoke runs and one diverged init run.
+
+The scripted-error column is still empty. `transcribe` (L4) writes student evidence in the teacher row format for ticket 07's scorer. `tools/e1_report.py --e1b --in <dir> --model <run> --out <stem>` scores a student on the E1b spliced set. E3 and E6 have not started. Proposed E3 design: splice letter pairs and shadda within the same tlog train clip, using teacher alignment, with only the CTC loss on spliced clips.

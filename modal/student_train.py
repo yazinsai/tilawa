@@ -28,7 +28,7 @@ SR = 16_000
 
 image = (
     modal.Image.debian_slim(python_version="3.12")
-    .apt_install("git", "libsndfile1")
+    .apt_install("git", "libsndfile1", "ffmpeg")
     .pip_install("torch==2.8.0", "torchaudio==2.8.0", K2)
     .pip_install("lhotse", "kaldialign", "sentencepiece", "tensorboard", "pypinyin==0.50.0", "typeguard", "dill",
                  "pyarrow", "soundfile", "numpy", "scipy", "huggingface_hub", "urllib3", "requests")
@@ -448,6 +448,13 @@ def train(args: dict) -> dict:
                     m.batch_count = state["step"] * cfg["max_batch_s"] / 600.0
             out = losses(model, b, cfg, device)
             opt.zero_grad(set_to_none=True)
+            if not torch.isfinite(out["loss"]):
+                state["skipped"] = state.get("skipped", 0) + 1
+                emit(event="skip", **state)
+                if state["skipped"] > 100:
+                    raise RuntimeError("loss keeps going non-finite")
+                state["batch"] += 1
+                continue
             out["loss"].backward()
             opt.step()
             sched.step_batch(state["step"])
@@ -474,6 +481,60 @@ def train(args: dict) -> dict:
     vol.commit()
     emit(event="final", **{k: v for k, v in final.items() if k not in ("samples", "cfg")})
     return {k: v for k, v in final.items() if k != "samples"}
+
+
+def load_student(run: str):
+    import torch
+
+    ck = torch.load(f"/student/runs/{run}/ckpt.pt", map_location="cpu", weights_only=False)
+    model = build_model(ck["cfg"]["size"])
+    model.load_state_dict(ck["model"])
+    return model, ck
+
+
+@app.function(gpu="L4", cpu=8, memory=32768, volumes={"/student": vol}, timeout=2 * 60 * 60)
+def transcribe(run: str, src: str, dest: str, chunk: int = 16, left: int = 128) -> dict:
+    """Decode `src` (parquet with an `audio` column in any ffmpeg format) with a run's student; writes `dest` in the
+    teacher-pass row format (`greedy`, `n_frames`, `top5_ids`, `top5_p`), so `tools/e1_report.py` scores it as is.
+    Ticket 07's scripted-error clips go through here too."""
+    import subprocess
+
+    import numpy as np
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    import torch
+    import torchaudio
+    from student import ctc_collapse, ids_phonemes
+
+    model, ck = load_student(run)
+    model = model.cuda().eval()
+    model.streaming_eval(chunk, left)
+    rows = pq.read_table(f"/student/{src}").to_pylist()
+    feats = []
+    for r in rows:
+        pcm = subprocess.run(["ffmpeg", "-v", "error", "-i", "pipe:0", "-ac", "1", "-ar", str(SR), "-f", "f32le", "pipe:1"],
+                             input=r.pop("audio"), capture_output=True, check=True).stdout
+        w = torch.from_numpy(np.frombuffer(pcm, dtype=np.float32).copy())
+        r["duration_s"] = len(w) / SR
+        feats.append(torchaudio.compliance.kaldi.fbank(w.unsqueeze(0), num_mel_bins=80, sample_frequency=SR, dither=0.0,
+                                                       energy_floor=1e-10, high_freq=-400))
+    order = sorted(range(len(rows)), key=lambda i: feats[i].shape[0])
+    with torch.no_grad():
+        for k in range(0, len(order), 16):
+            idx = order[k : k + 16]
+            x = torch.nn.utils.rnn.pad_sequence([feats[i] for i in idx], batch_first=True, padding_value=-23.0259).cuda()
+            lens = torch.tensor([feats[i].shape[0] for i in idx]).cuda()
+            lp, out_lens = model(x, lens)
+            probs = lp.float().exp().cpu()
+            for j, i in enumerate(idx):
+                p = probs[j, : out_lens[j]]
+                top_p, top_i = p.topk(5, dim=-1)
+                rows[i].update(greedy=ids_phonemes(ctc_collapse(p.argmax(-1).tolist())), n_frames=int(p.shape[0]),
+                               top5_ids=top_i.numpy().astype(np.uint8).tobytes(), top5_p=top_p.numpy().astype(np.float16).tobytes())
+    os.makedirs(os.path.dirname(f"/student/{dest}"), exist_ok=True)
+    pq.write_table(pa.Table.from_pylist(rows), f"/student/{dest}")
+    vol.commit()
+    return {"run": run, "rows": len(rows), "step": ck["state"]["step"], "dest": dest}
 
 
 @app.local_entrypoint()
