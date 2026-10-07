@@ -10,7 +10,7 @@ import { MEMORIZATION_CLASSES, attribute, scoreClip } from "./acceptance.js";
 import type { AcceptanceClip, Arm, ClipScore, MissCause } from "./acceptance.js";
 import type { QudRecording } from "./index.js";
 
-const VERSION = process.env.ACCEPTANCE_VERSION ?? "v2";
+const VERSION = process.env.ACCEPTANCE_VERSION ?? "v3";
 const { values } = parseArgs({ options: {
   dir: { type: "string", default: process.env.HELP_DIR ?? "../../.scratch/help" },
   report: { type: "string", default: `../../docs/benchmarks/acceptance-${VERSION}` },
@@ -196,6 +196,7 @@ const lines = [
   "- The evidence check is a heuristic on the greedy decode, not an as-said label. `checker` includes errors the decode shows only partly.",
   "- Deliberate jumps are covered by a synthetic test only: the help clips have none, so this eval shows jump detection doesn't misfire on substitutions, not that it catches real jumps.",
   "- End-of-session finalisation is off in free recitation. Measured with it on, the free arm went from 32 / 26 / 32 to 34 / 31 / 30 (hits / FP / misses) and clean false warnings from 8 to 11, and a clean tlog fixture gained two confirmed errors. In the declared arm it is worth it: off, 43 / 30 / 21 and 10 clean warnings.",
+  "- Declared-arm false positives (v3, 17), by hand from the decode: about 11 decoder noise (ب decoded as م or ض, sandhi such as إنّ heard as إمّ; on clean clips or words next to the planted one), 4 at a clip edge (cut-off first word, an omission at clip end, an omission or added word next to a planted substitution, where the label may be incomplete), 2 skip placements a word off where the ayah's first word was restarted. Not judging the passage's first word would remove 3 (precision 80.3%, recall unchanged) but would hide a wrong first word, so it is not applied.",
   "- Pronunciation classes other than short vowel have fewer than 15 eval sites (ص/س 4, madd 1) and are `unsupported` here.", "",
 ];
 function e1Table(r: any): string[] {

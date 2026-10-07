@@ -37,3 +37,9 @@ Idea: when the session declares the passage (memorization), the checker aligns a
   - Declared: precision 62.6%, recall 89.1% (57 / 34 / 7); wrong_word 24/29, omitted_word 33/35. 13 clean false warnings (0.058 per clip, 1.40 per 5 min, short clips). 0 FP on repeats. Recall passes the bar; precision fails it.
   - Finalisation is scoped to declared sessions. In free recitation it gave +2 hits and +5 FP, and confirmed two decoder-noise errors on a clean tlog fixture. In the declared arm, turning it off gives 43 / 30 / 21.
   - Still open: precision. Jump detection is checked only by a synthetic test; the help clips contain no jumps. 09's session API still has to pass `passage` through.
+- **Checker precision fixes, 2026-10-07** (`docs/benchmarks/acceptance-v3.md` + `.json`; one scoreboard row per fix). Recall is unchanged in both arms.
+  - Skip placement: when a word recurs across a skip, the alignment had two equally good placements for the gap. An-Nas with 114:2 skipped gave the 9 false omitted_word events seen with oracle lock and oracle evidence, and Al-Kafirun had the same tie the other way. The checker now takes the placement that starts on an ayah's first word.
+  - A word with no consonants (ghunna or madd only) needs a hard edit to be a wrong word.
+  - An added word between two words needs two consonants, as inside a word.
+  - Oracle: 86.8% / 92.2% → 100% / 92.2%. Free: 55.2% / 50.0% → 76.2% / 50.0%, 8 → 2 clean warnings. Declared: 62.6% / 89.1% → 77.0% / 89.1% (57 / 17 / 7), 13 → 6 clean warnings.
+  - The 17 declared false positives that remain: about 11 decoder noise (ب decoded as م or ض, sandhi), 4 at a clip edge or next to a planted substitution (possibly incomplete labels), and 2 skip placements a word off where the ayah's first word was restarted. Not judging the passage's first word would give 80.3% precision at the same recall, but it would hide a wrong first word, so it isn't applied. The rest of the gap to 90% is the listener.
