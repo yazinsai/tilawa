@@ -4,7 +4,7 @@
 
 **Blocked by:** 12 (so the audit numbers are final before scripts are weighted).
 
-**Status:** needs-triage
+**Status:** needs-triage (deferred 2026-10-07: focus is memorization errors)
 
 ## What the help clips lack
 

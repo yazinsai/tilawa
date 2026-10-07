@@ -39,3 +39,4 @@ Nothing else in PLAN.md exists yet: the checker, the full tlog pass, ground trut
 | 10 | E7 quantize, export, device measurements | 08, 09 |
 | 11 | E1b spliced-error probe for classes E1 couldn't judge | 01 |
 | 12 | Import and audit the help-page clips | — |
+| 13 | Stitched-session false-jump test | — |

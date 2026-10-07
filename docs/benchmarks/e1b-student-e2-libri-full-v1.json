@@ -1,0 +1,961 @@
+{
+ "version": "v1",
+ "commit": "3e91183",
+ "model": "student:e2-libri-full",
+ "thresholds": {
+  "min_positives": 20,
+  "min_sites": 30,
+  "min_control_intact": 0.8,
+  "viable": {
+   "recall": 0.5,
+   "fp": 0.02
+  },
+  "posterior_only": {
+   "recall": 0.5,
+   "fp": 0.05
+  },
+  "max_clip_per": 0.5
+ },
+ "clips": {
+  "clean": 1990,
+  "spliced": 2661,
+  "control": 2661,
+  "spliced skipped": 38,
+  "control skipped": 20
+ },
+ "classes": [
+  {
+   "name": "ح/ه",
+   "key": "حه",
+   "verdict": "viable",
+   "sites": 261,
+   "spliced": {
+    "pos": 296,
+    "greedy_hit": 180,
+    "greedy_canon": 58,
+    "greedy_other": 58,
+    "top5_hit": 288,
+    "llr_hit": 224,
+    "neg": 0,
+    "greedy_ok": 0,
+    "greedy_fp": 0,
+    "top5_fp": 0,
+    "llr_fp": 0
+   },
+   "control": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 297,
+    "greedy_ok": 278,
+    "greedy_fp": 1,
+    "top5_fp": 112,
+    "llr_fp": 2
+   },
+   "clean": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 1910,
+    "greedy_ok": 1829,
+    "greedy_fp": 1,
+    "top5_fp": 604,
+    "llr_fp": 1
+   },
+   "directions": [
+    {
+     "name": "ح→ه",
+     "key": "حه:ح",
+     "verdict": "posterior-only",
+     "sites": 120,
+     "spliced": {
+      "pos": 147,
+      "greedy_hit": 73,
+      "greedy_canon": 33,
+      "greedy_other": 41,
+      "top5_hit": 141,
+      "llr_hit": 106,
+      "neg": 0,
+      "greedy_ok": 0,
+      "greedy_fp": 0,
+      "top5_fp": 0,
+      "llr_fp": 0
+     },
+     "control": {
+      "pos": 0,
+      "greedy_hit": 0,
+      "greedy_canon": 0,
+      "greedy_other": 0,
+      "top5_hit": 0,
+      "llr_hit": 0,
+      "neg": 149,
+      "greedy_ok": 147,
+      "greedy_fp": 0,
+      "top5_fp": 90,
+      "llr_fp": 1
+     }
+    },
+    {
+     "name": "ه→ح",
+     "key": "حه:ه",
+     "verdict": "viable",
+     "sites": 141,
+     "spliced": {
+      "pos": 149,
+      "greedy_hit": 107,
+      "greedy_canon": 25,
+      "greedy_other": 17,
+      "top5_hit": 147,
+      "llr_hit": 118,
+      "neg": 0,
+      "greedy_ok": 0,
+      "greedy_fp": 0,
+      "top5_fp": 0,
+      "llr_fp": 0
+     },
+     "control": {
+      "pos": 0,
+      "greedy_hit": 0,
+      "greedy_canon": 0,
+      "greedy_other": 0,
+      "top5_hit": 0,
+      "llr_hit": 0,
+      "neg": 148,
+      "greedy_ok": 131,
+      "greedy_fp": 1,
+      "top5_fp": 22,
+      "llr_fp": 1
+     }
+    }
+   ]
+  },
+  {
+   "name": "ع/ء",
+   "key": "عء",
+   "verdict": "viable",
+   "sites": 281,
+   "spliced": {
+    "pos": 294,
+    "greedy_hit": 243,
+    "greedy_canon": 22,
+    "greedy_other": 29,
+    "top5_hit": 289,
+    "llr_hit": 269,
+    "neg": 0,
+    "greedy_ok": 0,
+    "greedy_fp": 0,
+    "top5_fp": 0,
+    "llr_fp": 0
+   },
+   "control": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 298,
+    "greedy_ok": 284,
+    "greedy_fp": 1,
+    "top5_fp": 210,
+    "llr_fp": 2
+   },
+   "clean": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 2968,
+    "greedy_ok": 2934,
+    "greedy_fp": 1,
+    "top5_fp": 2343,
+    "llr_fp": 1
+   },
+   "directions": [
+    {
+     "name": "ع→ء",
+     "key": "عء:ع",
+     "verdict": "viable",
+     "sites": 137,
+     "spliced": {
+      "pos": 146,
+      "greedy_hit": 126,
+      "greedy_canon": 8,
+      "greedy_other": 12,
+      "top5_hit": 146,
+      "llr_hit": 133,
+      "neg": 0,
+      "greedy_ok": 0,
+      "greedy_fp": 0,
+      "top5_fp": 0,
+      "llr_fp": 0
+     },
+     "control": {
+      "pos": 0,
+      "greedy_hit": 0,
+      "greedy_canon": 0,
+      "greedy_other": 0,
+      "top5_hit": 0,
+      "llr_hit": 0,
+      "neg": 148,
+      "greedy_ok": 138,
+      "greedy_fp": 1,
+      "top5_fp": 101,
+      "llr_fp": 2
+     }
+    },
+    {
+     "name": "ء→ع",
+     "key": "عء:ء",
+     "verdict": "viable",
+     "sites": 144,
+     "spliced": {
+      "pos": 148,
+      "greedy_hit": 117,
+      "greedy_canon": 14,
+      "greedy_other": 17,
+      "top5_hit": 143,
+      "llr_hit": 136,
+      "neg": 0,
+      "greedy_ok": 0,
+      "greedy_fp": 0,
+      "top5_fp": 0,
+      "llr_fp": 0
+     },
+     "control": {
+      "pos": 0,
+      "greedy_hit": 0,
+      "greedy_canon": 0,
+      "greedy_other": 0,
+      "top5_hit": 0,
+      "llr_hit": 0,
+      "neg": 150,
+      "greedy_ok": 146,
+      "greedy_fp": 0,
+      "top5_fp": 109,
+      "llr_fp": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "ص/س",
+   "key": "صس",
+   "verdict": "viable",
+   "sites": 223,
+   "spliced": {
+    "pos": 294,
+    "greedy_hit": 166,
+    "greedy_canon": 95,
+    "greedy_other": 33,
+    "top5_hit": 288,
+    "llr_hit": 191,
+    "neg": 0,
+    "greedy_ok": 0,
+    "greedy_fp": 0,
+    "top5_fp": 0,
+    "llr_fp": 0
+   },
+   "control": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 298,
+    "greedy_ok": 283,
+    "greedy_fp": 1,
+    "top5_fp": 228,
+    "llr_fp": 2
+   },
+   "clean": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 918,
+    "greedy_ok": 899,
+    "greedy_fp": 1,
+    "top5_fp": 834,
+    "llr_fp": 1
+   },
+   "directions": [
+    {
+     "name": "ص→س",
+     "key": "صس:ص",
+     "verdict": "posterior-only",
+     "sites": 95,
+     "spliced": {
+      "pos": 145,
+      "greedy_hit": 64,
+      "greedy_canon": 61,
+      "greedy_other": 20,
+      "top5_hit": 140,
+      "llr_hit": 79,
+      "neg": 0,
+      "greedy_ok": 0,
+      "greedy_fp": 0,
+      "top5_fp": 0,
+      "llr_fp": 0
+     },
+     "control": {
+      "pos": 0,
+      "greedy_hit": 0,
+      "greedy_canon": 0,
+      "greedy_other": 0,
+      "top5_hit": 0,
+      "llr_hit": 0,
+      "neg": 148,
+      "greedy_ok": 142,
+      "greedy_fp": 0,
+      "top5_fp": 85,
+      "llr_fp": 0
+     }
+    },
+    {
+     "name": "س→ص",
+     "key": "صس:س",
+     "verdict": "viable",
+     "sites": 128,
+     "spliced": {
+      "pos": 149,
+      "greedy_hit": 102,
+      "greedy_canon": 34,
+      "greedy_other": 13,
+      "top5_hit": 148,
+      "llr_hit": 112,
+      "neg": 0,
+      "greedy_ok": 0,
+      "greedy_fp": 0,
+      "top5_fp": 0,
+      "llr_fp": 0
+     },
+     "control": {
+      "pos": 0,
+      "greedy_hit": 0,
+      "greedy_canon": 0,
+      "greedy_other": 0,
+      "top5_hit": 0,
+      "llr_hit": 0,
+      "neg": 150,
+      "greedy_ok": 141,
+      "greedy_fp": 1,
+      "top5_fp": 143,
+      "llr_fp": 2
+     }
+    }
+   ]
+  },
+  {
+   "name": "ض/د",
+   "key": "ضد",
+   "verdict": "posterior-only",
+   "sites": 194,
+   "spliced": {
+    "pos": 287,
+    "greedy_hit": 135,
+    "greedy_canon": 96,
+    "greedy_other": 56,
+    "top5_hit": 268,
+    "llr_hit": 168,
+    "neg": 0,
+    "greedy_ok": 0,
+    "greedy_fp": 0,
+    "top5_fp": 0,
+    "llr_fp": 0
+   },
+   "control": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 289,
+    "greedy_ok": 254,
+    "greedy_fp": 0,
+    "top5_fp": 140,
+    "llr_fp": 0
+   },
+   "clean": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 778,
+    "greedy_ok": 718,
+    "greedy_fp": 0,
+    "top5_fp": 275,
+    "llr_fp": 2
+   },
+   "directions": [
+    {
+     "name": "ض→د",
+     "key": "ضد:ض",
+     "verdict": "dead",
+     "sites": 71,
+     "spliced": {
+      "pos": 150,
+      "greedy_hit": 53,
+      "greedy_canon": 75,
+      "greedy_other": 22,
+      "top5_hit": 137,
+      "llr_hit": 67,
+      "neg": 0,
+      "greedy_ok": 0,
+      "greedy_fp": 0,
+      "top5_fp": 0,
+      "llr_fp": 0
+     },
+     "control": {
+      "pos": 0,
+      "greedy_hit": 0,
+      "greedy_canon": 0,
+      "greedy_other": 0,
+      "top5_hit": 0,
+      "llr_hit": 0,
+      "neg": 150,
+      "greedy_ok": 139,
+      "greedy_fp": 0,
+      "top5_fp": 98,
+      "llr_fp": 0
+     }
+    },
+    {
+     "name": "د→ض",
+     "key": "ضد:د",
+     "verdict": "viable",
+     "sites": 123,
+     "spliced": {
+      "pos": 137,
+      "greedy_hit": 82,
+      "greedy_canon": 21,
+      "greedy_other": 34,
+      "top5_hit": 131,
+      "llr_hit": 101,
+      "neg": 0,
+      "greedy_ok": 0,
+      "greedy_fp": 0,
+      "top5_fp": 0,
+      "llr_fp": 0
+     },
+     "control": {
+      "pos": 0,
+      "greedy_hit": 0,
+      "greedy_canon": 0,
+      "greedy_other": 0,
+      "top5_hit": 0,
+      "llr_hit": 0,
+      "neg": 139,
+      "greedy_ok": 115,
+      "greedy_fp": 0,
+      "top5_fp": 42,
+      "llr_fp": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "ط/ت",
+   "key": "طت",
+   "verdict": "viable",
+   "sites": 232,
+   "spliced": {
+    "pos": 294,
+    "greedy_hit": 152,
+    "greedy_canon": 96,
+    "greedy_other": 46,
+    "top5_hit": 273,
+    "llr_hit": 176,
+    "neg": 0,
+    "greedy_ok": 0,
+    "greedy_fp": 0,
+    "top5_fp": 0,
+    "llr_fp": 0
+   },
+   "control": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 296,
+    "greedy_ok": 259,
+    "greedy_fp": 0,
+    "top5_fp": 137,
+    "llr_fp": 1
+   },
+   "clean": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 1438,
+    "greedy_ok": 1387,
+    "greedy_fp": 0,
+    "top5_fp": 546,
+    "llr_fp": 0
+   },
+   "directions": [
+    {
+     "name": "ط→ت",
+     "key": "طت:ط",
+     "verdict": "viable",
+     "sites": 88,
+     "spliced": {
+      "pos": 144,
+      "greedy_hit": 81,
+      "greedy_canon": 39,
+      "greedy_other": 24,
+      "top5_hit": 139,
+      "llr_hit": 97,
+      "neg": 0,
+      "greedy_ok": 0,
+      "greedy_fp": 0,
+      "top5_fp": 0,
+      "llr_fp": 0
+     },
+     "control": {
+      "pos": 0,
+      "greedy_hit": 0,
+      "greedy_canon": 0,
+      "greedy_other": 0,
+      "top5_hit": 0,
+      "llr_hit": 0,
+      "neg": 147,
+      "greedy_ok": 121,
+      "greedy_fp": 0,
+      "top5_fp": 97,
+      "llr_fp": 1
+     }
+    },
+    {
+     "name": "ت→ط",
+     "key": "طت:ت",
+     "verdict": "posterior-only",
+     "sites": 144,
+     "spliced": {
+      "pos": 150,
+      "greedy_hit": 71,
+      "greedy_canon": 57,
+      "greedy_other": 22,
+      "top5_hit": 134,
+      "llr_hit": 79,
+      "neg": 0,
+      "greedy_ok": 0,
+      "greedy_fp": 0,
+      "top5_fp": 0,
+      "llr_fp": 0
+     },
+     "control": {
+      "pos": 0,
+      "greedy_hit": 0,
+      "greedy_canon": 0,
+      "greedy_other": 0,
+      "top5_hit": 0,
+      "llr_hit": 0,
+      "neg": 149,
+      "greedy_ok": 138,
+      "greedy_fp": 0,
+      "top5_fp": 40,
+      "llr_fp": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "ق/ك",
+   "key": "قك",
+   "verdict": "posterior-only",
+   "sites": 271,
+   "spliced": {
+    "pos": 295,
+    "greedy_hit": 171,
+    "greedy_canon": 92,
+    "greedy_other": 32,
+    "top5_hit": 288,
+    "llr_hit": 191,
+    "neg": 0,
+    "greedy_ok": 0,
+    "greedy_fp": 0,
+    "top5_fp": 0,
+    "llr_fp": 0
+   },
+   "control": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 295,
+    "greedy_ok": 253,
+    "greedy_fp": 8,
+    "top5_fp": 243,
+    "llr_fp": 9
+   },
+   "clean": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 1840,
+    "greedy_ok": 1742,
+    "greedy_fp": 41,
+    "top5_fp": 1708,
+    "llr_fp": 47
+   },
+   "directions": [
+    {
+     "name": "ق→ك",
+     "key": "قك:ق",
+     "verdict": "void",
+     "sites": 133,
+     "spliced": {
+      "pos": 148,
+      "greedy_hit": 98,
+      "greedy_canon": 35,
+      "greedy_other": 15,
+      "top5_hit": 145,
+      "llr_hit": 108,
+      "neg": 0,
+      "greedy_ok": 0,
+      "greedy_fp": 0,
+      "top5_fp": 0,
+      "llr_fp": 0
+     },
+     "control": {
+      "pos": 0,
+      "greedy_hit": 0,
+      "greedy_canon": 0,
+      "greedy_other": 0,
+      "top5_hit": 0,
+      "llr_hit": 0,
+      "neg": 148,
+      "greedy_ok": 117,
+      "greedy_fp": 3,
+      "top5_fp": 105,
+      "llr_fp": 4
+     }
+    },
+    {
+     "name": "ك→ق",
+     "key": "قك:ك",
+     "verdict": "posterior-only",
+     "sites": 138,
+     "spliced": {
+      "pos": 147,
+      "greedy_hit": 73,
+      "greedy_canon": 57,
+      "greedy_other": 17,
+      "top5_hit": 143,
+      "llr_hit": 83,
+      "neg": 0,
+      "greedy_ok": 0,
+      "greedy_fp": 0,
+      "top5_fp": 0,
+      "llr_fp": 0
+     },
+     "control": {
+      "pos": 0,
+      "greedy_hit": 0,
+      "greedy_canon": 0,
+      "greedy_other": 0,
+      "top5_hit": 0,
+      "llr_hit": 0,
+      "neg": 147,
+      "greedy_ok": 136,
+      "greedy_fp": 5,
+      "top5_fp": 138,
+      "llr_fp": 5
+     }
+    }
+   ]
+  },
+  {
+   "name": "ذ/ز",
+   "key": "ذز",
+   "verdict": "mixed",
+   "sites": 182,
+   "spliced": {
+    "pos": 285,
+    "greedy_hit": 94,
+    "greedy_canon": 145,
+    "greedy_other": 46,
+    "top5_hit": 247,
+    "llr_hit": 113,
+    "neg": 0,
+    "greedy_ok": 0,
+    "greedy_fp": 0,
+    "top5_fp": 0,
+    "llr_fp": 0
+   },
+   "control": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 286,
+    "greedy_ok": 232,
+    "greedy_fp": 22,
+    "top5_fp": 223,
+    "llr_fp": 37
+   },
+   "clean": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 936,
+    "greedy_ok": 883,
+    "greedy_fp": 27,
+    "top5_fp": 636,
+    "llr_fp": 30
+   },
+   "directions": [
+    {
+     "name": "ذ→ز",
+     "key": "ذز:ذ",
+     "verdict": "dead",
+     "sites": 114,
+     "spliced": {
+      "pos": 136,
+      "greedy_hit": 24,
+      "greedy_canon": 99,
+      "greedy_other": 13,
+      "top5_hit": 106,
+      "llr_hit": 27,
+      "neg": 0,
+      "greedy_ok": 0,
+      "greedy_fp": 0,
+      "top5_fp": 0,
+      "llr_fp": 0
+     },
+     "control": {
+      "pos": 0,
+      "greedy_hit": 0,
+      "greedy_canon": 0,
+      "greedy_other": 0,
+      "top5_hit": 0,
+      "llr_hit": 0,
+      "neg": 136,
+      "greedy_ok": 125,
+      "greedy_fp": 4,
+      "top5_fp": 79,
+      "llr_fp": 4
+     }
+    },
+    {
+     "name": "ز→ذ",
+     "key": "ذز:ز",
+     "verdict": "void",
+     "sites": 68,
+     "spliced": {
+      "pos": 149,
+      "greedy_hit": 70,
+      "greedy_canon": 46,
+      "greedy_other": 33,
+      "top5_hit": 141,
+      "llr_hit": 86,
+      "neg": 0,
+      "greedy_ok": 0,
+      "greedy_fp": 0,
+      "top5_fp": 0,
+      "llr_fp": 0
+     },
+     "control": {
+      "pos": 0,
+      "greedy_hit": 0,
+      "greedy_canon": 0,
+      "greedy_other": 0,
+      "top5_hit": 0,
+      "llr_hit": 0,
+      "neg": 150,
+      "greedy_ok": 107,
+      "greedy_fp": 18,
+      "top5_fp": 144,
+      "llr_fp": 33
+     }
+    }
+   ]
+  },
+  {
+   "name": "ث/س",
+   "key": "ثس",
+   "verdict": "void",
+   "sites": 191,
+   "spliced": {
+    "pos": 280,
+    "greedy_hit": 100,
+    "greedy_canon": 122,
+    "greedy_other": 58,
+    "top5_hit": 252,
+    "llr_hit": 130,
+    "neg": 0,
+    "greedy_ok": 0,
+    "greedy_fp": 0,
+    "top5_fp": 0,
+    "llr_fp": 0
+   },
+   "control": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 282,
+    "greedy_ok": 197,
+    "greedy_fp": 26,
+    "top5_fp": 247,
+    "llr_fp": 42
+   },
+   "clean": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 144,
+    "greedy_ok": 94,
+    "greedy_fp": 24,
+    "top5_fp": 128,
+    "llr_fp": 30
+   },
+   "directions": [
+    {
+     "name": "ث→س",
+     "key": "ثس:ث",
+     "verdict": "void",
+     "sites": 69,
+     "spliced": {
+      "pos": 149,
+      "greedy_hit": 94,
+      "greedy_canon": 33,
+      "greedy_other": 22,
+      "top5_hit": 147,
+      "llr_hit": 113,
+      "neg": 0,
+      "greedy_ok": 0,
+      "greedy_fp": 0,
+      "top5_fp": 0,
+      "llr_fp": 0
+     },
+     "control": {
+      "pos": 0,
+      "greedy_hit": 0,
+      "greedy_canon": 0,
+      "greedy_other": 0,
+      "top5_hit": 0,
+      "llr_hit": 0,
+      "neg": 148,
+      "greedy_ok": 71,
+      "greedy_fp": 26,
+      "top5_fp": 121,
+      "llr_fp": 42
+     }
+    },
+    {
+     "name": "س→ث",
+     "key": "ثس:س",
+     "verdict": "dead",
+     "sites": 122,
+     "spliced": {
+      "pos": 131,
+      "greedy_hit": 6,
+      "greedy_canon": 89,
+      "greedy_other": 36,
+      "top5_hit": 105,
+      "llr_hit": 17,
+      "neg": 0,
+      "greedy_ok": 0,
+      "greedy_fp": 0,
+      "top5_fp": 0,
+      "llr_fp": 0
+     },
+     "control": {
+      "pos": 0,
+      "greedy_hit": 0,
+      "greedy_canon": 0,
+      "greedy_other": 0,
+      "top5_hit": 0,
+      "llr_hit": 0,
+      "neg": 134,
+      "greedy_ok": 126,
+      "greedy_fp": 0,
+      "top5_fp": 126,
+      "llr_fp": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "missing shadda",
+   "key": "shadda",
+   "verdict": "posterior-only",
+   "sites": 280,
+   "spliced": {
+    "pos": 298,
+    "greedy_hit": 242,
+    "greedy_canon": 55,
+    "greedy_other": 1,
+    "top5_hit": 0,
+    "llr_hit": 240,
+    "neg": 0,
+    "greedy_ok": 0,
+    "greedy_fp": 0,
+    "top5_fp": 0,
+    "llr_fp": 0
+   },
+   "control": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 300,
+    "greedy_ok": 278,
+    "greedy_fp": 17,
+    "top5_fp": 0,
+    "llr_fp": 7
+   },
+   "clean": {
+    "pos": 0,
+    "greedy_hit": 0,
+    "greedy_canon": 0,
+    "greedy_other": 0,
+    "top5_hit": 0,
+    "llr_hit": 0,
+    "neg": 1860,
+    "greedy_ok": 1696,
+    "greedy_fp": 126,
+    "top5_fp": 0,
+    "llr_fp": 46
+   }
+  }
+ ]
+}
