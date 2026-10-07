@@ -34,6 +34,8 @@ TLOG = MAIN / ".scratch/tlog"
 DECODES = MAIN / ".scratch/gold"
 OUT = ROOT / "docs/benchmarks/gold-per-v1"
 LISTENERS = ("teacher", "e5-top1-lite", "e5-soft5-lite", "e2-scratch-full", "e2-libri-full")
+# Scored but not in the listener-bar fit, which stays on the five listeners it was calibrated on.
+SCORED = LISTENERS + ("combo-libri-soft5-full", "combo-clean", "spliced-clean")
 
 GROUPS = {
     "pharyngeals": set("حع"),
@@ -172,7 +174,7 @@ def score_all() -> None:
     gold, silver = m["slices"]["gold"], m["slices"]["silver"]
     heldout = [r for r in gold if r["source"] != "tlog-bucket-review" or not (r["tlogSplit"] or "").endswith("/train")]
     res = {}
-    for name in LISTENERS:
+    for name in (n for n in SCORED if n == "teacher" or (DECODES / n).is_dir()):
         res[name] = {"gold": score(gold, decoded(name, gold)), "goldHeldOut": score(heldout, decoded(name, heldout)),
                      "silver": score(silver, decoded(name, silver))}
         g = res[name]["gold"]

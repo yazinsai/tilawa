@@ -52,13 +52,13 @@ export function scored(m: Omit<Metric, "status"> & { status?: Status }): Metric 
 interface GoldPer { canon: number; raw: number; clips: number }
 interface GoldScore { clips: number; overall: GoldPer; byDevice: Record<string, GoldPer>; groups: Record<string, { per: number; phonemes: number }> }
 /** docs/benchmarks/gold-per-v1-scores.json (`tools/gold_set.py score`) and listener-target-v1.json (`calibrate`). */
-export type GoldScores = Record<string, { gold: GoldScore }>;
+export type GoldScores = Record<string, { gold: GoldScore; goldHeldOut?: GoldScore }>;
 export interface ListenerTarget { bar: number; bindingMetric: string; teacherGoldPer: number }
 
 /** Listener PER on the human-verified gold set: canon vs spliced reference, gated by the calibrated bar. */
 export function goldPerMetrics(scores: GoldScores, target: ListenerTarget, listener: string): Metric[] {
   const group = "Listener", source = "listener-target-v1.md";
-  const g = scores[listener]?.gold;
+  const g = scores[listener]?.gold, h = scores[listener]?.goldHeldOut;
   const bar = { op: "<=", target: target.bar } as const;
   const name = "Gold PER (canon vs spliced, human-verified exact)";
   if (!g) return [scored({ id: "listener.goldPer", group, name, value: null, unit: "%", bar, source, status: "pending", note: "not decoded on the gold set; modal/student_decode_cpu.py::gold, then tools/gold_set.py score" })];
@@ -69,6 +69,8 @@ export function goldPerMetrics(scores: GoldScores, target: ListenerTarget, liste
     ...Object.entries(g.byDevice).map(([d, x]) => scored({ id: `listener.goldPer.${d}`, group, name: `Gold PER: ${d}`, value: x.canon, unit: "%", source, display: `${pct(x.canon)} (${x.clips} clips)` })),
     ...Object.entries(g.groups).map(([k, x]) => scored({ id: `listener.goldPer.${k}`, group, name: `Gold PER: ${k.replace("_", " ")}`, value: x.per, unit: "%", source, display: `${pct(x.per)} (${x.phonemes} ref phonemes)` })),
     scored({ id: "listener.goldPerRaw", group, name: "Gold raw PER vs spliced reference", value: g.overall.raw, unit: "%", source }),
+    ...(h ? [scored({ id: "listener.goldPerHeldOut", group, name: "Gold PER: never in tlog train", value: h.overall.canon, unit: "%", source, display: `${pct(h.overall.canon)} (${h.clips} clips)`,
+      note: "help clips plus tlog test/val gold clips; fair for students trained before the gold exclusion" })] : []),
   ];
 }
 

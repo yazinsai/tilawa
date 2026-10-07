@@ -97,6 +97,12 @@ describe("gold PER", () => {
     expect(v["listener.goldPerRaw"]).toEqual([0.08, "info"]);
   });
 
+  it("reports the slice never used in training as info", () => {
+    const held = { ...scores["e2-libri-full"], goldHeldOut: { ...scores["e2-libri-full"].gold, clips: 1, overall: per(0.09, 1) } };
+    const m = goldPerMetrics({ x: held }, target, "x").find((m) => m.id === "listener.goldPerHeldOut")!;
+    expect([m.value, m.status, m.display]).toEqual([0.09, "info", "9.00% (1 clips)"]);
+  });
+
   it("is pending for a listener that was never decoded on the gold set", () => {
     const [m] = goldPerMetrics(scores, target, "combo");
     expect([m.value, m.status]).toEqual([null, "pending"]);

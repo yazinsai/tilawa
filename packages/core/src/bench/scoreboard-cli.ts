@@ -132,21 +132,24 @@ add({ id: "e2e.latency", group: E2E, name: "Word highlight p95 / suspected / con
 // ---- Listener.
 const LISTENER = "Listener";
 const student = read("student-v1.json");
-const run = student.runs.find((r: any) => r.name === values.listener);
+const studentV2 = existsSync(join(bench, "student-v2.json")) ? read("student-v2.json") : { runs: [] };
+const run = [...student.runs, ...studentV2.runs].find((r: any) => r.name === values.listener);
 const breakdown = read("teacher-per-breakdown-v1.json");
-/** The student re-decoded for the PER breakdown; other students have no fair PER yet. */
+/** e2-libri-full is in the teacher breakdown; later students have their own `per-breakdown-<run>-v1.json`. */
 const BREAKDOWN_RUN = "e2-libri-full";
+const ownBreakdown = `per-breakdown-${values.listener}-v1.json`;
 const teacherFloor: number = breakdown.per.teacherVsSpliced.canon;
 const CANON_NOTE = "canon PER vs spliced reference (teacher-per-breakdown-v1): nasal spelling and qalqala unified, runs collapsed, clip edges from the teacher; ignores shadda and duration";
 for (const m of goldPerMetrics(read("gold-per-v1-scores.json"), read("listener-target-v1.json"), values.listener!)) metrics.push(m);
 source = "teacher-per-breakdown-v1.md";
 if (teacher) add({ id: "listener.perFair", group: LISTENER, name: "Fair PER on tlog clean-match test (canon vs spliced)", value: teacherFloor, unit: "%", status: "info", note: `teacher floor; ${CANON_NOTE}` });
 else {
-  const v = values.listener === BREAKDOWN_RUN ? breakdown.per.studentVsSpliced.canon : null;
+  const v = values.listener === BREAKDOWN_RUN ? breakdown.per.studentVsSpliced.canon
+    : existsSync(join(bench, ownBreakdown)) ? read(ownBreakdown).per.studentVsSpliced.canon : null;
   add({ id: "listener.perFair", group: LISTENER, name: "Fair PER on tlog clean-match test (canon vs spliced)", value: v, unit: "%",
     status: v === null ? "pending" : "info", note: v === null ? "not in the PER breakdown; run tools/per_breakdown.py on this run's decode" : `secondary to gold PER: teacher-labelled clips; ${CANON_NOTE}` });
 }
-source = "student-v1.md";
+source = studentV2.runs.includes(run) ? "student-v2.md" : "student-v1.md";
 const teacherPer = student.runs[0]?.teacherPerVsRef ?? null;
 add({ id: "listener.perRef", group: LISTENER, name: "Raw PER vs reference (tlog clean-match test)", value: teacher ? teacherPer : run?.perVsRef ?? null, unit: "%", status: "info", note: teacher ? "mostly clip edges and madd/ghunna length, not mishearing (teacher-per-breakdown-v1)" : "Quran-Lab zipformer 3.65% on phone audio: reference only, not a gate" });
 add({ id: "listener.perTeacher", group: LISTENER, name: "Raw PER vs teacher", value: teacher ? 0 : run?.perVsTeacher ?? null, unit: "%", status: "info" });
@@ -172,6 +175,13 @@ if (teacher) {
   const canon = e1b.classes.map((c: any) => [c.spliced.greedy_canon, c.spliced.pos]).reduce((a: number[], b: number[]) => [a[0] + b[0], a[1] + b[1]], [0, 0]);
   add({ id: "listener.e1b.canon", group: LISTENER, name: "E1b splices: canonicalised share (all classes)", value: canon[0] / canon[1], unit: "%", display: frac(canon[0], canon[1]) });
 } else {
+  const own = `e1b-student-${values.listener}-v1`;
+  if (existsSync(join(bench, `${own}.json`))) {
+    source = `${own}.md`;
+    const e1b = read(`${own}.json`);
+    const canon = e1b.classes.map((c: any) => [c.spliced.greedy_canon, c.spliced.pos]).reduce((a: number[], b: number[]) => [a[0] + b[0], a[1] + b[1]], [0, 0]);
+    add({ id: "listener.e1b.canon", group: LISTENER, name: "E1b splices: canonicalised share (all classes)", value: canon[0] / canon[1], unit: "%", display: frac(canon[0], canon[1]), note: `report ${e1b.commit}` });
+  }
   for (const [id, name] of [["listener.e1help.svRecall", "E1 help clips: short vowel greedy recall"], ["listener.e1.classes", "E1: classes heard"], ["listener.e1b.classes", "E1b: classes heard"]]) {
     add({ id, group: LISTENER, name, value: null, status: "pending", note: `E1/E1b not run on ${values.listener}'s posteriors` });
   }

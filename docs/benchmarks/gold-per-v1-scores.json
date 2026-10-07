@@ -743,5 +743,154 @@
     }
    }
   }
+ },
+ "combo-libri-soft5-full": {
+  "gold": {
+   "clips": 233,
+   "overall": {
+    "canon": 0.04819277108433735,
+    "raw": 0.0669419959317019,
+    "clips": 233,
+    "refPhonemes": 13363
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.11607992388201713,
+     "raw": 0.13411764705882354,
+     "clips": 16,
+     "refPhonemes": 1051
+    },
+    "phone": {
+     "canon": 0.10398860398860399,
+     "raw": 0.1279843444227006,
+     "clips": 26,
+     "refPhonemes": 2106
+    },
+    "tlog": {
+     "canon": 0.029688418577307467,
+     "raw": 0.04744613894940692,
+     "clips": 191,
+     "refPhonemes": 10206
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.08051948051948052,
+     "edits": 31,
+     "phonemes": 385
+    },
+    "emphatics": {
+     "per": 0.15,
+     "edits": 21,
+     "phonemes": 140
+    },
+    "hamza_ain": {
+     "per": 0.06998654104979811,
+     "edits": 52,
+     "phonemes": 743
+    },
+    "short_vowels": {
+     "per": 0.04307116104868914,
+     "edits": 230,
+     "phonemes": 5340
+    }
+   }
+  },
+  "goldHeldOut": {
+   "clips": 62,
+   "overall": {
+    "canon": 0.09192708333333334,
+    "raw": 0.11535982814178303,
+    "clips": 62,
+    "refPhonemes": 3840
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.11607992388201713,
+     "raw": 0.13411764705882354,
+     "clips": 16,
+     "refPhonemes": 1051
+    },
+    "phone": {
+     "canon": 0.10398860398860399,
+     "raw": 0.1279843444227006,
+     "clips": 26,
+     "refPhonemes": 2106
+    },
+    "tlog": {
+     "canon": 0.017569546120058566,
+     "raw": 0.04727272727272727,
+     "clips": 20,
+     "refPhonemes": 683
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.09448818897637795,
+     "edits": 12,
+     "phonemes": 127
+    },
+    "emphatics": {
+     "per": 0.3157894736842105,
+     "edits": 12,
+     "phonemes": 38
+    },
+    "hamza_ain": {
+     "per": 0.12871287128712872,
+     "edits": 26,
+     "phonemes": 202
+    },
+    "short_vowels": {
+     "per": 0.07831715210355987,
+     "edits": 121,
+     "phonemes": 1545
+    }
+   }
+  },
+  "silver": {
+   "clips": 211,
+   "overall": {
+    "canon": 0.03216612377850163,
+    "raw": 0.057699761891577606,
+    "clips": 211,
+    "refPhonemes": 14736
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.04363793475912724,
+     "raw": 0.061837455830388695,
+     "clips": 62,
+     "refPhonemes": 4629
+    },
+    "phone": {
+     "canon": 0.02691204115959236,
+     "raw": 0.05581095249616905,
+     "clips": 149,
+     "refPhonemes": 10107
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.06486486486486487,
+     "edits": 24,
+     "phonemes": 370
+    },
+    "emphatics": {
+     "per": 0.17261904761904762,
+     "edits": 29,
+     "phonemes": 168
+    },
+    "hamza_ain": {
+     "per": 0.058465286236297195,
+     "edits": 48,
+     "phonemes": 821
+    },
+    "short_vowels": {
+     "per": 0.0222972972972973,
+     "edits": 132,
+     "phonemes": 5920
+    }
+   }
+  }
  }
 }
