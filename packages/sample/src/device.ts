@@ -114,7 +114,7 @@ $("clips").onclick = async () => {
   const all = { highlight: [] as number[], suspected: [] as number[], pushes: [] as number[] };
   let audio = 0;
   let compute = 0;
-  let peak = 0;
+  let peak: number | null = null;
   for (const [i, c] of clips.entries()) {
     status(`Clip ${i + 1}/${clips.length}…`);
     const r = await runClip(c, false);
@@ -124,12 +124,12 @@ $("clips").onclick = async () => {
     all.suspected.push(...r.suspected);
     all.pushes.push(...r.pushes);
     const m = await memoryMB();
-    peak = Math.max(peak, m?.mb ?? 0);
+    if (m) peak = Math.max(peak ?? 0, m.mb);
     rows.push({ id: c.id, kind: c.kind, audioS: +(r.audioMs / 1000).toFixed(1), rtf: +(r.computeMs / r.audioMs).toFixed(3), highlightP95: round(percentile(r.highlight, 95)), suspected: r.suspected.map(Math.round) });
   }
   results.clips = {
     pushMs: PUSH_MS, audioS: +(audio / 1000).toFixed(1), rtf: +(compute / audio).toFixed(3), pushComputeMs: stat(all.pushes),
-    highlightMs: stat(all.highlight), suspectedMs: stat(all.suspected), peakMemoryMB: Math.round(peak), perClip: rows,
+    highlightMs: stat(all.highlight), suspectedMs: stat(all.suspected), peakMemoryMB: peak === null ? null : Math.round(peak), perClip: rows,
   };
   status("Clips done.");
   show();
@@ -145,7 +145,7 @@ $("soak").onclick = async () => {
   const all = { highlight: [] as number[], pushes: [] as number[] };
   let audio = 0;
   let compute = 0;
-  let peak = 0;
+  let peak: number | null = null;
   const memory: { min: number; mb: number }[] = [];
   for (let i = 0; performance.now() < end; i++) {
     const r = await runClip(clips[i % clips.length], true);
@@ -155,7 +155,7 @@ $("soak").onclick = async () => {
     all.pushes.push(...r.pushes);
     const m = await memoryMB();
     if (m) memory.push({ min: +((performance.now() - t0) / 60_000).toFixed(1), mb: Math.round(m.mb) });
-    peak = Math.max(peak, m?.mb ?? 0);
+    if (m) peak = Math.max(peak ?? 0, m.mb);
     status(`Battery run: ${((performance.now() - t0) / 60_000).toFixed(1)} / ${minutes} min, RTF ${(compute / audio).toFixed(3)}`);
   }
   await lock?.release();
@@ -163,7 +163,7 @@ $("soak").onclick = async () => {
   if (b1) $<HTMLInputElement>("bat1").value = String(b1.level);
   results.soak = {
     minutes: +((performance.now() - t0) / 60_000).toFixed(1), audioS: Math.round(audio / 1000), rtf: +(compute / audio).toFixed(3),
-    pushComputeMs: stat(all.pushes), highlightMs: stat(all.highlight), peakMemoryMB: Math.round(peak), memory,
+    pushComputeMs: stat(all.pushes), highlightMs: stat(all.highlight), peakMemoryMB: peak === null ? null : Math.round(peak), memory,
     batteryAuto: { start: b0, end: b1 },
   };
   status("Battery run done. Fill in the battery % if it wasn't read automatically, then copy.");

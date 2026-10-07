@@ -34,7 +34,9 @@ Models are downloaded on first use, versioned separately from the SDK (`src/mode
 | Tier | Model | Size | Gold PER | Help declared P / R | Help free P / R |
 |---|---|---|---|---|---|
 | `full` | `spliced-clean` (ticket 08), int8 | 67.8 MB | 4.82% | 82.4% / 87.5% | 77.8% / 43.8% |
-| `lite` | `spliced-clean-lite`, int8 | see ticket 10 | | | |
+| `lite` | `spliced-clean-lite` (22M params, same recipe), int8 | 24.7 MB | 5.74% | 70.0% / 87.5% | 63.4% / 40.6% |
+
+`lite` keeps recall but warns twice as often on the declared arm (24 false positives vs 12); load it only where `full` can't keep up.
 
 int8 is dynamic quantisation of the MatMul weights (`tools/quantize_onnx.py`; icefall's recipe, and `ConvInteger` is missing from onnxruntime-web). It costs 0.02 points of gold PER against the fp32 export (4.80%). fp16 (129.6 MB, 4.79%) is a little faster in desktop Chrome WASM (RTF 0.096 vs 0.123) but peaks at 659 MB of page memory against int8's 252 MB, too much for a 4 GB phone, so no tier ships it. Weight-only 8-bit (`MatMulNBits`, 75 MB) runs at half int8's speed in WASM and was dropped. Comparison: `docs/benchmarks/scoreboard.md`, rows `spliced-clean-{onnx,int8,fp16}`.
 
