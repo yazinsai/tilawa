@@ -30,6 +30,8 @@ export interface ScoreRow {
   listener: string;
   /** One line: what changed and why. */
   note?: string;
+  /** Engine modules changed by this run; omitted for older, untagged runs. */
+  modules?: ("listener" | "tracker" | "checker")[];
   metrics: Metric[];
 }
 

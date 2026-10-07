@@ -789,7 +789,8 @@
      "status": "unmeasurable",
      "note": "no recordings (ticket 05)"
     }
-   ]
+   ],
+   "modules": []
   },
   {
    "sha": "3e91183",
@@ -1026,7 +1027,8 @@
      "status": "unmeasurable",
      "note": "no recordings (ticket 05)"
     }
-   ]
+   ],
+   "modules": []
   },
   {
    "sha": "8aca172",
@@ -1846,7 +1848,10 @@
      "note": "no recordings (ticket 05)"
     }
    ],
-   "note": "Declared-passage mode in core (CheckerOptions.passage) + end-of-session finalisation in declared sessions; declared arm 62.6%/89.1%, free unchanged"
+   "note": "Declared-passage mode in core (CheckerOptions.passage) + end-of-session finalisation in declared sessions; declared arm 62.6%/89.1%, free unchanged",
+   "modules": [
+    "checker"
+   ]
   },
   {
    "sha": "004986d",
@@ -2666,7 +2671,10 @@
      "note": "no recordings (ticket 05)"
     }
    ],
-   "note": "Skip placement: prefer the equal placement on an ayah start when a word recurs across the skip; oracle false omitted_word 9 -> 0"
+   "note": "Skip placement: prefer the equal placement on an ayah start when a word recurs across the skip; oracle false omitted_word 9 -> 0",
+   "modules": [
+    "checker"
+   ]
   },
   {
    "sha": "46a068e",
@@ -3486,7 +3494,10 @@
      "note": "no recordings (ticket 05)"
     }
    ],
-   "note": "A word with no consonants (ghunna/madd only) needs a hard edit to be a wrong word"
+   "note": "A word with no consonants (ghunna/madd only) needs a hard edit to be a wrong word",
+   "modules": [
+    "checker"
+   ]
   },
   {
    "sha": "16d6396",
@@ -4384,6 +4395,9 @@
      "status": "unmeasurable",
      "note": "no recordings (ticket 05)"
     }
+   ],
+   "modules": [
+    "checker"
    ]
   }
  ]

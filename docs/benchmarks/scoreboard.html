@@ -1,105 +1,16 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Tilawa scoreboard</title>
-<style>
-  body { font: 14px/1.4 system-ui, sans-serif; margin: 24px; color: #222; background: #fafafa; }
-  h1 { margin: 0 0 4px; } h2 { margin: 28px 0 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
-  .bar { display: flex; gap: 16px; align-items: center; margin: 12px 0; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
-  .card { background: #fff; border: 1px solid #e3e3e3; border-radius: 6px; padding: 10px; }
-  .card h3 { font-size: 13px; margin: 0 0 4px; font-weight: 600; }
-  .meta { font-size: 12px; color: #666; }
-  .pass { color: #1a7f37; } .fail { color: #cf222e; } .info, .unmeasurable, .pending { color: #777; }
-  .badge { font-size: 11px; padding: 1px 6px; border-radius: 8px; border: 1px solid currentColor; margin-left: 4px; }
-  table { border-collapse: collapse; background: #fff; width: 100%; font-size: 13px; }
-  th, td { border: 1px solid #e3e3e3; padding: 4px 8px; text-align: left; vertical-align: top; }
-  .text { font-size: 12px; color: #555; }
-  .legend span { margin-right: 12px; }
-</style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tilawa · Engine progress</title>
+<link rel="stylesheet" href="scoreboard.css">
+<script src="scoreboard.js" defer></script>
 </head>
 <body>
-<h1>Tilawa engine scoreboard</h1>
-<div class="meta">Reads <code>scoreboard.json</code>. Dashed line: v1 bar. Red points fail their bar. See <a href="scoreboard.md">scoreboard.md</a>.</div>
-<div class="bar">
-  <label>Listener <select id="listener"></select></label>
-  <span class="legend" id="legend"></span>
-</div>
-<div id="sections"></div>
-<h2>Change log</h2>
-<table id="log"></table>
-<script>
-const GROUPS = ["End to end", "Listener", "Tracker", "Checker"];
-const COLORS = ["#0969da", "#8250df", "#bf8700", "#1a7f37", "#cf222e", "#57606a"];
-const fmt = (v, u) => v == null ? "—" : u === "%" ? (100 * v).toFixed(1) + "%" : u === "s" ? v.toFixed(2) + " s" : String(+v.toFixed(3));
-const fmtD = (d, u) => (d > 0 ? "+" : "") + (u === "%" ? (100 * d).toFixed(1) + " pp" : u === "s" ? d.toFixed(2) + " s" : String(+d.toFixed(3)));
-const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-const fails = (m) => m.bar && m.value != null && !(m.bar.op === ">=" ? m.value >= m.bar.target : m.value <= m.bar.target);
-
-function chart(series, unit, bar) {
-  const W = 280, H = 110, P = 26;
-  const pts = series.flatMap((s) => s.points);
-  const vals = pts.map((p) => p.m.value).concat(bar ? [bar.target] : []);
-  let lo = Math.min(...vals), hi = Math.max(...vals);
-  if (lo === hi) { lo -= Math.abs(lo) * 0.1 || 1; hi += Math.abs(hi) * 0.1 || 1; }
-  const n = Math.max(...series.map((s) => s.points.length), 2);
-  const x = (i) => P + (i * (W - P - 8)) / (n - 1);
-  const y = (v) => H - 16 - ((v - lo) * (H - 28)) / (hi - lo);
-  let svg = `<svg width="${W}" height="${H}"><text x="2" y="${y(hi) + 4}" font-size="10" fill="#888">${fmt(hi, unit)}</text><text x="2" y="${y(lo) + 4}" font-size="10" fill="#888">${fmt(lo, unit)}</text>`;
-  if (bar) svg += `<line x1="${P}" x2="${W - 8}" y1="${y(bar.target)}" y2="${y(bar.target)}" stroke="#888" stroke-dasharray="4 3"><title>bar ${bar.op} ${fmt(bar.target, unit)}</title></line>`;
-  for (const s of series) {
-    const p = s.points;
-    if (p.length > 1) svg += `<polyline fill="none" stroke="${s.color}" stroke-width="1.5" points="${p.map((q, i) => `${x(i)},${y(q.m.value)}`).join(" ")}"/>`;
-    p.forEach((q, i) => {
-      svg += `<circle cx="${x(i)}" cy="${y(q.m.value)}" r="${fails(q.m) ? 4.5 : 3.5}" fill="${fails(q.m) ? "#cf222e" : s.color}" stroke="${s.color}"><title>${esc(`${q.row.listener} @ ${q.row.sha} (${q.row.date}): ${q.m.display ?? fmt(q.m.value, unit)}${q.row.note ? "\n" + q.row.note : ""}`)}</title></circle>`;
-    });
-  }
-  return svg + "</svg>";
-}
-
-function render(board) {
-  const rows = board.rows;
-  const listeners = [...new Set(rows.map((r) => r.listener))];
-  const color = Object.fromEntries(listeners.map((l, i) => [l, COLORS[i % COLORS.length]]));
-  const sel = document.getElementById("listener");
-  if (!sel.options.length) {
-    sel.innerHTML = `<option value="">all</option>` + listeners.map((l) => `<option>${esc(l)}</option>`).join("");
-    sel.onchange = () => render(board);
-  }
-  const shown = sel.value ? [sel.value] : listeners;
-  document.getElementById("legend").innerHTML = shown.map((l) => `<span style="color:${color[l]}">● ${esc(l)}</span>`).join("");
-  const visible = rows.filter((r) => shown.includes(r.listener));
-  const ids = [...new Set(visible.flatMap((r) => r.metrics.map((m) => m.id)))];
-  const latest = (id) => { for (const r of [...visible].reverse()) { const m = r.metrics.find((x) => x.id === id); if (m) return { m, r }; } };
-  document.getElementById("sections").innerHTML = GROUPS.map((g) => {
-    const cards = ids.filter((id) => latest(id).m.group === g).map((id) => {
-      const { m } = latest(id);
-      const series = shown.map((l) => ({ color: color[l], points: rows.filter((r) => r.listener === l).map((row) => ({ row, m: row.metrics.find((x) => x.id === id) })).filter((p) => p.m && p.m.value != null) })).filter((s) => s.points.length);
-      const lastBy = shown.map((l) => { const r = [...rows].reverse().find((r) => r.listener === l && r.metrics.some((x) => x.id === id)); const x = r?.metrics.find((x) => x.id === id); return x ? `<div><span style="color:${color[l]}">●</span> ${esc(x.display ?? fmt(x.value, x.unit))}<span class="badge ${x.status}">${x.status}</span></div>` : ""; }).join("");
-      const body = series.length ? chart(series, m.unit, m.bar) : `<div class="text">${esc(m.display ?? "no numeric value")}</div>`;
-      const bar = m.bar ? `bar ${m.bar.op === ">=" ? "≥" : "≤"} ${fmt(m.bar.target, m.unit)}` : "";
-      return `<div class="card"><h3>${esc(m.name)}</h3>${lastBy}<div class="meta">${bar}${m.source ? ` · <a href="${esc(m.source)}">${esc(m.source)}</a>` : ""}</div>${body}<div class="text">${esc(m.note)}</div></div>`;
-    }).join("");
-    return `<h2>${g}</h2><div class="grid">${cards}</div>`;
-  }).join("");
-
-  const head = "<tr><th>Date</th><th>Commit</th><th>Listener</th><th>Note</th><th>Δ vs previous</th><th>Δ vs baseline</th><th>Reports</th></tr>";
-  const diff = (r, base) => {
-    if (!base || base === r) return "";
-    return r.metrics.map((m) => { const b = base.metrics.find((x) => x.id === m.id); return b && m.value != null && b.value != null && m.value !== b.value ? `${esc(m.group)}: ${esc(m.name)} <b class="${fails(m) ? "fail" : "pass"}">${fmtD(m.value - b.value, m.unit)}</b>` : ""; }).filter(Boolean).join("<br>") || "no change";
-  };
-  document.getElementById("log").innerHTML = head + [...visible].reverse().map((r) => {
-    const mine = rows.filter((x) => x.listener === r.listener);
-    const i = mine.indexOf(r);
-    const reports = [...new Set(r.metrics.map((m) => m.source).filter(Boolean))].map((s) => `<a href="${esc(s)}">${esc(s.replace(/\.md$/, ""))}</a>`).join("<br>");
-    return `<tr><td>${esc(r.date)}</td><td><code>${esc(r.sha)}</code></td><td style="color:${color[r.listener]}">${esc(r.listener)}</td><td>${esc(r.note)}</td><td>${diff(r, mine[i - 1])}</td><td>${diff(r, mine[0])}</td><td>${reports}</td></tr>`;
-  }).join("");
-}
-
-fetch("scoreboard.json", { cache: "no-store" }).then((r) => r.json()).then(render).catch((e) => {
-  document.getElementById("sections").textContent = `Could not load scoreboard.json (${e}). Open through uv run tools/scoreboard_serve.py, not file://.`;
-});
-</script>
-</body>
-</html>
+<header><a class="brand" href="scoreboard.html">tilawa <span class="wordmark-ar" lang="ar" dir="rtl">تلاوة</span> <span class="brand-sub">/ engine progress</span></a><a href="scoreboard.md">Benchmark guide ↗</a></header>
+<main>
+<div class="page-heading"><div><div class="eyebrow">QUALITY, AT A GLANCE</div><h1>How well are we listening?</h1><p>Follow the whole experience. Then find what needs work.</p></div><div class="controls"><label for="listener">Listener model</label><select id="listener"></select><div id="run-meta" class="muted"></div></div></div>
+<div id="content" aria-live="polite"><p class="notice">Loading benchmark results…</p></div>
+<footer>Offline benchmark evidence · Each point is a recorded run, not a live measurement.<a href="scoreboard.json">View source data ↗</a></footer>
+</main>
+</body></html>

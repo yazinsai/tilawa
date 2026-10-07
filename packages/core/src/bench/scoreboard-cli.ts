@@ -27,7 +27,14 @@ const { values } = parseArgs({ options: {
   sha: { type: "string" },
   /** One line: what changed and why. */
   note: { type: "string" },
+  /** Comma-separated engine modules changed: listener,tracker,checker. */
+  modules: { type: "string" },
 } });
+const moduleNames = ["listener", "tracker", "checker"] as const;
+const modules = values.modules === undefined ? undefined : [...new Set(values.modules.split(",").map((m) => m.trim()))];
+if (modules?.some((m) => !moduleNames.includes(m as typeof moduleNames[number]))) {
+  throw new Error("--modules must contain listener, tracker, or checker (comma-separated)");
+}
 const bench = resolve(values.out!, "..");
 const read = (f: string) => JSON.parse(readFileSync(join(bench, f), "utf8"));
 const asset = JSON.parse(readFileSync(new URL("../../assets/ref-v2.json", import.meta.url), "utf8")) as ReferenceAsset;
@@ -219,14 +226,16 @@ const sha = values.sha ?? execSync("git rev-parse --short HEAD").toString().trim
 const row: ScoreRow = { sha, date: new Date().toISOString().slice(0, 10), listener: values.listener!, note: values.note, metrics };
 const jsonPath = `${resolve(values.out!)}.json`;
 const board: { version: number; rows: ScoreRow[] } = existsSync(jsonPath) ? JSON.parse(readFileSync(jsonPath, "utf8")) : { version: 1, rows: [] };
+// Keep existing attribution when regenerating a run without a new module tag.
+row.modules = modules as ScoreRow["modules"] ?? board.rows.find((r) => r.sha === row.sha && r.listener === row.listener)?.modules;
 board.rows = upsertRow(board.rows, row);
 writeFileSync(jsonPath, JSON.stringify(board, null, 1) + "\n");
 const HEADLINE = ["e2e.precision", "e2e.recall", "e2e.cleanPer5", "listener.perFair", "tracker.clean.within5s", "tracker.qud.within5s", "tracker.qud.falseJumps", "checker.oracleLock.recall", "checker.oracleAll.recall"];
 const md = [
   "# Engine scoreboard", "",
   "One row per commit × listener, recomputed from evidence on disk (no GPU). Bars are PLAN.md's v1 acceptance bars; `unmeasurable` means the data to score it doesn't exist yet, `pending` means the evidence exists in principle but hasn't been produced for this listener.", "",
-  "**How to run / add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard --note '<what changed and why>'` (teacher). The note is required by AGENTS.md. For a student, decode the help eval clips with it into a directory of `<clip>.evidence.json` and run `pnpm scoreboard --listener <run-name> --evidence <dir> --note '...'`; without `--evidence` its help metrics are `pending`. Each run replaces the row with the same commit and listener, else appends one; commit the updated `scoreboard.json` and `scoreboard.md` with the change they measure. Listener PER comes from `student-v1.json`, E1/E1b from their reports; rerun those first if the listener changed. Help clips: 388 scored eval clips, 29 held-out speakers; letter-confusion substitutions count as negatives. `Declared passage` gives the checker the prompted passage (`CheckerOptions.passage`), the memorization-session arm; `oracle evidence` replaces the decode with a perfect one synthesised from the label, so its losses are the checker's own.", "",
-  "**Dashboard.** `uv run tools/scoreboard_serve.py` serves `docs/benchmarks/` on http://127.0.0.1:8765/scoreboard.html: per-metric charts over time with the bar as a line and failing points in red, a listener filter, and the change log with each row's note, deltas and backing reports. It reads `scoreboard.json`, so a new row shows up on reload.", "",
+  "**How to run / add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard --note '<what changed and why>'` (teacher). The note is required by AGENTS.md. Add `--modules checker` (or `listener,tracker`) to tag the changed engine modules for the dashboard history. For a student, decode the help eval clips with it into a directory of `<clip>.evidence.json` and run `pnpm scoreboard --listener <run-name> --evidence <dir> --note '...'`; without `--evidence` its help metrics are `pending`. Each run replaces the row with the same commit and listener, else appends one; commit the updated `scoreboard.json` and `scoreboard.md` with the change they measure. Listener PER comes from `student-v1.json`, E1/E1b from their reports; rerun those first if the listener changed. Help clips: 388 scored eval clips, 29 held-out speakers; letter-confusion substitutions count as negatives. `Declared passage` gives the checker the prompted passage (`CheckerOptions.passage`), the memorization-session arm; `oracle evidence` replaces the decode with a perfect one synthesised from the label, so its losses are the checker's own.", "",
+  "**Dashboard.** `uv run tools/scoreboard_serve.py` serves the dashboard on http://127.0.0.1:8765/scoreboard.html. Choose a listener model to see end-to-end precision and recall, listener/tracker/checker summaries and trends, and missed-error attribution. The change history shows module tags, key figures and deltas, with filters for Listener, Tracker and Checker. Full notes are expandable; comparisons always use the previous run for that model, even when filtered. Expand “Explore all measurements” for sample counts, targets and backing reports. It reads `scoreboard.json`, so a new row appears on reload.", "",
   renderScoreboard(board.rows, HEADLINE),
 ].join("\n");
 writeFileSync(`${resolve(values.out!)}.md`, md);
