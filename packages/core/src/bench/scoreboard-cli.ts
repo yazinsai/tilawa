@@ -241,7 +241,8 @@ add({ id: "checker.selfCorrection", group: CHECKER, name: "Self-correction / lon
 
 // ---- Row.
 const sha = values.sha ?? execSync("git rev-parse --short HEAD").toString().trim();
-const row: ScoreRow = { sha, date: new Date().toISOString().slice(0, 10), listener: values.listener!, note: values.note, metrics };
+const now = new Date().toISOString();
+const row: ScoreRow = { sha, date: now.slice(0, 10), recordedAt: now, listener: values.listener!, note: values.note, metrics };
 const jsonPath = `${resolve(values.out!)}.json`;
 const board: { version: number; rows: ScoreRow[] } = existsSync(jsonPath) ? JSON.parse(readFileSync(jsonPath, "utf8")) : { version: 1, rows: [] };
 // Keep existing attribution when regenerating a run without a new module tag.
