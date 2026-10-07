@@ -689,6 +689,82 @@ Delta is against the baseline row 2d94ea0 (2026-10-07).
 | Checker | E0: misses lost to checker | 2/37 |  | info |  | real upstream, free arm |
 | Checker | Self-correction / long-session false warnings | — |  | unmeasurable |  | no recordings (ticket 05) |
 
+## Latest: spliced-clean-onnx @ 457e2f0 (2026-10-07)
+
+Delta is against the baseline row 457e2f0 (2026-10-07).
+
+| Area | Metric | Value | Bar | Status | Δ baseline | Note |
+|---|---|---:|---|---|---:|---|
+| End to end | Memorization precision | 81.8% (27/33) | ≥ 90.0% | fail |  | help eval split, held-out speakers: 388 clips, 29 speakers; free recitation, default policy |
+| End to end | Memorization recall | 42.2% (27/64) | ≥ 80.0% | fail |  |  |
+| End to end | wrong_word precision | 25.0% (1/4) | ≥ 90.0% | fail |  |  |
+| End to end | wrong_word recall | 3.4% (1/29) | ≥ 80.0% | fail |  |  |
+| End to end | omitted_word precision | 100.0% (26/26) | ≥ 90.0% | pass |  |  |
+| End to end | omitted_word recall | 74.3% (26/35) | ≥ 80.0% | fail |  |  |
+| End to end | added_word precision | 0.0% (0/1) | ≥ 90.0% | fail |  |  |
+| End to end | added_word recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
+| End to end | skipped_passage precision | 0.0% (0/2) | ≥ 90.0% | fail |  |  |
+| End to end | skipped_passage recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
+| End to end | False warnings per clean clip | 0.013 (3/225) |  | info |  |  |
+| End to end | False warnings per 5 min (short clips) | 0.324 | ≤ 1 | pass |  | short clips; the gating number needs phase-2 long sessions |
+| End to end | False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass |  |  |
+| End to end | Pronunciation: short_vowel | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 30 positives in eval split |
+| End to end | Pronunciation: consonant_sad_sin | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 4 positives in eval split |
+| End to end | Pronunciation: madd_natural | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 1 positives in eval split |
+| End to end | Pronunciation: other pairs, shadda | — |  | unmeasurable |  | no recordings with positives (ticket 05, phase 2) |
+| End to end | Tracker real-time factor (this machine) | 0.002 | ≤ 0.05 | pass |  | perf.ts gate: device floor assumed 20× slower; slowest push 28.2 ms |
+| End to end | Word highlight p95 / suspected / confirmed latency | — |  | unmeasurable |  | needs word onsets and device runs (E7, ticket 10) |
+| Listener | Gold PER (canon vs spliced, human-verified exact) | — | ≤ 3.7% | pending |  | not decoded on the gold set; modal/student_decode_cpu.py::gold, then tools/gold_set.py score |
+| Listener | Fair PER on tlog clean-match test (canon vs spliced) | — |  | pending |  | not in the PER breakdown; run tools/per_breakdown.py on this run's decode |
+| Listener | Raw PER vs reference (tlog clean-match test) | — |  | info |  | Quran-Lab zipformer 3.65% on phone audio: reference only, not a gate |
+| Listener | Raw PER vs teacher | — |  | info |  |  |
+| Listener | Planted memorization errors visible in the decode | 68.8% (44/64) |  | info |  | E0 heuristic: under half the planted word's consonants decode as written |
+| Listener | E1 help clips: short vowel greedy recall | — |  | pending |  | E1/E1b not run on spliced-clean-onnx's posteriors |
+| Listener | E1: classes heard | — |  | pending |  | E1/E1b not run on spliced-clean-onnx's posteriors |
+| Listener | E1b: classes heard | — |  | pending |  | E1/E1b not run on spliced-clean-onnx's posteriors |
+| Tracker | help clean: correct ayah within 5 s | 84.0% (189/225) | ≥ 95.0% | fail |  | fair gate number on user-like audio |
+| Tracker | help clean: clips with a false jump | 0.0% (0/225) | ≤ 2.0% | pass |  |  |
+| Tracker | help clean: clips with any lock outside the passage | 0.0% (0/225) |  | info |  |  |
+| Tracker | help clean: median time to correct lock | 2.66 s |  | info |  | from first decoded phoneme |
+| Tracker | help all: correct ayah within 5 s | 78.1% (303/388) | ≥ 95.0% | fail |  | error clips: a substitution forming another ayah counts as wrong |
+| Tracker | help all: clips with a false jump | 0.0% (0/388) | ≤ 2.0% | pass |  |  |
+| Tracker | help all: clips with any lock outside the passage | 5.4% (21/388) |  | info |  |  |
+| Tracker | help all: median time to correct lock | 2.56 s |  | info |  | from first decoded phoneme |
+| Tracker | QUD regression: correct ayah within 5 s | — |  | pending |  | no QUD evidence from spliced-clean-onnx |
+| Tracker | Ambiguous tlog clips (PLAN gate set) | — |  | unmeasurable |  | no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06) |
+| Tracker | Scripted-error recordings (PLAN gate set) | — |  | unmeasurable |  | no recordings yet (ticket 05) |
+| Checker | Declared passage: Memorization precision | 83.6% (56/67) | ≥ 90.0% | fail |  | declared passage (CheckerOptions.passage): the prompted passage, real tracker and evidence |
+| Checker | Declared passage: Memorization recall | 87.5% (56/64) | ≥ 80.0% | pass |  |  |
+| Checker | Declared passage: wrong_word precision | 77.4% (24/31) | ≥ 90.0% | fail |  |  |
+| Checker | Declared passage: wrong_word recall | 82.8% (24/29) | ≥ 80.0% | pass |  |  |
+| Checker | Declared passage: omitted_word precision | 97.0% (32/33) | ≥ 90.0% | pass |  |  |
+| Checker | Declared passage: omitted_word recall | 91.4% (32/35) | ≥ 80.0% | pass |  |  |
+| Checker | Declared passage: added_word precision | 0.0% (0/1) | ≥ 90.0% | fail |  |  |
+| Checker | Declared passage: added_word recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
+| Checker | Declared passage: skipped_passage precision | 0.0% (0/2) | ≥ 90.0% | fail |  |  |
+| Checker | Declared passage: skipped_passage recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
+| Checker | Declared passage: False warnings per clean clip | 0.022 (5/225) |  | info |  |  |
+| Checker | Declared passage: False warnings per 5 min (short clips) | 0.541 | ≤ 1 | pass |  | short clips; the gating number needs phase-2 long sessions |
+| Checker | Declared passage: False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass |  |  |
+| Checker | Oracle lock + evidence: Memorization precision | 100.0% (59/59) | ≥ 90.0% | pass |  | oracle lock + oracle evidence synthesised from labels (Decision 7); 0 clips with an unphonemizable planted word skipped |
+| Checker | Oracle lock + evidence: Memorization recall | 92.2% (59/64) | ≥ 80.0% | pass |  |  |
+| Checker | Oracle lock + evidence: wrong_word precision | 100.0% (24/24) | ≥ 90.0% | pass |  |  |
+| Checker | Oracle lock + evidence: wrong_word recall | 82.8% (24/29) | ≥ 80.0% | pass |  |  |
+| Checker | Oracle lock + evidence: omitted_word precision | 100.0% (35/35) | ≥ 90.0% | pass |  |  |
+| Checker | Oracle lock + evidence: omitted_word recall | 100.0% (35/35) | ≥ 80.0% | pass |  |  |
+| Checker | Oracle lock + evidence: added_word precision | — (0 raised) | ≥ 90.0% | unmeasurable |  |  |
+| Checker | Oracle lock + evidence: added_word recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
+| Checker | Oracle lock + evidence: skipped_passage precision | — (0 raised) | ≥ 90.0% | unmeasurable |  |  |
+| Checker | Oracle lock + evidence: skipped_passage recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
+| Checker | Oracle lock + evidence: False warnings per clean clip | 0.000 (0/225) |  | info |  |  |
+| Checker | Oracle lock + evidence: False warnings per 5 min (short clips) | 0 | ≤ 1 | pass |  | short clips; the gating number needs phase-2 long sessions |
+| Checker | Oracle lock + evidence: False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass |  |  |
+| Checker | Oracle lock + evidence: positives raised in any state | 92.2% (59/64) |  | info |  | the rest of the gap to recall is events still suspected/uncertain at clip end (confirmation delay on short clips) |
+| Checker | E0: misses lost to evidence | 6/37 |  | info |  |  |
+| Checker | E0: misses lost to tracker | 29/37 |  | info |  |  |
+| Checker | E0: misses lost to checker | 2/37 |  | info |  | real upstream, free arm |
+| Checker | Self-correction / long-session false warnings | — |  | unmeasurable |  | no recordings (ticket 05) |
+
 ## History
 
 | Date | Commit | Listener | End to end: Memorization precision | End to end: Memorization recall | End to end: False warnings per 5 min (short clips) | Listener: Gold PER (canon vs spliced, human-verified exact) | Tracker: help clean: correct ayah within 5 s | Tracker: QUD regression: correct ayah within 5 s | Tracker: QUD regression: false jumps | Checker: Oracle lock: Memorization recall | Checker: Oracle lock + evidence: Memorization recall | Note |
@@ -708,3 +784,4 @@ Delta is against the baseline row 2d94ea0 (2026-10-07).
 | 2026-10-07 | 2d94ea0 | combo-libri-soft5-full | 83.8% (31/37) | 48.4% (31/64) | 0.216 | 4.82% (233 clips) | 84.4% (190/225) | — | — | 84.4% (54/64) | 92.2% (59/64) | LibriSpeech init + soft top-5, 12 epochs; trained on gold tlog clips, so gold PER is optimistic (use held-out slice) |
 | 2026-10-07 | 2d94ea0 | combo-clean | 75.7% (28/37) | 43.8% (28/64) | 0.541 | 4.97% (233 clips) | 84.4% (190/225) | — | — | 79.7% (51/64) | 92.2% (59/64) | combo retrained with the 150 gold tlog clips excluded from train; same recipe |
 | 2026-10-07 | 2d94ea0 | spliced-clean | 81.8% (27/33) | 42.2% (27/64) | 0.324 | 4.71% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | 92.2% (59/64) | spliced-reference CTC target (reference between teacher anchors, runs collapsed) + soft top-5 at weight 2, gold excluded |
+| 2026-10-07 | 457e2f0 | spliced-clean-onnx | 81.8% (27/33) | 42.2% (27/64) | 0.324 | — | 84.0% (189/225) | — | — | 87.5% (56/64) | 92.2% (59/64) | Ticket 09: spliced-clean as shipped: fp32 streaming ONNX on onnxruntime-node via the SDK listener (TS fbank, 320 ms windows); help evidence decoded from WAV, 381/388 decodes identical to PyTorch |
