@@ -18,6 +18,7 @@ const { values } = parseArgs({ options: {
   torch: { type: "string", default: "../../../tilawa/.scratch/gold/spliced-clean", description: "PyTorch evidence of the same clips" },
   report: { type: "string", default: "../../docs/benchmarks/sdk-help-spliced-clean-v1.json" },
   push: { type: "string", default: "320" },
+  "evidence-ms": { type: "string", default: "1000" },
   limit: { type: "string" },
 } });
 const asset = (p: string) => JSON.parse(readFileSync(new URL(`../../../core/assets/${p}`, import.meta.url), "utf8"));
@@ -29,7 +30,7 @@ const model = await loadNodeModel(resolve(values.model!));
 
 let same = 0, compared = 0;
 const res = await runHelpBench({
-  helpDir: resolve(values.help!), reference, phrases, model, pushMs: Number(values.push), limit: values.limit ? Number(values.limit) : undefined,
+  helpDir: resolve(values.help!), reference, phrases, model, pushMs: Number(values.push), evidenceMs: Number(values["evidence-ms"]), limit: values.limit ? Number(values.limit) : undefined,
   onClip(c, done, total) {
     writeFileSync(resolve(out, `${c.id}.evidence.json`), JSON.stringify({ inventory: reference.inventoryId, frameMs: model.manifest.frameMs, nFrames: c.nFrames, phonemes: c.phonemes }));
     const torch = resolve(values.torch!, `${c.id}.evidence.json`);
@@ -43,7 +44,7 @@ const res = await runHelpBench({
 });
 const pct = (x: number) => `${(100 * x).toFixed(1)}%`;
 const summary = {
-  model: model.manifest.id, format: model.manifest.format, runtime: model.backend.name, pushMs: Number(values.push),
+  model: model.manifest.id, format: model.manifest.format, runtime: model.backend.name, pushMs: Number(values.push), evidenceMs: Number(values["evidence-ms"]),
   clips: res.clips.length, audioS: res.seconds.audio, rtf: res.seconds.compute / res.seconds.audio / 2,
   decodeIdenticalToPyTorch: `${same}/${compared}`,
   free: res.free, declared: res.declared,

@@ -21,6 +21,12 @@ export interface SessionPolicy {
   confirm?: CheckerPolicy["confirm"];
   /** Below this mean decoder confidence an error ends `uncertain`. Default 0.6. */
   minConfidence?: number;
+  /**
+   * Batch listener output into evidence chunks of at least this much audio before the tracker and checker see it.
+   * Default 1000, the cadence every scoreboard number is measured at: at 320 ms the free-recitation checker raises
+   * more false warnings on the help clips (precision 81.8% → 73.0%); the declared arm is unchanged.
+   */
+  evidenceMs?: number;
 }
 
 export interface MemorizationPassage {
@@ -99,6 +105,22 @@ export function createEngine(options: EngineOptions): Engine {
       return events;
     };
     const recorded: PhonemeEvidence[] = [];
+    const evidenceMs = policy.evidenceMs ?? 1000;
+    let held: PhonemeEvidence[] = [];
+    let heldFrom = 0;
+    let heldTo = 0;
+    /** Listener chunks end at the start of the open token run; the batch spans up to the last one's end. */
+    const batch = (e: PhonemeEvidence | null, final: boolean) => {
+      if (e) {
+        if (!held.length) heldFrom = heldTo;
+        held.push(e);
+        heldTo = Math.max(heldTo, e.posteriors ? e.posteriors.startFrame + e.posteriors.nFrames : (e.phonemes.at(-1)?.end ?? heldTo - 1) + 1);
+      }
+      if (!held.length || (!final && (heldTo - heldFrom) * model.manifest.frameMs < evidenceMs)) return [];
+      const merged = merge(held);
+      held = [];
+      return step(merged);
+    };
     const step = (e: PhonemeEvidence) => {
       if (options.recordEvidence) recorded.push(e);
       const out = tracker.push(e);
@@ -125,13 +147,11 @@ export function createEngine(options: EngineOptions): Engine {
       },
       pushAudio: (samples, rate) =>
         serial(async () => {
-          const e = await listener.push(samples, rate);
-          return e ? step(e) : [];
+          return batch(await listener.push(samples, rate), false);
         }),
       end: () =>
         serial(async () => {
-          const e = await listener.end();
-          return [...(e ? step(e) : []), ...finish()];
+          return [...batch(await listener.end(), true), ...finish()];
         }),
       pushEvidence: step,
       endEvidence: finish,
@@ -144,4 +164,21 @@ export function createEngine(options: EngineOptions): Engine {
     startMemorization: (p, policy) => start("memorization", declare(p), policy),
     startFreeRecitation: (policy) => start("free", null, policy),
   };
+}
+
+function merge(chunks: PhonemeEvidence[]): PhonemeEvidence {
+  if (chunks.length === 1) return chunks[0];
+  const e: PhonemeEvidence = { inventory: chunks[0].inventory, frameMs: chunks[0].frameMs, phonemes: chunks.flatMap((c) => c.phonemes) };
+  const ps = chunks.map((c) => c.posteriors);
+  if (ps.every((p) => p)) {
+    const k = ps[0]!.k;
+    e.posteriors = {
+      k,
+      startFrame: ps[0]!.startFrame,
+      nFrames: ps.reduce((n, p) => n + p!.nFrames, 0),
+      ids: ps.flatMap((p) => Array.from(p!.ids)),
+      probs: ps.flatMap((p) => Array.from(p!.probs)),
+    };
+  }
+  return e;
 }

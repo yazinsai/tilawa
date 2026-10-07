@@ -67,6 +67,7 @@ export async function runHelpBench(o: {
   model: LoadedModel;
   /** Push size in ms of audio, as a microphone would deliver it. */
   pushMs?: number;
+  evidenceMs?: number;
   limit?: number;
   onClip?: (c: HelpBenchClip, done: number, total: number) => void;
 }): Promise<HelpBenchResult> {
@@ -85,8 +86,8 @@ export async function runHelpBench(o: {
     const [surah, fromAyah] = l.ayahs[0].split(":").map(Number);
     const toAyah = Number(l.ayahs.at(-1)!.split(":")[1]);
     const t0 = performance.now();
-    const free = engine.startFreeRecitation();
-    const declared = engine.startMemorization({ surah, fromAyah, toAyah });
+    const free = engine.startFreeRecitation({ evidenceMs: o.evidenceMs });
+    const declared = engine.startMemorization({ surah, fromAyah, toAyah }, { evidenceMs: o.evidenceMs });
     const run = async (s: Session) => {
       const out: EngineEvent[] = [];
       for (let a = 0; a < wav.samples.length; a += push) out.push(...(await s.pushAudio(wav.samples.subarray(a, a + push), wav.sampleRate)));
