@@ -17,6 +17,12 @@ export interface CheckerOptions {
   policy?: CheckerPolicy;
   /** Non-Quran phrases: an inserted block that is one of these (or a basmala) is not an added word. */
   phrases?: PhraseAsset;
+  /**
+   * The passage the session declared (memorization): the checker aligns against it rather than the tracker's lock, so
+   * a wrong word that forms another ayah is still wrong. A tracker lock off the passage spanning `JUMP_WORDS` words is
+   * a deliberate jump, followed until the tracker locks back inside the passage.
+   */
+  passage?: { from: WordRef; to: WordRef };
 }
 
 export interface Checker {
@@ -59,6 +65,13 @@ const KEEP = 120;
 /** The window spans one ayah before the anchor and this many after the furthest recited word. */
 const AHEAD_AYAHS = 2;
 const PHRASE_MAX_COST = 0.3;
+/** Consecutive words a lock off the declared passage spans before it counts as a deliberate jump. */
+const JUMP_WORDS = 4;
+/**
+ * Below this cost per phoneme the lock's words also fit the declared passage: a wrong word that forms another ayah
+ * shares most of its words with the passage, a deliberate jump doesn't.
+ */
+const FITS_PASSAGE = 0.35;
 
 const INF = Infinity;
 const OP_START = 0;
@@ -131,10 +144,20 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
   const wordIndex = (r: WordRef) => words.findIndex((w) => w.surah === r.surah && w.ayah === r.ayah && w.word === r.word);
   const toRef = (i: number): WordRef => ({ surah: words[i].surah, ayah: words[i].ayah, word: words[i].word });
+  const passage = options.passage && { from: wordIndex(options.passage.from), to: wordIndex(options.passage.to) };
+  /** Off the passage by more than an ayah either side. */
+  const offPassage = (wi: number) => !!passage && (ayahOf[wi] < ayahOf[passage.from] - 1 || ayahOf[wi] > ayahOf[passage.to] + 1);
+  const fitsPassage = (from: number, to: number) => {
+    const text = ref.slice(words[from].start, words[to].end);
+    const a = alignSubstring(ref, words[passage!.from].start, words[passage!.to].end, text, (o) => wordStarts.has(o));
+    return !!a && a.cost / UNIT / text.length < FITS_PASSAGE;
+  };
 
   let frameMs = 0;
   let nowMs = 0;
   let trackerLocked = false;
+  /** Aligning against the declared passage; false while following a deliberate jump off it. */
+  let declared = !!passage;
   /** Phonemes since the last anchor (or the latest `HISTORY` while not anchored). */
   let obs: Heard[] = [];
   /** Word the window's alignment starts from; null while not anchored. */
@@ -181,7 +204,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const decide = (o: Open, out: CheckerEvent[], state?: "uncertain") => {
     open.delete(o.issue.word);
     decided.add(o.issue.word);
-    out.push(event(o, state ?? (trackerLocked && clarity(o.issue) >= minConfidence ? "confirmed" : "uncertain")));
+    out.push(event(o, state ?? ((declared || trackerLocked) && clarity(o.issue) >= minConfidence ? "confirmed" : "uncertain")));
   };
 
   const dropAnchor = (out: CheckerEvent[]) => {
@@ -464,7 +487,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     flush();
     for (const a of added) if (a.word >= first && !issues.has(a.word)) issues.set(a.word, a);
-    return { issues, head, furthest: reached, steps };
+    return { issues, head, furthest: reached, steps, right };
   };
 
   /** Matched phonemes on the word after an error, heard after it: the next word has begun. */
@@ -480,7 +503,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     setWindow();
     const judged = judge(align());
     if (!judged) return;
-    const { issues, head, furthest: reached, steps } = judged;
+    const { issues, head, furthest: reached, steps, right } = judged;
     furthest = Math.max(furthest, reached);
     for (const [wi, o] of [...open]) {
       const now = issues.get(wi);
@@ -503,9 +526,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const omission = issue.cls === "omitted_word" || issue.cls === "skipped_passage";
       const due = omission
         ? final || ayahOf[reached] >= ayahOf[issue.last] + 2
-        : head !== issue.word && onset(steps, issue) && (confirm.after === "next-word" || nowMs - o.sinceMs >= confirm.ms);
+        : head !== issue.word &&
+          onset(steps, issue) &&
+          (confirm.after === "next-word" || nowMs - o.sinceMs >= confirm.ms || (final && declared && [...right].some((wi) => wi > issue.last)));
       if (due) decide(o, out);
-      // The session ended before the confirm delay or the next word: nothing showed the error stands.
+      // The session ended first. A declared passage confirms once a later word was recited right; free recitation can't
+      // tell a wrong word from the tracker's next guess, so it ends uncertain.
       else if (final) decide(o, out, "uncertain");
     }
     if (!final && obs.length > MAX_WINDOW) commit(steps, out);
@@ -544,6 +570,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const p = e as PositionEvent;
       if (p.state !== "locked") {
         trackerLocked = false;
+        if (declared) continue;
         if (anchor !== null) dropAnchor(out);
         next = null;
         continue;
@@ -551,6 +578,20 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       trackerLocked = true;
       const start = wordIndex(p.observed[0].span.start);
       const end = wordIndex(p.observed[0].word);
+      if (declared) {
+        if (end - start + 1 < JUMP_WORDS || !offPassage(start) || !offPassage(end) || fitsPassage(start, end)) continue;
+        declared = false;
+        if (anchor !== null) dropAnchor(out);
+        next = start;
+        continue;
+      }
+      if (passage && !offPassage(end)) {
+        // Back on the declared passage after a jump.
+        declared = true;
+        if (anchor !== null) dropAnchor(out);
+        next = start;
+        continue;
+      }
       if (anchor === null) next ??= start;
       else if (words[end].start < lo || words[end].start >= hi) {
         // A jump the window can't follow: start over where the tracker went.
@@ -571,7 +612,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       markPhrases(before);
       const lastPh = obs.at(-1);
       if (lastPh) nowMs = Math.max(nowMs, (lastPh.end + 1) * frameMs);
-      if (anchor === null && next !== null) {
+      if (anchor === null && next === null && declared && obs.length) {
+        anchor = passage!.from;
+        lead = obs.length;
+        fromLock = false;
+        furthest = -1;
+      } else if (anchor === null && next !== null) {
         anchor = next;
         const end = events.filter((e): e is PositionEvent => e.type === "position").at(-1)!.observed[0].word;
         const span = words[wordIndex(end)].end - words[next].start;

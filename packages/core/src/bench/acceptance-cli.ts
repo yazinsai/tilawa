@@ -10,7 +10,7 @@ import { MEMORIZATION_CLASSES, attribute, scoreClip } from "./acceptance.js";
 import type { AcceptanceClip, Arm, ClipScore, MissCause } from "./acceptance.js";
 import type { QudRecording } from "./index.js";
 
-const VERSION = "v1";
+const VERSION = process.env.ACCEPTANCE_VERSION ?? "v2";
 const { values } = parseArgs({ options: {
   dir: { type: "string", default: process.env.HELP_DIR ?? "../../.scratch/help" },
   report: { type: "string", default: `../../docs/benchmarks/acceptance-${VERSION}` },
@@ -123,7 +123,7 @@ const output = {
   version: VERSION,
   commit: execSync("git rev-parse --short HEAD").toString().trim(),
   reference: index.version,
-  policy: "default checker policy; 1 s chunks; memorization mode; no passage prior",
+  policy: "default checker policy; 1 s chunks; memorization mode; no passage prior; declared arm passes the prompted passage to the checker",
   labels: { eval: evalLabels.length, unscored: evalLabels.length - usable.length, letterPairClips: rows.filter((r) => letterPairs.has(r.id)).length },
   free: { all: summarize(rows, "free"), verified: summarize(verified, "free") },
   declared: { all: summarize(rows, "declared"), verified: summarize(verified, "declared") },
@@ -144,10 +144,10 @@ const frac = (n: number, d: number) => `${n}/${d}${d ? ` (${((100 * n) / d).toFi
 const fa = output.free.all, da = output.declared.all, fv = output.free.verified, dv = output.declared.verified;
 const ga = output.gate.all, gc = output.gate.clean;
 const lines = [
-  `# Acceptance eval ${VERSION}: help clips (ticket 07, phase 1)`, "",
+  `# Acceptance eval ${VERSION}: help clips (ticket 07)`, "",
   `Report ${VERSION}, commit ${output.commit}, reference ${index.version}. Held-out speakers only (eval split): ${output.labels.eval} clips, ${output.labels.unscored} unscored by the import or the audit (ticket 12), ${rows.length} scored from ${fa.speakers} speakers. Labels are the final post-audit \`labels.jsonl\` with version swaps applied. ${output.labels.letterPairClips} letter-confusion substitutions are pronunciation errors, so they count as negatives here. Repeats are non-errors: a confirmed event on one is a false positive.`, "",
   "Teacher evidence is the offline Muaalem decode (30 s windows), replayed in 1 s chunks. It is not a streaming student.", "",
-  "Two arms. **Free recitation** is the default engine: the checker follows the tracker lock (Decision 3). **Declared passage** is a prototype: the checker is anchored once to the clip's prompted passage and the tracker lock is ignored. The tracker and checker code are unchanged.", "",
+  "Two arms, both core engine code. **Free recitation** is the default: the checker follows the tracker lock (Decision 3). **Declared passage**: the session passes the prompted passage (`CheckerOptions.passage`); the checker aligns against it and uses the tracker lock only to follow a deliberate jump (a lock of 4+ words more than an ayah off the passage whose words don't also fit the passage). At session end a declared session confirms a suspected wrong or added word once a later word was recited right; free recitation still ends it `uncertain`.", "",
   "## Memorization", "",
   "| Measure | Free (all) | Declared (all) | Free (audit-verified) | Declared (audit-verified) | Bar |", "|---|---:|---:|---:|---:|---|",
   `| Clips / speakers | ${fa.clips} / ${fa.speakers} | ${da.clips} / ${da.speakers} | ${fv.clips} / ${fv.speakers} | ${dv.clips} / ${dv.speakers} | |`,
@@ -194,7 +194,8 @@ const lines = [
   "- Clips are single ayahs or short ranges (mean " + (sum(rows.map((r) => r.audioS)) / rows.length).toFixed(1) + " s). Per-5-minute false warnings from short clips are not the acceptance bar; phase 2's long sessions are.",
   "- Matching needs exact class and word, one-to-one, on each event's final state. An error still pending at clip end is a miss: short clips end before the 2.5 s confirmation delay.",
   "- The evidence check is a heuristic on the greedy decode, not an as-said label. `checker` includes errors the decode shows only partly.",
-  "- Declared-passage mode never re-anchors, so a real jump in a declared session would read as wrong words. Detecting a deliberate jump is not prototyped.",
+  "- Deliberate jumps are covered by a synthetic test only: the help clips have none, so this eval shows jump detection doesn't misfire on substitutions, not that it catches real jumps.",
+  "- End-of-session finalisation is off in free recitation. Measured with it on, the free arm went from 32 / 26 / 32 to 34 / 31 / 30 (hits / FP / misses) and clean false warnings from 8 to 11, and a clean tlog fixture gained two confirmed errors. In the declared arm it is worth it: off, 43 / 30 / 21 and 10 clean warnings.",
   "- Pronunciation classes other than short vowel have fewer than 15 eval sites (ص/س 4, madd 1) and are `unsupported` here.", "",
 ];
 function e1Table(r: any): string[] {

@@ -13,6 +13,7 @@ Nothing else in PLAN.md exists yet: the checker, the full tlog pass, ground trut
 1. **Critical path:** prove what the teacher can hear (E1) and build the checker on teacher evidence before spending on distillation. A cheap device probe de-risks the student in parallel.
 2. **Tracker gate:** the 95% / 2% bar is measured on user-like audio, meaning scripted-error recordings and ambiguous tlog clips. QUD becomes a regression report, not a gate.
 3. **Checker:** a separate consumer of the tracker's locked alignment and the evidence. Memorization errors come from the alignment; pronunciation errors come from the evidence.
+   - *Amended 2026-10-07:* a session that declares its passage gets a checker that aligns against that passage, using the tracker lock only to follow a deliberate jump; free recitation is unchanged. See `docs/benchmarks/acceptance-v2.md`.
 4. **Pronunciation fallback:** classes the teacher can't hear ship as `unsupported`, so v1 can ship memorization-only. The research bet is per-pair classifiers on tracker-aligned segments (speculative).
 5. **Self-correction:** it emits `suspected`, then `resolved`. Whether it counts as a mistake is a policy setting; by default it doesn't.
 6. **Repeats** aren't errors. A **skip** is a suspected omission. It becomes `resolved` if the skipped words are recited before the next ayah ends, and `confirmed` otherwise.
