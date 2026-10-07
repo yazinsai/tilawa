@@ -175,7 +175,7 @@ add({ id: "tracker.scripted", group: TRACKER, name: "Scripted-error recordings (
 // ---- Checker isolated.
 const CHECKER = "Checker";
 if (rows.length) {
-  memoMetrics("checker.oracleLock", CHECKER, memo(rows, "declared"), "oracle lock (declared passage) on real evidence", false, "Oracle lock: ");
+  memoMetrics("checker.oracleLock", CHECKER, memo(rows, "declared"), "declared passage (CheckerOptions.passage): the prompted passage, real tracker and evidence", true, "Declared passage: ");
   const oc = memo(rows, "oracle");
   memoMetrics("checker.oracleAll", CHECKER, oc, `oracle lock + oracle evidence synthesised from labels (Decision 7); ${rows.length - oc.clips} clips with an unphonemizable planted word skipped`, true, "Oracle lock + evidence: ");
   add({ id: "checker.oracleAll.raised", group: CHECKER, name: "Oracle lock + evidence: positives raised in any state", value: ratio(oc.raised, oc.tp + oc.fn), unit: "%", display: frac(oc.raised, oc.tp + oc.fn), note: "the rest of the gap to recall is events still suspected/uncertain at clip end (confirmation delay on short clips)" });
@@ -201,7 +201,7 @@ const HEADLINE = ["e2e.precision", "e2e.recall", "e2e.cleanPer5", "listener.perR
 const md = [
   "# Engine scoreboard", "",
   "One row per commit × listener, recomputed from evidence on disk (no GPU). Bars are PLAN.md's v1 acceptance bars; `unmeasurable` means the data to score it doesn't exist yet, `pending` means the evidence exists in principle but hasn't been produced for this listener.", "",
-  "**How to run / add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard` (teacher). For a student, decode the help eval clips with it into a directory of `<clip>.evidence.json` and run `pnpm scoreboard --listener <run-name> --evidence <dir>`; without `--evidence` its help metrics are `pending`. Each run replaces the row with the same commit and listener, else appends one; commit the updated `scoreboard.json` and `scoreboard.md` with the change they measure. Listener PER comes from `student-v1.json`, E1/E1b from their reports; rerun those first if the listener changed. Help clips: 388 scored eval clips, 29 held-out speakers; letter-confusion substitutions count as negatives. `Oracle lock` anchors the checker to the prompted passage; `oracle evidence` replaces the decode with a perfect one synthesised from the label, so its losses are the checker's own.", "",
+  "**How to run / add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard` (teacher). For a student, decode the help eval clips with it into a directory of `<clip>.evidence.json` and run `pnpm scoreboard --listener <run-name> --evidence <dir>`; without `--evidence` its help metrics are `pending`. Each run replaces the row with the same commit and listener, else appends one; commit the updated `scoreboard.json` and `scoreboard.md` with the change they measure. Listener PER comes from `student-v1.json`, E1/E1b from their reports; rerun those first if the listener changed. Help clips: 388 scored eval clips, 29 held-out speakers; letter-confusion substitutions count as negatives. `Declared passage` gives the checker the prompted passage (`CheckerOptions.passage`), the memorization-session arm; `oracle evidence` replaces the decode with a perfect one synthesised from the label, so its losses are the checker's own.", "",
   renderScoreboard(board.rows, HEADLINE),
 ].join("\n");
 writeFileSync(`${resolve(values.out!)}.md`, md);
