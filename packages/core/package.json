@@ -13,7 +13,8 @@
     "bench": "tsx src/bench/cli.ts",
     "perf": "tsx src/bench/perf-cli.ts",
     "e2e": "tsx src/e2e/cli.ts",
-    "buckets": "tsx src/buckets/cli.ts"
+    "buckets": "tsx src/buckets/cli.ts",
+    "scoreboard": "tsx src/bench/scoreboard-cli.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",
