@@ -5,7 +5,7 @@
  "points": {
   "teacher": {
    "goldPer": 0.03389957344907581,
-   "scoreboardSha": "1bea44c",
+   "scoreboardSha": "bfc52cb",
    "declared.recall": 0.890625,
    "declared.precision": 0.7702702702702703,
    "short_vowel.recall": 0.6333333333333333,
@@ -13,7 +13,7 @@
   },
   "e5-top1-lite": {
    "goldPer": 0.07213948963556088,
-   "scoreboardSha": "1bea44c",
+   "scoreboardSha": "bfc52cb",
    "declared.recall": 0.84375,
    "declared.precision": 0.5094339622641509,
    "short_vowel.recall": 0.6,
@@ -21,7 +21,7 @@
   },
   "e5-soft5-lite": {
    "goldPer": 0.05941779540522338,
-   "scoreboardSha": "1bea44c",
+   "scoreboardSha": "bfc52cb",
    "declared.recall": 0.84375,
    "declared.precision": 0.627906976744186,
    "short_vowel.recall": 0.4,
@@ -29,7 +29,7 @@
   },
   "e2-scratch-full": {
    "goldPer": 0.07303749158123175,
-   "scoreboardSha": "1bea44c",
+   "scoreboardSha": "bfc52cb",
    "declared.recall": 0.859375,
    "declared.precision": 0.44715447154471544,
    "short_vowel.recall": 0.6,
@@ -37,7 +37,7 @@
   },
   "e2-libri-full": {
    "goldPer": 0.059791962882586244,
-   "scoreboardSha": "1bea44c",
+   "scoreboardSha": "bfc52cb",
    "declared.recall": 0.828125,
    "declared.precision": 0.6708860759493671,
    "short_vowel.recall": 0.5666666666666667,
