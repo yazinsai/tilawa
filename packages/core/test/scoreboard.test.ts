@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { loadReferenceIndex } from "../src/index.js";
 import type { PhraseAsset, ReferenceAsset } from "../src/index.js";
 import { scoreClip } from "../src/bench/acceptance.js";
-import { oracleClip, renderScoreboard, scored } from "../src/bench/scoreboard.js";
+import { oracleClip, renderScoreboard, scored, upsertRow } from "../src/bench/scoreboard.js";
 import type { ScoreRow } from "../src/bench/scoreboard.js";
 
 const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../assets/ref-v2.json", import.meta.url), "utf8"));
@@ -57,6 +57,17 @@ describe("scoreboard rendering", () => {
     const md = renderScoreboard([row("aaaaaaa", 0.55), row("bbbbbbb", 0.62)]);
     expect(md).toContain("| End to end | Precision | 62.0% | ≥ 90.0% | fail | +7.0 pp |  |");
     expect(md).toContain("| Tracker | Ambiguous tlog | — |  | unmeasurable |  | no passage truth |");
+  });
+
+  it("shows each row's note in the history", () => {
+    const md = renderScoreboard([{ ...row("aaaaaaa", 0.55), note: "baseline" }], ["e2e.precision"]);
+    expect(md).toContain("| 2026-10-07 | aaaaaaa | teacher | 55.0% | baseline |");
+  });
+
+  it("replaces the row with the same commit and listener, else appends", () => {
+    const b = upsertRow(upsertRow([], row("aaaaaaa", 0.5)), row("bbbbbbb", 0.6));
+    const c = upsertRow(b, { ...row("aaaaaaa", 0.7), note: "rerun" });
+    expect(c.map((r) => [r.sha, r.metrics[0].value, r.note])).toEqual([["aaaaaaa", 0.7, "rerun"], ["bbbbbbb", 0.6, undefined]]);
   });
 
   it("passes a metric that meets its bar", () => {

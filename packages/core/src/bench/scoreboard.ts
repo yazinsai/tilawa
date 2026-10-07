@@ -14,6 +14,8 @@ export interface Metric {
   value: number | null;
   /** `%` renders a 0–1 ratio as a percentage and deltas in percentage points. */
   unit?: "%" | "s" | "";
+  /** Backing report under docs/benchmarks. */
+  source?: string;
   /** Shown instead of the bare value, e.g. a count behind a ratio. */
   display?: string;
   bar?: { op: ">=" | "<="; target: number };
@@ -26,7 +28,15 @@ export interface ScoreRow {
   date: string;
   /** `teacher`, or a student run name. */
   listener: string;
+  /** One line: what changed and why. */
+  note?: string;
   metrics: Metric[];
+}
+
+/** Replaces the row with the same commit and listener, else appends. */
+export function upsertRow(rows: ScoreRow[], row: ScoreRow): ScoreRow[] {
+  const at = rows.findIndex((r) => r.sha === row.sha && r.listener === row.listener);
+  return at < 0 ? [...rows, row] : rows.map((r, i) => (i === at ? row : r));
 }
 
 /** A metric with its status derived from its bar, unless the caller already marked it unmeasurable or pending. */
@@ -68,9 +78,9 @@ export function renderScoreboard(rows: ScoreRow[], headline: string[] = []): str
   }
   const ids = headline.length ? headline : rows[0]?.metrics.filter((m) => m.bar).map((m) => m.id) ?? [];
   const names = ids.map((id) => rows.flatMap((r) => r.metrics).find((m) => m.id === id)).map((m, i) => (m ? `${m.group}: ${m.name}` : ids[i]));
-  out.push("## History", "", `| Date | Commit | Listener | ${names.join(" | ")} |`, `|---|---|---|${ids.map(() => "---:").join("|")}|`);
+  out.push("## History", "", `| Date | Commit | Listener | ${names.join(" | ")} | Note |`, `|---|---|---|${ids.map(() => "---:").join("|")}|---|`);
   for (const r of rows) {
-    out.push(`| ${r.date} | ${r.sha} | ${r.listener} | ${ids.map((id) => { const m = r.metrics.find((x) => x.id === id); return m ? value(m) : "—"; }).join(" | ")} |`);
+    out.push(`| ${r.date} | ${r.sha} | ${r.listener} | ${ids.map((id) => { const m = r.metrics.find((x) => x.id === id); return m ? value(m) : "—"; }).join(" | ")} | ${r.note ?? ""} |`);
   }
   return out.join("\n") + "\n";
 }
