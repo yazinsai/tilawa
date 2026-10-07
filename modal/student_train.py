@@ -1,6 +1,7 @@
 """Streaming Zipformer phoneme-CTC student distilled from Muaalem (ticket 08).
 
-The CTC target is the teacher's greedy path from the tlog pass. `--kd-weight` adds cross-entropy to the teacher's
+The CTC target is the teacher's greedy path from the tlog pass, or with `--target spliced` the reference inside the
+teacher-anchored span and the teacher at the clip edges, runs collapsed (`student.spliced_target`). `--kd-weight` adds cross-entropy to the teacher's
 renormalised top-5 posteriors per frame (E5). `--init librispeech-m` starts `full` from icefall's streaming
 Zipformer-M (E2). Student and teacher both emit at 25 Hz.
 
@@ -34,7 +35,9 @@ image = (
                  "pyarrow", "soundfile", "numpy", "scipy", "huggingface_hub", "urllib3", "requests")
     .run_commands(f"git clone https://github.com/k2-fsa/icefall /icefall && cd /icefall && git checkout {ICEFALL}")
     .env({"PYTHONPATH": "/icefall:/icefall/egs/librispeech/ASR/zipformer:/root/tools", "HF_HOME": "/cache/hf"})
+    .pip_install("rapidfuzz==3.14.1")
     .add_local_file("tools/student.py", "/root/tools/student.py")
+    .add_local_file("tools/per_breakdown.py", "/root/tools/per_breakdown.py")
     .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
 app = modal.App("tilawa-student-train", image=image)
@@ -66,6 +69,7 @@ DEFAULTS = dict(
     size="lite",
     init="",
     buckets="clean-match",
+    target="teacher",
     max_hours=0.0,
     max_clip_s=30.0,
     epochs=6,
@@ -225,7 +229,7 @@ class ClipDataset:
         return dict(
             i=i,
             feats=feats,
-            target=torch.tensor(phoneme_ids(c["hyp"][i]), dtype=torch.long),
+            target=torch.tensor(phoneme_ids(c.get("target", c["hyp"])[i]), dtype=torch.long),
             top_ids=torch.from_numpy(c["ids"][lo:hi].reshape(-1, 5).astype(np.int64)),
             top_p=torch.from_numpy(c["probs"][lo:hi].reshape(-1, 5).astype(np.float32)),
         )
@@ -408,6 +412,10 @@ def train(args: dict) -> dict:
     device = torch.device("cuda")
     t0 = time.time()
     train_clips = load_clips(cfg["buckets"], "train", cfg["max_hours"], cfg["max_clip_s"], cfg["seed"])
+    if cfg["target"] == "spliced":
+        from student import spliced_target
+
+        train_clips["target"] = [spliced_target(r, h) for r, h in zip(train_clips["ref"], train_clips["hyp"])]
     eval_clips = load_clips("clean-match", "test", 0, 60.0, 1, cfg["eval_max"])
     aug = {k: dict(np.load(f"/student/aug/{k}.npz")) for k in ("noise", "rir")} if os.path.exists("/student/aug/rir.npz") else None
     hours = train_clips["n_samples"].sum() / SR / 3600
@@ -542,6 +550,8 @@ def transcribe(run: str, src: str, dest: str, chunk: int = 16, left: int = 128) 
 
 @app.local_entrypoint()
 def main(name: str, size: str = "lite", init: str = "", max_hours: float = 0.0, epochs: int = 6,
-         kd_weight: float = 0.0, eval_max: int = 3000, eval_every: int = 2000, max_batch_s: float = 800.0):
+         kd_weight: float = 0.0, eval_max: int = 3000, eval_every: int = 2000, max_batch_s: float = 800.0,
+         base_lr: float = 0.045, target: str = "teacher"):
     print(train.remote(dict(name=name, size=size, init=init, max_hours=max_hours, epochs=epochs, kd_weight=kd_weight,
-                            eval_max=eval_max, eval_every=eval_every, max_batch_s=max_batch_s)))
+                            eval_max=eval_max, eval_every=eval_every, max_batch_s=max_batch_s, base_lr=base_lr,
+                            target=target)))

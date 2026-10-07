@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from student import TOKENS, corpus_per, ctc_collapse, exclusions, held_out, ids_phonemes, mix_noise, phoneme_ids, reference_phonemes, soft_target_loss, teacher_frames  # noqa: E402
+from student import TOKENS, corpus_per, ctc_collapse, exclusions, held_out, ids_phonemes, mix_noise, phoneme_ids, reference_phonemes, soft_target_loss, spliced_target, teacher_frames  # noqa: E402
 
 REF = json.loads((Path(__file__).resolve().parent.parent / "packages/core/assets/ref-v2.json").read_text())
 
@@ -60,6 +60,16 @@ def test_noise_is_mixed_at_the_requested_snr_and_looped_to_the_clip_length():
     assert len(mixed) == len(clean)
     # 10 dB: signal power is 10x the added noise power.
     assert abs(np.mean(clean**2) / np.mean(added**2) - 10.0) < 0.01
+
+
+def test_spliced_target_keeps_teacher_edges_reference_interior_and_collapses_runs():
+    # Exact matches of >= 3: "abbc" and "def". Outside them the teacher ("pp", "s"); between them the reference
+    # (drops the teacher's inserted x); then runs collapse (pp -> p, bb -> b).
+    assert spliced_target("qqabbcdefrr", "ppabbcxdefs") == "pabcdefs"
+
+
+def test_spliced_target_without_an_anchor_is_the_collapsed_teacher():
+    assert spliced_target("abcdef", "xxyz") == "xyz"
 
 
 def test_soft_target_loss_is_cross_entropy_to_renormalised_top_k_over_valid_frames():

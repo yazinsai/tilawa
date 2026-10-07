@@ -6,18 +6,21 @@
 
     modal run modal/student_decode_cpu.py --run e2-libri-full
     cp /tmp/e2-libri-full-clean-match-test.jsonl .scratch/bench/per-breakdown/
-    uv run tools/per_breakdown.py
+    uv run tools/per_breakdown.py               # e2-libri-full -> teacher-per-breakdown-v1
+    uv run tools/per_breakdown.py <run>         # any other run -> per-breakdown-<run>-v1
 """
 
 import json
+import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
 from rapidfuzz.distance import Levenshtein
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / ".scratch/bench/per-breakdown/e2-libri-full-clean-match-test.jsonl"
-OUT = ROOT / "docs/benchmarks/teacher-per-breakdown-v1"
+RUN = sys.argv[1] if len(sys.argv) > 1 else "e2-libri-full"
+SRC = ROOT / f".scratch/bench/per-breakdown/{RUN}-clean-match-test.jsonl"
+OUT = ROOT / ("docs/benchmarks/teacher-per-breakdown-v1" if RUN == "e2-libri-full" else f"docs/benchmarks/per-breakdown-{RUN}-v1")
 
 VOWELS = set("\u064e\u064f\u0650\u06ea\u0619")
 MADD = set("اۥۦ")
@@ -221,7 +224,7 @@ def main():
     out = {
         "version": "v1",
         "evalSet": "tlog-v2 clean-match test, 3000 clips, cluster-held-out",
-        "student": "e2-libri-full, greedy, chunk 16 / left 128, CPU fp32",
+        "student": f"{RUN}, greedy, chunk 16 / left 128, CPU fp32",
         "normalisations": {
             "collapse": "merge runs of the same phoneme into one",
             "canon": "ں→ن, ۾→م, drop ڇ (qalqala), then collapse",

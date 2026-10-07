@@ -85,6 +85,14 @@ def soft_target_loss(log_probs, top_ids, top_p, valid):
     return (ce * valid).sum() / valid.sum().clamp_min(1)
 
 
+def spliced_target(ref: str, teacher: str) -> str:
+    """CTC target that lets the student outgrow the teacher: `per_breakdown.spliced` (teacher at the clip edges,
+    reference between the first and last 3-phoneme exact match) with runs collapsed, leaving length to soft KD."""
+    from per_breakdown import collapse, spliced
+
+    return collapse(spliced(ref, teacher))
+
+
 def reference_phonemes(ref: dict, label: dict) -> str:
     """Canonical phonemes of a tlog-v2 label: a word span in the reference index, or a text-only label's text."""
     if label["kind"] == "text":
