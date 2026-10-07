@@ -2,6 +2,10 @@
 
 Offline streaming Quran recitation engine and SDK. See `PLAN.md`.
 
+## Scoreboard
+
+Any change that can move a metric (listener, tracker, checker, labels, eval data) adds a scoreboard row before it merges: run the scoreboard command with a one-line `--note` saying what changed and why, and commit the updated `docs/benchmarks/scoreboard.json`. The browser dashboard reads that file. See `docs/benchmarks/scoreboard.md` for the command.
+
 ## Agent skills
 
 ### Issue tracker
