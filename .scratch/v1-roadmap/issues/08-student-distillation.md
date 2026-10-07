@@ -4,7 +4,7 @@
 
 **Blocked by:** 01, 02, 06.
 
-**Status:** claimed
+**Status:** done
 
 - [x] E2: initialise from the multilingual sherpa-onnx streaming Zipformer versus training from scratch, on `clean-match` plus the other training sources, with augmentation.
 - [ ] E3: spliced errors from QUD letter timestamps at 10–20% of each batch.
@@ -51,3 +51,5 @@ The scripted-error column is still empty. `transcribe` (L4) writes student evide
 Neither run passes the 3.7% gold bar. Spend was about $40: two H100 runs ≈ 7 GPU-h, plus CPU decodes and ~3 min lost to two launches that got cancelled.
 
 Proposal: defer E3 and E6 past v1. The teacher-target students canonicalise no more than the teacher (34.0–34.2% vs 34.5%), and v1's checker has no pronunciation classes, so neither experiment moves a v1 bar. One caveat for the human: the chosen spliced-target student does canonicalise more (41.7%), which is the thing E3 is meant to fix. If post-v1 pronunciation work builds on this student, E3 comes first. Status stays claimed until a human confirms.
+
+- **Closed, 2026-10-07 (maintainer):** `spliced-clean` ships as the v1 student (`docs/benchmarks/student-v2.md`). E3 and E6 are deferred until after v1, because v1 is memorization-only (ticket 05 deferred). If pronunciation work builds on this student, run E3 first, because its canonicalised share is 41.7% against the teacher's 34.5%. The target-vs-KD-weight confound is left unresolved.
