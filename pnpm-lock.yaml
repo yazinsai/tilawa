@@ -43,6 +43,28 @@ importers:
         specifier: ^3.2.7
         version: 3.2.7(@types/node@26.6.4)(lightningcss@1.33.0)(terser@5.51.2)(tsx@4.23.15)
 
+  packages/sample:
+    dependencies:
+      '@tilawa/core':
+        specifier: workspace:*
+        version: link:../core
+      '@tilawa/sdk':
+        specifier: workspace:*
+        version: link:../sdk
+      onnxruntime-web:
+        specifier: ^1.30.0
+        version: 1.30.0
+    devDependencies:
+      '@vitejs/plugin-basic-ssl':
+        specifier: ^2.1.0
+        version: 2.3.0(vite@7.3.6(@types/node@26.6.4)(lightningcss@1.33.0)(terser@5.51.2)(tsx@4.23.15))
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.3.6
+        version: 7.3.6(@types/node@26.6.4)(lightningcss@1.33.0)(terser@5.51.2)(tsx@4.23.15)
+
   packages/sdk:
     dependencies:
       '@tilawa/core':
@@ -570,6 +592,12 @@ packages:
 
   '@types/yargs@17.0.35':
     resolution: {integrity: sha512-qUHkeCyQFxMXg79wQfTtfndEC+N9ZZg76HJftDJp+qH2tV7Gj4OJi7l+PiWwJ+pWtW8GwSmqsDj/oymhrTWXjg==}
+
+  '@vitejs/plugin-basic-ssl@2.3.0':
+    resolution: {integrity: sha512-bdyo8rB3NnQbikdMpHaML9Z1OZPBu6fFOBo+OtxsBlvMJtysWskmBcnbIDhUqgC8tcxNv/a+BcV5U+2nQMm1OQ==}
+    engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
+    peerDependencies:
+      vite: ^6.0.0 || ^7.0.0 || ^8.0.0
 
   '@vitest/expect@3.2.7':
     resolution: {integrity: sha512-E8eBXaKibuvH2pSZErOjdVb5vF4PbKYcrnluBTYxEk1l/VhhwZg1kZQsdtjq+CsF5CFydf2Rdkz7jDHKSisi3w==}
@@ -2041,6 +2069,10 @@ snapshots:
   '@types/yargs@17.0.35':
     dependencies:
       '@types/yargs-parser': 21.0.3
+
+  '@vitejs/plugin-basic-ssl@2.3.0(vite@7.3.6(@types/node@26.6.4)(lightningcss@1.33.0)(terser@5.51.2)(tsx@4.23.15))':
+    dependencies:
+      vite: 7.3.6(@types/node@26.6.4)(lightningcss@1.33.0)(terser@5.51.2)(tsx@4.23.15)
 
   '@vitest/expect@3.2.7':
     dependencies:

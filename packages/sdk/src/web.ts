@@ -48,7 +48,8 @@ export interface WebModelOptions {
   onProgress?: (loaded: number, total: number) => void;
 }
 
-export async function loadWebModel(o: WebModelOptions = {}): Promise<LoadedModel & { fromCache: boolean }> {
+/** `fallbacks`: why each earlier provider was skipped. */
+export async function loadWebModel(o: WebModelOptions = {}): Promise<LoadedModel & { fromCache: boolean; fallbacks: string[] }> {
   const { tier, bytes, fromCache } = await fetchModel({
     tier: o.tier ?? "full",
     registry: o.registry ?? MODEL_REGISTRY,
@@ -68,7 +69,7 @@ export async function loadWebModel(o: WebModelOptions = {}): Promise<LoadedModel
     try {
       const backend = await ortBackend(ort as unknown as OrtModule, bytes, `onnxruntime-web/${p}`, { executionProviders: [p] });
       await warmup(backend, tier.manifest);
-      return { manifest: tier.manifest, backend, supported: tier.supported, fromCache };
+      return { manifest: tier.manifest, backend, supported: tier.supported, fromCache, fallbacks: errors };
     } catch (e) {
       errors.push(`${p}: ${(e as Error).message}`);
     }

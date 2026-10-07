@@ -19,3 +19,5 @@ packages/probe/public/ort/
 .scratch/student/
 .scratch/jumps/
 .scratch/models/
+packages/sample/public/models/
+packages/sample/public/ort/

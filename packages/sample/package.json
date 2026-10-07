@@ -1,0 +1,22 @@
+{
+  "name": "@tilawa/sample",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "assets": "bash scripts/assets.sh",
+    "dev": "pnpm assets && vite",
+    "build": "pnpm assets && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tilawa/core": "workspace:*",
+    "@tilawa/sdk": "workspace:*",
+    "onnxruntime-web": "^1.30.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "^2.1.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.6"
+  }
+}
