@@ -35,6 +35,7 @@ image = (
     .run_commands(f"git clone https://github.com/k2-fsa/icefall /icefall && cd /icefall && git checkout {ICEFALL}")
     .env({"PYTHONPATH": "/icefall:/icefall/egs/librispeech/ASR/zipformer:/root/tools", "HF_HOME": "/cache/hf"})
     .add_local_file("tools/student.py", "/root/tools/student.py")
+    .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
 app = modal.App("tilawa-student-train", image=image)
 vol = modal.Volume.from_name("tilawa-student")
@@ -149,14 +150,16 @@ def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, se
 
     import numpy as np
     import pyarrow.parquet as pq
+    from student import exclusions, held_out
 
+    gold = exclusions(open("/root/gold-per-v1-exclude.txt").read())
     want = set(buckets.split(","))
     files = sorted(glob.glob("/student/s1/*.parquet"))
     meta = []
     for fi, f in enumerate(files):
-        t = pq.read_table(f, columns=["bucket", "split", "n_samples"])
-        for r, (bk, sp, n) in enumerate(zip(t["bucket"].to_pylist(), t["split"].to_pylist(), t["n_samples"].to_pylist())):
-            if bk in want and sp == split and n <= max_clip_s * SR:
+        t = pq.read_table(f, columns=["shard", "row", "bucket", "split", "n_samples"]).to_pydict()
+        for r, (sh, row, bk, sp, n) in enumerate(zip(t["shard"], t["row"], t["bucket"], t["split"], t["n_samples"])):
+            if bk in want and sp == split and n <= max_clip_s * SR and not held_out(gold, sh, row, sp):
                 meta.append((fi, r, n))
     order = np.random.default_rng(seed).permutation(len(meta))
     if max_hours:

@@ -44,6 +44,16 @@ def corpus_per(pairs) -> float:
     return edits / max(1, sum(len(r) for _, r in pairs))
 
 
+def exclusions(text: str) -> set[tuple[str, int]]:
+    """`shard:row` lines (docs/benchmarks/gold-per-v1-exclude.txt) as (shard, row) keys."""
+    return {(s, int(r)) for s, r in (line.rsplit(":", 1) for line in text.split() if line)}
+
+
+def held_out(excluded: set[tuple[str, int]], shard: str, row: int, split: str) -> bool:
+    """Gold PER clips never enter training; eval splits keep them so logged PER stays comparable."""
+    return split == "train" and (shard, row) in excluded
+
+
 def mix_noise(wave, noise, snr_db: float, rng):
     """Add `noise`, looped from a random offset to the clip length, at `snr_db` below the clip's power."""
     import numpy as np

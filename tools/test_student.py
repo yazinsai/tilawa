@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from student import TOKENS, corpus_per, ctc_collapse, ids_phonemes, mix_noise, phoneme_ids, reference_phonemes, soft_target_loss, teacher_frames  # noqa: E402
+from student import TOKENS, corpus_per, ctc_collapse, exclusions, held_out, ids_phonemes, mix_noise, phoneme_ids, reference_phonemes, soft_target_loss, teacher_frames  # noqa: E402
 
 REF = json.loads((Path(__file__).resolve().parent.parent / "packages/core/assets/ref-v2.json").read_text())
 
@@ -71,3 +71,10 @@ def test_soft_target_loss_is_cross_entropy_to_renormalised_top_k_over_valid_fram
     valid = torch.tensor([[True, False]])
     # Frame 0: teacher renormalises to {1: 0.75, 0: 0.25}; -(0.75 ln 0.25 + 0.25 ln 0.5) = 1.21301. Frame 1 is padding.
     assert abs(soft_target_loss(student, top_ids, top_p, valid).item() - 1.21301) < 1e-4
+
+
+def test_gold_clips_are_held_out_of_training_only():
+    gold = exclusions("clean-00033-of-00411:734\n\nunclean-00146-of-00332:490\n")
+    assert held_out(gold, "clean-00033-of-00411", 734, "train")
+    assert not held_out(gold, "clean-00033-of-00411", 735, "train")
+    assert not held_out(gold, "unclean-00146-of-00332", 490, "test")

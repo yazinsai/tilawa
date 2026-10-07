@@ -49,6 +49,29 @@ export function scored(m: Omit<Metric, "status"> & { status?: Status }): Metric 
   return { ...m, status: ok ? "pass" : "fail" };
 }
 
+interface GoldPer { canon: number; raw: number; clips: number }
+interface GoldScore { clips: number; overall: GoldPer; byDevice: Record<string, GoldPer>; groups: Record<string, { per: number; phonemes: number }> }
+/** docs/benchmarks/gold-per-v1-scores.json (`tools/gold_set.py score`) and listener-target-v1.json (`calibrate`). */
+export type GoldScores = Record<string, { gold: GoldScore }>;
+export interface ListenerTarget { bar: number; bindingMetric: string; teacherGoldPer: number }
+
+/** Listener PER on the human-verified gold set: canon vs spliced reference, gated by the calibrated bar. */
+export function goldPerMetrics(scores: GoldScores, target: ListenerTarget, listener: string): Metric[] {
+  const group = "Listener", source = "listener-target-v1.md";
+  const g = scores[listener]?.gold;
+  const bar = { op: "<=", target: target.bar } as const;
+  const name = "Gold PER (canon vs spliced, human-verified exact)";
+  if (!g) return [scored({ id: "listener.goldPer", group, name, value: null, unit: "%", bar, source, status: "pending", note: "not decoded on the gold set; modal/student_decode_cpu.py::gold, then tools/gold_set.py score" })];
+  const pct = (x: number) => `${(100 * x).toFixed(2)}%`;
+  return [
+    scored({ id: "listener.goldPer", group, name, value: g.overall.canon, unit: "%", bar, source, display: `${pct(g.overall.canon)} (${g.clips} clips)`,
+      note: `bar: gold PER where fitted ${target.bindingMetric} falls 2 pts below the teacher (${pct(target.teacherGoldPer)})` }),
+    ...Object.entries(g.byDevice).map(([d, x]) => scored({ id: `listener.goldPer.${d}`, group, name: `Gold PER: ${d}`, value: x.canon, unit: "%", source, display: `${pct(x.canon)} (${x.clips} clips)` })),
+    ...Object.entries(g.groups).map(([k, x]) => scored({ id: `listener.goldPer.${k}`, group, name: `Gold PER: ${k.replace("_", " ")}`, value: x.per, unit: "%", source, display: `${pct(x.per)} (${x.phonemes} ref phonemes)` })),
+    scored({ id: "listener.goldPerRaw", group, name: "Gold raw PER vs spliced reference", value: g.overall.raw, unit: "%", source }),
+  ];
+}
+
 const fmt = (v: number, unit: Metric["unit"]) => (unit === "%" ? `${(100 * v).toFixed(1)}%` : unit === "s" ? `${v.toFixed(2)} s` : `${+v.toFixed(3)}`);
 const value = (m: Metric) => m.display ?? (m.value === null ? "—" : fmt(m.value, m.unit));
 const bar = (m: Metric) => (m.bar ? `${m.bar.op === ">=" ? "≥" : "≤"} ${fmt(m.bar.target, m.unit)}` : "");

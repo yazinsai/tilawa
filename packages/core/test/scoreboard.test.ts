@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { loadReferenceIndex } from "../src/index.js";
 import type { PhraseAsset, ReferenceAsset } from "../src/index.js";
 import { scoreClip } from "../src/bench/acceptance.js";
-import { oracleClip, renderScoreboard, scored, upsertRow } from "../src/bench/scoreboard.js";
+import { goldPerMetrics, oracleClip, renderScoreboard, scored, upsertRow } from "../src/bench/scoreboard.js";
 import type { ScoreRow } from "../src/bench/scoreboard.js";
 
 const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../assets/ref-v2.json", import.meta.url), "utf8"));
@@ -73,5 +73,32 @@ describe("scoreboard rendering", () => {
   it("passes a metric that meets its bar", () => {
     expect(scored({ id: "p", group: "g", name: "n", value: 0.95, unit: "%", bar: { op: ">=", target: 0.9 } }).status).toBe("pass");
     expect(scored({ id: "p", group: "g", name: "n", value: 1.2, bar: { op: "<=", target: 1 } }).status).toBe("fail");
+  });
+});
+
+describe("gold PER", () => {
+  const per = (canon: number, clips: number) => ({ canon, raw: canon + 0.02, clips, refPhonemes: 1000 });
+  const scores = {
+    "e2-libri-full": { gold: { clips: 3, overall: per(0.06, 3), byDevice: { tlog: per(0.04, 2), phone: per(0.12, 1) },
+      groups: { short_vowels: { per: 0.05, edits: 5, phonemes: 100 } } } },
+  };
+  const target = { bar: 0.0365, bindingMetric: "declared.precision", teacherGoldPer: 0.0339 };
+
+  it("is the primary listener PER, gated by the calibrated bar", () => {
+    const [m] = goldPerMetrics(scores, target, "e2-libri-full");
+    expect([m.id, m.value, m.bar, m.status]).toEqual(["listener.goldPer", 0.06, { op: "<=", target: 0.0365 }, "fail"]);
+  });
+
+  it("splits by device and phoneme group, with raw PER as info", () => {
+    const ms = goldPerMetrics(scores, target, "e2-libri-full");
+    const v = Object.fromEntries(ms.map((m) => [m.id, [m.value, m.status]]));
+    expect(v["listener.goldPer.phone"]).toEqual([0.12, "info"]);
+    expect(v["listener.goldPer.short_vowels"]).toEqual([0.05, "info"]);
+    expect(v["listener.goldPerRaw"]).toEqual([0.08, "info"]);
+  });
+
+  it("is pending for a listener that was never decoded on the gold set", () => {
+    const [m] = goldPerMetrics(scores, target, "combo");
+    expect([m.value, m.status]).toEqual([null, "pending"]);
   });
 });

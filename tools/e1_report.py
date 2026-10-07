@@ -530,7 +530,9 @@ def render_e1b(r: dict) -> str:
 
 
 HELP_DIR = Path(os.environ.get("HELP_DIR", ROOT / ".scratch/help"))
-HELP_OUT = ROOT / "docs/benchmarks/acceptance-v1-e1.json"
+HELP_OUT = Path(os.environ.get("E1_OUT", ROOT / "docs/benchmarks/acceptance-v1-e1.json"))
+# Another listener's `<clip>.evidence.json` directory (modal/student_decode_cpu.py::gold); defaults to the teacher's.
+EVIDENCE_DIR = Path(os.environ["EVIDENCE_DIR"]) if os.environ.get("EVIDENCE_DIR") else None
 ARABIC_LETTER = re.compile(r"[\u0621-\u064a\u0671]")
 # Clips whose said text differs from the canonical only at the planted site; other kinds change words or add repeats.
 HELP_KINDS = {"none", "vowel", "tajweed"}
@@ -597,7 +599,8 @@ def help_main() -> None:
         else:
             phon = lambda ws: "".join(quran_phonetizer(" ".join(x), moshaf, remove_spaces=True).phonemes for x in ws)  # noqa: E731
             canon, said_ph = phon(uthmani.values()), phon(said.values())
-            ev = json.loads((HELP_DIR / lab["wav"].replace(".wav", ".evidence.json")).read_text())
+            name = lab["wav"].replace(".wav", ".evidence.json")
+            ev = json.loads((EVIDENCE_DIR / Path(name).name if EVIDENCE_DIR else HELP_DIR / name).read_text())
             greedy = "".join(p["p"] for p in ev["phonemes"])
             if Levenshtein.distance(said_ph, greedy) / max(1, len(said_ph)) > MAX_CLIP_PER:
                 counts["skipped: teacher decode too far from label"] += 1

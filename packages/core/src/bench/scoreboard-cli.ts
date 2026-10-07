@@ -14,7 +14,7 @@ import type { AcceptanceClip, ClipScore } from "./acceptance.js";
 import { benchRecording, summarise } from "./index.js";
 import type { QudRecording } from "./index.js";
 import { perfGate } from "./perf.js";
-import { oracleClip, renderScoreboard, scored, upsertRow } from "./scoreboard.js";
+import { goldPerMetrics, oracleClip, renderScoreboard, scored, upsertRow } from "./scoreboard.js";
 import type { Metric, OracleLabel, ScoreRow } from "./scoreboard.js";
 
 const { values } = parseArgs({ options: {
@@ -137,15 +137,14 @@ const breakdown = read("teacher-per-breakdown-v1.json");
 /** The student re-decoded for the PER breakdown; other students have no fair PER yet. */
 const BREAKDOWN_RUN = "e2-libri-full";
 const teacherFloor: number = breakdown.per.teacherVsSpliced.canon;
-/** Proposed: a student may lose at most this much fair PER against the teacher floor. */
-const STUDENT_MARGIN = 0.01;
 const CANON_NOTE = "canon PER vs spliced reference (teacher-per-breakdown-v1): nasal spelling and qalqala unified, runs collapsed, clip edges from the teacher; ignores shadda and duration";
+for (const m of goldPerMetrics(read("gold-per-v1-scores.json"), read("listener-target-v1.json"), values.listener!)) metrics.push(m);
 source = "teacher-per-breakdown-v1.md";
-if (teacher) add({ id: "listener.perFair", group: LISTENER, name: "Fair PER (canon vs spliced reference)", value: teacherFloor, unit: "%", status: "info", note: `teacher floor; ${CANON_NOTE}` });
+if (teacher) add({ id: "listener.perFair", group: LISTENER, name: "Fair PER on tlog clean-match test (canon vs spliced)", value: teacherFloor, unit: "%", status: "info", note: `teacher floor; ${CANON_NOTE}` });
 else {
   const v = values.listener === BREAKDOWN_RUN ? breakdown.per.studentVsSpliced.canon : null;
-  add({ id: "listener.perFair", group: LISTENER, name: "Fair PER (canon vs spliced reference)", value: v, unit: "%", bar: { op: "<=", target: teacherFloor + STUDENT_MARGIN },
-    status: v === null ? "pending" : undefined, note: v === null ? "not in the PER breakdown; run tools/per_breakdown.py on this run's decode" : `bar: teacher floor ${(100 * teacherFloor).toFixed(2)}% + ${100 * STUDENT_MARGIN} pp (proposed); ${CANON_NOTE}` });
+  add({ id: "listener.perFair", group: LISTENER, name: "Fair PER on tlog clean-match test (canon vs spliced)", value: v, unit: "%",
+    status: v === null ? "pending" : "info", note: v === null ? "not in the PER breakdown; run tools/per_breakdown.py on this run's decode" : `secondary to gold PER: teacher-labelled clips; ${CANON_NOTE}` });
 }
 source = "student-v1.md";
 const teacherPer = student.runs[0]?.teacherPerVsRef ?? null;
@@ -230,11 +229,11 @@ const board: { version: number; rows: ScoreRow[] } = existsSync(jsonPath) ? JSON
 row.modules = modules as ScoreRow["modules"] ?? board.rows.find((r) => r.sha === row.sha && r.listener === row.listener)?.modules;
 board.rows = upsertRow(board.rows, row);
 writeFileSync(jsonPath, JSON.stringify(board, null, 1) + "\n");
-const HEADLINE = ["e2e.precision", "e2e.recall", "e2e.cleanPer5", "listener.perFair", "tracker.clean.within5s", "tracker.qud.within5s", "tracker.qud.falseJumps", "checker.oracleLock.recall", "checker.oracleAll.recall"];
+const HEADLINE = ["e2e.precision", "e2e.recall", "e2e.cleanPer5", "listener.goldPer", "tracker.clean.within5s", "tracker.qud.within5s", "tracker.qud.falseJumps", "checker.oracleLock.recall", "checker.oracleAll.recall"];
 const md = [
   "# Engine scoreboard", "",
   "One row per commit × listener, recomputed from evidence on disk (no GPU). Bars are PLAN.md's v1 acceptance bars; `unmeasurable` means the data to score it doesn't exist yet, `pending` means the evidence exists in principle but hasn't been produced for this listener.", "",
-  "**How to run / add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard --note '<what changed and why>'` (teacher). The note is required by AGENTS.md. Add `--modules checker` (or `listener,tracker`) to tag the changed engine modules for the dashboard history. For a student, decode the help eval clips with it into a directory of `<clip>.evidence.json` and run `pnpm scoreboard --listener <run-name> --evidence <dir> --note '...'`; without `--evidence` its help metrics are `pending`. Each run replaces the row with the same commit and listener, else appends one; commit the updated `scoreboard.json` and `scoreboard.md` with the change they measure. Listener PER comes from `student-v1.json`, E1/E1b from their reports; rerun those first if the listener changed. Help clips: 388 scored eval clips, 29 held-out speakers; letter-confusion substitutions count as negatives. `Declared passage` gives the checker the prompted passage (`CheckerOptions.passage`), the memorization-session arm; `oracle evidence` replaces the decode with a perfect one synthesised from the label, so its losses are the checker's own.", "",
+  "**How to run / add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard --note '<what changed and why>'` (teacher). The note is required by AGENTS.md. Tag changed engine modules with `--modules checker` (or a comma-separated list such as `--modules listener,tracker`). Tags describe the implementation change, not every metric that moved; the dashboard uses them to filter the change history. Existing tags survive reruns that omit this option. For a student, decode the help eval clips with it into a directory of `<clip>.evidence.json` and run `pnpm scoreboard --listener <run-name> --evidence <dir> --note '...'`; without `--evidence` its help metrics are `pending`. Each run replaces the row with the same commit and listener, else appends one; commit the updated `scoreboard.json` and `scoreboard.md` with the change they measure. Listener PER is gold PER from `gold-per-v1-scores.json` (`tools/gold_set.py score`), gated by the bar in `listener-target-v1.json`; raw and clean-match fair PER come from `student-v1.json` and the PER breakdown. E1/E1b from their reports; rerun those first if the listener changed. Help clips: 388 scored eval clips, 29 held-out speakers; letter-confusion substitutions count as negatives. `Declared passage` gives the checker the prompted passage (`CheckerOptions.passage`), the memorization-session arm; `oracle evidence` replaces the decode with a perfect one synthesised from the label, so its losses are the checker's own.", "",
   "**Dashboard.** `uv run tools/scoreboard_serve.py` serves the dashboard on http://127.0.0.1:8765/scoreboard.html. Choose a listener model to see end-to-end precision and recall, listener/tracker/checker summaries and trends, and missed-error attribution. The change history shows module tags, key figures and deltas, with filters for Listener, Tracker and Checker. Full notes are expandable; comparisons always use the previous run for that model, even when filtered. Expand “Explore all measurements” for sample counts, targets and backing reports. It reads `scoreboard.json`, so a new row appears on reload.", "",
   renderScoreboard(board.rows, HEADLINE),
 ].join("\n");

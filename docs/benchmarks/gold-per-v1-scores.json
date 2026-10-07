@@ -1,0 +1,747 @@
+{
+ "teacher": {
+  "gold": {
+   "clips": 233,
+   "overall": {
+    "canon": 0.03389957344907581,
+    "raw": 0.05233310731677249,
+    "clips": 233,
+    "refPhonemes": 13363
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.07611798287345385,
+     "raw": 0.1003921568627451,
+     "clips": 16,
+     "refPhonemes": 1051
+    },
+    "phone": {
+     "canon": 0.09116809116809117,
+     "raw": 0.11389432485322896,
+     "clips": 26,
+     "refPhonemes": 2106
+    },
+    "tlog": {
+     "canon": 0.01773466588281403,
+     "raw": 0.03469700637456629,
+     "clips": 191,
+     "refPhonemes": 10206
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.05454545454545454,
+     "edits": 21,
+     "phonemes": 385
+    },
+    "emphatics": {
+     "per": 0.11428571428571428,
+     "edits": 16,
+     "phonemes": 140
+    },
+    "hamza_ain": {
+     "per": 0.05114401076716016,
+     "edits": 38,
+     "phonemes": 743
+    },
+    "short_vowels": {
+     "per": 0.03202247191011236,
+     "edits": 171,
+     "phonemes": 5340
+    }
+   }
+  },
+  "goldHeldOut": {
+   "clips": 62,
+   "overall": {
+    "canon": 0.07265625,
+    "raw": 0.0958109559613319,
+    "clips": 62,
+    "refPhonemes": 3840
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.07611798287345385,
+     "raw": 0.1003921568627451,
+     "clips": 16,
+     "refPhonemes": 1051
+    },
+    "phone": {
+     "canon": 0.09116809116809117,
+     "raw": 0.11389432485322896,
+     "clips": 26,
+     "refPhonemes": 2106
+    },
+    "tlog": {
+     "canon": 0.010248901903367497,
+     "raw": 0.03272727272727273,
+     "clips": 20,
+     "refPhonemes": 683
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.07086614173228346,
+     "edits": 9,
+     "phonemes": 127
+    },
+    "emphatics": {
+     "per": 0.2631578947368421,
+     "edits": 10,
+     "phonemes": 38
+    },
+    "hamza_ain": {
+     "per": 0.06930693069306931,
+     "edits": 14,
+     "phonemes": 202
+    },
+    "short_vowels": {
+     "per": 0.06472491909385113,
+     "edits": 100,
+     "phonemes": 1545
+    }
+   }
+  },
+  "silver": {
+   "clips": 211,
+   "overall": {
+    "canon": 0.03013029315960912,
+    "raw": 0.056204662495154774,
+    "clips": 211,
+    "refPhonemes": 14736
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.04428602289911428,
+     "raw": 0.06537102473498234,
+     "clips": 62,
+     "refPhonemes": 4629
+    },
+    "phone": {
+     "canon": 0.023646977342435937,
+     "raw": 0.05202032421969514,
+     "clips": 149,
+     "refPhonemes": 10107
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.062162162162162166,
+     "edits": 23,
+     "phonemes": 370
+    },
+    "emphatics": {
+     "per": 0.16071428571428573,
+     "edits": 27,
+     "phonemes": 168
+    },
+    "hamza_ain": {
+     "per": 0.05115712545676005,
+     "edits": 42,
+     "phonemes": 821
+    },
+    "short_vowels": {
+     "per": 0.022804054054054054,
+     "edits": 135,
+     "phonemes": 5920
+    }
+   }
+  }
+ },
+ "e5-top1-lite": {
+  "gold": {
+   "clips": 233,
+   "overall": {
+    "canon": 0.07213948963556088,
+    "raw": 0.09141342538371448,
+    "clips": 233,
+    "refPhonemes": 13363
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.14843006660323502,
+     "raw": 0.17176470588235293,
+     "clips": 16,
+     "refPhonemes": 1051
+    },
+    "phone": {
+     "canon": 0.12630579297245964,
+     "raw": 0.14755381604696674,
+     "clips": 26,
+     "refPhonemes": 2106
+    },
+    "tlog": {
+     "canon": 0.05310601606897903,
+     "raw": 0.07157266198660533,
+     "clips": 191,
+     "refPhonemes": 10206
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.1038961038961039,
+     "edits": 40,
+     "phonemes": 385
+    },
+    "emphatics": {
+     "per": 0.25,
+     "edits": 35,
+     "phonemes": 140
+    },
+    "hamza_ain": {
+     "per": 0.11978465679676985,
+     "edits": 89,
+     "phonemes": 743
+    },
+    "short_vowels": {
+     "per": 0.06123595505617978,
+     "edits": 327,
+     "phonemes": 5340
+    }
+   }
+  },
+  "goldHeldOut": {
+   "clips": 62,
+   "overall": {
+    "canon": 0.11744791666666667,
+    "raw": 0.13920515574650913,
+    "clips": 62,
+    "refPhonemes": 3840
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.14843006660323502,
+     "raw": 0.17176470588235293,
+     "clips": 16,
+     "refPhonemes": 1051
+    },
+    "phone": {
+     "canon": 0.12630579297245964,
+     "raw": 0.14755381604696674,
+     "clips": 26,
+     "refPhonemes": 2106
+    },
+    "tlog": {
+     "canon": 0.0424597364568082,
+     "raw": 0.06303030303030303,
+     "clips": 20,
+     "refPhonemes": 683
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.12598425196850394,
+     "edits": 16,
+     "phonemes": 127
+    },
+    "emphatics": {
+     "per": 0.42105263157894735,
+     "edits": 16,
+     "phonemes": 38
+    },
+    "hamza_ain": {
+     "per": 0.16831683168316833,
+     "edits": 34,
+     "phonemes": 202
+    },
+    "short_vowels": {
+     "per": 0.09514563106796116,
+     "edits": 147,
+     "phonemes": 1545
+    }
+   }
+  },
+  "silver": {
+   "clips": 211,
+   "overall": {
+    "canon": 0.05646036916395222,
+    "raw": 0.08234121490669473,
+    "clips": 211,
+    "refPhonemes": 14736
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.06653704903866926,
+     "raw": 0.08480565371024736,
+     "clips": 62,
+     "refPhonemes": 4629
+    },
+    "phone": {
+     "canon": 0.05184525576333234,
+     "raw": 0.08121622711508993,
+     "clips": 149,
+     "refPhonemes": 10107
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.11081081081081082,
+     "edits": 41,
+     "phonemes": 370
+    },
+    "emphatics": {
+     "per": 0.32142857142857145,
+     "edits": 54,
+     "phonemes": 168
+    },
+    "hamza_ain": {
+     "per": 0.09378806333739342,
+     "edits": 77,
+     "phonemes": 821
+    },
+    "short_vowels": {
+     "per": 0.037668918918918916,
+     "edits": 223,
+     "phonemes": 5920
+    }
+   }
+  }
+ },
+ "e5-soft5-lite": {
+  "gold": {
+   "clips": 233,
+   "overall": {
+    "canon": 0.05941779540522338,
+    "raw": 0.07883868581643345,
+    "clips": 233,
+    "refPhonemes": 13363
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.12178877259752617,
+     "raw": 0.14666666666666667,
+     "clips": 16,
+     "refPhonemes": 1051
+    },
+    "phone": {
+     "canon": 0.10731244064577398,
+     "raw": 0.1299412915851272,
+     "clips": 26,
+     "refPhonemes": 2106
+    },
+    "tlog": {
+     "canon": 0.043111894963746816,
+     "raw": 0.06132494149923344,
+     "clips": 191,
+     "refPhonemes": 10206
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.09610389610389611,
+     "edits": 37,
+     "phonemes": 385
+    },
+    "emphatics": {
+     "per": 0.20714285714285716,
+     "edits": 29,
+     "phonemes": 140
+    },
+    "hamza_ain": {
+     "per": 0.08882907133243607,
+     "edits": 66,
+     "phonemes": 743
+    },
+    "short_vowels": {
+     "per": 0.049812734082397,
+     "edits": 266,
+     "phonemes": 5340
+    }
+   }
+  },
+  "goldHeldOut": {
+   "clips": 62,
+   "overall": {
+    "canon": 0.09947916666666666,
+    "raw": 0.12223415682062298,
+    "clips": 62,
+    "refPhonemes": 3840
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.12178877259752617,
+     "raw": 0.14666666666666667,
+     "clips": 16,
+     "refPhonemes": 1051
+    },
+    "phone": {
+     "canon": 0.10731244064577398,
+     "raw": 0.1299412915851272,
+     "clips": 26,
+     "refPhonemes": 2106
+    },
+    "tlog": {
+     "canon": 0.040995607613469986,
+     "raw": 0.06060606060606061,
+     "clips": 20,
+     "refPhonemes": 683
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.12598425196850394,
+     "edits": 16,
+     "phonemes": 127
+    },
+    "emphatics": {
+     "per": 0.3684210526315789,
+     "edits": 14,
+     "phonemes": 38
+    },
+    "hamza_ain": {
+     "per": 0.1188118811881188,
+     "edits": 24,
+     "phonemes": 202
+    },
+    "short_vowels": {
+     "per": 0.0854368932038835,
+     "edits": 132,
+     "phonemes": 1545
+    }
+   }
+  },
+  "silver": {
+   "clips": 211,
+   "overall": {
+    "canon": 0.04478827361563518,
+    "raw": 0.07087878620078632,
+    "clips": 211,
+    "refPhonemes": 14736
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.05595160941888097,
+     "raw": 0.07632508833922262,
+     "clips": 62,
+     "refPhonemes": 4629
+    },
+    "phone": {
+     "canon": 0.03967547244484021,
+     "raw": 0.06839261230744414,
+     "clips": 149,
+     "refPhonemes": 10107
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.07297297297297298,
+     "edits": 27,
+     "phonemes": 370
+    },
+    "emphatics": {
+     "per": 0.23809523809523808,
+     "edits": 40,
+     "phonemes": 168
+    },
+    "hamza_ain": {
+     "per": 0.0730816077953715,
+     "edits": 60,
+     "phonemes": 821
+    },
+    "short_vowels": {
+     "per": 0.029222972972972973,
+     "edits": 173,
+     "phonemes": 5920
+    }
+   }
+  }
+ },
+ "e2-scratch-full": {
+  "gold": {
+   "clips": 233,
+   "overall": {
+    "canon": 0.07303749158123175,
+    "raw": 0.09122850274301918,
+    "clips": 233,
+    "refPhonemes": 13363
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.13606089438629876,
+     "raw": 0.1631372549019608,
+     "clips": 16,
+     "refPhonemes": 1051
+    },
+    "phone": {
+     "canon": 0.1258309591642925,
+     "raw": 0.14637964774951076,
+     "clips": 26,
+     "refPhonemes": 2106
+    },
+    "tlog": {
+     "canon": 0.05565353713501862,
+     "raw": 0.07246025982409425,
+     "clips": 191,
+     "refPhonemes": 10206
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.11948051948051948,
+     "edits": 46,
+     "phonemes": 385
+    },
+    "emphatics": {
+     "per": 0.2857142857142857,
+     "edits": 40,
+     "phonemes": 140
+    },
+    "hamza_ain": {
+     "per": 0.1224764468371467,
+     "edits": 91,
+     "phonemes": 743
+    },
+    "short_vowels": {
+     "per": 0.05805243445692884,
+     "edits": 310,
+     "phonemes": 5340
+    }
+   }
+  },
+  "goldHeldOut": {
+   "clips": 62,
+   "overall": {
+    "canon": 0.11510416666666666,
+    "raw": 0.1381310418904404,
+    "clips": 62,
+    "refPhonemes": 3840
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.13606089438629876,
+     "raw": 0.1631372549019608,
+     "clips": 16,
+     "refPhonemes": 1051
+    },
+    "phone": {
+     "canon": 0.1258309591642925,
+     "raw": 0.14637964774951076,
+     "clips": 26,
+     "refPhonemes": 2106
+    },
+    "tlog": {
+     "canon": 0.04978038067349927,
+     "raw": 0.07393939393939394,
+     "clips": 20,
+     "refPhonemes": 683
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.16535433070866143,
+     "edits": 21,
+     "phonemes": 127
+    },
+    "emphatics": {
+     "per": 0.39473684210526316,
+     "edits": 15,
+     "phonemes": 38
+    },
+    "hamza_ain": {
+     "per": 0.19801980198019803,
+     "edits": 40,
+     "phonemes": 202
+    },
+    "short_vowels": {
+     "per": 0.08996763754045307,
+     "edits": 139,
+     "phonemes": 1545
+    }
+   }
+  },
+  "silver": {
+   "clips": 211,
+   "overall": {
+    "canon": 0.05985342019543974,
+    "raw": 0.0836148180962401,
+    "clips": 211,
+    "refPhonemes": 14736
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.07193778353856124,
+     "raw": 0.08886925795053004,
+     "clips": 62,
+     "refPhonemes": 4629
+    },
+    "phone": {
+     "canon": 0.05431878895814782,
+     "raw": 0.08121622711508993,
+     "clips": 149,
+     "refPhonemes": 10107
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.12972972972972974,
+     "edits": 48,
+     "phonemes": 370
+    },
+    "emphatics": {
+     "per": 0.38095238095238093,
+     "edits": 64,
+     "phonemes": 168
+    },
+    "hamza_ain": {
+     "per": 0.10353227771010962,
+     "edits": 85,
+     "phonemes": 821
+    },
+    "short_vowels": {
+     "per": 0.036655405405405406,
+     "edits": 217,
+     "phonemes": 5920
+    }
+   }
+  }
+ },
+ "e2-libri-full": {
+  "gold": {
+   "clips": 233,
+   "overall": {
+    "canon": 0.059791962882586244,
+    "raw": 0.07698945940948036,
+    "clips": 233,
+    "refPhonemes": 13363
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.12178877259752617,
+     "raw": 0.14588235294117646,
+     "clips": 16,
+     "refPhonemes": 1051
+    },
+    "phone": {
+     "canon": 0.11633428300094967,
+     "raw": 0.13463796477495107,
+     "clips": 26,
+     "refPhonemes": 2106
+    },
+    "tlog": {
+     "canon": 0.041740152851263965,
+     "raw": 0.058016622286774795,
+     "clips": 191,
+     "refPhonemes": 10206
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.10909090909090909,
+     "edits": 42,
+     "phonemes": 385
+    },
+    "emphatics": {
+     "per": 0.15714285714285714,
+     "edits": 22,
+     "phonemes": 140
+    },
+    "hamza_ain": {
+     "per": 0.09152086137281291,
+     "edits": 68,
+     "phonemes": 743
+    },
+    "short_vowels": {
+     "per": 0.04906367041198502,
+     "edits": 262,
+     "phonemes": 5340
+    }
+   }
+  },
+  "goldHeldOut": {
+   "clips": 62,
+   "overall": {
+    "canon": 0.10625,
+    "raw": 0.12610096670247045,
+    "clips": 62,
+    "refPhonemes": 3840
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.12178877259752617,
+     "raw": 0.14588235294117646,
+     "clips": 16,
+     "refPhonemes": 1051
+    },
+    "phone": {
+     "canon": 0.11633428300094967,
+     "raw": 0.13463796477495107,
+     "clips": 26,
+     "refPhonemes": 2106
+    },
+    "tlog": {
+     "canon": 0.05124450951683748,
+     "raw": 0.06909090909090909,
+     "clips": 20,
+     "refPhonemes": 683
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.15748031496062992,
+     "edits": 20,
+     "phonemes": 127
+    },
+    "emphatics": {
+     "per": 0.3157894736842105,
+     "edits": 12,
+     "phonemes": 38
+    },
+    "hamza_ain": {
+     "per": 0.15346534653465346,
+     "edits": 31,
+     "phonemes": 202
+    },
+    "short_vowels": {
+     "per": 0.08737864077669903,
+     "edits": 135,
+     "phonemes": 1545
+    }
+   }
+  },
+  "silver": {
+   "clips": 211,
+   "overall": {
+    "canon": 0.041870249728555915,
+    "raw": 0.06700260258043081,
+    "clips": 211,
+    "refPhonemes": 14736
+   },
+   "byDevice": {
+    "laptop": {
+     "canon": 0.054007344998919855,
+     "raw": 0.07314487632508834,
+     "clips": 62,
+     "refPhonemes": 4629
+    },
+    "phone": {
+     "canon": 0.03631146729989117,
+     "raw": 0.06419872570368577,
+     "clips": 149,
+     "refPhonemes": 10107
+    }
+   },
+   "groups": {
+    "pharyngeals": {
+     "per": 0.0891891891891892,
+     "edits": 33,
+     "phonemes": 370
+    },
+    "emphatics": {
+     "per": 0.23809523809523808,
+     "edits": 40,
+     "phonemes": 168
+    },
+    "hamza_ain": {
+     "per": 0.07064555420219244,
+     "edits": 58,
+     "phonemes": 821
+    },
+    "short_vowels": {
+     "per": 0.02989864864864865,
+     "edits": 177,
+     "phonemes": 5920
+    }
+   }
+  }
+ }
+}
