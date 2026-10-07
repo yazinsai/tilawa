@@ -1,6 +1,6 @@
 {
  "version": "jumps-v1",
- "commit": "127ce80",
+ "commit": "7e91942",
  "reference": "ref-v2",
  "policy": "teacher evidence; tracker in memorization mode; 1 s chunks; without posteriors; no passage prior",
  "groups": {
@@ -22,7 +22,9 @@
    "followLatencyMedianMs": 3400,
    "followLatencyP90Ms": 6440,
    "followedWithin5s": 153,
-   "startWithin5s": 111
+   "startWithin5s": 111,
+   "checkerWarnings": 305,
+   "checkerWarningsPer5Min": 2.0418893032672014
   },
   "Contiguous (tlog)": {
    "sessions": 84,
@@ -42,7 +44,9 @@
    "followLatencyMedianMs": null,
    "followLatencyP90Ms": null,
    "followedWithin5s": 0,
-   "startWithin5s": 71
+   "startWithin5s": 71,
+   "checkerWarnings": 236,
+   "checkerWarningsPer5Min": 2.1293924734998906
   },
   "Planted jumps (tlog)": {
    "sessions": 35,
@@ -62,7 +66,9 @@
    "followLatencyMedianMs": 3400,
    "followLatencyP90Ms": 6720,
    "followedWithin5s": 35,
-   "startWithin5s": 32
+   "startWithin5s": 32,
+   "checkerWarnings": 47,
+   "checkerWarningsPer5Min": 1.6105009228969833
   },
   "Hard runs (tlog)": {
    "sessions": 2,
@@ -82,7 +88,9 @@
    "followLatencyMedianMs": 7720,
    "followLatencyP90Ms": 7720,
    "followedWithin5s": 1,
-   "startWithin5s": 2
+   "startWithin5s": 2,
+   "checkerWarnings": 0,
+   "checkerWarningsPer5Min": 0
   },
   "Help speakers": {
    "sessions": 8,
@@ -102,7 +110,9 @@
    "followLatencyMedianMs": 3400,
    "followLatencyP90Ms": 5920,
    "followedWithin5s": 117,
-   "startWithin5s": 6
+   "startWithin5s": 6,
+   "checkerWarnings": 22,
+   "checkerWarningsPer5Min": 2.7184657967576116
   },
   "Any session with 3+ near-duplicate segments": {
    "sessions": 9,
@@ -122,7 +132,9 @@
    "followLatencyMedianMs": 5440,
    "followLatencyP90Ms": 6600,
    "followedWithin5s": 7,
-   "startWithin5s": 8
+   "startWithin5s": 8,
+   "checkerWarnings": 44,
+   "checkerWarningsPer5Min": 2.840395589640303
   }
  },
  "sessions": [

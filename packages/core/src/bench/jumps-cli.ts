@@ -33,7 +33,7 @@ for (const s of manifest.sessions) {
     evidence: JSON.parse(readFileSync(evidencePath(s, g), "utf8")) as ClipEvidence,
   }));
   const stitched = stitchSession(index, parts);
-  const score = scoreSession(index, stitched, { phrases, posteriors: values.posteriors });
+  const score = scoreSession(index, stitched, { phrases, posteriors: values.posteriors, checker: true });
   const speakerChanges = s.segments.filter((g, i) => i > 0 && g.speaker !== s.segments[i - 1].speaker).length;
   rows.push({ id: s.id, kind: s.kind, source: s.source, hardSegments: s.hardSegments, speakerChanges, stitched, score });
   if (rows.length % 20 === 0) console.log(`${rows.length}/${manifest.sessions.length} sessions`);
@@ -63,6 +63,8 @@ function summarize(rs: Row[]) {
     followLatencyMedianMs: quantile(latencies, 0.5), followLatencyP90Ms: quantile(latencies, 0.9),
     followedWithin5s: latencies.filter((x) => x <= 5000).length,
     startWithin5s: rs.filter((r) => r.score.startWithin5s).length,
+    checkerWarnings: sum(rs.map((r) => r.score.checkerWarnings ?? 0)),
+    checkerWarningsPer5Min: seconds ? (sum(rs.map((r) => r.score.checkerWarnings ?? 0)) * 300) / seconds : null,
   };
 }
 const groups: [string, Row[]][] = [
@@ -109,6 +111,7 @@ const lines = [
   row("Sessions with a false jump", (g) => frac(g.sessionsWithFalseJump, g.sessions)),
   row("False jumps per session", (g) => g.falseJumpsPerSession?.toFixed(2) ?? "—"),
   row("False jumps per 5 min", (g) => g.falseJumpsPer5Min?.toFixed(2) ?? "—"),
+  row("Free-recitation checker: false wrong/added words (per 5 min)", (g) => `${g.checkerWarnings} (${g.checkerWarningsPer5Min?.toFixed(2) ?? "—"})`, "≤ 1 per 5 min"),
   row("Planted jumps followed", (g) => frac(g.followed, g.planted)),
   row("Followed within 5 s", (g) => frac(g.followedWithin5s, g.planted)),
   row("Follow latency median / p90", (g) => `${sec(g.followLatencyMedianMs)} / ${sec(g.followLatencyP90Ms)}`),

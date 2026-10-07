@@ -219,6 +219,12 @@ if (teacher && qudFiles.length) {
   add({ id: "tracker.qud.falseJumps", group: TRACKER, name: "QUD regression: false jumps", value: s.falseJumps / s.jumps, unit: "%", display: frac(s.falseJumps, s.jumps), bar: T.jumps });
   add({ id: "tracker.qud.lockS", group: TRACKER, name: "QUD regression: median time to first lock", value: s.medianTimeToFirstLockS, unit: "s" });
 } else add({ id: "tracker.qud.within5s", group: TRACKER, name: "QUD regression: correct ayah within 5 s", value: null, status: "pending", note: teacher ? "QUD evidence not on disk" : `no QUD evidence from ${values.listener}` });
+source = "jumps-v1.md";
+const jumps = teacher && existsSync(join(bench, "jumps-v1.json")) ? read("jumps-v1.json").groups.All : null;
+if (jumps?.checkerWarnings != null) {
+  add({ id: "e2e.stitched.falseWords", group: E2E, name: "Stitched sessions: false wrong/added words per 5 min (free)", value: jumps.checkerWarningsPer5Min, bar: MEM.per5,
+    display: `${jumps.checkerWarningsPer5Min.toFixed(2)} (${jumps.checkerWarnings} in ${jumps.minutes.toFixed(0)} min)`, note: "clean clips stitched end to end with real jumps (ticket 13); `pnpm jumps`" });
+} else add({ id: "e2e.stitched.falseWords", group: E2E, name: "Stitched sessions: false wrong/added words per 5 min (free)", value: null, status: "pending", note: teacher ? "run `pnpm jumps`" : "teacher evidence only" });
 source = "acceptance-v1.md";
 add({ id: "tracker.tlog", group: TRACKER, name: "Ambiguous tlog clips (PLAN gate set)", value: null, status: "unmeasurable", note: "no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06)" });
 add({ id: "tracker.scripted", group: TRACKER, name: "Scripted-error recordings (PLAN gate set)", value: null, status: "unmeasurable", note: "no recordings yet (ticket 05)" });
