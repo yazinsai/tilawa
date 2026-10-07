@@ -66,3 +66,14 @@ describe("start gate", () => {
     expect(g).toMatchObject({ correctWithin5s: true, wrongLockFirst: false, falseJumps: 0 });
   });
 });
+
+describe("declared-passage arm on help evidence", () => {
+  it("places a skipped ayah on its first word when that word recurs after it", () => {
+    // Al-Kafirun with 109:3 skipped: the ولا heard is 109:4:1, which the alignment can take for 109:3:1.
+    const evidence = JSON.parse(readFileSync(new URL("./fixtures/help/muo9h97r_bfad32ee.evidence.json", import.meta.url), "utf8"));
+    const events: AcceptanceClip["events"] = [{ errorClass: "skipped_passage", state: "suspected", location: w(109, 3, 1) }];
+    const s = scoreClip(index, { id: "muo9h97r_bfad32ee", ayahs: ["109:2", "109:3", "109:4"], events, nonErrors: [], evidence }, { arm: "declared", phrases });
+    expect(s.falsePositives).toEqual([]);
+    expect(s.pendingHits).toBe(1);
+  });
+});

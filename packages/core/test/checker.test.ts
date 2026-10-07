@@ -120,6 +120,24 @@ describe("skips", () => {
     expect(summary(run(edits))).toEqual(["suspected skipped_passage 2:255:22", "resolved skipped_passage 2:255:22"]);
   });
 
+  it("are placed on the skipped words when the word before them recurs after them", () => {
+    // قل أعوذ برب الناس [ملك الناس] إله الناس: the first الناس is 114:1:4, not 114:2:2.
+    const nas = w(114, 1, 1);
+    const skipped = [find(w(114, 2, 1)), find(w(114, 2, 2))];
+    const f = syntheticFixture(index, { id: "c", from: nas, to: w(114, 3, 2), edits: [{ kind: "del", at: skipped[0].start - find(nas).start, count: skipped[1].end - skipped[0].start }], chunkSize: 8 });
+    const events = replayChecked(index, f, {}, { passage: { from: nas, to: w(114, 3, 2) } });
+    expect(new Set(events.map((e) => `${e.errorClass} ${key(e.location)}`))).toEqual(new Set(["omitted_word 114:2:1"]));
+  });
+
+  it("are placed on the skipped ayah when its first word recurs after it", () => {
+    // ما تعبدون [ولا أنتم عابدون ما أعبد] ولا أنا: the ولا heard is 109:4:1.
+    const from109 = w(109, 2, 1);
+    const skipped = [find(w(109, 3, 1)), find(w(109, 3, 5))];
+    const f = syntheticFixture(index, { id: "c", from: from109, to: w(109, 5, 5), edits: [{ kind: "del", at: skipped[0].start - find(from109).start, count: skipped[1].end - skipped[0].start }], chunkSize: 8 });
+    const events = replayChecked(index, f, {}, { passage: { from: from109, to: w(109, 5, 5) } });
+    expect(new Set(events.map((e) => `${e.errorClass} ${key(e.location)}`))).toEqual(new Set(["skipped_passage 109:3:1"]));
+  });
+
   it("confirm when they are not", () => {
     const edits: Edit[] = [{ kind: "del", at: at(w(2, 255, 30)), count: at(w(2, 255, 40)) - at(w(2, 255, 30)) }];
     expect(summary(run(edits, { to: w(2, 257, 5) }))).toEqual(["suspected skipped_passage 2:255:30", "confirmed skipped_passage 2:255:30"]);

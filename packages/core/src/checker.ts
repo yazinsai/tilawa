@@ -142,6 +142,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     while (k < words.length && words[k].end === words[k].start) k++;
     return k;
   };
+  const prevWord = (wi: number) => {
+    let k = wi - 1;
+    while (k > 0 && words[k].end === words[k].start) k--;
+    return k;
+  };
   const wordIndex = (r: WordRef) => words.findIndex((w) => w.surah === r.surah && w.ayah === r.ayah && w.word === r.word);
   const toRef = (i: number): WordRef => ({ surah: words[i].surah, ayah: words[i].ayah, word: words[i].word });
   const passage = options.passage && { from: wordIndex(options.passage.from), to: wordIndex(options.passage.to) };
@@ -339,6 +344,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return v.cost / ((weight * v.covered) / length) > WRONG && v.hard >= Math.min(MIN_HARD, consonants);
   };
 
+  const skeleton = (wi: number) => [...ref.slice(words[wi].start, words[wi].end)].filter((p) => CONSONANTS.has(p)).join("");
   const hasConsonant = (wi: number) => [...ref.slice(words[wi].start, words[wi].end)].some((p) => CONSONANTS.has(p));
 
   /** Score phonemes heard where the alignment skipped words `[from, to]`, as one visit over them. */
@@ -463,6 +469,23 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       // Words past the head may still be coming: a gap is an omission once the reciter is past it, or already suspected.
       const was = open.get(gap.word)?.issue.cls;
       if (!(gap.last < head || was === "omitted_word" || was === "skipped_passage")) return void (gap = null);
+      // A word either side of a skip can recur on the other side (برب الناس [ملك الناس] إله الناس), so the alignment
+      // can place the gap a word off. Of the equal placements, take the one on an ayah's start: reciters skip ayahs.
+      const onStart = (i: Issue) => ayahFirst[ayahOf[i.word]] === i.word;
+      if (!onStart(gap)) {
+        const placements: Issue[] = [];
+        let r: Issue = gap;
+        for (let v = after; v && nextWord(r.last) === v.word && skeleton(r.word) === skeleton(v.word); v = last.get(nextWord(v.word))) {
+          r = { ...r, word: nextWord(r.word), last: v.word, obsFrom: v.obsTo, obsTo: v.obsTo };
+          placements.push(r);
+        }
+        let l: Issue = gap;
+        for (let v = last.get(prevWord(l.word)); v && skeleton(v.word) === skeleton(l.last); v = last.get(prevWord(v.word))) {
+          l = { ...l, word: v.word, last: prevWord(l.last), obsFrom: v.obsFrom, obsTo: v.obsFrom };
+          placements.push(l);
+        }
+        gap = placements.find(onStart) ?? gap;
+      }
       const n = words.slice(gap.word, gap.last + 1).filter((x) => x.end > x.start).length;
       issues.set(gap.word, { ...gap, cls: n >= 3 ? "skipped_passage" : "omitted_word" });
       gap = null;
