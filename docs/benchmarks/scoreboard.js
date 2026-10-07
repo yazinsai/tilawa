@@ -61,7 +61,7 @@ function historyEntry(entry,old){
  const figures=[['e2e.precision','End-to-end precision'],['e2e.recall','End-to-end recall'],...modules.map(m=>impactMetric[m])];
  const note=entry.note || 'No change note recorded.';
  const headline=note.split(';')[0];
- return `<article class="history-item"><div class="history-meta"><time>${esc(entry.date)}</time><code>${esc(entry.sha.slice(0,7))}</code></div><div class="history-body"><div class="history-tags">${tags}</div><h3 class="history-note">${esc(headline)}</h3><div class="history-figures">${figures.map(([id,label])=>historyFigure(entry,old,id,label)).join('')}</div><details class="change-details"><summary>Change details</summary><p>${esc(note)}</p><p class="small">Figures compare against the previous recorded run for this model, even when the list is filtered. Isolated checker recall uses perfect passage and sound evidence.</p></details></div></article>`;
+ return `<article class="history-item"><div class="history-meta"><div class="history-tags">${tags}</div><time>${esc(entry.date)}</time><code>${esc(entry.sha.slice(0,7))}</code></div><div class="history-body"><h3 class="history-note">${esc(headline)}</h3><div class="history-figures">${figures.map(([id,label])=>historyFigure(entry,old,id,label)).join('')}</div><details class="change-details"><summary>Change details</summary><p>${esc(note)}</p><p class="small">Figures compare against the previous recorded run for this model, even when the list is filtered. Isolated checker recall uses perfect passage and sound evidence.</p></details></div></article>`;
 }
 let data=[];
 function render(){
