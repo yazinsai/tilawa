@@ -6,3 +6,5 @@ export * from "./model.js";
 export * from "./ort.js";
 export * from "./wav.js";
 export * from "./session.js";
+export * from "./models.js";
+export * from "./registry.js";

@@ -34,6 +34,8 @@ export interface EngineOptions {
   phrases?: PhraseAsset;
   model: LoadedModel;
   listener?: ListenerOptions;
+  /** Keep every evidence chunk the listener produced, for `Session.evidence()` (benchmarks, bug reports). */
+  recordEvidence?: boolean;
 }
 
 export interface Session {
@@ -52,6 +54,8 @@ export interface Session {
   endEvidence(): EngineEvent[];
   /** Confirmed errors, plus resolved ones when the policy counts self-corrections. */
   mistakes(): CheckerEvent[];
+  /** The evidence so far, when the engine records it; otherwise empty. */
+  evidence(): PhonemeEvidence[];
 }
 
 export interface Engine {
@@ -94,7 +98,9 @@ export function createEngine(options: EngineOptions): Engine {
       for (const e of events) for (const s of subscribers) s(e);
       return events;
     };
+    const recorded: PhonemeEvidence[] = [];
     const step = (e: PhonemeEvidence) => {
+      if (options.recordEvidence) recorded.push(e);
       const out = tracker.push(e);
       return emit([...out, ...checker.push(e, out)]);
     };
@@ -130,6 +136,7 @@ export function createEngine(options: EngineOptions): Engine {
       pushEvidence: step,
       endEvidence: finish,
       mistakes: () => checker.mistakes(),
+      evidence: () => recorded,
     };
   }
 
