@@ -9080,6 +9080,962 @@
    ]
   },
   {
+   "sha": "72d1f04",
+   "date": "2026-10-07",
+   "listener": "combo-libri-soft5-full",
+   "note": "Score the completed pretrained soft-target full student on existing held-out help evidence to measure mistake detection.",
+   "metrics": [
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.precision",
+     "group": "End to end",
+     "name": "Memorization precision",
+     "value": 0.8378378378378378,
+     "unit": "%",
+     "display": "83.8% (31/37)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "note": "help eval split, held-out speakers: 388 clips, 29 speakers; free recitation, default policy",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.recall",
+     "group": "End to end",
+     "name": "Memorization recall",
+     "value": 0.484375,
+     "unit": "%",
+     "display": "48.4% (31/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.wrong_word.precision",
+     "group": "End to end",
+     "name": "wrong_word precision",
+     "value": 0.3333333333333333,
+     "unit": "%",
+     "display": "33.3% (1/3)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.wrong_word.recall",
+     "group": "End to end",
+     "name": "wrong_word recall",
+     "value": 0.034482758620689655,
+     "unit": "%",
+     "display": "3.4% (1/29)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "fail",
+     "note": ""
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.omitted_word.precision",
+     "group": "End to end",
+     "name": "omitted_word precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (30/30)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.omitted_word.recall",
+     "group": "End to end",
+     "name": "omitted_word recall",
+     "value": 0.8571428571428571,
+     "unit": "%",
+     "display": "85.7% (30/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.added_word.precision",
+     "group": "End to end",
+     "name": "added_word precision",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/1)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.added_word.recall",
+     "group": "End to end",
+     "name": "added_word recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.skipped_passage.precision",
+     "group": "End to end",
+     "name": "skipped_passage precision",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/3)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.skipped_passage.recall",
+     "group": "End to end",
+     "name": "skipped_passage recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.cleanPerClip",
+     "group": "End to end",
+     "name": "False warnings per clean clip",
+     "value": 0.008888888888888889,
+     "display": "0.009 (2/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.cleanPer5",
+     "group": "End to end",
+     "name": "False warnings per 5 min (short clips)",
+     "value": 0.21626297577854678,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.repeatFp",
+     "group": "End to end",
+     "name": "False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.pron.short_vowel",
+     "group": "End to end",
+     "name": "Pronunciation: short_vowel",
+     "value": null,
+     "display": "unsupported",
+     "status": "unmeasurable",
+     "note": "checker has no pronunciation classes; 30 positives in eval split"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.pron.consonant_sad_sin",
+     "group": "End to end",
+     "name": "Pronunciation: consonant_sad_sin",
+     "value": null,
+     "display": "unsupported",
+     "status": "unmeasurable",
+     "note": "checker has no pronunciation classes; 4 positives in eval split"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.pron.madd_natural",
+     "group": "End to end",
+     "name": "Pronunciation: madd_natural",
+     "value": null,
+     "display": "unsupported",
+     "status": "unmeasurable",
+     "note": "checker has no pronunciation classes; 1 positives in eval split"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.pron.phase2",
+     "group": "End to end",
+     "name": "Pronunciation: other pairs, shadda",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no recordings with positives (ticket 05, phase 2)"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.perfRtf",
+     "group": "End to end",
+     "name": "Tracker real-time factor (this machine)",
+     "value": 0.0016823750576213878,
+     "bar": {
+      "op": "<=",
+      "target": 0.05
+     },
+     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 29.7 ms",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "e2e.latency",
+     "group": "End to end",
+     "name": "Word highlight p95 / suspected / confirmed latency",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "needs word onsets and device runs (E7, ticket 10)"
+    },
+    {
+     "id": "listener.goldPer",
+     "group": "Listener",
+     "name": "Gold PER (canon vs spliced, human-verified exact)",
+     "value": 0.04819277108433735,
+     "unit": "%",
+     "bar": {
+      "op": "<=",
+      "target": 0.03654129754296288
+     },
+     "source": "listener-target-v1.md",
+     "display": "4.82% (233 clips)",
+     "note": "bar: gold PER where fitted declared.precision falls 2 pts below the teacher (3.39%)",
+     "status": "fail"
+    },
+    {
+     "id": "listener.goldPer.laptop",
+     "group": "Listener",
+     "name": "Gold PER: laptop",
+     "value": 0.11607992388201713,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "11.61% (16 clips)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.phone",
+     "group": "Listener",
+     "name": "Gold PER: phone",
+     "value": 0.10398860398860399,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "10.40% (26 clips)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.tlog",
+     "group": "Listener",
+     "name": "Gold PER: tlog",
+     "value": 0.029688418577307467,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "2.97% (191 clips)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.pharyngeals",
+     "group": "Listener",
+     "name": "Gold PER: pharyngeals",
+     "value": 0.08051948051948052,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "8.05% (385 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.emphatics",
+     "group": "Listener",
+     "name": "Gold PER: emphatics",
+     "value": 0.15,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "15.00% (140 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.hamza_ain",
+     "group": "Listener",
+     "name": "Gold PER: hamza ain",
+     "value": 0.06998654104979811,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "7.00% (743 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.short_vowels",
+     "group": "Listener",
+     "name": "Gold PER: short vowels",
+     "value": 0.04307116104868914,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "4.31% (5340 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPerRaw",
+     "group": "Listener",
+     "name": "Gold raw PER vs spliced reference",
+     "value": 0.0669419959317019,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "status": "info"
+    },
+    {
+     "source": "teacher-per-breakdown-v1.md",
+     "id": "listener.perFair",
+     "group": "Listener",
+     "name": "Fair PER on tlog clean-match test (canon vs spliced)",
+     "value": null,
+     "unit": "%",
+     "status": "pending",
+     "note": "not in the PER breakdown; run tools/per_breakdown.py on this run's decode"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "listener.perRef",
+     "group": "Listener",
+     "name": "Raw PER vs reference (tlog clean-match test)",
+     "value": 0.08739263583510778,
+     "unit": "%",
+     "status": "info",
+     "note": "Quran-Lab zipformer 3.65% on phone audio: reference only, not a gate"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "listener.perTeacher",
+     "group": "Listener",
+     "name": "Raw PER vs teacher",
+     "value": 0.04290925501109398,
+     "unit": "%",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "listener.visible",
+     "group": "Listener",
+     "name": "Planted memorization errors visible in the decode",
+     "value": 0.6875,
+     "unit": "%",
+     "display": "68.8% (44/64)",
+     "note": "E0 heuristic: under half the planted word's consonants decode as written",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "listener.e1help.svRecall",
+     "group": "Listener",
+     "name": "E1 help clips: short vowel greedy recall",
+     "value": 0.43333333333333335,
+     "status": "fail",
+     "note": "Combined student evidence; 30 planted positives at 27 sites; pronunciation checker remains unsupported.",
+     "unit": "%",
+     "display": "43.3% (13/30)",
+     "bar": {
+      "op": ">=",
+      "target": 0.5
+     }
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "listener.e1.classes",
+     "group": "Listener",
+     "name": "E1: classes heard",
+     "value": null,
+     "status": "pending",
+     "note": "E1/E1b not run on combo-libri-soft5-full's posteriors"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "listener.e1b.classes",
+     "group": "Listener",
+     "name": "E1b: classes heard",
+     "value": null,
+     "status": "pending",
+     "note": "E1/E1b not run on combo-libri-soft5-full's posteriors"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "tracker.clean.within5s",
+     "group": "Tracker",
+     "name": "help clean: correct ayah within 5 s",
+     "value": 0.8444444444444444,
+     "unit": "%",
+     "display": "84.4% (190/225)",
+     "bar": {
+      "op": ">=",
+      "target": 0.95
+     },
+     "note": "fair gate number on user-like audio",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "tracker.clean.falseJumps",
+     "group": "Tracker",
+     "name": "help clean: clips with a false jump",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/225)",
+     "bar": {
+      "op": "<=",
+      "target": 0.02
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "tracker.clean.outside",
+     "group": "Tracker",
+     "name": "help clean: clips with any lock outside the passage",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "tracker.clean.lockS",
+     "group": "Tracker",
+     "name": "help clean: median time to correct lock",
+     "value": 2.64,
+     "unit": "s",
+     "note": "from first decoded phoneme",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "tracker.all.within5s",
+     "group": "Tracker",
+     "name": "help all: correct ayah within 5 s",
+     "value": 0.7938144329896907,
+     "unit": "%",
+     "display": "79.4% (308/388)",
+     "bar": {
+      "op": ">=",
+      "target": 0.95
+     },
+     "note": "error clips: a substitution forming another ayah counts as wrong",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "tracker.all.falseJumps",
+     "group": "Tracker",
+     "name": "help all: clips with a false jump",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/388)",
+     "bar": {
+      "op": "<=",
+      "target": 0.02
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "tracker.all.outside",
+     "group": "Tracker",
+     "name": "help all: clips with any lock outside the passage",
+     "value": 0.05670103092783505,
+     "unit": "%",
+     "display": "5.7% (22/388)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "tracker.all.lockS",
+     "group": "Tracker",
+     "name": "help all: median time to correct lock",
+     "value": 2.56,
+     "unit": "s",
+     "note": "from first decoded phoneme",
+     "status": "info"
+    },
+    {
+     "source": "qud-v1-decoded-phrases.md",
+     "id": "tracker.qud.within5s",
+     "group": "Tracker",
+     "name": "QUD regression: correct ayah within 5 s",
+     "value": null,
+     "status": "pending",
+     "note": "no QUD evidence from combo-libri-soft5-full"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "tracker.tlog",
+     "group": "Tracker",
+     "name": "Ambiguous tlog clips (PLAN gate set)",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06)"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "tracker.scripted",
+     "group": "Tracker",
+     "name": "Scripted-error recordings (PLAN gate set)",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no recordings yet (ticket 05)"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleLock.precision",
+     "group": "Checker",
+     "name": "Declared passage: Memorization precision",
+     "value": 0.8181818181818182,
+     "unit": "%",
+     "display": "81.8% (54/66)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "note": "declared passage (CheckerOptions.passage): the prompted passage, real tracker and evidence",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleLock.recall",
+     "group": "Checker",
+     "name": "Declared passage: Memorization recall",
+     "value": 0.84375,
+     "unit": "%",
+     "display": "84.4% (54/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleLock.wrong_word.precision",
+     "group": "Checker",
+     "name": "Declared passage: wrong_word precision",
+     "value": 0.7419354838709677,
+     "unit": "%",
+     "display": "74.2% (23/31)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleLock.wrong_word.recall",
+     "group": "Checker",
+     "name": "Declared passage: wrong_word recall",
+     "value": 0.7931034482758621,
+     "unit": "%",
+     "display": "79.3% (23/29)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "fail",
+     "note": ""
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleLock.omitted_word.precision",
+     "group": "Checker",
+     "name": "Declared passage: omitted_word precision",
+     "value": 0.96875,
+     "unit": "%",
+     "display": "96.9% (31/32)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleLock.omitted_word.recall",
+     "group": "Checker",
+     "name": "Declared passage: omitted_word recall",
+     "value": 0.8857142857142857,
+     "unit": "%",
+     "display": "88.6% (31/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleLock.added_word.precision",
+     "group": "Checker",
+     "name": "Declared passage: added_word precision",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/1)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleLock.added_word.recall",
+     "group": "Checker",
+     "name": "Declared passage: added_word recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleLock.skipped_passage.precision",
+     "group": "Checker",
+     "name": "Declared passage: skipped_passage precision",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/2)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleLock.skipped_passage.recall",
+     "group": "Checker",
+     "name": "Declared passage: skipped_passage recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleLock.cleanPerClip",
+     "group": "Checker",
+     "name": "Declared passage: False warnings per clean clip",
+     "value": 0.022222222222222223,
+     "display": "0.022 (5/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleLock.cleanPer5",
+     "group": "Checker",
+     "name": "Declared passage: False warnings per 5 min (short clips)",
+     "value": 0.5406574394463669,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleLock.repeatFp",
+     "group": "Checker",
+     "name": "Declared passage: False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleAll.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: Memorization precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (59/59)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "note": "oracle lock + oracle evidence synthesised from labels (Decision 7); 0 clips with an unphonemizable planted word skipped",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleAll.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: Memorization recall",
+     "value": 0.921875,
+     "unit": "%",
+     "display": "92.2% (59/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleAll.wrong_word.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: wrong_word precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (24/24)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleAll.wrong_word.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: wrong_word recall",
+     "value": 0.8275862068965517,
+     "unit": "%",
+     "display": "82.8% (24/29)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleAll.omitted_word.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: omitted_word precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (35/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleAll.omitted_word.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: omitted_word recall",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (35/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleAll.added_word.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: added_word precision",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 raised)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "unmeasurable"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleAll.added_word.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: added_word recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleAll.skipped_passage.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: skipped_passage precision",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 raised)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "unmeasurable"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleAll.skipped_passage.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: skipped_passage recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleAll.cleanPerClip",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: False warnings per clean clip",
+     "value": 0,
+     "display": "0.000 (0/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleAll.cleanPer5",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: False warnings per 5 min (short clips)",
+     "value": 0,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleAll.repeatFp",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.oracleAll.raised",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: positives raised in any state",
+     "value": 0.921875,
+     "unit": "%",
+     "display": "92.2% (59/64)",
+     "note": "the rest of the gap to recall is events still suspected/uncertain at clip end (confirmation delay on short clips)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.e0.evidence",
+     "group": "Checker",
+     "name": "E0: misses lost to evidence",
+     "value": 5,
+     "display": "5/33",
+     "note": "",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.e0.tracker",
+     "group": "Checker",
+     "name": "E0: misses lost to tracker",
+     "value": 24,
+     "display": "24/33",
+     "note": "",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.e0.checker",
+     "group": "Checker",
+     "name": "E0: misses lost to checker",
+     "value": 4,
+     "display": "4/33",
+     "note": "real upstream, free arm",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "id": "checker.selfCorrection",
+     "group": "Checker",
+     "name": "Self-correction / long-session false warnings",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no recordings (ticket 05)"
+    },
+    {
+     "id": "listener.e1help.svCanon",
+     "group": "Listener",
+     "name": "E1 help clips: short vowel canonicalised",
+     "value": 0.43333333333333335,
+     "unit": "%",
+     "display": "43.3% (13/30)",
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "status": "info",
+     "note": "Combined student evidence; 30 planted positives at 27 sites; pronunciation checker remains unsupported."
+    },
+    {
+     "id": "listener.e1help.svFp",
+     "group": "Listener",
+     "name": "E1 help clips: short vowel clean greedy FP",
+     "value": 0.0011843079200592153,
+     "unit": "%",
+     "display": "0.1% (8/6755)",
+     "source": "acceptance-combo-libri-soft5-full-v1.md",
+     "status": "pass",
+     "note": "Combined student evidence; 30 planted positives at 27 sites; pronunciation checker remains unsupported.",
+     "bar": {
+      "op": "<=",
+      "target": 0.02
+     }
+    }
+   ],
+   "modules": [
+    "listener"
+   ]
+  },
+  {
    "sha": "2d94ea0",
    "date": "2026-10-07",
    "listener": "combo-libri-soft5-full",
@@ -11193,12 +12149,12 @@
      "id": "e2e.perfRtf",
      "group": "End to end",
      "name": "Tracker real-time factor (this machine)",
-     "value": 0.0016008478334357556,
+     "value": 0.0016151467424708119,
      "bar": {
       "op": "<=",
       "target": 0.05
      },
-     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 28.3 ms",
+     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 28.2 ms",
      "status": "pass"
     },
     {
