@@ -21553,20 +21553,20 @@
    ]
   },
   {
-   "sha": "adbcafe",
+   "sha": "ded4480",
    "date": "2026-10-09",
-   "recordedAt": "2026-10-09T14:15:50.829Z",
+   "recordedAt": "2026-10-09T12:53:09.443Z",
    "listener": "teacher",
-   "note": "Local-window warning confirmation: a wrong/omitted/added word is confirmed only if the decode beats the written words by 10 nats of CTC likelihood over the word ±1 (threshold frozen on train speakers). Declared 57/17/7 -> 57/11/7, free 33/10/31 -> 33/6/31, no new misses",
+   "note": "Mutashabihat split: forms_other_ayah labels (recitation with the error fits another ayah as well); free and declared memorization split into unambiguous and mutashabihat; free unambiguous is the tracked free metric, all FP stay there",
    "metrics": [
     {
      "source": "acceptance-v1.md",
      "id": "e2e.precision",
      "group": "End to end",
      "name": "Memorization precision",
-     "value": 0.8461538461538461,
+     "value": 0.7674418604651163,
      "unit": "%",
-     "display": "84.6% (33/39)",
+     "display": "76.7% (33/43)",
      "bar": {
       "op": ">=",
       "target": 0.9
@@ -21593,9 +21593,9 @@
      "id": "e2e.wrong_word.precision",
      "group": "End to end",
      "name": "wrong_word precision",
-     "value": 0.5,
+     "value": 0.25,
      "unit": "%",
-     "display": "50.0% (2/4)",
+     "display": "25.0% (2/8)",
      "bar": {
       "op": ">=",
       "target": 0.9
@@ -21733,6 +21733,56 @@
     },
     {
      "source": "acceptance-v1.md",
+     "id": "e2e.unambiguous.precision",
+     "group": "End to end",
+     "name": "Free: unambiguous precision",
+     "value": 0.7674418604651163,
+     "unit": "%",
+     "display": "76.7% (33/43)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail",
+     "note": "excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.unambiguous.recall",
+     "group": "End to end",
+     "name": "Free: unambiguous recall",
+     "value": 0.868421052631579,
+     "unit": "%",
+     "display": "86.8% (33/38)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.mutashabihat.precision",
+     "group": "End to end",
+     "name": "Free: mutashabihat precision",
+     "value": null,
+     "unit": "%",
+     "display": "—% (0/0)",
+     "status": "info",
+     "note": "planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed; needs declared passage or position hint"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.mutashabihat.recall",
+     "group": "End to end",
+     "name": "Free: mutashabihat recall",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/26)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
      "id": "e2e.pron.short_vowel",
      "group": "End to end",
      "name": "Pronunciation: short_vowel",
@@ -21775,12 +21825,12 @@
      "id": "e2e.perfRtf",
      "group": "End to end",
      "name": "Tracker real-time factor (this machine)",
-     "value": 0.0016473550169021707,
+     "value": 0.0017349478526428599,
      "bar": {
       "op": "<=",
       "target": 0.05
      },
-     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 29.3 ms",
+     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 30.7 ms",
      "status": "pass"
     },
     {
@@ -22179,9 +22229,9 @@
      "id": "checker.oracleLock.precision",
      "group": "Checker",
      "name": "Declared passage: Memorization precision",
-     "value": 0.8382352941176471,
+     "value": 0.7702702702702703,
      "unit": "%",
-     "display": "83.8% (57/68)",
+     "display": "77.0% (57/74)",
      "bar": {
       "op": ">=",
       "target": 0.9
@@ -22208,9 +22258,9 @@
      "id": "checker.oracleLock.wrong_word.precision",
      "group": "Checker",
      "name": "Declared passage: wrong_word precision",
-     "value": 0.8,
+     "value": 0.6666666666666666,
      "unit": "%",
-     "display": "80.0% (24/30)",
+     "display": "66.7% (24/36)",
      "bar": {
       "op": ">=",
       "target": 0.9
@@ -22316,8 +22366,8 @@
      "id": "checker.oracleLock.cleanPerClip",
      "group": "Checker",
      "name": "Declared passage: False warnings per clean clip",
-     "value": 0.022222222222222223,
-     "display": "0.022 (5/225)",
+     "value": 0.02666666666666667,
+     "display": "0.027 (6/225)",
      "status": "info"
     },
     {
@@ -22325,7 +22375,7 @@
      "id": "checker.oracleLock.cleanPer5",
      "group": "Checker",
      "name": "Declared passage: False warnings per 5 min (short clips)",
-     "value": 0.5378966090997762,
+     "value": 0.6454759309197314,
      "bar": {
       "op": "<=",
       "target": 1
@@ -22343,6 +22393,64 @@
      "bar": {
       "op": "<=",
       "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.unambiguous.precision",
+     "group": "Checker",
+     "name": "Declared passage: unambiguous precision",
+     "value": 0.6792452830188679,
+     "unit": "%",
+     "display": "67.9% (36/53)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail",
+     "note": "excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.unambiguous.recall",
+     "group": "Checker",
+     "name": "Declared passage: unambiguous recall",
+     "value": 0.9473684210526315,
+     "unit": "%",
+     "display": "94.7% (36/38)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.mutashabihat.precision",
+     "group": "Checker",
+     "name": "Declared passage: mutashabihat precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (21/21)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass",
+     "note": "planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.mutashabihat.recall",
+     "group": "Checker",
+     "name": "Declared passage: mutashabihat recall",
+     "value": 0.8076923076923077,
+     "unit": "%",
+     "display": "80.8% (21/26)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
      },
      "status": "pass"
     },
@@ -22574,20 +22682,20 @@
    ]
   },
   {
-   "sha": "adbcafe",
+   "sha": "ded4480",
    "date": "2026-10-09",
-   "recordedAt": "2026-10-09T14:18:20.865Z",
+   "recordedAt": "2026-10-09T12:55:57.957Z",
    "listener": "spliced-clean-int8",
-   "note": "Local-window warning confirmation on the shipped int8 full student (SDK now passes listener posteriors to the checker only). Declared 56/12/8 -> 56/8/8, free 28/8/36 -> 28/4/36, no new misses",
+   "note": "Mutashabihat split on the shipped full tier (int8, onnxruntime-node): free and declared memorization split by forms_other_ayah; free unambiguous is the tracked free metric, all FP stay there",
    "metrics": [
     {
      "source": "acceptance-v1.md",
      "id": "e2e.precision",
      "group": "End to end",
      "name": "Memorization precision",
-     "value": 0.875,
+     "value": 0.7777777777777778,
      "unit": "%",
-     "display": "87.5% (28/32)",
+     "display": "77.8% (28/36)",
      "bar": {
       "op": ">=",
       "target": 0.9
@@ -22614,9 +22722,9 @@
      "id": "e2e.wrong_word.precision",
      "group": "End to end",
      "name": "wrong_word precision",
-     "value": 0.5,
+     "value": 0.2857142857142857,
      "unit": "%",
-     "display": "50.0% (2/4)",
+     "display": "28.6% (2/7)",
      "bar": {
       "op": ">=",
       "target": 0.9
@@ -22672,14 +22780,14 @@
      "id": "e2e.added_word.precision",
      "group": "End to end",
      "name": "added_word precision",
-     "value": null,
+     "value": 0,
      "unit": "%",
-     "display": "— (0 raised)",
+     "display": "0.0% (0/1)",
      "bar": {
       "op": ">=",
       "target": 0.9
      },
-     "status": "unmeasurable"
+     "status": "fail"
     },
     {
      "source": "acceptance-v1.md",
@@ -22722,8 +22830,8 @@
      "id": "e2e.cleanPerClip",
      "group": "End to end",
      "name": "False warnings per clean clip",
-     "value": 0.008888888888888889,
-     "display": "0.009 (2/225)",
+     "value": 0.017777777777777778,
+     "display": "0.018 (4/225)",
      "status": "info"
     },
     {
@@ -22731,7 +22839,7 @@
      "id": "e2e.cleanPer5",
      "group": "End to end",
      "name": "False warnings per 5 min (short clips)",
-     "value": 0.21626297577854678,
+     "value": 0.43252595155709356,
      "bar": {
       "op": "<=",
       "target": 1
@@ -22751,6 +22859,56 @@
       "target": 0
      },
      "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.unambiguous.precision",
+     "group": "End to end",
+     "name": "Free: unambiguous precision",
+     "value": 0.7777777777777778,
+     "unit": "%",
+     "display": "77.8% (28/36)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail",
+     "note": "excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.unambiguous.recall",
+     "group": "End to end",
+     "name": "Free: unambiguous recall",
+     "value": 0.7368421052631579,
+     "unit": "%",
+     "display": "73.7% (28/38)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.mutashabihat.precision",
+     "group": "End to end",
+     "name": "Free: mutashabihat precision",
+     "value": null,
+     "unit": "%",
+     "display": "—% (0/0)",
+     "status": "info",
+     "note": "planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed; needs declared passage or position hint"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.mutashabihat.recall",
+     "group": "End to end",
+     "name": "Free: mutashabihat recall",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/26)",
+     "status": "info"
     },
     {
      "source": "acceptance-v1.md",
@@ -22796,41 +22954,22 @@
      "id": "e2e.perfRtf",
      "group": "End to end",
      "name": "Tracker real-time factor (this machine)",
-     "value": 0.0016474081591886342,
+     "value": 0.0016633697641364649,
      "bar": {
       "op": "<=",
       "target": 0.05
      },
-     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 28.5 ms",
+     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 28.8 ms",
      "status": "pass"
     },
     {
      "source": "acceptance-v1.md",
-     "id": "e2e.latency.highlight",
+     "id": "e2e.latency",
      "group": "End to end",
-     "name": "Word highlight latency p95",
-     "value": 489.83608399995137,
-     "bar": {
-      "op": "<=",
-      "target": 600
-     },
-     "display": "490 ms (p50 332 ms, 4722 words)",
-     "note": "onnxruntime-node, 20 ms pushes, this machine; measureLatency (packages/sdk): from the decoded phoneme, not a labelled onset. Device runs: ticket 10",
-     "status": "pass"
-    },
-    {
-     "source": "acceptance-v1.md",
-     "id": "e2e.latency.suspected",
-     "group": "End to end",
-     "name": "Suspected latency p95",
-     "value": 1013.0983330000017,
-     "bar": {
-      "op": "<=",
-      "target": 1000
-     },
-     "display": "1013 ms (p50 294 ms, 136 errors)",
-     "note": "from the onset of the word after the error; PLAN: within about 1 s",
-     "status": "fail"
+     "name": "Word highlight p95 / suspected / confirmed latency",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "pass --latency <pnpm bench:help report> (packages/sdk); device runs: ticket 10"
     },
     {
      "id": "listener.goldPer",
@@ -23143,9 +23282,9 @@
      "id": "checker.oracleLock.precision",
      "group": "Checker",
      "name": "Declared passage: Memorization precision",
-     "value": 0.875,
+     "value": 0.8235294117647058,
      "unit": "%",
-     "display": "87.5% (56/64)",
+     "display": "82.4% (56/68)",
      "bar": {
       "op": ">=",
       "target": 0.9
@@ -23172,9 +23311,9 @@
      "id": "checker.oracleLock.wrong_word.precision",
      "group": "Checker",
      "name": "Declared passage: wrong_word precision",
-     "value": 0.8275862068965517,
+     "value": 0.75,
      "unit": "%",
-     "display": "82.8% (24/29)",
+     "display": "75.0% (24/32)",
      "bar": {
       "op": ">=",
       "target": 0.9
@@ -23230,14 +23369,14 @@
      "id": "checker.oracleLock.added_word.precision",
      "group": "Checker",
      "name": "Declared passage: added_word precision",
-     "value": null,
+     "value": 0,
      "unit": "%",
-     "display": "— (0 raised)",
+     "display": "0.0% (0/1)",
      "bar": {
       "op": ">=",
       "target": 0.9
      },
-     "status": "unmeasurable"
+     "status": "fail"
     },
     {
      "source": "acceptance-v1.md",
@@ -23280,8 +23419,8 @@
      "id": "checker.oracleLock.cleanPerClip",
      "group": "Checker",
      "name": "Declared passage: False warnings per clean clip",
-     "value": 0.017777777777777778,
-     "display": "0.018 (4/225)",
+     "value": 0.02666666666666667,
+     "display": "0.027 (6/225)",
      "status": "info"
     },
     {
@@ -23289,7 +23428,7 @@
      "id": "checker.oracleLock.cleanPer5",
      "group": "Checker",
      "name": "Declared passage: False warnings per 5 min (short clips)",
-     "value": 0.43252595155709356,
+     "value": 0.6487889273356403,
      "bar": {
       "op": "<=",
       "target": 1
@@ -23307,6 +23446,64 @@
      "bar": {
       "op": "<=",
       "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.unambiguous.precision",
+     "group": "Checker",
+     "name": "Declared passage: unambiguous precision",
+     "value": 0.7446808510638298,
+     "unit": "%",
+     "display": "74.5% (35/47)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail",
+     "note": "excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.unambiguous.recall",
+     "group": "Checker",
+     "name": "Declared passage: unambiguous recall",
+     "value": 0.9210526315789473,
+     "unit": "%",
+     "display": "92.1% (35/38)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.mutashabihat.precision",
+     "group": "Checker",
+     "name": "Declared passage: mutashabihat precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (21/21)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass",
+     "note": "planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.mutashabihat.recall",
+     "group": "Checker",
+     "name": "Declared passage: mutashabihat recall",
+     "value": 0.8076923076923077,
+     "unit": "%",
+     "display": "80.8% (21/26)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
      },
      "status": "pass"
     },
@@ -23532,10 +23729,93 @@
      "status": "unmeasurable",
      "note": "no recordings (ticket 05)"
     }
-   ],
-   "modules": [
-    "checker"
    ]
+  }
+ ],
+ "candidate": "spliced-clean-int8",
+ "gates": [
+  {
+   "id": "e2e.unambiguous.recall",
+   "label": "Free recitation: mistakes caught",
+   "area": "Product"
+  },
+  {
+   "id": "e2e.unambiguous.precision",
+   "label": "Free recitation: warnings correct",
+   "area": "Product"
+  },
+  {
+   "id": "checker.oracleLock.recall",
+   "label": "Memorization session: mistakes caught",
+   "area": "Product"
+  },
+  {
+   "id": "checker.oracleLock.precision",
+   "label": "Memorization session: warnings correct",
+   "area": "Product"
+  },
+  {
+   "id": "e2e.cleanPer5",
+   "label": "False warnings per 5 min (short clips)",
+   "area": "Product"
+  },
+  {
+   "id": "e2e.stitched.falseWords",
+   "label": "False warnings per 5 min (stitched sessions)",
+   "area": "Product"
+  },
+  {
+   "id": "e2e.repeatFp",
+   "label": "False warnings on repeats",
+   "area": "Product"
+  },
+  {
+   "id": "listener.goldPer",
+   "label": "Listener gold PER",
+   "area": "Listener"
+  },
+  {
+   "id": "tracker.clean.within5s",
+   "label": "Tracker: correct ayah within 5 s",
+   "area": "Tracker"
+  },
+  {
+   "id": "tracker.clean.falseJumps",
+   "label": "Tracker: false jumps",
+   "area": "Tracker"
+  },
+  {
+   "id": "e2e.perfRtf",
+   "label": "Real-time factor",
+   "area": "Product",
+   "flipOnly": true
+  }
+ ],
+ "blocked": [
+  {
+   "id": "e2e.pron.short_vowel",
+   "label": "Pronunciation: short vowels",
+   "area": "Listener"
+  },
+  {
+   "id": "e2e.pron.phase2",
+   "label": "Pronunciation: confusable pairs, shadda",
+   "area": "Listener"
+  },
+  {
+   "id": "e2e.latency",
+   "label": "Word highlight / warning latency on device",
+   "area": "Product"
+  },
+  {
+   "id": "checker.selfCorrection",
+   "label": "Self-correction and long-session false warnings",
+   "area": "Checker"
+  },
+  {
+   "id": "tracker.scripted",
+   "label": "Scripted-error recordings",
+   "area": "Tracker"
   }
  ]
 }

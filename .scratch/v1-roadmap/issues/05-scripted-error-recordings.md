@@ -21,6 +21,7 @@
 - [ ] Not recorded for v1: ت→ط, ذ/ز and ث/س ship as `unsupported` (Decision 4). The splices were inconclusive, and a human can't hear them either (ticket 11).
 - [ ] Count pair positives per direction, not per pair. E1b (ticket 11) shows the teacher hears one direction far better than the other (ط→ت 70% vs ت→ط 23% on splices).
 - [ ] Script generator in core, using the reference index. Long multi-ayah scripts from Juz Amma, Juz Tabarak and a few long surahs, with about one planted error per 2–3 ayahs. Weight the mix toward the gaps above until each pronunciation class has ≥ 50 positives from ≥ 15 distinct sites. Each script records its planted labels.
+- [ ] The generator tags each planted error with `forms_other_ayah` (the recitation with the error applied fits another ayah at least as well as the intended one; same rule as `tools/help_import.py`) and plants both kinds on purpose: unambiguous errors for the free-recitation number, and mutashabihat slips (a word swapped for its twin ayah's word) for memorization mode, scored on their own slice.
 - [ ] Self-correction items: say the error, then re-say the word or ayah correctly. Label both the error and the fix.
 - [ ] One long clean script per volunteer, for false warnings per 5 minutes on real session lengths.
 - [ ] Recorder: extend the existing help page (`offline-tarteel/web/frontend/server/help`) with a v5 prompt set rather than building a new one. Keep the same storage and export, and add the script ID and planted-label JSON per recording.

@@ -9,13 +9,13 @@ import { parseArgs } from "node:util";
 import { loadReferenceIndex } from "../reference.js";
 import type { PhraseAsset, ReferenceAsset } from "../reference.js";
 import type { WordRef } from "../events.js";
-import { MEMORIZATION_CLASSES, attribute, scoreClip, visibleInEvidence } from "./acceptance.js";
+import { MEMORIZATION_CLASSES, attribute, scoreClip, slices, visibleInEvidence } from "./acceptance.js";
 import type { AcceptanceClip, ClipScore } from "./acceptance.js";
 import { benchRecording, summarise } from "./index.js";
 import type { QudRecording } from "./index.js";
 import { perfGate } from "./perf.js";
-import { goldPerMetrics, oracleClip, renderScoreboard, scored, upsertRow } from "./scoreboard.js";
-import type { Metric, OracleLabel, ScoreRow } from "./scoreboard.js";
+import { BLOCKED, DEFAULT_CANDIDATE, GATES, goldPerMetrics, oracleClip, renderScoreboard, scored, upsertRow } from "./scoreboard.js";
+import type { Board, Metric, OracleLabel, ScoreRow } from "./scoreboard.js";
 
 const { values } = parseArgs({ options: {
   listener: { type: "string", default: "teacher" },
@@ -31,7 +31,34 @@ const { values } = parseArgs({ options: {
   modules: { type: "string" },
   /** `pnpm bench:help` report (packages/sdk) for this listener: end-to-end latency on the shipped runtime. */
   latency: { type: "string" },
+  /** Listener judged for release; sticks in scoreboard.json until changed. */
+  candidate: { type: "string" },
+  /** Rewrite scoreboard.md (and the candidate) from scoreboard.json without scoring a run. */
+  render: { type: "boolean", default: false },
 } });
+const jsonPath = `${resolve(values.out!)}.json`;
+const board: Board = existsSync(jsonPath) ? JSON.parse(readFileSync(jsonPath, "utf8")) : { version: 1, rows: [] };
+function save() {
+  board.candidate = values.candidate ?? board.candidate ?? DEFAULT_CANDIDATE;
+  board.gates = GATES;
+  board.blocked = BLOCKED;
+  writeFileSync(jsonPath, JSON.stringify(board, null, 1) + "\n");
+  writeFileSync(`${resolve(values.out!)}.md`, [
+    "# Engine scoreboard", "",
+    "The release cockpit for the engine. One row per commit × listener, recomputed from evidence on disk (no GPU).", "",
+    "- **Release readiness** judges the candidate listener (`--candidate`, sticky) against the v1 gates in `GATES` (`packages/core/src/bench/scoreboard.ts`). It is ready when every gate passes and every requirement in `BLOCKED` has data. Gates are ranked by shortfall from the bar, so the top row is what most needs work.",
+    "- **Experiments** judges every run against its parent: the previous run of the same listener, or the candidate for a listener's first run. The verdict counts only gate moves larger than two clips; smaller ones are marked `~` and count as noise, since the eval set is 64 planted mistakes and 225 clean clips.",
+    "- **All metrics** lists every diagnostic for the candidate.", "",
+    "**Add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard --note '<what changed and why>' [--modules listener,tracker,checker]` (teacher). For a student, decode the help eval clips into a directory of `<clip>.evidence.json` and add `--listener <run-name> --evidence <dir>`. A run replaces the row with the same commit and listener, else appends. Commit `scoreboard.json` and `scoreboard.md` with the change. `pnpm scoreboard --render --candidate <listener>` switches the candidate without scoring.", "",
+    "**Dashboard.** `uv run tools/scoreboard_serve.py`, then http://127.0.0.1:8765/scoreboard.html.", "",
+    "**Sources.** Listener PER is gold PER (`tools/gold_set.py score`), barred by `listener-target-v1.json`. Help clips: 388 eval clips, 29 held-out speakers. Free memorization is scored on the `unambiguous` slice (planted errors that don't form another ayah); `mutashabihat` needs a declared passage. `Declared passage` is the memorization-session arm (`CheckerOptions.passage`); `oracle evidence` replaces the decode with one synthesised from the label, so its losses are the checker's own. E0 attributes each missed mistake to listener, tracker or checker.", "",
+    renderScoreboard(board.rows, board.candidate),
+  ].join("\n"));
+}
+if (values.render) {
+  save();
+  process.exit(0);
+}
 const moduleNames = ["listener", "tracker", "checker"] as const;
 const modules = values.modules === undefined ? undefined : [...new Set(values.modules.split(",").map((m) => m.trim()))];
 if (modules?.some((m) => !moduleNames.includes(m as typeof moduleNames[number]))) {
@@ -98,7 +125,8 @@ function memo(rs: Row[], arm: ArmKey) {
   }));
   const sig = (e: { errorClass: string; location: WordRef }) => `${e.errorClass}/${e.location.surah}:${e.location.ayah}:${e.location.word}`;
   const raised = sum(s.map(({ r, x }) => r.clip.events.filter((e) => e.state === "confirmed" && MEMORIZATION_CLASSES.includes(e.errorClass) && x.final.some((p) => sig(p) === sig(e))).length));
-  return { clips: s.length, tp, fp, fn, raised, perClass, cleanClips: clean.length, warnings, perClip: ratio(warnings, clean.length), per5: cleanS ? (warnings * 300) / cleanS : null,
+  const slice = (k: "unambiguous" | "mutashabihat") => s.map(({ r, x }) => slices(r.clip, x)[k]).reduce((a, b) => ({ pos: a.pos + b.pos, tp: a.tp + b.tp, fp: a.fp + b.fp }), { pos: 0, tp: 0, fp: 0 });
+  return { clips: s.length, tp, fp, fn, raised, perClass, unambiguous: slice("unambiguous"), mutashabihat: slice("mutashabihat"), cleanClips: clean.length, warnings, perClip: ratio(warnings, clean.length), per5: cleanS ? (warnings * 300) / cleanS : null,
     repeats: s.filter(({ r }) => r.l.kind === "repeat").length, repeatFp: sum(s.map(({ x }) => x.repeatFalsePositives)) };
 }
 function memoMetrics(prefix: string, group: string, m: ReturnType<typeof memo>, note: string, perClass: boolean, arm = "") {
@@ -113,12 +141,24 @@ function memoMetrics(prefix: string, group: string, m: ReturnType<typeof memo>, 
   add({ id: `${prefix}.cleanPer5`, group, name: nm("False warnings per 5 min (short clips)"), value: m.per5, bar: MEM.per5, note: "short clips; the gating number needs phase-2 long sessions" });
   add({ id: `${prefix}.repeatFp`, group, name: nm("False positives on repeats"), value: m.repeatFp, display: `${m.repeatFp} (${m.repeats} repeat clips)`, bar: { op: "<=", target: 0 } });
 }
+const MUTASHABIHAT = "planted errors whose recitation forms another ayah at least as well (forms_other_ayah)";
+function sliceMetrics(prefix: string, group: string, m: ReturnType<typeof memo>, arm: string, mutashabihatGated: boolean) {
+  for (const k of ["unambiguous", "mutashabihat"] as const) {
+    const x = m[k], gated = k === "unambiguous" || mutashabihatGated;
+    const note = k === "unambiguous" ? `excludes ${m.mutashabihat.pos} ${MUTASHABIHAT}; all false positives count here`
+      : `${MUTASHABIHAT}; no false positives attributed${gated ? "" : "; needs declared passage or position hint"}`;
+    add({ id: `${prefix}.${k}.precision`, group, name: `${arm}${k} precision`, value: ratio(x.tp, x.tp + x.fp), unit: "%", display: frac(x.tp, x.tp + x.fp), bar: gated ? MEM.precision : undefined, status: gated ? undefined : "info", note });
+    add({ id: `${prefix}.${k}.recall`, group, name: `${arm}${k} recall`, value: ratio(x.tp, x.pos), unit: "%", display: frac(x.tp, x.pos), bar: gated ? MEM.recall : undefined, status: gated ? undefined : "info" });
+  }
+}
 const pendingHelp = (group: string, ids: [string, string][], why: string) => ids.forEach(([id, name]) => add({ id, group, name, value: null, status: "pending", note: why }));
 const NO_EVIDENCE = `no help-clip evidence from ${values.listener} on disk (needs a GPU decode of the 388 eval clips)`;
 
 const E2E = "End to end";
 if (rows.length) {
-  memoMetrics("e2e", E2E, memo(rows, "free"), `help eval split, held-out speakers: ${rows.length} clips, ${new Set(rows.map((r) => r.l.speaker)).size} speakers; free recitation, default policy`, true);
+  const free = memo(rows, "free");
+  memoMetrics("e2e", E2E, free, `help eval split, held-out speakers: ${rows.length} clips, ${new Set(rows.map((r) => r.l.speaker)).size} speakers; free recitation, default policy`, true);
+  sliceMetrics("e2e", E2E, free, "Free: ", false);
 } else pendingHelp(E2E, [["e2e.precision", "Memorization precision"], ["e2e.recall", "Memorization recall"], ["e2e.cleanPer5", "False warnings per 5 min"]], NO_EVIDENCE);
 
 const PRONUNCIATION = ["short_vowel", "consonant_sad_sin", "madd_natural"];
@@ -232,7 +272,9 @@ add({ id: "tracker.scripted", group: TRACKER, name: "Scripted-error recordings (
 // ---- Checker isolated.
 const CHECKER = "Checker";
 if (rows.length) {
-  memoMetrics("checker.oracleLock", CHECKER, memo(rows, "declared"), "declared passage (CheckerOptions.passage): the prompted passage, real tracker and evidence", true, "Declared passage: ");
+  const declared = memo(rows, "declared");
+  memoMetrics("checker.oracleLock", CHECKER, declared, "declared passage (CheckerOptions.passage): the prompted passage, real tracker and evidence", true, "Declared passage: ");
+  sliceMetrics("checker.oracleLock", CHECKER, declared, "Declared passage: ", true);
   const oc = memo(rows, "oracle");
   memoMetrics("checker.oracleAll", CHECKER, oc, `oracle lock + oracle evidence synthesised from labels (Decision 7); ${rows.length - oc.clips} clips with an unphonemizable planted word skipped`, true, "Oracle lock + evidence: ");
   add({ id: "checker.oracleAll.raised", group: CHECKER, name: "Oracle lock + evidence: positives raised in any state", value: ratio(oc.raised, oc.tp + oc.fn), unit: "%", display: frac(oc.raised, oc.tp + oc.fn), note: "the rest of the gap to recall is events still suspected/uncertain at clip end (confirmation delay on short clips)" });
@@ -249,19 +291,8 @@ add({ id: "checker.selfCorrection", group: CHECKER, name: "Self-correction / lon
 const sha = values.sha ?? execSync("git rev-parse --short HEAD").toString().trim();
 const now = new Date().toISOString();
 const row: ScoreRow = { sha, date: now.slice(0, 10), recordedAt: now, listener: values.listener!, note: values.note, metrics };
-const jsonPath = `${resolve(values.out!)}.json`;
-const board: { version: number; rows: ScoreRow[] } = existsSync(jsonPath) ? JSON.parse(readFileSync(jsonPath, "utf8")) : { version: 1, rows: [] };
 // Keep existing attribution when regenerating a run without a new module tag.
 row.modules = modules as ScoreRow["modules"] ?? board.rows.find((r) => r.sha === row.sha && r.listener === row.listener)?.modules;
 board.rows = upsertRow(board.rows, row);
-writeFileSync(jsonPath, JSON.stringify(board, null, 1) + "\n");
-const HEADLINE = ["e2e.precision", "e2e.recall", "e2e.cleanPer5", "listener.goldPer", "tracker.clean.within5s", "tracker.qud.within5s", "tracker.qud.falseJumps", "checker.oracleLock.recall", "checker.oracleAll.recall"];
-const md = [
-  "# Engine scoreboard", "",
-  "One row per commit × listener, recomputed from evidence on disk (no GPU). Bars are PLAN.md's v1 acceptance bars; `unmeasurable` means the data to score it doesn't exist yet, `pending` means the evidence exists in principle but hasn't been produced for this listener.", "",
-  "**How to run / add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard --note '<what changed and why>'` (teacher). The note is required by AGENTS.md. Tag changed engine modules with `--modules checker` (or a comma-separated list such as `--modules listener,tracker`). Tags describe the implementation change, not every metric that moved; the dashboard uses them to filter the change history. Existing tags survive reruns that omit this option. For a student, decode the help eval clips with it into a directory of `<clip>.evidence.json` and run `pnpm scoreboard --listener <run-name> --evidence <dir> --note '...'`; without `--evidence` its help metrics are `pending`. Each run replaces the row with the same commit and listener, else appends one; commit the updated `scoreboard.json` and `scoreboard.md` with the change they measure. Listener PER is gold PER from `gold-per-v1-scores.json` (`tools/gold_set.py score`), gated by the bar in `listener-target-v1.json`; raw and clean-match fair PER come from `student-v1.json` and the PER breakdown. E1/E1b from their reports; rerun those first if the listener changed. Help clips: 388 scored eval clips, 29 held-out speakers; letter-confusion substitutions count as negatives. `Declared passage` gives the checker the prompted passage (`CheckerOptions.passage`), the memorization-session arm; `oracle evidence` replaces the decode with a perfect one synthesised from the label, so its losses are the checker's own.", "",
-  "**Dashboard.** `uv run tools/scoreboard_serve.py` serves the dashboard on http://127.0.0.1:8765/scoreboard.html. Choose a listener model to see end-to-end precision and recall, listener/tracker/checker summaries and trends, and missed-error attribution. The change history shows module tags, key figures and deltas, with filters for Listener, Tracker and Checker. Full notes are expandable; comparisons always use the previous run for that model, even when filtered. Expand “Explore all measurements” for sample counts, targets and backing reports. It reads `scoreboard.json`, so a new row appears on reload.", "",
-  renderScoreboard(board.rows, HEADLINE),
-].join("\n");
-writeFileSync(`${resolve(values.out!)}.md`, md);
-console.log(md);
+save();
+console.log(readFileSync(`${resolve(values.out!)}.md`, "utf8").split("\n## All metrics")[0]);
