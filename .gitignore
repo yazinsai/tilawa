@@ -19,6 +19,12 @@ packages/probe/public/ort/
 .scratch/student/
 .scratch/jumps/
 .scratch/models/
+.scratch/gold/
+.scratch/help-dev/
+.scratch/leadin/
+.scratch/sdk-help/
+.scratch/qasr-listener-comparison-monitor/
+output/
 packages/sample/public/models/
 packages/sample/public/ort/
 packages/sample/public/clips/
