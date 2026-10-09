@@ -9,7 +9,7 @@
 - [x] int8 (and fp16 where useful) exports; accuracy compared with fp32 on PER and the scripted-error test.
 - [ ] On a physical Snapdragon 7xx with 4 GB, an iPhone XR or 11, and the last two versions of Chrome and Safari: real-time factor, memory, and battery over 10 minutes.
 - [ ] Latency: word highlight p95 ≤ 600 ms; `suspected` within about 1 s.
-- [ ] `lite` runs in real time on the Android floor with WASM SIMD and no WebGPU.
+- [x] `lite` runs in real time on the Android floor with WASM SIMD and no WebGPU (RTF 0.21, 4 GB Android, 2026-10-09).
 
 ## Comments
 
@@ -57,3 +57,17 @@ Spend: lite training 2.62 H100-hours ≈ $15 (estimate $22); export and gold dec
 7. Reload, repeat steps 3–6 with tier `full`.
 8. Devices: Snapdragon 7xx with 4 GB (Chrome), iPhone XR or 11 (Safari), desktop Chrome and Safari, each in its two latest versions.
 9. Tick the boxes: RTF < 1 for lite on Android; highlight p95 ≤ 600 ms and suspected p95 ≈ ≤ 1 s everywhere. If `full` is over 1 RTF on the iPhone, say so; the registry would then default slow devices to `lite`.
+
+**Human, 2026-10-09: Android phone (Android 10, 4 GB, 8 cores, Chrome 154; SoC not confirmed as Snapdragon 7xx).** Phone test page, WASM, 1 thread.
+
+| Tier | Load | RTF (clips) | RTF (10 min real time) | Push p95 | Highlight p95 | Suspected p95 (n) | Peak memory |
+|---|---|---|---|---|---|---|---|
+| lite | 98.2 s (cache) | 0.208 | 0.436 | 43 ms | 568 ms ✓ | 943 ms ✓ (9) | 121 MB |
+| full | 146.3 s (download) | 0.294 | — | 73 ms | 615 ms ✗ | 1267 ms ✗ (8) | 251 MB |
+
+- lite runs in real time on this phone with margin; full also keeps up but misses both latency bars, so this device class defaults to `lite`.
+- Battery (lite, 10.1 min real time, screen on): 41% → 36% read off the phone, **5% per 10 min (~30%/h)**. The page's automatic reading said 100% → 100%: Chrome on Android reported a fake level, so the page now always asks. ~30%/h is heavy for a revision app; 5% resolution over 10 min is coarse, so a 30 min run would pin it down.
+- Load: 98 s for lite **from cache** is a product blocker on its own; needs profiling (WASM compile vs session creation vs cache read).
+- Suspected latency rests on 8–9 errors; treat as indicative.
+
+Raw: `{"schema":2,"date":"2026-10-09T13:59:08.366Z","device":{"userAgent":"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Mobile Safari/537.36","hardwareConcurrency":8,"deviceMemoryGB":4},"tiers":{"lite":{"model":{"id":"spliced-clean-lite","version":"1-int8","bytes":24650054,"backend":"onnxruntime-web/wasm","fallbacks":[],"loadMs":98235,"fromCache":true},"pushMs":20,"audioS":106.8,"rtf":0.208,"pushComputeMs":{"n":5340,"p50":0,"p95":43,"max":171},"highlightMs":{"n":55,"p50":401,"p95":568,"max":585},"suspectedMs":{"n":9,"p50":49,"p95":943,"max":943},"peakMemoryMB":121},"full":{"model":{"id":"spliced-clean","version":"1-int8","bytes":67759744,"backend":"onnxruntime-web/wasm","fallbacks":[],"loadMs":146256,"fromCache":false},"pushMs":20,"audioS":106.8,"rtf":0.294,"pushComputeMs":{"n":5340,"p50":0,"p95":73,"max":199},"highlightMs":{"n":59,"p50":432,"p95":615,"max":828},"suspectedMs":{"n":8,"p50":164,"p95":1267,"max":1267},"peakMemoryMB":251}},"battery":{"minutes":10.1,"rtf":0.436,"batteryPct":{"start":100,"end":100,"per10min":0}}}`
