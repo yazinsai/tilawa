@@ -1,6 +1,6 @@
 # Local-window warning confirmation v1 (ticket 07)
 
-Commit adbcafe (scoreboard rows @ 77f4594, after merging v1-roadmap; same counts). Before the checker confirms a wrong, omitted or added word, it scores the chunk posteriors over the error's word plus one recited word either side, from the first to the last decoded phoneme aligned there. It compares two CTC likelihoods, each summed over all timings (`PosteriorFrames.nll`): the written words, and what was decoded (the observed phonemes in place of the word; the word dropped for an omission; the inserted phonemes added for an added word). If the decode does not beat the written words by at least `SUPPORT` = 10 nats, the error ends `uncertain` instead of `confirmed`. The transcript, alignment, self-correction, repeat, skip and confirm-delay rules are unchanged. Skipped passages are not checked. Without posteriors the check does nothing.
+Commit adbcafe (scoreboard rows @ 34d1c16, after merging v1-roadmap; same counts). Before the checker confirms a wrong, omitted or added word, it scores the chunk posteriors over the error's word plus one recited word either side, from the first to the last decoded phoneme aligned there. It compares two CTC likelihoods, each summed over all timings (`PosteriorFrames.nll`): the written words, and what was decoded (the observed phonemes in place of the word; the word dropped for an omission; the inserted phonemes added for an added word). If the decode does not beat the written words by at least `SUPPORT` = 10 nats, the error ends `uncertain` instead of `confirmed`. The transcript, alignment, self-correction, repeat, skip and confirm-delay rules are unchanged. Skipped passages are not checked. Without posteriors the check does nothing.
 
 The check is on by default (`CheckerPolicy.localWindow`, `false` turns it off) in both arms. The SDK session now asks the listener for top-5 posteriors and passes them to the checker only. The tracker still gets the decode alone, so tracker metrics are unchanged.
 
@@ -39,6 +39,8 @@ By class and slice, disabled → enabled:
 | FP on a passage's first or last word | 3 → 2 | 0 → 0 | 1 → 1 | 0 → 0 |
 | Warnings on vowel clips (30 clips) | 2 → 1 | 2 → 1 | 0 → 0 | 0 → 0 |
 | Newly missed real mistakes | 0 | 0 | 0 | 0 |
+
+**Free with lead-in** (the tracked free metric since 88fad18; scoreboard @ 34d1c16): teacher warnings correct 71.0% (44/62) → 77.2% (44/57), recall unchanged. False warnings on the lead-in recitation drop from 21 to 10 (1.88 → 0.90 per 5 min). int8: 71.9% (41/57) → 73.2% (41/56), recall unchanged. Its lead-in false warnings are unchanged, because the int8 tlog lead-in evidence has no posteriors, so the check is inactive on those lead-ins.
 
 **Proposed intermediate criterion (teacher declared, FP ≤ 12 with ≥ 55/64 hits): met,** at 57 hits and 11 false positives. The 90% shipping gate is not met: that needs about 6 false positives at 55 hits.
 
