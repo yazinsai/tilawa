@@ -66,7 +66,7 @@ Spend: lite training 2.62 H100-hours ≈ $15 (estimate $22); export and gold dec
 | full | 146.3 s (download) | 0.294 | — | 73 ms | 615 ms ✗ | 1267 ms ✗ (8) | 251 MB |
 
 - lite runs in real time on this phone with margin; full also keeps up but misses both latency bars, so this device class defaults to `lite`.
-- Battery: 100% → 100%, unusable (phones hold 100% for a while off the charger). Rerun starting below 90%.
+- Battery (lite, 10.1 min real time, screen on): 41% → 36% read off the phone, **5% per 10 min (~30%/h)**. The page's automatic reading said 100% → 100%: Chrome on Android reported a fake level, so the page now always asks. ~30%/h is heavy for a revision app; 5% resolution over 10 min is coarse, so a 30 min run would pin it down.
 - Load: 98 s for lite **from cache** is a product blocker on its own; needs profiling (WASM compile vs session creation vs cache read).
 - Suspected latency rests on 8–9 errors; treat as indicative.
 
