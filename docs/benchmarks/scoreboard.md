@@ -2,11 +2,11 @@
 
 One row per commit × listener, recomputed from evidence on disk (no GPU). Bars are PLAN.md's v1 acceptance bars; `unmeasurable` means the data to score it doesn't exist yet, `pending` means the evidence exists in principle but hasn't been produced for this listener.
 
-**How to run / add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard --note '<what changed and why>'` (teacher). The note is required by AGENTS.md. Tag changed engine modules with `--modules checker` (or a comma-separated list such as `--modules listener,tracker`). Tags describe the implementation change, not every metric that moved; the dashboard uses them to filter the change history. Existing tags survive reruns that omit this option. For a student, decode the help eval clips with it into a directory of `<clip>.evidence.json` and run `pnpm scoreboard --listener <run-name> --evidence <dir> --note '...'`; without `--evidence` its help metrics are `pending`. Each run replaces the row with the same commit and listener, else appends one; commit the updated `scoreboard.json` and `scoreboard.md` with the change they measure. Listener PER is gold PER from `gold-per-v1-scores.json` (`tools/gold_set.py score`), gated by the bar in `listener-target-v1.json`; raw and clean-match fair PER come from `student-v1.json` and the PER breakdown. E1/E1b from their reports; rerun those first if the listener changed. Help clips: 388 scored eval clips, 29 held-out speakers; letter-confusion substitutions count as negatives. `Declared passage` gives the checker the prompted passage (`CheckerOptions.passage`), the memorization-session arm; `oracle evidence` replaces the decode with a perfect one synthesised from the label, so its losses are the checker's own.
+**How to run / add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard --note '<what changed and why>'` (teacher). The note is required by AGENTS.md. Tag changed engine modules with `--modules checker` (or a comma-separated list such as `--modules listener,tracker`). Tags describe the implementation change, not every metric that moved; the dashboard uses them to filter the change history. Existing tags survive reruns that omit this option. For a student, decode the help eval clips with it into a directory of `<clip>.evidence.json` and run `pnpm scoreboard --listener <run-name> --evidence <dir> --note '...'`; without `--evidence` its help metrics are `pending`. Each run replaces the row with the same commit and listener, else appends one; commit the updated `scoreboard.json` and `scoreboard.md` with the change they measure. Listener PER is gold PER from `gold-per-v1-scores.json` (`tools/gold_set.py score`), gated by the bar in `listener-target-v1.json`; raw and clean-match fair PER come from `student-v1.json` and the PER breakdown. E1/E1b from their reports; rerun those first if the listener changed. Help clips: 388 scored eval clips, 29 held-out speakers; letter-confusion substitutions count as negatives. Free and declared memorization metrics are also split into `unambiguous` and `mutashabihat` slices by the label's `forms_other_ayah` (the recitation with the error applied fits another ayah at least as well as the prompted one, `tools/help_import.py`); every false positive stays in the overall and unambiguous lines. Free unambiguous is the tracked free metric; free mutashabihat is info only, since it needs a declared passage or position hint. `Declared passage` gives the checker the prompted passage (`CheckerOptions.passage`), the memorization-session arm; `oracle evidence` replaces the decode with a perfect one synthesised from the label, so its losses are the checker's own.
 
 **Dashboard.** `uv run tools/scoreboard_serve.py` serves the dashboard on http://127.0.0.1:8765/scoreboard.html. Choose a listener model to see end-to-end precision and recall, listener/tracker/checker summaries and trends, and missed-error attribution. The change history shows module tags, key figures and deltas, with filters for Listener, Tracker and Checker. Full notes are expandable; comparisons always use the previous run for that model, even when filtered. Expand “Explore all measurements” for sample counts, targets and backing reports. It reads `scoreboard.json`, so a new row appears on reload.
 
-## Latest: teacher @ db72fff (2026-10-07)
+## Latest: teacher @ ded4480 (2026-10-09)
 
 Delta is against the baseline row 3e91183 (2026-10-07).
 
@@ -25,11 +25,15 @@ Delta is against the baseline row 3e91183 (2026-10-07).
 | End to end | False warnings per clean clip | 0.009 (2/225) |  | info | -0.027 |  |
 | End to end | False warnings per 5 min (short clips) | 0.215 | ≤ 1 | pass | -0.645 | short clips; the gating number needs phase-2 long sessions |
 | End to end | False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass | 0 |  |
+| End to end | Free: unambiguous precision | 76.7% (33/43) | ≥ 90.0% | fail |  | excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here |
+| End to end | Free: unambiguous recall | 86.8% (33/38) | ≥ 80.0% | pass |  |  |
+| End to end | Free: mutashabihat precision | —% (0/0) |  | info |  | planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed; needs declared passage or position hint |
+| End to end | Free: mutashabihat recall | 0.0% (0/26) |  | info |  |  |
 | End to end | Pronunciation: short_vowel | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 30 positives in eval split |
 | End to end | Pronunciation: consonant_sad_sin | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 4 positives in eval split |
 | End to end | Pronunciation: madd_natural | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 1 positives in eval split |
 | End to end | Pronunciation: other pairs, shadda | — |  | unmeasurable |  | no recordings with positives (ticket 05, phase 2) |
-| End to end | Tracker real-time factor (this machine) | 0.002 | ≤ 0.05 | pass | 0 | perf.ts gate: device floor assumed 20× slower; slowest push 28.5 ms |
+| End to end | Tracker real-time factor (this machine) | 0.002 | ≤ 0.05 | pass | +0 | perf.ts gate: device floor assumed 20× slower; slowest push 30.7 ms |
 | End to end | Word highlight p95 / suspected / confirmed latency | — |  | unmeasurable |  | pass --latency <pnpm bench:help report> (packages/sdk); device runs: ticket 10 |
 | Listener | Gold PER (canon vs spliced, human-verified exact) | 3.39% (233 clips) | ≤ 3.7% | pass |  | bar: gold PER where fitted declared.precision falls 2 pts below the teacher (3.39%) |
 | Listener | Gold PER: laptop | 7.61% (16 clips) |  | info |  |  |
@@ -78,6 +82,10 @@ Delta is against the baseline row 3e91183 (2026-10-07).
 | Checker | Declared passage: False warnings per clean clip | 0.027 (6/225) |  | info | -0.009 |  |
 | Checker | Declared passage: False warnings per 5 min (short clips) | 0.645 | ≤ 1 | pass | -0.215 | short clips; the gating number needs phase-2 long sessions |
 | Checker | Declared passage: False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass | 0 |  |
+| Checker | Declared passage: unambiguous precision | 67.9% (36/53) | ≥ 90.0% | fail |  | excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here |
+| Checker | Declared passage: unambiguous recall | 94.7% (36/38) | ≥ 80.0% | pass |  |  |
+| Checker | Declared passage: mutashabihat precision | 100.0% (21/21) | ≥ 90.0% | pass |  | planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed |
+| Checker | Declared passage: mutashabihat recall | 80.8% (21/26) | ≥ 80.0% | pass |  |  |
 | Checker | Oracle lock + evidence: Memorization precision | 100.0% (60/60) | ≥ 90.0% | pass | +19.1 pp | oracle lock + oracle evidence synthesised from labels (Decision 7); 0 clips with an unphonemizable planted word skipped |
 | Checker | Oracle lock + evidence: Memorization recall | 93.8% (60/64) | ≥ 80.0% | pass | +34.4 pp |  |
 | Checker | Oracle lock + evidence: wrong_word precision | 100.0% (25/25) | ≥ 90.0% | pass | 0 |  |
@@ -777,90 +785,98 @@ Delta is against the baseline row 457e2f0 (2026-10-07).
 | Checker | E0: misses lost to checker | 2/36 |  | info | 0 | real upstream, free arm |
 | Checker | Self-correction / long-session false warnings | — |  | unmeasurable |  | no recordings (ticket 05) |
 
-## Latest: spliced-clean-int8 @ 2bdd2be (2026-10-07)
+## Latest: spliced-clean-int8 @ ded4480 (2026-10-09)
 
 Delta is against the baseline row 2bdd2be (2026-10-07).
 
 | Area | Metric | Value | Bar | Status | Δ baseline | Note |
 |---|---|---:|---|---|---:|---|
-| End to end | Memorization precision | 77.8% (28/36) | ≥ 90.0% | fail |  | help eval split, held-out speakers: 388 clips, 29 speakers; free recitation, default policy |
-| End to end | Memorization recall | 43.8% (28/64) | ≥ 80.0% | fail |  |  |
-| End to end | wrong_word precision | 28.6% (2/7) | ≥ 90.0% | fail |  |  |
-| End to end | wrong_word recall | 6.9% (2/29) | ≥ 80.0% | fail |  |  |
-| End to end | omitted_word precision | 100.0% (26/26) | ≥ 90.0% | pass |  |  |
-| End to end | omitted_word recall | 74.3% (26/35) | ≥ 80.0% | fail |  |  |
-| End to end | added_word precision | 0.0% (0/1) | ≥ 90.0% | fail |  |  |
+| End to end | Memorization precision | 77.8% (28/36) | ≥ 90.0% | fail | 0 | help eval split, held-out speakers: 388 clips, 29 speakers; free recitation, default policy |
+| End to end | Memorization recall | 43.8% (28/64) | ≥ 80.0% | fail | 0 |  |
+| End to end | wrong_word precision | 28.6% (2/7) | ≥ 90.0% | fail | 0 |  |
+| End to end | wrong_word recall | 6.9% (2/29) | ≥ 80.0% | fail | 0 |  |
+| End to end | omitted_word precision | 100.0% (26/26) | ≥ 90.0% | pass | 0 |  |
+| End to end | omitted_word recall | 74.3% (26/35) | ≥ 80.0% | fail | 0 |  |
+| End to end | added_word precision | 0.0% (0/1) | ≥ 90.0% | fail | 0 |  |
 | End to end | added_word recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
-| End to end | skipped_passage precision | 0.0% (0/2) | ≥ 90.0% | fail |  |  |
+| End to end | skipped_passage precision | 0.0% (0/2) | ≥ 90.0% | fail | 0 |  |
 | End to end | skipped_passage recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
-| End to end | False warnings per clean clip | 0.018 (4/225) |  | info |  |  |
-| End to end | False warnings per 5 min (short clips) | 0.433 | ≤ 1 | pass |  | short clips; the gating number needs phase-2 long sessions |
-| End to end | False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass |  |  |
+| End to end | False warnings per clean clip | 0.018 (4/225) |  | info | 0 |  |
+| End to end | False warnings per 5 min (short clips) | 0.433 | ≤ 1 | pass | 0 | short clips; the gating number needs phase-2 long sessions |
+| End to end | False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass | 0 |  |
+| End to end | Free: unambiguous precision | 77.8% (28/36) | ≥ 90.0% | fail |  | excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here |
+| End to end | Free: unambiguous recall | 73.7% (28/38) | ≥ 80.0% | fail |  |  |
+| End to end | Free: mutashabihat precision | —% (0/0) |  | info |  | planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed; needs declared passage or position hint |
+| End to end | Free: mutashabihat recall | 0.0% (0/26) |  | info |  |  |
 | End to end | Pronunciation: short_vowel | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 30 positives in eval split |
 | End to end | Pronunciation: consonant_sad_sin | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 4 positives in eval split |
 | End to end | Pronunciation: madd_natural | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 1 positives in eval split |
 | End to end | Pronunciation: other pairs, shadda | — |  | unmeasurable |  | no recordings with positives (ticket 05, phase 2) |
-| End to end | Tracker real-time factor (this machine) | 0.002 | ≤ 0.05 | pass |  | perf.ts gate: device floor assumed 20× slower; slowest push 28.8 ms |
-| End to end | Word highlight latency p95 | 490 ms (p50 332 ms, 4722 words) | ≤ 600 | pass |  | onnxruntime-node, 20 ms pushes, this machine; measureLatency (packages/sdk): from the decoded phoneme, not a labelled onset. Device runs: ticket 10 |
-| End to end | Suspected latency p95 | 1013 ms (p50 297 ms, 136 errors) | ≤ 1000 | fail |  | from the onset of the word after the error; PLAN: within about 1 s |
-| Listener | Gold PER (canon vs spliced, human-verified exact) | 4.82% (233 clips) | ≤ 3.7% | fail |  | bar: gold PER where fitted declared.precision falls 2 pts below the teacher (3.39%) |
-| Listener | Gold PER: laptop | 10.66% (16 clips) |  | info |  |  |
-| Listener | Gold PER: phone | 10.07% (26 clips) |  | info |  |  |
-| Listener | Gold PER: tlog | 3.14% (191 clips) |  | info |  |  |
-| Listener | Gold PER: pharyngeals | 5.97% (385 ref phonemes) |  | info |  |  |
-| Listener | Gold PER: emphatics | 8.57% (140 ref phonemes) |  | info |  |  |
-| Listener | Gold PER: hamza ain | 6.59% (743 ref phonemes) |  | info |  |  |
-| Listener | Gold PER: short vowels | 4.23% (5340 ref phonemes) |  | info |  |  |
-| Listener | Gold raw PER vs spliced reference | 7.5% |  | info |  |  |
-| Listener | Gold PER: never in tlog train | 8.88% (62 clips) |  | info |  | help clips plus tlog test/val gold clips; fair for students trained before the gold exclusion |
+| End to end | Tracker real-time factor (this machine) | 0.002 | ≤ 0.05 | pass | +0 | perf.ts gate: device floor assumed 20× slower; slowest push 28.8 ms |
+| End to end | Word highlight p95 / suspected / confirmed latency | — |  | unmeasurable |  | pass --latency <pnpm bench:help report> (packages/sdk); device runs: ticket 10 |
+| Listener | Gold PER (canon vs spliced, human-verified exact) | 4.82% (233 clips) | ≤ 3.7% | fail | 0 | bar: gold PER where fitted declared.precision falls 2 pts below the teacher (3.39%) |
+| Listener | Gold PER: laptop | 10.66% (16 clips) |  | info | 0 |  |
+| Listener | Gold PER: phone | 10.07% (26 clips) |  | info | 0 |  |
+| Listener | Gold PER: tlog | 3.14% (191 clips) |  | info | 0 |  |
+| Listener | Gold PER: pharyngeals | 5.97% (385 ref phonemes) |  | info | 0 |  |
+| Listener | Gold PER: emphatics | 8.57% (140 ref phonemes) |  | info | 0 |  |
+| Listener | Gold PER: hamza ain | 6.59% (743 ref phonemes) |  | info | 0 |  |
+| Listener | Gold PER: short vowels | 4.23% (5340 ref phonemes) |  | info | 0 |  |
+| Listener | Gold raw PER vs spliced reference | 7.5% |  | info | 0 |  |
+| Listener | Gold PER: never in tlog train | 8.88% (62 clips) |  | info | 0 | help clips plus tlog test/val gold clips; fair for students trained before the gold exclusion |
 | Listener | Fair PER on tlog clean-match test (canon vs spliced) | — |  | pending |  | not in the PER breakdown; run tools/per_breakdown.py on this run's decode |
 | Listener | Raw PER vs reference (tlog clean-match test) | — |  | info |  | Quran-Lab zipformer 3.65% on phone audio: reference only, not a gate |
 | Listener | Raw PER vs teacher | — |  | info |  |  |
-| Listener | Planted memorization errors visible in the decode | 68.8% (44/64) |  | info |  | E0 heuristic: under half the planted word's consonants decode as written |
+| Listener | Planted memorization errors visible in the decode | 68.8% (44/64) |  | info | 0 | E0 heuristic: under half the planted word's consonants decode as written |
 | Listener | E1 help clips: short vowel greedy recall | — |  | pending |  | E1/E1b not run on spliced-clean-int8's posteriors |
 | Listener | E1: classes heard | — |  | pending |  | E1/E1b not run on spliced-clean-int8's posteriors |
 | Listener | E1b: classes heard | — |  | pending |  | E1/E1b not run on spliced-clean-int8's posteriors |
-| Tracker | help clean: correct ayah within 5 s | 84.0% (189/225) | ≥ 95.0% | fail |  | fair gate number on user-like audio |
-| Tracker | help clean: clips with a false jump | 0.0% (0/225) | ≤ 2.0% | pass |  |  |
-| Tracker | help clean: clips with any lock outside the passage | 0.0% (0/225) |  | info |  |  |
-| Tracker | help clean: median time to correct lock | 2.64 s |  | info |  | from first decoded phoneme |
-| Tracker | help all: correct ayah within 5 s | 78.1% (303/388) | ≥ 95.0% | fail |  | error clips: a substitution forming another ayah counts as wrong |
-| Tracker | help all: clips with a false jump | 0.0% (0/388) | ≤ 2.0% | pass |  |  |
-| Tracker | help all: clips with any lock outside the passage | 5.4% (21/388) |  | info |  |  |
-| Tracker | help all: median time to correct lock | 2.56 s |  | info |  | from first decoded phoneme |
+| Tracker | help clean: correct ayah within 5 s | 84.0% (189/225) | ≥ 95.0% | fail | 0 | fair gate number on user-like audio |
+| Tracker | help clean: clips with a false jump | 0.0% (0/225) | ≤ 2.0% | pass | 0 |  |
+| Tracker | help clean: clips with any lock outside the passage | 0.0% (0/225) |  | info | 0 |  |
+| Tracker | help clean: median time to correct lock | 2.64 s |  | info | 0 | from first decoded phoneme |
+| Tracker | help all: correct ayah within 5 s | 78.1% (303/388) | ≥ 95.0% | fail | 0 | error clips: a substitution forming another ayah counts as wrong |
+| Tracker | help all: clips with a false jump | 0.0% (0/388) | ≤ 2.0% | pass | 0 |  |
+| Tracker | help all: clips with any lock outside the passage | 5.4% (21/388) |  | info | 0 |  |
+| Tracker | help all: median time to correct lock | 2.56 s |  | info | 0 | from first decoded phoneme |
 | Tracker | QUD regression: correct ayah within 5 s | — |  | pending |  | no QUD evidence from spliced-clean-int8 |
+| End to end | Stitched sessions: false wrong/added words per 5 min (free) | — |  | pending |  | teacher evidence only |
 | Tracker | Ambiguous tlog clips (PLAN gate set) | — |  | unmeasurable |  | no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06) |
 | Tracker | Scripted-error recordings (PLAN gate set) | — |  | unmeasurable |  | no recordings yet (ticket 05) |
-| Checker | Declared passage: Memorization precision | 82.4% (56/68) | ≥ 90.0% | fail |  | declared passage (CheckerOptions.passage): the prompted passage, real tracker and evidence |
-| Checker | Declared passage: Memorization recall | 87.5% (56/64) | ≥ 80.0% | pass |  |  |
-| Checker | Declared passage: wrong_word precision | 75.0% (24/32) | ≥ 90.0% | fail |  |  |
-| Checker | Declared passage: wrong_word recall | 82.8% (24/29) | ≥ 80.0% | pass |  |  |
-| Checker | Declared passage: omitted_word precision | 97.0% (32/33) | ≥ 90.0% | pass |  |  |
-| Checker | Declared passage: omitted_word recall | 91.4% (32/35) | ≥ 80.0% | pass |  |  |
-| Checker | Declared passage: added_word precision | 0.0% (0/1) | ≥ 90.0% | fail |  |  |
+| Checker | Declared passage: Memorization precision | 82.4% (56/68) | ≥ 90.0% | fail | 0 | declared passage (CheckerOptions.passage): the prompted passage, real tracker and evidence |
+| Checker | Declared passage: Memorization recall | 87.5% (56/64) | ≥ 80.0% | pass | 0 |  |
+| Checker | Declared passage: wrong_word precision | 75.0% (24/32) | ≥ 90.0% | fail | 0 |  |
+| Checker | Declared passage: wrong_word recall | 82.8% (24/29) | ≥ 80.0% | pass | 0 |  |
+| Checker | Declared passage: omitted_word precision | 97.0% (32/33) | ≥ 90.0% | pass | 0 |  |
+| Checker | Declared passage: omitted_word recall | 91.4% (32/35) | ≥ 80.0% | pass | 0 |  |
+| Checker | Declared passage: added_word precision | 0.0% (0/1) | ≥ 90.0% | fail | 0 |  |
 | Checker | Declared passage: added_word recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
-| Checker | Declared passage: skipped_passage precision | 0.0% (0/2) | ≥ 90.0% | fail |  |  |
+| Checker | Declared passage: skipped_passage precision | 0.0% (0/2) | ≥ 90.0% | fail | 0 |  |
 | Checker | Declared passage: skipped_passage recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
-| Checker | Declared passage: False warnings per clean clip | 0.027 (6/225) |  | info |  |  |
-| Checker | Declared passage: False warnings per 5 min (short clips) | 0.649 | ≤ 1 | pass |  | short clips; the gating number needs phase-2 long sessions |
-| Checker | Declared passage: False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass |  |  |
-| Checker | Oracle lock + evidence: Memorization precision | 100.0% (60/60) | ≥ 90.0% | pass |  | oracle lock + oracle evidence synthesised from labels (Decision 7); 0 clips with an unphonemizable planted word skipped |
-| Checker | Oracle lock + evidence: Memorization recall | 93.8% (60/64) | ≥ 80.0% | pass |  |  |
-| Checker | Oracle lock + evidence: wrong_word precision | 100.0% (25/25) | ≥ 90.0% | pass |  |  |
-| Checker | Oracle lock + evidence: wrong_word recall | 86.2% (25/29) | ≥ 80.0% | pass |  |  |
-| Checker | Oracle lock + evidence: omitted_word precision | 100.0% (35/35) | ≥ 90.0% | pass |  |  |
-| Checker | Oracle lock + evidence: omitted_word recall | 100.0% (35/35) | ≥ 80.0% | pass |  |  |
+| Checker | Declared passage: False warnings per clean clip | 0.027 (6/225) |  | info | 0 |  |
+| Checker | Declared passage: False warnings per 5 min (short clips) | 0.649 | ≤ 1 | pass | 0 | short clips; the gating number needs phase-2 long sessions |
+| Checker | Declared passage: False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass | 0 |  |
+| Checker | Declared passage: unambiguous precision | 74.5% (35/47) | ≥ 90.0% | fail |  | excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here |
+| Checker | Declared passage: unambiguous recall | 92.1% (35/38) | ≥ 80.0% | pass |  |  |
+| Checker | Declared passage: mutashabihat precision | 100.0% (21/21) | ≥ 90.0% | pass |  | planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed |
+| Checker | Declared passage: mutashabihat recall | 80.8% (21/26) | ≥ 80.0% | pass |  |  |
+| Checker | Oracle lock + evidence: Memorization precision | 100.0% (60/60) | ≥ 90.0% | pass | 0 | oracle lock + oracle evidence synthesised from labels (Decision 7); 0 clips with an unphonemizable planted word skipped |
+| Checker | Oracle lock + evidence: Memorization recall | 93.8% (60/64) | ≥ 80.0% | pass | 0 |  |
+| Checker | Oracle lock + evidence: wrong_word precision | 100.0% (25/25) | ≥ 90.0% | pass | 0 |  |
+| Checker | Oracle lock + evidence: wrong_word recall | 86.2% (25/29) | ≥ 80.0% | pass | 0 |  |
+| Checker | Oracle lock + evidence: omitted_word precision | 100.0% (35/35) | ≥ 90.0% | pass | 0 |  |
+| Checker | Oracle lock + evidence: omitted_word recall | 100.0% (35/35) | ≥ 80.0% | pass | 0 |  |
 | Checker | Oracle lock + evidence: added_word precision | — (0 raised) | ≥ 90.0% | unmeasurable |  |  |
 | Checker | Oracle lock + evidence: added_word recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
 | Checker | Oracle lock + evidence: skipped_passage precision | — (0 raised) | ≥ 90.0% | unmeasurable |  |  |
 | Checker | Oracle lock + evidence: skipped_passage recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
-| Checker | Oracle lock + evidence: False warnings per clean clip | 0.000 (0/225) |  | info |  |  |
-| Checker | Oracle lock + evidence: False warnings per 5 min (short clips) | 0 | ≤ 1 | pass |  | short clips; the gating number needs phase-2 long sessions |
-| Checker | Oracle lock + evidence: False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass |  |  |
-| Checker | Oracle lock + evidence: positives raised in any state | 93.8% (60/64) |  | info |  | the rest of the gap to recall is events still suspected/uncertain at clip end (confirmation delay on short clips) |
-| Checker | E0: misses lost to evidence | 6/36 |  | info |  |  |
-| Checker | E0: misses lost to tracker | 28/36 |  | info |  |  |
-| Checker | E0: misses lost to checker | 2/36 |  | info |  | real upstream, free arm |
+| Checker | Oracle lock + evidence: False warnings per clean clip | 0.000 (0/225) |  | info | 0 |  |
+| Checker | Oracle lock + evidence: False warnings per 5 min (short clips) | 0 | ≤ 1 | pass | 0 | short clips; the gating number needs phase-2 long sessions |
+| Checker | Oracle lock + evidence: False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass | 0 |  |
+| Checker | Oracle lock + evidence: positives raised in any state | 93.8% (60/64) |  | info | 0 | the rest of the gap to recall is events still suspected/uncertain at clip end (confirmation delay on short clips) |
+| Checker | E0: misses lost to evidence | 6/36 |  | info | 0 |  |
+| Checker | E0: misses lost to tracker | 28/36 |  | info | 0 |  |
+| Checker | E0: misses lost to checker | 2/36 |  | info | 0 | real upstream, free arm |
 | Checker | Self-correction / long-session false warnings | — |  | unmeasurable |  | no recordings (ticket 05) |
 
 ## Latest: spliced-clean-fp16 @ 2bdd2be (2026-10-07)
@@ -1123,29 +1139,31 @@ Delta is against the baseline row 7fb8fff (2026-10-07).
 
 ## History
 
-| Date | Commit | Listener | End to end: Memorization precision | End to end: Memorization recall | End to end: False warnings per 5 min (short clips) | Listener: Gold PER (canon vs spliced, human-verified exact) | Tracker: help clean: correct ayah within 5 s | Tracker: QUD regression: correct ayah within 5 s | Tracker: QUD regression: false jumps | Checker: Oracle lock: Memorization recall | Checker: Oracle lock + evidence: Memorization recall | Note |
-|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| 2026-10-07 | 3e91183 | teacher | 55.2% (32/58) | 50.0% (32/64) | 0.861 | — | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 67.2% (43/64) | 59.4% (38/64) | Baseline: engine at 3e91183, offline Muaalem teacher evidence; first scoreboard row |
-| 2026-10-07 | 3e91183 | e2-libri-full | — | — | — | — | — | — | — | — | — | Baseline student: e2-libri-full (E2 LibriSpeech init); PER only, help-clip evidence not decoded yet |
-| 2026-10-07 | 8aca172 | teacher | 55.2% (32/58) | 50.0% (32/64) | 0.861 | — | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | 92.2% (59/64) | Declared-passage mode in core (CheckerOptions.passage) + end-of-session finalisation in declared sessions; declared arm 62.6%/89.1%, free unchanged |
-| 2026-10-07 | 004986d | teacher | 66.7% (32/48) | 50.0% (32/64) | 0.861 | — | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | 92.2% (59/64) | Skip placement: prefer the equal placement on an ayah start when a word recurs across the skip; oracle false omitted_word 9 -> 0 |
-| 2026-10-07 | 46a068e | teacher | 71.1% (32/45) | 50.0% (32/64) | 0.538 | — | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | 92.2% (59/64) | A word with no consonants (ghunna/madd only) needs a hard edit to be a wrong word |
-| 2026-10-07 | 16d6396 | teacher | 76.2% (32/42) | 50.0% (32/64) | 0.215 | — | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | 92.2% (59/64) | Added word between words needs two consonants, as inside a word; declared 77.0%/89.1%, free 76.2%/50.0%, oracle 100%/92.2% |
-| 2026-10-07 | bfc52cb | teacher | 76.2% (32/42) | 50.0% (32/64) | 0.215 | 3.39% (233 clips) | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | 92.2% (59/64) | Gold PER (233 human-verified exact clips) is the primary listener PER, bar 3.65% calibrated on declared precision; teacher 3.39% gold PER |
-| 2026-10-07 | bfc52cb | e5-top1-lite | 53.8% (28/52) | 43.8% (28/64) | 2.163 | 7.21% (233 clips) | 83.6% (188/225) | — | — | 84.4% (54/64) | 92.2% (59/64) | First help-clip decode (CPU fp32, chunk 16/left 128) and gold PER for e5-top1-lite; calibration point for listener-target-v1 |
-| 2026-10-07 | bfc52cb | e5-soft5-lite | 65.9% (29/44) | 45.3% (29/64) | 1.298 | 5.94% (233 clips) | 83.6% (188/225) | — | — | 84.4% (54/64) | 92.2% (59/64) | First help-clip decode (CPU fp32, chunk 16/left 128) and gold PER for e5-soft5-lite; calibration point for listener-target-v1 |
-| 2026-10-07 | bfc52cb | e2-scratch-full | 43.9% (29/66) | 45.3% (29/64) | 3.46 | 7.30% (233 clips) | 83.1% (187/225) | — | — | 85.9% (55/64) | 92.2% (59/64) | First help-clip decode (CPU fp32, chunk 16/left 128) and gold PER for e2-scratch-full; calibration point for listener-target-v1 |
-| 2026-10-07 | bfc52cb | e2-libri-full | 73.2% (30/41) | 46.9% (30/64) | 0.757 | 5.98% (233 clips) | 84.4% (190/225) | — | — | 82.8% (53/64) | 92.2% (59/64) | First help-clip decode (CPU fp32, chunk 16/left 128) and gold PER for e2-libri-full; calibration point for listener-target-v1 |
-| 2026-10-07 | 72d1f04 | combo-libri-soft5-full | 83.8% (31/37) | 48.4% (31/64) | 0.216 | 4.82% (233 clips) | 84.4% (190/225) | — | — | 84.4% (54/64) | 92.2% (59/64) | Score the completed pretrained soft-target full student on existing held-out help evidence to measure mistake detection. |
-| 2026-10-07 | 2d94ea0 | combo-libri-soft5-full | 83.8% (31/37) | 48.4% (31/64) | 0.216 | 4.82% (233 clips) | 84.4% (190/225) | — | — | 84.4% (54/64) | 92.2% (59/64) | LibriSpeech init + soft top-5, 12 epochs; trained on gold tlog clips, so gold PER is optimistic (use held-out slice) |
-| 2026-10-07 | 2d94ea0 | combo-clean | 75.7% (28/37) | 43.8% (28/64) | 0.541 | 4.97% (233 clips) | 84.4% (190/225) | — | — | 79.7% (51/64) | 92.2% (59/64) | combo retrained with the 150 gold tlog clips excluded from train; same recipe |
-| 2026-10-07 | 2d94ea0 | spliced-clean | 81.8% (27/33) | 42.2% (27/64) | 0.324 | 4.71% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | 92.2% (59/64) | spliced-reference CTC target (reference between teacher anchors, runs collapsed) + soft top-5 at weight 2, gold excluded |
-| 2026-10-07 | 457e2f0 | spliced-clean-onnx | 81.8% (27/33) | 42.2% (27/64) | 0.324 | — | 84.0% (189/225) | — | — | 87.5% (56/64) | 92.2% (59/64) | Ticket 09: spliced-clean as shipped: fp32 streaming ONNX on onnxruntime-node via the SDK listener (TS fbank, 320 ms windows); help evidence decoded from WAV, 381/388 decodes identical to PyTorch |
-| 2026-10-07 | 2bdd2be | teacher | 76.7% (33/43) | 51.6% (33/64) | 0.215 | 3.39% (233 clips) | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | 93.8% (60/64) | Cadence-independent acquisition (acquireMs grid, decodedTo) and checker anchors on end-of-session locks; scored at 320 ms chunks |
-| 2026-10-07 | 2bdd2be | spliced-clean-onnx | 80.0% (28/35) | 43.8% (28/64) | 0.324 | 4.80% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | 93.8% (60/64) | spliced-clean onnx export on onnxruntime-node, 20 ms pushes, 40 ms evidence cells |
-| 2026-10-07 | 2bdd2be | spliced-clean-int8 | 77.8% (28/36) | 43.8% (28/64) | 0.433 | 4.82% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | 93.8% (60/64) | spliced-clean int8 export on onnxruntime-node, 20 ms pushes, 40 ms evidence cells |
-| 2026-10-07 | 2bdd2be | spliced-clean-fp16 | 80.0% (28/35) | 43.8% (28/64) | 0.324 | 4.79% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | 93.8% (60/64) | spliced-clean fp16 export on onnxruntime-node, 20 ms pushes, 40 ms evidence cells |
-| 2026-10-07 | 7fb8fff | spliced-clean-lite-onnx | 63.4% (26/41) | 40.6% (26/64) | 1.081 | 5.75% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | 93.8% (60/64) | spliced-clean-lite (22M, spliced-clean recipe at size lite, 12 epochs from scratch, gold excluded) onnx export on onnxruntime-node, 20 ms pushes |
-| 2026-10-07 | 7fb8fff | spliced-clean-lite-int8 | 63.4% (26/41) | 40.6% (26/64) | 1.081 | 5.74% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | 93.8% (60/64) | spliced-clean-lite (22M, spliced-clean recipe at size lite, 12 epochs from scratch, gold excluded) int8 export on onnxruntime-node, 20 ms pushes |
-| 2026-10-07 | 6343815 | teacher | 76.7% (33/43) | 51.6% (33/64) | 0.215 | 3.39% (233 clips) | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | 93.8% (60/64) | Baseline for free-recitation latching: stitched-session free-checker false wrong/added words (ticket 13 sessions) |
-| 2026-10-07 | db72fff | teacher | 76.7% (33/43) | 51.6% (33/64) | 0.215 | 3.39% (233 clips) | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | 93.8% (60/64) | Free recitation latches onto the first lock as a declared passage (extends forward; re-anchors only on a 4+ word jump off it, or when the lock is lost) |
+| Date | Commit | Listener | End to end: Free: unambiguous precision | End to end: Free: unambiguous recall | End to end: Free: mutashabihat recall | End to end: Memorization precision | End to end: Memorization recall | End to end: False warnings per 5 min (short clips) | Listener: Gold PER (canon vs spliced, human-verified exact) | Tracker: help clean: correct ayah within 5 s | Tracker: QUD regression: correct ayah within 5 s | Tracker: QUD regression: false jumps | Checker: Oracle lock: Memorization recall | Checker: Declared passage: unambiguous recall | Checker: Declared passage: mutashabihat recall | Checker: Oracle lock + evidence: Memorization recall | Note |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| 2026-10-07 | 3e91183 | teacher | — | — | — | 55.2% (32/58) | 50.0% (32/64) | 0.861 | — | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 67.2% (43/64) | — | — | 59.4% (38/64) | Baseline: engine at 3e91183, offline Muaalem teacher evidence; first scoreboard row |
+| 2026-10-07 | 3e91183 | e2-libri-full | — | — | — | — | — | — | — | — | — | — | — | — | — | — | Baseline student: e2-libri-full (E2 LibriSpeech init); PER only, help-clip evidence not decoded yet |
+| 2026-10-07 | 8aca172 | teacher | — | — | — | 55.2% (32/58) | 50.0% (32/64) | 0.861 | — | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | — | — | 92.2% (59/64) | Declared-passage mode in core (CheckerOptions.passage) + end-of-session finalisation in declared sessions; declared arm 62.6%/89.1%, free unchanged |
+| 2026-10-07 | 004986d | teacher | — | — | — | 66.7% (32/48) | 50.0% (32/64) | 0.861 | — | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | — | — | 92.2% (59/64) | Skip placement: prefer the equal placement on an ayah start when a word recurs across the skip; oracle false omitted_word 9 -> 0 |
+| 2026-10-07 | 46a068e | teacher | — | — | — | 71.1% (32/45) | 50.0% (32/64) | 0.538 | — | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | — | — | 92.2% (59/64) | A word with no consonants (ghunna/madd only) needs a hard edit to be a wrong word |
+| 2026-10-07 | 16d6396 | teacher | — | — | — | 76.2% (32/42) | 50.0% (32/64) | 0.215 | — | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | — | — | 92.2% (59/64) | Added word between words needs two consonants, as inside a word; declared 77.0%/89.1%, free 76.2%/50.0%, oracle 100%/92.2% |
+| 2026-10-07 | bfc52cb | teacher | — | — | — | 76.2% (32/42) | 50.0% (32/64) | 0.215 | 3.39% (233 clips) | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | — | — | 92.2% (59/64) | Gold PER (233 human-verified exact clips) is the primary listener PER, bar 3.65% calibrated on declared precision; teacher 3.39% gold PER |
+| 2026-10-07 | bfc52cb | e5-top1-lite | — | — | — | 53.8% (28/52) | 43.8% (28/64) | 2.163 | 7.21% (233 clips) | 83.6% (188/225) | — | — | 84.4% (54/64) | — | — | 92.2% (59/64) | First help-clip decode (CPU fp32, chunk 16/left 128) and gold PER for e5-top1-lite; calibration point for listener-target-v1 |
+| 2026-10-07 | bfc52cb | e5-soft5-lite | — | — | — | 65.9% (29/44) | 45.3% (29/64) | 1.298 | 5.94% (233 clips) | 83.6% (188/225) | — | — | 84.4% (54/64) | — | — | 92.2% (59/64) | First help-clip decode (CPU fp32, chunk 16/left 128) and gold PER for e5-soft5-lite; calibration point for listener-target-v1 |
+| 2026-10-07 | bfc52cb | e2-scratch-full | — | — | — | 43.9% (29/66) | 45.3% (29/64) | 3.46 | 7.30% (233 clips) | 83.1% (187/225) | — | — | 85.9% (55/64) | — | — | 92.2% (59/64) | First help-clip decode (CPU fp32, chunk 16/left 128) and gold PER for e2-scratch-full; calibration point for listener-target-v1 |
+| 2026-10-07 | bfc52cb | e2-libri-full | — | — | — | 73.2% (30/41) | 46.9% (30/64) | 0.757 | 5.98% (233 clips) | 84.4% (190/225) | — | — | 82.8% (53/64) | — | — | 92.2% (59/64) | First help-clip decode (CPU fp32, chunk 16/left 128) and gold PER for e2-libri-full; calibration point for listener-target-v1 |
+| 2026-10-07 | 72d1f04 | combo-libri-soft5-full | — | — | — | 83.8% (31/37) | 48.4% (31/64) | 0.216 | 4.82% (233 clips) | 84.4% (190/225) | — | — | 84.4% (54/64) | — | — | 92.2% (59/64) | Score the completed pretrained soft-target full student on existing held-out help evidence to measure mistake detection. |
+| 2026-10-07 | 2d94ea0 | combo-libri-soft5-full | — | — | — | 83.8% (31/37) | 48.4% (31/64) | 0.216 | 4.82% (233 clips) | 84.4% (190/225) | — | — | 84.4% (54/64) | — | — | 92.2% (59/64) | LibriSpeech init + soft top-5, 12 epochs; trained on gold tlog clips, so gold PER is optimistic (use held-out slice) |
+| 2026-10-07 | 2d94ea0 | combo-clean | — | — | — | 75.7% (28/37) | 43.8% (28/64) | 0.541 | 4.97% (233 clips) | 84.4% (190/225) | — | — | 79.7% (51/64) | — | — | 92.2% (59/64) | combo retrained with the 150 gold tlog clips excluded from train; same recipe |
+| 2026-10-07 | 2d94ea0 | spliced-clean | — | — | — | 81.8% (27/33) | 42.2% (27/64) | 0.324 | 4.71% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | — | — | 92.2% (59/64) | spliced-reference CTC target (reference between teacher anchors, runs collapsed) + soft top-5 at weight 2, gold excluded |
+| 2026-10-07 | 457e2f0 | spliced-clean-onnx | — | — | — | 81.8% (27/33) | 42.2% (27/64) | 0.324 | — | 84.0% (189/225) | — | — | 87.5% (56/64) | — | — | 92.2% (59/64) | Ticket 09: spliced-clean as shipped: fp32 streaming ONNX on onnxruntime-node via the SDK listener (TS fbank, 320 ms windows); help evidence decoded from WAV, 381/388 decodes identical to PyTorch |
+| 2026-10-07 | 2bdd2be | teacher | — | — | — | 76.7% (33/43) | 51.6% (33/64) | 0.215 | 3.39% (233 clips) | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | — | — | 93.8% (60/64) | Cadence-independent acquisition (acquireMs grid, decodedTo) and checker anchors on end-of-session locks; scored at 320 ms chunks |
+| 2026-10-07 | 2bdd2be | spliced-clean-onnx | — | — | — | 80.0% (28/35) | 43.8% (28/64) | 0.324 | 4.80% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | — | — | 93.8% (60/64) | spliced-clean onnx export on onnxruntime-node, 20 ms pushes, 40 ms evidence cells |
+| 2026-10-07 | 2bdd2be | spliced-clean-int8 | — | — | — | 77.8% (28/36) | 43.8% (28/64) | 0.433 | 4.82% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | — | — | 93.8% (60/64) | spliced-clean int8 export on onnxruntime-node, 20 ms pushes, 40 ms evidence cells |
+| 2026-10-07 | 2bdd2be | spliced-clean-fp16 | — | — | — | 80.0% (28/35) | 43.8% (28/64) | 0.324 | 4.79% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | — | — | 93.8% (60/64) | spliced-clean fp16 export on onnxruntime-node, 20 ms pushes, 40 ms evidence cells |
+| 2026-10-07 | 7fb8fff | spliced-clean-lite-onnx | — | — | — | 63.4% (26/41) | 40.6% (26/64) | 1.081 | 5.75% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | — | — | 93.8% (60/64) | spliced-clean-lite (22M, spliced-clean recipe at size lite, 12 epochs from scratch, gold excluded) onnx export on onnxruntime-node, 20 ms pushes |
+| 2026-10-07 | 7fb8fff | spliced-clean-lite-int8 | — | — | — | 63.4% (26/41) | 40.6% (26/64) | 1.081 | 5.74% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | — | — | 93.8% (60/64) | spliced-clean-lite (22M, spliced-clean recipe at size lite, 12 epochs from scratch, gold excluded) int8 export on onnxruntime-node, 20 ms pushes |
+| 2026-10-07 | 6343815 | teacher | — | — | — | 76.7% (33/43) | 51.6% (33/64) | 0.215 | 3.39% (233 clips) | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | — | — | 93.8% (60/64) | Baseline for free-recitation latching: stitched-session free-checker false wrong/added words (ticket 13 sessions) |
+| 2026-10-07 | db72fff | teacher | — | — | — | 76.7% (33/43) | 51.6% (33/64) | 0.215 | 3.39% (233 clips) | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | — | — | 93.8% (60/64) | Free recitation latches onto the first lock as a declared passage (extends forward; re-anchors only on a 4+ word jump off it, or when the lock is lost) |
+| 2026-10-09 | ded4480 | teacher | 76.7% (33/43) | 86.8% (33/38) | 0.0% (0/26) | 76.7% (33/43) | 51.6% (33/64) | 0.215 | 3.39% (233 clips) | 84.9% (191/225) | 76.9% (30/39) | 8.8% (8/91) | 89.1% (57/64) | 94.7% (36/38) | 80.8% (21/26) | 93.8% (60/64) | Mutashabihat split: forms_other_ayah labels (recitation with the error fits another ayah as well); free and declared memorization split into unambiguous and mutashabihat; free unambiguous is the tracked free metric, all FP stay there |
+| 2026-10-09 | ded4480 | spliced-clean-int8 | 77.8% (28/36) | 73.7% (28/38) | 0.0% (0/26) | 77.8% (28/36) | 43.8% (28/64) | 0.433 | 4.82% (233 clips) | 84.0% (189/225) | — | — | 87.5% (56/64) | 92.1% (35/38) | 80.8% (21/26) | 93.8% (60/64) | Mutashabihat split on the shipped full tier (int8, onnxruntime-node): free and declared memorization split by forms_other_ayah; free unambiguous is the tracked free metric, all FP stay there |
