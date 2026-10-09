@@ -6,10 +6,9 @@ unreviewed known swaps are excluded. The original speaker split is preserved.
 import json
 from pathlib import Path
 
-from help_import import QURAN, apply_swaps, label
+from help_import import DIR, QURAN, apply_swaps, label
 
 ROOT = Path(__file__).resolve().parent.parent
-DIR = ROOT / ".scratch/help"
 
 
 def main():

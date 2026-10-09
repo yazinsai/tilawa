@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadReferenceIndex } from "../src/index.js";
 import type { PhraseAsset, ReferenceAsset, WordRef } from "../src/index.js";
-import { attribute, scoreClip } from "../src/bench/acceptance.js";
-import type { AcceptanceClip } from "../src/bench/acceptance.js";
+import { attribute, scoreClip, slices } from "../src/bench/acceptance.js";
+import type { AcceptanceClip, ClipScore } from "../src/bench/acceptance.js";
 import { syntheticFixture, withPosteriors } from "../src/fixtures/index.js";
 import type { Edit } from "../src/fixtures/index.js";
 
@@ -44,6 +44,17 @@ describe("declared-passage arm", () => {
     expect(free.misses).toHaveLength(1);
     expect(declared.misses).toEqual([]);
     expect(declared.hits).toBe(1);
+  });
+});
+
+describe("mutashabihat slices", () => {
+  it("splits positives by forms_other_ayah and keeps false positives in the unambiguous slice", () => {
+    const slip = { errorClass: "wrong_word", state: "confirmed", location: nuh, forms_other_ayah: true };
+    const plain = { errorClass: "omitted_word", state: "confirmed", location: w(26, 107, 2), forms_other_ayah: false };
+    const c = { ...swapped(), events: [slip, plain] };
+    const fp = { errorClass: "wrong_word", location: w(26, 107, 4) } as ClipScore["falsePositives"][number];
+    const score = { hits: 1, misses: [slip], falsePositives: [fp] } as unknown as ClipScore;
+    expect(slices(c, score)).toEqual({ unambiguous: { pos: 1, tp: 1, fp: 1 }, mutashabihat: { pos: 1, tp: 0, fp: 0 } });
   });
 });
 

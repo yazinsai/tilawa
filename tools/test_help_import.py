@@ -45,7 +45,7 @@ def clip(kind, mistakes, ref="112:1-112:2", **extra):
 def test_substitution_is_a_wrong_word_at_its_reference_location():
     m = {"kind": "substitution", "ayah": "112:2", "word": 2, "expected": "الصمد", "said": "لكنا", "said_uthmani": "لَّٰكِنَّا"}
     lab = label(QURAN, REF, clip("substitution", [m]))
-    assert lab["events"] == [{"errorClass": "wrong_word", "state": "confirmed", "location": {"surah": 112, "ayah": 2, "word": 2}, "expected": "الصمد", "observed": "لَّٰكِنَّا"}]
+    assert lab["events"] == [{"errorClass": "wrong_word", "state": "confirmed", "location": {"surah": 112, "ayah": 2, "word": 2}, "expected": "الصمد", "observed": "لَّٰكِنَّا", "forms_other_ayah": False}]
     assert lab["scored"] and lab["ayahs"] == ["112:1", "112:2"]
 
 
@@ -57,7 +57,7 @@ def test_repeat_is_not_an_error():
 
 def test_skipped_ayah_is_a_suspected_omission_of_the_whole_ayah():
     lab = label(QURAN, REF, clip("skip_ayah", [{"kind": "skip_ayah", "ayah": "112:2"}]))
-    assert lab["events"] == [{"errorClass": "omitted_word", "state": "suspected", "location": {"surah": 112, "ayah": 2, "word": 1}, "words": 2}]
+    assert lab["events"] == [{"errorClass": "omitted_word", "state": "suspected", "location": {"surah": 112, "ayah": 2, "word": 1}, "words": 2, "forms_other_ayah": False}]
     lab = label(QURAN, REF, clip("skip_ayah", [{"kind": "skip_ayah", "ayah": "112:1"}]))
     assert lab["events"][0]["errorClass"] == "skipped_passage"
 
@@ -111,3 +111,34 @@ def test_same_speaker_on_same_ayah_under_different_seeds_is_one_site():
 
 def test_extra_mistake_clips_are_dropped_from_scoring():
     assert not label(QURAN, REF, clip("none", [], extra_mistake=True))["scored"]
+
+
+MUT_QURAN = {
+    "26:124": {"text_clean": "إذ قال لهم أخوهم هود ألا تتقون"},
+    "26:125": {"text_clean": "إنى لكم رسول أمين"},
+    "26:142": {"text_clean": "إذ قال لهم أخوهم صلح ألا تتقون"},
+}
+MUT_REF = {
+    "26:124": ["إِذْ", "قَالَ", "لَهُمْ", "أَخُوهُمْ", "هُودٌ", "أَلَا", "تَتَّقُونَ"],
+    "26:125": ["إِنِّى", "لَكُمْ", "رَسُولٌ", "أَمِينٌ"],
+    "26:142": ["إِذْ", "قَالَ", "لَهُمْ", "أَخُوهُمْ", "صَـٰلِحٌ", "أَلَا", "تَتَّقُونَ"],
+}
+
+
+def mut_clip(m):
+    return {"id": "x", "speaker": "s", "kind": m["kind"], "ref": m["ayah"], "mistakes": [m]}
+
+
+def test_substitution_reciting_another_real_ayah_forms_other_ayah():
+    m = {"kind": "substitution", "ayah": "26:124", "word": 5, "expected": "هود", "said_uthmani": "صَٰلِحٌ"}
+    assert [e["forms_other_ayah"] for e in label(MUT_QURAN, MUT_REF, mut_clip(m))["events"]] == [True]
+
+
+def test_substitution_that_matches_no_other_ayah_does_not():
+    m = {"kind": "substitution", "ayah": "26:125", "word": 3, "expected": "رسول", "said_uthmani": "نَذِيرٌ"}
+    assert [e["forms_other_ayah"] for e in label(MUT_QURAN, MUT_REF, mut_clip(m))["events"]] == [False]
+
+
+def test_omission_as_close_to_another_ayah_as_to_the_intended_one_forms_other_ayah():
+    m = {"kind": "skip_word", "ayah": "26:124", "word": 5, "expected": "هود"}
+    assert [e["forms_other_ayah"] for e in label(MUT_QURAN, MUT_REF, mut_clip(m))["events"]] == [True]

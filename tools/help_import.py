@@ -82,11 +82,69 @@ TAJWEED = {"no_shadda": "missing_shadda", "madd_short": "madd_natural"}
 LIGHT_EMPHATIC = {"ص": "consonant_sad_sin", "ط": "consonant_ta_ta", "ض": "consonant_dad_dal", "ق": "consonant_qaf_kaf"}
 # The checker's own threshold: an omission of this many words or more is a skipped passage.
 SKIPPED_PASSAGE_WORDS = 3
+DIACRITIC = re.compile(r"[\u0640\u064b-\u065f\u0670\u06d6-\u06ed]")
+ALEF = str.maketrans("ٱأإآى", "اااای")
+
+
+def skeleton(word: str) -> str:
+    return DIACRITIC.sub("", word).translate(ALEF)
+
+
+def edit_distance(a: list[str], b: list[str]) -> int:
+    prev = list(range(len(b) + 1))
+    for i, x in enumerate(a, 1):
+        cur = [i]
+        for j, y in enumerate(b, 1):
+            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (x != y)))
+        prev = cur
+    return prev[-1]
+
+
+def forms_other_ayah(ref: dict[str, list[str]], ayahs: list[str], recited: list[str]) -> bool:
+    """Whether the recited words fit another span at least as well as the prompted ayahs (word edit distance).
+
+    Candidate spans are runs of 1 to len(ayahs) + 1 consecutive whole ayahs that share no ayah with the prompt.
+    """
+    said = [skeleton(w) for w in recited]
+    intended = edit_distance(said, [skeleton(w) for a in ayahs for w in ref[a]])
+    if intended == 0 or not said:
+        return False
+    keys, k, prompt = list(ref), len(ayahs) + 1, set(ayahs)
+    for i in range(len(keys)):
+        for n in range(1, k + 1):
+            window = keys[i:i + n]
+            if prompt & set(window):
+                break
+            words = [skeleton(w) for a in window for w in ref[a]]
+            if abs(len(words) - len(said)) > intended:
+                continue
+            vocab = set(words)
+            if sum(w not in vocab for w in said) <= intended and edit_distance(said, words) <= intended:
+                return True
+    return False
+
+
+def recited_words(ref: dict[str, list[str]], ayahs: list[str], mistakes: list[dict]) -> list[str]:
+    """The prompted ayahs' words with the planted word-level mistakes applied (tajweed and vowels leave words alone)."""
+    out = []
+    for a in ayahs:
+        if any(m["kind"] == "skip_ayah" and m["ayah"] == a for m in mistakes):
+            continue
+        for i, w in enumerate(ref[a], 1):
+            at = [m for m in mistakes if m.get("at") == (a, i)]
+            kinds = {m["kind"] for m in at}
+            if "skip_word" in kinds:
+                continue
+            sub = next((m for m in at if m["kind"] == "substitution"), None)
+            out.append(sub.get("said_uthmani") or sub.get("said") or "?" if sub else w)
+            if "repeat" in kinds:
+                out.append(w)
+    return out
 
 
 def label(quran: dict[str, dict], ref: dict[str, list[str]], r: dict) -> dict:
     """One clip's planted mistakes as the checker events a correct engine should end with."""
-    events, non_errors, unsupported = [], [], []
+    events, non_errors, unsupported, placed = [], [], [], []
     for m in r.get("mistakes") or []:
         k = m["kind"]
         if k == "skip_ayah":
@@ -94,8 +152,10 @@ def label(quran: dict[str, dict], ref: dict[str, list[str]], r: dict) -> dict:
             n = len(ref[m["ayah"]])
             cls = "skipped_passage" if n >= SKIPPED_PASSAGE_WORDS else "omitted_word"
             events.append({"errorClass": cls, "state": "suspected", "location": {"surah": s, "ayah": a, "word": 1}, "words": n})
+            placed.append(m)
             continue
         at = word_ref(quran, ref, m["ayah"], m["word"])
+        placed.append({**m, "at": (m["ayah"], at["word"])})
         if k == "repeat":
             non_errors.append({"kind": "repeat", "location": at})
             continue
@@ -110,11 +170,14 @@ def label(quran: dict[str, dict], ref: dict[str, list[str]], r: dict) -> dict:
         if m.get("said_uthmani"):
             e["observed"] = m["said_uthmani"]
         events.append(e)
+    ayahs = ayahs_of(r)
+    other = forms_other_ayah(ref, ayahs, recited_words(ref, ayahs, placed)) if events else False
+    events = [{**e, "forms_other_ayah": other} for e in events]
     return {
         "id": r["id"],
         "speaker": r["speaker"],
         "kind": r["kind"],
-        "ayahs": ayahs_of(r),
+        "ayahs": ayahs,
         "events": events,
         "non_errors": non_errors,
         "unsupported": unsupported,

@@ -14,6 +14,8 @@ export interface LabelEvent {
   errorClass: string;
   state: string;
   location: WordRef;
+  /** The recitation with this error applied fits another ayah at least as well as the prompted one (a mutashabihat slip). */
+  forms_other_ayah?: boolean;
 }
 
 export interface AcceptanceClip {
@@ -143,6 +145,17 @@ function startGate(index: ReferenceIndex, clip: AcceptanceClip, positions: Posit
     jumps,
     falseJumps,
   };
+}
+
+export type Slice = "unambiguous" | "mutashabihat";
+
+/** Memorization positives and hits per slice; every false positive counts against the unambiguous slice. */
+export function slices(clip: AcceptanceClip, score: ClipScore): Record<Slice, { pos: number; tp: number; fp: number }> {
+  const slice = (e: LabelEvent): Slice => (e.forms_other_ayah ? "mutashabihat" : "unambiguous");
+  const out = { unambiguous: { pos: 0, tp: 0, fp: score.falsePositives.length }, mutashabihat: { pos: 0, tp: 0, fp: 0 } };
+  for (const e of clip.events) if (e.state === "confirmed" && MEMORIZATION_CLASSES.includes(e.errorClass)) out[slice(e)].pos++;
+  for (const s of ["unambiguous", "mutashabihat"] as const) out[s].tp = out[s].pos - score.misses.filter((e) => slice(e) === s).length;
+  return out;
 }
 
 export type MissCause = "evidence" | "tracker" | "checker";
