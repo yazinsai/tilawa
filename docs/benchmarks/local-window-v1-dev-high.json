@@ -1,0 +1,2535 @@
+{
+ "split": "train",
+ "clips": 433,
+ "speakers": 98,
+ "evidence": "/Users/rock/ai/projects/tilawa/.scratch/help-dev/wav",
+ "declared/off": {
+  "tp": 81,
+  "fp": 32,
+  "fn": 8,
+  "perClass": {
+   "wrong_word": {
+    "tp": 27,
+    "fp": 23,
+    "fn": 6
+   },
+   "omitted_word": {
+    "tp": 54,
+    "fp": 4,
+    "fn": 2
+   },
+   "added_word": {
+    "tp": 0,
+    "fp": 1,
+    "fn": 0
+   },
+   "skipped_passage": {
+    "tp": 0,
+    "fp": 4,
+    "fn": 0
+   }
+  },
+  "cleanClips": 211,
+  "cleanWarnings": 24,
+  "repeatClips": 30,
+  "repeatFalsePositives": 0,
+  "edgeFalsePositives": 3,
+  "vowelClips": 37,
+  "vowelClipWarnings": 0,
+  "falsePositives": [
+   {
+    "clip": "munyau84_251e8228",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "9:35:10",
+    "expected": "وَجُنُۥۥبُهُموَظُهُۥۥرُهُمهَااذَاامَااكَنَزتُملِءَںںںفُسِكُمفَذُۥۥقُۥۥمَااكُںںںتُمتَكنِزُۥۥنءِننننَعِددَتَششُهُۥۥرِعِںںںدَللَااهِثنَااعَشَرَشَهرَںںںفِۦۦكِتَاابِللَااهِيَومَخَلَقَسسَمَااوَااتِوَلءَرضَمِنهَااااءَربَعَتُنحُرُمُںںںذَاالِكَددِۦۦنُلقَييِمُفَلَااتَظلِمُۥۥفِۦۦهِننننَءَںںںفُسَكُموَقَااتِلُلمُشرِكِۦۦنَكَااااااففَتَںںںكَمَاايُقَااتِلُۥۥنَكُمكَااااااففَتَوووَعلَمُۥۥۥۥءَننننَللَااهَمَعَلمُتتَقِۦۦنءِننننَمَننننَسِۦۦۦۦءُزِيَاادَتُںںںفِلكُفرِيُضَللُبِهِللَذِۦۦنَكَفَرُۥۥيُحِللُۥۥنَهُۥۥعَاامَوووَيُحَررِمُۥۥنَهُۥۥعَاامَللِيُوَااطِءُۥۥعِددَتَمَااحَررَمَللَااهُفَيُحِللُۥۥمَااحَررَمَللَااهُزُييِنَلَهُمسُۥۥۥۥءُءَعمَاالِهِم"
+   },
+   {
+    "clip": "munyau84_251e8228",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "9:39:12",
+    "observed": "وَءُلَااااءِكوَ",
+    "expected": "وَللَااهُ"
+   },
+   {
+    "clip": "muo0hhaf_c5d0a1f6",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "omitted_word",
+    "location": "101:6:2",
+    "expected": "مَںںں"
+   },
+   {
+    "clip": "muo94268_8a4466f8",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "109:3:2",
+    "expected": "ءَںںںتُمعَاابِدُۥۥنَمَااااءَعبُدڇوَلَااااءَنَ"
+   },
+   {
+    "clip": "muo94268_8a4466f8",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "109:4:3",
+    "observed": "عَمَااءَاابِۦۦتُمم",
+    "expected": "عَاابِدُممم"
+   },
+   {
+    "clip": "muo96bll_781c66a7",
+    "kind": "repeat",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "103:3:4",
+    "observed": "عَل",
+    "expected": "وَعَمِلُ"
+   },
+   {
+    "clip": "muob2xxu_c866bf5a",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "114:1:3",
+    "expected": "بِرَببِننننَااسمَلِكِ"
+   },
+   {
+    "clip": "muobdxpb_788c6982",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "94:6:3",
+    "observed": "نءُسلِ",
+    "expected": "لعُسرِ"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "56:85:2",
+    "observed": "وَفرَضُ",
+    "expected": "ءَقڇرَبُ"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "56:85:5",
+    "observed": "وَلَااكِنن",
+    "expected": "وَلَااكِل"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "56:85:6",
+    "observed": "هَاا",
+    "expected": "لَاا"
+   },
+   {
+    "clip": "muogl6b0_bb213193",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "added_word",
+    "location": "36:37:8",
+    "observed": "مممُ",
+    "expected": "هُممم"
+   },
+   {
+    "clip": "muon1e44_7287d9b4",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "36:18:3",
+    "observed": "تَترَينَاااا",
+    "expected": "تَطَييَرنَاا"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "15:85:2",
+    "observed": "خَلَفمَ",
+    "expected": "خَلَقڇنَ"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "15:85:8",
+    "observed": "مِنحَققِ",
+    "expected": "بِلحَققِ"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "15:85:11",
+    "observed": "لَءَاالِيهمم",
+    "expected": "لَءَااتِيَتُںںں"
+   },
+   {
+    "clip": "mup3zigs_afc191b1",
+    "kind": "none",
+    "edge": true,
+    "errorClass": "wrong_word",
+    "location": "23:10:1",
+    "observed": "لَلَاااالِكَ",
+    "expected": "ءُلَااااءِكَ"
+   },
+   {
+    "clip": "mup3zigs_afc191b1",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "23:11:3",
+    "expected": "لفِردَوسَهُمفِۦۦهَااخَاالِدُۥۥنوَلَقَدڇخَلَقڇنَلءِںںںسَاانَمِںںںسُلَاالَتِممممِںںںطِۦۦنثُممممَجَعَلنَااهُنُطڇفَتَںںں"
+   },
+   {
+    "clip": "mup407ze_1ff91200",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "30:6:6",
+    "observed": "وَللَه",
+    "expected": "وَعدَهُۥۥ"
+   },
+   {
+    "clip": "mup40huu_4707d9fe",
+    "kind": "none",
+    "edge": true,
+    "errorClass": "wrong_word",
+    "location": "78:29:1",
+    "observed": "فَءُللَ",
+    "expected": "وَكُللَ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "6:22:12",
+    "observed": "فَذَرَمُم",
+    "expected": "تَزعُمُۥۥن"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "6:23:5",
+    "observed": "ِينَاااا",
+    "expected": "ءِللَاااا"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "6:23:8",
+    "observed": "ءَللَااءِ",
+    "expected": "وَللَااهِ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "6:24:2",
+    "observed": "بَيتَتَ",
+    "expected": "كَيفَ"
+   },
+   {
+    "clip": "mup60k7p_fe6ef424",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "12:33:9",
+    "observed": "وَءِنننلَاا",
+    "expected": "وَءِللَاا"
+   },
+   {
+    "clip": "mup6o39l_41ca27f1",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "56:11:1",
+    "observed": "ءُذَاالِكَ",
+    "expected": "ءُلَااااءِكَ"
+   },
+   {
+    "clip": "mup6qabh_0b0bca5f",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "omitted_word",
+    "location": "89:12:1",
+    "expected": "فَءَكثَرُۥۥ"
+   },
+   {
+    "clip": "mupd8r9c_fcaaeb33",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "omitted_word",
+    "location": "18:4:4",
+    "expected": "تتَخَذَ"
+   },
+   {
+    "clip": "muqfafom_9fabc05f",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "omitted_word",
+    "location": "55:39:5",
+    "expected": "ذَ۾۾۾بِهِۦۦۦۦ"
+   },
+   {
+    "clip": "muqfafom_9fabc05f",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "55:39:6",
+    "observed": "دِِںںںسُم",
+    "expected": "ءِںںںسُوو"
+   },
+   {
+    "clip": "muqfbdpp_469e15a0",
+    "kind": "none",
+    "edge": true,
+    "errorClass": "wrong_word",
+    "location": "27:2:1",
+    "observed": "ذَوو",
+    "expected": "هُدَوو"
+   },
+   {
+    "clip": "muqfbdpp_469e15a0",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "27:3:5",
+    "observed": "ذَفَلَ",
+    "expected": "ززَكَااتَ"
+   }
+  ],
+  "newlyMissed": [],
+  "removedFalsePositives": []
+ },
+ "declared/10": {
+  "tp": 81,
+  "fp": 19,
+  "fn": 8,
+  "perClass": {
+   "wrong_word": {
+    "tp": 27,
+    "fp": 14,
+    "fn": 6
+   },
+   "omitted_word": {
+    "tp": 54,
+    "fp": 1,
+    "fn": 2
+   },
+   "added_word": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0
+   },
+   "skipped_passage": {
+    "tp": 0,
+    "fp": 4,
+    "fn": 0
+   }
+  },
+  "cleanClips": 211,
+  "cleanWarnings": 12,
+  "repeatClips": 30,
+  "repeatFalsePositives": 0,
+  "edgeFalsePositives": 1,
+  "vowelClips": 37,
+  "vowelClipWarnings": 0,
+  "falsePositives": [
+   {
+    "clip": "munyau84_251e8228",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "9:35:10",
+    "expected": "وَجُنُۥۥبُهُموَظُهُۥۥرُهُمهَااذَاامَااكَنَزتُملِءَںںںفُسِكُمفَذُۥۥقُۥۥمَااكُںںںتُمتَكنِزُۥۥنءِننننَعِددَتَششُهُۥۥرِعِںںںدَللَااهِثنَااعَشَرَشَهرَںںںفِۦۦكِتَاابِللَااهِيَومَخَلَقَسسَمَااوَااتِوَلءَرضَمِنهَااااءَربَعَتُنحُرُمُںںںذَاالِكَددِۦۦنُلقَييِمُفَلَااتَظلِمُۥۥفِۦۦهِننننَءَںںںفُسَكُموَقَااتِلُلمُشرِكِۦۦنَكَااااااففَتَںںںكَمَاايُقَااتِلُۥۥنَكُمكَااااااففَتَوووَعلَمُۥۥۥۥءَننننَللَااهَمَعَلمُتتَقِۦۦنءِننننَمَننننَسِۦۦۦۦءُزِيَاادَتُںںںفِلكُفرِيُضَللُبِهِللَذِۦۦنَكَفَرُۥۥيُحِللُۥۥنَهُۥۥعَاامَوووَيُحَررِمُۥۥنَهُۥۥعَاامَللِيُوَااطِءُۥۥعِددَتَمَااحَررَمَللَااهُفَيُحِللُۥۥمَااحَررَمَللَااهُزُييِنَلَهُمسُۥۥۥۥءُءَعمَاالِهِم"
+   },
+   {
+    "clip": "munyau84_251e8228",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "9:39:12",
+    "observed": "وَءُلَااااءِكوَ",
+    "expected": "وَللَااهُ"
+   },
+   {
+    "clip": "muo94268_8a4466f8",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "109:3:2",
+    "expected": "ءَںںںتُمعَاابِدُۥۥنَمَااااءَعبُدڇوَلَااااءَنَ"
+   },
+   {
+    "clip": "muo94268_8a4466f8",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "109:4:3",
+    "observed": "عَمَااءَاابِۦۦتُمم",
+    "expected": "عَاابِدُممم"
+   },
+   {
+    "clip": "muo96bll_781c66a7",
+    "kind": "repeat",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "103:3:4",
+    "observed": "عَل",
+    "expected": "وَعَمِلُ"
+   },
+   {
+    "clip": "muob2xxu_c866bf5a",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "114:1:3",
+    "expected": "بِرَببِننننَااسمَلِكِ"
+   },
+   {
+    "clip": "muobdxpb_788c6982",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "94:6:3",
+    "observed": "نءُسلِ",
+    "expected": "لعُسرِ"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "56:85:2",
+    "observed": "وَفرَضُ",
+    "expected": "ءَقڇرَبُ"
+   },
+   {
+    "clip": "muon1e44_7287d9b4",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "36:18:3",
+    "observed": "تَترَينَاااا",
+    "expected": "تَطَييَرنَاا"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "15:85:11",
+    "observed": "لَءَاالِيهمم",
+    "expected": "لَءَااتِيَتُںںں"
+   },
+   {
+    "clip": "mup3zigs_afc191b1",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "23:11:3",
+    "expected": "لفِردَوسَهُمفِۦۦهَااخَاالِدُۥۥنوَلَقَدڇخَلَقڇنَلءِںںںسَاانَمِںںںسُلَاالَتِممممِںںںطِۦۦنثُممممَجَعَلنَااهُنُطڇفَتَںںں"
+   },
+   {
+    "clip": "mup407ze_1ff91200",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "30:6:6",
+    "observed": "وَللَه",
+    "expected": "وَعدَهُۥۥ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "6:22:12",
+    "observed": "فَذَرَمُم",
+    "expected": "تَزعُمُۥۥن"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "6:23:5",
+    "observed": "ِينَاااا",
+    "expected": "ءِللَاااا"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "6:23:8",
+    "observed": "ءَللَااءِ",
+    "expected": "وَللَااهِ"
+   },
+   {
+    "clip": "mup6o39l_41ca27f1",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "56:11:1",
+    "observed": "ءُذَاالِكَ",
+    "expected": "ءُلَااااءِكَ"
+   },
+   {
+    "clip": "mup6qabh_0b0bca5f",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "omitted_word",
+    "location": "89:12:1",
+    "expected": "فَءَكثَرُۥۥ"
+   },
+   {
+    "clip": "muqfbdpp_469e15a0",
+    "kind": "none",
+    "edge": true,
+    "errorClass": "wrong_word",
+    "location": "27:2:1",
+    "observed": "ذَوو",
+    "expected": "هُدَوو"
+   },
+   {
+    "clip": "muqfbdpp_469e15a0",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "27:3:5",
+    "observed": "ذَفَلَ",
+    "expected": "ززَكَااتَ"
+   }
+  ],
+  "newlyMissed": [],
+  "removedFalsePositives": [
+   {
+    "clip": "muo0hhaf_c5d0a1f6",
+    "kind": "substitution",
+    "errorClass": "omitted_word",
+    "location": "101:6:2",
+    "expected": "مَںںں"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:85:5",
+    "observed": "وَلَااكِنن",
+    "expected": "وَلَااكِل"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:85:6",
+    "observed": "هَاا",
+    "expected": "لَاا"
+   },
+   {
+    "clip": "muogl6b0_bb213193",
+    "kind": "none",
+    "errorClass": "added_word",
+    "location": "36:37:8",
+    "observed": "مممُ",
+    "expected": "هُممم"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "15:85:2",
+    "observed": "خَلَفمَ",
+    "expected": "خَلَقڇنَ"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "15:85:8",
+    "observed": "مِنحَققِ",
+    "expected": "بِلحَققِ"
+   },
+   {
+    "clip": "mup3zigs_afc191b1",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "23:10:1",
+    "observed": "لَلَاااالِكَ",
+    "expected": "ءُلَااااءِكَ"
+   },
+   {
+    "clip": "mup40huu_4707d9fe",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "78:29:1",
+    "observed": "فَءُللَ",
+    "expected": "وَكُللَ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:24:2",
+    "observed": "بَيتَتَ",
+    "expected": "كَيفَ"
+   },
+   {
+    "clip": "mup60k7p_fe6ef424",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "12:33:9",
+    "observed": "وَءِنننلَاا",
+    "expected": "وَءِللَاا"
+   },
+   {
+    "clip": "mupd8r9c_fcaaeb33",
+    "kind": "none",
+    "errorClass": "omitted_word",
+    "location": "18:4:4",
+    "expected": "تتَخَذَ"
+   },
+   {
+    "clip": "muqfafom_9fabc05f",
+    "kind": "none",
+    "errorClass": "omitted_word",
+    "location": "55:39:5",
+    "expected": "ذَ۾۾۾بِهِۦۦۦۦ"
+   },
+   {
+    "clip": "muqfafom_9fabc05f",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "55:39:6",
+    "observed": "دِِںںںسُم",
+    "expected": "ءِںںںسُوو"
+   }
+  ]
+ },
+ "declared/12": {
+  "tp": 81,
+  "fp": 19,
+  "fn": 8,
+  "perClass": {
+   "wrong_word": {
+    "tp": 27,
+    "fp": 14,
+    "fn": 6
+   },
+   "omitted_word": {
+    "tp": 54,
+    "fp": 1,
+    "fn": 2
+   },
+   "added_word": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0
+   },
+   "skipped_passage": {
+    "tp": 0,
+    "fp": 4,
+    "fn": 0
+   }
+  },
+  "cleanClips": 211,
+  "cleanWarnings": 12,
+  "repeatClips": 30,
+  "repeatFalsePositives": 0,
+  "edgeFalsePositives": 1,
+  "vowelClips": 37,
+  "vowelClipWarnings": 0,
+  "falsePositives": [
+   {
+    "clip": "munyau84_251e8228",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "9:35:10",
+    "expected": "وَجُنُۥۥبُهُموَظُهُۥۥرُهُمهَااذَاامَااكَنَزتُملِءَںںںفُسِكُمفَذُۥۥقُۥۥمَااكُںںںتُمتَكنِزُۥۥنءِننننَعِددَتَششُهُۥۥرِعِںںںدَللَااهِثنَااعَشَرَشَهرَںںںفِۦۦكِتَاابِللَااهِيَومَخَلَقَسسَمَااوَااتِوَلءَرضَمِنهَااااءَربَعَتُنحُرُمُںںںذَاالِكَددِۦۦنُلقَييِمُفَلَااتَظلِمُۥۥفِۦۦهِننننَءَںںںفُسَكُموَقَااتِلُلمُشرِكِۦۦنَكَااااااففَتَںںںكَمَاايُقَااتِلُۥۥنَكُمكَااااااففَتَوووَعلَمُۥۥۥۥءَننننَللَااهَمَعَلمُتتَقِۦۦنءِننننَمَننننَسِۦۦۦۦءُزِيَاادَتُںںںفِلكُفرِيُضَللُبِهِللَذِۦۦنَكَفَرُۥۥيُحِللُۥۥنَهُۥۥعَاامَوووَيُحَررِمُۥۥنَهُۥۥعَاامَللِيُوَااطِءُۥۥعِددَتَمَااحَررَمَللَااهُفَيُحِللُۥۥمَااحَررَمَللَااهُزُييِنَلَهُمسُۥۥۥۥءُءَعمَاالِهِم"
+   },
+   {
+    "clip": "munyau84_251e8228",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "9:39:12",
+    "observed": "وَءُلَااااءِكوَ",
+    "expected": "وَللَااهُ"
+   },
+   {
+    "clip": "muo94268_8a4466f8",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "109:3:2",
+    "expected": "ءَںںںتُمعَاابِدُۥۥنَمَااااءَعبُدڇوَلَااااءَنَ"
+   },
+   {
+    "clip": "muo94268_8a4466f8",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "109:4:3",
+    "observed": "عَمَااءَاابِۦۦتُمم",
+    "expected": "عَاابِدُممم"
+   },
+   {
+    "clip": "muo96bll_781c66a7",
+    "kind": "repeat",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "103:3:4",
+    "observed": "عَل",
+    "expected": "وَعَمِلُ"
+   },
+   {
+    "clip": "muob2xxu_c866bf5a",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "114:1:3",
+    "expected": "بِرَببِننننَااسمَلِكِ"
+   },
+   {
+    "clip": "muobdxpb_788c6982",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "94:6:3",
+    "observed": "نءُسلِ",
+    "expected": "لعُسرِ"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "56:85:2",
+    "observed": "وَفرَضُ",
+    "expected": "ءَقڇرَبُ"
+   },
+   {
+    "clip": "muon1e44_7287d9b4",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "36:18:3",
+    "observed": "تَترَينَاااا",
+    "expected": "تَطَييَرنَاا"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "15:85:11",
+    "observed": "لَءَاالِيهمم",
+    "expected": "لَءَااتِيَتُںںں"
+   },
+   {
+    "clip": "mup3zigs_afc191b1",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "23:11:3",
+    "expected": "لفِردَوسَهُمفِۦۦهَااخَاالِدُۥۥنوَلَقَدڇخَلَقڇنَلءِںںںسَاانَمِںںںسُلَاالَتِممممِںںںطِۦۦنثُممممَجَعَلنَااهُنُطڇفَتَںںں"
+   },
+   {
+    "clip": "mup407ze_1ff91200",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "30:6:6",
+    "observed": "وَللَه",
+    "expected": "وَعدَهُۥۥ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "6:22:12",
+    "observed": "فَذَرَمُم",
+    "expected": "تَزعُمُۥۥن"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "6:23:5",
+    "observed": "ِينَاااا",
+    "expected": "ءِللَاااا"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "6:23:8",
+    "observed": "ءَللَااءِ",
+    "expected": "وَللَااهِ"
+   },
+   {
+    "clip": "mup6o39l_41ca27f1",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "56:11:1",
+    "observed": "ءُذَاالِكَ",
+    "expected": "ءُلَااااءِكَ"
+   },
+   {
+    "clip": "mup6qabh_0b0bca5f",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "omitted_word",
+    "location": "89:12:1",
+    "expected": "فَءَكثَرُۥۥ"
+   },
+   {
+    "clip": "muqfbdpp_469e15a0",
+    "kind": "none",
+    "edge": true,
+    "errorClass": "wrong_word",
+    "location": "27:2:1",
+    "observed": "ذَوو",
+    "expected": "هُدَوو"
+   },
+   {
+    "clip": "muqfbdpp_469e15a0",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "27:3:5",
+    "observed": "ذَفَلَ",
+    "expected": "ززَكَااتَ"
+   }
+  ],
+  "newlyMissed": [],
+  "removedFalsePositives": [
+   {
+    "clip": "muo0hhaf_c5d0a1f6",
+    "kind": "substitution",
+    "errorClass": "omitted_word",
+    "location": "101:6:2",
+    "expected": "مَںںں"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:85:5",
+    "observed": "وَلَااكِنن",
+    "expected": "وَلَااكِل"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:85:6",
+    "observed": "هَاا",
+    "expected": "لَاا"
+   },
+   {
+    "clip": "muogl6b0_bb213193",
+    "kind": "none",
+    "errorClass": "added_word",
+    "location": "36:37:8",
+    "observed": "مممُ",
+    "expected": "هُممم"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "15:85:2",
+    "observed": "خَلَفمَ",
+    "expected": "خَلَقڇنَ"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "15:85:8",
+    "observed": "مِنحَققِ",
+    "expected": "بِلحَققِ"
+   },
+   {
+    "clip": "mup3zigs_afc191b1",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "23:10:1",
+    "observed": "لَلَاااالِكَ",
+    "expected": "ءُلَااااءِكَ"
+   },
+   {
+    "clip": "mup40huu_4707d9fe",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "78:29:1",
+    "observed": "فَءُللَ",
+    "expected": "وَكُللَ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:24:2",
+    "observed": "بَيتَتَ",
+    "expected": "كَيفَ"
+   },
+   {
+    "clip": "mup60k7p_fe6ef424",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "12:33:9",
+    "observed": "وَءِنننلَاا",
+    "expected": "وَءِللَاا"
+   },
+   {
+    "clip": "mupd8r9c_fcaaeb33",
+    "kind": "none",
+    "errorClass": "omitted_word",
+    "location": "18:4:4",
+    "expected": "تتَخَذَ"
+   },
+   {
+    "clip": "muqfafom_9fabc05f",
+    "kind": "none",
+    "errorClass": "omitted_word",
+    "location": "55:39:5",
+    "expected": "ذَ۾۾۾بِهِۦۦۦۦ"
+   },
+   {
+    "clip": "muqfafom_9fabc05f",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "55:39:6",
+    "observed": "دِِںںںسُم",
+    "expected": "ءِںںںسُوو"
+   }
+  ]
+ },
+ "declared/16": {
+  "tp": 80,
+  "fp": 16,
+  "fn": 9,
+  "perClass": {
+   "wrong_word": {
+    "tp": 27,
+    "fp": 11,
+    "fn": 6
+   },
+   "omitted_word": {
+    "tp": 53,
+    "fp": 1,
+    "fn": 3
+   },
+   "added_word": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0
+   },
+   "skipped_passage": {
+    "tp": 0,
+    "fp": 4,
+    "fn": 0
+   }
+  },
+  "cleanClips": 211,
+  "cleanWarnings": 10,
+  "repeatClips": 30,
+  "repeatFalsePositives": 0,
+  "edgeFalsePositives": 1,
+  "vowelClips": 37,
+  "vowelClipWarnings": 0,
+  "falsePositives": [
+   {
+    "clip": "munyau84_251e8228",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "9:35:10",
+    "expected": "وَجُنُۥۥبُهُموَظُهُۥۥرُهُمهَااذَاامَااكَنَزتُملِءَںںںفُسِكُمفَذُۥۥقُۥۥمَااكُںںںتُمتَكنِزُۥۥنءِننننَعِددَتَششُهُۥۥرِعِںںںدَللَااهِثنَااعَشَرَشَهرَںںںفِۦۦكِتَاابِللَااهِيَومَخَلَقَسسَمَااوَااتِوَلءَرضَمِنهَااااءَربَعَتُنحُرُمُںںںذَاالِكَددِۦۦنُلقَييِمُفَلَااتَظلِمُۥۥفِۦۦهِننننَءَںںںفُسَكُموَقَااتِلُلمُشرِكِۦۦنَكَااااااففَتَںںںكَمَاايُقَااتِلُۥۥنَكُمكَااااااففَتَوووَعلَمُۥۥۥۥءَننننَللَااهَمَعَلمُتتَقِۦۦنءِننننَمَننننَسِۦۦۦۦءُزِيَاادَتُںںںفِلكُفرِيُضَللُبِهِللَذِۦۦنَكَفَرُۥۥيُحِللُۥۥنَهُۥۥعَاامَوووَيُحَررِمُۥۥنَهُۥۥعَاامَللِيُوَااطِءُۥۥعِددَتَمَااحَررَمَللَااهُفَيُحِللُۥۥمَااحَررَمَللَااهُزُييِنَلَهُمسُۥۥۥۥءُءَعمَاالِهِم"
+   },
+   {
+    "clip": "munyau84_251e8228",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "9:39:12",
+    "observed": "وَءُلَااااءِكوَ",
+    "expected": "وَللَااهُ"
+   },
+   {
+    "clip": "muo94268_8a4466f8",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "109:3:2",
+    "expected": "ءَںںںتُمعَاابِدُۥۥنَمَااااءَعبُدڇوَلَااااءَنَ"
+   },
+   {
+    "clip": "muo94268_8a4466f8",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "109:4:3",
+    "observed": "عَمَااءَاابِۦۦتُمم",
+    "expected": "عَاابِدُممم"
+   },
+   {
+    "clip": "muo96bll_781c66a7",
+    "kind": "repeat",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "103:3:4",
+    "observed": "عَل",
+    "expected": "وَعَمِلُ"
+   },
+   {
+    "clip": "muob2xxu_c866bf5a",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "114:1:3",
+    "expected": "بِرَببِننننَااسمَلِكِ"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "56:85:2",
+    "observed": "وَفرَضُ",
+    "expected": "ءَقڇرَبُ"
+   },
+   {
+    "clip": "muon1e44_7287d9b4",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "36:18:3",
+    "observed": "تَترَينَاااا",
+    "expected": "تَطَييَرنَاا"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "15:85:11",
+    "observed": "لَءَاالِيهمم",
+    "expected": "لَءَااتِيَتُںںں"
+   },
+   {
+    "clip": "mup3zigs_afc191b1",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "23:11:3",
+    "expected": "لفِردَوسَهُمفِۦۦهَااخَاالِدُۥۥنوَلَقَدڇخَلَقڇنَلءِںںںسَاانَمِںںںسُلَاالَتِممممِںںںطِۦۦنثُممممَجَعَلنَااهُنُطڇفَتَںںں"
+   },
+   {
+    "clip": "mup407ze_1ff91200",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "30:6:6",
+    "observed": "وَللَه",
+    "expected": "وَعدَهُۥۥ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "6:22:12",
+    "observed": "فَذَرَمُم",
+    "expected": "تَزعُمُۥۥن"
+   },
+   {
+    "clip": "mup6o39l_41ca27f1",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "56:11:1",
+    "observed": "ءُذَاالِكَ",
+    "expected": "ءُلَااااءِكَ"
+   },
+   {
+    "clip": "mup6qabh_0b0bca5f",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "omitted_word",
+    "location": "89:12:1",
+    "expected": "فَءَكثَرُۥۥ"
+   },
+   {
+    "clip": "muqfbdpp_469e15a0",
+    "kind": "none",
+    "edge": true,
+    "errorClass": "wrong_word",
+    "location": "27:2:1",
+    "observed": "ذَوو",
+    "expected": "هُدَوو"
+   },
+   {
+    "clip": "muqfbdpp_469e15a0",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "27:3:5",
+    "observed": "ذَفَلَ",
+    "expected": "ززَكَااتَ"
+   }
+  ],
+  "newlyMissed": [
+   {
+    "clip": "muo4xm5z_4e54d40d",
+    "kind": "skip_word",
+    "errorClass": "omitted_word",
+    "location": "2:6:8"
+   }
+  ],
+  "removedFalsePositives": [
+   {
+    "clip": "muo0hhaf_c5d0a1f6",
+    "kind": "substitution",
+    "errorClass": "omitted_word",
+    "location": "101:6:2",
+    "expected": "مَںںں"
+   },
+   {
+    "clip": "muobdxpb_788c6982",
+    "kind": "skip_ayah",
+    "errorClass": "wrong_word",
+    "location": "94:6:3",
+    "observed": "نءُسلِ",
+    "expected": "لعُسرِ"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:85:5",
+    "observed": "وَلَااكِنن",
+    "expected": "وَلَااكِل"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:85:6",
+    "observed": "هَاا",
+    "expected": "لَاا"
+   },
+   {
+    "clip": "muogl6b0_bb213193",
+    "kind": "none",
+    "errorClass": "added_word",
+    "location": "36:37:8",
+    "observed": "مممُ",
+    "expected": "هُممم"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "15:85:2",
+    "observed": "خَلَفمَ",
+    "expected": "خَلَقڇنَ"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "15:85:8",
+    "observed": "مِنحَققِ",
+    "expected": "بِلحَققِ"
+   },
+   {
+    "clip": "mup3zigs_afc191b1",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "23:10:1",
+    "observed": "لَلَاااالِكَ",
+    "expected": "ءُلَااااءِكَ"
+   },
+   {
+    "clip": "mup40huu_4707d9fe",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "78:29:1",
+    "observed": "فَءُللَ",
+    "expected": "وَكُللَ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:23:5",
+    "observed": "ِينَاااا",
+    "expected": "ءِللَاااا"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:23:8",
+    "observed": "ءَللَااءِ",
+    "expected": "وَللَااهِ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:24:2",
+    "observed": "بَيتَتَ",
+    "expected": "كَيفَ"
+   },
+   {
+    "clip": "mup60k7p_fe6ef424",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "12:33:9",
+    "observed": "وَءِنننلَاا",
+    "expected": "وَءِللَاا"
+   },
+   {
+    "clip": "mupd8r9c_fcaaeb33",
+    "kind": "none",
+    "errorClass": "omitted_word",
+    "location": "18:4:4",
+    "expected": "تتَخَذَ"
+   },
+   {
+    "clip": "muqfafom_9fabc05f",
+    "kind": "none",
+    "errorClass": "omitted_word",
+    "location": "55:39:5",
+    "expected": "ذَ۾۾۾بِهِۦۦۦۦ"
+   },
+   {
+    "clip": "muqfafom_9fabc05f",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "55:39:6",
+    "observed": "دِِںںںسُم",
+    "expected": "ءِںںںسُوو"
+   }
+  ]
+ },
+ "declared/20": {
+  "tp": 79,
+  "fp": 14,
+  "fn": 10,
+  "perClass": {
+   "wrong_word": {
+    "tp": 27,
+    "fp": 9,
+    "fn": 6
+   },
+   "omitted_word": {
+    "tp": 52,
+    "fp": 1,
+    "fn": 4
+   },
+   "added_word": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0
+   },
+   "skipped_passage": {
+    "tp": 0,
+    "fp": 4,
+    "fn": 0
+   }
+  },
+  "cleanClips": 211,
+  "cleanWarnings": 8,
+  "repeatClips": 30,
+  "repeatFalsePositives": 0,
+  "edgeFalsePositives": 1,
+  "vowelClips": 37,
+  "vowelClipWarnings": 0,
+  "falsePositives": [
+   {
+    "clip": "munyau84_251e8228",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "9:35:10",
+    "expected": "وَجُنُۥۥبُهُموَظُهُۥۥرُهُمهَااذَاامَااكَنَزتُملِءَںںںفُسِكُمفَذُۥۥقُۥۥمَااكُںںںتُمتَكنِزُۥۥنءِننننَعِددَتَششُهُۥۥرِعِںںںدَللَااهِثنَااعَشَرَشَهرَںںںفِۦۦكِتَاابِللَااهِيَومَخَلَقَسسَمَااوَااتِوَلءَرضَمِنهَااااءَربَعَتُنحُرُمُںںںذَاالِكَددِۦۦنُلقَييِمُفَلَااتَظلِمُۥۥفِۦۦهِننننَءَںںںفُسَكُموَقَااتِلُلمُشرِكِۦۦنَكَااااااففَتَںںںكَمَاايُقَااتِلُۥۥنَكُمكَااااااففَتَوووَعلَمُۥۥۥۥءَننننَللَااهَمَعَلمُتتَقِۦۦنءِننننَمَننننَسِۦۦۦۦءُزِيَاادَتُںںںفِلكُفرِيُضَللُبِهِللَذِۦۦنَكَفَرُۥۥيُحِللُۥۥنَهُۥۥعَاامَوووَيُحَررِمُۥۥنَهُۥۥعَاامَللِيُوَااطِءُۥۥعِددَتَمَااحَررَمَللَااهُفَيُحِللُۥۥمَااحَررَمَللَااهُزُييِنَلَهُمسُۥۥۥۥءُءَعمَاالِهِم"
+   },
+   {
+    "clip": "munyau84_251e8228",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "9:39:12",
+    "observed": "وَءُلَااااءِكوَ",
+    "expected": "وَللَااهُ"
+   },
+   {
+    "clip": "muo94268_8a4466f8",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "109:3:2",
+    "expected": "ءَںںںتُمعَاابِدُۥۥنَمَااااءَعبُدڇوَلَااااءَنَ"
+   },
+   {
+    "clip": "muo94268_8a4466f8",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "109:4:3",
+    "observed": "عَمَااءَاابِۦۦتُمم",
+    "expected": "عَاابِدُممم"
+   },
+   {
+    "clip": "muo96bll_781c66a7",
+    "kind": "repeat",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "103:3:4",
+    "observed": "عَل",
+    "expected": "وَعَمِلُ"
+   },
+   {
+    "clip": "muob2xxu_c866bf5a",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "114:1:3",
+    "expected": "بِرَببِننننَااسمَلِكِ"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "56:85:2",
+    "observed": "وَفرَضُ",
+    "expected": "ءَقڇرَبُ"
+   },
+   {
+    "clip": "muon1e44_7287d9b4",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "36:18:3",
+    "observed": "تَترَينَاااا",
+    "expected": "تَطَييَرنَاا"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "15:85:11",
+    "observed": "لَءَاالِيهمم",
+    "expected": "لَءَااتِيَتُںںں"
+   },
+   {
+    "clip": "mup3zigs_afc191b1",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "23:11:3",
+    "expected": "لفِردَوسَهُمفِۦۦهَااخَاالِدُۥۥنوَلَقَدڇخَلَقڇنَلءِںںںسَاانَمِںںںسُلَاالَتِممممِںںںطِۦۦنثُممممَجَعَلنَااهُنُطڇفَتَںںں"
+   },
+   {
+    "clip": "mup6o39l_41ca27f1",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "56:11:1",
+    "observed": "ءُذَاالِكَ",
+    "expected": "ءُلَااااءِكَ"
+   },
+   {
+    "clip": "mup6qabh_0b0bca5f",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "omitted_word",
+    "location": "89:12:1",
+    "expected": "فَءَكثَرُۥۥ"
+   },
+   {
+    "clip": "muqfbdpp_469e15a0",
+    "kind": "none",
+    "edge": true,
+    "errorClass": "wrong_word",
+    "location": "27:2:1",
+    "observed": "ذَوو",
+    "expected": "هُدَوو"
+   },
+   {
+    "clip": "muqfbdpp_469e15a0",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "27:3:5",
+    "observed": "ذَفَلَ",
+    "expected": "ززَكَااتَ"
+   }
+  ],
+  "newlyMissed": [
+   {
+    "clip": "muo4xm5z_4e54d40d",
+    "kind": "skip_word",
+    "errorClass": "omitted_word",
+    "location": "2:6:8"
+   },
+   {
+    "clip": "muocbg3v_36375787",
+    "kind": "skip_word",
+    "errorClass": "omitted_word",
+    "location": "2:6:8"
+   }
+  ],
+  "removedFalsePositives": [
+   {
+    "clip": "muo0hhaf_c5d0a1f6",
+    "kind": "substitution",
+    "errorClass": "omitted_word",
+    "location": "101:6:2",
+    "expected": "مَںںں"
+   },
+   {
+    "clip": "muobdxpb_788c6982",
+    "kind": "skip_ayah",
+    "errorClass": "wrong_word",
+    "location": "94:6:3",
+    "observed": "نءُسلِ",
+    "expected": "لعُسرِ"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:85:5",
+    "observed": "وَلَااكِنن",
+    "expected": "وَلَااكِل"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:85:6",
+    "observed": "هَاا",
+    "expected": "لَاا"
+   },
+   {
+    "clip": "muogl6b0_bb213193",
+    "kind": "none",
+    "errorClass": "added_word",
+    "location": "36:37:8",
+    "observed": "مممُ",
+    "expected": "هُممم"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "15:85:2",
+    "observed": "خَلَفمَ",
+    "expected": "خَلَقڇنَ"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "15:85:8",
+    "observed": "مِنحَققِ",
+    "expected": "بِلحَققِ"
+   },
+   {
+    "clip": "mup3zigs_afc191b1",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "23:10:1",
+    "observed": "لَلَاااالِكَ",
+    "expected": "ءُلَااااءِكَ"
+   },
+   {
+    "clip": "mup407ze_1ff91200",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "30:6:6",
+    "observed": "وَللَه",
+    "expected": "وَعدَهُۥۥ"
+   },
+   {
+    "clip": "mup40huu_4707d9fe",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "78:29:1",
+    "observed": "فَءُللَ",
+    "expected": "وَكُللَ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:22:12",
+    "observed": "فَذَرَمُم",
+    "expected": "تَزعُمُۥۥن"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:23:5",
+    "observed": "ِينَاااا",
+    "expected": "ءِللَاااا"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:23:8",
+    "observed": "ءَللَااءِ",
+    "expected": "وَللَااهِ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:24:2",
+    "observed": "بَيتَتَ",
+    "expected": "كَيفَ"
+   },
+   {
+    "clip": "mup60k7p_fe6ef424",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "12:33:9",
+    "observed": "وَءِنننلَاا",
+    "expected": "وَءِللَاا"
+   },
+   {
+    "clip": "mupd8r9c_fcaaeb33",
+    "kind": "none",
+    "errorClass": "omitted_word",
+    "location": "18:4:4",
+    "expected": "تتَخَذَ"
+   },
+   {
+    "clip": "muqfafom_9fabc05f",
+    "kind": "none",
+    "errorClass": "omitted_word",
+    "location": "55:39:5",
+    "expected": "ذَ۾۾۾بِهِۦۦۦۦ"
+   },
+   {
+    "clip": "muqfafom_9fabc05f",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "55:39:6",
+    "observed": "دِِںںںسُم",
+    "expected": "ءِںںںسُوو"
+   }
+  ]
+ },
+ "declared/25": {
+  "tp": 79,
+  "fp": 13,
+  "fn": 10,
+  "perClass": {
+   "wrong_word": {
+    "tp": 27,
+    "fp": 8,
+    "fn": 6
+   },
+   "omitted_word": {
+    "tp": 52,
+    "fp": 1,
+    "fn": 4
+   },
+   "added_word": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0
+   },
+   "skipped_passage": {
+    "tp": 0,
+    "fp": 4,
+    "fn": 0
+   }
+  },
+  "cleanClips": 211,
+  "cleanWarnings": 8,
+  "repeatClips": 30,
+  "repeatFalsePositives": 0,
+  "edgeFalsePositives": 1,
+  "vowelClips": 37,
+  "vowelClipWarnings": 0,
+  "falsePositives": [
+   {
+    "clip": "munyau84_251e8228",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "9:35:10",
+    "expected": "وَجُنُۥۥبُهُموَظُهُۥۥرُهُمهَااذَاامَااكَنَزتُملِءَںںںفُسِكُمفَذُۥۥقُۥۥمَااكُںںںتُمتَكنِزُۥۥنءِننننَعِددَتَششُهُۥۥرِعِںںںدَللَااهِثنَااعَشَرَشَهرَںںںفِۦۦكِتَاابِللَااهِيَومَخَلَقَسسَمَااوَااتِوَلءَرضَمِنهَااااءَربَعَتُنحُرُمُںںںذَاالِكَددِۦۦنُلقَييِمُفَلَااتَظلِمُۥۥفِۦۦهِننننَءَںںںفُسَكُموَقَااتِلُلمُشرِكِۦۦنَكَااااااففَتَںںںكَمَاايُقَااتِلُۥۥنَكُمكَااااااففَتَوووَعلَمُۥۥۥۥءَننننَللَااهَمَعَلمُتتَقِۦۦنءِننننَمَننننَسِۦۦۦۦءُزِيَاادَتُںںںفِلكُفرِيُضَللُبِهِللَذِۦۦنَكَفَرُۥۥيُحِللُۥۥنَهُۥۥعَاامَوووَيُحَررِمُۥۥنَهُۥۥعَاامَللِيُوَااطِءُۥۥعِددَتَمَااحَررَمَللَااهُفَيُحِللُۥۥمَااحَررَمَللَااهُزُييِنَلَهُمسُۥۥۥۥءُءَعمَاالِهِم"
+   },
+   {
+    "clip": "munyau84_251e8228",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "9:39:12",
+    "observed": "وَءُلَااااءِكوَ",
+    "expected": "وَللَااهُ"
+   },
+   {
+    "clip": "muo94268_8a4466f8",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "109:3:2",
+    "expected": "ءَںںںتُمعَاابِدُۥۥنَمَااااءَعبُدڇوَلَااااءَنَ"
+   },
+   {
+    "clip": "muo94268_8a4466f8",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "109:4:3",
+    "observed": "عَمَااءَاابِۦۦتُمم",
+    "expected": "عَاابِدُممم"
+   },
+   {
+    "clip": "muob2xxu_c866bf5a",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "114:1:3",
+    "expected": "بِرَببِننننَااسمَلِكِ"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "56:85:2",
+    "observed": "وَفرَضُ",
+    "expected": "ءَقڇرَبُ"
+   },
+   {
+    "clip": "muon1e44_7287d9b4",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "36:18:3",
+    "observed": "تَترَينَاااا",
+    "expected": "تَطَييَرنَاا"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "15:85:11",
+    "observed": "لَءَاالِيهمم",
+    "expected": "لَءَااتِيَتُںںں"
+   },
+   {
+    "clip": "mup3zigs_afc191b1",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "23:11:3",
+    "expected": "لفِردَوسَهُمفِۦۦهَااخَاالِدُۥۥنوَلَقَدڇخَلَقڇنَلءِںںںسَاانَمِںںںسُلَاالَتِممممِںںںطِۦۦنثُممممَجَعَلنَااهُنُطڇفَتَںںں"
+   },
+   {
+    "clip": "mup6o39l_41ca27f1",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "56:11:1",
+    "observed": "ءُذَاالِكَ",
+    "expected": "ءُلَااااءِكَ"
+   },
+   {
+    "clip": "mup6qabh_0b0bca5f",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "omitted_word",
+    "location": "89:12:1",
+    "expected": "فَءَكثَرُۥۥ"
+   },
+   {
+    "clip": "muqfbdpp_469e15a0",
+    "kind": "none",
+    "edge": true,
+    "errorClass": "wrong_word",
+    "location": "27:2:1",
+    "observed": "ذَوو",
+    "expected": "هُدَوو"
+   },
+   {
+    "clip": "muqfbdpp_469e15a0",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "27:3:5",
+    "observed": "ذَفَلَ",
+    "expected": "ززَكَااتَ"
+   }
+  ],
+  "newlyMissed": [
+   {
+    "clip": "muo4xm5z_4e54d40d",
+    "kind": "skip_word",
+    "errorClass": "omitted_word",
+    "location": "2:6:8"
+   },
+   {
+    "clip": "muocbg3v_36375787",
+    "kind": "skip_word",
+    "errorClass": "omitted_word",
+    "location": "2:6:8"
+   }
+  ],
+  "removedFalsePositives": [
+   {
+    "clip": "muo0hhaf_c5d0a1f6",
+    "kind": "substitution",
+    "errorClass": "omitted_word",
+    "location": "101:6:2",
+    "expected": "مَںںں"
+   },
+   {
+    "clip": "muo96bll_781c66a7",
+    "kind": "repeat",
+    "errorClass": "wrong_word",
+    "location": "103:3:4",
+    "observed": "عَل",
+    "expected": "وَعَمِلُ"
+   },
+   {
+    "clip": "muobdxpb_788c6982",
+    "kind": "skip_ayah",
+    "errorClass": "wrong_word",
+    "location": "94:6:3",
+    "observed": "نءُسلِ",
+    "expected": "لعُسرِ"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:85:5",
+    "observed": "وَلَااكِنن",
+    "expected": "وَلَااكِل"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:85:6",
+    "observed": "هَاا",
+    "expected": "لَاا"
+   },
+   {
+    "clip": "muogl6b0_bb213193",
+    "kind": "none",
+    "errorClass": "added_word",
+    "location": "36:37:8",
+    "observed": "مممُ",
+    "expected": "هُممم"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "15:85:2",
+    "observed": "خَلَفمَ",
+    "expected": "خَلَقڇنَ"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "15:85:8",
+    "observed": "مِنحَققِ",
+    "expected": "بِلحَققِ"
+   },
+   {
+    "clip": "mup3zigs_afc191b1",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "23:10:1",
+    "observed": "لَلَاااالِكَ",
+    "expected": "ءُلَااااءِكَ"
+   },
+   {
+    "clip": "mup407ze_1ff91200",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "30:6:6",
+    "observed": "وَللَه",
+    "expected": "وَعدَهُۥۥ"
+   },
+   {
+    "clip": "mup40huu_4707d9fe",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "78:29:1",
+    "observed": "فَءُللَ",
+    "expected": "وَكُللَ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:22:12",
+    "observed": "فَذَرَمُم",
+    "expected": "تَزعُمُۥۥن"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:23:5",
+    "observed": "ِينَاااا",
+    "expected": "ءِللَاااا"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:23:8",
+    "observed": "ءَللَااءِ",
+    "expected": "وَللَااهِ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:24:2",
+    "observed": "بَيتَتَ",
+    "expected": "كَيفَ"
+   },
+   {
+    "clip": "mup60k7p_fe6ef424",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "12:33:9",
+    "observed": "وَءِنننلَاا",
+    "expected": "وَءِللَاا"
+   },
+   {
+    "clip": "mupd8r9c_fcaaeb33",
+    "kind": "none",
+    "errorClass": "omitted_word",
+    "location": "18:4:4",
+    "expected": "تتَخَذَ"
+   },
+   {
+    "clip": "muqfafom_9fabc05f",
+    "kind": "none",
+    "errorClass": "omitted_word",
+    "location": "55:39:5",
+    "expected": "ذَ۾۾۾بِهِۦۦۦۦ"
+   },
+   {
+    "clip": "muqfafom_9fabc05f",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "55:39:6",
+    "observed": "دِِںںںسُم",
+    "expected": "ءِںںںسُوو"
+   }
+  ]
+ },
+ "declared/30": {
+  "tp": 78,
+  "fp": 11,
+  "fn": 11,
+  "perClass": {
+   "wrong_word": {
+    "tp": 27,
+    "fp": 6,
+    "fn": 6
+   },
+   "omitted_word": {
+    "tp": 51,
+    "fp": 1,
+    "fn": 5
+   },
+   "added_word": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0
+   },
+   "skipped_passage": {
+    "tp": 0,
+    "fp": 4,
+    "fn": 0
+   }
+  },
+  "cleanClips": 211,
+  "cleanWarnings": 6,
+  "repeatClips": 30,
+  "repeatFalsePositives": 0,
+  "edgeFalsePositives": 1,
+  "vowelClips": 37,
+  "vowelClipWarnings": 0,
+  "falsePositives": [
+   {
+    "clip": "munyau84_251e8228",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "9:35:10",
+    "expected": "وَجُنُۥۥبُهُموَظُهُۥۥرُهُمهَااذَاامَااكَنَزتُملِءَںںںفُسِكُمفَذُۥۥقُۥۥمَااكُںںںتُمتَكنِزُۥۥنءِننننَعِددَتَششُهُۥۥرِعِںںںدَللَااهِثنَااعَشَرَشَهرَںںںفِۦۦكِتَاابِللَااهِيَومَخَلَقَسسَمَااوَااتِوَلءَرضَمِنهَااااءَربَعَتُنحُرُمُںںںذَاالِكَددِۦۦنُلقَييِمُفَلَااتَظلِمُۥۥفِۦۦهِننننَءَںںںفُسَكُموَقَااتِلُلمُشرِكِۦۦنَكَااااااففَتَںںںكَمَاايُقَااتِلُۥۥنَكُمكَااااااففَتَوووَعلَمُۥۥۥۥءَننننَللَااهَمَعَلمُتتَقِۦۦنءِننننَمَننننَسِۦۦۦۦءُزِيَاادَتُںںںفِلكُفرِيُضَللُبِهِللَذِۦۦنَكَفَرُۥۥيُحِللُۥۥنَهُۥۥعَاامَوووَيُحَررِمُۥۥنَهُۥۥعَاامَللِيُوَااطِءُۥۥعِددَتَمَااحَررَمَللَااهُفَيُحِللُۥۥمَااحَررَمَللَااهُزُييِنَلَهُمسُۥۥۥۥءُءَعمَاالِهِم"
+   },
+   {
+    "clip": "munyau84_251e8228",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "9:39:12",
+    "observed": "وَءُلَااااءِكوَ",
+    "expected": "وَللَااهُ"
+   },
+   {
+    "clip": "muo94268_8a4466f8",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "109:3:2",
+    "expected": "ءَںںںتُمعَاابِدُۥۥنَمَااااءَعبُدڇوَلَااااءَنَ"
+   },
+   {
+    "clip": "muo94268_8a4466f8",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "109:4:3",
+    "observed": "عَمَااءَاابِۦۦتُمم",
+    "expected": "عَاابِدُممم"
+   },
+   {
+    "clip": "muob2xxu_c866bf5a",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "114:1:3",
+    "expected": "بِرَببِننننَااسمَلِكِ"
+   },
+   {
+    "clip": "muon1e44_7287d9b4",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "36:18:3",
+    "observed": "تَترَينَاااا",
+    "expected": "تَطَييَرنَاا"
+   },
+   {
+    "clip": "mup3zigs_afc191b1",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "23:11:3",
+    "expected": "لفِردَوسَهُمفِۦۦهَااخَاالِدُۥۥنوَلَقَدڇخَلَقڇنَلءِںںںسَاانَمِںںںسُلَاالَتِممممِںںںطِۦۦنثُممممَجَعَلنَااهُنُطڇفَتَںںں"
+   },
+   {
+    "clip": "mup6o39l_41ca27f1",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "56:11:1",
+    "observed": "ءُذَاالِكَ",
+    "expected": "ءُلَااااءِكَ"
+   },
+   {
+    "clip": "mup6qabh_0b0bca5f",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "omitted_word",
+    "location": "89:12:1",
+    "expected": "فَءَكثَرُۥۥ"
+   },
+   {
+    "clip": "muqfbdpp_469e15a0",
+    "kind": "none",
+    "edge": true,
+    "errorClass": "wrong_word",
+    "location": "27:2:1",
+    "observed": "ذَوو",
+    "expected": "هُدَوو"
+   },
+   {
+    "clip": "muqfbdpp_469e15a0",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "27:3:5",
+    "observed": "ذَفَلَ",
+    "expected": "ززَكَااتَ"
+   }
+  ],
+  "newlyMissed": [
+   {
+    "clip": "muo4xm5z_4e54d40d",
+    "kind": "skip_word",
+    "errorClass": "omitted_word",
+    "location": "2:6:8"
+   },
+   {
+    "clip": "muoafxon_6d495715",
+    "kind": "skip_word",
+    "errorClass": "omitted_word",
+    "location": "2:2:3"
+   },
+   {
+    "clip": "muocbg3v_36375787",
+    "kind": "skip_word",
+    "errorClass": "omitted_word",
+    "location": "2:6:8"
+   }
+  ],
+  "removedFalsePositives": [
+   {
+    "clip": "muo0hhaf_c5d0a1f6",
+    "kind": "substitution",
+    "errorClass": "omitted_word",
+    "location": "101:6:2",
+    "expected": "مَںںں"
+   },
+   {
+    "clip": "muo96bll_781c66a7",
+    "kind": "repeat",
+    "errorClass": "wrong_word",
+    "location": "103:3:4",
+    "observed": "عَل",
+    "expected": "وَعَمِلُ"
+   },
+   {
+    "clip": "muobdxpb_788c6982",
+    "kind": "skip_ayah",
+    "errorClass": "wrong_word",
+    "location": "94:6:3",
+    "observed": "نءُسلِ",
+    "expected": "لعُسرِ"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:85:2",
+    "observed": "وَفرَضُ",
+    "expected": "ءَقڇرَبُ"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:85:5",
+    "observed": "وَلَااكِنن",
+    "expected": "وَلَااكِل"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:85:6",
+    "observed": "هَاا",
+    "expected": "لَاا"
+   },
+   {
+    "clip": "muogl6b0_bb213193",
+    "kind": "none",
+    "errorClass": "added_word",
+    "location": "36:37:8",
+    "observed": "مممُ",
+    "expected": "هُممم"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "15:85:2",
+    "observed": "خَلَفمَ",
+    "expected": "خَلَقڇنَ"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "15:85:8",
+    "observed": "مِنحَققِ",
+    "expected": "بِلحَققِ"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "15:85:11",
+    "observed": "لَءَاالِيهمم",
+    "expected": "لَءَااتِيَتُںںں"
+   },
+   {
+    "clip": "mup3zigs_afc191b1",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "23:10:1",
+    "observed": "لَلَاااالِكَ",
+    "expected": "ءُلَااااءِكَ"
+   },
+   {
+    "clip": "mup407ze_1ff91200",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "30:6:6",
+    "observed": "وَللَه",
+    "expected": "وَعدَهُۥۥ"
+   },
+   {
+    "clip": "mup40huu_4707d9fe",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "78:29:1",
+    "observed": "فَءُللَ",
+    "expected": "وَكُللَ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:22:12",
+    "observed": "فَذَرَمُم",
+    "expected": "تَزعُمُۥۥن"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:23:5",
+    "observed": "ِينَاااا",
+    "expected": "ءِللَاااا"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:23:8",
+    "observed": "ءَللَااءِ",
+    "expected": "وَللَااهِ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:24:2",
+    "observed": "بَيتَتَ",
+    "expected": "كَيفَ"
+   },
+   {
+    "clip": "mup60k7p_fe6ef424",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "12:33:9",
+    "observed": "وَءِنننلَاا",
+    "expected": "وَءِللَاا"
+   },
+   {
+    "clip": "mupd8r9c_fcaaeb33",
+    "kind": "none",
+    "errorClass": "omitted_word",
+    "location": "18:4:4",
+    "expected": "تتَخَذَ"
+   },
+   {
+    "clip": "muqfafom_9fabc05f",
+    "kind": "none",
+    "errorClass": "omitted_word",
+    "location": "55:39:5",
+    "expected": "ذَ۾۾۾بِهِۦۦۦۦ"
+   },
+   {
+    "clip": "muqfafom_9fabc05f",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "55:39:6",
+    "observed": "دِِںںںسُم",
+    "expected": "ءِںںںسُوو"
+   }
+  ]
+ },
+ "declared/40": {
+  "tp": 73,
+  "fp": 9,
+  "fn": 16,
+  "perClass": {
+   "wrong_word": {
+    "tp": 27,
+    "fp": 4,
+    "fn": 6
+   },
+   "omitted_word": {
+    "tp": 46,
+    "fp": 1,
+    "fn": 10
+   },
+   "added_word": {
+    "tp": 0,
+    "fp": 0,
+    "fn": 0
+   },
+   "skipped_passage": {
+    "tp": 0,
+    "fp": 4,
+    "fn": 0
+   }
+  },
+  "cleanClips": 211,
+  "cleanWarnings": 4,
+  "repeatClips": 30,
+  "repeatFalsePositives": 0,
+  "edgeFalsePositives": 0,
+  "vowelClips": 37,
+  "vowelClipWarnings": 0,
+  "falsePositives": [
+   {
+    "clip": "munyau84_251e8228",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "9:35:10",
+    "expected": "وَجُنُۥۥبُهُموَظُهُۥۥرُهُمهَااذَاامَااكَنَزتُملِءَںںںفُسِكُمفَذُۥۥقُۥۥمَااكُںںںتُمتَكنِزُۥۥنءِننننَعِددَتَششُهُۥۥرِعِںںںدَللَااهِثنَااعَشَرَشَهرَںںںفِۦۦكِتَاابِللَااهِيَومَخَلَقَسسَمَااوَااتِوَلءَرضَمِنهَااااءَربَعَتُنحُرُمُںںںذَاالِكَددِۦۦنُلقَييِمُفَلَااتَظلِمُۥۥفِۦۦهِننننَءَںںںفُسَكُموَقَااتِلُلمُشرِكِۦۦنَكَااااااففَتَںںںكَمَاايُقَااتِلُۥۥنَكُمكَااااااففَتَوووَعلَمُۥۥۥۥءَننننَللَااهَمَعَلمُتتَقِۦۦنءِننننَمَننننَسِۦۦۦۦءُزِيَاادَتُںںںفِلكُفرِيُضَللُبِهِللَذِۦۦنَكَفَرُۥۥيُحِللُۥۥنَهُۥۥعَاامَوووَيُحَررِمُۥۥنَهُۥۥعَاامَللِيُوَااطِءُۥۥعِددَتَمَااحَررَمَللَااهُفَيُحِللُۥۥمَااحَررَمَللَااهُزُييِنَلَهُمسُۥۥۥۥءُءَعمَاالِهِم"
+   },
+   {
+    "clip": "munyau84_251e8228",
+    "kind": "substitution",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "9:39:12",
+    "observed": "وَءُلَااااءِكوَ",
+    "expected": "وَللَااهُ"
+   },
+   {
+    "clip": "muo94268_8a4466f8",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "109:3:2",
+    "expected": "ءَںںںتُمعَاابِدُۥۥنَمَااااءَعبُدڇوَلَااااءَنَ"
+   },
+   {
+    "clip": "muo94268_8a4466f8",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "109:4:3",
+    "observed": "عَمَااءَاابِۦۦتُمم",
+    "expected": "عَاابِدُممم"
+   },
+   {
+    "clip": "muob2xxu_c866bf5a",
+    "kind": "skip_ayah",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "114:1:3",
+    "expected": "بِرَببِننننَااسمَلِكِ"
+   },
+   {
+    "clip": "muon1e44_7287d9b4",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "36:18:3",
+    "observed": "تَترَينَاااا",
+    "expected": "تَطَييَرنَاا"
+   },
+   {
+    "clip": "mup3zigs_afc191b1",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "skipped_passage",
+    "location": "23:11:3",
+    "expected": "لفِردَوسَهُمفِۦۦهَااخَاالِدُۥۥنوَلَقَدڇخَلَقڇنَلءِںںںسَاانَمِںںںسُلَاالَتِممممِںںںطِۦۦنثُممممَجَعَلنَااهُنُطڇفَتَںںں"
+   },
+   {
+    "clip": "mup6qabh_0b0bca5f",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "omitted_word",
+    "location": "89:12:1",
+    "expected": "فَءَكثَرُۥۥ"
+   },
+   {
+    "clip": "muqfbdpp_469e15a0",
+    "kind": "none",
+    "edge": false,
+    "errorClass": "wrong_word",
+    "location": "27:3:5",
+    "observed": "ذَفَلَ",
+    "expected": "ززَكَااتَ"
+   }
+  ],
+  "newlyMissed": [
+   {
+    "clip": "muo4xm5z_4e54d40d",
+    "kind": "skip_word",
+    "errorClass": "omitted_word",
+    "location": "2:6:8"
+   },
+   {
+    "clip": "muo5mg6c_4664fc13",
+    "kind": "skip_word",
+    "errorClass": "omitted_word",
+    "location": "2:2:3"
+   },
+   {
+    "clip": "muoafxon_6d495715",
+    "kind": "skip_word",
+    "errorClass": "omitted_word",
+    "location": "2:2:3"
+   },
+   {
+    "clip": "muoawpke_010afd2f",
+    "kind": "skip_word",
+    "errorClass": "omitted_word",
+    "location": "94:5:2"
+   },
+   {
+    "clip": "muob10st_cc983fa9",
+    "kind": "skip_word",
+    "errorClass": "omitted_word",
+    "location": "94:5:2"
+   },
+   {
+    "clip": "muocbg3v_36375787",
+    "kind": "skip_word",
+    "errorClass": "omitted_word",
+    "location": "2:6:8"
+   },
+   {
+    "clip": "muolv1sp_5ed9d30f",
+    "kind": "skip_word",
+    "errorClass": "omitted_word",
+    "location": "2:6:8"
+   },
+   {
+    "clip": "muopswmu_b524c855",
+    "kind": "skip_word",
+    "errorClass": "omitted_word",
+    "location": "2:6:8"
+   }
+  ],
+  "removedFalsePositives": [
+   {
+    "clip": "muo0hhaf_c5d0a1f6",
+    "kind": "substitution",
+    "errorClass": "omitted_word",
+    "location": "101:6:2",
+    "expected": "مَںںں"
+   },
+   {
+    "clip": "muo96bll_781c66a7",
+    "kind": "repeat",
+    "errorClass": "wrong_word",
+    "location": "103:3:4",
+    "observed": "عَل",
+    "expected": "وَعَمِلُ"
+   },
+   {
+    "clip": "muobdxpb_788c6982",
+    "kind": "skip_ayah",
+    "errorClass": "wrong_word",
+    "location": "94:6:3",
+    "observed": "نءُسلِ",
+    "expected": "لعُسرِ"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:85:2",
+    "observed": "وَفرَضُ",
+    "expected": "ءَقڇرَبُ"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:85:5",
+    "observed": "وَلَااكِنن",
+    "expected": "وَلَااكِل"
+   },
+   {
+    "clip": "muoe05ga_160d190d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:85:6",
+    "observed": "هَاا",
+    "expected": "لَاا"
+   },
+   {
+    "clip": "muogl6b0_bb213193",
+    "kind": "none",
+    "errorClass": "added_word",
+    "location": "36:37:8",
+    "observed": "مممُ",
+    "expected": "هُممم"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "15:85:2",
+    "observed": "خَلَفمَ",
+    "expected": "خَلَقڇنَ"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "15:85:8",
+    "observed": "مِنحَققِ",
+    "expected": "بِلحَققِ"
+   },
+   {
+    "clip": "mup3z2mc_4d36142d",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "15:85:11",
+    "observed": "لَءَاالِيهمم",
+    "expected": "لَءَااتِيَتُںںں"
+   },
+   {
+    "clip": "mup3zigs_afc191b1",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "23:10:1",
+    "observed": "لَلَاااالِكَ",
+    "expected": "ءُلَااااءِكَ"
+   },
+   {
+    "clip": "mup407ze_1ff91200",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "30:6:6",
+    "observed": "وَللَه",
+    "expected": "وَعدَهُۥۥ"
+   },
+   {
+    "clip": "mup40huu_4707d9fe",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "78:29:1",
+    "observed": "فَءُللَ",
+    "expected": "وَكُللَ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:22:12",
+    "observed": "فَذَرَمُم",
+    "expected": "تَزعُمُۥۥن"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:23:5",
+    "observed": "ِينَاااا",
+    "expected": "ءِللَاااا"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:23:8",
+    "observed": "ءَللَااءِ",
+    "expected": "وَللَااهِ"
+   },
+   {
+    "clip": "mup41gr3_bb8f2f1a",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "6:24:2",
+    "observed": "بَيتَتَ",
+    "expected": "كَيفَ"
+   },
+   {
+    "clip": "mup60k7p_fe6ef424",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "12:33:9",
+    "observed": "وَءِنننلَاا",
+    "expected": "وَءِللَاا"
+   },
+   {
+    "clip": "mup6o39l_41ca27f1",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "56:11:1",
+    "observed": "ءُذَاالِكَ",
+    "expected": "ءُلَااااءِكَ"
+   },
+   {
+    "clip": "mupd8r9c_fcaaeb33",
+    "kind": "none",
+    "errorClass": "omitted_word",
+    "location": "18:4:4",
+    "expected": "تتَخَذَ"
+   },
+   {
+    "clip": "muqfafom_9fabc05f",
+    "kind": "none",
+    "errorClass": "omitted_word",
+    "location": "55:39:5",
+    "expected": "ذَ۾۾۾بِهِۦۦۦۦ"
+   },
+   {
+    "clip": "muqfafom_9fabc05f",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "55:39:6",
+    "observed": "دِِںںںسُم",
+    "expected": "ءِںںںسُوو"
+   },
+   {
+    "clip": "muqfbdpp_469e15a0",
+    "kind": "none",
+    "errorClass": "wrong_word",
+    "location": "27:2:1",
+    "observed": "ذَوو",
+    "expected": "هُدَوو"
+   }
+  ]
+ }
+}

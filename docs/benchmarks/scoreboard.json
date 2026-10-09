@@ -21551,6 +21551,1991 @@
    "modules": [
     "checker"
    ]
+  },
+  {
+   "sha": "adbcafe",
+   "date": "2026-10-09",
+   "recordedAt": "2026-10-09T14:15:50.829Z",
+   "listener": "teacher",
+   "note": "Local-window warning confirmation: a wrong/omitted/added word is confirmed only if the decode beats the written words by 10 nats of CTC likelihood over the word ±1 (threshold frozen on train speakers). Declared 57/17/7 -> 57/11/7, free 33/10/31 -> 33/6/31, no new misses",
+   "metrics": [
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.precision",
+     "group": "End to end",
+     "name": "Memorization precision",
+     "value": 0.8461538461538461,
+     "unit": "%",
+     "display": "84.6% (33/39)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "note": "help eval split, held-out speakers: 388 clips, 29 speakers; free recitation, default policy",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.recall",
+     "group": "End to end",
+     "name": "Memorization recall",
+     "value": 0.515625,
+     "unit": "%",
+     "display": "51.6% (33/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.wrong_word.precision",
+     "group": "End to end",
+     "name": "wrong_word precision",
+     "value": 0.5,
+     "unit": "%",
+     "display": "50.0% (2/4)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.wrong_word.recall",
+     "group": "End to end",
+     "name": "wrong_word recall",
+     "value": 0.06896551724137931,
+     "unit": "%",
+     "display": "6.9% (2/29)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "fail",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.omitted_word.precision",
+     "group": "End to end",
+     "name": "omitted_word precision",
+     "value": 0.96875,
+     "unit": "%",
+     "display": "96.9% (31/32)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.omitted_word.recall",
+     "group": "End to end",
+     "name": "omitted_word recall",
+     "value": 0.8857142857142857,
+     "unit": "%",
+     "display": "88.6% (31/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.added_word.precision",
+     "group": "End to end",
+     "name": "added_word precision",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/1)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.added_word.recall",
+     "group": "End to end",
+     "name": "added_word recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.skipped_passage.precision",
+     "group": "End to end",
+     "name": "skipped_passage precision",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/2)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.skipped_passage.recall",
+     "group": "End to end",
+     "name": "skipped_passage recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.cleanPerClip",
+     "group": "End to end",
+     "name": "False warnings per clean clip",
+     "value": 0.008888888888888889,
+     "display": "0.009 (2/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.cleanPer5",
+     "group": "End to end",
+     "name": "False warnings per 5 min (short clips)",
+     "value": 0.21515864363991047,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.repeatFp",
+     "group": "End to end",
+     "name": "False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.pron.short_vowel",
+     "group": "End to end",
+     "name": "Pronunciation: short_vowel",
+     "value": null,
+     "display": "unsupported",
+     "status": "unmeasurable",
+     "note": "checker has no pronunciation classes; 30 positives in eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.pron.consonant_sad_sin",
+     "group": "End to end",
+     "name": "Pronunciation: consonant_sad_sin",
+     "value": null,
+     "display": "unsupported",
+     "status": "unmeasurable",
+     "note": "checker has no pronunciation classes; 4 positives in eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.pron.madd_natural",
+     "group": "End to end",
+     "name": "Pronunciation: madd_natural",
+     "value": null,
+     "display": "unsupported",
+     "status": "unmeasurable",
+     "note": "checker has no pronunciation classes; 1 positives in eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.pron.phase2",
+     "group": "End to end",
+     "name": "Pronunciation: other pairs, shadda",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no recordings with positives (ticket 05, phase 2)"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.perfRtf",
+     "group": "End to end",
+     "name": "Tracker real-time factor (this machine)",
+     "value": 0.0016473550169021707,
+     "bar": {
+      "op": "<=",
+      "target": 0.05
+     },
+     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 29.3 ms",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.latency",
+     "group": "End to end",
+     "name": "Word highlight p95 / suspected / confirmed latency",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "pass --latency <pnpm bench:help report> (packages/sdk); device runs: ticket 10"
+    },
+    {
+     "id": "listener.goldPer",
+     "group": "Listener",
+     "name": "Gold PER (canon vs spliced, human-verified exact)",
+     "value": 0.03389957344907581,
+     "unit": "%",
+     "bar": {
+      "op": "<=",
+      "target": 0.03654129754296288
+     },
+     "source": "listener-target-v1.md",
+     "display": "3.39% (233 clips)",
+     "note": "bar: gold PER where fitted declared.precision falls 2 pts below the teacher (3.39%)",
+     "status": "pass"
+    },
+    {
+     "id": "listener.goldPer.laptop",
+     "group": "Listener",
+     "name": "Gold PER: laptop",
+     "value": 0.07611798287345385,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "7.61% (16 clips)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.phone",
+     "group": "Listener",
+     "name": "Gold PER: phone",
+     "value": 0.09116809116809117,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "9.12% (26 clips)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.tlog",
+     "group": "Listener",
+     "name": "Gold PER: tlog",
+     "value": 0.01773466588281403,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "1.77% (191 clips)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.pharyngeals",
+     "group": "Listener",
+     "name": "Gold PER: pharyngeals",
+     "value": 0.05454545454545454,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "5.45% (385 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.emphatics",
+     "group": "Listener",
+     "name": "Gold PER: emphatics",
+     "value": 0.11428571428571428,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "11.43% (140 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.hamza_ain",
+     "group": "Listener",
+     "name": "Gold PER: hamza ain",
+     "value": 0.05114401076716016,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "5.11% (743 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.short_vowels",
+     "group": "Listener",
+     "name": "Gold PER: short vowels",
+     "value": 0.03202247191011236,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "3.20% (5340 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPerRaw",
+     "group": "Listener",
+     "name": "Gold raw PER vs spliced reference",
+     "value": 0.05233310731677249,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPerHeldOut",
+     "group": "Listener",
+     "name": "Gold PER: never in tlog train",
+     "value": 0.07265625,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "7.27% (62 clips)",
+     "note": "help clips plus tlog test/val gold clips; fair for students trained before the gold exclusion",
+     "status": "info"
+    },
+    {
+     "source": "teacher-per-breakdown-v1.md",
+     "id": "listener.perFair",
+     "group": "Listener",
+     "name": "Fair PER on tlog clean-match test (canon vs spliced)",
+     "value": 0.0244183782002307,
+     "unit": "%",
+     "status": "info",
+     "note": "teacher floor; canon PER vs spliced reference (teacher-per-breakdown-v1): nasal spelling and qalqala unified, runs collapsed, clip edges from the teacher; ignores shadda and duration"
+    },
+    {
+     "source": "student-v1.md",
+     "id": "listener.perRef",
+     "group": "Listener",
+     "name": "Raw PER vs reference (tlog clean-match test)",
+     "value": 0.0852,
+     "unit": "%",
+     "status": "info",
+     "note": "mostly clip edges and madd/ghunna length, not mishearing (teacher-per-breakdown-v1)"
+    },
+    {
+     "source": "student-v1.md",
+     "id": "listener.perTeacher",
+     "group": "Listener",
+     "name": "Raw PER vs teacher",
+     "value": 0,
+     "unit": "%",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "listener.visible",
+     "group": "Listener",
+     "name": "Planted memorization errors visible in the decode",
+     "value": 0.6875,
+     "unit": "%",
+     "display": "68.8% (44/64)",
+     "note": "E0 heuristic: under half the planted word's consonants decode as written",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "listener.e1help.svRecall",
+     "group": "Listener",
+     "name": "E1 help clips: short vowel greedy recall",
+     "value": 0.6333333333333333,
+     "unit": "%",
+     "display": "63.3% (19/30)",
+     "bar": {
+      "op": ">=",
+      "target": 0.5
+     },
+     "note": "E1 viable rule; 27 sites; report 66f60a6",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "listener.e1help.svCanon",
+     "group": "Listener",
+     "name": "E1 help clips: short vowel canonicalised",
+     "value": 0.1,
+     "unit": "%",
+     "display": "10.0% (3/30)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "listener.e1help.svFp",
+     "group": "Listener",
+     "name": "E1 help clips: short vowel clean greedy FP",
+     "value": 0.0011843079200592153,
+     "unit": "%",
+     "display": "0.1% (8/6755)",
+     "bar": {
+      "op": "<=",
+      "target": 0.02
+     },
+     "status": "pass"
+    },
+    {
+     "source": "e1-teacher-bias-v1.md",
+     "id": "listener.e1.classes",
+     "group": "Listener",
+     "name": "E1 (qdat_bench + Ikhlas): classes the teacher hears",
+     "value": 1,
+     "display": "1/10: 1 posterior-only, 9 unsupported",
+     "note": "report 7b28629; most classes have < 20 positives",
+     "status": "info"
+    },
+    {
+     "source": "e1b-spliced-v1.md",
+     "id": "listener.e1b.classes",
+     "group": "Listener",
+     "name": "E1b splices (upper bound): classes the teacher hears",
+     "value": 7,
+     "display": "7/9: 6 viable, 1 posterior-only, 2 mixed",
+     "note": "report 005fc6d",
+     "status": "info"
+    },
+    {
+     "source": "e1b-spliced-v1.md",
+     "id": "listener.e1b.canon",
+     "group": "Listener",
+     "name": "E1b splices: canonicalised share (all classes)",
+     "value": 0.3450094161958569,
+     "unit": "%",
+     "display": "34.5% (916/2655)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.clean.within5s",
+     "group": "Tracker",
+     "name": "help clean: correct ayah within 5 s",
+     "value": 0.8488888888888889,
+     "unit": "%",
+     "display": "84.9% (191/225)",
+     "bar": {
+      "op": ">=",
+      "target": 0.95
+     },
+     "note": "fair gate number on user-like audio",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.clean.falseJumps",
+     "group": "Tracker",
+     "name": "help clean: clips with a false jump",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/225)",
+     "bar": {
+      "op": "<=",
+      "target": 0.02
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.clean.outside",
+     "group": "Tracker",
+     "name": "help clean: clips with any lock outside the passage",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.clean.lockS",
+     "group": "Tracker",
+     "name": "help clean: median time to correct lock",
+     "value": 2.64,
+     "unit": "s",
+     "note": "from first decoded phoneme",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.all.within5s",
+     "group": "Tracker",
+     "name": "help all: correct ayah within 5 s",
+     "value": 0.7938144329896907,
+     "unit": "%",
+     "display": "79.4% (308/388)",
+     "bar": {
+      "op": ">=",
+      "target": 0.95
+     },
+     "note": "error clips: a substitution forming another ayah counts as wrong",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.all.falseJumps",
+     "group": "Tracker",
+     "name": "help all: clips with a false jump",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/388)",
+     "bar": {
+      "op": "<=",
+      "target": 0.02
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.all.outside",
+     "group": "Tracker",
+     "name": "help all: clips with any lock outside the passage",
+     "value": 0.05412371134020619,
+     "unit": "%",
+     "display": "5.4% (21/388)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.all.lockS",
+     "group": "Tracker",
+     "name": "help all: median time to correct lock",
+     "value": 2.62,
+     "unit": "s",
+     "note": "from first decoded phoneme",
+     "status": "info"
+    },
+    {
+     "source": "qud-v1-decoded-phrases.md",
+     "id": "tracker.qud.within5s",
+     "group": "Tracker",
+     "name": "QUD regression: correct ayah within 5 s",
+     "value": 0.7692307692307693,
+     "unit": "%",
+     "display": "76.9% (30/39)",
+     "bar": {
+      "op": ">=",
+      "target": 0.95
+     },
+     "note": "16 recordings, 357 min; regression report, not a gate (Decision 2)",
+     "status": "fail"
+    },
+    {
+     "source": "qud-v1-decoded-phrases.md",
+     "id": "tracker.qud.falseJumps",
+     "group": "Tracker",
+     "name": "QUD regression: false jumps",
+     "value": 0.08791208791208792,
+     "unit": "%",
+     "display": "8.8% (8/91)",
+     "bar": {
+      "op": "<=",
+      "target": 0.02
+     },
+     "status": "fail"
+    },
+    {
+     "source": "qud-v1-decoded-phrases.md",
+     "id": "tracker.qud.lockS",
+     "group": "Tracker",
+     "name": "QUD regression: median time to first lock",
+     "value": 4.109999999999999,
+     "unit": "s",
+     "status": "info"
+    },
+    {
+     "source": "jumps-v1.md",
+     "id": "e2e.stitched.falseWords",
+     "group": "End to end",
+     "name": "Stitched sessions: false wrong/added words per 5 min (free)",
+     "value": 2.0686681793756234,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "display": "2.07 (309 in 747 min)",
+     "note": "clean clips stitched end to end with real jumps (ticket 13); `pnpm jumps`",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.tlog",
+     "group": "Tracker",
+     "name": "Ambiguous tlog clips (PLAN gate set)",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06)"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.scripted",
+     "group": "Tracker",
+     "name": "Scripted-error recordings (PLAN gate set)",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no recordings yet (ticket 05)"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.precision",
+     "group": "Checker",
+     "name": "Declared passage: Memorization precision",
+     "value": 0.8382352941176471,
+     "unit": "%",
+     "display": "83.8% (57/68)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "note": "declared passage (CheckerOptions.passage): the prompted passage, real tracker and evidence",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.recall",
+     "group": "Checker",
+     "name": "Declared passage: Memorization recall",
+     "value": 0.890625,
+     "unit": "%",
+     "display": "89.1% (57/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.wrong_word.precision",
+     "group": "Checker",
+     "name": "Declared passage: wrong_word precision",
+     "value": 0.8,
+     "unit": "%",
+     "display": "80.0% (24/30)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.wrong_word.recall",
+     "group": "Checker",
+     "name": "Declared passage: wrong_word recall",
+     "value": 0.8275862068965517,
+     "unit": "%",
+     "display": "82.8% (24/29)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.omitted_word.precision",
+     "group": "Checker",
+     "name": "Declared passage: omitted_word precision",
+     "value": 0.9428571428571428,
+     "unit": "%",
+     "display": "94.3% (33/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.omitted_word.recall",
+     "group": "Checker",
+     "name": "Declared passage: omitted_word recall",
+     "value": 0.9428571428571428,
+     "unit": "%",
+     "display": "94.3% (33/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.added_word.precision",
+     "group": "Checker",
+     "name": "Declared passage: added_word precision",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/1)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.added_word.recall",
+     "group": "Checker",
+     "name": "Declared passage: added_word recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.skipped_passage.precision",
+     "group": "Checker",
+     "name": "Declared passage: skipped_passage precision",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/2)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.skipped_passage.recall",
+     "group": "Checker",
+     "name": "Declared passage: skipped_passage recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.cleanPerClip",
+     "group": "Checker",
+     "name": "Declared passage: False warnings per clean clip",
+     "value": 0.022222222222222223,
+     "display": "0.022 (5/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.cleanPer5",
+     "group": "Checker",
+     "name": "Declared passage: False warnings per 5 min (short clips)",
+     "value": 0.5378966090997762,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.repeatFp",
+     "group": "Checker",
+     "name": "Declared passage: False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: Memorization precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (60/60)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "note": "oracle lock + oracle evidence synthesised from labels (Decision 7); 0 clips with an unphonemizable planted word skipped",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: Memorization recall",
+     "value": 0.9375,
+     "unit": "%",
+     "display": "93.8% (60/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.wrong_word.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: wrong_word precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (25/25)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.wrong_word.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: wrong_word recall",
+     "value": 0.8620689655172413,
+     "unit": "%",
+     "display": "86.2% (25/29)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.omitted_word.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: omitted_word precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (35/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.omitted_word.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: omitted_word recall",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (35/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.added_word.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: added_word precision",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 raised)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "unmeasurable"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.added_word.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: added_word recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.skipped_passage.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: skipped_passage precision",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 raised)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "unmeasurable"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.skipped_passage.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: skipped_passage recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.cleanPerClip",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: False warnings per clean clip",
+     "value": 0,
+     "display": "0.000 (0/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.cleanPer5",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: False warnings per 5 min (short clips)",
+     "value": 0,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.repeatFp",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.raised",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: positives raised in any state",
+     "value": 0.9375,
+     "unit": "%",
+     "display": "93.8% (60/64)",
+     "note": "the rest of the gap to recall is events still suspected/uncertain at clip end (confirmation delay on short clips)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.e0.evidence",
+     "group": "Checker",
+     "name": "E0: misses lost to evidence",
+     "value": 5,
+     "display": "5/31",
+     "note": "",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.e0.tracker",
+     "group": "Checker",
+     "name": "E0: misses lost to tracker",
+     "value": 24,
+     "display": "24/31",
+     "note": "",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.e0.checker",
+     "group": "Checker",
+     "name": "E0: misses lost to checker",
+     "value": 2,
+     "display": "2/31",
+     "note": "real upstream, free arm",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.selfCorrection",
+     "group": "Checker",
+     "name": "Self-correction / long-session false warnings",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no recordings (ticket 05)"
+    }
+   ],
+   "modules": [
+    "checker"
+   ]
+  },
+  {
+   "sha": "adbcafe",
+   "date": "2026-10-09",
+   "recordedAt": "2026-10-09T14:18:20.865Z",
+   "listener": "spliced-clean-int8",
+   "note": "Local-window warning confirmation on the shipped int8 full student (SDK now passes listener posteriors to the checker only). Declared 56/12/8 -> 56/8/8, free 28/8/36 -> 28/4/36, no new misses",
+   "metrics": [
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.precision",
+     "group": "End to end",
+     "name": "Memorization precision",
+     "value": 0.875,
+     "unit": "%",
+     "display": "87.5% (28/32)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "note": "help eval split, held-out speakers: 388 clips, 29 speakers; free recitation, default policy",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.recall",
+     "group": "End to end",
+     "name": "Memorization recall",
+     "value": 0.4375,
+     "unit": "%",
+     "display": "43.8% (28/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.wrong_word.precision",
+     "group": "End to end",
+     "name": "wrong_word precision",
+     "value": 0.5,
+     "unit": "%",
+     "display": "50.0% (2/4)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.wrong_word.recall",
+     "group": "End to end",
+     "name": "wrong_word recall",
+     "value": 0.06896551724137931,
+     "unit": "%",
+     "display": "6.9% (2/29)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "fail",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.omitted_word.precision",
+     "group": "End to end",
+     "name": "omitted_word precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (26/26)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.omitted_word.recall",
+     "group": "End to end",
+     "name": "omitted_word recall",
+     "value": 0.7428571428571429,
+     "unit": "%",
+     "display": "74.3% (26/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "fail",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.added_word.precision",
+     "group": "End to end",
+     "name": "added_word precision",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 raised)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "unmeasurable"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.added_word.recall",
+     "group": "End to end",
+     "name": "added_word recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.skipped_passage.precision",
+     "group": "End to end",
+     "name": "skipped_passage precision",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/2)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.skipped_passage.recall",
+     "group": "End to end",
+     "name": "skipped_passage recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.cleanPerClip",
+     "group": "End to end",
+     "name": "False warnings per clean clip",
+     "value": 0.008888888888888889,
+     "display": "0.009 (2/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.cleanPer5",
+     "group": "End to end",
+     "name": "False warnings per 5 min (short clips)",
+     "value": 0.21626297577854678,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.repeatFp",
+     "group": "End to end",
+     "name": "False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.pron.short_vowel",
+     "group": "End to end",
+     "name": "Pronunciation: short_vowel",
+     "value": null,
+     "display": "unsupported",
+     "status": "unmeasurable",
+     "note": "checker has no pronunciation classes; 30 positives in eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.pron.consonant_sad_sin",
+     "group": "End to end",
+     "name": "Pronunciation: consonant_sad_sin",
+     "value": null,
+     "display": "unsupported",
+     "status": "unmeasurable",
+     "note": "checker has no pronunciation classes; 4 positives in eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.pron.madd_natural",
+     "group": "End to end",
+     "name": "Pronunciation: madd_natural",
+     "value": null,
+     "display": "unsupported",
+     "status": "unmeasurable",
+     "note": "checker has no pronunciation classes; 1 positives in eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.pron.phase2",
+     "group": "End to end",
+     "name": "Pronunciation: other pairs, shadda",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no recordings with positives (ticket 05, phase 2)"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.perfRtf",
+     "group": "End to end",
+     "name": "Tracker real-time factor (this machine)",
+     "value": 0.0016474081591886342,
+     "bar": {
+      "op": "<=",
+      "target": 0.05
+     },
+     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 28.5 ms",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.latency.highlight",
+     "group": "End to end",
+     "name": "Word highlight latency p95",
+     "value": 489.83608399995137,
+     "bar": {
+      "op": "<=",
+      "target": 600
+     },
+     "display": "490 ms (p50 332 ms, 4722 words)",
+     "note": "onnxruntime-node, 20 ms pushes, this machine; measureLatency (packages/sdk): from the decoded phoneme, not a labelled onset. Device runs: ticket 10",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.latency.suspected",
+     "group": "End to end",
+     "name": "Suspected latency p95",
+     "value": 1013.0983330000017,
+     "bar": {
+      "op": "<=",
+      "target": 1000
+     },
+     "display": "1013 ms (p50 294 ms, 136 errors)",
+     "note": "from the onset of the word after the error; PLAN: within about 1 s",
+     "status": "fail"
+    },
+    {
+     "id": "listener.goldPer",
+     "group": "Listener",
+     "name": "Gold PER (canon vs spliced, human-verified exact)",
+     "value": 0.04819277108433735,
+     "unit": "%",
+     "bar": {
+      "op": "<=",
+      "target": 0.03654129754296288
+     },
+     "source": "listener-target-v1.md",
+     "display": "4.82% (233 clips)",
+     "note": "bar: gold PER where fitted declared.precision falls 2 pts below the teacher (3.39%)",
+     "status": "fail"
+    },
+    {
+     "id": "listener.goldPer.laptop",
+     "group": "Listener",
+     "name": "Gold PER: laptop",
+     "value": 0.1065651760228354,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "10.66% (16 clips)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.phone",
+     "group": "Listener",
+     "name": "Gold PER: phone",
+     "value": 0.100664767331434,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "10.07% (26 clips)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.tlog",
+     "group": "Listener",
+     "name": "Gold PER: tlog",
+     "value": 0.0313541054281795,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "3.14% (191 clips)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.pharyngeals",
+     "group": "Listener",
+     "name": "Gold PER: pharyngeals",
+     "value": 0.05974025974025974,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "5.97% (385 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.emphatics",
+     "group": "Listener",
+     "name": "Gold PER: emphatics",
+     "value": 0.08571428571428572,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "8.57% (140 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.hamza_ain",
+     "group": "Listener",
+     "name": "Gold PER: hamza ain",
+     "value": 0.06594885598923284,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "6.59% (743 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.short_vowels",
+     "group": "Listener",
+     "name": "Gold PER: short vowels",
+     "value": 0.042322097378277156,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "4.23% (5340 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPerRaw",
+     "group": "Listener",
+     "name": "Gold raw PER vs spliced reference",
+     "value": 0.0750785921222955,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPerHeldOut",
+     "group": "Listener",
+     "name": "Gold PER: never in tlog train",
+     "value": 0.08880208333333334,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "8.88% (62 clips)",
+     "note": "help clips plus tlog test/val gold clips; fair for students trained before the gold exclusion",
+     "status": "info"
+    },
+    {
+     "source": "teacher-per-breakdown-v1.md",
+     "id": "listener.perFair",
+     "group": "Listener",
+     "name": "Fair PER on tlog clean-match test (canon vs spliced)",
+     "value": null,
+     "unit": "%",
+     "status": "pending",
+     "note": "not in the PER breakdown; run tools/per_breakdown.py on this run's decode"
+    },
+    {
+     "source": "student-v1.md",
+     "id": "listener.perRef",
+     "group": "Listener",
+     "name": "Raw PER vs reference (tlog clean-match test)",
+     "value": null,
+     "unit": "%",
+     "status": "info",
+     "note": "Quran-Lab zipformer 3.65% on phone audio: reference only, not a gate"
+    },
+    {
+     "source": "student-v1.md",
+     "id": "listener.perTeacher",
+     "group": "Listener",
+     "name": "Raw PER vs teacher",
+     "value": null,
+     "unit": "%",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "listener.visible",
+     "group": "Listener",
+     "name": "Planted memorization errors visible in the decode",
+     "value": 0.6875,
+     "unit": "%",
+     "display": "68.8% (44/64)",
+     "note": "E0 heuristic: under half the planted word's consonants decode as written",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "listener.e1help.svRecall",
+     "group": "Listener",
+     "name": "E1 help clips: short vowel greedy recall",
+     "value": null,
+     "status": "pending",
+     "note": "E1/E1b not run on spliced-clean-int8's posteriors"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "listener.e1.classes",
+     "group": "Listener",
+     "name": "E1: classes heard",
+     "value": null,
+     "status": "pending",
+     "note": "E1/E1b not run on spliced-clean-int8's posteriors"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "listener.e1b.classes",
+     "group": "Listener",
+     "name": "E1b: classes heard",
+     "value": null,
+     "status": "pending",
+     "note": "E1/E1b not run on spliced-clean-int8's posteriors"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.clean.within5s",
+     "group": "Tracker",
+     "name": "help clean: correct ayah within 5 s",
+     "value": 0.84,
+     "unit": "%",
+     "display": "84.0% (189/225)",
+     "bar": {
+      "op": ">=",
+      "target": 0.95
+     },
+     "note": "fair gate number on user-like audio",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.clean.falseJumps",
+     "group": "Tracker",
+     "name": "help clean: clips with a false jump",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/225)",
+     "bar": {
+      "op": "<=",
+      "target": 0.02
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.clean.outside",
+     "group": "Tracker",
+     "name": "help clean: clips with any lock outside the passage",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.clean.lockS",
+     "group": "Tracker",
+     "name": "help clean: median time to correct lock",
+     "value": 2.64,
+     "unit": "s",
+     "note": "from first decoded phoneme",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.all.within5s",
+     "group": "Tracker",
+     "name": "help all: correct ayah within 5 s",
+     "value": 0.7809278350515464,
+     "unit": "%",
+     "display": "78.1% (303/388)",
+     "bar": {
+      "op": ">=",
+      "target": 0.95
+     },
+     "note": "error clips: a substitution forming another ayah counts as wrong",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.all.falseJumps",
+     "group": "Tracker",
+     "name": "help all: clips with a false jump",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/388)",
+     "bar": {
+      "op": "<=",
+      "target": 0.02
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.all.outside",
+     "group": "Tracker",
+     "name": "help all: clips with any lock outside the passage",
+     "value": 0.05412371134020619,
+     "unit": "%",
+     "display": "5.4% (21/388)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.all.lockS",
+     "group": "Tracker",
+     "name": "help all: median time to correct lock",
+     "value": 2.56,
+     "unit": "s",
+     "note": "from first decoded phoneme",
+     "status": "info"
+    },
+    {
+     "source": "qud-v1-decoded-phrases.md",
+     "id": "tracker.qud.within5s",
+     "group": "Tracker",
+     "name": "QUD regression: correct ayah within 5 s",
+     "value": null,
+     "status": "pending",
+     "note": "no QUD evidence from spliced-clean-int8"
+    },
+    {
+     "source": "jumps-v1.md",
+     "id": "e2e.stitched.falseWords",
+     "group": "End to end",
+     "name": "Stitched sessions: false wrong/added words per 5 min (free)",
+     "value": null,
+     "status": "pending",
+     "note": "teacher evidence only"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.tlog",
+     "group": "Tracker",
+     "name": "Ambiguous tlog clips (PLAN gate set)",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06)"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.scripted",
+     "group": "Tracker",
+     "name": "Scripted-error recordings (PLAN gate set)",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no recordings yet (ticket 05)"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.precision",
+     "group": "Checker",
+     "name": "Declared passage: Memorization precision",
+     "value": 0.875,
+     "unit": "%",
+     "display": "87.5% (56/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "note": "declared passage (CheckerOptions.passage): the prompted passage, real tracker and evidence",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.recall",
+     "group": "Checker",
+     "name": "Declared passage: Memorization recall",
+     "value": 0.875,
+     "unit": "%",
+     "display": "87.5% (56/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.wrong_word.precision",
+     "group": "Checker",
+     "name": "Declared passage: wrong_word precision",
+     "value": 0.8275862068965517,
+     "unit": "%",
+     "display": "82.8% (24/29)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.wrong_word.recall",
+     "group": "Checker",
+     "name": "Declared passage: wrong_word recall",
+     "value": 0.8275862068965517,
+     "unit": "%",
+     "display": "82.8% (24/29)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.omitted_word.precision",
+     "group": "Checker",
+     "name": "Declared passage: omitted_word precision",
+     "value": 0.9696969696969697,
+     "unit": "%",
+     "display": "97.0% (32/33)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.omitted_word.recall",
+     "group": "Checker",
+     "name": "Declared passage: omitted_word recall",
+     "value": 0.9142857142857143,
+     "unit": "%",
+     "display": "91.4% (32/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.added_word.precision",
+     "group": "Checker",
+     "name": "Declared passage: added_word precision",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 raised)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "unmeasurable"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.added_word.recall",
+     "group": "Checker",
+     "name": "Declared passage: added_word recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.skipped_passage.precision",
+     "group": "Checker",
+     "name": "Declared passage: skipped_passage precision",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/2)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.skipped_passage.recall",
+     "group": "Checker",
+     "name": "Declared passage: skipped_passage recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.cleanPerClip",
+     "group": "Checker",
+     "name": "Declared passage: False warnings per clean clip",
+     "value": 0.017777777777777778,
+     "display": "0.018 (4/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.cleanPer5",
+     "group": "Checker",
+     "name": "Declared passage: False warnings per 5 min (short clips)",
+     "value": 0.43252595155709356,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.repeatFp",
+     "group": "Checker",
+     "name": "Declared passage: False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: Memorization precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (60/60)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "note": "oracle lock + oracle evidence synthesised from labels (Decision 7); 0 clips with an unphonemizable planted word skipped",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: Memorization recall",
+     "value": 0.9375,
+     "unit": "%",
+     "display": "93.8% (60/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.wrong_word.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: wrong_word precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (25/25)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.wrong_word.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: wrong_word recall",
+     "value": 0.8620689655172413,
+     "unit": "%",
+     "display": "86.2% (25/29)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.omitted_word.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: omitted_word precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (35/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.omitted_word.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: omitted_word recall",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (35/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.added_word.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: added_word precision",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 raised)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "unmeasurable"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.added_word.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: added_word recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.skipped_passage.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: skipped_passage precision",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 raised)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "unmeasurable"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.skipped_passage.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: skipped_passage recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.cleanPerClip",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: False warnings per clean clip",
+     "value": 0,
+     "display": "0.000 (0/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.cleanPer5",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: False warnings per 5 min (short clips)",
+     "value": 0,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.repeatFp",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.raised",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: positives raised in any state",
+     "value": 0.9375,
+     "unit": "%",
+     "display": "93.8% (60/64)",
+     "note": "the rest of the gap to recall is events still suspected/uncertain at clip end (confirmation delay on short clips)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.e0.evidence",
+     "group": "Checker",
+     "name": "E0: misses lost to evidence",
+     "value": 6,
+     "display": "6/36",
+     "note": "",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.e0.tracker",
+     "group": "Checker",
+     "name": "E0: misses lost to tracker",
+     "value": 28,
+     "display": "28/36",
+     "note": "",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.e0.checker",
+     "group": "Checker",
+     "name": "E0: misses lost to checker",
+     "value": 2,
+     "display": "2/36",
+     "note": "real upstream, free arm",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.selfCorrection",
+     "group": "Checker",
+     "name": "Self-correction / long-session false warnings",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no recordings (ticket 05)"
+    }
+   ],
+   "modules": [
+    "checker"
+   ]
   }
  ]
 }
