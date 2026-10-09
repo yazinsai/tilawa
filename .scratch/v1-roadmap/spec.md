@@ -8,12 +8,30 @@ The tracker is built and runs on teacher evidence (bookmark-tracker tickets 01â€
 
 Nothing else in PLAN.md exists yet: the checker, the full tlog pass, ground truth, the student listener, the runtimes, or the SDK.
 
+### Update, 9 October 2026
+
+All tickets an agent can finish are done. What's left is human work:
+- Ticket 09 and ticket 10's phone and browser runs (`ready-for-human`).
+- Ticket 05's recordings (deferred).
+- Ticket 07 phase 2, which needs 05.
+
+The shipped listener is `spliced-clean`: `full` int8 is 68 MB and `lite` int8 is 25 MB. `docs/benchmarks/scoreboard.md` and the dashboard track every metric against its bar. As of `0c41345`, shipped `full` int8 on the help eval:
+- **Declared passage:** precision 87.5%, recall 87.5%. Recall passes; precision misses the 90% bar.
+- **Free recitation with a lead-in and lead-out:** precision 77.9%, recall 82.8%.
+- **Listener gold PER:** 4.82%, against a 3.65% bar.
+- **False warnings in the lead-out:** 2.7 per 5 min, against a bar of 1. This may come from the short stitched sessions, which end inside the lead-out; that's untested.
+
 ## Decisions
 
 1. **Critical path:** prove what the teacher can hear (E1) and build the checker on teacher evidence before spending on distillation. A cheap device probe de-risks the student in parallel.
 2. **Tracker gate:** the 95% / 2% bar is measured on user-like audio, meaning scripted-error recordings and ambiguous tlog clips. QUD becomes a regression report, not a gate.
 3. **Checker:** a separate consumer of the tracker's locked alignment and the evidence. Memorization errors come from the alignment; pronunciation errors come from the evidence.
    - *Amended 2026-10-07:* a session that declares its passage gets a checker that aligns against that passage, using the tracker lock only to follow a deliberate jump; free recitation is unchanged. See `docs/benchmarks/acceptance-v2.md`.
+   - *Amended 2026-10-08:* free recitation latches onto the tracker's first confident lock and treats it like a declared passage. The passage extends forward as the recitation continues. It re-anchors only on a sustained jump, and re-latches when the lock is lost. See ticket 07 Comments.
+   - *Amended 2026-10-09:* local-window confirmation. A wrong, omitted or added word is confirmed only if the listener posteriors favour the decode over the written words by â‰¥ 10 nats, over the word and one neighbour on each side (`CheckerPolicy.localWindow`). Latched free recitation also finalises at session end (`finaliseFree`). See `docs/benchmarks/local-window-v1.md`.
+12. **Listener acceptance (added 2026-10-07):** gold PER on human-verified exact recitations (`docs/benchmarks/gold-per-v1.json`; these clips are excluded from training), with the bar calibrated against end-to-end declared-arm precision (`listener-target-v1.md`). End-to-end swap-in metrics are the real gate. Gold PER is the training proxy.
+13. **Student (added 2026-10-07):** `spliced-clean` ships, at `full` and `lite` int8. Its CTC target is the teacher's output at clip edges with the verified text in between, plus teacher soft-target KD. E3 and E6 are deferred until after v1, because v1 is memorization-only. Run E3 first if pronunciation work builds on this student: its canonicalised share is 41.7%, against the teacher's 34.5%.
+14. **Mutashabihat (added 2026-10-09):** a planted error that turns the passage into another real ayah is tagged `forms_other_ayah` and scored as its own slice. Free recitation is scored with a correct lead-in and lead-out (stitched preceding and following ayahs), because real slips happen mid-session. Ticket 05's generator plants both kinds.
 4. **Pronunciation fallback:** classes the teacher can't hear ship as `unsupported`, so v1 can ship memorization-only. The research bet is per-pair classifiers on tracker-aligned segments (speculative).
 5. **Self-correction:** it emits `suspected`, then `resolved`. Whether it counts as a mistake is a policy setting; by default it doesn't.
 6. **Repeats** aren't errors. A **skip** is a suspected omission. It becomes `resolved` if the skipped words are recited before the next ayah ends, and `confirmed` otherwise.

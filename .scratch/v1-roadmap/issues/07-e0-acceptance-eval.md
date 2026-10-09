@@ -109,3 +109,12 @@ Background: [Tilawa research report](../research-listener-2026-10-07.md), especi
 - Costs: (1) On the teacher, false warnings in the lead-out go from 10 to 36 (0.93 → 3.36 per 5 min). That matches the declared arm's 36, so it is the same session-end rule confirming decoder noise near the end. Each clip's session ends inside its lead-out, which concentrates every session end there. int8 already fails that gate with finalisation off (25 → 29). (2) Free without a lead-in (info): teacher 33 / 6 → 34 / 9 and int8 28 / 4 → 29 / 7; clean-clip warnings 0.22 → 0.32 per 5 min on both.
 - Re-checks: on the 62 clean tlog fixtures finalisation confirms one error, `tlog-clean-00000-of-00411-232` 100:2:1 (فالموريات decoded as فمليات, which the posteriors back too; it was 2 before local-window). It is pinned in `checker.test.ts`. Stitched-session false words (`e2e.stitched.falseWords`, 747 min) stay at 309 (2.07 per 5 min). Declared is unchanged: teacher 57 / 11 / 7, int8 56 / 8 / 8; declared with lead-in/out is 57 / 22 / 7 (teacher) and 56 / 15 / 8 (int8).
 - Scoreboard rows: teacher and spliced-clean-int8 @ a4cc202.
+
+- **Status, 2026-10-09:** Phase 1 is done, and every free-recitation and precision improvement is on the scoreboard. The shipped `full` int8 doesn't pass the memorization bar yet:
+  - declared passage: precision 87.5% against 90%, recall 87.5% (passes);
+  - free recitation with a lead-in and lead-out: precision 77.9%, recall 82.8%.
+  
+  Open:
+  - phase 2 (needs ticket 05);
+  - the tracker gate on ambiguous tlog clips (they have no passage labels);
+  - lead-out false warnings at 2.7 per 5 min. Next check: the rate on long stitched sessions (ticket 13), to tell a short-session artifact from a real problem.
