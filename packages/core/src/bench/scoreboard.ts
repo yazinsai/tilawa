@@ -37,6 +37,88 @@ export interface ScoreRow {
   metrics: Metric[];
 }
 
+/** `flipOnly`: the value is timing noise, so only crossing the bar counts as a move. */
+export interface Gate { id: string; label: string; area: "Product" | "Listener" | "Tracker" | "Checker"; flipOnly?: boolean }
+export interface Board { version: number; candidate?: string; gates?: Gate[]; blocked?: Gate[]; rows: ScoreRow[] }
+
+/** The v1 release gates: every one must pass on the candidate listener. Everything else on a row is diagnostic. */
+export const GATES: Gate[] = [
+  { id: "e2e.unambiguous.recall", label: "Free recitation: mistakes caught", area: "Product" },
+  { id: "e2e.unambiguous.precision", label: "Free recitation: warnings correct", area: "Product" },
+  { id: "checker.oracleLock.recall", label: "Memorization session: mistakes caught", area: "Product" },
+  { id: "checker.oracleLock.precision", label: "Memorization session: warnings correct", area: "Product" },
+  { id: "e2e.cleanPer5", label: "False warnings per 5 min (short clips)", area: "Product" },
+  { id: "e2e.stitched.falseWords", label: "False warnings per 5 min (stitched sessions)", area: "Product" },
+  { id: "e2e.repeatFp", label: "False warnings on repeats", area: "Product" },
+  { id: "listener.goldPer", label: "Listener gold PER", area: "Listener" },
+  { id: "tracker.clean.within5s", label: "Tracker: correct ayah within 5 s", area: "Tracker" },
+  { id: "tracker.clean.falseJumps", label: "Tracker: false jumps", area: "Tracker" },
+  { id: "e2e.perfRtf", label: "Real-time factor", area: "Product", flipOnly: true },
+];
+/** Release requirements with no data yet; they block release until measured. */
+export const BLOCKED: Gate[] = [
+  { id: "e2e.pron.short_vowel", label: "Pronunciation: short vowels", area: "Listener" },
+  { id: "e2e.pron.phase2", label: "Pronunciation: confusable pairs, shadda", area: "Listener" },
+  { id: "e2e.latency", label: "Word highlight / warning latency on device", area: "Product" },
+  { id: "checker.selfCorrection", label: "Self-correction and long-session false warnings", area: "Checker" },
+  { id: "tracker.scripted", label: "Scripted-error recordings", area: "Tracker" },
+];
+export const DEFAULT_CANDIDATE = "spliced-clean-int8";
+
+/** Shortfall from the bar as a fraction of the bar (0 when passing), so gates with different units rank together. */
+export function gap(m: Metric | undefined): number {
+  if (!m?.bar || m.value === null) return Infinity;
+  const { op, target } = m.bar;
+  const short = op === ">=" ? target - m.value : m.value - target;
+  return short <= 0 ? 0 : short / (target || 1);
+}
+
+const counts = (m: Metric | undefined) => { const x = m?.display?.match(/\((\d+)\/(\d+)\)/); return x ? { hit: +x[1], of: +x[2] } : null; };
+const better = (m: Metric, d: number) => (m.bar?.op === "<=" ? d < 0 : d > 0);
+
+export interface Move { id: string; label: string; from: Metric; to: Metric; better: boolean; small: boolean }
+/**
+ * Gate metrics that changed between two runs. `small` is a move of at most two clips (or under 3% relative for
+ * metrics without counts): same eval set, so real, but too few clips to generalise.
+ */
+export function moves(from: ScoreRow, to: ScoreRow, gates: Gate[] = GATES): Move[] {
+  const out: Move[] = [];
+  for (const g of gates) {
+    const a = from.metrics.find((m) => m.id === g.id), b = to.metrics.find((m) => m.id === g.id);
+    if (!a || !b || a.value === null || b.value === null || Math.abs(b.value - a.value) < 1e-9) continue;
+    if (g.flipOnly && a.status === b.status) continue;
+    const ca = counts(a), cb = counts(b);
+    const small = ca && cb ? Math.abs(cb.hit - ca.hit) <= 2 && Math.abs(cb.of - cb.hit - (ca.of - ca.hit)) <= 2 : Math.abs(b.value - a.value) / Math.max(Math.abs(a.value), 1e-9) < 0.03;
+    out.push({ id: g.id, label: g.label, from: a, to: b, better: better(b, b.value - a.value), small });
+  }
+  return out;
+}
+
+export function verdict(ms: Move[]): "better" | "worse" | "mixed" | "noise" | "unchanged" {
+  if (!ms.length) return "unchanged";
+  const big = ms.filter((m) => !m.small);
+  if (!big.length) return "noise";
+  const up = big.some((m) => m.better), down = big.some((m) => !m.better);
+  return up && down ? "mixed" : up ? "better" : "worse";
+}
+
+/** The run a row is judged against: the previous run of its listener, else the candidate's latest earlier run. */
+export function parentOf(rows: ScoreRow[], i: number, candidate: string): ScoreRow | undefined {
+  const r = rows[i];
+  for (let j = i - 1; j >= 0; j--) if (rows[j].listener === r.listener) return rows[j];
+  for (let j = i - 1; j >= 0; j--) if (rows[j].listener === candidate) return rows[j];
+  return undefined;
+}
+
+/** The engine stage losing the most planted mistakes (E0 attribution), the biggest lever on recall. */
+export function biggestLever(row: ScoreRow): { stage: string; lost: number; of: number } | null {
+  const e0 = (["evidence", "tracker", "checker"] as const).map((k) => ({ stage: k === "evidence" ? "listener" : k, lost: row.metrics.find((m) => m.id === `checker.e0.${k}`)?.value ?? null }));
+  if (e0.some((x) => x.lost === null)) return null;
+  const of = e0.reduce((n, x) => n + x.lost!, 0);
+  const top = e0.reduce((a, b) => (b.lost! > a.lost! ? b : a));
+  return of ? { stage: top.stage, lost: top.lost!, of } : null;
+}
+
 /** Replaces the row with the same commit and listener, else appends. */
 export function upsertRow(rows: ScoreRow[], row: ScoreRow): ScoreRow[] {
   const at = rows.findIndex((r) => r.sha === row.sha && r.listener === row.listener);
@@ -86,30 +168,44 @@ function delta(m: Metric, base: Metric | undefined): string {
   return d > 0 ? `+${s}` : d < 0 ? s : "0";
 }
 
+const VERDICT = { better: "▲ better", worse: "▼ worse", mixed: "◆ mixed", noise: "· noise", unchanged: "= unchanged" };
+const moveText = (m: Move) => `${m.better ? "▲" : "▼"}${m.small ? "~" : ""} ${m.label} ${value(m.from)} → ${value(m.to)}`;
+
 /**
- * Latest snapshot per listener (delta vs that listener's first row, the baseline), then the history of headline
- * metrics across every row.
+ * Release readiness of the candidate listener (gates ranked by shortfall), the experiment log (each run against its
+ * parent, gate moves only), then the candidate's full metrics against its previous run.
  */
-export function renderScoreboard(rows: ScoreRow[], headline: string[] = []): string {
+export function renderScoreboard(rows: ScoreRow[], candidate = DEFAULT_CANDIDATE, gates = GATES, blocked = BLOCKED): string {
   const out: string[] = [];
-  const listeners = [...new Set(rows.map((r) => r.listener))];
-  for (const l of listeners) {
-    const mine = rows.filter((r) => r.listener === l);
-    const base = mine[0];
-    const last = mine.at(-1)!;
-    out.push(`## Latest: ${l} @ ${last.sha} (${last.date})`, "", `Delta is against the baseline row ${base.sha} (${base.date}).`, "");
-    out.push("| Area | Metric | Value | Bar | Status | Δ baseline | Note |", "|---|---|---:|---|---|---:|---|");
-    for (const m of last.metrics) {
-      const b = base.metrics.find((x) => x.id === m.id);
-      out.push(`| ${m.group} | ${m.name} | ${value(m)} | ${bar(m)} | ${m.status} | ${delta(m, b === m ? undefined : b)} | ${m.note ?? ""} |`);
+  const mine = rows.filter((r) => r.listener === candidate);
+  const last = mine.at(-1), prev = mine.at(-2);
+  if (last) {
+    const ranked = gates.map((g) => ({ g, m: last.metrics.find((x) => x.id === g.id) })).sort((a, b) => gap(b.m) - gap(a.m));
+    const failing = ranked.filter((x) => x.m?.status === "fail").length, open = ranked.filter((x) => !x.m || x.m.value === null).length;
+    const unmeasured = blocked.filter((b) => !last.metrics.some((m) => (m.id === b.id || m.id.startsWith(`${b.id}.`)) && m.value !== null));
+    const ready = failing === 0 && open === 0 && unmeasured.length === 0;
+    out.push(`## Release readiness: ${candidate} @ ${last.sha} (${last.date})`, "",
+      `**${ready ? "Ready" : "Not ready"}**: ${gates.length - failing - open}/${gates.length} gates pass, ${failing} fail, ${open} not measured on this listener, ${unmeasured.length} requirements not measurable yet. Worst shortfall first.`, "",
+      "| Gate | Now | Bar | Shortfall | Δ previous run |", "|---|---:|---|---:|---:|");
+    for (const { g, m } of ranked) {
+      const s = gap(m);
+      out.push(`| ${g.label} | ${m ? value(m) : "—"} | ${m ? bar(m) : ""} | ${s === Infinity ? "not measured" : s === 0 ? "pass" : `${(100 * s).toFixed(0)}% short`} | ${m ? delta(m, prev?.metrics.find((x) => x.id === g.id)) : ""} |`);
     }
+    if (unmeasured.length) out.push("", `Not measurable yet (blocks release): ${unmeasured.map((b) => b.label).join("; ")}.`);
     out.push("");
+    const lever = biggestLever(last);
+    if (lever) out.push(`**Biggest lever on recall: ${lever.stage}**, which loses ${lever.lost} of the ${lever.of} planted mistakes missed in free recitation (E0 attribution).`, "");
   }
-  const ids = headline.length ? headline : rows[0]?.metrics.filter((m) => m.bar).map((m) => m.id) ?? [];
-  const names = ids.map((id) => rows.flatMap((r) => r.metrics).find((m) => m.id === id)).map((m, i) => (m ? `${m.group}: ${m.name}` : ids[i]));
-  out.push("## History", "", `| Date | Commit | Listener | ${names.join(" | ")} | Note |`, `|---|---|---|${ids.map(() => "---:").join("|")}|---|`);
-  for (const r of rows) {
-    out.push(`| ${r.date} | ${r.sha} | ${r.listener} | ${ids.map((id) => { const m = r.metrics.find((x) => x.id === id); return m ? value(m) : "—"; }).join(" | ")} | ${r.note ?? ""} |`);
+  out.push("## Experiments", "", "Newest first. Each run is judged against its parent: the previous run of the same listener, else the candidate. Only gates that moved are listed; `~` marks a move of two clips or fewer.", "",
+    "| Date | Commit | Listener | vs | Verdict | Gate moves | Note |", "|---|---|---|---|---|---|---|");
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const r = rows[i], p = parentOf(rows, i, candidate);
+    const ms = p ? moves(p, r, gates) : [];
+    out.push(`| ${r.date} | ${r.sha} | ${r.listener} | ${p ? `${p.listener === r.listener ? "" : `${p.listener} `}${p.sha}` : "first run"} | ${p ? VERDICT[verdict(ms)] : ""} | ${ms.map(moveText).join("<br>")} | ${r.note ?? ""} |`);
+  }
+  if (last) {
+    out.push("", `## All metrics: ${candidate}`, "", "| Area | Metric | Value | Bar | Status | Δ previous run | Note |", "|---|---|---:|---|---|---:|---|");
+    for (const m of last.metrics) out.push(`| ${m.group} | ${m.name} | ${value(m)} | ${bar(m)} | ${m.status} | ${delta(m, prev?.metrics.find((x) => x.id === m.id))} | ${m.note ?? ""} |`);
   }
   return out.join("\n") + "\n";
 }
