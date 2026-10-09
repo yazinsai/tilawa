@@ -27,6 +27,8 @@ export interface HelpBenchClip {
   audioS: number;
   phonemes: DecodedPhoneme[];
   nFrames: number;
+  /** The listener's top-k posteriors over the clip, as `<clip>.evidence.json` carries them. */
+  posteriors?: { k: number; ids: number[]; probs: number[] };
   free: ClipScore;
   declared: ClipScore;
 }
@@ -100,13 +102,15 @@ export async function runHelpBench(o: {
     const freeEvents = await run(free);
     const declaredEvents = await run(declared);
     const phonemes = free.evidence().flatMap((e) => e.phonemes);
+    const rows = free.evidence().flatMap((e) => (e.posteriors ? [e.posteriors] : []));
+    const posteriors = rows.length ? { k: rows[0].k, ids: rows.flatMap((r) => Array.from(r.ids)), probs: rows.flatMap((r) => Array.from(r.probs)) } : undefined;
     const fbankFrames = 1 + Math.floor((wav.samples.length - 400) / 160);
     const nFrames = Math.floor((Math.floor((fbankFrames - 7) / 2) + 1) / 2);
     compute += (performance.now() - t0) / 1000;
     const expected = letterPairs.has(l.id) ? [] : l.events;
     const repeats = new Set(l.non_errors.filter((n) => n.kind === "repeat").map((n) => key(n.location)));
     const clip: HelpBenchClip = {
-      id: l.id, kind: l.kind, audioS: wav.samples.length / wav.sampleRate, phonemes, nFrames,
+      id: l.id, kind: l.kind, audioS: wav.samples.length / wav.sampleRate, phonemes, nFrames, posteriors,
       free: score(freeEvents, expected, repeats), declared: score(declaredEvents, expected, repeats),
     };
     clips.push(clip);

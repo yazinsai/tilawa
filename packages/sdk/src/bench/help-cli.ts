@@ -33,7 +33,7 @@ let same = 0, compared = 0;
 const res = await runHelpBench({
   helpDir: resolve(values.help!), reference, phrases, model, pushMs: Number(values.push), evidenceMs: values["evidence-ms"] ? Number(values["evidence-ms"]) : undefined, limit: values.limit ? Number(values.limit) : undefined,
   onClip(c, done, total) {
-    writeFileSync(resolve(out, `${c.id}.evidence.json`), JSON.stringify({ inventory: reference.inventoryId, frameMs: model.manifest.frameMs, nFrames: c.nFrames, phonemes: c.phonemes }));
+    writeFileSync(resolve(out, `${c.id}.evidence.json`), JSON.stringify({ inventory: reference.inventoryId, frameMs: model.manifest.frameMs, nFrames: c.nFrames, phonemes: c.phonemes, ...(c.posteriors && { posteriors: c.posteriors }) }));
     const torch = resolve(values.torch!, `${c.id}.evidence.json`);
     if (existsSync(torch)) {
       compared++;

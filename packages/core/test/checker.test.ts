@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createChecker, createTracker, loadReferenceIndex } from "../src/index.js";
 import type { CheckerEvent, CheckerOptions, DecodedPhoneme, PhonemeEvidence, PhraseAsset, ReferenceAsset, WordRef } from "../src/index.js";
-import { isAssertable, replayChecked, syntheticFixture } from "../src/fixtures/index.js";
+import { isAssertable, replayChecked, syntheticFixture, withPosteriors } from "../src/fixtures/index.js";
 import type { Edit, Fixture } from "../src/fixtures/index.js";
 import { alignSubstring } from "../src/fuzzy.js";
 
@@ -211,6 +211,45 @@ describe("unclear evidence", () => {
     const last = at(w(2, 255, 50));
     const events = run([{ kind: "sub", at: last + 2, to: "ز" }, { kind: "sub", at: last + 6, to: "ز" }], { to: w(2, 255, 50) });
     expect(confirmed(events)).toEqual([]);
+  });
+});
+
+describe("local-window confirmation", () => {
+  // يسمع for يشفع: two consonants decoded wrong.
+  const misheard = text(target).replace("ش", "س").replace("ف", "م");
+  const edits: Edit[] = [
+    { kind: "sub", at: at(target) + text(target).indexOf("ش"), to: "س" },
+    { kind: "sub", at: at(target) + text(target).indexOf("ف"), to: "م" },
+  ];
+  /** The fixture's chunks with posteriors: `alt(j)` gives decoded phoneme `j`'s distribution, otherwise the decode at 0.9. */
+  const heard = (e: Edit[], alt: (j: number, p: string) => [string, number][] | undefined) => {
+    const f = syntheticFixture(index, { id: "c", from, to: w(2, 256, 10), edits: e, chunkSize: 8 });
+    const all = f.evidence.flatMap((x) => x.phonemes);
+    const whole = withPosteriors(index, { ...f.evidence[0], phonemes: all }, (j) => alt(j, all[j].p));
+    const { k, startFrame, ids, probs } = whole.posteriors!;
+    let a = startFrame;
+    const evidence = f.evidence.map((x, i) => {
+      const b = i + 1 < f.evidence.length ? f.evidence[i + 1].phonemes[0].start : startFrame + whole.posteriors!.nFrames;
+      const rows = { k, startFrame: a, nFrames: b - a, ids: Array.from(ids).slice((a - startFrame) * k, (b - startFrame) * k), probs: Array.from(probs).slice((a - startFrame) * k, (b - startFrame) * k) };
+      a = b;
+      return { ...x, posteriors: rows };
+    });
+    return { ...f, evidence };
+  };
+  const word = (j: number) => j >= at(target) && j < at(target) + text(target).length;
+  const check = (f: Fixture, localWindow?: boolean) => confirmed(replayChecked(index, f, {}, { policy: { localWindow } }));
+
+  it("doesn't confirm a wrong word when the audio supports the intended word almost as well", () => {
+    // The decoder's runner-up at each misheard sound is the written one.
+    const f = heard(edits, (j, p) => (word(j) && (p === "س" || p === "م") ? [[p, 0.5], [p === "س" ? "ش" : "ف", 0.45], ["", 0.03]] : undefined));
+    expect(misheard).not.toBe(text(target));
+    expect(summary(check(f, false))).toEqual(["confirmed wrong_word 2:255:23"]);
+    expect(check(f, true)).toEqual([]);
+  });
+
+  it("still confirms a wrong word the audio doesn't support as written", () => {
+    expect(summary(check(heard(replaceWord(target, ALIEN), () => undefined), true))).toEqual(["confirmed wrong_word 2:255:23"]);
+    expect(summary(check(heard(edits, () => undefined), true))).toEqual(["confirmed wrong_word 2:255:23"]);
   });
 });
 

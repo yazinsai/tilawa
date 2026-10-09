@@ -1,6 +1,7 @@
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
+import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 
@@ -11,6 +12,13 @@ export interface CheckerPolicy {
   countResolved?: boolean;
   /** Mean decoder confidence over an error's phonemes below which it ends `uncertain`, never `confirmed`. Default 0.6. */
   minConfidence?: number;
+  /**
+   * Before confirming a wrong, omitted or added word, compare how well the chunk posteriors around it (the word and one
+   * either side) support the written words versus what was decoded, over all CTC timings. If the written words fit
+   * nearly as well, the error ends `uncertain`. Default on; it needs posteriors on every chunk, and without them nothing
+   * changes. `nats` overrides the margin the decode must win by (`SUPPORT`).
+   */
+  localWindow?: boolean | { nats: number };
 }
 
 export interface CheckerOptions {
@@ -72,6 +80,8 @@ const JUMP_WORDS = 4;
  * shares most of its words with the passage, a deliberate jump doesn't.
  */
 const FITS_PASSAGE = 0.35;
+/** Nats by which the decoded words must beat the written ones over the local window for the error to stand. */
+const SUPPORT = 10;
 
 const INF = Infinity;
 const OP_START = 0;
@@ -123,6 +133,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const policy = options.policy ?? {};
   const confirm = policy.confirm ?? { after: "delay", ms: 2500 };
   const minConfidence = policy.minConfidence ?? 0.6;
+  const frames = (policy.localWindow ?? true) ? new PosteriorFrames(index.tokens.size) : null;
+  const support = typeof policy.localWindow === "object" ? policy.localWindow.nats : SUPPORT;
+  const tokenId = new Map([...index.tokens].map((t, i) => [t, i + 1]));
   const ref = index.phonemes;
   const words = index.words;
   const wordStarts = new Set(words.map((w) => w.start));
@@ -214,7 +227,39 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const decide = (o: Open, out: CheckerEvent[], state?: "uncertain") => {
     open.delete(o.issue.word);
     decided.add(o.issue.word);
-    out.push(event(o, state ?? (((declared && !latched) || trackerLocked) && clarity(o.issue) >= minConfidence ? "confirmed" : "uncertain")));
+    const sure = ((declared && !latched) || trackerLocked) && clarity(o.issue) >= minConfidence && supported(o.issue) !== false;
+    out.push(event(o, state ?? (sure ? "confirmed" : "uncertain")));
+  };
+
+  /** The steps of the window's latest alignment. */
+  let steps: Step[] = [];
+  /**
+   * Whether the posteriors over the error's word and a recited word either side favour what was decoded over the
+   * written words by `SUPPORT`; null when there's no telling (no posteriors there, or a skipped passage).
+   */
+  const supported = (issue: Issue): boolean | null => {
+    if (!frames || frames.startFrame < 0 || issue.cls === "skipped_passage") return null;
+    const heardAt = (wi: number) => steps.filter((s): s is Extract<Step, { op: "diag" }> => s.op === "diag" && index.wordAt(s.ref) === wi).map((s) => s.obs);
+    const before = prevWord(issue.word);
+    const after = issue.cls === "added_word" ? issue.word : nextWord(issue.last);
+    const left = before < issue.word ? heardAt(before) : [];
+    const right = after < words.length ? heardAt(after) : [];
+    const from = left.length ? before : issue.word;
+    const to = right.length ? after : issue.cls === "added_word" ? issue.word : issue.last;
+    const at = [...left, ...right, ...(issue.obsTo > issue.obsFrom ? [issue.obsFrom, issue.obsTo - 1] : [])].filter((k) => k >= 0 && k < obs.length);
+    if (!at.length) return null;
+    const f0 = obs[Math.min(...at)].start;
+    const f1 = obs[Math.max(...at)].end + 1;
+    if (f0 < frames.startFrame || f1 > frames.endFrame) return null;
+    const ids = (s: string) => [...s].map((p) => tokenId.get(p) ?? 0);
+    const span = (a: number, b: number) => (a < b ? ref.slice(words[a].start, words[b - 1].end) : "");
+    const written = ref.slice(words[from].start, words[to].end);
+    const observed = issue.observed ?? "";
+    const decoded =
+      issue.cls === "added_word"
+        ? span(from, issue.word) + observed + span(issue.word, to + 1)
+        : span(from, issue.word) + (issue.cls === "wrong_word" ? observed : "") + span(issue.last + 1, to + 1);
+    return frames.nll(ids(written), f0, f1) - frames.nll(ids(decoded), f0, f1) >= support;
   };
 
   const dropAnchor = (out: CheckerEvent[]) => {
@@ -529,9 +574,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const evaluate = (out: CheckerEvent[], final: boolean) => {
     if (anchor === null || !obs.length) return;
     setWindow();
-    const judged = judge(align());
+    steps = align();
+    const judged = judge(steps);
     if (!judged) return;
-    const { issues, head, furthest: reached, steps, right } = judged;
+    const { issues, head, furthest: reached, right } = judged;
     furthest = Math.max(furthest, reached);
     for (const [wi, o] of [...open]) {
       const now = issues.get(wi);
@@ -667,6 +713,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     push(evidence, events) {
       const out: CheckerEvent[] = [];
       frameMs = evidence.frameMs;
+      if (frames && evidence.posteriors) frames.append(evidence.posteriors);
       const next = track(events, out);
       const before = obs.length;
       obs.push(...evidence.phonemes.map((p) => ({ ...p })));
@@ -676,9 +723,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       anchorOn(next, events);
       if (anchor === null) {
         if (obs.length > HISTORY) obs = obs.slice(-HISTORY);
-        return out;
-      }
-      evaluate(out, false);
+      } else evaluate(out, false);
+      if (frames && obs.length) frames.dropBefore(obs[0].start);
       return out;
     },
     end(events = []) {

@@ -97,7 +97,7 @@ export function createEngine(options: EngineOptions): Engine {
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
       ...(passage && { passage }),
     });
-    const listener = createListener(model, options.listener);
+    const listener = createListener(model, { posteriors: true, ...options.listener });
     const subscribers = new Set<(e: EngineEvent) => void>();
     let queue = Promise.resolve();
     const emit = (events: EngineEvent[]) => {
@@ -109,7 +109,8 @@ export function createEngine(options: EngineOptions): Engine {
     const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
       if (options.recordEvidence) recorded.push(e);
-      const out = tracker.push(e);
+      // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
+      const out = tracker.push({ ...e, posteriors: undefined });
       return emit([...out, ...checker.push(e, out)]);
     };
     const finish = () => {

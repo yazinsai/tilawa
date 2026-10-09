@@ -4,7 +4,7 @@ import { Fbank } from "./fbank.js";
 import type { LoadedModel, Tensor } from "./model.js";
 
 export interface ListenerOptions {
-  /** Attach per-frame top-k posteriors to each chunk. The v1 tracker and checker run on the decode alone. Default false. */
+  /** Attach per-frame top-k posteriors to each chunk: the checker's local-window check reads them. Default false; sessions turn it on. */
   posteriors?: boolean;
   topK?: number;
 }

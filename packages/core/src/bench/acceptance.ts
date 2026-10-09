@@ -1,5 +1,6 @@
 /** Acceptance scoring for one labelled clip: checker events against planted errors, and the tracker's start. */
 import { createChecker } from "../checker.js";
+import type { CheckerPolicy } from "../checker.js";
 import type { CheckerEvent, EngineEvent, PositionEvent, WordRef } from "../events.js";
 import { EVENT_SCHEMA_VERSION } from "../events.js";
 import type { PhraseAsset, ReferenceIndex } from "../reference.js";
@@ -65,16 +66,20 @@ const key = (r: WordRef) => `${r.surah}:${r.ayah}:${r.word}`;
 const ayahKey = (r: { surah: number; ayah: number }) => `${r.surah}:${r.ayah}`;
 const signature = (e: { errorClass: string; location: WordRef }) => `${e.errorClass}/${key(e.location)}`;
 
-export function scoreClip(index: ReferenceIndex, clip: AcceptanceClip, o: { arm: Arm; phrases: PhraseAsset; chunkS?: number }): ClipScore {
+/** The checker gets the clip's posteriors (for its local-window check); the tracker gets the decode only, as before. */
+export function scoreClip(index: ReferenceIndex, clip: AcceptanceClip, o: { arm: Arm; phrases: PhraseAsset; chunkS?: number; policy?: CheckerPolicy }): ClipScore {
   const tracker = createTracker(index, { mode: "memorization", phrases: o.phrases, acquireMs: 1000 });
-  const checker = createChecker(index, { phrases: o.phrases, ...(o.arm === "declared" ? { passage: declaredPassage(index, clip.ayahs) } : {}) });
+  const checker = createChecker(index, { phrases: o.phrases, policy: o.policy, ...(o.arm === "declared" ? { passage: declaredPassage(index, clip.ayahs) } : {}) });
   const checks: CheckerEvent[] = [];
   const positions: PositionEvent[] = [];
   const feed = (out: EngineEvent[]): EngineEvent[] => {
     positions.push(...out.filter((x): x is PositionEvent => x.type === "position"));
     return out;
   };
-  for (const e of chunk(clip.evidence as QudRecording, o.chunkS ?? 0.32, false)) checks.push(...checker.push(e, feed(tracker.push(e))));
+  const posteriors = !!clip.evidence.posteriors?.ids.length;
+  for (const e of chunk(clip.evidence as QudRecording, o.chunkS ?? 0.32, posteriors)) {
+    checks.push(...checker.push(e, feed(tracker.push({ ...e, posteriors: undefined }))));
+  }
   checks.push(...checker.end(feed(tracker.end())));
 
   const latest = new Map<string, CheckerEvent>();
