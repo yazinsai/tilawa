@@ -16,8 +16,8 @@ import type { QudRecording } from "./index.js";
 import { perfGate } from "./perf.js";
 import { inClip, withLeadIn } from "./leadin.js";
 import type { ClipEvidence } from "./jumps.js";
-import { goldPerMetrics, oracleClip, renderScoreboard, scored, upsertRow } from "./scoreboard.js";
-import type { Metric, OracleLabel, ScoreRow } from "./scoreboard.js";
+import { BLOCKED, DEFAULT_CANDIDATE, GATES, goldPerMetrics, oracleClip, renderScoreboard, scored, upsertRow } from "./scoreboard.js";
+import type { Board, Metric, OracleLabel, ScoreRow } from "./scoreboard.js";
 
 const { values } = parseArgs({ options: {
   listener: { type: "string", default: "teacher" },
@@ -37,7 +37,34 @@ const { values } = parseArgs({ options: {
   "leadin-evidence": { type: "string" },
   /** `pnpm bench:help` report (packages/sdk) for this listener: end-to-end latency on the shipped runtime. */
   latency: { type: "string" },
+  /** Listener judged for release; sticks in scoreboard.json until changed. */
+  candidate: { type: "string" },
+  /** Rewrite scoreboard.md (and the candidate) from scoreboard.json without scoring a run. */
+  render: { type: "boolean", default: false },
 } });
+const jsonPath = `${resolve(values.out!)}.json`;
+const board: Board = existsSync(jsonPath) ? JSON.parse(readFileSync(jsonPath, "utf8")) : { version: 1, rows: [] };
+function save() {
+  board.candidate = values.candidate ?? board.candidate ?? DEFAULT_CANDIDATE;
+  board.gates = GATES;
+  board.blocked = BLOCKED;
+  writeFileSync(jsonPath, JSON.stringify(board, null, 1) + "\n");
+  writeFileSync(`${resolve(values.out!)}.md`, [
+    "# Engine scoreboard", "",
+    "The release cockpit for the engine. One row per commit × listener, recomputed from evidence on disk (no GPU).", "",
+    "- **Release readiness** judges the candidate listener (`--candidate`, sticky) against the v1 gates in `GATES` (`packages/core/src/bench/scoreboard.ts`). It is ready when every gate passes and every requirement in `BLOCKED` has data. Gates are ranked by shortfall from the bar, so the top row is what most needs work.",
+    "- **Experiments** judges every run against its parent: the previous run of the same listener, or the candidate for a listener's first run. The verdict counts only gate moves larger than two clips; smaller ones are marked `~` and count as noise, since the eval set is 64 planted mistakes and 225 clean clips.",
+    "- **All metrics** lists every diagnostic for the candidate.", "",
+    "**Add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard --note '<what changed and why>' [--modules listener,tracker,checker]` (teacher). For a student, decode the help eval clips into a directory of `<clip>.evidence.json` and add `--listener <run-name> --evidence <dir>`. A run replaces the row with the same commit and listener, else appends. Commit `scoreboard.json` and `scoreboard.md` with the change. `pnpm scoreboard --render --candidate <listener>` switches the candidate without scoring.", "",
+    "**Dashboard.** `uv run tools/scoreboard_serve.py`, then http://127.0.0.1:8765/scoreboard.html.", "",
+    "**Sources.** Listener PER is gold PER (`tools/gold_set.py score`), barred by `listener-target-v1.json`. Help clips: 388 eval clips, 29 held-out speakers. Free memorization is gated `with lead-in` (`--leadin`, `tools/leadin_build.py`): 1–2 correctly recited preceding ayahs are stitched before each clip at the evidence level (same speaker's clean clip, else another help speaker's, else held-out tlog, else tlog train), errors and false positives are scored inside the original clip, and warnings on the lead-in are counted apart. For a student add `--leadin-evidence <dir>` with its decode of `.scratch/leadin/audio` (`pnpm --filter @tilawa/sdk decode`). Without a lead-in the free numbers are info; each arm is also split into `unambiguous` and `mutashabihat` (planted errors that form another ayah, `forms_other_ayah`). `Declared passage` is the memorization-session arm (`CheckerOptions.passage`); `oracle evidence` replaces the decode with one synthesised from the label, so its losses are the checker's own. E0 attributes each missed mistake to listener, tracker or checker.", "",
+    renderScoreboard(board.rows, board.candidate),
+  ].join("\n"));
+}
+if (values.render) {
+  save();
+  process.exit(0);
+}
 const moduleNames = ["listener", "tracker", "checker"] as const;
 const modules = values.modules === undefined ? undefined : [...new Set(values.modules.split(",").map((m) => m.trim()))];
 if (modules?.some((m) => !moduleNames.includes(m as typeof moduleNames[number]))) {
@@ -320,19 +347,8 @@ add({ id: "checker.selfCorrection", group: CHECKER, name: "Self-correction / lon
 const sha = values.sha ?? execSync("git rev-parse --short HEAD").toString().trim();
 const now = new Date().toISOString();
 const row: ScoreRow = { sha, date: now.slice(0, 10), recordedAt: now, listener: values.listener!, note: values.note, metrics };
-const jsonPath = `${resolve(values.out!)}.json`;
-const board: { version: number; rows: ScoreRow[] } = existsSync(jsonPath) ? JSON.parse(readFileSync(jsonPath, "utf8")) : { version: 1, rows: [] };
 // Keep existing attribution when regenerating a run without a new module tag.
 row.modules = modules as ScoreRow["modules"] ?? board.rows.find((r) => r.sha === row.sha && r.listener === row.listener)?.modules;
 board.rows = upsertRow(board.rows, row);
-writeFileSync(jsonPath, JSON.stringify(board, null, 1) + "\n");
-const HEADLINE = ["e2e.leadin.precision", "e2e.leadin.recall", "e2e.leadin.unambiguous.recall", "e2e.leadin.mutashabihat.recall", "e2e.leadin.leadWarnings", "e2e.unambiguous.precision", "e2e.unambiguous.recall", "e2e.mutashabihat.recall", "e2e.cleanPer5", "listener.goldPer", "tracker.clean.within5s", "tracker.qud.within5s", "tracker.qud.falseJumps", "checker.oracleLock.recall", "checker.oracleLock.unambiguous.recall", "checker.oracleLock.mutashabihat.recall", "checker.oracleAll.recall"];
-const md = [
-  "# Engine scoreboard", "",
-  "One row per commit × listener, recomputed from evidence on disk (no GPU). Bars are PLAN.md's v1 acceptance bars; `unmeasurable` means the data to score it doesn't exist yet, `pending` means the evidence exists in principle but hasn't been produced for this listener.", "",
-  "**How to run / add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard --note '<what changed and why>'` (teacher). The note is required by AGENTS.md. Tag changed engine modules with `--modules checker` (or a comma-separated list such as `--modules listener,tracker`). Tags describe the implementation change, not every metric that moved; the dashboard uses them to filter the change history. Existing tags survive reruns that omit this option. For a student, decode the help eval clips with it into a directory of `<clip>.evidence.json` and run `pnpm scoreboard --listener <run-name> --evidence <dir> --note '...'`; without `--evidence` its help metrics are `pending`. Each run replaces the row with the same commit and listener, else appends one; commit the updated `scoreboard.json` and `scoreboard.md` with the change they measure. Listener PER is gold PER from `gold-per-v1-scores.json` (`tools/gold_set.py score`), gated by the bar in `listener-target-v1.json`; raw and clean-match fair PER come from `student-v1.json` and the PER breakdown. E1/E1b from their reports; rerun those first if the listener changed. Help clips: 388 scored eval clips, 29 held-out speakers; letter-confusion substitutions count as negatives. Free and declared memorization metrics are also split into `unambiguous` and `mutashabihat` slices by the label's `forms_other_ayah` (the recitation with the error applied fits another ayah at least as well as the prompted one, `tools/help_import.py`); every false positive stays in the overall and unambiguous lines. Free recitation is also scored `with lead-in` (`--leadin`, `tools/leadin_build.py`): 1–2 correctly recited preceding ayahs are stitched before each clip at the evidence level (same speaker's clean clip, else another help speaker's, else held-out tlog, else tlog train), so a planted error falls mid-recitation; errors and false positives are scored inside the original clip, and false warnings on the lead-in are counted apart. Free with lead-in is the tracked free metric; the no-lead-in free numbers are info. For a student, pass `--leadin-evidence <dir>` with its decode of `.scratch/leadin/audio` (`pnpm --filter @tilawa/sdk decode`). `Declared passage` gives the checker the prompted passage (`CheckerOptions.passage`), the memorization-session arm; `oracle evidence` replaces the decode with a perfect one synthesised from the label, so its losses are the checker's own.", "",
-  "**Dashboard.** `uv run tools/scoreboard_serve.py` serves the dashboard on http://127.0.0.1:8765/scoreboard.html. Choose a listener model to see end-to-end precision and recall, listener/tracker/checker summaries and trends, and missed-error attribution. The change history shows module tags, key figures and deltas, with filters for Listener, Tracker and Checker. Full notes are expandable; comparisons always use the previous run for that model, even when filtered. Expand “Explore all measurements” for sample counts, targets and backing reports. It reads `scoreboard.json`, so a new row appears on reload.", "",
-  renderScoreboard(board.rows, HEADLINE),
-].join("\n");
-writeFileSync(`${resolve(values.out!)}.md`, md);
-console.log(md);
+save();
+console.log(readFileSync(`${resolve(values.out!)}.md`, "utf8").split("\n## All metrics")[0]);

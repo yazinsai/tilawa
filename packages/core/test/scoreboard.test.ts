@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { loadReferenceIndex } from "../src/index.js";
 import type { PhraseAsset, ReferenceAsset } from "../src/index.js";
 import { scoreClip } from "../src/bench/acceptance.js";
-import { goldPerMetrics, oracleClip, renderScoreboard, scored, upsertRow } from "../src/bench/scoreboard.js";
+import { gap, goldPerMetrics, moves, oracleClip, parentOf, renderScoreboard, scored, upsertRow, verdict } from "../src/bench/scoreboard.js";
 import type { ScoreRow } from "../src/bench/scoreboard.js";
 
 const asset: ReferenceAsset = JSON.parse(readFileSync(new URL("../assets/ref-v2.json", import.meta.url), "utf8"));
@@ -53,15 +53,32 @@ describe("scoreboard rendering", () => {
     ],
   });
 
-  it("marks each metric against its bar and shows the delta vs the baseline row", () => {
-    const md = renderScoreboard([row("aaaaaaa", 0.55), row("bbbbbbb", 0.62)]);
-    expect(md).toContain("| End to end | Precision | 62.0% | ≥ 90.0% | fail | +7.0 pp |  |");
+  const gates = [{ id: "e2e.precision", label: "Precision", area: "Product" as const }];
+  const counted = (sha: string, listener: string, hit: number, of: number): ScoreRow => ({
+    ...row(sha, hit / of), listener, metrics: [scored({ id: "e2e.precision", group: "End to end", name: "Precision", value: hit / of, unit: "%", display: `${hit}/${of} (${hit}/${of})`, bar: { op: ">=", target: 0.9 } })],
+  });
+
+  it("ranks the candidate's gates and deltas them against its previous run", () => {
+    const md = renderScoreboard([row("aaaaaaa", 0.55), row("bbbbbbb", 0.62)], "teacher", gates, []);
+    expect(md).toContain("**Not ready**: 0/1 gates pass, 1 fail");
+    expect(md).toContain("| Precision | 62.0% | ≥ 90.0% | 31% short | +7.0 pp |");
     expect(md).toContain("| Tracker | Ambiguous tlog | — |  | unmeasurable |  | no passage truth |");
   });
 
-  it("shows each row's note in the history", () => {
-    const md = renderScoreboard([{ ...row("aaaaaaa", 0.55), note: "baseline" }], ["e2e.precision"]);
-    expect(md).toContain("| 2026-10-07 | aaaaaaa | teacher | 55.0% | baseline |");
+  it("judges a listener's first run against the candidate and treats two-clip moves as noise", () => {
+    const rows = [counted("aaaaaaa", "teacher", 30, 40), counted("bbbbbbb", "student", 36, 40), counted("ccccccc", "student", 35, 40)];
+    expect(verdict(moves(rows[0], rows[1], gates))).toBe("better");
+    expect(parentOf(rows, 1, "teacher")).toBe(rows[0]);
+    expect(parentOf(rows, 2, "teacher")).toBe(rows[1]);
+    expect(verdict(moves(rows[1], rows[2], gates))).toBe("noise");
+    const md = renderScoreboard(rows, "teacher", gates, []);
+    expect(md).toContain("| bbbbbbb | student | teacher aaaaaaa | ▲ better | ▲ Precision 30/40 (30/40) → 36/40 (36/40) |");
+  });
+
+  it("is not ready while a blocked requirement has no data", () => {
+    const md = renderScoreboard([row("aaaaaaa", 0.95)], "teacher", gates, [{ id: "tracker.tlog", label: "Ambiguous tlog", area: "Tracker" }]);
+    expect(md).toContain("**Not ready**: 1/1 gates pass, 0 fail, 0 not measured on this listener, 1 requirements");
+    expect(gap(row("x", 0.95).metrics[0])).toBe(0);
   });
 
   it("replaces the row with the same commit and listener, else appends", () => {

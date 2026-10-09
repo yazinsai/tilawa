@@ -1,25 +1,29 @@
 import { loadReferenceIndex } from "@tilawa/core";
 import type { PhraseAsset, ReferenceAsset } from "@tilawa/core";
 import { MODEL_REGISTRY, createEngine, decodeWav, loadWebModel, measureLatency, percentile, withBase } from "@tilawa/sdk/web";
-import type { Engine, LoadedModel, TierName, WebProvider } from "@tilawa/sdk/web";
+import type { Engine, TierName, WebProvider } from "@tilawa/sdk/web";
 import refAsset from "../../core/assets/ref-v2.json";
 import phrases from "../../core/assets/phrases-v1.json";
 
-/** Device measurements for ticket 10: real-time factor, memory, battery over a real-time run, latency p95. */
+/**
+ * Phone test for ticket 10: one button runs lite and full over the clips (real-time factor, latency, memory), then a
+ * real-time battery run on lite. `?tiers=full&battery=0` limits the run (scripts/device-headless.mjs).
+ */
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const index = loadReferenceIndex(refAsset as unknown as ReferenceAsset);
 const status = (s: string) => ($("status").textContent = s);
+const params = new URLSearchParams(location.search);
+const TIERS = (params.get("tiers") ?? "lite,full").split(",") as TierName[];
+const BATTERY_MIN = Number(params.get("battery") ?? 10);
 /** About what the web microphone delivers per AudioWorklet block. */
 const PUSH_MS = 20;
 
 interface Clip { id: string; kind: string; ayahs: string[]; samples: Float32Array; sampleRate: number }
 interface Battery { level: number; charging: boolean }
 
-let model: (LoadedModel & { fromCache: boolean; fallbacks: string[] }) | null = null;
-let engine: Engine | null = null;
 let clips: Clip[] = [];
-const results: Record<string, unknown> = {};
+const results: Record<string, any> = {};
 
 const nav = navigator as Navigator & {
   deviceMemory?: number;
@@ -53,49 +57,26 @@ async function battery(): Promise<Battery | null> {
 const stat = (xs: number[]) => ({ n: xs.length, p50: round(percentile(xs, 50)), p95: round(percentile(xs, 95)), max: round(percentile(xs, 100)) });
 const round = (x: number | null) => (x === null ? null : Math.round(x));
 
-$("load").onclick = async () => {
-  ($("load") as HTMLButtonElement).disabled = true;
-  try {
-    const tier = $<HTMLSelectElement>("tier").value as TierName;
-    const t0 = performance.now();
-    model = await loadWebModel({
-      tier,
-      registry: withBase(MODEL_REGISTRY, new URL(".", location.href).href),
-      providers: $<HTMLSelectElement>("provider").value.split(",") as WebProvider[],
-      threads: Number($<HTMLSelectElement>("threads").value),
-      wasmPaths: new URL("ort/", location.href).href,
-      onProgress: (n, total) => status(`Downloading ${(n / 1e6).toFixed(0)} / ${(total / 1e6).toFixed(0)} MB`),
-    });
-    const loadMs = performance.now() - t0;
-    engine = createEngine({ reference: index, phrases: phrases as PhraseAsset, model });
-    const t = MODEL_REGISTRY.tiers.find((x) => x.tier === tier)!;
-    const list = (await (await fetch("clips/clips.json")).json()) as Omit<Clip, "samples" | "sampleRate">[];
-    clips = await Promise.all(list.map(async (c) => ({ ...c, ...decodeWav(new Uint8Array(await (await fetch(`clips/${c.id}.wav`)).arrayBuffer())) })));
-    Object.assign(results, {
-      schema: 1,
-      date: new Date().toISOString(),
-      device: { userAgent: navigator.userAgent, hardwareConcurrency: navigator.hardwareConcurrency, deviceMemoryGB: nav.deviceMemory ?? null, crossOriginIsolated },
-      model: { tier, id: t.id, version: t.version, bytes: t.bytes, backend: model.backend.name, threads: Number($<HTMLSelectElement>("threads").value), fallbacks: model.fallbacks },
-      load: { ms: Math.round(loadMs), fromCache: model.fromCache, memory: await memoryMB() },
-    });
-    $("model-note").textContent = `${t.id}@${t.version} (${(t.bytes / 1e6).toFixed(0)} MB) on ${model.backend.name}, ${model.fromCache ? "cache" : "download"} ${(loadMs / 1000).toFixed(1)} s; ` +
-      `crossOriginIsolated=${crossOriginIsolated}; ${clips.length} clips.${model.fallbacks.length ? ` Fell back: ${model.fallbacks.join("; ")}` : ""}`;
-    ($("clips") as HTMLButtonElement).disabled = ($("soak") as HTMLButtonElement).disabled = !clips.length;
-    status(clips.length ? "Ready." : "No clips: run `pnpm assets` with the help clips present.");
-    const b = await battery();
-    $("battery-note").textContent = b ? `(read automatically: ${b.level}%${b.charging ? ", charging" : ""})` : "(this browser hides the battery level: type it in)";
-  } catch (e) {
-    status(`Load failed: ${(e as Error).message}`);
-  }
-  ($("load") as HTMLButtonElement).disabled = false;
-  show();
-};
+async function load(tier: TierName) {
+  const t0 = performance.now();
+  const model = await loadWebModel({
+    tier,
+    registry: withBase(MODEL_REGISTRY, new URL(".", location.href).href),
+    providers: ["wasm"] as WebProvider[],
+    threads: 1,
+    wasmPaths: new URL("ort/", location.href).href,
+    onProgress: (n, total) => status(`Downloading ${tier} model: ${(n / 1e6).toFixed(0)} / ${(total / 1e6).toFixed(0)} MB`),
+  });
+  const t = MODEL_REGISTRY.tiers.find((x) => x.tier === tier)!;
+  const info = { id: t.id, version: t.version, bytes: t.bytes, backend: model.backend.name, fallbacks: model.fallbacks, loadMs: Math.round(performance.now() - t0), fromCache: model.fromCache };
+  return { model, engine: createEngine({ reference: index, phrases: phrases as PhraseAsset, model }), info };
+}
 
-/** One declared-passage session per clip, pushed as fast as the device goes; latency on the real-time clock model. */
-async function runClip(c: Clip, realtime: boolean) {
+/** One declared-passage session per clip; latency on the real-time clock model. */
+async function runClip(engine: Engine, c: Clip, realtime: boolean) {
   const [surah, fromAyah] = c.ayahs[0].split(":").map(Number);
   const toAyah = Number(c.ayahs.at(-1)!.split(":")[1]);
-  const s = engine!.startMemorization({ surah, fromAyah, toAyah });
+  const s = engine.startMemorization({ surah, fromAyah, toAyah });
   const pushes: number[] = [];
   const timed = Object.assign(Object.create(s), {
     async pushAudio(x: Float32Array, rate: number) {
@@ -109,15 +90,12 @@ async function runClip(c: Clip, realtime: boolean) {
   return { ...r, pushes };
 }
 
-$("clips").onclick = async () => {
-  const rows = [];
+async function speedTest(engine: Engine, tier: TierName) {
   const all = { highlight: [] as number[], suspected: [] as number[], pushes: [] as number[] };
-  let audio = 0;
-  let compute = 0;
-  let peak: number | null = null;
+  let audio = 0, compute = 0, peak: number | null = null;
   for (const [i, c] of clips.entries()) {
-    status(`Clip ${i + 1}/${clips.length}…`);
-    const r = await runClip(c, false);
+    status(`Testing ${tier}: clip ${i + 1} of ${clips.length}`);
+    const r = await runClip(engine, c, false);
     audio += r.audioMs;
     compute += r.computeMs;
     all.highlight.push(...r.highlight);
@@ -125,77 +103,94 @@ $("clips").onclick = async () => {
     all.pushes.push(...r.pushes);
     const m = await memoryMB();
     if (m) peak = Math.max(peak ?? 0, m.mb);
-    rows.push({ id: c.id, kind: c.kind, audioS: +(r.audioMs / 1000).toFixed(1), rtf: +(r.computeMs / r.audioMs).toFixed(3), highlightP95: round(percentile(r.highlight, 95)), suspected: r.suspected.map(Math.round) });
   }
-  results.clips = {
-    pushMs: PUSH_MS, audioS: +(audio / 1000).toFixed(1), rtf: +(compute / audio).toFixed(3), pushComputeMs: stat(all.pushes),
-    highlightMs: stat(all.highlight), suspectedMs: stat(all.suspected), peakMemoryMB: peak === null ? null : Math.round(peak), perClip: rows,
-  };
-  status("Clips done.");
-  show();
-};
+  return { pushMs: PUSH_MS, audioS: +(audio / 1000).toFixed(1), rtf: +(compute / audio).toFixed(3), pushComputeMs: stat(all.pushes), highlightMs: stat(all.highlight), suspectedMs: stat(all.suspected), peakMemoryMB: round(peak) };
+}
 
-$("soak").onclick = async () => {
-  const minutes = Number($<HTMLInputElement>("minutes").value);
+async function askBattery(when: string): Promise<number | null> {
+  const b = await battery();
+  if (b) return b.level;
+  const typed = prompt(`What's your battery % ${when}? (Look at the top of the screen.)`);
+  return typed && !isNaN(Number(typed)) ? Number(typed) : null;
+}
+
+async function batteryTest(engine: Engine, minutes: number) {
   const lock = await nav.wakeLock?.request("screen").catch(() => null);
-  const b0 = await battery();
-  if (b0) $<HTMLInputElement>("bat0").value = String(b0.level);
-  const t0 = performance.now();
-  const end = t0 + minutes * 60_000;
-  const all = { highlight: [] as number[], pushes: [] as number[] };
-  let audio = 0;
-  let compute = 0;
-  let peak: number | null = null;
-  const memory: { min: number; mb: number }[] = [];
+  const start = await askBattery("right now");
+  const t0 = performance.now(), end = t0 + minutes * 60_000;
+  let audio = 0, compute = 0;
   for (let i = 0; performance.now() < end; i++) {
-    const r = await runClip(clips[i % clips.length], true);
+    const r = await runClip(engine, clips[i % clips.length], true);
     audio += r.audioMs;
     compute += r.computeMs;
-    all.highlight.push(...r.highlight);
-    all.pushes.push(...r.pushes);
-    const m = await memoryMB();
-    if (m) memory.push({ min: +((performance.now() - t0) / 60_000).toFixed(1), mb: Math.round(m.mb) });
-    if (m) peak = Math.max(peak ?? 0, m.mb);
-    status(`Battery run: ${((performance.now() - t0) / 60_000).toFixed(1)} / ${minutes} min, RTF ${(compute / audio).toFixed(3)}`);
+    status(`Battery test: ${Math.ceil((end - performance.now()) / 60_000)} min left. Leave the phone alone.`);
   }
   await lock?.release();
-  const b1 = await battery();
-  if (b1) $<HTMLInputElement>("bat1").value = String(b1.level);
-  results.soak = {
-    minutes: +((performance.now() - t0) / 60_000).toFixed(1), audioS: Math.round(audio / 1000), rtf: +(compute / audio).toFixed(3),
-    pushComputeMs: stat(all.pushes), highlightMs: stat(all.highlight), peakMemoryMB: peak === null ? null : Math.round(peak), memory,
-    batteryAuto: { start: b0, end: b1 },
-  };
-  status("Battery run done. Fill in the battery % if it wasn't read automatically, then copy.");
-  show();
+  const endPct = await askBattery("now that the test is done");
+  const mins = (performance.now() - t0) / 60_000;
+  return { minutes: +mins.toFixed(1), rtf: +(compute / audio).toFixed(3), batteryPct: start !== null && endPct !== null ? { start, end: endPct, per10min: +(((start - endPct) * 10) / mins).toFixed(1) } : null };
+}
+
+type Check = { label: string; state: "wait" | "run" | "pass" | "fail" | "info"; detail?: string };
+const checks: Check[] = [];
+function draw() {
+  $("steps").innerHTML = checks.map((c) => `<li class="${c.state}"><span>${{ wait: "○", run: "…", pass: "✓", fail: "✗", info: "•" }[c.state]}</span><b>${c.label}</b><span class="muted">${c.detail ?? ""}</span></li>`).join("");
+  $("json").textContent = JSON.stringify(results, null, 1);
+}
+const verdict = (label: string, ok: boolean, detail: string) => checks.push({ label, state: ok ? "pass" : "fail", detail });
+
+$("start").onclick = async () => {
+  ($("start") as HTMLButtonElement).disabled = true;
+  checks.length = 0;
+  const steps = [...TIERS.map((t) => `Speed test: ${t} model`), ...(BATTERY_MIN ? [`Battery test (${BATTERY_MIN} min)`] : [])];
+  steps.forEach((label) => checks.push({ label, state: "wait" }));
+  draw();
+  try {
+    status("Loading test clips…");
+    const list = (await (await fetch("clips/clips.json")).json()) as Omit<Clip, "samples" | "sampleRate">[];
+    clips = await Promise.all(list.map(async (c) => ({ ...c, ...decodeWav(new Uint8Array(await (await fetch(`clips/${c.id}.wav`)).arrayBuffer())) })));
+    if (!clips.length) throw new Error("no test clips on the server (run pnpm assets)");
+    Object.assign(results, { schema: 2, date: new Date().toISOString(), device: { userAgent: navigator.userAgent, hardwareConcurrency: navigator.hardwareConcurrency, deviceMemoryGB: nav.deviceMemory ?? null }, tiers: {} });
+    let lite: Awaited<ReturnType<typeof load>> | null = null;
+    for (const [i, tier] of TIERS.entries()) {
+      checks[i].state = "run";
+      draw();
+      const m = await load(tier);
+      const r = await speedTest(m.engine, tier);
+      results.tiers[tier] = { model: m.info, ...r };
+      checks[i] = { label: checks[i].label, state: r.rtf < 1 ? "pass" : "fail", detail: `${r.rtf < 1 ? "keeps up" : "too slow"} (RTF ${r.rtf})` };
+      draw();
+      if (tier === "lite") lite = m;
+      else await m.model.backend.release();
+    }
+    if (BATTERY_MIN) {
+      const b = checks.length - 1;
+      checks[b].state = "run";
+      draw();
+      lite ??= await load("lite");
+      results.battery = await batteryTest(lite.engine, BATTERY_MIN);
+      const pct = results.battery.batteryPct;
+      checks[b] = { label: checks[b].label, state: "info", detail: pct ? `${pct.per10min}% per 10 min` : "battery % not entered" };
+    }
+    for (const tier of TIERS) {
+      const r = results.tiers[tier];
+      verdict(`${tier}: words light up fast enough`, (r.highlightMs.p95 ?? Infinity) <= 600, `${r.highlightMs.p95} ms (need ≤ 600)`);
+      verdict(`${tier}: mistakes flagged fast enough`, (r.suspectedMs.p95 ?? Infinity) <= 1100, `${r.suspectedMs.p95} ms (need ≈ 1000)`);
+    }
+    status(checks.every((c) => c.state !== "fail") ? "Done. Everything passed. Tap Share results." : "Done. Some checks failed. Tap Share results.");
+    $("share").hidden = false;
+  } catch (e) {
+    status(`Something broke: ${(e as Error).message}`);
+  }
+  draw();
+  ($("start") as HTMLButtonElement).disabled = false;
 };
 
-function withBattery() {
-  const s = results.soak as Record<string, unknown> | undefined;
-  const a = Number($<HTMLInputElement>("bat0").value);
-  const b = Number($<HTMLInputElement>("bat1").value);
-  if (s && $<HTMLInputElement>("bat0").value && $<HTMLInputElement>("bat1").value) {
-    s.batteryPct = { start: a, end: b, drain: a - b, per10min: +(((a - b) * 10) / (s.minutes as number)).toFixed(1) };
-  }
-  return results;
-}
-
-function show() {
-  const r = withBattery();
-  $("json").textContent = JSON.stringify(r, null, 1);
-  const c = r.clips as Record<string, any> | undefined;
-  const s = r.soak as Record<string, any> | undefined;
-  const row = (k: string, v: unknown) => `<tr><th>${k}</th><td>${v ?? "—"}</td></tr>`;
-  $("table").innerHTML = [
-    row("RTF (clips)", c?.rtf), row("push compute p95 ms", c?.pushComputeMs.p95), row("word highlight p95 ms", c?.highlightMs.p95),
-    row("suspected p95 ms", c?.suspectedMs.p95), row("peak memory MB", c?.peakMemoryMB),
-    row("RTF (real-time run)", s?.rtf), row("battery % per 10 min", s?.batteryPct?.per10min), row("highlight p95 ms (real-time run)", s?.highlightMs.p95),
-  ].join("");
-}
-
-$("bat0").oninput = $("bat1").oninput = show;
-$("copy").onclick = async () => {
-  const body = JSON.stringify(withBattery());
-  await navigator.clipboard.writeText(body).catch(() => ($("json").textContent = body));
-  status("Copied.");
+$("share").onclick = async () => {
+  const text = JSON.stringify(results);
+  try {
+    if (navigator.share) return await navigator.share({ title: "Tilawa phone test", text });
+  } catch {}
+  await navigator.clipboard.writeText(text).catch(() => {});
+  status("Copied to clipboard.");
 };

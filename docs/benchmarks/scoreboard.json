@@ -26391,5 +26391,96 @@
     }
    ]
   }
+ ],
+ "candidate": "spliced-clean-int8",
+ "gates": [
+  {
+   "id": "e2e.leadin.recall",
+   "label": "Free recitation (after 1–2 recited ayahs): mistakes caught",
+   "area": "Product"
+  },
+  {
+   "id": "e2e.leadin.precision",
+   "label": "Free recitation (after 1–2 recited ayahs): warnings correct",
+   "area": "Product"
+  },
+  {
+   "id": "checker.oracleLock.recall",
+   "label": "Memorization session: mistakes caught",
+   "area": "Product"
+  },
+  {
+   "id": "checker.oracleLock.precision",
+   "label": "Memorization session: warnings correct",
+   "area": "Product"
+  },
+  {
+   "id": "e2e.cleanPer5",
+   "label": "False warnings per 5 min (short clips)",
+   "area": "Product"
+  },
+  {
+   "id": "e2e.stitched.falseWords",
+   "label": "False warnings per 5 min (stitched sessions)",
+   "area": "Product"
+  },
+  {
+   "id": "e2e.repeatFp",
+   "label": "False warnings on repeats",
+   "area": "Product"
+  },
+  {
+   "id": "e2e.leadin.leadWarnings",
+   "label": "False warnings per 5 min (lead-in recitation)",
+   "area": "Product"
+  },
+  {
+   "id": "listener.goldPer",
+   "label": "Listener gold PER",
+   "area": "Listener"
+  },
+  {
+   "id": "tracker.clean.within5s",
+   "label": "Tracker: correct ayah within 5 s",
+   "area": "Tracker"
+  },
+  {
+   "id": "tracker.clean.falseJumps",
+   "label": "Tracker: false jumps",
+   "area": "Tracker"
+  },
+  {
+   "id": "e2e.perfRtf",
+   "label": "Real-time factor",
+   "area": "Product",
+   "flipOnly": true
+  }
+ ],
+ "blocked": [
+  {
+   "id": "e2e.pron.short_vowel",
+   "label": "Pronunciation: short vowels",
+   "area": "Listener"
+  },
+  {
+   "id": "e2e.pron.phase2",
+   "label": "Pronunciation: confusable pairs, shadda",
+   "area": "Listener"
+  },
+  {
+   "id": "e2e.latency",
+   "label": "Word highlight / warning latency on device",
+   "area": "Product"
+  },
+  {
+   "id": "checker.selfCorrection",
+   "label": "Self-correction and long-session false warnings",
+   "area": "Checker"
+  },
+  {
+   "id": "tracker.scripted",
+   "label": "Scripted-error recordings",
+   "area": "Tracker"
+  }
  ]
 }
