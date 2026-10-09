@@ -15,7 +15,8 @@
     "test": "vitest run",
     "bench:help": "tsx src/bench/help-cli.ts",
     "bench:gold": "tsx src/bench/gold-cli.ts",
-    "register": "tsx src/bench/register-cli.ts"
+    "register": "tsx src/bench/register-cli.ts",
+    "decode": "tsx src/bench/decode-cli.ts"
   },
   "dependencies": {
     "@tilawa/core": "workspace:*"

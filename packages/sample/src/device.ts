@@ -107,9 +107,8 @@ async function speedTest(engine: Engine, tier: TierName) {
   return { pushMs: PUSH_MS, audioS: +(audio / 1000).toFixed(1), rtf: +(compute / audio).toFixed(3), pushComputeMs: stat(all.pushes), highlightMs: stat(all.highlight), suspectedMs: stat(all.suspected), peakMemoryMB: round(peak) };
 }
 
+/** Always asks: some browsers report a fake level (Chrome on Android gave 100% at 41%). */
 async function askBattery(when: string): Promise<number | null> {
-  const b = await battery();
-  if (b) return b.level;
   const typed = prompt(`What's your battery % ${when}? (Look at the top of the screen.)`);
   return typed && !isNaN(Number(typed)) ? Number(typed) : null;
 }
