@@ -38,7 +38,9 @@ for (const f of wavs) {
   await measureLatency(s, wav.samples, wav.sampleRate, Number(values.push));
   const fbankFrames = 1 + Math.floor((wav.samples.length - 400) / 160);
   const nFrames = Math.floor((Math.floor((fbankFrames - 7) / 2) + 1) / 2);
-  writeFileSync(dst, JSON.stringify({ inventory: reference.inventoryId, frameMs: model.manifest.frameMs, nFrames, phonemes: s.evidence().flatMap((e) => e.phonemes) }));
+  const rows = s.evidence().flatMap((e) => (e.posteriors ? [e.posteriors] : []));
+  const posteriors = rows.length ? { k: rows[0].k, ids: rows.flatMap((r) => Array.from(r.ids)), probs: rows.flatMap((r) => Array.from(r.probs)) } : undefined;
+  writeFileSync(dst, JSON.stringify({ inventory: reference.inventoryId, frameMs: model.manifest.frameMs, nFrames, phonemes: s.evidence().flatMap((e) => e.phonemes), ...(posteriors && { posteriors }) }));
   if (++done % 25 === 0) console.log(`${done}/${wavs.length}`);
 }
 console.log(`${wavs.length} wavs -> ${out}`);

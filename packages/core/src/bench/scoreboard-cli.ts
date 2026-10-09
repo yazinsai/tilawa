@@ -14,7 +14,7 @@ import type { AcceptanceClip, ClipScore } from "./acceptance.js";
 import { benchRecording, summarise } from "./index.js";
 import type { QudRecording } from "./index.js";
 import { perfGate } from "./perf.js";
-import { inClip, withLeadIn } from "./leadin.js";
+import { inClip, withContext } from "./leadin.js";
 import type { ClipEvidence } from "./jumps.js";
 import { BLOCKED, DEFAULT_CANDIDATE, GATES, goldPerMetrics, oracleClip, renderScoreboard, scored, upsertRow } from "./scoreboard.js";
 import type { Board, Metric, OracleLabel, ScoreRow } from "./scoreboard.js";
@@ -31,9 +31,9 @@ const { values } = parseArgs({ options: {
   note: { type: "string" },
   /** Comma-separated engine modules changed: listener,tracker,checker. */
   modules: { type: "string" },
-  /** Lead-in manifest (`tools/leadin_build.py`): 1–2 correct ayahs stitched before each help clip. */
-  leadin: { type: "string", default: "../../docs/benchmarks/leadin-v1-manifest.json" },
-  /** This listener's evidence of the tlog lead-ins, `<shard>_<row>.evidence.json`; defaults to the teacher's. */
+  /** Lead-in manifest (`tools/leadin_build.py`): 1–2 correct ayahs stitched before each help clip, and 1–2 after it. */
+  leadin: { type: "string", default: "../../docs/benchmarks/leadin-v2-manifest.json" },
+  /** This listener's evidence of the tlog lead-ins and lead-outs, `<shard>_<row>.evidence.json`; defaults to the teacher's. */
   "leadin-evidence": { type: "string" },
   /** `pnpm bench:help` report (packages/sdk) for this listener: end-to-end latency on the shipped runtime. */
   latency: { type: "string" },
@@ -57,7 +57,7 @@ function save() {
     "- **All metrics** lists every diagnostic for the candidate.", "",
     "**Add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard --note '<what changed and why>' [--modules listener,tracker,checker]` (teacher). For a student, decode the help eval clips into a directory of `<clip>.evidence.json` and add `--listener <run-name> --evidence <dir>`. A run replaces the row with the same commit and listener, else appends. Commit `scoreboard.json` and `scoreboard.md` with the change. `pnpm scoreboard --render --candidate <listener>` switches the candidate without scoring.", "",
     "**Dashboard.** `uv run tools/scoreboard_serve.py`, then http://127.0.0.1:8765/scoreboard.html.", "",
-    "**Sources.** Listener PER is gold PER (`tools/gold_set.py score`), barred by `listener-target-v1.json`. Help clips: 388 eval clips, 29 held-out speakers. Free memorization is gated `with lead-in` (`--leadin`, `tools/leadin_build.py`): 1–2 correctly recited preceding ayahs are stitched before each clip at the evidence level (same speaker's clean clip, else another help speaker's, else held-out tlog, else tlog train), errors and false positives are scored inside the original clip, and warnings on the lead-in are counted apart. For a student add `--leadin-evidence <dir>` with its decode of `.scratch/leadin/audio` (`pnpm --filter @tilawa/sdk decode`). Without a lead-in the free numbers are info; each arm is also split into `unambiguous` and `mutashabihat` (planted errors that form another ayah, `forms_other_ayah`). `Declared passage` is the memorization-session arm (`CheckerOptions.passage`); `oracle evidence` replaces the decode with one synthesised from the label, so its losses are the checker's own. E0 attributes each missed mistake to listener, tracker or checker.", "",
+    "**Sources.** Listener PER is gold PER (`tools/gold_set.py score`), barred by `listener-target-v1.json`. Help clips: 388 eval clips, 29 held-out speakers. Free memorization is gated `with lead-in` (`--leadin`, `tools/leadin_build.py`): 1–2 correctly recited preceding ayahs are stitched before each clip and 1–2 following ayahs after it (lead-out) at the evidence level (same speaker's clean clip, else another help speaker's, else held-out tlog, else tlog train), errors and false positives are scored inside the original clip, and warnings on the lead-in and lead-out are counted apart. For a student add `--leadin-evidence <dir>` with its decode of `.scratch/leadin/audio` (with posteriors) (`pnpm --filter @tilawa/sdk decode`). Without a lead-in the free numbers are info; each arm is also split into `unambiguous` and `mutashabihat` (planted errors that form another ayah, `forms_other_ayah`). `Declared passage` is the memorization-session arm (`CheckerOptions.passage`); `oracle evidence` replaces the decode with one synthesised from the label, so its losses are the checker's own. E0 attributes each missed mistake to listener, tracker or checker.", "",
     renderScoreboard(board.rows, board.candidate),
   ].join("\n"));
 }
@@ -116,8 +116,9 @@ if (haveEvidence) {
     if (rows.length % 100 === 0) console.log(`help ${rows.length}/${usable.length}`);
   }
 }
-// ---- Lead-in: the same clips with 1–2 correctly recited preceding ayahs in front; errors scored inside the clip only.
-interface LeadManifest { version: string; gapMs: number; counts: Record<string, number>; clips: { clip: string; lead: { kind: string; id: string; ayahs: string[] } | null; reason?: string }[] }
+// ---- Lead-in/out: the same clips with 1–2 correctly recited ayahs in front and after; errors scored inside the clip only.
+type LeadSource = { kind: string; id: string; ayahs: string[] };
+interface LeadManifest { version: string; gapMs: number; counts: Record<string, number>; followCounts?: Record<string, number>; clips: { clip: string; lead: LeadSource | null; reason?: string; follow?: LeadSource | null }[] }
 const leadManifest: LeadManifest | null = existsSync(resolve(values.leadin!)) ? JSON.parse(readFileSync(resolve(values.leadin!), "utf8")) : null;
 const leadDir = values["leadin-evidence"] ? resolve(values["leadin-evidence"]) : teacher ? resolve(process.env.LEADIN_DIR ?? "../../.scratch/leadin", "evidence/teacher") : null;
 const byId = new Map(rows.map((r) => [r.l.id, r]));
@@ -125,21 +126,27 @@ const leadPath = (lead: { kind: string; id: string }) => lead.kind.startsWith("h
   ? evidencePath(labels.find((l) => l.id === lead.id)!)!
   : leadDir && resolve(leadDir, `${lead.id.replace(":", "_")}.evidence.json`);
 const leadEntries = leadManifest?.clips.filter((c) => byId.has(c.clip)) ?? [];
-const haveLeads = rows.length > 0 && leadEntries.length === rows.length && leadEntries.every((c) => !c.lead || (leadPath(c.lead) && existsSync(leadPath(c.lead)!)));
+const onDisk = (s: LeadSource | null | undefined) => !s || (!!leadPath(s) && existsSync(leadPath(s)!));
+const haveLeads = rows.length > 0 && leadEntries.length === rows.length && leadEntries.every((c) => onDisk(c.lead) && onDisk(c.follow));
 const leadRows: Row[] = [];
 const leadWarnings = { free: 0, declared: 0, seconds: 0, clips: 0 };
+const followWarnings = { free: 0, declared: 0, seconds: 0, clips: 0 };
 if (haveLeads) {
   for (const c of leadEntries) {
     const r = byId.get(c.clip)!;
-    if (!c.lead) { leadRows.push(r); continue; }
-    const evidence = JSON.parse(readFileSync(leadPath(c.lead)!, "utf8")) as ClipEvidence;
-    const { clip, leadAyahs } = withLeadIn(index, r.clip, { source: c.lead.id, ayahs: c.lead.ayahs, evidence }, leadManifest!.gapMs);
-    const free = inClip(scoreClip(index, clip, { arm: "free", phrases }), leadAyahs);
-    const declared = inClip(scoreClip(index, clip, { arm: "declared", phrases }), leadAyahs);
-    leadWarnings.free += free.leadInWarnings;
-    leadWarnings.declared += declared.leadInWarnings;
-    leadWarnings.seconds += (evidence.nFrames * evidence.frameMs) / 1000;
-    leadWarnings.clips++;
+    if (!c.lead && !c.follow) { leadRows.push(r); continue; }
+    const load = (s: LeadSource | null | undefined) => s ? { source: s.id, ayahs: s.ayahs, evidence: JSON.parse(readFileSync(leadPath(s)!, "utf8")) as ClipEvidence } : null;
+    const lead = load(c.lead), follow = load(c.follow);
+    const { clip, leadAyahs, followAyahs } = withContext(index, r.clip, { lead, follow }, leadManifest!.gapMs);
+    const free = inClip(scoreClip(index, clip, { arm: "free", phrases }), leadAyahs, followAyahs);
+    const declared = inClip(scoreClip(index, clip, { arm: "declared", phrases }), leadAyahs, followAyahs);
+    for (const [acc, l, n] of [[leadWarnings, lead, "leadInWarnings"], [followWarnings, follow, "leadOutWarnings"]] as const) {
+      if (!l) continue;
+      acc.free += free[n];
+      acc.declared += declared[n];
+      acc.seconds += (l.evidence.nFrames * l.evidence.frameMs) / 1000;
+      acc.clips++;
+    }
     leadRows.push({ ...r, clip, free: free.score, declared: declared.score, oracle: null });
     if (leadRows.length % 100 === 0) console.log(`lead-in ${leadRows.length}/${rows.length}`);
   }
@@ -192,14 +199,16 @@ const pendingHelp = (group: string, ids: [string, string][], why: string) => ids
 const NO_EVIDENCE = `no help-clip evidence from ${values.listener} on disk (needs a GPU decode of the 388 eval clips)`;
 
 const E2E = "End to end";
-const LEAD_NOTE = leadManifest && `${leadManifest.version}: ${leadEntries.filter((c) => c.lead).length}/${leadEntries.length} clips get 1–2 preceding ayahs (${Object.entries(leadManifest.counts).map(([k, n]) => `${k} ${n}`).join(", ")}), ${leadManifest.gapMs} ms silence, stitched at the evidence level; errors and false positives scored inside the original clip`;
+const LEAD_NOTE = leadManifest && `${leadManifest.version}: ${leadEntries.filter((c) => c.lead).length}/${leadEntries.length} clips get 1–2 preceding ayahs (${Object.entries(leadManifest.counts).map(([k, n]) => `${k} ${n}`).join(", ")})${leadManifest.followCounts ? `, ${leadEntries.filter((c) => c.follow).length}/${leadEntries.length} 1–2 following ayahs (${Object.entries(leadManifest.followCounts).map(([k, n]) => `${k} ${n}`).join(", ")})` : ""}, ${leadManifest.gapMs} ms silence, stitched at the evidence level; errors and false positives scored inside the original clip`;
 if (leadRows.length) {
   const free = memo(leadRows, "free");
   memoMetrics("e2e.leadin", E2E, free, `free recitation with lead-in, the tracked free metric; ${LEAD_NOTE}`, false, "Free, with lead-in: ");
   sliceMetrics("e2e.leadin", E2E, free, "Free, with lead-in: ", true);
-  add({ id: "e2e.leadin.mutashabihat.raised", group: E2E, name: "Free, with lead-in: mutashabihat raised in any state", value: ratio(free.mutashabihatRaised, free.mutashabihat.pos), unit: "%", display: frac(free.mutashabihatRaised, free.mutashabihat.pos), note: "the rest of the gap to recall is events still suspected/uncertain at clip end (free recitation has no end-of-session confirmation)" });
+  add({ id: "e2e.leadin.mutashabihat.raised", group: E2E, name: "Free, with lead-in: mutashabihat raised in any state", value: ratio(free.mutashabihatRaised, free.mutashabihat.pos), unit: "%", display: frac(free.mutashabihatRaised, free.mutashabihat.pos), note: "the rest of the gap to recall is events still suspected/uncertain when the session ends" });
   add({ id: "e2e.leadin.leadWarnings", group: E2E, name: "Free, with lead-in: false warnings in the lead-in", value: leadWarnings.seconds ? (leadWarnings.free * 300) / leadWarnings.seconds : null, bar: MEM.per5,
     display: `${(leadWarnings.seconds ? (leadWarnings.free * 300) / leadWarnings.seconds : 0).toFixed(2)} per 5 min (${leadWarnings.free} in ${(leadWarnings.seconds / 60).toFixed(1)} min, ${leadWarnings.clips} lead-ins)`, note: "confirmed events of any memorization class on the lead-in's ayahs; all false" });
+  add({ id: "e2e.leadin.followWarnings", group: E2E, name: "Free, with lead-in: false warnings in the lead-out", value: followWarnings.seconds ? (followWarnings.free * 300) / followWarnings.seconds : null, bar: MEM.per5,
+    display: `${(followWarnings.seconds ? (followWarnings.free * 300) / followWarnings.seconds : 0).toFixed(2)} per 5 min (${followWarnings.free} in ${(followWarnings.seconds / 60).toFixed(1)} min, ${followWarnings.clips} lead-outs)`, note: "confirmed events of any memorization class on the lead-out's ayahs; all false" });
 } else if (rows.length) pendingHelp(E2E, [["e2e.leadin.precision", "Free, with lead-in: Memorization precision"], ["e2e.leadin.recall", "Free, with lead-in: Memorization recall"]],
   leadManifest ? `no lead-in evidence from ${values.listener} on disk (decode .scratch/leadin/audio, pass --leadin-evidence)` : "no lead-in manifest; run tools/leadin_build.py");
 if (rows.length) {
@@ -330,6 +339,8 @@ if (rows.length) {
     sliceMetrics("checker.leadin", CHECKER, d, "Declared, with lead-in: ", true);
     add({ id: "checker.leadin.leadWarnings", group: CHECKER, name: "Declared, with lead-in: false warnings in the lead-in", value: leadWarnings.seconds ? (leadWarnings.declared * 300) / leadWarnings.seconds : null, bar: MEM.per5,
       display: `${(leadWarnings.seconds ? (leadWarnings.declared * 300) / leadWarnings.seconds : 0).toFixed(2)} per 5 min (${leadWarnings.declared} in ${(leadWarnings.seconds / 60).toFixed(1)} min)` });
+    add({ id: "checker.leadin.followWarnings", group: CHECKER, name: "Declared, with lead-in: false warnings in the lead-out", value: followWarnings.seconds ? (followWarnings.declared * 300) / followWarnings.seconds : null, bar: MEM.per5,
+      display: `${(followWarnings.seconds ? (followWarnings.declared * 300) / followWarnings.seconds : 0).toFixed(2)} per 5 min (${followWarnings.declared} in ${(followWarnings.seconds / 60).toFixed(1)} min)` });
   }
   const oc = memo(rows, "oracle");
   memoMetrics("checker.oracleAll", CHECKER, oc, `oracle lock + oracle evidence synthesised from labels (Decision 7); ${rows.length - oc.clips} clips with an unphonemizable planted word skipped`, true, "Oracle lock + evidence: ");

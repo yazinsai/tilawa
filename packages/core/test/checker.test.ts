@@ -201,11 +201,6 @@ describe("unclear evidence", () => {
     expect(events.some((e) => e.state === "uncertain")).toBe(true);
   });
 
-  it("leaves a wrong word uncertain when the session ends inside the confirm delay", () => {
-    const events = run(replaceWord(w(2, 255, 48), ALIEN), { to: w(2, 255, 50) });
-    expect(confirmed(events)).toEqual([]);
-  });
-
   it("never confirms a wrong word the session ended on", () => {
     // لعظيم said as لعزيز, the last word.
     const last = at(w(2, 255, 50));
@@ -297,7 +292,13 @@ const tlog: Fixture[] = readdirSync(tlogDir)
 
 describe("tlog fixtures", () => {
   it("emit no confirmed errors", { timeout: 60_000 }, () => {
-    for (const f of tlog) expect(confirmed(replayChecked(index, f, { phrases }, { phrases })), f.id).toEqual([]);
+    for (const f of tlog) expect(confirmed(replayChecked(index, f, { phrases }, { phrases, policy: { finaliseFree: false } })), f.id).toEqual([]);
+  });
+
+  it("confirm only one error when free recitation finalises at session end", { timeout: 60_000 }, () => {
+    const found = tlog.flatMap((f) => confirmed(replayChecked(index, f, { phrases }, { phrases })).map((e) => `${f.id} ${e.errorClass} ${key(e.location)}`));
+    // Decoder noise the posteriors back too (فالموريات heard as فمليات), a word before the clip ends.
+    expect(found).toEqual(["tlog-clean-00000-of-00411-232 wrong_word 100:2:1"]);
   });
 });
 
@@ -405,6 +406,20 @@ describe("free recitation", () => {
     }
     out.push(...checker.end(tracker.end()));
     expect(summary(confirmed(out))).toEqual(["confirmed wrong_word 26:124:5"]);
+  });
+
+  it("confirms at session end a wrong word a later word followed, when finalising free recitation", () => {
+    const edits = replaceWord(w(2, 255, 48), ALIEN);
+    const fx = syntheticFixture(index, { id: "c", from, to: w(2, 255, 50), edits, chunkSize: 8 });
+    const slow = { confirm: { after: "delay" as const, ms: 60_000 } };
+    expect(summary(confirmed(replayChecked(index, fx, { phrases }, { phrases, policy: { ...slow, finaliseFree: true } })))).toEqual(["confirmed wrong_word 2:255:48"]);
+    expect(confirmed(replayChecked(index, fx, { phrases }, { phrases, policy: { ...slow, finaliseFree: false } }))).toEqual([]);
+  });
+
+  it("never confirms the last recited word at session end", () => {
+    const fx = syntheticFixture(index, { id: "c", from, to: w(2, 255, 50), edits: replaceWord(w(2, 255, 50), ALIEN), chunkSize: 8 });
+    const events = confirmed(replayChecked(index, fx, { phrases }, { phrases, policy: { confirm: { after: "delay", ms: 60_000 }, finaliseFree: true } }));
+    expect(events.filter((e) => e.errorClass === "wrong_word" || e.errorClass === "added_word")).toEqual([]);
   });
 
   it("follows a sustained jump elsewhere without flagging it", () => {

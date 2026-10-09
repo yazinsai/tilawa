@@ -43,14 +43,15 @@ export interface Board { version: number; candidate?: string; gates?: Gate[]; bl
 
 /** The v1 release gates: every one must pass on the candidate listener. Everything else on a row is diagnostic. */
 export const GATES: Gate[] = [
-  { id: "e2e.leadin.recall", label: "Free recitation (after 1–2 recited ayahs): mistakes caught", area: "Product" },
-  { id: "e2e.leadin.precision", label: "Free recitation (after 1–2 recited ayahs): warnings correct", area: "Product" },
+  { id: "e2e.leadin.recall", label: "Free recitation (1–2 recited ayahs before and after): mistakes caught", area: "Product" },
+  { id: "e2e.leadin.precision", label: "Free recitation (1–2 recited ayahs before and after): warnings correct", area: "Product" },
   { id: "checker.oracleLock.recall", label: "Memorization session: mistakes caught", area: "Product" },
   { id: "checker.oracleLock.precision", label: "Memorization session: warnings correct", area: "Product" },
   { id: "e2e.cleanPer5", label: "False warnings per 5 min (short clips)", area: "Product" },
   { id: "e2e.stitched.falseWords", label: "False warnings per 5 min (stitched sessions)", area: "Product" },
   { id: "e2e.repeatFp", label: "False warnings on repeats", area: "Product" },
   { id: "e2e.leadin.leadWarnings", label: "False warnings per 5 min (lead-in recitation)", area: "Product" },
+  { id: "e2e.leadin.followWarnings", label: "False warnings per 5 min (lead-out recitation)", area: "Product" },
   { id: "listener.goldPer", label: "Listener gold PER", area: "Listener" },
   { id: "tracker.clean.within5s", label: "Tracker: correct ayah within 5 s", area: "Tracker" },
   { id: "tracker.clean.falseJumps", label: "Tracker: false jumps", area: "Tracker" },

@@ -19,6 +19,11 @@ export interface CheckerPolicy {
    * changes. `nats` overrides the margin the decode must win by (`SUPPORT`).
    */
   localWindow?: boolean | { nats: number };
+  /**
+   * Free recitation, while latched: at session end, confirm a suspected wrong or added word once a later word was
+   * recited right, as a declared session does. Default true.
+   */
+  finaliseFree?: boolean;
 }
 
 export interface CheckerOptions {
@@ -602,10 +607,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         ? final || ayahOf[reached] >= ayahOf[issue.last] + 2
         : head !== issue.word &&
           onset(steps, issue) &&
-          (confirm.after === "next-word" || nowMs - o.sinceMs >= confirm.ms || (final && declared && !latched && [...right].some((wi) => wi > issue.last)));
+          (confirm.after === "next-word" || nowMs - o.sinceMs >= confirm.ms || (final && declared && (!latched || (policy.finaliseFree ?? true)) && [...right].some((wi) => wi > issue.last)));
       if (due) decide(o, out);
-      // The session ended first. A declared passage confirms once a later word was recited right; free recitation can't
-      // tell a wrong word from the tracker's next guess, so it ends uncertain.
+      // The session ended first. A declared passage (or a latched free one, with `finaliseFree`) confirms once a later
+      // word was recited right; otherwise it ends uncertain.
       else if (final) decide(o, out, "uncertain");
     }
     if (latched && passage) {

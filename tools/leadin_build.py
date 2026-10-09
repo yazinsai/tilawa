@@ -2,12 +2,13 @@
 # requires-python = ">=3.12"
 # dependencies = ["pyarrow", "numpy", "huggingface_hub"]
 # ///
-"""Pick a lead-in for each help eval clip: 1–2 correctly recited ayahs just before it, so its errors fall mid-recitation.
+"""Pick a lead-in and a lead-out for each help eval clip: 1–2 correctly recited ayahs just before it and just after it,
+so its errors fall mid-recitation and later correct words can confirm them inside the session.
 
     uv run --python cpython-3.12-macos-aarch64-none tools/leadin_build.py            # manifest + teacher evidence
     uv run --python cpython-3.12-macos-aarch64-none tools/leadin_build.py audio      # tlog lead-in audio, for students
 
-Writes `docs/benchmarks/leadin-v1-manifest.json`, teacher evidence of tlog lead-ins under `.scratch/leadin/evidence/teacher/`
+Writes `docs/benchmarks/leadin-v2-manifest.json`, teacher evidence of tlog lead-ins and lead-outs under `.scratch/leadin/evidence/teacher/`
 and their 16 kHz audio under `.scratch/leadin/audio/` (ranged reads from the tarteel-ai/tlog parquet shards). Help
 lead-ins reuse the help clip's own evidence. Scored by `pnpm scoreboard` (packages/core) with `--leadin`.
 """
@@ -25,8 +26,8 @@ INDEX = ROOT / "packages/core/assets/ref-v2.json"
 HELP = Path(os.environ.get("HELP_DIR", ROOT / ".scratch/help"))
 TLOG = Path(os.environ.get("TLOG_DIR", ROOT / ".scratch/tlog"))
 OUT = Path(os.environ.get("LEADIN_DIR", ROOT / ".scratch/leadin"))
-MANIFEST = ROOT / "docs/benchmarks/leadin-v1-manifest.json"
-VERSION = "leadin-v1"
+MANIFEST = ROOT / "docs/benchmarks/leadin-v2-manifest.json"
+VERSION = "leadin-v2"
 GAP_MS = 600
 MAX_LEAD_AYAHS = 2
 HF_REPO = "datasets/tarteel-ai/tlog/data"
@@ -42,13 +43,17 @@ class Source:
     speaker: str
 
 
-def choose_lead(keys: list[str], ayahs: list[str], speaker: str, pool: list[Source]) -> Source | None:
-    """The best clean recitation ending on the ayah before `ayahs[0]`, in the same surah, at most two ayahs long."""
-    at = keys.index(ayahs[0])
+def choose_lead(keys: list[str], ayahs: list[str], speaker: str, pool: list[Source], after: bool = False) -> Source | None:
+    """The best clean recitation, at most two ayahs long in the same surah, ending on the ayah before `ayahs[0]`
+    (or, `after`, starting on the ayah after `ayahs[-1]`)."""
     surah = ayahs[0].split(":")[0]
-    if at == 0 or keys[at - 1].split(":")[0] != surah:
-        return None
-    wanted = [keys[at - n:at] for n in range(MAX_LEAD_AYAHS, 0, -1) if at - n >= 0 and all(k.split(":")[0] == surah for k in keys[at - n:at])]
+    same = lambda ks: len(ks) > 0 and all(k.split(":")[0] == surah for k in ks)
+    if after:
+        at = keys.index(ayahs[-1]) + 1
+        wanted = [keys[at:at + n] for n in range(MAX_LEAD_AYAHS, 0, -1) if at + n <= len(keys) and same(keys[at:at + n])]
+    else:
+        at = keys.index(ayahs[0])
+        wanted = [keys[at - n:at] for n in range(MAX_LEAD_AYAHS, 0, -1) if at - n >= 0 and same(keys[at - n:at])]
     best = None
     for s in pool:
         if s.ayahs not in wanted:
@@ -83,9 +88,10 @@ def pool() -> list[Source]:
 def build() -> None:
     keys = [f"{a['s']}:{a['a']}" for a in json.loads(INDEX.read_text())["ayahs"]]
     sources = pool()
-    by_end = defaultdict(list)
+    by_end, by_start = defaultdict(list), defaultdict(list)
     for s in sources:
         by_end[s.ayahs[-1]].append(s)
+        by_start[s.ayahs[0]].append(s)
     clips = []
     for l in map(json.loads, (HELP / "labels.jsonl").read_text().splitlines()):
         if l["split"] != "eval" or not l["scored"]:
@@ -94,20 +100,33 @@ def build() -> None:
         lead = choose_lead(keys, l["ayahs"], l["speaker"], by_end[keys[at - 1]] if at else [])
         lead = lead if lead is None or lead.id != l["id"] else None
         reason = None if lead else "first ayah of the surah" if l["ayahs"][0].endswith(":1") else "no clean recitation of the preceding ayah"
-        clips.append({"clip": l["id"], "ayahs": l["ayahs"], "lead": asdict(lead) if lead else None, **({"reason": reason} if reason else {})})
-    counts = defaultdict(int)
+        end = keys.index(l["ayahs"][-1]) + 1
+        follow = choose_lead(keys, l["ayahs"], l["speaker"], by_start[keys[end]] if end < len(keys) else [], after=True)
+        follow = follow if follow is None or follow.id != l["id"] else None
+        last = end >= len(keys) or keys[end].split(":")[0] != l["ayahs"][-1].split(":")[0]
+        follow_reason = None if follow else "last ayah of the surah" if last else "no clean recitation of the following ayah"
+        clips.append({"clip": l["id"], "ayahs": l["ayahs"], "lead": asdict(lead) if lead else None, **({"reason": reason} if reason else {}),
+                      "follow": asdict(follow) if follow else None, **({"followReason": follow_reason} if follow_reason else {})})
+    counts, follow_counts = defaultdict(int), defaultdict(int)
     for c in clips:
         counts[c["lead"]["kind"] if c["lead"] else c["reason"]] += 1
+        follow_counts[c["follow"]["kind"] if c["follow"] else c["followReason"]] += 1
     manifest = {
         "version": VERSION, "gapMs": GAP_MS, "gapFill": "silence",
         "sources": {"help-same-speaker": "the speaker's own clean help eval clip", "help-other-speaker": "another help eval speaker's clean clip (teacher decode)",
                     "tlog-heldout": "tlog-v2 clean-match test/val (held out from student training)", "tlog-train": "tlog-v2 clean-match train"},
         "counts": dict(sorted(counts.items())),
+        "followCounts": dict(sorted(follow_counts.items())),
         "clips": clips,
     }
     MANIFEST.write_text(json.dumps(manifest, ensure_ascii=False, indent=1) + "\n")
-    print(f"{len(clips)} clips -> {MANIFEST}: {manifest['counts']}")
-    export_teacher([c["lead"]["id"] for c in clips if c["lead"] and c["lead"]["kind"].startswith("tlog")])
+    print(f"{len(clips)} clips -> {MANIFEST}: lead-in {manifest['counts']}, lead-out {manifest['followCounts']}")
+    export_teacher(tlog_ids(clips))
+
+
+def tlog_ids(clips: list[dict]) -> list[str]:
+    """The tlog recordings a lead-in or lead-out uses."""
+    return sorted({s["id"] for c in clips for s in (c["lead"], c.get("follow")) if s and s["kind"].startswith("tlog")})
 
 
 def export_teacher(ids: list[str]) -> None:
@@ -134,6 +153,8 @@ def export_teacher(ids: list[str]) -> None:
                 "inventory": INVENTORY_ID, "frameMs": 40, "nFrames": n, "phonemes": decode(ids_, probs, tokens),
                 "posteriors": {"k": TOPK, "ids": ids_.flatten().tolist(), "probs": [round(float(p), 4) for p in probs.flatten()]},
             }
+            if (out / f"{shard}_{r['row']}.evidence.json").exists():
+                continue
             (out / f"{shard}_{r['row']}.evidence.json").write_text(json.dumps(evidence, separators=(",", ":")))
     print(f"{sum(map(len, wanted.values()))} tlog lead-ins -> {out}")
 
@@ -145,10 +166,9 @@ def fetch_audio() -> None:
 
     manifest = json.loads(MANIFEST.read_text())
     wanted = defaultdict(set)
-    for c in manifest["clips"]:
-        if c["lead"] and c["lead"]["kind"].startswith("tlog"):
-            shard, row = c["lead"]["id"].split(":")
-            wanted[shard].add(int(row))
+    for i in tlog_ids(manifest["clips"]):
+        shard, row = i.split(":")
+        wanted[shard].add(int(row))
     out = OUT / "audio"
     out.mkdir(parents=True, exist_ok=True)
     fs = HfFileSystem()
