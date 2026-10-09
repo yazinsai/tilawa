@@ -6,7 +6,8 @@ import { createTracker } from "../tracker.js";
 import { chunk } from "./index.js";
 import type { QudRecording } from "./index.js";
 
-export type ClipEvidence = Pick<QudRecording, "inventory" | "frameMs" | "nFrames" | "phonemes" | "posteriors">;
+/** Posteriors are optional: a decode without them stitches to phonemes only. */
+export type ClipEvidence = Pick<QudRecording, "inventory" | "frameMs" | "nFrames" | "phonemes"> & { posteriors?: QudRecording["posteriors"] };
 
 export interface SessionPart {
   /** Source clip ID. */
@@ -89,7 +90,8 @@ const near = (index: ReferenceIndex, a: string, b: string) => Math.abs(ordinal(i
 /** Joins clips into one recording, shifting phonemes and posteriors, with each part's gap in front of it. */
 export function stitchSession(index: ReferenceIndex, parts: SessionPart[]): StitchedSession {
   const { inventory, frameMs } = parts[0].evidence;
-  const k = parts[0].evidence.posteriors.k;
+  const withPosteriors = parts.every((p) => p.evidence.posteriors);
+  const k = withPosteriors ? parts[0].evidence.posteriors!.k : 0;
   const ids: number[] = [];
   const probs: number[] = [];
   const phonemes: ClipEvidence["phonemes"] = [];
@@ -103,19 +105,19 @@ export function stitchSession(index: ReferenceIndex, parts: SessionPart[]): Stit
   };
   for (const [i, p] of parts.entries()) {
     const e = p.evidence;
-    if (e.inventory !== inventory || e.frameMs !== frameMs || e.posteriors.k !== k) throw new Error(`Incompatible evidence: ${p.source}`);
+    if (e.inventory !== inventory || e.frameMs !== frameMs || (withPosteriors && e.posteriors!.k !== k)) throw new Error(`Incompatible evidence: ${p.source}`);
     const gap = Math.round(p.gapBeforeMs / frameMs);
     const lead = e.phonemes[0]?.start ?? 0;
     if (p.gapFill === "room" && lead >= 3) {
       for (let f = 0; f < gap; f++) {
         const at = (f % lead) * k;
-        ids.push(...e.posteriors.ids.slice(at, at + k));
-        probs.push(...e.posteriors.probs.slice(at, at + k));
+        ids.push(...(e.posteriors?.ids.slice(at, at + k) ?? []));
+        probs.push(...(e.posteriors?.probs.slice(at, at + k) ?? []));
       }
     } else silence(gap);
     const start = frames + gap;
-    ids.push(...e.posteriors.ids.slice(0, e.nFrames * k));
-    probs.push(...e.posteriors.probs.slice(0, e.nFrames * k));
+    ids.push(...(e.posteriors?.ids.slice(0, e.nFrames * k) ?? []));
+    probs.push(...(e.posteriors?.probs.slice(0, e.nFrames * k) ?? []));
     for (const ph of e.phonemes) phonemes.push({ ...ph, start: ph.start + start, end: ph.end + start });
     frames = start + e.nFrames;
     const prev = segments.at(-1);
@@ -128,7 +130,7 @@ export function stitchSession(index: ReferenceIndex, parts: SessionPart[]): Stit
       planted: i > 0 && !near(index, prev!.ayahs.at(-1)!, p.ayahs[0]),
     });
   }
-  return { evidence: { inventory, frameMs, nFrames: frames, phonemes, posteriors: { k, ids, probs } }, segments };
+  return { evidence: { inventory, frameMs, nFrames: frames, phonemes, ...(withPosteriors ? { posteriors: { k, ids, probs } } : {}) }, segments };
 }
 
 export function scoreSession(index: ReferenceIndex, s: StitchedSession, o: { phrases: PhraseAsset; chunkS?: number; posteriors?: boolean; checker?: boolean }): SessionScore {
