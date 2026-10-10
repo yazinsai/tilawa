@@ -3,7 +3,7 @@
  * CPU only: replays evidence already on disk through the tracker and checker, and reads the listener reports.
  */
 import { execSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { loadReferenceIndex } from "../reference.js";
@@ -15,7 +15,9 @@ import { benchRecording, summarise } from "./index.js";
 import type { QudRecording } from "./index.js";
 import { perfGate } from "./perf.js";
 import { inClip, withContext } from "./leadin.js";
-import type { ClipEvidence } from "./jumps.js";
+import type { ClipEvidence, Segment } from "./jumps.js";
+import { CLIP_DUMP_VERSION, clipWords, dumpArm } from "./clip-dump.js";
+import type { ClipDump, DumpClip } from "./clip-dump.js";
 import { BLOCKED, DEFAULT_CANDIDATE, GATES, goldPerMetrics, oracleClip, renderScoreboard, scored, upsertRow } from "./scoreboard.js";
 import type { Board, Metric, OracleLabel, ScoreRow } from "./scoreboard.js";
 
@@ -41,6 +43,10 @@ const { values } = parseArgs({ options: {
   candidate: { type: "string" },
   /** Rewrite scoreboard.md (and the candidate) from scoreboard.json without scoring a run. */
   render: { type: "boolean", default: false },
+  /** Where per-clip outcomes go for the dashboard's mistake review (`<sha>-<listener>.json` and `index.json`). */
+  "clip-dump": { type: "string", default: process.env.CLIP_DUMP_DIR ?? "../../.scratch/scoreboard/clips" },
+  /** Write the clip dump for `--sha` without adding or replacing a scoreboard row. */
+  "dump-only": { type: "boolean", default: false },
 } });
 const jsonPath = `${resolve(values.out!)}.json`;
 const board: Board = existsSync(jsonPath) ? JSON.parse(readFileSync(jsonPath, "utf8")) : { version: 1, rows: [] };
@@ -56,7 +62,7 @@ function save() {
     "- **Experiments** judges every run against its parent: the previous run of the same listener, or the candidate for a listener's first run. The verdict counts only gate moves larger than two clips; smaller ones are marked `~` and count as noise, since the eval set is 64 planted mistakes and 225 clean clips.",
     "- **All metrics** lists every diagnostic for the candidate.", "",
     "**Add a row.** From `packages/core`: `HELP_DIR=<repo>/.scratch/help QUD_DIR=<repo>/.scratch/bench/qud pnpm scoreboard --note '<what changed and why>' [--modules listener,tracker,checker]` (teacher). For a student, decode the help eval clips into a directory of `<clip>.evidence.json` and add `--listener <run-name> --evidence <dir>`. A run replaces the row with the same commit and listener, else appends. Commit `scoreboard.json` and `scoreboard.md` with the change. `pnpm scoreboard --render --candidate <listener>` switches the candidate without scoring.", "",
-    "**Dashboard.** `uv run tools/scoreboard_serve.py`, then http://127.0.0.1:8765/scoreboard.html.", "",
+    "**Dashboard.** `uv run tools/scoreboard_serve.py`, then http://127.0.0.1:8765/scoreboard.html. **Mistake review** (on the dashboard; click a failing gate): every miss, false warning and late lock per clip, with audio and the decode per word. Each run writes its per-clip outcomes to `.scratch/scoreboard/clips/` (private, gitignored); add `--dump-only --sha <commit>` to write the dump without touching the row.", "",
     "**Sources.** Listener PER is gold PER (`tools/gold_set.py score`), barred by `listener-target-v1.json`. Help clips: 388 eval clips, 29 held-out speakers. Free memorization is gated `with lead-in` (`--leadin`, `tools/leadin_build.py`): 1–2 correctly recited preceding ayahs are stitched before each clip and 1–2 following ayahs after it (lead-out) at the evidence level (same speaker's clean clip, else another help speaker's, else held-out tlog, else tlog train), errors and false positives are scored inside the original clip, and warnings on the lead-in and lead-out are counted apart. For a student add `--leadin-evidence <dir>` with its decode of `.scratch/leadin/audio` (with posteriors) (`pnpm --filter @tilawa/sdk decode`). Without a lead-in the free numbers are info; each arm is also split into `unambiguous` and `mutashabihat` (planted errors that form another ayah, `forms_other_ayah`). `Declared passage` is the memorization-session arm (`CheckerOptions.passage`); `oracle evidence` replaces the decode with one synthesised from the label, so its losses are the checker's own. E0 attributes each missed mistake to listener, tracker or checker.", "",
     renderScoreboard(board.rows, board.candidate),
   ].join("\n"));
@@ -129,6 +135,9 @@ const leadEntries = leadManifest?.clips.filter((c) => byId.has(c.clip)) ?? [];
 const onDisk = (s: LeadSource | null | undefined) => !s || (!!leadPath(s) && existsSync(leadPath(s)!));
 const haveLeads = rows.length > 0 && leadEntries.length === rows.length && leadEntries.every((c) => onDisk(c.lead) && onDisk(c.follow));
 const leadRows: Row[] = [];
+interface LeadRaw { free: ClipScore; declared: ClipScore; segments: Segment[]; segmentAudio: string[]; leadAyahs: string[]; followAyahs: string[] }
+const leadRaw = new Map<string, LeadRaw>();
+const audioOf = (s: { kind: string; id: string }) => s.kind.startsWith("help") ? `help/${basename(labels.find((l) => l.id === s.id)!.wav)}` : `leadin/${s.id.replace(":", "_")}.wav`;
 const leadWarnings = { free: 0, declared: 0, seconds: 0, clips: 0 };
 const followWarnings = { free: 0, declared: 0, seconds: 0, clips: 0 };
 if (haveLeads) {
@@ -137,9 +146,14 @@ if (haveLeads) {
     if (!c.lead && !c.follow) { leadRows.push(r); continue; }
     const load = (s: LeadSource | null | undefined) => s ? { source: s.id, ayahs: s.ayahs, evidence: JSON.parse(readFileSync(leadPath(s)!, "utf8")) as ClipEvidence } : null;
     const lead = load(c.lead), follow = load(c.follow);
-    const { clip, leadAyahs, followAyahs } = withContext(index, r.clip, { lead, follow }, leadManifest!.gapMs);
-    const free = inClip(scoreClip(index, clip, { arm: "free", phrases }), leadAyahs, followAyahs);
-    const declared = inClip(scoreClip(index, clip, { arm: "declared", phrases }), leadAyahs, followAyahs);
+    const { clip, leadAyahs, followAyahs, segments } = withContext(index, r.clip, { lead, follow }, leadManifest!.gapMs);
+    const rawFree = scoreClip(index, clip, { arm: "free", phrases }), rawDeclared = scoreClip(index, clip, { arm: "declared", phrases });
+    const free = inClip(rawFree, leadAyahs, followAyahs);
+    const declared = inClip(rawDeclared, leadAyahs, followAyahs);
+    leadRaw.set(r.l.id, {
+      free: rawFree, declared: rawDeclared, segments, leadAyahs, followAyahs,
+      segmentAudio: [...(c.lead ? [audioOf(c.lead)] : []), `help/${basename(r.l.wav)}`, ...(c.follow ? [audioOf(c.follow)] : [])],
+    });
     for (const [acc, l, n] of [[leadWarnings, lead, "leadInWarnings"], [followWarnings, follow, "leadOutWarnings"]] as const) {
       if (!l) continue;
       acc.free += free[n];
@@ -360,6 +374,43 @@ const now = new Date().toISOString();
 const row: ScoreRow = { sha, date: now.slice(0, 10), recordedAt: now, listener: values.listener!, note: values.note, metrics };
 // Keep existing attribution when regenerating a run without a new module tag.
 row.modules = modules as ScoreRow["modules"] ?? board.rows.find((r) => r.sha === row.sha && r.listener === row.listener)?.modules;
-board.rows = upsertRow(board.rows, row);
-save();
-console.log(readFileSync(`${resolve(values.out!)}.md`, "utf8").split("\n## All metrics")[0]);
+if (!values["dump-only"]) {
+  board.rows = upsertRow(board.rows, row);
+  save();
+}
+if (rows.length) writeClipDump();
+
+/** Per-clip outcomes for the dashboard's mistake review; private (speaker IDs, audio paths), so under .scratch. */
+function writeClipDump() {
+  const dir = resolve(values["clip-dump"]!);
+  mkdirSync(dir, { recursive: true });
+  const leadById = new Map(leadRows.map((r) => [r.l.id, r]));
+  const clips: DumpClip[] = rows.map((r) => {
+    const audio = `help/${basename(r.l.wav)}`;
+    const words = clipWords(index, asset, r.clip);
+    const arms: DumpClip["arms"] = {
+      free: dumpArm(index, r.clip, words, audio, { score: r.free, declared: r.declared }),
+      declared: dumpArm(index, r.clip, words, audio, { score: r.declared }),
+    };
+    if (r.oracle) arms.oracle = dumpArm(index, r.clip, words, audio, { score: r.oracle });
+    const lr = leadById.get(r.l.id), raw = leadRaw.get(r.l.id);
+    if (lr) {
+      const ctx = raw ? { segments: raw.segments, segmentAudio: raw.segmentAudio, leadAyahs: raw.leadAyahs, followAyahs: raw.followAyahs } : {};
+      arms.leadFree = dumpArm(index, r.clip, words, audio, { score: lr.free, declared: lr.declared, raw: raw?.free, ...ctx });
+      arms.leadDeclared = dumpArm(index, r.clip, words, audio, { score: lr.declared, raw: raw?.declared, ...ctx });
+    }
+    const l = r.l as Label & { device?: string; level?: string };
+    return {
+      id: l.id, speaker: l.speaker, device: l.device, level: l.level, kind: l.kind, ayahs: l.ayahs, audio, durationS: r.audioS,
+      labels: r.clip.events, repeats: r.clip.nonErrors.map((n) => `${n.surah}:${n.ayah}:${n.word}`), words, arms,
+    };
+  });
+  const file = `${row.sha}-${row.listener}.json`;
+  const dump: ClipDump = { version: CLIP_DUMP_VERSION, sha: row.sha, listener: row.listener, recordedAt: now, clips };
+  writeFileSync(join(dir, file), JSON.stringify(dump));
+  const indexPath = join(dir, "index.json");
+  const runs: { sha: string; listener: string; recordedAt: string; file: string }[] = existsSync(indexPath) ? JSON.parse(readFileSync(indexPath, "utf8")) : [];
+  writeFileSync(indexPath, JSON.stringify([...runs.filter((x) => x.file !== file), { sha: row.sha, listener: row.listener, recordedAt: now, file }], null, 1) + "\n");
+  console.log(`clip dump: ${join(dir, file)}`);
+}
+if (!values["dump-only"]) console.log(readFileSync(`${resolve(values.out!)}.md`, "utf8").split("\n## All metrics")[0]);

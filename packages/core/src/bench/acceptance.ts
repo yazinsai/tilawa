@@ -201,7 +201,7 @@ export function visibleInEvidence(index: ReferenceIndex, clip: AcceptanceClip, a
 }
 
 /** Unit-cost semi-global alignment: for each reference index, the observed index it aligns to, or null. */
-function alignRef(ref: string, obs: string): (number | null)[] {
+export function alignRef(ref: string, obs: string): (number | null)[] {
   const n = ref.length;
   const m = obs.length;
   const d = Array.from({ length: n + 1 }, () => new Int32Array(m + 1));

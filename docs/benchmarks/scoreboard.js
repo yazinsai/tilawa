@@ -54,7 +54,7 @@ function readiness(){
  const trend = id => { const pts = mine.map(r => metric(r,id)).filter(num); if(pts.length < 2) return ''; const v = pts.map(m => m.value), lo = Math.min(...v), hi = Math.max(...v), W = 80, H = 20; return `<svg class="spark" viewBox="0 0 ${W} ${H}"><polyline fill="none" stroke="currentColor" stroke-width="1.5" points="${v.map((x,i) => `${i*W/(v.length-1)},${hi === lo ? H/2 : H - (x-lo)/(hi-lo)*H}`).join(' ')}"/></svg>`; };
  return `<section class="panel"><div class="verdict ${ready ? 'pass' : 'fail'}"><div><h2>${ready ? 'Ready to release' : 'Not ready to release'}</h2><div class="small">${esc(label(last))}</div></div><div class="tally"><b>${gates.length - failing - open}</b>/${gates.length} gates pass · <b>${failing}</b> fail · <b>${open}</b> not run · <b>${unmeasured.length}</b> unmeasurable</div></div>
  ${lv ? `<div class="lever"><div><b>Biggest lever on recall:</b> ${esc(lv.e0.reduce((a,b) => b.m.value > a.m.value ? b : a).label)} · planted mistakes missed in free recitation, by the stage that lost them</div><div class="stack">${lv.e0.map(x => `<span style="flex:${x.m.value}" title="${esc(x.label)}: ${x.m.value}/${lv.of}">${esc(x.label)} ${x.m.value}</span>`).join('')}</div></div>` : ''}
- <table class="gates"><thead><tr><th>Gate (worst first)</th><th>Now</th><th>Bar</th><th>Shortfall</th><th>vs previous run</th><th>Trend</th></tr></thead><tbody>${ranked.map(({g,m}) => { const s = gap(m); return `<tr class="${s === 0 ? 'ok' : s === Infinity ? 'open' : 'bad'}"><td><span class="area">${esc(g.area)}</span> ${esc(g.label)}</td><td>${esc(show(m))}</td><td>${esc(barText(m))}</td><td>${s === Infinity ? (m?.status === 'pending' ? 'not run' : 'no data') : s === 0 ? '✓' : `<div class="short"><i style="width:${Math.min(100,s*200)}%"></i></div>${(s*100).toFixed(0)}% short`}</td><td>${delta(metric(prev,g.id), m)}</td><td>${trend(g.id)}</td></tr>`; }).join('')}</tbody></table>
+ <table class="gates"><thead><tr><th>Gate (worst first)</th><th>Now</th><th>Bar</th><th>Shortfall</th><th>vs previous run</th><th>Trend</th></tr></thead><tbody>${ranked.map(({g,m}) => { const s = gap(m); return `<tr class="${s === 0 ? 'ok' : s === Infinity ? 'open' : 'bad'}" data-gate="${esc(g.id)}"><td><span class="area">${esc(g.area)}</span> ${esc(g.label)}</td><td>${esc(show(m))}</td><td>${esc(barText(m))}</td><td>${s === Infinity ? (m?.status === 'pending' ? 'not run' : 'no data') : s === 0 ? '✓' : `<div class="short"><i style="width:${Math.min(100,s*200)}%"></i></div>${(s*100).toFixed(0)}% short`}</td><td>${delta(metric(prev,g.id), m)}</td><td>${trend(g.id)}</td></tr>`; }).join('')}</tbody></table>
  ${unmeasured.length ? `<p class="small"><b>Also blocks release, no data yet:</b> ${unmeasured.map(b => esc(b.label)).join(' · ')}</p>` : ''}</section>`;
 }
 
@@ -84,7 +84,12 @@ function renderCompare(){
 }
 
 function render(){
- document.getElementById('content').innerHTML = readiness() + experiments() + compare();
+ const rv = window.tilawaReview;
+ document.getElementById('content').innerHTML = readiness() + (rv ? rv.panel() : '') + experiments() + compare();
+ if(rv){
+  document.querySelectorAll('tr[data-gate]').forEach(tr => { if(!rv.hasPreset(tr.dataset.gate)) return; tr.classList.add('rv-link'); tr.title = 'Review the clips behind this gate'; tr.addEventListener('click', () => rv.focusGate(tr.dataset.gate)); });
+  rv.init(cand);
+ }
  const mine = rows.map((r,i) => i).filter(i => rows[i].listener === cand);
  document.getElementById('cmp-b').value = mine.at(-1) ?? rows.length - 1;
  document.getElementById('cmp-a').value = mine.at(-2) ?? Math.max(0, rows.length - 2);

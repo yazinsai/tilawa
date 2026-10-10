@@ -5,7 +5,7 @@
 import type { ReferenceIndex } from "../reference.js";
 import type { AcceptanceClip, ClipScore } from "./acceptance.js";
 import { stitchSession } from "./jumps.js";
-import type { ClipEvidence, SessionPart } from "./jumps.js";
+import type { ClipEvidence, Segment, SessionPart } from "./jumps.js";
 
 export interface LeadIn {
   /** Source clip ID. */
@@ -25,7 +25,7 @@ export function withContext(
   clip: AcceptanceClip,
   o: { lead?: LeadIn | null; follow?: LeadIn | null },
   gapMs: number,
-): { clip: AcceptanceClip; leadAyahs: string[]; followAyahs: string[] } {
+): { clip: AcceptanceClip; leadAyahs: string[]; followAyahs: string[]; segments: Segment[] } {
   const part = (l: LeadIn, gapBeforeMs: number): SessionPart => ({ source: l.source, ayahs: l.ayahs, gapBeforeMs, gapFill: "silence", evidence: l.evidence });
   const parts: SessionPart[] = [
     ...(o.lead ? [part(o.lead, 0)] : []),
@@ -35,7 +35,7 @@ export function withContext(
   const leadAyahs = o.lead?.ayahs ?? [];
   const followAyahs = o.follow?.ayahs ?? [];
   const s = stitchSession(index, parts);
-  return { clip: { ...clip, ayahs: [...leadAyahs, ...clip.ayahs, ...followAyahs], evidence: s.evidence as AcceptanceClip["evidence"] }, leadAyahs, followAyahs };
+  return { clip: { ...clip, ayahs: [...leadAyahs, ...clip.ayahs, ...followAyahs], evidence: s.evidence as AcceptanceClip["evidence"] }, leadAyahs, followAyahs, segments: s.segments };
 }
 
 /** The score restricted to the original clip's span; false positives on the lead-in's and lead-out's ayahs are counted apart. */

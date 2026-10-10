@@ -28,3 +28,4 @@ output/
 packages/sample/public/models/
 packages/sample/public/ort/
 packages/sample/public/clips/
+.scratch/scoreboard/
