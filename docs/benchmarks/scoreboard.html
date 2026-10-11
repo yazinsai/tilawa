@@ -10,7 +10,7 @@
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
 })();
 </script>
-<link rel="stylesheet" href="scoreboard.css?v=dark-mode">
+<link rel="stylesheet" href="scoreboard.css?v=focused-review">
 <script src="scoreboard-review-model.js" defer></script>
 <script src="scoreboard-review-store.js" defer></script>
 <script src="scoreboard-replay.js" defer></script>
@@ -38,7 +38,7 @@
 })();
 </script>
 <main>
-<div class="page-heading"><div><span class="eyebrow">RECITATION QUALITY · TILAWA</span><h1>Tilawa’s progress</h1><p>See the test results, listen to recordings and review mistakes.</p></div><div class="controls"><label for="candidate">Version to review</label><select id="candidate"></select><div class="muted">Results from recorded tests</div></div></div>
+<div class="page-heading"><div><span class="eyebrow">RECITATION QUALITY · TILAWA</span><h1>Model evaluation</h1><p>Track acceptance criteria and review errors per run.</p></div><div class="controls"><label for="candidate">Version to review</label><select id="candidate"></select><div class="muted">Results from recorded tests</div></div></div>
 <div id="content" aria-live="polite"><p class="notice">Loading test results…</p></div>
 <footer>Results from recorded tests.<a href="scoreboard.json">View test data ↗</a></footer>
 </main>

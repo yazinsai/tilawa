@@ -523,3 +523,102 @@ select, textarea { border-color: #859b8c; }
 [data-theme=dark] .rv-legacy blockquote { border-left-color: #8a7444; }
 [data-theme=dark] .rv-import { border-color: var(--edge); }
 [data-theme=dark] .rp-dialog::backdrop { background: rgba(0,0,0,.65); }
+
+/* Focused evaluation layout: evidence first, detailed tools remain expandable. */
+:root { --bg: #fff; --ink: #171717; --muted: #626262; --line: #dedede; --light: #f6f6f4; --radius: 8px; }
+header, main { max-width: 1440px; }
+main { padding-top: 24px; }
+.page-heading { margin-bottom: 24px; gap: 24px; }
+h1 { font: 700 24px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: -.02em; margin: 0 0 8px; }
+.page-heading .eyebrow { display: none; }
+.page-heading p { margin: 0; font-size: 14px; }
+.controls { flex-basis: 256px; }
+.release-summary { padding: 24px; gap: 24px; background: var(--light); border: 0; border-radius: 8px 8px 0 0; }
+.release-summary .eyebrow { display: none; }
+.release-summary h2 { font: 700 24px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: -.02em; }
+.release-summary p { margin-top: 8px; }
+.release-meta { margin-top: 12px; }
+.release-progress { display: flex; flex-direction: column; gap: 12px; }
+.progress-total, .progress-segments { display: none; }
+.readiness-explanation summary { color: var(--muted); font-size: 12px; }
+.acceptance-overview { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; padding: 0 24px 24px; background: var(--light); border-radius: 0 0 8px 8px; }
+.acceptance-metric { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--line); min-width: 0; }
+.acceptance-metric > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; }
+.acceptance-metric strong { font-size: 24px; font-weight: 700; line-height: 1.3; }
+.acceptance-metric > div > span { color: var(--muted); }
+.acceptance-metric .text-button { align-self: flex-start; }
+.all-criteria { margin-top: 16px; }
+.all-criteria > summary { color: var(--accent); font-weight: 600; }
+.review-panel { border: 0; padding: 0; margin-top: 32px; background: transparent; box-shadow: none; }
+.review-panel .section-top { margin-bottom: 16px; }
+.review-mark { display: none; }
+.rv-primary-filters { grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(0,1fr); }
+.rv-primary-filters select, .rv-more-filters select { font-size: 14px; }
+.rv-setup-note { display: block; padding: 0; margin: 0 0 12px; background: transparent; color: var(--muted); }
+.rv-setup-note > summary, .rv-run-results > summary, .rv-backup > summary, .rv-context > summary, .rv-model-errors > summary { font-size: 14px; color: var(--accent); }
+.rv-setup-note p { padding: 12px 0; color: var(--muted); }
+.rv-run-results { margin: 12px 0; }
+.rv-breakdown { margin: 16px 0; }
+.rv-review-toolbar { padding: 16px 0; margin: 0 0 24px; border-bottom: 1px solid var(--line); }
+.rv-review-toolbar > div { display: flex; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 12px; }
+.rv-backup { margin-left: auto; }
+.rv-backup[open] { flex-basis: 100%; margin-left: 0; }
+.rv-backup-body { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 16px 0; }
+.rv-backup-body > p { flex-basis: 100%; }
+#rv-storage-status { flex-basis: 100%; margin: 0; }
+#rv-storage-status:empty { display: none; }
+.rv-split { grid-template-columns: 320px minmax(0,1fr); gap: 32px; }
+.rv-browser { position: sticky; top: 24px; border-right: 1px solid var(--line); padding-right: 24px; }
+#rv-detail { position: static; padding: 0; border: 0; background: transparent; border-radius: 0; }
+.rv-detail-nav { margin: 0 0 16px; }
+.rv-head h3 { font: 700 24px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: -.02em; margin: 8px 0 16px; }
+.rv-card { background: transparent; border-color: transparent; border-radius: 8px; }
+.rv-card.rv-on { background: var(--light); border-color: transparent; box-shadow: inset 3px 0 var(--accent); }
+.rv-card-top .rv-type { background: transparent; color: var(--muted); padding: 0; font-size: 12px; font-weight: 400; }
+.rv-card-arrow { display: none; }
+.rv-card strong { font-size: 16px; }
+.rv-card-context, .rv-list-heading .small { font-size: 12px; }
+.rv-comparison { padding: 24px; background: var(--light); border-radius: 8px; margin: 0 0 24px; }
+.rv-comparison-columns { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; }
+.rv-comparison-columns > div { min-width: 0; }
+.rv-comparison-columns > div + div { border-left: 1px solid var(--line); padding-left: 24px; }
+.rv-comparison .eyebrow { color: var(--muted); font-size: 12px; letter-spacing: .04em; margin-bottom: 8px; }
+.rv-comparison h4 { font-size: 20px; line-height: 1.4; }
+.rv-comparison p { font-size: 14px; }
+.rv-score-note { border-top: 1px solid var(--line); margin: 16px 0 0; padding-top: 16px; }
+.rv-affected { border: 0; padding: 0; margin: 0 0 16px; }
+.rv-affected .rv-script { background: var(--light); border-radius: 8px; padding: 16px; }
+.rv-passage-unavailable { font-size: 14px; padding: 16px; background: var(--light); border-radius: 8px; }
+.rv-player { background: transparent; padding: 0; margin: 16px 0 24px; }
+.rv-player .primary-button { width: auto; font-size: 14px; padding: 12px 16px; }
+.rv-player-tools .text-button, #rv-now, .rv-affected p { font-size: 12px; }
+.rv-context { margin-bottom: 24px; }
+.rv-context[open] { padding-bottom: 16px; }
+.rv-context .rv-session { margin-top: 16px; }
+.rv-feedback { border: 0; border-top: 1px solid var(--line); background: transparent; border-radius: 0; padding: 24px 0 0; margin-top: 24px; }
+.rv-feedback h4 { font-size: 20px; }
+.rv-feedback legend { font-size: 14px; }
+.rv-feedback .rv-causes .rv-check-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+.rv-feedback .rv-causes .rv-check { border: 1px solid #909090; border-radius: 8px; padding: 12px 16px; font-size: 14px; }
+.rv-feedback .rv-causes .rv-check:has(input:checked) { background: var(--accent-soft); border-color: var(--accent); }
+.rv-feedback .rv-judgment { margin-bottom: 16px; }
+.rv-model-errors { margin: 16px 0; }
+.rv-feedback textarea { font-size: 14px; min-height: 80px; }
+.rv-feedback > label { font-size: 14px; }
+.rv-find-actions .primary-button { font-size: 14px; }
+.rv-diagnostics > summary { font-size: 14px; }
+[data-theme=dark] .rv-comparison, [data-theme=dark] .rv-affected .rv-script, [data-theme=dark] .rv-passage-unavailable, [data-theme=dark] .acceptance-overview { background: var(--tint); }
+[data-theme=dark] #rv-detail, [data-theme=dark] .review-panel, [data-theme=dark] .rv-feedback, [data-theme=dark] .rv-player { background: transparent; }
+[data-theme=dark] .rv-feedback .rv-causes .rv-check { border-color: var(--edge); }
+[data-theme=dark] .rv-feedback .rv-causes .rv-check:has(input:checked) { border-color: var(--accent); }
+@media(max-width:1100px) { .rv-split { grid-template-columns: 256px minmax(0,1fr); gap: 24px; } .rv-browser { padding-right: 16px; } }
+@media(max-width:850px) { .rv-split { grid-template-columns: minmax(0,1fr); } .rv-browser { position: static; border: 0; padding: 0; } .rv-primary-filters { grid-template-columns: repeat(2,minmax(0,1fr)); } .rv-primary-filters > label:last-child { grid-column: 1 / -1; } }
+@media(max-width:580px) {
+  main { padding: 24px 16px; } .page-heading { align-items: stretch; flex-direction: column; } .controls { flex-basis: auto; }
+  .release-summary { grid-template-columns: minmax(0,1fr); padding: 16px; } .release-progress { align-self: stretch; }
+  .acceptance-overview { grid-template-columns: minmax(0,1fr); padding: 0 16px 16px; gap: 16px; }
+  .rv-comparison { padding: 16px; } .rv-comparison-columns { grid-template-columns: minmax(0,1fr); gap: 16px; }
+  .rv-comparison-columns > div + div { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; padding-top: 16px; }
+  .rv-primary-filters { grid-template-columns: minmax(0,1fr); } .rv-primary-filters > label:last-child { grid-column: auto; }
+  #rv-detail { padding: 0; } .rv-review-toolbar { gap: 12px; } .rv-backup { margin-left: 0; }
+}

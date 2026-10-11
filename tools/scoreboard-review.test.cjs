@@ -79,3 +79,42 @@ test('actual benchmark: exact mismatch, context warnings, misses, passage timing
  const free=M.summary(d,'free');for(const k of ['evidence','tracker','checker']) assert.equal(free.causes[k],row.metrics.find(m=>m.id===`checker.e0.${k}`).value);
  assert.equal(s.hits/s.positives,row.metrics.find(m=>m.id==='e2e.leadin.recall').value);
 });
+
+// Exercise the presentation with the existing incident model. No review schema changes.
+function presentation(){
+ const context=vm.createContext({URL,Date,window:{localStorage:memory()},document:{addEventListener(){}}});
+ for(const f of ['model','store']) vm.runInContext(fs.readFileSync(path.join(root,`docs/benchmarks/scoreboard-review-${f}.js`),'utf8'),context);
+ const source=fs.readFileSync(path.join(root,'docs/benchmarks/scoreboard-review.js'),'utf8').replace('window.tilawaReview={panel,init,focusGate,hasPreset:id=>id in PRESETS};','window.tilawaReview={comparison,comparisonPanel,affectedPassage,reviewForm,st};');
+ vm.runInContext(source,context);return context.window.tilawaReview;
+}
+test('comparison explains a type mismatch without merging its original score outcomes',()=>{
+ const ui=presentation(),i=M.incidents(fixture(),'free',run)[0],before=JSON.stringify(i),c=ui.comparison(i);
+ assert.equal(c.expected,'Missing word');assert.equal(c.actual,'Wrong word');assert.match(c.note,/missed label and an unmatched warning/);assert.equal(JSON.stringify(i),before);
+});
+test('comparison distinguishes an incomplete older report from a known absent report',()=>{
+ const ui=presentation(),d=fixture();delete d.clips[0].arms.free.engineEvents;d.clips[0].arms.free.falsePositives=[];
+ assert.equal(ui.comparison(M.incidents(d,'free',run)[0]).actual,'No final report saved');
+ d.clips[0].arms.free.engineEvents=[];assert.equal(ui.comparison(M.incidents(d,'free',run)[0]).actual,'No final report');
+});
+test('suspected label stays tentative in the expected output',()=>{
+ const ui=presentation(),d=fixture();d.clips[0].labels[0].state='suspected';
+ assert.equal(ui.comparison(M.incidents(d,'free',run)[0]).expected,'Possible Missing word');
+});
+test('passage comparison uses elapsed time since onset, including a passage never found',()=>{
+ const ui=presentation(),d=fixture();d.clips[0].arms.free.gate={...gate,correctWithin5s:false,firstCorrectLockMs:9000};
+ assert.equal(ui.comparison(M.incidents(d,'free',run).find(i=>i.zone==='passage')).actual,'Passage found after 7.80 seconds');
+ d.clips[0].arms.free.gate.firstCorrectLockMs=null;
+ assert.equal(ui.comparison(M.incidents(d,'free',run).find(i=>i.zone==='passage')).actual,'Passage not found');
+});
+test('context warning never shows original passage text or borrows another recording’s word times',()=>{
+ const ui=presentation(),d=fixture(),i={...M.incidents(d,'free',run)[0],location:'2:184:6',audio:'leadin/context.wav',zone:'after'};
+ assert.match(ui.affectedPassage(i),/text for this ayah is not available/);assert.doesNotMatch(ui.affectedPassage(i),/مَعَ/);
+ ui.st.dumps.other={clips:[{words:[{at:'2:184:6',text:'مَّرِيضًا',fromS:99}]}]};
+ const html=ui.affectedPassage(i);assert.match(html,/مَّرِيضًا/);assert.match(html,/data-path="leadin\/context.wav"/);assert.doesNotMatch(html,/data-at="98/);
+});
+test('reflow retains every original finding and model-error option',()=>{
+ const ui=presentation(),html=ui.reviewForm(M.incidents(fixture(),'free',run)[0]);
+ for(const area of ['model','label','audio_data','acceptable','unresolved'])assert.match(html,new RegExp(`name="area" value="${area}"`));
+ for(const category of ['missed_detection','wrong_mistake_type','wrong_word_location','passage_recognition','sound_recognition','spurious_warning','other'])assert.match(html,new RegExp(`name="category" value="${category}"`));
+ for(const id of ['rv-certainty','rv-comment','rv-complete','rv-next-unreviewed'])assert.match(html,new RegExp(`id="${id}"`));
+});
