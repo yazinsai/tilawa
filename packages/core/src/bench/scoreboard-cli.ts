@@ -334,7 +334,15 @@ if (teacher && qudFiles.length) {
 } else add({ id: "tracker.qud.within5s", group: TRACKER, name: "QUD regression: correct ayah within 5 s", value: null, status: "pending", note: teacher ? "QUD evidence not on disk" : `no QUD evidence from ${values.listener}` });
 source = "jumps-v1.md";
 const jumps = teacher && existsSync(join(bench, "jumps-v1.json")) ? read("jumps-v1.json").groups.All : null;
-if (jumps?.checkerWarnings != null) {
+const shipped = existsSync(join(bench, "stitched-warnings-v1.json"))
+  ? read("stitched-warnings-v1.json").results.find((r: any) => r.arm.listener === values.listener && r.arm.posteriors && r.arm.finalise)
+  : null;
+if (shipped) {
+  source = "stitched-warnings-v1.md";
+  const t = shipped.tally;
+  add({ id: "e2e.stitched.falseWords", group: E2E, name: "Stitched sessions: false wrong/added words per 5 min (free)", value: (t.warnings * 5) / t.minutes, bar: MEM.per5,
+    display: `${((t.warnings * 5) / t.minutes).toFixed(2)} (${t.warnings} in ${t.minutes.toFixed(0)} min)`, note: `ticket 13 sessions with posteriors (local-window on) and session-end finalisation; ${t.mid} mid-session, ${t.tail} in the last 20 s, ${t.atEnd} confirmed by the session end; \`pnpm stitched-warnings\`` });
+} else if (jumps?.checkerWarnings != null) {
   add({ id: "e2e.stitched.falseWords", group: E2E, name: "Stitched sessions: false wrong/added words per 5 min (free)", value: jumps.checkerWarningsPer5Min, bar: MEM.per5,
     display: `${jumps.checkerWarningsPer5Min.toFixed(2)} (${jumps.checkerWarnings} in ${jumps.minutes.toFixed(0)} min)`, note: "clean clips stitched end to end with real jumps (ticket 13); `pnpm jumps`" });
 } else add({ id: "e2e.stitched.falseWords", group: E2E, name: "Stitched sessions: false wrong/added words per 5 min (free)", value: null, status: "pending", note: teacher ? "run `pnpm jumps`" : "teacher evidence only" });

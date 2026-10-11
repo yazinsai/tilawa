@@ -15,7 +15,8 @@
     "e2e": "tsx src/e2e/cli.ts",
     "buckets": "tsx src/buckets/cli.ts",
     "scoreboard": "tsx src/bench/scoreboard-cli.ts",
-    "jumps": "tsx src/bench/jumps-cli.ts"
+    "jumps": "tsx src/bench/jumps-cli.ts",
+    "stitched-warnings": "tsx src/bench/stitched-warnings-cli.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",

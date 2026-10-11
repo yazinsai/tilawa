@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["pyarrow", "numpy"]
+# dependencies = ["pyarrow", "numpy", "huggingface_hub"]
 # ///
 """Plan stitched long sessions for the false-jump test (ticket 13) and export their evidence.
 
@@ -139,7 +139,12 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--seed", type=int, default=13)
     ap.add_argument("--no-export", action="store_true", help="write the manifest only")
+    ap.add_argument("--audio", action="store_true", help="fetch 16 kHz audio of the manifest's tlog clips, for students, and stop")
+    ap.add_argument("--part", default="0/1", help="with --audio: fetch only shard group i of n, for parallel runs")
     args = ap.parse_args()
+    if args.audio:
+        fetch_tlog_audio(json.loads(MANIFEST.read_text())["sessions"], *map(int, args.part.split("/")))
+        return
     rng = random.Random(args.seed)
 
     ayahs = json.loads(INDEX.read_text())["ayahs"]
@@ -218,6 +223,42 @@ def export_tlog(sessions: list[dict]) -> None:
             }
             (out / f"{shard}_{r['row']}.evidence.json").write_text(json.dumps(evidence, separators=(",", ":")))
     print(f"{sum(map(len, wanted.values()))} tlog clips -> {out}")
+
+
+def fetch_tlog_audio(sessions: list[dict], part: int = 0, parts: int = 1) -> None:
+    """16 kHz mono WAV of each tlog clip under `.scratch/jumps/tlog-audio/`, reading only the row groups that hold them."""
+    import subprocess
+
+    import pyarrow.parquet as pq
+    from huggingface_hub import HfFileSystem
+
+    wanted = defaultdict(set)
+    for s in sessions:
+        if s["source"] == "tlog":
+            for g in s["segments"]:
+                shard, row = g["clip"].split(":")
+                wanted[shard].add(int(row))
+    out = OUT / "tlog-audio"
+    out.mkdir(parents=True, exist_ok=True)
+    fs = HfFileSystem()
+    done = 0
+    for shard, rows in sorted(wanted.items())[part::parts]:
+        rows = {r for r in rows if not (out / f"{shard}_{r}.wav").exists()}
+        if not rows:
+            continue
+        f = pq.ParquetFile(fs.open(f"datasets/tarteel-ai/tlog/data/{shard}.parquet", block_size=1 << 20))
+        starts = [0]
+        for g in range(f.metadata.num_row_groups):
+            starts.append(starts[-1] + f.metadata.row_group(g).num_rows)
+        for g in sorted({next(i for i in range(len(starts) - 1) if starts[i] <= r < starts[i + 1]) for r in rows}):
+            audio = f.read_row_group(g, columns=["audio"]).column("audio").to_pylist()
+            for r in rows:
+                if starts[g] <= r < starts[g + 1]:
+                    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", "pipe:0", "-ar", "16000", "-ac", "1", str(out / f"{shard}_{r}.wav")],
+                                   input=audio[r - starts[g]]["bytes"], check=True)
+                    done += 1
+        print(f"{shard}: {done} fetched", flush=True)
+    print(f"tlog clip audio -> {out}")
 
 
 def stitch_help_audio(sessions: list[dict]) -> None:

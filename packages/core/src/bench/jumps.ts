@@ -1,5 +1,6 @@
 /** Stitched long sessions (ticket 13): clean clips joined end to end, scored for false jumps, planted jumps and the start. */
 import { createChecker } from "../checker.js";
+import type { CheckerPolicy } from "../checker.js";
 import type { CheckerEvent, EngineEvent, PositionEvent, WordRef } from "../events.js";
 import type { PhraseAsset, ReferenceIndex } from "../reference.js";
 import { createTracker } from "../tracker.js";
@@ -62,6 +63,14 @@ export interface SessionScore {
    * skips aren't counted: contiguous runs drop up to an ayah and clip spans can trim an edge word.
    */
   checkerWarnings: number | null;
+  /** Each counted warning: when it was confirmed, its ayah, and whether only the session end confirmed it. */
+  checkerWarningDetail: CheckerWarning[];
+}
+
+export interface CheckerWarning {
+  timeMs: number;
+  ayah: string;
+  atEnd: boolean;
 }
 
 /** Within this many ayahs a lock is local, as in `acceptance-v3`. */
@@ -133,11 +142,11 @@ export function stitchSession(index: ReferenceIndex, parts: SessionPart[]): Stit
   return { evidence: { inventory, frameMs, nFrames: frames, phonemes, ...(withPosteriors ? { posteriors: { k, ids, probs } } : {}) }, segments };
 }
 
-export function scoreSession(index: ReferenceIndex, s: StitchedSession, o: { phrases: PhraseAsset; chunkS?: number; posteriors?: boolean; checker?: boolean }): SessionScore {
+export function scoreSession(index: ReferenceIndex, s: StitchedSession, o: { phrases: PhraseAsset; chunkS?: number; posteriors?: boolean; checker?: boolean; policy?: CheckerPolicy }): SessionScore {
   const tracker = createTracker(index, { mode: "memorization", phrases: o.phrases });
   const positions: PositionEvent[] = [];
   const keep = (out: EngineEvent[]) => positions.push(...out.filter((x): x is PositionEvent => x.type === "position"));
-  const checker = o.checker ? createChecker(index, { phrases: o.phrases }) : null;
+  const checker = o.checker ? createChecker(index, { phrases: o.phrases, policy: o.policy }) : null;
   const checks: CheckerEvent[] = [];
   for (const e of chunk(s.evidence as QudRecording, o.chunkS ?? 1, o.posteriors ?? false)) {
     const out = tracker.push(e);
@@ -146,8 +155,10 @@ export function scoreSession(index: ReferenceIndex, s: StitchedSession, o: { phr
   }
   const out = tracker.end();
   keep(out);
+  const live = checks.length;
   if (checker) checks.push(...checker.end(out));
-  const latest = new Map(checks.map((e) => [e.id, e]));
+  const latest = new Map(checks.map((e, i) => [e.id, { ...e, atEnd: i >= live }]));
+  const warnings = [...latest.values()].filter((e) => e.state === "confirmed" && (e.errorClass === "wrong_word" || e.errorClass === "added_word"));
   const locks = positions.filter((p) => p.state === "locked" && p.observed[0]).map((p) => ({ timeMs: p.timeMs, ayah: ayahKey(p.observed[0].word as WordRef) }));
 
   const segs = s.segments;
@@ -188,6 +199,7 @@ export function scoreSession(index: ReferenceIndex, s: StitchedSession, o: { phr
     planted: follows.length,
     followed: follows.filter((x) => x !== null).length,
     followLatencyMs: follows,
-    checkerWarnings: !checker ? null : [...latest.values()].filter((e) => e.state === "confirmed" && (e.errorClass === "wrong_word" || e.errorClass === "added_word")).length,
+    checkerWarnings: !checker ? null : warnings.length,
+    checkerWarningDetail: warnings.map((e) => ({ timeMs: e.timeMs, ayah: ayahKey(e.location), atEnd: e.atEnd })),
   };
 }

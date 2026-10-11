@@ -46,3 +46,29 @@ describe("stitched session scoring", () => {
     expect(s.falseJumpDetail).toMatchObject([{ to: "36:9", truth: expect.arrayContaining(["2:258"]) }]);
   });
 });
+
+describe("stitched session checker warnings", () => {
+  /** 2:255–2:260 with a garbled word in `ayah`, at word `word`. */
+  const garbled = (ayah: number, word: number) => run(2, 255, 260).map((p, i) => {
+    if (255 + i !== ayah) return p;
+    const at = index.words.find((x) => x.surah === 2 && x.ayah === ayah && x.word === word)!.start
+      - index.words.find((x) => x.surah === 2 && x.ayah === ayah && x.word === 1)!.start;
+    const e = withPosteriors(index, syntheticFixture(index, { id: "c", from: w(2, ayah, 1), to: w(2, ayah, words(2, ayah)), edits: [{ kind: "noise", at, length: 6, seed: 7 }] }).evidence[0]);
+    const q = e.posteriors!;
+    return { ...p, evidence: { inventory: e.inventory, frameMs: e.frameMs, nFrames: q.nFrames, phonemes: e.phonemes, posteriors: { k: q.k, ids: [...q.ids], probs: [...q.probs] } } };
+  });
+  const scored = (parts: SessionPart[], finaliseFree?: boolean) =>
+    scoreSession(index, stitchSession(index, parts), { phrases, checker: true, posteriors: true, policy: { finaliseFree } });
+
+  it("places a mid-session warning in its ayah, confirmed while recitation goes on", () => {
+    const s = scored(garbled(257, 3));
+    expect(s.checkerWarnings).toBe(1);
+    expect(s.checkerWarningDetail).toMatchObject([{ ayah: "2:257", atEnd: false }]);
+  }, 60_000);
+
+  it("marks a warning in the last words as confirmed by the session end, and drops it with finalisation off", () => {
+    const last = garbled(260, words(2, 260) - 1);
+    expect(scored(last, true).checkerWarningDetail).toMatchObject([{ ayah: "2:260", atEnd: true }]);
+    expect(scored(last, false).checkerWarnings).toBe(0);
+  }, 60_000);
+});
