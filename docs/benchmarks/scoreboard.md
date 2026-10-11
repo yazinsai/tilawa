@@ -12,23 +12,23 @@ The release cockpit for the engine. One row per commit × listener, recomputed f
 
 **Sources.** Listener PER is gold PER (`tools/gold_set.py score`), barred by `listener-target-v1.json`. Help clips: 388 eval clips, 29 held-out speakers. Free memorization is gated `with lead-in` (`--leadin`, `tools/leadin_build.py`): 1–2 correctly recited preceding ayahs are stitched before each clip and 1–2 following ayahs after it (lead-out) at the evidence level (same speaker's clean clip, else another help speaker's, else held-out tlog, else tlog train), errors and false positives are scored inside the original clip, and warnings on the lead-in and lead-out are counted apart. For a student add `--leadin-evidence <dir>` with its decode of `.scratch/leadin/audio` (with posteriors) (`pnpm --filter @tilawa/sdk decode`). Without a lead-in the free numbers are info; each arm is also split into `unambiguous` and `mutashabihat` (planted errors that form another ayah, `forms_other_ayah`). `Declared passage` is the memorization-session arm (`CheckerOptions.passage`); `oracle evidence` replaces the decode with one synthesised from the label, so its losses are the checker's own. E0 attributes each missed mistake to listener, tracker or checker.
 
-## Release readiness: spliced-clean-int8 @ a4cc202 (2026-10-09)
+## Release readiness: spliced-clean-int8 @ 798675c (2026-10-11)
 
-**Not ready**: 7/13 gates pass, 5 fail, 1 not measured on this listener, 5 requirements not measurable yet. Worst shortfall first.
+**Not ready**: 7/13 gates pass, 6 fail, 0 not measured on this listener, 5 requirements not measurable yet. Worst shortfall first.
 
 | Gate | Now | Bar | Shortfall | Δ previous run |
 |---|---:|---|---:|---:|
-| False warnings per 5 min (stitched sessions) | — |  | not measured |  |
-| False warnings per 5 min (lead-out recitation) | 2.73 per 5 min (29 in 53.2 min, 354 lead-outs) | ≤ 1 | 173% short |  |
+| False warnings per 5 min (lead-out recitation) | 2.73 per 5 min (29 in 53.2 min, 354 lead-outs) | ≤ 1 | 173% short | 0 |
+| False warnings per 5 min (stitched sessions) | 1.46 (217 in 743 min) | ≤ 1 | 46% short |  |
 | Listener gold PER | 4.82% (233 clips) | ≤ 3.7% | 32% short | 0 |
-| Free recitation (1–2 recited ayahs before and after): warnings correct | 77.9% (53/68) | ≥ 90.0% | 13% short | +4.7 pp |
+| Free recitation (1–2 recited ayahs before and after): warnings correct | 77.9% (53/68) | ≥ 90.0% | 13% short | 0 |
 | Tracker: correct ayah within 5 s | 84.0% (189/225) | ≥ 95.0% | 12% short | 0 |
 | Memorization session: warnings correct | 87.5% (56/64) | ≥ 90.0% | 3% short | 0 |
-| Free recitation (1–2 recited ayahs before and after): mistakes caught | 82.8% (53/64) | ≥ 80.0% | pass | +18.8 pp |
+| Free recitation (1–2 recited ayahs before and after): mistakes caught | 82.8% (53/64) | ≥ 80.0% | pass | 0 |
 | Memorization session: mistakes caught | 87.5% (56/64) | ≥ 80.0% | pass | 0 |
-| False warnings per 5 min (short clips) | 0.324 | ≤ 1 | pass | +0.108 |
+| False warnings per 5 min (short clips) | 0.324 | ≤ 1 | pass | 0 |
 | False warnings on repeats | 0 (23 repeat clips) | ≤ 0 | pass | 0 |
-| False warnings per 5 min (lead-in recitation) | 0.54 per 5 min (6 in 55.4 min, 346 lead-ins) | ≤ 1 | pass | -0.361 |
+| False warnings per 5 min (lead-in recitation) | 0.54 per 5 min (6 in 55.4 min, 346 lead-ins) | ≤ 1 | pass | 0 |
 | Tracker: false jumps | 0.0% (0/225) | ≤ 2.0% | pass | 0 |
 | Real-time factor | 0.002 | ≤ 0.05 | pass | +0 |
 
@@ -42,6 +42,8 @@ Newest first. Each run is judged against its parent: the previous run of the sam
 
 | Date | Commit | Listener | vs | Verdict | Gate moves | Note |
 |---|---|---|---|---|---|---|
+| 2026-10-11 | 798675c | spliced-clean-int8 | a4cc202 | = unchanged |  | Stitched-session checker warnings (stitched-warnings-v1, ticket 13, 747 min) with posteriors: the stitched gate now runs the shipped checker (local-window on) instead of jumps-v1's posterior-free replay; int8 first measured: 217 in 743 min (1.46/5 min), end region 1.40 vs mid 1.47, finalisation +0; help-speaker sessions 2.84 vs lead-out 2.73, so lead-out warnings are the checker, not session ends |
+| 2026-10-11 | 798675c | teacher | a4cc202 | ▲ better | ▲ False warnings per 5 min (stitched sessions) 2.07 (309 in 747 min) → 1.41 (211 in 747 min) | Stitched-session checker warnings (stitched-warnings-v1, ticket 13, 747 min) with posteriors: the stitched gate now runs the shipped checker (local-window on) instead of jumps-v1's posterior-free replay; teacher 309 -> 211 (1.41/5 min), end region 1.40 = mid 1.41, finalisation +2 in 129 session ends |
 | 2026-10-09 | a4cc202 | spliced-clean-int8 | 34d1c16 | ◆ mixed | ▲ Free recitation (1–2 recited ayahs before and after): mistakes caught 64.1% (41/64) → 82.8% (53/64)<br>▲ Free recitation (1–2 recited ayahs before and after): warnings correct 73.2% (41/56) → 77.9% (53/68)<br>▼ False warnings per 5 min (short clips) 0.216 → 0.324<br>▲ False warnings per 5 min (lead-in recitation) 0.90 per 5 min (10 in 55.4 min, 346 lead-ins) → 0.54 per 5 min (6 in 55.4 min, 346 lead-ins) | Lead-out (leadin-v2) + session-end finalisation in latched free recitation (default on); int8 tlog lead-in/out re-decoded with posteriors (pnpm decode). Free with lead-in/out, finalise off -> on: 50/14/14 -> 53/15/11 (78.1%/78.1% -> 77.9%/82.8%), unambiguous 71.4% -> 70.0% P, mutashabihat 15/26 -> 18/26 (lead-in only: 8/26); lead-out warnings 25 -> 29. Declared 56/8/8 unchanged |
 | 2026-10-09 | a4cc202 | teacher | 34d1c16 | ◆ mixed | ▲ Free recitation (1–2 recited ayahs before and after): mistakes caught 68.8% (44/64) → 84.4% (54/64)<br>▼ Free recitation (1–2 recited ayahs before and after): warnings correct 77.2% (44/57) → 69.2% (54/78)<br>▼ False warnings per 5 min (short clips) 0.215 → 0.323 | Lead-out (leadin-v2: the next 1-2 correct ayahs after 354/388 clips; lead-out warnings counted apart) + session-end finalisation in latched free recitation (CheckerPolicy.finaliseFree, default on). Free with lead-in/out, finalise off -> on: 51/22/13 -> 54/24/10 (69.9%/79.7% -> 69.2%/84.4%), unambiguous 62.1% -> 60.0% P, mutashabihat 15/26 -> 18/26 (lead-in only: 10/26); lead-out warnings 10 -> 36. Declared 57/11/7 unchanged; stitched false words 309 unchanged |
 | 2026-10-09 | 34d1c16 | spliced-clean-int8 | 88fad18 | ▲ better | ▲~ Free recitation (1–2 recited ayahs before and after): warnings correct 71.9% (41/57) → 73.2% (41/56)<br>▲ Memorization session: warnings correct 82.4% (56/68) → 87.5% (56/64)<br>▲ False warnings per 5 min (short clips) 0.433 → 0.216 | Local-window warning confirmation on the shipped int8 full student; SDK sessions pass listener posteriors to the checker only. Declared 56/12/8 -> 56/8/8, free 28/8/36 -> 28/4/36, no new misses (local-window-v1.md). Its tlog lead-in evidence has no posteriors, so free with lead-in moves only on help-clip lead-ins |
@@ -79,40 +81,40 @@ Newest first. Each run is judged against its parent: the previous run of the sam
 
 | Area | Metric | Value | Bar | Status | Δ previous run | Note |
 |---|---|---:|---|---|---:|---|
-| End to end | Free, with lead-in: Memorization precision | 77.9% (53/68) | ≥ 90.0% | fail | +4.7 pp | free recitation with lead-in, the tracked free metric; leadin-v2: 346/388 clips get 1–2 preceding ayahs (first ayah of the surah 18, help-other-speaker 17, help-same-speaker 4, no clean recitation of the preceding ayah 24, tlog-heldout 255, tlog-train 70), 354/388 1–2 following ayahs (help-other-speaker 31, help-same-speaker 2, last ayah of the surah 20, no clean recitation of the following ayah 14, tlog-heldout 251, tlog-train 70), 600 ms silence, stitched at the evidence level; errors and false positives scored inside the original clip |
-| End to end | Free, with lead-in: Memorization recall | 82.8% (53/64) | ≥ 80.0% | pass | +18.8 pp |  |
-| End to end | Free, with lead-in: False warnings per clean clip | 0.031 (7/225) |  | info | +0.004 |  |
-| End to end | Free, with lead-in: False warnings per 5 min (short clips) | 0.757 | ≤ 1 | pass | +0.108 | short clips; the gating number needs phase-2 long sessions |
+| End to end | Free, with lead-in: Memorization precision | 77.9% (53/68) | ≥ 90.0% | fail | 0 | free recitation with lead-in, the tracked free metric; leadin-v2: 346/388 clips get 1–2 preceding ayahs (first ayah of the surah 18, help-other-speaker 17, help-same-speaker 4, no clean recitation of the preceding ayah 24, tlog-heldout 255, tlog-train 70), 354/388 1–2 following ayahs (help-other-speaker 31, help-same-speaker 2, last ayah of the surah 20, no clean recitation of the following ayah 14, tlog-heldout 251, tlog-train 70), 600 ms silence, stitched at the evidence level; errors and false positives scored inside the original clip |
+| End to end | Free, with lead-in: Memorization recall | 82.8% (53/64) | ≥ 80.0% | pass | 0 |  |
+| End to end | Free, with lead-in: False warnings per clean clip | 0.031 (7/225) |  | info | 0 |  |
+| End to end | Free, with lead-in: False warnings per 5 min (short clips) | 0.757 | ≤ 1 | pass | 0 | short clips; the gating number needs phase-2 long sessions |
 | End to end | Free, with lead-in: False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass | 0 |  |
-| End to end | Free, with lead-in: unambiguous precision | 70.0% (35/50) | ≥ 90.0% | fail | +1.2 pp | excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here |
-| End to end | Free, with lead-in: unambiguous recall | 92.1% (35/38) | ≥ 80.0% | pass | +5.3 pp |  |
+| End to end | Free, with lead-in: unambiguous precision | 70.0% (35/50) | ≥ 90.0% | fail | 0 | excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here |
+| End to end | Free, with lead-in: unambiguous recall | 92.1% (35/38) | ≥ 80.0% | pass | 0 |  |
 | End to end | Free, with lead-in: mutashabihat precision | 100.0% (18/18) | ≥ 90.0% | pass | 0 | planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed |
-| End to end | Free, with lead-in: mutashabihat recall | 69.2% (18/26) | ≥ 80.0% | fail | +38.5 pp |  |
+| End to end | Free, with lead-in: mutashabihat recall | 69.2% (18/26) | ≥ 80.0% | fail | 0 |  |
 | End to end | Free, with lead-in: mutashabihat raised in any state | 69.2% (18/26) |  | info | 0 | the rest of the gap to recall is events still suspected/uncertain when the session ends |
-| End to end | Free, with lead-in: false warnings in the lead-in | 0.54 per 5 min (6 in 55.4 min, 346 lead-ins) | ≤ 1 | pass | -0.361 | confirmed events of any memorization class on the lead-in's ayahs; all false |
-| End to end | Free, with lead-in: false warnings in the lead-out | 2.73 per 5 min (29 in 53.2 min, 354 lead-outs) | ≤ 1 | fail |  | confirmed events of any memorization class on the lead-out's ayahs; all false |
-| End to end | Memorization precision | 80.6% (29/36) |  | info | -6.9 pp | help eval split, held-out speakers: 388 clips, 29 speakers; free recitation, default policy; no lead-in, info only: the clip starts the recitation |
-| End to end | Memorization recall | 45.3% (29/64) |  | info | +1.6 pp |  |
-| End to end | wrong_word precision | 37.5% (3/8) |  | info | -12.5 pp |  |
-| End to end | wrong_word recall | 10.3% (3/29) |  | info | +3.4 pp |  |
+| End to end | Free, with lead-in: false warnings in the lead-in | 0.54 per 5 min (6 in 55.4 min, 346 lead-ins) | ≤ 1 | pass | 0 | confirmed events of any memorization class on the lead-in's ayahs; all false |
+| End to end | Free, with lead-in: false warnings in the lead-out | 2.73 per 5 min (29 in 53.2 min, 354 lead-outs) | ≤ 1 | fail | 0 | confirmed events of any memorization class on the lead-out's ayahs; all false |
+| End to end | Memorization precision | 80.6% (29/36) |  | info | 0 | help eval split, held-out speakers: 388 clips, 29 speakers; free recitation, default policy; no lead-in, info only: the clip starts the recitation |
+| End to end | Memorization recall | 45.3% (29/64) |  | info | 0 |  |
+| End to end | wrong_word precision | 37.5% (3/8) |  | info | 0 |  |
+| End to end | wrong_word recall | 10.3% (3/29) |  | info | 0 |  |
 | End to end | omitted_word precision | 100.0% (26/26) |  | info | 0 |  |
 | End to end | omitted_word recall | 74.3% (26/35) |  | info | 0 |  |
 | End to end | added_word precision | — (0 raised) |  | unmeasurable |  |  |
 | End to end | added_word recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
 | End to end | skipped_passage precision | 0.0% (0/2) |  | info | 0 |  |
 | End to end | skipped_passage recall | — (0 positives) |  | unmeasurable |  | no confirmed positives in the eval split |
-| End to end | False warnings per clean clip | 0.013 (3/225) |  | info | +0.004 |  |
-| End to end | False warnings per 5 min (short clips) | 0.324 | ≤ 1 | pass | +0.108 | short clips; the gating number needs phase-2 long sessions |
+| End to end | False warnings per clean clip | 0.013 (3/225) |  | info | 0 |  |
+| End to end | False warnings per 5 min (short clips) | 0.324 | ≤ 1 | pass | 0 | short clips; the gating number needs phase-2 long sessions |
 | End to end | False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass | 0 |  |
-| End to end | Free: unambiguous precision | 80.6% (29/36) |  | info | -6.9 pp | excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here |
-| End to end | Free: unambiguous recall | 76.3% (29/38) |  | info | +2.6 pp |  |
+| End to end | Free: unambiguous precision | 80.6% (29/36) |  | info | 0 | excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here |
+| End to end | Free: unambiguous recall | 76.3% (29/38) |  | info | 0 |  |
 | End to end | Free: mutashabihat precision | —% (0/0) |  | info |  | planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed; needs declared passage or position hint |
 | End to end | Free: mutashabihat recall | 0.0% (0/26) |  | info | 0 |  |
 | End to end | Pronunciation: short_vowel | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 30 positives in eval split |
 | End to end | Pronunciation: consonant_sad_sin | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 4 positives in eval split |
 | End to end | Pronunciation: madd_natural | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 1 positives in eval split |
 | End to end | Pronunciation: other pairs, shadda | — |  | unmeasurable |  | no recordings with positives (ticket 05, phase 2) |
-| End to end | Tracker real-time factor (this machine) | 0.002 | ≤ 0.05 | pass | +0 | perf.ts gate: device floor assumed 20× slower; slowest push 29.1 ms |
+| End to end | Tracker real-time factor (this machine) | 0.002 | ≤ 0.05 | pass | +0 | perf.ts gate: device floor assumed 20× slower; slowest push 32.5 ms |
 | End to end | Word highlight p95 / suspected / confirmed latency | — |  | unmeasurable |  | pass --latency <pnpm bench:help report> (packages/sdk); device runs: ticket 10 |
 | Listener | Gold PER (canon vs spliced, human-verified exact) | 4.82% (233 clips) | ≤ 3.7% | fail | 0 | bar: gold PER where fitted declared.precision falls 2 pts below the teacher (3.39%) |
 | Listener | Gold PER: laptop | 10.66% (16 clips) |  | info | 0 |  |
@@ -140,7 +142,7 @@ Newest first. Each run is judged against its parent: the previous run of the sam
 | Tracker | help all: clips with any lock outside the passage | 5.4% (21/388) |  | info | 0 |  |
 | Tracker | help all: median time to correct lock | 2.56 s |  | info | 0 | from first decoded phoneme |
 | Tracker | QUD regression: correct ayah within 5 s | — |  | pending |  | no QUD evidence from spliced-clean-int8 |
-| End to end | Stitched sessions: false wrong/added words per 5 min (free) | — |  | pending |  | teacher evidence only |
+| End to end | Stitched sessions: false wrong/added words per 5 min (free) | 1.46 (217 in 743 min) | ≤ 1 | fail |  | ticket 13 sessions with posteriors (local-window on) and session-end finalisation; 205 mid-session, 12 in the last 20 s, 0 confirmed by the session end; `pnpm stitched-warnings` |
 | Tracker | Ambiguous tlog clips (PLAN gate set) | — |  | unmeasurable |  | no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06) |
 | Tracker | Scripted-error recordings (PLAN gate set) | — |  | unmeasurable |  | no recordings yet (ticket 05) |
 | Checker | Declared passage: Memorization precision | 87.5% (56/64) | ≥ 90.0% | fail | 0 | declared passage (CheckerOptions.passage): the prompted passage, real tracker and evidence |
@@ -160,17 +162,17 @@ Newest first. Each run is judged against its parent: the previous run of the sam
 | Checker | Declared passage: unambiguous recall | 92.1% (35/38) | ≥ 80.0% | pass | 0 |  |
 | Checker | Declared passage: mutashabihat precision | 100.0% (21/21) | ≥ 90.0% | pass | 0 | planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed |
 | Checker | Declared passage: mutashabihat recall | 80.8% (21/26) | ≥ 80.0% | pass | 0 |  |
-| Checker | Declared, with lead-in: Memorization precision | 78.9% (56/71) | ≥ 90.0% | fail | +3.5 pp | declared passage from the lead-in's first ayah; leadin-v2: 346/388 clips get 1–2 preceding ayahs (first ayah of the surah 18, help-other-speaker 17, help-same-speaker 4, no clean recitation of the preceding ayah 24, tlog-heldout 255, tlog-train 70), 354/388 1–2 following ayahs (help-other-speaker 31, help-same-speaker 2, last ayah of the surah 20, no clean recitation of the following ayah 14, tlog-heldout 251, tlog-train 70), 600 ms silence, stitched at the evidence level; errors and false positives scored inside the original clip |
-| Checker | Declared, with lead-in: Memorization recall | 87.5% (56/64) | ≥ 80.0% | pass | +1.6 pp |  |
+| Checker | Declared, with lead-in: Memorization precision | 78.9% (56/71) | ≥ 90.0% | fail | 0 | declared passage from the lead-in's first ayah; leadin-v2: 346/388 clips get 1–2 preceding ayahs (first ayah of the surah 18, help-other-speaker 17, help-same-speaker 4, no clean recitation of the preceding ayah 24, tlog-heldout 255, tlog-train 70), 354/388 1–2 following ayahs (help-other-speaker 31, help-same-speaker 2, last ayah of the surah 20, no clean recitation of the following ayah 14, tlog-heldout 251, tlog-train 70), 600 ms silence, stitched at the evidence level; errors and false positives scored inside the original clip |
+| Checker | Declared, with lead-in: Memorization recall | 87.5% (56/64) | ≥ 80.0% | pass | 0 |  |
 | Checker | Declared, with lead-in: False warnings per clean clip | 0.031 (7/225) |  | info | 0 |  |
 | Checker | Declared, with lead-in: False warnings per 5 min (short clips) | 0.757 | ≤ 1 | pass | 0 | short clips; the gating number needs phase-2 long sessions |
 | Checker | Declared, with lead-in: False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass | 0 |  |
-| Checker | Declared, with lead-in: unambiguous precision | 70.0% (35/50) | ≥ 90.0% | fail | +4.6 pp | excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here |
-| Checker | Declared, with lead-in: unambiguous recall | 92.1% (35/38) | ≥ 80.0% | pass | +2.6 pp |  |
+| Checker | Declared, with lead-in: unambiguous precision | 70.0% (35/50) | ≥ 90.0% | fail | 0 | excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here |
+| Checker | Declared, with lead-in: unambiguous recall | 92.1% (35/38) | ≥ 80.0% | pass | 0 |  |
 | Checker | Declared, with lead-in: mutashabihat precision | 100.0% (21/21) | ≥ 90.0% | pass | 0 | planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed |
 | Checker | Declared, with lead-in: mutashabihat recall | 80.8% (21/26) | ≥ 80.0% | pass | 0 |  |
-| Checker | Declared, with lead-in: false warnings in the lead-in | 0.81 per 5 min (9 in 55.4 min) | ≤ 1 | pass | -0.361 |  |
-| Checker | Declared, with lead-in: false warnings in the lead-out | 2.82 per 5 min (30 in 53.2 min) | ≤ 1 | fail |  |  |
+| Checker | Declared, with lead-in: false warnings in the lead-in | 0.81 per 5 min (9 in 55.4 min) | ≤ 1 | pass | 0 |  |
+| Checker | Declared, with lead-in: false warnings in the lead-out | 2.82 per 5 min (30 in 53.2 min) | ≤ 1 | fail | 0 |  |
 | Checker | Oracle lock + evidence: Memorization precision | 100.0% (60/60) | ≥ 90.0% | pass | 0 | oracle lock + oracle evidence synthesised from labels (Decision 7); 0 clips with an unphonemizable planted word skipped |
 | Checker | Oracle lock + evidence: Memorization recall | 93.8% (60/64) | ≥ 80.0% | pass | 0 |  |
 | Checker | Oracle lock + evidence: wrong_word precision | 100.0% (25/25) | ≥ 90.0% | pass | 0 |  |
@@ -186,6 +188,6 @@ Newest first. Each run is judged against its parent: the previous run of the sam
 | Checker | Oracle lock + evidence: False positives on repeats | 0 (23 repeat clips) | ≤ 0 | pass | 0 |  |
 | Checker | Oracle lock + evidence: positives raised in any state | 93.8% (60/64) |  | info | 0 | the rest of the gap to recall is events still suspected/uncertain at clip end (confirmation delay on short clips) |
 | Checker | E0: misses lost to evidence | 6/35 |  | info | 0 |  |
-| Checker | E0: misses lost to tracker | 27/35 |  | info | -1 |  |
+| Checker | E0: misses lost to tracker | 27/35 |  | info | 0 |  |
 | Checker | E0: misses lost to checker | 2/35 |  | info | 0 | real upstream, free arm |
 | Checker | Self-correction / long-session false warnings | — |  | unmeasurable |  | no recordings (ticket 05) |

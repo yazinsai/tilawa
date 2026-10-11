@@ -118,3 +118,21 @@ Background: [Tilawa research report](../research-listener-2026-10-07.md), especi
   - phase 2 (needs ticket 05);
   - the tracker gate on ambiguous tlog clips (they have no passage labels);
   - lead-out false warnings at 2.7 per 5 min. Next check: the rate on long stitched sessions (ticket 13), to tell a short-session artifact from a real problem.
+
+### Lead-out false warnings on long stitched sessions (2026-10-11)
+
+Agent note. Report `docs/benchmarks/stitched-warnings-v1.md` (+ `.json`), run with `pnpm --filter @tilawa/core stitched-warnings`. Ticket 13's 129 clean sessions (747 min), confirmed false wrong/added words from the free-recitation checker, with posteriors (local-window on). int8 tlog clips were fetched with `tools/jumps_build.py --audio` and decoded locally. No Modal runs.
+
+- `e2e.stitched.falseWords` (2.07) already counted confirmed checker warnings, but `pnpm jumps` replays without posteriors, so local-window confirmation never ran. With posteriors the teacher gives 211 warnings, 1.41 per 5 min. The scoreboard gate now reads the new report for both listeners. int8 is measured for the first time there: 1.46.
+- Where the warnings land (the session end is the last 20 s plus anything confirmed by `checker.end()`):
+
+  | Listener | Finalise | Total (per 5 min) | Mid-session | Last 20 s, live | Confirmed by session end | End region per 5 min |
+  |---|---|---:|---:|---:|---:|---:|
+  | teacher | on | 211 (1.41) | 199 (1.41) | 10 | 2 | 1.40 |
+  | teacher | off | 209 (1.40) | 199 (1.41) | 10 | 0 | 1.16 |
+  | int8 | on | 217 (1.46) | 205 (1.47) | 12 | 0 | 1.40 |
+  | int8 | off | 217 (1.46) | 205 (1.47) | 12 | 0 | 1.40 |
+
+- By source, int8 gives 1.38 per 5 min on tlog (706 min) and 2.84 on the help-speaker sessions (40 min, 23 warnings). The int8 lead-out rate is 2.73, and lead-outs mostly come from the same help speakers.
+
+**Verdict: the checker, not short sessions.** The session end isn't special on long sessions: the end-region rate matches the mid-session rate, and finalisation adds 0 (int8) or 2 (teacher) warnings in 129 session ends. The int8 lead-out rate matches its long-session rate on help-speaker audio. The baseline on clean continuous recitation is about 1.4 per 5 min, already above the ≤ 1 bar. One part is a short-session artifact: the teacher's lead-out jump with finalisation (10 → 36). int8's moved only 25 → 29. The next lever is the checker's confirmation step (local-window margin, confidence floor), not session-end handling.
