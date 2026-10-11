@@ -3,7 +3,14 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tilawa · Engine progress</title>
-<link rel="stylesheet" href="scoreboard.css?v=component-replay">
+<script>
+(() => {
+  const saved = localStorage.getItem('tilawa-theme');
+  const dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+})();
+</script>
+<link rel="stylesheet" href="scoreboard.css?v=dark-mode">
 <script src="scoreboard-review-model.js" defer></script>
 <script src="scoreboard-review-store.js" defer></script>
 <script src="scoreboard-replay.js" defer></script>
@@ -11,7 +18,25 @@
 <script src="scoreboard.js" defer></script>
 </head>
 <body>
-<header><a class="brand" href="scoreboard.html">tilawa <span class="wordmark-ar" lang="ar" dir="rtl">تلاوة</span> <span class="brand-sub">/ progress</span></a><a href="scoreboard.md">Test guide ↗</a></header>
+<header><a class="brand" href="scoreboard.html">tilawa <span class="wordmark-ar" lang="ar" dir="rtl">تلاوة</span> <span class="brand-sub">/ progress</span></a><div class="header-actions"><button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode">◐</button><a href="scoreboard.md">Test guide ↗</a></div></header>
+<script>
+(() => {
+  const root = document.documentElement;
+  const button = document.getElementById('theme-toggle');
+  const sync = () => button.setAttribute('aria-pressed', String(root.dataset.theme === 'dark'));
+  button.addEventListener('click', () => {
+    root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('tilawa-theme', root.dataset.theme);
+    sync();
+  });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+    if (localStorage.getItem('tilawa-theme')) return;
+    root.dataset.theme = event.matches ? 'dark' : 'light';
+    sync();
+  });
+  sync();
+})();
+</script>
 <main>
 <div class="page-heading"><div><span class="eyebrow">RECITATION QUALITY · TILAWA</span><h1>Tilawa’s progress</h1><p>See the test results, listen to recordings and review mistakes.</p></div><div class="controls"><label for="candidate">Version to review</label><select id="candidate"></select><div class="muted">Results from recorded tests</div></div></div>
 <div id="content" aria-live="polite"><p class="notice">Loading test results…</p></div>
