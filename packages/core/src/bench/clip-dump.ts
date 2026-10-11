@@ -8,11 +8,13 @@ import { alignRef, attribute } from "./acceptance.js";
 import type { AcceptanceClip, ClipScore, LabelEvent, StartGate } from "./acceptance.js";
 import type { Segment } from "./jumps.js";
 
-export const CLIP_DUMP_VERSION = 1;
+export const CLIP_DUMP_VERSION = 2;
 
 export type DumpArm = "free" | "declared" | "oracle" | "leadFree" | "leadDeclared";
 
 export interface DumpEvent {
+  /** Original final checker event; present on reports, never on benchmark misses. */
+  checkerEvent?: CheckerEvent;
   errorClass: string;
   /** "surah:ayah:word". */
   at: string;
@@ -34,6 +36,8 @@ export interface DumpMiss extends DumpEvent {
 }
 
 export interface DumpArmResult {
+  /** Final states including suspected, uncertain and resolved reports, before context filtering. */
+  engineEvents: DumpEvent[];
   hits: string[];
   misses: DumpMiss[];
   falsePositives: DumpEvent[];
@@ -65,6 +69,8 @@ export interface DumpClip {
   ayahs: string[];
   audio: string;
   durationS: number;
+  /** Original source label, including unsupported classes and non-errors omitted from memorization scoring. */
+  sourceLabel?: Record<string, unknown>;
   labels: (LabelEvent & { expected?: string; observed?: string })[];
   repeats: string[];
   words: DumpWord[];
@@ -77,6 +83,15 @@ export interface ClipDump {
   listener: string;
   recordedAt: string;
   clips: DumpClip[];
+  /** Local replay provenance; older dumps use explicitly marked benchmark defaults. */
+  replay?: {
+    helpEvidenceDir: string;
+    helpEvidenceLayout?: "flat" | "wav";
+    leadEvidenceDir?: string;
+    referenceAsset: string;
+    phraseAsset: string;
+    settings: { chunkMs: number; acquireMs: number; minConfidence: number; confirmMs: number; localWindow: boolean; finaliseFree: boolean };
+  };
 }
 
 const at = (r: WordRef) => `${r.surah}:${r.ayah}:${r.word}`;
@@ -136,12 +151,13 @@ export function dumpArm(index: ReferenceIndex, clip: AcceptanceClip, words: Dump
     }
     return { seekS: Math.max(0, t - offsetS - EMIT_LEAD_S), audio };
   };
-  const ev = (e: CheckerEvent): DumpEvent => ({ errorClass: e.errorClass, at: at(e.location), state: e.state, expected: e.expected, observed: e.observed, confidence: e.confidence, ...place(e) });
+  const ev = (e: CheckerEvent): DumpEvent => ({ errorClass: e.errorClass, at: at(e.location), state: e.state, expected: e.expected, observed: e.observed, confidence: e.confidence, checkerEvent: e, ...place(e) });
   const causes = o.declared ? new Map(attribute(index, clip, o.score, o.declared).map((a) => [sig(a.miss), a.cause])) : null;
   const finals = new Map(o.score.final.map((e) => [sig(e), e.state]));
   const missed = new Set(o.score.misses.map(sig));
   const onAyahs = (ayahs: string[] | undefined) => (e: CheckerEvent) => !!ayahs?.includes(ayahOf(e.location));
   return {
+    engineEvents: (o.raw ?? o.score).final.map(ev),
     hits: clip.events.filter((e) => e.state === "confirmed" && !missed.has(sig(e)) && o.score.confirmed.some((c) => sig(c) === sig(e))).map(sig),
     misses: o.score.misses.map((m) => ({
       errorClass: m.errorClass, at: at(m.location), state: m.state, forms_other_ayah: !!m.forms_other_ayah,

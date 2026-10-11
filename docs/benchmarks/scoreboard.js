@@ -1,7 +1,7 @@
 'use strict';
 // Mirrors gap/moves/verdict/parentOf/biggestLever in packages/core/src/bench/scoreboard.ts; gates come from scoreboard.json.
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const plain = s => String(s ?? '').replaceAll('lead-out recitation', 'clean recitation after the test clip').replaceAll('lead-in recitation', 'clean recitation before the test clip').replaceAll('lead-outs', 'added endings').replaceAll('lead-ins', 'added beginnings').replaceAll('lead-in', 'surrounding recitation').replaceAll('lead-out', 'recitation after the test clip').replaceAll('stitched sessions', 'combined recordings');
+const plain = s => String(s ?? '').replaceAll('lead-out recitation', 'recitation after the test clip').replaceAll('lead-in recitation', 'recitation before the test clip').replaceAll('lead-outs', 'added endings').replaceAll('lead-ins', 'added beginnings').replaceAll('lead-in', 'surrounding recitation').replaceAll('lead-out', 'recitation after the test clip').replaceAll('stitched sessions', 'combined recordings');
 const num = m => typeof m?.value === 'number' && Number.isFinite(m.value);
 const metric = (r,id) => r?.metrics.find(m => m.id === id);
 const fmt = (v,u) => v == null ? '—' : u === '%' ? `${(v*100).toFixed(1)}%` : u === 's' ? `${v.toFixed(2)} s` : String(+v.toFixed(3));
@@ -10,7 +10,7 @@ const barText = m => m?.bar ? `${m.bar.op === '>=' ? '≥' : '≤'} ${fmt(m.bar.
 const gap = m => { if(!m?.bar || !num(m)) return Infinity; const s = m.bar.op === '>=' ? m.bar.target - m.value : m.value - m.bar.target; return s <= 0 ? 0 : s / (m.bar.target || 1); };
 const counts = m => { const x = m?.display?.match(/\((\d+)\/(\d+)\)/); return x ? {hit:+x[1], of:+x[2]} : null; };
 const lowerBetter = m => m?.bar ? m.bar.op === '<=' : /PER|false|jump|lost|rtf|latency|time/i.test(`${m?.id} ${m?.name}`);
-const VERDICT = {better:'↑ Improved',worse:'↓ Regressed',mixed:'Mixed results',noise:'Small change',unchanged:'No release check changed'};
+const VERDICT = {better:'↑ Improved',worse:'↓ Worse',mixed:'Mixed results',noise:'Small change',unchanged:'Release checks unchanged'};
 
 function move(a,b,flipOnly){
  if(!num(a) || !num(b) || Math.abs(b.value-a.value) < 1e-9) return null;
@@ -46,28 +46,28 @@ const label = r => `${r.listener} @ ${r.sha.slice(0,7)} · ${r.date}`;
 let board, rows, gates, blocked, cand;
 
 const CHECKS = {
- 'e2e.leadin.recall': ['Mistakes caught', 'Automatic passage recognition', 'How many real mistakes the engine detects, with clean recitation before and after the test clip.'],
- 'e2e.leadin.precision': ['Warnings you can trust', 'Automatic passage recognition', 'How many warnings point to a real mistake, rather than a false alarm.'],
- 'checker.oracleLock.recall': ['Mistakes caught', 'Passage provided', 'How many real mistakes the engine detects when it is given the passage.'],
- 'checker.oracleLock.precision': ['Warnings you can trust', 'Passage provided', 'How many warnings are correct when the engine is given the passage.'],
- 'e2e.cleanPer5': ['False alarms in test clips', 'Per 5 minutes of clean recitation', 'Warnings raised on clean short recordings, normalized to five minutes.'],
- 'e2e.stitched.falseWords': ['False alarms in longer sessions', 'Per 5 minutes of combined recordings', 'Longer recordings test whether false alarms build up over time.'],
- 'e2e.repeatFp': ['False alarms on repeated words', 'Repeating is allowed', 'A repeated word should not be treated as a mistake.'],
- 'e2e.leadin.leadWarnings': ['False alarms before the test clip', 'Per 5 minutes of added clean recitation', 'These warnings happened in the clean recitation added before the original test clip.'],
- 'e2e.leadin.followWarnings': ['False alarms after the test clip', 'Per 5 minutes of added clean recitation', 'These warnings happened in the clean recitation added after the original test clip.'],
+ 'e2e.leadin.recall': ['Labelled mistakes reported', 'Automatic passage recognition', 'How often the engine reports a labelled mistake at the right word and with the right type. This setup adds recitation before and after the clip.'],
+ 'e2e.leadin.precision': ['Warnings that agree with the labels', 'Automatic passage recognition', 'How often scored warnings agree with the labels. Both the mistake type and word must be the same.'],
+ 'checker.oracleLock.recall': ['Labelled mistakes reported', 'Passage provided', 'How often the engine reports a labelled mistake at the right word and with the right type, when it is given the passage.'],
+ 'checker.oracleLock.precision': ['Warnings that agree with the labels', 'Passage provided', 'How often scored warnings agree with the labels when the engine is given the passage. Both the mistake type and word must be the same.'],
+ 'e2e.cleanPer5': ['Warnings on clips labelled as correct', 'Per 5 minutes of audio labelled as correct', 'Warnings on short clips labelled as correct, shown as a rate per five minutes.'],
+ 'e2e.stitched.falseWords': ['Warnings on recordings labelled as correct', 'Per 5 minutes of combined recordings', 'Longer recordings labelled as correct test whether warnings build up over time.'],
+ 'e2e.repeatFp': ['Warnings at labelled repeats', 'Repeating is allowed', 'A repeated word should not be treated as a mistake.'],
+ 'e2e.leadin.leadWarnings': ['Warnings before the test clip', 'Per 5 minutes of added audio', 'Warnings in the added recording before the clip. That recording is labelled as correct.'],
+ 'e2e.leadin.followWarnings': ['Warnings after the test clip', 'Per 5 minutes of added audio', 'Warnings in the added recording after the clip. That recording is labelled as correct.'],
  'listener.goldPer': ['Sound recognition errors', 'Audio recognition', 'The share of speech sounds the listener gets wrong. Lower is better.'],
- 'tracker.clean.within5s': ['Passage found within 5 seconds', 'Passage recognition', 'How often the engine recognizes the correct ayah within five seconds.'],
- 'tracker.clean.falseJumps': ['Unexpected passage changes', 'Passage recognition', 'How often the engine incorrectly jumps to another passage.'],
- 'e2e.perfRtf': ['Processing speed', 'Compute time ÷ recording time', 'A value of 0.05 means five seconds of processing for every 100 seconds of audio. Lower is better.'],
+ 'tracker.clean.within5s': ['Passage found within 5 seconds', 'Passage recognition', 'How often the engine finds an ayah from the test passage within five seconds of the first recognised sound.'],
+ 'tracker.clean.falseJumps': ['Jumps to the wrong passage', 'Passage recognition', 'How often the engine incorrectly jumps to another passage.'],
+ 'e2e.perfRtf': ['Processing speed', 'Processing time ÷ audio length', 'A value of 0.05 means five seconds of processing for every 100 seconds of audio. Lower is better.'],
 };
 function readiness(){
  const mine = rows.filter(r => r.listener === cand), last = mine.at(-1), prev = mine.at(-2);
- if(!last) return `<div class="notice">No runs for candidate ${esc(cand)}.</div>`;
+ if(!last) return `<div class="notice">No recorded tests for ${esc(cand)}.</div>`;
  const ranked = gates.map(g => ({g, m:metric(last,g.id)})).sort((a,b) => (Number(!num(a.m)) - Number(!num(b.m))) || gap(b.m) - gap(a.m));
  const failing = ranked.filter(x => x.m?.status === 'fail').length, open = ranked.filter(x => !num(x.m)).length;
  const unmeasured = blocked.filter(b => !last.metrics.some(m => (m.id === b.id || m.id.startsWith(b.id + '.')) && num(m)));
  const ready = !failing && !open && !unmeasured.length;
- const summary = ready ? 'All release checks meet their targets.' : !failing && !open ? `Measured checks pass. Evidence is still missing in ${unmeasured.length} areas.` : `${failing ? `${failing} ${failing === 1 ? 'check needs' : 'checks need'} improvement` : 'Measured checks pass'}${open ? `${failing ? ' and' : ', but'} ${open} still ${open === 1 ? 'needs' : 'need'} to be measured` : ''}. Explore the results below, or listen to the recordings.`;
+ const summary = ready ? 'All release checks meet their targets.' : !failing && !open ? `Measured checks pass. Results are still missing in ${unmeasured.length} areas.` : `${failing ? `${failing} ${failing === 1 ? 'check needs' : 'checks need'} improvement` : 'Measured checks pass'}${open ? `${failing ? ' and' : ', but'} ${open} still ${open === 1 ? 'needs' : 'need'} to be measured` : ''}. See the results below or listen to the recordings.`;
  const passing = ranked.filter(x => num(x.m) && x.m.status === 'pass');
  const attention = ranked.filter(x => !num(x.m) || x.m.status !== 'pass');
  const card = ({g,m}) => {
@@ -78,12 +78,12 @@ function readiness(){
   return `<article class="check-card ${pass ? 'is-pass' : available ? 'is-fail' : 'is-pending'}"><div class="check-top"><span class="check-context">${esc(context)}</span><span class="check-status">${pass ? '✓ Passing' : available ? 'Needs improvement' : 'Not measured'}</span></div><h3>${esc(title)}</h3><div class="check-reading"><strong>${available ? esc(reading) : '—'}</strong><span>${m?.bar ? `Target: ${m.bar.op === '>=' ? 'at least' : 'at most'} ${esc(fmt(m.bar.target,m.unit))}` : 'Awaiting results'}</span></div><p>${esc(help)}</p><div class="check-bottom"><span class="check-movement">${available && num(previous) ? `${delta(previous,m)} <span class="small">since last run</span>` : '<span class="small">No earlier measurement</span>'}</span>${review ? `<button class="text-button" data-gate="${esc(g.id)}">Listen to examples <span aria-hidden="true">↗</span></button>` : ''}</div><details class="check-evidence"><summary>Measurement details</summary><p>${esc(plain(show(m)))}</p></details></article>`;
  };
  const lv = lever(last), stageNames = {Listener:'Recognizing the sounds', Tracker:'Finding the passage', Checker:'Checking for mistakes'};
- return `<section class="readiness" aria-labelledby="readiness-title"><div class="release-summary"><div class="release-copy"><span class="eyebrow">RELEASE READINESS</span><h2 id="readiness-title">${ready ? 'Ready for the next step.' : 'A few things to improve.'}</h2><p>${esc(summary)}</p><div class="release-meta"><span class="release-state ${ready ? 'pass' : 'fail'}">${ready ? '✓ Ready to release' : 'Not ready to release'}</span><span>${esc(last.date)} · <code>${esc(last.sha.slice(0,7))}</code></span></div></div><div class="release-progress"><div class="progress-total"><strong>${passing.length}</strong><span>of ${gates.length}<br>checks passing</span></div><div class="progress-segments" aria-label="${passing.length} of ${gates.length} checks passing">${ranked.map(({m}) => `<span class="${m?.status === 'pass' ? 'passed' : num(m) ? 'failed' : 'pending'}"></span>`).join('')}</div><a class="primary-link" href="#review">Listen & review <span aria-hidden="true">↓</span></a></div></div><div class="section-heading"><h2>What needs attention</h2><span class="small">Latest recorded results</span></div><div class="check-grid">${attention.map(card).join('') || '<p class="empty">All checks are passing.</p>'}</div><details class="passed-checks"><summary><span>✓ ${passing.length} checks are passing</span><span class="small">View results</span></summary><div class="check-grid">${passing.map(card).join('')}</div></details>${unmeasured.length ? `<details class="coverage"><summary><span>More evidence needed before release</span><span class="count-pill">${unmeasured.length} areas</span></summary><p>These areas also block release. Recordings or measurements are still missing.</p><ul>${unmeasured.map(b => `<li>${esc(plain(b.label))}</li>`).join('')}</ul></details>` : ''}${lv ? `<details class="coverage"><summary>Where are mistakes being missed?</summary><p>For test clips with deliberately added mistakes, these are the stages responsible for misses in automatic passage recognition.</p><div class="loss-stages">${lv.e0.map(x => `<div><span>${stageNames[x.label]}</span><strong>${x.m.value} <small>misses</small></strong><div class="track"><div class="fill" style="width:${x.m.value/lv.of*100}%"></div></div></div>`).join('')}</div></details>` : ''}</section>`;
+ return `<section class="readiness" aria-labelledby="readiness-title"><div class="release-summary"><div class="release-copy"><span class="eyebrow">RELEASE READINESS</span><h2 id="readiness-title">${ready ? 'All checks pass.' : 'Some checks need work.'}</h2><p>${esc(summary)}</p><div class="release-meta"><span class="release-state ${ready ? 'pass' : 'fail'}">${ready ? '✓ Ready to release' : 'Not ready to release'}</span><span>${esc(last.date)} · <code>${esc(last.sha.slice(0,7))}</code></span></div></div><div class="release-progress"><div class="progress-total"><strong>${passing.length}</strong><span>of ${gates.length}<br>checks passing</span></div><div class="progress-segments" aria-label="${passing.length} of ${gates.length} checks passing">${ranked.map(({m}) => `<span class="${m?.status === 'pass' ? 'passed' : num(m) ? 'failed' : 'pending'}"></span>`).join('')}</div><a class="primary-link" href="#review">Listen and review <span aria-hidden="true">↓</span></a></div></div><div class="section-heading"><h2>What needs attention</h2><span class="small">Latest recorded results</span></div><div class="check-grid">${attention.map(card).join('') || '<p class="empty">All checks are passing.</p>'}</div><details class="passed-checks"><summary><span>✓ ${passing.length} checks are passing</span><span class="small">View results</span></summary><div class="check-grid">${passing.map(card).join('')}</div></details>${unmeasured.length ? `<details class="coverage"><summary><span>More test results needed before release</span><span class="count-pill">${unmeasured.length} areas</span></summary><p>These areas also block release. Recordings or measurements are still missing.</p><ul>${unmeasured.map(b => `<li>${esc(plain(b.label))}</li>`).join('')}</ul></details>` : ''}${lv ? `<details class="coverage"><summary>Why were labelled mistakes not reported?</summary><p>In <b>Automatic · clip only</b>, ${lv.of} labelled mistakes were not reported${counts(metric(last,'e2e.recall')) ? ` out of ${counts(metric(last,'e2e.recall')).of} labelled mistakes in the score` : ''}. Choose a stage to hear examples and check the possible cause. The review section below starts with surrounding recitation, so its totals differ.</p><div class="loss-stages">${lv.e0.map(x => `<button class="loss-stage" data-gate="${esc(x.m.id)}"><span>${stageNames[x.label]}</span><strong>${x.m.value} <small>not reported ↗</small></strong><div class="track"><div class="fill" style="width:${x.m.value/lv.of*100}%"></div></div></button>`).join('')}</div></details>` : ''}</section>`;
 }
 
 function experiments(){
  const listeners = [...new Set(rows.map(r => r.listener))];
- return `<section class="panel"><div class="section-top"><div><h2>Experiments</h2><p>Each experiment is compared with its previous run. For a new audio model, the comparison uses the release candidate. Changes affecting two clips or fewer are shown as small changes.</p></div><div class="filters"><select id="exp-listener" aria-label="Audio model"><option value="">All audio models</option>${listeners.map(l => `<option>${esc(l)}</option>`).join('')}</select><select id="exp-verdict" aria-label="Experiment outcome"><option value="">All outcomes</option>${Object.entries(VERDICT).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}</select></div></div><div id="exp-list"></div></section>`;
+ return `<section class="panel"><div class="section-top"><div><h2>Experiments</h2><p>Each run is compared with its previous run. A new audio model is compared with the selected version. Changes affecting at most two clips are marked as small.</p></div><div class="filters"><select id="exp-listener" aria-label="Audio model"><option value="">All audio models</option>${listeners.map(l => `<option>${esc(l)}</option>`).join('')}</select><select id="exp-verdict" aria-label="Experiment outcome"><option value="">All outcomes</option>${Object.entries(VERDICT).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}</select></div></div><div id="exp-list"></div></section>`;
 }
 function renderExperiments(){
  const l = document.getElementById('exp-listener').value, v = document.getElementById('exp-verdict').value;
@@ -95,7 +95,7 @@ function renderExperiments(){
 
 function compare(){
  const opts = rows.map((r,i) => `<option value="${i}">${esc(label(r))}</option>`).reverse().join('');
- return `<section class="panel" id="compare"><div class="section-top"><div><h2>Compare two runs</h2><p>See which measurements changed. Release checks are marked ●.</p></div><div class="filters"><select id="cmp-a" aria-label="Earlier run">${opts}</select><span>→</span><select id="cmp-b" aria-label="Later run">${opts}</select><label class="small"><input type="checkbox" id="cmp-all"> show unchanged</label></div></div><div id="cmp-out"></div></section>`;
+ return `<section class="panel" id="compare"><div class="section-top"><div><h2>Compare two runs</h2><p>See which measurements changed. ● marks a release check.</p></div><div class="filters"><select id="cmp-a" aria-label="Earlier run">${opts}</select><span>→</span><select id="cmp-b" aria-label="Later run">${opts}</select><label class="small"><input type="checkbox" id="cmp-all"> Show unchanged results</label></div></div><div id="cmp-out"></div></section>`;
 }
 function renderCompare(){
  const a = rows[+document.getElementById('cmp-a').value], b = rows[+document.getElementById('cmp-b').value], all = document.getElementById('cmp-all').checked;
@@ -103,15 +103,15 @@ function renderCompare(){
  const list = b.metrics.map(m => { const o = metric(a,m.id), mv = move(o,m,false), rel = mv ? Math.abs(m.value - o.value) / Math.max(Math.abs(o.value), .01) : -1; return {m, o, mv, rel}; })
   .filter(x => all || x.mv || (x.o && x.o.status !== x.m.status)).sort((x,y) => (gateIds.has(y.m.id) - gateIds.has(x.m.id)) || ((y.mv && !y.mv.small) - (x.mv && !x.mv.small)) || y.rel - x.rel);
  const v = verdict(moves(a,b,gates));
- document.getElementById('cmp-out').innerHTML = `<p><span class="vd ${v}">${VERDICT[v]}</span> on release checks · ${list.filter(x => x.mv?.better).length} metrics better, ${list.filter(x => x.mv && !x.mv.better).length} worse</p><div class="table-wrap"><table class="gates"><thead><tr><th>Metric</th><th>${esc(label(a))}</th><th>${esc(label(b))}</th><th>Change</th><th>Target</th></tr></thead><tbody>${list.map(({m,o}) => `<tr><td>${gateIds.has(m.id) ? '● ' : ''}<span class="area">${esc(m.group)}</span> ${esc(plain(m.name))}</td><td>${esc(show(o))}</td><td><b>${esc(plain(show(m)))}</b></td><td>${delta(o,m)}</td><td>${esc(barText(m))} ${m.status === 'pass' ? '✓' : m.status === 'fail' ? '✗' : ''}</td></tr>`).join('') || '<tr><td colspan="5">No differences.</td></tr>'}</tbody></table></div>`;
+ document.getElementById('cmp-out').innerHTML = `<p><span class="vd ${v}">${VERDICT[v]}</span> in release checks · ${list.filter(x => x.mv?.better).length} measurements improved, ${list.filter(x => x.mv && !x.mv.better).length} worse</p><div class="table-wrap"><table class="gates"><thead><tr><th>Measurement</th><th>${esc(label(a))}</th><th>${esc(label(b))}</th><th>Change</th><th>Target</th></tr></thead><tbody>${list.map(({m,o}) => `<tr><td>${gateIds.has(m.id) ? '● ' : ''}<span class="area">${esc(m.group)}</span> ${esc(plain(m.name))}</td><td>${esc(show(o))}</td><td><b>${esc(plain(show(m)))}</b></td><td>${delta(o,m)}</td><td>${esc(barText(m))} ${m.status === 'pass' ? '✓' : m.status === 'fail' ? '✗' : ''}</td></tr>`).join('') || '<tr><td colspan="5">No differences.</td></tr>'}</tbody></table></div>`;
 }
 
 function render(){
  const rv = window.tilawaReview;
- document.getElementById('content').innerHTML = readiness() + (rv ? rv.panel() : '') + '<details class="details"><summary>Experiment history & detailed comparisons</summary>' + experiments() + compare() + '</details>';
+ document.getElementById('content').innerHTML = readiness() + (rv ? rv.panel() : '') + '<details class="details"><summary>Past runs and comparisons</summary>' + experiments() + compare() + '</details>';
  if(rv){
   document.querySelectorAll('[data-gate]').forEach(tr => { if(!rv.hasPreset(tr.dataset.gate)) return; tr.addEventListener('click', () => rv.focusGate(tr.dataset.gate)); });
-  rv.init(cand);
+  rv.init(cand, rows.filter(r => r.listener === cand).at(-1));
  }
  const mine = rows.map((r,i) => i).filter(i => rows[i].listener === cand);
  document.getElementById('cmp-b').value = mine.at(-1) ?? rows.length - 1;

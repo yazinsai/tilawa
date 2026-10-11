@@ -3,15 +3,18 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tilawa · Engine progress</title>
-<link rel="stylesheet" href="scoreboard.css">
+<link rel="stylesheet" href="scoreboard.css?v=component-replay">
+<script src="scoreboard-review-model.js" defer></script>
+<script src="scoreboard-review-store.js" defer></script>
+<script src="scoreboard-replay.js" defer></script>
 <script src="scoreboard-review.js" defer></script>
 <script src="scoreboard.js" defer></script>
 </head>
 <body>
-<header><a class="brand" href="scoreboard.html">tilawa <span class="wordmark-ar" lang="ar" dir="rtl">تلاوة</span> <span class="brand-sub">/ progress</span></a><a href="scoreboard.md">Benchmark guide ↗</a></header>
+<header><a class="brand" href="scoreboard.html">tilawa <span class="wordmark-ar" lang="ar" dir="rtl">تلاوة</span> <span class="brand-sub">/ progress</span></a><a href="scoreboard.md">Test guide ↗</a></header>
 <main>
-<div class="page-heading"><div><span class="eyebrow">RECITATION QUALITY · TILAWA</span><h1>A closer listen.</h1><p>How well does Tilawa listen? Follow the progress, explore the gaps, and hear the evidence.</p></div><div class="controls"><label for="candidate">Version being evaluated</label><select id="candidate"></select><div class="muted">Offline benchmark results</div></div></div>
-<div id="content" aria-live="polite"><p class="notice">Loading benchmark results…</p></div>
-<footer>Offline benchmark evidence · Each point is a recorded run, not a live measurement.<a href="scoreboard.json">View source data ↗</a></footer>
+<div class="page-heading"><div><span class="eyebrow">RECITATION QUALITY · TILAWA</span><h1>Tilawa’s progress</h1><p>See the test results, listen to recordings and review mistakes.</p></div><div class="controls"><label for="candidate">Version to review</label><select id="candidate"></select><div class="muted">Results from recorded tests</div></div></div>
+<div id="content" aria-live="polite"><p class="notice">Loading test results…</p></div>
+<footer>Results from recorded tests.<a href="scoreboard.json">View test data ↗</a></footer>
 </main>
 </body></html>
