@@ -21,6 +21,18 @@ The shipped listener is `spliced-clean`: `full` int8 is 68 MB and `lite` int8 is
 - **Listener gold PER:** 4.82%, against a 3.65% bar.
 - **False warnings in the lead-out:** 2.7 per 5 min, against a bar of 1. This may come from the short stitched sessions, which end inside the lead-out; that's untested.
 
+### Closed, 12 October 2026
+
+The roadmap is closed with v1's bars not yet met. Agent work is finished; the open tickets carry over as human work under their current statuses:
+- 09 and 10 (`ready-for-human`): the phone and browser runs.
+- 05 (deferred): the volunteer recordings.
+- 07 phase 2: needs 05, and so does the tracker gate on user-like audio.
+
+Final numbers for shipped `full` int8 (scoreboard as of `d9ccc9b`):
+- **Declared passage:** precision 87.5% against 90% (fails), recall 87.5% (passes).
+- **Gold PER:** 4.82% against 3.65% (fails).
+- **False warnings on clean long sessions:** 1.46 per 5 min against 1 (fails), from 747 min of stitched sessions (`docs/benchmarks/stitched-warnings-v1.md`). It's not a session-end artifact: finalisation adds 0 warnings, and the rate in the last 20 s matches mid-session. The fix is in how the checker confirms a warning (the local-window margin or a confidence floor).
+
 ## Decisions
 
 1. **Critical path:** prove what the teacher can hear (E1) and build the checker on teacher evidence before spending on distillation. A cheap device probe de-risks the student in parallel.

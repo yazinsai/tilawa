@@ -136,3 +136,5 @@ Agent note. Report `docs/benchmarks/stitched-warnings-v1.md` (+ `.json`), run wi
 - By source, int8 gives 1.38 per 5 min on tlog (706 min) and 2.84 on the help-speaker sessions (40 min, 23 warnings). The int8 lead-out rate is 2.73, and lead-outs mostly come from the same help speakers.
 
 **Verdict: the checker, not short sessions.** The session end isn't special on long sessions: the end-region rate matches the mid-session rate, and finalisation adds 0 (int8) or 2 (teacher) warnings in 129 session ends. The int8 lead-out rate matches its long-session rate on help-speaker audio. The baseline on clean continuous recitation is about 1.4 per 5 min, already above the ≤ 1 bar. One part is a short-session artifact: the teacher's lead-out jump with finalisation (10 → 36). int8's moved only 25 → 29. The next lever is the checker's confirmation step (local-window margin, confidence floor), not session-end handling.
+
+- **Roadmap closed, 2026-10-12:** carried over open; the status is unchanged. See the spec's "Closed" section.

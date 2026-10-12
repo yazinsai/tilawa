@@ -23,3 +23,5 @@
 - **Finding (checker):** the free-recitation checker depends on evidence cadence. Pushing every 320 ms listener step instead of 1 s chunks gives 27/10/37 (73.0% precision); the declared arm is unchanged. The session batches to 1 s by default (`evidenceMs`), which costs word-highlight latency against the 600 ms bar. Worth a checker ticket: results should not depend on chunking.
 - **Web:** Chrome desktop, WASM, 1 thread: RTF 0.092, push p95 35 ms; the sample confirms the labelled wrong word on a help clip. WebGPU fails in ORT's JSEP `Expand` kernel during warmup and falls back to WASM; the reason is shown in the sample.
 - **Not done / for ticket 10:** fp32 is over the 200 MB budget (loads only with `allowOverBudget`); there is no `lite` tier; React Native is typechecked only, not run on a device; phone runs of the sample are still to do.
+
+- **Roadmap closed, 2026-10-12:** carried over open; the status is unchanged. See the spec's "Closed" section.

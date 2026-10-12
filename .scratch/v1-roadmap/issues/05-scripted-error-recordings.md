@@ -29,3 +29,5 @@
 - [ ] Consent: keep CC BY 4.0, and add retention and deletion on request. Deletion needs a speaker-held deletion code, because emails are not linked to recordings.
 - [ ] Recruitment (human): women and non-Arab reciters first, several phones.
 - [ ] Recordings stay out of git.
+
+- **Roadmap closed, 2026-10-12:** carried over open; the status is unchanged. See the spec's "Closed" section.
