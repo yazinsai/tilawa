@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadReferenceIndex } from "../src/reference.js";
 import type { CheckerEvent, PositionEvent, WordRef } from "../src/events.js";
-import { contextAdapter, scoreSessionEvents, validateSession, weakerContexts, qudSession } from "../src/bench/sessions.js";
+import { contextAdapter, scoreSessionEvents, summarizeSessions, validateSession, weakerContexts, qudSession } from "../src/bench/sessions.js";
 import type { BenchSession } from "../src/bench/sessions.js";
 const index = loadReferenceIndex(JSON.parse(readFileSync(new URL("../assets/ref-v2.json", import.meta.url), "utf8")));
 const at: WordRef = { surah: 94, ayah: 5, word: 1 };
@@ -44,6 +44,48 @@ describe("session truth and scoring", () => {
   it("keeps abstentions in recall denominator", () => {
     const r = scoreSessionEvents(session(), [warning("a", 3000, "suspected"), warning("a", 4000, "uncertain")], index);
     expect(r.recall).toBe(0); expect(r.uncertainErrors).toBe(1); expect(r.warnings).toBe(0);
+  });
+  it("reports recall per class and the mutashabihat slice with abstentions as misses", () => {
+    const s = session(); s.events[0].forms_other_ayah = true;
+    s.events.push({ span: "first", location: at, errorClass: "omitted_word", state: "confirmed", startS: 1, endS: 2 });
+    const r = scoreSessionEvents(s, [warning("a", 3000, "confirmed"), { ...warning("b", 2500, "uncertain"), errorClass: "omitted_word" }], index);
+    expect(r.byClass.wrong_word).toEqual({ errors: 1, hits: 1, recall: 1 });
+    expect(r.byClass.omitted_word).toEqual({ errors: 1, hits: 0, recall: 0 });
+    expect(r.byClass.skipped_passage).toEqual({ errors: 0, hits: 0, recall: null });
+    expect(r.mutashabihat).toEqual({ errors: 1, hits: 1, recall: 1 });
+  });
+  it("splits missed errors by abstention cause: checker uncertain, twin ambiguity, general ambiguity", () => {
+    const ambiguous = (timeMs: number, a: number, b: number): PositionEvent => ({ ...position(timeMs), state: "ambiguous",
+      observed: [a, b].map(ayah => ({ word: { surah: 94, ayah, word: 1 }, confidence: 0.5, span: { start: at, end: at } })) } as PositionEvent);
+    expect(scoreSessionEvents(session(), [warning("a", 3000, "uncertain"), ambiguous(1500, 5, 6)], index).abstentions)
+      .toEqual({ uncertain: 1, twinAmbiguous: 0, ambiguous: 0 });
+    expect(scoreSessionEvents(session(), [ambiguous(1500, 5, 6)], index).abstentions).toEqual({ uncertain: 0, twinAmbiguous: 1, ambiguous: 0 });
+    expect(scoreSessionEvents(session(), [ambiguous(2500, 5, 1)], index).abstentions).toEqual({ uncertain: 0, twinAmbiguous: 0, ambiguous: 1 });
+    expect(scoreSessionEvents(session(), [warning("a", 3000, "confirmed"), ambiguous(1500, 5, 6)], index).abstentions)
+      .toEqual({ uncertain: 0, twinAmbiguous: 0, ambiguous: 0 });
+    const clean = { ...session(), events: [] };
+    const r = scoreSessionEvents(clean, [ambiguous(1500, 5, 6), position(2000), ambiguous(5500, 5, 1), ambiguous(5600, 5, 1), warning("u", 6000, "uncertain")], index);
+    expect(r.ambiguousEpisodes).toEqual({ twin: 1, general: 1 }); expect(r.uncertainWarnings).toBe(1);
+  });
+  it("summarizes delays with counts and censoring, abstention shares and per-clean-session rates", () => {
+    const ambiguous = (timeMs: number, a: number, b: number): PositionEvent => ({ ...position(timeMs), state: "ambiguous",
+      observed: [a, b].map(ayah => ({ word: { surah: 94, ayah, word: 1 }, confidence: 0.5, span: { start: at, end: at } })) } as PositionEvent);
+    const rows = [
+      scoreSessionEvents(session(), [warning("a", 3500, "suspected"), warning("a", 4000, "confirmed")], index),
+      scoreSessionEvents(session(), [warning("a", 4000, "suspected"), warning("a", 6000, "confirmed")], index),
+      scoreSessionEvents(session(), [warning("a", 3000, "uncertain")], index),
+      scoreSessionEvents(session(), [ambiguous(1500, 5, 6)], index),
+      scoreSessionEvents({ ...session(), events: [] }, [ambiguous(1500, 5, 6), warning("u", 6000, "uncertain"), warning("v", 9000, "uncertain")], index),
+    ];
+    const [g] = summarizeSessions(rows);
+    expect(g.key).toBe("memorization.assignment.recorded");
+    expect(g.errors).toBe(4); expect(g.recall).toBe(0.5);
+    expect(g.byClass.wrong_word).toEqual({ errors: 4, hits: 2, recall: 0.5 });
+    expect(g.suspectedDelay).toEqual({ n: 2, p50: 0.5, p90: 1, censoredByMiss: 2 });
+    expect(g.confirmedDelay).toEqual({ n: 2, p50: 1, p90: 3, censoredByMiss: 2 });
+    expect(g.abstentionShare).toEqual({ uncertain: 0.25, twinAmbiguous: 0.25, ambiguous: 0 });
+    expect(g.cleanSessions).toBe(1);
+    expect(g.perCleanSession).toEqual({ uncertain: 2, twinAmbiguous: 1, ambiguous: 0 });
   });
   it("holds displayed positions, counts wrong locks and ignores long silence", () => {
     const r = scoreSessionEvents(session(), [position(1000), position(6000, { surah: 1, ayah: 1, word: 1 })], index);
