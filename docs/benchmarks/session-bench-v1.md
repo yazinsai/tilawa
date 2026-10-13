@@ -38,7 +38,9 @@ Two final words were initially rejected because rounded evidence-frame duration 
 
 All 16 recordings convert (`session-qud-audit-v1.json`). Repeat plus restart counts equal each recording's QUD `repeat_events`, except the prayer recordings, where the extra restarts are Fatiha recitations: prayer-baqarah-yasin 1, taraweeh-maryam 6, witr-muawwidhat 2. Minshawi, Luqman was previously rejected for a 36 ms final-word overrun; prayer-baqarah-yasin for a final non-Quran interval 92 ms past the audio end.
 
-The all-16 teacher replay previously did not finish: the checker re-runs a windowed alignment on every 40 ms push, and per-cell cost lookups made long, dense recordings take over an hour. Cost tables are now computed once per window and phoneme. The output is identical (Nisa report rows byte-equal) and Nisa replays in 6 s instead of 58 s. `session-qud-teacher-v1.json` holds the all-16 teacher replay.
+The all-16 teacher replay previously did not finish: the checker re-runs a windowed alignment on every 40 ms push, and per-cell cost lookups made long, dense recordings take over an hour. Cost tables are now computed once per window and phoneme. The output is identical (Nisa report rows byte-equal) and Nisa replays in 6 s instead of 58 s. `session-qud-teacher-v1.json` holds the all-16 teacher replay (15 minutes on one CPU core; Afasy, Baqara alone takes 6 minutes).
+
+All-16 teacher result, reported only: 208 confirmed false warnings, 3.03 clean-speech false warnings per five minutes over 308.7 clean minutes, 97.37% correctly located sampled time, 67 wrong-position events, 17 warnings on repeat/restart intervals, and 8 of 16 first correct locks within five seconds. Luhaidan, Fatir (noisy, 27 repeats) dominates: 66 false warnings, 33 wrong-position events and 13 non-error warnings. The Diban and Jaber rows match the three-recording teacher baseline exactly. These are professional reciters, and the teacher evidence may overlap training, so this does not estimate learner performance.
 
 ## Commands
 
