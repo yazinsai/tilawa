@@ -15,7 +15,11 @@ export type SessionContext = { kind: "none" } | { kind: "surah"; surah: number }
 export interface Interval { startS: number; endS: number }
 export type SessionSpan = Interval & ({ id: string; kind: "recitation" | "repeat" | "restart"; from: WordRef; to: WordRef }
   | { id: string; kind: "non_quran"; label: string });
-export interface SessionEvent extends LabelEvent, Interval { span: string }
+export interface SessionEvent extends LabelEvent, Interval {
+  span: string;
+  /** skipped_passage only: the last skipped word. Its omission horizon counts from here, else from `location`. */
+  through?: WordRef;
+}
 export interface BenchSession {
   version: 1; id: string; track: "recitation" | "memorization"; speaker: string;
   source: "stitched" | "recorded" | "qud"; audio: string; durationS: number; context: SessionContext;
@@ -28,6 +32,7 @@ export interface BenchSession {
 }
 const key = (r: WordRef) => `${r.surah}:${r.ayah}:${r.word}`;
 const ayahKey = (r: WordRef) => `${r.surah}:${r.ayah}`;
+const wordOrd = (w: WordRef) => (w.surah * 1000 + w.ayah) * 1000 + w.word;
 export function validateSession(s: BenchSession, index: ReferenceIndex): void {
   const fail = (why: string): never => { throw new Error(`Session ${s?.id ?? "?"}: ${why}`); };
   const refs = new Map(index.words.map((w, i) => [key(w), i]));
@@ -77,6 +82,7 @@ export function validateSession(s: BenchSession, index: ReferenceIndex): void {
   for (const span of s.spans) if (span.kind !== "non_quran" && !s.words.some(w => w.span === span.id)) fail("span lacks word timing");
   for (const e of s.events) {
     inside(e); ref(e.location);
+    if (e.through && (e.errorClass !== "skipped_passage" || ref(e.through) < ref(e.location))) fail("invalid skipped passage end");
     if (!["wrong_word", "omitted_word", "added_word", "skipped_passage"].includes(e.errorClass)
         || !["confirmed", "resolved", "suspected"].includes(e.state)) fail("unsupported event label");
   }
@@ -101,9 +107,19 @@ export function weakerContexts(c: SessionContext): SessionContext[] {
   return [c, { kind: "none" }];
 }
 const madaniPages: PageAsset = JSON.parse(readFileSync(new URL("../../assets/madani-pages-v1.json", import.meta.url), "utf8"));
-export function contextAdapter(c: SessionContext): { supported: boolean; effective: string; tracker: TrackerOptions; checker: CheckerOptions } {
+const surahLengths = new WeakMap<ReferenceIndex, Map<number, number>>();
+const lastAyah = (index: ReferenceIndex, surah: number) => {
+  let lengths = surahLengths.get(index);
+  if (!lengths) {
+    lengths = new Map();
+    for (const w of index.words) lengths.set(w.surah, Math.max(lengths.get(w.surah) ?? 0, w.ayah));
+    surahLengths.set(index, lengths);
+  }
+  return lengths.get(surah)!;
+};
+export function contextAdapter(c: SessionContext, index: ReferenceIndex): { supported: boolean; effective: string; tracker: TrackerOptions; checker: CheckerOptions } {
   const tracker: TrackerOptions = c.kind === "resume" ? { prior: { surah: c.at.surah, ayah: c.at.ayah, weight: 1 } }
-    : c.kind === "surah" ? { priorRange: { ranges: [{ from: { surah: c.surah, ayah: 1 }, to: { surah: c.surah, ayah: Infinity } }], weight: 1 } }
+    : c.kind === "surah" ? { priorRange: { ranges: [{ from: { surah: c.surah, ayah: 1 }, to: { surah: c.surah, ayah: lastAyah(index, c.surah) } }], weight: 1 } }
     : c.kind === "page" ? { priorRange: { ranges: [pageRange(madaniPages, c.page)], weight: 1 } } : {};
   return { supported: true, effective: c.kind, tracker,
     checker: c.kind === "assignment" ? { passage: { from: c.from, to: c.to } } : {} };
@@ -145,16 +161,50 @@ export interface SessionScore {
   ambiguousEpisodes: { twin: number; general: number };
   assignments: { warningId: string; eventIndex: number | null; confirmed: boolean }[];
 }
+const ordinals = new WeakMap<ReferenceIndex, (w: WordRef) => number>();
+/** Ayah ordinal in Quran order, built once per index. */
+export function ayahOrdinal(index: ReferenceIndex): (w: WordRef) => number {
+  let ay = ordinals.get(index);
+  if (!ay) {
+    const ord = new Map<string, number>();
+    for (const w of index.words) if (!ord.has(ayahKey(w))) ord.set(ayahKey(w), ord.size);
+    ay = (w: WordRef) => ord.get(ayahKey(w))!;
+    ordinals.set(index, ay);
+  }
+  return ay;
+}
+/** Truth words started by `t` that ended at most 2 s before it, latest first. */
+export function recentWords(s: BenchSession, t: number): BenchSession["words"] {
+  let lo = 0, hi = s.words.length;
+  while (lo < hi) { const mid = (lo + hi) >>> 1; if (s.words[mid].startS <= t) lo = mid + 1; else hi = mid; }
+  const out: BenchSession["words"] = [];
+  for (let i = lo - 1; i >= 0 && t - s.words[i].endS <= 2; i--) out.push(s.words[i]);
+  return out;
+}
+/** Quran audio: outside every non-Quran span and within the recent-word tolerance. */
+export function onQuran(s: BenchSession, t: number): boolean {
+  return !s.spans.some(p => p.kind === "non_quran" && p.startS <= t && t < p.endS) && recentWords(s, t).length > 0;
+}
+/** The top observed word is within one ayah of a recently recited word. */
+export function correctPosition(s: BenchSession, p: PositionEvent, t: number, ay: (w: WordRef) => number): boolean {
+  return !!p.observed[0] && recentWords(s, t).some(w => Math.abs(ay(w.at) - ay(p.observed[0].word)) <= 1);
+}
+/** `t` lies in [startS, end] of one occurrence of `at`, before any later visit of `at` in another span starts. */
+export function inOccurrence(s: BenchSession, o: { span: string; at: WordRef; startS: number }, end: number, t: number): boolean {
+  return t >= o.startS && t <= end && !s.words.some(w => w.span !== o.span && key(w.at) === key(o.at) && w.startS > o.startS && w.startS <= t);
+}
+/** `t` falls within 6 s after a labelled repeat, restart or self-correction of `at`. */
+export function inNonErrorWindow(s: BenchSession, at: WordRef, t: number): boolean {
+  return s.nonErrors.some(n => key(n.at) === key(at) && inOccurrence(s, n, n.endS + 6, t));
+}
 export function scoreSessionEvents(s: BenchSession, events: EngineEvent[], index: ReferenceIndex, context = s.context): SessionScore {
   validateSession(s, index);
-  const ord = new Map<string, number>();
-  for (const w of index.words) if (!ord.has(ayahKey(w))) ord.set(ayahKey(w), ord.size);
-  const ay = (w: WordRef) => ord.get(ayahKey(w))!;
+  const ay = ayahOrdinal(index);
   const positions = events.filter((e): e is PositionEvent => e.type === "position").sort((a, b) => a.timeMs - b.timeMs);
   const warnings = new Map<string, CheckerEvent[]>();
   for (const e of events) if (e.type === "checker") { const list = warnings.get(e.id) ?? []; list.push(e); warnings.set(e.id, list); }
   const score: SessionScore = { id: s.id, track: s.track, source: s.source, speaker: s.speaker, context,
-    supportedContext: contextAdapter(context).supported, effectiveContext: contextAdapter(context).effective, gating: false,
+    supportedContext: contextAdapter(context, index).supported, effectiveContext: contextAdapter(context, index).effective, gating: false,
     errors: s.events.length, hits: 0, misses: 0, warnings: 0, falseWarnings: 0, precision: null, recall: null,
     cleanSeconds: 0, cleanWarnings: 0, cleanWarningsPer5Min: null, nonErrorWarnings: 0, uncertainWarnings: 0,
     suspectedOnlyWarnings: 0, uncertainErrors: 0, ambiguousErrors: 0, wrongPositionEvents: 0,
@@ -163,37 +213,37 @@ export function scoreSessionEvents(s: BenchSession, events: EngineEvent[], index
     abstentions: { uncertain: 0, twinAmbiguous: 0, ambiguous: 0 }, ambiguousEpisodes: { twin: 0, general: 0 }, assignments: [] };
   const windowEnd = (e: SessionEvent) => {
     if (e.errorClass === "omitted_word" || e.errorClass === "skipped_passage") {
-      const next = s.words.find(w => w.startS >= e.endS && ay(w.at) === ay(e.location) + 2);
-      return next ? s.spans.find(p => p.id === next.span)!.endS : s.durationS;
+      const target = ay(e.through ?? e.location) + 2;
+      let i = s.words.findIndex(w => w.startS >= e.endS && ay(w.at) === target);
+      if (i < 0) return s.durationS;
+      while (i + 1 < s.words.length && ay(s.words[i + 1].at) === target && wordOrd(s.words[i + 1].at) > wordOrd(s.words[i].at)) i++;
+      return s.words[i].endS;
     }
     return Math.min(s.durationS, e.endS + 6);
   };
   const used = new Set<number>();
-  const atTruth = (t: number) => {
-    let lo = 0, hi = s.words.length;
-    while (lo < hi) { const mid = (lo + hi) >>> 1; if (s.words[mid].startS <= t) lo = mid + 1; else hi = mid; }
-    const out: BenchSession["words"] = [];
-    for (let i = lo - 1; i >= 0 && t - s.words[i].endS <= 2; i--) out.push(s.words[i]);
-    return out;
-  };
-  const quranAt = (t: number) => !s.spans.some(p => p.kind === "non_quran" && p.startS <= t && t < p.endS) && atTruth(t).length > 0;
-  const correct = (p: PositionEvent, t: number) => !!p.observed[0] && atTruth(t).some(w => Math.abs(ay(w.at) - ay(p.observed[0].word)) <= 1);
-  const cleanAt = (t: number) => quranAt(t) && atTruth(t).some(w => t < w.endS) && !s.events.some(e => e.startS <= t && t <= e.endS);
+  const quranAt = (t: number) => onQuran(s, t);
+  const correct = (p: PositionEvent, t: number) => correctPosition(s, p, t, ay);
+  const cleanAt = (t: number) => quranAt(t) && recentWords(s, t).some(w => t < w.endS) && !s.events.some(e => e.startS <= t && t <= e.endS);
   for (const states of [...warnings.values()].sort((a, b) => a[0].timeMs - b[0].timeMs)) {
     states.sort((a, b) => a.timeMs - b.timeMs);
     const first = states[0], t = first.timeMs / 1000;
     const confirmed = states.some(e => e.state === "confirmed");
     const eligible = s.events.map((e, i) => ({ e, i })).filter(({ e, i }) => !used.has(i)
-      && e.errorClass === first.errorClass && key(e.location) === key(first.location) && t >= e.startS && t <= windowEnd(e)
-      && !s.words.some(w => w.span !== e.span && key(w.at) === key(e.location) && w.startS > e.startS && w.startS <= t))
+      && e.errorClass === first.errorClass && key(e.location) === key(first.location)
+      && inOccurrence(s, { span: e.span, at: e.location, startS: e.startS }, windowEnd(e), t))
       .sort((a, b) => a.e.endS - b.e.endS || a.i - b.i);
     const matched = eligible[0];
-    if (matched) used.add(matched.i);
+    if (matched && confirmed) used.add(matched.i);
     score.assignments.push({ warningId: first.id, eventIndex: matched?.i ?? null, confirmed });
     if (confirmed) {
-      score.warnings++; if (matched) score.hits++; else { score.falseWarnings++; if (cleanAt(t)) score.cleanWarnings++; }
-      if (s.nonErrors.some(n => key(n.at) === key(first.location) && n.startS <= t && t <= n.endS + 6
-        && !s.words.some(w => w.span !== n.span && key(w.at) === key(n.at) && w.startS > n.startS && w.startS <= t))) score.nonErrorWarnings++;
+      score.warnings++;
+      if (matched) score.hits++;
+      else {
+        score.falseWarnings++;
+        if (quranAt(t) && !s.events.some(e => e.startS <= t && t <= windowEnd(e))) score.cleanWarnings++;
+        if (inNonErrorWindow(s, first.location, t)) score.nonErrorWarnings++;
+      }
     } else if (states.some(e => e.state === "uncertain")) { score.uncertainWarnings++; if (matched) score.uncertainErrors++; }
     else score.suspectedOnlyWarnings++;
     if (matched) {
@@ -308,11 +358,12 @@ export function summarizeSessions(rows: SessionScore[]): SessionSummary[] {
   });
 }
 
-export function runSession(s: BenchSession, evidence: Pick<QudRecording, "inventory" | "frameMs" | "nFrames" | "phonemes" | "posteriors">,
+export type SessionEvidence = Pick<QudRecording, "inventory" | "frameMs" | "nFrames" | "phonemes" | "posteriors">;
+export function runSession(s: BenchSession, evidence: SessionEvidence,
     index: ReferenceIndex, context = s.context, phrases?: PhraseAsset): { score: SessionScore; events: EngineEvent[] } {
   validateSession(s, index);
   if (evidence.inventory !== index.inventoryId || Math.abs(evidence.nFrames * evidence.frameMs / 1000 - s.durationS) > 0.1) throw new Error(`Evidence mismatch: ${s.id}`);
-  const adapter = contextAdapter(context);
+  const adapter = contextAdapter(context, index);
   const tracker = createTracker(index, { mode: s.track === "memorization" ? "memorization" : "free", phrases, ...adapter.tracker });
   const checker = createChecker(index, { phrases, ...adapter.checker });
   const out: EngineEvent[] = [];
@@ -324,13 +375,25 @@ export function runSession(s: BenchSession, evidence: Pick<QudRecording, "invent
   return { score: scoreSessionEvents(s, out, index, context), events: out };
 }
 
-const wordOrd = (w: WordRef) => (w.surah * 1000 + w.ayah) * 1000 + w.word;
-/** What an app could plausibly know of a QUD recording: assignment over the recited words in Quran order, page and surah of the first recited word. Never a true-start hint beyond that. */
-export function qudContexts(s: BenchSession): SessionContext[] {
-  const sorted = s.words.map(w => w.at).sort((a, b) => wordOrd(a) - wordOrd(b)), first = s.words[0].at;
+/**
+ * What an app could plausibly know of a QUD recording: an assignment from the first to the last word of the main recitation
+ * (repeat and restart spans excluded, so a prayer's later Fatiha does not widen it), and the page and surah of its first word.
+ * The assignment is omitted, with the reason, when the main recitation goes backward or jumps to a non-adjacent surah.
+ * Never a true-start hint beyond that.
+ */
+export function qudContexts(s: BenchSession): { contexts: SessionContext[]; omitted: string | null } {
+  const main = new Set(s.spans.filter(p => p.kind === "recitation").map(p => p.id));
+  const words = s.words.filter(w => main.has(w.span)).map(w => w.at), first = words[0];
+  let omitted: string | null = null;
+  for (let i = 1; i < words.length && !omitted; i++) {
+    const a = words[i - 1], b = words[i];
+    if (wordOrd(b) <= wordOrd(a)) omitted = `main recitation goes backward at ${key(a)} -> ${key(b)}`;
+    else if (b.surah > a.surah + 1) omitted = `main recitation jumps between non-adjacent surahs at ${key(a)} -> ${key(b)}`;
+  }
   const page = madaniPages.pages.findIndex(([fs, fa, ts, ta]) =>
     (first.surah > fs || (first.surah === fs && first.ayah >= fa)) && (first.surah < ts || (first.surah === ts && first.ayah <= ta))) + 1;
-  return [{ kind: "assignment", from: sorted[0], to: sorted.at(-1)! }, { kind: "page", page }, { kind: "surah", surah: first.surah }, { kind: "none" }];
+  const assignment: SessionContext[] = omitted ? [] : [{ kind: "assignment", from: first, to: words.at(-1)! }];
+  return { contexts: [...assignment, { kind: "page", page }, { kind: "surah", surah: first.surah }, { kind: "none" }], omitted };
 }
 
 /** Annotation rounding allowed past the audio clock; truth is clipped to the clock, larger overruns are rejected. */

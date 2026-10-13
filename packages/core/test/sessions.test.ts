@@ -41,6 +41,36 @@ describe("session truth and scoring", () => {
     const r = scoreSessionEvents(session(), [warning("a", 3000, "suspected"), warning("a", 6000, "confirmed")], index);
     expect(r.hits).toBe(1); expect(r.nonErrorWarnings).toBe(0);
   });
+  it("lets a later confirmed id take an error an earlier unconfirmed id also matched", () => {
+    const r = scoreSessionEvents(session(), [warning("s", 2500, "suspected"), warning("c", 3000, "confirmed")], index);
+    expect(r.hits).toBe(1); expect(r.falseWarnings).toBe(0); expect(r.suspectedOnlyWarnings).toBe(1);
+    expect(r.assignments).toEqual([{ warningId: "s", eventIndex: 0, confirmed: false }, { warningId: "c", eventIndex: 0, confirmed: true }]);
+  });
+  it("counts a false warning as clean on Quran audio between words, but not inside a labelled error's window", () => {
+    const added = (id: string, timeMs: number): CheckerEvent => ({ ...warning(id, timeMs, "confirmed"), errorClass: "added_word" });
+    expect(scoreSessionEvents({ ...session(), events: [] }, [added("gap", 4000)], index).cleanWarnings).toBe(1);
+    expect(scoreSessionEvents(session(), [added("late", 5500)], index)).toMatchObject({ falseWarnings: 1, cleanWarnings: 0 });
+    expect(scoreSessionEvents({ ...session(), events: [] }, [added("silence", 10000)], index).cleanWarnings).toBe(0);
+  });
+  it("waits for an omission until the first occurrence of the second following ayah ends, across its spans", () => {
+    const w = (ayah: number, word: number, span: string, startS: number, endS: number) => ({ span, at: { surah: 94, ayah, word }, startS, endS });
+    const words = [w(5, 1, "a5", 1, 2), w(6, 1, "a6", 2, 3), w(7, 1, "a7", 3, 4), w(7, 2, "b7", 6.5, 7), w(8, 1, "a8", 7, 8)];
+    const spans = ["a5", "a6", "a7", "b7", "a8"].map(id => {
+      const ws = words.filter(x => x.span === id);
+      return { id, kind: "recitation" as const, from: ws[0].at, to: ws.at(-1)!.at, startS: ws[0].startS, endS: ws.at(-1)!.endS };
+    });
+    const s: BenchSession = { ...session(), durationS: 30, spans, words, nonErrors: [],
+      events: [{ span: "a5", location: at, errorClass: "omitted_word", state: "confirmed", startS: 1, endS: 1.5 }] };
+    const omitted = (timeMs: number): CheckerEvent => ({ ...warning("o", timeMs, "confirmed"), errorClass: "omitted_word" });
+    expect(scoreSessionEvents(s, [omitted(5000)], index).hits).toBe(1);
+    expect(scoreSessionEvents(s, [omitted(7500)], index).hits).toBe(0);
+    s.events = [{ span: "a6", location: at, through: { surah: 94, ayah: 6, word: 1 }, errorClass: "skipped_passage", state: "confirmed", startS: 2, endS: 2.5 }];
+    expect(scoreSessionEvents(s, [{ ...omitted(7500), errorClass: "skipped_passage" }], index).hits).toBe(1);
+  });
+  it("does not count a matched warning as a non-error warning", () => {
+    const s = session(); s.nonErrors.push({ span: "first", at, kind: "self_correction", startS: 1, endS: 3 });
+    expect(scoreSessionEvents(s, [warning("a", 3000, "confirmed")], index)).toMatchObject({ hits: 1, nonErrorWarnings: 0 });
+  });
   it("keeps abstentions in recall denominator", () => {
     const r = scoreSessionEvents(session(), [warning("a", 3000, "suspected"), warning("a", 4000, "uncertain")], index);
     expect(r.recall).toBe(0); expect(r.uncertainErrors).toBe(1); expect(r.warnings).toBe(0);
@@ -95,7 +125,7 @@ describe("session truth and scoring", () => {
   });
   it("marks unsupported contexts and never derives true start", () => {
     const c = { kind: "resume", at: { surah: 2, ayah: 5, word: 1 } } as const;
-    expect(contextAdapter(c).tracker.prior?.ayah).toBe(5);
+    expect(contextAdapter(c, index).tracker.prior?.ayah).toBe(5);
     expect(weakerContexts(c).map(x => x.kind)).toEqual(["resume", "surah", "none"]);
   });
   it("returns the replayed events with the score so the dump reuses one replay", () => {
@@ -105,18 +135,25 @@ describe("session truth and scoring", () => {
     expect(Array.isArray(run.events)).toBe(true);
     expect(run.score).toEqual(scoreSessionEvents(s, run.events, index));
   });
-  it("synthesises QUD contexts from the recorded words only", () => {
-    const q = qudSession(qud([["2:7:1", 1, 2], ["2:8:1", 3, 4], ["1:1:1", 5, 6]]), "q.wav");
-    expect(qudContexts(q).map(c => c.kind)).toEqual(["assignment", "page", "surah", "none"]);
-    expect(qudContexts(q)[0]).toEqual({ kind: "assignment", from: { surah: 1, ayah: 1, word: 1 }, to: { surah: 2, ayah: 8, word: 1 } });
-    expect(qudContexts(q)[1]).toEqual({ kind: "page", page: 3 });
-    expect(qudContexts(q)[2]).toEqual({ kind: "surah", surah: 2 });
+  it("synthesises QUD contexts from the main recitation only, excluding restarts", () => {
+    const q = qudSession(qud([["2:7:1", 1, 2], ["2:8:1", 3, 4], ["1:1:1", 5, 6], ["1:1:2", 6, 7]]), "q.wav");
+    const { contexts, omitted } = qudContexts(q);
+    expect(omitted).toBeNull();
+    expect(contexts).toEqual([{ kind: "assignment", from: { surah: 2, ayah: 7, word: 1 }, to: { surah: 2, ayah: 8, word: 1 } },
+      { kind: "page", page: 3 }, { kind: "surah", surah: 2 }, { kind: "none" }]);
+  });
+  it("omits the assignment, with the reason, when the main recitation jumps between non-adjacent surahs", () => {
+    const q = qudSession(qud([["1:7:1", 1, 2], ["36:1:1", 3, 4], ["36:2:1", 4, 5]]), "q.wav");
+    const { contexts, omitted } = qudContexts(q);
+    expect(contexts.map(c => c.kind)).toEqual(["page", "surah", "none"]);
+    expect(contexts[1]).toEqual({ kind: "surah", surah: 1 });
+    expect(omitted).toMatch(/1:7:1 -> 36:1:1/);
   });
   it("maps surah and page context to a range prior", () => {
-    const surah = contextAdapter({ kind: "surah", surah: 3 });
+    const surah = contextAdapter({ kind: "surah", surah: 3 }, index);
     expect(surah).toMatchObject({ supported: true, effective: "surah" });
-    expect(surah.tracker.priorRange?.ranges).toEqual([{ from: { surah: 3, ayah: 1 }, to: { surah: 3, ayah: Infinity } }]);
-    const page = contextAdapter({ kind: "page", page: 50 });
+    expect(JSON.parse(JSON.stringify(surah.tracker.priorRange?.ranges))).toEqual([{ from: { surah: 3, ayah: 1 }, to: { surah: 3, ayah: 200 } }]);
+    const page = contextAdapter({ kind: "page", page: 50 }, index);
     expect(page).toMatchObject({ supported: true, effective: "page" });
     expect(page.tracker.priorRange?.ranges).toEqual([{ from: { surah: 3, ayah: 1 }, to: { surah: 3, ayah: 9 } }]);
   });

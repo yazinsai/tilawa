@@ -1,5 +1,6 @@
 import type { CheckerEvent, EngineEvent, PositionEvent, WordRef } from "../events.js";
 import type { ReferenceAsset, ReferenceIndex } from "../reference.js";
+import { ayahOrdinal, correctPosition, inNonErrorWindow, onQuran, recentWords } from "./sessions.js";
 import type { BenchSession, SessionContext, SessionScore } from "./sessions.js";
 
 /** Review-only session evidence for the scoreboard page. Never read by the scorer. */
@@ -21,7 +22,6 @@ export interface SessionDumpRecord {
 }
 
 const key = (r: WordRef) => `${r.surah}:${r.ayah}:${r.word}`;
-const ayahKey = (r: WordRef) => `${r.surah}:${r.ayah}`;
 export const contextKey = (c: SessionContext) => c.kind === "surah" ? `surah ${c.surah}` : c.kind === "page" ? `page ${c.page}`
   : c.kind === "assignment" ? `assignment ${key(c.from)}-${key(c.to)}` : c.kind === "resume" ? `resume ${key(c.at)}` : "none";
 
@@ -33,20 +33,9 @@ export function sessionDumpRecord(s: BenchSession, audio: string, text: Readonly
     events: s.events.map(e => ({ ...e, at: key(e.location) })), nonErrors: s.nonErrors.map(n => ({ ...n, atKey: key(n.at) })), contexts: {} };
 }
 
-/** Per-warning detail behind `score`; the non-error and wrong-position rules mirror `scoreSessionEvents`. */
+/** Per-warning detail behind `score`, using the scorer's own non-error and wrong-position predicates. */
 export function sessionDumpContext(s: BenchSession, events: EngineEvent[], score: SessionScore, index: ReferenceIndex): SessionDumpContext {
-  const ord = new Map<string, number>();
-  for (const w of index.words) if (!ord.has(ayahKey(w))) ord.set(ayahKey(w), ord.size);
-  const ay = (w: WordRef) => ord.get(ayahKey(w))!;
-  const recited = (t: number) => {
-    const out: BenchSession["words"] = [];
-    for (let i = s.words.length - 1; i >= 0; i--) if (s.words[i].startS <= t) {
-      for (let j = i; j >= 0 && t - s.words[j].endS <= 2; j--) out.push(s.words[j]);
-      break;
-    }
-    return out;
-  };
-  const quranAt = (t: number) => !s.spans.some(p => p.kind === "non_quran" && p.startS <= t && t < p.endS) && recited(t).length > 0;
+  const ay = ayahOrdinal(index);
   const states = new Map<string, CheckerEvent[]>();
   for (const e of events) if (e.type === "checker") states.set(e.id, [...(states.get(e.id) ?? []), e]);
   const assigned = new Map(score.assignments.map(a => [a.warningId, a]));
@@ -54,16 +43,14 @@ export function sessionDumpContext(s: BenchSession, events: EngineEvent[], score
     list.sort((a, b) => a.timeMs - b.timeMs);
     const first = list[0], t = first.timeMs / 1000, a = assigned.get(first.id);
     const confirmed = list.some(e => e.state === "confirmed");
-    const nonError = confirmed && s.nonErrors.some(n => key(n.at) === key(first.location) && n.startS <= t && t <= n.endS + 6
-      && !s.words.some(w => w.span !== n.span && key(w.at) === key(n.at) && w.startS > n.startS && w.startS <= t));
+    const nonError = confirmed && (a?.eventIndex ?? null) === null && inNonErrorWindow(s, first.location, t);
     return { id: first.id, errorClass: first.errorClass, at: key(first.location), states: list.map(e => ({ state: e.state, timeMs: e.timeMs, confidence: e.confidence })),
       eventIndex: a?.eventIndex ?? null, confirmed, nonError };
   }).sort((a, b) => a.states[0].timeMs - b.states[0].timeMs);
   const wrongPositions = events.filter((e): e is PositionEvent => e.type === "position").flatMap(p => {
-    const t = p.timeMs / 1000, truth = recited(t);
-    if (!quranAt(t) || p.state !== "locked") return [];
-    if (p.observed[0] && truth.some(w => Math.abs(ay(w.at) - ay(p.observed[0].word)) <= 1)) return [];
-    return [{ timeMs: p.timeMs, observed: p.observed[0] ? key(p.observed[0].word) : "", recited: [...new Set(truth.map(w => key(w.at)))] }];
+    const t = p.timeMs / 1000;
+    if (!onQuran(s, t) || p.state !== "locked" || correctPosition(s, p, t, ay)) return [];
+    return [{ timeMs: p.timeMs, observed: p.observed[0] ? key(p.observed[0].word) : "", recited: [...new Set(recentWords(s, t).map(w => key(w.at)))] }];
   });
   return { context: score.context, effectiveContext: score.effectiveContext, score, warnings, wrongPositions };
 }

@@ -395,18 +395,18 @@ if (values.sessions) {
   for (const g of summarizeSessions(sessionReport.rows)) {
     const prefix = `sessions.${g.key}`;
     const base = `${g.sessions} sessions, ${g.speakers} speakers; reported only, coverage and recorded agreement pending; ${g.unsupportedContexts} unsupported contexts`;
-    const gate = SPEC_GATES[g.track];
+    const gate = SPEC_GATES[g.track] as (typeof SPEC_GATES)[string] | undefined;
     const note = (id: string, extra?: string) => [base, extra,
-      gate.measures.includes(id) ? `spec **gate** for ${g.track}${gate.contexts.includes(g.context) ? "" : ` at ${gate.contexts.join("/")}; reported at ${g.context}`} (not gating yet)` : undefined]
+      gate?.measures.includes(id) ? `spec **gate** for ${g.track}${gate.contexts.includes(g.context) ? "" : ` at ${gate.contexts.join("/")}; reported at ${g.context}`} (not gating yet)` : undefined]
       .filter(Boolean).join("; ");
-    const slice = (s: RecallSlice) => s.errors ? `${s.hits}/${s.errors}` : undefined;
+    const hitsOf = (s: RecallSlice) => s.errors ? `${s.hits}/${s.errors}` : undefined;
     type Row = [string, string, number | null, Metric["unit"], string?, string?];
     const measures: Row[] = [
       ["precision", "Warnings correct", g.precision, "%", g.warnings ? `${g.hits}/${g.warnings}` : undefined],
-      ["recall", "Errors caught", g.recall, "%", slice({ errors: g.errors, hits: g.hits, recall: g.recall }), "abstentions count as misses"],
+      ["recall", "Errors caught", g.recall, "%", hitsOf({ errors: g.errors, hits: g.hits, recall: g.recall }), "abstentions count as misses"],
       ...ERROR_CLASSES.map((c): Row =>
-        [`recall.${c}`, `Errors caught: ${c.replace("_", " ")}`, g.byClass[c].recall, "%", slice(g.byClass[c])]),
-      ["recall.mutashabihat", "Errors caught: mutashabihat (forms another ayah)", g.mutashabihat.recall, "%", slice(g.mutashabihat)],
+        [`recall.${c}`, `Errors caught: ${c.replace("_", " ")}`, g.byClass[c].recall, "%", hitsOf(g.byClass[c])]),
+      ["recall.mutashabihat", "Errors caught: mutashabihat (forms another ayah)", g.mutashabihat.recall, "%", hitsOf(g.mutashabihat)],
       ["cleanPer5", "False warnings per 5 clean minutes", g.cleanPer5, ""],
       ["located", "Correctly located time", g.located, "%"],
       ["within5s", "Located within 5 seconds", g.within5s, "%"],

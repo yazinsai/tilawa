@@ -46,32 +46,42 @@ All-16 teacher result, reported only: 208 confirmed false warnings, 3.03 clean-s
 
 Every QUD recording is scored at four contexts. They are built from the recorded words only, and none of them gives a true-start hint. In weakest-last order:
 
-- assignment: the declared checker passage from the lowest to the highest recited word in Quran order;
-- page: the Madani page of the first recited word;
-- surah: the surah of the first recited word;
+- assignment: the declared checker passage from the first to the last word of the main recitation (recitation spans only; repeat and restart spans such as a prayer's later Fatiha are excluded). When the main recitation goes backward in Quran order or jumps to a non-adjacent surah, the recording gets no assignment context and the report lists it under `omittedContexts` with the reason;
+- page: the Madani page of the main recitation's first word;
+- surah: the surah of that word, resolved to its last ayah (no `Infinity` in the range prior);
 - none.
+
+## Scoring rules (review fixes)
+
+- Only a confirmed warning consumes a labelled error. A suspected-only or uncertain id may still be recorded against the error for abstention counts, but a later confirmed id can take it.
+- Clean false warnings (numerator) are confirmed unmatched warnings on Quran audio (outside non-Quran spans, within 2 s of a recited word) and outside every labelled error's `[startS, windowEnd]`. They no longer need to fall inside a word. The clean-seconds denominator is unchanged.
+- Omission horizon: `omitted_word` and `skipped_passage` stay matchable until the end of the last word of the first occurrence of the second following ayah (contiguous words of that ayah, across spans), not the end of the span. A `skipped_passage` label may carry `through` (the last skipped word); the +2 then counts from it, else from `location`.
+- Non-error warnings count only confirmed unmatched warnings within 6 s after a labelled repeat/restart/self-correction occurrence, using the same occurrence rule as error matching. The review dump uses the scorer's exported predicates.
+- `sessions-cli --audit` exits non-zero when any recording is excluded or none is audited: all 16 are expected to convert.
 
 `sessions-cli --qud` builds these with `qudContexts` (`--qud-contexts own` keeps the session's own chain). Each context runs one replay, and the review dump reuses its events.
 
 Teacher, all 16 recordings, 308.7 clean minutes (`session-qud-teacher-v1.json`):
 
-| Context | False warnings | Per 5 clean min | Located time | Wrong position | Non-error warnings | First lock ≤ 5 s |
+| Context | Clean false warnings | Per 5 clean min | Located time | Wrong position | Non-error warnings | First lock ≤ 5 s |
 |---|---:|---:|---:|---:|---:|---:|
-| assignment | 1621 | 26.25 | 97.37% | 67 | 33 | 8/16 |
+| assignment (10 of 16) | 231 | 5.28 | 97.38% | 42 | 32 | 5/10 |
 | page | 188 | 3.04 | 97.45% | 65 | 18 | 9/16 |
 | surah | 187 | 3.03 | 97.46% | 66 | 18 | 9/16 |
 | none | 187 | 3.03 | 97.37% | 67 | 17 | 8/16 |
 
 Fresh `spliced-clean-int8` student, 7.2 clean minutes (`session-qud-int8-v1.json`). It is paired with the current `qudSession` truth through `--student-evidence .scratch/session-bench/qud/evidence`:
 
-| Context | False warnings | Per 5 clean min | Located time | Wrong position | Non-error warnings | First lock ≤ 5 s |
+| Context | Clean false warnings | Per 5 clean min | Located time | Wrong position | Non-error warnings | First lock ≤ 5 s |
 |---|---:|---:|---:|---:|---:|---:|
 | assignment | 82 | 57.22 | 85.60% | 10 | 2 | 3/3 |
 | page | 28 | 19.54 | 85.60% | 10 | 0 | 3/3 |
 | surah | 29 | 20.24 | 85.82% | 10 | 0 | 3/3 |
 | none | 28 | 19.54 | 85.60% | 10 | 0 | 3/3 |
 
-Page and surah barely move anything. The range prior only nudges the tracker, and professional recitation acquires without it. Assignment is the outlier because it switches the checker to declared-passage mode. On fluent recitation that multiplies false warnings: taraweeh-maryam goes from 2 to 965, prayer-baqarah-yasin from 0 to 177, luhaidan-qiyamah from 13 to 137, and diban-sad from 15 to 63. For the multi-surah prayer recordings, the min..max assignment spans Fatiha through the last surah. That passage is wider than any real assignment, so those two rows overstate the effect. Even so, single-surah recordings rise as well. The session numbers move with context the way the spec intended, but in the opposite direction from what was expected for assignment. No error positives exist, so recall and delay remain unmeasured.
+Page and surah barely move anything. The range prior only nudges the tracker, and professional recitation acquires without it. Assignment switches the checker to declared-passage mode and still adds false warnings: on the 10 recordings that get one, 231 clean false warnings (5.28 per five minutes) against 145 (3.31) at none. Luhaidan, Fatir (101) and Diban, Saad (63) carry most of it.
+
+The earlier 26.25 came from a lowest-to-highest-word assignment. On the prayer recordings, that range spanned from Fatiha to the last surah, a passage no real assignment would declare. The assignment now runs from the first to the last word of the main recitation. Six recordings get none, and `omittedContexts` in the report gives the reason for each. taraweeh-maryam, witr-muawwidhat and luhaidan-qiyamah jump from Fatiha to a non-adjacent surah. ayyub-juz-amma, luhaidan-haqqah and prayer-baqarah-yasin go backward inside the main recitation. In those three, `qudSession` labels the words after a restart as `recitation` once they move forward past the restart point. The review fixes to session scoring changed no QUD number. No QUD session has a labelled error, and every confirmed false warning already fell inside a recited word. Recall and delay remain unmeasured.
 
 Student decodes are missing for 13 recordings: abdulbasit-raad, afasy-baqarah, ayyub-juz-amma, badri-juz-tabarak, husary-fath, luhaidan-fatir, luhaidan-haqqah, luhaidan-qiyamah, mandour-taha, minshawi-luqman, prayer-baqarah-yasin, taraweeh-maryam, witr-muawwidhat. Their WAVs have not been acquired. No decode was fabricated.
 
