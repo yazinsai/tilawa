@@ -34,5 +34,6 @@ describe("session review dump", () => {
       ["b", "94:5:1", ["confirmed@6000"], null, true, true]]);
     expect(ctx.wrongPositions).toEqual([{ timeMs: 6500, observed: "2:255:1", recited: ["94:5:1"] }]);
     expect(ctx.score.falseWarnings).toBe(1); expect(ctx.score.wrongPositionEvents).toBe(1);
+    expect(ctx.warnings.filter(w => w.nonError)).toHaveLength(ctx.score.nonErrorWarnings);
   });
 });

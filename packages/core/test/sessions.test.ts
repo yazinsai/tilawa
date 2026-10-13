@@ -41,6 +41,36 @@ describe("session truth and scoring", () => {
     const r = scoreSessionEvents(session(), [warning("a", 3000, "suspected"), warning("a", 6000, "confirmed")], index);
     expect(r.hits).toBe(1); expect(r.nonErrorWarnings).toBe(0);
   });
+  it("lets a later confirmed id take an error an earlier unconfirmed id also matched", () => {
+    const r = scoreSessionEvents(session(), [warning("s", 2500, "suspected"), warning("c", 3000, "confirmed")], index);
+    expect(r.hits).toBe(1); expect(r.falseWarnings).toBe(0); expect(r.suspectedOnlyWarnings).toBe(1);
+    expect(r.assignments).toEqual([{ warningId: "s", eventIndex: 0, confirmed: false }, { warningId: "c", eventIndex: 0, confirmed: true }]);
+  });
+  it("counts a false warning as clean on Quran audio between words, but not inside a labelled error's window", () => {
+    const added = (id: string, timeMs: number): CheckerEvent => ({ ...warning(id, timeMs, "confirmed"), errorClass: "added_word" });
+    expect(scoreSessionEvents({ ...session(), events: [] }, [added("gap", 4000)], index).cleanWarnings).toBe(1);
+    expect(scoreSessionEvents(session(), [added("late", 5500)], index)).toMatchObject({ falseWarnings: 1, cleanWarnings: 0 });
+    expect(scoreSessionEvents({ ...session(), events: [] }, [added("silence", 10000)], index).cleanWarnings).toBe(0);
+  });
+  it("waits for an omission until the first occurrence of the second following ayah ends, across its spans", () => {
+    const w = (ayah: number, word: number, span: string, startS: number, endS: number) => ({ span, at: { surah: 94, ayah, word }, startS, endS });
+    const words = [w(5, 1, "a5", 1, 2), w(6, 1, "a6", 2, 3), w(7, 1, "a7", 3, 4), w(7, 2, "b7", 6.5, 7), w(8, 1, "a8", 7, 8)];
+    const spans = ["a5", "a6", "a7", "b7", "a8"].map(id => {
+      const ws = words.filter(x => x.span === id);
+      return { id, kind: "recitation" as const, from: ws[0].at, to: ws.at(-1)!.at, startS: ws[0].startS, endS: ws.at(-1)!.endS };
+    });
+    const s: BenchSession = { ...session(), durationS: 30, spans, words, nonErrors: [],
+      events: [{ span: "a5", location: at, errorClass: "omitted_word", state: "confirmed", startS: 1, endS: 1.5 }] };
+    const omitted = (timeMs: number): CheckerEvent => ({ ...warning("o", timeMs, "confirmed"), errorClass: "omitted_word" });
+    expect(scoreSessionEvents(s, [omitted(5000)], index).hits).toBe(1);
+    expect(scoreSessionEvents(s, [omitted(7500)], index).hits).toBe(0);
+    s.events = [{ span: "a6", location: at, through: { surah: 94, ayah: 6, word: 1 }, errorClass: "skipped_passage", state: "confirmed", startS: 2, endS: 2.5 }];
+    expect(scoreSessionEvents(s, [{ ...omitted(7500), errorClass: "skipped_passage" }], index).hits).toBe(1);
+  });
+  it("does not count a matched warning as a non-error warning", () => {
+    const s = session(); s.nonErrors.push({ span: "first", at, kind: "self_correction", startS: 1, endS: 3 });
+    expect(scoreSessionEvents(s, [warning("a", 3000, "confirmed")], index)).toMatchObject({ hits: 1, nonErrorWarnings: 0 });
+  });
   it("keeps abstentions in recall denominator", () => {
     const r = scoreSessionEvents(session(), [warning("a", 3000, "suspected"), warning("a", 4000, "uncertain")], index);
     expect(r.recall).toBe(0); expect(r.uncertainErrors).toBe(1); expect(r.warnings).toBe(0);
