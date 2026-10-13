@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "heldOutClips": 388,
+  "heldOutSpeakers": 29,
+  "sameSpeakerCleanRuns": 169,
+  "longestRunClips": 2,
+  "longestRunSeconds": 28.842688,
+  "minuteRuns": 0,
+  "minuteRunSpeakers": 0,
+  "errorClipsWithSameSpeakerBothNeighbours": [],
+  "wordTimedHelpClips": 0,
+  "timingNote": "Current help labels contain locations but no per-word intervals. A reviewed/aligned timed catalogue is required before stitching benchmark truth.",
+  "coverageNote": "Clean clips only; strict consecutive ayahs, held-out speakers, no fallback voices. Does not infer speaker identity across tlog clusters."
+}

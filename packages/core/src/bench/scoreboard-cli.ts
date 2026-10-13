@@ -48,6 +48,8 @@ const { values } = parseArgs({ options: {
   "clip-dump": { type: "string", default: process.env.CLIP_DUMP_DIR ?? "../../.scratch/scoreboard/clips" },
   /** Write the clip dump for `--sha` without adding or replacing a scoreboard row. */
   "dump-only": { type: "boolean", default: false },
+  /** Reported-only representative session measures, from sessions-cli.ts. Never replaces release gates. */
+  sessions: { type: "string" },
 } });
 const jsonPath = `${resolve(values.out!)}.json`;
 const board: Board = existsSync(jsonPath) ? JSON.parse(readFileSync(jsonPath, "utf8")) : { version: 1, rows: [] };
@@ -376,6 +378,34 @@ if (rows.length) {
   }
 } else pendingHelp(CHECKER, [["checker.oracleLock.recall", "Oracle lock: recall"], ["checker.e0.checker", "E0 attribution"]], NO_EVIDENCE);
 add({ id: "checker.selfCorrection", group: CHECKER, name: "Self-correction / long-session false warnings", value: null, status: "unmeasurable", note: "no recordings (ticket 05)" });
+
+// ---- Representative sessions: reported only, with source/track/context kept apart.
+if (values.sessions) {
+  const sessionReport = JSON.parse(readFileSync(resolve(values.sessions), "utf8"));
+  if (sessionReport.version !== 1 || sessionReport.gating !== false || sessionReport.listener !== values.listener)
+    throw new Error("Session report must be version 1, non-gating, and from the selected listener");
+  const groups = new Map<string, any[]>();
+  for (const r of sessionReport.rows) {
+    const k = `${r.track}.${r.context.kind}.${r.source}`;
+    const g = groups.get(k) ?? []; g.push(r); groups.set(k, g);
+  }
+  for (const [k, rs] of groups) {
+    const total = (field: string) => sum(rs.map(r => r[field]));
+    const prefix = `sessions.${k}`;
+    const note = `${rs.length} sessions, ${new Set(rs.map(r => r.speaker)).size} speakers; reported only, coverage and recorded agreement pending; ${rs.filter(r => !r.supportedContext).length} unsupported contexts`;
+    const measures: [string, string, number | null, Metric["unit"]][] = [
+      ["precision", "Warnings correct", ratio(total("hits"), total("warnings")), "%"],
+      ["recall", "Errors caught", ratio(total("hits"), total("errors")), "%"],
+      ["cleanPer5", "False warnings per 5 clean minutes", total("cleanSeconds") ? total("cleanWarnings") * 300 / total("cleanSeconds") : null, ""],
+      ["located", "Correctly located time", ratio(total("locatedSamples"), total("positionSamples")), "%"],
+      ["within5s", "Located within 5 seconds", ratio(rs.filter(r => r.within5S).length, rs.length), "%"],
+      ["wrongPositions", "Wrong position events", total("wrongPositionEvents"), ""],
+      ["nonErrorWarnings", "Warnings on repeats/restarts/self-corrections", total("nonErrorWarnings"), ""],
+    ];
+    for (const [id, name, value, unit] of measures) metrics.push({ id: `${prefix}.${id}`, group: `Sessions: ${k}`, name, value, unit,
+      status: value === null ? "unmeasurable" : "info", source: basename(values.sessions), note });
+  }
+}
 
 // ---- Row.
 const sha = values.sha ?? execSync("git rev-parse --short HEAD").toString().trim();

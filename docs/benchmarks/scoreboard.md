@@ -12,14 +12,14 @@ The release cockpit for the engine. One row per commit × listener, recomputed f
 
 **Sources.** Listener PER is gold PER (`tools/gold_set.py score`), barred by `listener-target-v1.json`. Help clips: 388 eval clips, 29 held-out speakers. Free memorization is gated `with lead-in` (`--leadin`, `tools/leadin_build.py`): 1–2 correctly recited preceding ayahs are stitched before each clip and 1–2 following ayahs after it (lead-out) at the evidence level (same speaker's clean clip, else another help speaker's, else held-out tlog, else tlog train), errors and false positives are scored inside the original clip, and warnings on the lead-in and lead-out are counted apart. For a student add `--leadin-evidence <dir>` with its decode of `.scratch/leadin/audio` (with posteriors) (`pnpm --filter @tilawa/sdk decode`). Without a lead-in the free numbers are info; each arm is also split into `unambiguous` and `mutashabihat` (planted errors that form another ayah, `forms_other_ayah`). `Declared passage` is the memorization-session arm (`CheckerOptions.passage`); `oracle evidence` replaces the decode with one synthesised from the label, so its losses are the checker's own. E0 attributes each missed mistake to listener, tracker or checker.
 
-## Release readiness: spliced-clean-int8 @ 798675c (2026-10-11)
+## Release readiness: spliced-clean-int8 @ cf073f6 (2026-10-12)
 
 **Not ready**: 7/13 gates pass, 6 fail, 0 not measured on this listener, 5 requirements not measurable yet. Worst shortfall first.
 
 | Gate | Now | Bar | Shortfall | Δ previous run |
 |---|---:|---|---:|---:|
 | False warnings per 5 min (lead-out recitation) | 2.73 per 5 min (29 in 53.2 min, 354 lead-outs) | ≤ 1 | 173% short | 0 |
-| False warnings per 5 min (stitched sessions) | 1.46 (217 in 743 min) | ≤ 1 | 46% short |  |
+| False warnings per 5 min (stitched sessions) | 1.46 (217 in 743 min) | ≤ 1 | 46% short | 0 |
 | Listener gold PER | 4.82% (233 clips) | ≤ 3.7% | 32% short | 0 |
 | Free recitation (1–2 recited ayahs before and after): warnings correct | 77.9% (53/68) | ≥ 90.0% | 13% short | 0 |
 | Tracker: correct ayah within 5 s | 84.0% (189/225) | ≥ 95.0% | 12% short | 0 |
@@ -30,7 +30,7 @@ The release cockpit for the engine. One row per commit × listener, recomputed f
 | False warnings on repeats | 0 (23 repeat clips) | ≤ 0 | pass | 0 |
 | False warnings per 5 min (lead-in recitation) | 0.54 per 5 min (6 in 55.4 min, 346 lead-ins) | ≤ 1 | pass | 0 |
 | Tracker: false jumps | 0.0% (0/225) | ≤ 2.0% | pass | 0 |
-| Real-time factor | 0.002 | ≤ 0.05 | pass | +0 |
+| Real-time factor | 0.002 | ≤ 0.05 | pass | 0 |
 
 Not measurable yet (blocks release): Pronunciation: short vowels; Pronunciation: confusable pairs, shadda; Word highlight / warning latency on device; Self-correction and long-session false warnings; Scripted-error recordings.
 
@@ -42,6 +42,7 @@ Newest first. Each run is judged against its parent: the previous run of the sam
 
 | Date | Commit | Listener | vs | Verdict | Gate moves | Note |
 |---|---|---|---|---|---|---|
+| 2026-10-12 | cf073f6 | spliced-clean-int8 | 798675c | = unchanged |  | Add occurrence-aware session scoring and fresh continuous student baseline on three pinned QUD recordings; session measures reported only, release gates unchanged |
 | 2026-10-11 | 798675c | spliced-clean-int8 | a4cc202 | = unchanged |  | Stitched-session checker warnings (stitched-warnings-v1, ticket 13, 747 min) with posteriors: the stitched gate now runs the shipped checker (local-window on) instead of jumps-v1's posterior-free replay; int8 first measured: 217 in 743 min (1.46/5 min), end region 1.40 vs mid 1.47, finalisation +0; help-speaker sessions 2.84 vs lead-out 2.73, so lead-out warnings are the checker, not session ends |
 | 2026-10-11 | 798675c | teacher | a4cc202 | ▲ better | ▲ False warnings per 5 min (stitched sessions) 2.07 (309 in 747 min) → 1.41 (211 in 747 min) | Stitched-session checker warnings (stitched-warnings-v1, ticket 13, 747 min) with posteriors: the stitched gate now runs the shipped checker (local-window on) instead of jumps-v1's posterior-free replay; teacher 309 -> 211 (1.41/5 min), end region 1.40 = mid 1.41, finalisation +2 in 129 session ends |
 | 2026-10-09 | a4cc202 | spliced-clean-int8 | 34d1c16 | ◆ mixed | ▲ Free recitation (1–2 recited ayahs before and after): mistakes caught 64.1% (41/64) → 82.8% (53/64)<br>▲ Free recitation (1–2 recited ayahs before and after): warnings correct 73.2% (41/56) → 77.9% (53/68)<br>▼ False warnings per 5 min (short clips) 0.216 → 0.324<br>▲ False warnings per 5 min (lead-in recitation) 0.90 per 5 min (10 in 55.4 min, 346 lead-ins) → 0.54 per 5 min (6 in 55.4 min, 346 lead-ins) | Lead-out (leadin-v2) + session-end finalisation in latched free recitation (default on); int8 tlog lead-in/out re-decoded with posteriors (pnpm decode). Free with lead-in/out, finalise off -> on: 50/14/14 -> 53/15/11 (78.1%/78.1% -> 77.9%/82.8%), unambiguous 71.4% -> 70.0% P, mutashabihat 15/26 -> 18/26 (lead-in only: 8/26); lead-out warnings 25 -> 29. Declared 56/8/8 unchanged |
@@ -114,7 +115,7 @@ Newest first. Each run is judged against its parent: the previous run of the sam
 | End to end | Pronunciation: consonant_sad_sin | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 4 positives in eval split |
 | End to end | Pronunciation: madd_natural | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 1 positives in eval split |
 | End to end | Pronunciation: other pairs, shadda | — |  | unmeasurable |  | no recordings with positives (ticket 05, phase 2) |
-| End to end | Tracker real-time factor (this machine) | 0.002 | ≤ 0.05 | pass | +0 | perf.ts gate: device floor assumed 20× slower; slowest push 32.5 ms |
+| End to end | Tracker real-time factor (this machine) | 0.002 | ≤ 0.05 | pass | 0 | perf.ts gate: device floor assumed 20× slower; slowest push 27.2 ms |
 | End to end | Word highlight p95 / suspected / confirmed latency | — |  | unmeasurable |  | pass --latency <pnpm bench:help report> (packages/sdk); device runs: ticket 10 |
 | Listener | Gold PER (canon vs spliced, human-verified exact) | 4.82% (233 clips) | ≤ 3.7% | fail | 0 | bar: gold PER where fitted declared.precision falls 2 pts below the teacher (3.39%) |
 | Listener | Gold PER: laptop | 10.66% (16 clips) |  | info | 0 |  |
@@ -142,7 +143,7 @@ Newest first. Each run is judged against its parent: the previous run of the sam
 | Tracker | help all: clips with any lock outside the passage | 5.4% (21/388) |  | info | 0 |  |
 | Tracker | help all: median time to correct lock | 2.56 s |  | info | 0 | from first decoded phoneme |
 | Tracker | QUD regression: correct ayah within 5 s | — |  | pending |  | no QUD evidence from spliced-clean-int8 |
-| End to end | Stitched sessions: false wrong/added words per 5 min (free) | 1.46 (217 in 743 min) | ≤ 1 | fail |  | ticket 13 sessions with posteriors (local-window on) and session-end finalisation; 205 mid-session, 12 in the last 20 s, 0 confirmed by the session end; `pnpm stitched-warnings` |
+| End to end | Stitched sessions: false wrong/added words per 5 min (free) | 1.46 (217 in 743 min) | ≤ 1 | fail | 0 | ticket 13 sessions with posteriors (local-window on) and session-end finalisation; 205 mid-session, 12 in the last 20 s, 0 confirmed by the session end; `pnpm stitched-warnings` |
 | Tracker | Ambiguous tlog clips (PLAN gate set) | — |  | unmeasurable |  | no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06) |
 | Tracker | Scripted-error recordings (PLAN gate set) | — |  | unmeasurable |  | no recordings yet (ticket 05) |
 | Checker | Declared passage: Memorization precision | 87.5% (56/64) | ≥ 90.0% | fail | 0 | declared passage (CheckerOptions.passage): the prompted passage, real tracker and evidence |
@@ -191,3 +192,10 @@ Newest first. Each run is judged against its parent: the previous run of the sam
 | Checker | E0: misses lost to tracker | 27/35 |  | info | 0 |  |
 | Checker | E0: misses lost to checker | 2/35 |  | info | 0 | real upstream, free arm |
 | Checker | Self-correction / long-session false warnings | — |  | unmeasurable |  | no recordings (ticket 05) |
+| Sessions: recitation.none.qud | Warnings correct | 0.0% |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.none.qud | Errors caught | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.none.qud | False warnings per 5 clean minutes | 19.54 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.none.qud | Correctly located time | 85.6% |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.none.qud | Located within 5 seconds | 100.0% |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.none.qud | Wrong position events | 10 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.none.qud | Warnings on repeats/restarts/self-corrections | 0 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |

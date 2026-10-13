@@ -1,6 +1,20 @@
 # Session bench: tests that look like real use
 
-Status: needs-triage
+Status: ready-for-agent
+
+## Implementation review (12 October 2026)
+
+Reviewed against the current core and SDK. Accepted for incremental implementation; the benchmark stays reported-only. Release gates and recorded-session promotion requirements remain unchanged.
+
+- `CheckerOptions.passage` is available, and SDK `startMemorization` uses it. Resume is a weak tracker prior; surah/page remain unsupported and explicitly marked in benchmark rows. No true-start prior is inferred.
+- The SDK feeds decoded evidence to the tracker and posteriors to the checker on a fixed evidence grid. The initial replay follows that separation with 40 ms evidence cells; it is evidence replay, not device latency.
+- Display is not an SDK-defined UI field. Initial position measures use locked top-candidate position held between events; acquiring/ambiguous/lost states do not count as correctly located. This display policy must be confirmed against the eventual sample app before promotion.
+- All labelled errors remain in recall's denominator, including abstentions. Delays apply only to matched warnings and are censored by misses; counts accompany them. First emission assigns an occurrence, later states retain it, and any confirmed state counts even after resolution.
+- Clean-speech minutes count timed words, excluding labelled-error intervals. Position samples additionally allow the two-second last-word tolerance. This prevents silence from diluting false-warning rates.
+- Omissions use the end of the first occurrence of the second following ayah, or session end when absent; repeated later occurrences must not extend that horizon.
+- Existing help labels lack word times. Coverage audit found no minute-long consecutive same-speaker clean runs and no error clip with both clean adjacent ayahs from its held-out speaker. Audio must not be padded with other speakers. Tlog speaker clusters are not independently verified identities and have not been audited for this format.
+
+First increment: session format/validation, lifecycle/occurrence scorer, context adapter, QUD conversion/replay, same-speaker coverage audit and deterministic continuous-WAV builder for a supplied timed catalogue. Baseline contains three original QUD recordings with fresh continuous student decoding and a teacher comparison; provenance and training-overlap limitations are recorded. Scoreboard integration reports session measures only. Full QUD annotation reconciliation, error-session timing/coverage, session review UI, recorded agreement, and threshold selection remain open.
 
 ## Problem
 
