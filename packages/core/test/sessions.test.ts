@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadReferenceIndex } from "../src/reference.js";
 import type { CheckerEvent, PositionEvent, WordRef } from "../src/events.js";
-import { contextAdapter, scoreSessionEvents, validateSession, weakerContexts, qudSession } from "../src/bench/sessions.js";
+import { contextAdapter, scoreSessionEvents, validateSession, weakerContexts, qudSession, qudAudit } from "../src/bench/sessions.js";
 import type { BenchSession } from "../src/bench/sessions.js";
 const index = loadReferenceIndex(JSON.parse(readFileSync(new URL("../assets/ref-v2.json", import.meta.url), "utf8")));
 const at: WordRef = { surah: 94, ayah: 5, word: 1 };
@@ -66,5 +66,36 @@ describe("session truth and scoring", () => {
     const q = qudSession({ id: "q", meta: { reciter: "r", duration_s: 2.015 }, frameMs: 40, nFrames: 50,
       truth: { words: [{ word: "94:5:1", start_s: 1, end_s: 2.015 }], non_quran: [] } } as any, "q.wav");
     validateSession(q, index); expect(q.durationS).toBe(2.015);
+  });
+  const qud = (words: [string, number, number][], non_quran: [number, number][] = [], duration_s = 30) => ({ id: "q", meta: { reciter: "r", duration_s },
+    frameMs: 40, nFrames: Math.round(duration_s * 25), truth: { words: words.map(([word, start_s, end_s]) => ({ word, start_s, end_s })),
+      non_quran: non_quran.map(([start_s, end_s]) => ({ start_s, end_s })) } }) as any;
+  it("clips truth that overruns the audio clock by annotation rounding, rejects larger overruns", () => {
+    const q = qudSession(qud([["94:5:1", 1, 2], ["94:5:2", 2, 10.04]], [], 10), "q.wav");
+    validateSession(q, index); expect(q.words[1].endS).toBe(10); expect(q.spans.at(-1)!.endS).toBe(10);
+    const n = qudSession(qud([["94:5:1", 1, 2]], [[9.5, 10.08]], 10), "q.wav");
+    validateSession(n, index); expect(n.spans.at(-1)!.endS).toBe(10);
+    expect(() => qudSession(qud([["94:5:1", 1, 10.5]], [], 10), "q.wav")).toThrow(/overruns/);
+  });
+  it("makes a return to an earlier ayah its own restart or repeat occurrence, even across special words", () => {
+    const q = qudSession(qud([["1:1:1", 1, 2], ["1:1:2", 2, 3], ["112:1:1", 4, 5], ["Basmala:1", 6, 7], ["1:1:1", 8, 9], ["1:1:2", 9, 10],
+      ["94:5:1", 12, 13], ["94:6:1", 13, 14], ["94:5:2", 14, 15]]), "q.wav");
+    validateSession(q, index);
+    expect(q.spans.map(s => s.kind)).toEqual(["recitation", "recitation", "non_quran", "restart", "recitation", "recitation", "repeat"]);
+    expect(q.nonErrors.map(n => [n.kind, n.startS])).toEqual([["restart", 8], ["restart", 9], ["repeat", 14]]);
+  });
+  it("clips non-Quran truth to the gap, splits the occurrence there, and rejects non-Quran covering a word", () => {
+    const q = qudSession(qud([["94:5:1", 1, 2], ["94:5:2", 3, 4]], [[1.5, 2.8]]), "q.wav");
+    validateSession(q, index);
+    expect(q.spans.map(s => [s.kind, s.startS, s.endS])).toEqual([["recitation", 1, 2], ["non_quran", 2, 2.8], ["recitation", 3, 4]]);
+    expect(() => qudSession(qud([["94:5:1", 1, 2]], [[0.5, 2.5]]), "q.wav")).toThrow(/contradict/);
+    expect(() => qudSession(qud([["94:5:1", 1, 2]], [[1.2, 1.8]]), "q.wav")).toThrow(/contradict/);
+  });
+  it("audits each recording as converted with counts, or excluded with the reason", () => {
+    const ok = qudAudit(qud([["1:1:1", 1, 2], ["112:1:1", 4, 5], ["Basmala:1", 6, 7], ["1:1:1", 8, 9], ["94:5:1", 12, 13], ["94:5:1", 14, 15]], [[20, 21]]), index);
+    expect(ok.audit).toEqual({ id: "q", status: "converted", reason: null, spans: 7, repeats: 1, restarts: 1, nonQuran: 2, surahJumps: 3 });
+    expect(ok.session?.id).toBe("q");
+    const bad = qudAudit(qud([["94:5:1", 1, 2]], [[0.5, 2.5]]), index);
+    expect(bad.session).toBeNull(); expect(bad.audit.status).toBe("excluded"); expect(bad.audit.reason).toMatch(/contradicts/);
   });
 });

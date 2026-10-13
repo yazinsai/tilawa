@@ -285,8 +285,32 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     hi = words[ayahLast[Math.min(ayahLast.length - 1, f + AHEAD_AYAHS)]].end;
   };
 
+  /** Per-window cost tables: every cell cost depends only on the window position and the heard phoneme. */
+  let costLo = -1;
+  let costHi = -1;
+  let delCost = new Float64Array(0);
+  const rowCosts = new Map<string, { sub: Float64Array; ins: Float64Array }>();
+  const costsFor = (p: string) => {
+    let c = rowCosts.get(p);
+    if (!c) {
+      const n = hi - lo;
+      c = { sub: new Float64Array(n), ins: new Float64Array(n + 1) };
+      for (let i = 0; i < n; i++) c.sub[i] = subCost(ref[lo + i], p);
+      for (let i = 0; i <= n; i++) c.ins[i] = insertionCost(ref, lo + i, p, hi);
+      rowCosts.set(p, c);
+    }
+    return c;
+  };
+
   /** Weighted alignment of the window's phonemes from the anchor, with jump arcs to every word start in the window. */
   const align = (): Step[] => {
+    if (lo !== costLo || hi !== costHi) {
+      costLo = lo;
+      costHi = hi;
+      rowCosts.clear();
+      delCost = new Float64Array(hi - lo);
+      for (let i = 0; i < hi - lo; i++) delCost[i] = deletionCost(ref, lo + i);
+    }
     const a0 = words[anchor!].start - lo;
     const n = hi - lo;
     const m = obs.length;
@@ -311,28 +335,29 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     d[a0] = 0;
     op[a0] = OP_START;
     for (let i = a0 + 1; i <= n; i++) {
-      d[i] = d[i - 1] + deletionCost(ref, lo + i - 1);
+      d[i] = d[i - 1] + delCost[i - 1];
       op[i] = OP_DEL;
     }
     jumps(0);
     for (let j = 1; j <= m; j++) {
       const p = obs[j - 1].p;
+      const { sub, ins: insCost } = costsFor(p);
       const row = j * w;
       const prev = row - w;
       for (let i = 0; i <= n; i++) {
         let best = INF;
         let o = OP_INS;
         if (i > 0) {
-          best = d[prev + i - 1] + subCost(ref[lo + i - 1], p);
+          best = d[prev + i - 1] + sub[i - 1];
           o = OP_DIAG;
         }
-        const ins = d[prev + i] + (obs[j - 1].junk ? 0 : j <= lead && i === a0 ? LEAD : insertionCost(ref, lo + i, p, hi));
+        const ins = d[prev + i] + (obs[j - 1].junk ? 0 : j <= lead && i === a0 ? LEAD : insCost[i]);
         if (ins < best) {
           best = ins;
           o = j <= lead && i === a0 ? OP_LEAD : OP_INS;
         }
         if (i > 0) {
-          const del = d[row + i - 1] + deletionCost(ref, lo + i - 1);
+          const del = d[row + i - 1] + delCost[i - 1];
           if (del < best) {
             best = del;
             o = OP_DEL;

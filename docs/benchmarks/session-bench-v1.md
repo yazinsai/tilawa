@@ -24,7 +24,21 @@ Student aggregate: 28 confirmed false warnings in 7.16 clean-speech minutes (19.
 
 The single slow recording concealed substantial failures on faster professional recitation. These small diagnostic results do not estimate learner performance or select release thresholds. No error positives exist, so recall and error feedback delay are unmeasured. Position is the held locked top candidate, with a one-ayah/two-second tolerance. This is evidence replay after continuous CPU decoding, not a device-latency measurement.
 
-Two final words were initially rejected because rounded evidence-frame duration was shorter than original audio. Conversion now uses the source audio duration; truth is not stretched or clipped. A regression test pins this case. All three recordings score without exclusions. The all-16 teacher replay was stopped before completion; no wider result is claimed.
+Two final words were initially rejected because rounded evidence-frame duration was shorter than original audio. Conversion now uses the source audio duration; truth is not stretched. A regression test pins this case. All three recordings score without exclusions. See QUD reconciliation below for the all-16 conversion and replay.
+
+## QUD reconciliation
+
+`qudSession` converts QUD truth with these deterministic rules; `qudAudit` validates the result and records each recording as converted (with span, repeat, restart, non-Quran and surah-jump counts) or excluded with the reason.
+
+- Clock: truth ending up to 0.1 s past the source audio duration is annotation rounding and is clipped to the duration. A larger overrun is rejected.
+- Occurrences: one span per ayah occurrence, in recorded order. Forward words in the same ayah extend the span when the gap is at most 2 s and no non-Quran interval lies in the gap.
+- Repeats and restarts: equal or backward movement within an ayah starts a `repeat` span. A return to an earlier ayah (compared in Quran order against the last recited word, across any special words) starts a `restart` span when it lands on word 1, otherwise a `repeat`. Every word of a repeat/restart span gets a matching `nonErrors` entry. Prayer Fatiha recitations after another surah therefore become restarts.
+- Special words (`Basmala:n`, `Isti'adha:n`) become labelled non-Quran spans.
+- Non-Quran intervals are clipped to the gap next to any word they partially overlap, never stretched over word truth, and they split the occurrence. A non-Quran interval that covers a whole word or lies inside one is contradictory and the recording is excluded.
+
+All 16 recordings convert (`session-qud-audit-v1.json`). Repeat plus restart counts equal each recording's QUD `repeat_events`, except the prayer recordings, where the extra restarts are Fatiha recitations: prayer-baqarah-yasin 1, taraweeh-maryam 6, witr-muawwidhat 2. Minshawi, Luqman was previously rejected for a 36 ms final-word overrun; prayer-baqarah-yasin for a final non-Quran interval 92 ms past the audio end.
+
+The all-16 teacher replay previously did not finish: the checker re-runs a windowed alignment on every 40 ms push, and per-cell cost lookups made long, dense recordings take over an hour. Cost tables are now computed once per window and phoneme. The output is identical (Nisa report rows byte-equal) and Nisa replays in 6 s instead of 58 s. `session-qud-teacher-v1.json` holds the all-16 teacher replay.
 
 ## Commands
 
@@ -35,6 +49,8 @@ python3 tools/session_build.py audit --out .scratch/session-bench/coverage.json
 python3 tools/session_build.py build --catalog timed-clips.json --out .scratch/session-bench/build --seed 12
 pnpm typecheck
 node packages/core/dist/bench/sessions-cli.js --qud .scratch/bench/qud --only jaber-inshiqaq --out docs/benchmarks/session-baseline-v1.json
+node packages/core/dist/bench/sessions-cli.js --qud .scratch/bench/qud --audit --out docs/benchmarks/session-qud-audit-v1.json
+node packages/core/dist/bench/sessions-cli.js --qud .scratch/bench/qud --out docs/benchmarks/session-qud-teacher-v1.json
 # Acquired original QUD WAVs: fresh student decode, then score the saved timed manifest.
 uv run --python cpython-3.12-macos-aarch64-none --with huggingface-hub --with pyarrow --with 'numpy>=2' tools/session_qud_audio.py --ids jaber-inshiqaq,jaber-nisa,diban-sad --revision 76c3d804d082c3cc189601faf13a41996e17b6dc --out .scratch/session-bench/qud
 node packages/sdk/dist/bench/decode-cli.js --model .scratch/models/spliced-clean-int8 --wavs .scratch/session-bench/qud --out .scratch/session-bench/qud/evidence
@@ -55,7 +71,6 @@ Source, use track and context are kept separate. Assignment uses the declared ch
 ## Remaining work
 
 - Audit same-speaker held-out tlog availability and obtain word-timed clean/error continuations; do not substitute voices.
-- Reconcile QUD truth where repeated words, non-Quran intervals or timings overlap; contradictory truth is rejected rather than silently counted.
 - Expand the three-recording baseline to wider QUD and error sessions. Aggregate delay distributions, per-class and mutashabihat coverage, and distinct twin ambiguity (initial scorer reports general tracker ambiguity).
 - Add event-centred session audio review to the dashboard. Current integration adds reported scoreboard metrics, not session review items.
 - Recorded sessions and independent review remain deferred. No collection or publication is initiated by this increment.
