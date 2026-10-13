@@ -55,7 +55,14 @@ describe("session truth and scoring", () => {
     const c = { kind: "resume", at: { surah: 2, ayah: 5, word: 1 } } as const;
     expect(contextAdapter(c).tracker.prior?.ayah).toBe(5);
     expect(weakerContexts(c).map(x => x.kind)).toEqual(["resume", "surah", "none"]);
-    expect(contextAdapter({ kind: "page", page: 1 }).supported).toBe(false);
+  });
+  it("maps surah and page context to a range prior", () => {
+    const surah = contextAdapter({ kind: "surah", surah: 3 });
+    expect(surah).toMatchObject({ supported: true, effective: "surah" });
+    expect(surah.tracker.priorRange?.ranges).toEqual([{ from: { surah: 3, ayah: 1 }, to: { surah: 3, ayah: Infinity } }]);
+    const page = contextAdapter({ kind: "page", page: 50 });
+    expect(page).toMatchObject({ supported: true, effective: "page" });
+    expect(page.tracker.priorRange?.ranges).toEqual([{ from: { surah: 3, ayah: 1 }, to: { surah: 3, ayah: 9 } }]);
   });
   it("converts QUD repeated visits without collapsing them", () => {
     const q = qudSession({ id: "q", meta: { reciter: "r" }, frameMs: 40, nFrames: 300, truth: { words: [
