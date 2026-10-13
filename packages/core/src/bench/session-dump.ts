@@ -1,10 +1,5 @@
 import type { CheckerEvent, EngineEvent, PositionEvent, WordRef } from "../events.js";
-import type { PhraseAsset, ReferenceAsset, ReferenceIndex } from "../reference.js";
-import { createTracker } from "../tracker.js";
-import { createChecker } from "../checker.js";
-import { chunk } from "./index.js";
-import type { QudRecording } from "./index.js";
-import { contextAdapter } from "./sessions.js";
+import type { ReferenceAsset, ReferenceIndex } from "../reference.js";
 import type { BenchSession, SessionContext, SessionScore } from "./sessions.js";
 
 /** Review-only session evidence for the scoreboard page. Never read by the scorer. */
@@ -29,21 +24,6 @@ const key = (r: WordRef) => `${r.surah}:${r.ayah}:${r.word}`;
 const ayahKey = (r: WordRef) => `${r.surah}:${r.ayah}`;
 export const contextKey = (c: SessionContext) => c.kind === "surah" ? `surah ${c.surah}` : c.kind === "page" ? `page ${c.page}`
   : c.kind === "assignment" ? `assignment ${key(c.from)}-${key(c.to)}` : c.kind === "resume" ? `resume ${key(c.at)}` : "none";
-
-/** Same engine loop as `runSession`, returning the raw events. */
-export function sessionEvents(s: BenchSession, evidence: Pick<QudRecording, "inventory" | "frameMs" | "nFrames" | "phonemes" | "posteriors">,
-    index: ReferenceIndex, context = s.context, phrases?: PhraseAsset): EngineEvent[] {
-  const adapter = contextAdapter(context);
-  const tracker = createTracker(index, { mode: s.track === "memorization" ? "memorization" : "free", phrases, ...adapter.tracker });
-  const checker = createChecker(index, { phrases, ...adapter.checker });
-  const out: EngineEvent[] = [];
-  for (const e of chunk(evidence as QudRecording, 0.04, true)) {
-    const positions = tracker.push({ ...e, posteriors: undefined });
-    out.push(...positions, ...checker.push(e, positions));
-  }
-  const end = tracker.end(); out.push(...end, ...checker.end(end));
-  return out;
-}
 
 export const quranText = (asset: ReferenceAsset) => new Map(asset.ayahs.flatMap(a => a.w.map((w, i) => [`${a.s}:${a.a}:${i + 1}`, w] as const)));
 

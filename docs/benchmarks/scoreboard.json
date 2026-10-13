@@ -37058,6 +37058,4242 @@
      "note": "no recordings (ticket 05)"
     }
    ]
+  },
+  {
+   "sha": "f6098d6",
+   "date": "2026-10-13",
+   "recordedAt": "2026-10-13T14:57:21.137Z",
+   "listener": "teacher",
+   "note": "All-16 QUD teacher sessions at synthesised assignment/page/surah/none contexts (one replay per context); none 3.03 FW/5 clean min, assignment 26.25 (declared passage); reported only, no thresholds",
+   "metrics": [
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.leadin.precision",
+     "group": "End to end",
+     "name": "Free, with lead-in: Memorization precision",
+     "value": null,
+     "status": "pending",
+     "note": "no lead-in evidence from teacher on disk (decode .scratch/leadin/audio, pass --leadin-evidence)"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.leadin.recall",
+     "group": "End to end",
+     "name": "Free, with lead-in: Memorization recall",
+     "value": null,
+     "status": "pending",
+     "note": "no lead-in evidence from teacher on disk (decode .scratch/leadin/audio, pass --leadin-evidence)"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.precision",
+     "group": "End to end",
+     "name": "Memorization precision",
+     "value": 0.7906976744186046,
+     "unit": "%",
+     "display": "79.1% (34/43)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "note": "help eval split, held-out speakers: 388 clips, 29 speakers; free recitation, default policy",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.recall",
+     "group": "End to end",
+     "name": "Memorization recall",
+     "value": 0.53125,
+     "unit": "%",
+     "display": "53.1% (34/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.wrong_word.precision",
+     "group": "End to end",
+     "name": "wrong_word precision",
+     "value": 0.375,
+     "unit": "%",
+     "display": "37.5% (3/8)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.wrong_word.recall",
+     "group": "End to end",
+     "name": "wrong_word recall",
+     "value": 0.10344827586206896,
+     "unit": "%",
+     "display": "10.3% (3/29)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "fail",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.omitted_word.precision",
+     "group": "End to end",
+     "name": "omitted_word precision",
+     "value": 0.96875,
+     "unit": "%",
+     "display": "96.9% (31/32)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.omitted_word.recall",
+     "group": "End to end",
+     "name": "omitted_word recall",
+     "value": 0.8857142857142857,
+     "unit": "%",
+     "display": "88.6% (31/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.added_word.precision",
+     "group": "End to end",
+     "name": "added_word precision",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/1)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.added_word.recall",
+     "group": "End to end",
+     "name": "added_word recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.skipped_passage.precision",
+     "group": "End to end",
+     "name": "skipped_passage precision",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/2)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.skipped_passage.recall",
+     "group": "End to end",
+     "name": "skipped_passage recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.cleanPerClip",
+     "group": "End to end",
+     "name": "False warnings per clean clip",
+     "value": 0.013333333333333334,
+     "display": "0.013 (3/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.cleanPer5",
+     "group": "End to end",
+     "name": "False warnings per 5 min (short clips)",
+     "value": 0.3227379654598657,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.repeatFp",
+     "group": "End to end",
+     "name": "False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.unambiguous.precision",
+     "group": "End to end",
+     "name": "Free: unambiguous precision",
+     "value": 0.7906976744186046,
+     "unit": "%",
+     "display": "79.1% (34/43)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail",
+     "note": "excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.unambiguous.recall",
+     "group": "End to end",
+     "name": "Free: unambiguous recall",
+     "value": 0.8947368421052632,
+     "unit": "%",
+     "display": "89.5% (34/38)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.mutashabihat.precision",
+     "group": "End to end",
+     "name": "Free: mutashabihat precision",
+     "value": null,
+     "unit": "%",
+     "display": "—% (0/0)",
+     "status": "info",
+     "note": "planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed; needs declared passage or position hint"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.mutashabihat.recall",
+     "group": "End to end",
+     "name": "Free: mutashabihat recall",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/26)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.pron.short_vowel",
+     "group": "End to end",
+     "name": "Pronunciation: short_vowel",
+     "value": null,
+     "display": "unsupported",
+     "status": "unmeasurable",
+     "note": "checker has no pronunciation classes; 30 positives in eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.pron.consonant_sad_sin",
+     "group": "End to end",
+     "name": "Pronunciation: consonant_sad_sin",
+     "value": null,
+     "display": "unsupported",
+     "status": "unmeasurable",
+     "note": "checker has no pronunciation classes; 4 positives in eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.pron.madd_natural",
+     "group": "End to end",
+     "name": "Pronunciation: madd_natural",
+     "value": null,
+     "display": "unsupported",
+     "status": "unmeasurable",
+     "note": "checker has no pronunciation classes; 1 positives in eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.pron.phase2",
+     "group": "End to end",
+     "name": "Pronunciation: other pairs, shadda",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no recordings with positives (ticket 05, phase 2)"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.perfRtf",
+     "group": "End to end",
+     "name": "Tracker real-time factor (this machine)",
+     "value": 0.0016853255915796033,
+     "bar": {
+      "op": "<=",
+      "target": 0.05
+     },
+     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 28.8 ms",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.latency",
+     "group": "End to end",
+     "name": "Word highlight p95 / suspected / confirmed latency",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "pass --latency <pnpm bench:help report> (packages/sdk); device runs: ticket 10"
+    },
+    {
+     "id": "listener.goldPer",
+     "group": "Listener",
+     "name": "Gold PER (canon vs spliced, human-verified exact)",
+     "value": 0.03389957344907581,
+     "unit": "%",
+     "bar": {
+      "op": "<=",
+      "target": 0.03654129754296288
+     },
+     "source": "listener-target-v1.md",
+     "display": "3.39% (233 clips)",
+     "note": "bar: gold PER where fitted declared.precision falls 2 pts below the teacher (3.39%)",
+     "status": "pass"
+    },
+    {
+     "id": "listener.goldPer.laptop",
+     "group": "Listener",
+     "name": "Gold PER: laptop",
+     "value": 0.07611798287345385,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "7.61% (16 clips)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.phone",
+     "group": "Listener",
+     "name": "Gold PER: phone",
+     "value": 0.09116809116809117,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "9.12% (26 clips)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.tlog",
+     "group": "Listener",
+     "name": "Gold PER: tlog",
+     "value": 0.01773466588281403,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "1.77% (191 clips)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.pharyngeals",
+     "group": "Listener",
+     "name": "Gold PER: pharyngeals",
+     "value": 0.05454545454545454,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "5.45% (385 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.emphatics",
+     "group": "Listener",
+     "name": "Gold PER: emphatics",
+     "value": 0.11428571428571428,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "11.43% (140 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.hamza_ain",
+     "group": "Listener",
+     "name": "Gold PER: hamza ain",
+     "value": 0.05114401076716016,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "5.11% (743 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.short_vowels",
+     "group": "Listener",
+     "name": "Gold PER: short vowels",
+     "value": 0.03202247191011236,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "3.20% (5340 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPerRaw",
+     "group": "Listener",
+     "name": "Gold raw PER vs spliced reference",
+     "value": 0.05233310731677249,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPerHeldOut",
+     "group": "Listener",
+     "name": "Gold PER: never in tlog train",
+     "value": 0.07265625,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "7.27% (62 clips)",
+     "note": "help clips plus tlog test/val gold clips; fair for students trained before the gold exclusion",
+     "status": "info"
+    },
+    {
+     "source": "teacher-per-breakdown-v1.md",
+     "id": "listener.perFair",
+     "group": "Listener",
+     "name": "Fair PER on tlog clean-match test (canon vs spliced)",
+     "value": 0.0244183782002307,
+     "unit": "%",
+     "status": "info",
+     "note": "teacher floor; canon PER vs spliced reference (teacher-per-breakdown-v1): nasal spelling and qalqala unified, runs collapsed, clip edges from the teacher; ignores shadda and duration"
+    },
+    {
+     "source": "student-v1.md",
+     "id": "listener.perRef",
+     "group": "Listener",
+     "name": "Raw PER vs reference (tlog clean-match test)",
+     "value": 0.0852,
+     "unit": "%",
+     "status": "info",
+     "note": "mostly clip edges and madd/ghunna length, not mishearing (teacher-per-breakdown-v1)"
+    },
+    {
+     "source": "student-v1.md",
+     "id": "listener.perTeacher",
+     "group": "Listener",
+     "name": "Raw PER vs teacher",
+     "value": 0,
+     "unit": "%",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "listener.visible",
+     "group": "Listener",
+     "name": "Planted memorization errors visible in the decode",
+     "value": 0.6875,
+     "unit": "%",
+     "display": "68.8% (44/64)",
+     "note": "E0 heuristic: under half the planted word's consonants decode as written",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "listener.e1help.svRecall",
+     "group": "Listener",
+     "name": "E1 help clips: short vowel greedy recall",
+     "value": 0.6333333333333333,
+     "unit": "%",
+     "display": "63.3% (19/30)",
+     "bar": {
+      "op": ">=",
+      "target": 0.5
+     },
+     "note": "E1 viable rule; 27 sites; report 66f60a6",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "listener.e1help.svCanon",
+     "group": "Listener",
+     "name": "E1 help clips: short vowel canonicalised",
+     "value": 0.1,
+     "unit": "%",
+     "display": "10.0% (3/30)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "listener.e1help.svFp",
+     "group": "Listener",
+     "name": "E1 help clips: short vowel clean greedy FP",
+     "value": 0.0011843079200592153,
+     "unit": "%",
+     "display": "0.1% (8/6755)",
+     "bar": {
+      "op": "<=",
+      "target": 0.02
+     },
+     "status": "pass"
+    },
+    {
+     "source": "e1-teacher-bias-v1.md",
+     "id": "listener.e1.classes",
+     "group": "Listener",
+     "name": "E1 (qdat_bench + Ikhlas): classes the teacher hears",
+     "value": 1,
+     "display": "1/10: 1 posterior-only, 9 unsupported",
+     "note": "report 7b28629; most classes have < 20 positives",
+     "status": "info"
+    },
+    {
+     "source": "e1b-spliced-v1.md",
+     "id": "listener.e1b.classes",
+     "group": "Listener",
+     "name": "E1b splices (upper bound): classes the teacher hears",
+     "value": 7,
+     "display": "7/9: 6 viable, 1 posterior-only, 2 mixed",
+     "note": "report 005fc6d",
+     "status": "info"
+    },
+    {
+     "source": "e1b-spliced-v1.md",
+     "id": "listener.e1b.canon",
+     "group": "Listener",
+     "name": "E1b splices: canonicalised share (all classes)",
+     "value": 0.3450094161958569,
+     "unit": "%",
+     "display": "34.5% (916/2655)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.clean.within5s",
+     "group": "Tracker",
+     "name": "help clean: correct ayah within 5 s",
+     "value": 0.8488888888888889,
+     "unit": "%",
+     "display": "84.9% (191/225)",
+     "bar": {
+      "op": ">=",
+      "target": 0.95
+     },
+     "note": "fair gate number on user-like audio",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.clean.falseJumps",
+     "group": "Tracker",
+     "name": "help clean: clips with a false jump",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/225)",
+     "bar": {
+      "op": "<=",
+      "target": 0.02
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.clean.outside",
+     "group": "Tracker",
+     "name": "help clean: clips with any lock outside the passage",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.clean.lockS",
+     "group": "Tracker",
+     "name": "help clean: median time to correct lock",
+     "value": 2.64,
+     "unit": "s",
+     "note": "from first decoded phoneme",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.all.within5s",
+     "group": "Tracker",
+     "name": "help all: correct ayah within 5 s",
+     "value": 0.7938144329896907,
+     "unit": "%",
+     "display": "79.4% (308/388)",
+     "bar": {
+      "op": ">=",
+      "target": 0.95
+     },
+     "note": "error clips: a substitution forming another ayah counts as wrong",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.all.falseJumps",
+     "group": "Tracker",
+     "name": "help all: clips with a false jump",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/388)",
+     "bar": {
+      "op": "<=",
+      "target": 0.02
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.all.outside",
+     "group": "Tracker",
+     "name": "help all: clips with any lock outside the passage",
+     "value": 0.05412371134020619,
+     "unit": "%",
+     "display": "5.4% (21/388)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.all.lockS",
+     "group": "Tracker",
+     "name": "help all: median time to correct lock",
+     "value": 2.62,
+     "unit": "s",
+     "note": "from first decoded phoneme",
+     "status": "info"
+    },
+    {
+     "source": "qud-v1-decoded-phrases.md",
+     "id": "tracker.qud.within5s",
+     "group": "Tracker",
+     "name": "QUD regression: correct ayah within 5 s",
+     "value": 0.7692307692307693,
+     "unit": "%",
+     "display": "76.9% (30/39)",
+     "bar": {
+      "op": ">=",
+      "target": 0.95
+     },
+     "note": "16 recordings, 357 min; regression report, not a gate (Decision 2)",
+     "status": "fail"
+    },
+    {
+     "source": "qud-v1-decoded-phrases.md",
+     "id": "tracker.qud.falseJumps",
+     "group": "Tracker",
+     "name": "QUD regression: false jumps",
+     "value": 0.08791208791208792,
+     "unit": "%",
+     "display": "8.8% (8/91)",
+     "bar": {
+      "op": "<=",
+      "target": 0.02
+     },
+     "status": "fail"
+    },
+    {
+     "source": "qud-v1-decoded-phrases.md",
+     "id": "tracker.qud.lockS",
+     "group": "Tracker",
+     "name": "QUD regression: median time to first lock",
+     "value": 4.109999999999999,
+     "unit": "s",
+     "status": "info"
+    },
+    {
+     "source": "stitched-warnings-v1.md",
+     "id": "e2e.stitched.falseWords",
+     "group": "End to end",
+     "name": "Stitched sessions: false wrong/added words per 5 min (free)",
+     "value": 1.4125857147192769,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "display": "1.41 (211 in 747 min)",
+     "note": "ticket 13 sessions with posteriors (local-window on) and session-end finalisation; 199 mid-session, 10 in the last 20 s, 2 confirmed by the session end; `pnpm stitched-warnings`",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.tlog",
+     "group": "Tracker",
+     "name": "Ambiguous tlog clips (PLAN gate set)",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06)"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.scripted",
+     "group": "Tracker",
+     "name": "Scripted-error recordings (PLAN gate set)",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no recordings yet (ticket 05)"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.precision",
+     "group": "Checker",
+     "name": "Declared passage: Memorization precision",
+     "value": 0.8382352941176471,
+     "unit": "%",
+     "display": "83.8% (57/68)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "note": "declared passage (CheckerOptions.passage): the prompted passage, real tracker and evidence",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.recall",
+     "group": "Checker",
+     "name": "Declared passage: Memorization recall",
+     "value": 0.890625,
+     "unit": "%",
+     "display": "89.1% (57/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.wrong_word.precision",
+     "group": "Checker",
+     "name": "Declared passage: wrong_word precision",
+     "value": 0.8,
+     "unit": "%",
+     "display": "80.0% (24/30)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.wrong_word.recall",
+     "group": "Checker",
+     "name": "Declared passage: wrong_word recall",
+     "value": 0.8275862068965517,
+     "unit": "%",
+     "display": "82.8% (24/29)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.omitted_word.precision",
+     "group": "Checker",
+     "name": "Declared passage: omitted_word precision",
+     "value": 0.9428571428571428,
+     "unit": "%",
+     "display": "94.3% (33/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.omitted_word.recall",
+     "group": "Checker",
+     "name": "Declared passage: omitted_word recall",
+     "value": 0.9428571428571428,
+     "unit": "%",
+     "display": "94.3% (33/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.added_word.precision",
+     "group": "Checker",
+     "name": "Declared passage: added_word precision",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/1)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.added_word.recall",
+     "group": "Checker",
+     "name": "Declared passage: added_word recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.skipped_passage.precision",
+     "group": "Checker",
+     "name": "Declared passage: skipped_passage precision",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/2)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.skipped_passage.recall",
+     "group": "Checker",
+     "name": "Declared passage: skipped_passage recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.cleanPerClip",
+     "group": "Checker",
+     "name": "Declared passage: False warnings per clean clip",
+     "value": 0.022222222222222223,
+     "display": "0.022 (5/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.cleanPer5",
+     "group": "Checker",
+     "name": "Declared passage: False warnings per 5 min (short clips)",
+     "value": 0.5378966090997762,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.repeatFp",
+     "group": "Checker",
+     "name": "Declared passage: False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.unambiguous.precision",
+     "group": "Checker",
+     "name": "Declared passage: unambiguous precision",
+     "value": 0.7659574468085106,
+     "unit": "%",
+     "display": "76.6% (36/47)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail",
+     "note": "excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.unambiguous.recall",
+     "group": "Checker",
+     "name": "Declared passage: unambiguous recall",
+     "value": 0.9473684210526315,
+     "unit": "%",
+     "display": "94.7% (36/38)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.mutashabihat.precision",
+     "group": "Checker",
+     "name": "Declared passage: mutashabihat precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (21/21)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass",
+     "note": "planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.mutashabihat.recall",
+     "group": "Checker",
+     "name": "Declared passage: mutashabihat recall",
+     "value": 0.8076923076923077,
+     "unit": "%",
+     "display": "80.8% (21/26)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: Memorization precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (60/60)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "note": "oracle lock + oracle evidence synthesised from labels (Decision 7); 0 clips with an unphonemizable planted word skipped",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: Memorization recall",
+     "value": 0.9375,
+     "unit": "%",
+     "display": "93.8% (60/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.wrong_word.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: wrong_word precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (25/25)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.wrong_word.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: wrong_word recall",
+     "value": 0.8620689655172413,
+     "unit": "%",
+     "display": "86.2% (25/29)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.omitted_word.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: omitted_word precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (35/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.omitted_word.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: omitted_word recall",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (35/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.added_word.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: added_word precision",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 raised)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "unmeasurable"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.added_word.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: added_word recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.skipped_passage.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: skipped_passage precision",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 raised)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "unmeasurable"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.skipped_passage.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: skipped_passage recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.cleanPerClip",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: False warnings per clean clip",
+     "value": 0,
+     "display": "0.000 (0/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.cleanPer5",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: False warnings per 5 min (short clips)",
+     "value": 0,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.repeatFp",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.raised",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: positives raised in any state",
+     "value": 0.9375,
+     "unit": "%",
+     "display": "93.8% (60/64)",
+     "note": "the rest of the gap to recall is events still suspected/uncertain at clip end (confirmation delay on short clips)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.e0.evidence",
+     "group": "Checker",
+     "name": "E0: misses lost to evidence",
+     "value": 5,
+     "display": "5/30",
+     "note": "",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.e0.tracker",
+     "group": "Checker",
+     "name": "E0: misses lost to tracker",
+     "value": 23,
+     "display": "23/30",
+     "note": "",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.e0.checker",
+     "group": "Checker",
+     "name": "E0: misses lost to checker",
+     "value": 2,
+     "display": "2/30",
+     "note": "real upstream, free arm",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.selfCorrection",
+     "group": "Checker",
+     "name": "Self-correction / long-session false warnings",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no recordings (ticket 05)"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.precision",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Warnings correct",
+     "value": 0,
+     "unit": "%",
+     "display": "0/2090",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.recall",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Errors caught",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; abstentions count as misses"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.recall.wrong_word",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Errors caught: wrong word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.recall.omitted_word",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Errors caught: omitted word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.recall.added_word",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Errors caught: added word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.recall.skipped_passage",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Errors caught: skipped passage",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.recall.mutashabihat",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Errors caught: mutashabihat (forms another ayah)",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.cleanPer5",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "False warnings per 5 clean minutes",
+     "value": 26.25243920142239,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at assignment (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.located",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Correctly located time",
+     "value": 0.9736976730966985,
+     "unit": "%",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at assignment (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.within5s",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Located within 5 seconds",
+     "value": 0.5,
+     "unit": "%",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at assignment (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.wrongPositions",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Wrong position events",
+     "value": 67,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at assignment (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.nonErrorWarnings",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Warnings on repeats/restarts/self-corrections",
+     "value": 33,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at assignment (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.suspectedDelay.p50",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Delay to suspected, p50",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.suspectedDelay.p90",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Delay to suspected, p90",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.confirmedDelay.p50",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Delay to confirmed, p50",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.confirmedDelay.p90",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Delay to confirmed, p90",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.abstain.uncertain.shareOfErrors",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Missed errors from checker uncertain",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.abstain.uncertain.perCleanSession",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Checker uncertain per clean session",
+     "value": 27.1875,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 16 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.abstain.twinAmbiguous.shareOfErrors",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Missed errors from tracker twin ambiguity",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.abstain.twinAmbiguous.perCleanSession",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Tracker twin ambiguity per clean session",
+     "value": 0.0625,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 16 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.abstain.ambiguous.shareOfErrors",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Missed errors from tracker other ambiguity",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.abstain.ambiguous.perCleanSession",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Tracker other ambiguity per clean session",
+     "value": 46,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 16 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.page.qud.precision",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Warnings correct",
+     "value": 0,
+     "unit": "%",
+     "display": "0/209",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.page.qud.recall",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Errors caught",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; abstentions count as misses"
+    },
+    {
+     "id": "sessions.recitation.page.qud.recall.wrong_word",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Errors caught: wrong word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.page.qud.recall.omitted_word",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Errors caught: omitted word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.page.qud.recall.added_word",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Errors caught: added word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.page.qud.recall.skipped_passage",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Errors caught: skipped passage",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.page.qud.recall.mutashabihat",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Errors caught: mutashabihat (forms another ayah)",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.page.qud.cleanPer5",
+     "group": "Sessions: recitation.page.qud",
+     "name": "False warnings per 5 clean minutes",
+     "value": 3.0446999197207956,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at page (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.page.qud.located",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Correctly located time",
+     "value": 0.9745141303954651,
+     "unit": "%",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at page (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.page.qud.within5s",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Located within 5 seconds",
+     "value": 0.5625,
+     "unit": "%",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at page (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.page.qud.wrongPositions",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Wrong position events",
+     "value": 65,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at page (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.page.qud.nonErrorWarnings",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Warnings on repeats/restarts/self-corrections",
+     "value": 18,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at page (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.page.qud.suspectedDelay.p50",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Delay to suspected, p50",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.page.qud.suspectedDelay.p90",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Delay to suspected, p90",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.page.qud.confirmedDelay.p50",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Delay to confirmed, p50",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.page.qud.confirmedDelay.p90",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Delay to confirmed, p90",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.page.qud.abstain.uncertain.shareOfErrors",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Missed errors from checker uncertain",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.page.qud.abstain.uncertain.perCleanSession",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Checker uncertain per clean session",
+     "value": 22.875,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 16 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.page.qud.abstain.twinAmbiguous.shareOfErrors",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Missed errors from tracker twin ambiguity",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.page.qud.abstain.twinAmbiguous.perCleanSession",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Tracker twin ambiguity per clean session",
+     "value": 0.0625,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 16 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.page.qud.abstain.ambiguous.shareOfErrors",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Missed errors from tracker other ambiguity",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.page.qud.abstain.ambiguous.perCleanSession",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Tracker other ambiguity per clean session",
+     "value": 45.375,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 16 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.precision",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Warnings correct",
+     "value": 0,
+     "unit": "%",
+     "display": "0/208",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.recall",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Errors caught",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; abstentions count as misses"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.recall.wrong_word",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Errors caught: wrong word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.recall.omitted_word",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Errors caught: omitted word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.recall.added_word",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Errors caught: added word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.recall.skipped_passage",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Errors caught: skipped passage",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.recall.mutashabihat",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Errors caught: mutashabihat (forms another ayah)",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.cleanPer5",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "False warnings per 5 clean minutes",
+     "value": 3.028504707381855,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at surah (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.located",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Correctly located time",
+     "value": 0.9745503025542711,
+     "unit": "%",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at surah (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.within5s",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Located within 5 seconds",
+     "value": 0.5625,
+     "unit": "%",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at surah (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.wrongPositions",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Wrong position events",
+     "value": 66,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at surah (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.nonErrorWarnings",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Warnings on repeats/restarts/self-corrections",
+     "value": 18,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at surah (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.suspectedDelay.p50",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Delay to suspected, p50",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.suspectedDelay.p90",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Delay to suspected, p90",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.confirmedDelay.p50",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Delay to confirmed, p50",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.confirmedDelay.p90",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Delay to confirmed, p90",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.abstain.uncertain.shareOfErrors",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Missed errors from checker uncertain",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.abstain.uncertain.perCleanSession",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Checker uncertain per clean session",
+     "value": 22.875,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 16 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.abstain.twinAmbiguous.shareOfErrors",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Missed errors from tracker twin ambiguity",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.abstain.twinAmbiguous.perCleanSession",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Tracker twin ambiguity per clean session",
+     "value": 0.0625,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 16 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.abstain.ambiguous.shareOfErrors",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Missed errors from tracker other ambiguity",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.abstain.ambiguous.perCleanSession",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Tracker other ambiguity per clean session",
+     "value": 45.25,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 16 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.none.qud.precision",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Warnings correct",
+     "value": 0,
+     "unit": "%",
+     "display": "0/208",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.none.qud.recall",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Errors caught",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; abstentions count as misses"
+    },
+    {
+     "id": "sessions.recitation.none.qud.recall.wrong_word",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Errors caught: wrong word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.none.qud.recall.omitted_word",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Errors caught: omitted word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.none.qud.recall.added_word",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Errors caught: added word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.none.qud.recall.skipped_passage",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Errors caught: skipped passage",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.none.qud.recall.mutashabihat",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Errors caught: mutashabihat (forms another ayah)",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.none.qud.cleanPer5",
+     "group": "Sessions: recitation.none.qud",
+     "name": "False warnings per 5 clean minutes",
+     "value": 3.028504707381855,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.none.qud.located",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Correctly located time",
+     "value": 0.9736976730966985,
+     "unit": "%",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.none.qud.within5s",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Located within 5 seconds",
+     "value": 0.5,
+     "unit": "%",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.none.qud.wrongPositions",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Wrong position events",
+     "value": 67,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.none.qud.nonErrorWarnings",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Warnings on repeats/restarts/self-corrections",
+     "value": 17,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.none.qud.suspectedDelay.p50",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Delay to suspected, p50",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.none.qud.suspectedDelay.p90",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Delay to suspected, p90",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.none.qud.confirmedDelay.p50",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Delay to confirmed, p50",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.none.qud.confirmedDelay.p90",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Delay to confirmed, p90",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.none.qud.abstain.uncertain.shareOfErrors",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Missed errors from checker uncertain",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.none.qud.abstain.uncertain.perCleanSession",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Checker uncertain per clean session",
+     "value": 22.625,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 16 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.none.qud.abstain.twinAmbiguous.shareOfErrors",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Missed errors from tracker twin ambiguity",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.none.qud.abstain.twinAmbiguous.perCleanSession",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Tracker twin ambiguity per clean session",
+     "value": 0.0625,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 16 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.none.qud.abstain.ambiguous.shareOfErrors",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Missed errors from tracker other ambiguity",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.none.qud.abstain.ambiguous.perCleanSession",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Tracker other ambiguity per clean session",
+     "value": 46,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-teacher-v1.json",
+     "note": "16 sessions, 12 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 16 clean sessions"
+    }
+   ]
+  },
+  {
+   "sha": "f6098d6",
+   "date": "2026-10-13",
+   "recordedAt": "2026-10-13T15:00:58.878Z",
+   "listener": "spliced-clean-int8",
+   "note": "Fresh int8 QUD sessions (3 decoded recordings) at assignment/page/surah/none; none 19.54 FW/5 clean min, assignment 57.22 (declared passage); 13 recordings lack a student decode; reported only",
+   "metrics": [
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.leadin.precision",
+     "group": "End to end",
+     "name": "Free, with lead-in: Memorization precision",
+     "value": 0.7794117647058824,
+     "unit": "%",
+     "display": "77.9% (53/68)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "note": "free recitation with lead-in, the tracked free metric; leadin-v2: 346/388 clips get 1–2 preceding ayahs (first ayah of the surah 18, help-other-speaker 17, help-same-speaker 4, no clean recitation of the preceding ayah 24, tlog-heldout 255, tlog-train 70), 354/388 1–2 following ayahs (help-other-speaker 31, help-same-speaker 2, last ayah of the surah 20, no clean recitation of the following ayah 14, tlog-heldout 251, tlog-train 70), 600 ms silence, stitched at the evidence level; errors and false positives scored inside the original clip",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.leadin.recall",
+     "group": "End to end",
+     "name": "Free, with lead-in: Memorization recall",
+     "value": 0.828125,
+     "unit": "%",
+     "display": "82.8% (53/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.leadin.cleanPerClip",
+     "group": "End to end",
+     "name": "Free, with lead-in: False warnings per clean clip",
+     "value": 0.03111111111111111,
+     "display": "0.031 (7/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.leadin.cleanPer5",
+     "group": "End to end",
+     "name": "Free, with lead-in: False warnings per 5 min (short clips)",
+     "value": 0.7569204152249137,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.leadin.repeatFp",
+     "group": "End to end",
+     "name": "Free, with lead-in: False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.leadin.unambiguous.precision",
+     "group": "End to end",
+     "name": "Free, with lead-in: unambiguous precision",
+     "value": 0.7,
+     "unit": "%",
+     "display": "70.0% (35/50)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail",
+     "note": "excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.leadin.unambiguous.recall",
+     "group": "End to end",
+     "name": "Free, with lead-in: unambiguous recall",
+     "value": 0.9210526315789473,
+     "unit": "%",
+     "display": "92.1% (35/38)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.leadin.mutashabihat.precision",
+     "group": "End to end",
+     "name": "Free, with lead-in: mutashabihat precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (18/18)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass",
+     "note": "planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.leadin.mutashabihat.recall",
+     "group": "End to end",
+     "name": "Free, with lead-in: mutashabihat recall",
+     "value": 0.6923076923076923,
+     "unit": "%",
+     "display": "69.2% (18/26)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.leadin.mutashabihat.raised",
+     "group": "End to end",
+     "name": "Free, with lead-in: mutashabihat raised in any state",
+     "value": 0.6923076923076923,
+     "unit": "%",
+     "display": "69.2% (18/26)",
+     "note": "the rest of the gap to recall is events still suspected/uncertain when the session ends",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.leadin.leadWarnings",
+     "group": "End to end",
+     "name": "Free, with lead-in: false warnings in the lead-in",
+     "value": 0.541340358728211,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "display": "0.54 per 5 min (6 in 55.4 min, 346 lead-ins)",
+     "note": "confirmed events of any memorization class on the lead-in's ayahs; all false",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.leadin.followWarnings",
+     "group": "End to end",
+     "name": "Free, with lead-in: false warnings in the lead-out",
+     "value": 2.7254956016139937,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "display": "2.73 per 5 min (29 in 53.2 min, 354 lead-outs)",
+     "note": "confirmed events of any memorization class on the lead-out's ayahs; all false",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.precision",
+     "group": "End to end",
+     "name": "Memorization precision",
+     "value": 0.8055555555555556,
+     "unit": "%",
+     "display": "80.6% (29/36)",
+     "note": "help eval split, held-out speakers: 388 clips, 29 speakers; free recitation, default policy; no lead-in, info only: the clip starts the recitation",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.recall",
+     "group": "End to end",
+     "name": "Memorization recall",
+     "value": 0.453125,
+     "unit": "%",
+     "display": "45.3% (29/64)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.wrong_word.precision",
+     "group": "End to end",
+     "name": "wrong_word precision",
+     "value": 0.375,
+     "unit": "%",
+     "display": "37.5% (3/8)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.wrong_word.recall",
+     "group": "End to end",
+     "name": "wrong_word recall",
+     "value": 0.10344827586206896,
+     "unit": "%",
+     "display": "10.3% (3/29)",
+     "status": "info",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.omitted_word.precision",
+     "group": "End to end",
+     "name": "omitted_word precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (26/26)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.omitted_word.recall",
+     "group": "End to end",
+     "name": "omitted_word recall",
+     "value": 0.7428571428571429,
+     "unit": "%",
+     "display": "74.3% (26/35)",
+     "status": "info",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.added_word.precision",
+     "group": "End to end",
+     "name": "added_word precision",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 raised)",
+     "status": "unmeasurable"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.added_word.recall",
+     "group": "End to end",
+     "name": "added_word recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.skipped_passage.precision",
+     "group": "End to end",
+     "name": "skipped_passage precision",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/2)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.skipped_passage.recall",
+     "group": "End to end",
+     "name": "skipped_passage recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.cleanPerClip",
+     "group": "End to end",
+     "name": "False warnings per clean clip",
+     "value": 0.013333333333333334,
+     "display": "0.013 (3/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.cleanPer5",
+     "group": "End to end",
+     "name": "False warnings per 5 min (short clips)",
+     "value": 0.32439446366782015,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.repeatFp",
+     "group": "End to end",
+     "name": "False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.unambiguous.precision",
+     "group": "End to end",
+     "name": "Free: unambiguous precision",
+     "value": 0.8055555555555556,
+     "unit": "%",
+     "display": "80.6% (29/36)",
+     "status": "info",
+     "note": "excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.unambiguous.recall",
+     "group": "End to end",
+     "name": "Free: unambiguous recall",
+     "value": 0.7631578947368421,
+     "unit": "%",
+     "display": "76.3% (29/38)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.mutashabihat.precision",
+     "group": "End to end",
+     "name": "Free: mutashabihat precision",
+     "value": null,
+     "unit": "%",
+     "display": "—% (0/0)",
+     "status": "info",
+     "note": "planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed; needs declared passage or position hint"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.mutashabihat.recall",
+     "group": "End to end",
+     "name": "Free: mutashabihat recall",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/26)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.pron.short_vowel",
+     "group": "End to end",
+     "name": "Pronunciation: short_vowel",
+     "value": null,
+     "display": "unsupported",
+     "status": "unmeasurable",
+     "note": "checker has no pronunciation classes; 30 positives in eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.pron.consonant_sad_sin",
+     "group": "End to end",
+     "name": "Pronunciation: consonant_sad_sin",
+     "value": null,
+     "display": "unsupported",
+     "status": "unmeasurable",
+     "note": "checker has no pronunciation classes; 4 positives in eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.pron.madd_natural",
+     "group": "End to end",
+     "name": "Pronunciation: madd_natural",
+     "value": null,
+     "display": "unsupported",
+     "status": "unmeasurable",
+     "note": "checker has no pronunciation classes; 1 positives in eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.pron.phase2",
+     "group": "End to end",
+     "name": "Pronunciation: other pairs, shadda",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no recordings with positives (ticket 05, phase 2)"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.perfRtf",
+     "group": "End to end",
+     "name": "Tracker real-time factor (this machine)",
+     "value": 0.001614474973109981,
+     "bar": {
+      "op": "<=",
+      "target": 0.05
+     },
+     "note": "perf.ts gate: device floor assumed 20× slower; slowest push 28.8 ms",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "e2e.latency",
+     "group": "End to end",
+     "name": "Word highlight p95 / suspected / confirmed latency",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "pass --latency <pnpm bench:help report> (packages/sdk); device runs: ticket 10"
+    },
+    {
+     "id": "listener.goldPer",
+     "group": "Listener",
+     "name": "Gold PER (canon vs spliced, human-verified exact)",
+     "value": 0.04819277108433735,
+     "unit": "%",
+     "bar": {
+      "op": "<=",
+      "target": 0.03654129754296288
+     },
+     "source": "listener-target-v1.md",
+     "display": "4.82% (233 clips)",
+     "note": "bar: gold PER where fitted declared.precision falls 2 pts below the teacher (3.39%)",
+     "status": "fail"
+    },
+    {
+     "id": "listener.goldPer.laptop",
+     "group": "Listener",
+     "name": "Gold PER: laptop",
+     "value": 0.1065651760228354,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "10.66% (16 clips)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.phone",
+     "group": "Listener",
+     "name": "Gold PER: phone",
+     "value": 0.100664767331434,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "10.07% (26 clips)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.tlog",
+     "group": "Listener",
+     "name": "Gold PER: tlog",
+     "value": 0.0313541054281795,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "3.14% (191 clips)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.pharyngeals",
+     "group": "Listener",
+     "name": "Gold PER: pharyngeals",
+     "value": 0.05974025974025974,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "5.97% (385 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.emphatics",
+     "group": "Listener",
+     "name": "Gold PER: emphatics",
+     "value": 0.08571428571428572,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "8.57% (140 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.hamza_ain",
+     "group": "Listener",
+     "name": "Gold PER: hamza ain",
+     "value": 0.06594885598923284,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "6.59% (743 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPer.short_vowels",
+     "group": "Listener",
+     "name": "Gold PER: short vowels",
+     "value": 0.042322097378277156,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "4.23% (5340 ref phonemes)",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPerRaw",
+     "group": "Listener",
+     "name": "Gold raw PER vs spliced reference",
+     "value": 0.0750785921222955,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "status": "info"
+    },
+    {
+     "id": "listener.goldPerHeldOut",
+     "group": "Listener",
+     "name": "Gold PER: never in tlog train",
+     "value": 0.08880208333333334,
+     "unit": "%",
+     "source": "listener-target-v1.md",
+     "display": "8.88% (62 clips)",
+     "note": "help clips plus tlog test/val gold clips; fair for students trained before the gold exclusion",
+     "status": "info"
+    },
+    {
+     "source": "teacher-per-breakdown-v1.md",
+     "id": "listener.perFair",
+     "group": "Listener",
+     "name": "Fair PER on tlog clean-match test (canon vs spliced)",
+     "value": null,
+     "unit": "%",
+     "status": "pending",
+     "note": "not in the PER breakdown; run tools/per_breakdown.py on this run's decode"
+    },
+    {
+     "source": "student-v1.md",
+     "id": "listener.perRef",
+     "group": "Listener",
+     "name": "Raw PER vs reference (tlog clean-match test)",
+     "value": null,
+     "unit": "%",
+     "status": "info",
+     "note": "Quran-Lab zipformer 3.65% on phone audio: reference only, not a gate"
+    },
+    {
+     "source": "student-v1.md",
+     "id": "listener.perTeacher",
+     "group": "Listener",
+     "name": "Raw PER vs teacher",
+     "value": null,
+     "unit": "%",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "listener.visible",
+     "group": "Listener",
+     "name": "Planted memorization errors visible in the decode",
+     "value": 0.6875,
+     "unit": "%",
+     "display": "68.8% (44/64)",
+     "note": "E0 heuristic: under half the planted word's consonants decode as written",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "listener.e1help.svRecall",
+     "group": "Listener",
+     "name": "E1 help clips: short vowel greedy recall",
+     "value": null,
+     "status": "pending",
+     "note": "E1/E1b not run on spliced-clean-int8's posteriors"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "listener.e1.classes",
+     "group": "Listener",
+     "name": "E1: classes heard",
+     "value": null,
+     "status": "pending",
+     "note": "E1/E1b not run on spliced-clean-int8's posteriors"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "listener.e1b.classes",
+     "group": "Listener",
+     "name": "E1b: classes heard",
+     "value": null,
+     "status": "pending",
+     "note": "E1/E1b not run on spliced-clean-int8's posteriors"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.clean.within5s",
+     "group": "Tracker",
+     "name": "help clean: correct ayah within 5 s",
+     "value": 0.84,
+     "unit": "%",
+     "display": "84.0% (189/225)",
+     "bar": {
+      "op": ">=",
+      "target": 0.95
+     },
+     "note": "fair gate number on user-like audio",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.clean.falseJumps",
+     "group": "Tracker",
+     "name": "help clean: clips with a false jump",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/225)",
+     "bar": {
+      "op": "<=",
+      "target": 0.02
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.clean.outside",
+     "group": "Tracker",
+     "name": "help clean: clips with any lock outside the passage",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.clean.lockS",
+     "group": "Tracker",
+     "name": "help clean: median time to correct lock",
+     "value": 2.64,
+     "unit": "s",
+     "note": "from first decoded phoneme",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.all.within5s",
+     "group": "Tracker",
+     "name": "help all: correct ayah within 5 s",
+     "value": 0.7809278350515464,
+     "unit": "%",
+     "display": "78.1% (303/388)",
+     "bar": {
+      "op": ">=",
+      "target": 0.95
+     },
+     "note": "error clips: a substitution forming another ayah counts as wrong",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.all.falseJumps",
+     "group": "Tracker",
+     "name": "help all: clips with a false jump",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/388)",
+     "bar": {
+      "op": "<=",
+      "target": 0.02
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.all.outside",
+     "group": "Tracker",
+     "name": "help all: clips with any lock outside the passage",
+     "value": 0.05412371134020619,
+     "unit": "%",
+     "display": "5.4% (21/388)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.all.lockS",
+     "group": "Tracker",
+     "name": "help all: median time to correct lock",
+     "value": 2.56,
+     "unit": "s",
+     "note": "from first decoded phoneme",
+     "status": "info"
+    },
+    {
+     "source": "qud-v1-decoded-phrases.md",
+     "id": "tracker.qud.within5s",
+     "group": "Tracker",
+     "name": "QUD regression: correct ayah within 5 s",
+     "value": null,
+     "status": "pending",
+     "note": "no QUD evidence from spliced-clean-int8"
+    },
+    {
+     "source": "stitched-warnings-v1.md",
+     "id": "e2e.stitched.falseWords",
+     "group": "End to end",
+     "name": "Stitched sessions: false wrong/added words per 5 min (free)",
+     "value": 1.4611600758097436,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "display": "1.46 (217 in 743 min)",
+     "note": "ticket 13 sessions with posteriors (local-window on) and session-end finalisation; 205 mid-session, 12 in the last 20 s, 0 confirmed by the session end; `pnpm stitched-warnings`",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.tlog",
+     "group": "Tracker",
+     "name": "Ambiguous tlog clips (PLAN gate set)",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06)"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "tracker.scripted",
+     "group": "Tracker",
+     "name": "Scripted-error recordings (PLAN gate set)",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no recordings yet (ticket 05)"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.precision",
+     "group": "Checker",
+     "name": "Declared passage: Memorization precision",
+     "value": 0.875,
+     "unit": "%",
+     "display": "87.5% (56/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "note": "declared passage (CheckerOptions.passage): the prompted passage, real tracker and evidence",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.recall",
+     "group": "Checker",
+     "name": "Declared passage: Memorization recall",
+     "value": 0.875,
+     "unit": "%",
+     "display": "87.5% (56/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.wrong_word.precision",
+     "group": "Checker",
+     "name": "Declared passage: wrong_word precision",
+     "value": 0.8275862068965517,
+     "unit": "%",
+     "display": "82.8% (24/29)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.wrong_word.recall",
+     "group": "Checker",
+     "name": "Declared passage: wrong_word recall",
+     "value": 0.8275862068965517,
+     "unit": "%",
+     "display": "82.8% (24/29)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.omitted_word.precision",
+     "group": "Checker",
+     "name": "Declared passage: omitted_word precision",
+     "value": 0.9696969696969697,
+     "unit": "%",
+     "display": "97.0% (32/33)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.omitted_word.recall",
+     "group": "Checker",
+     "name": "Declared passage: omitted_word recall",
+     "value": 0.9142857142857143,
+     "unit": "%",
+     "display": "91.4% (32/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.added_word.precision",
+     "group": "Checker",
+     "name": "Declared passage: added_word precision",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 raised)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "unmeasurable"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.added_word.recall",
+     "group": "Checker",
+     "name": "Declared passage: added_word recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.skipped_passage.precision",
+     "group": "Checker",
+     "name": "Declared passage: skipped_passage precision",
+     "value": 0,
+     "unit": "%",
+     "display": "0.0% (0/2)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.skipped_passage.recall",
+     "group": "Checker",
+     "name": "Declared passage: skipped_passage recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.cleanPerClip",
+     "group": "Checker",
+     "name": "Declared passage: False warnings per clean clip",
+     "value": 0.017777777777777778,
+     "display": "0.018 (4/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.cleanPer5",
+     "group": "Checker",
+     "name": "Declared passage: False warnings per 5 min (short clips)",
+     "value": 0.43252595155709356,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.repeatFp",
+     "group": "Checker",
+     "name": "Declared passage: False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.unambiguous.precision",
+     "group": "Checker",
+     "name": "Declared passage: unambiguous precision",
+     "value": 0.813953488372093,
+     "unit": "%",
+     "display": "81.4% (35/43)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail",
+     "note": "excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.unambiguous.recall",
+     "group": "Checker",
+     "name": "Declared passage: unambiguous recall",
+     "value": 0.9210526315789473,
+     "unit": "%",
+     "display": "92.1% (35/38)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.mutashabihat.precision",
+     "group": "Checker",
+     "name": "Declared passage: mutashabihat precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (21/21)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass",
+     "note": "planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleLock.mutashabihat.recall",
+     "group": "Checker",
+     "name": "Declared passage: mutashabihat recall",
+     "value": 0.8076923076923077,
+     "unit": "%",
+     "display": "80.8% (21/26)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.leadin.precision",
+     "group": "Checker",
+     "name": "Declared, with lead-in: Memorization precision",
+     "value": 0.7887323943661971,
+     "unit": "%",
+     "display": "78.9% (56/71)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "note": "declared passage from the lead-in's first ayah; leadin-v2: 346/388 clips get 1–2 preceding ayahs (first ayah of the surah 18, help-other-speaker 17, help-same-speaker 4, no clean recitation of the preceding ayah 24, tlog-heldout 255, tlog-train 70), 354/388 1–2 following ayahs (help-other-speaker 31, help-same-speaker 2, last ayah of the surah 20, no clean recitation of the following ayah 14, tlog-heldout 251, tlog-train 70), 600 ms silence, stitched at the evidence level; errors and false positives scored inside the original clip",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.leadin.recall",
+     "group": "Checker",
+     "name": "Declared, with lead-in: Memorization recall",
+     "value": 0.875,
+     "unit": "%",
+     "display": "87.5% (56/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.leadin.cleanPerClip",
+     "group": "Checker",
+     "name": "Declared, with lead-in: False warnings per clean clip",
+     "value": 0.03111111111111111,
+     "display": "0.031 (7/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.leadin.cleanPer5",
+     "group": "Checker",
+     "name": "Declared, with lead-in: False warnings per 5 min (short clips)",
+     "value": 0.7569204152249137,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.leadin.repeatFp",
+     "group": "Checker",
+     "name": "Declared, with lead-in: False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.leadin.unambiguous.precision",
+     "group": "Checker",
+     "name": "Declared, with lead-in: unambiguous precision",
+     "value": 0.7,
+     "unit": "%",
+     "display": "70.0% (35/50)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "fail",
+     "note": "excludes 26 planted errors whose recitation forms another ayah at least as well (forms_other_ayah); all false positives count here"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.leadin.unambiguous.recall",
+     "group": "Checker",
+     "name": "Declared, with lead-in: unambiguous recall",
+     "value": 0.9210526315789473,
+     "unit": "%",
+     "display": "92.1% (35/38)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.leadin.mutashabihat.precision",
+     "group": "Checker",
+     "name": "Declared, with lead-in: mutashabihat precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (21/21)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass",
+     "note": "planted errors whose recitation forms another ayah at least as well (forms_other_ayah); no false positives attributed"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.leadin.mutashabihat.recall",
+     "group": "Checker",
+     "name": "Declared, with lead-in: mutashabihat recall",
+     "value": 0.8076923076923077,
+     "unit": "%",
+     "display": "80.8% (21/26)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.leadin.leadWarnings",
+     "group": "Checker",
+     "name": "Declared, with lead-in: false warnings in the lead-in",
+     "value": 0.8120105380923164,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "display": "0.81 per 5 min (9 in 55.4 min)",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.leadin.followWarnings",
+     "group": "Checker",
+     "name": "Declared, with lead-in: false warnings in the lead-out",
+     "value": 2.8194782085662005,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "display": "2.82 per 5 min (30 in 53.2 min)",
+     "status": "fail"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: Memorization precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (60/60)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "note": "oracle lock + oracle evidence synthesised from labels (Decision 7); 0 clips with an unphonemizable planted word skipped",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: Memorization recall",
+     "value": 0.9375,
+     "unit": "%",
+     "display": "93.8% (60/64)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.wrong_word.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: wrong_word precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (25/25)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.wrong_word.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: wrong_word recall",
+     "value": 0.8620689655172413,
+     "unit": "%",
+     "display": "86.2% (25/29)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.omitted_word.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: omitted_word precision",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (35/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.omitted_word.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: omitted_word recall",
+     "value": 1,
+     "unit": "%",
+     "display": "100.0% (35/35)",
+     "bar": {
+      "op": ">=",
+      "target": 0.8
+     },
+     "status": "pass",
+     "note": ""
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.added_word.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: added_word precision",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 raised)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "unmeasurable"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.added_word.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: added_word recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.skipped_passage.precision",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: skipped_passage precision",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 raised)",
+     "bar": {
+      "op": ">=",
+      "target": 0.9
+     },
+     "status": "unmeasurable"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.skipped_passage.recall",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: skipped_passage recall",
+     "value": null,
+     "unit": "%",
+     "display": "— (0 positives)",
+     "status": "unmeasurable",
+     "note": "no confirmed positives in the eval split"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.cleanPerClip",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: False warnings per clean clip",
+     "value": 0,
+     "display": "0.000 (0/225)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.cleanPer5",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: False warnings per 5 min (short clips)",
+     "value": 0,
+     "bar": {
+      "op": "<=",
+      "target": 1
+     },
+     "note": "short clips; the gating number needs phase-2 long sessions",
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.repeatFp",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: False positives on repeats",
+     "value": 0,
+     "display": "0 (23 repeat clips)",
+     "bar": {
+      "op": "<=",
+      "target": 0
+     },
+     "status": "pass"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.oracleAll.raised",
+     "group": "Checker",
+     "name": "Oracle lock + evidence: positives raised in any state",
+     "value": 0.9375,
+     "unit": "%",
+     "display": "93.8% (60/64)",
+     "note": "the rest of the gap to recall is events still suspected/uncertain at clip end (confirmation delay on short clips)",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.e0.evidence",
+     "group": "Checker",
+     "name": "E0: misses lost to evidence",
+     "value": 6,
+     "display": "6/35",
+     "note": "",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.e0.tracker",
+     "group": "Checker",
+     "name": "E0: misses lost to tracker",
+     "value": 27,
+     "display": "27/35",
+     "note": "",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.e0.checker",
+     "group": "Checker",
+     "name": "E0: misses lost to checker",
+     "value": 2,
+     "display": "2/35",
+     "note": "real upstream, free arm",
+     "status": "info"
+    },
+    {
+     "source": "acceptance-v1.md",
+     "id": "checker.selfCorrection",
+     "group": "Checker",
+     "name": "Self-correction / long-session false warnings",
+     "value": null,
+     "status": "unmeasurable",
+     "note": "no recordings (ticket 05)"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.precision",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Warnings correct",
+     "value": 0,
+     "unit": "%",
+     "display": "0/82",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.recall",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Errors caught",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; abstentions count as misses"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.recall.wrong_word",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Errors caught: wrong word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.recall.omitted_word",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Errors caught: omitted word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.recall.added_word",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Errors caught: added word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.recall.skipped_passage",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Errors caught: skipped passage",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.recall.mutashabihat",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Errors caught: mutashabihat (forms another ayah)",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.cleanPer5",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "False warnings per 5 clean minutes",
+     "value": 57.224872814232285,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at assignment (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.located",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Correctly located time",
+     "value": 0.8559764118847811,
+     "unit": "%",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at assignment (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.within5s",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Located within 5 seconds",
+     "value": 1,
+     "unit": "%",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at assignment (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.wrongPositions",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Wrong position events",
+     "value": 10,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at assignment (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.nonErrorWarnings",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Warnings on repeats/restarts/self-corrections",
+     "value": 2,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at assignment (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.suspectedDelay.p50",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Delay to suspected, p50",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.suspectedDelay.p90",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Delay to suspected, p90",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.confirmedDelay.p50",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Delay to confirmed, p50",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.confirmedDelay.p90",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Delay to confirmed, p90",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.abstain.uncertain.shareOfErrors",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Missed errors from checker uncertain",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.abstain.uncertain.perCleanSession",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Checker uncertain per clean session",
+     "value": 15.666666666666666,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.abstain.twinAmbiguous.shareOfErrors",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Missed errors from tracker twin ambiguity",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.abstain.twinAmbiguous.perCleanSession",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Tracker twin ambiguity per clean session",
+     "value": 0,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.abstain.ambiguous.shareOfErrors",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Missed errors from tracker other ambiguity",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.assignment.qud.abstain.ambiguous.perCleanSession",
+     "group": "Sessions: recitation.assignment.qud",
+     "name": "Tracker other ambiguity per clean session",
+     "value": 43,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.page.qud.precision",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Warnings correct",
+     "value": 0,
+     "unit": "%",
+     "display": "0/28",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.page.qud.recall",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Errors caught",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; abstentions count as misses"
+    },
+    {
+     "id": "sessions.recitation.page.qud.recall.wrong_word",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Errors caught: wrong word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.page.qud.recall.omitted_word",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Errors caught: omitted word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.page.qud.recall.added_word",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Errors caught: added word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.page.qud.recall.skipped_passage",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Errors caught: skipped passage",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.page.qud.recall.mutashabihat",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Errors caught: mutashabihat (forms another ayah)",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.page.qud.cleanPer5",
+     "group": "Sessions: recitation.page.qud",
+     "name": "False warnings per 5 clean minutes",
+     "value": 19.540200473152485,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at page (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.page.qud.located",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Correctly located time",
+     "value": 0.8559764118847811,
+     "unit": "%",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at page (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.page.qud.within5s",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Located within 5 seconds",
+     "value": 1,
+     "unit": "%",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at page (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.page.qud.wrongPositions",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Wrong position events",
+     "value": 10,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at page (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.page.qud.nonErrorWarnings",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Warnings on repeats/restarts/self-corrections",
+     "value": 0,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at page (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.page.qud.suspectedDelay.p50",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Delay to suspected, p50",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.page.qud.suspectedDelay.p90",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Delay to suspected, p90",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.page.qud.confirmedDelay.p50",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Delay to confirmed, p50",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.page.qud.confirmedDelay.p90",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Delay to confirmed, p90",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.page.qud.abstain.uncertain.shareOfErrors",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Missed errors from checker uncertain",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.page.qud.abstain.uncertain.perCleanSession",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Checker uncertain per clean session",
+     "value": 23.666666666666668,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.page.qud.abstain.twinAmbiguous.shareOfErrors",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Missed errors from tracker twin ambiguity",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.page.qud.abstain.twinAmbiguous.perCleanSession",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Tracker twin ambiguity per clean session",
+     "value": 0,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.page.qud.abstain.ambiguous.shareOfErrors",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Missed errors from tracker other ambiguity",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.page.qud.abstain.ambiguous.perCleanSession",
+     "group": "Sessions: recitation.page.qud",
+     "name": "Tracker other ambiguity per clean session",
+     "value": 43,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.precision",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Warnings correct",
+     "value": 0,
+     "unit": "%",
+     "display": "0/29",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.recall",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Errors caught",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; abstentions count as misses"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.recall.wrong_word",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Errors caught: wrong word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.recall.omitted_word",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Errors caught: omitted word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.recall.added_word",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Errors caught: added word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.recall.skipped_passage",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Errors caught: skipped passage",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.recall.mutashabihat",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Errors caught: mutashabihat (forms another ayah)",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.cleanPer5",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "False warnings per 5 clean minutes",
+     "value": 20.238064775765075,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at surah (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.located",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Correctly located time",
+     "value": 0.8582444998865956,
+     "unit": "%",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at surah (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.within5s",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Located within 5 seconds",
+     "value": 1,
+     "unit": "%",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at surah (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.wrongPositions",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Wrong position events",
+     "value": 10,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at surah (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.nonErrorWarnings",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Warnings on repeats/restarts/self-corrections",
+     "value": 0,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at surah (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.suspectedDelay.p50",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Delay to suspected, p50",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.suspectedDelay.p90",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Delay to suspected, p90",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.confirmedDelay.p50",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Delay to confirmed, p50",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.confirmedDelay.p90",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Delay to confirmed, p90",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.abstain.uncertain.shareOfErrors",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Missed errors from checker uncertain",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.abstain.uncertain.perCleanSession",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Checker uncertain per clean session",
+     "value": 24.666666666666668,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.abstain.twinAmbiguous.shareOfErrors",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Missed errors from tracker twin ambiguity",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.abstain.twinAmbiguous.perCleanSession",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Tracker twin ambiguity per clean session",
+     "value": 0,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.abstain.ambiguous.shareOfErrors",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Missed errors from tracker other ambiguity",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.surah.qud.abstain.ambiguous.perCleanSession",
+     "group": "Sessions: recitation.surah.qud",
+     "name": "Tracker other ambiguity per clean session",
+     "value": 41.666666666666664,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.none.qud.precision",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Warnings correct",
+     "value": 0,
+     "unit": "%",
+     "display": "0/28",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.none.qud.recall",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Errors caught",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; abstentions count as misses"
+    },
+    {
+     "id": "sessions.recitation.none.qud.recall.wrong_word",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Errors caught: wrong word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.none.qud.recall.omitted_word",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Errors caught: omitted word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.none.qud.recall.added_word",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Errors caught: added word",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.none.qud.recall.skipped_passage",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Errors caught: skipped passage",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.none.qud.recall.mutashabihat",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Errors caught: mutashabihat (forms another ayah)",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts"
+    },
+    {
+     "id": "sessions.recitation.none.qud.cleanPer5",
+     "group": "Sessions: recitation.none.qud",
+     "name": "False warnings per 5 clean minutes",
+     "value": 19.540200473152485,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.none.qud.located",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Correctly located time",
+     "value": 0.8559764118847811,
+     "unit": "%",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.none.qud.within5s",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Located within 5 seconds",
+     "value": 1,
+     "unit": "%",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.none.qud.wrongPositions",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Wrong position events",
+     "value": 10,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.none.qud.nonErrorWarnings",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Warnings on repeats/restarts/self-corrections",
+     "value": 0,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation (not gating yet)"
+    },
+    {
+     "id": "sessions.recitation.none.qud.suspectedDelay.p50",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Delay to suspected, p50",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.none.qud.suspectedDelay.p90",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Delay to suspected, p90",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.none.qud.confirmedDelay.p50",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Delay to confirmed, p50",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.none.qud.confirmedDelay.p90",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Delay to confirmed, p90",
+     "value": null,
+     "unit": "s",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0"
+    },
+    {
+     "id": "sessions.recitation.none.qud.abstain.uncertain.shareOfErrors",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Missed errors from checker uncertain",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.none.qud.abstain.uncertain.perCleanSession",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Checker uncertain per clean session",
+     "value": 23.666666666666668,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.none.qud.abstain.twinAmbiguous.shareOfErrors",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Missed errors from tracker twin ambiguity",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.none.qud.abstain.twinAmbiguous.perCleanSession",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Tracker twin ambiguity per clean session",
+     "value": 0,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions"
+    },
+    {
+     "id": "sessions.recitation.none.qud.abstain.ambiguous.shareOfErrors",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Missed errors from tracker other ambiguity",
+     "value": null,
+     "unit": "%",
+     "status": "unmeasurable",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors"
+    },
+    {
+     "id": "sessions.recitation.none.qud.abstain.ambiguous.perCleanSession",
+     "group": "Sessions: recitation.none.qud",
+     "name": "Tracker other ambiguity per clean session",
+     "value": 43,
+     "unit": "",
+     "status": "info",
+     "source": "session-qud-int8-v1.json",
+     "note": "3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions"
+    }
+   ]
   }
  ],
  "candidate": "spliced-clean-int8",

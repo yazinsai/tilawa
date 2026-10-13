@@ -42,6 +42,39 @@ The all-16 teacher replay previously did not finish: the checker re-runs a windo
 
 All-16 teacher result, reported only: 208 confirmed false warnings, 3.03 clean-speech false warnings per five minutes over 308.7 clean minutes, 97.37% correctly located sampled time, 67 wrong-position events, 17 warnings on repeat/restart intervals, and 8 of 16 first correct locks within five seconds. Luhaidan, Fatir (noisy, 27 repeats) dominates: 66 false warnings, 33 wrong-position events and 13 non-error warnings. The Diban and Jaber rows match the three-recording teacher baseline exactly. These are professional reciters, and the teacher evidence may overlap training, so this does not estimate learner performance.
 
+## Wider baseline by context
+
+Every QUD recording is scored at four contexts. They are built from the recorded words only, and none of them gives a true-start hint. In weakest-last order:
+
+- assignment: the declared checker passage from the lowest to the highest recited word in Quran order;
+- page: the Madani page of the first recited word;
+- surah: the surah of the first recited word;
+- none.
+
+`sessions-cli --qud` builds these with `qudContexts` (`--qud-contexts own` keeps the session's own chain). Each context runs one replay, and the review dump reuses its events.
+
+Teacher, all 16 recordings, 308.7 clean minutes (`session-qud-teacher-v1.json`):
+
+| Context | False warnings | Per 5 clean min | Located time | Wrong position | Non-error warnings | First lock ≤ 5 s |
+|---|---:|---:|---:|---:|---:|---:|
+| assignment | 1621 | 26.25 | 97.37% | 67 | 33 | 8/16 |
+| page | 188 | 3.04 | 97.45% | 65 | 18 | 9/16 |
+| surah | 187 | 3.03 | 97.46% | 66 | 18 | 9/16 |
+| none | 187 | 3.03 | 97.37% | 67 | 17 | 8/16 |
+
+Fresh `spliced-clean-int8` student, 7.2 clean minutes (`session-qud-int8-v1.json`). It is paired with the current `qudSession` truth through `--student-evidence .scratch/session-bench/qud/evidence`:
+
+| Context | False warnings | Per 5 clean min | Located time | Wrong position | Non-error warnings | First lock ≤ 5 s |
+|---|---:|---:|---:|---:|---:|---:|
+| assignment | 82 | 57.22 | 85.60% | 10 | 2 | 3/3 |
+| page | 28 | 19.54 | 85.60% | 10 | 0 | 3/3 |
+| surah | 29 | 20.24 | 85.82% | 10 | 0 | 3/3 |
+| none | 28 | 19.54 | 85.60% | 10 | 0 | 3/3 |
+
+Page and surah barely move anything. The range prior only nudges the tracker, and professional recitation acquires without it. Assignment is the outlier because it switches the checker to declared-passage mode. On fluent recitation that multiplies false warnings: taraweeh-maryam goes from 2 to 965, prayer-baqarah-yasin from 0 to 177, luhaidan-qiyamah from 13 to 137, and diban-sad from 15 to 63. For the multi-surah prayer recordings, the min..max assignment spans Fatiha through the last surah. That passage is wider than any real assignment, so those two rows overstate the effect. Even so, single-surah recordings rise as well. The session numbers move with context the way the spec intended, but in the opposite direction from what was expected for assignment. No error positives exist, so recall and delay remain unmeasured.
+
+Student decodes are missing for 13 recordings: abdulbasit-raad, afasy-baqarah, ayyub-juz-amma, badri-juz-tabarak, husary-fath, luhaidan-fatir, luhaidan-haqqah, luhaidan-qiyamah, mandour-taha, minshawi-luqman, prayer-baqarah-yasin, taraweeh-maryam, witr-muawwidhat. Their WAVs have not been acquired. No decode was fabricated.
+
 ## Commands
 
 From the repository root:
@@ -53,6 +86,7 @@ pnpm typecheck
 node packages/core/dist/bench/sessions-cli.js --qud .scratch/bench/qud --only jaber-inshiqaq --out docs/benchmarks/session-baseline-v1.json
 node packages/core/dist/bench/sessions-cli.js --qud .scratch/bench/qud --audit --out docs/benchmarks/session-qud-audit-v1.json
 node packages/core/dist/bench/sessions-cli.js --qud .scratch/bench/qud --out docs/benchmarks/session-qud-teacher-v1.json
+node packages/core/dist/bench/sessions-cli.js --qud .scratch/bench/qud --student-evidence .scratch/session-bench/qud/evidence --listener spliced-clean-int8 --out docs/benchmarks/session-qud-int8-v1.json
 # Acquired original QUD WAVs: fresh student decode, then score the saved timed manifest.
 uv run --python cpython-3.12-macos-aarch64-none --with huggingface-hub --with pyarrow --with 'numpy>=2' tools/session_qud_audio.py --ids jaber-inshiqaq,jaber-nisa,diban-sad --revision 76c3d804d082c3cc189601faf13a41996e17b6dc --out .scratch/session-bench/qud
 node packages/sdk/dist/bench/decode-cli.js --model .scratch/models/spliced-clean-int8 --wavs .scratch/session-bench/qud --out .scratch/session-bench/qud/evidence
@@ -68,12 +102,13 @@ From `packages/core`, add the reported measures to the scoreboard:
 pnpm scoreboard --listener spliced-clean-int8 --evidence ../../.scratch/sdk-help/spliced-clean-int8-node-lw --leadin-evidence ../../.scratch/leadin/evidence/spliced-clean-int8-lw --sessions ../../docs/benchmarks/session-clean-int8-v1.json --note 'Add occurrence-aware session scoring and fresh continuous student baseline; session measures reported only, release gates unchanged'
 ```
 
-Source, use track and context are kept separate. Assignment uses the declared checker passage; resume uses the tracker prior. Surah/page rows run as none with an unsupported flag. The replay supplies no true-start hint.
+Source, use track and context are kept separate. Assignment uses the declared checker passage; resume uses the tracker prior. Surah and page use the tracker range prior (`priorRange`). The replay supplies no true-start hint.
 
 ## Remaining work
 
 - Audit same-speaker held-out tlog availability and obtain word-timed clean/error continuations; do not substitute voices.
-- Expand the three-recording baseline to wider QUD and error sessions. Aggregate delay distributions, per-class and mutashabihat coverage, and distinct twin ambiguity (initial scorer reports general tracker ambiguity).
+- Acquire and decode the 13 remaining QUD WAVs for the student. Work out why declared-passage mode warns so often on fluent recitation (see Wider baseline by context).
+- Error sessions are still needed. Aggregate delay distributions, per-class and mutashabihat coverage, and distinct twin ambiguity (initial scorer reports general tracker ambiguity).
 - Add event-centred session audio review to the dashboard. Current integration adds reported scoreboard metrics, not session review items.
 - Recorded sessions and independent review remain deferred. No collection or publication is initiated by this increment.
 
