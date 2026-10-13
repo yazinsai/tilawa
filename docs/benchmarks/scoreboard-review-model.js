@@ -38,10 +38,10 @@ function sessionIncidents(dump, setup, run){
    const key = `miss|${e.errorClass}/${e.at}|${Math.round(e.startS*1000)}`;
    result.push(item(key,e.startS,e.at,[{type:'sessionMiss',event:e,key:`sessionMiss|${s.id}|${e.errorClass}/${e.at}|${Math.round(e.startS*1000)}`,id:JSON.stringify([s.id,'events',n])}],{labels:[e]}));
   });
-  let run_ = null;
-  const flush = () => { if(!run_) return; const t0 = run_[0].timeMs, event = {timeMs:t0,untilMs:run_.at(-1).timeMs,count:run_.length,observed:[...new Set(run_.map(p=>p.observed))],recited:[...new Set(run_.flatMap(p=>p.recited))],positions:run_};
-   result.push(item(`position|${t0}`,t0/1000,null,[{type:'wrongPosition',event,key:`wrongPosition|${s.id}|${t0}`,id:JSON.stringify([s.id,'wrongPositions',t0])}],{})); run_ = null; };
-  for(const p of ctx.wrongPositions){ if(run_ && p.timeMs - run_.at(-1).timeMs > POSITION_GAP_MS) flush(); (run_ ||= []).push(p); }
+  let burst = null;
+  const flush = () => { if(!burst) return; const t0 = burst[0].timeMs, event = {timeMs:t0,untilMs:burst.at(-1).timeMs,count:burst.length,observed:[...new Set(burst.map(p=>p.observed))],recited:[...new Set(burst.flatMap(p=>p.recited))],positions:burst};
+   result.push(item(`position|${t0}`,t0/1000,null,[{type:'wrongPosition',event,key:`wrongPosition|${s.id}|${t0}`,id:JSON.stringify([s.id,'wrongPositions',t0])}],{})); burst = null; };
+  for(const p of ctx.wrongPositions){ if(burst && p.timeMs - burst.at(-1).timeMs > POSITION_GAP_MS) flush(); (burst ||= []).push(p); }
   flush();
  }
  return result.sort((a,b) => a.session.id.localeCompare(b.session.id) || a.timeS - b.timeS);

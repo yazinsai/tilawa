@@ -4,7 +4,7 @@ import { join, relative, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { loadReferenceIndex } from "../reference.js";
 import { qudAudit, qudContexts, runSession, summarizeSessions, validateSession, weakerContexts } from "./sessions.js";
-import type { BenchSession, QudAudit, SessionScore } from "./sessions.js";
+import type { BenchSession, QudAudit, SessionEvidence, SessionScore } from "./sessions.js";
 import { SESSION_DUMP_VERSION, contextKey, quranText, sessionDumpContext, sessionDumpRecord } from "./session-dump.js";
 import type { SessionDumpRecord } from "./session-dump.js";
 const { values } = parseArgs({ options: { manifest: { type: "string" }, qud: { type: "string" }, listener: { type: "string", default: "teacher" },
@@ -18,7 +18,13 @@ const { values } = parseArgs({ options: { manifest: { type: "string" }, qud: { t
   /** `qud` (default) scores QUD recordings at assignment, page, surah and none; `own` uses only the session's context chain. */
   "qud-contexts": { type: "string", default: "qud" },
   sha: { type: "string" } } });
-const contexts = (s: BenchSession) => s.source === "qud" && s.context.kind === "none" && values["qud-contexts"] === "qud" ? qudContexts(s) : weakerContexts(s.context);
+const omittedContexts: { id: string; context: "assignment"; reason: string }[] = [];
+const contexts = (s: BenchSession) => {
+  if (s.source !== "qud" || s.context.kind !== "none" || values["qud-contexts"] !== "qud") return weakerContexts(s.context);
+  const { contexts, omitted } = qudContexts(s);
+  if (omitted) { omittedContexts.push({ id: s.id, context: "assignment", reason: omitted }); console.log(`no assignment for ${s.id}: ${omitted}`); }
+  return contexts;
+};
 const missing: string[] = [];
 const asset = JSON.parse(readFileSync(new URL("../../assets/ref-v2.json", import.meta.url), "utf8"));
 const index = loadReferenceIndex(asset);
@@ -29,7 +35,7 @@ const phrases = JSON.parse(readFileSync(new URL("../../assets/phrases-v1.json", 
 const rows: SessionScore[] = [];
 const failures: { id: string; reason: string }[] = [];
 const audits: QudAudit[] = [];
-const items: { session: BenchSession; evidence: any; audio: string }[] = [];
+const items: { session: BenchSession; evidence: SessionEvidence; audio: string }[] = [];
 if (values.qud) for (const f of readdirSync(values.qud).filter(f => f.endsWith(".json") && (!values.only || f === `${values.only}.json`)).sort()) {
   const rec = JSON.parse(readFileSync(resolve(values.qud, f), "utf8"));
   const { session, audit } = qudAudit(rec, index);
@@ -45,7 +51,8 @@ if (values.audit) {
   console.table(audits);
   writeFileSync(resolve(values.out!), JSON.stringify({ version: 1, reference: index.version, audit: audits }, null, 2) + "\n");
   console.log(`${audits.filter(a => a.status === "converted").length}/${audits.length} converted -> ${values.out}`);
-  process.exit(audits.length ? 0 : 1);
+  // Every QUD recording is expected to convert; any exclusion (or an empty audit) fails.
+  process.exit(audits.length && audits.every(a => a.status === "converted") ? 0 : 1);
 }
 if (values.manifest) {
   const m = JSON.parse(readFileSync(values.manifest, "utf8"));
@@ -72,7 +79,7 @@ for (const { session, evidence, audio } of items) {
 }
 writeFileSync(resolve(values.out!), JSON.stringify({ version: 1, gating: false, listener: values.listener, reference: index.version,
   note: "Reported only; recorded-session agreement and coverage are not established. QUD is the professional easy end. No release gates replaced. Delays cover matched warnings only; censoredByMiss counts errors without that state.",
-  summary: summarizeSessions(rows), rows, failures, ...(missing.length ? { missingEvidence: missing } : {}), ...(audits.length ? { audit: audits } : {}) }, null, 2) + "\n");
+  summary: summarizeSessions(rows), rows, failures, ...(omittedContexts.length ? { omittedContexts } : {}), ...(missing.length ? { missingEvidence: missing } : {}), ...(audits.length ? { audit: audits } : {}) }, null, 2) + "\n");
 for (const g of summarizeSessions(rows)) console.log(`${g.key}: recall ${g.hits}/${g.errors}, confirmed delay p50/p90 ${g.confirmedDelay.p50 ?? "-"}/${g.confirmedDelay.p90 ?? "-"} s (n=${g.confirmedDelay.n}, censored ${g.confirmedDelay.censoredByMiss})`);
 console.log(`${rows.length} context rows; ${failures.length} exclusions -> ${values.out}`);
 if (!rows.length) process.exitCode = 1;

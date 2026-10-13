@@ -125,7 +125,7 @@ describe("session truth and scoring", () => {
   });
   it("marks unsupported contexts and never derives true start", () => {
     const c = { kind: "resume", at: { surah: 2, ayah: 5, word: 1 } } as const;
-    expect(contextAdapter(c).tracker.prior?.ayah).toBe(5);
+    expect(contextAdapter(c, index).tracker.prior?.ayah).toBe(5);
     expect(weakerContexts(c).map(x => x.kind)).toEqual(["resume", "surah", "none"]);
   });
   it("returns the replayed events with the score so the dump reuses one replay", () => {
@@ -135,18 +135,25 @@ describe("session truth and scoring", () => {
     expect(Array.isArray(run.events)).toBe(true);
     expect(run.score).toEqual(scoreSessionEvents(s, run.events, index));
   });
-  it("synthesises QUD contexts from the recorded words only", () => {
-    const q = qudSession(qud([["2:7:1", 1, 2], ["2:8:1", 3, 4], ["1:1:1", 5, 6]]), "q.wav");
-    expect(qudContexts(q).map(c => c.kind)).toEqual(["assignment", "page", "surah", "none"]);
-    expect(qudContexts(q)[0]).toEqual({ kind: "assignment", from: { surah: 1, ayah: 1, word: 1 }, to: { surah: 2, ayah: 8, word: 1 } });
-    expect(qudContexts(q)[1]).toEqual({ kind: "page", page: 3 });
-    expect(qudContexts(q)[2]).toEqual({ kind: "surah", surah: 2 });
+  it("synthesises QUD contexts from the main recitation only, excluding restarts", () => {
+    const q = qudSession(qud([["2:7:1", 1, 2], ["2:8:1", 3, 4], ["1:1:1", 5, 6], ["1:1:2", 6, 7]]), "q.wav");
+    const { contexts, omitted } = qudContexts(q);
+    expect(omitted).toBeNull();
+    expect(contexts).toEqual([{ kind: "assignment", from: { surah: 2, ayah: 7, word: 1 }, to: { surah: 2, ayah: 8, word: 1 } },
+      { kind: "page", page: 3 }, { kind: "surah", surah: 2 }, { kind: "none" }]);
+  });
+  it("omits the assignment, with the reason, when the main recitation jumps between non-adjacent surahs", () => {
+    const q = qudSession(qud([["1:7:1", 1, 2], ["36:1:1", 3, 4], ["36:2:1", 4, 5]]), "q.wav");
+    const { contexts, omitted } = qudContexts(q);
+    expect(contexts.map(c => c.kind)).toEqual(["page", "surah", "none"]);
+    expect(contexts[1]).toEqual({ kind: "surah", surah: 1 });
+    expect(omitted).toMatch(/1:7:1 -> 36:1:1/);
   });
   it("maps surah and page context to a range prior", () => {
-    const surah = contextAdapter({ kind: "surah", surah: 3 });
+    const surah = contextAdapter({ kind: "surah", surah: 3 }, index);
     expect(surah).toMatchObject({ supported: true, effective: "surah" });
-    expect(surah.tracker.priorRange?.ranges).toEqual([{ from: { surah: 3, ayah: 1 }, to: { surah: 3, ayah: Infinity } }]);
-    const page = contextAdapter({ kind: "page", page: 50 });
+    expect(JSON.parse(JSON.stringify(surah.tracker.priorRange?.ranges))).toEqual([{ from: { surah: 3, ayah: 1 }, to: { surah: 3, ayah: 200 } }]);
+    const page = contextAdapter({ kind: "page", page: 50 }, index);
     expect(page).toMatchObject({ supported: true, effective: "page" });
     expect(page.tracker.priorRange?.ranges).toEqual([{ from: { surah: 3, ayah: 1 }, to: { surah: 3, ayah: 9 } }]);
   });

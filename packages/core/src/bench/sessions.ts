@@ -107,9 +107,19 @@ export function weakerContexts(c: SessionContext): SessionContext[] {
   return [c, { kind: "none" }];
 }
 const madaniPages: PageAsset = JSON.parse(readFileSync(new URL("../../assets/madani-pages-v1.json", import.meta.url), "utf8"));
-export function contextAdapter(c: SessionContext): { supported: boolean; effective: string; tracker: TrackerOptions; checker: CheckerOptions } {
+const surahLengths = new WeakMap<ReferenceIndex, Map<number, number>>();
+const lastAyah = (index: ReferenceIndex, surah: number) => {
+  let lengths = surahLengths.get(index);
+  if (!lengths) {
+    lengths = new Map();
+    for (const w of index.words) lengths.set(w.surah, Math.max(lengths.get(w.surah) ?? 0, w.ayah));
+    surahLengths.set(index, lengths);
+  }
+  return lengths.get(surah)!;
+};
+export function contextAdapter(c: SessionContext, index: ReferenceIndex): { supported: boolean; effective: string; tracker: TrackerOptions; checker: CheckerOptions } {
   const tracker: TrackerOptions = c.kind === "resume" ? { prior: { surah: c.at.surah, ayah: c.at.ayah, weight: 1 } }
-    : c.kind === "surah" ? { priorRange: { ranges: [{ from: { surah: c.surah, ayah: 1 }, to: { surah: c.surah, ayah: Infinity } }], weight: 1 } }
+    : c.kind === "surah" ? { priorRange: { ranges: [{ from: { surah: c.surah, ayah: 1 }, to: { surah: c.surah, ayah: lastAyah(index, c.surah) } }], weight: 1 } }
     : c.kind === "page" ? { priorRange: { ranges: [pageRange(madaniPages, c.page)], weight: 1 } } : {};
   return { supported: true, effective: c.kind, tracker,
     checker: c.kind === "assignment" ? { passage: { from: c.from, to: c.to } } : {} };
@@ -194,7 +204,7 @@ export function scoreSessionEvents(s: BenchSession, events: EngineEvent[], index
   const warnings = new Map<string, CheckerEvent[]>();
   for (const e of events) if (e.type === "checker") { const list = warnings.get(e.id) ?? []; list.push(e); warnings.set(e.id, list); }
   const score: SessionScore = { id: s.id, track: s.track, source: s.source, speaker: s.speaker, context,
-    supportedContext: contextAdapter(context).supported, effectiveContext: contextAdapter(context).effective, gating: false,
+    supportedContext: contextAdapter(context, index).supported, effectiveContext: contextAdapter(context, index).effective, gating: false,
     errors: s.events.length, hits: 0, misses: 0, warnings: 0, falseWarnings: 0, precision: null, recall: null,
     cleanSeconds: 0, cleanWarnings: 0, cleanWarningsPer5Min: null, nonErrorWarnings: 0, uncertainWarnings: 0,
     suspectedOnlyWarnings: 0, uncertainErrors: 0, ambiguousErrors: 0, wrongPositionEvents: 0,
@@ -348,11 +358,12 @@ export function summarizeSessions(rows: SessionScore[]): SessionSummary[] {
   });
 }
 
-export function runSession(s: BenchSession, evidence: Pick<QudRecording, "inventory" | "frameMs" | "nFrames" | "phonemes" | "posteriors">,
+export type SessionEvidence = Pick<QudRecording, "inventory" | "frameMs" | "nFrames" | "phonemes" | "posteriors">;
+export function runSession(s: BenchSession, evidence: SessionEvidence,
     index: ReferenceIndex, context = s.context, phrases?: PhraseAsset): { score: SessionScore; events: EngineEvent[] } {
   validateSession(s, index);
   if (evidence.inventory !== index.inventoryId || Math.abs(evidence.nFrames * evidence.frameMs / 1000 - s.durationS) > 0.1) throw new Error(`Evidence mismatch: ${s.id}`);
-  const adapter = contextAdapter(context);
+  const adapter = contextAdapter(context, index);
   const tracker = createTracker(index, { mode: s.track === "memorization" ? "memorization" : "free", phrases, ...adapter.tracker });
   const checker = createChecker(index, { phrases, ...adapter.checker });
   const out: EngineEvent[] = [];
@@ -364,12 +375,25 @@ export function runSession(s: BenchSession, evidence: Pick<QudRecording, "invent
   return { score: scoreSessionEvents(s, out, index, context), events: out };
 }
 
-/** What an app could plausibly know of a QUD recording: assignment over the recited words in Quran order, page and surah of the first recited word. Never a true-start hint beyond that. */
-export function qudContexts(s: BenchSession): SessionContext[] {
-  const sorted = s.words.map(w => w.at).sort((a, b) => wordOrd(a) - wordOrd(b)), first = s.words[0].at;
+/**
+ * What an app could plausibly know of a QUD recording: an assignment from the first to the last word of the main recitation
+ * (repeat and restart spans excluded, so a prayer's later Fatiha does not widen it), and the page and surah of its first word.
+ * The assignment is omitted, with the reason, when the main recitation goes backward or jumps to a non-adjacent surah.
+ * Never a true-start hint beyond that.
+ */
+export function qudContexts(s: BenchSession): { contexts: SessionContext[]; omitted: string | null } {
+  const main = new Set(s.spans.filter(p => p.kind === "recitation").map(p => p.id));
+  const words = s.words.filter(w => main.has(w.span)).map(w => w.at), first = words[0];
+  let omitted: string | null = null;
+  for (let i = 1; i < words.length && !omitted; i++) {
+    const a = words[i - 1], b = words[i];
+    if (wordOrd(b) <= wordOrd(a)) omitted = `main recitation goes backward at ${key(a)} -> ${key(b)}`;
+    else if (b.surah > a.surah + 1) omitted = `main recitation jumps between non-adjacent surahs at ${key(a)} -> ${key(b)}`;
+  }
   const page = madaniPages.pages.findIndex(([fs, fa, ts, ta]) =>
     (first.surah > fs || (first.surah === fs && first.ayah >= fa)) && (first.surah < ts || (first.surah === ts && first.ayah <= ta))) + 1;
-  return [{ kind: "assignment", from: sorted[0], to: sorted.at(-1)! }, { kind: "page", page }, { kind: "surah", surah: first.surah }, { kind: "none" }];
+  const assignment: SessionContext[] = omitted ? [] : [{ kind: "assignment", from: first, to: words.at(-1)! }];
+  return { contexts: [...assignment, { kind: "page", page }, { kind: "surah", surah: first.surah }, { kind: "none" }], omitted };
 }
 
 /** Annotation rounding allowed past the audio clock; truth is clipped to the clock, larger overruns are rejected. */
