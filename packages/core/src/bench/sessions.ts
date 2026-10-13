@@ -108,6 +108,24 @@ export function contextAdapter(c: SessionContext): { supported: boolean; effecti
   return { supported: true, effective: c.kind, tracker,
     checker: c.kind === "assignment" ? { passage: { from: c.from, to: c.to } } : {} };
 }
+export const ERROR_CLASSES = ["wrong_word", "omitted_word", "added_word", "skipped_passage"] as const;
+export type ErrorClass = (typeof ERROR_CLASSES)[number];
+export interface RecallSlice { errors: number; hits: number; recall: number | null }
+/** Near-identical ayah phonemes (e.g. 94:5/94:6 differ only by a leading fa-): edit distance within 10% of the longer. */
+export function isTwin(a: string, b: string): boolean {
+  if (a === b) return true;
+  const limit = Math.floor(Math.max(a.length, b.length) * 0.1);
+  if (Math.abs(a.length - b.length) > limit) return false;
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j++) row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = row;
+  }
+  return prev[b.length] <= limit;
+}
+const ayahTexts = new WeakMap<ReferenceIndex, Map<number, string>>();
+const recallSlice = (errors: number, hits: number): RecallSlice => ({ errors, hits, recall: errors ? hits / errors : null });
 export interface SessionScore {
   id: string; track: BenchSession["track"]; source: BenchSession["source"]; speaker: string; context: SessionContext;
   supportedContext: boolean; effectiveContext: string; gating: false;
@@ -119,6 +137,12 @@ export interface SessionScore {
   wrongPositionEvents: number; positionSamples: number; locatedSamples: number; locatedShare: number | null;
   firstCorrectLockDelayS: number | null; within5S: boolean;
   suspectedDelayS: number[]; confirmedDelayS: number[];
+  /** All labelled errors are denominators; abstentions count as misses. */
+  byClass: Record<ErrorClass, RecallSlice>; mutashabihat: RecallSlice;
+  /** Missed errors by cause, checker `uncertain` first, then tracker ambiguity between twin ayahs, then other ambiguity. */
+  abstentions: { uncertain: number; twinAmbiguous: number; ambiguous: number };
+  /** Entries into tracker `ambiguous`, split by whether every candidate is a twin of the others. */
+  ambiguousEpisodes: { twin: number; general: number };
   assignments: { warningId: string; eventIndex: number | null; confirmed: boolean }[];
 }
 export function scoreSessionEvents(s: BenchSession, events: EngineEvent[], index: ReferenceIndex, context = s.context): SessionScore {
@@ -135,7 +159,8 @@ export function scoreSessionEvents(s: BenchSession, events: EngineEvent[], index
     cleanSeconds: 0, cleanWarnings: 0, cleanWarningsPer5Min: null, nonErrorWarnings: 0, uncertainWarnings: 0,
     suspectedOnlyWarnings: 0, uncertainErrors: 0, ambiguousErrors: 0, wrongPositionEvents: 0,
     positionSamples: 0, locatedSamples: 0, locatedShare: null, firstCorrectLockDelayS: null, within5S: false,
-    suspectedDelayS: [], confirmedDelayS: [], assignments: [] };
+    suspectedDelayS: [], confirmedDelayS: [], byClass: {} as SessionScore["byClass"], mutashabihat: recallSlice(0, 0),
+    abstentions: { uncertain: 0, twinAmbiguous: 0, ambiguous: 0 }, ambiguousEpisodes: { twin: 0, general: 0 }, assignments: [] };
   const windowEnd = (e: SessionEvent) => {
     if (e.errorClass === "omitted_word" || e.errorClass === "skipped_passage") {
       const next = s.words.find(w => w.startS >= e.endS && ay(w.at) === ay(e.location) + 2);
@@ -193,10 +218,38 @@ export function scoreSessionEvents(s: BenchSession, events: EngineEvent[], index
       else if (score.firstCorrectLockDelayS === null) score.firstCorrectLockDelayS = Math.max(0, t - s.words[0].startS);
     }
   }
-  for (const e of s.events) {
-    const before = positions.filter(p => p.timeMs / 1000 <= e.startS).at(-1);
-    if (before?.state === "ambiguous" || positions.some(p => p.state === "ambiguous" && p.timeMs / 1000 >= e.startS && p.timeMs / 1000 <= windowEnd(e))) score.ambiguousErrors++;
+  const hit = new Set(score.assignments.filter(a => a.confirmed && a.eventIndex !== null).map(a => a.eventIndex!));
+  let ayahText = ayahTexts.get(index);
+  if (!ayahText) {
+    ayahText = new Map();
+    for (const w of index.words) ayahText.set(ay(w), (ayahText.get(ay(w)) ?? "") + index.phonemes.slice(w.start, w.end));
+    ayahTexts.set(index, ayahText);
   }
+  const twin = (p: PositionEvent) => {
+    const ayahs = [...new Set(p.observed.map(o => ay(o.word)))];
+    return ayahs.length > 1 && ayahs.every(a => isTwin(ayahText!.get(a)!, ayahText!.get(ayahs[0])!));
+  };
+  const uncertainEvents = new Set(score.assignments.filter(a => !a.confirmed && a.eventIndex !== null
+    && warnings.get(a.warningId)!.some(e => e.state === "uncertain")).map(a => a.eventIndex!));
+  s.events.forEach((e, i) => {
+    const before = positions.filter(p => p.timeMs / 1000 <= e.startS).at(-1);
+    const amb = [...(before?.state === "ambiguous" ? [before] : []),
+      ...positions.filter(p => p.state === "ambiguous" && p.timeMs / 1000 >= e.startS && p.timeMs / 1000 <= windowEnd(e))];
+    if (amb.length) score.ambiguousErrors++;
+    if (hit.has(i)) return;
+    if (uncertainEvents.has(i)) score.abstentions.uncertain++;
+    else if (amb.length && amb.every(twin)) score.abstentions.twinAmbiguous++;
+    else if (amb.length) score.abstentions.ambiguous++;
+  });
+  positions.forEach((p, i) => {
+    if (p.state === "ambiguous" && positions[i - 1]?.state !== "ambiguous") score.ambiguousEpisodes[twin(p) ? "twin" : "general"]++;
+  });
+  const slice = (keep: (e: SessionEvent) => boolean) => {
+    const idx = s.events.map((e, i) => i).filter(i => keep(s.events[i]));
+    return recallSlice(idx.length, idx.filter(i => hit.has(i)).length);
+  };
+  for (const c of ERROR_CLASSES) score.byClass[c] = slice(e => e.errorClass === c);
+  score.mutashabihat = slice(e => !!e.forms_other_ayah);
   score.misses = score.errors - score.hits;
   score.precision = score.warnings ? score.hits / score.warnings : null;
   score.recall = score.errors ? score.hits / score.errors : null;
@@ -204,6 +257,55 @@ export function scoreSessionEvents(s: BenchSession, events: EngineEvent[], index
   score.locatedShare = score.positionSamples ? score.locatedSamples / score.positionSamples : null;
   score.within5S = score.firstCorrectLockDelayS !== null && score.firstCorrectLockDelayS <= 5;
   return score;
+}
+
+export interface DelaySummary { n: number; p50: number | null; p90: number | null; censoredByMiss: number }
+export interface SessionSummary {
+  key: string; track: BenchSession["track"]; context: SessionContext["kind"]; source: BenchSession["source"];
+  sessions: number; speakers: number; unsupportedContexts: number;
+  errors: number; hits: number; warnings: number; precision: number | null; recall: number | null;
+  byClass: Record<ErrorClass, RecallSlice>; mutashabihat: RecallSlice;
+  cleanPer5: number | null; located: number | null; within5s: number | null; wrongPositions: number; nonErrorWarnings: number;
+  /** Matched warnings only; errors without that state are censored, not zero. */
+  suspectedDelay: DelaySummary; confirmedDelay: DelaySummary;
+  abstentionShare: Record<keyof SessionScore["abstentions"], number | null>;
+  /** Sessions with no labelled errors: checker `uncertain` warnings and tracker ambiguity entries per session. */
+  cleanSessions: number; perCleanSession: Record<keyof SessionScore["abstentions"], number | null>;
+}
+const percentile = (xs: number[], q: number) => xs.length ? [...xs].sort((a, b) => a - b)[Math.ceil(q * xs.length) - 1] : null;
+export function summarizeSessions(rows: SessionScore[]): SessionSummary[] {
+  const groups = new Map<string, SessionScore[]>();
+  for (const r of rows) {
+    const k = `${r.track}.${r.context.kind}.${r.source}`;
+    groups.set(k, [...(groups.get(k) ?? []), r]);
+  }
+  return [...groups].map(([key, rs]) => {
+    const total = (f: (r: SessionScore) => number) => rs.reduce((n, r) => n + f(r), 0);
+    const ratio = (a: number, b: number) => b ? a / b : null;
+    const errors = total(r => r.errors), hits = total(r => r.hits), warnings = total(r => r.warnings);
+    const delay = (f: (r: SessionScore) => number[]): DelaySummary => {
+      const xs = rs.flatMap(f);
+      return { n: xs.length, p50: percentile(xs, 0.5), p90: percentile(xs, 0.9), censoredByMiss: errors - xs.length };
+    };
+    const sliceTotal = (f: (r: SessionScore) => RecallSlice) => recallSlice(total(r => f(r).errors), total(r => f(r).hits));
+    const clean = rs.filter(r => r.errors === 0);
+    const cleanSeconds = total(r => r.cleanSeconds);
+    return { key, track: rs[0].track, context: rs[0].context.kind, source: rs[0].source,
+      sessions: rs.length, speakers: new Set(rs.map(r => r.speaker)).size, unsupportedContexts: rs.filter(r => !r.supportedContext).length,
+      errors, hits, warnings, precision: ratio(hits, warnings), recall: ratio(hits, errors),
+      byClass: Object.fromEntries(ERROR_CLASSES.map(c => [c, sliceTotal(r => r.byClass[c])])) as SessionSummary["byClass"],
+      mutashabihat: sliceTotal(r => r.mutashabihat),
+      cleanPer5: cleanSeconds ? total(r => r.cleanWarnings) * 300 / cleanSeconds : null,
+      located: ratio(total(r => r.locatedSamples), total(r => r.positionSamples)), within5s: ratio(rs.filter(r => r.within5S).length, rs.length),
+      wrongPositions: total(r => r.wrongPositionEvents), nonErrorWarnings: total(r => r.nonErrorWarnings),
+      suspectedDelay: delay(r => r.suspectedDelayS), confirmedDelay: delay(r => r.confirmedDelayS),
+      abstentionShare: { uncertain: ratio(total(r => r.abstentions.uncertain), errors),
+        twinAmbiguous: ratio(total(r => r.abstentions.twinAmbiguous), errors), ambiguous: ratio(total(r => r.abstentions.ambiguous), errors) },
+      cleanSessions: clean.length,
+      perCleanSession: { uncertain: ratio(clean.reduce((n, r) => n + r.uncertainWarnings, 0), clean.length),
+        twinAmbiguous: ratio(clean.reduce((n, r) => n + r.ambiguousEpisodes.twin, 0), clean.length),
+        ambiguous: ratio(clean.reduce((n, r) => n + r.ambiguousEpisodes.general, 0), clean.length) } };
+  });
 }
 
 export function runSession(s: BenchSession, evidence: Pick<QudRecording, "inventory" | "frameMs" | "nFrames" | "phonemes" | "posteriors">,

@@ -15,6 +15,8 @@ const SETUPS = {
  oracle:'The checker knows the passage and receives simulated sounds based on the labels. This tests mistake checking with ideal inputs. The audio and sound codes below come from the real recording.'
 };
 const TYPES = {miss:'Labelled mistakes not reported',fp:'Warnings without a label',leadin:'Warnings before the test clip',leadout:'Warnings after the test clip',late:'Passage not found within 5 seconds'};
+const SESSION_TYPES = {falseWarning:'Session warnings without a label',sessionMiss:'Session mistakes not reported',wrongPosition:'Wrong positions shown',nonErrorWarning:'Warnings on a repeat or restart'};
+const contextName = k => k === 'none' ? 'Session · no context' : `Session · ${k}`;
 const AREAS = {model:'Model error',label:'Wrong or missing label',audio_data:'Audio or data issue',acceptable:'Engine result is reasonable',unresolved:'Unsure / needs more evidence'};
 const CATEGORIES = {missed_detection:'Mistake missed',wrong_mistake_type:'Wrong mistake type',wrong_word_location:'Warning on the wrong word',passage_recognition:'Wrong passage or passage not found',sound_recognition:'Sounds misheard',spurious_warning:'False alarm',other:'Other model error'};
 const CAUSES = {evidence:'Trouble recognising sounds',tracker:'Trouble finding the passage',checker:'Trouble checking for mistakes'};
@@ -30,8 +32,18 @@ const st = {runs:[],dumps:{},sel:null,all:[],shown:[],revision:0,playRevision:0,
 const review = i => saved.records[M.reviewKey(i)];
 const hasDraft = r => !!r && !M.complete(r);
 const options = (o,first) => `${first ? `<option value="">${esc(first)}</option>` : ''}${Object.entries(o).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('')}`;
-const regionName = i => ({clip:'Test clip',before:'Before test clip',after:'After test clip',passage:'Passage timing',unknown:'Audio section unknown'}[i.zone]);
+const regionName = i => ({clip:'Test clip',before:'Before test clip',after:'After test clip',passage:'Passage timing',session:`Session at ${i.timeS?.toFixed(1)} s`,unknown:'Audio section unknown'}[i.zone]);
+function sessionTitle(i){
+ const t=i.raw.map(r=>r.type);
+ if(t.includes('falseWarning')) return t.includes('nonErrorWarning') ? 'Session warning on a repeat or restart' : 'Session warning without a label';
+ if(t.includes('nonErrorWarning')) return 'Session warning on a repeat or restart';
+ if(t.includes('sessionMiss')) return 'Session mistake not reported';
+ if(t.includes('wrongPosition')) return 'Wrong position shown';
+ if(i.hits.length) return 'Session mistake reported';
+ return i.reports.some(r=>r.confirmed) ? 'Session warning' : 'Possible mistake not confirmed';
+}
 function title(i){
+ if(i.session) return sessionTitle(i);
  if(i.mismatch) return 'Different mistake type reported';
  if(i.zone === 'passage') return i.arm.gate.firstCorrectLockMs === null ? 'Passage not found' : 'Passage found too late';
  if(i.zone === 'before') return i.raw.some(r=>r.type==='leadin') ? 'Warning before the test clip' : 'Engine report before the test clip';
@@ -44,6 +56,14 @@ function title(i){
  return 'No mistake scored';
 }
 function explanation(i){
+ if(i.session){
+  const t=i.raw.map(r=>r.type);
+  if(t.includes('nonErrorWarning')) return 'The engine confirmed a mistake while the reciter repeated or restarted. Repeats and restarts are not mistakes. Listen to check whether something else was wrong.';
+  if(t.includes('falseWarning')) return 'The engine confirmed a mistake here, but the session labels list none at this word and time. Listen to check whether the warning is valid or a label is missing.';
+  if(t.includes('sessionMiss')) return 'The label marks a mistake here, but the engine did not confirm a warning that matches it. Listen to check the label and the recording.';
+  if(t.includes('wrongPosition')) return 'The engine showed a position more than one ayah from the words being recited. Listen to check the labels and the recitation.';
+  return 'No session issue is scored here. Listen to check it.';
+ }
  if(i.mismatch) return 'The engine reported a different mistake type from the label at this word. The test counts two issues: the labelled mistake was not reported, and the reported type has no label. Listen to check which type is right.';
  if(i.zone==='passage') return i.arm.gate.firstCorrectLockMs===null ? 'The engine did not find an ayah from the test passage. This fails the five-second timing check. Recitation mistakes have separate scores.' : 'The engine took more than five seconds to find an ayah from the test passage. Recitation mistakes have separate scores.';
  if(i.zone==='before'||i.zone==='after') return i.raw.some(r=>['leadin','leadout'].includes(r.type)) ? 'This added recording is labelled as correct. The test therefore counts its warnings as false alarms. Listen to check whether the warning is valid.' : 'The engine saved a report in an added recording labelled as correct. This report is not counted as a warning in the score. Listen to check it.';
@@ -58,10 +78,10 @@ function explanation(i){
  }
  return 'No mistake is labelled or scored here. Listen to check the recording.';
 }
-function location(i){return i.location ? `Ayah ${i.location.split(':').slice(0,2).join(':')} · word ${i.location.split(':')[2]}` : `Ayah ${i.clip.ayahs.join(', ')}`;}
+function location(i){if(i.session&&!i.location)return `${i.session.id} · ${i.timeS.toFixed(1)} s`;return i.location ? `Ayah ${i.location.split(':').slice(0,2).join(':')} · word ${i.location.split(':')[2]}` : `Ayah ${i.clip.ayahs.join(', ')}`;}
 function panel(){return `<section class="panel review-panel" id="review" aria-labelledby="review-title"><div class="section-top"><div><h2 id="review-title">Review errors</h2><p>Compare the label with the model output, listen, then decide what needs fixing.</p></div><span class="review-mark" aria-hidden="true">${WAVE}</span></div><div id="rv-body"><p class="notice">Loading recordings…</p></div></section>`;}
 function controls(){
- const runOpts=st.runs.slice().reverse().map(r=>`<option value="${esc(r.file)}">${esc(r.listener)} · ${esc(r.sha.slice(0,7))} · ${esc(r.recordedAt?.slice(0,10) || '')}</option>`).join('');
+ const runOpts=st.runs.slice().reverse().map(r=>`<option value="${esc(r.file)}">${r.kind==='sessions'?'Sessions · ':''}${esc(r.listener)} · ${esc(r.sha.slice(0,7))} · ${esc(r.recordedAt?.slice(0,10) || '')}</option>`).join('');
  return `<div class="rv-primary-filters"><label>Test run<select id="rv-run">${runOpts}</select></label><label>Test setup<select id="rv-arm">${options(ARMS)}</select></label><label>Show<select id="rv-scope"><option value="attention">Mistake and timing issues</option><option value="all">All recordings and results</option></select></label></div>
  <div class="rv-filter-tools"><details class="rv-extra"><summary>Search and filter</summary><div class="rv-more-filters">
  <label>Recording or location<input id="rv-search" type="search" placeholder="Recording ID, 94:5 or word text"></label><label>Result type<select id="rv-type">${options(TYPES,'Any result')}</select></label><label>Review status<select id="rv-status"><option value="">Any status</option><option value="unreviewed">Unreviewed (includes drafts)</option><option value="draft">Drafts</option><option value="reviewed">Reviewed</option></select></label>
@@ -76,7 +96,18 @@ function resetFilters(){
  for(const id of ['type','class','cause','kind','vs','status','search']) $(`rv-${id}`).value='';
  $('rv-diff').value='all'; $('rv-scope').value='attention'; refresh().catch(fail);
 }
+function renderSessionBreakdown(dump,setup){
+ const s=M.summary(dump,setup);
+ $('rv-breakdown').innerHTML=`<div class="rv-section-label"><h4>Session results for this run</h4><span class="small">${esc(contextName(setup))}</span></div><div class="rv-summary-line"><strong>${s.raw} session issues</strong><span>→ ${s.sessions} sessions · ${s.minutes.toFixed(1)} min</span></div><div class="rv-outcome-counts">${Object.entries(SESSION_TYPES).map(([k,v])=>`<button data-result-type="${k}" aria-pressed="${st.filter.type===k}"><strong>${s[k]}</strong><span>${esc(v)}</span><small>${k==='sessionMiss'?`${s.errors} labelled session mistakes`:k==='wrongPosition'?'position updates; nearby ones form one item':`${s.warnings} confirmed warnings`}</small></button>`).join('')}</div><p class="small">Reported only; sessions do not gate release. Each item plays ${M.SESSION_PAD_S} s either side of the event.</p>`;
+ $('rv-breakdown').querySelectorAll('[data-result-type]').forEach(b=>b.addEventListener('click',()=>{$('rv-type').value=b.dataset.resultType; $('rv-scope').value='attention'; $('rv-cause').value=''; refresh().catch(fail);}));
+}
+function syncSetupOptions(dump){
+ const sel=$('rv-arm'),keys=M.isSessions(dump)?[...new Set(dump.sessions.flatMap(s=>Object.keys(s.contexts)))]:Object.keys(ARMS),now=[...sel.options].map(o=>o.value);
+ if(now.join()!==keys.join()){const prev=sel.value;sel.innerHTML=options(Object.fromEntries(keys.map(k=>[k,ARMS[k]||contextName(k)])));sel.value=keys.includes(prev)?prev:keys[0];}
+ const type=$('rv-type'),types=M.isSessions(dump)?SESSION_TYPES:TYPES;if(type.options.length!==Object.keys(types).length+1){const prev=type.value;type.innerHTML=options(types,'Any result');type.value=prev in types?prev:'';}
+}
 function renderBreakdown(dump,setup,all){
+ if(M.isSessions(dump)) return renderSessionBreakdown(dump,setup);
  const s=M.summary(dump,setup), grouped=all.filter(i=>i.attention).length, cx=z=>`${s.context[z].clips} added recordings · ${(s.context[z].seconds/60).toFixed(1)} min`;
  $('rv-breakdown').innerHTML=`<div class="rv-section-label"><h4>Results for this run</h4><span class="small">${esc(ARMS[setup])}</span></div><div class="rv-summary-line"><strong>${s.raw} mistake and timing issues</strong><span>→ ${grouped} review items · ${s.clips} test recordings</span></div><div class="rv-outcome-counts">${Object.entries(TYPES).map(([k,v])=>`<button data-result-type="${k}" aria-pressed="${st.filter.type===k}"><strong>${s[k]}</strong><span>${esc(v)}</span><small>${k==='miss'?`${s.positives} labelled mistakes in the score`:k==='fp'?`${s.hits+s.fp} warnings in the score`:k==='late'?`${s.clips} recordings (all types)`:cx(k==='leadin'?'before':'after')}</small></button>`).join('')}</div>
  <p class="small">These totals are for the selected run and setup, before filters. The engine reported ${s.hits} of ${s.positives} labelled mistakes (recall). Of ${s.hits+s.fp} scored warnings in the test clip, ${s.hits} agreed with the labels (precision). Reporting a different mistake type counts as both a missed labelled mistake and a warning without a label. Warnings in added recordings are counted separately.</p>
@@ -88,7 +119,8 @@ function renderBreakdown(dump,setup,all){
 async function refresh(){
  const revision=++st.revision, f=Object.fromEntries(['run','vs','diff','arm','scope','type','class','cause','kind','status','search'].map(k=>[k,$(`rv-${k}`).value])); st.filter=f;
  const [cur,vs]=await Promise.all([loadDump(f.run),f.vs?loadDump(f.vs):null]); if(revision!==st.revision || !$('rv-list')) return;
- $('rv-diff').disabled=!vs;
+ $('rv-diff').disabled=!vs; syncSetupOptions(cur); f.arm=$('rv-arm').value; f.type=$('rv-type').value;
+ if(vs && M.isSessions(vs)!==M.isSessions(cur)){$('rv-vs').value='';return refresh();}
  $('rv-setup-copy').textContent=SETUPS[f.arm];
  const current=M.incidents(cur,f.arm,st.runs.find(r=>r.file===f.run)), prior=vs?M.incidents(vs,f.arm,st.runs.find(r=>r.file===f.vs)):[];
  renderBreakdown(cur,f.arm,current);
@@ -99,7 +131,7 @@ async function refresh(){
   && (!f.type || i.raw.some(r=>r.type===f.type)) && (!f.class || [...i.labels,...i.reports,...i.raw.map(r=>r.event).filter(Boolean)].some(e=>e.errorClass===f.class))
   && (!f.cause || i.raw.some(r=>r.type==='miss' && r.event.cause===f.cause)) && (!f.kind || (f.kind==='none')===(i.clip.kind==='none'))
   && (!f.status || (f.status==='reviewed'?M.complete(review(i)):f.status==='draft'?hasDraft(review(i)):!M.complete(review(i))))
-  && (!query || [i.clip.id,i.location,...i.clip.ayahs,...i.clip.words.map(w=>w.text)].join(' ').toLowerCase().includes(query)));
+  && (!query || [i.clip.id,i.location,...i.clip.ayahs,...(i.session?M.sessionWords(i):i.clip.words).map(w=>w.text)].join(' ').toLowerCase().includes(query)));
  renderQueue(); updateProgress();
  const index=st.shown.findIndex(i=>M.reviewKey(i)=== (st.sel && M.reviewKey(st.sel)));
  if(st.shown.length) selectIncident(index<0?0:index);
@@ -108,7 +140,7 @@ async function refresh(){
 function renderQueue(){
  const recordings=new Map(); st.shown.forEach((i,n)=>{if(!recordings.has(i.clip.id)) recordings.set(i.clip.id,[]); recordings.get(i.clip.id).push({i,n});});
  $('rv-count').innerHTML=`<div><b>${st.shown.length} review item${st.shown.length===1?'':'s'}</b><span class="small">${recordings.size} recording${recordings.size===1?'':'s'} in this queue</span></div><span class="small">J / K move · R replay · U next unreviewed</span>`;
- $('rv-list').innerHTML=[...recordings].map(([id,entries])=>`<section class="rv-recording-group"><div class="rv-recording-id"><code>${esc(id)}</code><span>${entries.length} review item${entries.length===1?'':'s'}</span></div>${entries.map(({i,n})=>`<button type="button" data-i="${n}" class="rv-card ${M.complete(review(i))?'is-reviewed':''}" aria-pressed="false"><span class="rv-card-top"><span class="rv-type ${i.mismatch?'rv-miss':i.zone==='passage'?'rv-late':i.attention?'rv-fp':'rv-hit'}">${esc(title(i))}</span><span class="rv-card-arrow" aria-hidden="true">↗</span></span><strong>${esc(location(i))}</strong><span class="rv-card-context">${esc(regionName(i))} · ${i.raw.length} score results${i.earlierOnly?' · comparison run only':''}${i.change?` · ${esc(i.change)} evidence`:''}${hasDraft(review(i))?' · draft':''}</span></button>`).join('')}</section>`).join('') || '<p class="empty">No results match. Change the filters or choose all recordings and results.</p>';
+ $('rv-list').innerHTML=[...recordings].map(([id,entries])=>`<section class="rv-recording-group"><div class="rv-recording-id"><code>${esc(id)}</code><span>${entries.length} review item${entries.length===1?'':'s'}</span></div>${entries.map(({i,n})=>`<button type="button" data-i="${n}" class="rv-card ${M.complete(review(i))?'is-reviewed':''}" aria-pressed="false"><span class="rv-card-top"><span class="rv-type ${i.mismatch?'rv-miss':i.zone==='passage'?'rv-late':i.attention?'rv-fp':'rv-hit'}">${esc(title(i))}</span><span class="rv-card-arrow" aria-hidden="true">↗</span></span><strong>${esc(location(i))}</strong><span class="rv-card-context">${esc(regionName(i))} · ${i.raw.length} score results${i.session&&i.location?` · ${esc(i.session.id)}`:''}${i.earlierOnly?' · comparison run only':''}${i.change?` · ${esc(i.change)} evidence`:''}${hasDraft(review(i))?' · draft':''}</span></button>`).join('')}</section>`).join('') || '<p class="empty">No results match. Change the filters or choose all recordings and results.</p>';
  $('rv-list').querySelectorAll('[data-i]').forEach(b=>b.addEventListener('click',()=>{selectIncident(+b.dataset.i); if(window.innerWidth<=850){$('rv-detail').scrollIntoView({behavior:'smooth',block:'start'}); $('rv-detail').focus({preventScroll:true});}}));
 }
 function updateProgress(){
@@ -131,7 +163,7 @@ function exportPayload(){return {schemaVersion:2,kind:'tilawa_manual_review',exp
 function exportReviews(){
  const url=URL.createObjectURL(new Blob([JSON.stringify(exportPayload(),null,2)],{type:'application/json'})), link=document.createElement('a'); link.href=url; link.download=`tilawa-reviews-${new Date().toISOString().slice(0,10)}.json`; link.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-function stopAudio(){++st.playRevision; clearTimeout(st.gapTimer); st.queue=[]; const el=$('rv-audio'); if(el) el.pause();}
+function stopAudio(){++st.playRevision; clearTimeout(st.gapTimer); st.queue=[]; st.until=null; const el=$('rv-audio'); if(el) el.pause();}
 function navigate(n,focus){if(n<0||n>=st.shown.length) return; selectIncident(n); $('rv-list').querySelector(`[data-i="${n}"]`)?.scrollIntoView({block:'nearest'}); $(focus || 'rv-detail')?.focus({preventScroll:true});}
 function nextUnreviewed(){const at=st.shown.indexOf(st.sel), n=st.shown.map((_,k)=>(at+1+k)%st.shown.length).find(k=>k!==at&&!M.complete(review(st.shown[k]))); if(n!==undefined) navigate(n,'rv-complete');}
 function selectIncident(n){
@@ -148,6 +180,16 @@ function reportList(i){
  return reports.map(e=>`<li><b>${esc(readable(e.errorClass))}</b> · ${esc(e.at)}<span class="small"> · engine decision: ${esc(e.state)}${e.checkerEvent?` · reported at ${(e.checkerEvent.timeMs/1000).toFixed(2)} s`:''}</span></li>`).join('') || (i.hits.length ? i.hits.map(h=>`<li><b>${esc(readable(h.split('/')[0]))}</b> · the test recorded a matching warning, but this older run did not save the full report.</li>`).join('') : '<li>The engine saved no final report for this word.</li>');
 }
 function comparison(i){
+ if(i.session){
+  const t=i.raw.map(r=>r.type), w=i.reports[0];
+  if(t.includes('wrongPosition')){const e=i.raw[0].event;return {expected:`Near ${e.recited.join(', ') || 'the recited words'}`,actual:`Shown at ${e.observed.join(', ')}`,label:'Within one ayah of the words recited in the last 2 seconds.',output:`${e.count} wrong position update${e.count===1?'':'s'} from ${(e.timeMs/1000).toFixed(1)} s to ${(e.untilMs/1000).toFixed(1)} s.`,note:'Scored as wrong position events. Listen to check what was recited.'};}
+  const expected=i.labels.length?i.labels.map(l=>readable(l.errorClass)).join(' / '):'No warning';
+  const actual=w?`${w.confirmed?'':'Possible '}${readable(w.errorClass)}`:'No confirmed warning';
+  const label=i.labels.length?i.labels.map(l=>`${l.state} · ${l.at} · ${l.startS.toFixed(1)}–${l.endS.toFixed(1)} s`).join('; '):'No mistake is labelled at this word and time.';
+  const output=w?w.states.map(x=>`${x.state} at ${(x.timeMs/1000).toFixed(1)} s`).join(' → '):'No warning was assigned to this label.';
+  const note=t.includes('nonErrorWarning')?'Scored as a warning on a repeat or restart.':t.includes('falseWarning')?'Scored as a session false warning.':t.includes('sessionMiss')?'Scored as a missed session mistake.':explanation(i);
+  return {expected,actual,label,output,note};
+ }
  const labels=i.labels, reports=i.reports.length?i.reports:i.raw.filter(r=>['fp','leadin','leadout'].includes(r.type)).map(r=>r.event);
  if(i.zone==='passage'){
   const gate=i.arm.gate, seconds=gate.firstCorrectLockMs==null?null:(gate.firstCorrectLockMs-gate.onsetMs)/1000;
@@ -169,12 +211,35 @@ function affectedPassage(i){
  const ayah=i.location.split(':').slice(0,2).join(':'), original=i.audio===i.clip.audio;
  let words=i.clip.words.filter(w=>w.at.startsWith(ayah+':'));
  const timed=original && words.length>0;
- if(!words.length) for(const dump of Object.values(st.dumps)){
+ if(!words.length) for(const dump of Object.values(st.dumps).filter(d=>!M.isSessions(d))){
   const source=dump.clips.find(c=>c.words.some(w=>w.at===i.location));
   if(source){words=source.words.filter(w=>w.at.startsWith(ayah+':'));break;}
  }
  if(!words.length) return `<p class="rv-passage-unavailable">Affected ayah ${esc(ayah)} · word ${esc(i.location.split(':')[2])}. Quran text for this ayah is not available in this run.</p>`;
  return `<section class="rv-passage rv-affected"><div class="rv-section-label"><h4>Affected passage · ${esc(ayah)}</h4><span class="small">Word ${esc(i.location.split(':')[2])} highlighted</span></div><div class="rv-script" dir="rtl">${words.map(w=>`<button type="button" class="${w.at===i.location?'is-focus':''}" data-path="${esc(i.audio)}" data-at="${timed?Math.max(0,(w.fromS || 0)-.6):w.at===i.location?M.cue(i).seekSeconds:0}" data-label="${timed?'Estimated time for word':'Affected recording · word'} ${esc(w.at)}" aria-label="${esc(w.text)} · ${esc(w.at)}"><bdi lang="ar">${esc(w.text)}</bdi></button>`).join('')}</div><p class="small">${timed?'Tap a word to play near its estimated time. Words without a time play from the start.':'Text identifies the affected ayah. Only the highlighted word has a playback estimate; other words play this recording from the start.'}</p></section>`;
+}
+function sessionPassage(i){
+ const words=M.sessionWords(i),cue=M.cue(i);
+ if(!words.length) return `<p class="rv-passage-unavailable">No labelled Quran words within ${M.SESSION_PAD_S} s of ${i.timeS.toFixed(1)} s.</p>`;
+ return `<section class="rv-passage rv-affected"><div class="rv-section-label"><h4>Recited around ${esc(i.timeS.toFixed(1))} s</h4><span class="small">Labelled words within ${M.SESSION_PAD_S} s</span></div><div class="rv-script" dir="rtl">${words.map(w=>`<button type="button" class="${w.at===i.location?'is-focus':''}" data-path="${esc(i.audio)}" data-at="${Math.max(0,w.startS-.6)}" data-until="${w.endS+.6}" data-label="Labelled time for word ${esc(w.at)}" aria-label="${esc(w.text)} · ${esc(w.at)} · ${w.startS.toFixed(1)} s"><bdi lang="ar">${esc(w.text)}</bdi></button>`).join('')}</div><p class="small">Tap a word to hear it. The default plays ${cue.seekSeconds.toFixed(1)}–${cue.untilSeconds.toFixed(1)} s.</p></section>`;
+}
+function sessionDetail(i,n){
+ const c=M.cue(i);
+ $('rv-detail').innerHTML=`<div class="rv-detail-nav"><div class="rv-nav-label"><button class="text-button" id="rv-back">↑ Review queue</button><span class="small">${n+1} / ${st.shown.length} review items</span></div><div><button id="rv-prev" aria-label="Previous item">←</button><button id="rv-next" aria-label="Next item">→</button></div></div>
+ <div class="rv-head"><span class="rv-type ${i.raw.some(r=>r.type==='sessionMiss')?'rv-miss':i.raw.some(r=>r.type==='wrongPosition')?'rv-late':'rv-fp'}">${esc(title(i))}</span><h3>${esc(location(i))}</h3></div>
+ ${comparisonPanel(i)}
+ ${sessionPassage(i)}
+ <div class="rv-player"><button class="rv-play primary-button" id="rv-cue">▶ Listen ${c.seekSeconds.toFixed(1)}–${c.untilSeconds.toFixed(1)} s</button><audio id="rv-audio" controls preload="metadata" aria-label="Session audio"></audio><div class="rv-player-tools"><button class="text-button" id="rv-replay">↻ Replay this part</button>${playButton(i.audio,0,'Listen from the start')}<label>Speed<select id="rv-speed" aria-label="Playback speed"><option value="1">1×</option><option value="0.75">0.75×</option><option value="0.5">0.5×</option><option value="1.25">1.25×</option></select></label></div><p class="small" id="rv-now" role="status">${esc(c.meaning)}</p></div>
+ ${reviewForm(i)}
+ <details class="rv-diagnostics"><summary>Session, warning states and original data</summary><div class="rv-facts"><code>${esc(i.session.id)}</code><span>${esc(i.session.source)} · ${esc(i.session.track)}</span><span>${esc(i.session.speaker)}</span><span>${(i.session.durationS/60).toFixed(1)} min</span></div><p class="rv-identity small">${esc(i.run.listener)} · ${esc(i.run.sha)} · ${esc(contextName(i.setup))} (effective ${esc(i.ctx.effectiveContext)}) · run recorded ${esc(i.run.recordedAt)}</p><p>${esc(explanation(i))}</p><details><summary>Original data (JSON)</summary><pre>${esc(JSON.stringify(M.snapshot(i,locationBase()),null,2))}</pre></details></details>`;
+ $('rv-cue').addEventListener('click',()=>startAudio(i.audio,c.seekSeconds,'Event window',[],c.untilSeconds)); $('rv-replay').addEventListener('click',()=>startAudio(i.audio,c.seekSeconds,'Replay this part',[],c.untilSeconds));
+ $('rv-speed').addEventListener('change',()=>{$('rv-audio').playbackRate=+$('rv-speed').value;});
+ $('rv-detail').querySelectorAll('[data-path]').forEach(b=>b.addEventListener('click',()=>startAudio(b.dataset.path,+b.dataset.at,b.dataset.label || 'Recording',[],b.dataset.until?+b.dataset.until:null)));
+ $('rv-feedback-title').closest('section').querySelectorAll('input,select,textarea').forEach(el=>el.addEventListener(el.tagName==='TEXTAREA'?'input':'change',()=>writeFinding(i)));
+ $('rv-complete').addEventListener('click',()=>{const was=M.complete(review(i));if(writeFinding(i,'reviewed')){if(st.filter.status){refresh().then(()=>$('rv-complete')?.focus({preventScroll:true})).catch(fail);return;}if(!was && st.shown.some(x=>x!==i&&!M.complete(review(x)))) nextUnreviewed(); else {detail(i,n);updateProgress();}}});
+ $('rv-reopen')?.addEventListener('click',()=>{writeFinding(i,'draft');if(st.filter.status){refresh().catch(fail);}else{detail(i,n);updateProgress();}});
+ $('rv-next-unreviewed').addEventListener('click',nextUnreviewed); updateProgress();
+ prepareAudio(i.audio,c.seekSeconds);
 }
 function reviewForm(i){
  const r=review(i), f=r?.finding || {areas:[],categories:[],comment:'',certainty:'tentative'};
@@ -198,6 +263,7 @@ function writeFinding(i,status='draft'){
 }
 function detail(i,n){
  stopAudio();
+ if(i.session) return sessionDetail(i,n);
  const c=i.clip,a=i.arm,cue=M.cue(i),word=c.words.find(w=>w.at===i.location), main=a.segments?.find(s=>s.source===c.id);
  const segName=s=>s.source===c.id?'Test clip':s.endMs<=main?.startMs?'Before':'After';
  const explain=explanation(i);
@@ -268,8 +334,9 @@ async function prepareAudio(path,at){
  try {await audioReady(el,path,token);if(token!==st.playRevision||el!==$('rv-audio'))return; const status=seekAudio(el,at);$('rv-now').textContent=`${status} · estimated start in ${path}`;}
  catch(e){if(token===st.playRevision&&el===$('rv-audio'))$('rv-now').textContent=`${e.message} Source: ${path}. You can flag an audio or data issue.`;}
 }
-async function startAudio(path,at,label,queue=[]){
- stopAudio();const token=st.playRevision,el=$('rv-audio');st.queue=queue;$('rv-now').textContent='Loading audio…';
+async function startAudio(path,at,label,queue=[],until=null){
+ stopAudio();const token=st.playRevision,el=$('rv-audio');st.queue=queue;st.until=until;$('rv-now').textContent='Loading audio…';
+ el.ontimeupdate=()=>{if(token===st.playRevision&&st.until!=null&&el.currentTime>=st.until){el.pause();st.until=null;$('rv-now').textContent=`${label} · stopped at ${el.currentTime.toFixed(2)} s. Press play to continue.`;}};
  const advance=()=>{
   if(token!==st.playRevision||el!==$('rv-audio'))return;
   const next=st.queue.shift();if(!next){$('rv-now').textContent=`Playback finished. Replay this part or choose another section.`;return;}
@@ -283,7 +350,7 @@ async function init(candidate,scoreRow){
  stopAudio();++st.revision;const revision=++st.initRevision;
  try {const r=await fetch('clips/index.json',{cache:'no-store'});if(!r.ok)throw Error(`HTTP ${r.status}`);st.runs=await r.json();if(!st.runs.length)throw Error('No evidence runs.');}
  catch(e){if(revision===st.initRevision)$('rv-body').innerHTML=`<p class="notice">No recordings are available. Generate the recording data and open this page with the local scoreboard server. ${esc(e.message)}</p>`;return;}
- if(revision!==st.initRevision)return;$('rv-body').innerHTML=controls();const matching=st.runs.filter(r=>r.listener===candidate && (!scoreRow || r.sha.startsWith(scoreRow.sha) || scoreRow.sha.startsWith(r.sha))).at(-1),mine=matching || st.runs.filter(r=>r.listener===candidate).at(-1)||st.runs.at(-1);st.candidateRunFile=matching?.file || null;$('rv-run').value=mine.file;
+ if(revision!==st.initRevision)return;$('rv-body').innerHTML=controls();const clipRuns=st.runs.filter(r=>r.kind!=='sessions'),matching=clipRuns.filter(r=>r.listener===candidate && (!scoreRow || r.sha.startsWith(scoreRow.sha) || scoreRow.sha.startsWith(r.sha))).at(-1),mine=matching || clipRuns.filter(r=>r.listener===candidate).at(-1)||clipRuns.at(-1)||st.runs.at(-1);st.candidateRunFile=matching?.file || null;$('rv-run').value=mine.file;
  if(!matching)$('rv-body').insertAdjacentHTML('afterbegin',`<p class="notice">No recordings for the selected version ${esc(candidate)}${scoreRow?` at ${esc(scoreRow.sha)}`:''}. Showing ${esc(mine.listener)} at ${esc(mine.sha)}; the totals below are for that run.</p>`);
  $('rv-reset').addEventListener('click',resetFilters);$('rv-export').addEventListener('click',exportReviews);
  $('rv-import').addEventListener('change',async e=>{try {const f=e.target.files[0];if(!f)return;const result=saved.ingest(JSON.parse(await f.text()));await refresh();$('rv-storage-status').textContent=`Imported ${result.added}; ${result.duplicates} already saved; ${result.conflicts} different versions kept in the backup. ${saved.error}`;}catch(err){$('rv-storage-status').textContent=`Import failed: ${err.message}`;}finally{e.target.value='';}});
@@ -293,6 +360,6 @@ async function init(candidate,scoreRow){
 }
 function fail(e){stopAudio();if($('rv-list'))$('rv-list').innerHTML=`<p class="notice">Couldn’t load recordings and results. ${esc(e.message)}</p>`;if($('rv-detail'))$('rv-detail').innerHTML='<p class="notice">Choose another run to continue. You can still download your review backup.</p>';}
 function focusGate(id){const p=PRESETS[id];if(!p||!$('rv-arm'))return false;if(!st.candidateRunFile){$('rv-storage-status').textContent='No recordings match the selected version. Choose another recorded run to review.';$('review').scrollIntoView({behavior:'smooth'});return false;}$('rv-run').value=st.candidateRunFile;for(const k of ['type','class','cause','kind','vs','status','search'])$(`rv-${k}`).value='';$('rv-diff').value='all';$('rv-scope').value='attention';$('rv-arm').value=p.arm;$('rv-type').value=p.type;$('rv-kind').value=p.kind||'';$('rv-cause').value=p.cause||'';refresh().catch(fail);$('review').scrollIntoView({behavior:'smooth'});return true;}
-document.addEventListener('keydown',e=>{if(!st.sel||e.ctrlKey||e.metaKey||e.altKey||e.target.closest('input,textarea,select,audio,button,summary,[contenteditable="true"]'))return;const n=st.shown.indexOf(st.sel);if(e.key.toLowerCase()==='j'){e.preventDefault();navigate(n+1);}else if(e.key.toLowerCase()==='k'){e.preventDefault();navigate(n-1);}else if(e.key.toLowerCase()==='r'){e.preventDefault();const cue=M.cue(st.sel);startAudio(cue.audio,cue.seekSeconds,'Replay this part');}else if(e.key.toLowerCase()==='u'){e.preventDefault();nextUnreviewed();}});
+document.addEventListener('keydown',e=>{if(!st.sel||e.ctrlKey||e.metaKey||e.altKey||e.target.closest('input,textarea,select,audio,button,summary,[contenteditable="true"]'))return;const n=st.shown.indexOf(st.sel);if(e.key.toLowerCase()==='j'){e.preventDefault();navigate(n+1);}else if(e.key.toLowerCase()==='k'){e.preventDefault();navigate(n-1);}else if(e.key.toLowerCase()==='r'){e.preventDefault();const cue=M.cue(st.sel);startAudio(cue.audio,cue.seekSeconds,'Replay this part',[],cue.untilSeconds ?? null);}else if(e.key.toLowerCase()==='u'){e.preventDefault();nextUnreviewed();}});
 window.tilawaReview={panel,init,focusGate,hasPreset:id=>id in PRESETS};
 })();
