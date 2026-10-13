@@ -61,7 +61,26 @@ Every QUD recording is scored at four contexts. They are built from the recorded
 
 `sessions-cli --qud` builds these with `qudContexts` (`--qud-contexts own` keeps the session's own chain). Each context runs one replay, and the review dump reuses its events.
 
-Teacher, all 16 recordings, 308.7 clean minutes (`session-qud-teacher-v1.json`):
+## Unsupported: fast (hadr) recitation
+
+Fast recitation is unsupported for now, pending collection of fast-speech samples and listener fine-tuning (ticket 09). `sessions-cli --qud` skips recordings whose QUD `meta.style` is `hadr` by default and lists them under `unsupported` in the report; `--unsupported-styles none` scores every style. The skipped recordings are afasy-baqarah, badri-juz-tabarak, diban-sad and jaber-nisa.
+
+Why: on diban-sad's ayahs that raised no warning, both listeners miss about 0.36–0.39 of the reference phonemes (ayah-level alignment), against about 0.15 on jaber-nisa's. Nearly every miss is a deletion: held-sound repeats (`ا ا`, `ۥ ۥ`, `ں ں`) and short `ء`/`ل`/`ه`/vowels. Merging the held-sound repeats only brings this to 0.27–0.29. Of the student's 28 confirmed false warnings on the three decoded recordings, the teacher misreads the same word just as badly in 24, the student alone in 1, and both decode the word correctly in 2. A better student would not fix this. Either the listener does not cope with fast speech or the reference doesn't match how fast connected speech actually sounds (unverified).
+
+Current numbers, supported styles only. Teacher, 12 recordings, 200.6 clean minutes:
+
+| Context | Clean false warnings | Per 5 clean min | Located time | Wrong position | Non-error warnings | First lock ≤ 5 s |
+|---|---:|---:|---:|---:|---:|---:|
+| assignment (6 of 12) | 123 | 5.55 | 95.80% | 35 | 28 | 2/6 |
+| page | 128 | 3.19 | 96.62% | 58 | 17 | 6/12 |
+| surah | 127 | 3.17 | 96.63% | 59 | 17 | 6/12 |
+| none | 127 | 3.17 | 96.50% | 60 | 16 | 5/12 |
+
+`spliced-clean-int8` student: only jaber-inshiqaq remains (1.9 clean minutes). It has 0 false warnings and 97.06% located time at every context, with its first lock within 5 s. That is too little to compare listeners.
+
+The tables below are the earlier all-style runs, kept for history.
+
+Teacher, all 16 recordings, 308.7 clean minutes (`session-qud-teacher-v1.json`, before hadr was excluded):
 
 | Context | Clean false warnings | Per 5 clean min | Located time | Wrong position | Non-error warnings | First lock ≤ 5 s |
 |---|---:|---:|---:|---:|---:|---:|
@@ -70,7 +89,7 @@ Teacher, all 16 recordings, 308.7 clean minutes (`session-qud-teacher-v1.json`):
 | surah | 187 | 3.03 | 97.46% | 66 | 18 | 9/16 |
 | none | 187 | 3.03 | 97.37% | 67 | 17 | 8/16 |
 
-Fresh `spliced-clean-int8` student, 7.2 clean minutes (`session-qud-int8-v1.json`). It is paired with the current `qudSession` truth through `--student-evidence .scratch/session-bench/qud/evidence`:
+Fresh `spliced-clean-int8` student, 7.2 clean minutes (`session-qud-int8-v1.json`, before hadr was excluded). It is paired with the current `qudSession` truth through `--student-evidence .scratch/session-bench/qud/evidence`:
 
 | Context | Clean false warnings | Per 5 clean min | Located time | Wrong position | Non-error warnings | First lock ≤ 5 s |
 |---|---:|---:|---:|---:|---:|---:|

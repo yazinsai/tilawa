@@ -17,7 +17,12 @@ const { values } = parseArgs({ options: { manifest: { type: "string" }, qud: { t
   "student-evidence": { type: "string" },
   /** `qud` (default) scores QUD recordings at assignment, page, surah and none; `own` uses only the session's context chain. */
   "qud-contexts": { type: "string", default: "qud" },
+  /** Comma-separated QUD `meta.style`s left out of scoring; `none` scores every style. */
+  "unsupported-styles": { type: "string", default: "hadr" },
   sha: { type: "string" } } });
+const UNSUPPORTED_REASON = "fast recitation unsupported pending fast-speech sample collection and listener fine-tuning";
+const unsupportedStyles = new Set(values["unsupported-styles"] === "none" ? [] : values["unsupported-styles"]!.split(","));
+const unsupported: { id: string; style: string; reason: string }[] = [];
 const omittedContexts: { id: string; context: "assignment"; reason: string }[] = [];
 const contexts = (s: BenchSession) => {
   if (s.source !== "qud" || s.context.kind !== "none" || values["qud-contexts"] !== "qud") return weakerContexts(s.context);
@@ -41,6 +46,7 @@ if (values.qud) for (const f of readdirSync(values.qud).filter(f => f.endsWith("
   const { session, audit } = qudAudit(rec, index);
   audits.push(audit);
   if (!session) { failures.push({ id: rec.id, reason: audit.reason! }); continue; }
+  if (unsupportedStyles.has(rec.meta?.style)) { unsupported.push({ id: rec.id, style: rec.meta.style, reason: UNSUPPORTED_REASON }); continue; }
   const student = values["student-evidence"] && resolve(values["student-evidence"], `${rec.id}.evidence.json`);
   if (!student) items.push({ session, evidence: rec, audio: resolve(values.qud, `${rec.id}.wav`) });
   else if (existsSync(student)) items.push({ session, evidence: JSON.parse(readFileSync(student, "utf8")), audio: resolve(values["student-evidence"]!, "..", `${rec.id}.wav`) });
@@ -79,7 +85,7 @@ for (const { session, evidence, audio } of items) {
 }
 writeFileSync(resolve(values.out!), JSON.stringify({ version: 1, gating: false, listener: values.listener, reference: index.version,
   note: "Reported only; recorded-session agreement and coverage are not established. QUD is the professional easy end. No release gates replaced. Delays cover matched warnings only; censoredByMiss counts errors without that state.",
-  summary: summarizeSessions(rows), rows, failures, ...(omittedContexts.length ? { omittedContexts } : {}), ...(missing.length ? { missingEvidence: missing } : {}), ...(audits.length ? { audit: audits } : {}) }, null, 2) + "\n");
+  summary: summarizeSessions(rows), rows, failures, ...(unsupported.length ? { unsupported } : {}), ...(omittedContexts.length ? { omittedContexts } : {}), ...(missing.length ? { missingEvidence: missing } : {}), ...(audits.length ? { audit: audits } : {}) }, null, 2) + "\n");
 for (const g of summarizeSessions(rows)) console.log(`${g.key}: recall ${g.hits}/${g.errors}, confirmed delay p50/p90 ${g.confirmedDelay.p50 ?? "-"}/${g.confirmedDelay.p90 ?? "-"} s (n=${g.confirmedDelay.n}, censored ${g.confirmedDelay.censoredByMiss})`);
 console.log(`${rows.length} context rows; ${failures.length} exclusions -> ${values.out}`);
 if (!rows.length) process.exitCode = 1;
