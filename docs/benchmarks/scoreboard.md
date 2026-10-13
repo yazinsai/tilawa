@@ -12,7 +12,7 @@ The release cockpit for the engine. One row per commit × listener, recomputed f
 
 **Sources.** Listener PER is gold PER (`tools/gold_set.py score`), barred by `listener-target-v1.json`. Help clips: 388 eval clips, 29 held-out speakers. Free memorization is gated `with lead-in` (`--leadin`, `tools/leadin_build.py`): 1–2 correctly recited preceding ayahs are stitched before each clip and 1–2 following ayahs after it (lead-out) at the evidence level (same speaker's clean clip, else another help speaker's, else held-out tlog, else tlog train), errors and false positives are scored inside the original clip, and warnings on the lead-in and lead-out are counted apart. For a student add `--leadin-evidence <dir>` with its decode of `.scratch/leadin/audio` (with posteriors) (`pnpm --filter @tilawa/sdk decode`). Without a lead-in the free numbers are info; each arm is also split into `unambiguous` and `mutashabihat` (planted errors that form another ayah, `forms_other_ayah`). `Declared passage` is the memorization-session arm (`CheckerOptions.passage`); `oracle evidence` replaces the decode with one synthesised from the label, so its losses are the checker's own. E0 attributes each missed mistake to listener, tracker or checker.
 
-## Release readiness: spliced-clean-int8 @ cf073f6 (2026-10-12)
+## Release readiness: spliced-clean-int8 @ f6098d6 (2026-10-13)
 
 **Not ready**: 7/13 gates pass, 6 fail, 0 not measured on this listener, 5 requirements not measurable yet. Worst shortfall first.
 
@@ -30,7 +30,7 @@ The release cockpit for the engine. One row per commit × listener, recomputed f
 | False warnings on repeats | 0 (23 repeat clips) | ≤ 0 | pass | 0 |
 | False warnings per 5 min (lead-in recitation) | 0.54 per 5 min (6 in 55.4 min, 346 lead-ins) | ≤ 1 | pass | 0 |
 | Tracker: false jumps | 0.0% (0/225) | ≤ 2.0% | pass | 0 |
-| Real-time factor | 0.002 | ≤ 0.05 | pass | 0 |
+| Real-time factor | 0.002 | ≤ 0.05 | pass | +0 |
 
 Not measurable yet (blocks release): Pronunciation: short vowels; Pronunciation: confusable pairs, shadda; Word highlight / warning latency on device; Self-correction and long-session false warnings; Scripted-error recordings.
 
@@ -42,6 +42,8 @@ Newest first. Each run is judged against its parent: the previous run of the sam
 
 | Date | Commit | Listener | vs | Verdict | Gate moves | Note |
 |---|---|---|---|---|---|---|
+| 2026-10-13 | f6098d6 | spliced-clean-int8 | cf073f6 | = unchanged |  | Fresh int8 QUD sessions (3 decoded recordings) at assignment/page/surah/none; none 19.54 FW/5 clean min, assignment 57.22 (declared passage); 13 recordings lack a student decode; reported only |
+| 2026-10-13 | f6098d6 | teacher | fd98856 | = unchanged |  | All-16 QUD teacher sessions at synthesised assignment/page/surah/none contexts (one replay per context); none 3.03 FW/5 clean min, assignment 26.25 (declared passage); reported only, no thresholds |
 | 2026-10-13 | fd98856 | teacher | 798675c | = unchanged |  | Tracker range prior (priorRange) for surah/page session context, Madani page table (Tanzil); gate evals use no range prior and QUD sessions are context none, so no gate should move |
 | 2026-10-12 | cf073f6 | spliced-clean-int8 | 798675c | = unchanged |  | Add occurrence-aware session scoring and fresh continuous student baseline on three pinned QUD recordings; session measures reported only, release gates unchanged |
 | 2026-10-11 | 798675c | spliced-clean-int8 | a4cc202 | = unchanged |  | Stitched-session checker warnings (stitched-warnings-v1, ticket 13, 747 min) with posteriors: the stitched gate now runs the shipped checker (local-window on) instead of jumps-v1's posterior-free replay; int8 first measured: 217 in 743 min (1.46/5 min), end region 1.40 vs mid 1.47, finalisation +0; help-speaker sessions 2.84 vs lead-out 2.73, so lead-out warnings are the checker, not session ends |
@@ -116,7 +118,7 @@ Newest first. Each run is judged against its parent: the previous run of the sam
 | End to end | Pronunciation: consonant_sad_sin | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 4 positives in eval split |
 | End to end | Pronunciation: madd_natural | unsupported |  | unmeasurable |  | checker has no pronunciation classes; 1 positives in eval split |
 | End to end | Pronunciation: other pairs, shadda | — |  | unmeasurable |  | no recordings with positives (ticket 05, phase 2) |
-| End to end | Tracker real-time factor (this machine) | 0.002 | ≤ 0.05 | pass | 0 | perf.ts gate: device floor assumed 20× slower; slowest push 27.2 ms |
+| End to end | Tracker real-time factor (this machine) | 0.002 | ≤ 0.05 | pass | +0 | perf.ts gate: device floor assumed 20× slower; slowest push 28.8 ms |
 | End to end | Word highlight p95 / suspected / confirmed latency | — |  | unmeasurable |  | pass --latency <pnpm bench:help report> (packages/sdk); device runs: ticket 10 |
 | Listener | Gold PER (canon vs spliced, human-verified exact) | 4.82% (233 clips) | ≤ 3.7% | fail | 0 | bar: gold PER where fitted declared.precision falls 2 pts below the teacher (3.39%) |
 | Listener | Gold PER: laptop | 10.66% (16 clips) |  | info | 0 |  |
@@ -193,10 +195,91 @@ Newest first. Each run is judged against its parent: the previous run of the sam
 | Checker | E0: misses lost to tracker | 27/35 |  | info | 0 |  |
 | Checker | E0: misses lost to checker | 2/35 |  | info | 0 | real upstream, free arm |
 | Checker | Self-correction / long-session false warnings | — |  | unmeasurable |  | no recordings (ticket 05) |
-| Sessions: recitation.none.qud | Warnings correct | 0.0% |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
-| Sessions: recitation.none.qud | Errors caught | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
-| Sessions: recitation.none.qud | False warnings per 5 clean minutes | 19.54 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
-| Sessions: recitation.none.qud | Correctly located time | 85.6% |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
-| Sessions: recitation.none.qud | Located within 5 seconds | 100.0% |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
-| Sessions: recitation.none.qud | Wrong position events | 10 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
-| Sessions: recitation.none.qud | Warnings on repeats/restarts/self-corrections | 0 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.assignment.qud | Warnings correct | 0/82 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.assignment.qud | Errors caught | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; abstentions count as misses |
+| Sessions: recitation.assignment.qud | Errors caught: wrong word | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.assignment.qud | Errors caught: omitted word | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.assignment.qud | Errors caught: added word | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.assignment.qud | Errors caught: skipped passage | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.assignment.qud | Errors caught: mutashabihat (forms another ayah) | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.assignment.qud | False warnings per 5 clean minutes | 57.225 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at assignment (not gating yet) |
+| Sessions: recitation.assignment.qud | Correctly located time | 85.6% |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at assignment (not gating yet) |
+| Sessions: recitation.assignment.qud | Located within 5 seconds | 100.0% |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at assignment (not gating yet) |
+| Sessions: recitation.assignment.qud | Wrong position events | 10 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at assignment (not gating yet) |
+| Sessions: recitation.assignment.qud | Warnings on repeats/restarts/self-corrections | 2 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at assignment (not gating yet) |
+| Sessions: recitation.assignment.qud | Delay to suspected, p50 | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0 |
+| Sessions: recitation.assignment.qud | Delay to suspected, p90 | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0 |
+| Sessions: recitation.assignment.qud | Delay to confirmed, p50 | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0 |
+| Sessions: recitation.assignment.qud | Delay to confirmed, p90 | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0 |
+| Sessions: recitation.assignment.qud | Missed errors from checker uncertain | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors |
+| Sessions: recitation.assignment.qud | Checker uncertain per clean session | 15.667 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions |
+| Sessions: recitation.assignment.qud | Missed errors from tracker twin ambiguity | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors |
+| Sessions: recitation.assignment.qud | Tracker twin ambiguity per clean session | 0 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions |
+| Sessions: recitation.assignment.qud | Missed errors from tracker other ambiguity | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors |
+| Sessions: recitation.assignment.qud | Tracker other ambiguity per clean session | 43 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions |
+| Sessions: recitation.page.qud | Warnings correct | 0/28 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.page.qud | Errors caught | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; abstentions count as misses |
+| Sessions: recitation.page.qud | Errors caught: wrong word | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.page.qud | Errors caught: omitted word | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.page.qud | Errors caught: added word | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.page.qud | Errors caught: skipped passage | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.page.qud | Errors caught: mutashabihat (forms another ayah) | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.page.qud | False warnings per 5 clean minutes | 19.54 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at page (not gating yet) |
+| Sessions: recitation.page.qud | Correctly located time | 85.6% |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at page (not gating yet) |
+| Sessions: recitation.page.qud | Located within 5 seconds | 100.0% |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at page (not gating yet) |
+| Sessions: recitation.page.qud | Wrong position events | 10 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at page (not gating yet) |
+| Sessions: recitation.page.qud | Warnings on repeats/restarts/self-corrections | 0 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at page (not gating yet) |
+| Sessions: recitation.page.qud | Delay to suspected, p50 | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0 |
+| Sessions: recitation.page.qud | Delay to suspected, p90 | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0 |
+| Sessions: recitation.page.qud | Delay to confirmed, p50 | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0 |
+| Sessions: recitation.page.qud | Delay to confirmed, p90 | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0 |
+| Sessions: recitation.page.qud | Missed errors from checker uncertain | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors |
+| Sessions: recitation.page.qud | Checker uncertain per clean session | 23.667 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions |
+| Sessions: recitation.page.qud | Missed errors from tracker twin ambiguity | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors |
+| Sessions: recitation.page.qud | Tracker twin ambiguity per clean session | 0 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions |
+| Sessions: recitation.page.qud | Missed errors from tracker other ambiguity | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors |
+| Sessions: recitation.page.qud | Tracker other ambiguity per clean session | 43 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions |
+| Sessions: recitation.surah.qud | Warnings correct | 0/29 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.surah.qud | Errors caught | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; abstentions count as misses |
+| Sessions: recitation.surah.qud | Errors caught: wrong word | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.surah.qud | Errors caught: omitted word | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.surah.qud | Errors caught: added word | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.surah.qud | Errors caught: skipped passage | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.surah.qud | Errors caught: mutashabihat (forms another ayah) | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.surah.qud | False warnings per 5 clean minutes | 20.238 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at surah (not gating yet) |
+| Sessions: recitation.surah.qud | Correctly located time | 85.8% |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at surah (not gating yet) |
+| Sessions: recitation.surah.qud | Located within 5 seconds | 100.0% |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at surah (not gating yet) |
+| Sessions: recitation.surah.qud | Wrong position events | 10 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at surah (not gating yet) |
+| Sessions: recitation.surah.qud | Warnings on repeats/restarts/self-corrections | 0 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation at none; reported at surah (not gating yet) |
+| Sessions: recitation.surah.qud | Delay to suspected, p50 | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0 |
+| Sessions: recitation.surah.qud | Delay to suspected, p90 | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0 |
+| Sessions: recitation.surah.qud | Delay to confirmed, p50 | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0 |
+| Sessions: recitation.surah.qud | Delay to confirmed, p90 | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0 |
+| Sessions: recitation.surah.qud | Missed errors from checker uncertain | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors |
+| Sessions: recitation.surah.qud | Checker uncertain per clean session | 24.667 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions |
+| Sessions: recitation.surah.qud | Missed errors from tracker twin ambiguity | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors |
+| Sessions: recitation.surah.qud | Tracker twin ambiguity per clean session | 0 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions |
+| Sessions: recitation.surah.qud | Missed errors from tracker other ambiguity | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors |
+| Sessions: recitation.surah.qud | Tracker other ambiguity per clean session | 41.667 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions |
+| Sessions: recitation.none.qud | Warnings correct | 0/28 |  | info | 0 | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.none.qud | Errors caught | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; abstentions count as misses |
+| Sessions: recitation.none.qud | Errors caught: wrong word | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.none.qud | Errors caught: omitted word | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.none.qud | Errors caught: added word | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.none.qud | Errors caught: skipped passage | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.none.qud | Errors caught: mutashabihat (forms another ayah) | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts |
+| Sessions: recitation.none.qud | False warnings per 5 clean minutes | 19.54 |  | info | 0 | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation (not gating yet) |
+| Sessions: recitation.none.qud | Correctly located time | 85.6% |  | info | 0 | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation (not gating yet) |
+| Sessions: recitation.none.qud | Located within 5 seconds | 100.0% |  | info | 0 | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation (not gating yet) |
+| Sessions: recitation.none.qud | Wrong position events | 10 |  | info | 0 | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation (not gating yet) |
+| Sessions: recitation.none.qud | Warnings on repeats/restarts/self-corrections | 0 |  | info | 0 | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; spec **gate** for recitation (not gating yet) |
+| Sessions: recitation.none.qud | Delay to suspected, p50 | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0 |
+| Sessions: recitation.none.qud | Delay to suspected, p90 | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0 |
+| Sessions: recitation.none.qud | Delay to confirmed, p50 | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0 |
+| Sessions: recitation.none.qud | Delay to confirmed, p90 | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; n=0, censored by miss 0 |
+| Sessions: recitation.none.qud | Missed errors from checker uncertain | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors |
+| Sessions: recitation.none.qud | Checker uncertain per clean session | 23.667 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions |
+| Sessions: recitation.none.qud | Missed errors from tracker twin ambiguity | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors |
+| Sessions: recitation.none.qud | Tracker twin ambiguity per clean session | 0 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions |
+| Sessions: recitation.none.qud | Missed errors from tracker other ambiguity | — |  | unmeasurable |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; share of 0 labelled errors |
+| Sessions: recitation.none.qud | Tracker other ambiguity per clean session | 43 |  | info |  | 3 sessions, 2 speakers; reported only, coverage and recorded agreement pending; 0 unsupported contexts; 3 clean sessions |
