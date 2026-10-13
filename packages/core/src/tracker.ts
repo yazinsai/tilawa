@@ -7,7 +7,7 @@ import { EvidenceError } from "./evidence.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { createLocalSearch } from "./local.js";
 import type { LocalSearch } from "./local.js";
-import type { PhraseAsset, ReferenceIndex } from "./reference.js";
+import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 
 export interface TrackerOptions {
   mode?: "free" | "memorization";
@@ -32,6 +32,8 @@ export interface TrackerOptions {
   minLockConfidence?: number;
   /** Bonus for the intended or filename ayah (full) and its neighbours (half). Bounded so it can't override fit or separation. */
   prior?: { surah: number; ayah: number; weight: number };
+  /** Full prior bonus, uniformly, for any ayah inside one of the inclusive ranges (a surah or a page); `ayah: Infinity` ends at the surah's last ayah. Same cap as `prior`. */
+  priorRange?: { ranges: { from: AyahRef; to: AyahRef }[]; weight: number };
   /**
    * Once locked, a distant location must hold a global lock for this many consecutive observed phonemes before the
    * tracker jumps there. Default 8.
@@ -124,6 +126,8 @@ const MIN_REPEAT = 8;
 const MAX_REPEAT = 40;
 const REPEAT_MAX_COST = 0.15;
 
+const ayahCompare = (a: AyahRef, b: AyahRef) => a.surah - b.surah || a.ayah - b.ayah;
+
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
   const maxGramOccurrences = options.maxGramOccurrences ?? 5000;
   const maxCandidates = options.maxCandidates ?? 64;
@@ -135,6 +139,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const separationScale = options.separationScale ?? 30;
   const minLockConfidence = options.minLockConfidence ?? 0.08;
   const prior = options.prior;
+  const priorRange = options.priorRange;
   const jumpPhonemes = options.jumpPhonemes ?? 8;
   const memorization = options.mode === "memorization";
   const wordStarts = new Set(index.words.map((w) => w.start));
@@ -370,7 +375,18 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     const openingBonus = (surahStart && opening ? MAX_PRIOR_BONUS : 0) + nextSurah;
     // Only once the span reaches "rabbi": "al-hamdu lillahi" alone is also how 6:1, 18:1, 34:1 and 35:1 open.
     if (fatihaNext && first.surah === 1 && first.word === 1 && first.ayah <= 2 && lastWord(m) >= fatihaRabbi) return FATIHA_BONUS;
-    if (!prior) return openingBonus;
+    let bonus = openingBonus;
+    if (priorRange) {
+      const inside = priorRange.ranges.some(({ from, to }) => {
+        for (let i = firstWord(m); i <= lastWord(m); i++) {
+          const w = index.words[i];
+          if (ayahCompare(w, from) >= 0 && ayahCompare(w, to) <= 0) return true;
+        }
+        return false;
+      });
+      if (inside) bonus = Math.max(bonus, MAX_PRIOR_BONUS * Math.min(1, Math.max(0, priorRange.weight)));
+    }
+    if (!prior) return bonus;
     let best = 0;
     for (let i = firstWord(m); i <= lastWord(m); i++) {
       const w = index.words[i];
@@ -378,7 +394,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       const d = Math.abs(w.ayah - prior.ayah);
       best = Math.max(best, d === 0 ? 1 : d === 1 ? 0.5 : 0);
     }
-    return Math.max(openingBonus, best * MAX_PRIOR_BONUS * Math.min(1, Math.max(0, prior.weight)));
+    return Math.max(bonus, best * MAX_PRIOR_BONUS * Math.min(1, Math.max(0, prior.weight)));
   };
 
   /** Overlapping or touching ranges describe one location, e.g. shifted spans of the same ayah. */

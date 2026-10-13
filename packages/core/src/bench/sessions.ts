@@ -1,7 +1,11 @@
 import type { CheckerEvent, EngineEvent, PositionEvent, WordRef } from "../events.js";
-import type { ReferenceIndex, PhraseAsset } from "../reference.js";
+import { readFileSync } from "node:fs";
+import type { ReferenceIndex, PhraseAsset, PageAsset } from "../reference.js";
+import { pageRange } from "../reference.js";
 import { createTracker } from "../tracker.js";
+import type { TrackerOptions } from "../tracker.js";
 import { createChecker } from "../checker.js";
+import type { CheckerOptions } from "../checker.js";
 import { chunk } from "./index.js";
 import type { QudRecording } from "./index.js";
 import type { LabelEvent } from "./acceptance.js";
@@ -96,9 +100,12 @@ export function weakerContexts(c: SessionContext): SessionContext[] {
   if (c.kind === "resume") return [c, { kind: "surah", surah: c.at.surah }, { kind: "none" }];
   return [c, { kind: "none" }];
 }
-export function contextAdapter(c: SessionContext) {
-  return { supported: c.kind !== "surah" && c.kind !== "page", effective: c.kind === "surah" || c.kind === "page" ? "none" : c.kind,
-    tracker: c.kind === "resume" ? { prior: { surah: c.at.surah, ayah: c.at.ayah, weight: 1 } } : {},
+const madaniPages: PageAsset = JSON.parse(readFileSync(new URL("../../assets/madani-pages-v1.json", import.meta.url), "utf8"));
+export function contextAdapter(c: SessionContext): { supported: boolean; effective: string; tracker: TrackerOptions; checker: CheckerOptions } {
+  const tracker: TrackerOptions = c.kind === "resume" ? { prior: { surah: c.at.surah, ayah: c.at.ayah, weight: 1 } }
+    : c.kind === "surah" ? { priorRange: { ranges: [{ from: { surah: c.surah, ayah: 1 }, to: { surah: c.surah, ayah: Infinity } }], weight: 1 } }
+    : c.kind === "page" ? { priorRange: { ranges: [pageRange(madaniPages, c.page)], weight: 1 } } : {};
+  return { supported: true, effective: c.kind, tracker,
     checker: c.kind === "assignment" ? { passage: { from: c.from, to: c.to } } : {} };
 }
 export const ERROR_CLASSES = ["wrong_word", "omitted_word", "added_word", "skipped_passage"] as const;

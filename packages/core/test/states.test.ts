@@ -88,6 +88,27 @@ describe("prior", () => {
   });
 });
 
+describe("range prior", () => {
+  const opening = (priorRange?: TrackerOptions["priorRange"]) => recite(w(2, 1, 1), w(2, 1, lastWord(2, 1)), [], { priorRange });
+
+  it("ranks a candidate inside the range first, but cannot break the tie", () => {
+    const e = opening({ ranges: [{ from: { surah: 31, ayah: 1 }, to: { surah: 31, ayah: 34 } }], weight: 1 });
+    expect(e.observed[0].span.start).toEqual(w(31, 1, 1));
+    expect(e.state).toBe("ambiguous");
+  });
+
+  it("gives nothing to candidates outside the range", () => {
+    const none = opening();
+    const outside = opening({ ranges: [{ from: { surah: 31, ayah: 2 }, to: { surah: 32, ayah: 0 } }, { from: { surah: 4, ayah: 1 }, to: { surah: 6, ayah: 9 } }], weight: 1 });
+    expect(outside.observed.map((c) => c.span.start)).toEqual(none.observed.map((c) => c.span.start));
+  });
+
+  it("spans surah boundaries", () => {
+    const e = opening({ ranges: [{ from: { surah: 29, ayah: 60 }, to: { surah: 30, ayah: 3 } }], weight: 1 });
+    expect(e.observed[0].span.start).toEqual(w(30, 1, 1));
+  });
+});
+
 describe("wrong word that matches another verse", () => {
   // 10:1 and 12:1 differ only in word 5. Reciting 12:1 while meaning 10:1 is a memorisation error,
   // but the tracker reports where the audio is; flagging it against the intended passage is the checker's job.

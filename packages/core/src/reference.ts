@@ -14,6 +14,25 @@ export interface PhraseAsset {
   phrases: { name: string; text: string; p: string }[];
 }
 
+export interface AyahRef {
+  surah: number;
+  ayah: number;
+}
+
+/** Madani (Hafs, 604-page) mushaf page boundaries: `pages[n - 1]` is `[fromSurah, fromAyah, toSurah, toAyah]` of page n. */
+export interface PageAsset {
+  version: string;
+  source: string;
+  sourceSha256: string;
+  pages: [number, number, number, number][];
+}
+
+export function pageRange(asset: PageAsset, page: number): { from: AyahRef; to: AyahRef } {
+  const p = asset.pages[page - 1];
+  if (!Number.isInteger(page) || !p) throw new Error(`No Madani page ${page}`);
+  return { from: { surah: p[0], ayah: p[1] }, to: { surah: p[2], ayah: p[3] } };
+}
+
 export interface ReferenceWord extends WordRef {
   /** Half-open range in `ReferenceIndex.phonemes`. Empty when fully assimilated into a neighbour. */
   start: number;
