@@ -3,9 +3,9 @@ import { execSync } from "node:child_process";
 import { join, relative, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { loadReferenceIndex } from "../reference.js";
-import { qudAudit, runSession, scoreSessionEvents, summarizeSessions, validateSession, weakerContexts } from "./sessions.js";
+import { qudAudit, qudContexts, runSession, summarizeSessions, validateSession, weakerContexts } from "./sessions.js";
 import type { BenchSession, QudAudit, SessionScore } from "./sessions.js";
-import { SESSION_DUMP_VERSION, contextKey, quranText, sessionDumpContext, sessionDumpRecord, sessionEvents } from "./session-dump.js";
+import { SESSION_DUMP_VERSION, contextKey, quranText, sessionDumpContext, sessionDumpRecord } from "./session-dump.js";
 import type { SessionDumpRecord } from "./session-dump.js";
 const { values } = parseArgs({ options: { manifest: { type: "string" }, qud: { type: "string" }, listener: { type: "string", default: "teacher" },
   only: { type: "string" }, audit: { type: "boolean", default: false }, out: { type: "string", default: "../../docs/benchmarks/session-baseline-v1.json" },
@@ -13,7 +13,13 @@ const { values } = parseArgs({ options: { manifest: { type: "string" }, qud: { t
   "clip-dump": { type: "string", default: process.env.CLIP_DUMP_DIR ?? "../../.scratch/scoreboard/clips" },
   /** Served by `tools/scoreboard_serve.py` as `/audio/sessions/`; session audio must live under it. */
   "audio-root": { type: "string", default: "../../.scratch/session-bench" },
+  /** With --qud: score `<dir>/<id>.evidence.json` (a fresh student decode of `<dir>/../<id>.wav`) instead of the QUD teacher evidence; recordings without one are listed as missing. */
+  "student-evidence": { type: "string" },
+  /** `qud` (default) scores QUD recordings at assignment, page, surah and none; `own` uses only the session's context chain. */
+  "qud-contexts": { type: "string", default: "qud" },
   sha: { type: "string" } } });
+const contexts = (s: BenchSession) => s.source === "qud" && s.context.kind === "none" && values["qud-contexts"] === "qud" ? qudContexts(s) : weakerContexts(s.context);
+const missing: string[] = [];
 const asset = JSON.parse(readFileSync(new URL("../../assets/ref-v2.json", import.meta.url), "utf8"));
 const index = loadReferenceIndex(asset);
 const text = quranText(asset);
@@ -28,8 +34,13 @@ if (values.qud) for (const f of readdirSync(values.qud).filter(f => f.endsWith("
   const rec = JSON.parse(readFileSync(resolve(values.qud, f), "utf8"));
   const { session, audit } = qudAudit(rec, index);
   audits.push(audit);
-  if (session) items.push({ session, evidence: rec, audio: resolve(values.qud, `${rec.id}.wav`) }); else failures.push({ id: rec.id, reason: audit.reason! });
+  if (!session) { failures.push({ id: rec.id, reason: audit.reason! }); continue; }
+  const student = values["student-evidence"] && resolve(values["student-evidence"], `${rec.id}.evidence.json`);
+  if (!student) items.push({ session, evidence: rec, audio: resolve(values.qud, `${rec.id}.wav`) });
+  else if (existsSync(student)) items.push({ session, evidence: JSON.parse(readFileSync(student, "utf8")), audio: resolve(values["student-evidence"]!, "..", `${rec.id}.wav`) });
+  else missing.push(rec.id);
 }
+if (missing.length) console.log(`no student decode for ${missing.length}: ${missing.join(", ")}`);
 if (values.audit) {
   console.table(audits);
   writeFileSync(resolve(values.out!), JSON.stringify({ version: 1, reference: index.version, audit: audits }, null, 2) + "\n");
@@ -50,15 +61,10 @@ for (const { session, evidence, audio } of items) {
     validateSession(session, index);
     const rel = relative(audioRoot, audio);
     const record = sessionDumpRecord(session, rel.startsWith("..") ? audio : `sessions/${rel}`, text);
-    for (const context of weakerContexts(session.context)) {
-      const row = runSession(session, evidence, index, context, phrases);
-      rows.push(row);
-      if (!dumping) continue;
-      const events = sessionEvents(session, evidence, index, context, phrases);
-      const detail = sessionDumpContext(session, events, scoreSessionEvents(session, events, index, context), index);
-      if (["hits", "falseWarnings", "nonErrorWarnings", "wrongPositionEvents"].some(k => (detail.score as any)[k] !== (row as any)[k]))
-        throw new Error("review dump replay disagrees with runSession; update session-dump.ts sessionEvents");
-      record.contexts[contextKey(context)] = detail;
+    for (const context of contexts(session)) {
+      const { score, events } = runSession(session, evidence, index, context, phrases);
+      rows.push(score);
+      if (dumping) record.contexts[contextKey(context)] = sessionDumpContext(session, events, score, index);
     }
     if (dumping) { if (rel.startsWith("..")) console.log(`warning: ${audio} is outside --audio-root; the review page cannot play it`); dumped.push(record); }
     console.log(`scored ${session.id} in ${((performance.now() - t0) / 1000).toFixed(1)}s`);
@@ -66,7 +72,7 @@ for (const { session, evidence, audio } of items) {
 }
 writeFileSync(resolve(values.out!), JSON.stringify({ version: 1, gating: false, listener: values.listener, reference: index.version,
   note: "Reported only; recorded-session agreement and coverage are not established. QUD is the professional easy end. No release gates replaced. Delays cover matched warnings only; censoredByMiss counts errors without that state.",
-  summary: summarizeSessions(rows), rows, failures, ...(audits.length ? { audit: audits } : {}) }, null, 2) + "\n");
+  summary: summarizeSessions(rows), rows, failures, ...(missing.length ? { missingEvidence: missing } : {}), ...(audits.length ? { audit: audits } : {}) }, null, 2) + "\n");
 for (const g of summarizeSessions(rows)) console.log(`${g.key}: recall ${g.hits}/${g.errors}, confirmed delay p50/p90 ${g.confirmedDelay.p50 ?? "-"}/${g.confirmedDelay.p90 ?? "-"} s (n=${g.confirmedDelay.n}, censored ${g.confirmedDelay.censoredByMiss})`);
 console.log(`${rows.length} context rows; ${failures.length} exclusions -> ${values.out}`);
 if (!rows.length) process.exitCode = 1;

@@ -309,7 +309,7 @@ export function summarizeSessions(rows: SessionScore[]): SessionSummary[] {
 }
 
 export function runSession(s: BenchSession, evidence: Pick<QudRecording, "inventory" | "frameMs" | "nFrames" | "phonemes" | "posteriors">,
-    index: ReferenceIndex, context = s.context, phrases?: PhraseAsset): SessionScore {
+    index: ReferenceIndex, context = s.context, phrases?: PhraseAsset): { score: SessionScore; events: EngineEvent[] } {
   validateSession(s, index);
   if (evidence.inventory !== index.inventoryId || Math.abs(evidence.nFrames * evidence.frameMs / 1000 - s.durationS) > 0.1) throw new Error(`Evidence mismatch: ${s.id}`);
   const adapter = contextAdapter(context);
@@ -321,7 +321,16 @@ export function runSession(s: BenchSession, evidence: Pick<QudRecording, "invent
     out.push(...positions, ...checker.push(e, positions));
   }
   const end = tracker.end(); out.push(...end, ...checker.end(end));
-  return scoreSessionEvents(s, out, index, context);
+  return { score: scoreSessionEvents(s, out, index, context), events: out };
+}
+
+const wordOrd = (w: WordRef) => (w.surah * 1000 + w.ayah) * 1000 + w.word;
+/** What an app could plausibly know of a QUD recording: assignment over the recited words in Quran order, page and surah of the first recited word. Never a true-start hint beyond that. */
+export function qudContexts(s: BenchSession): SessionContext[] {
+  const sorted = s.words.map(w => w.at).sort((a, b) => wordOrd(a) - wordOrd(b)), first = s.words[0].at;
+  const page = madaniPages.pages.findIndex(([fs, fa, ts, ta]) =>
+    (first.surah > fs || (first.surah === fs && first.ayah >= fa)) && (first.surah < ts || (first.surah === ts && first.ayah <= ta))) + 1;
+  return [{ kind: "assignment", from: sorted[0], to: sorted.at(-1)! }, { kind: "page", page }, { kind: "surah", surah: first.surah }, { kind: "none" }];
 }
 
 /** Annotation rounding allowed past the audio clock; truth is clipped to the clock, larger overruns are rejected. */

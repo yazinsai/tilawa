@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadReferenceIndex } from "../src/reference.js";
 import type { CheckerEvent, PositionEvent, WordRef } from "../src/events.js";
-import { contextAdapter, scoreSessionEvents, summarizeSessions, validateSession, weakerContexts, qudSession, qudAudit } from "../src/bench/sessions.js";
+import { contextAdapter, qudContexts, runSession, scoreSessionEvents, summarizeSessions, validateSession, weakerContexts, qudSession, qudAudit } from "../src/bench/sessions.js";
 import type { BenchSession } from "../src/bench/sessions.js";
 const index = loadReferenceIndex(JSON.parse(readFileSync(new URL("../assets/ref-v2.json", import.meta.url), "utf8")));
 const at: WordRef = { surah: 94, ayah: 5, word: 1 };
@@ -97,6 +97,20 @@ describe("session truth and scoring", () => {
     const c = { kind: "resume", at: { surah: 2, ayah: 5, word: 1 } } as const;
     expect(contextAdapter(c).tracker.prior?.ayah).toBe(5);
     expect(weakerContexts(c).map(x => x.kind)).toEqual(["resume", "surah", "none"]);
+  });
+  it("returns the replayed events with the score so the dump reuses one replay", () => {
+    const s = session();
+    const run = runSession(s, { inventory: index.inventoryId, frameMs: 40, nFrames: 300, phonemes: [],
+      posteriors: { k: 1, ids: new Array(300).fill(0), probs: new Array(300).fill(1) } } as any, index);
+    expect(Array.isArray(run.events)).toBe(true);
+    expect(run.score).toEqual(scoreSessionEvents(s, run.events, index));
+  });
+  it("synthesises QUD contexts from the recorded words only", () => {
+    const q = qudSession(qud([["2:7:1", 1, 2], ["2:8:1", 3, 4], ["1:1:1", 5, 6]]), "q.wav");
+    expect(qudContexts(q).map(c => c.kind)).toEqual(["assignment", "page", "surah", "none"]);
+    expect(qudContexts(q)[0]).toEqual({ kind: "assignment", from: { surah: 1, ayah: 1, word: 1 }, to: { surah: 2, ayah: 8, word: 1 } });
+    expect(qudContexts(q)[1]).toEqual({ kind: "page", page: 3 });
+    expect(qudContexts(q)[2]).toEqual({ kind: "surah", surah: 2 });
   });
   it("maps surah and page context to a range prior", () => {
     const surah = contextAdapter({ kind: "surah", surah: 3 });
