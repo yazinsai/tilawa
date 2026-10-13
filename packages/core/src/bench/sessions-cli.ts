@@ -3,12 +3,12 @@ import { execSync } from "node:child_process";
 import { join, relative, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { loadReferenceIndex } from "../reference.js";
-import { qudSession, runSession, scoreSessionEvents, summarizeSessions, validateSession, weakerContexts } from "./sessions.js";
-import type { BenchSession, SessionScore } from "./sessions.js";
+import { qudAudit, runSession, scoreSessionEvents, summarizeSessions, validateSession, weakerContexts } from "./sessions.js";
+import type { BenchSession, QudAudit, SessionScore } from "./sessions.js";
 import { SESSION_DUMP_VERSION, contextKey, quranText, sessionDumpContext, sessionDumpRecord, sessionEvents } from "./session-dump.js";
 import type { SessionDumpRecord } from "./session-dump.js";
 const { values } = parseArgs({ options: { manifest: { type: "string" }, qud: { type: "string" }, listener: { type: "string", default: "teacher" },
-  only: { type: "string" }, out: { type: "string", default: "../../docs/benchmarks/session-baseline-v1.json" },
+  only: { type: "string" }, audit: { type: "boolean", default: false }, out: { type: "string", default: "../../docs/benchmarks/session-baseline-v1.json" },
   /** Review-only session dump for the scoreboard page (`sessions-<sha>-<listener>.json` + `index.json`); `none` skips it. */
   "clip-dump": { type: "string", default: process.env.CLIP_DUMP_DIR ?? "../../.scratch/scoreboard/clips" },
   /** Served by `tools/scoreboard_serve.py` as `/audio/sessions/`; session audio must live under it. */
@@ -22,11 +22,19 @@ const dumped: SessionDumpRecord[] = [];
 const phrases = JSON.parse(readFileSync(new URL("../../assets/phrases-v1.json", import.meta.url), "utf8"));
 const rows: SessionScore[] = [];
 const failures: { id: string; reason: string }[] = [];
+const audits: QudAudit[] = [];
 const items: { session: BenchSession; evidence: any; audio: string }[] = [];
 if (values.qud) for (const f of readdirSync(values.qud).filter(f => f.endsWith(".json") && (!values.only || f === `${values.only}.json`)).sort()) {
   const rec = JSON.parse(readFileSync(resolve(values.qud, f), "utf8"));
-  try { items.push({ session: qudSession(rec, `${rec.id}.wav`), evidence: rec, audio: resolve(values.qud, `${rec.id}.wav`) }); }
-  catch (e) { failures.push({ id: rec.id, reason: String(e) }); }
+  const { session, audit } = qudAudit(rec, index);
+  audits.push(audit);
+  if (session) items.push({ session, evidence: rec, audio: resolve(values.qud, `${rec.id}.wav`) }); else failures.push({ id: rec.id, reason: audit.reason! });
+}
+if (values.audit) {
+  console.table(audits);
+  writeFileSync(resolve(values.out!), JSON.stringify({ version: 1, reference: index.version, audit: audits }, null, 2) + "\n");
+  console.log(`${audits.filter(a => a.status === "converted").length}/${audits.length} converted -> ${values.out}`);
+  process.exit(audits.length ? 0 : 1);
 }
 if (values.manifest) {
   const m = JSON.parse(readFileSync(values.manifest, "utf8"));
@@ -38,6 +46,7 @@ if (!items.length) throw new Error("Pass --manifest or --qud with session data")
 const dumping = values["clip-dump"] !== "none";
 for (const { session, evidence, audio } of items) {
   try {
+    const t0 = performance.now();
     validateSession(session, index);
     const rel = relative(audioRoot, audio);
     const record = sessionDumpRecord(session, rel.startsWith("..") ? audio : `sessions/${rel}`, text);
@@ -52,12 +61,12 @@ for (const { session, evidence, audio } of items) {
       record.contexts[contextKey(context)] = detail;
     }
     if (dumping) { if (rel.startsWith("..")) console.log(`warning: ${audio} is outside --audio-root; the review page cannot play it`); dumped.push(record); }
-    console.log(`scored ${session.id}`);
+    console.log(`scored ${session.id} in ${((performance.now() - t0) / 1000).toFixed(1)}s`);
   } catch (e) { failures.push({ id: session.id, reason: String(e) }); console.log(`excluded ${session.id}: ${e}`); }
 }
 writeFileSync(resolve(values.out!), JSON.stringify({ version: 1, gating: false, listener: values.listener, reference: index.version,
   note: "Reported only; recorded-session agreement and coverage are not established. QUD is the professional easy end. No release gates replaced. Delays cover matched warnings only; censoredByMiss counts errors without that state.",
-  summary: summarizeSessions(rows), rows, failures }, null, 2) + "\n");
+  summary: summarizeSessions(rows), rows, failures, ...(audits.length ? { audit: audits } : {}) }, null, 2) + "\n");
 for (const g of summarizeSessions(rows)) console.log(`${g.key}: recall ${g.hits}/${g.errors}, confirmed delay p50/p90 ${g.confirmedDelay.p50 ?? "-"}/${g.confirmedDelay.p90 ?? "-"} s (n=${g.confirmedDelay.n}, censored ${g.confirmedDelay.censoredByMiss})`);
 console.log(`${rows.length} context rows; ${failures.length} exclusions -> ${values.out}`);
 if (!rows.length) process.exitCode = 1;

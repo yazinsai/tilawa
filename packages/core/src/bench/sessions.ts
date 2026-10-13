@@ -324,32 +324,76 @@ export function runSession(s: BenchSession, evidence: Pick<QudRecording, "invent
   return scoreSessionEvents(s, out, index, context);
 }
 
+/** Annotation rounding allowed past the audio clock; truth is clipped to the clock, larger overruns are rejected. */
+const CLOCK_SLACK_S = 0.1;
 /** Preserve every visit; never sort truth into Quran order. Special words become non-Quran spans. */
 export function qudSession(rec: QudRecording, audio: string): BenchSession {
   const spans: SessionSpan[] = [], words: BenchSession["words"] = [];
-  for (const w of rec.truth.words) {
+  // Truth uses the original audio clock; rounded evidence frames can truncate the last word.
+  const durationS: number = (rec.meta as any).duration_s ?? rec.nFrames * rec.frameMs / 1000;
+  const clock = <T extends { start_s: number; end_s: number }>(t: T): T => {
+    if (t.end_s > durationS + CLOCK_SLACK_S) throw new Error(`QUD ${rec.id}: truth at ${t.start_s}s overruns audio clock`);
+    return t.end_s > durationS ? { ...t, end_s: durationS } : t;
+  };
+  const order = (r: WordRef) => (r.surah * 1000 + r.ayah) * 1000 + r.word;
+  let last: WordRef | undefined;
+  const truth = rec.truth.words.map(clock);
+  // Non-Quran intervals are clipped to the gap between timed words, never stretched over them.
+  const noise = rec.truth.non_quran.map(clock).map(n => {
+    let { start_s, end_s } = n;
+    for (const w of truth) {
+      if (w.start_s >= end_s || w.end_s <= start_s) continue;
+      if (w.start_s >= start_s && w.end_s <= end_s || w.start_s <= start_s && w.end_s >= end_s)
+        throw new Error(`QUD ${rec.id}: non-Quran truth at ${n.start_s}s contradicts word ${w.word}`);
+      if (w.start_s < start_s) start_s = w.end_s; else end_s = w.start_s;
+    }
+    return { start_s, end_s };
+  });
+  for (const w of truth) {
     const nums = /^(\d+):(\d+):(\d+)$/.exec(w.word);
     if (!nums) {
       spans.push({ id: `span-${spans.length}`, kind: "non_quran", label: w.word, startS: w.start_s, endS: w.end_s }); continue;
     }
     const at = { surah: +nums[1], ayah: +nums[2], word: +nums[3] };
     const prev = spans.at(-1);
-    // One span per ayah occurrence; backward/equal word movement begins a repeat occurrence.
-    if (prev && prev.kind !== "non_quran" && ayahKey(prev.to) === ayahKey(at) && at.word > prev.to.word && w.start_s - prev.endS <= 2) {
+    // One span per ayah occurrence. Within an ayah, backward/equal movement is a repeat; returning to an
+    // earlier ayah is a restart when it lands on word 1, otherwise a repeat. Special words do not hide the return.
+    if (prev && prev.kind !== "non_quran" && ayahKey(prev.to) === ayahKey(at) && at.word > prev.to.word && w.start_s - prev.endS <= 2
+      && !noise.some(n => n.start_s < w.start_s && n.end_s > prev.endS)) {
       prev.to = at; prev.endS = w.end_s;
-    } else spans.push({ id: `span-${spans.length}`, kind: prev && prev.kind !== "non_quran" && ayahKey(prev.to) === ayahKey(at) ? "repeat" : "recitation",
-      from: at, to: at, startS: w.start_s, endS: w.end_s });
+    } else {
+      const back = last && order(at) <= order(last) ? last : undefined;
+      spans.push({ id: `span-${spans.length}`, kind: !back ? "recitation" : ayahKey(back) !== ayahKey(at) && at.word === 1 ? "restart" : "repeat",
+        from: at, to: at, startS: w.start_s, endS: w.end_s });
+    }
     words.push({ span: spans.at(-1)!.id, at, startS: w.start_s, endS: w.end_s });
+    last = at;
   }
-  for (const n of rec.truth.non_quran) {
-    const overlaps = spans.filter(s => s.startS < n.end_s && s.endS > n.start_s);
-    if (overlaps.some(s => s.kind !== "non_quran")) throw new Error(`QUD ${rec.id}: non-Quran truth overlaps recitation truth`);
-    if (!overlaps.length) spans.push({ id: `noise-${spans.length}`, kind: "non_quran", label: "non_quran", startS: n.start_s, endS: n.end_s });
-    else if (!overlaps.some(s => s.startS <= n.start_s && s.endS >= n.end_s)) throw new Error(`QUD ${rec.id}: partially overlapping non-Quran truth needs reconciliation`);
-  }
+  for (const n of noise) spans.push({ id: `noise-${spans.length}`, kind: "non_quran", label: "non_quran", startS: n.start_s, endS: n.end_s });
   spans.sort((a, b) => a.startS - b.startS);
   return { version: 1, id: rec.id, speaker: (rec.meta as any).reciter ?? rec.id, track: "recitation", source: "qud", audio,
-    // Truth uses the original audio clock; rounded evidence frames can truncate the last word.
-    durationS: (rec.meta as any).duration_s ?? rec.nFrames * rec.frameMs / 1000, context: { kind: "none" }, spans, words, events: [],
-    nonErrors: words.filter(w => spans.find(s => s.id === w.span)?.kind === "repeat").map(w => ({ ...w, kind: "repeat" })) };
+    durationS, context: { kind: "none" }, spans, words, events: [],
+    nonErrors: words.flatMap(w => {
+      const kind = spans.find(s => s.id === w.span)?.kind;
+      return kind === "repeat" || kind === "restart" ? [{ ...w, kind }] : [];
+    }) };
+}
+
+export interface QudAudit {
+  id: string; status: "converted" | "excluded"; reason: string | null;
+  spans: number; repeats: number; restarts: number; nonQuran: number; surahJumps: number;
+}
+/** Convert and validate one recording; failures are excluded with their reason, never counted. */
+export function qudAudit(rec: QudRecording, index: ReferenceIndex, audio = `${rec.id}.wav`): { session: BenchSession | null; audit: QudAudit } {
+  try {
+    const session = qudSession(rec, audio);
+    validateSession(session, index);
+    const count = (kind: SessionSpan["kind"]) => session.spans.filter(s => s.kind === kind).length;
+    return { session, audit: { id: rec.id, status: "converted", reason: null, spans: session.spans.length, repeats: count("repeat"),
+      restarts: count("restart"), nonQuran: count("non_quran"),
+      surahJumps: session.words.filter((w, i) => i && w.at.surah !== session.words[i - 1].at.surah).length } };
+  } catch (e) {
+    return { session: null, audit: { id: rec.id, status: "excluded", reason: e instanceof Error ? e.message : String(e),
+      spans: 0, repeats: 0, restarts: 0, nonQuran: 0, surahJumps: 0 } };
+  }
 }
