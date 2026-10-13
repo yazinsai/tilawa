@@ -62,5 +62,12 @@ class ReplayRequests(unittest.TestCase):
         self.assertEqual(request.response,(400,{'error':'Invalid test run.'}))
         self.assertFalse(serve.REPLAY_LOCK.locked())
 
+class Mounts(unittest.TestCase):
+    def test_session_audio_is_served_from_the_session_bench_only(self):
+        request = Request()
+        base = (serve.ROOT / '.scratch/session-bench').resolve()
+        self.assertEqual(request.translate_path('/audio/sessions/qud/a.wav'), str(base / 'qud/a.wav'))
+        self.assertEqual(request.translate_path('/audio/sessions/../../secret'), str(serve.ROOT / '.scratch/session-bench' / '__denied__'))
+
 if __name__ == '__main__':
     unittest.main()

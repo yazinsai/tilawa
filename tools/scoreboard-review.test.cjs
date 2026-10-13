@@ -84,7 +84,7 @@ test('actual benchmark: exact mismatch, context warnings, misses, passage timing
 function presentation(){
  const context=vm.createContext({URL,Date,window:{localStorage:memory()},document:{addEventListener(){}}});
  for(const f of ['model','store']) vm.runInContext(fs.readFileSync(path.join(root,`docs/benchmarks/scoreboard-review-${f}.js`),'utf8'),context);
- const source=fs.readFileSync(path.join(root,'docs/benchmarks/scoreboard-review.js'),'utf8').replace('window.tilawaReview={panel,init,focusGate,hasPreset:id=>id in PRESETS};','window.tilawaReview={comparison,comparisonPanel,affectedPassage,reviewForm,st};');
+ const source=fs.readFileSync(path.join(root,'docs/benchmarks/scoreboard-review.js'),'utf8').replace('window.tilawaReview={panel,init,focusGate,hasPreset:id=>id in PRESETS};','window.tilawaReview={comparison,comparisonPanel,affectedPassage,sessionPassage,title,reviewForm,st};');
  vm.runInContext(source,context);return context.window.tilawaReview;
 }
 test('comparison explains a type mismatch without merging its original score outcomes',()=>{
@@ -117,4 +117,53 @@ test('reflow retains every original finding and model-error option',()=>{
  for(const area of ['model','label','audio_data','acceptable','unresolved'])assert.match(html,new RegExp(`name="area" value="${area}"`));
  for(const category of ['missed_detection','wrong_mistake_type','wrong_word_location','passage_recognition','sound_recognition','spurious_warning','other'])assert.match(html,new RegExp(`name="category" value="${category}"`));
  for(const id of ['rv-certainty','rv-comment','rv-complete','rv-next-unreviewed'])assert.match(html,new RegExp(`id="${id}"`));
+});
+
+// Session dumps (sessions-cli): long recordings reviewed at the event, not from the start.
+const sessionRun={file:'sessions-example.json',sha:'example',listener:'test',recordedAt:'2026-10-12T00:00:00Z'};
+const states=(...x)=>x.map(([state,timeMs])=>({state,timeMs,confidence:1}));
+function sessionFixture(){return {version:3,kind:'sessions',...sessionRun,sessions:[{id:'long',track:'recitation',source:'qud',speaker:'one',audio:'sessions/qud/long.wav',durationS:120,
+ spans:[{id:'s0',kind:'recitation',from:{surah:94,ayah:5,word:1},to:{surah:94,ayah:6,word:4},startS:1,endS:110}],
+ words:[{span:'s0',at:'94:5:1',text:'فَإِنَّ',startS:40,endS:40.5},{span:'s0',at:'94:5:2',text:'مَعَ',startS:40.5,endS:41},{span:'s0',at:'94:5:3',text:'ٱلْعُسْرِ',startS:41,endS:42},{span:'s0',at:'94:6:1',text:'إِنَّ',startS:50,endS:50.4}],
+ events:[{span:'s0',at:'94:6:1',location:{surah:94,ayah:6,word:1},errorClass:'wrong_word',state:'confirmed',startS:50,endS:50.4}],nonErrors:[],
+ contexts:{none:{context:{kind:'none'},effectiveContext:'none',score:{falseWarnings:1,misses:1,nonErrorWarnings:1,wrongPositionEvents:2},
+  warnings:[{id:'94:5:2#1',errorClass:'omitted_word',at:'94:5:2',states:states(['suspected',41000],['confirmed',42500]),eventIndex:null,confirmed:true,nonError:true},
+   {id:'94:5:3#2',errorClass:'wrong_word',at:'94:5:3',states:states(['suspected',43000],['resolved',44000]),eventIndex:null,confirmed:false,nonError:false}],
+  wrongPositions:[{timeMs:1500,observed:'2:255:1',recited:['94:5:1']},{timeMs:2000,observed:'2:255:2',recited:['94:5:1']}]}}}]};}
+test('session dump: false/non-error warnings, misses and wrong positions are separate attention items with stable keys',()=>{
+ const d=sessionFixture(),all=M.incidents(d,'none',sessionRun),att=all.filter(i=>i.attention);
+ const types=[...att].map(i=>i.raw.map(r=>r.type).sort().join('+')).sort();
+ assert.deepEqual(types,['falseWarning+nonErrorWarning','sessionMiss','wrongPosition']);
+ assert.equal(att.find(i=>i.raw[0].type==='wrongPosition').raw[0].event.count,2);
+ assert.equal(all.find(i=>i.reports[0]?.at==='94:5:3').attention,false);
+ const again=M.incidents(sessionFixture(),'none',sessionRun);assert.deepEqual([...again.map(M.reviewKey)],[...all.map(M.reviewKey)]);
+ d.sessions[0].contexts.none.warnings[0].id='94:5:2#7';assert.deepEqual([...M.incidents(d,'none',sessionRun).map(i=>i.key)],[...all.map(i=>i.key)]);
+});
+test('session cue plays three seconds either side of the event and shows the Quran words there',()=>{
+ const all=M.incidents(sessionFixture(),'none',sessionRun),w=all.find(i=>i.location==='94:5:2'),c=M.cue(w);
+ assert.equal(c.audio,'sessions/qud/long.wav');assert.equal(c.seekSeconds,38);assert.equal(c.untilSeconds,44);
+ assert.deepEqual([...M.sessionWords(w).map(x=>x.at)],['94:5:1','94:5:2','94:5:3']);
+ const early=M.cue(all.find(i=>i.raw[0]?.type==='wrongPosition'));assert.equal(early.seekSeconds,0);assert.equal(early.untilSeconds,4.5);
+ assert.equal(M.cue(all.find(i=>i.raw[0]?.type==='sessionMiss')).seekSeconds,47);
+});
+test('session summary and snapshot keep the scorer counts and every warning state',()=>{
+ const d=sessionFixture(),s=M.summary(d,'none');assert.deepEqual({falseWarning:s.falseWarning,sessionMiss:s.sessionMiss,nonErrorWarning:s.nonErrorWarning,wrongPosition:s.wrongPosition,sessions:s.sessions},{falseWarning:1,sessionMiss:1,nonErrorWarning:1,wrongPosition:2,sessions:1});
+ const i=M.incidents(d,'none',sessionRun).find(i=>i.location==='94:5:2'),r=M.snapshot(i,'http://127.0.0.1:8765/');
+ assert.equal(r.engineReports[0].states.length,2);assert.equal(r.audioReferences[0].url,'http://127.0.0.1:8765/audio/sessions/qud/long.wav');assert.equal(r.cue.untilSeconds,44);assert.equal(r.recording.id,'long');
+});
+test('session items save in the v2 store alongside clip reviews',()=>{
+ const store=S.create(memory()),i=M.incidents(sessionFixture(),'none',sessionRun)[0];
+ store.records[M.reviewKey(i)]={...M.snapshot(i,'http://localhost/'),finding:{status:'draft',areas:[],categories:[],comment:''}};assert.equal(store.save(),true);
+});
+test('session item shows expected versus actual and words around the event, playing a bounded window',()=>{
+ const ui=presentation(),all=M.incidents(sessionFixture(),'none',sessionRun),w=all.find(i=>i.location==='94:5:2'),c=ui.comparison(w);
+ assert.equal(c.expected,'No warning');assert.equal(c.actual,'Missing word');assert.match(c.note,/repeat or restart/);
+ assert.equal(ui.title(w),'Session warning on a repeat or restart');
+ const html=ui.sessionPassage(w);for(const t of ['فَإِنَّ','مَعَ','ٱلْعُسْرِ'])assert.match(html,new RegExp(t));assert.doesNotMatch(html,/94:6:1/);assert.match(html,/data-path="sessions\/qud\/long.wav"/);assert.match(html,/data-until=/);
+ const p=all.find(i=>i.raw[0]?.type==='wrongPosition');assert.equal(ui.comparison(p).actual,'Shown at 2:255:1, 2:255:2');assert.equal(ui.title(p),'Wrong position shown');
+ assert.equal(ui.comparison(all.find(i=>i.raw[0]?.type==='sessionMiss')).actual,'No confirmed warning');
+});
+test('a loaded session dump does not break clip context-word lookup',()=>{
+ const ui=presentation(),d=fixture(),i={...M.incidents(d,'free',run)[0],location:'2:184:6',audio:'leadin/context.wav',zone:'after'};
+ ui.st.dumps.sessions=sessionFixture();assert.match(ui.affectedPassage(i),/text for this ayah is not available/);
 });

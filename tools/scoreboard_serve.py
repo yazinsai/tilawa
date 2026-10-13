@@ -6,7 +6,8 @@
     uv run tools/scoreboard_serve.py [--port 8765] [--no-open]
 
 Also serves, read-only and on 127.0.0.1 only, the private per-clip data behind the mistake review:
-/clips/ (pnpm scoreboard's clip dump), /audio/help/ (help clip wavs) and /audio/leadin/ (tlog lead-in/out wavs).
+/clips/ (pnpm scoreboard's clip dump and sessions-cli's session dump), /audio/help/ (help clip wavs),
+/audio/leadin/ (tlog lead-in/out wavs) and /audio/sessions/ (.scratch/session-bench session wavs).
 POST /api/replay runs a bounded local component test. It does not update benchmark files.
 """
 
@@ -26,6 +27,7 @@ MOUNTS = {
     "/clips/": ROOT / ".scratch/scoreboard/clips",
     "/audio/help/": ROOT / ".scratch/help/wav",
     "/audio/leadin/": ROOT / ".scratch/leadin/audio",
+    "/audio/sessions/": ROOT / ".scratch/session-bench",
 }
 REPLAY_LOCK = threading.Lock()
 
