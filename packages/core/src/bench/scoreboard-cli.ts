@@ -21,6 +21,8 @@ import type { ClipDump, DumpClip } from "./clip-dump.js";
 import { REPLAY_DEFAULTS } from "./component-replay.js";
 import { BLOCKED, DEFAULT_CANDIDATE, GATES, goldPerMetrics, oracleClip, renderScoreboard, scored, upsertRow } from "./scoreboard.js";
 import type { Board, Metric, OracleLabel, ScoreRow } from "./scoreboard.js";
+import { ERROR_CLASSES, summarizeSessions } from "./sessions.js";
+import type { DelaySummary, RecallSlice } from "./sessions.js";
 
 const { values } = parseArgs({ options: {
   listener: { type: "string", default: "teacher" },
@@ -384,26 +386,45 @@ if (values.sessions) {
   const sessionReport = JSON.parse(readFileSync(resolve(values.sessions), "utf8"));
   if (sessionReport.version !== 1 || sessionReport.gating !== false || sessionReport.listener !== values.listener)
     throw new Error("Session report must be version 1, non-gating, and from the selected listener");
-  const groups = new Map<string, any[]>();
-  for (const r of sessionReport.rows) {
-    const k = `${r.track}.${r.context.kind}.${r.source}`;
-    const g = groups.get(k) ?? []; g.push(r); groups.set(k, g);
-  }
-  for (const [k, rs] of groups) {
-    const total = (field: string) => sum(rs.map(r => r[field]));
-    const prefix = `sessions.${k}`;
-    const note = `${rs.length} sessions, ${new Set(rs.map(r => r.speaker)).size} speakers; reported only, coverage and recorded agreement pending; ${rs.filter(r => !r.supportedContext).length} unsupported contexts`;
-    const measures: [string, string, number | null, Metric["unit"]][] = [
-      ["precision", "Warnings correct", ratio(total("hits"), total("warnings")), "%"],
-      ["recall", "Errors caught", ratio(total("hits"), total("errors")), "%"],
-      ["cleanPer5", "False warnings per 5 clean minutes", total("cleanSeconds") ? total("cleanWarnings") * 300 / total("cleanSeconds") : null, ""],
-      ["located", "Correctly located time", ratio(total("locatedSamples"), total("positionSamples")), "%"],
-      ["within5s", "Located within 5 seconds", ratio(rs.filter(r => r.within5S).length, rs.length), "%"],
-      ["wrongPositions", "Wrong position events", total("wrongPositionEvents"), ""],
-      ["nonErrorWarnings", "Warnings on repeats/restarts/self-corrections", total("nonErrorWarnings"), ""],
+  // Spec "Scoring, per track": measures the track would gate on, and the context level it gates at. Still reported only.
+  const SPEC_GATES: Record<string, { measures: string[]; contexts: string[] }> = {
+    recitation: { measures: ["cleanPer5", "wrongPositions", "located", "within5s", "nonErrorWarnings"], contexts: ["none"] },
+    memorization: { measures: ["recall", "precision", "wrongPositions", "located", "within5s", "confirmedDelay.p90", "nonErrorWarnings"], contexts: ["assignment", "resume"] },
+  };
+  const delayText = (d: DelaySummary) => `n=${d.n}, censored by miss ${d.censoredByMiss}`;
+  for (const g of summarizeSessions(sessionReport.rows)) {
+    const prefix = `sessions.${g.key}`;
+    const base = `${g.sessions} sessions, ${g.speakers} speakers; reported only, coverage and recorded agreement pending; ${g.unsupportedContexts} unsupported contexts`;
+    const gate = SPEC_GATES[g.track];
+    const note = (id: string, extra?: string) => [base, extra,
+      gate.measures.includes(id) ? `spec **gate** for ${g.track}${gate.contexts.includes(g.context) ? "" : ` at ${gate.contexts.join("/")}; reported at ${g.context}`} (not gating yet)` : undefined]
+      .filter(Boolean).join("; ");
+    const slice = (s: RecallSlice) => s.errors ? `${s.hits}/${s.errors}` : undefined;
+    type Row = [string, string, number | null, Metric["unit"], string?, string?];
+    const measures: Row[] = [
+      ["precision", "Warnings correct", g.precision, "%", g.warnings ? `${g.hits}/${g.warnings}` : undefined],
+      ["recall", "Errors caught", g.recall, "%", slice({ errors: g.errors, hits: g.hits, recall: g.recall }), "abstentions count as misses"],
+      ...ERROR_CLASSES.map((c): Row =>
+        [`recall.${c}`, `Errors caught: ${c.replace("_", " ")}`, g.byClass[c].recall, "%", slice(g.byClass[c])]),
+      ["recall.mutashabihat", "Errors caught: mutashabihat (forms another ayah)", g.mutashabihat.recall, "%", slice(g.mutashabihat)],
+      ["cleanPer5", "False warnings per 5 clean minutes", g.cleanPer5, ""],
+      ["located", "Correctly located time", g.located, "%"],
+      ["within5s", "Located within 5 seconds", g.within5s, "%"],
+      ["wrongPositions", "Wrong position events", g.wrongPositions, ""],
+      ["nonErrorWarnings", "Warnings on repeats/restarts/self-corrections", g.nonErrorWarnings, ""],
+      ["suspectedDelay.p50", "Delay to suspected, p50", g.suspectedDelay.p50, "s", undefined, delayText(g.suspectedDelay)],
+      ["suspectedDelay.p90", "Delay to suspected, p90", g.suspectedDelay.p90, "s", undefined, delayText(g.suspectedDelay)],
+      ["confirmedDelay.p50", "Delay to confirmed, p50", g.confirmedDelay.p50, "s", undefined, delayText(g.confirmedDelay)],
+      ["confirmedDelay.p90", "Delay to confirmed, p90", g.confirmedDelay.p90, "s", undefined, delayText(g.confirmedDelay)],
+      ...(["uncertain", "twinAmbiguous", "ambiguous"] as const).flatMap((c): Row[] => {
+        const label = { uncertain: "checker uncertain", twinAmbiguous: "tracker twin ambiguity", ambiguous: "tracker other ambiguity" }[c];
+        return [[`abstain.${c}.shareOfErrors`, `Missed errors from ${label}`, g.abstentionShare[c], "%", undefined, `share of ${g.errors} labelled errors`],
+          [`abstain.${c}.perCleanSession`, `${label[0].toUpperCase()}${label.slice(1)} per clean session`, g.perCleanSession[c], "", undefined, `${g.cleanSessions} clean sessions`]];
+      }),
     ];
-    for (const [id, name, value, unit] of measures) metrics.push({ id: `${prefix}.${id}`, group: `Sessions: ${k}`, name, value, unit,
-      status: value === null ? "unmeasurable" : "info", source: basename(values.sessions), note });
+    for (const [id, name, value, unit, display, extra] of measures)
+      metrics.push({ id: `${prefix}.${id}`, group: `Sessions: ${g.key}`, name, value, unit, ...(display ? { display } : {}),
+        status: value === null ? "unmeasurable" : "info", source: basename(values.sessions), note: note(id, extra) });
   }
 }
 

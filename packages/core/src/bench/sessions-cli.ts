@@ -3,7 +3,7 @@ import { execSync } from "node:child_process";
 import { join, relative, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { loadReferenceIndex } from "../reference.js";
-import { qudSession, runSession, scoreSessionEvents, validateSession, weakerContexts } from "./sessions.js";
+import { qudSession, runSession, scoreSessionEvents, summarizeSessions, validateSession, weakerContexts } from "./sessions.js";
 import type { BenchSession, SessionScore } from "./sessions.js";
 import { SESSION_DUMP_VERSION, contextKey, quranText, sessionDumpContext, sessionDumpRecord, sessionEvents } from "./session-dump.js";
 import type { SessionDumpRecord } from "./session-dump.js";
@@ -56,7 +56,9 @@ for (const { session, evidence, audio } of items) {
   } catch (e) { failures.push({ id: session.id, reason: String(e) }); console.log(`excluded ${session.id}: ${e}`); }
 }
 writeFileSync(resolve(values.out!), JSON.stringify({ version: 1, gating: false, listener: values.listener, reference: index.version,
-  note: "Reported only; recorded-session agreement and coverage are not established. QUD is the professional easy end. No release gates replaced.", rows, failures }, null, 2) + "\n");
+  note: "Reported only; recorded-session agreement and coverage are not established. QUD is the professional easy end. No release gates replaced. Delays cover matched warnings only; censoredByMiss counts errors without that state.",
+  summary: summarizeSessions(rows), rows, failures }, null, 2) + "\n");
+for (const g of summarizeSessions(rows)) console.log(`${g.key}: recall ${g.hits}/${g.errors}, confirmed delay p50/p90 ${g.confirmedDelay.p50 ?? "-"}/${g.confirmedDelay.p90 ?? "-"} s (n=${g.confirmedDelay.n}, censored ${g.confirmedDelay.censoredByMiss})`);
 console.log(`${rows.length} context rows; ${failures.length} exclusions -> ${values.out}`);
 if (!rows.length) process.exitCode = 1;
 if (dumping && dumped.length) {
