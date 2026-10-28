@@ -1,22 +1,28 @@
-"""Build test set lab-v1: spliced sessions with planted mistakes, studio and phone copies (.scratch/lab, ticket 03).
+"""Build test set lab-v1.1: spliced sessions with planted mistakes, studio and phone copies (.scratch/lab, tickets 03, 04).
 
     modal run modal/lab_build_sessions.py --pilot          # bank, plan, then 2 sessions rendered and checked
     modal run modal/lab_build_sessions.py                  # every session
     modal run modal/lab_build_sessions.py --stage render   # re-render from the stored plan
+    modal run modal/lab_build_sessions.py --stage loop     # build, teacher decode, automated checks, refuse failures, repeat
 
 Stages (each skips finished outputs; the same seed and inputs give byte-identical files):
     aug     held-out noise (freesound-commercial-50k shards 100-103; the student uses 0-2) and simulated small and
-            medium room RIRs not in the student bank, at 16 kHz -> lab-v1/aug/{noise,rir}.npz + bank-v1.json
-    plan    windows, edits, labels from the catalog and alignments (tools/lab_sessions.py) -> lab-v1/sessions/<id>.json,
-            plan-v1.json, manifest-v1.json, summary-v1.json, review/v1-check.json
+            medium room RIRs not in the student bank, at 16 kHz -> <set>/aug/{noise,rir}.npz + bank-v1.json (copied
+            byte for byte from lab-v1 when it has them)
+    plan    windows, edits, labels from the catalog, alignments and refusals-v1.json (tools/lab_sessions.py) ->
+            <set>/sessions/<id>.json, plan-v1.json, manifest-v1.json, summary-v1.json, review/v1-check.json
     render  per session, in parallel: <id>.studio.wav and <id>.phone.wav, plus <id>.checks.json (seam levels and
             clicks, every said word found at its labelled time in the output, phone/studio lag)
+    refuse  the automated checks' studio failures (checks-v1.json, modal/lab_check.py) -> refusals-v1.json, cumulative:
+            the next plan rebuilds each failed case elsewhere or drops it (spec decision 16); nothing is patched
+    loop    plan + render, `lab_decode.py --listener teacher`, `lab_check.py`, refuse; until no check fails
 
-All under /lab/data/lab-v1 on the tilawa-lab volume.
+All under /lab/data/<set> (lab_sessions.TEST_SET) on the tilawa-lab volume.
 """
 
 import hashlib
 import json
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -25,10 +31,13 @@ import modal
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path[:0] = [str(ROOT / "tools"), "/app/tools"]
+from lab_sessions import TEST_SET  # noqa: E402
 
 VOL = "/lab"
 DATA = Path(VOL) / "data"
-OUT = DATA / "lab-v1"
+OUT = DATA / TEST_SET
+AUG_FROM = DATA / "lab-v1/aug"  # the phone-copy bank is shared across test set versions
+REFUSALS = "refusals-v1.json"
 NOISE_SHARDS = (100, 101, 102, 103)
 NOISE_CLIPS = 400
 NOISE_S = (4.0, 12.0)
@@ -108,6 +117,16 @@ def aug(force: bool = False) -> dict:
     bank_json = OUT / "aug/bank-v1.json"
     if bank_json.exists() and not force:
         return json.loads(bank_json.read_text())
+    if OUT / "aug" != AUG_FROM and (AUG_FROM / "bank-v1.json").exists():
+        bank = json.loads((AUG_FROM / "bank-v1.json").read_text())
+        (OUT / "aug").mkdir(parents=True, exist_ok=True)
+        for k in ("noise", "rir"):
+            data = (AUG_FROM / f"{k}.npz").read_bytes()
+            assert hashlib.sha256(data).hexdigest() == bank["sha256"][k], k
+            write(OUT / f"aug/{k}.npz", data)
+        write(bank_json, dumps(bank))
+        vol.commit()
+        return bank
 
     def load(data: bytes):
         w, sr = sf.read(io.BytesIO(data), dtype="float32")
@@ -190,7 +209,9 @@ def plan(pilot: bool = False) -> dict:
     catalog = json.loads((DATA / "sources/mp3quran/catalog-v1.json").read_text())
     aligns = {it["align"]: json.loads((DATA / it["align"]).read_text()) for it in catalog["items"] if it["readId"] not in S.EXCLUDED_READS}
     bank = json.loads((OUT / "aug/bank-v1.json").read_text())
-    out = S.plan_set(catalog, aligns, ref, dis, bank)
+    rp = OUT / REFUSALS
+    refusals = json.loads(rp.read_text()) if rp.exists() else None
+    out = S.plan_set(catalog, aligns, ref, dis, bank, refusals=refusals)
     sessions = out["sessions"]
     queue = S.review_queue(sessions, ref)
     problems = validate_queue(queue)
@@ -200,7 +221,11 @@ def plan(pilot: bool = False) -> dict:
         problems = S.validate(s, ref)
         if problems:
             raise ValueError(f"{s['id']}: {problems[:3]}")
-    summary = S.summary(sessions, {"bank": {k: bank[k] for k in ("sources", "sha256")} | {"noises": len(bank["noises"]), "rirs": len(bank["rirs"])}})
+    refused = {**out["refused"], "rules": {"lenRatioMin": S.LEN_RATIO_MAX, "ayahPerMax": S.AYAH_PER_MAX, "weakOnsets": "".join(sorted(S.WEAK_ONSET))},
+               "refusalsSha256": hashlib.sha256(rp.read_bytes()).hexdigest() if rp.exists() else None,
+               "iterations": max((x["iteration"] for k in ("ayahs", "sites", "donors") for x in (refusals or {}).get(k, [])), default=0)}
+    summary = S.summary(sessions, {"bank": {k: bank[k] for k in ("sources", "sha256")} | {"noises": len(bank["noises"]), "rirs": len(bank["rirs"])},
+                                   "refused": refused})
     changed = 0
     for s in sessions:
         changed += write(OUT / f"sessions/{s['id']}.json", dumps(s))
@@ -214,6 +239,22 @@ def plan(pilot: bool = False) -> dict:
         ids = [next(s["id"] for s in sessions if not s["meta"]["clean"] and s["meta"]["mutashabihat"]), next(s["id"] for s in sessions if s["meta"]["clean"])]
     return {"ids": ids, "summary": summary, "changed": changed, "planS": round(time.time() - t0, 1),
             "example": next(s for s in sessions if s["id"] == ids[0])}
+
+
+@app.function(volumes={VOL: vol}, timeout=10 * 60)
+def refuse(iteration: int) -> dict:
+    """checks-v1.json's studio failures -> refusals-v1.json (cumulative). Returns the new entries."""
+    import lab_sessions as S
+
+    vol.reload()
+    checks = json.loads((OUT / "checks-v1.json").read_text())
+    m = json.loads((OUT / "manifest-v1.json").read_text())
+    sessions = {e["id"]: json.loads((OUT / f"sessions/{e['id']}.json").read_text()) for e in m["sessions"]}
+    rp = OUT / REFUSALS
+    doc, new = S.refusals_from_checks(checks, sessions, json.loads(rp.read_text()) if rp.exists() else None, iteration)
+    write(rp, dumps(doc))
+    vol.commit()
+    return {"new": new, "totals": {k: len(doc[k]) for k in ("ayahs", "sites", "donors", "unmapped")}, "summary": checks["summary"]}
 
 
 def seam_checks(y, plan_pieces, session, load, gains):
@@ -352,32 +393,60 @@ def render(sid: str, force: bool = False) -> dict:
 
 
 @app.local_entrypoint()
-def main(stage: str = "all", pilot: bool = False, force: bool = False):
+def main(stage: str = "all", pilot: bool = False, force: bool = False, iterations: int = 6):
     t0 = time.time()
-    if stage in ("all", "aug"):
+    if stage in ("all", "aug", "loop"):
         bank = aug.remote(force)
         print(f"bank: {len(bank['noises'])} noises, {len(bank['rirs'])} rirs ({bank['rirsDroppedAsStudent']} dropped as student) [{time.time() - t0:.0f} s]")
+    if stage == "loop":
+        for it in range(1, iterations + 1):
+            print(f"\n== iteration {it}: build [{time.time() - t0:.0f} s]", flush=True)
+            if build(False, False, t0):
+                raise SystemExit("render failed")
+            for cmd in (["modal/lab_decode.py", "--listener", "teacher", "--test-set", TEST_SET],
+                        ["modal/lab_check.py", "--test-set", TEST_SET]):
+                print(f"== iteration {it}: {' '.join(cmd)} [{time.time() - t0:.0f} s]", flush=True)
+                subprocess.run(["modal", "run", *cmd], cwd=ROOT, check=True)
+            r = refuse.remote(it)
+            st = r["summary"]["studio"]
+            print(f"== iteration {it}: studio mistakes {st['mistakes']['pass']}/{st['mistakes']['n']}, non-errors {st['nonErrors']['pass']}/{st['nonErrors']['n']}, "
+                  f"clean {st['clean']['pass']}/{st['clean']['n']}, timing {st['timing']['pass']}/{st['timing']['sessions']}; "
+                  f"{len(r['new'])} new refusals, totals {r['totals']}", flush=True)
+            for x in r["new"]:
+                print(f"  {x['kind']}: {json.dumps({k: v for k, v in x.items() if k not in ('kind', 'iteration')}, ensure_ascii=False)}")
+            if not [x for x in r["new"] if x["kind"] != "unmapped"]:
+                print(f"converged after {it} iteration(s)")
+                break
+        print(f"total {time.time() - t0:.0f} s")
+        return
     if stage in ("all", "plan", "render"):
-        res = plan.remote(pilot)
-        print(f"plan: {len(res['ids'])} to render, {res['changed']} files changed, {res['planS']} s [{time.time() - t0:.0f} s]")
-        print(json.dumps(res["summary"]["all"], ensure_ascii=False))
-        out = ROOT / "docs/benchmarks/lab-v1.json"
-        if not pilot:
-            s = res["summary"]
-            out.write_text(json.dumps({k: s[k] for k in ("version", "testSet", "seed", "all", "splits", "surahs", "bank")}
-                                      | {"reciters": len(s["reciters"])}, ensure_ascii=False, indent=1) + "\n")
-        (ROOT / ".scratch/lab/cache").mkdir(parents=True, exist_ok=True)
-        (ROOT / ".scratch/lab/cache/lab-v1-example.json").write_text(json.dumps(res["example"], ensure_ascii=False, indent=1))
-    if stage in ("all", "plan", "render") and (stage != "plan"):
-        results = list(render.map(res["ids"], kwargs={"force": force}, return_exceptions=True, wrap_returned_exceptions=False))
-        bad = [r for r in results if isinstance(r, Exception)]
-        ok = [r for r in results if not isinstance(r, Exception)]
-        for r in ok:
-            w = r["words"]
-            print(f"{r['id']}: {r['durationS']} s (label {r['labelDurationS']}), exact {r['pieceExactMaxErr']}, seam level err max {r['seamLevelErrDbMax']} dB, "
-                  f"click max {r['clickRatioMax']}, words {w['found']}/{w['words'] - w['clipped']} found ({w['clipped']} clipped), phone lag {r['phoneLagSamples']}"
-                  + (" [skipped]" if r.get("skipped") else ""))
-        (ROOT / ".scratch/lab/cache/lab-v1-checks.json").write_text(json.dumps(ok, ensure_ascii=False, indent=1))
-        for e in bad:
-            print("FAILED:", repr(e)[:500])
+        build(pilot, force, t0, render_too=stage != "plan")
     print(f"total {time.time() - t0:.0f} s")
+
+
+def build(pilot: bool, force: bool, t0: float, render_too: bool = True) -> int:
+    """Plan (writes the docs summary unless a pilot), then render; returns the number of failed renders."""
+    res = plan.remote(pilot)
+    print(f"plan: {len(res['ids'])} to render, {res['changed']} files changed, {res['planS']} s [{time.time() - t0:.0f} s]")
+    print(json.dumps(res["summary"]["all"], ensure_ascii=False), json.dumps(res["summary"]["refused"], ensure_ascii=False))
+    if not pilot:
+        s = res["summary"]
+        (ROOT / f"docs/benchmarks/{TEST_SET}.json").write_text(json.dumps({k: s[k] for k in ("version", "testSet", "seed", "all", "splits", "surahs", "bank", "refused")}
+                                                                         | {"reciters": len(s["reciters"])}, ensure_ascii=False, indent=1) + "\n")
+    (ROOT / ".scratch/lab/cache").mkdir(parents=True, exist_ok=True)
+    (ROOT / f".scratch/lab/cache/{TEST_SET}-example.json").write_text(json.dumps(res["example"], ensure_ascii=False, indent=1))
+    if not render_too:
+        return 0
+    results = list(render.map(res["ids"], kwargs={"force": force}, return_exceptions=True, wrap_returned_exceptions=False))
+    bad = [r for r in results if isinstance(r, Exception)]
+    ok = [r for r in results if not isinstance(r, Exception)]
+    for r in ok:
+        w = r["words"]
+        if not r.get("skipped"):
+            print(f"{r['id']}: {r['durationS']} s (label {r['labelDurationS']}), exact {r['pieceExactMaxErr']}, seam level err max {r['seamLevelErrDbMax']} dB, "
+                  f"click max {r['clickRatioMax']}, words {w['found']}/{w['words'] - w['clipped']} found ({w['clipped']} clipped), phone lag {r['phoneLagSamples']}")
+    print(f"render: {sum(not r.get('skipped') for r in ok)} rendered, {sum(bool(r.get('skipped')) for r in ok)} unchanged, {len(bad)} failed [{time.time() - t0:.0f} s]")
+    (ROOT / f".scratch/lab/cache/{TEST_SET}-checks.json").write_text(json.dumps(ok, ensure_ascii=False, indent=1))
+    for e in bad:
+        print("FAILED:", repr(e)[:500])
+    return len(bad)
