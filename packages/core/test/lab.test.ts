@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { disambiguationWords } from "../src/disambiguation.js";
 import type { CheckerEvent, EngineEvent, PositionEvent, WordRef } from "../src/events.js";
 import { loadReferenceIndex } from "../src/reference.js";
-import { COMPONENTS, VARIANTS, editDistance, labReport, listenerErrors, mergeReports, oracleEvidence, recitedIntervals,
+import { COMPONENTS, VARIANTS, editDistance, labReport, listenerErrors, markDataChecks, mergeReports, oracleEvidence, recitedIntervals,
   refIndex, saidItems, scoreLabSession, scoreTracker, totals, trackerEntries } from "../src/bench/lab.js";
 import type { LabArms, LabMeta, SessionResult } from "../src/bench/lab.js";
 import { buildSession, wordPhonemes } from "../src/bench/lab-fixture.js";
@@ -105,6 +105,14 @@ describe("attribution", () => {
     expect(a.cases.map(c => c.key)).toEqual(b.cases.map(c => c.key));
     expect(new Set(a.cases.map(c => c.key)).size).toBe(a.cases.length);
     expect(a.cases[0].key).toBe(`sharh/phone/mistake:wrong_word/94:2:2/${wrong.startS.toFixed(2)}`);
+  });
+  it("marks cases on data that failed the automated checks and leaves the counts alone", () => {
+    const r = scoreLabSession(s, "practice", undefined, arms(), ctx), before = JSON.stringify(r.variants);
+    const fail = { id: "sharh-x1", session: "sharh", type: wrong.errorClass, location: wrong.location, startS: wrong.startS, endS: wrong.endS, reasons: ["llr"] };
+    markDataChecks(r, { failed: [fail, { ...fail, session: "other" }], failedClean: [{ id: "sharh-clean-3", session: "sharh", startS: tC - 0.5, endS: tC - 0.2, reasons: ["per"] }] });
+    const marked = r.cases.filter(c => c.dataCheck).map(c => [c.kind === "mistake" ? c.errorClass : `fw ${c.word}`, c.dataCheck!.check]);
+    expect(marked).toEqual([["wrong_word", "sharh-x1"], ["fw 94:7:2", "sharh-clean-3"]]);
+    expect(JSON.stringify(r.variants)).toBe(before);
   });
   it("adds up for any arms: listener + tracker + checker = missed + false warnings", () => {
     let seed = 11;

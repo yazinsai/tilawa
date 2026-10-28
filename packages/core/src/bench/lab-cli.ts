@@ -10,6 +10,7 @@
  *     "evidence"?: { "<listener>": { "phone"?: "<path>", "studio"?: "<path>" } } }] }
  * Evidence not listed is looked up at the manifest's "evidencePattern" ({id}, {listener}, {variant}), else evidence/<listener>/<id>.<variant>.json.
  * "slices": { "strict" } (the session builder's tag) counts as "strict".
+ * Cases on data that failed the automated checks (`--checks`, default checks-v1.json beside the manifest) carry `dataCheck`.
  */
 import { execSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
@@ -18,8 +19,8 @@ import { parseArgs } from "node:util";
 import { disambiguationWords } from "../disambiguation.js";
 import { loadReferenceIndex } from "../reference.js";
 import { DEFAULT_CANDIDATE } from "./scoreboard.js";
-import { VARIANTS, labReport, labSession, mergeReports } from "./lab.js";
-import type { LabReport, SessionResult, Split, Variant } from "./lab.js";
+import { VARIANTS, labReport, labSession, markDataChecks, mergeReports } from "./lab.js";
+import type { DataChecks, LabReport, SessionResult, Split, Variant } from "./lab.js";
 import type { BenchSession, SessionEvidence } from "./sessions.js";
 
 const { values } = parseArgs({ args: process.argv.slice(2).filter(a => a !== "--"), options: {
@@ -36,6 +37,8 @@ const { values } = parseArgs({ args: process.argv.slice(2).filter(a => a !== "--
   sha: { type: "string" },
   "exam-cases": { type: "boolean", default: false },
   "no-tracker-oracle": { type: "boolean", default: false },
+  /** Automated test set checks (ticket 04); default `checks-v1.json` beside the manifest when present, `none` skips. */
+  checks: { type: "string" },
 } });
 
 const summary = (r: LabReport) => {
@@ -94,6 +97,10 @@ const audioOf = (e: Entry) => Object.fromEntries(Object.entries(e.audio ?? {}).m
   const abs = resolve(base, p!), rel = relative(dataRoot, abs);
   return [v, rel.startsWith("..") ? abs : rel];
 }));
+const checksPath = values.checks === "none" ? null : resolve(base, values.checks ?? "checks-v1.json");
+if (values.checks && checksPath && !existsSync(checksPath)) throw new Error(`checks missing at ${checksPath}`);
+const checks = checksPath && existsSync(checksPath) ? JSON.parse(readFileSync(checksPath, "utf8")) as DataChecks : null;
+if (checks) console.log(`data checks ${checksPath}: ${checks.failed.length} failed edits, ${checks.failedClean.length} failed clean stretches marked on cases`);
 const load = (path: string | null) => path ? JSON.parse(readFileSync(path, "utf8")) as SessionEvidence : undefined;
 
 const results: SessionResult[] = [], excluded: { id: string; reason: string }[] = [];
@@ -110,7 +117,7 @@ manifest.sessions.forEach((e, i) => {
     const strict = e.strict ?? e.slices?.strict ?? (e.tags ? e.tags.includes("strict") : undefined);
     const r = labSession({ session, split: e.split, strict, evidence, audio: audioOf(e), teacher: teacherName ? pick(teacherName) : undefined,
       trackerOracle: !values["no-tracker-oracle"] }, { index, disamb, phrases });
-    results.push(r);
+    results.push(checks ? markDataChecks(r, checks) : r);
     const v = r.variants.phone ?? r.variants.studio!;
     console.log(`scored ${e.id} (${e.split}${r.strict ? ", strict" : ""}) in ${((performance.now() - t0) / 1000).toFixed(1)} s: ${v.missed} missed, ${v.falseWarnings} false warnings`);
   } catch (err) {

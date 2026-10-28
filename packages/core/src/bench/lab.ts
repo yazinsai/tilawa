@@ -303,7 +303,9 @@ interface CaseBase { key: string; session: string; variant: Variant; split: Spli
   /** The engine, the oracle arm and (when decoded) the teacher all make this wrong call: likely bad data first. */
   allFail: boolean;
   /** Listening window in the review queue's clip shape; `path` is relative to /lab/data when the manifest names the audio. */
-  review: Interval & { path: string | null } }
+  review: Interval & { path: string | null };
+  /** Set when the test set's automated checks (ticket 04) failed the data under this case: review it as likely bad data. */
+  dataCheck?: { pass: false; check: string; reasons: string[] } }
 export interface MistakeCase extends CaseBase {
   kind: "mistake"; startS: number; endS: number; outcome: "hit" | "miss"; confirmedS: number | null; mutashabihat: boolean;
   oracle: "hit" | "miss"; truePosition: "hit" | "miss"; teacher: "hit" | "miss" | null }
@@ -394,6 +396,26 @@ export function scoreLabSession(s: BenchSession, split: Split, strictTag: boolea
     result.variants[variant] = r;
   }
   return result;
+}
+
+/** Failed automated checks of a test set (`checks-v1.json`: `failed` planted edits, `failedClean` stretches). */
+export interface DataChecks {
+  failed: { id: string; session: string; type: string; location: WordRef; startS: number; endS: number; reasons: string[] }[];
+  failedClean: { id: string; session: string; startS: number; endS: number; reasons: string[] }[];
+}
+/** Seconds around a failed planted edit or clean stretch within which a false warning is marked too. */
+const DATA_CHECK_S = 1;
+/** Marks the cases whose data failed an automated check: the planted mistake itself, and false warnings on or near failed data. Counts are unchanged. */
+export function markDataChecks(r: SessionResult, checks: DataChecks): SessionResult {
+  const edits = checks.failed.filter(f => f.session === r.id), clean = checks.failedClean.filter(f => f.session === r.id);
+  for (const c of r.cases) {
+    const near = (a: number, b: number) => c.kind === "false_warning" && c.timeS >= a - DATA_CHECK_S && c.timeS <= b + DATA_CHECK_S;
+    const f = c.kind === "mistake"
+      ? edits.find(f => f.type === c.errorClass && key(f.location) === c.word && Math.abs(f.startS - c.startS) < 0.05)
+      : edits.find(f => near(f.startS, f.endS)) ?? clean.find(f => near(f.startS, f.endS));
+    if (f) c.dataCheck = { pass: false, check: f.id, reasons: f.reasons };
+  }
+  return r;
 }
 
 export interface LabInput { session: BenchSession; split: Split; strict?: boolean;
