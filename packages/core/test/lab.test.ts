@@ -96,9 +96,21 @@ describe("attribution", () => {
     expect(by).toEqual({ wrong_word: "tracker", omitted_word: "listener", added_word: "checker",
       "fw 94:3:2": "checker", "fw 94:5:3": "listener", "fw 94:7:2": "tracker", "fw 94:8:2": "tracker" });
     expect(r.cases.find(c => c.word === "94:8:2")).toMatchObject({ kind: "false_warning", nonError: "repeat" });
-    expect(v.byClass.wrong_word).toEqual({ mistakes: 1, missed: 1, listener: 0, tracker: 1, checker: 0 });
-    expect(v.mutashabihat).toEqual({ mistakes: 1, missed: 1, listener: 0, tracker: 1, checker: 0 });
-    expect(r.checker).toEqual({ missed: 1, falseWarnings: 1, nonErrorFalseWarnings: 0 });
+    expect(v.byClass.wrong_word).toEqual({ mistakes: 1, missed: 1, misclassified: 0, listener: 0, tracker: 1, checker: 0 });
+    expect(v.mutashabihat).toEqual({ mistakes: 1, missed: 1, misclassified: 0, listener: 0, tracker: 1, checker: 0 });
+    expect(r.checker).toEqual({ missed: 1, misclassified: 0, falseWarnings: 1, nonErrorFalseWarnings: 0 });
+  });
+  it("counts a warning on the mistake's word with another class as caught and misclassified, not a false warning", () => {
+    const a = arms(), mis = confirmed("m1", "wrong_word", added.location, added.endS + 0.5), phone = a.variants.phone!;
+    const r = scoreLabSession(s, "practice", undefined, { ...a, oracle: [...a.oracle, mis], variants: { phone: { ...phone, engine: [...phone.engine, mis] } } }, ctx);
+    const v = r.variants.phone!;
+    expect(v.missed).toBe(2); expect(v.falseWarnings).toBe(4); expect(v.misclassified).toBe(1);
+    expect(v.byClass.added_word).toEqual({ mistakes: 1, missed: 0, misclassified: 1, listener: 0, tracker: 0, checker: 0 });
+    expect(r.checker).toEqual({ missed: 0, misclassified: 1, falseWarnings: 1, nonErrorFalseWarnings: 0 });
+    expect(r.cases.find(c => c.kind === "mistake" && c.errorClass === "added_word")).toMatchObject({ outcome: "misclassified", component: null });
+    const t = totals([r], "phone");
+    expect(t.overall).toMatchObject({ wrongCalls: 6, missed: 2, caught: 1, misclassified: 1 });
+    expect(t.components.checker).toMatchObject({ missed: 0, misclassified: 1 });
   });
   it("keys cases stably by session, variant, type, word and time", () => {
     const a = scoreLabSession(s, "practice", undefined, arms(), ctx), b = scoreLabSession(s, "practice", undefined, arms(), ctx);
@@ -135,6 +147,8 @@ describe("attribution", () => {
         const t = totals([r], v);
         expect(sumParts(t.attribution)).toBe(t.overall.wrongCalls);
         expect(t.attribution.total).toBe(t.overall.missed + t.overall.falseWarnings);
+        expect(r.cases.filter(c => c.variant === v && c.kind === "mistake" && c.outcome === "misclassified").length).toBe(x.misclassified);
+        expect(t.overall.misclassified).toBeLessThanOrEqual(t.overall.caught);
       }
     }
   }, 120_000);

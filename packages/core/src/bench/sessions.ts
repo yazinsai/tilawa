@@ -162,7 +162,8 @@ export interface SessionScore {
   abstentions: { uncertain: number; twinAmbiguous: number; ambiguous: number };
   /** Entries into tracker `ambiguous`, split by whether every candidate is a twin of the others. */
   ambiguousEpisodes: { twin: number; general: number };
-  assignments: { warningId: string; eventIndex: number | null; confirmed: boolean }[];
+  /** `misclassified`: matched on location only, with a different error class (`anyClass`). */
+  assignments: { warningId: string; eventIndex: number | null; confirmed: boolean; misclassified?: boolean }[];
 }
 const ordinals = new WeakMap<ReferenceIndex, (w: WordRef) => number>();
 /** Ayah ordinal in Quran order, built once per index. */
@@ -200,7 +201,9 @@ export function inOccurrence(s: BenchSession, o: { span: string; at: WordRef; st
 export function inNonErrorWindow(s: BenchSession, at: WordRef, t: number): boolean {
   return s.nonErrors.some(n => key(n.at) === key(at) && inOccurrence(s, n, n.endS + 6, t));
 }
-export function scoreSessionEvents(s: BenchSession, events: EngineEvent[], index: ReferenceIndex, context = s.context): SessionScore {
+/** `anyClass`: a warning with no same-class match may match an error at its location of another class (misclassified, still a hit). */
+export function scoreSessionEvents(s: BenchSession, events: EngineEvent[], index: ReferenceIndex, context = s.context,
+    o: { anyClass?: boolean } = {}): SessionScore {
   validateSession(s, index);
   const ay = ayahOrdinal(index);
   const positions = events.filter((e): e is PositionEvent => e.type === "position").sort((a, b) => a.timeMs - b.timeMs);
@@ -232,13 +235,13 @@ export function scoreSessionEvents(s: BenchSession, events: EngineEvent[], index
     states.sort((a, b) => a.timeMs - b.timeMs);
     const first = states[0], t = first.timeMs / 1000;
     const confirmed = states.some(e => e.state === "confirmed");
-    const eligible = s.events.map((e, i) => ({ e, i })).filter(({ e, i }) => !used.has(i)
-      && e.errorClass === first.errorClass && key(e.location) === key(first.location)
+    const eligible = (sameClass: boolean) => s.events.map((e, i) => ({ e, i })).filter(({ e, i }) => !used.has(i)
+      && (!sameClass || e.errorClass === first.errorClass) && key(e.location) === key(first.location)
       && inOccurrence(s, { span: e.span, at: e.location, startS: e.startS }, windowEnd(e), t))
       .sort((a, b) => a.e.endS - b.e.endS || a.i - b.i);
-    const matched = eligible[0];
+    const exact = eligible(true)[0], matched = exact ?? (o.anyClass ? eligible(false)[0] : undefined);
     if (matched && confirmed) used.add(matched.i);
-    score.assignments.push({ warningId: first.id, eventIndex: matched?.i ?? null, confirmed });
+    score.assignments.push({ warningId: first.id, eventIndex: matched?.i ?? null, confirmed, ...(matched && !exact ? { misclassified: true } : {}) });
     if (confirmed) {
       score.warnings++;
       if (matched) score.hits++;

@@ -46,7 +46,7 @@ describe("engine arms on synthetic sessions", () => {
     expect(v.listener.edits).toBeGreaterThan(0);
     const swap = r.cases.find(c => c.kind === "mistake" && c.errorClass === "wrong_word")!;
     expect(swap).toMatchObject({ oracle: "hit", truePosition: "miss", outcome: "miss", component: "listener", mutashabihat: true });
-    expect(v.mutashabihat).toEqual({ mistakes: 1, missed: 1, listener: 1, tracker: 0, checker: 0 });
+    expect(v.mutashabihat).toEqual({ mistakes: 1, missed: 1, misclassified: 0, listener: 1, tracker: 0, checker: 0 });
     const t = totals([r], "phone");
     expect(sumParts(t.attribution)).toBe(t.overall.wrongCalls);
   }, 300_000);
@@ -62,14 +62,13 @@ describe("engine arms on synthetic sessions", () => {
     expect(report.slices.strict.exam.sessions).toBe(1);
     expect(report.cases).toEqual([]);
   }, 300_000);
-  it("blames the checker when even oracle evidence and the true position give the wrong call", () => {
+  it("counts the checker's omission on a wrong word's place as caught and misclassified, on every arm", () => {
     // A short donor in a long word's slot: the checker hears an omission, not a wrong word, whatever its inputs.
     const s = build("short-donor", [{ from: W(67, 1, 1), to: lastWord(67, 4), wrong: [{ at: W(67, 3, 4), said: W(114, 1, 3) }] }]);
     const r = labSession({ session: s, split: "practice", evidence: { studio: oracleEvidence(s, index) }, trackerOracle: false }, ctx);
     const v = r.variants.studio!;
-    expect(r.cases.find(c => c.kind === "mistake")).toMatchObject({ outcome: "miss", oracle: "miss", component: "checker" });
-    expect(r.cases.filter(c => c.kind === "false_warning" && c.word === "67:3:4").every(c => c.component === "checker")).toBe(true);
-    expect(v.attribution.listener).toEqual({ missed: 0, falseWarnings: 0 });
-    expect(r.checker.missed).toBe(1);
+    expect(r.cases.find(c => c.kind === "mistake")).toMatchObject({ outcome: "misclassified", oracle: "hit", truePosition: "hit", component: null });
+    expect(v).toMatchObject({ missed: 0, misclassified: 1 });
+    expect(r.checker).toMatchObject({ missed: 0, misclassified: 1 });
   }, 300_000);
 });

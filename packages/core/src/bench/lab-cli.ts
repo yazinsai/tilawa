@@ -26,7 +26,7 @@ import type { BenchSession, SessionEvidence } from "./sessions.js";
 const { values } = parseArgs({ args: process.argv.slice(2).filter(a => a !== "--"), options: {
   manifest: { type: "string", default: process.env.LAB_MANIFEST ?? `${process.env.LAB_DATA ?? "/lab/data"}/lab-v1/manifest-v1.json` },
   listener: { type: "string", default: DEFAULT_CANDIDATE },
-  /** Ceiling listener; `none` skips it. Scored only where its evidence exists. */
+  /** Teacher reference listener; `none` skips it. Scored only where its evidence exists. */
   teacher: { type: "string", default: "teacher" },
   variants: { type: "string", default: VARIANTS.join(",") },
   shard: { type: "string", default: process.env.LAB_SHARD ?? "0" },
@@ -44,10 +44,12 @@ const { values } = parseArgs({ args: process.argv.slice(2).filter(a => a !== "--
 const summary = (r: LabReport) => {
   const o = r.overall, a = r.attribution, c = r.components;
   console.log(`${r.testSet} ${r.listener} @ ${r.sha}: ${r.sessions.scored} sessions (${r.sessions.practice} practice, ${r.sessions.exam} exam), ${r.sessions.excluded.length} excluded`);
-  console.log(`overall (${r.headline.split}, ${r.headline.variant}): ${o.per5Min ?? "-"} wrong calls / 5 min = ${o.missed} missed + ${o.falseWarnings} false warnings (${o.falseWarningsOnNonErrors} on repeats/restarts), ${o.caught}/${o.mistakes} caught`);
+  console.log(`overall (${r.headline.split}, ${r.headline.variant}): ${o.per5Min ?? "-"} wrong calls / 5 min = ${o.missed} missed + ${o.falseWarnings} false warnings (${o.falseWarningsOnNonErrors} on repeats/restarts), ${o.caught}/${o.mistakes} caught (${o.misclassified} misclassified)`);
   console.log(`attribution: listener ${a.listener}, tracker ${a.tracker}, checker ${a.checker} (total ${a.total})`);
   console.log(`listener PER ${c.listener.per ?? "-"}; tracker on place ${c.tracker.onPlaceShare ?? "-"}, ${c.tracker.falseJumps} false jumps, lock delay p50/p90 ${c.tracker.lockDelayS.p50 ?? "-"}/${c.tracker.lockDelayS.p90 ?? "-"} s; checker ${c.checker.per5Min ?? "-"} / 5 min (${c.checker.missed} + ${c.checker.falseWarnings})`);
   for (const s of ["practice", "exam"] as const) console.log(`${s}: ${r.splits[s].overall.per5Min ?? "-"} / 5 min (${r.splits[s].overall.missed} + ${r.splits[s].overall.falseWarnings}) over ${r.splits[s].recitedMinutes} min`);
+  const t = r.splits[r.headline.split].teacher;
+  if (t) console.log(`teacher reference: ${t.per5Min ?? "-"} / 5 min (${t.missed} + ${t.falseWarnings}), PER ${t.per ?? "-"}`);
 };
 const write = (path: string, report: LabReport) => {
   mkdirSync(dirname(path), { recursive: true });

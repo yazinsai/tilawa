@@ -34,3 +34,10 @@ Spec: `../spec.md` goal and decisions 3, 7, 12. Build on `packages/core/src/benc
 - Smoke on Modal: `lab-scorer-fixture` (5 synthetic sessions, 3 practice / 2 exam, deaf-to-wrong-word phone evidence, perfect studio and teacher), run `lab08-smoke-fed17a2-dirty-20261028T112014Z`, 3 shards merged. Exam phone: 5.26 wrong calls per 5 min (2 missed, 0 false warnings) over 1.9 min, all to listener; PER 0.0098; tracker on place 1.0, 0 false jumps, lock delay p50 0.01 s. Practice: 5.24 (3 + 0) over 2.86 min. Studio: 3 (2 + 1). fx-sharh's wrong and added word are missed even by the oracle arm and teacher (checker, `allFail`), a real checker weakness on short sessions.
 - Cost: about 58 s per 80 s session for all arms (8 checker passes). lab-v1 at 40 sessions of 3-8 min wants about 40 shards; `--no-tracker-oracle` saves about an eighth.
 - No scoreboard row: no existing metric moves until lab-v1 exists.
+- Rule change (user decision, 2026-10-28): a confirmed warning on a labelled mistake's word and occurrence with another error class catches it. It is not a miss and not a false warning (0 wrong calls), and it is counted as `misclassified`:
+  - in `overall` and `components.checker` per split and slice;
+  - in `byClass` and `mutashabihat`;
+  - as case `outcome: "misclassified"`.
+
+  Matching tries the same class first, then location only (`scoreSessionEvents(..., { anyClass: true })`, lab only; the older session benches are unchanged). The short-donor engine test now expects misclassified. Additivity holds (tests in `lab.test.ts`).
+- The teacher arm is named "teacher reference" in definitions and docs, not a ceiling. On lab-v1 it scored worse than the student through the engine.

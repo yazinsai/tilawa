@@ -44,10 +44,11 @@ const NONE = { kind: "none" } as const;
 
 export const DEFINITIONS = {
   recitedMinutes: `Recited time: the union of truth word and labelled-mistake intervals, bridging pauses up to ${PAUSE_S} s, minus non-Quran spans. One denominator for misses, false warnings, the checker score and tracker sampling.`,
-  wrongCall: "A labelled mistake not confirmed by a matching warning (miss), or a confirmed warning matching no labelled mistake (false warning, including warnings on repeats and restarts). Free recitation, no context.",
+  wrongCall: "A labelled mistake not confirmed by a matching warning (miss), or a confirmed warning matching no labelled mistake (false warning, including warnings on repeats and restarts). A warning on the mistake's word and occurrence with another error class still catches it, and is counted as misclassified. Free recitation, no context.",
   listener: "PER of the greedy decode against what was said (truth words with planted wrong and added words applied; non-Quran audio left out), one global alignment per session.",
   tracker: `Engine run on the listener's evidence. Share of recited time with a locked top candidate within one ayah of a word recited in the last 2 s, counted per entry (session start and every jump of more than one ayah) from ${TOLERANCE_WORDS} word after its disambiguation point. False jump: a run of locks on a wrong place, before or after the point. Lock delay: first on-place sample at or after the point.`,
   checker: "Wrong calls per 5 min of the checker on oracle evidence with oracle tracker events (locked on the true word).",
+  teacher: "Teacher reference: the engine run on the teacher's evidence instead of the listener's, same scoring. A reference for listener quality through the engine, not a bound: the engine is tuned on the listener.",
   attribution: "Each engine wrong call goes to checker if the oracle arm makes it too, else to listener if the true-position arm (listener evidence, oracle tracker events) makes it, else to tracker. False warnings match across arms by word and time.",
 } as const;
 
@@ -266,20 +267,20 @@ export function runTracker(s: BenchSession, evidence: SessionEvidence, index: Re
 }
 
 interface Warned { id: string; errorClass: string; at: WordRef; timeS: number; confirmedS: number }
-interface ArmCalls { hit: Map<number, number>; falseWarnings: Warned[] }
+interface ArmCalls { hit: Map<number, number>; misclassified: Set<number>; falseWarnings: Warned[] }
 /** Hits (event index -> confirmation time) and false warnings of one arm, by the session scorer's matching rules. */
 function armCalls(s: BenchSession, events: EngineEvent[], index: ReferenceIndex): ArmCalls {
-  const score = scoreSessionEvents(s, events, index, NONE);
+  const score = scoreSessionEvents(s, events, index, NONE, { anyClass: true });
   const states = new Map<string, CheckerEvent[]>();
   for (const e of events) if (e.type === "checker") states.set(e.id, [...(states.get(e.id) ?? []), e]);
-  const hit = new Map<number, number>(), falseWarnings: Warned[] = [];
+  const hit = new Map<number, number>(), misclassified = new Set<number>(), falseWarnings: Warned[] = [];
   for (const a of score.assignments) {
     if (!a.confirmed) continue;
     const list = [...states.get(a.warningId)!].sort((x, y) => x.timeMs - y.timeMs), confirmedS = list.find(e => e.state === "confirmed")!.timeMs / 1000;
-    if (a.eventIndex !== null) hit.set(a.eventIndex, confirmedS);
+    if (a.eventIndex !== null) { hit.set(a.eventIndex, confirmedS); if (a.misclassified) misclassified.add(a.eventIndex); }
     else falseWarnings.push({ id: a.warningId, errorClass: list[0].errorClass, at: list[0].location, timeS: list[0].timeMs / 1000, confirmedS });
   }
-  return { hit, falseWarnings };
+  return { hit, misclassified, falseWarnings };
 }
 /** One-to-one matching of false warnings into another arm's: same word, nearest within `MATCH_S`. */
 function matcher(pool: Warned[]): (w: Warned) => boolean {
@@ -307,7 +308,8 @@ interface CaseBase { key: string; session: string; variant: Variant; split: Spli
   /** Set when the test set's automated checks (ticket 04) failed the data under this case: review it as likely bad data. */
   dataCheck?: { pass: false; check: string; reasons: string[] } }
 export interface MistakeCase extends CaseBase {
-  kind: "mistake"; startS: number; endS: number; outcome: "hit" | "miss"; confirmedS: number | null; mutashabihat: boolean;
+  /** `misclassified`: caught by a warning of another error class on the same word. */
+  kind: "mistake"; startS: number; endS: number; outcome: "hit" | "misclassified" | "miss"; confirmedS: number | null; mutashabihat: boolean;
   oracle: "hit" | "miss"; truePosition: "hit" | "miss"; teacher: "hit" | "miss" | null }
 export interface FalseWarningCase extends CaseBase {
   kind: "false_warning"; timeS: number; confirmedS: number; nonError: "repeat" | "restart" | "self_correction" | null;
@@ -315,10 +317,10 @@ export interface FalseWarningCase extends CaseBase {
 export type LabCase = MistakeCase | FalseWarningCase;
 export const caseKey = (session: string, variant: Variant, type: string, word: WordRef, timeS: number) => `${session}/${variant}/${type}/${key(word)}/${timeS.toFixed(2)}`;
 
-export type ClassCounts = { mistakes: number; missed: number } & Record<Component, number>;
-const zeroClass = (): ClassCounts => ({ mistakes: 0, missed: 0, listener: 0, tracker: 0, checker: 0 });
+export type ClassCounts = { mistakes: number; missed: number; misclassified: number } & Record<Component, number>;
+const zeroClass = (): ClassCounts => ({ mistakes: 0, missed: 0, misclassified: 0, listener: 0, tracker: 0, checker: 0 });
 export interface VariantResult {
-  mistakes: number; missed: number; falseWarnings: number; nonErrorFalseWarnings: number;
+  mistakes: number; missed: number; misclassified: number; falseWarnings: number; nonErrorFalseWarnings: number;
   attribution: Record<Component, { missed: number; falseWarnings: number }>;
   listener: { edits: number; phonemes: number };
   tracker: TrackerScore;
@@ -329,7 +331,7 @@ export interface SessionResult {
   id: string; split: Split; strict: boolean; speaker: string; durationS: number; recitedS: number;
   /** Further words the first word needs to become unique (-1: never). */
   startNeed: number;
-  checker: { missed: number; falseWarnings: number; nonErrorFalseWarnings: number };
+  checker: { missed: number; misclassified: number; falseWarnings: number; nonErrorFalseWarnings: number };
   trackerOracle: TrackerScore | null;
   variants: Partial<Record<Variant, VariantResult>>;
   cases: LabCase[];
@@ -350,7 +352,7 @@ export function scoreLabSession(s: BenchSession, split: Split, strictTag: boolea
   const oracle = armCalls(s, arms.oracle, ctx.index);
   const recited = recitedIntervals(s), all = samples(s);
   const result: SessionResult = { id: s.id, split, strict, speaker: s.speaker, durationS: s.durationS, recitedS: round(recited.reduce((n, iv) => n + iv.endS - iv.startS, 0)),
-    startNeed, checker: { missed: s.events.length - oracle.hit.size, falseWarnings: oracle.falseWarnings.length,
+    startNeed, checker: { missed: s.events.length - oracle.hit.size, misclassified: oracle.misclassified.size, falseWarnings: oracle.falseWarnings.length,
       nonErrorFalseWarnings: oracle.falseWarnings.filter(w => nonErrorAt(s, w.at, w.timeS)).length },
     trackerOracle: arms.trackerOracle ? scoreTracker(s, arms.trackerOracle, ctx.index, ctx.disamb) : null, variants: {}, cases: [] };
   for (const variant of VARIANTS) {
@@ -363,7 +365,7 @@ export function scoreLabSession(s: BenchSession, split: Split, strictTag: boolea
       const ts = all.filter(t => t >= a && t <= b);
       return ts.length ? round(ts.filter(t => { const p = at(t); return p?.state === "locked" && correctPosition(s, p, t, ay); }).length / ts.length) : null;
     };
-    const r: VariantResult = { mistakes: s.events.length, missed: 0, falseWarnings: engine.falseWarnings.length, nonErrorFalseWarnings: 0,
+    const r: VariantResult = { mistakes: s.events.length, missed: 0, misclassified: engine.misclassified.size, falseWarnings: engine.falseWarnings.length, nonErrorFalseWarnings: 0,
       attribution: { listener: { missed: 0, falseWarnings: 0 }, tracker: { missed: 0, falseWarnings: 0 }, checker: { missed: 0, falseWarnings: 0 } },
       listener: listenerErrors(s, v.evidence, ctx.index), tracker: scoreTracker(s, v.engine, ctx.index, ctx.disamb),
       byClass: Object.fromEntries(ERROR_CLASSES.map(c => [c, zeroClass()])) as VariantResult["byClass"], mutashabihat: zeroClass(), falseWarningsByClass: {},
@@ -372,10 +374,11 @@ export function scoreLabSession(s: BenchSession, split: Split, strictTag: boolea
       const hit = engine.hit.has(i);
       const component: Component | null = hit ? null : !oracle.hit.has(i) ? "checker" : !truePos.hit.has(i) ? "listener" : "tracker";
       const slices = [r.byClass[e.errorClass as ErrorClass], ...(e.forms_other_ayah ? [r.mutashabihat] : [])].filter(Boolean);
-      for (const c of slices) { c.mistakes++; if (component) { c.missed++; c[component]++; } }
+      const misclassified = engine.misclassified.has(i);
+      for (const c of slices) { c.mistakes++; if (misclassified) c.misclassified++; if (component) { c.missed++; c[component]++; } }
       if (component) { r.missed++; r.attribution[component].missed++; }
       result.cases.push({ key: caseKey(s.id, variant, `mistake:${e.errorClass}`, e.location, e.startS), kind: "mistake", session: s.id, variant, split, strict,
-        errorClass: e.errorClass, word: key(e.location), startS: e.startS, endS: e.endS, outcome: hit ? "hit" : "miss", component,
+        errorClass: e.errorClass, word: key(e.location), startS: e.startS, endS: e.endS, outcome: misclassified ? "misclassified" : hit ? "hit" : "miss", component,
         confirmedS: engine.hit.get(i) ?? null, mutashabihat: !!e.forms_other_ayah, oracle: oracle.hit.has(i) ? "hit" : "miss",
         truePosition: truePos.hit.has(i) ? "hit" : "miss", teacher: teacher ? (teacher.hit.has(i) ? "hit" : "miss") : null,
         trackerOnPlace: onPlace(e.startS - AROUND_S, e.endS + AROUND_S), allFail: !hit && !oracle.hit.has(i) && (!teacher || !teacher.hit.has(i)),
@@ -457,11 +460,12 @@ function trackerTotals(ts: TrackerScore[]): TrackerTotals {
 const per5 = (n: number, seconds: number) => seconds ? round(n * 300 / seconds) : null;
 export interface Totals {
   sessions: number; recitedMinutes: number;
-  overall: { wrongCalls: number; missed: number; falseWarnings: number; per5Min: number | null; mistakes: number; caught: number; falseWarningsOnNonErrors: number };
+  /** `misclassified` is part of `caught`. */
+  overall: { wrongCalls: number; missed: number; falseWarnings: number; per5Min: number | null; mistakes: number; caught: number; misclassified: number; falseWarningsOnNonErrors: number };
   components: {
     listener: { per: number | null; edits: number; phonemes: number };
     tracker: TrackerTotals & { oracleEvidence: TrackerTotals | null };
-    checker: { wrongCalls: number; missed: number; falseWarnings: number; per5Min: number | null; falseWarningsOnNonErrors: number };
+    checker: { wrongCalls: number; missed: number; misclassified: number; falseWarnings: number; per5Min: number | null; falseWarningsOnNonErrors: number };
   };
   attribution: Record<Component, number> & { total: number; missed: Record<Component, number>; falseWarnings: Record<Component, number> };
   byClass: Record<ErrorClass, ClassCounts>; mutashabihat: ClassCounts; falseWarningsByClass: Record<string, number>;
@@ -484,11 +488,11 @@ export function totals(results: SessionResult[], variant: Variant): Totals {
   const oracleTrackers = rs.flatMap(r => r.trackerOracle ? [r.trackerOracle] : []);
   return { sessions: rs.length, recitedMinutes: round(recitedS / 60),
     overall: { wrongCalls: missed + falseWarnings, missed, falseWarnings, per5Min: per5(missed + falseWarnings, recitedS), mistakes, caught: mistakes - missed,
-      falseWarningsOnNonErrors: sum(vs, v => v.nonErrorFalseWarnings) },
+      misclassified: sum(vs, v => v.misclassified), falseWarningsOnNonErrors: sum(vs, v => v.nonErrorFalseWarnings) },
     components: {
       listener: { per: phonemes ? round(edits / phonemes, 4) : null, edits, phonemes },
       tracker: { ...trackerTotals(vs.map(v => v.tracker)), oracleEvidence: oracleTrackers.length ? trackerTotals(oracleTrackers) : null },
-      checker: { wrongCalls: cm + cf, missed: cm, falseWarnings: cf, per5Min: per5(cm + cf, recitedS), falseWarningsOnNonErrors: sum(rs, r => r.checker.nonErrorFalseWarnings) },
+      checker: { wrongCalls: cm + cf, missed: cm, misclassified: sum(rs, r => r.checker.misclassified), falseWarnings: cf, per5Min: per5(cm + cf, recitedS), falseWarningsOnNonErrors: sum(rs, r => r.checker.nonErrorFalseWarnings) },
     },
     attribution: { ...Object.fromEntries(COMPONENTS.map(c => [c, am[c] + af[c]])) as Record<Component, number>, total: missed + falseWarnings, missed: am, falseWarnings: af },
     byClass: Object.fromEntries(ERROR_CLASSES.map(c => [c, addClass(vs.map(v => v.byClass[c]))])) as Totals["byClass"],
