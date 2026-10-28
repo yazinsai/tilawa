@@ -149,6 +149,16 @@ def test_pending_flags_take_the_latest_bad_verdict_with_its_window():
     assert [e["item"] for e in doc["excluded"]] == ["odd", "lab-v1-p01-x3"]
 
 
+def test_session_of_case_keys_and_dotted_session_ids():
+    sessions = {"lab-v1.1-p01", "lab-v1.1-p010", "lab-v1.1-e02"}
+    case = lambda id, path: {"id": id, "audio": {"path": path, "startS": 0, "endS": 1}}
+    assert L.session_of(case("lab-v1.1-p01/phone/mistake:wrong_word/1:2:3/4.5", "x/other.wav"), sessions) == "lab-v1.1-p01"
+    assert L.session_of(case("lab-v1.1-p01-x3", "x/other.wav"), sessions) == "lab-v1.1-p01"
+    assert L.session_of(case("anything", "lab-v1.1/sessions/lab-v1.1-p010.phone.wav"), sessions) == "lab-v1.1-p010"
+    assert L.session_of(case("anything", "lab-v1.1/sessions/lab-v1.1-e02.studio.wav"), sessions) == "lab-v1.1-e02"
+    assert L.session_of(case("anything", "lab-v1.1/sessions/lab-v1.1-e09.wav"), sessions) is None
+
+
 def test_summary_has_one_row_per_main_line_change_and_decided_experiment():
     led = ledger()
     L.add_experiment(led, card(), branch="exp/noop", worktree="/w")

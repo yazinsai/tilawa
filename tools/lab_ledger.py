@@ -247,12 +247,13 @@ def latest_verdicts(reviews: list[dict]) -> dict[str, dict]:
 
 
 def session_of(item: dict, sessions: set[str]) -> str | None:
-    """A review item's session: the id the queue item starts with, else its audio file's stem."""
-    best = max((s for s in sessions if item["id"] == s or item["id"].startswith(s + "-")), key=len, default=None)
+    """A review item's session: the id the queue item starts with (`<session>-...`, or a scorer case key `<session>/...`),
+    else the session its audio file is named after (`<session>.<variant>.wav`; session ids can hold dots)."""
+    best = max((s for s in sessions if item["id"] == s or item["id"].startswith((s + "-", s + "/"))), key=len, default=None)
     if best:
         return best
-    stem = item["audio"]["path"].rsplit("/", 1)[-1].split(".", 1)[0]
-    return stem if stem in sessions else None
+    name = item["audio"]["path"].rsplit("/", 1)[-1]
+    return max((s for s in sessions if name.startswith(s + ".")), key=len, default=None)
 
 
 def pending_flags(reviews: list[dict], queues: dict[str, dict], sessions: set[str], applied: list[dict]) -> tuple[list[dict], list[str]]:

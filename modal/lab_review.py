@@ -1,9 +1,12 @@
-"""Listening review page for lab test sets (.scratch/lab/issues/06-review-ui.md, docs/benchmarks/lab-review.md).
+"""Lab dashboard and listening review page (.scratch/lab/issues/06-review-ui.md and 11-dashboard.md,
+docs/benchmarks/lab-review.md).
 
-    modal deploy modal/lab_review.py      # https://<workspace>--tilawa-lab-review-web.modal.run/?queue=<path under /lab/data>
+    modal deploy modal/lab_review.py      # https://<workspace>--tilawa-lab-review-web.modal.run/ (dashboard)
+                                          #   .../review?queue=<path under /lab/data> (review page; /?queue= still works)
     modal run modal/lab_review.py         # (re)writes the synthetic demo test set to /lab/data/fixture-review/
 
 Queues and audio are read from /lab/data on the tilawa-lab volume; verdicts go to /lab/reviews/<testSet>/<reviewer>.json.
+The dashboard reads /lab/ledger.json and the latest main-line run's /lab/runs/<run>/score.json.
 """
 
 from pathlib import Path
@@ -16,11 +19,14 @@ image = (
     .apt_install("ffmpeg")
     .uv_pip_install("fastapi[standard]==0.115.4")
     .add_local_file(ROOT / "tools/lab_review_core.py", "/root/lab_review_core.py")
+    .add_local_file(ROOT / "tools/lab_ledger.py", "/root/lab_ledger.py")
+    .add_local_file(ROOT / "tools/lab_dashboard_core.py", "/root/lab_dashboard_core.py")
+    .add_local_file(ROOT / "docs/benchmarks/scoreboard.md", "/root/scoreboard.md")
     .add_local_dir(ROOT / "modal/lab_web", "/root/lab_web")
 )
 app = modal.App("tilawa-lab-review", image=image)
 vol = modal.Volume.from_name("tilawa-lab", create_if_missing=True)
-DATA, REVIEWS, WEB = Path("/lab/data"), Path("/lab/reviews"), Path("/root/lab_web")
+LAB, DATA, REVIEWS, WEB = Path("/lab"), Path("/lab/data"), Path("/lab/reviews"), Path("/root/lab_web")
 
 
 @app.function(volumes={"/lab": vol}, max_containers=1, scaledown_window=20 * 60, timeout=10 * 60)
@@ -29,12 +35,15 @@ DATA, REVIEWS, WEB = Path("/lab/data"), Path("/lab/reviews"), Path("/root/lab_we
 def web():
     import io
     import json
+    import re
     import subprocess
     import threading
     import time
     from datetime import datetime, timezone
     from functools import lru_cache
 
+    import lab_dashboard_core as D
+    import lab_ledger as L
     import lab_review_core as core
     from fastapi import Body, FastAPI, HTTPException, Request, Response
     from fastapi.responses import FileResponse
@@ -124,7 +133,12 @@ def web():
         return core.wav_slice(io.BytesIO(subprocess.run(cmd, capture_output=True, check=True).stdout))
 
     @api.get("/")
-    def page():
+    def page(request: Request):
+        html = "review.html" if "queue" in request.query_params else "dashboard.html"
+        return FileResponse(WEB / html, headers={"Cache-Control": "no-cache"})
+
+    @api.get("/review")
+    def review_page():
         return FileResponse(WEB / "review.html", headers={"Cache-Control": "no-cache"})
 
     @api.get("/api/queues")
@@ -179,6 +193,159 @@ def web():
             return Response(body, headers=headers)
         a, b = r
         return Response(body[a : b + 1], status_code=206, headers={**headers, "Content-Range": f"bytes {a}-{b}/{len(body)}"})
+
+    # Dashboard (ticket 11). Every file is parsed once per (mtime, size); requests only shape cached JSON.
+
+    parsed: dict[Path, tuple] = {}
+    RUN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$")
+    gates = D.release(Path("/root/scoreboard.md").read_text())
+
+    def read_json(p: Path):
+        try:
+            s = p.stat()
+        except (FileNotFoundError, NotADirectoryError):
+            return None
+        hit = parsed.get(p)
+        if hit and hit[0] == (s.st_mtime, s.st_size):
+            return hit[1]
+        try:
+            obj = json.loads(p.read_text())
+        except (json.JSONDecodeError, OSError) as e:
+            print(f"cannot read {p}: {e!r}")
+            return None
+        parsed[p] = ((s.st_mtime, s.st_size), obj)
+        return obj
+
+    def run_score(run: str | None):
+        if not run:
+            return None
+        if not RUN.match(run) or ".." in run:
+            raise HTTPException(400, "bad run name")
+        sc = read_json(LAB / "runs" / run / "score.json")
+        return sc if sc and sc.get("kind") == "lab-score" else None
+
+    def lab_state(run: str | None = None, ledger: str | None = None):
+        """(ledger or None, test set entry or None, run shown, its score.json or None). `ledger` is a throwaway ledger at
+        the volume root, as `lab.py --ledger` writes; the default is /lab/ledger.json."""
+        reload()
+        led = read_json(LAB / (name(ledger, "ledger") if ledger else "ledger.json"))
+        led = led if led and led.get("kind") == "lab-ledger" else None
+        r = run or D.main_run(led)
+        sc = run_score(r)
+        tsd = (led["testSets"].get(led["testSet"]) if led and led.get("testSet") else None) if not run else None
+        return led, tsd, r, sc
+
+    def base_for(tsd, sc) -> str:
+        return tsd["base"] if tsd else D.base_of((sc or {}).get("testSet", ""))
+
+    def all_reviews(base: str) -> list[dict]:
+        d = REVIEWS / base
+        return [x for x in (read_json(p) for p in sorted(d.glob("*.json"))) if x] if base and d.is_dir() else []
+
+    def flags_and_check(tsd, sc):
+        base = base_for(tsd, sc)
+        reviews = all_reviews(base)
+        queues = {}
+        for q in {r.get("queue") for rv in reviews for r in rv.get("items", {}).values()} - {None}:
+            try:
+                queues[q] = read_json(DATA / core.safe_rel(q))
+            except ValueError:
+                pass
+        sessions = set(tsd["sessions"]["practice"] + tsd["sessions"]["exam"]) if tsd else {r["id"] for r in (sc or {}).get("results", [])}
+        applied = ((read_json(DATA / tsd["exclude"]) or {}).get("excluded", [])) if tsd and tsd.get("exclude") else []
+        pend, warn = D.pending_flags(reviews, {k: v for k, v in queues.items() if v}, sessions, applied)
+        check = D.check_status(read_json(DATA / base / "review" / D.CHECK_QUEUE), reviews)
+        return base, reviews, pend, warn, check
+
+    def everywhere(led, sc) -> set:
+        """Practice cases failing on the shown run and in every open experiment's latest run on the current test set."""
+        if not led:
+            return set()
+        runs = [r["run"] for e in led["experiments"].values() if e["state"] == "open" and (r := L.latest(e, led["testSet"]))]
+        sets = [D.failing_keys(s) for s in (run_score(r) for r in runs) if s]
+        return D.fails_everywhere(D.failing_keys(sc), sets)
+
+    def find_case(sc, key: str) -> dict:
+        c = next((c for c in sc.get("cases", []) if c["key"] == key and c.get("split") == "practice"), None)
+        if not c:
+            raise HTTPException(404, f"no practice case {key!r} in run {sc.get('run')}")
+        return c
+
+    def session_doc(c: dict):
+        p = D.session_doc_path(c)
+        try:
+            return read_json(DATA / core.safe_rel(p)) if p else None
+        except ValueError:
+            return None
+
+    def need_score(sc, r):
+        if not sc:
+            raise HTTPException(404, f"no score.json for run {r}" if r else "no baseline yet: run `python3 tools/lab.py baseline`")
+        return sc
+
+    @api.get("/api/dashboard")
+    def dashboard(run: str | None = None, ledger: str | None = None):
+        led, tsd, r, sc = lab_state(run, ledger)
+        _, _, pend, warn, check = flags_and_check(tsd, sc)
+        out = {"header": D.header(sc, led=None if run else led, pending=len(pend), check=check, run=r), "run": r, "asked": run,
+               "overview": D.overview(sc) if sc else None, "experiments": D.experiment_rows(led) if led else [],
+               "history": D.history(led) if led else [], "flagWarnings": warn, "runs": []}
+        if not led or not sc:
+            found = sorted((LAB / "runs").glob("*/score.json"), key=lambda p: p.stat().st_mtime, reverse=True) if (LAB / "runs").is_dir() else []
+            out["runs"] = [p.parent.name for p in found[:12]]
+        return out
+
+    @api.get("/api/cases")
+    def cases(component: str, variant: str = "phone", run: str | None = None, ledger: str | None = None):
+        if component not in D.COMPONENTS or variant not in ("phone", "studio"):
+            raise HTTPException(400, f"component is one of {', '.join(D.COMPONENTS)}; variant phone or studio")
+        led, tsd, r, sc = lab_state(run, ledger)
+        need_score(sc, r)
+        _, reviews, *_ = flags_and_check(tsd, sc)
+        rows = D.order_cases(D.failing(sc, component, variant), everywhere(led, sc), L.latest_verdicts(reviews))
+        other = "studio" if variant == "phone" else "phone"
+        return {"component": component, "variant": variant, "run": r, "testSet": sc["testSet"], "cases": rows,
+                "other": {"variant": other, "n": len(D.failing(sc, component, other))},
+                "card": next(c for c in D.cards(sc["splits"]["practice"]) if c["key"] == component) if sc["splits"]["practice"]["sessions"] else None}
+
+    @api.get("/api/case")
+    def case(key: str, run: str | None = None, reviewer: str = "me", ledger: str | None = None):
+        led, tsd, r, sc = lab_state(run, ledger)
+        c = find_case(need_score(sc, r), key)
+        base = base_for(tsd, sc)
+        return {"item": D.case_item(c, session_doc(c)), "story": D.engine_story(c), "suspects": D.suspects(c), "component": c["component"],
+                "review": load_reviews(base, name(reviewer, "reviewer"))["items"].get(key), "testSet": base}
+
+    @api.post("/api/case-verdict")
+    def case_verdict(body: dict = Body(...)):
+        reviewer, key = name(body.get("reviewer", "me"), "reviewer"), body.get("key")
+        led, tsd, r, sc = lab_state(body.get("run"), body.get("ledger"))
+        c = find_case(need_score(sc, r), key)
+        base = base_for(tsd, sc)
+        qrel = f"{base}/review/{D.DASH_QUEUE}"
+        item = D.case_item(c, session_doc(c))
+        with cond:
+            doc = load_reviews(base, reviewer)
+            at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            try:
+                rec = core.upsert(doc, key, body.get("verdict"), body.get("note", ""), at, qrel)
+            except ValueError as e:
+                raise HTTPException(400, str(e))
+            qp = DATA / qrel
+            qd = json.loads(qp.read_text()) if qp.is_file() else None
+            for p, obj in ((qp, D.upsert_queue_item(qd, base, item)), (reviews_path(base, reviewer), doc)):
+                p.parent.mkdir(parents=True, exist_ok=True)
+                tmp = p.with_suffix(".json.tmp")
+                tmp.write_text(json.dumps(obj, ensure_ascii=False, indent=1))
+                tmp.replace(p)
+            st["dirty"] = True
+            cond.notify()
+        _, _, pend, _, _ = flags_and_check(tsd, sc)
+        return {"key": key, "review": rec, "pending": len(pend), "file": str(reviews_path(base, reviewer)), "queue": qrel}
+
+    @api.get("/api/release")
+    def release():
+        return {"release": gates, "source": "docs/benchmarks/scoreboard.md"}
 
     return api
 
