@@ -317,12 +317,12 @@ def _wc(x: list[int]) -> str:
 
 
 def format_compare(cmp: dict, card: dict | None = None) -> list[str]:
-    lines = [f"{'wrong calls':18} {'main line':>22} {'this':>22} {'change':>7}  verdict"]
+    lines = [f"{'wrong calls':18} {'main line':>27} {'this':>27} {'change':>7}  verdict"]
     for what in ("overall", *COMPONENTS):
         r = cmp[what]
         mark = " <" if card and what == card["component"] else ""
         exp = f"  (expected {r['expected']:+d})" if "expected" in r else ""
-        lines.append(f"{('lost by ' if what != 'overall' else '') + what + mark:18} {_wc(r['main']):>22} {_wc(r['this']):>22} {r['change']:>+7d}  {r['verdict']}{exp}")
+        lines.append(f"{('lost by ' if what != 'overall' else '') + what + mark:18} {_wc(r['main']):>27} {_wc(r['this']):>27} {r['change']:>+7d}  {r['verdict']}{exp}")
     return lines
 
 
