@@ -1238,13 +1238,24 @@ def said_text(s: dict, a: float, b: float) -> str:
     return " ".join(w["text"] for w in s["said"] if w["endS"] > a and w["startS"] < b)
 
 
+def whole_words(s: dict, a: float, b: float, pad: float = 0.25) -> tuple[float, float]:
+    """Widens [a, b] to cover every word it touches, so the clip plays each word `said_text` shows; the pad stops short of the next word."""
+    ws = [w for w in s["said"] if w["endS"] > a and w["startS"] < b]
+    if not ws:
+        return a, b
+    lo, hi = min(w["startS"] for w in ws), max(w["endS"] for w in ws)
+    prev = max((w["endS"] for w in s["said"] if w["endS"] <= lo), default=0.0)
+    nxt = min((w["startS"] for w in s["said"] if w["startS"] >= hi), default=s["durationS"])
+    return round(max(0.0, prev, lo - pad), 3), round(min(s["durationS"], nxt, hi + pad), 3)
+
+
 def _where(at: dict) -> str:
     return f"{at['surah']}:{at['ayah']}, word {at['word']}"
 
 
 def review_splice(s: dict, x: dict, root: str = TEST_SET) -> dict:
     """A planted edit as a review item: 2.5 s either side, with the host recording before and after its first seam."""
-    a, b = max(0.0, x["startS"] - 2.5), min(s["durationS"], x["endS"] + 2.5)
+    a, b = whole_words(s, max(0.0, x["startS"] - 2.5), min(s["durationS"], x["endS"] + 2.5))
     h = x["seams"][0]["out"]
     cls = "mutashabihat" if x["mutashabihat"] else x["type"]
     how = "joined mid-phrase, no pause" if linked(x) else "joined at a pause"
@@ -1259,7 +1270,7 @@ def review_splice(s: dict, x: dict, root: str = TEST_SET) -> dict:
 
 def review_repeat(s: dict, x: dict, root: str = TEST_SET) -> dict:
     """A planted repeat or restart as a review case, 3 s either side."""
-    a, b = max(0.0, x["startS"] - 3.0), min(s["durationS"], x["endS"] + 3.0)
+    a, b = whole_words(s, max(0.0, x["startS"] - 3.0), min(s["durationS"], x["endS"] + 3.0))
     return {"id": f"{s['id']}-{x['id']}", "kind": "case", "title": REVIEW_TITLES[x["type"]],
             "audio": {"path": f"{root}/{s['meta']['audio']['studio']}", "startS": round(a, 3), "endS": round(b, 3)},
             "text": said_text(s, a, b), "label": {"type": x["type"], "expected": x["expected"], "said": x["said"]},
@@ -1317,10 +1328,11 @@ def review_queue(sessions: list[dict], ref: Ref, seed: int = SEED) -> dict:
             if not ws:
                 continue
             t = rng.choice(ws)
+            a, b = whole_words(s, t, t + 8.0)
             cases.append({"id": f"{s['id']}-{variant}-{int(t)}", "kind": "case",
                           "title": "Recited as written, no mistake" + (" (phone copy: room echo and noise)" if variant == "phone" else ""),
-                          "audio": {"path": f"{root}/{s['meta']['audio'][variant]}", "startS": round(t, 3), "endS": round(t + 8.0, 3)},
-                          "text": said_text(s, t, t + 8.0), "label": {"type": "clean"},
+                          "audio": {"path": f"{root}/{s['meta']['audio'][variant]}", "startS": a, "endS": b},
+                          "text": said_text(s, a, b), "label": {"type": "clean"},
                           "context": f"session {s['id']} at {t:.1f} s · {s['meta']['reciter']}"
                                      + (f" · phone copy, SNR {s['meta']['phone']['snrDb']} dB" if variant == "phone" else "")})
             k += 1

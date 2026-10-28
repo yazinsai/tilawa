@@ -298,3 +298,12 @@ def test_manifest_and_review_queue():
     q = S.review_queue([s], REF)
     assert validate_queue(q) == [] and len({i["id"] for i in q["items"]}) == len(q["items"])
     assert {i["kind"] for i in q["items"]} == {"splice", "case"}
+
+
+def test_review_clips_play_every_word_they_show():
+    _, _, _, s = build()
+    for i in S.review_queue([s], REF)["items"]:
+        a, b = i["audio"]["startS"], i["audio"]["endS"]
+        shown = [w for w in s["said"] if w["endS"] > a and w["startS"] < b]
+        assert shown and all(a <= w["startS"] and w["endS"] <= b for w in shown), i["id"]
+        assert i["text"] == " ".join(w["text"] for w in shown)
