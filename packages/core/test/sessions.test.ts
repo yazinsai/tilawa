@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadReferenceIndex } from "../src/reference.js";
 import type { CheckerEvent, PositionEvent, WordRef } from "../src/events.js";
-import { contextAdapter, qudContexts, runSession, scoreSessionEvents, summarizeSessions, validateSession, weakerContexts, qudSession, qudAudit } from "../src/bench/sessions.js";
+import { contextAdapter, evidenceFits, qudContexts, runSession, scoreSessionEvents, summarizeSessions, validateSession, weakerContexts, qudSession, qudAudit } from "../src/bench/sessions.js";
 import type { BenchSession } from "../src/bench/sessions.js";
 const index = loadReferenceIndex(JSON.parse(readFileSync(new URL("../assets/ref-v2.json", import.meta.url), "utf8")));
 const at: WordRef = { surah: 94, ayah: 5, word: 1 };
@@ -134,6 +134,16 @@ describe("session truth and scoring", () => {
       posteriors: { k: 1, ids: new Array(300).fill(0), probs: new Array(300).fill(1) } } as any, index);
     expect(Array.isArray(run.events)).toBe(true);
     expect(run.score).toEqual(scoreSessionEvents(s, run.events, index));
+  });
+  it("takes evidence a conv front end leaves short by up to 100 ms plus a frame, in whole ms", () => {
+    const s = { ...session(), durationS: 213.58 };
+    const ev = (nFrames: number, inventory = index.inventoryId) => ({ inventory, frameMs: 40, nFrames, phonemes: [] });
+    expect(evidenceFits(s, ev(5337), index)).toBe(true);
+    expect(evidenceFits(s, ev(5336), index)).toBe(true);
+    expect(evidenceFits(s, ev(5335), index)).toBe(false);
+    expect(evidenceFits(s, ev(5343), index)).toBe(true);
+    expect(evidenceFits(s, ev(5344), index)).toBe(false);
+    expect(evidenceFits(s, ev(5337, "other"), index)).toBe(false);
   });
   it("synthesises QUD contexts from the main recitation only, excluding restarts", () => {
     const q = qudSession(qud([["2:7:1", 1, 2], ["2:8:1", 3, 4], ["1:1:1", 5, 6], ["1:1:2", 6, 7]]), "q.wav");

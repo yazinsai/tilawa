@@ -16,7 +16,7 @@ import type { PhraseAsset, ReferenceIndex } from "../reference.js";
 import { createTracker } from "../tracker.js";
 import { chunk } from "./index.js";
 import type { QudRecording } from "./index.js";
-import { ERROR_CLASSES, ayahOrdinal, correctPosition, inOccurrence, scoreSessionEvents, validateSession } from "./sessions.js";
+import { ERROR_CLASSES, ayahOrdinal, correctPosition, evidenceFits, inOccurrence, scoreSessionEvents, validateSession } from "./sessions.js";
 import type { BenchSession, ErrorClass, Interval, SessionEvent, SessionEvidence } from "./sessions.js";
 
 export const LAB_SCORE_VERSION = 1;
@@ -238,7 +238,7 @@ export function oraclePositions(s: BenchSession, index: ReferenceIndex) {
 }
 
 function checkEvidence(s: BenchSession, e: SessionEvidence, index: ReferenceIndex, what: string) {
-  if (e.inventory !== index.inventoryId || Math.abs(e.nFrames * e.frameMs / 1000 - s.durationS) > 0.1) throw new Error(`Evidence mismatch: ${s.id} ${what}`);
+  if (!evidenceFits(s, e, index)) throw new Error(`Evidence mismatch: ${s.id} ${what}`);
 }
 const chunks = (e: SessionEvidence) => chunk(e as QudRecording, CHUNK_S, !!e.posteriors?.ids?.length);
 /** The product: free recitation, no context, tracker and checker on `evidence`. */

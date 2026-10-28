@@ -362,10 +362,15 @@ export function summarizeSessions(rows: SessionScore[]): SessionSummary[] {
 }
 
 export type SessionEvidence = Pick<QudRecording, "inventory" | "frameMs" | "nFrames" | "phonemes" | "posteriors">;
+/** Evidence of this session's audio: same inventory, frames covering its duration to 100 ms plus one frame.
+ * A conv front end ends short of the audio (the 40 ms student by 65–105 ms); compared in whole ms so float error can't trip it. */
+export function evidenceFits(s: BenchSession, e: SessionEvidence, index: ReferenceIndex): boolean {
+  return e.inventory === index.inventoryId && Math.abs(Math.round(e.nFrames * e.frameMs) - Math.round(s.durationS * 1000)) <= 100 + e.frameMs;
+}
 export function runSession(s: BenchSession, evidence: SessionEvidence,
     index: ReferenceIndex, context = s.context, phrases?: PhraseAsset): { score: SessionScore; events: EngineEvent[] } {
   validateSession(s, index);
-  if (evidence.inventory !== index.inventoryId || Math.abs(evidence.nFrames * evidence.frameMs / 1000 - s.durationS) > 0.1) throw new Error(`Evidence mismatch: ${s.id}`);
+  if (!evidenceFits(s, evidence, index)) throw new Error(`Evidence mismatch: ${s.id}`);
   const adapter = contextAdapter(context, index);
   const tracker = createTracker(index, { mode: s.track === "memorization" ? "memorization" : "free", phrases, ...adapter.tracker });
   const checker = createChecker(index, { phrases, ...adapter.checker });
