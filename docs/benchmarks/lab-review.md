@@ -2,7 +2,7 @@
 
 A Modal web page for listening to test set items one at a time and marking each as fine or bad data (`.scratch/lab/issues/06-review-ui.md`). It is used for the test set v1 check (ticket 07) and reused by the dashboard drill-down (ticket 11).
 
-- Page: <https://amal-invest--tilawa-lab-review-web.us-east.modal.run/?queue=fixture-review/review/demo.json>
+- Page: <https://amal-invest--tilawa-lab-review-web.us-east.modal.run/review?queue=fixture-review/review/demo.json> (`/?queue=...` still works; `/` without a queue is the dashboard)
 - Deploy: `modal deploy modal/lab_review.py`. Rewrite the demo set: `modal run modal/lab_review.py`.
 - Test: `uv run --python cpython-3.12-macos-aarch64-none --with pytest pytest tools/test_lab_review.py`
 
@@ -66,3 +66,17 @@ const view = mountItem(el, item, { review, verdicts: [...VERDICTS, ...FAULTS], o
 `onVerdict` returns a promise of the saved record. The view exposes `play('audio' | 'before' | 'after')`, `choose(index)`, `note()`, `setReview(record)` and `destroy()`. `labelHtml(label)` and `clipUrl(clip)` are also exported.
 
 There is no login, so anyone with the URL can listen to the audio and save verdicts.
+
+## Dashboard
+
+`/` on the same app (`.scratch/lab/issues/11-dashboard.md`). It reads `/lab/ledger.json` and the merged `score.json` of the latest main-line run on the current test set. Every file is parsed once per modification time, and the volume is reloaded at most every 5 s.
+
+- **Header**: the exam overall score on phone audio, its missed and false-warning counts, the test set version, the listening check (latest verdict per item across reviewers on `<base>/review/v1-check.json`), and pending flags. Pending flags are exactly what `lab apply-flags` would apply next.
+- **Score**: the attribution bar, three component cards (the wrong calls charged to each, plus its own score with perfect upstream inputs), the teacher reference, experiments with "waiting for your decision" first and the fold or discard command to copy, and the main-line history.
+- **Drill-down** (`#/cases/<component>[/studio]`): failing practice cases charged to that component, likely bad data first. Order: more reasons first, then a failed data check, then teacher + student + perfect-hearing checker all failing, then failing in every open experiment. Exam cases are never shown. A case opens the item view with bad-data and fault buttons (keys 1–6).
+- **Release**: the release-readiness gates from `docs/benchmarks/scoreboard.md`, as of the deploy.
+- No ledger: the page says so, gives `python3 tools/lab.py baseline`, and links recent runs. `?run=<run>` shows any run's `score.json`, and `?ledger=<file>` reads a throwaway ledger at the volume root (as `lab.py --ledger` writes).
+
+A drill-down verdict is keyed by the scorer's case key. It is saved to `/lab/reviews/<base>/<reviewer>.json` with `queue: "<base>/review/dashboard.json"`. The case is also upserted into that queue file, carrying its review window, so `lab apply-flags` finds the window and the session (`session_of` matches `<session>/...` keys).
+
+API: `GET /api/dashboard`, `GET /api/cases?component=&variant=phone|studio`, `GET /api/case?key=&reviewer=`, `POST /api/case-verdict {key, verdict, note, reviewer}`, `GET /api/release`; all take `run` and `ledger`. Logic: `tools/lab_dashboard_core.py`; tests: `uv run --python cpython-3.12-macos-aarch64-none --with pytest pytest tools/test_lab_dashboard.py`.
