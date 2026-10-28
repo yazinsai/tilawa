@@ -65,8 +65,8 @@ Spec: `../spec.md` decisions 10–13.
   - `new noop`, then `run` over 20 shards: overall 140 to 140, listener 54, tracker 2, checker 84, all +0, so noise. Details: 2350 phoneme errors, 13 false jumps, 102 checker wrong calls with perfect inputs.
   - `apply-flags --dry-run` found no reviews yet for lab-v1. `discard noop` worked.
   - These numbers aren't trusted until 07 passes.
-- Blocking and open:
-  - 6 of 40 lab-v1 sessions aren't scored (p07, p18, e01, e08, e14, e17): "Evidence mismatch". The student evidence ends 0.10 s short of the session (e01: 5337 frames × 40 ms = 213.48 s against 213.58 s), right at the scorer's 0.1 s tolerance in `checkEvidence`; the teacher is 0.02 s short and passes. Fix it in the decoder (pad to the session length) or in the scorer (tolerance of about 2 frames); either is a scorer/decoder contract call for 05/08.
+- Open:
+  - The lab-v1 e2e scored 34 of 40 sessions: p07, p18, e01, e08, e14 and e17 failed the old 0.1 s evidence-length check (student evidence 0.10 s short). `lab` has since fixed that in `evidenceFits` (`docs/benchmarks/lab-baseline-v1.md`), and this branch is rebased onto it, so the next baseline scores all 40.
   - The real ledger doesn't exist yet. After `lab-10` merges into `lab`, run `python3 tools/lab.py baseline`. Experiments branched from `lab` before that merge lack the scorer's `--split`.
   - No scoreboard row: the defaults score the same, so no metric moves.
   - Speed: practice runs take about 11 min because one shard per session waits on the longest session with every arm plus the teacher. Splitting long sessions isn't possible, but `--teacher none` on experiment runs would cut about a fifth (the ceiling only matters on the main line).
