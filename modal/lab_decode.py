@@ -247,7 +247,7 @@ def main(listener: str, model: str = "", test_set: str = "lab-v1.1", variants: s
         for j in jobs:
             if j["fresh"]:
                 results[j["key"]] = {"skipped": True}
-        for j, r in zip(todo, list(Teacher().decode.starmap([(j["wav"], j["dst"], j["force"]) for j in todo], return_exceptions=True, wrap_returned_exceptions=False))):
+        for j, r in zip(todo, list(Teacher().decode.starmap([(j["wav"], j["dst"], j["force"]) for j in todo], return_exceptions=True, wrap_returned_exceptions=False)) if todo else []):
             results[j["key"]] = r
     else:
         run = f"decode-{listener}-{sha}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
@@ -265,7 +265,7 @@ def main(listener: str, model: str = "", test_set: str = "lab-v1.1", variants: s
                         f"pnpm --filter @tilawa/sdk decode --model {shlex.quote(f'/lab/data/{model}')} --wavs $d --out $d/out --push {push_ms}{flag}; "
                         f"mkdir -p $(dirname {dst}); mv $d/out/{shlex.quote(stem)}.evidence.json {dst}.tmp; mv {dst}.tmp {dst}")
         print(f"run {run}")
-        statuses = list(lab_run.shard.starmap([(src, c, run, i, len(todo)) for i, c in enumerate(cmds)], return_exceptions=True, wrap_returned_exceptions=False))
+        statuses = list(lab_run.shard.starmap([(src, c, run, i, len(todo)) for i, c in enumerate(cmds)], return_exceptions=True, wrap_returned_exceptions=False)) if todo else []
         for j, st in zip(todo, statuses):
             if isinstance(st, Exception) or st["code"]:
                 results[j["key"]] = st if isinstance(st, Exception) else RuntimeError(st["tail"][-600:])
