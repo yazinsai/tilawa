@@ -2,7 +2,8 @@
 
     modal run modal/lab_run.py --shards 4 --cmd 'pnpm --filter @tilawa/core exec vitest run --shard=$((LAB_SHARD+1))/$LAB_SHARDS'
 
-Usually called through `tools/lab.py run`. Each shard unpacks the worktree's tracked and untracked (non-ignored) files over
+Usually called through `tools/lab.py`, which sets LAB_SRC to the worktree to score (default: this file's checkout).
+Each shard unpacks the worktree's tracked and untracked (non-ignored) files over
 an image with the workspace dependencies installed, then runs `cmd` under bash in /app with:
 
     LAB_RUN     run id: <name>-<sha>[-dirty]-<utc time>
@@ -10,12 +11,14 @@ an image with the workspace dependencies installed, then runs `cmd` under bash i
     LAB_DATA    /lab/data on the tilawa-lab volume (test sets, evidence; read-only by convention)
     LAB_OUT     /lab/runs/<run>/<shard>, where the command writes its results
 
-Each shard's output tail and exit code are saved as LAB_OUT/log.txt and LAB_OUT/status.json.
+Each shard's output tail and exit code are saved as LAB_OUT/log.txt and LAB_OUT/status.json. `--merge '<command>'` runs
+once after every shard succeeds, with LAB_OUT=/lab/runs/<run>/merge; `--run-file <path>` writes the run id locally.
 """
 
 import hashlib
 import io
 import json
+import os
 import subprocess
 import tarfile
 import time
@@ -24,7 +27,7 @@ from pathlib import Path
 
 import modal
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(os.environ.get("LAB_SRC") or Path(__file__).resolve().parent.parent)
 PNPM = "pnpm@10.18.0"
 FILTER = "--filter @tilawa/core... --filter @tilawa/sdk..."
 MANIFESTS = ["package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", *(str(p.relative_to(ROOT)) for p in sorted(ROOT.glob("packages/*/package.json")))]
@@ -44,15 +47,14 @@ lock_hash = lambda: hashlib.sha256(Path("/app/pnpm-lock.yaml").read_bytes()).hex
 
 
 @app.function(cpu=2, memory=4096, volumes={"/lab": vol}, timeout=30 * 60)
-def shard(src: bytes, cmd: str, run: str, i: int, n: int) -> dict:
-    import os
-
+def shard(src: bytes, cmd: str, run: str, i: int, n: int, out_dir: str = "") -> dict:
     baked = lock_hash()
     with tarfile.open(fileobj=io.BytesIO(src)) as t:
         t.extractall("/app", filter="data")
     if lock_hash() != baked:
         subprocess.run(f"cd /app && CI=1 pnpm install --frozen-lockfile {FILTER}", shell=True, check=True)
-    out = Path(f"/lab/runs/{run}/{i}")
+    vol.reload()
+    out = Path(out_dir or f"/lab/runs/{run}/{i}")
     out.mkdir(parents=True, exist_ok=True)
     Path("/lab/data").mkdir(exist_ok=True)
     env = {**os.environ, "LAB_RUN": run, "LAB_SHARD": str(i), "LAB_SHARDS": str(n), "LAB_DATA": "/lab/data", "LAB_OUT": str(out)}
@@ -80,15 +82,24 @@ def source() -> tuple[bytes, str]:
 
 
 @app.local_entrypoint()
-def main(cmd: str, shards: int = 1, name: str = "adhoc"):
+def main(cmd: str, shards: int = 1, name: str = "adhoc", merge: str = "", run_file: str = ""):
+    """`merge`: a command run once after every shard succeeds (LAB_OUT=/lab/runs/<run>/merge). `run_file`: local path that gets the run id."""
     src, sha = source()
     run = f"{name}-{sha}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
+    if run_file:
+        Path(run_file).write_text(run)
     print(f"run {run}: {shards} shard(s), source {len(src) / 1e6:.1f} MB")
     results = sorted(shard.starmap([(src, cmd, run, i, shards) for i in range(shards)]), key=lambda s: s["shard"])
     for s in results:
         print(f"shard {s['shard']}: exit {s['code']} in {s['seconds']} s")
         if s["code"]:
             print(s["tail"])
+    if merge and not any(s["code"] for s in results):
+        m = shard.remote(src, merge, run, 0, 1, f"/lab/runs/{run}/merge")
+        print(f"merge: exit {m['code']} in {m['seconds']} s")
+        if m["code"]:
+            print(m["tail"])
+        results.append(m)
     print(f"results: tilawa-lab volume /runs/{run}/")
     if any(s["code"] for s in results):
         raise SystemExit(1)

@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import { disambiguationWords } from "../src/disambiguation.js";
 import type { CheckerEvent, EngineEvent, PositionEvent, WordRef } from "../src/events.js";
 import { loadReferenceIndex } from "../src/reference.js";
-import { COMPONENTS, VARIANTS, editDistance, labReport, listenerErrors, markDataChecks, mergeReports, oracleEvidence, recitedIntervals,
-  refIndex, saidItems, scoreLabSession, scoreTracker, totals, trackerEntries } from "../src/bench/lab.js";
-import type { LabArms, LabMeta, SessionResult } from "../src/bench/lab.js";
+import { COMPONENTS, VARIANTS, editDistance, exclusionsFor, labReport, listenerErrors, markDataChecks, mergeReports, oracleEvidence, recitedIntervals,
+  refIndex, saidItems, scoreLabSession, scoreTracker, shardEntries, totals, trackerEntries } from "../src/bench/lab.js";
+import type { LabArms, LabExclusions, LabMeta, SessionResult } from "../src/bench/lab.js";
 import { buildSession, wordPhonemes } from "../src/bench/lab-fixture.js";
 import type { FixturePart } from "../src/bench/lab-fixture.js";
 import type { BenchSession } from "../src/bench/sessions.js";
@@ -111,6 +111,15 @@ describe("attribution", () => {
     const t = totals([r], "phone");
     expect(t.overall).toMatchObject({ wrongCalls: 6, missed: 2, caught: 1, misclassified: 1 });
     expect(t.components.checker).toMatchObject({ missed: 0, misclassified: 1 });
+  });
+  it("drops mistakes and false warnings inside a flagged window and keeps the parts adding up", () => {
+    const windows = [{ startS: wrong.startS - 0.01, endS: wrong.endS }, { startS: tA + 1.9, endS: tA + 2.1 }];
+    const r = scoreLabSession(s, "practice", undefined, arms(), ctx, windows);
+    const v = r.variants.phone!;
+    expect(v.mistakes).toBe(2); expect(v.missed).toBe(2); expect(v.falseWarnings).toBe(3);
+    expect(v.attribution).toEqual({ listener: { missed: 1, falseWarnings: 1 }, tracker: { missed: 0, falseWarnings: 2 }, checker: { missed: 1, falseWarnings: 0 } });
+    expect(r.cases.some(c => c.word === "94:2:2" || c.word === "94:3:2")).toBe(false);
+    expect(r.checker).toEqual({ missed: 1, misclassified: 0, falseWarnings: 1, nonErrorFalseWarnings: 0 });
   });
   it("keys cases stably by session, variant, type, word and time", () => {
     const a = scoreLabSession(s, "practice", undefined, arms(), ctx), b = scoreLabSession(s, "practice", undefined, arms(), ctx);
@@ -218,5 +227,17 @@ describe("report and merge", () => {
     const merged = mergeReports(JSON.parse(JSON.stringify(shards)), { recordedAt: "x" });
     expect({ ...merged, shard: null }).toEqual({ ...whole, sessions: { ...whole.sessions } });
     expect(() => mergeReports([shards[0]])).toThrow(/missing shard 1/);
+  });
+  it("shards one split's sessions only and reads an exclusion list by session", () => {
+    const es = ["p1", "e1", "p2", "e2", "p3"].map(id => ({ id, split: id[0] === "p" ? "practice" : "exam" }));
+    const ids = (shard: number, shards: number, split?: "practice" | "exam") => shardEntries(es, { split, shard, shards }).map(e => e.id);
+    expect([0, 1, 2].map(i => ids(i, 3, "practice"))).toEqual([["p1"], ["p2"], ["p3"]]);
+    expect(ids(0, 2)).toEqual(["p1", "p2", "p3"]);
+    expect(ids(1, 2, "exam")).toEqual(["e2"]);
+    const x: LabExclusions = { version: 1, kind: "lab-flags", testSet: "t.v2", base: "t",
+      excluded: [{ session: "p1", startS: 3, endS: 9, item: "p1-x1" }, { session: "p2", item: "p2-phone-5" }] };
+    expect(exclusionsFor(x, "p1")).toEqual({ session: false, windows: [{ startS: 3, endS: 9 }] });
+    expect(exclusionsFor(x, "p2")).toEqual({ session: true, windows: [] });
+    expect(exclusionsFor(null, "p3")).toEqual({ session: false, windows: [] });
   });
 });

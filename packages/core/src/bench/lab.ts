@@ -343,34 +343,43 @@ export interface LabContext { index: ReferenceIndex; disamb: ArrayLike<number>; 
 const nonErrorAt = (s: BenchSession, at: WordRef, t: number) =>
   s.nonErrors.find(n => key(n.at) === key(at) && inOccurrence(s, n, n.endS + 6, t))?.kind ?? null;
 
-/** Scores one session from its arms' events. Pure: every wrong call of every variant lands in exactly one component. */
-export function scoreLabSession(s: BenchSession, split: Split, strictTag: boolean | undefined, arms: LabArms, ctx: LabContext): SessionResult {
+/**
+ * Scores one session from its arms' events. Pure: every wrong call of every variant lands in exactly one component.
+ * Mistakes overlapping an `exclude` window (flagged bad data) and false warnings raised inside one are not counted.
+ */
+export function scoreLabSession(s: BenchSession, split: Split, strictTag: boolean | undefined, arms: LabArms, ctx: LabContext, exclude: Interval[] = []): SessionResult {
   validateSession(s, ctx.index);
   const ay = ayahOrdinal(ctx.index), ix = refIndex(ctx.index);
   const startNeed = ctx.disamb[ix(s.words[0].at)];
   const strict = strictTag ?? (startNeed < 0 || startNeed > STRICT_WORDS);
-  const oracle = armCalls(s, arms.oracle, ctx.index);
+  const out = (a: number, b = a) => exclude.some(w => a <= w.endS && b >= w.startS);
+  const kept = s.events.map(e => !out(e.startS, e.endS)), nKept = kept.filter(Boolean).length;
+  const keep = (a: ArmCalls): ArmCalls => ({ hit: new Map([...a.hit].filter(([i]) => kept[i])), misclassified: new Set([...a.misclassified].filter(i => kept[i])),
+    falseWarnings: a.falseWarnings.filter(w => !out(w.timeS)) });
+  const calls = (events: EngineEvent[]) => keep(armCalls(s, events, ctx.index));
+  const oracle = calls(arms.oracle);
   const recited = recitedIntervals(s), all = samples(s);
   const result: SessionResult = { id: s.id, split, strict, speaker: s.speaker, durationS: s.durationS, recitedS: round(recited.reduce((n, iv) => n + iv.endS - iv.startS, 0)),
-    startNeed, checker: { missed: s.events.length - oracle.hit.size, misclassified: oracle.misclassified.size, falseWarnings: oracle.falseWarnings.length,
+    startNeed, checker: { missed: nKept - oracle.hit.size, misclassified: oracle.misclassified.size, falseWarnings: oracle.falseWarnings.length,
       nonErrorFalseWarnings: oracle.falseWarnings.filter(w => nonErrorAt(s, w.at, w.timeS)).length },
     trackerOracle: arms.trackerOracle ? scoreTracker(s, arms.trackerOracle, ctx.index, ctx.disamb) : null, variants: {}, cases: [] };
   for (const variant of VARIANTS) {
     const v = arms.variants[variant];
     if (!v) continue;
-    const engine = armCalls(s, v.engine, ctx.index), truePos = armCalls(s, v.truePosition, ctx.index);
-    const teacher = v.teacher ? armCalls(s, v.teacher.engine, ctx.index) : null;
+    const engine = calls(v.engine), truePos = calls(v.truePosition);
+    const teacher = v.teacher ? calls(v.teacher.engine) : null;
     const at = shown(positionsOf(v.engine));
     const onPlace = (a: number, b: number) => {
       const ts = all.filter(t => t >= a && t <= b);
       return ts.length ? round(ts.filter(t => { const p = at(t); return p?.state === "locked" && correctPosition(s, p, t, ay); }).length / ts.length) : null;
     };
-    const r: VariantResult = { mistakes: s.events.length, missed: 0, misclassified: engine.misclassified.size, falseWarnings: engine.falseWarnings.length, nonErrorFalseWarnings: 0,
+    const r: VariantResult = { mistakes: nKept, missed: 0, misclassified: engine.misclassified.size, falseWarnings: engine.falseWarnings.length, nonErrorFalseWarnings: 0,
       attribution: { listener: { missed: 0, falseWarnings: 0 }, tracker: { missed: 0, falseWarnings: 0 }, checker: { missed: 0, falseWarnings: 0 } },
       listener: listenerErrors(s, v.evidence, ctx.index), tracker: scoreTracker(s, v.engine, ctx.index, ctx.disamb),
       byClass: Object.fromEntries(ERROR_CLASSES.map(c => [c, zeroClass()])) as VariantResult["byClass"], mutashabihat: zeroClass(), falseWarningsByClass: {},
-      teacher: v.teacher && teacher ? { missed: s.events.length - teacher.hit.size, falseWarnings: teacher.falseWarnings.length, ...listenerErrors(s, v.teacher.evidence, ctx.index) } : null };
+      teacher: v.teacher && teacher ? { missed: nKept - teacher.hit.size, falseWarnings: teacher.falseWarnings.length, ...listenerErrors(s, v.teacher.evidence, ctx.index) } : null };
     s.events.forEach((e, i) => {
+      if (!kept[i]) return;
       const hit = engine.hit.has(i);
       const component: Component | null = hit ? null : !oracle.hit.has(i) ? "checker" : !truePos.hit.has(i) ? "listener" : "tracker";
       const slices = [r.byClass[e.errorClass as ErrorClass], ...(e.forms_other_ayah ? [r.mutashabihat] : [])].filter(Boolean);
@@ -422,7 +431,8 @@ export function markDataChecks(r: SessionResult, checks: DataChecks): SessionRes
 }
 
 export interface LabInput { session: BenchSession; split: Split; strict?: boolean;
-  evidence: Partial<Record<Variant, SessionEvidence>>; teacher?: Partial<Record<Variant, SessionEvidence>>; audio?: Partial<Record<Variant, string>>; trackerOracle?: boolean }
+  evidence: Partial<Record<Variant, SessionEvidence>>; teacher?: Partial<Record<Variant, SessionEvidence>>; audio?: Partial<Record<Variant, string>>; trackerOracle?: boolean;
+  exclude?: Interval[] }
 /** Runs every arm of one session and scores it. */
 export function labSession(input: LabInput, ctx: LabContext): SessionResult {
   const s = input.session;
@@ -438,7 +448,23 @@ export function labSession(input: LabInput, ctx: LabContext): SessionResult {
   }
   if (!Object.keys(variants).length) throw new Error(`${s.id}: no listener evidence`);
   return scoreLabSession(s, input.split, input.strict, { oracle: runTruePosition(s, oracle, ctx.index, ctx.phrases),
-    trackerOracle: input.trackerOracle === false ? null : runTracker(s, oracle, ctx.index, ctx.phrases), variants }, ctx);
+    trackerOracle: input.trackerOracle === false ? null : runTracker(s, oracle, ctx.index, ctx.phrases), variants }, ctx, input.exclude);
+}
+
+/**
+ * A test set version's exclusion list (written by `tools/lab.py apply-flags` from bad-data review verdicts). An entry
+ * with a window drops the mistakes and false warnings in it; an entry without one drops the whole session.
+ */
+export interface LabExclusions { version: 1; kind: "lab-flags"; testSet: string; base: string;
+  excluded: ({ session: string; item?: string; verdict?: string; note?: string } & Partial<Interval>)[] }
+export function exclusionsFor(x: LabExclusions | null, session: string): { session: boolean; windows: Interval[] } {
+  const es = x?.excluded.filter(e => e.session === session) ?? [];
+  return { session: es.some(e => e.startS === undefined || e.endS === undefined),
+    windows: es.flatMap(e => e.startS !== undefined && e.endS !== undefined ? [{ startS: e.startS, endS: e.endS }] : []) };
+}
+/** The manifest entries one shard scores: those of `split` (all when unset), then every `shards`-th from `shard`. */
+export function shardEntries<T extends { id: string; split: string }>(entries: T[], o: { split?: Split; only?: string; shard: number; shards: number }): T[] {
+  return entries.filter(e => (!o.split || e.split === o.split) && (!o.only || e.id === o.only)).filter((_, i) => i % o.shards === o.shard);
 }
 
 export interface DelaySummary { n: number; p50: number | null; p90: number | null; max: number | null; censored: number; buckets: Record<string, number> }

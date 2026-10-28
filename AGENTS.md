@@ -6,6 +6,10 @@ Offline streaming Quran recitation engine and SDK. See `PLAN.md`.
 
 Any change that can move a metric (listener, tracker, checker, labels, eval data) adds a scoreboard row before it merges: run the scoreboard command with a one-line `--note` saying what changed and why, and commit the updated `docs/benchmarks/scoreboard.json`. The browser dashboard reads that file. See `docs/benchmarks/scoreboard.md` for the command.
 
+## Lab experiments
+
+Any change that can move a lab number (listener, tracker, checker) is an experiment with a recorded result (`.scratch/lab/spec.md`): `python3 tools/lab.py new <id> --component ... --hypothesis '...' --expect-component N --expect-overall N` makes its worktree and card, and `python3 tools/lab.py run <worktree>` records its practice result and verdict. The user decides `lab fold` or `lab discard`. Pass `fold --yes` only when the user has approved that fold. Fold-in updates the main line (`lab`). See `tools/lab.py` for every command.
+
 ## Agent skills
 
 ### Issue tracker
