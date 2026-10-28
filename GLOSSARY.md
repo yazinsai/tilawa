@@ -72,6 +72,12 @@ How well one of listener, tracker or checker does its own job when fed perfect i
 **Attribution**:
 The split of the overall score's wrong calls into those lost by the listener, the tracker and the checker. The three parts add up to the overall score.
 
+**Recited time**:
+The denominator of every per-5-minute score: the stretches of a session holding Quran audio (recited words and labelled mistakes, bridging pauses of up to 2 s), minus non-Quran audio.
+
+**Oracle evidence**:
+Evidence synthesised from a test case's labels: what was actually said, decoded perfectly. The checker's component score and attribution use it.
+
 **Spliced session**:
 A test case cut from one reciter's continuous recording, minutes long, with mistakes, repeats and restarts planted by editing the audio, so the labels are known by construction.
 
