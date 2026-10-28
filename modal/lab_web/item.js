@@ -91,7 +91,8 @@ export function mountItem(el, item, { base = '', review = null, verdicts = VERDI
     <textarea class="li-note" placeholder="Note (optional, saved exactly as typed)"></textarea>
     <div class="li-status"></div>
   </div>`;
-  const $ = (s) => el.querySelector(s);
+  const root = el.firstElementChild;
+  const $ = (s) => root.querySelector(s);
   const note = $('.li-note');
   const status = $('.li-status');
   const player = new Audio(clipUrl(item.audio, base));
@@ -100,14 +101,14 @@ export function mountItem(el, item, { base = '', review = null, verdicts = VERDI
   let saved = review;
 
   const press = (key) => {
-    for (const b of el.querySelectorAll('[data-v]')) b.setAttribute('aria-pressed', String(key === b.dataset.v));
+    for (const b of root.querySelectorAll('[data-v]')) b.setAttribute('aria-pressed', String(key === b.dataset.v));
   };
   const show = () => {
     press(saved?.verdict);
     status.classList.remove('li-err');
     status.textContent = saved ? `Saved ${new Date(saved.at).toLocaleString()}` : 'Not reviewed yet';
   };
-  const buttons = () => el.querySelectorAll('[data-clip]');
+  const buttons = () => root.querySelectorAll('[data-clip]');
   const mark = () => {
     for (const b of buttons()) {
       const on = b.dataset.clip === current && !player.paused;
@@ -149,13 +150,13 @@ export function mountItem(el, item, { base = '', review = null, verdicts = VERDI
     }
   };
 
-  el.querySelector('.li-play').addEventListener('click', (e) => {
+  $('.li-play').addEventListener('click', (e) => {
     const b = e.target.closest('[data-clip]');
     if (!b) return;
     b.blur();
     play(b.dataset.clip);
   });
-  el.querySelector('.li-verdicts').addEventListener('click', (e) => {
+  $('.li-verdicts').addEventListener('click', (e) => {
     const b = e.target.closest('[data-v]');
     if (!b) return;
     b.blur();
