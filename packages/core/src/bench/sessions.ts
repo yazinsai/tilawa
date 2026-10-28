@@ -19,6 +19,8 @@ export interface SessionEvent extends LabelEvent, Interval {
   span: string;
   /** skipped_passage only: the last skipped word. Its omission horizon counts from here, else from `location`. */
   through?: WordRef;
+  /** Planted wrong_word / added_word: the phonemes recited instead of / just before `location`, in the reference inventory. */
+  said?: string;
 }
 export interface BenchSession {
   version: 1; id: string; track: "recitation" | "memorization"; speaker: string;
@@ -83,6 +85,7 @@ export function validateSession(s: BenchSession, index: ReferenceIndex): void {
   for (const e of s.events) {
     inside(e); ref(e.location);
     if (e.through && (e.errorClass !== "skipped_passage" || ref(e.through) < ref(e.location))) fail("invalid skipped passage end");
+    if (e.said !== undefined && (!["wrong_word", "added_word"].includes(e.errorClass) || !e.said || [...e.said].some(p => !index.tokens.has(p)))) fail("invalid said phonemes");
     if (!["wrong_word", "omitted_word", "added_word", "skipped_passage"].includes(e.errorClass)
         || !["confirmed", "resolved", "suspected"].includes(e.state)) fail("unsupported event label");
   }
