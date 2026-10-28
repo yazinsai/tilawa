@@ -56,7 +56,7 @@ def vol_get(path: str):
         if b"No such file" in p.stderr or b"No such file" in p.stdout:
             return None
         raise Stop(f"modal volume get {path} failed: {p.stderr.decode().strip()}")
-    return json.loads(p.stdout)
+    return json.JSONDecoder().raw_decode(p.stdout.decode().lstrip())[0]  # the CLI appends a "Finished downloading" line
 
 
 def vol_put(path: str, obj) -> None:
@@ -100,7 +100,7 @@ def score(a, wt: Path, *, name: str, listener: str, ts: dict, splits: tuple, log
     merge = "pnpm --filter @tilawa/core lab --merge /lab/runs/$LAB_RUN"
     log = log or Path(tempfile.mkdtemp(prefix="lab-")) / f"{name}.log"
     run_file = log.with_suffix(".run")
-    print(f"scoring {wt.name} ({' + '.join(splits)}, {ts['id']}) on Modal: {n} shards; log {log}", flush=True)
+    print(f"scoring {name} ({' + '.join(splits)}, {ts['id']}) on Modal: {n} shards; log {log}", flush=True)
     with open(log, "w") as f:
         p = subprocess.run(["modal", "run", str(RUNNER), "--shards", str(n), "--name", name, "--cmd", cmd, "--merge", merge, "--run-file", str(run_file)],
                            cwd=REPO, env={**os.environ, "LAB_SRC": str(wt)}, stdout=f, stderr=subprocess.STDOUT)
@@ -210,6 +210,7 @@ def print_verdict(card: dict, res: dict, base: dict):
     p = res["practice"]
     print(f"\n{card['id']} ({card['component']}): practice set of {res['testSet']}, {p['sessions']} sessions, {p['minutes']} min; {res['sha']} vs main line {base['sha']}")
     print("\n".join(L.format_compare(cmp, card)))
+    print(L.format_details(res["practice"], base["practice"]))
     print(f"verdict: {L.headline(cmp, card)} (a change of {L.NOISE} or fewer is noise)")
     return cmp
 

@@ -56,7 +56,8 @@ def test_report_keeps_counts_and_refuses_a_missing_split():
     p = r["practice"]
     assert "exam" not in r and r["excluded"] == 1
     assert (p["wrongCalls"], p["missed"], p["falseWarnings"]) == (14, 10, 4)
-    assert p["listener"]["wrongCalls"] == 7 and p["tracker"]["wrongCalls"] == 4 and p["checker"]["wrongCalls"] == 4
+    assert p["listener"]["wrongCalls"] == 7 and p["tracker"]["wrongCalls"] == 4 and p["checker"]["wrongCalls"] == 3
+    assert sum(p[c]["wrongCalls"] for c in L.COMPONENTS) == p["wrongCalls"] and p["checker"]["alone"]["wrongCalls"] == 4
     assert p["listener"]["phonemeErrors"] == 400 and p["tracker"]["falseJumps"] == 2
     with pytest.raises(ValueError, match="no exam"):
         L.from_report(report(totals()), ("practice", "exam"))
@@ -73,12 +74,14 @@ def test_compare_rows_and_headline():
     assert same["checker"]["expected"] == -5 and same["overall"]["expected"] == -3 and "expected" not in same["listener"]
     assert L.headline(same, card()) == "noise"
     better = L.compare(L.score(totals(missed=6, att={"listener": (6, 1), "tracker": (2, 2), "checker": (0, 0)}, checker=(0, 0))), base, card())
-    assert better["overall"]["change"] == -4 and better["checker"]["change"] == -4 and better["checker"]["verdict"] == "better"
+    assert better["overall"]["change"] == -4 and better["checker"]["change"] == -3 and better["checker"]["verdict"] == "better"
     assert L.headline(better, card()) == "better" and L.gains(better, card()) == ["overall", "checker"]
-    only = L.compare(L.score(totals(missed=9, checker=(0, 0))), base, card())
+    only = L.compare(L.score(totals(missed=9, att={"listener": (6, 1), "tracker": (2, 2), "checker": (0, 0)})), base, card())
     assert L.headline(only, card()) == "noise overall, checker better"
     lines = L.format_compare(better, card())
-    assert "checker <" in lines[4] and "(expected -5)" in lines[4] and "14 (10 missed + 4 false)" in lines[1]
+    assert "lost by checker <" in lines[4] and "(expected -5)" in lines[4] and "14 (10 missed + 4 false)" in lines[1]
+    d = L.format_details(L.score(totals(checker=(0, 0))), base)
+    assert "phoneme errors 400 (same)" in d and "perfect inputs 4 (3 missed + 1 false) -> 0 (0 missed + 0 false)" in d
 
 
 def test_status_waiting_first_and_decided_hidden():
@@ -111,13 +114,13 @@ def test_new_test_set_version_needs_new_results():
 
 def test_fold_check():
     c, base = card(), L.score(totals())
-    gain = L.compare(L.score(totals(missed=5, checker=(0, 0), att={"listener": (5, 1), "tracker": (0, 2), "checker": (0, 1)})), base, c)
+    gain = L.compare(L.score(totals(missed=5, checker=(0, 0), att={"listener": (5, 1), "tracker": (0, 2), "checker": (0, 0)})), base, c)
     noise = L.compare(base, base, c)
     assert L.fold_check(c, gain, gain)[0] == "ok"
     state, why = L.fold_check(c, gain, noise)
     assert state == "superseded" and "gone after rebase" in why and "checker +0" in why
     assert L.fold_check(c, noise, noise)[0] == "no-gain"
-    partial = L.compare(L.score(totals(missed=9, checker=(0, 0))), base, c)
+    partial = L.compare(L.score(totals(missed=9, att={"listener": (6, 1), "tracker": (2, 2), "checker": (0, 0)})), base, c)
     assert L.fold_check(c, gain, partial) == ("ok", "keeps its checker gain (lost overall)")
 
 
@@ -158,4 +161,4 @@ def test_summary_has_one_row_per_main_line_change_and_decided_experiment():
     assert [(r["kind"], r.get("id") or r["sha"]) for r in s["rows"]] == [("main", "m1"), ("experiment", "noop"), ("main", "m2")]
     row = s["rows"][1]
     assert row["branch"]["wrongCalls"] == 9 and row["rebased"]["practice"]["wrongCalls"] == 10 and row["rebased"]["exam"]["wrongCalls"] == 9
-    assert row["branch"]["checker"] == 4 and s["rows"][2]["experiment"] == "noop"
+    assert row["branch"]["checker"] == 3 and s["rows"][2]["experiment"] == "noop"

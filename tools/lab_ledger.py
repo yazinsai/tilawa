@@ -4,11 +4,9 @@ Pure logic; `tools/lab.py` does the git and Modal work. The ledger is one JSON d
 /lab/ledger.json); every function here takes and returns plain dicts.
 
 Counts, not rates: every number compared is a count of wrong calls (missed + false warnings) on the practice set,
-and a change of NOISE or fewer is noise. Each component's headline count:
-
-    listener   wrong calls the attribution charges to the listener
-    tracker    wrong calls the attribution charges to the tracker
-    checker    the checker's own wrong calls with perfect inputs (oracle evidence, true position)
+and a change of NOISE or fewer is noise. A component's count is the wrong calls the attribution charges to it, so
+listener + tracker + checker = overall. Details beside them: the listener's phoneme errors, the tracker's false jumps
+and the checker's wrong calls with perfect inputs (oracle evidence, true position).
 """
 
 import re
@@ -67,7 +65,7 @@ def score(totals: dict) -> dict:
         "wrongCalls": o["wrongCalls"], "missed": o["missed"], "falseWarnings": o["falseWarnings"], "mistakes": o["mistakes"], "per5Min": o["per5Min"],
         "listener": {**part("listener"), "phonemeErrors": c["listener"]["edits"], "phonemes": c["listener"]["phonemes"], "per": c["listener"]["per"]},
         "tracker": {**part("tracker"), "falseJumps": c["tracker"]["falseJumps"], "onPlaceShare": c["tracker"]["onPlaceShare"]},
-        "checker": {k: c["checker"][k] for k in ("wrongCalls", "missed", "falseWarnings")},
+        "checker": {**part("checker"), "alone": {k: c["checker"][k] for k in ("wrongCalls", "missed", "falseWarnings")}},
     }
 
 
@@ -305,13 +303,21 @@ def _wc(x: list[int]) -> str:
 
 
 def format_compare(cmp: dict, card: dict | None = None) -> list[str]:
-    lines = [f"{'':10} {'main line':>22} {'this':>22} {'change':>7}  verdict"]
+    lines = [f"{'wrong calls':12} {'main line':>22} {'this':>22} {'change':>7}  verdict"]
     for what in ("overall", *COMPONENTS):
         r = cmp[what]
         mark = " <" if card and what == card["component"] else ""
         exp = f"  (expected {r['expected']:+d})" if "expected" in r else ""
-        lines.append(f"{what + mark:10} {_wc(r['main']):>22} {_wc(r['this']):>22} {r['change']:>+7d}  {r['verdict']}{exp}")
+        lines.append(f"{('lost by ' if what != 'overall' else '') + what + mark:12} {_wc(r['main']):>22} {_wc(r['this']):>22} {r['change']:>+7d}  {r['verdict']}{exp}")
     return lines
+
+
+def format_details(new: dict, base: dict) -> str:
+    arrow = lambda a, b: f"{a} -> {b}" if a != b else f"{a} (same)"
+    al, bl = base["checker"]["alone"], new["checker"]["alone"]
+    return (f"details: listener phoneme errors {arrow(base['listener']['phonemeErrors'], new['listener']['phonemeErrors'])}; "
+            f"tracker false jumps {arrow(base['tracker']['falseJumps'], new['tracker']['falseJumps'])}; "
+            f"checker with perfect inputs {arrow(_wc([al['wrongCalls'], al['missed'], al['falseWarnings']]), _wc([bl['wrongCalls'], bl['missed'], bl['falseWarnings']]))}")
 
 
 def format_status(led: dict, rows: list[dict]) -> list[str]:
