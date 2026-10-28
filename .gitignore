@@ -31,3 +31,4 @@ packages/sample/public/clips/
 .scratch/scoreboard/
 .scratch/session-bench/qud/
 .scratch/session-bench/build/
+.scratch/lab/cache/
