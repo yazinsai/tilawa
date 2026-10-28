@@ -1,0 +1,65 @@
+# Lab: one score, three components, many experiments
+
+Status: ready-for-agent
+
+Agreed 28 October 2026 (grilling session). Terms follow `GLOSSARY.md` (Measurement section).
+
+## Problem
+
+The scoreboard has 13 release gates and about 200 diagnostics across five test sets. The shipped listener's latest row is mostly "not measured", and no number says whether the engine got better. There's no test of long free recitation with mistakes, no way to tell bad data from engine failures, and experiments are commits judged against whatever ran before. There is also a strong suspicion that both the tests and the training data are bad.
+
+## Goal
+
+- One **overall score**, always visible: wrong calls per 5 minutes of free recitation on the **exam set**. Lower is better; 1 miss = 1 false warning. The missed and false-warning counts are always shown under it.
+- Three **component scores**, each with perfect upstream inputs:
+  - listener: PER against what was actually said;
+  - tracker: share of recitation time on the right place, counted from the disambiguation point, with false jumps;
+  - checker: wrong calls per 5 min with oracle evidence and the true position.
+- **Attribution** splits the overall wrong calls into listener, tracker and checker losses, which add up to the total.
+- Many **experiments** in parallel. Each shows its component, the expected effect, the actual effect (component and overall) and a verdict. You fold in or discard.
+- Every failing case can be opened (audio, decode, tracker, checker) and marked as either bad data or a component fault.
+- **Data first.** No score is trusted until test set v1 passes review.
+
+Non-goals for now: pronunciation (its own track once the checker has a class), the memorization-session use case in the headline, migrating old scoreboard rows.
+
+## Decisions
+
+1. The lab replaces the scoreboard front page. Release gates move to a secondary release tab. Old `scoreboard.json` history is archived read-only.
+2. The headline use case is **free recitation** (no passage given), on minutes-long sessions so the tracker has time to lock.
+3. Shared runs (Al-Rahman and similar) aren't excluded. Lock delay counts from the **disambiguation point**, and a confident wrong lock before it is a false jump. Most sessions start where the disambiguation point comes within about 5 words; a labelled **strict slice** starts inside long shared runs.
+4. **Test set v1 = spliced sessions** from mp3quran full-surah Hafs recordings with ayah timings (98 reciters), using held-out reciters only. Word timings come from teacher alignment.
+   - Size: about 40 sessions of 3–8 minutes from 10 or more reciters. About 20% start at an ayah 1, the rest at chosen ayahs.
+   - Mistakes: about 1 planted mistake per 2–3 ayahs (wrong, omitted, added, skipped passage; mutashabihat swaps as their own slice), 150 or more in total.
+   - Non-errors: about one planted repeat or restart per session.
+   - About 25% of sessions are fully clean.
+5. Mistakes are planted only at word boundaries with no assimilation across the words, with about a 10 ms crossfade.
+6. The headline is scored on a **phone-degraded** copy of each session (room reverb plus licensed noise, fixed seed). Studio audio is a slice.
+7. One test set feeds the overall score, all component scores and attribution. Gold PER and the help clips move to the release tab.
+8. The test set is split by reciter into a **practice set** (fully visible) and an **exam set** (numbers only, scored at fold-in).
+9. The **main line** listener is `spliced-clean-int8`. The teacher is shown as a ceiling only.
+10. An **experiment** = a git worktree plus a card:
+    - which component it's for;
+    - the hypothesis;
+    - the expected change in the component score and the overall score, in counts.
+
+    Agents write, implement and launch experiments; you decide fold-in or discard.
+11. **Fold-in** = rebase onto the main line and re-score automatically. The card shows expected, measured on its branch, and measured after rebase. A gain that disappears after rebase marks the experiment "superseded".
+12. Changes are shown in counts. A change of 2 or fewer is noise.
+13. **Flags** are pending until applied. Applying them creates the next test set version and re-scores the main line and all open experiments.
+14. The drill-down surfaces likely bad data first:
+    - the teacher, the student and the oracle-evidence checker all fail the same case;
+    - the listener hears neither the original nor the planted word at a splice;
+    - a case fails in every experiment.
+
+    One click marks a case as bad data (label, audio, splice) or as a component fault (listener, tracker, checker).
+15. **Modal by default.** Data building, decoding, scoring and the dashboard (a Modal web endpoint) all run on Modal. The Mac runs git and the CLI only.
+16. **Test set acceptance.** Every automated check passes, and your 40 listens (20 splices, 20 random cases) find no more than 1 bad. More than that means fixing the pipeline and rebuilding, not patching cases.
+17. `modal/review_asr.py` is calibrated on those 40 listens. At 95% or better agreement it pre-screens later versions, and you hear only disagreements plus a 10% spot check.
+18. The old help clips get the same automated checks plus a 20-clip listen. They return as a real-learner slice if they pass, and are dropped if they fail.
+19. **Training data** gets its own tab after v1: about 30 sampled clips per bucket and source, an estimated bad-label rate with a range, and flags feeding a training data version. Retraining on it is a listener experiment.
+20. Public error sets (Al-Ikhlas from Mendeley, RetaSy, QuranMB with its approved ground truth) go onto the Modal volume now. They aren't scored until there's a pronunciation track; RetaSy's wrong-verse labels later become a tracker slice on learner audio.
+21. AGENTS.md: any change that can move a metric is an experiment with a recorded result, and fold-in updates the main line.
+
+## Order
+
+Data first (tickets 01–06, then your check in 07). The scorer, runner, ledger and dashboard (08–11) are built alongside, but their numbers aren't trusted until 07 passes. Then come review_asr calibration, the help clip audit, public sets, the training data tab and scoreboard retirement (12–16).
