@@ -64,7 +64,7 @@ if (values.manifest) {
   const m = JSON.parse(readFileSync(values.manifest, "utf8"));
   if (m.version !== 1 || !Array.isArray(m.sessions)) throw new Error("Invalid manifest");
   const base = resolve(values.manifest, "..");
-  for (const x of m.sessions) items.push({ session: x.session, evidence: JSON.parse(readFileSync(resolve(base, x.evidence), "utf8")), audio: resolve(base, x.session.audio) });
+  for (const x of m.sessions) items.push({ session: x.session, evidence: JSON.parse(readFileSync(resolve(base, x.evidence.replace("{listener}", values.listener!)), "utf8")), audio: resolve(base, x.session.audio) });
 }
 if (!items.length) throw new Error("Pass --manifest or --qud with session data");
 const dumping = values["clip-dump"] !== "none";
