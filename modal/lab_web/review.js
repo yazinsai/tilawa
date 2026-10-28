@@ -36,7 +36,7 @@ function header() {
   };
 }
 
-function show(i) {
+function show(i, autoplay = true) {
   const items = st.queue.items;
   st.i = Math.max(0, Math.min(items.length - 1, i));
   const item = items[st.i];
@@ -67,6 +67,7 @@ function show(i) {
       return saving;
     },
   });
+  if (autoplay) st.view.play('audio');
   $('pos').textContent = `${st.i + 1} / ${items.length}`;
   url.searchParams.set('item', item.id);
   history.replaceState(null, '', url);
@@ -115,7 +116,7 @@ async function start() {
   $('todo').onclick = nextTodo;
   const at = st.queue.items.findIndex((it) => it.id === url.searchParams.get('item'));
   const todo = st.queue.items.findIndex((it) => !st.reviews[it.id]);
-  show(at >= 0 ? at : Math.max(0, todo));
+  show(at >= 0 ? at : Math.max(0, todo), false);
 }
 
 start().catch((e) => {
