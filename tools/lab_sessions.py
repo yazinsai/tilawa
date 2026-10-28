@@ -803,6 +803,7 @@ def label(win: dict, rec: Rec, edits: list[dict], tokens: list[dict], pieces: li
                 xr = d[0].words[d[1]]["ref"]
                 ev["expected"] = "" if cls == "added_word" else rec_text([e["k0"]])
                 ev["observed"] = ref.words[xr]["text"]
+                ev["said"] = ref.words[xr]["cont"]
                 ev["donor"] = ref.name(xr)
             else:
                 i = first_after

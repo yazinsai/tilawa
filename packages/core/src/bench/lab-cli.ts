@@ -8,7 +8,8 @@
  *   { "version": 1, "testSet": "lab-v1", "sessions": [{ "id", "split": "practice" | "exam", "session": "<BenchSession path>" | {...},
  *     "tags"?: ["strict", ...], "audio"?: { "phone"?: "<wav>", "studio"?: "<wav>" },
  *     "evidence"?: { "<listener>": { "phone"?: "<path>", "studio"?: "<path>" } } }] }
- * Evidence not listed is looked up at evidence/<listener>/<id>.<variant>.json.
+ * Evidence not listed is looked up at the manifest's "evidencePattern" ({id}, {listener}, {variant}), else evidence/<listener>/<id>.<variant>.json.
+ * "slices": { "strict" } (the session builder's tag) counts as "strict".
  */
 import { execSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
@@ -74,15 +75,16 @@ const index = loadReferenceIndex(asset);
 const phrases = JSON.parse(readFileSync(new URL("../../assets/phrases-v1.json", import.meta.url), "utf8"));
 const disamb = disambiguationWords(index);
 
-interface Entry { id: string; split: Split; session: string | BenchSession; tags?: string[]; strict?: boolean; audio?: Partial<Record<Variant, string>>;
-  evidence?: Record<string, Partial<Record<Variant, string>>> }
+interface Entry { id: string; split: Split; session: string | BenchSession; tags?: string[]; strict?: boolean; slices?: { strict?: boolean };
+  audio?: Partial<Record<Variant, string>>; evidence?: string | Record<string, Partial<Record<Variant, string>>> }
 const manifestPath = resolve(values.manifest!);
-const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as { version: number; testSet: string; sessions: Entry[] };
+const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as { version: number; testSet: string; evidencePattern?: string; sessions: Entry[] };
 if (manifest.version !== 1 || !manifest.testSet || !Array.isArray(manifest.sessions)) throw new Error(`Invalid lab manifest ${manifestPath}`);
 const base = dirname(manifestPath);
 const evidencePath = (e: Entry, listener: string, v: Variant) => {
-  const listed = e.evidence?.[listener]?.[v];
-  const path = resolve(base, listed ?? join("evidence", listener, `${e.id}.${v}.json`));
+  const listed = typeof e.evidence === "object" ? e.evidence[listener]?.[v] : undefined;
+  const fallback = manifest.evidencePattern?.replace("{id}", e.id).replace("{listener}", listener).replace("{variant}", v) ?? join("evidence", listener, `${e.id}.${v}.json`);
+  const path = resolve(base, listed ?? fallback);
   if (listed && !existsSync(path)) throw new Error(`${e.id}: listed ${listener} ${v} evidence missing at ${path}`);
   return existsSync(path) ? path : null;
 };
@@ -105,7 +107,7 @@ manifest.sessions.forEach((e, i) => {
     const pick = (listener: string) => Object.fromEntries(variants.flatMap(v => { const x = load(evidencePath(e, listener, v)); return x ? [[v, x]] : []; }));
     const evidence = pick(values.listener!);
     if (!Object.keys(evidence).length) throw new Error(`no ${values.listener} evidence`);
-    const strict = e.strict ?? (e.tags ? e.tags.includes("strict") : undefined);
+    const strict = e.strict ?? e.slices?.strict ?? (e.tags ? e.tags.includes("strict") : undefined);
     const r = labSession({ session, split: e.split, strict, evidence, audio: audioOf(e), teacher: teacherName ? pick(teacherName) : undefined,
       trackerOracle: !values["no-tracker-oracle"] }, { index, disamb, phrases });
     results.push(r);

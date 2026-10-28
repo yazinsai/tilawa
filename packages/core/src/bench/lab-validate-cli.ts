@@ -14,6 +14,8 @@ const dir = resolve(values.dir!);
 const failures: { file: string; error: string }[] = [];
 const check = (file: string, s: BenchSession) => {
   try { validateSession(s, index); } catch (e) { failures.push({ file, error: (e as Error).message }); }
+  for (const e of s.events) if ((e.errorClass === "wrong_word" || e.errorClass === "added_word") && !e.said)
+    failures.push({ file, error: `planted ${e.errorClass} at ${e.location.surah}:${e.location.ayah}:${e.location.word} lacks said phonemes` });
 };
 const files = readdirSync(join(dir, "sessions")).filter((f) => /^[^.]+\.json$/.test(f)).sort();
 for (const f of files) check(`sessions/${f}`, JSON.parse(readFileSync(join(dir, "sessions", f), "utf8")));
