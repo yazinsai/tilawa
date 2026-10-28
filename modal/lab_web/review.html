@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Listening check</title>
+    <style>
+      body { font-family: -apple-system, system-ui, "Segoe UI", sans-serif; margin: 0; color: #222; background: #fff; }
+      header { position: sticky; top: 0; background: #fff; border-bottom: 1px solid #eee; padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: baseline; z-index: 1; }
+      header .big { font-size: 20px; font-weight: 600; }
+      .bar { padding: 3px 10px; border-radius: 999px; font-weight: 600; }
+      .bar.pass { background: #e6f5ec; color: #1f8a4c; }
+      .bar.fail { background: #fbeaea; color: #c0392b; }
+      .bar.open { background: #f3f3f3; color: #555; }
+      header .who { margin-left: auto; color: #666; font-size: 14px; }
+      main { padding: 24px 20px 40px; }
+      nav { display: flex; gap: 10px; justify-content: center; align-items: center; padding: 0 20px 16px; }
+      nav button { font-size: 16px; padding: 10px 18px; border-radius: 10px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
+      .keys { text-align: center; color: #888; font-size: 13px; padding-bottom: 30px; }
+      .msg { max-width: 760px; margin: 40px auto; font-size: 17px; line-height: 1.6; }
+      .msg li { margin: 6px 0; }
+      .err { color: #c0392b; white-space: pre-wrap; }
+      a { color: #1f5f4a; }
+    </style>
+  </head>
+  <body>
+    <header id="head"></header>
+    <main id="main"><div class="msg">Loading…</div></main>
+    <nav id="nav" hidden>
+      <button id="prev">← Back (k)</button>
+      <span id="pos"></span>
+      <button id="next">Next (j) →</button>
+      <button id="todo">Next not reviewed</button>
+    </nav>
+    <div class="keys" id="keys" hidden>Keys: space play · b / a original before / after · 1–4 verdict · j next · k back</div>
+    <script type="module" src="/static/review.js"></script>
+  </body>
+</html>
