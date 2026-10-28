@@ -16,11 +16,14 @@ On the `tilawa-lab` volume under `/lab/data/lab-v1/`:
 | `sessions/<id>.json` | BenchSession plus `said`, `splices`, `meta` |
 | `sessions/<id>.studio.wav`, `.phone.wav` | 16 kHz mono PCM16 |
 | `sessions/<id>.checks.json` | render checks (below) |
-| `sessions/<id>.<listener>.<studio\|phone>.evidence.json` | listener evidence, written by ticket 05 |
+| `sessions/<id>.<listener>.<studio\|phone>.evidence.json` | listener evidence (`spliced-clean-int8`, `teacher`), written by ticket 05 |
+| `decode-v1.json` | per listener: model hashes, flags, source commit, run id, per-file hash, frames and seconds |
+| `checks-v1.json` | the automated checks (ticket 04): per-case pass/fail with reasons; `pnpm --filter @tilawa/core lab` reads it |
 | `manifest-v1.json` | split, slices, audio and label paths, inline session; `sessions-cli --manifest` reads it |
 | `plan-v1.json` | sample-exact pieces and phone parameters per session |
 | `summary-v1.json` | `lab-v1.json` plus the reciter list |
-| `review/v1-check.json` | the ticket 07 listening check (20 splices, 20 cases) |
+| `review/v1-check.json` | the ticket 07 listening check (20 splices, 20 cases), with every splice that failed the automated checks |
+| `review/v1-check.base.json` | the builder's queue before the checks swapped failed splices in |
 | `aug/noise.npz`, `aug/rir.npz`, `aug/bank-v1.json` | the phone-copy noise and RIR bank with provenance |
 
 Ids are `lab-v1-p01`–`p20` (practice) and `lab-v1-e01`–`e20` (exam), ordered by reader, surah and start.
@@ -107,6 +110,83 @@ These checks are in `<id>.checks.json` for every session.
 - **Seam depth:** seams sit at a median of 17 dB below the session's active speech level (10th to 90th percentile: −28 to −10 dB; loudest −5 dB, at linked boundaries).
 - **Words at their labels:** every said word was found at its labelled time. The 60 ms around the middle of its source audio correlates above 0.999 at zero lag with the output, for all 9541 checkable words. The other 154 words are shorter in the output because a cut falls inside their aligned span, so they were not checked.
 - **Phone lag:** the cross-correlation lag between the phone and studio copies has a median of 0. Some windows read up to 25 ms in reverberant, low-SNR copies. The delay is zero by construction (RIR trimmed at its peak, zero-phase filter), so these readings are a limit of the measurement.
+
+## Decode
+
+`modal run modal/lab_decode.py --listener <name> --model <dir under /lab/data>` decodes every session and variant with a student checkpoint; `--listener teacher` runs the teacher. Options: `--only <ids>`, `--variants`, `--push-ms`, `--force`. It refuses to mix evidence of a different model under one listener name without `--force`. Files are skipped when present, so a rerun only fills gaps.
+
+| | `spliced-clean-int8` | `teacher` |
+| --- | --- | --- |
+| model | `models/spliced-clean-int8`: `model.onnx` `714e98ad…af1b`, `manifest.json` `785f5eb4…442f` | `obadx/muaalem-model-v3_2` @ `01a1ef9f` |
+| how | SDK `decode-cli` (streaming, free recitation), onnxruntime-node CPU 1 thread, 20 ms pushes, top-k posteriors at the model's 40 ms | 30 s windows every 25 s, frames from the nearer centre, bf16, top-5 posteriors, greedy phonemes |
+| compute | one 2-CPU container per file, 3148 container-s, 21–68 s per file | L4, 437 GPU-s, 3–10 s per file (RTF 0.02) |
+| wall | 228 s | 600 s (Modal ran one L4) |
+| run | `decode-spliced-clean-int8-d407c89-20261028T123012Z` | in-app |
+
+80 files each (40 sessions × studio, phone; 22,418 s of audio). Every file's frame count matches its label `durationS` within 0.1 s. Cost was under $1.
+
+## Automated checks
+
+`modal run modal/lab_check.py` (one CPU container per session × variant) runs the checks on teacher evidence and writes `checks-v1.json` and the review queue. Logic: `tools/lab_checks.py`. Test: `uv run --python cpython-3.12-macos-aarch64-none --with numpy --with rapidfuzz==3.14.1 --with quran-transcript==0.6.4 --with pyarrow --with pytest pytest tools/test_lab_checks.py`. Studio is the acceptance copy; phone is reported too.
+
+- **Planted edits:** the window runs from the word before the edit to the word after, 0.1 s padded, placed by a forced alignment of the whole session's said phonemes (CTC Viterbi with a garbage blank). Two hypotheses are scored over it: what was said (neighbour + planted + neighbour) and the original text. A pass needs all of the following:
+  - the said version wins by at least 3.0 nats;
+  - the teacher's greedy decode is closer to the said version than to the original;
+  - local PER against the said version is at most 0.25.
+
+  For an omission or skip, the original holds the missing words. For an addition, repeat or restart, it lacks them.
+- **Clean stretches:** runs of unedited words inside one source piece, never across a seam. The check is the canon PER of the teacher's greedy decode against the said text. The bar is 2 × the gold-set teacher PER (2 × 3.39% = 6.78%). Stretches under 30 phonemes may have up to 2 edits instead.
+- **Timings:** each ayah occurrence's first-word start and last-word end, label vs alignment, within 0.3 s.
+- **Reciters:** the reader is `heldOut`, not excluded, and on the session's split in `lab-reciters-v1.json`.
+
+| studio (phone) | n | pass |
+| --- | --- | --- |
+| wrong word | 114 | 112 (102) |
+| mutashabihat | 15 | 14 (13) |
+| omitted word | 78 | 74 (71) |
+| added word | 110 | 104 (107) |
+| skipped passage | 53 | 53 (52) |
+| repeat / restart | 16 / 24 | 16 / 24 (15 / 24) |
+| clean stretches | 450 | 435 (398) |
+| sessions with timings in 0.3 s | 40 | 32 (23) |
+| reciters | 40 | 40 |
+
+Studio clean PER over the 62,660 checked phonemes is 2.15% (phone 3.99%). Phone failures are mostly teacher errors on degraded audio, so they don't count against the data.
+
+**Failures (studio).** These are logged in `checks-v1.json` (`failed`, `failedClean`, `failedTiming`) with reasons, and none is patched.
+
+- **13 edits.** 6 fail only on local PER 0.26–0.36: e07-x5, e08-x21, e12-x3, e12-x4, e19-x20 and p13-x15. The teacher hears the planted words but blurs the seam. The other 7 are:
+  - e18-x7 and e18-x10: the added donor حين (51:43:8) loses its ح at a link head, and the teacher prefers the original (LLR −6.1, −7.7).
+  - p07-x5, p07-x7 and e14-x5: donors labelled in continuous form but said in pause form. Example: قُوَّةً is labelled قُووَتَن but said قُووَه.
+  - e11-x9: an unlabelled natural repeat of فخر عليهم in the host (16:26) before the added word gives local PER 0.64.
+  - e17-x19: the greedy decode ties between said and original, with local PER 0.31.
+
+  Edits with any linked seam failed 12 of 339; edits with only pause seams failed 1 of 71.
+- **15 clean stretches**, at PER 7–17%. 12 are dominated by insertions whose inserted chunks repeat nearby words. These are natural repeats inside source ayahs: the source alignment's garbage blank absorbed them, so the labels lack them. The rest are reciters the teacher finds hard (session PER: p09 8.7%, e13 8.8%, e03 7.3%).
+- **10 timing occurrences in 8 sessions.** Most are an ayah-final word ending 0.45–0.56 s off before a pause, repeat or restart, with its start in place. That is a limit of measuring fading madd tails. Two are larger:
+  - p10 (26:46, +2.9 s end): the alignment is pulled by a teacher spike in a 3 s pause.
+  - e05 (54:35, start 0.8 s): an idgham link across the ayah boundary.
+
+  None is a label error on inspection of the evidence.
+
+**What uses the failures.**
+
+- **Scorer:** `pnpm --filter @tilawa/core lab` reads `checks-v1.json` beside the manifest (`--checks <path|none>`). It adds `dataCheck: {pass: false, check, reasons}` to the matching cases without changing any count:
+  - a planted mistake that failed;
+  - a false warning within 1 s of a failed edit or clean stretch.
+- **Review:** every failed splice is in `review/v1-check.json`. Each one replaced the last passing splice of the same kind and class: 13 replaced, ids otherwise unchanged, queue revalidated. Failed items carry `check: {pass: false, reasons}`. Rerunning the build's plan stage rewrites the queue, so rerun the checks after it.
+
+**Builder changes these point to.** These are not applied in v1, which stays as built until ticket 07's listening check.
+
+1. **Pause-form donors.** A wrong or added donor followed by a pause in its source is labelled with its continuous-form tail. This affects 16 of 239 donors:
+   - e09-x1, e09-x2, e14-x5, e16-x3, e18-x14;
+   - p03-x2, p03-x3, p03-x8, p05-x8, p05-x11, p07-x5, p07-x7, p12-x2, p14-x8, p16-x14, p19-x16.
+
+   When the donor's source boundary is a pause, `said` should use its pause (`iso`) tail.
+2. **Natural repeats in host ayahs.** Ayah inclusion (squeezed PER ≤ 0.15) lets through ayahs where the reciter repeats a phrase. Two fixes:
+   - refuse ayahs whose teacher decode is more than about 5% longer than the text, or whose garbage-blank frames hold confident non-blank phonemes;
+   - or label the repeat as a `repeat` span.
+3. **Linked heads with weak onsets.** Refuse a donor whose head is a fricative or pharyngeal at a linked seam, like the ح of حين; or require a pause seam on the donor's head side.
 
 ## Known limits
 
