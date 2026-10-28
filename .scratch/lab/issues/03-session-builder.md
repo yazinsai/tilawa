@@ -15,3 +15,7 @@ Spec: `../spec.md` decisions 3–6 and 8. Reuse `tools/session_build.py` and `to
 - Labels in the existing session format (`sessions.ts`), with a splice record per planted edit (source times, crossfade, boundary type).
 - A studio WAV and a phone-degraded WAV per session (reverb plus licensed noise, fixed seed).
 - Deterministic: the same seed and inputs give byte-identical output. Runs on Modal.
+
+## Comments
+
+- Disambiguation points are ready: `packages/core/src/disambiguation.ts` (`disambiguationWords(index)`), table at `/lab/data/reference/disambiguation-v1.json` on the `tilawa-lab` volume (`words[i]` = further words needed from reference word i, -1 never; regenerate with `src/bench/disambiguation-cli.ts`). 85% of start words are unique within 2 further words, about 5% need more than 5; the longest runs are 23:5 = 70:29 (27 words), 4:43 = 5:6, 27:80 = 30:52, 2:47 = 2:122. Exact phonemes: a mid-ayah case ending can make a point one word early for a reciter who pauses there (2:255 vs 3:2).

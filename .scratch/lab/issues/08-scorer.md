@@ -15,3 +15,7 @@ Spec: `../spec.md` goal and decisions 3, 7, 12. Build on `packages/core/src/benc
 - Attribution: each overall wrong call assigned to exactly one of listener, tracker or checker; the parts add up to the total. Unit tests cover the additivity.
 - Slices: strict, mutashabihat, studio, per mistake class.
 - Per-case outcomes written for the drill-down (same keys the review UI uses).
+
+## Comments
+
+- Disambiguation points are ready: `packages/core/src/disambiguation.ts` (`disambiguationWords(index)`), table at `/lab/data/reference/disambiguation-v1.json` on the `tilawa-lab` volume (`words[i]` = further words needed from reference word i, -1 never; regenerate with `src/bench/disambiguation-cli.ts`). 85% of start words are unique within 2 further words, about 5% need more than 5; the longest runs are 23:5 = 70:29 (27 words), 4:43 = 5:6, 27:80 = 30:52, 2:47 = 2:122. Exact phonemes: a mid-ayah case ending can make a point one word early for a reciter who pauses there (2:255 vs 3:2).
