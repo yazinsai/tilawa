@@ -11,6 +11,8 @@
  * Evidence not listed is looked up at the manifest's "evidencePattern" ({id}, {listener}, {variant}), else evidence/<listener>/<id>.<variant>.json.
  * "slices": { "strict" } (the session builder's tag) counts as "strict".
  * Cases on data that failed the automated checks (`--checks`, default checks-v1.json beside the manifest) carry `dataCheck`.
+ * `--split practice` scores only that split (sharded over its sessions). `--exclude <flags json>` applies a test set version's
+ * exclusion list (`LabExclusions`) and reports its `testSet`.
  */
 import { execSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
@@ -19,8 +21,8 @@ import { parseArgs } from "node:util";
 import { disambiguationWords } from "../disambiguation.js";
 import { loadReferenceIndex } from "../reference.js";
 import { DEFAULT_CANDIDATE } from "./scoreboard.js";
-import { VARIANTS, labReport, labSession, markDataChecks, mergeReports } from "./lab.js";
-import type { DataChecks, LabReport, SessionResult, Split, Variant } from "./lab.js";
+import { VARIANTS, exclusionsFor, labReport, labSession, markDataChecks, mergeReports, shardEntries } from "./lab.js";
+import type { DataChecks, LabExclusions, LabReport, SessionResult, Split, Variant } from "./lab.js";
 import type { BenchSession, SessionEvidence } from "./sessions.js";
 
 const { values } = parseArgs({ args: process.argv.slice(2).filter(a => a !== "--"), options: {
@@ -34,6 +36,8 @@ const { values } = parseArgs({ args: process.argv.slice(2).filter(a => a !== "--
   out: { type: "string" },
   merge: { type: "string" },
   only: { type: "string" },
+  split: { type: "string" },
+  exclude: { type: "string" },
   sha: { type: "string" },
   "exam-cases": { type: "boolean", default: false },
   "no-tracker-oracle": { type: "boolean", default: false },
@@ -47,7 +51,7 @@ const summary = (r: LabReport) => {
   console.log(`overall (${r.headline.split}, ${r.headline.variant}): ${o.per5Min ?? "-"} wrong calls / 5 min = ${o.missed} missed + ${o.falseWarnings} false warnings (${o.falseWarningsOnNonErrors} on repeats/restarts), ${o.caught}/${o.mistakes} caught`);
   console.log(`attribution: listener ${a.listener}, tracker ${a.tracker}, checker ${a.checker} (total ${a.total})`);
   console.log(`listener PER ${c.listener.per ?? "-"}; tracker on place ${c.tracker.onPlaceShare ?? "-"}, ${c.tracker.falseJumps} false jumps, lock delay p50/p90 ${c.tracker.lockDelayS.p50 ?? "-"}/${c.tracker.lockDelayS.p90 ?? "-"} s; checker ${c.checker.per5Min ?? "-"} / 5 min (${c.checker.missed} + ${c.checker.falseWarnings})`);
-  for (const s of ["practice", "exam"] as const) console.log(`${s}: ${r.splits[s].overall.per5Min ?? "-"} / 5 min (${r.splits[s].overall.missed} + ${r.splits[s].overall.falseWarnings}) over ${r.splits[s].recitedMinutes} min`);
+  for (const s of ["practice", "exam"] as const) if (r.splits[s].sessions) console.log(`${s}: ${r.splits[s].overall.per5Min ?? "-"} / 5 min (${r.splits[s].overall.missed} + ${r.splits[s].overall.falseWarnings}) over ${r.splits[s].recitedMinutes} min`);
 };
 const write = (path: string, report: LabReport) => {
   mkdirSync(dirname(path), { recursive: true });
@@ -72,6 +76,9 @@ if (!(Number.isInteger(shard) && Number.isInteger(shards) && shards > 0 && shard
 const variants = values.variants!.split(",") as Variant[];
 if (variants.some(v => !VARIANTS.includes(v))) throw new Error(`unknown variant in ${values.variants}`);
 const teacherName = values.teacher === "none" ? null : values.teacher!;
+if (values.split && values.split !== "practice" && values.split !== "exam") throw new Error(`unknown split ${values.split}`);
+const exclusions = values.exclude ? JSON.parse(readFileSync(resolve(values.exclude), "utf8")) as LabExclusions : null;
+if (exclusions && (exclusions.kind !== "lab-flags" || !Array.isArray(exclusions.excluded))) throw new Error(`Invalid exclusion list ${values.exclude}`);
 
 const asset = JSON.parse(readFileSync(new URL("../../assets/ref-v2.json", import.meta.url), "utf8"));
 const index = loadReferenceIndex(asset);
@@ -83,6 +90,7 @@ interface Entry { id: string; split: Split; session: string | BenchSession; tags
 const manifestPath = resolve(values.manifest!);
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as { version: number; testSet: string; evidencePattern?: string; sessions: Entry[] };
 if (manifest.version !== 1 || !manifest.testSet || !Array.isArray(manifest.sessions)) throw new Error(`Invalid lab manifest ${manifestPath}`);
+if (exclusions && exclusions.base !== manifest.testSet) throw new Error(`exclusion list is for ${exclusions.base}, manifest is ${manifest.testSet}`);
 const base = dirname(manifestPath);
 const evidencePath = (e: Entry, listener: string, v: Variant) => {
   const listed = typeof e.evidence === "object" ? e.evidence[listener]?.[v] : undefined;
@@ -104,11 +112,12 @@ if (checks) console.log(`data checks ${checksPath}: ${checks.failed.length} fail
 const load = (path: string | null) => path ? JSON.parse(readFileSync(path, "utf8")) as SessionEvidence : undefined;
 
 const results: SessionResult[] = [], excluded: { id: string; reason: string }[] = [];
-manifest.sessions.forEach((e, i) => {
-  if (i % shards !== shard || (values.only && e.id !== values.only)) return;
+shardEntries(manifest.sessions, { split: values.split as Split | undefined, only: values.only, shard, shards }).forEach(e => {
   try {
     const t0 = performance.now();
     if (e.split !== "practice" && e.split !== "exam") throw new Error(`invalid split ${e.split}`);
+    const flagged = exclusionsFor(exclusions, e.id);
+    if (flagged.session) throw new Error(`flagged as bad data in ${exclusions!.testSet}`);
     const session = (typeof e.session === "string" ? JSON.parse(readFileSync(resolve(base, e.session), "utf8")) : e.session) as BenchSession;
     if (session.id !== e.id) throw new Error(`manifest id ${e.id} != session id ${session.id}`);
     const pick = (listener: string) => Object.fromEntries(variants.flatMap(v => { const x = load(evidencePath(e, listener, v)); return x ? [[v, x]] : []; }));
@@ -116,7 +125,7 @@ manifest.sessions.forEach((e, i) => {
     if (!Object.keys(evidence).length) throw new Error(`no ${values.listener} evidence`);
     const strict = e.strict ?? e.slices?.strict ?? (e.tags ? e.tags.includes("strict") : undefined);
     const r = labSession({ session, split: e.split, strict, evidence, audio: audioOf(e), teacher: teacherName ? pick(teacherName) : undefined,
-      trackerOracle: !values["no-tracker-oracle"] }, { index, disamb, phrases });
+      trackerOracle: !values["no-tracker-oracle"], exclude: flagged.windows }, { index, disamb, phrases });
     results.push(checks ? markDataChecks(r, checks) : r);
     const v = r.variants.phone ?? r.variants.studio!;
     console.log(`scored ${e.id} (${e.split}${r.strict ? ", strict" : ""}) in ${((performance.now() - t0) / 1000).toFixed(1)} s: ${v.missed} missed, ${v.falseWarnings} false warnings`);
@@ -126,7 +135,7 @@ manifest.sessions.forEach((e, i) => {
   }
 });
 const out = resolve(values.out ?? (process.env.LAB_OUT ? join(process.env.LAB_OUT, "score.json") : "lab-score.json"));
-write(out, labReport(results, { testSet: manifest.testSet, listener: values.listener!, teacher: teacherName, sha, run: process.env.LAB_RUN ?? null,
+write(out, labReport(results, { testSet: exclusions?.testSet ?? manifest.testSet, listener: values.listener!, teacher: teacherName, sha, run: process.env.LAB_RUN ?? null,
   reference: index.version, manifest: manifestPath }, { excluded, shard: { index: shard, count: shards }, examCases: values["exam-cases"] }));
 if (!results.length && !excluded.length) console.log("no sessions in this shard");
 if (excluded.length) console.log(`warning: ${excluded.length} excluded (listed in the report)`);
