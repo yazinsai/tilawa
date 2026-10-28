@@ -11,7 +11,8 @@ an image with the workspace dependencies installed, then runs `cmd` under bash i
     LAB_DATA    /lab/data on the tilawa-lab volume (test sets, evidence; read-only by convention)
     LAB_OUT     /lab/runs/<run>/<shard>, where the command writes its results
 
-Each shard's output tail and exit code are saved as LAB_OUT/log.txt and LAB_OUT/status.json.
+Each shard's output tail and exit code are saved as LAB_OUT/log.txt and LAB_OUT/status.json. `--merge '<command>'` runs
+once after every shard succeeds, with LAB_OUT=/lab/runs/<run>/merge; `--run-file <path>` writes the run id locally.
 """
 
 import hashlib

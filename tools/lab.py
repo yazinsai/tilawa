@@ -211,6 +211,8 @@ def print_verdict(card: dict, res: dict, base: dict):
     print(f"\n{card['id']} ({card['component']}): practice set of {res['testSet']}, {p['sessions']} sessions, {p['minutes']} min; {res['sha']} vs main line {base['sha']}")
     print("\n".join(L.format_compare(cmp, card)))
     print(L.format_details(res["practice"], base["practice"]))
+    if p["sessions"] != base["practice"]["sessions"]:
+        print(f"warning: {p['sessions']} sessions scored here, {base['practice']['sessions']} on the main line, so these counts don't compare (missing evidence?)")
     print(f"verdict: {L.headline(cmp, card)} (a change of {L.NOISE} or fewer is noise)")
     return cmp
 
@@ -232,7 +234,7 @@ def cmd_run(a):
     def save(led):
         if card["id"] not in led["experiments"]:
             L.add_experiment(led, card, branch=git("branch", "--show-current", cwd=wt), worktree=str(wt))
-        L.record_result(led, card["id"], res)
+        L.record_result(led, card["id"], res, vs=base)
 
     update(a, save)
     print_verdict(card, res, base)
@@ -281,7 +283,8 @@ def cmd_fold(a):
     b = L.latest(e, ts["id"])
     if not b or not base:
         raise Stop(f"{a.id} has no practice result on {ts['id']} yet: python3 tools/lab.py run {e['worktree']}")
-    bcmp = L.compare(b["practice"], base["practice"], card)
+    b_base = L.base_for(led, b) or base
+    bcmp = L.compare(b["practice"], b_base["practice"], card)
     if not L.gains(bcmp, card):
         raise Stop(f"{a.id} has no practice gain on its branch ({L.headline(bcmp, card)}): nothing to fold; discard it")
     wt = Path(e["worktree"])
@@ -301,7 +304,7 @@ def cmd_fold(a):
         main_f = pool.submit(score_main, a, ts, logs / "main.log") if refresh else None
         r = exp_f.result()
         if main_f:
-            base = {**main_f.result(), "note": f"re-scored for fold of {a.id}"}
+            base = {**main_f.result(), "note": f"re-scored for fold of {a.id}", "at": L.now()}
             base["head"] = base["sha"]
     rcmp = L.compare(r["practice"], base["practice"], card)
     state, why = L.fold_check(card, bcmp, rcmp)
@@ -316,8 +319,8 @@ def cmd_fold(a):
 
     def record(led, *decision):
         if refresh:
-            L.record_main(led, base)
-        L.record_result(led, a.id, r, kind="rebased")
+            L.record_main(led, base, at=base["at"])
+        L.record_result(led, a.id, r, kind="rebased", vs=base)
         if decision:
             L.decide(led, a.id, decision[0], note=decision[1], testSet=ts["id"])
 
@@ -339,6 +342,7 @@ def cmd_fold(a):
     folded(doc)
     (wt / SUMMARY).write_text(json.dumps(L.summary(doc), indent=1, ensure_ascii=False) + "\n")
     git("add", SUMMARY, cwd=wt)
+    git("rm", "-q", "--ignore-unmatch", L.CARD, cwd=wt)  # cards stay on experiment branches; the ledger keeps a copy
     git("commit", "-q", "-m", f"Lab ledger: fold {a.id} (practice {rcmp['overall']['change']:+d} overall, {rcmp[card['component']]['change']:+d} {card['component']})", cwd=wt)
     tip = git("rev-parse", "HEAD", cwd=wt)
     if subprocess.run(["git", "merge-base", "--is-ancestor", a.main, tip], cwd=REPO).returncode:
@@ -403,9 +407,9 @@ def cmd_apply_flags(a):
                 failed[id] = str(err)
 
     def save(led):
-        L.record_main(led, {**base, "head": base["sha"], "note": f"re-scored on {new_id}"})
+        e = L.record_main(led, {**base, "head": base["sha"], "note": f"re-scored on {new_id}"})
         for id, r in results.items():
-            L.record_result(led, id, r)
+            L.record_result(led, id, r, vs=e)
 
     update(a, save)
     print(f"main line on {new_id}: practice {counts(base['practice'])}; exam {counts(base['exam'])}")

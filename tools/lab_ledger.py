@@ -165,11 +165,19 @@ def experiment(led: dict, id: str) -> dict:
     return led["experiments"][id]
 
 
-def record_result(led: dict, id: str, result: dict, kind: str = "branch", at: str | None = None) -> dict:
-    """A scored run of the experiment: kind `branch` (as written) or `rebased` (at fold-in)."""
-    r = {**result, "kind": kind, "at": at or now()}
+def record_result(led: dict, id: str, result: dict, kind: str = "branch", at: str | None = None, vs: dict | None = None) -> dict:
+    """A scored run of the experiment: kind `branch` (as written) or `rebased` (at fold-in), against main-line score `vs`."""
+    r = {**result, "kind": kind, "at": at or now(), "vs": {"sha": vs["sha"], "at": vs["at"]} if vs else None}
     experiment(led, id)["results"].append(r)
     return r
+
+
+def base_for(led: dict, r: dict) -> dict | None:
+    """The main-line score a result was measured against (else the latest one on its test set recorded before it)."""
+    v = r.get("vs")
+    if v:
+        return next((e for e in led["mainLine"] if e["sha"] == v["sha"] and e["at"] == v["at"]), None)
+    return next((e for e in reversed(led["mainLine"]) if e["testSet"] == r["testSet"] and e["at"] < r["at"]), None)
 
 
 def latest(exp: dict, ts: str, kind: str = "branch") -> dict | None:
@@ -191,8 +199,11 @@ def shown_state(exp: dict, ts: str) -> str:
 
 
 def status_rows(led: dict, all: bool = False) -> list[dict]:
-    """Experiments for `lab status`: waiting for a decision first, then open, then superseded (then decided ones with `all`)."""
-    ts, base = led["testSet"], main_score(led)
+    """
+    Experiments for `lab status`: waiting for a decision first, then open, then superseded (then decided ones with `all`).
+    Actual = the branch run against the main line it was measured on; `moved` when the main line has a newer score.
+    """
+    ts, cur = led["testSet"], main_score(led)
     order = {WAITING: 0, "open": 1, "superseded": 2, "folded": 3, "discarded": 4}
     rows = []
     for id, e in led["experiments"].items():
@@ -201,11 +212,14 @@ def status_rows(led: dict, all: bool = False) -> list[dict]:
             continue
         c = e["card"]
         r = latest(e, ts)
+        base = base_for(led, r) if r else None
         cmp = compare(r["practice"], base["practice"], c) if r and base else None
+        if state == WAITING and base and cur and base is not cur:
+            state += " (main line moved since; fold re-checks)"
         rows.append({"id": id, "component": c["component"], "state": state, "expected": c["expected"],
                      "actual": {"component": cmp[c["component"]]["change"], "overall": cmp["overall"]["change"]} if cmp else None,
                      "verdict": headline(cmp, c) if cmp else "-", "created": c["created"]})
-    return sorted(rows, key=lambda r: (order[r["state"]], r["created"]))
+    return sorted(rows, key=lambda r: (order[r["state"].split(" (")[0]], r["created"]))
 
 
 def fold_check(card: dict, branch: dict, rebased: dict) -> tuple[str, str]:
@@ -303,12 +317,12 @@ def _wc(x: list[int]) -> str:
 
 
 def format_compare(cmp: dict, card: dict | None = None) -> list[str]:
-    lines = [f"{'wrong calls':12} {'main line':>22} {'this':>22} {'change':>7}  verdict"]
+    lines = [f"{'wrong calls':18} {'main line':>22} {'this':>22} {'change':>7}  verdict"]
     for what in ("overall", *COMPONENTS):
         r = cmp[what]
         mark = " <" if card and what == card["component"] else ""
         exp = f"  (expected {r['expected']:+d})" if "expected" in r else ""
-        lines.append(f"{('lost by ' if what != 'overall' else '') + what + mark:12} {_wc(r['main']):>22} {_wc(r['this']):>22} {r['change']:>+7d}  {r['verdict']}{exp}")
+        lines.append(f"{('lost by ' if what != 'overall' else '') + what + mark:18} {_wc(r['main']):>22} {_wc(r['this']):>22} {r['change']:>+7d}  {r['verdict']}{exp}")
     return lines
 
 

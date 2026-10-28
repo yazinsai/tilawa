@@ -39,7 +39,7 @@ def card(id="noop", component="checker", ec=-5, eo=-3):
 def ledger():
     led = L.empty()
     L.add_test_set(led, base="lab-v1", version=1, manifest="lab-v1/manifest-v1.json", sessions={"practice": ["p1", "p2"], "exam": ["e1"]}, at="t0")
-    L.record_main(led, L.from_report(report(totals(), totals(8, 2), sha="m1"), ("practice", "exam")), at="t1")
+    L.record_main(led, L.from_report(report(totals(), totals(8, 2), sha="m1"), ("practice", "exam")), at="2026-10-28T00:00:01+00:00")
     return led
 
 
@@ -162,3 +162,18 @@ def test_summary_has_one_row_per_main_line_change_and_decided_experiment():
     row = s["rows"][1]
     assert row["branch"]["wrongCalls"] == 9 and row["rebased"]["practice"]["wrongCalls"] == 10 and row["rebased"]["exam"]["wrongCalls"] == 9
     assert row["branch"]["checker"] == 3 and s["rows"][2]["experiment"] == "noop"
+
+
+def test_results_compare_with_the_main_line_they_were_measured_on():
+    led = ledger()
+    first = L.main_score(led)
+    L.add_experiment(led, card("a"), branch="exp/a", worktree="/w/a")
+    L.add_experiment(led, card("b"), branch="exp/b", worktree="/w/b")
+    L.record_result(led, "a", L.from_report(report(totals(missed=5))), vs=first)
+    L.record_result(led, "b", L.from_report(report(totals(missed=5))))
+    L.record_main(led, L.from_report(report(totals(missed=5), totals(8, 2), sha="m2"), ("practice", "exam")))
+    assert L.base_for(led, led["experiments"]["a"]["results"][0]) is first
+    assert L.base_for(led, led["experiments"]["b"]["results"][0]) is first
+    rows = L.status_rows(led)
+    assert [r["actual"]["overall"] for r in rows] == [-5, -5]
+    assert all(r["state"] == L.WAITING + " (main line moved since; fold re-checks)" for r in rows)
