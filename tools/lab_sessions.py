@@ -1,4 +1,4 @@
-"""Pure logic for test set lab-v1, spliced sessions (.scratch/lab, ticket 03); run by modal/lab_build_sessions.py.
+"""Pure logic for test set lab-v1.1, spliced sessions (.scratch/lab, ticket 03); run by modal/lab_build_sessions.py.
 
 Window choice, splice boundaries, the plant schedule, output-timeline arithmetic and labels (BenchSession, splice
 records, manifest, review queue), plus the sample-level render and phone degradation. Standard library only except
@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SEED = 20261028
-TEST_SET = "lab-v1"
+TEST_SET = "lab-v1.1"
 SR = 16_000
 XFADE = 160  # samples: the 10 ms crossfade centred on each seam
 EDGE_FADE = 320  # 20 ms fade in and out at the session ends
@@ -33,6 +33,8 @@ NORMAL_MAX = 5
 PAUSE_DB = -12.0  # an ayah boundary is a pause when its quietest frame is this far below the ayah level
 INNER_PAUSE = (0.3, -15.0)  # an in-ayah gap at least this long and quiet is a pause too
 LINK_DB = -3.0  # a linked (no pause) boundary is cut only when its quietest frame is at least this quiet
+LEN_RATIO_MAX = 1.05  # an ayah whose teacher decode is this much longer than its text holds unlabelled speech (a natural repeat)
+AYAH_PER_MAX = 0.10  # nor is an ayah the teacher matches less well than this (squeezed PER of its source alignment)
 CUT_SLACK_S = 0.02  # the cut must lie in the aligned gap, give or take this
 MIN_SCORE = 0.5  # teacher word score either side of a seam
 DONOR_SCORE = 0.7
@@ -50,6 +52,7 @@ EVIDENCE = "sessions/{id}.{listener}.{variant}.evidence.json"
 V = "\u064e\u064f\u0650"  # fatha, damma, kasra
 LONG = ("اا", "ۦۦ", "ۥۥ")
 THROAT = set("ءهعحغخ")
+WEAK_ONSET = THROAT  # glottal, pharyngeal and h-like heads: a cut inside linked speech clips their quiet onset
 QALQALA = "ڇ"
 # Hafs idgham across a word boundary: a closed final consonant merges into these first letters (and into itself).
 ASSIMILATES = {"م": "ب", "ت": "دط", "د": "ت", "ط": "ت", "ذ": "ظ", "ث": "ذ", "ل": "ر", "ب": "م", "ق": "ك"}
@@ -127,6 +130,26 @@ def head_kind(cont: str, iso: str) -> tuple[str, str] | None:
     return None
 
 
+def said_form(w: dict, pause_before: bool, pause_after: bool) -> str | None:
+    """A word's phonemes as said in its source: the continuous form, with the pause form's tail where the reciter
+    stopped after it (waqf) and its head where they started again after a stop (a connecting hamza said). Ayah edges
+    are already in pause form in the continuous phonemes. None when the two forms can't be combined (the head is
+    changed by the word before)."""
+    cont, iso = w["cont"], w["iso"]
+    head = pause_before and w["w"] > 1
+    tail = pause_after and w["w"] < w["n"]
+    if not (head or tail):
+        return cont
+    hk = head_kind(cont, iso)
+    if hk is None:
+        return None
+    if head and tail:
+        return iso
+    if tail:
+        return iso if hk[0] == "firm" else iso[2:]
+    return cont if hk[0] == "firm" else iso[:2] + cont
+
+
 def joins(t: dict | None, h: dict | None, restart: bool = False) -> bool:
     """Whether the word before boundary `t` can be followed by the word after boundary `h` with no audible seam.
 
@@ -175,19 +198,37 @@ def twin_words(ref: Ref) -> dict[int, list[int]]:
 
 # ---- recordings and boundaries --------------------------------------------------------------------------------------
 
-class Rec:
-    """One aligned surah recording: words in order with their ayah's verdict and level."""
+def refused_ayah(a: dict) -> str | None:
+    """Why an included source ayah is still kept out of sessions: its teacher decode runs long (an unlabelled natural
+    repeat the alignment's garbage blank absorbed) or matches its text loosely."""
+    if a["excluded"]:
+        return None
+    if (a.get("lenRatio") or 1.0) >= LEN_RATIO_MAX:
+        return "long"
+    if (a.get("per") or 0.0) > AYAH_PER_MAX:
+        return "per"
+    return None
 
-    def __init__(self, align: dict, ref: Ref):
+
+class Rec:
+    """One aligned surah recording: words in order with their ayah's verdict and level.
+
+    Ayahs `refused_ayah` names, and those in `refuse` (ayah numbers the automated checks failed), count as excluded.
+    """
+
+    def __init__(self, align: dict, ref: Ref, refuse: dict | None = None):
         self.read, self.surah, self.split, self.reciter = align["readId"], align["surah"], align["split"], align["reciter"]
         self.key = f"{self.read}/{self.surah:03d}"
         self.audio, self.duration = align["audio"], align["durationS"]
         self.basmala = align.get("basmala")
         ay = {a["ayah"]: a for a in align["ayahs"]}
+        self.refused = {a: why for a, why in ((a, refused_ayah(x)) for a, x in ay.items()) if why}
+        self.refused.update({a: "check" for a in (refuse or {}) if a in ay and not ay[a]["excluded"]})
         self.words = []
         for w in align["words"]:
             a = ay[w["ayah"]]
-            self.words.append({**w, "ref": ref.idx[(w["surah"], w["ayah"], w["word"])], "excluded": a["excluded"], "level": a.get("levelDb")})
+            self.words.append({**w, "ref": ref.idx[(w["surah"], w["ayah"], w["word"])], "excluded": a["excluded"] or w["ayah"] in self.refused,
+                               "level": a.get("levelDb")})
         self.pos = {(w["ayah"], w["word"]): k for k, w in enumerate(self.words)}
         self.ayahs = []  # (ayah, first k, last k) for aligned ayahs in order
         for k, w in enumerate(self.words):
@@ -200,6 +241,17 @@ class Rec:
     def usable(self, k: int, score: float = MIN_SCORE) -> bool:
         w = self.words[k]
         return not w["excluded"] and w["endS"] > w["startS"] and (w["score"] or 0) >= score
+
+    def pause_after(self, k: int) -> bool:
+        """The reciter stops after word k: an ayah end, or an in-ayah gap as long and quiet as INNER_PAUSE."""
+        if k + 1 >= len(self.words) or self.words[k + 1]["ayah"] != self.words[k]["ayah"]:
+            return True
+        w, n = self.words[k], self.words[k + 1]
+        return n["startS"] - w["endS"] >= INNER_PAUSE[0] and w["cutDb"] is not None and w["cutDb"] <= INNER_PAUSE[1]
+
+    def said(self, k: int, ref: Ref) -> str | None:
+        """Word k's phonemes as this reciter said them (`said_form`)."""
+        return said_form(ref.words[self.words[k]["ref"]], k == 0 or self.pause_after(k - 1), self.pause_after(k))
 
     def boundary(self, k: int, ref: Ref) -> dict | None:
         """The gap after word k, when audio can be cut there: kinds either side, cut time and depth."""
@@ -228,7 +280,7 @@ class Rec:
         if n["startS"] - w["endS"] >= INNER_PAUSE[0] and db <= INNER_PAUSE[1]:
             return {**base, "kind": "pause"}
         t, h = tail_kind(rw["cont"], rw["iso"], rw["text"]), head_kind(rn["cont"], rn["iso"])
-        if db > LINK_DB or not t or not h or not joins({"kind": "link", "tail": t, "head": h}, {"kind": "link", "head": h}):
+        if db > LINK_DB or not t or not h or h[1] in WEAK_ONSET or not joins({"kind": "link", "tail": t, "head": h}, {"kind": "link", "head": h}):
             return None
         return {**base, "kind": "link", "tail": t, "head": h}
 
@@ -370,6 +422,13 @@ def choose_windows(slots: list[dict], recs: dict[str, Rec], ref: Ref, dis: list[
                     s["read"], o["read"], cands = o["read"], s["read"], c2
                     break
         if not cands:
+            # Nobody left to swap with: the split's reader with the fewest sessions so far who still has a window.
+            load = Counter(x["read"] for x in out if x)
+            for read in sorted({r.read for r in recs.values() if r.split == s["split"]} - {s["read"]}, key=lambda r: (load[r], r)):
+                if c2 := candidates_for(read):
+                    s["read"], cands = read, c2
+                    break
+        if not cands:
             raise PlanError(f"no {s['kind']} window for read {s['read']}")
         surah = lambda c: recs[c["rec"]].surah
         if s["kind"] == "muta":
@@ -422,13 +481,15 @@ def levenshtein(a: str, b: str) -> int:
 
 
 class Donors:
-    """Every word of one reader that can be lifted out whole: included ayah, good score, a cuttable boundary either side."""
+    """Every word of one reader that can be lifted out whole: included ayah, good score, a cuttable boundary either side,
+    phonemes as said known (`Rec.said`), and not refused by the automated checks (`refuse`: (rec key, ayah, word))."""
 
-    def __init__(self, recs: list[Rec], ref: Ref):
+    def __init__(self, recs: list[Rec], ref: Ref, refuse: set | None = None):
         self.items = []
         for r in sorted(recs, key=lambda r: r.surah):
             for k in range(1, len(r.words) - 1):
-                if not r.usable(k, DONOR_SCORE):
+                w = r.words[k]
+                if not r.usable(k, DONOR_SCORE) or (r.key, w["ayah"], w["word"]) in (refuse or ()) or r.said(k, ref) is None:
                     continue
                 hb, tb = r.boundary(k - 1, ref), r.boundary(k, ref)
                 if hb and tb:
@@ -469,12 +530,14 @@ def forms_other(ref: Ref, ayahs: list[str], recited: list[str]) -> bool:
     return forms_other_ayah(words, ayahs, recited)
 
 
-def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins: dict, dis: list[int], seed: int = SEED) -> list[dict]:
+def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins: dict, dis: list[int], seed: int = SEED,
+               refuse_sites: set | None = None) -> list[dict]:
     """The planted mistakes and the one repeat or restart of a session, in source terms.
 
     Mistakes go one per 2-3 ayahs from the first ayah after the disambiguation point (and 20 s in) to two ayahs before
     the end, at least EDIT_GAP apart. Each takes a class weighted by CLASS_WEIGHTS among those with a clean site in
-    that ayah. Clean sessions get only the repeat or restart.
+    that ayah. Clean sessions get only the repeat or restart. A site in `refuse_sites` ((rec key, ayah, word, class)
+    of the edit's location, from failed automated checks) is never planted again.
     """
     rng = random.Random(f"{seed}:edits:{win['id']}")
     rec = recs[win["rec"]]
@@ -484,6 +547,7 @@ def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins:
     w = rec.words
     dpoint = k_first + max(0, win["dis"])
     edits, muta_left = [], MUTA_MAX[win["kind"] == "muta"]
+    refused = lambda k, cls: (rec.key, w[k]["ayah"], w[k]["word"], cls) in (refuse_sites or ())
 
     def far(k0: int, k1: int) -> bool:
         return all(k1 + EDIT_GAP[0] <= e["k0"] or e["k1"] + EDIT_GAP[0] <= k0 for e in edits) and \
@@ -506,14 +570,14 @@ def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins:
             n = k1 - k0 + 1
             prev, nxt = ayah_text(win["first"] + ai - 1), ayah_text(win["first"] + ai + 1)
             if b0 and b1 and b0["kind"] == b1["kind"] == "pause" and 3 <= n <= 30 and text != prev and text != nxt and far(k0, k1) \
-                    and w[k1]["endS"] - w[k0]["startS"] <= 25:
+                    and w[k1]["endS"] - w[k0]["startS"] <= 25 and not refused(k0, cls):
                 ctx = [f"{rec.surah}:{a - 1}", key, f"{rec.surah}:{a + 1}"]
                 rec_words = prev + nxt
                 out.append({"cls": cls, "k0": k0, "k1": k1, "seam": (b0, b1), "remove": list(range(k0, k1 + 1)),
                             "other": other(cls, rec_words, key, ctx)})
             return out
         for k in range(k0, k1 + 1):
-            if k <= k_first or k >= k_last:
+            if k <= k_first or k >= k_last or refused(k, cls):
                 continue
             rw = ref.words[w[k]["ref"]]
             bA, bB = rec.boundary(k - 1, ref), rec.boundary(k, ref)  # A|B and B|C around word k (B)
@@ -584,10 +648,10 @@ def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins:
                 if kind == "repeat":
                     for back in (2, 3, 1):
                         j = k - back + 1
-                        if j > k0 and joins(t, rec.boundary(j - 1, ref)):
+                        if j > k0 and joins(t, rec.boundary(j - 1, ref)) and not refused(j, "repeat"):
                             options.append({"cls": "repeat", "k0": j, "k1": k, "seam": (t, rec.boundary(j - 1, ref)), "db": t["db"]})
                             break
-                elif start and joins(t, start, restart=True):
+                elif start and joins(t, start, restart=True) and not refused(k0, "restart"):
                     options.append({"cls": "restart", "k0": k0, "k1": k, "seam": (t, start), "db": t["db"]})
             if options:
                 break
@@ -803,7 +867,7 @@ def label(win: dict, rec: Rec, edits: list[dict], tokens: list[dict], pieces: li
                 xr = d[0].words[d[1]]["ref"]
                 ev["expected"] = "" if cls == "added_word" else rec_text([e["k0"]])
                 ev["observed"] = ref.words[xr]["text"]
-                ev["said"] = ref.words[xr]["cont"]
+                ev["said"] = d[0].said(d[1], ref)
                 ev["donor"] = ref.name(xr)
             else:
                 i = first_after
@@ -822,7 +886,7 @@ def label(win: dict, rec: Rec, edits: list[dict], tokens: list[dict], pieces: li
         if e.get("donor"):
             r, k = e["donor"][:2]
             dw = r.words[k]
-            donor = {"audio": r.audio, "word": ref.name(dw["ref"]), "srcStartS": dw["startS"], "srcEndS": dw["endS"],
+            donor = {"audio": r.audio, "rec": r.key, "word": ref.name(dw["ref"]), "srcStartS": dw["startS"], "srcEndS": dw["endS"],
                      "cutS": [r.words[k - 1]["cutAfterS"], dw["cutAfterS"]], "cutDb": [r.words[k - 1]["cutDb"], dw["cutDb"]], "sameRecording": r is rec}
         src_k = e["k0"] if cls != "added_word" else e["k0"]
         splices.append({"id": e["id"], "type": ev_cls if cls not in ("repeat", "restart") else cls, "mutashabihat": cls == "mutashabihat",
@@ -831,7 +895,8 @@ def label(win: dict, rec: Rec, edits: list[dict], tokens: list[dict], pieces: li
                         "removed": [ref.name(rec_w[k]["ref"]) for k in e.get("remove", [])], "donor": donor, "seams": seams})
     said = [{"startS": t["startS"], "endS": t["endS"], "at": ref.ref(t["at"]) if t["at"] is not None else None,
              "from": {"audio": recs[t["rec"]].audio, **ref.ref(recs[t["rec"]].words[t["k"]]["ref"])},
-             "text": ref.words[recs[t["rec"]].words[t["k"]]["ref"]]["text"], "phonemes": ref.words[recs[t["rec"]].words[t["k"]]["ref"]]["cont"],
+             "text": ref.words[recs[t["rec"]].words[t["k"]]["ref"]]["text"],
+             "phonemes": recs[t["rec"]].said(t["k"], ref) or ref.words[recs[t["rec"]].words[t["k"]]["ref"]]["cont"],
              "role": t["role"], **({"op": t["op"]} if t.get("op") else {})} for t in toks]
     segments = [{"id": f"seg-{n + 1}", "speaker": speaker(rec), "audio": p["audio"], "split": "eval", "timing": "alignment",
                  "startS": round(p["out"] / SR, 4), "endS": round((p["out"] + p["len"]) / SR, 4),
@@ -994,16 +1059,26 @@ def pcm16(x) -> bytes:
 
 # ---- whole set ----------------------------------------------------------------------------------------------------
 
-def plan_set(catalog: dict, aligns: dict[str, dict], ref: Ref, dis: list[int], bank: dict, seed: int = SEED, only: int = 0) -> dict:
+def plan_set(catalog: dict, aligns: dict[str, dict], ref: Ref, dis: list[int], bank: dict, seed: int = SEED, only: int = 0,
+             refusals: dict | None = None) -> dict:
     """Every session of the set: windows, edits, pieces and labels. `aligns` maps catalog `align` paths to their JSON.
+    `refusals` (`refusals_from_checks`) keeps source ayahs, edit sites and donor words that failed the automated checks
+    out of the plan, so a rebuild replaces them instead of patching them.
 
     A session whose plan breaks a rule (output length, validation) stops the build with PlanError.
     """
+    rf = refusals or {}
+    ayahs_out = defaultdict(set)
+    for x in rf.get("ayahs", ()):
+        ayahs_out[x["rec"]].add(x["ayah"])
+    sites_out = {(x["rec"], x["ayah"], x["word"], x["class"]) for x in rf.get("sites", ())}
+    donors_out = {(x["rec"], x["ayah"], x["word"]) for x in rf.get("donors", ())}
     recs = {}
     for it in catalog["items"]:
         if it["readId"] in EXCLUDED_READS or it["align"] not in aligns:
             continue
-        r = Rec(aligns[it["align"]], ref)
+        a = aligns[it["align"]]
+        r = Rec(a, ref, ayahs_out.get(f"{a['readId']}/{a['surah']:03d}"))
         recs[r.key] = r
     twins = twin_words(ref)
     readers = defaultdict(set)
@@ -1015,7 +1090,7 @@ def plan_set(catalog: dict, aligns: dict[str, dict], ref: Ref, dis: list[int], b
 
     def donors_for(read: int) -> Donors:
         if read not in donors:
-            donors[read] = Donors([r for r in recs.values() if r.read == read], ref)
+            donors[read] = Donors([r for r in recs.values() if r.read == read], ref, donors_out)
         return donors[read]
 
     wins = choose_windows(slots, recs, ref, dis, twins, donors_for, seed)
@@ -1029,10 +1104,16 @@ def plan_set(catalog: dict, aligns: dict[str, dict], ref: Ref, dis: list[int], b
     sessions, plans = [], []
     for w in wins:
         rec = recs[w["rec"]]
-        edits = plan_edits(w, recs, ref, donors_for(rec.read), twins, dis, seed)
-        toks = tokens_for(w, rec, edits)
-        pieces = pieces_of(toks, recs, w["startS"], w["endS"], rec)
-        dur = sum(p["len"] for p in pieces) / SR
+        edits = plan_edits(w, recs, ref, donors_for(rec.read), twins, dis, seed, sites_out)
+        while True:
+            toks = tokens_for(w, rec, edits)
+            pieces = pieces_of(toks, recs, w["startS"], w["endS"], rec)
+            dur = sum(p["len"] for p in pieces) / SR
+            cuts = [e for e in edits if e["cls"] in ("skipped_passage", "omitted_word")]
+            if dur >= SESSION_S[0] or not cuts:
+                break
+            # Too short once the skips are taken out: give back the longest one.
+            edits.remove(max(cuts, key=lambda e: (rec.words[e["k1"]]["endS"] - rec.words[e["k0"]]["startS"], -e["k0"])))
         if not SESSION_S[0] <= dur <= SESSION_S[1]:
             raise PlanError(f"{w['id']}: {dur:.1f} s outside {SESSION_S}")
         s = label(w, rec, edits, toks, pieces, recs, ref, phone_params(w["id"], dur, bank, seed))
@@ -1042,7 +1123,64 @@ def plan_set(catalog: dict, aligns: dict[str, dict], ref: Ref, dis: list[int], b
         sessions.append(s)
         plans.append({"id": w["id"], "pieces": [{k: p[k] for k in ("rec", "audio", "src", "out", "len", "gainDb")} for p in pieces],
                       "phone": s["meta"]["phone"], "samples": sum(p["len"] for p in pieces)})
-    return {"sessions": sessions, "plans": plans}
+    why = Counter(v for r in recs.values() for v in r.refused.values())
+    return {"sessions": sessions, "plans": plans,
+            "refused": {"ayahs": dict(sorted(why.items())), "sites": len(sites_out), "donors": len(donors_out)}}
+
+
+def rec_key(audio: str) -> str:
+    """`sources/mp3quran/<read>/<surah>.wav` -> the Rec key `<read>/<surah>`."""
+    read, surah = audio.split("/")[-2:]
+    return f"{read}/{int(surah.split('.')[0]):03d}"
+
+
+def refusals_from_checks(checks: dict, sessions: dict[str, dict], previous: dict | None = None, iteration: int = 1) -> tuple[dict, list[dict]]:
+    """The builder's side of the automated checks (decision 16): every failed case becomes a refusal in source terms, so
+    the next plan rebuilds it elsewhere or drops it. A failed edit refuses its site for its class and its donor word;
+    a failed clean stretch or timing refuses its source ayahs. Cumulative over iterations; returns (doc, new entries)."""
+    doc = {"version": 1, "kind": "lab-refusals", "testSet": checks["testSet"], "ayahs": [], "sites": [], "donors": [], "unmapped": []}
+    for k in ("ayahs", "sites", "donors", "unmapped"):
+        doc[k] = [dict(x) for x in (previous or {}).get(k, [])]
+    have = {k: {json.dumps({f: x[f] for f in x if f not in ("reason", "from", "iteration")}, sort_keys=True) for x in doc[k]} for k in doc if isinstance(doc[k], list)}
+    new = []
+
+    def add(kind: str, entry: dict, reason: str, src: str):
+        key = json.dumps(entry, sort_keys=True)
+        if key in have[kind]:
+            return
+        have[kind].add(key)
+        x = {**entry, "reason": reason, "from": src, "iteration": iteration}
+        doc[kind].append(x)
+        new.append({"kind": kind, **x})
+
+    for f in checks.get("failed", []):
+        s = sessions[f["session"]]
+        x = next(x for x in s["splices"] if x["id"] == f["splice"])
+        host = f"{s['meta']['readId']}/{s['meta']['surah']:03d}"
+        why = "; ".join(f["reasons"])
+        cls = "mutashabihat" if x.get("mutashabihat") else x["type"]
+        add("sites", {"rec": host, "ayah": x["location"]["ayah"], "word": x["location"]["word"], "class": cls}, why, f["id"])
+        if x.get("donor"):
+            _, a, w = map(int, x["donor"]["word"].split(":"))
+            add("donors", {"rec": x["donor"].get("rec") or rec_key(x["donor"]["audio"]), "ayah": a, "word": w}, why, f["id"])
+    for c in checks.get("failedClean", []):
+        s = sessions[c["session"]]
+        host = f"{s['meta']['readId']}/{s['meta']['surah']:03d}"
+        for a in range(int(c["from"].split(":")[1]), int(c["to"].split(":")[1]) + 1):
+            add("ayahs", {"rec": host, "ayah": a}, "; ".join(c["reasons"]), c["id"])
+    for t in checks.get("failedTiming", []):
+        s = sessions[t["session"]]
+        host = f"{s['meta']['readId']}/{s['meta']['surah']:03d}"
+        for o in t["off"]:
+            src = f"{t['session']}-timing-{o['startS']}"
+            why = f"ayah occurrence off by {o['dStartS']:+.2f} s start, {o['dEndS']:+.2f} s end"
+            if ":" in str(o["at"]):
+                add("ayahs", {"rec": host, "ayah": int(o["at"].split(":")[1])}, why, src)
+            else:
+                add("unmapped", {"session": t["session"], "at": o["at"], "startS": o["startS"]}, why, src)
+    for k in ("ayahs", "sites", "donors"):
+        doc[k].sort(key=lambda x: json.dumps({f: x[f] for f in x if f not in ("reason", "from", "iteration")}, sort_keys=True))
+    return doc, new
 
 
 def manifest(sessions: list[dict]) -> dict:
@@ -1086,8 +1224,14 @@ def summary(sessions: list[dict], extra: dict | None = None) -> dict:
     return out
 
 
-REVIEW_TITLES = {"wrong_word": "Wrong word planted", "omitted_word": "Word left out", "added_word": "Word added", "skipped_passage": "Passage skipped",
-                 "mutashabihat": "Mutashabihat swap (word from the twin ayah)", "repeat": "Repeat (not a mistake)", "restart": "Restart (not a mistake)"}
+REVIEW_TITLES = {"wrong_word": "A wrong word put in", "omitted_word": "A word left out", "added_word": "An extra word put in",
+                 "skipped_passage": "An ayah skipped", "mutashabihat": "A word swapped for the one in a look-alike ayah",
+                 "repeat": "A few words said twice (not a mistake)", "restart": "The ayah started again (not a mistake)"}
+
+
+def linked(x: dict) -> bool:
+    """A splice with a cut inside continuous speech (no pause either side of the seam): the riskiest kind."""
+    return any("link" in (sm.get("out", {}).get("boundary"), sm.get("in", {}).get("boundary")) for sm in x["seams"])
 
 
 def said_text(s: dict, a: float, b: float) -> str:
@@ -1103,7 +1247,8 @@ def review_splice(s: dict, x: dict, root: str = TEST_SET) -> dict:
     a, b = max(0.0, x["startS"] - 2.5), min(s["durationS"], x["endS"] + 2.5)
     h = x["seams"][0]["out"]
     cls = "mutashabihat" if x["mutashabihat"] else x["type"]
-    return {"id": f"{s['id']}-{x['id']}", "kind": "splice", "title": REVIEW_TITLES[cls],
+    how = "joined mid-phrase, no pause" if linked(x) else "joined at a pause"
+    return {"id": f"{s['id']}-{x['id']}", "kind": "splice", "title": f"{REVIEW_TITLES[cls]} ({how})",
             "audio": {"path": f"{root}/{s['meta']['audio']['studio']}", "startS": round(a, 3), "endS": round(b, 3)},
             "before": {"path": h["audio"], "startS": round(max(0.0, h["srcS"] - 3), 3), "endS": round(h["srcS"], 3)},
             "after": {"path": h["audio"], "startS": round(h["srcS"], 3), "endS": round(h["srcS"] + 3.2, 3)},
@@ -1123,9 +1268,11 @@ def review_repeat(s: dict, x: dict, root: str = TEST_SET) -> dict:
 
 def review_queue(sessions: list[dict], ref: Ref, seed: int = SEED) -> dict:
     """The v1 listening check (ticket 07, lab-review.md): 20 splices with the original before and after, then 20 cases
-    (clean stretches, repeats and restarts, phone copies). Ids are `<session>-<edit>` or `<session>-<kind>-<time>`."""
+    (clean stretches, repeats and restarts, phone copies). Ids are `<session>-<edit>` or `<session>-<kind>-<time>`.
+    Splices are spread over the classes and sessions, linked seams (cut inside continuous speech) first; skipped
+    passages always sit between pauses."""
     rng = random.Random(f"{seed}:review")
-    root = TEST_SET
+    root = sessions[0]["meta"]["testSet"] if sessions else TEST_SET
     sp = [(s, x) for s in sessions for x in s["splices"] if x["type"] not in ("repeat", "restart")]
     want = {"wrong_word": 5, "omitted_word": 4, "added_word": 4, "skipped_passage": 3, "mutashabihat": 4}
     by = defaultdict(list)
@@ -1135,10 +1282,11 @@ def review_queue(sessions: list[dict], ref: Ref, seed: int = SEED) -> dict:
     for cls, n in want.items():
         pool = sorted(by[cls], key=lambda p: (p[0]["id"], p[1]["id"]))
         rng.shuffle(pool)
-        pool.sort(key=lambda p: sum(q[0]["id"] == p[0]["id"] for q in picked))
+        pool.sort(key=lambda p: (not linked(p[1]), sum(q[0]["id"] == p[0]["id"] for q in picked)))
         picked += pool[:n]
     rest = [p for p in sp if p not in picked]
     rng.shuffle(rest)
+    rest.sort(key=lambda p: not linked(p[1]))
     picked += rest[: 20 - len(picked)]
     items = [review_splice(s, x, root) for s, x in picked]
     cases = []
@@ -1169,10 +1317,11 @@ def review_queue(sessions: list[dict], ref: Ref, seed: int = SEED) -> dict:
             if not ws:
                 continue
             t = rng.choice(ws)
-            cases.append({"id": f"{s['id']}-{variant}-{int(t)}", "kind": "case", "title": f"Clean stretch{', phone copy' if variant == 'phone' else ''}",
+            cases.append({"id": f"{s['id']}-{variant}-{int(t)}", "kind": "case",
+                          "title": "Recited as written, no mistake" + (" (phone copy: room echo and noise)" if variant == "phone" else ""),
                           "audio": {"path": f"{root}/{s['meta']['audio'][variant]}", "startS": round(t, 3), "endS": round(t + 8.0, 3)},
                           "text": said_text(s, t, t + 8.0), "label": {"type": "clean"},
                           "context": f"session {s['id']} at {t:.1f} s · {s['meta']['reciter']}"
                                      + (f" · phone copy, SNR {s['meta']['phone']['snrDb']} dB" if variant == "phone" else "")})
             k += 1
-    return {"version": 1, "testSet": TEST_SET, "maxBad": 1, "items": items + cases[:20]}
+    return {"version": 1, "testSet": root, "maxBad": 1, "items": items + cases[:20]}

@@ -84,15 +84,15 @@ def test_forms_other_ignores_identical_refrains():
 
 # ---- a synthetic recording of Al-Ikhlas, every word a tone -------------------------------------------------------
 
-def ikhlas():
+def ikhlas(inner_gap=0.35, inner_db=-20.0, ayah_extra=None, refuse=None):
     t, words, ayahs = 1.0, [], []
     for a in range(1, 5):
         n = len(REF.ayah_words[f"112:{a}"])
-        ayahs.append({"ayah": a, "excluded": False, "levelDb": -20.0})
+        ayahs.append({"ayah": a, "excluded": False, "levelDb": -20.0, **(ayah_extra or {}).get(a, {})})
         for i in range(1, n + 1):
             words.append({"surah": 112, "ayah": a, "word": i, "startS": round(t, 3), "endS": round(t + 0.5, 3), "score": 0.95})
-            gap = 0.8 if i == n else 0.35
-            words[-1]["cutAfterS"], words[-1]["cutDb"] = round(t + 0.5 + gap / 2, 3), -20.0
+            gap = 0.8 if i == n else inner_gap
+            words[-1]["cutAfterS"], words[-1]["cutDb"] = round(t + 0.5 + gap / 2, 3), -20.0 if i == n else inner_db
             t += 0.5 + gap
     words[-1]["cutAfterS"] = None
     dur = t + 2
@@ -102,7 +102,7 @@ def ikhlas():
     for k, w in enumerate(words):
         a, b = round(w["startS"] * SR), round(w["endS"] * SR)
         x[a:b] = 0.3 * np.sin(2 * np.pi * freq(k) * np.arange(b - a) / SR)
-    return S.Rec(align, REF), x
+    return S.Rec(align, REF, refuse), x
 
 
 def freq(k):
@@ -211,6 +211,82 @@ def test_phone_params_and_build_are_deterministic():
     assert a == S.phone_params("lab-v1-p01", 200.0, bank) and a != S.phone_params("lab-v1-p02", 200.0, bank)
     assert sum(bank["noises"][i]["durationS"] for i in a["noise"]) >= 201 and S.SNR_DB[0] <= a["snrDb"] <= S.SNR_DB[1]
     assert json.dumps(build()[3]) == json.dumps(build()[3])
+
+
+def test_said_form_takes_the_pause_form_where_the_reciter_stopped():
+    w = lambda s, a, i: REF.words[REF.idx[(s, a, i)]]
+    q = w(41, 15, 12)  # قُوَّةً, mid-ayah
+    assert S.said_form(q, False, False) == "قُووَتَن" and S.said_form(q, False, True) == "قُووَه"
+    h = w(41, 15, 7)  # ٱلْحَقِّ: connecting hamza, said only when starting after a stop
+    assert S.said_form(h, False, True) == "لحَققڇ"
+    assert S.said_form(h, True, False) == "ءَلحَققِ" and S.said_form(h, True, True) == h["iso"]
+    last, first = w(41, 15, 21), w(41, 15, 1)  # ayah edges are pause forms in the continuous phonemes already
+    assert S.said_form(last, False, True) == last["cont"] and S.said_form(first, True, False) == first["cont"]
+    changed = next(x for x in REF.words if 1 < x["w"] < x["n"] and S.head_kind(x["cont"], x["iso"]) is None)
+    assert S.said_form(changed, False, False) == changed["cont"] and S.said_form(changed, False, True) is None
+
+
+def test_labels_use_pause_forms_at_source_pauses():
+    _, _, _, s = build()  # every inner gap is a pause here
+    wrong = next(e for e in s["events"] if e["errorClass"] == "wrong_word")
+    huwa = REF.words[REF.idx[(112, 1, 2)]]
+    assert wrong["said"] == huwa["iso"] != huwa["cont"]
+    assert next(t for t in s["said"] if t["role"] == "wrong")["phonemes"] == huwa["iso"]
+    rec, _ = ikhlas(inner_gap=0.05, inner_db=-10.0)  # linked inside ayahs: continuous forms
+    assert not rec.pause_after(1) and rec.pause_after(3) and rec.said(1, REF) == huwa["cont"]
+
+
+def test_long_or_loose_ayahs_and_check_failures_are_refused():
+    assert S.refused_ayah({"excluded": False, "lenRatio": 1.06, "per": 0.0}) == "long"
+    assert S.refused_ayah({"excluded": False, "lenRatio": 1.0, "per": 0.12}) == "per"
+    assert S.refused_ayah({"excluded": False, "lenRatio": 1.04, "per": 0.1}) is None
+    assert S.refused_ayah({"excluded": True, "lenRatio": 2.0, "per": 0.5}) is None
+    rec, _ = ikhlas(ayah_extra={2: {"lenRatio": 1.08}}, refuse={3})
+    assert rec.refused == {2: "long", 3: "check"}
+    assert S.runs(rec) == [[0], [3]]  # windows never span a refused ayah
+    assert all(rec.boundary(k, REF) is None for k, w in enumerate(rec.words) if w["ayah"] in (2, 3))
+
+
+def test_linked_cuts_refuse_weak_onsets():
+    rec, _ = ikhlas(inner_gap=0.05, inner_db=-10.0)
+    assert REF.words[rec.words[1]["ref"]]["cont"][0] == "ه"
+    assert rec.boundary(0, REF) is None  # قُلْ | هُوَ: closed l before a soft h
+    k = rec.pos[(3, 1)]
+    assert rec.boundary(k, REF)["kind"] == "link"  # لَمْ | يَلِدْ
+    paused, _ = ikhlas()
+    assert paused.boundary(0, REF)["kind"] == "pause"  # the same head is fine after a pause
+
+
+def test_donors_skip_refused_words():
+    rec, _ = ikhlas()
+    all_ = S.Donors([rec], REF)
+    some = S.Donors([rec], REF, {(rec.key, 1, 2)})
+    assert any(k == 1 for _, k, _, _ in all_.items) and not any(k == 1 for _, k, _, _ in some.items)
+    assert len(some.items) == len(all_.items) - 1
+
+
+def test_refusals_from_checks_are_cumulative_and_in_source_terms():
+    _, _, _, s = build()
+    sid = s["id"]
+    wrong = next(x for x in s["splices"] if x["type"] == "wrong_word")
+    checks = {"testSet": "t", "failed": [{"id": f"{sid}-{wrong['id']}", "session": sid, "splice": wrong["id"], "reasons": ["local PER 0.3"]}],
+              "failedClean": [{"id": f"{sid}-clean-0", "session": sid, "from": "112:1:1", "to": "112:2:2", "reasons": ["PER 0.09"]}],
+              "failedTiming": [{"session": sid, "off": [{"at": "112:4", "startS": 9.0, "dStartS": 0.0, "dEndS": 0.5}, {"at": "added", "startS": 3.0, "dStartS": 1, "dEndS": 0}]}]}
+    doc, new = S.refusals_from_checks(checks, {sid: s})
+    assert doc["sites"] == [{"rec": "7/112", "ayah": 4, "word": 3, "class": "wrong_word", "reason": "local PER 0.3", "from": f"{sid}-{wrong['id']}", "iteration": 1}]
+    assert [(d["rec"], d["ayah"], d["word"]) for d in doc["donors"]] == [("7/112", 1, 2)]
+    assert [x["ayah"] for x in doc["ayahs"]] == [1, 2, 4] and len(doc["unmapped"]) == 1 and len(new) == 6
+    again, new2 = S.refusals_from_checks(checks, {sid: s}, doc, iteration=2)
+    assert new2 == [] and again == doc
+
+
+def test_review_queue_puts_linked_splices_first_with_plain_titles():
+    seam = lambda a, b: {"out": {"boundary": a}, "in": {"boundary": b}}
+    assert S.linked({"seams": [seam("pause", "link")]}) and not S.linked({"seams": [seam("pause", "pause")]})
+    _, _, _, s = build()
+    q = S.review_queue([s], REF)
+    titles = {i["title"] for i in q["items"]}
+    assert "A wrong word put in (joined at a pause)" in titles and q["testSet"] == s["meta"]["testSet"]
 
 
 def test_manifest_and_review_queue():
