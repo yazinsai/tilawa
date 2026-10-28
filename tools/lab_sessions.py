@@ -1086,6 +1086,41 @@ def summary(sessions: list[dict], extra: dict | None = None) -> dict:
     return out
 
 
+REVIEW_TITLES = {"wrong_word": "Wrong word planted", "omitted_word": "Word left out", "added_word": "Word added", "skipped_passage": "Passage skipped",
+                 "mutashabihat": "Mutashabihat swap (word from the twin ayah)", "repeat": "Repeat (not a mistake)", "restart": "Restart (not a mistake)"}
+
+
+def said_text(s: dict, a: float, b: float) -> str:
+    return " ".join(w["text"] for w in s["said"] if w["endS"] > a and w["startS"] < b)
+
+
+def _where(at: dict) -> str:
+    return f"{at['surah']}:{at['ayah']}, word {at['word']}"
+
+
+def review_splice(s: dict, x: dict, root: str = TEST_SET) -> dict:
+    """A planted edit as a review item: 2.5 s either side, with the host recording before and after its first seam."""
+    a, b = max(0.0, x["startS"] - 2.5), min(s["durationS"], x["endS"] + 2.5)
+    h = x["seams"][0]["out"]
+    cls = "mutashabihat" if x["mutashabihat"] else x["type"]
+    return {"id": f"{s['id']}-{x['id']}", "kind": "splice", "title": REVIEW_TITLES[cls],
+            "audio": {"path": f"{root}/{s['meta']['audio']['studio']}", "startS": round(a, 3), "endS": round(b, 3)},
+            "before": {"path": h["audio"], "startS": round(max(0.0, h["srcS"] - 3), 3), "endS": round(h["srcS"], 3)},
+            "after": {"path": h["audio"], "startS": round(h["srcS"], 3), "endS": round(h["srcS"] + 3.2, 3)},
+            "text": said_text(s, a, b), "label": {"type": x["type"], "expected": x["expected"], "said": x["said"]},
+            "context": f"{_where(x['location'])} · session {s['id']} at {x['startS']:.1f} s · {s['meta']['reciter']}"
+                       + (f" · word from {x['donor']['word']}" if x.get("donor") else "") + (" · forms another ayah" if x["formsOtherAyah"] else "")}
+
+
+def review_repeat(s: dict, x: dict, root: str = TEST_SET) -> dict:
+    """A planted repeat or restart as a review case, 3 s either side."""
+    a, b = max(0.0, x["startS"] - 3.0), min(s["durationS"], x["endS"] + 3.0)
+    return {"id": f"{s['id']}-{x['id']}", "kind": "case", "title": REVIEW_TITLES[x["type"]],
+            "audio": {"path": f"{root}/{s['meta']['audio']['studio']}", "startS": round(a, 3), "endS": round(b, 3)},
+            "text": said_text(s, a, b), "label": {"type": x["type"], "expected": x["expected"], "said": x["said"]},
+            "context": f"{_where(x['location'])} · session {s['id']} at {x['startS']:.1f} s · {s['meta']['reciter']}"}
+
+
 def review_queue(sessions: list[dict], ref: Ref, seed: int = SEED) -> dict:
     """The v1 listening check (ticket 07, lab-review.md): 20 splices with the original before and after, then 20 cases
     (clean stretches, repeats and restarts, phone copies). Ids are `<session>-<edit>` or `<session>-<kind>-<time>`."""
@@ -1093,7 +1128,6 @@ def review_queue(sessions: list[dict], ref: Ref, seed: int = SEED) -> dict:
     root = TEST_SET
     sp = [(s, x) for s in sessions for x in s["splices"] if x["type"] not in ("repeat", "restart")]
     want = {"wrong_word": 5, "omitted_word": 4, "added_word": 4, "skipped_passage": 3, "mutashabihat": 4}
-    items = []
     by = defaultdict(list)
     for s, x in sp:
         by["mutashabihat" if x["mutashabihat"] else x["type"]].append((s, x))
@@ -1106,42 +1140,18 @@ def review_queue(sessions: list[dict], ref: Ref, seed: int = SEED) -> dict:
     rest = [p for p in sp if p not in picked]
     rng.shuffle(rest)
     picked += rest[: 20 - len(picked)]
-
-    def text_in(s, a, b):
-        return " ".join(w["text"] for w in s["said"] if w["endS"] > a and w["startS"] < b)
-
-    def where(s, at):
-        return f"{at['surah']}:{at['ayah']}, word {at['word']}"
-
-    titles = {"wrong_word": "Wrong word planted", "omitted_word": "Word left out", "added_word": "Word added", "skipped_passage": "Passage skipped",
-              "mutashabihat": "Mutashabihat swap (word from the twin ayah)", "repeat": "Repeat (not a mistake)", "restart": "Restart (not a mistake)"}
-    for s, x in picked:
-        a, b = max(0.0, x["startS"] - 2.5), min(s["durationS"], x["endS"] + 2.5)
-        first = x["seams"][0]
-        h = first["out"]
-        cls = "mutashabihat" if x["mutashabihat"] else x["type"]
-        items.append({"id": f"{s['id']}-{x['id']}", "kind": "splice", "title": titles[cls],
-                      "audio": {"path": f"{root}/{s['meta']['audio']['studio']}", "startS": round(a, 3), "endS": round(b, 3)},
-                      "before": {"path": h["audio"], "startS": round(max(0.0, h["srcS"] - 3), 3), "endS": round(h["srcS"], 3)},
-                      "after": {"path": h["audio"], "startS": round(h["srcS"], 3), "endS": round(h["srcS"] + 3.2, 3)},
-                      "text": text_in(s, a, b), "label": {"type": x["type"], "expected": x["expected"], "said": x["said"]},
-                      "context": f"{where(s, x['location'])} · session {s['id']} at {x['startS']:.1f} s · {s['meta']['reciter']}"
-                                 + (f" · word from {x['donor']['word']}" if x.get("donor") else "") + (" · forms another ayah" if x["formsOtherAyah"] else "")})
+    items = [review_splice(s, x, root) for s, x in picked]
     cases = []
     reps = [(s, x) for s in sessions for x in s["splices"] if x["type"] in ("repeat", "restart")]
     rng.shuffle(reps)
     for s, x in reps[:6]:
-        a, b = max(0.0, x["startS"] - 3.0), min(s["durationS"], x["endS"] + 3.0)
-        cases.append({"id": f"{s['id']}-{x['id']}", "kind": "case", "title": titles[x["type"]],
-                      "audio": {"path": f"{root}/{s['meta']['audio']['studio']}", "startS": round(a, 3), "endS": round(b, 3)},
-                      "text": text_in(s, a, b), "label": {"type": x["type"], "expected": x["expected"], "said": x["said"]},
-                      "context": f"{where(s, x['location'])} · session {s['id']} at {x['startS']:.1f} s · {s['meta']['reciter']}"})
+        cases.append(review_repeat(s, x, root))
 
     def clean_windows(s, length=8.0):
         busy = [(x["startS"] - 3, x["endS"] + 3) for x in s["splices"]]
         out, t = [], 5.0
         while t + length < s["durationS"] - 2:
-            if not any(a < t + length and t < b for a, b in busy) and text_in(s, t, t + length):
+            if not any(a < t + length and t < b for a, b in busy) and said_text(s, t, t + length):
                 out.append(t)
             t += length
         return out
@@ -1161,7 +1171,7 @@ def review_queue(sessions: list[dict], ref: Ref, seed: int = SEED) -> dict:
             t = rng.choice(ws)
             cases.append({"id": f"{s['id']}-{variant}-{int(t)}", "kind": "case", "title": f"Clean stretch{', phone copy' if variant == 'phone' else ''}",
                           "audio": {"path": f"{root}/{s['meta']['audio'][variant]}", "startS": round(t, 3), "endS": round(t + 8.0, 3)},
-                          "text": text_in(s, t, t + 8.0), "label": {"type": "clean"},
+                          "text": said_text(s, t, t + 8.0), "label": {"type": "clean"},
                           "context": f"session {s['id']} at {t:.1f} s · {s['meta']['reciter']}"
                                      + (f" · phone copy, SNR {s['meta']['phone']['snrDb']} dB" if variant == "phone" else "")})
             k += 1
