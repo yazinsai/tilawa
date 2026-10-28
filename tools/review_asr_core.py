@@ -91,40 +91,44 @@ def align(ref: list[tuple[str, set[str]]], hyp: list[tuple[str, set[str]]]) -> l
                 cands.append((D[i - 2][j - 1] + 1 - s + MERGE_COST, ("merge21", s)))
             D[i][j], B[i][j] = min(cands, key=lambda c: c[0])
     j = min(range(m + 1), key=lambda k: D[n][k] + max(0, m - k - EDGE_FREE))
-    ops = [{"op": "trail", "hyp": hyp[k][0], "free": k - j < EDGE_FREE} for k in range(m - 1, j - 1, -1)]
+    ops = [{"op": "trail", "hyp": hyp[k][0], "ri": n - 0.5, "free": k - j < EDGE_FREE} for k in range(m - 1, j - 1, -1)]
     i = n
     while i > 0 or j > 0:
         b = B[i][j]
         if b[0] == "lead":
-            ops += [{"op": "lead", "hyp": hyp[k][0], "free": j - k <= EDGE_FREE} for k in range(j - 1, -1, -1)]
+            ops += [{"op": "lead", "hyp": hyp[k][0], "ri": -0.5, "free": j - k <= EDGE_FREE} for k in range(j - 1, -1, -1)]
             break
         if b[0] == "del":
-            ops.append({"op": "del", "ref": ref[i - 1][0]})
+            ops.append({"op": "del", "ref": ref[i - 1][0], "ri": i - 1})
             i -= 1
         elif b[0] == "ins":
-            ops.append({"op": "ins", "hyp": hyp[j - 1][0]})
+            ops.append({"op": "ins", "hyp": hyp[j - 1][0], "ri": i - 0.5})
             j -= 1
         elif b[0] == "pair":
-            ops.append({"op": "pair", "ref": ref[i - 1][0], "hyp": hyp[j - 1][0], "sim": round(b[1], 3)})
+            ops.append({"op": "pair", "ref": ref[i - 1][0], "hyp": hyp[j - 1][0], "sim": round(b[1], 3), "ri": i - 1})
             i, j = i - 1, j - 1
         elif b[0] == "merge12":
-            ops.append({"op": "merge", "ref": ref[i - 1][0], "hyp": f"{hyp[j - 2][0]} {hyp[j - 1][0]}", "sim": round(b[1], 3)})
+            ops.append({"op": "merge", "ref": ref[i - 1][0], "hyp": f"{hyp[j - 2][0]} {hyp[j - 1][0]}", "sim": round(b[1], 3), "ri": i - 1})
             i, j = i - 1, j - 2
         else:
-            ops.append({"op": "merge", "ref": f"{ref[i - 2][0]} {ref[i - 1][0]}", "hyp": hyp[j - 1][0], "sim": round(b[1], 3)})
+            ops.append({"op": "merge", "ref": f"{ref[i - 2][0]} {ref[i - 1][0]}", "hyp": hyp[j - 1][0], "sim": round(b[1], 3), "ri": i - 1})
             i, j = i - 2, j - 1
     return ops[::-1]
 
 
-def compare(text: str, transcript: str) -> dict:
+def compare(text: str, transcript: str, before: str = "", after: str = "") -> dict:
     """match / mismatch / unsure for one window, with the word alignment.
 
     mismatch: inside the window a labelled word is not heard, a heard word (2+ letters) is not in the text, or a word is
     heard as a different word (similarity < WRONG_SIM). unsure: only doubtful words (between WRONG_SIM and OK_SIM),
     one-letter extras, or labelled words missing at the very start or end of the window (cut-off or swallowed by the
-    model). match: every labelled word heard, nothing extra inside."""
-    ref, hyp = tokens(text), tokens(transcript)
-    if not ref:
+    model). match: every labelled word heard, nothing extra inside.
+
+    `before` / `after`: words known to be just outside the window when the audio given to the model was widened. They
+    are aligned too but never count; only the labelled words and extras between them decide."""
+    pre, mid, post, hyp = tokens(before), tokens(text), tokens(after), tokens(transcript)
+    ref, nb, ne = pre + mid + post, len(pre), len(pre) + len(mid)
+    if not mid:
         return {"decision": "unsure", "reasons": ["no labelled words"], "ops": []}
     if not hyp:
         return {"decision": "unsure", "reasons": ["empty transcript"], "ops": []}
@@ -141,14 +145,20 @@ def compare(text: str, transcript: str) -> dict:
             o["status"] = "ok" if o["sim"] >= OK_SIM else "doubtful" if o["sim"] >= WRONG_SIM else "wrong"
         else:
             o["status"] = "outside"
+        if (pre or post) and o["status"] != "outside":
+            r = o["ri"]
+            if o["op"] in ("ins", "lead", "trail") and not nb - 0.5 <= r <= ne - 0.5 or o["op"] not in ("ins", "lead", "trail") and not nb <= r < ne:
+                o["status"] = "context"
+            elif o["op"] in ("ins", "lead", "trail") and r in (nb - 0.5, ne - 0.5) and o["status"] == "extra":
+                o["status"] = "edge-extra"
         if o["status"] in ("missing", "extra", "wrong"):
             wrong.append(o)
-        elif o["status"] in ("edge-missing", "extra-letter", "doubtful"):
+        elif o["status"] in ("edge-missing", "edge-extra", "extra-letter", "doubtful"):
             doubt.append(o)
     reasons = [f"{o['status']}: {o.get('ref', '')}{' / ' if 'ref' in o and 'hyp' in o else ''}{o.get('hyp', '')}" for o in wrong + doubt]
     decision = "mismatch" if wrong else "unsure" if doubt else "match"
     return {"decision": decision, "reasons": reasons, "ops": ops,
-            "refWords": len(ref), "heardWords": len(hyp), "okWords": sum(o.get("status") == "ok" for o in ops)}
+            "refWords": len(mid), "heardWords": len(hyp), "okWords": sum(o.get("status") == "ok" for o in ops)}
 
 
 def combine(decisions: list[str]) -> str:

@@ -116,3 +116,12 @@ def test_prescreen_keeps_disagreements_seams_and_spot_check():
     assert p == prescreen(q, dec)
     assert len(prescreen(q, dec, seams="skip")["items"]) == 2 + 3
     assert all("pre-screen:" in it["context"] for it in p["items"])
+
+
+def test_context_words_never_count():
+    text = "أَكْثَرَهُمْ لَا يَعْلَمُونَ"
+    assert compare(text, "ولكن أكثرهم لا يعلمون قل", before="وَلَـٰكِنَّ", after="قُلْ")["decision"] == "match"
+    assert compare(text, "أكثرهم لا يعلمون", before="وَلَـٰكِنَّ", after="قُلْ")["decision"] == "match"
+    assert compare(text, "ولكن أكثرهم يعلمون قل", before="وَلَـٰكِنَّ", after="قُلْ")["decision"] == "mismatch"
+    assert compare(text, "ولكن لا يعلمون قل", before="وَلَـٰكِنَّ", after="قُلْ")["decision"] == "mismatch"
+    assert compare(text, "ولكن أكثرهم لا يعلمون", before="وَلَـٰكِنَّ")["decision"] == compare(text, "أكثرهم لا يعلمون")["decision"]

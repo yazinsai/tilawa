@@ -5,6 +5,7 @@ A Modal web page for listening to test set items one at a time and marking each 
 - Page: <https://amal-invest--tilawa-lab-review-web.us-east.modal.run/?queue=fixture-review/review/demo.json>
 - Deploy: `modal deploy modal/lab_review.py`. Rewrite the demo set: `modal run modal/lab_review.py`.
 - Test: `uv run --python cpython-3.12-macos-aarch64-none --with pytest pytest tools/test_lab_review.py`
+- ASR pre-screen (`modal/review_asr.py::prescreen`) writes a smaller queue in this format. It failed calibration on lab-v1.1 (`lab-review-asr-v1.md`), so listening stays fully manual.
 
 Open `?queue=<path under /lab/data>` and optionally `&reviewer=<name>` (default `me`). With no queue, the page lists every `/lab/data/*/review/*.json`. Keys: space plays, `b` / `a` play the original before / after, 1–4 give a verdict, `j` / `k` go next / back.
 
