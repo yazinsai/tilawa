@@ -17,7 +17,7 @@ Item paths in the manifest are relative to the dataset directory. Every item has
 |---|---|---|---|---|
 | Al-Ikhlas error detection | `/data/public/ikhlas/` | 1,506 | 1,499 | CC BY 4.0 |
 | RetaSy quranic_audio_dataset | `/data/public/retasy/` | 6,828 (1,228 labelled) | 6,098 | none stated |
-| QuranMB v2 | `/data/public/quranmb_v2/` | 1,642 | 1,640 | none stated; ground truth **not accessible** |
+| QuranMB v2 | `/data/public/quranmb_v2/` | 1,642 | 1,640 | none stated; ground truth joined (1,642/1,642) |
 
 ## Al-Ikhlas error detection (Mendeley)
 
@@ -163,10 +163,7 @@ The README defines `correct` / `in_correct` as diacritics only, "regardless of t
 - `data/test-00000-of-00001.parquet` and `data/train-00000-of-00001.parquet` are **byte-identical** (sha256 `332b3e4b…62b9`, 220,472,046 bytes). Only `test` is in the card config, and only `test` was used.
 - Columns: `ID` and `audio` (struct `bytes`, `path` = `<ID>.wav`).
 
-**Ground truth: blocked.** `IqraEval/IqraEval_Test_GT` (`labels_test.csv`, revision `cd27009525365f911ddd773c0b3b70cac82f2f0b`) fails with the Modal `huggingface` secret, whose token belongs to `yazins` (write token "cli"). The listing and metadata calls work, but `auth_check` and the file download both return:
-
-    GatedRepoError: 403 Client Error. Cannot access gated repo for url https://huggingface.co/datasets/IqraEval/IqraEval_Test_GT/resolve/cd27009525365f911ddd773c0b3b70cac82f2f0b/labels_test.csv.
-    Access to dataset IqraEval/IqraEval_Test_GT is restricted and you are not in the authorized list.
+**Ground truth.** `IqraEval/IqraEval_Test_GT` (`labels_test.csv`, revision `cd27009525365f911ddd773c0b3b70cac82f2f0b`, no licence stated), accessible after access was granted on 28 October. Columns `ID`, `Reference_phn` (what the prompt should sound like) and `Annotation_phn` (what was said). All 1,642 rows join to audio; 97 distinct verses. 1,532 items differ from their reference: 2,372 substituted, 944 deleted and 259 inserted phonemes over 53,117 reference phonemes (6.7%). No speaker column; speakers are still inferred from IDs.
 
 So the access request for `yazins` is not approved on HF's side (still pending, or approved for another account). Once it is, `modal run modal/lab_public_sets.py --only quranmb` does the following:
 
@@ -187,7 +184,6 @@ The column detection matches on name, because the CSV couldn't be read, so check
   - 1,142 clips use a 5-digit suffix.
   - 500 use a longer suffix that starts with a base prompt. 499 of these have a twin with the same group and prompt.
 - *Speculation:* the group is the speaker (18 speakers, `00003` and `00012` partial), the prompt is a verse or sentence (98 verses), and the long-suffix clips are second takes, possibly scripted-error versions of the same prompt. Confirm against the ground truth.
-- Phoneme-level error annotations: unknown until the ground truth is accessible.
 
 **Use in our pipeline.** Without the ground truth it is unlabelled read speech: useful for listening, nothing measurable. With it, it is the phoneme-level mispronunciation benchmark for the pronunciation track (short vowels, confusable pairs, shadda), after mapping IqraEval's phoneme set to the teacher's. It carries no memorization-error labels as far as the audio card shows.
 

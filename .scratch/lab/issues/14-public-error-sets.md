@@ -1,6 +1,6 @@
 # 14 Public error sets onto the lab volume
 
-Status: ready-for-human
+Status: resolved
 Type: task
 Blocked by: none
 
@@ -33,3 +33,4 @@ Audio for all three sets is on the `tilawa-lab` volume, but QuranMB's ground tru
   - IDs suggest 18 speakers × 98 prompts plus 500 second takes (inferred).
   - **Blocker:** `IqraEval/IqraEval_Test_GT` returns `GatedRepoError: 403 ... you are not in the authorized list` for the Modal `huggingface` token, which is account `yazins`. Approval hasn't landed on HF. Once it has, run `modal run modal/lab_public_sets.py --only quranmb` to join the ground truth and count verses, speakers and phoneme edits.
 - Nothing is scored and no metric moves, so there is no scoreboard row.
+- QuranMB ground truth fetched after access was granted (28 Oct): 1,642/1,642 joined, 97 verses, 3,575 phoneme edits over 53,117 reference phonemes, 1,532 items with errors. IqraEval's phoneme set still needs mapping to the teacher's before any scoring.
