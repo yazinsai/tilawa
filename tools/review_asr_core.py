@@ -223,6 +223,50 @@ def plain_transcript(transcript: str) -> str:
     return " ".join(re.sub("[^\u0621-\u064a]", "", unicodedata.normalize("NFC", t)) for t, _ in tokens(transcript))
 
 
+# FastConformer (nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0) writes modern spelling WITH harakat, so its
+# candidates keep them. Fixed before the first FastConformer calibration or data-check run.
+
+_HARAKAT = "\u064b-\u0652"
+_OPEN_TANWEEN = str.maketrans({"\u08f0": "\u064b", "\u08f1": "\u064c", "\u08f2": "\u064d"})
+_QURAN_MARKS = re.compile("[\u0610-\u061a\u0653\u0656-\u065f\u06d6-\u06dc\u06de-\u06e0\u06e2-\u06ed]")
+
+
+def diacritised_spellings(word: str, charset: set[str] | None = None) -> list[str]:
+    """Modern spellings of one Uthmani word that keep its harakat, e.g. ٱلصَّلَوٰةِ -> الصَّلَاةِ, ءَامَنُوا۟ -> آمَنُوا,
+    فِىٓ -> فِي, يَسْتَـْٔذِنُكَ -> يَسْتَأْذِنُكَ. The superscript alef is tried as ا and as nothing, as in plain_spellings.
+    `charset`: characters the tokenizer knows; anything else is dropped."""
+    w = unicodedata.normalize("NFD", word).translate(_OPEN_TANWEEN).replace("\u06e1", "\u0652")
+    w = unicodedata.normalize("NFC", _QURAN_MARKS.sub("", w)).replace("\u0671", "ا")
+    w = re.sub(f"\u0640([{_HARAKAT}]*)\u0654", "أ\\1", w).replace("\u0640", "")
+    w = re.sub(f"\u0650([\u0651\u0652]?)ى", "\u0650\\1ي", w)
+    w = re.sub(f"ى(?=[{_HARAKAT}]*[\u0621-\u064a])", "ي", w.replace("ى\u0670", "ى").replace("و\u0670", "ا"))
+    out = []
+    for dagger in ("ا", "") if "\u0670" in w else ("",):
+        v = w.replace("\u0670", dagger).replace("\u0654", "")
+        v = re.sub("[ءأ]\u064eا", "آ", v)
+        v = re.sub(f"[^\u0621-\u064a{_HARAKAT}]", "", v)
+        if charset is not None:
+            v = "".join(c for c in v if c in charset)
+        if v and v not in out:
+            out.append(v)
+    return out
+
+
+def diacritised_candidates(text: str, transcript: str = "", charset: set[str] | None = None) -> list[str]:
+    """plain_candidates with harakat: a word that shares a normalised form with a transcript word takes that word as the
+    model wrote it (harakat kept, punctuation dropped); other words try their diacritised_spellings."""
+    heard = tokens(transcript)
+    keep = lambda s: "".join(c for c in re.sub(f"[^\u0621-\u064a{_HARAKAT}]", "", unicodedata.normalize("NFC", s)) if charset is None or c in charset)
+    per = []
+    for w, v in tokens(text):
+        same = next((t for t, tv in heard if tv & v), None)
+        per.append([keep(same)] if same and keep(same) else diacritised_spellings(w, charset) or [w])
+    out = [[]]
+    for opts in per:
+        out = [o + [s] for o in out for s in opts][:MAX_SPELLINGS] if len(out) * len(opts) <= MAX_SPELLINGS else [o + [opts[0]] for o in out]
+    return [" ".join(o) for o in out]
+
+
 def prefer(claimed: float, alternative: float, margin: float = LIK_MARGIN) -> str:
     """Pairwise rule: does the claimed text fit the audio better than the alternative by at least `margin` nats?"""
     d = claimed - alternative
@@ -309,6 +353,82 @@ def controls(queue: dict, sessions: dict[str, dict], seed: int = 12) -> dict[str
         other = items[(i + k) % len(items)]
         out[it["id"]] = {"oneEdit": one, "shifted": {"text": other["text"], "control": "shifted", "edit": "other item", "op": f"text of {other['id']}"}}
     return out
+
+
+CHECK_LLR_MIN = 3.0  # nats, the teacher check's LLR_MIN (tools/lab_checks.py); fixed before the first FastConformer data check
+CHECK_PAD_S, CHECK_GAP_SLACK_S = 0.1, 0.02
+
+
+def edit_texts(session: dict, x: dict) -> dict | None:
+    """One planted edit (splice, repeat or restart) as two texts over the same audio, for an independent data check:
+    `said` = word before + planted words + word after, `original` = word before + the original words + word after
+    (the expected word for a wrong word, the removed words for an omission or skip, nothing for an addition, repeat or
+    restart). The window runs from the labelled start of the word before to the end of the word after, CHECK_PAD_S
+    padded, as in the teacher check (tools/lab_checks.py edit_check). None when a side has no recited word."""
+    its = sorted(session["said"], key=lambda w: (w["startS"], w["endS"]))
+    mine = [i for i, w in enumerate(its) if w.get("op") == x["id"]]
+    if mine:
+        lo, hi = mine[0] - 1, mine[-1] + 1
+    else:
+        lo = max((i for i, w in enumerate(its) if w["endS"] <= x["startS"] + CHECK_GAP_SLACK_S), default=None)
+        hi = min((i for i, w in enumerate(its) if w["startS"] >= x["endS"] - CHECK_GAP_SLACK_S), default=None)
+    if lo is None or hi is None or lo < 0 or hi >= len(its):
+        return None
+    prev, nxt = its[lo]["text"], its[hi]["text"]
+    planted = [its[i]["text"] for i in mine]
+    orig = (x.get("expected") or "").split() if x["type"] in ("wrong_word", "omitted_word", "skipped_passage") else []
+    cls = "mutashabihat" if x.get("mutashabihat") else x["type"]
+    return {"id": f"{session['id']}-{x['id']}", "session": session["id"], "splice": x["id"], "class": cls, "type": x["type"],
+            "said": " ".join([prev, *planted, nxt]), "original": " ".join([prev, *orig, nxt]),
+            "startS": round(max(0.0, its[lo]["startS"] - CHECK_PAD_S), 3), "endS": round(min(session["durationS"], its[hi]["endS"] + CHECK_PAD_S), 3)}
+
+
+def check_verdict(said: float | None, original: float | None, llr_min: float = CHECK_LLR_MIN) -> dict:
+    """Pass when the said text beats the original by llr_min nats. An original with no CTC path (a skipped ayah longer
+    than the window) counts as infinitely worse; a said text with no path fails."""
+    if said is None:
+        return {"pass": False, "llr": None, "reason": "no CTC path for the said text"}
+    llr = 999.0 if original is None else round(said - original, 2)
+    return {"pass": llr >= llr_min, "llr": llr,
+            "reason": None if llr >= llr_min else "prefers the original" if llr <= -llr_min else "can't separate said from original"}
+
+
+def check_summary(results: list[dict], key: str = "pass") -> dict:
+    """Per class: n, pass, fail, and the overall mistakes (repeats and restarts are not mistakes) and non-errors."""
+    out = {}
+    for r in results:
+        c = out.setdefault(r["class"], {"n": 0, "pass": 0, "fail": 0})
+        c["n"] += 1
+        c["pass" if r[key] else "fail"] += 1
+    agg = lambda cs: {k: sum(out[c][k] for c in cs if c in out) for k in ("n", "pass", "fail")}
+    return {"classes": dict(sorted(out.items())), "mistakes": agg([c for c in out if c not in ("repeat", "restart")]),
+            "nonErrors": agg(["repeat", "restart"])}
+
+
+def arm_stats(table: dict, get) -> dict:
+    """The bar's numbers for one opinion. table: id -> {human, label, oneEditEdit, oneEditWords}; get(id, k) -> the
+    decision for k in labelled / oneEdit / shifted. Agreement = match on the human-ok windows; flagged = a wrong text
+    not accepted."""
+    ok = [i for i in table if table[i]["human"] == "ok"]
+    single = [i for i in table if table[i]["oneEditWords"] == 1 and table[i]["oneEditEdit"] not in ("repeat", "restart", "skipped_passage")]
+    edited = [i for i in table if table[i]["label"] != "clean"]
+    pos = score({i: get(i, "labelled") for i in ok}, {i: True for i in ok})
+    sub = lambda ids, k: score({i: get(i, k) for i in ids}, {i: False for i in ids})
+    one, word, sh = sub(list(table), "oneEdit"), sub(single, "oneEdit"), sub(list(table), "shifted")
+    return {"agreement": pos["specificity"], "positives": pos["positives"], "disagreement": pos["falseAlarm"],
+            "agreementEdited": score({i: get(i, "labelled") for i in ok if i in edited}, {i: True for i in ok if i in edited})["specificity"],
+            "oneEdit": {"sensitivity": one["sensitivity"], "flagged": one["flagged"], "counts": one["negatives"]},
+            "oneEditEdited": sub(edited, "oneEdit")["flagged"],
+            "oneWord": {"sensitivity": word["sensitivity"], "flagged": word["flagged"], "counts": word["negatives"]},
+            "shifted": {"sensitivity": sh["sensitivity"], "flagged": sh["flagged"], "counts": sh["negatives"]},
+            "repeatMisses": sorted(i for i in table if table[i]["oneEditEdit"] in ("repeat", "restart") and get(i, "oneEdit") == "match")}
+
+
+def passes_bar(stats: dict) -> bool:
+    """The ticket 12 bar: agreement >= 95%, one-edit and one-word flagged >= 90%, no repeat or restart misses."""
+    r = lambda x: x["k"] / x["n"] if x["n"] else 0.0
+    return (r(stats["agreement"]) >= 0.95 and r(stats["oneEdit"]["flagged"]) >= 0.90 and r(stats["oneWord"]["flagged"]) >= 0.90
+            and not stats["repeatMisses"])
 
 
 def session_id(item: dict) -> str:
