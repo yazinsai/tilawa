@@ -1,14 +1,16 @@
 """Scripts for scripted-error recordings (.scratch/lab/issues/18-scripted-recordings.md, docs/benchmarks/lab-recordings.md).
 
-    python3 tools/lab_scripts.py batch                      # docs/benchmarks/lab-scripts-v1.json, the default batch
-    python3 tools/lab_scripts.py batch --pool my-pool.json --n 12 --seed 7 --batch rec-v2 --out /tmp/rec-v2.json
+    uv run --python cpython-3.12-macos-aarch64-none --with quran-transcript==0.6.4 --with rapidfuzz==3.14.1 python tools/lab_scripts.py batch
+                                                            # docs/benchmarks/lab-scripts-v1.json, the default batch
+    ... batch --pool my-pool.json --n 12 --seed 7 --batch rec-v2 --out /tmp/rec-v2.json
     python3 tools/lab_scripts.py show rec-v1-03             # one script of the default batch as plain text
 
 A script is a passage of 3-6 minutes at a normal pace with planted mistakes the reciter performs on purpose: about one
 per 2-3 ayahs, each a wrong word (a twin ayah's word, a word that sits between the same neighbours elsewhere in the
 Quran, or a look-alike word), an added word, an omitted word, or a self-correction (say a wrong word, stop, go back and
 say it right). A few scripts are clean. The script records, per word, what is to be said, so a take's labels are known
-by construction. Standard library only; deterministic for a seed.
+by construction. An ayah with a plant is phonetized again as it is to be said (quran-transcript with the ref-v2
+profile, tools/build_index.py), so every word in it carries its phonemes in the new context. Deterministic for a seed.
 """
 
 import argparse
@@ -49,6 +51,9 @@ ADDED_MAX = 0.35  # added words are at most this share of a script's mistakes
 SELF_CORRECTIONS = (1, 1, 2)  # per planted script, a seeded pick
 NO_BASMALA = (1, 9)  # al-Fatiha's basmala is its first ayah; at-Tawba has none
 BASMALA = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ"
+# Said around a recitation but not scripted: the isti'adha before it and "sadaqa Allahu al-'azim" after. Built from the
+# Quran's own words (surah, ayah, first word, count) so they phonetize as the reference does.
+OPTIONAL = {"istiadha": [(2, 67, "أَعُوذُ", 2), (16, 98, "مِنَ", 3)], "closing": [(3, 95, "صَدَقَ", 2), (2, 255, "ٱلْعَظِيمُ", 1)]}
 SURAHS = ("Al-Fatiha Al-Baqara Al-Imran An-Nisa Al-Maida Al-Anam Al-Araf Al-Anfal At-Tawba Yunus Hud Yusuf Ar-Rad Ibrahim "
           "Al-Hijr An-Nahl Al-Isra Al-Kahf Maryam Ta-Ha Al-Anbiya Al-Hajj Al-Muminun An-Nur Al-Furqan Ash-Shuara An-Naml "
           "Al-Qasas Al-Ankabut Ar-Rum Luqman As-Sajda Al-Ahzab Saba Fatir Ya-Sin As-Saffat Sad Az-Zumar Ghafir Fussilat "
@@ -323,19 +328,52 @@ def in_context(x: dict, first: bool, last: bool) -> str:
     return iso[2:] if not first and x["text"].startswith("\u0671") and iso[:1] == "ء" else iso
 
 
+_MOSHAF: list = []
+
+
+def phonetize_run(texts: list[str], surah: int) -> list[str] | None:
+    """Per-word phonemes of words said in one go, built as ref-v2 builds an ayah's (tools/build_index.py); None when a
+    word gets no phonemes of its own."""
+    import build_index as B
+    from quran_transcript import MoshafAttributes
+
+    if not _MOSHAF:
+        _MOSHAF.append(MoshafAttributes(**B.PROFILE))
+    cont = B.phonetize(" ".join(texts), _MOSHAF[0], surah)
+    o = B.word_offsets(cont, [B.phonetize(t, _MOSHAF[0], surah) for t in texts])
+    out = [cont[o[i] : (o[i + 1] if i + 1 < len(o) else len(cont))] for i in range(len(texts))]
+    return out if all(out) and set(cont) <= set(B.INVENTORY) else None
+
+
+def rephonetize(items: list[dict], surah: int) -> None:
+    """Phonemes of one planted ayah's said items in context: one run up to and including a self-correction's slip
+    (said, then a stop), another from the words said again."""
+    runs, cur = [], []
+    for it in items:
+        cur.append(it)
+        if it["role"] == "slip":
+            runs, cur = runs + [cur], []
+    for run in runs + ([cur] if cur else []):
+        phs = phonetize_run([it["text"] for it in run], surah)
+        for it, ph in zip(run, phs or []):
+            it["phonemes"] = ph
+
+
 def said_items(q: Quran, ayahs: list[tuple[int, int]], plants: list[dict], rng: random.Random) -> tuple[list[dict], list[dict], list[dict]]:
     """(said, display ayahs, plant records). `said` is what is to be recited, one item per word in time order, with
     its reference word (`at`, null for an added word or the basmala), text, phonemes and role:
-    ref, wrong, added, slip (the wrong word of a self-correction), retake (the words said again to fix it), basmala."""
+    ref, wrong, added, slip (the wrong word of a self-correction), retake (the words said again to fix it), basmala,
+    and istiadha / closing (optional: first and last, dropped from a take that doesn't have them)."""
     ref = q.ref
     by_word = {p["word"]: p for p in plants}
-    said, display, records = [], [], []
+    said, display, records = [optional(q, "istiadha")], [], []
     num = 0
     for ai, (s, a) in enumerate(ayahs):
         if a == 1 and s not in NO_BASMALA:
             said.append({"at": None, "text": BASMALA, "phonemes": q.basmala["p"], "role": "basmala"})
             display.append({"key": f"{s}:0", "surah": s, "ayah": 0, "basmala": True, "tokens": [{"text": BASMALA}], "plants": []})
         row = {"key": f"{s}:{a}", "surah": s, "ayah": a, "tokens": [], "plants": []}
+        k0 = len(said)
         ids = q.words_of(s, a)
         ayah_said = []
         for g in ids:
@@ -391,11 +429,26 @@ def said_items(q: Quran, ayahs: list[tuple[int, int]], plants: list[dict], rng: 
             if cls != "self_correction":
                 rec["formsOtherAyah"] = None  # filled once the ayah is complete
             records.append(rec)
+        if row["plants"]:
+            rephonetize(said[k0:], s)
+            for it in said[k0:]:
+                rec = next((r for r in records if r["id"] == it.get("plant")), None)
+                if rec and it["role"] in ("wrong", "added", "slip"):
+                    rec["saidPhonemes"] = it["phonemes"]
         for rec in records:
             if rec["ayah"] == f"{s}:{a}" and rec.get("formsOtherAyah", False) is None:
                 rec["formsOtherAyah"] = S.forms_other(ref, [f"{s}:{a}"], [w for w in ayah_said if w])
         display.append(row)
-    return said, display, records
+    return said + [optional(q, "closing")], display, records
+
+
+def optional(q: Quran, role: str) -> dict:
+    words = []
+    for s, a, first, n in OPTIONAL[role]:
+        ids = q.words_of(s, a)
+        k = next(i for i, g in enumerate(ids) if q.ref.words[g]["text"] == first)
+        words += [q.ref.words[g]["text"] for g in ids[k : k + n]]
+    return {"at": None, "text": " ".join(words), "phonemes": "".join(phonetize_run(words, 1)), "role": role}
 
 
 def labels(records: list[dict], said: list[dict]) -> dict:

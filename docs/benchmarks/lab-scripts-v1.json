@@ -143,7 +143,7 @@
      "ayah": "93:9",
      "expected": "فَأَمَّا",
      "said": "وَأَمَّا",
-     "saidPhonemes": "وَءَممممَاا",
+     "saidPhonemes": "وَءَممممَ",
      "saidFrom": {
       "surah": 2,
       "ayah": 26,
@@ -213,7 +213,7 @@
      "ayah": "94:8",
      "expected": "رَبِّكَ",
      "said": "رَّبِّهِۦ",
-     "saidPhonemes": "رَببِه",
+     "saidPhonemes": "رَببِهِۦۦ",
      "saidFrom": {
       "surah": 2,
       "ayah": 37,
@@ -321,7 +321,7 @@
      "ayah": "96:12",
      "expected": "",
      "said": "يَأْتِىَ",
-     "saidPhonemes": "يَءتِۦۦ",
+     "saidPhonemes": "يَءتِيَ",
      "saidFrom": {
       "surah": 16,
       "ayah": 33,
@@ -1993,6 +1993,12 @@
    "said": [
     {
      "at": null,
+     "text": "أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَـٰنِ ٱلرَّجِيمِ",
+     "phonemes": "ءَعُۥۥذُبِللَااهِمِنَششَيطَاانِررَجِۦۦم",
+     "role": "istiadha"
+    },
+    {
+     "at": null,
      "text": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
      "phonemes": "بِسمِللَااهِررَحمَاانِررَحِۦۦم",
      "role": "basmala"
@@ -2285,7 +2291,7 @@
       "word": 1
      },
      "text": "وَأَمَّا",
-     "phonemes": "وَءَممممَاا",
+     "phonemes": "وَءَممممَ",
      "role": "wrong",
      "plant": "m2"
     },
@@ -2660,7 +2666,7 @@
       "word": 1
      },
      "text": "وَإِلَىٰ",
-     "phonemes": "وَءِلَاا",
+     "phonemes": "وَءِلَر",
      "role": "ref"
     },
     {
@@ -2670,7 +2676,7 @@
       "word": 2
      },
      "text": "رَّبِّهِۦ",
-     "phonemes": "رَببِه",
+     "phonemes": "رَببِهِۦۦ",
      "role": "wrong",
      "plant": "m5"
     },
@@ -3292,7 +3298,7 @@
       "word": 1
      },
      "text": "أَن",
-     "phonemes": "ءَر",
+     "phonemes": "ءَںںں",
      "role": "ref"
     },
     {
@@ -3468,7 +3474,7 @@
     {
      "at": null,
      "text": "يَأْتِىَ",
-     "phonemes": "يَءتِۦۦ",
+     "phonemes": "يَءتِيَ",
      "role": "added",
      "plant": "m10"
     },
@@ -3886,7 +3892,7 @@
       "word": 3
      },
      "text": "خَيْرٌۭ",
-     "phonemes": "خَيرُ",
+     "phonemes": "خَيرُممم",
      "role": "ref"
     },
     {
@@ -3896,7 +3902,7 @@
       "word": 4
      },
      "text": "مِّنْ",
-     "phonemes": "ممممِن",
+     "phonemes": "مِن",
      "role": "ref"
     },
     {
@@ -5003,6 +5009,12 @@
      "text": "رَبَّهُۥ",
      "phonemes": "رَببَه",
      "role": "ref"
+    },
+    {
+     "at": null,
+     "text": "صَدَقَ ٱللَّهُ ٱلْعَظِيمُ",
+     "phonemes": "صَدَقَللَااهُلعَظِۦۦم",
+     "role": "closing"
     }
    ],
    "labels": {
@@ -5033,7 +5045,7 @@
       "expected": "فَأَمَّا",
       "observed": "وَأَمَّا",
       "forms_other_ayah": false,
-      "said": "وَءَممممَاا"
+      "said": "وَءَممممَ"
      },
      {
       "plant": "m3",
@@ -5075,7 +5087,7 @@
       "expected": "رَبِّكَ",
       "observed": "رَّبِّهِۦ",
       "forms_other_ayah": false,
-      "said": "رَببِه"
+      "said": "رَببِهِۦۦ"
      },
      {
       "plant": "m6",
@@ -5129,7 +5141,7 @@
       "expected": "",
       "observed": "يَأْتِىَ",
       "forms_other_ayah": false,
-      "said": "يَءتِۦۦ"
+      "said": "يَءتِيَ"
      },
      {
       "plant": "m11",
@@ -5226,7 +5238,7 @@
      }
     ]
    },
-   "sha": "bb878cec244a"
+   "sha": "84ab7a6cc9c5"
   },
   {
    "id": "rec-v1-02",
@@ -5349,7 +5361,7 @@
      "ayah": "71:12",
      "expected": "",
      "said": "بِهِۦ",
-     "saidPhonemes": "بِه",
+     "saidPhonemes": "بِهِۦۦ",
      "saidFrom": {
       "surah": 23,
       "ayah": 19,
@@ -6451,6 +6463,12 @@
    "said": [
     {
      "at": null,
+     "text": "أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَـٰنِ ٱلرَّجِيمِ",
+     "phonemes": "ءَعُۥۥذُبِللَااهِمِنَششَيطَاانِررَجِۦۦم",
+     "role": "istiadha"
+    },
+    {
+     "at": null,
      "text": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
      "phonemes": "بِسمِللَااهِررَحمَاانِررَحِۦۦم",
      "role": "basmala"
@@ -6672,7 +6690,7 @@
       "word": 2
      },
      "text": "ٱعْبُدُوا۟",
-     "phonemes": "عبُدُ",
+     "phonemes": "عبُدُۥۥ",
      "role": "ref"
     },
     {
@@ -7401,7 +7419,7 @@
     {
      "at": null,
      "text": "بِهِۦ",
-     "phonemes": "بِه",
+     "phonemes": "بِهِۦۦ",
      "role": "added",
      "plant": "m5"
     },
@@ -8714,6 +8732,12 @@
      "text": "تَبَارًۢا",
      "phonemes": "تَبَاارَاا",
      "role": "ref"
+    },
+    {
+     "at": null,
+     "text": "صَدَقَ ٱللَّهُ ٱلْعَظِيمُ",
+     "phonemes": "صَدَقَللَااهُلعَظِۦۦم",
+     "role": "closing"
     }
    ],
    "labels": {
@@ -8770,7 +8794,7 @@
       "expected": "",
       "observed": "بِهِۦ",
       "forms_other_ayah": false,
-      "said": "بِه"
+      "said": "بِهِۦۦ"
      },
      {
       "plant": "m6",
@@ -8854,7 +8878,7 @@
      }
     ]
    },
-   "sha": "56558991d322"
+   "sha": "0936e15164db"
   },
   {
    "id": "rec-v1-03",
@@ -9974,6 +9998,12 @@
     }
    ],
    "said": [
+    {
+     "at": null,
+     "text": "أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَـٰنِ ٱلرَّجِيمِ",
+     "phonemes": "ءَعُۥۥذُبِللَااهِمِنَششَيطَاانِررَجِۦۦم",
+     "role": "istiadha"
+    },
     {
      "at": null,
      "text": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
@@ -12949,13 +12979,19 @@
      "text": "لِلْكَـٰفِرِينَ",
      "phonemes": "لِلكَاافِرِۦۦن",
      "role": "ref"
+    },
+    {
+     "at": null,
+     "text": "صَدَقَ ٱللَّهُ ٱلْعَظِيمُ",
+     "phonemes": "صَدَقَللَااهُلعَظِۦۦم",
+     "role": "closing"
     }
    ],
    "labels": {
     "events": [],
     "nonErrors": []
    },
-   "sha": "835e94a54e4e"
+   "sha": "9ccc951a4008"
   },
   {
    "id": "rec-v1-04",
@@ -14028,6 +14064,12 @@
     }
    ],
    "said": [
+    {
+     "at": null,
+     "text": "أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَـٰنِ ٱلرَّجِيمِ",
+     "phonemes": "ءَعُۥۥذُبِللَااهِمِنَششَيطَاانِررَجِۦۦم",
+     "role": "istiadha"
+    },
     {
      "at": null,
      "text": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
@@ -16199,13 +16241,19 @@
      "text": "مَّحْفُوظٍۭ",
      "phonemes": "مَحفُۥۥظ",
      "role": "ref"
+    },
+    {
+     "at": null,
+     "text": "صَدَقَ ٱللَّهُ ٱلْعَظِيمُ",
+     "phonemes": "صَدَقَللَااهُلعَظِۦۦم",
+     "role": "closing"
     }
    ],
    "labels": {
     "events": [],
     "nonErrors": []
    },
-   "sha": "3a506eff54aa"
+   "sha": "a305656308ad"
   },
   {
    "id": "rec-v1-05",
@@ -16290,7 +16338,7 @@
      "ayah": "76:8",
      "expected": "حُبِّهِۦ",
      "said": "حُبًّۭا",
-     "saidPhonemes": "حُببَاا",
+     "saidPhonemes": "حُببَن",
      "saidFrom": {
       "surah": 2,
       "ayah": 165,
@@ -17553,6 +17601,12 @@
    "said": [
     {
      "at": null,
+     "text": "أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَـٰنِ ٱلرَّجِيمِ",
+     "phonemes": "ءَعُۥۥذُبِللَااهِمِنَششَيطَاانِررَجِۦۦم",
+     "role": "istiadha"
+    },
+    {
+     "at": null,
      "text": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
      "phonemes": "بِسمِللَااهِررَحمَاانِررَحِۦۦم",
      "role": "basmala"
@@ -18156,7 +18210,7 @@
       "word": 4
      },
      "text": "حُبًّۭا",
-     "phonemes": "حُببَاا",
+     "phonemes": "حُببَن",
      "role": "wrong",
      "plant": "m3"
     },
@@ -18317,7 +18371,7 @@
       "word": 3
      },
      "text": "مِن",
-     "phonemes": "مِر",
+     "phonemes": "مِںںں",
      "role": "ref"
     },
     {
@@ -18334,7 +18388,7 @@
       "word": 4
      },
      "text": "رَّبِّنَا",
-     "phonemes": "رَببِنَاا",
+     "phonemes": "ررَببِنَاا",
      "role": "ref"
     },
     {
@@ -18454,7 +18508,7 @@
       "word": 1
      },
      "text": "وَجَزَىٰهُم",
-     "phonemes": "وَجَزَااهُ۾۾۾",
+     "phonemes": "وَجَزَااهُم",
      "role": "ref"
     },
     {
@@ -18941,7 +18995,7 @@
       "word": 7
      },
      "text": "حَسِبْتَهُمْ",
-     "phonemes": "حَسِبڇتَهُم",
+     "phonemes": "حَسِبڇتَهُمممم",
      "role": "ref"
     },
     {
@@ -19977,6 +20031,12 @@
      "text": "أَلِيمًۢا",
      "phonemes": "ءَلِۦۦمَاا",
      "role": "ref"
+    },
+    {
+     "at": null,
+     "text": "صَدَقَ ٱللَّهُ ٱلْعَظِيمُ",
+     "phonemes": "صَدَقَللَااهُلعَظِۦۦم",
+     "role": "closing"
     }
    ],
    "labels": {
@@ -20021,7 +20081,7 @@
       "expected": "حُبِّهِۦ",
       "observed": "حُبًّۭا",
       "forms_other_ayah": false,
-      "said": "حُببَاا"
+      "said": "حُببَن"
      },
      {
       "plant": "m4",
@@ -20144,7 +20204,7 @@
      }
     ]
    },
-   "sha": "9c50b317bc22"
+   "sha": "8b09e3988ec2"
   },
   {
    "id": "rec-v1-06",
@@ -20252,7 +20312,7 @@
      "ayah": "19:11",
      "expected": "قَوْمِهِۦ",
      "said": "ٱلَّذِينَ",
-     "saidPhonemes": "ءَللَذِۦۦن",
+     "saidPhonemes": "للَذِۦۦن",
      "saidFrom": {
       "surah": 2,
       "ayah": 183,
@@ -20320,7 +20380,7 @@
      "ayah": "19:15",
      "expected": "",
      "said": "لَّهُۥ",
-     "saidPhonemes": "لَه",
+     "saidPhonemes": "للَهُۥۥ",
      "saidFrom": {
       "surah": 4,
       "ayah": 171,
@@ -20422,7 +20482,7 @@
      "ayah": "19:28",
      "expected": "وَمَا",
      "said": "وَلَا",
-     "saidPhonemes": "وَلَاا",
+     "saidPhonemes": "وووَلَاا",
      "saidFrom": {
       "surah": 1,
       "ayah": 7,
@@ -21759,6 +21819,12 @@
    "said": [
     {
      "at": null,
+     "text": "أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَـٰنِ ٱلرَّجِيمِ",
+     "phonemes": "ءَعُۥۥذُبِللَااهِمِنَششَيطَاانِررَجِۦۦم",
+     "role": "istiadha"
+    },
+    {
+     "at": null,
      "text": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
      "phonemes": "بِسمِللَااهِررَحمَاانِررَحِۦۦم",
      "role": "basmala"
@@ -22773,7 +22839,7 @@
       "word": 2
      },
      "text": "عَلَىٰ",
-     "phonemes": "عَلَاا",
+     "phonemes": "عَلَ",
      "role": "ref"
     },
     {
@@ -22783,7 +22849,7 @@
       "word": 3
      },
      "text": "ٱلَّذِينَ",
-     "phonemes": "ءَللَذِۦۦن",
+     "phonemes": "للَذِۦۦن",
      "role": "slip",
      "plant": "m4"
     },
@@ -23145,7 +23211,7 @@
     {
      "at": null,
      "text": "لَّهُۥ",
-     "phonemes": "لَه",
+     "phonemes": "للَهُۥۥ",
      "role": "added",
      "plant": "m6"
     },
@@ -23898,7 +23964,7 @@
       "word": 1
      },
      "text": "فَأَجَآءَهَا",
-     "phonemes": "فَءَجَااااءَهَ",
+     "phonemes": "فَءَجَااااءَهَاا",
      "role": "ref"
     },
     {
@@ -24538,7 +24604,7 @@
       "word": 8
      },
      "text": "وَلَا",
-     "phonemes": "وَلَاا",
+     "phonemes": "وووَلَاا",
      "role": "wrong",
      "plant": "m11"
     },
@@ -24928,6 +24994,12 @@
      "text": "شَقِيًّۭا",
      "phonemes": "شَقِييَاا",
      "role": "ref"
+    },
+    {
+     "at": null,
+     "text": "صَدَقَ ٱللَّهُ ٱلْعَظِيمُ",
+     "phonemes": "صَدَقَللَااهُلعَظِۦۦم",
+     "role": "closing"
     }
    ],
    "labels": {
@@ -24986,7 +25058,7 @@
       "expected": "",
       "observed": "لَّهُۥ",
       "forms_other_ayah": false,
-      "said": "لَه"
+      "said": "للَهُۥۥ"
      },
      {
       "plant": "m7",
@@ -25054,7 +25126,7 @@
       "expected": "وَمَا",
       "observed": "وَلَا",
       "forms_other_ayah": false,
-      "said": "وَلَاا"
+      "said": "وووَلَاا"
      },
      {
       "plant": "m12",
@@ -25110,7 +25182,7 @@
      }
     ]
    },
-   "sha": "2bd8aff0eec6"
+   "sha": "25ce78b8d31f"
   },
   {
    "id": "rec-v1-07",
@@ -25149,7 +25221,7 @@
      "ayah": "102:6",
      "expected": "لَتَرَوُنَّ",
      "said": "لِتَكُونَ",
-     "saidPhonemes": "لِتَكُۥۥن",
+     "saidPhonemes": "لِتَكُۥۥنَ",
      "saidFrom": {
       "surah": 10,
       "ayah": 92,
@@ -25282,7 +25354,7 @@
      "ayah": "106:3",
      "expected": "ٱلْبَيْتِ",
      "said": "ٱلْـَٔايَـٰتِ",
-     "saidPhonemes": "ءَلءَاايَاات",
+     "saidPhonemes": "لءَاايَاات",
      "saidFrom": {
       "surah": 2,
       "ayah": 118,
@@ -25374,7 +25446,7 @@
      "ayah": "109:4",
      "expected": "عَابِدٌۭ",
      "said": "جَعَلْنَا",
-     "saidPhonemes": "جَعَلنَاا",
+     "saidPhonemes": "جَعَلنَممم",
      "saidFrom": {
       "surah": 18,
       "ayah": 7,
@@ -26444,6 +26516,12 @@
    "said": [
     {
      "at": null,
+     "text": "أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَـٰنِ ٱلرَّجِيمِ",
+     "phonemes": "ءَعُۥۥذُبِللَااهِمِنَششَيطَاانِررَجِۦۦم",
+     "role": "istiadha"
+    },
+    {
+     "at": null,
      "text": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
      "phonemes": "بِسمِللَااهِررَحمَاانِررَحِۦۦم",
      "role": "basmala"
@@ -26625,7 +26703,7 @@
       "word": 1
      },
      "text": "لِتَكُونَ",
-     "phonemes": "لِتَكُۥۥن",
+     "phonemes": "لِتَكُۥۥنَ",
      "role": "wrong",
      "plant": "m1"
     },
@@ -27076,7 +27154,7 @@
       "word": 3
      },
      "text": "مَا",
-     "phonemes": "مَ",
+     "phonemes": "مَاا",
      "role": "ref"
     },
     {
@@ -27556,7 +27634,7 @@
       "word": 4
      },
      "text": "ٱلْـَٔايَـٰتِ",
-     "phonemes": "ءَلءَاايَاات",
+     "phonemes": "لءَاايَاات",
      "role": "slip",
      "plant": "m7"
     },
@@ -28154,7 +28232,7 @@
       "word": 3
      },
      "text": "جَعَلْنَا",
-     "phonemes": "جَعَلنَاا",
+     "phonemes": "جَعَلنَممم",
      "role": "wrong",
      "plant": "m11"
     },
@@ -28267,6 +28345,12 @@
      "text": "دِينِ",
      "phonemes": "دِۦۦن",
      "role": "ref"
+    },
+    {
+     "at": null,
+     "text": "صَدَقَ ٱللَّهُ ٱلْعَظِيمُ",
+     "phonemes": "صَدَقَللَااهُلعَظِۦۦم",
+     "role": "closing"
     }
    ],
    "labels": {
@@ -28283,7 +28367,7 @@
       "expected": "لَتَرَوُنَّ",
       "observed": "لِتَكُونَ",
       "forms_other_ayah": false,
-      "said": "لِتَكُۥۥن"
+      "said": "لِتَكُۥۥنَ"
      },
      {
       "plant": "m2",
@@ -28407,7 +28491,7 @@
       "expected": "عَابِدٌۭ",
       "observed": "جَعَلْنَا",
       "forms_other_ayah": false,
-      "said": "جَعَلنَاا"
+      "said": "جَعَلنَممم"
      }
     ],
     "nonErrors": [
@@ -28422,7 +28506,7 @@
      }
     ]
    },
-   "sha": "3a5d63b77dc9"
+   "sha": "54eef78f46ad"
   },
   {
    "id": "rec-v1-08",
@@ -28461,7 +28545,7 @@
      "ayah": "74:7",
      "expected": "وَلِرَبِّكَ",
      "said": "لِرَبِّكِ",
-     "saidPhonemes": "لِرَببِك",
+     "saidPhonemes": "لِرَببِكِ",
      "saidFrom": {
       "surah": 3,
       "ayah": 43,
@@ -28484,7 +28568,7 @@
      "ayah": "74:12",
      "expected": "مَالًۭا",
      "said": "مَثَلًۭا",
-     "saidPhonemes": "مَثَلَاا",
+     "saidPhonemes": "مَثَلَممم",
      "saidFrom": {
       "surah": 2,
       "ayah": 26,
@@ -28531,7 +28615,7 @@
      "ayah": "74:19",
      "expected": "كَيْفَ",
      "said": "وَكَيْفَ",
-     "saidPhonemes": "وَكَيف",
+     "saidPhonemes": "وَكَيفَ",
      "saidFrom": {
       "surah": 3,
       "ayah": 101,
@@ -28667,7 +28751,7 @@
      "ayah": "74:40",
      "expected": "",
      "said": "مِّن",
-     "saidPhonemes": "مِن",
+     "saidPhonemes": "ممممِيي",
      "saidFrom": {
       "surah": 23,
       "ayah": 19,
@@ -28737,7 +28821,7 @@
      "ayah": "74:52",
      "expected": "ٱمْرِئٍۢ",
      "said": "فِرْقَةٍۢ",
-     "saidPhonemes": "فِرقَه",
+     "saidPhonemes": "فِرقَتِ",
      "saidFrom": {
       "surah": 9,
       "ayah": 122,
@@ -28760,7 +28844,7 @@
      "ayah": "74:54",
      "expected": "",
      "said": "مَن",
-     "saidPhonemes": "مَن",
+     "saidPhonemes": "مَںںں",
      "saidFrom": {
       "surah": 5,
       "ayah": 32,
@@ -30094,6 +30178,12 @@
    "said": [
     {
      "at": null,
+     "text": "أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَـٰنِ ٱلرَّجِيمِ",
+     "phonemes": "ءَعُۥۥذُبِللَااهِمِنَششَيطَاانِررَجِۦۦم",
+     "role": "istiadha"
+    },
+    {
+     "at": null,
      "text": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
      "phonemes": "بِسمِللَااهِررَحمَاانِررَحِۦۦم",
      "role": "basmala"
@@ -30235,7 +30325,7 @@
       "word": 1
      },
      "text": "لِرَبِّكِ",
-     "phonemes": "لِرَببِك",
+     "phonemes": "لِرَببِكِ",
      "role": "wrong",
      "plant": "m1"
     },
@@ -30436,7 +30526,7 @@
       "word": 3
      },
      "text": "مَثَلًۭا",
-     "phonemes": "مَثَلَاا",
+     "phonemes": "مَثَلَممم",
      "role": "wrong",
      "plant": "m2"
     },
@@ -30664,7 +30754,7 @@
       "word": 2
      },
      "text": "وَكَيْفَ",
-     "phonemes": "وَكَيف",
+     "phonemes": "وَكَيفَ",
      "role": "wrong",
      "plant": "m4"
     },
@@ -30986,7 +31076,7 @@
       "word": 2
      },
      "text": "تُبْقِى",
-     "phonemes": "تُبڇقِۦۦ",
+     "phonemes": "تُبڇقِ",
      "role": "ref"
     },
     {
@@ -31936,13 +32026,13 @@
       "word": 2
      },
      "text": "جَنَّـٰتٍۢ",
-     "phonemes": "جَننننَااتِيي",
+     "phonemes": "جَننننَااتِ",
      "role": "ref"
     },
     {
      "at": null,
      "text": "مِّن",
-     "phonemes": "مِن",
+     "phonemes": "ممممِيي",
      "role": "added",
      "plant": "m10"
     },
@@ -32405,7 +32495,7 @@
       "word": 4
      },
      "text": "فِرْقَةٍۢ",
-     "phonemes": "فِرقَه",
+     "phonemes": "فِرقَتِ",
      "role": "wrong",
      "plant": "m13"
     },
@@ -32532,7 +32622,7 @@
     {
      "at": null,
      "text": "مَن",
-     "phonemes": "مَن",
+     "phonemes": "مَںںں",
      "role": "added",
      "plant": "m14"
     },
@@ -32685,6 +32775,12 @@
      "text": "ٱلْمَغْفِرَةِ",
      "phonemes": "لمَغفِرَه",
      "role": "ref"
+    },
+    {
+     "at": null,
+     "text": "صَدَقَ ٱللَّهُ ٱلْعَظِيمُ",
+     "phonemes": "صَدَقَللَااهُلعَظِۦۦم",
+     "role": "closing"
     }
    ],
    "labels": {
@@ -32701,7 +32797,7 @@
       "expected": "وَلِرَبِّكَ",
       "observed": "لِرَبِّكِ",
       "forms_other_ayah": false,
-      "said": "لِرَببِك"
+      "said": "لِرَببِكِ"
      },
      {
       "plant": "m2",
@@ -32715,7 +32811,7 @@
       "expected": "مَالًۭا",
       "observed": "مَثَلًۭا",
       "forms_other_ayah": false,
-      "said": "مَثَلَاا"
+      "said": "مَثَلَممم"
      },
      {
       "plant": "m3",
@@ -32743,7 +32839,7 @@
       "expected": "كَيْفَ",
       "observed": "وَكَيْفَ",
       "forms_other_ayah": false,
-      "said": "وَكَيف"
+      "said": "وَكَيفَ"
      },
      {
       "plant": "m5",
@@ -32811,7 +32907,7 @@
       "expected": "",
       "observed": "مِّن",
       "forms_other_ayah": false,
-      "said": "مِن"
+      "said": "ممممِيي"
      },
      {
       "plant": "m11",
@@ -32853,7 +32949,7 @@
       "expected": "ٱمْرِئٍۢ",
       "observed": "فِرْقَةٍۢ",
       "forms_other_ayah": false,
-      "said": "فِرقَه"
+      "said": "فِرقَتِ"
      },
      {
       "plant": "m14",
@@ -32867,7 +32963,7 @@
       "expected": "",
       "observed": "مَن",
       "forms_other_ayah": false,
-      "said": "مَن"
+      "said": "مَںںں"
      }
     ],
     "nonErrors": [
@@ -32891,7 +32987,7 @@
      }
     ]
    },
-   "sha": "8871127d3799"
+   "sha": "4b925034a628"
   },
   {
    "id": "rec-v1-09",
@@ -33061,7 +33157,7 @@
      "ayah": "55:29",
      "expected": "",
      "said": "وَجُنُودُهُۥ",
-     "saidPhonemes": "وَجُنُۥۥدُهُ",
+     "saidPhonemes": "وَجُنُۥۥدُهُۥۥ",
      "saidFrom": {
       "surah": 28,
       "ayah": 39,
@@ -34166,6 +34262,12 @@
    "said": [
     {
      "at": null,
+     "text": "أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَـٰنِ ٱلرَّجِيمِ",
+     "phonemes": "ءَعُۥۥذُبِللَااهِمِنَششَيطَاانِررَجِۦۦم",
+     "role": "istiadha"
+    },
+    {
+     "at": null,
      "text": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
      "phonemes": "بِسمِللَااهِررَحمَاانِررَحِۦۦم",
      "role": "basmala"
@@ -34317,7 +34419,7 @@
       "word": 2
      },
      "text": "رَفَعَهَا",
-     "phonemes": "رَفَعَهَاا",
+     "phonemes": "رَفَعَهَ",
      "role": "ref"
     },
     {
@@ -34527,7 +34629,7 @@
       "word": 2
      },
      "text": "ذُو",
-     "phonemes": "ذُ",
+     "phonemes": "ذُۥۥ",
      "role": "ref"
     },
     {
@@ -34617,7 +34719,7 @@
       "word": 4
      },
      "text": "صَلْصَـٰلٍۢ",
-     "phonemes": "صَلصَاالِںںں",
+     "phonemes": "صَلصَاالِممم",
      "role": "ref"
     },
     {
@@ -35344,7 +35446,7 @@
     {
      "at": null,
      "text": "وَجُنُودُهُۥ",
-     "phonemes": "وَجُنُۥۥدُهُ",
+     "phonemes": "وَجُنُۥۥدُهُۥۥ",
      "role": "added",
      "plant": "m7"
     },
@@ -36126,6 +36228,12 @@
      "text": "تُكَذِّبَانِ",
      "phonemes": "تُكَذذِبَاان",
      "role": "ref"
+    },
+    {
+     "at": null,
+     "text": "صَدَقَ ٱللَّهُ ٱلْعَظِيمُ",
+     "phonemes": "صَدَقَللَااهُلعَظِۦۦم",
+     "role": "closing"
     }
    ],
    "labels": {
@@ -36210,7 +36318,7 @@
       "expected": "",
       "observed": "وَجُنُودُهُۥ",
       "forms_other_ayah": false,
-      "said": "وَجُنُۥۥدُهُ"
+      "said": "وَجُنُۥۥدُهُۥۥ"
      },
      {
       "plant": "m8",
@@ -36280,7 +36388,7 @@
      }
     ]
    },
-   "sha": "e67b63ac0feb"
+   "sha": "f15ddc8916f7"
   },
   {
    "id": "rec-v1-10",
@@ -36466,7 +36574,7 @@
      "ayah": "83:7",
      "expected": "",
      "said": "شَكٍّۢ",
-     "saidPhonemes": "شَككِ",
+     "saidPhonemes": "شَككِںںں",
      "saidFrom": {
       "surah": 4,
       "ayah": 157,
@@ -36490,7 +36598,7 @@
      "ayah": "83:12",
      "expected": "",
      "said": "هُوَ",
-     "saidPhonemes": "هُۥۥ",
+     "saidPhonemes": "هُوَ",
      "saidFrom": {
       "surah": 28,
       "ayah": 88,
@@ -36514,7 +36622,7 @@
      "ayah": "83:14",
      "expected": "قُلُوبِهِم",
      "said": "ٱللَّهِ",
-     "saidPhonemes": "للَااهِ",
+     "saidPhonemes": "للَااهِممم",
      "saidFrom": {
       "surah": 2,
       "ayah": 80,
@@ -36610,7 +36718,7 @@
      "ayah": "83:27",
      "expected": "",
      "said": "إِن",
-     "saidPhonemes": "ءِن",
+     "saidPhonemes": "ءِںںں",
      "saidFrom": {
       "surah": 3,
       "ayah": 75,
@@ -38006,6 +38114,12 @@
    "said": [
     {
      "at": null,
+     "text": "أَعُوذُ بِٱللَّهِ مِنَ ٱلشَّيْطَـٰنِ ٱلرَّجِيمِ",
+     "phonemes": "ءَعُۥۥذُبِللَااهِمِنَششَيطَاانِررَجِۦۦم",
+     "role": "istiadha"
+    },
+    {
+     "at": null,
      "text": "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ",
      "phonemes": "بِسمِللَااهِررَحمَاانِررَحِۦۦم",
      "role": "basmala"
@@ -38792,7 +38906,7 @@
       "word": 7
      },
      "text": "وَٱلْأَمْرُ",
-     "phonemes": "وَلءَمرُ",
+     "phonemes": "وَلءَمرُل",
      "role": "ref"
     },
     {
@@ -38868,7 +38982,7 @@
       "word": 4
      },
      "text": "عَلَى",
-     "phonemes": "عَلَ",
+     "phonemes": "عَلَاا",
      "role": "ref"
     },
     {
@@ -39104,7 +39218,7 @@
     {
      "at": null,
      "text": "شَكٍّۢ",
-     "phonemes": "شَككِ",
+     "phonemes": "شَككِںںں",
      "role": "added",
      "plant": "m8"
     },
@@ -39291,7 +39405,7 @@
     {
      "at": null,
      "text": "هُوَ",
-     "phonemes": "هُۥۥ",
+     "phonemes": "هُوَ",
      "role": "added",
      "plant": "m9"
     },
@@ -39432,7 +39546,7 @@
       "word": 4
      },
      "text": "عَلَىٰ",
-     "phonemes": "عَلَاا",
+     "phonemes": "عَلَ",
      "role": "ref"
     },
     {
@@ -39442,7 +39556,7 @@
       "word": 5
      },
      "text": "ٱللَّهِ",
-     "phonemes": "للَااهِ",
+     "phonemes": "للَااهِممم",
      "role": "wrong",
      "plant": "m10"
     },
@@ -40037,13 +40151,13 @@
       "word": 2
      },
      "text": "مِن",
-     "phonemes": "مِںںں",
+     "phonemes": "مِن",
      "role": "ref"
     },
     {
      "at": null,
      "text": "إِن",
-     "phonemes": "ءِن",
+     "phonemes": "ءِںںں",
      "role": "added",
      "plant": "m14"
     },
@@ -40412,7 +40526,7 @@
       "word": 3
      },
      "text": "ءَامَنُوا۟",
-     "phonemes": "ءَاامَنُۥۥ",
+     "phonemes": "ءَاامَنُ",
      "role": "ref"
     },
     {
@@ -40524,6 +40638,12 @@
      "text": "يَفْعَلُونَ",
      "phonemes": "يَفعَلُۥۥن",
      "role": "ref"
+    },
+    {
+     "at": null,
+     "text": "صَدَقَ ٱللَّهُ ٱلْعَظِيمُ",
+     "phonemes": "صَدَقَللَااهُلعَظِۦۦم",
+     "role": "closing"
     }
    ],
    "labels": {
@@ -40636,7 +40756,7 @@
       "expected": "",
       "observed": "شَكٍّۢ",
       "forms_other_ayah": false,
-      "said": "شَككِ"
+      "said": "شَككِںںں"
      },
      {
       "plant": "m9",
@@ -40650,7 +40770,7 @@
       "expected": "",
       "observed": "هُوَ",
       "forms_other_ayah": false,
-      "said": "هُۥۥ"
+      "said": "هُوَ"
      },
      {
       "plant": "m10",
@@ -40664,7 +40784,7 @@
       "expected": "قُلُوبِهِم",
       "observed": "ٱللَّهِ",
       "forms_other_ayah": false,
-      "said": "للَااهِ"
+      "said": "للَااهِممم"
      },
      {
       "plant": "m12",
@@ -40705,7 +40825,7 @@
       "expected": "",
       "observed": "إِن",
       "forms_other_ayah": false,
-      "said": "ءِن"
+      "said": "ءِںںں"
      },
      {
       "plant": "m15",
@@ -40770,7 +40890,7 @@
      }
     ]
    },
-   "sha": "27f7f551690b"
+   "sha": "05d38c131b75"
   }
  ],
  "summary": {

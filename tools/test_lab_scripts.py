@@ -1,4 +1,4 @@
-"""python3 -m pytest tools/test_lab_scripts.py (standard library and pytest only)"""
+"""uv run --python cpython-3.12-macos-aarch64-none --with quran-transcript==0.6.4 --with rapidfuzz==3.14.1 --with pytest pytest tools/test_lab_scripts.py"""
 
 import json
 import math
@@ -50,6 +50,24 @@ def test_plant_spacing_and_cap():
         assert sum(p["class"] == "added_word" for p in mistakes) <= math.ceil(T.ADDED_MAX * len(mistakes))
 
 
+def test_phonetize_run_reproduces_the_reference():
+    for s, a in [(1, 2), (2, 2), (77, 15), (104, 1), (112, 1)]:
+        ids = Q.words_of(s, a)
+        assert T.phonetize_run([Q.ref.words[g]["text"] for g in ids], s) == [Q.ref.words[g]["cont"] for g in ids]
+
+
+def test_planted_ayahs_said_in_context():
+    s = next(s for s in BATCH["scripts"] if s["id"] == "rec-v1-07")
+    for p in s["plants"]:
+        if p["class"] in ("wrong_word", "added_word"):
+            x = next(x for x in s["said"] if x.get("plant") == p["id"])
+            assert x["phonemes"] == p["saidPhonemes"] and set(x["phonemes"]) <= TOKENS
+    sc = next(p for s in BATCH["scripts"] for p in s["plants"] if p["class"] == "self_correction")
+    s = next(s for s in BATCH["scripts"] if sc in s["plants"])
+    slip = next(x for x in s["said"] if x.get("plant") == sc["id"] and x["role"] == "slip")
+    assert slip["phonemes"] == sc["saidPhonemes"]
+
+
 def test_said_matches_reference_outside_plants():
     for s in BATCH["scripts"]:
         for row in s["ayahs"]:
@@ -58,7 +76,8 @@ def test_said_matches_reference_outside_plants():
             ph = "".join(x["phonemes"] for x in s["said"] if x["at"] and (x["at"]["surah"], x["at"]["ayah"]) == (row["surah"], row["ayah"]))
             assert ph == Q.p[(row["surah"], row["ayah"])]
     first = BATCH["scripts"][0]
-    assert first["said"][0]["role"] == "basmala" and first["ayahs"][0]["basmala"]
+    assert [x["role"] for x in first["said"][:2]] == ["istiadha", "basmala"] and first["ayahs"][0]["basmala"]
+    assert first["said"][-1]["role"] == "closing" and set(first["said"][0]["phonemes"]) <= TOKENS
 
 
 def test_plants_are_said_as_scripted():
