@@ -1,4 +1,4 @@
-"""Build test set lab-v1.1: spliced sessions with planted mistakes, studio and phone copies (.scratch/lab, tickets 03, 04).
+"""Build test set lab-v1.2: spliced sessions with planted mistakes, studio and phone copies (.scratch/lab, tickets 03, 04).
 
     modal run modal/lab_build_sessions.py --pilot          # bank, plan, then 2 sessions rendered and checked
     modal run modal/lab_build_sessions.py                  # every session
@@ -650,7 +650,8 @@ def run_audit(test_set: str, t0: float) -> None:
 
 def print_gate(g: dict, head: str, t0: float) -> None:
     s = g["summary"]
-    print(f"{head}: seams {s['seamsPass']}/{s['seams']} pass (level {s['byCheck']['level']}, click {s['byCheck']['click']}, depth {s['byCheck']['depth']}), "
+    print(f"{head}: seams {s['seamsPass']}/{s['seams']} pass (level {s['byCheck']['level']}, click {s['byCheck']['click']}, depth {s['byCheck']['depth']}, "
+          f"linked cut {s['byCheck']['linkCut']}, onset {s['byCheck']['onset']}; donors {s['donorsShort']}/{s['donors']} short), "
           f"words {s['wordsFound']}/{s['wordsChecked']} found, {s['clipsOver']}/{s['clipped']} clipped words over the limit, "
           f"{s['splicesFailed']} splices failed, {len(g['new'])} new refusals [{time.time() - t0:.0f} s]", flush=True)
     for f in g["failed"]:

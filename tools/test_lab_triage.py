@@ -62,12 +62,13 @@ def test_outcome_and_pairwise():
     assert T.pairwise(None, None, 2.0)["decision"] == "unsure"
 
 
-def test_spot_sample_is_seeded_order_free_and_rounds_up():
+def test_spot_sample_is_seeded_order_free_and_fixed_size():
     ids = [f"c{k}" for k in range(31)]
-    a = T.spot_sample(ids, 0.1, 17, "lab-x:spot")
-    assert a == T.spot_sample(list(reversed(ids)), 0.1, 17, "lab-x:spot") and len(a) == 4
-    assert a != T.spot_sample(ids, 0.1, 18, "lab-x:spot")
-    assert T.spot_sample([], 0.1, 17, "t") == [] and T.spot_sample(["a"], 0.1, 17, "t") == ["a"]
+    a = T.spot_sample(ids, 15, 17, "lab-x:spot:clean")
+    assert a == T.spot_sample(list(reversed(ids)), 15, 17, "lab-x:spot:clean") and len(a) == 15
+    assert a != T.spot_sample(ids, 15, 18, "lab-x:spot:clean")
+    assert T.spot_sample([], 15, 17, "t") == [] and T.spot_sample(["a", "b"], 15, 17, "t") == ["a", "b"]
+    assert [T.seam_count(n) for n in (0, 1, 31, 200, 360)] == [0, 1, 4, 20, 20]
 
 
 def test_max_bad_scales_one_per_forty():
@@ -109,7 +110,7 @@ def test_session_cases_cover_every_edit_and_clean_word():
     assert len({c["id"] for c in cases}) == len(cases)
 
 
-def triaged(nem, fc, reviews=None, earlier=None, spot=0.1, seam_spot=0.1):
+def triaged(nem, fc, reviews=None, earlier=None, spot=(15, 15), seam_spot=(0.1, 20)):
     s = session(60, seam_at=24, wrong_at=24)
     cases = T.session_cases(s, "lab-x")
     return cases, T.triage(cases, scores(cases, nem, fc), "lab-x", spot, seam_spot, 17, reviews, earlier)
@@ -119,7 +120,7 @@ def test_triage_routes_each_outcome_to_the_queue_with_a_plain_title():
     first_clean = "lab-x-p01-clean-0-0"
     nem = lambda c: "mismatch" if c["group"] == "edit" else "match"
     fc = lambda c: "mismatch" if c["group"] == "edit" else ("mismatch" if c["id"] == first_clean else None if c["id"].endswith("-1-1") else "match")
-    cases, r = triaged(nem, fc, spot=0.0, seam_spot=0.0)
+    cases, r = triaged(nem, fc, spot=(0, 0), seam_spot=(0.0, 0))
     out = {c["id"]: c["outcome"] for c in r["cases"]}
     assert out["lab-x-p01-x1"] == "both-mismatch" and out[first_clean] == "disagree" and out["lab-x-p01-clean-1-1"] == "unsure"
     q = r["queue"]
@@ -136,18 +137,19 @@ def test_triage_routes_each_outcome_to_the_queue_with_a_plain_title():
 
 
 def test_spot_and_seam_checks_merge_into_one_item_per_case():
-    cases, r = triaged(lambda c: "match", lambda c: "match", spot=0.5, seam_spot=1.0)
+    cases, r = triaged(lambda c: "match", lambda c: "match", spot=(1, 3), seam_spot=(1.0, 20))
     q = r["queue"]
     assert validate_queue(q) == []
     seam = next(it for it in q["items"] if it["id"] == "lab-x-p01-x1")
     assert r["seamIds"] == ["lab-x-p01-x1"]
     assert seam["title"].startswith("Seam spot check") and seam["triage"]["reasons"][0] == "seam"
     spot = [it for it in q["items"] if "spot" in it["triage"]["reasons"]]
-    assert len(spot) == len(r["spotIds"]) == -(-len(cases) // 2)
+    assert len(spot) == len(r["spotIds"]) == 4 and "lab-x-p01-x1" in r["spotIds"]  # the one edit and 3 of the clean windows
+    assert "15 accepted" not in spot[0]["context"] and any("3 accepted clean windows are picked at random" in it["context"] for it in spot)
     assert len({it["id"] for it in q["items"]}) == len(q["items"])
     assert all(it["title"] == "Random spot check" for it in spot if it["triage"]["reasons"] == ["spot"])
     assert any(it["title"] == "Seam spot check · also a random spot check" for it in q["items"]) == ("lab-x-p01-x1" in r["spotIds"])
-    _, again = triaged(lambda c: "match", lambda c: "match", spot=0.5, seam_spot=1.0)
+    _, again = triaged(lambda c: "match", lambda c: "match", spot=(1, 3), seam_spot=(1.0, 20))
     assert again["queue"] == q
 
 
@@ -156,7 +158,7 @@ def test_earlier_verdicts_carry_over_and_count_false_alarms():
     earlier_item = LS.review_splice(s, s["splices"][0], "lab-x")
     reviews = {"lab-x-p01-x1": {"verdict": "ok", "at": "2026-10-28T07:00:00", "queue": "lab-x/review/v1-check.json", "reviewer": "me"}}
     _, r = triaged(lambda c: "mismatch" if c["group"] == "edit" else "match", lambda c: "mismatch" if c["group"] == "edit" else "match",
-                   reviews, {earlier_item["id"]: earlier_item}, spot=0.0, seam_spot=0.0)
+                   reviews, {earlier_item["id"]: earlier_item}, spot=(0, 0), seam_spot=(0.0, 0))
     it = r["queue"]["items"][0]
     assert it["triage"]["carriedOver"] == {"verdict": "ok", "note": "", "at": "2026-10-28T07:00:00", "queue": "lab-x/review/v1-check.json",
                                            "sameWindow": True, "reviewer": "me"}
@@ -174,7 +176,7 @@ def test_reviewed_clean_windows_are_scored_but_never_queued():
     extra = T.reviewed_clean_cases({"items": [phone]}, {s["id"]: s}, set())
     assert [c["id"] for c in extra] == [phone["id"]] and extra[0]["reviewedOnly"]
     cases = T.session_cases(s, "lab-x") + extra
-    r = T.triage(cases, scores(cases, lambda c: "match", lambda c: "mismatch"), "lab-x", 0.0, 0.0, 17)
+    r = T.triage(cases, scores(cases, lambda c: "match", lambda c: "mismatch"), "lab-x", (0, 0), (0.0, 0), 17)
     assert phone["id"] not in {it["id"] for it in r["queue"]["items"]}
     assert r["counts"]["cases"] == len(cases) - 1
     assert next(c for c in r["cases"] if c["id"] == phone["id"])["outcome"] == "disagree"

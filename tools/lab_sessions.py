@@ -74,6 +74,7 @@ MAX_GAIN_DB = 6.0
 FIRST_PLANT_S = 20.0
 EDIT_GAP = (8, 6.0)  # words and seconds between any two edits
 DONOR_DIST_S = 30.0  # a donor from inside the session window must be this far from the plant
+TWIN_SIDE = 4  # a mutashabihat swap may take up to this many shared words either side of the twin word with it
 CLASS_WEIGHTS = {"wrong_word": 0.3, "omitted_word": 0.35, "added_word": 0.15, "skipped_passage": 0.12}  # mutashabihat swaps are placed first
 MUTA_MAX = {True: 6, False: 3}  # swaps per session, focus sessions first
 SNR_DB = (8.0, 22.0)
@@ -489,13 +490,7 @@ def allocate(readers: dict[str, list[int]], seed: int = SEED) -> list[dict]:
 
 def muta_sites(rec: Rec, k0: int, k1: int, ref: Ref, donors: "Donors", twins: dict) -> int:
     """Words in rec[k0..k1] that can be swapped for their twin ayah's word from this reader with clean seams."""
-    n = 0
-    for k in range(k0 + 1, k1):
-        refs = twins.get(rec.words[k]["ref"])
-        bA, bB = (rec.boundary(k - 1, ref), rec.boundary(k, ref)) if refs else (None, None)
-        if bA and bB and any(joins(bA, hb) and joins(tb, bB) for r in refs for _, _, hb, tb in donors.by_ref.get(r, ())):
-            n += 1
-    return n
+    return sum(bool(refs and donors.twin_spans(rec, k, refs)) for k in range(k0 + 1, k1) for refs in [twins.get(rec.words[k]["ref"])])
 
 
 def choose_windows(slots: list[dict], recs: dict[str, Rec], ref: Ref, dis: list[int], twins: dict, donors_for, seed: int = SEED) -> list[dict]:
@@ -588,12 +583,14 @@ class Donors:
     (`refuse`: (rec key, ayah, word))."""
 
     def __init__(self, recs: list[Rec], ref: Ref, refuse: set | None = None):
-        self.items = []
+        self.items, self.ref, self.at = [], ref, defaultdict(list)
         for r in sorted(recs, key=lambda r: r.surah):
             for k in range(1, len(r.words) - 1):
                 w = r.words[k]
-                if not r.usable(k, DONOR_SCORE) or w["endS"] - w["startS"] < MIN_DONOR_S - 1e-9 or (r.key, w["ayah"], w["word"]) in (refuse or ()) \
-                        or r.said(k, ref) is None:
+                if not r.usable(k, DONOR_SCORE) or r.said(k, ref) is None:
+                    continue
+                self.at[w["ref"]].append((r, k, w["endS"] - w["startS"] >= MIN_DONOR_S - 1e-9 and (r.key, w["ayah"], w["word"]) not in (refuse or ())))
+                if not self.at[w["ref"]][-1][2]:
                     continue
                 hb, tb = r.boundary(k - 1, ref), r.boundary(k, ref)
                 if hb and tb:
@@ -601,6 +598,42 @@ class Donors:
         self.by_ref = defaultdict(list)
         for it in self.items:
             self.by_ref[it[0].words[it[1]]["ref"]].append(it)
+
+    def twin_spans(self, host: Rec, k: int, refs: list[int], window: tuple[float, float] | None = None) -> list[dict]:
+        """Mutashabihat swaps of host word k taken with their context: the reader's twin ayah from word a to b around
+        the twin word, in place of the host's a..b, so the seams sit at the nearest boundaries that join on both sides
+        (TWIN_SIDE words at most either way) rather than inside a linked word pair. Every other word of the span reads
+        exactly as the host's. Shortest span first; a=b is the plain one-word swap."""
+        ref, hw = self.ref, host.words
+        out = []
+        for r, dk, ok in (x for t in refs for x in self.at.get(t, ())):
+            if not ok:
+                continue
+            rw, off = r.words, dk - k
+            same = lambda kk: 0 <= kk + off < len(rw) and rw[kk + off]["ayah"] == rw[dk]["ayah"] and hw[kk]["ayah"] == hw[k]["ayah"] \
+                and (kk == k or (ref.words[rw[kk + off]["ref"]]["text"] == ref.words[hw[kk]["ref"]]["text"] and r.usable(kk + off, DONOR_SCORE)
+                                 and r.said(kk + off, ref) is not None))
+            heads, tails = [], []
+            for a in range(k, k - TWIN_SIDE - 1, -1):
+                if a < 1 or not same(a):
+                    break
+                hA, tA = host.boundary(a - 1, ref), r.boundary(a - 1 + off, ref)
+                if hA and tA and joins(hA, tA):
+                    heads.append((a, hA, tA))
+            for b in range(k, k + TWIN_SIDE + 1):
+                if b + off >= len(rw) - 1 or b >= len(hw) - 1 or not same(b):
+                    break
+                tB, hB = r.boundary(b + off, ref), host.boundary(b, ref)
+                if tB and hB and joins(tB, hB):
+                    tails.append((b, tB, hB))
+            for a, hA, tA in heads:
+                for b, tB, hB in tails:
+                    s0, s1 = rw[a + off]["startS"], rw[b + off]["endS"]
+                    if r is host and window and window[0] - 1 < s1 and s0 < window[1] + 1 and abs(s0 - hw[a]["startS"]) < DONOR_DIST_S:
+                        continue
+                    out.append({"a": a, "b": b, "rec": r, "dk": dk, "off": off, "seam": (hA, tA, tB, hB)})
+        out.sort(key=lambda x: (x["b"] - x["a"], x["rec"] is not host, max(s["db"] for s in x["seam"]), x["rec"].surah, x["dk"], x["a"]))
+        return out
 
     def find(self, t_in: dict, h_out: dict, host: Rec, near_s: float, window: tuple[float, float], ok, rng: random.Random, refs=None):
         """A donor word whose head joins the tail at `t_in` and whose tail joins the head at `h_out`.
@@ -692,31 +725,35 @@ def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins:
                     continue
                 said = text[: k - k0] + text[k - k0 + 1:]
                 out.append({"cls": cls, "k0": k, "k1": k, "seam": (bA, bB), "remove": [k], "other": other(cls, said, key)})
-            elif cls in ("wrong_word", "mutashabihat"):
+            elif cls == "mutashabihat":
+                for x in donors.twin_spans(rec, k, twins.get(w[k]["ref"]) or [], window):
+                    a, b = x["a"], x["b"]
+                    if a <= k_first or b >= k_last or not far(a, b):
+                        continue
+                    r, dk = x["rec"], x["dk"]
+                    said = text[: k - k0] + [ref.words[r.words[dk]["ref"]]["text"]] + text[k - k0 + 1:]
+                    fo = other(cls, said, key)
+                    if fo:
+                        hA, tA, tB, hB = x["seam"]
+                        out.append({"cls": cls, "k0": a, "k1": b, "at": k, "seam": x["seam"], "remove": [k],
+                                    "donor": (r, dk, r.boundary(dk - 1, ref), r.boundary(dk, ref)), "span": (a, b, a + x["off"], b + x["off"]), "other": fo})
+                        break
+            elif cls == "wrong_word":
                 if not (bA and bB and far(k, k)):
                     continue
-                if cls == "mutashabihat":
-                    refs = twins.get(w[k]["ref"])
-                    if not refs:
-                        continue
-                    ok = lambda r, kk: True
-                else:
-                    refs = None
-                    near = {ref.words[w[j]["ref"]]["skel"] for j in (k - 1, k, k + 1)}
-                    sq = squeeze(rw["cont"])
+                near = {ref.words[w[j]["ref"]]["skel"] for j in (k - 1, k, k + 1)}
+                sq = squeeze(rw["cont"])
 
-                    def ok(r, kk, near=near, sq=sq):
-                        x = ref.words[r.words[kk]["ref"]]
-                        xs = squeeze(x["cont"])
-                        return x["skel"] not in near and 0.5 <= len(xs) / max(1, len(sq)) <= 2.0 and levenshtein(xs, sq) >= max(2, len(sq) // 3)
-                d = donors.find(bA, bB, rec, w[k]["startS"], window, ok, rng, refs)
+                def ok(r, kk, near=near, sq=sq):
+                    x = ref.words[r.words[kk]["ref"]]
+                    xs = squeeze(x["cont"])
+                    return x["skel"] not in near and 0.5 <= len(xs) / max(1, len(sq)) <= 2.0 and levenshtein(xs, sq) >= max(2, len(sq) // 3)
+                d = donors.find(bA, bB, rec, w[k]["startS"], window, ok, rng)
                 if not d:
                     continue
                 x = ref.words[d[0].words[d[1]]["ref"]]
                 said = text[: k - k0] + [x["text"]] + text[k - k0 + 1:]
                 fo = other(cls, said, key)
-                if cls == "mutashabihat" and not fo:
-                    continue
                 out.append({"cls": cls, "k0": k, "k1": k, "seam": (bA, bB), "remove": [k], "donor": d, "other": fo})
             elif cls == "added_word":
                 if not (bA and far(k - 1, k)):
@@ -824,8 +861,11 @@ def tokens_for(win: dict, rec: Rec, edits: list[dict]) -> list[dict]:
             continue
         if e and e["cls"] in ("wrong_word", "mutashabihat"):
             r, dk = e["donor"][:2]
-            out.append({"rec": r.key, "k": dk, "at": rec.words[k]["ref"], "role": "wrong", "op": e["id"], "seam": e["id"]})
-            k += 1
+            a, b, da, _ = e.get("span") or (k, k, dk, dk)
+            for kk in range(a, b + 1):
+                wrong = {"role": "wrong", "op": e["id"]} if kk == e.get("at", k) else {"role": "ref"}
+                out.append({"rec": r.key, "k": da + kk - a, "at": rec.words[kk]["ref"], **wrong, **({"seam": e["id"]} if kk == a else {})})
+            k = b + 1
             pending = e["id"]
             continue
         out.append(host(k, **({"seam": pending} if pending else {})))
@@ -857,7 +897,7 @@ def pieces_of(tokens: list[dict], recs: dict[str, Rec], start_s: float, end_s: f
         if s1 - s0 < EDGE_FADE or s0 - (XFADE if n else 0) < 0 or s1 + (XFADE if n < len(groups) - 1 else 0) > round(r.duration * SR):
             raise PlanError(f"piece {r.key} {a}-{b} too short or at the file edge")
         gain = 0.0
-        if r is not host or g[0]["role"] in ("wrong", "added"):
+        if r is not host or any(t["role"] in ("wrong", "added") for t in g):
             prev = out[-1]["tokens"][-1] if out else None
             lvl = recs[prev["rec"]].words[prev["k"]]["level"] if prev else None
             don = r.words[k0]["level"]
@@ -970,7 +1010,7 @@ def label(win: dict, rec: Rec, edits: list[dict], tokens: list[dict], pieces: li
                 ev["location"] = ref.ref(nxt["at"]) if cls == "added_word" else ref.ref(toks[i]["at"])
                 d = e["donor"]
                 xr = d[0].words[d[1]]["ref"]
-                ev["expected"] = "" if cls == "added_word" else rec_text([e["k0"]])
+                ev["expected"] = "" if cls == "added_word" else rec_text([e.get("at", e["k0"])])
                 ev["observed"] = ref.words[xr]["text"]
                 ev["said"] = d[0].said(d[1], ref)
                 ev["donor"] = ref.name(xr)
@@ -991,9 +1031,12 @@ def label(win: dict, rec: Rec, edits: list[dict], tokens: list[dict], pieces: li
         if e.get("donor"):
             r, k = e["donor"][:2]
             dw = r.words[k]
+            da, db = e["span"][2:] if e.get("span") else (k, k)
             donor = {"audio": r.audio, "rec": r.key, "word": ref.name(dw["ref"]), "srcStartS": dw["startS"], "srcEndS": dw["endS"],
-                     "cutS": [r.words[k - 1]["cutAfterS"], dw["cutAfterS"]], "cutDb": [r.words[k - 1]["cutDb"], dw["cutDb"]], "sameRecording": r is rec}
-        src_k = e["k0"] if cls != "added_word" else e["k0"]
+                     "cutS": [r.words[da - 1]["cutAfterS"], r.words[db]["cutAfterS"]], "cutDb": [r.words[da - 1]["cutDb"], r.words[db]["cutDb"]],
+                     "sameRecording": r is rec,
+                     **({"span": [ref.name(r.words[da]["ref"]), ref.name(r.words[db]["ref"])], "shared": db - da} if da != db else {})}
+        src_k = e.get("at", e["k0"])
         splices.append({"id": e["id"], "type": ev_cls if cls not in ("repeat", "restart") else cls, "mutashabihat": cls == "mutashabihat",
                         "formsOtherAyah": bool(e.get("other")), "location": loc, "expected": expected, "said": said,
                         "startS": start, "endS": end, "host": {"audio": rec.audio, "word": ref.name(rec_w[src_k]["ref"]), "srcS": rec_w[src_k]["startS"]},

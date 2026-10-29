@@ -2,7 +2,7 @@
 
     modal run modal/lab_decode.py --listener spliced-clean-int8 --model models/spliced-clean-int8   # student ONNX dir under /lab/data
     modal run modal/lab_decode.py --listener teacher                                                 # obadx/muaalem-model-v3_2 on L4
-    ... --test-set lab-v1.1 --variants phone,studio --only lab-v1.1-p03 --force
+    ... --test-set lab-v1.2 --variants phone,studio --only lab-v1.2-p03 --force
 
 Students run the SDK streaming decode (`pnpm --filter @tilawa/sdk decode`, onnxruntime-node, 20 ms pushes, posteriors
 on) through modal/lab_run.py's shard against this worktree's source, so any exported checkpoint can be scored the same
@@ -208,7 +208,7 @@ def finish(test_set: str, listener: str, entry: dict, jobs: list[dict]) -> dict:
 
 
 @app.local_entrypoint()
-def main(listener: str, model: str = "", test_set: str = "lab-v1.1", variants: str = "phone,studio", only: str = "", force: bool = False,
+def main(listener: str, model: str = "", test_set: str = "lab-v1.2", variants: str = "phone,studio", only: str = "", force: bool = False,
          push_ms: int = 20, evidence_ms: int = 0):
     t0 = time.time()
     teacher = listener == "teacher"

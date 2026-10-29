@@ -11,7 +11,8 @@ with one alternative text over the same audio window:
 Nemotron 3.5 Transcribe (LM pairwise, plain spellings) and FastConformer (CTC pairwise, diacritised spellings) each say
 match / mismatch / unsure with their committed 2-nat margin. Both match -> auto-accepted; both mismatch ->
 both-mismatch (you confirm); one each -> disagree; anything else -> unsure. Everything but auto-accepted goes to the
-listening queue, plus a seeded spot check of the auto-accepted cases and a seeded seam spot check of the planted edits.
+listening queue, plus a fixed seeded spot check of the auto-accepted cases (SPOT_EDITS edits and repeats, SPOT_CLEAN
+clean windows) and a seeded seam spot check of the planted edits (SEAM_SPOT of them, at most SEAM_CAP).
 
 Pure logic, standard library only; run by modal/lab_triage.py, tested by tools/test_lab_triage.py.
 """
@@ -25,7 +26,10 @@ import review_asr_core as core
 
 VERSION = 1
 MARGINS = {"nemotron": core.LIK_MARGIN, "fastconformer": core.LIK_MARGIN}  # nats, both arms' committed calibration margin
-SPOT, SEAM_SPOT, SEED = 0.10, 0.10, 17
+# A fixed stratified spot check, not a share: lab-v1.1's 10% of auto-accepted cases put 144 random items in a
+# 257-item queue, mostly clean windows both models had already accepted.
+SPOT_EDITS, SPOT_CLEAN = 15, 15  # auto-accepted edits and repeats; auto-accepted clean windows
+SEAM_SPOT, SEAM_CAP, SEED = 0.10, 20, 17
 BAD_PER = 40  # at most 1 bad verdict per this many queue items (spec decision 16 scaled)
 CLEAN_TARGET_S, CLEAN_MIN_WORDS = 8.0, 3
 # No deletions: a peaky CTC model drops a clearly heard word for a few blank frames' cost, less than one imperfect
@@ -169,10 +173,15 @@ def outcome(a: str, b: str) -> str:
     return "unsure"
 
 
-def spot_sample(ids, frac: float, seed: int, tag: str) -> list[str]:
-    """A seeded share (rounded up) of ids, independent of their order."""
+def spot_sample(ids, n: int, seed: int, tag: str) -> list[str]:
+    """n seeded ids (all of them when fewer), independent of their order."""
     pool = sorted(set(ids))
-    return sorted(random.Random(f"{seed}:{tag}").sample(pool, min(len(pool), math.ceil(frac * len(pool)))))
+    return sorted(random.Random(f"{seed}:{tag}").sample(pool, min(len(pool), n)))
+
+
+def seam_count(n: int, frac: float = SEAM_SPOT, cap: int = SEAM_CAP) -> int:
+    """Seam spot checks for n planted edits: a share rounded up, at most cap."""
+    return min(cap, math.ceil(frac * n))
 
 
 def max_bad(n: int, per: int = BAD_PER) -> int:
@@ -196,7 +205,7 @@ def _model_line(name: str, r: dict, group: str) -> str:
     return f"{m}: can't separate the label from {alt} ({d:+.1f})"
 
 
-def why(case: dict, reasons: list[str]) -> str:
+def why(case: dict, reasons: list[str], spot: tuple[int, int] = (SPOT_EDITS, SPOT_CLEAN)) -> str:
     """The plain sentence at the start of a queue item's context."""
     parts = []
     if reasons[0] in ("both-mismatch", "disagree", "unsure"):
@@ -204,14 +213,15 @@ def why(case: dict, reasons: list[str]) -> str:
     if "seam" in reasons:
         parts.append("Seam: listen to the join (a click, a jump in level or room sound, a clipped start, an unnatural join)")
     if reasons[0] == "spot":
-        parts.append("Both models accepted this label; a random 10% of accepted cases are checked by ear")
+        n, what = (spot[1], "clean windows") if case["group"] == "clean" else (spot[0], "edits and repeats")
+        parts.append(f"Both models accepted this label; {n} accepted {what} are picked at random to check by ear")
     return " · ".join(parts)
 
 
-def queue_item(case: dict, reasons: list[str], carried: dict | None = None) -> dict:
+def queue_item(case: dict, reasons: list[str], carried: dict | None = None, spot: tuple[int, int] = (SPOT_EDITS, SPOT_CLEAN)) -> dict:
     it = case["item"]
     title = TITLES[reasons[0]] + "".join(f" · also {ALSO[r]}" for r in reasons[1:] if r in ALSO)
-    ctx = " · ".join(x for x in (why(case, reasons), it.get("title"), it.get("context")) if x)
+    ctx = " · ".join(x for x in (why(case, reasons, spot), it.get("title"), it.get("context")) if x)
     tri = {"reasons": reasons, "outcome": case["outcome"], "class": case["class"],
            **{m: {k: case[m][k] for k in ("decision", "diff")} for m in ("nemotron", "fastconformer")},
            "alternative": case["alternative"], "alternativeOp": case["alternativeOp"]}
@@ -241,11 +251,13 @@ def carried_over(item: dict, reviews: dict[str, dict], earlier: dict[str, dict])
             "reviewer": r.get("reviewer")}
 
 
-def triage(cases: list[dict], scores: dict[str, dict[str, dict]], test_set: str, spot: float = SPOT, seam_spot: float = SEAM_SPOT,
-           seed: int = SEED, reviews: dict[str, dict] | None = None, earlier: dict[str, dict] | None = None) -> dict:
+def triage(cases: list[dict], scores: dict[str, dict[str, dict]], test_set: str, spot: tuple[int, int] = (SPOT_EDITS, SPOT_CLEAN),
+           seam_spot: tuple[float, int] = (SEAM_SPOT, SEAM_CAP), seed: int = SEED, reviews: dict[str, dict] | None = None,
+           earlier: dict[str, dict] | None = None) -> dict:
     """cases: session_cases (+ reviewed_clean_cases, flagged reviewedOnly). scores: model -> case id -> {claimed,
-    alternative} (None when the model gave no score). Returns {cases, queue, counts}; reviewedOnly cases are decided
-    but never counted or queued."""
+    alternative} (None when the model gave no score). spot: (edits and repeats, clean windows) drawn from the
+    auto-accepted cases; seam_spot: (share, cap) of the planted edits. Returns {cases, queue, counts}; reviewedOnly
+    cases are decided but never counted or queued."""
     reviews, earlier = reviews or {}, earlier or {}
     out = []
     for c in cases:
@@ -256,14 +268,17 @@ def triage(cases: list[dict], scores: dict[str, dict[str, dict]], test_set: str,
         r["outcome"] = outcome(r["nemotron"]["decision"], r["fastconformer"]["decision"])
         out.append(r)
     real = [c for c in out if not c.get("reviewedOnly")]
-    spot_ids = set(spot_sample([c["id"] for c in real if c["outcome"] == "auto-accepted"], spot, seed, f"{test_set}:spot"))
-    seam_ids = set(spot_sample([c["id"] for c in real if c["group"] != "clean"], seam_spot, seed, f"{test_set}:seam"))
+    accepted = [c for c in real if c["outcome"] == "auto-accepted"]
+    spot_ids = set(spot_sample([c["id"] for c in accepted if c["group"] != "clean"], spot[0], seed, f"{test_set}:spot:edit"))
+    spot_ids |= set(spot_sample([c["id"] for c in accepted if c["group"] == "clean"], spot[1], seed, f"{test_set}:spot:clean"))
+    planted = [c["id"] for c in real if c["group"] != "clean"]
+    seam_ids = set(spot_sample(planted, seam_count(len(planted), *seam_spot), seed, f"{test_set}:seam"))
     items = []
     for c in real:
         c["spotCheck"], c["seamSpotCheck"] = c["id"] in spot_ids, c["id"] in seam_ids
         c["queued"] = reasons_for(c, spot_ids, seam_ids)
         if c["queued"]:
-            items.append(queue_item(c, c["queued"], carried_over(c["item"], reviews, earlier)))
+            items.append(queue_item(c, c["queued"], carried_over(c["item"], reviews, earlier), spot))
     items.sort(key=lambda it: (REASONS.index(it["triage"]["reasons"][0]), it["id"]))
     queue = {"version": 1, "testSet": test_set, "maxBad": max_bad(len(items)), "items": items}
     return {"cases": out, "queue": queue, "counts": counts(real, items), "spotIds": sorted(spot_ids), "seamIds": sorted(seam_ids)}

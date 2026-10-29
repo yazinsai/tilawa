@@ -84,14 +84,14 @@ def test_forms_other_ignores_identical_refrains():
 
 # ---- a synthetic recording of Al-Ikhlas, every word a tone -------------------------------------------------------
 
-def ikhlas(inner_gap=0.35, inner_db=-20.0, ayah_extra=None, refuse=None, energy=True, noise=None, cut_db=None):
+def ikhlas(inner_gap=0.35, inner_db=-20.0, ayah_extra=None, refuse=None, energy=True, noise=None, cut_db=None, surah=112):
     """noise: {word k: (from s, to s) after its end} filled with low noise; cut_db: {word k: cutDb} overrides."""
     t, words, ayahs = 1.0, [], []
-    for a in range(1, 5):
-        n = len(REF.ayah_words[f"112:{a}"])
+    for a in range(1, 1 + sum(k.startswith(f"{surah}:") for k in REF.ayah_words)):
+        n = len(REF.ayah_words[f"{surah}:{a}"])
         ayahs.append({"ayah": a, "excluded": False, "levelDb": -20.0, **(ayah_extra or {}).get(a, {})})
         for i in range(1, n + 1):
-            words.append({"surah": 112, "ayah": a, "word": i, "startS": round(t, 3), "endS": round(t + 0.5, 3), "score": 0.95})
+            words.append({"surah": surah, "ayah": a, "word": i, "startS": round(t, 3), "endS": round(t + 0.5, 3), "score": 0.95})
             gap = 0.8 if i == n else inner_gap
             words[-1]["cutAfterS"], words[-1]["cutDb"] = round(t + 0.5 + gap / 2, 3), -20.0 if i == n else inner_db
             t += 0.5 + gap
@@ -99,7 +99,7 @@ def ikhlas(inner_gap=0.35, inner_db=-20.0, ayah_extra=None, refuse=None, energy=
     for k, db in (cut_db or {}).items():
         words[k]["cutDb"] = db
     dur = t + 2
-    align = {"readId": 7, "surah": 112, "split": "practice", "reciter": "Test", "audio": "sources/mp3quran/7/112.wav", "durationS": dur,
+    align = {"readId": 7, "surah": surah, "split": "practice", "reciter": "Test", "audio": f"sources/mp3quran/7/{surah}.wav", "durationS": dur,
              "basmala": {"present": False}, "ayahs": ayahs, "words": words}
     x = np.zeros(int(dur * SR), dtype=np.float32)
     for k, w in enumerate(words):
@@ -350,6 +350,44 @@ def test_rule_audit_names_the_rules_an_old_splice_breaks():
     wrong = next(x for x in s["splices"] if x["type"] == "wrong_word")
     wrong["donor"]["srcEndS"] = wrong["donor"]["srcStartS"] + 0.2
     assert S.rule_audit(s, {rec.key: rec}, REF)[wrong["id"]]["refused"] == {"donorShort": ["112:1:2 0.20 s"]}
+
+
+def test_twin_spans_take_shared_words_to_reach_a_clean_seam():
+    twins = S.twin_words(REF)
+    shallow, _ = ikhlas(inner_gap=0.05, inner_db=-5.0, surah=114)  # every join inside an ayah linked and shallow
+    k = shallow.pos[(3, 1)]  # إِلَـٰهِ ٱلنَّاسِ, the twin of مَلِكِ ٱلنَّاسِ
+    refs = twins[shallow.words[k]["ref"]]
+    got = S.Donors([shallow], REF).twin_spans(shallow, k, refs)
+    assert [(x["a"], x["b"], x["dk"]) for x in got] == [(k, k + 1, shallow.pos[(2, 1)])]  # on to the ayah end, a pause both sides
+    assert all(b["kind"] == "pause" for b in got[0]["seam"])
+    deep, _ = ikhlas(inner_gap=0.05, inner_db=-12.0, surah=114)
+    got = S.Donors([deep], REF).twin_spans(deep, k, refs)
+    assert [(x["a"], x["b"]) for x in got] == [(k, k), (k, k + 1)]  # the one-word swap first
+    assert S.Donors([deep], REF).twin_spans(deep, k, refs, window=(0.0, 1e9)) == []  # the twin sits inside the session, too near
+
+
+def test_twin_span_labels_the_shared_words_as_recited():
+    rec, _ = ikhlas(inner_gap=0.05, inner_db=-5.0, surah=114)
+    k = rec.pos[(3, 1)]
+    x = S.Donors([rec], REF).twin_spans(rec, k, S.twin_words(REF)[rec.words[k]["ref"]])[0]
+    e = {"cls": "mutashabihat", "k0": x["a"], "k1": x["b"], "at": k, "seam": x["seam"], "remove": [k], "other": True,
+         "donor": (x["rec"], x["dk"], rec.boundary(x["dk"] - 1, REF), rec.boundary(x["dk"], REF)), "span": (x["a"], x["b"], x["a"] + x["off"], x["b"] + x["off"])}
+    last = len(rec.ayahs) - 1
+    win = {"id": "lab-v1-t02", "rec": rec.key, "split": "practice", "kind": "muta", "dis": 0, "startAyah": 1, "endAyah": 6, "first": 0, "last": last,
+           "startS": S.start_cut(rec, 0), "endS": S.end_cut(rec, last), "clean": False}
+    toks = S.tokens_for(win, rec, [e])
+    assert [(t["k"], t["role"]) for t in toks[k - 1: k + 3]] == [(k - 1, "ref"), (rec.pos[(2, 1)], "wrong"), (rec.pos[(2, 2)], "ref"), (k + 2, "ref")]
+    pieces = S.pieces_of(toks, {rec.key: rec}, win["startS"], win["endS"], rec)
+    assert [[t["k"] for t in p["tokens"]][:2] for p in pieces] == [[0, 1], [rec.pos[(2, 1)], rec.pos[(2, 2)]], [k + 2, k + 3]]
+    s = S.label(win, rec, [e], toks, pieces, {rec.key: rec}, REF, {"snrDb": 15.0})
+    assert S.validate(s, REF) == []
+    sp = s["splices"][0]
+    assert sp["mutashabihat"] and sp["location"] == {"surah": 114, "ayah": 3, "word": 1} and (sp["said"], sp["expected"]) == (REF.ayah_words["114:2"][0], REF.ayah_words["114:3"][0])
+    assert sp["donor"]["span"] == ["114:2:1", "114:2:2"] and sp["donor"]["shared"] == 1 and len(sp["seams"]) == 2
+    assert all(m["out"]["boundary"] == m["in"]["boundary"] == "pause" for m in sp["seams"])
+    said = s["said"][k: k + 2]
+    assert [w["text"] for w in said] == REF.ayah_words["114:2"] and [w["role"] for w in said] == ["wrong", "ref"]
+    assert said[1]["at"] == {"surah": 114, "ayah": 3, "word": 2} and said[1]["from"] == {"audio": rec.audio, "surah": 114, "ayah": 2, "word": 2}
 
 
 def test_donors_skip_refused_words():

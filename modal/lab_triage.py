@@ -1,7 +1,7 @@
 """Two-model triage of a lab test set (.scratch/lab/issues/17-two-model-triage.md, spec decisions 16-17).
 
-    modal run modal/lab_triage.py --test-set lab-v1.1
-    modal run modal/lab_triage.py --test-set lab-v1.1 --spot 0.1 --seam-spot 0.1 --seed 17 --nemotron-gpus 4
+    modal run modal/lab_triage.py --test-set lab-v1.2
+    modal run modal/lab_triage.py --test-set lab-v1.2 --spot-edits 15 --spot-clean 15 --seam-spot 0.1 --seam-cap 20 --seed 17
 
 Every case of the test set's studio copy (tools/lab_triage_core.py: each planted edit, repeat and restart, and each
 clean window) is scored by both likelihood arms, in parallel:
@@ -15,7 +15,9 @@ clean window) is scored by both likelihood arms, in parallel:
 Writes /lab/data/<testSet>/triage-v1.json (every case: both models' scores and decisions, outcome, spot-check flags,
 counts, the comparison with earlier verdicts), the listening queue /lab/data/<testSet>/review/triage.json (ticket 06
 format), and the per-spelling model records under /lab/data/<testSet>/triage/. Verdicts already given on the same ids
-(e.g. the v1 listening check) carry over; the queue marks them.
+(e.g. the v1 listening check) carry over; the queue marks them. Verdicts on an earlier test set (--prior) carry over
+only to a case whose clip is byte-identical (the same 16 kHz PCM the models hear) with the same text; they are copied
+into this test set's review file with a note naming the earlier item.
 """
 
 import hashlib
@@ -37,6 +39,7 @@ DATA, REVIEWS = Path(VOL) / "data", Path(VOL) / "reviews"
 NAME = "triage-v1"
 QUEUE = "review/triage.json"
 EARLIER = "review/v1-check.json"
+PRIOR = "lab-v1.1"
 TRANSCRIBER = "nemotron-3.5-transcribe"
 PROMPT = "verbatim"  # the decision prompt of the calibrated likelihood arm
 
@@ -97,9 +100,49 @@ def _saved_transcripts(test_set: str, own: Path, force: bool) -> tuple[dict | No
     return meta, by_sha
 
 
+def _prior_verdicts(prior: str, cases: dict[str, dict], shas: dict[str, str]) -> dict[str, dict]:
+    """Verdicts on the prior test set's items, by this set's case id, where the case's clip bytes and text equal the
+    item's as it was heard (the queue the verdict was given in)."""
+    reviews = _verdicts(prior) if prior else {}
+    queues, heard = {}, {}
+    for i, r in reviews.items():
+        q = r.get("queue") or ""
+        if q not in queues:
+            p = DATA / q
+            queues[q] = {it["id"]: it for it in json.loads(p.read_text())["items"]} if q.startswith(f"{prior}/") and p.is_file() else {}
+        it = queues[q].get(i)
+        if it:
+            heard.setdefault((hashlib.sha256(RA.clip_bytes(it["audio"])).hexdigest(), it["text"]), (i, r))
+    out = {}
+    for cid, c in cases.items():
+        hit = heard.get((shas[cid], c["item"]["text"]))
+        if hit:
+            i, r = hit
+            note = f"carried over from {prior} {i} (same audio bytes and text)" + (f": {r['note']}" if r.get("note") else "")
+            out[cid] = {**r, "note": note}
+    print(f"prior verdicts: {len(reviews)} on {prior or '-'}, {len(heard)} with their clip, {len(out)} byte-identical here", flush=True)
+    return out
+
+
+def _carry(test_set: str, carried: dict[str, dict], queue_rel: str) -> None:
+    import lab_review_core as R
+
+    by = {}
+    for cid, r in carried.items():
+        by.setdefault(r["reviewer"], {})[cid] = r
+    for reviewer, recs in by.items():
+        p = REVIEWS / test_set / f"{reviewer}.json"
+        doc = json.loads(p.read_text()) if p.is_file() else R.empty_reviews(test_set, reviewer)
+        new = {cid: r for cid, r in recs.items() if cid not in doc["items"]}
+        for cid, r in new.items():
+            R.upsert(doc, cid, r["verdict"], r["note"], r.get("at") or now(), queue_rel)
+        if new:
+            _write(p, doc)
+
+
 @app.function(image=cpu_image, volumes={VOL: vol}, timeout=6 * 60 * 60, cpu=4, memory=16384)
-def run(test_set: str, spot: float, seam_spot: float, seed: int, chunk: int, nemotron_gpus: int, fc_gpus: int, force: bool,
-        only: list[str] | None = None, no_write: bool = False) -> dict:
+def run(test_set: str, spot: tuple[int, int], seam_spot: tuple[float, int], seed: int, chunk: int, nemotron_gpus: int, fc_gpus: int,
+        force: bool, only: list[str] | None = None, no_write: bool = False, prior: str = PRIOR) -> dict:
     """only: score just these sessions (a smoke run); no_write: keep triage-v1.json and the queue as they are."""
     import lab_review_core as R
     import lab_triage_core as T
@@ -174,8 +217,10 @@ def run(test_set: str, spot: float, seam_spot: float, seed: int, chunk: int, nem
 
     scores = {"nemotron": {i: {"claimed": r["scores"]["labelled"]["llm"], "alternative": r["scores"]["original"]["llm"]} for i, r in nem_res.items()},
               "fastconformer": {i: {"claimed": r["scores"]["labelled"]["diac"], "alternative": r["scores"]["original"]["diac"]} for i, r in fc_res.items()}}
-    reviews = _verdicts(test_set)
-    res = T.triage(cases, scores, test_set, spot, seam_spot, seed, reviews, {it["id"]: it for it in earlier["items"]})
+    carried = _prior_verdicts(prior if prior != test_set else "", {c["id"]: c for c in cases if not c.get("reviewedOnly")}, shas)
+    reviews = {**carried, **_verdicts(test_set)}
+    same = {cid: {"audio": by_id[cid]["item"]["audio"], "text": by_id[cid]["item"]["text"]} for cid in carried}
+    res = T.triage(cases, scores, test_set, tuple(spot), tuple(seam_spot), seed, reviews, {**same, **{it["id"]: it for it in earlier["items"]}})
     problems = R.validate_queue(res["queue"])
     if problems:
         raise ValueError(f"triage queue: {problems[:5]}")
@@ -198,8 +243,10 @@ def run(test_set: str, spot: float, seam_spot: float, seed: int, chunk: int, nem
         "rule": {"pairwise": "claimed - alternative >= margin -> match, <= -margin -> mismatch, else unsure; a side with no score "
                              "(no CTC path) counts as infinitely worse",
                  "outcome": "both match -> auto-accepted; both mismatch -> both-mismatch; one match and one mismatch -> disagree; else unsure",
-                 "queue": "every case that is not auto-accepted, a seeded spot check of the auto-accepted cases and a seeded seam spot check "
-                          "of the planted edits (splices, repeats, restarts); one item per case, reasons merged",
+                 "queue": f"every case that is not auto-accepted; a seeded spot check of {spot[0]} auto-accepted edits and repeats and "
+                          f"{spot[1]} auto-accepted clean windows; a seeded seam spot check of {seam_spot[0]:.0%} of the planted edits "
+                          f"(splices, repeats, restarts), at most {seam_spot[1]}; one item per case, reasons merged",
+                 "carryOver": f"verdicts on {prior} items carry over only where the clip bytes and text are identical",
                  "maxBad": f"at most 1 bad per {T.BAD_PER} queue items, at least 1", "source": "tools/lab_triage_core.py"},
         "construction": {"edit": "the review_splice window (2.5 s either side of the edit, whole words); alternative = the original text at "
                                  "that spot (review_asr_core.revert_text)",
@@ -209,7 +256,8 @@ def run(test_set: str, spot: float, seam_spot: float, seed: int, chunk: int, nem
                                   "word substituted by a clearly different word of the session, or a foreign word inserted "
                                   "(review_asr_core.perturb_text, ops lab_triage_core.CLEAN_OPS: no deletions, CTC drops a heard "
                                   "word cheaply), operation and position seeded by the case id"},
-        "spot": spot, "seamSpot": seam_spot, "seed": seed, "queue": queue_rel, "counts": res["counts"], "reviewed": reviewed, "gpu": gpu,
+        "spot": {"edits": spot[0], "clean": spot[1]}, "seamSpot": {"share": seam_spot[0], "cap": seam_spot[1]}, "seed": seed,
+        "queue": queue_rel, "counts": res["counts"], "reviewed": reviewed, "carriedFromPrior": {cid: r["note"] for cid, r in carried.items()}, "gpu": gpu,
         "cases": [{k: c[k] for k in ("id", "session", "group", "class", "linked", "claimed", "alternative", "alternativeOp", "nemotron",
                                      "fastconformer", "outcome")}
                   | {"audio": c["item"]["audio"], "reviewedOnly": bool(c.get("reviewedOnly")),
@@ -219,20 +267,23 @@ def run(test_set: str, spot: float, seam_spot: float, seed: int, chunk: int, nem
         return {k: doc[k] for k in ("testSet", "models", "counts", "reviewed", "gpu", "queue", "cases")} | {"fastconformer": fc_res, "nemotron": nem_res}
     _write(base / f"{NAME}.json", doc)
     _write(base / QUEUE, res["queue"])
+    _carry(test_set, carried, queue_rel)
     _write(base / "triage" / f"{NAME}.nemotron.json", {"version": 1, "testSet": test_set, "createdAt": now(), "model": nem_meta,
                                                          "items": {i: {"candidates": r["scores"], "ctcGreedy": r["ctcGreedy"], "seconds": r["seconds"],
                                                                        "transcript": heard[i]["transcript"]} for i, r in nem_res.items()}})
     _write(base / "triage" / f"{NAME}.fastconformer.json", {"version": 1, "testSet": test_set, "createdAt": now(), "model": fc_meta,
                                                               "items": {i: {k: r[k] for k in ("transcript", "scores", "ctcGreedy")} for i, r in fc_res.items()}})
     vol.commit()
-    return {k: doc[k] for k in ("testSet", "models", "counts", "reviewed", "gpu", "queue")}
+    return {k: doc[k] for k in ("testSet", "models", "counts", "reviewed", "carriedFromPrior", "gpu", "queue")}
 
 
 @app.local_entrypoint()
-def main(test_set: str = "lab-v1.1", spot: float = 0.10, seam_spot: float = 0.10, seed: int = 17, chunk: int = 100, nemotron_gpus: int = 4,
-         fc_gpus: int = 1, force: bool = False, out: str = "", only: str = "", no_write: bool = False):
+def main(test_set: str = "lab-v1.2", spot_edits: int = 15, spot_clean: int = 15, seam_spot: float = 0.10, seam_cap: int = 20, seed: int = 17,
+         chunk: int = 100, nemotron_gpus: int = 4, fc_gpus: int = 1, force: bool = False, out: str = "", only: str = "", no_write: bool = False,
+         prior: str = PRIOR):
     t0 = time.time()
-    r = run.remote(test_set, spot, seam_spot, seed, chunk, nemotron_gpus, fc_gpus, force, only.split(",") if only else None, no_write)
+    r = run.remote(test_set, (spot_edits, spot_clean), (seam_spot, seam_cap), seed, chunk, nemotron_gpus, fc_gpus, force,
+                   only.split(",") if only else None, no_write, prior)
     if no_write:
         Path(out or "/tmp/lab-triage-smoke.json").write_text(json.dumps(r, ensure_ascii=False, indent=1))
         print(json.dumps({k: r[k] for k in ("counts", "reviewed", "gpu")}, ensure_ascii=False, indent=1))
