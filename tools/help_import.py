@@ -15,6 +15,7 @@ import subprocess
 import sys
 import wave
 from collections import Counter, defaultdict
+from functools import lru_cache
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -86,6 +87,7 @@ DIACRITIC = re.compile(r"[\u0640\u064b-\u065f\u0670\u06d6-\u06ed]")
 ALEF = str.maketrans("ٱأإآى", "اااای")
 
 
+@lru_cache(maxsize=None)
 def skeleton(word: str) -> str:
     return DIACRITIC.sub("", word).translate(ALEF)
 
