@@ -170,6 +170,70 @@ def combine(decisions: list[str]) -> str:
     return "unsure"
 
 
+_CHAR_RUN = re.compile(r"(.)\1{20,}", re.DOTALL)
+_BLOCK_RUN = re.compile(r"(.{1,4096}?)\1{19,}", re.DOTALL)
+
+
+def cleanup_generation_loops(text: str) -> str:
+    """The generation-loop guardrail from the Nemotron 3.5 Transcribe model card, applied to its reported transcripts."""
+    return _BLOCK_RUN.sub(lambda m: m.group(1), _CHAR_RUN.sub(lambda m: m.group(1), text))
+
+
+# Likelihood arm (Nemotron 3.5 Transcribe): the model scores given candidate texts against the audio instead of
+# transcribing. The candidates are exposed to the model, so this is a likelihood comparison, not an independent opinion.
+
+LIK_MARGIN = 2.0  # nats; fixed before the first likelihood run
+MAX_SPELLINGS = 8
+
+_MARKS = re.compile("[\u0610-\u061a\u064b-\u0653\u0656-\u065f\u06d6-\u06ed\u0640]")
+
+
+def plain_spellings(word: str) -> list[str]:
+    """Modern undiacritised spellings of one Uthmani word, e.g. ٱلصَّلَوٰةِ -> الصلاة, ءَامَنُوا۟ -> آمنوا. A superscript alef
+    that is not after ى or و is tried both as ا and as nothing (ٱلْكِتَـٰبُ -> الكتاب, ذَٰلِكَ -> ذلك)."""
+    w = re.sub("\u0650([\u0651\u0652]?)ى", "\u0650\\1ي", unicodedata.normalize("NFD", word))
+    w = unicodedata.normalize("NFC", _MARKS.sub("", w).replace("\u0671", "ا"))
+    w = re.sub("ى(?=[\u0621-\u064a])", "ي", w.replace("ى\u0670", "ى").replace("و\u0670", "ا"))
+    out = []
+    for dagger in ("ا", "") if "\u0670" in w else ("",):
+        v = w.replace("\u0670", dagger).replace("\u0654ا", "آ").replace("\u0654", "أ").replace("ءا", "آ")
+        v = re.sub("[^\u0621-\u064a]", "", v)
+        if v and v not in out:
+            out.append(v)
+    return out
+
+
+def plain_candidates(text: str, transcript: str = "") -> list[str]:
+    """Spellings of a candidate text in the model's writing system, for scoring. A word that has a normalised form in
+    common with a transcript word takes that word's spelling (the same word, as the model writes it); other words try
+    their plain_spellings. At most MAX_SPELLINGS combinations, varying the earliest ambiguous words."""
+    heard = tokens(transcript)
+    per = []
+    for w, v in tokens(text):
+        same = next((t for t, tv in heard if tv & v), None)
+        per.append([re.sub("[^\u0621-\u064a]", "", unicodedata.normalize("NFC", same))] if same else plain_spellings(w) or [w])
+    out = [[]]
+    for opts in per:
+        out = [o + [s] for o in out for s in opts][:MAX_SPELLINGS] if len(out) * len(opts) <= MAX_SPELLINGS else [o + [opts[0]] for o in out]
+    return [" ".join(o) for o in out]
+
+
+def plain_transcript(transcript: str) -> str:
+    """The transcript's Arabic words without punctuation, scored the same way as the candidates."""
+    return " ".join(re.sub("[^\u0621-\u064a]", "", unicodedata.normalize("NFC", t)) for t, _ in tokens(transcript))
+
+
+def prefer(claimed: float, alternative: float, margin: float = LIK_MARGIN) -> str:
+    """Pairwise rule: does the claimed text fit the audio better than the alternative by at least `margin` nats?"""
+    d = claimed - alternative
+    return "match" if d >= margin else "mismatch" if d <= -margin else "unsure"
+
+
+def near_best(claimed: float, best: float, margin: float = LIK_MARGIN) -> str:
+    """Absolute rule: the claimed text is within `margin` nats of the model's own best hypothesis."""
+    return "match" if claimed - best >= -margin else "mismatch"
+
+
 # Negative controls: the same audio paired with text that is wrong by construction.
 
 def _session_words(session: dict, a: float, b: float) -> list[dict]:
@@ -284,16 +348,17 @@ def score(decisions: dict[str, str], truth: dict[str, bool]) -> dict:
 
 # Pre-screen.
 
-def prescreen(queue: dict, decisions: dict[str, str], spot: float = 0.10, seed: int = 12, seams: str = "listen") -> dict:
+def prescreen(queue: dict, decisions: dict[str, str], spot: float = 0.10, seed: int = 12, seams: str = "listen",
+              notes: dict[str, str] | None = None) -> dict:
     """The queue the listener still has to hear: every mismatch and unsure item, a seeded `spot` share (rounded up) of the
     auto-cleared matches, and, with seams='listen', every splice (the ASR checks words, not whether a seam sounds natural).
-    Items keep the ticket 06 format; their context gets the reason they are in the queue."""
+    Items keep the ticket 06 format; their context gets the reason they are in the queue, plus `notes[id]` if given."""
     items = queue["items"]
     why = {}
     for it in items:
         d = decisions.get(it["id"], "unsure")
         if d != "match":
-            why[it["id"]] = f"ASR {d}"
+            why[it["id"]] = f"ASR {d}" + (f" ({notes[it['id']]})" if notes and it["id"] in notes else "")
         elif seams == "listen" and it["kind"] == "splice":
             why[it["id"]] = "seam (ASR heard the right words; listen to the join)"
     cleared = sorted(it["id"] for it in items if it["id"] not in why)
