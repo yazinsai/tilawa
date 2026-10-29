@@ -5,7 +5,7 @@
  "all": {
   "sessions": 40,
   "reciters": 29,
-  "minutes": 180.5,
+  "minutes": 180.9,
   "durationS": [
    184.2,
    393.1
@@ -13,25 +13,25 @@
   "ayah1": 8,
   "strict": 6,
   "clean": 10,
-  "planted": 353,
-  "formsOtherAyah": 41,
-  "plantedPerAyah": 0.346,
+  "planted": 351,
+  "formsOtherAyah": 40,
+  "plantedPerAyah": 0.347,
   "classes": {
-   "added_word": 166,
+   "added_word": 170,
    "mutashabihat": 25,
-   "omitted_word": 29,
+   "omitted_word": 30,
    "repeat": 23,
    "restart": 17,
    "skipped_passage": 81,
-   "wrong_word": 52
+   "wrong_word": 45
   },
-  "words": 9256
+  "words": 9258
  },
  "splits": {
   "exam": {
    "sessions": 20,
    "reciters": 14,
-   "minutes": 92.4,
+   "minutes": 93.4,
    "durationS": [
     184.2,
     387.6
@@ -39,51 +39,50 @@
    "ayah1": 4,
    "strict": 3,
    "clean": 5,
-   "planted": 186,
+   "planted": 183,
    "formsOtherAyah": 22,
-   "plantedPerAyah": 0.347,
+   "plantedPerAyah": 0.345,
    "classes": {
-    "added_word": 89,
+    "added_word": 91,
     "mutashabihat": 16,
-    "omitted_word": 19,
+    "omitted_word": 20,
     "repeat": 10,
     "restart": 10,
-    "skipped_passage": 37,
-    "wrong_word": 25
+    "skipped_passage": 33,
+    "wrong_word": 23
    },
-   "words": 4696
+   "words": 4685
   },
   "practice": {
    "sessions": 20,
    "reciters": 15,
-   "minutes": 88.1,
+   "minutes": 87.5,
    "durationS": [
-    198.5,
+    196.2,
     393.1
    ],
    "ayah1": 4,
    "strict": 3,
    "clean": 5,
-   "planted": 167,
-   "formsOtherAyah": 19,
-   "plantedPerAyah": 0.346,
+   "planted": 168,
+   "formsOtherAyah": 18,
+   "plantedPerAyah": 0.349,
    "classes": {
-    "added_word": 77,
+    "added_word": 79,
     "mutashabihat": 9,
     "omitted_word": 10,
     "repeat": 13,
     "restart": 7,
-    "skipped_passage": 44,
-    "wrong_word": 27
+    "skipped_passage": 48,
+    "wrong_word": 22
    },
-   "words": 4560
+   "words": 4573
   }
  },
  "surahs": {
-  "2": 1,
+  "4": 1,
   "5": 1,
   "6": 1,
-  "7": 1,
   "8": 1,
   "9": 1,
   "11": 1,
@@ -93,15 +92,16 @@
   "19": 1,
   "20": 1,
   "23": 1,
-  "25": 1,
   "26": 8,
   "28": 1,
   "36": 1,
   "37": 2,
+  "38": 1,
   "39": 1,
-  "44": 2,
+  "40": 1,
+  "44": 1,
   "50": 1,
-  "51": 1,
+  "51": 2,
   "54": 2,
   "55": 2,
   "72": 1,
@@ -123,11 +123,12 @@
  },
  "refused": {
   "ayahs": {
+   "check": 7,
    "long": 2389,
    "per": 104
   },
-  "sites": 0,
-  "donors": 0,
+  "sites": 11,
+  "donors": 7,
   "weakOnsetPauses": {
    "moved": 968,
    "unverified": 8758
@@ -144,8 +145,8 @@
    "roomPct": 0.02,
    "roomMarginDb": 3.0
   },
-  "refusalsSha256": null,
-  "iterations": 0
+  "refusalsSha256": "72071287628d86db05b57d6fcbd8304d53c823a8b5c9bd7d55e34ba25a35df90",
+  "iterations": 4
  },
  "reciters": 29
 }

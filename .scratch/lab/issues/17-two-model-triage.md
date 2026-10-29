@@ -28,3 +28,5 @@ Done on lab-v1.1 (`docs/benchmarks/lab-triage-v1.md`). There were 1576 cases: 14
 The seam gate (`lab_sessions.SEAM_LIMITS`) is enforced in the build loop. On lab-v1.1, all 569 seams and all 8722 words pass, and the worst cut into a word is 15 ms. Clean windows use substitutions and insertions only, because CTC drops a heard word cheaply (settled on the smoke run, before the full run).
 
 Open: the random spot check is 144 of the 257 items, 118 of them clean windows. No scoreboard row, because triage moves no lab metric.
+
+lab-v1.2 (`docs/benchmarks/lab-triage-v1.md`): the spot check is now a fixed seeded sample of 15 auto-accepted edits and repeats plus 15 auto-accepted clean windows, and the seam spot check is 10% of the planted edits, at most 20 (spec decision 17). On lab-v1.1's own cases that gives 129 items instead of 257. On lab-v1.2 there were 1664 cases: 1585 auto-accepted, 10 both-mismatch (9 added words and a restart, all with seams at −7.5 dB or deeper), 53 disagree and 16 unsure. The queue at `lab-v1.2/review/triage.json` has 128 items with maxBad 3. Earlier verdicts carry over only on identical clip bytes and text; none of lab-v1.1's 47 matched.
