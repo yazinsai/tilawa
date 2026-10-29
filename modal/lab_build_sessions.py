@@ -19,8 +19,9 @@ Stages (each skips finished outputs; the same seed and inputs give byte-identica
     gate    the render's seam checks against lab_sessions.SEAM_LIMITS (levels, clicks, seam depth, words found, words
             cut short) -> seams-v1.json; in the loop, failing splices are refused and rebuilt before any decode
     loop    plan + render, gate, `lab_decode.py --listener teacher`, `lab_check.py`, refuse; until nothing fails. Then
-            `lab_triage.py`: both review models score every case and write the listening queue review/triage.json
-            (ticket 17); the set freezes once that queue is reviewed within its maxBad. Refusals are cumulative, so a
+            `lab_triage.py` (Nemotron and FastConformer score every case), then `review_api.py::triage_main --primary`
+            (Nemotron + Soniox, from lab-v1.4) writes the listening queue review/triage.json (ticket 17); the set
+            freezes once that queue is reviewed within its maxBad. Refusals are cumulative, so a
             loop that hit --iterations resumes with --first-iteration N
 
 All under /lab/data/<set> (lab_sessions.TEST_SET) on the tilawa-lab volume.

@@ -41,3 +41,15 @@ API bake-off (`docs/benchmarks/lab-review-asr-v1.md`, "Commercial APIs"; `docs/b
 - `triage.json` is unchanged and is still the queue to hear.
 - No scoreboard row, because triage moves no lab metric.
 - Open: re-preregister the judge margin on lab-v1.1 and lab-v1.2 only, then rerun lab-v1.3 from the cached transcripts. This needs no API calls.
+
+Soniox margin v2 (`docs/benchmarks/lab-triage-v1.md`, "Soniox margin v2"). The `reach` margin was preregistered and committed (9f1dfe6) before any number, then calibrated on the lab-v1.1 and lab-v1.2 verdicts from cached transcripts. It needs half the gap a perfect transcript of the stretch the transcript covers would reach.
+- It passes all three adoption checks. Safety: no newly accepted bad. Controls: every one still flagged. Gain: 101/137 ok auto-accepted, against 96. It is now the default (`review_api_core.JUDGE_RULE`).
+- Only 5 items changed, all true skipped passages (unsure to match).
+- On lab-v1.3's 117 verdicts: ok auto-accepted 75 → 79. Bad auto-accepted stays at 5 (e09-x3, p01-x2, p01-x4, p06-x1, p12-x8). Nemotron + FastConformer auto-accepted 4 of them.
+- Both ASRs hear the planted word in all five, so no text margin catches them. The pause-to-pause rule of lab-v1.4 refuses all of them.
+
+lab-v1.4 (`docs/benchmarks/lab-triage-v1.md`, "Results on lab-v1.4"). Nemotron + Soniox is the set's triage; the FastConformer queues are kept as `review/triage-fastconformer(-confirm).json`. The seam spot check has two pools: inserted audio 20% (at most 30) and the rest 10% (at most 20).
+- 1591 cases: 1526 auto-accepted, 0 both-mismatch, 8 disagree and 57 unsure.
+- `lab-v1.4/review/triage.json` has 126 items (8 disagree, 57 unsure, 32 seam with 14 inserted, 29 spot) with maxBad 3. It loads via `/api/queue`.
+- `review/triage-confirm.json` is empty, so the API refuses it (422, "items must be a non-empty list").
+- Soniox cost $0.36. No scoreboard row, because triage moves no lab metric.

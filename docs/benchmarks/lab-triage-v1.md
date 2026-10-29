@@ -301,3 +301,50 @@ On lab-v1.3 (1700 cases, reported only):
 - Against your 117 verdicts: your ok items auto-accepted rose from 75 to 79. The bad splices auto-accepted stayed the same 5 (e09-x3, p01-x2, p01-x4, p06-x1, p12-x8). The old Nemotron + FastConformer pairing auto-accepted 4 of them, all except p01-x4.
 
 The margin doesn't help with those five, and no text margin can. Both ASRs hear the planted word: Nemotron +5.8 to +49, Soniox +3 to +5. What is wrong with these splices is how the seam sounds, not what was said. The fix is upstream: the pause>pause insertion rule in lab-v1.4 (`lab-v1.4.md`). The seam spot check pools are the backstop.
+
+## Results on lab-v1.4 (2026-10-29): Nemotron + Soniox
+
+The first set triaged with Soniox as the second model (spec decision 17), with the `reach` margin and the seam spot check pools. The build loop's triage stage runs `lab_triage.py`, which scores Nemotron, FastConformer and the transcripts. It then runs `review_api.py::triage_main --test-set lab-v1.4 --primary`, which reuses Nemotron's decisions. The Nemotron + FastConformer queues are kept as `review/triage-fastconformer(-confirm).json`.
+
+1591 cases: 252 planted edits, 40 repeats and restarts, 1299 clean windows (plus 14 reviewed-only).
+
+| Class | n | Auto-accepted | Both-mismatch | Disagree | Unsure | Nemotron + FastConformer auto |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| wrong word | 5 | 4 | 0 | 0 | 1 | 5 |
+| mutashabihat | 19 | 14 | 0 | 0 | 5 | 16 |
+| omitted word | 135 | 122 | 0 | 4 | 9 | 127 |
+| added word | 43 | 39 | 0 | 1 | 3 | 23 |
+| skipped passage | 50 | 48 | 0 | 0 | 2 | 50 |
+| repeat | 24 | 24 | 0 | 0 | 0 | 22 |
+| restart | 16 | 13 | 0 | 2 | 1 | 11 |
+| clean | 1299 | 1262 | 0 | 1 | 36 | 1295 |
+| all | 1591 | 1526 | 0 | 8 | 57 | 1549 |
+
+Per model: Nemotron 1580 match, 8 mismatch, 3 unsure; Soniox 1537 match, 54 unsure, never mismatch. Nemotron + FastConformer had 1 both-mismatch, p15-x1, a restart. It is now disagree (Nemotron −3.2, Soniox +9) and is in the queue.
+
+**Queue `lab-v1.4/review/triage.json`: 126 items, maxBad 3.**
+
+| First reason | Items |
+| --- | ---: |
+| both-mismatch | 0 |
+| disagree | 8 |
+| unsure | 57 |
+| seam spot check | 32 (34 by any reason) |
+| random spot check | 29 (30 by any reason) |
+
+The seam spot checks are 14 inserted-audio splices (20% of 67 wrong, added and mutashabihat; under the cap of 30) and 20 others (10% of 225, capped at 20).
+- 4 items carry verdicts from lab-v1.3 on byte-identical clips (9 carried over in all, every one ok).
+- The Nemotron + FastConformer queue would have been 88 items (1 both-mismatch, 27 disagree, 14 unsure).
+- Soniox moves added words from 15 disagree to 1. It adds 33 unsure clean windows: Soniox is too close to call on a one-word perturbation of an 8 s window more often than FastConformer.
+
+**`lab-v1.4/review/triage-confirm.json` is empty**, since no case is both-mismatch. The review API refuses an empty queue (`validate_queue`: "items must be a non-empty list"). So `/api/queue?path=lab-v1.4/review/triage-confirm.json` answers 422, and there is nothing to hear first.
+
+Cost:
+- Soniox: 1605 windows, 12,784 s of audio, $0.36, 1674 s wall (33 chunks), no errors.
+- Nemotron: 1721 s transcribing and 471 s scoring on 4 H100 containers (152 s of loads).
+- FastConformer: 133 s on a T4.
+
+Data:
+- `/lab/data/lab-v1.4/triage-v1.json` (Nemotron + FastConformer, every case)
+- `triage-soniox-v1.json` (Nemotron + Soniox, every case)
+- `docs/benchmarks/lab-triage-v1-lab-v1.4.json` and `lab-triage-soniox-lab-v1.4.json`

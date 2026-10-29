@@ -39,3 +39,13 @@ lab-v1.3 (`docs/benchmarks/lab-v1.3.md`): lab-v1.2 rebuilt with three rules from
 - A repeat or restart breaks off at a pause boundary, or the site is refused.
 
 On lab-v1.2 they refuse 90 of 391 splices (56, 6 and 28). That catches 6 of the 7 bad ones. p15-x1 is not caught: its donor lands on a real host pause, and a mirror rule would refuse about 35 added words you passed. The rules also refuse 27 of your 86 ok splices. Added words and skipped passages are each capped at 30% of the planted mistakes. Skips are included because with only added words capped they reached 45%. The set has 40 sessions, 186.3 min and 335 planted mistakes: 98 wrong, 21 mutashabihat, 62 omitted, 94 added (28.1%) and 60 skipped, plus 29 repeats and 11 restarts. It converged in 9 loop iterations with every studio check and all 588 seams passing. No scoreboard row: nothing in the scoreboard reads lab test sets yet.
+
+lab-v1.4 (`docs/benchmarks/lab-v1.4.md`): lab-v1.3 rebuilt after your listens to its triage queue (9 bad in 116, all wrong or added words). Each rule is enforced in the planner and in the seam gate (`insertLinked`, `reenterLinked`).
+
+- Inserted audio (wrong and added words, not twin spans) meets the host only at seams that are a pause on both sides, in the host and in the donor's recording (`Donors.pause_spans`). The donor stretch runs pause to pause and reads as the host's words except the planted one, which alone is labelled. At most 6 shared words either side.
+- A repeat re-enters at a pause too.
+- Review clips cover every seam ±1 s (`meta.reviewSeamPadS`; earlier labels unchanged).
+
+On lab-v1.3 the rules refuse 211 of 375 splices: all 98 wrong words, 84 of 94 added words and all 29 repeats. That includes all 9 bad splices, and 50 of the 56 inserted splices you passed. The set has 40 sessions, 180.2 min and 252 planted mistakes: 5 wrong, 19 mutashabihat, 135 omitted, 43 added and 50 skipped, plus 24 repeats and 16 restarts. All 96 inserted-audio seams are pause to pause. It converged in 6 loop iterations with every studio check and all 359 seams passing. `spliced-clean-int8` was decoded on both variants.
+
+Bias: every inserted mistake sits at a pause, and wrong words nearly vanish (5). Deletions and twin swaps still cover linked speech. No scoreboard row: nothing in the scoreboard reads lab test sets yet.
