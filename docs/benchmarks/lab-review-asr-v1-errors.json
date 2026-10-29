@@ -1,0 +1,223 @@
+{
+ "nemotron-3.5-transcribe": [
+  {
+   "id": "lab-v1.1-e20-x6",
+   "kind": "splice wrong_word",
+   "decision": "mismatch",
+   "bucket": "1 orthography",
+   "note": "planted word, at the seam; split كَٱلْ|أعلام and alif wasla dropped: skeleton identical"
+  },
+  {
+   "id": "lab-v1.1-e20-x10",
+   "kind": "splice wrong_word",
+   "decision": "unsure",
+   "bucket": "3 mishearing",
+   "note": "first word ءالاء heard as والآباء, right after the cut (window starts where فبأي ends); seam word بحسبان heard right"
+  },
+  {
+   "id": "lab-v1.1-p09-x8",
+   "kind": "splice wrong_word",
+   "decision": "mismatch",
+   "bucket": "4 canonical / planted word dropped",
+   "note": "planted قوة dropped at the seam (and بـ heard as في)"
+  },
+  {
+   "id": "lab-v1.1-e13-x4",
+   "kind": "splice wrong_word",
+   "decision": "mismatch",
+   "bucket": "3 mishearing",
+   "note": "planted الوريد heard as وعينة, at the seam"
+  },
+  {
+   "id": "lab-v1.1-e15-x8",
+   "kind": "splice wrong_word",
+   "decision": "mismatch",
+   "bucket": "5 hallucination",
+   "note": "dua loop to the 512-token limit"
+  },
+  {
+   "id": "lab-v1.1-p15-x8",
+   "kind": "splice added_word",
+   "decision": "mismatch",
+   "bucket": "4 canonical / planted word dropped",
+   "note": "planted قوم dropped: exactly the written 51:23"
+  },
+  {
+   "id": "lab-v1.1-e19-x12",
+   "kind": "splice added_word",
+   "decision": "mismatch",
+   "bucket": "4 canonical / planted word dropped",
+   "note": "planted كيف blended: إنا كيف كنا → إننا كفنا, which reads as the original"
+  },
+  {
+   "id": "lab-v1.1-e10-x9",
+   "kind": "splice skipped_passage",
+   "decision": "mismatch",
+   "bucket": "3 mishearing",
+   "note": "ختامه heard as كتاب, first word after the skip seam"
+  },
+  {
+   "id": "lab-v1.1-p12-x7",
+   "kind": "splice wrong_word",
+   "decision": "unsure",
+   "bucket": "2 edge",
+   "note": "last word أحياء dropped (inside the window, 0.25 s before its end); padding fixed it. 78:6 ends at مهادا, so maybe prior too (speculative)"
+  },
+  {
+   "id": "lab-v1.1-e08-x1",
+   "kind": "repeat",
+   "decision": "unsure",
+   "bucket": "3 mishearing",
+   "note": "لآيةً heard as لآيتهم on both copies (tanwin ending); not at a seam"
+  },
+  {
+   "id": "lab-v1.1-e01-x4",
+   "kind": "restart",
+   "decision": "mismatch",
+   "bucket": "3 mishearing",
+   "note": "واستكبر هو heard as one word واستكبروا (lost /h/); not at a seam"
+  },
+  {
+   "id": "lab-v1.1-p05-x6",
+   "kind": "repeat",
+   "decision": "unsure",
+   "bucket": "3 mishearing",
+   "note": "فثبتوا heard as فذبطوا on both copies (ث→ذ, ت→ط); قلوب → قلوبهم at the end"
+  },
+  {
+   "id": "lab-v1.1-e05-x7",
+   "kind": "restart",
+   "decision": "unsure",
+   "bucket": "4 canonical / planted word dropped",
+   "note": "restart's leading fragment أجري إلا على dropped: transcript is the written 26:109"
+  },
+  {
+   "id": "lab-v1.1-p03-studio-5",
+   "kind": "clean studio",
+   "decision": "mismatch",
+   "bucket": "2 edge",
+   "note": "abutting next word اتبع bled in (linked kasra of منِ), then invented الحج والهدى"
+  },
+  {
+   "id": "lab-v1.1-e07-phone-293",
+   "kind": "clean phone",
+   "decision": "mismatch",
+   "bucket": "3 mishearing",
+   "note": "phone: تجعلونه → يدعونهم (also تبذلونها, وتخون, which the rule tolerated)"
+  },
+  {
+   "id": "lab-v1.1-p06-phone-173",
+   "kind": "clean phone",
+   "decision": "mismatch",
+   "bucket": "3 mishearing",
+   "note": "phone: inserted لا (حتى لا, a common phrase) and أراد → أرادوا"
+  },
+  {
+   "id": "lab-v1.1-e15-phone-229",
+   "kind": "clean phone",
+   "decision": "mismatch",
+   "bucket": "5 hallucination",
+   "note": "pastiche of other verses (قل يا أيها الكافرون ... وأنا من المنذرين) for 55:77–78"
+  }
+ ],
+ "nemotron-recitation-prompt": [
+  {
+   "id": "lab-v1.1-e20-x6",
+   "kind": "splice wrong_word",
+   "decision": "mismatch",
+   "bucket": "1 orthography",
+   "note": "same as the decision run"
+  },
+  {
+   "id": "lab-v1.1-e20-x10",
+   "kind": "splice wrong_word",
+   "decision": "mismatch",
+   "bucket": "3 mishearing",
+   "note": "ءالاء → إلى, بحسبان split as في حسبان, فيهن قاصرات → في نقصرات (the ن moved), around the seam"
+  },
+  {
+   "id": "lab-v1.1-p09-x8",
+   "kind": "splice wrong_word",
+   "decision": "mismatch",
+   "bucket": "4 canonical / planted word dropped",
+   "note": "planted قوة dropped at the seam"
+  },
+  {
+   "id": "lab-v1.1-e15-x8",
+   "kind": "splice wrong_word",
+   "decision": "unsure",
+   "bucket": "3 mishearing",
+   "note": "last word مدهامتان → مدهامة (dual ending); extra leading إنا was allowed"
+  },
+  {
+   "id": "lab-v1.1-p06-x1",
+   "kind": "splice omitted_word",
+   "decision": "mismatch",
+   "bucket": "5 hallucination",
+   "note": "invented ضربنا أيديهم وأرجلهم in place of بربهم, at the omitted-word seam"
+  },
+  {
+   "id": "lab-v1.1-p15-x8",
+   "kind": "splice added_word",
+   "decision": "mismatch",
+   "bucket": "5 hallucination",
+   "note": "invented continuation after لحق at the seam: من ربكم أن تستمعوا للحق ..."
+  },
+  {
+   "id": "lab-v1.1-p10-x6",
+   "kind": "splice added_word",
+   "decision": "mismatch",
+   "bucket": "3 mishearing",
+   "note": "فانٍ ويبقى → فالواقع, last two words, after the added تكذبان"
+  },
+  {
+   "id": "lab-v1.1-e10-x9",
+   "kind": "splice skipped_passage",
+   "decision": "unsure",
+   "bucket": "3 mishearing",
+   "note": "نضرة → نبضة, ختامه → هتام (first word after the skip seam)"
+  },
+  {
+   "id": "lab-v1.1-e01-x4",
+   "kind": "restart",
+   "decision": "mismatch",
+   "bucket": "3 mishearing",
+   "note": "same as the decision run (هو lost)"
+  },
+  {
+   "id": "lab-v1.1-p05-x6",
+   "kind": "repeat",
+   "decision": "unsure",
+   "bucket": "3 mishearing",
+   "note": "فثبتوا → فذبت on both copies"
+  },
+  {
+   "id": "lab-v1.1-p03-studio-5",
+   "kind": "clean studio",
+   "decision": "mismatch",
+   "bucket": "2 edge",
+   "note": "same bleed of اتبع, then invented الحجور"
+  },
+  {
+   "id": "lab-v1.1-e07-phone-293",
+   "kind": "clean phone",
+   "decision": "mismatch",
+   "bucket": "3 mishearing",
+   "note": "phone: تجعلونه → يدعونهم, قراطيس → فراقيس"
+  },
+  {
+   "id": "lab-v1.1-p06-phone-173",
+   "kind": "clean phone",
+   "decision": "mismatch",
+   "bucket": "3 mishearing",
+   "note": "phone: same inserted لا, أراد → أرادوا"
+  },
+  {
+   "id": "lab-v1.1-e15-phone-229",
+   "kind": "clean phone",
+   "decision": "mismatch",
+   "bucket": "5 hallucination",
+   "note": "dua loop: اللهم اغفر لي ولوالدي ولمن أحببت ×4"
+  }
+ ]
+}

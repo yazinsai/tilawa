@@ -238,3 +238,96 @@ That saves about 2 minutes per test-set version. The test output was deleted fro
   - `modal run modal/review_asr.py::main --models nemotron-3.5-transcribe --name nemotron-3.5-transcribe`
   - then `modal run modal/review_asr.py::likelihood_main`
   - Arm 1 transcripts are cached by audio sha256, revision and prompt; the likelihood arm always runs on the GPU.
+
+## Round 2 (2026-10-29): where Nemotron goes wrong, a prompt ablation, ROVER and rasm matching
+
+All of this is on the same 40 `ok` windows and the same controls as above, so it is all in-sample. Part A uses only the saved transcripts. Part B adds one new prompt. Part C adds a looser comparison and a voting scheme. What was fixed before its own run, and what was tuned after seeing results, is stated per part.
+
+### A. Error analysis: why Nemotron rejects correct recitation
+
+Each window that Nemotron did not accept (17 with the decision prompt `verbatim`, 14 with the exploratory `recitation` prompt) was classified by hand from its saved transcript and word alignment into one root cause:
+
+1. **Orthography only.** The model heard the word right and our comparison is too strict: Uthmani vs standard spelling, hamza forms, alif wasla, ta marbuta, alif maqsura, dagger alif, tanwin, or a word written joined or split.
+2. **Edge word.** A word at the window start or end is dropped, or a neighbouring word bleeds in. By the session word times, every labelled word in this queue lies fully inside its window, with 0.04–0.25 s to spare. The neighbouring words end or start exactly at the window edge, 0 s away. So the only real "partial" words are the neighbours, whose coarticulated sound can leak in.
+3. **Genuine mishearing.** The table notes which letters went wrong, whether it was at a splice seam, and whether it was a phone copy.
+4. **Canonicalisation.** The planted edit was dropped or blended so the transcript reads as the original verse, or a restart was collapsed.
+5. **Hallucination or loop.**
+
+The diffs are on normalised words (diacritics stripped): `[label→heard]` is a substitution, `[-w]` a labelled word not heard, `[+w]` a heard word not in the text, `(w)` an edge word the rule allows. The machine-readable classification is in `lab-review-asr-v1-errors.json`.
+
+#### Nemotron, decision prompt `verbatim`: the 17 windows it did not accept
+
+| Item | Kind | Labelled (normalised) | Transcript | Diff | Bucket | Where / why |
+| --- | --- | --- | --- | --- | --- | --- |
+| `e20-x6` | splice wrong_word | يكذب بها المجرمون كالاعلام بينها وبين حميم | يُكَذِّبُ بِهَا الْمُجْرِمُونَ. كَلَّا عِلَامٌ بَيْنَهَا وَبَيْنَ حَمِيمٍ. | يكذب بها المجرمون [+كلا] [كالاعلام→علام] بينها وبين حميم | 1 | planted word, at the seam; split كَٱلْ + أعلام and alif wasla dropped: skeleton identical |
+| `e20-x10` | splice wrong_word | الا ربكما بحسبان فيهن قاصرات | وَالْآبَاءُ رَبِّكُمَا بِحُسْبَانِ فِيهِنَّ قَاصِرَاتُ. | [الا→والابا] ربكما بحسبان فيهن قاصرات | 3 | first word ءالاء heard as والآباء, right after the cut (window starts where فبأي ends); seam word بحسبان heard right |
+| `p09-x8` | splice wrong_word | بالجنه التي قوه توعدون | في الجنة التي توعدون. | (في) بالجنه التي [-قوه] توعدون | 4 | planted قوة dropped at the seam (and بـ heard as في) |
+| `e13-x4` | splice wrong_word | جنات وحب الوريد والنخل باسقات | جَنَّاتٍ وَحَبًّا وَعِينَةٍ وَالنَّخْلَ بَاسِقَاتٍ. | جنات وحب [الوريد→وعينه] والنخل باسقات | 3 | planted الوريد heard as وعينة, at the seam |
+| `e15-x8` | splice wrong_word | الا ربكما للانام مدهامتان | اللَّهُمَّ اغْفِرْ لِي وَلِوَالِدَيَّ وَلِمُؤْمِنِينَ الْقِرَاءَةَ وَالْمُؤْمِنِ … | [+اللهم] [+اغفر] [+لي] [+ولوالدي] (ولمومنين) [الا→القراه] [+والمومنين] [+والمومنات] [+والمسلمين] [ربكما→والمسل … | 5 | dua loop to the 512-token limit |
+| `p15-x8` | splice added_word | انه لحق مثل قوم ما انكم | إِنَّهُ لَحَقٌّ مِثْلَ مَا أَنَّكُمْ. | انه لحق مثل [-قوم] ما انكم | 4 | planted قوم dropped: exactly the written 51:23 |
+| `e19-x12` | splice added_word | فاغويناكم انا كيف كنا غاوين فانهم | فأغويناكم إننا كفنّا غاوين فإنهم. | فاغويناكم انا [-كيف] كنا غاوين فانهم | 4 | planted كيف blended: إنا كيف كنا → إننا كفنا, which reads as the original |
+| `e10-x9` | splice skipped_passage | نضره النعيم ختامه مسك وفي | نضرة النعيم, كتاب مسك, وفي | نضره النعيم [ختامه→كتاب] مسك وفي | 3 | ختامه heard as كتاب, first word after the skip seam |
+| `p12-x7` | splice wrong_word | الم نجعل الارض مهادا احيا | ألم نجعل الأرض كهادا؟ | الم نجعل الارض مهادا [-احيا] | 2 | last word أحياء dropped (inside the window, 0.25 s before its end); padding fixed it. 78:6 ends at مهادا, so maybe prior too (speculative) |
+| `e08-x1` | repeat | ذالك لايه وما ذالك لايه وما كان اكثرهم مومنين | ذلك لآيتهم، وما ذلك لآيتهم، وما كان أكثرهم مؤمنين. | ذالك [لايه→لايتهم] وما ذالك [لايه→لايتهم] وما كان اكثرهم مومنين | 3 | لآيةً heard as لآيتهم on both copies (tanwin ending); not at a seam |
+| `e01-x4` | restart | الارض بغير الحق واستكبر هو وجنوده في الارض بغير الحق وظنوا انهم | في الأرض بغير الحقّ واستكبروا وجنودُه في الأرض بغير الحقّ وظنّوا أنّهم. | (في) الارض بغير الحق واستكبر [-هو] وجنوده في الارض بغير الحق وظنوا انهم | 3 | واستكبر هو heard as one word واستكبروا (lost /h/); not at a seam |
+| `p05-x6` | repeat | فثبتوا الذين امنوا فثبتوا الذين امنوا سالقي في قلوب | فَذَبِّطُوا الَّذِينَ آمَنُوا. فَذَبِّطُوا الَّذِينَ آمَنُوا سَأُلْقِي فِي قُلُوبِهِمْ. | [فثبتوا→فذبطوا] الذين امنوا [فثبتوا→فذبطوا] الذين امنوا سالقي في [قلوب→قلوبهم] | 3 | فثبتوا heard as فذبطوا on both copies (ث→ذ, ت→ط); قلوب → قلوبهم at the end |
+| `e05-x7` | restart | اجري الا علي وما اسلكم عليه من اجر ان اجري الا علي رب العالمين | وَمَا أَسْأَلُكُمْ عَلَيْهِ مِنْ أَجْرٍ. إِنْ أَجْرِيَ إِلَّا عَلَى رَبِّ الْعَالَمِينَ. | [-اجري] [-الا] [-علي] وما اسلكم عليه من اجر ان اجري الا علي رب العالمين | 4 | restart's leading fragment أجري إلا على dropped: transcript is the written 26:109 |
+| `p03-studio-5` | clean studio | انذرتهم ام لم تنذرهم لا يومنون انما تنذر من | أَأَنْذَرْتَهُمْ أَمْ لَمْ تُنْذِرْهُمْ لَا يُؤْمِنُونَ. إِنَّمَا تُنْذِرُ مَنِ  … | انذرتهم ام لم تنذرهم لا يومنون انما تنذر من (اتبع) [+الحج] [+والهدي] | 2 | abutting next word اتبع bled in (linked kasra of منِ), then invented الحج والهدى |
+| `e07-phone-293` | clean phone | تجعلونه قراطيس تبدونها وتخفون كثيرا وعلمتم ما لم تعلموا | يدعونهم قراطيس تبذلونها وتخون كثيرا وعلمتم ما لم تعلموا. | [تجعلونه→يدعونهم] قراطيس تبدونها وتخفون كثيرا وعلمتم ما لم تعلموا | 3 | phone: تجعلونه → يدعونهم (also تبذلونها, وتخون, which the rule tolerated) |
+| `p06-phone-173` | clean phone | حتي يغيروا ما بانفسهم واذا اراد | حتى لا يغيروا ما بأنفسهم، وإذا أرادوا. | حتي [+لا] يغيروا ما بانفسهم واذا [اراد→ارادوا] | 3 | phone: inserted لا (حتى لا, a common phrase) and أراد → أرادوا |
+| `e15-phone-229` | clean phone | الا ربكما تكذبان تبارك اسم ربك | قُلْ يَا أَيُّهَا الْكَافِرُونَ لَا أَسْأَلُكُمْ عَلَيْهِ أَجْرًا ۖ إِنْ أَجْرِي … | [+قل] [+يا] [+ايها] (الكافرون) [الا→لا] [+اسالكم] [+عليه] [ربكما→اجرا] [تكذبان→ان] [تبارك→اجري] [اسم→الا] [ربك … | 5 | pastiche of other verses (قل يا أيها الكافرون ... وأنا من المنذرين) for 55:77–78 |
+
+#### Nemotron, `recitation` prompt (exploratory): the 14 windows it did not accept
+
+| Item | Kind | Labelled (normalised) | Transcript | Diff | Bucket | Where / why |
+| --- | --- | --- | --- | --- | --- | --- |
+| `e20-x6` | splice wrong_word | يكذب بها المجرمون كالاعلام بينها وبين حميم | يُكَذِّبُ بِهَا الْمُجْرِمُونَ. كَلَّا عِلَامٌ بَيْنَهَا وَبَيْنَ حَمِيمٍ. | يكذب بها المجرمون [+كلا] [كالاعلام→علام] بينها وبين حميم | 1 | same as the decision run |
+| `e20-x10` | splice wrong_word | الا ربكما بحسبان فيهن قاصرات | إِلَىٰ رَبِّكُمَا فِي حُسْبَانِ فِي نَقْصِرَاتٍ. | الا ربكما [+في] بحسبان [فيهن→في] [قاصرات→نقصرات] | 3 | ءالاء → إلى, بحسبان split as في حسبان, فيهن قاصرات → في نقصرات (the ن moved), around the seam |
+| `p09-x8` | splice wrong_word | بالجنه التي قوه توعدون | وَبِالْجَنَّةِ الَّتِي تُوعَدُونَ. | بالجنه التي [-قوه] توعدون | 4 | planted قوة dropped at the seam |
+| `e15-x8` | splice wrong_word | الا ربكما للانام مدهامتان | إِنَّا آلَاءِ رَبِّكُمَا لِلْأَنَامِ مُدْهَامَّةً. | (انا) الا ربكما للانام [مدهامتان→مدهامه] | 3 | last word مدهامتان → مدهامة (dual ending); extra leading إنا was allowed |
+| `p06-x1` | splice omitted_word | اولايك الذين بربهم واولايك | أُولَئِكَ الَّذِينَ ضَرَبْنَا أَيْدِيَهُمْ وَأَرْجُلَهُمْ وَأُولَئِكَ الَّذِينَ | اولايك الذين [+ضربنا] [+ايديهم] [بربهم→وارجلهم] واولايك (الذين) | 5 | invented ضربنا أيديهم وأرجلهم in place of بربهم, at the omitted-word seam |
+| `p15-x8` | splice added_word | انه لحق مثل قوم ما انكم | إِنَّهُ لَحَقٌّ مِنْ رَبِّكُمْ أَنْ تَسْتَمِعُوا لِلْحَقِّ مِنْ رَبِّكُمْ فَأَنْ … | انه لحق [مثل→من] [قوم→ربكم] [+ان] [+تستمعوا] [+للحق] [ما→من] [+ربكم] [انكم→فانتم] (مستسلمون) | 5 | invented continuation after لحق at the seam: من ربكم أن تستمعوا للحق ... |
+| `p10-x6` | splice added_word | تكذبان كل من عليها تكذبان فان ويبقي | تُكَذِّبَانِ. كُلُّ مَنْ عَلَيْهَا تُكَذِّبَانِ. فَالْوَاقِعُ. | تكذبان كل من عليها تكذبان [فان→فالواقع] [-ويبقي] | 3 | فانٍ ويبقى → فالواقع, last two words, after the added تكذبان |
+| `e10-x9` | splice skipped_passage | نضره النعيم ختامه مسك وفي | نَبْضَةَ النَّعِيمِ هِتَامٌ مِسْكٌ وَفِيهِ. | [نضره→نبضه] النعيم [ختامه→هتام] مسك وفي | 3 | نضرة → نبضة, ختامه → هتام (first word after the skip seam) |
+| `e01-x4` | restart | الارض بغير الحق واستكبر هو وجنوده في الارض بغير الحق وظنوا انهم | في الأرض بغير الحق، واستكبروا وجنودُه في الأرض بغير الحق، وظنوا أنهم | (في) الارض بغير الحق واستكبر [-هو] وجنوده في الارض بغير الحق وظنوا انهم | 3 | same as the decision run (هو lost) |
+| `p05-x6` | repeat | فثبتوا الذين امنوا فثبتوا الذين امنوا سالقي في قلوب | فَذَبِّتُ الَّذِينَ آمَنُوا فَذَبِّتُ الَّذِينَ آمَنُوا سَأُلْقِي فِي قُلُوبِهِمْ | [فثبتوا→فذبت] الذين امنوا [فثبتوا→فذبت] الذين امنوا سالقي في [قلوب→قلوبهم] | 3 | فثبتوا → فذبت on both copies |
+| `p03-studio-5` | clean studio | انذرتهم ام لم تنذرهم لا يومنون انما تنذر من | أَأَنْذَرْتَهُمْ أَمْ لَمْ تُنْذِرْهُمْ لَا يُؤْمِنُونَ إِنَّمَا تُنْذِرُ مَنِ ا … | انذرتهم ام لم تنذرهم لا يومنون انما تنذر من (اتبع) [+الحجور] | 2 | same bleed of اتبع, then invented الحجور |
+| `e07-phone-293` | clean phone | تجعلونه قراطيس تبدونها وتخفون كثيرا وعلمتم ما لم تعلموا | يدعونهم فراقيس تبذلونها وتخون كثيرا وعلمتم ما لم تعلموا. | [تجعلونه→يدعونهم] [قراطيس→فراقيس] تبدونها وتخفون كثيرا وعلمتم ما لم تعلموا | 3 | phone: تجعلونه → يدعونهم, قراطيس → فراقيس |
+| `p06-phone-173` | clean phone | حتي يغيروا ما بانفسهم واذا اراد | حتى لا يغيروا ما بأنفسهم، وإذا أرادوا. | حتي [+لا] يغيروا ما بانفسهم واذا [اراد→ارادوا] | 3 | phone: same inserted لا, أراد → أرادوا |
+| `e15-phone-229` | clean phone | الا ربكما تكذبان تبارك اسم ربك | اللَّهُمَّ اغْفِرْ لِي وَلِوَالِدَيَّ وَلِمَنْ أَحْبَبْتَ، وَلِمَنْ أَحْبَبْتَ،  … | [+اللهم] (اغفر) [الا→لي] [+ولوالدي] [ربكما→ولمن] [+احببت] [تكذبان→ولمن] [تبارك→احببت] [اسم→ولمن] [ربك→احببت] ( … | 5 | dua loop: اللهم اغفر لي ولوالدي ولمن أحببت ×4 |
+
+#### Summary per model
+
+Qwen3 and Whisper were bucketed automatically, which is coarse:
+- **5:** boilerplate text, or more than 3 extra words;
+- **4:** an edited window whose one-edit control text matches the transcript;
+- **1:** the space-free skeleton is equal;
+- **2:** only edge reasons;
+- **3:** anything else.
+
+Applied to Nemotron, the same automatic pass agrees with the hand buckets except for two calls: `p09-x8` (planted word dropped) and `p03-studio-5` (neighbour bleed plus an invented continuation).
+
+| Root cause | Nemotron `verbatim` (17) | Nemotron `recitation` (14) | Qwen3-ASR (32, automatic) | Whisper (33, automatic) |
+| --- | --- | --- | --- | --- |
+| 1 orthography only | 1 (`e20-x6`) | 1 (`e20-x6`) | 0 | 0 |
+| 2 edge word | 2 (`p12-x7`, `p03-studio-5`) | 1 (`p03-studio-5`) | 10 | 11 |
+| 3 mishearing | 8 | 8 | 22 | 11 |
+| 4 canonical or planted word dropped | 4 (`p09-x8`, `p15-x8`, `e19-x12`, `e05-x7`) | 1 (`p09-x8`) | 0 | 4 (all repeats or restarts collapsed) |
+| 5 hallucination or loop | 2 (`e15-x8`, `e15-phone-229`) | 3 (`p06-x1`, `p15-x8`, `e15-phone-229`) | 0 | 7 ("اشتركوا في القناة", "ترجمة نانسي قنقر") |
+| **Would flip if only the comparison changed (buckets 1–2)** | **3 → at most 26/40** | **2 → at most 28/40** | 10 → at most 18/40 | 11 → at most 18/40 |
+| Of those, flippable without ignoring audio that is inside the window | 2 (`e20-x6`, `p03-studio-5`) | 2 | 0 | 0 |
+
+What this says:
+
+- **The comparison is not the bottleneck.** Even crediting every bucket 1–2 case, Nemotron reaches at most 26/40 (`verbatim`) or 28/40 (`recitation`), against a bar of 38. Only one window, `e20-x6`, is a pure spelling problem: `كَٱلْأَعْلَـٰمِ` written `كلا علام` has the same skeleton.
+- **Qwen's and Whisper's edge drops are not partial words.** The dropped words are fully inside the window, so ignoring them would ignore real audio. A comparison fix cannot honestly recover them. Wider windows can (see the 1 s run above).
+- **About half of Nemotron's real errors sit at the seam.** In buckets 3–4 of the decision run, 5 of 12 are on or next to the planted word: `e13-x4`, `e10-x9`, `p09-x8`, `p15-x8`, `e19-x12`. These are exactly the words a reviewer cares about, and the model's language prior pulls them toward the verse it expects.
+- **The rest are ordinary consonant confusions**, often the same error on both copies of a repeat: ث→ذ and ت→ط (`فثبتوا` → `فذبطوا`), a tanwin ending (`لآيةً` → `لآيتهم`), a lost /h/ (`واستكبر هو` → `واستكبروا`). Two phone copies also have word-level confusions.
+
+Vivid examples:
+
+- **`p15-x8`** (added word, decision run): the audio says `إِنَّهُۥ لَحَقٌّ مِّثْلَ قَوْمٌ مَآ أَنَّكُمْ` and the transcript is exactly 51:23, `إِنَّهُ لَحَقٌّ مِثْلَ مَا أَنَّكُمْ`. With the `recitation` prompt the planted word is gone again, this time replaced by an invented sermon: `مِنْ رَبِّكُمْ أَنْ تَسْتَمِعُوا لِلْحَقِّ مِنْ رَبِّكُمْ فَأَنْتُمْ مُسْتَسْلِمُونَ`.
+- **`e15-phone-229`** (clean phone copy of 55:77–78): `verbatim` writes `قُلْ يَا أَيُّهَا الْكَافِرُونَ لَا أَسْأَلُكُمْ عَلَيْهِ أَجْرًا إِنْ أَجْرِيَ إِلَّا عَلَىٰ اللَّهِ وَأَنَا مِنَ الْمُنْذِرِينَ`, a pastiche of at least three other surahs. `recitation` writes a dua loop instead (`اللهم اغفر لي ولوالدي ولمن أحببت` ×4).
+- **`e05-x7`** (restart): the recitation is `…أَجْرِىَ إِلَّا عَلَىٰ | وَمَآ أَسْـَٔلُكُمْ … رَبِّ ٱلْعَـٰلَمِينَ` and the transcript is the clean 26:109. The first, broken attempt vanished. That is the canonical prior again, this time on a window edge.
+- **`e20-x6`** (the one comparison bug): `كَٱلْأَعْلَـٰمِ` was heard as `كَلَّا عِلَامٌ`, which is the right sound split into two words with the alif wasla dropped. The word-level rule called it an extra `كلا` plus a doubtful `علام`.
+- **`p05-x6`** (repeat): `فَثَبِّتُوا۟` became `فَذَبِّطُوا` on both copies. That is not noise: the model consistently hears this reciter's ث as ذ and ت as ط.
