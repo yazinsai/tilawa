@@ -331,3 +331,51 @@ Vivid examples:
 - **`e05-x7`** (restart): the recitation is `…أَجْرِىَ إِلَّا عَلَىٰ | وَمَآ أَسْـَٔلُكُمْ … رَبِّ ٱلْعَـٰلَمِينَ` and the transcript is the clean 26:109. The first, broken attempt vanished. That is the canonical prior again, this time on a window edge.
 - **`e20-x6`** (the one comparison bug): `كَٱلْأَعْلَـٰمِ` was heard as `كَلَّا عِلَامٌ`, which is the right sound split into two words with the alif wasla dropped. The word-level rule called it an extra `كلا` plus a doubtful `علام`.
 - **`p05-x6`** (repeat): `فَثَبِّتُوا۟` became `فَذَبِّطُوا` on both copies. That is not noise: the model consistently hears this reciter's ث as ذ and ت as ط.
+
+### Preregistration for B and C (committed before either ran)
+
+Everything below was written down and committed after Part A, and before any new transcript or any evaluation of a new rule existed. The 40 windows are the same ones Part A was read from, so all of B and C remains in-sample. "Preregistered" here means only that the rule and the run were fixed before their own numbers were seen.
+
+**B. Prompt ablation.** Three new Nemotron prompts (`NEMOTRON_PROMPTS` in `modal/review_asr.py`). Together with `recitation` they make a 2 × 2 of the word "Quran" against the clause "including repetitions and mistakes":
+
+| | with "including repetitions and mistakes" | without |
+| --- | --- | --- |
+| with "Quran" | `recitation`: Transcribe this Quran recitation verbatim, exactly as recited, including repetitions and mistakes. Language: Arabic. Output: transcript only. | `quran`: Transcribe this Quran recitation verbatim, exactly as recited. Language: Arabic. Output: transcript only. |
+| without | `mistakes` (the one asked for): Transcribe this recitation verbatim, exactly as recited, including repetitions and mistakes. Language: Arabic. Output: transcript only. | `plain`: Transcribe this recitation verbatim, exactly as recited. Language: Arabic. Output: transcript only. |
+
+- Same windows, model, revision, greedy decoding and round-1 comparison rule. Records go to `asr-nemotron-{mistakes,quran,plain}-prompt.json`.
+- On 40 items, a difference of 3 or fewer matches is within noise, so a change counts only if the discordant pairs point one way.
+
+**C1. The rasm rule** (`judge_rasm` in `tools/review_asr_core.py`):
+- Both sides go to the consonantal skeleton (`rasm`):
+  - all diacritics, Quranic marks and tatweel dropped;
+  - every long-vowel alif dropped (ا, alif wasla, dagger alif; the Uthmani وٰ);
+  - every hamza form unified to ء, kept as a consonant;
+  - ى → ي, ة → ه.
+- Word alignment is the round-1 one with two changes:
+  - up to 3 labelled words may match up to 3 heard words as one space-free string, but only when the skeletons are identical (a looser merge would hide a dropped لا or أو);
+  - thresholds are unchanged (0.75 / 0.5, one free stray word per edge).
+- Edge words come from the session word times:
+  - a session word ending or starting within 0.10 s outside the window becomes context that never counts;
+  - so does a labelled edge word that sticks out of the window (none do in this queue).
+  - Unlike the padded round-1 rule, heard words beyond that context and the one-word allowance still count as extra. This keeps a restart or repeat at the window edge from being absorbed.
+- Reported with three variants:
+  - `rasm-no-edge` (the edge part off);
+  - `rasm-no-hamza` (hamza dropped too, the literal skeleton, as a sensitivity check);
+  - `rasm-phonetic` (emphatic/plain, interdental and q/k pairs merged, ع dropped). This one is **exploratory**: it was chosen after seeing `فثبتوا` → `فذبطوا` in Part A.
+- The rule was designed after reading Part A, so even the primary `rasm` row is tuned in-sample.
+
+**C2. ROVER** (`rover` in `tools/review_asr_core.py`, `round2` in `modal/review_asr.py`):
+- **Prompt:** `pick_prompt` chooses among `verbatim`, `recitation` and `mistakes` on the round-1 rule. It takes the most agreement among prompts whose controls hold (one-edit and one-word flagged ≥ 90%, no repeat misses); ties go to more one-edit flagged, then the earlier prompt in that order.
+- **Perturbations:** each window is transcribed six times, at speed 0.9×, 1.0× and 1.1× (ffmpeg `atempo`, pitch kept) × {raw, denoised by DeepFilterNet3 at 48 kHz}. The unperturbed run is first.
+- **Voting:**
+  - The pivot is the medoid transcript (least total alignment cost to the others).
+  - Every transcript is aligned to the pivot on the skeleton. It votes per pivot word (a word, a merged phrase, "covered" or nothing) and per gap (an inserted phrase or nothing).
+  - Votes are clustered at skeleton similarity ≥ 0.75. A pivot word is written if its biggest cluster has at least as many votes as nothing and covered together. An insertion is written only if it outvotes the voters that inserted nothing.
+  - Each written word takes its most common spelling.
+- **Variant:** `rover+qwen+whisper` adds the saved Qwen3 and Whisper transcripts as two more voters.
+
+**Ablation and the bar.**
+- Rows: C1 alone (saved transcripts under `rasm`), C2 alone (ROVER transcripts under the round-1 rule) and C1 + C2 (ROVER under `rasm`). Each also reports one-edit, one-word and shifted flagged, and repeat misses.
+- The bar is `passes_bar`: at least 38/40 agreement, one-edit and one-word flagged ≥ 90%, no repeat misses.
+- If something passes, it becomes a pre-screen option. The default changes only if it clearly beats `nemotron-likelihood` on the bar.

@@ -70,10 +70,11 @@ def _cat(a: set[str], b: set[str]) -> set[str]:
     return {x + y for x in a for y in b}
 
 
-def align(ref: list[tuple[str, set[str]]], hyp: list[tuple[str, set[str]]]) -> list[dict]:
+def align(ref: list[tuple[str, set[str]]], hyp: list[tuple[str, set[str]]], group: int = 2, merge_sim: float = MERGE_SIM) -> list[dict]:
     """Word alignment of the labelled text (ref) with the transcript (hyp). EDGE_FREE transcript words before the first and
-    after the last labelled word are free (the window may catch a neighbouring sound). Ops: pair, merge (1 ref : 2 hyp or 2 : 1),
-    delete (ref word not heard), insert (heard word not in the text)."""
+    after the last labelled word are free (the window may catch a neighbouring sound). Ops: pair, merge (1 ref : 2 hyp or 2 : 1;
+    with group=3 any p : q up to 3 words each side, compared as concatenations), delete (ref word not heard), insert (heard
+    word not in the text). Merges need similarity merge_sim."""
     n, m, inf = len(ref), len(hyp), float("inf")
     D = [[inf] * (m + 1) for _ in range(n + 1)]
     B = [[None] * (m + 1) for _ in range(n + 1)]
@@ -85,10 +86,21 @@ def align(ref: list[tuple[str, set[str]]], hyp: list[tuple[str, set[str]]]) -> l
             if j:
                 s = sim(ref[i - 1][1], hyp[j - 1][1])
                 cands += [(D[i - 1][j - 1] + 1 - s, ("pair", s)), (D[i][j - 1] + 1, ("ins",))]
-            if j > 1 and (s := sim(ref[i - 1][1], _cat(hyp[j - 2][1], hyp[j - 1][1]))) >= MERGE_SIM:
+            if j > 1 and (s := sim(ref[i - 1][1], _cat(hyp[j - 2][1], hyp[j - 1][1]))) >= merge_sim:
                 cands.append((D[i - 1][j - 2] + 1 - s + MERGE_COST, ("merge12", s)))
-            if i > 1 and j and (s := sim(_cat(ref[i - 2][1], ref[i - 1][1]), hyp[j - 1][1])) >= MERGE_SIM:
+            if i > 1 and j and (s := sim(_cat(ref[i - 2][1], ref[i - 1][1]), hyp[j - 1][1])) >= merge_sim:
                 cands.append((D[i - 2][j - 1] + 1 - s + MERGE_COST, ("merge21", s)))
+            for p in range(1, min(group, i) + 1) if group > 2 else ():
+                for q in range(1, min(group, j) + 1):
+                    if p + q <= 3:
+                        continue
+                    r, h = ref[i - p][1], hyp[j - q][1]
+                    for k in range(1, p):
+                        r = _cat(r, ref[i - p + k][1])
+                    for k in range(1, q):
+                        h = _cat(h, hyp[j - q + k][1])
+                    if (s := sim(r, h)) >= merge_sim:
+                        cands.append((D[i - p][j - q] + 1 - s + MERGE_COST * (p + q - 2), ("merge", p, q, s)))
             D[i][j], B[i][j] = min(cands, key=lambda c: c[0])
     j = min(range(m + 1), key=lambda k: D[n][k] + max(0, m - k - EDGE_FREE))
     ops = [{"op": "trail", "hyp": hyp[k][0], "ri": n - 0.5, "free": k - j < EDGE_FREE} for k in range(m - 1, j - 1, -1)]
@@ -110,6 +122,11 @@ def align(ref: list[tuple[str, set[str]]], hyp: list[tuple[str, set[str]]]) -> l
         elif b[0] == "merge12":
             ops.append({"op": "merge", "ref": ref[i - 1][0], "hyp": f"{hyp[j - 2][0]} {hyp[j - 1][0]}", "sim": round(b[1], 3), "ri": i - 1})
             i, j = i - 1, j - 2
+        elif b[0] == "merge":
+            p, q = b[1], b[2]
+            ops.append({"op": "merge", "ref": " ".join(t for t, _ in ref[i - p:i]), "hyp": " ".join(t for t, _ in hyp[j - q:j]),
+                        "sim": round(b[3], 3), "ri": i - 1})
+            i, j = i - p, j - q
         else:
             ops.append({"op": "merge", "ref": f"{ref[i - 2][0]} {ref[i - 1][0]}", "hyp": hyp[j - 1][0], "sim": round(b[1], 3), "ri": i - 1})
             i, j = i - 2, j - 1
@@ -126,13 +143,18 @@ def compare(text: str, transcript: str, before: str = "", after: str = "") -> di
 
     `before` / `after`: words known to be just outside the window when the audio given to the model was widened. They
     are aligned too but never count; only the labelled words and extras between them decide."""
-    pre, mid, post, hyp = tokens(before), tokens(text), tokens(after), tokens(transcript)
+    return _judge(tokens(before), tokens(text), tokens(after), tokens(transcript))
+
+
+def _judge(pre, mid, post, hyp, group: int = 2, outside_counts: bool = False, merge_sim: float = MERGE_SIM) -> dict:
+    """compare() on tokenised words. outside_counts (the rasm rule): transcript words beyond the context words and the
+    EDGE_FREE allowance still count as extra, instead of being ignored like the context."""
     ref, nb, ne = pre + mid + post, len(pre), len(pre) + len(mid)
     if not mid:
         return {"decision": "unsure", "reasons": ["no labelled words"], "ops": []}
     if not hyp:
         return {"decision": "unsure", "reasons": ["empty transcript"], "ops": []}
-    ops = align(ref, hyp)
+    ops = align(ref, hyp, group, merge_sim)
     core = [k for k, o in enumerate(ops) if o["op"] in ("pair", "merge", "ins")]
     first, last = (core[0], core[-1]) if core else (len(ops), -1)
     wrong, doubt = [], []
@@ -147,7 +169,9 @@ def compare(text: str, transcript: str, before: str = "", after: str = "") -> di
             o["status"] = "outside"
         if (pre or post) and o["status"] != "outside":
             r = o["ri"]
-            if o["op"] in ("ins", "lead", "trail") and not nb - 0.5 <= r <= ne - 0.5 or o["op"] not in ("ins", "lead", "trail") and not nb <= r < ne:
+            if outside_counts and o["op"] in ("lead", "trail"):
+                pass
+            elif o["op"] in ("ins", "lead", "trail") and not nb - 0.5 <= r <= ne - 0.5 or o["op"] not in ("ins", "lead", "trail") and not nb <= r < ne:
                 o["status"] = "context"
             elif o["op"] in ("ins", "lead", "trail") and r in (nb - 0.5, ne - 0.5) and o["status"] == "extra":
                 o["status"] = "edge-extra"
@@ -159,6 +183,164 @@ def compare(text: str, transcript: str, before: str = "", after: str = "") -> di
     decision = "mismatch" if wrong else "unsure" if doubt else "match"
     return {"decision": decision, "reasons": reasons, "ops": ops,
             "refWords": len(mid), "heardWords": len(hyp), "okWords": sum(o.get("status") == "ok" for o in ops)}
+
+
+# Round 2 (C1): the rasm rule. Fixed before it was evaluated, but designed after reading the round-1 errors on the
+# same 40 windows, so it is in-sample.
+
+EDGE_TOL = 0.10  # s: a session word ending/starting this close outside the window edge may be partly heard
+RASM_GROUP = 3  # up to 3 labelled words against up to 3 heard words, compared as one space-free string
+RASM_MERGE_SIM = 1.0  # ... only when the skeletons are identical: a looser merge dilutes a dropped short word (لا, أو)
+
+_RASM_HAMZA = str.maketrans({"\u0654": "ء", "\u0655": "ء", "أ": "ء", "إ": "ء", "آ": "ء", "ؤ": "ء", "ئ": "ء"})
+_RASM_DROP = re.compile("[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed\u0640]")
+_RASM_MAP = str.maketrans({"ا": None, "\u0671": None, "\u0672": None, "\u0673": None, "ى": "ي", "ة": "ه", "ی": "ي", "ک": "ك"})
+_PHONETIC = str.maketrans({"ث": "ذ", "ظ": "ذ", "ص": "س", "ز": "س", "ط": "ت", "ض": "د", "ق": "ك", "ح": "ه", "غ": "خ", "ع": None})
+
+
+def rasm(word: str, phonetic: bool = False, hamza: bool = True) -> str:
+    """Consonantal skeleton of one word: diacritics, Quranic marks, tatweel and every long-vowel alif dropped (ا, alif
+    wasla ٱ, dagger alif); every hamza form (أ إ آ ؤ ئ ء, hamza above / below a letter) unified to ء, so the glottal stop
+    stays a consonant; ى to ي; ة to ه. The Uthmani madd sign is dropped before composing, so لَآ stays لا (only a
+    precomposed آ is a hamza), and the Uthmani وٰ (a long a, ٱلصَّلَوٰةِ) is dropped with its dagger.
+    hamza=False (sensitivity variant): ء dropped too, the literal skeleton, where أو / إلا / أم fall onto و / لا / ما.
+    phonetic (exploratory, chosen after seeing the round-1 confusions): emphatic / plain, interdental and q / k pairs
+    merged, ع dropped."""
+    w = unicodedata.normalize("NFC", word.replace("\u0653", "")).replace("و\u0670", "").translate(_RASM_HAMZA)
+    w = _RASM_DROP.sub("", w).translate(_RASM_MAP)
+    if not hamza:
+        w = w.replace("ء", "")
+    return _LETTERS.sub("", w.translate(_PHONETIC) if phonetic else w)
+
+
+def rasm_tokens(text: str, phonetic: bool = False, hamza: bool = True) -> list[tuple[str, set[str]]]:
+    return [(t, {r}) for t, _ in tokens(text) if (r := rasm(t, phonetic, hamza))]
+
+
+def compare_rasm(text: str, transcript: str, before: str = "", after: str = "", phonetic: bool = False, hamza: bool = True) -> dict:
+    """compare() on the rasm skeleton. Joined or split words match when their space-free skeletons do (RASM_GROUP words
+    per side, identical skeletons). `before` / `after` are session words at the window edge (edge_context): they never
+    count, but unlike compare()'s padded context, heard words beyond them and the EDGE_FREE allowance are extra."""
+    tk = lambda x: rasm_tokens(x, phonetic, hamza)
+    return _judge(tk(before), tk(text), tk(after), tk(transcript), group=RASM_GROUP, outside_counts=True, merge_sim=RASM_MERGE_SIM)
+
+
+def edge_context(item: dict, session: dict | None, tol: float = EDGE_TOL) -> dict:
+    """Session words only partly inside the review window, from the session word times: neighbours that end or start
+    within `tol` s outside the window, and labelled edge words that stick out of it. They become context for
+    compare_rasm. `lead` / `trail`: how many of the claimed text's first / last words are such partial words."""
+    if not session:
+        return {"before": "", "after": "", "lead": [], "trail": []}
+    a, b = item["audio"]["startS"], item["audio"]["endS"]
+    said = session["said"]
+    inside = [w for w in said if w["endS"] > a and w["startS"] < b]
+    before = [w["text"] for w in said if a - tol <= w["endS"] <= a]
+    after = [w["text"] for w in said if b <= w["startS"] <= b + tol]
+    lead = [w["text"] for w in inside[:1] if w["startS"] < a]
+    trail = [w["text"] for w in inside[-1:] if w["endS"] > b and len(inside) > 1]
+    return {"before": " ".join(before), "after": " ".join(after), "lead": lead, "trail": trail}
+
+
+def judge_rasm(text: str, transcript: str, ctx: dict, phonetic: bool = False, hamza: bool = True) -> dict:
+    """compare_rasm with edge_context: a claimed text's first / last word that is a partial session word moves into the context."""
+    words = text.split()
+    k = 1 if ctx["lead"] and words[:1] == ctx["lead"] else 0
+    e = 1 if ctx["trail"] and len(words) - k > 1 and words[-1:] == ctx["trail"] else 0
+    before = " ".join(x for x in (ctx["before"], " ".join(words[:k])) if x)
+    after = " ".join(x for x in (" ".join(words[len(words) - e:]), ctx["after"]) if x)
+    return compare_rasm(" ".join(words[k:len(words) - e]), transcript, before, after, phonetic, hamza)
+
+
+# Round 2 (C2): ROVER-style voting over transcripts of the same window under audio perturbations. Fixed before any
+# perturbed transcript existed.
+
+def rover(hyps: list[str]) -> dict:
+    """One transcript by per-word vote. The pivot is the medoid hypothesis (least total alignment cost to the others;
+    ties to the earliest, so put the unperturbed run first). Every hypothesis is aligned to the pivot on the rasm
+    skeleton (align, RASM_GROUP, identical-skeleton merges), giving one vote per pivot word (a word, a phrase merging it with the next pivot words,
+    "covered" for those next words, or nothing) and one per gap between pivot words (an inserted phrase, or nothing).
+    Votes are clustered by skeleton similarity >= OK_SIM. Per pivot word the biggest cluster is written if it has at
+    least as many votes as nothing and covered together; per gap an insertion is written only if its cluster outvotes the
+    voters that inserted nothing there. Each written cluster takes its most common original spelling."""
+    toks = [rasm_tokens(h) for h in hyps]
+    if not any(toks):
+        return {"transcript": "", "pivot": 0, "slots": []}
+
+    def cost(a, b):
+        if not a or not b:
+            return float(len(a) + len(b))
+        ops = align(a, b, RASM_GROUP, RASM_MERGE_SIM)
+        return sum({"pair": 1 - o.get("sim", 0), "merge": 1 - o.get("sim", 0)}.get(o["op"], 1.0) for o in ops)
+
+    pivot = min(range(len(toks)), key=lambda p: (sum(cost(toks[p], t) for t in toks), p))
+    ref, n = toks[pivot], len(toks[pivot])
+    words = [[] for _ in range(n)]
+    gaps = [[] for _ in range(n + 1)]
+    for t in toks:
+        ins = [[] for _ in range(n + 1)]
+        got = [None] * n
+        for o in (align(ref, t, RASM_GROUP, RASM_MERGE_SIM) if t else [{"op": "del", "ri": i} for i in range(n)]):
+            if o["op"] in ("pair", "merge"):
+                lo = o["ri"] - len(o["ref"].split()) + 1
+                for i in range(lo, o["ri"] + 1):
+                    got[i] = o["hyp"] if i == lo else ""
+            elif o["op"] in ("ins", "lead", "trail"):
+                ins[int(o["ri"] + 0.5)].append(o["hyp"])
+        for i in range(n):
+            words[i].append(got[i])
+        for g in range(n + 1):
+            gaps[g].append(" ".join(ins[g]) or None)
+
+    def clusters(votes):
+        keyed = [(v, "".join(rasm(w) for w in v.split())) for v in votes if v]
+        out = []
+        for v, key in sorted(keyed, key=lambda x: -sum(y[1] == x[1] for y in keyed)):
+            c = next((c for c in out if sim({c["key"]}, {key}) >= OK_SIM), None)
+            if c is None:
+                out.append(c := {"key": key, "votes": 0, "spellings": {}})
+            c["votes"] += 1
+            c["spellings"][v] = c["spellings"].get(v, 0) + 1
+        return sorted(out, key=lambda c: -c["votes"])
+
+    out, slots = [], []
+    for g in range(n + 1):
+        cs = clusters(gaps[g])
+        none = sum(v is None for v in gaps[g])
+        if cs and cs[0]["votes"] > none:
+            out.append(max(cs[0]["spellings"], key=lambda s: (cs[0]["spellings"][s], -len(s))))
+        slots.append({"gap": g, "none": none, "clusters": cs})
+        if g < n:
+            cs = clusters(words[g])
+            none, covered = sum(v is None for v in words[g]), sum(v == "" for v in words[g])
+            if cs and cs[0]["votes"] >= none + covered:
+                out.append(max(cs[0]["spellings"], key=lambda s: (cs[0]["spellings"][s], -len(s))))
+            slots.append({"word": ref[g][0], "none": none, "covered": covered, "clusters": cs})
+    return {"transcript": " ".join(out), "pivot": pivot, "slots": slots}
+
+
+def calib_stats(table: dict[str, dict], ok: list[str]) -> dict:
+    """The bar's numbers from per-item decisions. table: id -> {labelled, oneEdit, shifted: decision, oneEditEdit, oneEditWords}."""
+    single = [i for i in table if table[i]["oneEditWords"] == 1 and table[i]["oneEditEdit"] not in ("repeat", "restart", "skipped_passage")]
+    flagged = lambda ids, k: rate(sum(table[i][k] != "match" for i in ids), len(ids))
+    return {"agreement": rate(sum(table[i]["labelled"] == "match" for i in ok), len(ok)),
+            "positives": {d: sum(table[i]["labelled"] == d for i in ok) for d in DECISIONS},
+            "oneEdit": flagged(list(table), "oneEdit"), "oneWord": flagged(single, "oneEdit"), "shifted": flagged(list(table), "shifted"),
+            "repeatMisses": [i for i in table if table[i]["oneEditEdit"] in ("repeat", "restart") and table[i]["oneEdit"] == "match"],
+            "oneEditMisses": [i for i in table if table[i]["oneEdit"] == "match"],
+            "disagree": [i for i in ok if table[i]["labelled"] != "match"]}
+
+
+def passes_bar(st: dict) -> bool:
+    """The ticket 12 bar: agreement >= 95%, one-edit and one-word controls flagged >= 90%, no repeat or restart misses."""
+    return (st["agreement"]["k"] >= math.ceil(0.95 * st["agreement"]["n"]) and st["oneEdit"]["rate"] >= 0.9
+            and st["oneWord"]["rate"] >= 0.9 and not st["repeatMisses"])
+
+
+def pick_prompt(stats: dict[str, dict]) -> str:
+    """Round 2: the prompt to perturb for ROVER. Most agreement among the prompts whose controls hold (one-edit and
+    one-word flagged >= 90%, no repeat misses; all prompts if none do); ties -> more one-edit flagged -> earlier in `stats`."""
+    safe = [p for p, s in stats.items() if s["oneEdit"]["rate"] >= 0.9 and s["oneWord"]["rate"] >= 0.9 and not s["repeatMisses"]] or list(stats)
+    return max(safe, key=lambda p: (stats[p]["agreement"]["k"], stats[p]["oneEdit"]["k"]))
 
 
 def combine(decisions: list[str]) -> str:
