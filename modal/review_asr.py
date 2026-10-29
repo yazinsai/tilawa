@@ -370,7 +370,7 @@ def denoise(test_set: str, clips: list[dict]) -> dict:
         out[c["id"]] = {"denoised": rel, "inSha256": hashlib.sha256(data).hexdigest(), "sha256": hashlib.sha256(clean).hexdigest(),
                         "seconds": round(time.time() - t0, 2)}
     vol.commit()
-    return {"model": "DeepFilterNet3 (init_df default)", "package": importlib.metadata.version("deepfilternet"), "torch": torch.__version__,
+    return {"model": "DeepFilterNet3 (init_df default)", "package": importlib.metadata.version("deepfilternet"), "torch": str(torch.__version__),
             "items": out}
 
 
