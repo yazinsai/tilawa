@@ -21,7 +21,7 @@ JUDGE_MIN, JUDGE_SHARE, JUDGE_MAX_DIST = 2, 0.5, 0.5
 # 2026-10-29, docs/benchmarks/lab-triage-v1.md "Soniox margin v2"): a skipped passage or an edit at the window edge separates
 # the texts only by what the transcript covers, not by the whole passage.
 JUDGE_RULES = ("half", "reach")
-JUDGE_RULE = "half"
+JUDGE_RULE = "reach"  # adopted for lab-v1.4 (lab-triage-v1.md, Soniox margin v2)
 BOILERPLATE = ("اشتركوا", "القناة", "ترجمة", "نانسي", "قنقر", "موسيقى")
 EXTRA_MAX = 3  # more extra heard words than this in one window is a hallucination (round 2's automatic bucket 5)
 BUCKETS = {1: "orthography", 2: "edge word", 3: "mishearing", 4: "canonicalisation", 5: "hallucination"}

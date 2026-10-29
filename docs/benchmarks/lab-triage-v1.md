@@ -277,3 +277,27 @@ Run: `modal run modal/review_api.py::margin_main` → `docs/benchmarks/lab-triag
 - everything else (omissions, skips, repeats and restarts): 10%, at most 20.
 
 Random spot checks stay 15 + 15.
+
+### Soniox margin v2: results (2026-10-29)
+
+Adopted: `reach` passes all three checks, so it is the default (`review_api_core.JUDGE_RULE`) from lab-v1.4. Data: `docs/benchmarks/lab-triage-soniox-margin-v2.json`.
+
+Calibration on the lab-v1.1 and lab-v1.2 verdicts (147 items: 137 ok, 10 bad), Nemotron + Soniox:
+
+| | `half` | `reach` |
+| --- | --- | --- |
+| Your ok items auto-accepted | 96/137 | 101/137 |
+| Bad items auto-accepted | p15-x1 | p15-x1 (same) |
+| Soniox match on ok items | 125 | 130 |
+| One-edit / one-word / shifted controls flagged | 40/40, 31/31, 40/40 | 40/40, 31/31, 40/40 |
+| Edit-undone controls flagged | 115/116 | 115/116 |
+| Repeat misses | none | none |
+
+Only 5 items changed: true skipped passages that went from unsure to match. Nothing else moved.
+
+On lab-v1.3 (1700 cases, reported only):
+- Soniox unsure fell from 115 to 43, and auto-accepted rose from 1559 to 1631.
+- Under seam pools the queue fell from 210 to 140 items.
+- Against your 117 verdicts: your ok items auto-accepted rose from 75 to 79. The bad splices auto-accepted stayed the same 5 (e09-x3, p01-x2, p01-x4, p06-x1, p12-x8). The old Nemotron + FastConformer pairing auto-accepted 4 of them, all except p01-x4.
+
+The margin doesn't help with those five, and no text margin can. Both ASRs hear the planted word: Nemotron +5.8 to +49, Soniox +3 to +5. What is wrong with these splices is how the seam sounds, not what was said. The fix is upstream: the pause>pause insertion rule in lab-v1.4 (`lab-v1.4.md`). The seam spot check pools are the backstop.
