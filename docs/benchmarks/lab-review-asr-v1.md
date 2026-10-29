@@ -621,3 +621,68 @@ Nothing it changed let a control through.
   - `rover/denoised/*.wav`: the 40 denoised windows, the inputs behind the recorded hashes.
 - **Tables:** `docs/benchmarks/lab-review-asr-v1-nemotron-prompt-ablation.json`, `docs/benchmarks/lab-review-asr-v1-round2.json` and `docs/benchmarks/lab-review-asr-v1-errors.json` (Part A).
 - **Code:** `rasm`, `compare_rasm`, `edge_context`, `judge_rasm`, `rover`, `calib_stats`, `passes_bar` and `pick_prompt` in `tools/review_asr_core.py`, with tests in `tools/test_review_asr.py`. The run itself is `modal run modal/review_asr.py::round2_main`.
+
+## Commercial APIs: Soniox and Speechmatics (2026-10-29)
+
+A bake-off between two commercial ASR APIs as the second independent model of two-model triage (ticket 17), alongside Nemotron's likelihood arm. The winner then re-triages lab-v1.3. Code: `modal/review_api.py` (calls), `tools/review_api_core.py` (readings, scoring, winner), `tools/lab_triage_core.py` (the triage rule, now taking any second model), tests in `tools/test_review_api.py`.
+
+### Preregistration (committed before any API output)
+
+**Vendors and requests.** Each vendor is called only from a Modal function that mounts its own secret. Each request carries only the window's 16 kHz mono PCM16 WAV, the same bytes and sha256 every other model heard (`review_asr.clip_bytes`), named by its sha256, plus the language. It never carries the text, the label type, a context or a vocabulary.
+
+- **Soniox**, async API: model `stt-async-v5` (its current async model; `stt-async-v4` is an alias), `language_hints: ["ar"]`, and `language_hints_strict: true` if `GET /v1/models` says the model supports it. The file and the transcription are deleted after the transcript is fetched. List price $0.10 per audio hour.
+- **Speechmatics**, batch API v2 (`eu1`): `language: "ar"`, `model: "enhanced"` (the most accurate model; `model` replaces the deprecated `operating_point`). The job is deleted after the json-v2 transcript is fetched. List price $0.75 per audio hour (Enhanced, pre-recorded, pay as you go).
+- Records per test set: `/lab/reviews/<testSet>/asr-<vendor>.json`, with the request config, per item the audio sha256, raw responses, transcript, timing (upload, submit to done, total) and estimated cost. No keys.
+
+**Ground truth: your listening verdicts.** Every verdict in `/lab/reviews/{lab-v1.1,lab-v1.2,lab-v1.3}/me.json`, on the item exactly as you heard it (from the queue the verdict names).
+- `ok` means the label fits; `bad_splice` (or any bad-data verdict) means it doesn't.
+- Byte-identical clips with the same text (carried over between test sets) count once, keeping the earliest.
+- Expected: about 150 items, 10 of them bad (3 on lab-v1.1, 7 on lab-v1.2).
+- The set is not a random sample. Most lab-v1.2 items are ones the Nemotron + FastConformer triage did not auto-accept, so it is enriched for hard cases.
+
+**Readings of one transcript**, all fixed here:
+- **judge (primary; decides pairing and triage):** `review_api_core.judge`. Both the labelled (claimed) text and the window's alternative text go to the space-free rasm skeleton (`core.rasm`, hamza kept).
+  - The alternative is the same one lab triage scored: the edit undone, the repeat removed, or a seeded one-word change for clean windows.
+  - The distance from the transcript to each text is the letter edit distance to its best-fitting contiguous stretch. The text's ends are free, so edge words the model didn't write cost nothing.
+  - gap = d(alternative) − d(claimed), and need = max(2, half the distance between the two texts).
+  - match if gap ≥ need, mismatch if gap ≤ −need, unsure otherwise.
+  - Also unsure: an empty transcript, one more than 50% of its own length away from the nearer text, or one shorter than 50% of the nearer text.
+  - The comparison runs locally after the transcript is saved. The API never sees either text.
+- **opinion:** the round-1 rule `core.compare` against the labelled text alone (the ticket 12 decision rule).
+- **opinionRasm:** `core.compare_rasm` with no edge context.
+
+**Gauge**, per API:
+1. Agreement: match on your `ok` items.
+2. Sensitivity on your bad items: flagged (not match) and called mismatch. This is the most important number.
+3. Ticket 12's synthetic controls on the 40 lab-v1.1 v1-check windows (`core.controls`, seed 12): one-edit, one-word and shifted flagged, for comparability with the earlier models. Under the judge, a control text is the claimed side and the labelled text the alternative. Also: the edit-undone control on every edited window you heard as ok.
+4. Repeat and restart misses: the text without the repeat is accepted on a repeat or restart you heard as ok.
+5. Failure taxonomy of the opinion's rejections on `ok` items, using round 2's automatic buckets in order:
+   - hallucination: boilerplate, or more than 3 extra words;
+   - canonicalisation: the edit-undone text matches the transcript;
+   - orthography: equal skeletons, or the rasm rule matches;
+   - edge word: only edge reasons;
+   - otherwise mishearing.
+
+   Each is tagged at the edit (the planted word or a neighbour) and phone copy.
+6. Cost (list price × audio duration) and latency (submit to done, median and p90).
+
+**Pairing with Nemotron**, on your verdicts:
+- Nemotron's decision is its lab triage likelihood decision on the same window and text (`triage-v1.json`); otherwise it is unsure.
+- Both match: auto-accepted. Anything else reaches you.
+- Counted: your `ok` items auto-accepted, your bad items auto-accepted (must be about 0), and the number of items queued.
+- The old Nemotron + FastConformer pairing is reported on the same items.
+
+**Winner** (`pick_winner`), the API whose Nemotron pairing under the judge has, in order:
+1. the fewest of your bad items auto-accepted;
+2. the most of your `ok` items auto-accepted;
+3. the most bad items flagged by the judge;
+4. the most one-edit controls flagged by the judge;
+5. the lower list price.
+
+**Small n.** There are only 10 bad items. 0/10 auto-accepted still leaves a 95% upper bound of 28% on the true rate. Differences of 2 or fewer items are noise (spec decision 12). Ranges are 95% Wilson intervals.
+
+**Re-triage of lab-v1.3** with Nemotron + the winner, using the lab triage rule unchanged:
+- Inputs: the same 1700 cases, windows and alternatives as `triage-v1.json`. Nemotron's decisions are reused as they are; the winner's judge replaces FastConformer.
+- Outcomes and spot checks are as before: 15 + 15 random, and seam checks of 10% capped at 20, seed 17.
+- Outputs: `review/triage-<winner>.json` and `review/triage-<winner>-confirm.json`. `triage.json` is untouched.
+- Your lab-v1.3 verdicts are keyed by id, so they show on the same clips.
