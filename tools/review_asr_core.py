@@ -359,12 +359,14 @@ CHECK_LLR_MIN = 3.0  # nats, the teacher check's LLR_MIN (tools/lab_checks.py); 
 CHECK_PAD_S, CHECK_GAP_SLACK_S = 0.1, 0.02
 
 
-def edit_texts(session: dict, x: dict) -> dict | None:
+def edit_texts(session: dict, x: dict, context_s: float = 0.0) -> dict | None:
     """One planted edit (splice, repeat or restart) as two texts over the same audio, for an independent data check:
     `said` = word before + planted words + word after, `original` = word before + the original words + word after
     (the expected word for a wrong word, the removed words for an omission or skip, nothing for an addition, repeat or
     restart). The window runs from the labelled start of the word before to the end of the word after, CHECK_PAD_S
-    padded, as in the teacher check (tools/lab_checks.py edit_check). None when a side has no recited word."""
+    padded, as in the teacher check (tools/lab_checks.py edit_check). None when a side has no recited word.
+    context_s > 0 (exploratory): more whole words on each side, shared by both texts, until the context reaches
+    context_s seconds beyond the edit's neighbours."""
     its = sorted(session["said"], key=lambda w: (w["startS"], w["endS"]))
     mine = [i for i, w in enumerate(its) if w.get("op") == x["id"]]
     if mine:
@@ -374,12 +376,18 @@ def edit_texts(session: dict, x: dict) -> dict | None:
         hi = min((i for i, w in enumerate(its) if w["startS"] >= x["endS"] - CHECK_GAP_SLACK_S), default=None)
     if lo is None or hi is None or lo < 0 or hi >= len(its):
         return None
-    prev, nxt = its[lo]["text"], its[hi]["text"]
+    k0, k1 = (mine[0], mine[-1] + 1) if mine else (lo + 1, hi)
+    a, b = its[lo]["startS"], its[hi]["endS"]
+    while lo > 0 and a - its[lo]["startS"] < context_s:
+        lo -= 1
+    while hi < len(its) - 1 and its[hi]["endS"] - b < context_s:
+        hi += 1
+    prev, nxt = [w["text"] for w in its[lo:k0]], [w["text"] for w in its[k1:hi + 1]]
     planted = [its[i]["text"] for i in mine]
     orig = (x.get("expected") or "").split() if x["type"] in ("wrong_word", "omitted_word", "skipped_passage") else []
     cls = "mutashabihat" if x.get("mutashabihat") else x["type"]
     return {"id": f"{session['id']}-{x['id']}", "session": session["id"], "splice": x["id"], "class": cls, "type": x["type"],
-            "said": " ".join([prev, *planted, nxt]), "original": " ".join([prev, *orig, nxt]),
+            "said": " ".join([*prev, *planted, *nxt]), "original": " ".join([*prev, *orig, *nxt]),
             "startS": round(max(0.0, its[lo]["startS"] - CHECK_PAD_S), 3), "endS": round(min(session["durationS"], its[hi]["endS"] + CHECK_PAD_S), 3)}
 
 

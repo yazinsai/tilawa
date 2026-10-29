@@ -183,6 +183,10 @@ def test_edit_texts_mirror_the_teacher_check_window():
     assert w["said"] == "فَزِدْهُ عَذَابًۭا" and w["original"] == "فَزِدْهُ قَدَّمَ عَذَابًۭا"
     assert edit_texts(s, {"id": "x9", "type": "omitted_word", "expected": "مَن", "startS": -1.0, "endS": -0.5}) is None
     assert edit_texts(s, {**s["splices"][0], "mutashabihat": True})["class"] == "mutashabihat"
+    w = edit_texts(s, s["splices"][0], context_s=1.0)
+    assert w["said"] == "قَالُوا۟ رَبَّنَا كَلَّآ لَنَا هَـٰذَا" and w["original"] == "قَالُوا۟ رَبَّنَا مَن لَنَا هَـٰذَا" and w["startS"] == 0.0
+    w = edit_texts(s, s["splices"][2], context_s=1.0)
+    assert w["said"] == "هَـٰذَا فَزِدْهُ عَذَابًۭا فِى" and w["original"] == "هَـٰذَا فَزِدْهُ قَدَّمَ عَذَابًۭا فِى"
 
 
 def test_check_verdict_and_summary():

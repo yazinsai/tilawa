@@ -4,6 +4,7 @@
     modal run modal/review_fastconformer.py::main                  # arm 1: label-blind transcription, RNNT and CTC greedy
     modal run modal/review_fastconformer.py::likelihood_main       # arm 2: CTC pairwise likelihood, after arm 1
     modal run modal/review_fastconformer.py::check_main            # every planted edit of lab-v1.1: said vs original by CTC
+    modal run modal/review_fastconformer.py::check_main --context 2  # exploratory: ~2 s of shared context words each side
 
 nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0 (NeMo hybrid Transducer + CTC, ~115M, CC-BY-4.0, writes Arabic with
 harakat). Unrelated to the teacher (obadx/muaalem-model-v3_2) and the student. Trained on tarteel-ai/everyayah among
@@ -117,7 +118,7 @@ class FastConformer:
         import torch
 
         return {"id": FC, "revision": self.rev, "implementation": "nemo", "packageVersion": importlib.metadata.version("nemo_toolkit"),
-                "torch": torch.__version__, "device": torch.cuda.get_device_name(0), "config": FC_CONFIG, "prompt": None,
+                "torch": str(torch.__version__), "device": torch.cuda.get_device_name(0), "config": FC_CONFIG, "prompt": None,
                 "vocabSize": len(self.pieces), "loadSeconds": self.load_s}
 
     @staticmethod
@@ -172,8 +173,8 @@ class FastConformer:
 
     @modal.method()
     def info(self) -> dict:
-        return {**self._meta(), "pieces": self.pieces, "charset": "".join(sorted(self.charset)),
-                "decodingCfg": json.loads(json.dumps(dict(self.model.cfg.decoding), default=str))}
+        return json.loads(json.dumps({**self._meta(), "pieces": self.pieces, "charset": "".join(sorted(self.charset)),
+                "decodingCfg": dict(self.model.cfg.decoding)}, default=str))
 
     @modal.method()
     def transcribe(self, clips: list[dict]) -> dict:
@@ -187,7 +188,7 @@ class FastConformer:
             g = self._greedy(self._logprobs(audios[k]))
             out.append({"id": c["id"], "audioSha256": hashlib.sha256(datas[k]).hexdigest(), "audioS": round(len(audios[k]) / 16000, 2),
                         **{dec: texts[dec][k] for dec in DECODERS}, "ctcGreedy": g, "ctcGreedyMatchesDecoder": g["text"].strip() == texts["ctc"][k].strip()})
-        return {**self._meta(), "gpuSeconds": round(time.time() - t0, 1), "results": out}
+        return json.loads(json.dumps({**self._meta(), "gpuSeconds": round(time.time() - t0, 1), "results": out}, default=str))
 
     @modal.method()
     def score(self, jobs: list[dict]) -> dict:
@@ -213,7 +214,7 @@ class FastConformer:
                 best = lambda r: max((p["ctc"] for p in read[r] if p["ctc"] is not None), default=None)
                 res[name] = {"diac": best("diac"), "plain": best("plain"), "spellings": read}
             out.append({"id": j["id"], "audioSha256": hashlib.sha256(datas[k]).hexdigest(), "transcript": heard[k], "scores": res, "ctcGreedy": g})
-        return {**self._meta(), "gpuSeconds": round(time.time() - t0, 1), "results": out}
+        return json.loads(json.dumps({**self._meta(), "gpuSeconds": round(time.time() - t0, 1), "results": out}, default=str))
 
 
 def _load(test_set: str, queue_rel: str, reviewer: str):
@@ -337,8 +338,9 @@ def likelihood(test_set: str, queue_rel: str, reviewer: str) -> dict:
 
 
 @app.function(image=cpu_image, volumes={VOL: vol}, timeout=60 * 60)
-def data_check(test_set: str, variants: list[str]) -> dict:
-    """Every planted edit (splices, repeats, restarts): does the CTC head prefer the said text over the original at that spot?"""
+def data_check(test_set: str, variants: list[str], context_s: float = 0.0) -> dict:
+    """Every planted edit (splices, repeats, restarts): does the CTC head prefer the said text over the original at that spot?
+    context_s > 0 (exploratory) widens the window by whole words shared by both texts and writes checks-fastconformer-v1.ctx<s>.json."""
     import review_asr_core as core
 
     base = DATA / test_set
@@ -349,7 +351,7 @@ def data_check(test_set: str, variants: list[str]) -> dict:
     edits, skipped = [], []
     for i in ids:
         for x in sessions[i]["splices"]:
-            e = core.edit_texts(sessions[i], x)
+            e = core.edit_texts(sessions[i], x, context_s)
             if e:
                 edits.append(e)
             else:
@@ -389,11 +391,11 @@ def data_check(test_set: str, variants: list[str]) -> dict:
                             "the window's own label-blind CTC greedy text and RNNT transcript, max over spellings; an original with no CTC path counts as infinitely worse",
                     "secondary": "plain (undiacritised) candidates at the same margin; llr > 0; the RNNT transcript closer to the said text than "
                                  "to the original (letter edit distance after normalisation)"},
-           "skipped": skipped, "summary": summary,
+           "contextS": context_s, "skipped": skipped, "summary": summary,
            "failed": {v: [{k: r[k] for k in ("id", "class", "said", "original", "llr", "reason", "plainLlr", "transcript", "teacher")}
                           for r in out[v] if not r["pass"]] for v in variants},
            "edits": out}
-    _write(base / "checks-fastconformer-v1.json", doc)
+    _write(base / f"checks-fastconformer-v1{f'.ctx{context_s:g}' if context_s else ''}.json", doc)
     vol.commit()
     return {k: doc[k] for k in ("model", "skipped", "summary", "failed")}
 
@@ -441,9 +443,10 @@ def likelihood_main(test_set: str = "lab-v1.1", queue: str = "lab-v1.1/review/v1
 
 
 @app.local_entrypoint()
-def check_main(test_set: str = "lab-v1.1", variants: str = "studio,phone", out: str = "docs/benchmarks/lab-checks-fastconformer-v1.json"):
+def check_main(test_set: str = "lab-v1.1", variants: str = "studio,phone", context: float = 0.0, out: str = ""):
     t0 = time.time()
-    r = data_check.remote(test_set, variants.split(","))
+    r = data_check.remote(test_set, variants.split(","), context)
+    out = out or f"docs/benchmarks/lab-checks-fastconformer-v1{f'-ctx{context:g}' if context else ''}.json"
     (ROOT / out).write_text(json.dumps(r, ensure_ascii=False, indent=1) + "\n")
     print(json.dumps(r["summary"], indent=1))
     for v, fs in r["failed"].items():
