@@ -6,7 +6,7 @@ import { loadReferenceIndex } from "../reference.js";
 import { validateSession } from "./sessions.js";
 import type { BenchSession } from "./sessions.js";
 
-const { values } = parseArgs({ options: { dir: { type: "string", default: `${process.env.LAB_DATA ?? "."}/lab-v1.2` }, manifest: { type: "string", default: "manifest-v1.json" },
+const { values } = parseArgs({ options: { dir: { type: "string", default: `${process.env.LAB_DATA ?? "."}/lab-v1.3` }, manifest: { type: "string", default: "manifest-v1.json" },
   out: { type: "string", default: process.env.LAB_OUT ? `${process.env.LAB_OUT}/validate.json` : "" } } });
 const asset = JSON.parse(readFileSync(new URL("../../assets/ref-v2.json", import.meta.url), "utf8"));
 const index = loadReferenceIndex(asset);

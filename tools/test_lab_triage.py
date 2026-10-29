@@ -29,8 +29,11 @@ def session(n=60, seam_at=24, wrong_at=None):
         splices.append({"id": "x1", "type": "wrong_word", "mutashabihat": False, "formsOtherAyah": False,
                         "location": {"surah": 112, "ayah": 1 + wrong_at // 10, "word": 1 + wrong_at % 10},
                         "expected": WORDS[wrong_at % len(WORDS)], "said": "مَلِكِ", "startS": said[wrong_at]["startS"], "endS": said[wrong_at]["endS"],
-                        "seams": [{"outS": t, "out": {"audio": "sources/a.wav", "srcS": t, "boundary": "pause"}, "in": {"boundary": "pause"}},
-                                  {"outS": t + 0.5, "out": {"boundary": "pause"}, "in": {"boundary": "pause"}}]})
+                        "host": {"audio": "sources/a.wav"},
+                        "seams": [{"outS": t, "out": {"audio": "sources/a.wav", "srcS": t, "boundary": "pause", "after": "112:3:4", "piece": "host"},
+                                   "in": {"audio": "sources/a.wav", "boundary": "pause", "before": "112:3:5", "piece": "donor"}},
+                                  {"outS": t + 0.5, "out": {"audio": "sources/a.wav", "boundary": "pause", "after": "112:3:5", "piece": "donor"},
+                                   "in": {"audio": "sources/a.wav", "boundary": "pause", "before": "112:3:6", "piece": "host"}}]})
     return {"id": "lab-x-p01", "durationS": n * 0.5, "said": said, "splices": splices,
             "segments": [{"startS": 0.0}, {"startS": seam_at * 0.5}] + ([{"startS": seam_at * 0.5 + 0.5}] if wrong_at is not None else []),
             "meta": {"audio": {"studio": "sessions/lab-x-p01.studio.wav"}, "reciter": "R"}}
@@ -151,6 +154,15 @@ def test_spot_and_seam_checks_merge_into_one_item_per_case():
     assert any(it["title"] == "Seam spot check · also a random spot check" for it in q["items"]) == ("lab-x-p01-x1" in r["spotIds"])
     _, again = triaged(lambda c: "match", lambda c: "match", spot=(1, 3), seam_spot=(1.0, 20))
     assert again["queue"] == q
+
+
+def test_confirm_queue_holds_only_the_both_mismatch_items():
+    edit_bad = lambda c: "mismatch" if c["group"] == "edit" else "match"
+    _, r = triaged(edit_bad, edit_bad, spot=(1, 1), seam_spot=(1.0, 20))
+    q = T.confirm_queue(r["queue"])
+    assert q["maxBad"] == 0 and q["testSet"] == "lab-x" and validate_queue(q) == []
+    assert [it["id"] for it in q["items"]] == ["lab-x-p01-x1"] and r["counts"]["queue"]["byFirstReason"]["both-mismatch"] == 1
+    assert len(r["queue"]["items"]) > 1
 
 
 def test_earlier_verdicts_carry_over_and_count_false_alarms():

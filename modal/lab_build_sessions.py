@@ -1,4 +1,4 @@
-"""Build test set lab-v1.2: spliced sessions with planted mistakes, studio and phone copies (.scratch/lab, tickets 03, 04).
+"""Build test set lab-v1.3: spliced sessions with planted mistakes, studio and phone copies (.scratch/lab, tickets 03, 04).
 
     modal run modal/lab_build_sessions.py --pilot          # bank, plan, then 2 sessions rendered and checked
     modal run modal/lab_build_sessions.py                  # every session
@@ -42,6 +42,7 @@ VOL = "/lab"
 DATA = Path(VOL) / "data"
 OUT = DATA / TEST_SET
 AUG_FROM = DATA / "lab-v1/aug"  # the phone-copy bank is shared across test set versions
+ENERGY_FROM = DATA / "lab-v1.2/energy"  # frame_db of the same catalog recordings, copied rather than recomputed
 REFUSALS = "refusals-v1.json"
 CHECKS_VERSION = 2  # seam checks also measure each side's cut level and the silence before a following onset
 MAIN_LISTENER = "spliced-clean-int8"  # decoded once the loop converges (the loop's checks use the teacher)
@@ -224,6 +225,10 @@ def energy_one(audios: list[str]) -> int:
         p = energy_path(audio)
         if p.exists():
             continue
+        prev = ENERGY_FROM / p.relative_to(OUT / "energy")
+        if prev.exists():
+            write(p, prev.read_bytes())
+            continue
         buf = io.BytesIO()
         np.save(buf, S.frame_db(read_wav(DATA / audio)))
         write(p, buf.getvalue())
@@ -245,7 +250,8 @@ def vol_read(rel: str) -> bytes:
 
 
 @app.function(volumes={VOL: vol}, cpu=4, memory=32768, timeout=60 * 60)
-def plan(pilot: bool = False) -> dict:
+def plan(pilot: bool = False, dry: bool = False) -> dict:
+    """dry: plan and summarise only, nothing written."""
     import numpy as np
 
     import lab_sessions as S
@@ -273,11 +279,16 @@ def plan(pilot: bool = False) -> dict:
     refused = {**out["refused"], "rules": {"lenRatioMin": S.LEN_RATIO_MAX, "ayahPerMax": S.AYAH_PER_MAX, "weakOnsets": "".join(sorted(S.WEAK_ONSET)),
                                            "linkDb": S.LINK_DB, "linkTailDb": S.LINK_TAIL_DB, "minDonorS": S.MIN_DONOR_S,
                                            "onsetSilenceS": S.ONSET_SILENCE_S, "onsetFloorDb": S.ONSET_FLOOR_DB,
-                                           "roomPct": S.ROOM_PCT, "roomMarginDb": S.ROOM_MARGIN_DB},
+                                           "roomPct": S.ROOM_PCT, "roomMarginDb": S.ROOM_MARGIN_DB,
+                                           **{k: S.SEAM_LIMITS[k] for k in ("pauseFormLands", "donorRecording", "breakAt")},
+                                           "classShareMax": S.CAPPED},
                "refusalsSha256": hashlib.sha256(rp.read_bytes()).hexdigest() if rp.exists() else None,
                "iterations": max((x["iteration"] for k in ("ayahs", "sites", "donors") for x in (refusals or {}).get(k, [])), default=0)}
     summary = S.summary(sessions, {"bank": {k: bank[k] for k in ("sources", "sha256")} | {"noises": len(bank["noises"]), "rirs": len(bank["rirs"])},
                                    "refused": refused})
+    if dry:
+        return {"summary": summary, "planS": round(time.time() - t0, 1),
+                "repeats": {s["id"]: [x["type"] for x in s["splices"] if x["type"] in ("repeat", "restart")] for s in sessions}}
     changed = 0
     for s in sessions:
         changed += write(OUT / f"sessions/{s['id']}.json", dumps(s))
@@ -572,15 +583,19 @@ def render(sid: str, force: bool = False) -> dict:
 
 
 @app.local_entrypoint()
-def main(stage: str = "all", pilot: bool = False, force: bool = False, iterations: int = 6, audit_set: str = "lab-v1.1"):
+def main(stage: str = "all", pilot: bool = False, force: bool = False, iterations: int = 6, audit_set: str = "lab-v1.2"):
     t0 = time.time()
-    if stage in ("all", "aug", "loop"):
+    if stage in ("all", "aug", "loop", "dry"):
         bank = aug.remote(force)
         print(f"bank: {len(bank['noises'])} noises, {len(bank['rirs'])} rirs ({bank['rirsDroppedAsStudent']} dropped as student) [{time.time() - t0:.0f} s]")
-    if stage in ("all", "energy", "loop", "audit"):
+    if stage in ("all", "energy", "loop", "audit", "dry"):
         print(f"energy: {energies()} recordings computed [{time.time() - t0:.0f} s]", flush=True)
     if stage == "audit":
         run_audit(audit_set, t0)
+    if stage == "dry":
+        r = plan.remote(dry=True)
+        print(json.dumps({k: r["summary"][k] for k in ("all", "splits", "refused")}, ensure_ascii=False, indent=1))
+        print("no repeat or restart:", [k for k, v in r["repeats"].items() if not v], f"[{time.time() - t0:.0f} s]")
     if stage == "loop":
         for it in range(1, iterations + 1):
             print(f"\n== iteration {it}: build [{time.time() - t0:.0f} s]", flush=True)
@@ -635,10 +650,12 @@ def run_audit(test_set: str, t0: float) -> None:
         failed = {f["splice"]: f["reasons"] for f in gate_res[sid]["failed"]}
         for xid, r in plan_res[sid].items():
             rows[f"{sid}-{xid}"] = {**r, "gate": failed.get(xid, [])}
-    gate_rule = lambda w: "linkDepth" if w.startswith("linked cut") else "onset" if w.startswith("weak onset") else \
-        "donorShort" if w.startswith(("wrong word", "added word")) else "other"
+    import lab_sessions as S
+
+    gate_rule = S.rule_of
+    rules = ("linkDepth", "onset", "donorShort", "pauseForm", "otherRecording", "breakLinked")
     summary = {"splices": len(rows),
-               "planner": {k: sum(k in r["refused"] for r in rows.values()) for k in ("linkDepth", "onset", "donorShort")},
+               "planner": {k: sum(k in r["refused"] for r in rows.values()) for k in rules},
                "plannerAny": sum(bool(r["refused"]) for r in rows.values()), "plannerMovedOnly": sum(bool(r["moved"]) and not r["refused"] for r in rows.values()),
                "gate": dict(Counter(k for r in rows.values() for k in {gate_rule(w) for w in r["gate"]})),
                "gateAny": sum(bool(r["gate"]) for r in rows.values())}

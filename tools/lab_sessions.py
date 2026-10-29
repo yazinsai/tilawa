@@ -1,4 +1,4 @@
-"""Pure logic for test set lab-v1.2, spliced sessions (.scratch/lab, ticket 03); run by modal/lab_build_sessions.py.
+"""Pure logic for test set lab-v1.3, spliced sessions (.scratch/lab, ticket 03); run by modal/lab_build_sessions.py.
 
 Window choice, splice boundaries, the plant schedule, output-timeline arithmetic and labels (BenchSession, splice
 records, manifest, review queue), plus the sample-level render and phone degradation. Standard library only except
@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SEED = 20261028
-TEST_SET = "lab-v1.2"
+TEST_SET = "lab-v1.3"
 SR = 16_000
 XFADE = 160  # samples: the 10 ms crossfade centred on each seam
 EDGE_FADE = 320  # 20 ms fade in and out at the session ends
@@ -47,6 +47,14 @@ MIN_DONOR_S = 0.26  # a wrong or added word lasts at least this long in its sour
 ONSET_SILENCE_S = 0.08
 ONSET_FLOOR_DB = -30.0
 ROOM_PCT, ROOM_MARGIN_DB = 0.02, 3.0
+# Three more rules from your listens to lab-v1.2 (docs/benchmarks/lab-v1.3.md):
+# - donor audio (a wrong or added word, a twin span's last word) that its reciter followed with a pause is in its pause
+#   (waqf) form, so it only lands on a pause in the host; otherwise a donor occurrence linked on its following side;
+# - donors come from the host's own recording (another surah file of the same reader differs in room, level and timbre);
+# - repeats and restarts break off at a pause.
+# And a class-mix cap: the classes that need only host pauses or one host boundary (added words, skipped passages)
+# would take most sites under these rules, so each is at most this share of a session's planted mistakes.
+CAPPED = {"added_word": 0.30, "skipped_passage": 0.30}
 # The render's seam checks (<id>.checks.json) as a gate (spec decision 16, ticket 17): a seam or word past a limit fails
 # its splice, which is refused and rebuilt like an automated-check failure. The first six are set well outside
 # lab-v1.1's worst (level error 0.02 dB above -60 dBFS, click ratio 1.65, seam depth -5.4 dB, worst word 0.996, words
@@ -64,6 +72,9 @@ SEAM_LIMITS = {
     "onsetSilenceS": ONSET_SILENCE_S,  # silence before the cut in the source of a weak-onset word that follows a seam
     "onsetFloorDb": ONSET_FLOOR_DB,  # ... measured at onset_floor (render side)
     "roomMarginDb": ROOM_MARGIN_DB,
+    "pauseFormLands": "pause",  # donor audio cut from a pause (its waqf form) only joins a host pause
+    "donorRecording": "host",  # every piece from the host's recording
+    "breakAt": "pause",  # a repeat or restart breaks off at a pause
 }
 LEN_RATIO_MAX = 1.05  # an ayah whose teacher decode is this much longer than its text holds unlabelled speech (a natural repeat)
 AYAH_PER_MAX = 0.10  # nor is an ayah the teacher matches less well than this (squeezed PER of its source alignment)
@@ -183,19 +194,21 @@ def said_form(w: dict, pause_before: bool, pause_after: bool) -> str | None:
     return cont if hk[0] == "firm" else iso[:2] + cont
 
 
-def joins(t: dict | None, h: dict | None, restart: bool = False) -> bool:
+def joins(t: dict | None, h: dict | None, restart: bool = False, donor: bool = False) -> bool:
     """Whether the word before boundary `t` can be followed by the word after boundary `h` with no audible seam.
 
     The tail was produced before a head of `t`'s kind, so it only joins a head of the same kind; a pause (an ayah end
-    or a real stop) joins another pause or a firm head. A restart breaks off anywhere and starts again after a pause.
-    A pause whose weak onset isn't preceded by measured silence (`weak`) never starts the piece after a seam.
+    or a real stop) joins another pause or a firm head. With `donor` (the tail is donor audio put into the host) a
+    pause joins only a pause: the donor was said in its pause form, and nobody says that and runs on into the next
+    word. A restart starts again after a pause. A pause whose weak onset isn't preceded by measured silence (`weak`)
+    never starts the piece after a seam.
     """
     if not t or not h or h.get("weak"):
         return False
     if restart:
         return h["kind"] == "pause"
     if t["kind"] == "pause":
-        return h["kind"] == "pause" or h["head"][0] == "firm"
+        return h["kind"] == "pause" or not donor and h["head"][0] == "firm"
     if h["kind"] == "pause" or h["head"][0] != t["head"][0]:
         return False
     tk, last = t["tail"]
@@ -529,20 +542,20 @@ def choose_windows(slots: list[dict], recs: dict[str, Rec], ref: Ref, dis: list[
             raise PlanError(f"no {s['kind']} window for read {s['read']}")
         surah = lambda c: recs[c["rec"]].surah
         if s["kind"] == "muta":
-            def count(cs: list[dict], read: int) -> list[dict]:
+            def count(cs: list[dict]) -> list[dict]:
                 for c in cs:
                     if c["muta"]:
                         r = recs[c["rec"]]
-                        c["muta"] = muta_sites(r, r.ayahs[c["first"]][1], r.ayahs[c["last"]][2], ref, donors_for(read), twins)
+                        c["muta"] = muta_sites(r, r.ayahs[c["first"]][1], r.ayahs[c["last"]][2], ref, donors_for(c["rec"]), twins)
                 return cs
-            cands = count(cands, s["read"])
+            cands = count(cands)
             best = max(c["muta"] for c in cands)
             for j in order[n + 1:]:
                 o = slots[j]
                 if best >= 3:
                     break
                 if o["split"] == s["split"] and o["kind"] == "normal" and o["read"] != s["read"]:
-                    c2 = count(candidates_for(o["read"]), o["read"])
+                    c2 = count(candidates_for(o["read"]))
                     if c2 and max(c["muta"] for c in c2) > best:
                         s["read"], o["read"], cands = o["read"], s["read"], c2
                         best = max(c["muta"] for c in c2)
@@ -578,9 +591,9 @@ def levenshtein(a: str, b: str) -> int:
 
 
 class Donors:
-    """Every word of one reader that can be lifted out whole: included ayah, good score, at least MIN_DONOR_S long, a
-    cuttable boundary either side, phonemes as said known (`Rec.said`), and not refused by the automated checks
-    (`refuse`: (rec key, ayah, word))."""
+    """Every word of the host's recording that can be lifted out whole: included ayah, good score, at least MIN_DONOR_S
+    long, a cuttable boundary either side, phonemes as said known (`Rec.said`), and not refused by the automated checks
+    (`refuse`: (rec key, ayah, word)). One recording only: the reader's other surah files are other rooms and levels."""
 
     def __init__(self, recs: list[Rec], ref: Ref, refuse: set | None = None):
         self.items, self.ref, self.at = [], ref, defaultdict(list)
@@ -607,7 +620,7 @@ class Donors:
         ref, hw = self.ref, host.words
         out = []
         for r, dk, ok in (x for t in refs for x in self.at.get(t, ())):
-            if not ok:
+            if not ok or r is not host:
                 continue
             rw, off = r.words, dk - k
             same = lambda kk: 0 <= kk + off < len(rw) and rw[kk + off]["ayah"] == rw[dk]["ayah"] and hw[kk]["ayah"] == hw[k]["ayah"] \
@@ -624,7 +637,7 @@ class Donors:
                 if b + off >= len(rw) - 1 or b >= len(hw) - 1 or not same(b):
                     break
                 tB, hB = r.boundary(b + off, ref), host.boundary(b, ref)
-                if tB and hB and joins(tB, hB):
+                if tB and hB and joins(tB, hB, donor=True):
                     tails.append((b, tB, hB))
             for a, hA, tA in heads:
                 for b, tB, hB in tails:
@@ -636,25 +649,23 @@ class Donors:
         return out
 
     def find(self, t_in: dict, h_out: dict, host: Rec, near_s: float, window: tuple[float, float], ok, rng: random.Random, refs=None):
-        """A donor word whose head joins the tail at `t_in` and whose tail joins the head at `h_out`.
-
-        Same recording first (outside the window, or far from the plant inside it), then the reader's other surahs.
-        Among the best-joined few, a seeded pick.
+        """A donor word whose head joins the tail at `t_in` and whose tail joins the head at `h_out` (a pause-form
+        donor only where the host pauses too), outside the window or far from the plant inside it. Among the
+        best-joined few, a seeded pick.
         """
         pool = [it for r in refs for it in self.by_ref.get(r, ())] if refs is not None else self.items
         cands = []
         for r, k, hb, tb in pool:
             w = r.words[k]
-            if r is host and window[0] - 1 < w["endS"] and w["startS"] < window[1] + 1 and abs(w["startS"] - near_s) < DONOR_DIST_S:
+            if r is not host or window[0] - 1 < w["endS"] and w["startS"] < window[1] + 1 and abs(w["startS"] - near_s) < DONOR_DIST_S:
                 continue
-            if not (joins(t_in, hb) and joins(tb, h_out) and ok(r, k)):
+            if not (joins(t_in, hb) and joins(tb, h_out, donor=True) and ok(r, k)):
                 continue
-            cands.append((0 if r is host else 1, max(hb["db"], tb["db"]), r.surah, k, (r, k, hb, tb)))
+            cands.append((max(hb["db"], tb["db"]), k, (r, k, hb, tb)))
         if not cands:
             return None
-        cands.sort(key=lambda c: c[:4])
-        best = [c for c in cands if c[0] == cands[0][0]][:8]
-        return rng.choice(best)[4]
+        cands.sort(key=lambda c: c[:2])
+        return rng.choice(cands[:8])[2]
 
 
 def forms_other(ref: Ref, ayahs: list[str], recited: list[str]) -> bool:
@@ -671,9 +682,11 @@ def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins:
                refuse_sites: set | None = None) -> list[dict]:
     """The planted mistakes and the one repeat or restart of a session, in source terms.
 
-    Mistakes go one per 2-3 ayahs from the first ayah after the disambiguation point (and 20 s in) to two ayahs before
-    the end, at least EDIT_GAP apart. Each takes a class weighted by CLASS_WEIGHTS among those with a clean site in
-    that ayah. Clean sessions get only the repeat or restart. A site in `refuse_sites` ((rec key, ayah, word, class)
+    Mistakes go from the first ayah after the disambiguation point (and 20 s in) to two ayahs before the end, at most
+    one per ayah and at least EDIT_GAP apart: mutashabihat swaps first, then wrong and omitted words one per 2-3 ayahs,
+    then added words and skipped passages into seeded free ayahs, each at most its CAPPED share of the session's
+    mistakes (the fraction of the last one seeded). Classes are drawn by CLASS_WEIGHTS among those with a clean site
+    in the ayah. Clean sessions get only the repeat or restart. A site in `refuse_sites` ((rec key, ayah, word, class)
     of the edit's location, from failed automated checks) is never planted again.
     """
     rng = random.Random(f"{seed}:edits:{win['id']}")
@@ -772,6 +785,7 @@ def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins:
         return out
 
     # The repeat or restart first, in a random ayah of the middle of the session, so plants keep their distance from it.
+    # Either breaks off at a pause (a reciter stops, then goes back): a restart inside the ayah, a repeat also at its end.
     want = "restart" if rng.random() < 0.4 else "repeat"
     order = list(range(max(1, len(ay) // 6), max(2, len(ay) - len(ay) // 6)))
     rng.shuffle(order)
@@ -782,9 +796,9 @@ def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins:
             if ai >= len(ay) - 1 or w[k0]["startS"] - win["startS"] < 10:
                 continue
             start = rec.boundary(k0 - 1, ref)
-            for k in range(k0 + 1, k1):
+            for k in range(k0 + 1, k1 + (kind == "repeat")):
                 t = rec.boundary(k, ref)
-                if not t:
+                if not t or t["kind"] != "pause":
                     continue
                 if kind == "repeat":
                     for back in (2, 3, 1):
@@ -810,25 +824,41 @@ def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins:
                 found.sort(key=lambda s: (max(b["db"] for b in s["seam"]), s["k0"]))
                 edits.append(found[0])
                 muta_left -= 1
-        ai = first
-        while ai <= len(ay) - 3:
-            if any(w[e["k0"]]["ayah"] == ay[ai][0] for e in edits):
-                ai += 1
-                continue
-            classes = [c for c in CLASS_WEIGHTS if c != "mutashabihat"]
-            got = None
-            while classes and not got:
+        has = lambda ai: any(w[e["k0"]]["ayah"] == ay[ai][0] for e in edits)
+        pick = lambda found: rng.choice(sorted(found, key=lambda s: (max(b["db"] for b in s["seam"]), s["k0"]))[:3])
+
+        def place(ai: int, classes: list[str]) -> dict | None:
+            while classes:
                 c = rng.choices(classes, weights=[CLASS_WEIGHTS[x] for x in classes])[0]
                 found = sites(ai, c)
                 classes.remove(c)
                 if found:
-                    found.sort(key=lambda s: (max(b["db"] for b in s["seam"]), s["k0"]))
-                    got = rng.choice(found[:3])
+                    return pick(found)
+            return None
+
+        # Wrong and omitted words first, one per 2-3 ayahs; then the capped classes into seeded free ayahs while
+        # their share allows, trimmed (last placed first) to CAPPED of the session's mistakes.
+        ai = first
+        while ai <= len(ay) - 3:
+            got = None if has(ai) else place(ai, [c for c in CLASS_WEIGHTS if c not in CAPPED])
             if got:
                 edits.append(got)
-                ai += 2
-            else:
-                ai += 1
+            ai += 2 if got else 1
+        n = Counter(e["cls"] for e in edits if e["cls"] not in ("repeat", "restart"))
+        free = list(range(first, len(ay) - 2))
+        rng.shuffle(free)
+        for ai in free:
+            total = sum(n.values())
+            got = None if has(ai) else place(ai, [c for c in CAPPED if n[c] + 1 <= CAPPED[c] * (total + 1) + 1])
+            if got:
+                edits.append(got)
+                n[got["cls"]] += 1
+        luck = {c: rng.random() for c in CAPPED}
+        allowed = lambda c, total: int(CAPPED[c] * total) + (luck[c] < CAPPED[c] * total - int(CAPPED[c] * total))
+        while over := [c for c in CAPPED if n[c] > allowed(c, sum(n.values()))]:
+            c = max(over, key=lambda c: (n[c] - CAPPED[c] * sum(n.values()), c))
+            edits.remove(next(e for e in reversed(edits) if e["cls"] == c))
+            n[c] -= 1
     return sorted(edits, key=lambda e: e["k0"])
 
 
@@ -855,7 +885,7 @@ def tokens_for(win: dict, rec: Rec, edits: list[dict]) -> list[dict]:
             continue
         if e and e["cls"] == "added_word":
             r, dk = e["donor"][:2]
-            out.append({"rec": r.key, "k": dk, "at": None, "role": "added", "op": e["id"], "seam": e["id"]})
+            out.append({"rec": r.key, "k": dk, "at": None, "role": "added", "op": e["id"], "seam": e["id"], "donor": True})
             out.append(host(k, seam=e["id"]))
             k += 1
             continue
@@ -864,7 +894,7 @@ def tokens_for(win: dict, rec: Rec, edits: list[dict]) -> list[dict]:
             a, b, da, _ = e.get("span") or (k, k, dk, dk)
             for kk in range(a, b + 1):
                 wrong = {"role": "wrong", "op": e["id"]} if kk == e.get("at", k) else {"role": "ref"}
-                out.append({"rec": r.key, "k": da + kk - a, "at": rec.words[kk]["ref"], **wrong, **({"seam": e["id"]} if kk == a else {})})
+                out.append({"rec": r.key, "k": da + kk - a, "at": rec.words[kk]["ref"], **wrong, **({"seam": e["id"]} if kk == a else {}), "donor": True})
             k = b + 1
             pending = e["id"]
             continue
@@ -987,12 +1017,13 @@ def label(win: dict, rec: Rec, edits: list[dict], tokens: list[dict], pieces: li
             ra, rb = recs[pa["rec"]], recs[pb["rec"]]
             ka, kb = pa["tokens"][-1]["k"], pb["tokens"][0]["k"]
             ba, bb = ra.boundary(ka, ref), rb.boundary(kb - 1, ref)
+            piece = lambda t: "donor" if t.get("donor") else "host"
             seams.append({"outS": round(pb["out"] / SR, 4), "xfadeS": XFADE / SR,
                           "out": {"audio": ra.audio, "srcS": round(pa["src"][1] / SR, 4), "after": ref.name(ra.words[ka]["ref"]), "cutDb": ba and ba["db"],
-                                  "boundary": ba and ba["kind"], "tail": ba and ba.get("tail") and ba["tail"][0]},
+                                  "boundary": ba and ba["kind"], "tail": ba and ba.get("tail") and ba["tail"][0], "piece": piece(pa["tokens"][-1])},
                           "in": {"audio": rb.audio, "srcS": round(pb["src"][0] / SR, 4), "before": ref.name(rb.words[kb]["ref"]), "cutDb": bb and bb["db"],
                                  "boundary": bb and bb["kind"], "head": bb and bb.get("head") and bb["head"][0],
-                                 "tail": bb and bb.get("tail") and bb["tail"][0]},
+                                 "tail": bb and bb.get("tail") and bb["tail"][0], "piece": piece(pb["tokens"][0])},
                           "gainDb": pb["gainDb"]})
         rec_w = rec.words
         rec_text = lambda ks: " ".join(ref.words[rec_w[k]["ref"]]["text"] for k in ks)
@@ -1237,10 +1268,10 @@ def plan_set(catalog: dict, aligns: dict[str, dict], ref: Ref, dis: list[int], b
     slots = allocate({k: sorted(v) for k, v in readers.items()}, seed)
     donors = {}
 
-    def donors_for(read: int) -> Donors:
-        if read not in donors:
-            donors[read] = Donors([r for r in recs.values() if r.read == read], ref, donors_out)
-        return donors[read]
+    def donors_for(key: str) -> Donors:
+        if key not in donors:
+            donors[key] = Donors([recs[key]], ref, donors_out)
+        return donors[key]
 
     wins = choose_windows(slots, recs, ref, dis, twins, donors_for, seed)
     wins.sort(key=lambda w: (w["split"], w["read"], recs[w["rec"]].surah, w["first"]))
@@ -1253,7 +1284,7 @@ def plan_set(catalog: dict, aligns: dict[str, dict], ref: Ref, dis: list[int], b
     sessions, plans = [], []
     for w in wins:
         rec = recs[w["rec"]]
-        edits = plan_edits(w, recs, ref, donors_for(rec.read), twins, dis, seed, sites_out)
+        edits = plan_edits(w, recs, ref, donors_for(rec.key), twins, dis, seed, sites_out)
         while True:
             toks = tokens_for(w, rec, edits)
             pieces = pieces_of(toks, recs, w["startS"], w["endS"], rec)
@@ -1336,12 +1367,23 @@ def refusals_from_checks(checks: dict, sessions: dict[str, dict], previous: dict
 
 def rule_audit(s: dict, recs: dict[str, Rec], ref: Ref) -> dict[str, dict]:
     """What the planner's seam rules make of an already built session's splices (e.g. an earlier test set): per splice,
-    `refused` (rules that would refuse it: `linkDepth`, `onset`, `donorShort`) and `moved` (pause cuts the onset rule
-    moves earlier instead), with the facts behind each. `recs` built with energy."""
+    `refused` (rules that would refuse it: `linkDepth`, `onset`, `donorShort`, `pauseForm`, `otherRecording`,
+    `breakLinked`) and `moved` (pause cuts the onset rule moves earlier instead), with the facts behind each. `recs`
+    built with energy, for every recording a seam touches."""
     out = {}
     for x in s["splices"]:
         refused, moved = {}, []
         for m in x["seams"]:
+            ro, ri = recs[rec_key(m["out"]["audio"])], recs[rec_key(m["in"]["audio"])]
+            ko = ro.pos[tuple(map(int, m["out"]["after"].split(":")[1:]))]
+            ki = ri.pos[tuple(map(int, m["in"]["before"].split(":")[1:]))] - 1
+            if ro is not ri or m["out"]["audio"] != x["host"]["audio"]:
+                refused.setdefault("otherRecording", []).append(f"{m['out']['after']} ({ro.key}) joined to {m['in']['before']} ({ri.key}), host {rec_key(x['host']['audio'])}")
+            if x["type"] in ("repeat", "restart"):
+                if not ro.pause_after(ko):
+                    refused.setdefault("breakLinked", []).append(f"breaks off after {m['out']['after']} with no pause ({m['out']['cutDb']:+.1f} dB)")
+            elif donor_side(x, m) and ro.pause_after(ko) and not ri.pause_after(ki):
+                refused.setdefault("pauseForm", []).append(f"{m['out']['after']} said before a pause, then {m['in']['before']} which the host says linked")
             for side in ("out", "in"):
                 lab = m[side]
                 r = recs[rec_key(lab["audio"])]
@@ -1363,6 +1405,54 @@ def rule_audit(s: dict, recs: dict[str, Rec], ref: Ref) -> dict[str, dict]:
             refused["donorShort"] = [f"{d['word']} {d['srcEndS'] - d['srcStartS']:.2f} s"]
         out[x["id"]] = {"refused": refused, "moved": moved}
     return out
+
+
+def source_pause(words: dict, name: str, after: bool) -> bool | None:
+    """Whether the reciter paused right after (or right before) word `name` ("s:a:w") in its own recording, read from
+    its alignment words keyed (surah, ayah, word) by the rule of `Rec.pause_after`: an ayah end, or an in-ayah gap as
+    long and quiet as INNER_PAUSE. None when the word isn't aligned."""
+    s, a, w = map(int, name.split(":"))
+    if not after:
+        if w == 1:
+            return True
+        w -= 1
+    x, n = words.get((s, a, w)), words.get((s, a, w + 1))
+    if x is None:
+        return None
+    if n is None:
+        return True
+    return n["startS"] - x["endS"] >= INNER_PAUSE[0] and x["cutDb"] is not None and x["cutDb"] <= INNER_PAUSE[1]
+
+
+def donor_side(x: dict, m: dict) -> bool:
+    """Whether the out side of seam `m` of splice `x` is donor audio: the `piece` label, or for sets labelled before it
+    (lab-v1.2 and earlier) the donor's last word (its span's, for a twin span) cut from the donor's recording."""
+    if "piece" in m["out"]:
+        return m["out"]["piece"] == "donor"
+    d = x.get("donor")
+    return bool(d) and m["out"]["audio"] == d["audio"] and m["out"]["after"] == (d.get("span") or [d["word"]] * 2)[1]
+
+
+def splice_rule_failures(x: dict, words_of=None) -> list[str]:
+    """The three splice rules from your lab-v1.2 listens, on a splice's labelled seams: a pause-form donor lands on a
+    host pause, every piece is from the host's recording, a repeat or restart breaks off at a pause. Each seam side's
+    boundary is re-read from its source alignment when `words_of(audio)` is given (alignment words by (surah, ayah,
+    word)), else taken from the label."""
+    out, host = [], x["host"]["audio"]
+    for m in x["seams"]:
+        o, i = m["out"], m["in"]
+        if words_of is not None:
+            po, pi = source_pause(words_of(o["audio"]), o["after"], True), source_pause(words_of(i["audio"]), i["before"], False)
+        else:
+            po, pi = o.get("boundary") == "pause", i.get("boundary") == "pause"
+        if {o["audio"], i["audio"]} != {host}:
+            out.append(f"piece from another recording ({o['audio'] if o['audio'] != host else i['audio']})")
+        if x["type"] in ("repeat", "restart"):
+            if not po:
+                out.append(f"{x['type']} breaks off after {o['after']} mid-phrase, not at a pause")
+        elif donor_side(x, m) and po and not pi:
+            out.append(f"pause-form donor {o['after']} runs on into {i['before']}, which the host says linked")
+    return list(dict.fromkeys(out))
 
 
 def seam_failures(seam: dict, limits: dict = SEAM_LIMITS, label: dict | None = None, head: str | None = None) -> list[str]:
@@ -1413,12 +1503,20 @@ def seam_gate(s: dict, checks: dict, aligns: dict | None = None, limits: dict = 
         else:
             unmapped.append({"session": s["id"], "atS": round(t, 3), "reason": why})
 
+    words_of = (lambda audio: aligns[audio]) if aligns is not None else None
+    rules = {x["id"]: splice_rule_failures(x, words_of) for x in s["splices"]}
     seams = []
     for m in checks["seams"]:
-        why = seam_failures(m, limits, labels.get(round(m["outS"], 3)), head_after(m["outS"]))
-        seams.append({"outS": m["outS"], "splice": owner.get(round(m["outS"], 3)), "pass": not why, "reasons": why})
+        lab = labels.get(round(m["outS"], 3))
+        why = seam_failures(m, limits, lab, head_after(m["outS"]))
+        src = lab and words_of and {"out": "pause" if source_pause(words_of(lab["out"]["audio"]), lab["out"]["after"], True) else "link",
+                                    "in": "pause" if source_pause(words_of(lab["in"]["audio"]), lab["in"]["before"], False) else "link"}
+        seams.append({"outS": m["outS"], "splice": owner.get(round(m["outS"], 3)), "pass": not why, "reasons": why, **({"source": src} if src else {})})
         for w in why:
             put(m["outS"], w)
+    for k, why in rules.items():
+        if why:
+            fails.setdefault(k, []).extend(why)
     short = []
     for t in s["said"]:
         if t["role"] in ("wrong", "added") and t["endS"] - t["startS"] < limits["donorMinS"] - 1e-9:
@@ -1452,7 +1550,17 @@ def seam_gate(s: dict, checks: dict, aligns: dict | None = None, limits: dict = 
             "words": w["words"], "wordsChecked": w["words"] - w["clipped"], "wordsFound": w["words"] - w["clipped"] - len(weak) - unchecked,
             "wordsUnchecked": unchecked, "clipped": w["clipped"], "clipMaxS": round(max(clips), 4) if clips else None,
             "clipsOver": sum(c > limits["clipS"] for c in clips), "donors": sum(t["role"] in ("wrong", "added") for t in s["said"]),
-            "donorsShort": len(short), "failedSeams": [x for x in seams if not x["pass"]], "failed": failed, "unmapped": unmapped}
+            "donorsShort": len(short), "splices": len(s["splices"]), "spliceRules": {k: v for k, v in rules.items() if v},
+            "failedSeams": [x for x in seams if not x["pass"]], "failed": failed, "unmapped": unmapped}
+
+
+def rule_of(reason: str) -> str:
+    """The rule a gate reason comes from (the audit's names)."""
+    for k, head in (("pauseForm", "pause-form donor"), ("otherRecording", "piece from another recording"), ("linkDepth", "linked cut"),
+                    ("onset", "weak onset"), ("donorShort", ("wrong word", "added word"))):
+        if reason.startswith(head):
+            return k
+    return "breakLinked" if "breaks off" in reason else "other"
 
 
 def seam_gate_summary(rows: list[dict], test_set: str, limits: dict = SEAM_LIMITS) -> dict:
@@ -1466,6 +1574,9 @@ def seam_gate_summary(rows: list[dict], test_set: str, limits: dict = SEAM_LIMIT
                                     "depth": n - sum(any("against speech" in w for w in x["reasons"]) for x in seams),
                                     "linkCut": n - sum(any(w.startswith("linked cut") for w in x["reasons"]) for x in seams),
                                     "onset": n - sum(any(w.startswith("weak onset") for w in x["reasons"]) for x in seams)},
+                        "splices": sum(r.get("splices", 0) for r in rows),
+                        "spliceRules": {k: sum(any(rule_of(w) == k for w in v) for r in rows for v in r.get("spliceRules", {}).values())
+                                        for k in ("pauseForm", "otherRecording", "breakLinked")},
                         "donors": sum(r["donors"] for r in rows), "donorsShort": sum(r["donorsShort"] for r in rows),
                         "words": sum(r["words"] for r in rows), "wordsChecked": sum(r["wordsChecked"] for r in rows),
                         "wordsFound": sum(r["wordsFound"] for r in rows), "wordsUnchecked": sum(r["wordsUnchecked"] for r in rows),

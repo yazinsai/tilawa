@@ -1,0 +1,2557 @@
+{
+ "version": 1,
+ "rulesOf": "lab-v1.3",
+ "testSet": "lab-v1.2",
+ "summary": {
+  "splices": 391,
+  "planner": {
+   "linkDepth": 0,
+   "onset": 0,
+   "donorShort": 0,
+   "pauseForm": 56,
+   "otherRecording": 6,
+   "breakLinked": 28
+  },
+  "plannerAny": 90,
+  "plannerMovedOnly": 5,
+  "gate": {
+   "breakLinked": 28,
+   "pauseForm": 56,
+   "otherRecording": 6
+  },
+  "gateAny": 90
+ },
+ "splices": {
+  "lab-v1.2-e01-x1": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 20:130:19 with no pause (-14.7 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 20:130:19 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-e02-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e02-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e02-x3": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 39:36:12 with no pause (-8.8 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 39:36:12 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-e02-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e02-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e02-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e03-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e03-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e03-x3": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 4:93:9 with no pause (-8.7 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "restart breaks off after 4:93:9 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-e04-x1": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 51:24:3 with no pause (-12.1 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "restart breaks off after 51:24:3 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-e05-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e05-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e05-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e05-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e05-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e05-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e05-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e06-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e07-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e07-x2": {
+   "refused": {
+    "pauseForm": [
+     "6:22:12 said before a pause, then 6:76:12 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 6:22:12 runs on into 6:76:12, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e07-x3": {
+   "refused": {
+    "pauseForm": [
+     "6:81:22 said before a pause, then 6:78:17 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 6:81:22 runs on into 6:78:17, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e07-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e07-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e07-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e07-x7": {
+   "refused": {
+    "pauseForm": [
+     "6:32:13 said before a pause, then 6:84:5 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 6:32:13 runs on into 6:84:5, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e07-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e07-x9": {
+   "refused": {
+    "pauseForm": [
+     "6:151:42 said before a pause, then 6:88:15 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 6:151:42 runs on into 6:88:15, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e07-x10": {
+   "refused": {
+    "pauseForm": [
+     "6:94:21 said before a pause, then 6:90:5 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 6:94:21 runs on into 6:90:5, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e08-x1": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 26:117:4 with no pause (-9.9 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 26:117:4 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-e09-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e09-x2": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 78:9:2 with no pause (-18.1 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "restart breaks off after 78:9:2 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-e09-x3": {
+   "refused": {
+    "pauseForm": [
+     "78:20:4 said before a pause, then 78:12:3 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 78:20:4 runs on into 78:12:3, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e09-x4": {
+   "refused": {
+    "pauseForm": [
+     "78:20:4 said before a pause, then 78:15:2 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 78:20:4 runs on into 78:15:2, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e09-x5": {
+   "refused": {
+    "pauseForm": [
+     "78:6:4 said before a pause, then 78:18:5 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 78:6:4 runs on into 78:18:5, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e09-x6": {
+   "refused": {
+    "pauseForm": [
+     "78:35:6 said before a pause, then 78:20:4 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 78:35:6 runs on into 78:20:4, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e09-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e09-x8": {
+   "refused": {
+    "pauseForm": [
+     "78:21:4 said before a pause, then 78:28:3 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 78:21:4 runs on into 78:28:3, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e09-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e10-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e10-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e10-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e10-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e10-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e10-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e10-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e10-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e10-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e10-x10": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 44:33:5 with no pause (-8.5 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 44:33:5 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-e10-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e10-x12": {
+   "refused": {
+    "pauseForm": [
+     "44:27:4 said before a pause, then 44:37:11 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 44:27:4 runs on into 44:37:11, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e10-x13": {
+   "refused": {
+    "pauseForm": [
+     "44:27:4 said before a pause, then 44:39:4 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 44:27:4 runs on into 44:39:4, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e11-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e11-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e11-x3": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 55:33:15 with no pause (-9.8 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 55:33:15 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-e11-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e11-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e11-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e11-x7": {
+   "refused": {
+    "pauseForm": [
+     "55:62:3 said before a pause, then 55:42:4 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 55:62:3 runs on into 55:42:4, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e11-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e11-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e11-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e11-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e11-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e11-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e12-x1": {
+   "refused": {
+    "pauseForm": [
+     "11:51:13 said before a pause, then 11:72:7 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 11:51:13 runs on into 11:72:7, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e12-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e12-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e12-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e12-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e12-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e12-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x4": {
+   "refused": {
+    "pauseForm": [
+     "50:19:9 said before a pause, then 50:9:7 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 50:19:9 runs on into 50:9:7, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e13-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x15": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x16": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x17": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e13-x18": {
+   "refused": {
+    "pauseForm": [
+     "50:19:9 said before a pause, then 50:37:3 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 50:19:9 runs on into 50:37:3, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e14-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e14-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e14-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e14-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e14-x5": {
+   "refused": {
+    "pauseForm": [
+     "23:88:14 said before a pause, then 23:56:3 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 23:88:14 runs on into 23:56:3, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e14-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e14-x7": {
+   "refused": {
+    "pauseForm": [
+     "23:21:15 said before a pause, then 23:60:10 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 23:21:15 runs on into 23:60:10, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e14-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e14-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e14-x10": {
+   "refused": {
+    "pauseForm": [
+     "23:39:5 said before a pause, then 23:66:6 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 23:39:5 runs on into 23:66:6, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e14-x11": {
+   "refused": {
+    "pauseForm": [
+     "23:22:4 said before a pause, then 23:68:5 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 23:22:4 runs on into 23:68:5, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e14-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e14-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e14-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e14-x15": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e14-x16": {
+   "refused": {
+    "pauseForm": [
+     "23:21:15 said before a pause, then 23:77:11 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 23:21:15 runs on into 23:77:11, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e14-x17": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e14-x18": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e14-x19": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e14-x20": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e14-x21": {
+   "refused": {
+    "pauseForm": [
+     "23:114:9 said before a pause, then 23:87:3 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 23:114:9 runs on into 23:87:3, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e15-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x2": {
+   "refused": {
+    "pauseForm": [
+     "26:28:9 said before a pause, then 26:102:4 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 26:28:9 runs on into 26:102:4, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e15-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x7": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 26:112:4 with no pause (-9.5 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 26:112:4 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-e15-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x15": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x16": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x17": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x18": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x19": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x20": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x21": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x22": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x23": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x24": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x25": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e15-x26": {
+   "refused": {
+    "pauseForm": [
+     "26:188:5 said before a pause, then 26:157:2 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 26:188:5 runs on into 26:157:2, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e15-x27": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x15": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x16": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 26:138:2 with no pause (-15.7 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "restart breaks off after 26:138:2 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-e16-x17": {
+   "refused": {
+    "pauseForm": [
+     "26:205:4 said before a pause, then 26:139:8 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 26:205:4 runs on into 26:139:8, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e16-x18": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x19": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e16-x20": {
+   "refused": {
+    "otherRecording": [
+     "26:147:1 (244/026) joined to 74:40:2 (244/074), host 244/026",
+     "74:40:3 (244/074) joined to 26:148:1 (244/026), host 244/026"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "piece from another recording (sources/mp3quran/244/074.wav)"
+   ]
+  },
+  "lab-v1.2-e16-x21": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e17-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e17-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e17-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e17-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e17-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e17-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e17-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e17-x8": {
+   "refused": {
+    "pauseForm": [
+     "54:14:6 said before a pause, then 54:41:4 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 54:14:6 runs on into 54:41:4, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e18-x1": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 77:30:5 with no pause (-12.3 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 77:30:5 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-e19-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x9": {
+   "refused": {
+    "pauseForm": [
+     "37:86:5 said before a pause, then 37:102:16 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 37:86:5 runs on into 37:102:16, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e19-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x15": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x16": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x17": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x18": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 37:129:2 with no pause (-10.1 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "restart breaks off after 37:129:2 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-e19-x19": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x20": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x21": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x22": {
+   "refused": {
+    "pauseForm": [
+     "37:154:4 said before a pause, then 37:141:2 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 37:154:4 runs on into 37:141:2, which the host says linked"
+   ]
+  },
+  "lab-v1.2-e19-x23": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x24": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e19-x25": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e20-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e20-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e20-x3": {
+   "refused": {
+    "otherRecording": [
+     "83:11:3 (300/083) joined to 20:6:12 (300/020), host 300/083",
+     "20:6:12 (300/020) joined to 83:12:1 (300/083), host 300/083"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "piece from another recording (sources/mp3quran/300/020.wav)"
+   ]
+  },
+  "lab-v1.2-e20-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e20-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e20-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e20-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-e20-x8": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 83:30:2 with no pause (-8.5 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "restart breaks off after 83:30:2 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-e20-x9": {
+   "refused": {
+    "otherRecording": [
+     "83:31:5 (300/083) joined to 11:27:29 (300/011), host 300/083",
+     "11:27:29 (300/011) joined to 83:32:1 (300/083), host 300/083"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "piece from another recording (sources/mp3quran/300/011.wav)"
+   ]
+  },
+  "lab-v1.2-e20-x10": {
+   "refused": {
+    "otherRecording": [
+     "83:33:4 (300/083) joined to 11:27:29 (300/011), host 300/083",
+     "11:27:29 (300/011) joined to 83:34:1 (300/083), host 300/083"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "piece from another recording (sources/mp3quran/300/011.wav)"
+   ]
+  },
+  "lab-v1.2-p01-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p01-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p01-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p01-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p01-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p01-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p01-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p01-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p01-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p01-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p01-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p01-x12": {
+   "refused": {
+    "otherRecording": [
+     "26:140:4 (22/026) joined to 41:28:4 (22/041), host 22/026",
+     "41:28:4 (22/041) joined to 26:140:5 (22/026), host 22/026"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "piece from another recording (sources/mp3quran/22/041.wav)"
+   ]
+  },
+  "lab-v1.2-p01-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p01-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p01-x15": {
+   "refused": {
+    "pauseForm": [
+     "26:15:2 said before a pause, then 26:149:4 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 26:15:2 runs on into 26:149:4, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p02-x1": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 55:65:3 with no pause (-9.9 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 55:65:3 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-p03-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p03-x2": {
+   "refused": {
+    "pauseForm": [
+     "36:62:8 said before a pause, then 36:14:6 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 36:62:8 runs on into 36:14:6, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p03-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p03-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p03-x5": {
+   "refused": {
+    "pauseForm": [
+     "36:45:11 said before a pause, then 36:20:7 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 36:45:11 runs on into 36:20:7, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p03-x6": {
+   "refused": {},
+   "moved": [
+    {
+     "before": "36:23:1",
+     "srcS": 215.395,
+     "movedS": 0.01
+    }
+   ],
+   "gate": []
+  },
+  "lab-v1.2-p03-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p03-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p03-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p03-x10": {
+   "refused": {
+    "pauseForm": [
+     "36:15:15 said before a pause, then 36:30:9 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 36:15:15 runs on into 36:30:9, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p03-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p03-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p03-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p03-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p03-x15": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 36:40:11 with no pause (-20.8 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "restart breaks off after 36:40:11 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-p03-x16": {
+   "refused": {
+    "pauseForm": [
+     "36:22:8 said before a pause, then 36:41:6 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 36:22:8 runs on into 36:41:6, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p03-x17": {
+   "refused": {
+    "pauseForm": [
+     "36:64:5 said before a pause, then 36:43:4 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 36:64:5 runs on into 36:43:4, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p04-x1": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 72:14:8 with no pause (-13.5 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 72:14:8 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-p05-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p05-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p05-x3": {
+   "refused": {
+    "pauseForm": [
+     "8:29:9 said before a pause, then 8:6:6 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 8:29:9 runs on into 8:6:6, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p05-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p05-x5": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 8:9:3 with no pause (-7.7 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 8:9:3 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-p05-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p05-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p06-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p06-x2": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 40:34:8 with no pause (-8.6 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 40:34:8 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-p06-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p06-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p06-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p06-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p06-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p07-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p07-x2": {
+   "refused": {},
+   "moved": [
+    {
+     "before": "18:57:13",
+     "srcS": 1104.665,
+     "movedS": 0.08
+    }
+   ],
+   "gate": []
+  },
+  "lab-v1.2-p07-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p07-x4": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 18:61:7 with no pause (-9.0 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 18:61:7 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-p07-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p08-x1": {
+   "refused": {
+    "pauseForm": [
+     "12:86:13 said before a pause, then 12:47:12 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 12:86:13 runs on into 12:47:12, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p08-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p08-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p08-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p08-x5": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 12:54:7 with no pause (-11.2 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "restart breaks off after 12:54:7 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-p08-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p08-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p08-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p09-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p09-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p09-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p09-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p09-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p09-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p09-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p09-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p09-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p09-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p09-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p09-x12": {
+   "refused": {
+    "pauseForm": [
+     "19:12:7 said before a pause, then 19:83:8 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 19:12:7 runs on into 19:83:8, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p09-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x3": {
+   "refused": {
+    "pauseForm": [
+     "26:223:4 said before a pause, then 26:112:5 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 26:223:4 runs on into 26:112:5, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p10-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x7": {
+   "refused": {},
+   "moved": [
+    {
+     "before": "26:121:1",
+     "srcS": 767.615,
+     "movedS": 0.07
+    }
+   ],
+   "gate": []
+  },
+  "lab-v1.2-p10-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x15": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x16": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x17": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x18": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x19": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x20": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x21": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x22": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x23": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x24": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x25": {
+   "refused": {
+    "pauseForm": [
+     "26:35:8 said before a pause, then 26:164:10 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 26:35:8 runs on into 26:164:10, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p10-x26": {
+   "refused": {
+    "pauseForm": [
+     "26:70:6 said before a pause, then 26:166:10 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 26:70:6 runs on into 26:166:10, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p10-x27": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p10-x28": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p11-x1": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 5:39:6 with no pause (-9.9 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 5:39:6 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-p12-x1": {
+   "refused": {
+    "pauseForm": [
+     "77:43:6 said before a pause, then 77:8:3 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 77:43:6 runs on into 77:8:3, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p12-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p12-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p12-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p12-x5": {
+   "refused": {},
+   "moved": [
+    {
+     "before": "77:22:1",
+     "srcS": 72.485,
+     "movedS": 0.03
+    }
+   ],
+   "gate": []
+  },
+  "lab-v1.2-p12-x6": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 77:25:3 with no pause (-11.1 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "restart breaks off after 77:25:3 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-p12-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p12-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p12-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p12-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p12-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p12-x12": {
+   "refused": {
+    "pauseForm": [
+     "77:8:3 said before a pause, then 77:41:4 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 77:8:3 runs on into 77:41:4, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p12-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p12-x14": {
+   "refused": {
+    "pauseForm": [
+     "77:9:3 said before a pause, then 77:46:3 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 77:9:3 runs on into 77:46:3, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p13-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p13-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p13-x3": {
+   "refused": {
+    "pauseForm": [
+     "9:8:16 said before a pause, then 9:81:18 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 9:8:16 runs on into 9:81:18, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p13-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p13-x5": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 9:85:15 with no pause (-17.1 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 9:85:15 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-p13-x6": {
+   "refused": {
+    "pauseForm": [
+     "9:8:16 said before a pause, then 9:86:15 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 9:8:16 runs on into 9:86:15, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p13-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p14-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p14-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p14-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p14-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p14-x5": {
+   "refused": {
+    "otherRecording": [
+     "37:85:1 (198/037) joined to 26:70:2 (198/026), host 198/037",
+     "26:70:5 (198/026) joined to 37:85:6 (198/037), host 198/037"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "piece from another recording (sources/mp3quran/198/026.wav)"
+   ]
+  },
+  "lab-v1.2-p14-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p14-x7": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 37:91:5 with no pause (-10.5 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 37:91:5 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-p14-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p14-x9": {
+   "refused": {
+    "pauseForm": [
+     "37:86:5 said before a pause, then 37:96:4 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 37:86:5 runs on into 37:96:4, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p14-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p15-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p15-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p15-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p15-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p15-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p15-x6": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 38:14:5 with no pause (-16.2 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 38:14:5 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-p16-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p16-x2": {
+   "refused": {
+    "pauseForm": [
+     "54:49:5 said before a pause, then 54:23:2 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 54:49:5 runs on into 54:23:2, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p16-x3": {
+   "refused": {
+    "pauseForm": [
+     "54:52:2 said before a pause, then 54:25:6 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 54:52:2 runs on into 54:25:6, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p16-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p16-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p16-x6": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 54:32:4 with no pause (-13.8 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "restart breaks off after 54:32:4 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-p16-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p16-x8": {
+   "refused": {
+    "pauseForm": [
+     "54:49:5 said before a pause, then 54:36:5 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 54:49:5 runs on into 54:36:5, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p16-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p16-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p17-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p18-x1": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 26:154:6 with no pause (-9.7 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "repeat breaks off after 26:154:6 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-p19-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p19-x2": {
+   "refused": {
+    "pauseForm": [
+     "51:52:13 said before a pause, then 51:25:2 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 51:52:13 runs on into 51:25:2, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p19-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p19-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p19-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p19-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p19-x7": {
+   "refused": {
+    "pauseForm": [
+     "51:54:5 said before a pause, then 51:36:3 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 51:54:5 runs on into 51:36:3, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p19-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p19-x9": {
+   "refused": {
+    "pauseForm": [
+     "51:23:9 said before a pause, then 51:40:4 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 51:23:9 runs on into 51:40:4, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p19-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p19-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p19-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p19-x13": {
+   "refused": {
+    "breakLinked": [
+     "breaks off after 51:48:2 with no pause (-12.1 dB)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "restart breaks off after 51:48:2 mid-phrase, not at a pause"
+   ]
+  },
+  "lab-v1.2-p19-x14": {
+   "refused": {
+    "pauseForm": [
+     "51:28:6 said before a pause, then 51:49:7 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 51:28:6 runs on into 51:49:7, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p19-x15": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x2": {
+   "refused": {
+    "pauseForm": [
+     "26:161:7 said before a pause, then 26:112:5 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 26:161:7 runs on into 26:112:5, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p20-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x6": {
+   "refused": {
+    "pauseForm": [
+     "26:218:4 said before a pause, then 26:120:3 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 26:218:4 runs on into 26:120:3, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p20-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x8": {
+   "refused": {
+    "pauseForm": [
+     "26:28:9 said before a pause, then 26:125:3 which the host says linked"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "pause-form donor 26:28:9 runs on into 26:125:3, which the host says linked"
+   ]
+  },
+  "lab-v1.2-p20-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x14": {
+   "refused": {},
+   "moved": [
+    {
+     "before": "26:143:1",
+     "srcS": 1018.895,
+     "movedS": 0.01
+    }
+   ],
+   "gate": []
+  },
+  "lab-v1.2-p20-x15": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x16": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x17": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x18": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x19": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x20": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.2-p20-x21": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  }
+ }
+}

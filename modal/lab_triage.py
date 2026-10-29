@@ -1,7 +1,7 @@
 """Two-model triage of a lab test set (.scratch/lab/issues/17-two-model-triage.md, spec decisions 16-17).
 
-    modal run modal/lab_triage.py --test-set lab-v1.2
-    modal run modal/lab_triage.py --test-set lab-v1.2 --spot-edits 15 --spot-clean 15 --seam-spot 0.1 --seam-cap 20 --seed 17
+    modal run modal/lab_triage.py --test-set lab-v1.3
+    modal run modal/lab_triage.py --test-set lab-v1.3 --spot-edits 15 --spot-clean 15 --seam-spot 0.1 --seam-cap 20 --seed 17
 
 Every case of the test set's studio copy (tools/lab_triage_core.py: each planted edit, repeat and restart, and each
 clean window) is scored by both likelihood arms, in parallel:
@@ -14,8 +14,9 @@ clean window) is scored by both likelihood arms, in parallel:
 
 Writes /lab/data/<testSet>/triage-v1.json (every case: both models' scores and decisions, outcome, spot-check flags,
 counts, the comparison with earlier verdicts), the listening queue /lab/data/<testSet>/review/triage.json (ticket 06
-format), and the per-spelling model records under /lab/data/<testSet>/triage/. Verdicts already given on the same ids
-(e.g. the v1 listening check) carry over; the queue marks them. Verdicts on an earlier test set (--prior) carry over
+format) and its both-mismatch items alone in review/triage-confirm.json (maxBad 0, to hear first), and the
+per-spelling model records under /lab/data/<testSet>/triage/. Verdicts already given on the same ids (e.g. the v1
+listening check) carry over; the queue marks them. Verdicts on an earlier test set (--prior) carry over
 only to a case whose clip is byte-identical (the same 16 kHz PCM the models hear) with the same text; they are copied
 into this test set's review file with a note naming the earlier item.
 """
@@ -38,8 +39,9 @@ VOL = "/lab"
 DATA, REVIEWS = Path(VOL) / "data", Path(VOL) / "reviews"
 NAME = "triage-v1"
 QUEUE = "review/triage.json"
+CONFIRM = "review/triage-confirm.json"
 EARLIER = "review/v1-check.json"
-PRIOR = "lab-v1.1"
+PRIOR = "lab-v1.2"
 TRANSCRIBER = "nemotron-3.5-transcribe"
 PROMPT = "verbatim"  # the decision prompt of the calibrated likelihood arm
 
@@ -267,6 +269,7 @@ def run(test_set: str, spot: tuple[int, int], seam_spot: tuple[float, int], seed
         return {k: doc[k] for k in ("testSet", "models", "counts", "reviewed", "gpu", "queue", "cases")} | {"fastconformer": fc_res, "nemotron": nem_res}
     _write(base / f"{NAME}.json", doc)
     _write(base / QUEUE, res["queue"])
+    _write(base / CONFIRM, T.confirm_queue(res["queue"]))
     _carry(test_set, carried, queue_rel)
     _write(base / "triage" / f"{NAME}.nemotron.json", {"version": 1, "testSet": test_set, "createdAt": now(), "model": nem_meta,
                                                          "items": {i: {"candidates": r["scores"], "ctcGreedy": r["ctcGreedy"], "seconds": r["seconds"],
@@ -274,11 +277,11 @@ def run(test_set: str, spot: tuple[int, int], seam_spot: tuple[float, int], seed
     _write(base / "triage" / f"{NAME}.fastconformer.json", {"version": 1, "testSet": test_set, "createdAt": now(), "model": fc_meta,
                                                               "items": {i: {k: r[k] for k in ("transcript", "scores", "ctcGreedy")} for i, r in fc_res.items()}})
     vol.commit()
-    return {k: doc[k] for k in ("testSet", "models", "counts", "reviewed", "carriedFromPrior", "gpu", "queue")}
+    return {k: doc[k] for k in ("testSet", "models", "counts", "reviewed", "carriedFromPrior", "gpu", "queue")} | {"confirm": f"{test_set}/{CONFIRM}"}
 
 
 @app.local_entrypoint()
-def main(test_set: str = "lab-v1.2", spot_edits: int = 15, spot_clean: int = 15, seam_spot: float = 0.10, seam_cap: int = 20, seed: int = 17,
+def main(test_set: str = "lab-v1.3", spot_edits: int = 15, spot_clean: int = 15, seam_spot: float = 0.10, seam_cap: int = 20, seed: int = 17,
          chunk: int = 100, nemotron_gpus: int = 4, fc_gpus: int = 1, force: bool = False, out: str = "", only: str = "", no_write: bool = False,
          prior: str = PRIOR):
     t0 = time.time()
@@ -296,4 +299,6 @@ def main(test_set: str = "lab-v1.2", spot_edits: int = 15, spot_clean: int = 15,
         print(f"{cls:16} {row}")
     print("reviewed:", json.dumps({k: v for k, v in r["reviewed"].items() if k != "items"}, ensure_ascii=False))
     print("gpu:", json.dumps(r["gpu"]))
-    print(f"queue https://amal-invest--tilawa-lab-review-web.us-east.modal.run/review?queue={r['queue']}  wrote {out} [{time.time() - t0:.0f} s]")
+    for q in (r["confirm"], r["queue"]):
+        print(f"queue https://amal-invest--tilawa-lab-review-web.us-east.modal.run/review?queue={q}")
+    print(f"wrote {out} [{time.time() - t0:.0f} s]")

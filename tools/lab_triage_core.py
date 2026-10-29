@@ -284,6 +284,11 @@ def triage(cases: list[dict], scores: dict[str, dict[str, dict]], test_set: str,
     return {"cases": out, "queue": queue, "counts": counts(real, items), "spotIds": sorted(spot_ids), "seamIds": sorted(seam_ids)}
 
 
+def confirm_queue(queue: dict) -> dict:
+    """The both-mismatch items of a triage queue on their own, to hear first: diagnostic, so no bad item is allowed."""
+    return {**queue, "maxBad": 0, "items": [it for it in queue["items"] if it["triage"]["reasons"][0] == "both-mismatch"]}
+
+
 def counts(cases: list[dict], items: list[dict]) -> dict:
     by = {}
     for c in cases:

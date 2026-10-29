@@ -5,6 +5,7 @@
 """uv run --python cpython-3.12-macos-aarch64-none --with numpy --with scipy --with pytest pytest tools/test_lab_sessions.py"""
 
 import json
+from collections import Counter
 import sys
 from pathlib import Path
 
@@ -48,6 +49,8 @@ def test_joins_rules():
     assert not S.joins(link(("closed", "م"), firm), link(None, ("firm", "ب")))  # ikhfa shafawi
     assert not S.joins(link(("closed", "ل"), firm), link(None, ("firm", "ل")))  # idgham of like letters
     assert S.joins(link(("vowel", "\u064e"), firm), pause, restart=True) and not S.joins(pause, link(None, firm), restart=True)
+    assert S.joins(pause, pause, donor=True) and not S.joins(pause, link(None, firm), donor=True)  # a pause-form donor lands on a pause
+    assert S.joins(link(("vowel", "\u064e"), firm), link(None, firm), donor=True)
 
 
 def test_twin_words_are_symmetric_one_word_swaps():
@@ -350,6 +353,119 @@ def test_rule_audit_names_the_rules_an_old_splice_breaks():
     wrong = next(x for x in s["splices"] if x["type"] == "wrong_word")
     wrong["donor"]["srcEndS"] = wrong["donor"]["srcStartS"] + 0.2
     assert S.rule_audit(s, {rec.key: rec}, REF)[wrong["id"]]["refused"] == {"donorShort": ["112:1:2 0.20 s"]}
+
+
+def test_pause_form_donors_only_land_on_a_host_pause():
+    import random
+
+    rec, _ = ikhlas(inner_gap=0.05, inner_db=-12.0, surah=107)  # in-ayah joins linked, ayah ends paused
+    d = S.Donors([rec], REF)
+    links = [b for k in range(len(rec.words) - 1) if (b := rec.boundary(k, REF)) and b["kind"] == "link"]
+    old = [(b, it) for b in links for it in d.items if S.joins(b, it[2]) and S.joins(it[3], b) and it[3]["kind"] == "pause"]
+    assert old  # ayah-final donors (pause after them) the old rule put into linked host speech
+    got = [x for b in links for seed in range(20) if (x := d.find(b, b, rec, 0.0, (1e6, 1e6), lambda r, k: True, random.Random(seed)))]
+    assert got and all(x[3]["kind"] == "link" for x in got)
+    pause = next(b for k in range(len(rec.words) - 1) if (b := rec.boundary(k, REF)) and b["kind"] == "pause")
+    x = d.find(pause, pause, rec, 0.0, (1e6, 1e6), lambda r, k: True, random.Random(1))
+    assert x and x[3]["kind"] == "pause"  # at a host pause a pause-form donor is what fits
+    rec, _ = ikhlas(inner_gap=0.05, inner_db=-12.0, surah=114)
+    k = rec.pos[(3, 1)]
+    spans = S.Donors([rec], REF).twin_spans(rec, k, S.twin_words(REF)[rec.words[k]["ref"]])
+    assert spans and all(x["seam"][2]["kind"] == x["seam"][3]["kind"] or x["seam"][2]["kind"] == "link" for x in spans)
+
+
+def test_donors_come_from_the_host_recording_only():
+    import random
+
+    host, _ = ikhlas()
+    other, _ = ikhlas(surah=114)
+    d = S.Donors([host, other], REF)
+    assert {r.key for r, *_ in d.items} == {host.key, other.key}
+    b = host.boundary(5, REF)
+    got = {d.find(b, b, host, 0.0, (1e6, 1e6), lambda r, k: True, random.Random(seed))[0].key for seed in range(20)}
+    assert got == {host.key}
+    twins = S.twin_words(REF)
+    deep, _ = ikhlas(inner_gap=0.05, inner_db=-12.0, surah=114)
+    k = deep.pos[(3, 1)]
+    assert S.Donors([deep], REF).twin_spans(other, k, twins[deep.words[k]["ref"]]) == []  # the twin is in another recording
+
+
+def test_repeats_and_restarts_break_off_at_a_pause():
+    for gap, db in ((0.05, -12.0), (0.35, -20.0)):
+        rec, _ = ikhlas(inner_gap=gap, inner_db=db, surah=87)
+        last = len(rec.ayahs) - 1
+        for n in range(6):
+            win = {"id": f"lab-v1-t{n}", "rec": rec.key, "split": "practice", "kind": "normal", "dis": 0, "startAyah": 1, "endAyah": last + 1,
+                   "first": 0, "last": last, "startS": S.start_cut(rec, 0), "endS": S.end_cut(rec, last), "clean": True}
+            edits = S.plan_edits(win, {rec.key: rec}, REF, S.Donors([rec], REF), {}, [], seed=n)
+            assert len(edits) == 1 and edits[0]["cls"] in ("repeat", "restart")
+            e = edits[0]
+            assert e["seam"][0]["kind"] == "pause" and rec.pause_after(e["k1"])
+            if gap < 0.3:  # nowhere to stop inside an ayah: a repeat at its end
+                assert e["cls"] == "repeat" and rec.words[e["k1"] + 1]["ayah"] != rec.words[e["k1"]]["ayah"]
+
+
+def test_added_words_and_skips_are_capped_at_a_share_of_the_mistakes(monkeypatch):
+    monkeypatch.setattr(S, "forms_other", lambda *a: False)  # a scan of every ayah per site, not what this tests
+    total = Counter()
+    for surah in (78, 87, 89):
+        rec, _ = ikhlas(surah=surah)
+        last = len(rec.ayahs) - 1
+        for n in range(4):
+            win = {"id": f"lab-v1-c{surah}-{n}", "rec": rec.key, "split": "practice", "kind": "normal", "dis": 0, "startAyah": 1,
+                   "endAyah": last + 1, "first": 0, "last": last, "startS": S.start_cut(rec, 0), "endS": S.end_cut(rec, last), "clean": False}
+            got = Counter(e["cls"] for e in S.plan_edits(win, {rec.key: rec}, REF, S.Donors([rec], REF), {}, [], seed=n)
+                          if e["cls"] not in ("repeat", "restart"))
+            for c, share in S.CAPPED.items():
+                assert got[c] <= int(share * sum(got.values())) + 1
+            total += got
+    assert all(0 < total[c] <= 0.33 * sum(total.values()) for c in S.CAPPED) and total["wrong_word"] + total["omitted_word"] > 0
+
+
+def test_seam_gate_holds_the_lab_v1_2_rules():
+    def splice(kind, seams, donor=None):
+        side = lambda audio, name, kind, piece, which: {"audio": audio, "boundary": kind, "piece": piece, ("after" if which == "out" else "before"): name, "cutDb": -20.0}
+        return {"id": "x1", "type": kind, "host": {"audio": "h.wav"}, "donor": donor,
+                "seams": [{"outS": 10.0 + i, "out": side(*o, "out"), "in": side(*n, "in")} for i, (o, n) in enumerate(seams)]}
+
+    added = splice("added_word", [(("h.wav", "1:1:3", "link", "host"), ("h.wav", "1:5:4", "link", "donor")),
+                                  (("h.wav", "1:5:4", "pause", "donor"), ("h.wav", "1:1:4", "link", "host"))])
+    assert S.splice_rule_failures(added) == ["pause-form donor 1:5:4 runs on into 1:1:4, which the host says linked"]
+    added["seams"][1]["in"]["boundary"] = "pause"
+    assert S.splice_rule_failures(added) == []
+    # re-read from the source alignment: 1:5:4 ends its ayah, 1:1:3 | 1:1:4 is a short gap (linked)
+    words = {(1, 1, w): {"startS": w * 1.0, "endS": w * 1.0 + 0.9, "cutDb": -20.0} for w in range(1, 6)} | {(1, 5, w): {"startS": 50.0 + w, "endS": 50.9 + w, "cutDb": -20.0} for w in range(1, 5)}
+    assert S.splice_rule_failures(added, lambda audio: words)[0].startswith("pause-form donor")
+    other = splice("wrong_word", [(("h.wav", "1:1:2", "pause", "host"), ("o.wav", "2:1:1", "pause", "donor")),
+                                  (("o.wav", "2:1:1", "pause", "donor"), ("h.wav", "1:1:4", "pause", "host"))])
+    assert S.splice_rule_failures(other) == ["piece from another recording (o.wav)"]
+    restart = splice("restart", [(("h.wav", "1:1:3", "link", "host"), ("h.wav", "1:1:1", "pause", "host"))])
+    assert S.splice_rule_failures(restart) == ["restart breaks off after 1:1:3 mid-phrase, not at a pause"]
+    assert S.rule_of(S.splice_rule_failures(restart)[0]) == "breakLinked" and S.rule_of(S.splice_rule_failures(other)[0]) == "otherRecording"
+    _, _, _, s = build()
+    wrong = next(x for x in s["splices"] if x["type"] == "wrong_word")
+    assert [(m["out"]["piece"], m["in"]["piece"]) for m in wrong["seams"]] == [("host", "donor"), ("donor", "host")]
+    rep = next(x for x in s["splices"] if x["type"] == "repeat")
+    assert rep["seams"][0]["out"]["piece"] == rep["seams"][0]["in"]["piece"] == "host"
+    bad = json.loads(json.dumps(s))
+    r = next(x for x in bad["splices"] if x["type"] == "restart" or x["type"] == "repeat")
+    r["seams"][0]["out"]["boundary"] = "link"
+    g = S.seam_gate(bad, gate_checks(bad))
+    assert [f["splice"] for f in g["failed"]] == [r["id"]] and g["spliceRules"] == {r["id"]: ["repeat breaks off after 112:1:4 mid-phrase, not at a pause"]}
+    assert S.seam_gate_summary([g], "t")["summary"]["spliceRules"] == {"pauseForm": 0, "otherRecording": 0, "breakLinked": 1}
+
+
+def test_rule_audit_names_the_lab_v1_2_rules():
+    rec, _, _, s = build()
+    wrong = next(x for x in s["splices"] if x["type"] == "wrong_word")
+    linked, _ = ikhlas(cut_db={12: -10.0})  # the host runs on from 112:4:3 into 112:4:4, where the donor's out seam lands
+    got = S.rule_audit(s, {rec.key: linked}, REF)[wrong["id"]]["refused"]
+    assert list(got) == ["pauseForm"] and got["pauseForm"][0].startswith("112:1:2 said before a pause")
+    other, _ = ikhlas(surah=114)
+    moved = json.loads(json.dumps(s))
+    w = next(x for x in moved["splices"] if x["type"] == "wrong_word")
+    w["seams"][0]["in"]["audio"] = w["seams"][1]["out"]["audio"] = w["donor"]["audio"] = other.audio
+    assert "otherRecording" in S.rule_audit(moved, {rec.key: rec, other.key: other}, REF)[w["id"]]["refused"]
 
 
 def test_twin_spans_take_shared_words_to_reach_a_clean_seam():

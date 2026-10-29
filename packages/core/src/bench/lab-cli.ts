@@ -4,8 +4,8 @@
  *   pnpm --filter @tilawa/core lab                                 # on Modal via tools/lab.py run --shards N
  *   pnpm --filter @tilawa/core lab --merge /lab/runs/<run>         # shards -> /lab/runs/<run>/score.json
  *
- * Manifest (`--manifest`, default $LAB_DATA/lab-v1.2/manifest-v1.json), paths relative to its directory:
- *   { "version": 1, "testSet": "lab-v1.2", "sessions": [{ "id", "split": "practice" | "exam", "session": "<BenchSession path>" | {...},
+ * Manifest (`--manifest`, default $LAB_DATA/lab-v1.3/manifest-v1.json), paths relative to its directory:
+ *   { "version": 1, "testSet": "lab-v1.3", "sessions": [{ "id", "split": "practice" | "exam", "session": "<BenchSession path>" | {...},
  *     "tags"?: ["strict", ...], "audio"?: { "phone"?: "<wav>", "studio"?: "<wav>" },
  *     "evidence"?: { "<listener>": { "phone"?: "<path>", "studio"?: "<path>" } } }] }
  * Evidence not listed is looked up at the manifest's "evidencePattern" ({id}, {listener}, {variant}), else evidence/<listener>/<id>.<variant>.json.
@@ -26,7 +26,7 @@ import type { DataChecks, LabExclusions, LabReport, SessionResult, Split, Varian
 import type { BenchSession, SessionEvidence } from "./sessions.js";
 
 const { values } = parseArgs({ args: process.argv.slice(2).filter(a => a !== "--"), options: {
-  manifest: { type: "string", default: process.env.LAB_MANIFEST ?? `${process.env.LAB_DATA ?? "/lab/data"}/lab-v1.2/manifest-v1.json` },
+  manifest: { type: "string", default: process.env.LAB_MANIFEST ?? `${process.env.LAB_DATA ?? "/lab/data"}/lab-v1.3/manifest-v1.json` },
   listener: { type: "string", default: DEFAULT_CANDIDATE },
   /** Teacher reference listener; `none` skips it. Scored only where its evidence exists. */
   teacher: { type: "string", default: "teacher" },
