@@ -117,7 +117,8 @@ def _pool(fn, clips: list[dict], workers: int) -> list[dict]:
         return list(ex.map(safe, clips))
 
 
-@app.function(image=image, volumes={VOL: vol}, secrets=[modal.Secret.from_name("soniox")], timeout=2 * 60 * 60, cpu=2)
+@app.function(image=image, volumes={VOL: vol}, secrets=[modal.Secret.from_name("soniox")], timeout=2 * 60 * 60, cpu=2,
+              max_containers=4)
 def soniox(clips: list[dict], workers: int = 8) -> dict:
     """clips: [{id, path, startS, endS}] only."""
     http = _Http(os.environ["SONIOX_API_KEY"])
@@ -161,7 +162,8 @@ def soniox(clips: list[dict], workers: int = 8) -> dict:
             "pricePerHour": PRICE_PER_HOUR["soniox"], "wallS": round(time.time() - t0, 1), "results": res}
 
 
-@app.function(image=image, volumes={VOL: vol}, secrets=[modal.Secret.from_name("speechmatics")], timeout=2 * 60 * 60, cpu=2)
+@app.function(image=image, volumes={VOL: vol}, secrets=[modal.Secret.from_name("speechmatics")], timeout=2 * 60 * 60, cpu=2,
+              max_containers=4)
 def speechmatics(clips: list[dict], workers: int = 8) -> dict:
     """clips: [{id, path, startS, endS}] only."""
     http = _Http(os.environ["SPEECHMATICS_API_KEY"])
@@ -207,7 +209,7 @@ def _record(vendor: str, test_set: str) -> Path:
     return REVIEWS / test_set / f"asr-{vendor}.json"
 
 
-def transcribe(vendor: str, test_set: str, items: list[dict], force: bool, chunk: int = 50, containers: int = 4, workers: int = 8) -> dict:
+def transcribe(vendor: str, test_set: str, items: list[dict], force: bool, chunk: int = 50, workers: int = 8) -> dict:
     """{id: record} for items [{id, audio}] from asr-<vendor>.json, transcribing what isn't there yet (same audio sha256,
     same request config, no error). New results are merged into the record after every chunk, so a rerun resumes."""
     p = _record(vendor, test_set)
@@ -218,8 +220,7 @@ def transcribe(vendor: str, test_set: str, items: list[dict], force: bool, chunk
     have = {i: {**by_sha[s], "audio": it["audio"]} for it in items if (s := shas[(i := it["id"])]) in by_sha}
     need = [{"id": it["id"], **it["audio"]} for it in items if it["id"] not in have]
     print(f"{vendor} {test_set}: {len(have)} reused, {len(need)} to transcribe", flush=True)
-    fn = FUNCS[vendor].with_options(max_containers=containers)
-    calls = [fn.spawn(need[k: k + chunk], workers) for k in range(0, len(need), chunk)]
+    calls = [FUNCS[vendor].spawn(need[k: k + chunk], workers) for k in range(0, len(need), chunk)]
     audio = {it["id"]: it["audio"] for it in items}
     for n, call in enumerate(calls):
         res = call.get()
@@ -377,9 +378,9 @@ def bakeoff(vendors: list[str], force: bool = False) -> dict:
             heard[v] |= transcribe(v, ts, [r for r in rows if r["testSet"] == ts], force)
     stats = {v: _stats_doc(v, rows, heard[v], ctrl_rows) for v in vendors}
     old = A.pairing(rows, lambda r: r["fastconformer"])
-    cands = {v: {"badAccepted": len(s["pairing"]["judge"]["badAccepted"]), "okAccepted": s["pairing"]["judge"]["okAccepted"]["k"],
-                 "badFlagged": s["readings"]["judge"]["badFlagged"]["k"], "oneEditFlagged": s["controls"]["judge"]["oneEdit"]["k"],
-                 "costPerHour": PRICE_PER_HOUR[v]} for v in vendors}
+    cands = {v: {"badAccepted": len(st["pairing"]["judge"]["badAccepted"]), "okAccepted": st["pairing"]["judge"]["okAccepted"]["k"],
+                 "badFlagged": st["readings"]["judge"]["badFlagged"]["k"], "oneEditFlagged": st["controls"]["judge"]["oneEdit"]["k"],
+                 "costPerHour": PRICE_PER_HOUR[v]} for v, st in stats.items()}
     winner = A.pick_winner(cands)
     for v in vendors:
         for ts in TEST_SETS:
