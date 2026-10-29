@@ -33,6 +33,18 @@ NORMAL_MAX = 5
 PAUSE_DB = -12.0  # an ayah boundary is a pause when its quietest frame is this far below the ayah level
 INNER_PAUSE = (0.3, -15.0)  # an in-ayah gap at least this long and quiet is a pause too
 LINK_DB = -3.0  # a linked (no pause) boundary is cut only when its quietest frame is at least this quiet
+# The render's seam checks (<id>.checks.json) as a gate (spec decision 16, ticket 17): a seam or word past a limit fails
+# its splice, which is refused and rebuilt like an automated-check failure. Set well outside lab-v1.1's worst
+# (level error 0.02 dB above -60 dBFS, click ratio 1.65, seam depth -5.4 dB, worst word 0.996, words cut short by
+# 15 ms); docs/benchmarks/lab-triage-v1.md.
+SEAM_LIMITS = {
+    "levelErrDb": 1.0,  # output level beside the seam against the same source audio, either side
+    "levelFloorDbfs": -60.0,  # ... judged only where the source side is louder than this (dither-level silence moves freely)
+    "clickRatio": 2.5,  # peak sample step in the crossfade against the 99th percentile step around it
+    "seamDb": LINK_DB,  # crossfade level against the session's speech level: no louder than the planner lets a link cut
+    "wordCorr": 0.99,  # every unclipped said word found at its labelled time (lag 0) with at least this correlation
+    "clipS": 0.025,  # a word shortened by a cut loses at most this much
+}
 LEN_RATIO_MAX = 1.05  # an ayah whose teacher decode is this much longer than its text holds unlabelled speech (a natural repeat)
 AYAH_PER_MAX = 0.10  # nor is an ayah the teacher matches less well than this (squeezed PER of its source alignment)
 CUT_SLACK_S = 0.02  # the cut must lie in the aligned gap, give or take this
@@ -1181,6 +1193,90 @@ def refusals_from_checks(checks: dict, sessions: dict[str, dict], previous: dict
     for k in ("ayahs", "sites", "donors"):
         doc[k].sort(key=lambda x: json.dumps({f: x[f] for f in x if f not in ("reason", "from", "iteration")}, sort_keys=True))
     return doc, new
+
+
+def seam_failures(seam: dict, limits: dict = SEAM_LIMITS) -> list[str]:
+    """Why one checks.json seam record fails the gate (empty when it passes)."""
+    out = []
+    errs = [abs(seam[o] - seam[s]) for o, s in (("beforeDb", "srcBeforeDb"), ("afterDb", "srcAfterDb")) if seam[s] > limits["levelFloorDbfs"]]
+    if errs and max(errs) > limits["levelErrDb"]:
+        out.append(f"seam level off the source by {max(errs):.2f} dB")
+    if (seam.get("clickRatio") or 0) > limits["clickRatio"]:
+        out.append(f"click at the seam (ratio {seam['clickRatio']:.2f})")
+    if seam["seamDb"] > limits["seamDb"]:
+        out.append(f"seam {seam['seamDb']:+.1f} dB against speech")
+    return out
+
+
+def seam_gate(s: dict, checks: dict, aligns: dict | None = None, limits: dict = SEAM_LIMITS) -> dict:
+    """The render checks of one session against SEAM_LIMITS. Each failing seam, unfound word and over-clipped word is
+    put on the splice it belongs to (seams by output time, words by the nearest seam); `failed` is shaped for
+    refusals_from_checks. aligns: {audio: {(surah, ayah, word): align word}} to measure how much each clipped word lost
+    (without it only the counts in checks.json are used)."""
+    owner = {round(m["outS"], 3): x["id"] for x in s["splices"] for m in x["seams"]}
+    times = sorted(owner)
+    fails: dict[str, list[str]] = {}
+    unmapped = []
+
+    def put(t: float, why: str, near: float = 0.0):
+        k = min(times, key=lambda m: abs(m - t), default=None) if near else round(t, 3)
+        if k is not None and (k in owner) and (not near or abs(k - t) <= near):
+            fails.setdefault(owner[k], []).append(why)
+        else:
+            unmapped.append({"session": s["id"], "atS": round(t, 3), "reason": why})
+
+    seams = []
+    for m in checks["seams"]:
+        why = seam_failures(m, limits)
+        seams.append({"outS": m["outS"], "splice": owner.get(round(m["outS"], 3)), "pass": not why, "reasons": why})
+        for w in why:
+            put(m["outS"], w)
+    said = {(json.dumps(t["at"], sort_keys=True), t["role"]): t for t in s["said"]}
+    w = checks["words"]
+    weak = [x for x in w["worst"] if not (x["lagSamples"] == 0 and x["corr"] >= limits["wordCorr"])]
+    for x in weak:
+        t = said.get((json.dumps(x["at"], sort_keys=True), x["role"]))
+        why = f"word {x['at']} not found at its time (lag {x['lagSamples']}, corr {x['corr']})"
+        if t:
+            put((t["startS"] + t["endS"]) / 2, why, near=max(t["endS"] - t["startS"], 0.5))
+        else:
+            unmapped.append({"session": s["id"], "reason": why})
+    unchecked = max(0, w["words"] - w["clipped"] - w["found"] - len(w["worst"]))  # past checks.json's first 10
+    clips = []
+    if aligns is not None:
+        for t in s["said"]:
+            f = t["from"]
+            a = aligns[f["audio"]][(f["surah"], f["ayah"], f["word"])]
+            lost = (a["endS"] - a["startS"]) - (t["endS"] - t["startS"])
+            if lost > 0.0015:
+                clips.append(lost)
+                if lost > limits["clipS"]:
+                    edge = min((t["startS"], t["endS"]), key=lambda e: min((abs(m - e) for m in times), default=1e9))
+                    put(edge, f"word {f['surah']}:{f['ayah']}:{f['word']} cut short by {lost * 1000:.0f} ms", near=0.1)
+    failed = [{"session": s["id"], "splice": k, "id": f"{s['id']}-{k}", "reasons": v} for k, v in sorted(fails.items())]
+    return {"session": s["id"], "seams": len(seams), "seamsPass": sum(x["pass"] for x in seams),
+            "words": w["words"], "wordsChecked": w["words"] - w["clipped"], "wordsFound": w["words"] - w["clipped"] - len(weak) - unchecked,
+            "wordsUnchecked": unchecked, "clipped": w["clipped"], "clipMaxS": round(max(clips), 4) if clips else None,
+            "clipsOver": sum(c > limits["clipS"] for c in clips), "failedSeams": [x for x in seams if not x["pass"]],
+            "failed": failed, "unmapped": unmapped}
+
+
+def seam_gate_summary(rows: list[dict], test_set: str, limits: dict = SEAM_LIMITS) -> dict:
+    """seams-v1.json: per-check pass rates over a test set and the failures shaped for refusals_from_checks."""
+    seams = [x for r in rows for x in r["failedSeams"]]
+    n = sum(r["seams"] for r in rows)
+    return {"version": 1, "kind": "lab-seam-gate", "testSet": test_set, "limits": limits,
+            "summary": {"sessions": len(rows), "seams": n, "seamsPass": n - len(seams),
+                        "byCheck": {"level": n - sum("seam level" in w for x in seams for w in x["reasons"]),
+                                    "click": n - sum(w.startswith("click") for x in seams for w in x["reasons"]),
+                                    "depth": n - sum("against speech" in w for x in seams for w in x["reasons"])},
+                        "words": sum(r["words"] for r in rows), "wordsChecked": sum(r["wordsChecked"] for r in rows),
+                        "wordsFound": sum(r["wordsFound"] for r in rows), "wordsUnchecked": sum(r["wordsUnchecked"] for r in rows),
+                        "clipped": sum(r["clipped"] for r in rows), "clipsOver": sum(r["clipsOver"] for r in rows),
+                        "clipMaxS": max((r["clipMaxS"] or 0 for r in rows), default=0),
+                        "splicesFailed": sum(len(r["failed"]) for r in rows), "unmapped": sum(len(r["unmapped"]) for r in rows)},
+            "failed": [f for r in rows for f in r["failed"]], "unmapped": [u for r in rows for u in r["unmapped"]],
+            "sessions": [{k: r[k] for k in r if k != "failed"} for r in rows]}
 
 
 def manifest(sessions: list[dict]) -> dict:

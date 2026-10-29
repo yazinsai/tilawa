@@ -3,7 +3,8 @@
     modal run modal/lab_build_sessions.py --pilot          # bank, plan, then 2 sessions rendered and checked
     modal run modal/lab_build_sessions.py                  # every session
     modal run modal/lab_build_sessions.py --stage render   # re-render from the stored plan
-    modal run modal/lab_build_sessions.py --stage loop     # build, teacher decode, automated checks, refuse failures, repeat
+    modal run modal/lab_build_sessions.py --stage loop     # build, seam gate, teacher decode, automated checks, refuse failures, repeat; then triage
+    modal run modal/lab_build_sessions.py --stage gate     # the seam gate over the rendered set, report only
 
 Stages (each skips finished outputs; the same seed and inputs give byte-identical files):
     aug     held-out noise (freesound-commercial-50k shards 100-103; the student uses 0-2) and simulated small and
@@ -15,7 +16,11 @@ Stages (each skips finished outputs; the same seed and inputs give byte-identica
             clicks, every said word found at its labelled time in the output, phone/studio lag)
     refuse  the automated checks' studio failures (checks-v1.json, modal/lab_check.py) -> refusals-v1.json, cumulative:
             the next plan rebuilds each failed case elsewhere or drops it (spec decision 16); nothing is patched
-    loop    plan + render, `lab_decode.py --listener teacher`, `lab_check.py`, refuse; until no check fails
+    gate    the render's seam checks against lab_sessions.SEAM_LIMITS (levels, clicks, seam depth, words found, words
+            cut short) -> seams-v1.json; in the loop, failing splices are refused and rebuilt before any decode
+    loop    plan + render, gate, `lab_decode.py --listener teacher`, `lab_check.py`, refuse; until nothing fails. Then
+            `lab_triage.py`: both review models score every case and write the listening queue review/triage.json
+            (ticket 17); the set freezes once that queue is reviewed within its maxBad
 
 All under /lab/data/<set> (lab_sessions.TEST_SET) on the tilawa-lab volume.
 """
@@ -257,6 +262,33 @@ def refuse(iteration: int) -> dict:
     return {"new": new, "totals": {k: len(doc[k]) for k in ("ayahs", "sites", "donors", "unmapped")}, "summary": checks["summary"]}
 
 
+@app.function(volumes={VOL: vol}, cpu=2, memory=8192, timeout=20 * 60)
+def gate(iteration: int, refuse_failed: bool = True) -> dict:
+    """The render's seam checks against lab_sessions.SEAM_LIMITS -> seams-v1.json; with refuse_failed, failing splices
+    join refusals-v1.json like automated-check failures (site and donor), so the next plan rebuilds them."""
+    import lab_sessions as S
+
+    vol.reload()
+    m = json.loads((OUT / "manifest-v1.json").read_text())
+    sessions = {e["id"]: json.loads((OUT / f"sessions/{e['id']}.json").read_text()) for e in m["sessions"]}
+    rows, aligns = [], {}
+    for sid, s in sessions.items():
+        for audio in sorted({t["from"]["audio"] for t in s["said"]} - set(aligns)):
+            a = json.loads((DATA / audio.replace(".wav", ".align.json")).read_text())
+            aligns[audio] = {(w["surah"], w["ayah"], w["word"]): w for w in a["words"]}
+        rows.append(S.seam_gate(s, json.loads((OUT / f"sessions/{sid}.checks.json").read_text()), aligns))
+    doc = {**S.seam_gate_summary(rows, TEST_SET), "iteration": iteration}
+    write(OUT / "seams-v1.json", dumps(doc))
+    new = []
+    if refuse_failed and doc["failed"]:
+        rp = OUT / REFUSALS
+        ref, new = S.refusals_from_checks({"testSet": TEST_SET, "failed": doc["failed"]}, sessions,
+                                          json.loads(rp.read_text()) if rp.exists() else None, iteration)
+        write(rp, dumps(ref))
+    vol.commit()
+    return {"summary": doc["summary"], "failed": doc["failed"], "unmapped": doc["unmapped"], "new": new}
+
+
 def seam_checks(y, plan_pieces, session, load, gains):
     """Per seam: output level just before and after it against the same 20 ms of source on each side (gain applied),
     and the peak sample step inside the crossfade against the steps around it."""
@@ -403,6 +435,12 @@ def main(stage: str = "all", pilot: bool = False, force: bool = False, iteration
             print(f"\n== iteration {it}: build [{time.time() - t0:.0f} s]", flush=True)
             if build(False, False, t0):
                 raise SystemExit("render failed")
+            g = gate.remote(it)
+            print_gate(g, f"== iteration {it}: seam gate", t0)
+            if g["new"]:
+                continue
+            if g["failed"]:
+                raise SystemExit("seam gate failures that refusals didn't remove")
             for cmd in (["modal/lab_decode.py", "--listener", "teacher", "--test-set", TEST_SET],
                         ["modal/lab_check.py", "--test-set", TEST_SET]):
                 print(f"== iteration {it}: {' '.join(cmd)} [{time.time() - t0:.0f} s]", flush=True)
@@ -417,11 +455,29 @@ def main(stage: str = "all", pilot: bool = False, force: bool = False, iteration
             if not [x for x in r["new"] if x["kind"] != "unmapped"]:
                 print(f"converged after {it} iteration(s)")
                 break
-        print(f"total {time.time() - t0:.0f} s")
-        return
+        else:
+            raise SystemExit(f"not converged after {iterations} iterations; no triage")
+        stage = "triage"
+    if stage == "gate":
+        print_gate(gate.remote(0, refuse_failed=False), "seam gate (report only)", t0)
+    if stage == "triage":
+        cmd = ["modal/lab_triage.py", "--test-set", TEST_SET]
+        print(f"== triage: {' '.join(cmd)} [{time.time() - t0:.0f} s]", flush=True)
+        subprocess.run(["modal", "run", *cmd], cwd=ROOT, check=True)
     if stage in ("all", "plan", "render"):
         build(pilot, force, t0, render_too=stage != "plan")
     print(f"total {time.time() - t0:.0f} s")
+
+
+def print_gate(g: dict, head: str, t0: float) -> None:
+    s = g["summary"]
+    print(f"{head}: seams {s['seamsPass']}/{s['seams']} pass (level {s['byCheck']['level']}, click {s['byCheck']['click']}, depth {s['byCheck']['depth']}), "
+          f"words {s['wordsFound']}/{s['wordsChecked']} found, {s['clipsOver']}/{s['clipped']} clipped words over the limit, "
+          f"{s['splicesFailed']} splices failed, {len(g['new'])} new refusals [{time.time() - t0:.0f} s]", flush=True)
+    for f in g["failed"]:
+        print(f"  {f['id']}: {'; '.join(f['reasons'])}")
+    for u in g["unmapped"]:
+        print(f"  unmapped: {json.dumps(u, ensure_ascii=False)}")
 
 
 def build(pilot: bool, force: bool, t0: float, render_too: bool = True) -> int:
