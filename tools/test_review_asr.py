@@ -10,7 +10,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from review_asr_core import (  # noqa: E402
-    cleanup_generation_loops, combine, compare, controls, near_best, norm_words, perturb_text, plain_candidates, plain_spellings,
+    arm_stats, check_summary, check_verdict, cleanup_generation_loops, combine, compare, controls, diacritised_candidates,
+    diacritised_spellings, edit_texts, near_best, norm_words, passes_bar, perturb_text, plain_candidates, plain_spellings,
     plain_transcript, prefer, prescreen, revert_text, score, session_id, wilson,
 )
 
@@ -145,6 +146,67 @@ def test_likelihood_rules_and_loop_guardrail():
     assert near_best(-11.0, -10.0) == "match" and near_best(-13.0, -10.0) == "mismatch"
     assert cleanup_generation_loops("قال " + "ا" * 30) == "قال ا"
     assert cleanup_generation_loops("x " + "ab " * 25) == "x ab "
+
+
+def test_diacritised_spellings_keep_harakat():
+    assert diacritised_spellings("ٱلصَّلَوٰةِ") == ["الصَّلَاةِ"]
+    assert diacritised_spellings("ءَامَنُوا۟") == ["آمَنُوا"]
+    assert diacritised_spellings("ءَالَآءِ") == ["آلَاءِ"]
+    assert diacritised_spellings("فِىٓ") == ["فِي"] and diacritised_spellings("عَلَىٰ") == ["عَلَى"]
+    assert diacritised_spellings("شَىْءٍ") == ["شَيْءٍ"]
+    assert diacritised_spellings("يَسْتَـْٔذِنُكَ") == ["يَسْتَأْذِنُكَ"]
+    assert diacritised_spellings("لَـَٔايَةًۭ") == ["لَآيَةً"]
+    assert diacritised_spellings("مِهَـٰدًۭا") == ["مِهَادًا", "مِهَدًا"]
+    assert diacritised_spellings("يَوْمَئِذٍۢ") == ["يَوْمَئِذٍ"] and diacritised_spellings("لَهُۥ") == ["لَهُ"]
+    assert diacritised_spellings("إِنَّ") == ["إِنَّ"] and diacritised_spellings("أَحْيَآءًۭ") == ["أَحْيَاءً"]
+    assert diacritised_spellings("يُؤْمِنُونَ") == ["يُؤْمِنُونَ"]
+    assert diacritised_spellings("ٱلصَّلَوٰةِ", charset=set("الصلاةِ")) == ["الصلاةِ"]
+    for w in ("ٱلصَّلَوٰةِ", "مِهَـٰدًۭا", "يَسْتَـْٔذِنُكَ", "ءَالَآءِ"):
+        assert {norm_words(s)[0] for s in diacritised_spellings(w)} <= {norm_words(s)[0] for s in plain_spellings(w)}
+
+
+def test_diacritised_candidates_take_the_transcript_spelling():
+    text = "يُكَذِّبُ بِهَا ٱلْمُجْرِمُونَ"
+    assert diacritised_candidates(text, "بِهَا الْمُجْرِمُونَ.") == ["يُكَذِّبُ بِهَا الْمُجْرِمُونَ"]
+    assert diacritised_candidates("ذَٰلِكَ ٱلْكِتَـٰبُ") == ["ذَالِكَ الْكِتَابُ", "ذَالِكَ الْكِتَبُ", "ذَلِكَ الْكِتَابُ", "ذَلِكَ الْكِتَبُ"]
+
+
+def test_edit_texts_mirror_the_teacher_check_window():
+    s = {**session(), "durationS": 10.0}
+    s["said"][2]["op"], s["said"][4]["op"] = "x1", "x2"
+    s["splices"][0]["expected"] = "مَن"
+    w = edit_texts(s, s["splices"][0])
+    assert w["said"] == "رَبَّنَا كَلَّآ لَنَا" and w["original"] == "رَبَّنَا مَن لَنَا" and (w["startS"], w["endS"]) == (0.9, 4.1)
+    w = edit_texts(s, s["splices"][1])
+    assert w["said"] == "لَنَا هَـٰذَا فَزِدْهُ" and w["original"] == "لَنَا فَزِدْهُ" and w["class"] == "added_word"
+    w = edit_texts(s, s["splices"][2])
+    assert w["said"] == "فَزِدْهُ عَذَابًۭا" and w["original"] == "فَزِدْهُ قَدَّمَ عَذَابًۭا"
+    assert edit_texts(s, {"id": "x9", "type": "omitted_word", "expected": "مَن", "startS": -1.0, "endS": -0.5}) is None
+    assert edit_texts(s, {**s["splices"][0], "mutashabihat": True})["class"] == "mutashabihat"
+    w = edit_texts(s, s["splices"][0], context_s=1.0)
+    assert w["said"] == "قَالُوا۟ رَبَّنَا كَلَّآ لَنَا هَـٰذَا" and w["original"] == "قَالُوا۟ رَبَّنَا مَن لَنَا هَـٰذَا" and w["startS"] == 0.0
+    w = edit_texts(s, s["splices"][2], context_s=1.0)
+    assert w["said"] == "هَـٰذَا فَزِدْهُ عَذَابًۭا فِى" and w["original"] == "هَـٰذَا فَزِدْهُ قَدَّمَ عَذَابًۭا فِى"
+
+
+def test_check_verdict_and_summary():
+    assert check_verdict(-10.0, -14.0) == {"pass": True, "llr": 4.0, "reason": None}
+    assert check_verdict(-10.0, -11.0)["reason"] == "can't separate said from original"
+    assert check_verdict(-14.0, -10.0)["reason"] == "prefers the original"
+    assert check_verdict(-10.0, None)["pass"] and not check_verdict(None, -10.0)["pass"]
+    s = check_summary([{"class": "wrong_word", "pass": True}, {"class": "wrong_word", "pass": False}, {"class": "repeat", "pass": True}])
+    assert s["classes"]["wrong_word"] == {"n": 2, "pass": 1, "fail": 1} and s["mistakes"]["n"] == 2 and s["nonErrors"] == {"n": 1, "pass": 1, "fail": 0}
+
+
+def test_arm_stats_and_bar():
+    table = {f"i{k}": {"human": "ok", "label": "clean" if k < 10 else "wrong_word", "oneEditEdit": "repeat" if k == 39 else "sub",
+                       "oneEditWords": 1} for k in range(40)}
+    good = lambda i, k: "match" if k == "labelled" else "mismatch"
+    s = arm_stats(table, good)
+    assert s["agreement"]["k"] == 40 and s["oneEdit"]["flagged"]["k"] == 40 and s["oneWord"]["flagged"]["n"] == 39 and passes_bar(s)
+    leaky = lambda i, k: "match" if k == "labelled" or (k == "oneEdit" and i == "i39") else "mismatch"
+    assert arm_stats(table, leaky)["repeatMisses"] == ["i39"] and not passes_bar(arm_stats(table, leaky))
+    assert arm_stats(table, good)["agreementEdited"]["n"] == 30
 
 
 def test_context_words_never_count():

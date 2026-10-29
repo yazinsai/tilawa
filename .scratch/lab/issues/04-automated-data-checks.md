@@ -63,3 +63,16 @@ Spec: `../spec.md` decision 16.
   - Status stays open for those two items.
 - No scoreboard row: nothing in the scoreboard reads lab-v1.
 - The provisional baseline (`docs/benchmarks/lab-baseline-v1.md`) reads the checks. 10 practice cases carry `dataCheck`; counts are unchanged.
+
+2026-10-29. Independent second listener (ticket 12, `docs/benchmarks/lab-review-asr-v1.md` "Independent data check of every planted edit"):
+
+- What ran: NVIDIA's Arabic FastConformer, which is unrelated to the teacher. Its CTC head scored every planted edit in lab-v1.1, said vs original, over this check's window with a 3-nat margin. Output: `/lab/data/lab-v1.1/checks-fastconformer-v1.json`, with the teacher's result per edit.
+- Studio results:
+  - every omission (42/42), skipped ayah (69/69) and mutashabihat swap (10/10) passes;
+  - wrong words 81/94;
+  - added words only 68/105 and repeats 14/23. Its Quran-trained prior deletes inserted speech, and 3 of the failures are windows the user heard as correct.
+- Against the teacher: no edit passes only FastConformer's check, so nothing suggests a label error.
+- Proposal, not wired; the builder loop is unchanged:
+  - report it beside the teacher's pass;
+  - gate only omitted, skipped, mutashabihat and wrong-word edits on it;
+  - for added words, repeats and restarts, send the ones that neither its likelihood nor its label-blind transcript supports to the listening queue: 28 in studio for lab-v1.1.

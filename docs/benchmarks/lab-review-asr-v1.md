@@ -238,3 +238,135 @@ That saves about 2 minutes per test-set version. The test output was deleted fro
   - `modal run modal/review_asr.py::main --models nemotron-3.5-transcribe --name nemotron-3.5-transcribe`
   - then `modal run modal/review_asr.py::likelihood_main`
   - Arm 1 transcripts are cached by audio sha256, revision and prompt; the likelihood arm always runs on the GPU.
+
+## NVIDIA Arabic FastConformer (2026-10-29)
+
+**Decision: fails both arms and is not wired. The default pre-screen stays `nemotron-likelihood`.** Free transcription matches 23 of your 40 `ok` windows. The CTC likelihood arm reaches 36/40 with a repeat miss. As an independent data check it confirms every omission, skipped ayah and mutashabihat swap, and most wrong words. It does not hold up on added words and repeats: its Quran-trained prior deletes inserted speech, and 3 of its studio failures are windows you heard as correct.
+
+### What ran
+
+| Model | Revision | Where | Config |
+| --- | --- | --- | --- |
+| `nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0` (NeMo 2.7.3, torch 2.15) | `7f32349d952f42a28dce979ba73270aa2bbdfa89` | Modal T4, float32, TF32 off | hybrid Transducer + CTC, ~115M params, CC-BY-4.0; greedy for both decoders (RNNT `greedy_batch`, max 10 symbols; CTC greedy), batch 16 |
+
+- Independence: the model is unrelated to the teacher and the student. Its training data includes `tarteel-ai/everyayah` (390 h of canonical recitation), so its prior is the Quran text. The held-out lab reciters exclude everyayah reciters, so the voices are unseen.
+- Arm 1 is label-blind: the item id and the same 16 kHz window bytes as the other models (all 40 sha256 identical to Nemotron's), with no prompt. The comparison rule and the controls are unchanged. RNNT, the model's default decoder, is the decision decoder; CTC greedy and the two combined are reported too. The rule's normalisation already strips the model's harakat.
+- The code and every rule below (arm 2 and the data check included) were committed in `5d019b0` before any calibration window was transcribed. The only earlier output was a smoke test on `e20` 0–8 s, a window outside the queue.
+- NeMo 2.7.3's `transcribe()` leaves the encoder and the CTC head in train mode (dropout on) while `model.training` still reads False. Any log-probability computed after a `transcribe()` call is therefore noisy, and in the first smoke test it flipped the CTC path between diacritised and plain spellings. `modal/review_fastconformer.py` calls `eval()` after every decode and asserts eval mode before scoring. The smoke test caught this; no calibration output was affected.
+
+### Arm 1: label-blind transcription (fixed rule)
+
+| Who | Agreement (match on your 40 ok) | Called mismatch | Unsure | One-edit flagged | One-edit called mismatch | One-word flagged | Shifted flagged | Repeat misses |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Qwen3-ASR-1.7B | 8/40 (20%, 10–35%) | 13 | 19 | 40/40 (100%, 91–100%) | 38 | 31/31 | 40/40 | none |
+| Whisper large-v3 | 7/40 (18%, 9–32%) | 15 | 18 | 36/40 (90%, 77–96%) | 32 | 31/31 | 40/40 | 4 (`e08-x1`, `p05-x6`, `e05-x7`, `e12-x3`) |
+| Nemotron 3.5 Transcribe | 23/40 (58%, 42–71%) | 12 | 5 | 38/40 (95%, 84–99%) | 35 | 29/31 (94%, 79–98%) | 40/40 | none |
+| **FastConformer, RNNT** | **23/40 (58%, 42–71%)** | 3 | 14 | **39/40 (98%, 87–100%)** | 31 | **31/31 (100%, 89–100%)** | 40/40 | **`p05-x6`** |
+| FastConformer, CTC greedy | 19/40 (48%, 33–62%) | 5 | 16 | 39/40 (98%, 87–100%) | 34 | 31/31 | 40/40 | `p05-x6` |
+| FastConformer, both decoders | 18/40 (45%, 31–60%) | 5 | 17 | 39/40 | 34 | 31/31 | 40/40 | `p05-x6` |
+
+- It ties Nemotron on agreement with a model about 260 times smaller, and it hallucinated nothing.
+- The one control it let through is the dangerous kind. On `p05-x6` it wrote `فَثَبِّتُوا الَّذِينَ آمَنُوا` once, so the text with the repeat removed reads as a match.
+- Most rejections are unsure, not mismatch (14 of 17). They are dropped edge words, which is why its agreement sits far below its control sensitivity.
+
+Why FastConformer (RNNT) rejects correct recitation, counted over your 40 `ok` items:
+
+| Failure mode | Items | Count |
+| --- | --- | --- |
+| Match | | 23 |
+| Partial or dropped edge word (window-edge words missing or merged with a neighbour's sound) | `e13-x4`, `e14-x4`, `p10-x6`, `p13-x12`, `e05-x7` (leading restart fragment), `e12-x3`, `e02-studio-85`, `p03-studio-5`, `p19-phone-5`, `e15-phone-229` (the `فَبِ` of `فَبِأَىِّ` merged into `آلاء`) | 10 |
+| Genuine mishearing, at a seam or on a phone copy | `p09-x8` (planted `قُوَّةً` at the seam heard as `أخوت`), `e10-studio-5` (`وإذا كالوهم` as `ألا يالوهم`), `e07-phone-293` (`قَرَاطِيسَ` as `قَضَاطِعَ`, `وَتُخْفُونَ` as `وَتُبْوُونَ`) | 3 |
+| Planted word dropped, or output cut short | `e15-x8` (planted `لِلْأَنَامِ` dropped), `p15-x8` (`لحق مثل` only), `e19-x12` (`فَأَغْوَيْنَاكُمْ` only) | 3 |
+| Canonicalisation (planted repeat collapsed to the verse) | `p05-x6` | 1 |
+| Orthography or normalisation | | 0 |
+| Hallucination | | 0 |
+
+- The CTC head adds 5 rejections and recovers 1. Two of the five are CTC letter doubling (`مسسلممة`, `العصصفْفِ`), which is orthographic, and three are clipped words (`ون` for `عَنِ`, `وول` for `وَأُو۟لَـٰٓئِكَ`, `فيه` for `فِيهِمَا`).
+- Phone copies: 3 of 7 rejected (1 mishearing, 2 edge), the same rate as Nemotron.
+
+### Arm 2: which text fits better (CTC likelihood, not an opinion)
+
+The model scores given texts with its CTC head: the forced-alignment log-likelihood of the text's SentencePiece pieces, summed over alignments. That head reads the audio encoder only. Unlike Nemotron's LM score, it has no autoregressive text model, but its encoder was trained on canonical recitation.
+
+- **What was exposed:** per window, the labelled text, its one-edit control and its shifted control. Never the label type.
+- **Spellings**, fixed in `5d019b0`:
+  - **diac (the decision reading):** `diacritised_candidates` in `tools/review_asr_core.py`. Uthmani forms are turned into modern spelling that keeps the harakat; Quranic marks are dropped; the dagger alef is tried as `ا` and as nothing. A word shared with the window's own label-blind CTC greedy text or RNNT transcript takes that spelling. The best spelling is kept.
+  - **plain:** the same with no harakat (`plain_candidates`).
+  - The model writes with harakat, and its CTC head charges tens of nats for a spelling it wouldn't write (the smoke window's own RNNT text scored −118 against −0.7 for the greedy path). So the diacritised forms are the model's natural writing system, and both candidates of a pair get the same treatment.
+- **Rules:** the same as Nemotron's. Pairwise means the claimed text must beat the alternative by at least 2 nats; at least 2 nats worse is a mismatch; anything in between is unsure. Near-best means within 2 nats of the CTC greedy path.
+
+| Reading, rule | Agreement | One-edit flagged | One-word flagged | Shifted flagged | Repeat or restart misses |
+| --- | --- | --- | --- | --- | --- |
+| Nemotron LM, pairwise (above) | 39/40 (98%, 87–100%) | 39/40 (98%, 87–100%) | 30/31 (97%) | 40/40 | none |
+| **FastConformer CTC, diac, pairwise** | **36/40 (90%, 77–96%)** | **37/40 (92%, 80–97%)** | **29/31 (94%, 79–98%)** | 40/40 | **`p05-x6`** |
+| FastConformer CTC, plain, pairwise | 35/40 (88%, 74–95%) | 35/40 (88%, 74–95%) | 28/31 (90%) | 40/40 | `p05-x6`, `e05-x7` |
+| FastConformer CTC, diac, near-best | 10/40 (25%, 14–40%) | 40/40 | 31/31 | 40/40 | none |
+| FastConformer CTC, plain, near-best | 7/40 (18%, 9–32%) | 40/40 | 31/31 | 40/40 | none |
+| Both must clear: Nemotron LM and FastConformer diac, pairwise (exploratory, in-sample) | 35/40 (88%, 74–95%) | 40/40 (100%, 91–100%) | 31/31 | 40/40 | none |
+
+- **It gets Nemotron's dangerous miss right.** On `p12-x7` the planted `مِهَادًا` beats the canonical `كِفَاتًا` by 30.0 nats; its greedy path wrote `كِهَادًا`.
+- **It fails where its prior pulls hardest: inserted speech.** All 14 clean windows agree. The 4 edited windows that fail are:
+  - `p05-x6`, a repeat: the text without the repeat wins by 98.9 nats. The greedy path has the phrase once; the head spends blanks on the repeated speech rather than emit it twice.
+  - `p15-x8` (`قَوْمٌ`) and `e19-x12` (`كَيْفَ`), added words: the canonical text wins by 41.2 and 2.8 nats.
+  - `p09-x8`, a wrong word at a seam: unsure, at 0.2 nats.
+- On the 26 edited windows it is 22/26. The median winning margin is 50 nats, against 30 for Nemotron.
+- Plain spelling is worse and adds a restart miss (`e05-x7`), which supports scoring with harakat.
+- The two models miss different things: Nemotron misses the planted wrong word, FastConformer the repeat and the added words. Requiring both to clear flags every control, but agreement drops to 35/40, below the 38/40 bar. In pre-screen use it would clear 21 of 26 edited windows, against Nemotron's 25, so you would hear 4 more per version, but the `p12-x7` hole would be closed. This was designed after seeing both arms, so it's in-sample.
+
+### Independent data check of every planted edit
+
+Ticket 04's checks use the teacher, so they aren't independent. This check scores, for every planted edit in lab-v1.1 (320 mistakes plus 40 repeats and restarts, each in the studio and phone copies), the said text against the original text with FastConformer's CTC head.
+
+- **Window:** the same as the teacher check: word before, edit, word after, using labelled times from the session JSON, padded 0.1 s (`edit_texts`).
+- **Pass:** the said text wins by at least 3.0 nats (the teacher check's `LLR_MIN`), using diacritised candidates spelled against the window's own label-blind transcripts. An original with no CTC path, such as a skipped ayah too long for the window, counts as infinitely worse.
+- The rule was committed in `5d019b0` before the run.
+
+| Class | n | Teacher, studio (phone) | **FastConformer, studio** (phone) | FastConformer, 2 s context, studio (phone), exploratory |
+| --- | --- | --- | --- | --- |
+| wrong word | 94 | 94 (88) | **81** (77) | 83 (81) |
+| mutashabihat | 10 | 10 (7) | **10** (10) | 10 (10) |
+| omitted word | 42 | 42 (40) | **42** (42) | 42 (42) |
+| added word | 105 | 105 (93) | **68** (54) | 77 (65) |
+| skipped passage | 69 | 69 (65) | **69** (69) | 69 (69) |
+| repeat | 23 | 23 (20) | **14** (11) | 18 (19) |
+| restart | 17 | 17 (17) | **17** (14) | 11 (13) |
+| **mistakes** | 320 | 320 (293) | **270 (84%)** (252) | 281 (267) |
+| **repeats and restarts** | 40 | 40 (37) | **31** (25) | 29 (32) |
+
+- **Studio against the teacher:**
+  - 301 edits pass both checks and 59 pass only the teacher's. None passes only FastConformer's, and none fails both.
+  - Every failure is a window the teacher hears cleanly, by 9–165 nats (median 47).
+- **Phone against the teacher:**
+  - 261 pass both, 69 only the teacher's, 16 only FastConformer's, and 14 fail both.
+- **The failures look like the model, not the labels.**
+  - 46 of the 59 studio failures are added words (37) or repeats (9), the classes where its prior deletes speech. The other 13 are wrong words.
+  - 3 of them are windows you listened to and marked `ok`: `e19-x12` (added `كَيْفَ`), `e08-x1` and `p15-x5` (repeats).
+  - Window length doesn't explain it: pass rates are flat from 2 s to over 4 s.
+  - Empty transcripts don't explain it either: 48 windows got no RNNT text, and 35 of those still pass.
+- **Secondary readings** (studio mistakes):
+  - plain spelling 291/320, but repeats are worse (12/23);
+  - llr > 0: 283/320;
+  - the label-blind RNNT transcript is closer to the said text than to the original: 268/320.
+  - 36 studio edits are supported by neither the likelihood nor the transcript: 21 added words, 8 wrong words and 7 repeats.
+- **The 2 s context run** (exploratory, in-sample): shared whole words on each side of both texts. It helps added words and repeats a little (studio mistakes 281/320) but makes restarts worse (17 to 11): the extra copy at the edge gets absorbed, as in the padded runs above.
+
+**What this says about the test set:** a second, unrelated listener confirms every omission, skipped ayah and mutashabihat swap in both copies, and 82–86% of wrong words. Its failures sit in the classes its prior can't hear, include windows a human confirmed, and never point at an edit the teacher was unsure of. Nothing here suggests a label error. It is not strong enough to vouch for added words and repeats on its own.
+
+**Proposal for ticket 04** (not wired; the builder loop is unchanged): add `checks-fastconformer-v1.json` as an independent second opinion, reported beside the teacher's pass.
+- Treat it as a hard second check only for omitted words, skipped passages, mutashabihat swaps and wrong words. In studio that is 202 of 215 passing, plus 13 wrong words for a listen.
+- For added words, repeats and restarts, report it but don't gate on it. Route the edits that neither the likelihood nor the transcript supports to the listening queue instead: 28 added words and repeats in studio for lab-v1.1, about 7 minutes of listening.
+
+### Cost and records
+
+- T4, about 23 s to load. GPU compute was 4 s for arm 1, 8 s for arm 2, and 54 s for each of the two data-check runs (720 windows each).
+- All GPU containers, including the image build, two smoke tests, three debug runs and the exploratory run, came to roughly 12 minutes of T4 time, about $0.15 (estimate; check current Modal pricing).
+- Records on the `tilawa-lab` volume:
+  - `/lab/reviews/lab-v1.1/asr-fastconformer-rnnt.json` and `asr-fastconformer-ctc.json`: arm 1 per item, with the audio sha256, both decoders' text, the CTC greedy path and every comparison;
+  - `asr-fastconformer-likelihood.json`: arm 2 per item, with every spelling's score;
+  - `asr-calibration.fastconformer.json` and `asr-calibration.fastconformer-likelihood.json`: the summaries;
+  - `/lab/data/lab-v1.1/checks-fastconformer-v1.json`: the data check per edit and variant, with the teacher's result alongside, and `checks-fastconformer-v1.ctx2.json`: the exploratory run.
+- Committed tables in this folder: `lab-review-asr-v1-fastconformer.json`, `lab-review-asr-v1-fastconformer-likelihood.json`, `lab-checks-fastconformer-v1.json` and `-ctx2.json`.
+- Rerun:
+  - `modal run modal/review_fastconformer.py::main` (arm 1; reuses saved transcripts unless `--force`);
+  - `modal run modal/review_fastconformer.py::likelihood_main`;
+  - `modal run modal/review_fastconformer.py::check_main [--context 2]`.
