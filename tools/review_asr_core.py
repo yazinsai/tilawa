@@ -348,16 +348,17 @@ def score(decisions: dict[str, str], truth: dict[str, bool]) -> dict:
 
 # Pre-screen.
 
-def prescreen(queue: dict, decisions: dict[str, str], spot: float = 0.10, seed: int = 12, seams: str = "listen") -> dict:
+def prescreen(queue: dict, decisions: dict[str, str], spot: float = 0.10, seed: int = 12, seams: str = "listen",
+              notes: dict[str, str] | None = None) -> dict:
     """The queue the listener still has to hear: every mismatch and unsure item, a seeded `spot` share (rounded up) of the
     auto-cleared matches, and, with seams='listen', every splice (the ASR checks words, not whether a seam sounds natural).
-    Items keep the ticket 06 format; their context gets the reason they are in the queue."""
+    Items keep the ticket 06 format; their context gets the reason they are in the queue, plus `notes[id]` if given."""
     items = queue["items"]
     why = {}
     for it in items:
         d = decisions.get(it["id"], "unsure")
         if d != "match":
-            why[it["id"]] = f"ASR {d}"
+            why[it["id"]] = f"ASR {d}" + (f" ({notes[it['id']]})" if notes and it["id"] in notes else "")
         elif seams == "listen" and it["kind"] == "splice":
             why[it["id"]] = "seam (ASR heard the right words; listen to the join)"
     cleared = sorted(it["id"] for it in items if it["id"] not in why)

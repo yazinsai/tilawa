@@ -117,6 +117,9 @@ def test_prescreen_keeps_disagreements_seams_and_spot_check():
     assert p == prescreen(q, dec)
     assert len(prescreen(q, dec, seams="skip")["items"]) == 2 + 3
     assert all("pre-screen:" in it["context"] for it in p["items"])
+    n = prescreen(q, dec, notes={"i6": "no alternative text"})
+    assert n["prescreen"]["reasons"] == p["prescreen"]["reasons"]
+    assert next(it for it in n["items"] if it["id"] == "i6")["context"].endswith("ASR unsure (no alternative text)")
 
 
 def test_plain_spellings_of_uthmani_words():

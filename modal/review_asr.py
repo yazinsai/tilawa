@@ -2,18 +2,23 @@
 
     modal run modal/review_asr.py::main                                              # calibrate on lab-v1.1 v1-check + me.json
     modal run modal/review_asr.py::main --test-set lab-v1.1 --queue lab-v1.1/review/v1-check.json --reviewer me --force
+    modal run modal/review_asr.py::main --models nemotron-3.5-transcribe --name nemotron-3.5-transcribe [--pad 1]
+    modal run modal/review_asr.py::likelihood_main                                   # Nemotron likelihood arm, after its transcripts
     modal run modal/review_asr.py::prescreen --queue lab-v1.2/review/v1-check.json   # the subset the listener must hear
 
-Two literal ASR models, neither related to the teacher (obadx/muaalem-model-v3_2) or the student: Qwen/Qwen3-ASR-1.7B
-and Whisper large-v3 (faster-whisper, Systran/faster-whisper-large-v3), both on an L4. The transcribers get only the item
-id and audio window, never the text or label, and no prompt. tools/review_asr_core.py then compares each transcript with
+Literal ASR models, none related to the teacher (obadx/muaalem-model-v3_2) or the student: Qwen/Qwen3-ASR-1.7B and
+Whisper large-v3 (faster-whisper, Systran/faster-whisper-large-v3) on an L4, and NVIDIA Nemotron 3.5 Transcribe
+(30B-A4B, Transformers, bf16) on an H100 with a fixed instruction (NEMOTRON_PROMPTS). The transcribers get only the item
+id and audio window, never the text or label. tools/review_asr_core.py then compares each transcript with
 the labelled text (match / mismatch / unsure) and builds the negative controls: the same audio with its planted edit undone
 in the text, a one-word change planted in the text of clean windows, and the text of another item.
 
 Per model, /lab/reviews/<testSet>/asr-<model>.json keeps the model id and revision, config, and per item the audio
 sha256, raw output, transcript and every comparison. Transcripts are reused by audio sha256 and model revision unless
---force. Calibration writes /lab/reviews/<testSet>/asr-calibration.json and docs/benchmarks/lab-review-asr-v1.json.
-Pre-screen writes /lab/data/<testSet>/review/<queue>.prescreen.json in the ticket 06 queue format.
+--force. Calibration writes /lab/reviews/<testSet>/asr-calibration[.<name>].json and docs/benchmarks/lab-review-asr-v1[-<name>].json.
+The likelihood arm (Nemotron scores given candidate texts, so it is not label-blind) adds its scores to
+asr-nemotron-3.5-transcribe.json. Pre-screen (default: the pairwise likelihood mode, the only one that passed) writes
+/lab/data/<testSet>/review/<queue>.prescreen.json in the ticket 06 queue format.
 """
 
 import hashlib
@@ -339,7 +344,7 @@ def _write(p: Path, doc) -> None:
 
 
 @app.function(image=cpu_image, volumes={VOL: vol}, timeout=2 * 60 * 60)
-def calibrate(test_set: str, queue_rel: str, reviewer: str, models: list[str], force: bool, pad: float = 0.0, name: str = "") -> dict:
+def calibrate(test_set: str, queue_rel: str, reviewer: str, models: list[str], force: bool, pad: float = 0.0, label: str = "") -> dict:
     """pad > 0 (exploratory): the models hear the window widened by `pad` seconds each side, and the session's words in
     the widened part are given to the comparison as context that never counts."""
     import review_asr_core as core
@@ -416,7 +421,7 @@ def calibrate(test_set: str, queue_rel: str, reviewer: str, models: list[str], f
     summary = {"version": 1, "testSet": test_set, "queue": queue_rel, "reviewer": reviewer, "createdAt": now(), "padS": pad,
                "models": {m: asr[m]["model"] for m in models}, "rule": rule(core), "humanVerdicts": len(ok), "items": len(items),
                "stats": stats, "table": table}
-    _write(REVIEWS / test_set / f"asr-calibration{'.' + name if name else ''}{tag}.json", summary)
+    _write(REVIEWS / test_set / f"asr-calibration{'.' + label if label else ''}{tag}.json", summary)
     vol.commit()
     return summary
 
@@ -509,12 +514,58 @@ def rule(core) -> dict:
             "combine": "all match -> match; any mismatch and none match -> mismatch; else unsure", "source": "tools/review_asr_core.py"}
 
 
+def _likelihood_decisions(queue: dict, queue_rel: str, force: bool) -> tuple[dict[str, str], str, dict[str, str]]:
+    """The pre-screen that passed calibration (pairwise likelihood): Nemotron first transcribes every window label-blind
+    (for spelling only); then, for windows with a planted edit, it scores the labelled text against the original text
+    (the edit undone), and the labelled text must win by core.LIK_MARGIN. Clean windows have no alternative text and
+    stay unsure, so the listener hears them. Writes /lab/reviews/<testSet>/asr-nemotron-likelihood.<queue>.json."""
+    import review_asr_core as core
+
+    test_set, stem, items, name = queue["testSet"], Path(queue_rel).stem, queue["items"], "nemotron-3.5-transcribe"
+    asr = _transcribe(test_set, items, [name], force, "asr-{model}." + stem + ".json")[name]
+    sessions = {}
+    for it in items:
+        sid = core.session_id(it)
+        if sid not in sessions and (p := DATA / test_set / "sessions" / f"{sid}.json").is_file():
+            sessions[sid] = json.loads(p.read_text())
+    alts, jobs = {}, []
+    for it in items:
+        s = sessions.get(core.session_id(it))
+        if s and it["label"]["type"] != "clean" and (alt := core.revert_text(it, s)):
+            heard = asr["items"][it["id"]]["transcript"]
+            alts[it["id"]] = alt["text"]
+            jobs.append({"id": it["id"], **it["audio"], "candidates": {"labelled": core.plain_candidates(it["text"], heard),
+                                                                       "original": core.plain_candidates(alt["text"], heard)}})
+    res = Nemotron().score.remote(jobs, asr["model"]["promptKey"]) if jobs else {"results": []}
+    by = {r["id"]: r for r in res["results"]}
+    dec, recs = {}, {}
+    for it in items:
+        r, a = by.get(it["id"]), asr["items"][it["id"]]
+        dec[it["id"]] = core.prefer(r["scores"]["labelled"]["llm"], r["scores"]["original"]["llm"]) if r else "unsure"
+        recs[it["id"]] = {"audio": it["audio"], "audioSha256": a["audioSha256"], "raw": a["raw"], "transcript": a["transcript"], "text": it["text"],
+                          "label": it["label"], "original": alts.get(it["id"]), "scores": r and r["scores"], "decision": dec[it["id"]],
+                          "why": None if r else "no alternative text: clean window"}
+    _write(REVIEWS / test_set / f"asr-nemotron-likelihood.{stem}.json",
+           {"version": 1, "testSet": test_set, "queue": queue_rel, "createdAt": now(), "model": asr["model"], "margin": core.LIK_MARGIN,
+            "exposed": "the labelled text and the original text (planted edit undone), respelled without diacritics", "items": recs})
+    return (dec, f"{asr['model']['id']}@{asr['model']['revision']} pairwise likelihood, margin {core.LIK_MARGIN} nats",
+            {i: r["why"] for i, r in recs.items() if r["why"]})
+
+
 @app.function(image=cpu_image, volumes={VOL: vol}, timeout=2 * 60 * 60)
 def prescreen_queue(queue_rel: str, models: list[str], spot: float, seed: int, seams: str, force: bool) -> dict:
     import review_asr_core as core
 
     queue = json.loads((DATA / queue_rel).read_text())
     test_set, stem = queue["testSet"], Path(queue_rel).stem
+    if models == ["nemotron-likelihood"]:
+        combined, used, notes = _likelihood_decisions(queue, queue_rel, force)
+        out = core.prescreen(queue, combined, spot=spot, seed=seed, seams=seams, notes=notes)
+        out["prescreen"] |= {"queue": queue_rel, "models": {"nemotron-likelihood": used}, "decisions": combined, "createdAt": now()}
+        dest = f"{Path(queue_rel).parent}/{stem}.prescreen.json"
+        _write(DATA / dest, out)
+        vol.commit()
+        return {**out["prescreen"], "wrote": dest}
     asr = _transcribe(test_set, queue["items"], models, force, "asr-{model}." + stem + ".json")
     dec = {}
     for name in models:
@@ -589,6 +640,6 @@ def smoke(path: str = "lab-v1.1/sessions/lab-v1.1-e20.studio.wav", start: float 
 
 
 @app.local_entrypoint()
-def prescreen(queue: str, models: str = "qwen3-asr-1.7b,whisper-large-v3", spot: float = 0.10, seed: int = 12, seams: str = "listen", force: bool = False):
+def prescreen(queue: str, models: str = "nemotron-likelihood", spot: float = 0.10, seed: int = 12, seams: str = "listen", force: bool = False):
     r = prescreen_queue.remote(queue, models.split(","), spot, seed, seams, force)
     print(json.dumps({k: v for k, v in r.items() if k != "decisions"}, ensure_ascii=False, indent=1))
