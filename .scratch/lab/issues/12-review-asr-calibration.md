@@ -67,3 +67,27 @@ Run `modal/review_asr.py` on the 40 cases from ticket 07 before showing it the l
   - Trust it only after the spot checks hold over the next one or two versions. It does nothing for training-data samples.
 - Cost: about 20 min of H100 wall time in total, roughly $1.5 (estimate).
 - Records: `/lab/reviews/lab-v1.1/asr-nemotron-3.5-transcribe.json` (arm 1 per item, plus the arm 2 scores under `likelihood`), `asr-nemotron-recitation-prompt.json`, `asr-nemotron-3.5-transcribe.pad1.json`, and the `asr-calibration.nemotron-*.json` summaries. Tables: `docs/benchmarks/lab-review-asr-v1-nemotron-*.json`.
+
+2026-10-29, round 2. **Nemotron error analysis, prompt ablation, rasm matching and ROVER: nothing passes the bar. Best is ROVER at 27/40 with all controls held. The default stays `nemotron-likelihood`.** Full write-up: `docs/benchmarks/lab-review-asr-v1.md`, section "Round 2".
+
+- Part A, the error analysis (from saved outputs, no GPU):
+  - The comparison is not the bottleneck. Crediting every orthography and edge case, Nemotron would reach at most 26/40 (`verbatim`) or 28/40 (`recitation`).
+  - Only `e20-x6` (`كلا علام` for `كالأعلام`) is a pure spelling miss.
+  - The rest are 8 mishearings per run (consonant pairs ث/ذ, ت/ط, tanwin endings, lost /h/), canonical-prior drops at the planted word, and dua or verse-pastiche hallucinations.
+  - 5 of 12 real errors sit at the seam.
+  - Qwen's and Whisper's edge drops are whole words inside the window, so they are not comparison-fixable. Table: `docs/benchmarks/lab-review-asr-v1-errors.json`.
+- Part B, the prompt ablation:
+  - Results: `verbatim` 23, `recitation` 26, `mistakes` (no "Quran") 24, `quran` 26, `plain` 25. Controls held for all; only `recitation` catches `p15-x8`, and only through a hallucination.
+  - Dropping "Quran" does not help, and the mistakes clause is noise. The +1 to +3 comes from leaving the model-card template.
+  - An oracle best prompt per window gives 28/40.
+- Part C, preregistered (but tuned on the same 40 windows):
+  - C1, the rasm comparison with session-time edge context: 25/40 on `recitation`, 23/40 on `verbatim`.
+    - It loses to short skeletons that make one-letter errors heavier.
+    - It adds a new Qwen repeat miss (`p05-x6`), because a context word absorbs a stray heard word.
+  - C2, ROVER over 0.9/1.0/1.1× × raw/denoised (`recitation` prompt): 27/40 (52–80%), one-edit 40/40, one-word 31/31, shifted 40/40, no repeat misses.
+  - C1 + C2: 26/40. Adding Qwen3 and Whisper voters: 26/40.
+  - DeepFilterNet3 costs 5 to 7 matches per run. Nemotron's errors are systematic, so the perturbations barely decorrelate them.
+- Nothing was wired. As a pre-screen, ROVER would keep 28 of 40, against 35 of 40 for `nemotron-likelihood`, but it rests on an opinion that is wrong on a third of correct windows.
+- Cost: about 13 min of H100 wall time plus CPU denoising, roughly $1 (estimate).
+- Records on the volume: `/lab/reviews/lab-v1.1/asr-nemotron-{mistakes,quran,plain}-prompt.json`, `asr-nemotron-rover.json`, `asr-calibration.nemotron-prompt-ablation.json`, `asr-calibration.round2.json`, and `rover/denoised/*.wav`.
+- Possible next step (speculative): free transcription has topped out. What remains is constrained decoding around the labelled text (arm 2's direction) or a model fine-tuned on non-canonical recitation.

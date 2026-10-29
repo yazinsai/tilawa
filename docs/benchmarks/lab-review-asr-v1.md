@@ -379,3 +379,112 @@ Everything below was written down and committed after Part A, and before any new
 - Rows: C1 alone (saved transcripts under `rasm`), C2 alone (ROVER transcripts under the round-1 rule) and C1 + C2 (ROVER under `rasm`). Each also reports one-edit, one-word and shifted flagged, and repeat misses.
 - The bar is `passes_bar`: at least 38/40 agreement, one-edit and one-word flagged ≥ 90%, no repeat misses.
 - If something passes, it becomes a pre-screen option. The default changes only if it clearly beats `nemotron-likelihood` on the bar.
+
+### B. Prompt ablation (preregistered rule, in-sample windows)
+
+Round-1 rule, the same 40 windows and controls. "Flagged" means the control was called mismatch or unsure. Agreement ranges are Wilson 95%.
+
+| Prompt | "Quran" | "repetitions and mistakes" | Agreement | One-edit flagged | One-word flagged | Shifted flagged | Repeat misses | One-edit misses |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `verbatim` (model card, the round-1 decision) | – | – | 23/40 (42–71%) | 38/40 | 29/31 | 40/40 | 0 | `p15-x8`, `e19-x12` |
+| `recitation` | yes | yes | **26/40** (50–78%) | **40/40** | **31/31** | 40/40 | 0 | – |
+| `mistakes` (asked for) | no | yes | 24/40 (45–74%) | 39/40 | 30/31 | 40/40 | 0 | `p15-x8` |
+| `quran` | yes | no | 26/40 (50–78%) | 39/40 | 30/31 | 40/40 | 0 | `p15-x8` |
+| `plain` | no | no | 25/40 (47–76%) | 39/40 | 30/31 | 40/40 | 0 | `p15-x8` |
+
+- **Dropping "Quran" does not help.** `mistakes` loses 2 net against `recitation`: it gains `p10-x6` but loses `e05-x7` (the restart collapsed again), `e08-x1` and `e19-x12`. Without the mistakes clause the pattern repeats: `plain` is 1 below `quran` (`e05-x7`).
+- **The clause does nothing measurable.** `recitation` vs `quran` is +`e19-x12` / −`p10-x6`, and `mistakes` vs `plain` is −`e08-x1`. Both are within noise.
+- **The real gain is leaving the model-card template.** Against `verbatim`, all four "Transcribe this recitation … exactly as recited" prompts recover `e13-x4` and `p12-x7`, and three of the four recover `e08-x1`. All four lose `p06-x1`, which `verbatim` matched. The net is +1 to +3.
+- **`recitation`'s perfect one-edit score is luck.** On `p15-x8` the other three new prompts drop the planted word exactly as `verbatim` did. `recitation` only flags it because it hallucinated a sermon after the planted word (Part A).
+- **Prompt choice is per-window noise, not signal.** 21 windows match under all five prompts and 12 under none. An oracle picking the best prompt per window would reach 28/40.
+- `pick_prompt` chose `recitation` for C2: the most agreement among the prompts with controls ≥ 90% and no repeat misses.
+
+### C. Rasm comparison and ROVER
+
+All rows use the same 40 windows. "C1" is the `rasm` rule, "C2" is ROVER over six perturbed `recitation` transcripts.
+
+| Row | Status | Agreement | One-edit | One-word | Shifted | Repeat misses |
+| --- | --- | --- | --- | --- | --- | --- |
+| Baseline: `recitation`, round-1 rule | exploratory in round 1 | 26/40 (50–78%) | 40/40 | 31/31 | 40/40 | 0 |
+| **C1 alone:** `recitation`, `rasm` | preregistered | 25/40 (47–76%) | 40/40 | 31/31 | 40/40 | 0 |
+| C1 alone: `verbatim`, `rasm` | preregistered | 23/40 (42–71%) | 39/40 | 30/31 | 40/40 | 0 |
+| C1 alone: Qwen3-ASR, `rasm` | preregistered | 5/40 (was 8) | 39/40 | 31/31 | 40/40 | **1 (`p05-x6`, new)** |
+| C1 alone: Whisper, `rasm` | preregistered | 5/40 (was 7) | 36/40 | 31/31 | 40/40 | 4 (as round 1) |
+| **C2 alone:** ROVER, round-1 rule | preregistered | **27/40** (52–80%) | **40/40** | **31/31** | 40/40 | 0 |
+| **C1 + C2:** ROVER, `rasm` | preregistered | 26/40 (50–78%) | 40/40 | 31/31 | 40/40 | 0 |
+| ROVER + Qwen3 + Whisper voters, round-1 or `rasm` | preregistered variant | 26/40 | 40/40 | 31/31 | 40/40 | 0 |
+| ROVER, `rasm-no-edge` / `rasm-no-hamza` / `rasm-phonetic` | sensitivity / sensitivity / exploratory | 25 / 27 / 26 | 40/40 | 31/31 | 40/40 | 0 |
+
+The six ROVER voters on their own, `recitation` prompt, round-1 rule:
+
+| Voter | Raw | Denoised (DeepFilterNet3) |
+| --- | --- | --- |
+| 1.0× | 26/40 (this is the cached `recitation` transcript) | 21/40 |
+| 0.9× | 24/40 (one-edit miss on `e11-x11`) | 19/40 |
+| 1.1× | 25/40 | 20/40 |
+
+Every voter flags all shifted controls and has no repeat misses. In 29 of the 40 windows at least one voter matches, which is the ceiling for any vote over these six.
+
+**Nothing passes the bar.** The best row is ROVER under the round-1 rule: 27/40 with every control flagged, 11 windows short of 38.
+
+#### Why C1 (rasm) loses
+
+The skeleton fixed exactly the two windows Part A predicted, and only with hamza dropped:
+- `e20-x6`: `كلا علام` merges to `كلعلم`;
+- `p03-studio-5`: the session context absorbs the neighbour bleed.
+
+It loses as many elsewhere, for two reasons:
+
+- **Short skeletons make one-letter errors heavier.** With the alifs gone, `مهادا` / `كهادا` becomes `مهد` / `كهد`, 0.67 instead of 0.8, now doubtful (`p12-x7`). In the same way `إنا` / `إننا` is now 0.67 (`e19-x12`). Similarity thresholds tuned on full spellings do not carry over to skeletons. Some of those newly doubtful words were really wrong, for example Qwen and Whisper writing `آلام` (pains) for `آلاء` (bounties), which the round-1 rule accepted at 0.75.
+- **Context words can absorb an unrelated heard word.** On Qwen `p05-x6` the repeat-removed control matches under `rasm`: the edge neighbour `مَعَكُمْ` pairs with a stray heard `آمنوا`, and context words never count. That is a repeat miss the round-1 rule did not have, and it disappears with the edge part off (`rasm-no-edge`). A fix would be to let context words absorb only heard words that match them (sim ≥ 0.75). Making that fix after seeing this result would be tuning on the test, so it was not run.
+
+Phonetic merging changed no Nemotron window. `p05-x6` still fails on `قلوب` → `قلوبهم` even once `فذبطوا` matches.
+
+#### What C2 (ROVER) does
+
+Net +1 against the single `recitation` run.
+
+What it fixed or improved:
+- It fixed `p10-x6`: five of six voters heard `فَانٍ وَيَبْقَى` and outvoted the single run's `فَالْوَاقِعُ`.
+- It moved `e20-x10` from mismatch to unsure.
+
+What it held, sometimes narrowly:
+- It held `e05-x7` only on a 3–3 tie between the raw voters, which kept the broken first attempt, and the denoised ones, which collapsed it into the canonical 26:109.
+- It held `e08-x1` (`لآية` 2 against `لآيتهم` 2 and `لا آتاه` 2).
+
+Nothing it changed let a control through.
+
+- **Denoising hurts.** DeepFilterNet3 costs 5 to 7 matches at every speed. On clean studio windows it pushes the model toward the canonical text: at 1.0× the denoised run loses `e05-x7`, `e08-x1`, `e19-x12`, `e19-x9`, `e12-x3`, `p14-x2` and `p09-studio-317`. On phone copies it causes hallucinations (`p06-phone-173` became `فَإِذَا بَلَغَ الْحُيُولَ …`). At 1.0× it gained only `p10-x6` and `p03-studio-5`. As a result half the voters are worse than the pivot, and the vote mostly restores the raw run rather than improving on it.
+- **Adding Qwen3 and Whisper as voters is a wash (26/40).**
+  - Gains: `p06-x1`, where they outvote the hallucinated `ضل عن سبيلهم` loop, and `p03-studio-5`.
+  - Losses: `p14-x2`, `e08-x1` and `e05-x7`, where their edge drops and collapsed restarts tip close votes.
+- **Errors are correlated.** ROVER only removes errors that differ between perturbations. Nemotron's errors in this set are mostly systematic: the same consonant confusions on both copies of a repeat, the same canonical prior at the planted word, the same edge behaviour. Speed and denoising do not decorrelate them. That is why six voters gain one window.
+
+### Decision
+
+- **Nothing passes, so nothing new is wired.**
+  - The prompt ablation tops out at 26/40.
+  - C1 at 25/40.
+  - C2 at 27/40 (52–80%).
+  - C1 + C2 at 26/40.
+  - Every row keeps its controls, but agreement stays 11 or more windows short of 38/40.
+- **The default stays `nemotron-likelihood`.** It still clears 5 of 40 windows on `v1-check`, so the listener hears 35 of 40.
+  - For comparison, ROVER as a pre-screen would keep 28 of 40: its 13 disagreements, 13 more splices for the seam listen, and a 2-window spot check.
+  - That would save the listener 7 more windows than `nemotron-likelihood` does. But at 27/40 agreement, the cleared windows rest on an opinion that is wrong about a third of the time on correct audio. The bar exists to stop exactly that.
+- **What would change it (speculative):**
+  - The errors left over are mishearings at the planted word and canonical-prior collapses. Neither comparison nor voting fixes those.
+  - The remaining lever is not free transcription. One option is to constrain decoding to the labelled text and its neighbours, which is what arm 2 does. Another is a model fine-tuned on non-canonical recitation, so that its prior stops pulling toward the expected verse.
+
+### Cost and records
+
+- **GPU and cost:**
+  - Modal H100: about 5 min for B (120 transcriptions) and about 7.5 min for the round-2 app. Of those 7.5 min, 3.5 min was the 200 perturbed transcriptions and the rest was the H100 load and CPU stages.
+  - Denoising ran on CPU (8 cores) and took a few minutes.
+  - Roughly $1 in total (estimate).
+- **Records** on the `tilawa-lab` volume:
+  - `/lab/reviews/lab-v1.1/asr-nemotron-{mistakes,quran,plain}-prompt.json`: B, per item;
+  - `asr-nemotron-rover.json`: all six voters per item with prompt, speed, denoise flag and audio sha256, plus the ROVER and ROVER + Qwen + Whisper outputs;
+  - `asr-calibration.nemotron-prompt-ablation.json` and `asr-calibration.round2.json`: every source × rule, with stats and per-item tables;
+  - `rover/denoised/*.wav`: the 40 denoised windows, the inputs behind the recorded hashes.
+- **Tables:** `docs/benchmarks/lab-review-asr-v1-nemotron-prompt-ablation.json`, `docs/benchmarks/lab-review-asr-v1-round2.json` and `docs/benchmarks/lab-review-asr-v1-errors.json` (Part A).
+- **Code:** `rasm`, `compare_rasm`, `edge_context`, `judge_rasm`, `rover`, `calib_stats`, `passes_bar` and `pick_prompt` in `tools/review_asr_core.py`, with tests in `tools/test_review_asr.py`. The run itself is `modal run modal/review_asr.py::round2_main`.
