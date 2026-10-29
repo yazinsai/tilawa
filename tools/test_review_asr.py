@@ -10,7 +10,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from review_asr_core import (  # noqa: E402
-    combine, compare, controls, norm_words, perturb_text, prescreen, revert_text, score, session_id, wilson,
+    cleanup_generation_loops, combine, compare, controls, near_best, norm_words, perturb_text, plain_candidates, plain_spellings,
+    plain_transcript, prefer, prescreen, revert_text, score, session_id, wilson,
 )
 
 
@@ -116,6 +117,31 @@ def test_prescreen_keeps_disagreements_seams_and_spot_check():
     assert p == prescreen(q, dec)
     assert len(prescreen(q, dec, seams="skip")["items"]) == 2 + 3
     assert all("pre-screen:" in it["context"] for it in p["items"])
+
+
+def test_plain_spellings_of_uthmani_words():
+    assert plain_spellings("ٱلصَّلَوٰةِ") == ["الصلاة"]
+    assert plain_spellings("ءَامَنُوا۟") == ["آمنوا"]
+    assert plain_spellings("ءَالَآءِ") == ["آلاء"]
+    assert plain_spellings("يَسْتَـْٔذِنُكَ") == ["يستأذنك"]
+    assert plain_spellings("فِى") == ["في"] and plain_spellings("عَلَىٰ") == ["على"] and plain_spellings("شَىْءٍ") == ["شيء"]
+    assert plain_spellings("إِنَّ") == ["إن"]
+    assert set(plain_spellings("ذَٰلِكَ")) == {"ذالك", "ذلك"}
+
+
+def test_plain_candidates_take_the_transcript_spelling_of_shared_words():
+    text = "يُكَذِّبُ بِهَا ٱلْمُجْرِمُونَ كَٱلْأَعْلَـٰمِ"
+    assert plain_candidates(text, "بها المجرمون، كالاعلام") == ["يكذب بها المجرمون كالاعلام"]
+    many = plain_candidates("ذَٰلِكَ هَـٰذَا ٱلرَّحْمَـٰنِ إِلَـٰهَ")
+    assert len(many) == 8 and len(set(many)) == 8 and "ذلك هذا الرحمن إلاه" in many
+    assert plain_transcript("بها، المجرمون. abc كالأعلام") == "بها المجرمون كالأعلام"
+
+
+def test_likelihood_rules_and_loop_guardrail():
+    assert prefer(-10.0, -15.0) == "match" and prefer(-15.0, -10.0) == "mismatch" and prefer(-10.0, -11.0) == "unsure"
+    assert near_best(-11.0, -10.0) == "match" and near_best(-13.0, -10.0) == "mismatch"
+    assert cleanup_generation_loops("قال " + "ا" * 30) == "قال ا"
+    assert cleanup_generation_loops("x " + "ab " * 25) == "x ab "
 
 
 def test_context_words_never_count():
