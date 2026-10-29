@@ -47,7 +47,8 @@ TITLES = {
 }
 ALSO = {"seam": "a seam spot check", "spot": "a random spot check"}
 ALT_NAME = {"edit": "the text without the planted mistake", "repeat": "the text without the repeat", "clean": "a one-word change of the text"}
-MODEL_NAME = {"nemotron": "Nemotron", "fastconformer": "FastConformer"}
+MODEL_NAME = {"nemotron": "Nemotron", "fastconformer": "FastConformer", "soniox": "Soniox", "speechmatics": "Speechmatics"}
+MODELS = ("nemotron", "fastconformer")
 
 
 # ---- cases ---------------------------------------------------------------------------------------------------------
@@ -194,6 +195,8 @@ def max_bad(n: int, per: int = BAD_PER) -> int:
 def _model_line(name: str, r: dict, group: str) -> str:
     m = MODEL_NAME[name]
     alt = ALT_NAME[group]
+    if r.get("unit") == "letters":
+        return _transcript_line(m, r, alt)
     if r["diff"] is None:
         return {"match": f"{m}: only the label can fit this audio", "mismatch": f"{m}: the label can't fit this audio",
                 "unsure": f"{m}: couldn't score either text"}[r["decision"]]
@@ -205,11 +208,30 @@ def _model_line(name: str, r: dict, group: str) -> str:
     return f"{m}: can't separate the label from {alt} ({d:+.1f})"
 
 
-def why(case: dict, reasons: list[str], spot: tuple[int, int] = (SPOT_EDITS, SPOT_CLEAN)) -> str:
+def _transcript_line(m: str, r: dict, alt: str) -> str:
+    """A label-blind transcript read by review_api_core.judge (letter distances on the rasm skeleton)."""
+    if r["diff"] is None:
+        return f"{m}: no usable transcript"
+    if r.get("reason") == "transcript far from both texts":
+        return f"{m}: what it heard fits neither text"
+    if r.get("reason") == "transcript covers too little of the window":
+        return f"{m}: it heard too little of the window"
+    d = r["diff"]
+    if r["decision"] == "match":
+        return f"{m}: what it heard is closer to the label than to {alt}, by {d} letters"
+    if r["decision"] == "mismatch":
+        return f"{m}: what it heard is closer to {alt} than to the label, by {-d} letters"
+    return f"{m}: what it heard can't separate the label from {alt} ({d:+d} letters)"
+
+
+def why(case: dict, reasons: list[str], spot: tuple[int, int] = (SPOT_EDITS, SPOT_CLEAN), models: tuple[str, str] = MODELS) -> str:
     """The plain sentence at the start of a queue item's context."""
     parts = []
     if reasons[0] in ("both-mismatch", "disagree", "unsure"):
-        parts.append("; ".join(_model_line(m, case[m], case["group"]) for m in ("nemotron", "fastconformer")) + " (nats)")
+        nats = [case[m].get("unit") != "letters" for m in models]
+        lines = [_model_line(m, case[m], case["group"]) + (" nats" if n and not all(nats) and case[m]["diff"] is not None else "")
+                 for m, n in zip(models, nats)]
+        parts.append("; ".join(lines) + (" (nats)" if all(nats) else ""))
     if "seam" in reasons:
         parts.append("Seam: listen to the join (a click, a jump in level or room sound, a clipped start, an unnatural join)")
     if reasons[0] == "spot":
@@ -218,12 +240,13 @@ def why(case: dict, reasons: list[str], spot: tuple[int, int] = (SPOT_EDITS, SPO
     return " · ".join(parts)
 
 
-def queue_item(case: dict, reasons: list[str], carried: dict | None = None, spot: tuple[int, int] = (SPOT_EDITS, SPOT_CLEAN)) -> dict:
+def queue_item(case: dict, reasons: list[str], carried: dict | None = None, spot: tuple[int, int] = (SPOT_EDITS, SPOT_CLEAN),
+               models: tuple[str, str] = MODELS) -> dict:
     it = case["item"]
     title = TITLES[reasons[0]] + "".join(f" · also {ALSO[r]}" for r in reasons[1:] if r in ALSO)
-    ctx = " · ".join(x for x in (why(case, reasons, spot), it.get("title"), it.get("context")) if x)
+    ctx = " · ".join(x for x in (why(case, reasons, spot, models), it.get("title"), it.get("context")) if x)
     tri = {"reasons": reasons, "outcome": case["outcome"], "class": case["class"],
-           **{m: {k: case[m][k] for k in ("decision", "diff")} for m in ("nemotron", "fastconformer")},
+           **{m: {k: case[m][k] for k in ("decision", "diff")} for m in models},
            "alternative": case["alternative"], "alternativeOp": case["alternativeOp"]}
     if carried:
         tri["carriedOver"] = carried
@@ -253,19 +276,21 @@ def carried_over(item: dict, reviews: dict[str, dict], earlier: dict[str, dict])
 
 def triage(cases: list[dict], scores: dict[str, dict[str, dict]], test_set: str, spot: tuple[int, int] = (SPOT_EDITS, SPOT_CLEAN),
            seam_spot: tuple[float, int] = (SEAM_SPOT, SEAM_CAP), seed: int = SEED, reviews: dict[str, dict] | None = None,
-           earlier: dict[str, dict] | None = None) -> dict:
+           earlier: dict[str, dict] | None = None, models: tuple[str, str] = MODELS) -> dict:
     """cases: session_cases (+ reviewed_clean_cases, flagged reviewedOnly). scores: model -> case id -> {claimed,
-    alternative} (None when the model gave no score). spot: (edits and repeats, clean windows) drawn from the
+    alternative} (None when the model gave no score), or a decision already made ({decision, diff, ...}, e.g. a
+    transcript read by review_api_core.judge). spot: (edits and repeats, clean windows) drawn from the
     auto-accepted cases; seam_spot: (share, cap) of the planted edits. Returns {cases, queue, counts}; reviewedOnly
     cases are decided but never counted or queued."""
     reviews, earlier = reviews or {}, earlier or {}
     out = []
     for c in cases:
         r = {**{k: c[k] for k in c if k != "item"}, "item": c["item"]}
-        for m in ("nemotron", "fastconformer"):
+        for m in models:
             sc = scores[m].get(c["id"]) if c["alternative"] is not None else None
-            r[m] = pairwise(sc["claimed"], sc["alternative"], MARGINS[m]) if sc else {"decision": "unsure", "claimed": None, "alternative": None, "diff": None}
-        r["outcome"] = outcome(r["nemotron"]["decision"], r["fastconformer"]["decision"])
+            r[m] = (sc if sc and "decision" in sc else pairwise(sc["claimed"], sc["alternative"], MARGINS[m]) if sc
+                    else {"decision": "unsure", "claimed": None, "alternative": None, "diff": None})
+        r["outcome"] = outcome(r[models[0]]["decision"], r[models[1]]["decision"])
         out.append(r)
     real = [c for c in out if not c.get("reviewedOnly")]
     accepted = [c for c in real if c["outcome"] == "auto-accepted"]
@@ -278,10 +303,10 @@ def triage(cases: list[dict], scores: dict[str, dict[str, dict]], test_set: str,
         c["spotCheck"], c["seamSpotCheck"] = c["id"] in spot_ids, c["id"] in seam_ids
         c["queued"] = reasons_for(c, spot_ids, seam_ids)
         if c["queued"]:
-            items.append(queue_item(c, c["queued"], carried_over(c["item"], reviews, earlier), spot))
+            items.append(queue_item(c, c["queued"], carried_over(c["item"], reviews, earlier), spot, models))
     items.sort(key=lambda it: (REASONS.index(it["triage"]["reasons"][0]), it["id"]))
     queue = {"version": 1, "testSet": test_set, "maxBad": max_bad(len(items)), "items": items}
-    return {"cases": out, "queue": queue, "counts": counts(real, items), "spotIds": sorted(spot_ids), "seamIds": sorted(seam_ids)}
+    return {"cases": out, "queue": queue, "counts": counts(real, items, models), "spotIds": sorted(spot_ids), "seamIds": sorted(seam_ids)}
 
 
 def confirm_queue(queue: dict) -> dict:
@@ -289,7 +314,7 @@ def confirm_queue(queue: dict) -> dict:
     return {**queue, "maxBad": 0, "items": [it for it in queue["items"] if it["triage"]["reasons"][0] == "both-mismatch"]}
 
 
-def counts(cases: list[dict], items: list[dict]) -> dict:
+def counts(cases: list[dict], items: list[dict], models: tuple[str, str] = MODELS) -> dict:
     by = {}
     for c in cases:
         row = by.setdefault(c["class"], {"n": 0, **{o: 0 for o in OUTCOMES}})
@@ -302,7 +327,7 @@ def counts(cases: list[dict], items: list[dict]) -> dict:
         row[c["outcome"]] += 1
     first = Counter(it["triage"]["reasons"][0] for it in items)
     anyr = Counter(r for it in items for r in it["triage"]["reasons"])
-    per_model = {m: dict(Counter(c[m]["decision"] for c in cases)) for m in ("nemotron", "fastconformer")}
+    per_model = {m: dict(Counter(c[m]["decision"] for c in cases)) for m in models}
     return {"cases": len(cases), "outcomes": dict(Counter(c["outcome"] for c in cases)), "byClass": dict(sorted(by.items())),
             "byGroup": groups, "perModel": per_model,
             "queue": {"items": len(items), "byFirstReason": {r: first.get(r, 0) for r in REASONS},
@@ -310,7 +335,7 @@ def counts(cases: list[dict], items: list[dict]) -> dict:
                       "carriedOver": sum("carriedOver" in it["triage"] for it in items), "maxBad": max_bad(len(items))}}
 
 
-def compare_reviewed(cases: list[dict], queue: dict, reviews: dict[str, dict]) -> dict:
+def compare_reviewed(cases: list[dict], queue: dict, reviews: dict[str, dict], models: tuple[str, str] = MODELS) -> dict:
     """Your earlier verdicts against the triage outcome of the same ids (same window and text where `sameWindow`)."""
     by = {c["id"]: c for c in cases}
     rows = {}
@@ -318,9 +343,8 @@ def compare_reviewed(cases: list[dict], queue: dict, reviews: dict[str, dict]) -
         c, v = by.get(it["id"]), reviews.get(it["id"], {}).get("verdict")
         if not c or not v:
             continue
-        rows[it["id"]] = {"verdict": v, "outcome": c["outcome"], "class": c["class"], "nemotron": c["nemotron"]["decision"],
-                          "fastconformer": c["fastconformer"]["decision"], "nemotronDiff": c["nemotron"]["diff"],
-                          "fastconformerDiff": c["fastconformer"]["diff"], "reviewedOnly": bool(c.get("reviewedOnly")),
+        rows[it["id"]] = {"verdict": v, "outcome": c["outcome"], "class": c["class"], **{m: c[m]["decision"] for m in models},
+                          **{f"{m}Diff": c[m]["diff"] for m in models}, "reviewedOnly": bool(c.get("reviewedOnly")),
                           "sameWindow": c["item"]["audio"] == it["audio"] and c["item"]["text"] == it["text"]}
     ok = [r for r in rows.values() if r["verdict"] == "ok"]
     return {"n": len(rows), "ok": len(ok), "outcomesOnOk": dict(Counter(r["outcome"] for r in ok)),

@@ -32,3 +32,12 @@ Open: the random spot check is 144 of the 257 items, 118 of them clean windows. 
 lab-v1.2 (`docs/benchmarks/lab-triage-v1.md`): the spot check is now a fixed seeded sample of 15 auto-accepted edits and repeats plus 15 auto-accepted clean windows, and the seam spot check is 10% of the planted edits, at most 20 (spec decision 17). On lab-v1.1's own cases that gives 129 items instead of 257. On lab-v1.2 there were 1664 cases: 1585 auto-accepted, 10 both-mismatch (9 added words and a restart, all with seams at −7.5 dB or deeper), 53 disagree and 16 unsure. The queue at `lab-v1.2/review/triage.json` has 128 items with maxBad 3. Earlier verdicts carry over only on identical clip bytes and text; none of lab-v1.1's 47 matched.
 
 lab-v1.3 (`docs/benchmarks/lab-triage-v1.md`): there were 1700 cases: 1624 auto-accepted, 6 both-mismatch (5 added words and a wrong word, all linked on both seams, cuts at −8.1 dB or deeper, donors from the host recording), 54 disagree and 16 unsure. The queue at `lab-v1.3/review/triage.json` has 117 items with maxBad 2. The both-mismatch items are also in `lab-v1.3/review/triage-confirm.json` (maxBad 0, diagnostic) to hear first. They share ids with the main queue, so verdicts count in both. Two lab-v1.2 verdicts carried over on identical clips.
+
+API bake-off (`docs/benchmarks/lab-review-asr-v1.md`, "Commercial APIs"; `docs/benchmarks/lab-triage-v1.md`, "Nemotron + Soniox"). The second model was swapped for a commercial ASR's label-blind judge.
+- On your 152 verdicts, Nemotron + Soniox auto-accepts 96/142 ok against 55 for Nemotron + FastConformer. It also auto-accepts 1/10 bad (lab-v1.2 p15-x1, Nemotron +38 nats), against 0/10. Speechmatics: 85/142 and 1/10. Soniox wins by the preregistered rule.
+- Re-triaged lab-v1.3: 1559 auto-accepted, 0 both-mismatch, 19 disagree and 122 unsure. `lab-v1.3/review/triage-soniox.json` has 184 items (maxBad 4), against 117.
+  - The growth is the preregistered margin: 56 of 60 skipped passages and 44 clean windows come out "too close to call". A post hoc attainable-gap margin would give about 112.
+  - The 6 old confirm items (all ok) are now disagree. The Soniox confirm queue is empty.
+- `triage.json` is unchanged and is still the queue to hear.
+- No scoreboard row, because triage moves no lab metric.
+- Open: re-preregister the judge margin on lab-v1.1 and lab-v1.2 only, then rerun lab-v1.3 from the cached transcripts. This needs no API calls.

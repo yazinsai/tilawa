@@ -125,3 +125,14 @@ Run `modal/review_asr.py` on the 40 cases from ticket 07 before showing it the l
 - Cost: about 13 min of H100 wall time plus CPU denoising, roughly $1 (estimate).
 - Records on the volume: `/lab/reviews/lab-v1.1/asr-nemotron-{mistakes,quran,plain}-prompt.json`, `asr-nemotron-rover.json`, `asr-calibration.nemotron-prompt-ablation.json`, `asr-calibration.round2.json`, and `rover/denoised/*.wav`.
 - Possible next step (speculative): free transcription has topped out. What remains is constrained decoding around the labelled text (arm 2's direction) or a model fine-tuned on non-canonical recitation.
+
+Commercial APIs (`docs/benchmarks/lab-review-asr-v1.md`, "Commercial APIs", preregistered in `88db81a`). Soniox `stt-async-v5` (Arabic hint, strict) and Speechmatics `enhanced` heard the same WAVs with only the language, on 152 of your verdicts: 142 ok and 10 bad splices.
+- Soniox has the best free-transcription opinion so far:
+  - 114/142 on the round-1 rule and 130/142 on the new label-blind judge;
+  - 37/40 on the v1-check windows, against 35/40 for `nemotron-likelihood`;
+  - one-edit 40/40, one-word 31/31, shifted 40/40;
+  - one canonicalisation (e02-x3) and no hallucinations.
+- Speechmatics: 86/142 and 105/142, with 17 canonicalisations.
+- Neither can see a bad splice. The spliced word is in the audio and both write it: judge flags 1/10 (Soniox) and 3/10 (Speechmatics). Only Nemotron's likelihood catches them, 9/10.
+- Cost: $0.10 and $0.75 per hour. Total API spend $0.66.
+- Records: `/lab/reviews/<testSet>/asr-{soniox,speechmatics}.json`.
