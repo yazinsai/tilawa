@@ -1,0 +1,3016 @@
+{
+ "version": 1,
+ "rulesOf": "lab-v1.2",
+ "testSet": "lab-v1.1",
+ "summary": {
+  "splices": 360,
+  "planner": {
+   "linkDepth": 149,
+   "onset": 28,
+   "donorShort": 2
+  },
+  "plannerAny": 172,
+  "plannerMovedOnly": 1,
+  "gate": {
+   "linkDepth": 148,
+   "onset": 30,
+   "donorShort": 2
+  },
+  "gateAny": 172
+ },
+ "splices": {
+  "lab-v1.1-e01-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e01-x2": {
+   "refused": {
+    "linkDepth": [
+     "out -7.0 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.0 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e01-x3": {
+   "refused": {
+    "onset": [
+     "28:37:14 after a pause at 750.235 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ء after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e01-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e01-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e02-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e03-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e03-x2": {
+   "refused": {
+    "linkDepth": [
+     "in -5.9 dB (closed tail, limit -6)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -5.9 dB (closed tail, limit -6)"
+   ]
+  },
+  "lab-v1.1-e03-x3": {
+   "refused": {
+    "linkDepth": [
+     "in -5.7 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -5.8 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e04-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e05-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e05-x2": {
+   "refused": {
+    "onset": [
+     "26:20:6 after a pause at 240.655 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ء after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e05-x3": {
+   "refused": {
+    "onset": [
+     "26:20:6 after a pause at 240.655 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ء after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e05-x4": {
+   "refused": {
+    "linkDepth": [
+     "out -6.5 dB (vowel tail, limit -8)",
+     "in -7.3 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -6.5 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -7.3 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e05-x5": {
+   "refused": {
+    "linkDepth": [
+     "out -4.4 dB (vowel tail, limit -8)",
+     "in -6.5 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.5 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -6.5 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e05-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e05-x7": {
+   "refused": {
+    "linkDepth": [
+     "out -7.1 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.1 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e06-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e07-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e07-x2": {
+   "refused": {
+    "linkDepth": [
+     "out -7.6 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.5 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e07-x3": {
+   "refused": {
+    "linkDepth": [
+     "in -6.8 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -6.8 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e07-x4": {
+   "refused": {
+    "linkDepth": [
+     "out -3.5 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.5 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e07-x5": {
+   "refused": {
+    "onset": [
+     "6:82:1 after a pause at 1294.695 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ء after the seam with 45 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e07-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e07-x7": {
+   "refused": {
+    "linkDepth": [
+     "in -3.6 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -3.7 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e07-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e07-x9": {
+   "refused": {
+    "linkDepth": [
+     "in -7.6 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -7.6 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e08-x1": {
+   "refused": {
+    "linkDepth": [
+     "in -7.1 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -7.1 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e09-x1": {
+   "refused": {
+    "linkDepth": [
+     "out -5.2 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -5.2 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e09-x2": {
+   "refused": {
+    "linkDepth": [
+     "in -6.4 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -6.4 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e09-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e09-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e10-x1": {
+   "refused": {
+    "linkDepth": [
+     "in -4.5 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.5 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e10-x2": {
+   "refused": {
+    "linkDepth": [
+     "out -5.1 dB (vowel tail, limit -8)",
+     "out -3.6 dB (long tail, limit -8)",
+     "in -5.1 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -5.1 dB (vowel tail, limit -8)",
+    "linked cut before the seam at -3.7 dB (long tail, limit -8)",
+    "linked cut after the seam at -5.1 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e10-x3": {
+   "refused": {
+    "linkDepth": [
+     "out -3.4 dB (vowel tail, limit -8)",
+     "in -4.6 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.4 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -4.6 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e10-x4": {
+   "refused": {
+    "linkDepth": [
+     "out -5.0 dB (vowel tail, limit -8)",
+     "in -6.8 dB (vowel tail, limit -8)",
+     "out -4.7 dB (vowel tail, limit -8)",
+     "in -5.0 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -5.0 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -6.8 dB (vowel tail, limit -8)",
+    "linked cut before the seam at -4.7 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -5.0 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e10-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e10-x6": {
+   "refused": {
+    "linkDepth": [
+     "out -6.3 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -6.3 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e10-x7": {
+   "refused": {
+    "linkDepth": [
+     "out -3.8 dB (vowel tail, limit -8)",
+     "in -3.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.8 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -3.8 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e10-x8": {
+   "refused": {
+    "linkDepth": [
+     "out -3.7 dB (vowel tail, limit -8)",
+     "in -3.6 dB (long tail, limit -8)",
+     "in -3.0 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.7 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -3.7 dB (long tail, limit -8)",
+    "linked cut after the seam at -3.0 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e10-x9": {
+   "refused": {
+    "onset": [
+     "83:26:1 after a pause at 149.335 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset خ after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e10-x10": {
+   "refused": {
+    "linkDepth": [
+     "in -4.5 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.5 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e10-x11": {
+   "refused": {
+    "linkDepth": [
+     "in -3.7 dB (vowel tail, limit -8)",
+     "out -3.0 dB (long tail, limit -8)",
+     "in -3.6 dB (closed tail, limit -6)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -3.7 dB (vowel tail, limit -8)",
+    "linked cut before the seam at -3.0 dB (long tail, limit -8)",
+    "linked cut after the seam at -3.6 dB (closed tail, limit -6)"
+   ]
+  },
+  "lab-v1.1-e10-x12": {
+   "refused": {
+    "linkDepth": [
+     "in -3.6 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -3.6 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e11-x1": {
+   "refused": {
+    "linkDepth": [
+     "in -5.3 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -5.3 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e11-x2": {
+   "refused": {
+    "linkDepth": [
+     "in -7.3 dB (long tail, limit -8)"
+    ],
+    "onset": [
+     "44:19:7 after a pause at 178.895 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -7.2 dB (long tail, limit -8)",
+    "weak onset ء after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e11-x3": {
+   "refused": {
+    "linkDepth": [
+     "in -7.3 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -7.2 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e11-x4": {
+   "refused": {
+    "linkDepth": [
+     "out -6.8 dB (vowel tail, limit -8)",
+     "in -5.3 dB (long tail, limit -8)"
+    ],
+    "onset": [
+     "44:24:4 after a pause at 221.305 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -6.8 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -5.3 dB (long tail, limit -8)",
+    "weak onset ء after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e11-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e11-x6": {
+   "refused": {
+    "linkDepth": [
+     "in -5.0 dB (vowel tail, limit -8)",
+     "in -3.6 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.9 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -3.5 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e11-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e11-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e11-x9": {
+   "refused": {
+    "linkDepth": [
+     "out -7.3 dB (vowel tail, limit -8)"
+    ],
+    "onset": [
+     "44:35:1 after a pause at 312.905 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.3 dB (vowel tail, limit -8)",
+    "weak onset ء after the seam with 35 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e11-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e11-x11": {
+   "refused": {
+    "linkDepth": [
+     "out -4.1 dB (closed tail, limit -6)",
+     "in -3.3 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.1 dB (closed tail, limit -6)",
+    "linked cut after the seam at -3.3 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e11-x12": {
+   "refused": {
+    "linkDepth": [
+     "out -4.1 dB (long tail, limit -8)",
+     "in -4.1 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.1 dB (long tail, limit -8)",
+    "linked cut after the seam at -4.1 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e11-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e12-x1": {
+   "refused": {
+    "linkDepth": [
+     "out -6.7 dB (vowel tail, limit -8)",
+     "in -7.6 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -6.7 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -7.6 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e12-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e12-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e12-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e12-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e12-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e12-x7": {
+   "refused": {
+    "onset": [
+     "20:101:1 after a pause at 870.425 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset خ after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e12-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e12-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e12-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e12-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e12-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e13-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e13-x2": {
+   "refused": {
+    "linkDepth": [
+     "in -7.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -7.8 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e13-x3": {
+   "refused": {
+    "linkDepth": [
+     "in -7.9 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e13-x4": {
+   "refused": {
+    "linkDepth": [
+     "out -3.3 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.3 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e13-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e13-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e13-x7": {
+   "refused": {
+    "linkDepth": [
+     "in -5.7 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -5.7 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e13-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e13-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e13-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e13-x11": {
+   "refused": {
+    "linkDepth": [
+     "out -3.3 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.3 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e13-x12": {
+   "refused": {
+    "linkDepth": [
+     "in -5.7 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -5.7 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e13-x13": {
+   "refused": {
+    "donorShort": [
+     "50:5:1 0.20 s"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "wrong word بَلْ only 0.20 s long"
+   ]
+  },
+  "lab-v1.1-e13-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e13-x15": {
+   "refused": {
+    "linkDepth": [
+     "out -7.8 dB (vowel tail, limit -8)",
+     "in -7.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.8 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -7.8 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e13-x16": {
+   "refused": {
+    "linkDepth": [
+     "out -3.0 dB (vowel tail, limit -8)",
+     "in -5.7 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.0 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -5.7 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e13-x17": {
+   "refused": {
+    "linkDepth": [
+     "out -5.7 dB (long tail, limit -8)",
+     "in -7.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -5.7 dB (long tail, limit -8)",
+    "linked cut after the seam at -7.8 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e13-x18": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e14-x1": {
+   "refused": {
+    "onset": [
+     "22:46:1 after a pause at 837.055 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ء after the seam with 45 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e14-x2": {
+   "refused": {
+    "linkDepth": [
+     "out -7.1 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.1 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e14-x3": {
+   "refused": {
+    "linkDepth": [
+     "in -3.7 dB (closed tail, limit -6)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -3.7 dB (closed tail, limit -6)"
+   ]
+  },
+  "lab-v1.1-e14-x4": {
+   "refused": {
+    "linkDepth": [
+     "in -7.0 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -7.0 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e14-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e14-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e14-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e14-x8": {
+   "refused": {
+    "linkDepth": [
+     "in -6.2 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -6.2 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e14-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e14-x10": {
+   "refused": {
+    "onset": [
+     "22:63:1 after a pause at 1093.665 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ء after the seam with 45 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e14-x11": {
+   "refused": {
+    "linkDepth": [
+     "in -6.7 dB (long tail, limit -8)",
+     "in -7.3 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -6.6 dB (long tail, limit -8)",
+    "linked cut after the seam at -7.3 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e14-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e14-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e15-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e15-x2": {
+   "refused": {
+    "linkDepth": [
+     "in -4.4 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.4 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e15-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e15-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e15-x5": {
+   "refused": {
+    "linkDepth": [
+     "in -4.3 dB (closed tail, limit -6)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.3 dB (closed tail, limit -6)"
+   ]
+  },
+  "lab-v1.1-e15-x6": {
+   "refused": {
+    "onset": [
+     "55:60:1 after a pause at 414.985 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ه after the seam with 45 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e15-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e15-x8": {
+   "refused": {
+    "linkDepth": [
+     "in -3.9 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -3.9 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e15-x9": {
+   "refused": {
+    "linkDepth": [
+     "out -4.4 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.4 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e15-x10": {
+   "refused": {
+    "linkDepth": [
+     "out -3.6 dB (vowel tail, limit -8)",
+     "in -3.6 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.5 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -3.5 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e15-x11": {
+   "refused": {
+    "onset": [
+     "55:72:1 after a pause at 491.955 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ح after the seam with 25 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e15-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e15-x13": {
+   "refused": {
+    "linkDepth": [
+     "in -4.4 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.4 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e16-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e16-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e16-x3": {
+   "refused": {
+    "onset": [
+     "23:11:1 after a pause at 68.145 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ء after the seam with 5 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e16-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e16-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e16-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e16-x7": {
+   "refused": {
+    "linkDepth": [
+     "in -3.4 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -3.3 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e16-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e17-x1": {
+   "refused": {
+    "linkDepth": [
+     "in -4.4 dB (closed tail, limit -6)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.4 dB (closed tail, limit -6)"
+   ]
+  },
+  "lab-v1.1-e17-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e17-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e17-x4": {
+   "refused": {
+    "linkDepth": [
+     "out -3.7 dB (closed tail, limit -6)",
+     "in -7.1 dB (vowel tail, limit -8)",
+     "in -3.7 dB (closed tail, limit -6)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.7 dB (closed tail, limit -6)",
+    "linked cut after the seam at -7.2 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -3.7 dB (closed tail, limit -6)"
+   ]
+  },
+  "lab-v1.1-e17-x5": {
+   "refused": {
+    "linkDepth": [
+     "out -7.7 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.6 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e17-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e17-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e18-x1": {
+   "refused": {
+    "linkDepth": [
+     "in -5.1 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -5.0 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e19-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e19-x2": {
+   "refused": {
+    "linkDepth": [
+     "in -7.8 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -7.8 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e19-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e19-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e19-x5": {
+   "refused": {
+    "linkDepth": [
+     "out -5.5 dB (long tail, limit -8)",
+     "in -5.5 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -5.5 dB (long tail, limit -8)",
+    "linked cut after the seam at -5.5 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e19-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e19-x7": {
+   "refused": {
+    "linkDepth": [
+     "in -5.6 dB (vowel tail, limit -8)"
+    ],
+    "onset": [
+     "37:21:1 after a pause at 113.805 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -5.6 dB (vowel tail, limit -8)",
+    "weak onset ه after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e19-x8": {
+   "refused": {
+    "linkDepth": [
+     "out -4.8 dB (vowel tail, limit -8)",
+     "in -4.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.8 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -4.8 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e19-x9": {
+   "refused": {
+    "linkDepth": [
+     "out -7.2 dB (long tail, limit -8)",
+     "in -4.9 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.3 dB (long tail, limit -8)",
+    "linked cut after the seam at -4.9 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e19-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e19-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e19-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e19-x13": {
+   "refused": {
+    "onset": [
+     "37:35:1 after a pause at 191.975 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ء after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e19-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e19-x15": {
+   "refused": {
+    "linkDepth": [
+     "out -3.6 dB (vowel tail, limit -8)",
+     "in -5.0 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.7 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -5.0 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e20-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e20-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e20-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e20-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e20-x5": {
+   "refused": {
+    "linkDepth": [
+     "out -5.7 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -5.7 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e20-x6": {
+   "refused": {
+    "linkDepth": [
+     "in -5.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -5.7 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e20-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e20-x8": {
+   "refused": {
+    "linkDepth": [
+     "in -4.3 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.3 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e20-x9": {
+   "refused": {
+    "linkDepth": [
+     "in -6.9 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -6.9 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e20-x10": {
+   "refused": {
+    "linkDepth": [
+     "in -6.5 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -6.6 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e20-x11": {
+   "refused": {
+    "linkDepth": [
+     "out -5.3 dB (vowel tail, limit -8)",
+     "in -5.3 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -5.3 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -5.3 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e20-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e20-x13": {
+   "refused": {
+    "linkDepth": [
+     "out -4.3 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.3 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-e20-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e20-x15": {
+   "refused": {
+    "linkDepth": [
+     "in -4.3 dB (vowel tail, limit -8)"
+    ],
+    "onset": [
+     "55:72:1 after a pause at 444.335 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.3 dB (vowel tail, limit -8)",
+    "weak onset ح after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-e20-x16": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-e20-x17": {
+   "refused": {
+    "linkDepth": [
+     "out -4.7 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.7 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p01-x1": {
+   "refused": {
+    "linkDepth": [
+     "in -3.3 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -3.4 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p01-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x7": {
+   "refused": {
+    "linkDepth": [
+     "in -6.1 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -6.0 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p01-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x10": {
+   "refused": {
+    "linkDepth": [
+     "out -3.7 dB (closed tail, limit -6)",
+     "in -3.7 dB (closed tail, limit -6)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.8 dB (closed tail, limit -6)",
+    "linked cut after the seam at -3.8 dB (closed tail, limit -6)"
+   ]
+  },
+  "lab-v1.1-p01-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x13": {
+   "refused": {
+    "linkDepth": [
+     "in -6.9 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -6.9 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p01-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x15": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x16": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x17": {
+   "refused": {
+    "onset": [
+     "26:113:1 after a pause at 658.105 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ء after the seam with 65 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-p01-x18": {
+   "refused": {
+    "linkDepth": [
+     "out -3.5 dB (vowel tail, limit -8)",
+     "in -3.5 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.4 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -3.4 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p01-x19": {
+   "refused": {
+    "linkDepth": [
+     "out -4.0 dB (vowel tail, limit -8)",
+     "in -3.4 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.0 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -3.5 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p01-x20": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x21": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x22": {
+   "refused": {
+    "onset": [
+     "26:124:1 after a pause at 709.505 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ء after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-p01-x23": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x24": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x25": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p01-x26": {
+   "refused": {
+    "onset": [
+     "26:133:1 after a pause at 747.515 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ء after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-p01-x27": {
+   "refused": {
+    "linkDepth": [
+     "out -4.7 dB (closed tail, limit -6)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.7 dB (closed tail, limit -6)"
+   ]
+  },
+  "lab-v1.1-p02-x1": {
+   "refused": {
+    "linkDepth": [
+     "in -5.5 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -5.5 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p03-x1": {
+   "refused": {
+    "linkDepth": [
+     "out -3.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.8 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p03-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p03-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p03-x4": {
+   "refused": {
+    "linkDepth": [
+     "out -7.7 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.7 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p03-x5": {
+   "refused": {
+    "linkDepth": [
+     "in -5.5 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -5.5 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p03-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p03-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p03-x8": {
+   "refused": {
+    "linkDepth": [
+     "out -7.5 dB (vowel tail, limit -8)",
+     "in -5.5 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.4 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -5.5 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p03-x9": {
+   "refused": {
+    "linkDepth": [
+     "out -4.0 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.0 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p03-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p03-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p03-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p03-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p03-x14": {
+   "refused": {
+    "linkDepth": [
+     "out -7.3 dB (vowel tail, limit -8)",
+     "in -7.2 dB (vowel tail, limit -8)",
+     "in -5.2 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.2 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -7.1 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -5.2 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p03-x15": {
+   "refused": {
+    "linkDepth": [
+     "out -7.7 dB (vowel tail, limit -8)",
+     "in -7.2 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.7 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -7.1 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p03-x16": {
+   "refused": {
+    "linkDepth": [
+     "out -7.8 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.8 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p03-x17": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p04-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p05-x1": {
+   "refused": {
+    "linkDepth": [
+     "out -5.4 dB (long tail, limit -8)",
+     "in -5.9 dB (closed tail, limit -6)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -5.4 dB (long tail, limit -8)",
+    "linked cut after the seam at -5.9 dB (closed tail, limit -6)"
+   ]
+  },
+  "lab-v1.1-p05-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p05-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p05-x4": {
+   "refused": {
+    "linkDepth": [
+     "in -7.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -7.9 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p05-x5": {
+   "refused": {
+    "linkDepth": [
+     "in -3.2 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -3.2 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p05-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p05-x7": {
+   "refused": {
+    "linkDepth": [
+     "out -4.3 dB (vowel tail, limit -8)",
+     "in -4.8 dB (closed tail, limit -6)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.3 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -4.8 dB (closed tail, limit -6)"
+   ]
+  },
+  "lab-v1.1-p06-x1": {
+   "refused": {
+    "linkDepth": [
+     "in -6.1 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -6.1 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p06-x2": {
+   "refused": {
+    "linkDepth": [
+     "out -3.6 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.7 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p06-x3": {
+   "refused": {
+    "linkDepth": [
+     "out -7.2 dB (vowel tail, limit -8)",
+     "in -6.6 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.2 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -6.6 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p06-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p07-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p07-x2": {
+   "refused": {
+    "linkDepth": [
+     "out -6.0 dB (vowel tail, limit -8)",
+     "in -6.0 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -6.0 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -6.0 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p07-x3": {
+   "refused": {
+    "linkDepth": [
+     "out -7.6 dB (vowel tail, limit -8)",
+     "in -7.6 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.6 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -7.6 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p07-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p07-x5": {
+   "refused": {
+    "linkDepth": [
+     "out -5.5 dB (closed tail, limit -6)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -5.5 dB (closed tail, limit -6)"
+   ]
+  },
+  "lab-v1.1-p07-x6": {
+   "refused": {
+    "linkDepth": [
+     "in -4.1 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.1 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p07-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p07-x8": {
+   "refused": {
+    "linkDepth": [
+     "out -5.1 dB (long tail, limit -8)",
+     "in -7.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -5.1 dB (long tail, limit -8)",
+    "linked cut after the seam at -7.8 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p07-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p07-x10": {
+   "refused": {
+    "linkDepth": [
+     "in -7.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -7.8 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p07-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p07-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p08-x1": {
+   "refused": {
+    "linkDepth": [
+     "out -4.2 dB (vowel tail, limit -8)",
+     "out -6.6 dB (vowel tail, limit -8)",
+     "in -7.4 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.3 dB (vowel tail, limit -8)",
+    "linked cut before the seam at -6.6 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -7.5 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p08-x2": {
+   "refused": {
+    "linkDepth": [
+     "in -3.6 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -3.6 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p08-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p08-x4": {
+   "refused": {
+    "linkDepth": [
+     "in -7.1 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -7.1 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p08-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p08-x6": {
+   "refused": {
+    "linkDepth": [
+     "in -4.3 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.3 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p09-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p09-x2": {
+   "refused": {
+    "linkDepth": [
+     "out -7.7 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.7 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p09-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p09-x4": {
+   "refused": {
+    "linkDepth": [
+     "out -4.1 dB (long tail, limit -8)",
+     "in -5.8 dB (closed tail, limit -6)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.1 dB (long tail, limit -8)",
+    "linked cut after the seam at -5.7 dB (closed tail, limit -6)"
+   ]
+  },
+  "lab-v1.1-p09-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p09-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p09-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p09-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p09-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p09-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p09-x11": {
+   "refused": {
+    "linkDepth": [
+     "out -3.8 dB (vowel tail, limit -8)",
+     "in -5.0 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.8 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -4.9 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p10-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p10-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p10-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p10-x4": {
+   "refused": {
+    "linkDepth": [
+     "out -6.6 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -6.6 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p10-x5": {
+   "refused": {
+    "linkDepth": [
+     "in -7.7 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -7.7 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p10-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p10-x7": {
+   "refused": {
+    "linkDepth": [
+     "out -7.1 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.2 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p10-x8": {
+   "refused": {
+    "linkDepth": [
+     "in -5.3 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -5.3 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p10-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p10-x10": {
+   "refused": {
+    "linkDepth": [
+     "out -7.9 dB (long tail, limit -8)",
+     "in -7.9 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.9 dB (long tail, limit -8)",
+    "linked cut after the seam at -7.9 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p10-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p10-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p10-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p10-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p10-x15": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p10-x16": {
+   "refused": {
+    "linkDepth": [
+     "out -5.2 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -5.2 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p10-x17": {
+   "refused": {
+    "linkDepth": [
+     "in -5.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -5.9 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p10-x18": {
+   "refused": {
+    "linkDepth": [
+     "out -5.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -5.8 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p10-x19": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p10-x20": {
+   "refused": {
+    "linkDepth": [
+     "out -7.1 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.1 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p10-x21": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p10-x22": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p10-x23": {
+   "refused": {
+    "linkDepth": [
+     "out -5.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -5.9 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p11-x1": {
+   "refused": {
+    "linkDepth": [
+     "in -6.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -6.8 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p12-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p12-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p12-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p12-x4": {
+   "refused": {
+    "linkDepth": [
+     "out -6.7 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -6.7 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p12-x5": {
+   "refused": {
+    "onset": [
+     "77:32:1 after a pause at 124.565 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ء after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-p12-x6": {
+   "refused": {
+    "linkDepth": [
+     "in -5.5 dB (long tail, limit -8)",
+     "out -3.2 dB (vowel tail, limit -8)",
+     "in -3.2 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -5.4 dB (long tail, limit -8)",
+    "linked cut before the seam at -3.2 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -3.2 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p12-x7": {
+   "refused": {
+    "linkDepth": [
+     "in -5.9 dB (vowel tail, limit -8)"
+    ],
+    "onset": [
+     "77:26:1 after a pause at 88.075 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -5.8 dB (vowel tail, limit -8)",
+    "weak onset ء after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-p12-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p12-x9": {
+   "refused": {
+    "linkDepth": [
+     "out -5.5 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -5.4 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p12-x10": {
+   "refused": {
+    "linkDepth": [
+     "in -7.3 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -7.2 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p12-x11": {
+   "refused": {
+    "linkDepth": [
+     "out -3.6 dB (vowel tail, limit -8)",
+     "in -3.6 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.6 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -3.6 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p12-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p12-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p12-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p12-x15": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p13-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p13-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p13-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p13-x4": {
+   "refused": {
+    "onset": [
+     "38:55:1 after a pause at 558.065 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ه after the seam with 25 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-p13-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p13-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p13-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p13-x8": {
+   "refused": {
+    "onset": [
+     "38:54:1 after a pause at 550.775 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ء after the seam with 15 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-p13-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p13-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p13-x11": {
+   "refused": {
+    "linkDepth": [
+     "in -4.5 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.5 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p13-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p13-x13": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p13-x14": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p13-x15": {
+   "refused": {
+    "onset": [
+     "38:68:1 after a pause at 660.225 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ء after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-p13-x16": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p14-x1": {
+   "refused": {
+    "linkDepth": [
+     "in -4.6 dB (vowel tail, limit -8)",
+     "out -3.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.6 dB (vowel tail, limit -8)",
+    "linked cut before the seam at -3.8 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p14-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p14-x3": {
+   "refused": {
+    "onset": [
+     "37:24:2 after a pause at 200.805 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ء after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-p14-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p14-x5": {
+   "refused": {
+    "linkDepth": [
+     "out -4.9 dB (vowel tail, limit -8)",
+     "in -5.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.9 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -5.8 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p14-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p14-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p14-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p14-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p14-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p15-x1": {
+   "refused": {
+    "linkDepth": [
+     "out -4.7 dB (vowel tail, limit -8)",
+     "in -5.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [
+    {
+     "before": "51:8:1",
+     "srcS": 33.585,
+     "movedS": 0.16
+    }
+   ],
+   "gate": [
+    "linked cut before the seam at -4.7 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -5.9 dB (vowel tail, limit -8)",
+    "weak onset ء after the seam with 35 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-p15-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p15-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p15-x4": {
+   "refused": {
+    "linkDepth": [
+     "in -3.2 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -3.1 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p15-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p15-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p15-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p15-x8": {
+   "refused": {
+    "linkDepth": [
+     "out -3.9 dB (vowel tail, limit -8)",
+     "in -3.9 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.8 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -3.8 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p15-x9": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p16-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p16-x2": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p16-x3": {
+   "refused": {
+    "onset": [
+     "54:24:7 after a pause at 209.915 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset ء after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-p16-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p16-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p16-x6": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p16-x7": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p16-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p16-x9": {
+   "refused": {
+    "linkDepth": [
+     "in -4.7 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.7 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p16-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p16-x11": {
+   "refused": {
+    "linkDepth": [
+     "out -4.7 dB (vowel tail, limit -8)",
+     "in -3.1 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.8 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -3.1 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p17-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p17-x2": {
+   "refused": {
+    "linkDepth": [
+     "in -4.2 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.2 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p17-x3": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p17-x4": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p17-x5": {
+   "refused": {
+    "linkDepth": [
+     "out -4.7 dB (closed tail, limit -6)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.6 dB (closed tail, limit -6)"
+   ]
+  },
+  "lab-v1.1-p17-x6": {
+   "refused": {
+    "linkDepth": [
+     "out -7.1 dB (vowel tail, limit -8)",
+     "in -7.1 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -7.0 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -7.0 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p17-x7": {
+   "refused": {
+    "linkDepth": [
+     "out -6.5 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -6.6 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p17-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p17-x9": {
+   "refused": {
+    "linkDepth": [
+     "out -4.2 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.2 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p17-x10": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p17-x11": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p17-x12": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p18-x1": {
+   "refused": {
+    "linkDepth": [
+     "out -6.6 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -6.6 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p19-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p19-x2": {
+   "refused": {
+    "linkDepth": [
+     "out -4.0 dB (vowel tail, limit -8)",
+     "in -6.9 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.0 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -6.9 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p19-x3": {
+   "refused": {},
+   "moved": [
+    {
+     "before": "83:11:1",
+     "srcS": 57.835,
+     "movedS": 0.18
+    }
+   ],
+   "gate": [
+    "weak onset ء after the seam with 35 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-p19-x4": {
+   "refused": {
+    "linkDepth": [
+     "in -4.9 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.9 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p19-x5": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p19-x6": {
+   "refused": {
+    "linkDepth": [
+     "in -3.8 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -3.8 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p19-x7": {
+   "refused": {
+    "linkDepth": [
+     "out -4.9 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.9 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p19-x8": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  },
+  "lab-v1.1-p19-x9": {
+   "refused": {
+    "linkDepth": [
+     "out -4.6 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -4.6 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p19-x10": {
+   "refused": {
+    "onset": [
+     "83:26:1 after a pause at 144.155 s with no measured silence before it"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "weak onset خ after the seam with 0 ms of silence before the cut"
+   ]
+  },
+  "lab-v1.1-p19-x11": {
+   "refused": {
+    "linkDepth": [
+     "in -4.0 dB (vowel tail, limit -8)"
+    ],
+    "donorShort": [
+     "83:8:3 0.24 s"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.0 dB (vowel tail, limit -8)",
+    "added word مَا only 0.24 s long"
+   ]
+  },
+  "lab-v1.1-p19-x12": {
+   "refused": {
+    "linkDepth": [
+     "in -4.4 dB (long tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut after the seam at -4.4 dB (long tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p19-x13": {
+   "refused": {
+    "linkDepth": [
+     "out -6.9 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -6.9 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p19-x14": {
+   "refused": {
+    "linkDepth": [
+     "out -3.7 dB (vowel tail, limit -8)",
+     "out -4.9 dB (vowel tail, limit -8)",
+     "in -3.7 dB (vowel tail, limit -8)"
+    ]
+   },
+   "moved": [],
+   "gate": [
+    "linked cut before the seam at -3.7 dB (vowel tail, limit -8)",
+    "linked cut before the seam at -4.9 dB (vowel tail, limit -8)",
+    "linked cut after the seam at -3.7 dB (vowel tail, limit -8)"
+   ]
+  },
+  "lab-v1.1-p20-x1": {
+   "refused": {},
+   "moved": [],
+   "gate": []
+  }
+ }
+}

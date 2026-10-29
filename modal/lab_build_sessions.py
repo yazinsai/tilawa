@@ -43,6 +43,8 @@ DATA = Path(VOL) / "data"
 OUT = DATA / TEST_SET
 AUG_FROM = DATA / "lab-v1/aug"  # the phone-copy bank is shared across test set versions
 REFUSALS = "refusals-v1.json"
+CHECKS_VERSION = 2  # seam checks also measure each side's cut level and the silence before a following onset
+MAIN_LISTENER = "spliced-clean-int8"  # decoded once the loop converges (the loop's checks use the teacher)
 NOISE_SHARDS = (100, 101, 102, 103)
 NOISE_CLIPS = 400
 NOISE_S = (4.0, 12.0)
@@ -202,8 +204,50 @@ def aug(force: bool = False) -> dict:
     return bank
 
 
-@app.function(volumes={VOL: vol}, cpu=4, memory=16384, timeout=60 * 60)
+def energy_path(audio: str) -> Path:
+    """sources/mp3quran/<read>/<surah>.wav -> <set>/energy/<read>/<surah>.npy"""
+    read, name = audio.split("/")[-2:]
+    return OUT / "energy" / read / name.replace(".wav", ".npy")
+
+
+@app.function(volumes={VOL: vol}, cpu=2, memory=8192, timeout=30 * 60, max_containers=48)
+def energy_one(audios: list[str]) -> int:
+    """lab_sessions.frame_db of each source recording -> <set>/energy/ (the planner's weak-onset rule reads them)."""
+    import io
+
+    import numpy as np
+
+    import lab_sessions as S
+
+    done = 0
+    for audio in audios:
+        p = energy_path(audio)
+        if p.exists():
+            continue
+        buf = io.BytesIO()
+        np.save(buf, S.frame_db(read_wav(DATA / audio)))
+        write(p, buf.getvalue())
+        done += 1
+    vol.commit()
+    return done
+
+
+def energies() -> int:
+    import lab_sessions as S
+
+    catalog = json.loads(vol_read("sources/mp3quran/catalog-v1.json"))
+    audios = sorted(it["audio"] for it in catalog["items"] if it["readId"] not in S.EXCLUDED_READS)
+    return sum(energy_one.map([audios[i: i + 8] for i in range(0, len(audios), 8)]))
+
+
+def vol_read(rel: str) -> bytes:
+    return b"".join(vol.read_file(f"data/{rel}"))
+
+
+@app.function(volumes={VOL: vol}, cpu=4, memory=32768, timeout=60 * 60)
 def plan(pilot: bool = False) -> dict:
+    import numpy as np
+
     import lab_sessions as S
     from lab_review_core import validate_queue
 
@@ -216,7 +260,7 @@ def plan(pilot: bool = False) -> dict:
     bank = json.loads((OUT / "aug/bank-v1.json").read_text())
     rp = OUT / REFUSALS
     refusals = json.loads(rp.read_text()) if rp.exists() else None
-    out = S.plan_set(catalog, aligns, ref, dis, bank, refusals=refusals)
+    out = S.plan_set(catalog, aligns, ref, dis, bank, refusals=refusals, energy=lambda audio: np.load(energy_path(audio)))
     sessions = out["sessions"]
     queue = S.review_queue(sessions, ref)
     problems = validate_queue(queue)
@@ -226,7 +270,10 @@ def plan(pilot: bool = False) -> dict:
         problems = S.validate(s, ref)
         if problems:
             raise ValueError(f"{s['id']}: {problems[:3]}")
-    refused = {**out["refused"], "rules": {"lenRatioMin": S.LEN_RATIO_MAX, "ayahPerMax": S.AYAH_PER_MAX, "weakOnsets": "".join(sorted(S.WEAK_ONSET))},
+    refused = {**out["refused"], "rules": {"lenRatioMin": S.LEN_RATIO_MAX, "ayahPerMax": S.AYAH_PER_MAX, "weakOnsets": "".join(sorted(S.WEAK_ONSET)),
+                                           "linkDb": S.LINK_DB, "linkTailDb": S.LINK_TAIL_DB, "minDonorS": S.MIN_DONOR_S,
+                                           "onsetSilenceS": S.ONSET_SILENCE_S, "onsetFloorDb": S.ONSET_FLOOR_DB,
+                                           "roomPct": S.ROOM_PCT, "roomMarginDb": S.ROOM_MARGIN_DB},
                "refusalsSha256": hashlib.sha256(rp.read_bytes()).hexdigest() if rp.exists() else None,
                "iterations": max((x["iteration"] for k in ("ayahs", "sites", "donors") for x in (refusals or {}).get(k, [])), default=0)}
     summary = S.summary(sessions, {"bank": {k: bank[k] for k in ("sources", "sha256")} | {"noises": len(bank["noises"]), "rirs": len(bank["rirs"])},
@@ -289,9 +336,86 @@ def gate(iteration: int, refuse_failed: bool = True) -> dict:
     return {"summary": doc["summary"], "failed": doc["failed"], "unmapped": doc["unmapped"], "new": new}
 
 
-def seam_checks(y, plan_pieces, session, load, gains):
+def source_levels(align: dict) -> tuple[list[float], list[float | None]]:
+    """Word middles in time order and their ayahs' speech levels: the level a cut is measured against."""
+    lv = {a["ayah"]: a.get("levelDb") for a in align["ayahs"]}
+    ws = sorted(((w["startS"] + w["endS"]) / 2, lv.get(w["ayah"])) for w in align["words"] if w["endS"] > w["startS"])
+    return [m for m, _ in ws], [x for _, x in ws]
+
+
+def level_near(levels, t: float, after: bool) -> float | None:
+    """The ayah level of the word just before (or just after) time t."""
+    import bisect
+
+    mids, lvls = levels
+    j = bisect.bisect_left(mids, t) - (0 if after else 1)
+    return lvls[j] if 0 <= j < len(lvls) else None
+
+
+@app.function(volumes={VOL: vol}, cpu=2, memory=16384, timeout=30 * 60, max_containers=40)
+def audit_gate(test_set: str, sid: str) -> dict:
+    """Another test set's session through this version's seam gate: its studio render re-measured (seam_checks), its
+    labels given the in-side tail kind they lack, then lab_sessions.seam_gate. Reads only."""
+    import lab_sessions as S
+
+    vol.reload()
+    base = DATA / test_set
+    ref = S.Ref(json.loads(Path("/app/packages/core/assets/ref-v2.json").read_text()))
+    s = json.loads((base / f"sessions/{sid}.json").read_text())
+    p = next(x for x in json.loads((base / "plan-v1.json").read_text())["plans"] if x["id"] == sid)
+    for x in s["splices"]:
+        for m in x["seams"]:
+            if m["in"]["boundary"] == "link" and "tail" not in m["in"]:
+                rw = ref.words[ref.idx[tuple(map(int, m["in"]["before"].split(":")))] - 1]
+                t = S.tail_kind(rw["cont"], rw["iso"], rw["text"])
+                m["in"]["tail"] = t and t[0]
+    cache, energies, levels, aligns = {}, {}, {}, {}
+
+    def load(audio):
+        if audio not in cache:
+            cache[audio] = read_wav(DATA / audio)
+        return cache[audio]
+
+    def energy(audio):
+        if audio not in energies:
+            energies[audio] = S.frame_db(load(audio))
+        return energies[audio]
+
+    for audio in sorted({q["audio"] for q in p["pieces"]} | {t["from"]["audio"] for t in s["said"]}):
+        a = json.loads((DATA / audio.replace(".wav", ".align.json")).read_text())
+        levels[audio], aligns[audio] = source_levels(a), {(w["surah"], w["ayah"], w["word"]): w for w in a["words"]}
+    ys = read_wav(base / s["meta"]["audio"]["studio"])
+    seams = seam_checks(ys, p["pieces"], s, load, [10 ** (q["gainDb"] / 20) for q in p["pieces"]], energy, levels)
+    checks = json.loads((base / f"sessions/{sid}.checks.json").read_text())
+    return S.seam_gate(s, {**checks, "seams": seams}, aligns)
+
+
+@app.function(volumes={VOL: vol}, cpu=4, memory=32768, timeout=60 * 60)
+def audit_plan(test_set: str) -> dict:
+    """Another test set's splices against this version's planner rules (lab_sessions.rule_audit), with energy."""
+    import numpy as np
+
+    import lab_sessions as S
+
+    vol.reload()
+    base = DATA / test_set
+    ref = S.Ref(json.loads(Path("/app/packages/core/assets/ref-v2.json").read_text()))
+    m = json.loads((base / "manifest-v1.json").read_text())
+    sessions = {e["id"]: json.loads((base / f"sessions/{e['id']}.json").read_text()) for e in m["sessions"]}
+    audios = {sm[side]["audio"] for s in sessions.values() for x in s["splices"] for sm in x["seams"] for side in ("out", "in")}
+    recs = {}
+    for audio in sorted(audios):
+        a = json.loads((DATA / audio.replace(".wav", ".align.json")).read_text())
+        r = S.Rec(a, ref, None, np.load(energy_path(audio)))
+        recs[r.key] = r
+    return {sid: S.rule_audit(s, recs, ref) for sid, s in sessions.items()}
+
+
+def seam_checks(y, plan_pieces, session, load, gains, energy=None, levels=None):
     """Per seam: output level just before and after it against the same 20 ms of source on each side (gain applied),
-    and the peak sample step inside the crossfade against the steps around it."""
+    and the peak sample step inside the crossfade against the steps around it. With `energy(audio)` (frame_db) and
+    `levels[audio]` (source_levels), also each side's source level at its cut against the ayah level of the word before
+    it, and how long the source after the seam had been silent at its cut (lab_sessions.silence_before)."""
     import numpy as np
 
     import lab_sessions as S
@@ -299,13 +423,29 @@ def seam_checks(y, plan_pieces, session, load, gains):
     def db(x):
         return 20 * np.log10(max(S.rms(x), 1e-6))
 
-    n, out = 320, []
+    def cut_db(audio, t):
+        e, lv = energy(audio), level_near(levels[audio], t, after=False)
+        i = int(t * 100)
+        return round(float(e[i]) - lv, 1) if lv is not None and 0 <= i < len(e) else None
+
+    n, out, rooms = 320, [], {}
     h = S.XFADE // 2
     for i in range(1, len(plan_pieces)):
         a, b = plan_pieces[i - 1], plan_pieces[i]
         m = b["out"]
         xa, xb = load(a["audio"]), load(b["audio"])
         ga, gb = gains[i - 1], gains[i]
+        extra = {}
+        if energy is not None:
+            ta, tb = a["src"][1] / S.SR, b["src"][0] / S.SR
+            lb = level_near(levels[b["audio"]], tb, after=True)
+            if b["audio"] not in rooms:
+                rooms[b["audio"]] = S.room_tone(energy(b["audio"]))
+            room = rooms[b["audio"]]
+            floor = S.onset_floor(room, lb) if lb is not None else None
+            extra = {"outCutDb": cut_db(a["audio"], ta), "inCutDb": cut_db(b["audio"], tb),
+                     "inSilenceS": S.silence_before(energy(b["audio"]), tb, lb, floor) if lb is not None else 0.0,
+                     "inFloorDb": floor and round(floor, 1)}
         src_before = xa[a["src"][1] - h - n: a["src"][1] - h] * ga
         src_after = xb[b["src"][0] + h: b["src"][0] + h + n] * gb
         o_before, o_after = y[m - h - n: m - h], y[m + h: m + h + n]
@@ -316,7 +456,7 @@ def seam_checks(y, plan_pieces, session, load, gains):
                     "srcBeforeDb": round(db(src_before), 2), "srcAfterDb": round(db(src_after), 2),
                     "levelErrDb": round(max(abs(db(o_before) - db(src_before)), abs(db(o_after) - db(src_after))), 3),
                     "seamDb": round(db(y[m - h: m + h]) - 20 * np.log10(max(S.active_rms(y), 1e-6)), 2),
-                    "clickRatio": round(float(xf.max() / max(np.percentile(local, 99), 1e-6)), 3) if local else None})
+                    "clickRatio": round(float(xf.max() / max(np.percentile(local, 99), 1e-6)), 3) if local else None, **extra})
     return out
 
 
@@ -369,8 +509,8 @@ def render(sid: str, force: bool = False) -> dict:
     session = json.loads((OUT / f"sessions/{sid}.json").read_text())
     plans = {p["id"]: p for p in json.loads((OUT / "plan-v1.json").read_text())["plans"]}
     p = plans[sid]
-    key = hashlib.sha256(json.dumps({"plan": p, "phone": session["meta"]["phone"], "bank": json.loads((OUT / "aug/bank-v1.json").read_text())["sha256"]},
-                                    sort_keys=True).encode()).hexdigest()
+    key = hashlib.sha256(json.dumps({"plan": p, "phone": session["meta"]["phone"], "bank": json.loads((OUT / "aug/bank-v1.json").read_text())["sha256"],
+                                     "checks": CHECKS_VERSION}, sort_keys=True).encode()).hexdigest()
     checks_path = OUT / f"sessions/{sid}.checks.json"
     studio_p, phone_p = OUT / session["meta"]["audio"]["studio"], OUT / session["meta"]["audio"]["phone"]
     if not force and checks_path.exists() and studio_p.exists() and phone_p.exists() and json.loads(checks_path.read_text()).get("planSha256") == key:
@@ -392,13 +532,20 @@ def render(sid: str, force: bool = False) -> dict:
     write(studio_p, studio)
     write(phone_p, phone)
 
-    aligns = {}
-    for audio in sorted({t["from"]["audio"] for t in session["said"]}):
+    aligns, levels, energies = {}, {}, {}
+    for audio in sorted({t["from"]["audio"] for t in session["said"]} | {q["audio"] for q in p["pieces"]}):
         a = json.loads((DATA / audio.replace(".wav", ".align.json")).read_text())
         aligns[audio] = {(w["surah"], w["ayah"], w["word"]): w for w in a["words"]}
+        levels[audio] = source_levels(a)
+
+    def energy(audio):
+        if audio not in energies:
+            energies[audio] = S.frame_db(load(audio))
+        return energies[audio]
+
     ys = read_wav(studio_p)
     gains = [10 ** (q["gainDb"] / 20) for q in p["pieces"]]
-    seams = seam_checks(ys, p["pieces"], session, load, gains)
+    seams = seam_checks(ys, p["pieces"], session, load, gains, energy, levels)
     words = word_checks(ys, session, load, aligns)
     exact = []
     for q, g in zip(p["pieces"], gains):
@@ -425,11 +572,15 @@ def render(sid: str, force: bool = False) -> dict:
 
 
 @app.local_entrypoint()
-def main(stage: str = "all", pilot: bool = False, force: bool = False, iterations: int = 6):
+def main(stage: str = "all", pilot: bool = False, force: bool = False, iterations: int = 6, audit_set: str = "lab-v1.1"):
     t0 = time.time()
     if stage in ("all", "aug", "loop"):
         bank = aug.remote(force)
         print(f"bank: {len(bank['noises'])} noises, {len(bank['rirs'])} rirs ({bank['rirsDroppedAsStudent']} dropped as student) [{time.time() - t0:.0f} s]")
+    if stage in ("all", "energy", "loop", "audit"):
+        print(f"energy: {energies()} recordings computed [{time.time() - t0:.0f} s]", flush=True)
+    if stage == "audit":
+        run_audit(audit_set, t0)
     if stage == "loop":
         for it in range(1, iterations + 1):
             print(f"\n== iteration {it}: build [{time.time() - t0:.0f} s]", flush=True)
@@ -457,6 +608,9 @@ def main(stage: str = "all", pilot: bool = False, force: bool = False, iteration
                 break
         else:
             raise SystemExit(f"not converged after {iterations} iterations; no triage")
+        cmd = ["modal/lab_decode.py", "--listener", MAIN_LISTENER, "--model", f"models/{MAIN_LISTENER}", "--test-set", TEST_SET]
+        print(f"== {' '.join(cmd)} [{time.time() - t0:.0f} s]", flush=True)
+        subprocess.run(["modal", "run", *cmd], cwd=ROOT, check=True)
         stage = "triage"
     if stage == "gate":
         print_gate(gate.remote(0, refuse_failed=False), "seam gate (report only)", t0)
@@ -467,6 +621,31 @@ def main(stage: str = "all", pilot: bool = False, force: bool = False, iteration
     if stage in ("all", "plan", "render"):
         build(pilot, force, t0, render_too=stage != "plan")
     print(f"total {time.time() - t0:.0f} s")
+
+
+def run_audit(test_set: str, t0: float) -> None:
+    """This version's planner rules and seam gate over an earlier test set's splices -> docs/benchmarks/<set>-rules-on-<earlier>.json."""
+    from collections import Counter
+
+    plan_res = audit_plan.remote(test_set)
+    ids = sorted(plan_res)
+    gate_res = dict(zip(ids, audit_gate.starmap([(test_set, sid) for sid in ids])))
+    rows = {}
+    for sid in ids:
+        failed = {f["splice"]: f["reasons"] for f in gate_res[sid]["failed"]}
+        for xid, r in plan_res[sid].items():
+            rows[f"{sid}-{xid}"] = {**r, "gate": failed.get(xid, [])}
+    gate_rule = lambda w: "linkDepth" if w.startswith("linked cut") else "onset" if w.startswith("weak onset") else \
+        "donorShort" if w.startswith(("wrong word", "added word")) else "other"
+    summary = {"splices": len(rows),
+               "planner": {k: sum(k in r["refused"] for r in rows.values()) for k in ("linkDepth", "onset", "donorShort")},
+               "plannerAny": sum(bool(r["refused"]) for r in rows.values()), "plannerMovedOnly": sum(bool(r["moved"]) and not r["refused"] for r in rows.values()),
+               "gate": dict(Counter(k for r in rows.values() for k in {gate_rule(w) for w in r["gate"]})),
+               "gateAny": sum(bool(r["gate"]) for r in rows.values())}
+    doc = {"version": 1, "rulesOf": TEST_SET, "testSet": test_set, "summary": summary, "splices": rows}
+    out = ROOT / f"docs/benchmarks/{TEST_SET}-rules-on-{test_set}.json"
+    out.write_text(json.dumps(doc, ensure_ascii=False, indent=1) + "\n")
+    print(json.dumps(summary, indent=1), f"wrote {out.relative_to(ROOT)} [{time.time() - t0:.0f} s]")
 
 
 def print_gate(g: dict, head: str, t0: float) -> None:

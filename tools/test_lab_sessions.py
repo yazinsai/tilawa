@@ -84,7 +84,8 @@ def test_forms_other_ignores_identical_refrains():
 
 # ---- a synthetic recording of Al-Ikhlas, every word a tone -------------------------------------------------------
 
-def ikhlas(inner_gap=0.35, inner_db=-20.0, ayah_extra=None, refuse=None):
+def ikhlas(inner_gap=0.35, inner_db=-20.0, ayah_extra=None, refuse=None, energy=True, noise=None, cut_db=None):
+    """noise: {word k: (from s, to s) after its end} filled with low noise; cut_db: {word k: cutDb} overrides."""
     t, words, ayahs = 1.0, [], []
     for a in range(1, 5):
         n = len(REF.ayah_words[f"112:{a}"])
@@ -95,14 +96,20 @@ def ikhlas(inner_gap=0.35, inner_db=-20.0, ayah_extra=None, refuse=None):
             words[-1]["cutAfterS"], words[-1]["cutDb"] = round(t + 0.5 + gap / 2, 3), -20.0 if i == n else inner_db
             t += 0.5 + gap
     words[-1]["cutAfterS"] = None
+    for k, db in (cut_db or {}).items():
+        words[k]["cutDb"] = db
     dur = t + 2
-    align = {"readId": 7, "surah": 112, "split": "practice", "reciter": "Test", "audio": "sources/test/112.wav", "durationS": dur,
+    align = {"readId": 7, "surah": 112, "split": "practice", "reciter": "Test", "audio": "sources/mp3quran/7/112.wav", "durationS": dur,
              "basmala": {"present": False}, "ayahs": ayahs, "words": words}
     x = np.zeros(int(dur * SR), dtype=np.float32)
     for k, w in enumerate(words):
         a, b = round(w["startS"] * SR), round(w["endS"] * SR)
         x[a:b] = 0.3 * np.sin(2 * np.pi * freq(k) * np.arange(b - a) / SR)
-    return S.Rec(align, REF, refuse), x
+    rng = np.random.default_rng(1)
+    for k, (a, b) in (noise or {}).items():
+        i, j = round((words[k]["endS"] + a) * SR), round((words[k]["endS"] + b) * SR)
+        x[i:j] = 0.01 * rng.standard_normal(j - i)
+    return S.Rec(align, REF, refuse, S.frame_db(x) if energy else None), x
 
 
 def freq(k):
@@ -255,6 +262,94 @@ def test_linked_cuts_refuse_weak_onsets():
     assert rec.boundary(k, REF)["kind"] == "link"  # لَمْ | يَلِدْ
     paused, _ = ikhlas()
     assert paused.boundary(0, REF)["kind"] == "pause"  # the same head is fine after a pause
+
+
+def test_linked_cuts_need_depth_and_more_after_a_vowel():
+    closed, vowel = (3, 1), (2, 1)  # لَمْ | يَلِدْ ends closed; ٱللَّهُ | ٱلصَّمَدُ ends in its case vowel
+    for db, closed_ok, vowel_ok in ((-5.0, False, False), (-7.0, True, False), (-9.0, True, True)):
+        rec, _ = ikhlas(inner_gap=0.05, inner_db=db)
+        bc, bv = rec.boundary(rec.pos[closed], REF), rec.boundary(rec.pos[vowel], REF)
+        assert (bc is not None, bv is not None) == (closed_ok, vowel_ok), db
+        assert bv is None or bv["tail"][0] == "vowel"
+    assert S.link_limit(("long", "ا")) == S.link_limit("vowel") == S.LINK_TAIL_DB < S.link_limit(("closed", "م")) == S.LINK_DB
+
+
+def test_pause_cuts_before_weak_onsets_need_measured_silence():
+    rec, _ = ikhlas()  # silent gaps: every pause is verified as it is
+    assert REF.words[rec.words[1]["ref"]]["iso"][0] == "ه"  # قُلْ | هُوَ
+    assert not rec.boundary(0, REF).get("weak") and "cutMovedS" not in rec.words[0] and S.start_cut(rec, 1) is not None
+    bare, _ = ikhlas(energy=False)  # nothing measured: every pause before a weak onset is unverified
+    b = bare.boundary(0, REF)
+    assert b["kind"] == "pause" and b["weak"] and not S.joins({"kind": "pause"}, b) and not S.joins(b, b, restart=True)
+    assert S.joins(b, bare.boundary(bare.pos[(3, 1)], REF))  # a weak boundary still ends a piece; يَلِدْ starts firm
+    assert S.start_cut(bare, 1) is None  # ayah 2 starts with ٱللَّهُ, a hamza after the stop
+    moved, _ = ikhlas(noise={0: (0.165, 0.35)})  # sound from 10 ms before the cut to the next word: the cut moves into the silence
+    assert moved.words[0]["cutMovedS"] == pytest.approx(0.03) and moved.words[0]["cutAfterS"] == pytest.approx(1.645)
+    assert not moved.boundary(0, REF).get("weak") and moved.boundary(0, REF)["cut"] == pytest.approx(1.645)
+    loud, _ = ikhlas(noise={0: (0.0, 0.35)})  # sound over the whole gap
+    assert loud.words[0].get("weakOnset") and loud.boundary(0, REF)["weak"]
+
+
+def test_silence_floor_follows_the_room():
+    quiet = [-20.0] * 10 + [-60.0] * 10 + [-20.0] * 80
+    assert S.onset_floor(S.room_tone(quiet), -20.0) == S.ONSET_FLOOR_DB  # a quiet room: 30 dB below speech
+    assert S.silence_before(quiet, 0.19, -20.0, -30.0) == pytest.approx(0.09)
+    assert S.silence_before(quiet, 0.20, -20.0, -30.0) == 0.0  # the crossfade after the cut reaches the sound
+    assert S.silent_cut(quiet, 0.0, 0.25, -20.0) == pytest.approx(0.19) and S.silent_cut(quiet, 0.0, 0.17, -20.0) is None
+    reverb = [-20.0] * 10 + [-34.0] * 10 + [-20.0] * 80  # room tone only 14 dB below speech
+    floor = S.onset_floor(S.room_tone(reverb), -20.0)
+    assert floor == pytest.approx(-34.0 + S.ROOM_MARGIN_DB + 20.0) and S.silence_before(reverb, 0.19, -20.0, floor) == pytest.approx(0.09)
+
+
+def test_short_donors_are_refused():
+    rec, _ = ikhlas()
+    assert 1 in {k for _, k, _, _ in S.Donors([rec], REF).items}
+    rec.words[1]["endS"] = rec.words[1]["startS"] + 0.24
+    assert 1 not in {k for _, k, _, _ in S.Donors([rec], REF).items}
+
+
+def gate_checks(s, **seam):
+    base = {"beforeDb": -20.0, "afterDb": -20.0, "srcBeforeDb": -20.0, "srcAfterDb": -20.0, "clickRatio": 1.0, "seamDb": -20.0,
+            "outCutDb": -40.0, "inCutDb": -40.0, "inSilenceS": 0.3}
+    n = len(s["said"])
+    return {"seams": [{**base, "outS": m["outS"], **seam} for x in s["splices"] for m in x["seams"]],
+            "words": {"words": n, "found": n, "clipped": 0, "worst": []}}
+
+
+def test_seam_gate_measures_link_depth_onsets_and_donor_length():
+    lab = {"out": {"boundary": "link", "cutDb": -9.0, "tail": "vowel"}, "in": {"boundary": "pause", "cutDb": -30.0}}
+    ok = {"beforeDb": -20, "afterDb": -20, "srcBeforeDb": -20, "srcAfterDb": -20, "clickRatio": 1.0, "seamDb": -20, "outCutDb": -9.0,
+          "inCutDb": -30.0, "inSilenceS": 0.1}
+    assert S.seam_failures(ok, label=lab, head="ءَللَااه") == []
+    assert S.seam_failures({**ok, "outCutDb": -7.0}, label=lab)[0].startswith("linked cut before the seam at -7.0 dB (vowel tail")
+    assert S.seam_failures({**ok, "outCutDb": -7.0}, label={**lab, "out": {**lab["out"], "tail": "closed"}}) == []
+    assert S.seam_failures({**ok, "inSilenceS": 0.05}, label=lab, head="ءَللَااه")[0].startswith("weak onset ء")
+    assert S.seam_failures({**ok, "inSilenceS": 0.05}, label=lab, head="يَلِدڇ") == []
+    _, _, _, s = build()
+    g = S.seam_gate(s, gate_checks(s))
+    assert g["failed"] == [] and g["donors"] == 1 and g["donorsShort"] == 0
+    first = s["splices"][0]["seams"][0]["outS"]
+    g = S.seam_gate(s, {**gate_checks(s), "seams": [{**m, "inSilenceS": 0.0} if m["outS"] == first else m for m in gate_checks(s)["seams"]]})
+    head = next(t["phonemes"] for t in sorted(s["said"], key=lambda t: t["startS"]) if t["startS"] >= first)
+    assert head[0] == "ء" and [f["splice"] for f in g["failed"]] == [s["splices"][0]["id"]]  # the repeat restarts at ٱللَّهُ
+    short = json.loads(json.dumps(s))
+    t = next(t for t in short["said"] if t["role"] == "wrong")
+    t["endS"] = round(t["startS"] + 0.2, 4)
+    g = S.seam_gate(short, gate_checks(short))
+    wrong = next(x["id"] for x in s["splices"] if x["type"] == "wrong_word")
+    assert [(f["splice"], f["reasons"][0][:10]) for f in g["failed"]] == [(wrong, "wrong word")] and g["donorsShort"] == 1
+
+
+def test_rule_audit_names_the_rules_an_old_splice_breaks():
+    rec, _, _, s = build()
+    assert all(not r["refused"] and not r["moved"] for r in S.rule_audit(s, {rec.key: rec}, REF).values())
+    bare, _ = ikhlas(energy=False)
+    got = S.rule_audit(s, {bare.key: bare}, REF)
+    rep = next(x["id"] for x in s["splices"] if x["type"] == "repeat")
+    assert "onset" in got[rep]["refused"]  # the repeat starts again at ٱللَّهُ after a pause, unverified without energy
+    wrong = next(x for x in s["splices"] if x["type"] == "wrong_word")
+    wrong["donor"]["srcEndS"] = wrong["donor"]["srcStartS"] + 0.2
+    assert S.rule_audit(s, {rec.key: rec}, REF)[wrong["id"]]["refused"] == {"donorShort": ["112:1:2 0.20 s"]}
 
 
 def test_donors_skip_refused_words():

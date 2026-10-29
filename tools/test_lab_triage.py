@@ -236,7 +236,8 @@ def test_seam_gate_summary_counts():
     s, checks = gate_session()
     checks["seams"][1] = seam(12.5, clickRatio=3.1)
     d = LS.seam_gate_summary([LS.seam_gate(s, checks)], "lab-x")
-    assert d["summary"]["seams"] == 2 and d["summary"]["seamsPass"] == 1 and d["summary"]["byCheck"] == {"level": 2, "click": 1, "depth": 2}
+    assert d["summary"]["seams"] == 2 and d["summary"]["seamsPass"] == 1
+    assert d["summary"]["byCheck"] == {"level": 2, "click": 1, "depth": 2, "linkCut": 2, "onset": 2}
     assert d["summary"]["splicesFailed"] == 1 and d["limits"] == LS.SEAM_LIMITS
 
 

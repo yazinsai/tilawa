@@ -1,8 +1,8 @@
-"""Pure logic for test set lab-v1.1, spliced sessions (.scratch/lab, ticket 03); run by modal/lab_build_sessions.py.
+"""Pure logic for test set lab-v1.2, spliced sessions (.scratch/lab, ticket 03); run by modal/lab_build_sessions.py.
 
 Window choice, splice boundaries, the plant schedule, output-timeline arithmetic and labels (BenchSession, splice
 records, manifest, review queue), plus the sample-level render and phone degradation. Standard library only except
-`render` and `degrade`, which import numpy (and scipy) when called.
+`render`, `degrade` and `frame_db`, which import numpy (and scipy) when called.
 
 Terms: a *rec* is one teacher-aligned mp3quran surah recording (`align.json`); a *token* is one word occurrence in the
 output, taken from a rec; a *piece* is a run of tokens that are consecutive in one rec, so audio is only ever cut
@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SEED = 20261028
-TEST_SET = "lab-v1.1"
+TEST_SET = "lab-v1.2"
 SR = 16_000
 XFADE = 160  # samples: the 10 ms crossfade centred on each seam
 EDGE_FADE = 320  # 20 ms fade in and out at the session ends
@@ -32,18 +32,38 @@ STRICT_SURAHS = (26, 54, 55, 77)  # refrain surahs in every reader's pool, prefe
 NORMAL_MAX = 5
 PAUSE_DB = -12.0  # an ayah boundary is a pause when its quietest frame is this far below the ayah level
 INNER_PAUSE = (0.3, -15.0)  # an in-ayah gap at least this long and quiet is a pause too
-LINK_DB = -3.0  # a linked (no pause) boundary is cut only when its quietest frame is at least this quiet
+# A linked (no pause) boundary is cut only when its quietest frame is at least this far below the ayah level, deeper
+# still when the word before it ends in a vowel that runs on into the next word. From your lab-v1.1 listens: the two
+# bad linked splices were cut at -3.8 dB (vowel tail) and -4.0 dB, the four that sounded fine at -6.3 dB and deeper.
+LINK_DB = -6.0
+LINK_TAIL_DB = -8.0  # vowel and long-vowel tails
+MIN_DONOR_S = 0.26  # a wrong or added word lasts at least this long in its source (lab-v1.1: the bad one 0.24 s, fine ones 0.28 s)
+# A word with a weak onset (WEAK_ONSET, a connecting hamza said after a stop included) right after a cut keeps it only
+# when the source has stayed below the silence floor for ONSET_SILENCE_S up to the cut (and the crossfade half after it).
+# A pause boundary whose cut doesn't is moved earlier into such silence, or refused as the start of a piece.
+# Silence is the recording's room tone (its ROOM_PCT quietest 10 ms frame) plus ROOM_MARGIN_DB, or ONSET_FLOOR_DB
+# against the ayah level when the room is quieter than that: most sources are reverberant, their pauses sit 12-20 dB
+# below speech and never reach -30 dB.
+ONSET_SILENCE_S = 0.08
+ONSET_FLOOR_DB = -30.0
+ROOM_PCT, ROOM_MARGIN_DB = 0.02, 3.0
 # The render's seam checks (<id>.checks.json) as a gate (spec decision 16, ticket 17): a seam or word past a limit fails
-# its splice, which is refused and rebuilt like an automated-check failure. Set well outside lab-v1.1's worst
-# (level error 0.02 dB above -60 dBFS, click ratio 1.65, seam depth -5.4 dB, worst word 0.996, words cut short by
-# 15 ms); docs/benchmarks/lab-triage-v1.md.
+# its splice, which is refused and rebuilt like an automated-check failure. The first six are set well outside
+# lab-v1.1's worst (level error 0.02 dB above -60 dBFS, click ratio 1.65, seam depth -5.4 dB, worst word 0.996, words
+# cut short by 15 ms; docs/benchmarks/lab-triage-v1.md); the last five re-measure the planner's rules on the render.
 SEAM_LIMITS = {
     "levelErrDb": 1.0,  # output level beside the seam against the same source audio, either side
     "levelFloorDbfs": -60.0,  # ... judged only where the source side is louder than this (dither-level silence moves freely)
     "clickRatio": 2.5,  # peak sample step in the crossfade against the 99th percentile step around it
-    "seamDb": LINK_DB,  # crossfade level against the session's speech level: no louder than the planner lets a link cut
+    "seamDb": -3.0,  # crossfade level against the session's speech level
     "wordCorr": 0.99,  # every unclipped said word found at its labelled time (lag 0) with at least this correlation
     "clipS": 0.025,  # a word shortened by a cut loses at most this much
+    "linkCutDb": LINK_DB,  # source level at a linked cut, either side, against its ayah level
+    "linkTailCutDb": LINK_TAIL_DB,  # ... where the word before the cut ends in a vowel or long vowel
+    "donorMinS": MIN_DONOR_S,  # a wrong or added word's labelled length
+    "onsetSilenceS": ONSET_SILENCE_S,  # silence before the cut in the source of a weak-onset word that follows a seam
+    "onsetFloorDb": ONSET_FLOOR_DB,  # ... measured at onset_floor (render side)
+    "roomMarginDb": ROOM_MARGIN_DB,
 }
 LEN_RATIO_MAX = 1.05  # an ayah whose teacher decode is this much longer than its text holds unlabelled speech (a natural repeat)
 AYAH_PER_MAX = 0.10  # nor is an ayah the teacher matches less well than this (squeezed PER of its source alignment)
@@ -64,7 +84,7 @@ EVIDENCE = "sessions/{id}.{listener}.{variant}.evidence.json"
 V = "\u064e\u064f\u0650"  # fatha, damma, kasra
 LONG = ("اا", "ۦۦ", "ۥۥ")
 THROAT = set("ءهعحغخ")
-WEAK_ONSET = THROAT  # glottal, pharyngeal and h-like heads: a cut inside linked speech clips their quiet onset
+WEAK_ONSET = THROAT  # glottal, pharyngeal and h-like heads: a cut not in true silence clips their quiet onset
 QALQALA = "ڇ"
 # Hafs idgham across a word boundary: a closed final consonant merges into these first letters (and into itself).
 ASSIMILATES = {"م": "ب", "ت": "دط", "د": "ت", "ط": "ت", "ذ": "ظ", "ث": "ذ", "ل": "ر", "ب": "م", "ق": "ك"}
@@ -167,8 +187,9 @@ def joins(t: dict | None, h: dict | None, restart: bool = False) -> bool:
 
     The tail was produced before a head of `t`'s kind, so it only joins a head of the same kind; a pause (an ayah end
     or a real stop) joins another pause or a firm head. A restart breaks off anywhere and starts again after a pause.
+    A pause whose weak onset isn't preceded by measured silence (`weak`) never starts the piece after a seam.
     """
-    if not t or not h:
+    if not t or not h or h.get("weak"):
         return False
     if restart:
         return h["kind"] == "pause"
@@ -210,6 +231,53 @@ def twin_words(ref: Ref) -> dict[int, list[int]]:
 
 # ---- recordings and boundaries --------------------------------------------------------------------------------------
 
+def frame_db(x) -> "np.ndarray":
+    """dB RMS per 10 ms frame (lab_sources.rms_db) as float32, so the planner's stored copy and the render's agree exactly."""
+    import numpy as np
+
+    hop = SR // 100
+    n = len(x) // hop
+    f = np.asarray(x[: n * hop], dtype=np.float64).reshape(n, hop)
+    return (10 * np.log10(np.mean(f * f, axis=1) + 1e-10)).astype(np.float32)
+
+
+def room_tone(db) -> float:
+    """A recording's room tone: its ROOM_PCT quietest 10 ms frame (dB)."""
+    import numpy as np
+
+    a = np.sort(np.asarray(db, dtype=np.float64))
+    return float(a[int(ROOM_PCT * (len(a) - 1))])
+
+
+def onset_floor(room: float, level: float) -> float:
+    """The silence floor against `level` in a recording with this room tone (ONSET_FLOOR_DB, ROOM_MARGIN_DB)."""
+    return max(ONSET_FLOOR_DB, room + ROOM_MARGIN_DB - level)
+
+
+def silence_before(db, t: float, level: float, floor: float = ONSET_FLOOR_DB, cap: float = 0.5) -> float:
+    """How long the audio has been silent (10 ms frames at most `floor` dB against `level`) at a cut at `t`, counting
+    through the crossfade half after it: 0 when the frame holding t + half the crossfade is already sound."""
+    end = t + XFADE / 2 / SR
+    j = int(end * 100)
+    if not 0 <= j < len(db) or db[j] - level > floor:
+        return 0.0
+    i, stop = j, max(0, j - int(cap * 100) - 1)
+    while i > stop and db[i - 1] - level <= floor:
+        i -= 1
+    return round(max(0.0, t - i / 100), 3)
+
+
+def silent_cut(db, lo: float, cut: float, level: float, need: float = ONSET_SILENCE_S, floor: float = ONSET_FLOOR_DB) -> float | None:
+    """The latest cut at or before `cut` (10 ms steps, not before `lo`) with `need` seconds of silence before it, so a
+    weak onset after it is kept whole; None when the gap has none."""
+    t = cut
+    while t >= lo - 1e-9:
+        if silence_before(db, t, level, floor) >= need - 1e-9:
+            return round(t, 3)
+        t -= 0.01
+    return None
+
+
 def refused_ayah(a: dict) -> str | None:
     """Why an included source ayah is still kept out of sessions: its teacher decode runs long (an unlabelled natural
     repeat the alignment's garbage blank absorbed) or matches its text loosely."""
@@ -226,9 +294,12 @@ class Rec:
     """One aligned surah recording: words in order with their ayah's verdict and level.
 
     Ayahs `refused_ayah` names, and those in `refuse` (ayah numbers the automated checks failed), count as excluded.
+    `energy` is the recording's `frame_db`: at every pause before a weak-onset word the cut moves earlier into measured
+    silence (`silent_cut`), or the word is marked `weakOnset` and no piece may start there. Without it every such pause
+    counts as unverified.
     """
 
-    def __init__(self, align: dict, ref: Ref, refuse: dict | None = None):
+    def __init__(self, align: dict, ref: Ref, refuse: dict | None = None, energy=None):
         self.read, self.surah, self.split, self.reciter = align["readId"], align["surah"], align["split"], align["reciter"]
         self.key = f"{self.read}/{self.surah:03d}"
         self.audio, self.duration = align["audio"], align["durationS"]
@@ -248,6 +319,17 @@ class Rec:
                 self.ayahs.append([w["ayah"], k, k])
             elif self.ayahs and self.ayahs[-1][0] == w["ayah"]:
                 self.ayahs[-1][2] = k
+        room = room_tone(energy) if energy is not None else None
+        for k, (w, n) in enumerate(zip(self.words, self.words[1:])):
+            if w["cutAfterS"] is None or not self.pause_after(k) or ref.words[n["ref"]]["iso"][:1] not in WEAK_ONSET:
+                continue
+            level = n["level"] if n["level"] is not None else w["level"]
+            t = None if energy is None or level is None else \
+                silent_cut(energy, w["endS"] - CUT_SLACK_S, w["cutAfterS"], level, floor=onset_floor(room, level))
+            if t is None:
+                w["weakOnset"] = True
+            elif t != w["cutAfterS"]:
+                w["cutMovedS"], w["cutAfterS"] = round(w["cutAfterS"] - t, 3), t
         self._b = {}
 
     def usable(self, k: int, score: float = MIN_SCORE) -> bool:
@@ -285,16 +367,23 @@ class Rec:
         same = n["ayah"] == w["ayah"] and n["word"] == w["word"] + 1
         nxt = n["ayah"] == w["ayah"] + 1 and n["word"] == 1 and w["word"] == rw["n"]
         base = {"k": k, "cut": cut, "db": db}
+        pause = {**base, "kind": "pause", **({"weak": True} if w.get("weakOnset") else {})}
         if nxt:
-            return {**base, "kind": "pause"} if db <= PAUSE_DB else None
+            return pause if db <= PAUSE_DB else None
         if not same:
             return None
         if n["startS"] - w["endS"] >= INNER_PAUSE[0] and db <= INNER_PAUSE[1]:
-            return {**base, "kind": "pause"}
+            return pause
         t, h = tail_kind(rw["cont"], rw["iso"], rw["text"]), head_kind(rn["cont"], rn["iso"])
-        if db > LINK_DB or not t or not h or h[1] in WEAK_ONSET or not joins({"kind": "link", "tail": t, "head": h}, {"kind": "link", "head": h}):
+        if not t or not h or h[1] in WEAK_ONSET or db > link_limit(t) or not joins({"kind": "link", "tail": t, "head": h}, {"kind": "link", "head": h}):
             return None
         return {**base, "kind": "link", "tail": t, "head": h}
+
+
+def link_limit(tail: tuple[str, str] | str | None) -> float:
+    """How quiet a linked cut must be, by the kind of tail the word before it ends in."""
+    kind = tail[0] if isinstance(tail, tuple) else tail
+    return LINK_TAIL_DB if kind in ("vowel", "long") else LINK_DB
 
 
 def runs(rec: Rec) -> list[list[int]]:
@@ -323,7 +412,8 @@ def start_cut(rec: Rec, i: int) -> float | None:
     if k0 == 0:
         return None
     p = rec.words[k0 - 1]
-    if p["ayah"] != a - 1 or p["cutAfterS"] is None or p["cutDb"] > PAUSE_DB or not (p["endS"] <= p["cutAfterS"] <= rec.words[k0]["startS"] + CUT_SLACK_S):
+    if p["ayah"] != a - 1 or p["cutAfterS"] is None or p["cutDb"] > PAUSE_DB or p.get("weakOnset") \
+            or not (p["endS"] - (CUT_SLACK_S if p.get("cutMovedS") else 0) <= p["cutAfterS"] <= rec.words[k0]["startS"] + CUT_SLACK_S):
         return None
     return p["cutAfterS"]
 
@@ -333,7 +423,7 @@ def end_cut(rec: Rec, i: int) -> float | None:
     w = rec.words[k1]
     if w["cutAfterS"] is None:
         return min(rec.duration - 0.02, w["endS"] + 0.6) if k1 == len(rec.words) - 1 else None
-    if w["cutDb"] > PAUSE_DB or w["cutAfterS"] < w["endS"]:
+    if w["cutDb"] > PAUSE_DB or w["cutAfterS"] < w["endS"] - (CUT_SLACK_S if w.get("cutMovedS") else 0):
         return None
     return w["cutAfterS"]
 
@@ -493,15 +583,17 @@ def levenshtein(a: str, b: str) -> int:
 
 
 class Donors:
-    """Every word of one reader that can be lifted out whole: included ayah, good score, a cuttable boundary either side,
-    phonemes as said known (`Rec.said`), and not refused by the automated checks (`refuse`: (rec key, ayah, word))."""
+    """Every word of one reader that can be lifted out whole: included ayah, good score, at least MIN_DONOR_S long, a
+    cuttable boundary either side, phonemes as said known (`Rec.said`), and not refused by the automated checks
+    (`refuse`: (rec key, ayah, word))."""
 
     def __init__(self, recs: list[Rec], ref: Ref, refuse: set | None = None):
         self.items = []
         for r in sorted(recs, key=lambda r: r.surah):
             for k in range(1, len(r.words) - 1):
                 w = r.words[k]
-                if not r.usable(k, DONOR_SCORE) or (r.key, w["ayah"], w["word"]) in (refuse or ()) or r.said(k, ref) is None:
+                if not r.usable(k, DONOR_SCORE) or w["endS"] - w["startS"] < MIN_DONOR_S - 1e-9 or (r.key, w["ayah"], w["word"]) in (refuse or ()) \
+                        or r.said(k, ref) is None:
                     continue
                 hb, tb = r.boundary(k - 1, ref), r.boundary(k, ref)
                 if hb and tb:
@@ -581,7 +673,7 @@ def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins:
             b0, b1 = rec.boundary(k0 - 1, ref), rec.boundary(k1, ref)
             n = k1 - k0 + 1
             prev, nxt = ayah_text(win["first"] + ai - 1), ayah_text(win["first"] + ai + 1)
-            if b0 and b1 and b0["kind"] == b1["kind"] == "pause" and 3 <= n <= 30 and text != prev and text != nxt and far(k0, k1) \
+            if b0 and b1 and b0["kind"] == b1["kind"] == "pause" and not b1.get("weak") and 3 <= n <= 30 and text != prev and text != nxt and far(k0, k1) \
                     and w[k1]["endS"] - w[k0]["startS"] <= 25 and not refused(k0, cls):
                 ctx = [f"{rec.surah}:{a - 1}", key, f"{rec.surah}:{a + 1}"]
                 rec_words = prev + nxt
@@ -859,7 +951,8 @@ def label(win: dict, rec: Rec, edits: list[dict], tokens: list[dict], pieces: li
                           "out": {"audio": ra.audio, "srcS": round(pa["src"][1] / SR, 4), "after": ref.name(ra.words[ka]["ref"]), "cutDb": ba and ba["db"],
                                   "boundary": ba and ba["kind"], "tail": ba and ba.get("tail") and ba["tail"][0]},
                           "in": {"audio": rb.audio, "srcS": round(pb["src"][0] / SR, 4), "before": ref.name(rb.words[kb]["ref"]), "cutDb": bb and bb["db"],
-                                 "boundary": bb and bb["kind"], "head": bb and bb.get("head") and bb["head"][0]},
+                                 "boundary": bb and bb["kind"], "head": bb and bb.get("head") and bb["head"][0],
+                                 "tail": bb and bb.get("tail") and bb["tail"][0]},
                           "gainDb": pb["gainDb"]})
         rec_w = rec.words
         rec_text = lambda ks: " ".join(ref.words[rec_w[k]["ref"]]["text"] for k in ks)
@@ -1072,8 +1165,9 @@ def pcm16(x) -> bytes:
 # ---- whole set ----------------------------------------------------------------------------------------------------
 
 def plan_set(catalog: dict, aligns: dict[str, dict], ref: Ref, dis: list[int], bank: dict, seed: int = SEED, only: int = 0,
-             refusals: dict | None = None) -> dict:
-    """Every session of the set: windows, edits, pieces and labels. `aligns` maps catalog `align` paths to their JSON.
+             refusals: dict | None = None, energy=None) -> dict:
+    """Every session of the set: windows, edits, pieces and labels. `aligns` maps catalog `align` paths to their JSON,
+    `energy(audio)` gives a recording's `frame_db` (for the weak-onset rule; None leaves every such pause unverified).
     `refusals` (`refusals_from_checks`) keeps source ayahs, edit sites and donor words that failed the automated checks
     out of the plan, so a rebuild replaces them instead of patching them.
 
@@ -1090,7 +1184,7 @@ def plan_set(catalog: dict, aligns: dict[str, dict], ref: Ref, dis: list[int], b
         if it["readId"] in EXCLUDED_READS or it["align"] not in aligns:
             continue
         a = aligns[it["align"]]
-        r = Rec(a, ref, ayahs_out.get(f"{a['readId']}/{a['surah']:03d}"))
+        r = Rec(a, ref, ayahs_out.get(f"{a['readId']}/{a['surah']:03d}"), energy(a["audio"]) if energy else None)
         recs[r.key] = r
     twins = twin_words(ref)
     readers = defaultdict(set)
@@ -1136,8 +1230,10 @@ def plan_set(catalog: dict, aligns: dict[str, dict], ref: Ref, dis: list[int], b
         plans.append({"id": w["id"], "pieces": [{k: p[k] for k in ("rec", "audio", "src", "out", "len", "gainDb")} for p in pieces],
                       "phone": s["meta"]["phone"], "samples": sum(p["len"] for p in pieces)})
     why = Counter(v for r in recs.values() for v in r.refused.values())
+    onsets = Counter("unverified" if w.get("weakOnset") else "moved" for r in recs.values() for w in r.words if w.get("weakOnset") or w.get("cutMovedS"))
     return {"sessions": sessions, "plans": plans,
-            "refused": {"ayahs": dict(sorted(why.items())), "sites": len(sites_out), "donors": len(donors_out)}}
+            "refused": {"ayahs": dict(sorted(why.items())), "sites": len(sites_out), "donors": len(donors_out),
+                        "weakOnsetPauses": {"moved": onsets["moved"], "unverified": onsets["unverified"]}}}
 
 
 def rec_key(audio: str) -> str:
@@ -1195,8 +1291,40 @@ def refusals_from_checks(checks: dict, sessions: dict[str, dict], previous: dict
     return doc, new
 
 
-def seam_failures(seam: dict, limits: dict = SEAM_LIMITS) -> list[str]:
-    """Why one checks.json seam record fails the gate (empty when it passes)."""
+def rule_audit(s: dict, recs: dict[str, Rec], ref: Ref) -> dict[str, dict]:
+    """What the planner's seam rules make of an already built session's splices (e.g. an earlier test set): per splice,
+    `refused` (rules that would refuse it: `linkDepth`, `onset`, `donorShort`) and `moved` (pause cuts the onset rule
+    moves earlier instead), with the facts behind each. `recs` built with energy."""
+    out = {}
+    for x in s["splices"]:
+        refused, moved = {}, []
+        for m in x["seams"]:
+            for side in ("out", "in"):
+                lab = m[side]
+                r = recs[rec_key(lab["audio"])]
+                s_, a, w = map(int, (lab["after"] if side == "out" else lab["before"]).split(":"))
+                k = r.pos[(a, w)] - (0 if side == "out" else 1)
+                rw = ref.words[r.words[k]["ref"]]
+                if lab["boundary"] == "link":
+                    tail = tail_kind(rw["cont"], rw["iso"], rw["text"])
+                    lim = link_limit(tail)
+                    if lab["cutDb"] > lim:
+                        refused.setdefault("linkDepth", []).append(f"{side} {lab['cutDb']:+.1f} dB ({tail and tail[0]} tail, limit {lim:+.0f})")
+                elif side == "in" and lab["boundary"] == "pause" and ref.words[r.words[k + 1]["ref"]]["iso"][:1] in WEAK_ONSET:
+                    if r.words[k].get("weakOnset"):
+                        refused.setdefault("onset", []).append(f"{lab['before']} after a pause at {lab['srcS']:.3f} s with no measured silence before it")
+                    elif r.words[k].get("cutMovedS"):
+                        moved.append({"before": lab["before"], "srcS": lab["srcS"], "movedS": r.words[k]["cutMovedS"]})
+        d = x.get("donor")
+        if d and d["srcEndS"] - d["srcStartS"] < MIN_DONOR_S - 1e-9:
+            refused["donorShort"] = [f"{d['word']} {d['srcEndS'] - d['srcStartS']:.2f} s"]
+        out[x["id"]] = {"refused": refused, "moved": moved}
+    return out
+
+
+def seam_failures(seam: dict, limits: dict = SEAM_LIMITS, label: dict | None = None, head: str | None = None) -> list[str]:
+    """Why one checks.json seam record fails the gate (empty when it passes). `label` is the session's record of the
+    same seam (boundary and tail kinds each side), `head` the phonemes of the first word after it."""
     out = []
     errs = [abs(seam[o] - seam[s]) for o, s in (("beforeDb", "srcBeforeDb"), ("afterDb", "srcAfterDb")) if seam[s] > limits["levelFloorDbfs"]]
     if errs and max(errs) > limits["levelErrDb"]:
@@ -1205,6 +1333,18 @@ def seam_failures(seam: dict, limits: dict = SEAM_LIMITS) -> list[str]:
         out.append(f"click at the seam (ratio {seam['clickRatio']:.2f})")
     if seam["seamDb"] > limits["seamDb"]:
         out.append(f"seam {seam['seamDb']:+.1f} dB against speech")
+    for side in ("out", "in") if label else ():
+        lab = label[side]
+        if lab.get("boundary") != "link":
+            continue
+        db = seam.get(f"{side}CutDb", lab.get("cutDb"))
+        lim = limits["linkTailCutDb"] if lab.get("tail") in ("vowel", "long") else limits["linkCutDb"]
+        if db is not None and db > lim:
+            out.append(f"linked cut {'before' if side == 'out' else 'after'} the seam at {db:+.1f} dB ({lab.get('tail') or 'closed'} tail, limit {lim:+.0f})")
+    if head and head[0] in WEAK_ONSET:
+        sil = seam.get("inSilenceS") or 0.0
+        if sil < limits["onsetSilenceS"] - 1e-9:
+            out.append(f"weak onset {head[0]} after the seam with {sil * 1000:.0f} ms of silence before the cut")
     return out
 
 
@@ -1214,9 +1354,14 @@ def seam_gate(s: dict, checks: dict, aligns: dict | None = None, limits: dict = 
     refusals_from_checks. aligns: {audio: {(surah, ayah, word): align word}} to measure how much each clipped word lost
     (without it only the counts in checks.json are used)."""
     owner = {round(m["outS"], 3): x["id"] for x in s["splices"] for m in x["seams"]}
+    labels = {round(m["outS"], 3): m for x in s["splices"] for m in x["seams"]}
     times = sorted(owner)
     fails: dict[str, list[str]] = {}
     unmapped = []
+    order = sorted(s["said"], key=lambda t: t["startS"])
+
+    def head_after(t: float) -> str | None:
+        return next((w.get("phonemes") for w in order if w["startS"] >= t - 1e-4), None)
 
     def put(t: float, why: str, near: float = 0.0):
         k = min(times, key=lambda m: abs(m - t), default=None) if near else round(t, 3)
@@ -1227,10 +1372,16 @@ def seam_gate(s: dict, checks: dict, aligns: dict | None = None, limits: dict = 
 
     seams = []
     for m in checks["seams"]:
-        why = seam_failures(m, limits)
+        why = seam_failures(m, limits, labels.get(round(m["outS"], 3)), head_after(m["outS"]))
         seams.append({"outS": m["outS"], "splice": owner.get(round(m["outS"], 3)), "pass": not why, "reasons": why})
         for w in why:
             put(m["outS"], w)
+    short = []
+    for t in s["said"]:
+        if t["role"] in ("wrong", "added") and t["endS"] - t["startS"] < limits["donorMinS"] - 1e-9:
+            why = f"{t['role']} word {t['text']} only {t['endS'] - t['startS']:.2f} s long"
+            short.append(why)
+            fails.setdefault(t["op"], []).append(why)
     said = {(json.dumps(t["at"], sort_keys=True), t["role"]): t for t in s["said"]}
     w = checks["words"]
     weak = [x for x in w["worst"] if not (x["lagSamples"] == 0 and x["corr"] >= limits["wordCorr"])]
@@ -1257,8 +1408,8 @@ def seam_gate(s: dict, checks: dict, aligns: dict | None = None, limits: dict = 
     return {"session": s["id"], "seams": len(seams), "seamsPass": sum(x["pass"] for x in seams),
             "words": w["words"], "wordsChecked": w["words"] - w["clipped"], "wordsFound": w["words"] - w["clipped"] - len(weak) - unchecked,
             "wordsUnchecked": unchecked, "clipped": w["clipped"], "clipMaxS": round(max(clips), 4) if clips else None,
-            "clipsOver": sum(c > limits["clipS"] for c in clips), "failedSeams": [x for x in seams if not x["pass"]],
-            "failed": failed, "unmapped": unmapped}
+            "clipsOver": sum(c > limits["clipS"] for c in clips), "donors": sum(t["role"] in ("wrong", "added") for t in s["said"]),
+            "donorsShort": len(short), "failedSeams": [x for x in seams if not x["pass"]], "failed": failed, "unmapped": unmapped}
 
 
 def seam_gate_summary(rows: list[dict], test_set: str, limits: dict = SEAM_LIMITS) -> dict:
@@ -1267,9 +1418,12 @@ def seam_gate_summary(rows: list[dict], test_set: str, limits: dict = SEAM_LIMIT
     n = sum(r["seams"] for r in rows)
     return {"version": 1, "kind": "lab-seam-gate", "testSet": test_set, "limits": limits,
             "summary": {"sessions": len(rows), "seams": n, "seamsPass": n - len(seams),
-                        "byCheck": {"level": n - sum("seam level" in w for x in seams for w in x["reasons"]),
-                                    "click": n - sum(w.startswith("click") for x in seams for w in x["reasons"]),
-                                    "depth": n - sum("against speech" in w for x in seams for w in x["reasons"])},
+                        "byCheck": {"level": n - sum(any("seam level" in w for w in x["reasons"]) for x in seams),
+                                    "click": n - sum(any(w.startswith("click") for w in x["reasons"]) for x in seams),
+                                    "depth": n - sum(any("against speech" in w for w in x["reasons"]) for x in seams),
+                                    "linkCut": n - sum(any(w.startswith("linked cut") for w in x["reasons"]) for x in seams),
+                                    "onset": n - sum(any(w.startswith("weak onset") for w in x["reasons"]) for x in seams)},
+                        "donors": sum(r["donors"] for r in rows), "donorsShort": sum(r["donorsShort"] for r in rows),
                         "words": sum(r["words"] for r in rows), "wordsChecked": sum(r["wordsChecked"] for r in rows),
                         "wordsFound": sum(r["wordsFound"] for r in rows), "wordsUnchecked": sum(r["wordsUnchecked"] for r in rows),
                         "clipped": sum(r["clipped"] for r in rows), "clipsOver": sum(r["clipsOver"] for r in rows),
