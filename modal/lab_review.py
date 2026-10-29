@@ -3,17 +3,22 @@ docs/benchmarks/lab-review.md).
 
     modal deploy modal/lab_review.py      # https://<workspace>--tilawa-lab-review-web.modal.run/ (dashboard)
                                           #   .../review?queue=<path under /lab/data> (review page; /?queue= still works)
+    LAB_REVIEW_APP=tilawa-lab-review-preview modal deploy modal/lab_review.py
+                                          # a preview copy at https://<workspace>--tilawa-lab-review-preview-web.modal.run/
     modal run modal/lab_review.py         # (re)writes the synthetic demo test set to /lab/data/fixture-review/
 
 Queues and audio are read from /lab/data on the tilawa-lab volume; verdicts go to /lab/reviews/<testSet>/<reviewer>.json.
 The dashboard reads /lab/ledger.json and the latest main-line run's /lab/runs/<run>/score.json.
 """
 
+import os
 from pathlib import Path
 
 import modal
 
 ROOT = Path(__file__).resolve().parent.parent
+# A preview app shares the volume; it writes to the same review files as the live one, so test with a throwaway reviewer.
+APP = os.environ.get("LAB_REVIEW_APP", "tilawa-lab-review")
 image = (
     modal.Image.debian_slim(python_version="3.12")
     .apt_install("ffmpeg")
@@ -24,7 +29,7 @@ image = (
     .add_local_file(ROOT / "docs/benchmarks/scoreboard.md", "/root/scoreboard.md")
     .add_local_dir(ROOT / "modal/lab_web", "/root/lab_web")
 )
-app = modal.App("tilawa-lab-review", image=image)
+app = modal.App(APP, image=image)
 vol = modal.Volume.from_name("tilawa-lab", create_if_missing=True)
 LAB, DATA, REVIEWS, WEB = Path("/lab"), Path("/lab/data"), Path("/lab/reviews"), Path("/root/lab_web")
 
@@ -54,9 +59,13 @@ def web():
 
     @api.middleware("http")
     async def revalidate_static(request: Request, call_next):
+        static = request.url.path.startswith("/static/")
+        if static:
+            # Modal mounts files with mtime 0: Last-Modified never changes, so a conditional request would always get a 304.
+            request.scope["headers"] = [(k, v) for k, v in request.scope["headers"] if k not in (b"if-modified-since", b"if-none-match")]
         resp = await call_next(request)
-        if request.url.path.startswith("/static/"):
-            resp.headers["Cache-Control"] = "no-cache"
+        if static:
+            resp.headers["Cache-Control"] = "public, max-age=31536000, immutable" if request.url.path.startswith("/static/fonts/") else "no-cache"
         return resp
 
     # This container is the only writer of /lab/reviews (max_containers=1). Saves commit in the background, and a reload
@@ -313,7 +322,8 @@ def web():
         led, tsd, r, sc = lab_state(run, ledger)
         c = find_case(need_score(sc, r), key)
         base = base_for(tsd, sc)
-        return {"item": D.case_item(c, session_doc(c)), "story": D.engine_story(c), "suspects": D.suspects(c), "component": c["component"],
+        return {"item": D.case_item(c, session_doc(c)), "story": D.engine_story(c), "engine": D.engine_facts(c), "suspects": D.suspects(c),
+                "component": c["component"],
                 "review": load_reviews(base, name(reviewer, "reviewer"))["items"].get(key), "testSet": base}
 
     @api.post("/api/case-verdict")

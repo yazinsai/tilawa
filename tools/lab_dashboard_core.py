@@ -23,8 +23,8 @@ JOBS = {
     "checker": ("Decides if it's a mistake", "Says whether you made a mistake. Its own score: wrong calls when it hears perfectly and knows the place."),
 }
 WHY = {
-    "listener": "with perfect hearing and the true place the engine gets it right, but with the student's hearing it doesn't",
-    "tracker": "with the student's hearing and the true place the engine gets it right; only the real tracker gets it wrong",
+    "listener": "with perfect hearing and the true place the engine gets it right, but with the app's listener it doesn't",
+    "tracker": "with the app's listener and the true place the engine gets it right; only the real tracker gets it wrong",
     "checker": "the engine gets it wrong even with perfect hearing and the true place",
 }
 CLASSES = {"wrong_word": "a wrong word", "omitted_word": "a left-out word", "added_word": "an extra word", "skipped_passage": "a skipped passage"}
@@ -88,9 +88,9 @@ def cards(t: dict) -> list[dict]:
                      "detail": f"{lis['edits']:,} of {lis['phonemes']:,} sounds wrong"},
         "tracker": {"text": f"Lost its place for {minutes(perfect['scoredS'] - perfect['onPlaceS'])} of {minutes(perfect['scoredS'])}, "
                             f"{n_of(perfect['falseJumps'], 'wrong jump')}",
-                    "detail": f"With the student's hearing: lost for {minutes(trk['scoredS'] - trk['onPlaceS'])}, {n_of(trk['falseJumps'], 'wrong jump')}"},
-        "checker": {"text": f"{n_of(chk['wrongCalls'], 'wrong call')} even when it hears perfectly and knows the place",
-                    "detail": f"{chk['missed']} missed + {chk['falseWarnings']} false warnings ({chk['per5Min']} per 5 min)"},
+                    "detail": f"With the app's listener: lost for {minutes(trk['scoredS'] - trk['onPlaceS'])}, {n_of(trk['falseJumps'], 'wrong jump')}"},
+        "checker": {"text": f"On its own, {n_of(chk['wrongCalls'], 'wrong call')} when it hears perfectly and knows the place",
+                    "detail": f"{chk['missed']} missed + {chk['falseWarnings']} false warnings, {chk['per5Min']:.1f} per 5 min"},
     }
     return [{"key": k, "name": k.capitalize(), "job": JOBS[k][0], "explain": JOBS[k][1], "wrongCalls": a[k],
              "missed": a["missed"][k], "falseWarnings": a["falseWarnings"][k], "own": own[k]} for k in COMPONENTS]
@@ -111,9 +111,16 @@ def teacher(t: dict) -> dict | None:
             "mishears": round(te["per"] * 1000) if te.get("per") is not None else None}
 
 
+def levers(cs: list[dict]) -> list[str]:
+    """The biggest lever: the component charged with the most wrong calls, plus any within noise of it."""
+    top = max((c["wrongCalls"] for c in cs), default=0)
+    return [c["key"] for c in cs if top and top - c["wrongCalls"] <= L.NOISE]
+
+
 def overview(score: dict) -> dict:
     split, t = headline_totals(score)
-    return {"split": split, "cards": cards(t), "bar": bar(t), "teacher": teacher(t)}
+    cs = cards(t)
+    return {"split": split, "cards": cs, "bar": bar(t), "teacher": teacher(t), "levers": levers(cs)}
 
 
 # Experiments and history
@@ -235,13 +242,19 @@ def fails_everywhere(main: set[str], experiments: list[set[str]]) -> set[str]:
     return out
 
 
+def _plain(reason: str) -> str:
+    """A data-check reason without its raw score, in the page's words."""
+    return re.sub(r"\s*\((?:local )?PER [\d.]+\)", "", reason).replace("teacher", "the big reference listener")
+
+
 def suspects(c: dict, everywhere: set[str] = frozenset()) -> list[dict]:
     """Why a failing case may be bad data rather than an engine fault (spec decision 14), strongest first."""
     out = []
     if c.get("dataCheck"):
-        out.append({"key": "dataCheck", "text": "Failed an automatic data check: " + "; ".join(c["dataCheck"].get("reasons") or ["no reason given"])})
+        reasons = c["dataCheck"].get("reasons") or ["no reason given"]
+        out.append({"key": "dataCheck", "text": "Failed an automatic data check: " + "; ".join(map(_plain, reasons)), "raw": "; ".join(reasons)})
     if c.get("allFail"):
-        out.append({"key": "allFail", "text": "The teacher, the student and the perfect-hearing checker all get it wrong"})
+        out.append({"key": "allFail", "text": "The big reference listener, the app's listener and perfect hearing all get it wrong"})
     if c["key"] in everywhere:
         out.append({"key": "everywhere", "text": "Fails in every experiment too"})
     return out
@@ -263,8 +276,10 @@ def order_cases(cases: list[dict], everywhere: set[str] = frozenset(), verdicts:
     for c in cases:
         sus = suspects(c, everywhere)
         v = verdicts.get(c["key"])
+        strongest = min(sus, key=lambda s: rank[s["key"]])["key"] if sus else "other"
         rows.append({"key": c["key"], "title": case_title(c), "where": where(c.get("word")), "session": c["session"], "timeS": case_time(c),
-                     "variant": c["variant"], "kind": c["kind"], "suspects": sus, "verdict": v and v["verdict"], "verdictText": v and R.VERDICTS.get(v["verdict"]),
+                     "variant": c["variant"], "kind": c["kind"], "suspects": sus, "group": strongest,
+                     "verdict": v and v["verdict"], "verdictText": v and R.VERDICTS.get(v["verdict"]),
                      "_sort": (-len(sus), min((rank[s["key"]] for s in sus), default=9), c["session"], case_time(c))})
     rows.sort(key=lambda r: r.pop("_sort"))
     return rows
@@ -322,17 +337,32 @@ def _arm(v) -> str:
             False: "stayed quiet", None: "not run"}.get(v, str(v))
 
 
-def engine_story(c: dict) -> list[str]:
-    """What the engine did, in plain words, and why the wrong call is charged where it is."""
+def _what(c: dict) -> str:
     cls = CLASSES.get(c.get("errorClass"), c.get("errorClass"))
     if c["kind"] == "mistake":
-        first = f"The labels say {cls} was planted here ({c['startS']:.1f}-{c['endS']:.1f} s). The engine did not warn."
-    else:
-        first = (f"The engine warned \"{cls}\" at {c['timeS']:.1f} s" + (f" (sure at {c['confirmedS']:.1f} s)" if c.get("confirmedS") else "")
-                 + (f", on a {c['nonError']}, which is not a mistake." if c.get("nonError") else ", but the labels say nothing is wrong here."))
-    out = [first,
-           f"Perfect hearing and the true place: {_arm(c.get('oracle'))}. Student's hearing and the true place: {_arm(c.get('truePosition'))}. "
-           f"Teacher's hearing: {_arm(c.get('teacher'))}."]
+        return f"The labels say {cls} was planted here ({c['startS']:.1f}-{c['endS']:.1f} s). The engine did not warn."
+    return (f"The engine warned \"{cls}\" at {c['timeS']:.1f} s" + (f" (sure at {c['confirmedS']:.1f} s)" if c.get("confirmedS") else "")
+            + (f", on a {c['nonError']}, which is not a mistake." if c.get("nonError") else ", but the labels say nothing is wrong here."))
+
+
+def engine_facts(c: dict) -> dict:
+    """engine_story as fields for the case view: what happened, each arm (did it get this case right?), the tracker's
+    time on place around the case (percent), and the component charged with why."""
+    mistake = c["kind"] == "mistake"
+    arms = []
+    for who, k in (("Perfect hearing, true place", "oracle"), ("App's listener, true place", "truePosition"), ("Big reference listener", "teacher")):
+        v = c.get(k)
+        arms.append({"who": who, "did": _arm(v), "right": None if v is None else v in ("hit", "misclassified") if mistake else v is False})
+    on = c.get("trackerOnPlace")
+    return {"what": _what(c), "arms": arms, "onPlace": None if on is None else round(on * 100), "charged": c.get("component"),
+            "why": WHY.get(c.get("component"), "")}
+
+
+def engine_story(c: dict) -> list[str]:
+    """What the engine did, in plain words, and why the wrong call is charged where it is."""
+    out = [_what(c),
+           f"Perfect hearing and the true place: {_arm(c.get('oracle'))}. The app's listener and the true place: {_arm(c.get('truePosition'))}. "
+           f"The big reference listener: {_arm(c.get('teacher'))}."]
     if c.get("trackerOnPlace") is not None:
         out.append(f"The tracker was on the right place {round(c['trackerOnPlace'] * 100)}% of the time around here.")
     if c.get("component"):

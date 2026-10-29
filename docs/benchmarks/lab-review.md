@@ -4,6 +4,7 @@ A Modal web page for listening to test set items one at a time and marking each 
 
 - Page: <https://amal-invest--tilawa-lab-review-web.us-east.modal.run/review?queue=fixture-review/review/demo.json> (`/?queue=...` still works; `/` without a queue is the dashboard)
 - Deploy: `modal deploy modal/lab_review.py`. Rewrite the demo set: `modal run modal/lab_review.py`.
+- Preview a UI change without touching the live app: `LAB_REVIEW_APP=tilawa-lab-review-preview modal deploy modal/lab_review.py`. It serves the same `tilawa-lab` volume, so test only with a throwaway reviewer name and delete its `reviews/*/<name>.json` afterwards. Stop it with `modal app stop tilawa-lab-review-preview`.
 - Test: `uv run --python cpython-3.12-macos-aarch64-none --with pytest pytest tools/test_lab_review.py`
 - ASR pre-screen (`modal/review_asr.py::prescreen`) writes a smaller queue in this format. It failed calibration on lab-v1.1 (`lab-review-asr-v1.md`), so listening stays fully manual.
 
