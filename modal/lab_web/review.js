@@ -48,7 +48,7 @@ function intro() {
   const state = { pass: 'Passed', fail: 'Failed', open: 'Passing so far' }[t.state];
   const name = queuePath.split('/').pop().replace(/\.json$/, '');
   $('intro').innerHTML = `<div class="rv-head">
-    <h1>${name === 'v1-check' ? 'Listening check' : `Review: ${esc(name)}`} <span class="muted" style="font-weight:400">${esc(st.queue.testSet)}</span></h1>
+    <h1>${{ 'v1-check': 'Listening check', triage: 'Listening check · two-model triage' }[name] || `Review: ${esc(name)}`} <span class="muted" style="font-weight:400">${esc(st.queue.testSet)}</span></h1>
     <p class="rv-tally"><span>Heard <b class="num">${t.reviewed}</b> of ${t.total}</span><span><b class="num">${t.bad}</b> bad</span>
       <span class="state ${t.state}" title="Bad = bad label, bad audio or bad splice">${state} · at most ${t.maxBad} bad allowed</span></p>
     ${st.unsaved.size ? `<div class="notice err">Not saved: ${esc([...st.unsaved.values()].join(', '))}. Go back and choose again.</div>` : ''}

@@ -263,7 +263,8 @@ def web():
         sessions = set(tsd["sessions"]["practice"] + tsd["sessions"]["exam"]) if tsd else {r["id"] for r in (sc or {}).get("results", [])}
         applied = ((read_json(DATA / tsd["exclude"]) or {}).get("excluded", [])) if tsd and tsd.get("exclude") else []
         pend, warn = D.pending_flags(reviews, {k: v for k, v in queues.items() if v}, sessions, applied)
-        check = D.check_status(read_json(DATA / base / "review" / D.CHECK_QUEUE), reviews)
+        path = D.check_queue(base, lambda n: (DATA / base / "review" / n).is_file())
+        check = D.check_status(read_json(DATA / core.safe_rel(path)), reviews, path)
         return base, reviews, pend, warn, check
 
     def everywhere(led, sc) -> set:

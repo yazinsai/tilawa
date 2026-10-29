@@ -67,7 +67,7 @@ function topbar(where) {
   const tab = (href, text, on) => `<a href="${href}" ${on ? 'aria-current="page"' : ''}>${text}</a>`;
   $('head').innerHTML = `<a class="brand" href="#/">${icon('mark')}Tilawa lab</a>
     <nav class="tabs">${tab('#/', 'Score', where !== 'release')}${tab('#/release', 'Release', where === 'release')}
-      ${tab(`/review?${qs({ queue: h.check ? `${base}/review/v1-check.json` : null, reviewer: url.searchParams.get('reviewer') })}`, 'Listening check', false)}</nav>
+      ${tab(`/review?${qs({ queue: h.check ? h.check.queue || `${base}/review/v1-check.json` : null, reviewer: url.searchParams.get('reviewer') })}`, 'Listening check', false)}</nav>
     ${s ? `<a class="mini ${where === 'score' ? 'off' : ''}" id="mini" href="#/" title="The overall score"><b class="num">${s.per5Min.toFixed(1)}</b><span>wrong calls / 5 min</span></a>` : ''}`;
   st.watch?.disconnect();
   const big = document.querySelector('.score');

@@ -237,10 +237,15 @@ def fold_check(card: dict, branch: dict, rebased: dict) -> tuple[str, str]:
 
 
 def latest_verdicts(reviews: list[dict]) -> dict[str, dict]:
-    """item id -> the most recent verdict record across reviewers, with `reviewer` filled in."""
+    """item id -> the most recent verdict record across reviewers, with `reviewer` filled in. Model records that share
+    the reviews folder (asr-*.json: no reviewer, items without a verdict) are skipped."""
     out = {}
     for rv in reviews:
+        if not rv.get("reviewer"):
+            continue
         for item, rec in rv.get("items", {}).items():
+            if not isinstance(rec, dict) or "verdict" not in rec or "at" not in rec:
+                continue
             if item not in out or rec["at"] > out[item]["at"]:
                 out[item] = {**rec, "reviewer": rv.get("reviewer")}
     return out

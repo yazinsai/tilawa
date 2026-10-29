@@ -15,6 +15,7 @@ import lab_review_core as R
 COMPONENTS = L.COMPONENTS
 DASH_QUEUE = "dashboard.json"
 CHECK_QUEUE = "v1-check.json"
+CHECK_QUEUES = ("triage.json", CHECK_QUEUE)  # a test set's listening check: the two-model triage queue once it exists (ticket 17)
 CLI = "python3 tools/lab.py"
 
 JOBS = {
@@ -201,7 +202,12 @@ def pending_flags(reviews: list[dict], queues: dict[str, dict], sessions: set[st
     return L.pending_flags(reviews, queues, sessions, applied)
 
 
-def check_status(queue: dict | None, reviews: list[dict]) -> dict | None:
+def check_queue(base: str, exists) -> str:
+    """The test set's listening-check queue path (`<base>/review/<name>`): the first of CHECK_QUEUES that `exists`."""
+    return f"{base}/review/" + next((n for n in CHECK_QUEUES if exists(n)), CHECK_QUEUE)
+
+
+def check_status(queue: dict | None, reviews: list[dict], path: str | None = None) -> dict | None:
     """The test set's listening check (spec decision 16): latest verdict per item across reviewers, against the bar."""
     if not queue:
         return None
@@ -212,7 +218,7 @@ def check_status(queue: dict | None, reviews: list[dict]) -> dict | None:
         text = f"listening check failed: {t['bad']} bad of {t['total']} (at most {t['maxBad']})"
     else:
         text = f"listening check: {t['reviewed']} of {t['total']} heard, {t['bad']} bad"
-    return {**t, "text": text}
+    return {**t, "text": text, **({"queue": path} if path else {})}
 
 
 # Drill-down
