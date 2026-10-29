@@ -27,6 +27,7 @@ ROOT = "recordings"
 TEST_SET = "recordings"
 EXTS = {"audio/webm": "webm", "audio/ogg": "ogg", "audio/mp4": "mp4", "audio/mpeg": "mp3", "audio/wav": "wav", "audio/x-wav": "wav", "audio/aac": "aac"}
 MAX_UPLOAD = 200 * 1024 * 1024
+RESERVED = {"scripts", "sessions", "review"}  # directories under recordings/ that aren't speakers
 TAKE = re.compile(r"^take-(\d+)\.(webm|ogg|mp4|mp3|wav|aac)$")
 LLR_MIN = 3.0  # nats: the teacher must prefer what the script says was said by this much (lab_checks.LLR_MIN)
 LOCAL_PER_MAX = 0.25
@@ -54,6 +55,8 @@ def ext_for(mime: str) -> str:
 
 
 def take_dir(speaker: str, script: str) -> str:
+    if speaker.lower() in RESERVED:
+        raise ValueError(f"speaker can't be {speaker!r}")
     return f"{ROOT}/{safe(speaker, 'speaker')}/{safe(script, 'script')}"
 
 

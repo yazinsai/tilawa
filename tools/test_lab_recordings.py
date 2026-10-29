@@ -158,6 +158,8 @@ def test_paths_and_names():
             R.safe(bad, "speaker")
     with pytest.raises(ValueError):
         R.ext_for("video/quicktime")
+    with pytest.raises(ValueError):
+        R.take_dir("sessions", "rec-v1-01")
 
 
 def test_take_meta_checks_the_script_copy():
@@ -193,11 +195,11 @@ def test_current_takes_and_manifest_join():
     assert m["variants"] == ["phone"] and e["split"] == "exam" and e["tags"] == ["recorded"] and e["slices"]["source"] == "recorded"
     assert "said" not in e["session"] and "meta" not in e["session"] and e["audio"]["phone"] == s["audio"]
     base = {"version": 1, "testSet": "lab-v1.4", "variants": ["studio", "phone"], "sessions": [{"id": "t-1", "session": {}}]}
-    j = R.join(base, m, "recorded/")
-    assert len(j["sessions"]) == 2 and j["sessions"][1]["audio"] == {"phone": "recorded/rec-test-rec-test-01-t1.phone.wav"}
-    assert j["sessions"][1]["session"]["audio"] == "recorded/rec-test-rec-test-01-t1.phone.wav" and j["recorded"]["sessions"] == 1
+    j = R.join(base, m, "sessions/")
+    assert len(j["sessions"]) == 2 and j["sessions"][1]["audio"] == {"phone": "sessions/rec-test-rec-test-01-t1.phone.wav"}
+    assert j["sessions"][1]["session"]["audio"] == "sessions/rec-test-rec-test-01-t1.phone.wav" and j["recorded"]["sessions"] == 1
     with pytest.raises(ValueError):
-        R.join(j, m, "recorded/")
+        R.join(j, m, "sessions/")
 
 
 CLI = Path(__file__).resolve().parents[1] / "packages/core/dist/bench/lab-validate-cli.js"

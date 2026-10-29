@@ -7,6 +7,9 @@ docs/benchmarks/lab-review.md).
                                           # a preview copy at https://<workspace>--tilawa-lab-review-preview-web.modal.run/
     modal run modal/lab_review.py         # (re)writes the synthetic demo test set to /lab/data/fixture-review/
 
+The /record page records scripted-error takes (docs/benchmarks/lab-recordings.md); uploads are processed by the
+tilawa-lab-recordings app (modal/lab_recordings.py, or LAB_RECORDINGS_APP at deploy time).
+
 Queues and audio are read from /lab/data on the tilawa-lab volume; verdicts go to /lab/reviews/<testSet>/<reviewer>.json.
 The dashboard reads /lab/ledger.json and the latest main-line run's /lab/runs/<run>/score.json.
 """
@@ -19,11 +22,14 @@ import modal
 ROOT = Path(__file__).resolve().parent.parent
 # A preview app shares the volume; it writes to the same review files as the live one, so test with a throwaway reviewer.
 APP = os.environ.get("LAB_REVIEW_APP", "tilawa-lab-review")
+REC_APP = os.environ.get("LAB_RECORDINGS_APP", "tilawa-lab-recordings")
 image = (
     modal.Image.debian_slim(python_version="3.12")
     .apt_install("ffmpeg")
     .uv_pip_install("fastapi[standard]==0.115.4")
+    .env({"LAB_RECORDINGS_APP": REC_APP})
     .add_local_file(ROOT / "tools/lab_review_core.py", "/root/lab_review_core.py")
+    .add_local_file(ROOT / "tools/lab_recordings_core.py", "/root/lab_recordings_core.py")
     .add_local_file(ROOT / "tools/lab_ledger.py", "/root/lab_ledger.py")
     .add_local_file(ROOT / "tools/lab_dashboard_core.py", "/root/lab_dashboard_core.py")
     .add_local_file(ROOT / "docs/benchmarks/scoreboard.md", "/root/scoreboard.md")
@@ -88,8 +94,22 @@ def web():
             finally:
                 with cond:
                     st["committing"] = False
+                    cond.notify_all()
 
     threading.Thread(target=committer, daemon=True).start()
+
+    def commit_now():
+        """Commit before another container must see the files (an upload its processing reads)."""
+        with cond:
+            while st["committing"]:
+                cond.wait()
+            st["dirty"], st["committing"] = False, True
+        try:
+            vol.commit()
+        finally:
+            with cond:
+                st["committing"] = False
+                cond.notify_all()
 
     def reload(force=False):
         with cond:
@@ -357,6 +377,133 @@ def web():
     @api.get("/api/release")
     def release():
         return {"release": gates, "source": "docs/benchmarks/scoreboard.md"}
+
+    # Scripted-error recordings (ticket 18). This container is the only writer of takes and their metadata; results
+    # come from the processing app's containers.
+
+    import shutil
+
+    import lab_recordings_core as rec
+    from starlette.concurrency import run_in_threadpool
+
+    RECORD = DATA / rec.ROOT
+    SUMMARY = ("id", "batch", "version", "sha", "tag", "title", "range", "ayahCount", "estimatedS", "clean", "counts")
+
+    def rec_scripts() -> dict:
+        out = {}
+        for p in sorted((RECORD / "scripts").glob("*.json")):
+            b = read_json(p) or {}
+            for x in b.get("scripts", []):
+                out[x["id"]] = {**x, "batch": b.get("batch")}
+        return out
+
+    def speaker_name(v: str) -> str:
+        try:
+            v = rec.safe(v, "speaker")
+            rec.take_dir(v, "x")
+            return v
+        except ValueError as e:
+            raise HTTPException(400, str(e))
+
+    def speaker_takes(speaker: str) -> dict:
+        """script id -> this speaker's takes, newest first: metadata plus the processing result (or `processing`)."""
+        out = {}
+        d = RECORD / speaker
+        for p in sorted(d.glob("*/take-*.json")) if d.is_dir() else []:
+            if p.name.endswith(".result.json"):
+                continue
+            m = read_json(p)
+            if not m:
+                continue
+            r = read_json(p.with_name(p.name.replace(".json", ".result.json"))) or {}
+            t = {"take": m["take"], "uploadedAt": m["uploadedAt"], "scriptSha": m["scriptSha"], "device": m.get("device"), "bytes": m["bytes"],
+                 "upload": f"{rec.take_dir(speaker, m['script'])}/take-{m['take']}.{m['ext']}", "verdict": r.get("verdict", "processing"),
+                 "why": r.get("why", []), "audioS": r.get("audioS"), "sessionId": r.get("sessionId"), "processedAt": r.get("processedAt"),
+                 "plants": [{k: x.get(k) for k in ("id", "n", "class", "ayah", "status", "reasons", "llr")} for x in r.get("plants", [])],
+                 "flagged": [a["key"] for a in r.get("ayahs", []) if a.get("flag")]}
+            out.setdefault(m["script"], []).append(t)
+        return {k: sorted(v, key=lambda t: -t["take"]) for k, v in out.items()}
+
+    @api.get("/record")
+    def record_page():
+        return FileResponse(WEB / "record.html", headers={"Cache-Control": "no-cache"})
+
+    @api.get("/api/record/scripts")
+    def record_scripts(speaker: str = ""):
+        reload()
+        takes = speaker_takes(speaker_name(speaker)) if speaker else {}
+        return {"scripts": [{**{k: x.get(k) for k in SUMMARY}, "takes": takes.get(x["id"], [])} for x in rec_scripts().values()]}
+
+    @api.get("/api/record/script")
+    def record_script(id: str, speaker: str = ""):
+        reload()
+        x = rec_scripts().get(id)
+        if not x:
+            raise HTTPException(404, f"no script {id!r}")
+        takes = speaker_takes(speaker_name(speaker)).get(id, []) if speaker else []
+        return {"script": {k: v for k, v in x.items() if k not in ("said", "labels")}, "takes": takes}
+
+    def save_take(form) -> dict:
+        audio = form.get("audio")
+        fields = {k: v for k, v in form.items() if isinstance(v, str)}
+        if audio is None or isinstance(audio, str):
+            raise HTTPException(400, "no audio file")
+        speaker = speaker_name(fields.get("speaker", ""))
+        x = rec_scripts().get(fields.get("script", ""))
+        if not x:
+            raise HTTPException(404, f"no script {fields.get('script')!r}")
+        try:
+            ext = rec.ext_for(fields.get("mime") or audio.content_type)
+        except ValueError as e:
+            raise HTTPException(415, str(e))
+        d = DATA / rec.take_dir(speaker, x["id"])
+        with cond:
+            d.mkdir(parents=True, exist_ok=True)
+            n = rec.next_take([p.name for p in d.iterdir()])
+            files = rec.take_files(speaker, x["id"], n, ext)
+            dst = DATA / files["upload"]
+            tmp = dst.with_name(dst.name + ".tmp")
+            with tmp.open("wb") as out:
+                shutil.copyfileobj(audio.file, out, 1 << 20)
+            size = tmp.stat().st_size
+            if not 1000 <= size <= rec.MAX_UPLOAD:
+                tmp.unlink()
+                raise HTTPException(413 if size > rec.MAX_UPLOAD else 400, f"the recording is {size} bytes")
+            try:
+                meta = rec.take_meta(fields, x, n, ext, datetime.now(timezone.utc).isoformat(timespec="seconds"), size)
+            except ValueError as e:
+                tmp.unlink()
+                raise HTTPException(409, str(e))
+            tmp.replace(dst)
+            (DATA / files["meta"]).write_text(rec.dumps(meta))
+        commit_now()
+        return {"take": n, "meta": meta, "processing": spawn(speaker, x["id"], n)}
+
+    def spawn(speaker: str, script: str, n: int) -> str | None:
+        try:
+            modal.Function.from_name(REC_APP, "process_take").spawn(speaker, script, n)
+            return None
+        except Exception as e:
+            print(f"cannot start processing {speaker}/{script}/{n}: {e!r}")
+            return f"saved, but processing didn't start ({type(e).__name__}); it can be retried"
+
+    @api.post("/api/record/upload")
+    async def record_upload(request: Request):
+        form = await request.form()
+        try:
+            return await run_in_threadpool(save_take, form)
+        finally:
+            await form.close()
+
+    @api.post("/api/record/process")
+    def record_process(body: dict = Body(...)):
+        speaker, script, n = speaker_name(body.get("speaker", "")), body.get("script", ""), body.get("take")
+        if not isinstance(n, int) or not rec.SAFE.match(script or "") or not (DATA / rec.take_dir(speaker, script) / f"take-{n}.json").is_file():
+            raise HTTPException(404, "no such take")
+        err = spawn(speaker, script, n)
+        if err:
+            raise HTTPException(502, err)
+        return {"take": n, "processing": True}
 
     return api
 

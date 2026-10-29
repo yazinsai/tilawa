@@ -310,6 +310,19 @@ def far(q: Quran, g0: int, g1: int, starts: list[float], ayahs: list[tuple[int, 
 
 # ---- the script ---------------------------------------------------------------------------------------------------
 
+def in_context(x: dict, first: bool, last: bool) -> str:
+    """Word x's phonemes said at another place (first or last word of the ayah there, or neither): its continuous form
+    when that doesn't depend on its own neighbours (same ayah edges, an unassimilated head and tail), else its pause
+    form, without the connecting hamza inside an ayah."""
+    cont, iso = x["cont"], x["iso"]
+    src_first, src_last = x["w"] == 1, x["w"] == x["n"]
+    head = src_first if first else not src_first and S.head_kind(cont, iso) is not None
+    tail = src_last if last else not src_last and S.tail_kind(cont, iso, x["text"]) is not None
+    if head and tail:
+        return cont
+    return iso[2:] if not first and x["text"].startswith("\u0671") and iso[:1] == "ء" else iso
+
+
 def said_items(q: Quran, ayahs: list[tuple[int, int]], plants: list[dict], rng: random.Random) -> tuple[list[dict], list[dict], list[dict]]:
     """(said, display ayahs, plant records). `said` is what is to be recited, one item per word in time order, with
     its reference word (`at`, null for an added word or the basmala), text, phonemes and role:
@@ -344,10 +357,11 @@ def said_items(q: Quran, ayahs: list[tuple[int, int]], plants: list[dict], rng: 
                 rec |= {"said": "", "instruction": f"Leave out «{w['text']}».", "why": "a word left out"}
             elif cls in ("wrong_word", "self_correction"):
                 x = ref.words[p["with"]["word"]]
-                rec |= {"said": x["text"], "saidPhonemes": x["cont"] if cls == "wrong_word" else x["iso"], "saidFrom": ref.ref(p["with"]["word"]),
+                ph = in_context(x, w["w"] == 1, w["w"] == w["n"])
+                rec |= {"said": x["text"], "saidPhonemes": ph if cls == "wrong_word" else x["iso"], "saidFrom": ref.ref(p["with"]["word"]),
                         "kind": p["with"]["kind"], "why": f"«{x['text']}»: {p['with']['why']}"}
                 if cls == "wrong_word":
-                    said.append({"at": at, "text": x["text"], "phonemes": x["cont"], "role": "wrong", "plant": pid})
+                    said.append({"at": at, "text": x["text"], "phonemes": ph, "role": "wrong", "plant": pid})
                     row["tokens"].append({"text": x["text"], "mark": "wrong", "plant": pid, "original": w["text"]})
                     rec["instruction"] = f"Say «{x['text']}» instead of «{w['text']}»."
                     ayah_said.append(x["text"])
@@ -367,10 +381,11 @@ def said_items(q: Quran, ayahs: list[tuple[int, int]], plants: list[dict], rng: 
                     rec["kind"] = p["with"]["kind"]
             elif cls == "added_word":
                 x = ref.words[p["with"]["word"]]
-                said.append({"at": None, "text": x["text"], "phonemes": x["cont"], "role": "added", "plant": pid})
+                ph = in_context(x, False, False)
+                said.append({"at": None, "text": x["text"], "phonemes": ph, "role": "added", "plant": pid})
                 said.append({"at": at, "text": w["text"], "phonemes": w["cont"], "role": "ref"})
                 row["tokens"] += [{"text": x["text"], "mark": "added", "plant": pid}, {"text": w["text"]}]
-                rec |= {"said": x["text"], "saidPhonemes": x["cont"], "saidFrom": ref.ref(p["with"]["word"]), "kind": p["with"]["kind"],
+                rec |= {"said": x["text"], "saidPhonemes": ph, "saidFrom": ref.ref(p["with"]["word"]), "kind": p["with"]["kind"],
                         "expected": "", "before": w["text"], "instruction": f"Add «{x['text']}» before «{w['text']}».", "why": f"«{x['text']}»: {p['with']['why']}"}
                 ayah_said += [x["text"], w["text"]]
             if cls != "self_correction":
@@ -476,6 +491,30 @@ def text(s: dict) -> str:
     return "\n".join(lines)
 
 
+E2E = {"surah": 77, "ayahs": (1, 20), "plants": [  # (class, word, said from): every said word is in Al-Mursalat
+    ("wrong_word", (77, 3, 2), (77, 4, 2)), ("added_word", (77, 7, 3), (77, 15, 2)), ("self_correction", (77, 10, 3), (77, 9, 3)),
+    ("omitted_word", (77, 14, 4), None), ("wrong_word", (77, 18, 3), (77, 15, 3))]}
+
+
+def e2e_batch(asset: dict) -> dict:
+    """The end-to-end test batch (speaker `test`): Al-Mursalat 77:1-20 with one plant of each class whose said words
+    come from the same surah, so modal/lab_recordings.py can cut a synthetic take from one mp3quran reader; and the
+    same passage clean."""
+    q = Quran(asset)
+    s0 = E2E["surah"]
+    ayahs = [(s0, a) for a in range(E2E["ayahs"][0], E2E["ayahs"][1] + 1)]
+    plants = []
+    for cls, at, frm in E2E["plants"]:
+        g = q.ref.idx[at]
+        p = {"cls": cls, "word": g, "ayahIndex": at[1] - E2E["ayahs"][0]}
+        if frm:
+            p["with"] = {"kind": "context", "word": q.ref.idx[frm], "why": f"{frm[0]}:{frm[1]} has it", "rank": (0,)}
+        plants.append(p)
+    out = [script(q, "rec-test-77", "e2e", ayahs, False, SEED, plants), script(q, "rec-test-77c", "e2e", ayahs, True, SEED, [])]
+    return {"version": 1, "kind": "lab-scripts", "batch": "test", "seed": SEED, "reference": asset["version"], "pace": PACE, "pool": [],
+            "scripts": out, "summary": summary(out)}
+
+
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -486,6 +525,8 @@ def main(argv=None) -> None:
     b.add_argument("--pool", help="JSON list of {tag, surahs, weight}")
     b.add_argument("--clean", type=int)
     b.add_argument("--out", default=str(OUT))
+    e = sub.add_parser("e2e", help="the end-to-end test batch (Al-Mursalat, speaker test)")
+    e.add_argument("--out", default="/tmp/lab-scripts-test.json")
     sh = sub.add_parser("show")
     sh.add_argument("id")
     sh.add_argument("--file", default=str(OUT))
@@ -498,6 +539,10 @@ def main(argv=None) -> None:
         print(json.dumps(out["summary"], ensure_ascii=False))
         for s in out["scripts"]:
             print(f"  {s['id']} {s['title']} {s['range']}: {s['estimatedS'] / 60:.1f} min, {s['ayahCount']} ayahs, {dict(s['counts']) or 'clean'}")
+    elif a.cmd == "e2e":
+        out = e2e_batch(json.loads((ROOT / "packages/core/assets/ref-v2.json").read_text()))
+        Path(a.out).write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n")
+        print(text(out["scripts"][0]))
     else:
         doc = json.loads(Path(a.file).read_text())
         print(text(next(s for s in doc["scripts"] if s["id"] == a.id)))
