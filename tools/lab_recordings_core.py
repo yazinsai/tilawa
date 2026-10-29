@@ -32,8 +32,10 @@ TAKE = re.compile(r"^take-(\d+)\.(webm|ogg|mp4|mp3|wav|aac)$")
 LLR_MIN = 3.0  # nats: the teacher must prefer what the script says was said by this much (lab_checks.LLR_MIN)
 LOCAL_PER_MAX = 0.25
 AYAH_PER_MAX = 0.15  # an ayah the teacher hears this differently from the script holds an unscripted change (lab_sources.MAX_PER)
-BASMALA_PER_MAX = 0.3  # a scripted basmala heard worse than this wasn't said; it is aligned again without it
+BASMALA_PER_MAX = 0.3  # an optional item (basmala, isti'adha, closing) heard worse than this wasn't said; it is dropped
+OPTIONAL = ("istiadha", "closing", "basmala")  # droppable roles, the unscripted ones dropped first
 COVERAGE_MIN = 0.9
+HEARD_MIN = 0.5  # the teacher's greedy phonemes over the script's: below this the take is silent or another passage
 PAD_S = 0.1
 REDO_FLAGGED_AYAHS = 3
 SPOT = {"performed": 3, "selfCorrections": 1, "clean": 2}  # per take; every unsure plant and flagged ayah is queued too
@@ -90,9 +92,9 @@ def take_meta(form: dict, script: dict, n: int, ext: str, at: str, size: int) ->
 
 # ---- checks -------------------------------------------------------------------------------------------------------
 
-def items(script: dict, drop_basmala: set[int] | None = None) -> list[dict]:
-    """What the script says is recited, one item per word (`said`), optionally without some basmala items (indexes)."""
-    return [dict(x, i=i) for i, x in enumerate(script["said"]) if not (drop_basmala and i in drop_basmala)]
+def items(script: dict, drop: set[int] | None = None) -> list[dict]:
+    """What the script says is recited, one item per word (`said`), optionally without some optional items (indexes)."""
+    return [dict(x, i=i) for i, x in enumerate(script["said"]) if not (drop and i in drop)]
 
 
 def plant_window(its: list[dict], plant: dict) -> tuple[int, int, list[int]] | None:
@@ -126,8 +128,10 @@ def decide(llr: float, d_said: int, d_orig: int, local: float) -> tuple[str, lis
     return ("unsure" if reasons else "performed"), reasons
 
 
-def take_verdict(aligned: bool, plants: list[dict], ayahs: list[dict], coverage: float) -> tuple[str, list[str]]:
+def take_verdict(aligned: bool, plants: list[dict], ayahs: list[dict], coverage: float, heard: float = 1.0) -> tuple[str, list[str]]:
     """ok, listen (something for a human to hear) or redo (the take doesn't follow the script)."""
+    if heard < HEARD_MIN:
+        return "redo", [f"the teacher hears almost none of the script ({heard:.0%} of its phonemes): is the microphone on?"]
     if not aligned:
         return "redo", ["the recording doesn't match the script's text (alignment failed)"]
     why = [f"mistake {p['n']} ({p['ayah']}) not performed: {p['reasons'][0]}" for p in plants if p["status"] == "not_performed"]
@@ -154,7 +158,8 @@ def original_phonemes(script: dict, plant: dict, words: dict[str, str]) -> str:
 def check_take(script: dict, ev: dict, ref: dict) -> dict:
     """Align what the script says was said to the take's teacher evidence and check every plant and ayah.
 
-    Each scripted basmala the teacher doesn't hear (greedy PER over BASMALA_PER_MAX) is dropped and the rest aligned again.
+    Optional items the teacher doesn't hear (greedy PER over BASMALA_PER_MAX) are dropped and the rest aligned again:
+    the isti'adha and closing first, as a missing one can pull a basmala's window off its audio, then basmalas.
     """
     import numpy as np
     from rapidfuzz.distance import Levenshtein
@@ -166,26 +171,28 @@ def check_take(script: dict, ev: dict, ref: dict) -> dict:
     fs = ev["frameMs"] / 1000
     lp = C.log_probs(ev)
     words = C.word_phonemes(ref)
+    heard = len(ev["phonemes"]) / max(1, len(L.squeeze("".join(x["phonemes"] for x in script["said"]))))
     drop: set[int] = set()
-    for _ in range(2):
+    for _ in range(4):
         its = items(script, drop)
         spans = C.align(lp, its, fs)
         if spans is None:
             break
-        bad = set()
+        bad = {}
         for it, (a, b) in zip(its, spans):
-            if it["role"] == "basmala":
+            if it["role"] in OPTIONAL:
                 g = canon(C.greedy_in(ev, round(a / fs), max(round(a / fs) + 1, round(b / fs))))
                 if Levenshtein.distance(g, canon(it["phonemes"])) / max(1, len(canon(it["phonemes"]))) > BASMALA_PER_MAX:
-                    bad.add(it["i"])
-        if not bad - drop:
+                    bad[it["i"]] = it["role"]
+        if not bad:
             break
-        drop |= bad
+        first = [i for i, r in bad.items() if r != "basmala"] or list(bad)
+        drop |= set(first)
     duration = ev["nFrames"] * fs
     if spans is None:
-        verdict, why = take_verdict(False, [], [], 0.0)
+        verdict, why = take_verdict(False, [], [], 0.0, heard)
         return {"version": 1, "script": script["id"], "scriptSha": script["sha"], "durationS": round(duration, 3), "aligned": False,
-                "verdict": verdict, "why": why, "plants": [], "ayahs": [], "said": [], "coverage": 0.0, "droppedBasmala": sorted(drop)}
+                "verdict": verdict, "why": why, "plants": [], "ayahs": [], "said": [], "coverage": 0.0, "heard": round(heard, 3), "dropped": sorted(drop)}
     timed = [{**{k: v for k, v in it.items() if k != "i"}, "item": it["i"], "startS": round(a, 3), "endS": round(b, 3)} for it, (a, b) in zip(its, spans)]
     coverage = sum(t["endS"] > t["startS"] for t in timed) / max(1, len(timed))
     plants = []
@@ -213,7 +220,7 @@ def check_take(script: dict, ev: dict, ref: dict) -> dict:
     groups = []
     for k, t in enumerate(timed):
         key = f"{t['at']['surah']}:{t['at']['ayah']}" if t["at"] else None
-        if t["role"] == "basmala":
+        if t["role"] in OPTIONAL:
             continue
         if key is None and groups:  # an added word belongs to the ayah it is said in
             key = groups[-1]["key"]
@@ -227,11 +234,11 @@ def check_take(script: dict, ev: dict, ref: dict) -> dict:
         per = Levenshtein.distance(g, said) / max(1, len(said))
         ayahs.append({"key": gr["key"], "startS": a, "endS": b, "per": round(per, 3), "flag": per > AYAH_PER_MAX,
                       **({"greedy": g, "said": said} if per > AYAH_PER_MAX else {})})
-    verdict, why = take_verdict(True, plants, ayahs, coverage)
+    verdict, why = take_verdict(True, plants, ayahs, coverage, heard)
     return {"version": 1, "script": script["id"], "scriptSha": script["sha"], "durationS": round(duration, 3), "aligned": True, "verdict": verdict,
-            "why": why, "coverage": round(coverage, 3), "droppedBasmala": sorted(drop), "plants": plants, "ayahs": ayahs, "said": timed,
+            "why": why, "coverage": round(coverage, 3), "heard": round(heard, 3), "dropped": sorted(drop), "plants": plants, "ayahs": ayahs, "said": timed,
             "thresholds": {"llrMin": LLR_MIN, "localPerMax": LOCAL_PER_MAX, "ayahPerMax": AYAH_PER_MAX, "basmalaPerMax": BASMALA_PER_MAX,
-                           "coverageMin": COVERAGE_MIN, "redoFlaggedAyahs": REDO_FLAGGED_AYAHS}}
+                           "coverageMin": COVERAGE_MIN, "heardMin": HEARD_MIN, "redoFlaggedAyahs": REDO_FLAGGED_AYAHS}}
 
 
 # ---- labels -------------------------------------------------------------------------------------------------------
@@ -247,8 +254,8 @@ def session(script: dict, result: dict, meta: dict, audio: str) -> dict:
     span_of = {}
     cur = None
     for k, t in enumerate(timed):
-        if t["role"] == "basmala":
-            spans.append({"id": f"basmala-{len(spans) + 1}", "kind": "non_quran", "label": "basmala", "startS": t["startS"], "endS": max(t["endS"], t["startS"] + 0.01)})
+        if t["role"] in OPTIONAL:
+            spans.append({"id": f"{t['role']}-{len(spans) + 1}", "kind": "non_quran", "label": t["role"], "startS": t["startS"], "endS": max(t["endS"], t["startS"] + 0.01)})
             cur = None
             continue
         if t["at"] is None:  # an added word sits in the run it is said in
@@ -351,7 +358,7 @@ STATUS = {"performed": "the teacher hears it", "unsure": "the teacher isn't sure
 
 
 def _text(s: dict, a: float, b: float) -> str:
-    return " ".join(w["text"] for w in s["said"] if w["endS"] > a and w["startS"] < b and w["role"] != "basmala")
+    return " ".join(w["text"] for w in s["said"] if w["endS"] > a and w["startS"] < b and w["role"] not in OPTIONAL)
 
 
 def _window(s: dict, a: float, b: float, pad: float = 2.5) -> tuple[float, float]:
@@ -401,7 +408,7 @@ def review_items(s: dict, result: dict, script: dict, wav: str, seed: int = SEED
             starts.append(t)
         t += CLEAN_WINDOW_S
     for t in sorted(rng.sample(starts, min(SPOT["clean"], len(starts)))):
-        ws = [w for w in s["said"] if w["endS"] > t and w["startS"] < t + CLEAN_WINDOW_S and w["role"] != "basmala"]
+        ws = [w for w in s["said"] if w["endS"] > t and w["startS"] < t + CLEAN_WINDOW_S and w["role"] not in OPTIONAL]
         a, b = round(max(0.0, ws[0]["startS"] - 0.25), 3), round(min(s["durationS"], ws[-1]["endS"] + 0.25), 3)
         out.append({"id": f"{s['id']}-clean-{int(t)}", "kind": "case", "title": "Recited as scripted, no mistake", "audio": {"path": wav, "startS": a, "endS": b},
                     "text": _text(s, a, b), "label": {"type": "clean"}, "context": ctx(t)})

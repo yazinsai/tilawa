@@ -155,7 +155,7 @@ function scriptHtml(s) {
     </div>
     <div class="notice rec-how">Recite the whole passage in <b>one take</b> at your normal pace; pauses are fine.
       ${s.clean ? 'This script has <b>no planted mistakes</b>: recite it as written.' : `When you reach a <span class="rec-key">marked word</span>, do what its step says, then carry on.`}
-      If you slip somewhere the script doesn't ask for, stop and record again.</div>
+      Saying the isti'adha first and «صدق الله العظيم» at the end is fine. If you slip somewhere the script doesn't ask for, stop and record again.</div>
     ${steps ? `<h2 class="rec-h">The mistakes to make</h2><ol class="rec-steps">${steps}</ol>` : ''}
     <h2 class="rec-h">What to recite</h2>
     <div class="li-page"><div class="li-text rec-text" lang="ar" dir="rtl">${text}</div></div>

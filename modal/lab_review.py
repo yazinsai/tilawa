@@ -449,6 +449,7 @@ def web():
         if audio is None or isinstance(audio, str):
             raise HTTPException(400, "no audio file")
         speaker = speaker_name(fields.get("speaker", ""))
+        reload(force=True)  # the latest scripts, and take numbers after a cleanup elsewhere
         x = rec_scripts().get(fields.get("script", ""))
         if not x:
             raise HTTPException(404, f"no script {fields.get('script')!r}")

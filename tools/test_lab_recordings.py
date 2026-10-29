@@ -75,12 +75,12 @@ def run(items: list[dict], script: dict = SCRIPT) -> dict:
 
 def test_fixed_script_has_every_class():
     assert [p["class"] for p in SCRIPT["plants"]] == list(PLANTS.values())
-    assert SCRIPT["said"][0]["role"] == "basmala"
+    assert [x["role"] for x in SCRIPT["said"][:2]] == ["istiadha", "basmala"] and SCRIPT["said"][-1]["role"] == "closing"
 
 
 def test_take_as_scripted_is_ok():
     r = run(SCRIPT["said"])
-    assert r["aligned"] and r["coverage"] == 1.0 and not r["droppedBasmala"]
+    assert r["aligned"] and r["coverage"] == 1.0 and not r["dropped"]
     assert [p["status"] for p in r["plants"]] == ["performed"] * 4, [(p["class"], p["reasons"]) for p in r["plants"]]
     assert all(p["llr"] >= R.LLR_MIN for p in r["plants"])
     assert not any(a["flag"] for a in r["ayahs"]) and len(r["ayahs"]) == 9
@@ -94,9 +94,18 @@ def test_take_as_written_is_redo():
     assert r["verdict"] == "redo" and len(r["why"]) >= 4
 
 
-def test_unsaid_basmala_is_dropped():
-    r = run(SCRIPT["said"][1:])
-    assert r["droppedBasmala"] == [0] and r["verdict"] == "ok"
+def test_silent_take_is_redo():
+    _, duration = spoken(SCRIPT["said"])
+    r = R.check_take(SCRIPT, evidence([], duration), REF)
+    assert r["verdict"] == "redo" and "hears almost none" in r["why"][0] and r["heard"] == 0
+
+
+def test_unsaid_optional_items_are_dropped():
+    last = len(SCRIPT["said"]) - 1
+    r = run(SCRIPT["said"][1:-1])
+    assert r["dropped"] == [0, last] and r["verdict"] == "ok", r["why"]
+    r = run(SCRIPT["said"][2:-1])
+    assert r["dropped"] == [0, 1, last] and r["verdict"] == "ok", r["why"]
     s = R.session(SCRIPT, r, META, "recordings/sessions/x.phone.wav")
     assert not any(sp["kind"] == "non_quran" for sp in s["spans"])
 
@@ -106,12 +115,12 @@ def test_session_is_valid_and_labelled():
     s = R.session(SCRIPT, r, META, "recordings/sessions/rec-test-rec-test-01-t1.phone.wav")
     assert R.validate(s, REF_WORDS) == []
     assert s["id"] == "rec-test-rec-test-01-t1" and s["source"] == "recorded" and s["context"] == {"kind": "none"} and s["speaker"] == "rec-test"
-    assert [sp["kind"] for sp in s["spans"]] == ["non_quran", "recitation", "repeat", "recitation"]
+    assert [sp.get("label", sp["kind"]) for sp in s["spans"]] == ["istiadha", "basmala", "recitation", "repeat", "recitation", "closing"]
     assert sorted(e["errorClass"] for e in s["events"]) == ["added_word", "omitted_word", "wrong_word"]
     assert all(e["said"] for e in s["events"] if e["errorClass"] != "omitted_word")
     sc = next(p for p in SCRIPT["plants"] if p["class"] == "self_correction")
     assert [n["at"] for n in s["nonErrors"]] == sc["retake"] and all(n["kind"] == "self_correction" for n in s["nonErrors"])
-    assert all(n["span"] == s["spans"][2]["id"] for n in s["nonErrors"])
+    assert all(n["span"] == s["spans"][3]["id"] for n in s["nonErrors"])
     wrong = next(e for e in s["events"] if e["errorClass"] == "wrong_word")
     w = next(w for w in s["words"] if w["at"] == wrong["location"])
     assert (w["startS"], w["endS"]) == (wrong["startS"], wrong["endS"]) and w["said"]["text"] == wrong["observed"]

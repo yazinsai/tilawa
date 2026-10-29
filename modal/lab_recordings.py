@@ -253,7 +253,7 @@ def rebuild() -> dict:
         write_atomic(root / "review/takes.json", R.dumps(R.queue(items)))
     elif (root / "review/takes.json").exists():
         (root / "review/takes.json").unlink()
-    keep = ("speaker", "script", "take", "sessionId", "verdict", "why", "uploadedAt", "processedAt", "audioS", "coverage", "droppedBasmala")
+    keep = ("speaker", "script", "take", "sessionId", "verdict", "why", "uploadedAt", "processedAt", "audioS", "coverage", "heard", "dropped")
     index = {"version": 1, "updatedAt": now(), "current": [r["sessionId"] for r in cur],
              "takes": [{**{k: r.get(k) for k in keep}, "plants": [{k: p.get(k) for k in ("id", "n", "class", "ayah", "status", "reasons", "llr")} for p in r.get("plants", [])],
                         "flagged": [a["key"] for a in r.get("ayahs", []) if a.get("flag")]} for r in results]}
@@ -355,10 +355,11 @@ def join(base: str, name: str) -> dict:
             if not p.name.endswith(".tmp"):
                 (dst / "sessions").mkdir(parents=True, exist_ok=True)
                 shutil.copy2(p, dst / "sessions" / p.name)
+                files.add(f"sessions/{p.name}")
     out = R.join({**m, "testSet": name, "joinedFrom": base}, r, "sessions/")
     write_atomic(dst / "manifest-v1.json", R.dumps(out))
     vol.commit()
-    return {"testSet": name, "base": len(m["sessions"]), "recorded": len(r["sessions"]), "files": len(files) + len(r["sessions"])}
+    return {"testSet": name, "base": len(m["sessions"]), "recorded": len(r["sessions"]), "files": len(files)}
 
 
 @app.function(image=cpu_image, volumes={VOL: vol}, memory=4096, timeout=20 * 60)
@@ -389,6 +390,8 @@ def test_audio(script: dict, as_written: bool, read_id: str = "") -> bytes:
     segs = []  # (source word index or None, start, end)
     for it in script["said"]:
         role = it["role"]
+        if role in ("istiadha", "closing"):  # the source has neither; the take tests dropping them
+            continue
         if role == "basmala":
             b = al.get("basmala")
             if b and b.get("present"):
