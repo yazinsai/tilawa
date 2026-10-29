@@ -1,36 +1,64 @@
-// One review item: play buttons, labelled Arabic words, the label in plain words, verdict buttons and a note.
+// One review item: play controls, the label in plain words, the Arabic said, grouped verdict buttons and a note.
 // Used by the review page and the lab dashboard drill-down:
 //   import { mountItem, VERDICTS, FAULTS } from '/static/item.js';
-//   const view = mountItem(el, item, { review, verdicts: [...VERDICTS, ...FAULTS], onVerdict: (verdict, note, how) => save() });
+//   const view = mountItem(el, item, { review, verdicts: [...VERDICTS, ...FAULTS], aside: html, onVerdict: (verdict, note, how) => save() });
 //   view.play('audio' | 'before' | 'after'); view.choose(0); view.destroy();
+// Styles live in /static/lab.css.
 
 export const VERDICTS = [
   { key: 'ok', text: 'Sounds right', hint: 'The audio matches the label.' },
-  { key: 'bad_label', text: 'Bad label', hint: 'The words or the mistake shown do not match what you hear.' },
+  { key: 'bad_label', text: 'Bad label', hint: 'The words or the mistake shown don’t match what you hear.' },
   { key: 'bad_audio', text: 'Bad audio', hint: 'Noise, clipping, silence or a cut-off makes it unusable.' },
   { key: 'bad_splice', text: 'Bad splice', hint: 'You can hear the edit: a click, jump or odd join.' },
 ];
 export const FAULTS = [
-  { key: 'listener', text: 'Listener fault', hint: 'The data is fine; the engine misheard the sounds.' },
-  { key: 'tracker', text: 'Tracker fault', hint: 'The data is fine; the engine lost its place.' },
-  { key: 'checker', text: 'Checker fault', hint: 'The data is fine; the engine judged the mistake wrongly.' },
+  { key: 'listener', text: 'Listener fault', hint: 'Misheard the sounds.' },
+  { key: 'tracker', text: 'Tracker fault', hint: 'Lost its place in the Quran.' },
+  { key: 'checker', text: 'Checker fault', hint: 'Judged the mistake wrongly.' },
 ];
+const GROUPS = [
+  { test: (k) => k === 'ok', title: 'It matches', sub: '' },
+  { test: (k) => k.startsWith('bad_'), title: 'Bad data', sub: 'The test case itself is wrong' },
+  { test: () => true, title: 'Engine fault', sub: 'The data is fine; the engine got it wrong' },
+];
+export const verdictKind = (k) => (!k ? 'todo' : k === 'ok' ? 'ok' : k.startsWith('bad_') ? 'data' : 'fault');
 const CLIPS = [
   ['audio', 'Play'],
   ['before', 'Original before'],
   ['after', 'Original after'],
 ];
+const KEYS = { audio: 'space', before: 'b', after: 'a' };
+
+const PATHS = {
+  play: '<path d="M7 4.5v15l12.5-7.5z"/>',
+  pause: '<path d="M7 4.5h3.5v15H7zM13.5 4.5H17v15h-3.5z"/>',
+  left: '<path d="M15 18l-6-6 6-6"/>',
+  right: '<path d="M9 18l6-6-6-6"/>',
+  back: '<path d="M19 12H5M11 18l-6-6 6-6"/>',
+  copy: '<rect x="8.5" y="8.5" width="12" height="12" rx="2"/><path d="M15.5 8.5V5.5a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3"/>',
+  check: '<path d="M4.5 12.5l5 5 10-11"/>',
+  x: '<path d="M6 6l12 12M18 6L6 18"/>',
+  down: '<path d="M12 5v14M6 13l6 6 6-6"/>',
+  up: '<path d="M12 19V5M6 11l6-6 6 6"/>',
+  minus: '<path d="M5 12h14"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+  keyboard: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M7.5 14h9"/>',
+  mark: '<circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="5.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/>',
+};
+export const icon = (name, cls = '') =>
+  `<svg class="icon ${name === 'play' || name === 'pause' ? 'fill' : ''} ${cls}" viewBox="0 0 24 24" aria-hidden="true">${PATHS[name]}</svg>`;
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const ar = (s) => `“<bdi class="li-ar" lang="ar" dir="rtl">${esc(s)}</bdi>”`;
+const ar = (s) => `<bdi class="li-ar" lang="ar" dir="rtl">${esc(s)}</bdi>`;
 
 export function labelHtml(label = {}) {
   const { type, expected, said } = label;
   switch (type) {
-    case 'wrong_word': return `Planted: said ${ar(said)} instead of ${ar(expected)}`;
-    case 'omitted_word': return `Planted: left out ${ar(expected)}`;
-    case 'added_word': return `Planted: added ${ar(said)}`;
-    case 'skipped_passage': return `Planted: skipped ${ar(expected)}`;
+    case 'wrong_word': return `Planted mistake: said ${ar(said)} instead of ${ar(expected)}`;
+    case 'omitted_word': return `Planted mistake: left out ${ar(expected)}`;
+    case 'added_word': return `Planted mistake: added ${ar(said)}`;
+    case 'skipped_passage': return `Planted mistake: skipped ${ar(expected)}`;
     case 'repeat': return `Not a mistake: repeated ${ar(said || expected)}`;
     case 'restart': return `Not a mistake: went back and started again at ${ar(said || expected)}`;
     case 'self_correction': return `Not a mistake: fixed it to ${ar(expected)}`;
@@ -39,29 +67,67 @@ export function labelHtml(label = {}) {
   }
 }
 
+// The labelled word inside the recited text, so the eye lands on it.
+function textHtml(text, label = {}) {
+  const word = label.said || (['repeat', 'restart', 'self_correction'].includes(label.type) ? label.expected : null);
+  const words = String(text).split(/\s+/);
+  const at = word ? words.indexOf(word) : -1;
+  return words.map((w, i) => (i === at ? `<mark class="li-mark">${esc(w)}</mark>` : esc(w))).join(' ');
+}
+
 export const clipUrl = (clip, base = '') =>
   `${base}/audio?path=${encodeURIComponent(clip.path)}&start=${clip.startS}&end=${clip.endS}`;
 
+const secs = (s) => `${Math.max(0, s).toFixed(1)} s`;
+
 const CSS = `
-.li{display:flex;flex-direction:column;gap:18px;max-width:760px;margin:0 auto}
-.li-title{font-size:22px;font-weight:600;margin:0}
-.li-context{color:#666;font-size:14px;margin-top:-12px}
-.li-label{font-size:20px;line-height:1.6}
-.li-ar{font-family:"Amiri","Noto Naskh Arabic","Geeza Pro",serif;font-size:1.15em}
-.li-text{font-family:"Amiri","Noto Naskh Arabic","Geeza Pro",serif;font-size:34px;line-height:1.9;text-align:right;background:#faf8f3;border-radius:12px;padding:14px 20px}
-.li-play{display:flex;gap:12px;flex-wrap:wrap}
-.li-play button{font-size:20px;padding:16px 26px;border-radius:14px;border:0;background:#1f5f4a;color:#fff;cursor:pointer;min-width:150px}
-.li-play button.li-alt{background:#e7efe9;color:#1f5f4a}
-.li-play button[aria-pressed=true]{outline:3px solid #f2b84b}
-.li-ask{font-size:15px;color:#444}
-.li-verdicts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-.li-verdicts button{font-size:17px;padding:14px 10px;border-radius:12px;border:2px solid #ccc;background:#fff;cursor:pointer;text-align:left}
-.li-verdicts button kbd{float:right;color:#999;font-family:inherit}
-.li-verdicts button[data-v=ok][aria-pressed=true]{border-color:#1f8a4c;background:#e6f5ec}
-.li-verdicts button[aria-pressed=true]{border-color:#c0392b;background:#fbeaea}
-.li-note{font-size:16px;padding:10px;border-radius:10px;border:1px solid #ccc;min-height:60px;font-family:inherit;resize:vertical}
-.li-status{font-size:14px;color:#666;min-height:1.2em}
-.li-status.li-err{color:#c0392b}
+.li{display:flex;flex-direction:column;margin-top:var(--s6)}
+.li-title{font-size:var(--t-3xl);letter-spacing:-.015em;line-height:1.2}
+.li-context{margin-top:var(--s2);color:var(--g-600);font-size:var(--t-sm)}
+.li-play{display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap;margin-top:var(--s5)}
+.li-main{display:inline-flex;align-items:center;gap:var(--s3);border:0;background:none;padding:0;cursor:pointer;color:var(--g-900);text-align:left}
+.li-main .li-disc{width:64px;height:64px;border-radius:50%;background:var(--green-500);color:#fff;display:grid;place-items:center;box-shadow:var(--shadow-1);transition:background .15s ease-out,transform .15s ease-out,box-shadow .15s ease-out}
+.li-main .li-disc .icon{width:26px;height:26px}
+.li-main:hover .li-disc{background:var(--green-600);box-shadow:var(--shadow-2)}
+.li-main:active .li-disc{transform:scale(.96)}
+.li-main b{display:block;font-size:var(--t-lg);font-weight:600;color:var(--g-900)}
+.li-main b+span{display:flex;align-items:center;gap:6px;font-size:var(--t-sm);color:var(--g-600)}
+.li-alt{display:inline-flex;align-items:center;gap:var(--s2);height:40px;padding:0 var(--s4) 0 var(--s3);border-radius:999px;border:1px solid var(--g-300);background:#fff;cursor:pointer;font-size:var(--t-sm);color:var(--g-900);transition:border-color .15s ease-out}
+.li-alt:hover{border-color:var(--green-500)}
+.li-alt .icon{width:14px;height:14px;color:var(--green-500)}
+.li-alt[aria-pressed=true]{border-color:var(--green-500);background:var(--green-50)}
+.li-alts{display:flex;gap:var(--s2);flex-wrap:wrap}
+.li-time{height:3px;margin-top:var(--s4);background:var(--g-200);border-radius:2px;overflow:hidden}
+.li-time i{display:block;height:100%;width:0;background:var(--g-700);transition:width .1s linear}
+.li-label{margin-top:var(--s6);font-size:var(--t-xl);line-height:1.6}
+.li-ar{font-family:var(--ar);font-size:1.4em;line-height:1;padding:0 2px}
+.li-page{margin-top:var(--s4);padding:3px;border:1px solid var(--g-300);border-radius:var(--radius);background:#fff}
+.li-text{font-family:var(--ar);font-size:var(--t-4xl);line-height:2.1;text-align:center;padding:var(--s5) var(--s6);border:1px solid var(--g-200);border-radius:6px;color:var(--g-900)}
+.li-mark{background:none;color:inherit;border-bottom:2px solid var(--gold-400);padding:0 2px}
+.li-ask{margin-top:var(--s6);font-size:var(--t-xl);font-weight:600}
+.li-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--s5);margin-top:var(--s4)}
+.li-group h3{font-size:var(--t-sm);font-weight:600;color:var(--g-900)}
+.li-group h3 span{font-weight:400;color:var(--g-600)}
+.li-opts{display:flex;flex-direction:column;gap:var(--s2);margin-top:var(--s2)}
+.li-opts button{display:grid;grid-template-columns:auto 1fr auto;gap:2px var(--s3);align-items:center;text-align:left;padding:var(--s3) var(--s4);border-radius:var(--radius);border:1px solid var(--g-300);background:#fff;cursor:pointer;transition:border-color .15s ease-out,background .15s ease-out}
+.li-opts button:hover{border-color:var(--g-500)}
+.li-opts button b{font-weight:600}
+.li-opts button small{grid-column:2;font-size:var(--t-sm);color:var(--g-600)}
+.li-opts button kbd{grid-row:1/3;align-self:center}
+.li-opts button .icon{grid-row:1/3;grid-column:3;opacity:0;width:18px;height:18px;stroke-width:2.25}
+.li-opts button[aria-pressed=true]{border-color:var(--g-900);background:var(--g-100);box-shadow:inset 0 0 0 1px var(--g-900)}
+.li-opts button[aria-pressed=true] .icon{opacity:1}
+.li-opts button[data-kind=ok][aria-pressed=true]{border-color:var(--better);background:var(--better-50);box-shadow:inset 0 0 0 1px var(--better);color:var(--better)}
+.li-opts button[data-kind=data][aria-pressed=true]{border-color:var(--worse);background:var(--worse-50);box-shadow:inset 0 0 0 1px var(--worse)}
+.li-opts button[data-kind=data][aria-pressed=true] b,.li-opts button[data-kind=data][aria-pressed=true] .icon{color:var(--worse)}
+.li-foot{display:flex;flex-wrap:wrap;align-items:flex-start;gap:var(--s3) var(--s5);margin-top:var(--s4)}
+.li-note{flex:1 1 320px;font:inherit;font-size:var(--t-sm);padding:var(--s2) var(--s3);border-radius:var(--radius);border:1px solid var(--g-300);background:#fff;min-height:40px;resize:vertical;color:var(--g-900)}
+.li-note::placeholder{color:var(--g-600)}
+.li-note:focus{outline:2px solid var(--green-500);outline-offset:1px;border-color:transparent}
+.li-status{display:flex;align-items:center;gap:6px;font-size:var(--t-sm);color:var(--g-600);min-height:40px}
+.li-status.li-ok{color:var(--better)}
+.li-status.li-err{color:var(--worse)}
+.li-status .icon{width:14px;height:14px;stroke-width:2.25}
 `;
 
 function style() {
@@ -72,29 +138,50 @@ function style() {
   document.head.append(s);
 }
 
-export function mountItem(el, item, { base = '', review = null, verdicts = VERDICTS, onVerdict } = {}) {
+export function mountItem(el, item, { base = '', review = null, verdicts = VERDICTS, aside = '', onVerdict } = {}) {
   style();
-  const clips = CLIPS.filter(([k]) => item[k]);
-  const keys = { audio: 'space', before: 'b', after: 'a' };
+  const alts = CLIPS.filter(([k]) => k !== 'audio' && item[k]);
+  const name = (k) => item[k].title || CLIPS.find(([c]) => c === k)[1];
+  const index = new Map(verdicts.map((v, i) => [v.key, i]));
+  const groups = GROUPS.map((g) => ({ ...g, items: [] }));
+  for (const v of verdicts) groups.find((g) => g.test(v.key)).items.push(v);
+  const n = verdicts.length;
   el.innerHTML = `<div class="li">
-    <h2 class="li-title">${esc(item.title || (item.kind === 'splice' ? 'Planted edit' : 'Case'))}</h2>
-    ${item.context ? `<div class="li-context">${esc(item.context)}</div>` : ''}
-    <div class="li-play">${clips
-      .map(([k, t]) => `<button data-clip="${k}" class="${k === 'audio' ? '' : 'li-alt'}" title="Key: ${keys[k]}">▶ ${esc(item[k].title || t)}</button>`)
+    <h1 class="li-title">${esc(item.title || (item.kind === 'splice' ? 'Planted edit' : 'Case'))}</h1>
+    ${item.context ? `<p class="li-context">${esc(item.context)}</p>` : ''}
+    <div class="li-play">
+      <button class="li-main" data-clip="audio" aria-pressed="false" title="Key: space">
+        <span class="li-disc">${icon('play')}</span>
+        <span><b>${esc(name('audio'))}</b><span>${secs(item.audio.endS - item.audio.startS)} · <kbd>space</kbd></span></span>
+      </button>
+      ${alts.length ? `<span class="li-alts">${alts
+        .map(([k]) => `<button class="li-alt" data-clip="${k}" aria-pressed="false" title="Key: ${KEYS[k]}">${icon('play')}${esc(name(k))} <kbd>${KEYS[k]}</kbd></button>`)
+        .join('')}</span>` : ''}
+    </div>
+    <div class="li-time" aria-hidden="true"><i></i></div>
+    <p class="li-label">${labelHtml(item.label)}</p>
+    ${item.text ? `<div class="li-page"><p class="li-text" lang="ar" dir="rtl">${textHtml(item.text, item.label)}</p></div>` : ''}
+    ${aside}
+    <h2 class="li-ask">What do you hear?</h2>
+    <div class="li-groups">${groups
+      .filter((g) => g.items.length)
+      .map((g) => `<div class="li-group" role="group" aria-label="${esc(g.title)}"><h3>${esc(g.title)}${g.sub ? ` <span>· ${esc(g.sub)}</span>` : ''}</h3>
+        <div class="li-opts">${g.items
+          .map((v) => `<button data-v="${v.key}" data-kind="${verdictKind(v.key)}" aria-pressed="false" title="${esc(v.hint)}">
+            <kbd>${index.get(v.key) + 1}</kbd><b>${esc(v.text)}</b><small>${esc(v.hint)}</small>${icon('check')}</button>`)
+          .join('')}</div></div>`)
       .join('')}</div>
-    <div class="li-label">${labelHtml(item.label)}</div>
-    ${item.text ? `<div class="li-text" lang="ar" dir="rtl">${esc(item.text)}</div>` : ''}
-    <div class="li-ask">Does the audio match? If not, what is wrong?</div>
-    <div class="li-verdicts">${verdicts
-      .map((v, i) => `<button data-v="${v.key}" title="${esc(v.hint)}" aria-pressed="false">${esc(v.text)}<kbd>${i + 1}</kbd></button>`)
-      .join('')}</div>
-    <textarea class="li-note" placeholder="Note (optional, saved exactly as typed)"></textarea>
-    <div class="li-status"></div>
+    <div class="li-foot">
+      <textarea class="li-note" rows="1" placeholder="Add a note (optional, saved exactly as typed)"></textarea>
+      <p class="li-status" role="status"></p>
+    </div>
+    <p class="li-context">Press <kbd>1</kbd>–<kbd>${n}</kbd> to choose; it saves and moves on. <button class="keys-link" data-keys>${icon('keyboard')}All shortcuts <kbd>?</kbd></button></p>
   </div>`;
   const root = el.firstElementChild;
   const $ = (s) => root.querySelector(s);
   const note = $('.li-note');
   const status = $('.li-status');
+  const bar = $('.li-time i');
   const player = new Audio(clipUrl(item.audio, base));
   player.preload = 'auto';
   let current = 'audio';
@@ -103,22 +190,29 @@ export function mountItem(el, item, { base = '', review = null, verdicts = VERDI
   const press = (key) => {
     for (const b of root.querySelectorAll('[data-v]')) b.setAttribute('aria-pressed', String(key === b.dataset.v));
   };
+  const setStatus = (html, cls = '') => {
+    status.className = `li-status ${cls}`;
+    status.innerHTML = html;
+  };
   const show = () => {
     press(saved?.verdict);
-    status.classList.remove('li-err');
-    status.textContent = saved ? `Saved ${new Date(saved.at).toLocaleString()}` : 'Not reviewed yet';
+    if (saved) setStatus(`${icon('check')}Saved ${new Date(saved.at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`, 'li-ok');
+    else setStatus('Not reviewed yet');
   };
-  const buttons = () => root.querySelectorAll('[data-clip]');
   const mark = () => {
-    for (const b of buttons()) {
+    for (const b of root.querySelectorAll('[data-clip]')) {
       const on = b.dataset.clip === current && !player.paused;
       b.setAttribute('aria-pressed', String(on));
-      b.textContent = `${on ? '❚❚' : '▶'} ${item[b.dataset.clip].title || CLIPS.find(([k]) => k === b.dataset.clip)[1]}`;
+      const svg = b.querySelector('svg');
+      if (svg) svg.outerHTML = icon(on ? 'pause' : 'play');
     }
   };
   player.addEventListener('play', mark);
   player.addEventListener('pause', mark);
   player.addEventListener('ended', mark);
+  player.addEventListener('timeupdate', () => {
+    bar.style.width = player.duration ? `${(100 * player.currentTime) / player.duration}%` : '0';
+  });
 
   const play = (which = 'audio') => {
     if (!item[which]) return;
@@ -127,25 +221,20 @@ export function mountItem(el, item, { base = '', review = null, verdicts = VERDI
       current = which;
       player.src = clipUrl(item[which], base);
     } else if (player.ended) player.currentTime = 0;
-    player.play().catch((e) => {
-      status.classList.add('li-err');
-      status.textContent = `Could not play: ${e.message}`;
-    });
+    player.play().catch((e) => setStatus(`Could not play: ${esc(e.message)}`, 'li-err'));
   };
 
   const save = async (key, how) => {
     if (!onVerdict) return;
     press(key);
-    status.classList.remove('li-err');
-    status.textContent = 'Saving…';
+    setStatus('Saving…');
     try {
       saved = (await onVerdict(key, note.value, how)) ?? saved;
       show();
       return saved;
     } catch (e) {
       press(saved?.verdict);
-      status.classList.add('li-err');
-      status.textContent = `Not saved: ${e.message}. Try again.`;
+      setStatus(`${icon('x')}Not saved: ${esc(e.message)}. Try again.`, 'li-err');
       throw e;
     }
   };
@@ -156,7 +245,7 @@ export function mountItem(el, item, { base = '', review = null, verdicts = VERDI
     b.blur();
     play(b.dataset.clip);
   });
-  $('.li-verdicts').addEventListener('click', (e) => {
+  $('.li-groups').addEventListener('click', (e) => {
     const b = e.target.closest('[data-v]');
     if (!b) return;
     b.blur();
@@ -183,4 +272,45 @@ export function mountItem(el, item, { base = '', review = null, verdicts = VERDI
       el.innerHTML = '';
     },
   };
+}
+
+// The keyboard shortcut sheet, toggled by `?` or any [data-keys] button.
+export function keySheet(rows) {
+  let sheet = null;
+  const close = () => {
+    sheet?.remove();
+    sheet = null;
+  };
+  const toggle = () => {
+    if (sheet) return close();
+    sheet = document.createElement('div');
+    sheet.className = 'sheet';
+    sheet.setAttribute('role', 'dialog');
+    sheet.setAttribute('aria-label', 'Keyboard shortcuts');
+    sheet.innerHTML = `<h2>Keyboard shortcuts <button aria-label="Close">${icon('x')}</button></h2>
+      <dl>${rows.map(([k, t]) => `<dt>${k.split(' ').map((x) => `<kbd>${esc(x)}</kbd>`).join('')}</dt><dd>${esc(t)}</dd>`).join('')}</dl>`;
+    sheet.querySelector('button').onclick = close;
+    document.body.append(sheet);
+  };
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-keys]')) toggle();
+  });
+  return { toggle, close, open: () => !!sheet };
+}
+
+// The ayah-marker rail: one round marker per item, filled by its verdict, the current one ringed. Long lists show the
+// first and last markers and a window around the current one.
+export function railHtml(items, current, verdictOf, label = (i) => `Item ${i + 1}`) {
+  const W = 12;
+  const show = (i) => items.length <= 48 || i === 0 || i === items.length - 1 || Math.abs(i - current) <= W;
+  let out = '';
+  items.forEach((it, i) => {
+    if (!show(i)) {
+      if (show(i - 1)) out += '<span class="rail-gap" aria-hidden="true">…</span>';
+      return;
+    }
+    const v = verdictOf(it);
+    out += `<button data-go="${i}" class="${verdictKind(v)}" ${i === current ? 'aria-current="true"' : ''} aria-label="${esc(label(i, v))}" title="${esc(label(i, v))}">${i + 1}</button>`;
+  });
+  return `<nav class="rail" aria-label="Items">${out}</nav>`;
 }

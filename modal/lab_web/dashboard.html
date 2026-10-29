@@ -4,78 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Tilawa lab</title>
-    <style>
-      :root { --ink: #222; --mute: #666; --line: #e8e6e1; --green: #1f5f4a; --soft: #f6f5f1; --listener: #3b7dd8; --tracker: #e0a030; --checker: #c0504d; }
-      * { box-sizing: border-box; }
-      body { font-family: -apple-system, system-ui, "Segoe UI", sans-serif; margin: 0; color: var(--ink); background: #fff; font-size: 16px; line-height: 1.45; }
-      a { color: var(--green); }
-      code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; background: var(--soft); padding: 2px 6px; border-radius: 6px; }
-      header { position: sticky; top: 0; z-index: 2; background: #fff; border-bottom: 1px solid var(--line); padding: 12px 24px; display: flex; flex-wrap: wrap; gap: 10px 32px; align-items: center; }
-      .score { display: flex; align-items: baseline; gap: 12px; }
-      .score .big { font-size: 44px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
-      .score .unit { font-size: 15px; color: var(--mute); }
-      .score .counts { font-size: 17px; font-weight: 600; }
-      .score .meta { font-size: 13px; color: var(--mute); }
-      .facts { display: flex; flex-direction: column; gap: 3px; font-size: 14px; }
-      .facts b { font-weight: 600; }
-      .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-weight: 600; font-size: 13px; background: #f0f0f0; color: #555; }
-      .pill.pass, .pill.better { background: #e6f5ec; color: #1f8a4c; }
-      .pill.fail, .pill.worse { background: #fbeaea; color: #c0392b; }
-      .pill.wait { background: #fff3d6; color: #8a5a00; }
-      nav.tabs { margin-left: auto; display: flex; gap: 4px; }
-      nav.tabs a { padding: 8px 14px; border-radius: 10px; text-decoration: none; color: var(--ink); font-weight: 500; }
-      nav.tabs a.on { background: var(--soft); }
-      main { max-width: 1120px; margin: 0 auto; padding: 22px 24px 60px; }
-      h2 { font-size: 19px; margin: 34px 0 12px; }
-      h2:first-child { margin-top: 0; }
-      .note { color: var(--mute); font-size: 14px; }
-      .msg { background: #fff8e6; border: 1px solid #f2dfa8; border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; }
-      .err { color: #c0392b; white-space: pre-wrap; }
-      .stack { display: flex; height: 34px; border-radius: 10px; overflow: hidden; background: var(--soft); }
-      .stack div { display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 14px; min-width: 0; white-space: nowrap; overflow: hidden; }
-      .legend { display: flex; gap: 18px; margin-top: 8px; font-size: 14px; color: var(--mute); flex-wrap: wrap; }
-      .dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: 0; }
-      .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 16px; }
-      .card { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; cursor: pointer; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 6px; border-top: 5px solid var(--c); }
-      .card:hover { box-shadow: 0 2px 10px rgba(0,0,0,.07); }
-      .card .name { font-size: 18px; font-weight: 700; }
-      .card .job { color: var(--mute); font-size: 14px; }
-      .card .n { font-size: 30px; font-weight: 700; line-height: 1.1; margin-top: 6px; }
-      .card .n small { font-size: 15px; font-weight: 500; color: var(--mute); }
-      .card .own { font-weight: 600; margin-top: 6px; }
-      .card .go { margin-top: auto; padding-top: 8px; color: var(--green); font-weight: 600; font-size: 14px; }
-      .ref { margin-top: 14px; background: var(--soft); border-radius: 12px; padding: 12px 16px; font-size: 15px; }
-      table { width: 100%; border-collapse: collapse; font-size: 14px; }
-      th { text-align: left; font-weight: 600; color: var(--mute); border-bottom: 1px solid var(--line); padding: 8px 8px; white-space: nowrap; }
-      td { border-bottom: 1px solid var(--line); padding: 10px 8px; vertical-align: top; }
-      td.num, th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-      tr.waiting td { background: #fffaf0; }
-      .hyp { color: var(--mute); font-size: 13px; max-width: 320px; }
-      .cmd { display: flex; gap: 6px; align-items: center; margin: 2px 0; }
-      .cmd code { white-space: nowrap; }
-      .cmd button, .seg button { font-size: 12px; padding: 3px 8px; border-radius: 6px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
-      .seg { display: inline-flex; gap: 4px; margin-left: 10px; vertical-align: middle; }
-      .seg button { font-size: 14px; padding: 5px 12px; }
-      .seg button[aria-pressed=true] { background: var(--green); color: #fff; border-color: var(--green); }
-      .cases { list-style: none; padding: 0; margin: 0; }
-      .cases li a { display: flex; gap: 14px; align-items: baseline; padding: 11px 10px; border-bottom: 1px solid var(--line); color: inherit; text-decoration: none; flex-wrap: wrap; }
-      .cases li a:hover { background: var(--soft); }
-      .cases .t { font-weight: 600; min-width: 290px; }
-      .cases .w { color: var(--mute); font-size: 14px; min-width: 230px; }
-      .chip { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #fff3d6; color: #8a5a00; }
-      .chip.v { background: #e7efe9; color: var(--green); }
-      .chip.bad { background: #fbeaea; color: #c0392b; }
-      .casebar { display: flex; gap: 10px; align-items: center; justify-content: space-between; max-width: 760px; margin: 0 auto 18px; }
-      .casebar button { font-size: 15px; padding: 8px 14px; border-radius: 10px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
-      .story { max-width: 760px; margin: 0 auto 22px; background: var(--soft); border-radius: 12px; padding: 12px 18px; font-size: 15px; }
-      .story p { margin: 4px 0; }
-      .story .chip { display: inline-block; margin: 4px 6px 4px 0; font-size: 13px; }
-      .keys { text-align: center; color: #888; font-size: 13px; padding-top: 22px; }
-    </style>
+    <link rel="preload" href="/static/fonts/onest-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/static/lab.css" />
   </head>
   <body>
-    <header id="head"><div class="note">Loading…</div></header>
-    <main id="main"></main>
+    <header class="top"><div class="top-in" id="head"></div></header>
+    <main id="main"><p class="hero muted">Loading…</p></main>
     <script type="module" src="/static/dashboard.js"></script>
   </body>
 </html>
