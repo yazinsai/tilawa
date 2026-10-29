@@ -29,7 +29,7 @@ async function api(path, init) {
 
 function topbar() {
   $('head').innerHTML = `<a class="brand" href="/">${icon('mark')}Tilawa lab</a>
-    <nav class="tabs"><a href="/">Score</a><a href="/#/release">Release</a><a href="/review?reviewer=${encodeURIComponent(reviewer)}" aria-current="page">Listening check</a></nav>
+    <nav class="tabs"><a href="/">Score</a><a href="/#/release">Release</a><a href="/review?reviewer=${encodeURIComponent(reviewer)}" aria-current="page">Listening check</a><a href="/record">Record</a></nav>
     <span class="who">Reviewing as <b>${esc(reviewer)}</b> · <button id="who">change</button></span>`;
   $('who').onclick = () => {
     const n = prompt('Your name (letters, digits, - or _)', reviewer);

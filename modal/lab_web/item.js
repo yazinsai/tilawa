@@ -130,7 +130,7 @@ const CSS = `
 .li-status .icon{width:14px;height:14px;stroke-width:2.25}
 `;
 
-function style() {
+export function style() {
   if (document.getElementById('li-style')) return;
   const s = document.createElement('style');
   s.id = 'li-style';

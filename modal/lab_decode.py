@@ -223,6 +223,8 @@ def main(listener: str, model: str = "", test_set: str = "lab-v1.4", variants: s
         if only and s["id"] not in only.split(","):
             continue
         for v in variants.split(","):
+            if v not in s["audio"]:
+                continue
             key, cur = f"{s['id']}.{v}", s["audioSha256"].get(v)
             dst = f"{test_set}/" + pattern.replace("{id}", s["id"]).replace("{listener}", listener).replace("{variant}", v)
             known = recorded.get(key, {}).get("audioSha256")

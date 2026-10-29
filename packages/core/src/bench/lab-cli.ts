@@ -9,7 +9,7 @@
  *     "tags"?: ["strict", ...], "audio"?: { "phone"?: "<wav>", "studio"?: "<wav>" },
  *     "evidence"?: { "<listener>": { "phone"?: "<path>", "studio"?: "<path>" } } }] }
  * Evidence not listed is looked up at the manifest's "evidencePattern" ({id}, {listener}, {variant}), else evidence/<listener>/<id>.<variant>.json.
- * "slices": { "strict" } (the session builder's tag) counts as "strict".
+ * "slices": { "strict" } (the session builder's tag) counts as "strict"; { "source": "recorded" } (a joined scripted take) as "recorded".
  * Cases on data that failed the automated checks (`--checks`, default checks-v1.json beside the manifest) carry `dataCheck`.
  * `--split practice` scores only that split (sharded over its sessions). `--exclude <flags json>` applies a test set version's
  * exclusion list (`LabExclusions`) and reports its `testSet`.
@@ -87,7 +87,7 @@ const index = loadReferenceIndex(asset);
 const phrases = JSON.parse(readFileSync(new URL("../../assets/phrases-v1.json", import.meta.url), "utf8"));
 const disamb = disambiguationWords(index);
 
-interface Entry { id: string; split: Split; session: string | BenchSession; tags?: string[]; strict?: boolean; slices?: { strict?: boolean };
+interface Entry { id: string; split: Split; session: string | BenchSession; tags?: string[]; strict?: boolean; slices?: { strict?: boolean; source?: string };
   audio?: Partial<Record<Variant, string>>; evidence?: string | Record<string, Partial<Record<Variant, string>>> }
 const manifestPath = resolve(values.manifest!);
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as { version: number; testSet: string; evidencePattern?: string; sessions: Entry[] };
@@ -126,7 +126,7 @@ shardEntries(manifest.sessions, { split: values.split as Split | undefined, only
     const evidence = pick(values.listener!);
     if (!Object.keys(evidence).length) throw new Error(`no ${values.listener} evidence`);
     const strict = e.strict ?? e.slices?.strict ?? (e.tags ? e.tags.includes("strict") : undefined);
-    const r = labSession({ session, split: e.split, strict, evidence, audio: audioOf(e), teacher: teacherName ? pick(teacherName) : undefined,
+    const r = labSession({ session, split: e.split, strict, source: e.slices?.source, evidence, audio: audioOf(e), teacher: teacherName ? pick(teacherName) : undefined,
       trackerOracle: !values["no-tracker-oracle"], exclude: flagged.windows }, { index, disamb, phrases });
     results.push(checks ? markDataChecks(r, checks) : r);
     const v = r.variants.phone ?? r.variants.studio!;
