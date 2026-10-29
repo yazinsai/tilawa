@@ -93,7 +93,7 @@ def test_cards_add_up_to_the_overall_and_carry_their_own_scores():
     by = {c["key"]: c for c in cs}
     assert by["listener"]["own"]["text"] == "Mishears 80 of every 1,000 sounds"
     assert by["tracker"]["own"]["text"] == "Lost its place for 6 s of 10 min, 1 wrong jump"  # perfect hearing (oracle evidence)
-    assert "60 s" in by["tracker"]["own"]["detail"] and by["checker"]["own"]["text"].startswith("4 wrong calls")
+    assert "60 s" in by["tracker"]["own"]["detail"] and by["checker"]["own"]["text"].startswith("On its own, 4 wrong calls")
     b = D.bar(t)
     assert b["adds"] and b["total"] == 14 and abs(sum(p["share"] for p in b["parts"]) - 1) < 1e-9
     assert D.teacher(t)["mishears"] == 70 and D.teacher({"teacher": None}) is None
@@ -179,6 +179,38 @@ def test_engine_story_says_what_happened_and_why_it_is_charged():
     assert m[0].startswith("The labels say a wrong word was planted") and "missed it" in m[1] and m[-1].startswith("Charged to the checker")
     w = D.engine_story(warning(nonError="restart"))
     assert "on a restart, which is not a mistake" in w[0] and "stayed quiet" in w[1] and "50%" in w[2] and "listener" in w[-1]
+
+
+def test_engine_facts_split_the_story_into_arms_and_the_charge():
+    f = D.engine_facts(mistake())
+    assert f["what"].startswith("The labels say a wrong word was planted")
+    assert [(a["who"], a["did"], a["right"]) for a in f["arms"]] == [
+        ("Perfect hearing, true place", "missed it", False), ("App's listener, true place", "missed it", False), ("Big reference listener", "missed it", False)]
+    assert f["onPlace"] == 100 and f["charged"] == "checker" and f["why"] == D.WHY["checker"]
+    w = D.engine_facts(warning())
+    assert [a["right"] for a in w["arms"]] == [True, False, False] and w["arms"][0]["did"] == "stayed quiet" and w["onPlace"] == 50
+    assert D.engine_facts(warning(teacher=None, trackerOnPlace=None))["arms"][2] == {"who": "Big reference listener", "did": "not run", "right": None}
+
+
+def test_biggest_lever_is_the_largest_part_or_every_part_within_noise_of_it():
+    assert D.levers([{"key": "listener", "wrongCalls": 74}, {"key": "tracker", "wrongCalls": 3}, {"key": "checker", "wrongCalls": 73}]) == ["listener", "checker"]
+    assert D.levers([{"key": "listener", "wrongCalls": 10}, {"key": "tracker", "wrongCalls": 3}, {"key": "checker", "wrongCalls": 40}]) == ["checker"]
+    assert D.levers([{"key": "listener", "wrongCalls": 0}, {"key": "tracker", "wrongCalls": 0}, {"key": "checker", "wrongCalls": 0}]) == []
+    assert D.overview(score())["levers"] == D.levers(D.overview(score())["cards"])
+
+
+def test_drilldown_rows_carry_their_strongest_reason_as_a_group():
+    every = {mistake()["key"]}
+    rows = D.order_cases([mistake(), warning(), mistake("lab-v1.1-p02/phone/mistake:wrong_word/2:9:1/80.00", allFail=True),
+                          mistake("lab-v1.1-p01/phone/mistake:added_word/26:80:1/90.00", dataCheck={"reasons": ["x"]})], every)
+    assert [r["group"] for r in rows] == ["dataCheck", "allFail", "everywhere", "other"]
+
+
+def test_data_check_reasons_drop_raw_scores_but_keep_them_for_the_tooltip():
+    reason = "teacher doesn't hear the planted version cleanly (local PER 0.28)"
+    s = D.suspects(mistake(dataCheck={"reasons": [reason]}))[0]
+    assert s["text"] == "Failed an automatic data check: the big reference listener doesn't hear the planted version cleanly"
+    assert s["raw"] == reason
 
 
 def test_dashboard_verdicts_become_pending_flags_and_apply_once():
