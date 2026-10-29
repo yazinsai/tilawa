@@ -16,6 +16,12 @@ import review_asr_core as core
 VENDORS = ("soniox", "speechmatics")
 READINGS = ("judge", "opinion", "opinionRasm")  # judge decides pairing and triage; the opinions are the ticket 12 rules
 JUDGE_MIN, JUDGE_SHARE, JUDGE_MAX_DIST = 2, 0.5, 0.5
+# The judge's margin. "half": half the edit distance between the two whole texts (the bake-off's preregistered rule,
+# lab-v1.3's Soniox re-triage). "reach": half the gap a perfect transcript of the same stretch could reach (re-preregistered
+# 2026-10-29, docs/benchmarks/lab-triage-v1.md "Soniox margin v2"): a skipped passage or an edit at the window edge separates
+# the texts only by what the transcript covers, not by the whole passage.
+JUDGE_RULES = ("half", "reach")
+JUDGE_RULE = "half"
 BOILERPLATE = ("اشتركوا", "القناة", "ترجمة", "نانسي", "قنقر", "موسيقى")
 EXTRA_MAX = 3  # more extra heard words than this in one window is a hallucination (round 2's automatic bucket 5)
 BUCKETS = {1: "orthography", 2: "edge word", 3: "mishearing", 4: "canonicalisation", 5: "hallucination"}
@@ -71,15 +77,42 @@ def fit_dist(heard: str, text: str) -> int:
     return min(prev)
 
 
-def judge(transcript: str, claimed: str, alternative: str | None) -> dict:
+def fit_span(heard: str, text: str) -> tuple[int, int, int]:
+    """fit_dist with its stretch: (distance, start, end) of the text[start:end] that `heard` fits best. Ties go to the
+    longest stretch, then the earliest."""
+    prev = [(0, j) for j in range(len(text) + 1)]
+    for i, ch in enumerate(heard, 1):
+        cur = [(i, 0)]
+        for j, cj in enumerate(text, 1):
+            cur.append(min((prev[j][0] + 1, prev[j][1]), (cur[j - 1][0] + 1, cur[j - 1][1]), (prev[j - 1][0] + (ch != cj), prev[j - 1][1])))
+        prev = cur
+    d, neg, end = min((c, s - j, j) for j, (c, s) in enumerate(prev))
+    return d, end + neg, end
+
+
+def reach(t: str, x: str, y: str) -> int:
+    """How far a perfect transcript of the stretch of `x` that `t` covers would sit from `y`: the most a transcript with
+    t's footprint can separate x from y (skeletons)."""
+    _, s, e = fit_span(t, x)
+    return fit_dist(x[s:e], y)
+
+
+def judge(transcript: str, claimed: str, alternative: str | None, rule: str | None = None) -> dict:
     """Is the label-blind transcript closer to the claimed text than to the alternative?
 
     Distances are fit_dist on space-free rasm skeletons. gap = d(alternative) - d(claimed), so a positive gap favours
-    the claimed text; |gap| <= D = the edit distance between the two texts. match: gap >= need, with need =
-    max(JUDGE_MIN, JUDGE_SHARE * D), i.e. the transcript lies on the claimed side of the midpoint by at least 2 letters;
-    mismatch: gap <= -need; otherwise unsure. Also unsure: an empty transcript, one whose distance to the nearer text
-    is over JUDGE_MAX_DIST of its own length (a hallucination can't vouch for either text), or one shorter than
-    JUDGE_MAX_DIST of the nearer text (it heard too little of the window)."""
+    the claimed text. match: gap >= need; mismatch: gap <= -needAgainst; otherwise unsure.
+    - rule "half": need = needAgainst = max(JUDGE_MIN, JUDGE_SHARE * D), D = the edit distance between the two whole
+      texts, i.e. the transcript lies on the claimed side of the midpoint by at least 2 letters.
+    - rule "reach": need = max(JUDGE_MIN, JUDGE_SHARE * reach(t, claimed, alternative)), the gap a perfect transcript of
+      the claimed stretch the transcript covers would reach; needAgainst the same from the alternative's side. A skip
+      separates the texts by the junction the transcript hears, not by the whole passage.
+    Also unsure: an empty transcript, one whose distance to the nearer text is over JUDGE_MAX_DIST of its own length (a
+    hallucination can't vouch for either text), or one shorter than JUDGE_MAX_DIST of the nearer text (it heard too
+    little of the window)."""
+    rule = rule or JUDGE_RULE
+    if rule not in JUDGE_RULES:
+        raise ValueError(f"judge rule {rule!r}")
     t, c = skeleton(transcript), skeleton(claimed)
     if alternative is None:
         return {"decision": "unsure", "reason": "no alternative text", "claimed": None, "alternative": None, "diff": None}
@@ -87,30 +120,37 @@ def judge(transcript: str, claimed: str, alternative: str | None) -> dict:
     if not t:
         return {"decision": "unsure", "reason": "empty transcript", "claimed": None, "alternative": None, "diff": None}
     dc, da, d = fit_dist(t, c), fit_dist(t, a), core.lev(c, a)
-    gap, need = da - dc, max(JUDGE_MIN, JUDGE_SHARE * d)
+    gap = da - dc
+    if rule == "half":
+        need = against = max(JUDGE_MIN, JUDGE_SHARE * d)
+        extra = {}
+    else:
+        rc, ra = reach(t, c, a), reach(t, a, c)
+        need, against = max(JUDGE_MIN, JUDGE_SHARE * rc), max(JUDGE_MIN, JUDGE_SHARE * ra)
+        extra = {"needAgainst": against, "reach": rc, "reachAgainst": ra}
     near, ref = (dc, c) if dc <= da else (da, a)
     rel, cover = near / len(t), len(t) / max(1, len(ref))
-    out = {"claimed": dc, "alternative": da, "diff": gap, "need": need, "between": d, "relDist": round(rel, 3), "coverage": round(cover, 3),
-           "unit": "letters"}
+    out = {"claimed": dc, "alternative": da, "diff": gap, "need": need, **extra, "between": d, "relDist": round(rel, 3), "coverage": round(cover, 3),
+           "unit": "letters", "rule": rule}
     if rel > JUDGE_MAX_DIST:
         return {"decision": "unsure", "reason": "transcript far from both texts", **out}
     if cover < JUDGE_MAX_DIST:
         return {"decision": "unsure", "reason": "transcript covers too little of the window", **out}
     if gap >= need:
         return {"decision": "match", "reason": None, **out}
-    if gap <= -need:
+    if gap <= -against:
         return {"decision": "mismatch", "reason": None, **out}
     return {"decision": "unsure", "reason": "too close to call", **out}
 
 
-def readings(transcript: str | None, claimed: str, alternative: str | None) -> dict:
+def readings(transcript: str | None, claimed: str, alternative: str | None, rule: str | None = None) -> dict:
     """Every reading of one transcript for one claimed text: the judge against the alternative, and the two ticket 12
     opinion rules against the claimed text alone (round-1 compare, rasm with no edge context)."""
     if transcript is None:
         miss = {"decision": "unsure", "reason": "no transcript"}
         return {k: miss for k in READINGS}
     o, r = core.compare(claimed, transcript), core.compare_rasm(claimed, transcript)
-    return {"judge": judge(transcript, claimed, alternative),
+    return {"judge": judge(transcript, claimed, alternative, rule),
             "opinion": {"decision": o["decision"], "reasons": o["reasons"], "ops": o["ops"]},
             "opinionRasm": {"decision": r["decision"], "reasons": r["reasons"]}}
 
@@ -200,6 +240,26 @@ def pick_winner(cands: dict[str, dict]) -> str:
     sensitivity (your bad items flagged, then synthetic one-edit controls flagged), then lower cost."""
     return min(sorted(cands), key=lambda v: (cands[v]["badAccepted"], -cands[v]["okAccepted"], -cands[v]["badFlagged"],
                                              -cands[v]["oneEditFlagged"], cands[v]["costPerHour"]))
+
+
+def adopt_margin(old: dict, new: dict) -> dict:
+    """The preregistered adoption rule for a new judge margin (docs/benchmarks/lab-triage-v1.md, "Soniox margin v2"), on
+    _stats_doc outputs for the same verdicts under the old and the new rule. Adopt only when all hold:
+    1. safety: no bad item of yours the old pairing held back is auto-accepted under the new rule;
+    2. controls: the judge flags at least as many one-edit, one-word, shifted and edit-undone controls, and misses no
+       repeat or restart the old rule caught;
+    3. gain: at least as many of your ok items are auto-accepted."""
+    po, pn = old["pairing"]["judge"], new["pairing"]["judge"]
+    co, cn = old["controls"]["judge"], new["controls"]["judge"]
+    ro, rn = old["revertControls"], new["revertControls"]
+    checks = {
+        "safety": sorted(set(pn["badAccepted"]) - set(po["badAccepted"])) == [],
+        "controls": all(cn[k]["k"] >= co[k]["k"] for k in ("oneEdit", "oneWord", "shifted")) and rn["judge"]["k"] >= ro["judge"]["k"]
+        and set(cn["repeatMisses"]) <= set(co["repeatMisses"]) and set(rn["repeatMisses"]["judge"]) <= set(ro["repeatMisses"]["judge"]),
+        "gain": pn["okAccepted"]["k"] >= po["okAccepted"]["k"],
+    }
+    return {"adopt": all(checks.values()), "checks": checks, "newlyAcceptedBad": sorted(set(pn["badAccepted"]) - set(po["badAccepted"])),
+            "okAccepted": [po["okAccepted"]["k"], pn["okAccepted"]["k"]], "badAccepted": [po["badAccepted"], pn["badAccepted"]]}
 
 
 def dedupe(rows: list[dict]) -> tuple[list[dict], list[dict]]:

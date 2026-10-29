@@ -245,3 +245,35 @@ Soniox `stt-async-v5` won the commercial API bake-off (`lab-review-asr-v1.md`, "
 - Soniox transcribed 1714 clips (3.77 h) for $0.38 at list price, in 27 min wall time.
 - 32 concurrent requests; chunk times step in about 70 s units, consistent with queueing or rate limits on Soniox's side.
 - No GPU: Nemotron's scores are reused from `triage-v1.json`.
+
+## Soniox margin v2: preregistration (2026-10-29, committed before any number under it)
+
+The judge's margin (`review_api_core.judge`) made 56 of lab-v1.3's 60 skipped passages and 44 clean windows "too close to call" (above). This fixes the margin and how it is accepted before it is computed on any verdict.
+
+**Rule `reach`** (`judge(..., rule="reach")`; the old one is `"half"`):
+- t, c, a are the space-free rasm skeletons of the transcript, the claimed text and the alternative. gap = fit_dist(t, a) − fit_dist(t, c), as before.
+- `fit_span(t, c)` is the stretch of c that t fits best (ties: longest, then earliest). `reach(t, c, a)` = fit_dist(that stretch, a): the gap a perfect transcript of the same stretch would reach. So a skipped passage is worth the junction the transcript hears, not the whole passage, and an edit outside what the transcript covers is worth 0.
+- match if gap ≥ max(2, ½ reach(t, c, a)); mismatch if gap ≤ −max(2, ½ reach(t, a, c)); otherwise unsure.
+- The other unsure cases are unchanged (empty transcript, far from both texts, covers too little).
+- Unlike the post hoc "attainable gap" above (½ fit_dist of the whole claimed text into the alternative), the margin follows the transcript's own footprint, so a transcript that drops the window's edges isn't held to the full window's gap.
+
+**Calibration data:** your verdicts on lab-v1.1 and lab-v1.2 only (`review_api.user_rows(("lab-v1.1", "lab-v1.2"))`, deduped as in the bake-off), with the cached Soniox transcripts (`/lab/reviews/<set>/asr-soniox.json`, by audio sha256 and request config, no API calls), and ticket 12's 40 v1-check controls. These verdicts were already used in the bake-off under `half`. The post hoc attainable-gap numbers were seen on all 152 verdicts, but `reach` has not been computed on any of them.
+
+**Adoption rule** (`review_api_core.adopt_margin`). Adopt `reach` for lab-v1.4 only if all of these hold on that data:
+1. **Safety:** no bad item that Nemotron + Soniox(`half`) holds back is auto-accepted by Nemotron + Soniox(`reach`).
+2. **Controls:** the judge flags at least as many one-edit, one-word, shifted and edit-undone controls as under `half`, and misses no repeat or restart that `half` caught.
+3. **Gain:** at least as many of your ok items are auto-accepted.
+
+Otherwise lab-v1.4 is triaged with `half`. Differences of 2 or fewer are noise (decision 12), but the rule is strict as written.
+
+**Reported, not used:**
+- both rules on all 1700 lab-v1.3 cases;
+- both rules against your 117 lab-v1.3 verdicts, above all the bad ones auto-accepted.
+
+Run: `modal run modal/review_api.py::margin_main` → `docs/benchmarks/lab-triage-soniox-margin-v2.json`.
+
+**Seam spot checks, from lab-v1.4.** 3 of lab-v1.3's 12 seam spot checks were bad, and every bad splice so far put donor audio in. The seam spot check is therefore two seeded pools (`lab_triage_core.SEAM_POOLS`):
+- inserted audio (wrong words, added words and mutashabihat swaps): 20%, at most 30;
+- everything else (omissions, skips, repeats and restarts): 10%, at most 20.
+
+Random spot checks stay 15 + 15.

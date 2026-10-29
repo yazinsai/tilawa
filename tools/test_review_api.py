@@ -38,6 +38,41 @@ def test_judge_picks_the_side_of_the_midpoint_with_a_floor():
     assert A.judge("إنه لحق مثل ق ما أنكم", LABEL, ORIGINAL)["decision"] == "unsure"
 
 
+SKIPPED = "إِنَّ ٱللَّهَ عَزِيزٌ حَكِيمٌۭ وَمَا كَانَ لِبَشَرٍ أَن يُكَلِّمَهُ ٱللَّهُ إِلَّا وَحْيًا أَوْ مِن وَرَآئِ حِجَابٍ ٱللَّهُ يَتَوَفَّى ٱلْأَنفُسَ حِينَ مَوْتِهَا"
+SKIP_LABEL = "إِنَّ ٱللَّهَ عَزِيزٌ حَكِيمٌۭ ٱللَّهُ يَتَوَفَّى ٱلْأَنفُسَ حِينَ مَوْتِهَا"  # the passage between them skipped
+
+
+def test_fit_span_names_the_stretch_heard():
+    assert A.fit_span("bcd", "abcdef") == (0, 1, 4)
+    assert A.fit_span("", "abc") == (0, 0, 0) and A.fit_span("ab", "") == (2, 0, 0)
+    assert A.fit_span("bxd", "abcdabcd")[0] == 1
+    d, s, e = A.fit_span("abc", "abcabc")
+    assert (d, e - s) == (0, 3) and s == 0  # ties: the earliest of the longest
+
+
+def test_reach_margin_scores_a_skip_by_the_junction_heard():
+    heard = "عزيز حكيم الله يتوفى الأنفس"  # exactly the label around the junction
+    half, reach = A.judge(heard, SKIP_LABEL, SKIPPED, "half"), A.judge(heard, SKIP_LABEL, SKIPPED, "reach")
+    assert half["decision"] == "unsure" and half["need"] == half["between"] / 2 > half["diff"]  # the whole passage as the margin
+    assert reach["decision"] == "match" and reach["need"] == max(2, reach["reach"] / 2) <= reach["diff"] == reach["reach"]
+    # heard the skipped passage: the alternative's side, needing half of what the alternative's stretch reaches
+    heard_alt = "عزيز حكيم وما كان لبشر أن يكلمه الله إلا وحيا أو من وراء حجاب الله يتوفى"
+    r = A.judge(heard_alt, SKIP_LABEL, SKIPPED, "reach")
+    assert r["decision"] == "mismatch" and -r["diff"] >= r["needAgainst"] == max(2, r["reachAgainst"] / 2)
+    # a transcript that never reaches the edit can't vouch for either side
+    assert A.judge("يتوفى الأنفس حين موتها", SKIP_LABEL, SKIPPED, "reach")["decision"] == "unsure"
+    # one-word edits: the same margin as before when the transcript covers the window
+    full = "إنه لحق مثل قوم ما أنكم"
+    assert A.judge(full, LABEL, ORIGINAL, "reach")["need"] == A.judge(full, LABEL, ORIGINAL, "half")["need"] == 2
+    assert A.judge("إنه لحق مثل ما أنكم", LABEL, ORIGINAL, "reach")["decision"] == "mismatch"
+    assert A.judge("إنه لحق مثل ق ما أنكم", LABEL, ORIGINAL, "reach")["decision"] == "unsure"
+    assert A.judge("ما", "مَا", "مَن", "reach")["decision"] == "unsure"
+    import pytest
+
+    with pytest.raises(ValueError):
+        A.judge(full, LABEL, ORIGINAL, "wide")
+
+
 def test_judge_unsure_without_a_usable_transcript_or_alternative():
     assert A.judge("", LABEL, ORIGINAL) == {"decision": "unsure", "reason": "empty transcript", "claimed": None, "alternative": None, "diff": None}
     assert A.judge("إنه", LABEL, None)["reason"] == "no alternative text"
@@ -108,6 +143,20 @@ def test_pick_winner_is_lexicographic():
     assert A.pick_winner({"soniox": {**base, "okAccepted": 51}, "speechmatics": base}) == "soniox"
     assert A.pick_winner({"soniox": {**base, "oneEditFlagged": 39}, "speechmatics": base}) == "speechmatics"
     assert A.pick_winner({"soniox": {**base, "costPerHour": 0.1}, "speechmatics": base}) == "soniox"
+
+
+def test_adopt_margin_needs_safety_controls_and_gain():
+    rate = lambda k: {"k": k, "n": 40}
+    stats = lambda bad, ok, one=40, rep=(): {"pairing": {"judge": {"badAccepted": list(bad), "okAccepted": rate(ok)}},
+                                             "controls": {"judge": {"oneEdit": rate(one), "oneWord": rate(31), "shifted": rate(40), "repeatMisses": list(rep)}},
+                                             "revertControls": {"judge": rate(120), "repeatMisses": {"judge": list(rep)}}}
+    old = stats(["p15-x1"], 96)
+    assert A.adopt_margin(old, stats(["p15-x1"], 101))["adopt"]
+    got = A.adopt_margin(old, stats(["p15-x1", "e01-x3"], 120))
+    assert not got["adopt"] and got["newlyAcceptedBad"] == ["e01-x3"] and not got["checks"]["safety"]
+    assert not A.adopt_margin(old, stats(["p15-x1"], 101, one=39))["checks"]["controls"]
+    assert not A.adopt_margin(old, stats(["p15-x1"], 101, rep=["e02-x3"]))["checks"]["controls"]
+    assert not A.adopt_margin(old, stats([], 95))["adopt"]
 
 
 def test_dedupe_keeps_the_earliest_verdict():

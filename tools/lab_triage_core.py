@@ -30,6 +30,11 @@ MARGINS = {"nemotron": core.LIK_MARGIN, "fastconformer": core.LIK_MARGIN}  # nat
 # 257-item queue, mostly clean windows both models had already accepted.
 SPOT_EDITS, SPOT_CLEAN = 15, 15  # auto-accepted edits and repeats; auto-accepted clean windows
 SEAM_SPOT, SEAM_CAP, SEED = 0.10, 20, 17
+# From lab-v1.4 the seam spot check has two seeded pools: splices that put donor audio in (wrong and added words,
+# mutashabihat swaps: 3 of lab-v1.3's 12 seam spot checks were bad, every bad splice so far was one of these) and the
+# rest (omissions, skips, repeats and restarts, never bad), each a share of its planted edits up to a cap.
+INSERTED = ("wrong_word", "added_word", "mutashabihat")
+SEAM_POOLS = {"inserted": (0.20, 30), "other": (SEAM_SPOT, SEAM_CAP)}
 BAD_PER = 40  # at most 1 bad verdict per this many queue items (spec decision 16 scaled)
 CLEAN_TARGET_S, CLEAN_MIN_WORDS = 8.0, 3
 # No deletions: a peaky CTC model drops a clearly heard word for a few blank frames' cost, less than one imperfect
@@ -274,14 +279,31 @@ def carried_over(item: dict, reviews: dict[str, dict], earlier: dict[str, dict])
             "reviewer": r.get("reviewer")}
 
 
+def seam_pool(case: dict) -> str:
+    return "inserted" if case["class"] in INSERTED else "other"
+
+
+def seam_sample(planted: list[dict], seam_spot, seed: int, test_set: str) -> set[str]:
+    """Seam spot check ids. seam_spot: (share, cap) over every planted edit (lab-v1.1 to lab-v1.3), or {pool: (share,
+    cap)} drawn per seam_pool, each pool seeded on its own."""
+    if isinstance(seam_spot, dict):
+        out = set()
+        for pool, (share, cap) in sorted(seam_spot.items()):
+            ids = [c["id"] for c in planted if seam_pool(c) == pool]
+            out |= set(spot_sample(ids, seam_count(len(ids), share, cap), seed, f"{test_set}:seam:{pool}"))
+        return out
+    ids = [c["id"] for c in planted]
+    return set(spot_sample(ids, seam_count(len(ids), *seam_spot), seed, f"{test_set}:seam"))
+
+
 def triage(cases: list[dict], scores: dict[str, dict[str, dict]], test_set: str, spot: tuple[int, int] = (SPOT_EDITS, SPOT_CLEAN),
-           seam_spot: tuple[float, int] = (SEAM_SPOT, SEAM_CAP), seed: int = SEED, reviews: dict[str, dict] | None = None,
+           seam_spot: tuple[float, int] | dict = (SEAM_SPOT, SEAM_CAP), seed: int = SEED, reviews: dict[str, dict] | None = None,
            earlier: dict[str, dict] | None = None, models: tuple[str, str] = MODELS) -> dict:
     """cases: session_cases (+ reviewed_clean_cases, flagged reviewedOnly). scores: model -> case id -> {claimed,
     alternative} (None when the model gave no score), or a decision already made ({decision, diff, ...}, e.g. a
     transcript read by review_api_core.judge). spot: (edits and repeats, clean windows) drawn from the
-    auto-accepted cases; seam_spot: (share, cap) of the planted edits. Returns {cases, queue, counts}; reviewedOnly
-    cases are decided but never counted or queued."""
+    auto-accepted cases; seam_spot: (share, cap) of the planted edits, or per pool (seam_sample). Returns {cases,
+    queue, counts}; reviewedOnly cases are decided but never counted or queued."""
     reviews, earlier = reviews or {}, earlier or {}
     out = []
     for c in cases:
@@ -296,8 +318,7 @@ def triage(cases: list[dict], scores: dict[str, dict[str, dict]], test_set: str,
     accepted = [c for c in real if c["outcome"] == "auto-accepted"]
     spot_ids = set(spot_sample([c["id"] for c in accepted if c["group"] != "clean"], spot[0], seed, f"{test_set}:spot:edit"))
     spot_ids |= set(spot_sample([c["id"] for c in accepted if c["group"] == "clean"], spot[1], seed, f"{test_set}:spot:clean"))
-    planted = [c["id"] for c in real if c["group"] != "clean"]
-    seam_ids = set(spot_sample(planted, seam_count(len(planted), *seam_spot), seed, f"{test_set}:seam"))
+    seam_ids = seam_sample([c for c in real if c["group"] != "clean"], seam_spot, seed, test_set)
     items = []
     for c in real:
         c["spotCheck"], c["seamSpotCheck"] = c["id"] in spot_ids, c["id"] in seam_ids
@@ -332,6 +353,7 @@ def counts(cases: list[dict], items: list[dict], models: tuple[str, str] = MODEL
             "byGroup": groups, "perModel": per_model,
             "queue": {"items": len(items), "byFirstReason": {r: first.get(r, 0) for r in REASONS},
                       "byAnyReason": {r: anyr.get(r, 0) for r in REASONS},
+                      "seamByPool": dict(sorted(Counter(seam_pool(it["triage"]) for it in items if "seam" in it["triage"]["reasons"]).items())),
                       "carriedOver": sum("carriedOver" in it["triage"] for it in items), "maxBad": max_bad(len(items))}}
 
 

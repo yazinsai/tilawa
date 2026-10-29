@@ -268,8 +268,8 @@ def _session(test_set: str, sid: str, cache: dict) -> dict | None:
     return cache[sid]
 
 
-def user_rows() -> tuple[list[dict], list[dict], dict]:
-    """Every listening verdict of yours on lab-v1.1..1.3, on the item exactly as it was heard (from the queue the verdict
+def user_rows(test_sets: tuple[str, ...] = TEST_SETS) -> tuple[list[dict], list[dict], dict]:
+    """Every listening verdict of yours on the test sets, on the item exactly as it was heard (from the queue the verdict
     names), with Nemotron's and FastConformer's triage decisions on the same window and text. ok = the label fits;
     bad_* = it doesn't. Byte-identical clips with the same text count once (review_api_core.dedupe)."""
     import lab_review_core as R
@@ -277,7 +277,7 @@ def user_rows() -> tuple[list[dict], list[dict], dict]:
     import review_asr_core as core
 
     rows, skipped, sessions = [], [], {}
-    for ts in TEST_SETS:
+    for ts in test_sets:
         tri = {c["id"]: c for c in _json(DATA / ts / "triage-v1.json")["cases"]}
         queues = {}
         for iid, v in sorted(_json(REVIEWS / ts / "me.json")["items"].items(), key=lambda kv: (kv[1].get("at") or "", kv[0])):
@@ -309,13 +309,13 @@ def user_rows() -> tuple[list[dict], list[dict], dict]:
     return kept, dropped + skipped, sessions
 
 
-def _stats_doc(vendor: str, rows: list[dict], heard: dict, ctrl_rows: list[dict]) -> dict:
+def _stats_doc(vendor: str, rows: list[dict], heard: dict, ctrl_rows: list[dict], rule: str | None = None) -> dict:
     import review_api_core as A
     import review_asr_core as core
 
-    R = {r["id"]: A.readings(heard[r["id"]].get("transcript"), r["claimed"], r["alternative"]) for r in rows}
+    R = {r["id"]: A.readings(heard[r["id"]].get("transcript"), r["claimed"], r["alternative"], rule) for r in rows}
     rev = {r["id"]: (core.compare(r["revert"], t)["decision"] if (t := heard[r["id"]].get("transcript")) else "unsure",
-                     A.judge(t or "", r["revert"], r["claimed"])["decision"]) for r in rows if r["revert"]}
+                     A.judge(t or "", r["revert"], r["claimed"], rule)["decision"]) for r in rows if r["revert"]}
     out = {"readings": {k: A.reading_stats(rows, lambda r, k=k: R[r["id"]][k]["decision"]) for k in A.READINGS}}
     ok_rows = [r for r in rows if r["truth"]]
     rep = [r for r in ok_rows if r["revertEdit"] in ("repeat", "restart")]
@@ -329,7 +329,7 @@ def _stats_doc(vendor: str, rows: list[dict], heard: dict, ctrl_rows: list[dict]
                          "judge": sorted(r["id"] for r in rep if rev[r["id"]][1] == "match")}}
     ctl = {}
     for k in ("judge", "opinion"):
-        get = (lambda r, c: A.judge(heard[r["id"]].get("transcript") or "", r[c], r["labelled"])["decision"]) if k == "judge" else \
+        get = (lambda r, c: A.judge(heard[r["id"]].get("transcript") or "", r[c], r["labelled"], rule)["decision"]) if k == "judge" else \
               (lambda r, c: core.compare(r[c], heard[r["id"]]["transcript"])["decision"] if heard[r["id"]].get("transcript") else "unsure")
         ctl[k] = A.control_stats(ctrl_rows, get) | {"agreement": core.rate(sum(R[r["id"]][k]["decision"] == "match" for r in ctrl_rows), len(ctrl_rows))}
     out["controls"] = ctl
@@ -412,17 +412,27 @@ def bakeoff(vendors: list[str], force: bool = False) -> dict:
     return doc
 
 
-@app.function(image=image, volumes={VOL: vol}, timeout=4 * 60 * 60, cpu=4, memory=16384)
-def triage(test_set: str, vendor: str, spot: tuple[int, int], seam_spot: tuple[float, int], seed: int, force: bool = False) -> dict:
-    """Nemotron (its lab triage decisions, triage-v1.json, reused as they are) + the vendor's judge on every case of the
-    test set, by the lab triage rule. Writes review/triage-<vendor>.json, review/triage-<vendor>-confirm.json and
-    triage-<vendor>-v1.json; never touches triage.json."""
-    import lab_review_core as R
-    import lab_triage_core as T
-    import review_api_core as A
+def _cached(vendor: str, test_set: str, items: list[dict]) -> dict:
+    """{id: record} from asr-<vendor>.json for items [{id, audio}], by audio sha256 and request config; never calls the
+    vendor. Every item must be there."""
+    p = _record(vendor, test_set)
+    doc = _json(p)
+    by_sha = {r["audioSha256"]: r for r in doc["items"].values() if r.get("transcript") is not None and not r.get("error")
+              and (r.get("request") or {}).get("base") == CONFIGS[vendor]}
+    out, missing = {}, []
+    for it in items:
+        sha = hashlib.sha256(RA.clip_bytes(it["audio"])).hexdigest()
+        (missing.append(it["id"]) if sha not in by_sha else out.__setitem__(it["id"], {**by_sha[sha], "audio": it["audio"]}))
+    if missing:
+        raise RuntimeError(f"{vendor} {test_set}: {len(missing)} items have no cached transcript, e.g. {missing[:3]}")
+    return out
 
-    t0 = time.time()
-    vol.reload()
+
+def _triage_cases(test_set: str, seed: int) -> tuple[list[dict], dict, dict]:
+    """The test set's triage cases (lab_triage_core.session_cases + its v1 check's clean windows), asserted identical to
+    triage-v1.json; returns (cases, triage-v1.json cases by id, sessions)."""
+    import lab_triage_core as T
+
     base = DATA / test_set
     old = _json(base / "triage-v1.json")
     ids = [e["id"] for e in _json(base / "manifest-v1.json")["sessions"]]
@@ -435,14 +445,125 @@ def triage(test_set: str, vendor: str, spot: tuple[int, int], seam_spot: tuple[f
     for c in cases:
         o = oldc[c["id"]]
         assert (o["claimed"], o["alternative"], o["audio"]) == (c["claimed"], c["alternative"], c["item"]["audio"]), c["id"]
+    return cases, oldc, sessions
+
+
+MARGIN_CALIBRATION = ("lab-v1.1", "lab-v1.2")  # the verdicts the new margin is calibrated on; lab-v1.3 is reported, not used
+
+
+@app.function(image=image, volumes={VOL: vol}, timeout=60 * 60, cpu=4, memory=16384)
+def margin(vendor: str = "soniox", rules: tuple[str, str] = ("half", "reach"), report_set: str = "lab-v1.3", seed: int = 17) -> dict:
+    """The judge margin re-preregistered (docs/benchmarks/lab-triage-v1.md, "Soniox margin v2"), from cached
+    transcripts only: both rules on your lab-v1.1 and lab-v1.2 verdicts and the ticket 12 controls, the preregistered
+    adoption rule (review_api_core.adopt_margin), then both rules on every case of `report_set` and on your verdicts there."""
+    import lab_review_core as LR
+    import lab_triage_core as T
+    import review_api_core as A
+    import review_asr_core as core
+
+    vol.reload()
+    old, new = rules
+    rows, dropped, sessions = user_rows(MARGIN_CALIBRATION)
+    heard = {}
+    for ts in MARGIN_CALIBRATION:
+        heard |= _cached(vendor, ts, [r for r in rows if r["testSet"] == ts])
+    vq = _json(DATA / CONTROLS)
+    ss = {sid: s for sid in {core.session_id(it) for it in vq["items"]} if (s := _session("lab-v1.1", sid, sessions))}
+    ctrl = core.controls(vq, ss)
+    ctrl_rows = [{"id": it["id"], "labelled": it["text"], "oneEdit": ctrl[it["id"]]["oneEdit"]["text"], "shifted": ctrl[it["id"]]["shifted"]["text"],
+                  "oneEditEdit": ctrl[it["id"]]["oneEdit"]["edit"], "oneEditWords": ctrl[it["id"]]["oneEdit"].get("words", 1)} for it in vq["items"]]
+    stats = {r: _stats_doc(vendor, rows, heard, ctrl_rows, r) for r in rules}
+    decision = A.adopt_margin(stats[old], stats[new])
+    slim = lambda st: {k: v for k, v in st.items() if k not in ("perItem", "taxonomy", "judgeRejections")}
+    calib = {"set": {"items": len(rows), "ok": sum(r["truth"] for r in rows), "bad": sum(not r["truth"] for r in rows), "dropped": len(dropped),
+                     "badItems": sorted(r["id"] for r in rows if not r["truth"])},
+             "stats": {r: slim(s) for r, s in stats.items()}, "decision": decision,
+             "byClass": {r: {cls: dict(Counter(stats[r]["perItem"][x["id"]]["judge"] for x in rows if x["class"] == cls and x["truth"]))
+                             for cls in sorted({x["class"] for x in rows})} for r in rules},
+             "changed": {x["id"]: {r: stats[r]["perItem"][x["id"]]["judge"] for r in rules} | {"truth": x["truth"], "class": x["class"]}
+                         for x in rows if len({stats[r]["perItem"][x["id"]]["judge"] for r in rules}) > 1}}
+    # the report set: every triage case and your verdicts on it, under both rules (Nemotron's decisions from triage-v1.json)
+    cases, oldc, _ = _triage_cases(report_set, seed)
+    heard3 = _cached(vendor, report_set, [{"id": c["id"], "audio": c["item"]["audio"]} for c in cases])
+    nem = {i: {"decision": o["nemotron"]["decision"], "diff": o["nemotron"]["diff"]} for i, o in oldc.items()}
+    reviews = _verdicts(report_set)
+    rep = {}
+    for r in rules:
+        api = {c["id"]: A.judge(heard3[c["id"]]["transcript"] or "", c["claimed"], c["alternative"], r) for c in cases}
+        res = {pol: T.triage(cases, {"nemotron": nem, vendor: api}, report_set, (T.SPOT_EDITS, T.SPOT_CLEAN), seam, seed, reviews, {},
+                             ("nemotron", vendor)) for pol, seam in (("seam10", (T.SEAM_SPOT, T.SEAM_CAP)), ("seamPools", T.SEAM_POOLS))}
+        by = {c["id"]: c for c in res["seam10"]["cases"]}
+        heard_ids = [i for i, v in reviews.items() if i in by and (v["verdict"] == "ok" or v["verdict"] in LR.BAD)]
+        ok = [i for i in heard_ids if reviews[i]["verdict"] == "ok"]
+        bad = [i for i in heard_ids if reviews[i]["verdict"] != "ok"]
+        rep[r] = {"counts": {k: res["seam10"]["counts"][k] for k in ("outcomes", "byClass", "perModel")},
+                  "queue": {pol: x["counts"]["queue"] for pol, x in res.items()},
+                  "verdicts": {"items": len(heard_ids), "ok": len(ok), "bad": len(bad),
+                               "okAccepted": sum(by[i]["outcome"] == "auto-accepted" for i in ok),
+                               "okOutcomes": dict(Counter(by[i]["outcome"] for i in ok)),
+                               "badAccepted": sorted(i for i in bad if by[i]["outcome"] == "auto-accepted"),
+                               "badOutcomes": {i: {"verdict": reviews[i]["verdict"], "outcome": by[i]["outcome"], "class": by[i]["class"],
+                                                   "nemotron": by[i]["nemotron"]["decision"], "nemotronDiff": by[i]["nemotron"]["diff"],
+                                                   vendor: by[i][vendor]["decision"], f"{vendor}Diff": by[i][vendor].get("diff"),
+                                                   "oldOutcome": oldc[i]["outcome"], "transcript": heard3[i]["transcript"]} for i in bad}},
+                  "oldPairingOnVerdicts": {"okAccepted": sum(oldc[i]["outcome"] == "auto-accepted" for i in ok),
+                                           "badAccepted": sorted(i for i in bad if oldc[i]["outcome"] == "auto-accepted")}}
+    doc = {"version": 1, "kind": "judge-margin", "createdAt": now(), "vendor": vendor, "rules": list(rules),
+           "calibration": calib, "report": {"testSet": report_set, **rep}}
+    _write(REVIEWS / "lab-v1.1" / f"asr-{vendor}.margin-v2.json", doc)
+    vol.commit()
+    return doc
+
+
+@app.local_entrypoint()
+def margin_main(vendor: str = "soniox", out: str = "docs/benchmarks/lab-triage-soniox-margin-v2.json"):
+    d = margin.remote(vendor)
+    (ROOT / out).write_text(json.dumps(d, ensure_ascii=False, indent=1) + "\n")
+    c = d["calibration"]
+    print(json.dumps(c["set"], ensure_ascii=False))
+    for r, st in c["stats"].items():
+        p, j = st["pairing"]["judge"], st["readings"]["judge"]
+        k = st["controls"]["judge"]
+        print(f"{r:6} judge agree {j['agreement']['k']}/{j['agreement']['n']}, bad flagged {j['badFlagged']['k']}/{j['badFlagged']['n']} "
+              f"(mismatch {j['badMismatch']['k']}); pairing ok accepted {p['okAccepted']['k']}/{p['okAccepted']['n']}, bad accepted {p['badAccepted']}, "
+              f"queued {p['queued']}/{p['items']}; controls one-edit {k['oneEdit']['k']}/{k['oneEdit']['n']} one-word {k['oneWord']['k']}/{k['oneWord']['n']} "
+              f"shifted {k['shifted']['k']}/{k['shifted']['n']} repeat misses {k['repeatMisses']}; revert {st['revertControls']['judge']['k']}/{st['revertControls']['judge']['n']} "
+              f"{st['revertControls']['repeatMisses']['judge']}")
+    print("decision:", json.dumps(c["decision"], ensure_ascii=False))
+    for r, x in d["report"].items():
+        if r == "testSet":
+            continue
+        print(f"{d['report']['testSet']} {r}: {json.dumps(x['counts']['outcomes'])} queue {[(p, q['items']) for p, q in x['queue'].items()]}")
+        v = x["verdicts"]
+        print(f"   verdicts {v['items']} ({v['ok']} ok, {v['bad']} bad): ok accepted {v['okAccepted']}, bad accepted {v['badAccepted']}; "
+              f"old pairing ok {x['oldPairingOnVerdicts']['okAccepted']} bad {x['oldPairingOnVerdicts']['badAccepted']}")
+    print(f"wrote {out}")
+
+
+@app.function(image=image, volumes={VOL: vol}, timeout=4 * 60 * 60, cpu=4, memory=16384)
+def triage(test_set: str, vendor: str, spot: tuple[int, int], seam_spot: tuple[float, int] | dict, seed: int, force: bool = False,
+           rule: str = "half") -> dict:
+    """Nemotron (its lab triage decisions, triage-v1.json, reused as they are) + the vendor's judge on every case of the
+    test set, by the lab triage rule. Writes review/triage-<vendor>.json, review/triage-<vendor>-confirm.json and
+    triage-<vendor>-v1.json; never touches triage.json."""
+    import lab_review_core as R
+    import lab_triage_core as T
+    import review_api_core as A
+
+    t0 = time.time()
+    vol.reload()
+    base = DATA / test_set
+    old = _json(base / "triage-v1.json")
+    cases, oldc, _ = _triage_cases(test_set, seed)
     nem = {i: {"claimed": o["nemotron"]["claimed"], "alternative": o["nemotron"]["alternative"]} for i, o in oldc.items()}
     heard = transcribe(vendor, test_set, [{"id": c["id"], "audio": c["item"]["audio"]} for c in cases], force)
-    api = {c["id"]: A.judge(heard[c["id"]].get("transcript") or "", c["claimed"], c["alternative"]) for c in cases}
+    api = {c["id"]: A.judge(heard[c["id"]].get("transcript") or "", c["claimed"], c["alternative"], rule) for c in cases}
     reviews = _verdicts(test_set)
     names = ("triage.json", "triage-confirm.json", "v1-check.json")
     earlier = {it["id"]: it for n in names if (base / "review" / n).is_file() for it in _json(base / "review" / n)["items"]}
     models = ("nemotron", vendor)
-    res = T.triage(cases, {"nemotron": nem, vendor: api}, test_set, tuple(spot), tuple(seam_spot), seed, reviews, earlier, models)
+    seam_spot = seam_spot if isinstance(seam_spot, dict) else tuple(seam_spot)
+    res = T.triage(cases, {"nemotron": nem, vendor: api}, test_set, tuple(spot), seam_spot, seed, reviews, earlier, models)
     for c in res["cases"]:
         assert c["nemotron"]["decision"] == oldc[c["id"]]["nemotron"]["decision"], c["id"]
     problems = R.validate_queue(res["queue"])
@@ -465,10 +586,11 @@ def triage(test_set: str, vendor: str, spot: tuple[int, int], seam_spot: tuple[f
     doc = {"version": 1, "kind": "lab-triage", "testSet": test_set, "createdAt": now(), "variant": "studio", "models": {
         "nemotron": {**old["models"]["nemotron"], "reused": "decisions from triage-v1.json (same cases, windows and texts)"},
         vendor: {**_json(_record(vendor, test_set))["model"], "reading": "review_api_core.judge on its label-blind transcript",
-                 "rule": {"min": A.JUDGE_MIN, "share": A.JUDGE_SHARE, "maxDist": A.JUDGE_MAX_DIST}}},
-        "rule": {**old["rule"], "pairwise": f"Nemotron: as triage-v1.json; {vendor}: review_api_core.judge (transcript closer to the claimed text "
-                                            "than to the alternative by max(2, half their distance) letters of rasm skeleton)"},
-        "construction": old["construction"], "spot": {"edits": spot[0], "clean": spot[1]}, "seamSpot": {"share": seam_spot[0], "cap": seam_spot[1]},
+                 "rule": {"min": A.JUDGE_MIN, "share": A.JUDGE_SHARE, "maxDist": A.JUDGE_MAX_DIST, "margin": rule}}},
+        "rule": {**old["rule"], "pairwise": f"Nemotron: as triage-v1.json; {vendor}: review_api_core.judge rule {rule!r} (transcript closer to the "
+                                            "claimed text than to the alternative by the margin, letters of rasm skeleton)"},
+        "construction": old["construction"], "spot": {"edits": spot[0], "clean": spot[1]},
+        "seamSpot": seam_spot if isinstance(seam_spot, dict) else {"share": seam_spot[0], "cap": seam_spot[1]},
         "seed": seed, "queue": f"{test_set}/{qrel}", "confirm": f"{test_set}/{crel}", "counts": res["counts"], "reviewed": reviewed,
         "comparison": cmp, "cost": {"audioS": round(sum(h.get("durationS") or 0 for h in heard.values()), 1),
                                     "costUsd": round(sum(h.get("costUsd") or 0 for h in heard.values()), 4),

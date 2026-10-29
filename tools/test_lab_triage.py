@@ -156,6 +156,20 @@ def test_spot_and_seam_checks_merge_into_one_item_per_case():
     assert again["queue"] == q
 
 
+def test_seam_pools_sample_inserted_audio_apart():
+    planted = [{"id": f"i{k}", "class": c} for k, c in enumerate(["wrong_word", "added_word", "mutashabihat"] * 50)]
+    planted += [{"id": f"o{k}", "class": c} for k, c in enumerate(["omitted_word", "skipped_passage", "repeat", "restart"] * 30)]
+    got = T.seam_sample(planted, T.SEAM_POOLS, 17, "lab-x")
+    assert sum(i.startswith("i") for i in got) == 30 and sum(i.startswith("o") for i in got) == 12  # 20% of 150 capped at 30; 10% of 120
+    assert got == T.seam_sample(list(reversed(planted)), T.SEAM_POOLS, 17, "lab-x")
+    few = [p for p in planted if p["id"] in ("i0", "i1", "i2", "i3", "i4")] + planted[150:160]
+    got = T.seam_sample(few, T.SEAM_POOLS, 17, "lab-x")
+    assert sum(i.startswith("i") for i in got) == 1 and sum(i.startswith("o") for i in got) == 1
+    assert T.seam_sample(planted, (0.1, 20), 17, "lab-x") == set(T.spot_sample([p["id"] for p in planted], 20, 17, "lab-x:seam"))
+    _, r = triaged(lambda c: "match", lambda c: "match", spot=(0, 0), seam_spot=T.SEAM_POOLS)
+    assert r["seamIds"] == ["lab-x-p01-x1"] and r["counts"]["queue"]["seamByPool"] == {"inserted": 1}
+
+
 def test_confirm_queue_holds_only_the_both_mismatch_items():
     edit_bad = lambda c: "mismatch" if c["group"] == "edit" else "match"
     _, r = triaged(edit_bad, edit_bad, spot=(1, 1), seam_spot=(1.0, 20))
