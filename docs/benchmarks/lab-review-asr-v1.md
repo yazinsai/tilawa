@@ -686,3 +686,64 @@ A bake-off between two commercial ASR APIs as the second independent model of tw
 - Outcomes and spot checks are as before: 15 + 15 random, and seam checks of 10% capped at 20, seed 17.
 - Outputs: `review/triage-<winner>.json` and `review/triage-<winner>-confirm.json`. `triage.json` is untouched.
 - Your lab-v1.3 verdicts are keyed by id, so they show on the same clips.
+
+### Results (2026-10-29)
+
+**Run.** Both APIs answered all 152 items and the 40-window controls with no errors.
+- Soniox ran `stt-async-v5` with `language_hints_strict: true` (supported, per `GET /v1/models`).
+- Speechmatics ran `enhanced` on orchestrator `2026.10.24`.
+- The set is 152 of your verdicts: 142 ok and 10 bad splices (lab-v1.1 47, lab-v1.2 100, lab-v1.3 5). Four dropped: three byte-identical clips you'd already heard (lab-v1.3 e15-x10, e19-x12, e13-x9 = lab-v1.2 e15-x12, lab-v1.2 e19-x12, lab-v1.1 e13-x8), and lab-v1.3 p17-clean-0-0, which is in no queue.
+- Summary: `docs/benchmarks/lab-review-asr-v1-api-bakeoff.json`, with full per-item data on the volume at `/lab/reviews/lab-v1.1/asr-calibration.api-bakeoff.json`. Records: `/lab/reviews/<testSet>/asr-{soniox,speechmatics}.json`.
+
+| | Soniox | Speechmatics |
+| --- | --- | --- |
+| Agreement on your ok, judge | **130/142** (86–95%) | 105/142 (66–80%) |
+| Agreement on your ok, opinion (round-1 rule) | **114/142** (73–86%) | 86/142 (52–68%) |
+| Agreement on your ok, opinionRasm | **120/142** (78–90%) | 89/142 (54–70%) |
+| Your bad splices flagged, judge (mismatch) | 1/10 (0) | 3/10 (2) |
+| Your bad splices flagged, opinion (mismatch) | 2/10 (1) | 6/10 (5) |
+| Controls, judge: one-edit / one-word / shifted | 40/40, 31/31, 40/40 | 40/40, 31/31, 40/40 |
+| Controls, opinion: one-edit / one-word / shifted | 40/40, 31/31, 40/40 | 39/40, 30/31, 40/40 |
+| Opinion agreement on the 40 v1-check windows | **37/40** | 32/40 |
+| Edit-undone control flagged (your ok edited windows) | 120/121 | 105/121 |
+| Repeat or restart misses (of 23) | 1 (e02-x3) | 2 (e02-x3, e10-x10) |
+| Opinion rejections on ok: orthography / edge / mishearing / canonicalisation / hallucination | 8 / 1 / 18 / 1 / 0 | 4 / 2 / 33 / 17 / 0 |
+| … of which at the edit | 13 of 28 | 44 of 56 |
+| Submit to done, median / p90 / max | 1.8 / 17.6 / 34.6 s | 1.0 / 1.1 / 2.4 s |
+| Cost, 21 min of audio (list price) | $0.035 ($0.10/h) | $0.247 ($0.75/h) |
+
+**Pairing with Nemotron** (your 152 items):
+
+| | Your ok auto-accepted | Your bad auto-accepted | Queued |
+| --- | --- | --- | ---: |
+| Nemotron + FastConformer (old) | 55/142 (31–47%) | 0/10 (0–28%) | 97 |
+| Nemotron + Soniox judge | **96/142** (60–75%) | 1/10 (2–40%): p15-x1 | **55** |
+| Nemotron + Speechmatics judge | 85/142 (52–68%) | 1/10 (2–40%): p15-x1 | 66 |
+| Nemotron + Soniox opinion | 88/142 | 1/10: p15-x1 | 63 |
+| Nemotron + Speechmatics opinion | 74/142 | 1/10: p15-x1 | 77 |
+
+Nemotron alone matches 106/142 and flags 9/10 of the bad splices. FastConformer alone matches 70/142 and flags 7/10.
+
+**Winner: Soniox.**
+- By the preregistered rule: the two tie on bad auto-accepted (1 each, the same item), and Soniox auto-accepts 11 more of your ok items.
+- It is also ahead on every agreement number, edit-undone controls, canonicalisation (1 against 17) and cost (7.5× cheaper).
+- Speechmatics is only better on latency and on raw bad-splice sensitivity. That comes from it disagreeing more with everything.
+- Small n: 96 against 85 is inside both ranges, and 1/10 bad accepted is compatible with anything from 2% to 40%.
+
+**Bad splices are not a text error, so no free transcription can catch them.**
+- The spliced word is really in the audio, and both APIs write it:
+  - p15-x1: Soniox "منذر منهم كالفجار، وقال الكافرون";
+  - e07-x9: both "عنهم ما تعقلون. كانوا";
+  - p01-x12: both "العزيز. (ب)الله الرحيم".
+- Your bad verdict is about how the splice sounds, which a transcript cannot carry. Nemotron's likelihood drops at the seam (−4 to −22 nats on 7 of them). That is the only signal, and it catches 9/10.
+- Every pairing therefore lets through p15-x1, where Nemotron is confident the label fits (+38 nats). The old pairing held it only because FastConformer was unsure.
+- The APIs' 1–6/10 "sensitivity" is mostly a measure of how often they mishear, not of detection.
+
+**The preregistered judge is too strict on skipped passages** (found on lab-v1.3, below; not used for any decision).
+- `need` is half the edit distance between the two texts. With free text ends, a perfect transcript of the claimed text sits only the length of the junction away from the alternative, not the whole skipped passage.
+- Example, lab-v1.3 e02-x5: Soniox heard "عذاب مقيم، الله يتوفى الأنفس", exactly the label. d(claimed) 0, d(alternative) 5, need 33.5, so it was unsure.
+- Post hoc, tuned on the same data and not used: an attainable-gap margin. Match needs gap ≥ max(2, ½ fit_dist(claimed → alternative)), and mismatch needs gap ≤ −max(2, ½ fit_dist(alternative → claimed)). With it:
+  - Soniox agrees on 135/142 and Speechmatics on 109/142;
+  - pairing auto-accepts 101 and 89 of your ok items, with the same single bad item.
+
+**Total API cost:** $0.66. That breaks down as the bake-off ($0.035 Soniox and $0.247 Speechmatics), two smoke runs (under $0.01) and the lab-v1.3 re-triage ($0.377 Soniox). Estimated at list prices from audio duration. Modal CPU time was a few cents.

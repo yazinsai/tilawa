@@ -187,3 +187,61 @@ lab-v1.1:
 | FastConformer score | 1× T4 | 128 s, plus an 8 s load |
 
 The wall clock was 13 min 15 s. Total H100 compute was about 44 min busy, with containers held about 55 min (an upper bound). The cost was roughly $3.5 for the H100s and $0.15 for the T4, plus about $0.5 for the two smoke runs. These are estimates from Modal list prices.
+
+## Nemotron + Soniox on lab-v1.3 (2026-10-29)
+
+Soniox `stt-async-v5` won the commercial API bake-off (`lab-review-asr-v1.md`, "Commercial APIs"). Here it replaces FastConformer as the second model.
+- Its reading is the preregistered label-blind judge: the transcript's rasm distance to the claimed text against the alternative.
+- Nemotron's decisions are reused as they are. The 1700 cases, windows and alternatives are asserted identical to `triage-v1.json`.
+- The rule is unchanged: 15 + 15 random spot checks, and seam checks of 10% capped at 20, seed 17.
+- `modal run modal/review_api.py::triage_main --vendor soniox` writes:
+  - `/lab/data/lab-v1.3/triage-soniox-v1.json`;
+  - `review/triage-soniox.json`;
+  - `review/triage-soniox-confirm.json`;
+  - `docs/benchmarks/lab-triage-soniox-lab-v1.3.json`.
+- `triage.json` is untouched.
+
+| Outcome | Nemotron + FastConformer | Nemotron + Soniox |
+| --- | ---: | ---: |
+| Auto-accepted | 1624 | 1559 |
+| Both mismatch | 6 | **0** |
+| Disagree | 54 | 19 |
+| Unsure | 16 | 122 |
+
+**Queue: 184 items, maxBad 4** (was 117, maxBad 2). 7 of your verdicts carry over.
+
+| Why (first reason) | Old | New |
+| --- | ---: | ---: |
+| Both models think the label is wrong | 6 | 0 |
+| The two models disagree | 54 | 19 |
+| A model couldn't tell | 16 | 122 |
+| Seam spot check | 12 | 14 |
+| Random spot check | 29 | 29 |
+
+**Confirm queue:** `review/triage-soniox-confirm.json` is empty, because Soniox never says mismatch on lab-v1.3 (1585 match, 115 unsure).
+- Your 6 old confirm items, all of which you heard as ok, are still queued, now as disagree.
+- On each, Nemotron says mismatch (−2.2 to −21.9 nats) and Soniox hears the label, for example e09-x7 "لا يذوقون. كنت فيها بردًا ولا".
+- No false alarm reaches the confirm queue. On all 19 of Nemotron's mismatches, Soniox says match.
+
+**Why the queue grew.** 113 of Soniox's 115 unsures are "too close to call" under the preregistered margin:
+- 56 skipped passages: 56 of 60 are unsure, because the margin assumes the whole skipped passage separates the texts (see the bake-off doc);
+- 44 clean windows: one-word substitutions that differ by only a few rasm letters;
+- 11 wrong words, 5 mutashabihat and 4 omitted words.
+
+**Overlap with the old queue:**
+- 55 items are in both queues, 62 only in the old one and 129 only in the new one.
+- Of the old pairing's 76 model-queued items, the new pairing auto-accepts 45, and calls 19 disagree and 12 unsure.
+- Seam spot ids are the same, because they are seeded on the same planted list. Random spot items differ, because the auto-accepted set differs.
+
+**Post hoc (tuned on this data, not used for the queue):** with the attainable-gap margin, lab-v1.3 would have 1631 auto-accepted, 19 disagree and 50 unsure. That is about 112 items with spot checks: roughly the old queue's size.
+
+**Read.**
+- On your verdicts, Soniox pairs better than FastConformer: 96 of 142 ok auto-accepted against 55. But it lets through one bad splice (p15-x1) that FastConformer's unsure held.
+- On lab-v1.3, the preregistered queue is bigger, not smaller. The verdict set is enriched for items the old pairing queued, so it overstates the gain.
+- The disagree bucket is now exactly "Nemotron hears a seam problem, Soniox hears the right words". That is a cleaner signal for bad splices than before.
+- Hear `triage.json` (117), not this queue, unless the margin is fixed and re-preregistered.
+
+**Cost:**
+- Soniox transcribed 1714 clips (3.77 h) for $0.38 at list price, in 27 min wall time.
+- 32 concurrent requests; chunk times step in about 70 s units, consistent with queueing or rate limits on Soniox's side.
+- No GPU: Nemotron's scores are reused from `triage-v1.json`.
