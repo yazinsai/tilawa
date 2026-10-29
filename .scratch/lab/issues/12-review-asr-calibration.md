@@ -67,3 +67,36 @@ Run `modal/review_asr.py` on the 40 cases from ticket 07 before showing it the l
   - Trust it only after the spot checks hold over the next one or two versions. It does nothing for training-data samples.
 - Cost: about 20 min of H100 wall time in total, roughly $1.5 (estimate).
 - Records: `/lab/reviews/lab-v1.1/asr-nemotron-3.5-transcribe.json` (arm 1 per item, plus the arm 2 scores under `likelihood`), `asr-nemotron-recitation-prompt.json`, `asr-nemotron-3.5-transcribe.pad1.json`, and the `asr-calibration.nemotron-*.json` summaries. Tables: `docs/benchmarks/lab-review-asr-v1-nemotron-*.json`.
+
+2026-10-29. **NVIDIA Arabic FastConformer: fails both arms, not wired; the default pre-screen stays `nemotron-likelihood`.** Its CTC head is useful as an independent data check for some edit classes, but not for added words and repeats. Full write-up: `docs/benchmarks/lab-review-asr-v1.md`, section "NVIDIA Arabic FastConformer".
+
+- Model and setup:
+  - `nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0` @ `7f32349d`, NeMo 2.7.3, float32 on a Modal T4.
+  - The same 40 windows (all sha256 identical to Nemotron's), the same rule and the same controls.
+  - The code and every rule were committed in `5d019b0` before any calibration or data-check output existed.
+  - Its training data includes everyayah, so its prior is the canonical text.
+  - NeMo 2.7.3's `transcribe()` leaves the encoder and CTC head in train mode (dropout on). The smoke test caught this, and the module now re-evals after every decode.
+- Arm 1, free transcription (RNNT, the decision decoder):
+  - Agreement 23/40 (58%, 42–71%), tying Nemotron; one-edit flagged 39/40, one-word 31/31, shifted 40/40.
+  - One repeat miss: `p05-x6`, where the repeat was written once.
+  - No hallucinations. Of the 17 rejections, 10 are partial or dropped edge words, 3 mishearings (a seam and the phone copies), 3 dropped planted words or cut-short output, and 1 canonicalisation.
+  - CTC greedy: 19/40, with the same miss, plus letter doubling.
+- Arm 2, CTC pairwise likelihood (diacritised spellings, 2-nat margin):
+  - Agreement 36/40 (90%, 77–96%), one-edit 37/40, one-word 29/31, shifted 40/40.
+  - Repeat miss `p05-x6`: the text without the repeat wins by 98.9 nats.
+  - The other misses are the added words `p15-x8` and `e19-x12`, where the canonical text wins, and `p09-x8`, unsure.
+  - It gets Nemotron's dangerous miss right: on `p12-x7` the planted `مِهَادًا` beats `كِفَاتًا` by 30 nats.
+  - Plain spellings are worse (35/40, plus an `e05-x7` restart miss).
+  - Exploratory, in-sample: requiring both Nemotron and FastConformer to clear flags every control with no repeat misses, but agreement drops to 35/40, below the bar. As a pre-screen it would clear 21 of 26 edited windows, against Nemotron's 25, and it closes the `p12-x7` hole. Worth considering if `p12-x7`-type misses worry you more than 4 extra listens per version.
+- Independent data check of every planted edit (studio; phone in brackets), said vs original by CTC, 3-nat margin, teacher-check window:
+  - mistakes 270/320 (252): wrong word 81/94, mutashabihat 10/10, omitted 42/42, added 68/105, skipped 69/69; repeats 14/23, restarts 17/17;
+  - the teacher passes 320/320 studio;
+  - in studio none passes only FastConformer's check and none fails both. 3 of the failures are windows you heard as `ok` (`e19-x12`, `e08-x1`, `p15-x5`);
+  - 46 of the 59 studio failures are added words or repeats, where the prior deletes inserted speech. Nothing points to a label error;
+  - with 2 s of context (exploratory) mistakes reach 281/320, but restarts drop to 11/17.
+- Decision against the bar: arm 1 and arm 2 both fail on agreement and on the repeat miss. Not wired.
+- Cost: about 12 min of T4 container time in total, roughly $0.15 (estimate).
+- Records:
+  - on the volume: `/lab/reviews/lab-v1.1/asr-fastconformer-{rnnt,ctc,likelihood}.json`, `asr-calibration.fastconformer[-likelihood].json`, and `/lab/data/lab-v1.1/checks-fastconformer-v1[.ctx2].json`;
+  - tables: `docs/benchmarks/lab-review-asr-v1-fastconformer[-likelihood].json` and `lab-checks-fastconformer-v1[-ctx2].json`;
+  - code: `modal/review_fastconformer.py`.

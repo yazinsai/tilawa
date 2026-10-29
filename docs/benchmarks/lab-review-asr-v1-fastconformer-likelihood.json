@@ -1,0 +1,2926 @@
+{
+ "version": 1,
+ "testSet": "lab-v1.1",
+ "queue": "lab-v1.1/review/v1-check.json",
+ "reviewer": "me",
+ "createdAt": "2026-10-29T05:53:53+00:00",
+ "model": {
+  "id": "nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0",
+  "revision": "7f32349d952f42a28dce979ba73270aa2bbdfa89",
+  "implementation": "nemo",
+  "packageVersion": "2.7.3",
+  "torch": "2.15.0+cu132",
+  "device": "Tesla T4",
+  "config": {
+   "engine": "nemo",
+   "nemoToolkit": "2.7.3",
+   "dtype": "float32",
+   "decoding": "greedy (model defaults)",
+   "batchSize": 16,
+   "ctcScore": "torch ctc_loss over the CTC head's log-probs, blank last, summed over alignments"
+  },
+  "prompt": null,
+  "vocabSize": 1024,
+  "loadSeconds": 23.0,
+  "gpuSeconds": 8.2
+ },
+ "margin": 2.0,
+ "decision": "diac-pairwise",
+ "exposed": "per window: the labelled text, its one-edit control and its shifted control; never the label type",
+ "rule": {
+  "pairwise": "claimed - alternative >= margin -> match, <= -margin -> mismatch, else unsure; no CTC path for one side decides against it; the labelled text and its one-edit control are each other's alternative; shifted vs labelled",
+  "nearBest": "claimed >= CTC greedy path - margin -> match, else mismatch",
+  "spellings": "diac: core.diacritised_candidates against the window's CTC greedy text and RNNT transcript (harakat kept, Quranic marks dropped, characters outside the tokenizer dropped); plain: core.plain_candidates; max over spellings"
+ },
+ "items": 40,
+ "edited": 26,
+ "stats": {
+  "diac-pairwise": {
+   "agreement": {
+    "k": 36,
+    "n": 40,
+    "rate": 0.9,
+    "ci95": [
+     0.7695,
+     0.9604
+    ]
+   },
+   "positives": {
+    "match": 36,
+    "mismatch": 3,
+    "unsure": 1
+   },
+   "disagreement": {
+    "k": 3,
+    "n": 40,
+    "rate": 0.075,
+    "ci95": [
+     0.0258,
+     0.1986
+    ]
+   },
+   "agreementEdited": {
+    "k": 22,
+    "n": 26,
+    "rate": 0.8462,
+    "ci95": [
+     0.6647,
+     0.9385
+    ]
+   },
+   "oneEdit": {
+    "sensitivity": {
+     "k": 36,
+     "n": 40,
+     "rate": 0.9,
+     "ci95": [
+      0.7695,
+      0.9604
+     ]
+    },
+    "flagged": {
+     "k": 37,
+     "n": 40,
+     "rate": 0.925,
+     "ci95": [
+      0.8014,
+      0.9742
+     ]
+    },
+    "counts": {
+     "match": 3,
+     "mismatch": 36,
+     "unsure": 1
+    }
+   },
+   "oneEditEdited": {
+    "k": 23,
+    "n": 26,
+    "rate": 0.8846,
+    "ci95": [
+     0.7102,
+     0.96
+    ]
+   },
+   "oneWord": {
+    "sensitivity": {
+     "k": 28,
+     "n": 31,
+     "rate": 0.9032,
+     "ci95": [
+      0.751,
+      0.9665
+     ]
+    },
+    "flagged": {
+     "k": 29,
+     "n": 31,
+     "rate": 0.9355,
+     "ci95": [
+      0.7928,
+      0.9821
+     ]
+    },
+    "counts": {
+     "match": 2,
+     "mismatch": 28,
+     "unsure": 1
+    }
+   },
+   "shifted": {
+    "sensitivity": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 40,
+     "unsure": 0
+    }
+   },
+   "repeatMisses": [
+    "lab-v1.1-p05-x6"
+   ],
+   "passesBar": false
+  },
+  "diac-nearBest": {
+   "agreement": {
+    "k": 10,
+    "n": 40,
+    "rate": 0.25,
+    "ci95": [
+     0.1419,
+     0.4019
+    ]
+   },
+   "positives": {
+    "match": 10,
+    "mismatch": 30,
+    "unsure": 0
+   },
+   "disagreement": {
+    "k": 30,
+    "n": 40,
+    "rate": 0.75,
+    "ci95": [
+     0.5981,
+     0.8581
+    ]
+   },
+   "agreementEdited": {
+    "k": 8,
+    "n": 26,
+    "rate": 0.3077,
+    "ci95": [
+     0.165,
+     0.4999
+    ]
+   },
+   "oneEdit": {
+    "sensitivity": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 40,
+     "unsure": 0
+    }
+   },
+   "oneEditEdited": {
+    "k": 26,
+    "n": 26,
+    "rate": 1.0,
+    "ci95": [
+     0.8713,
+     1.0
+    ]
+   },
+   "oneWord": {
+    "sensitivity": {
+     "k": 31,
+     "n": 31,
+     "rate": 1.0,
+     "ci95": [
+      0.8897,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 31,
+     "n": 31,
+     "rate": 1.0,
+     "ci95": [
+      0.8897,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 31,
+     "unsure": 0
+    }
+   },
+   "shifted": {
+    "sensitivity": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 40,
+     "unsure": 0
+    }
+   },
+   "repeatMisses": [],
+   "passesBar": false
+  },
+  "plain-pairwise": {
+   "agreement": {
+    "k": 35,
+    "n": 40,
+    "rate": 0.875,
+    "ci95": [
+     0.7389,
+     0.9454
+    ]
+   },
+   "positives": {
+    "match": 35,
+    "mismatch": 5,
+    "unsure": 0
+   },
+   "disagreement": {
+    "k": 5,
+    "n": 40,
+    "rate": 0.125,
+    "ci95": [
+     0.0546,
+     0.2611
+    ]
+   },
+   "agreementEdited": {
+    "k": 21,
+    "n": 26,
+    "rate": 0.8077,
+    "ci95": [
+     0.6212,
+     0.9149
+    ]
+   },
+   "oneEdit": {
+    "sensitivity": {
+     "k": 35,
+     "n": 40,
+     "rate": 0.875,
+     "ci95": [
+      0.7389,
+      0.9454
+     ]
+    },
+    "flagged": {
+     "k": 35,
+     "n": 40,
+     "rate": 0.875,
+     "ci95": [
+      0.7389,
+      0.9454
+     ]
+    },
+    "counts": {
+     "match": 5,
+     "mismatch": 35,
+     "unsure": 0
+    }
+   },
+   "oneEditEdited": {
+    "k": 21,
+    "n": 26,
+    "rate": 0.8077,
+    "ci95": [
+     0.6212,
+     0.9149
+    ]
+   },
+   "oneWord": {
+    "sensitivity": {
+     "k": 28,
+     "n": 31,
+     "rate": 0.9032,
+     "ci95": [
+      0.751,
+      0.9665
+     ]
+    },
+    "flagged": {
+     "k": 28,
+     "n": 31,
+     "rate": 0.9032,
+     "ci95": [
+      0.751,
+      0.9665
+     ]
+    },
+    "counts": {
+     "match": 3,
+     "mismatch": 28,
+     "unsure": 0
+    }
+   },
+   "shifted": {
+    "sensitivity": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 40,
+     "unsure": 0
+    }
+   },
+   "repeatMisses": [
+    "lab-v1.1-e05-x7",
+    "lab-v1.1-p05-x6"
+   ],
+   "passesBar": false
+  },
+  "plain-nearBest": {
+   "agreement": {
+    "k": 7,
+    "n": 40,
+    "rate": 0.175,
+    "ci95": [
+     0.0875,
+     0.3195
+    ]
+   },
+   "positives": {
+    "match": 7,
+    "mismatch": 33,
+    "unsure": 0
+   },
+   "disagreement": {
+    "k": 33,
+    "n": 40,
+    "rate": 0.825,
+    "ci95": [
+     0.6805,
+     0.9125
+    ]
+   },
+   "agreementEdited": {
+    "k": 6,
+    "n": 26,
+    "rate": 0.2308,
+    "ci95": [
+     0.1103,
+     0.4205
+    ]
+   },
+   "oneEdit": {
+    "sensitivity": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 40,
+     "unsure": 0
+    }
+   },
+   "oneEditEdited": {
+    "k": 26,
+    "n": 26,
+    "rate": 1.0,
+    "ci95": [
+     0.8713,
+     1.0
+    ]
+   },
+   "oneWord": {
+    "sensitivity": {
+     "k": 31,
+     "n": 31,
+     "rate": 1.0,
+     "ci95": [
+      0.8897,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 31,
+     "n": 31,
+     "rate": 1.0,
+     "ci95": [
+      0.8897,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 31,
+     "unsure": 0
+    }
+   },
+   "shifted": {
+    "sensitivity": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 40,
+     "unsure": 0
+    }
+   },
+   "repeatMisses": [],
+   "passesBar": false
+  }
+ },
+ "table": {
+  "lab-v1.1-e20-x6": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -5.908021926879883,
+     "alternative": -108.99559783935547,
+     "best": -4.416820526123047,
+     "diff": 103.09
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -108.99559783935547,
+     "alternative": -5.908021926879883,
+     "best": -4.416820526123047,
+     "diff": -103.09
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -425.8777160644531,
+     "alternative": -5.908021926879883,
+     "best": -4.416820526123047,
+     "diff": -419.97
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -5.908021926879883,
+     "alternative": -88.21099090576172,
+     "best": -4.416820526123047,
+     "diff": 82.3
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -88.21099090576172,
+     "alternative": -5.908021926879883,
+     "best": -4.416820526123047,
+     "diff": -82.3
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -275.382080078125,
+     "alternative": -5.908021926879883,
+     "best": -4.416820526123047,
+     "diff": -269.47
+    }
+   }
+  },
+  "lab-v1.1-e20-x10": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -27.363012313842773,
+     "alternative": -140.77574157714844,
+     "best": -6.431896686553955,
+     "diff": 113.41
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -140.77574157714844,
+     "alternative": -27.363012313842773,
+     "best": -6.431896686553955,
+     "diff": -113.41
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -307.86688232421875,
+     "alternative": -27.363012313842773,
+     "best": -6.431896686553955,
+     "diff": -280.5
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -99.75287628173828,
+     "alternative": -131.9116973876953,
+     "best": -6.431896686553955,
+     "diff": 32.16
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -131.9116973876953,
+     "alternative": -99.75287628173828,
+     "best": -6.431896686553955,
+     "diff": -32.16
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -243.92259216308594,
+     "alternative": -99.75287628173828,
+     "best": -6.431896686553955,
+     "diff": -144.17
+    }
+   }
+  },
+  "lab-v1.1-p09-x8": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "unsure",
+     "nearBest": "mismatch",
+     "claimed": -56.805484771728516,
+     "alternative": -57.02167892456055,
+     "best": -3.307561159133911,
+     "diff": 0.22
+    },
+    "oneEdit": {
+     "pairwise": "unsure",
+     "nearBest": "mismatch",
+     "claimed": -57.02167892456055,
+     "alternative": -56.805484771728516,
+     "best": -3.307561159133911,
+     "diff": -0.22
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -488.42608642578125,
+     "alternative": -56.805484771728516,
+     "best": -3.307561159133911,
+     "diff": -431.62
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -23.95819091796875,
+     "alternative": -12.009145736694336,
+     "best": -3.307561159133911,
+     "diff": -11.95
+    },
+    "oneEdit": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -12.009145736694336,
+     "alternative": -23.95819091796875,
+     "best": -3.307561159133911,
+     "diff": 11.95
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -219.26751708984375,
+     "alternative": -23.95819091796875,
+     "best": -3.307561159133911,
+     "diff": -195.31
+    }
+   }
+  },
+  "lab-v1.1-e13-x4": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -61.15087127685547,
+     "alternative": -112.16910552978516,
+     "best": -11.410353660583496,
+     "diff": 51.02
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -112.16910552978516,
+     "alternative": -61.15087127685547,
+     "best": -11.410353660583496,
+     "diff": -51.02
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -268.80987548828125,
+     "alternative": -61.15087127685547,
+     "best": -11.410353660583496,
+     "diff": -207.66
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -131.80079650878906,
+     "alternative": -147.53515625,
+     "best": -11.410353660583496,
+     "diff": 15.73
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -147.53515625,
+     "alternative": -131.80079650878906,
+     "best": -11.410353660583496,
+     "diff": -15.73
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -236.57408142089844,
+     "alternative": -131.80079650878906,
+     "best": -11.410353660583496,
+     "diff": -104.77
+    }
+   }
+  },
+  "lab-v1.1-e15-x8": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -63.973262786865234,
+     "alternative": -107.88125610351562,
+     "best": -8.775447845458984,
+     "diff": 43.91
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -107.88125610351562,
+     "alternative": -63.973262786865234,
+     "best": -8.775447845458984,
+     "diff": -43.91
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -243.4150390625,
+     "alternative": -63.973262786865234,
+     "best": -8.775447845458984,
+     "diff": -179.44
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -27.194122314453125,
+     "alternative": -57.65477752685547,
+     "best": -8.775447845458984,
+     "diff": 30.46
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -57.65477752685547,
+     "alternative": -27.194122314453125,
+     "best": -8.775447845458984,
+     "diff": -30.46
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -120.7160415649414,
+     "alternative": -27.194122314453125,
+     "best": -8.775447845458984,
+     "diff": -93.52
+    }
+   }
+  },
+  "lab-v1.1-e16-x7": {
+   "kind": "splice",
+   "label": "omitted_word",
+   "human": "ok",
+   "oneEdit": "omitted word put back",
+   "oneEditEdit": "omitted_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -6.591080665588379,
+     "alternative": -92.94949340820312,
+     "best": -3.000351667404175,
+     "diff": 86.36
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -92.94949340820312,
+     "alternative": -6.591080665588379,
+     "best": -3.000351667404175,
+     "diff": -86.36
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -360.1437072753906,
+     "alternative": -6.591080665588379,
+     "best": -3.000351667404175,
+     "diff": -353.55
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -8.81372356414795,
+     "alternative": -61.855323791503906,
+     "best": -3.000351667404175,
+     "diff": 53.04
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -61.855323791503906,
+     "alternative": -8.81372356414795,
+     "best": -3.000351667404175,
+     "diff": -53.04
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -196.0409393310547,
+     "alternative": -8.81372356414795,
+     "best": -3.000351667404175,
+     "diff": -187.23
+    }
+   }
+  },
+  "lab-v1.1-e14-x4": {
+   "kind": "splice",
+   "label": "omitted_word",
+   "human": "ok",
+   "oneEdit": "omitted word put back",
+   "oneEditEdit": "omitted_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -70.09796142578125,
+     "alternative": -128.500732421875,
+     "best": -5.3354268074035645,
+     "diff": 58.4
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -128.500732421875,
+     "alternative": -70.09796142578125,
+     "best": -5.3354268074035645,
+     "diff": -58.4
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -244.1273651123047,
+     "alternative": -70.09796142578125,
+     "best": -5.3354268074035645,
+     "diff": -174.03
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -27.310705184936523,
+     "alternative": -53.077919006347656,
+     "best": -5.3354268074035645,
+     "diff": 25.77
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -53.077919006347656,
+     "alternative": -27.310705184936523,
+     "best": -5.3354268074035645,
+     "diff": -25.77
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -122.94834899902344,
+     "alternative": -27.310705184936523,
+     "best": -5.3354268074035645,
+     "diff": -95.64
+    }
+   }
+  },
+  "lab-v1.1-p06-x1": {
+   "kind": "splice",
+   "label": "omitted_word",
+   "human": "ok",
+   "oneEdit": "omitted word put back",
+   "oneEditEdit": "omitted_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -46.67396926879883,
+     "alternative": -113.224853515625,
+     "best": -21.516550064086914,
+     "diff": 66.55
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -113.224853515625,
+     "alternative": -46.67396926879883,
+     "best": -21.516550064086914,
+     "diff": -66.55
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -168.6173553466797,
+     "alternative": -46.67396926879883,
+     "best": -21.516550064086914,
+     "diff": -121.94
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -53.36385726928711,
+     "alternative": -105.78404998779297,
+     "best": -21.516550064086914,
+     "diff": 52.42
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -105.78404998779297,
+     "alternative": -53.36385726928711,
+     "best": -21.516550064086914,
+     "diff": -52.42
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -113.88631439208984,
+     "alternative": -53.36385726928711,
+     "best": -21.516550064086914,
+     "diff": -60.52
+    }
+   }
+  },
+  "lab-v1.1-e11-x11": {
+   "kind": "splice",
+   "label": "omitted_word",
+   "human": "ok",
+   "oneEdit": "omitted word put back",
+   "oneEditEdit": "omitted_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -0.0025972623843699694,
+     "alternative": -41.8065185546875,
+     "best": -0.0025972623843699694,
+     "diff": 41.8
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -41.8065185546875,
+     "alternative": -0.0025972623843699694,
+     "best": -0.0025972623843699694,
+     "diff": -41.8
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -566.5342407226562,
+     "alternative": -0.0025972623843699694,
+     "best": -0.0025972623843699694,
+     "diff": -566.53
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -0.0025972623843699694,
+     "alternative": -12.242069244384766,
+     "best": -0.0025972623843699694,
+     "diff": 12.24
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -12.242069244384766,
+     "alternative": -0.0025972623843699694,
+     "best": -0.0025972623843699694,
+     "diff": -12.24
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -177.69284057617188,
+     "alternative": -0.0025972623843699694,
+     "best": -0.0025972623843699694,
+     "diff": -177.69
+    }
+   }
+  },
+  "lab-v1.1-p15-x8": {
+   "kind": "splice",
+   "label": "added_word",
+   "human": "ok",
+   "oneEdit": "planted extra word(s) removed",
+   "oneEditEdit": "added_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -86.57746124267578,
+     "alternative": -45.33787536621094,
+     "best": -14.281096458435059,
+     "diff": -41.24
+    },
+    "oneEdit": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -45.33787536621094,
+     "alternative": -86.57746124267578,
+     "best": -14.281096458435059,
+     "diff": 41.24
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -284.33209228515625,
+     "alternative": -86.57746124267578,
+     "best": -14.281096458435059,
+     "diff": -197.75
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -40.95117950439453,
+     "alternative": -30.862747192382812,
+     "best": -14.281096458435059,
+     "diff": -10.09
+    },
+    "oneEdit": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -30.862747192382812,
+     "alternative": -40.95117950439453,
+     "best": -14.281096458435059,
+     "diff": 10.09
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -108.952880859375,
+     "alternative": -40.95117950439453,
+     "best": -14.281096458435059,
+     "diff": -68.0
+    }
+   }
+  },
+  "lab-v1.1-p10-x6": {
+   "kind": "splice",
+   "label": "added_word",
+   "human": "ok",
+   "oneEdit": "planted extra word(s) removed",
+   "oneEditEdit": "added_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -7.244324207305908,
+     "alternative": -34.58875274658203,
+     "best": -5.883979797363281,
+     "diff": 27.34
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -34.58875274658203,
+     "alternative": -7.244324207305908,
+     "best": -5.883979797363281,
+     "diff": -27.34
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -475.1832275390625,
+     "alternative": -7.244324207305908,
+     "best": -5.883979797363281,
+     "diff": -467.94
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -7.244324207305908,
+     "alternative": -34.58875274658203,
+     "best": -5.883979797363281,
+     "diff": 27.34
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -34.58875274658203,
+     "alternative": -7.244324207305908,
+     "best": -5.883979797363281,
+     "diff": -27.34
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -243.19558715820312,
+     "alternative": -7.244324207305908,
+     "best": -5.883979797363281,
+     "diff": -235.95
+    }
+   }
+  },
+  "lab-v1.1-p01-x25": {
+   "kind": "splice",
+   "label": "added_word",
+   "human": "ok",
+   "oneEdit": "planted extra word(s) removed",
+   "oneEditEdit": "added_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -1.3509308099746704,
+     "alternative": -10.83023452758789,
+     "best": -1.3509308099746704,
+     "diff": 9.48
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -10.83023452758789,
+     "alternative": -1.3509308099746704,
+     "best": -1.3509308099746704,
+     "diff": -9.48
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -558.2152709960938,
+     "alternative": -1.3509308099746704,
+     "best": -1.3509308099746704,
+     "diff": -556.86
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -1.3509308099746704,
+     "alternative": -10.83023452758789,
+     "best": -1.3509308099746704,
+     "diff": 9.48
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -10.83023452758789,
+     "alternative": -1.3509308099746704,
+     "best": -1.3509308099746704,
+     "diff": -9.48
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -294.2353210449219,
+     "alternative": -1.3509308099746704,
+     "best": -1.3509308099746704,
+     "diff": -292.88
+    }
+   }
+  },
+  "lab-v1.1-e19-x12": {
+   "kind": "splice",
+   "label": "added_word",
+   "human": "ok",
+   "oneEdit": "planted extra word(s) removed",
+   "oneEditEdit": "added_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -70.75193786621094,
+     "alternative": -67.97894287109375,
+     "best": -30.28758430480957,
+     "diff": -2.77
+    },
+    "oneEdit": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -67.97894287109375,
+     "alternative": -70.75193786621094,
+     "best": -30.28758430480957,
+     "diff": 2.77
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -153.2392578125,
+     "alternative": -70.75193786621094,
+     "best": -30.28758430480957,
+     "diff": -82.49
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -74.44501495361328,
+     "alternative": -70.17958068847656,
+     "best": -30.28758430480957,
+     "diff": -4.27
+    },
+    "oneEdit": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -70.17958068847656,
+     "alternative": -74.44501495361328,
+     "best": -30.28758430480957,
+     "diff": 4.27
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -130.04689025878906,
+     "alternative": -74.44501495361328,
+     "best": -30.28758430480957,
+     "diff": -55.6
+    }
+   }
+  },
+  "lab-v1.1-p13-x12": {
+   "kind": "splice",
+   "label": "skipped_passage",
+   "human": "ok",
+   "oneEdit": "skipped passage put back",
+   "oneEditEdit": "skipped_passage",
+   "oneEditWords": 11,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -3.157679319381714,
+     "alternative": -797.5089721679688,
+     "best": -1.737296223640442,
+     "diff": 794.35
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -797.5089721679688,
+     "alternative": -3.157679319381714,
+     "best": -1.737296223640442,
+     "diff": -794.35
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -357.1229553222656,
+     "alternative": -3.157679319381714,
+     "best": -1.737296223640442,
+     "diff": -353.97
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -3.157679319381714,
+     "alternative": -419.6546325683594,
+     "best": -1.737296223640442,
+     "diff": 416.5
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -419.6546325683594,
+     "alternative": -3.157679319381714,
+     "best": -1.737296223640442,
+     "diff": -416.5
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -204.34034729003906,
+     "alternative": -3.157679319381714,
+     "best": -1.737296223640442,
+     "diff": -201.18
+    }
+   }
+  },
+  "lab-v1.1-e10-x9": {
+   "kind": "splice",
+   "label": "skipped_passage",
+   "human": "ok",
+   "oneEdit": "skipped passage put back",
+   "oneEditEdit": "skipped_passage",
+   "oneEditWords": 4,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -7.199339866638184,
+     "alternative": -305.71356201171875,
+     "best": -5.847330093383789,
+     "diff": 298.51
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -305.71356201171875,
+     "alternative": -7.199339866638184,
+     "best": -5.847330093383789,
+     "diff": -298.51
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -260.9631652832031,
+     "alternative": -7.199339866638184,
+     "best": -5.847330093383789,
+     "diff": -253.76
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -8.724543571472168,
+     "alternative": -155.04795837402344,
+     "best": -5.847330093383789,
+     "diff": 146.32
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -155.04795837402344,
+     "alternative": -8.724543571472168,
+     "best": -5.847330093383789,
+     "diff": -146.32
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -158.83816528320312,
+     "alternative": -8.724543571472168,
+     "best": -5.847330093383789,
+     "diff": -150.11
+    }
+   }
+  },
+  "lab-v1.1-p14-x2": {
+   "kind": "splice",
+   "label": "skipped_passage",
+   "human": "ok",
+   "oneEdit": "skipped passage put back",
+   "oneEditEdit": "skipped_passage",
+   "oneEditWords": 7,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -16.624019622802734,
+     "alternative": -579.9425659179688,
+     "best": -7.662798881530762,
+     "diff": 563.32
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -579.9425659179688,
+     "alternative": -16.624019622802734,
+     "best": -7.662798881530762,
+     "diff": -563.32
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -244.03347778320312,
+     "alternative": -16.624019622802734,
+     "best": -7.662798881530762,
+     "diff": -227.41
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -43.989017486572266,
+     "alternative": -322.90960693359375,
+     "best": -7.662798881530762,
+     "diff": 278.92
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -322.90960693359375,
+     "alternative": -43.989017486572266,
+     "best": -7.662798881530762,
+     "diff": -278.92
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -190.81939697265625,
+     "alternative": -43.989017486572266,
+     "best": -7.662798881530762,
+     "diff": -146.83
+    }
+   }
+  },
+  "lab-v1.1-p17-x9": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -29.820262908935547,
+     "alternative": -140.47503662109375,
+     "best": -3.6748106479644775,
+     "diff": 110.65
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -140.47503662109375,
+     "alternative": -29.820262908935547,
+     "best": -3.6748106479644775,
+     "diff": -110.65
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -361.6446228027344,
+     "alternative": -29.820262908935547,
+     "best": -3.6748106479644775,
+     "diff": -331.82
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -51.01795196533203,
+     "alternative": -104.83260345458984,
+     "best": -3.6748106479644775,
+     "diff": 53.81
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -104.83260345458984,
+     "alternative": -51.01795196533203,
+     "best": -3.6748106479644775,
+     "diff": -53.81
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -242.9172821044922,
+     "alternative": -51.01795196533203,
+     "best": -3.6748106479644775,
+     "diff": -191.9
+    }
+   }
+  },
+  "lab-v1.1-p12-x7": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -1.6956324577331543,
+     "alternative": -31.720046997070312,
+     "best": -1.0232194662094116,
+     "diff": 30.02
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -31.720046997070312,
+     "alternative": -1.6956324577331543,
+     "best": -1.0232194662094116,
+     "diff": -30.02
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -401.3887634277344,
+     "alternative": -1.6956324577331543,
+     "best": -1.0232194662094116,
+     "diff": -399.69
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -130.39083862304688,
+     "alternative": -140.46510314941406,
+     "best": -1.0232194662094116,
+     "diff": 10.07
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -140.46510314941406,
+     "alternative": -130.39083862304688,
+     "best": -1.0232194662094116,
+     "diff": -10.07
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -323.5806884765625,
+     "alternative": -130.39083862304688,
+     "best": -1.0232194662094116,
+     "diff": -193.19
+    }
+   }
+  },
+  "lab-v1.1-p17-x2": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -55.97730255126953,
+     "alternative": -103.7945556640625,
+     "best": -5.814574241638184,
+     "diff": 47.82
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -103.7945556640625,
+     "alternative": -55.97730255126953,
+     "best": -5.814574241638184,
+     "diff": -47.82
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -554.6930541992188,
+     "alternative": -55.97730255126953,
+     "best": -5.814574241638184,
+     "diff": -498.72
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -52.03279113769531,
+     "alternative": -114.07189178466797,
+     "best": -5.814574241638184,
+     "diff": 62.04
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -114.07189178466797,
+     "alternative": -52.03279113769531,
+     "best": -5.814574241638184,
+     "diff": -62.04
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -384.37738037109375,
+     "alternative": -52.03279113769531,
+     "best": -5.814574241638184,
+     "diff": -332.34
+    }
+   }
+  },
+  "lab-v1.1-e19-x9": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -32.01403045654297,
+     "alternative": -72.34803771972656,
+     "best": -9.859994888305664,
+     "diff": 40.33
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -72.34803771972656,
+     "alternative": -32.01403045654297,
+     "best": -9.859994888305664,
+     "diff": -40.33
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -439.0325927734375,
+     "alternative": -32.01403045654297,
+     "best": -9.859994888305664,
+     "diff": -407.02
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -188.53797912597656,
+     "alternative": -205.74151611328125,
+     "best": -9.859994888305664,
+     "diff": 17.2
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -205.74151611328125,
+     "alternative": -188.53797912597656,
+     "best": -9.859994888305664,
+     "diff": -17.2
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -323.056640625,
+     "alternative": -188.53797912597656,
+     "best": -9.859994888305664,
+     "diff": -134.52
+    }
+   }
+  },
+  "lab-v1.1-e08-x1": {
+   "kind": "case",
+   "label": "repeat",
+   "human": "ok",
+   "oneEdit": "repeat removed",
+   "oneEditEdit": "repeat",
+   "oneEditWords": 3,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -15.849756240844727,
+     "alternative": -64.91683197021484,
+     "best": -1.9296400547027588,
+     "diff": 49.07
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -64.91683197021484,
+     "alternative": -15.849756240844727,
+     "best": -1.9296400547027588,
+     "diff": -49.07
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -823.4038696289062,
+     "alternative": -15.849756240844727,
+     "best": -1.9296400547027588,
+     "diff": -807.55
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -230.7680206298828,
+     "alternative": -238.73631286621094,
+     "best": -1.9296400547027588,
+     "diff": 7.97
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -238.73631286621094,
+     "alternative": -230.7680206298828,
+     "best": -1.9296400547027588,
+     "diff": -7.97
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -519.7298583984375,
+     "alternative": -230.7680206298828,
+     "best": -1.9296400547027588,
+     "diff": -288.96
+    }
+   }
+  },
+  "lab-v1.1-e01-x4": {
+   "kind": "case",
+   "label": "restart",
+   "human": "ok",
+   "oneEdit": "restart removed",
+   "oneEditEdit": "restart",
+   "oneEditWords": 7,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -105.99282836914062,
+     "alternative": -521.9806518554688,
+     "best": -1.2497419118881226,
+     "diff": 415.99
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -521.9806518554688,
+     "alternative": -105.99282836914062,
+     "best": -1.2497419118881226,
+     "diff": -415.99
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -967.991455078125,
+     "alternative": -105.99282836914062,
+     "best": -1.2497419118881226,
+     "diff": -862.0
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -563.909423828125,
+     "alternative": -668.5108642578125,
+     "best": -1.2497419118881226,
+     "diff": 104.6
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -668.5108642578125,
+     "alternative": -563.909423828125,
+     "best": -1.2497419118881226,
+     "diff": -104.6
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -917.109130859375,
+     "alternative": -563.909423828125,
+     "best": -1.2497419118881226,
+     "diff": -353.2
+    }
+   }
+  },
+  "lab-v1.1-p05-x6": {
+   "kind": "case",
+   "label": "repeat",
+   "human": "ok",
+   "oneEdit": "repeat removed",
+   "oneEditEdit": "repeat",
+   "oneEditWords": 3,
+   "diac": {
+    "labelled": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -210.52403259277344,
+     "alternative": -111.62062072753906,
+     "best": -3.3209915161132812,
+     "diff": -98.9
+    },
+    "oneEdit": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -111.62062072753906,
+     "alternative": -210.52403259277344,
+     "best": -3.3209915161132812,
+     "diff": 98.9
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -710.51611328125,
+     "alternative": -210.52403259277344,
+     "best": -3.3209915161132812,
+     "diff": -499.99
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -354.3863220214844,
+     "alternative": -299.1338195800781,
+     "best": -3.3209915161132812,
+     "diff": -55.25
+    },
+    "oneEdit": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -299.1338195800781,
+     "alternative": -354.3863220214844,
+     "best": -3.3209915161132812,
+     "diff": 55.25
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -559.1090087890625,
+     "alternative": -354.3863220214844,
+     "best": -3.3209915161132812,
+     "diff": -204.72
+    }
+   }
+  },
+  "lab-v1.1-e05-x7": {
+   "kind": "case",
+   "label": "restart",
+   "human": "ok",
+   "oneEdit": "restart removed",
+   "oneEditEdit": "restart",
+   "oneEditWords": 9,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -57.006961822509766,
+     "alternative": -347.7694091796875,
+     "best": -0.15422840416431427,
+     "diff": 290.76
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -347.7694091796875,
+     "alternative": -57.006961822509766,
+     "best": -0.15422840416431427,
+     "diff": -290.76
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -824.564697265625,
+     "alternative": -57.006961822509766,
+     "best": -0.15422840416431427,
+     "diff": -767.56
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -694.4608764648438,
+     "alternative": -668.874267578125,
+     "best": -0.15422840416431427,
+     "diff": -25.59
+    },
+    "oneEdit": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -668.874267578125,
+     "alternative": -694.4608764648438,
+     "best": -0.15422840416431427,
+     "diff": 25.59
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -819.4271240234375,
+     "alternative": -694.4608764648438,
+     "best": -0.15422840416431427,
+     "diff": -124.97
+    }
+   }
+  },
+  "lab-v1.1-p15-x5": {
+   "kind": "case",
+   "label": "repeat",
+   "human": "ok",
+   "oneEdit": "repeat removed",
+   "oneEditEdit": "repeat",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -0.005480153486132622,
+     "alternative": -19.686664581298828,
+     "best": -0.005480153486132622,
+     "diff": 19.68
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -19.686664581298828,
+     "alternative": -0.005480153486132622,
+     "best": -0.005480153486132622,
+     "diff": -19.68
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -1206.44580078125,
+     "alternative": -0.005480153486132622,
+     "best": -0.005480153486132622,
+     "diff": -1206.44
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -0.005480153486132622,
+     "alternative": -19.686664581298828,
+     "best": -0.005480153486132622,
+     "diff": 19.68
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -19.686664581298828,
+     "alternative": -0.005480153486132622,
+     "best": -0.005480153486132622,
+     "diff": -19.68
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -503.4898376464844,
+     "alternative": -0.005480153486132622,
+     "best": -0.005480153486132622,
+     "diff": -503.48
+    }
+   }
+  },
+  "lab-v1.1-e12-x3": {
+   "kind": "case",
+   "label": "repeat",
+   "human": "ok",
+   "oneEdit": "repeat removed",
+   "oneEditEdit": "repeat",
+   "oneEditWords": 3,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -36.22344970703125,
+     "alternative": -111.66737365722656,
+     "best": -3.8786473274230957,
+     "diff": 75.44
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -111.66737365722656,
+     "alternative": -36.22344970703125,
+     "best": -3.8786473274230957,
+     "diff": -75.44
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -548.9830932617188,
+     "alternative": -36.22344970703125,
+     "best": -3.8786473274230957,
+     "diff": -512.76
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -9.572366714477539,
+     "alternative": -85.01701354980469,
+     "best": -3.8786473274230957,
+     "diff": 75.44
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -85.01701354980469,
+     "alternative": -9.572366714477539,
+     "best": -3.8786473274230957,
+     "diff": -75.44
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -319.8221130371094,
+     "alternative": -9.572366714477539,
+     "best": -3.8786473274230957,
+     "diff": -310.25
+    }
+   }
+  },
+  "lab-v1.1-p09-studio-317": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "صَبَرُوا۟ claimed as خَشِيتُ",
+   "oneEditEdit": "sub",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -139.57510375976562,
+     "alternative": -252.46363830566406,
+     "best": -0.18742401897907257,
+     "diff": 112.89
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -252.46363830566406,
+     "alternative": -139.57510375976562,
+     "best": -0.18742401897907257,
+     "diff": -112.89
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -523.7110595703125,
+     "alternative": -139.57510375976562,
+     "best": -0.18742401897907257,
+     "diff": -384.14
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -35.360137939453125,
+     "alternative": -95.5243148803711,
+     "best": -0.18742401897907257,
+     "diff": 60.16
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -95.5243148803711,
+     "alternative": -35.360137939453125,
+     "best": -0.18742401897907257,
+     "diff": -60.16
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -250.1594696044922,
+     "alternative": -35.360137939453125,
+     "best": -0.18742401897907257,
+     "diff": -214.8
+    }
+   }
+  },
+  "lab-v1.1-e11-studio-125": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text claims extra ٱلْأَرْضَ",
+   "oneEditEdit": "ins",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -0.019086001440882683,
+     "alternative": -111.98892974853516,
+     "best": -0.019086001440882683,
+     "diff": 111.97
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -111.98892974853516,
+     "alternative": -0.019086001440882683,
+     "best": -0.019086001440882683,
+     "diff": -111.97
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -855.277099609375,
+     "alternative": -0.019086001440882683,
+     "best": -0.019086001440882683,
+     "diff": -855.26
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -0.019086001440882683,
+     "alternative": -21.507183074951172,
+     "best": -0.019086001440882683,
+     "diff": 21.49
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -21.507183074951172,
+     "alternative": -0.019086001440882683,
+     "best": -0.019086001440882683,
+     "diff": -21.49
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -431.6438293457031,
+     "alternative": -0.019086001440882683,
+     "best": -0.019086001440882683,
+     "diff": -431.62
+    }
+   }
+  },
+  "lab-v1.1-e02-studio-85": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text drops يُخْزِيهِ",
+   "oneEditEdit": "del",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -35.74681091308594,
+     "alternative": -62.76694869995117,
+     "best": -3.8426918983459473,
+     "diff": 27.02
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -62.76694869995117,
+     "alternative": -35.74681091308594,
+     "best": -3.8426918983459473,
+     "diff": -27.02
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -556.0585327148438,
+     "alternative": -35.74681091308594,
+     "best": -3.8426918983459473,
+     "diff": -520.31
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -17.582624435424805,
+     "alternative": -44.602760314941406,
+     "best": -3.8426918983459473,
+     "diff": 27.02
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -44.602760314941406,
+     "alternative": -17.582624435424805,
+     "best": -3.8426918983459473,
+     "diff": -27.02
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -277.8656311035156,
+     "alternative": -17.582624435424805,
+     "best": -3.8426918983459473,
+     "diff": -260.28
+    }
+   }
+  },
+  "lab-v1.1-p10-studio-13": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "وَٱلنَّخْلُ claimed as تَنطِقُونَ",
+   "oneEditEdit": "sub",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -55.345848083496094,
+     "alternative": -119.23017883300781,
+     "best": -14.6473970413208,
+     "diff": 63.88
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -119.23017883300781,
+     "alternative": -55.345848083496094,
+     "best": -14.6473970413208,
+     "diff": -63.88
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -541.03173828125,
+     "alternative": -55.345848083496094,
+     "best": -14.6473970413208,
+     "diff": -485.69
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -39.712615966796875,
+     "alternative": -85.91468811035156,
+     "best": -14.6473970413208,
+     "diff": 46.2
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -85.91468811035156,
+     "alternative": -39.712615966796875,
+     "best": -14.6473970413208,
+     "diff": -46.2
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -337.1579284667969,
+     "alternative": -39.712615966796875,
+     "best": -14.6473970413208,
+     "diff": -297.45
+    }
+   }
+  },
+  "lab-v1.1-e14-studio-309": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text claims extra رَبِّكَ",
+   "oneEditEdit": "ins",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -85.9297103881836,
+     "alternative": -175.2411346435547,
+     "best": -2.5139193534851074,
+     "diff": 89.31
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -175.2411346435547,
+     "alternative": -85.9297103881836,
+     "best": -2.5139193534851074,
+     "diff": -89.31
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -750.79833984375,
+     "alternative": -85.9297103881836,
+     "best": -2.5139193534851074,
+     "diff": -664.87
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -406.8592224121094,
+     "alternative": -440.6685485839844,
+     "best": -2.5139193534851074,
+     "diff": 33.81
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -440.6685485839844,
+     "alternative": -406.8592224121094,
+     "best": -2.5139193534851074,
+     "diff": -33.81
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -645.6301879882812,
+     "alternative": -406.8592224121094,
+     "best": -2.5139193534851074,
+     "diff": -238.77
+    }
+   }
+  },
+  "lab-v1.1-p03-studio-5": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text drops تُنذِرْهُمْ",
+   "oneEditEdit": "del",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -197.7640380859375,
+     "alternative": -226.56338500976562,
+     "best": -12.97507381439209,
+     "diff": 28.8
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -226.56338500976562,
+     "alternative": -197.7640380859375,
+     "best": -12.97507381439209,
+     "diff": -28.8
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -460.55731201171875,
+     "alternative": -197.7640380859375,
+     "best": -12.97507381439209,
+     "diff": -262.79
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -38.733211517333984,
+     "alternative": -67.5325698852539,
+     "best": -12.97507381439209,
+     "diff": 28.8
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -67.5325698852539,
+     "alternative": -38.733211517333984,
+     "best": -12.97507381439209,
+     "diff": -28.8
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -220.07516479492188,
+     "alternative": -38.733211517333984,
+     "best": -12.97507381439209,
+     "diff": -181.34
+    }
+   }
+  },
+  "lab-v1.1-e10-studio-5": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "وَإِذَا claimed as يُكَذِّبُ",
+   "oneEditEdit": "sub",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -59.090667724609375,
+     "alternative": -101.72402954101562,
+     "best": -18.36962890625,
+     "diff": 42.63
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -101.72402954101562,
+     "alternative": -59.090667724609375,
+     "best": -18.36962890625,
+     "diff": -42.63
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -377.3844909667969,
+     "alternative": -59.090667724609375,
+     "best": -18.36962890625,
+     "diff": -318.29
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -64.1821517944336,
+     "alternative": -78.6588363647461,
+     "best": -18.36962890625,
+     "diff": 14.48
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -78.6588363647461,
+     "alternative": -64.1821517944336,
+     "best": -18.36962890625,
+     "diff": -14.48
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -254.91448974609375,
+     "alternative": -64.1821517944336,
+     "best": -18.36962890625,
+     "diff": -190.73
+    }
+   }
+  },
+  "lab-v1.1-p20-phone-61": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text claims extra فَإِنَّ",
+   "oneEditEdit": "ins",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -106.01296997070312,
+     "alternative": -204.75506591796875,
+     "best": -2.6940560340881348,
+     "diff": 98.74
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -204.75506591796875,
+     "alternative": -106.01296997070312,
+     "best": -2.6940560340881348,
+     "diff": -98.74
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -568.1661987304688,
+     "alternative": -106.01296997070312,
+     "best": -2.6940560340881348,
+     "diff": -462.15
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -133.28578186035156,
+     "alternative": -158.6292266845703,
+     "best": -2.6940560340881348,
+     "diff": 25.34
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -158.6292266845703,
+     "alternative": -133.28578186035156,
+     "best": -2.6940560340881348,
+     "diff": -25.34
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -457.1822204589844,
+     "alternative": -133.28578186035156,
+     "best": -2.6940560340881348,
+     "diff": -323.9
+    }
+   }
+  },
+  "lab-v1.1-p19-phone-5": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text drops أَو",
+   "oneEditEdit": "del",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -60.1314582824707,
+     "alternative": -88.61189270019531,
+     "best": -10.889974594116211,
+     "diff": 28.48
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -88.61189270019531,
+     "alternative": -60.1314582824707,
+     "best": -10.889974594116211,
+     "diff": -28.48
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -669.405029296875,
+     "alternative": -60.1314582824707,
+     "best": -10.889974594116211,
+     "diff": -609.27
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -210.6229248046875,
+     "alternative": -214.78219604492188,
+     "best": -10.889974594116211,
+     "diff": 4.16
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -214.78219604492188,
+     "alternative": -210.6229248046875,
+     "best": -10.889974594116211,
+     "diff": -4.16
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -480.8823547363281,
+     "alternative": -210.6229248046875,
+     "best": -10.889974594116211,
+     "diff": -270.26
+    }
+   }
+  },
+  "lab-v1.1-e07-phone-293": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "كَثِيرًۭا claimed as وَيَحِلُّ",
+   "oneEditEdit": "sub",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -50.480953216552734,
+     "alternative": -151.51785278320312,
+     "best": -7.9400506019592285,
+     "diff": 101.04
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -151.51785278320312,
+     "alternative": -50.480953216552734,
+     "best": -7.9400506019592285,
+     "diff": -101.04
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -473.17974853515625,
+     "alternative": -50.480953216552734,
+     "best": -7.9400506019592285,
+     "diff": -422.7
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -272.90606689453125,
+     "alternative": -303.8463439941406,
+     "best": -7.9400506019592285,
+     "diff": 30.94
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -303.8463439941406,
+     "alternative": -272.90606689453125,
+     "best": -7.9400506019592285,
+     "diff": -30.94
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -450.41534423828125,
+     "alternative": -272.90606689453125,
+     "best": -7.9400506019592285,
+     "diff": -177.51
+    }
+   }
+  },
+  "lab-v1.1-p06-phone-173": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text claims extra أَمْ",
+   "oneEditEdit": "ins",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -0.7349703311920166,
+     "alternative": -45.628326416015625,
+     "best": -0.7349703311920166,
+     "diff": 44.89
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -45.628326416015625,
+     "alternative": -0.7349703311920166,
+     "best": -0.7349703311920166,
+     "diff": -44.89
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -517.2418823242188,
+     "alternative": -0.7349703311920166,
+     "best": -0.7349703311920166,
+     "diff": -516.51
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -357.75323486328125,
+     "alternative": -377.44219970703125,
+     "best": -0.7349703311920166,
+     "diff": 19.69
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -377.44219970703125,
+     "alternative": -357.75323486328125,
+     "best": -0.7349703311920166,
+     "diff": -19.69
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -472.2156982421875,
+     "alternative": -357.75323486328125,
+     "best": -0.7349703311920166,
+     "diff": -114.46
+    }
+   }
+  },
+  "lab-v1.1-e15-phone-229": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text drops تُكَذِّبَانِ",
+   "oneEditEdit": "del",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -64.66161346435547,
+     "alternative": -98.87051391601562,
+     "best": -8.606352806091309,
+     "diff": 34.21
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -98.87051391601562,
+     "alternative": -64.66161346435547,
+     "best": -8.606352806091309,
+     "diff": -34.21
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -403.31683349609375,
+     "alternative": -64.66161346435547,
+     "best": -8.606352806091309,
+     "diff": -338.66
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -171.2808837890625,
+     "alternative": -174.23866271972656,
+     "best": -8.606352806091309,
+     "diff": 2.96
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -174.23866271972656,
+     "alternative": -171.2808837890625,
+     "best": -8.606352806091309,
+     "diff": -2.96
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -325.460693359375,
+     "alternative": -171.2808837890625,
+     "best": -8.606352806091309,
+     "diff": -154.18
+    }
+   }
+  },
+  "lab-v1.1-e03-phone-213": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "مُّؤْمِنَةٍۢ claimed as فَـٰكِهَةٌۭ",
+   "oneEditEdit": "sub",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -15.26962947845459,
+     "alternative": -97.7884750366211,
+     "best": -2.3244385719299316,
+     "diff": 82.52
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -97.7884750366211,
+     "alternative": -15.26962947845459,
+     "best": -2.3244385719299316,
+     "diff": -82.52
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -689.4696655273438,
+     "alternative": -15.26962947845459,
+     "best": -2.3244385719299316,
+     "diff": -674.2
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -15.26962947845459,
+     "alternative": -57.187191009521484,
+     "best": -2.3244385719299316,
+     "diff": 41.92
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -57.187191009521484,
+     "alternative": -15.26962947845459,
+     "best": -2.3244385719299316,
+     "diff": -41.92
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -303.4441833496094,
+     "alternative": -15.26962947845459,
+     "best": -2.3244385719299316,
+     "diff": -288.17
+    }
+   }
+  },
+  "lab-v1.1-p04-phone-245": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text claims extra أَجْرِىَ",
+   "oneEditEdit": "ins",
+   "oneEditWords": 1,
+   "diac": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -13.786787033081055,
+     "alternative": -166.9219207763672,
+     "best": -1.1143579483032227,
+     "diff": 153.14
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -166.9219207763672,
+     "alternative": -13.786787033081055,
+     "best": -1.1143579483032227,
+     "diff": -153.14
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -794.4846801757812,
+     "alternative": -13.786787033081055,
+     "best": -1.1143579483032227,
+     "diff": -780.7
+    }
+   },
+   "plain": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -375.4969177246094,
+     "alternative": -425.2193298339844,
+     "best": -1.1143579483032227,
+     "diff": 49.72
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -425.2193298339844,
+     "alternative": -375.4969177246094,
+     "best": -1.1143579483032227,
+     "diff": -49.72
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -681.5139770507812,
+     "alternative": -375.4969177246094,
+     "best": -1.1143579483032227,
+     "diff": -306.02
+    }
+   }
+  }
+ }
+}
