@@ -257,7 +257,8 @@ def test_seam_gate_words_unfound_and_cut_short():
     aligns = {"sources/a.wav": {(t["from"]["surah"], t["from"]["ayah"], t["from"]["word"]): {"startS": 0.0, "endS": 0.45} for t in s["said"]}}
     aligns["sources/a.wav"][(112, 3, 6)] = {"startS": 0.0, "endS": 0.48}  # said word 25, ending at the 12.5 s seam, lost 30 ms
     g = LS.seam_gate(s, checks, aligns)
-    assert g["failed"][0]["reasons"] == ["word 112:3:6 cut short by 30 ms"] and g["clipsOver"] == 1
+    assert "word 112:3:6 cut short by 30 ms" in g["failed"][0]["reasons"] and g["clipsOver"] == 1
+    assert g["spliceRules"]["x1"][0].startswith("inserted audio")  # these alignments have no pause anywhere
 
 
 def test_seam_gate_summary_counts():

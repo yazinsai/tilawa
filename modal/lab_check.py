@@ -1,6 +1,6 @@
 """Automated checks of a lab test set from the teacher's evidence of its built audio (.scratch/lab, ticket 04).
 
-    modal run modal/lab_check.py                       # lab-v1.3: studio (acceptance) and phone
+    modal run modal/lab_check.py                       # lab-v1.4: studio (acceptance) and phone
     modal run modal/lab_check.py --test-set lab-v1 --variants studio --only lab-v1-p03 --no-write
 
 Needs teacher evidence (`modal run modal/lab_decode.py --listener teacher`). Logic in tools/lab_checks.py. Writes, under
@@ -106,7 +106,7 @@ def finish(test_set: str, ids: list[str], results: list[dict], errors: list[str]
 
 
 @app.local_entrypoint()
-def main(test_set: str = "lab-v1.3", variants: str = "studio,phone", only: str = "", no_write: bool = False):
+def main(test_set: str = "lab-v1.4", variants: str = "studio,phone", only: str = "", no_write: bool = False):
     t0 = time.time()
     info = load.remote(test_set)
     ids = [i for i in info["ids"] if not only or i in only.split(",")]

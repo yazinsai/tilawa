@@ -1,7 +1,7 @@
 """Two-model triage of a lab test set (.scratch/lab/issues/17-two-model-triage.md, spec decisions 16-17).
 
-    modal run modal/lab_triage.py --test-set lab-v1.3
-    modal run modal/lab_triage.py --test-set lab-v1.3 --spot-edits 15 --spot-clean 15 --seam-spot 0.1 --seam-cap 20 --seed 17
+    modal run modal/lab_triage.py --test-set lab-v1.4
+    modal run modal/lab_triage.py --test-set lab-v1.4 --spot-edits 15 --spot-clean 15 --seam-spot 0.1 --seam-cap 20 --seed 17
 
 Every case of the test set's studio copy (tools/lab_triage_core.py: each planted edit, repeat and restart, and each
 clean window) is scored by both likelihood arms, in parallel:
@@ -41,7 +41,7 @@ NAME = "triage-v1"
 QUEUE = "review/triage.json"
 CONFIRM = "review/triage-confirm.json"
 EARLIER = "review/v1-check.json"
-PRIOR = "lab-v1.2"
+PRIOR = "lab-v1.3"
 TRANSCRIBER = "nemotron-3.5-transcribe"
 PROMPT = "verbatim"  # the decision prompt of the calibrated likelihood arm
 
@@ -281,7 +281,7 @@ def run(test_set: str, spot: tuple[int, int], seam_spot: tuple[float, int], seed
 
 
 @app.local_entrypoint()
-def main(test_set: str = "lab-v1.3", spot_edits: int = 15, spot_clean: int = 15, seam_spot: float = 0.10, seam_cap: int = 20, seed: int = 17,
+def main(test_set: str = "lab-v1.4", spot_edits: int = 15, spot_clean: int = 15, seam_spot: float = 0.10, seam_cap: int = 20, seed: int = 17,
          chunk: int = 100, nemotron_gpus: int = 4, fc_gpus: int = 1, force: bool = False, out: str = "", only: str = "", no_write: bool = False,
          prior: str = PRIOR):
     t0 = time.time()

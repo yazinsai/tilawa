@@ -187,7 +187,7 @@ def cmd_baseline(a):
 
 def cmd_new(a):
     led = load(a)
-    card = L.new_card(a.id, a.component, a.hypothesis, a.expect_component, a.expect_overall, test_set=led["testSet"] or "lab-v1.3",
+    card = L.new_card(a.id, a.component, a.hypothesis, a.expect_component, a.expect_overall, test_set=led["testSet"] or "lab-v1.4",
                       author=a.author or git("config", "user.name", check=False) or os.environ.get("USER", "unknown"), listener=a.listener)
     if a.id in led["experiments"]:
         raise Stop(f"experiment {a.id} already exists")
@@ -426,7 +426,7 @@ def parser():
     p.add_argument("--ledger", default=os.environ.get("LAB_LEDGER", "/ledger.json"), help="ledger path on the tilawa-lab volume")
     sub = p.add_subparsers(dest="op", required=True)
     b = sub.add_parser("baseline", help="score the main line on practice and exam")
-    b.add_argument("--manifest", default="lab-v1.3/manifest-v1.json", help="under /lab/data; registers its test set when the ledger has none or another one")
+    b.add_argument("--manifest", default="lab-v1.4/manifest-v1.json", help="under /lab/data; registers its test set when the ledger has none or another one")
     b.add_argument("--note", default="")
     n = sub.add_parser("new", help="create an experiment worktree and card")
     n.add_argument("id")

@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SEED = 20261028
-TEST_SET = "lab-v1.3"
+TEST_SET = "lab-v1.4"
 SR = 16_000
 XFADE = 160  # samples: the 10 ms crossfade centred on each seam
 EDGE_FADE = 320  # 20 ms fade in and out at the session ends
@@ -75,7 +75,15 @@ SEAM_LIMITS = {
     "pauseFormLands": "pause",  # donor audio cut from a pause (its waqf form) only joins a host pause
     "donorRecording": "host",  # every piece from the host's recording
     "breakAt": "pause",  # a repeat or restart breaks off at a pause
+    "insertSeams": "pause",  # every seam of a wrong or added word (not a mutashabihat swap) is a pause on both sides
+    "reenterAt": "pause",  # ... and a repeat goes back to a pause
 }
+# From your lab-v1.3 listens (docs/benchmarks/lab-v1.4.md): every bad splice so far put donor audio in (a wrong or
+# added word), none took audio out. So inserted audio meets host audio only where both sources pause: the donor
+# stretch runs from a pause to a pause in its own recording, lands between two host pauses, and reads as the host's
+# words there except the planted one. PAUSE_SIDE words at most either side of it.
+PAUSE_SIDE = 6
+REVIEW_SEAM_PAD_S = 1.0  # a review clip covers every seam of its splice by this much (labels from lab-v1.4)
 LEN_RATIO_MAX = 1.05  # an ayah whose teacher decode is this much longer than its text holds unlabelled speech (a natural repeat)
 AYAH_PER_MAX = 0.10  # nor is an ayah the teacher matches less well than this (squeezed PER of its source alignment)
 CUT_SLACK_S = 0.02  # the cut must lie in the aligned gap, give or take this
@@ -611,6 +619,68 @@ class Donors:
         self.by_ref = defaultdict(list)
         for it in self.items:
             self.by_ref[it[0].words[it[1]]["ref"]].append(it)
+        self.lift = {(r.key, k): ok for xs in self.at.values() for r, k, ok in xs}
+        self.by_text, self.solo = defaultdict(list), []
+        for r in recs:
+            for k, w in enumerate(r.words):
+                self.by_text[ref.words[w["ref"]]["text"]].append((r, k))
+                if self.lift.get((r.key, k)) and self.paused(r, k - 1) and self.paused(r, k):
+                    self.solo.append((r, k))
+
+    def paused(self, r: Rec, k: int) -> dict | None:
+        """The boundary after word k of r when it is a pause there."""
+        b = r.boundary(k, self.ref)
+        return b if b and b["kind"] == "pause" else None
+
+    def pause_spans(self, host: Rec, k: int, cls: str, ok, window: tuple[float, float] | None = None) -> list[dict]:
+        """Inserted audio cut pause to pause: a stretch of the host's recording from a pause to a pause that reads as
+        host words a..b with one word put in (`added_word`: the donor word before host word k) or swapped
+        (`wrong_word`: for host word k), landing between host pauses before a and after b. Every other word of the
+        stretch is the same text, scored and said, in the same ayah as the donor word; PAUSE_SIDE words at most
+        either side. b = a - 1 is an added word alone between two pauses. Shortest stretch first."""
+        ref, hw = self.ref, host.words
+        text = lambda r, kk: ref.words[r.words[kk]["ref"]]["text"]
+        add = cls == "added_word"
+        cands = {(r, kk + 1) for r, kk in self.by_text.get(text(host, k - 1), ())} | set(self.solo)
+        if k + 1 - add < len(hw):
+            cands |= {(r, kk - 1) for r, kk in self.by_text.get(text(host, k + 1 - add), ())}
+        out = []
+        for r, dk in sorted(cands, key=lambda c: (c[0].surah, c[1])):
+            if r is not host or not 0 < dk < len(r.words) - 1 or (not add and dk == k) or not self.lift.get((r.key, dk)) or not ok(r, dk):
+                continue
+            rw = r.words
+
+            def same(hk: int, d: int) -> bool:  # host word hk read by donor word d
+                return 0 <= hk < len(hw) and 0 < d < len(rw) - 1 and rw[d]["ayah"] == rw[dk]["ayah"] and text(r, d) == text(host, hk) \
+                    and r.usable(d, DONOR_SCORE) and r.said(d, ref) is not None
+
+            heads, tails = [], []  # (host a, donor first) and (host b, donor last)
+            for p in range(PAUSE_SIDE + 1):
+                a, da = k - p, dk - p
+                if p and not (same(a, da) and hw[a]["ayah"] == hw[k - add]["ayah"]):
+                    break
+                hA, tA = self.paused(host, a - 1), self.paused(r, da - 1)
+                if hA and tA and joins(hA, tA):
+                    heads.append((a, da, hA, tA))
+            for q in range(PAUSE_SIDE + 1):
+                b, db = k + q - add, dk + q
+                if q and not (same(b, db) and hw[b]["ayah"] == hw[k]["ayah"]):
+                    break
+                if not add and b >= len(hw) - 1:
+                    break
+                tB, hB = self.paused(r, db), self.paused(host, b)
+                if tB and hB and joins(tB, hB, donor=True):
+                    tails.append((b, db, tB, hB))
+            for a, da, hA, tA in heads:
+                for b, db, tB, hB in tails:
+                    if add and a <= k - 1 < b and hw[k - 1]["ayah"] != hw[k]["ayah"]:
+                        continue
+                    s0, s1 = rw[da]["startS"], rw[db]["endS"]
+                    if window and window[0] - 1 < s1 and s0 < window[1] + 1 and abs(s0 - hw[a]["startS"]) < DONOR_DIST_S:
+                        continue
+                    out.append({"a": a, "b": b, "rec": r, "dk": dk, "span": (a, b, da, db), "seam": (hA, tA, tB, hB)})
+        out.sort(key=lambda x: (x["b"] - x["a"], max(s["db"] for s in x["seam"]), x["dk"], x["a"]))
+        return out
 
     def twin_spans(self, host: Rec, k: int, refs: list[int], window: tuple[float, float] | None = None) -> list[dict]:
         """Mutashabihat swaps of host word k taken with their context: the reader's twin ayah from word a to b around
@@ -752,8 +822,6 @@ def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins:
                                     "donor": (r, dk, r.boundary(dk - 1, ref), r.boundary(dk, ref)), "span": (a, b, a + x["off"], b + x["off"]), "other": fo})
                         break
             elif cls == "wrong_word":
-                if not (bA and bB and far(k, k)):
-                    continue
                 near = {ref.words[w[j]["ref"]]["skel"] for j in (k - 1, k, k + 1)}
                 sq = squeeze(rw["cont"])
 
@@ -761,31 +829,37 @@ def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins:
                     x = ref.words[r.words[kk]["ref"]]
                     xs = squeeze(x["cont"])
                     return x["skel"] not in near and 0.5 <= len(xs) / max(1, len(sq)) <= 2.0 and levenshtein(xs, sq) >= max(2, len(sq) // 3)
-                d = donors.find(bA, bB, rec, w[k]["startS"], window, ok, rng)
-                if not d:
-                    continue
-                x = ref.words[d[0].words[d[1]]["ref"]]
-                said = text[: k - k0] + [x["text"]] + text[k - k0 + 1:]
-                fo = other(cls, said, key)
-                out.append({"cls": cls, "k0": k, "k1": k, "seam": (bA, bB), "remove": [k], "donor": d, "other": fo})
+                for x in donors.pause_spans(rec, k, cls, ok, window):
+                    a, b = x["a"], x["b"]
+                    if a <= k_first or b >= k_last or not far(a, b):
+                        continue
+                    r, dk = x["rec"], x["dk"]
+                    said = text[: k - k0] + [ref.words[r.words[dk]["ref"]]["text"]] + text[k - k0 + 1:]
+                    out.append({"cls": cls, "k0": a, "k1": b, "at": k, "seam": x["seam"], "remove": [k],
+                                "donor": (r, dk, r.boundary(dk - 1, ref), r.boundary(dk, ref)), "span": x["span"], "other": other(cls, said, key)})
+                    break
             elif cls == "added_word":
-                if not (bA and far(k - 1, k)):
-                    continue
                 near = {ref.words[w[j]["ref"]]["skel"] for j in (k - 1, k)}
 
                 def ok(r, kk, near=near):
                     x = ref.words[r.words[kk]["ref"]]
                     return x["skel"] not in near and 3 <= len(squeeze(x["cont"])) <= 10
-                d = donors.find(bA, bA, rec, w[k]["startS"], window, ok, rng)
-                if not d:
-                    continue
-                x = ref.words[d[0].words[d[1]]["ref"]]
-                said = text[: k - k0] + [x["text"]] + text[k - k0:]
-                out.append({"cls": cls, "k0": k, "k1": k, "seam": (bA, bA), "remove": [], "donor": d, "before": k, "other": other(cls, said, key)})
+                for x in donors.pause_spans(rec, k, cls, ok, window):
+                    a, b = x["a"], x["b"]
+                    if a <= k_first or max(b, k) >= k_last or not far(min(a, k - 1), max(b, k)):
+                        continue
+                    r, dk = x["rec"], x["dk"]
+                    said = text[: k - k0] + [ref.words[r.words[dk]["ref"]]["text"]] + text[k - k0:]
+                    out.append({"cls": cls, "k0": a, "k1": max(b, k), "at": k, "seam": x["seam"], "remove": [],
+                                "donor": (r, dk, r.boundary(dk - 1, ref), r.boundary(dk, ref)), "span": x["span"], "before": k,
+                                "other": other(cls, said, key)})
+                    break
         return out
 
     # The repeat or restart first, in a random ayah of the middle of the session, so plants keep their distance from it.
     # Either breaks off at a pause (a reciter stops, then goes back): a restart inside the ayah, a repeat also at its end.
+    # Both go back to a pause: a restart to the ayah's start, a repeat to an in-ayah pause at most PAUSE_SIDE words back
+    # (from the ayah's end, its start: a short ayah said twice).
     want = "restart" if rng.random() < 0.4 else "repeat"
     order = list(range(max(1, len(ay) // 6), max(2, len(ay) - len(ay) // 6)))
     rng.shuffle(order)
@@ -801,9 +875,9 @@ def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins:
                 if not t or t["kind"] != "pause":
                     continue
                 if kind == "repeat":
-                    for back in (2, 3, 1):
+                    for back in (2, 3, 1, *range(4, PAUSE_SIDE + 1)):
                         j = k - back + 1
-                        if j > k0 and joins(t, rec.boundary(j - 1, ref)) and not refused(j, "repeat"):
+                        if (j > k0 or j == k0 and k == k1) and (b := rec.boundary(j - 1, ref)) and b["kind"] == "pause" and joins(t, b) and not refused(j, "repeat"):
                             options.append({"cls": "repeat", "k0": j, "k1": k, "seam": (t, rec.boundary(j - 1, ref)), "db": t["db"]})
                             break
                 elif start and joins(t, start, restart=True) and not refused(k0, "restart"):
@@ -885,9 +959,13 @@ def tokens_for(win: dict, rec: Rec, edits: list[dict]) -> list[dict]:
             continue
         if e and e["cls"] == "added_word":
             r, dk = e["donor"][:2]
-            out.append({"rec": r.key, "k": dk, "at": None, "role": "added", "op": e["id"], "seam": e["id"], "donor": True})
-            out.append(host(k, seam=e["id"]))
-            k += 1
+            a, b, da, db = e.get("span") or (k, k - 1, dk, dk)
+            for d in range(da, db + 1):
+                hk = e.get("at", k) + d - dk - (d > dk)  # the host word a donor word reads as, either side of the added one
+                tok = {"role": "added", "op": e["id"], "at": None} if d == dk else {"role": "ref", "at": rec.words[hk]["ref"]}
+                out.append({"rec": r.key, "k": d, **tok, **({"seam": e["id"]} if d == da else {}), "donor": True})
+            out.append(host(b + 1, seam=e["id"]))
+            k = b + 2
             continue
         if e and e["cls"] in ("wrong_word", "mutashabihat"):
             r, dk = e["donor"][:2]
@@ -1091,7 +1169,8 @@ def label(win: dict, rec: Rec, edits: list[dict], tokens: list[dict], pieces: li
                      "clean": not events, "counts": dict(sorted(counts.items())), "mutashabihat": counts.get("mutashabihat", 0),
                      "formsOtherAyah": sum(e["forms_other_ayah"] for e in events),
                      "audio": {"studio": f"sessions/{sid}.studio.wav", "phone": f"sessions/{sid}.phone.wav"},
-                     "phone": phone, "sourceWindowS": [round(win["startS"], 3), round(win["endS"], 3)], "seed": SEED}}
+                     "phone": phone, "sourceWindowS": [round(win["startS"], 3), round(win["endS"], 3)], "seed": SEED,
+                     "reviewSeamPadS": REVIEW_SEAM_PAD_S}}
 
 
 def speaker(rec: Rec) -> str:
@@ -1368,7 +1447,7 @@ def refusals_from_checks(checks: dict, sessions: dict[str, dict], previous: dict
 def rule_audit(s: dict, recs: dict[str, Rec], ref: Ref) -> dict[str, dict]:
     """What the planner's seam rules make of an already built session's splices (e.g. an earlier test set): per splice,
     `refused` (rules that would refuse it: `linkDepth`, `onset`, `donorShort`, `pauseForm`, `otherRecording`,
-    `breakLinked`) and `moved` (pause cuts the onset rule moves earlier instead), with the facts behind each. `recs`
+    `breakLinked`, `reenterLinked`, `insertLinked`) and `moved` (pause cuts the onset rule moves earlier instead), with the facts behind each. `recs`
     built with energy, for every recording a seam touches."""
     out = {}
     for x in s["splices"]:
@@ -1382,6 +1461,11 @@ def rule_audit(s: dict, recs: dict[str, Rec], ref: Ref) -> dict[str, dict]:
             if x["type"] in ("repeat", "restart"):
                 if not ro.pause_after(ko):
                     refused.setdefault("breakLinked", []).append(f"breaks off after {m['out']['after']} with no pause ({m['out']['cutDb']:+.1f} dB)")
+                if not ri.pause_after(ki):
+                    refused.setdefault("reenterLinked", []).append(f"goes back to {m['in']['before']} with no pause before it ({m['in']['cutDb']:+.1f} dB)")
+            elif inserted(x) and not (ro.pause_after(ko) and ri.pause_after(ki)):
+                refused.setdefault("insertLinked", []).append(f"{m['out']['after']} ({'pause' if ro.pause_after(ko) else 'link'}) to "
+                                                              f"{m['in']['before']} ({'pause' if ri.pause_after(ki) else 'link'})")
             elif donor_side(x, m) and ro.pause_after(ko) and not ri.pause_after(ki):
                 refused.setdefault("pauseForm", []).append(f"{m['out']['after']} said before a pause, then {m['in']['before']} which the host says linked")
             for side in ("out", "in"):
@@ -1450,9 +1534,18 @@ def splice_rule_failures(x: dict, words_of=None) -> list[str]:
         if x["type"] in ("repeat", "restart"):
             if not po:
                 out.append(f"{x['type']} breaks off after {o['after']} mid-phrase, not at a pause")
+            if not pi:
+                out.append(f"{x['type']} re-enters before {i['before']} mid-phrase, not at a pause")
+        elif inserted(x) and not (po and pi):
+            out.append(f"inserted audio joins {o['after']} ({'pause' if po else 'link'}) to {i['before']} ({'pause' if pi else 'link'}), not pause to pause")
         elif donor_side(x, m) and po and not pi:
             out.append(f"pause-form donor {o['after']} runs on into {i['before']}, which the host says linked")
     return list(dict.fromkeys(out))
+
+
+def inserted(x: dict) -> bool:
+    """A splice that puts donor audio in under the pause-to-pause rule: a wrong or added word, not a mutashabihat swap."""
+    return x["type"] in ("wrong_word", "added_word") and not x.get("mutashabihat")
 
 
 def seam_failures(seam: dict, limits: dict = SEAM_LIMITS, label: dict | None = None, head: str | None = None) -> list[str]:
@@ -1560,6 +1653,10 @@ def rule_of(reason: str) -> str:
                     ("onset", "weak onset"), ("donorShort", ("wrong word", "added word"))):
         if reason.startswith(head):
             return k
+    if reason.startswith("inserted audio"):
+        return "insertLinked"
+    if "re-enters" in reason:
+        return "reenterLinked"
     return "breakLinked" if "breaks off" in reason else "other"
 
 
@@ -1576,7 +1673,7 @@ def seam_gate_summary(rows: list[dict], test_set: str, limits: dict = SEAM_LIMIT
                                     "onset": n - sum(any(w.startswith("weak onset") for w in x["reasons"]) for x in seams)},
                         "splices": sum(r.get("splices", 0) for r in rows),
                         "spliceRules": {k: sum(any(rule_of(w) == k for w in v) for r in rows for v in r.get("spliceRules", {}).values())
-                                        for k in ("pauseForm", "otherRecording", "breakLinked")},
+                                        for k in ("pauseForm", "otherRecording", "breakLinked", "insertLinked", "reenterLinked")},
                         "donors": sum(r["donors"] for r in rows), "donorsShort": sum(r["donorsShort"] for r in rows),
                         "words": sum(r["words"] for r in rows), "wordsChecked": sum(r["wordsChecked"] for r in rows),
                         "wordsFound": sum(r["wordsFound"] for r in rows), "wordsUnchecked": sum(r["wordsUnchecked"] for r in rows),
@@ -1658,8 +1755,12 @@ def _where(at: dict) -> str:
 
 
 def review_splice(s: dict, x: dict, root: str = TEST_SET) -> dict:
-    """A planted edit as a review item: 2.5 s either side, with the host recording before and after its first seam."""
-    a, b = whole_words(s, max(0.0, x["startS"] - 2.5), min(s["durationS"], x["endS"] + 2.5))
+    """A planted edit as a review item: 2.5 s either side, with the host recording before and after its first seam.
+    Labels with `meta.reviewSeamPadS` (lab-v1.4 on) widen it to every seam of the splice by that much."""
+    pad = s["meta"].get("reviewSeamPadS")
+    ts = [m["outS"] for m in x["seams"]] if pad else []
+    a, b = whole_words(s, max(0.0, min([x["startS"] - 2.5, *(t - pad for t in ts)])),
+                       min(s["durationS"], max([x["endS"] + 2.5, *(t + pad for t in ts)])))
     h = x["seams"][0]["out"]
     cls = "mutashabihat" if x["mutashabihat"] else x["type"]
     how = "joined mid-phrase, no pause" if linked(x) else "joined at a pause"

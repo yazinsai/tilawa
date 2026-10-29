@@ -3,7 +3,8 @@
 
     modal run modal/review_api.py::smoke                                   # one window outside every queue, both vendors
     modal run modal/review_api.py::bakeoff_main                            # both vendors on your verdicts + ticket 12 controls
-    modal run modal/review_api.py::triage_main --vendor soniox             # lab-v1.3 re-triage with Nemotron + the winner
+    modal run modal/review_api.py::triage_main --test-set lab-v1.4 --primary   # Nemotron + Soniox: the set's listening queue
+    modal run modal/review_api.py::triage_main --test-set lab-v1.3 --no-seam-pools --rule half   # the lab-v1.3 re-triage as run
 
 Vendors, called only from Modal functions that mount their own secret (the keys are read from the environment and never
 printed, logged or saved):
@@ -542,24 +543,32 @@ def margin_main(vendor: str = "soniox", out: str = "docs/benchmarks/lab-triage-s
 
 @app.function(image=image, volumes={VOL: vol}, timeout=4 * 60 * 60, cpu=4, memory=16384)
 def triage(test_set: str, vendor: str, spot: tuple[int, int], seam_spot: tuple[float, int] | dict, seed: int, force: bool = False,
-           rule: str = "half") -> dict:
+           rule: str | None = None, primary: bool = False) -> dict:
     """Nemotron (its lab triage decisions, triage-v1.json, reused as they are) + the vendor's judge on every case of the
     test set, by the lab triage rule. Writes review/triage-<vendor>.json, review/triage-<vendor>-confirm.json and
-    triage-<vendor>-v1.json; never touches triage.json."""
+    triage-<vendor>-v1.json. primary (lab-v1.4 on): this pairing is the set's listening queue, so it is also written as
+    review/triage.json and review/triage-confirm.json, and the Nemotron + FastConformer ones move to
+    review/triage-fastconformer(-confirm).json first; otherwise triage.json is never touched."""
     import lab_review_core as R
     import lab_triage_core as T
     import review_api_core as A
 
     t0 = time.time()
     vol.reload()
+    rule = rule or A.JUDGE_RULE
     base = DATA / test_set
+    if primary:
+        for a, b in (("triage.json", "triage-fastconformer.json"), ("triage-confirm.json", "triage-fastconformer-confirm.json")):
+            if not (base / "review" / b).is_file():
+                _write(base / "review" / b, _json(base / "review" / a))
     old = _json(base / "triage-v1.json")
     cases, oldc, _ = _triage_cases(test_set, seed)
     nem = {i: {"claimed": o["nemotron"]["claimed"], "alternative": o["nemotron"]["alternative"]} for i, o in oldc.items()}
     heard = transcribe(vendor, test_set, [{"id": c["id"], "audio": c["item"]["audio"]} for c in cases], force)
     api = {c["id"]: A.judge(heard[c["id"]].get("transcript") or "", c["claimed"], c["alternative"], rule) for c in cases}
     reviews = _verdicts(test_set)
-    names = ("triage.json", "triage-confirm.json", "v1-check.json")
+    names = ("triage-fastconformer.json", "triage-fastconformer-confirm.json") if primary else ("triage.json", "triage-confirm.json")
+    names += ("v1-check.json",)
     earlier = {it["id"]: it for n in names if (base / "review" / n).is_file() for it in _json(base / "review" / n)["items"]}
     models = ("nemotron", vendor)
     seam_spot = seam_spot if isinstance(seam_spot, dict) else tuple(seam_spot)
@@ -571,10 +580,11 @@ def triage(test_set: str, vendor: str, spot: tuple[int, int], seam_spot: tuple[f
         raise ValueError(f"queue: {problems[:5]}")
     confirm = T.confirm_queue(res["queue"])
     qrel, crel = f"review/triage-{vendor}.json", f"review/triage-{vendor}-confirm.json"
-    old_q = _json(base / "review/triage.json")
+    fc_q, fc_c = names[:2]
+    old_q = _json(base / "review" / fc_q)
     old_ids = {it["id"]: it["triage"]["reasons"] for it in old_q["items"]}
     new_ids = {it["id"]: it["triage"]["reasons"] for it in res["queue"]["items"]}
-    old_confirm = [it["id"] for it in _json(base / "review/triage-confirm.json")["items"]]
+    old_confirm = [it["id"] for it in _json(base / "review" / fc_c)["items"]]
     by = {c["id"]: c for c in res["cases"]}
     reviewed = T.compare_reviewed(res["cases"], {"items": list(earlier.values())}, reviews, models)
     cmp = {"oldQueue": len(old_ids), "newQueue": len(new_ids), "both": len(set(old_ids) & set(new_ids)),
@@ -591,7 +601,8 @@ def triage(test_set: str, vendor: str, spot: tuple[int, int], seam_spot: tuple[f
                                             "claimed text than to the alternative by the margin, letters of rasm skeleton)"},
         "construction": old["construction"], "spot": {"edits": spot[0], "clean": spot[1]},
         "seamSpot": seam_spot if isinstance(seam_spot, dict) else {"share": seam_spot[0], "cap": seam_spot[1]},
-        "seed": seed, "queue": f"{test_set}/{qrel}", "confirm": f"{test_set}/{crel}", "counts": res["counts"], "reviewed": reviewed,
+        "seed": seed, "queue": f"{test_set}/{'review/triage.json' if primary else qrel}",
+        "confirm": f"{test_set}/{'review/triage-confirm.json' if primary else crel}", "primary": primary, "counts": res["counts"], "reviewed": reviewed,
         "comparison": cmp, "cost": {"audioS": round(sum(h.get("durationS") or 0 for h in heard.values()), 1),
                                     "costUsd": round(sum(h.get("costUsd") or 0 for h in heard.values()), 4),
                                     "errors": sorted(i for i, h in heard.items() if h.get("error")), "wallS": round(time.time() - t0, 1)},
@@ -599,8 +610,9 @@ def triage(test_set: str, vendor: str, spot: tuple[int, int], seam_spot: tuple[f
                   | {"audio": c["item"]["audio"], "transcript": heard[c["id"]].get("transcript"), "reviewedOnly": bool(c.get("reviewedOnly")),
                      **({} if c.get("reviewedOnly") else {k: c[k] for k in ("spotCheck", "seamSpotCheck", "queued")})} for c in res["cases"]]}
     _write(base / f"triage-{vendor}-v1.json", doc)
-    _write(base / qrel, res["queue"])
-    _write(base / crel, confirm)
+    for q, c in ((qrel, crel), *((("review/triage.json", "review/triage-confirm.json"),) if primary else ())):
+        _write(base / q, res["queue"])
+        _write(base / c, confirm)
     p = _record(vendor, test_set)
     rec = _json(p)
     for c in res["cases"]:
@@ -646,11 +658,14 @@ def bakeoff_main(vendors: str = "soniox,speechmatics", force: bool = False, out:
 
 
 @app.local_entrypoint()
-def triage_main(test_set: str = "lab-v1.3", vendor: str = "", spot_edits: int = 15, spot_clean: int = 15, seam_spot: float = 0.10,
-                seam_cap: int = 20, seed: int = 17, force: bool = False, out: str = ""):
-    if not vendor:
-        raise SystemExit("--vendor: the bake-off winner")
-    r = triage.remote(test_set, vendor, (spot_edits, spot_clean), (seam_spot, seam_cap), seed, force)
+def triage_main(test_set: str = "lab-v1.4", vendor: str = "soniox", spot_edits: int = 15, spot_clean: int = 15, seam_spot: float = 0.10,
+                seam_cap: int = 20, seam_pools: bool = True, rule: str = "", primary: bool = False, seed: int = 17, force: bool = False,
+                out: str = ""):
+    """seam_pools: the lab_triage_core.SEAM_POOLS spot check (from lab-v1.4); off, one pool of --seam-spot at most --seam-cap."""
+    import lab_triage_core as T
+
+    seam = T.SEAM_POOLS if seam_pools else (seam_spot, seam_cap)
+    r = triage.remote(test_set, vendor, (spot_edits, spot_clean), seam, seed, force, rule or None, primary)
     out = out or f"docs/benchmarks/lab-triage-{vendor}-{test_set}.json"
     (ROOT / out).write_text(json.dumps(r, ensure_ascii=False, indent=1) + "\n")
     c = r["counts"]
