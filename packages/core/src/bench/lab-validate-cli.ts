@@ -17,7 +17,7 @@ const check = (file: string, s: BenchSession) => {
   for (const e of s.events) if ((e.errorClass === "wrong_word" || e.errorClass === "added_word") && !e.said)
     failures.push({ file, error: `planted ${e.errorClass} at ${e.location.surah}:${e.location.ayah}:${e.location.word} lacks said phonemes` });
 };
-const files = readdirSync(join(dir, "sessions")).filter((f) => /^[^.]+\.json$/.test(f)).sort();
+const files = readdirSync(join(dir, "sessions")).filter((f) => f.endsWith(".json") && !/\.(checks|evidence)\.json$/.test(f)).sort();
 for (const f of files) check(`sessions/${f}`, JSON.parse(readFileSync(join(dir, "sessions", f), "utf8")));
 const manifestPath = join(dir, values.manifest!);
 let inline = 0;
