@@ -6,7 +6,8 @@ A Modal web page for listening to test set items one at a time and marking each 
 - Deploy: `modal deploy modal/lab_review.py`. Rewrite the demo set: `modal run modal/lab_review.py`.
 - Preview a UI change without touching the live app: `LAB_REVIEW_APP=tilawa-lab-review-preview modal deploy modal/lab_review.py`. It serves the same `tilawa-lab` volume, so test only with a throwaway reviewer name and delete its `reviews/*/<name>.json` afterwards. Stop it with `modal app stop tilawa-lab-review-preview`.
 - Test: `uv run --python cpython-3.12-macos-aarch64-none --with pytest pytest tools/test_lab_review.py`
-- ASR pre-screen (`modal/review_asr.py::prescreen`) writes a smaller queue in this format. It failed calibration on lab-v1.1 (`lab-review-asr-v1.md`), so listening stays fully manual.
+- ASR pre-screen (`modal/review_asr.py::prescreen`) writes a smaller queue in this format. It failed calibration on lab-v1.1 (`lab-review-asr-v1.md`).
+- Two-model triage (`modal run modal/lab_triage.py --test-set <set>`, `lab-triage-v1.md`) writes `<set>/review/triage.json`: every case both likelihood scorers didn't accept, plus seeded random and seam spot checks. It is the test set's listening check once it exists. Each item's title says why it is there, and its `triage` field holds both models' decisions and margins. Ids match the v1 check where the case is the same, so earlier verdicts show up already given.
 
 Open `?queue=<path under /lab/data>` and optionally `&reviewer=<name>` (default `me`). With no queue, the page lists every `/lab/data/*/review/*.json`. Keys: space plays, `b` / `a` play the original before / after, 1–4 give a verdict, `j` / `k` go next / back.
 
@@ -39,7 +40,7 @@ A JSON file on the `tilawa-lab` volume, conventionally `/lab/data/<testSet>/revi
 - `audio`: the window to judge. `before` / `after` (optional, splices): the original, unedited source recording just before and just after the edit. Any clip can carry a `title` to rename its button.
 - `text`: the Arabic words the labels say are recited in the window.
 - `label.type`: `wrong_word`, `omitted_word`, `added_word`, `skipped_passage`, `repeat`, `restart`, `self_correction` or `clean`. `expected` is the reference word(s) and `said` what was planted. It is shown as, for example, "Planted: said X instead of Y".
-- `maxBad` (optional, default 1): the acceptance bar, at most this many bad verdicts in the whole queue.
+- `maxBad` (optional, default 1): the acceptance bar, at most this many bad verdicts in the whole queue. The triage queue sets 1 per 40 items, at least 1.
 - `title` and `context` are optional. Item ids must be unique within a test set, because verdicts are keyed by test set and id.
 
 Audio is WAV (any fixed-frame format) or anything ffmpeg reads, such as MP3. The server sends only the requested window as a WAV, with range requests.
@@ -73,7 +74,7 @@ There is no login, so anyone with the URL can listen to the audio and save verdi
 
 `/` on the same app (`.scratch/lab/issues/11-dashboard.md`). It reads `/lab/ledger.json` and the merged `score.json` of the latest main-line run on the current test set. Every file is parsed once per modification time, and the volume is reloaded at most every 5 s.
 
-- **Header**: the exam overall score on phone audio, its missed and false-warning counts, the test set version, the listening check (latest verdict per item across reviewers on `<base>/review/v1-check.json`), and pending flags. Pending flags are exactly what `lab apply-flags` would apply next.
+- **Header**: the exam overall score on phone audio, its missed and false-warning counts, the test set version, the listening check (latest verdict per item across reviewers on `<base>/review/triage.json`, or `v1-check.json` before triage has run; model records in the reviews folder such as `asr-*.json` are not verdicts and are skipped), and pending flags. Pending flags are exactly what `lab apply-flags` would apply next.
 - **Score**: the attribution bar, three component cards (the wrong calls charged to each, plus its own score with perfect upstream inputs), the teacher reference, experiments with "waiting for your decision" first and the fold or discard command to copy, and the main-line history.
 - **Drill-down** (`#/cases/<component>[/studio]`): failing practice cases charged to that component, likely bad data first. Order: more reasons first, then a failed data check, then teacher + student + perfect-hearing checker all failing, then failing in every open experiment. Exam cases are never shown. A case opens the item view with bad-data and fault buttons (keys 1–6).
 - **Release**: the release-readiness gates from `docs/benchmarks/scoreboard.md`, as of the deploy.
