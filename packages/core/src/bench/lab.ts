@@ -329,6 +329,8 @@ export interface VariantResult {
 }
 export interface SessionResult {
   id: string; split: Split; strict: boolean; speaker: string; durationS: number; recitedS: number;
+  /** The manifest's `slices.source` ("recorded": a scripted-error take, tools/lab_recordings_core.py); unset for built sessions. */
+  source?: string;
   /** Further words the first word needs to become unique (-1: never). */
   startNeed: number;
   checker: { missed: number; misclassified: number; falseWarnings: number; nonErrorFalseWarnings: number };
@@ -430,7 +432,7 @@ export function markDataChecks(r: SessionResult, checks: DataChecks): SessionRes
   return r;
 }
 
-export interface LabInput { session: BenchSession; split: Split; strict?: boolean;
+export interface LabInput { session: BenchSession; split: Split; strict?: boolean; source?: string;
   evidence: Partial<Record<Variant, SessionEvidence>>; teacher?: Partial<Record<Variant, SessionEvidence>>; audio?: Partial<Record<Variant, string>>; trackerOracle?: boolean;
   exclude?: Interval[] }
 /** Runs every arm of one session and scores it. */
@@ -447,8 +449,9 @@ export function labSession(input: LabInput, ctx: LabContext): SessionResult {
       ...(t ? { teacher: { evidence: t, engine: runEngine(s, t, ctx.index, ctx.phrases) } } : {}), ...(input.audio?.[v] ? { audio: input.audio[v] } : {}) };
   }
   if (!Object.keys(variants).length) throw new Error(`${s.id}: no listener evidence`);
-  return scoreLabSession(s, input.split, input.strict, { oracle: runTruePosition(s, oracle, ctx.index, ctx.phrases),
+  const r = scoreLabSession(s, input.split, input.strict, { oracle: runTruePosition(s, oracle, ctx.index, ctx.phrases),
     trackerOracle: input.trackerOracle === false ? null : runTracker(s, oracle, ctx.index, ctx.phrases), variants }, ctx, input.exclude);
+  return input.source ? { ...r, source: input.source } : r;
 }
 
 /**
@@ -538,7 +541,8 @@ export interface LabReport extends LabMeta {
   sessions: { scored: number; practice: number; exam: number; excluded: { id: string; reason: string }[] };
   splits: Record<Split | "all", Totals>;
   overall: Totals["overall"]; components: Totals["components"]; attribution: Totals["attribution"];
-  slices: { studio: Record<Split | "all", Totals>; strict: Record<Split | "all", Totals> };
+  /** `recorded`: sessions whose manifest `slices.source` is "recorded" (real takes of scripted mistakes), on phone audio. */
+  slices: { studio: Record<Split | "all", Totals>; strict: Record<Split | "all", Totals>; recorded: Record<Split | "all", Totals> };
   /** Practice cases only unless exam cases were asked for (exam: numbers only). */
   cases: LabCase[];
   /** Per-session counts behind every number above; merged shards re-aggregate from these. */
@@ -554,7 +558,8 @@ export function labReport(results: SessionResult[], meta: LabMeta, o: { excluded
     headline: { split, variant: "phone" }, shard: o.shard ?? null,
     sessions: { scored: results.length, practice: results.filter(r => r.split === "practice").length, exam: results.filter(r => r.split === "exam").length, excluded: o.excluded ?? [] },
     splits, overall: head.overall, components: head.components, attribution: head.attribution,
-    slices: { studio: bySplit(results, "studio"), strict: bySplit(results.filter(r => r.strict), "phone") },
+    slices: { studio: bySplit(results, "studio"), strict: bySplit(results.filter(r => r.strict), "phone"),
+      recorded: bySplit(results.filter(r => r.source === "recorded"), "phone") },
     cases: results.filter(visible).flatMap(r => r.cases), results: results.map(r => visible(r) ? r : { ...r, cases: [] }) };
 }
 

@@ -216,6 +216,8 @@ describe("report and merge", () => {
     expect(r.attribution).toMatchObject({ checker: 3, listener: 0, tracker: 0, total: 3 });
     expect(r.slices.strict.all.sessions).toBe(1);
     expect(r.slices.studio.practice.sessions).toBe(1);
+    expect(r.slices.recorded.all.sessions).toBe(0);
+    expect(labReport([rs[0], { ...rs[1], source: "recorded" }], meta).slices.recorded.exam.sessions).toBe(1);
     expect(r.cases.every(c => c.split === "practice")).toBe(true);
     expect(r.results.find(x => x.split === "exam")!.cases).toEqual([]);
     expect(r.overall.per5Min).toBeCloseTo(3 * 300 / rs[1].recitedS, 2);
