@@ -1,10 +1,10 @@
-# Lab two-model triage v1 (lab-v1.1, lab-v1.2)
+# Lab two-model triage v1 (lab-v1.1, lab-v1.2, lab-v1.3)
 
 Ticket `.scratch/lab/issues/17-two-model-triage.md`, spec decisions 16 and 17. Two independent likelihood scorers score every case of the test set. A case they both accept is done. Everything else, plus seeded spot checks, goes to the listening queue.
 
-- Run: `modal run modal/lab_triage.py --test-set lab-v1.2` (orchestrator in `modal/lab_triage.py`, logic in `tools/lab_triage_core.py`, tests in `tools/test_lab_triage.py`)
-- Queue: <https://amal-invest--tilawa-lab-review-web.us-east.modal.run/review?queue=lab-v1.2/review/triage.json> (lab-v1.1's: `queue=lab-v1.1/review/triage.json`)
-- Outputs: `/lab/data/<testSet>/triage-v1.json` (every case: both scores, decisions, outcome and spot flags), `review/triage.json` (the queue), `triage/` (per-spelling model records and the Nemotron transcripts). Summaries: `lab-triage-v1-lab-v1.1.json`, `lab-triage-v1-lab-v1.2.json`.
+- Run: `modal run modal/lab_triage.py --test-set lab-v1.3` (orchestrator in `modal/lab_triage.py`, logic in `tools/lab_triage_core.py`, tests in `tools/test_lab_triage.py`)
+- Queues: <https://amal-invest--tilawa-lab-review-web.us-east.modal.run/review?queue=lab-v1.3/review/triage-confirm.json> (the both-mismatch items only, to hear first) and <https://amal-invest--tilawa-lab-review-web.us-east.modal.run/review?queue=lab-v1.3/review/triage.json> (the full queue; earlier sets: `queue=lab-v1.2/review/triage.json`, `queue=lab-v1.1/review/triage.json`)
+- Outputs: `/lab/data/<testSet>/triage-v1.json` (every case: both scores, decisions, outcome and spot flags), `review/triage.json` (the queue), `review/triage-confirm.json` (its both-mismatch items, maxBad 0, diagnostic only), `triage/` (per-spelling model records and the Nemotron transcripts). Summaries: `lab-triage-v1-lab-v1.1.json`, `lab-triage-v1-lab-v1.2.json`, `lab-triage-v1-lab-v1.3.json`.
 - Build loop: `modal run modal/lab_build_sessions.py --stage loop` renders, runs the seam gate, then the teacher decode and automated checks, refusing failures until nothing fails, then runs triage. `--stage gate` reports the seam gate alone.
 
 ## Rule (fixed before the run)
@@ -109,6 +109,55 @@ The 10 both-mismatch cases are 9 added words and one restart (e04-x1). Every add
 Added words are still the weakest class: 53 of 170 are not auto-accepted, with FastConformer the stricter model (as on lab-v1.1).
 
 On lab-v1.1's own cases, the new policy would have queued 129 instead of 257. That is its 83 model-queued items, plus 30 spot checks and 20 seam checks, 4 of which overlap.
+
+## Results on lab-v1.3
+
+lab-v1.3 is lab-v1.2 rebuilt with three more splice rules from your listens to lab-v1.2's queue (7 bad in 100, bar 3), plus a 30% cap on added words and skipped passages (`lab-v1.3.md`). There were 1700 cases: 375 planted edits, repeats and restarts, and 1325 clean windows. 14 more clean windows from lab-v1.3's own v1 check were scored but not queued. Same models, margins and spot policy as lab-v1.2.
+
+| Class | Cases | Auto-accepted | Both mismatch | Disagree | Unsure |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| wrong_word | 98 | 82 | 1 | 10 | 5 |
+| added_word | 94 | 60 | 5 | 25 | 4 |
+| omitted_word | 62 | 58 | 0 | 1 | 3 |
+| skipped_passage | 60 | 60 | 0 | 0 | 0 |
+| mutashabihat | 21 | 20 | 0 | 1 | 0 |
+| repeat | 29 | 17 | 0 | 10 | 2 |
+| restart | 11 | 7 | 0 | 4 | 0 |
+| clean | 1325 | 1320 | 0 | 3 | 2 |
+| **all** | **1700** | **1624** | **6** | **54** | **16** |
+
+Per model, Nemotron gave 1674 match, 19 mismatch and 7 unsure, and FastConformer 1644, 47 and 9.
+
+**Queue: 117 items, maxBad 2** (lab-v1.2: 128 items, maxBad 3).
+
+| Why (first reason) | Items |
+| --- | ---: |
+| Both models think the label is wrong — please confirm | 6 |
+| The two models disagree | 54 |
+| A model couldn't tell — please check | 16 |
+| Seam spot check | 12 (20 counting those also queued for another reason) |
+| Random spot check | 29 (30; 15 edits and repeats, 15 clean windows) |
+
+**Confirm queue: 6 items, maxBad 0** (`review/triage-confirm.json`). It holds the both-mismatch items of the main queue with the same ids. Verdicts are stored per test set and keyed by id, so the 6 you hear there count as heard in the main queue too. Hear it first: it is diagnostic, and the main queue's bar still decides.
+
+Three of your 100 lab-v1.2 verdicts carried over on identical clip bytes and text: e15-x10 (lab-v1.2 e15-x12) and e19-x12, both queued and shown as heard, and p17-clean-0-0, not queued.
+
+The 6 both-mismatch cases are 5 added words and one wrong word. Every one is linked on both seams, with cuts between −8.1 and −27.3 dB, and donors of 0.28–1.36 s from the host recording:
+
+| Item | Said | Donor | Seam cuts (dB, out then in) |
+| --- | --- | --- | --- |
+| e03-x1 | رَبِّكَ added | 12:50:11, 0.76 s | −9.4 → −11.5, −15.1 → −9.4 |
+| e09-x7 | كُنتُ added | 78:40:14, 1.36 s | −17.2 → −11.4, −27.3 → −17.2 |
+| e10-x11 | بِكُلِّ added | 44:55:3, 0.64 s | −8.9 → −13.6, −16.1 → −8.9 |
+| e13-x9 | قَبْلَ added | 50:39:8, 0.52 s | −12.2 → −14.9, −8.1 → −12.2 |
+| e16-x9 | فِى added | 26:174:2, 0.28 s | −11.3 → −14.4, −12.5 → −11.3 |
+| p11-x4 | كَانُوا۟ for ذَٰلِكَ | 26:6:6, 0.60 s | −9.1 → −8.7, −8.5 → −9.2 |
+
+Added words are still the weakest class: 34 of 94 are not auto-accepted (lab-v1.2: 53 of 170). FastConformer is again the stricter model.
+
+### Cost (lab-v1.3)
+
+Nemotron transcribed 1714 clips (none reused) in 1712 s and scored them in 466 s, on 4 H100s with 133 s of model loads. FastConformer took 145 s plus a 7 s load on one T4. The wall clock was 13 min. That is about 39 min of busy H100 time, with 4 × 13 min held as an upper bound: roughly $2.5–3.5 at Modal list prices, plus $0.03 for the T4.
 
 ## Seam gate
 

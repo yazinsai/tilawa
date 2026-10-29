@@ -31,3 +31,11 @@ lab-v1.2 (`docs/benchmarks/lab-v1.2.md`): lab-v1.1 rebuilt with three rules from
 - A cut before a weak onset after a pause (hamza including wasl, ع, ح, ه, خ, غ) needs 80 ms of measured silence, near room tone. Otherwise the cut is moved earlier into silence or refused.
 
 On lab-v1.1 the rules refuse 172 of 360 splices, including all 3 bad ones and one of the 4 you passed (e10-x6, a long vowel at −6.3 dB). Mutashabihat swaps now carry up to 4 shared twin words to reach a clean seam; without that, the depth rule left 1. The set has 40 sessions, 180.9 min and 351 planted mistakes: 45 wrong, 25 mutashabihat, 30 omitted, 170 added and 81 skipped, plus 40 repeats and restarts. It converged in 5 loop iterations with every studio check and all 631 seams passing. No scoreboard row: nothing in the scoreboard reads lab test sets yet.
+
+lab-v1.3 (`docs/benchmarks/lab-v1.3.md`): lab-v1.2 rebuilt with three rules from your listens to its triage queue (7 bad in 100). Each is enforced in the planner and in the seam gate, which re-reads each side's source boundary from the alignment (seam sides now carry `piece: host|donor`).
+
+- A donor with a pause after it in its source (waqf form) goes only where the host also pauses right after the insertion. Otherwise an occurrence linked on its following side is used. This covers added and wrong words and the last word of a twin span.
+- Donors come from the host's own recording.
+- A repeat or restart breaks off at a pause boundary, or the site is refused.
+
+On lab-v1.2 they refuse 90 of 391 splices (56, 6 and 28). That catches 6 of the 7 bad ones. p15-x1 is not caught: its donor lands on a real host pause, and a mirror rule would refuse about 35 added words you passed. The rules also refuse 27 of your 86 ok splices. Added words and skipped passages are each capped at 30% of the planted mistakes. Skips are included because with only added words capped they reached 45%. The set has 40 sessions, 186.3 min and 335 planted mistakes: 98 wrong, 21 mutashabihat, 62 omitted, 94 added (28.1%) and 60 skipped, plus 29 repeats and 11 restarts. It converged in 9 loop iterations with every studio check and all 588 seams passing. No scoreboard row: nothing in the scoreboard reads lab test sets yet.
