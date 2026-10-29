@@ -20,7 +20,8 @@ Stages (each skips finished outputs; the same seed and inputs give byte-identica
             cut short) -> seams-v1.json; in the loop, failing splices are refused and rebuilt before any decode
     loop    plan + render, gate, `lab_decode.py --listener teacher`, `lab_check.py`, refuse; until nothing fails. Then
             `lab_triage.py`: both review models score every case and write the listening queue review/triage.json
-            (ticket 17); the set freezes once that queue is reviewed within its maxBad
+            (ticket 17); the set freezes once that queue is reviewed within its maxBad. Refusals are cumulative, so a
+            loop that hit --iterations resumes with --first-iteration N
 
 All under /lab/data/<set> (lab_sessions.TEST_SET) on the tilawa-lab volume.
 """
@@ -583,7 +584,8 @@ def render(sid: str, force: bool = False) -> dict:
 
 
 @app.local_entrypoint()
-def main(stage: str = "all", pilot: bool = False, force: bool = False, iterations: int = 6, audit_set: str = "lab-v1.2"):
+def main(stage: str = "all", pilot: bool = False, force: bool = False, iterations: int = 6, first_iteration: int = 1,
+         audit_set: str = "lab-v1.2"):
     t0 = time.time()
     if stage in ("all", "aug", "loop", "dry"):
         bank = aug.remote(force)
@@ -597,7 +599,7 @@ def main(stage: str = "all", pilot: bool = False, force: bool = False, iteration
         print(json.dumps({k: r["summary"][k] for k in ("all", "splits", "refused")}, ensure_ascii=False, indent=1))
         print("no repeat or restart:", [k for k, v in r["repeats"].items() if not v], f"[{time.time() - t0:.0f} s]")
     if stage == "loop":
-        for it in range(1, iterations + 1):
+        for it in range(first_iteration, first_iteration + iterations):
             print(f"\n== iteration {it}: build [{time.time() - t0:.0f} s]", flush=True)
             if build(False, False, t0):
                 raise SystemExit("render failed")
@@ -622,7 +624,7 @@ def main(stage: str = "all", pilot: bool = False, force: bool = False, iteration
                 print(f"converged after {it} iteration(s)")
                 break
         else:
-            raise SystemExit(f"not converged after {iterations} iterations; no triage")
+            raise SystemExit(f"not converged after iteration {it}; no triage (resume with --first-iteration {it + 1})")
         cmd = ["modal/lab_decode.py", "--listener", MAIN_LISTENER, "--model", f"models/{MAIN_LISTENER}", "--test-set", TEST_SET]
         print(f"== {' '.join(cmd)} [{time.time() - t0:.0f} s]", flush=True)
         subprocess.run(["modal", "run", *cmd], cwd=ROOT, check=True)
