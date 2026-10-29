@@ -10,9 +10,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from review_asr_core import (  # noqa: E402
-    arm_stats, check_summary, check_verdict, cleanup_generation_loops, combine, compare, controls, diacritised_candidates,
-    diacritised_spellings, edit_texts, near_best, norm_words, passes_bar, perturb_text, plain_candidates, plain_spellings,
-    plain_transcript, prefer, prescreen, revert_text, score, session_id, wilson,
+    arm_passes_bar, arm_stats, calib_stats, check_summary, check_verdict, cleanup_generation_loops, combine, compare, compare_rasm,
+    controls, diacritised_candidates, diacritised_spellings, edge_context, edit_texts, judge_rasm, near_best, norm_words, passes_bar,
+    perturb_text, pick_prompt, plain_candidates, plain_spellings, plain_transcript, prefer, prescreen, rasm, revert_text, rover, score,
+    session_id, wilson,
 )
 
 
@@ -203,9 +204,9 @@ def test_arm_stats_and_bar():
                        "oneEditWords": 1} for k in range(40)}
     good = lambda i, k: "match" if k == "labelled" else "mismatch"
     s = arm_stats(table, good)
-    assert s["agreement"]["k"] == 40 and s["oneEdit"]["flagged"]["k"] == 40 and s["oneWord"]["flagged"]["n"] == 39 and passes_bar(s)
+    assert s["agreement"]["k"] == 40 and s["oneEdit"]["flagged"]["k"] == 40 and s["oneWord"]["flagged"]["n"] == 39 and arm_passes_bar(s)
     leaky = lambda i, k: "match" if k == "labelled" or (k == "oneEdit" and i == "i39") else "mismatch"
-    assert arm_stats(table, leaky)["repeatMisses"] == ["i39"] and not passes_bar(arm_stats(table, leaky))
+    assert arm_stats(table, leaky)["repeatMisses"] == ["i39"] and not arm_passes_bar(arm_stats(table, leaky))
     assert arm_stats(table, good)["agreementEdited"]["n"] == 30
 
 
@@ -216,3 +217,76 @@ def test_context_words_never_count():
     assert compare(text, "ولكن أكثرهم يعلمون قل", before="وَلَـٰكِنَّ", after="قُلْ")["decision"] == "mismatch"
     assert compare(text, "ولكن لا يعلمون قل", before="وَلَـٰكِنَّ", after="قُلْ")["decision"] == "mismatch"
     assert compare(text, "ولكن أكثرهم لا يعلمون", before="وَلَـٰكِنَّ")["decision"] == compare(text, "أكثرهم لا يعلمون")["decision"]
+
+
+MADD = "\u0644\u064e\u0627\u0653"  # لَآ as the labels store it: alif + madd sign, not a precomposed آ
+
+
+def test_rasm_skeleton_unifies_spellings_and_keeps_hamza():
+    for uthmani, plain in [("ٱلصَّلَوٰةِ", "الصلاة"), ("يَسْتَـْٔذِنُكَ", "يستأذنك"), ("أُو۟لَـٰٓئِكَ", "أولئك"), ("ٱلْمَلَـٰٓئِكَةُ", "الملائكة"),
+                           ("مَسْـُٔولُونَ", "مسؤولون"), ("عَلَىٰ", "على"), ("ٱلْكِتَـٰبُ", "الكتاب"), ("لَـَٔايَةًۭ", "لآية")]:
+        assert rasm(uthmani) == rasm(plain), uthmani
+    assert rasm(MADD) == rasm("لا") == "ل" and rasm("آلاء") == "ءلء"
+    assert rasm("إِلَّا") != rasm("لا") and rasm("إِلَّا", hamza=False) == rasm("لا")
+    assert rasm("فَثَبِّتُوا۟", phonetic=True) == rasm("فذبطوا", phonetic=True) != rasm("فذبطوا")
+
+
+def test_compare_rasm_ignores_spacing_but_not_dropped_words():
+    assert compare("كَٱلْأَعْلَـٰمِ بَيْنَهَا", "كلا علام بينها")["decision"] != "match"
+    assert compare_rasm("يُكَذِّبُ كَٱلْأَعْلَـٰمِ بَيْنَهَا", "يكذب كلا علام بينها", hamza=False)["decision"] == "match"
+    assert compare_rasm("يَـٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟", "يا أيها الذين آمنوا")["decision"] == "match"
+    assert compare_rasm("يَبْنَؤُمَّ لَا تَأْخُذْ", "يا ابن أم لا تأخذ")["decision"] == "match"
+    for hamza in (True, False):
+        assert compare_rasm("وَلَـٰكِنَّ أَكْثَرَهُمْ لَا يَعْلَمُونَ", "ولكن أكثرهم يعلمون", hamza=hamza)["decision"] == "mismatch"
+        assert compare_rasm("كَالُوهُمْ أَو وَّزَنُوهُمْ يُخْسِرُونَ", "كالوهم أوزنوهم يخسرون", hamza=hamza)["decision"] == "mismatch"
+        assert compare_rasm("وَٱسْتَكْبَرَ هُوَ وَجُنُودُهُۥ فِى", "واستكبروا وجنوده في", hamza=hamza)["decision"] == "mismatch"
+        assert compare_rasm("جَنَّـٰتٍۢ وَحَبَّ ٱلْحَصِيدِ وَٱلنَّخْلَ", "جنات وحب الحصيد قوم والنخل", hamza=hamza)["decision"] == "mismatch"
+
+
+def test_rasm_context_never_counts_but_spill_beyond_it_does():
+    text = "إِنَّمَا تُنذِرُ مَنِ"
+    assert compare_rasm(text, "إنما تنذر من اتبع", after="ٱتَّبَعَ")["decision"] == "match"
+    assert compare_rasm(text, "إنما تنذر من اتبع الذكر", after="ٱتَّبَعَ")["decision"] == "match"  # one stray word past the context
+    assert compare_rasm(text, "إنما تنذر من اتبع الحج والهدى", after="ٱتَّبَعَ")["decision"] == "mismatch"
+    assert compare(text, "إنما تنذر من اتبع الحج والهدى", after="ٱتَّبَعَ")["decision"] == "match"  # the padded rule ignores it
+    assert compare_rasm(text, "تنذر من اتبع", after="ٱتَّبَعَ")["decision"] == "unsure"
+
+
+def test_edge_context_uses_session_word_times():
+    w = lambda t, a, b: {"text": t, "startS": a, "endS": b, "role": "ref"}
+    s = {"said": [w("قُلْ", 0.0, 0.9), w("هُوَ", 1.0, 1.4), w("ٱللَّهُ", 1.5, 2.2), w("أَحَدٌ", 2.3, 3.0), w("ٱللَّهُ", 3.5, 4.0)]}
+    it = {"audio": {"startS": 0.95, "endS": 3.05}}
+    assert edge_context(it, s) == {"before": "قُلْ", "after": "", "lead": [], "trail": []}
+    cut = edge_context({"audio": {"startS": 1.2, "endS": 3.45}}, s)
+    assert cut == {"before": "", "after": "ٱللَّهُ", "lead": ["هُوَ"], "trail": []}
+    assert judge_rasm("هُوَ ٱللَّهُ أَحَدٌ", "الله أحد الله", cut)["decision"] == "match"
+    assert judge_rasm("هُوَ ٱللَّهُ أَحَدٌ", "الله الله", cut)["decision"] == "mismatch"
+    assert edge_context(it, None)["before"] == ""
+
+
+def test_rover_votes_per_word():
+    r = rover(["ذلك الكتاب لا ريب فيه", "ذالك الكتاب لا ريب فيه", "ذلك الكتاب ريب فيه هدى", "اللهم اغفر لي ولوالدي"])
+    assert r["transcript"] == "ذلك الكتاب لا ريب فيه" and r["pivot"] == 0
+    assert rover(["كلا علام بينها", "كالأعلام بينها", "كالاعلام بينها"])["transcript"] in ("كالاعلام بينها", "كالأعلام بينها", "كلا علام بينها")
+    assert rover(["إنه لحق مثل قوم ما", "إنه لحق مثل قوم ما", "إنه لحق مثل ما"])["transcript"] == "إنه لحق مثل قوم ما"
+    assert rover(["إنه لحق مثل ما", "إنه لحق مثل ما", "إنه لحق مثل قوم ما"])["transcript"] == "إنه لحق مثل ما"
+    assert rover(["", ""])["transcript"] == ""
+
+
+def test_calib_stats():
+    row = lambda lab, one, sh, edit="sub", words=1: {"labelled": lab, "oneEdit": one, "shifted": sh, "oneEditEdit": edit, "oneEditWords": words}
+    t = {"a": row("match", "mismatch", "mismatch"), "b": row("unsure", "match", "mismatch", "repeat", 2), "c": row("match", "unsure", "match")}
+    s = calib_stats(t, ["a", "b", "c"])
+    assert s["agreement"]["k"] == 2 and s["oneEdit"]["k"] == 2 and s["oneWord"]["n"] == 2 and s["shifted"]["k"] == 2
+    assert s["repeatMisses"] == ["b"] and s["disagree"] == ["b"]
+    assert not passes_bar(s)
+
+
+def test_bar_and_prompt_pick():
+    st = lambda agree, one, word, rep=(): {"agreement": {"k": agree, "n": 40}, "oneEdit": {"k": one, "n": 40, "rate": one / 40},
+                                          "oneWord": {"k": word, "n": 31, "rate": word / 31}, "repeatMisses": list(rep)}
+    assert passes_bar(st(38, 36, 28)) and not passes_bar(st(37, 40, 31)) and not passes_bar(st(40, 40, 31, ["x"]))
+    assert not passes_bar(st(39, 35, 31))
+    assert pick_prompt({"verbatim": st(23, 38, 29), "recitation": st(26, 40, 31), "mistakes": st(30, 30, 25)}) == "recitation"
+    assert pick_prompt({"verbatim": st(26, 40, 31), "recitation": st(26, 40, 31)}) == "verbatim"
+    assert pick_prompt({"a": st(20, 10, 10), "b": st(25, 10, 10)}) == "b"

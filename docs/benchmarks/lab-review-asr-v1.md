@@ -370,3 +370,254 @@ Ticket 04's checks use the teacher, so they aren't independent. This check score
   - `modal run modal/review_fastconformer.py::main` (arm 1; reuses saved transcripts unless `--force`);
   - `modal run modal/review_fastconformer.py::likelihood_main`;
   - `modal run modal/review_fastconformer.py::check_main [--context 2]`.
+
+
+## Round 2 (2026-10-29): where Nemotron goes wrong, a prompt ablation, ROVER and rasm matching
+
+All of this is on the same 40 `ok` windows and the same controls as above, so it is all in-sample. Part A uses only the saved transcripts. Part B adds one new prompt. Part C adds a looser comparison and a voting scheme. What was fixed before its own run, and what was tuned after seeing results, is stated per part.
+
+### A. Error analysis: why Nemotron rejects correct recitation
+
+Each window that Nemotron did not accept (17 with the decision prompt `verbatim`, 14 with the exploratory `recitation` prompt) was classified by hand from its saved transcript and word alignment into one root cause:
+
+1. **Orthography only.** The model heard the word right and our comparison is too strict: Uthmani vs standard spelling, hamza forms, alif wasla, ta marbuta, alif maqsura, dagger alif, tanwin, or a word written joined or split.
+2. **Edge word.** A word at the window start or end is dropped, or a neighbouring word bleeds in. By the session word times, every labelled word in this queue lies fully inside its window, with 0.04–0.25 s to spare. The neighbouring words end or start exactly at the window edge, 0 s away. So the only real "partial" words are the neighbours, whose coarticulated sound can leak in.
+3. **Genuine mishearing.** The table notes which letters went wrong, whether it was at a splice seam, and whether it was a phone copy.
+4. **Canonicalisation.** The planted edit was dropped or blended so the transcript reads as the original verse, or a restart was collapsed.
+5. **Hallucination or loop.**
+
+The diffs are on normalised words (diacritics stripped): `[label→heard]` is a substitution, `[-w]` a labelled word not heard, `[+w]` a heard word not in the text, `(w)` an edge word the rule allows. The machine-readable classification is in `lab-review-asr-v1-errors.json`.
+
+#### Nemotron, decision prompt `verbatim`: the 17 windows it did not accept
+
+| Item | Kind | Labelled (normalised) | Transcript | Diff | Bucket | Where / why |
+| --- | --- | --- | --- | --- | --- | --- |
+| `e20-x6` | splice wrong_word | يكذب بها المجرمون كالاعلام بينها وبين حميم | يُكَذِّبُ بِهَا الْمُجْرِمُونَ. كَلَّا عِلَامٌ بَيْنَهَا وَبَيْنَ حَمِيمٍ. | يكذب بها المجرمون [+كلا] [كالاعلام→علام] بينها وبين حميم | 1 | planted word, at the seam; split كَٱلْ + أعلام and alif wasla dropped: skeleton identical |
+| `e20-x10` | splice wrong_word | الا ربكما بحسبان فيهن قاصرات | وَالْآبَاءُ رَبِّكُمَا بِحُسْبَانِ فِيهِنَّ قَاصِرَاتُ. | [الا→والابا] ربكما بحسبان فيهن قاصرات | 3 | first word ءالاء heard as والآباء, right after the cut (window starts where فبأي ends); seam word بحسبان heard right |
+| `p09-x8` | splice wrong_word | بالجنه التي قوه توعدون | في الجنة التي توعدون. | (في) بالجنه التي [-قوه] توعدون | 4 | planted قوة dropped at the seam (and بـ heard as في) |
+| `e13-x4` | splice wrong_word | جنات وحب الوريد والنخل باسقات | جَنَّاتٍ وَحَبًّا وَعِينَةٍ وَالنَّخْلَ بَاسِقَاتٍ. | جنات وحب [الوريد→وعينه] والنخل باسقات | 3 | planted الوريد heard as وعينة, at the seam |
+| `e15-x8` | splice wrong_word | الا ربكما للانام مدهامتان | اللَّهُمَّ اغْفِرْ لِي وَلِوَالِدَيَّ وَلِمُؤْمِنِينَ الْقِرَاءَةَ وَالْمُؤْمِنِ … | [+اللهم] [+اغفر] [+لي] [+ولوالدي] (ولمومنين) [الا→القراه] [+والمومنين] [+والمومنات] [+والمسلمين] [ربكما→والمسل … | 5 | dua loop to the 512-token limit |
+| `p15-x8` | splice added_word | انه لحق مثل قوم ما انكم | إِنَّهُ لَحَقٌّ مِثْلَ مَا أَنَّكُمْ. | انه لحق مثل [-قوم] ما انكم | 4 | planted قوم dropped: exactly the written 51:23 |
+| `e19-x12` | splice added_word | فاغويناكم انا كيف كنا غاوين فانهم | فأغويناكم إننا كفنّا غاوين فإنهم. | فاغويناكم انا [-كيف] كنا غاوين فانهم | 4 | planted كيف blended: إنا كيف كنا → إننا كفنا, which reads as the original |
+| `e10-x9` | splice skipped_passage | نضره النعيم ختامه مسك وفي | نضرة النعيم, كتاب مسك, وفي | نضره النعيم [ختامه→كتاب] مسك وفي | 3 | ختامه heard as كتاب, first word after the skip seam |
+| `p12-x7` | splice wrong_word | الم نجعل الارض مهادا احيا | ألم نجعل الأرض كهادا؟ | الم نجعل الارض مهادا [-احيا] | 2 | last word أحياء dropped (inside the window, 0.25 s before its end); padding fixed it. 78:6 ends at مهادا, so maybe prior too (speculative) |
+| `e08-x1` | repeat | ذالك لايه وما ذالك لايه وما كان اكثرهم مومنين | ذلك لآيتهم، وما ذلك لآيتهم، وما كان أكثرهم مؤمنين. | ذالك [لايه→لايتهم] وما ذالك [لايه→لايتهم] وما كان اكثرهم مومنين | 3 | لآيةً heard as لآيتهم on both copies (tanwin ending); not at a seam |
+| `e01-x4` | restart | الارض بغير الحق واستكبر هو وجنوده في الارض بغير الحق وظنوا انهم | في الأرض بغير الحقّ واستكبروا وجنودُه في الأرض بغير الحقّ وظنّوا أنّهم. | (في) الارض بغير الحق واستكبر [-هو] وجنوده في الارض بغير الحق وظنوا انهم | 3 | واستكبر هو heard as one word واستكبروا (lost /h/); not at a seam |
+| `p05-x6` | repeat | فثبتوا الذين امنوا فثبتوا الذين امنوا سالقي في قلوب | فَذَبِّطُوا الَّذِينَ آمَنُوا. فَذَبِّطُوا الَّذِينَ آمَنُوا سَأُلْقِي فِي قُلُوبِهِمْ. | [فثبتوا→فذبطوا] الذين امنوا [فثبتوا→فذبطوا] الذين امنوا سالقي في [قلوب→قلوبهم] | 3 | فثبتوا heard as فذبطوا on both copies (ث→ذ, ت→ط); قلوب → قلوبهم at the end |
+| `e05-x7` | restart | اجري الا علي وما اسلكم عليه من اجر ان اجري الا علي رب العالمين | وَمَا أَسْأَلُكُمْ عَلَيْهِ مِنْ أَجْرٍ. إِنْ أَجْرِيَ إِلَّا عَلَى رَبِّ الْعَالَمِينَ. | [-اجري] [-الا] [-علي] وما اسلكم عليه من اجر ان اجري الا علي رب العالمين | 4 | restart's leading fragment أجري إلا على dropped: transcript is the written 26:109 |
+| `p03-studio-5` | clean studio | انذرتهم ام لم تنذرهم لا يومنون انما تنذر من | أَأَنْذَرْتَهُمْ أَمْ لَمْ تُنْذِرْهُمْ لَا يُؤْمِنُونَ. إِنَّمَا تُنْذِرُ مَنِ  … | انذرتهم ام لم تنذرهم لا يومنون انما تنذر من (اتبع) [+الحج] [+والهدي] | 2 | abutting next word اتبع bled in (linked kasra of منِ), then invented الحج والهدى |
+| `e07-phone-293` | clean phone | تجعلونه قراطيس تبدونها وتخفون كثيرا وعلمتم ما لم تعلموا | يدعونهم قراطيس تبذلونها وتخون كثيرا وعلمتم ما لم تعلموا. | [تجعلونه→يدعونهم] قراطيس تبدونها وتخفون كثيرا وعلمتم ما لم تعلموا | 3 | phone: تجعلونه → يدعونهم (also تبذلونها, وتخون, which the rule tolerated) |
+| `p06-phone-173` | clean phone | حتي يغيروا ما بانفسهم واذا اراد | حتى لا يغيروا ما بأنفسهم، وإذا أرادوا. | حتي [+لا] يغيروا ما بانفسهم واذا [اراد→ارادوا] | 3 | phone: inserted لا (حتى لا, a common phrase) and أراد → أرادوا |
+| `e15-phone-229` | clean phone | الا ربكما تكذبان تبارك اسم ربك | قُلْ يَا أَيُّهَا الْكَافِرُونَ لَا أَسْأَلُكُمْ عَلَيْهِ أَجْرًا ۖ إِنْ أَجْرِي … | [+قل] [+يا] [+ايها] (الكافرون) [الا→لا] [+اسالكم] [+عليه] [ربكما→اجرا] [تكذبان→ان] [تبارك→اجري] [اسم→الا] [ربك … | 5 | pastiche of other verses (قل يا أيها الكافرون ... وأنا من المنذرين) for 55:77–78 |
+
+#### Nemotron, `recitation` prompt (exploratory): the 14 windows it did not accept
+
+| Item | Kind | Labelled (normalised) | Transcript | Diff | Bucket | Where / why |
+| --- | --- | --- | --- | --- | --- | --- |
+| `e20-x6` | splice wrong_word | يكذب بها المجرمون كالاعلام بينها وبين حميم | يُكَذِّبُ بِهَا الْمُجْرِمُونَ. كَلَّا عِلَامٌ بَيْنَهَا وَبَيْنَ حَمِيمٍ. | يكذب بها المجرمون [+كلا] [كالاعلام→علام] بينها وبين حميم | 1 | same as the decision run |
+| `e20-x10` | splice wrong_word | الا ربكما بحسبان فيهن قاصرات | إِلَىٰ رَبِّكُمَا فِي حُسْبَانِ فِي نَقْصِرَاتٍ. | الا ربكما [+في] بحسبان [فيهن→في] [قاصرات→نقصرات] | 3 | ءالاء → إلى, بحسبان split as في حسبان, فيهن قاصرات → في نقصرات (the ن moved), around the seam |
+| `p09-x8` | splice wrong_word | بالجنه التي قوه توعدون | وَبِالْجَنَّةِ الَّتِي تُوعَدُونَ. | بالجنه التي [-قوه] توعدون | 4 | planted قوة dropped at the seam |
+| `e15-x8` | splice wrong_word | الا ربكما للانام مدهامتان | إِنَّا آلَاءِ رَبِّكُمَا لِلْأَنَامِ مُدْهَامَّةً. | (انا) الا ربكما للانام [مدهامتان→مدهامه] | 3 | last word مدهامتان → مدهامة (dual ending); extra leading إنا was allowed |
+| `p06-x1` | splice omitted_word | اولايك الذين بربهم واولايك | أُولَئِكَ الَّذِينَ ضَرَبْنَا أَيْدِيَهُمْ وَأَرْجُلَهُمْ وَأُولَئِكَ الَّذِينَ | اولايك الذين [+ضربنا] [+ايديهم] [بربهم→وارجلهم] واولايك (الذين) | 5 | invented ضربنا أيديهم وأرجلهم in place of بربهم, at the omitted-word seam |
+| `p15-x8` | splice added_word | انه لحق مثل قوم ما انكم | إِنَّهُ لَحَقٌّ مِنْ رَبِّكُمْ أَنْ تَسْتَمِعُوا لِلْحَقِّ مِنْ رَبِّكُمْ فَأَنْ … | انه لحق [مثل→من] [قوم→ربكم] [+ان] [+تستمعوا] [+للحق] [ما→من] [+ربكم] [انكم→فانتم] (مستسلمون) | 5 | invented continuation after لحق at the seam: من ربكم أن تستمعوا للحق ... |
+| `p10-x6` | splice added_word | تكذبان كل من عليها تكذبان فان ويبقي | تُكَذِّبَانِ. كُلُّ مَنْ عَلَيْهَا تُكَذِّبَانِ. فَالْوَاقِعُ. | تكذبان كل من عليها تكذبان [فان→فالواقع] [-ويبقي] | 3 | فانٍ ويبقى → فالواقع, last two words, after the added تكذبان |
+| `e10-x9` | splice skipped_passage | نضره النعيم ختامه مسك وفي | نَبْضَةَ النَّعِيمِ هِتَامٌ مِسْكٌ وَفِيهِ. | [نضره→نبضه] النعيم [ختامه→هتام] مسك وفي | 3 | نضرة → نبضة, ختامه → هتام (first word after the skip seam) |
+| `e01-x4` | restart | الارض بغير الحق واستكبر هو وجنوده في الارض بغير الحق وظنوا انهم | في الأرض بغير الحق، واستكبروا وجنودُه في الأرض بغير الحق، وظنوا أنهم | (في) الارض بغير الحق واستكبر [-هو] وجنوده في الارض بغير الحق وظنوا انهم | 3 | same as the decision run (هو lost) |
+| `p05-x6` | repeat | فثبتوا الذين امنوا فثبتوا الذين امنوا سالقي في قلوب | فَذَبِّتُ الَّذِينَ آمَنُوا فَذَبِّتُ الَّذِينَ آمَنُوا سَأُلْقِي فِي قُلُوبِهِمْ | [فثبتوا→فذبت] الذين امنوا [فثبتوا→فذبت] الذين امنوا سالقي في [قلوب→قلوبهم] | 3 | فثبتوا → فذبت on both copies |
+| `p03-studio-5` | clean studio | انذرتهم ام لم تنذرهم لا يومنون انما تنذر من | أَأَنْذَرْتَهُمْ أَمْ لَمْ تُنْذِرْهُمْ لَا يُؤْمِنُونَ إِنَّمَا تُنْذِرُ مَنِ ا … | انذرتهم ام لم تنذرهم لا يومنون انما تنذر من (اتبع) [+الحجور] | 2 | same bleed of اتبع, then invented الحجور |
+| `e07-phone-293` | clean phone | تجعلونه قراطيس تبدونها وتخفون كثيرا وعلمتم ما لم تعلموا | يدعونهم فراقيس تبذلونها وتخون كثيرا وعلمتم ما لم تعلموا. | [تجعلونه→يدعونهم] [قراطيس→فراقيس] تبدونها وتخفون كثيرا وعلمتم ما لم تعلموا | 3 | phone: تجعلونه → يدعونهم, قراطيس → فراقيس |
+| `p06-phone-173` | clean phone | حتي يغيروا ما بانفسهم واذا اراد | حتى لا يغيروا ما بأنفسهم، وإذا أرادوا. | حتي [+لا] يغيروا ما بانفسهم واذا [اراد→ارادوا] | 3 | phone: same inserted لا, أراد → أرادوا |
+| `e15-phone-229` | clean phone | الا ربكما تكذبان تبارك اسم ربك | اللَّهُمَّ اغْفِرْ لِي وَلِوَالِدَيَّ وَلِمَنْ أَحْبَبْتَ، وَلِمَنْ أَحْبَبْتَ،  … | [+اللهم] (اغفر) [الا→لي] [+ولوالدي] [ربكما→ولمن] [+احببت] [تكذبان→ولمن] [تبارك→احببت] [اسم→ولمن] [ربك→احببت] ( … | 5 | dua loop: اللهم اغفر لي ولوالدي ولمن أحببت ×4 |
+
+#### Summary per model
+
+Qwen3 and Whisper were bucketed automatically, which is coarse:
+- **5:** boilerplate text, or more than 3 extra words;
+- **4:** an edited window whose one-edit control text matches the transcript;
+- **1:** the space-free skeleton is equal;
+- **2:** only edge reasons;
+- **3:** anything else.
+
+Applied to Nemotron, the same automatic pass agrees with the hand buckets except for two calls: `p09-x8` (planted word dropped) and `p03-studio-5` (neighbour bleed plus an invented continuation).
+
+| Root cause | Nemotron `verbatim` (17) | Nemotron `recitation` (14) | Qwen3-ASR (32, automatic) | Whisper (33, automatic) |
+| --- | --- | --- | --- | --- |
+| 1 orthography only | 1 (`e20-x6`) | 1 (`e20-x6`) | 0 | 0 |
+| 2 edge word | 2 (`p12-x7`, `p03-studio-5`) | 1 (`p03-studio-5`) | 10 | 11 |
+| 3 mishearing | 8 | 8 | 22 | 11 |
+| 4 canonical or planted word dropped | 4 (`p09-x8`, `p15-x8`, `e19-x12`, `e05-x7`) | 1 (`p09-x8`) | 0 | 4 (all repeats or restarts collapsed) |
+| 5 hallucination or loop | 2 (`e15-x8`, `e15-phone-229`) | 3 (`p06-x1`, `p15-x8`, `e15-phone-229`) | 0 | 7 ("اشتركوا في القناة", "ترجمة نانسي قنقر") |
+| **Would flip if only the comparison changed (buckets 1–2)** | **3 → at most 26/40** | **2 → at most 28/40** | 10 → at most 18/40 | 11 → at most 18/40 |
+| Of those, flippable without ignoring audio that is inside the window | 2 (`e20-x6`, `p03-studio-5`) | 2 | 0 | 0 |
+
+What this says:
+
+- **The comparison is not the bottleneck.** Even crediting every bucket 1–2 case, Nemotron reaches at most 26/40 (`verbatim`) or 28/40 (`recitation`), against a bar of 38. Only one window, `e20-x6`, is a pure spelling problem: `كَٱلْأَعْلَـٰمِ` written `كلا علام` has the same skeleton.
+- **Qwen's and Whisper's edge drops are not partial words.** The dropped words are fully inside the window, so ignoring them would ignore real audio. A comparison fix cannot honestly recover them. Wider windows can (see the 1 s run above).
+- **About half of Nemotron's real errors sit at the seam.** In buckets 3–4 of the decision run, 5 of 12 are on or next to the planted word: `e13-x4`, `e10-x9`, `p09-x8`, `p15-x8`, `e19-x12`. These are exactly the words a reviewer cares about, and the model's language prior pulls them toward the verse it expects.
+- **The rest are ordinary consonant confusions**, often the same error on both copies of a repeat: ث→ذ and ت→ط (`فثبتوا` → `فذبطوا`), a tanwin ending (`لآيةً` → `لآيتهم`), a lost /h/ (`واستكبر هو` → `واستكبروا`). Two phone copies also have word-level confusions.
+
+Vivid examples:
+
+- **`p15-x8`** (added word, decision run): the audio says `إِنَّهُۥ لَحَقٌّ مِّثْلَ قَوْمٌ مَآ أَنَّكُمْ` and the transcript is exactly 51:23, `إِنَّهُ لَحَقٌّ مِثْلَ مَا أَنَّكُمْ`. With the `recitation` prompt the planted word is gone again, this time replaced by an invented sermon: `مِنْ رَبِّكُمْ أَنْ تَسْتَمِعُوا لِلْحَقِّ مِنْ رَبِّكُمْ فَأَنْتُمْ مُسْتَسْلِمُونَ`.
+- **`e15-phone-229`** (clean phone copy of 55:77–78): `verbatim` writes `قُلْ يَا أَيُّهَا الْكَافِرُونَ لَا أَسْأَلُكُمْ عَلَيْهِ أَجْرًا إِنْ أَجْرِيَ إِلَّا عَلَىٰ اللَّهِ وَأَنَا مِنَ الْمُنْذِرِينَ`, a pastiche of at least three other surahs. `recitation` writes a dua loop instead (`اللهم اغفر لي ولوالدي ولمن أحببت` ×4).
+- **`e05-x7`** (restart): the recitation is `…أَجْرِىَ إِلَّا عَلَىٰ | وَمَآ أَسْـَٔلُكُمْ … رَبِّ ٱلْعَـٰلَمِينَ` and the transcript is the clean 26:109. The first, broken attempt vanished. That is the canonical prior again, this time on a window edge.
+- **`e20-x6`** (the one comparison bug): `كَٱلْأَعْلَـٰمِ` was heard as `كَلَّا عِلَامٌ`, which is the right sound split into two words with the alif wasla dropped. The word-level rule called it an extra `كلا` plus a doubtful `علام`.
+- **`p05-x6`** (repeat): `فَثَبِّتُوا۟` became `فَذَبِّطُوا` on both copies. That is not noise: the model consistently hears this reciter's ث as ذ and ت as ط.
+
+### Preregistration for B and C (committed before either ran)
+
+Everything below was written down and committed after Part A, and before any new transcript or any evaluation of a new rule existed. The 40 windows are the same ones Part A was read from, so all of B and C remains in-sample. "Preregistered" here means only that the rule and the run were fixed before their own numbers were seen.
+
+**B. Prompt ablation.** Three new Nemotron prompts (`NEMOTRON_PROMPTS` in `modal/review_asr.py`). Together with `recitation` they make a 2 × 2 of the word "Quran" against the clause "including repetitions and mistakes":
+
+| | with "including repetitions and mistakes" | without |
+| --- | --- | --- |
+| with "Quran" | `recitation`: Transcribe this Quran recitation verbatim, exactly as recited, including repetitions and mistakes. Language: Arabic. Output: transcript only. | `quran`: Transcribe this Quran recitation verbatim, exactly as recited. Language: Arabic. Output: transcript only. |
+| without | `mistakes` (the one asked for): Transcribe this recitation verbatim, exactly as recited, including repetitions and mistakes. Language: Arabic. Output: transcript only. | `plain`: Transcribe this recitation verbatim, exactly as recited. Language: Arabic. Output: transcript only. |
+
+- Same windows, model, revision, greedy decoding and round-1 comparison rule. Records go to `asr-nemotron-{mistakes,quran,plain}-prompt.json`.
+- On 40 items, a difference of 3 or fewer matches is within noise, so a change counts only if the discordant pairs point one way.
+
+**C1. The rasm rule** (`judge_rasm` in `tools/review_asr_core.py`):
+- Both sides go to the consonantal skeleton (`rasm`):
+  - all diacritics, Quranic marks and tatweel dropped;
+  - every long-vowel alif dropped (ا, alif wasla, dagger alif; the Uthmani وٰ);
+  - every hamza form unified to ء, kept as a consonant;
+  - ى → ي, ة → ه.
+- Word alignment is the round-1 one with two changes:
+  - up to 3 labelled words may match up to 3 heard words as one space-free string, but only when the skeletons are identical (a looser merge would hide a dropped لا or أو);
+  - thresholds are unchanged (0.75 / 0.5, one free stray word per edge).
+- Edge words come from the session word times:
+  - a session word ending or starting within 0.10 s outside the window becomes context that never counts;
+  - so does a labelled edge word that sticks out of the window (none do in this queue).
+  - Unlike the padded round-1 rule, heard words beyond that context and the one-word allowance still count as extra. This keeps a restart or repeat at the window edge from being absorbed.
+- Reported with three variants:
+  - `rasm-no-edge` (the edge part off);
+  - `rasm-no-hamza` (hamza dropped too, the literal skeleton, as a sensitivity check);
+  - `rasm-phonetic` (emphatic/plain, interdental and q/k pairs merged, ع dropped). This one is **exploratory**: it was chosen after seeing `فثبتوا` → `فذبطوا` in Part A.
+- The rule was designed after reading Part A, so even the primary `rasm` row is tuned in-sample.
+
+**C2. ROVER** (`rover` in `tools/review_asr_core.py`, `round2` in `modal/review_asr.py`):
+- **Prompt:** `pick_prompt` chooses among `verbatim`, `recitation` and `mistakes` on the round-1 rule. It takes the most agreement among prompts whose controls hold (one-edit and one-word flagged ≥ 90%, no repeat misses); ties go to more one-edit flagged, then the earlier prompt in that order.
+- **Perturbations:** each window is transcribed six times, at speed 0.9×, 1.0× and 1.1× (ffmpeg `atempo`, pitch kept) × {raw, denoised by DeepFilterNet3 at 48 kHz}. The unperturbed run is first.
+- **Voting:**
+  - The pivot is the medoid transcript (least total alignment cost to the others).
+  - Every transcript is aligned to the pivot on the skeleton. It votes per pivot word (a word, a merged phrase, "covered" or nothing) and per gap (an inserted phrase or nothing).
+  - Votes are clustered at skeleton similarity ≥ 0.75. A pivot word is written if its biggest cluster has at least as many votes as nothing and covered together. An insertion is written only if it outvotes the voters that inserted nothing.
+  - Each written word takes its most common spelling.
+- **Variant:** `rover+qwen+whisper` adds the saved Qwen3 and Whisper transcripts as two more voters.
+
+**Ablation and the bar.**
+- Rows: C1 alone (saved transcripts under `rasm`), C2 alone (ROVER transcripts under the round-1 rule) and C1 + C2 (ROVER under `rasm`). Each also reports one-edit, one-word and shifted flagged, and repeat misses.
+- The bar is `passes_bar`: at least 38/40 agreement, one-edit and one-word flagged ≥ 90%, no repeat misses.
+- If something passes, it becomes a pre-screen option. The default changes only if it clearly beats `nemotron-likelihood` on the bar.
+
+### B. Prompt ablation (preregistered rule, in-sample windows)
+
+Round-1 rule, the same 40 windows and controls. "Flagged" means the control was called mismatch or unsure. Agreement ranges are Wilson 95%.
+
+| Prompt | "Quran" | "repetitions and mistakes" | Agreement | One-edit flagged | One-word flagged | Shifted flagged | Repeat misses | One-edit misses |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `verbatim` (model card, the round-1 decision) | – | – | 23/40 (42–71%) | 38/40 | 29/31 | 40/40 | 0 | `p15-x8`, `e19-x12` |
+| `recitation` | yes | yes | **26/40** (50–78%) | **40/40** | **31/31** | 40/40 | 0 | – |
+| `mistakes` (asked for) | no | yes | 24/40 (45–74%) | 39/40 | 30/31 | 40/40 | 0 | `p15-x8` |
+| `quran` | yes | no | 26/40 (50–78%) | 39/40 | 30/31 | 40/40 | 0 | `p15-x8` |
+| `plain` | no | no | 25/40 (47–76%) | 39/40 | 30/31 | 40/40 | 0 | `p15-x8` |
+
+- **Dropping "Quran" does not help.** `mistakes` loses 2 net against `recitation`: it gains `p10-x6` but loses `e05-x7` (the restart collapsed again), `e08-x1` and `e19-x12`. Without the mistakes clause the pattern repeats: `plain` is 1 below `quran` (`e05-x7`).
+- **The clause does nothing measurable.** `recitation` vs `quran` is +`e19-x12` / −`p10-x6`, and `mistakes` vs `plain` is −`e08-x1`. Both are within noise.
+- **The real gain is leaving the model-card template.** Against `verbatim`, all four "Transcribe this recitation … exactly as recited" prompts recover `e13-x4` and `p12-x7`, and three of the four recover `e08-x1`. All four lose `p06-x1`, which `verbatim` matched. The net is +1 to +3.
+- **`recitation`'s perfect one-edit score is luck.** On `p15-x8` the other three new prompts drop the planted word exactly as `verbatim` did. `recitation` only flags it because it hallucinated a sermon after the planted word (Part A).
+- **Prompt choice is per-window noise, not signal.** 21 windows match under all five prompts and 12 under none. An oracle picking the best prompt per window would reach 28/40.
+- `pick_prompt` chose `recitation` for C2: the most agreement among the prompts with controls ≥ 90% and no repeat misses.
+
+### C. Rasm comparison and ROVER
+
+All rows use the same 40 windows. "C1" is the `rasm` rule, "C2" is ROVER over six perturbed `recitation` transcripts.
+
+| Row | Status | Agreement | One-edit | One-word | Shifted | Repeat misses |
+| --- | --- | --- | --- | --- | --- | --- |
+| Baseline: `recitation`, round-1 rule | exploratory in round 1 | 26/40 (50–78%) | 40/40 | 31/31 | 40/40 | 0 |
+| **C1 alone:** `recitation`, `rasm` | preregistered | 25/40 (47–76%) | 40/40 | 31/31 | 40/40 | 0 |
+| C1 alone: `verbatim`, `rasm` | preregistered | 23/40 (42–71%) | 39/40 | 30/31 | 40/40 | 0 |
+| C1 alone: Qwen3-ASR, `rasm` | preregistered | 5/40 (was 8) | 39/40 | 31/31 | 40/40 | **1 (`p05-x6`, new)** |
+| C1 alone: Whisper, `rasm` | preregistered | 5/40 (was 7) | 36/40 | 31/31 | 40/40 | 4 (as round 1) |
+| **C2 alone:** ROVER, round-1 rule | preregistered | **27/40** (52–80%) | **40/40** | **31/31** | 40/40 | 0 |
+| **C1 + C2:** ROVER, `rasm` | preregistered | 26/40 (50–78%) | 40/40 | 31/31 | 40/40 | 0 |
+| ROVER + Qwen3 + Whisper voters, round-1 or `rasm` | preregistered variant | 26/40 | 40/40 | 31/31 | 40/40 | 0 |
+| ROVER, `rasm-no-edge` / `rasm-no-hamza` / `rasm-phonetic` | sensitivity / sensitivity / exploratory | 25 / 27 / 26 | 40/40 | 31/31 | 40/40 | 0 |
+
+The six ROVER voters on their own, `recitation` prompt, round-1 rule:
+
+| Voter | Raw | Denoised (DeepFilterNet3) |
+| --- | --- | --- |
+| 1.0× | 26/40 (this is the cached `recitation` transcript) | 21/40 |
+| 0.9× | 24/40 (one-edit miss on `e11-x11`) | 19/40 |
+| 1.1× | 25/40 | 20/40 |
+
+Every voter flags all shifted controls and has no repeat misses. In 29 of the 40 windows at least one voter matches, which is the ceiling for any vote over these six.
+
+**Nothing passes the bar.** The best row is ROVER under the round-1 rule: 27/40 with every control flagged, 11 windows short of 38.
+
+#### Why C1 (rasm) loses
+
+The skeleton fixed exactly the two windows Part A predicted, and only with hamza dropped:
+- `e20-x6`: `كلا علام` merges to `كلعلم`;
+- `p03-studio-5`: the session context absorbs the neighbour bleed.
+
+It loses as many elsewhere, for two reasons:
+
+- **Short skeletons make one-letter errors heavier.** With the alifs gone, `مهادا` / `كهادا` becomes `مهد` / `كهد`, 0.67 instead of 0.8, now doubtful (`p12-x7`). In the same way `إنا` / `إننا` is now 0.67 (`e19-x12`). Similarity thresholds tuned on full spellings do not carry over to skeletons. Some of those newly doubtful words were really wrong, for example Qwen and Whisper writing `آلام` (pains) for `آلاء` (bounties), which the round-1 rule accepted at 0.75.
+- **Context words can absorb an unrelated heard word.** On Qwen `p05-x6` the repeat-removed control matches under `rasm`: the edge neighbour `مَعَكُمْ` pairs with a stray heard `آمنوا`, and context words never count. That is a repeat miss the round-1 rule did not have, and it disappears with the edge part off (`rasm-no-edge`). A fix would be to let context words absorb only heard words that match them (sim ≥ 0.75). Making that fix after seeing this result would be tuning on the test, so it was not run.
+
+Phonetic merging changed no Nemotron window. `p05-x6` still fails on `قلوب` → `قلوبهم` even once `فذبطوا` matches.
+
+#### What C2 (ROVER) does
+
+Net +1 against the single `recitation` run.
+
+What it fixed or improved:
+- It fixed `p10-x6`: five of six voters heard `فَانٍ وَيَبْقَى` and outvoted the single run's `فَالْوَاقِعُ`.
+- It moved `e20-x10` from mismatch to unsure.
+
+What it held, sometimes narrowly:
+- It held `e05-x7` only on a 3–3 tie between the raw voters, which kept the broken first attempt, and the denoised ones, which collapsed it into the canonical 26:109.
+- It held `e08-x1` (`لآية` 2 against `لآيتهم` 2 and `لا آتاه` 2).
+
+Nothing it changed let a control through.
+
+- **Denoising hurts.** DeepFilterNet3 costs 5 to 7 matches at every speed. On clean studio windows it pushes the model toward the canonical text: at 1.0× the denoised run loses `e05-x7`, `e08-x1`, `e19-x12`, `e19-x9`, `e12-x3`, `p14-x2` and `p09-studio-317`. On phone copies it causes hallucinations (`p06-phone-173` became `فَإِذَا بَلَغَ الْحُيُولَ …`). At 1.0× it gained only `p10-x6` and `p03-studio-5`. As a result half the voters are worse than the pivot, and the vote mostly restores the raw run rather than improving on it.
+- **Adding Qwen3 and Whisper as voters is a wash (26/40).**
+  - Gains: `p06-x1`, where they outvote the hallucinated `ضل عن سبيلهم` loop, and `p03-studio-5`.
+  - Losses: `p14-x2`, `e08-x1` and `e05-x7`, where their edge drops and collapsed restarts tip close votes.
+- **Errors are correlated.** ROVER only removes errors that differ between perturbations. Nemotron's errors in this set are mostly systematic: the same consonant confusions on both copies of a repeat, the same canonical prior at the planted word, the same edge behaviour. Speed and denoising do not decorrelate them. That is why six voters gain one window.
+
+### Decision
+
+- **Nothing passes, so nothing new is wired.**
+  - The prompt ablation tops out at 26/40.
+  - C1 at 25/40.
+  - C2 at 27/40 (52–80%).
+  - C1 + C2 at 26/40.
+  - Every row keeps its controls, but agreement stays 11 or more windows short of 38/40.
+- **The default stays `nemotron-likelihood`.** It still clears 5 of 40 windows on `v1-check`, so the listener hears 35 of 40.
+  - For comparison, ROVER as a pre-screen would keep 28 of 40: its 13 disagreements, 13 more splices for the seam listen, and a 2-window spot check.
+  - That would save the listener 7 more windows than `nemotron-likelihood` does. But at 27/40 agreement, the cleared windows rest on an opinion that is wrong about a third of the time on correct audio. The bar exists to stop exactly that.
+- **What would change it (speculative):**
+  - The errors left over are mishearings at the planted word and canonical-prior collapses. Neither comparison nor voting fixes those.
+  - The remaining lever is not free transcription. One option is to constrain decoding to the labelled text and its neighbours, which is what arm 2 does. Another is a model fine-tuned on non-canonical recitation, so that its prior stops pulling toward the expected verse.
+
+### Cost and records
+
+- **GPU and cost:**
+  - Modal H100: about 5 min for B (120 transcriptions) and about 7.5 min for the round-2 app. Of those 7.5 min, 3.5 min was the 200 perturbed transcriptions and the rest was the H100 load and CPU stages.
+  - Denoising ran on CPU (8 cores) and took a few minutes.
+  - Roughly $1 in total (estimate).
+- **Records** on the `tilawa-lab` volume:
+  - `/lab/reviews/lab-v1.1/asr-nemotron-{mistakes,quran,plain}-prompt.json`: B, per item;
+  - `asr-nemotron-rover.json`: all six voters per item with prompt, speed, denoise flag and audio sha256, plus the ROVER and ROVER + Qwen + Whisper outputs;
+  - `asr-calibration.nemotron-prompt-ablation.json` and `asr-calibration.round2.json`: every source × rule, with stats and per-item tables;
+  - `rover/denoised/*.wav`: the 40 denoised windows, the inputs behind the recorded hashes.
+- **Tables:** `docs/benchmarks/lab-review-asr-v1-nemotron-prompt-ablation.json`, `docs/benchmarks/lab-review-asr-v1-round2.json` and `docs/benchmarks/lab-review-asr-v1-errors.json` (Part A).
+- **Code:** `rasm`, `compare_rasm`, `edge_context`, `judge_rasm`, `rover`, `calib_stats`, `passes_bar` and `pick_prompt` in `tools/review_asr_core.py`, with tests in `tools/test_review_asr.py`. The run itself is `modal run modal/review_asr.py::round2_main`.

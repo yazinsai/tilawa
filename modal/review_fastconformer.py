@@ -275,7 +275,7 @@ def calibrate(test_set: str, queue_rel: str, reviewer: str, force: bool) -> dict
         table[i]["combined"] = {k: core.combine([table[i][d][k] for d in DECODERS]) for k in ("labelled", "oneEdit", "shifted")}
     stats = {who: core.arm_stats(table, lambda i, k, w=who: table[i][w][k]) for who in (*DECODERS, "combined")}
     for s in stats.values():
-        s["passesBar"] = core.passes_bar(s)
+        s["passesBar"] = core.arm_passes_bar(s)
     summary = {"version": 1, "testSet": test_set, "queue": queue_rel, "reviewer": reviewer, "createdAt": now(), "model": meta,
                "humanVerdicts": sum(r["human"] == "ok" for r in table.values()), "items": len(items), "stats": stats, "table": table}
     _write(REVIEWS / test_set / "asr-calibration.fastconformer.json", summary)
@@ -319,7 +319,7 @@ def likelihood(test_set: str, queue_rel: str, reviewer: str) -> dict:
     for read in ("diac", "plain"):
         for mode in ("pairwise", "nearBest"):
             stats[f"{read}-{mode}"] = core.arm_stats(table, lambda i, k, rd=read, m=mode: table[i][rd][k][m])
-            stats[f"{read}-{mode}"]["passesBar"] = core.passes_bar(stats[f"{read}-{mode}"])
+            stats[f"{read}-{mode}"]["passesBar"] = core.arm_passes_bar(stats[f"{read}-{mode}"])
     meta = {k: v for k, v in res.items() if k != "results"}
     arm = {"createdAt": now(), "model": meta, "margin": core.LIK_MARGIN, "decision": "diac-pairwise",
            "exposed": "per window: the labelled text, its one-edit control and its shifted control; never the label type",

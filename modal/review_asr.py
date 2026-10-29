@@ -45,7 +45,13 @@ NEMOTRON_PROMPTS = {
     "verbatim": "Audio transcription. Language: Arabic. Wording: verbatim, including fillers and repetitions. Formatting: punctuation and capitalization. Output: transcript only.",
     # exploratory
     "recitation": "Transcribe this Quran recitation verbatim, exactly as recited, including repetitions and mistakes. Language: Arabic. Output: transcript only.",
+    # round 2 ablation, fixed before any of them ran: a 2 x 2 of the word "Quran" and the clause "including repetitions and mistakes"
+    "mistakes": "Transcribe this recitation verbatim, exactly as recited, including repetitions and mistakes. Language: Arabic. Output: transcript only.",
+    "quran": "Transcribe this Quran recitation verbatim, exactly as recited. Language: Arabic. Output: transcript only.",
+    "plain": "Transcribe this recitation verbatim, exactly as recited. Language: Arabic. Output: transcript only.",
 }
+ROVER_PERTURB = [(False, 1.0), (False, 0.9), (False, 1.1), (True, 1.0), (True, 0.9), (True, 1.1)]  # (denoised, speed); unperturbed first
+ROVER_PROMPTS = ["verbatim", "recitation", "mistakes"]  # the A/B prompts; the best one by core.pick_prompt is perturbed
 NEMOTRON_CONFIG = {"engine": "transformers", "transformersRevision": TRANSFORMERS_REV, "dtype": "bfloat16", "decoding": "greedy",
                    "enableThinking": False, "systemPrompt": None, "maxNewTokens": 512, "loopGuardrail": "model card cleanup_generation_loops"}
 
@@ -71,6 +77,12 @@ cpu_image = (
     .apt_install("ffmpeg")
     .add_local_file(ROOT / "tools/lab_review_core.py", "/root/lab_review_core.py")
     .add_local_file(ROOT / "tools/review_asr_core.py", "/root/review_asr_core.py")
+)
+denoise_image = (
+    modal.Image.debian_slim(python_version="3.11")
+    .apt_install("ffmpeg", "git")
+    .pip_install("torch==2.1.2", "torchaudio==2.1.2", "numpy<2", "soundfile", "deepfilternet==0.5.6")
+    .add_local_file(ROOT / "tools/lab_review_core.py", "/root/lab_review_core.py")
 )
 app = modal.App("tilawa-review-asr")
 vol = modal.Volume.from_name("tilawa-lab")
@@ -100,6 +112,26 @@ def clip_bytes(clip: dict) -> bytes:
     a, e = clip["startS"], clip["endS"]
     cmd = ["ffmpeg", "-v", "error", "-ss", str(a), "-t", str(e - a), "-i", str(p), "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", "-f", "wav", "-"]
     return lrc.wav_slice(io.BytesIO(subprocess.run(cmd, capture_output=True, check=True).stdout))
+
+
+def _ffmpeg(data: bytes, *args: str, rate: int = 16000) -> bytes:
+    import subprocess
+
+    cmd = ["ffmpeg", "-v", "error", "-i", "-", *args, "-ac", "1", "-ar", str(rate), "-c:a", "pcm_s16le", "-f", "wav", "-"]
+    return subprocess.run(cmd, input=data, capture_output=True, check=True).stdout
+
+
+def audio_bytes(clip: dict) -> bytes:
+    """clip_bytes, optionally perturbed (round 2 ROVER): clip['denoised'] is the DeepFilterNet copy of the same window
+    (written by denoise()), clip['speed'] a pitch-preserving ffmpeg atempo change. Without either it is clip_bytes."""
+    import io
+
+    import lab_review_core as lrc
+
+    data = (REVIEWS / clip["denoised"]).read_bytes() if clip.get("denoised") else clip_bytes(clip)
+    if clip.get("speed", 1.0) != 1.0:
+        data = lrc.wav_slice(io.BytesIO(_ffmpeg(data, "-filter:a", f"atempo={clip['speed']}")))
+    return data
 
 
 def plain(x):
@@ -245,9 +277,11 @@ class Nemotron:
 
         import review_asr_core as core
 
+        if any(c.get("denoised") for c in clips):
+            vol.reload()
         out = []
         for c in clips:
-            data = clip_bytes(c)
+            data = audio_bytes(c)
             t0 = time.time()
             inputs = self._inputs(data, prompt)
             n = inputs["input_ids"].shape[1]
@@ -301,7 +335,43 @@ class Nemotron:
 
 MODELS = {"qwen3-asr-1.7b": (qwen, {}), "whisper-large-v3": (whisper, {}),
           "nemotron-3.5-transcribe": (Nemotron().transcribe, {"prompt": "verbatim"}),
-          "nemotron-recitation-prompt": (Nemotron().transcribe, {"prompt": "recitation"})}
+          "nemotron-recitation-prompt": (Nemotron().transcribe, {"prompt": "recitation"}),
+          **{f"nemotron-{p}-prompt": (Nemotron().transcribe, {"prompt": p}) for p in ("mistakes", "quran", "plain")}}
+PROMPT_RECORDS = {"verbatim": "nemotron-3.5-transcribe", "recitation": "nemotron-recitation-prompt",
+                  **{p: f"nemotron-{p}-prompt" for p in ("mistakes", "quran", "plain")}}
+
+
+@app.function(image=denoise_image, volumes={VOL: vol}, timeout=60 * 60, cpu=8, memory=16 * 1024)
+def denoise(test_set: str, clips: list[dict]) -> dict:
+    """DeepFilterNet3 speech enhancement of each review window (16 kHz -> 48 kHz -> enhanced -> 16 kHz PCM16), written to
+    /lab/reviews/<testSet>/rover/denoised/<id>.wav for audio_bytes. clips: [{id, path, startS, endS}]."""
+    import importlib.metadata
+    import io
+
+    import lab_review_core as lrc
+    import soundfile as sf
+    import torch
+    from df.enhance import enhance, init_df
+
+    model, state = init_df()[:2]
+    out = {}
+    for c in clips:
+        data = clip_bytes(c)
+        t0 = time.time()
+        x, sr = sf.read(io.BytesIO(_ffmpeg(data, rate=48000)), dtype="float32")
+        assert sr == state.sr() and x.ndim == 1
+        y = enhance(model, state, torch.from_numpy(x)[None]).squeeze(0).numpy()
+        buf = io.BytesIO()
+        sf.write(buf, y, sr, format="WAV", subtype="FLOAT")
+        clean = lrc.wav_slice(io.BytesIO(_ffmpeg(buf.getvalue())))
+        rel = f"{test_set}/rover/denoised/{c['id']}.wav"
+        (REVIEWS / rel).parent.mkdir(parents=True, exist_ok=True)
+        (REVIEWS / rel).write_bytes(clean)
+        out[c["id"]] = {"denoised": rel, "inSha256": hashlib.sha256(data).hexdigest(), "sha256": hashlib.sha256(clean).hexdigest(),
+                        "seconds": round(time.time() - t0, 2)}
+    vol.commit()
+    return {"model": "DeepFilterNet3 (init_df default)", "package": importlib.metadata.version("deepfilternet"), "torch": str(torch.__version__),
+            "items": out}
 
 
 def _transcribe(test_set: str, items: list[dict], models: list[str], force: bool, record: str) -> dict[str, dict]:
@@ -509,6 +579,105 @@ def likelihood(test_set: str, queue_rel: str, reviewer: str, record: str = "nemo
     return summary
 
 
+@app.function(image=cpu_image, volumes={VOL: vol}, timeout=3 * 60 * 60)
+def round2(test_set: str, queue_rel: str, reviewer: str, perturb: bool, force: bool = False) -> dict:
+    """Round 2 (ticket 12). C1: every saved transcript re-judged by the rasm rule (core.judge_rasm with the session's edge
+    words), next to the round-1 rule. C2 (perturb): the prompt chosen by core.pick_prompt among ROVER_PROMPTS (on the
+    round-1 rule) is run on each window under ROVER_PERTURB; core.rover votes the six transcripts into one, also with
+    the Qwen3 and Whisper transcripts as two extra voters. Every transcript source is judged by every rule on the
+    labelled text and its controls. Writes asr-nemotron-rover.json and asr-calibration.round2.json."""
+    import review_asr_core as core
+
+    queue = json.loads((DATA / queue_rel).read_text())
+    verdicts = json.loads((REVIEWS / test_set / f"{reviewer}.json").read_text())["items"]
+    items = queue["items"]
+    sessions = {}
+    for it in items:
+        sid = core.session_id(it)
+        if sid not in sessions and (p := DATA / test_set / "sessions" / f"{sid}.json").is_file():
+            sessions[sid] = json.loads(p.read_text())
+    ctrl = core.controls(queue, sessions)
+    edge = {it["id"]: core.edge_context(it, sessions.get(core.session_id(it))) for it in items}
+    texts = {it["id"]: {"labelled": it["text"], "oneEdit": ctrl[it["id"]]["oneEdit"]["text"], "shifted": ctrl[it["id"]]["shifted"]["text"]} for it in items}
+    ok = [it["id"] for it in items if verdicts.get(it["id"], {}).get("verdict") == "ok"]
+    rules = {"round1": lambda t, h, i: core.compare(t, h),
+             "rasm": lambda t, h, i: core.judge_rasm(t, h, edge[i]),
+             "rasm-no-edge": lambda t, h, i: core.compare_rasm(t, h),
+             "rasm-no-hamza": lambda t, h, i: core.judge_rasm(t, h, edge[i], hamza=False),
+             "rasm-phonetic": lambda t, h, i: core.judge_rasm(t, h, edge[i], phonetic=True)}
+
+    def evaluate(heard: dict[str, str]) -> dict:
+        res = {}
+        for name, fn in rules.items():
+            table = {}
+            for it in items:
+                i = it["id"]
+                d = {k: fn(texts[i][k], heard[i], i) for k in texts[i]}
+                table[i] = {**{k: v["decision"] for k, v in d.items()}, "reasons": d["labelled"]["reasons"],
+                            "oneEditEdit": ctrl[i]["oneEdit"]["edit"], "oneEditWords": ctrl[i]["oneEdit"].get("words", 1)}
+            st = core.calib_stats(table, ok)
+            res[name] = {"stats": st, "passes": core.passes_bar(st), "table": table}
+        return res
+
+    recs = {}
+    for name in ["qwen3-asr-1.7b", "whisper-large-v3", *PROMPT_RECORDS.values()]:
+        if (p := REVIEWS / test_set / f"asr-{name}.json").is_file():
+            recs[name] = json.loads(p.read_text())
+    sources = {name: {"transcripts": {i: r["items"][i]["transcript"] for i in texts}} for name, r in recs.items()}
+    for name, s in sources.items():
+        s["rules"] = evaluate(s["transcripts"])
+    pick = core.pick_prompt({p: sources[PROMPT_RECORDS[p]]["rules"]["round1"]["stats"] for p in ROVER_PROMPTS if PROMPT_RECORDS[p] in sources})
+    out = {"version": 1, "testSet": test_set, "queue": queue_rel, "reviewer": reviewer, "createdAt": now(), "humanVerdicts": len(ok),
+           "rule": {**rule(core), "edgeTol": core.EDGE_TOL, "rasmGroup": core.RASM_GROUP, "rasmMergeSim": core.RASM_MERGE_SIM,
+                    "source": "tools/review_asr_core.py compare / judge_rasm / rover / calib_stats / passes_bar / pick_prompt"},
+           "edgeContext": edge, "roverPrompt": pick}
+    if perturb:
+        rec_path = REVIEWS / test_set / "asr-nemotron-rover.json"
+        old = json.loads(rec_path.read_text()) if rec_path.is_file() and not force else {"items": {}}
+        den = denoise.remote(test_set, [{"id": it["id"], **it["audio"]} for it in items])
+        vol.reload()
+        base = recs[PROMPT_RECORDS[pick]]
+        clips, have = [], {}
+        for it in items:
+            for dn, speed in ROVER_PERTURB:
+                key = f"{it['id']}|{'denoised' if dn else 'raw'}|{speed:g}"
+                clip = {"id": key, **it["audio"], "speed": speed, **({"denoised": den["items"][it["id"]]["denoised"]} if dn else {})}
+                sha = hashlib.sha256(audio_bytes(clip)).hexdigest()
+                prev = old["items"].get(key) or (base["items"][it["id"]] if (dn, speed) == (False, 1.0) else None)
+                if prev and prev.get("audioSha256") == sha and old.get("promptKey", pick) == pick:
+                    have[key] = {k: v for k, v in prev.items() if k in ("audioSha256", "transcript", "raw", "seconds")}
+                else:
+                    clips.append(clip)
+        res = Nemotron().transcribe.remote(clips, pick) if clips else None
+        if res and res["revision"] != base["model"]["revision"]:
+            raise RuntimeError(f"perturbed transcripts from {res['revision']}, base from {base['model']['revision']}")
+        for r in (res or {}).get("results", []):
+            have[r["id"]] = {k: v for k, v in r.items() if k != "id"}
+        hyps, rv, rv8 = {}, {}, {}
+        for it in items:
+            i = it["id"]
+            hyps[i] = [have[f"{i}|{'denoised' if dn else 'raw'}|{speed:g}"]["transcript"] for dn, speed in ROVER_PERTURB]
+            rv[i] = core.rover(hyps[i])
+            rv8[i] = core.rover(hyps[i] + [sources["qwen3-asr-1.7b"]["transcripts"][i], sources["whisper-large-v3"]["transcripts"][i]])
+        for k, (dn, speed) in enumerate(ROVER_PERTURB):
+            sources[f"perturbed {'denoised' if dn else 'raw'} {speed:g}x"] = {"transcripts": {i: hyps[i][k] for i in hyps}}
+        sources["rover"] = {"transcripts": {i: rv[i]["transcript"] for i in rv}}
+        sources["rover+qwen+whisper"] = {"transcripts": {i: rv8[i]["transcript"] for i in rv8}}
+        for name in [n for n in sources if "rules" not in sources[n]]:
+            sources[name]["rules"] = evaluate(sources[name]["transcripts"])
+        meta = {k: v for k, v in (res or {}).items() if k != "results"} or old.get("model") or base["model"]
+        _write(rec_path, {"version": 1, "testSet": test_set, "queue": queue_rel, "createdAt": now(), "model": meta, "promptKey": pick,
+                          "prompt": NEMOTRON_PROMPTS[pick], "perturbations": [{"denoised": dn, "speed": s} for dn, s in ROVER_PERTURB],
+                          "denoiser": {k: v for k, v in den.items() if k != "items"}, "denoised": den["items"],
+                          "items": have, "rover": {i: {"hyps": hyps[i], **rv[i]} for i in rv},
+                          "roverWithQwenWhisper": {i: {"transcript": rv8[i]["transcript"], "pivot": rv8[i]["pivot"]} for i in rv8},
+                          "decisions": {n: {r: v["table"] for r, v in sources[n]["rules"].items()} for n in sources if n.startswith(("perturbed", "rover"))}})
+    out["sources"] = {n: {"transcripts": s["transcripts"], "rules": s["rules"]} for n, s in sources.items()}
+    _write(REVIEWS / test_set / "asr-calibration.round2.json", out)
+    vol.commit()
+    return out
+
+
 def rule(core) -> dict:
     return {"okSim": core.OK_SIM, "wrongSim": core.WRONG_SIM, "mergeSim": core.MERGE_SIM, "edgeFree": core.EDGE_FREE,
             "combine": "all match -> match; any mismatch and none match -> mismatch; else unsure", "source": "tools/review_asr_core.py"}
@@ -612,6 +781,31 @@ def likelihood_main(test_set: str = "lab-v1.1", queue: str = "lab-v1.1/review/v1
         print(f"{who:14} agree {a['k']}/{a['n']} {a['ci95']}  one-edit flagged {o['flagged']['k']}/{o['flagged']['n']}  one-word flagged "
               f"{w['flagged']['k']}/{w['flagged']['n']}  shifted flagged {sh['flagged']['k']}/{sh['flagged']['n']}  repeat misses {st['repeatMisses']}")
     print(f"wrote {out} and /lab/reviews/{test_set}/asr-{record}.json (likelihood)")
+
+
+@app.local_entrypoint()
+def round2_main(test_set: str = "lab-v1.1", queue: str = "lab-v1.1/review/v1-check.json", reviewer: str = "me", perturb: bool = False,
+                force: bool = False, out: str = "docs/benchmarks/lab-review-asr-v1-round2.json"):
+    s = round2.remote(test_set, queue, reviewer, perturb, force)
+    slim = {**s, "sources": {n: {r: {k: v for k, v in x.items() if k != "table"} | {"decisions": {i: {k: t[k] for k in ("labelled", "oneEdit", "shifted")}
+                                                                                                  for i, t in x["table"].items()}}
+                                     for r, x in src["rules"].items()} for n, src in s["sources"].items()}}
+    (ROOT / out).write_text(json.dumps(slim, ensure_ascii=False, indent=1) + "\n")
+    print("rover prompt:", s["roverPrompt"])
+    for n, src in s["sources"].items():
+        for r, x in src["rules"].items():
+            st = x["stats"]
+            print(f"{n:34} {r:14} agree {st['agreement']['k']:2}/{st['agreement']['n']}  one-edit {st['oneEdit']['k']}/{st['oneEdit']['n']}  "
+                  f"one-word {st['oneWord']['k']}/{st['oneWord']['n']}  shifted {st['shifted']['k']}/{st['shifted']['n']}  "
+                  f"repeat misses {st['repeatMisses']}{'  PASSES' if x['passes'] else ''}")
+    print(f"wrote {out} and /lab/reviews/{test_set}/asr-calibration.round2.json")
+
+
+@app.local_entrypoint()
+def denoise_smoke(path: str = "lab-v1.1/sessions/lab-v1.1-e20.phone.wav", start: float = 0.0, end: float = 8.0):
+    """The denoiser on one window outside any review queue."""
+    r = denoise.remote("smoke", [{"id": "smoke", "path": path, "startS": start, "endS": end}])
+    print(json.dumps(r, ensure_ascii=False))
 
 
 @app.function(image=nemotron_image, timeout=20 * 60)
