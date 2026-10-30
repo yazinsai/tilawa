@@ -405,8 +405,9 @@ def web():
 
         return M.view(item, load)
 
-    # Scripted-error recordings (ticket 18). This container is the only writer of takes and their metadata; results
-    # come from the processing app's containers.
+    # Scripted-error recordings (ticket 18). This container is the only writer of uploads and their metadata (a fix's
+    # take number is held from its upload); results, and a fix's composed audio and joins, come from the processing
+    # app's containers.
 
     import shutil
 
@@ -432,9 +433,12 @@ def web():
         except ValueError as e:
             raise HTTPException(400, str(e))
 
+    FIX_KEYS = ("base", "from", "to", "patch", "patchS", "patchCheck", "joins", "gainDb", "suggest")
+
     def speaker_takes(speaker: str) -> dict:
-        """script id -> this speaker's takes, newest first: metadata plus the processing result (or `processing`)."""
-        out = {}
+        """script id -> this speaker's takes, newest first: metadata plus the processing result (or `processing`). A
+        fix carries what it fixed and how it was joined; a take that failed in a few ayahs, the passages to fix."""
+        out, scripts = {}, rec_scripts()
         d = RECORD / speaker
         for p in sorted(d.glob("*/take-*.json")) if d.is_dir() else []:
             if p.name.endswith(".result.json"):
@@ -443,11 +447,16 @@ def web():
             if not m:
                 continue
             r = read_json(p.with_name(p.name.replace(".json", ".result.json"))) or {}
+            sc, tdir = scripts.get(m["script"]), rec.take_dir(speaker, m["script"])
             t = {"take": m["take"], "uploadedAt": m["uploadedAt"], "scriptSha": m["scriptSha"], "device": m.get("device"), "bytes": m["bytes"],
-                 "upload": f"{rec.take_dir(speaker, m['script'])}/take-{m['take']}.{m['ext']}", "verdict": r.get("verdict", "processing"),
+                 "upload": f"{tdir}/take-{m['take']}.{m['ext']}", "verdict": r.get("verdict", "processing"),
                  "why": r.get("why", []), "audioS": r.get("audioS"), "sessionId": r.get("sessionId"), "processedAt": r.get("processedAt"),
                  "plants": [{k: x.get(k) for k in ("id", "n", "class", "ayah", "status", "reasons", "llr")} for x in r.get("plants", [])],
-                 "flagged": [a["key"] for a in r.get("ayahs", []) if a.get("flag")]}
+                 "flagged": [a["key"] for a in r.get("ayahs", []) if a.get("flag")],
+                 "fixable": rec.fix_ranges(sc, r) if sc and sc["sha"] == m["scriptSha"] else []}
+            if m.get("fix"):
+                fx = {**m["fix"], **(r.get("fix") or {})}
+                t["fix"] = {k: fx.get(k) for k in FIX_KEYS} | {"patch": f"{tdir}/{m['fix']['patch']}"}
             out.setdefault(m["script"], []).append(t)
         return {k: sorted(v, key=lambda t: -t["take"]) for k, v in out.items()}
 
@@ -485,11 +494,18 @@ def web():
         except ValueError as e:
             raise HTTPException(415, str(e))
         d = DATA / rec.take_dir(speaker, x["id"])
+        fix = None
+        if fields.get("fixOf"):  # a fix: only some ayahs of take `fixOf`, recorded again to be joined into it
+            base = int(fields["fixOf"]) if fields["fixOf"].isdigit() else 0
+            try:
+                fix = rec.fix_request(x, read_json(d / f"take-{base}.json"), read_json(d / f"take-{base}.result.json"), fields.get("fixFrom"), fields.get("fixTo"))
+            except ValueError as e:
+                raise HTTPException(409, str(e))
         with cond:
             d.mkdir(parents=True, exist_ok=True)
             n = rec.next_take([p.name for p in d.iterdir()])
             files = rec.take_files(speaker, x["id"], n, ext)
-            dst = DATA / files["upload"]
+            dst = DATA / (rec.fix_files(speaker, x["id"], n, ext)["patch"] if fix else files["upload"])
             tmp = dst.with_name(dst.name + ".tmp")
             with tmp.open("wb") as out:
                 shutil.copyfileobj(audio.file, out, 1 << 20)
@@ -498,12 +514,12 @@ def web():
                 tmp.unlink()
                 raise HTTPException(413 if size > rec.MAX_UPLOAD else 400, f"the recording is {size} bytes")
             try:
-                meta = rec.take_meta(fields, x, n, ext, datetime.now(timezone.utc).isoformat(timespec="seconds"), size)
+                meta = rec.take_meta(fields, x, n, ext, datetime.now(timezone.utc).isoformat(timespec="seconds"), size, fix)
             except ValueError as e:
                 tmp.unlink()
                 raise HTTPException(409, str(e))
             tmp.replace(dst)
-            (DATA / files["meta"]).write_text(rec.dumps(meta))
+            (DATA / rec.take_files(speaker, x["id"], n, meta["ext"])["meta"]).write_text(rec.dumps(meta))
         commit_now()
         return {"take": n, "meta": meta, "processing": spawn(speaker, x["id"], n)}
 
