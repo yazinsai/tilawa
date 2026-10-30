@@ -89,7 +89,8 @@ def finish(test_set: str, ids: list[str], results: list[dict], errors: list[str]
         "sessions": [{"id": i, "reciter": rec[i], "variants": {r["variant"]: r for r in results if r["session"] == i}} for i in ids],
     }
     q_path, keep = base / "review/v1-check.json", base / "review/v1-check.base.json"
-    original = S.review_queue([sessions[k] for k in every], S.Ref(L.reference()))
+    own = [sessions[k] for k in every if sessions[k]["meta"]["testSet"] == test_set]  # not sessions kept from an earlier version (lab_sessions.FROZEN)
+    original = S.review_queue(own, S.Ref(L.reference()))
     if original != json.loads(q_path.read_text()) and not (keep.exists() and original == json.loads(keep.read_text())):
         raise RuntimeError("the builder's review queue no longer reproduces review/v1-check.json; not rewriting it")
     queue, changes = C.review_with_failures(original, sessions, report["failed"], test_set)
