@@ -4,7 +4,7 @@
     modal run modal/lab_decode.py --listener teacher --test-set realuser/clips --variants phone
     modal run modal/lab_realuser.py --action build     # verify each clip against its label, plan and join the sessions
     modal run modal/lab_decode.py --listener teacher --test-set realuser-v1 --variants phone
-    modal run modal/lab_realuser.py --action label     # check each session, label it, write the manifest and the queue
+    modal run modal/lab_realuser.py --action label     # check each session, label it, write the manifest, the queue and the seam flags
     modal run modal/lab_decode.py --listener spliced-clean-int8 --model models/spliced-clean-int8 --test-set realuser-v1 --variants phone
     modal run modal/lab_realuser.py --action join --base lab-v1.4 --name lab-v1.4u   # a test set with the realuser slice
 
@@ -378,12 +378,27 @@ def label_all() -> dict:
     kept = {c for s in sessions for c in (x["id"] for x in s["meta"]["clips"])}
     m = U.manifest(sessions)
     write(ts / "manifest-v1.json", U.dumps(m))
+    write(ts / "flags-v1.json", U.dumps(U.seam_exclusions(sessions)))
     write(ts / "review/flagged.json", U.dumps(U.flagged_queue(sessions)))
     summ = {"version": 1, "testSet": U.TEST_SET, "createdAt": now(), "sources": doc["sources"],
             "perSource": U.summary(doc["found"], [c for c in doc["clips"] if c["id"] in kept], dropped, sessions), "failedSessions": failed}
     write(ts / "summary-v1.json", U.dumps(summ))
     vol.commit()
     return {"sessions": len(sessions), "failed": failed[:10], "perSource": summ["perSource"]}
+
+
+@app.function(**fn, cpu=2, memory=8192)
+def seams() -> dict:
+    """flags-v1.json of realuser-v1 from its labelled sessions: a window around every jump seam (`seam_exclusions`)."""
+    import lab_realuser_core as U
+
+    vol.reload()
+    ts = DATA / U.TEST_SET
+    sessions = [read(ts / e["label"]) for e in read(ts / "manifest-v1.json")["sessions"]]
+    x = U.seam_exclusions(sessions)
+    write(ts / "flags-v1.json", U.dumps(x))
+    vol.commit()
+    return {"windows": len(x["excluded"]), "sessions": len({e["session"] for e in x["excluded"]})}
 
 
 # ---- join ---------------------------------------------------------------------------------------------------------
@@ -439,6 +454,8 @@ def main(action: str, base: str = "", name: str = ""):
         print(json.dumps(build.remote(), indent=1))
     elif action == "label":
         print(json.dumps(label_all.remote(), indent=1, ensure_ascii=False))
+    elif action == "seams":
+        print(json.dumps(seams.remote(), indent=1))
     elif action == "join":
         if not base or not name:
             raise SystemExit("--base <test set> and --name <new test set> are required")

@@ -521,6 +521,20 @@ def join(base: dict, real: dict, prefix: str = "sessions/") -> dict:
     return {**base, "sessions": base["sessions"] + out, "realuser": {"from": real["testSet"], "sessions": len(out)}}
 
 
+SEAM_EXCLUDE_S = (1.0, 3.0)  # a jump seam's window, before and after it
+
+
+def seam_exclusions(sessions: list[dict], test_set: str = TEST_SET, extra: list[dict] = ()) -> dict:
+    """A `LabExclusions` list (lab.ts) with a window around every jump seam: where joined clips skip ahead or go
+    elsewhere, the joined audio reads as a skipped passage that no reciter made (a clip the source lacks, or another
+    recording), so the engine's calls there are about the join. `extra`: review verdicts' windows to add."""
+    a, b = SEAM_EXCLUDE_S
+    out = [{"session": s["id"], "startS": round(max(0.0, x["atS"] - a), 3), "endS": round(min(s["durationS"], x["atS"] + b), 3), "verdict": "bad_splice",
+            "note": f"join seam: the clips jump here (before {x['before']})", "item": f"seam-{s['id']}-{x['atS']}"}
+           for s in sorted(sessions, key=lambda s: s["id"]) for x in s["meta"]["seams"] if x["kind"] == "jump"]
+    return {"version": 1, "kind": "lab-flags", "testSet": test_set, "base": test_set, "excluded": out + list(extra)}
+
+
 def flagged_queue(sessions: list[dict], root: str = TEST_SET) -> dict:
     """Practice ayahs the teacher hears differently from their label (likely real user mistakes) and practice
     sobolev reviewer tags, as a ticket 06 review queue. Exam sessions are never queued."""

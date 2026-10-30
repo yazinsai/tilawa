@@ -681,3 +681,19 @@ def triage_main(test_set: str = "lab-v1.4", vendor: str = "soniox", spot_edits: 
     for q in (r["confirm"], r["queue"]):
         print(f"queue https://amal-invest--tilawa-lab-review-web.us-east.modal.run/review?queue={q}")
     print(f"wrote {out}")
+
+
+@app.function(image=image, volumes={VOL: vol}, timeout=60 * 60, cpu=2, memory=4096)
+def transcribe_items(vendor: str, test_set: str, items: list[dict], force: bool = False) -> dict:
+    vol.reload()
+    return {i: {k: r.get(k) for k in ("transcript", "audioSha256", "durationS", "costUsd", "error")} for i, r in transcribe(vendor, test_set, items, force).items()}
+
+
+@app.local_entrypoint()
+def items_main(file: str, test_set: str, vendor: str = "soniox", out: str = "", force: bool = False):
+    """Transcripts of listed windows ([{id, audio: {path under /lab/data, startS, endS}}] in `file`), kept in
+    /lab/reviews/<test_set>/asr-<vendor>.json like every other queue's; the transcripts go to `out` (default stdout)."""
+    items = json.loads(Path(file).read_text())
+    r = transcribe_items.remote(vendor, test_set, items, force)
+    text = json.dumps(r, ensure_ascii=False, indent=1) + "\n"
+    Path(out).write_text(text) if out else print(text)

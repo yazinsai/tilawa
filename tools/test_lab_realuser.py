@@ -140,3 +140,11 @@ def test_best_span_finds_the_words_a_chunk_holds():
     assert (i, j, per) == (3, 8, 0.0)
     v = U.verify_clip(heard, "".join(words[3:7]), [""], None, (ids[i], ids[j], per))
     assert v["status"] == "relabel" and v["span"] == [ids[3], ids[8]]
+
+
+def test_seam_exclusions_cover_jump_seams_only():
+    s = {"id": "x", "durationS": 20.0, "meta": {"seams": [{"atS": 4.0, "kind": "jump", "before": "c1"}, {"atS": 9.0, "kind": "contiguous", "before": "c2"},
+                                                         {"atS": 19.5, "kind": "jump", "before": "c3"}]}}
+    x = U.seam_exclusions([s], extra=[{"session": "x", "startS": 1.0, "endS": 2.0, "verdict": "bad_audio"}])
+    assert x["kind"] == "lab-flags" and x["base"] == x["testSet"] == U.TEST_SET
+    assert [(e["startS"], e["endS"]) for e in x["excluded"]] == [(3.0, 7.0), (18.5, 20.0), (1.0, 2.0)]
