@@ -143,7 +143,7 @@
   },
   {
    "kind": "main",
-   "at": "2026-10-30T09:22:02+00:00",
+   "at": "2026-10-30T09:22:05+00:00",
    "sha": "c1f62e7",
    "testSet": "lab-v1.4.v2",
    "experiment": "checker-fewer-false-wrong",
@@ -167,7 +167,7 @@
   },
   {
    "kind": "experiment",
-   "at": "2026-10-30T09:22:02+00:00",
+   "at": "2026-10-30T09:22:05+00:00",
    "id": "checker-fewer-false-wrong",
    "component": "checker",
    "hypothesis": "A wrong word whose changed sounds the decoder heard at mean confidence below 0.8 must beat the written word by 2x SUPPORT (20 nats): phone mishearings of confusable sounds (ن/م, ف/ك) sit at even odds with blank yet sum past 10 nats; expect listener-charged false wrong words -5 (6 -> 1), lost-by-checker 0, no planted wrong word lost",
@@ -202,6 +202,70 @@
      "listener": 19,
      "tracker": 2,
      "checker": 31
+    }
+   }
+  },
+  {
+   "kind": "main",
+   "at": "2026-10-30T12:08:49+00:00",
+   "sha": "99dc36e",
+   "testSet": "lab-v1.4.v2",
+   "experiment": "checker-ayah-start-omissions",
+   "note": "Phonemes marked as a non-Quran phrase cost a hair above nothing to insert, so where the written word explains them as well (waqf endings like ٱلْعَـٰلَمِينَ, ٱلْبَاقِينَ, حِينٍ that the آمين check matches) the alignment reads the word: an ayah-initial omission after it is no longer pinned on that word; expect 6 of the 8 checker-charged ayah-initial omission misses caught and their 5 misplaced warnings gone, checker -9, overall -9",
+   "practice": {
+    "wrongCalls": 22,
+    "missed": 17,
+    "falseWarnings": 5,
+    "listener": 12,
+    "tracker": 2,
+    "checker": 8
+   },
+   "exam": {
+    "wrongCalls": 40,
+    "missed": 25,
+    "falseWarnings": 15,
+    "listener": 21,
+    "tracker": 2,
+    "checker": 17
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-30T12:08:49+00:00",
+   "id": "checker-ayah-start-omissions",
+   "component": "checker",
+   "hypothesis": "Phonemes marked as a non-Quran phrase cost a hair above nothing to insert, so where the written word explains them as well (waqf endings like ٱلْعَـٰلَمِينَ, ٱلْبَاقِينَ, حِينٍ that the آمين check matches) the alignment reads the word: an ayah-initial omission after it is no longer pinned on that word; expect 6 of the 8 checker-charged ayah-initial omission misses caught and their 5 misplaced warnings gone, checker -9, overall -9",
+   "expected": {
+    "component": -9,
+    "overall": -9
+   },
+   "state": "folded",
+   "testSet": "lab-v1.4.v2",
+   "note": "keeps its overall and checker gain",
+   "branch": {
+    "wrongCalls": 22,
+    "missed": 17,
+    "falseWarnings": 5,
+    "listener": 12,
+    "tracker": 2,
+    "checker": 8
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 22,
+     "missed": 17,
+     "falseWarnings": 5,
+     "listener": 12,
+     "tracker": 2,
+     "checker": 8
+    },
+    "exam": {
+     "wrongCalls": 40,
+     "missed": 25,
+     "falseWarnings": 15,
+     "listener": 21,
+     "tracker": 2,
+     "checker": 17
     }
    }
   }
