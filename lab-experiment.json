@@ -1,7 +1,7 @@
 {
  "id": "checker-listener-noise",
  "component": "checker",
- "hypothesis": "Checker word-gap alignment is brittle to listener noise: use cheap doubled-sound edits and a bounded contiguous-insertion cost, and require heard coverage before treating an omitted word as visited. Predict five fewer practice wrong calls, mostly currently listener-attributed (checker attribution delta 0); preserve the oracle-only checker and clean-audio false-warning rates.",
+ "hypothesis": "Checker word-gap alignment is brittle to listener noise: charge repeated inserted sounds and shortened doubles as held sounds, reject isolated-phoneme visits, and keep vowel-only residue from erasing an omission. Predict five fewer practice wrong calls, mostly currently listener-attributed (checker attribution delta 0); preserve the oracle-only checker and clean-audio false-warning rates.",
  "expected": {
   "component": 0,
   "overall": -5

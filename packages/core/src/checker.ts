@@ -329,7 +329,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       costHi = hi;
       rowCosts.clear();
       delCost = new Float64Array(hi - lo);
-      for (let i = 0; i < hi - lo; i++) delCost[i] = deletionCost(ref, lo + i);
+      for (let i = 0; i < hi - lo; i++) {
+        const at = lo + i;
+        // The listener can shorten any doubled sound, including a shadda, without dropping the word.
+        delCost[i] = ref[at] === ref[at - 1] || ref[at] === ref[at + 1] ? HELD : deletionCost(ref, at);
+      }
     }
     const a0 = words[anchor!].start - lo;
     const n = hi - lo;
@@ -362,6 +366,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (let j = 1; j <= m; j++) {
       const p = obs[j - 1].p;
       const { sub, ins: insCost } = costsFor(p);
+      // A repeated decoded sound can be lengthening even at a word edge, where the reference has no matching run.
+      // Use the same held-sound charge as judging; keep ordinary insertion costs for unrelated speech.
+      const noise = p === obs[j - 2]?.p ? HELD : UNIT;
       const row = j * w;
       const prev = row - w;
       for (let i = 0; i <= n; i++) {
@@ -371,7 +378,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
           best = d[prev + i - 1] + sub[i - 1];
           o = OP_DIAG;
         }
-        const ins = d[prev + i] + (obs[j - 1].junk ? PHRASE : j <= lead && i === a0 ? LEAD : insCost[i]);
+        const ins = d[prev + i] + (obs[j - 1].junk ? PHRASE : j <= lead && i === a0 ? LEAD : Math.min(insCost[i], noise));
         if (ins < best) {
           best = ins;
           o = j <= lead && i === a0 ? OP_LEAD : OP_INS;
@@ -600,8 +607,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (const x of within) resplit(x.issue, x.v, x.after);
 
     const length = (wi: number) => words[wi].end - words[wi].start;
-    // Vowels and madd alone, every consonant lost, aren't the word: a decoder's held sound can align onto a dropped one.
-    const counts = (v: Visit) => v.consumed > 0 && v.covered / length(v.word) >= MIN_COVERAGE && (v.kept > 0 || !hasConsonant(v.word));
+    // Vowels alone or one isolated consonant aren't a multi-phoneme word: a neighbour's noisy onset can land on it.
+    const counts = (v: Visit) => v.consumed > 0 && v.covered / length(v.word) >= MIN_COVERAGE &&
+      (hasConsonant(v.word) ? v.kept > 0 && v.consumed >= Math.min(2, length(v.word)) : true);
     /** Each word's last counting visit, and whether any counting visit got it right. */
     const last = new Map<number, Visit>();
     const right = new Set<number>();
@@ -624,7 +632,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       // don't count against that, a garbled word can look like "amin".
       const said = after ? obs.slice(gap.obsFrom, after.obsFrom) : [];
       const expected = words[gap.last].end - words[gap.word].start;
-      if (said.length >= Math.max(MIN_ADDED, expected / 2)) {
+      if (said.length >= Math.max(MIN_ADDED, expected / 2) && said.some((p) => CONSONANTS.has(p.p))) {
         if (wrong(scoreGap(gap.word, gap.last, said), gap.last)) {
           issues.set(gap.word, { ...gap, cls: "wrong_word", obsTo: after!.obsFrom, observed: said.map((p) => p.p).join("") });
         }
