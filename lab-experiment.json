@@ -1,0 +1,13 @@
+{
+ "id": "checker-added-words",
+ "component": "checker",
+ "hypothesis": "An added word found inside a word (often a waqf word said alone at an ayah pause) takes that word's edge with it, so the local-window check tests the wrong text: re-split the heard phonemes so the word keeps its best fit",
+ "expected": {
+  "component": -8,
+  "overall": -5
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.4.v2",
+ "created": "2026-10-30T03:13:09+00:00",
+ "author": "Yazin"
+}
