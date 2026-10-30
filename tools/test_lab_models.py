@@ -42,6 +42,8 @@ def test_diff_marks_changed_missing_and_extra_words():
 def test_diff_merges_words_heard_split_or_joined():
     d = M.word_diff("يَـٰٓأَيُّهَا ٱلنَّاسُ", "يا أيها الناس")
     assert ops(d) == [("same", "يَـٰٓأَيُّهَا", "يا أيها"), ("same", "ٱلنَّاسُ", "الناس")]
+    d = M.word_diff("هَـٰذَا مِن كَلَّآ قَبْلُ", "هذا منك لا قبل")  # the same letters split elsewhere, as the Soniox judge reads them
+    assert ops(d)[1] == ("same", "مِن كَلَّآ", "منك لا") and d["summary"] == "Every labelled word heard, nothing extra"
 
 
 def test_diff_edges_are_marked_and_not_counted():

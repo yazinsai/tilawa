@@ -107,12 +107,14 @@ def records(item: dict, load) -> dict | None:
 
 # ---- word diff -----------------------------------------------------------------------------------------------------
 
-MERGE_COST = 0.1  # one word heard as two or two as one, when the space-free skeletons are identical
+MERGE_COST, MERGE_MAX = 0.1, 3  # words heard split, joined or split elsewhere (up to 3 a side), when the space-free skeletons are identical
 
 
 def _align(ref: list[tuple[str, str]], hyp: list[tuple[str, str]]) -> list[dict]:
-    """Word edit alignment of (word, skeleton) lists: a pair costs 1 - similarity, a missing or extra word 1, a 1:2 or
-    2:1 merge with identical skeletons MERGE_COST. No free words at the edges (unlike the rule's core.align)."""
+    """Word edit alignment of (word, skeleton) lists: a pair costs 1 - similarity, a missing or extra word 1, a p:q
+    regrouping with identical space-free skeletons MERGE_COST per word beyond a pair (من كلا heard as منك لا), so the
+    smallest regrouping wins. No free words at the edges
+    (unlike the rule's core.align)."""
     n, m = len(ref), len(hyp)
     sim = lambda a, b: 1.0 if a == b else 1 - core.lev(a, b) / max(len(a), len(b), 1)
     D = [[0.0] * (m + 1) for _ in range(n + 1)]
@@ -124,10 +126,10 @@ def _align(ref: list[tuple[str, str]], hyp: list[tuple[str, str]]) -> list[dict]
             c = []
             if i and j:
                 c.append((D[i - 1][j - 1] + 1 - sim(ref[i - 1][1], hyp[j - 1][1]), "pair", 1, 1))
-            if i > 1 and j and ref[i - 2][1] + ref[i - 1][1] == hyp[j - 1][1]:
-                c.append((D[i - 2][j - 1] + MERGE_COST, "merge", 2, 1))
-            if i and j > 1 and ref[i - 1][1] == hyp[j - 2][1] + hyp[j - 1][1]:
-                c.append((D[i - 1][j - 2] + MERGE_COST, "merge", 1, 2))
+            for p in range(1, min(MERGE_MAX, i) + 1):
+                for q in range(1, min(MERGE_MAX, j) + 1):
+                    if p + q > 2 and "".join(s for _, s in ref[i - p:i]) == "".join(s for _, s in hyp[j - q:j]):
+                        c.append((D[i - p][j - q] + MERGE_COST * (p + q - 2), "merge", p, q))
             if i:
                 c.append((D[i - 1][j] + 1, "del", 1, 0))
             if j:
