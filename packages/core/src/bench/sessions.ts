@@ -201,11 +201,22 @@ export function inOccurrence(s: BenchSession, o: { span: string; at: WordRef; st
 export function inNonErrorWindow(s: BenchSession, at: WordRef, t: number): boolean {
   return s.nonErrors.some(n => key(n.at) === key(at) && inOccurrence(s, n, n.endS + 6, t));
 }
-/** `anyClass`: a warning with no same-class match may match an error at its location of another class (misclassified, still a hit). */
+const nextKeys = new WeakMap<ReferenceIndex, Map<string, string>>();
+/** The key of the word after each word in mushaf order, built once per index. */
+function nextKey(index: ReferenceIndex): (w: WordRef) => string | undefined {
+  let m = nextKeys.get(index);
+  if (!m) { m = new Map(index.words.slice(0, -1).map((w, i) => [key(w), key(index.words[i + 1])])); nextKeys.set(index, m); }
+  const map = m;
+  return (w: WordRef) => map.get(key(w));
+}
+/**
+ * `anyClass`: a warning with no same-class match may match an error at its location of another class (misclassified, still a hit).
+ * An added word sits in the gap before its location, so this also takes an added word right after the warning's word.
+ */
 export function scoreSessionEvents(s: BenchSession, events: EngineEvent[], index: ReferenceIndex, context = s.context,
     o: { anyClass?: boolean } = {}): SessionScore {
   validateSession(s, index);
-  const ay = ayahOrdinal(index);
+  const ay = ayahOrdinal(index), after = nextKey(index);
   const positions = events.filter((e): e is PositionEvent => e.type === "position").sort((a, b) => a.timeMs - b.timeMs);
   const warnings = new Map<string, CheckerEvent[]>();
   for (const e of events) if (e.type === "checker") { const list = warnings.get(e.id) ?? []; list.push(e); warnings.set(e.id, list); }
@@ -235,8 +246,10 @@ export function scoreSessionEvents(s: BenchSession, events: EngineEvent[], index
     states.sort((a, b) => a.timeMs - b.timeMs);
     const first = states[0], t = first.timeMs / 1000;
     const confirmed = states.some(e => e.state === "confirmed");
+    const atWarning = (e: SessionEvent, sameClass: boolean) => key(e.location) === key(first.location)
+      || (!sameClass && e.errorClass === "added_word" && key(e.location) === after(first.location));
     const eligible = (sameClass: boolean) => s.events.map((e, i) => ({ e, i })).filter(({ e, i }) => !used.has(i)
-      && (!sameClass || e.errorClass === first.errorClass) && key(e.location) === key(first.location)
+      && (!sameClass || e.errorClass === first.errorClass) && atWarning(e, sameClass)
       && inOccurrence(s, { span: e.span, at: e.location, startS: e.startS }, windowEnd(e), t))
       .sort((a, b) => a.e.endS - b.e.endS || a.i - b.i);
     const exact = eligible(true)[0], matched = exact ?? (o.anyClass ? eligible(false)[0] : undefined);

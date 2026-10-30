@@ -67,6 +67,20 @@ describe("session truth and scoring", () => {
     s.events = [{ span: "a6", location: at, through: { surah: 94, ayah: 6, word: 1 }, errorClass: "skipped_passage", state: "confirmed", startS: 2, endS: 2.5 }];
     expect(scoreSessionEvents(s, [{ ...omitted(7500), errorClass: "skipped_passage" }], index).hits).toBe(1);
   });
+  it("with anyClass, matches a warning on the word before an added word's gap, across an ayah end too", () => {
+    const w = (ayah: number, word: number) => ({ surah: 94, ayah, word });
+    const words = [w(5, 1), w(5, 2), w(5, 3), w(5, 4), w(6, 1)].map((at, i) => ({ span: "r", at, startS: 1 + i, endS: 1.8 + i }));
+    const added = (location: WordRef): BenchSession => ({ ...session(), nonErrors: [], words,
+      spans: [{ id: "r", kind: "recitation", from: w(5, 1), to: w(6, 1), startS: 1, endS: 5.8 }],
+      events: [{ span: "r", location, errorClass: "added_word", state: "confirmed", startS: 2.8, endS: 3 }] });
+    const on = (location: WordRef): CheckerEvent => ({ ...warning("a", 3200, "confirmed"), location });
+    const before = scoreSessionEvents(added(w(5, 3)), [on(w(5, 2))], index, undefined, { anyClass: true });
+    expect(before).toMatchObject({ hits: 1, falseWarnings: 0 });
+    expect(before.assignments[0]).toMatchObject({ eventIndex: 0, misclassified: true });
+    expect(scoreSessionEvents(added(w(6, 1)), [on(w(5, 4))], index, undefined, { anyClass: true }).hits).toBe(1);
+    expect(scoreSessionEvents(added(w(5, 3)), [on(w(5, 4))], index, undefined, { anyClass: true })).toMatchObject({ hits: 0, falseWarnings: 1 });
+    expect(scoreSessionEvents(added(w(5, 3)), [on(w(5, 2))], index)).toMatchObject({ hits: 0, falseWarnings: 1 });
+  });
   it("does not count a matched warning as a non-error warning", () => {
     const s = session(); s.nonErrors.push({ span: "first", at, kind: "self_correction", startS: 1, endS: 3 });
     expect(scoreSessionEvents(s, [warning("a", 3000, "confirmed")], index)).toMatchObject({ hits: 1, nonErrorWarnings: 0 });

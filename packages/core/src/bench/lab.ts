@@ -266,7 +266,7 @@ export function runTracker(s: BenchSession, evidence: SessionEvidence, index: Re
   return [...out, ...tracker.end()];
 }
 
-interface Warned { id: string; errorClass: string; at: WordRef; timeS: number; confirmedS: number }
+interface Warned { id: string; errorClass: string; at: WordRef; timeS: number; confirmedS: number; expected: string | null; observed: string | null }
 interface ArmCalls { hit: Map<number, number>; misclassified: Set<number>; falseWarnings: Warned[] }
 /** Hits (event index -> confirmation time) and false warnings of one arm, by the session scorer's matching rules. */
 function armCalls(s: BenchSession, events: EngineEvent[], index: ReferenceIndex): ArmCalls {
@@ -276,9 +276,11 @@ function armCalls(s: BenchSession, events: EngineEvent[], index: ReferenceIndex)
   const hit = new Map<number, number>(), misclassified = new Set<number>(), falseWarnings: Warned[] = [];
   for (const a of score.assignments) {
     if (!a.confirmed) continue;
-    const list = [...states.get(a.warningId)!].sort((x, y) => x.timeMs - y.timeMs), confirmedS = list.find(e => e.state === "confirmed")!.timeMs / 1000;
+    const list = [...states.get(a.warningId)!].sort((x, y) => x.timeMs - y.timeMs), confirmed = list.find(e => e.state === "confirmed")!;
+    const confirmedS = confirmed.timeMs / 1000;
     if (a.eventIndex !== null) { hit.set(a.eventIndex, confirmedS); if (a.misclassified) misclassified.add(a.eventIndex); }
-    else falseWarnings.push({ id: a.warningId, errorClass: list[0].errorClass, at: list[0].location, timeS: list[0].timeMs / 1000, confirmedS });
+    else falseWarnings.push({ id: a.warningId, errorClass: list[0].errorClass, at: list[0].location, timeS: list[0].timeMs / 1000, confirmedS,
+      expected: confirmed.expected ?? null, observed: confirmed.observed ?? null });
   }
   return { hit, misclassified, falseWarnings };
 }
@@ -308,11 +310,13 @@ interface CaseBase { key: string; session: string; variant: Variant; split: Spli
   /** Set when the test set's automated checks (ticket 04) failed the data under this case: review it as likely bad data. */
   dataCheck?: { pass: false; check: string; reasons: string[] } }
 export interface MistakeCase extends CaseBase {
-  /** `misclassified`: caught by a warning of another error class on the same word. */
+  /** `misclassified`: caught by a warning of another error class on the same word (or, for an added word, the word before it). */
   kind: "mistake"; startS: number; endS: number; outcome: "hit" | "misclassified" | "miss"; confirmedS: number | null; mutashabihat: boolean;
   oracle: "hit" | "miss"; truePosition: "hit" | "miss"; teacher: "hit" | "miss" | null }
 export interface FalseWarningCase extends CaseBase {
   kind: "false_warning"; timeS: number; confirmedS: number; nonError: "repeat" | "restart" | "self_correction" | null;
+  /** The checker's phonemes when it confirmed: what it expected at the word and what it heard instead (null when it gave none). */
+  expected: string | null; observed: string | null;
   oracle: boolean; truePosition: boolean; teacher: boolean | null }
 export type LabCase = MistakeCase | FalseWarningCase;
 export const caseKey = (session: string, variant: Variant, type: string, word: WordRef, timeS: number) => `${session}/${variant}/${type}/${key(word)}/${timeS.toFixed(2)}`;
@@ -403,7 +407,8 @@ export function scoreLabSession(s: BenchSession, split: Split, strictTag: boolea
       if (nonError) r.nonErrorFalseWarnings++;
       r.falseWarningsByClass[w.errorClass] = (r.falseWarningsByClass[w.errorClass] ?? 0) + 1;
       result.cases.push({ key: caseKey(s.id, variant, `warning:${w.errorClass}`, w.at, w.timeS), kind: "false_warning", session: s.id, variant, split, strict,
-        errorClass: w.errorClass, word: key(w.at), timeS: w.timeS, confirmedS: w.confirmedS, component, nonError, oracle: o, truePosition: t, teacher: te,
+        errorClass: w.errorClass, word: key(w.at), timeS: w.timeS, confirmedS: w.confirmedS, component, nonError, expected: w.expected, observed: w.observed,
+        oracle: o, truePosition: t, teacher: te,
         trackerOnPlace: onPlace(w.timeS - AROUND_S, w.timeS + AROUND_S), allFail: o && te !== false,
         review: { path: v.audio ?? null, startS: round(Math.max(0, w.timeS - 4), 2), endS: round(Math.min(s.durationS, w.timeS + 2), 2) } });
     }

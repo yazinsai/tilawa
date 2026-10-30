@@ -61,7 +61,7 @@ A volunteer reading of a generated script with planted errors, so the labels are
 ## Measurement
 
 **Wrong call**:
-A labelled mistake the engine missed, or a warning the engine raised where there was no mistake. A warning on the right word with the wrong kind of mistake is not a wrong call: the mistake counts as caught, and as misclassified.
+A labelled mistake the engine missed, or a warning the engine raised where there was no mistake. A warning on the right word with the wrong kind of mistake is not a wrong call: the mistake counts as caught, and as misclassified. An added word sits between two words, so a warning on the word just before it is on the right word too.
 
 **Misclassified**:
 A caught mistake whose warning named a different kind of mistake (for example "omitted" for a wrong word). Reported next to caught; it does not add to the overall score.
