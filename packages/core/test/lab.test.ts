@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { disambiguationWords } from "../src/disambiguation.js";
 import type { CheckerEvent, EngineEvent, PositionEvent, WordRef } from "../src/events.js";
 import { loadReferenceIndex } from "../src/reference.js";
-import { COMPONENTS, VARIANTS, editDistance, exclusionsFor, labReport, listenerErrors, markDataChecks, mergeReports, oracleEvidence, recitedIntervals,
+import { COMPONENTS, EARLY_S, VARIANTS, editDistance, exclusionsFor, labReport, listenerErrors, markDataChecks, mergeReports, oracleEvidence, recitedIntervals,
   refIndex, saidItems, scoreLabSession, scoreTracker, shardEntries, totals, trackerEntries } from "../src/bench/lab.js";
 import type { LabArms, LabExclusions, LabMeta, SessionResult } from "../src/bench/lab.js";
 import { buildSession, wordPhonemes } from "../src/bench/lab-fixture.js";
@@ -221,6 +221,22 @@ describe("report and merge", () => {
     expect(r.cases.every(c => c.split === "practice")).toBe(true);
     expect(r.results.find(x => x.split === "exam")!.cases).toEqual([]);
     expect(r.overall.per5Min).toBeCloseTo(3 * 300 / rs[1].recitedS, 2);
+  });
+  it("keeps realuser sessions out of the headline and rates their false warnings per minute, per session and early", () => {
+    const rs = [result("a", "practice"), result("b", "exam")];
+    const fw = (r: SessionResult, early: number, late: number): SessionResult => ({ ...r, source: "realuser", origin: "tlog", earlyRecitedS: 6,
+      variants: { phone: { ...r.variants.phone!, falseWarnings: early + late, earlyFalseWarnings: early, falseWarningsByClass: { omitted_word: early + late } } } });
+    const ru = fw(result("ru1", "practice"), 1, 2);
+    const r = labReport([...rs, ru, fw(result("ru2", "exam"), 0, 1)], meta);
+    expect(r.splits).toEqual(labReport(rs, meta).splits);
+    expect(r.sessions).toMatchObject({ scored: 4, practice: 1, exam: 1 });
+    expect(r.slices.realuser.practice.sessions).toBe(1);
+    const p = r.realuser.practice;
+    expect(p).toMatchObject({ sessions: 1, falseWarnings: 3, perSession: 3, byClass: { omitted_word: 3 }, byOrigin: { tlog: { sessions: 1, falseWarnings: 3 } } });
+    expect(p.perRecitedMinute).toBeCloseTo(3 * 60 / ru.recitedS, 3);
+    expect(p.firstSeconds).toMatchObject({ seconds: EARLY_S, falseWarnings: 1, recitedMinutes: 0.1, perRecitedMinute: 10 });
+    expect(p.rest.falseWarnings).toBe(2);
+    expect(r.realuser.all.falseWarnings).toBe(4);
   });
   it("merges shards into the same report as one run and refuses a missing shard", () => {
     const rs = [result("a", "practice"), result("b", "practice"), result("c", "exam")];

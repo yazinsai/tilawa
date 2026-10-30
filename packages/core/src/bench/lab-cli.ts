@@ -9,7 +9,8 @@
  *     "tags"?: ["strict", ...], "audio"?: { "phone"?: "<wav>", "studio"?: "<wav>" },
  *     "evidence"?: { "<listener>": { "phone"?: "<path>", "studio"?: "<path>" } } }] }
  * Evidence not listed is looked up at the manifest's "evidencePattern" ({id}, {listener}, {variant}), else evidence/<listener>/<id>.<variant>.json.
- * "slices": { "strict" } (the session builder's tag) counts as "strict"; { "source": "recorded" } (a joined scripted take) as "recorded".
+ * "slices": { "strict" } (the session builder's tag) counts as "strict"; { "source": "recorded" } (a joined scripted take) as "recorded";
+ * { "source": "realuser", "origin" } (real users' clean recitation, tools/lab_realuser_core.py) as "realuser", outside the headline.
  * Cases on data that failed the automated checks (`--checks`, default checks-v1.json beside the manifest) carry `dataCheck`.
  * `--split practice` scores only that split (sharded over its sessions). `--exclude <flags json>` applies a test set version's
  * exclusion list (`LabExclusions`) and reports its `testSet`.
@@ -52,6 +53,8 @@ const summary = (r: LabReport) => {
   console.log(`attribution: listener ${a.listener}, tracker ${a.tracker}, checker ${a.checker} (total ${a.total})`);
   console.log(`listener PER ${c.listener.per ?? "-"}; tracker on place ${c.tracker.onPlaceShare ?? "-"}, ${c.tracker.falseJumps} false jumps, lock delay p50/p90 ${c.tracker.lockDelayS.p50 ?? "-"}/${c.tracker.lockDelayS.p90 ?? "-"} s; checker ${c.checker.per5Min ?? "-"} / 5 min (${c.checker.missed} + ${c.checker.falseWarnings})`);
   for (const s of ["practice", "exam"] as const) if (r.splits[s].sessions) console.log(`${s}: ${r.splits[s].overall.per5Min ?? "-"} / 5 min (${r.splits[s].overall.missed} + ${r.splits[s].overall.falseWarnings}) over ${r.splits[s].recitedMinutes} min`);
+  const ru = r.realuser?.practice;  // exam: numbers only, in the report
+  if (ru?.sessions) console.log(`realuser practice: ${ru.falseWarnings} false warnings over ${ru.recitedMinutes} recited min in ${ru.sessions} sessions = ${ru.perRecitedMinute ?? "-"} / min, ${ru.perSession ?? "-"} / session; first ${ru.firstSeconds.seconds} s ${ru.firstSeconds.falseWarnings} over ${ru.firstSeconds.recitedMinutes} min, rest ${ru.rest.falseWarnings} over ${ru.rest.recitedMinutes} min`);
   const t = r.splits[r.headline.split].teacher;
   if (t) console.log(`teacher reference: ${t.per5Min ?? "-"} / 5 min (${t.missed} + ${t.falseWarnings}), PER ${t.per ?? "-"}`);
 };
@@ -87,7 +90,7 @@ const index = loadReferenceIndex(asset);
 const phrases = JSON.parse(readFileSync(new URL("../../assets/phrases-v1.json", import.meta.url), "utf8"));
 const disamb = disambiguationWords(index);
 
-interface Entry { id: string; split: Split; session: string | BenchSession; tags?: string[]; strict?: boolean; slices?: { strict?: boolean; source?: string };
+interface Entry { id: string; split: Split; session: string | BenchSession; tags?: string[]; strict?: boolean; slices?: { strict?: boolean; source?: string; origin?: string };
   audio?: Partial<Record<Variant, string>>; evidence?: string | Record<string, Partial<Record<Variant, string>>> }
 const manifestPath = resolve(values.manifest!);
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as { version: number; testSet: string; evidencePattern?: string; sessions: Entry[] };
@@ -126,7 +129,7 @@ shardEntries(manifest.sessions, { split: values.split as Split | undefined, only
     const evidence = pick(values.listener!);
     if (!Object.keys(evidence).length) throw new Error(`no ${values.listener} evidence`);
     const strict = e.strict ?? e.slices?.strict ?? (e.tags ? e.tags.includes("strict") : undefined);
-    const r = labSession({ session, split: e.split, strict, source: e.slices?.source, evidence, audio: audioOf(e), teacher: teacherName ? pick(teacherName) : undefined,
+    const r = labSession({ session, split: e.split, strict, source: e.slices?.source, origin: e.slices?.origin, evidence, audio: audioOf(e), teacher: teacherName ? pick(teacherName) : undefined,
       trackerOracle: !values["no-tracker-oracle"], exclude: flagged.windows }, { index, disamb, phrases });
     results.push(checks ? markDataChecks(r, checks) : r);
     const v = r.variants.phone ?? r.variants.studio!;

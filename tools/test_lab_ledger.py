@@ -63,6 +63,17 @@ def test_report_keeps_counts_and_refuses_a_missing_split():
         L.from_report(report(totals()), ("practice", "exam"))
 
 
+def test_report_keeps_realuser_false_warnings_per_split():
+    ru = {"sessions": 4, "recitedMinutes": 3.2, "falseWarnings": 5, "perRecitedMinute": 1.5625, "perSession": 1.25,
+          "firstSeconds": {"seconds": 10, "falseWarnings": 3, "recitedMinutes": 0.6, "perRecitedMinute": 5.0}, "rest": {"falseWarnings": 2}}
+    r = L.from_report({**report(totals()), "realuser": {"practice": ru, "exam": {**ru, "sessions": 0}}})
+    assert r["practice"]["realuser"] == {"sessions": 4, "recitedMinutes": 3.2, "falseWarnings": 5, "perRecitedMinute": 1.5625, "perSession": 1.25,
+                                         "firstSeconds": 3, "rest": 2}
+    assert "realuser" not in L.from_report(report(totals()))["practice"]
+    base = L.from_report(report(totals()))["practice"]
+    assert "real users" in L.format_details(r["practice"], {**base, "realuser": {**r["practice"]["realuser"], "falseWarnings": 7}})
+
+
 def test_verdict_two_or_fewer_is_noise():
     assert [L.verdict(x) for x in (-3, -2, 0, 2, 3)] == ["better", "noise", "noise", "noise", "worse"]
 

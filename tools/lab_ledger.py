@@ -79,7 +79,16 @@ def from_report(report: dict, splits=("practice",)) -> dict:
         if not report["splits"][s]["sessions"]:
             raise ValueError(f"the report has no {s} sessions")
         out[s] = score(report["splits"][s])
+        ru = (report.get("realuser") or {}).get(s)
+        if ru and ru["sessions"]:
+            out[s]["realuser"] = clean(ru)
     return out
+
+
+def clean(t: dict) -> dict:
+    """The ledger's compact copy of one split's realuser `CleanTotals`: false warnings on real users' clean recitation."""
+    return {**{k: t[k] for k in ("sessions", "recitedMinutes", "falseWarnings", "perRecitedMinute", "perSession")},
+            "firstSeconds": t["firstSeconds"]["falseWarnings"], "rest": t["rest"]["falseWarnings"]}
 
 
 def count(s: dict, what: str) -> int:
@@ -337,7 +346,9 @@ def format_details(new: dict, base: dict) -> str:
     al, bl = base["checker"]["alone"], new["checker"]["alone"]
     return (f"details: listener phoneme errors {arrow(base['listener']['phonemeErrors'], new['listener']['phonemeErrors'])}; "
             f"tracker false jumps {arrow(base['tracker']['falseJumps'], new['tracker']['falseJumps'])}; "
-            f"checker with perfect inputs {arrow(_wc([al['wrongCalls'], al['missed'], al['falseWarnings']]), _wc([bl['wrongCalls'], bl['missed'], bl['falseWarnings']]))}")
+            f"checker with perfect inputs {arrow(_wc([al['wrongCalls'], al['missed'], al['falseWarnings']]), _wc([bl['wrongCalls'], bl['missed'], bl['falseWarnings']]))}"
+            + (f"; real users' clean recitation, false warnings {arrow(base['realuser']['falseWarnings'], new['realuser']['falseWarnings'])}"
+               if base.get("realuser") and new.get("realuser") else ""))
 
 
 def format_status(led: dict, rows: list[dict]) -> list[str]:

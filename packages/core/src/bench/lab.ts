@@ -36,6 +36,8 @@ export const TOLERANCE_WORDS = 1;
 export const STRICT_WORDS = 5;
 /** A false warning is the same call in another arm at the same word within this many seconds. */
 export const MATCH_S = 6;
+/** The realuser slice (real users, no planted mistakes) splits false warnings in a session's first seconds from the rest. */
+export const EARLY_S = 10;
 /** Window around a mistake over which the drill-down reports the tracker's on-place share. */
 const AROUND_S = 1;
 const CHUNK_S = 0.04;
@@ -325,6 +327,8 @@ export type ClassCounts = { mistakes: number; missed: number; misclassified: num
 const zeroClass = (): ClassCounts => ({ mistakes: 0, missed: 0, misclassified: 0, listener: 0, tracker: 0, checker: 0 });
 export interface VariantResult {
   mistakes: number; missed: number; misclassified: number; falseWarnings: number; nonErrorFalseWarnings: number;
+  /** False warnings raised in the session's first `EARLY_S` seconds. */
+  earlyFalseWarnings: number;
   attribution: Record<Component, { missed: number; falseWarnings: number }>;
   listener: { edits: number; phonemes: number };
   tracker: TrackerScore;
@@ -335,6 +339,10 @@ export interface SessionResult {
   id: string; split: Split; strict: boolean; speaker: string; durationS: number; recitedS: number;
   /** The manifest's `slices.source` ("recorded": a scripted-error take, tools/lab_recordings_core.py); unset for built sessions. */
   source?: string;
+  /** The manifest's `slices.origin`: where a realuser session's audio came from (sobolev, retasy, tlog). */
+  origin?: string;
+  /** Recited seconds within the first `EARLY_S` seconds of the session. */
+  earlyRecitedS: number;
   /** Further words the first word needs to become unique (-1: never). */
   startNeed: number;
   checker: { missed: number; misclassified: number; falseWarnings: number; nonErrorFalseWarnings: number };
@@ -366,7 +374,7 @@ export function scoreLabSession(s: BenchSession, split: Split, strictTag: boolea
   const oracle = calls(arms.oracle);
   const recited = recitedIntervals(s), all = samples(s);
   const result: SessionResult = { id: s.id, split, strict, speaker: s.speaker, durationS: s.durationS, recitedS: round(recited.reduce((n, iv) => n + iv.endS - iv.startS, 0)),
-    startNeed, checker: { missed: nKept - oracle.hit.size, misclassified: oracle.misclassified.size, falseWarnings: oracle.falseWarnings.length,
+    earlyRecitedS: round(recited.reduce((n, iv) => n + Math.max(0, Math.min(iv.endS, EARLY_S) - iv.startS), 0)), startNeed, checker: { missed: nKept - oracle.hit.size, misclassified: oracle.misclassified.size, falseWarnings: oracle.falseWarnings.length,
       nonErrorFalseWarnings: oracle.falseWarnings.filter(w => nonErrorAt(s, w.at, w.timeS)).length },
     trackerOracle: arms.trackerOracle ? scoreTracker(s, arms.trackerOracle, ctx.index, ctx.disamb) : null, variants: {}, cases: [] };
   for (const variant of VARIANTS) {
@@ -380,6 +388,7 @@ export function scoreLabSession(s: BenchSession, split: Split, strictTag: boolea
       return ts.length ? round(ts.filter(t => { const p = at(t); return p?.state === "locked" && correctPosition(s, p, t, ay); }).length / ts.length) : null;
     };
     const r: VariantResult = { mistakes: nKept, missed: 0, misclassified: engine.misclassified.size, falseWarnings: engine.falseWarnings.length, nonErrorFalseWarnings: 0,
+      earlyFalseWarnings: engine.falseWarnings.filter(w => w.timeS < EARLY_S).length,
       attribution: { listener: { missed: 0, falseWarnings: 0 }, tracker: { missed: 0, falseWarnings: 0 }, checker: { missed: 0, falseWarnings: 0 } },
       listener: listenerErrors(s, v.evidence, ctx.index), tracker: scoreTracker(s, v.engine, ctx.index, ctx.disamb),
       byClass: Object.fromEntries(ERROR_CLASSES.map(c => [c, zeroClass()])) as VariantResult["byClass"], mutashabihat: zeroClass(), falseWarningsByClass: {},
@@ -437,7 +446,7 @@ export function markDataChecks(r: SessionResult, checks: DataChecks): SessionRes
   return r;
 }
 
-export interface LabInput { session: BenchSession; split: Split; strict?: boolean; source?: string;
+export interface LabInput { session: BenchSession; split: Split; strict?: boolean; source?: string; origin?: string;
   evidence: Partial<Record<Variant, SessionEvidence>>; teacher?: Partial<Record<Variant, SessionEvidence>>; audio?: Partial<Record<Variant, string>>; trackerOracle?: boolean;
   exclude?: Interval[] }
 /** Runs every arm of one session and scores it. */
@@ -456,7 +465,7 @@ export function labSession(input: LabInput, ctx: LabContext): SessionResult {
   if (!Object.keys(variants).length) throw new Error(`${s.id}: no listener evidence`);
   const r = scoreLabSession(s, input.split, input.strict, { oracle: runTruePosition(s, oracle, ctx.index, ctx.phrases),
     trackerOracle: input.trackerOracle === false ? null : runTracker(s, oracle, ctx.index, ctx.phrases), variants }, ctx, input.exclude);
-  return input.source ? { ...r, source: input.source } : r;
+  return { ...r, ...(input.source ? { source: input.source } : {}), ...(input.origin ? { origin: input.origin } : {}) };
 }
 
 /**
@@ -537,6 +546,32 @@ export function totals(results: SessionResult[], variant: Variant): Totals {
     })() : null };
 }
 
+/** False warnings on real users' clean recitation (the realuser slice): per recited minute, per session, and in each session's first `EARLY_S` seconds against the rest. */
+export interface CleanRate { sessions: number; recitedMinutes: number; falseWarnings: number; perRecitedMinute: number | null; perSession: number | null }
+export interface CleanTotals extends CleanRate {
+  firstSeconds: { seconds: number; falseWarnings: number; recitedMinutes: number; perRecitedMinute: number | null };
+  rest: { falseWarnings: number; recitedMinutes: number; perRecitedMinute: number | null };
+  falseWarningsOnNonErrors: number; byClass: Record<string, number>; byOrigin: Record<string, CleanRate>;
+}
+const perMinute = (n: number, seconds: number) => seconds ? round(n * 60 / seconds, 4) : null;
+function cleanRate(rs: SessionResult[], variant: Variant): CleanRate {
+  const vs = rs.filter(r => r.variants[variant]), recitedS = vs.reduce((n, r) => n + r.recitedS, 0);
+  const fw = vs.reduce((n, r) => n + r.variants[variant]!.falseWarnings, 0);
+  return { sessions: vs.length, recitedMinutes: round(recitedS / 60), falseWarnings: fw, perRecitedMinute: perMinute(fw, recitedS), perSession: vs.length ? round(fw / vs.length, 4) : null };
+}
+export function cleanTotals(results: SessionResult[], variant: Variant = "phone"): CleanTotals {
+  const rs = results.filter(r => r.variants[variant]), vs = rs.map(r => r.variants[variant]!);
+  const sum = <T>(xs: T[], f: (x: T) => number) => xs.reduce((n, x) => n + f(x), 0);
+  const all = cleanRate(rs, variant), earlyS = sum(rs, r => r.earlyRecitedS ?? 0), early = sum(vs, v => v.earlyFalseWarnings ?? 0);
+  const restS = sum(rs, r => r.recitedS) - earlyS, byClass: Record<string, number> = {};
+  for (const v of vs) for (const [c, n] of Object.entries(v.falseWarningsByClass)) byClass[c] = (byClass[c] ?? 0) + n;
+  const origins = [...new Set(rs.map(r => r.origin ?? "unknown"))].sort();
+  return { ...all, firstSeconds: { seconds: EARLY_S, falseWarnings: early, recitedMinutes: round(earlyS / 60), perRecitedMinute: perMinute(early, earlyS) },
+    rest: { falseWarnings: all.falseWarnings - early, recitedMinutes: round(restS / 60), perRecitedMinute: perMinute(all.falseWarnings - early, restS) },
+    falseWarningsOnNonErrors: sum(vs, v => v.nonErrorFalseWarnings), byClass,
+    byOrigin: Object.fromEntries(origins.map(o => [o, cleanRate(rs.filter(r => (r.origin ?? "unknown") === o), variant)])) };
+}
+
 export interface LabMeta { testSet: string; listener: string; teacher: string | null; sha: string; run: string | null; reference: string; manifest: string }
 export interface LabReport extends LabMeta {
   version: typeof LAB_SCORE_VERSION; kind: "lab-score"; recordedAt: string; definitions: typeof DEFINITIONS;
@@ -546,8 +581,11 @@ export interface LabReport extends LabMeta {
   sessions: { scored: number; practice: number; exam: number; excluded: { id: string; reason: string }[] };
   splits: Record<Split | "all", Totals>;
   overall: Totals["overall"]; components: Totals["components"]; attribution: Totals["attribution"];
-  /** `recorded`: sessions whose manifest `slices.source` is "recorded" (real takes of scripted mistakes), on phone audio. */
-  slices: { studio: Record<Split | "all", Totals>; strict: Record<Split | "all", Totals>; recorded: Record<Split | "all", Totals> };
+  /** `recorded`: sessions whose manifest `slices.source` is "recorded" (real takes of scripted mistakes), on phone audio.
+   * `realuser`: real users' clean recitation (`slices.source` "realuser"), on phone audio. These sessions are left out of
+   * `splits`, the headline and the other slices; `realuser` gives their false-warning rates. */
+  slices: { studio: Record<Split | "all", Totals>; strict: Record<Split | "all", Totals>; recorded: Record<Split | "all", Totals>; realuser: Record<Split | "all", Totals> };
+  realuser: Record<Split | "all", CleanTotals>;
   /** Practice cases only unless exam cases were asked for (exam: numbers only). */
   cases: LabCase[];
   /** Per-session counts behind every number above; merged shards re-aggregate from these. */
@@ -555,16 +593,18 @@ export interface LabReport extends LabMeta {
 }
 export function labReport(results: SessionResult[], meta: LabMeta, o: { excluded?: { id: string; reason: string }[]; shard?: { index: number; count: number } | null; examCases?: boolean; recordedAt?: string } = {}): LabReport {
   const bySplit = (rs: SessionResult[], v: Variant) => ({ practice: totals(rs.filter(r => r.split === "practice"), v), exam: totals(rs.filter(r => r.split === "exam"), v), all: totals(rs, v) });
-  const splits = bySplit(results, "phone");
+  const real = results.filter(r => r.source === "realuser"), planted = results.filter(r => r.source !== "realuser");
+  const splits = bySplit(planted, "phone");
   const split: Split | "all" = splits.exam.sessions ? "exam" : "all";
   const head = splits[split];
   const visible = (r: SessionResult) => r.split === "practice" || !!o.examCases;
   return { version: LAB_SCORE_VERSION, kind: "lab-score", ...meta, recordedAt: o.recordedAt ?? new Date().toISOString(), definitions: DEFINITIONS,
     headline: { split, variant: "phone" }, shard: o.shard ?? null,
-    sessions: { scored: results.length, practice: results.filter(r => r.split === "practice").length, exam: results.filter(r => r.split === "exam").length, excluded: o.excluded ?? [] },
+    sessions: { scored: results.length, practice: planted.filter(r => r.split === "practice").length, exam: planted.filter(r => r.split === "exam").length, excluded: o.excluded ?? [] },
     splits, overall: head.overall, components: head.components, attribution: head.attribution,
-    slices: { studio: bySplit(results, "studio"), strict: bySplit(results.filter(r => r.strict), "phone"),
-      recorded: bySplit(results.filter(r => r.source === "recorded"), "phone") },
+    slices: { studio: bySplit(planted, "studio"), strict: bySplit(planted.filter(r => r.strict), "phone"),
+      recorded: bySplit(planted.filter(r => r.source === "recorded"), "phone"), realuser: bySplit(real, "phone") },
+    realuser: { practice: cleanTotals(real.filter(r => r.split === "practice")), exam: cleanTotals(real.filter(r => r.split === "exam")), all: cleanTotals(real) },
     cases: results.filter(visible).flatMap(r => r.cases), results: results.map(r => visible(r) ? r : { ...r, cases: [] }) };
 }
 
