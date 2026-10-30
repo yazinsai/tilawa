@@ -347,7 +347,7 @@ def web():
         led, tsd, r, sc = lab_state(run, ledger)
         c = find_case(need_score(sc, r), key)
         base = base_for(tsd, sc)
-        return {"item": D.case_item(c, session_doc(c)), "story": D.engine_story(c), "engine": D.engine_facts(c), "suspects": D.suspects(c),
+        return {"item": D.case_item(c, session_doc(c)), "story": D.engine_story(c), "engine": D.engine_facts(c), "suspects": D.suspects(c), "insights": D.insights(c),
                 "component": c["component"],
                 "review": load_reviews(base, name(reviewer, "reviewer"))["items"].get(key), "testSet": base}
 

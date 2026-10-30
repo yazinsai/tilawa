@@ -266,8 +266,8 @@ function scoreView() {
 
 const GROUPS = {
   dataCheck: ['Failed an automatic data check', 'The test data itself looks suspect. Start here.'],
-  allFail: ['Wrong whatever the hearing', 'The big reference listener, the app’s listener and perfect hearing all get it wrong: often a sign of bad data.'],
-  everywhere: ['Fails in every experiment', 'No experiment fixes these.'],
+  checkerAlways: ['Wrong even with perfect hearing', 'The engine gets these wrong even when it hears exactly what was said and knows the place: the checker’s rules are the cause. Good targets for an experiment.'],
+  everywhere: ['No experiment fixes these yet', 'They fail in every experiment so far.'],
   other: ['Other cases', 'Probably real faults. Listen to confirm.'],
 };
 
@@ -333,6 +333,7 @@ async function caseView(component, variant, key) {
         <button class="btn icon-only" id="next" title="Next (j)" aria-label="Next case" ${i < 0 || i >= list.length - 1 ? 'disabled' : ''}>${icon('right')}</button></span></div>
     <div id="rail">${rail()}</div>
     ${d.suspects.length ? `<div class="suspect">${icon('flag')}<p><b>Likely bad data.</b> ${d.suspects.map((s) => (s.raw ? `<span title="${esc(s.raw)}">${esc(s.text)}</span>` : esc(s.text))).join('. ')}.</p></div>` : ''}
+    ${d.insights?.length ? `<div class="notice insight"><p>${d.insights.map((s) => esc(s.text)).join('. ')}.</p></div>` : ''}
     <div id="item"></div>
     <p class="li-context" style="margin-top:var(--s6)">Saved for ${esc(d.testSet)} as <b>${esc(reviewer)}</b>. Bad-data verdicts become flags for <code>lab apply-flags</code>.</p></div>`;
   $('prev').onclick = st.nav.prev;

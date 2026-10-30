@@ -254,39 +254,46 @@ def _plain(reason: str) -> str:
 
 
 def suspects(c: dict, everywhere: set[str] = frozenset()) -> list[dict]:
-    """Why a failing case may be bad data rather than an engine fault (spec decision 14), strongest first."""
+    """Why a failing case may be bad data rather than an engine fault (spec decision 14). Only a failed data check
+    counts: the perfect-hearing arm is built from the label, so failing there too says nothing against the label."""
+    if not c.get("dataCheck"):
+        return []
+    reasons = c["dataCheck"].get("reasons") or ["no reason given"]
+    return [{"key": "dataCheck", "text": "Failed an automatic data check: " + "; ".join(map(_plain, reasons)), "raw": "; ".join(reasons)}]
+
+
+def insights(c: dict, everywhere: set[str] = frozenset()) -> list[dict]:
+    """What a failing case says about the engine, strongest first."""
     out = []
-    if c.get("dataCheck"):
-        reasons = c["dataCheck"].get("reasons") or ["no reason given"]
-        out.append({"key": "dataCheck", "text": "Failed an automatic data check: " + "; ".join(map(_plain, reasons)), "raw": "; ".join(reasons)})
     if c.get("allFail"):
-        out.append({"key": "allFail", "text": "The big reference listener, the app's listener and perfect hearing all get it wrong"})
+        out.append({"key": "checkerAlways", "text": "The engine gets this wrong even with perfect hearing and the true place, so the checker's rules are the cause, not the listeners or the data"})
     if c["key"] in everywhere:
-        out.append({"key": "everywhere", "text": "Fails in every experiment too"})
+        out.append({"key": "everywhere", "text": "No experiment fixes this yet"})
     return out
 
 
 def case_title(c: dict) -> str:
     cls = CLASSES.get(c.get("errorClass"), c.get("errorClass") or "a mistake")
     if c["kind"] == "mistake":
-        return f"Missed {cls}"
+        return f"The app didn't warn about {cls}"
     return f"False warning: said {cls} on a {c['nonError']}" if c.get("nonError") else f"False warning: said {cls}, but nothing was wrong"
 
 
 def order_cases(cases: list[dict], everywhere: set[str] = frozenset(), verdicts: dict | None = None) -> list[dict]:
-    """The drill-down list: likely bad data first (more reasons first; a failed data check, then all-fail, then fails
-    everywhere), then by session and time. Each row carries its reasons and the latest verdict, if any."""
+    """The drill-down list: likely bad data (a failed data check) first, then cases the checker misses even with perfect
+    hearing, then cases no experiment fixes, then the rest; by session and time within each. Each row carries its reasons and the latest verdict, if any."""
     verdicts = verdicts or {}
-    rank = {"dataCheck": 0, "allFail": 1, "everywhere": 2}
+    rank = {"dataCheck": 0, "checkerAlways": 1, "everywhere": 2}
     rows = []
     for c in cases:
-        sus = suspects(c, everywhere)
+        sus, ins = suspects(c, everywhere), insights(c, everywhere)
         v = verdicts.get(c["key"])
-        strongest = min(sus, key=lambda s: rank[s["key"]])["key"] if sus else "other"
+        tags = sus + ins
+        strongest = min(tags, key=lambda s: rank[s["key"]])["key"] if tags else "other"
         rows.append({"key": c["key"], "title": case_title(c), "where": where(c.get("word")), "session": c["session"], "timeS": case_time(c),
-                     "variant": c["variant"], "kind": c["kind"], "suspects": sus, "group": strongest,
+                     "variant": c["variant"], "kind": c["kind"], "suspects": sus, "insights": ins, "group": strongest,
                      "verdict": v and v["verdict"], "verdictText": v and R.VERDICTS.get(v["verdict"]),
-                     "_sort": (-len(sus), min((rank[s["key"]] for s in sus), default=9), c["session"], case_time(c))})
+                     "_sort": (rank.get(strongest, 9), c["session"], case_time(c))})
     rows.sort(key=lambda r: r.pop("_sort"))
     return rows
 

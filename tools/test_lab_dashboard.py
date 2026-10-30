@@ -154,10 +154,11 @@ def test_drilldown_is_practice_only_and_likely_bad_data_first():
     every = D.fails_everywhere(D.failing_keys(sc), [{cases[0]["key"], cases[3]["key"]}])
     assert every == {cases[0]["key"], cases[3]["key"]} and D.fails_everywhere({"a"}, []) == set()
     rows = D.order_cases(D.failing(sc, "checker"), every, {cases[2]["key"]: {"verdict": "bad_label"}})
-    assert [r["key"] for r in rows] == [cases[3]["key"], cases[2]["key"], cases[0]["key"]]  # 2 reasons, then all-fail before fails-everywhere
-    assert [s["key"] for s in rows[0]["suspects"]] == ["dataCheck", "everywhere"] and "pause-form donor" in rows[0]["suspects"][0]["text"]
+    assert [r["key"] for r in rows] == [cases[3]["key"], cases[2]["key"], cases[0]["key"]]  # bad data, then wrong-even-with-perfect-hearing, then fails-everywhere
+    assert [s["key"] for s in rows[0]["suspects"]] == ["dataCheck"] and "pause-form donor" in rows[0]["suspects"][0]["text"]
+    assert [s["key"] for s in rows[0]["insights"]] == ["everywhere"]
     assert rows[1]["verdict"] == "bad_label" and rows[1]["verdictText"] == "Bad label" and rows[2]["verdict"] is None
-    assert rows[0]["title"] == "Missed an extra word" and rows[2]["where"] == "26:71, word 4"
+    assert rows[0]["title"] == "The app didn't warn about an extra word" and rows[2]["where"] == "26:71, word 4"
 
 
 def test_case_item_is_a_valid_review_item_with_text_label_and_originals():
@@ -203,7 +204,8 @@ def test_drilldown_rows_carry_their_strongest_reason_as_a_group():
     every = {mistake()["key"]}
     rows = D.order_cases([mistake(), warning(), mistake("lab-v1.1-p02/phone/mistake:wrong_word/2:9:1/80.00", allFail=True),
                           mistake("lab-v1.1-p01/phone/mistake:added_word/26:80:1/90.00", dataCheck={"reasons": ["x"]})], every)
-    assert [r["group"] for r in rows] == ["dataCheck", "allFail", "everywhere", "other"]
+    assert [r["group"] for r in rows] == ["dataCheck", "checkerAlways", "everywhere", "other"]
+    assert rows[1]["suspects"] == [] and rows[1]["insights"][0]["key"] == "checkerAlways"
 
 
 def test_data_check_reasons_drop_raw_scores_but_keep_them_for_the_tooltip():
@@ -246,3 +248,8 @@ def test_release_reads_the_scoreboard_gates():
     assert r["title"].startswith("Release readiness") and r["columns"][:3] == ["Gate", "Now", "Bar"]
     assert len(r["gates"]) == 13 and all("Gate" in g for g in r["gates"]) and r["summary"].startswith("**")
     assert D.release("# nothing here") is None
+
+
+def test_failing_with_perfect_hearing_is_not_called_bad_data():
+    c = mistake("lab-v1.4-p01/phone/mistake:omitted_word/26:128:1/90.31", errorClass="omitted_word", allFail=True)
+    assert D.suspects(c) == [] and [x["key"] for x in D.insights(c)] == ["checkerAlways"]
