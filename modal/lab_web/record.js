@@ -119,16 +119,49 @@ function tokenHtml(t, plants) {
     case 'wrong':
     case 'slip':
     case 'added':
-      return `<mark class="li-mark" data-plant="${esc(t.plant)}">${esc(t.text)}</mark>${sup}`;
+      return `<mark class="li-mark" data-plant="${esc(t.plant)}" tabindex="0">${esc(t.text)}</mark>${sup}`;
     case 'omitted':
-      return `<s class="rec-omit" data-plant="${esc(t.plant)}" title="Leave this word out">${esc(t.text)}</s>${sup}`;
+      return `<s class="rec-omit" data-plant="${esc(t.plant)}" tabindex="0">${esc(t.text)}</s>${sup}`;
     case 'back':
-      return `<span class="rec-back" title="Stop and go back">↺</span>`;
+      return t.plant ? `<span class="rec-back" data-plant="${esc(t.plant)}" tabindex="0">↺</span>` : `<span class="rec-back" title="Stop and go back">↺</span>`;
     case 'retake':
       return `<span class="rec-retake">${esc(t.text)}</span>`;
     default:
       return esc(t.text);
   }
+}
+
+/** The planted mistake's instruction beside its word in the text, on hover, keyboard focus or tap. */
+function bindTips(s) {
+  const plants = Object.fromEntries(s.plants.map((p) => [p.id, p]));
+  const tip = document.querySelector('.rec-tip') || document.body.appendChild(Object.assign(document.createElement('div'), { className: 'rec-tip', role: 'tooltip' }));
+  tip.hidden = true;
+  let pinned = null;
+  const show = (el) => {
+    const p = plants[el.dataset.plant];
+    if (!p) return;
+    tip.innerHTML = `<span class="rec-step num">${p.n}</span><span>${esc(p.instruction).replace(/«([^»]+)»/g, (_, w) => ar(w))}</span>`;
+    tip.hidden = false;
+    const r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+    tip.style.left = `${Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2))}px`;
+    tip.style.top = `${r.top - h - 10 < 8 ? r.bottom + 10 : r.top - h - 10}px`;
+  };
+  const hide = () => { tip.hidden = true; pinned = null; };
+  const text = document.querySelector('.rec-text');
+  if (!text) return;
+  text.addEventListener('pointerover', (e) => { const el = e.target.closest('[data-plant]'); if (el && !pinned) show(el); });
+  text.addEventListener('pointerout', (e) => { if (!pinned && e.target.closest('[data-plant]')) tip.hidden = true; });
+  text.addEventListener('focusin', (e) => { const el = e.target.closest('[data-plant]'); if (el) show(el); });
+  text.addEventListener('focusout', () => { if (!pinned) tip.hidden = true; });
+  text.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-plant]');
+    if (!el) return hide();
+    if (pinned === el) return hide();
+    pinned = el;
+    show(el);
+  });
+  addEventListener('scroll', () => { if (!tip.hidden) hide(); }, { passive: true });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
 }
 
 function scriptHtml(s) {
@@ -208,6 +241,7 @@ async function scriptView() {
   st.takes = d.takes;
   document.title = `${d.script.title} · Record · Tilawa lab`;
   $('main').innerHTML = scriptHtml(d.script) + (st.speaker ? '' : nameForm());
+  bindTips(d.script);
   bindName();
   if (!st.speaker) {
     $('takes').innerHTML = '<p class="muted small">Enter your name below to record.</p>';
