@@ -1,0 +1,13 @@
+{
+ "id": "checker-consonant-edits",
+ "component": "checker",
+ "hypothesis": "The phoneme alignment maps a changed consonant to a vowel and discounts it as a soft edit, so Noah/Salih substitutions have only one hard edit and never become candidates. Count a consonant-vowel replacement at its actual substitution cost whenever either side is a consonant. Predict three fewer checker-attributed and overall wrong calls; preserve clean recitation and studio without lowering acoustic support thresholds.",
+ "expected": {
+  "component": -3,
+  "overall": -3
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.4.v3",
+ "created": "2026-10-30T17:53:19+00:00",
+ "author": "Yazin"
+}
