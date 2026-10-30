@@ -446,6 +446,58 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return v;
   };
 
+  /**
+   * Costs of word `wi` read from its far edge (its start when `after`, else its end) against the first `j` of `heard`,
+   * read the same way, for every `j`.
+   */
+  const edgeFit = (wi: number, heard: string[], after: boolean): Float64Array => {
+    const w = words[wi];
+    const n = w.end - w.start;
+    const r = (i: number) => (after ? w.start + i : w.end - 1 - i);
+    const pos = (i: number) => (after ? w.start + i : w.end - i);
+    let row = new Float64Array(heard.length + 1);
+    for (let j = 1; j <= heard.length; j++) row[j] = row[j - 1] + insertionCost(ref, pos(0), heard[j - 1], w.end);
+    for (let i = 1; i <= n; i++) {
+      const next = new Float64Array(heard.length + 1);
+      next[0] = row[0] + deletionCost(ref, r(i - 1));
+      for (let j = 1; j <= heard.length; j++) {
+        next[j] = Math.min(
+          row[j - 1] + subCost(ref[r(i - 1)], heard[j - 1]),
+          row[j] + deletionCost(ref, r(i - 1)),
+          next[j - 1] + insertionCost(ref, pos(i), heard[j - 1], w.end),
+        );
+      }
+      row = next;
+    }
+    return row;
+  };
+
+  /**
+   * An added word found inside a word can take the word's edge with it: وبنين كريم aligned as وبنِ[ينكر]يم, held sounds
+   * being cheap to insert beside the word's own. When the word fits better on its own, split the visit's heard phonemes
+   * again where it fits best, the added word keeping the rest on its side.
+   */
+  const resplit = (issue: Issue, v: Visit, after: boolean) => {
+    if (v.obsFrom < 0) return;
+    const at: number[] = [];
+    for (let k = v.obsFrom; k < v.obsTo; k++) if (!obs[k].junk) at.push(k);
+    if (!after) at.reverse();
+    const heard = at.map((k) => obs[k].p);
+    const keep = at.filter((k) => k < issue.obsFrom || k >= issue.obsTo).map((k) => obs[k].p);
+    const now = edgeFit(v.word, keep, after)[keep.length];
+    const fit = edgeFit(v.word, heard, after);
+    let best = -1;
+    for (let s = 0; s + MIN_ADDED + 1 <= heard.length; s++) {
+      if (heard.slice(s).filter((p) => CONSONANTS.has(p)).length < 2) continue;
+      if (best < 0 || fit[s] < fit[best]) best = s;
+    }
+    if (best < 0 || fit[best] >= now) return;
+    const rest = at.slice(best).sort((a, b) => a - b);
+    issue.obsFrom = rest[0];
+    issue.obsTo = rest.at(-1)! + 1;
+    issue.observed = rest.map((k) => obs[k].p).join("");
+  };
+
   /** The errors the current alignment shows, by word; and where it stands. */
   const judge = (steps: Step[]) => {
     const visits: Visit[] = [];
@@ -455,15 +507,20 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     /** Insertions inside the current word, with where they sit. */
     let inner: { at: number; obs: number }[] = [];
     let head = -1;
+    /** Added words found inside a visit, re-split once the visit is complete. */
+    const within: { issue: Issue; v: Visit; after: boolean }[] = [];
     // A long run inside a word is another word said there, before it or after it by which half it sits in.
     const flushInner = () => {
       const v = cur;
       if (!v || !inner.length) return void (inner = []);
       if (inner.length >= MIN_ADDED + 1 && inner.filter((k) => CONSONANTS.has(obs[k.obs].p)).length >= 2) {
         const w = words[v.word];
-        const word = inner[0].at - w.start < (w.end - w.start) / 2 ? v.word : nextWord(v.word);
+        const after = inner[0].at - w.start >= (w.end - w.start) / 2;
+        const word = after ? nextWord(v.word) : v.word;
         const text = inner.map((k) => obs[k.obs].p).join("");
-        added.push({ cls: "added_word", word, last: word, obsFrom: inner[0].obs, obsTo: inner.at(-1)!.obs + 1, observed: text });
+        const issue: Issue = { cls: "added_word", word, last: word, obsFrom: inner[0].obs, obsTo: inner.at(-1)!.obs + 1, observed: text };
+        added.push(issue);
+        within.push({ issue, v, after });
       } else for (const k of inner) charge(v, insCharge(k.at, obs[k.obs].p, obs[k.obs - 1]?.p));
       inner = [];
     };
@@ -513,6 +570,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       } else charge(v, delCharge(s.ref));
     }
     close();
+    for (const x of within) resplit(x.issue, x.v, x.after);
 
     const length = (wi: number) => words[wi].end - words[wi].start;
     // Vowels and madd alone, every consonant lost, aren't the word: a decoder's held sound can align onto a dropped one.
