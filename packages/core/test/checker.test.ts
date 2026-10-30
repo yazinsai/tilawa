@@ -152,6 +152,14 @@ describe("skips", () => {
     expect(new Set(events.map((e) => `${e.errorClass} ${key(e.location)}`))).toEqual(new Set(["skipped_passage 109:3:1"]));
   });
 
+  it("are placed on an ayah's first word after a word ending like آمين", () => {
+    // رب العالمين [أتبنون] بكل ريع: ٱلْعَـٰلَمِينَ in waqf passes for the آمين phrase.
+    const start = w(26, 123, 1);
+    const omitted = find(w(26, 128, 1));
+    const f = syntheticFixture(index, { id: "c", from: start, to: w(26, 130, 3), edits: [{ kind: "del", at: omitted.start - find(start).start, count: omitted.end - omitted.start }], chunkSize: 8 });
+    expect(summary(confirmed(replayChecked(index, f, { phrases }, { phrases })))).toEqual(["confirmed omitted_word 26:128:1"]);
+  });
+
   it("confirm when they are not", () => {
     const edits: Edit[] = [{ kind: "del", at: at(w(2, 255, 30)), count: at(w(2, 255, 40)) - at(w(2, 255, 30)) }];
     expect(summary(run(edits, { to: w(2, 257, 5) }))).toEqual(["suspected skipped_passage 2:255:30", "confirmed skipped_passage 2:255:30"]);

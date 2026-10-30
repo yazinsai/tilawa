@@ -52,6 +52,11 @@ export interface Checker {
 const JUMP = 2 * UNIT;
 /** Per phoneme of evidence before the lock span that the alignment may drop as leading junk. */
 const LEAD = 1;
+/**
+ * Per phoneme of a non-Quran phrase, far below any edit: where the written words fit the same phonemes as well, they
+ * are the words. A waqf ending like ٱلْعَـٰلَمِينَ passes for آمين, and a free phrase there lets a skip take the word.
+ */
+const PHRASE = 1 / 64;
 /** A word is wrong above this weighted cost per reference phoneme it covers, with at least `MIN_WRONG_EDITS` plain edits. */
 const WRONG = 0.3;
 /**
@@ -366,7 +371,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
           best = d[prev + i - 1] + sub[i - 1];
           o = OP_DIAG;
         }
-        const ins = d[prev + i] + (obs[j - 1].junk ? 0 : j <= lead && i === a0 ? LEAD : insCost[i]);
+        const ins = d[prev + i] + (obs[j - 1].junk ? PHRASE : j <= lead && i === a0 ? LEAD : insCost[i]);
         if (ins < best) {
           best = ins;
           o = j <= lead && i === a0 ? OP_LEAD : OP_INS;
