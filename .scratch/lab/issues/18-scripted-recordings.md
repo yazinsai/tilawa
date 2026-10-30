@@ -38,3 +38,18 @@ Built and checked end to end on the preview app (`tilawa-lab-record-preview`) wi
 - browser take with a fake microphone: listen, last ayah cut off.
 
 The test data was deleted afterwards. No scoreboard row, because no metric moves until a joined set is scored.
+
+2026-10-30, fixing a passage. This answers "for takes that need to be recorded again, can I just re-record the bit that failed?" A redo or listen take now lists its failed ayahs: plants not heard or unsure, ayahs that sound different, words not found. It offers **Re-record ayahs A–B**, whole ayahs only, defaulting to the failed passage, and the range can be widened. The reciter records just that passage, with pause and resume, and uploads it.
+
+- Processing checks the patch against the script's A..B and joins it into the base take at measured pauses on both sides of each join: 80 ms below room tone + 3 dB, or −30 dB against speech, capped at −12 dB. It level-matches the patch and refuses past 6 dB.
+- The composed take is a new take number and is checked end to end. The base take and the patch are kept.
+- A refusal says what to record instead. "No clean pause before A" offers A-1..B.
+
+End to end on the preview app, with synthetic audio and one browser fix:
+
+- a redo take fixed at 77:3 became ok;
+- a fix of a fix became ok;
+- both refusal kinds came back as designed;
+- the browser fix became listen, because of the known omission artifact at 77:14.
+
+The joins measured −83 dB. The test data was deleted. Details are in the write-up under "Fixing a passage". No scoreboard row: labels and metrics don't change; only how a take gets made does.
