@@ -1,0 +1,13 @@
+{
+ "id": "checker-fewer-false-wrong",
+ "component": "checker",
+ "hypothesis": "A wrong word whose changed sounds the decoder heard at mean confidence below 0.8 must beat the written word by 2x SUPPORT (20 nats): phone mishearings of confusable sounds (ن/م, ف/ك) sit at even odds with blank yet sum past 10 nats; expect listener-charged false wrong words -5 (6 -> 1), lost-by-checker 0, no planted wrong word lost",
+ "expected": {
+  "component": 0,
+  "overall": -5
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.4.v2",
+ "created": "2026-10-30T03:13:01+00:00",
+ "author": "Yazin"
+}
