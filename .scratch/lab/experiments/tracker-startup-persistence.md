@@ -1,6 +1,6 @@
 # Preserve canonical near-repeats during tracker acquisition
 
-Status: implemented; practice result pending. Fold or discard belongs to the user.
+Status: practice scored; recommend fold. Fold or discard belongs to the user.
 
 Test set: lab-v1.4.v3, practice only. Base: main 5716d49; its engine source is identical to the stored practice baseline b544715 (14 wrong calls, 11 missed and 3 false warnings over 88.136 minutes).
 
@@ -23,3 +23,11 @@ Real first-22-second student phone prefixes from p01 and p18 reproduce wrong loc
 Red run: startup-red-f40f66c-20261030T174745Z. Passing run: startup-canonical-unit-f40f66c-dirty-20261030T175154Z. The earlier persistence prototype's rejected test run is startup-green-f40f66c-dirty-20261030T174846Z.
 
 Practice-only baseline traces: /runs/wrong-calls-probe-5716d49-20261030T174304Z/{0,1}/probe.json on tilawa-lab. No exam scoring or inspection.
+
+## Recorded practice result
+
+Run exp-tracker-startup-persistence-cf6247e-20261030T175415Z, source cf6247e. Phone: 14 -> 11 wrong calls, all three startup false warnings removed; 11 missed calls unchanged. Tracker attribution 3 -> 0. This matches both predicted deltas. Listener and checker attribution are unchanged.
+
+Studio: 14 -> 11 wrong calls (10 missed unchanged, false warnings 4 -> 1). False warnings on non-errors remain zero on both copies. Phone false jumps improve 8 -> 5; on-place share .9957 -> .9959; p90 lock delay .295 -> .250 seconds and maximum 3.565 -> 2.465 seconds. Studio false jumps improve 12 -> 9 with no lock-delay regression. No evidence of a clean-recitation regression in the practice results or the 58 passing unit tests.
+
+This experiment is independent of the checker experiments. Main remains unchanged; no combined gain is claimed.
