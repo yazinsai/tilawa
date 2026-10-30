@@ -119,7 +119,7 @@ def _pool(fn, clips: list[dict], workers: int) -> list[dict]:
 
 
 @app.function(image=image, volumes={VOL: vol}, secrets=[modal.Secret.from_name("soniox")], timeout=2 * 60 * 60, cpu=2,
-              max_containers=4)
+              max_containers=8)
 def soniox(clips: list[dict], workers: int = 8) -> dict:
     """clips: [{id, path, startS, endS}] only."""
     http = _Http(os.environ["SONIOX_API_KEY"])

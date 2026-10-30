@@ -2,6 +2,7 @@
 tilawa-lab volume at /lab/ledger.json (logic in tools/lab_ledger.py).
 
     python3 tools/lab.py baseline                      # score the main line (practice + exam); first run sets the test set
+    python3 tools/lab.py baseline --manifest lab-v1.5/manifest-v1.json --exclude lab-v1.5/flags-v1.json   # a new test set, flags carried
     python3 tools/lab.py new <id> --component checker --hypothesis '...' --expect-component -5 --expect-overall -3
     python3 tools/lab.py run [worktree]                # score an experiment on the practice set, verdict vs the main line
     python3 tools/lab.py status [--all]
@@ -172,6 +173,11 @@ def cmd_baseline(a):
             raise Stop(f"no manifest at /lab/data/{a.manifest}")
         sessions = {s: [e["id"] for e in m["sessions"] if e["split"] == s] for s in ("practice", "exam")}
         new_ts = dict(base=m["testSet"], version=1, manifest=a.manifest, sessions=sessions)
+        if a.exclude:
+            ex = vol_get(f"/data/{a.exclude}")
+            if not ex or ex.get("base") != m["testSet"]:
+                raise Stop(f"/lab/data/{a.exclude} is not an exclusion list for {m['testSet']}")
+            new_ts.update(exclude=a.exclude, flags=len(ex["excluded"]))
         L.add_test_set(led, **new_ts)
     ts = L.test_set(led)
     res = score_main(a, ts)
@@ -429,6 +435,7 @@ def parser():
     sub = p.add_subparsers(dest="op", required=True)
     b = sub.add_parser("baseline", help="score the main line on practice and exam")
     b.add_argument("--manifest", default="lab-v1.4/manifest-v1.json", help="under /lab/data; registers its test set when the ledger has none or another one")
+    b.add_argument("--exclude", default="", help="under /lab/data: flags carried into a new test set (e.g. lab-v1.5/flags-v1.json, from lab-v1.4's)")
     b.add_argument("--note", default="")
     n = sub.add_parser("new", help="create an experiment worktree and card")
     n.add_argument("id")

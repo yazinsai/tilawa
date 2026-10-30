@@ -1,0 +1,291 @@
+{
+ "version": 1,
+ "testSet": "lab-v1.5",
+ "seed": 20261028,
+ "all": {
+  "sessions": 200,
+  "reciters": 29,
+  "minutes": 868.5,
+  "durationS": [
+   183.1,
+   418.6
+  ],
+  "ayah1": 40,
+  "strict": 30,
+  "clean": 52,
+  "planted": 1150,
+  "formsOtherAyah": 191,
+  "plantedPerAyah": 0.258,
+  "classes": {
+   "added_word": 219,
+   "mutashabihat": 97,
+   "omitted_word": 518,
+   "repeat": 129,
+   "restart": 71,
+   "skipped_passage": 248,
+   "wrong_word": 68
+  },
+  "words": 43167
+ },
+ "splits": {
+  "exam": {
+   "sessions": 100,
+   "reciters": 14,
+   "minutes": 434.3,
+   "durationS": [
+    183.1,
+    418.6
+   ],
+   "ayah1": 20,
+   "strict": 15,
+   "clean": 26,
+   "planted": 533,
+   "formsOtherAyah": 94,
+   "plantedPerAyah": 0.247,
+   "classes": {
+    "added_word": 101,
+    "mutashabihat": 49,
+    "omitted_word": 220,
+    "repeat": 61,
+    "restart": 39,
+    "skipped_passage": 126,
+    "wrong_word": 37
+   },
+   "words": 21064
+  },
+  "practice": {
+   "sessions": 100,
+   "reciters": 15,
+   "minutes": 434.2,
+   "durationS": [
+    187.1,
+    397.9
+   ],
+   "ayah1": 20,
+   "strict": 15,
+   "clean": 26,
+   "planted": 617,
+   "formsOtherAyah": 97,
+   "plantedPerAyah": 0.267,
+   "classes": {
+    "added_word": 118,
+    "mutashabihat": 48,
+    "omitted_word": 298,
+    "repeat": 68,
+    "restart": 32,
+    "skipped_passage": 122,
+    "wrong_word": 31
+   },
+   "words": 22103
+  }
+ },
+ "frozen": {
+  "from": "lab-v1.4",
+  "exam": {
+   "sessions": 20,
+   "reciters": 14,
+   "minutes": 91.4,
+   "durationS": [
+    192.8,
+    416.2
+   ],
+   "ayah1": 4,
+   "strict": 3,
+   "clean": 5,
+   "planted": 118,
+   "formsOtherAyah": 25,
+   "plantedPerAyah": 0.217,
+   "classes": {
+    "added_word": 13,
+    "mutashabihat": 13,
+    "omitted_word": 62,
+    "repeat": 12,
+    "restart": 8,
+    "skipped_passage": 28,
+    "wrong_word": 2
+   },
+   "words": 4717
+  },
+  "practice": {
+   "sessions": 20,
+   "reciters": 15,
+   "minutes": 88.8,
+   "durationS": [
+    205.1,
+    397.0
+   ],
+   "ayah1": 4,
+   "strict": 3,
+   "clean": 5,
+   "planted": 134,
+   "formsOtherAyah": 18,
+   "plantedPerAyah": 0.264,
+   "classes": {
+    "added_word": 30,
+    "mutashabihat": 6,
+    "omitted_word": 73,
+    "repeat": 12,
+    "restart": 8,
+    "skipped_passage": 22,
+    "wrong_word": 3
+   },
+   "words": 4695
+  }
+ },
+ "new": {
+  "exam": {
+   "sessions": 80,
+   "reciters": 14,
+   "minutes": 342.8,
+   "durationS": [
+    183.1,
+    418.6
+   ],
+   "ayah1": 16,
+   "strict": 12,
+   "clean": 21,
+   "planted": 415,
+   "formsOtherAyah": 69,
+   "plantedPerAyah": 0.257,
+   "classes": {
+    "added_word": 88,
+    "mutashabihat": 36,
+    "omitted_word": 158,
+    "repeat": 49,
+    "restart": 31,
+    "skipped_passage": 98,
+    "wrong_word": 35
+   },
+   "words": 16347
+  },
+  "practice": {
+   "sessions": 80,
+   "reciters": 15,
+   "minutes": 345.5,
+   "durationS": [
+    187.1,
+    397.9
+   ],
+   "ayah1": 16,
+   "strict": 12,
+   "clean": 21,
+   "planted": 483,
+   "formsOtherAyah": 79,
+   "plantedPerAyah": 0.268,
+   "classes": {
+    "added_word": 88,
+    "mutashabihat": 42,
+    "omitted_word": 225,
+    "repeat": 56,
+    "restart": 24,
+    "skipped_passage": 100,
+    "wrong_word": 28
+   },
+   "words": 17408
+  }
+ },
+ "siteCap": 3,
+ "surahs": {
+  "2": 7,
+  "3": 2,
+  "4": 8,
+  "5": 4,
+  "6": 3,
+  "7": 7,
+  "8": 4,
+  "9": 4,
+  "10": 1,
+  "11": 2,
+  "12": 3,
+  "13": 1,
+  "15": 1,
+  "16": 1,
+  "17": 2,
+  "18": 3,
+  "19": 2,
+  "20": 3,
+  "21": 1,
+  "22": 3,
+  "23": 6,
+  "24": 2,
+  "25": 1,
+  "26": 51,
+  "28": 1,
+  "29": 2,
+  "32": 2,
+  "34": 3,
+  "35": 3,
+  "36": 1,
+  "37": 13,
+  "38": 4,
+  "39": 1,
+  "40": 2,
+  "41": 1,
+  "44": 5,
+  "49": 1,
+  "50": 2,
+  "51": 3,
+  "54": 9,
+  "55": 7,
+  "59": 1,
+  "60": 1,
+  "63": 1,
+  "64": 1,
+  "67": 1,
+  "72": 2,
+  "77": 4,
+  "78": 2,
+  "79": 1,
+  "83": 4
+ },
+ "bank": {
+  "sources": {
+   "noise": "obadx/freesound-commercial-50k-noise-only (commercial-use licences), shards 100,101,102,103; the student bank uses shards 0-2",
+   "rir": "EaseZh/rirs_noises (OpenSLR-28) simulated small and medium rooms, minus every RIR in the student bank (tilawa-student/aug/rir.npz)"
+  },
+  "sha256": {
+   "noise": "62eddf5357bf768341db22ecf1769f95b424c7bce54d41c3b1d2e7a3a8d4ade4",
+   "rir": "c6fb31f2b6ebe1b372576b521d5d6839a425526d64d92d9878e4823cb84a2d36"
+  },
+  "noises": 400,
+  "rirs": 200
+ },
+ "refused": {
+  "ayahs": {
+   "check": 69,
+   "long": 2389,
+   "per": 104
+  },
+  "sites": 92,
+  "donors": 17,
+  "weakOnsetPauses": {
+   "moved": 968,
+   "unverified": 8758
+  },
+  "rules": {
+   "lenRatioMin": 1.05,
+   "ayahPerMax": 0.1,
+   "weakOnsets": "ءحخعغه",
+   "linkDb": -6.0,
+   "linkTailDb": -8.0,
+   "minDonorS": 0.26,
+   "onsetSilenceS": 0.08,
+   "onsetFloorDb": -30.0,
+   "roomPct": 0.02,
+   "roomMarginDb": 3.0,
+   "pauseFormLands": "pause",
+   "donorRecording": "host",
+   "breakAt": "pause",
+   "insertSeams": "pause",
+   "reenterAt": "pause",
+   "pauseSide": 6,
+   "classShareMax": {
+    "added_word": 0.3,
+    "skipped_passage": 0.3
+   }
+  },
+  "refusalsSha256": "7ba719ef77bd166ab3b88cf66219234d450aae25cd8c718ef5e5b5825c0a3b5c",
+  "iterations": 11
+ },
+ "reciters": 29
+}
