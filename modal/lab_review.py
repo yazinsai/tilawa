@@ -34,6 +34,8 @@ image = (
     .add_local_file(ROOT / "tools/lab_dashboard_core.py", "/root/lab_dashboard_core.py")
     .add_local_file(ROOT / "tools/review_asr_core.py", "/root/review_asr_core.py")
     .add_local_file(ROOT / "tools/lab_models_core.py", "/root/lab_models_core.py")
+    .add_local_file(ROOT / "tools/lab_phonemes_core.py", "/root/lab_phonemes_core.py")
+    .add_local_file(ROOT / "packages/core/assets/ref-v2.json", "/root/ref-v2.json")
     .add_local_file(ROOT / "docs/benchmarks/scoreboard.md", "/root/scoreboard.md")
     .add_local_dir(ROOT / "modal/lab_web", "/root/lab_web")
 )
@@ -404,6 +406,59 @@ def web():
             return obj
 
         return M.view(item, load)
+
+    import lab_phonemes_core as P
+
+    ref_words = lru_cache(maxsize=1)(lambda: P.Ref(json.loads(Path("/root/ref-v2.json").read_text())))
+    heard_cache: dict[tuple, dict] = {}
+    starts_of: dict[int, tuple[object, list[int]]] = {}
+
+    def starts(ev):
+        hit = starts_of.get(id(ev))
+        if hit and hit[0] is ev:
+            return hit[1]
+        if len(starts_of) >= 64:
+            starts_of.clear()
+        starts_of[id(ev)] = (ev, [p["start"] for p in ev.get("phonemes", [])])
+        return starts_of[id(ev)][1]
+
+    @api.get("/api/phonemes")
+    def phonemes(startS: float, endS: float, path: str | None = None, testSet: str | None = None, session: str | None = None,
+                 variant: str | None = None, label: str | None = None):
+        """What each listener heard in a window of a session, word by word (tools/lab_phonemes_core.py): by the item's
+        audio `path` (`<set>/sessions/<id>.<variant>.wav`), or by testSet, session and variant."""
+        if not (0 <= startS < endS) or endS - startS > P.MAX_WINDOW_S:
+            raise HTTPException(400, f"need 0 <= startS < endS, at most {P.MAX_WINDOW_S} s")
+        if path:
+            where = P.session_of(path)
+            if not where:
+                raise HTTPException(400, f"not a session's audio: {path} (want <set>/sessions/<id>.<phone|studio>.wav)")
+            d, sid, var = where
+        else:
+            if variant not in ("phone", "studio"):
+                raise HTTPException(400, "give path, or testSet, session and variant (phone or studio)")
+            d, sid, var = f"{name(testSet or '', 'testSet')}/sessions", name(session or "", "session"), variant
+        reload()
+
+        def load(rel: str):
+            if (obj := read_json(DATA / rel)) is None:
+                reload(force=True)
+                obj = read_json(DATA / rel)
+            return obj
+
+        srel = P.session_rel(d, sid)
+        sdoc = load(srel)
+        if not isinstance(sdoc, dict) or "said" not in sdoc:
+            raise HTTPException(404, f"no session labels with `said` at {srel}")
+        files = {k: P.evidence_rel(d, sid, lid, var) for k, lid, _ in P.LISTENERS}
+        ev = {k: x if isinstance(x, dict) and "phonemes" in x else None for k, x in ((k, load(f)) for k, f in files.items())}
+        ck = (*(parsed.get(DATA / f, (None,))[0] for f in (srel, *files.values())), srel, var, round(startS, 3), round(endS, 3), label)
+        if (hit := heard_cache.get(ck)) is None:
+            if len(heard_cache) >= 256:
+                heard_cache.clear()
+            hit = heard_cache[ck] = {"session": sid, "variant": var, "sessions": d, **P.view(
+                sdoc, ref_words(), ev, startS, endS, label, files, {k: starts(x) for k, x in ev.items() if x})}
+        return hit
 
     # Scripted-error recordings (ticket 18). This container is the only writer of uploads and their metadata (a fix's
     # take number is held from its upload); results, and a fix's composed audio and joins, come from the processing

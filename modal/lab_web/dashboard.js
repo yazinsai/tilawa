@@ -1,4 +1,4 @@
-import { mountItem, VERDICTS, FAULTS, icon, keySheet, railHtml, verdictKind } from './item.js';
+import { mountItem, VERDICTS, FAULTS, icon, keySheet, railHtml, verdictKind, phonemesUrl } from './item.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -52,6 +52,7 @@ const keys = keySheet([
   ['a', 'Original recording after the edit'],
   ['1 2 3', 'Bad data: label, audio, splice'],
   ['4 5 6', 'Fault: listener, tracker, checker'],
+  ['p', 'Show or hide what the listeners heard'],
   ['j', 'Next case'],
   ['k', 'Previous case'],
   ['Esc', 'Back to the list'],
@@ -343,6 +344,7 @@ async function caseView(component, variant, key) {
   st.view = mountItem($('item'), d.item, {
     review: d.review,
     verdicts: CASE_VERDICTS,
+    phonemes: phonemesUrl(d.item),
     aside: whyHtml(d),
     onVerdict: async (verdict, note, how) => {
       const r = await api('/api/case-verdict', {
@@ -428,8 +430,9 @@ document.addEventListener('keydown', (e) => {
   const k = e.key;
   if (k === 'Escape' && keys.open()) return keys.close();
   if (!st.view) return;
-  if (e.target.tagName === 'BUTTON') e.target.blur();
+  if (e.target.tagName === 'BUTTON' || e.target.tagName === 'SUMMARY') e.target.blur();
   if (k === '?') keys.toggle();
+  else if (k === 'p') st.view.togglePhonemes();
   else if (k === ' ') st.view.play('audio');
   else if (k === 'b') st.view.play('before');
   else if (k === 'a') st.view.play('after');

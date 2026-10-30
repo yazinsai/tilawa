@@ -1,9 +1,9 @@
 // One review item: play controls, the label in plain words, the Arabic said, grouped verdict buttons and a note.
 // Used by the review page and the lab dashboard drill-down:
-//   import { mountItem, VERDICTS, FAULTS } from '/static/item.js';
+//   import { mountItem, VERDICTS, FAULTS, phonemesUrl } from '/static/item.js';
 //   const view = mountItem(el, item, { review, verdicts: [...VERDICTS, ...FAULTS], aside: html, models: '/api/models?queue=…&id=…',
-//                                      onVerdict: (verdict, note, how) => save() });
-//   view.play('audio' | 'before' | 'after'); view.choose(0); view.toggleModels(); view.destroy();
+//                                      phonemes: phonemesUrl(item), onVerdict: (verdict, note, how) => save() });
+//   view.play('audio' | 'before' | 'after'); view.choose(0); view.toggleModels(); view.togglePhonemes(); view.destroy();
 // Styles live in /static/lab.css.
 
 export const VERDICTS = [
@@ -88,9 +88,9 @@ const MODEL_NAMES = { nemotron: 'Nemotron', soniox: 'Soniox', fastconformer: 'Fa
 const DECIDED = { match: 'fits', mismatch: 'doesn’t fit', unsure: 'unsure' };
 const chip = (k) => (k === 'match' ? 'better' : k === 'mismatch' ? 'worse' : '');
 const heardCache = new Map();
-const modelsOpen = () => {
+const isOpen = (k) => {
   try {
-    return localStorage.getItem(MODELS_OPEN) === '1';
+    return localStorage.getItem(k) === '1';
   } catch {
     return false;
   }
@@ -133,6 +133,74 @@ function modelsHtml(d) {
     ${d.alternative ? `<p class="md-alt">Each model weighs the label against ${esc(d.alternative.name)}: <bdi lang="ar" dir="rtl">${esc(d.alternative.text)}</bdi></p>` : ''}
     ${rows}
     <p class="md-key"><del class="md-del">Struck</del> is in the label but wasn’t heard; <ins class="md-ins">shaded</ins> was heard but isn’t in the label. Words are compared without vowels.</p>`;
+}
+
+// "What the listeners heard": the app's listener's and the big reference listener's greedy phonemes in this window,
+// word by word against what should be heard, from GET /api/phonemes. Only a session's own audio has them.
+const PHONEMES_OPEN = 'tilawa.lab.phonemesOpen';
+const SESSION_AUDIO = /^(?:[\w.-]+\/)*sessions\/[\w.-]+\.(?:phone|studio)\.wav$/;
+export const phonemesUrl = (item) =>
+  SESSION_AUDIO.test(item.audio?.path || '')
+    ? `/api/phonemes?${new URLSearchParams({ path: item.audio.path, startS: item.audio.startS, endS: item.audio.endS, label: item.label?.type || '' })}`
+    : '';
+const ROLE = { wrong: 'planted', added: 'added', omitted: 'left out', repeat: 'repeat' };
+const LISTENER_ROW = { student: 'App’s listener', teacher: 'Big reference listener' };
+const arp = (s, cls = '') => `<bdi class="lh-ph ${cls}" lang="ar" dir="rtl">${s}</bdi>`;
+const span = (c) => `${c.startS.toFixed(2)}–${c.endS.toFixed(2)} s`;
+
+// Runs of phonemes alike (same, differs, not heard; low confidence), so the Arabic shapes across them.
+function opsHtml(ops, low) {
+  const runs = [];
+  for (const o of ops) {
+    const cls = o.op === 'same' ? '' : o.op === 'del' ? 'lh-del' : 'lh-x';
+    const dim = o.op !== 'del' && o.conf != null && o.conf < low ? ' lh-low' : '';
+    const last = runs.at(-1);
+    if (last && last.cls === cls + dim) last.ops.push(o);
+    else runs.push({ cls: cls + dim, ops: [o] });
+  }
+  return runs
+    .map(({ cls, ops: rs }) => {
+      const what = cls.startsWith('lh-del') ? 'Should be heard, not heard' : cls.startsWith('lh-x') ? 'Heard, differs from what should be heard' : 'Heard as expected';
+      const tip = `${what}: ${rs.map((o) => (o.op === 'del' ? o.e : `${o.h} ${o.conf == null ? '' : o.conf.toFixed(2)}${o.op === 'sub' ? ` (for ${o.e})` : ''} at ${o.t.toFixed(2)} s`)).join(' · ')}`;
+      return `<span class="${cls}" title="${esc(tip)}">${esc(rs.map((o) => (o.op === 'del' ? o.e : o.h)).join(''))}</span>`;
+    })
+    .join('');
+}
+
+function heardCell(c, h, low) {
+  const td = (html, cls = '') => `<td class="${cls}${c.focus ? ' lh-focus' : ''}">${html}</td>`;
+  if (!h) return td('');
+  if (c.kind === 'gap') return td(h.ops.length ? arp(opsHtml(h.ops, low), 'lh-heard') : '', 'lh-gap');
+  if (!h.ops.some((o) => o.h)) return td(`<span class="lh-none" title="${c.role === 'omitted' ? 'Nothing heard, as it should be' : 'Nothing heard'}">nothing</span>`);
+  return td(arp(opsHtml(h.ops, low), 'lh-heard'));
+}
+
+function listenersHtml(d) {
+  const have = d.listeners.filter((x) => x.found);
+  const cols = d.columns;
+  const fc = (c) => (c.focus ? ' lh-focus' : '');
+  const word = (c) => {
+    if (c.kind === 'gap') return `<th scope="col" class="lh-gap" title="Between words, ${span(c)}"><span aria-label="Between words">·</span></th>`;
+    const text = c.role === 'omitted' ? `<s>${esc(c.text)}</s>` : esc(c.text);
+    const tip = `${c.at ? `${c.at} · ` : ''}${span(c)}${c.reference && c.role === 'wrong' ? ` · instead of ${c.reference.text}` : ''}`;
+    return `<th scope="col" class="lh-w${fc(c)}" title="${esc(tip)}"><bdi lang="ar" dir="rtl" class="${c.focus ? 'li-mark' : ''}">${text}</bdi>${ROLE[c.role] ? `<small dir="ltr">${ROLE[c.role]}</small>` : ''}</th>`;
+  };
+  const expected = (c) => {
+    if (c.kind === 'gap') return '<td class="lh-gap"></td>';
+    if (c.role === 'omitted')
+      return `<td class="${fc(c).trim()}"><span class="lh-none lh-should" title="Would have sounded like ${esc(c.reference?.phonemes || '')}">should be missing</span></td>`;
+    return `<td class="${fc(c).trim()}">${arp(esc(c.expected), 'lh-exp')}</td>`;
+  };
+  const row = (label, cells, cls = '') => `<tr class="${cls}">${cells}<th scope="row" dir="ltr">${label}</th></tr>`;
+  const grid = `<div class="lh-scroll" dir="rtl"><table class="lh">
+    ${row('Word', cols.map(word).join(''), 'lh-words')}
+    ${row('Should be heard', cols.map(expected).join(''))}
+    ${have.map((x) => row(LISTENER_ROW[x.key] || x.name, cols.map((c) => heardCell(c, c.heard[x.key], d.lowConf)).join(''))).join('')}
+  </table></div>`;
+  return `<p class="lh-sum">${esc(d.summary)}.</p>${d.elsewhere ? `<p class="lh-else">${esc(d.elsewhere)}.</p>` : ''}
+    ${d.listeners.filter((x) => !x.found).map((x) => `<p class="md-none">${esc(x.message)}.</p>`).join('')}
+    ${cols.length ? grid : '<p class="md-none">No words in this window.</p>'}
+    <p class="md-key">Sounds in the reference’s phoneme spelling, read right to left. <span class="lh-x">Shaded</span> sounds differ from what should be heard; <span class="lh-del">struck</span> ones should have been heard but weren’t; <span class="lh-low">faded</span> ones the listener was unsure of (below ${d.lowConf}; hover for each sound’s confidence and time). A · column is sound heard between words.</p>`;
 }
 
 const CSS = `
@@ -210,6 +278,27 @@ const CSS = `
 .md-edge{opacity:.6}
 .md-key{margin-top:var(--s4);font-size:var(--t-xs);color:var(--g-600)}
 @media (max-width:600px){.md-dl{grid-template-columns:1fr;gap:2px}.md-dl dt{padding-top:var(--s2)}.md-dl dd.md-q{padding-top:0}}
+.lh-sum{color:var(--g-900);font-size:var(--t-base)}
+.lh-else{margin-top:2px;color:var(--g-600)}
+.lh-scroll{margin-top:var(--s3);overflow-x:auto}
+.lh{border-collapse:collapse;margin-inline-start:auto}
+.lh th,.lh td{padding:4px 6px;text-align:center;vertical-align:middle;white-space:nowrap;border-bottom:1px solid var(--g-200);font-weight:400}
+.lh tr:last-child>*{border-bottom:0}
+.lh th[scope=row]{position:sticky;left:0;z-index:1;background:#fff;text-align:left;white-space:normal;width:84px;min-width:84px;line-height:1.3;padding:4px var(--s2) 4px 0;font-size:var(--t-xs);color:var(--g-600)}
+.lh-w bdi{font-family:var(--ar);font-size:var(--t-xl);line-height:1.8;color:var(--g-900)}
+.lh-w s{text-decoration-color:var(--g-500);color:var(--g-500)}
+.lh-w small{display:block;font-size:var(--t-xs);line-height:1.2;color:var(--g-600);padding-bottom:4px}
+.lh-ph{font-family:var(--ar);font-size:var(--t-lg);line-height:1.9;color:var(--g-900)}
+.lh-exp{color:var(--g-700)}
+.lh-heard{color:var(--g-600)}
+.lh .lh-x,.md-key .lh-x{color:var(--g-900);background:var(--g-200);border-radius:4px;box-shadow:0 0 0 2px var(--g-200)}
+.lh .lh-del,.md-key .lh-del{text-decoration:line-through;text-decoration-color:var(--g-500);color:var(--g-400)}
+.lh .lh-low,.md-key .lh-low{opacity:.45}
+.lh-none.lh-should{white-space:normal;max-width:76px;border-radius:var(--radius)}
+.lh-none{display:inline-block;font-size:var(--t-xs);line-height:1.5;color:var(--g-500);border:1px dashed var(--g-300);border-radius:999px;padding:0 8px}
+.lh-focus{background:var(--g-100)}
+.lh .lh-gap{padding:4px 2px;color:var(--g-400)}
+.lh-gap .lh-ph{font-size:var(--t-base)}
 `;
 
 export function style() {
@@ -220,7 +309,7 @@ export function style() {
   document.head.append(s);
 }
 
-export function mountItem(el, item, { base = '', review = null, verdicts = VERDICTS, aside = '', models = '', onVerdict } = {}) {
+export function mountItem(el, item, { base = '', review = null, verdicts = VERDICTS, aside = '', models = '', phonemes = '', onVerdict } = {}) {
   style();
   const alts = CLIPS.filter(([k]) => k !== 'audio' && item[k]);
   const name = (k) => item[k].title || CLIPS.find(([c]) => c === k)[1];
@@ -243,8 +332,12 @@ export function mountItem(el, item, { base = '', review = null, verdicts = VERDI
     <div class="li-time" aria-hidden="true"><i></i></div>
     <p class="li-label">${labelHtml(item.label)}</p>
     ${item.text ? `<div class="li-page"><p class="li-text" lang="ar" dir="rtl">${textHtml(item.text, item.label)}</p></div>` : ''}
-    ${models ? `<details class="why md"${modelsOpen() ? ' open' : ''}>
+    ${models ? `<details class="why md" data-panel="models"${isOpen(MODELS_OPEN) ? ' open' : ''}>
       <summary><b>What the models heard</b><span>${esc(modelsSummary(item))}</span><kbd>m</kbd>${icon('right')}</summary>
+      <div class="md-body" aria-live="polite"></div>
+    </details>` : ''}
+    ${phonemes ? `<details class="why md lh-panel" data-panel="phonemes"${isOpen(PHONEMES_OPEN) ? ' open' : ''}>
+      <summary><b>What the listeners heard</b><span>The app’s listener and the big reference listener, sound by sound</span><kbd>p</kbd>${icon('right')}</summary>
       <div class="md-body" aria-live="polite"></div>
     </details>` : ''}
     ${aside}
@@ -343,44 +436,48 @@ export function mountItem(el, item, { base = '', review = null, verdicts = VERDI
   });
   show();
 
-  const panel = models ? $('.md') : null;
-  let heard = false;
-  const loadHeard = () => {
-    if (heard) return;
-    heard = true;
-    const body = $('.md-body');
-    body.innerHTML = '<p class="md-none">Loading…</p>';
-    let req = heardCache.get(models);
-    if (!req) {
-      req = fetch(`${base}${models}`).then(async (r) => {
-        const b = await r.json().catch(() => ({}));
-        if (!r.ok) throw new Error(typeof b.detail === 'string' ? b.detail : `HTTP ${r.status}`);
-        return b;
-      });
-      heardCache.set(models, req);
-    }
-    req.then(
-      (d) => {
-        if (!d.found) heardCache.delete(models);
-        body.innerHTML = modelsHtml(d);
-      },
-      (e) => {
-        heardCache.delete(models);
-        heard = false;
-        body.innerHTML = `<p class="md-none">Couldn’t load the models’ output: ${esc(e.message)}</p>`;
-      },
-    );
-  };
-  if (panel) {
+  // A disclosure that fetches its body the first time it opens; only its open state is remembered.
+  const lazy = (panel, url, store, render, what) => {
+    if (!panel) return null;
+    let loaded = false;
+    const load = () => {
+      if (loaded) return;
+      loaded = true;
+      const body = panel.querySelector('.md-body');
+      body.innerHTML = '<p class="md-none">Loading…</p>';
+      let req = heardCache.get(url);
+      if (!req) {
+        req = fetch(`${base}${url}`).then(async (r) => {
+          const b = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(typeof b.detail === 'string' ? b.detail : `HTTP ${r.status}`);
+          return b;
+        });
+        heardCache.set(url, req);
+      }
+      req.then(
+        (d) => {
+          if (!d.found) heardCache.delete(url);
+          body.innerHTML = render(d);
+        },
+        (e) => {
+          heardCache.delete(url);
+          loaded = false;
+          body.innerHTML = `<p class="md-none">Couldn’t load ${what}: ${esc(e.message)}</p>`;
+        },
+      );
+    };
     panel.querySelector('summary').addEventListener('click', (e) => e.currentTarget.blur());
     panel.addEventListener('toggle', () => {
       try {
-        localStorage.setItem(MODELS_OPEN, panel.open ? '1' : '0');
+        localStorage.setItem(store, panel.open ? '1' : '0');
       } catch {}
-      if (panel.open) loadHeard();
+      if (panel.open) load();
     });
-    if (panel.open) loadHeard();
-  }
+    if (panel.open) load();
+    return panel;
+  };
+  const panel = lazy($('[data-panel=models]'), models, MODELS_OPEN, modelsHtml, 'the models’ output');
+  const heardPanel = lazy($('[data-panel=phonemes]'), phonemes, PHONEMES_OPEN, listenersHtml, 'what the listeners heard');
 
   return {
     el,
@@ -389,6 +486,9 @@ export function mountItem(el, item, { base = '', review = null, verdicts = VERDI
     note: () => note.value,
     toggleModels: () => {
       if (panel) panel.open = !panel.open;
+    },
+    togglePhonemes: () => {
+      if (heardPanel) heardPanel.open = !heardPanel.open;
     },
     setReview: (r) => {
       saved = r;

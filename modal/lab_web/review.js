@@ -1,4 +1,4 @@
-import { mountItem, VERDICTS, icon, keySheet, railHtml } from './item.js';
+import { mountItem, VERDICTS, icon, keySheet, railHtml, phonemesUrl } from './item.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -15,6 +15,7 @@ const keys = keySheet([
   ['j', 'Next item'],
   ['k', 'Previous item'],
   ['m', 'Show or hide what the models heard'],
+  ['p', 'Show or hide what the listeners heard'],
   ['?', 'Show or hide this'],
 ]);
 
@@ -66,6 +67,7 @@ function show(i, autoplay = true) {
     review: st.reviews[item.id],
     verdicts: VERDICTS,
     models: `/api/models?queue=${encodeURIComponent(queuePath)}&id=${encodeURIComponent(item.id)}`,
+    phonemes: phonemesUrl(item),
     onVerdict: (verdict, note, how) => {
       const saving = api('/api/verdict', {
         method: 'POST',
@@ -118,6 +120,7 @@ document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'BUTTON' || e.target.tagName === 'SUMMARY') e.target.blur();
   if (k === '?') keys.toggle();
   else if (k === 'm') st.view.toggleModels();
+  else if (k === 'p') st.view.togglePhonemes();
   else if (k === ' ') st.view.play('audio');
   else if (k === 'b') st.view.play('before');
   else if (k === 'a') st.view.play('after');
