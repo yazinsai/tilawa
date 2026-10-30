@@ -53,6 +53,8 @@ def test_diff_edges_are_marked_and_not_counted():
     assert d["summary"] == "Matches the label apart from 1 word at the window's edges"
     d = M.word_diff(LABEL, "قل هو الله")
     assert d["segments"][-1] == {"op": "del", "ref": "أَحَدٌ", "edge": True}
+    d = M.word_diff(LABEL, "قل هو الله أحدكم")  # a word heard differently is a difference even at the edge
+    assert d["segments"][-1] == {"op": "sub", "ref": "أَحَدٌ", "heard": "أحدكم"} and d["counts"]["sub"] == 1
     d = M.word_diff(LABEL, "كتاب")  # nothing heard as labelled: no edges to speak of
     assert d["counts"]["edge"] == 0 and d["summary"].startswith("4 words differ")
 

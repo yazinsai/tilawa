@@ -154,14 +154,14 @@ def _align(ref: list[tuple[str, str]], hyp: list[tuple[str, str]]) -> list[dict]
 def word_diff(text: str, transcript: str | None) -> dict:
     """The transcript against the labelled text, word by word on the rasm skeleton (core.rasm: vowels, alif spellings
     and hamza seats don't count; a word heard split or joined matches). Segments in reading order: same {ref, heard},
-    sub {ref, heard}, del {ref} (labelled, not heard), ins {heard} (heard, not labelled). `edge` marks what lies
-    before the first or after the last word heard as labelled: a neighbouring sound the window caught, or a labelled
-    word cut off at the window's end. counts: per op, edges excluded."""
+    sub {ref, heard}, del {ref} (labelled, not heard), ins {heard} (heard, not labelled). `edge` marks a missing or
+    extra word before the first or after the last word heard as labelled: a neighbouring sound the window caught, or a
+    labelled word cut off at the window's end. A word heard differently is never an edge. counts: per op, edges excluded."""
     tok = lambda s: [(w, sk) for w, _ in core.tokens(s) if (sk := core.rasm(w))]
     segs = _align(tok(text), tok(transcript)) if transcript else []
     core_at = [k for k, s in enumerate(segs) if s["op"] == "same"]
     for k, s in enumerate(segs):
-        if core_at and (k < core_at[0] or k > core_at[-1]):
+        if s["op"] in ("ins", "del") and core_at and (k < core_at[0] or k > core_at[-1]):
             s["edge"] = True
     counts = {k: sum(s["op"] == k and not s.get("edge") for s in segs) for k in ("same", "sub", "del", "ins")}
     counts["edge"] = sum(bool(s.get("edge")) for s in segs)
