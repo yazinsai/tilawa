@@ -394,7 +394,16 @@ def web():
         if not item:
             raise HTTPException(404, f"no item {id!r} in {queue}")
         base = DATA / name(q.get("testSet", ""), "testSet")
-        return M.view(item, lambda rel: read_json(base / rel))
+
+        def load(rel: str):
+            # Files look missing while another request's vol.reload() runs; wait it out before believing that.
+            if (obj := read_json(base / rel)) is None:
+                with cond:
+                    pass
+                obj = read_json(base / rel)
+            return obj
+
+        return M.view(item, load)
 
     # Scripted-error recordings (ticket 18). This container is the only writer of takes and their metadata; results
     # come from the processing app's containers.

@@ -360,7 +360,10 @@ export function mountItem(el, item, { base = '', review = null, verdicts = VERDI
       heardCache.set(models, req);
     }
     req.then(
-      (d) => (body.innerHTML = modelsHtml(d)),
+      (d) => {
+        if (!d.found) heardCache.delete(models);
+        body.innerHTML = modelsHtml(d);
+      },
       (e) => {
         heardCache.delete(models);
         heard = false;
