@@ -1,13 +1,23 @@
 {
  "id": "checker-contiguous-additions",
  "component": "checker",
- "hypothesis": "Held-sound insertion discounts must extend an insertion run or a matching reference sound, not a substituted onset; otherwise added-word endings borrow the next word. Track contiguous insertion runs and reclassify only bounded excursions returning to the next word as additions. Predict two fewer checker-attributed and overall practice wrong calls, preserve clean recitation and studio, and leave low-support short additions uncertain.",
+ "hypothesis": "Held-sound discounts must extend a contiguous insertion path or a matching reference sound, not a substituted onset. Keep an insertion DP state so an added word cannot lend its repeated ending to the next word. Predict recovery of the p15 phone addition, with no change to its low-support oracle miss and no clean/studio regression.",
  "expected": {
-  "component": -2,
-  "overall": -2
+  "component": 0,
+  "overall": -1
  },
  "listener": "spliced-clean-int8",
  "testSet": "lab-v1.4.v3",
  "created": "2026-10-30T17:48:03+00:00",
- "author": "Yazin"
+ "author": "Yazin",
+ "hypothesisHistory": [
+  {
+   "hypothesis": "Held-sound insertion discounts must extend an insertion run or a matching reference sound, not a substituted onset; otherwise added-word endings borrow the next word. Track contiguous insertion runs and reclassify only bounded excursions returning to the next word as additions. Predict two fewer checker-attributed and overall practice wrong calls, preserve clean recitation and studio, and leave low-support short additions uncertain.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "reason": "Refined from actual case traces and unit tests before the first practice scoring run."
+  }
+ ]
 }

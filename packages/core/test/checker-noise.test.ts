@@ -22,6 +22,21 @@ function check(from: WordRef, to: WordRef, edits: (at: (r: WordRef) => number) =
 }
 
 describe("word gaps surrounded by listener noise", () => {
+  it("keeps an inserted doubled ending out of a following word whose onset was lost", () => {
+    const added = w(38, 4, 6);
+    expect(check(w(38, 4, 1), w(38, 5, 4), at => [
+      { kind: "ins", at: at(added), text: "ءِننن" },
+      { kind: "del", at: at(added), count: 1 },
+    ])).toEqual([`added_word ${key(added)}`]);
+  });
+
+  it("hears a bounded excursion as an addition when it returns straight to the next word", () => {
+    const added = w(77, 13, 1);
+    expect(check(w(77, 10, 1), w(77, 18, 3), at => [
+      { kind: "ins", at: at(added), text: "فَءِذَاا" },
+    ])).toEqual([`added_word ${key(added)}`]);
+  });
+
   it("keeps a shortened doubled consonant with the word before an omission", () => {
     const from = w(19, 80, 1), to = w(19, 84, 3), before = w(19, 81, 8), omitted = w(19, 82, 1), after = w(19, 82, 2);
     expect(check(from, to, at => [

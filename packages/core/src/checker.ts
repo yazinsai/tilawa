@@ -341,6 +341,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const w = n + 1;
     const d = new Float64Array((m + 1) * w).fill(INF);
     const op = new Uint8Array((m + 1) * w);
+    // Keep insertion paths separately: a repeated sound may extend inserted speech, but cannot get that discount
+    // merely because its preceding sound substituted for a different reference consonant.
+    const inserted = new Float64Array((m + 1) * w).fill(INF);
+    const extendsInsertion = new Uint8Array((m + 1) * w);
+    const insertionOp = new Uint8Array((m + 1) * w);
     const jumpFrom = new Int32Array(m + 1);
     const starts: number[] = [];
     for (let i = 0; i <= n; i++) if (wordStarts.has(lo + i)) starts.push(i);
@@ -366,9 +371,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (let j = 1; j <= m; j++) {
       const p = obs[j - 1].p;
       const { sub, ins: insCost } = costsFor(p);
-      // A repeated decoded sound can be lengthening even at a word edge, where the reference has no matching run.
-      // Use the same held-sound charge as judging; keep ordinary insertion costs for unrelated speech.
-      const noise = p === obs[j - 2]?.p ? HELD : UNIT;
+      const repeated = p === obs[j - 2]?.p;
       const row = j * w;
       const prev = row - w;
       for (let i = 0; i <= n; i++) {
@@ -378,10 +381,18 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
           best = d[prev + i - 1] + sub[i - 1];
           o = OP_DIAG;
         }
-        const ins = d[prev + i] + (obs[j - 1].junk ? PHRASE : j <= lead && i === a0 ? LEAD : Math.min(insCost[i], noise));
+        const lengthens = repeated && (p === ref[lo + i - 1] || p === ref[lo + i]);
+        let ins = d[prev + i] + (obs[j - 1].junk ? PHRASE : j <= lead && i === a0 ? LEAD : Math.min(insCost[i], lengthens ? HELD : UNIT));
+        insertionOp[row + i] = j <= lead && i === a0 ? OP_LEAD : OP_INS;
+        if (repeated && inserted[prev + i] + HELD < ins) {
+          ins = inserted[prev + i] + HELD;
+          extendsInsertion[row + i] = 1;
+          insertionOp[row + i] = OP_INS;
+        }
+        inserted[row + i] = ins;
         if (ins < best) {
           best = ins;
-          o = j <= lead && i === a0 ? OP_LEAD : OP_INS;
+          o = insertionOp[row + i];
         }
         if (i > 0) {
           const del = d[row + i - 1] + delCost[i - 1];
@@ -400,11 +411,16 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (let k = 1; k <= n; k++) if (d[m * w + k] < d[m * w + i]) i = k;
     const steps: Step[] = [];
     let j = m;
+    let inInsertion = false;
     for (;;) {
-      const o = op[j * w + i];
+      const cell = j * w + i;
+      const o = inInsertion ? insertionOp[cell] : op[cell];
       if (o === OP_START) break;
-      if (o === OP_INS) steps.push({ op: "ins", at: lo + i, obs: --j });
-      else if (o === OP_LEAD) steps.push({ op: "lead", obs: --j });
+      if (o === OP_INS || o === OP_LEAD) {
+        inInsertion = !!extendsInsertion[cell];
+        if (o === OP_INS) steps.push({ op: "ins", at: lo + i, obs: --j });
+        else steps.push({ op: "lead", obs: --j });
+      }
       else if (o === OP_DIAG) steps.push({ op: "diag", ref: lo + --i, obs: --j });
       else if (o === OP_DEL) steps.push({ op: "del", ref: lo + --i });
       else {
