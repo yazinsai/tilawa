@@ -30,7 +30,7 @@ REPO = Path(__file__).resolve().parent.parent
 RUNNER = REPO / "modal" / "lab_run.py"
 VOLUME = "tilawa-lab"
 SUMMARY = "docs/benchmarks/lab-ledger.json"
-MAX_SHARDS = 60
+MAX_SHARDS = 200  # one shard per session (lab-v1.5 has 200), so a run takes as long as its longest session
 
 
 class Stop(Exception):

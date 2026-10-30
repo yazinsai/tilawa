@@ -752,7 +752,7 @@ def main(stage: str = "all", pilot: bool = False, force: bool = False, iteration
     if stage == "gate":
         print_gate(gate.remote(0, refuse_failed=False), "seam gate (report only)", t0)
     if stage == "triage":
-        for cmd in (["modal/lab_triage.py", "--test-set", TEST_SET],
+        for cmd in (["modal/lab_triage.py", "--test-set", TEST_SET, "--prior", FROZEN],
                     ["modal/review_api.py::triage_main", "--test-set", TEST_SET, "--vendor", "soniox", "--primary"]):
             print(f"== triage: {' '.join(cmd)} [{time.time() - t0:.0f} s]", flush=True)
             subprocess.run(["modal", "run", *cmd], cwd=ROOT, check=True)
