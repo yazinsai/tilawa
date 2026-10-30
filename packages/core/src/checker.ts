@@ -1,3 +1,4 @@
+import { align as editPath } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
@@ -16,7 +17,7 @@ export interface CheckerPolicy {
    * Before confirming a wrong, omitted or added word, compare how well the chunk posteriors around it (the word and one
    * either side) support the written words versus what was decoded, over all CTC timings. If the written words fit
    * nearly as well, the error ends `uncertain`. Default on; it needs posteriors on every chunk, and without them nothing
-   * changes. `nats` overrides the margin the decode must win by (`SUPPORT`).
+   * changes. `nats` overrides the margin the decode must win by (`SUPPORT`, doubled for a wrong word heard `UNSURE`).
    */
   localWindow?: boolean | { nats: number };
   /**
@@ -87,6 +88,11 @@ const JUMP_WORDS = 4;
 const FITS_PASSAGE = 0.35;
 /** Nats by which the decoded words must beat the written ones over the local window for the error to stand. */
 const SUPPORT = 10;
+/**
+ * A wrong word whose changed sounds the decoder heard below this mean confidence must win by twice the margin: on
+ * degraded audio a confusable sound (ن for م, ف for ك) is heard at even odds with blank, yet a few of them sum past it.
+ */
+const UNSURE = 0.8;
 
 const INF = Infinity;
 const OP_START = 0;
@@ -264,7 +270,16 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       issue.cls === "added_word"
         ? span(from, issue.word) + observed + span(issue.word, to + 1)
         : span(from, issue.word) + (issue.cls === "wrong_word" ? observed : "") + span(issue.last + 1, to + 1);
-    return frames.nll(ids(written), f0, f1) - frames.nll(ids(decoded), f0, f1) >= support;
+    const need = issue.cls === "wrong_word" && changedClarity(issue) < UNSURE ? 2 * support : support;
+    return frames.nll(ids(written), f0, f1) - frames.nll(ids(decoded), f0, f1) >= need;
+  };
+
+  /** Mean decoder confidence over a wrong word's decoded phonemes that differ from the written word. */
+  const changedClarity = (issue: Issue): number => {
+    const heard = obs.slice(Math.max(0, issue.obsFrom), issue.obsTo);
+    const changed = editPath(ref.slice(words[issue.word].start, words[issue.last].end), heard.map((p) => p.p).join(""))
+      .flatMap((o) => (o.op === "sub" || o.op === "ins" ? [heard[o.obsAt].conf] : []));
+    return changed.length ? changed.reduce((a, c) => a + c, 0) / changed.length : 1;
   };
 
   const dropAnchor = (out: CheckerEvent[]) => {
