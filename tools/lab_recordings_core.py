@@ -87,7 +87,16 @@ def take_meta(form: dict, script: dict, n: int, ext: str, at: str, size: int) ->
     return {"version": 1, "speaker": speaker, "script": script["id"], "scriptVersion": script["version"], "scriptSha": script["sha"],
             "batch": form.get("batch") or None, "take": n, "ext": ext, "bytes": size, "mime": clip("mime", 80), "device": clip("device"),
             "userAgent": clip("userAgent", 300), "trackSettings": clip("trackSettings", 500), "recordedAt": clip("recordedAt", 40) or at,
-            "uploadedAt": at, "clientDurationS": num("durationS"), "note": clip("note", 2000)}
+            "uploadedAt": at, "clientDurationS": num("durationS"), "resumesS": resumes(form.get("resumesS")), "note": clip("note", 2000)}
+
+
+def resumes(raw) -> list[float]:
+    """Take-clock times where a paused recording resumed: each is a join in the audio, like a splice seam."""
+    try:
+        xs = json.loads(raw or "[]")
+    except ValueError:
+        return []
+    return sorted(round(float(x), 2) for x in xs[:200] if isinstance(x, (int, float)) and x >= 0) if isinstance(xs, list) else []
 
 
 # ---- checks -------------------------------------------------------------------------------------------------------

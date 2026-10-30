@@ -253,11 +253,15 @@ async function scriptView() {
 
 // ---- recorder -----------------------------------------------------------------------------------------------------
 
-const rec = { stream: null, mr: null, chunks: [], blob: null, t0: 0, dur: 0, timer: null, ctx: null, raf: null, lock: null, peak: 0, quiet: 0 };
+const rec = { stream: null, mr: null, chunks: [], blob: null, t0: 0, acc: 0, resumes: [], dur: 0, timer: null, ctx: null, raf: null, lock: null, peak: 0, quiet: 0 };
+/** Seconds recorded so far, paused time excluded. */
+const elapsed = () => rec.acc + (rec.mr?.state === 'recording' ? (performance.now() - rec.t0) / 1000 : 0);
+const live = () => rec.mr && rec.mr.state !== 'inactive';
 
 function dockHtml() {
   return `<div class="rec-dock-in">
     <button class="rec-disc" id="rec-go" aria-label="Start recording">${micIcon()}</button>
+    <button class="btn rec-pause" id="rec-pause" hidden>Pause</button>
     <div class="rec-mid">
       <p class="rec-state" id="rec-state">Ready to record</p>
       <div class="rec-meter" aria-hidden="true"><i id="rec-level"></i></div>
@@ -287,7 +291,8 @@ function recorder() {
   dock.innerHTML = dockHtml();
   dock.hidden = false;
   document.body.classList.add('has-dock');
-  $('rec-go').onclick = () => (rec.mr?.state === 'recording' ? stop() : start());
+  $('rec-go').onclick = () => (live() ? stop() : start());
+  $('rec-pause').onclick = () => (rec.mr?.state === 'paused' ? resume() : pause());
   $('rec-again').onclick = () => {
     if (rec.blob && !confirm('Discard this take and record again?')) return;
     discard();
@@ -299,7 +304,7 @@ function recorder() {
     openMic().catch(micError);
   };
   window.addEventListener('beforeunload', (e) => {
-    if (rec.blob || rec.mr?.state === 'recording') e.preventDefault();
+    if (rec.blob || live()) e.preventDefault();
   });
   devices();
 }
@@ -377,20 +382,40 @@ async function start() {
   rec.mr.onstop = stopped;
   rec.mr.start(1000);
   rec.t0 = performance.now();
+  rec.acc = 0;
+  rec.resumes = [];
   rec.peak = 0;
   rec.quiet = 0;
-  rec.timer = setInterval(() => ($('rec-time').textContent = mins((performance.now() - rec.t0) / 1000)), 250);
+  rec.timer = setInterval(() => ($('rec-time').textContent = mins(elapsed())), 250);
   rec.lock = await navigator.wakeLock?.request('screen').catch(() => null);
   $('rec-go').innerHTML = stopIcon();
   $('rec-go').setAttribute('aria-label', 'Stop recording');
   $('rec-go').classList.add('on');
   $('rec-after').hidden = true;
+  $('rec-pause').hidden = false;
+  $('rec-pause').textContent = 'Pause';
+  setState('Recording');
+}
+
+function pause() {
+  rec.acc = elapsed();
+  rec.mr.pause();
+  $('rec-pause').textContent = 'Resume';
+  setState('Paused', 'resume at the start of an ayah, so the join falls where a reciter would pause');
+}
+
+function resume() {
+  rec.resumes.push(+rec.acc.toFixed(2));
+  rec.t0 = performance.now();
+  rec.mr.resume();
+  $('rec-pause').textContent = 'Pause';
   setState('Recording');
 }
 
 function stop() {
-  rec.dur = (performance.now() - rec.t0) / 1000;
+  rec.dur = elapsed();
   rec.mr.stop();
+  $('rec-pause').hidden = true;
 }
 
 function stopped() {
@@ -433,6 +458,7 @@ function upload() {
   fd.append('userAgent', navigator.userAgent);
   fd.append('recordedAt', new Date(Date.now() - rec.dur * 1000).toISOString());
   fd.append('durationS', rec.dur.toFixed(2));
+  fd.append('resumesS', JSON.stringify(rec.resumes));
   fd.append('audio', rec.blob, `take.${ext}`);
   const bar = $('rec-progress');
   bar.hidden = false;

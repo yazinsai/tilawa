@@ -225,3 +225,8 @@ def test_core_validate_session(tmp_path):
     out = subprocess.run(["node", str(CLI), "--dir", str(tmp_path)], capture_output=True, text=True)
     assert out.returncode == 0, out.stdout + out.stderr
     assert json.loads(out.stdout)["manifestSessions"] == 1
+
+
+def test_resume_points_are_kept_sorted_and_bad_input_dropped():
+    assert R.resumes("[31.5, 12.25, -1, \"x\"]") == [12.25, 31.5]
+    assert R.resumes("") == [] and R.resumes("not json") == [] and R.resumes("{}") == []
