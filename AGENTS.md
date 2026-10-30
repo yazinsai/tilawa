@@ -19,3 +19,7 @@ Default five-role vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `
 ### Domain docs
 
 Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root, created lazily. See `docs/agents/domain.md`.
+
+### Audio failure reviews
+
+When reviewing recitation labels, missed mistakes or false warnings, follow `docs/agents/audio-review.md`: automate incident and component triage first, use a calibrated independent audio opinion when available, and ask the user only for unresolved listening judgments and spot checks.
