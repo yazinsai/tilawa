@@ -79,7 +79,7 @@
   },
   {
    "kind": "main",
-   "at": "2026-10-30T09:12:53+00:00",
+   "at": "2026-10-30T09:12:59+00:00",
    "sha": "34be77a",
    "testSet": "lab-v1.4.v2",
    "experiment": "checker-added-words",
@@ -103,7 +103,7 @@
   },
   {
    "kind": "experiment",
-   "at": "2026-10-30T09:12:53+00:00",
+   "at": "2026-10-30T09:12:59+00:00",
    "id": "checker-added-words",
    "component": "checker",
    "hypothesis": "An added word found inside a word (often a waqf word said alone at an ayah pause) takes that word's edge with it, so the local-window check tests the wrong text: re-split the heard phonemes so the word keeps its best fit",
@@ -138,6 +138,70 @@
      "listener": 26,
      "tracker": 2,
      "checker": 30
+    }
+   }
+  },
+  {
+   "kind": "main",
+   "at": "2026-10-30T09:22:02+00:00",
+   "sha": "c1f62e7",
+   "testSet": "lab-v1.4.v2",
+   "experiment": "checker-fewer-false-wrong",
+   "note": "A wrong word whose changed sounds the decoder heard at mean confidence below 0.8 must beat the written word by 2x SUPPORT (20 nats): phone mishearings of confusable sounds (ن/م, ف/ك) sit at even odds with blank yet sum past 10 nats; expect listener-charged false wrong words -5 (6 -> 1), lost-by-checker 0, no planted wrong word lost",
+   "practice": {
+    "wrongCalls": 37,
+    "missed": 26,
+    "falseWarnings": 11,
+    "listener": 13,
+    "tracker": 3,
+    "checker": 21
+   },
+   "exam": {
+    "wrongCalls": 52,
+    "missed": 31,
+    "falseWarnings": 21,
+    "listener": 19,
+    "tracker": 2,
+    "checker": 31
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-30T09:22:02+00:00",
+   "id": "checker-fewer-false-wrong",
+   "component": "checker",
+   "hypothesis": "A wrong word whose changed sounds the decoder heard at mean confidence below 0.8 must beat the written word by 2x SUPPORT (20 nats): phone mishearings of confusable sounds (ن/م, ف/ك) sit at even odds with blank yet sum past 10 nats; expect listener-charged false wrong words -5 (6 -> 1), lost-by-checker 0, no planted wrong word lost",
+   "expected": {
+    "component": 0,
+    "overall": -5
+   },
+   "state": "folded",
+   "testSet": "lab-v1.4.v2",
+   "note": "keeps its overall gain",
+   "branch": {
+    "wrongCalls": 45,
+    "missed": 34,
+    "falseWarnings": 11,
+    "listener": 10,
+    "tracker": 3,
+    "checker": 32
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 37,
+     "missed": 26,
+     "falseWarnings": 11,
+     "listener": 13,
+     "tracker": 3,
+     "checker": 21
+    },
+    "exam": {
+     "wrongCalls": 52,
+     "missed": 31,
+     "falseWarnings": 21,
+     "listener": 19,
+     "tracker": 2,
+     "checker": 31
     }
    }
   }
