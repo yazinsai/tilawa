@@ -1,0 +1,13 @@
+{
+ "id": "checker-noise-gaps",
+ "component": "checker",
+ "hypothesis": "Three checker rules for realistic listener noise around omissions and insertions: a jump out of the text and straight back to the next word is an added word said there (فَإِنَّ heard with an extra ن was read as فَإِذَا elsewhere); a multi-word gap whose few heard sounds fit its first or last word omits only the rest (عِزَاا كَلَّا -> only كَلَّا omitted); vowels alone in a gap are not the word (the waqf tail of سَلَامَا in the gap of قَالَ). Targets 5 of the 9 listener-charged practice wrong calls (p09 x2, p12 77:13:1 and 77:16:1, p19 51:25:6); they are charged to the listener today, so expect listener -4, checker 0, overall -4",
+ "expected": {
+  "component": 0,
+  "overall": -4
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.4.v3",
+ "created": "2026-10-30T15:33:22+00:00",
+ "author": "Yazin"
+}
