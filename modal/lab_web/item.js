@@ -68,12 +68,25 @@ export function labelHtml(label = {}) {
   }
 }
 
-// The labelled word inside the recited text, so the eye lands on it.
-function textHtml(text, label = {}) {
+// Arabic runs inside a plain sentence, set as Arabic.
+export const withArabic = (s) =>
+  esc(s).replace(/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]+/g, (m) => `<bdi class="li-ar" lang="ar" dir="rtl">${m}</bdi>`);
+
+const MARKS = { planted: ['li-mark', 'The labelled word'], flagged: ['li-flag', 'Where the app warned'] };
+
+// The labelled word inside the recited text, so the eye lands on it; with `words`, every marked word and a key.
+function textHtml(text, label = {}, words = null) {
+  if (words) {
+    const html = words
+      .map((w) => (w.marks.length ? `<span class="${w.marks.map((m) => MARKS[m][0]).join(' ')}" title="${esc(w.marks.map((m) => MARKS[m][1]).join(' · '))}">${esc(w.text)}</span>` : esc(w.text)))
+      .join(' ');
+    const used = Object.keys(MARKS).filter((m) => words.some((w) => w.marks.includes(m)));
+    return { html, key: used.map((m) => `<span><i class="li-key ${MARKS[m][0]}"></i>${MARKS[m][1]}</span>`).join('') };
+  }
   const word = label.said || (['repeat', 'restart', 'self_correction'].includes(label.type) ? label.expected : null);
-  const words = String(text).split(/\s+/);
-  const at = word ? words.indexOf(word) : -1;
-  return words.map((w, i) => (i === at ? `<mark class="li-mark">${esc(w)}</mark>` : esc(w))).join(' ');
+  const toks = String(text).split(/\s+/);
+  const at = word ? toks.indexOf(word) : -1;
+  return { html: toks.map((w, i) => (i === at ? `<mark class="li-mark">${esc(w)}</mark>` : esc(w))).join(' '), key: '' };
 }
 
 export const clipUrl = (clip, base = '') =>
@@ -226,7 +239,14 @@ const CSS = `
 .li-ar{font-family:var(--ar);font-size:1.4em;line-height:1;padding:0 2px}
 .li-page{margin-top:var(--s4);padding:3px;border:1px solid var(--g-300);border-radius:var(--radius);background:#fff}
 .li-text{font-family:var(--ar);font-size:var(--t-4xl);line-height:2.1;text-align:center;padding:var(--s5) var(--s6);border:1px solid var(--g-200);border-radius:6px;color:var(--g-900)}
-.li-mark{background:none;color:inherit;border-bottom:2px solid var(--gold-400);padding:0 2px}
+.li-mark{background:var(--gold-50);color:inherit;border-bottom:3px solid var(--gold-400);border-radius:4px 4px 0 0;padding:0 4px}
+.li-flag{color:var(--worse);text-decoration:underline wavy var(--worse);text-decoration-thickness:2px;text-underline-offset:10px;padding:0 2px}
+.li-mark.li-flag{text-underline-offset:14px}
+.li-keys{display:flex;gap:var(--s5);justify-content:center;margin-top:var(--s2);font-size:var(--t-xs);color:var(--g-600)}
+.li-keys span{display:inline-flex;align-items:center;gap:6px}
+.li-key{display:inline-block;width:18px;height:10px}
+.li-key.li-mark{padding:0;border-radius:2px 2px 0 0}
+.li-key.li-flag{border-bottom:2px dashed var(--worse);height:6px}
 .li-ask{margin-top:var(--s6);font-size:var(--t-xl);font-weight:600}
 .li-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--s5);margin-top:var(--s4)}
 .li-group h3{font-size:var(--t-sm);font-weight:600;color:var(--g-900)}
@@ -309,8 +329,9 @@ export function style() {
   document.head.append(s);
 }
 
-export function mountItem(el, item, { base = '', review = null, verdicts = VERDICTS, aside = '', models = '', phonemes = '', onVerdict } = {}) {
+export function mountItem(el, item, { base = '', review = null, verdicts = VERDICTS, summary = '', aside = '', models = '', phonemes = '', onVerdict } = {}) {
   style();
+  const text = item.text || item.words?.length ? textHtml(item.text, item.label, item.words) : null;
   const alts = CLIPS.filter(([k]) => k !== 'audio' && item[k]);
   const name = (k) => item[k].title || CLIPS.find(([c]) => c === k)[1];
   const index = new Map(verdicts.map((v, i) => [v.key, i]));
@@ -330,8 +351,9 @@ export function mountItem(el, item, { base = '', review = null, verdicts = VERDI
         .join('')}</span>` : ''}
     </div>
     <div class="li-time" aria-hidden="true"><i></i></div>
-    <p class="li-label">${labelHtml(item.label)}</p>
-    ${item.text ? `<div class="li-page"><p class="li-text" lang="ar" dir="rtl">${textHtml(item.text, item.label)}</p></div>` : ''}
+    ${summary ? '' : `<p class="li-label">${labelHtml(item.label)}</p>`}
+    ${text ? `<div class="li-page"><p class="li-text" lang="ar" dir="rtl">${text.html}</p></div>${text.key ? `<p class="li-keys">${text.key}</p>` : ''}` : ''}
+    ${summary}
     ${models ? `<details class="why md" data-panel="models"${isOpen(MODELS_OPEN) ? ' open' : ''}>
       <summary><b>What the models heard</b><span>${esc(modelsSummary(item))}</span><kbd>m</kbd>${icon('right')}</summary>
       <div class="md-body" aria-live="polite"></div>

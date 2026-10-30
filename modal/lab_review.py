@@ -336,7 +336,7 @@ def web():
         led, tsd, r, sc = lab_state(run, ledger)
         need_score(sc, r)
         _, reviews, *_ = flags_and_check(tsd, sc)
-        rows = D.order_cases(D.failing(sc, component, variant), everywhere(led, sc), L.latest_verdicts(reviews))
+        rows = D.order_cases(D.failing(sc, component, variant), everywhere(led, sc), L.latest_verdicts(reviews), sc.get("cases", []))
         other = "studio" if variant == "phone" else "phone"
         return {"component": component, "variant": variant, "run": r, "testSet": sc["testSet"], "cases": rows,
                 "other": {"variant": other, "n": len(D.failing(sc, component, other))},
@@ -347,9 +347,8 @@ def web():
         led, tsd, r, sc = lab_state(run, ledger)
         c = find_case(need_score(sc, r), key)
         base = base_for(tsd, sc)
-        sdoc = session_doc(c)
-        return {"item": D.case_item(c, sdoc), "story": D.engine_story(c), "engine": D.engine_facts(c), "suspects": D.suspects(c), "insights": D.insights(c),
-                "context": D.case_context(c, sdoc),
+        sdoc, cases = session_doc(c), sc.get("cases", [])
+        return {"item": D.case_item(c, sdoc, cases), "story": D.case_story(c, sdoc, cases), "suspects": D.suspects(c), "insights": D.insights(c),
                 "component": c["component"],
                 "review": load_reviews(base, name(reviewer, "reviewer"))["items"].get(key), "testSet": base}
 
@@ -360,7 +359,7 @@ def web():
         c = find_case(need_score(sc, r), key)
         base = base_for(tsd, sc)
         qrel = f"{base}/review/{D.DASH_QUEUE}"
-        item = D.case_item(c, session_doc(c))
+        item = D.case_item(c, session_doc(c), sc.get("cases", []))
         with cond:
             doc = load_reviews(base, reviewer)
             at = datetime.now(timezone.utc).isoformat(timespec="seconds")

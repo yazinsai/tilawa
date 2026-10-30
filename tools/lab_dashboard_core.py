@@ -24,11 +24,19 @@ JOBS = {
     "checker": ("Decides if it's a mistake", "Says whether you made a mistake. Its own score: wrong calls given a perfect transcript and the right spot."),
 }
 WHY = {
-    "listener": "with a perfect transcript the app gets it right, so the listener's mishearing caused it",
-    "tracker": "given the right spot the app gets it right, so the tracker losing its place caused it",
-    "checker": "even with a perfect transcript and the right spot the app gets it wrong, so it's the checker's rules",
+    "listener": "With a perfect transcript, the app gets this right, so the listener misheard",
+    "tracker": "Given the right place, the app gets this right, so the tracker lost its place",
+    "checker": "Even with a perfect transcript and the right place, the app gets this wrong, so it's the checker's rules",
 }
 CLASSES = {"wrong_word": "a wrong word", "omitted_word": "a left-out word", "added_word": "an extra word", "skipped_passage": "a skipped passage"}
+NON_ERRORS = {"repeat": "a repeat", "restart": "a restart", "self_correction": "a self-correction"}
+# What the app claimed, about the word it warned on.
+APP_SAID = {"wrong_word": "said {w} was wrong", "omitted_word": "said {w} was left out", "added_word": "said an extra word came before {w}",
+            "skipped_passage": "said a passage was skipped at {w}"}
+# What the reciter did at a labelled repeat, restart or self-correction (none of them a mistake).
+DID = {"repeat": "repeated {w}", "restart": "went back and started again at {w}", "self_correction": "corrected themselves at {w}"}
+# A warning this many seconds before a planted mistake starts, up to the scorer's 6 s after it ends, is "next to" it.
+NEAR_S = (1.0, 6.0)
 STATE_TEXT = {L.WAITING: "waiting for your decision", "open": "running or not scored yet", "superseded": "gain gone after rebase",
               "folded": "folded in", "discarded": "discarded"}
 
@@ -49,6 +57,10 @@ def n_of(n: int, what: str) -> str:
 def where(word: str) -> str:
     s, a, w = (word or "::").split(":")[:3]
     return f"{s}:{a}, word {w}" if w else word
+
+
+def clock(s: float) -> str:
+    return f"{int(s // 60)}:{int(s % 60):02d}"
 
 
 # Header, cards, bar
@@ -272,16 +284,32 @@ def insights(c: dict, everywhere: set[str] = frozenset()) -> list[dict]:
     return out
 
 
-def case_title(c: dict) -> str:
+def nearby(c: dict, cases: list[dict]) -> list[dict]:
+    """The other side of a near miss in the same session and audio: for a false warning, the planted mistakes it sits next
+    to; for a missed mistake, the false warnings next to it (NEAR_S)."""
+    def near(m: dict, t: float) -> bool:
+        return m["startS"] - NEAR_S[0] <= t <= m["endS"] + NEAR_S[1]
+    same = [x for x in cases if x["session"] == c["session"] and x["variant"] == c["variant"] and x["key"] != c["key"]]
+    if c["kind"] == "false_warning":
+        return [m for m in same if m["kind"] == "mistake" and near(m, c["timeS"])]
+    return [w for w in same if w["kind"] == "false_warning" and near(c, w["timeS"])]
+
+
+def case_title(c: dict, cases: list[dict] = ()) -> str:
     cls = CLASSES.get(c.get("errorClass"), c.get("errorClass") or "a mistake")
     if c["kind"] == "mistake":
-        return f"The app didn't warn about {cls}"
-    return f"False warning: said {cls} on a {c['nonError']}" if c.get("nonError") else f"False warning: said {cls}, but nothing was wrong"
+        return f"Missed {cls}" + (" (it warned on a word next to it)" if nearby(c, cases) else "")
+    if c.get("nonError"):
+        return f"False alarm on {NON_ERRORS.get(c['nonError'], c['nonError'])}"
+    if any(m.get("outcome") == "miss" for m in nearby(c, cases)):
+        return "Warned, but on the wrong word"
+    return f"False alarm: said {cls} where there was none"
 
 
-def order_cases(cases: list[dict], everywhere: set[str] = frozenset(), verdicts: dict | None = None) -> list[dict]:
+def order_cases(cases: list[dict], everywhere: set[str] = frozenset(), verdicts: dict | None = None, all_cases: list[dict] = ()) -> list[dict]:
     """The drill-down list: likely bad data (a failed data check) first, then cases the checker misses even with perfect
-    hearing, then cases no experiment fixes, then the rest; by session and time within each. Each row carries its reasons and the latest verdict, if any."""
+    hearing, then cases no experiment fixes, then the rest; by session and time within each. Each row carries its reasons and the latest verdict, if any.
+    `all_cases` (the run's cases) lets a title say when a case is next to another."""
     verdicts = verdicts or {}
     rank = {"dataCheck": 0, "checkerAlways": 1, "everywhere": 2}
     rows = []
@@ -290,7 +318,7 @@ def order_cases(cases: list[dict], everywhere: set[str] = frozenset(), verdicts:
         v = verdicts.get(c["key"])
         tags = sus + ins
         strongest = min(tags, key=lambda s: rank[s["key"]])["key"] if tags else "other"
-        rows.append({"key": c["key"], "title": case_title(c), "where": where(c.get("word")), "session": c["session"], "timeS": case_time(c),
+        rows.append({"key": c["key"], "title": case_title(c, all_cases), "where": where(c.get("word")), "session": c["session"], "timeS": case_time(c),
                      "variant": c["variant"], "kind": c["kind"], "suspects": sus, "insights": ins, "group": strongest,
                      "verdict": v and v["verdict"], "verdictText": v and R.VERDICTS.get(v["verdict"]),
                      "_sort": (rank.get(strongest, 9), c["session"], case_time(c))})
@@ -307,11 +335,35 @@ def _loc(at: dict | None) -> str:
 
 
 def event_of(c: dict, sdoc: dict | None) -> dict | None:
-    """The labelled mistake behind a mistake case: same class and word, nearest in time."""
-    if not sdoc or c["kind"] != "mistake":
+    """The labelled mistake behind a mistake case (same class and word, nearest in time), or the one next to a false warning."""
+    if not sdoc:
         return None
+    if c["kind"] != "mistake":
+        near = [e for e in sdoc.get("events", []) if e["startS"] - NEAR_S[0] <= c["timeS"] <= e["endS"] + NEAR_S[1]]
+        return min(near, key=lambda e: abs(e["startS"] - c["timeS"]), default=None)
     evs = [e for e in sdoc.get("events", []) if e.get("errorClass") == c["errorClass"] and _loc(e.get("location")) == c["word"]]
     return min(evs, key=lambda e: abs(e["startS"] - c["startS"]), default=None)
+
+
+def said_word(sdoc: dict | None, word: str, t: float) -> str:
+    """The Arabic of the recited word at `word` nearest `t`, else its place in words."""
+    ws = [w for w in (sdoc or {}).get("said", []) if _loc(w.get("at")) == word and w.get("text")]
+    w = min(ws, key=lambda w: abs(w["startS"] - t), default=None)
+    return w["text"] if w else where(word)
+
+
+def word_marks(c: dict, sdoc: dict | None, cases: list[dict], a: float, b: float) -> list[dict]:
+    """The recited words in [a, b], each marked `planted` (the labelled mistake or non-mistake) and/or `flagged` (where
+    the app warned): the case's own warning, or for a missed mistake the warnings next to it."""
+    warned = [c] if c["kind"] == "false_warning" else nearby(c, cases)
+    said = [w for w in (sdoc or {}).get("said", []) if w["endS"] > a and w["startS"] < b and w.get("text")]
+    flagged = set()
+    for x in warned:
+        on = [i for i, w in enumerate(said) if _loc(w.get("at")) == x["word"]]
+        if on:
+            flagged.add(min(on, key=lambda i: abs(said[i]["startS"] - x["timeS"])))
+    return [{"text": w["text"], "marks": [m for m, on in (("planted", w.get("role", "ref") != "ref"), ("flagged", i in flagged)) if on]}
+            for i, w in enumerate(said)]
 
 
 def session_doc_path(c: dict) -> str | None:
@@ -320,24 +372,32 @@ def session_doc_path(c: dict) -> str | None:
     return f"{p.rsplit('/', 1)[0]}/{c['session']}.json" if p and "/" in p else None
 
 
-def case_item(c: dict, sdoc: dict | None = None) -> dict:
+def case_item(c: dict, sdoc: dict | None = None, cases: list[dict] = ()) -> dict:
     """A scorer case as a review item (lab-review.md queue item; id = the case key): the case's audio window, the Arabic
-    the labels say is recited there, the label, and for a planted edit the original recording before and after it."""
+    the labels say is recited there (`words`, marked), the label, and for a planted edit the original recording before
+    and after it. A false warning next to a planted mistake carries that mistake's label."""
     rv = c["review"]
     a, b = rv["startS"], rv["endS"]
     ev = event_of(c, sdoc)
-    if c["kind"] == "mistake":
-        label = {"type": c["errorClass"], "expected": (ev or {}).get("expected"), "said": (ev or {}).get("observed")}
+    if ev and (c["kind"] == "mistake" or not c.get("nonError")):
+        label = {"type": ev["errorClass"], "expected": ev.get("expected"), "said": ev.get("observed")}
+    elif c["kind"] == "mistake":
+        label = {"type": c["errorClass"], "expected": None, "said": None}
     elif c.get("nonError") in R.LABELS:
         label = {"type": c["nonError"]}
     else:
         label = {"type": "clean"}
     splice = next((x for x in (sdoc or {}).get("splices", []) if ev and x.get("id") == ev.get("splice")), None)
     meta = (sdoc or {}).get("meta") or {}
-    item = {"id": c["key"], "kind": "splice" if splice else "case", "title": case_title(c),
+    at = case_time(c)
+    when = f"{clock(at)} of {clock(sdoc['durationS'])}" if sdoc and sdoc.get("durationS") else clock(at)
+    surah_ayah = ":".join((c.get("word") or "").split(":")[:2])
+    item = {"id": c["key"], "kind": "splice" if splice else "case", "title": case_title(c, cases),
             "audio": {"path": rv["path"], "startS": a, "endS": b}, "text": said_text(sdoc, a, b) if sdoc else "", "label": label,
-            "context": " · ".join(x for x in (where(c.get("word")), f"session {c['session']} at {case_time(c):.1f} s", meta.get("reciter"),
-                                              f"{c['variant']} copy") if x)}
+            "context": " · ".join(x for x in (surah_ayah, meta.get("reciter"), f"{c['session'].rsplit('-', 1)[-1]} at {when}",
+                                              f"{c['variant']} audio") if x)}
+    if sdoc:
+        item["words"] = word_marks(c, sdoc, cases, a, b)
     seam = (splice or {}).get("seams", [{}])[0].get("out") if splice else None
     if seam and seam.get("audio") is not None and seam.get("srcS") is not None:
         item["before"] = {"path": seam["audio"], "startS": round(max(0.0, seam["srcS"] - 3), 3), "endS": round(seam["srcS"], 3)}
@@ -350,45 +410,67 @@ def _arm(v) -> str:
             False: "stayed quiet", None: "not run"}.get(v, str(v))
 
 
-def _what(c: dict) -> str:
-    cls = CLASSES.get(c.get("errorClass"), c.get("errorClass"))
+def _sentence(s: str) -> str:
+    return s[:1].upper() + s[1:]
+
+
+def reciter_did(c: dict, sdoc: dict | None) -> str:
+    """What the reciter did here, by the labels: the planted mistake (also the one next to a false warning), a labelled
+    repeat, restart or self-correction, or nothing wrong."""
+    ev = event_of(c, sdoc) if c["kind"] == "mistake" or not c.get("nonError") else None
+    if ev:
+        exp, obs = ev.get("expected") or "", ev.get("observed") or ""
+        if ev["errorClass"] == "wrong_word":
+            return f"Said {obs} instead of {exp}"
+        if ev["errorClass"] == "omitted_word":
+            return f"Left out {exp}"
+        if ev["errorClass"] == "skipped_passage":
+            return f"Skipped {exp}"
+        before = [w for w in sdoc.get("said", []) if w["endS"] <= ev["startS"] + 1e-6 and w.get("text")]
+        return f"Added {obs}" + (f" after {before[-1]['text']}" if before else "")
     if c["kind"] == "mistake":
-        return f"The labels say {cls} was planted here ({c['startS']:.1f}-{c['endS']:.1f} s). The engine did not warn."
-    return (f"The engine warned \"{cls}\" at {c['timeS']:.1f} s" + (f" (sure at {c['confirmedS']:.1f} s)" if c.get("confirmedS") else "")
-            + (f", on a {c['nonError']}, which is not a mistake." if c.get("nonError") else ", but the labels say nothing is wrong here."))
+        return f"Made {CLASSES.get(c['errorClass'], 'a mistake')} at {where(c['word'])}"
+    if c.get("nonError"):
+        return _sentence(DID.get(c["nonError"], c["nonError"] + " at {w}").format(w=said_word(sdoc, c["word"], c["timeS"]))) + ". That's allowed, not a mistake"
+    return "Recited it correctly. Nothing was planted here"
 
 
-def engine_facts(c: dict) -> dict:
-    """engine_story as fields for the case view: what happened, each arm (did it get this case right?), the tracker's
-    time on place around the case (percent), and the component charged with why."""
+def app_said(w: dict, sdoc: dict | None) -> str:
+    return APP_SAID.get(w["errorClass"], "warned at {w}").format(w=said_word(sdoc, w["word"], w["timeS"]))
+
+
+def case_story(c: dict, sdoc: dict | None = None, cases: list[dict] = ()) -> dict:
+    """The case view's "What happened": what the reciter did, what the app said, how that was counted (with links to the
+    case next to it, when the app warned on a neighbouring word), and whose fault it is with each arm's result."""
+    near = nearby(c, cases)
+    rows = [{"who": "Reciter", "text": reciter_did(c, sdoc), "mark": "planted" if c["kind"] == "mistake" or near or c.get("nonError") else None}]
+    if c["kind"] == "false_warning":
+        heard = (f"It expected the sounds {c['expected']} and heard {c['observed']}" if c.get("expected") and c.get("observed") is not None else None)
+        rows.append({"who": "App", "text": _sentence(app_said(c, sdoc)), "mark": "flagged", **({"detail": heard} if heard else {})})
+        missed = [m for m in near if m.get("outcome") == "miss"]
+        result = "A false alarm"
+        if missed:
+            result += (", and the planted mistake next to it counts as missed. A warning only counts on the mistake's own word "
+                       "(for an extra word, the word either side of it)")
+        elif near:
+            result += ". The planted mistake next to it was caught by another warning"
+    else:
+        rows.append({"who": "App", "text": "; ".join(_sentence("warned instead: " + app_said(w, sdoc)) for w in near) if near else "Said nothing",
+                     "mark": "flagged" if near else None})
+        result = "A missed mistake"
+        if near:
+            result += (", and the warning next to it counts as a false alarm. A warning only counts on the mistake's own word"
+                       + (" (for an extra word, the word either side of it)" if c["errorClass"] == "added_word" else ""))
+    rows.append({"who": "Result", "text": result, "mark": None})
+    links = [{"key": x["key"], "component": x["component"], "variant": x["variant"], "title": case_title(x, cases)} for x in near if x.get("component")]
     mistake = c["kind"] == "mistake"
     arms = []
     for who, k in (("Perfect transcript", "oracle"), ("App's listener", "truePosition"), ("Big reference listener", "teacher")):
         v = c.get(k)
         arms.append({"who": who, "did": _arm(v), "right": None if v is None else v in ("hit", "misclassified") if mistake else v is False})
     on = c.get("trackerOnPlace")
-    return {"what": _what(c), "arms": arms, "onPlace": None if on is None else round(on * 100), "charged": c.get("component"),
-            "why": WHY.get(c.get("component"), "")}
-
-
-def case_context(c: dict, sdoc: dict | None) -> str:
-    """Where the case sits in its session, so a short review clip isn't mistaken for all the engine had."""
-    at = case_time(c)
-    out = f"{minutes(at)} into a {minutes(sdoc['durationS'])} session" if sdoc and sdoc.get("durationS") else f"{minutes(at)} into the session"
-    on = c.get("trackerOnPlace")
-    return out + (f"; the tracker was on the right place {round(on * 100)}% of the time around here" if on is not None else "")
-
-
-def engine_story(c: dict) -> list[str]:
-    """What the engine did, in plain words, and why the wrong call is charged where it is."""
-    out = [_what(c),
-           f"With a perfect transcript: {_arm(c.get('oracle'))}. With the app's listener: {_arm(c.get('truePosition'))}. "
-           f"The big reference listener: {_arm(c.get('teacher'))}."]
-    if c.get("trackerOnPlace") is not None:
-        out.append(f"The tracker was on the right place {round(c['trackerOnPlace'] * 100)}% of the time around here.")
-    if c.get("component"):
-        out.append(f"Charged to the {c['component']}: {WHY[c['component']]}.")
-    return out
+    return {"rows": rows, "links": links, "blame": {"component": c.get("component"), "why": WHY.get(c.get("component"), "")},
+            "arms": arms, "onPlace": None if on is None else round(on * 100)}
 
 
 def upsert_queue_item(doc: dict | None, test_set: str, item: dict) -> dict:

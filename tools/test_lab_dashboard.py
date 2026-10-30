@@ -55,7 +55,7 @@ def warning(key="lab-v1.1-p02/phone/warning:added_word/2:5:1/50.00", **kw):
 
 SDOC = {
     "id": "lab-v1.1-p01", "meta": {"reciter": "Khalid Abdulkafi"},
-    "said": [{"startS": 20.0, "endS": 21.0, "text": "فَقَالُوا"}, {"startS": 23.795, "endS": 24.475, "text": "كَذَّبَتْ"},
+    "said": [{"startS": 20.0, "endS": 21.0, "text": "فَقَالُوا"}, {"startS": 23.795, "endS": 24.475, "text": "كَذَّبَتْ", "role": "wrong"},
              {"startS": 25.0, "endS": 26.0, "text": "أَصْنَامًا"}, {"startS": 40.0, "endS": 41.0, "text": "بَعِيدٌ"}],
     "events": [{"errorClass": "wrong_word", "location": {"surah": 26, "ayah": 71, "word": 4}, "startS": 23.795, "endS": 24.475,
                 "expected": "فَنَظَلُّ", "observed": "كَذَّبَتْ", "splice": "x1"}],
@@ -158,7 +158,7 @@ def test_drilldown_is_practice_only_and_likely_bad_data_first():
     assert [s["key"] for s in rows[0]["suspects"]] == ["dataCheck"] and "pause-form donor" in rows[0]["suspects"][0]["text"]
     assert [s["key"] for s in rows[0]["insights"]] == ["everywhere"]
     assert rows[1]["verdict"] == "bad_label" and rows[1]["verdictText"] == "Bad label" and rows[2]["verdict"] is None
-    assert rows[0]["title"] == "The app didn't warn about an extra word" and rows[2]["where"] == "26:71, word 4"
+    assert rows[0]["title"] == "Missed an extra word" and rows[2]["where"] == "26:71, word 4"
 
 
 def test_case_item_is_a_valid_review_item_with_text_label_and_originals():
@@ -167,30 +167,65 @@ def test_case_item_is_a_valid_review_item_with_text_label_and_originals():
     assert it["label"] == {"type": "wrong_word", "expected": "فَنَظَلُّ", "said": "كَذَّبَتْ"}
     assert it["text"] == "فَقَالُوا كَذَّبَتْ أَصْنَامًا" and it["audio"] == {"path": "lab-v1.1/sessions/lab-v1.1-p01.phone.wav", "startS": 20.8, "endS": 27.48}
     assert it["before"] == {"path": "sources/mp3quran/22/026.wav", "startS": 462.735, "endS": 465.735} and it["after"]["endS"] == 468.935
-    assert "Khalid Abdulkafi" in it["context"] and "phone copy" in it["context"]
+    assert it["context"] == "26:71 · Khalid Abdulkafi · p01 at 0:23 · phone audio"
+    assert [w["marks"] for w in it["words"]] == [[], ["planted"], []]
     w = D.case_item(warning(), None)
-    assert w["kind"] == "case" and w["label"] == {"type": "clean"} and w["text"] == "" and "before" not in w
+    assert w["kind"] == "case" and w["label"] == {"type": "clean"} and w["text"] == "" and "before" not in w and "words" not in w
     assert D.case_item(warning(nonError="repeat"))["label"] == {"type": "repeat"}
     assert R.validate_queue(D.upsert_queue_item(None, "lab-v1.1", it)) == []
     assert D.session_doc_path(mistake()) == "lab-v1.1/sessions/lab-v1.1-p01.json"
 
 
-def test_engine_story_says_what_happened_and_why_it_is_charged():
-    m = D.engine_story(mistake())
-    assert m[0].startswith("The labels say a wrong word was planted") and "missed it" in m[1] and m[-1].startswith("Charged to the checker")
-    w = D.engine_story(warning(nonError="restart"))
-    assert "on a restart, which is not a mistake" in w[0] and "stayed quiet" in w[1] and "50%" in w[2] and "listener" in w[-1]
-
-
-def test_engine_facts_split_the_story_into_arms_and_the_charge():
-    f = D.engine_facts(mistake())
-    assert f["what"].startswith("The labels say a wrong word was planted")
-    assert [(a["who"], a["did"], a["right"]) for a in f["arms"]] == [
+def test_case_story_says_what_the_reciter_did_what_the_app_said_and_how_it_counted():
+    m = D.case_story(mistake(), SDOC)
+    assert [(r["who"], r["text"]) for r in m["rows"]] == [
+        ("Reciter", "Said كَذَّبَتْ instead of فَنَظَلُّ"), ("App", "Said nothing"), ("Result", "A missed mistake")]
+    assert [(a["who"], a["did"], a["right"]) for a in m["arms"]] == [
         ("Perfect transcript", "missed it", False), ("App's listener", "missed it", False), ("Big reference listener", "missed it", False)]
-    assert f["onPlace"] == 100 and f["charged"] == "checker" and f["why"] == D.WHY["checker"]
-    w = D.engine_facts(warning())
-    assert [a["right"] for a in w["arms"]] == [True, False, False] and w["arms"][0]["did"] == "stayed quiet" and w["onPlace"] == 50
-    assert D.engine_facts(warning(teacher=None, trackerOnPlace=None))["arms"][2] == {"who": "Big reference listener", "did": "not run", "right": None}
+    assert m["onPlace"] == 100 and m["blame"] == {"component": "checker", "why": D.WHY["checker"]} and m["links"] == []
+    w = D.case_story(warning(nonError="restart"), None)
+    assert w["rows"][0]["text"] == "Went back and started again at 2:5, word 1. That's allowed, not a mistake"
+    assert w["rows"][1]["text"] == "Said an extra word came before 2:5, word 1" and w["rows"][2]["text"] == "A false alarm"
+    assert [a["right"] for a in w["arms"]] == [True, False, False] and w["onPlace"] == 50
+    assert D.case_story(warning(teacher=None, trackerOnPlace=None))["arms"][2] == {"who": "Big reference listener", "did": "not run", "right": None}
+    clean = D.case_story(warning(expected="مِثلِهِۦۦ", observed="مِثلِهِۦۦقَلِۦۦلَاا"))
+    assert clean["rows"][0]["text"] == "Recited it correctly. Nothing was planted here" and clean["rows"][0]["mark"] is None
+    assert clean["rows"][1]["detail"] == "It expected the sounds مِثلِهِۦۦ and heard مِثلِهِۦۦقَلِۦۦلَاا"
+
+
+# lab-v1.4-p08: an added قَلِيلًۭا before 2:23:13, and the app warning "wrong word" on 2:23:12 just before it.
+NEAR_DOC = {"durationS": 216.0, "meta": {"reciter": "Saleh Al-Habdan"},
+            "said": [{"startS": 121.0, "endS": 122.3, "at": {"surah": 2, "ayah": 23, "word": 12}, "text": "مِّثْلِهِۦ", "role": "ref"},
+                     {"startS": 122.375, "endS": 123.135, "at": None, "text": "قَلِيلًۭا", "role": "added"},
+                     {"startS": 123.835, "endS": 124.475, "at": {"surah": 2, "ayah": 23, "word": 13}, "text": "وَٱدْعُوا۟", "role": "ref"}],
+            "events": [{"errorClass": "added_word", "location": {"surah": 2, "ayah": 23, "word": 13}, "startS": 122.375, "endS": 123.135,
+                        "expected": "", "observed": "قَلِيلًۭا", "splice": "x3"}], "splices": []}
+
+
+def near_pair():
+    w = warning("lab-v1.4-p08/phone/warning:wrong_word/2:23:12/122.88", errorClass="wrong_word")
+    m = mistake("lab-v1.4-p08/phone/mistake:added_word/2:23:13/122.38", errorClass="added_word", component="listener")
+    return w, m
+
+
+def test_a_warning_on_the_word_next_to_a_missed_mistake_says_so_both_ways():
+    w, m = near_pair()
+    assert D.nearby(w, [w, m]) == [m] and D.nearby(m, [w, m]) == [w]
+    assert D.case_title(w, [w, m]) == "Warned, but on the wrong word"
+    assert D.case_title(m, [w, m]) == "Missed an extra word (it warned on a word next to it)"
+    assert D.case_title(w) == "False alarm: said a wrong word where there was none"
+    s = D.case_story(w, NEAR_DOC, [w, m])
+    assert [r["text"] for r in s["rows"][:2]] == ["Added قَلِيلًۭا after مِّثْلِهِۦ", "Said مِّثْلِهِۦ was wrong"]
+    assert s["rows"][2]["text"].startswith("A false alarm, and the planted mistake next to it counts as missed")
+    assert s["links"] == [{"key": m["key"], "component": "listener", "variant": "phone", "title": D.case_title(m, [w, m])}]
+    sm = D.case_story(m, NEAR_DOC, [w, m])
+    assert sm["rows"][1]["text"] == "Warned instead: said مِّثْلِهِۦ was wrong" and sm["links"][0]["key"] == w["key"]
+    it = D.case_item(w, NEAR_DOC, [w, m])
+    assert it["label"] == {"type": "added_word", "expected": "", "said": "قَلِيلًۭا"}
+    assert [x["marks"] for x in it["words"]] == [["flagged"], ["planted"], []]
+    assert it["context"] == "2:23 · Saleh Al-Habdan · p08 at 2:02 of 3:36 · phone audio"
+    caught = {**m, "outcome": "misclassified", "component": None}
+    assert D.case_title(w, [w, caught]).startswith("False alarm") and D.case_story(w, NEAR_DOC, [w, caught])["links"] == []
 
 
 def test_biggest_lever_is_the_largest_part_or_every_part_within_noise_of_it():
@@ -257,5 +292,5 @@ def test_failing_with_perfect_hearing_is_not_called_bad_data():
 
 def test_case_context_says_how_far_into_the_session():
     c = mistake("lab-v1.4-p19/phone/mistake:added_word/51:30:1/81.20", errorClass="added_word", trackerOnPlace=1.0)
-    assert D.case_context(c, {"durationS": 300.0}).endswith("into a 5.0 min session; the tracker was on the right place 100% of the time around here")
-    assert D.case_context(c, None).endswith("into the session; the tracker was on the right place 100% of the time around here")
+    assert D.case_item(c, {"durationS": 300.0})["context"] == "51:30 · p19 at 1:21 of 5:00 · phone audio"
+    assert D.case_item(c)["context"] == "51:30 · p19 at 1:21 · phone audio"

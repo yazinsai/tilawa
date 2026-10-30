@@ -1,4 +1,4 @@
-import { mountItem, VERDICTS, FAULTS, icon, keySheet, railHtml, verdictKind, phonemesUrl } from './item.js';
+import { mountItem, VERDICTS, FAULTS, icon, keySheet, railHtml, verdictKind, phonemesUrl, withArabic } from './item.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -302,21 +302,31 @@ async function casesView(component, variant) {
         if (!rows.length) return '';
         return `<div class="cgroup"><h2>${title} <span>${rows.length}</span></h2><p>${sub}</p><ul class="cases">${rows
           .map((r) => `<li><a href="${caseHref(component, variant, r.key)}"><span class="t">${esc(r.title)}</span>
-            <span class="w">${esc(r.where)} · ${esc(r.session)} at ${r.timeS.toFixed(1)} s</span>${statusChip(r)}${icon('right')}</a></li>`)
+            <span class="w">${esc(r.where)} · ${esc(r.session.split('-').at(-1))} at ${Math.floor(r.timeS / 60)}:${String(Math.floor(r.timeS % 60)).padStart(2, '0')}</span>${statusChip(r)}${icon('right')}</a></li>`)
           .join('')}</ul></div>`;
       })
       .join('') || '<p class="group-h">No failing cases here.</p>'}`;
   for (const b of document.querySelectorAll('[data-variant]')) b.onclick = () => (location.hash = `#/cases/${component}/${b.dataset.variant}`);
 }
 
-function whyHtml(d) {
-  const e = d.engine;
-  if (!e) return '';
-  const mark = (a) => (a.right == null ? '' : a.right ? icon('check', 'yes') : icon('x', 'no'));
-  return `<details class="why"><summary><b>Why it’s here</b><span>Charged to the ${esc(e.charged)}: ${esc(e.why)}.</span>${icon('right')}</summary>
-    <div class="why-body"><p>${esc(e.what)}</p>
-      <dl class="arms">${e.arms.map((a) => `<dt>${esc(a.who)}</dt><dd>${mark(a)}${esc(a.did)}</dd>`).join('')}</dl>
-      ${e.onPlace != null ? `<p>The tracker was on the right place ${e.onPlace}% of the time around here.</p>` : ''}</div></details>`;
+// "What happened": the reciter, the app and how it was counted, then whose fault it is and how each arm did.
+function storyHtml(s) {
+  if (!s) return '';
+  const mark = (a) => (a.right == null ? icon('minus', 'na') : a.right ? icon('check', 'yes') : icon('x', 'no'));
+  const counted = (t) => {
+    const m = String(t).match(/^([^,.]+)([\s\S]*)$/);
+    return m ? `<b>${withArabic(m[1])}</b>${withArabic(m[2])}` : withArabic(t);
+  };
+  const row = (r) => `<dt>${esc(r.who)}</dt><dd>${r.mark ? `<i class="li-key ${r.mark === 'planted' ? 'li-mark' : 'li-flag'}" aria-hidden="true"></i>` : ''}<span>${
+    r.who === 'Result' ? counted(r.text) : withArabic(r.text)}${r.detail ? `<small>${withArabic(r.detail)}</small>` : ''}</span></dd>`;
+  const b = s.blame;
+  return `<div class="story" role="group" aria-label="What happened">
+    <dl class="story-rows">${s.rows.map(row).join('')}</dl>
+    ${s.links.length ? `<p class="story-links">${s.links.map((l) => `<a href="${caseHref(l.component, l.variant, l.key)}">${icon('right')}Open the case next to it: ${esc(l.title)}</a>`).join('')}</p>` : ''}
+    ${b.component ? `<div class="story-blame" style="--c:var(--${b.component})"><p><b>${NAMES[b.component]}’s fault.</b> ${esc(b.why)}.</p>
+      <ul class="story-arms">${s.arms.map((a) => `<li title="${esc(a.did)}">${mark(a)}${esc(a.who)}</li>`).join('')}${
+        s.onPlace != null ? `<li>Tracker on the right place ${s.onPlace}% of the time</li>` : ''}</ul></div>` : ''}
+  </div>`;
 }
 
 async function caseView(component, variant, key) {
@@ -334,7 +344,6 @@ async function caseView(component, variant, key) {
     <div id="rail">${rail()}</div>
     ${d.suspects.length ? `<div class="suspect">${icon('flag')}<p><b>Likely bad data.</b> ${d.suspects.map((s) => (s.raw ? `<span title="${esc(s.raw)}">${esc(s.text)}</span>` : esc(s.text))).join('. ')}.</p></div>` : ''}
     ${d.insights?.length ? `<div class="notice insight"><p>${d.insights.map((s) => esc(s.text)).join('. ')}.</p></div>` : ''}
-    ${d.context ? `<p class="li-context" style="margin-top:var(--s3)">${esc(d.context)}.</p>` : ''}
     <div id="item"></div>
     <p class="li-context" style="margin-top:var(--s6)">Saved for ${esc(d.testSet)} as <b>${esc(reviewer)}</b>. Bad-data verdicts become flags for <code>lab apply-flags</code>.</p></div>`;
   $('prev').onclick = st.nav.prev;
@@ -347,7 +356,7 @@ async function caseView(component, variant, key) {
     review: d.review,
     verdicts: CASE_VERDICTS,
     phonemes: phonemesUrl(d.item),
-    aside: whyHtml(d),
+    summary: storyHtml(d.story),
     onVerdict: async (verdict, note, how) => {
       const r = await api('/api/case-verdict', {
         method: 'POST',
