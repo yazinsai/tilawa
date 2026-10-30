@@ -1,0 +1,145 @@
+{
+ "version": 1,
+ "kind": "lab-ledger-summary",
+ "main": "lab",
+ "testSet": "lab-v1.4.v2",
+ "note": "Mirror of the lab ledger (tilawa-lab volume /lab/ledger.json), written on fold-in. Counts of wrong calls; a change of 2 or fewer is noise.",
+ "rows": [
+  {
+   "kind": "main",
+   "at": "2026-10-30T02:56:53+00:00",
+   "sha": "34170c0",
+   "testSet": "lab-v1.4",
+   "experiment": null,
+   "note": "lab-v1.4 main-line baseline (spliced-clean-int8); listening check passed 126/126 reviewed, 3 bad",
+   "practice": {
+    "wrongCalls": 50,
+    "missed": 34,
+    "falseWarnings": 16,
+    "listener": 15,
+    "tracker": 3,
+    "checker": 32
+   },
+   "exam": {
+    "wrongCalls": 58,
+    "missed": 28,
+    "falseWarnings": 30,
+    "listener": 26,
+    "tracker": 2,
+    "checker": 30
+   }
+  },
+  {
+   "kind": "main",
+   "at": "2026-10-30T03:03:39+00:00",
+   "sha": "34170c0",
+   "testSet": "lab-v1.4.v2",
+   "experiment": null,
+   "note": "re-scored on lab-v1.4.v2",
+   "practice": {
+    "wrongCalls": 50,
+    "missed": 34,
+    "falseWarnings": 16,
+    "listener": 15,
+    "tracker": 3,
+    "checker": 32
+   },
+   "exam": {
+    "wrongCalls": 58,
+    "missed": 28,
+    "falseWarnings": 30,
+    "listener": 26,
+    "tracker": 2,
+    "checker": 30
+   }
+  },
+  {
+   "kind": "main",
+   "at": "2026-10-30T09:12:48+00:00",
+   "sha": "f5b1757",
+   "testSet": "lab-v1.4.v2",
+   "experiment": null,
+   "note": "re-scored for fold of checker-added-words",
+   "practice": {
+    "wrongCalls": 50,
+    "missed": 34,
+    "falseWarnings": 16,
+    "listener": 15,
+    "tracker": 3,
+    "checker": 32
+   },
+   "exam": {
+    "wrongCalls": 58,
+    "missed": 28,
+    "falseWarnings": 30,
+    "listener": 26,
+    "tracker": 2,
+    "checker": 30
+   }
+  },
+  {
+   "kind": "main",
+   "at": "2026-10-30T09:12:53+00:00",
+   "sha": "34be77a",
+   "testSet": "lab-v1.4.v2",
+   "experiment": "checker-added-words",
+   "note": "An added word found inside a word (often a waqf word said alone at an ayah pause) takes that word's edge with it, so the local-window check tests the wrong text: re-split the heard phonemes so the word keeps its best fit",
+   "practice": {
+    "wrongCalls": 42,
+    "missed": 26,
+    "falseWarnings": 16,
+    "listener": 18,
+    "tracker": 3,
+    "checker": 21
+   },
+   "exam": {
+    "wrongCalls": 58,
+    "missed": 28,
+    "falseWarnings": 30,
+    "listener": 26,
+    "tracker": 2,
+    "checker": 30
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-30T09:12:53+00:00",
+   "id": "checker-added-words",
+   "component": "checker",
+   "hypothesis": "An added word found inside a word (often a waqf word said alone at an ayah pause) takes that word's edge with it, so the local-window check tests the wrong text: re-split the heard phonemes so the word keeps its best fit",
+   "expected": {
+    "component": -8,
+    "overall": -5
+   },
+   "state": "folded",
+   "testSet": "lab-v1.4.v2",
+   "note": "keeps its overall and checker gain",
+   "branch": {
+    "wrongCalls": 42,
+    "missed": 26,
+    "falseWarnings": 16,
+    "listener": 18,
+    "tracker": 3,
+    "checker": 21
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 42,
+     "missed": 26,
+     "falseWarnings": 16,
+     "listener": 18,
+     "tracker": 3,
+     "checker": 21
+    },
+    "exam": {
+     "wrongCalls": 58,
+     "missed": 28,
+     "falseWarnings": 30,
+     "listener": 26,
+     "tracker": 2,
+     "checker": 30
+    }
+   }
+  }
+ ]
+}
