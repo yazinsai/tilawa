@@ -408,7 +408,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return steps.reverse();
   };
 
-  /** Mark phrases that end at each phoneme from `from` on: the alignment consumes them for free. */
+  /**
+   * Mark phrases that end at each phoneme from `from` on: the alignment consumes them for `PHRASE`. Once anchored, a run
+   * the window's own text fits at least as well is that text (ءَامِنِينَ, not آمين).
+   */
   const markPhrases = (from: number) => {
     for (let end = from + 1; end <= obs.length; end++) {
       for (const p of phrases) {
@@ -416,6 +419,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         const tail = obs.slice(start, end).map((x) => x.p).join("");
         const a = alignSubstring(tail, 0, tail.length, p, () => true);
         if (!a || a.end < tail.length - 1 || a.cost / UNIT / p.length > PHRASE_MAX_COST) continue;
+        if (anchor !== null) {
+          const text = alignSubstring(ref, lo, hi, tail.slice(a.start), () => true);
+          if (text && text.cost <= a.cost) continue;
+        }
         for (let k = start + a.start; k < end; k++) obs[k].junk = true;
       }
     }

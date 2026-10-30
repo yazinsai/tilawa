@@ -160,6 +160,24 @@ describe("skips", () => {
     expect(summary(confirmed(replayChecked(index, f, { phrases }, { phrases })))).toEqual(["confirmed omitted_word 26:128:1"]);
   });
 
+  it("are placed after a word that is آمين's sounds, not on it", () => {
+    // ما هـٰهنا (madd held short) ءامنين [في] جنات: ءَامِنِينَ is the window's text, not the phrase.
+    const start = w(26, 141, 1);
+    const at26 = (r: WordRef) => find(r).start - find(start).start;
+    const omitted = find(w(26, 147, 1));
+    const edits: Edit[] = [
+      { kind: "del", at: at26(w(26, 146, 5)) - 2, count: 2 },
+      { kind: "del", at: at26(w(26, 147, 1)), count: omitted.end - omitted.start },
+    ];
+    const f = syntheticFixture(index, { id: "c", from: start, to: w(26, 149, 3), edits, chunkSize: 8 });
+    expect(summary(confirmed(replayChecked(index, f, { phrases }, { phrases })))).toEqual(["confirmed omitted_word 26:147:1"]);
+  });
+
+  it("leave a real آمين after al-Fatiha alone", () => {
+    const f = syntheticFixture(index, { id: "c", from: w(1, 1, 1), to: w(2, 5, 3), edits: [{ kind: "ins", at: find(w(2, 1, 1)).start - find(w(1, 1, 1)).start, text: "ءَاامِۦۦن" }], chunkSize: 8 });
+    expect(confirmed(replayChecked(index, f, { phrases }, { phrases }))).toEqual([]);
+  });
+
   it("confirm when they are not", () => {
     const edits: Edit[] = [{ kind: "del", at: at(w(2, 255, 30)), count: at(w(2, 255, 40)) - at(w(2, 255, 30)) }];
     expect(summary(run(edits, { to: w(2, 257, 5) }))).toEqual(["suspected skipped_passage 2:255:30", "confirmed skipped_passage 2:255:30"]);
