@@ -556,7 +556,13 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       const a = alignSubstring(before, 0, n, tail, (o) => o === 0, { strictStart: true });
       if (a && a.end >= n - 1 && a.cost / UNIT / n <= REPEAT_MAX_COST) {
         const at = observed.length - 2 * n;
-        observed = observed.slice(0, at) + tail;
+        const collapsed = observed.slice(0, at) + tail;
+        const conf = [...observedConf.slice(0, at), ...observedConf.slice(-n)];
+        // Quran text can itself contain a near-repeat (من أجر إن أجري). Removing it would manufacture evidence
+        // for a different passage. Keep the whole phrase whenever it fits the reference at least as well.
+        const cost = (text: string, confidence: number[]) => Math.min(...fuzzyMatches(text, confidence).map((m) => m.cost));
+        if (cost(observed, observedConf) <= cost(collapsed, conf)) continue;
+        observed = collapsed;
         observedConf = [...observedConf.slice(0, at), ...observedConf.slice(-n)];
         observedFrames.splice(at, n);
         return;
