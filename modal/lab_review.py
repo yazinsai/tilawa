@@ -32,6 +32,8 @@ image = (
     .add_local_file(ROOT / "tools/lab_recordings_core.py", "/root/lab_recordings_core.py")
     .add_local_file(ROOT / "tools/lab_ledger.py", "/root/lab_ledger.py")
     .add_local_file(ROOT / "tools/lab_dashboard_core.py", "/root/lab_dashboard_core.py")
+    .add_local_file(ROOT / "tools/review_asr_core.py", "/root/review_asr_core.py")
+    .add_local_file(ROOT / "tools/lab_models_core.py", "/root/lab_models_core.py")
     .add_local_file(ROOT / "docs/benchmarks/scoreboard.md", "/root/scoreboard.md")
     .add_local_dir(ROOT / "modal/lab_web", "/root/lab_web")
 )
@@ -377,6 +379,22 @@ def web():
     @api.get("/api/release")
     def release():
         return {"release": gates, "source": "docs/benchmarks/scoreboard.md"}
+
+    import lab_models_core as M
+
+    @api.get("/api/models")
+    def models(queue: str, id: str):
+        """What the triage models heard for one queue item: embedded in the item, else the test set's triage outputs
+        (every file parsed once per mtime by read_json)."""
+        reload()
+        q = read_json(data_file(queue))
+        if not isinstance(q, dict) or not isinstance(q.get("items"), list):
+            raise HTTPException(422, f"not a review queue: {queue}")
+        item = next((it for it in q["items"] if isinstance(it, dict) and it.get("id") == id), None)
+        if not item:
+            raise HTTPException(404, f"no item {id!r} in {queue}")
+        base = DATA / name(q.get("testSet", ""), "testSet")
+        return M.view(item, lambda rel: read_json(base / rel))
 
     # Scripted-error recordings (ticket 18). This container is the only writer of takes and their metadata; results
     # come from the processing app's containers.

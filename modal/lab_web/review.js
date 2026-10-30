@@ -14,6 +14,7 @@ const keys = keySheet([
   ['2 3 4', 'Bad label, bad audio, bad splice'],
   ['j', 'Next item'],
   ['k', 'Previous item'],
+  ['m', 'Show or hide what the models heard'],
   ['?', 'Show or hide this'],
 ]);
 
@@ -64,6 +65,7 @@ function show(i, autoplay = true) {
   st.view = mountItem($('main'), item, {
     review: st.reviews[item.id],
     verdicts: VERDICTS,
+    models: `/api/models?queue=${encodeURIComponent(queuePath)}&id=${encodeURIComponent(item.id)}`,
     onVerdict: (verdict, note, how) => {
       const saving = api('/api/verdict', {
         method: 'POST',
@@ -113,8 +115,9 @@ document.addEventListener('keydown', (e) => {
   const k = e.key;
   if (k === 'Escape' && keys.open()) return keys.close();
   if (!st.view) return;
-  if (e.target.tagName === 'BUTTON') e.target.blur();
+  if (e.target.tagName === 'BUTTON' || e.target.tagName === 'SUMMARY') e.target.blur();
   if (k === '?') keys.toggle();
+  else if (k === 'm') st.view.toggleModels();
   else if (k === ' ') st.view.play('audio');
   else if (k === 'b') st.view.play('before');
   else if (k === 'a') st.view.play('after');

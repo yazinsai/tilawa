@@ -1,8 +1,9 @@
 // One review item: play controls, the label in plain words, the Arabic said, grouped verdict buttons and a note.
 // Used by the review page and the lab dashboard drill-down:
 //   import { mountItem, VERDICTS, FAULTS } from '/static/item.js';
-//   const view = mountItem(el, item, { review, verdicts: [...VERDICTS, ...FAULTS], aside: html, onVerdict: (verdict, note, how) => save() });
-//   view.play('audio' | 'before' | 'after'); view.choose(0); view.destroy();
+//   const view = mountItem(el, item, { review, verdicts: [...VERDICTS, ...FAULTS], aside: html, models: '/api/models?queue=…&id=…',
+//                                      onVerdict: (verdict, note, how) => save() });
+//   view.play('audio' | 'before' | 'after'); view.choose(0); view.toggleModels(); view.destroy();
 // Styles live in /static/lab.css.
 
 export const VERDICTS = [
@@ -80,6 +81,60 @@ export const clipUrl = (clip, base = '') =>
 
 const secs = (s) => `${Math.max(0, s).toFixed(1)} s`;
 
+// "What the models heard": the triage models' transcripts and scores for this item, from GET /api/models. Only its
+// open state is kept in localStorage.
+const MODELS_OPEN = 'tilawa.lab.modelsOpen';
+const MODEL_NAMES = { nemotron: 'Nemotron', soniox: 'Soniox', fastconformer: 'FastConformer' };
+const DECIDED = { match: 'fits', mismatch: 'doesn’t fit', unsure: 'unsure' };
+const chip = (k) => (k === 'match' ? 'better' : k === 'mismatch' ? 'worse' : '');
+const heardCache = new Map();
+const modelsOpen = () => {
+  try {
+    return localStorage.getItem(MODELS_OPEN) === '1';
+  } catch {
+    return false;
+  }
+};
+
+function modelsSummary(item) {
+  const t = item.triage || {};
+  return Object.keys(MODEL_NAMES)
+    .filter((m) => t[m]?.decision)
+    .map((m) => `${MODEL_NAMES[m]} ${DECIDED[t[m].decision] || t[m].decision}`)
+    .join(' · ');
+}
+
+const diffHtml = (segs) =>
+  segs
+    .map((s) => {
+      const edge = s.edge ? ' md-edge' : '';
+      if (s.op === 'same') return esc(s.ref);
+      if (s.op === 'del') return `<del class="md-del${edge}" title="In the label, not heard">${esc(s.ref)}</del>`;
+      if (s.op === 'ins') return `<ins class="md-ins${edge}" title="Heard, not in the label">${esc(s.heard)}</ins>`;
+      return `<del class="md-del" title="In the label">${esc(s.ref)}</del> <ins class="md-ins" title="Heard instead">${esc(s.heard)}</ins>`;
+    })
+    .join(' ');
+
+function modelsHtml(d) {
+  if (!d.found) return `<p class="md-none">${esc(d.message)}.</p>`;
+  const rows = d.models
+    .map((m) => {
+      const differs = m.diff.segments.some((s) => s.op !== 'same');
+      return `<section class="md-m">
+      <h4><b>${esc(m.short)}</b><span>${esc(m.role)}</span><span class="verdict ${chip(m.decision.key)}">${esc(m.decision.text)}</span>${m.inRule ? '' : '<span class="md-off">not used for this queue</span>'}</h4>
+      <dl class="md-dl">
+        <dt>Heard</dt><dd>${m.transcript ? `<p class="md-ar" lang="ar" dir="rtl">${esc(m.transcript)}</p>` : '<span class="md-q">No transcript</span>'}${m.transcript && !differs ? `<small>${esc(m.diff.summary)}</small>` : ''}${m.heardNote ? `<small>${esc(m.heardNote)}</small>` : ''}</dd>
+        ${differs ? `<dt>Against the label</dt><dd><p class="md-ar md-diff" lang="ar" dir="rtl">${diffHtml(m.diff.segments)}</p><small>${esc(m.diff.summary)}</small></dd>` : ''}
+        <dt>Score</dt><dd class="md-q"><span title="${esc(m.how)}">${esc(m.score)}</span></dd>
+      </dl></section>`;
+    })
+    .join('');
+  return `${d.why ? `<p class="md-why">${esc(d.why)}.</p>` : ''}
+    ${d.alternative ? `<p class="md-alt">Each model weighs the label against ${esc(d.alternative.name)}: <bdi lang="ar" dir="rtl">${esc(d.alternative.text)}</bdi></p>` : ''}
+    ${rows}
+    <p class="md-key"><del class="md-del">Struck</del> is in the label but wasn’t heard; <ins class="md-ins">shaded</ins> was heard but isn’t in the label. Words are compared without vowels.</p>`;
+}
+
 const CSS = `
 .li{display:flex;flex-direction:column;margin-top:var(--s6)}
 .li-title{font-size:var(--t-3xl);letter-spacing:-.015em;line-height:1.2}
@@ -128,6 +183,33 @@ const CSS = `
 .li-status.li-ok{color:var(--better)}
 .li-status.li-err{color:var(--worse)}
 .li-status .icon{width:14px;height:14px;stroke-width:2.25}
+.md{margin-top:var(--s4)}
+.md>summary{align-items:center}
+.md>summary span{color:var(--g-600)}
+.md>summary kbd{margin-left:auto}
+.md>summary kbd+.icon{margin-left:0}
+.md-body{padding:0 var(--s4) var(--s4);font-size:var(--t-sm);color:var(--g-700)}
+.md-why,.md-none{color:var(--g-700)}
+.md-alt{margin-top:var(--s1);color:var(--g-600)}
+.md-alt bdi{font-family:var(--ar);font-size:var(--t-lg);color:var(--g-700);padding:0 2px}
+.md-m{margin-top:var(--s4);padding-top:var(--s4);border-top:1px solid var(--g-200)}
+.md-m h4{margin:0;display:flex;align-items:center;flex-wrap:wrap;gap:var(--s2);font-size:var(--t-sm);font-weight:400;color:var(--g-600)}
+.md-m h4 b{font-size:var(--t-base);font-weight:600;color:var(--g-900)}
+.md-off{font-size:var(--t-xs)}
+.md-dl{display:grid;grid-template-columns:128px minmax(0,1fr);gap:var(--s2) var(--s4);margin:var(--s3) 0 0}
+.md-dl dt{color:var(--g-600);padding-top:6px}
+.md-dl dd{margin:0;min-width:0}
+.md-dl dd.md-q{padding-top:6px}
+.md-dl small{display:block;margin-top:2px;font-size:var(--t-xs);color:var(--g-600)}
+.md-q{color:var(--g-600)}
+.md-q span[title]{border-bottom:1px dotted var(--g-400);cursor:help}
+.md-ar{font-family:var(--ar);font-size:var(--t-2xl);line-height:1.9;color:var(--g-900)}
+.md-diff{color:var(--g-700)}
+.md-del{text-decoration:line-through;text-decoration-color:var(--g-500);text-decoration-thickness:1px;color:var(--g-500)}
+.md-ins{text-decoration:none;background:var(--g-200);color:var(--g-900);border-radius:4px;padding:0 4px}
+.md-edge{opacity:.6}
+.md-key{margin-top:var(--s4);font-size:var(--t-xs);color:var(--g-600)}
+@media (max-width:600px){.md-dl{grid-template-columns:1fr;gap:2px}.md-dl dt{padding-top:var(--s2)}.md-dl dd.md-q{padding-top:0}}
 `;
 
 export function style() {
@@ -138,7 +220,7 @@ export function style() {
   document.head.append(s);
 }
 
-export function mountItem(el, item, { base = '', review = null, verdicts = VERDICTS, aside = '', onVerdict } = {}) {
+export function mountItem(el, item, { base = '', review = null, verdicts = VERDICTS, aside = '', models = '', onVerdict } = {}) {
   style();
   const alts = CLIPS.filter(([k]) => k !== 'audio' && item[k]);
   const name = (k) => item[k].title || CLIPS.find(([c]) => c === k)[1];
@@ -161,6 +243,10 @@ export function mountItem(el, item, { base = '', review = null, verdicts = VERDI
     <div class="li-time" aria-hidden="true"><i></i></div>
     <p class="li-label">${labelHtml(item.label)}</p>
     ${item.text ? `<div class="li-page"><p class="li-text" lang="ar" dir="rtl">${textHtml(item.text, item.label)}</p></div>` : ''}
+    ${models ? `<details class="why md"${modelsOpen() ? ' open' : ''}>
+      <summary><b>What the models heard</b><span>${esc(modelsSummary(item))}</span><kbd>m</kbd>${icon('right')}</summary>
+      <div class="md-body" aria-live="polite"></div>
+    </details>` : ''}
     ${aside}
     <h2 class="li-ask">What do you hear?</h2>
     <div class="li-groups">${groups
@@ -257,11 +343,50 @@ export function mountItem(el, item, { base = '', review = null, verdicts = VERDI
   });
   show();
 
+  const panel = models ? $('.md') : null;
+  let heard = false;
+  const loadHeard = () => {
+    if (heard) return;
+    heard = true;
+    const body = $('.md-body');
+    body.innerHTML = '<p class="md-none">Loading…</p>';
+    let req = heardCache.get(models);
+    if (!req) {
+      req = fetch(`${base}${models}`).then(async (r) => {
+        const b = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(typeof b.detail === 'string' ? b.detail : `HTTP ${r.status}`);
+        return b;
+      });
+      heardCache.set(models, req);
+    }
+    req.then(
+      (d) => (body.innerHTML = modelsHtml(d)),
+      (e) => {
+        heardCache.delete(models);
+        heard = false;
+        body.innerHTML = `<p class="md-none">Couldn’t load the models’ output: ${esc(e.message)}</p>`;
+      },
+    );
+  };
+  if (panel) {
+    panel.querySelector('summary').addEventListener('click', (e) => e.currentTarget.blur());
+    panel.addEventListener('toggle', () => {
+      try {
+        localStorage.setItem(MODELS_OPEN, panel.open ? '1' : '0');
+      } catch {}
+      if (panel.open) loadHeard();
+    });
+    if (panel.open) loadHeard();
+  }
+
   return {
     el,
     play,
     choose: (i) => (verdicts[i] ? save(verdicts[i].key, 'key') : Promise.resolve()),
     note: () => note.value,
+    toggleModels: () => {
+      if (panel) panel.open = !panel.open;
+    },
     setReview: (r) => {
       saved = r;
       show();
