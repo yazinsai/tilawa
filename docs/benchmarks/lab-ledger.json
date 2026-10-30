@@ -413,6 +413,73 @@
      "checker": 9
     }
    }
+  },
+  {
+   "kind": "main",
+   "at": "2026-10-30T18:22:15+00:00",
+   "sha": "5716d49",
+   "testSet": "lab-v1.4.v3",
+   "experiment": null,
+   "note": "re-scored for fold of tracker-startup-persistence",
+   "practice": {
+    "wrongCalls": 14,
+    "missed": 11,
+    "falseWarnings": 3,
+    "listener": 3,
+    "tracker": 3,
+    "checker": 8
+   },
+   "exam": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-10-30T18:22:19+00:00",
+   "sha": "241c788",
+   "testSet": "lab-v1.4.v3",
+   "experiment": "tracker-startup-persistence",
+   "note": "Canonical Quran text containing a near-repeat must not be collapsed as a reciter repeat. Preserve the full evidence when its best reference fit costs no more than the collapsed evidence. Predict removal of the three startup false warnings, with no checker or clean/studio regression.",
+   "practice": {
+    "wrongCalls": 11,
+    "missed": 11,
+    "falseWarnings": 0,
+    "listener": 3,
+    "tracker": 0,
+    "checker": 8
+   },
+   "exam": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-30T18:22:19+00:00",
+   "id": "tracker-startup-persistence",
+   "component": "tracker",
+   "hypothesis": "Canonical Quran text containing a near-repeat must not be collapsed as a reciter repeat. Preserve the full evidence when its best reference fit costs no more than the collapsed evidence. Predict removal of the three startup false warnings, with no checker or clean/studio regression.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "folded",
+   "testSet": "lab-v1.4.v3",
+   "note": "keeps its overall and tracker gain",
+   "branch": {
+    "wrongCalls": 11,
+    "missed": 11,
+    "falseWarnings": 0,
+    "listener": 3,
+    "tracker": 0,
+    "checker": 8
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 11,
+     "missed": 11,
+     "falseWarnings": 0,
+     "listener": 3,
+     "tracker": 0,
+     "checker": 8
+    },
+    "exam": null
+   }
   }
  ]
 }
