@@ -563,9 +563,13 @@ def triage(test_set: str, vendor: str, spot: tuple[int, int], seam_spot: tuple[f
                 _write(base / "review" / b, _json(base / "review" / a))
     old = _json(base / "triage-v1.json")
     cases, oldc, _ = _triage_cases(test_set, seed)
-    nem = {i: {"claimed": o["nemotron"]["claimed"], "alternative": o["nemotron"]["alternative"]} for i, o in oldc.items()}
+    nem_rec = base / "triage" / "asr-nemotron-3.5-transcribe.json"
+    nem_heard = _json(nem_rec)["items"] if nem_rec.is_file() else {}
+    nem = {i: {"claimed": o["nemotron"]["claimed"], "alternative": o["nemotron"]["alternative"],
+               **({"transcript": nem_heard[i]["transcript"]} if i in nem_heard else {})} for i, o in oldc.items()}
     heard = transcribe(vendor, test_set, [{"id": c["id"], "audio": c["item"]["audio"]} for c in cases], force)
-    api = {c["id"]: A.judge(heard[c["id"]].get("transcript") or "", c["claimed"], c["alternative"], rule) for c in cases}
+    api = {c["id"]: {**A.judge(heard[c["id"]].get("transcript") or "", c["claimed"], c["alternative"], rule),
+                     "transcript": heard[c["id"]].get("transcript")} for c in cases}
     reviews = _verdicts(test_set)
     names = ("triage-fastconformer.json", "triage-fastconformer-confirm.json") if primary else ("triage.json", "triage-confirm.json")
     names += ("v1-check.json",)

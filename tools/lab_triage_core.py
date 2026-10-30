@@ -245,13 +245,20 @@ def why(case: dict, reasons: list[str], spot: tuple[int, int] = (SPOT_EDITS, SPO
     return " · ".join(parts)
 
 
+def model_summary(r: dict) -> dict:
+    """A model's record as a queue item carries it: decision and diff always; a transcript reading's letter distances,
+    margins and reason, and the model's label-blind transcript, when it has them (the review page's model panel)."""
+    keep = ("reason", "need", "needAgainst", "unit", "transcript") + (("claimed", "alternative") if r.get("unit") == "letters" else ())
+    return {"decision": r["decision"], "diff": r["diff"], **{k: r[k] for k in keep if r.get(k) is not None}}
+
+
 def queue_item(case: dict, reasons: list[str], carried: dict | None = None, spot: tuple[int, int] = (SPOT_EDITS, SPOT_CLEAN),
                models: tuple[str, str] = MODELS) -> dict:
     it = case["item"]
     title = TITLES[reasons[0]] + "".join(f" · also {ALSO[r]}" for r in reasons[1:] if r in ALSO)
     ctx = " · ".join(x for x in (why(case, reasons, spot, models), it.get("title"), it.get("context")) if x)
     tri = {"reasons": reasons, "outcome": case["outcome"], "class": case["class"],
-           **{m: {k: case[m][k] for k in ("decision", "diff")} for m in models},
+           **{m: model_summary(case[m]) for m in models},
            "alternative": case["alternative"], "alternativeOp": case["alternativeOp"]}
     if carried:
         tri["carriedOver"] = carried
@@ -301,7 +308,8 @@ def triage(cases: list[dict], scores: dict[str, dict[str, dict]], test_set: str,
            earlier: dict[str, dict] | None = None, models: tuple[str, str] = MODELS) -> dict:
     """cases: session_cases (+ reviewed_clean_cases, flagged reviewedOnly). scores: model -> case id -> {claimed,
     alternative} (None when the model gave no score), or a decision already made ({decision, diff, ...}, e.g. a
-    transcript read by review_api_core.judge). spot: (edits and repeats, clean windows) drawn from the
+    transcript read by review_api_core.judge); any of them may carry the model's label-blind `transcript`, which the
+    case and its queue item keep. spot: (edits and repeats, clean windows) drawn from the
     auto-accepted cases; seam_spot: (share, cap) of the planted edits, or per pool (seam_sample). Returns {cases,
     queue, counts}; reviewedOnly cases are decided but never counted or queued."""
     reviews, earlier = reviews or {}, earlier or {}
@@ -312,6 +320,9 @@ def triage(cases: list[dict], scores: dict[str, dict[str, dict]], test_set: str,
             sc = scores[m].get(c["id"]) if c["alternative"] is not None else None
             r[m] = (sc if sc and "decision" in sc else pairwise(sc["claimed"], sc["alternative"], MARGINS[m]) if sc
                     else {"decision": "unsure", "claimed": None, "alternative": None, "diff": None})
+            heard = (scores[m].get(c["id"]) or {}).get("transcript")
+            if heard is not None and "transcript" not in r[m]:
+                r[m] = {**r[m], "transcript": heard}
         r["outcome"] = outcome(r[models[0]]["decision"], r[models[1]]["decision"])
         out.append(r)
     real = [c for c in out if not c.get("reviewedOnly")]

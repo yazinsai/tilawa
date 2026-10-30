@@ -217,8 +217,10 @@ def run(test_set: str, spot: tuple[int, int], seam_spot: tuple[float, int], seed
     for i, r in fc_res.items():
         assert r["audioSha256"] == shas[i], i
 
-    scores = {"nemotron": {i: {"claimed": r["scores"]["labelled"]["llm"], "alternative": r["scores"]["original"]["llm"]} for i, r in nem_res.items()},
-              "fastconformer": {i: {"claimed": r["scores"]["labelled"]["diac"], "alternative": r["scores"]["original"]["diac"]} for i, r in fc_res.items()}}
+    scores = {"nemotron": {i: {"claimed": r["scores"]["labelled"]["llm"], "alternative": r["scores"]["original"]["llm"],
+                               "transcript": heard[i]["transcript"]} for i, r in nem_res.items()},
+              "fastconformer": {i: {"claimed": r["scores"]["labelled"]["diac"], "alternative": r["scores"]["original"]["diac"],
+                                    "transcript": r.get("transcript")} for i, r in fc_res.items()}}
     carried = _prior_verdicts(prior if prior != test_set else "", {c["id"]: c for c in cases if not c.get("reviewedOnly")}, shas)
     reviews = {**carried, **_verdicts(test_set)}
     same = {cid: {"audio": by_id[cid]["item"]["audio"], "text": by_id[cid]["item"]["text"]} for cid in carried}
