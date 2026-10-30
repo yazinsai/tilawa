@@ -30,3 +30,23 @@ Things that need handling:
 - The slice's report gives false warnings per recited minute and per session. Most sessions are short and start cold, so it also splits warnings in the first 10 s from the rest.
 - Every false warning on the slice goes through the audio-review procedure (`docs/agents/audio-review.md`), so warnings on real mistakes are relabelled as mistakes, not counted as false warnings. The user is asked only about unresolved items.
 - A write-up `docs/benchmarks/lab-realuser-v1.md` gives counts per source (sessions, speakers, recited minutes), what was dropped and why, and the main line's numbers on the practice half.
+
+## Comments
+
+Progress (30 Oct). Built `realuser-v1` (580 sessions) on the volume; code in `tools/lab_realuser_core.py`, `modal/lab_realuser.py`, tests `tools/test_lab_realuser.py`.
+
+- **Clips.** sobolev 451 Hafs chunks (47 min), RetaSy 315 unique Quranic `correct` clips that are Hafs or give no qiraah (19.5 min), tlog 504 clean-match test clips in 457 sampled chains (90 min). Each clip is decoded by the teacher and checked against its label before joining. A clip within PER 0.15 of its label is kept as labelled. One further away is relabelled to the best span of words in its surah, when that span is within 0.15 and at least 0.1 better. Up to 0.4 it is kept as "unsure", a likely real deviation. Past that it is dropped.
+- **Deviation: sobolev chunk labels are loose.** A chunk often holds several ayahs or part of one. For example, a chunk labelled 113:4 holds 113:1–4, and 1:7 is split across two chunks. Dropping on the label alone lost 126 of 451 chunks. Relabelling to the heard span keeps all but 12, and 132 chunks are relabelled.
+- **Deviation: RetaSy `Unknown` reciter.** 160 clips have `reciter_id` "Unknown" and no other speaker field, so they are from different people. Each is its own speaker and is never joined with others. With the 5 s minimum (`MIN_S`), 147 RetaSy clips are dropped as too short even after joining.
+- Ayat al-Kursi clips in RetaSy are fragments of 2:255; the Aya text is mapped to the run of words it matches.
+- **Speakers per source:** a sobolev recording (no speaker ids), a RetaSy `reciter_id`, a tlog speaker cluster. Splits are in `/lab/data/realuser/splits-v1.json`: per source, a seeded half of the speakers is exam. They were fixed before anything was scored.
+- **Sessions.** sobolev: a recording's chunks in chunk order. RetaSy: one reciter's clips in mushaf order, one pass per repeat of an ayah. tlog: one cluster's contiguous clips. Clips are joined with 0.5 s of silence and level-matched (±10 dB at most). Each seam is recorded as contiguous or a jump (`meta.seams`, `meta.resumesS`).
+- **Optional items.** An optional isti'adha goes before every separate recording, and an optional basmala before a clip that starts a surah or a separate recording. `check_take` drops the ones it doesn't hear; the ones it keeps become non-Quran spans.
+- A backward move is a `repeat` span with `repeat` non-errors. sobolev reviewer tags (46 chunks: Letters 40, Tajweed 11, Wording 2, Tashkeel 1) are kept in `meta.candidates`. Ayahs heard differently are in `meta.flagged`.
+- All 580 sessions pass `validateSession` (`lab-validate-cli`, 0 failures).
+
+| source | practice sessions / speakers / min | exam sessions / speakers / min |
+|---|---|---|
+| sobolev | 27 / 27 / 22.8 | 28 / 28 / 26.6 |
+| RetaSy | 31 / 29 / 5.4 | 39 / 39 / 6.6 |
+| tlog | 239 / 28 / 50.2 | 216 / 27 / 43.1 |
