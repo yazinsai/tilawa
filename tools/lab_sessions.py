@@ -1,4 +1,4 @@
-"""Pure logic for test set lab-v1.3, spliced sessions (.scratch/lab, ticket 03); run by modal/lab_build_sessions.py.
+"""Pure logic for test set lab-v1.5, spliced sessions (.scratch/lab, tickets 03 and 20); run by modal/lab_build_sessions.py.
 
 Window choice, splice boundaries, the plant schedule, output-timeline arithmetic and labels (BenchSession, splice
 records, manifest, review queue), plus the sample-level render and phone degradation. Standard library only except
@@ -17,15 +17,23 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SEED = 20261028
-TEST_SET = "lab-v1.4"
+TEST_SET = "lab-v1.5"
+# lab-v1.5 keeps every session of FROZEN byte for byte (same ids, audio and evidence) and plans the rest around them
+# (ticket 20): the frozen sessions count towards the per-split totals below, and no new window overlaps theirs.
+FROZEN = "lab-v1.4"
 SR = 16_000
 XFADE = 160  # samples: the 10 ms crossfade centred on each seam
 EDGE_FADE = 320  # 20 ms fade in and out at the session ends
 SESSION_S = (180.0, 480.0)
 TARGET_S = (200.0, 440.0)
-SPLIT_SESSIONS = 20
-SLICES = {"ayah1": 4, "strict": 3, "muta": 3}  # per split; the rest are normal starts
-CLEAN = {"ayah1": 1, "strict": 1, "normal": 3}  # per split
+SPLIT_SESSIONS = 100
+SLICES = {"ayah1": 20, "strict": 15, "muta": 15}  # per split; the rest are normal starts
+CLEAN = {"ayah1": 5, "strict": 5, "normal": 15}  # per split
+# Wrong words (mutashabihat swaps included) are the scarce class: under the pause-to-pause rule a recording holds a
+# few sites, clustered in a few surahs. A session with mistakes takes the window with the most ayahs holding one, up
+# to SITE_CAP (beyond it, surah variety decides); a clean session takes the window with the fewest.
+SITE_CAP = 3
+READ_SLACK = 3  # ... and may go to another reader of its split for it, up to this many sessions over an even share
 EXCLUDED_READS = {135: "timings drift against the audio in every surah (lab-sources-v1)"}
 STRICT_MIN = 6  # a strict start needs more than 5 further words to become unique
 STRICT_SURAHS = (26, 54, 55, 77)  # refrain surahs in every reader's pool, preferred for strict starts
@@ -486,27 +494,42 @@ def window_candidates(rec: Rec, ref: Ref, dis: list[int], kind: str, target: flo
     return out
 
 
-def allocate(readers: dict[str, list[int]], seed: int = SEED) -> list[dict]:
-    """Session slots per split: who recites, which start slice, whether clean. Readers get one session each, then
-    the extra sessions go to a seeded shuffle of them."""
+def allocate(readers: dict[str, list[int]], seed: int = SEED, frozen: list[dict] = ()) -> list[dict]:
+    """Session slots per split: who recites, which start slice, whether clean. The `frozen` windows (`frozen_window`)
+    fill their share of SPLIT_SESSIONS, SLICES and CLEAN first. Each new slot goes to the reader with the fewest
+    sessions so far, ties in a seeded shuffle of the readers."""
     slots = []
     for split in sorted(readers):
         rng = random.Random(f"{seed}:alloc:{split}")
         rs = sorted(readers[split])
         rng.shuffle(rs)
-        order = rs + rs[: SPLIT_SESSIONS - len(rs)]
-        kinds = [k for k, n in SLICES.items() for _ in range(n)]
-        kinds += ["normal"] * (SPLIT_SESSIONS - len(kinds))
+        old = [f for f in frozen if f["split"] == split]
+        n = SPLIT_SESSIONS - len(old)
+        load = Counter(f["read"] for f in old)
+        order = []
+        for _ in range(n):
+            r = min(rs, key=lambda r: (load[r], rs.index(r)))
+            order.append(r)
+            load[r] += 1
+        have = Counter(f["kind"] for f in old)
+        kinds = [k for k, m in SLICES.items() for _ in range(max(0, m - have[k]))]
+        kinds += ["normal"] * (n - len(kinds))
         rng.shuffle(kinds)
-        for r, kind in zip(order, kinds):
-            slots.append({"split": split, "read": r, "kind": kind})
-        clean = dict(CLEAN)
-        for s in [s for s in slots if s["split"] == split]:
-            group = "normal" if s["kind"] in ("normal",) else s["kind"]
-            s["clean"] = clean.get(group, 0) > 0
+        new = [{"split": split, "read": r, "kind": kind} for r, kind in zip(order, kinds)]
+        clean = {g: m - sum(f["clean"] and f["kind"] == g for f in old) for g, m in CLEAN.items()}
+        for s in new:
+            s["clean"] = clean.get(s["kind"], 0) > 0
             if s["clean"]:
-                clean[group] -= 1
+                clean[s["kind"]] -= 1
+        slots += new
     return slots
+
+
+def frozen_window(s: dict) -> dict:
+    """A frozen session's window as the planner needs it: who, which slice, whether clean, and where in which recording."""
+    m = s["meta"]
+    return {"id": s["id"], "split": m["split"], "read": m["readId"], "kind": m["slice"], "clean": m["clean"],
+            "rec": f"{m['readId']}/{m['surah']:03d}", "surah": m["surah"], "startS": m["sourceWindowS"][0], "endS": m["sourceWindowS"][1]}
 
 
 def muta_sites(rec: Rec, k0: int, k1: int, ref: Ref, donors: "Donors", twins: dict) -> int:
@@ -514,15 +537,22 @@ def muta_sites(rec: Rec, k0: int, k1: int, ref: Ref, donors: "Donors", twins: di
     return sum(bool(refs and donors.twin_spans(rec, k, refs)) for k in range(k0 + 1, k1) for refs in [twins.get(rec.words[k]["ref"])])
 
 
-def choose_windows(slots: list[dict], recs: dict[str, Rec], ref: Ref, dis: list[int], twins: dict, donors_for, seed: int = SEED) -> list[dict]:
-    """A window per slot. Scarce slices are placed first; a reader never gets the same surah twice and surahs used
-    less often are preferred. A slot whose slice has no window for its reader swaps reader with a later slot.
-    Mutashabihat-focus slots take the window with the most clean twin swaps for their reader."""
+def choose_windows(slots: list[dict], recs: dict[str, Rec], ref: Ref, dis: list[int], twins: dict, donors_for, seed: int = SEED,
+                   frozen: list[dict] = (), site_ayahs: dict[str, set] | None = None) -> list[dict]:
+    """A window per slot. Scarce slices are placed first; windows never overlap in their recording (nor the `frozen`
+    ones) and surahs used less often are preferred. A slot whose slice has no window for its reader swaps reader with
+    a later slot. Mutashabihat-focus slots take the window with the most clean twin swaps for their reader. With
+    `site_ayahs` (rec key -> ayahs holding a wrong-word or twin site), other slots rank windows by those ayahs first,
+    up to SITE_CAP, most for a session with mistakes and fewest for a clean one."""
     by_read = defaultdict(list)
     for r in recs.values():
         by_read[r.read].append(r)
     pool = {r: {w["ref"] for x in rs for w in x.words if not w["excluded"]} for r, rs in by_read.items()}
-    used_surah, taken = Counter(), set()
+    used_surah, busy = Counter(f["surah"] for f in frozen), defaultdict(list)
+    for f in frozen:
+        busy[f["rec"]].append((f["startS"], f["endS"]))
+    free = lambda c: all(c["endS"] <= a or b <= c["startS"] for a, b in busy[c["rec"]])
+    sites = lambda c: len((site_ayahs or {}).get(c["rec"], set()) & set(range(c["startAyah"], c["endAyah"] + 1)))
     rank = {"strict": 0, "muta": 1, "ayah1": 2, "normal": 3}
     order = sorted(range(len(slots)), key=lambda i: (rank[slots[i]["kind"]], i))
     out = [None] * len(slots)
@@ -530,8 +560,9 @@ def choose_windows(slots: list[dict], recs: dict[str, Rec], ref: Ref, dis: list[
         s = slots[i]
         rng = random.Random(f"{seed}:window:{s['split']}:{i}")
         target = rng.uniform(*TARGET_S)
-        candidates_for = lambda read: [c for r in sorted(by_read[read], key=lambda r: r.surah) if (read, r.surah) not in taken
-                                       for c in window_candidates(r, ref, dis, "normal" if s["kind"] == "muta" else s["kind"], target, twins, pool[read])]
+        candidates_for = lambda read: [c for r in sorted(by_read[read], key=lambda r: r.surah)
+                                       for c in window_candidates(r, ref, dis, "normal" if s["kind"] == "muta" else s["kind"], target, twins, pool[read])
+                                       if free(c)]
         cands = candidates_for(s["read"])
         if not cands:
             for j in order[n + 1:]:
@@ -541,7 +572,7 @@ def choose_windows(slots: list[dict], recs: dict[str, Rec], ref: Ref, dis: list[
                     break
         if not cands:
             # Nobody left to swap with: the split's reader with the fewest sessions so far who still has a window.
-            load = Counter(x["read"] for x in out if x)
+            load = Counter(x["read"] for x in [*out, *frozen] if x)
             for read in sorted({r.read for r in recs.values() if r.split == s["split"]} - {s["read"]}, key=lambda r: (load[r], r)):
                 if c2 := candidates_for(read):
                     s["read"], cands = read, c2
@@ -567,18 +598,33 @@ def choose_windows(slots: list[dict], recs: dict[str, Rec], ref: Ref, dis: list[
                     if c2 and max(c["muta"] for c in c2) > best:
                         s["read"], o["read"], cands = o["read"], s["read"], c2
                         best = max(c["muta"] for c in c2)
+        if s["kind"] == "normal" and not s["clean"] and site_ayahs:
+            # Sites cluster in a few readers' recordings: the session goes to the reader with the richest window,
+            # as long as that reader stays within READ_SLACK sessions of an even share of the split.
+            readers = sorted({r.read for r in recs.values() if r.split == s["split"]})
+            load = Counter(x["read"] for x in [*out, *frozen] if x)
+            best = max(min(sites(c), SITE_CAP) for c in cands)
+            for read in sorted(readers, key=lambda r: (load[r], r)):
+                if best >= SITE_CAP:
+                    break
+                if read == s["read"] or load[read] >= -(-SPLIT_SESSIONS // len(readers)) + READ_SLACK:
+                    continue
+                c2 = candidates_for(read)
+                if c2 and max(min(sites(c), SITE_CAP) for c in c2) > best:
+                    s["read"], cands, best = read, c2, max(min(sites(c), SITE_CAP) for c in c2)
+        site = (lambda c: sites(c)) if s["clean"] else (lambda c: -min(sites(c), SITE_CAP))
         if s["kind"] == "strict":
-            key = lambda c: (surah(c) not in STRICT_SURAHS, -min(c["dis"], 12), used_surah[surah(c)], abs(c["sourceS"] - target))
+            key = lambda c: (surah(c) not in STRICT_SURAHS, -min(c["dis"], 12), site(c), used_surah[surah(c)], abs(c["sourceS"] - target))
         elif s["kind"] == "muta":
-            key = lambda c: (-min(c["muta"], 12), used_surah[surah(c)], abs(c["sourceS"] - target))
+            key = lambda c: (-min(c["muta"], 12), site(c), used_surah[surah(c)], abs(c["sourceS"] - target))
         else:
-            key = lambda c: (used_surah[surah(c)], abs(c["sourceS"] - target))
+            key = lambda c: (site(c), used_surah[surah(c)], abs(c["sourceS"] - target))
         cands.sort(key=lambda c: (key(c), c["rec"], c["first"]))
         top = [c for c in cands if key(c)[:-1] == key(cands[0])[:-1]][:12]
         c = rng.choice(top)
         used_surah[surah(c)] += 1
-        taken.add((s["read"], surah(c)))
-        out[i] = {**s, **c}
+        busy[c["rec"]].append((c["startS"], c["endS"]))
+        out[i] = {**s, **c, "sites": sites(c)}
     return out
 
 
@@ -753,7 +799,8 @@ def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins:
     """The planted mistakes and the one repeat or restart of a session, in source terms.
 
     Mistakes go from the first ayah after the disambiguation point (and 20 s in) to two ayahs before the end, at most
-    one per ayah and at least EDIT_GAP apart: mutashabihat swaps first, then wrong and omitted words one per 2-3 ayahs,
+    one per ayah and at least EDIT_GAP apart: mutashabihat swaps first, then wrong and omitted words one per 2-3
+    ayahs (a wrong-word site always wins its ayah),
     then added words and skipped passages into seeded free ayahs, each at most its CAPPED share of the session's
     mistakes (the fraction of the last one seeded). Classes are drawn by CLASS_WEIGHTS among those with a clean site
     in the ayah. Clean sessions get only the repeat or restart. A site in `refuse_sites` ((rec key, ayah, word, class)
@@ -900,7 +947,6 @@ def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins:
                 muta_left -= 1
         has = lambda ai: any(w[e["k0"]]["ayah"] == ay[ai][0] for e in edits)
         pick = lambda found: rng.choice(sorted(found, key=lambda s: (max(b["db"] for b in s["seam"]), s["k0"]))[:3])
-
         def place(ai: int, classes: list[str]) -> dict | None:
             while classes:
                 c = rng.choices(classes, weights=[CLASS_WEIGHTS[x] for x in classes])[0]
@@ -910,11 +956,15 @@ def plan_edits(win: dict, recs: dict[str, Rec], ref: Ref, donors: Donors, twins:
                     return pick(found)
             return None
 
-        # Wrong and omitted words first, one per 2-3 ayahs; then the capped classes into seeded free ayahs while
+        # Wrong and omitted words first, one per 2-3 ayahs, a wrong-word site always taken (under the pause-to-pause
+        # rule they are nearly as scarce as twins, ticket 20); then the capped classes into seeded free ayahs while
         # their share allows, trimmed (last placed first) to CAPPED of the session's mistakes.
         ai = first
         while ai <= len(ay) - 3:
-            got = None if has(ai) else place(ai, [c for c in CLASS_WEIGHTS if c not in CAPPED])
+            if has(ai) or not (found := sites(ai, "wrong_word")) and ai + 1 <= len(ay) - 3 and not has(ai + 1) and sites(ai + 1, "wrong_word"):
+                got = None  # the next ayah holds a wrong-word site: leave room for it
+            else:
+                got = pick(found) if found else place(ai, [c for c in CLASS_WEIGHTS if c not in CAPPED])
             if got:
                 edits.append(got)
             ai += 2 if got else 1
@@ -1166,6 +1216,7 @@ def label(win: dict, rec: Rec, edits: list[dict], tokens: list[dict], pieces: li
             "meta": {"testSet": TEST_SET, "split": win["split"], "readId": rec.read, "reciter": rec.reciter, "surah": rec.surah,
                      "ayahs": [win["startAyah"], win["endAyah"]], "startWord": ref.name(rec.words[rec.ayahs[win["first"]][1]]["ref"]),
                      "disambiguationWords": win["dis"], "slice": win["kind"], "strict": win["kind"] == "strict", "ayah1": win["startAyah"] == 1,
+                     **({"windowSites": win["sites"]} if "sites" in win else {}),
                      "clean": not events, "counts": dict(sorted(counts.items())), "mutashabihat": counts.get("mutashabihat", 0),
                      "formsOtherAyah": sum(e["forms_other_ayah"] for e in events),
                      "audio": {"studio": f"sessions/{sid}.studio.wav", "phone": f"sessions/{sid}.phone.wav"},
@@ -1318,11 +1369,13 @@ def pcm16(x) -> bytes:
 # ---- whole set ----------------------------------------------------------------------------------------------------
 
 def plan_set(catalog: dict, aligns: dict[str, dict], ref: Ref, dis: list[int], bank: dict, seed: int = SEED, only: int = 0,
-             refusals: dict | None = None, energy=None) -> dict:
-    """Every session of the set: windows, edits, pieces and labels. `aligns` maps catalog `align` paths to their JSON,
+             refusals: dict | None = None, energy=None, frozen: list[dict] = (), site_ayahs: dict[str, set] | None = None) -> dict:
+    """Every new session of the set: windows, edits, pieces and labels. `aligns` maps catalog `align` paths to their JSON,
     `energy(audio)` gives a recording's `frame_db` (for the weak-onset rule; None leaves every such pause unverified).
     `refusals` (`refusals_from_checks`) keeps source ayahs, edit sites and donor words that failed the automated checks
-    out of the plan, so a rebuild replaces them instead of patching them.
+    out of the plan, so a rebuild replaces them instead of patching them. `frozen` sessions (FROZEN's labels) are not
+    planned again: they take their share of the slots and their source windows (`allocate`, `choose_windows`).
+    `site_ayahs` ranks windows by wrong-word and twin sites (`choose_windows`).
 
     A session whose plan breaks a rule (output length, validation) stops the build with PlanError.
     """
@@ -1344,7 +1397,8 @@ def plan_set(catalog: dict, aligns: dict[str, dict], ref: Ref, dis: list[int], b
     for r in recs.values():
         if any(len(run) for run in runs(r)):
             readers[r.split].add(r.read)
-    slots = allocate({k: sorted(v) for k, v in readers.items()}, seed)
+    old = [frozen_window(s) for s in frozen]
+    slots = allocate({k: sorted(v) for k, v in readers.items()}, seed, old)
     donors = {}
 
     def donors_for(key: str) -> Donors:
@@ -1352,7 +1406,7 @@ def plan_set(catalog: dict, aligns: dict[str, dict], ref: Ref, dis: list[int], b
             donors[key] = Donors([recs[key]], ref, donors_out)
         return donors[key]
 
-    wins = choose_windows(slots, recs, ref, dis, twins, donors_for, seed)
+    wins = choose_windows(slots, recs, ref, dis, twins, donors_for, seed, old, site_ayahs)
     wins.sort(key=lambda w: (w["split"], w["read"], recs[w["rec"]].surah, w["first"]))
     count = Counter()
     for w in wins:

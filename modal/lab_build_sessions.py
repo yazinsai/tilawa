@@ -1,4 +1,6 @@
-"""Build test set lab-v1.4: spliced sessions with planted mistakes, studio and phone copies (.scratch/lab, tickets 03, 04).
+"""Build test set lab-v1.5: spliced sessions with planted mistakes, studio and phone copies (.scratch/lab, tickets 03, 04, 20).
+
+lab-v1.5 keeps lab-v1.4's 40 sessions byte for byte (lab_sessions.FROZEN, `seed_frozen`) and plans 140 more around them.
 
     modal run modal/lab_build_sessions.py --pilot          # bank, plan, then 2 sessions rendered and checked
     modal run modal/lab_build_sessions.py                  # every session
@@ -16,6 +18,8 @@ Stages (each skips finished outputs; the same seed and inputs give byte-identica
             clicks, every said word found at its labelled time in the output, phone/studio lag)
     refuse  the automated checks' studio failures (checks-v1.json, modal/lab_check.py) -> refusals-v1.json, cumulative:
             the next plan rebuilds each failed case elsewhere or drops it (spec decision 16); nothing is patched
+    supply  per recording, the ayahs holding a wrong-word or mutashabihat site (pause to pause, host recording), which
+            rank the new windows -> .scratch/lab/cache/<set>-supply.json; runs before every plan
     gate    the render's seam checks against lab_sessions.SEAM_LIMITS (levels, clicks, seam depth, words found, words
             cut short) -> seams-v1.json; in the loop, failing splices are refused and rebuilt before any decode
     loop    plan + render, gate, `lab_decode.py --listener teacher`, `lab_check.py`, refuse; until nothing fails. Then
@@ -38,14 +42,15 @@ import modal
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path[:0] = [str(ROOT / "tools"), "/app/tools"]
-from lab_sessions import TEST_SET  # noqa: E402
+from lab_sessions import FROZEN, TEST_SET  # noqa: E402
 
 VOL = "/lab"
 DATA = Path(VOL) / "data"
 OUT = DATA / TEST_SET
 AUG_FROM = DATA / "lab-v1/aug"  # the phone-copy bank is shared across test set versions
-ENERGY_FROM = DATA / "lab-v1.3/energy"  # frame_db of the same catalog recordings, copied rather than recomputed
+ENERGY_FROM = DATA / "lab-v1.4/energy"  # frame_db of the same catalog recordings, copied rather than recomputed
 REFUSALS = "refusals-v1.json"
+FROZEN_FLAGS = "flags-v3.json"  # FROZEN's flags applied when lab-v1.5 was built (ledger test set lab-v1.4.v3)
 CHECKS_VERSION = 2  # seam checks also measure each side's cut level and the silence before a following onset
 MAIN_LISTENER = "spliced-clean-int8"  # decoded once the loop converges (the loop's checks use the teacher)
 NOISE_SHARDS = (100, 101, 102, 103)
@@ -247,13 +252,40 @@ def energies() -> int:
     return sum(energy_one.map([audios[i: i + 8] for i in range(0, len(audios), 8)]))
 
 
+@app.function(volumes={VOL: vol}, cpu=2, memory=8192, timeout=30 * 60)
+def seed_frozen(flags: str = FROZEN_FLAGS) -> dict:
+    """FROZEN's sessions into this set byte for byte: labels, both WAVs, render checks and every listener's evidence,
+    with their decode records; its refusals as this set's first ones; its applied flags (`flags`) as this set's
+    flags-v1.json, since the flagged windows are the same audio. Files already there are left alone."""
+    vol.reload()
+    src = DATA / FROZEN
+    ids = [e["id"] for e in json.loads((src / "manifest-v1.json").read_text())["sessions"]]
+    copied = 0
+    for p in sorted((src / "sessions").iterdir()):
+        if any(p.name.startswith(f"{i}.") for i in ids):
+            copied += write(OUT / "sessions" / p.name, p.read_bytes())
+    if not (OUT / REFUSALS).exists():
+        write(OUT / REFUSALS, dumps({**json.loads((src / REFUSALS).read_text()), "testSet": TEST_SET, "from": FROZEN}))
+    if not (OUT / "decode-v1.json").exists():
+        rec = json.loads((src / "decode-v1.json").read_text())
+        for entry in rec["listeners"].values():
+            for f in entry["files"].values():
+                f["path"] = f["path"].replace(f"{FROZEN}/", f"{TEST_SET}/", 1)
+        write(OUT / "decode-v1.json", dumps({**rec, "testSet": TEST_SET, "from": FROZEN}))
+    fl = json.loads((src / flags).read_text())
+    write(OUT / "flags-v1.json", dumps({**fl, "testSet": TEST_SET, "base": TEST_SET, "from": f"{FROZEN}/{flags}"}))
+    vol.commit()
+    return {"sessions": len(ids), "filesCopied": copied, "flags": len(fl["excluded"])}
+
+
 def vol_read(rel: str) -> bytes:
     return b"".join(vol.read_file(f"data/{rel}"))
 
 
 @app.function(volumes={VOL: vol}, cpu=4, memory=32768, timeout=60 * 60)
-def plan(pilot: bool = False, dry: bool = False) -> dict:
-    """dry: plan and summarise only, nothing written."""
+def plan(pilot: bool = False, dry: bool = False, sites: dict | None = None, site_cap: int = 0) -> dict:
+    """dry: plan and summarise only, nothing written. `sites`: rec key -> ayahs with a wrong-word or twin site (`supply`).
+    The FROZEN sessions (`seed_frozen`) are read back, not planned; the review queue covers the new sessions only."""
     import numpy as np
 
     import lab_sessions as S
@@ -261,6 +293,9 @@ def plan(pilot: bool = False, dry: bool = False) -> dict:
 
     vol.reload()
     t0 = time.time()
+    if site_cap:
+        assert dry, "--site-cap is for dry runs; change lab_sessions.SITE_CAP to build with another"
+        S.SITE_CAP = site_cap
     ref = S.Ref(json.loads(Path("/app/packages/core/assets/ref-v2.json").read_text()))
     dis = json.loads((DATA / "reference/disambiguation-v1.json").read_text())["words"]
     catalog = json.loads((DATA / "sources/mp3quran/catalog-v1.json").read_text())
@@ -268,13 +303,18 @@ def plan(pilot: bool = False, dry: bool = False) -> dict:
     bank = json.loads((OUT / "aug/bank-v1.json").read_text())
     rp = OUT / REFUSALS
     refusals = json.loads(rp.read_text()) if rp.exists() else None
-    out = S.plan_set(catalog, aligns, ref, dis, bank, refusals=refusals, energy=lambda audio: np.load(energy_path(audio)))
-    sessions = out["sessions"]
-    queue = S.review_queue(sessions, ref)
+    frozen_ids = [e["id"] for e in json.loads((DATA / FROZEN / "manifest-v1.json").read_text())["sessions"]]
+    frozen = [json.loads((OUT / f"sessions/{i}.json").read_text()) for i in frozen_ids]
+    frozen_plans = [p for p in json.loads((DATA / FROZEN / "plan-v1.json").read_text())["plans"] if p["id"] in frozen_ids]
+    out = S.plan_set(catalog, aligns, ref, dis, bank, refusals=refusals, energy=lambda audio: np.load(energy_path(audio)),
+                     frozen=frozen, site_ayahs={k: set(v) for k, v in (sites or {}).items()})
+    new = out["sessions"]
+    sessions = frozen + new
+    queue = S.review_queue(new, ref)
     problems = validate_queue(queue)
     if problems:
         raise ValueError(f"review queue: {problems[:5]}")
-    for s in sessions:
+    for s in new:
         problems = S.validate(s, ref)
         if problems:
             raise ValueError(f"{s['id']}: {problems[:3]}")
@@ -288,23 +328,30 @@ def plan(pilot: bool = False, dry: bool = False) -> dict:
                "refusalsSha256": hashlib.sha256(rp.read_bytes()).hexdigest() if rp.exists() else None,
                "iterations": max((x["iteration"] for k in ("ayahs", "sites", "donors") for x in (refusals or {}).get(k, [])), default=0)}
     summary = S.summary(sessions, {"bank": {k: bank[k] for k in ("sources", "sha256")} | {"noises": len(bank["noises"]), "rirs": len(bank["rirs"])},
-                                   "refused": refused})
+                                   "refused": refused, "frozen": {"from": FROZEN, **S.summary(frozen)["splits"]}, "new": S.summary(new)["splits"],
+                                   "siteCap": S.SITE_CAP})
     if dry:
+        wrong = lambda x: sum(v for k, v in x["meta"]["counts"].items() if k in ("wrong_word", "mutashabihat"))
+        wrong = lambda x: sum(v for k, v in x["meta"]["counts"].items() if k in ("wrong_word", "mutashabihat"))
         return {"summary": summary, "planS": round(time.time() - t0, 1),
-                "repeats": {s["id"]: [x["type"] for x in s["splices"] if x["type"] in ("repeat", "restart")] for s in sessions}}
+                "sites": {sp: {"windowSites": sum(x["meta"].get("windowSites", 0) for x in new if x["meta"]["split"] == sp and not x["meta"]["clean"]),
+                               "wrongPlanted": sum(wrong(x) for x in new if x["meta"]["split"] == sp)} for sp in ("practice", "exam")},
+                "sites": {sp: {"windowSites": sum(x["meta"].get("windowSites", 0) for x in new if x["meta"]["split"] == sp and not x["meta"]["clean"]),
+                               "wrongPlanted": sum(wrong(x) for x in new if x["meta"]["split"] == sp)} for sp in ("practice", "exam")},
+                "repeats": {s["id"]: [x["type"] for x in s["splices"] if x["type"] in ("repeat", "restart")] for s in new}}
     changed = 0
-    for s in sessions:
+    for s in new:
         changed += write(OUT / f"sessions/{s['id']}.json", dumps(s))
-    changed += write(OUT / "plan-v1.json", dumps({"version": 1, "testSet": S.TEST_SET, "seed": S.SEED, "plans": out["plans"]}))
+    changed += write(OUT / "plan-v1.json", dumps({"version": 1, "testSet": S.TEST_SET, "seed": S.SEED, "frozen": FROZEN, "plans": frozen_plans + out["plans"]}))
     changed += write(OUT / "manifest-v1.json", dumps(S.manifest(sessions)))
     changed += write(OUT / "summary-v1.json", dumps(summary))
     changed += write(OUT / "review/v1-check.json", dumps(queue))
     vol.commit()
     ids = [p["id"] for p in out["plans"]]
     if pilot:
-        ids = [next(s["id"] for s in sessions if not s["meta"]["clean"] and s["meta"]["mutashabihat"]), next(s["id"] for s in sessions if s["meta"]["clean"])]
+        ids = [next(s["id"] for s in new if not s["meta"]["clean"] and s["meta"]["mutashabihat"]), next(s["id"] for s in new if s["meta"]["clean"])]
     return {"ids": ids, "summary": summary, "changed": changed, "planS": round(time.time() - t0, 1),
-            "example": next(s for s in sessions if s["id"] == ids[0])}
+            "example": next(s for s in new if s["id"] == ids[0])}
 
 
 @app.function(volumes={VOL: vol}, timeout=10 * 60)
@@ -423,6 +470,69 @@ def audit_plan(test_set: str) -> dict:
         r = S.Rec(a, ref, None, np.load(energy_path(audio)))
         recs[r.key] = r
     return {sid: S.rule_audit(s, recs, ref) for sid, s in sessions.items()}
+
+
+@app.function(volumes={VOL: vol}, cpu=2, memory=8192, timeout=30 * 60, max_containers=48)
+def supply_one(aligns: list[str]) -> list[dict]:
+    """Per recording: words with a mutashabihat twin span and words with a pause-to-pause wrong-word stretch, anywhere
+    in its clean runs (no session window, so an upper bound on what a session there can hold)."""
+    import numpy as np
+
+    import lab_sessions as S
+
+    vol.reload()
+    ref = S.Ref(json.loads(Path("/app/packages/core/assets/ref-v2.json").read_text()))
+    twins = S.twin_words(ref)
+    refusals = json.loads((OUT / REFUSALS).read_text()) if (OUT / REFUSALS).exists() else {}
+    out = []
+    for path in aligns:
+        a = json.loads((DATA / path).read_text())
+        key = f"{a['readId']}/{a['surah']:03d}"
+        r = S.Rec(a, ref, {x["ayah"] for x in refusals.get("ayahs", ()) if x["rec"] == key}, np.load(energy_path(a["audio"])))
+        d = S.Donors([r], ref, {(x["rec"], x["ayah"], x["word"]) for x in refusals.get("donors", ())})
+        inside = {k for run in S.runs(r) for i in run for k in range(r.ayahs[i][1] + 1, r.ayahs[i][2])}
+        muta = wrong = 0
+        ayahs = set()
+        for k in sorted(inside):
+            if twins.get(r.words[k]["ref"]) and d.twin_spans(r, k, twins[r.words[k]["ref"]]):
+                muta += 1
+                ayahs.add(r.words[k]["ayah"])
+            rw = ref.words[r.words[k]["ref"]]
+            sq = S.squeeze(rw["cont"])
+
+            def ok(rr, kk, sq=sq, near={ref.words[r.words[j]["ref"]]["skel"] for j in (k - 1, k, k + 1)}):
+                x = ref.words[rr.words[kk]["ref"]]
+                xs = S.squeeze(x["cont"])
+                return x["skel"] not in near and 0.5 <= len(xs) / max(1, len(sq)) <= 2.0 and S.levenshtein(xs, sq) >= max(2, len(sq) // 3)
+            if d.pause_spans(r, k, "wrong_word", ok):
+                wrong += 1
+                ayahs.add(r.words[k]["ayah"])
+        out.append({"rec": key, "split": r.split, "read": r.read, "surah": r.surah, "words": len(inside), "muta": muta, "wrong": wrong,
+                    "siteAyahs": sorted(ayahs),
+                    "minutes": round(sum(r.words[r.ayahs[run[-1]][2]]["endS"] - r.words[r.ayahs[run[0]][1]]["startS"] for run in S.runs(r)) / 60, 1)})
+    return out
+
+
+def supply(t0: float) -> dict[str, list[int]]:
+    """supply_one over the catalog -> .scratch/lab/cache/<set>-supply.json; returns rec key -> ayahs with a site."""
+    import lab_sessions as S
+
+    catalog = json.loads(vol_read("sources/mp3quran/catalog-v1.json"))
+    paths = sorted(it["align"] for it in catalog["items"] if it["readId"] not in S.EXCLUDED_READS)
+    rows = [x for xs in supply_one.map([paths[i: i + 8] for i in range(0, len(paths), 8)]) for x in xs]
+    by = {}
+    for x in rows:
+        b = by.setdefault(x["split"], {"recordings": 0, "minutes": 0.0, "muta": 0, "wrong": 0, "withMuta": 0, "withWrong": 0})
+        b["recordings"] += 1
+        b["minutes"] = round(b["minutes"] + x["minutes"], 1)
+        for k in ("muta", "wrong"):
+            b[k] += x[k]
+            b["with" + k.title()] += bool(x[k])
+    out = ROOT / f".scratch/lab/cache/{TEST_SET}-supply.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps({"splits": by, "recordings": rows}, indent=1) + "\n")
+    print(f"supply: {json.dumps(by)}; wrote {out.relative_to(ROOT)} [{time.time() - t0:.0f} s]", flush=True)
+    return {x["rec"]: x["siteAyahs"] for x in rows if x["siteAyahs"]}
 
 
 def seam_checks(y, plan_pieces, session, load, gains, energy=None, levels=None):
@@ -587,18 +697,26 @@ def render(sid: str, force: bool = False) -> dict:
 
 @app.local_entrypoint()
 def main(stage: str = "all", pilot: bool = False, force: bool = False, iterations: int = 6, first_iteration: int = 1,
-         audit_set: str = "lab-v1.3"):
+         audit_set: str = "lab-v1.3", site_cap: int = 0):
     t0 = time.time()
     if stage in ("all", "aug", "loop", "dry"):
         bank = aug.remote(force)
         print(f"bank: {len(bank['noises'])} noises, {len(bank['rirs'])} rirs ({bank['rirsDroppedAsStudent']} dropped as student) [{time.time() - t0:.0f} s]")
-    if stage in ("all", "energy", "loop", "audit", "dry"):
+    if stage in ("all", "energy", "loop", "audit", "dry", "supply"):
         print(f"energy: {energies()} recordings computed [{time.time() - t0:.0f} s]", flush=True)
     if stage == "audit":
         run_audit(audit_set, t0)
+    if stage in ("all", "loop", "dry", "plan", "render", "supply"):
+        print(f"frozen {FROZEN}: {seed_frozen.remote()} [{time.time() - t0:.0f} s]", flush=True)
+    if stage == "supply":
+        supply(t0)
     if stage == "dry":
-        r = plan.remote(dry=True)
-        print(json.dumps({k: r["summary"][k] for k in ("all", "splits", "refused")}, ensure_ascii=False, indent=1))
+        r = plan.remote(dry=True, sites=supply(t0), site_cap=site_cap)
+        print(json.dumps({k: r["summary"][k] for k in ("all", "splits", "new", "refused")}, ensure_ascii=False, indent=1))
+        print("new windows with mistakes: ayahs with a wrong-word or twin site, and wrong words planted:", json.dumps(r["sites"]))
+        print("classes:", json.dumps({sp: r["summary"]["splits"][sp]["classes"] for sp in ("practice", "exam")}))
+        (ROOT / ".scratch/lab/cache").mkdir(parents=True, exist_ok=True)
+        (ROOT / f".scratch/lab/cache/{TEST_SET}-dry{'-cap' + str(site_cap) if site_cap else ''}.json").write_text(json.dumps(r, ensure_ascii=False, indent=1))
         print("no repeat or restart:", [k for k, v in r["repeats"].items() if not v], f"[{time.time() - t0:.0f} s]")
     if stage == "loop":
         for it in range(first_iteration, first_iteration + iterations):
@@ -684,12 +802,12 @@ def print_gate(g: dict, head: str, t0: float) -> None:
 
 def build(pilot: bool, force: bool, t0: float, render_too: bool = True) -> int:
     """Plan (writes the docs summary unless a pilot), then render; returns the number of failed renders."""
-    res = plan.remote(pilot)
+    res = plan.remote(pilot, sites=supply(t0))
     print(f"plan: {len(res['ids'])} to render, {res['changed']} files changed, {res['planS']} s [{time.time() - t0:.0f} s]")
     print(json.dumps(res["summary"]["all"], ensure_ascii=False), json.dumps(res["summary"]["refused"], ensure_ascii=False))
     if not pilot:
         s = res["summary"]
-        (ROOT / f"docs/benchmarks/{TEST_SET}.json").write_text(json.dumps({k: s[k] for k in ("version", "testSet", "seed", "all", "splits", "surahs", "bank", "refused")}
+        (ROOT / f"docs/benchmarks/{TEST_SET}.json").write_text(json.dumps({k: s[k] for k in ("version", "testSet", "seed", "all", "splits", "frozen", "new", "siteCap", "surahs", "bank", "refused")}
                                                                          | {"reciters": len(s["reciters"])}, ensure_ascii=False, indent=1) + "\n")
     (ROOT / ".scratch/lab/cache").mkdir(parents=True, exist_ok=True)
     (ROOT / f".scratch/lab/cache/{TEST_SET}-example.json").write_text(json.dumps(res["example"], ensure_ascii=False, indent=1))

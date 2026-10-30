@@ -664,3 +664,30 @@ def test_review_clips_play_every_word_they_show():
         shown = [w for w in s["said"] if w["endS"] > a and w["startS"] < b]
         assert shown and all(a <= w["startS"] and w["endS"] <= b for w in shown), i["id"]
         assert i["text"] == " ".join(w["text"] for w in shown)
+
+
+# ---- extension around a frozen version (ticket 20) ---------------------------------------------------------------------
+
+def test_frozen_sessions_fill_their_share_and_new_slots_balance_readers():
+    frozen = [{"split": "practice", "read": 1, "kind": "ayah1", "clean": True}, {"split": "practice", "read": 1, "kind": "strict", "clean": False},
+              {"split": "practice", "read": 2, "kind": "normal", "clean": True}]
+    slots = S.allocate({"practice": [1, 2, 3, 4]}, frozen=frozen)
+    assert len(slots) == S.SPLIT_SESSIONS - 3
+    kinds = Counter(s["kind"] for s in slots)
+    assert kinds["ayah1"] == S.SLICES["ayah1"] - 1 and kinds["strict"] == S.SLICES["strict"] - 1 and kinds["muta"] == S.SLICES["muta"]
+    clean = Counter(s["kind"] for s in slots if s["clean"])
+    assert clean == Counter({k: n - (k in ("ayah1", "normal")) for k, n in S.CLEAN.items()})
+    load = Counter(s["read"] for s in slots) + Counter(f["read"] for f in frozen)
+    assert max(load.values()) - min(load.values()) <= 1
+
+
+def test_new_windows_never_overlap_each_other_or_the_frozen_ones():
+    rec, _ = ikhlas(surah=2)  # one long recording, several windows fit
+    frozen = [{"split": "practice", "read": rec.read, "kind": "normal", "clean": False, "rec": rec.key, "surah": 2,
+               "startS": S.start_cut(rec, 10), "endS": S.end_cut(rec, 40)}]
+    slots = [{"split": "practice", "read": rec.read, "kind": "normal", "clean": n == 0} for n in range(4)]
+    sites = {rec.key: {50, 51, 52, 120}}
+    wins = S.choose_windows(slots, {rec.key: rec}, REF, [0] * len(REF.words), {}, lambda k: S.Donors([rec], REF), frozen=frozen, site_ayahs=sites)
+    spans = sorted([(w["startS"], w["endS"]) for w in wins] + [(frozen[0]["startS"], frozen[0]["endS"])])
+    assert all(a[1] <= b[0] for a, b in zip(spans, spans[1:]))
+    assert wins[0]["sites"] == 0 and max(w["sites"] for w in wins[1:]) > 0  # the clean session takes a window without sites
