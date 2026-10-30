@@ -1,0 +1,13 @@
+{
+ "id": "tracker-startup-persistence",
+ "component": "tracker",
+ "hypothesis": "A single briefly separated prefix commits the initial streamed tracker lock to 25:57 before subsequent sounds disambiguate it. Require an initial streamed lock candidate to persist for the existing jumpPhonemes evidence span before local tracking and checker latch. Predict three fewer tracker-attributed and overall practice wrong calls, with no clean or studio regression; measure initial lock delay.",
+ "expected": {
+  "component": -3,
+  "overall": -3
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.4.v3",
+ "created": "2026-10-30T17:45:14+00:00",
+ "author": "Yazin"
+}
