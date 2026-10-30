@@ -1,13 +1,13 @@
 # Checker tolerance for listener noise
 
-Status: open; awaiting the user's fold or discard decision.
+Status: fold approved by the user on 2026-10-30. The lab ledger records the fold outcome and rebase validation.
 
 - Experiment: `checker-listener-noise`
 - Test set: `lab-v1.4.v3`, practice only (20 sessions, 88.136 recited minutes, 134 planted mistakes)
 - Main line: `975702f`; baseline run `main-975702f-20261030T140816Z`
 - Scored implementation: `bcd9cfc`
 - Result: `exp-checker-listener-noise-bcd9cfc-20261030T153250Z`
-- One scored iteration. Replays, build, tests and scoring ran on Modal. No exam scoring or case inspection; no fold or discard.
+- One development scoring iteration. Replays, build, tests and scoring ran on Modal. The user subsequently approved fold-in with a practice recheck; the original restriction against exam scoring and inspection remains in force.
 
 ## Prediction and result
 
@@ -113,4 +113,4 @@ Diagnostic artifacts remain on the `tilawa-lab` Modal volume:
 - `/runs/noise-regression-probe-975702f-dirty-20261030T153739Z/{0,1}/probe.json`: before/after engine, true-position and oracle comparison for p01 and p15.
 - `/runs/exp-checker-listener-noise-bcd9cfc-20261030T153250Z/score.json`: measured practice result.
 
-The scored source stays at `bcd9cfc`; this report is a subsequent documentation-only commit. The ledger records the experiment as open. Main line `lab` remains at `975702f`.
+The original measured implementation is `bcd9cfc`; subsequent changes only document the experiment. At the end of development the experiment was open and main line `lab` was `975702f`. The user then approved fold-in. The normal lab rebase, practice scoring, gain check, ledger update and fast-forward sequence is used with exam scoring disabled. The ledger retains the original branch result and records the separate rebase result and fold decision; the new main-line entry has no exam measurement.
