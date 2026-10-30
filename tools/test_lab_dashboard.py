@@ -93,7 +93,7 @@ def test_cards_add_up_to_the_overall_and_carry_their_own_scores():
     by = {c["key"]: c for c in cs}
     assert by["listener"]["own"]["text"] == "Mishears 80 of every 1,000 sounds"
     assert by["tracker"]["own"]["text"] == "Lost its place for 6 s of 10 min, 1 wrong jump"  # perfect hearing (oracle evidence)
-    assert "60 s" in by["tracker"]["own"]["detail"] and by["checker"]["own"]["text"].startswith("On its own, 4 wrong calls")
+    assert "60 s" in by["tracker"]["own"]["detail"] and by["checker"]["own"]["text"].startswith("4 wrong calls")
     b = D.bar(t)
     assert b["adds"] and b["total"] == 14 and abs(sum(p["share"] for p in b["parts"]) - 1) < 1e-9
     assert D.teacher(t)["mishears"] == 70 and D.teacher({"teacher": None}) is None
@@ -186,7 +186,7 @@ def test_engine_facts_split_the_story_into_arms_and_the_charge():
     f = D.engine_facts(mistake())
     assert f["what"].startswith("The labels say a wrong word was planted")
     assert [(a["who"], a["did"], a["right"]) for a in f["arms"]] == [
-        ("Perfect hearing, true place", "missed it", False), ("App's listener, true place", "missed it", False), ("Big reference listener", "missed it", False)]
+        ("Perfect transcript", "missed it", False), ("App's listener", "missed it", False), ("Big reference listener", "missed it", False)]
     assert f["onPlace"] == 100 and f["charged"] == "checker" and f["why"] == D.WHY["checker"]
     w = D.engine_facts(warning())
     assert [a["right"] for a in w["arms"]] == [True, False, False] and w["arms"][0]["did"] == "stayed quiet" and w["onPlace"] == 50

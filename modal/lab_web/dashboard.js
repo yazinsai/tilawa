@@ -92,7 +92,7 @@ const DEFS = [
   ['Wrong call', 'A planted mistake the engine didn’t warn about, or a warning where nothing was wrong. Both count the same.'],
   ['Per 5 minutes', 'Wrong calls divided by the minutes of recitation, times 5, so sessions of any length compare.'],
   ['Exam set', 'Sessions experiments never see; only their numbers are shown. The practice set is the part you can open and listen to.'],
-  ['The three parts', 'The listener hears the sounds, the tracker finds the place in the Quran, the checker decides if it’s a mistake. Each wrong call is charged to one part by re-running the engine with perfect inputs: still wrong with perfect hearing and the true place is the checker’s; fixed by perfect hearing is the listener’s; wrong only with the real tracker is the tracker’s.'],
+  ['The three parts', 'The listener hears the sounds, the tracker finds the place in the Quran, the checker decides if it’s a mistake. Each wrong call is charged to one part by re-running the app with perfect inputs: if a perfect transcript fixes it, it’s the listener’s; if giving it the right spot fixes it, it’s the tracker’s; if it’s still wrong with both, it’s the checker’s.'],
   ['Noise', 'A change of 2 or fewer wrong calls. Treat it as no change.'],
   ['Big reference listener', 'A large listening model used to check the test data and as a reference. The app ships a smaller one.'],
 ];
@@ -266,7 +266,7 @@ function scoreView() {
 
 const GROUPS = {
   dataCheck: ['Failed an automatic data check', 'The test data itself looks suspect. Start here.'],
-  checkerAlways: ['Wrong even with perfect hearing', 'The engine gets these wrong even when it hears exactly what was said and knows the place: the checker’s rules are the cause. Good targets for an experiment.'],
+  checkerAlways: ['Wrong even with a perfect transcript', 'Even when the checker is handed exactly what was said, it gets these wrong: checker bugs, and good targets for an experiment.'],
   everywhere: ['No experiment fixes these yet', 'They fail in every experiment so far.'],
   other: ['Other cases', 'Probably real faults. Listen to confirm.'],
 };

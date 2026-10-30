@@ -20,13 +20,13 @@ CLI = "python3 tools/lab.py"
 
 JOBS = {
     "listener": ("Hears the sounds", "Turns the audio into speech sounds. Its own score: how many sounds it gets wrong."),
-    "tracker": ("Follows where you are", "Works out where in the Quran you are. Its own score: time on the right place when it hears perfectly."),
-    "checker": ("Decides if it's a mistake", "Says whether you made a mistake. Its own score: wrong calls when it hears perfectly and knows the place."),
+    "tracker": ("Follows where you are", "Works out where in the Quran you are. Its own score: how long it's lost, given a perfect transcript."),
+    "checker": ("Decides if it's a mistake", "Says whether you made a mistake. Its own score: wrong calls given a perfect transcript and the right spot."),
 }
 WHY = {
-    "listener": "with perfect hearing and the true place the engine gets it right, but with the app's listener it doesn't",
-    "tracker": "with the app's listener and the true place the engine gets it right; only the real tracker gets it wrong",
-    "checker": "the engine gets it wrong even with perfect hearing and the true place",
+    "listener": "with a perfect transcript the app gets it right, so the listener's mishearing caused it",
+    "tracker": "given the right spot the app gets it right, so the tracker losing its place caused it",
+    "checker": "even with a perfect transcript and the right spot the app gets it wrong, so it's the checker's rules",
 }
 CLASSES = {"wrong_word": "a wrong word", "omitted_word": "a left-out word", "added_word": "an extra word", "skipped_passage": "a skipped passage"}
 STATE_TEXT = {L.WAITING: "waiting for your decision", "open": "running or not scored yet", "superseded": "gain gone after rebase",
@@ -90,7 +90,7 @@ def cards(t: dict) -> list[dict]:
         "tracker": {"text": f"Lost its place for {minutes(perfect['scoredS'] - perfect['onPlaceS'])} of {minutes(perfect['scoredS'])}, "
                             f"{n_of(perfect['falseJumps'], 'wrong jump')}",
                     "detail": f"With the app's listener: lost for {minutes(trk['scoredS'] - trk['onPlaceS'])}, {n_of(trk['falseJumps'], 'wrong jump')}"},
-        "checker": {"text": f"On its own, {n_of(chk['wrongCalls'], 'wrong call')} when it hears perfectly and knows the place",
+        "checker": {"text": f"{n_of(chk['wrongCalls'], 'wrong call')} even with a perfect transcript",
                     "detail": f"{chk['missed']} missed + {chk['falseWarnings']} false warnings, {chk['per5Min']:.1f} per 5 min"},
     }
     return [{"key": k, "name": k.capitalize(), "job": JOBS[k][0], "explain": JOBS[k][1], "wrongCalls": a[k],
@@ -266,7 +266,7 @@ def insights(c: dict, everywhere: set[str] = frozenset()) -> list[dict]:
     """What a failing case says about the engine, strongest first."""
     out = []
     if c.get("allFail"):
-        out.append({"key": "checkerAlways", "text": "The engine gets this wrong even with perfect hearing and the true place, so the checker's rules are the cause, not the listeners or the data"})
+        out.append({"key": "checkerAlways", "text": "Even with a perfect transcript, the checker still gets this wrong: a checker bug, not a hearing or data problem"})
     if c["key"] in everywhere:
         out.append({"key": "everywhere", "text": "No experiment fixes this yet"})
     return out
@@ -363,7 +363,7 @@ def engine_facts(c: dict) -> dict:
     time on place around the case (percent), and the component charged with why."""
     mistake = c["kind"] == "mistake"
     arms = []
-    for who, k in (("Perfect hearing, true place", "oracle"), ("App's listener, true place", "truePosition"), ("Big reference listener", "teacher")):
+    for who, k in (("Perfect transcript", "oracle"), ("App's listener", "truePosition"), ("Big reference listener", "teacher")):
         v = c.get(k)
         arms.append({"who": who, "did": _arm(v), "right": None if v is None else v in ("hit", "misclassified") if mistake else v is False})
     on = c.get("trackerOnPlace")
@@ -374,7 +374,7 @@ def engine_facts(c: dict) -> dict:
 def engine_story(c: dict) -> list[str]:
     """What the engine did, in plain words, and why the wrong call is charged where it is."""
     out = [_what(c),
-           f"Perfect hearing and the true place: {_arm(c.get('oracle'))}. The app's listener and the true place: {_arm(c.get('truePosition'))}. "
+           f"With a perfect transcript: {_arm(c.get('oracle'))}. With the app's listener: {_arm(c.get('truePosition'))}. "
            f"The big reference listener: {_arm(c.get('teacher'))}."]
     if c.get("trackerOnPlace") is not None:
         out.append(f"The tracker was on the right place {round(c['trackerOnPlace'] * 100)}% of the time around here.")
