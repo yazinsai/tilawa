@@ -217,8 +217,8 @@ describe("local-window confirmation", () => {
     { kind: "sub", at: at(target) + text(target).indexOf("ف"), to: "م" },
   ];
   /** The fixture's chunks with posteriors: `alt(j)` gives decoded phoneme `j`'s distribution, otherwise the decode at 0.9. */
-  const heard = (e: Edit[], alt: (j: number, p: string) => [string, number][] | undefined) => {
-    const f = syntheticFixture(index, { id: "c", from, to: w(2, 256, 10), edits: e, chunkSize: 8 });
+  const heard = (e: Edit[], alt: (j: number, p: string) => [string, number][] | undefined, o: { from?: WordRef; to?: WordRef } = {}) => {
+    const f = syntheticFixture(index, { id: "c", from: o.from ?? from, to: o.to ?? w(2, 256, 10), edits: e, chunkSize: 8 });
     const all = f.evidence.flatMap((x) => x.phonemes);
     const whole = withPosteriors(index, { ...f.evidence[0], phonemes: all }, (j) => alt(j, all[j].p));
     const { k, startFrame, ids, probs } = whole.posteriors!;
@@ -245,6 +245,15 @@ describe("local-window confirmation", () => {
   it("still confirms a wrong word the audio doesn't support as written", () => {
     expect(summary(check(heard(replaceWord(target, ALIEN), () => undefined), true))).toEqual(["confirmed wrong_word 2:255:23"]);
     expect(summary(check(heard(edits, () => undefined), true))).toEqual(["confirmed wrong_word 2:255:23"]);
+  });
+
+  it("confirms an added word said after a word ending in the same held sound, as said", () => {
+    // كريم alone after وبنين (26:133 ends ۦۦن): aligned inside وبنين, it took that word's ۦۦن and left its own ۦۦم behind.
+    const start = w(26, 130, 1);
+    const kareem = "كَرِۦۦم";
+    expect(text(w(26, 133, 3)).endsWith("ۦۦن")).toBe(true);
+    const f = heard([{ kind: "ins", at: find(w(26, 134, 1)).start - find(start).start, text: kareem }], () => undefined, { from: start, to: w(26, 136, 4) });
+    expect(check(f, true).map((e) => `${e.state} ${e.errorClass} ${key(e.location)} ${e.observed}`)).toEqual([`confirmed added_word 26:134:1 ${kareem}`]);
   });
 });
 
