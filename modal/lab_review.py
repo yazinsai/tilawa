@@ -285,8 +285,8 @@ def web():
         sessions = set(tsd["sessions"]["practice"] + tsd["sessions"]["exam"]) if tsd else {r["id"] for r in (sc or {}).get("results", [])}
         applied = ((read_json(DATA / tsd["exclude"]) or {}).get("excluded", [])) if tsd and tsd.get("exclude") else []
         pend, warn = D.pending_flags(reviews, {k: v for k, v in queues.items() if v}, sessions, applied)
-        path = D.check_queue(base, lambda n: (DATA / base / "review" / n).is_file())
-        check = D.check_status(read_json(DATA / core.safe_rel(path)), reviews, path)
+        path = D.check_queue(base, lambda n: (DATA / base / "review" / n).is_file()) if base else None  # no ledger and no run yet
+        check = D.check_status(read_json(DATA / core.safe_rel(path)), reviews, path) if path else None
         return base, reviews, pend, warn, check
 
     def everywhere(led, sc) -> set:
