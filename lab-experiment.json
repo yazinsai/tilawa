@@ -1,7 +1,7 @@
 {
  "id": "checker-consonant-edits",
  "component": "checker",
- "hypothesis": "The phoneme alignment maps a changed consonant to a vowel and discounts it as a soft edit, so Noah/Salih substitutions have only one hard edit and never become candidates. Count a consonant-vowel replacement at its actual substitution cost whenever either side is a consonant. Predict three fewer checker-attributed and overall wrong calls; preserve clean recitation and studio without lowering acoustic support thresholds.",
+ "hypothesis": "Actual Noah/Salih alignments map changed consonants to vowels, which were charged soft. Use the existing hard substitution cost across consonant/vowel pairs, retaining soft charges for ghunna and recitation marks. Predict three fewer checker-attributed and overall phone wrong calls with no clean or studio regression.",
  "expected": {
   "component": -3,
   "overall": -3
@@ -9,5 +9,16 @@
  "listener": "spliced-clean-int8",
  "testSet": "lab-v1.4.v3",
  "created": "2026-10-30T17:53:19+00:00",
- "author": "Yazin"
+ "author": "Yazin",
+ "hypothesisHistory": [
+  {
+   "hypothesis": "The phoneme alignment maps a changed consonant to a vowel and discounts it as a soft edit, so Noah/Salih substitutions have only one hard edit and never become candidates. Count a consonant-vowel replacement at its actual substitution cost whenever either side is a consonant. Predict three fewer checker-attributed and overall wrong calls; preserve clean recitation and studio without lowering acoustic support thresholds.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "reason": "The broad either-consonant prototype introduced four clean-fixture assertion failures by hardening ghunna/recitation-mark changes. Narrow to vowel/consonant substitutions before the first practice score.",
+   "at": "2026-10-30T18:02:22.673540+00:00"
+  }
+ ]
 }

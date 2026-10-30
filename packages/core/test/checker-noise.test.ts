@@ -22,6 +22,16 @@ function check(from: WordRef, to: WordRef, edits: (at: (r: WordRef) => number) =
 }
 
 describe("word gaps surrounded by listener noise", () => {
+  it.each([
+    [w(26, 106, 5), w(26, 142, 5), w(26, 105, 1), w(26, 108, 3)],
+    [w(26, 142, 5), w(26, 106, 5), w(26, 141, 1), w(26, 144, 3)],
+  ])("counts changed consonants even when aligned against vowels at %j", (wrong, replacement, from, to) => {
+    expect(check(from, to, at => [
+      { kind: "del", at: at(wrong), count: text(wrong).length },
+      { kind: "ins", at: at(wrong), text: text(replacement) },
+    ])).toEqual([`wrong_word ${key(wrong)}`]);
+  });
+
   it("keeps a shortened doubled consonant with the word before an omission", () => {
     const from = w(19, 80, 1), to = w(19, 84, 3), before = w(19, 81, 8), omitted = w(19, 82, 1), after = w(19, 82, 2);
     expect(check(from, to, at => [

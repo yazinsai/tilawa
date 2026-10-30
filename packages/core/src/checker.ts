@@ -60,10 +60,11 @@ const PHRASE = 1 / 64;
 /** A word is wrong above this weighted cost per reference phoneme it covers, with at least `MIN_WRONG_EDITS` plain edits. */
 const WRONG = 0.3;
 /**
- * Memorization costs: a different word changes consonants. Vowels, madd and the marks for qalqalah and ghunna cost
+ * Memorization costs: a different word changes consonants. Vowel-only changes, madd and the marks for qalqalah and ghunna cost
  * `SOFT` to change; a sound held longer or shorter (beside the same sound) costs `HELD`. Consonant edits are hard.
  */
 const CONSONANTS = new Set("ءبتثجحخدذرزسشصضطظعغفقكلمنهوي");
+const VOWELS = new Set("اَُِۦۥ");
 const SOFT = 3;
 const HELD = 2;
 /** A wrong word needs this many hard edits, or one in a word with at most one consonant. */
@@ -439,7 +440,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     v.cost += cost;
     if (cost >= UNIT) v.hard++;
   };
-  const subCharge = (r: string, p: string) => (r === p ? 0 : CONSONANTS.has(r) && CONSONANTS.has(p) ? subCost(r, p) : SOFT);
+  const subCharge = (r: string, p: string) => {
+    const consonantEdit = (CONSONANTS.has(r) && (CONSONANTS.has(p) || VOWELS.has(p))) || (VOWELS.has(r) && CONSONANTS.has(p));
+    return r === p ? 0 : consonantEdit ? subCost(r, p) : SOFT;
+  };
   const delCharge = (at: number) => (ref[at] === ref[at - 1] || ref[at] === ref[at + 1] ? HELD : CONSONANTS.has(ref[at]) ? UNIT : SOFT);
   /** Inserting `p` before `ref[at]`, after the heard `prev`. */
   const insCharge = (at: number, p: string, prev?: string) =>
