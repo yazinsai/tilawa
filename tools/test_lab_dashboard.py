@@ -253,3 +253,9 @@ def test_release_reads_the_scoreboard_gates():
 def test_failing_with_perfect_hearing_is_not_called_bad_data():
     c = mistake("lab-v1.4-p01/phone/mistake:omitted_word/26:128:1/90.31", errorClass="omitted_word", allFail=True)
     assert D.suspects(c) == [] and [x["key"] for x in D.insights(c)] == ["checkerAlways"]
+
+
+def test_case_context_says_how_far_into_the_session():
+    c = mistake("lab-v1.4-p19/phone/mistake:added_word/51:30:1/81.20", errorClass="added_word", trackerOnPlace=1.0)
+    assert D.case_context(c, {"durationS": 300.0}).endswith("into a 5.0 min session; the tracker was on the right place 100% of the time around here")
+    assert D.case_context(c, None).endswith("into the session; the tracker was on the right place 100% of the time around here")

@@ -371,6 +371,14 @@ def engine_facts(c: dict) -> dict:
             "why": WHY.get(c.get("component"), "")}
 
 
+def case_context(c: dict, sdoc: dict | None) -> str:
+    """Where the case sits in its session, so a short review clip isn't mistaken for all the engine had."""
+    at = case_time(c)
+    out = f"{minutes(at)} into a {minutes(sdoc['durationS'])} session" if sdoc and sdoc.get("durationS") else f"{minutes(at)} into the session"
+    on = c.get("trackerOnPlace")
+    return out + (f"; the tracker was on the right place {round(on * 100)}% of the time around here" if on is not None else "")
+
+
 def engine_story(c: dict) -> list[str]:
     """What the engine did, in plain words, and why the wrong call is charged where it is."""
     out = [_what(c),

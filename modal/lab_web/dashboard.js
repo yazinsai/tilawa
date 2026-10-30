@@ -334,6 +334,7 @@ async function caseView(component, variant, key) {
     <div id="rail">${rail()}</div>
     ${d.suspects.length ? `<div class="suspect">${icon('flag')}<p><b>Likely bad data.</b> ${d.suspects.map((s) => (s.raw ? `<span title="${esc(s.raw)}">${esc(s.text)}</span>` : esc(s.text))).join('. ')}.</p></div>` : ''}
     ${d.insights?.length ? `<div class="notice insight"><p>${d.insights.map((s) => esc(s.text)).join('. ')}.</p></div>` : ''}
+    ${d.context ? `<p class="li-context" style="margin-top:var(--s3)">${esc(d.context)}.</p>` : ''}
     <div id="item"></div>
     <p class="li-context" style="margin-top:var(--s6)">Saved for ${esc(d.testSet)} as <b>${esc(reviewer)}</b>. Bad-data verdicts become flags for <code>lab apply-flags</code>.</p></div>`;
   $('prev').onclick = st.nav.prev;
