@@ -50,3 +50,21 @@ Progress (30 Oct). Built `realuser-v1` (580 sessions) on the volume; code in `to
 | sobolev | 27 / 27 / 22.8 | 28 / 28 / 26.6 |
 | RetaSy | 31 / 29 / 5.4 | 39 / 39 / 6.6 |
 | tlog | 239 / 28 / 50.2 | 216 / 27 / 43.1 |
+
+Progress (30 Oct, later). Scored and triaged on practice. Write-up: `docs/benchmarks/lab-realuser-v1.md`.
+
+- **Scorer.** `realuser` sessions stay out of `splits`, the headline and the other slices, so every planted-set number is unchanged. The report adds `realuser.{practice,exam,all}`:
+  - false warnings per recited minute and per session;
+  - the first 10 s against the rest;
+  - by class and by origin.
+  - The ledger keeps these per split (3fab08f).
+- **Main line, practice half:** 13 false warnings over 63.3 recited min in 297 sessions (0.205 / min, 0.044 / session; first 10 s 5, rest 8).
+- **Triage** (`docs/agents/audio-review.md`, record `docs/benchmarks/lab-realuser-v1-review.json`):
+  - 9 sit just after a jump seam. The joined audio skips a chunk the dataset lacks, or an ayah the reciter has no clip of, and 8 of the 9 fire on oracle evidence too.
+  - **Deviation:** jump seams are excluded by construction. `realuser-v1/flags-v1.json` covers 1 s before to 3 s after every jump seam (61 windows in 33 sessions). With it, 4 false warnings remain (0.063 / min).
+  - The 4 listener cases were heard by Soniox (audio only), and are queued at `realuser-v1/review/false-warnings.json`:
+    - 2 unresolved: a likely real wrong word in tlog (تهتدون for تتقون, 2:21) and a possible omission in sobolev (بالخنس, 81:15);
+    - 2 spot checks: a chunk cut inside 103:2, and 92:13 heard as written.
+- **Waiting on:**
+  - your 4 listens;
+  - which test set the slice joins (`lab-v1.4` now or `lab-v1.5` from ticket 20) before `lab baseline` registers it.
