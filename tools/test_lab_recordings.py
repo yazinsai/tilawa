@@ -230,3 +230,204 @@ def test_core_validate_session(tmp_path):
 def test_resume_points_are_kept_sorted_and_bad_input_dropped():
     assert R.resumes("[31.5, 12.25, -1, \"x\"]") == [12.25, 31.5]
     assert R.resumes("") == [] and R.resumes("not json") == [] and R.resumes("{}") == []
+
+
+# ---- fixing a passage ---------------------------------------------------------------------------------------------
+
+def energy(said: list[dict], duration: float, speech: float = -20.0, quiet: float = -70.0, loud: dict | None = None) -> list[float]:
+    """10 ms frame dB: `speech` over every timed item, `quiet` elsewhere; `loud` {(a, b): dB} overrides a stretch."""
+    db = [quiet] * int(duration * 100)
+    for t in said:
+        for i in range(int(t["startS"] * 100), min(len(db), int(t["endS"] * 100) + 1)):
+            db[i] = speech
+    for (a, b), v in (loud or {}).items():
+        for i in range(int(a * 100), int(b * 100)):
+            db[i] = v
+    return db
+
+
+def take_and_patch(a: str, b: str, items: list[dict] | None = None):
+    """A take as scripted but mistake 2 (the added word in 104:4) left out, and a patch of a..b performing it."""
+    take_items = items or [x for x in SCRIPT["said"] if x.get("plant") != "m2"]
+    sp, dur = spoken(take_items)
+    r = R.check_take(SCRIPT, evidence(sp, dur), REF)
+    sub = R.fix_script(SCRIPT, a, b)
+    psp, pdur = spoken(sub["said"])
+    pr = R.check_take(sub, evidence(psp, pdur), REF)
+    return r, dur, sub, pr, pdur
+
+
+FIX = {"base": 1, "from": "104:4", "to": "104:4"}
+
+
+def test_said_ayahs_put_added_words_and_the_basmala_in_their_ayah():
+    ks = R.said_ayahs(SCRIPT)
+    roles = [x["role"] for x in SCRIPT["said"]]
+    assert ks[0] is None and ks[-1] is None  # isti'adha, closing
+    assert ks[roles.index("basmala")] == "104:1" and ks[roles.index("added")] == "104:4"
+    idx = R.fix_items(SCRIPT, "104:4", "104:5")
+    assert idx == list(range(idx[0], idx[-1] + 1)) and {ks[i] for i in idx} == {"104:4", "104:5"}
+    assert roles.index("added") in idx
+    assert SCRIPT["said"][R.fix_items(SCRIPT, "104:1", "104:1")[0]]["role"] == "basmala"
+    for a, b in (("104:5", "104:4"), ("104:0", "104:2"), ("2:1", "2:2")):
+        with pytest.raises(ValueError):
+            R.fix_items(SCRIPT, a, b)
+
+
+def test_fix_ranges_from_the_checks():
+    r = run(as_written(SCRIPT))
+    assert r["verdict"] == "redo"
+    fails = R.failed_ayahs(SCRIPT, r)
+    assert list(fails) == ["104:2", "104:4", "104:6", "104:8"] and fails["104:2"] == ["mistake 1 not heard"]
+    (one,) = R.fix_ranges(SCRIPT, r)  # two ayahs apart: one passage
+    assert (one["from"], one["to"]) == ("104:2", "104:8") and list(one["ayahs"]) == list(fails)
+    plants = [p if p["ayah"] in ("104:2", "104:8") else {**p, "status": "performed"} for p in r["plants"]]
+    gap = {**r, "plants": plants, "ayahs": [{**a, "flag": False} for a in r["ayahs"]], "said": [{**t, "endS": t["startS"]} if t["at"] and t["at"]["ayah"] == 9 and t["at"]["word"] == 1 else t for t in r["said"]]}
+    assert [(x["from"], x["to"]) for x in R.fix_ranges(SCRIPT, gap)] == [("104:2", "104:2"), ("104:8", "104:9")]
+    assert R.fix_ranges(SCRIPT, gap)[1]["ayahs"]["104:9"] == ["1 word not found"]
+    assert R.fix_ranges(SCRIPT, run(SCRIPT["said"])) == []  # ok
+    assert R.fix_ranges(SCRIPT, {**r, "aligned": False}) == [] and R.fix_ranges(SCRIPT, {**r, "verdict": "error"}) == []
+
+
+def test_fix_request_refusals():
+    r = run(as_written(SCRIPT))
+    m = {"take": 2, "scriptSha": SCRIPT["sha"]}
+    assert R.fix_request(SCRIPT, m, r, "104:2", "104:3") == {"base": 2, "from": "104:2", "to": "104:3"}
+    for meta, res, a, b, msg in ((None, r, "104:2", "104:2", "doesn't exist"), (m, None, "104:2", "104:2", "no checked alignment"),
+                                 (m, {**r, "verdict": "error"}, "104:2", "104:2", "no checked alignment"),
+                                 ({**m, "scriptSha": "old"}, r, "104:2", "104:2", "older version"), (m, r, "104:3", "104:2", "isn't a passage")):
+        with pytest.raises(R.Refused, match=msg):
+            R.fix_request(SCRIPT, meta, res, a, b)
+
+
+def test_patch_is_checked_against_its_ayahs_only():
+    r, _, sub, pr, _ = take_and_patch("104:4", "104:4")
+    assert next(p for p in r["plants"] if p["id"] == "m2")["status"] == "not_performed" and r["verdict"] == "redo"
+    assert [p["id"] for p in sub["plants"]] == ["m2"] and all("src" in x for x in sub["said"]) and sub["fix"] == ["104:4", "104:4"]
+    assert pr["aligned"] and pr["verdict"] == "ok" and [p["status"] for p in pr["plants"]] == ["performed"], pr["why"]
+    assert [t["src"] for t in pr["said"]] == R.fix_items(SCRIPT, "104:4", "104:4")
+    s = R.patch_summary(pr)
+    assert s["verdict"] == "ok" and s["plants"][0]["status"] == "performed" and s["flagged"] == []
+    words = R.fix_script(SCRIPT, "104:4", "104:4")["said"]
+    psp, pdur = spoken([x for x in words if x["role"] != "added"])
+    assert R.check_take(R.fix_script(SCRIPT, "104:4", "104:4"), evidence(psp, pdur), REF)["verdict"] == "redo"
+
+
+def test_a_patch_checks_plants_at_its_own_ends():
+    """A patch of one ayah starts and ends inside the script: a plant on its first or last word is checked against
+    the word on its one side, not left unsure."""
+    edges = 0
+    for p in SCRIPT["plants"]:
+        sub = R.fix_script(SCRIPT, p["ayah"], p["ayah"])
+        mine = [k for k, x in enumerate(sub["said"]) if x.get("plant") == p["id"]]
+        edges += bool(mine) and (mine[0] == 0 or mine[-1] == len(sub["said"]) - 1)
+        psp, pdur = spoken(sub["said"])
+        (c,) = R.check_take(sub, evidence(psp, pdur), REF)["plants"]
+        assert c["status"] == "performed", (p["class"], p["location"], c["reasons"])
+    assert edges >= 1
+    assert R.plant_window([{"plant": "m"}], {"id": "m"}) is None and R.plant_window([{"plant": "m"}], {"id": "m"}, open_ends=True) == (None, None, [0])
+
+
+def test_pauses_and_cuts_on_frame_energy():
+    db = [-20.0] * 100 + [-70.0] * 30 + [-20.0] * 50 + [-70.0] * 5 + [-20.0] * 15
+    assert R.pauses(db, -50.0, 0.0, 2.0) == [(1.0, 1.3)]  # the 50 ms dip is too short
+    assert R.pauses(db, -50.0, 1.1, 2.0) == [(1.1, 1.3)] and R.pauses(db, -50.0, 1.25, 2.0) == []
+    assert R.pauses(db, -75.0, 0.0, 2.0) == []
+    assert R.cut_in((1.0, 1.3), "before") == 1.15 and R.cut_in((1.0, 3.0), "before") == 1.4 and R.cut_in((1.0, 3.0), "after") == 2.6
+    assert R.cut_in((1.0, 1.08), "after") == 1.04
+    assert R.quiet_floor(db) == -50.0  # 30 dB under speech: the room (-70 dB) is quieter than that
+    assert R.quiet_floor([-20.0] * 60 + [-45.0] * 40) == pytest.approx(-42.0)  # room tone + 3 dB
+    assert R.speech_level([-20.0] * 50 + [-70.0] * 50) == pytest.approx(-20.0)
+
+
+def test_plan_fix_finds_both_joins():
+    r, dur, _, pr, pdur = take_and_patch("104:4", "104:4")
+    plan = R.plan_fix(SCRIPT, FIX, r["said"], dur, energy(r["said"], dur), pr["said"], pdur, energy(pr["said"], pdur))
+    assert plan["ok"], plan["why"]
+    idx = R.fix_items(SCRIPT, "104:4", "104:4")
+    a = next(t for t in r["said"] if t["item"] == idx[0])["startS"]
+    z = next(t for t in r["said"] if t["item"] == idx[-1])["endS"]
+    prev = next(t for t in reversed(r["said"]) if t["item"] < idx[0])["endS"]
+    nxt = next(t for t in r["said"] if t["item"] > idx[-1])["startS"]
+    (c1, c2), (p0, p1) = plan["take"], plan["patch"]
+    assert prev < c1 < a and z < c2 < nxt
+    assert 0 < p0 < pr["said"][0]["startS"] and pr["said"][-1]["endS"] < p1 < pdur
+    assert pr["said"][0]["startS"] - p0 <= R.JOIN_KEEP_S + 0.02 and c1 - prev <= R.JOIN_KEEP_S + 0.02  # a pause of normal length
+    assert plan["gainDb"] == 0.0 and plan["joinsS"] == [c1, round(c1 + p1 - p0, 3)]
+    assert plan["durationS"] == pytest.approx(c1 + (p1 - p0) + dur - c2, abs=1e-3)
+    j0, j1 = plan["joins"]
+    assert j0["before"] == "104:4" and j1["after"] == "104:4" and j0["silenceS"]["take"] >= R.JOIN_SILENCE_S and 0.3 < j0["pauseS"] < 1.0
+
+
+def test_plan_fix_refusals():
+    r, dur, _, pr, pdur = take_and_patch("104:4", "104:4")
+    idx = R.fix_items(SCRIPT, "104:4", "104:4")
+    a = next(t for t in r["said"] if t["item"] == idx[0])["startS"]
+    prev = next(t for t in reversed(r["said"]) if t["item"] < idx[0])["endS"]
+    z = next(t for t in r["said"] if t["item"] == idx[-1])["endS"]
+    nxt = next(t for t in r["said"] if t["item"] > idx[-1])["startS"]
+    pdb = energy(pr["said"], pdur)
+    plan = lambda tdb, p=pdb: R.plan_fix(SCRIPT, FIX, r["said"], dur, tdb, pr["said"], pdur, p)
+    # the reciter ran 104:3 into 104:4: the gap is only 20 dB down, not silence
+    x = plan(energy(r["said"], dur, loud={(prev, a): -40.0}))
+    assert not x["ok"] and x["why"] == ["no clean pause before 104:4 in take 1: record again from 104:3"] and x["suggest"] == {"from": "104:3", "to": "104:4"}
+    x = plan(energy(r["said"], dur, loud={(prev, a): -40.0, (z, nxt): -40.0}))
+    assert len(x["why"]) == 2 and x["suggest"] == {"from": "104:3", "to": "104:5"}
+    # the reciter started at once and stopped at once: the patch has no silence at its ends
+    p_first, p_last = pr["said"][0]["startS"], pr["said"][-1]["endS"]
+    x = plan(energy(r["said"], dur), energy(pr["said"], pdur, loud={(0.0, p_first): -25.0}))
+    assert not x["ok"] and "no silence before 104:4 at the start of your fix" in x["why"][0] and x["suggest"] == {"from": "104:4", "to": "104:4"}
+    x = plan(energy(r["said"], dur), energy(pr["said"], pdur, loud={(p_last, pdur): -25.0}))
+    assert "no silence after 104:4 at the end of your fix" in x["why"][0]
+    # level: 4 dB quieter is matched, 10 dB is refused
+    x = plan(energy(r["said"], dur), energy(pr["said"], pdur, speech=-24.0))
+    assert x["ok"] and x["gainDb"] == 4.0
+    x = plan(energy(r["said"], dur), energy(pr["said"], pdur, speech=-30.0, quiet=-80.0))
+    assert not x["ok"] and x["why"][0].startswith("your fix is 10.0 dB quieter than take 1") and x["gainDb"] == 10.0
+    # a take with no pause anywhere (a noisy room: its room tone is its speech level) has no silence, not silence everywhere
+    flat = [-20.0] * int(dur * 100)
+    x = R.plan_fix(SCRIPT, {**FIX, "from": "104:1", "to": "104:1"}, r["said"], dur, flat, pr["said"], pdur, pdb)
+    assert x["suggest"] is None and x["why"] == ["no clean pause before 104:1 in take 1: record the whole take again",
+                                                 "no clean pause after 104:1 in take 1: record again up to 104:2"]
+    x = R.plan_fix(SCRIPT, {**FIX, "from": "104:9", "to": "104:9"}, r["said"], dur, flat, pr["said"], pdur, pdb)
+    assert x["suggest"] is None and x["why"][1] == "no clean pause after 104:9 in take 1: record the whole take again"
+
+
+def test_stitch_and_its_timeline():
+    np = pytest.importorskip("numpy")
+    plan = {"take": [1.0, 2.5], "patch": [0.5, 1.75], "gainDb": 20 * np.log10(2), "joinsS": [1.0, 2.25]}
+    take, patch = np.full(16000 * 4, 0.1, dtype=np.float32), np.full(16000 * 2, 0.2, dtype=np.float32)
+    y = R.stitch(take, patch, plan)
+    h = round(R.JOIN_XFADE_S * 16000 / 2)
+    assert len(y) == 16000 + 20000 + (64000 - 40000)
+    assert np.allclose(y[: 16000 - h], 0.1) and np.allclose(y[16000 + h : 36000 - h], 0.4) and np.allclose(y[36000 + h :], 0.1)
+    assert 0.1 < y[16000] < 0.4 and np.all(np.diff(y[16000 - h : 16000 + h]) >= 0)  # the crossfade rises from take to patch
+    with pytest.raises(ValueError, match="out of range"):
+        R.stitch(take, patch, {**plan, "patch": [0.5, 1.999]})
+    assert R.fix_resumes([0.4, 1.8, 3.1], [0.2, 1.0], plan) == [0.4, 1.0, 1.5, 2.25, 2.85]
+
+
+def test_fix_takes_keep_their_number_and_record_the_patch():
+    assert R.next_take(["take-1.webm", "take-1.json", "take-2.json", "take-2.patch.webm"]) == 3
+    fix = {"base": 1, "from": "104:4", "to": "104:4"}
+    m = R.take_meta({"speaker": "ali", "scriptSha": SCRIPT["sha"], "resumesS": "[2.5]", "durationS": "9.5"}, SCRIPT, 2, "webm", "t", 10, fix)
+    assert m["ext"] == "wav" and m["resumesS"] == [] and m["clientDurationS"] == 9.5
+    assert m["fix"] == {**fix, "patch": "take-2.patch.webm", "patchExt": "webm", "resumesS": [2.5]}
+    f = R.fix_files("ali", "rec-v1-01", 2, "webm")
+    assert f["patch"] == "recordings/ali/rec-v1-01/take-2.patch.webm" and f["patchWav"] == "recordings/sessions/rec-ali-rec-v1-01-t2-patch.phone.wav"
+    assert not R.TAKE.match("take-2.patch.webm") and R.take_files("ali", "rec-v1-01", 2, m["ext"])["upload"].endswith("take-2.wav")
+    rs = [{"speaker": "a", "script": "s", "take": 1, "verdict": "redo"}, {"speaker": "a", "script": "s", "take": 2, "verdict": "refused"},
+          {"speaker": "a", "script": "s", "take": 3, "verdict": "ok"}]
+    assert [r["take"] for r in R.current_takes([r for r in rs if r["verdict"] in ("ok", "listen")])] == [3]
+
+
+def test_composed_take_session_carries_its_joins():
+    r = run(SCRIPT["said"])
+    meta = {**META, "take": 3, "resumesS": [12.0, 30.5], "joinsS": [12.0, 30.5], "fix": {"base": 2, "from": "104:4", "to": "104:5", "patch": "x"}}
+    s = R.session(SCRIPT, r, meta, "x.wav")
+    assert s["meta"]["joinsS"] == [12.0, 30.5] and s["meta"]["fix"] == {"base": 2, "from": "104:4", "to": "104:5"} and s["meta"]["resumesS"] == [12.0, 30.5]
+    its = R.review_items(s, r, SCRIPT, "w")
+    joins = [it for it in its if "-join-" in it["id"]]
+    assert len(joins) == 2 and all(it["label"] == {"type": "clean"} and it["audio"]["startS"] < t < it["audio"]["endS"] for it, t in zip(joins, [12.0, 30.5]))
+    assert V.validate_queue(R.queue([its])) == []
+    assert "joinsS" not in R.session(SCRIPT, r, META, "x.wav")["meta"]

@@ -14,8 +14,10 @@ const VERDICT = {
   listen: ['wait', 'Needs a listen'],
   redo: ['bad', 'Record again'],
   error: ['bad', 'Could not process'],
+  refused: ['bad', 'Could not join'],
   processing: ['', 'Checking…'],
 };
+const PATCH = { ok: 'follow the script', listen: 'need a listen', redo: "don't follow the script" };
 const STATUS = { performed: 'heard', unsure: 'not sure', not_performed: 'not heard' };
 const MIMES = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/mp4', 'audio/webm'];
 const AR_DIGITS = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
@@ -23,7 +25,7 @@ const mins = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart
 const when = (iso) => (iso ? new Date(iso).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '');
 
 const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
-const st = { speaker: url.searchParams.get('speaker') || saved.speaker || '', device: saved.device || '', script: null, takes: [], poll: null };
+const st = { speaker: url.searchParams.get('speaker') || saved.speaker || '', device: saved.device || '', script: null, takes: [], poll: null, fix: null };
 
 const save = () => localStorage.setItem(KEY, JSON.stringify({ speaker: st.speaker, device: st.device }));
 
@@ -196,24 +198,127 @@ function scriptHtml(s) {
     <div id="takes"></div>`;
 }
 
+// ---- fixing a passage: record only the ayahs that failed, joined into the take at the pauses either side ----------
+
+const ayahKeys = () => st.script.ayahs.filter((a) => !a.basmala).map((a) => a.key);
+const span = (a, b) => (a === b ? `ayah ${a}` : `ayahs ${a}–${b}`);
+const clip = (path, a, b) => `/audio?path=${encodeURIComponent(path)}&start=${Math.max(0, a).toFixed(2)}&end=${b.toFixed(2)}`;
+const chips = (plants) =>
+  plants.length
+    ? `<span class="rec-checks">${plants.map((p) => `<span class="rec-chk ${p.status}" title="${esc(p.reasons?.[0] || '')}">${p.n} ${STATUS[p.status] || p.status}</span>`).join('')}</span>`
+    : '';
+
+/** What a fix take recorded again, its own check, and where it was joined. */
+function fixHtml(t) {
+  const f = t.fix;
+  const pc = f.patchCheck;
+  const patch = `<p><span class="muted">${esc(span(f.from, f.to)[0].toUpperCase() + span(f.from, f.to).slice(1))}, recorded again:</span>
+      ${pc ? `${esc(PATCH[pc.verdict] || pc.verdict)}${pc.flagged?.length ? ` · ${esc(pc.flagged.join(', '))} sound different` : ''} ${chips(pc.plants || [])}` : 'checking…'}
+      ${f.patchS ? `<a href="${clip(f.patch, 0, Math.min(600, f.patchS))}" target="_blank">Listen</a>` : ''}</p>`;
+  const joins = f.joins?.length
+    ? `<p><span class="muted">Joined into take ${f.base}:</span> ${f.joins
+        .map((j) => `${j.before ? `before ${esc(j.before)}` : `after ${esc(j.after)}`} at <span class="num">${mins(j.atS)}</span> (${j.pauseS.toFixed(1)} s pause)${t.audioS ? ` <a href="${clip(t.upload, j.atS - 3, j.atS + 3)}" target="_blank">Hear</a>` : ''}`)
+        .join(' · ')} · level ${f.gainDb === 0 ? 'matched' : `${f.gainDb > 0 ? '+' : ''}${f.gainDb.toFixed(1)} dB to match`}</p>`
+    : '';
+  return `<div class="rec-fixinfo small">${patch}${joins}</div>`;
+}
+
+/** The passages a failed take could fix, with a range to widen and one button to start. */
+function offerHtml(t) {
+  if (st.fix) return `<div class="rec-fix small"><p><b>Recording a fix of take ${st.fix.base}: ${esc(span(st.fix.from, st.fix.to))}.</b> Use the recorder below. <button class="rec-fix-pick" data-unfix>Cancel</button></p></div>`;
+  const r = t.fixable[0];
+  const opts = (sel) => ayahKeys().map((k) => `<option ${k === sel ? 'selected' : ''}>${esc(k)}</option>`).join('');
+  const list = t.fixable
+    .map((x) => {
+      const why = Object.entries(x.ayahs).map(([k, w]) => `${x.from === x.to ? '' : `${esc(k)}: `}${esc(w.join(', '))}`).join(' · ');
+      return `<li><button class="rec-fix-pick" data-pick="${esc(x.from)}|${esc(x.to)}">${esc(span(x.from, x.to))}</button> <span class="muted">${why}</span></li>`;
+    })
+    .join('');
+  return `<div class="rec-fix small" data-take="${t.take}">
+      <p><b>Re-record just the ayahs that failed</b>${t.fixable.length > 1 ? ', one passage at a time' : ''}</p>
+      <ul class="rec-fix-list">${list}</ul>
+      <div class="rec-fix-row">
+        <label>From <select data-end="from">${opts(r.from)}</select></label><label>to <select data-end="to">${opts(r.to)}</select></label>
+        <button class="btn rec-up" data-fix-go>Re-record ${esc(span(r.from, r.to))}</button>
+      </div>
+      <p class="muted">Whole ayahs only. Leave a moment of silence before the first and after the last. They are joined into take ${t.take} at its pauses either side, and the joined take is checked again as a new take; take ${t.take} is kept.</p>
+    </div>`;
+}
+
+function bindOffer() {
+  const box = document.querySelector('.rec-fix[data-take]');
+  document.querySelector('[data-unfix]')?.addEventListener('click', () => setFix(null));
+  if (!box) return;
+  const [from, to] = ['from', 'to'].map((k) => box.querySelector(`[data-end="${k}"]`));
+  const go = box.querySelector('[data-fix-go]');
+  const sync = (changed) => {
+    const ks = ayahKeys();
+    if (ks.indexOf(from.value) > ks.indexOf(to.value)) (changed === from ? to : from).value = changed.value;
+    go.textContent = `Re-record ${span(from.value, to.value)}`;
+  };
+  from.onchange = () => sync(from);
+  to.onchange = () => sync(to);
+  for (const b of box.querySelectorAll('[data-pick]'))
+    b.onclick = () => {
+      [from.value, to.value] = b.dataset.pick.split('|');
+      sync(from);
+    };
+  go.onclick = () => setFix({ base: +box.dataset.take, from: from.value, to: to.value });
+}
+
+/** Enter (or leave, with null) fix mode: the recorder records only these ayahs, marked in the text. */
+function setFix(fix) {
+  if (live()) return;
+  if (rec.blob && !confirm('Discard the recording you have not uploaded?')) return;
+  if (rec.blob) discard();
+  st.fix = fix;
+  const ks = ayahKeys();
+  const on = fix ? new Set(ks.slice(ks.indexOf(fix.from), ks.indexOf(fix.to) + 1)) : new Set();
+  for (const el of document.querySelectorAll('.rec-ayah')) el.classList.toggle('rec-fixing', on.has(el.id.slice(2).replace('-', ':')));
+  renderTakes();
+  ready();
+  if (fix) document.getElementById(`a-${fix.from.replace(':', '-')}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function ready() {
+  $('rec-unfix').hidden = !st.fix || live() || !!rec.blob;
+  $('rec-up').textContent = st.fix ? 'Upload fix' : 'Upload take';
+  if (st.fix) setState(`Fix for take ${st.fix.base}: ${span(st.fix.from, st.fix.to)}`, 'start, wait a moment, recite only these ayahs, pause, then stop');
+  else setState('Ready to record');
+}
+
 function takesHtml() {
   if (!st.takes.length) return '<p class="muted small">None yet. Record below; the take is checked a minute or two after it uploads.</p>';
+  const top = st.takes[0];
   return `<ul class="rec-takes">${st.takes
     .map((t) => {
       const stale = t.scriptSha !== st.script.sha ? '<span class="muted"> · recorded from an older version of this script</span>' : '';
-      const plants = t.plants.length
-        ? `<p class="rec-checks small">${t.plants.map((p) => `<span class="rec-chk ${p.status}" title="${esc(p.reasons?.[0] || '')}">${p.n} ${STATUS[p.status] || p.status}</span>`).join('')}</p>`
-        : '';
+      const plants = t.plants.length ? `<p class="small">${chips(t.plants)}</p>` : '';
       const listen = t.audioS ? `<a class="small" href="/audio?path=${encodeURIComponent(t.upload)}&start=0&end=${Math.min(600, t.audioS)}" target="_blank">Listen</a>` : '';
       const retry = t.verdict === 'error' ? `<button class="btn" data-retry="${t.take}">Try again</button>` : '';
-      return `<li><div class="rec-take-h"><b>Take ${t.take}</b>${pill(t.verdict)}<span class="muted small">${when(t.uploadedAt)}${t.audioS ? ` · ${mins(t.audioS)}` : ''}${t.device ? ` · ${esc(t.device)}` : ''}${stale}</span>${listen}${retry}</div>
-        ${t.why?.length ? `<ul class="rec-why small">${t.why.map((w) => `<li>${esc(w)}</li>`).join('')}</ul>` : ''}${plants}</li>`;
+      const s = t.fix?.suggest;
+      const again =
+        t === top && t.verdict === 'refused' && !st.fix
+          ? s
+            ? `<p class="small"><button class="btn rec-up" data-refix="${t.fix.base}|${esc(s.from)}|${esc(s.to)}">Re-record ${esc(span(s.from, s.to))}</button></p>`
+            : '<p class="small muted">Record the whole take again.</p>'
+          : '';
+      const what = t.fix ? ` · take ${t.fix.base} with ${esc(span(t.fix.from, t.fix.to))} recorded again` : '';
+      return `<li><div class="rec-take-h"><b>Take ${t.take}</b>${pill(t.verdict)}<span class="muted small">${when(t.uploadedAt)}${t.audioS ? ` · ${mins(t.audioS)}` : ''}${what}${t.device ? ` · ${esc(t.device)}` : ''}${stale}</span>${listen}${retry}</div>
+        ${t.why?.length ? `<ul class="rec-why small">${t.why.map((w) => `<li>${esc(w)}</li>`).join('')}</ul>` : ''}${plants}${t.fix ? fixHtml(t) : ''}${again}
+        ${t === top && t.fixable?.length ? offerHtml(t) : ''}</li>`;
     })
     .join('')}</ul>`;
 }
 
 function renderTakes() {
   $('takes').innerHTML = takesHtml();
+  bindOffer();
+  for (const b of document.querySelectorAll('[data-refix]'))
+    b.onclick = () => {
+      const [base, from, to] = b.dataset.refix.split('|');
+      setFix({ base: +base, from, to });
+    };
   for (const b of document.querySelectorAll('[data-retry]'))
     b.onclick = async () => {
       b.disabled = true;
@@ -262,6 +367,7 @@ function dockHtml() {
   return `<div class="rec-dock-in">
     <button class="rec-disc" id="rec-go" aria-label="Start recording">${micIcon()}</button>
     <button class="btn rec-pause" id="rec-pause" hidden>Pause</button>
+    <button class="btn" id="rec-unfix" hidden>Cancel fix</button>
     <div class="rec-mid">
       <p class="rec-state" id="rec-state">Ready to record</p>
       <div class="rec-meter" aria-hidden="true"><i id="rec-level"></i></div>
@@ -298,6 +404,7 @@ function recorder() {
     discard();
   };
   $('rec-up').onclick = upload;
+  $('rec-unfix').onclick = () => setFix(null);
   $('rec-dev').onchange = (e) => {
     st.device = e.target.value;
     save();
@@ -394,7 +501,8 @@ async function start() {
   $('rec-after').hidden = true;
   $('rec-pause').hidden = false;
   $('rec-pause').textContent = 'Pause';
-  setState('Recording');
+  $('rec-unfix').hidden = true;
+  setState(st.fix ? `Recording the fix: ${span(st.fix.from, st.fix.to)}` : 'Recording');
 }
 
 function pause() {
@@ -409,7 +517,7 @@ function resume() {
   rec.t0 = performance.now();
   rec.mr.resume();
   $('rec-pause').textContent = 'Pause';
-  setState('Recording');
+  setState(st.fix ? `Recording the fix: ${span(st.fix.from, st.fix.to)}` : 'Recording');
 }
 
 function stop() {
@@ -429,7 +537,7 @@ function stopped() {
   $('rec-go').hidden = true;
   $('rec-after').hidden = false;
   $('rec-up').disabled = false;
-  setState(`Take recorded · ${mins(rec.dur)}`, 'listen back, then upload it or record again');
+  setState(`${st.fix ? 'Fix' : 'Take'} recorded · ${mins(rec.dur)}`, 'listen back, then upload it or record again');
 }
 
 function discard() {
@@ -439,7 +547,7 @@ function discard() {
   $('rec-after').hidden = true;
   $('rec-go').hidden = false;
   $('rec-time').textContent = '0:00';
-  setState('Ready to record');
+  ready();
 }
 
 function upload() {
@@ -459,6 +567,12 @@ function upload() {
   fd.append('recordedAt', new Date(Date.now() - rec.dur * 1000).toISOString());
   fd.append('durationS', rec.dur.toFixed(2));
   fd.append('resumesS', JSON.stringify(rec.resumes));
+  const fix = st.fix;
+  if (fix) {
+    fd.append('fixOf', String(fix.base));
+    fd.append('fixFrom', fix.from);
+    fd.append('fixTo', fix.to);
+  }
   fd.append('audio', rec.blob, `take.${ext}`);
   const bar = $('rec-progress');
   bar.hidden = false;
@@ -480,8 +594,9 @@ function upload() {
       return setState('Upload failed', typeof body.detail === 'string' ? body.detail : `HTTP ${x.status}; try again`);
     }
     rec.blob = null;
+    setFix(null);
     discard();
-    setState(`Uploaded take ${body.take}`, body.processing || 'checking it now; this takes a minute or two');
+    setState(`Uploaded take ${body.take}`, body.processing || (fix ? `joining it into take ${fix.base}, then checking the whole take; a minute or two` : 'checking it now; this takes a minute or two'));
     await refresh();
   };
   x.onerror = () => {

@@ -7,10 +7,13 @@ docs/benchmarks/lab-recordings.md).
     modal run modal/lab_recordings.py --action rebuild                 # review queue, manifest and index from every result
     modal run modal/lab_recordings.py --action join --base lab-v1.3 --name lab-v1.3r                 # a new test set with the takes
     modal run modal/lab_recordings.py --action test-audio --file /tmp/scripts-test.json --out /tmp/e2e  # synthetic takes (e2e)
+    modal run modal/lab_recordings.py --action test-fix --file /tmp/scripts-test.json --out /tmp/e2e-fix  # a take and patches (fix e2e)
     modal run modal/lab_recordings.py --action cleanup --speaker test [--batch test]                  # delete a speaker's takes
 
 A take is converted to 16 kHz mono WAV, decoded by the teacher (as modal/lab_decode.py decodes the sources), aligned to
-what the script says was said, and every planted mistake is checked (tools/lab_recordings_core.py). Files live under
+what the script says was said, and every planted mistake is checked (tools/lab_recordings_core.py). A fix (a take
+whose upload is only some ayahs recorded again) is checked on its own, joined into its base take at measured pauses,
+and the composed take is then processed like any other. Files live under
 /lab/data/recordings/ on the tilawa-lab volume (layout in the core module's docstring).
 """
 
@@ -159,11 +162,72 @@ class Teacher:
         return {"seconds": round(time.time() - t0, 1), "audioS": round(len(x) / L.SR, 3), "nFrames": n, "revision": self.revision, "gpu": self.gpu}
 
 
-@app.function(image=cpu_image, volumes={VOL: vol}, memory=8192, timeout=30 * 60)
-def process_take(speaker: str, script_id: str, n: int) -> dict:
-    """Convert, decode, check and label one take; then rebuild the queue, manifest and index."""
+def to_wav(src: Path, dst: Path) -> float:
+    """ffmpeg to 16 kHz mono PCM16; the seconds of audio."""
     import subprocess
 
+    import lab_sources as L
+
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    tmp = dst.with_name(dst.name + ".tmp")
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(src), "-ac", "1", "-ar", str(L.SR), "-sample_fmt", "s16", "-f", "wav", str(tmp)],
+                   check=True, capture_output=True)
+    tmp.replace(dst)
+    return (dst.stat().st_size - 44) / 2 / L.SR
+
+
+def load_wav(p: Path):
+    import wave
+
+    import numpy as np
+
+    import lab_sources as L
+
+    with wave.open(str(p), "rb") as f:
+        assert (f.getnchannels(), f.getsampwidth(), f.getframerate()) == (1, 2, L.SR), p
+        return np.frombuffer(f.readframes(f.getnframes()), dtype="<i2").astype(np.float32) / 32768
+
+
+def compose_fix(script: dict, speaker: str, script_id: str, n: int, meta: dict) -> dict:
+    """Take n is a fix: check its patch against the ayahs it records, join it into its base take at measured pauses
+    and write the composed audio as take-<n>.wav (with its joins and resume points in take-<n>.json). The fix record
+    for the result; raises lab_recordings_core.Refused when the patch can't be joined."""
+    import lab_recordings_core as R
+    import lab_sessions as S
+    import lab_sources as L
+
+    fx = meta["fix"]
+    d = DATA / R.take_dir(speaker, script_id)
+    bm, br = read(d / f"take-{fx['base']}.json"), read(d / f"take-{fx['base']}.result.json")
+    R.fix_request(script, bm, br, fx["from"], fx["to"])
+    ff = {k: DATA / v for k, v in R.fix_files(speaker, script_id, n, fx["patchExt"]).items()}
+    patch_s = to_wav(ff["patch"], ff["patchWav"])
+    info = {k: fx[k] for k in ("base", "from", "to", "patch")} | {"patchS": round(patch_s, 3)}
+    if not R.PATCH_S[0] <= patch_s <= R.PATCH_S[1]:
+        raise R.Refused([f"the fix is {patch_s:.1f} s; record {R.passage(fx['from'], fx['to'])} with a moment of silence either side"], info)
+    vol.commit()
+    info["teacher"] = Teacher().decode.remote(str(ff["patchWav"].relative_to(DATA)), str(ff["patchEvidence"].relative_to(DATA)))
+    vol.reload()
+    sub = R.fix_script(script, fx["from"], fx["to"])
+    pc = R.check_take(sub, json.loads(ff["patchEvidence"].read_text()), L.reference())
+    info["patchCheck"] = R.patch_summary(pc)
+    if pc["verdict"] == "redo":
+        raise R.Refused([f"the fix itself: {w}" for w in pc["why"]] + [f"record {R.passage(fx['from'], fx['to'])} again"], info | {"suggest": {"from": fx["from"], "to": fx["to"]}})
+    x, y = load_wav(DATA / R.take_files(speaker, script_id, fx["base"], bm["ext"])["wav"]), load_wav(ff["patchWav"])
+    plan = R.plan_fix(script, fx, br["said"], len(x) / L.SR, S.frame_db(x), pc["said"], len(y) / L.SR, S.frame_db(y))
+    info |= {k: v for k, v in plan.items() if k not in ("ok", "why")}
+    if not plan["ok"]:
+        raise R.Refused(plan["why"], info)
+    write_atomic(DATA / R.take_files(speaker, script_id, n, meta["ext"])["upload"], S.pcm16(R.stitch(x, y, plan, L.SR)))
+    info["resumesS"] = R.fix_resumes(bm.get("resumesS") or [], fx.get("resumesS") or [], plan)
+    write_atomic(d / f"take-{n}.json", R.dumps({**meta, "resumesS": info["resumesS"], "joinsS": plan["joinsS"],
+                                                "fix": {**fx, "joins": plan["joins"], "gainDb": plan["gainDb"]}}))
+    return info
+
+
+@app.function(image=cpu_image, volumes={VOL: vol}, memory=8192, timeout=30 * 60)
+def process_take(speaker: str, script_id: str, n: int) -> dict:
+    """Convert, decode, check and label one take (a fix is composed first); then rebuild the queue, manifest and index."""
     import lab_recordings_core as R
     import lab_sources as L
 
@@ -176,21 +240,21 @@ def process_take(speaker: str, script_id: str, n: int) -> dict:
     sid = R.session_id(speaker, script_id, n)
     base = {"version": 1, "speaker": speaker, "script": script_id, "take": n, "sessionId": sid, "uploadedAt": meta["uploadedAt"]}
     t0 = time.time()
+    fix = None
     try:
         script = scripts().get(script_id)
         if not script:
             raise ValueError(f"script {script_id} is not published")
         if script["sha"] != meta["scriptSha"]:
             raise ValueError(f"script {script_id} changed since this take (take {meta['scriptSha']}, now {script['sha']})")
-        f["wav"].parent.mkdir(parents=True, exist_ok=True)
-        tmp = f["wav"].with_name(f["wav"].name + ".tmp")
-        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(f["upload"]), "-ac", "1", "-ar", str(L.SR), "-sample_fmt", "s16", "-f", "wav", str(tmp)],
-                       check=True, capture_output=True)
-        tmp.replace(f["wav"])
-        audio_s = (f["wav"].stat().st_size - 44) / 2 / L.SR
+        if meta.get("fix"):
+            fix = compose_fix(script, speaker, script_id, n, meta)
+            meta = read(d / f"take-{n}.json")
+        audio_s = to_wav(f["upload"], f["wav"])
         if not MIN_S <= audio_s <= MAX_S:
             raise ValueError(f"the take is {audio_s:.1f} s; takes are {MIN_S:.0f} s to {MAX_S / 60:.0f} min")
-        write_atomic(f["checks"], R.dumps({"version": 1, "id": sid, "phoneSha256": sha256(f["wav"]), "source": "recorded", "upload": str(f["upload"].relative_to(DATA))}))
+        write_atomic(f["checks"], R.dumps({"version": 1, "id": sid, "phoneSha256": sha256(f["wav"]), "source": "recorded", "upload": str(f["upload"].relative_to(DATA)),
+                                           **({"fix": {k: fix[k] for k in ("base", "from", "to", "joinsS", "gainDb")}} if fix else {})}))
         vol.commit()
         dec = Teacher().decode.remote(str(f["wav"].relative_to(DATA)), str(f["evidence"].relative_to(DATA)))
         vol.reload()
@@ -207,7 +271,9 @@ def process_take(speaker: str, script_id: str, n: int) -> dict:
         elif f["session"].exists():
             f["session"].unlink()
         out = {**base, **result, "audioS": round(audio_s, 3), "teacher": dec, "validation": problems, "processedAt": now(), "processS": round(time.time() - t0, 1),
-               "meta": meta}
+               "meta": meta, **({"fix": fix} if fix else {})}
+    except R.Refused as e:  # a fix that can't be joined: what to record instead
+        out = {**base, "verdict": "refused", "why": e.why, "fix": {**{k: meta["fix"].get(k) for k in ("base", "from", "to", "patch")}, **e.fix}, "processedAt": now(), "processS": round(time.time() - t0, 1), "meta": meta}
     except Exception as e:  # the page shows this instead of a verdict
         out = {**base, "verdict": "error", "why": [f"{type(e).__name__}: {e}"[:500]], "processedAt": now(), "meta": meta}
     write_atomic(f["result"], R.dumps(out))
@@ -256,7 +322,8 @@ def rebuild() -> dict:
     keep = ("speaker", "script", "take", "sessionId", "verdict", "why", "uploadedAt", "processedAt", "audioS", "coverage", "heard", "dropped")
     index = {"version": 1, "updatedAt": now(), "current": [r["sessionId"] for r in cur],
              "takes": [{**{k: r.get(k) for k in keep}, "plants": [{k: p.get(k) for k in ("id", "n", "class", "ayah", "status", "reasons", "llr")} for p in r.get("plants", [])],
-                        "flagged": [a["key"] for a in r.get("ayahs", []) if a.get("flag")]} for r in results]}
+                        "flagged": [a["key"] for a in r.get("ayahs", []) if a.get("flag")],
+                        **({"fix": {k: r["fix"].get(k) for k in ("base", "from", "to", "joinsS", "gainDb")}} if r.get("fix") else {})} for r in results]}
     write_atomic(root / "index.json", R.dumps(index))
     vol.commit()
     return {"takes": len(results), "current": len(cur), "sessions": len(sessions), "reviewItems": sum(map(len, items))}
@@ -363,17 +430,21 @@ def join(base: str, name: str) -> dict:
 
 
 @app.function(image=cpu_image, volumes={VOL: vol}, memory=4096, timeout=20 * 60)
-def test_audio(script: dict, as_written: bool, read_id: str = "") -> bytes:
+def test_audio(script: dict, as_written: bool, read_id: str = "", written: list[str] = (), ayahs: list[str] | None = None,
+               ayah_gaps: bool = False, linked: list[str] = (), lead_s: float = 1.0) -> bytes:
     """A synthetic take of `script` (a passage of Al-Mursalat) cut from an mp3quran source, as webm/opus: each run of
     consecutive words is one continuous cut; scripted substitutes, additions, slips and retakes are the reciter's own
     words from elsewhere in the surah; omitted words are cut out. `as_written` ignores the plants (a take that
-    doesn't follow the script)."""
+    doesn't follow the script), `written` only those plants. `ayahs` [from, to]: only those ayahs (a fix's patch).
+    `ayah_gaps`: a pause of silence at every ayah end but before the ayahs in `linked`, which keep the source's own
+    pause; `lead_s` of silence first."""
     import subprocess
     import tempfile
     import wave
 
     import numpy as np
 
+    import lab_recordings_core as R
     import lab_sources as L
 
     vol.reload()
@@ -387,46 +458,42 @@ def test_audio(script: dict, as_written: bool, read_id: str = "") -> bytes:
     words = {(w["surah"], w["ayah"], w["word"]): w for w in al["words"]}
     order = {k: i for i, k in enumerate(sorted(words))}
     plants = {pl["id"]: pl for pl in script["plants"]}
-    segs = []  # (source word index or None, start, end)
-    for it in script["said"]:
+    as_said = lambda pid: not as_written and pid not in written
+    keep, unit = set(R.fix_items(script, *ayahs)) if ayahs else None, R.said_ayahs(script)
+    segs = []  # (source word index or None, start, end, ayah)
+    for i, it in enumerate(script["said"]):
         role = it["role"]
-        if role in ("istiadha", "closing"):  # the source has neither; the take tests dropping them
+        if role in ("istiadha", "closing") or keep is not None and i not in keep:  # the source has neither; the take tests dropping them
             continue
         if role == "basmala":
             b = al.get("basmala")
             if b and b.get("present"):
-                segs.append((None, b["startS"], b["endS"]))
+                segs.append((None, b["startS"], b["endS"], unit[i]))
             continue
-        if as_written and role in ("added", "slip"):
+        if role in ("added", "slip") and not as_said(it["plant"]):
             continue
-        if as_written and role == "retake":
-            pl = plants[it["plant"]]
-            if it["at"] != pl["location"]:
-                continue
-        if role in ("wrong", "added", "slip") and not as_written:
-            at = plants[it["plant"]]["saidFrom"]
-        else:
-            at = it["at"]
+        if role == "retake" and not as_said(it["plant"]) and it["at"] != plants[it["plant"]]["location"]:
+            continue
+        at = plants[it["plant"]]["saidFrom"] if role in ("wrong", "added", "slip") and as_said(it["plant"]) else it["at"]
         k = (at["surah"], at["ayah"], at["word"])
         if k not in words:
             raise ValueError(f"reader {p.parent.name} has no timing for {k}")
-        segs.append((order[k], words[k]["startS"], words[k]["endS"]))
-    if as_written:
-        for pl in script["plants"]:
-            if pl["class"] == "omitted_word":
-                loc = pl["location"]
-                k = (loc["surah"], loc["ayah"], loc["word"])
-                j = next(i for i, s in enumerate(segs) if s[0] == order[k] + 1)
-                segs.insert(j, (order[k], words[k]["startS"], words[k]["endS"]))
+        segs.append((order[k], words[k]["startS"], words[k]["endS"], unit[i]))
+    for pl in script["plants"]:
+        if pl["class"] == "omitted_word" and not as_said(pl["id"]) and (keep is None or pl["ayah"] in {unit[i] for i in keep}):
+            loc = pl["location"]
+            k = (loc["surah"], loc["ayah"], loc["word"])
+            j = next(i for i, s in enumerate(segs) if s[0] == order[k] + 1)
+            segs.insert(j, (order[k], words[k]["startS"], words[k]["endS"], pl["ayah"]))
     runs = []
     for s in segs:
-        if runs and s[0] is not None and runs[-1][0] is not None and s[0] == runs[-1][0] + 1:
-            runs[-1] = (s[0], runs[-1][1], s[2])
+        if runs and s[0] is not None and runs[-1][0] is not None and s[0] == runs[-1][0] + 1 and not (ayah_gaps and s[3] != runs[-1][3] and s[3] not in linked):
+            runs[-1] = (s[0], runs[-1][1], s[2], s[3])
         else:
             runs.append(s)
     gap = np.zeros(int(0.35 * L.SR), dtype="<i2")
-    parts = [np.zeros(int(1.0 * L.SR), dtype="<i2")]
-    for _, a, b in runs:
+    parts = [np.zeros(int(lead_s * L.SR), dtype="<i2")]
+    for _, a, b, _ in runs:
         parts += [x[int(a * L.SR) : int(b * L.SR)], gap]
     parts.append(np.zeros(int(1.0 * L.SR), dtype="<i2"))
     y = np.concatenate(parts)
@@ -468,6 +535,18 @@ def main(action: str, file: str = "", speaker: str = "", script: str = "", take:
                 p = d / f"{s['id']}{'-as-written' if written else ''}.webm"
                 p.write_bytes(test_audio.remote(s, written, read_id))
                 print(f"{p} ({p.stat().st_size // 1024} KB)")
+    elif action == "test-fix":
+        # Fixing a passage (rec-test-77): a take with mistake 1 (77:3) read as written and 77:13 run into 77:14, then patches.
+        s = next(x for x in json.loads(Path(file).read_text())["scripts"] if x["id"] == "rec-test-77")
+        d = Path(out or "/tmp/lab-recordings-fix")
+        d.mkdir(parents=True, exist_ok=True)
+        todo = {"take": dict(written=["m1"], linked=["77:14"]), "fix-77-3": dict(ayahs=["77:3", "77:3"]),
+                "fix-77-3-no-lead": dict(ayahs=["77:3", "77:3"], lead_s=0.0), "fix-77-14": dict(ayahs=["77:14", "77:14"]),
+                "fix-77-13-14": dict(ayahs=["77:13", "77:14"])}
+        for k, kw in todo.items():
+            p = d / f"{k}.webm"
+            p.write_bytes(test_audio.remote(s, False, read_id, ayah_gaps=True, **kw))
+            print(f"{p} ({p.stat().st_size // 1024} KB)")
     elif action == "cleanup":
         if not speaker:
             raise SystemExit("--speaker is required")

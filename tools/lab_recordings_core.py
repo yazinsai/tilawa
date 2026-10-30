@@ -6,10 +6,12 @@ tilawa-lab volume, under /lab/data/recordings/:
     scripts/<batch>.json                    script batches (tools/lab_scripts.py)
     <speaker>/<script>/take-<n>.<ext>       the upload as the browser recorded it (webm, mp4, ogg or wav)
     <speaker>/<script>/take-<n>.json        upload metadata (speaker, script id/version/sha, device, time)
-    <speaker>/<script>/take-<n>.result.json the checks and the verdict (ok, listen, redo)
+    <speaker>/<script>/take-<n>.result.json the checks and the verdict (ok, listen, redo; refused for a fix that can't be joined)
+    <speaker>/<script>/take-<n>.patch.<ext> a fix: the ayahs recorded again; take-<n>.wav is then the base take with it joined in
     sessions/<id>.phone.wav                 the take as 16 kHz mono PCM16 (the test set's `phone` audio)
     sessions/<id>.json                      the take's BenchSession; <id>.teacher.phone.evidence.json and
                                             <id>.checks.json (the WAV's sha256) beside it
+    sessions/<id>-patch.phone.wav           a fix's patch as 16 kHz WAV, and its <id>-patch.teacher.phone.evidence.json
     review/takes.json                       the spot-check queue (ticket 06 format)
     manifest-v1.json                        accepted takes, shaped like a test set manifest
 
@@ -29,6 +31,7 @@ EXTS = {"audio/webm": "webm", "audio/ogg": "ogg", "audio/mp4": "mp4", "audio/mpe
 MAX_UPLOAD = 200 * 1024 * 1024
 RESERVED = {"scripts", "sessions", "review"}  # directories under recordings/ that aren't speakers
 TAKE = re.compile(r"^take-(\d+)\.(webm|ogg|mp4|mp3|wav|aac)$")
+TAKE_ANY = re.compile(r"^take-(\d+)\.")  # any file of a take: a fix holds its number from upload, before its audio is composed
 LLR_MIN = 3.0  # nats: the teacher must prefer what the script says was said by this much (lab_checks.LLR_MIN)
 LOCAL_PER_MAX = 0.25
 AYAH_PER_MAX = 0.15  # an ayah the teacher hears this differently from the script holds an unscripted change (lab_sources.MAX_PER)
@@ -63,7 +66,7 @@ def take_dir(speaker: str, script: str) -> str:
 
 
 def next_take(names: list[str]) -> int:
-    return max((int(m[1]) for n in names if (m := TAKE.match(n))), default=0) + 1
+    return max((int(m[1]) for n in names if (m := TAKE_ANY.match(n))), default=0) + 1
 
 
 def take_files(speaker: str, script: str, n: int, ext: str) -> dict:
@@ -77,17 +80,22 @@ def session_id(speaker: str, script: str, n: int) -> str:
     return f"rec-{speaker}-{script}-t{n}"
 
 
-def take_meta(form: dict, script: dict, n: int, ext: str, at: str, size: int) -> dict:
-    """The upload's metadata record from the page's form fields, checked against the script it names."""
+def take_meta(form: dict, script: dict, n: int, ext: str, at: str, size: int, fix: dict | None = None) -> dict:
+    """The upload's metadata record from the page's form fields, checked against the script it names. A fix
+    (`fix_request`) uploads only its patch (`ext`); the take's own audio is composed as WAV, and its resume points
+    (`resumesS`, `joinsS`) are filled in on the composed clock when it is joined."""
     speaker = safe(form.get("speaker", ""), "speaker")
     if form.get("scriptVersion") not in (None, "", str(script["version"])) or form.get("scriptSha") not in (None, "", script["sha"]):
         raise ValueError(f"the page has an old copy of {script['id']}; reload it")
     clip = lambda k, m=200: str(form.get(k) or "")[:m]
     num = lambda k: float(form[k]) if str(form.get(k) or "").replace(".", "", 1).isdigit() else None
-    return {"version": 1, "speaker": speaker, "script": script["id"], "scriptVersion": script["version"], "scriptSha": script["sha"],
-            "batch": form.get("batch") or None, "take": n, "ext": ext, "bytes": size, "mime": clip("mime", 80), "device": clip("device"),
-            "userAgent": clip("userAgent", 300), "trackSettings": clip("trackSettings", 500), "recordedAt": clip("recordedAt", 40) or at,
-            "uploadedAt": at, "clientDurationS": num("durationS"), "resumesS": resumes(form.get("resumesS")), "note": clip("note", 2000)}
+    out = {"version": 1, "speaker": speaker, "script": script["id"], "scriptVersion": script["version"], "scriptSha": script["sha"],
+           "batch": form.get("batch") or None, "take": n, "ext": ext, "bytes": size, "mime": clip("mime", 80), "device": clip("device"),
+           "userAgent": clip("userAgent", 300), "trackSettings": clip("trackSettings", 500), "recordedAt": clip("recordedAt", 40) or at,
+           "uploadedAt": at, "clientDurationS": num("durationS"), "resumesS": resumes(form.get("resumesS")), "note": clip("note", 2000)}
+    if fix:
+        out |= {"ext": "wav", "resumesS": [], "fix": {**fix, "patch": f"take-{n}.patch.{ext}", "patchExt": ext, "resumesS": out["resumesS"]}}
+    return out
 
 
 def resumes(raw) -> list[float]:
@@ -106,8 +114,9 @@ def items(script: dict, drop: set[int] | None = None) -> list[dict]:
     return [dict(x, i=i) for i, x in enumerate(script["said"]) if not (drop and i in drop)]
 
 
-def plant_window(its: list[dict], plant: dict) -> tuple[int, int, list[int]] | None:
-    """(item before, item after, the plant's own items) for one plant; an omission has no items of its own."""
+def plant_window(its: list[dict], plant: dict, open_ends: bool = False) -> tuple[int | None, int | None, list[int]] | None:
+    """(item before, item after, the plant's own items) for one plant; an omission has no items of its own. With
+    `open_ends` (a fix's patch, which starts and ends inside the script) a side past the ends is None."""
     mine = [k for k, it in enumerate(its) if it.get("plant") == plant["id"]]
     if mine:
         lo, hi = mine[0] - 1, mine[-1] + 1
@@ -118,6 +127,9 @@ def plant_window(its: list[dict], plant: dict) -> tuple[int, int, list[int]] | N
         if nxt is None:
             return None
         lo, hi = nxt - 1, nxt
+    if open_ends:
+        lo, hi = (lo if lo >= 0 else None), (hi if hi < len(its) else None)
+        return (lo, hi, mine) if mine or lo is not None else None
     if lo < 0 or hi >= len(its):
         return None
     return lo, hi, mine
@@ -206,25 +218,29 @@ def check_take(script: dict, ev: dict, ref: dict) -> dict:
     coverage = sum(t["endS"] > t["startS"] for t in timed) / max(1, len(timed))
     plants = []
     for p in script["plants"]:
-        w = plant_window(timed, p)
+        w = plant_window(timed, p, open_ends="fix" in script)
         out = {"id": p["id"], "n": p["n"], "class": p["class"], "ayah": p["ayah"], "location": p["location"]}
         if w is None:
             plants.append({**out, "status": "unsure", "reasons": ["no scripted word on both sides of it"]})
             continue
         lo, hi, mine = w
-        prev, nxt = timed[lo], timed[hi]
+        prev, nxt = timed[lo] if lo is not None else None, timed[hi] if hi is not None else None
         # A self-correction is the slip and the words said again against the word said once, as written.
         said_mid, orig_mid = "".join(timed[k]["phonemes"] for k in mine), original_phonemes(script, p, words)
-        h_said, h_orig = prev["phonemes"] + said_mid + nxt["phonemes"], prev["phonemes"] + orig_mid + nxt["phonemes"]
-        f0, f1 = max(0, math.floor((prev["startS"] - PAD_S) / fs)), min(len(lp), math.ceil((nxt["endS"] + PAD_S) / fs))
+        before, after = prev["phonemes"] if prev else "", nxt["phonemes"] if nxt else ""
+        h_said, h_orig = before + said_mid + after, before + orig_mid + after
+        a = prev["startS"] if prev else timed[mine[0]]["startS"]
+        b = nxt["endS"] if nxt else timed[mine[-1]]["endS"] if mine else prev["endS"]
+        f0, f1 = max(0, math.floor((a - PAD_S) / fs)), min(len(lp), math.ceil((b + PAD_S) / fs))
         llr = min(C.LLR_CAP, C.score(lp, f0, f1, h_said) - C.score(lp, f0, f1, h_orig))
         g = canon(C.greedy_in(ev, f0, f1))
         d_said, d_orig = Levenshtein.distance(g, canon(h_said)), Levenshtein.distance(g, canon(h_orig))
         local = d_said / max(1, len(canon(h_said)))
         status, reasons = decide(float(llr), d_said, d_orig, local)
         plants.append({**out, "status": status, "reasons": reasons, "llr": round(float(llr), 2), "editsSaid": d_said, "editsOriginal": d_orig,
-                       "localPer": round(local, 3), "window": [round(f0 * fs, 3), round(f1 * fs, 3)], "startS": timed[mine[0]]["startS"] if mine else prev["endS"],
-                       "endS": timed[mine[-1]]["endS"] if mine else nxt["startS"], "greedy": g, "said": canon(h_said), "original": canon(h_orig)})
+                       "localPer": round(local, 3), "window": [round(f0 * fs, 3), round(f1 * fs, 3)],
+                       "startS": timed[mine[0]]["startS"] if mine else prev["endS"], "endS": timed[mine[-1]]["endS"] if mine else nxt["startS"] if nxt else prev["endS"],
+                       "greedy": g, "said": canon(h_said), "original": canon(h_orig)})
     ayahs = []
     groups = []
     for k, t in enumerate(timed):
@@ -248,6 +264,260 @@ def check_take(script: dict, ev: dict, ref: dict) -> dict:
             "why": why, "coverage": round(coverage, 3), "heard": round(heard, 3), "dropped": sorted(drop), "plants": plants, "ayahs": ayahs, "said": timed,
             "thresholds": {"llrMin": LLR_MIN, "localPerMax": LOCAL_PER_MAX, "ayahPerMax": AYAH_PER_MAX, "basmalaPerMax": BASMALA_PER_MAX,
                            "coverageMin": COVERAGE_MIN, "heardMin": HEARD_MIN, "redoFlaggedAyahs": REDO_FLAGGED_AYAHS}}
+
+
+# ---- fixing a passage ---------------------------------------------------------------------------------------------
+# A take that fails in a few ayahs is fixed by recording only those ayahs again (a patch of whole ayahs A..B). The
+# patch is checked against what the script says is said in A..B, then joined into the take: the take up to its pause
+# before A, the patch, the take from its pause after B. Every join needs measured silence on both sides, by the
+# lab_sessions weak-onset rule: JOIN_SILENCE_S of 10 ms frames below the room tone + 3 dB, or 30 dB under the speech
+# level where the room is quieter than that. The cut and its crossfade sit inside that silence. The joined audio is a
+# new take, checked again end to end like any other.
+
+FIX_VERDICTS = ("redo", "listen")  # takes the page offers to fix
+FIX_MERGE = 2  # failed ayahs at most this many ayahs apart are one passage to record again
+JOIN_SILENCE_S = 0.08  # lab_sessions.ONSET_SILENCE_S
+JOIN_KEEP_S = 0.4  # at most this much of each side's pause is kept at a join
+JOIN_XFADE_S = 0.02
+JOIN_REACH_S = (0.1, 0.05)  # a pause is looked for this far into the aligned word before it and the word after it
+FIX_GAIN_MAX_DB = 6.0  # a patch this much louder or quieter than its take was recorded differently
+PATCH_S = (1.0, 15 * 60.0)
+
+
+class Refused(ValueError):
+    """A fix that can't be joined: `why` for the page, `fix` what was found on the way."""
+
+    def __init__(self, why: list[str], fix: dict | None = None):
+        super().__init__("; ".join(why))
+        self.why, self.fix = why, fix or {}
+
+
+def ayah_keys(script: dict) -> list[str]:
+    return [a["key"] for a in script["ayahs"] if not a.get("basmala")]
+
+
+def passage(a: str, b: str) -> str:
+    return a if a == b else f"{a}–{b}"
+
+
+def said_ayahs(script: dict) -> list[str | None]:
+    """The ayah each said item belongs to: its word's; an added word's and a basmala's, the next word's; none for the
+    isti'adha and the closing."""
+    out, nxt = [None] * len(script["said"]), None
+    for i in range(len(script["said"]) - 1, -1, -1):
+        x = script["said"][i]
+        if x["at"]:
+            nxt = f"{x['at']['surah']}:{x['at']['ayah']}"
+            out[i] = nxt
+        elif x["role"] in ("added", "basmala"):
+            out[i] = nxt
+    return out
+
+
+def fix_items(script: dict, a: str, b: str) -> list[int]:
+    """Indexes of the said items of ayahs a..b."""
+    keys = ayah_keys(script)
+    if a not in keys or b not in keys or keys.index(a) > keys.index(b):
+        raise ValueError(f"{a}–{b} isn't a passage of {script['id']}")
+    want = set(keys[keys.index(a) : keys.index(b) + 1])
+    return [i for i, k in enumerate(said_ayahs(script)) if k in want]
+
+
+def failed_ayahs(script: dict, result: dict) -> dict[str, list[str]]:
+    """Ayah -> why the take fails there, in script order: planted mistakes not heard or unsure, an ayah that sounds
+    different from the script, words the alignment didn't find."""
+    why = defaultdict(list)
+    for p in result.get("plants", []):
+        if p["status"] != "performed":
+            why[p["ayah"]].append(f"mistake {p['n']} {'not heard' if p['status'] == 'not_performed' else 'not sure'}")
+    for a in result.get("ayahs", []):
+        if a.get("flag") and a["key"]:
+            why[a["key"]].append("sounds different from the script")
+    for k, n in Counter(f"{t['at']['surah']}:{t['at']['ayah']}" for t in result.get("said", []) if t["at"] and t["endS"] <= t["startS"]).items():
+        why[k].append(f"{n} word{'s' if n > 1 else ''} not found")
+    order = {k: i for i, k in enumerate(ayah_keys(script))}
+    return {k: why[k] for k in sorted(why, key=lambda k: order.get(k, -1)) if k in order}
+
+
+def fix_ranges(script: dict, result: dict) -> list[dict]:
+    """The passages to record again in a take that is redo or listen, {from, to, ayahs: {key: why}}: its failed ayahs,
+    those at most FIX_MERGE ayahs apart in one passage. None for a take that didn't align (record it all again)."""
+    if result.get("verdict") not in FIX_VERDICTS or not result.get("aligned"):
+        return []
+    keys, out = ayah_keys(script), []
+    for k, why in failed_ayahs(script, result).items():
+        if out and keys.index(k) - keys.index(out[-1]["to"]) <= FIX_MERGE:
+            out[-1]["to"] = k
+        else:
+            out.append({"from": k, "to": k, "ayahs": {}})
+        out[-1]["ayahs"][k] = why
+    return out
+
+
+def fix_request(script: dict, base_meta: dict | None, base_result: dict | None, a: str, b: str) -> dict:
+    """A fix of take `base_meta` for ayahs a..b, when that take can take one: checked, aligned, this script version."""
+    if not base_meta:
+        raise Refused(["the take to fix doesn't exist"])
+    n = base_meta["take"]
+    if not base_result or not base_result.get("aligned") or base_result.get("verdict") in (None, "error", "refused"):
+        raise Refused([f"take {n} has no checked alignment to join into: record the whole take again"])
+    if base_meta["scriptSha"] != script["sha"]:
+        raise Refused([f"take {n} was recorded from an older version of {script['id']}: record the whole take again"])
+    try:
+        fix_items(script, a, b)
+    except ValueError as e:
+        raise Refused([str(e)])
+    return {"base": n, "from": a, "to": b}
+
+
+def fix_script(script: dict, a: str, b: str) -> dict:
+    """What a fix of ayahs a..b records, as a script for `check_take`: those ayahs' said items (`src`: the index in
+    the whole script) and plants."""
+    idx = fix_items(script, a, b)
+    keys = {said_ayahs(script)[i] for i in idx}
+    return {**{k: v for k, v in script.items() if k not in ("said", "plants", "labels", "ayahs")}, "fix": [a, b],
+            "said": [dict(script["said"][i], src=i) for i in idx], "plants": [p for p in script["plants"] if p["ayah"] in keys]}
+
+
+def patch_summary(r: dict) -> dict:
+    """A patch's own check, as the page shows it."""
+    return {**{k: r.get(k) for k in ("verdict", "why", "coverage", "heard", "dropped", "durationS")},
+            "plants": [{k: p.get(k) for k in ("id", "n", "class", "ayah", "status", "reasons", "llr")} for p in r.get("plants", [])],
+            "flagged": [a["key"] for a in r.get("ayahs", []) if a.get("flag")]}
+
+
+def speech_level(db, lo: int = 0, hi: int | None = None) -> float:
+    """dB of 10 ms frames lo..hi (`lab_sessions.frame_db`): the energy mean of the loudest half, the speech level
+    (as lab_sessions.active_rms)."""
+    xs = sorted(float(v) for v in db[lo:hi])
+    top = xs[len(xs) // 2 :]
+    return 10 * math.log10(sum(10 ** (v / 10) for v in top) / len(top)) if top else -100.0
+
+
+def quiet_floor(db) -> float:
+    """The dB a 10 ms frame of this recording is silent at or below: its room tone + 3 dB, or 30 dB under its speech
+    level where the room is quieter (lab_sessions.onset_floor); never less than a pause's 12 dB under the speech
+    (lab_sessions.PAUSE_DB), so a noisy room has no silence rather than silence everywhere."""
+    import lab_sessions as S
+
+    lvl = speech_level(db)
+    return lvl + min(S.onset_floor(S.room_tone(db), lvl), S.PAUSE_DB)
+
+
+def pauses(db, floor: float, lo: float, hi: float) -> list[tuple[float, float]]:
+    """Runs of silent 10 ms frames (at most `floor` dB), at least JOIN_SILENCE_S long, inside lo..hi seconds."""
+    i0, i1 = max(0, math.ceil(lo * 100 - 1e-6)), min(len(db), math.floor(hi * 100 + 1e-6))
+    out, start = [], None
+    for i in range(i0, i1 + 1):
+        quiet = i < i1 and db[i] <= floor
+        if quiet and start is None:
+            start = i
+        elif not quiet and start is not None:
+            if (i - start) / 100 >= JOIN_SILENCE_S - 1e-9:
+                out.append((start / 100, i / 100))
+            start = None
+    return out
+
+
+def cut_in(run: tuple[float, float], keep: str) -> float:
+    """Where to cut in a pause: its middle, keeping at most JOIN_KEEP_S of it beside the speech kept (`keep`: the
+    speech `before` the pause or `after` it), the crossfade inside the pause."""
+    a, b = run
+    h = JOIN_XFADE_S / 2
+    t = min((a + b) / 2, a + JOIN_KEEP_S) if keep == "before" else max((a + b) / 2, b - JOIN_KEEP_S)
+    return round(min(max(t, a + h), b - h), 3)
+
+
+def plan_fix(script: dict, fix: dict, take_said: list[dict], take_s: float, take_db, patch_said: list[dict], patch_s: float, patch_db) -> dict:
+    """Where a patch joins its take. `fix`: {base, from, to}; `*_said`: timed items from `check_take`; `*_db`:
+    `lab_sessions.frame_db` of each recording. The joins are the take's pause before ayah `from` and after `to`, and
+    the patch's silence before its first word and after its last; each must be measured silence (`pauses`), else the
+    fix is refused with the passage to record instead (`suggest`, None for the whole take). Then the patch's speech
+    level against the take's: the gain that matches it, refused past FIX_GAIN_MAX_DB."""
+    a, b, n = fix["from"], fix["to"], fix["base"]
+    keys, idx = ayah_keys(script), fix_items(script, a, b)
+    ka, kb = keys.index(a), keys.index(b)
+    heard = [t for t in take_said if t["endS"] > t["startS"]]
+    prev = next((t for t in reversed(heard) if t["item"] < idx[0]), None)
+    nxt = next((t for t in heard if t["item"] > idx[-1]), None)
+    inside = [t for t in heard if idx[0] <= t["item"] <= idx[-1]]
+    first = inside[0]["startS"] if inside else nxt["startS"] if nxt else take_s
+    last = inside[-1]["endS"] if inside else prev["endS"] if prev else 0.0
+    r0, r1 = JOIN_REACH_S
+    tf, pf = quiet_floor(take_db), quiet_floor(patch_db)
+    before = pauses(take_db, tf, prev["endS"] - r0 if prev else 0.0, first + r1)
+    after = pauses(take_db, tf, last - r0, nxt["startS"] + r1 if nxt else take_s)
+    ph = [t for t in patch_said if t["endS"] > t["startS"]]
+    p_before = pauses(patch_db, pf, 0.0, ph[0]["startS"] + r1) if ph else []
+    p_after = pauses(patch_db, pf, ph[-1]["endS"] - r0, patch_s) if ph else []
+    out = {"floorsDb": {"take": round(tf, 1), "patch": round(pf, 1)}}
+    why, suggest = [], {"from": a, "to": b}
+    if not before:
+        why.append(f"no clean pause before {a} in take {n}: " + (f"record again from {keys[ka - 1]}" if ka else "record the whole take again"))
+        suggest["from"] = keys[ka - 1] if ka else None
+    if not after:
+        why.append(f"no clean pause after {b} in take {n}: " + (f"record again up to {keys[kb + 1]}" if kb + 1 < len(keys) else "record the whole take again"))
+        suggest["to"] = keys[kb + 1] if kb + 1 < len(keys) else None
+    if not ph:
+        why.append(f"none of {passage(a, b)} was heard in your fix")
+    else:
+        if not p_before:
+            why.append(f"no silence before {a} at the start of your fix: after you start recording, wait a moment before you recite")
+        if not p_after:
+            why.append(f"no silence after {b} at the end of your fix: pause for a moment before you stop")
+    if why:
+        return {**out, "ok": False, "why": why, "suggest": None if None in suggest.values() else suggest}
+    c1, c2 = cut_in(before[0], "before"), cut_in(after[-1], "after")
+    p0, p1 = cut_in(p_before[-1], "after"), cut_in(p_after[0], "before")
+    lt, lp = speech_level(take_db), speech_level(patch_db, round(p0 * 100), round(p1 * 100))
+    gain = round(lt - lp, 1)
+    out |= {"gainDb": gain, "levelsDb": {"take": round(lt, 1), "patch": round(lp, 1)}}
+    if abs(gain) > FIX_GAIN_MAX_DB:
+        return {**out, "ok": False, "suggest": suggest,
+                "why": [f"your fix is {abs(gain):.1f} dB {'quieter' if gain > 0 else 'louder'} than take {n}: record it where you recorded the take, "
+                        "as far from the microphone, or record the whole take again"]}
+    if c1 > c2 or p1 - p0 < 2 * JOIN_XFADE_S:
+        return {**out, "ok": False, "suggest": None, "why": [f"the pauses found don't leave a passage to replace ({c1}–{c2} s in take {n})"]}
+    span = round(p1 - p0, 3)
+    joins = [{"atS": c1, "before": a, "takeS": c1, "patchS": p0, "pauseS": round(c1 - before[0][0] + p_before[-1][1] - p0, 2),
+              "silenceS": {"take": round(before[0][1] - before[0][0], 2), "patch": round(p_before[-1][1] - p_before[-1][0], 2)}},
+             {"atS": round(c1 + span, 3), "after": b, "takeS": c2, "patchS": p1, "pauseS": round(p1 - p_after[0][0] + after[-1][1] - c2, 2),
+              "silenceS": {"take": round(after[-1][1] - after[-1][0], 2), "patch": round(p_after[0][1] - p_after[0][0], 2)}}]
+    return {**out, "ok": True, "why": [], "take": [c1, c2], "patch": [p0, p1], "joins": joins, "joinsS": [j["atS"] for j in joins],
+            "durationS": round(c1 + span + take_s - c2, 3)}
+
+
+def fix_resumes(base: list[float], patch: list[float], plan: dict) -> list[float]:
+    """The composed take's resume points on its own clock: the base take's outside the passage replaced, the patch's
+    inside the part kept, and the two joins."""
+    (c1, c2), (p0, p1) = plan["take"], plan["patch"]
+    shift = c1 + (p1 - p0) - c2
+    out = [t for t in base if t < c1] + [t + shift for t in base if t > c2] + [c1 + t - p0 for t in patch if p0 < t < p1] + plan["joinsS"]
+    return sorted({round(t, 2) for t in out})
+
+
+def stitch(take, patch, plan: dict, sr: int = 16_000):
+    """The composed audio (float32 at `sr`): `take` up to the first join, `patch` times its gain, `take` from the
+    second join, with a JOIN_XFADE_S crossfade centred on each join (inside the pauses)."""
+    import numpy as np
+
+    h = round(JOIN_XFADE_S * sr / 2)
+    c1, c2 = (round(t * sr) for t in plan["take"])
+    p0, p1 = (round(t * sr) for t in plan["patch"])
+    if not (h <= c1 <= c2 <= len(take) - h and h <= p0 and p0 + 2 * h <= p1 <= len(patch) - h):
+        raise ValueError(f"joins out of range: take {c1}..{c2} of {len(take)}, patch {p0}..{p1} of {len(patch)}")
+    x = np.asarray(take, dtype=np.float32)
+    y = np.asarray(patch, dtype=np.float32)[p0 - h : p1 + h] * np.float32(10 ** (plan["gainDb"] / 20))
+    up = (np.arange(2 * h, dtype=np.float32) + 0.5) / (2 * h)
+    out = np.concatenate([x[: c1 - h], x[c1 - h : c1 + h] * (1 - up) + y[: 2 * h] * up, y[2 * h : len(y) - 2 * h],
+                          y[len(y) - 2 * h :] * (1 - up) + x[c2 - h : c2 + h] * up, x[c2 + h :]])
+    return np.clip(out, -1.0, 1.0)
+
+
+def fix_files(speaker: str, script: str, n: int, ext: str) -> dict:
+    d, sid = f"{take_dir(speaker, script)}/take-{n}", session_id(speaker, script, n)
+    return {"patch": f"{d}.patch.{ext}", "patchWav": f"{ROOT}/sessions/{sid}-patch.phone.wav",
+            "patchEvidence": f"{ROOT}/sessions/{sid}-patch.teacher.phone.evidence.json"}
 
 
 # ---- labels -------------------------------------------------------------------------------------------------------
@@ -322,7 +592,9 @@ def session(script: dict, result: dict, meta: dict, audio: str) -> dict:
             "meta": {"testSet": TEST_SET, "script": script["id"], "scriptVersion": script["version"], "scriptSha": script["sha"], "take": meta["take"],
                      "speaker": meta["speaker"], "device": meta.get("device"), "recordedAt": meta.get("recordedAt"), "upload": meta.get("upload"),
                      "verdict": result["verdict"], "clean": not events, "counts": dict(sorted(Counter(p["class"] for p in script["plants"]).items())),
-                     "formsOtherAyah": sum(e["forms_other_ayah"] for e in events), "range": script["range"], "title": script["title"]}}
+                     "formsOtherAyah": sum(e["forms_other_ayah"] for e in events), "range": script["range"], "title": script["title"],
+                     "resumesS": meta.get("resumesS") or [],
+                     **({"joinsS": meta.get("joinsS", []), "fix": {k: meta["fix"][k] for k in ("base", "from", "to")}} if meta.get("fix") else {})}}
 
 
 def validate(s: dict, ref_words: set[tuple[int, int, int]]) -> list[str]:
@@ -376,7 +648,7 @@ def _window(s: dict, a: float, b: float, pad: float = 2.5) -> tuple[float, float
 
 def review_items(s: dict, result: dict, script: dict, wav: str, seed: int = SEED) -> list[dict]:
     """One take's spot check: every plant the teacher wasn't sure of, a seeded few it heard, one self-correction, every
-    ayah that sounds different from the script, and two seeded clean windows."""
+    ayah that sounds different from the script, every join of a fixed passage, and two seeded clean windows."""
     rng = random.Random(f"{seed}:{s['id']}")
     by = {p["id"]: p for p in script["plants"]}
     meta = s["meta"]
@@ -409,8 +681,14 @@ def review_items(s: dict, result: dict, script: dict, wav: str, seed: int = SEED
             out.append({"id": f"{s['id']}-ayah-{a['key'].replace(':', '-')}", "kind": "case", "title": "Sounds different from the script",
                         "audio": {"path": wav, "startS": x, "endS": y}, "text": _text(s, x, y), "label": {"type": "clean"},
                         "context": f"{a['key']} · {ctx(a['startS'])} · teacher PER {a['per']:.2f}: an unscripted slip, or a word said differently?"})
+    fx = meta.get("fix")
+    for k, t in enumerate(meta.get("joinsS", [])):
+        x, y = _window(s, t, t)
+        out.append({"id": f"{s['id']}-join-{k + 1}", "kind": "case", "title": "Join of a fixed passage · should sound like one take",
+                    "audio": {"path": wav, "startS": x, "endS": y}, "text": _text(s, x, y), "label": {"type": "clean"},
+                    "context": f"{ctx(t)} · take {fx['base']} with {fx['from']}–{fx['to']} recorded again, joined {'before' if k == 0 else 'after'} it"})
     busy = [(e["startS"] - 3, e["endS"] + 3) for e in s["events"]] + [(n["startS"] - 3, n["endS"] + 3) for n in s["nonErrors"]]
-    busy += [(a["startS"], a["endS"]) for a in result["ayahs"] if a["flag"]]
+    busy += [(a["startS"], a["endS"]) for a in result["ayahs"] if a["flag"]] + [(t - 3, t + 3) for t in meta.get("joinsS", [])]
     starts, t = [], 5.0
     while t + CLEAN_WINDOW_S < s["durationS"] - 2:
         if not any(a < t + CLEAN_WINDOW_S and t < b for a, b in busy) and _text(s, t, t + CLEAN_WINDOW_S):
