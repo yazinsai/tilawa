@@ -242,6 +242,16 @@ describe("local-window confirmation", () => {
     expect(check(f, true)).toEqual([]);
   });
 
+  it("wants twice the margin when the decoder was unsure of the changed sounds", () => {
+    // Phone audio: each misheard sound at even odds with blank, the written one unlisted.
+    const f = heard(edits, (j, p) => (word(j) && (p === "س" || p === "م") ? [[p, 0.5], ["", 0.45]] : undefined));
+    let j = 0;
+    const unsure = { ...f, evidence: f.evidence.map((x) => ({ ...x, phonemes: x.phonemes.map((p) => (word(j++) && (p.p === "س" || p.p === "م") ? { ...p, conf: 0.5 } : p)) })) };
+    expect(summary(check(f, true))).toEqual(["confirmed wrong_word 2:255:23"]);
+    expect(summary(check(unsure, false))).toEqual(["confirmed wrong_word 2:255:23"]);
+    expect(check(unsure, true)).toEqual([]);
+  });
+
   it("still confirms a wrong word the audio doesn't support as written", () => {
     expect(summary(check(heard(replaceWord(target, ALIEN), () => undefined), true))).toEqual(["confirmed wrong_word 2:255:23"]);
     expect(summary(check(heard(edits, () => undefined), true))).toEqual(["confirmed wrong_word 2:255:23"]);
@@ -313,10 +323,10 @@ describe("tlog fixtures", () => {
     for (const f of tlog) expect(confirmed(replayChecked(index, f, { phrases }, { phrases, policy: { finaliseFree: false } })), f.id).toEqual([]);
   });
 
-  it("confirm only one error when free recitation finalises at session end", { timeout: 60_000 }, () => {
+  it("confirm no errors when free recitation finalises at session end", { timeout: 60_000 }, () => {
     const found = tlog.flatMap((f) => confirmed(replayChecked(index, f, { phrases }, { phrases })).map((e) => `${f.id} ${e.errorClass} ${key(e.location)}`));
-    // Decoder noise the posteriors back too (فالموريات heard as فمليات), a word before the clip ends.
-    expect(found).toEqual(["tlog-clean-00000-of-00411-232 wrong_word 100:2:1"]);
+    // فالموريات heard as فمليات a word before the clip ends: the posteriors back it, but the decoder was unsure of it.
+    expect(found).toEqual([]);
   });
 });
 
