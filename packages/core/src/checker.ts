@@ -70,6 +70,8 @@ const HELD = 2;
 const MIN_HARD = 2;
 /** Inserted phonemes between two words that make an added word. */
 const MIN_ADDED = 3;
+/** Most phonemes a jump out of the text and straight back can hold to be read as an added word: about two words. */
+const MAX_EXCURSION = 16;
 /** A visit counts as reciting the word once it covers this share of it; less is a cut-off attempt. */
 const MIN_COVERAGE = 0.5;
 /** Matched phonemes past an error's word that make the next word's onset. */
@@ -409,6 +411,45 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   /**
+   * A jump out of the text and straight back to the next word is something said between the two words, read as words
+   * from elsewhere in the window: an added word heard with a sound extra (فَإِنَّ as فَءِننن) costs more to insert than
+   * two jumps to a word like it (فَإِذَا). Its phonemes become insertions before the next word. One that reads either
+   * of the two words again is a repeat or a correction there.
+   */
+  const excursions = (steps: Step[]): Step[] => {
+    const out: Step[] = [];
+    const onRef = (x: Step): x is Extract<Step, { op: "diag" | "del" }> => x.op === "diag" || x.op === "del";
+    let prev: Extract<Step, { op: "diag" | "del" }> | undefined;
+    for (let k = 0; k < steps.length; k++) {
+      const back = steps[k].op === "jump" ? steps.findIndex((x, i) => i > k && x.op === "jump") : -1;
+      const next = back < 0 ? undefined : steps.slice(back + 1).find(onRef);
+      const away = steps.slice(k + 1, back);
+      if (prev && next && !away.some((x) => x.op === "lead")) {
+        const left = index.wordAt(prev.ref);
+        const said = away.flatMap((x) => ((x.op === "diag" || x.op === "ins") && !obs[x.obs].junk ? [x.obs] : []));
+        const home = nextWord(left);
+        if (
+          prev.ref === words[left].end - 1 &&
+          home < words.length &&
+          next.ref === words[home].start &&
+          !away.some((x) => onRef(x) && (index.wordAt(x.ref) === left || index.wordAt(x.ref) === home)) &&
+          said.length >= MIN_ADDED &&
+          said.length <= MAX_EXCURSION &&
+          said.filter((o) => CONSONANTS.has(obs[o].p)).length >= 2
+        ) {
+          out.push(...said.map((o): Step => ({ op: "ins", at: words[home].start, obs: o })));
+          k = back;
+          continue;
+        }
+      }
+      const s = steps[k];
+      if (onRef(s)) prev = s;
+      out.push(s);
+    }
+    return out;
+  };
+
+  /**
    * Mark phrases that end at each phoneme from `from` on: the alignment consumes them for `PHRASE`. Once anchored, a run
    * the window's own text fits at least as well is that text (ءَامِنِينَ, not آمين).
    */
@@ -624,12 +665,22 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       // don't count against that, a garbled word can look like "amin".
       const said = after ? obs.slice(gap.obsFrom, after.obsFrom) : [];
       const expected = words[gap.last].end - words[gap.word].start;
-      if (said.length >= Math.max(MIN_ADDED, expected / 2)) {
+      // Vowels and madd alone aren't the words either: a waqf ending's long vowel (سَلَامَا) can fall in the gap.
+      let voiced = true;
+      for (let k = gap.word; k <= gap.last; k++) if (hasConsonant(k)) voiced = said.some((p) => CONSONANTS.has(p.p));
+      if (voiced && said.length >= Math.max(MIN_ADDED, expected / 2)) {
         if (wrong(scoreGap(gap.word, gap.last, said), gap.last)) {
           issues.set(gap.word, { ...gap, cls: "wrong_word", obsTo: after!.obsFrom, observed: said.map((p) => p.p).join("") });
         }
         gap = null;
         return;
+      }
+      // Too few sounds for all the gap's words can still be its first or last word heard a sound or two off (عِزَاا for
+      // عِزًّا, a jump cutting its visit short): that word was said, and only the rest is omitted.
+      if (voiced && said.length && gap.last > gap.word) {
+        const fits = (wi: number) => said.length >= length(wi) / 2 && !wrong(scoreGap(wi, wi, said));
+        if (fits(gap.word)) gap = { ...gap, word: nextWord(gap.word), obsFrom: after!.obsFrom, obsTo: after!.obsFrom };
+        else if (fits(gap.last)) gap = { ...gap, last: prevWord(gap.last) };
       }
       // Words past the head may still be coming: a gap is an omission once the reciter is past it, or already suspected.
       const was = open.get(gap.word)?.issue.cls;
@@ -689,7 +740,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const evaluate = (out: CheckerEvent[], final: boolean) => {
     if (anchor === null || !obs.length) return;
     setWindow();
-    steps = align();
+    steps = excursions(align());
     const judged = judge(steps);
     if (!judged) return;
     const { issues, head, furthest: reached, right } = judged;

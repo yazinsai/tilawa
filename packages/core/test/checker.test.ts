@@ -184,6 +184,45 @@ describe("skips", () => {
   });
 });
 
+describe("listener noise around omissions and insertions", () => {
+  /** Confirmed errors on `edits` from `start` to `end`, as `class word`. */
+  const errors = (start: WordRef, end: WordRef, edits: (rel: (r: WordRef) => number) => Edit[]) => {
+    const rel = (r: WordRef) => find(r).start - find(start).start;
+    const f = syntheticFixture(index, { id: "c", from: start, to: end, edits: edits(rel), chunkSize: 8 });
+    return confirmed(replayChecked(index, f, { phrases }, { phrases })).map((e) => `${e.errorClass} ${key(e.location)}`);
+  };
+
+  it("finds an added word heard with a sound extra, not words elsewhere it resembles", () => {
+    // ءُجِّلَتْ [فَإِنَّ] لِيَوْمِ heard as فَءِننن: two jumps to فَإِذَا (77:8) cost less than inserting it.
+    expect(errors(w(77, 7, 1), w(77, 15, 3), (rel) => [{ kind: "ins", at: rel(w(77, 13, 1)), text: "فَءِننن" }])).toEqual(["added_word 77:13:1"]);
+  });
+
+  it("omits only the word the heard sounds don't cover when the word before it is heard a sound short", () => {
+    // عِزًّا [كَلَّا] سَيَكْفُرُونَ, heard عِزَاا … فَيَكفُرُونَ.
+    const izza = text(w(19, 81, 8));
+    const edits = (rel: (r: WordRef) => number): Edit[] => [
+      { kind: "del", at: rel(w(19, 81, 8)) + izza.indexOf("زز"), count: 1 },
+      { kind: "del", at: rel(w(19, 82, 1)), count: text(w(19, 82, 1)).length },
+      { kind: "sub", at: rel(w(19, 82, 2)), to: "ف" },
+    ];
+    expect(errors(w(19, 78, 1), w(19, 84, 6), edits)).toEqual(["omitted_word 19:82:1"]);
+  });
+
+  it("doesn't take a waqf ending's long vowel for the omitted word after it", () => {
+    // سَلَامًا [قَالَ] سَلَامٌ, heard سَلَامَا … سَلَام.
+    const salaman = text(w(51, 25, 5));
+    const salamun = text(w(51, 25, 7));
+    expect(salaman.endsWith("َںںں") && salamun.endsWith("ُںںں")).toBe(true);
+    const edits = (rel: (r: WordRef) => number): Edit[] => [
+      { kind: "del", at: rel(w(51, 25, 5)) + salaman.length - 3, count: 3 },
+      { kind: "ins", at: rel(w(51, 25, 6)), text: "اا" },
+      { kind: "del", at: rel(w(51, 25, 6)), count: text(w(51, 25, 6)).length },
+      { kind: "del", at: rel(w(51, 25, 7)) + salamun.length - 4, count: 4 },
+    ];
+    expect(errors(w(51, 24, 1), w(51, 28, 5), edits)).toEqual(["omitted_word 51:25:6"]);
+  });
+});
+
 describe("confirm delay", () => {
   const edits = replaceWord(target, ALIEN);
   const timing = (checker: CheckerOptions) => {
