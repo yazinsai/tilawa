@@ -1,0 +1,128 @@
+{
+ "version": 1,
+ "testSet": "lab-v1",
+ "seed": 20261028,
+ "all": {
+  "sessions": 40,
+  "reciters": 31,
+  "minutes": 186.8,
+  "durationS": [
+   181.9,
+   415.2
+  ],
+  "ayah1": 8,
+  "strict": 6,
+  "clean": 10,
+  "planted": 370,
+  "formsOtherAyah": 30,
+  "plantedPerAyah": 0.37,
+  "classes": {
+   "added_word": 110,
+   "mutashabihat": 15,
+   "omitted_word": 78,
+   "repeat": 16,
+   "restart": 24,
+   "skipped_passage": 53,
+   "wrong_word": 114
+  },
+  "words": 9585
+ },
+ "splits": {
+  "exam": {
+   "sessions": 20,
+   "reciters": 15,
+   "minutes": 94.7,
+   "durationS": [
+    200.7,
+    415.2
+   ],
+   "ayah1": 4,
+   "strict": 3,
+   "clean": 5,
+   "planted": 188,
+   "formsOtherAyah": 14,
+   "plantedPerAyah": 0.372,
+   "classes": {
+    "added_word": 57,
+    "mutashabihat": 8,
+    "omitted_word": 43,
+    "repeat": 8,
+    "restart": 12,
+    "skipped_passage": 21,
+    "wrong_word": 59
+   },
+   "words": 4908
+  },
+  "practice": {
+   "sessions": 20,
+   "reciters": 16,
+   "minutes": 92.1,
+   "durationS": [
+    181.9,
+    391.7
+   ],
+   "ayah1": 4,
+   "strict": 3,
+   "clean": 5,
+   "planted": 182,
+   "formsOtherAyah": 16,
+   "plantedPerAyah": 0.369,
+   "classes": {
+    "added_word": 53,
+    "mutashabihat": 7,
+    "omitted_word": 35,
+    "repeat": 8,
+    "restart": 12,
+    "skipped_passage": 32,
+    "wrong_word": 55
+   },
+   "words": 4677
+  }
+ },
+ "surahs": {
+  "2": 1,
+  "3": 1,
+  "4": 1,
+  "5": 1,
+  "6": 1,
+  "8": 1,
+  "11": 1,
+  "12": 1,
+  "14": 1,
+  "16": 1,
+  "17": 1,
+  "18": 1,
+  "19": 1,
+  "20": 1,
+  "23": 1,
+  "25": 1,
+  "26": 7,
+  "37": 2,
+  "38": 1,
+  "39": 1,
+  "40": 1,
+  "41": 1,
+  "44": 2,
+  "51": 1,
+  "54": 2,
+  "55": 1,
+  "63": 1,
+  "66": 1,
+  "68": 1,
+  "77": 1,
+  "83": 1
+ },
+ "bank": {
+  "sources": {
+   "noise": "obadx/freesound-commercial-50k-noise-only (commercial-use licences), shards 100,101,102,103; the student bank uses shards 0-2",
+   "rir": "EaseZh/rirs_noises (OpenSLR-28) simulated small and medium rooms, minus every RIR in the student bank (tilawa-student/aug/rir.npz)"
+  },
+  "sha256": {
+   "noise": "62eddf5357bf768341db22ecf1769f95b424c7bce54d41c3b1d2e7a3a8d4ade4",
+   "rir": "c6fb31f2b6ebe1b372576b521d5d6839a425526d64d92d9878e4823cb84a2d36"
+  },
+  "noises": 400,
+  "rirs": 200
+ },
+ "reciters": 31
+}

@@ -1,0 +1,610 @@
+{
+ "testSet": "lab-v1.1",
+ "models": {
+  "nemotron": {
+   "id": "nvidia/NVIDIA-Nemotron-3.5-Transcribe-30B-A4B",
+   "revision": "9d8cd6b79bfdd427b6558a5fdbf76fcaf8c75341",
+   "device": "NVIDIA H100 80GB HBM3",
+   "prompt": "Audio transcription. Language: Arabic. Wording: verbatim, including fillers and repetitions. Formatting: punctuation and capitalization. Output: transcript only.",
+   "margin": 2.0,
+   "reading": "LM log-likelihood of the text as the reply to the transcription request, plain spellings (core.plain_candidates against its own label-blind transcript), best spelling per text",
+   "transcriptsReused": 103,
+   "transcriptsNew": 1487
+  },
+  "fastconformer": {
+   "id": "nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0",
+   "revision": "7f32349d952f42a28dce979ba73270aa2bbdfa89",
+   "device": "Tesla T4",
+   "margin": 2.0,
+   "reading": "CTC forced-alignment log-likelihood, diacritised spellings (core.diacritised_candidates against its own label-blind CTC greedy text and RNNT transcript), best spelling per text"
+  }
+ },
+ "counts": {
+  "cases": 1576,
+  "outcomes": {
+   "auto-accepted": 1493,
+   "both-mismatch": 7,
+   "disagree": 50,
+   "unsure": 26
+  },
+  "byClass": {
+   "added_word": {
+    "n": 105,
+    "auto-accepted": 65,
+    "both-mismatch": 6,
+    "disagree": 21,
+    "unsure": 13
+   },
+   "clean": {
+    "n": 1216,
+    "auto-accepted": 1208,
+    "both-mismatch": 0,
+    "disagree": 7,
+    "unsure": 1
+   },
+   "mutashabihat": {
+    "n": 10,
+    "auto-accepted": 9,
+    "both-mismatch": 0,
+    "disagree": 1,
+    "unsure": 0
+   },
+   "omitted_word": {
+    "n": 42,
+    "auto-accepted": 41,
+    "both-mismatch": 0,
+    "disagree": 1,
+    "unsure": 0
+   },
+   "repeat": {
+    "n": 23,
+    "auto-accepted": 13,
+    "both-mismatch": 0,
+    "disagree": 7,
+    "unsure": 3
+   },
+   "restart": {
+    "n": 17,
+    "auto-accepted": 14,
+    "both-mismatch": 0,
+    "disagree": 1,
+    "unsure": 2
+   },
+   "skipped_passage": {
+    "n": 69,
+    "auto-accepted": 69,
+    "both-mismatch": 0,
+    "disagree": 0,
+    "unsure": 0
+   },
+   "wrong_word": {
+    "n": 94,
+    "auto-accepted": 74,
+    "both-mismatch": 1,
+    "disagree": 12,
+    "unsure": 7
+   }
+  },
+  "byGroup": {
+   "edit": {
+    "n": 320,
+    "auto-accepted": 258,
+    "both-mismatch": 7,
+    "disagree": 35,
+    "unsure": 20
+   },
+   "repeat": {
+    "n": 40,
+    "auto-accepted": 27,
+    "both-mismatch": 0,
+    "disagree": 8,
+    "unsure": 5
+   },
+   "clean": {
+    "n": 1216,
+    "auto-accepted": 1208,
+    "both-mismatch": 0,
+    "disagree": 7,
+    "unsure": 1
+   }
+  },
+  "perModel": {
+   "nemotron": {
+    "match": 1534,
+    "mismatch": 26,
+    "unsure": 16
+   },
+   "fastconformer": {
+    "match": 1521,
+    "mismatch": 44,
+    "unsure": 11
+   }
+  },
+  "queue": {
+   "items": 257,
+   "byFirstReason": {
+    "both-mismatch": 7,
+    "disagree": 50,
+    "unsure": 26,
+    "seam": 30,
+    "spot": 144
+   },
+   "byAnyReason": {
+    "both-mismatch": 7,
+    "disagree": 50,
+    "unsure": 26,
+    "seam": 36,
+    "spot": 150
+   },
+   "carriedOver": 8,
+   "maxBad": 6
+  }
+ },
+ "reviewed": {
+  "n": 40,
+  "ok": 40,
+  "outcomesOnOk": {
+   "auto-accepted": 34,
+   "unsure": 2,
+   "disagree": 4
+  },
+  "falseAlarms": [],
+  "items": {
+   "lab-v1.1-e20-x6": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "wrong_word",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 53.08,
+    "fastconformerDiff": 103.09,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-e20-x10": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "wrong_word",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 33.34,
+    "fastconformerDiff": 113.41,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-p09-x8": {
+    "verdict": "ok",
+    "outcome": "unsure",
+    "class": "wrong_word",
+    "nemotron": "unsure",
+    "fastconformer": "unsure",
+    "nemotronDiff": 1.64,
+    "fastconformerDiff": 0.22,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-e13-x4": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "wrong_word",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 22.16,
+    "fastconformerDiff": 51.02,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-e15-x8": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "wrong_word",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 48.02,
+    "fastconformerDiff": 43.91,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-e16-x7": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "omitted_word",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 38.86,
+    "fastconformerDiff": 86.36,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-e14-x4": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "omitted_word",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 24.65,
+    "fastconformerDiff": 58.4,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-p06-x1": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "omitted_word",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 18.21,
+    "fastconformerDiff": 66.55,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-e11-x11": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "omitted_word",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 4.74,
+    "fastconformerDiff": 41.8,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-p15-x8": {
+    "verdict": "ok",
+    "outcome": "disagree",
+    "class": "added_word",
+    "nemotron": "match",
+    "fastconformer": "mismatch",
+    "nemotronDiff": 10.5,
+    "fastconformerDiff": -41.24,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-p10-x6": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "added_word",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 32.78,
+    "fastconformerDiff": 27.34,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-p01-x25": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "added_word",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 12.91,
+    "fastconformerDiff": 9.48,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-e19-x12": {
+    "verdict": "ok",
+    "outcome": "disagree",
+    "class": "added_word",
+    "nemotron": "match",
+    "fastconformer": "mismatch",
+    "nemotronDiff": 13.65,
+    "fastconformerDiff": -2.77,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-p13-x12": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "skipped_passage",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 135.63,
+    "fastconformerDiff": 794.35,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-e10-x9": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "skipped_passage",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 71.87,
+    "fastconformerDiff": 298.51,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-p14-x2": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "skipped_passage",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 120.8,
+    "fastconformerDiff": 563.32,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-p17-x9": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "mutashabihat",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 54.32,
+    "fastconformerDiff": 110.65,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-p12-x7": {
+    "verdict": "ok",
+    "outcome": "disagree",
+    "class": "mutashabihat",
+    "nemotron": "mismatch",
+    "fastconformer": "match",
+    "nemotronDiff": -3.31,
+    "fastconformerDiff": 30.02,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-p17-x2": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "mutashabihat",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 19.15,
+    "fastconformerDiff": 47.82,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-e19-x9": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "mutashabihat",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 32.25,
+    "fastconformerDiff": 40.33,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-e08-x1": {
+    "verdict": "ok",
+    "outcome": "unsure",
+    "class": "repeat",
+    "nemotron": "unsure",
+    "fastconformer": "match",
+    "nemotronDiff": 1.04,
+    "fastconformerDiff": 49.07,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-e01-x4": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "restart",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 22.53,
+    "fastconformerDiff": 415.99,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-p05-x6": {
+    "verdict": "ok",
+    "outcome": "disagree",
+    "class": "repeat",
+    "nemotron": "match",
+    "fastconformer": "mismatch",
+    "nemotronDiff": 11.5,
+    "fastconformerDiff": -98.9,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-e05-x7": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "restart",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 17.85,
+    "fastconformerDiff": 290.76,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-p15-x5": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "repeat",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 4.85,
+    "fastconformerDiff": 19.68,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-e12-x3": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "repeat",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 29.51,
+    "fastconformerDiff": 75.44,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.1-p09-studio-317": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "clean",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 57.59,
+    "fastconformerDiff": 116.4,
+    "reviewedOnly": true,
+    "sameWindow": true
+   },
+   "lab-v1.1-e11-studio-125": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "clean",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 69.95,
+    "fastconformerDiff": 181.72,
+    "reviewedOnly": true,
+    "sameWindow": true
+   },
+   "lab-v1.1-e02-studio-85": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "clean",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 28.76,
+    "fastconformerDiff": 26.69,
+    "reviewedOnly": true,
+    "sameWindow": true
+   },
+   "lab-v1.1-p10-studio-13": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "clean",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 87.41,
+    "fastconformerDiff": 81.51,
+    "reviewedOnly": true,
+    "sameWindow": true
+   },
+   "lab-v1.1-e14-studio-309": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "clean",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 57.75,
+    "fastconformerDiff": 94.37,
+    "reviewedOnly": true,
+    "sameWindow": true
+   },
+   "lab-v1.1-p03-studio-5": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "clean",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 37.97,
+    "fastconformerDiff": 132.99,
+    "reviewedOnly": true,
+    "sameWindow": true
+   },
+   "lab-v1.1-e10-studio-5": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "clean",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 97.4,
+    "fastconformerDiff": 78.39,
+    "reviewedOnly": true,
+    "sameWindow": true
+   },
+   "lab-v1.1-p20-phone-61": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "clean",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 57.13,
+    "fastconformerDiff": 111.08,
+    "reviewedOnly": true,
+    "sameWindow": true
+   },
+   "lab-v1.1-p19-phone-5": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "clean",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 102.06,
+    "fastconformerDiff": 96.78,
+    "reviewedOnly": true,
+    "sameWindow": true
+   },
+   "lab-v1.1-e07-phone-293": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "clean",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 30.67,
+    "fastconformerDiff": 43.24,
+    "reviewedOnly": true,
+    "sameWindow": true
+   },
+   "lab-v1.1-p06-phone-173": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "clean",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 88.4,
+    "fastconformerDiff": 120.32,
+    "reviewedOnly": true,
+    "sameWindow": true
+   },
+   "lab-v1.1-e15-phone-229": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "clean",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 29.85,
+    "fastconformerDiff": 9.84,
+    "reviewedOnly": true,
+    "sameWindow": true
+   },
+   "lab-v1.1-e03-phone-213": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "clean",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 50.3,
+    "fastconformerDiff": 108.52,
+    "reviewedOnly": true,
+    "sameWindow": true
+   },
+   "lab-v1.1-p04-phone-245": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "clean",
+    "nemotron": "match",
+    "fastconformer": "match",
+    "nemotronDiff": 47.41,
+    "fastconformerDiff": 187.22,
+    "reviewedOnly": true,
+    "sameWindow": true
+   }
+  }
+ },
+ "gpu": {
+  "nemotronTranscribeS": 1922.7,
+  "nemotronScoreS": 548.1,
+  "fastconformerS": 127.6,
+  "containers": {
+   "nemotron": 4,
+   "fastconformer": 1
+  },
+  "loadS": {
+   "nemotron": 165.1,
+   "fastconformer": 8.0
+  },
+  "wallS": 794.6
+ },
+ "queue": "lab-v1.1/review/triage.json"
+}

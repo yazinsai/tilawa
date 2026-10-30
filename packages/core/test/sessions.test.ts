@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadReferenceIndex } from "../src/reference.js";
 import type { CheckerEvent, PositionEvent, WordRef } from "../src/events.js";
-import { contextAdapter, qudContexts, runSession, scoreSessionEvents, summarizeSessions, validateSession, weakerContexts, qudSession, qudAudit } from "../src/bench/sessions.js";
+import { contextAdapter, evidenceFits, qudContexts, runSession, scoreSessionEvents, summarizeSessions, validateSession, weakerContexts, qudSession, qudAudit } from "../src/bench/sessions.js";
 import type { BenchSession } from "../src/bench/sessions.js";
 const index = loadReferenceIndex(JSON.parse(readFileSync(new URL("../assets/ref-v2.json", import.meta.url), "utf8")));
 const at: WordRef = { surah: 94, ayah: 5, word: 1 };
@@ -66,6 +66,20 @@ describe("session truth and scoring", () => {
     expect(scoreSessionEvents(s, [omitted(7500)], index).hits).toBe(0);
     s.events = [{ span: "a6", location: at, through: { surah: 94, ayah: 6, word: 1 }, errorClass: "skipped_passage", state: "confirmed", startS: 2, endS: 2.5 }];
     expect(scoreSessionEvents(s, [{ ...omitted(7500), errorClass: "skipped_passage" }], index).hits).toBe(1);
+  });
+  it("with anyClass, matches a warning on the word before an added word's gap, across an ayah end too", () => {
+    const w = (ayah: number, word: number) => ({ surah: 94, ayah, word });
+    const words = [w(5, 1), w(5, 2), w(5, 3), w(5, 4), w(6, 1)].map((at, i) => ({ span: "r", at, startS: 1 + i, endS: 1.8 + i }));
+    const added = (location: WordRef): BenchSession => ({ ...session(), nonErrors: [], words,
+      spans: [{ id: "r", kind: "recitation", from: w(5, 1), to: w(6, 1), startS: 1, endS: 5.8 }],
+      events: [{ span: "r", location, errorClass: "added_word", state: "confirmed", startS: 2.8, endS: 3 }] });
+    const on = (location: WordRef): CheckerEvent => ({ ...warning("a", 3200, "confirmed"), location });
+    const before = scoreSessionEvents(added(w(5, 3)), [on(w(5, 2))], index, undefined, { anyClass: true });
+    expect(before).toMatchObject({ hits: 1, falseWarnings: 0 });
+    expect(before.assignments[0]).toMatchObject({ eventIndex: 0, misclassified: true });
+    expect(scoreSessionEvents(added(w(6, 1)), [on(w(5, 4))], index, undefined, { anyClass: true }).hits).toBe(1);
+    expect(scoreSessionEvents(added(w(5, 3)), [on(w(5, 4))], index, undefined, { anyClass: true })).toMatchObject({ hits: 0, falseWarnings: 1 });
+    expect(scoreSessionEvents(added(w(5, 3)), [on(w(5, 2))], index)).toMatchObject({ hits: 0, falseWarnings: 1 });
   });
   it("does not count a matched warning as a non-error warning", () => {
     const s = session(); s.nonErrors.push({ span: "first", at, kind: "self_correction", startS: 1, endS: 3 });
@@ -134,6 +148,16 @@ describe("session truth and scoring", () => {
       posteriors: { k: 1, ids: new Array(300).fill(0), probs: new Array(300).fill(1) } } as any, index);
     expect(Array.isArray(run.events)).toBe(true);
     expect(run.score).toEqual(scoreSessionEvents(s, run.events, index));
+  });
+  it("takes evidence a conv front end leaves short by up to 100 ms plus a frame, in whole ms", () => {
+    const s = { ...session(), durationS: 213.58 };
+    const ev = (nFrames: number, inventory = index.inventoryId) => ({ inventory, frameMs: 40, nFrames, phonemes: [] });
+    expect(evidenceFits(s, ev(5337), index)).toBe(true);
+    expect(evidenceFits(s, ev(5336), index)).toBe(true);
+    expect(evidenceFits(s, ev(5335), index)).toBe(false);
+    expect(evidenceFits(s, ev(5343), index)).toBe(true);
+    expect(evidenceFits(s, ev(5344), index)).toBe(false);
+    expect(evidenceFits(s, ev(5337, "other"), index)).toBe(false);
   });
   it("synthesises QUD contexts from the main recitation only, excluding restarts", () => {
     const q = qudSession(qud([["2:7:1", 1, 2], ["2:8:1", 3, 4], ["1:1:1", 5, 6], ["1:1:2", 6, 7]]), "q.wav");

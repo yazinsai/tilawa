@@ -152,6 +152,32 @@ describe("skips", () => {
     expect(new Set(events.map((e) => `${e.errorClass} ${key(e.location)}`))).toEqual(new Set(["skipped_passage 109:3:1"]));
   });
 
+  it("are placed on an ayah's first word after a word ending like آمين", () => {
+    // رب العالمين [أتبنون] بكل ريع: ٱلْعَـٰلَمِينَ in waqf passes for the آمين phrase.
+    const start = w(26, 123, 1);
+    const omitted = find(w(26, 128, 1));
+    const f = syntheticFixture(index, { id: "c", from: start, to: w(26, 130, 3), edits: [{ kind: "del", at: omitted.start - find(start).start, count: omitted.end - omitted.start }], chunkSize: 8 });
+    expect(summary(confirmed(replayChecked(index, f, { phrases }, { phrases })))).toEqual(["confirmed omitted_word 26:128:1"]);
+  });
+
+  it("are placed after a word that is آمين's sounds, not on it", () => {
+    // ما هـٰهنا (madd held short) ءامنين [في] جنات: ءَامِنِينَ is the window's text, not the phrase.
+    const start = w(26, 141, 1);
+    const at26 = (r: WordRef) => find(r).start - find(start).start;
+    const omitted = find(w(26, 147, 1));
+    const edits: Edit[] = [
+      { kind: "del", at: at26(w(26, 146, 5)) - 2, count: 2 },
+      { kind: "del", at: at26(w(26, 147, 1)), count: omitted.end - omitted.start },
+    ];
+    const f = syntheticFixture(index, { id: "c", from: start, to: w(26, 149, 3), edits, chunkSize: 8 });
+    expect(summary(confirmed(replayChecked(index, f, { phrases }, { phrases })))).toEqual(["confirmed omitted_word 26:147:1"]);
+  });
+
+  it("leave a real آمين after al-Fatiha alone", () => {
+    const f = syntheticFixture(index, { id: "c", from: w(1, 1, 1), to: w(2, 5, 3), edits: [{ kind: "ins", at: find(w(2, 1, 1)).start - find(w(1, 1, 1)).start, text: "ءَاامِۦۦن" }], chunkSize: 8 });
+    expect(confirmed(replayChecked(index, f, { phrases }, { phrases }))).toEqual([]);
+  });
+
   it("confirm when they are not", () => {
     const edits: Edit[] = [{ kind: "del", at: at(w(2, 255, 30)), count: at(w(2, 255, 40)) - at(w(2, 255, 30)) }];
     expect(summary(run(edits, { to: w(2, 257, 5) }))).toEqual(["suspected skipped_passage 2:255:30", "confirmed skipped_passage 2:255:30"]);
@@ -217,8 +243,8 @@ describe("local-window confirmation", () => {
     { kind: "sub", at: at(target) + text(target).indexOf("ف"), to: "م" },
   ];
   /** The fixture's chunks with posteriors: `alt(j)` gives decoded phoneme `j`'s distribution, otherwise the decode at 0.9. */
-  const heard = (e: Edit[], alt: (j: number, p: string) => [string, number][] | undefined) => {
-    const f = syntheticFixture(index, { id: "c", from, to: w(2, 256, 10), edits: e, chunkSize: 8 });
+  const heard = (e: Edit[], alt: (j: number, p: string) => [string, number][] | undefined, o: { from?: WordRef; to?: WordRef } = {}) => {
+    const f = syntheticFixture(index, { id: "c", from: o.from ?? from, to: o.to ?? w(2, 256, 10), edits: e, chunkSize: 8 });
     const all = f.evidence.flatMap((x) => x.phonemes);
     const whole = withPosteriors(index, { ...f.evidence[0], phonemes: all }, (j) => alt(j, all[j].p));
     const { k, startFrame, ids, probs } = whole.posteriors!;
@@ -242,9 +268,37 @@ describe("local-window confirmation", () => {
     expect(check(f, true)).toEqual([]);
   });
 
+  it("wants twice the margin when the decoder was unsure of the changed sounds", () => {
+    // Phone audio: each misheard sound at even odds with blank, the written one unlisted.
+    const f = heard(edits, (j, p) => (word(j) && (p === "س" || p === "م") ? [[p, 0.5], ["", 0.45]] : undefined));
+    let j = 0;
+    const unsure = { ...f, evidence: f.evidence.map((x) => ({ ...x, phonemes: x.phonemes.map((p) => (word(j++) && (p.p === "س" || p.p === "م") ? { ...p, conf: 0.5 } : p)) })) };
+    expect(summary(check(f, true))).toEqual(["confirmed wrong_word 2:255:23"]);
+    expect(summary(check(unsure, false))).toEqual(["confirmed wrong_word 2:255:23"]);
+    expect(check(unsure, true)).toEqual([]);
+  });
+
   it("still confirms a wrong word the audio doesn't support as written", () => {
     expect(summary(check(heard(replaceWord(target, ALIEN), () => undefined), true))).toEqual(["confirmed wrong_word 2:255:23"]);
     expect(summary(check(heard(edits, () => undefined), true))).toEqual(["confirmed wrong_word 2:255:23"]);
+  });
+
+  it("confirms an added word said after a word ending in the same held sound, as said", () => {
+    // كريم alone after وبنين (26:133 ends ۦۦن): aligned inside وبنين, it took that word's ۦۦن and left its own ۦۦم behind.
+    const start = w(26, 130, 1);
+    const kareem = "كَرِۦۦم";
+    expect(text(w(26, 133, 3)).endsWith("ۦۦن")).toBe(true);
+    const f = heard([{ kind: "ins", at: find(w(26, 134, 1)).start - find(start).start, text: kareem }], () => undefined, { from: start, to: w(26, 136, 4) });
+    expect(check(f, true).map((e) => `${e.state} ${e.errorClass} ${key(e.location)} ${e.observed}`)).toEqual([`confirmed added_word 26:134:1 ${kareem}`]);
+  });
+
+  it("confirms an added word ending in the sound the word before it ends in, as said", () => {
+    // فإن alone after للمكذبين (77:15): both end in ن, so aligned inside للمكذبين it fit as well as نفإ.
+    const start = w(77, 12, 1);
+    const fain = "فَءِن";
+    expect(text(w(77, 15, 3)).endsWith("ن")).toBe(true);
+    const f = heard([{ kind: "ins", at: find(w(77, 16, 1)).start - find(start).start, text: fain }], () => undefined, { from: start, to: w(77, 17, 3) });
+    expect(check(f, true).map((e) => `${e.state} ${e.errorClass} ${key(e.location)} ${e.observed}`)).toEqual([`confirmed added_word 77:16:1 ${fain}`]);
   });
 });
 
@@ -295,10 +349,10 @@ describe("tlog fixtures", () => {
     for (const f of tlog) expect(confirmed(replayChecked(index, f, { phrases }, { phrases, policy: { finaliseFree: false } })), f.id).toEqual([]);
   });
 
-  it("confirm only one error when free recitation finalises at session end", { timeout: 60_000 }, () => {
+  it("confirm no errors when free recitation finalises at session end", { timeout: 60_000 }, () => {
     const found = tlog.flatMap((f) => confirmed(replayChecked(index, f, { phrases }, { phrases })).map((e) => `${f.id} ${e.errorClass} ${key(e.location)}`));
-    // Decoder noise the posteriors back too (فالموريات heard as فمليات), a word before the clip ends.
-    expect(found).toEqual(["tlog-clean-00000-of-00411-232 wrong_word 100:2:1"]);
+    // فالموريات heard as فمليات a word before the clip ends: the posteriors back it, but the decoder was unsure of it.
+    expect(found).toEqual([]);
   });
 });
 

@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-29T03:57:38Z",
+  "title": "Design System: Tilawa lab",
+  "extensions": {
+    "colorMeta": {
+      "g-50": { "role": "neutral", "displayName": "Vellum", "canonical": "hsl(150 20% 98.6%)", "tonalRamp": ["hsl(165 25% 11%)", "hsl(160 12% 27%)", "hsl(160 8% 37%)", "hsl(160 6% 46%)", "hsl(160 6% 62%)", "hsl(155 9% 81%)", "hsl(150 12% 90%)", "hsl(150 18% 95.5%)"] },
+      "g-100": { "role": "neutral", "displayName": "Mist", "canonical": "hsl(150 18% 95.5%)" },
+      "g-200": { "role": "neutral", "displayName": "Hairline", "canonical": "hsl(150 12% 90%)" },
+      "g-300": { "role": "neutral", "displayName": "Strong Hairline", "canonical": "hsl(155 9% 81%)" },
+      "g-400": { "role": "neutral", "displayName": "Stone Light", "canonical": "hsl(160 6% 62%)" },
+      "g-500": { "role": "neutral", "displayName": "Stone", "canonical": "hsl(160 6% 46%)" },
+      "g-600": { "role": "neutral", "displayName": "Slate", "canonical": "hsl(160 8% 37%)" },
+      "g-700": { "role": "neutral", "displayName": "Slate Deep", "canonical": "hsl(160 12% 27%)" },
+      "g-900": { "role": "neutral", "displayName": "Ink", "canonical": "hsl(165 25% 11%)" },
+      "white": { "role": "neutral", "displayName": "Paper White", "canonical": "#fff" },
+      "green-500": { "role": "primary", "displayName": "Mushaf Green", "canonical": "hsl(162 55% 24%)", "tonalRamp": ["hsl(163 62% 14%)", "hsl(163 62% 18%)", "hsl(162 55% 24%)", "hsl(160 40% 36%)", "hsl(158 32% 52%)", "hsl(155 34% 72%)", "hsl(152 36% 90%)", "hsl(152 40% 96%)"] },
+      "green-600": { "role": "primary", "displayName": "Deep Mushaf Green", "canonical": "hsl(163 62% 18%)" },
+      "green-50": { "role": "primary", "displayName": "Green Mist", "canonical": "hsl(152 40% 96%)" },
+      "green-100": { "role": "primary", "displayName": "Green Wash", "canonical": "hsl(152 36% 90%)" },
+      "gold-400": { "role": "secondary", "displayName": "Gold Leaf", "canonical": "hsl(41 82% 50%)", "tonalRamp": ["hsl(34 78% 18%)", "hsl(34 78% 25%)", "hsl(36 80% 36%)", "hsl(39 82% 44%)", "hsl(41 82% 50%)", "hsl(43 82% 70%)", "hsl(44 80% 88%)", "hsl(44 90% 96%)"] },
+      "gold-600": { "role": "secondary", "displayName": "Burnished Gold", "canonical": "hsl(36 80% 36%)" },
+      "gold-800": { "role": "secondary", "displayName": "Umber Ink", "canonical": "hsl(34 78% 25%)" },
+      "gold-50": { "role": "secondary", "displayName": "Gold Vellum", "canonical": "hsl(44 90% 96%)" },
+      "gold-100": { "role": "secondary", "displayName": "Gold Hairline", "canonical": "hsl(44 80% 88%)" },
+      "listener": { "role": "tertiary", "displayName": "Lapis", "canonical": "hsl(218 55% 46%)", "tonalRamp": ["hsl(218 55% 18%)", "hsl(218 55% 28%)", "hsl(218 55% 37%)", "hsl(218 55% 46%)", "hsl(218 50% 58%)", "hsl(218 45% 72%)", "hsl(218 45% 86%)", "hsl(218 50% 95%)"] },
+      "tracker": { "role": "tertiary", "displayName": "Ochre", "canonical": "hsl(30 72% 47%)", "tonalRamp": ["hsl(30 72% 18%)", "hsl(30 72% 27%)", "hsl(30 72% 37%)", "hsl(30 72% 47%)", "hsl(30 68% 60%)", "hsl(30 62% 74%)", "hsl(30 60% 87%)", "hsl(30 70% 95%)"] },
+      "checker": { "role": "tertiary", "displayName": "Madder", "canonical": "hsl(348 48% 44%)", "tonalRamp": ["hsl(348 48% 17%)", "hsl(348 48% 26%)", "hsl(348 48% 35%)", "hsl(348 48% 44%)", "hsl(348 42% 58%)", "hsl(348 40% 72%)", "hsl(348 40% 86%)", "hsl(348 45% 95%)"] },
+      "better": { "role": "tertiary", "displayName": "Verdant", "canonical": "hsl(138 55% 30%)", "tonalRamp": ["hsl(138 55% 14%)", "hsl(138 55% 22%)", "hsl(138 55% 30%)", "hsl(140 45% 42%)", "hsl(142 40% 56%)", "hsl(145 40% 72%)", "hsl(148 45% 86%)", "hsl(150 50% 95%)"] },
+      "better-50": { "role": "tertiary", "displayName": "Verdant Tint", "canonical": "hsl(150 50% 95%)" },
+      "worse": { "role": "tertiary", "displayName": "Vermilion", "canonical": "hsl(4 66% 44%)", "tonalRamp": ["hsl(4 66% 17%)", "hsl(4 66% 26%)", "hsl(4 66% 35%)", "hsl(4 66% 44%)", "hsl(4 62% 58%)", "hsl(4 66% 74%)", "hsl(4 75% 88%)", "hsl(4 80% 96%)"] },
+      "worse-50": { "role": "tertiary", "displayName": "Vermilion Tint", "canonical": "hsl(4 80% 96%)" }
+    },
+    "typographyMeta": {
+      "hero": { "displayName": "Hero", "purpose": "The overall score only; 72px under 860px, 60px under 600px." },
+      "figure": { "displayName": "Figure", "purpose": "Component counts in the ruled rows; empty-state headline." },
+      "page-title": { "displayName": "Page Title", "purpose": "Drill-down, case and review headings." },
+      "section-title": { "displayName": "Section Title", "purpose": "Section heads and the score unit line." },
+      "prompt": { "displayName": "Prompt", "purpose": "The label sentence, 'What do you hear?' (600) and the sum-line total." },
+      "lead": { "displayName": "Lead", "purpose": "The missed + false-warnings sentence, ledes, component names (600)." },
+      "body": { "displayName": "Body", "purpose": "Default text; measures held to 40-60em." },
+      "small": { "displayName": "Small", "purpose": "Metadata, tabs, buttons, notices, tables." },
+      "label": { "displayName": "Label", "purpose": "Pills and chips; axis captions at 400." },
+      "arabic": { "displayName": "Arabic", "purpose": "Recited text, centred in the double-hairline frame; inline Arabic is 1.4em at line-height 1." },
+      "code": { "displayName": "Code", "purpose": "CLI commands to copy." }
+    },
+    "shadows": [
+      { "name": "lift", "value": "0 1px 2px hsl(165 25% 11% / 0.06), 0 1px 3px hsl(165 25% 11% / 0.08)", "purpose": "Component-row hover, selected segmented thumb, play disc at rest." },
+      { "name": "float", "value": "0 4px 12px hsl(165 25% 11% / 0.08), 0 1px 3px hsl(165 25% 11% / 0.06)", "purpose": "Play disc hover and the floating keyboard sheet." },
+      { "name": "current-ring", "value": "0 0 0 2px var(--g-50), 0 0 0 4px var(--gold-600)", "purpose": "The current marker on the ayah-marker rail." },
+      { "name": "focus", "value": "outline: 2px solid var(--green-500); outline-offset: 2px", "purpose": "Global :focus-visible ring." }
+    ],
+    "motion": [
+      { "name": "state-fast", "value": "150ms ease-out", "purpose": "Hover borders, backgrounds, row fills, disclosure chevrons, play disc." },
+      { "name": "state", "value": "200ms ease-out", "purpose": "Rail markers and the compact score fading in with a 4px rise." },
+      { "name": "progress", "value": "100ms linear", "purpose": "Audio progress line width." },
+      { "name": "reduced-motion", "value": "transition: none; animation: none", "purpose": "Applied to everything under prefers-reduced-motion: reduce." }
+    ],
+    "breakpoints": [
+      { "name": "tablet", "value": "860px" },
+      { "name": "phone", "value": "600px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Quiet outlined white button for paging and commands, with an optional key hint.",
+      "html": "<button class=\"ds-btn\">Next <kbd class=\"ds-kbd\">j</kbd></button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--g-300); background: #fff; color: var(--g-900); font: 400 14px/1 'Onest', system-ui, sans-serif; cursor: pointer; transition: border-color .15s ease-out, background .15s ease-out; } .ds-btn:hover { border-color: var(--g-500); } .ds-btn:focus-visible { outline: 2px solid var(--green-500); outline-offset: 2px; } .ds-kbd { font: 500 12px/1 ui-monospace, 'SF Mono', Menlo, monospace; color: var(--g-600); border: 1px solid var(--g-300); border-bottom-width: 2px; border-radius: 4px; padding: 2px 5px; background: #fff; min-width: 20px; text-align: center; }"
+    },
+    {
+      "name": "Play Disc",
+      "kind": "button",
+      "refersTo": "play-disc",
+      "description": "The one loud control: primary audio play, with a pill clip toggle beside it.",
+      "html": "<div class=\"ds-play\"><button class=\"ds-disc\" aria-label=\"Play\"><svg viewBox=\"0 0 24 24\" width=\"26\" height=\"26\" fill=\"currentColor\"><path d=\"M7 4.5v15l12.5-7.5z\"/></svg></button><button class=\"ds-alt\"><svg viewBox=\"0 0 24 24\" width=\"14\" height=\"14\" fill=\"currentColor\"><path d=\"M7 4.5v15l12.5-7.5z\"/></svg>Original before</button></div>",
+      "css": ".ds-play { display: flex; align-items: center; gap: 16px; } .ds-disc { width: 64px; height: 64px; border-radius: 50%; border: 0; background: var(--green-500); color: #fff; display: grid; place-items: center; cursor: pointer; box-shadow: 0 1px 2px hsl(165 25% 11% / 0.06), 0 1px 3px hsl(165 25% 11% / 0.08); transition: background .15s ease-out, transform .15s ease-out, box-shadow .15s ease-out; } .ds-disc:hover { background: var(--green-600); box-shadow: 0 4px 12px hsl(165 25% 11% / 0.08), 0 1px 3px hsl(165 25% 11% / 0.06); } .ds-disc:active { transform: scale(.96); } .ds-disc:focus-visible, .ds-alt:focus-visible { outline: 2px solid var(--green-500); outline-offset: 2px; } .ds-alt { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px 0 12px; border-radius: 999px; border: 1px solid var(--g-300); background: #fff; color: var(--g-900); font: 400 14px/1 'Onest', system-ui, sans-serif; cursor: pointer; transition: border-color .15s ease-out; } .ds-alt svg { color: var(--green-500); } .ds-alt:hover { border-color: var(--green-500); } .ds-alt[aria-pressed=true] { border-color: var(--green-500); background: var(--green-50); }"
+    },
+    {
+      "name": "Verdict Option",
+      "kind": "custom",
+      "refersTo": "verdict-option",
+      "description": "Keyed verdict tile on the listening review; selected states turn Verdant or Vermilion.",
+      "html": "<div class=\"ds-opts\"><button class=\"ds-opt\" aria-pressed=\"true\" data-kind=\"ok\"><kbd>1</kbd><b>Sounds right</b><small>The audio matches the label.</small></button><button class=\"ds-opt\" aria-pressed=\"false\"><kbd>2</kbd><b>Bad label</b><small>The words or the mistake shown don't match what you hear.</small></button></div>",
+      "css": ".ds-opts { display: flex; flex-direction: column; gap: 8px; max-width: 320px; font-family: 'Onest', system-ui, sans-serif; } .ds-opt { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; align-items: center; text-align: left; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--g-300); background: #fff; color: var(--g-900); font: inherit; cursor: pointer; transition: border-color .15s ease-out, background .15s ease-out; } .ds-opt:hover { border-color: var(--g-500); } .ds-opt:focus-visible { outline: 2px solid var(--green-500); outline-offset: 2px; } .ds-opt b { font-weight: 600; } .ds-opt small { grid-column: 2; font-size: 14px; color: var(--g-600); } .ds-opt kbd { grid-row: 1 / 3; font: 500 12px/1 ui-monospace, Menlo, monospace; color: var(--g-600); border: 1px solid var(--g-300); border-bottom-width: 2px; border-radius: 4px; padding: 2px 5px; } .ds-opt[aria-pressed=true] { border-color: var(--g-900); background: var(--g-100); box-shadow: inset 0 0 0 1px var(--g-900); } .ds-opt[data-kind=ok][aria-pressed=true] { border-color: var(--better); background: var(--better-50); box-shadow: inset 0 0 0 1px var(--better); color: var(--better); }"
+    },
+    {
+      "name": "Note Field",
+      "kind": "input",
+      "refersTo": "note-field",
+      "description": "Optional free-text note saved with a verdict.",
+      "html": "<textarea class=\"ds-note\" rows=\"1\" placeholder=\"Add a note (optional, saved exactly as typed)\"></textarea>",
+      "css": ".ds-note { width: 320px; font: 400 14px/1.5 'Onest', system-ui, sans-serif; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--g-300); background: #fff; min-height: 40px; resize: vertical; color: var(--g-900); } .ds-note::placeholder { color: var(--g-600); } .ds-note:focus { outline: 2px solid var(--green-500); outline-offset: 1px; border-color: transparent; }"
+    },
+    {
+      "name": "Top Bar",
+      "kind": "nav",
+      "refersTo": "tab-active",
+      "description": "Sticky translucent bar with wordmark and tabs; the active tab is underlined in green.",
+      "html": "<header class=\"ds-top\"><a class=\"ds-brand\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"><circle cx=\"12\" cy=\"12\" r=\"9.5\"/><circle cx=\"12\" cy=\"12\" r=\"5.5\"/><path d=\"M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3\"/></svg>Tilawa lab</a><nav class=\"ds-tabs\"><a href=\"#\" aria-current=\"page\">Score</a><a href=\"#\">Release</a><a href=\"#\">Listening check</a></nav></header>",
+      "css": ".ds-top { height: 56px; display: flex; align-items: center; gap: 32px; padding: 0 32px; background: hsl(150 20% 98.6% / 0.92); backdrop-filter: saturate(1.4) blur(8px); border-bottom: 1px solid var(--g-200); font-family: 'Onest', system-ui, sans-serif; } .ds-brand { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--g-900); text-decoration: none; } .ds-brand svg { color: var(--green-500); } .ds-tabs { display: flex; gap: 4px; height: 100%; } .ds-tabs a { display: flex; align-items: center; padding: 0 12px; color: var(--g-600); text-decoration: none; font-size: 14px; border-bottom: 2px solid transparent; margin-bottom: -1px; } .ds-tabs a:hover { color: var(--g-900); } .ds-tabs a:focus-visible { outline: 2px solid var(--green-500); outline-offset: 2px; } .ds-tabs a[aria-current=page] { color: var(--g-900); font-weight: 600; border-bottom-color: var(--green-500); }"
+    },
+    {
+      "name": "Status Pills",
+      "kind": "chip",
+      "refersTo": "verdict-chip",
+      "description": "Full-round lever pill and verdict chips; the only round shapes besides markers and audio controls.",
+      "html": "<div class=\"ds-pills\"><span class=\"ds-lever\">Biggest lever</span><span class=\"ds-chip ds-better\">4 fewer</span><span class=\"ds-chip ds-worse\">6 more</span><span class=\"ds-chip\">No real change</span></div>",
+      "css": ".ds-pills { display: flex; gap: 8px; align-items: center; font-family: 'Onest', system-ui, sans-serif; } .ds-lever { font-size: 12px; font-weight: 600; color: #fff; background: var(--g-900); padding: 2px 8px; border-radius: 999px; } .ds-chip { font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: var(--g-100); color: var(--g-700); } .ds-better { background: var(--better-50); color: var(--better); } .ds-worse { background: var(--worse-50); color: var(--worse); }"
+    },
+    {
+      "name": "Ayah-Marker Rail",
+      "kind": "custom",
+      "refersTo": "rail-marker",
+      "description": "Signature position control: numbered round markers filled by verdict, the current one ringed in gold.",
+      "html": "<nav class=\"ds-rail\"><button class=\"ok\">1</button><button aria-current=\"true\">2</button><button class=\"data\">3</button><button class=\"fault\">4</button><button>5</button><span class=\"ds-gap\">…</span><button>40</button></nav>",
+      "css": ".ds-rail { display: flex; flex-wrap: wrap; gap: 6px; } .ds-rail button { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--g-500); background: #fff; color: var(--g-700); font: 500 11px/1 'Onest', system-ui, sans-serif; font-variant-numeric: tabular-nums; padding: 0; cursor: pointer; display: grid; place-items: center; transition: background .2s ease-out, border-color .2s ease-out, box-shadow .2s ease-out; } .ds-rail button:hover { border-color: var(--g-900); } .ds-rail button:focus-visible { outline: 2px solid var(--green-500); outline-offset: 2px; } .ds-rail .ok { background: var(--better); border-color: var(--better); color: #fff; } .ds-rail .data { background: var(--worse); border-color: var(--worse); color: #fff; } .ds-rail .fault { background: var(--g-600); border-color: var(--g-600); color: #fff; } .ds-rail [aria-current=true] { box-shadow: 0 0 0 2px var(--g-50), 0 0 0 4px var(--gold-600); } .ds-gap { width: 16px; text-align: center; color: var(--g-500); align-self: center; }"
+    },
+    {
+      "name": "Arabic Page Frame",
+      "kind": "card",
+      "refersTo": "arabic-frame",
+      "description": "Double-hairline mushaf frame around recited Arabic; the labelled word underlined in gold.",
+      "html": "<div class=\"ds-page\"><p class=\"ds-text\" lang=\"ar\" dir=\"rtl\">فَبِأَيِّ ءَالَآءِ رَبِّكُمَا <mark>تُكَذِّبَانِ</mark></p></div>",
+      "css": ".ds-page { padding: 3px; border: 1px solid var(--g-300); border-radius: 8px; background: #fff; } .ds-text { margin: 0; font-family: 'Amiri Quran', 'Amiri', 'Noto Naskh Arabic', 'Geeza Pro', serif; font-size: 36px; line-height: 2.1; text-align: center; padding: 24px 32px; border: 1px solid var(--g-200); border-radius: 6px; color: var(--g-900); } .ds-text mark { background: none; color: inherit; border-bottom: 2px solid var(--gold-400); padding: 0 2px; }"
+    },
+    {
+      "name": "Decide Panel",
+      "kind": "card",
+      "refersTo": "decide-panel",
+      "description": "Gold panel holding the experiments that need the founder's fold-in or discard call.",
+      "html": "<div class=\"ds-decide\"><h3>Needs your decision <span>2</span></h3><div class=\"ds-exp\"><b>checker-margin</b><p>Ready to fold in: beat its expectation.</p></div></div>",
+      "css": ".ds-decide { background: var(--gold-50); border: 1px solid var(--gold-100); border-radius: 8px; padding: 8px 24px; font-family: 'Onest', system-ui, sans-serif; color: var(--g-900); } .ds-decide h3 { margin: 16px 0 0; font-size: 16px; font-weight: 600; color: var(--gold-800); } .ds-decide h3 span { font-weight: 400; } .ds-exp { padding: 24px 0; } .ds-exp b { font-size: 18px; font-weight: 600; } .ds-exp p { margin: 8px 0 0; font-size: 14px; color: var(--gold-800); }"
+    },
+    {
+      "name": "Component Row",
+      "kind": "custom",
+      "refersTo": "lever-pill",
+      "description": "Ruled row: pigment swatch and name, 36px count, plain health line; fills white with Lift on hover.",
+      "html": "<a class=\"ds-part\" href=\"#\" style=\"--c: var(--listener)\"><span class=\"ds-name\"><b><i></i>Listener</b><span>Hears the sounds</span></span><span class=\"ds-n\"><b>74</b><span>27 missed · 47 false</span></span><span class=\"ds-own\">Mishears 84 of every 1,000 sounds</span></a>",
+      "css": ".ds-part { display: grid; grid-template-columns: 200px 128px 1fr; gap: 24px; align-items: center; padding: 16px 12px; border-top: 1px solid var(--g-200); border-bottom: 1px solid var(--g-200); border-radius: 8px; color: var(--g-900); text-decoration: none; font-family: 'Onest', system-ui, sans-serif; transition: background .15s ease-out; } .ds-part:hover { background: #fff; box-shadow: 0 1px 2px hsl(165 25% 11% / 0.06), 0 1px 3px hsl(165 25% 11% / 0.08); } .ds-part:focus-visible { outline: 2px solid var(--green-500); outline-offset: 2px; } .ds-name { display: flex; flex-direction: column; gap: 2px; } .ds-name b { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 600; } .ds-name i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); } .ds-name > span { padding-left: 18px; font-size: 14px; color: var(--g-600); } .ds-n { text-align: right; } .ds-n b { display: block; font-size: 36px; font-weight: 600; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; } .ds-n span { display: block; margin-top: 6px; font-size: 12px; color: var(--g-600); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Well-Set Mushaf Page",
+    "overview": "The lab reads like one page of a Madina mushaf turned into an Operate screen: one number set large on wide margins, everything else quiet beneath it. Ground is near-white with a faint green tint; structure comes from hairline rules and whitespace, not boxes. Colour is reserved for meaning: mushaf green for what you can press, gold for what waits on the founder, three illumination pigments for the three engine components. It refuses the metrics-dashboard default of a header strip and rows of same-size cards with chips everywhere.\n\nMode: Operate, an internal tool for one founder at a laptop in short sessions. Density is airy; hierarchy is carried by scale contrast (96px against 16px) with no ornament. Recited Arabic sits in a double-hairline frame, the page frame of the mushaf. Seed: `ee2dcd0c47641ec6`.",
+    "keyCharacteristics": [
+      "One 96px figure dominates the overview; component counts at 36px are the only other large type.",
+      "Ruled rows on hairlines instead of cards; one 8px radius for every surface.",
+      "Green strictly on pressable things; gold strictly for attention; pigments strictly for component identity.",
+      "The ayah-marker rail is the signature position control on the review and case views.",
+      "Counts, never percentages; a change of 2 or fewer is drawn and labelled as noise."
+    ],
+    "rules": [
+      { "name": "The Pressable Green Rule", "body": "Mushaf green appears only on things you can press. A good result uses Verdant, never Mushaf Green.", "section": "colors" },
+      { "name": "The Gold Means You Rule", "body": "Gold marks what is waiting on the founder: the decision panel, the current rail marker, the pending-flag dot, the labelled word, warnings. Never decoration.", "section": "colors" },
+      { "name": "The Pigment Rule", "body": "Lapis, ochre and madder name a component and nothing else; they are never reused for status.", "section": "colors" },
+      { "name": "The One Number Rule", "body": "One 96px figure per screen. The next step down is 36px; nothing sits between.", "section": "typography" },
+      { "name": "The Tabular Rule", "body": "Every count is set in tabular figures so columns and sums align.", "section": "typography" },
+      { "name": "The Naskh Rule", "body": "Arabic is always set in Amiri Quran, right-to-left and isolated with `bdi`, never in Onest.", "section": "typography" },
+      { "name": "The Flat-At-Rest Rule", "body": "Nothing casts a shadow at rest except the play disc. Hover earns Lift; only floating things get Float.", "section": "elevation" },
+      { "name": "The One Radius Rule", "body": "Surfaces are 8px. Round is reserved for markers, audio controls and status pills.", "section": "shapes" }
+    ],
+    "dos": [
+      "**Do** keep one 96px figure per screen and step straight down to 36px counts.",
+      "**Do** show counts, never percentages, and draw or label any change of 2 or fewer as noise.",
+      "**Do** put definitions and raw numbers behind a \"How this is measured\" disclosure, and say things plainly (\"big reference listener\", \"the app's listener\").",
+      "**Do** use ruled rows on hairlines for lists, filling white on hover.",
+      "**Do** mark component identity with a 10px pigment swatch beside its name.",
+      "**Do** animate hover and state at 150–200ms ease-out and drop all transitions under `prefers-reduced-motion`.",
+      "**Do** use inline 24-unit SVG icons at 16px with a 1.75 stroke."
+    ],
+    "donts": [
+      "**Don't** put Mushaf Green on anything that isn't pressable, or use it for \"better\".",
+      "**Don't** use gold for decoration or emphasis that isn't waiting on the founder.",
+      "**Don't** reuse the component pigments for status.",
+      "**Don't** build header strips of same-size metric cards or scatter chips across a screen.",
+      "**Don't** add shadows to surfaces at rest; only the play disc carries one.",
+      "**Don't** introduce a second surface radius."
+    ]
+  }
+}

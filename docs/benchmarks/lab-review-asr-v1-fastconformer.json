@@ -1,0 +1,1948 @@
+{
+ "version": 1,
+ "testSet": "lab-v1.1",
+ "queue": "lab-v1.1/review/v1-check.json",
+ "reviewer": "me",
+ "createdAt": "2026-10-29T05:51:00+00:00",
+ "model": {
+  "id": "nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0",
+  "revision": "7f32349d952f42a28dce979ba73270aa2bbdfa89",
+  "implementation": "nemo",
+  "packageVersion": "2.7.3",
+  "torch": "2.15.0+cu132",
+  "device": "Tesla T4",
+  "config": {
+   "engine": "nemo",
+   "nemoToolkit": "2.7.3",
+   "dtype": "float32",
+   "decoding": "greedy (model defaults)",
+   "batchSize": 16,
+   "ctcScore": "torch ctc_loss over the CTC head's log-probs, blank last, summed over alignments"
+  },
+  "prompt": null,
+  "vocabSize": 1024,
+  "loadSeconds": 7.0,
+  "gpuSeconds": 4.3
+ },
+ "humanVerdicts": 40,
+ "items": 40,
+ "stats": {
+  "rnnt": {
+   "agreement": {
+    "k": 23,
+    "n": 40,
+    "rate": 0.575,
+    "ci95": [
+     0.4219,
+     0.7149
+    ]
+   },
+   "positives": {
+    "match": 23,
+    "mismatch": 3,
+    "unsure": 14
+   },
+   "disagreement": {
+    "k": 3,
+    "n": 40,
+    "rate": 0.075,
+    "ci95": [
+     0.0258,
+     0.1986
+    ]
+   },
+   "agreementEdited": {
+    "k": 15,
+    "n": 26,
+    "rate": 0.5769,
+    "ci95": [
+     0.3895,
+     0.7446
+    ]
+   },
+   "oneEdit": {
+    "sensitivity": {
+     "k": 31,
+     "n": 40,
+     "rate": 0.775,
+     "ci95": [
+      0.625,
+      0.8768
+     ]
+    },
+    "flagged": {
+     "k": 39,
+     "n": 40,
+     "rate": 0.975,
+     "ci95": [
+      0.8712,
+      0.9956
+     ]
+    },
+    "counts": {
+     "match": 1,
+     "mismatch": 31,
+     "unsure": 8
+    }
+   },
+   "oneEditEdited": {
+    "k": 25,
+    "n": 26,
+    "rate": 0.9615,
+    "ci95": [
+     0.8111,
+     0.9932
+    ]
+   },
+   "oneWord": {
+    "sensitivity": {
+     "k": 23,
+     "n": 31,
+     "rate": 0.7419,
+     "ci95": [
+      0.5675,
+      0.863
+     ]
+    },
+    "flagged": {
+     "k": 31,
+     "n": 31,
+     "rate": 1.0,
+     "ci95": [
+      0.8897,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 23,
+     "unsure": 8
+    }
+   },
+   "shifted": {
+    "sensitivity": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 40,
+     "unsure": 0
+    }
+   },
+   "repeatMisses": [
+    "lab-v1.1-p05-x6"
+   ],
+   "passesBar": false
+  },
+  "ctc": {
+   "agreement": {
+    "k": 19,
+    "n": 40,
+    "rate": 0.475,
+    "ci95": [
+     0.3294,
+     0.625
+    ]
+   },
+   "positives": {
+    "match": 19,
+    "mismatch": 5,
+    "unsure": 16
+   },
+   "disagreement": {
+    "k": 5,
+    "n": 40,
+    "rate": 0.125,
+    "ci95": [
+     0.0546,
+     0.2611
+    ]
+   },
+   "agreementEdited": {
+    "k": 12,
+    "n": 26,
+    "rate": 0.4615,
+    "ci95": [
+     0.2876,
+     0.6454
+    ]
+   },
+   "oneEdit": {
+    "sensitivity": {
+     "k": 34,
+     "n": 40,
+     "rate": 0.85,
+     "ci95": [
+      0.7093,
+      0.9294
+     ]
+    },
+    "flagged": {
+     "k": 39,
+     "n": 40,
+     "rate": 0.975,
+     "ci95": [
+      0.8712,
+      0.9956
+     ]
+    },
+    "counts": {
+     "match": 1,
+     "mismatch": 34,
+     "unsure": 5
+    }
+   },
+   "oneEditEdited": {
+    "k": 25,
+    "n": 26,
+    "rate": 0.9615,
+    "ci95": [
+     0.8111,
+     0.9932
+    ]
+   },
+   "oneWord": {
+    "sensitivity": {
+     "k": 26,
+     "n": 31,
+     "rate": 0.8387,
+     "ci95": [
+      0.6737,
+      0.9291
+     ]
+    },
+    "flagged": {
+     "k": 31,
+     "n": 31,
+     "rate": 1.0,
+     "ci95": [
+      0.8897,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 26,
+     "unsure": 5
+    }
+   },
+   "shifted": {
+    "sensitivity": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 40,
+     "unsure": 0
+    }
+   },
+   "repeatMisses": [
+    "lab-v1.1-p05-x6"
+   ],
+   "passesBar": false
+  },
+  "combined": {
+   "agreement": {
+    "k": 18,
+    "n": 40,
+    "rate": 0.45,
+    "ci95": [
+     0.3071,
+     0.6017
+    ]
+   },
+   "positives": {
+    "match": 18,
+    "mismatch": 5,
+    "unsure": 17
+   },
+   "disagreement": {
+    "k": 5,
+    "n": 40,
+    "rate": 0.125,
+    "ci95": [
+     0.0546,
+     0.2611
+    ]
+   },
+   "agreementEdited": {
+    "k": 12,
+    "n": 26,
+    "rate": 0.4615,
+    "ci95": [
+     0.2876,
+     0.6454
+    ]
+   },
+   "oneEdit": {
+    "sensitivity": {
+     "k": 34,
+     "n": 40,
+     "rate": 0.85,
+     "ci95": [
+      0.7093,
+      0.9294
+     ]
+    },
+    "flagged": {
+     "k": 39,
+     "n": 40,
+     "rate": 0.975,
+     "ci95": [
+      0.8712,
+      0.9956
+     ]
+    },
+    "counts": {
+     "match": 1,
+     "mismatch": 34,
+     "unsure": 5
+    }
+   },
+   "oneEditEdited": {
+    "k": 25,
+    "n": 26,
+    "rate": 0.9615,
+    "ci95": [
+     0.8111,
+     0.9932
+    ]
+   },
+   "oneWord": {
+    "sensitivity": {
+     "k": 26,
+     "n": 31,
+     "rate": 0.8387,
+     "ci95": [
+      0.6737,
+      0.9291
+     ]
+    },
+    "flagged": {
+     "k": 31,
+     "n": 31,
+     "rate": 1.0,
+     "ci95": [
+      0.8897,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 26,
+     "unsure": 5
+    }
+   },
+   "shifted": {
+    "sensitivity": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 40,
+     "unsure": 0
+    }
+   },
+   "repeatMisses": [
+    "lab-v1.1-p05-x6"
+   ],
+   "passesBar": false
+  }
+ },
+ "table": {
+  "lab-v1.1-e20-x6": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "التي يكذب بها المجرمون كالأعلام بينها وبين حميم",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "wrong: يَطُوفُونَ / كالأعلام"
+    ]
+   },
+   "ctc": {
+    "transcript": "يكذب بها المجرمون كالأعلام بينهَا وبَيْين حَمِيم",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "wrong: يَطُوفُونَ / كالأعلام"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e20-x10": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "مِنْ آلَاءِ رَبِّكُمَا بِحُسْبَانٍ فِيهِنَّ قَاصِرَاتٌ",
+    "labelled": "match",
+    "oneEdit": "unsure",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "doubtful: تُكَذِّبَانِ / بِحُسْبَانٍ"
+    ]
+   },
+   "ctc": {
+    "transcript": "مِنْ آلَاءِ رَبِّكُمَا بِحُسْبَانٍ فِيهِنَّ قَاصِرَاتُ",
+    "labelled": "match",
+    "oneEdit": "unsure",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "doubtful: تُكَذِّبَانِ / بِحُسْبَانٍ"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "unsure",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p09-x8": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "بالجنة التي أخوت توعدون",
+    "labelled": "mismatch",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "wrong: قُوَّةًۭ / أخوت"
+    ],
+    "oneEditReasons": [
+     "wrong: كُنتُمْ / أخوت"
+    ]
+   },
+   "ctc": {
+    "transcript": "رب بالجنة التي اخت توعدون",
+    "labelled": "mismatch",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "wrong: قُوَّةًۭ / اخت"
+    ],
+    "oneEditReasons": [
+     "wrong: كُنتُمْ / اخت"
+    ]
+   },
+   "combined": {
+    "labelled": "mismatch",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e13-x4": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "جَنَّاتٍ وَحَبَّ الْوَرِيدِ وَالنَّخْلَاتُ",
+    "labelled": "unsure",
+    "oneEdit": "unsure",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: بَاسِقَـٰتٍۢ"
+    ],
+    "oneEditReasons": [
+     "doubtful: ٱلْحَصِيدِ / الْوَرِيدِ",
+     "edge-missing: بَاسِقَـٰتٍۢ"
+    ]
+   },
+   "ctc": {
+    "transcript": "جَنَّاتٍ وَحَبَّوَرِيدِ وَالنَّخْلَ بِطاتٍ",
+    "labelled": "mismatch",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "missing: وَحَبَّ",
+     "doubtful: ٱلْوَرِيدِ / وَحَبَّوَرِيدِ",
+     "doubtful: بَاسِقَـٰتٍۢ / بِطاتٍ"
+    ],
+    "oneEditReasons": [
+     "wrong: وَحَبَّ / وَحَبَّوَرِيدِ",
+     "missing: ٱلْحَصِيدِ",
+     "doubtful: بَاسِقَـٰتٍۢ / بِطاتٍ"
+    ]
+   },
+   "combined": {
+    "labelled": "mismatch",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e15-x8": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "وآلاء ربكما مدهامتان",
+    "labelled": "mismatch",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "missing: لِلْأَنَامِ"
+    ],
+    "oneEditReasons": [
+     "missing: تُكَذِّبَانِ"
+    ]
+   },
+   "ctc": {
+    "transcript": "ومآل ربكما بالأم مدهات",
+    "labelled": "mismatch",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "wrong: ءَالَآءِ / ومآل",
+     "doubtful: لِلْأَنَامِ / بالأم",
+     "doubtful: مُدْهَآمَّتَانِ / مدهات"
+    ],
+    "oneEditReasons": [
+     "wrong: ءَالَآءِ / ومآل",
+     "wrong: تُكَذِّبَانِ / بالأم",
+     "doubtful: مُدْهَآمَّتَانِ / مدهات"
+    ]
+   },
+   "combined": {
+    "labelled": "mismatch",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e16-x7": {
+   "kind": "splice",
+   "label": "omitted_word",
+   "human": "ok",
+   "oneEdit": "omitted word put back",
+   "oneEditEdit": "omitted_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "عن الخلق غافلين من السماء ماء",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: وَأَنزَلْنَا"
+    ]
+   },
+   "ctc": {
+    "transcript": "ون الخلق غافلين من السماء ماء",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "doubtful: عَنِ / ون"
+    ],
+    "oneEditReasons": [
+     "missing: وَأَنزَلْنَا",
+     "doubtful: عَنِ / ون"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e14-x4": {
+   "kind": "splice",
+   "label": "omitted_word",
+   "human": "ok",
+   "oneEdit": "omitted word put back",
+   "oneEditEdit": "omitted_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "سَعَوْا فِي آيَاتِنَا مُعَائِزِينَ",
+    "labelled": "unsure",
+    "oneEdit": "unsure",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: وَرِزْقٌۭ",
+     "edge-missing: كَرِيمٌۭ"
+    ],
+    "oneEditReasons": [
+     "edge-missing: وَرِزْقٌۭ",
+     "edge-missing: كَرِيمٌۭ",
+     "edge-missing: وَٱلَّذِينَ"
+    ]
+   },
+   "ctc": {
+    "transcript": "سَعَوا في آياتنا معاجزين",
+    "labelled": "unsure",
+    "oneEdit": "unsure",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: وَرِزْقٌۭ",
+     "edge-missing: كَرِيمٌۭ"
+    ],
+    "oneEditReasons": [
+     "edge-missing: وَرِزْقٌۭ",
+     "edge-missing: كَرِيمٌۭ",
+     "edge-missing: وَٱلَّذِينَ"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "unsure",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p06-x1": {
+   "kind": "splice",
+   "label": "omitted_word",
+   "human": "ok",
+   "oneEdit": "omitted word put back",
+   "oneEditEdit": "omitted_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "أُولَئِكَ الَّذِينَ بِرَبِّهِمْ وَأُولَئِكَ",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: كَفَرُوا۟"
+    ]
+   },
+   "ctc": {
+    "transcript": "أُولَئِكَ الذين بربهممْ وَول",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "doubtful: وَأُو۟لَـٰٓئِكَ / وَول"
+    ],
+    "oneEditReasons": [
+     "missing: كَفَرُوا۟",
+     "doubtful: وَأُو۟لَـٰٓئِكَ / وَول"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e11-x11": {
+   "kind": "splice",
+   "label": "omitted_word",
+   "human": "ok",
+   "oneEdit": "omitted word put back",
+   "oneEditEdit": "omitted_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "ولكن أكثرهم يعلمون",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: لَا"
+    ]
+   },
+   "ctc": {
+    "transcript": "ولكن أكثرهم يعلمون",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: لَا"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p15-x8": {
+   "kind": "splice",
+   "label": "added_word",
+   "human": "ok",
+   "oneEdit": "planted extra word(s) removed",
+   "oneEditEdit": "added_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "لحق مثل",
+    "labelled": "unsure",
+    "oneEdit": "unsure",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: إِنَّهُۥ",
+     "edge-missing: قَوْمٌۭ",
+     "edge-missing: مَآ",
+     "edge-missing: أَنَّكُمْ"
+    ],
+    "oneEditReasons": [
+     "edge-missing: إِنَّهُۥ",
+     "edge-missing: مَآ",
+     "edge-missing: أَنَّكُمْ"
+    ]
+   },
+   "ctc": {
+    "transcript": "إنه لحق مثل",
+    "labelled": "unsure",
+    "oneEdit": "unsure",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: قَوْمٌۭ",
+     "edge-missing: مَآ",
+     "edge-missing: أَنَّكُمْ"
+    ],
+    "oneEditReasons": [
+     "edge-missing: مَآ",
+     "edge-missing: أَنَّكُمْ"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "unsure",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p10-x6": {
+   "kind": "splice",
+   "label": "added_word",
+   "human": "ok",
+   "oneEdit": "planted extra word(s) removed",
+   "oneEditEdit": "added_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "كل من عليها تكذبان فان ويبقى",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: تُكَذِّبَانِ"
+    ],
+    "oneEditReasons": [
+     "extra: تكذبان",
+     "edge-missing: تُكَذِّبَانِ"
+    ]
+   },
+   "ctc": {
+    "transcript": "و تكذبان كل من عليها تكذبان فانبقى",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "doubtful: فَانٍۢ / فانبقى",
+     "edge-missing: وَيَبْقَىٰ"
+    ],
+    "oneEditReasons": [
+     "wrong: فَانٍۢ / تكذبان",
+     "doubtful: وَيَبْقَىٰ / فانبقى"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p01-x25": {
+   "kind": "splice",
+   "label": "added_word",
+   "human": "ok",
+   "oneEdit": "planted extra word(s) removed",
+   "oneEditEdit": "added_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "واذا بطشتم بطشتم في جبارين فاتقوا الله",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "extra: في"
+    ]
+   },
+   "ctc": {
+    "transcript": "واذا بطشتم بطشتم في جبارين فاتقوا الله",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "extra: في"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e19-x12": {
+   "kind": "splice",
+   "label": "added_word",
+   "human": "ok",
+   "oneEdit": "planted extra word(s) removed",
+   "oneEditEdit": "added_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "فَأَغْوَيْنَاكُمْ",
+    "labelled": "unsure",
+    "oneEdit": "unsure",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: إِنَّا",
+     "edge-missing: كَيْفَ",
+     "edge-missing: كُنَّا",
+     "edge-missing: غَـٰوِينَ",
+     "edge-missing: فَإِنَّهُمْ"
+    ],
+    "oneEditReasons": [
+     "edge-missing: إِنَّا",
+     "edge-missing: كُنَّا",
+     "edge-missing: غَـٰوِينَ",
+     "edge-missing: فَإِنَّهُمْ"
+    ]
+   },
+   "ctc": {
+    "transcript": "َوَيْنَاكُمْ إِلْفَ كُاوِينَ.",
+    "labelled": "mismatch",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "missing: إِنَّا",
+     "wrong: كَيْفَ / إِلْفَ",
+     "missing: كُنَّا",
+     "doubtful: فَأَغْوَيْنَـٰكُمْ / َوَيْنَاكُمْ",
+     "edge-missing: فَإِنَّهُمْ"
+    ],
+    "oneEditReasons": [
+     "wrong: إِنَّا / إِلْفَ",
+     "missing: كُنَّا",
+     "doubtful: فَأَغْوَيْنَـٰكُمْ / َوَيْنَاكُمْ",
+     "edge-missing: فَإِنَّهُمْ"
+    ]
+   },
+   "combined": {
+    "labelled": "mismatch",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p13-x12": {
+   "kind": "splice",
+   "label": "skipped_passage",
+   "human": "ok",
+   "oneEdit": "skipped passage put back",
+   "oneEditEdit": "skipped_passage",
+   "oneEditWords": 11,
+   "rnnt": {
+    "transcript": "فبئس القرار وقالوا ما لنا لا نرى",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: لَنَا"
+    ],
+    "oneEditReasons": [
+     "missing: قَالُوا۟",
+     "missing: رَبَّنَا",
+     "missing: مَن",
+     "missing: قَدَّمَ",
+     "missing: لَنَا",
+     "missing: هَـٰذَا",
+     "missing: فَزِدْهُ",
+     "missing: عَذَابًۭا",
+     "missing: ضِعْفًۭا",
+     "missing: فِى",
+     "missing: ٱلنَّارِ",
+     "edge-missing: لَنَا"
+    ]
+   },
+   "ctc": {
+    "transcript": "فبئس القرار وقالوا ما لنا لا نرى",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: لَنَا"
+    ],
+    "oneEditReasons": [
+     "missing: قَالُوا۟",
+     "missing: رَبَّنَا",
+     "missing: مَن",
+     "missing: قَدَّمَ",
+     "missing: لَنَا",
+     "missing: هَـٰذَا",
+     "missing: فَزِدْهُ",
+     "missing: عَذَابًۭا",
+     "missing: ضِعْفًۭا",
+     "missing: فِى",
+     "missing: ٱلنَّارِ",
+     "edge-missing: لَنَا"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e10-x9": {
+   "kind": "splice",
+   "label": "skipped_passage",
+   "human": "ok",
+   "oneEdit": "skipped passage put back",
+   "oneEditEdit": "skipped_passage",
+   "oneEditWords": 4,
+   "rnnt": {
+    "transcript": "نضرة النعيم ختامه مسك وفي رجال",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: يُسْقَوْنَ",
+     "missing: مِن",
+     "missing: رَّحِيقٍۢ",
+     "missing: مَّخْتُومٍ"
+    ]
+   },
+   "ctc": {
+    "transcript": "و نضرة النَّعيم ختامه مسك وفي ر",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: يُسْقَوْنَ",
+     "missing: مِن",
+     "missing: رَّحِيقٍۢ",
+     "missing: مَّخْتُومٍ"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p14-x2": {
+   "kind": "splice",
+   "label": "skipped_passage",
+   "human": "ok",
+   "oneEdit": "skipped passage put back",
+   "oneEditEdit": "skipped_passage",
+   "oneEditWords": 7,
+   "rnnt": {
+    "transcript": "كُنتُم بِهِ تُكَذِّبُون مِن دونِ اللهِ",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: ٱحْشُرُوا۟",
+     "missing: ٱلَّذِينَ",
+     "missing: ظَلَمُوا۟",
+     "missing: وَأَزْوَٰجَهُمْ",
+     "missing: وَمَا",
+     "missing: كَانُوا۟",
+     "missing: يَعْبُدُونَ"
+    ]
+   },
+   "ctc": {
+    "transcript": "كُم بِهِ تكَذِّبون مِن دون الله",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: ٱحْشُرُوا۟",
+     "missing: ٱلَّذِينَ",
+     "missing: ظَلَمُوا۟",
+     "missing: وَأَزْوَٰجَهُمْ",
+     "missing: وَمَا",
+     "missing: كَانُوا۟",
+     "missing: يَعْبُدُونَ"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p17-x9": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "فِيهِمَا عَيْنَانِ تَجْرِيَانِ فَبِأَيِّ آلاء",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "wrong: نَضَّاخَتَانِ / تَجْرِيَانِ"
+    ]
+   },
+   "ctc": {
+    "transcript": "فِيهِ عَيْنان تَجْرِيَانِ فَبِأَيِّ آلاء",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "doubtful: فِيهِمَا / فِيهِ"
+    ],
+    "oneEditReasons": [
+     "wrong: نَضَّاخَتَانِ / تَجْرِيَانِ",
+     "doubtful: فِيهِمَا / فِيهِ"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p12-x7": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "أَلَمْ نَجْعَلِ الْأَرْضَ كِهَادًا أَحْيَاءً",
+    "labelled": "match",
+    "oneEdit": "unsure",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "doubtful: كِفَاتًا / كِهَادًا"
+    ]
+   },
+   "ctc": {
+    "transcript": "أَلَمْ نَجْعَلِ الْأَرْضَ كِهَادًا أَحْيَاءً",
+    "labelled": "match",
+    "oneEdit": "unsure",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "doubtful: كِفَاتًا / كِهَادًا"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "unsure",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p17-x2": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "فِيهِمَا عَيْنَانِ نَضَّاخَتَانِ فَبِأَيِّ آلاء؟",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "wrong: تَجْرِيَانِ / نَضَّاخَتَانِ"
+    ]
+   },
+   "ctc": {
+    "transcript": "فِيهِمَا عَيْينَانِ نَضاختانَانِ فَبِأَيِّ آلاء",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "wrong: تَجْرِيَانِ / نَضاختانَانِ"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e19-x9": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEdit": "planted word back to the expected one",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "مَسْؤُولُونَ مَا لَكُم لّا تَنطِقُونَ بَلْ هُمُ الْيَوْمَ مُسْتَسْلِمُونَ",
+    "labelled": "match",
+    "oneEdit": "unsure",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "doubtful: تَنَاصَرُونَ / تَنطِقُونَ"
+    ]
+   },
+   "ctc": {
+    "transcript": "وَم مََّسْئُولُونَ مَا لَكم لّا تَنطِقُونَ بَلْ هُمُ الْيَوْمَ مُسْتَسْلِمُونَ",
+    "labelled": "match",
+    "oneEdit": "unsure",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "doubtful: تَنَاصَرُونَ / تَنطِقُونَ"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "unsure",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e08-x1": {
+   "kind": "case",
+   "label": "repeat",
+   "human": "ok",
+   "oneEdit": "repeat removed",
+   "oneEditEdit": "repeat",
+   "oneEditWords": 3,
+   "rnnt": {
+    "transcript": "إِنَّ ذَلِكَ لَآيَةً وَمَا ذَلِكَ لَآيَةً وَمَا كَانَ أَكْثَرُهُم مُّؤْمِنِينَ",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "extra: إِنَّ",
+     "extra: ذَلِكَ",
+     "extra: لَآيَةً"
+    ]
+   },
+   "ctc": {
+    "transcript": "إِنَّ ذَلِكَ لَآيَةً وَمَا ذَلِكَ لَآيَةً وَمَا كَانَ أَكْثَرُهُم مُّؤْمِنِينَ",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "extra: إِنَّ",
+     "extra: ذَلِكَ",
+     "extra: لَآيَةً"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e01-x4": {
+   "kind": "case",
+   "label": "restart",
+   "human": "ok",
+   "oneEdit": "restart removed",
+   "oneEditEdit": "restart",
+   "oneEditWords": 7,
+   "rnnt": {
+    "transcript": "فِي الأَرْضِ بِغَيْرِ الْحَقِّ وَاسْتَكْبَرَ هُوَ وَجُنُودُهُ فِي الأَرْضِ بِغَيْرِ الْحَقِّ وَظَنُّوا أَنَّهُمْ",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "extra: فِي",
+     "extra: الأَرْضِ",
+     "extra: بِغَيْرِ",
+     "extra: الْحَقِّ",
+     "extra: وَاسْتَكْبَرَ",
+     "extra: هُوَ",
+     "extra: وَجُنُودُهُ"
+    ]
+   },
+   "ctc": {
+    "transcript": "فِي الأَرْضِ بِغَيْرِ الْحَقِّ وَاسْتَكْبَرَ هُوَ وَجُنُودُهُ فِي الأَرْضِ بِغَيْرِ الْحَقِّ وَظَنُّوا أَنَّهُمْ",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "extra: فِي",
+     "extra: الأَرْضِ",
+     "extra: بِغَيْرِ",
+     "extra: الْحَقِّ",
+     "extra: وَاسْتَكْبَرَ",
+     "extra: هُوَ",
+     "extra: وَجُنُودُهُ"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p05-x6": {
+   "kind": "case",
+   "label": "repeat",
+   "human": "ok",
+   "oneEdit": "repeat removed",
+   "oneEditEdit": "repeat",
+   "oneEditWords": 3,
+   "rnnt": {
+    "transcript": "فَثَبِّتُوا الَّذِينَ آمَنُوا سَأُلْقِي فِي قُلُوبِ النَّاسِ",
+    "labelled": "mismatch",
+    "oneEdit": "match",
+    "shifted": "mismatch",
+    "reasons": [
+     "missing: فَثَبِّتُوا۟",
+     "missing: ٱلَّذِينَ",
+     "missing: ءَامَنُوا۟"
+    ],
+    "oneEditReasons": []
+   },
+   "ctc": {
+    "transcript": "فَثَبِّتُوا الَّذِينَ آمَنُوا سَأُلْقِي فِي قُلُوبِ",
+    "labelled": "mismatch",
+    "oneEdit": "match",
+    "shifted": "mismatch",
+    "reasons": [
+     "missing: فَثَبِّتُوا۟",
+     "missing: ٱلَّذِينَ",
+     "missing: ءَامَنُوا۟"
+    ],
+    "oneEditReasons": []
+   },
+   "combined": {
+    "labelled": "mismatch",
+    "oneEdit": "match",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e05-x7": {
+   "kind": "case",
+   "label": "restart",
+   "human": "ok",
+   "oneEdit": "restart removed",
+   "oneEditEdit": "restart",
+   "oneEditWords": 9,
+   "rnnt": {
+    "transcript": "وَمَا أَسْأَلُكُمْ عَلَيْهِ مِنْ أَجْرٍ إِنْ أَجْرِيَ إِلَّا عَلَى رَبِّ الْعَالَمِينَ",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: أَجْرِىَ",
+     "edge-missing: إِلَّا",
+     "edge-missing: عَلَىٰ"
+    ],
+    "oneEditReasons": [
+     "extra: وَمَا",
+     "extra: أَسْأَلُكُمْ",
+     "extra: عَلَيْهِ",
+     "extra: مِنْ",
+     "extra: أَجْرٍ"
+    ]
+   },
+   "ctc": {
+    "transcript": "وَمَا أَسْأَلُكُمْ عَلَيْهِ مِنْ أَجْرٍ إِنْ أَجْرِيَ إِلَّا عَلَى رَبِّ الْعَالَمِينَ",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: أَجْرِىَ",
+     "edge-missing: إِلَّا",
+     "edge-missing: عَلَىٰ"
+    ],
+    "oneEditReasons": [
+     "extra: وَمَا",
+     "extra: أَسْأَلُكُمْ",
+     "extra: عَلَيْهِ",
+     "extra: مِنْ",
+     "extra: أَجْرٍ"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p15-x5": {
+   "kind": "case",
+   "label": "repeat",
+   "human": "ok",
+   "oneEdit": "repeat removed",
+   "oneEditEdit": "repeat",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "إنهم كانوا كانوا قبل ذلك محسنين",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "wrong: إِنَّهُمْ / كانوا"
+    ]
+   },
+   "ctc": {
+    "transcript": "إنهم كانوا كانوا قبل ذلك محسنين",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "wrong: إِنَّهُمْ / كانوا"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e12-x3": {
+   "kind": "case",
+   "label": "repeat",
+   "human": "ok",
+   "oneEdit": "repeat removed",
+   "oneEditEdit": "repeat",
+   "oneEditWords": 3,
+   "rnnt": {
+    "transcript": "لا تاخذ بلحيتي ولا برأسي بلحيتي ولا برأسي اني خشيت",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: أَن"
+    ],
+    "oneEditReasons": [
+     "wrong: إِنِّى / بلحيتي",
+     "extra: ولا",
+     "wrong: خَشِيتُ / برأسي",
+     "doubtful: أَن / اني"
+    ]
+   },
+   "ctc": {
+    "transcript": "لا تاأخذذ بلحيتي ولا برأسي بلحيتي ولا برأسي اني خشيت",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "doubtful: تَأْخُذْ / تاأخذذ",
+     "edge-missing: أَن"
+    ],
+    "oneEditReasons": [
+     "wrong: إِنِّى / بلحيتي",
+     "extra: ولا",
+     "wrong: خَشِيتُ / برأسي",
+     "doubtful: تَأْخُذْ / تاأخذذ",
+     "doubtful: أَن / اني"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p09-studio-317": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "صَبَرُوا۟ claimed as خَشِيتُ",
+   "oneEditEdit": "sub",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "وما يلقاها إلا الذين صبروا وما يلقاها",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "wrong: خَشِيتُ / صبروا"
+    ]
+   },
+   "ctc": {
+    "transcript": "وما يلقاها إلا الذين صبروا وما يلقاها",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "wrong: خَشِيتُ / صبروا"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e11-studio-125": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text claims extra ٱلْأَرْضَ",
+   "oneEditEdit": "ins",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "فاكهين كذلك وأورثناها قوما آخرين",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: ٱلْأَرْضَ"
+    ]
+   },
+   "ctc": {
+    "transcript": "فاكهين كذلك وأورثناها قوما آخرين",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: ٱلْأَرْضَ"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e02-studio-85": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text drops يُخْزِيهِ",
+   "oneEditEdit": "del",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "من يأتيه عذاب يخزيه ويحل عليه عذاب",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: تَعْلَمُونَ"
+    ],
+    "oneEditReasons": [
+     "extra: يخزيه",
+     "edge-missing: تَعْلَمُونَ"
+    ]
+   },
+   "ctc": {
+    "transcript": "من يأتيه عذاب يخزه ويحل عليه عذاب",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: تَعْلَمُونَ"
+    ],
+    "oneEditReasons": [
+     "extra: يخزه",
+     "edge-missing: تَعْلَمُونَ"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p10-studio-13": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "وَٱلنَّخْلُ claimed as تَنطِقُونَ",
+   "oneEditEdit": "sub",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "فاكهة والنخل ذات الأَكْمام والحبُّ ذو العصفِ والرَّيْحان",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "wrong: تَنطِقُونَ / والنخل"
+    ]
+   },
+   "ctc": {
+    "transcript": "فاكهَةٌ والنَّخُْ ذَات الأَكْمامامِ والحبُّ ذو العصصفْفِ والرحان",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "doubtful: ٱلْعَصْفِ / العصصفْفِ"
+    ],
+    "oneEditReasons": [
+     "wrong: تَنطِقُونَ / والنَّخُْ",
+     "doubtful: ٱلْعَصْفِ / العصصفْفِ"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e14-studio-309": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text claims extra رَبِّكَ",
+   "oneEditEdit": "ins",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "يَوْمَ الْقِيَامَةِ فِيمَا كُنتُمْ فِيهِ تَخْتَلِفُونَ أَلَمْ تَعْلَمْ أَنَّ اللَّهَ يَعْلَمُ",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: رَبِّكَ"
+    ]
+   },
+   "ctc": {
+    "transcript": "َوْمَ الْقِيَامَةِ فِيمَا كُنتُمْ فِيهِ تَخْتَلِفُونَ أَلَمْ تَعْلَمْ أَنَّ اللَّهَ يَعْلَمُ",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: رَبِّكَ"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p03-studio-5": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text drops تُنذِرْهُمْ",
+   "oneEditEdit": "del",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "قالوا أأنذرتهم أم لم تنذرهم لا يؤمنون",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: إِنَّمَا",
+     "edge-missing: تُنذِرُ",
+     "edge-missing: مَنِ"
+    ],
+    "oneEditReasons": [
+     "extra: تنذرهم",
+     "edge-missing: إِنَّمَا",
+     "edge-missing: تُنذِرُ",
+     "edge-missing: مَنِ"
+    ]
+   },
+   "ctc": {
+    "transcript": "قالهم أأنذرتهم أم لم تنذرهم لا يؤمنون",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: إِنَّمَا",
+     "edge-missing: تُنذِرُ",
+     "edge-missing: مَنِ"
+    ],
+    "oneEditReasons": [
+     "extra: تنذرهم",
+     "edge-missing: إِنَّمَا",
+     "edge-missing: تُنذِرُ",
+     "edge-missing: مَنِ"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e10-studio-5": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "وَإِذَا claimed as يُكَذِّبُ",
+   "oneEditEdit": "sub",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "ألا يالوهم أَو وَزَنُوهُمْ يخسرون ألا يظنهم",
+    "labelled": "unsure",
+    "oneEdit": "unsure",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: يَسْتَوْفُونَ",
+     "doubtful: وَإِذَا / ألا",
+     "doubtful: يَظُنُّ / يظنهم"
+    ],
+    "oneEditReasons": [
+     "edge-missing: يَسْتَوْفُونَ",
+     "edge-missing: يُكَذِّبُ",
+     "doubtful: يَظُنُّ / يظنهم"
+    ]
+   },
+   "ctc": {
+    "transcript": "أ وإذا كَالُوهُمْ أَو وزَنُوهُمْ يخسررُونَ ألا يظنهُمْ",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: يَسْتَوْفُونَ",
+     "doubtful: يَظُنُّ / يظنهُمْ"
+    ],
+    "oneEditReasons": [
+     "wrong: يُكَذِّبُ / وإذا",
+     "edge-missing: يَسْتَوْفُونَ",
+     "doubtful: يَظُنُّ / يظنهُمْ"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p20-phone-61": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text claims extra فَإِنَّ",
+   "oneEditEdit": "ins",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "إِنَّمَا يَسْتَأْذِنُكَ الَّذِينَ لا يُؤْمِنُونَ بِاللَّهِ وَالْيَوْمِ الآخِرِ",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: فَإِنَّ"
+    ]
+   },
+   "ctc": {
+    "transcript": "إِنَّما يَسْتَأْذِنُكَ الَّذِينَ لا يُؤْمِنُونَ بِاللَّهِ وَالْيَومْمِ الآِ",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: فَإِنَّ"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p19-phone-5": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text drops أَو",
+   "oneEditEdit": "del",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "أَهُمْ يَسْتَوْفُونَ وَإِذَا كَالُوهُمْ أَو وَزَنُوهُمْ يُخْسِرُونَ",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "edge-missing: أَلَا",
+     "edge-missing: يَظُنُّ"
+    ],
+    "oneEditReasons": [
+     "extra: أَو",
+     "edge-missing: أَلَا",
+     "edge-missing: يَظُنُّ"
+    ]
+   },
+   "ctc": {
+    "transcript": "أَهُمْ يَسْتَوْف وَإِذَا كَالُوهُمْ أَوْ وَزَنُوهُمْ يُخْسِرُونَ",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "doubtful: يَسْتَوْفُونَ / يَسْتَوْف",
+     "edge-missing: أَلَا",
+     "edge-missing: يَظُنُّ"
+    ],
+    "oneEditReasons": [
+     "extra: أَوْ",
+     "doubtful: يَسْتَوْفُونَ / يَسْتَوْف",
+     "edge-missing: أَلَا",
+     "edge-missing: يَظُنُّ"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e07-phone-293": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "كَثِيرًۭا claimed as وَيَحِلُّ",
+   "oneEditEdit": "sub",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "تَجْعَلُونَهُ قَضَاطِعَ تُبْنُونَهَا وَتُبْوُونَ كَثِيرًا وَعُلِّمْتُم مَّا لَمْ تَعْلَمُوا",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "doubtful: قَرَاطِيسَ / قَضَاطِعَ",
+     "doubtful: وَتُخْفُونَ / وَتُبْوُونَ"
+    ],
+    "oneEditReasons": [
+     "wrong: وَيَحِلُّ / كَثِيرًا",
+     "doubtful: قَرَاطِيسَ / قَضَاطِعَ",
+     "doubtful: وَتُخْفُونَ / وَتُبْوُونَ"
+    ]
+   },
+   "ctc": {
+    "transcript": "تَجْعَلُونَهُ قَضاطِيلََ تُبْنُونَهَا وَتُبْفُونَ كَثِيرًا وَعُلِّمْتُم مَّا لَمْ تَعْلَمُوا",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "doubtful: قَرَاطِيسَ / قَضاطِيلََ"
+    ],
+    "oneEditReasons": [
+     "wrong: وَيَحِلُّ / كَثِيرًا",
+     "doubtful: قَرَاطِيسَ / قَضاطِيلََ"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p06-phone-173": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text claims extra أَمْ",
+   "oneEditEdit": "ins",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "حَتَّى يُغَيِّرُوا مَا بِأَنفُسِهِمْ وَإِذَا أَرَادَ",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: أَمْ"
+    ]
+   },
+   "ctc": {
+    "transcript": "حَتَّى يُغَيِّرُوا مَا بِأَنفُسِهِمْ وَإِذَا أَرَادَ",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: أَمْ"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e15-phone-229": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text drops تُكَذِّبَانِ",
+   "oneEditEdit": "del",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "فَبِآلاء رَبِّكُمَا تُكَذِّبَانِ تَبَارَكَ اسْمُ رَبِّكَ",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "doubtful: ءَالَآءِ / فَبِآلاء"
+    ],
+    "oneEditReasons": [
+     "extra: تُكَذِّبَانِ",
+     "doubtful: ءَالَآءِ / فَبِآلاء"
+    ]
+   },
+   "ctc": {
+    "transcript": "فَبِوِّ آَلاء رَبِّكُمَا تُكَذِّبَانِ تَبَارَكَ اسْمُ رَبِّكَ",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "extra: تُكَذِّبَانِ"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-e03-phone-213": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "مُّؤْمِنَةٍۢ claimed as فَـٰكِهَةٌۭ",
+   "oneEditEdit": "sub",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "ذو رقبة مؤمنة ودية مسلمة الى أهله",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "wrong: فَـٰكِهَةٌۭ / مؤمنة"
+    ]
+   },
+   "ctc": {
+    "transcript": "ذو رقبة مؤمنة ودية مسسلممة الى أهله",
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [
+     "doubtful: مُّسَلَّمَةٌ / مسسلممة"
+    ],
+    "oneEditReasons": [
+     "wrong: فَـٰكِهَةٌۭ / مؤمنة",
+     "doubtful: مُّسَلَّمَةٌ / مسسلممة"
+    ]
+   },
+   "combined": {
+    "labelled": "unsure",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  },
+  "lab-v1.1-p04-phone-245": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEdit": "text claims extra أَجْرِىَ",
+   "oneEditEdit": "ins",
+   "oneEditWords": 1,
+   "rnnt": {
+    "transcript": "وَمَنْ يَعْصِ اللَّهَ وَرَسُولَهُ فَإِنَّ لَهُ نَارَ جَهَنَّمَ خَالِدِينَ فِيهَا",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: أَجْرِىَ"
+    ]
+   },
+   "ctc": {
+    "transcript": "وَمَنْ يَعْصِ الللَّهَ وَرَسُولَهُ فَإِنَّ لَهُ نَارَ جَهَنَّمَ خَالِدِينَ فِيهَا",
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch",
+    "reasons": [],
+    "oneEditReasons": [
+     "missing: أَجْرِىَ"
+    ]
+   },
+   "combined": {
+    "labelled": "match",
+    "oneEdit": "mismatch",
+    "shifted": "mismatch"
+   }
+  }
+ }
+}

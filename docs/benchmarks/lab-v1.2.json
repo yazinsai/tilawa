@@ -1,0 +1,152 @@
+{
+ "version": 1,
+ "testSet": "lab-v1.2",
+ "seed": 20261028,
+ "all": {
+  "sessions": 40,
+  "reciters": 29,
+  "minutes": 180.9,
+  "durationS": [
+   184.2,
+   393.1
+  ],
+  "ayah1": 8,
+  "strict": 6,
+  "clean": 10,
+  "planted": 351,
+  "formsOtherAyah": 40,
+  "plantedPerAyah": 0.347,
+  "classes": {
+   "added_word": 170,
+   "mutashabihat": 25,
+   "omitted_word": 30,
+   "repeat": 23,
+   "restart": 17,
+   "skipped_passage": 81,
+   "wrong_word": 45
+  },
+  "words": 9258
+ },
+ "splits": {
+  "exam": {
+   "sessions": 20,
+   "reciters": 14,
+   "minutes": 93.4,
+   "durationS": [
+    184.2,
+    387.6
+   ],
+   "ayah1": 4,
+   "strict": 3,
+   "clean": 5,
+   "planted": 183,
+   "formsOtherAyah": 22,
+   "plantedPerAyah": 0.345,
+   "classes": {
+    "added_word": 91,
+    "mutashabihat": 16,
+    "omitted_word": 20,
+    "repeat": 10,
+    "restart": 10,
+    "skipped_passage": 33,
+    "wrong_word": 23
+   },
+   "words": 4685
+  },
+  "practice": {
+   "sessions": 20,
+   "reciters": 15,
+   "minutes": 87.5,
+   "durationS": [
+    196.2,
+    393.1
+   ],
+   "ayah1": 4,
+   "strict": 3,
+   "clean": 5,
+   "planted": 168,
+   "formsOtherAyah": 18,
+   "plantedPerAyah": 0.349,
+   "classes": {
+    "added_word": 79,
+    "mutashabihat": 9,
+    "omitted_word": 10,
+    "repeat": 13,
+    "restart": 7,
+    "skipped_passage": 48,
+    "wrong_word": 22
+   },
+   "words": 4573
+  }
+ },
+ "surahs": {
+  "4": 1,
+  "5": 1,
+  "6": 1,
+  "8": 1,
+  "9": 1,
+  "11": 1,
+  "12": 1,
+  "17": 1,
+  "18": 1,
+  "19": 1,
+  "20": 1,
+  "23": 1,
+  "26": 8,
+  "28": 1,
+  "36": 1,
+  "37": 2,
+  "38": 1,
+  "39": 1,
+  "40": 1,
+  "44": 1,
+  "50": 1,
+  "51": 2,
+  "54": 2,
+  "55": 2,
+  "72": 1,
+  "77": 2,
+  "78": 1,
+  "83": 1
+ },
+ "bank": {
+  "sources": {
+   "noise": "obadx/freesound-commercial-50k-noise-only (commercial-use licences), shards 100,101,102,103; the student bank uses shards 0-2",
+   "rir": "EaseZh/rirs_noises (OpenSLR-28) simulated small and medium rooms, minus every RIR in the student bank (tilawa-student/aug/rir.npz)"
+  },
+  "sha256": {
+   "noise": "62eddf5357bf768341db22ecf1769f95b424c7bce54d41c3b1d2e7a3a8d4ade4",
+   "rir": "c6fb31f2b6ebe1b372576b521d5d6839a425526d64d92d9878e4823cb84a2d36"
+  },
+  "noises": 400,
+  "rirs": 200
+ },
+ "refused": {
+  "ayahs": {
+   "check": 7,
+   "long": 2389,
+   "per": 104
+  },
+  "sites": 11,
+  "donors": 7,
+  "weakOnsetPauses": {
+   "moved": 968,
+   "unverified": 8758
+  },
+  "rules": {
+   "lenRatioMin": 1.05,
+   "ayahPerMax": 0.1,
+   "weakOnsets": "ءحخعغه",
+   "linkDb": -6.0,
+   "linkTailDb": -8.0,
+   "minDonorS": 0.26,
+   "onsetSilenceS": 0.08,
+   "onsetFloorDb": -30.0,
+   "roomPct": 0.02,
+   "roomMarginDb": 3.0
+  },
+  "refusalsSha256": "72071287628d86db05b57d6fcbd8304d53c823a8b5c9bd7d55e34ba25a35df90",
+  "iterations": 4
+ },
+ "reciters": 29
+}

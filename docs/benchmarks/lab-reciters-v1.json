@@ -1,0 +1,1983 @@
+{
+  "version": 1,
+  "source": {
+    "api": "https://www.mp3quran.net/api/v3/ayat_timing/reads",
+    "fetchedAt": "2026-10-28T06:56:16+00:00"
+  },
+  "criteria": [
+    "mp3quran read with ayah timings whose moshaf is Hafs (moshaf name contains حفص)",
+    "moshaf_type 11 (Hafs murattal); mujawwad (12) and featured recitation (14) excluded",
+    "surah 67 timings complete and monotonic; recited span at least 0.75 x the median across Hafs murattal reads (else hadr-like, unsupported)",
+    "reciter not in teacher training data (obadx/muaalem-annotated-v3 reciters_metadata), Arabic or English name",
+    "reciter not in the student's actual training data (tlog-v2 only; no names, see risks)",
+    "reciter not in planned training sources named by the ticket: QUD (all riwayat), zaibihassan, everyayah.com index (superset of tarteel-ai/everyayah and its mirrors)",
+    "uncertain name matches excluded",
+    "practice/exam: matched pairs within bitrate bands (<110 kbps on the surah 67 mp3, rest) by speed, seeded coin flip per pair"
+  ],
+  "counts": {
+    "timedReads": 115,
+    "timedHafs": 103,
+    "excluded_teacher": 19,
+    "excluded_student": 0,
+    "excluded_planned": 70,
+    "uncertain": 0,
+    "style": 6,
+    "fast": 4,
+    "heldOut": 32,
+    "practice": 16,
+    "exam": 16,
+    "medianAlMulkSeconds": 380.2
+  },
+  "balance": {
+    "practice": {
+      "n": 16,
+      "meanSpeedRatio": 1.015,
+      "meanKbps": 128,
+      "under110Kbps": 4,
+      "timedSurahs": 1824
+    },
+    "exam": {
+      "n": 16,
+      "meanSpeedRatio": 1.036,
+      "meanKbps": 142,
+      "under110Kbps": 4,
+      "timedSurahs": 1823
+    }
+  },
+  "heldOut": [
+    {
+      "readId": 3,
+      "nameAr": "إبراهيم العسيري",
+      "nameEn": "Ibrahim Al-Asiri",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 1.224,
+      "almulkSeconds": 465.2,
+      "kbps": 132,
+      "nearestSourceName": {
+        "score": 0.57,
+        "source": "muaalem-annotated-v3",
+        "name": "Ibrahim Al-Akhdar"
+      },
+      "server": "https://cdn.mp3quran.net/audio/ibrahim-asiri/r1/",
+      "split": "exam"
+    },
+    {
+      "readId": 6,
+      "nameAr": "أحمد الحواشي",
+      "nameEn": "Ahmad Al-Hawashi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 1.047,
+      "almulkSeconds": 398.1,
+      "kbps": 129,
+      "nearestSourceName": {
+        "score": 0.69,
+        "source": "muaalem-annotated-v3",
+        "name": "Ahmed Issa Al-Ma'srawi"
+      },
+      "server": "https://cdn.mp3quran.net/audio/ahmad-hawashi/r1/",
+      "split": "exam"
+    },
+    {
+      "readId": 8,
+      "nameAr": "أحمد صابر",
+      "nameEn": "Ahmad Saber",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 0.989,
+      "almulkSeconds": 375.8,
+      "kbps": 65,
+      "nearestSourceName": {
+        "score": 0.5,
+        "source": "muaalem-annotated-v3",
+        "name": "Ahmed Mohamed Amer"
+      },
+      "server": "https://cdn.mp3quran.net/audio/ahmad-saber/r1/",
+      "split": "exam"
+    },
+    {
+      "readId": 33,
+      "nameAr": "زكي داغستاني",
+      "nameEn": "Zaki Daghistani",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 1.398,
+      "almulkSeconds": 531.5,
+      "kbps": 196,
+      "nearestSourceName": {
+        "score": 0.2,
+        "source": "zaibihassan",
+        "name": "Mohamed Ellhidan (Murattal)"
+      },
+      "server": "https://cdn.mp3quran.net/audio/zaki-daghistani/r1/",
+      "split": "exam"
+    },
+    {
+      "readId": 44,
+      "nameAr": "صلاح الهاشم",
+      "nameEn": "Salah Alhashim",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 0.97,
+      "almulkSeconds": 368.9,
+      "kbps": 133,
+      "nearestSourceName": {
+        "score": 0.5,
+        "source": "QUD",
+        "name": "Ahmed Saleh Rajab"
+      },
+      "server": "https://cdn.mp3quran.net/audio/salah-hashim/r1/",
+      "split": "exam"
+    },
+    {
+      "readId": 48,
+      "nameAr": "عادل ريان",
+      "nameEn": "Adel Ryyan",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 1.011,
+      "almulkSeconds": 384.5,
+      "kbps": 134,
+      "nearestSourceName": {
+        "score": 0.5,
+        "source": "QUD",
+        "name": "Adel Al-Karbalaei"
+      },
+      "server": "https://cdn.mp3quran.net/audio/adel-rayyan/r1/",
+      "split": "exam"
+    },
+    {
+      "readId": 50,
+      "nameAr": "عبدالبارئ محمد",
+      "nameEn": "Abdulbari Mohammad",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 1.351,
+      "almulkSeconds": 513.8,
+      "kbps": 98,
+      "nearestSourceName": {
+        "score": 0.83,
+        "source": "QUD",
+        "name": "Mohammed Abdulkareem"
+      },
+      "server": "https://cdn.mp3quran.net/audio/abdulbari-muhammad/r1/",
+      "split": "exam"
+    },
+    {
+      "readId": 66,
+      "nameAr": "عبدالمحسن الحارثي",
+      "nameEn": "Abdulmohsin Al-Harthy",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 1.096,
+      "almulkSeconds": 416.8,
+      "kbps": 98,
+      "nearestSourceName": {
+        "score": 0.59,
+        "source": "QUD",
+        "name": "Ali Al-Huthaifi"
+      },
+      "server": "https://cdn.mp3quran.net/audio/abdulmohsen-harthi/r1/",
+      "split": "exam"
+    },
+    {
+      "readId": 135,
+      "nameAr": "عبدالرحمن السويّد",
+      "nameEn": "Abdulrahman Alsuwayid",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 113,
+      "speedRatio": 0.858,
+      "almulkSeconds": 326.0,
+      "kbps": 235,
+      "nearestSourceName": {
+        "score": 0.86,
+        "source": "everyayah",
+        "name": "Saood bin Ibraaheem Ash-Shuraym"
+      },
+      "server": "https://cdn.mp3quran.net/audio/abdulrahman-suwayid/r1/",
+      "split": "exam"
+    },
+    {
+      "readId": 225,
+      "nameAr": "عبدالرحمن العوسي",
+      "nameEn": "Abdulrahman Aloosi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 0.94,
+      "almulkSeconds": 357.3,
+      "kbps": 131,
+      "nearestSourceName": {
+        "score": 0.5,
+        "source": "muaalem-annotated-v3",
+        "name": "Ahmed Issa Al-Ma'srawi"
+      },
+      "server": "https://cdn.mp3quran.net/audio/abdulrahman-oosi/r1/",
+      "split": "exam"
+    },
+    {
+      "readId": 229,
+      "nameAr": "محمد خليل القارئ",
+      "nameEn": "Mohammad Khalil Al-Qari",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 0.999,
+      "almulkSeconds": 379.8,
+      "kbps": 197,
+      "nearestSourceName": {
+        "score": 1.0,
+        "source": "muaalem-annotated-v3",
+        "name": "Mahmoud Khalil Al-Husari"
+      },
+      "server": "https://cdn.mp3quran.net/audio/muhammad-khalil/r1/",
+      "split": "exam"
+    },
+    {
+      "readId": 236,
+      "nameAr": "عبدالرحمن الماجد",
+      "nameEn": "Abdulrahman Al-Majed",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 0.936,
+      "almulkSeconds": 355.8,
+      "kbps": 131,
+      "nearestSourceName": {
+        "score": 0.5,
+        "source": "QUD",
+        "name": "Abdulrahman Al-Sudais"
+      },
+      "server": "https://cdn.mp3quran.net/audio/abdulrahman-majed/r1/",
+      "split": "exam"
+    },
+    {
+      "readId": 244,
+      "nameAr": "عبدالله الخلف",
+      "nameEn": "Abdullah Al-Khalaf",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 0.876,
+      "almulkSeconds": 333.0,
+      "kbps": 134,
+      "nearestSourceName": {
+        "score": 0.5,
+        "source": "muaalem-annotated-v3",
+        "name": "Khalifa A-Tunaiji"
+      },
+      "server": "https://cdn.mp3quran.net/audio/abdullah-khalaf/r1/",
+      "split": "exam"
+    },
+    {
+      "readId": 250,
+      "nameAr": "محمد البخيت",
+      "nameEn": "Mohammad Albukheet",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 1.245,
+      "almulkSeconds": 473.3,
+      "kbps": 199,
+      "nearestSourceName": {
+        "score": 0.5,
+        "source": "muaalem-annotated-v3",
+        "name": "Mahmoud Khalil Al-Husari"
+      },
+      "server": "https://cdn.mp3quran.net/audio/muhammad-bukhait/r1/",
+      "split": "exam"
+    },
+    {
+      "readId": 299,
+      "nameAr": "حسن صالح",
+      "nameEn": "Hasan Saleh",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 0.79,
+      "almulkSeconds": 300.4,
+      "kbps": 156,
+      "nearestSourceName": {
+        "score": 0.5,
+        "source": "QUD",
+        "name": "Ahmed Saleh Rajab"
+      },
+      "server": "https://cdn.mp3quran.net/audio/hassan-saleh/r1/",
+      "split": "exam"
+    },
+    {
+      "readId": 300,
+      "nameAr": "صالح الشمراني",
+      "nameEn": "Saleh Alshamrani",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 0.852,
+      "almulkSeconds": 324.1,
+      "kbps": 98,
+      "nearestSourceName": {
+        "score": 0.5,
+        "source": "QUD",
+        "name": "Ahmed Saleh Rajab"
+      },
+      "server": "https://cdn.mp3quran.net/audio/saleh-shamrani/r1/",
+      "split": "exam"
+    },
+    {
+      "readId": 22,
+      "nameAr": "خالد عبدالكافي",
+      "nameEn": "Khalid Abdulkafi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 0.825,
+      "almulkSeconds": 313.7,
+      "kbps": 131,
+      "nearestSourceName": {
+        "score": 0.8,
+        "source": "everyayah",
+        "name": "Khalid Abdullah al-Qahtanee"
+      },
+      "server": "https://cdn.mp3quran.net/audio/khalid-abdulkafi/r1/",
+      "split": "practice"
+    },
+    {
+      "readId": 25,
+      "nameAr": "داود حمزة",
+      "nameEn": "Dawood Hamza",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 0.921,
+      "almulkSeconds": 350.1,
+      "kbps": 131,
+      "nearestSourceName": {
+        "score": 0.0,
+        "source": "",
+        "name": ""
+      },
+      "server": "https://cdn.mp3quran.net/audio/dawood-hamza/r1/",
+      "split": "practice"
+    },
+    {
+      "readId": 38,
+      "nameAr": "شيرزاد عبدالرحمن طاهر",
+      "nameEn": "Shirazad Taher",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 1.23,
+      "almulkSeconds": 467.5,
+      "kbps": 129,
+      "nearestSourceName": {
+        "score": 0.37,
+        "source": "QUD",
+        "name": "Abdulrahman Al-Sudais"
+      },
+      "server": "https://cdn.mp3quran.net/audio/shirzad-taher/r1/",
+      "split": "practice"
+    },
+    {
+      "readId": 40,
+      "nameAr": "صالح الصاهود",
+      "nameEn": "Saleh Alsahood",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 1.054,
+      "almulkSeconds": 400.7,
+      "kbps": 130,
+      "nearestSourceName": {
+        "score": 0.5,
+        "source": "QUD",
+        "name": "Ahmed Saleh Rajab"
+      },
+      "server": "https://cdn.mp3quran.net/audio/saleh-sahood/r1/",
+      "split": "practice"
+    },
+    {
+      "readId": 42,
+      "nameAr": "صالح الهبدان",
+      "nameEn": "Saleh Al-Habdan",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 0.964,
+      "almulkSeconds": 366.6,
+      "kbps": 196,
+      "nearestSourceName": {
+        "score": 0.5,
+        "source": "QUD",
+        "name": "Ahmed Saleh Rajab"
+      },
+      "server": "https://cdn.mp3quran.net/audio/saleh-habdan/r1/",
+      "split": "practice"
+    },
+    {
+      "readId": 70,
+      "nameAr": "عبدالهادي أحمد كناكري",
+      "nameEn": "Abdulhadi Kanakeri",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 1.086,
+      "almulkSeconds": 413.0,
+      "kbps": 131,
+      "nearestSourceName": {
+        "score": 0.59,
+        "source": "QUD",
+        "name": "Ahmed Abdurahman Darar"
+      },
+      "server": "https://cdn.mp3quran.net/audio/abdulhadi-kanakeri/r1/",
+      "split": "practice"
+    },
+    {
+      "readId": 72,
+      "nameAr": "عبدالولي الأركاني",
+      "nameEn": "Abdulwali Al-Arkani",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 0.904,
+      "almulkSeconds": 343.6,
+      "kbps": 132,
+      "nearestSourceName": {
+        "score": 0.62,
+        "source": "QUD",
+        "name": "Abdullah Al-Qarafi"
+      },
+      "server": "https://cdn.mp3quran.net/audio/abdulwali-arkani/r1/",
+      "split": "practice"
+    },
+    {
+      "readId": 88,
+      "nameAr": "نعمة الحسان",
+      "nameEn": "Neamah Al-Hassan",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 1.139,
+      "almulkSeconds": 433.0,
+      "kbps": 102,
+      "nearestSourceName": {
+        "score": 0.5,
+        "source": "QUD",
+        "name": "Al-Hussayni Al-Azazy"
+      },
+      "server": "https://cdn.mp3quran.net/audio/neama-hassan/r1/",
+      "split": "practice"
+    },
+    {
+      "readId": 110,
+      "nameAr": "محمد صالح عالم شاه",
+      "nameEn": "Mohammad Saleh Alim Shah",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 0.818,
+      "almulkSeconds": 311.1,
+      "kbps": 130,
+      "nearestSourceName": {
+        "score": 0.5,
+        "source": "QUD",
+        "name": "Al-Dokali Mohammed Al-Aalim"
+      },
+      "server": "https://cdn.mp3quran.net/audio/muhammad-shah/r1/",
+      "split": "practice"
+    },
+    {
+      "readId": 181,
+      "nameAr": "جمعان العصيمي",
+      "nameEn": "Jamaan Alosaimi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 0.917,
+      "almulkSeconds": 348.5,
+      "kbps": 101,
+      "nearestSourceName": {
+        "score": 0.5,
+        "source": "zaibihassan",
+        "name": "Asim Abdul Aleem (Murattal)"
+      },
+      "server": "https://cdn.mp3quran.net/audio/jamaan-osaimi/r1/",
+      "split": "practice"
+    },
+    {
+      "readId": 198,
+      "nameAr": "محمد رشاد الشريف",
+      "nameEn": "Mohammad Rashad Alshareef",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 1.262,
+      "almulkSeconds": 479.6,
+      "kbps": 132,
+      "nearestSourceName": {
+        "score": 0.33,
+        "source": "muaalem-annotated-v3",
+        "name": "Mahmoud Khalil Al-Husari"
+      },
+      "server": "https://cdn.mp3quran.net/audio/muhammad-shareef/r1/",
+      "split": "practice"
+    },
+    {
+      "readId": 294,
+      "nameAr": "سيد أحمد هاشمي",
+      "nameEn": "Sayed Ahmad Hashemi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 1.113,
+      "almulkSeconds": 423.0,
+      "kbps": 99,
+      "nearestSourceName": {
+        "score": 0.67,
+        "source": "QUD",
+        "name": "Ahmed Saud"
+      },
+      "server": "https://cdn.mp3quran.net/audio/sayed-hashemi/r1/",
+      "split": "practice"
+    },
+    {
+      "readId": 295,
+      "nameAr": "خالد كريم محمدي",
+      "nameEn": "Khalid Mohammadi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 1.017,
+      "almulkSeconds": 386.6,
+      "kbps": 99,
+      "nearestSourceName": {
+        "score": 0.5,
+        "source": "muaalem-annotated-v3",
+        "name": "Mahmoud Khalil Al-Husari"
+      },
+      "server": "https://cdn.mp3quran.net/audio/khalid-mohammadi/r1/",
+      "split": "practice"
+    },
+    {
+      "readId": 303,
+      "nameAr": "عيسى عمر سناكو",
+      "nameEn": "Issa Omar Sanankoua",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 0.976,
+      "almulkSeconds": 371.2,
+      "kbps": 133,
+      "nearestSourceName": {
+        "score": 0.39,
+        "source": "QUD",
+        "name": "Omar Al-Qazabri"
+      },
+      "server": "https://cdn.mp3quran.net/audio/issa-sanankoua/r1/",
+      "split": "practice"
+    },
+    {
+      "readId": 314,
+      "nameAr": "أنس العمادي",
+      "nameEn": "Anas Alemadi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 1.002,
+      "almulkSeconds": 381.0,
+      "kbps": 131,
+      "nearestSourceName": {
+        "score": 0.6,
+        "source": "QUD",
+        "name": "Anas Al-Miman"
+      },
+      "server": "https://cdn.mp3quran.net/audio/anas-emadi/r1/",
+      "split": "practice"
+    },
+    {
+      "readId": 10905,
+      "nameAr": "حسن الدغريري",
+      "nameEn": "Hassan Aldaghriri",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "timedSurahs": 114,
+      "speedRatio": 1.017,
+      "almulkSeconds": 386.5,
+      "kbps": 133,
+      "nearestSourceName": {
+        "score": 0.5,
+        "source": "QUD",
+        "name": "Al-Hussayni Al-Azazy"
+      },
+      "server": "https://cdn.mp3quran.net/audio/hassan-daghriri/r1/",
+      "split": "practice"
+    }
+  ],
+  "excluded": [
+    {
+      "readId": 1,
+      "nameAr": "إبراهيم الأخضر",
+      "nameEn": "Ibrahim Al-Akdar",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "muaalem-annotated-v3",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Ibrahim Al-Akhdar (reciter_id 13, moshafs 13.0): ar first+last 1.00: إبراهيم الأخضر ~ إبراهيم الأخضر | en first+last 1.00: Ibrahim Al-Akdar ~ Ibrahim Al-Akhdar",
+        "QUD [match] Ibrahim Al-Akhdar (ibrahim_al_akhdar_drive (Hafs A'n Assem, Murattal)): ar first+last 1.00: إبراهيم الأخضر ~ إبراهيم الأخضر | en first+last 1.00: Ibrahim Al-Akdar ~ Ibrahim Al-Akhdar",
+        "zaibihassan [match] Ibrahim Al Akhdar (Murattal) (top-level folder): en first+last 1.00: Ibrahim Al-Akdar ~ Ibrahim Al Akhdar (Murattal)",
+        "everyayah [match] Ibrahim Akhdar (subfolders Ibrahim_Akhdar_32kbps): en first+last 1.00: Ibrahim Al-Akdar ~ Ibrahim Akhdar"
+      ]
+    },
+    {
+      "readId": 4,
+      "nameAr": "شيخ أبو بكر الشاطري",
+      "nameEn": "Shaik Abu Bakr Al Shatri",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Abu Bakr Al-Shatri (abu_bakr_al_shatri_tarteel (Hafs A'n Assem, Murattal)): ar first+last 1.00: شيخ أبو بكر الشاطري ~ أبو بكر الشاطري | en first+last 1.00: Shaik Abu Bakr Al Shatri ~ Abu Bakr Al-Shatri",
+        "zaibihassan [match] Abu Bakr Al Shatri (Murattal) (top-level folder): en first+last 1.00: Shaik Abu Bakr Al Shatri ~ Abu Bakr Al Shatri (Murattal)",
+        "everyayah [match] Abu Bakr Ash-Shaatree (subfolders Abu_Bakr_Ash-Shaatree_64kbps): en first+last 1.00: Shaik Abu Bakr Al Shatri ~ Abu Bakr Ash-Shaatree"
+      ]
+    },
+    {
+      "readId": 5,
+      "nameAr": "أحمد بن علي العجمي",
+      "nameEn": "Ahmad Al-Ajmy",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Ahmed Al-Ajmi (ahmed_al_ajmi_qdc (Hafs A'n Assem, Murattal)): ar first+last 1.00: أحمد بن علي العجمي ~ أحمد بن علي العجمي | en first+last 1.00: Ahmad Al-Ajmy ~ Ahmed Al-Ajmi",
+        "zaibihassan [match] Ahmed ibn Ali Al Ajmy (Murattal) (top-level folder): en first+last 1.00: Ahmad Al-Ajmy ~ Ahmed ibn Ali Al Ajmy (Murattal)",
+        "everyayah [match] Ahmed ibn Ali al-Ajamy QuranExplorer.Com (subfolders Ahmed_ibn_Ali_al-Ajamy_64kbps_QuranExplorer.Com): en first+last 1.00: Ahmad Al-Ajmy ~ Ahmed ibn Ali al-Ajamy ",
+        "everyayah [match] Ahmed ibn Ali al-Ajamy KetabAllah.Net (subfolders Ahmed_ibn_Ali_al-Ajamy_128kbps_ketaballah.net): en first+last 1.00: Ahmad Al-Ajmy ~ Ahmed ibn Ali al-Ajamy ",
+        "everyayah [match] Ahmed Ibn Ali Al Ajamy (subfolders ahmed_ibn_ali_al_ajamy_128kbps): en first+last 1.00: Ahmad Al-Ajmy ~ Ahmed Ibn Ali Al Ajamy"
+      ]
+    },
+    {
+      "readId": 9,
+      "nameAr": "أحمد نعينع",
+      "nameEn": "Ahmad Nauina",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "muaalem-annotated-v3",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Ahmed Neanea (reciter_id 29, moshafs 29.0): ar first+last 1.00: أحمد نعينع ~ أحمد نعينع | en first+last 1.00: Ahmad Nauina ~ Ahmed Neanea",
+        "QUD [match] Ahmed Nuayna (ahmed_nuayna_qdc (Hafs A'n Assem, Murattal)): ar first+last 1.00: أحمد نعينع ~ أحمد نعينع | en first+last 1.00: Ahmad Nauina ~ Ahmed Nuayna",
+        "zaibihassan [match] Ahmad Nauina (Murattal) (top-level folder): en first+last 1.00: Ahmad Nauina ~ Ahmad Nauina (Murattal)",
+        "everyayah [match] Ahmed Neana (subfolders Ahmed_Neana_128kbps): en first+last 1.00: Ahmad Nauina ~ Ahmed Neana"
+      ]
+    },
+    {
+      "readId": 10,
+      "nameAr": "أكرم العلاقمي",
+      "nameEn": "Akram Alalaqmi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD"
+      ],
+      "evidence": [
+        "QUD [match] Akram Al-Alaqmi (akram_al_alaqmi_qdc (Hafs A'n Assem, Murattal)): ar first+last 1.00: أكرم العلاقمي ~ أكرم العلاقمي"
+      ]
+    },
+    {
+      "readId": 12,
+      "nameAr": "إدريس أبكر",
+      "nameEn": "Idrees Abkr",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "zaibihassan"
+      ],
+      "evidence": [
+        "zaibihassan [match] Idris Abkar (Murattal) (top-level folder): en first+last 1.00: Idrees Abkr ~ Idris Abkar (Murattal)"
+      ]
+    },
+    {
+      "readId": 13,
+      "nameAr": "الزين محمد أحمد",
+      "nameEn": "Alzain Mohammad Ahmad",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "zaibihassan"
+      ],
+      "evidence": [
+        "zaibihassan [match] Alzain Mohammad Ahmad (Murattal) (top-level folder): en first+last 1.00: Alzain Mohammad Ahmad ~ Alzain Mohammad Ahmad (Murattal)"
+      ]
+    },
+    {
+      "readId": 17,
+      "nameAr": "توفيق الصايغ",
+      "nameEn": "Tawfeeq As-Sayegh",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Tawfiq As-Sayegh (tawfiq_as_sayegh_mp3quran (Hafs A'n Assem, Murattal)): ar first+last 1.00: توفيق الصايغ ~ توفيق الصايغ | en first+last 1.00: Tawfeeq As-Sayegh ~ Tawfiq As-Sayegh",
+        "zaibihassan [match] Tawfeeq bin Saeed As Sawaaigh (Murattal) (top-level folder): en first+last 1.00: Tawfeeq As-Sayegh ~ Tawfeeq bin Saeed As Sawaaigh (Murattal)"
+      ]
+    },
+    {
+      "readId": 20,
+      "nameAr": "خالد الجليل",
+      "nameEn": "Khalid Al-Jileel",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "zaibihassan"
+      ],
+      "evidence": [
+        "zaibihassan [match] Khalid Al Jalil (Murattal) (top-level folder): en first+last 1.00: Khalid Al-Jileel ~ Khalid Al Jalil (Murattal)"
+      ]
+    },
+    {
+      "readId": 21,
+      "nameAr": "خالد القحطاني",
+      "nameEn": "Khaled Al-Qahtani",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Khalid Al-Qahtani (khalid_al_qahtani_mp3quran (Hafs A'n Assem, Murattal)): ar first+last 1.00: خالد القحطاني ~ خالد القحطاني | en first+last 1.00: Khaled Al-Qahtani ~ Khalid Al-Qahtani",
+        "zaibihassan [match] Khalid al-Qahtani (Murattal) (top-level folder): en first+last 1.00: Khaled Al-Qahtani ~ Khalid al-Qahtani (Murattal)",
+        "everyayah [match] Khalid Abdullah al-Qahtanee (subfolders Khaalid_Abdullaah_al-Qahtaanee_192kbps): en first+last 1.00: Khaled Al-Qahtani ~ Khalid Abdullah al-Qahtanee"
+      ]
+    },
+    {
+      "readId": 24,
+      "nameAr": "خليفة الطنيجي",
+      "nameEn": "Khalifa Altunaiji",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "muaalem-annotated-v3",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Khalifa A-Tunaiji (reciter_id 24, moshafs 24.0): ar first+last 1.00: خليفة الطنيجي ~ خليفة الطنيجي | en first+last 1.00: Khalifa Altunaiji ~ Khalifa A-Tunaiji",
+        "QUD [match] Khalifa Al-Tunaiji (khalifa_al_tunaiji_tarteel (Hafs A'n Assem, Murattal)): ar first+last 1.00: خليفة الطنيجي ~ خليفة الطنيجي | en first+last 1.00: Khalifa Altunaiji ~ Khalifa Al-Tunaiji",
+        "zaibihassan [match] Khalifa Al Tunaiji (Murattal) (top-level folder): en first+last 1.00: Khalifa Altunaiji ~ Khalifa Al Tunaiji (Murattal)",
+        "everyayah [match] Khalefa Al-Tunaiji (subfolders khalefa_al_tunaiji_64kbps): en first+last 1.00: Khalifa Altunaiji ~ Khalefa Al-Tunaiji"
+      ]
+    },
+    {
+      "readId": 30,
+      "nameAr": "سعد الغامدي",
+      "nameEn": "Saad Al-Ghamdi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Saad Al-Ghamdi (saad_al_ghamdi_tarteel (Hafs A'n Assem, Murattal)): ar first+last 1.00: سعد الغامدي ~ سعد الغامدي | en first+last 1.00: Saad Al-Ghamdi ~ Saad Al-Ghamdi",
+        "zaibihassan [match] Saad Al Ghamdi (Murattal) (top-level folder): en first+last 1.00: Saad Al-Ghamdi ~ Saad Al Ghamdi (Murattal)",
+        "everyayah [uncertain] Ghamadi (subfolders Ghamadi_40kbps): en surname 1.00: Saad Al-Ghamdi ~ Ghamadi"
+      ]
+    },
+    {
+      "readId": 31,
+      "nameAr": "سعود الشريم",
+      "nameEn": "Saud Al-Shuraim",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned",
+        "fast"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Saud Al-Shuraim (saud_al_shuraim_mp3quran (Hafs A'n Assem, Murattal)): ar first+last 1.00: سعود الشريم ~ سعود الشريم | en first+last 1.00: Saud Al-Shuraim ~ Saud Al-Shuraim",
+        "zaibihassan [match] Saud Al Shuraim (Murattal) (top-level folder): en first+last 1.00: Saud Al-Shuraim ~ Saud Al Shuraim (Murattal)",
+        "everyayah [match] Saood bin Ibraaheem Ash-Shuraym (subfolders Saood_ash-Shuraym_64kbps): en first+last 1.00: Saud Al-Shuraim ~ Saood bin Ibraaheem Ash-Shuraym",
+        "Al-Mulk 270s = 0.709 x median 380s"
+      ]
+    },
+    {
+      "readId": 32,
+      "nameAr": "سهل ياسين",
+      "nameEn": "Sahl Yassin",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Sahl Yassin (sahl_yassin_mp3quran (Hafs A'n Assem, Murattal)): ar first+last 1.00: سهل ياسين ~ سهل ياسين | en first+last 1.00: Sahl Yassin ~ Sahl Yassin",
+        "zaibihassan [match] Sahl Yasin (Murattal) (top-level folder): en first+last 1.00: Sahl Yassin ~ Sahl Yasin (Murattal)",
+        "everyayah [match] Sahl_Yassin (subfolders Sahl_Yassin_128kbps): en first+last 1.00: Sahl Yassin ~ Sahl Yassin"
+      ]
+    },
+    {
+      "readId": 39,
+      "nameAr": "صابر عبدالحكم",
+      "nameEn": "Saber Abdulhakm",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "muaalem-annotated-v3"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Saber Abd El-Hakam (reciter_id 26, moshafs 26.0,26.1): ar first+last 1.00: صابر عبدالحكم ~ صابر عبد الحكم | en first+last 1.00: Saber Abdulhakm ~ Saber Abd El-Hakam",
+        "QUD [match] Saber Abdulhakam (saber_abdulhakam_qalon_way2quran (Qalon A'n Nafi', Murattal); saber_abdulhakam_shubah_way2quran (Sho'bah A'n Asim, Murattal); saber_abdulhakam_warsh_way2quran (Warsh A'n Nafi', Murattal); saber_abdulhakam_yt (Hafs A'n Assem, Murattal)): ar first+last 1.00: صابر عبدالحكم ~ صابر عبد الحكم | en first+last 1.00: Saber Abdulhakm ~ Saber Abdulhakam"
+      ]
+    },
+    {
+      "readId": 43,
+      "nameAr": "صلاح البدير",
+      "nameEn": "Salah Albudair",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Salah Al-Budair (salah_al_budair_mp3quran (Hafs A'n Assem, Murattal); salah_al_budair_qdc (Hafs A'n Assem, Murattal)): ar first+last 1.00: صلاح البدير ~ صلاح البدير | en first+last 1.00: Salah Albudair ~ Salah Al-Budair",
+        "zaibihassan [match] Salah al-Budair (Murattal) (top-level folder): en first+last 1.00: Salah Albudair ~ Salah al-Budair (Murattal)",
+        "everyayah [match] Salah Al Budair (subfolders Salah_Al_Budair_128kbps): en first+last 1.00: Salah Albudair ~ Salah Al Budair"
+      ]
+    },
+    {
+      "readId": 46,
+      "nameAr": "صلاح بو خاطر",
+      "nameEn": "Slaah Bukhatir",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "zaibihassan [match] Salah Bukhatir (Murattal) (top-level folder): en first+last 1.00: Slaah Bukhatir ~ Salah Bukhatir (Murattal)",
+        "everyayah [match] Salaah AbdulRahman Bukhatir (subfolders Salaah_AbdulRahman_Bukhatir_128kbps): en first+last 1.00: Slaah Bukhatir ~ Salaah AbdulRahman Bukhatir"
+      ]
+    },
+    {
+      "readId": 49,
+      "nameAr": "عبدالبارئ الثبيتي",
+      "nameEn": "Abdelbari Al-Toubayti",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "zaibihassan"
+      ],
+      "evidence": [
+        "zaibihassan [match] AbdulBari ath-Thubaity (Murattal) (top-level folder): en first+last 1.00: Abdelbari Al-Toubayti ~ AbdulBari ath-Thubaity (Murattal)"
+      ]
+    },
+    {
+      "readId": 51,
+      "nameAr": "عبدالباسط عبدالصمد",
+      "nameEn": "Abdulbasit Abdulsamad",
+      "moshaf": "حفص عن عاصم - المصحف المجود",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned",
+        "style_mujawwad"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "muaalem-annotated-v3",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Abdul Basit Abdus Samad (reciter_id 2, moshafs 2.0,2.1): ar first+last 1.00: عبدالباسط عبدالصمد ~ عبد الباسط عبد الصمد | en first+last 1.00: Abdulbasit Abdulsamad ~ Abdul Basit Abdus Samad",
+        "QUD [match] Abdulbasit Abdulsamad (abdulbasit_abdulsamad_mujawwad_tarteel (Hafs A'n Assem, Mujawwad); abdulbasit_abdulsamad_tarteel (Hafs A'n Assem, Murattal); abdulbasit_abdulsamad_warsh_qdc (Warsh A'n Nafi', Murattal)): ar first+last 1.00: عبدالباسط عبدالصمد ~ عبد الباسط عبد الصمد | en first+last 1.00: Abdulbasit Abdulsamad ~ Abdulbasit Abdulsamad",
+        "zaibihassan [match] Abdul Basit Abdul Samad (Mujawwad) (top-level folder): en first+last 1.00: Abdulbasit Abdulsamad ~ Abdul Basit Abdul Samad (Mujawwad)",
+        "zaibihassan [match] Abdul Basit Abdul Samad (Murattal) (top-level folder): en first+last 1.00: Abdulbasit Abdulsamad ~ Abdul Basit Abdul Samad (Murattal)",
+        "zaibihassan [match] AbdulBaset AbdulSamad (Warsh) (top-level folder): en first+last 1.00: Abdulbasit Abdulsamad ~ AbdulBaset AbdulSamad (Warsh)",
+        "everyayah [uncertain] AbdulSamad QuranExplorer.Com (subfolders AbdulSamad_64kbps_QuranExplorer.Com): en surname 1.00: Abdulbasit Abdulsamad ~ AbdulSamad ",
+        "moshaf_type 12: Rewayat Hafs A'n Assem - Almusshaf Al Mojawwad"
+      ]
+    },
+    {
+      "readId": 53,
+      "nameAr": "عبدالباسط عبدالصمد",
+      "nameEn": "Abdulbasit Abdulsamad",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "muaalem-annotated-v3",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Abdul Basit Abdus Samad (reciter_id 2, moshafs 2.0,2.1): ar first+last 1.00: عبدالباسط عبدالصمد ~ عبد الباسط عبد الصمد | en first+last 1.00: Abdulbasit Abdulsamad ~ Abdul Basit Abdus Samad",
+        "QUD [match] Abdulbasit Abdulsamad (abdulbasit_abdulsamad_mujawwad_tarteel (Hafs A'n Assem, Mujawwad); abdulbasit_abdulsamad_tarteel (Hafs A'n Assem, Murattal); abdulbasit_abdulsamad_warsh_qdc (Warsh A'n Nafi', Murattal)): ar first+last 1.00: عبدالباسط عبدالصمد ~ عبد الباسط عبد الصمد | en first+last 1.00: Abdulbasit Abdulsamad ~ Abdulbasit Abdulsamad",
+        "zaibihassan [match] Abdul Basit Abdul Samad (Mujawwad) (top-level folder): en first+last 1.00: Abdulbasit Abdulsamad ~ Abdul Basit Abdul Samad (Mujawwad)",
+        "zaibihassan [match] Abdul Basit Abdul Samad (Murattal) (top-level folder): en first+last 1.00: Abdulbasit Abdulsamad ~ Abdul Basit Abdul Samad (Murattal)",
+        "zaibihassan [match] AbdulBaset AbdulSamad (Warsh) (top-level folder): en first+last 1.00: Abdulbasit Abdulsamad ~ AbdulBaset AbdulSamad (Warsh)",
+        "everyayah [uncertain] AbdulSamad QuranExplorer.Com (subfolders AbdulSamad_64kbps_QuranExplorer.Com): en surname 1.00: Abdulbasit Abdulsamad ~ AbdulSamad "
+      ]
+    },
+    {
+      "readId": 54,
+      "nameAr": "عبدالرحمن السديس",
+      "nameEn": "Abdulrahman Alsudaes",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Abdulrahman Al-Sudais (abdulrahman_al_sudais_tarteel (Hafs A'n Assem, Murattal); abdulrahman_al_sudais_yt (Hafs A'n Assem, Murattal)): ar first+last 1.00: عبدالرحمن السديس ~ عبد الرحمن السديس | en first+last 1.00: Abdulrahman Alsudaes ~ Abdulrahman Al-Sudais",
+        "zaibihassan [match] Abdul Rahman Al Sudais (Murattal) (top-level folder): en first+last 1.00: Abdulrahman Alsudaes ~ Abdul Rahman Al Sudais (Murattal)",
+        "everyayah [match] Abdurrahmaan As-Sudais (subfolders Abdurrahmaan_As-Sudais_64kbps): en first+last 1.00: Abdulrahman Alsudaes ~ Abdurrahmaan As-Sudais"
+      ]
+    },
+    {
+      "readId": 55,
+      "nameAr": "عبدالعزيز الأحمد",
+      "nameEn": "Abdul Aziz Al-Ahmad",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "zaibihassan"
+      ],
+      "evidence": [
+        "zaibihassan [match] AbdulAzeez al-Ahmad (Murattal) (top-level folder): en first+last 1.00: Abdul Aziz Al-Ahmad ~ AbdulAzeez al-Ahmad (Murattal)"
+      ]
+    },
+    {
+      "readId": 56,
+      "nameAr": "عبدالعزيز الزهراني",
+      "nameEn": "Abdulaziz Az-Zahrani",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "zaibihassan"
+      ],
+      "evidence": [
+        "zaibihassan [match] Abdulaziz bin Saleh al-Zahrani (Murattal) (top-level folder): en first+last 1.00: Abdulaziz Az-Zahrani ~ Abdulaziz bin Saleh al-Zahrani (Murattal)"
+      ]
+    },
+    {
+      "readId": 58,
+      "nameAr": "عبدالله البعيجان",
+      "nameEn": "Abdullah Albuajan",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Abdullah Al-Buaijan (abdullah_al_buaijan_2025_yt (Hafs A'n Assem, Murattal)): ar first+last 1.00: عبدالله البعيجان ~ عبد الله البعيجان | en first+last 1.00: Abdullah Albuajan ~ Abdullah Al-Buaijan",
+        "zaibihassan [match] Abdullah Al Buaijan (Murattal) (top-level folder): en first+last 1.00: Abdullah Albuajan ~ Abdullah Al Buaijan (Murattal)"
+      ]
+    },
+    {
+      "readId": 59,
+      "nameAr": "عبدالله المطرود",
+      "nameEn": "Abdullah Al-Mattrod",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Abdullah Al-Mattrod (abdullah_al_mattrod_qdc (Hafs A'n Assem, Murattal)): ar first+last 1.00: عبدالله المطرود ~ عبد الله المطرود | en first+last 1.00: Abdullah Al-Mattrod ~ Abdullah Al-Mattrod",
+        "zaibihassan [match] Abdullah Matroud (Murattal) (top-level folder): en first+last 1.00: Abdullah Al-Mattrod ~ Abdullah Matroud (Murattal)",
+        "everyayah [match] Abdullah Matroud (subfolders Abdullah_Matroud_128kbps): en first+last 1.00: Abdullah Al-Mattrod ~ Abdullah Matroud"
+      ]
+    },
+    {
+      "readId": 60,
+      "nameAr": "عبدالله بصفر",
+      "nameEn": "Abdullah Basfer",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Abdullah Basfar (abdullah_basfar_qdc (Hafs A'n Assem, Murattal)): ar first+last 1.00: عبدالله بصفر ~ عبد الله بصفر | en first+last 1.00: Abdullah Basfer ~ Abdullah Basfar",
+        "zaibihassan [match] Abdullah Basfar (Murattal) (top-level folder): en first+last 1.00: Abdullah Basfer ~ Abdullah Basfar (Murattal)",
+        "everyayah [match] Abdullah Basfar (subfolders Abdullah_Basfar_32kbps): en first+last 1.00: Abdullah Basfer ~ Abdullah Basfar"
+      ]
+    },
+    {
+      "readId": 61,
+      "nameAr": "عبدالله خياط",
+      "nameEn": "Abdullah Khayyat",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned",
+        "fast"
+      ],
+      "matchedSource": [
+        "zaibihassan"
+      ],
+      "evidence": [
+        "zaibihassan [match] Abdullah Khayat (Murattal) (top-level folder): en first+last 1.00: Abdullah Khayyat ~ Abdullah Khayat (Murattal)",
+        "Al-Mulk 274s = 0.722 x median 380s"
+      ]
+    },
+    {
+      "readId": 62,
+      "nameAr": "عبدالله عواد الجهني",
+      "nameEn": "Abdullah Al-Johany",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "zaibihassan [match] Abdullah Awad al-Juhani (Murattal) (top-level folder): en first+last 1.00: Abdullah Al-Johany ~ Abdullah Awad al-Juhani (Murattal)",
+        "everyayah [match] Abdullaah 3awwaad Al-Juhaynee (subfolders Abdullaah_3awwaad_Al-Juhaynee_128kbps): en first+last 1.00: Abdullah Al-Johany ~ Abdullaah 3awwaad Al-Juhaynee"
+      ]
+    },
+    {
+      "readId": 67,
+      "nameAr": "عبدالمحسن القاسم",
+      "nameEn": "Abdulmohsen Al-Qasim",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Abdulmohsin Al-Qasim (abdulmohsin_al_qasim_qdc (Hafs A'n Assem, Murattal)): ar first+last 1.00: عبدالمحسن القاسم ~ عبد المحسن القاسم | en first+last 1.00: Abdulmohsen Al-Qasim ~ Abdulmohsin Al-Qasim",
+        "zaibihassan [match] AbdulMuhsin al-Qasim (Murattal) (top-level folder): en first+last 1.00: Abdulmohsen Al-Qasim ~ AbdulMuhsin al-Qasim (Murattal)"
+      ]
+    },
+    {
+      "readId": 69,
+      "nameAr": "عبدالمحسن العبيكان",
+      "nameEn": "Abdulmohsin Al-Obaikan",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "fast",
+      "reasons": [
+        "fast"
+      ],
+      "matchedSource": [],
+      "evidence": [
+        "Al-Mulk 273s = 0.719 x median 380s"
+      ]
+    },
+    {
+      "readId": 71,
+      "nameAr": "عبدالودود حنيف",
+      "nameEn": "Abdulwadood Haneef",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned",
+        "fast"
+      ],
+      "matchedSource": [
+        "QUD",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Abdulwadood Haneef (abdulwadood_haneef_mp3quran (Hafs A'n Assem, Murattal)): ar first+last 1.00: عبدالودود حنيف ~ عبد الودود حنيف | en first+last 1.00: Abdulwadood Haneef ~ Abdulwadood Haneef",
+        "zaibihassan [match] AbdulWadud Haneef (Murattal) (top-level folder): en first+last 1.00: Abdulwadood Haneef ~ AbdulWadud Haneef (Murattal)",
+        "Al-Mulk 263s = 0.692 x median 380s"
+      ]
+    },
+    {
+      "readId": 74,
+      "nameAr": "علي بن عبدالرحمن الحذيفي",
+      "nameEn": "Ali Alhuthaifi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned",
+        "timing_unusable"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "muaalem-annotated-v3",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Ali Al-Hudhaify (reciter_id 8, moshafs 8.0): ar first+last 1.00: علي بن عبدالرحمن الحذيفي ~ علي الحذيفي | en first+last 1.00: Ali Alhuthaifi ~ Ali Al-Hudhaify",
+        "QUD [match] Ali Al-Huthaifi (ali_al_huthaifi_mp3quran (Hafs A'n Assem, Murattal)): ar first+last 1.00: علي بن عبدالرحمن الحذيفي ~ علي بن عبد الرحمن الحذيفي | en first+last 1.00: Ali Alhuthaifi ~ Ali Al-Huthaifi",
+        "zaibihassan [match] Ali Abdur-Rahman al-Huthaify (Murattal) (top-level folder): en first+last 1.00: Ali Alhuthaifi ~ Ali Abdur-Rahman al-Huthaify (Murattal)",
+        "everyayah [uncertain] Hudhaify (subfolders Hudhaify_32kbps): en surname 1.00: Ali Alhuthaifi ~ Hudhaify"
+      ]
+    },
+    {
+      "readId": 76,
+      "nameAr": "علي جابر",
+      "nameEn": "Ali Jaber",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "everyayah"
+      ],
+      "evidence": [
+        "everyayah [match] Ali Jaber (subfolders Ali_Jaber_64kbps): en first+last 1.00: Ali Jaber ~ Ali Jaber"
+      ]
+    },
+    {
+      "readId": 77,
+      "nameAr": "علي حجاج السويسي",
+      "nameEn": "Ali Hajjaj Alsouasi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "muaalem-annotated-v3",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Ali Haggag Al-Swisie (reciter_id 30, moshafs 30.0): ar first+last 1.00: علي حجاج السويسي ~ علي حجاج السويسي | en first+last 1.00: Ali Hajjaj Alsouasi ~ Ali Haggag Al-Swisie",
+        "QUD [match] Ali Hajjaj Al-Souasi (ali_hajjaj_al_souasi_qdc (Hafs A'n Assem, Murattal)): ar first+last 1.00: علي حجاج السويسي ~ علي حجاج السويسي | en first+last 1.00: Ali Hajjaj Alsouasi ~ Ali Hajjaj Al-Souasi",
+        "zaibihassan [match] Ali Hajjaj Alsouasi (Murattal) (top-level folder): en first+last 1.00: Ali Hajjaj Alsouasi ~ Ali Hajjaj Alsouasi (Murattal)",
+        "everyayah [match] Ali_Hajjaj_AlSuesy (subfolders Ali_Hajjaj_AlSuesy_128kbps): en first+last 1.00: Ali Hajjaj Alsouasi ~ Ali Hajjaj AlSuesy"
+      ]
+    },
+    {
+      "readId": 78,
+      "nameAr": "عماد زهير حافظ",
+      "nameEn": "Emad Hafez",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Imad Zuhair Hafez (imad_zuhair_hafez_mp3quran (Hafs A'n Assem, Murattal)): ar first+last 1.00: عماد زهير حافظ ~ عماد زهير حافظ | en first+last 1.00: Emad Hafez ~ Imad Zuhair Hafez",
+        "zaibihassan [match] Imad Zuhair Hafez (Murattal) (top-level folder): en first+last 1.00: Emad Hafez ~ Imad Zuhair Hafez (Murattal)"
+      ]
+    },
+    {
+      "readId": 81,
+      "nameAr": "فارس عباد",
+      "nameEn": "Fares Abbad",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "zaibihassan [match] Fares Abbad (Murattal) (top-level folder): en first+last 1.00: Fares Abbad ~ Fares Abbad (Murattal)",
+        "everyayah [match] Fares Abbad (subfolders Fares_Abbad_64kbps): en first+last 1.00: Fares Abbad ~ Fares Abbad"
+      ]
+    },
+    {
+      "readId": 86,
+      "nameAr": "ناصر القطامي",
+      "nameEn": "Nasser Alqatami",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Nasser Al-Qatami (nasser_al_qatami_mp3quran (Hafs A'n Assem, Murattal)): ar first+last 1.00: ناصر القطامي ~ ناصر القطامي | en first+last 1.00: Nasser Alqatami ~ Nasser Al-Qatami",
+        "zaibihassan [match] Nasser Al Qatami (Murattal) (top-level folder): en first+last 1.00: Nasser Alqatami ~ Nasser Al Qatami (Murattal)",
+        "everyayah [match] Nasser_Alqatami (subfolders Nasser_Alqatami_128kbps): en first+last 1.00: Nasser Alqatami ~ Nasser Alqatami"
+      ]
+    },
+    {
+      "readId": 87,
+      "nameAr": "نبيل الرفاعي",
+      "nameEn": "Nabil Al Rifay",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Nabil Al-Rifai (nabil_al_rifai_mp3quran (Hafs A'n Assem, Murattal)): ar first+last 1.00: نبيل الرفاعي ~ نبيل الرفاعي | en first+last 1.00: Nabil Al Rifay ~ Nabil Al-Rifai",
+        "zaibihassan [match] Nabil Ar Rifai (Murattal) (top-level folder): en first+last 1.00: Nabil Al Rifay ~ Nabil Ar Rifai (Murattal)"
+      ]
+    },
+    {
+      "readId": 89,
+      "nameAr": "هاني الرفاعي",
+      "nameEn": "Hani Arrifai",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Hani Al-Rifai (hani_al_rifai_qdc_128k (Hafs A'n Assem, Murattal)): ar first+last 1.00: هاني الرفاعي ~ هاني الرفاعي | en first+last 1.00: Hani Arrifai ~ Hani Al-Rifai",
+        "zaibihassan [match] Hani Ar Rifai (Murattal) (top-level folder): en first+last 1.00: Hani Arrifai ~ Hani Ar Rifai (Murattal)",
+        "everyayah [match] Hani Rifai (subfolders Hani_Rifai_64kbps): en first+last 1.00: Hani Arrifai ~ Hani Rifai"
+      ]
+    },
+    {
+      "readId": 92,
+      "nameAr": "ياسر الدوسري",
+      "nameEn": "Yasser Al-Dosari",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Yasser Al-Dosari (yasser_al_dosari_archive (Hafs A'n Assem, Murattal); yasser_al_dosari_tarteel (Hafs A'n Assem, Murattal); yasser_al_dosari_yt (Hafs A'n Assem, Murattal)): ar first+last 1.00: ياسر الدوسري ~ ياسر الدوسري | en first+last 1.00: Yasser Al-Dosari ~ Yasser Al-Dosari",
+        "zaibihassan [match] Yasser Al Dosari (Murattal) (top-level folder): en first+last 1.00: Yasser Al-Dosari ~ Yasser Al Dosari (Murattal)",
+        "everyayah [match] Yasser_Ad-Dussary (subfolders Yasser_Ad-Dussary_128kbps): en first+last 1.00: Yasser Al-Dosari ~ Yasser Ad-Dussary"
+      ]
+    },
+    {
+      "readId": 106,
+      "nameAr": "محمد الطبلاوي",
+      "nameEn": "Mohammad Al-Tablaway",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Mohammed Al-Tablawi (mohammed_al_tablawi_qdc (Hafs A'n Assem, Murattal)): ar first+last 1.00: محمد الطبلاوي ~ محمد الطبلاوي | en first+last 1.00: Mohammad Al-Tablaway ~ Mohammed Al-Tablawi",
+        "zaibihassan [match] Mohamed Al Tablawi (Murattal) (top-level folder): en first+last 1.00: Mohammad Al-Tablaway ~ Mohamed Al Tablawi (Murattal)",
+        "everyayah [match] Mohammad al Tablaway (subfolders Mohammad_al_Tablaway_64kbps): en first+last 1.00: Mohammad Al-Tablaway ~ Mohammad al Tablaway"
+      ]
+    },
+    {
+      "readId": 109,
+      "nameAr": "محمد أيوب",
+      "nameEn": "Mohammed Ayyub",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "muaalem-annotated-v3",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Mohammed Ayoub (reciter_id 12, moshafs 12.0): ar first+last 1.00: محمد أيوب ~ محمد أيوب | en first+last 1.00: Mohammed Ayyub ~ Mohammed Ayoub",
+        "QUD [match] Mohammed Ayyub (mohammed_ayyub_drive (Hafs A'n Assem, Murattal)): ar first+last 1.00: محمد أيوب ~ محمد أيوب | en first+last 1.00: Mohammed Ayyub ~ Mohammed Ayyub",
+        "zaibihassan [match] Mohamed Ayoub (Murattal) (top-level folder): en first+last 1.00: Mohammed Ayyub ~ Mohamed Ayoub (Murattal)",
+        "everyayah [match] Muhammad Ayyoub (subfolders Muhammad_Ayyoub_128kbps): en first+last 1.00: Mohammed Ayyub ~ Muhammad Ayyoub"
+      ]
+    },
+    {
+      "readId": 112,
+      "nameAr": "محمد صديق المنشاوي",
+      "nameEn": "Mohammed Siddiq Al-Minshawi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "muaalem-annotated-v3",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Mohammed Sidiq Al-Minshawi (reciter_id 1, moshafs 1.0): ar first+last 1.00: محمد صديق المنشاوي ~ محمد صديق المنشاوي | en first+last 1.00: Mohammed Siddiq Al-Minshawi ~ Mohammed Sidiq Al-Minshawi",
+        "QUD [match] Mohammed Siddiq Al-Minshawi (mohammed_siddiq_al_minshawi_1967_drive (Hafs A'n Assem, Murattal); mohammed_siddiq_al_minshawi_mp3quran (Hafs A'n Assem, Murattal); mohammed_siddiq_al_minshawi_mujawwad_mp3quran (Hafs A'n Assem, Mujawwad)): ar first+last 1.00: محمد صديق المنشاوي ~ محمد صديق المنشاوي | en first+last 1.00: Mohammed Siddiq Al-Minshawi ~ Mohammed Siddiq Al-Minshawi",
+        "zaibihassan [match] Muhammad Siddiq Al Minshawi (Kids) (top-level folder): en first+last 1.00: Mohammed Siddiq Al-Minshawi ~ Muhammad Siddiq Al Minshawi (Kids)",
+        "zaibihassan [match] Muhammad Siddiq Al Minshawi (Murattal) (top-level folder): en first+last 1.00: Mohammed Siddiq Al-Minshawi ~ Muhammad Siddiq Al Minshawi (Murattal)",
+        "everyayah [uncertain] Menshawi (subfolders Menshawi_16kbps): en surname 1.00: Mohammed Siddiq Al-Minshawi ~ Menshawi",
+        "everyayah [uncertain] Minshawy Mujawwad (subfolders Minshawy_Mujawwad_64kbps): en surname 1.00: Mohammed Siddiq Al-Minshawi ~ Minshawy Mujawwad",
+        "everyayah [uncertain] Minshawy Murattal (subfolders Minshawy_Murattal_128kbps): en surname 1.00: Mohammed Siddiq Al-Minshawi ~ Minshawy Murattal"
+      ]
+    },
+    {
+      "readId": 115,
+      "nameAr": "محمد عبدالكريم",
+      "nameEn": "Mohammad Abdullkarem",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Mohammed Abdulkareem (mohammed_abdulkareem_qdc (Hafs A'n Assem, Murattal)): ar first+last 1.00: محمد عبدالكريم ~ محمد عبد الكريم | en first+last 0.86: Mohammad Abdullkarem ~ Mohammed Abdulkareem",
+        "zaibihassan [match] Muhammad Abdul-Kareem (Murattal) (top-level folder): en first+last 0.86: Mohammad Abdullkarem ~ Muhammad Abdul-Kareem (Murattal)",
+        "everyayah [match] Muhammad AbdulKareem (subfolders Muhammad_AbdulKareem_128kbps): en first+last 0.86: Mohammad Abdullkarem ~ Muhammad AbdulKareem"
+      ]
+    },
+    {
+      "readId": 118,
+      "nameAr": "محمود خليل الحصري",
+      "nameEn": "Mahmoud Khalil Al-Hussary",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "muaalem-annotated-v3",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Mahmoud Khalil Al-Husari (reciter_id 0, moshafs 0.0,0.1,0.2,0.3): ar first+last 1.00: محمود خليل الحصري ~ محمود خليل الحصري | en first+last 1.00: Mahmoud Khalil Al-Hussary ~ Mahmoud Khalil Al-Husari",
+        "QUD [match] Mahmoud Khalil Al-Husary (mahmoud_khalil_al_husary_mp3quran (Hafs A'n Assem, Murattal); mahmoud_khalil_al_husary_mujawwad_tarteel (Hafs A'n Assem, Mujawwad); mahmoud_khalil_al_husary_qdc_128k (Hafs A'n Assem, Murattal)): ar first+last 1.00: محمود خليل الحصري ~ محمود خليل الحصري | en first+last 1.00: Mahmoud Khalil Al-Hussary ~ Mahmoud Khalil Al-Husary",
+        "zaibihassan [match] Mahmoud Khalil Al Husary (Mualim) (top-level folder): en first+last 1.00: Mahmoud Khalil Al-Hussary ~ Mahmoud Khalil Al Husary (Mualim)",
+        "zaibihassan [match] Mahmoud Khalil Al Husary (Mujawwad) (top-level folder): en first+last 1.00: Mahmoud Khalil Al-Hussary ~ Mahmoud Khalil Al Husary (Mujawwad)",
+        "zaibihassan [match] Mahmoud Khalil Al Husary (Murattal) (top-level folder): en first+last 1.00: Mahmoud Khalil Al-Hussary ~ Mahmoud Khalil Al Husary (Murattal)",
+        "everyayah [uncertain] Husary (subfolders Husary_64kbps): en surname 1.00: Mahmoud Khalil Al-Hussary ~ Husary",
+        "everyayah [uncertain] Husary Mujawwad (subfolders Husary_Mujawwad_64kbps): en surname 1.00: Mahmoud Khalil Al-Hussary ~ Husary Mujawwad",
+        "everyayah [uncertain] Husary (Muallim) (subfolders Husary_Muallim_128kbps): en surname 1.00: Mahmoud Khalil Al-Hussary ~ Husary (Muallim)"
+      ]
+    },
+    {
+      "readId": 119,
+      "nameAr": "محمود خليل الحصري",
+      "nameEn": "Mahmoud Khalil Al-Hussary",
+      "moshaf": "حفص عن عاصم - المصحف المجود",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned",
+        "style_mujawwad"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "muaalem-annotated-v3",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Mahmoud Khalil Al-Husari (reciter_id 0, moshafs 0.0,0.1,0.2,0.3): ar first+last 1.00: محمود خليل الحصري ~ محمود خليل الحصري | en first+last 1.00: Mahmoud Khalil Al-Hussary ~ Mahmoud Khalil Al-Husari",
+        "QUD [match] Mahmoud Khalil Al-Husary (mahmoud_khalil_al_husary_mp3quran (Hafs A'n Assem, Murattal); mahmoud_khalil_al_husary_mujawwad_tarteel (Hafs A'n Assem, Mujawwad); mahmoud_khalil_al_husary_qdc_128k (Hafs A'n Assem, Murattal)): ar first+last 1.00: محمود خليل الحصري ~ محمود خليل الحصري | en first+last 1.00: Mahmoud Khalil Al-Hussary ~ Mahmoud Khalil Al-Husary",
+        "zaibihassan [match] Mahmoud Khalil Al Husary (Mualim) (top-level folder): en first+last 1.00: Mahmoud Khalil Al-Hussary ~ Mahmoud Khalil Al Husary (Mualim)",
+        "zaibihassan [match] Mahmoud Khalil Al Husary (Mujawwad) (top-level folder): en first+last 1.00: Mahmoud Khalil Al-Hussary ~ Mahmoud Khalil Al Husary (Mujawwad)",
+        "zaibihassan [match] Mahmoud Khalil Al Husary (Murattal) (top-level folder): en first+last 1.00: Mahmoud Khalil Al-Hussary ~ Mahmoud Khalil Al Husary (Murattal)",
+        "everyayah [uncertain] Husary (subfolders Husary_64kbps): en surname 1.00: Mahmoud Khalil Al-Hussary ~ Husary",
+        "everyayah [uncertain] Husary Mujawwad (subfolders Husary_Mujawwad_64kbps): en surname 1.00: Mahmoud Khalil Al-Hussary ~ Husary Mujawwad",
+        "everyayah [uncertain] Husary (Muallim) (subfolders Husary_Muallim_128kbps): en surname 1.00: Mahmoud Khalil Al-Hussary ~ Husary (Muallim)",
+        "moshaf_type 12: Rewayat Hafs A'n Assem - Almusshaf Al Mojawwad"
+      ]
+    },
+    {
+      "readId": 122,
+      "nameAr": "محمود علي البنا",
+      "nameEn": "Mahmoud Ali  Albanna",
+      "moshaf": "حفص عن عاصم - المصحف المجود",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned",
+        "style_mujawwad"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "muaalem-annotated-v3",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Mahmoud Ali Al-Banna (reciter_id 3, moshafs 3.0): ar first+last 1.00: محمود علي البنا ~ محمود علي البنا | en first+last 1.00: Mahmoud Ali  Albanna ~ Mahmoud Ali Al-Banna",
+        "QUD [match] Mahmoud Ali Al-Banna (mahmoud_ali_al_banna_qdc (Hafs A'n Assem, Murattal)): ar first+last 1.00: محمود علي البنا ~ محمود علي البنا | en first+last 1.00: Mahmoud Ali  Albanna ~ Mahmoud Ali Al-Banna",
+        "zaibihassan [match] Mahmood Ali Al-Bana (Murattal) (top-level folder): en first+last 1.00: Mahmoud Ali  Albanna ~ Mahmood Ali Al-Bana (Murattal)",
+        "everyayah [match] Mahmoud Ali Al-Banna (subfolders mahmoud_ali_al_banna_32kbps): en first+last 1.00: Mahmoud Ali  Albanna ~ Mahmoud Ali Al-Banna",
+        "moshaf_type 12: Rewayat Hafs A'n Assem - Almusshaf Al Mojawwad"
+      ]
+    },
+    {
+      "readId": 123,
+      "nameAr": "مشاري العفاسي",
+      "nameEn": "Mishary Alafasi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "muaalem-annotated-v3",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Mishary Rashid Al-Afasy (mishary_rashid_al_afasy_2008_qdc (Hafs A'n Assem, Murattal); mishary_rashid_al_afasy_mp3quran (Hafs A'n Assem, Murattal)): ar first+last 1.00: مشاري العفاسي ~ مشاري بن راشد العفاسي | en first+last 1.00: Mishary Alafasi ~ Mishary Rashid Al-Afasy",
+        "zaibihassan [match] Mishari Rashid Al Afasy (Murattal) (top-level folder): en first+last 1.00: Mishary Alafasi ~ Mishari Rashid Al Afasy (Murattal)",
+        "everyayah [uncertain] Alafasy (subfolders Alafasy_64kbps): en surname 1.00: Mishary Alafasi ~ Alafasy",
+        "muaalem-annotated-v3 [match] Mishary Rashid Al-Fasi (manual): teacher reciter_id 19 'مشاري راشد الفاسي' is a misspelling of العفاسي: moshaf 19.0 is islamway collection 213, Alafasy's Cairo murattal (المصحف المرتل تسجيل القاهرة استماع المعصراوي), country KW"
+      ]
+    },
+    {
+      "readId": 133,
+      "nameAr": "ماهر المعيقلي",
+      "nameEn": "Maher Al Meaqli",
+      "moshaf": "حفص عن عاصم - المصحف المجود",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned",
+        "style_mujawwad"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Maher Al-Muaiqly (maher_al_muaiqly_qdc (Hafs A'n Assem, Mujawwad); maher_al_muaiqly_tarteel (Hafs A'n Assem, Murattal)): ar first+last 1.00: ماهر المعيقلي ~ ماهر المعيقلي | en first+last 1.00: Maher Al Meaqli ~ Maher Al-Muaiqly",
+        "zaibihassan [match] Maher Al Muaiqly (Murattal) (top-level folder): en first+last 1.00: Maher Al Meaqli ~ Maher Al Muaiqly (Murattal)",
+        "everyayah [match] Maher Al Muaiqly (subfolders Maher_AlMuaiqly_64kbps): en first+last 1.00: Maher Al Meaqli ~ Maher Al Muaiqly",
+        "moshaf_type 12: Rewayat Hafs A'n Assem - Almusshaf Al Mojawwad"
+      ]
+    },
+    {
+      "readId": 137,
+      "nameAr": "أحمد طالب بن حميد",
+      "nameEn": "Ahmad Talib bin Humaid",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Ahmed Talib bin Hameed (ahmed_talib_bin_humaid_mp3quran (Hafs A'n Assem, Murattal)): ar first+last 1.00: أحمد طالب بن حميد ~ أحمد طالب بن حميد | en first+last 1.00: Ahmad Talib bin Humaid ~ Ahmed Talib bin Hameed",
+        "zaibihassan [match] Ahmed bin Talib Hamid (Murattal) (top-level folder): en first+last 1.00: Ahmad Talib bin Humaid ~ Ahmed bin Talib Hamid (Murattal)"
+      ]
+    },
+    {
+      "readId": 139,
+      "nameAr": "ماجد الزامل",
+      "nameEn": "Majed Al-Zamil",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD"
+      ],
+      "evidence": [
+        "QUD [match] Majed Al-Zamil (majed_al_zamil_yt (Hafs A'n Assem, Murattal)): ar first+last 1.00: ماجد الزامل ~ ماجد الزامل | en first+last 1.00: Majed Al-Zamil ~ Majed Al-Zamil"
+      ]
+    },
+    {
+      "readId": 159,
+      "nameAr": "خالد المهنا",
+      "nameEn": "Khalid Almohana",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD"
+      ],
+      "evidence": [
+        "QUD [match] Khalid Al-Mohana (khalid_al_mohana_drive (Hafs A'n Assem, Murattal)): ar first+last 1.00: خالد المهنا ~ خالد المهنا | en first+last 1.00: Khalid Almohana ~ Khalid Al-Mohana"
+      ]
+    },
+    {
+      "readId": 193,
+      "nameAr": "يوسف بن نوح أحمد",
+      "nameEn": "Yousef Bin Noah Ahmad",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD"
+      ],
+      "evidence": [
+        "QUD [match] Yusuf bin Noah Ahmed (yusuf_bin_noah_ahmed_tvquran (Hafs A'n Assem, Murattal)): ar first+last 1.00: يوسف بن نوح أحمد ~ يوسف بن نوح أحمد | en first+last 1.00: Yousef Bin Noah Ahmad ~ Yusuf bin Noah Ahmed"
+      ]
+    },
+    {
+      "readId": 201,
+      "nameAr": "أحمد الطرابلسي",
+      "nameEn": "Ahmed Al-trabulsi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD"
+      ],
+      "evidence": [
+        "QUD [match] Ahmed Khader Al-Trabulsi (ahmed_khader_al_trabulsi_qalon_tvquran (Qalon A'n Nafi', Murattal)): ar first+last 1.00: أحمد الطرابلسي ~ أحمد خضر الطرابلسي | en first+last 1.00: Ahmed Al-trabulsi ~ Ahmed Khader Al-Trabulsi"
+      ]
+    },
+    {
+      "readId": 203,
+      "nameAr": "أحمد عامر",
+      "nameEn": "Ahmed Amer",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "muaalem-annotated-v3"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Ahmed Mohamed Amer (reciter_id 5, moshafs 5.0): ar first+last 1.00: أحمد عامر ~ أحمد محمد عامر | en first+last 1.00: Ahmed Amer ~ Ahmed Mohamed Amer",
+        "QUD [match] Ahmed Amer (ahmed_amer_tvquran (Hafs A'n Assem, Murattal)): ar first+last 1.00: أحمد عامر ~ أحمد عامر | en first+last 1.00: Ahmed Amer ~ Ahmed Amer"
+      ]
+    },
+    {
+      "readId": 217,
+      "nameAr": "بندر بليله",
+      "nameEn": "Bandar Balilah",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD"
+      ],
+      "evidence": [
+        "QUD [match] Bandar Baleela (bandar_baleela_qdc (Hafs A'n Assem, Murattal)): ar first+last 1.00: بندر بليله ~ بندر بليلة"
+      ]
+    },
+    {
+      "readId": 219,
+      "nameAr": "وديع اليمني",
+      "nameEn": "Wadeea Al-Yamani",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Wadie Al-Yamani (wadie_al_yamani_tvquran (Hafs A'n Assem, Murattal)): ar first+last 1.00: وديع اليمني ~ وديع اليمني | en first+last 1.00: Wadeea Al-Yamani ~ Wadie Al-Yamani",
+        "zaibihassan [match] Wadee Hammadi Al Yamani (Murattal) (top-level folder): en first+last 1.00: Wadeea Al-Yamani ~ Wadee Hammadi Al Yamani (Murattal)"
+      ]
+    },
+    {
+      "readId": 221,
+      "nameAr": "رعد محمد الكردي",
+      "nameEn": "Raad Al Kurdi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Raad Al-Kurdi (raad_al_kurdi_mp3quran (Hafs A'n Assem, Murattal)): ar first+last 1.00: رعد محمد الكردي ~ رعد محمد الكردي | en first+last 1.00: Raad Al Kurdi ~ Raad Al-Kurdi",
+        "zaibihassan [match] Raad Mohammad Al Kurdi (Murattal) (top-level folder): en first+last 1.00: Raad Al Kurdi ~ Raad Mohammad Al Kurdi (Murattal)"
+      ]
+    },
+    {
+      "readId": 232,
+      "nameAr": "إبراهيم الدوسري",
+      "nameEn": "Ibrahim Aldosari",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "everyayah"
+      ],
+      "evidence": [
+        "everyayah [match] (Warsh) Ibrahim Al-Dosary (subfolders warsh/warsh_ibrahim_aldosary_128kbps): en first+last 1.00: Ibrahim Aldosari ~ (Warsh) Ibrahim Al-Dosary"
+      ]
+    },
+    {
+      "readId": 243,
+      "nameAr": "عبدالله الموسى",
+      "nameEn": "Abdullah Al-Mousa",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "zaibihassan"
+      ],
+      "evidence": [
+        "zaibihassan [match] Abdullah Al Musa (Murattal) (top-level folder): en first+last 1.00: Abdullah Al-Mousa ~ Abdullah Al Musa (Murattal)"
+      ]
+    },
+    {
+      "readId": 245,
+      "nameAr": "منصور السالمي",
+      "nameEn": "Mansour Al-Salemi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "zaibihassan"
+      ],
+      "evidence": [
+        "zaibihassan [match] Mansour Al Salmi (Murattal) (top-level folder): en first+last 1.00: Mansour Al-Salemi ~ Mansour Al Salmi (Murattal)"
+      ]
+    },
+    {
+      "readId": 256,
+      "nameAr": "أحمد خليل شاهين",
+      "nameEn": "Ahmad Shaheen",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "muaalem-annotated-v3"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Ahmed Khalil Shaheen (reciter_id 22, moshafs 22.0): ar first+last 1.00: أحمد خليل شاهين ~ أحمد خليل شاهين | en first+last 1.00: Ahmad Shaheen ~ Ahmed Khalil Shaheen",
+        "QUD [match] Ahmed Khalil Shaheen (ahmed_shaheen_mp3quran (Hafs A'n Assem, Murattal)): ar first+last 1.00: أحمد خليل شاهين ~ أحمد خليل شاهين | en first+last 1.00: Ahmad Shaheen ~ Ahmed Khalil Shaheen"
+      ]
+    },
+    {
+      "readId": 258,
+      "nameAr": "عبدالرشيد صوفي",
+      "nameEn": "Abdulrasheed Soufi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "muaalem-annotated-v3",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Abdel Rashid Soufi (reciter_id 11, moshafs 11.0): ar first+last 1.00: عبدالرشيد صوفي ~ عبد الرشيد صوفي | en first+last 1.00: Abdulrasheed Soufi ~ Abdel Rashid Soufi",
+        "QUD [match] Abdur-Rashid Sufi (abdur_rashid_sufi_qdc (Hafs A'n Assem, Murattal); abdur_rashid_sufi_shubah_qdc (Sho'bah A'n Asim, Murattal)): ar first+last 1.00: عبدالرشيد صوفي ~ عبد الرشيد صوفي | en first+last 1.00: Abdulrasheed Soufi ~ Abdur-Rashid Sufi",
+        "zaibihassan [match] Abdul Rashid Sufi (Murattal) (top-level folder): en first+last 1.00: Abdulrasheed Soufi ~ Abdul Rashid Sufi (Murattal)",
+        "zaibihassan [match] Abdur-Rashid Sufi (Murattal) (top-level folder): en first+last 1.00: Abdulrasheed Soufi ~ Abdur-Rashid Sufi (Murattal)"
+      ]
+    },
+    {
+      "readId": 259,
+      "nameAr": "أحمد النفيس",
+      "nameEn": "Ahmad Al Nufais",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "zaibihassan"
+      ],
+      "evidence": [
+        "zaibihassan [match] Ahmad Alnufais (Murattal) (top-level folder): en first+last 1.00: Ahmad Al Nufais ~ Ahmad Alnufais (Murattal)"
+      ]
+    },
+    {
+      "readId": 265,
+      "nameAr": "أحمد ديبان",
+      "nameEn": "Ahmad Deban",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Ahmed Deban (ahmed_deban_qalon_mp3quran (Qalon A'n Nafi', Murattal)): ar first+last 1.00: أحمد ديبان ~ أحمد ديبان | en first+last 1.00: Ahmad Deban ~ Ahmed Deban",
+        "zaibihassan [match] Ahmed Diban (Murattal) (top-level folder): en first+last 1.00: Ahmad Deban ~ Ahmed Diban (Murattal)"
+      ]
+    },
+    {
+      "readId": 268,
+      "nameAr": "بيشه وا قادر الكردي",
+      "nameEn": "Peshawa Qadr Al-Kurdi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "zaibihassan"
+      ],
+      "evidence": [
+        "zaibihassan [match] Peshawa Qadir al-Kurdi (Murattal) (top-level folder): en first+last 1.00: Peshawa Qadr Al-Kurdi ~ Peshawa Qadir al-Kurdi (Murattal)"
+      ]
+    },
+    {
+      "readId": 273,
+      "nameAr": "هيثم الدخين",
+      "nameEn": "Haitham Aldukhain",
+      "moshaf": "حفص عن عاصم - تلاوة مميزة",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned",
+        "style_other"
+      ],
+      "matchedSource": [
+        "QUD",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "QUD [match] Haitham Al-Dukhain (haitham_al_dukhain_mp3quran (Hafs A'n Assem, Murattal)): ar first+last 1.00: هيثم الدخين ~ هيثم الدخين | en first+last 1.00: Haitham Aldukhain ~ Haitham Al-Dukhain",
+        "zaibihassan [match] Haitham Al Dukhin (Murattal) (top-level folder): en first+last 1.00: Haitham Aldukhain ~ Haitham Al Dukhin (Murattal)",
+        "moshaf_type 14: Rewayat Hafs A'n Assem - Featured Recitation"
+      ]
+    },
+    {
+      "readId": 282,
+      "nameAr": "عبدالعزيز التركي",
+      "nameEn": "Abdulaziz Alturki",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD"
+      ],
+      "evidence": [
+        "QUD [match] Abdulaziz Al-Turki (abdulaziz_al_turki_yt (Hafs A'n Assem, Murattal)): ar first+last 1.00: عبدالعزيز التركي ~ عبد العزيز التركي | en first+last 1.00: Abdulaziz Alturki ~ Abdulaziz Al-Turki"
+      ]
+    },
+    {
+      "readId": 288,
+      "nameAr": "مصطفى إسماعيل",
+      "nameEn": "Mustafa Ismail",
+      "moshaf": "حفص عن عاصم - المصحف المجود",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned",
+        "style_mujawwad"
+      ],
+      "matchedSource": [
+        "QUD",
+        "everyayah",
+        "muaalem-annotated-v3",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Mustafa Ismail (reciter_id 4, moshafs 4.0): ar first+last 1.00: مصطفى إسماعيل ~ مصطفى إسماعيل | en first+last 1.00: Mustafa Ismail ~ Mustafa Ismail",
+        "QUD [match] Mustafa Ismail (mustafa_ismail_mp3quran (Hafs A'n Assem, Murattal)): ar first+last 1.00: مصطفى إسماعيل ~ مصطفى إسماعيل | en first+last 1.00: Mustafa Ismail ~ Mustafa Ismail",
+        "zaibihassan [match] Mostafa Ismaeel (Murattal) (top-level folder): en first+last 1.00: Mustafa Ismail ~ Mostafa Ismaeel (Murattal)",
+        "everyayah [match] Mustafa Ismail (subfolders Mustafa_Ismail_48kbps): en first+last 1.00: Mustafa Ismail ~ Mustafa Ismail",
+        "moshaf_type 12: Rewayat Hafs A'n Assem - Almusshaf Al Mojawwad"
+      ]
+    },
+    {
+      "readId": 289,
+      "nameAr": "أحمد عيسى المعصراوي",
+      "nameEn": "Ahmad Issa Al Maasaraawi",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_teacher",
+      "reasons": [
+        "excluded_teacher",
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD",
+        "muaalem-annotated-v3",
+        "zaibihassan"
+      ],
+      "evidence": [
+        "muaalem-annotated-v3 [match] Ahmed Issa Al-Ma'srawi (reciter_id 7, moshafs 7.0): ar first+last 0.88: أحمد عيسى المعصراوي ~ أحمد عيسى المعصرواوي | en first+last 1.00: Ahmad Issa Al Maasaraawi ~ Ahmed Issa Al-Ma'srawi",
+        "QUD [match] Ahmed Issa Al-Maasaraawi (ahmed_issa_al_maasaraawi_mp3quran (Hafs A'n Assem, Murattal)): ar first+last 1.00: أحمد عيسى المعصراوي ~ أحمد عيسى المعصراوي | en first+last 1.00: Ahmad Issa Al Maasaraawi ~ Ahmed Issa Al-Maasaraawi",
+        "zaibihassan [match] Ahmed Al Maasrawi (Murattal) (top-level folder): en first+last 1.00: Ahmad Issa Al Maasaraawi ~ Ahmed Al Maasrawi (Murattal)"
+      ]
+    },
+    {
+      "readId": 340,
+      "nameAr": "محمد برهجي",
+      "nameEn": "Muhammad Burhaji",
+      "moshaf": "حفص عن عاصم - مرتل",
+      "reason": "excluded_planned",
+      "reasons": [
+        "excluded_planned"
+      ],
+      "matchedSource": [
+        "QUD"
+      ],
+      "evidence": [
+        "QUD [match] Mohammed Burhaji (mohammed_burhaji_yt (Hafs A'n Assem, Murattal)): ar first+last 1.00: محمد برهجي ~ محمد برهجي | en first+last 1.00: Muhammad Burhaji ~ Mohammed Burhaji"
+      ]
+    }
+  ],
+  "risks": [
+    "tlog (the student's only training audio) is crowd-sourced with no reciter names. A held-out professional reciter could appear in it (users playing recordings); unverifiable.",
+    "Teacher base model facebook/w2v-bert-2.0 was pretrained self-supervised on ~4.5M h of unlabelled multilingual audio; Quran recordings of any reciter may be in it. Unverifiable; no labels involved.",
+    "obadx/qdat (planned) is anonymous learner audio (speaker ids only), not professional reciters; not checkable, low risk.",
+    "Matching is by name only. Two reciters with the same name, or one reciter under very different spellings, can be mis-sorted; see nearestSourceName for each held-out reciter.",
+    "Speed and recording quality come from one surah's timings and the mp3 bitrate, not from listening."
+  ],
+  "seed": 20261028
+}
