@@ -474,8 +474,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   /**
    * An added word found inside a word can take the word's edge with it: وبنين كريم aligned as وبنِ[ينكر]يم, held sounds
-   * being cheap to insert beside the word's own. When the word fits better on its own, split the visit's heard phonemes
-   * again where it fits best, the added word keeping the rest on its side.
+   * being cheap to insert beside the word's own. Unless the word fits worse on its own, split the visit's heard phonemes
+   * again where it fits best, the added word keeping the rest on its side: it was said between the words.
    */
   const resplit = (issue: Issue, v: Visit, after: boolean) => {
     if (v.obsFrom < 0) return;
@@ -491,7 +491,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (heard.slice(s).filter((p) => CONSONANTS.has(p)).length < 2) continue;
       if (best < 0 || fit[s] < fit[best]) best = s;
     }
-    if (best < 0 || fit[best] >= now) return;
+    if (best < 0 || fit[best] > now) return;
     const rest = at.slice(best).sort((a, b) => a - b);
     issue.obsFrom = rest[0];
     issue.obsTo = rest.at(-1)! + 1;

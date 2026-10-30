@@ -255,6 +255,15 @@ describe("local-window confirmation", () => {
     const f = heard([{ kind: "ins", at: find(w(26, 134, 1)).start - find(start).start, text: kareem }], () => undefined, { from: start, to: w(26, 136, 4) });
     expect(check(f, true).map((e) => `${e.state} ${e.errorClass} ${key(e.location)} ${e.observed}`)).toEqual([`confirmed added_word 26:134:1 ${kareem}`]);
   });
+
+  it("confirms an added word ending in the sound the word before it ends in, as said", () => {
+    // فإن alone after للمكذبين (77:15): both end in ن, so aligned inside للمكذبين it fit as well as نفإ.
+    const start = w(77, 12, 1);
+    const fain = "فَءِن";
+    expect(text(w(77, 15, 3)).endsWith("ن")).toBe(true);
+    const f = heard([{ kind: "ins", at: find(w(77, 16, 1)).start - find(start).start, text: fain }], () => undefined, { from: start, to: w(77, 17, 3) });
+    expect(check(f, true).map((e) => `${e.state} ${e.errorClass} ${key(e.location)} ${e.observed}`)).toEqual([`confirmed added_word 77:16:1 ${fain}`]);
+  });
 });
 
 describe("declared passage", () => {
