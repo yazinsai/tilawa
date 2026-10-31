@@ -1,0 +1,13 @@
+{
+ "id": "listener-sparse-consonants",
+ "component": "listener",
+ "hypothesis": "Persistent aligned consonant failures with verified targets improve robustness under sparse matched reweighting and original CTC/KD balance",
+ "expected": {
+  "component": -4,
+  "overall": -4
+ },
+ "listener": "sparse-consonants-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-10-31T16:46:09+00:00",
+ "author": "Yazin"
+}
