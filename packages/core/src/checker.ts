@@ -571,7 +571,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   /** The errors the current alignment shows, by word; and where it stands. */
-  const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; head: number; furthest: number; steps: Step[]; right: Set<number> } | null => {
+  const judge = (steps: Step[], recoverAdditions = true, splitInternal = true): { issues: Map<number, Issue>; head: number; furthest: number; steps: Step[]; right: Set<number> } | null => {
     const visits: Visit[] = [];
     const added: Issue[] = [];
     let cur: Visit | null = null;
@@ -647,6 +647,40 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     close();
     for (const x of within) resplit(x.issue, x.v, x.after);
+    if (splitInternal) {
+      // Re-splitting an inner insertion changes which evidence belongs to the word too. Leaving its original
+      // visit intact lets that same speech make the preceding word wrong as well as making an addition.
+      const repairs: { from: number; to: number; path: Step[] }[] = [];
+      for (const { issue, v, after } of within) {
+        if (within.filter(x => x.v === v).length !== 1 || v.stepFrom === undefined || v.stepTo === undefined) continue;
+        const vi = visits.indexOf(v);
+        const neighbor = visits[vi + (after ? 1 : -1)];
+        // An edge insertion needs the adjacent word in this run; at a lock/jump edge it would become leading
+        // junk rather than an addition on the next pass through the path.
+        if (!neighbor || (after ? nextWord(v.word) !== neighbor.word : nextWord(neighbor.word) !== v.word)) continue;
+        const between = after ? steps.slice(v.stepTo, neighbor.stepFrom) : steps.slice(neighbor.stepTo, v.stepFrom);
+        if (between.some(s => s.op === "jump")) continue;
+        const from = v.obsFrom, to = v.obsTo;
+        if (from < 0 || issue.obsFrom < from || issue.obsTo > to || issue.obsFrom >= issue.obsTo) continue;
+        const keepFrom = after ? from : issue.obsTo, keepTo = after ? issue.obsFrom : to;
+        if (keepFrom >= keepTo || (after ? issue.obsTo !== to : issue.obsFrom !== from)) continue;
+        // A genuinely wrong neighboring word remains a separate error; only move a complete insertion off a
+        // word whose remaining evidence fits by the existing pronunciation tolerance.
+        const kept = obs.slice(keepFrom, keepTo);
+        if (obs.slice(from, to).some(p => p.junk) || wrong(scoreGap(v.word, v.word, kept))) continue;
+        const represented = steps.slice(v.stepFrom, v.stepTo).flatMap(s => "obs" in s ? [s.obs] : []);
+        if (represented.length !== to - from || represented.some((oi, j) => oi !== from + j)) continue;
+        const at = after ? words[v.word].end : words[v.word].start;
+        const insertion: Step[] = Array.from({ length: issue.obsTo - issue.obsFrom }, (_, j) => ({ op: "ins", at, obs: issue.obsFrom + j }));
+        const word = wordSteps(v.word, keepFrom, keepTo);
+        repairs.push({ from: v.stepFrom, to: v.stepTo, path: after ? [...word, ...insertion] : [...insertion, ...word] });
+      }
+      if (repairs.length) {
+        const repaired = [...steps];
+        for (const r of repairs.reverse()) repaired.splice(r.from, r.to - r.from, ...r.path);
+        return judge(repaired, recoverAdditions, false);
+      }
+    }
 
     const length = (wi: number) => words[wi].end - words[wi].start;
     // Vowels alone or one isolated consonant aren't a multi-phoneme word: a neighbour's noisy onset can land on it.
@@ -709,7 +743,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (repairs.length) {
         const repaired = [...steps];
         for (const r of repairs.reverse()) repaired.splice(r.from, r.to - r.from, ...r.path);
-        return judge(repaired, false);
+        return judge(repaired, false, splitInternal);
       }
     }
     const seen = [...last.keys()];
