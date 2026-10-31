@@ -26,3 +26,9 @@ This deliberately tests adjacent boundary drift. The more complex p24 skip at26:
 - TS build and all57 assertions passed in early validation runs, but the unchanged checker file exceeded Vitest3.2.7's fixed60-second worker RPC deadline. Those runs are not recorded as clean passes.
 - Final validation runs unchanged assertions in complementary name selections to keep each worker below that deadline. No dependency or assertion patches are used.
 - Final validation: `skip-boundary-validation-2a57ee0-dirty-20261031T082158Z`, exit0 in69.3s. TS build passed; focused/noise12 passed, then complementary checker selections34+11 passed (all45 checker tests). Total57 assertions, no runner errors.
+
+## Pre-score review correction
+
+The existing exact-repeat rule can move the gap before the new acoustic comparison runs. Its original `after` visit can then lie inside the relocated gap. The right-shift candidate now re-reads the visit immediately after the current gap end, preventing a candidate from accidentally shortening the skip.
+
+Added a full-span regression for the repeated ولا boundary in surah109 at chunk sizes2,8,13. It asserts the entire expected skipped span as well as its location and class. Validation `skip-boundary-relocated-validation-57ef12b-dirty-20261031T082620Z` passed the TS build and22 affected assertions (focused/noise15, existing skip7), exit0 in16.7s. The previously validated full checker coverage is unchanged. No practice measurement has occurred yet and the original prediction remains unchanged.

@@ -667,7 +667,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         const alternatives: Issue[] = [];
         const before = last.get(prevWord(place.word));
         if (before && before.word >= first) alternatives.push({ ...place, word: before.word, last: prevWord(place.last), obsFrom: before.obsFrom, obsTo: before.obsFrom });
-        if (after && after.word <= reached) alternatives.push({ ...place, word: nextWord(place.word), last: after.word, obsFrom: after.obsTo, obsTo: after.obsTo });
+        const following = last.get(nextWord(place.last));
+        if (following && following.word <= reached) alternatives.push({ ...place, word: nextWord(place.word), last: following.word, obsFrom: following.obsTo, obsTo: following.obsTo });
         const bounded = alternatives.filter(candidate => {
           const left = last.get(prevWord(Math.min(place.word, candidate.word)));
           const rightVisit = last.get(nextWord(Math.max(place.last, candidate.last)));
