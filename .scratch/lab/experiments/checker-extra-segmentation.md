@@ -1,6 +1,6 @@
 # Extra-word detours
 
-Status: first measured candidate fails the no-new-false-warning gate; regression diagnosis in progress. Not folded.
+Status: passes the full phone/studio and perfect-evidence practice gates; ready for user fold decision. Not folded.
 
 ## Scope and prediction
 
@@ -16,11 +16,15 @@ For addition repair only, whole-word pronunciation matching now establishes inta
 
 Backward whole-word detours remain protected: adding a word that exactly repeats earlier speech is observationally indistinguishable from an intentional isolated repeat. An early prototype bypassed these too; a paused backward-word regression exposed that ambiguity before scoring, and the broader behavior was removed. Multiword excursions and restarts remain protected. Short additions that reach `uncertain` and attempted following-word substitutions remain outside this fix.
 
+## All 19 targeted misses
+
+The stored traces split the 19 end-to-end misses into two exact forward-word detours (chapters 2 and 9), one tolerated one-consonant detour (chapter 35), three exact backward-word detours (chapters 9 and 51), eleven cases involving an attempted following word or a fragmented return that triggers the correction/repeat protections (chapters 2, 26, 37, 44 and 54), and two short additions (chapters 11 and 38). The latter two reach an uncertain decision and remain outside this segmentation change. The three backward matches stay protected because the same observed word sequence can be an intentional repeat. This candidate targets the first three cases; it does not claim to solve all nineteen.
+
 ## Validation
 
 - Baseline red: `extra-red-480f613-dirty-20261031T140307Z`: both original forward/backward extra-word regressions failed. The backward case was subsequently reclassified as a non-error protection for the ambiguity above.
 - Focused tests: `extra-protected-controls-480f613-dirty-20261031T140457Z`: both shards pass, including existing correction, repeat and noise assertions.
-- Final source: `0884670`.
+- Initial test source (superseded before measurement): `0884670`.
 - Full core tests and build: `extra-full-controls-0884670-20261031T140542Z`: all six shards pass. Four run the core suite excluding checker.test.ts; two complementary test-name groups run checker.test.ts, retaining all assertions while avoiding the established Vitest worker deadline problem.
 - Temporary instrumentation and diagnostic executables were removed before the full measurement.
 
@@ -39,3 +43,13 @@ Phone: 67 → 64 misses, 25 → 25 warnings; three recovered additions in chapte
 ## Regression diagnosis and revision
 
 The new warning was a real planted addition rediscovered about 12 seconds late after a second addition caused the older window to realign. It was not a new sound in clean speech, but it is still an unacceptable late alarm. New strict repairs now have to establish an addition while the following word is current or just completed (at most one later intact visit). An already open addition retains evidence through its normal confirmation delay. Original repair candidates are unchanged. This temporal guard is defined by streaming word progress, not case IDs, seconds from the scoring matcher or confidence tuning. The failed measurement remains recorded above; the original prediction is unchanged.
+
+Revision validation: `extra-timely-controls-b2fe98d-20261031T142251Z` passes the 13 addition and six noise controls plus build. `extra-timely-core-b2fe98d-20261031T142332Z` passes build and all 607 core tests across six complementary shards. Full revised practice measurement is pending.
+
+## Revised complete measurement
+
+`exp-checker-extra-segmentation-b2fe98d-20261031T142310Z`: 100 unchanged practice sessions, phone 67 → 64 misses and 25 → 25 false warnings; studio 48 → 45 misses and 13 → 13 warnings. In both variants, exactly three recovered added-word mistakes (2:283:1, 9:61:1, 35:22:1), zero new missed cases, zero new warning incidents and no removed warnings. Full paired comparison: `checker-extra-segmentation-comparison.json`.
+
+Perfect-evidence checker: 50 → 46 misses, 6 → 5 warnings. The additional oracle recovery is 37:151:1, already caught with listener evidence on main. The late warning introduced by the first candidate is absent. Predictions (-6 checker-attributed/-5 overall) were not reached; measured attribution and overall gains are both -3. Exam remains unmeasured.
+
+The independent paired oracle audit (`extra-oracle-pairs-b2fe98d-dirty-20261031T143318Z`, all 100 shards pass) confirms 6 → 5 false-warning incidents with **zero new incidents**. The removed warning is the old late report of the 37:151:1 addition, now detected in time. Its paired result is `checker-extra-oracle-pairs.json`; the reconstructible audit driver is `checker-oracle-pairs-driver.ts`. Temporary baseline code was removed. Production source is unchanged from measured `b2fe98d`.
