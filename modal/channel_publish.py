@@ -2,7 +2,7 @@
 import json
 from pathlib import Path
 import modal
-from student_export import image, onnx_deps
+image = modal.Image.debian_slim(python_version="3.12").pip_install("onnx==1.19.0", "onnxruntime==1.22.1")
 app = modal.App("tilawa-channel-publish", image=image)
 student = modal.Volume.from_name("tilawa-student")
 lab = modal.Volume.from_name("tilawa-lab")
@@ -10,7 +10,6 @@ lab = modal.Volume.from_name("tilawa-lab")
 def publish(run: str):
     import hashlib
     from shutil import copyfile
-    onnx_deps()
     from onnxruntime.quantization import QuantType, quantize_dynamic
     src=Path('/student/runs')/run/'onnx'
     out=Path('/lab/data/models/channel-adapt-int8')

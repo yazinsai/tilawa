@@ -18,3 +18,9 @@ The card predicted five fewer listener-attributed and overall wrong calls before
 - A max-step cap bounds this pilot; existing training defaults remain unchanged.
 - The exact training key list is saved beside the checkpoint; the existing loader excludes gold training rows.
 - `channel_checks` on Modal passed: waveform length/type and original samples preserved; fixed-seed output reproducible; very low and high tones attenuated, 1 kHz preserved.
+
+## Training and export
+
+Training app `ap-IGapHKwRBx1JmA7rLvv4iC` completed exactly 200 updates from source step 30287, using 21,161 clips / 50.0008 hours. Training keys are saved at `tilawa-student:/runs/channel-adapt-v1/manifest-train.json`. The held-out 300-clip diagnostic is not a model-selection criterion.
+
+ONNX export app `ap-Iz4r4Lv07eAIJ24z0JbuXS`: six fixed help fixtures, zero collapsed-transcript edits versus PyTorch, matching frame lengths. Posterior values are not identical (maximum absolute difference 0.619 on one fixture), so the final ONNX/int8 engine must be evaluated directly; transcript parity alone is not a confidence-equivalence claim. Export report: `tilawa-student:/runs/channel-adapt-v1/onnx/parity.json`.
