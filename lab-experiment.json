@@ -1,0 +1,13 @@
+{
+ "id": "checker-independent-consonants",
+ "component": "checker",
+ "hypothesis": "Counting a contiguous doubled-consonant identity change once and requiring compatible lexical pronunciation context retains five recovered mistakes without adding warnings",
+ "expected": {
+  "component": -9,
+  "overall": -5
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-10-31T13:07:05+00:00",
+ "author": "Yazin"
+}
