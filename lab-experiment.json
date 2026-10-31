@@ -1,0 +1,13 @@
+{
+ "id": "listener-channel-adapt",
+ "component": "listener",
+ "hypothesis": "Fine-tuning the shipped listener on existing gold-excluded training speech with randomized microphone-band filtering addresses the phone-only recognition failures. Keep greedy decoding and the checker fixed; require fewer misses and zero new false-warning incidents.",
+ "expected": {
+  "component": -5,
+  "overall": -5
+ },
+ "listener": "channel-adapt-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-10-31T14:19:45+00:00",
+ "author": "Yazin"
+}
