@@ -1,0 +1,13 @@
+{
+ "id": "listener-prefix-beam",
+ "component": "listener",
+ "hypothesis": "Greedy frame decoding chooses isolated peaks; summing CTC paths without a language model can reduce phone-noise substitutions and deletions while preserving heard mistakes. Beam width 8, same acoustic posteriors, no reference text; require zero new false warnings or misses.",
+ "expected": {
+  "component": -3,
+  "overall": -3
+ },
+ "listener": "spliced-clean-int8-beam8",
+ "testSet": "lab-v1.5",
+ "created": "2026-10-31T14:05:49+00:00",
+ "author": "Yazin"
+}
