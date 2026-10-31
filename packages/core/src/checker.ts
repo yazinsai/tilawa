@@ -154,6 +154,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const frames = (policy.localWindow ?? true) ? new PosteriorFrames(index.tokens.size) : null;
   const support = typeof policy.localWindow === "object" ? policy.localWindow.nats : SUPPORT;
   const tokenId = new Map([...index.tokens].map((t, i) => [t, i + 1]));
+  const gapScores = new Map<string, number>();
   const ref = index.phonemes;
   const words = index.words;
   const wordStarts = new Set(words.map((w) => w.start));
@@ -571,7 +572,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   /** The errors the current alignment shows, by word; and where it stands. */
-  const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; head: number; furthest: number; steps: Step[]; right: Set<number> } | null => {
+  const judge = (steps: Step[], recoverAdditions = true, recoverGaps = true): { issues: Map<number, Issue>; head: number; furthest: number; steps: Step[]; right: Set<number> } | null => {
     const visits: Visit[] = [];
     const added: Issue[] = [];
     let cur: Visit | null = null;
@@ -709,7 +710,67 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (repairs.length) {
         const repaired = [...steps];
         for (const r of repairs.reverse()) repaired.splice(r.from, r.to - r.from, ...r.path);
-        return judge(repaired, false);
+        return judge(repaired, false, recoverGaps);
+      }
+    }
+    if (recoverGaps && frames && frames.startFrame >= 0) {
+      // A noisy word can lend its ending to a short preceding word, leaving a gap on the noisy word instead.
+      // Compare the two complete spoken sequences over the same fixed flanks; only acoustic evidence can choose
+      // between them. Then move the borrowed visit itself, rather than merely renaming the resulting warning.
+      const ordered = [...last.values()].sort((a, b) => a.word - b.word);
+      const repairs: { from: number; to: number; path: Step[] }[] = [];
+      for (let i = 1; i < ordered.length; i++) {
+        const left = ordered[i - 1], rightVisit = ordered[i];
+        const gapFrom = nextWord(left.word), gapTo = prevWord(rightVisit.word);
+        if (gapFrom > gapTo || left.obsTo > rightVisit.obsFrom) continue;
+        type Move = { from: number; to: number; target: number; first: number; last: number; borrowed: Visit; a: Visit; b: Visit };
+        const moves: Move[] = [];
+        const before = last.get(prevWord(left.word));
+        if (before && !wrong(before) && !wrong(left) && !wrong(rightVisit) && left.stepFrom !== undefined && rightVisit.stepFrom !== undefined) {
+          moves.push({ from: left.stepFrom, to: rightVisit.stepFrom, target: gapTo, first: left.word, last: prevWord(gapTo), borrowed: left, a: before, b: rightVisit });
+        }
+        const after = last.get(nextWord(rightVisit.word));
+        if (after && !wrong(left) && !wrong(rightVisit) && !wrong(after) && left.stepTo !== undefined && rightVisit.stepTo !== undefined) {
+          moves.push({ from: left.stepTo, to: rightVisit.stepTo, target: gapFrom, first: nextWord(gapFrom), last: rightVisit.word, borrowed: rightVisit, a: left, b: after });
+        }
+        let best: { move: Move; gain: number } | undefined;
+        for (const move of moves) {
+          const { borrowed, a, b } = move;
+          if (a.obsFrom < 0 || a.obsTo > borrowed.obsFrom || borrowed.obsTo > b.obsFrom || b.obsTo <= b.obsFrom) continue;
+          if (repairs.some(r => move.from < r.to && move.to > r.from)) continue;
+          const represented = steps.slice(move.from, move.to).flatMap(s => "obs" in s ? [s.obs] : []);
+          if (represented.length !== borrowed.obsTo - borrowed.obsFrom || represented.some((oi, j) => oi !== borrowed.obsFrom + j)) continue;
+          // A repeat or another real edit needs its own explanation, outside this one-visit relocation.
+          const positions = steps.slice(move.from, move.to).flatMap(s => "ref" in s ? [s.ref] : []);
+          if (positions.some((ri, j) => j > 0 && ri < positions[j - 1]) || obs.slice(a.obsFrom, b.obsTo).some(p => p.junk)) continue;
+          if (added.some(x => x.obsFrom < b.obsTo && x.obsTo > a.obsFrom)) continue;
+          const f0 = obs[a.obsFrom].start, f1 = obs[b.obsTo - 1].end + 1;
+          if (f0 < frames.startFrame || f1 > frames.endFrame) continue;
+          const score = (first: number, lastWord: number) => {
+            const cacheKey = `${a.word}:${b.word}:${first}:${lastWord}:${f0}:${f1}`;
+            let value = gapScores.get(cacheKey);
+            if (value === undefined) {
+              const written = ref.slice(words[a.word].start, words[first].start) + ref.slice(words[lastWord].end, words[b.word].end);
+              value = frames.nll([...written].map(p => tokenId.get(p) ?? 0), f0, f1);
+              if (gapScores.size >= 512) gapScores.clear();
+              gapScores.set(cacheKey, value);
+            }
+            return value;
+          };
+          const gain = score(gapFrom, gapTo) - score(move.first, move.last);
+          if (gain >= support && (!best || gain > best.gain)) best = { move, gain };
+        }
+        if (!best) continue;
+        const m = best.move;
+        const deletion: Step[] = [];
+        for (let wi = m.first; wi <= m.last; wi++) for (let ri = words[wi].start; ri < words[wi].end; ri++) deletion.push({ op: "del", ref: ri });
+        const spoken = wordSteps(m.target, m.borrowed.obsFrom, m.borrowed.obsTo);
+        repairs.push({ from: m.from, to: m.to, path: m.target < m.first ? [...spoken, ...deletion] : [...deletion, ...spoken] });
+      }
+      if (repairs.length) {
+        const repaired = [...steps];
+        for (const r of repairs.sort((a, b) => b.from - a.from)) repaired.splice(r.from, r.to - r.from, ...r.path);
+        return judge(repaired, recoverAdditions, false);
       }
     }
     const seen = [...last.keys()];
