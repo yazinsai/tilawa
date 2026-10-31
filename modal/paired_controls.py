@@ -29,7 +29,7 @@ def main(listeners: str='spliced-clean-int8,paired-consonants-int8,paired-contro
     upload.remote(rows,audio)
     src,sha=lab_run.source()
     for name in listeners.split(','):
-        cmd=f'pnpm --filter @tilawa/core build && pnpm --filter @tilawa/sdk bench:help --model /lab/data/models/{name} --help /lab/data/paired-real-controls --out "$LAB_OUT/evidence" --report "$LAB_OUT/report.json" --push 20 --evidence-ms 3600000'
+        cmd=f'pnpm --filter @tilawa/core build && pnpm --filter @tilawa/sdk exec tsx src/bench/real-controls-cli.ts --model /lab/data/models/{name} --help /lab/data/paired-real-controls --out "$LAB_OUT/report.json"'
         run=f'paired-real-controls-{name}-{sha}'
         result=lab_run.shard.remote(src,cmd,run,0,1)
         print(json.dumps(dict(run=run,**result)),flush=True)
