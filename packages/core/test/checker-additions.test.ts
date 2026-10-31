@@ -45,6 +45,12 @@ describe("added speech between neighboring words", () => {
     ])).toContain(`added_word ${key(added)}`);
   });
 
+  it("preserves a repeated preceding word with one tolerated consonant change", () => {
+    const from = w(2, 6, 1), to = w(2, 11, 8), before = w(2, 7, 12), next = w(2, 8, 1);
+    const repeated = text(before).replace("ع", "غ");
+    expect(check(from, to, at => [{ kind: "ins", at: at(next), text: repeated }])).toEqual([]);
+  });
+
   it("retains an added word when its sounds can take a reference-word detour", () => {
     const from = w(2, 6, 1), to = w(2, 11, 8), added = w(2, 8, 1);
     expect(check(from, to, at => [{ kind: "ins", at: at(added), text: "قَلِۦۦلَاا" }])).toContain(`added_word ${key(added)}`);

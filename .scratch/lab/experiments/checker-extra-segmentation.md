@@ -27,3 +27,5 @@ Backward whole-word detours remain protected: adding a word that exactly repeats
 ## Pre-measurement correction
 
 The initial full practice run on `0884670` was invalidated and stopped before any score or partial case outcome was read. Static review identified that replacing the old tolerant-neighbor candidate list could discard previous repairs. The final implementation attempts all original pairs first and uses stricter candidates only in non-overlapping regions; replacements are applied in reverse source order. A noisy-neighbor regression preserves the older repair. The original predictions are unchanged.
+
+A further adversarial repeat test (a preceding word repeated with one tolerated consonant change) passed on main but failed on `08c9b25`. The in-flight `08c9b25` practice run was stopped without reading its scores or case outcomes. Strict new candidates now preserve such counting, tolerated repeats of the preceding word; original candidates retain their behavior. Baseline control: `extra-repeat-baseline-08c9b25-dirty-20261031T141229Z`, pass. Red: `extra-repeat-variation-08c9b25-dirty-20261031T141131Z`.
