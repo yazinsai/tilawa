@@ -1,6 +1,6 @@
 # Joint neighboring-word fit for missed additions
 
-Status: practice measured; 10 fewer wrong calls with unchanged false warnings. Awaiting the user's fold or discard decision.
+Status: folded into main with the user's explicit approval after a practice-only rebase check.
 
 ## Preregistered prediction
 
@@ -51,3 +51,7 @@ The gain survives two concentration checks: excluding surah 26 leaves 6 fewer wr
 Verdict: measured improvement beyond the two-call noise threshold, exceeding the preregistered overall and checker-attribution predictions. False warnings on fully clean recitation remain a limitation: 5 across the 26 fully clean practice sessions. The short/noisy-addition and rare-path limitations above remain; this result does not justify relaxing the conservative guards. Folding or discarding remains the user's decision.
 
 The result was checked against the sanitized practice score and comparison files supplied by the parent agent. The aborted `2213713` run above remains invalidated and contributed no results to this decision.
+
+## Fold verification
+
+The user approved folding this experiment. The standard lab fold lifecycle was run through a temporary practice-only adapter, preserving rebase, practice comparison, ledger recording and fast-forward merge. No non-practice scoring was requested. Rebased source: `27ddced`; run: `exp-checker-joint-additions-rebased-27ddced-20261031T110941Z`. Post-rebase practice: 97 wrong calls = 72 missed mistakes + 25 false warnings, a change of -10 against the freshly verified main line. After a documentation-only main-line advance interrupted the initial fold, all mounted scoring inputs were verified byte-for-byte identical against the scored commits before reusing those completed runs. The original run and source identifiers are preserved. The separate skip-boundary experiment remains open.

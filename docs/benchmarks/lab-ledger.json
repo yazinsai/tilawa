@@ -2,7 +2,7 @@
  "version": 1,
  "kind": "lab-ledger-summary",
  "main": "main",
- "testSet": "lab-v1.4.v3",
+ "testSet": "lab-v1.5",
  "note": "Mirror of the lab ledger (tilawa-lab volume /lab/ledger.json), written on fold-in. Counts of wrong calls; a change of 2 or fewer is noise.",
  "rows": [
   {
@@ -433,7 +433,7 @@
   },
   {
    "kind": "main",
-   "at": "2026-10-30T18:22:19+00:00",
+   "at": "2026-10-30T18:22:23+00:00",
    "sha": "241c788",
    "testSet": "lab-v1.4.v3",
    "experiment": "tracker-startup-persistence",
@@ -450,7 +450,7 @@
   },
   {
    "kind": "experiment",
-   "at": "2026-10-30T18:22:19+00:00",
+   "at": "2026-10-30T18:22:23+00:00",
    "id": "tracker-startup-persistence",
    "component": "tracker",
    "hypothesis": "Canonical Quran text containing a near-repeat must not be collapsed as a reciter repeat. Preserve the full evidence when its best reference fit costs no more than the collapsed evidence. Predict removal of the three startup false warnings, with no checker or clean/studio regression.",
@@ -477,6 +477,136 @@
      "listener": 3,
      "tracker": 0,
      "checker": 8
+    },
+    "exam": null
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-30T18:31:04+00:00",
+   "id": "checker-contiguous-additions",
+   "component": "checker",
+   "hypothesis": "Held-sound discounts must extend a contiguous insertion path or a matching reference sound, not a substituted onset. Keep an insertion DP state so an added word cannot lend its repeated ending to the next word. Predict recovery of the p15 phone addition, with no change to its low-support oracle miss and no clean/studio regression.",
+   "expected": {
+    "component": 0,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.4.v3",
+   "note": "Rejected by user. Small noise-rated gain overlaps the folded tracker fix; p15 classification limitation remains.",
+   "branch": {
+    "wrongCalls": 12,
+    "missed": 10,
+    "falseWarnings": 2,
+    "listener": 3,
+    "tracker": 2,
+    "checker": 7
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-30T18:31:21+00:00",
+   "id": "checker-consonant-edits",
+   "component": "checker",
+   "hypothesis": "Actual Noah/Salih alignments map changed consonants to vowels, which were charged soft. Use the existing hard substitution cost across consonant/vowel pairs, retaining soft charges for ghunna and recitation marks. Predict three fewer checker-attributed and overall phone wrong calls with no clean or studio regression.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.4.v3",
+   "note": "Rejected by user. Recovered three misses but introduced two phone false warnings; no fold.",
+   "branch": {
+    "wrongCalls": 13,
+    "missed": 8,
+    "falseWarnings": 5,
+    "listener": 5,
+    "tracker": 3,
+    "checker": 5
+   },
+   "rebased": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-10-31T06:36:32+00:00",
+   "sha": "fe4daad",
+   "testSet": "lab-v1.5",
+   "experiment": null,
+   "note": "lab-v1.5 registered (ticket 20): 200 sessions, lab-v1.4's 40 frozen, flags carried; spot check 45/45 ok",
+   "practice": {
+    "wrongCalls": 107,
+    "missed": 82,
+    "falseWarnings": 25,
+    "listener": 44,
+    "tracker": 5,
+    "checker": 58
+   },
+   "exam": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-10-31T11:21:41+00:00",
+   "sha": "e7b02bc",
+   "testSet": "lab-v1.5",
+   "experiment": null,
+   "note": "re-scored for fold of checker-joint-additions",
+   "practice": {
+    "wrongCalls": 107,
+    "missed": 82,
+    "falseWarnings": 25,
+    "listener": 44,
+    "tracker": 5,
+    "checker": 58
+   },
+   "exam": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-10-31T11:21:45+00:00",
+   "sha": "27ddced",
+   "testSet": "lab-v1.5",
+   "experiment": "checker-joint-additions",
+   "note": "Jointly align added speech with both neighboring words so an insertion cannot disappear into a reference-word detour. Predict 8 fewer practice misses, no additional false warnings, 6 fewer checker-attributed wrong calls and 8 fewer overall. Check frozen and new sessions, clean and repeat controls, and gain concentration by reciter and passage.",
+   "practice": {
+    "wrongCalls": 97,
+    "missed": 72,
+    "falseWarnings": 25,
+    "listener": 44,
+    "tracker": 5,
+    "checker": 48
+   },
+   "exam": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-31T11:21:45+00:00",
+   "id": "checker-joint-additions",
+   "component": "checker",
+   "hypothesis": "Jointly align added speech with both neighboring words so an insertion cannot disappear into a reference-word detour. Predict 8 fewer practice misses, no additional false warnings, 6 fewer checker-attributed wrong calls and 8 fewer overall. Check frozen and new sessions, clean and repeat controls, and gain concentration by reciter and passage.",
+   "expected": {
+    "component": -6,
+    "overall": -8
+   },
+   "state": "folded",
+   "testSet": "lab-v1.5",
+   "note": "keeps its overall and checker gain",
+   "branch": {
+    "wrongCalls": 97,
+    "missed": 72,
+    "falseWarnings": 25,
+    "listener": 44,
+    "tracker": 5,
+    "checker": 48
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 97,
+     "missed": 72,
+     "falseWarnings": 25,
+     "listener": 44,
+     "tracker": 5,
+     "checker": 48
     },
     "exam": null
    }
