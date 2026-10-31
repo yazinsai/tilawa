@@ -13,3 +13,5 @@ Pre-training validation: local Python compilation passes. Modal `ap-6i0zLNRPjOIE
 Training app `ap-bneuNqx2LhpZr65rtdfluP` completed exactly 200 updates from source step 30287, with 21,161 training clips and 50.0008 hours, matching the earlier adaptation's sampled data. No resume occurred. The final checkpoint is the scheduled 200-step checkpoint, not one selected by scores. The 300-clip clean diagnostic is recorded on the volume and is not a model-selection criterion.
 
 Export app `ap-SLtbUlheW0oTsL4Zqxzxso`: all six fixed help fixtures have zero transcript edits against PyTorch and identical frame lengths. Posterior probabilities are not identical (maximum difference 0.597), so the final int8 artifact will be evaluated directly rather than inferred from PyTorch diagnostics.
+
+Int8 publication app `ap-NdxCH4xBzbmSa5VuYzDWGx`: 67,759,744 bytes; SHA256 `00cfec2268dd521689645399290ada8ea093a46b902f9fb8bcd89e585fb7cee5`. Model directory: `tilawa-lab:/data/models/phone-channel-int8`.
