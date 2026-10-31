@@ -1,0 +1,13 @@
+{
+ "id": "listener-continuation-control",
+ "component": "listener",
+ "hypothesis": "Uniform continuation without added phone augmentation avoids the ten recurring new warnings shared by phone-adapted arms",
+ "expected": {
+  "component": 0,
+  "overall": 0
+ },
+ "listener": "continuation-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-10-31T17:52:45+00:00",
+ "author": "Yazin"
+}
