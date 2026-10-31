@@ -1,0 +1,13 @@
+{
+ "id": "checker-lexical-consonants",
+ "component": "checker",
+ "hypothesis": "A complete lexical alternative with two hard consonant edits and positive acoustic support recovers substitutions hidden by vowel alignment without adding false warnings",
+ "expected": {
+  "component": -4,
+  "overall": -4
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-10-31T12:29:12+00:00",
+ "author": "Yazin"
+}
