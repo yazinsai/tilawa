@@ -673,7 +673,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         // A wrong attempt at the following word, then that word read correctly, is a self-correction.
         if (open.get(right.word)?.issue.cls === "wrong_word" || visits.some(v => v.word === right.word && v.obsFrom >= left.obsTo && v.obsFrom < right.obsFrom)) continue;
         if (added.some(a => a.word === right.word && a.obsFrom >= left.obsFrom && a.obsTo <= right.obsTo)) continue;
-        const from = left.obsFrom, to = right.obsTo, heard = obs.slice(from, to);
+        const from = left.obsFrom, to = right.obsTo;
+        // A visit can start with deletions and insertions before its first diagonal match. Its obsFrom then
+        // excludes that leading evidence; only replace a path whose observed indices are covered exactly.
+        const represented = steps.slice(left.stepFrom, right.stepTo).flatMap(s => "obs" in s ? [s.obs] : []);
+        if (represented.length !== to - from || represented.some((oi, j) => oi !== from + j)) continue;
+        const heard = obs.slice(from, to);
         if (heard.some(p => p.junk)) continue;
         const phones = heard.map(p => p.p), n = phones.length;
         const leftLength = words[left.word].end - words[left.word].start, rightLength = words[right.word].end - words[right.word].start;
