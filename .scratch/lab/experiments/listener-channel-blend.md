@@ -7,3 +7,9 @@ The full 200-update microphone adaptation reduced phoneme errors and missed mist
 Parents: `spliced-clean` and `channel-adapt-v1`; destination `channel-blend25-v1`; listener `channel-blend25-int8`. Parent checkpoint hashes and the interpolated checkpoint hash are recorded in the model volume's `blend.json`.
 
 Prediction registered before building: three fewer listener-attributed and overall wrong calls. User gate: fewer missed mistakes, zero new false-alarm incidents, gains across several chapters. Report individual new misses as well. Evaluate both phone and studio copies of the unchanged 100-session practice set. No exam evidence is decoded or inspected.
+
+## Composition fixed before measurement
+
+Include the exact checker source and addition tests measured in `checker-extra-segmentation` (`b2fe98d`; final record `4001bd6`). Its independent practice result is 64 misses and 25 warnings on phone, 45 misses and 13 warnings on studio. Compare this combined candidate against both the shipped baseline and that checker-only result; listener improvement must exceed the known checker-only gains and add no false warnings. This tests their interaction before proposing a fold. The registered -3/-3 prediction is unchanged; it is not evidence for an isolated listener effect. No blended practice outputs have been inspected.
+
+Blend app `ap-AvT7l0yS4XygRpZ3RNSRuE` validated all 829 tensors for matching shape/type and finite values. Checkpoint SHA256 `c99ffcf318bfbd2748961572870fd5aa6e98b93abbaba3b5d1ad38ed86648f0e`.
