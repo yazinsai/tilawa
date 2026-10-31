@@ -1,7 +1,8 @@
 # Independent consonant changes and lexical context
 
-Status: evaluated. Both new false alarms removed and all end-to-end gains retained. Component prediction missed
-by one; broader generalization remains unproven. Open for the user's fold/discard decision.
+Status: accepted by the user for folding. Both new false alarms removed and all end-to-end gains retained.
+Component prediction missed by one; broader generalization remains unproven. The lab ledger records the final
+fold result.
 
 ## Preregistration
 
@@ -113,5 +114,17 @@ but not removal of surah 26; excluding the familiar word pair leaves only two ca
 
 **Verdict:** the follow-up repairs both false alarms while preserving all end-to-end gains, and the ledger calls it
 better (overall −5). It misses the checker attribution prediction by one and does not establish general
-improvement beyond the concentrated passages. Main and the previous experiment remain untouched; this
-experiment is neither folded nor discarded.
+improvement beyond the concentrated passages. Both experiments were left open after evaluation.
+
+## User decision and restricted fold
+
+On 31 October 2026 the user approved folding this experiment and discarding `checker-lexical-consonants`.
+The earlier experiment was discarded through `tools/lab.py`, preserving its branch and recorded results.
+The user's practice-only restriction remains in force. An opt-in `lab fold --practice-only` path therefore
+re-scores only practice after rebase, marks the new main revision's exam result unmeasured, and retains historical
+summary rows without inspecting their exam scores. Default fold behavior is unchanged.
+
+The new fold-path regressions first failed on Modal (`practice-fold-red-f62b13a-20261031T132620Z`), then passed
+after implementation (`practice-fold-green-f62b13a-dirty-20261031T132703Z`). They cover practice-only scoring,
+stale-main refresh, split forwarding and preservation of historical summary records. Independent review found no
+blocking issue. The rebased practice result and final decision are recorded in the ledger by the fold command.

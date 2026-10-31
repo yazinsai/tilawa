@@ -8463,6 +8463,6 @@
     "actualTargetsMet": true,
     "checkerAttributionPredictionMet": false,
     "broaderGeneralizationDemonstrated": false,
-    "decision": "open"
+    "decision": "accepted_by_user"
   }
 }

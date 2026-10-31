@@ -7,6 +7,7 @@ tilawa-lab volume at /lab/ledger.json (logic in tools/lab_ledger.py).
     python3 tools/lab.py run [worktree]                # score an experiment on the practice set, verdict vs the main line
     python3 tools/lab.py status [--all]
     python3 tools/lab.py fold <id> [--yes]             # rebase, re-score practice + exam, merge on confirmation
+    python3 tools/lab.py fold <id> --practice-only    # re-score practice only; leave exam unmeasured
     python3 tools/lab.py discard <id>
     python3 tools/lab.py apply-flags [--dry-run]       # bad-data verdicts -> next test set version, re-score everything open
     python3 tools/lab.py run [worktree] --shards 4 --cmd '<command>'   # any command over shards (ticket 09)
@@ -131,9 +132,9 @@ def main_checkout(a):
         git("worktree", "remove", "--force", path, check=False)
 
 
-def score_main(a, ts: dict, log: Path | None = None) -> dict:
+def score_main(a, ts: dict, log: Path | None = None, *, splits=("practice", "exam")) -> dict:
     with main_checkout(a) as (path, _):
-        return L.from_report(score(a, path, name="main", listener=L.DEFAULT_LISTENER, ts=ts, splits=("practice", "exam"), log=log), ("practice", "exam"))
+        return L.from_report(score(a, path, name="main", listener=L.DEFAULT_LISTENER, ts=ts, splits=splits, log=log), splits)
 
 
 def main_head(a) -> str:
@@ -282,7 +283,31 @@ def main_worktree(a) -> Path | None:
     return None
 
 
+def fold_summary(led: dict, wt: Path, practice_only: bool) -> dict:
+    if not practice_only:
+        return L.summary(led)
+
+    # Do not inspect historical exam scores during a restricted fold. Generate the new rows from a practice-only
+    # projection, then retain already-committed history rows as opaque records rather than rewriting their scores.
+    def practice(value):
+        if isinstance(value, dict):
+            return {k: practice(v) for k, v in value.items() if k != "exam"}
+        if isinstance(value, list):
+            return [practice(v) for v in value]
+        return value
+
+    out = L.summary(practice(led))
+    path = wt / SUMMARY
+    prior = json.loads(path.read_text()) if path.exists() else {"rows": []}
+    key = lambda row: tuple(row.get(k) for k in ("kind", "at", "sha", "id", "testSet", "state"))
+    historic = {key(row): row for row in prior["rows"]}
+    out["rows"] = [historic.get(key(row), row) for row in out["rows"]]
+    return out
+
+
 def cmd_fold(a):
+    practice_only = getattr(a, "practice_only", False)
+    splits = ("practice",) if practice_only else ("practice", "exam")
     led = load(a)
     e = L.experiment(led, a.id)
     card, ts, base = e["card"], L.test_set(led), L.main_score(led)
@@ -303,27 +328,33 @@ def cmd_fold(a):
         git("rebase", "--abort", cwd=wt, check=False)
         raise Stop(f"rebasing {e['branch']} onto {a.main} conflicts; resolve it in {wt} and fold again:\n{p.stdout}{p.stderr}")
     head = main_head(a)
-    refresh = stale(base, head)
-    print(f"rebased {e['branch']} onto {a.main} ({head})" + ("; the main line moved since its last score, re-scoring it too" if refresh else ""))
+    refresh = stale(base, head) or (not practice_only and not base.get("exam"))
+    print(f"rebased {e['branch']} onto {a.main} ({head})" + ("; refreshing the main-line measurements too" if refresh else ""))
     logs = Path(tempfile.mkdtemp(prefix="lab-fold-"))
     with ThreadPoolExecutor(2) as pool:
         exp_f = pool.submit(lambda: L.from_report(score(a, wt, name=f"exp-{a.id}-rebased", listener=card["listener"], ts=ts,
-                                                         splits=("practice", "exam"), log=logs / "exp.log"), ("practice", "exam")))
-        main_f = pool.submit(score_main, a, ts, logs / "main.log") if refresh else None
+                                                         splits=splits, log=logs / "exp.log"), splits))
+        main_f = pool.submit(score_main, a, ts, logs / "main.log", splits=splits) if refresh else None
         r = exp_f.result()
         if main_f:
             base = {**main_f.result(), "note": f"re-scored for fold of {a.id}", "at": L.now()}
             base["head"] = base["sha"]
     rcmp = L.compare(r["practice"], base["practice"], card)
     state, why = L.fold_check(card, bcmp, rcmp)
-    exam = L.compare(r["exam"], base["exam"], card)
+    if practice_only:
+        r.update(measurementScope=["practice"], examStatus="unmeasured_for_this_head")
+    else:
+        exam = L.compare(r["exam"], base["exam"], card)
 
     print(f"\n{a.id} ({card['component']}): {card['hypothesis']}")
     print(f"{'practice':10} {'expected':>9} {'on branch':>10} {'after rebase':>13}")
     for w in ("overall", card["component"]):
         print(f"{w:10} {card['expected']['component' if w != 'overall' else 'overall']:>+9d} {bcmp[w]['change']:>+10d} {rcmp[w]['change']:>+13d}")
-    print(f"exam (numbers only): main line {counts(base['exam'])}; after fold {counts(r['exam'])}; "
-          f"change {exam['overall']['change']:+d} overall, {exam[card['component']]['change']:+d} {card['component']}")
+    if practice_only:
+        print("exam not measured (--practice-only)")
+    else:
+        print(f"exam (numbers only): main line {counts(base['exam'])}; after fold {counts(r['exam'])}; "
+              f"change {exam['overall']['change']:+d} overall, {exam[card['component']]['change']:+d} {card['component']}")
 
     def record(led, *decision):
         if refresh:
@@ -344,11 +375,12 @@ def cmd_fold(a):
 
     def folded(led):
         record(led, "folded", why)
-        L.record_main(led, {**r, "experiment": a.id, "note": card["hypothesis"]})
+        note = card["hypothesis"] + ("; practice-only fold, exam not measured" if practice_only else "")
+        L.record_main(led, {**r, "experiment": a.id, "note": note})
 
     doc = load(a)
     folded(doc)
-    (wt / SUMMARY).write_text(json.dumps(L.summary(doc), indent=1, ensure_ascii=False) + "\n")
+    (wt / SUMMARY).write_text(json.dumps(fold_summary(doc, wt, practice_only), indent=1, ensure_ascii=False) + "\n")
     git("add", SUMMARY, cwd=wt)
     git("rm", "-q", "--ignore-unmatch", L.CARD, cwd=wt)  # cards stay on experiment branches; the ledger keeps a copy
     git("commit", "-q", "-m", f"Lab ledger: fold {a.id} (practice {rcmp['overall']['change']:+d} overall, {rcmp[card['component']]['change']:+d} {card['component']})", cwd=wt)
@@ -368,7 +400,8 @@ def cmd_fold(a):
 
     update(a, save)
     remove_worktree(str(wt))
-    print(f"folded {a.id}: {a.main} is now {tip[:7]}; main line practice {counts(r['practice'])}, exam {counts(r['exam'])}")
+    exam_text = "exam not measured" if practice_only else f"exam {counts(r['exam'])}"
+    print(f"folded {a.id}: {a.main} is now {tip[:7]}; main line practice {counts(r['practice'])}, {exam_text}")
 
 
 def cmd_apply_flags(a):
@@ -455,6 +488,7 @@ def parser():
     f = sub.add_parser("fold", help="rebase onto the main line, re-score, merge on confirmation")
     f.add_argument("id")
     f.add_argument("--yes", action="store_true", help="skip the confirmation (only when the user approved this fold)")
+    f.add_argument("--practice-only", action="store_true", help="score only practice and leave exam unmeasured for the new main revision")
     d = sub.add_parser("discard", help="mark discarded, remove the worktree, keep the branch")
     d.add_argument("id")
     d.add_argument("--note", default="")

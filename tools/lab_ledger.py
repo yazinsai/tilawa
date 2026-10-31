@@ -148,7 +148,7 @@ def test_set(led: dict) -> dict:
 
 
 def record_main(led: dict, entry: dict, at: str | None = None) -> dict:
-    """A main-line score: {sha, testSet, run, practice, exam, note?, experiment?}."""
+    """A main-line score: {sha, testSet, run, practice, exam?, note?, experiment?}; an absent exam is unmeasured."""
     e = {**entry, "at": at or now()}
     led["mainLine"].append(e)
     return e
