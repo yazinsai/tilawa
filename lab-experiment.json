@@ -1,0 +1,13 @@
+{
+ "id": "checker-extra-segmentation",
+ "component": "checker",
+ "hypothesis": "Remaining oracle additions are absorbed into partial or wrong neighboring visits; recover bounded extra speech while preserving complete repeats and corrected attempts. Require zero new warnings and gains across chapters.",
+ "expected": {
+  "component": -6,
+  "overall": -5
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-10-31T14:00:45+00:00",
+ "author": "Yazin"
+}
