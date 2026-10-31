@@ -670,10 +670,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     if (recoverAdditions) {
       // Use whole-word pronunciations here: a cheap one-consonant substitution is tolerated by the
       // ordinary checker, but cannot prove that an intervening word was actually repeated.
-      const intact = visits.filter(v => counts(v) && !wrong(v) && lexical.matches(v.word, obs.slice(v.obsFrom, v.obsTo).map(p => p.p).join("")));
+      const original = visits.filter(v => counts(v) && !wrong(v));
+      const intact = original.filter(v => lexical.matches(v.word, obs.slice(v.obsFrom, v.obsTo).map(p => p.p).join("")));
       const repairs: { from: number; to: number; path: Step[] }[] = [];
       const weight = (wi: number) => [...ref.slice(words[wi].start, words[wi].end)].reduce((n, p) => n + (CONSONANTS.has(p) ? UNIT : SOFT), 0);
-      const pairs: [Visit, Visit][] = [];
+      // Preserve the existing repairs first; stricter extra candidates cannot replace their evidence.
+      const pairs: [Visit, Visit][] = original.slice(1).map((v, i) => [original[i], v]);
       for (let i = 1; i < intact.length; i++) {
         pairs.push([intact[i - 1], intact[i]]);
         // An isolated forward detour cannot be a repeat of earlier speech. Backward detours
@@ -689,7 +691,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
       for (const [left, right] of pairs) {
         if (nextWord(left.word) !== right.word || left.obsTo > right.obsFrom || left.stepFrom === undefined || right.stepTo === undefined) continue;
-        if (repairs.length && left.stepFrom < repairs.at(-1)!.to) continue;
+        if (repairs.some(r => left.stepFrom! < r.to && right.stepTo! > r.from)) continue;
         // A wrong attempt at the following word, then that word read correctly, is a self-correction.
         if (open.get(right.word)?.issue.cls === "wrong_word" || visits.some(v => v.word === right.word && v.obsFrom >= left.obsTo && v.obsFrom < right.obsFrom)) continue;
         if (added.some(a => a.word === right.word && a.obsFrom >= left.obsFrom && a.obsTo <= right.obsTo)) continue;
@@ -728,7 +730,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
       if (repairs.length) {
         const repaired = [...steps];
-        for (const r of repairs.reverse()) repaired.splice(r.from, r.to - r.from, ...r.path);
+        for (const r of repairs.sort((a, b) => b.from - a.from)) repaired.splice(r.from, r.to - r.from, ...r.path);
         return judge(repaired, false);
       }
     }

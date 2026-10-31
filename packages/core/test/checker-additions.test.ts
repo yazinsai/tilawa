@@ -37,6 +37,14 @@ describe("added speech between neighboring words", () => {
     expect(check(from, to, at => [{ kind: "ins", at: at(added), text: "فِۦۦهَاا" }])).toContain(`added_word ${key(added)}`);
   });
 
+  it("retains the earlier addition repair when a neighboring vowel is noisy", () => {
+    const from = w(2, 6, 1), to = w(2, 11, 8), added = w(2, 8, 1), before = w(2, 7, 12);
+    expect(check(from, to, at => [
+      { kind: "sub", at: at(before) + 1, to: "ُ" },
+      { kind: "ins", at: at(added), text: "قَلِۦۦلَاا" },
+    ])).toContain(`added_word ${key(added)}`);
+  });
+
   it("retains an added word when its sounds can take a reference-word detour", () => {
     const from = w(2, 6, 1), to = w(2, 11, 8), added = w(2, 8, 1);
     expect(check(from, to, at => [{ kind: "ins", at: at(added), text: "قَلِۦۦلَاا" }])).toContain(`added_word ${key(added)}`);
