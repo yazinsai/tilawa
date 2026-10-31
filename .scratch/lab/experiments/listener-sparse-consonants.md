@@ -1,6 +1,6 @@
 # Sparse consonant mining with matched random reweighting
 
-Status: diagnostics and mining in progress; no training updates yet. No fold, discard, or exam scoring.
+Status: diagnostics and verification complete; matched training runs initializing. No fold, discard, or exam scoring.
 
 ## Fixed experiment
 
@@ -20,7 +20,7 @@ An initial narrower incident-window pass returned 15 pairs; its artifact is reta
 
 ## Objective audit
 
-`modal/sparse_audit.py` uses the saved paired-control configuration to find the original initialization and runs fixed training examples without updating weights. It records scalar CTC/KD/KL terms and full-parameter gradient norms/cosines, plus identical-feature behavior of legacy and normalized two-view objectives. The first invocation lacked the historical microphone-band helper and failed before any batch. That helper is now copied from the original experiment. The initial numerical identity assertion failed; a measurement-only replay is collecting its actual error before assigning a cause or tolerance. This is not yet a passed check or a demonstrated explanation of the end-to-end regression.
+`modal/sparse_audit.py` uses the saved paired-control configuration to find the original initialization and audits three fixed batches without updating weights. The decisive projection-layer results and full-network limitations are recorded below. An initial missing-helper failure and exploratory identity-gradient failures are retained in the audit artifacts, not counted as passed checks.
 
 ## New self-correction controls
 
@@ -34,9 +34,9 @@ Before training: resolve the objective audit and freeze verified equal-size mani
 
 ## Mining preflight result
 
-The first exact-emission-sequence filter rejected every candidate because it treated blank-separated acoustic duration emissions as separate source tokens. No model was updated. The corrected filter groups repeated emissions for one source-token occurrence while retaining their frame spans and multiplicity; it refuses ambiguous same-token word boundaries. Eight helper tests cover boundary preservation, repeat consumption, timing, caps, reproducibility and the verification gate.
+The first exact-emission-sequence filter rejected every candidate because it treated blank-separated acoustic duration emissions as separate source tokens. No model was updated. The corrected filter groups repeated emissions for one source-token occurrence while retaining their frame spans and multiplicity; it refuses ambiguous same-token word boundaries. Nine helper tests cover boundary preservation, repeat consumption, timing, caps, reproducibility and the verification gate.
 
-The corrected frozen scout run has 162 eligible clips and 27 with a persistent consonant failure. All 27 are provisionally selected; 27 clips are independently sampled from the same eligible pool, with three overlaps. Independent transcript review is pending. Both arms keep the same original training pool: JSON-serialized manifest SHA256 `ba66b2fb1c88ebf89fe260805cdc351f33bbb7347f577ef74ed819e06c057131` (newline-delimited keys hash `920613896955694b961d03661928e7bb45fa8b6aa0a9cd72acf9944293a4dd1d`). Model initialization is `spliced-clean`. Nothing has been selected using practice/exam results.
+The corrected frozen scout run has 162 eligible clips and 27 with a persistent consonant failure. All 27 are provisionally selected; 27 clips are independently sampled from the same eligible pool, with three overlaps. Independent transcript review is complete; final accepted counts are below. Both arms keep the same original training pool: JSON-serialized manifest SHA256 `ba66b2fb1c88ebf89fe260805cdc351f33bbb7347f577ef74ed819e06c057131` (newline-delimited keys hash `920613896955694b961d03661928e7bb45fa8b6aa0a9cd72acf9944293a4dd1d`). Model initialization is `spliced-clean`. Nothing has been selected using practice/exam results.
 
 Projection-layer and full-network gradients are reported separately. Full-network repeated differentiation is affected by the model's custom backward machinery; disabling Balancer/Whiten, auxiliary losses, or replacing Swoosh activations in diagnostic copies did not establish equivalence. These ablations are not training changes, and no causal explanation of the old full-run regression is claimed from them. The original single-view objective remains the training recipe for both sparse arms.
 
@@ -47,3 +47,9 @@ Blind Soniox review accepted 16/27 in each provisional arm under exact per-word 
 The projection-layer audit (`sparse-projection-audit.json`) avoids the custom encoder-backward machinery. On three fixed batches, noisy CTC gradients have 0.75, 1.09, 0.91 times the norm of weighted KD, and clean CTC has 0.75, 1.03, 0.92 times. Clean CTC versus KD cosines are -0.79, -0.86, -0.59. Thus the added clean transcript term is a comparably sized, opposing force at the output layer, not a negligible addition; the paired control changed the intended balance. Averaging duplicate identical-input transcript terms gives exactly zero projection-gradient difference on all three batches. The single-view weighted loss also passes all-one CTC equivalence, all-one KD equivalence, manual-weight equivalence and finite-gradient checks on Modal.
 
 This resolves the recipe choice for this experiment: restore the original single-view CTC1+KD2 for both arms; do not add or revisit consistency. It does not claim that an end-to-end ablation has assigned all of the earlier control regression to one cause. Full-network gradient decomposition remains confounded by custom gradient transformations and fresh-forward variability; those diagnostic ablations are preserved and do not modify the training model.
+
+## Training launch provenance
+
+The first two launches used wrapper defaults of six epochs and 3,000 diagnostic examples. Both were stopped before any `data`, `adapt`, or `train` log event and before optimizer updates. The corrected launches use the historical one-epoch cap and 300-example diagnostics, with the same 200-update limit. Source commit: `4b0b6b8`. Modal apps: selected `ap-SPQJOfTV8utDf1zyZv5Odu`, random `ap-9VjR7penz79yW54blVXL7P`. Full data/config and completion records will be checked before evaluation.
+
+The baseline passes both verified self-correction controls in free and declared modes. Tracker positions are locked around the correction in all four runs; no target warning was ever confirmed. `sparse-selfcorrection-baseline-v2.json` preserves positions, all warning states and raw phoneme evidence.

@@ -36,5 +36,20 @@
  },
  "trainingUpdates": 0,
  "verifiedPerArm": 16,
- "pool": 21161
+ "pool": 21161,
+ "training": {
+  "sourceSha": "4b0b6b8",
+  "selected": {
+   "appId": "ap-SPQJOfTV8utDf1zyZv5Odu",
+   "run": "sparse-consonants-v1"
+  },
+  "random": {
+   "appId": "ap-9VjR7penz79yW54blVXL7P",
+   "run": "sparse-random-v1"
+  },
+  "status": "initializing"
+ },
+ "baselineControlsV2": {
+  "appId": "ap-29O6UbxSRfGFZI307MkRE6"
+ }
 }

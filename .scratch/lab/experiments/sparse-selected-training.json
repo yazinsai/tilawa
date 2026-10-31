@@ -1,0 +1,71 @@
+[
+ {
+  "event": "data",
+  "train_clips": 21161,
+  "train_hours": 50.00077704861111,
+  "eval_clips": 300,
+  "aug": true,
+  "load_s": 138.1288230419159,
+  "cfg": {
+   "name": "sparse-consonants-v1",
+   "size": "full",
+   "init": "",
+   "init_run": "spliced-clean",
+   "channel_p": 0.0,
+   "phone_p": 0.75,
+   "max_steps": 200,
+   "targeted": false,
+   "buckets": "clean-match",
+   "target": "spliced",
+   "max_hours": 50.0,
+   "max_clip_s": 30.0,
+   "epochs": 1,
+   "max_batch_s": 800.0,
+   "base_lr": 0.0015,
+   "lr_batches": 7500,
+   "lr_epochs": 3.5,
+   "ctc_weight": 1.0,
+   "kd_weight": 2.0,
+   "kd_delay": 0,
+   "noise_p": 0.5,
+   "snr_db": [
+    5.0,
+    25.0
+   ],
+   "rir_p": 0.2,
+   "spec_aug": true,
+   "eval_max": 300,
+   "eval_every": 2000,
+   "ckpt_every": 1000,
+   "workers": 12,
+   "seed": 0,
+   "sparse_manifest": "/student/runs/sparse-mining-v1/verified-manifest.json",
+   "sparse_arm": "selected",
+   "source_sha": "4b0b6b82c7a47dbc67dc5a28929134e370c6c356"
+  },
+  "t": 1793466018.3439145
+ },
+ {
+  "event": "adapt",
+  "source": "spliced-clean",
+  "source_step": 30287,
+  "t": 1793466021.568399
+ },
+ {
+  "event": "model",
+  "params": 64578082,
+  "t": 1793466021.5689476
+ },
+ {
+  "event": "train",
+  "epoch": 0,
+  "batch": 20,
+  "step": 20,
+  "lr": 0.00077849875094501,
+  "ctc": 0.15970966219902039,
+  "loss": 0.9187055826187134,
+  "kd": 0.3794979453086853,
+  "audio_x_realtime": 755.5464676894161,
+  "t": 1793466041.7846599
+ }
+]

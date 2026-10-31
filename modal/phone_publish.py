@@ -7,21 +7,23 @@ app = modal.App("tilawa-phone-publish", image=image)
 student = modal.Volume.from_name("tilawa-student")
 lab = modal.Volume.from_name("tilawa-lab")
 @app.function(cpu=8, memory=32768, volumes={"/student":student,"/lab":lab}, timeout=3600)
-def publish(run: str):
+def publish(run: str, listener: str):
     import hashlib
     from shutil import copyfile
     from onnxruntime.quantization import QuantType, quantize_dynamic
     src=Path('/student/runs')/run/'onnx'
-    out=Path('/lab/data/models/targeted-consonants-int8')
+    if listener not in {'sparse-consonants-int8', 'sparse-random-int8'}:
+        raise ValueError('Unexpected sparse experiment listener')
+    out=Path('/lab/data/models')/listener
     out.mkdir(parents=True,exist_ok=True)
     quantize_dynamic(str(src/'model.onnx'),str(out/'model.onnx'),op_types_to_quantize=['MatMul'],weight_type=QuantType.QInt8)
     data=(out/'model.onnx').read_bytes()
     m=json.loads((src/'manifest.json').read_text())
-    m.update(id='targeted-consonants-int8',format='onnx-int8',bytes=len(data),sha256=hashlib.sha256(data).hexdigest(),quantizedFrom=m['sha256'])
+    m.update(id=listener,format='onnx-int8',bytes=len(data),sha256=hashlib.sha256(data).hexdigest(),quantizedFrom=m['sha256'])
     (out/'manifest.json').write_text(json.dumps(m,indent=1))
     copyfile(src/'parity.json',out/'parity.json')
     lab.commit()
     return m
 @app.local_entrypoint()
-def main(run: str='targeted-consonants-v1'):
-    print(publish.remote(run))
+def main(run: str, listener: str):
+    print(publish.remote(run, listener))
