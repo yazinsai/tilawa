@@ -438,7 +438,7 @@ def train(args: dict) -> dict:
         from student import spliced_target
 
         train_clips["target"] = [spliced_target(r, h) for r, h in zip(train_clips["ref"], train_clips["hyp"])]
-    eval_clips = load_clips("clean-match", "test", 0, 60.0, 1, cfg["eval_max"])
+    eval_clips = load_clips("clean-match", "test", 0, 60.0, 1, cfg["eval_max"], exclude_gold=True)
     aug = {k: dict(np.load(f"/student/aug/{k}.npz")) for k in ("noise", "rir")} if os.path.exists("/student/aug/rir.npz") else None
     if (cfg.get("channel_p") or cfg.get("phone_p")) and aug is None:
         raise RuntimeError("Channel adaptation requires the existing augmentation bank")
