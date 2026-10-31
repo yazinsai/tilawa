@@ -154,7 +154,7 @@ def build_model(size: str):
     return Student()
 
 
-def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, seed: int, max_clips: int = 0):
+def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, seed: int, max_clips: int = 0, exclude_gold: bool = False):
     """Selected s1 clips held in memory: FLAC bytes and teacher top-5 in flat buffers with offsets."""
     import glob
 
@@ -169,7 +169,7 @@ def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, se
     for fi, f in enumerate(files):
         t = pq.read_table(f, columns=["shard", "row", "bucket", "split", "n_samples"]).to_pydict()
         for r, (sh, row, bk, sp, n) in enumerate(zip(t["shard"], t["row"], t["bucket"], t["split"], t["n_samples"])):
-            if bk in want and sp == split and n <= max_clip_s * SR and not held_out(gold, sh, row, sp):
+            if bk in want and sp == split and n <= max_clip_s * SR and not held_out(gold, sh, row, "train" if exclude_gold else sp):
                 meta.append((fi, r, n))
     order = np.random.default_rng(seed).permutation(len(meta))
     if max_hours:
@@ -666,7 +666,7 @@ def mine_weights(model, clips, cfg, aug, device, run):
     model.streaming_eval(16, 128)
     report = {"policy": "3x CTC and KD weight for any degradation consonant edit, 2x for short/repeat controls, otherwise 1x; weights frozen before adaptation", "splits": {}}
     all_weights = None
-    for split, c in [("train", clips), ("val", load_clips("clean-match", "val", 0, 60., 2718, 600))]:
+    for split, c in [("train", clips), ("val", load_clips("clean-match", "val", 0, 60., 2718, 600, exclude_gold=True))]:
         clean, phone = decode(c, 0.), decode(c, 1.)
         rows = []
         weights = []

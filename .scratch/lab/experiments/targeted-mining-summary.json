@@ -1,0 +1,40 @@
+{
+ "train": {
+  "clips": 21161,
+  "changed": 12748,
+  "weights": {
+   "2.0": 7321,
+   "3.0": 12748,
+   "1.0": 1092
+  },
+  "edits": {
+   "insert": 3848,
+   "delete": 23034,
+   "replace": 12821
+  },
+  "shortProxy": 880,
+  "repeatProxy": 18445,
+  "excludedGoldKeys": [],
+  "keysSha256": "920613896955694b961d03661928e7bb45fa8b6aa0a9cd72acf9944293a4dd1d"
+ },
+ "val": {
+  "clips": 599,
+  "changed": 367,
+  "weights": {
+   "3.0": 367,
+   "1.0": 33,
+   "2.0": 199
+  },
+  "edits": {
+   "insert": 107,
+   "delete": 614,
+   "replace": 366
+  },
+  "shortProxy": 33,
+  "repeatProxy": 515,
+  "excludedGoldKeys": [
+   "clean-00288-of-00411:847"
+  ],
+  "keysSha256": "f6773d1031eb8f99a9a7e9846408757f2feb80badbbfbfc0c6f0096dee4c467e"
+ }
+}

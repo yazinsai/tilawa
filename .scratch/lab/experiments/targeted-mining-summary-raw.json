@@ -1,0 +1,41 @@
+{
+ "train": {
+  "clips": 21161,
+  "changed": 12748,
+  "weights": {
+   "2.0": 7321,
+   "3.0": 12748,
+   "1.0": 1092
+  },
+  "edits": {
+   "insert": 3848,
+   "delete": 23034,
+   "replace": 12821
+  },
+  "shortProxy": 880,
+  "repeatProxy": 18445,
+  "goldOverlap": [],
+  "keysSha256": "920613896955694b961d03661928e7bb45fa8b6aa0a9cd72acf9944293a4dd1d",
+  "historicalOrderedKeysHash": "ba66b2fb1c88ebf89fe260805cdc351f33bbb7347f577ef74ed819e06c057131"
+ },
+ "val": {
+  "clips": 600,
+  "changed": 367,
+  "weights": {
+   "3.0": 367,
+   "1.0": 34,
+   "2.0": 199
+  },
+  "edits": {
+   "insert": 107,
+   "delete": 614,
+   "replace": 366
+  },
+  "shortProxy": 33,
+  "repeatProxy": 515,
+  "goldOverlap": [
+   "clean-00288-of-00411:847"
+  ],
+  "keysSha256": "1e8a2d51c43a22d4a66565fd25929a816ec67715d9dd33b3ae49a21e42a6cf77"
+ }
+}
