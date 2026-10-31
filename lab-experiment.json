@@ -6,7 +6,7 @@
   "component": -5,
   "overall": -5
  },
- "listener": "spliced-clean-int8",
+ "listener": "paired-consonants-int8",
  "testSet": "lab-v1.5",
  "created": "2026-10-31T15:48:10+00:00",
  "author": "Yazin"
