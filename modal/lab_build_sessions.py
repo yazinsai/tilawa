@@ -23,8 +23,8 @@ Stages (each skips finished outputs; the same seed and inputs give byte-identica
     gate    the render's seam checks against lab_sessions.SEAM_LIMITS (levels, clicks, seam depth, words found, words
             cut short) -> seams-v1.json; in the loop, failing splices are refused and rebuilt before any decode
     loop    plan + render, gate, `lab_decode.py --listener teacher`, `lab_check.py`, refuse; until nothing fails. Then
-            `lab_triage.py` (Nemotron and FastConformer score every case), then `review_api.py::triage_main --primary`
-            (Nemotron + Soniox, from lab-v1.4) writes the listening queue review/triage.json (ticket 17); the set
+            `review_api.py::triage_solo_main` (Soniox alone, from lab-v1.5's review; lab-v1.4 and lab-v1.5 used
+            Nemotron + Soniox) writes the listening queue review/triage.json (ticket 17); the set
             freezes once that queue is reviewed within its maxBad. Refusals are cumulative, so a
             loop that hit --iterations resumes with --first-iteration N
 
@@ -752,8 +752,7 @@ def main(stage: str = "all", pilot: bool = False, force: bool = False, iteration
     if stage == "gate":
         print_gate(gate.remote(0, refuse_failed=False), "seam gate (report only)", t0)
     if stage == "triage":
-        for cmd in (["modal/lab_triage.py", "--test-set", TEST_SET, "--prior", FROZEN],
-                    ["modal/review_api.py::triage_main", "--test-set", TEST_SET, "--vendor", "soniox", "--primary"]):
+        for cmd in (["modal/review_api.py::triage_solo_main", "--test-set", TEST_SET, "--vendor", "soniox", "--prior", FROZEN],):
             print(f"== triage: {' '.join(cmd)} [{time.time() - t0:.0f} s]", flush=True)
             subprocess.run(["modal", "run", *cmd], cwd=ROOT, check=True)
     if stage in ("all", "plan", "render"):

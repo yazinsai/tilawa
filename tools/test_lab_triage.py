@@ -283,3 +283,10 @@ def test_check_queue_prefers_triage_and_verdicts_skip_model_records():
     q = {"version": 1, "testSet": "lab-x", "maxBad": 1, "items": [{"id": "a", "kind": "case", "audio": {"path": "x.wav", "startS": 0, "endS": 1},
                                                                   "text": "", "label": {"type": "clean"}}]}
     assert D.check_status(q, [asr, me], "lab-x/review/triage.json")["queue"] == "lab-x/review/triage.json"
+
+
+def test_one_model_decides_alone():
+    assert [T.outcome(d) for d in ("match", "mismatch", "unsure")] == ["auto-accepted", "mismatch", "unsure"]
+    assert T.outcome("match", "mismatch") == "disagree"  # two models as before
+    q = {"testSet": "t", "maxBad": 1, "items": [{"id": "a", "triage": {"reasons": ["mismatch"]}}, {"id": "b", "triage": {"reasons": ["unsure"]}}]}
+    assert [it["id"] for it in T.confirm_queue(q)["items"]] == ["a"]

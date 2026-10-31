@@ -146,3 +146,11 @@ Main line 15ec94d, `spliced-clean-int8`, phone, with the 3 carried practice flag
 By class on all of practice (planted / missed): wrong words 79 / 25 (mutashabihat included), omitted 298 / 5, added 118 / 42 and skipped 122 / 10. The 25 false warnings are 10 wrong word, 7 skipped, 5 omitted and 3 added. The teacher reference has 126 wrong calls (78 + 48).
 
 The new sessions score more than twice as badly per minute as the frozen ones: 25 false warnings against 0, and a third of the wrong words missed. Every experiment folded so far was tuned on the frozen 20 practice sessions. Fitting to them would look like this, and so would bad data in the new sessions. Telling the two apart is what the listening check is for.
+
+## Accepted and registered
+
+- **Spot check** (31 Oct): 45 of 45 heard as "Sounds right", 0 bad against maxBad 1, so the set is trusted.
+- **Shortfall:** the wrong-word class (79 / 86 per half) was accepted with no rule change.
+- **Registered:** `lab baseline --manifest lab-v1.5/manifest-v1.json --exclude lab-v1.5/flags-v1.json` made lab-v1.5 the ledger's current test set, version 1, with lab-v1.4's 4 flagged windows as its exclusions.
+- **Main line re-scored** (fe4daad, practice and exam). Practice: 107 wrong calls (82 missed + 25 false warnings) over 100 sessions, as above.
+- **Triage from now on** is Soniox alone (`lab-triage-v1.md`, "Soniox alone").

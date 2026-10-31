@@ -11,7 +11,8 @@ with one alternative text over the same audio window:
 Nemotron 3.5 Transcribe (LM pairwise, plain spellings) and FastConformer (CTC pairwise, diacritised spellings) each say
 match / mismatch / unsure with their committed 2-nat margin. Both match -> auto-accepted; both mismatch ->
 both-mismatch (you confirm); one each -> disagree; anything else -> unsure. Everything but auto-accepted goes to the
-listening queue, plus a fixed seeded spot check of the auto-accepted cases (SPOT_EDITS edits and repeats, SPOT_CLEAN
+listening queue. With one model (Soniox alone, the triage from lab-v1.5's review on): match -> auto-accepted,
+mismatch -> mismatch (you confirm), unsure -> unsure. Plus a fixed seeded spot check of the auto-accepted cases (SPOT_EDITS edits and repeats, SPOT_CLEAN
 clean windows) and a seeded seam spot check of the planted edits (SEAM_SPOT of them, at most SEAM_CAP).
 
 Pure logic, standard library only; run by modal/lab_triage.py, tested by tools/test_lab_triage.py.
@@ -41,10 +42,13 @@ CLEAN_TARGET_S, CLEAN_MIN_WORDS = 8.0, 3
 # spelling costs, so FastConformer preferred the shorter text on 3 of 19 clean deletions of the lab-v1.1 smoke run
 # (13-21 nats, the word in its own greedy output) and on none of 32 substitutions and insertions.
 CLEAN_OPS = ("sub", "ins")
-OUTCOMES = ("auto-accepted", "both-mismatch", "disagree", "unsure")
-REASONS = ("both-mismatch", "disagree", "unsure", "seam", "spot")
+# "mismatch": the one model of a single-model triage (Soniox alone, from lab-v1.5's review) thinks the label is wrong.
+OUTCOMES = ("auto-accepted", "both-mismatch", "mismatch", "disagree", "unsure")
+REASONS = ("both-mismatch", "mismatch", "disagree", "unsure", "seam", "spot")
+CONFIRM = ("both-mismatch", "mismatch")
 TITLES = {
     "both-mismatch": "Both models think the label is wrong — please confirm",
+    "mismatch": "The model thinks the label is wrong — please confirm",
     "disagree": "The two models disagree",
     "unsure": "A model couldn't tell — please check",
     "seam": "Seam spot check",
@@ -169,7 +173,10 @@ def pairwise(claimed: float | None, alternative: float | None, margin: float) ->
     return {"decision": d, "claimed": claimed, "alternative": alternative, "diff": diff}
 
 
-def outcome(a: str, b: str) -> str:
+def outcome(a: str, b: str | None = None) -> str:
+    """Two models' decisions, or one model's alone (b None)."""
+    if b is None:
+        return {"match": "auto-accepted", "mismatch": "mismatch"}.get(a, "unsure")
     if a == b == "match":
         return "auto-accepted"
     if a == b == "mismatch":
@@ -232,7 +239,7 @@ def _transcript_line(m: str, r: dict, alt: str) -> str:
 def why(case: dict, reasons: list[str], spot: tuple[int, int] = (SPOT_EDITS, SPOT_CLEAN), models: tuple[str, str] = MODELS) -> str:
     """The plain sentence at the start of a queue item's context."""
     parts = []
-    if reasons[0] in ("both-mismatch", "disagree", "unsure"):
+    if reasons[0] in ("both-mismatch", "mismatch", "disagree", "unsure"):
         nats = [case[m].get("unit") != "letters" for m in models]
         lines = [_model_line(m, case[m], case["group"]) + (" nats" if n and not all(nats) and case[m]["diff"] is not None else "")
                  for m, n in zip(models, nats)]
@@ -323,7 +330,7 @@ def triage(cases: list[dict], scores: dict[str, dict[str, dict]], test_set: str,
             heard = (scores[m].get(c["id"]) or {}).get("transcript")
             if heard is not None and "transcript" not in r[m]:
                 r[m] = {**r[m], "transcript": heard}
-        r["outcome"] = outcome(r[models[0]]["decision"], r[models[1]]["decision"])
+        r["outcome"] = outcome(*(r[m]["decision"] for m in models))
         out.append(r)
     real = [c for c in out if not c.get("reviewedOnly")]
     accepted = [c for c in real if c["outcome"] == "auto-accepted"]
@@ -343,7 +350,7 @@ def triage(cases: list[dict], scores: dict[str, dict[str, dict]], test_set: str,
 
 def confirm_queue(queue: dict) -> dict:
     """The both-mismatch items of a triage queue on their own, to hear first: diagnostic, so no bad item is allowed."""
-    return {**queue, "maxBad": 0, "items": [it for it in queue["items"] if it["triage"]["reasons"][0] == "both-mismatch"]}
+    return {**queue, "maxBad": 0, "items": [it for it in queue["items"] if it["triage"]["reasons"][0] in CONFIRM]}
 
 
 def counts(cases: list[dict], items: list[dict], models: tuple[str, str] = MODELS) -> dict:
@@ -381,4 +388,4 @@ def compare_reviewed(cases: list[dict], queue: dict, reviews: dict[str, dict], m
                           "sameWindow": c["item"]["audio"] == it["audio"] and c["item"]["text"] == it["text"]}
     ok = [r for r in rows.values() if r["verdict"] == "ok"]
     return {"n": len(rows), "ok": len(ok), "outcomesOnOk": dict(Counter(r["outcome"] for r in ok)),
-            "falseAlarms": sorted(i for i, r in rows.items() if r["verdict"] == "ok" and r["outcome"] == "both-mismatch"), "items": rows}
+            "falseAlarms": sorted(i for i, r in rows.items() if r["verdict"] == "ok" and r["outcome"] in CONFIRM), "items": rows}

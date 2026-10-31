@@ -27,8 +27,9 @@ TRANSCRIPTS = {"nemotron": "triage/asr-nemotron-3.5-transcribe.json", "fastconfo
 MARGIN = 2.0  # nats, lab_triage_core.MARGINS (the likelihood arms' committed margin)
 DECISION = {"match": "as described", "mismatch": "not as described", "unsure": "can't tell"}
 OUTCOME = {"auto-accepted": "Both checks were happy with the description", "both-mismatch": "Both checks think the description is wrong",
+           "mismatch": "The check thinks the description is wrong",
            "disagree": "The two checks disagree", "unsure": "A check couldn't decide"}
-REASON = {"both-mismatch": "both checks think the description is wrong", "disagree": "the two checks disagree", "unsure": "a check couldn't decide",
+REASON = {"both-mismatch": "both checks think the description is wrong", "mismatch": "the check thinks the description is wrong", "disagree": "the two checks disagree", "unsure": "a check couldn't decide",
           "seam": "a check that the edit can't be heard", "spot": "a random check of a case both checks were happy with"}
 ALT_NAME = {"edit": "this other version, with the change undone", "repeat": "this other version, said only once",
             "clean": "a made-up test version (nobody recited it; it's only there to compare against)"}

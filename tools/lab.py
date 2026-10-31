@@ -434,7 +434,7 @@ def parser():
     p.add_argument("--ledger", default=os.environ.get("LAB_LEDGER", "/ledger.json"), help="ledger path on the tilawa-lab volume")
     sub = p.add_subparsers(dest="op", required=True)
     b = sub.add_parser("baseline", help="score the main line on practice and exam")
-    b.add_argument("--manifest", default="lab-v1.4/manifest-v1.json", help="under /lab/data; registers its test set when the ledger has none or another one")
+    b.add_argument("--manifest", default="lab-v1.5/manifest-v1.json", help="under /lab/data; registers its test set when the ledger has none or another one")
     b.add_argument("--exclude", default="", help="under /lab/data: flags carried into a new test set (e.g. lab-v1.5/flags-v1.json, from lab-v1.4's)")
     b.add_argument("--note", default="")
     n = sub.add_parser("new", help="create an experiment worktree and card")

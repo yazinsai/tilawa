@@ -27,6 +27,7 @@ WRITES = {"soniox"}  # a label-blind transcript read letter by letter; the other
 ROLE = {False: "matches both versions against the sound", True: "writes down what it hears, without seeing our text"}
 WEAK, CLEAR = 5.0, 20.0  # sound-match margins (its decision needs 2): below WEAK reads "weak", above CLEAR "strong"
 TAGS = {"both-mismatch": "Both computer checks think this is wrong: please confirm",
+        "mismatch": "The computer check thinks this is wrong: please confirm",
         "disagree": "The two computer checks disagree",
         "unsure": "A computer check couldn't decide",
         "seam": "Check the edit can't be heard",

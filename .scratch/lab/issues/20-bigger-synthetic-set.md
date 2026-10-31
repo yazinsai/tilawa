@@ -1,6 +1,6 @@
 # 20 Bigger synthetic test set
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: none
 
@@ -89,3 +89,14 @@ Review page in plain words (31 Oct, after your note that the spot-check wording 
   - The listener summary names the word and says whether what was heard is expected.
 
 `/api/queue` adds `plain` to each item. `lab_models_core` and `lab_phonemes_core` were reworded and their tests updated. Deployed to `tilawa-lab-review`.
+
+Spot check passed (31 Oct): 45 of 45 "Sounds right", 0 bad, maxBad 1. Your notes, verbatim:
+- `lab-v1.5-p54-x2` (ok): "the first وَبَنِينَ was only said once (but might have been mislabeled because the word after that group is also وَبَنِينَ)"
+- `lab-v1.5-e40-x6` (ok): "there was an س before قَبْلِهِمْ"
+
+**Registered.** `lab baseline --manifest lab-v1.5/manifest-v1.json --exclude lab-v1.5/flags-v1.json` made lab-v1.5 the ledger's current test set, with lab-v1.4's 4 flagged windows carried. It re-scored the main line (fe4daad) on practice and exam. Practice: 107 wrong calls (82 missed + 25 false warnings) over 100 sessions, as in the direct run above. `lab baseline` now defaults to the lab-v1.5 manifest.
+
+Triage is Soniox alone from now on (your call). See `docs/benchmarks/lab-triage-v1.md`, "Soniox alone", and spec decision 17.
+
+Every acceptance item is met: the set validates, renders and passes the gate and checks; the spot check passed; it is registered with the main line re-scored; the write-up is `docs/benchmarks/lab-v1.5.md`. The wrong-class shortfall (79 / 86 per half) was accepted.
+

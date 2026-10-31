@@ -348,3 +348,19 @@ Data:
 - `/lab/data/lab-v1.4/triage-v1.json` (Nemotron + FastConformer, every case)
 - `triage-soniox-v1.json` (Nemotron + Soniox, every case)
 - `docs/benchmarks/lab-triage-v1-lab-v1.4.json` and `lab-triage-soniox-lab-v1.4.json`
+
+## Soniox alone (from lab-v1.5's review)
+
+Your call after the lab-v1.5 spot check: Soniox hears much better than Nemotron, so triage uses Soniox alone from now on. `modal run modal/review_api.py::triage_solo_main --test-set <set> --prior <earlier set>` scores every case with Soniox's judge (the reach margin, unchanged).
+- A match is auto-accepted.
+- A mismatch goes to `review/triage-confirm.json` (outcome `mismatch`).
+- Anything else is unsure and queued.
+- On top come the same seeded spot checks (15 edits and repeats, 15 clean windows) and seam pools.
+- Verdicts on the prior set carry over to byte-identical clips with the same text.
+
+The build loop's triage stage runs only this; lab-v1.4 and lab-v1.5 keep their Nemotron + Soniox queues.
+
+On lab-v1.5, from the cached transcripts with no new API calls, written as `review/triage-soniox-solo.json` beside the official queue:
+- **Outcomes:** 7318 auto-accepted and 262 unsure, out of 7580 cases.
+- **Queue:** 339 items (262 unsure, 48 seam, 29 spot), maxBad 8. 126 lab-v1.4 verdicts carried over.
+- **Against your 128 verdicts:** it auto-accepts 72 of the 125 "ok" items and none of the 3 bad ones (2 bad label, 1 bad splice, all unsure). Nemotron + Soniox queued 370 items.

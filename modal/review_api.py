@@ -626,6 +626,115 @@ def triage(test_set: str, vendor: str, spot: tuple[int, int], seam_spot: tuple[f
     return {k: doc[k] for k in ("testSet", "models", "counts", "reviewed", "comparison", "cost", "queue", "confirm")}
 
 
+def _prior_verdicts(prior: str, cases: dict[str, dict], shas: dict[str, str]) -> dict[str, dict]:
+    """Verdicts on the prior test set's items, by this set's case id, where the case's clip bytes and text equal the
+    item's as it was heard (modal/lab_triage.py's rule, for the single-model triage)."""
+    reviews = _verdicts(prior) if prior else {}
+    queues, heard = {}, {}
+    for i, r in reviews.items():
+        q = r.get("queue") or ""
+        if q not in queues:
+            p = DATA / q
+            queues[q] = {it["id"]: it for it in _json(p)["items"]} if q.startswith(f"{prior}/") and p.is_file() else {}
+        if it := queues[q].get(i):
+            heard.setdefault((hashlib.sha256(RA.clip_bytes(it["audio"])).hexdigest(), it["text"]), (i, r))
+    out = {}
+    for cid, c in cases.items():
+        if hit := heard.get((shas[cid], c["item"]["text"])):
+            i, r = hit
+            out[cid] = {**r, "note": f"carried over from {prior} {i} (same audio bytes and text)" + (f": {r['note']}" if r.get("note") else "")}
+    return out
+
+
+def _carry(test_set: str, carried: dict[str, dict], queue_rel: str) -> None:
+    import lab_review_core as R
+
+    by = {}
+    for cid, r in carried.items():
+        by.setdefault(r["reviewer"], {})[cid] = r
+    for reviewer, recs in by.items():
+        p = REVIEWS / test_set / f"{reviewer}.json"
+        doc = _json(p) if p.is_file() else R.empty_reviews(test_set, reviewer)
+        new = {cid: r for cid, r in recs.items() if cid not in doc["items"]}
+        for cid, r in new.items():
+            R.upsert(doc, cid, r["verdict"], r["note"], r.get("at") or now(), queue_rel)
+        if new:
+            _write(p, doc)
+
+
+@app.function(image=image, volumes={VOL: vol}, timeout=6 * 60 * 60, cpu=4, memory=16384)
+def triage_solo(test_set: str, vendor: str, spot: tuple[int, int], seam_spot: tuple[float, int] | dict, seed: int, prior: str = "",
+                force: bool = False, rule: str | None = None, name: str = "triage") -> dict:
+    """The vendor's judge alone on every case of the test set (from lab-v1.5's review: Soniox only, no Nemotron): match ->
+    auto-accepted, mismatch -> confirm, unsure -> queued, plus the spot and seam checks. Writes triage-<vendor>-solo-v1.json,
+    review/<name>.json and review/<name>-confirm.json (with the default name, the set's listening queue). Verdicts on `prior` carry over to
+    byte-identical clips with the same text."""
+    import lab_review_core as R
+    import lab_triage_core as T
+    import review_api_core as A
+
+    t0 = time.time()
+    vol.reload()
+    rule = rule or A.JUDGE_RULE
+    base = DATA / test_set
+    ids = [e["id"] for e in _json(base / "manifest-v1.json")["sessions"]]
+    sessions = {i: _json(base / f"sessions/{i}.json") for i in ids}
+    cases = [c for i in ids for c in T.session_cases(sessions[i], test_set, seed)]
+    v1 = _json(base / "review/v1-check.json") if (base / "review/v1-check.json").is_file() else {"items": []}
+    cases += T.reviewed_clean_cases(v1, sessions, {c["id"] for c in cases}, seed)
+    heard = transcribe(vendor, test_set, [{"id": c["id"], "audio": c["item"]["audio"]} for c in cases], force)
+    api = {c["id"]: {**A.judge(heard[c["id"]].get("transcript") or "", c["claimed"], c["alternative"], rule),
+                     "transcript": heard[c["id"]].get("transcript")} for c in cases}
+    shas = {c["id"]: heard[c["id"]]["audioSha256"] for c in cases}
+    carried = _prior_verdicts(prior if prior != test_set else "", {c["id"]: c for c in cases if not c.get("reviewedOnly")}, shas)
+    reviews = {**carried, **_verdicts(test_set)}
+    earlier = {it["id"]: it for it in v1["items"]} | {cid: {"id": cid, "audio": c["item"]["audio"], "text": c["item"]["text"]} for c in cases if (cid := c["id"]) in carried}
+    seam_spot = seam_spot if isinstance(seam_spot, dict) else tuple(seam_spot)
+    res = T.triage(cases, {vendor: api}, test_set, tuple(spot), seam_spot, seed, reviews, earlier, (vendor,))
+    problems = R.validate_queue(res["queue"])
+    if problems:
+        raise ValueError(f"queue: {problems[:5]}")
+    queue_rel = f"{test_set}/review/{name}.json"
+    doc = {"version": 1, "kind": "lab-triage", "testSet": test_set, "createdAt": now(), "variant": "studio", "solo": vendor,
+           "models": {vendor: {**_json(_record(vendor, test_set))["model"], "reading": "review_api_core.judge on its label-blind transcript",
+                               "rule": {"min": A.JUDGE_MIN, "share": A.JUDGE_SHARE, "maxDist": A.JUDGE_MAX_DIST, "margin": rule}}},
+           "rule": {"outcome": "match -> auto-accepted; mismatch -> mismatch (confirm); else unsure (lab_triage_core.outcome, one model)",
+                    "carryOver": f"verdicts on {prior or '-'} items carry over only where the clip bytes and text are identical",
+                    "maxBad": f"at most 1 bad per {T.BAD_PER} queue items, at least 1", "source": "tools/lab_triage_core.py"},
+           "spot": {"edits": spot[0], "clean": spot[1]}, "seamSpot": seam_spot if isinstance(seam_spot, dict) else {"share": seam_spot[0], "cap": seam_spot[1]},
+           "seed": seed, "queue": queue_rel, "confirm": f"{test_set}/review/{name}-confirm.json", "counts": res["counts"],
+           "reviewed": T.compare_reviewed(res["cases"], {"items": list(earlier.values())}, reviews, (vendor,)),
+           "carriedFromPrior": {cid: r["note"] for cid, r in carried.items()},
+           "cost": {"audioS": round(sum(h.get("durationS") or 0 for h in heard.values()), 1), "costUsd": round(sum(h.get("costUsd") or 0 for h in heard.values()), 4),
+                    "errors": sorted(i for i, h in heard.items() if h.get("error")), "wallS": round(time.time() - t0, 1)},
+           "cases": [{k: c[k] for k in ("id", "session", "group", "class", "linked", "claimed", "alternative", "alternativeOp", vendor, "outcome")}
+                     | {"audio": c["item"]["audio"], "transcript": heard[c["id"]].get("transcript"), "reviewedOnly": bool(c.get("reviewedOnly")),
+                        **({} if c.get("reviewedOnly") else {k: c[k] for k in ("spotCheck", "seamSpotCheck", "queued")})} for c in res["cases"]]}
+    _write(base / f"triage-{vendor}-solo-v1.json", doc)
+    _write(base / f"review/{name}.json", res["queue"])
+    _write(base / f"review/{name}-confirm.json", T.confirm_queue(res["queue"]))
+    _carry(test_set, carried, queue_rel)
+    vol.commit()
+    return {k: doc[k] for k in ("testSet", "models", "counts", "reviewed", "cost", "queue", "confirm")} | {"carried": len(carried)}
+
+
+@app.local_entrypoint()
+def triage_solo_main(test_set: str, vendor: str = "soniox", spot_edits: int = 15, spot_clean: int = 15, prior: str = "", seed: int = 17,
+                     force: bool = False, rule: str = "", out: str = "", name: str = "triage"):
+    """modal run modal/review_api.py::triage_solo_main --test-set lab-v1.6 --prior lab-v1.5"""
+    import lab_triage_core as T
+
+    r = triage_solo.remote(test_set, vendor, (spot_edits, spot_clean), T.SEAM_POOLS, seed, prior, force, rule or None, name)
+    out = out or f"docs/benchmarks/lab-triage-{vendor}-solo-{test_set}.json"
+    (ROOT / out).write_text(json.dumps(r, ensure_ascii=False, indent=1) + "\n")
+    c = r["counts"]
+    print(json.dumps({k: c[k] for k in ("cases", "outcomes", "perModel", "queue")}, ensure_ascii=False, indent=1))
+    print("cost:", json.dumps(r["cost"]), "carried verdicts:", r["carried"])
+    for q in (r["confirm"], r["queue"]):
+        print(f"queue https://amal-invest--tilawa-lab-review-web.us-east.modal.run/review?queue={q}")
+    print(f"wrote {out}")
+
+
 @app.local_entrypoint()
 def smoke(vendors: str = "soniox,speechmatics"):
     """One window outside every listening queue (lab-v1.1 e20, 0-8 s), to check each vendor end to end."""
