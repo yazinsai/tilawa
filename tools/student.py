@@ -108,3 +108,16 @@ def reference_phonemes(ref: dict, label: dict) -> str:
         hi = a["o"][end["word"]] if k == j and end["word"] < len(a["o"]) else len(a["p"])
         out.append(a["p"][lo:hi])
     return "".join(out)
+
+
+def microphone_band(wave, rng, highpass=(60.0, 180.0), lowpass=(4500.0, 7600.0), sr=16000):
+    """Training-only random microphone band; preserve samples, timing and as-said targets."""
+    import numpy as np
+    from scipy.signal import butter, sosfiltfilt
+
+    high = float(rng.uniform(*highpass))
+    low = float(rng.uniform(*lowpass))
+    if not 0 < high < low < sr / 2:
+        raise ValueError("microphone band must be inside Nyquist")
+    sos = butter(4, [high, low], btype="band", fs=sr, output="sos")
+    return sosfiltfilt(sos, np.asarray(wave)).astype(np.float32)

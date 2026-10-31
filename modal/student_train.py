@@ -418,6 +418,7 @@ def train(args: dict) -> dict:
     from icefall.utils import get_parameter_groups_with_lrs
     from optim import Eden, ScaledAdam
 
+    from student import mix_noise, phoneme_ids, microphone_band
     cfg = {**DEFAULTS, **args}
     assert cfg["name"], "name is required"
     run = f"/student/runs/{cfg['name']}"
