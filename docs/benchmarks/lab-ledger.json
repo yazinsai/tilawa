@@ -542,7 +542,14 @@
     "tracker": 5,
     "checker": 58
    },
-   "exam": null
+   "exam": {
+    "wrongCalls": 149,
+    "missed": 83,
+    "falseWarnings": 66,
+    "listener": 99,
+    "tracker": 5,
+    "checker": 45
+   }
   },
   {
    "kind": "main",
@@ -705,7 +712,7 @@
   },
   {
    "kind": "main",
-   "at": "2026-10-31T13:37:34+00:00",
+   "at": "2026-10-31T13:37:37+00:00",
    "sha": "3374b91",
    "testSet": "lab-v1.5",
    "experiment": "checker-independent-consonants",
@@ -722,7 +729,7 @@
   },
   {
    "kind": "experiment",
-   "at": "2026-10-31T13:37:34+00:00",
+   "at": "2026-10-31T13:37:37+00:00",
    "id": "checker-independent-consonants",
    "component": "checker",
    "hypothesis": "Counting a contiguous doubled-consonant identity change once and requiring compatible lexical pronunciation context retains five recovered mistakes without adding warnings",
@@ -751,6 +758,186 @@
      "checker": 40
     },
     "exam": null
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-31T15:20:51+00:00",
+   "id": "listener-prefix-beam",
+   "component": "listener",
+   "hypothesis": "Greedy frame decoding chooses isolated peaks; summing CTC paths without a language model can reduce phone-noise substitutions and deletions while preserving heard mistakes. Beam width 8, same acoustic posteriors, no reference text; require zero new false warnings or misses.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "User approved discard; introduces new false alarms.",
+   "branch": {
+    "wrongCalls": 97,
+    "missed": 72,
+    "falseWarnings": 25,
+    "listener": 53,
+    "tracker": 4,
+    "checker": 40
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-31T15:21:15+00:00",
+   "id": "listener-channel-adapt",
+   "component": "listener",
+   "hypothesis": "Fine-tuning the shipped listener on existing gold-excluded training speech with randomized microphone-band filtering addresses the phone-only recognition failures. Keep greedy decoding and the checker fixed; require fewer misses and zero new false-warning incidents.",
+   "expected": {
+    "component": -5,
+    "overall": -5
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "User approved discard; introduces new false alarms.",
+   "branch": {
+    "wrongCalls": 93,
+    "missed": 63,
+    "falseWarnings": 30,
+    "listener": 50,
+    "tracker": 3,
+    "checker": 40
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-31T15:21:42+00:00",
+   "id": "listener-channel-blend",
+   "component": "listener",
+   "hypothesis": "A fixed 25 percent interpolation toward the channel-adapted weights retains microphone robustness while reducing changes from the shipped listener; fewer misses without new false warnings across chapters.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "User approved discard; introduces new false alarms.",
+   "branch": {
+    "wrongCalls": 91,
+    "missed": 65,
+    "falseWarnings": 26,
+    "listener": 48,
+    "tracker": 5,
+    "checker": 38
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-31T15:22:13+00:00",
+   "id": "listener-phone-channel",
+   "component": "listener",
+   "hypothesis": "Training on the complete room, phone band, and active-speech-scaled noise chain reduces listener false warnings and misses; compare the combined candidate against the passing checker-only baseline.",
+   "expected": {
+    "component": -5,
+    "overall": -6
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "User approved discard; introduces new false alarms.",
+   "branch": {
+    "wrongCalls": 85,
+    "missed": 59,
+    "falseWarnings": 26,
+    "listener": 41,
+    "tracker": 7,
+    "checker": 37
+   },
+   "rebased": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-10-31T15:40:20+00:00",
+   "sha": "da14389",
+   "testSet": "lab-v1.5",
+   "experiment": null,
+   "note": "re-scored for fold of checker-extra-segmentation",
+   "practice": {
+    "wrongCalls": 92,
+    "missed": 67,
+    "falseWarnings": 25,
+    "listener": 47,
+    "tracker": 5,
+    "checker": 40
+   },
+   "exam": {
+    "wrongCalls": 136,
+    "missed": 71,
+    "falseWarnings": 65,
+    "listener": 98,
+    "tracker": 5,
+    "checker": 33
+   }
+  },
+  {
+   "kind": "main",
+   "at": "2026-10-31T15:40:24+00:00",
+   "sha": "4001bd6",
+   "testSet": "lab-v1.5",
+   "experiment": "checker-extra-segmentation",
+   "note": "Remaining oracle additions are absorbed into partial or wrong neighboring visits; recover bounded extra speech while preserving complete repeats and corrected attempts. Require zero new warnings and gains across chapters.",
+   "practice": {
+    "wrongCalls": 89,
+    "missed": 64,
+    "falseWarnings": 25,
+    "listener": 47,
+    "tracker": 5,
+    "checker": 37
+   },
+   "exam": {
+    "wrongCalls": 132,
+    "missed": 67,
+    "falseWarnings": 65,
+    "listener": 101,
+    "tracker": 5,
+    "checker": 26
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-31T15:40:24+00:00",
+   "id": "checker-extra-segmentation",
+   "component": "checker",
+   "hypothesis": "Remaining oracle additions are absorbed into partial or wrong neighboring visits; recover bounded extra speech while preserving complete repeats and corrected attempts. Require zero new warnings and gains across chapters.",
+   "expected": {
+    "component": -6,
+    "overall": -5
+   },
+   "state": "folded",
+   "testSet": "lab-v1.5",
+   "note": "keeps its overall and checker gain",
+   "branch": {
+    "wrongCalls": 89,
+    "missed": 64,
+    "falseWarnings": 25,
+    "listener": 47,
+    "tracker": 5,
+    "checker": 37
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 89,
+     "missed": 64,
+     "falseWarnings": 25,
+     "listener": 47,
+     "tracker": 5,
+     "checker": 37
+    },
+    "exam": {
+     "wrongCalls": 132,
+     "missed": 67,
+     "falseWarnings": 65,
+     "listener": 101,
+     "tracker": 5,
+     "checker": 26
+    }
    }
   }
  ]
