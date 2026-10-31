@@ -1,0 +1,13 @@
+{
+ "id": "listener-phone-channel",
+ "component": "listener",
+ "hypothesis": "Training on the complete room, phone band, and active-speech-scaled noise chain reduces listener false warnings and misses; compare the combined candidate against the passing checker-only baseline.",
+ "expected": {
+  "component": -5,
+  "overall": -6
+ },
+ "listener": "phone-channel-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-10-31T15:00:42+00:00",
+ "author": "Yazin"
+}
