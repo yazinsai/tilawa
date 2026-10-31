@@ -127,6 +127,8 @@ interface Visit {
   kept: number;
   obsFrom: number;
   obsTo: number;
+  stepFrom?: number;
+  stepTo?: number;
 }
 
 interface Issue {
@@ -484,21 +486,26 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
    * Costs of word `wi` read from its far edge (its start when `after`, else its end) against the first `j` of `heard`,
    * read the same way, for every `j`.
    */
-  const edgeFit = (wi: number, heard: string[], after: boolean): Float64Array => {
+  const edgeFit = (wi: number, heard: string[], after: boolean, noise = false): Float64Array => {
     const w = words[wi];
     const n = w.end - w.start;
     const r = (i: number) => (after ? w.start + i : w.end - 1 - i);
     const pos = (i: number) => (after ? w.start + i : w.end - i);
+    const ins = (i: number, j: number) => {
+      const cost = insertionCost(ref, pos(i), heard[j - 1], w.end);
+      return noise ? Math.min(cost, heard[j - 1] === heard[j - 2] ? HELD : UNIT) : cost;
+    };
+    const del = (i: number) => noise && (ref[r(i)] === ref[r(i) - 1] || ref[r(i)] === ref[r(i) + 1]) ? HELD : deletionCost(ref, r(i));
     let row = new Float64Array(heard.length + 1);
-    for (let j = 1; j <= heard.length; j++) row[j] = row[j - 1] + insertionCost(ref, pos(0), heard[j - 1], w.end);
+    for (let j = 1; j <= heard.length; j++) row[j] = row[j - 1] + ins(0, j);
     for (let i = 1; i <= n; i++) {
       const next = new Float64Array(heard.length + 1);
-      next[0] = row[0] + deletionCost(ref, r(i - 1));
+      next[0] = row[0] + del(i - 1);
       for (let j = 1; j <= heard.length; j++) {
         next[j] = Math.min(
           row[j - 1] + subCost(ref[r(i - 1)], heard[j - 1]),
-          row[j] + deletionCost(ref, r(i - 1)),
-          next[j - 1] + insertionCost(ref, pos(i), heard[j - 1], w.end),
+          row[j] + del(i - 1),
+          next[j - 1] + ins(i, j),
         );
       }
       row = next;
@@ -532,8 +539,39 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     issue.observed = rest.map((k) => obs[k].p).join("");
   };
 
+  /** Rebuild a whole-word fit after choosing an insertion between two intact neighboring words. */
+  const wordSteps = (wi: number, from: number, to: number): Step[] => {
+    const word = words[wi], n = word.end - word.start, m = to - from, width = m + 1;
+    const d = new Float64Array((n + 1) * width);
+    const op = new Uint8Array(d.length);
+    const ins = (at: number, j: number) => Math.min(insertionCost(ref, at, obs[from + j - 1].p, word.end), obs[from + j - 1].p === obs[from + j - 2]?.p ? HELD : UNIT);
+    const del = (at: number) => ref[at] === ref[at - 1] || ref[at] === ref[at + 1] ? HELD : deletionCost(ref, at);
+    for (let j = 1; j <= m; j++) { d[j] = d[j - 1] + ins(word.start, j); op[j] = OP_INS; }
+    for (let i = 1; i <= n; i++) {
+      const row = i * width, prev = row - width, at = word.start + i - 1;
+      d[row] = d[prev] + del(at); op[row] = OP_DEL;
+      for (let j = 1; j <= m; j++) {
+        const p = obs[from + j - 1].p;
+        d[row + j] = d[prev + j - 1] + subCost(ref[at], p); op[row + j] = OP_DIAG;
+        const deletion = d[prev + j] + del(at);
+        if (deletion < d[row + j]) { d[row + j] = deletion; op[row + j] = OP_DEL; }
+        const insertion = d[row + j - 1] + ins(at + 1, j);
+        if (insertion < d[row + j]) { d[row + j] = insertion; op[row + j] = OP_INS; }
+      }
+    }
+    const path: Step[] = [];
+    let i = n, j = m;
+    while (i || j) {
+      const o = op[i * width + j];
+      if (o === OP_DIAG) path.push({ op: "diag", ref: word.start + --i, obs: from + --j });
+      else if (o === OP_DEL) path.push({ op: "del", ref: word.start + --i });
+      else path.push({ op: "ins", at: word.start + i, obs: from + --j });
+    }
+    return path.reverse();
+  };
+
   /** The errors the current alignment shows, by word; and where it stands. */
-  const judge = (steps: Step[]) => {
+  const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; head: number; furthest: number; steps: Step[]; right: Set<number> } | null => {
     const visits: Visit[] = [];
     const added: Issue[] = [];
     let cur: Visit | null = null;
@@ -558,12 +596,14 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       } else for (const k of inner) charge(v, insCharge(k.at, obs[k.obs].p, obs[k.obs - 1]?.p));
       inner = [];
     };
+    let stepAt = 0;
     const close = () => {
       flushInner();
       if (cur) visits.push(cur);
       cur = null;
     };
-    for (const s of steps) {
+    for (; stepAt < steps.length; stepAt++) {
+      const s = steps[stepAt];
       if (s.op === "jump") {
         close();
         block = [];
@@ -576,6 +616,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         if (inside) {
           inner.push({ at: s.at, obs: s.obs });
           cur!.obsTo = s.obs + 1;
+          cur!.stepTo = stepAt + 1;
         } else if (cur || visits.length) block.push(s.obs);
         continue;
       }
@@ -589,10 +630,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
           added.push({ cls: "added_word", word: wi, last: wi, obsFrom: block[0], obsTo: block.at(-1)! + 1, observed: text });
         }
         block = [];
-        cur = { word: wi, covered: 0, consumed: 0, cost: 0, hard: 0, kept: 0, obsFrom: s.op === "diag" ? s.obs : -1, obsTo: -1 };
+        cur = { word: wi, covered: 0, consumed: 0, cost: 0, hard: 0, kept: 0, obsFrom: s.op === "diag" ? s.obs : -1, obsTo: -1, stepFrom: stepAt };
       }
       flushInner();
       const v: Visit = cur;
+      v.stepTo = stepAt + 1;
       v.covered++;
       if (s.op === "diag") {
         if (v.obsFrom < 0) v.obsFrom = s.obs;
@@ -617,6 +659,53 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (!counts(v) || v.word < anchor!) continue;
       last.set(v.word, v);
       if (!wrong(v)) right.add(v.word);
+    }
+    if (recoverAdditions) {
+      // Consecutive correct visits preserve real repeats and excursions: a correctly recited intervening word
+      // remains a visit, while a fragment forced through a wrong word does not conceal an insertion.
+      const intact = visits.filter(v => counts(v) && !wrong(v));
+      const repairs: { from: number; to: number; path: Step[] }[] = [];
+      const weight = (wi: number) => [...ref.slice(words[wi].start, words[wi].end)].reduce((n, p) => n + (CONSONANTS.has(p) ? UNIT : SOFT), 0);
+      for (let i = 1; i < intact.length; i++) {
+        const left = intact[i - 1], right = intact[i];
+        if (nextWord(left.word) !== right.word || left.obsTo > right.obsFrom || left.stepFrom === undefined || right.stepTo === undefined) continue;
+        if (repairs.length && left.stepFrom < repairs.at(-1)!.to) continue;
+        // A wrong attempt at the following word, then that word read correctly, is a self-correction.
+        if (open.get(right.word)?.issue.cls === "wrong_word" || visits.some(v => v.word === right.word && v.obsFrom >= left.obsTo && v.obsFrom < right.obsFrom)) continue;
+        if (added.some(a => a.word === right.word && a.obsFrom >= left.obsFrom && a.obsTo <= right.obsTo)) continue;
+        const from = left.obsFrom, to = right.obsTo, heard = obs.slice(from, to);
+        if (heard.some(p => p.junk)) continue;
+        const phones = heard.map(p => p.p), n = phones.length;
+        const leftLength = words[left.word].end - words[left.word].start, rightLength = words[right.word].end - words[right.word].start;
+        if (n < leftLength + rightLength + MIN_ADDED) continue;
+        const leftNow = phones.slice(0, left.obsTo - from), rightNow = phones.slice(right.obsFrom - from).reverse();
+        const leftLimit = Math.min(WRONG * weight(left.word), edgeFit(left.word, leftNow, true, true)[leftNow.length]);
+        const rightLimit = Math.min(WRONG * weight(right.word), edgeFit(right.word, rightNow, false, true)[rightNow.length]);
+        const l = edgeFit(left.word, phones, true, true), r = edgeFit(right.word, [...phones].reverse(), false, true);
+        let joined = Infinity;
+        for (let a = 0; a <= n; a++) joined = Math.min(joined, l[a] + r[n - a]);
+        const consonants = [0];
+        for (const p of phones) consonants.push(consonants.at(-1)! + Number(CONSONANTS.has(p)));
+        let best: { a: number; b: number; cost: number } | null = null;
+        for (let a = 1; a + MIN_ADDED < n; a++) {
+          if (l[a] > leftLimit) continue;
+          for (let b = a + MIN_ADDED; b < n; b++) {
+            if (consonants[b] - consonants[a] < 2 || r[n - b] > rightLimit) continue;
+            const cost = l[a] + r[n - b];
+            if (joined - cost < MIN_HARD * UNIT) continue;
+            if (!best || cost < best.cost || (cost === best.cost && b - a < best.b - best.a)) best = { a, b, cost };
+          }
+        }
+        if (!best || new Set(phones.slice(best.a, best.b).filter(p => CONSONANTS.has(p))).size < 2) continue;
+        const a = from + best.a, b = from + best.b;
+        const insertion: Step[] = Array.from({ length: b - a }, (_, j) => ({ op: "ins", at: words[right.word].start, obs: a + j }));
+        repairs.push({ from: left.stepFrom, to: right.stepTo, path: [...wordSteps(left.word, from, a), ...insertion, ...wordSteps(right.word, b, to)] });
+      }
+      if (repairs.length) {
+        const repaired = [...steps];
+        for (const r of repairs.reverse()) repaired.splice(r.from, r.to - r.from, ...r.path);
+        return judge(repaired, false);
+      }
     }
     const seen = [...last.keys()];
     const issues = new Map<number, Issue>();
@@ -700,6 +789,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     steps = align();
     const judged = judge(steps);
     if (!judged) return;
+    steps = judged.steps;
     const { issues, head, furthest: reached, right } = judged;
     furthest = Math.max(furthest, reached);
     for (const [wi, o] of [...open]) {
