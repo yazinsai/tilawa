@@ -1,0 +1,13 @@
+{
+ "id": "listener-paired-consonants",
+ "component": "listener",
+ "hypothesis": "Clean/phone paired acoustic consistency with retained transcript loss preserves consonant evidence while reducing listener false warnings without newly missed mistakes.",
+ "expected": {
+  "component": -5,
+  "overall": -5
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-10-31T15:48:10+00:00",
+ "author": "Yazin"
+}
