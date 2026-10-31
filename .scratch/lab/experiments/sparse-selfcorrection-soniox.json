@@ -1,0 +1,16 @@
+{
+ "rec-yazin-rec-v1-01-t1-m8": {
+  "transcript": "إنسان من طين، علق: \"اقرأ وربك.\"",
+  "audioSha256": "68cc3bf238b69fd684a60babd31fb8484cf526a0453046591c7a696c779668f6",
+  "durationS": 7.12,
+  "costUsd": 0.000198,
+  "error": null
+ },
+ "rec-yazin-rec-v1-02-t1-m3": {
+  "transcript": "لتغفر لهم، وجعلوا— جعلوا أصابعهم في—",
+  "audioSha256": "e2d7a37fc57dc0e21976a9b03f6658079fba26a40e7ada625ddd1c5c5d7539df",
+  "durationS": 7.08,
+  "costUsd": 0.000197,
+  "error": null
+ }
+}

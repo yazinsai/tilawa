@@ -1,0 +1,782 @@
+{
+ "version": 1,
+ "testSet": "sparse-selfcorrection-audit",
+ "vendor": "soniox",
+ "createdAt": "2026-10-31T16:48:12+00:00",
+ "model": {
+  "vendor": "soniox",
+  "endpoint": "https://api.soniox.com",
+  "model": "stt-async-v5",
+  "modelInfo": {
+   "id": "stt-async-v5",
+   "aliased_model_id": null,
+   "name": "Speech-to-Text Async v5",
+   "context_version": 2,
+   "transcription_mode": "async",
+   "languages": [
+    {
+     "code": "af",
+     "name": "Afrikaans"
+    },
+    {
+     "code": "sq",
+     "name": "Albanian"
+    },
+    {
+     "code": "ar",
+     "name": "Arabic"
+    },
+    {
+     "code": "az",
+     "name": "Azerbaijani"
+    },
+    {
+     "code": "eu",
+     "name": "Basque"
+    },
+    {
+     "code": "be",
+     "name": "Belarusian"
+    },
+    {
+     "code": "bn",
+     "name": "Bengali"
+    },
+    {
+     "code": "bs",
+     "name": "Bosnian"
+    },
+    {
+     "code": "bg",
+     "name": "Bulgarian"
+    },
+    {
+     "code": "ca",
+     "name": "Catalan"
+    },
+    {
+     "code": "zh",
+     "name": "Chinese"
+    },
+    {
+     "code": "hr",
+     "name": "Croatian"
+    },
+    {
+     "code": "cs",
+     "name": "Czech"
+    },
+    {
+     "code": "da",
+     "name": "Danish"
+    },
+    {
+     "code": "nl",
+     "name": "Dutch"
+    },
+    {
+     "code": "en",
+     "name": "English"
+    },
+    {
+     "code": "et",
+     "name": "Estonian"
+    },
+    {
+     "code": "fi",
+     "name": "Finnish"
+    },
+    {
+     "code": "fr",
+     "name": "French"
+    },
+    {
+     "code": "gl",
+     "name": "Galician"
+    },
+    {
+     "code": "de",
+     "name": "German"
+    },
+    {
+     "code": "el",
+     "name": "Greek"
+    },
+    {
+     "code": "gu",
+     "name": "Gujarati"
+    },
+    {
+     "code": "he",
+     "name": "Hebrew"
+    },
+    {
+     "code": "hi",
+     "name": "Hindi"
+    },
+    {
+     "code": "hu",
+     "name": "Hungarian"
+    },
+    {
+     "code": "id",
+     "name": "Indonesian"
+    },
+    {
+     "code": "it",
+     "name": "Italian"
+    },
+    {
+     "code": "ja",
+     "name": "Japanese"
+    },
+    {
+     "code": "kn",
+     "name": "Kannada"
+    },
+    {
+     "code": "kk",
+     "name": "Kazakh"
+    },
+    {
+     "code": "ko",
+     "name": "Korean"
+    },
+    {
+     "code": "lv",
+     "name": "Latvian"
+    },
+    {
+     "code": "lt",
+     "name": "Lithuanian"
+    },
+    {
+     "code": "mk",
+     "name": "Macedonian"
+    },
+    {
+     "code": "ms",
+     "name": "Malay"
+    },
+    {
+     "code": "ml",
+     "name": "Malayalam"
+    },
+    {
+     "code": "mr",
+     "name": "Marathi"
+    },
+    {
+     "code": "no",
+     "name": "Norwegian"
+    },
+    {
+     "code": "fa",
+     "name": "Persian"
+    },
+    {
+     "code": "pl",
+     "name": "Polish"
+    },
+    {
+     "code": "pt",
+     "name": "Portuguese"
+    },
+    {
+     "code": "pa",
+     "name": "Punjabi"
+    },
+    {
+     "code": "ro",
+     "name": "Romanian"
+    },
+    {
+     "code": "ru",
+     "name": "Russian"
+    },
+    {
+     "code": "sr",
+     "name": "Serbian"
+    },
+    {
+     "code": "sk",
+     "name": "Slovak"
+    },
+    {
+     "code": "sl",
+     "name": "Slovenian"
+    },
+    {
+     "code": "es",
+     "name": "Spanish"
+    },
+    {
+     "code": "sw",
+     "name": "Swahili"
+    },
+    {
+     "code": "sv",
+     "name": "Swedish"
+    },
+    {
+     "code": "tl",
+     "name": "Tagalog"
+    },
+    {
+     "code": "ta",
+     "name": "Tamil"
+    },
+    {
+     "code": "te",
+     "name": "Telugu"
+    },
+    {
+     "code": "th",
+     "name": "Thai"
+    },
+    {
+     "code": "tr",
+     "name": "Turkish"
+    },
+    {
+     "code": "uk",
+     "name": "Ukrainian"
+    },
+    {
+     "code": "ur",
+     "name": "Urdu"
+    },
+    {
+     "code": "vi",
+     "name": "Vietnamese"
+    },
+    {
+     "code": "cy",
+     "name": "Welsh"
+    }
+   ],
+   "supports_language_hints_strict": true,
+   "supports_max_endpoint_delay": false,
+   "supports_endpoint_sensitivity": false,
+   "supports_endpoint_latency_adjustment": false,
+   "endpoint_latency_adjustment_max_level": 0,
+   "supports_agent_text_input": false,
+   "translation_targets": [],
+   "two_way_translation_pairs": [],
+   "one_way_translation": "all_languages",
+   "two_way_translation": "all_languages"
+  },
+  "config": {
+   "model": "stt-async-v5",
+   "language_hints": [
+    "ar"
+   ],
+   "language_hints_strict": true
+  },
+  "pricePerHour": 0.1
+ },
+ "items": {
+  "rec-yazin-rec-v1-01-t1-m8": {
+   "audio": {
+    "path": "recordings/sessions/rec-yazin-rec-v1-01-t1.phone.wav",
+    "startS": 130.48,
+    "endS": 137.6
+   },
+   "audioSha256": "68cc3bf238b69fd684a60babd31fb8484cf526a0453046591c7a696c779668f6",
+   "durationS": 7.12,
+   "transcript": "إنسان من طين، علق: \"اقرأ وربك.\"",
+   "raw": {
+    "transcript": {
+     "id": "879d82ab-bf7d-4568-8843-44a5c76ea403",
+     "text": "إنسان من طين، علق: \"اقرأ وربك.\"",
+     "tokens": [
+      {
+       "text": "إ",
+       "start_ms": 810,
+       "end_ms": 870,
+       "confidence": 0.9280636310577393,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "نس",
+       "start_ms": 990,
+       "end_ms": 1050,
+       "confidence": 0.9991821646690369,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "ان",
+       "start_ms": 1110,
+       "end_ms": 1170,
+       "confidence": 0.9998341202735901,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": " من",
+       "start_ms": 1470,
+       "end_ms": 1530,
+       "confidence": 0.9940768480300903,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": " ط",
+       "start_ms": 2130,
+       "end_ms": 2190,
+       "confidence": 0.9997044205665588,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "ين،",
+       "start_ms": 2250,
+       "end_ms": 2310,
+       "confidence": 0.5676144957542419,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": " ع",
+       "start_ms": 4050,
+       "end_ms": 4110,
+       "confidence": 0.9862131476402283,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "لق",
+       "start_ms": 4230,
+       "end_ms": 4290,
+       "confidence": 0.8897356986999512,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": ":",
+       "start_ms": 5370,
+       "end_ms": 5430,
+       "confidence": 0.6266658902168274,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": " \"",
+       "start_ms": 5610,
+       "end_ms": 5670,
+       "confidence": 0.6920406818389893,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "اق",
+       "start_ms": 5670,
+       "end_ms": 5670,
+       "confidence": 0.9859941601753235,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "ر",
+       "start_ms": 5790,
+       "end_ms": 5850,
+       "confidence": 0.9040694236755371,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "أ",
+       "start_ms": 5910,
+       "end_ms": 5970,
+       "confidence": 0.9855579733848572,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": " و",
+       "start_ms": 6450,
+       "end_ms": 6510,
+       "confidence": 0.9494107961654663,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "رب",
+       "start_ms": 6690,
+       "end_ms": 6750,
+       "confidence": 0.9967228174209595,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "ك",
+       "start_ms": 6750,
+       "end_ms": 6750,
+       "confidence": 0.9965669512748718,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": ".\"",
+       "start_ms": 6750,
+       "end_ms": 6750,
+       "confidence": 0.6677576303482056,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      }
+     ]
+    },
+    "transcription": {
+     "id": "879d82ab-bf7d-4568-8843-44a5c76ea403",
+     "status": "completed",
+     "created_at": "2026-10-31T16:48:17.548Z",
+     "model": "stt-async-v5",
+     "audio_url": null,
+     "file_id": "85d321d9-c45b-43b2-a184-b691905efdef",
+     "filename": "68cc3bf238b69fd6.wav",
+     "language_hints": [
+      "ar"
+     ],
+     "enable_speaker_diarization": false,
+     "enable_language_identification": false,
+     "enable_audio_event_detection": false,
+     "audio_duration_ms": 7120,
+     "error_type": null,
+     "error_message": null,
+     "webhook_url": null,
+     "webhook_auth_header_name": null,
+     "webhook_auth_header_value": null,
+     "webhook_status_code": null,
+     "client_reference_id": null
+    },
+    "file": {
+     "id": "85d321d9-c45b-43b2-a184-b691905efdef",
+     "filename": "68cc3bf238b69fd6.wav",
+     "size": 227884,
+     "created_at": "2026-10-31T16:48:17.440Z",
+     "client_reference_id": null
+    }
+   },
+   "timing": {
+    "uploadS": 0.45,
+    "submitToDoneS": 1.81,
+    "totalS": 2.49
+   },
+   "costUsd": 0.000198,
+   "request": {
+    "base": {
+     "model": "stt-async-v5",
+     "language_hints": [
+      "ar"
+     ]
+    },
+    "sent": {
+     "model": "stt-async-v5",
+     "language_hints": [
+      "ar"
+     ],
+     "language_hints_strict": true
+    }
+   },
+   "transcribedAt": "2026-10-31T16:48:19+00:00",
+   "chunkWallS": 3.1
+  },
+  "rec-yazin-rec-v1-02-t1-m3": {
+   "audio": {
+    "path": "recordings/sessions/rec-yazin-rec-v1-02-t1.phone.wav",
+    "startS": 61.92,
+    "endS": 69.0
+   },
+   "audioSha256": "e2d7a37fc57dc0e21976a9b03f6658079fba26a40e7ada625ddd1c5c5d7539df",
+   "durationS": 7.08,
+   "transcript": "لتغفر لهم، وجعلوا— جعلوا أصابعهم في—",
+   "raw": {
+    "transcript": {
+     "id": "4a2217da-4f27-46ff-95fc-54b606ef9634",
+     "text": "لتغفر لهم، وجعلوا— جعلوا أصابعهم في—",
+     "tokens": [
+      {
+       "text": "لت",
+       "start_ms": 570,
+       "end_ms": 630,
+       "confidence": 0.9633008241653442,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "غ",
+       "start_ms": 810,
+       "end_ms": 870,
+       "confidence": 0.993579626083374,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "فر",
+       "start_ms": 990,
+       "end_ms": 1050,
+       "confidence": 0.9995652437210083,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": " ل",
+       "start_ms": 1350,
+       "end_ms": 1410,
+       "confidence": 0.9995532631874084,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "هم",
+       "start_ms": 1530,
+       "end_ms": 1590,
+       "confidence": 0.9980027675628662,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "،",
+       "start_ms": 1770,
+       "end_ms": 1830,
+       "confidence": 0.9730550646781921,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": " وج",
+       "start_ms": 2370,
+       "end_ms": 2430,
+       "confidence": 0.7539806962013245,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "عل",
+       "start_ms": 2610,
+       "end_ms": 2670,
+       "confidence": 0.9976548552513123,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "وا",
+       "start_ms": 2790,
+       "end_ms": 2850,
+       "confidence": 0.9997959136962891,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "—",
+       "start_ms": 3990,
+       "end_ms": 4050,
+       "confidence": 0.5622199773788452,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": " ج",
+       "start_ms": 4110,
+       "end_ms": 4170,
+       "confidence": 0.8642972111701965,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "عل",
+       "start_ms": 4290,
+       "end_ms": 4350,
+       "confidence": 0.9969661831855774,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "وا",
+       "start_ms": 4530,
+       "end_ms": 4590,
+       "confidence": 0.9999828338623047,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": " أ",
+       "start_ms": 5130,
+       "end_ms": 5190,
+       "confidence": 0.9997349381446838,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "ص",
+       "start_ms": 5190,
+       "end_ms": 5250,
+       "confidence": 0.9997292160987854,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "ابع",
+       "start_ms": 5370,
+       "end_ms": 5430,
+       "confidence": 0.999601423740387,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "هم",
+       "start_ms": 5730,
+       "end_ms": 5790,
+       "confidence": 0.9995557069778442,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": " في",
+       "start_ms": 6150,
+       "end_ms": 6210,
+       "confidence": 0.9998628497123718,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      },
+      {
+       "text": "—",
+       "start_ms": 6570,
+       "end_ms": 6630,
+       "confidence": 0.4804786145687103,
+       "speaker": null,
+       "language": null,
+       "is_audio_event": null,
+       "translation_status": null
+      }
+     ]
+    },
+    "transcription": {
+     "id": "4a2217da-4f27-46ff-95fc-54b606ef9634",
+     "status": "completed",
+     "created_at": "2026-10-31T16:48:17.617Z",
+     "model": "stt-async-v5",
+     "audio_url": null,
+     "file_id": "09968c6f-37bf-4d7b-942b-2897fcbbc0d2",
+     "filename": "e2d7a37fc57dc0e2.wav",
+     "language_hints": [
+      "ar"
+     ],
+     "enable_speaker_diarization": false,
+     "enable_language_identification": false,
+     "enable_audio_event_detection": false,
+     "audio_duration_ms": 7080,
+     "error_type": null,
+     "error_message": null,
+     "webhook_url": null,
+     "webhook_auth_header_name": null,
+     "webhook_auth_header_value": null,
+     "webhook_status_code": null,
+     "client_reference_id": null
+    },
+    "file": {
+     "id": "09968c6f-37bf-4d7b-942b-2897fcbbc0d2",
+     "filename": "e2d7a37fc57dc0e2.wav",
+     "size": 226604,
+     "created_at": "2026-10-31T16:48:17.511Z",
+     "client_reference_id": null
+    }
+   },
+   "timing": {
+    "uploadS": 0.51,
+    "submitToDoneS": 1.85,
+    "totalS": 2.62
+   },
+   "costUsd": 0.000197,
+   "request": {
+    "base": {
+     "model": "stt-async-v5",
+     "language_hints": [
+      "ar"
+     ]
+    },
+    "sent": {
+     "model": "stt-async-v5",
+     "language_hints": [
+      "ar"
+     ],
+     "language_hints_strict": true
+    }
+   },
+   "transcribedAt": "2026-10-31T16:48:19+00:00",
+   "chunkWallS": 3.1
+  }
+ }
+}

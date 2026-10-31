@@ -1,0 +1,205 @@
+{
+ "initRun": "spliced-clean",
+ "cfg": {
+  "name": "",
+  "size": "full",
+  "init": "",
+  "init_run": "",
+  "channel_p": 0.0,
+  "phone_p": 0.75,
+  "pair_weight": 0.5,
+  "max_steps": 0,
+  "buckets": "clean-match",
+  "target": "spliced",
+  "max_hours": 0.0,
+  "max_clip_s": 30.0,
+  "epochs": 6,
+  "max_batch_s": 800.0,
+  "base_lr": 0.045,
+  "lr_batches": 7500,
+  "lr_epochs": 3.5,
+  "ctc_weight": 1.0,
+  "kd_weight": 2.0,
+  "kd_delay": 0,
+  "noise_p": 0.5,
+  "snr_db": [
+   5.0,
+   25.0
+  ],
+  "rir_p": 0.2,
+  "spec_aug": true,
+  "eval_max": 3000,
+  "eval_every": 2000,
+  "ckpt_every": 1000,
+  "workers": 12,
+  "seed": 0
+ },
+ "batches": [
+  {
+   "keys": [
+    "clean-00006-of-00411:932",
+    "clean-00011-of-00411:908"
+   ],
+   "losses": {
+    "ctc": 0.10374987870454788,
+    "loss": 0.8247250914573669,
+    "kd": 0.3035522401332855,
+    "clean_ctc": 0.08917711675167084,
+    "paired_kl": 0.049387216567993164,
+    "frames": 520.0
+   },
+   "ctcVsWeightedKD": {
+    "normA": 0.757800426267138,
+    "normB": 3.421920403239331,
+    "ratio": 0.2214547204399532,
+    "cosine": 0.46526608535568165
+   },
+   "cleanCtcVsWeightedKD": {
+    "normA": 0.45218551201125395,
+    "normB": 3.421920403239331,
+    "ratio": 0.13214378440340008,
+    "cosine": -0.14922154399664928
+   },
+   "weightedKLvsWeightedKD": {
+    "normA": 0.6801050533350064,
+    "normB": 3.421920403239331,
+    "ratio": 0.19874952459186102,
+    "cosine": 0.7720493705640172
+   },
+   "ctcVsCleanCtc": {
+    "normA": 0.757800426267138,
+    "normB": 0.45218551201125395,
+    "ratio": 1.675861800384878,
+    "cosine": 0.45728139323617695
+   },
+   "identical": {
+    "kl": 5.472155173436022e-09,
+    "ctcDifference": 0.0,
+    "legacyVsBase": {
+     "normA": 10.22852401108521,
+     "normB": 9.959579207836404,
+     "ratio": 1.0270036311410822,
+     "cosine": 0.9974547586977272
+    },
+    "correctedVsBase": {
+     "normA": 9.512084846789607,
+     "normB": 9.959579207836404,
+     "ratio": 0.9550689490280173,
+     "cosine": 0.9995438953694743
+    },
+    "correctedRelativeGradientError": 0.05375892587159738
+   }
+  },
+  {
+   "keys": [
+    "clean-00243-of-00411:531",
+    "clean-00256-of-00411:776"
+   ],
+   "losses": {
+    "ctc": 0.08776195347309113,
+    "loss": 0.844083309173584,
+    "kd": 0.3136025369167328,
+    "clean_ctc": 0.082817941904068,
+    "paired_kl": 0.09259673207998276,
+    "frames": 343.0
+   },
+   "ctcVsWeightedKD": {
+    "normA": 5.4535755160543395,
+    "normB": 9.28257003684142,
+    "ratio": 0.5875070690993706,
+    "cosine": 0.9304435986968853
+   },
+   "cleanCtcVsWeightedKD": {
+    "normA": 1.3250755939766374,
+    "normB": 9.28257003684142,
+    "ratio": 0.14274878495045762,
+    "cosine": 0.4161853629004907
+   },
+   "weightedKLvsWeightedKD": {
+    "normA": 2.172733694869819,
+    "normB": 9.28257003684142,
+    "ratio": 0.2340659630087892,
+    "cosine": 0.9494009854445133
+   },
+   "ctcVsCleanCtc": {
+    "normA": 5.4535755160543395,
+    "normB": 1.3250755939766374,
+    "ratio": 4.115671242338565,
+    "cosine": 0.4772070670883482
+   },
+   "identical": {
+    "kl": 7.507569677045467e-09,
+    "ctcDifference": 0.0,
+    "legacyVsBase": {
+     "normA": 7.7579843966998245,
+     "normB": 5.956064781531297,
+     "ratio": 1.302535261328245,
+     "cosine": 0.987296383754532
+    },
+    "correctedVsBase": {
+     "normA": 5.944249147406692,
+     "normB": 5.956064781531297,
+     "ratio": 0.9980162012070045,
+     "cosine": 0.9980385171246275
+    },
+    "correctedRelativeGradientError": 0.06260286601731666
+   }
+  },
+  {
+   "keys": [
+    "clean-00381-of-00411:417",
+    "clean-00388-of-00411:697"
+   ],
+   "losses": {
+    "ctc": 0.08497060090303421,
+    "loss": 0.7160649299621582,
+    "kd": 0.2649995684623718,
+    "clean_ctc": 0.05682054162025452,
+    "paired_kl": 0.08854943513870239,
+    "frames": 238.0
+   },
+   "ctcVsWeightedKD": {
+    "normA": 0.9912774601754155,
+    "normB": 6.822598086549088,
+    "ratio": 0.14529325157372852,
+    "cosine": 0.5832977264040443
+   },
+   "cleanCtcVsWeightedKD": {
+    "normA": 0.5130129562419339,
+    "normB": 6.822598086549088,
+    "ratio": 0.07519319615988386,
+    "cosine": 0.20001232562384275
+   },
+   "weightedKLvsWeightedKD": {
+    "normA": 1.773325147310262,
+    "normB": 6.822598086549088,
+    "ratio": 0.25991933348769497,
+    "cosine": 0.9028728074233491
+   },
+   "ctcVsCleanCtc": {
+    "normA": 0.9912774601754155,
+    "normB": 0.5130129562419339,
+    "ratio": 1.9322659361997379,
+    "cosine": 0.5765347988973527
+   },
+   "identical": {
+    "kl": 6.8587553414545255e-09,
+    "ctcDifference": 0.0,
+    "legacyVsBase": {
+     "normA": 7.443154307911985,
+     "normB": 6.927943240743427,
+     "ratio": 1.0743671027987913,
+     "cosine": 0.9952053002243041
+    },
+    "correctedVsBase": {
+     "normA": 7.048951660624789,
+     "normB": 6.927943240743427,
+     "ratio": 1.0174667164086606,
+     "cosine": 0.9997245508629456
+    },
+    "correctedRelativeGradientError": 0.02942119712267032
+   }
+  }
+ ],
+ "trainingUpdates": 0
+}

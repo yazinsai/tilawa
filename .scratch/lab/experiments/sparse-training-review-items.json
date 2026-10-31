@@ -1,0 +1,410 @@
+[
+ {
+  "id": "clean-00008-of-00411:581",
+  "audio": {
+   "path": "sparse-training-review/clean-00008-of-00411_581.wav",
+   "startS": 0.0,
+   "endS": 4.2725
+  }
+ },
+ {
+  "id": "clean-00016-of-00411:642",
+  "audio": {
+   "path": "sparse-training-review/clean-00016-of-00411_642.wav",
+   "startS": 0.0,
+   "endS": 3.625375
+  }
+ },
+ {
+  "id": "clean-00038-of-00411:451",
+  "audio": {
+   "path": "sparse-training-review/clean-00038-of-00411_451.wav",
+   "startS": 0.0,
+   "endS": 14.5589375
+  }
+ },
+ {
+  "id": "clean-00047-of-00411:113",
+  "audio": {
+   "path": "sparse-training-review/clean-00047-of-00411_113.wav",
+   "startS": 0.0,
+   "endS": 7.424
+  }
+ },
+ {
+  "id": "clean-00081-of-00411:202",
+  "audio": {
+   "path": "sparse-training-review/clean-00081-of-00411_202.wav",
+   "startS": 0.0,
+   "endS": 3.4365625
+  }
+ },
+ {
+  "id": "clean-00086-of-00411:925",
+  "audio": {
+   "path": "sparse-training-review/clean-00086-of-00411_925.wav",
+   "startS": 0.0,
+   "endS": 4.644
+  }
+ },
+ {
+  "id": "clean-00118-of-00411:508",
+  "audio": {
+   "path": "sparse-training-review/clean-00118-of-00411_508.wav",
+   "startS": 0.0,
+   "endS": 4.551125
+  }
+ },
+ {
+  "id": "clean-00126-of-00411:530",
+  "audio": {
+   "path": "sparse-training-review/clean-00126-of-00411_530.wav",
+   "startS": 0.0,
+   "endS": 3.9253125
+  }
+ },
+ {
+  "id": "clean-00126-of-00411:838",
+  "audio": {
+   "path": "sparse-training-review/clean-00126-of-00411_838.wav",
+   "startS": 0.0,
+   "endS": 6.5706875
+  }
+ },
+ {
+  "id": "clean-00131-of-00411:88",
+  "audio": {
+   "path": "sparse-training-review/clean-00131-of-00411_88.wav",
+   "startS": 0.0,
+   "endS": 4.1813125
+  }
+ },
+ {
+  "id": "clean-00167-of-00411:394",
+  "audio": {
+   "path": "sparse-training-review/clean-00167-of-00411_394.wav",
+   "startS": 0.0,
+   "endS": 12.9103125
+  }
+ },
+ {
+  "id": "clean-00176-of-00411:17",
+  "audio": {
+   "path": "sparse-training-review/clean-00176-of-00411_17.wav",
+   "startS": 0.0,
+   "endS": 13.53725
+  }
+ },
+ {
+  "id": "clean-00178-of-00411:880",
+  "audio": {
+   "path": "sparse-training-review/clean-00178-of-00411_880.wav",
+   "startS": 0.0,
+   "endS": 7.453625
+  }
+ },
+ {
+  "id": "clean-00199-of-00411:840",
+  "audio": {
+   "path": "sparse-training-review/clean-00199-of-00411_840.wav",
+   "startS": 0.0,
+   "endS": 4.4373125
+  }
+ },
+ {
+  "id": "clean-00231-of-00411:295",
+  "audio": {
+   "path": "sparse-training-review/clean-00231-of-00411_295.wav",
+   "startS": 0.0,
+   "endS": 3.1573125
+  }
+ },
+ {
+  "id": "clean-00245-of-00411:5",
+  "audio": {
+   "path": "sparse-training-review/clean-00245-of-00411_5.wav",
+   "startS": 0.0,
+   "endS": 11.099125
+  }
+ },
+ {
+  "id": "clean-00249-of-00411:427",
+  "audio": {
+   "path": "sparse-training-review/clean-00249-of-00411_427.wav",
+   "startS": 0.0,
+   "endS": 4.096
+  }
+ },
+ {
+  "id": "clean-00280-of-00411:398",
+  "audio": {
+   "path": "sparse-training-review/clean-00280-of-00411_398.wav",
+   "startS": 0.0,
+   "endS": 8.6996875
+  }
+ },
+ {
+  "id": "clean-00306-of-00411:495",
+  "audio": {
+   "path": "sparse-training-review/clean-00306-of-00411_495.wav",
+   "startS": 0.0,
+   "endS": 5.4613125
+  }
+ },
+ {
+  "id": "clean-00312-of-00411:423",
+  "audio": {
+   "path": "sparse-training-review/clean-00312-of-00411_423.wav",
+   "startS": 0.0,
+   "endS": 5.20125
+  }
+ },
+ {
+  "id": "clean-00320-of-00411:669",
+  "audio": {
+   "path": "sparse-training-review/clean-00320-of-00411_669.wav",
+   "startS": 0.0,
+   "endS": 3.2508125
+  }
+ },
+ {
+  "id": "clean-00321-of-00411:112",
+  "audio": {
+   "path": "sparse-training-review/clean-00321-of-00411_112.wav",
+   "startS": 0.0,
+   "endS": 4.0866875
+  }
+ },
+ {
+  "id": "clean-00322-of-00411:784",
+  "audio": {
+   "path": "sparse-training-review/clean-00322-of-00411_784.wav",
+   "startS": 0.0,
+   "endS": 5.535625
+  }
+ },
+ {
+  "id": "clean-00326-of-00411:601",
+  "audio": {
+   "path": "sparse-training-review/clean-00326-of-00411_601.wav",
+   "startS": 0.0,
+   "endS": 4.0106875
+  }
+ },
+ {
+  "id": "clean-00338-of-00411:401",
+  "audio": {
+   "path": "sparse-training-review/clean-00338-of-00411_401.wav",
+   "startS": 0.0,
+   "endS": 3.2426875
+  }
+ },
+ {
+  "id": "clean-00340-of-00411:648",
+  "audio": {
+   "path": "sparse-training-review/clean-00340-of-00411_648.wav",
+   "startS": 0.0,
+   "endS": 3.8080625
+  }
+ },
+ {
+  "id": "clean-00346-of-00411:841",
+  "audio": {
+   "path": "sparse-training-review/clean-00346-of-00411_841.wav",
+   "startS": 0.0,
+   "endS": 8.192
+  }
+ },
+ {
+  "id": "clean-00356-of-00411:344",
+  "audio": {
+   "path": "sparse-training-review/clean-00356-of-00411_344.wav",
+   "startS": 0.0,
+   "endS": 3.8374375
+  }
+ },
+ {
+  "id": "clean-00356-of-00411:580",
+  "audio": {
+   "path": "sparse-training-review/clean-00356-of-00411_580.wav",
+   "startS": 0.0,
+   "endS": 4.1813125
+  }
+ },
+ {
+  "id": "clean-00357-of-00411:602",
+  "audio": {
+   "path": "sparse-training-review/clean-00357-of-00411_602.wav",
+   "startS": 0.0,
+   "endS": 2.414875
+  }
+ },
+ {
+  "id": "clean-00362-of-00411:681",
+  "audio": {
+   "path": "sparse-training-review/clean-00362-of-00411_681.wav",
+   "startS": 0.0,
+   "endS": 6.5805
+  }
+ },
+ {
+  "id": "clean-00362-of-00411:772",
+  "audio": {
+   "path": "sparse-training-review/clean-00362-of-00411_772.wav",
+   "startS": 0.0,
+   "endS": 4.439625
+  }
+ },
+ {
+  "id": "clean-00372-of-00411:479",
+  "audio": {
+   "path": "sparse-training-review/clean-00372-of-00411_479.wav",
+   "startS": 0.0,
+   "endS": 3.721375
+  }
+ },
+ {
+  "id": "clean-00373-of-00411:939",
+  "audio": {
+   "path": "sparse-training-review/clean-00373-of-00411_939.wav",
+   "startS": 0.0,
+   "endS": 2.8111875
+  }
+ },
+ {
+  "id": "clean-00379-of-00411:420",
+  "audio": {
+   "path": "sparse-training-review/clean-00379-of-00411_420.wav",
+   "startS": 0.0,
+   "endS": 7.60375
+  }
+ },
+ {
+  "id": "clean-00382-of-00411:500",
+  "audio": {
+   "path": "sparse-training-review/clean-00382-of-00411_500.wav",
+   "startS": 0.0,
+   "endS": 3.584
+  }
+ },
+ {
+  "id": "clean-00386-of-00411:949",
+  "audio": {
+   "path": "sparse-training-review/clean-00386-of-00411_949.wav",
+   "startS": 0.0,
+   "endS": 3.84
+  }
+ },
+ {
+  "id": "clean-00391-of-00411:916",
+  "audio": {
+   "path": "sparse-training-review/clean-00391-of-00411_916.wav",
+   "startS": 0.0,
+   "endS": 4.45825
+  }
+ },
+ {
+  "id": "clean-00395-of-00411:175",
+  "audio": {
+   "path": "sparse-training-review/clean-00395-of-00411_175.wav",
+   "startS": 0.0,
+   "endS": 3.8080625
+  }
+ },
+ {
+  "id": "clean-00398-of-00411:130",
+  "audio": {
+   "path": "sparse-training-review/clean-00398-of-00411_130.wav",
+   "startS": 0.0,
+   "endS": 2.87925
+  }
+ },
+ {
+  "id": "clean-00410-of-00411:2",
+  "audio": {
+   "path": "sparse-training-review/clean-00410-of-00411_2.wav",
+   "startS": 0.0,
+   "endS": 3.9253125
+  }
+ },
+ {
+  "id": "unclean-00039-of-00332:868",
+  "audio": {
+   "path": "sparse-training-review/unclean-00039-of-00332_868.wav",
+   "startS": 0.0,
+   "endS": 16.997
+  }
+ },
+ {
+  "id": "unclean-00055-of-00332:702",
+  "audio": {
+   "path": "sparse-training-review/unclean-00055-of-00332_702.wav",
+   "startS": 0.0,
+   "endS": 3.9676875
+  }
+ },
+ {
+  "id": "unclean-00089-of-00332:496",
+  "audio": {
+   "path": "sparse-training-review/unclean-00089-of-00332_496.wav",
+   "startS": 0.0,
+   "endS": 5.5728125
+  }
+ },
+ {
+  "id": "unclean-00142-of-00332:167",
+  "audio": {
+   "path": "sparse-training-review/unclean-00142-of-00332_167.wav",
+   "startS": 0.0,
+   "endS": 11.1455625
+  }
+ },
+ {
+  "id": "unclean-00157-of-00332:840",
+  "audio": {
+   "path": "sparse-training-review/unclean-00157-of-00332_840.wav",
+   "startS": 0.0,
+   "endS": 6.4086875
+  }
+ },
+ {
+  "id": "unclean-00236-of-00332:603",
+  "audio": {
+   "path": "sparse-training-review/unclean-00236-of-00332_603.wav",
+   "startS": 0.0,
+   "endS": 7.430375
+  }
+ },
+ {
+  "id": "unclean-00245-of-00332:488",
+  "audio": {
+   "path": "sparse-training-review/unclean-00245-of-00332_488.wav",
+   "startS": 0.0,
+   "endS": 4.365375
+  }
+ },
+ {
+  "id": "unclean-00254-of-00332:731",
+  "audio": {
+   "path": "sparse-training-review/unclean-00254-of-00332_731.wav",
+   "startS": 0.0,
+   "endS": 2.600625
+  }
+ },
+ {
+  "id": "unclean-00278-of-00332:699",
+  "audio": {
+   "path": "sparse-training-review/unclean-00278-of-00332_699.wav",
+   "startS": 0.0,
+   "endS": 9.380875
+  }
+ },
+ {
+  "id": "unclean-00306-of-00332:83",
+  "audio": {
+   "path": "sparse-training-review/unclean-00306-of-00332_83.wav",
+   "startS": 0.0,
+   "endS": 7.058875
+  }
+ }
+]

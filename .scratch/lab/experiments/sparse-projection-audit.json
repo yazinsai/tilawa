@@ -1,0 +1,59 @@
+{
+ "scope": "Projection-layer gradients, frozen encoder features, FP32 head; no stochastic encoder backward modifiers. Phone augmentation fixed within each audited batch.",
+ "batches": [
+  {
+   "keys": [
+    "clean-00006-of-00411:932",
+    "clean-00011-of-00411:908"
+   ],
+   "noisyCTC": {
+    "norm": 0.3218051493167877,
+    "ratioToKD": 0.7526795268058777,
+    "cosineToKD": -0.7872786521911621
+   },
+   "cleanCTC": {
+    "norm": 0.32057178020477295,
+    "ratioToKD": 0.7497947812080383,
+    "cosineToKD": -0.7935031056404114
+   },
+   "weightedKDNorm": 0.42754602432250977,
+   "normalizedIdenticalHeadError": 0.0
+  },
+  {
+   "keys": [
+    "clean-00243-of-00411:531",
+    "clean-00256-of-00411:776"
+   ],
+   "noisyCTC": {
+    "norm": 0.27992570400238037,
+    "ratioToKD": 1.0884026288986206,
+    "cosineToKD": -0.8722997903823853
+   },
+   "cleanCTC": {
+    "norm": 0.26453012228012085,
+    "ratioToKD": 1.0285418033599854,
+    "cosineToKD": -0.8613125085830688
+   },
+   "weightedKDNorm": 0.25718948245048523,
+   "normalizedIdenticalHeadError": 0.0
+  },
+  {
+   "keys": [
+    "clean-00381-of-00411:417",
+    "clean-00388-of-00411:697"
+   ],
+   "noisyCTC": {
+    "norm": 0.24959444999694824,
+    "ratioToKD": 0.912217378616333,
+    "cosineToKD": -0.5598798394203186
+   },
+   "cleanCTC": {
+    "norm": 0.25163838267326355,
+    "ratioToKD": 0.9196875095367432,
+    "cosineToKD": -0.5861361622810364
+   },
+   "weightedKDNorm": 0.273612916469574,
+   "normalizedIdenticalHeadError": 0.0
+  }
+ ]
+}

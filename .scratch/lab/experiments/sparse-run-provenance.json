@@ -1,0 +1,40 @@
+{
+ "objective": {
+  "appIds": [
+   "ap-Y9pkzxChXUm3M5btZHHxkl"
+  ]
+ },
+ "projection": {
+  "appIds": [
+   "ap-588GgFZwB88k0nHt97pObF"
+  ]
+ },
+ "mining": {
+  "appIds": [
+   "ap-YnXF1ZEHzfov2wnqurkP4K"
+  ]
+ },
+ "selfCorrectionReview": {
+  "appIds": [
+   "ap-jrBnV83b11HmSU2HbSavj1"
+  ]
+ },
+ "trainingReview": {
+  "appIds": [
+   "ap-4YTVne3QSqbbk5WAOrZTUe"
+  ]
+ },
+ "lossInvariants": {
+  "appIds": [
+   "ap-GjZ59KtczMxNIMKhRim8qD"
+  ]
+ },
+ "baselineControls": {
+  "appIds": [
+   "ap-NCKCRuoCmUQM1qEoHo79ZZ"
+  ]
+ },
+ "trainingUpdates": 0,
+ "verifiedPerArm": 16,
+ "pool": 21161
+}

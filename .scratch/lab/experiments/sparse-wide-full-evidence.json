@@ -1,0 +1,2229 @@
+{
+ "summary": {
+  "phone": {
+   "pairs": 18,
+   "weakNarrow": 14,
+   "weakWide": 12,
+   "newWidePeaks": 2
+  },
+  "studio": {
+   "pairs": 3,
+   "weakNarrow": 1,
+   "weakWide": 1,
+   "newWidePeaks": 0
+  }
+ },
+ "rows": [
+  {
+   "incident": {
+    "key": "lab-v1.5-p26/phone/warning:skipped_passage/41:19:7/282.48",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p26",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "skipped_passage",
+    "word": "41:19:7",
+    "timeS": 282.48,
+    "confirmedS": 307.68,
+    "component": "listener",
+    "nonError": null,
+    "expected": "فَهُميُۥۥزَعُۥۥنحَتتَااااءِذَاامَااجَااااءُۥۥهَااشَهِدَعَلَيهِمسَمعُهُموَءَبڇصَاارُهُموَجُلُۥۥدُهُ۾۾۾بِمَااكَاانُۥۥ",
+    "observed": null,
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 0.95,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p26.phone.wav",
+     "startS": 278.48,
+     "endS": 284.48
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "ج",
+   "wordSpan": [
+    283.25,
+    284.53
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.1579,
+     "peakS": 283.48,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ج",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.1579,
+     "peakS": 283.48,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ج",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.1579,
+     "peakS": 283.48,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ج",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.1579,
+     "peakS": 283.48,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ج",
+       "col": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p31/phone/warning:skipped_passage/4:162:15/145.28",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p31",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "skipped_passage",
+    "word": "4:162:15",
+    "timeS": 145.28,
+    "confirmedS": 155.96,
+    "component": "listener",
+    "nonError": null,
+    "expected": "وَلمُقِۦۦمِۦۦنَ",
+    "observed": "وَلمُءمِنِۥۥنَ",
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p31.phone.wav",
+     "startS": 141.28,
+     "endS": 147.28
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "ق",
+   "wordSpan": [
+    143.165,
+    144.685
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0,
+     "peakS": null,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ق",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0,
+     "peakS": null,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ق",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.0004,
+     "peakS": 144.92,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ق",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.0059,
+     "peakS": 145.0,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ق",
+       "col": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p32/phone/warning:wrong_word/22:60:11/18.96",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p32",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "wrong_word",
+    "word": "22:60:11",
+    "timeS": 18.96,
+    "confirmedS": 21.48,
+    "component": "listener",
+    "nonError": null,
+    "expected": "لَيَںںںصُرَننننَهُ",
+    "observed": "ََصَُننَهُ",
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p32.phone.wav",
+     "startS": 14.96,
+     "endS": 20.96
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "ر",
+   "wordSpan": [
+    17.055,
+    18.975
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.291,
+     "peakS": 18.24,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ر",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.291,
+     "peakS": 18.24,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ر",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.291,
+     "peakS": 18.24,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ر",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.291,
+     "peakS": 18.24,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ر",
+       "col": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p32/phone/warning:wrong_word/22:60:11/18.96",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p32",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "wrong_word",
+    "word": "22:60:11",
+    "timeS": 18.96,
+    "confirmedS": 21.48,
+    "component": "listener",
+    "nonError": null,
+    "expected": "لَيَںںںصُرَننننَهُ",
+    "observed": "ََصَُننَهُ",
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p32.phone.wav",
+     "startS": 14.96,
+     "endS": 20.96
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "ل",
+   "wordSpan": [
+    17.055,
+    18.975
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.0517,
+     "peakS": 17.28,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ل",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.8455,
+     "peakS": 19.04,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ل",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.8455,
+     "peakS": 19.04,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ل",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.8455,
+     "peakS": 19.04,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ل",
+       "col": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p32/phone/warning:wrong_word/22:60:11/18.96",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p32",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "wrong_word",
+    "word": "22:60:11",
+    "timeS": 18.96,
+    "confirmedS": 21.48,
+    "component": "listener",
+    "nonError": null,
+    "expected": "لَيَںںںصُرَننننَهُ",
+    "observed": "ََصَُننَهُ",
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p32.phone.wav",
+     "startS": 14.96,
+     "endS": 20.96
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "ن",
+   "wordSpan": [
+    17.055,
+    18.975
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.65,
+     "peakS": 18.68,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ن",
+       "col": 0
+      },
+      {
+       "op": "del",
+       "e": "ن",
+       "col": 0
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 0,
+       "h": "ن",
+       "conf": 0.6101,
+       "t": 18.44
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 0,
+       "h": "ن",
+       "conf": 0.65,
+       "t": 18.68
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.65,
+     "peakS": 18.68,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ن",
+       "col": 1
+      },
+      {
+       "op": "del",
+       "e": "ن",
+       "col": 1
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 1,
+       "h": "ن",
+       "conf": 0.6101,
+       "t": 18.44
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 1,
+       "h": "ن",
+       "conf": 0.65,
+       "t": 18.68
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.65,
+     "peakS": 18.68,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ن",
+       "col": 1
+      },
+      {
+       "op": "del",
+       "e": "ن",
+       "col": 1
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 1,
+       "h": "ن",
+       "conf": 0.6101,
+       "t": 18.44
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 1,
+       "h": "ن",
+       "conf": 0.65,
+       "t": 18.68
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.65,
+     "peakS": 18.68,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ن",
+       "col": 1
+      },
+      {
+       "op": "del",
+       "e": "ن",
+       "col": 1
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 1,
+       "h": "ن",
+       "conf": 0.6101,
+       "t": 18.44
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 1,
+       "h": "ن",
+       "conf": 0.65,
+       "t": 18.68
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p32/phone/warning:wrong_word/22:60:11/18.96",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p32",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "wrong_word",
+    "word": "22:60:11",
+    "timeS": 18.96,
+    "confirmedS": 21.48,
+    "component": "listener",
+    "nonError": null,
+    "expected": "لَيَںںںصُرَننننَهُ",
+    "observed": "ََصَُننَهُ",
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p32.phone.wav",
+     "startS": 14.96,
+     "endS": 20.96
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "ي",
+   "wordSpan": [
+    17.055,
+    18.975
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.1328,
+     "peakS": 17.28,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ي",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.1328,
+     "peakS": 17.28,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ي",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.1328,
+     "peakS": 17.28,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ي",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.996,
+     "peakS": 16.76,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ي",
+       "col": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p32/phone/warning:wrong_word/22:60:11/18.96",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p32",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "wrong_word",
+    "word": "22:60:11",
+    "timeS": 18.96,
+    "confirmedS": 21.48,
+    "component": "listener",
+    "nonError": null,
+    "expected": "لَيَںںںصُرَننننَهُ",
+    "observed": "ََصَُننَهُ",
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p32.phone.wav",
+     "startS": 14.96,
+     "endS": 20.96
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "studio",
+   "token": "ن",
+   "wordSpan": [
+    17.055,
+    18.975
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.9376,
+     "peakS": 18.68,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ن",
+       "col": 0
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 0,
+       "h": "ن",
+       "conf": 0.777,
+       "t": 18.4
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 0,
+       "h": "ن",
+       "conf": 0.7541,
+       "t": 18.52
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 0,
+       "h": "ن",
+       "conf": 0.9376,
+       "t": 18.64
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.9376,
+     "peakS": 18.68,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ن",
+       "col": 1
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 1,
+       "h": "ن",
+       "conf": 0.777,
+       "t": 18.4
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 1,
+       "h": "ن",
+       "conf": 0.7541,
+       "t": 18.52
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 1,
+       "h": "ن",
+       "conf": 0.9376,
+       "t": 18.64
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.9376,
+     "peakS": 18.68,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ن",
+       "col": 1
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 1,
+       "h": "ن",
+       "conf": 0.777,
+       "t": 18.4
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 1,
+       "h": "ن",
+       "conf": 0.7541,
+       "t": 18.52
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 1,
+       "h": "ن",
+       "conf": 0.9376,
+       "t": 18.64
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.9376,
+     "peakS": 18.68,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ن",
+       "col": 1
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 1,
+       "h": "ن",
+       "conf": 0.777,
+       "t": 18.4
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 1,
+       "h": "ن",
+       "conf": 0.7541,
+       "t": 18.52
+      },
+      {
+       "op": "same",
+       "e": "ن",
+       "col": 1,
+       "h": "ن",
+       "conf": 0.9376,
+       "t": 18.64
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p43/phone/warning:added_word/22:13:3/211.60",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p43",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "added_word",
+    "word": "22:13:3",
+    "timeS": 211.6,
+    "confirmedS": 233.72,
+    "component": "listener",
+    "nonError": null,
+    "expected": "ضَررُهُۥۥۥۥ",
+    "observed": null,
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p43.phone.wav",
+     "startS": 207.6,
+     "endS": 213.6
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "ر",
+   "wordSpan": [
+    210.37,
+    211.13
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.8265,
+     "peakS": 210.56,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ر",
+       "col": 0
+      },
+      {
+       "op": "same",
+       "e": "ر",
+       "col": 0,
+       "h": "ر",
+       "conf": 0.8265,
+       "t": 210.56
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.8265,
+     "peakS": 210.56,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ر",
+       "col": 0
+      },
+      {
+       "op": "same",
+       "e": "ر",
+       "col": 0,
+       "h": "ر",
+       "conf": 0.8265,
+       "t": 210.56
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.8265,
+     "peakS": 210.56,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ر",
+       "col": 1
+      },
+      {
+       "op": "same",
+       "e": "ر",
+       "col": 1,
+       "h": "ر",
+       "conf": 0.8265,
+       "t": 210.56
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.8265,
+     "peakS": 210.56,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ر",
+       "col": 1
+      },
+      {
+       "op": "same",
+       "e": "ر",
+       "col": 1,
+       "h": "ر",
+       "conf": 0.8265,
+       "t": 210.56
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p43/phone/warning:added_word/22:13:3/211.60",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p43",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "added_word",
+    "word": "22:13:3",
+    "timeS": 211.6,
+    "confirmedS": 233.72,
+    "component": "listener",
+    "nonError": null,
+    "expected": "ضَررُهُۥۥۥۥ",
+    "observed": null,
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p43.phone.wav",
+     "startS": 207.6,
+     "endS": 213.6
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "ه",
+   "wordSpan": [
+    210.37,
+    211.13
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.184,
+     "peakS": 210.92,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ه",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.184,
+     "peakS": 210.92,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ه",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.184,
+     "peakS": 210.92,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ه",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.184,
+     "peakS": 210.92,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ه",
+       "col": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p45/phone/warning:wrong_word/26:105:1/68.68",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p45",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "wrong_word",
+    "word": "26:105:1",
+    "timeS": 68.68,
+    "confirmedS": 71.4,
+    "component": "listener",
+    "nonError": null,
+    "expected": "كَذذَبَت",
+    "observed": "ََمَت",
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p45.phone.wav",
+     "startS": 64.68,
+     "endS": 70.68
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "ذ",
+   "wordSpan": [
+    67.955,
+    68.675
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.081,
+     "peakS": 68.16,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ذ",
+       "col": 0
+      },
+      {
+       "op": "del",
+       "e": "ذ",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.081,
+     "peakS": 68.16,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ذ",
+       "col": 0
+      },
+      {
+       "op": "del",
+       "e": "ذ",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.081,
+     "peakS": 68.16,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ذ",
+       "col": 0
+      },
+      {
+       "op": "del",
+       "e": "ذ",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.081,
+     "peakS": 68.16,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ذ",
+       "col": 1
+      },
+      {
+       "op": "del",
+       "e": "ذ",
+       "col": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p45/phone/warning:wrong_word/26:105:1/68.68",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p45",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "wrong_word",
+    "word": "26:105:1",
+    "timeS": 68.68,
+    "confirmedS": 71.4,
+    "component": "listener",
+    "nonError": null,
+    "expected": "كَذذَبَت",
+    "observed": "ََمَت",
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p45.phone.wav",
+     "startS": 64.68,
+     "endS": 70.68
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "ك",
+   "wordSpan": [
+    67.955,
+    68.675
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0,
+     "peakS": null,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ك",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.0003,
+     "peakS": 68.76,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ك",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.0003,
+     "peakS": 68.76,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ك",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.0003,
+     "peakS": 68.76,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ك",
+       "col": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p50/phone/warning:omitted_word/37:113:10/279.32",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p50",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "omitted_word",
+    "word": "37:113:10",
+    "timeS": 279.32,
+    "confirmedS": 279.32,
+    "component": "listener",
+    "nonError": null,
+    "expected": "مُبِۦۦن",
+    "observed": null,
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p50.phone.wav",
+     "startS": 275.32,
+     "endS": 281.32
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "و",
+   "wordSpan": [
+    278.905,
+    279.585
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.0351,
+     "peakS": 278.92,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "و",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.0351,
+     "peakS": 278.92,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "و",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.0351,
+     "peakS": 278.92,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "و",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.0351,
+     "peakS": 278.92,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "و",
+       "col": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p65/phone/warning:omitted_word/4:12:40/114.12",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p65",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "omitted_word",
+    "word": "4:12:40",
+    "timeS": 114.12,
+    "confirmedS": 139.72,
+    "component": "listener",
+    "nonError": null,
+    "expected": "ثثُمُنُ",
+    "observed": null,
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p65.phone.wav",
+     "startS": 110.12,
+     "endS": 116.12
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "م",
+   "wordSpan": [
+    113.175,
+    113.575
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.334,
+     "peakS": 113.2,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "م",
+       "col": 0
+      },
+      {
+       "op": "del",
+       "e": "م",
+       "col": 0
+      },
+      {
+       "op": "sub",
+       "e": "م",
+       "col": 0,
+       "h": "ل",
+       "conf": 0.3448,
+       "t": 113.2
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.334,
+     "peakS": 113.2,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "م",
+       "col": 0
+      },
+      {
+       "op": "del",
+       "e": "م",
+       "col": 0
+      },
+      {
+       "op": "sub",
+       "e": "م",
+       "col": 0,
+       "h": "ل",
+       "conf": 0.3448,
+       "t": 113.2
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.334,
+     "peakS": 113.2,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "م",
+       "col": 0
+      },
+      {
+       "op": "del",
+       "e": "م",
+       "col": 0
+      },
+      {
+       "op": "sub",
+       "e": "م",
+       "col": 0,
+       "h": "ل",
+       "conf": 0.3448,
+       "t": 113.2
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.334,
+     "peakS": 113.2,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "م",
+       "col": 0
+      },
+      {
+       "op": "del",
+       "e": "م",
+       "col": 0
+      },
+      {
+       "op": "sub",
+       "e": "م",
+       "col": 0,
+       "h": "ل",
+       "conf": 0.3448,
+       "t": 113.2
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p65/phone/warning:omitted_word/4:12:40/114.12",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p65",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "omitted_word",
+    "word": "4:12:40",
+    "timeS": 114.12,
+    "confirmedS": 139.72,
+    "component": "listener",
+    "nonError": null,
+    "expected": "ثثُمُنُ",
+    "observed": null,
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p65.phone.wav",
+     "startS": 110.12,
+     "endS": 116.12
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "studio",
+   "token": "م",
+   "wordSpan": [
+    113.175,
+    113.575
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.7151,
+     "peakS": 113.4,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "sub",
+       "e": "م",
+       "col": 0,
+       "h": "ِ",
+       "conf": 0.9431,
+       "t": 113.24
+      },
+      {
+       "op": "same",
+       "e": "م",
+       "col": 0,
+       "h": "م",
+       "conf": 0.7151,
+       "t": 113.4
+      },
+      {
+       "op": "same",
+       "e": "م",
+       "col": 0,
+       "h": "م",
+       "conf": 0.6009,
+       "t": 113.52
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.7151,
+     "peakS": 113.4,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "م",
+       "col": 0
+      },
+      {
+       "op": "del",
+       "e": "م",
+       "col": 0
+      },
+      {
+       "op": "same",
+       "e": "م",
+       "col": 0,
+       "h": "م",
+       "conf": 0.7013,
+       "t": 113.16
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.7151,
+     "peakS": 113.4,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "م",
+       "col": 0
+      },
+      {
+       "op": "del",
+       "e": "م",
+       "col": 0
+      },
+      {
+       "op": "same",
+       "e": "م",
+       "col": 0,
+       "h": "م",
+       "conf": 0.7013,
+       "t": 113.16
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.7151,
+     "peakS": 113.4,
+     "greedyAtPeak": true,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "م",
+       "col": 0
+      },
+      {
+       "op": "del",
+       "e": "م",
+       "col": 0
+      },
+      {
+       "op": "same",
+       "e": "م",
+       "col": 0,
+       "h": "م",
+       "conf": 0.7013,
+       "t": 113.16
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p65/phone/warning:omitted_word/4:15:6/210.60",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p65",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "omitted_word",
+    "word": "4:15:6",
+    "timeS": 210.6,
+    "confirmedS": 237.08,
+    "component": "listener",
+    "nonError": null,
+    "expected": "فَستَشهِدُۥۥ",
+    "observed": null,
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p65.phone.wav",
+     "startS": 206.6,
+     "endS": 212.6
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "ت",
+   "wordSpan": [
+    208.845,
+    210.005
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.041,
+     "peakS": 209.2,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ت",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.041,
+     "peakS": 209.2,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ت",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.041,
+     "peakS": 209.2,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ت",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.041,
+     "peakS": 209.2,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ت",
+       "col": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p65/phone/warning:omitted_word/4:15:6/210.60",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p65",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "omitted_word",
+    "word": "4:15:6",
+    "timeS": 210.6,
+    "confirmedS": 237.08,
+    "component": "listener",
+    "nonError": null,
+    "expected": "فَستَشهِدُۥۥ",
+    "observed": null,
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p65.phone.wav",
+     "startS": 206.6,
+     "endS": 212.6
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "س",
+   "wordSpan": [
+    208.845,
+    210.005
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.0335,
+     "peakS": 209.08,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "س",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.0335,
+     "peakS": 209.08,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "س",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.0335,
+     "peakS": 209.08,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "س",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.0335,
+     "peakS": 209.08,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "س",
+       "col": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p65/phone/warning:omitted_word/4:15:6/210.60",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p65",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "omitted_word",
+    "word": "4:15:6",
+    "timeS": 210.6,
+    "confirmedS": 237.08,
+    "component": "listener",
+    "nonError": null,
+    "expected": "فَستَشهِدُۥۥ",
+    "observed": null,
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p65.phone.wav",
+     "startS": 206.6,
+     "endS": 212.6
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "ش",
+   "wordSpan": [
+    208.845,
+    210.005
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.3222,
+     "peakS": 209.44,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ش",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.3222,
+     "peakS": 209.44,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ش",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.3222,
+     "peakS": 209.44,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ش",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.3222,
+     "peakS": 209.44,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ش",
+       "col": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p65/phone/warning:omitted_word/4:15:6/210.60",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p65",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "omitted_word",
+    "word": "4:15:6",
+    "timeS": 210.6,
+    "confirmedS": 237.08,
+    "component": "listener",
+    "nonError": null,
+    "expected": "فَستَشهِدُۥۥ",
+    "observed": null,
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p65.phone.wav",
+     "startS": 206.6,
+     "endS": 212.6
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "ف",
+   "wordSpan": [
+    208.845,
+    210.005
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.0786,
+     "peakS": 209.2,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ف",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.0786,
+     "peakS": 209.2,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ف",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.0786,
+     "peakS": 209.2,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ف",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.0786,
+     "peakS": 209.2,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ف",
+       "col": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p65/phone/warning:omitted_word/4:15:6/210.60",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p65",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "omitted_word",
+    "word": "4:15:6",
+    "timeS": 210.6,
+    "confirmedS": 237.08,
+    "component": "listener",
+    "nonError": null,
+    "expected": "فَستَشهِدُۥۥ",
+    "observed": null,
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p65.phone.wav",
+     "startS": 206.6,
+     "endS": 212.6
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "ه",
+   "wordSpan": [
+    208.845,
+    210.005
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.0708,
+     "peakS": 209.6,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ه",
+       "col": 0
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.0708,
+     "peakS": 209.6,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ه",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.0708,
+     "peakS": 209.6,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ه",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.0708,
+     "peakS": 209.6,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ه",
+       "col": 1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p79/phone/warning:omitted_word/20:25:5/26.40",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p79",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "omitted_word",
+    "word": "20:25:5",
+    "timeS": 26.4,
+    "confirmedS": 29.56,
+    "component": "listener",
+    "nonError": null,
+    "expected": "صَدڇرِۦۦ",
+    "observed": null,
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p79.phone.wav",
+     "startS": 22.4,
+     "endS": 28.4
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "phone",
+   "token": "ص",
+   "wordSpan": [
+    25.07,
+    25.895
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.0029,
+     "peakS": 25.04,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ص",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.0029,
+     "peakS": 25.04,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ص",
+       "col": 2
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.0029,
+     "peakS": 25.04,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ص",
+       "col": 2
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.0029,
+     "peakS": 25.04,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ص",
+       "col": 2
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "incident": {
+    "key": "lab-v1.5-p79/phone/warning:omitted_word/20:25:5/26.40",
+    "kind": "false_warning",
+    "session": "lab-v1.5-p79",
+    "variant": "phone",
+    "split": "practice",
+    "strict": false,
+    "errorClass": "omitted_word",
+    "word": "20:25:5",
+    "timeS": 26.4,
+    "confirmedS": 29.56,
+    "component": "listener",
+    "nonError": null,
+    "expected": "صَدڇرِۦۦ",
+    "observed": null,
+    "oracle": false,
+    "truePosition": true,
+    "teacher": false,
+    "trackerOnPlace": 1,
+    "allFail": false,
+    "review": {
+     "path": "lab-v1.5/sessions/lab-v1.5-p79.phone.wav",
+     "startS": 22.4,
+     "endS": 28.4
+    },
+    "studioSameWordWarning": false
+   },
+   "variant": "studio",
+   "token": "ص",
+   "wordSpan": [
+    25.07,
+    25.895
+   ],
+   "windows": [
+    {
+     "margin": 0,
+     "maxP": 0.0057,
+     "peakS": 25.04,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ص",
+       "col": 1
+      }
+     ]
+    },
+    {
+     "margin": 0.12,
+     "maxP": 0.0057,
+     "peakS": 25.04,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ص",
+       "col": 2
+      }
+     ]
+    },
+    {
+     "margin": 0.24,
+     "maxP": 0.0057,
+     "peakS": 25.04,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ص",
+       "col": 2
+      }
+     ]
+    },
+    {
+     "margin": 0.4,
+     "maxP": 0.0057,
+     "peakS": 25.04,
+     "greedyAtPeak": false,
+     "alignedOps": [
+      {
+       "op": "del",
+       "e": "ص",
+       "col": 2
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

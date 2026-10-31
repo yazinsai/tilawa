@@ -1,0 +1,137 @@
+{
+ "amp": false,
+ "sourceRandomness": [
+  [
+   20,
+   "import random"
+  ],
+  [
+   217,
+   "if random.random() < 0.0002:"
+  ],
+  [
+   243,
+   "def random_cast_to_half(x: Tensor, min_abs: float = 5.0e-06) -> Tensor:"
+  ],
+  [
+   245,
+   "A randomized way of casting a floating point value to half precision."
+  ],
+  [
+   254,
+   "random_val = min_abs * x.sign() * (torch.rand_like(x) * min_abs < x_abs)"
+  ],
+  [
+   255,
+   "return torch.where(is_too_small, random_val, x).to(torch.float16)"
+  ],
+  [
+   293,
+   "Tries to handle half-precision derivatives in a randomized way that should"
+  ],
+  [
+   840,
+   "on each forward().  This is done randomly to prevent all layers"
+  ],
+  [
+   882,
+   "if random.random() < prob:"
+  ],
+  [
+   941,
+   "The name is for randomly printed debug info."
+  ],
+  [
+   1027,
+   "if random.random() < 0.005 or __name__ == \"__main__\":"
+  ],
+  [
+   1112,
+   "if not x.requires_grad or random.random() > self.prob or grad_scale == 0:"
+  ],
+  [
+   1122,
+   "if random.random() < 0.002 and name is not None:"
+  ],
+  [
+   1198,
+   "if training and random.random() < prob:"
+  ],
+  [
+   1674,
+   "x = torch.randn(100, 128)"
+  ],
+  [
+   1675,
+   "direction = torch.randn(128)"
+  ],
+  [
+   1676,
+   "coeffs = torch.randn(100, 1)"
+  ],
+  [
+   1688,
+   "y_grad = torch.randn_like(x)"
+  ],
+  [
+   1712,
+   "y_grad = torch.sign(torch.randn(probs.numel(), N))"
+  ],
+  [
+   1724,
+   "x = torch.sign(torch.randn(magnitudes.numel(), N)) * magnitudes.unsqueeze(-1)"
+  ],
+  [
+   1737,
+   "y_grad = torch.sign(torch.randn(magnitudes.numel(), N))"
+  ],
+  [
+   1747,
+   "x = torch.randn(10, 12, dtype=torch.double) * 3.0"
+  ],
+  [
+   1755,
+   "x = torch.randn(1000, 1000, dtype=torch.double) * 3.0"
+  ],
+  [
+   1761,
+   "x = torch.randn(10, 12, dtype=torch.double) * 3.0"
+  ],
+  [
+   1769,
+   "x = torch.randn(1000, 1000, dtype=torch.double) * 3.0"
+  ],
+  [
+   1775,
+   "x = torch.randn(10, 12, dtype=torch.double) * 3.0"
+  ],
+  [
+   1783,
+   "x = torch.randn(1000, 1000, dtype=torch.double) * 3.0"
+  ],
+  [
+   1789,
+   "a = torch.randn(2, 10, dtype=torch.float64)"
+  ],
+  [
+   1859,
+   "x1 = torch.randn(10, in_channels)"
+  ],
+  [
+   1872,
+   "y_grad = torch.randn_like(y1)"
+  ]
+ ],
+ "repeatBackward": {
+  "all": 3.4825727165710754e-07,
+  "head": 0.0
+ },
+ "seededRepeatBackward": {
+  "all": 4.934838551173862e-07,
+  "head": 0.0
+ },
+ "seededAveragedViewsVsBase": {
+  "all": 0.023838466819038368,
+  "head": 3.569545625820915e-07
+ }
+}
