@@ -1,6 +1,7 @@
 """Lab dashboard and listening review page (.scratch/lab/issues/06-review-ui.md and 11-dashboard.md,
 docs/benchmarks/lab-review.md).
 
+    python3 tools/build_live_review.py   # rebuild live UI from main before deployment
     modal deploy modal/lab_review.py      # https://<workspace>--tilawa-lab-review-web.modal.run/ (dashboard)
                                           #   .../review?queue=<path under /lab/data> (review page; /?queue= still works)
     LAB_REVIEW_APP=tilawa-lab-review-preview modal deploy modal/lab_review.py
@@ -29,6 +30,8 @@ image = (
     .uv_pip_install("fastapi[standard]==0.115.4")
     .env({"LAB_RECORDINGS_APP": REC_APP})
     .add_local_file(ROOT / "tools/lab_review_core.py", "/root/lab_review_core.py")
+    .add_local_file(ROOT / "tools/live_review_core.py", "/root/live_review_core.py")
+    .add_local_dir(ROOT / "modal/live-dist", "/root/live-dist")
     .add_local_file(ROOT / "tools/lab_recordings_core.py", "/root/lab_recordings_core.py")
     .add_local_file(ROOT / "tools/lab_ledger.py", "/root/lab_ledger.py")
     .add_local_file(ROOT / "tools/lab_dashboard_core.py", "/root/lab_dashboard_core.py")
@@ -66,16 +69,25 @@ def web():
 
     api = FastAPI(title="Tilawa listening review")
     api.mount("/static", StaticFiles(directory=WEB), name="static")
+    api.mount("/live", StaticFiles(directory="/root/live-dist", html=True), name="live")
 
     @api.middleware("http")
     async def revalidate_static(request: Request, call_next):
-        static = request.url.path.startswith("/static/")
+        static = request.url.path.startswith(("/static/", "/live/"))
         if static:
             # Modal mounts files with mtime 0: Last-Modified never changes, so a conditional request would always get a 304.
             request.scope["headers"] = [(k, v) for k, v in request.scope["headers"] if k not in (b"if-modified-since", b"if-none-match")]
         resp = await call_next(request)
         if static:
             resp.headers["Cache-Control"] = "public, max-age=31536000, immutable" if request.url.path.startswith("/static/fonts/") else "no-cache"
+        if request.url.path.startswith("/live/"):
+            # Modal mounts have mtime 0; equal-sized HTML builds otherwise share an ETag.
+            # A stale HTML response references hashed assets removed by the next build.
+            for header in ("etag", "last-modified"):
+                if header in resp.headers:
+                    del resp.headers[header]
+            if request.url.path.endswith(("/", ".html")):
+                resp.headers["Cache-Control"] = "no-store"
         return resp
 
     # This container is the only writer of /lab/reviews (max_containers=1). Saves commit in the background, and a reload
@@ -604,6 +616,61 @@ def web():
         if err:
             raise HTTPException(502, err)
         return {"take": n, "processing": True}
+
+    # Live browser sessions share this single-writer container and durable review volume.
+    import live_review_core as live
+
+    @api.post("/api/live/sessions")
+    async def live_save(request: Request):
+        # Bound the body before the multipart parser can spool an arbitrary upload.
+        size = 0
+        body_parts = []
+        async for chunk in request.stream():
+            size += len(chunk)
+            if size > live.MAX_AUDIO + live.MAX_REPORT + 65536:
+                raise HTTPException(413, "Live session is too large")
+            body_parts.append(chunk)
+        request._body = b"".join(body_parts) if size else b""
+        form = await request.form()
+        try:
+            report_file, audio_file = form.get("report"), form.get("audio")
+            if not hasattr(report_file, "read") or not hasattr(audio_file, "read"):
+                raise HTTPException(400, "Provide report.json and audio.wav")
+            raw = await report_file.read(live.MAX_REPORT + 1)
+            audio = await audio_file.read(live.MAX_AUDIO + 1)
+            if len(raw) > live.MAX_REPORT:
+                raise HTTPException(413, "Diagnostic report is too large")
+            try:
+                report = live.validate(json.loads(raw), audio)
+            except (ValueError, TypeError) as e:
+                raise HTTPException(400, str(e))
+            def persist():
+                path = REVIEWS / "live" / report["id"]
+                with cond:
+                    path.mkdir(parents=True, exist_ok=True)
+                    for filename, data in (("report.json", raw), ("audio.wav", audio)):
+                        tmp = path / (filename + ".tmp")
+                        tmp.write_bytes(data)
+                        tmp.replace(path / filename)
+                    issues = path / "issues"
+                    issues.mkdir(exist_ok=True)
+                    for i, flag in enumerate(report["flags"], 1):
+                        (issues / f"{i:02d}-{flag['component']}.md").write_text(live.issue_markdown(report, flag, i))
+                commit_now()
+                return {"id": report["id"], "flags": len(report["flags"])}
+            return await run_in_threadpool(persist)
+        finally:
+            await form.close()
+
+    @api.get("/api/live/sessions/{session_id}/{filename}")
+    def live_file(session_id: str, filename: str):
+        if not live.ID.fullmatch(session_id) or filename not in ("report.json", "audio.wav"):
+            raise HTTPException(404, "No such live session file")
+        reload()
+        path = REVIEWS / "live" / session_id / filename
+        if not path.is_file():
+            raise HTTPException(404, "No such live session")
+        return FileResponse(path, headers={"Cache-Control": "no-store"})
 
     return api
 
