@@ -1,6 +1,6 @@
 # Sparse consonant mining with matched random reweighting
 
-Status: diagnostics and verification complete; matched training runs initializing. No fold, discard, or exam scoring.
+Status: diagnostics and verification complete; v1 superseded before practice scores; exposure-matched v2 preparing. No fold, discard, or exam scoring.
 
 ## Fixed experiment
 
@@ -53,3 +53,13 @@ This resolves the recipe choice for this experiment: restore the original single
 The first two launches used wrapper defaults of six epochs and 3,000 diagnostic examples. Both were stopped before any `data`, `adapt`, or `train` log event and before optimizer updates. The corrected launches use the historical one-epoch cap and 300-example diagnostics, with the same 200-update limit. Source commit: `4b0b6b8`. Modal apps: selected `ap-SPQJOfTV8utDf1zyZv5Odu`, random `ap-9VjR7penz79yW54blVXL7P`. Full data/config and completion records will be checked before evaluation.
 
 The baseline passes both verified self-correction controls in free and declared modes. Tracker positions are locked around the correction in all four runs; no target warning was ever confirmed. `sparse-selfcorrection-baseline-v2.json` preserves positions, all warning states and raw phoneme evidence.
+
+## Training result
+
+Both arms completed exactly 200 updates with finite reported losses and zero skipped updates. They used the same 21,161 clips, 50.000777 hours, initialization at step 30,287, and matching configuration apart from run name and sparse arm. Selected diagnostic PER versus reference is 9.05264%, random 9.04079% (300 gold-excluded clean-match test clips). These diagnostics do not select checkpoints. Both scheduled final checkpoints are retained. Final frozen subsets overlap on two clips.
+
+## Exposure correction before practice results
+
+The read-only schedule audit found 236 planned batches; the fixed 200-update budget consumes 17,360 clips. Only 12/16 selected clips and 15/16 random clips appeared in that prefix. Although the nominal manifests matched, effective weighted exposure did not. V1 is therefore superseded and cannot answer the selection question. No practice score was read. Its in-flight decoding and controls were stopped; the completed selected self-correction replay is retained as a superseded diagnostic only.
+
+V2 freezes 12 verified clips in each arm, all present in the same unchanged 200-batch prefix. The selected arm retains all 12 exposed qualifying clips; the random arm takes a seeded subset of its 15 exposed verified random clips (seed 811). This conditions both arms on exposure without changing the original pool, order, weights, augmentation, loss, or budget. `sparse-verified-manifest-v2.json` and `sparse-exposure.json` record the change. Training now fails before any update if a frozen upweighted clip is outside the budget. Both v2 runs restart from the original `spliced-clean` checkpoint; no v1 checkpoint is reused. Distinct model/evidence names prevent cached v1 outputs from entering v2 evaluation.

@@ -491,6 +491,13 @@ def train(args: dict) -> dict:
     seen_s, tick = 0.0, time.time()
     while state["epoch"] < cfg["epochs"] and (not cfg.get("max_steps") or state["step"] < cfg["max_steps"]):
         plan = batches(train_clips["n_samples"], cfg["max_batch_s"], cfg["seed"] + state["epoch"])
+        if cfg.get("sparse_manifest") and state["epoch"] == 0:
+            planned = {train_clips["key"][i] for batch in plan[:cfg["max_steps"]] for i in batch}
+            selected = set(manifest[cfg["sparse_arm"]])
+            if not selected <= planned:
+                raise ValueError("Sparse subset falls outside the fixed training budget")
+            emit(event="sparse_exposure", selected=len(selected), seen=len(selected & planned),
+                 keys=sorted(selected), planned_batches=len(plan))
         loader = torch.utils.data.DataLoader(ds, batch_sampler=plan[state["batch"]:], collate_fn=collate,
                                              num_workers=cfg["workers"], prefetch_factor=4, persistent_workers=False)
         sched.step_epoch(state["epoch"])

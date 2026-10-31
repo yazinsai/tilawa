@@ -1,0 +1,1036 @@
+{
+ "selected": [
+  "clean-00038-of-00411:451",
+  "clean-00126-of-00411:838",
+  "clean-00178-of-00411:880",
+  "clean-00231-of-00411:295",
+  "clean-00326-of-00411:601",
+  "clean-00379-of-00411:420",
+  "clean-00395-of-00411:175",
+  "unclean-00039-of-00332:868",
+  "unclean-00055-of-00332:702",
+  "unclean-00089-of-00332:496",
+  "unclean-00245-of-00332:488",
+  "unclean-00254-of-00332:731"
+ ],
+ "random": [
+  "clean-00008-of-00411:581",
+  "clean-00118-of-00411:508",
+  "clean-00126-of-00411:530",
+  "clean-00312-of-00411:423",
+  "clean-00321-of-00411:112",
+  "clean-00346-of-00411:841",
+  "clean-00362-of-00411:681",
+  "clean-00372-of-00411:479",
+  "clean-00379-of-00411:420",
+  "clean-00410-of-00411:2",
+  "unclean-00055-of-00332:702",
+  "unclean-00306-of-00332:83"
+ ],
+ "poolSha256": "920613896955694b961d03661928e7bb45fa8b6aa0a9cd72acf9944293a4dd1d",
+ "policy": {
+  "ctcWeight": 1.0,
+  "kdWeight": 2.0,
+  "updates": 200,
+  "weight": 3.0
+ },
+ "verifiedTargets": {
+  "clean-00382-of-00411:500": {
+   "audioSha256": "0fd46aa0cd8a16285eb292e945f3cdfa71022c4383a47141a7aa3a210e07d473",
+   "independentAsSaidMatch": true,
+   "expected": "إِنَّهُۥ عَلَىٰ رَجْعِهِۦ لَقَادِرٌۭ",
+   "heard": "إِنَّهُ عَلَى رَجْعِهِ لَقَادِرٌ.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00382-of-00411:500",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00357-of-00411:602": {
+   "audioSha256": "9800ecc0b97937bb3b50b44670a745a7064d00f91d18b75e76278f13223d7299",
+   "independentAsSaidMatch": false,
+   "expected": "ٱلْكَوَاكِبُ ٱنتَثَرَتْ",
+   "heard": "الكواكب انتظرت.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00357-of-00411:602",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "unclean-00245-of-00332:488": {
+   "audioSha256": "608b5f35717947e631aa2663d139700db7793ae191ca8e2ea6894540101b21c1",
+   "independentAsSaidMatch": true,
+   "expected": "بِغُلَـٰمٍ ٱسْمُهُۥ",
+   "heard": "بغلام اسمه—",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#unclean-00245-of-00332:488",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "unclean-00055-of-00332:702": {
+   "audioSha256": "bc2b1d129ed76d4a7666819267f2b7f00886e6240bb917df4b491806f51ffe95",
+   "independentAsSaidMatch": true,
+   "expected": "وَكُونُوا۟ مَعَ ٱلصَّـٰدِقِينَ",
+   "heard": "وكونوا مع الصادقين.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#unclean-00055-of-00332:702",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "unclean-00236-of-00332:603": {
+   "audioSha256": "ea6e6a7fdd0b3688a6a7e61e952bcccace02ce33e026219fe974f60fe38e4f70",
+   "independentAsSaidMatch": false,
+   "expected": "أَرَءَيْتَ ٱلَّذِى يُكَذِّبُ بِٱلدِّينِ",
+   "heard": "أرأيت الذي يكذب بالدين؟",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#unclean-00236-of-00332:603",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00280-of-00411:398": {
+   "audioSha256": "ace790c88c4485c2e553feb7250c50cd38bf83b3a0f107c4ea211a6b1f86051c",
+   "independentAsSaidMatch": false,
+   "expected": "أَلَا يَعْلَمُ مَنْ خَلَقَ وَهُوَ ٱللَّطِيفُ ٱلْخَبِيرُ",
+   "heard": "قول: \"الله يعلم من خلق، وهو اللطيف الخبير.\"",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00280-of-00411:398",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "unclean-00278-of-00332:699": {
+   "audioSha256": "6d2dbe32e2be84941514061754e8396609a1f79cb9ae6edec6fd8e79fcbd2404",
+   "independentAsSaidMatch": true,
+   "expected": "وَمِنْ ءَايَـٰتِهِۦ خَلْقُ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضِ وَٱخْتِلَـٰفُ أَلْسِنَتِكُمْ وَأَلْوَٰنِكُمْ",
+   "heard": "ومن آياته خلق السماوات والأرض، واختلاف ألسنتكم وألوانكم.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#unclean-00278-of-00332:699",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00016-of-00411:642": {
+   "audioSha256": "b767e34e87860e66a9756f3199fd8c628d289b2761f6292f1899dcd1164affac",
+   "independentAsSaidMatch": true,
+   "expected": "قُلْ هُوَ ٱللَّهُ أَحَدٌ",
+   "heard": "قل هو الله أحد.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00016-of-00411:642",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "unclean-00306-of-00332:83": {
+   "audioSha256": "6fa89d6065079e7383588ff7470bade489d8c706be9be77d62a3e8fb8d391fa0",
+   "independentAsSaidMatch": true,
+   "expected": "وَٱلْأَرْضَ فَرَشْنَـٰهَا فَنِعْمَ ٱلْمَـٰهِدُونَ",
+   "heard": "والأرض فرشناها، فنعم الماهدون.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#unclean-00306-of-00332:83",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00231-of-00411:295": {
+   "audioSha256": "885cde32b4ee44e26257a6598012ab4a5155013dfc2505a668e3ffac762ce531",
+   "independentAsSaidMatch": true,
+   "expected": "سَيَهْدِيهِمْ وَيُصْلِحُ بَالَهُمْ",
+   "heard": "سيَهْدِيهِمْ وَيُصْلِحُ بَالَهُمْ.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00231-of-00411:295",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "unclean-00157-of-00332:840": {
+   "audioSha256": "1525d4720587e9c740518a5f7a5cc6b76c90efdf2bb2175b86e6a3f21831c219",
+   "independentAsSaidMatch": false,
+   "expected": "وَرَتِّلِ ٱلْقُرْءَانَ تَرْتِيلًا",
+   "heard": "وردت للقرآن ترتيلاً.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#unclean-00157-of-00332:840",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00338-of-00411:401": {
+   "audioSha256": "969adb8826d006ceec31e1107225dd4b8bbeba4acf9b6c5a959fb5fb9c76afed",
+   "independentAsSaidMatch": false,
+   "expected": "وَٱلنَّـٰشِطَـٰتِ نَشْطًۭا",
+   "heard": "وَالنَّشِطَاتِ نَشْطًا.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00338-of-00411:401",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00199-of-00411:840": {
+   "audioSha256": "57cb7c77f34278063d7db02ce220d19d5576fcd8402fb787305b514c783edff2",
+   "independentAsSaidMatch": false,
+   "expected": "طَلْعُهَا كَأَنَّهُۥ رُءُوسُ ٱلشَّيَـٰطِينِ",
+   "heard": "طلعوها كأنه رؤوس الشياطين!",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00199-of-00411:840",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "unclean-00039-of-00332:868": {
+   "audioSha256": "6f1d067b769e9e66ae32f351d4236296a0306ef619506c697bf62acf98adfc44",
+   "independentAsSaidMatch": true,
+   "expected": "فَسُبْحَـٰنَ ٱلَّذِى بِيَدِهِۦ مَلَكُوتُ كُلِّ شَىْءٍۢ وَإِلَيْهِ تُرْجَعُونَ",
+   "heard": "فَسُبْحَانَ الَّذِي بِيَدِهِ مَلَكُوتُ كُلِّ شَيْءٍ وَإِلَيْهِ تُرْجَعُونَ.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#unclean-00039-of-00332:868",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00362-of-00411:681": {
+   "audioSha256": "d3c292f310672ff68bb858bdc4d8c377732f131d133443fdb5ec4d65fd61e8ca",
+   "independentAsSaidMatch": true,
+   "expected": "ٱلَّذِينَ يُكَذِّبُونَ بِيَوْمِ ٱلدِّينِ",
+   "heard": "الذين يكذبون بيوم الدين.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00362-of-00411:681",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00320-of-00411:669": {
+   "audioSha256": "6eedf409ef42fc71c3f5841b48dc6a93b571f63fbb562697705eca0d55d969ab",
+   "independentAsSaidMatch": false,
+   "expected": "فَٱلْفَـٰرِقَـٰتِ فَرْقًۭا",
+   "heard": "فالفارقُ تفارق.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00320-of-00411:669",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00340-of-00411:648": {
+   "audioSha256": "d21418372660d06e4b98a85efdefd53f4aa222e0808a58f869b4db65787b6671",
+   "independentAsSaidMatch": false,
+   "expected": "فَٱلسَّـٰبِقَـٰتِ سَبْقًۭا",
+   "heard": "فالسابقات سبق.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00340-of-00411:648",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00362-of-00411:772": {
+   "audioSha256": "cbe49fadbc72a392178982259e837683cf04a62f8dc015fd595b4213924ca3a2",
+   "independentAsSaidMatch": false,
+   "expected": "وَمَآ أَدْرَىٰكَ مَا سِجِّينٌۭ",
+   "heard": "وَلَا أَدْرَكَ مَا سِجِّينَ.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00362-of-00411:772",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00391-of-00411:916": {
+   "audioSha256": "dcf5d83d8dc25a347b9b726c58d2d5f45434b6b0d8ff5be79ba9d66981c4c4eb",
+   "independentAsSaidMatch": false,
+   "expected": "وَٱلضُّحَىٰ وَٱلَّيْلِ إِذَا سَجَىٰ",
+   "heard": "والضحى، والليل إذا سجى.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00391-of-00411:916",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00312-of-00411:423": {
+   "audioSha256": "3e89ccdeb995af5611c80d71e8973921f7218ce3e36375327136b949e38bec1e",
+   "independentAsSaidMatch": true,
+   "expected": "فَإِذَا قَرَأْنَـٰهُ فَٱتَّبِعْ قُرْءَانَهُۥ",
+   "heard": "فإذا قرأناه فاتبع قرآنه.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00312-of-00411:423",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00167-of-00411:394": {
+   "audioSha256": "2e7c84a73a6b413b10a963b84e2869a032a9ea90b10be68ab8bb099c95860d5e",
+   "independentAsSaidMatch": false,
+   "expected": "فَقُلْنَا ٱضْرِبُوهُ بِبَعْضِهَا كَذَٰلِكَ يُحْىِ ٱللَّهُ ٱلْمَوْتَىٰ وَيُرِيكُمْ ءَايَـٰتِهِۦ لَعَلَّكُمْ تَعْقِلُونَ",
+   "heard": "فقلنا: اضربوه ببعضها؛ كذلك يحيي الله الموتى ويريكم آياته لعلكم تعقلون.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00167-of-00411:394",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00410-of-00411:2": {
+   "audioSha256": "aa8506645482579d35c08c975570a9597624d9bb77eccf36b493148b3f07e397",
+   "independentAsSaidMatch": true,
+   "expected": "قُلْ هَلْ نُنَبِّئُكُم بِٱلْأَخْسَرِينَ أَعْمَـٰلًا",
+   "heard": "قل: هل نُنَبِّئُكُم بِالْأَخْسَرِينَ أَعْمَالًا؟",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00410-of-00411:2",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00126-of-00411:838": {
+   "audioSha256": "e4804bb5b17c57e1c7386e5d02d5d53c4ef8ef2177af2a37a1b32d80d26df73d",
+   "independentAsSaidMatch": true,
+   "expected": "إِذْ قَالَ لَهُمْ شُعَيْبٌ أَلَا تَتَّقُونَ",
+   "heard": "إذ قال لهم شعيب: ألا تتقون؟",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00126-of-00411:838",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00008-of-00411:581": {
+   "audioSha256": "ef541a43206a6830d77e63a00915050a7b67c7df17f3d1d650a38500a427add9",
+   "independentAsSaidMatch": true,
+   "expected": "إِنَّ شَانِئَكَ هُوَ ٱلْأَبْتَرُ",
+   "heard": "إن شانئك هو الأبتر.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00008-of-00411:581",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00379-of-00411:420": {
+   "audioSha256": "36afd0bcdd28c4405dea3f2e87ebde73efdedcad4280b2df3810882939a05679",
+   "independentAsSaidMatch": true,
+   "expected": "وَٱلْفَجْرِ وَلَيَالٍ",
+   "heard": "والفجر، وليالٍ.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00379-of-00411:420",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "unclean-00254-of-00332:731": {
+   "audioSha256": "37a6bee5ee96c0a2902e3b787501f7a90f1f38172552e460a30edb1c6a70d953",
+   "independentAsSaidMatch": true,
+   "expected": "مُسْتَكْبِرِينَ بِهِۦ",
+   "heard": "مستكبرين به.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#unclean-00254-of-00332:731",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "unclean-00089-of-00332:496": {
+   "audioSha256": "d3b2811b29e896ee47c74a9ec5e75e2204f0b41f669062cf4e3380c86bb006c6",
+   "independentAsSaidMatch": true,
+   "expected": "سَبِّحِ ٱسْمَ رَبِّكَ ٱلْأَعْلَى",
+   "heard": "سبح اسم ربك الأعلى.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#unclean-00089-of-00332:496",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00047-of-00411:113": {
+   "audioSha256": "168647648f3428b0007cabc17a19938906dc2db76839fd8383d224cc8e9154f5",
+   "independentAsSaidMatch": false,
+   "expected": "وَلَقَدْ صَرَّفْنَا فِى هَـٰذَا ٱلْقُرْءَانِ لِيَذَّكَّرُوا۟ وَمَا يَزِيدُهُمْ إِلَّا نُفُورًۭا",
+   "heard": "ولقد صرفنا في هذا القرآن ليتذكروا، وما يزيدهم إلا نفورًا.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00047-of-00411:113",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00118-of-00411:508": {
+   "audioSha256": "07ceeed90a8b23d7cb1667abd8aaa216600ebc9ad5627ed9400e19aa4d12c430",
+   "independentAsSaidMatch": true,
+   "expected": "وَٱلَّذِينَ هُمْ لِلزَّكَوٰةِ فَـٰعِلُونَ",
+   "heard": "والذين هم للزكاة فاعلون.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00118-of-00411:508",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00126-of-00411:530": {
+   "audioSha256": "d84ddc7b723096ad7d711730a47b1297e34a79bc5dfc9c6e836f4cc91297b51e",
+   "independentAsSaidMatch": true,
+   "expected": "أَتَأْتُونَ ٱلذُّكْرَانَ مِنَ ٱلْعَـٰلَمِينَ",
+   "heard": "أتأتون الذكران من العالمين؟",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00126-of-00411:530",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00356-of-00411:344": {
+   "audioSha256": "6ef93b2934b22e7cfdd482d4a57fa8f1816c61174cc4e06a0f1b13febd0b9a35",
+   "independentAsSaidMatch": false,
+   "expected": "وَإِذَا ٱلْمَوْءُۥدَةُ سُئِلَتْ",
+   "heard": "وإذا الموؤودة سُئلت.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00356-of-00411:344",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00086-of-00411:925": {
+   "audioSha256": "b89640a6ae1aca714cf34be9f78ede7cef0efdee221d1f4ba58268752dfe1ac0",
+   "independentAsSaidMatch": true,
+   "expected": "ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
+   "heard": "الحمد لله رب العالمين.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00086-of-00411:925",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00306-of-00411:495": {
+   "audioSha256": "029451f6bf9b2c98d032f3ac3a2068cf61917af3c45d9c1bcc4cce56dc694bcd",
+   "independentAsSaidMatch": true,
+   "expected": "إِنَّا سَنُلْقِى عَلَيْكَ قَوْلًۭا ثَقِيلًا",
+   "heard": "إنّا سنلقي عليك قولا ثقيلا.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00306-of-00411:495",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00346-of-00411:841": {
+   "audioSha256": "37b387b46bf1d6557523a1cc2d3c5fb00dd1c3d0b755e002a2be6f6156f4ee49",
+   "independentAsSaidMatch": true,
+   "expected": "فَلَنَسْـَٔلَنَّ ٱلَّذِينَ أُرْسِلَ إِلَيْهِمْ وَلَنَسْـَٔلَنَّ ٱلْمُرْسَلِينَ",
+   "heard": "فلنسألن الذين أرسل إليهم، ولنسألن المرسلين.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00346-of-00411:841",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00322-of-00411:784": {
+   "audioSha256": "5549fcde2ac8b6ac23e27474f3427429cafe4e8559cb8845678afabf51986d8d",
+   "independentAsSaidMatch": false,
+   "expected": "وَبَنَيْنَا فَوْقَكُمْ سَبْعًۭا شِدَادًۭا",
+   "heard": "وبنينا فوقكم سبعًا جِدَادًا.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00322-of-00411:784",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00321-of-00411:112": {
+   "audioSha256": "2db21b171e68ac1e656afff42c6238eb8ae6844de3e9a379952c5d6804f7dd35",
+   "independentAsSaidMatch": true,
+   "expected": "وَإِذَا ٱلْجِبَالُ نُسِفَتْ",
+   "heard": "وإذا الجبال نُسفت.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00321-of-00411:112",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00386-of-00411:949": {
+   "audioSha256": "9b0c5f83e21b901faece9fff9a90df7f2c600b65f2890a2d07e661d8a4f767a9",
+   "independentAsSaidMatch": false,
+   "expected": "قَدْ أَفْلَحَ مَن زَكَّىٰهَا",
+   "heard": "قَدْ أَفْلَحَ مَنْ زَكَّاهَا.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00386-of-00411:949",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00245-of-00411:5": {
+   "audioSha256": "68ccf35cb4fd007fc21075c552f7374d66841ecf05beeb748e0d53e23f8f99e8",
+   "independentAsSaidMatch": false,
+   "expected": "فَـٰكِهِينَ بِمَآ ءَاتَىٰهُمْ رَبُّهُمْ وَوَقَىٰهُمْ رَبُّهُمْ عَذَابَ ٱلْجَحِيمِ",
+   "heard": "فاكهين بما آتاهم ربهم، ووقاهم ربهم عذاب الجحيم.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00245-of-00411:5",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00131-of-00411:88": {
+   "audioSha256": "4285a8323dcdf9d016ca8a1e68c0bf76ac3123456a6e3c7452012b395333c6fd",
+   "independentAsSaidMatch": false,
+   "expected": "وَبُرِّزَتِ ٱلْجَحِيمُ لِلْغَاوِينَ",
+   "heard": "وبُرِّزَتِ الْجَحِيمُ لِلْغَاوِيِّينَ.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00131-of-00411:88",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00249-of-00411:427": {
+   "audioSha256": "e3e10d4615a0332e95cc22c9352678e4a967d66216ac84d9f34046abb87aba26",
+   "independentAsSaidMatch": false,
+   "expected": "وَأَنَّهُۥ هُوَ رَبُّ ٱلشِّعْرَىٰ",
+   "heard": "وأنه هو رب الشعر.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00249-of-00411:427",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00356-of-00411:580": {
+   "audioSha256": "e2f0e31a59dd5a75ac11f3a126ddc2993d488029658f2c5082ad70a9c3b2b0ce",
+   "independentAsSaidMatch": true,
+   "expected": "وَإِنَّ عَلَيْكُمْ لَحَـٰفِظِينَ",
+   "heard": "وَإِنَّ عَلَيْكُمْ لَحَافِظِينَ.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00356-of-00411:580",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00176-of-00411:17": {
+   "audioSha256": "b7efc66fd2b0d288e94b14f5eab01c3fc91291651156ffdfefa4340f681a75df",
+   "independentAsSaidMatch": true,
+   "expected": "وَٱذْكُرْنَ مَا يُتْلَىٰ فِى بُيُوتِكُنَّ مِنْ ءَايَـٰتِ ٱللَّهِ وَٱلْحِكْمَةِ إِنَّ ٱللَّهَ كَانَ لَطِيفًا خَبِيرًا",
+   "heard": "واذكرن ما يتلى في بيوتكن من آيات الله والحكمة، إن الله كان لطيفًا خبيرًا.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00176-of-00411:17",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00398-of-00411:130": {
+   "audioSha256": "44a61dbed6f0ff4d5c7abe003e17ffb9d51776f595ef562ff108c515cf881d38",
+   "independentAsSaidMatch": false,
+   "expected": "سَنَدْعُ ٱلزَّبَانِيَةَ",
+   "heard": "سند عزبانية.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00398-of-00411:130",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00178-of-00411:880": {
+   "audioSha256": "c9925280d7b8db7a73de9270ba3cbd7c06a5824305386fe7946bc08181e1334d",
+   "independentAsSaidMatch": true,
+   "expected": "قُلْ إِنَّ رَبِّى يَقْذِفُ بِٱلْحَقِّ عَلَّـٰمُ ٱلْغُيُوبِ",
+   "heard": "قل: إن ربي يقذف بالحق، علام الغيوب.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00178-of-00411:880",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00372-of-00411:479": {
+   "audioSha256": "d927085424c3988176cb6201dc563c0eb7c69009a66d7d96829923d0e57a237a",
+   "independentAsSaidMatch": true,
+   "expected": "وَٱلَّذِىٓ أَخْرَجَ ٱلْمَرْعَىٰ",
+   "heard": "والذي أخرج المرعى.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00372-of-00411:479",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00373-of-00411:939": {
+   "audioSha256": "9f58a8bae1e211bf91d5e03b77d2a0b58ced865e0435b831fcb2bd4e6e59845f",
+   "independentAsSaidMatch": false,
+   "expected": "وَنُيَسِّرُكَ لِلْيُسْرَىٰ",
+   "heard": "ونيسر قليل يسرا.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00373-of-00411:939",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00395-of-00411:175": {
+   "audioSha256": "45f45891f17c1902d4cf9a1cbefb0ef6660d6ab1ea631845ea61730a32b56e6c",
+   "independentAsSaidMatch": true,
+   "expected": "وَإِلَىٰ رَبِّكَ فَٱرْغَب",
+   "heard": "وَإِلَى رَبِّكَ فَارْغَبْ.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00395-of-00411:175",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "unclean-00142-of-00332:167": {
+   "audioSha256": "1380381931f28df390d4b38c269bc079a5dfec4684fd108d949b871fd5e3c906",
+   "independentAsSaidMatch": false,
+   "expected": "إِلَىٰ فِرْعَوْنَ وَمَلَإِي۟هِۦ فَقَالَ إِنِّى رَسُولُ رَبِّ ٱلْعَـٰلَمِينَ",
+   "heard": "إلى فرعون وملئه، فقال: إني رسول رب العالمين.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#unclean-00142-of-00332:167",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00038-of-00411:451": {
+   "audioSha256": "8ea40b85a8d252fc1d3e31889c2a14018b976bb5073945b686e68b510a974107",
+   "independentAsSaidMatch": true,
+   "expected": "أَلَمْ تَرَ كَيْفَ ضَرَبَ ٱللَّهُ مَثَلًۭا كَلِمَةًۭ طَيِّبَةًۭ كَشَجَرَةٍۢ طَيِّبَةٍ أَصْلُهَا ثَابِتٌۭ وَفَرْعُهَا فِى ٱلسَّمَآءِ",
+   "heard": "ألم ترَ كيف ضرب الله مثلاً كلمة طيبة كشجرة طيبة أصلها ثابت وفرعها في السماء؟",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00038-of-00411:451",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00081-of-00411:202": {
+   "audioSha256": "1a3000c6fcd6b718ae43b4e5268ee98a6ae129525c3b5ea93fdbb1b0d043f266",
+   "independentAsSaidMatch": true,
+   "expected": "مَـٰلِكِ يَوْمِ ٱلدِّينِ",
+   "heard": "مالك يوم الدين.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00081-of-00411:202",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  },
+  "clean-00326-of-00411:601": {
+   "audioSha256": "901a6eb078b813f3a27e4db9b6ff0d4cf47b8fa15674ce3de239d788c2bc6c50",
+   "independentAsSaidMatch": true,
+   "expected": "وَسُيِّرَتِ ٱلْجِبَالُ فَكَانَتْ سَرَابًا",
+   "heard": "وسيرت الجبال فكانت سرابًا.",
+   "reviewRecord": "/reviews/sparse-training-audit/asr-soniox.json#clean-00326-of-00411:601",
+   "basis": "Source label, teacher and clean student agree at phoneme level; independent blind Soniox lexical transcript matches. No fine pronunciation judgment."
+  }
+ },
+ "selfCorrectionControls": [
+  {
+   "id": "rec-yazin-rec-v1-01-t1-m8",
+   "verified": true,
+   "verificationKind": "independent blind lexical ASR plus teacher-aligned scripted attempt; no new human judgment",
+   "audioSha256": "68cc3bf238b69fd684a60babd31fb8484cf526a0453046591c7a696c779668f6",
+   "reviewRecord": "/reviews/sparse-selfcorrection-audit/asr-soniox.json#rec-yazin-rec-v1-01-t1-m8",
+   "transcript": "إنسان من طين، علق: \"اقرأ وربك.\"",
+   "model": {
+    "vendor": "soniox",
+    "endpoint": "https://api.soniox.com",
+    "model": "stt-async-v5",
+    "modelInfo": {
+     "id": "stt-async-v5",
+     "aliased_model_id": null,
+     "name": "Speech-to-Text Async v5",
+     "context_version": 2,
+     "transcription_mode": "async",
+     "languages": [
+      {
+       "code": "af",
+       "name": "Afrikaans"
+      },
+      {
+       "code": "sq",
+       "name": "Albanian"
+      },
+      {
+       "code": "ar",
+       "name": "Arabic"
+      },
+      {
+       "code": "az",
+       "name": "Azerbaijani"
+      },
+      {
+       "code": "eu",
+       "name": "Basque"
+      },
+      {
+       "code": "be",
+       "name": "Belarusian"
+      },
+      {
+       "code": "bn",
+       "name": "Bengali"
+      },
+      {
+       "code": "bs",
+       "name": "Bosnian"
+      },
+      {
+       "code": "bg",
+       "name": "Bulgarian"
+      },
+      {
+       "code": "ca",
+       "name": "Catalan"
+      },
+      {
+       "code": "zh",
+       "name": "Chinese"
+      },
+      {
+       "code": "hr",
+       "name": "Croatian"
+      },
+      {
+       "code": "cs",
+       "name": "Czech"
+      },
+      {
+       "code": "da",
+       "name": "Danish"
+      },
+      {
+       "code": "nl",
+       "name": "Dutch"
+      },
+      {
+       "code": "en",
+       "name": "English"
+      },
+      {
+       "code": "et",
+       "name": "Estonian"
+      },
+      {
+       "code": "fi",
+       "name": "Finnish"
+      },
+      {
+       "code": "fr",
+       "name": "French"
+      },
+      {
+       "code": "gl",
+       "name": "Galician"
+      },
+      {
+       "code": "de",
+       "name": "German"
+      },
+      {
+       "code": "el",
+       "name": "Greek"
+      },
+      {
+       "code": "gu",
+       "name": "Gujarati"
+      },
+      {
+       "code": "he",
+       "name": "Hebrew"
+      },
+      {
+       "code": "hi",
+       "name": "Hindi"
+      },
+      {
+       "code": "hu",
+       "name": "Hungarian"
+      },
+      {
+       "code": "id",
+       "name": "Indonesian"
+      },
+      {
+       "code": "it",
+       "name": "Italian"
+      },
+      {
+       "code": "ja",
+       "name": "Japanese"
+      },
+      {
+       "code": "kn",
+       "name": "Kannada"
+      },
+      {
+       "code": "kk",
+       "name": "Kazakh"
+      },
+      {
+       "code": "ko",
+       "name": "Korean"
+      },
+      {
+       "code": "lv",
+       "name": "Latvian"
+      },
+      {
+       "code": "lt",
+       "name": "Lithuanian"
+      },
+      {
+       "code": "mk",
+       "name": "Macedonian"
+      },
+      {
+       "code": "ms",
+       "name": "Malay"
+      },
+      {
+       "code": "ml",
+       "name": "Malayalam"
+      },
+      {
+       "code": "mr",
+       "name": "Marathi"
+      },
+      {
+       "code": "no",
+       "name": "Norwegian"
+      },
+      {
+       "code": "fa",
+       "name": "Persian"
+      },
+      {
+       "code": "pl",
+       "name": "Polish"
+      },
+      {
+       "code": "pt",
+       "name": "Portuguese"
+      },
+      {
+       "code": "pa",
+       "name": "Punjabi"
+      },
+      {
+       "code": "ro",
+       "name": "Romanian"
+      },
+      {
+       "code": "ru",
+       "name": "Russian"
+      },
+      {
+       "code": "sr",
+       "name": "Serbian"
+      },
+      {
+       "code": "sk",
+       "name": "Slovak"
+      },
+      {
+       "code": "sl",
+       "name": "Slovenian"
+      },
+      {
+       "code": "es",
+       "name": "Spanish"
+      },
+      {
+       "code": "sw",
+       "name": "Swahili"
+      },
+      {
+       "code": "sv",
+       "name": "Swedish"
+      },
+      {
+       "code": "tl",
+       "name": "Tagalog"
+      },
+      {
+       "code": "ta",
+       "name": "Tamil"
+      },
+      {
+       "code": "te",
+       "name": "Telugu"
+      },
+      {
+       "code": "th",
+       "name": "Thai"
+      },
+      {
+       "code": "tr",
+       "name": "Turkish"
+      },
+      {
+       "code": "uk",
+       "name": "Ukrainian"
+      },
+      {
+       "code": "ur",
+       "name": "Urdu"
+      },
+      {
+       "code": "vi",
+       "name": "Vietnamese"
+      },
+      {
+       "code": "cy",
+       "name": "Welsh"
+      }
+     ],
+     "supports_language_hints_strict": true,
+     "supports_max_endpoint_delay": false,
+     "supports_endpoint_sensitivity": false,
+     "supports_endpoint_latency_adjustment": false,
+     "endpoint_latency_adjustment_max_level": 0,
+     "supports_agent_text_input": false,
+     "translation_targets": [],
+     "two_way_translation_pairs": [],
+     "one_way_translation": "all_languages",
+     "two_way_translation": "all_languages"
+    },
+    "config": {
+     "model": "stt-async-v5",
+     "language_hints": [
+      "ar"
+     ],
+     "language_hints_strict": true
+    },
+    "pricePerHour": 0.1
+   },
+   "audio": {
+    "path": "recordings/sessions/rec-yazin-rec-v1-01-t1.phone.wav",
+    "startS": 130.48,
+    "endS": 137.6
+   }
+  },
+  {
+   "id": "rec-yazin-rec-v1-02-t1-m3",
+   "verified": true,
+   "verificationKind": "independent blind lexical ASR plus teacher-aligned scripted attempt; no new human judgment",
+   "audioSha256": "e2d7a37fc57dc0e21976a9b03f6658079fba26a40e7ada625ddd1c5c5d7539df",
+   "reviewRecord": "/reviews/sparse-selfcorrection-audit/asr-soniox.json#rec-yazin-rec-v1-02-t1-m3",
+   "transcript": "لتغفر لهم، وجعلوا— جعلوا أصابعهم في—",
+   "model": {
+    "vendor": "soniox",
+    "endpoint": "https://api.soniox.com",
+    "model": "stt-async-v5",
+    "modelInfo": {
+     "id": "stt-async-v5",
+     "aliased_model_id": null,
+     "name": "Speech-to-Text Async v5",
+     "context_version": 2,
+     "transcription_mode": "async",
+     "languages": [
+      {
+       "code": "af",
+       "name": "Afrikaans"
+      },
+      {
+       "code": "sq",
+       "name": "Albanian"
+      },
+      {
+       "code": "ar",
+       "name": "Arabic"
+      },
+      {
+       "code": "az",
+       "name": "Azerbaijani"
+      },
+      {
+       "code": "eu",
+       "name": "Basque"
+      },
+      {
+       "code": "be",
+       "name": "Belarusian"
+      },
+      {
+       "code": "bn",
+       "name": "Bengali"
+      },
+      {
+       "code": "bs",
+       "name": "Bosnian"
+      },
+      {
+       "code": "bg",
+       "name": "Bulgarian"
+      },
+      {
+       "code": "ca",
+       "name": "Catalan"
+      },
+      {
+       "code": "zh",
+       "name": "Chinese"
+      },
+      {
+       "code": "hr",
+       "name": "Croatian"
+      },
+      {
+       "code": "cs",
+       "name": "Czech"
+      },
+      {
+       "code": "da",
+       "name": "Danish"
+      },
+      {
+       "code": "nl",
+       "name": "Dutch"
+      },
+      {
+       "code": "en",
+       "name": "English"
+      },
+      {
+       "code": "et",
+       "name": "Estonian"
+      },
+      {
+       "code": "fi",
+       "name": "Finnish"
+      },
+      {
+       "code": "fr",
+       "name": "French"
+      },
+      {
+       "code": "gl",
+       "name": "Galician"
+      },
+      {
+       "code": "de",
+       "name": "German"
+      },
+      {
+       "code": "el",
+       "name": "Greek"
+      },
+      {
+       "code": "gu",
+       "name": "Gujarati"
+      },
+      {
+       "code": "he",
+       "name": "Hebrew"
+      },
+      {
+       "code": "hi",
+       "name": "Hindi"
+      },
+      {
+       "code": "hu",
+       "name": "Hungarian"
+      },
+      {
+       "code": "id",
+       "name": "Indonesian"
+      },
+      {
+       "code": "it",
+       "name": "Italian"
+      },
+      {
+       "code": "ja",
+       "name": "Japanese"
+      },
+      {
+       "code": "kn",
+       "name": "Kannada"
+      },
+      {
+       "code": "kk",
+       "name": "Kazakh"
+      },
+      {
+       "code": "ko",
+       "name": "Korean"
+      },
+      {
+       "code": "lv",
+       "name": "Latvian"
+      },
+      {
+       "code": "lt",
+       "name": "Lithuanian"
+      },
+      {
+       "code": "mk",
+       "name": "Macedonian"
+      },
+      {
+       "code": "ms",
+       "name": "Malay"
+      },
+      {
+       "code": "ml",
+       "name": "Malayalam"
+      },
+      {
+       "code": "mr",
+       "name": "Marathi"
+      },
+      {
+       "code": "no",
+       "name": "Norwegian"
+      },
+      {
+       "code": "fa",
+       "name": "Persian"
+      },
+      {
+       "code": "pl",
+       "name": "Polish"
+      },
+      {
+       "code": "pt",
+       "name": "Portuguese"
+      },
+      {
+       "code": "pa",
+       "name": "Punjabi"
+      },
+      {
+       "code": "ro",
+       "name": "Romanian"
+      },
+      {
+       "code": "ru",
+       "name": "Russian"
+      },
+      {
+       "code": "sr",
+       "name": "Serbian"
+      },
+      {
+       "code": "sk",
+       "name": "Slovak"
+      },
+      {
+       "code": "sl",
+       "name": "Slovenian"
+      },
+      {
+       "code": "es",
+       "name": "Spanish"
+      },
+      {
+       "code": "sw",
+       "name": "Swahili"
+      },
+      {
+       "code": "sv",
+       "name": "Swedish"
+      },
+      {
+       "code": "tl",
+       "name": "Tagalog"
+      },
+      {
+       "code": "ta",
+       "name": "Tamil"
+      },
+      {
+       "code": "te",
+       "name": "Telugu"
+      },
+      {
+       "code": "th",
+       "name": "Thai"
+      },
+      {
+       "code": "tr",
+       "name": "Turkish"
+      },
+      {
+       "code": "uk",
+       "name": "Ukrainian"
+      },
+      {
+       "code": "ur",
+       "name": "Urdu"
+      },
+      {
+       "code": "vi",
+       "name": "Vietnamese"
+      },
+      {
+       "code": "cy",
+       "name": "Welsh"
+      }
+     ],
+     "supports_language_hints_strict": true,
+     "supports_max_endpoint_delay": false,
+     "supports_endpoint_sensitivity": false,
+     "supports_endpoint_latency_adjustment": false,
+     "endpoint_latency_adjustment_max_level": 0,
+     "supports_agent_text_input": false,
+     "translation_targets": [],
+     "two_way_translation_pairs": [],
+     "one_way_translation": "all_languages",
+     "two_way_translation": "all_languages"
+    },
+    "config": {
+     "model": "stt-async-v5",
+     "language_hints": [
+      "ar"
+     ],
+     "language_hints_strict": true
+    },
+    "pricePerHour": 0.1
+   },
+   "audio": {
+    "path": "recordings/sessions/rec-yazin-rec-v1-02-t1.phone.wav",
+    "startS": 61.92,
+    "endS": 69.0
+   }
+  }
+ ],
+ "verificationCounts": {
+  "selected": 16,
+  "random": 16,
+  "pairedSize": 12
+ },
+ "sourceMining": "/student/runs/sparse-mining-v1/mining.json",
+ "exposureCorrection": {
+  "reason": "Original fixed 200-batch schedule exposed 12 selected and 15 random clips; match actual exposure before reading practice scores.",
+  "selectionSeed": [
+   810,
+   811
+  ],
+  "plannedBatches": 236,
+  "executedBatches": 200,
+  "seenPerArm": 12,
+  "supersedes": "sparse-verified-manifest.json"
+ }
+}

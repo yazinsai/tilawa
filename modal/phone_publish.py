@@ -12,7 +12,7 @@ def publish(run: str, listener: str):
     from shutil import copyfile
     from onnxruntime.quantization import QuantType, quantize_dynamic
     src=Path('/student/runs')/run/'onnx'
-    if listener not in {'sparse-consonants-int8', 'sparse-random-int8'}:
+    if listener not in {'sparse-consonants-v2-int8', 'sparse-random-v2-int8'}:
         raise ValueError('Unexpected sparse experiment listener')
     out=Path('/lab/data/models')/listener
     out.mkdir(parents=True,exist_ok=True)
