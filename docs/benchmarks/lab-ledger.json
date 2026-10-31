@@ -563,7 +563,7 @@
   },
   {
    "kind": "main",
-   "at": "2026-10-31T11:21:45+00:00",
+   "at": "2026-10-31T11:21:49+00:00",
    "sha": "27ddced",
    "testSet": "lab-v1.5",
    "experiment": "checker-joint-additions",
@@ -580,7 +580,7 @@
   },
   {
    "kind": "experiment",
-   "at": "2026-10-31T11:21:45+00:00",
+   "at": "2026-10-31T11:21:49+00:00",
    "id": "checker-joint-additions",
    "component": "checker",
    "hypothesis": "Jointly align added speech with both neighboring words so an insertion cannot disappear into a reference-word detour. Predict 8 fewer practice misses, no additional false warnings, 6 fewer checker-attributed wrong calls and 8 fewer overall. Check frozen and new sessions, clean and repeat controls, and gain concentration by reciter and passage.",
@@ -607,6 +607,148 @@
      "listener": 44,
      "tracker": 5,
      "checker": 48
+    },
+    "exam": null
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-31T11:23:56+00:00",
+   "id": "checker-skip-boundaries",
+   "component": "checker",
+   "hypothesis": "Compare complete alternative skip placements against spoken boundary words instead of requiring exact consonant skeleton equality. Predict 3 fewer practice misses and 3 fewer false warnings, 6 fewer checker-attributed and overall wrong calls. Preserve real skips, clean recitation and the frozen subset; report the concentration in two surah-26 sessions.",
+   "expected": {
+    "component": -6,
+    "overall": -6
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "",
+   "branch": {
+    "wrongCalls": 104,
+    "missed": 80,
+    "falseWarnings": 24,
+    "listener": 44,
+    "tracker": 5,
+    "checker": 55
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-31T12:09:10+00:00",
+   "id": "checker-gap-ownership",
+   "component": "checker",
+   "hypothesis": "Jointly fit the spoken words around an omission or skip so neighboring noisy sounds do not fill the missing word. Predict 2 fewer misses and 2 fewer false warnings, 4 fewer overall wrong calls, and unchanged checker attribution. Keep existing confidence gates; check old and new sessions, clean controls, and reader and passage concentration.",
+   "expected": {
+    "component": 0,
+    "overall": -4
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "User discarded after full practice result: 1 fewer wrong call is noise, gain concentrated in one case, clean warnings unchanged, and studio adds one miss. Preserve result and branch for history.",
+   "branch": {
+    "wrongCalls": 96,
+    "missed": 71,
+    "falseWarnings": 25,
+    "listener": 43,
+    "tracker": 5,
+    "checker": 48
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-31T12:09:24+00:00",
+   "id": "checker-single-accusation",
+   "component": "checker",
+   "hypothesis": "Give one spoken edit one complete explanation instead of confirming overlapping adjacent wrong-word and added-word accusations. Predict unchanged misses and 3 fewer false warnings, 3 fewer overall wrong calls, and unchanged checker attribution. Preserve genuinely separate neighboring mistakes and clean repeats.",
+   "expected": {
+    "component": 0,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "User discarded after full practice result: 2 fewer false warnings is noise; both gains share one reader and surah, clean warnings unchanged. Preserve result and branch for history.",
+   "branch": {
+    "wrongCalls": 95,
+    "missed": 72,
+    "falseWarnings": 23,
+    "listener": 42,
+    "tracker": 5,
+    "checker": 48
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-31T13:26:36+00:00",
+   "id": "checker-lexical-consonants",
+   "component": "checker",
+   "hypothesis": "A complete lexical alternative with two hard consonant edits and positive acoustic support recovers substitutions hidden by vowel alignment without adding false warnings",
+   "expected": {
+    "component": -4,
+    "overall": -4
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "User chose checker-independent-consonants and requested discarding the earlier lexical experiment.",
+   "branch": {
+    "wrongCalls": 94,
+    "missed": 67,
+    "falseWarnings": 27,
+    "listener": 50,
+    "tracker": 5,
+    "checker": 39
+   },
+   "rebased": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-10-31T13:37:34+00:00",
+   "sha": "3374b91",
+   "testSet": "lab-v1.5",
+   "experiment": "checker-independent-consonants",
+   "note": "Counting a contiguous doubled-consonant identity change once and requiring compatible lexical pronunciation context retains five recovered mistakes without adding warnings; practice-only fold, exam not measured",
+   "practice": {
+    "wrongCalls": 92,
+    "missed": 67,
+    "falseWarnings": 25,
+    "listener": 47,
+    "tracker": 5,
+    "checker": 40
+   },
+   "exam": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-10-31T13:37:34+00:00",
+   "id": "checker-independent-consonants",
+   "component": "checker",
+   "hypothesis": "Counting a contiguous doubled-consonant identity change once and requiring compatible lexical pronunciation context retains five recovered mistakes without adding warnings",
+   "expected": {
+    "component": -9,
+    "overall": -5
+   },
+   "state": "folded",
+   "testSet": "lab-v1.5",
+   "note": "keeps its overall and checker gain",
+   "branch": {
+    "wrongCalls": 92,
+    "missed": 67,
+    "falseWarnings": 25,
+    "listener": 47,
+    "tracker": 5,
+    "checker": 40
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 92,
+     "missed": 67,
+     "falseWarnings": 25,
+     "listener": 47,
+     "tracker": 5,
+     "checker": 40
     },
     "exam": null
    }
