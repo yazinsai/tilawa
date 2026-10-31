@@ -37,6 +37,7 @@ image = (
     .add_local_file(ROOT / "tools/lab_dashboard_core.py", "/root/lab_dashboard_core.py")
     .add_local_file(ROOT / "tools/review_asr_core.py", "/root/review_asr_core.py")
     .add_local_file(ROOT / "tools/lab_models_core.py", "/root/lab_models_core.py")
+    .add_local_file(ROOT / "tools/lab_plain.py", "/root/lab_plain.py")
     .add_local_file(ROOT / "tools/lab_phonemes_core.py", "/root/lab_phonemes_core.py")
     .add_local_file(ROOT / "packages/core/assets/ref-v2.json", "/root/ref-v2.json")
     .add_local_file(ROOT / "docs/benchmarks/scoreboard.md", "/root/scoreboard.md")
@@ -62,6 +63,7 @@ def web():
 
     import lab_dashboard_core as D
     import lab_ledger as L
+    import lab_plain as plain
     import lab_review_core as core
     from fastapi import Body, FastAPI, HTTPException, Request, Response
     from fastapi.responses import FileResponse
@@ -196,7 +198,8 @@ def web():
         reload()
         q = load_queue(path)
         rv = load_reviews(q["testSet"], name(reviewer, "reviewer"))["items"]
-        return {"path": path, "reviewer": reviewer, "queue": q, "reviews": rv, "tally": core.tally(q, rv), "verdicts": core.VERDICTS}
+        shown = {**q, "items": [{**it, "plain": plain.plain(it)} for it in q["items"]]}  # the heading in plain words (tools/lab_plain.py)
+        return {"path": path, "reviewer": reviewer, "queue": shown, "reviews": rv, "tally": core.tally(q, rv), "verdicts": core.VERDICTS}
 
     @api.post("/api/verdict")
     def verdict(body: dict = Body(...)):

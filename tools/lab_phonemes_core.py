@@ -15,7 +15,7 @@ Pure logic, standard library only; tested by tools/test_lab_phonemes.py.
 import bisect
 import re
 
-LISTENERS = (("student", "spliced-clean-int8", "The app's listener"), ("teacher", "teacher", "The big reference listener"))
+LISTENERS = (("student", "spliced-clean-int8", "The app's ear"), ("teacher", "teacher", "The reference ear"))
 TOL_S = 0.12  # seconds a heard phoneme may sit outside the word it pairs with (3 frames)
 LOW_CONF = 0.6  # greedy confidence below which a phoneme is shown dimmed
 LIKE = 0.5  # similarity at which heard phonemes count as the word
@@ -254,16 +254,16 @@ def heard_as(cols: list[dict], cells: list[dict], focus: list[int]) -> str:
     return "original" if sr >= LIKE else "unclear"
 
 
-def _say(how: str, role: str) -> str:
-    word = {"omitted": "the left-out word", "wrong": "the planted word", "added": "the added word", "repeat": "the repeat"}.get(role, "the word")
-    return {"absent": "heard nothing", "anyway": f"heard {word} anyway", "partial": "heard a few sounds",
-            "planted": f"heard {word}", "original": "heard the original word instead", "nothing": "heard nothing",
+def _say(how: str, word: str) -> str:
+    """word: the focus words in plain form, e.g. «بِمَا» or "the skipped ayah"."""
+    return {"absent": "heard nothing there (as expected)", "anyway": f"heard {word} after all (unexpected)", "partial": "picked up a few sounds there",
+            "planted": f"heard {word} (as described)", "original": "heard the mushaf's word instead (unexpected)", "nothing": "heard nothing there",
             "unclear": f"heard {word} only partly"}[how]
 
 
-def summary(cols: list[dict], listeners: list[dict], focus: list[int]) -> dict:
+def summary(cols: list[dict], listeners: list[dict], focus: list[int], t0: float = 0.0, skipped: bool = False) -> dict:
     """{text, elsewhere}: one plain sentence on how each listener heard the label's word(s), and how many other words
-    each heard differently."""
+    each heard differently. t0: the clip's start in the session, so times read as seconds into the clip."""
     have = [x for x in listeners if x["found"]]
     if not have:
         return {"text": "No listener evidence for this session", "elsewhere": ""}
@@ -273,27 +273,29 @@ def summary(cols: list[dict], listeners: list[dict], focus: list[int]) -> dict:
     differ = {x["key"]: sum(x["cells"][k]["status"] != "match" for k in others) for x in have}
     if not focus:
         if not any(differ.values()):
-            text = "Both listeners heard every word as expected" if len(have) == 2 else f"{name[have[0]['key']]} heard every word as expected"
+            text = "Both ears heard every word as expected" if len(have) == 2 else f"{name[have[0]['key']]} heard every word as expected"
         else:
-            text = ", ".join(f"{lower(name[x['key']])} {differ[x['key']]}" if i else f"{name[x['key']]} heard {differ[x['key']]} of {len(others)} words differently"
-                             for i, x in enumerate(have))
+            text = ", ".join(f"{lower(name[x['key']])} {differ[x['key']]}" if i else f"{name[x['key']]} heard {differ[x['key']]} of {len(others)} words slightly differently"
+                             for i, x in enumerate(have)) + " (usually a vowel or an ending)"
         missing = [x for x in listeners if not x["found"]]
         return {"text": text + "".join(f"; no evidence for {lower(x['name'])}" for x in missing), "elsewhere": ""}
     role, at = cols[focus[0]]["role"], cols[focus[0]]["startS"]
     hows = {x["key"]: heard_as(cols, x["cells"], focus) for x in have}
-    where = " there" if role == "omitted" else ""
+    words = " ".join(cols[k].get("text", "") for k in focus).split()
+    word = "the skipped ayah" if skipped else f"«{' '.join(words[:3])}{'…' if len(words) > 3 else ''}»"
     if len(have) == 2 and len(set(hows.values())) == 1:
         how = next(iter(hows.values()))
-        text = ("neither listener heard anything where the left-out word should be missing" if how == "absent"
-                else "neither listener heard anything there" if how == "nothing" else f"both listeners {_say(how, role)}")
+        text = ("neither ear heard anything there (as expected)" if how == "absent"
+                else "neither ear heard anything there" if how == "nothing" else f"both ears {_say(how, word)}")
     else:
-        parts = [f"{lower(name[x['key']])} {_say(hows[x['key']], role)}{where if hows[x['key']] in ('absent', 'partial') else ''}" for x in have]
+        parts = [f"{lower(name[x['key']])} {_say(hows[x['key']], word)}" for x in have]
         parts += [f"no evidence for {lower(x['name'])}" for x in listeners if not x["found"]]
         text = "; ".join(parts)
-    text = f"At {at:.1f} s, {text}"
-    bits = [f"{lower(name[x['key']])} heard {differ[x['key']]} of {len(others)} words differently" if i == 0 else f"{lower(name[x['key']])} {differ[x['key']]}"
+    here = f"Where {word} should be missing" if role == "omitted" else f"At {word}"
+    text = f"{here} ({max(0.0, at - t0):.1f} s into the clip), {text}"
+    bits = [f"{lower(name[x['key']])} heard {differ[x['key']]} of {len(others)} words slightly differently" if i == 0 else f"{lower(name[x['key']])} {differ[x['key']]}"
             for i, x in enumerate(x for x in have if differ[x["key"]])]
-    elsewhere = f"Elsewhere in the window, {', '.join(bits)}" if bits else ""
+    elsewhere = f"In the rest of the clip, {', '.join(bits)} (usually a vowel or an ending)" if bits else ""
     return {"text": text, "elsewhere": elsewhere}
 
 
@@ -331,7 +333,7 @@ def view(sdoc: dict, ref: Ref | None, evidence: dict[str, dict | None], a: float
             out_cols.append({"kind": "gap", "startS": s, "endS": e, "expected": "", "focus": False,
                              "heard": {x["key"]: {"heard": "".join(o["h"] for o in gaps[gk].get(x["key"], [])), "ops": gaps[gk].get(x["key"], []),
                                                    "status": "extra" if gaps[gk].get(x["key"]) else "nothing"} for x in listeners if x["found"]}})
-    s = summary(cols, listeners, focus)
+    s = summary(cols, listeners, focus, a, label_type == "skipped_passage")
     return {"found": True, "window": {"startS": a, "endS": b}, "span": {"startS": lo, "endS": hi}, "summary": s["text"], "elsewhere": s["elsewhere"],
             "listeners": [{k: v for k, v in x.items() if k != "cells"} for x in listeners], "columns": out_cols,
             "lowConf": LOW_CONF, "tolS": TOL_S}

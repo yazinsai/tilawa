@@ -76,3 +76,16 @@ Built (31 Oct). Write-up in `docs/benchmarks/lab-v1.5.md`, counts in `lab-v1.5.j
 - **Not done yet: registration.** `lab baseline --manifest lab-v1.5/manifest-v1.json --exclude lab-v1.5/flags-v1.json` would make lab-v1.5 the ledger's current test set and re-score the main line on practice and exam. It waits for the spot check, since the set isn't trusted before then. No experiments are open.
 
 Decision (31 Oct, you): the wrong-class shortfall (79 / 86 per half) is accepted, with no rule change and no more sessions. lab-v1.5 is registered once `review/spot-check.json` passes (at most 1 bad in 45). The spot check has 0 of 45 reviewed so far.
+
+Review page in plain words (31 Oct, after your note that the spot-check wording was unreadable). A reviewer subagent listed every confusing string. `tools/lab_plain.py` (tested in `tools/test_lab_plain.py`) now builds each item's heading from the item itself, so every existing queue reads this way without being rebuilt. Ids, clips and verdicts are unchanged.
+- **Heading:** the reason as a tag, then the listening question ("Listen for: «بِمَا» should be missing between «أَعْلَمُ» and «تَعْمَلُونَ».").
+- **Location line:** surah, ayah and word, the time into the clip (not into the session), and how the cut was made.
+- **Arabic text:** a dashed, struck-through gap where words were left out, and a mark over the whole of a changed, extra or repeated phrase.
+- **Panels** ("What the computer checks think", "Sound by sound"):
+  - They now sit below the verdict buttons.
+  - The models are "Check 1" and "Check 2", each with one plain verdict, and the numbers are on a small grey line in words.
+  - The sound-matching check's rough write-down is hidden behind a toggle.
+  - Made-up comparison versions for clean windows are labelled as made up.
+  - The listener summary names the word and says whether what was heard is expected.
+
+`/api/queue` adds `plain` to each item. `lab_models_core` and `lab_phonemes_core` were reworded and their tests updated. Deployed to `tilawa-lab-review`.

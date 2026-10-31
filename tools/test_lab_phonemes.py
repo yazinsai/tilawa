@@ -88,7 +88,7 @@ def test_clean_evidence_matches_every_word_and_the_omission_stays_empty():
     assert cells(v, "student") == [("word", "ref", "رَببِ", "match"), ("word", "ref", "لعَاالَمِۦۦن", "match"),
                                    ("word", "omitted", "", "absent"), ("word", "ref", "بِكُللِ", "match")]
     assert [c["focus"] for c in v["columns"]] == [False, False, True, False]
-    assert v["summary"] == "At 2.0 s, neither listener heard anything where the left-out word should be missing"
+    assert v["summary"] == "Where «أَتَبْنُونَ» should be missing (1.5 s into the clip), neither ear heard anything there (as expected)"
     assert v["elsewhere"] == ""
 
 
@@ -106,14 +106,14 @@ def test_phonemes_heard_in_the_omitted_slot_are_the_word_heard_anyway():
     assert om["heard"] == "ءَتَبڇنُۥۥنَ" and om["status"] == "heard" and om["likeReference"] == 1.0
     assert all(o["op"] == "ins" for o in om["ops"])
     assert cells(v, "student")[3] == ("word", "ref", "بِكُللِ", "match")
-    assert v["summary"] == "At 2.0 s, the app's listener heard the left-out word anyway; the big reference listener heard nothing there"
+    assert v["summary"] == "Where «أَتَبْنُونَ» should be missing (1.5 s into the clip), the app's ear heard «أَتَبْنُونَ» after all (unexpected); the reference ear heard nothing there (as expected)"
 
 
 def test_a_few_sounds_in_the_slot_are_not_the_word():
     ev = evidence([("رَببِ", 0.52, 0.98, 0.99), ("لعَاالَمِۦۦن", 1.02, 1.98, 0.99), ("ءَ", 2.1, 2.15, 0.5), ("بِكُللِ", 2.32, 2.98, 0.99)])
     v = P.view(SDOC, REF, {"student": ev, "teacher": ev}, 0.5, 3.0, "omitted_word")
     assert v["columns"][2]["heard"]["student"]["status"] == "heard"
-    assert v["summary"] == "At 2.0 s, both listeners heard a few sounds"
+    assert v["summary"] == "Where «أَتَبْنُونَ» should be missing (1.5 s into the clip), both ears picked up a few sounds there"
 
 
 def test_substitutions_missing_and_extra_phonemes_are_per_word_ops():
@@ -151,7 +151,7 @@ def test_phonemes_between_words_are_a_gap_column():
     assert (gap["startS"], gap["endS"]) == (1.0, 2.0)
     assert gap["heard"]["student"]["heard"] == "تت" and gap["heard"]["student"]["status"] == "extra"
     assert gap["heard"]["teacher"] == {"heard": "", "ops": [], "status": "nothing"}
-    assert v["summary"] == "Both listeners heard every word as expected"
+    assert v["summary"] == "Both ears heard every word as expected"
 
 
 def test_neighbours_phonemes_past_the_window_edges_are_dropped():
@@ -180,24 +180,24 @@ def test_wrong_word_summary_tells_planted_from_original():
     planted = evidence([("لُۥۥطُن", 1.02, 1.58, 0.99)])
     original = evidence([("بِكُللِ", 1.02, 1.58, 0.99)])
     v = P.view(sdoc, REF, {"student": original, "teacher": planted}, 0.5, 2.0, "wrong_word")
-    assert v["summary"] == "At 1.0 s, the app's listener heard the original word instead; the big reference listener heard the planted word"
+    assert v["summary"] == "At «لُوطٌ» (0.5 s into the clip), the app's ear heard the mushaf's word instead (unexpected); the reference ear heard «لُوطٌ» (as described)"
     v = P.view(sdoc, REF, {"student": planted, "teacher": planted}, 0.5, 2.0, "wrong_word")
-    assert v["summary"] == "At 1.0 s, both listeners heard the planted word"
+    assert v["summary"] == "At «لُوطٌ» (0.5 s into the clip), both ears heard «لُوطٌ» (as described)"
 
 
 def test_summary_counts_other_words_heard_differently():
     ev = evidence([("رَببِ", 0.52, 0.98, 0.99), ("لعَاالَمِۦۦن", 1.02, 1.98, 0.99), ("لِكُللِ", 2.32, 2.98, 0.7)])
     v = P.view(SDOC, REF, {"student": ev, "teacher": CLEAN}, 0.5, 3.0, "omitted_word")
-    assert v["elsewhere"] == "Elsewhere in the window, the app's listener heard 1 of 3 words differently"
+    assert v["elsewhere"] == "In the rest of the clip, the app's ear heard 1 of 3 words slightly differently (usually a vowel or an ending)"
     v = P.view(SDOC, REF, {"student": ev, "teacher": CLEAN}, 0.5, 3.0, "clean")
-    assert v["summary"] == "The app's listener heard 1 of 3 words differently, the big reference listener 0"
+    assert v["summary"] == "The app's ear heard 1 of 3 words slightly differently, the reference ear 0 (usually a vowel or an ending)"
 
 
 def test_missing_evidence_is_said_plainly():
     v = P.view(SDOC, REF, {"student": CLEAN, "teacher": None}, 0.5, 3.0, "omitted_word", files={"teacher": "s/p.teacher.phone.evidence.json"})
     t = next(x for x in v["listeners"] if x["key"] == "teacher")
-    assert not t["found"] and t["message"] == "No evidence for the big reference listener (s/p.teacher.phone.evidence.json)"
+    assert not t["found"] and t["message"] == "No evidence for the reference ear (s/p.teacher.phone.evidence.json)"
     assert set(v["columns"][0]["heard"]) == {"student"}
-    assert v["summary"] == "At 2.0 s, the app's listener heard nothing there; no evidence for the big reference listener"
+    assert v["summary"] == "Where «أَتَبْنُونَ» should be missing (1.5 s into the clip), the app's ear heard nothing there (as expected); no evidence for the reference ear"
     v = P.view(SDOC, REF, {}, 0.5, 3.0)
     assert v["summary"] == "No listener evidence for this session"

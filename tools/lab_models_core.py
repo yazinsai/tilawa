@@ -10,24 +10,28 @@ skeleton (review_asr_core.compare_rasm, the letters the Soniox judge reads).
 Pure logic, standard library only; tested by tools/test_lab_models.py.
 """
 
+import math
+
+import lab_plain as plain
 import review_asr_core as core
 
 MODELS = ("nemotron", "soniox", "fastconformer")
 NAMES = {"nemotron": "Nemotron", "soniox": "Soniox", "fastconformer": "FastConformer"}
-ROLES = {"nemotron": "checks how well the label fits the sound", "soniox": "transcribes the words",
-         "fastconformer": "checks how well the label fits the sound"}
+ROLES = {m: plain.ROLE[m in plain.WRITES] for m in MODELS}
 # What a model's transcript is for, when the decision doesn't come from it.
-HEARD_NOTE = {m: "Its own transcript, only used to spell the two texts it scores against the sound." for m in ("nemotron", "fastconformer")}
+HEARD_NOTE = {m: "A rough write-down only: it invents and drops words, sometimes in another language. Its verdict above doesn't come from it."
+              for m in ("nemotron", "fastconformer")}
 # Per pairing: the file with every case's decisions (relative to /lab/data/<testSet>). Soniox's transcript is in it.
 PAIRING_FILE = {"soniox": "triage-soniox-v1.json", "fastconformer": "triage-v1.json"}
 TRANSCRIPTS = {"nemotron": "triage/asr-nemotron-3.5-transcribe.json", "fastconformer": "triage/triage-v1.fastconformer.json"}
 MARGIN = 2.0  # nats, lab_triage_core.MARGINS (the likelihood arms' committed margin)
-DECISION = {"match": "fits", "mismatch": "doesn’t fit", "unsure": "unsure"}
-OUTCOME = {"auto-accepted": "Both models accepted the label", "both-mismatch": "Both models think the label is wrong",
-           "disagree": "The two models disagree", "unsure": "A model couldn't tell"}
-REASON = {"both-mismatch": "both models think the label is wrong", "disagree": "the two models disagree", "unsure": "a model couldn't tell",
-          "seam": "a seam spot check", "spot": "a random spot check of labels both models accepted"}
-ALT_NAME = {"edit": "the text without the planted mistake", "repeat": "the text without the repeat", "clean": "a one-word change of the text"}
+DECISION = {"match": "as described", "mismatch": "not as described", "unsure": "can't tell"}
+OUTCOME = {"auto-accepted": "Both checks were happy with the description", "both-mismatch": "Both checks think the description is wrong",
+           "disagree": "The two checks disagree", "unsure": "A check couldn't decide"}
+REASON = {"both-mismatch": "both checks think the description is wrong", "disagree": "the two checks disagree", "unsure": "a check couldn't decide",
+          "seam": "a check that the edit can't be heard", "spot": "a random check of a case both checks were happy with"}
+ALT_NAME = {"edit": "this other version, with the change undone", "repeat": "this other version, said only once",
+            "clean": "a made-up test version (nobody recited it; it's only there to compare against)"}
 NONE = "No model output for this item"
 
 
@@ -170,13 +174,13 @@ def word_diff(text: str, transcript: str | None) -> dict:
 
 def diff_summary(c: dict, heard: bool) -> str:
     if not heard:
-        return "No transcript to compare"
-    parts = [f"{c['sub']} changed" if c["sub"] else "", f"{c['del']} not heard" if c["del"] else "", f"{c['ins']} extra" if c["ins"] else ""]
+        return "Nothing written down to compare"
+    parts = [f"{c['sub']} changed" if c["sub"] else "", f"{c['del']} not written down" if c["del"] else "", f"{c['ins']} extra" if c["ins"] else ""]
     n, e = c["sub"] + c["del"] + c["ins"], c.get("edge", 0)
-    edges = f"{e} word{'s' if e != 1 else ''} at the window's edges"
+    edges = f"{e} word{'s' if e != 1 else ''} at the clip's edge (cut off there, ignore {'them' if e != 1 else 'it'})"
     if not n:
-        return f"Matches the label apart from {edges}" if e else "Every labelled word heard, nothing extra"
-    return f"{n} word{'s' if n != 1 else ''} differ{'s' if n == 1 else ''}: " + ", ".join(p for p in parts if p) + (f"; also {edges}" if e else "")
+        return f"Wrote down exactly our text, plus {edges}" if e else "Wrote down exactly our text"
+    return f"{n} word{'s' if n != 1 else ''} differ{'s' if n == 1 else ''} from our text: " + ", ".join(p for p in parts if p) + (f"; plus {edges}" if e else "")
 
 
 # ---- plain words ---------------------------------------------------------------------------------------------------
@@ -186,31 +190,26 @@ def _n(x) -> str:
 
 
 def score_line(r: dict) -> tuple[str, str]:
-    """(score, how it was measured) for one model's record."""
+    """(the numbers behind a check's verdict in plain words, how they are measured) for one model's record."""
     d, dec = r.get("diff"), r.get("decision")
     if r.get("unit") == "letters" or "reason" in r:  # a transcript reading (the judge leaves out the unit when it had nothing to read)
-        how = "Letters of the rasm skeleton between what it heard and each text; the gap needed grows with how far apart the texts are where it heard them."
+        how = "Counted on letters only, without vowel marks. The more the two versions differ where it wrote, the bigger the lead it needs."
         if r.get("claimed") is None or d is None:
-            return {"empty transcript": "It heard nothing", "no alternative text": "No alternative text to compare"}.get(r.get("reason"), "No usable transcript"), how
-        dist = f"{r['claimed']} letter{'' if r['claimed'] == 1 else 's'} off the label, {r['alternative']} off the alternative"
-        need, against = r.get("need"), r.get("needAgainst", r.get("need"))
+            return {"empty transcript": "It wrote down nothing", "no alternative text": "There was no other version to compare"}.get(r.get("reason"), "Nothing usable written down"), how
+        letters = lambda n: f"{n} letter{'' if n == 1 else 's'}"
+        dist = f"What it wrote is {letters(r['claimed'])} away from our text and {letters(r['alternative'])} from the other version"
+        need = r.get("need") if (d or 0) >= 0 else r.get("needAgainst", r.get("need"))
+        lead = f"it needed a lead of at least {letters(math.ceil(need))}" if need is not None else ""
         if r.get("reason") == "transcript far from both texts":
-            return f"What it heard fits neither text: {dist}", how
+            return f"{dist}: too far from both to say", how
         if r.get("reason") == "transcript covers too little of the window":
-            return f"It heard too little of the window: {dist}", how
-        if dec == "match":
-            return f"{dist} · label closer by {d}, needs {_n(need)}", how
-        if dec == "mismatch":
-            return f"{dist} · alternative closer by {-d}, needs {_n(against)}", how
-        return f"{dist} · too close to call: {'label' if d >= 0 else 'alternative'} closer by {abs(d)}, needs {_n(need if d >= 0 else against)}", how
-    how = f"Log-likelihood of each text given the sound, in nats; {_n(MARGIN)} needed either way."
+            return f"{dist}, but it caught too little of the clip", how
+        return f"{dist}; {lead}" if lead else dist, how
+    how = f"How much better one version matches the sound than the other. {_n(MARGIN)} is the minimum to count; above 20 is very sure."
     if d is None:
-        return {"match": "Only the label can fit this audio", "mismatch": "The label can't fit this audio"}.get(dec, "Couldn't score either text"), how
-    if dec == "match":
-        return f"label fits better by {d:.1f}", how
-    if dec == "mismatch":
-        return f"alternative fits better by {-d:.1f}", how
-    return f"too close to call: {'label' if d >= 0 else 'alternative'} ahead by {abs(d):.1f}, needs {_n(MARGIN)}", how
+        return {"match": "Only the version as described could be matched to the sound", "mismatch": "The version as described couldn't be matched to the sound"}.get(dec, "Neither version could be scored"), how
+    side = "our text" if d >= 0 else "the other version"
+    return f"Prefers {side} by {abs(d):.1f} (it needs {_n(MARGIN)}; above 20 is very sure)", how
 
 
 def why_line(outcome: str | None, reasons: list[str]) -> str:
@@ -218,16 +217,18 @@ def why_line(outcome: str | None, reasons: list[str]) -> str:
     triage of the same window found."""
     if not reasons:
         o = OUTCOME.get(outcome, "")
-        return f"Triage of the same window: {o[:1].lower()}{o[1:]}" if o else ""
-    head = f"In the queue because {REASON.get(reasons[0], reasons[0])}"
-    return head + "".join(f" · also {REASON.get(r, r)}" for r in reasons[1:])
+        return f"The computer checks of this same clip: {o[:1].lower()}{o[1:]}" if o else ""
+    head = f"Why you're hearing this: {REASON.get(reasons[0], reasons[0])}"
+    return head + "".join(f", and {REASON.get(r, r)}" for r in reasons[1:])
 
 
-def model_view(model: str, r: dict, text: str, in_rule: bool = True) -> dict:
+def model_view(model: str, r: dict, text: str, in_rule: bool = True, n: int | None = None, other: str = "as the other version") -> dict:
+    """n: the check's number on the page (lab_plain.checks), None for a check that didn't decide this item."""
     score, how = score_line(r)
     dec = r.get("decision", "unsure")
     t = r.get("transcript")
-    return {"model": model, "name": f"{NAMES[model]} ({ROLES[model]})", "short": NAMES[model], "role": ROLES[model],
+    return {"model": model, "name": f"{NAMES[model]} ({ROLES[model]})", "short": f"Check {n}" if n else "Another check", "vendor": NAMES[model],
+            "role": ROLES[model], "verdict": plain.check_line(model, r, other),
             "decision": {"key": dec, "text": DECISION.get(dec, dec)}, "inRule": in_rule, "transcript": t,
             "heardNote": HEARD_NOTE.get(model), "score": score, "how": how, "diff": word_diff(text, t),
             **({"reason": r["reason"]} if r.get("reason") else {})}
@@ -243,4 +244,5 @@ def view(item: dict, load) -> dict:
             "outcome": {"key": rec["outcome"], "text": OUTCOME.get(rec["outcome"], rec["outcome"] or "")}, "reasons": rec["reasons"],
             "why": why_line(rec["outcome"], rec["reasons"]),
             "alternative": {"text": alt, "name": ALT_NAME.get(rec["group"], "the alternative"), "op": rec["alternativeOp"]} if alt else None,
-            "models": [model_view(m, r, item.get("text", ""), inr) for m, r, inr in rec["models"]]}
+            "models": [model_view(m, r, item.get("text", ""), inr, k + 1 if inr else None, plain.other_version(item))
+                       for k, (m, r, inr) in enumerate(rec["models"])]}

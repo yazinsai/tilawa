@@ -54,7 +54,7 @@ function intro() {
     <p class="rv-tally"><span>Heard <b class="num">${t.reviewed}</b> of ${t.total}</span><span><b class="num">${t.bad}</b> bad</span>
       <span class="state ${t.state}" title="Bad = bad label, bad audio or bad splice">${state} · at most ${t.maxBad} bad allowed</span></p>
     ${st.unsaved.size ? `<div class="notice err">Not saved: ${esc([...st.unsaved.values()].join(', '))}. Go back and choose again.</div>` : ''}
-    ${railHtml(items, st.i, (it) => st.reviews[it.id]?.verdict, (j, v) => `${j + 1}. ${items[j].title || items[j].id}${v ? ` · ${verdictText(v)}` : ''}`)}
+    ${railHtml(items, st.i, (it) => st.reviews[it.id]?.verdict, (j, v) => `${j + 1}. ${items[j].plain?.ask || items[j].title || items[j].id}${v ? ` · ${verdictText(v)}` : ''}`)}
   </div>`;
 }
 
