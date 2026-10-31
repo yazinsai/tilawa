@@ -6,6 +6,7 @@
     modal run modal/lab_decode.py --listener teacher --test-set realuser-v1 --variants phone
     modal run modal/lab_realuser.py --action label     # check each session, label it, write the manifest, the queue and the seam flags
     modal run modal/lab_decode.py --listener spliced-clean-int8 --model models/spliced-clean-int8 --test-set realuser-v1 --variants phone
+    modal run modal/lab_realuser.py --action correct   # reviewed corrections: real omissions as mistakes, bad-audio windows flagged
     modal run modal/lab_realuser.py --action join --base lab-v1.4 --name lab-v1.4u   # a test set with the realuser slice
 
 Pure logic is in tools/lab_realuser_core.py; the checks are tools/lab_recordings_core.check_take.
@@ -401,6 +402,36 @@ def seams() -> dict:
     return {"windows": len(x["excluded"]), "sessions": len({e["session"] for e in x["excluded"]})}
 
 
+@app.function(**fn, cpu=2, memory=8192)
+def apply_corrections(doc: dict) -> dict:
+    """Reviewed corrections (docs/benchmarks/lab-realuser-v1-corrections.json) into realuser-v1 before it is joined:
+    omissions heard as real become mistakes in their sessions, and bad-audio windows join the seam flags."""
+    import lab_realuser_core as U
+    import lab_recordings_core as R
+
+    vol.reload()
+    ts = DATA / U.TEST_SET
+    m = read(ts / "manifest-v1.json")
+    sessions = [read(ts / e["label"]) for e in m["sessions"]]
+    words = {(w["s"], w["a"], w["w"]) for w in ref().words}
+    out = []
+    for s in sessions:
+        mine = [f for f in doc["fixes"] if f["session"] == s["id"]]
+        if mine:
+            s = U.correct({**s, "meta": {**s["meta"], "corrections": []}}, mine, word_index)
+            problems = R.validate(s, words)
+            if problems:
+                raise ValueError(f"{s['id']}: {problems[0]}")
+            write(ts / f"sessions/{s['id']}.json", U.dumps(s))
+        out.append(s)
+    write(ts / "manifest-v1.json", U.dumps(U.manifest(out)))
+    x = U.seam_exclusions(out, extra=doc["excluded"])
+    write(ts / "flags-v1.json", U.dumps(x))
+    write(ts / "corrections-v1.json", U.dumps(doc))
+    vol.commit()
+    return {"events": sum(len(s["events"]) for s in out), "corrected": sorted({f["session"] for f in doc["fixes"]}), "flags": len(x["excluded"])}
+
+
 # ---- join ---------------------------------------------------------------------------------------------------------
 
 @app.function(**fn, cpu=2, memory=8192)
@@ -454,6 +485,8 @@ def main(action: str, base: str = "", name: str = ""):
         print(json.dumps(build.remote(), indent=1))
     elif action == "label":
         print(json.dumps(label_all.remote(), indent=1, ensure_ascii=False))
+    elif action == "correct":
+        print(json.dumps(apply_corrections.remote(json.loads((ROOT / "docs/benchmarks/lab-realuser-v1-corrections.json").read_text())), indent=1))
     elif action == "seams":
         print(json.dumps(seams.remote(), indent=1))
     elif action == "join":

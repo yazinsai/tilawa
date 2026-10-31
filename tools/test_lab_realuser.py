@@ -148,3 +148,16 @@ def test_seam_exclusions_cover_jump_seams_only():
     x = U.seam_exclusions([s], extra=[{"session": "x", "startS": 1.0, "endS": 2.0, "verdict": "bad_audio"}])
     assert x["kind"] == "lab-flags" and x["base"] == x["testSet"] == U.TEST_SET
     assert [(e["startS"], e["endS"]) for e in x["excluded"]] == [(3.0, 7.0), (18.5, 20.0), (1.0, 2.0)]
+
+
+def test_a_reviewed_omission_becomes_a_mistake_in_the_gap():
+    clips = [clip("sob-a-c0", "sobolev", "sobolev/a", 112, 1, dur=3.5, order=0), clip("sob-a-c1", "sobolev", "sobolev/a", 112, 2, dur=3.0, order=1)]
+    _, res, placed = take(clips)
+    s = U.session({"id": "x", "source": "sobolev", "speaker": "sobolev/a", "split": "practice"}, clips, res, "a.wav", placed, word_index)
+    fixes = [{"session": "x", "kind": "omitted_word", "at": U.at(112, 1, 3), "item": "i1"}, {"session": "x", "kind": "omitted_word", "at": U.at(112, 1, 4), "item": "i2"}]
+    c = U.correct(s, fixes, word_index)
+    assert R.validate(c, {(w["s"], w["a"], w["w"]) for w in WORDS}) == []
+    assert [e["location"] for e in c["events"]] == [U.at(112, 1, 3), U.at(112, 1, 4)] and not c["meta"]["clean"]
+    last = c["events"][-1]
+    assert last["startS"] == last["endS"] and c["spans"][0]["to"] == U.at(112, 1, 2)
+    assert U.manifest([c])["sessions"][0]["slices"]["clean"] is False and s["events"] == []

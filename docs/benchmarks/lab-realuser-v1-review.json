@@ -168,7 +168,8 @@
     ],
     "opinion": "mismatch"
    },
-   "resolution": "bad_audio (provisional): the app chunk stops inside 103:2 (it starts and ends at speech level, no edge silence); teacher, student and Soniox all hear no خسر"
+   "resolution": "real mistake: your listen, bad_label 'خُسْرٍ is never said'. Relabelled as omitted_word at 103:2:4; caught.",
+   "provisional": "bad_audio (provisional): the app chunk stops inside 103:2 (it starts and ends at speech level, no edge silence); teacher, student and Soniox all hear no خسر"
   },
   {
    "case": "realuser-v1-sob-032/phone/warning:omitted_word/81:15:3/62.84",
@@ -207,7 +208,8 @@
     ],
     "opinion": "mismatch"
    },
-   "resolution": "unresolved: Soniox hears no بالخنس (opinion mismatch, judge too close to call); teacher doesn't warn"
+   "resolution": "real mistake: your listen, bad_label 'ٱلْخُنَّسِ is never said'. Relabelled as omitted_word at 81:15:3; caught.",
+   "provisional": "unresolved: Soniox hears no بالخنس (opinion mismatch, judge too close to call); teacher doesn't warn"
   },
   {
    "case": "realuser-v1-sob-034/phone/warning:skipped_passage/79:43:1/99.96",
@@ -261,7 +263,8 @@
     ],
     "opinion": "match"
    },
-   "resolution": "listener (provisional): Soniox hears the text as written (judge match)"
+   "resolution": "false warning (listener): your listen, ok, 'وَإِنَّ is said but there's no long 'n' at the end - a tajweed mistake'. Said as written for memorization.",
+   "provisional": "listener (provisional): Soniox hears the text as written (judge match)"
   },
   {
    "case": "realuser-v1-sob-055/phone/warning:skipped_passage/83:14:1/58.72",
@@ -325,12 +328,23 @@
     ],
     "opinion": "unsure"
    },
-   "resolution": "unresolved, likely a real wrong word: Soniox hears تهتدون for تتقون (judge mismatch against the claimed text); the engine's omission warning sits on that word"
+   "resolution": "bad audio: your listen, bad_audio. Window 40.94-47.1 s excluded.",
+   "provisional": "unresolved, likely a real wrong word: Soniox hears تهتدون for تتقون (judge mismatch against the claimed text); the engine's omission warning sits on that word"
   }
  ],
  "counts": {
   "falseWarnings": 13,
   "joinSeam": 9,
-  "toListen": 4
+  "toListen": 4,
+  "realMistakes": 2,
+  "badAudio": 1,
+  "falseWarningsLeft": 1
+ },
+ "human": {
+  "reviewer": "me",
+  "record": "/lab/reviews/realuser-v1/me.json",
+  "at": "2026-10-31",
+  "corrections": "docs/benchmarks/lab-realuser-v1-corrections.json",
+  "soniox": "agreed with the listen on sob-032 (word missing) and sob-049 (as written); on sob-028 it heard the word missing as you did (the cut-chunk reading was mine); on tlo-281 it heard تهتدون where you heard bad audio"
  }
 }

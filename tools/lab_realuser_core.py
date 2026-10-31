@@ -504,7 +504,7 @@ def manifest(sessions: list[dict]) -> dict:
     return {"version": 1, "testSet": TEST_SET, "reference": "ref-v2", "headline": "phone", "variants": ["phone"],
             "evidencePattern": "sessions/{id}.{listener}.{variant}.evidence.json",
             "sessions": [{"id": s["id"], "split": s["meta"]["split"], "speaker": s["speaker"], "source": "realuser", "durationS": s["durationS"],
-                          "tags": ["realuser", s["meta"]["source"]], "slices": {"source": "realuser", "origin": s["meta"]["source"], "clean": True},
+                          "tags": ["realuser", s["meta"]["source"]], "slices": {"source": "realuser", "origin": s["meta"]["source"], "clean": s["meta"]["clean"]},
                           "audio": {"phone": s["audio"]}, "label": f"sessions/{s['id']}.json",
                           "session": {k: v for k, v in s.items() if k not in ("said", "meta")}} for s in sorted(sessions, key=lambda s: s["id"])]}
 
@@ -519,6 +519,38 @@ def join(base: dict, real: dict, prefix: str = "sessions/") -> dict:
         sess = dict(e["session"], audio=f"{prefix}{e['id']}.phone.wav")
         out.append({**e, "audio": {"phone": sess["audio"]}, "label": f"{prefix}{e['id']}.json", "session": sess})
     return {**base, "sessions": base["sessions"] + out, "realuser": {"from": real["testSet"], "sessions": len(out)}}
+
+
+def correct(s: dict, fixes: list[dict], word_index) -> dict:
+    """A session with reviewed corrections applied. `fixes`: {session, kind: "omitted_word", at, item, verdict, note}
+    (a word heard as never said: it leaves `words` and becomes a confirmed omission in the gap where it was, zero
+    length at the end of its span when the next word is in another span). Each fix is kept in `meta.corrections`."""
+    s = json.loads(json.dumps(s))
+    key = lambda r: (r["surah"], r["ayah"], r["word"])
+    for f in fixes:
+        if f["session"] != s["id"] or f["kind"] != "omitted_word":
+            continue
+        k = next(i for i, w in enumerate(s["words"]) if key(w["at"]) == key(f["at"]))
+        w = s["words"].pop(k)
+        prev = s["words"][k - 1] if k else None
+        nxt = s["words"][k] if k < len(s["words"]) else None
+        if prev and prev["span"] == w["span"]:
+            a = prev["endS"]
+            b = nxt["startS"] if nxt and nxt["span"] == w["span"] else a
+        else:
+            a = b = nxt["startS"] if nxt and nxt["span"] == w["span"] else w["startS"]
+        sp = next(x for x in s["spans"] if x["id"] == w["span"])
+        rest = [x for x in s["words"] if x["span"] == sp["id"]]
+        if rest and key(sp["to"]) == key(f["at"]):
+            sp["to"] = rest[-1]["at"]
+        if rest and key(sp["from"]) == key(f["at"]):
+            sp["from"] = rest[0]["at"]
+        s["events"].append({"span": w["span"], "errorClass": "omitted_word", "state": "confirmed", "location": f["at"], "forms_other_ayah": False,
+                            "expected": f.get("expected", ""), "observed": "", "startS": round(a, 3), "endS": round(b, 3), "review": f["item"]})
+        s["meta"].setdefault("corrections", []).append(f)
+    s["events"].sort(key=lambda e: e["startS"])
+    s["meta"]["clean"] = not s["events"]
+    return s
 
 
 SEAM_EXCLUDE_S = (1.0, 3.0)  # a jump seam's window, before and after it

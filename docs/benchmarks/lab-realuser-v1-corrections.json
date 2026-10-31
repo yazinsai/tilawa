@@ -1,0 +1,51 @@
+{
+ "version": 1,
+ "testSet": "realuser-v1",
+ "source": "/lab/reviews/realuser-v1/me.json (queue realuser-v1/review/false-warnings.json), 2026-10-31",
+ "fixes": [
+  {
+   "session": "realuser-v1-sob-032",
+   "kind": "omitted_word",
+   "at": {
+    "surah": 81,
+    "ayah": 15,
+    "word": 3
+   },
+   "expected": "بِٱلْخُنَّسِ",
+   "item": "realuser-v1-sob-032-fw-81-15-3",
+   "verdict": "bad_label",
+   "note": "ٱلْخُنَّسِ is never said"
+  },
+  {
+   "session": "realuser-v1-sob-028",
+   "kind": "omitted_word",
+   "at": {
+    "surah": 103,
+    "ayah": 2,
+    "word": 4
+   },
+   "expected": "خُسْرٍ",
+   "item": "realuser-v1-sob-028-fw-103-2-4",
+   "verdict": "bad_label",
+   "note": "خُسْرٍ is never said"
+  }
+ ],
+ "excluded": [
+  {
+   "session": "realuser-v1-tlo-281",
+   "startS": 40.94,
+   "endS": 47.1,
+   "verdict": "bad_audio",
+   "note": "",
+   "item": "realuser-v1-tlo-281-fw-2-21-11"
+  }
+ ],
+ "kept": [
+  {
+   "item": "realuser-v1-sob-049-fw-92-13-1",
+   "verdict": "ok",
+   "note": "وَإِنَّ is said but there's no long 'n' at the end - a tajweed mistake",
+   "meaning": "said as written for memorization; the wrong-word warning is a false warning (the missing ghunna is a pronunciation slip, not a supported class)"
+  }
+ ]
+}

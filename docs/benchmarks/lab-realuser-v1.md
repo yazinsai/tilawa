@@ -49,7 +49,8 @@ modal run modal/lab_realuser.py --action join --base <current test set> --name <
      - ayahs heard differently (`flagged`);
      - sobolev reviewer tags as candidate real mistakes (`candidates`).
    - All 580 sessions pass `validateSession` (`lab-validate-cli`, 0 failures).
-6. **Seam flags.** `flags-v1.json` excludes a window around every jump seam, from 1 s before to 3 s after (61 windows in 33 sessions). There the joined audio reads as a skipped passage nobody recited: a chunk missing from the source, or another recording. See the triage below.
+6. **Seam flags.** `flags-v1.json` excludes a window around every jump seam, from 1 s before to 3 s after (61 windows in 33 sessions). There the joined audio reads as a skipped passage nobody recited: a chunk missing from the source, or another recording. It also holds one reviewed bad-audio window. See the triage below.
+7. **Reviewed corrections** (`--action correct`): two words you heard as never said are confirmed `omitted_word` events. Those two sessions are no longer clean (`slices.clean` false). All 580 sessions still pass `validateSession`.
 
 ## Counts
 
@@ -92,33 +93,37 @@ Audio minutes are higher than recited minutes (tlog clips have lead and tail sil
 
 ## Main line on the practice half
 
-`spliced-clean-int8`, main line at 3fab08f (engine code unchanged from 083ba6e), free recitation, no context.
+`spliced-clean-int8`, main line at 35e6fda (engine code unchanged since 083ba6e), free recitation, no context.
 
 | | false warnings | recited min | per recited min | per session | first 10 s | rest |
 |---|---|---|---|---|---|---|
 | as built, no flags | 13 | 63.3 | 0.205 | 0.044 | 5 (over 32.3 min) | 8 (over 31.0 min) |
-| with the seam flags | 4 | 63.3 | 0.063 | 0.013 | 1 | 3 |
+| seam flags only | 4 | 63.3 | 0.063 | 0.013 | 1 | 3 |
+| **after review** (seam flags, 2 real omissions relabelled, 1 bad-audio window) | **1** | 63.3 | **0.016** | **0.003** | 0 (over 32.3 min) | 1 (over 31.0 min) |
 
-By source with the seam flags: sobolev 3 (22.5 min), RetaSy 0 (4.9 min), tlog 1 (36.0 min). The exam half is numbers only and isn't reported here.
+- After review, by source: sobolev 1 (22.5 min), RetaSy 0 (4.9 min), tlog 0 (36.0 min).
+- The two relabelled omissions are caught (2 of 2, none misclassified).
+- The exam half is numbers only and isn't reported here.
 
 ## Triage of the practice false warnings
 
-Following `docs/agents/audio-review.md`. Record: `docs/benchmarks/lab-realuser-v1-review.json`.
+Following `docs/agents/audio-review.md`. Record: `docs/benchmarks/lab-realuser-v1-review.json`. Corrections, with your verdicts verbatim: `docs/benchmarks/lab-realuser-v1-corrections.json`, applied by `--action correct`.
 
 - **9 at a jump seam (automatic, bad splice).** Each warning is raised within 1.4 s after a seam where the joined text jumps ahead or elsewhere, and 8 of the 9 fire on oracle evidence too.
   - sobolev: three chunks missing from the dataset (108:2, 79:43–44, the start of 83:14).
   - RetaSy: reciters who lack the ayah in between (1:3 twice, 110:2, words of 2:255, 1:4 and 112 to 114).
   - No reciter skipped anything. The seam flags remove exactly these 9.
-- **4 listener cases** were sent to the independent model with the audio window only: Soniox `stt-async-v5`, the judge with rule `reach` from `lab-triage-v1.md` "Soniox margin v2". It is calibrated on your lab-v1.x listens, not recalibrated on real users' phone audio. The four cases:
-  - **sob-028, omitted خسر (103:2).** Teacher, student and Soniox all hear no لفي خسر. The chunk ends at speech level inside 103:2, and the next chunk starts at 103:3. Provisionally bad audio (a chunk cut), pending a spot check.
-  - **sob-032, omitted بالخنس (81:15).** Soniox hears «فلا أقسم بالجواري الكنّ»: opinion mismatch, judge too close to call. Unresolved: possibly a real omission.
-  - **sob-049, wrong word at وإنّ (92:13).** Soniox hears the text as written (judge match). Provisionally a listener fault, so the false warning stands, pending a spot check.
-  - **tlo-281, omitted تتقون (2:21).** Soniox hears تهتدون for تتقون (judge mismatch against the claimed text). Unresolved: likely a real wrong word, which the engine's warning on that word would catch, misclassified.
-- These 4 are in `realuser-v1/review/false-warnings.json`.
+- **4 listener cases.** Each was first heard by the independent model, from the audio window only: Soniox `stt-async-v5`, the judge with rule `reach` from `lab-triage-v1.md` "Soniox margin v2". It is calibrated on your lab-v1.x listens, not recalibrated on real users' phone audio. Then you listened (31 Oct):
+  - **sob-028, omitted خسر (103:2).** You: «خُسْرٍ is never said». A real omission, now `omitted_word` at 103:2:4, and caught. Soniox also heard it missing. My provisional reading of a cut chunk was wrong.
+  - **sob-032, omitted بالخنس (81:15).** You: «ٱلْخُنَّسِ is never said». A real omission, now `omitted_word` at 81:15:3, and caught. Soniox agreed: opinion mismatch, judge too close to call.
+  - **sob-049, wrong word at وإنّ (92:13).** You: said as written, «there's no long 'n' at the end - a tajweed mistake». The false warning stands as a listener fault: the missing ghunna is a pronunciation slip, which is not a supported class. Soniox agreed.
+  - **tlo-281, omitted تتقون (2:21).** You: bad audio. Its window (40.94–47.1 s) is flagged. Soniox had heard تهتدون.
+- So Soniox matched your listens on 3 of 4 as to whether the word is there. The odd one out is tlo-281, which you called bad audio.
+- The queue's tally reads "fail" (3 bad of 4, maxBad 1). That gate is for test-set spot checks; on a queue of failures, bad items are the expected outcome.
 - `realuser-v1/review/flagged.json` holds the 49 practice ayahs heard differently from their label and the 11 practice reviewer tags, for later labelling. Exam sessions are never queued.
 
 ## Limits
 
-- **Exam labels are unreviewed.** A real mistake in an exam session counts as a false warning there, so exam rates lean high.
+- **Exam labels are unreviewed.** A real mistake in an exam session counts as a false warning there, so exam rates lean high. On practice, 2 of 4 non-seam warnings were real omissions.
 - **Speakers are approximate.** sobolev recordings may share a speaker across splits, since the dataset has no speaker ids. A tlog cluster is a voice group, not one person.
 - **The seam windows** hide any genuine engine warning within 1 s before or 3 s after a jump seam.

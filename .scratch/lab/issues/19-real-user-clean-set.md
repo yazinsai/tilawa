@@ -68,3 +68,12 @@ Progress (30 Oct, later). Scored and triaged on practice. Write-up: `docs/benchm
 - **Waiting on:**
   - your 4 listens;
   - which test set the slice joins (`lab-v1.4` now or `lab-v1.5` from ticket 20) before `lab baseline` registers it.
+
+Review applied (31 Oct). Your four listens (`/lab/reviews/realuser-v1/me.json`), recorded verbatim in `docs/benchmarks/lab-realuser-v1-corrections.json` and applied with `--action correct`:
+
+- Two real omissions are relabelled as `omitted_word` and caught: خسر at 103:2:4 and بالخنس at 81:15:3.
+- tlo-281 is bad audio, and its window is flagged.
+- sob-049 is said as written (a tajweed slip), so it stays a false warning.
+- All 580 sessions still validate.
+- **Main line, practice, after review:** 1 false warning over 63.3 recited min in 297 sessions (0.016 / min, 0.003 / session; first 10 s 0, rest 1). Every practice false warning has been through the audio-review procedure.
+- Remaining for acceptance: register through `lab baseline` once the slice is joined into the current test set. That waits on your choice of `lab-v1.4` now or `lab-v1.5`. lab-v1.5 is built, and its registration waits on ticket 20's spot check.
