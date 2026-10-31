@@ -1,0 +1,88 @@
+{
+ "baselineModel": "/lab/data/models/spliced-clean-int8",
+ "candidateModel": "/lab/data/models/targeted-consonants-int8",
+ "scope": "Only target misses/hits are grounded. Other warnings may concern unresolved regions; not counted as false alarms.",
+ "selfCorrections": "No verified self-correction controls available",
+ "clips": [
+  {
+   "id": "muo5gkq2_857a61f4",
+   "kind": "skip_word",
+   "free": {
+    "baselineHits": 0,
+    "candidateHits": 0,
+    "recovered": 0,
+    "newMiss": 0
+   },
+   "declared": {
+    "baselineHits": 0,
+    "candidateHits": 0,
+    "recovered": 0,
+    "newMiss": 0
+   }
+  },
+  {
+   "id": "muodfjiw_c16401bc",
+   "kind": "substitution",
+   "free": {
+    "baselineHits": 0,
+    "candidateHits": 0,
+    "recovered": 0,
+    "newMiss": 0
+   },
+   "declared": {
+    "baselineHits": 1,
+    "candidateHits": 1,
+    "recovered": 0,
+    "newMiss": 0
+   }
+  },
+  {
+   "id": "muodhmzj_0639dae3",
+   "kind": "substitution",
+   "free": {
+    "baselineHits": 0,
+    "candidateHits": 0,
+    "recovered": 0,
+    "newMiss": 0
+   },
+   "declared": {
+    "baselineHits": 0,
+    "candidateHits": 0,
+    "recovered": 0,
+    "newMiss": 0
+   }
+  },
+  {
+   "id": "realuser-v1-sob-028",
+   "kind": "omitted_word",
+   "free": {
+    "baselineHits": 1,
+    "candidateHits": 1,
+    "recovered": 0,
+    "newMiss": 0
+   },
+   "declared": {
+    "baselineHits": 1,
+    "candidateHits": 1,
+    "recovered": 0,
+    "newMiss": 0
+   }
+  },
+  {
+   "id": "realuser-v1-sob-032",
+   "kind": "omitted_word",
+   "free": {
+    "baselineHits": 1,
+    "candidateHits": 1,
+    "recovered": 0,
+    "newMiss": 0
+   },
+   "declared": {
+    "baselineHits": 1,
+    "candidateHits": 1,
+    "recovered": 0,
+    "newMiss": 0
+   }
+  }
+ ]
+}
