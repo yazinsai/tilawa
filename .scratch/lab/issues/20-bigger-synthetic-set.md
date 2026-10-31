@@ -47,3 +47,30 @@ Progress (30 Oct). The new version is **lab-v1.5**: lab-v1.4's 40 sessions froze
 - **Reader spread:** practice readers have 5–8 sessions each and exam readers 3–10, against 1–2 before.
 - `tools/lab.py` now gives one scoring shard per session (`MAX_SHARDS` 200), so a run should still take about as long as its longest session.
 - The build loop is running: plan, render, gate, teacher, checks, refusals, then `spliced-clean-int8` and triage.
+
+Built (31 Oct). Write-up in `docs/benchmarks/lab-v1.5.md`, counts in `lab-v1.5.json`.
+
+- **Loop.** Converged in 12 iterations over three runs. The first stopped at a `lab_check` bug, fixed in 15ec94d: its queue check covered frozen sessions. The second stopped at the iteration cap.
+  - Refusals moved windows, so later iterations replanned many sessions. New refusals per iteration fell to 0.
+  - No frozen session failed any studio check.
+- **Acceptance: validates, renders, passes seam and render checks.**
+  - Core `validateSession`: 200 files and 200 manifest copies, 0 failures.
+  - Seam gate: 1734/1734 seams. 43,066/43,066 words found, 0/320 clipped words over the limit, 0/384 donors short, all `spliceRules` 0.
+  - Studio checks: 1150/1150 mistakes, 200/200 non-errors, 1731/1731 clean stretches, 200/200 timings.
+- **Counts** (practice / exam):
+  - sessions: 100 / 100; minutes: 434.2 / 434.3; clean: 26 / 26;
+  - wrong word: 31 / 37; mutashabihat: 48 / 49; omitted: 298 / 220; added: 118 / 101; skipped: 122 / 126.
+  - **Deviation:** the wrong class has 79 / 86, not 100. The loop's refusals took about 10 per split off the dry run. Going further needs a rule change (see above). Practice had 9 before.
+  - **Biases:** surah 26 hosts 51 of 200 sessions, and readers recite 3–10 sessions each.
+- **Triage.**
+  - Nemotron + Soniox: 7285 of 7580 auto-accepted, 0 both-mismatch, 19 disagree and 276 unsure.
+  - The full queue `review/triage.json` has 370 items, with maxBad 9 and 66 lab-v1.4 verdicts carried over.
+  - Soniox cost $1.68. lab-v1.4's transcripts were seeded for the frozen clips, and the `soniox` function now runs on 8 containers.
+- **Spot check: `lab-v1.5/review/spot-check.json`, 45 items, maxBad 1, waiting for your listen.** It holds every disagreement plus seeded unsure, seam (inserted first) and auto-accepted items, from new sessions only (`tools/lab_spot_check.py`).
+- **Main line on practice** (15ec94d; scored directly, ledger untouched):
+  - all 100 sessions: 107 wrong calls (82 missed + 25 false warnings) over 429.5 min, 1.25 per 5 min;
+  - the frozen 20: 11 (11 + 0), identical to lab-v1.4.v3's 11 (11 + 0);
+  - the new 80: 96 (71 + 25), 1.41 per 5 min against 0.62 on the frozen 20.
+  - Either the folded experiments fit the old 20 practice sessions, or the new sessions hold bad data. The spot check is the first test.
+  - Run time: 565 s wall on 100 shards (one per session).
+- **Not done yet: registration.** `lab baseline --manifest lab-v1.5/manifest-v1.json --exclude lab-v1.5/flags-v1.json` would make lab-v1.5 the ledger's current test set and re-score the main line on practice and exam. It waits for the spot check, since the set isn't trusted before then. No experiments are open.

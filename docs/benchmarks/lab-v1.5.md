@@ -107,6 +107,27 @@ Final checks, studio (phone in brackets):
 - `teacher`: one run per decoded iteration.
 - `spliced-clean-int8`: once after convergence.
 
+## Triage and the spot check
+
+Nemotron + Soniox with the reach margin and seam pools, as on lab-v1.4 (`lab-triage-v1.md`). Results are in `lab-triage-soniox-lab-v1.5.json`, and the Nemotron + FastConformer run is in `lab-triage-v1-lab-v1.5.json`.
+
+- **Cases.** 7580 cases: 7285 auto-accepted, 0 both-mismatch, 19 disagree and 276 unsure.
+  - 217 of the unsure cases are clean windows, mostly "too close to call", about lab-v1.4's rate (57 of 1591).
+  - No class stands out.
+- **Soniox cost.** $1.68 over 16.8 h of clips.
+  - lab-v1.4's transcripts were seeded into lab-v1.5's record first, so its 1591 identical clips weren't sent again.
+  - The `soniox` function now runs on 8 containers, up from 4. The run took about 100 min wall.
+  - 43 clips errored in a preempted container and were transcribed on a rerun.
+- **Full queue.** `review/triage.json` has 370 items (19 disagree, 276 unsure, 47 seam, 28 spot), with maxBad 9. 66 of them carry your lab-v1.4 verdicts on byte-identical clips.
+- **Spot check** (ticket 20): `review/spot-check.json`, 45 items with maxBad 1, built by `tools/lab_spot_check.py` (seed 20). It draws from the 293 queue items in new sessions (11 disagree, 61 unsure edits and repeats, 158 unsure clean, 38 seam, 25 spot):
+  - every disagreement;
+  - 12 unsure edits and repeats, spread over the classes;
+  - 6 unsure clean windows;
+  - 10 seam checks, inserted audio first;
+  - 6 auto-accepted spot checks.
+
+  The set is trusted once it passes. Spec decision 16's freeze rule (the full queue within its maxBad) would be 370 listens.
+
 ## Run time
 
 `tools/lab.py` now gives one shard per session, up to 200 (`MAX_SHARDS`). Scoring the main line on lab-v1.5 practice (100 sessions on 100 shards) took 565 s wall from a clean checkout, against about 11 min on lab-v1.4. The run time is still set by the longest session (419 s of audio).
