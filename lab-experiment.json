@@ -1,0 +1,13 @@
+{
+ "id": "listener-channel-blend",
+ "component": "listener",
+ "hypothesis": "A fixed 25 percent interpolation toward the channel-adapted weights retains microphone robustness while reducing changes from the shipped listener; fewer misses without new false warnings across chapters.",
+ "expected": {
+  "component": -3,
+  "overall": -3
+ },
+ "listener": "channel-blend25-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-10-31T14:41:33+00:00",
+ "author": "Yazin"
+}
