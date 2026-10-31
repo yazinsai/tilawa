@@ -68,6 +68,9 @@ DEFAULTS = dict(
     name="",
     size="lite",
     init="",
+    init_run="",
+    channel_p=0.0,
+    max_steps=0,
     buckets="clean-match",
     target="teacher",
     max_hours=0.0,
@@ -208,14 +211,16 @@ class ClipDataset:
         import soundfile as sf
         import torch
         import torchaudio
-        from student import mix_noise, phoneme_ids
+        from student import mix_noise, phoneme_ids, microphone_band
 
         c, cfg = self.c, self.cfg
-        rng = np.random.default_rng()
+        rng = np.random.default_rng(np.random.SeedSequence([cfg["seed"], i])) if cfg.get("channel_p", 0) else np.random.default_rng()
         wave, _ = sf.read(io.BytesIO(c["flac"][c["flac_off"][i] : c["flac_off"][i + 1]].tobytes()), dtype="float32")
         if self.train and self.aug:
             if rng.random() < cfg["rir_p"]:
                 wave = reverb(wave, pick(self.aug["rir"], rng))
+            if rng.random() < cfg.get("channel_p", 0):
+                wave = microphone_band(wave, rng)
             if rng.random() < cfg["noise_p"]:
                 wave = mix_noise(wave, pick(self.aug["noise"], rng), rng.uniform(*cfg["snr_db"]), rng)
             wave = wave * 10 ** (rng.uniform(-10, 6) / 20)
@@ -418,6 +423,9 @@ def train(args: dict) -> dict:
         train_clips["target"] = [spliced_target(r, h) for r, h in zip(train_clips["ref"], train_clips["hyp"])]
     eval_clips = load_clips("clean-match", "test", 0, 60.0, 1, cfg["eval_max"])
     aug = {k: dict(np.load(f"/student/aug/{k}.npz")) for k in ("noise", "rir")} if os.path.exists("/student/aug/rir.npz") else None
+    if cfg.get("channel_p") and aug is None:
+        raise RuntimeError("Channel adaptation requires the existing augmentation bank")
+    json.dump(train_clips["key"], open(f"{run}/manifest-train.json", "w"))
     hours = train_clips["n_samples"].sum() / SR / 3600
     emit(event="data", train_clips=len(train_clips["ref"]), train_hours=float(hours), eval_clips=len(eval_clips["ref"]),
          aug=aug is not None, load_s=time.time() - t0, cfg=cfg)
@@ -428,35 +436,46 @@ def train(args: dict) -> dict:
                      lr=cfg["base_lr"], clipping_scale=2.0)
     sched = Eden(opt, cfg["lr_batches"], cfg["lr_epochs"])
     state = {"epoch": 0, "batch": 0, "step": 0}
+    model_step_offset = 0
     if os.path.exists(f"{run}/ckpt.pt"):
         ck = torch.load(f"{run}/ckpt.pt", map_location="cpu", weights_only=False)
         model.load_state_dict(ck["model"])
         opt.load_state_dict(ck["opt"])
         sched.load_state_dict(ck["sched"])
         state = ck["state"]
+        model_step_offset = ck.get("model_step_offset", 0)
         emit(event="resume", **state)
+    elif cfg.get("init_run"):
+        ck = torch.load(f"/student/runs/{cfg['init_run']}/ckpt.pt", map_location="cpu", weights_only=False)
+        if ck["cfg"]["size"] != cfg["size"]:
+            raise ValueError("initial checkpoint size differs")
+        model.load_state_dict(ck["model"])
+        model_step_offset = ck["state"]["step"]
+        emit(event="adapt", source=cfg["init_run"], source_step=model_step_offset)
     elif cfg["init"]:
         emit(event="init", **init_from(model, cfg["init"], cfg["size"]))
     emit(event="model", params=n_params)
 
     def save():
         torch.save({"model": model.state_dict(), "opt": opt.state_dict(), "sched": sched.state_dict(), "state": state,
-                    "cfg": cfg}, f"{run}/ckpt.pt.tmp")
+                    "cfg": cfg, "model_step_offset": model_step_offset}, f"{run}/ckpt.pt.tmp")
         os.replace(f"{run}/ckpt.pt.tmp", f"{run}/ckpt.pt")
         vol.commit()
 
     ds = ClipDataset(train_clips, cfg, train=True, aug=aug)
     model.train()
     seen_s, tick = 0.0, time.time()
-    while state["epoch"] < cfg["epochs"]:
+    while state["epoch"] < cfg["epochs"] and (not cfg.get("max_steps") or state["step"] < cfg["max_steps"]):
         plan = batches(train_clips["n_samples"], cfg["max_batch_s"], cfg["seed"] + state["epoch"])
         loader = torch.utils.data.DataLoader(ds, batch_sampler=plan[state["batch"]:], collate_fn=collate,
                                              num_workers=cfg["workers"], prefetch_factor=4, persistent_workers=False)
         sched.step_epoch(state["epoch"])
         for b in loader:
+            if cfg.get("max_steps") and state["step"] >= cfg["max_steps"]:
+                break
             if state["step"] % 10 == 0:
                 for m in model.modules():
-                    m.batch_count = state["step"] * cfg["max_batch_s"] / 600.0
+                    m.batch_count = (state["step"] + model_step_offset) * cfg["max_batch_s"] / 600.0
             out = losses(model, b, cfg, device)
             opt.zero_grad(set_to_none=True)
             if not torch.isfinite(out["loss"]):
@@ -551,7 +570,30 @@ def transcribe(run: str, src: str, dest: str, chunk: int = 16, left: int = 128) 
 @app.local_entrypoint()
 def main(name: str, size: str = "lite", init: str = "", max_hours: float = 0.0, epochs: int = 6,
          kd_weight: float = 0.0, eval_max: int = 3000, eval_every: int = 2000, max_batch_s: float = 800.0,
-         base_lr: float = 0.045, target: str = "teacher"):
+         base_lr: float = 0.045, target: str = "teacher", init_run: str = "", channel_p: float = 0.0, max_steps: int = 0):
     print(train.remote(dict(name=name, size=size, init=init, max_hours=max_hours, epochs=epochs, kd_weight=kd_weight,
                             eval_max=eval_max, eval_every=eval_every, max_batch_s=max_batch_s, base_lr=base_lr,
-                            target=target)))
+                            target=target, init_run=init_run, channel_p=channel_p, max_steps=max_steps)))
+
+
+@app.function(cpu=2, memory=2048, timeout=120)
+def channel_checks():
+    import numpy as np
+    from student import microphone_band
+    t = np.arange(32000) / SR
+    x = (np.sin(2*np.pi*20*t) + np.sin(2*np.pi*1000*t) + np.sin(2*np.pi*7900*t)).astype(np.float32)
+    original = x.copy()
+    y = microphone_band(x, np.random.default_rng(0))
+    z = microphone_band(x, np.random.default_rng(0))
+    assert y.shape == x.shape and y.dtype == np.float32 and np.isfinite(y).all()
+    assert np.array_equal(x, original) and np.array_equal(y, z)
+    amp = lambda a, f: abs(np.dot(a[2000:-2000], np.exp(-2j*np.pi*f*t[2000:-2000])))
+    assert amp(y, 20) < amp(x, 20) * .15
+    assert amp(y, 7900) < amp(x, 7900) * .15
+    assert amp(y, 1000) > amp(x, 1000) * .9
+    return {"checks": "passed", "samples": len(y), "seed": 0}
+
+
+@app.local_entrypoint()
+def check_channel():
+    print(channel_checks.remote())
