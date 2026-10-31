@@ -2,9 +2,10 @@
 import json
 from pathlib import Path
 import modal
-import lab_run
 app = modal.App('tilawa-paired-controls')
-app.include(lab_run.app)
+if modal.is_local():
+    import lab_run
+    app.include(lab_run.app)
 vol = modal.Volume.from_name('tilawa-lab')
 @app.function(image=modal.Image.debian_slim(), volumes={'/lab':vol})
 def upload(rows: list[dict], audio: dict):
