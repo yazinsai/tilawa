@@ -22,6 +22,35 @@ function check(from: WordRef, to: WordRef, edits: (at: (r: WordRef) => number) =
 }
 
 describe("added speech between neighboring words", () => {
+  it("preserves an isolated backward word repetition, including its paused form", () => {
+    const from = w(51, 16, 1), to = w(51, 21, 4), added = w(51, 18, 1);
+    expect(check(from, to, at => [{ kind: "ins", at: at(added), text: "قَبڇل" }])).toEqual([]);
+  });
+
+  it("does not mistake a one-consonant detour for a correctly repeated word", () => {
+    const from = w(35, 18, 1), to = w(35, 23, 1), added = w(35, 22, 1);
+    expect(check(from, to, at => [{ kind: "ins", at: at(added), text: "تَزُۥۥلَاا" }])).toContain(`added_word ${key(added)}`);
+  });
+
+  it("recovers a forward word detour in another chapter", () => {
+    const from = w(9, 60, 1), to = w(9, 62, 4), added = w(9, 61, 1);
+    expect(check(from, to, at => [{ kind: "ins", at: at(added), text: "فِۦۦهَاا" }])).toContain(`added_word ${key(added)}`);
+  });
+
+  it("retains the earlier addition repair when a neighboring vowel is noisy", () => {
+    const from = w(2, 6, 1), to = w(2, 11, 8), added = w(2, 8, 1), before = w(2, 7, 12);
+    expect(check(from, to, at => [
+      { kind: "sub", at: at(before) + 1, to: "ُ" },
+      { kind: "ins", at: at(added), text: "قَلِۦۦلَاا" },
+    ])).toContain(`added_word ${key(added)}`);
+  });
+
+  it("preserves a repeated preceding word with one tolerated consonant change", () => {
+    const from = w(2, 6, 1), to = w(2, 11, 8), before = w(2, 7, 12), next = w(2, 8, 1);
+    const repeated = text(before).replace("ع", "غ");
+    expect(check(from, to, at => [{ kind: "ins", at: at(next), text: repeated }])).toEqual([]);
+  });
+
   it("retains an added word when its sounds can take a reference-word detour", () => {
     const from = w(2, 6, 1), to = w(2, 11, 8), added = w(2, 8, 1);
     expect(check(from, to, at => [{ kind: "ins", at: at(added), text: "قَلِۦۦلَاا" }])).toContain(`added_word ${key(added)}`);

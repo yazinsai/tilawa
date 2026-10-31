@@ -668,15 +668,39 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (!wrong(v)) right.add(v.word);
     }
     if (recoverAdditions) {
-      // Consecutive correct visits preserve real repeats and excursions: a correctly recited intervening word
-      // remains a visit, while a fragment forced through a wrong word does not conceal an insertion.
-      const intact = visits.filter(v => counts(v) && !wrong(v));
+      // Use whole-word pronunciations here: a cheap one-consonant substitution is tolerated by the
+      // ordinary checker, but cannot prove that an intervening word was actually repeated.
+      const original = visits.filter(v => counts(v) && !wrong(v));
+      const intact = original.filter(v => lexical.matches(v.word, obs.slice(v.obsFrom, v.obsTo).map(p => p.p).join("")));
       const repairs: { from: number; to: number; path: Step[] }[] = [];
       const weight = (wi: number) => [...ref.slice(words[wi].start, words[wi].end)].reduce((n, p) => n + (CONSONANTS.has(p) ? UNIT : SOFT), 0);
+      // Preserve the existing repairs first; stricter extra candidates cannot replace their evidence.
+      const pairs: [Visit, Visit, boolean][] = original.slice(1).map((v, i) => [original[i], v, false]);
       for (let i = 1; i < intact.length; i++) {
-        const left = intact[i - 1], right = intact[i];
+        pairs.push([intact[i - 1], intact[i], true]);
+        // An isolated forward detour cannot be a repeat of earlier speech. Backward detours
+        // remain protected, as do multiword excursions and attempts at either neighbor.
+        if (i >= 2) {
+          const left = intact[i - 2], detour = intact[i - 1], right = intact[i];
+          if (nextWord(left.word) === right.word && detour.word > nextWord(right.word) &&
+            !visits.some(v => v.word === detour.word && v.obsTo <= left.obsFrom && v.obsFrom >= 0 &&
+              lexical.matches(v.word, obs.slice(v.obsFrom, v.obsTo).map(p => p.p).join("")))) {
+            pairs.push([left, right, true]);
+          }
+        }
+      }
+      for (const [left, right, strict] of pairs) {
         if (nextWord(left.word) !== right.word || left.obsTo > right.obsFrom || left.stepFrom === undefined || right.stepTo === undefined) continue;
-        if (repairs.length && left.stepFrom < repairs.at(-1)!.to) continue;
+        if (repairs.some(r => left.stepFrom! < r.to && right.stepTo! > r.from)) continue;
+        // New segmentation candidates must establish an addition while its following word
+        // is still current or just completed. Later realignment cannot open a stale warning;
+        // an already suspected addition keeps its evidence until confirmation.
+        if (strict && open.get(right.word)?.issue.cls !== "added_word" &&
+          intact.filter(v => v.obsFrom >= right.obsTo).length > 1) continue;
+        // A tolerated repeat of the preceding word stays a repeat even if its pronunciation
+        // is not an exact lexical form. Only the new strict candidates need this protection.
+        if (strict && visits.some(v => v.word === left.word && v.obsFrom >= left.obsTo &&
+          v.obsTo <= right.obsFrom && counts(v) && !wrong(v))) continue;
         // A wrong attempt at the following word, then that word read correctly, is a self-correction.
         if (open.get(right.word)?.issue.cls === "wrong_word" || visits.some(v => v.word === right.word && v.obsFrom >= left.obsTo && v.obsFrom < right.obsFrom)) continue;
         if (added.some(a => a.word === right.word && a.obsFrom >= left.obsFrom && a.obsTo <= right.obsTo)) continue;
@@ -715,7 +739,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
       if (repairs.length) {
         const repaired = [...steps];
-        for (const r of repairs.reverse()) repaired.splice(r.from, r.to - r.from, ...r.path);
+        for (const r of repairs.sort((a, b) => b.from - a.from)) repaired.splice(r.from, r.to - r.from, ...r.path);
         return judge(repaired, false);
       }
     }
