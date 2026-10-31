@@ -1,0 +1,3811 @@
+{
+ "scope": "Five evaluation-only human-confirmed mistakes; same-location detection and exact-class detection separated. Unrelated warnings are unreviewed, not automatic false positives.",
+ "selfCorrections": "No verified natural self-correction controls available.",
+ "models": {
+  "main": [
+   {
+    "id": "muo5gkq2_857a61f4",
+    "knownLocation": "94:5:2",
+    "arms": {
+     "free": {
+      "correctClass": false,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [
+       "wrong_word"
+      ],
+      "unreviewedOtherWarnings": []
+     },
+     "declared": {
+      "correctClass": false,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [
+       "wrong_word"
+      ],
+      "unreviewedOtherWarnings": []
+     }
+    },
+    "decodedPhonemes": "فَءِننننَهءَلعُسرِيُسرَاا",
+    "phonemeWindow": [
+     {
+      "p": "ف",
+      "start": 30,
+      "end": 30,
+      "conf": 0.9914
+     },
+     {
+      "p": "َ",
+      "start": 31,
+      "end": 31,
+      "conf": 0.8957
+     },
+     {
+      "p": "ء",
+      "start": 37,
+      "end": 38,
+      "conf": 0.9821
+     },
+     {
+      "p": "ِ",
+      "start": 39,
+      "end": 39,
+      "conf": 0.9947
+     },
+     {
+      "p": "ن",
+      "start": 44,
+      "end": 44,
+      "conf": 0.7568
+     },
+     {
+      "p": "ن",
+      "start": 47,
+      "end": 47,
+      "conf": 0.6359
+     },
+     {
+      "p": "ن",
+      "start": 50,
+      "end": 50,
+      "conf": 0.7035
+     },
+     {
+      "p": "ن",
+      "start": 59,
+      "end": 59,
+      "conf": 0.7434
+     },
+     {
+      "p": "َ",
+      "start": 60,
+      "end": 61,
+      "conf": 0.9984
+     },
+     {
+      "p": "ه",
+      "start": 65,
+      "end": 65,
+      "conf": 0.8987
+     },
+     {
+      "p": "ء",
+      "start": 80,
+      "end": 80,
+      "conf": 0.7598
+     },
+     {
+      "p": "َ",
+      "start": 81,
+      "end": 82,
+      "conf": 0.9101
+     },
+     {
+      "p": "ل",
+      "start": 85,
+      "end": 85,
+      "conf": 0.9778
+     },
+     {
+      "p": "ع",
+      "start": 92,
+      "end": 92,
+      "conf": 0.996
+     },
+     {
+      "p": "ُ",
+      "start": 94,
+      "end": 94,
+      "conf": 0.9859
+     },
+     {
+      "p": "س",
+      "start": 98,
+      "end": 99,
+      "conf": 0.7209
+     },
+     {
+      "p": "ر",
+      "start": 105,
+      "end": 105,
+      "conf": 0.9962
+     },
+     {
+      "p": "ِ",
+      "start": 106,
+      "end": 107,
+      "conf": 0.9985
+     },
+     {
+      "p": "ي",
+      "start": 110,
+      "end": 111,
+      "conf": 0.8994
+     },
+     {
+      "p": "ُ",
+      "start": 112,
+      "end": 113,
+      "conf": 0.9981
+     },
+     {
+      "p": "س",
+      "start": 117,
+      "end": 117,
+      "conf": 0.9744
+     },
+     {
+      "p": "ر",
+      "start": 124,
+      "end": 124,
+      "conf": 0.9669
+     },
+     {
+      "p": "َ",
+      "start": 125,
+      "end": 126,
+      "conf": 0.9833
+     },
+     {
+      "p": "ا",
+      "start": 127,
+      "end": 127,
+      "conf": 0.6072
+     },
+     {
+      "p": "ا",
+      "start": 132,
+      "end": 132,
+      "conf": 0.5985
+     }
+    ]
+   },
+   {
+    "id": "muodfjiw_c16401bc",
+    "knownLocation": "26:106:4",
+    "arms": {
+     "free": {
+      "correctClass": false,
+      "detectedAtKnownLocation": false,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": [
+       {
+        "type": "checker",
+        "v": 1,
+        "id": "26:177:4#1",
+        "timeMs": 5720,
+        "state": "confirmed",
+        "errorClass": "wrong_word",
+        "location": {
+         "surah": 26,
+         "ayah": 177,
+         "word": 4
+        },
+        "expected": "شُعَيبُن",
+        "observed": "هُۥۥدُن",
+        "confidence": 0.8304285714285714
+       }
+      ]
+     },
+     "declared": {
+      "correctClass": true,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": [
+       {
+        "type": "checker",
+        "v": 1,
+        "id": "26:106:5#2",
+        "timeMs": 5720,
+        "state": "confirmed",
+        "errorClass": "wrong_word",
+        "location": {
+         "surah": 26,
+         "ayah": 106,
+         "word": 5
+        },
+        "expected": "نُۥۥحُن",
+        "observed": "هُۥۥدُن",
+        "confidence": 0.8304285714285714
+       }
+      ]
+     }
+    },
+    "decodedPhonemes": "تءِذقَاالَلَهُمهُۥۥدُنءَلَااتَتتَقُۥۥ",
+    "phonemeWindow": [
+     {
+      "p": "ت",
+      "start": 31,
+      "end": 31,
+      "conf": 0.8662
+     },
+     {
+      "p": "ء",
+      "start": 32,
+      "end": 32,
+      "conf": 0.7756
+     },
+     {
+      "p": "ِ",
+      "start": 33,
+      "end": 34,
+      "conf": 0.9552
+     },
+     {
+      "p": "ذ",
+      "start": 36,
+      "end": 37,
+      "conf": 0.937
+     },
+     {
+      "p": "ق",
+      "start": 42,
+      "end": 42,
+      "conf": 0.9995
+     },
+     {
+      "p": "َ",
+      "start": 43,
+      "end": 44,
+      "conf": 0.9889
+     },
+     {
+      "p": "ا",
+      "start": 45,
+      "end": 45,
+      "conf": 0.7763
+     },
+     {
+      "p": "ا",
+      "start": 48,
+      "end": 48,
+      "conf": 0.7955
+     },
+     {
+      "p": "ل",
+      "start": 50,
+      "end": 50,
+      "conf": 0.9966
+     },
+     {
+      "p": "َ",
+      "start": 52,
+      "end": 52,
+      "conf": 0.9647
+     },
+     {
+      "p": "ل",
+      "start": 58,
+      "end": 58,
+      "conf": 0.9964
+     },
+     {
+      "p": "َ",
+      "start": 59,
+      "end": 60,
+      "conf": 0.9964
+     },
+     {
+      "p": "ه",
+      "start": 63,
+      "end": 63,
+      "conf": 0.99
+     },
+     {
+      "p": "ُ",
+      "start": 64,
+      "end": 65,
+      "conf": 0.9634
+     },
+     {
+      "p": "م",
+      "start": 69,
+      "end": 69,
+      "conf": 0.6968
+     },
+     {
+      "p": "ه",
+      "start": 75,
+      "end": 75,
+      "conf": 0.8177
+     },
+     {
+      "p": "ُ",
+      "start": 76,
+      "end": 77,
+      "conf": 0.8887
+     },
+     {
+      "p": "ۥ",
+      "start": 78,
+      "end": 78,
+      "conf": 0.4195
+     },
+     {
+      "p": "ۥ",
+      "start": 82,
+      "end": 82,
+      "conf": 0.7578
+     },
+     {
+      "p": "د",
+      "start": 88,
+      "end": 88,
+      "conf": 0.966
+     },
+     {
+      "p": "ُ",
+      "start": 89,
+      "end": 89,
+      "conf": 0.9985
+     },
+     {
+      "p": "ن",
+      "start": 93,
+      "end": 93,
+      "conf": 0.9648
+     },
+     {
+      "p": "ء",
+      "start": 98,
+      "end": 98,
+      "conf": 0.9481
+     },
+     {
+      "p": "َ",
+      "start": 99,
+      "end": 100,
+      "conf": 0.9311
+     },
+     {
+      "p": "ل",
+      "start": 104,
+      "end": 105,
+      "conf": 0.9651
+     },
+     {
+      "p": "َ",
+      "start": 106,
+      "end": 107,
+      "conf": 0.9978
+     },
+     {
+      "p": "ا",
+      "start": 108,
+      "end": 109,
+      "conf": 0.9462
+     },
+     {
+      "p": "ا",
+      "start": 112,
+      "end": 112,
+      "conf": 0.5967
+     },
+     {
+      "p": "ت",
+      "start": 118,
+      "end": 118,
+      "conf": 0.9977
+     },
+     {
+      "p": "َ",
+      "start": 119,
+      "end": 119,
+      "conf": 0.9833
+     },
+     {
+      "p": "ت",
+      "start": 122,
+      "end": 123,
+      "conf": 0.833
+     },
+     {
+      "p": "ت",
+      "start": 126,
+      "end": 126,
+      "conf": 0.6964
+     },
+     {
+      "p": "َ",
+      "start": 127,
+      "end": 127,
+      "conf": 0.5366
+     },
+     {
+      "p": "ق",
+      "start": 134,
+      "end": 134,
+      "conf": 0.9605
+     },
+     {
+      "p": "ُ",
+      "start": 135,
+      "end": 135,
+      "conf": 0.941
+     },
+     {
+      "p": "ۥ",
+      "start": 138,
+      "end": 138,
+      "conf": 0.7597
+     },
+     {
+      "p": "ۥ",
+      "start": 142,
+      "end": 142,
+      "conf": 0.7705
+     }
+    ]
+   },
+   {
+    "id": "muodhmzj_0639dae3",
+    "knownLocation": "79:39:2",
+    "arms": {
+     "free": {
+      "correctClass": false,
+      "detectedAtKnownLocation": false,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": []
+     },
+     "declared": {
+      "correctClass": false,
+      "detectedAtKnownLocation": false,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": []
+     }
+    },
+    "decodedPhonemes": "فَءِننننَلجَننننَتَهِيَلمَءوَاا",
+    "phonemeWindow": [
+     {
+      "p": "ف",
+      "start": 23,
+      "end": 23,
+      "conf": 0.9846
+     },
+     {
+      "p": "َ",
+      "start": 25,
+      "end": 25,
+      "conf": 0.9996
+     },
+     {
+      "p": "ء",
+      "start": 28,
+      "end": 29,
+      "conf": 0.9837
+     },
+     {
+      "p": "ِ",
+      "start": 30,
+      "end": 30,
+      "conf": 0.9982
+     },
+     {
+      "p": "ن",
+      "start": 33,
+      "end": 34,
+      "conf": 0.7034
+     },
+     {
+      "p": "ن",
+      "start": 36,
+      "end": 37,
+      "conf": 0.5569
+     },
+     {
+      "p": "ن",
+      "start": 39,
+      "end": 39,
+      "conf": 0.5632
+     },
+     {
+      "p": "ن",
+      "start": 44,
+      "end": 44,
+      "conf": 0.727
+     },
+     {
+      "p": "َ",
+      "start": 45,
+      "end": 45,
+      "conf": 0.9993
+     },
+     {
+      "p": "ل",
+      "start": 49,
+      "end": 49,
+      "conf": 0.9731
+     },
+     {
+      "p": "ج",
+      "start": 58,
+      "end": 58,
+      "conf": 0.9999
+     },
+     {
+      "p": "َ",
+      "start": 59,
+      "end": 60,
+      "conf": 0.9993
+     },
+     {
+      "p": "ن",
+      "start": 64,
+      "end": 64,
+      "conf": 0.7918
+     },
+     {
+      "p": "ن",
+      "start": 67,
+      "end": 67,
+      "conf": 0.7428
+     },
+     {
+      "p": "ن",
+      "start": 70,
+      "end": 70,
+      "conf": 0.7288
+     },
+     {
+      "p": "ن",
+      "start": 80,
+      "end": 80,
+      "conf": 0.7441
+     },
+     {
+      "p": "َ",
+      "start": 81,
+      "end": 82,
+      "conf": 0.9942
+     },
+     {
+      "p": "ت",
+      "start": 86,
+      "end": 86,
+      "conf": 0.9814
+     },
+     {
+      "p": "َ",
+      "start": 87,
+      "end": 87,
+      "conf": 0.8637
+     },
+     {
+      "p": "ه",
+      "start": 93,
+      "end": 93,
+      "conf": 0.9344
+     },
+     {
+      "p": "ِ",
+      "start": 94,
+      "end": 94,
+      "conf": 0.9989
+     },
+     {
+      "p": "ي",
+      "start": 97,
+      "end": 97,
+      "conf": 0.9959
+     },
+     {
+      "p": "َ",
+      "start": 98,
+      "end": 99,
+      "conf": 0.994
+     },
+     {
+      "p": "ل",
+      "start": 102,
+      "end": 102,
+      "conf": 0.9915
+     },
+     {
+      "p": "م",
+      "start": 114,
+      "end": 114,
+      "conf": 0.9996
+     },
+     {
+      "p": "َ",
+      "start": 115,
+      "end": 116,
+      "conf": 0.9913
+     },
+     {
+      "p": "ء",
+      "start": 119,
+      "end": 119,
+      "conf": 0.9536
+     },
+     {
+      "p": "و",
+      "start": 124,
+      "end": 125,
+      "conf": 0.8006
+     },
+     {
+      "p": "َ",
+      "start": 126,
+      "end": 127,
+      "conf": 0.9816
+     },
+     {
+      "p": "ا",
+      "start": 128,
+      "end": 129,
+      "conf": 0.9521
+     },
+     {
+      "p": "ا",
+      "start": 133,
+      "end": 133,
+      "conf": 0.558
+     }
+    ]
+   },
+   {
+    "id": "realuser-v1-sob-028",
+    "knownLocation": "103:2:4",
+    "arms": {
+     "free": {
+      "correctClass": true,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": []
+     },
+     "declared": {
+      "correctClass": true,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": []
+     }
+    },
+    "decodedPhonemes": "ءِننننَلءِںںںسَاانَلَفِۦءِللَللَذِۦۦنَءَاامَنُۥۥوَعَمِل",
+    "phonemeWindow": [
+     {
+      "p": "ء",
+      "start": 6,
+      "end": 6,
+      "conf": 0.8072
+     },
+     {
+      "p": "ِ",
+      "start": 7,
+      "end": 7,
+      "conf": 0.8832
+     },
+     {
+      "p": "ن",
+      "start": 10,
+      "end": 10,
+      "conf": 0.6508
+     },
+     {
+      "p": "ن",
+      "start": 13,
+      "end": 13,
+      "conf": 0.6555
+     },
+     {
+      "p": "ن",
+      "start": 16,
+      "end": 16,
+      "conf": 0.6677
+     },
+     {
+      "p": "ن",
+      "start": 28,
+      "end": 28,
+      "conf": 0.7125
+     },
+     {
+      "p": "َ",
+      "start": 30,
+      "end": 30,
+      "conf": 0.9859
+     },
+     {
+      "p": "ل",
+      "start": 34,
+      "end": 34,
+      "conf": 0.9979
+     },
+     {
+      "p": "ء",
+      "start": 39,
+      "end": 39,
+      "conf": 0.8941
+     },
+     {
+      "p": "ِ",
+      "start": 41,
+      "end": 42,
+      "conf": 0.9819
+     },
+     {
+      "p": "ں",
+      "start": 45,
+      "end": 46,
+      "conf": 0.6925
+     },
+     {
+      "p": "ں",
+      "start": 49,
+      "end": 49,
+      "conf": 0.7656
+     },
+     {
+      "p": "ں",
+      "start": 52,
+      "end": 52,
+      "conf": 0.6611
+     },
+     {
+      "p": "س",
+      "start": 66,
+      "end": 66,
+      "conf": 0.9782
+     },
+     {
+      "p": "َ",
+      "start": 68,
+      "end": 69,
+      "conf": 0.9992
+     },
+     {
+      "p": "ا",
+      "start": 70,
+      "end": 71,
+      "conf": 0.9823
+     },
+     {
+      "p": "ا",
+      "start": 74,
+      "end": 74,
+      "conf": 0.5905
+     },
+     {
+      "p": "ن",
+      "start": 78,
+      "end": 78,
+      "conf": 0.9981
+     },
+     {
+      "p": "َ",
+      "start": 79,
+      "end": 79,
+      "conf": 0.9945
+     },
+     {
+      "p": "ل",
+      "start": 83,
+      "end": 83,
+      "conf": 0.9952
+     },
+     {
+      "p": "َ",
+      "start": 85,
+      "end": 85,
+      "conf": 0.9899
+     },
+     {
+      "p": "ف",
+      "start": 90,
+      "end": 90,
+      "conf": 0.899
+     },
+     {
+      "p": "ِ",
+      "start": 92,
+      "end": 93,
+      "conf": 0.9731
+     },
+     {
+      "p": "ۦ",
+      "start": 94,
+      "end": 95,
+      "conf": 0.7285
+     },
+     {
+      "p": "ء",
+      "start": 109,
+      "end": 109,
+      "conf": 0.5148
+     },
+     {
+      "p": "ِ",
+      "start": 110,
+      "end": 111,
+      "conf": 0.7808
+     },
+     {
+      "p": "ل",
+      "start": 113,
+      "end": 113,
+      "conf": 0.8148
+     },
+     {
+      "p": "ل",
+      "start": 118,
+      "end": 118,
+      "conf": 0.5549
+     },
+     {
+      "p": "َ",
+      "start": 119,
+      "end": 119,
+      "conf": 0.5146
+     },
+     {
+      "p": "ل",
+      "start": 123,
+      "end": 123,
+      "conf": 0.8518
+     },
+     {
+      "p": "ل",
+      "start": 127,
+      "end": 127,
+      "conf": 0.6349
+     },
+     {
+      "p": "َ",
+      "start": 129,
+      "end": 129,
+      "conf": 0.8364
+     },
+     {
+      "p": "ذ",
+      "start": 136,
+      "end": 136,
+      "conf": 0.4935
+     },
+     {
+      "p": "ِ",
+      "start": 137,
+      "end": 138,
+      "conf": 0.9787
+     },
+     {
+      "p": "ۦ",
+      "start": 139,
+      "end": 139,
+      "conf": 0.9057
+     },
+     {
+      "p": "ۦ",
+      "start": 142,
+      "end": 142,
+      "conf": 0.6591
+     },
+     {
+      "p": "ن",
+      "start": 146,
+      "end": 146,
+      "conf": 0.9257
+     },
+     {
+      "p": "َ",
+      "start": 147,
+      "end": 147,
+      "conf": 0.9874
+     },
+     {
+      "p": "ء",
+      "start": 152,
+      "end": 152,
+      "conf": 0.9772
+     },
+     {
+      "p": "َ",
+      "start": 153,
+      "end": 154,
+      "conf": 0.991
+     },
+     {
+      "p": "ا",
+      "start": 155,
+      "end": 156,
+      "conf": 0.9697
+     },
+     {
+      "p": "ا",
+      "start": 159,
+      "end": 159,
+      "conf": 0.5765
+     },
+     {
+      "p": "م",
+      "start": 164,
+      "end": 164,
+      "conf": 0.9823
+     },
+     {
+      "p": "َ",
+      "start": 165,
+      "end": 165,
+      "conf": 0.9988
+     },
+     {
+      "p": "ن",
+      "start": 170,
+      "end": 170,
+      "conf": 0.9973
+     },
+     {
+      "p": "ُ",
+      "start": 171,
+      "end": 172,
+      "conf": 0.9864
+     },
+     {
+      "p": "ۥ",
+      "start": 173,
+      "end": 174,
+      "conf": 0.8789
+     },
+     {
+      "p": "ۥ",
+      "start": 177,
+      "end": 177,
+      "conf": 0.6888
+     },
+     {
+      "p": "و",
+      "start": 181,
+      "end": 181,
+      "conf": 0.9458
+     },
+     {
+      "p": "َ",
+      "start": 182,
+      "end": 183,
+      "conf": 0.9327
+     },
+     {
+      "p": "ع",
+      "start": 187,
+      "end": 187,
+      "conf": 0.9975
+     },
+     {
+      "p": "َ",
+      "start": 188,
+      "end": 189,
+      "conf": 0.9806
+     },
+     {
+      "p": "م",
+      "start": 193,
+      "end": 193,
+      "conf": 0.9819
+     },
+     {
+      "p": "ِ",
+      "start": 194,
+      "end": 195,
+      "conf": 0.9579
+     },
+     {
+      "p": "ل",
+      "start": 198,
+      "end": 198,
+      "conf": 0.7423
+     }
+    ]
+   },
+   {
+    "id": "realuser-v1-sob-032",
+    "knownLocation": "81:15:3",
+    "arms": {
+     "free": {
+      "correctClass": true,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": []
+     },
+     "declared": {
+      "correctClass": true,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": []
+     }
+    },
+    "decodedPhonemes": "نَفسُمممَااءَحضَرَتَلَااءُقڇسِمُبِلءَلجَوَاارِلكُنننن",
+    "phonemeWindow": [
+     {
+      "p": "ن",
+      "start": 1356,
+      "end": 1356,
+      "conf": 0.9841
+     },
+     {
+      "p": "َ",
+      "start": 1357,
+      "end": 1358,
+      "conf": 0.981
+     },
+     {
+      "p": "ف",
+      "start": 1361,
+      "end": 1362,
+      "conf": 0.9707
+     },
+     {
+      "p": "س",
+      "start": 1367,
+      "end": 1367,
+      "conf": 0.7478
+     },
+     {
+      "p": "ُ",
+      "start": 1369,
+      "end": 1369,
+      "conf": 0.9916
+     },
+     {
+      "p": "م",
+      "start": 1373,
+      "end": 1373,
+      "conf": 0.595
+     },
+     {
+      "p": "م",
+      "start": 1376,
+      "end": 1376,
+      "conf": 0.6278
+     },
+     {
+      "p": "م",
+      "start": 1386,
+      "end": 1386,
+      "conf": 0.7296
+     },
+     {
+      "p": "َ",
+      "start": 1388,
+      "end": 1389,
+      "conf": 0.9988
+     },
+     {
+      "p": "ا",
+      "start": 1390,
+      "end": 1391,
+      "conf": 0.936
+     },
+     {
+      "p": "ا",
+      "start": 1395,
+      "end": 1395,
+      "conf": 0.5298
+     },
+     {
+      "p": "ء",
+      "start": 1409,
+      "end": 1409,
+      "conf": 0.9965
+     },
+     {
+      "p": "َ",
+      "start": 1411,
+      "end": 1411,
+      "conf": 0.9936
+     },
+     {
+      "p": "ح",
+      "start": 1415,
+      "end": 1415,
+      "conf": 0.9138
+     },
+     {
+      "p": "ض",
+      "start": 1424,
+      "end": 1424,
+      "conf": 0.9677
+     },
+     {
+      "p": "َ",
+      "start": 1426,
+      "end": 1426,
+      "conf": 0.9954
+     },
+     {
+      "p": "ر",
+      "start": 1431,
+      "end": 1431,
+      "conf": 0.953
+     },
+     {
+      "p": "َ",
+      "start": 1432,
+      "end": 1433,
+      "conf": 0.9716
+     },
+     {
+      "p": "ت",
+      "start": 1438,
+      "end": 1438,
+      "conf": 0.918
+     },
+     {
+      "p": "َ",
+      "start": 1453,
+      "end": 1454,
+      "conf": 0.7935
+     },
+     {
+      "p": "ل",
+      "start": 1458,
+      "end": 1458,
+      "conf": 0.5083
+     },
+     {
+      "p": "َ",
+      "start": 1460,
+      "end": 1461,
+      "conf": 0.9817
+     },
+     {
+      "p": "ا",
+      "start": 1462,
+      "end": 1463,
+      "conf": 0.8965
+     },
+     {
+      "p": "ا",
+      "start": 1467,
+      "end": 1467,
+      "conf": 0.5317
+     },
+     {
+      "p": "ء",
+      "start": 1486,
+      "end": 1487,
+      "conf": 0.9886
+     },
+     {
+      "p": "ُ",
+      "start": 1488,
+      "end": 1489,
+      "conf": 0.9693
+     },
+     {
+      "p": "ق",
+      "start": 1493,
+      "end": 1493,
+      "conf": 0.8774
+     },
+     {
+      "p": "ڇ",
+      "start": 1494,
+      "end": 1494,
+      "conf": 0.9783
+     },
+     {
+      "p": "س",
+      "start": 1500,
+      "end": 1500,
+      "conf": 0.9809
+     },
+     {
+      "p": "ِ",
+      "start": 1502,
+      "end": 1503,
+      "conf": 0.995
+     },
+     {
+      "p": "م",
+      "start": 1506,
+      "end": 1506,
+      "conf": 0.999
+     },
+     {
+      "p": "ُ",
+      "start": 1508,
+      "end": 1508,
+      "conf": 0.9887
+     },
+     {
+      "p": "ب",
+      "start": 1514,
+      "end": 1514,
+      "conf": 0.9989
+     },
+     {
+      "p": "ِ",
+      "start": 1515,
+      "end": 1516,
+      "conf": 0.9968
+     },
+     {
+      "p": "ل",
+      "start": 1519,
+      "end": 1519,
+      "conf": 0.6851
+     },
+     {
+      "p": "ء",
+      "start": 1549,
+      "end": 1549,
+      "conf": 0.4884
+     },
+     {
+      "p": "َ",
+      "start": 1550,
+      "end": 1550,
+      "conf": 0.6443
+     },
+     {
+      "p": "ل",
+      "start": 1554,
+      "end": 1554,
+      "conf": 0.9402
+     },
+     {
+      "p": "ج",
+      "start": 1562,
+      "end": 1563,
+      "conf": 0.819
+     },
+     {
+      "p": "َ",
+      "start": 1564,
+      "end": 1565,
+      "conf": 0.9742
+     },
+     {
+      "p": "و",
+      "start": 1570,
+      "end": 1570,
+      "conf": 0.9769
+     },
+     {
+      "p": "َ",
+      "start": 1571,
+      "end": 1573,
+      "conf": 0.9927
+     },
+     {
+      "p": "ا",
+      "start": 1574,
+      "end": 1574,
+      "conf": 0.8775
+     },
+     {
+      "p": "ا",
+      "start": 1578,
+      "end": 1578,
+      "conf": 0.6316
+     },
+     {
+      "p": "ر",
+      "start": 1585,
+      "end": 1585,
+      "conf": 0.9471
+     },
+     {
+      "p": "ِ",
+      "start": 1587,
+      "end": 1587,
+      "conf": 0.9989
+     },
+     {
+      "p": "ل",
+      "start": 1591,
+      "end": 1591,
+      "conf": 0.9017
+     },
+     {
+      "p": "ك",
+      "start": 1600,
+      "end": 1600,
+      "conf": 0.9737
+     },
+     {
+      "p": "ُ",
+      "start": 1602,
+      "end": 1602,
+      "conf": 0.9964
+     },
+     {
+      "p": "ن",
+      "start": 1607,
+      "end": 1607,
+      "conf": 0.7103
+     },
+     {
+      "p": "ن",
+      "start": 1610,
+      "end": 1610,
+      "conf": 0.7426
+     },
+     {
+      "p": "ن",
+      "start": 1613,
+      "end": 1613,
+      "conf": 0.6901
+     },
+     {
+      "p": "ن",
+      "start": 1650,
+      "end": 1650,
+      "conf": 0.7046
+     }
+    ]
+   }
+  ],
+  "candidate": [
+   {
+    "id": "muo5gkq2_857a61f4",
+    "knownLocation": "94:5:2",
+    "arms": {
+     "free": {
+      "correctClass": false,
+      "detectedAtKnownLocation": false,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": []
+     },
+     "declared": {
+      "correctClass": false,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [
+       "wrong_word"
+      ],
+      "unreviewedOtherWarnings": []
+     }
+    },
+    "decodedPhonemes": "فَءِنَهءَلعُسرِيُسرَا",
+    "phonemeWindow": [
+     {
+      "p": "ف",
+      "start": 30,
+      "end": 30,
+      "conf": 0.9889
+     },
+     {
+      "p": "َ",
+      "start": 31,
+      "end": 31,
+      "conf": 0.9423
+     },
+     {
+      "p": "ء",
+      "start": 37,
+      "end": 38,
+      "conf": 0.9832
+     },
+     {
+      "p": "ِ",
+      "start": 39,
+      "end": 39,
+      "conf": 0.9978
+     },
+     {
+      "p": "ن",
+      "start": 44,
+      "end": 44,
+      "conf": 0.5608
+     },
+     {
+      "p": "َ",
+      "start": 60,
+      "end": 61,
+      "conf": 0.9985
+     },
+     {
+      "p": "ه",
+      "start": 65,
+      "end": 65,
+      "conf": 0.8827
+     },
+     {
+      "p": "ء",
+      "start": 80,
+      "end": 80,
+      "conf": 0.8348
+     },
+     {
+      "p": "َ",
+      "start": 81,
+      "end": 82,
+      "conf": 0.9201
+     },
+     {
+      "p": "ل",
+      "start": 84,
+      "end": 85,
+      "conf": 0.9701
+     },
+     {
+      "p": "ع",
+      "start": 92,
+      "end": 92,
+      "conf": 0.9957
+     },
+     {
+      "p": "ُ",
+      "start": 94,
+      "end": 94,
+      "conf": 0.9769
+     },
+     {
+      "p": "س",
+      "start": 98,
+      "end": 99,
+      "conf": 0.6816
+     },
+     {
+      "p": "ر",
+      "start": 105,
+      "end": 105,
+      "conf": 0.9958
+     },
+     {
+      "p": "ِ",
+      "start": 106,
+      "end": 107,
+      "conf": 0.9978
+     },
+     {
+      "p": "ي",
+      "start": 110,
+      "end": 111,
+      "conf": 0.9177
+     },
+     {
+      "p": "ُ",
+      "start": 112,
+      "end": 113,
+      "conf": 0.9987
+     },
+     {
+      "p": "س",
+      "start": 117,
+      "end": 117,
+      "conf": 0.9867
+     },
+     {
+      "p": "ر",
+      "start": 124,
+      "end": 124,
+      "conf": 0.9795
+     },
+     {
+      "p": "َ",
+      "start": 125,
+      "end": 126,
+      "conf": 0.986
+     },
+     {
+      "p": "ا",
+      "start": 127,
+      "end": 127,
+      "conf": 0.6296
+     }
+    ]
+   },
+   {
+    "id": "muodfjiw_c16401bc",
+    "knownLocation": "26:106:4",
+    "arms": {
+     "free": {
+      "correctClass": false,
+      "detectedAtKnownLocation": false,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": [
+       {
+        "type": "checker",
+        "v": 1,
+        "id": "26:177:4#1",
+        "timeMs": 5720,
+        "state": "confirmed",
+        "errorClass": "wrong_word",
+        "location": {
+         "surah": 26,
+         "ayah": 177,
+         "word": 4
+        },
+        "expected": "شُعَيبُن",
+        "observed": "هُۥۥدُن",
+        "confidence": 0.8365857142857143
+       }
+      ]
+     },
+     "declared": {
+      "correctClass": true,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": [
+       {
+        "type": "checker",
+        "v": 1,
+        "id": "26:106:5#2",
+        "timeMs": 5720,
+        "state": "confirmed",
+        "errorClass": "wrong_word",
+        "location": {
+         "surah": 26,
+         "ayah": 106,
+         "word": 5
+        },
+        "expected": "نُۥۥحُن",
+        "observed": "هُۥۥدُن",
+        "confidence": 0.8365857142857143
+       }
+      ]
+     }
+    },
+    "decodedPhonemes": "تءِذقَاالَلَهُمهُۥۥدُنءَلَاتَتَقُۥۥ",
+    "phonemeWindow": [
+     {
+      "p": "ت",
+      "start": 31,
+      "end": 31,
+      "conf": 0.9023
+     },
+     {
+      "p": "ء",
+      "start": 32,
+      "end": 32,
+      "conf": 0.871
+     },
+     {
+      "p": "ِ",
+      "start": 33,
+      "end": 34,
+      "conf": 0.9772
+     },
+     {
+      "p": "ذ",
+      "start": 36,
+      "end": 37,
+      "conf": 0.9551
+     },
+     {
+      "p": "ق",
+      "start": 42,
+      "end": 42,
+      "conf": 0.9997
+     },
+     {
+      "p": "َ",
+      "start": 43,
+      "end": 44,
+      "conf": 0.9972
+     },
+     {
+      "p": "ا",
+      "start": 45,
+      "end": 45,
+      "conf": 0.569
+     },
+     {
+      "p": "ا",
+      "start": 48,
+      "end": 48,
+      "conf": 0.9377
+     },
+     {
+      "p": "ل",
+      "start": 50,
+      "end": 50,
+      "conf": 0.9969
+     },
+     {
+      "p": "َ",
+      "start": 51,
+      "end": 52,
+      "conf": 0.9686
+     },
+     {
+      "p": "ل",
+      "start": 58,
+      "end": 58,
+      "conf": 0.9941
+     },
+     {
+      "p": "َ",
+      "start": 59,
+      "end": 60,
+      "conf": 0.997
+     },
+     {
+      "p": "ه",
+      "start": 63,
+      "end": 63,
+      "conf": 0.995
+     },
+     {
+      "p": "ُ",
+      "start": 64,
+      "end": 65,
+      "conf": 0.9532
+     },
+     {
+      "p": "م",
+      "start": 69,
+      "end": 69,
+      "conf": 0.8758
+     },
+     {
+      "p": "ه",
+      "start": 75,
+      "end": 75,
+      "conf": 0.8613
+     },
+     {
+      "p": "ُ",
+      "start": 76,
+      "end": 77,
+      "conf": 0.9354
+     },
+     {
+      "p": "ۥ",
+      "start": 78,
+      "end": 78,
+      "conf": 0.4002
+     },
+     {
+      "p": "ۥ",
+      "start": 82,
+      "end": 82,
+      "conf": 0.713
+     },
+     {
+      "p": "د",
+      "start": 88,
+      "end": 88,
+      "conf": 0.9731
+     },
+     {
+      "p": "ُ",
+      "start": 89,
+      "end": 89,
+      "conf": 0.9978
+     },
+     {
+      "p": "ن",
+      "start": 93,
+      "end": 93,
+      "conf": 0.9753
+     },
+     {
+      "p": "ء",
+      "start": 98,
+      "end": 98,
+      "conf": 0.9823
+     },
+     {
+      "p": "َ",
+      "start": 99,
+      "end": 100,
+      "conf": 0.9693
+     },
+     {
+      "p": "ل",
+      "start": 104,
+      "end": 104,
+      "conf": 0.99
+     },
+     {
+      "p": "َ",
+      "start": 106,
+      "end": 107,
+      "conf": 0.9989
+     },
+     {
+      "p": "ا",
+      "start": 108,
+      "end": 109,
+      "conf": 0.9653
+     },
+     {
+      "p": "ت",
+      "start": 118,
+      "end": 118,
+      "conf": 0.9985
+     },
+     {
+      "p": "َ",
+      "start": 119,
+      "end": 119,
+      "conf": 0.9909
+     },
+     {
+      "p": "ت",
+      "start": 122,
+      "end": 123,
+      "conf": 0.9345
+     },
+     {
+      "p": "َ",
+      "start": 127,
+      "end": 127,
+      "conf": 0.6189
+     },
+     {
+      "p": "ق",
+      "start": 134,
+      "end": 134,
+      "conf": 0.9738
+     },
+     {
+      "p": "ُ",
+      "start": 135,
+      "end": 135,
+      "conf": 0.956
+     },
+     {
+      "p": "ۥ",
+      "start": 138,
+      "end": 138,
+      "conf": 0.7965
+     },
+     {
+      "p": "ۥ",
+      "start": 142,
+      "end": 142,
+      "conf": 0.5538
+     }
+    ]
+   },
+   {
+    "id": "muodhmzj_0639dae3",
+    "knownLocation": "79:39:2",
+    "arms": {
+     "free": {
+      "correctClass": false,
+      "detectedAtKnownLocation": false,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": []
+     },
+     "declared": {
+      "correctClass": false,
+      "detectedAtKnownLocation": false,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": []
+     }
+    },
+    "decodedPhonemes": "فَءِننَلجَنَتَهِيَلمَءوَا",
+    "phonemeWindow": [
+     {
+      "p": "ف",
+      "start": 23,
+      "end": 23,
+      "conf": 0.994
+     },
+     {
+      "p": "َ",
+      "start": 25,
+      "end": 25,
+      "conf": 0.9997
+     },
+     {
+      "p": "ء",
+      "start": 28,
+      "end": 29,
+      "conf": 0.9929
+     },
+     {
+      "p": "ِ",
+      "start": 30,
+      "end": 30,
+      "conf": 0.9983
+     },
+     {
+      "p": "ن",
+      "start": 33,
+      "end": 34,
+      "conf": 0.5696
+     },
+     {
+      "p": "ن",
+      "start": 44,
+      "end": 44,
+      "conf": 0.5209
+     },
+     {
+      "p": "َ",
+      "start": 45,
+      "end": 45,
+      "conf": 0.9995
+     },
+     {
+      "p": "ل",
+      "start": 49,
+      "end": 49,
+      "conf": 0.9689
+     },
+     {
+      "p": "ج",
+      "start": 58,
+      "end": 58,
+      "conf": 0.9999
+     },
+     {
+      "p": "َ",
+      "start": 59,
+      "end": 60,
+      "conf": 0.9991
+     },
+     {
+      "p": "ن",
+      "start": 70,
+      "end": 70,
+      "conf": 0.5223
+     },
+     {
+      "p": "َ",
+      "start": 81,
+      "end": 82,
+      "conf": 0.9981
+     },
+     {
+      "p": "ت",
+      "start": 86,
+      "end": 86,
+      "conf": 0.992
+     },
+     {
+      "p": "َ",
+      "start": 87,
+      "end": 87,
+      "conf": 0.9139
+     },
+     {
+      "p": "ه",
+      "start": 93,
+      "end": 93,
+      "conf": 0.9354
+     },
+     {
+      "p": "ِ",
+      "start": 94,
+      "end": 94,
+      "conf": 0.999
+     },
+     {
+      "p": "ي",
+      "start": 97,
+      "end": 97,
+      "conf": 0.9982
+     },
+     {
+      "p": "َ",
+      "start": 98,
+      "end": 99,
+      "conf": 0.9957
+     },
+     {
+      "p": "ل",
+      "start": 102,
+      "end": 102,
+      "conf": 0.9965
+     },
+     {
+      "p": "م",
+      "start": 114,
+      "end": 114,
+      "conf": 0.9996
+     },
+     {
+      "p": "َ",
+      "start": 115,
+      "end": 116,
+      "conf": 0.9959
+     },
+     {
+      "p": "ء",
+      "start": 119,
+      "end": 119,
+      "conf": 0.9762
+     },
+     {
+      "p": "و",
+      "start": 124,
+      "end": 125,
+      "conf": 0.8302
+     },
+     {
+      "p": "َ",
+      "start": 126,
+      "end": 127,
+      "conf": 0.9849
+     },
+     {
+      "p": "ا",
+      "start": 128,
+      "end": 129,
+      "conf": 0.9474
+     }
+    ]
+   },
+   {
+    "id": "realuser-v1-sob-028",
+    "knownLocation": "103:2:4",
+    "arms": {
+     "free": {
+      "correctClass": true,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": []
+     },
+     "declared": {
+      "correctClass": true,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": []
+     }
+    },
+    "decodedPhonemes": "ءِننننَلءِںںسَانَلَفِۦءِلَلَِۦنَءَامَنُۥوَعَمِل",
+    "phonemeWindow": [
+     {
+      "p": "ء",
+      "start": 6,
+      "end": 6,
+      "conf": 0.7013
+     },
+     {
+      "p": "ِ",
+      "start": 7,
+      "end": 7,
+      "conf": 0.827
+     },
+     {
+      "p": "ن",
+      "start": 10,
+      "end": 10,
+      "conf": 0.5691
+     },
+     {
+      "p": "ن",
+      "start": 13,
+      "end": 13,
+      "conf": 0.5324
+     },
+     {
+      "p": "ن",
+      "start": 16,
+      "end": 16,
+      "conf": 0.562
+     },
+     {
+      "p": "ن",
+      "start": 28,
+      "end": 28,
+      "conf": 0.6423
+     },
+     {
+      "p": "َ",
+      "start": 30,
+      "end": 30,
+      "conf": 0.9905
+     },
+     {
+      "p": "ل",
+      "start": 34,
+      "end": 34,
+      "conf": 0.9988
+     },
+     {
+      "p": "ء",
+      "start": 39,
+      "end": 39,
+      "conf": 0.9395
+     },
+     {
+      "p": "ِ",
+      "start": 41,
+      "end": 42,
+      "conf": 0.989
+     },
+     {
+      "p": "ں",
+      "start": 45,
+      "end": 46,
+      "conf": 0.532
+     },
+     {
+      "p": "ں",
+      "start": 49,
+      "end": 49,
+      "conf": 0.5082
+     },
+     {
+      "p": "س",
+      "start": 66,
+      "end": 66,
+      "conf": 0.9952
+     },
+     {
+      "p": "َ",
+      "start": 68,
+      "end": 69,
+      "conf": 0.9995
+     },
+     {
+      "p": "ا",
+      "start": 70,
+      "end": 71,
+      "conf": 0.9875
+     },
+     {
+      "p": "ن",
+      "start": 78,
+      "end": 78,
+      "conf": 0.9991
+     },
+     {
+      "p": "َ",
+      "start": 79,
+      "end": 79,
+      "conf": 0.9971
+     },
+     {
+      "p": "ل",
+      "start": 83,
+      "end": 83,
+      "conf": 0.9976
+     },
+     {
+      "p": "َ",
+      "start": 85,
+      "end": 85,
+      "conf": 0.9917
+     },
+     {
+      "p": "ف",
+      "start": 90,
+      "end": 90,
+      "conf": 0.9735
+     },
+     {
+      "p": "ِ",
+      "start": 92,
+      "end": 93,
+      "conf": 0.9864
+     },
+     {
+      "p": "ۦ",
+      "start": 94,
+      "end": 94,
+      "conf": 0.7002
+     },
+     {
+      "p": "ء",
+      "start": 109,
+      "end": 109,
+      "conf": 0.5091
+     },
+     {
+      "p": "ِ",
+      "start": 110,
+      "end": 111,
+      "conf": 0.7777
+     },
+     {
+      "p": "ل",
+      "start": 113,
+      "end": 113,
+      "conf": 0.7969
+     },
+     {
+      "p": "َ",
+      "start": 119,
+      "end": 119,
+      "conf": 0.5075
+     },
+     {
+      "p": "ل",
+      "start": 123,
+      "end": 123,
+      "conf": 0.8843
+     },
+     {
+      "p": "َ",
+      "start": 129,
+      "end": 129,
+      "conf": 0.8439
+     },
+     {
+      "p": "ِ",
+      "start": 137,
+      "end": 137,
+      "conf": 0.9837
+     },
+     {
+      "p": "ۦ",
+      "start": 138,
+      "end": 139,
+      "conf": 0.8644
+     },
+     {
+      "p": "ن",
+      "start": 146,
+      "end": 146,
+      "conf": 0.9458
+     },
+     {
+      "p": "َ",
+      "start": 147,
+      "end": 147,
+      "conf": 0.9926
+     },
+     {
+      "p": "ء",
+      "start": 152,
+      "end": 152,
+      "conf": 0.993
+     },
+     {
+      "p": "َ",
+      "start": 153,
+      "end": 154,
+      "conf": 0.9956
+     },
+     {
+      "p": "ا",
+      "start": 155,
+      "end": 156,
+      "conf": 0.9796
+     },
+     {
+      "p": "م",
+      "start": 164,
+      "end": 164,
+      "conf": 0.9834
+     },
+     {
+      "p": "َ",
+      "start": 165,
+      "end": 165,
+      "conf": 0.999
+     },
+     {
+      "p": "ن",
+      "start": 170,
+      "end": 170,
+      "conf": 0.9991
+     },
+     {
+      "p": "ُ",
+      "start": 171,
+      "end": 172,
+      "conf": 0.9916
+     },
+     {
+      "p": "ۥ",
+      "start": 173,
+      "end": 174,
+      "conf": 0.8964
+     },
+     {
+      "p": "و",
+      "start": 181,
+      "end": 181,
+      "conf": 0.9787
+     },
+     {
+      "p": "َ",
+      "start": 182,
+      "end": 183,
+      "conf": 0.9745
+     },
+     {
+      "p": "ع",
+      "start": 187,
+      "end": 187,
+      "conf": 0.9976
+     },
+     {
+      "p": "َ",
+      "start": 188,
+      "end": 189,
+      "conf": 0.9871
+     },
+     {
+      "p": "م",
+      "start": 193,
+      "end": 193,
+      "conf": 0.9937
+     },
+     {
+      "p": "ِ",
+      "start": 194,
+      "end": 195,
+      "conf": 0.9633
+     },
+     {
+      "p": "ل",
+      "start": 198,
+      "end": 198,
+      "conf": 0.8723
+     }
+    ]
+   },
+   {
+    "id": "realuser-v1-sob-032",
+    "knownLocation": "81:15:3",
+    "arms": {
+     "free": {
+      "correctClass": true,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": [
+       {
+        "type": "checker",
+        "v": 1,
+        "id": "81:22:3#3",
+        "timeMs": 101120,
+        "state": "confirmed",
+        "errorClass": "wrong_word",
+        "location": {
+         "surah": 81,
+         "ayah": 22,
+         "word": 3
+        },
+        "expected": "بِمَجڇنُۥۥن",
+        "observed": "بِعَجڇُن",
+        "confidence": 0.9241625
+       }
+      ]
+     },
+     "declared": {
+      "correctClass": true,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": [
+       {
+        "type": "checker",
+        "v": 1,
+        "id": "81:22:3#3",
+        "timeMs": 101120,
+        "state": "confirmed",
+        "errorClass": "wrong_word",
+        "location": {
+         "surah": 81,
+         "ayah": 22,
+         "word": 3
+        },
+        "expected": "بِمَجڇنُۥۥن",
+        "observed": "بِعَجڇُن",
+        "confidence": 0.9241625
+       }
+      ]
+     }
+    },
+    "decodedPhonemes": "نَفسَُاءَحضَرَتفَلَاءُقڇسِمُبِلَلجَوَارِلكُننن",
+    "phonemeWindow": [
+     {
+      "p": "ن",
+      "start": 1356,
+      "end": 1356,
+      "conf": 0.9941
+     },
+     {
+      "p": "َ",
+      "start": 1357,
+      "end": 1358,
+      "conf": 0.986
+     },
+     {
+      "p": "ف",
+      "start": 1361,
+      "end": 1362,
+      "conf": 0.9545
+     },
+     {
+      "p": "س",
+      "start": 1367,
+      "end": 1367,
+      "conf": 0.8968
+     },
+     {
+      "p": "ُ",
+      "start": 1369,
+      "end": 1369,
+      "conf": 0.9952
+     },
+     {
+      "p": "َ",
+      "start": 1388,
+      "end": 1389,
+      "conf": 0.9991
+     },
+     {
+      "p": "ا",
+      "start": 1390,
+      "end": 1391,
+      "conf": 0.968
+     },
+     {
+      "p": "ء",
+      "start": 1409,
+      "end": 1409,
+      "conf": 0.9989
+     },
+     {
+      "p": "َ",
+      "start": 1411,
+      "end": 1411,
+      "conf": 0.996
+     },
+     {
+      "p": "ح",
+      "start": 1415,
+      "end": 1415,
+      "conf": 0.9514
+     },
+     {
+      "p": "ض",
+      "start": 1424,
+      "end": 1424,
+      "conf": 0.9981
+     },
+     {
+      "p": "َ",
+      "start": 1426,
+      "end": 1426,
+      "conf": 0.9962
+     },
+     {
+      "p": "ر",
+      "start": 1431,
+      "end": 1431,
+      "conf": 0.958
+     },
+     {
+      "p": "َ",
+      "start": 1432,
+      "end": 1433,
+      "conf": 0.9805
+     },
+     {
+      "p": "ت",
+      "start": 1438,
+      "end": 1438,
+      "conf": 0.9477
+     },
+     {
+      "p": "ف",
+      "start": 1451,
+      "end": 1451,
+      "conf": 0.4188
+     },
+     {
+      "p": "َ",
+      "start": 1453,
+      "end": 1454,
+      "conf": 0.8427
+     },
+     {
+      "p": "ل",
+      "start": 1458,
+      "end": 1458,
+      "conf": 0.8827
+     },
+     {
+      "p": "َ",
+      "start": 1460,
+      "end": 1461,
+      "conf": 0.9752
+     },
+     {
+      "p": "ا",
+      "start": 1462,
+      "end": 1463,
+      "conf": 0.917
+     },
+     {
+      "p": "ء",
+      "start": 1486,
+      "end": 1487,
+      "conf": 0.991
+     },
+     {
+      "p": "ُ",
+      "start": 1488,
+      "end": 1489,
+      "conf": 0.988
+     },
+     {
+      "p": "ق",
+      "start": 1493,
+      "end": 1493,
+      "conf": 0.8966
+     },
+     {
+      "p": "ڇ",
+      "start": 1494,
+      "end": 1494,
+      "conf": 0.9877
+     },
+     {
+      "p": "س",
+      "start": 1500,
+      "end": 1500,
+      "conf": 0.9953
+     },
+     {
+      "p": "ِ",
+      "start": 1502,
+      "end": 1503,
+      "conf": 0.9945
+     },
+     {
+      "p": "م",
+      "start": 1506,
+      "end": 1506,
+      "conf": 0.9995
+     },
+     {
+      "p": "ُ",
+      "start": 1507,
+      "end": 1508,
+      "conf": 0.9888
+     },
+     {
+      "p": "ب",
+      "start": 1514,
+      "end": 1514,
+      "conf": 0.9992
+     },
+     {
+      "p": "ِ",
+      "start": 1515,
+      "end": 1516,
+      "conf": 0.9967
+     },
+     {
+      "p": "ل",
+      "start": 1519,
+      "end": 1519,
+      "conf": 0.7753
+     },
+     {
+      "p": "َ",
+      "start": 1550,
+      "end": 1550,
+      "conf": 0.6649
+     },
+     {
+      "p": "ل",
+      "start": 1554,
+      "end": 1554,
+      "conf": 0.9386
+     },
+     {
+      "p": "ج",
+      "start": 1562,
+      "end": 1563,
+      "conf": 0.9254
+     },
+     {
+      "p": "َ",
+      "start": 1564,
+      "end": 1565,
+      "conf": 0.9847
+     },
+     {
+      "p": "و",
+      "start": 1570,
+      "end": 1570,
+      "conf": 0.9916
+     },
+     {
+      "p": "َ",
+      "start": 1571,
+      "end": 1573,
+      "conf": 0.997
+     },
+     {
+      "p": "ا",
+      "start": 1574,
+      "end": 1574,
+      "conf": 0.9279
+     },
+     {
+      "p": "ر",
+      "start": 1585,
+      "end": 1585,
+      "conf": 0.975
+     },
+     {
+      "p": "ِ",
+      "start": 1587,
+      "end": 1587,
+      "conf": 0.9988
+     },
+     {
+      "p": "ل",
+      "start": 1591,
+      "end": 1591,
+      "conf": 0.9463
+     },
+     {
+      "p": "ك",
+      "start": 1600,
+      "end": 1600,
+      "conf": 0.9718
+     },
+     {
+      "p": "ُ",
+      "start": 1602,
+      "end": 1602,
+      "conf": 0.9966
+     },
+     {
+      "p": "ن",
+      "start": 1607,
+      "end": 1607,
+      "conf": 0.5818
+     },
+     {
+      "p": "ن",
+      "start": 1610,
+      "end": 1610,
+      "conf": 0.5436
+     },
+     {
+      "p": "ن",
+      "start": 1613,
+      "end": 1613,
+      "conf": 0.5383
+     }
+    ]
+   }
+  ],
+  "control": [
+   {
+    "id": "muo5gkq2_857a61f4",
+    "knownLocation": "94:5:2",
+    "arms": {
+     "free": {
+      "correctClass": false,
+      "detectedAtKnownLocation": false,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": []
+     },
+     "declared": {
+      "correctClass": false,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [
+       "wrong_word"
+      ],
+      "unreviewedOtherWarnings": []
+     }
+    },
+    "decodedPhonemes": "فَءِنَهءَلعُسرِيُسرَا",
+    "phonemeWindow": [
+     {
+      "p": "ف",
+      "start": 30,
+      "end": 30,
+      "conf": 0.9922
+     },
+     {
+      "p": "َ",
+      "start": 31,
+      "end": 31,
+      "conf": 0.9513
+     },
+     {
+      "p": "ء",
+      "start": 37,
+      "end": 38,
+      "conf": 0.9852
+     },
+     {
+      "p": "ِ",
+      "start": 39,
+      "end": 39,
+      "conf": 0.9979
+     },
+     {
+      "p": "ن",
+      "start": 44,
+      "end": 44,
+      "conf": 0.5241
+     },
+     {
+      "p": "َ",
+      "start": 60,
+      "end": 61,
+      "conf": 0.9985
+     },
+     {
+      "p": "ه",
+      "start": 65,
+      "end": 65,
+      "conf": 0.8503
+     },
+     {
+      "p": "ء",
+      "start": 80,
+      "end": 80,
+      "conf": 0.8342
+     },
+     {
+      "p": "َ",
+      "start": 81,
+      "end": 82,
+      "conf": 0.9203
+     },
+     {
+      "p": "ل",
+      "start": 84,
+      "end": 85,
+      "conf": 0.9683
+     },
+     {
+      "p": "ع",
+      "start": 92,
+      "end": 92,
+      "conf": 0.9963
+     },
+     {
+      "p": "ُ",
+      "start": 94,
+      "end": 94,
+      "conf": 0.9781
+     },
+     {
+      "p": "س",
+      "start": 98,
+      "end": 99,
+      "conf": 0.675
+     },
+     {
+      "p": "ر",
+      "start": 105,
+      "end": 105,
+      "conf": 0.9966
+     },
+     {
+      "p": "ِ",
+      "start": 106,
+      "end": 107,
+      "conf": 0.9981
+     },
+     {
+      "p": "ي",
+      "start": 110,
+      "end": 111,
+      "conf": 0.9298
+     },
+     {
+      "p": "ُ",
+      "start": 112,
+      "end": 113,
+      "conf": 0.999
+     },
+     {
+      "p": "س",
+      "start": 117,
+      "end": 117,
+      "conf": 0.9876
+     },
+     {
+      "p": "ر",
+      "start": 124,
+      "end": 124,
+      "conf": 0.9835
+     },
+     {
+      "p": "َ",
+      "start": 125,
+      "end": 126,
+      "conf": 0.9861
+     },
+     {
+      "p": "ا",
+      "start": 127,
+      "end": 127,
+      "conf": 0.6447
+     }
+    ]
+   },
+   {
+    "id": "muodfjiw_c16401bc",
+    "knownLocation": "26:106:4",
+    "arms": {
+     "free": {
+      "correctClass": false,
+      "detectedAtKnownLocation": false,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": [
+       {
+        "type": "checker",
+        "v": 1,
+        "id": "26:177:4#1",
+        "timeMs": 5720,
+        "state": "confirmed",
+        "errorClass": "wrong_word",
+        "location": {
+         "surah": 26,
+         "ayah": 177,
+         "word": 4
+        },
+        "expected": "شُعَيبُن",
+        "observed": "هُۥدُن",
+        "confidence": 0.9085
+       }
+      ]
+     },
+     "declared": {
+      "correctClass": true,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": [
+       {
+        "type": "checker",
+        "v": 1,
+        "id": "26:106:5#2",
+        "timeMs": 5720,
+        "state": "confirmed",
+        "errorClass": "wrong_word",
+        "location": {
+         "surah": 26,
+         "ayah": 106,
+         "word": 5
+        },
+        "expected": "نُۥۥحُن",
+        "observed": "هُۥدُن",
+        "confidence": 0.9085
+       }
+      ]
+     }
+    },
+    "decodedPhonemes": "تءِذقَالَلَهُمهُۥدُنءَلَاتَتَقُۥۥ",
+    "phonemeWindow": [
+     {
+      "p": "ت",
+      "start": 31,
+      "end": 31,
+      "conf": 0.929
+     },
+     {
+      "p": "ء",
+      "start": 32,
+      "end": 32,
+      "conf": 0.828
+     },
+     {
+      "p": "ِ",
+      "start": 33,
+      "end": 34,
+      "conf": 0.9729
+     },
+     {
+      "p": "ذ",
+      "start": 36,
+      "end": 37,
+      "conf": 0.9353
+     },
+     {
+      "p": "ق",
+      "start": 42,
+      "end": 42,
+      "conf": 0.9998
+     },
+     {
+      "p": "َ",
+      "start": 43,
+      "end": 44,
+      "conf": 0.9978
+     },
+     {
+      "p": "ا",
+      "start": 45,
+      "end": 45,
+      "conf": 0.9687
+     },
+     {
+      "p": "ل",
+      "start": 50,
+      "end": 50,
+      "conf": 0.997
+     },
+     {
+      "p": "َ",
+      "start": 51,
+      "end": 52,
+      "conf": 0.9659
+     },
+     {
+      "p": "ل",
+      "start": 58,
+      "end": 58,
+      "conf": 0.9958
+     },
+     {
+      "p": "َ",
+      "start": 59,
+      "end": 60,
+      "conf": 0.9967
+     },
+     {
+      "p": "ه",
+      "start": 63,
+      "end": 63,
+      "conf": 0.9939
+     },
+     {
+      "p": "ُ",
+      "start": 64,
+      "end": 65,
+      "conf": 0.9724
+     },
+     {
+      "p": "م",
+      "start": 69,
+      "end": 69,
+      "conf": 0.8408
+     },
+     {
+      "p": "ه",
+      "start": 75,
+      "end": 75,
+      "conf": 0.8432
+     },
+     {
+      "p": "ُ",
+      "start": 76,
+      "end": 77,
+      "conf": 0.9265
+     },
+     {
+      "p": "ۥ",
+      "start": 82,
+      "end": 82,
+      "conf": 0.7405
+     },
+     {
+      "p": "د",
+      "start": 88,
+      "end": 88,
+      "conf": 0.9698
+     },
+     {
+      "p": "ُ",
+      "start": 89,
+      "end": 89,
+      "conf": 0.9978
+     },
+     {
+      "p": "ن",
+      "start": 93,
+      "end": 93,
+      "conf": 0.9732
+     },
+     {
+      "p": "ء",
+      "start": 98,
+      "end": 98,
+      "conf": 0.9838
+     },
+     {
+      "p": "َ",
+      "start": 99,
+      "end": 100,
+      "conf": 0.9671
+     },
+     {
+      "p": "ل",
+      "start": 104,
+      "end": 104,
+      "conf": 0.992
+     },
+     {
+      "p": "َ",
+      "start": 106,
+      "end": 107,
+      "conf": 0.999
+     },
+     {
+      "p": "ا",
+      "start": 108,
+      "end": 109,
+      "conf": 0.9769
+     },
+     {
+      "p": "ت",
+      "start": 118,
+      "end": 118,
+      "conf": 0.9987
+     },
+     {
+      "p": "َ",
+      "start": 119,
+      "end": 119,
+      "conf": 0.9887
+     },
+     {
+      "p": "ت",
+      "start": 122,
+      "end": 123,
+      "conf": 0.9341
+     },
+     {
+      "p": "َ",
+      "start": 127,
+      "end": 127,
+      "conf": 0.5716
+     },
+     {
+      "p": "ق",
+      "start": 134,
+      "end": 134,
+      "conf": 0.9752
+     },
+     {
+      "p": "ُ",
+      "start": 135,
+      "end": 135,
+      "conf": 0.9559
+     },
+     {
+      "p": "ۥ",
+      "start": 138,
+      "end": 138,
+      "conf": 0.8042
+     },
+     {
+      "p": "ۥ",
+      "start": 142,
+      "end": 142,
+      "conf": 0.5286
+     }
+    ]
+   },
+   {
+    "id": "muodhmzj_0639dae3",
+    "knownLocation": "79:39:2",
+    "arms": {
+     "free": {
+      "correctClass": false,
+      "detectedAtKnownLocation": false,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": []
+     },
+     "declared": {
+      "correctClass": false,
+      "detectedAtKnownLocation": false,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": []
+     }
+    },
+    "decodedPhonemes": "فَءِنننَلجَنَتَهِيَلمَءوَا",
+    "phonemeWindow": [
+     {
+      "p": "ف",
+      "start": 23,
+      "end": 23,
+      "conf": 0.9959
+     },
+     {
+      "p": "َ",
+      "start": 25,
+      "end": 25,
+      "conf": 0.9997
+     },
+     {
+      "p": "ء",
+      "start": 28,
+      "end": 29,
+      "conf": 0.9958
+     },
+     {
+      "p": "ِ",
+      "start": 30,
+      "end": 30,
+      "conf": 0.9986
+     },
+     {
+      "p": "ن",
+      "start": 33,
+      "end": 34,
+      "conf": 0.5685
+     },
+     {
+      "p": "ن",
+      "start": 36,
+      "end": 36,
+      "conf": 0.5014
+     },
+     {
+      "p": "ن",
+      "start": 44,
+      "end": 44,
+      "conf": 0.5503
+     },
+     {
+      "p": "َ",
+      "start": 45,
+      "end": 45,
+      "conf": 0.9996
+     },
+     {
+      "p": "ل",
+      "start": 49,
+      "end": 49,
+      "conf": 0.9726
+     },
+     {
+      "p": "ج",
+      "start": 58,
+      "end": 58,
+      "conf": 0.9999
+     },
+     {
+      "p": "َ",
+      "start": 59,
+      "end": 60,
+      "conf": 0.9991
+     },
+     {
+      "p": "ن",
+      "start": 70,
+      "end": 70,
+      "conf": 0.5057
+     },
+     {
+      "p": "َ",
+      "start": 81,
+      "end": 82,
+      "conf": 0.9981
+     },
+     {
+      "p": "ت",
+      "start": 86,
+      "end": 86,
+      "conf": 0.992
+     },
+     {
+      "p": "َ",
+      "start": 87,
+      "end": 87,
+      "conf": 0.917
+     },
+     {
+      "p": "ه",
+      "start": 92,
+      "end": 93,
+      "conf": 0.9377
+     },
+     {
+      "p": "ِ",
+      "start": 94,
+      "end": 94,
+      "conf": 0.9992
+     },
+     {
+      "p": "ي",
+      "start": 97,
+      "end": 97,
+      "conf": 0.9985
+     },
+     {
+      "p": "َ",
+      "start": 98,
+      "end": 99,
+      "conf": 0.9954
+     },
+     {
+      "p": "ل",
+      "start": 102,
+      "end": 102,
+      "conf": 0.9965
+     },
+     {
+      "p": "م",
+      "start": 114,
+      "end": 114,
+      "conf": 0.9997
+     },
+     {
+      "p": "َ",
+      "start": 115,
+      "end": 116,
+      "conf": 0.9965
+     },
+     {
+      "p": "ء",
+      "start": 119,
+      "end": 119,
+      "conf": 0.9775
+     },
+     {
+      "p": "و",
+      "start": 124,
+      "end": 125,
+      "conf": 0.8726
+     },
+     {
+      "p": "َ",
+      "start": 126,
+      "end": 127,
+      "conf": 0.9883
+     },
+     {
+      "p": "ا",
+      "start": 128,
+      "end": 129,
+      "conf": 0.9742
+     }
+    ]
+   },
+   {
+    "id": "realuser-v1-sob-028",
+    "knownLocation": "103:2:4",
+    "arms": {
+     "free": {
+      "correctClass": true,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": []
+     },
+     "declared": {
+      "correctClass": true,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": []
+     }
+    },
+    "decodedPhonemes": "ءِننننَلءِںںںسَانَلَفِۦءِلَللَِۦنَءَامَنُۥوَعَمِل",
+    "phonemeWindow": [
+     {
+      "p": "ء",
+      "start": 6,
+      "end": 6,
+      "conf": 0.7224
+     },
+     {
+      "p": "ِ",
+      "start": 7,
+      "end": 7,
+      "conf": 0.8251
+     },
+     {
+      "p": "ن",
+      "start": 10,
+      "end": 10,
+      "conf": 0.5817
+     },
+     {
+      "p": "ن",
+      "start": 13,
+      "end": 13,
+      "conf": 0.5678
+     },
+     {
+      "p": "ن",
+      "start": 16,
+      "end": 16,
+      "conf": 0.5954
+     },
+     {
+      "p": "ن",
+      "start": 28,
+      "end": 28,
+      "conf": 0.6945
+     },
+     {
+      "p": "َ",
+      "start": 30,
+      "end": 30,
+      "conf": 0.991
+     },
+     {
+      "p": "ل",
+      "start": 34,
+      "end": 34,
+      "conf": 0.9988
+     },
+     {
+      "p": "ء",
+      "start": 39,
+      "end": 39,
+      "conf": 0.9452
+     },
+     {
+      "p": "ِ",
+      "start": 41,
+      "end": 42,
+      "conf": 0.9924
+     },
+     {
+      "p": "ں",
+      "start": 45,
+      "end": 46,
+      "conf": 0.5687
+     },
+     {
+      "p": "ں",
+      "start": 49,
+      "end": 49,
+      "conf": 0.5141
+     },
+     {
+      "p": "ں",
+      "start": 52,
+      "end": 52,
+      "conf": 0.504
+     },
+     {
+      "p": "س",
+      "start": 66,
+      "end": 66,
+      "conf": 0.9958
+     },
+     {
+      "p": "َ",
+      "start": 68,
+      "end": 69,
+      "conf": 0.9995
+     },
+     {
+      "p": "ا",
+      "start": 70,
+      "end": 71,
+      "conf": 0.993
+     },
+     {
+      "p": "ن",
+      "start": 78,
+      "end": 78,
+      "conf": 0.999
+     },
+     {
+      "p": "َ",
+      "start": 79,
+      "end": 79,
+      "conf": 0.9966
+     },
+     {
+      "p": "ل",
+      "start": 83,
+      "end": 83,
+      "conf": 0.9974
+     },
+     {
+      "p": "َ",
+      "start": 85,
+      "end": 85,
+      "conf": 0.9917
+     },
+     {
+      "p": "ف",
+      "start": 90,
+      "end": 90,
+      "conf": 0.9806
+     },
+     {
+      "p": "ِ",
+      "start": 92,
+      "end": 93,
+      "conf": 0.9871
+     },
+     {
+      "p": "ۦ",
+      "start": 94,
+      "end": 94,
+      "conf": 0.7112
+     },
+     {
+      "p": "ء",
+      "start": 109,
+      "end": 109,
+      "conf": 0.5742
+     },
+     {
+      "p": "ِ",
+      "start": 110,
+      "end": 111,
+      "conf": 0.7782
+     },
+     {
+      "p": "ل",
+      "start": 113,
+      "end": 113,
+      "conf": 0.8099
+     },
+     {
+      "p": "َ",
+      "start": 120,
+      "end": 120,
+      "conf": 0.7428
+     },
+     {
+      "p": "ل",
+      "start": 123,
+      "end": 123,
+      "conf": 0.8499
+     },
+     {
+      "p": "ل",
+      "start": 127,
+      "end": 127,
+      "conf": 0.5254
+     },
+     {
+      "p": "َ",
+      "start": 129,
+      "end": 129,
+      "conf": 0.846
+     },
+     {
+      "p": "ِ",
+      "start": 137,
+      "end": 137,
+      "conf": 0.9869
+     },
+     {
+      "p": "ۦ",
+      "start": 138,
+      "end": 139,
+      "conf": 0.8817
+     },
+     {
+      "p": "ن",
+      "start": 146,
+      "end": 146,
+      "conf": 0.9467
+     },
+     {
+      "p": "َ",
+      "start": 147,
+      "end": 147,
+      "conf": 0.993
+     },
+     {
+      "p": "ء",
+      "start": 152,
+      "end": 152,
+      "conf": 0.9928
+     },
+     {
+      "p": "َ",
+      "start": 153,
+      "end": 154,
+      "conf": 0.9959
+     },
+     {
+      "p": "ا",
+      "start": 155,
+      "end": 156,
+      "conf": 0.9884
+     },
+     {
+      "p": "م",
+      "start": 164,
+      "end": 164,
+      "conf": 0.9854
+     },
+     {
+      "p": "َ",
+      "start": 165,
+      "end": 165,
+      "conf": 0.9989
+     },
+     {
+      "p": "ن",
+      "start": 170,
+      "end": 170,
+      "conf": 0.9992
+     },
+     {
+      "p": "ُ",
+      "start": 171,
+      "end": 172,
+      "conf": 0.9915
+     },
+     {
+      "p": "ۥ",
+      "start": 173,
+      "end": 174,
+      "conf": 0.918
+     },
+     {
+      "p": "و",
+      "start": 181,
+      "end": 181,
+      "conf": 0.9791
+     },
+     {
+      "p": "َ",
+      "start": 182,
+      "end": 183,
+      "conf": 0.9698
+     },
+     {
+      "p": "ع",
+      "start": 187,
+      "end": 187,
+      "conf": 0.9981
+     },
+     {
+      "p": "َ",
+      "start": 188,
+      "end": 189,
+      "conf": 0.9862
+     },
+     {
+      "p": "م",
+      "start": 193,
+      "end": 193,
+      "conf": 0.9932
+     },
+     {
+      "p": "ِ",
+      "start": 194,
+      "end": 195,
+      "conf": 0.9565
+     },
+     {
+      "p": "ل",
+      "start": 198,
+      "end": 198,
+      "conf": 0.8614
+     }
+    ]
+   },
+   {
+    "id": "realuser-v1-sob-032",
+    "knownLocation": "81:15:3",
+    "arms": {
+     "free": {
+      "correctClass": true,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": [
+       {
+        "type": "checker",
+        "v": 1,
+        "id": "81:22:3#2",
+        "timeMs": 100960,
+        "state": "confirmed",
+        "errorClass": "wrong_word",
+        "location": {
+         "surah": 81,
+         "ayah": 22,
+         "word": 3
+        },
+        "expected": "بِمَجڇنُۥۥن",
+        "observed": "بِعَجڇُن",
+        "confidence": 0.9064125000000001
+       }
+      ]
+     },
+     "declared": {
+      "correctClass": true,
+      "detectedAtKnownLocation": true,
+      "otherClassAtKnownLocation": [],
+      "unreviewedOtherWarnings": [
+       {
+        "type": "checker",
+        "v": 1,
+        "id": "81:22:3#2",
+        "timeMs": 100960,
+        "state": "confirmed",
+        "errorClass": "wrong_word",
+        "location": {
+         "surah": 81,
+         "ayah": 22,
+         "word": 3
+        },
+        "expected": "بِمَجڇنُۥۥن",
+        "observed": "بِعَجڇُن",
+        "confidence": 0.9064125000000001
+       }
+      ]
+     }
+    },
+    "decodedPhonemes": "نَفسُمَاءَحضَرَتَلَاءُقڇسِمُبِلءَلجَوَارِلكُننن",
+    "phonemeWindow": [
+     {
+      "p": "ن",
+      "start": 1356,
+      "end": 1356,
+      "conf": 0.9946
+     },
+     {
+      "p": "َ",
+      "start": 1357,
+      "end": 1358,
+      "conf": 0.987
+     },
+     {
+      "p": "ف",
+      "start": 1361,
+      "end": 1362,
+      "conf": 0.9661
+     },
+     {
+      "p": "س",
+      "start": 1367,
+      "end": 1367,
+      "conf": 0.8999
+     },
+     {
+      "p": "ُ",
+      "start": 1369,
+      "end": 1369,
+      "conf": 0.9962
+     },
+     {
+      "p": "م",
+      "start": 1373,
+      "end": 1373,
+      "conf": 0.5041
+     },
+     {
+      "p": "َ",
+      "start": 1388,
+      "end": 1389,
+      "conf": 0.9991
+     },
+     {
+      "p": "ا",
+      "start": 1390,
+      "end": 1391,
+      "conf": 0.9807
+     },
+     {
+      "p": "ء",
+      "start": 1409,
+      "end": 1409,
+      "conf": 0.9991
+     },
+     {
+      "p": "َ",
+      "start": 1411,
+      "end": 1411,
+      "conf": 0.9965
+     },
+     {
+      "p": "ح",
+      "start": 1415,
+      "end": 1415,
+      "conf": 0.9712
+     },
+     {
+      "p": "ض",
+      "start": 1424,
+      "end": 1424,
+      "conf": 0.998
+     },
+     {
+      "p": "َ",
+      "start": 1426,
+      "end": 1426,
+      "conf": 0.9962
+     },
+     {
+      "p": "ر",
+      "start": 1431,
+      "end": 1431,
+      "conf": 0.9563
+     },
+     {
+      "p": "َ",
+      "start": 1432,
+      "end": 1433,
+      "conf": 0.9799
+     },
+     {
+      "p": "ت",
+      "start": 1438,
+      "end": 1438,
+      "conf": 0.9453
+     },
+     {
+      "p": "َ",
+      "start": 1453,
+      "end": 1454,
+      "conf": 0.8108
+     },
+     {
+      "p": "ل",
+      "start": 1458,
+      "end": 1458,
+      "conf": 0.8361
+     },
+     {
+      "p": "َ",
+      "start": 1460,
+      "end": 1461,
+      "conf": 0.9738
+     },
+     {
+      "p": "ا",
+      "start": 1462,
+      "end": 1463,
+      "conf": 0.9088
+     },
+     {
+      "p": "ء",
+      "start": 1486,
+      "end": 1487,
+      "conf": 0.9894
+     },
+     {
+      "p": "ُ",
+      "start": 1488,
+      "end": 1489,
+      "conf": 0.9897
+     },
+     {
+      "p": "ق",
+      "start": 1493,
+      "end": 1493,
+      "conf": 0.9021
+     },
+     {
+      "p": "ڇ",
+      "start": 1494,
+      "end": 1494,
+      "conf": 0.985
+     },
+     {
+      "p": "س",
+      "start": 1500,
+      "end": 1500,
+      "conf": 0.9964
+     },
+     {
+      "p": "ِ",
+      "start": 1502,
+      "end": 1503,
+      "conf": 0.9952
+     },
+     {
+      "p": "م",
+      "start": 1506,
+      "end": 1506,
+      "conf": 0.9995
+     },
+     {
+      "p": "ُ",
+      "start": 1507,
+      "end": 1508,
+      "conf": 0.9883
+     },
+     {
+      "p": "ب",
+      "start": 1514,
+      "end": 1514,
+      "conf": 0.9994
+     },
+     {
+      "p": "ِ",
+      "start": 1515,
+      "end": 1516,
+      "conf": 0.9974
+     },
+     {
+      "p": "ل",
+      "start": 1519,
+      "end": 1519,
+      "conf": 0.7741
+     },
+     {
+      "p": "ء",
+      "start": 1549,
+      "end": 1549,
+      "conf": 0.4201
+     },
+     {
+      "p": "َ",
+      "start": 1550,
+      "end": 1550,
+      "conf": 0.6642
+     },
+     {
+      "p": "ل",
+      "start": 1554,
+      "end": 1554,
+      "conf": 0.9413
+     },
+     {
+      "p": "ج",
+      "start": 1562,
+      "end": 1563,
+      "conf": 0.9288
+     },
+     {
+      "p": "َ",
+      "start": 1564,
+      "end": 1565,
+      "conf": 0.9855
+     },
+     {
+      "p": "و",
+      "start": 1570,
+      "end": 1570,
+      "conf": 0.9912
+     },
+     {
+      "p": "َ",
+      "start": 1571,
+      "end": 1573,
+      "conf": 0.9965
+     },
+     {
+      "p": "ا",
+      "start": 1574,
+      "end": 1574,
+      "conf": 0.9158
+     },
+     {
+      "p": "ر",
+      "start": 1585,
+      "end": 1585,
+      "conf": 0.9787
+     },
+     {
+      "p": "ِ",
+      "start": 1587,
+      "end": 1587,
+      "conf": 0.9991
+     },
+     {
+      "p": "ل",
+      "start": 1591,
+      "end": 1591,
+      "conf": 0.948
+     },
+     {
+      "p": "ك",
+      "start": 1600,
+      "end": 1600,
+      "conf": 0.9694
+     },
+     {
+      "p": "ُ",
+      "start": 1602,
+      "end": 1602,
+      "conf": 0.9965
+     },
+     {
+      "p": "ن",
+      "start": 1607,
+      "end": 1607,
+      "conf": 0.6041
+     },
+     {
+      "p": "ن",
+      "start": 1610,
+      "end": 1610,
+      "conf": 0.5279
+     },
+     {
+      "p": "ن",
+      "start": 1613,
+      "end": 1613,
+      "conf": 0.5418
+     }
+    ]
+   }
+  ]
+ }
+}
