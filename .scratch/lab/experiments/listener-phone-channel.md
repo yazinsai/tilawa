@@ -15,3 +15,20 @@ Training app `ap-bneuNqx2LhpZr65rtdfluP` completed exactly 200 updates from sour
 Export app `ap-SLtbUlheW0oTsL4Zqxzxso`: all six fixed help fixtures have zero transcript edits against PyTorch and identical frame lengths. Posterior probabilities are not identical (maximum difference 0.597), so the final int8 artifact will be evaluated directly rather than inferred from PyTorch diagnostics.
 
 Int8 publication app `ap-NdxCH4xBzbmSa5VuYzDWGx`: 67,759,744 bytes; SHA256 `00cfec2268dd521689645399290ada8ea093a46b902f9fb8bcd89e585fb7cee5`. Model directory: `tilawa-lab:/data/models/phone-channel-int8`.
+
+## Recorded comparison points
+
+All rows use the same lab-v1.5 100-session practice set; phone is the headline. Incident counts, not only totals, govern acceptance.
+
+| Candidate | Misses | False alarms | New phone alarms | Status |
+| --- | ---: | ---: | ---: | --- |
+| Shipped main | 67 | 25 | baseline | baseline |
+| Checker only | 64 | 25 | 0 | passes; three recoveries across chapters 2, 9 and 35 |
+| Audio-only beam decoder | 72 | 25 | 7 vs main | fails |
+| Bandpass adaptation | 63 | 30 | 10 vs main | fails |
+| Fixed 25% weight blend + checker | 65 | 26 | 4 vs checker only | fails |
+| Complete phone-channel training + checker | pending | pending | pending | pending |
+
+The checker-only result also has no new missed cases or studio alarms and passes all 607 core tests. Its oracle arm improves from 50 misses + 6 false alarms to 46 + 5, with no new oracle alarm incidents. It remains ready for the user's fold decision regardless of this listener experiment.
+
+`decode-phone-channel-int8-0cfd306-20261031T150716Z`: 200/200 SDK jobs succeeded on the 100 practice sessions, phone and studio. Model and evidence hashes are stored in the decode record. No exam files were generated.
