@@ -668,13 +668,26 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (!wrong(v)) right.add(v.word);
     }
     if (recoverAdditions) {
-      // Consecutive correct visits preserve real repeats and excursions: a correctly recited intervening word
-      // remains a visit, while a fragment forced through a wrong word does not conceal an insertion.
-      const intact = visits.filter(v => counts(v) && !wrong(v));
+      // Use whole-word pronunciations here: a cheap one-consonant substitution is tolerated by the
+      // ordinary checker, but cannot prove that an intervening word was actually repeated.
+      const intact = visits.filter(v => counts(v) && !wrong(v) && lexical.matches(v.word, obs.slice(v.obsFrom, v.obsTo).map(p => p.p).join("")));
       const repairs: { from: number; to: number; path: Step[] }[] = [];
       const weight = (wi: number) => [...ref.slice(words[wi].start, words[wi].end)].reduce((n, p) => n + (CONSONANTS.has(p) ? UNIT : SOFT), 0);
+      const pairs: [Visit, Visit][] = [];
       for (let i = 1; i < intact.length; i++) {
-        const left = intact[i - 1], right = intact[i];
+        pairs.push([intact[i - 1], intact[i]]);
+        // An isolated forward detour cannot be a repeat of earlier speech. Backward detours
+        // remain protected, as do multiword excursions and attempts at either neighbor.
+        if (i >= 2) {
+          const left = intact[i - 2], detour = intact[i - 1], right = intact[i];
+          if (nextWord(left.word) === right.word && detour.word > nextWord(right.word) &&
+            !visits.some(v => v.word === detour.word && v.obsTo <= left.obsFrom && v.obsFrom >= 0 &&
+              lexical.matches(v.word, obs.slice(v.obsFrom, v.obsTo).map(p => p.p).join("")))) {
+            pairs.push([left, right]);
+          }
+        }
+      }
+      for (const [left, right] of pairs) {
         if (nextWord(left.word) !== right.word || left.obsTo > right.obsFrom || left.stepFrom === undefined || right.stepTo === undefined) continue;
         if (repairs.length && left.stepFrom < repairs.at(-1)!.to) continue;
         // A wrong attempt at the following word, then that word read correctly, is a self-correction.
