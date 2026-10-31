@@ -37,6 +37,8 @@ image = (
     .env({"PYTHONPATH": "/icefall:/icefall/egs/librispeech/ASR/zipformer:/root/tools", "HF_HOME": "/cache/hf"})
     .pip_install("rapidfuzz==3.14.1")
     .add_local_file("tools/student.py", "/root/tools/student.py")
+    .add_local_file("tools/sparse_mining_core.py", "/root/tools/sparse_mining_core.py")
+    .add_local_file("tools/lab_sessions.py", "/root/tools/lab_sessions.py")
     .add_local_file("tools/per_breakdown.py", "/root/tools/per_breakdown.py")
     .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
@@ -68,6 +70,11 @@ DEFAULTS = dict(
     name="",
     size="lite",
     init="",
+    init_run="",
+    channel_p=0.0,
+    phone_p=0.0,
+    max_steps=0,
+    targeted=False,
     buckets="clean-match",
     target="teacher",
     max_hours=0.0,
@@ -148,7 +155,7 @@ def build_model(size: str):
     return Student()
 
 
-def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, seed: int, max_clips: int = 0):
+def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, seed: int, max_clips: int = 0, exclude_gold: bool = False):
     """Selected s1 clips held in memory: FLAC bytes and teacher top-5 in flat buffers with offsets."""
     import glob
 
@@ -163,7 +170,7 @@ def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, se
     for fi, f in enumerate(files):
         t = pq.read_table(f, columns=["shard", "row", "bucket", "split", "n_samples"]).to_pydict()
         for r, (sh, row, bk, sp, n) in enumerate(zip(t["shard"], t["row"], t["bucket"], t["split"], t["n_samples"])):
-            if bk in want and sp == split and n <= max_clip_s * SR and not held_out(gold, sh, row, sp):
+            if bk in want and sp == split and n <= max_clip_s * SR and not held_out(gold, sh, row, "train" if exclude_gold else sp):
                 meta.append((fi, r, n))
     order = np.random.default_rng(seed).permutation(len(meta))
     if max_hours:
@@ -208,16 +215,27 @@ class ClipDataset:
         import soundfile as sf
         import torch
         import torchaudio
-        from student import mix_noise, phoneme_ids
+        from student import mix_noise, phoneme_ids, microphone_band
 
         c, cfg = self.c, self.cfg
-        rng = np.random.default_rng()
+        rng = np.random.default_rng(np.random.SeedSequence([cfg["seed"], i])) if cfg.get("deterministic_aug", False) or cfg.get("channel_p", 0) or cfg.get("phone_p", 0) else np.random.default_rng()
         wave, _ = sf.read(io.BytesIO(c["flac"][c["flac_off"][i] : c["flac_off"][i + 1]].tobytes()), dtype="float32")
         if self.train and self.aug:
-            if rng.random() < cfg["rir_p"]:
-                wave = reverb(wave, pick(self.aug["rir"], rng))
-            if rng.random() < cfg["noise_p"]:
-                wave = mix_noise(wave, pick(self.aug["noise"], rng), rng.uniform(*cfg["snr_db"]), rng)
+            phone_draw = rng.random() if cfg.get("deterministic_aug", False) or cfg.get("phone_p", 0) else 1.0
+            if phone_draw < cfg.get("phone_p", 0):
+                # Reuse only the pure channel transform, with training audio and augmentation banks.
+                # No benchmark sessions, labels or speech are loaded here.
+                from lab_sessions import degrade
+                noise = pick(self.aug["noise"], rng)
+                noise = np.roll(noise, -int(rng.integers(len(noise))))
+                wave = degrade(wave, pick(self.aug["rir"], rng), [noise], rng.uniform(8.0, 22.0))
+            else:
+                if rng.random() < cfg["rir_p"]:
+                    wave = reverb(wave, pick(self.aug["rir"], rng))
+                if cfg.get("channel_p", 0) and rng.random() < cfg["channel_p"]:
+                    wave = microphone_band(wave, rng)
+                if rng.random() < cfg["noise_p"]:
+                    wave = mix_noise(wave, pick(self.aug["noise"], rng), rng.uniform(*cfg["snr_db"]), rng)
             wave = wave * 10 ** (rng.uniform(-10, 6) / 20)
         feats = torchaudio.compliance.kaldi.fbank(
             torch.from_numpy(np.ascontiguousarray(wave)).unsqueeze(0), num_mel_bins=80, sample_frequency=SR, dither=0.0,
@@ -228,6 +246,7 @@ class ClipDataset:
         lo, hi = c["top_off"][i], c["top_off"][i + 1]
         return dict(
             i=i,
+            weight=float(c.get("weights", [1.] * len(c["ref"]))[i]),
             feats=feats,
             target=torch.tensor(phoneme_ids(c.get("target", c["hyp"])[i]), dtype=torch.long),
             top_ids=torch.from_numpy(c["ids"][lo:hi].reshape(-1, 5).astype(np.int64)),
@@ -269,6 +288,7 @@ def collate(items):
 
     return dict(
         i=torch.tensor([x["i"] for x in items]),
+        weights=torch.tensor([x["weight"] for x in items]),
         feats=pad_sequence([x["feats"] for x in items], batch_first=True, padding_value=-23.0259),
         feat_lens=torch.tensor([x["feats"].shape[0] for x in items]),
         targets=torch.cat([x["target"] for x in items]),
@@ -313,8 +333,11 @@ def losses(model, b, cfg, device):
         log_probs, out_lens = model(feats, feat_lens)
     log_probs = log_probs.float()
     frames = out_lens.sum().clamp_min(1)
+    weights = b["weights"].to(device)
+    frames = (out_lens * weights).sum().clamp_min(1)
     ctc = F.ctc_loss(log_probs.transpose(0, 1), b["targets"].to(device), out_lens, b["target_lens"].to(device),
-                     blank=0, reduction="sum", zero_infinity=True) / frames
+                     blank=0, reduction="none", zero_infinity=True)
+    ctc = (ctc * weights).sum() / frames
     out = {"ctc": ctc, "loss": cfg["ctc_weight"] * ctc}
     if cfg["kd_weight"]:
         B, T, _ = log_probs.shape
@@ -324,7 +347,7 @@ def losses(model, b, cfg, device):
         top_ids = b["top_ids"].to(device).gather(1, idx[..., None].expand(B, T, 5))
         top_p = b["top_p"].to(device).gather(1, idx[..., None].expand(B, T, 5))
         valid = torch.arange(T, device=device)[None] < out_lens[:, None]
-        kd = soft_target_loss(log_probs, top_ids, top_p, valid)
+        kd = soft_target_loss(log_probs, top_ids, top_p, valid.float() * weights[:, None])
         out["kd"] = kd
         out["loss"] = out["loss"] + cfg["kd_weight"] * kd
     out["frames"] = frames
@@ -416,8 +439,15 @@ def train(args: dict) -> dict:
         from student import spliced_target
 
         train_clips["target"] = [spliced_target(r, h) for r, h in zip(train_clips["ref"], train_clips["hyp"])]
-    eval_clips = load_clips("clean-match", "test", 0, 60.0, 1, cfg["eval_max"])
+    if cfg.get("expected_pool_sha256"):
+        import hashlib
+        actual = hashlib.sha256(json.dumps(train_clips["key"]).encode()).hexdigest()
+        assert actual == cfg["expected_pool_sha256"], ("Training pool changed", actual)
+    eval_clips = load_clips("clean-match", "test", 0, 60.0, 1, cfg["eval_max"], exclude_gold=True)
     aug = {k: dict(np.load(f"/student/aug/{k}.npz")) for k in ("noise", "rir")} if os.path.exists("/student/aug/rir.npz") else None
+    if (cfg.get("channel_p") or cfg.get("phone_p")) and aug is None:
+        raise RuntimeError("Channel adaptation requires the existing augmentation bank")
+    json.dump(train_clips["key"], open(f"{run}/manifest-train.json", "w"))
     hours = train_clips["n_samples"].sum() / SR / 3600
     emit(event="data", train_clips=len(train_clips["ref"]), train_hours=float(hours), eval_clips=len(eval_clips["ref"]),
          aug=aug is not None, load_s=time.time() - t0, cfg=cfg)
@@ -428,35 +458,60 @@ def train(args: dict) -> dict:
                      lr=cfg["base_lr"], clipping_scale=2.0)
     sched = Eden(opt, cfg["lr_batches"], cfg["lr_epochs"])
     state = {"epoch": 0, "batch": 0, "step": 0}
+    model_step_offset = 0
     if os.path.exists(f"{run}/ckpt.pt"):
         ck = torch.load(f"{run}/ckpt.pt", map_location="cpu", weights_only=False)
         model.load_state_dict(ck["model"])
         opt.load_state_dict(ck["opt"])
         sched.load_state_dict(ck["sched"])
         state = ck["state"]
+        model_step_offset = ck.get("model_step_offset", 0)
         emit(event="resume", **state)
+    elif cfg.get("init_run"):
+        ck = torch.load(f"/student/runs/{cfg['init_run']}/ckpt.pt", map_location="cpu", weights_only=False)
+        if ck["cfg"]["size"] != cfg["size"]:
+            raise ValueError("initial checkpoint size differs")
+        model.load_state_dict(ck["model"])
+        model_step_offset = ck["state"]["step"]
+        emit(event="adapt", source=cfg["init_run"], source_step=model_step_offset)
     elif cfg["init"]:
         emit(event="init", **init_from(model, cfg["init"], cfg["size"]))
     emit(event="model", params=n_params)
 
     def save():
         torch.save({"model": model.state_dict(), "opt": opt.state_dict(), "sched": sched.state_dict(), "state": state,
-                    "cfg": cfg}, f"{run}/ckpt.pt.tmp")
+                    "cfg": cfg, "model_step_offset": model_step_offset}, f"{run}/ckpt.pt.tmp")
         os.replace(f"{run}/ckpt.pt.tmp", f"{run}/ckpt.pt")
         vol.commit()
 
+    if cfg.get("sparse_manifest"):
+        from sparse_mining_core import validated_weights
+        manifest = json.load(open(cfg["sparse_manifest"]))
+        train_clips["weights"] = validated_weights(train_clips["key"], manifest, cfg["sparse_arm"])
+        json.dump(manifest, open(f"{run}/frozen-mining.json", "w"), ensure_ascii=False)
+    elif cfg.get("targeted"):
+        raise ValueError("Broad proxy mining is disabled in the sparse experiment")
     ds = ClipDataset(train_clips, cfg, train=True, aug=aug)
     model.train()
     seen_s, tick = 0.0, time.time()
-    while state["epoch"] < cfg["epochs"]:
+    while state["epoch"] < cfg["epochs"] and (not cfg.get("max_steps") or state["step"] < cfg["max_steps"]):
         plan = batches(train_clips["n_samples"], cfg["max_batch_s"], cfg["seed"] + state["epoch"])
+        if cfg.get("sparse_manifest") and state["epoch"] == 0:
+            planned = {train_clips["key"][i] for batch in plan[:cfg["max_steps"]] for i in batch}
+            selected = set(manifest[cfg["sparse_arm"]])
+            if not selected <= planned:
+                raise ValueError("Sparse subset falls outside the fixed training budget")
+            emit(event="sparse_exposure", selected=len(selected), seen=len(selected & planned),
+                 keys=sorted(selected), planned_batches=len(plan))
         loader = torch.utils.data.DataLoader(ds, batch_sampler=plan[state["batch"]:], collate_fn=collate,
                                              num_workers=cfg["workers"], prefetch_factor=4, persistent_workers=False)
         sched.step_epoch(state["epoch"])
         for b in loader:
+            if cfg.get("max_steps") and state["step"] >= cfg["max_steps"]:
+                break
             if state["step"] % 10 == 0:
                 for m in model.modules():
-                    m.batch_count = state["step"] * cfg["max_batch_s"] / 600.0
+                    m.batch_count = (state["step"] + model_step_offset) * cfg["max_batch_s"] / 600.0
             out = losses(model, b, cfg, device)
             opt.zero_grad(set_to_none=True)
             if not torch.isfinite(out["loss"]):
@@ -551,7 +606,102 @@ def transcribe(run: str, src: str, dest: str, chunk: int = 16, left: int = 128) 
 @app.local_entrypoint()
 def main(name: str, size: str = "lite", init: str = "", max_hours: float = 0.0, epochs: int = 6,
          kd_weight: float = 0.0, eval_max: int = 3000, eval_every: int = 2000, max_batch_s: float = 800.0,
-         base_lr: float = 0.045, target: str = "teacher"):
+         base_lr: float = 0.045, target: str = "teacher", init_run: str = "", channel_p: float = 0.0, max_steps: int = 0, phone_p: float = 0.0, targeted: bool = False):
     print(train.remote(dict(name=name, size=size, init=init, max_hours=max_hours, epochs=epochs, kd_weight=kd_weight,
                             eval_max=eval_max, eval_every=eval_every, max_batch_s=max_batch_s, base_lr=base_lr,
-                            target=target)))
+                            target=target, init_run=init_run, channel_p=channel_p, max_steps=max_steps, phone_p=phone_p, targeted=targeted)))
+
+
+@app.function(cpu=2, memory=2048, timeout=120)
+def channel_checks():
+    import numpy as np
+    from student import microphone_band
+    t = np.arange(32000) / SR
+    x = (np.sin(2*np.pi*20*t) + np.sin(2*np.pi*1000*t) + np.sin(2*np.pi*7900*t)).astype(np.float32)
+    original = x.copy()
+    y = microphone_band(x, np.random.default_rng(0))
+    z = microphone_band(x, np.random.default_rng(0))
+    assert y.shape == x.shape and y.dtype == np.float32 and np.isfinite(y).all()
+    assert np.array_equal(x, original) and np.array_equal(y, z)
+    amp = lambda a, f: abs(np.dot(a[2000:-2000], np.exp(-2j*np.pi*f*t[2000:-2000])))
+    assert amp(y, 20) < amp(x, 20) * .15
+    assert amp(y, 7900) < amp(x, 7900) * .15
+    assert amp(y, 1000) > amp(x, 1000) * .9
+    return {"checks": "passed", "samples": len(y), "seed": 0}
+
+
+@app.local_entrypoint()
+def check_channel():
+    print(channel_checks.remote())
+
+
+@app.function(cpu=2, memory=2048, timeout=120)
+def phone_checks():
+    import numpy as np
+    from lab_sessions import degrade, active_rms, rms
+    x = np.zeros(32000, dtype=np.float32)
+    x[16000:] = .05 * np.sin(2*np.pi*1000*np.arange(16000)/SR)
+    noise = np.random.default_rng(0).normal(0, .1, len(x)).astype(np.float32)
+    original = x.copy()
+    clean = degrade(x, np.array([1.0]), [np.zeros_like(noise)], 15.0)
+    y = degrade(x, np.array([1.0]), [noise], 15.0)
+    z = degrade(x, np.array([1.0]), [noise], 15.0)
+    assert np.array_equal(x, original) and np.array_equal(y, z)
+    assert len(y) == len(x) and y.dtype == np.float32 and np.isfinite(y).all()
+    measured = 20*np.log10(active_rms(clean)/rms(y-clean))
+    assert abs(measured-15.0) < .01, measured
+    return {"checks":"passed", "activeSpeechSnrDb":float(measured), "samples":len(y)}
+
+@app.local_entrypoint()
+def check_phone():
+    print(phone_checks.remote())
+
+
+def mine_weights(model, clips, cfg, aug, device, run):
+    """Fixed pretraining mining, using training audio only and a held-out val audit."""
+    import hashlib
+    import numpy as np
+    import torch
+    from rapidfuzz.distance import Levenshtein
+    from student import ctc_collapse, TOKENS
+    consonants = set(TOKENS[:28])
+    def signature(ids):
+        text = ''.join(TOKENS[x-1] for x in ids)
+        return ''.join(x for x in text if x in consonants)
+    def decode(c, phone):
+        ds = ClipDataset(c, {**cfg, "phone_p": phone, "spec_aug": False}, train=bool(phone), aug=aug)
+        result = [None] * len(ds)
+        loader = torch.utils.data.DataLoader(ds, batch_sampler=batches(c["n_samples"], 400., 0, False), collate_fn=collate, num_workers=cfg["workers"])
+        with torch.no_grad():
+            for b in loader:
+                with torch.autocast("cuda", dtype=torch.bfloat16):
+                    lp, lens = model(b["feats"].to(device), b["feat_lens"].to(device))
+                best = lp.argmax(-1).cpu()
+                for k, i in enumerate(b["i"].tolist()):
+                    result[i] = signature(ctc_collapse(best[k,:lens[k]].tolist()))
+        return result
+    model.eval()
+    model.streaming_eval(16, 128)
+    report = {"policy": "3x CTC and KD weight for any degradation consonant edit, 2x for short/repeat controls, otherwise 1x; weights frozen before adaptation", "splits": {}}
+    all_weights = None
+    for split, c in [("train", clips), ("val", load_clips("clean-match", "val", 0, 60., 2718, 600, exclude_gold=True))]:
+        clean, phone = decode(c, 0.), decode(c, 1.)
+        rows = []
+        weights = []
+        for i, (a,b) in enumerate(zip(clean,phone)):
+            ops = list(Levenshtein.editops(a,b))
+            changes = {"insert":0,"delete":0,"replace":0}
+            for op in ops: changes[op.tag] += 1
+            repeat = any(a[j]==a[j-1] for j in range(1,len(a)))
+            short = len(a) <= 8
+            weight = 3. if ops else 2. if repeat or short else 1.
+            weights.append(weight)
+            rows.append({"key":c["key"][i], "clean":a,"phone":b, "edits":changes,"repeatControl":repeat,"shortControl":short,"weight":weight})
+        report["splits"][split] = {"count":len(rows), "changed":sum(x["weight"]==3 for x in rows), "keysSha256":hashlib.sha256('\n'.join(c["key"]).encode()).hexdigest(), "rows": rows}
+        if split == "train": all_weights = weights
+    Path = __import__('pathlib').Path
+    Path(run, "mining.json").write_text(json.dumps(report, ensure_ascii=False))
+    vol.commit()
+    model.train()
+    model.training_mode()
+    return all_weights
