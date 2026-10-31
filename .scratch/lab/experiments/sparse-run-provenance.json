@@ -34,10 +34,13 @@
    "ap-NCKCRuoCmUQM1qEoHo79ZZ"
   ]
  },
- "trainingUpdates": 200,
- "verifiedPerArm": 16,
+ "trainingUpdates": 0,
+ "verifiedPerArm": 12,
  "pool": 21161,
- "training": {
+ "baselineControlsV2": {
+  "appId": "ap-29O6UbxSRfGFZI307MkRE6"
+ },
+ "supersededTraining": {
   "sourceSha": "4b0b6b8",
   "selected": {
    "appId": "ap-SPQJOfTV8utDf1zyZv5Odu",
@@ -49,7 +52,16 @@
   },
   "status": "complete"
  },
- "baselineControlsV2": {
-  "appId": "ap-29O6UbxSRfGFZI307MkRE6"
+ "training": {
+  "sourceSha": "ea404e9",
+  "status": "initializing",
+  "selected": {
+   "appId": "ap-n4bhnnXHyF7bmEXyD9ORRX",
+   "run": "sparse-consonants-v2"
+  },
+  "random": {
+   "appId": "ap-NzqoZx8xZDaa1wOsZUd0a5",
+   "run": "sparse-random-v2"
+  }
  }
 }

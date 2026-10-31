@@ -6,7 +6,7 @@
   "component": -4,
   "overall": -4
  },
- "listener": "sparse-consonants-int8",
+ "listener": "sparse-consonants-v2-int8",
  "testSet": "lab-v1.5",
  "created": "2026-10-31T16:46:09+00:00",
  "author": "Yazin"
