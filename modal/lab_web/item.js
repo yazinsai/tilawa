@@ -348,7 +348,7 @@ const CSS = `
 .lh-exp{color:var(--g-700)}
 .lh-heard{color:var(--g-600)}
 .lh .lh-x,.md-key .lh-x{color:var(--g-900);background:var(--g-200);border-radius:4px;box-shadow:0 0 0 2px var(--g-200)}
-.lh .lh-del,.md-key .lh-del{text-decoration:line-through;text-decoration-color:var(--g-500);color:var(--g-400)}
+.lh .lh-del,.md-key .lh-del{text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:var(--worse);color:var(--worse);opacity:.75}
 .lh .lh-low,.md-key .lh-low{opacity:.45}
 .lh-none.lh-should{white-space:normal;max-width:76px;border-radius:var(--radius)}
 .lh-none{display:inline-block;font-size:var(--t-xs);line-height:1.5;color:var(--g-500);border:1px dashed var(--g-300);border-radius:999px;padding:0 8px}

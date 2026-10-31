@@ -201,3 +201,10 @@ def test_missing_evidence_is_said_plainly():
     assert v["summary"] == "Where «أَتَبْنُونَ» should be missing (1.5 s into the clip), the app's ear heard nothing there (as expected); no evidence for the reference ear"
     v = P.view(SDOC, REF, {}, 0.5, 3.0)
     assert v["summary"] == "No listener evidence for this session"
+
+
+def test_a_word_heard_with_a_sound_missing_says_which():
+    sdoc = {"said": [said("لُوطٌ", "لُۥۥطُن", 1.0, 1.6, (26, 128, 2), role="wrong")], "events": []}
+    full, clipped = evidence([("لُۥۥطُن", 1.02, 1.58, 0.99)]), evidence([("ُۥۥطُن", 1.02, 1.58, 0.99)])
+    v = P.view(sdoc, REF, {"student": clipped, "teacher": full}, 0.5, 2.0, "wrong_word")
+    assert v["summary"] == "At «لُوطٌ» (0.5 s into the clip), the app's ear heard most of «لُوطٌ» (no «ل»); the reference ear heard «لُوطٌ» (as described)"

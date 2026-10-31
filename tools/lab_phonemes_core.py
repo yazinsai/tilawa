@@ -254,11 +254,27 @@ def heard_as(cols: list[dict], cells: list[dict], focus: list[int]) -> str:
     return "original" if sr >= LIKE else "unclear"
 
 
-def _say(how: str, word: str) -> str:
-    """word: the focus words in plain form, e.g. «بِمَا» or "the skipped ayah"."""
+CONSONANT = set("ءبتثجحخدذرزسشصضطظعغفقكلمنهوي")
+
+
+def differences(cells: list[dict], focus: list[int]) -> str:
+    """What a listener got wrong in the focus words, in plain words: consonants missing or heard as another, then any
+    vowel or length change ("" when every sound matched)."""
+    ops = [o for k in focus for o in cells[k]["ops"]]
+    miss = [o["e"] for o in ops if o["op"] == "del" and o.get("e") in CONSONANT]
+    swap = [(o["e"], o["h"]) for o in ops if o["op"] == "sub" and (o.get("e") in CONSONANT or o.get("h") in CONSONANT)]
+    soft = any(o["op"] in ("del", "sub", "ins") for o in ops) and not (miss or swap) or any(
+        o["op"] in ("del", "sub") and o.get("e") not in CONSONANT and o.get("h") not in CONSONANT for o in ops)
+    bits = [f"no «{e}»" for e in miss] + [f"«{h}» for «{e}»" for e, h in swap] + (["a vowel or length different"] if soft else [])
+    return ", ".join(bits)
+
+
+def _say(how: str, word: str, diff: str = "") -> str:
+    """word: the focus words in plain form, e.g. «بِمَا» or "the skipped ayah"; diff: `differences` of a word heard."""
+    heard = f"heard most of {word} ({diff})" if diff else f"heard {word} (as described)"
     return {"absent": "heard nothing there (as expected)", "anyway": f"heard {word} after all (unexpected)", "partial": "picked up a few sounds there",
-            "planted": f"heard {word} (as described)", "original": "heard the mushaf's word instead (unexpected)", "nothing": "heard nothing there",
-            "unclear": f"heard {word} only partly"}[how]
+            "planted": heard, "original": "heard the mushaf's word instead (unexpected)", "nothing": "heard nothing there",
+            "unclear": f"heard {word} only partly" + (f" ({diff})" if diff else "")}[how]
 
 
 def summary(cols: list[dict], listeners: list[dict], focus: list[int], t0: float = 0.0, skipped: bool = False) -> dict:
@@ -283,12 +299,13 @@ def summary(cols: list[dict], listeners: list[dict], focus: list[int], t0: float
     hows = {x["key"]: heard_as(cols, x["cells"], focus) for x in have}
     words = " ".join(cols[k].get("text", "") for k in focus).split()
     word = "the skipped ayah" if skipped else f"«{' '.join(words[:3])}{'…' if len(words) > 3 else ''}»"
-    if len(have) == 2 and len(set(hows.values())) == 1:
+    says = {x["key"]: _say(hows[x["key"]], word, differences(x["cells"], focus) if hows[x["key"]] in ("planted", "unclear") else "") for x in have}
+    if len(have) == 2 and len(set(says.values())) == 1:
         how = next(iter(hows.values()))
         text = ("neither ear heard anything there (as expected)" if how == "absent"
-                else "neither ear heard anything there" if how == "nothing" else f"both ears {_say(how, word)}")
+                else "neither ear heard anything there" if how == "nothing" else f"both ears {next(iter(says.values()))}")
     else:
-        parts = [f"{lower(name[x['key']])} {_say(hows[x['key']], word)}" for x in have]
+        parts = [f"{lower(name[x['key']])} {says[x['key']]}" for x in have]
         parts += [f"no evidence for {lower(x['name'])}" for x in listeners if not x["found"]]
         text = "; ".join(parts)
     here = f"Where {word} should be missing" if role == "omitted" else f"At {word}"

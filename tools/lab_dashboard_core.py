@@ -24,7 +24,7 @@ JOBS = {
     "checker": ("Decides if it's a mistake", "Says whether you made a mistake. Its own score: wrong calls given a perfect transcript and the right spot."),
 }
 WHY = {
-    "listener": "With a perfect transcript, the app gets this right, so the listener misheard",
+    "listener": "With a perfect transcript, the app gets this right; with what the listener actually heard (a sound missed or changed, or heard too unsurely for the app to trust), it doesn't",
     "tracker": "Given the right place, the app gets this right, so the tracker lost its place",
     "checker": "Even with a perfect transcript and the right place, the app gets this wrong, so it's the checker's rules",
 }

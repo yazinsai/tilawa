@@ -243,7 +243,7 @@ export function oraclePositions(s: BenchSession, index: ReferenceIndex) {
 function checkEvidence(s: BenchSession, e: SessionEvidence, index: ReferenceIndex, what: string) {
   if (!evidenceFits(s, e, index)) throw new Error(`Evidence mismatch: ${s.id} ${what}`);
 }
-const chunks = (e: SessionEvidence) => chunk(e as QudRecording, CHUNK_S, !!e.posteriors?.ids?.length);
+export const chunks = (e: SessionEvidence) => chunk(e as QudRecording, CHUNK_S, !!e.posteriors?.ids?.length);
 /** The product: free recitation, no context, tracker and checker on `evidence`. */
 export function runEngine(s: BenchSession, evidence: SessionEvidence, index: ReferenceIndex, phrases?: PhraseAsset): EngineEvent[] {
   checkEvidence(s, evidence, index, "engine");
