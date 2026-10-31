@@ -1,0 +1,13 @@
+{
+ "id": "checker-skip-boundaries",
+ "component": "checker",
+ "hypothesis": "Compare complete alternative skip placements against spoken boundary words instead of requiring exact consonant skeleton equality. Predict 3 fewer practice misses and 3 fewer false warnings, 6 fewer checker-attributed and overall wrong calls. Preserve real skips, clean recitation and the frozen subset; report the concentration in two surah-26 sessions.",
+ "expected": {
+  "component": -6,
+  "overall": -6
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-10-31T08:16:40+00:00",
+ "author": "Yazin"
+}
