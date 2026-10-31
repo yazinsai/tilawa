@@ -659,6 +659,52 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         }
         gap = placements.find(onStart) ?? gap;
       }
+      // A nearly repeated boundary word need not have the same consonant skeleton (for example an article may
+      // differ). Compare both intact spoken flanks before moving a gap, rather than treating those words as equal.
+      // The outer visits must be correct and complete enough to bound the same evidence for both placements.
+      if (words.slice(gap.word, gap.last + 1).filter(x => x.end > x.start).length >= 3) {
+        const place = gap;
+        const alternatives: Issue[] = [];
+        const before = last.get(prevWord(place.word));
+        if (before && before.word >= first) alternatives.push({ ...place, word: before.word, last: prevWord(place.last), obsFrom: before.obsFrom, obsTo: before.obsFrom });
+        if (after && after.word <= reached) alternatives.push({ ...place, word: nextWord(place.word), last: after.word, obsFrom: after.obsTo, obsTo: after.obsTo });
+        const bounded = alternatives.filter(candidate => {
+          const left = last.get(prevWord(Math.min(place.word, candidate.word)));
+          const rightVisit = last.get(nextWord(Math.max(place.last, candidate.last)));
+          return left && rightVisit && right.has(left.word) && right.has(rightVisit.word);
+        });
+        if (bounded.length) {
+          // All alternatives use one shared pair of outer anchors, so their costs are directly comparable.
+          const left = last.get(prevWord(Math.min(place.word, ...bounded.map(i => i.word))))!;
+          const rightVisit = last.get(nextWord(Math.max(place.last, ...bounded.map(i => i.last))))!;
+          if (left.obsFrom >= 0 && left.obsTo <= rightVisit.obsFrom && rightVisit.obsTo > left.obsFrom) {
+            const heard = obs.slice(left.obsFrom, rightVisit.obsTo).filter(p => !p.junk).map(p => p.p);
+            const fit = (i: Issue) => {
+              const written = ref.slice(words[left.word].start, words[i.word].start) + ref.slice(words[i.last].end, words[rightVisit.word].end);
+              // Fully consume both the written flanks and the heard span; free substring edges erase a boundary.
+              let row = new Float64Array(heard.length + 1);
+              for (let j = 1; j <= heard.length; j++) row[j] = row[j - 1] + insertionCost(written, 0, heard[j - 1]);
+              for (let k = 1; k <= written.length; k++) {
+                const del = written[k - 1] === written[k - 2] || written[k - 1] === written[k] ? HELD : deletionCost(written, k - 1);
+                const next = new Float64Array(heard.length + 1);
+                next[0] = row[0] + del;
+                for (let j = 1; j <= heard.length; j++) next[j] = Math.min(row[j - 1] + subCost(written[k - 1], heard[j - 1]), row[j] + del,
+                  next[j - 1] + Math.min(insertionCost(written, k, heard[j - 1]), heard[j - 1] === heard[j - 2] ? HELD : UNIT));
+                row = next;
+              }
+              return row[heard.length];
+            };
+            let bestCost = fit(place);
+            for (const candidate of bounded) {
+              const cost = fit(candidate);
+              if (cost < bestCost) {
+                bestCost = cost;
+                gap = candidate;
+              }
+            }
+          }
+        }
+      }
       const n = words.slice(gap.word, gap.last + 1).filter((x) => x.end > x.start).length;
       issues.set(gap.word, { ...gap, cls: n >= 3 ? "skipped_passage" : "omitted_word" });
       gap = null;
