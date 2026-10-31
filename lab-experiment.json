@@ -1,0 +1,13 @@
+{
+ "id": "checker-single-accusation",
+ "component": "checker",
+ "hypothesis": "Give one spoken edit one complete explanation instead of confirming overlapping adjacent wrong-word and added-word accusations. Predict unchanged misses and 3 fewer false warnings, 3 fewer overall wrong calls, and unchanged checker attribution. Preserve genuinely separate neighboring mistakes and clean repeats.",
+ "expected": {
+  "component": 0,
+  "overall": -3
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-10-31T11:35:44+00:00",
+ "author": "Yazin"
+}
