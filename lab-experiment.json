@@ -1,0 +1,13 @@
+{
+ "id": "checker-gap-ownership",
+ "component": "checker",
+ "hypothesis": "Jointly fit the spoken words around an omission or skip so neighboring noisy sounds do not fill the missing word. Predict 2 fewer misses and 2 fewer false warnings, 4 fewer overall wrong calls, and unchanged checker attribution. Keep existing confidence gates; check old and new sessions, clean controls, and reader and passage concentration.",
+ "expected": {
+  "component": 0,
+  "overall": -4
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-10-31T11:35:31+00:00",
+ "author": "Yazin"
+}
