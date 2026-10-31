@@ -1,0 +1,1913 @@
+{
+ "trainingPool": {
+  "clips": 21161,
+  "hours": 50.00077704861111,
+  "orderedKeysSha256": "ba66b2fb1c88ebf89fe260805cdc351f33bbb7347f577ef74ed819e06c057131"
+ },
+ "arms": {
+  "candidate": {
+   "manifest": {
+    "schema": 1,
+    "id": "paired-consonants-int8",
+    "format": "onnx-int8",
+    "arch": "zipformer2-streaming-ctc",
+    "inventory": "muaalem-v3_2-phonemes",
+    "tokens": "ءبتثجحخدذرزسشصضطظعغفقكلمنهوياۦۥَُِ۪ـٲڇں۾ؙۜ",
+    "blank": 0,
+    "sampleRate": 16000,
+    "frameMs": 40,
+    "fbank": {
+     "mels": 80,
+     "frameShiftMs": 10,
+     "frameLengthMs": 25,
+     "highFreq": -400,
+     "snipEdges": true,
+     "padValue": -23.0259
+    },
+    "window": 45,
+    "shift": 32,
+    "chunk": 16,
+    "leftContext": 128,
+    "states": [
+     {
+      "name": "cached_key_0",
+      "shape": [
+       128,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_0",
+      "shape": [
+       1,
+       1,
+       128,
+       144
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_0",
+      "shape": [
+       128,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_0",
+      "shape": [
+       128,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_0",
+      "shape": [
+       1,
+       192,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_0",
+      "shape": [
+       1,
+       192,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_1",
+      "shape": [
+       128,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_1",
+      "shape": [
+       1,
+       1,
+       128,
+       144
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_1",
+      "shape": [
+       128,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_1",
+      "shape": [
+       128,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_1",
+      "shape": [
+       1,
+       192,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_1",
+      "shape": [
+       1,
+       192,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_2",
+      "shape": [
+       64,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_2",
+      "shape": [
+       1,
+       1,
+       64,
+       192
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_2",
+      "shape": [
+       64,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_2",
+      "shape": [
+       64,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_2",
+      "shape": [
+       1,
+       256,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_2",
+      "shape": [
+       1,
+       256,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_3",
+      "shape": [
+       64,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_3",
+      "shape": [
+       1,
+       1,
+       64,
+       192
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_3",
+      "shape": [
+       64,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_3",
+      "shape": [
+       64,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_3",
+      "shape": [
+       1,
+       256,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_3",
+      "shape": [
+       1,
+       256,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_4",
+      "shape": [
+       32,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_4",
+      "shape": [
+       1,
+       1,
+       32,
+       288
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_4",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_4",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_4",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_4",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_5",
+      "shape": [
+       32,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_5",
+      "shape": [
+       1,
+       1,
+       32,
+       288
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_5",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_5",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_5",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_5",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_6",
+      "shape": [
+       32,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_6",
+      "shape": [
+       1,
+       1,
+       32,
+       288
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_6",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_6",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_6",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_6",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_7",
+      "shape": [
+       16,
+       1,
+       256
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_7",
+      "shape": [
+       1,
+       1,
+       16,
+       384
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_7",
+      "shape": [
+       16,
+       1,
+       96
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_7",
+      "shape": [
+       16,
+       1,
+       96
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_7",
+      "shape": [
+       1,
+       512,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_7",
+      "shape": [
+       1,
+       512,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_8",
+      "shape": [
+       16,
+       1,
+       256
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_8",
+      "shape": [
+       1,
+       1,
+       16,
+       384
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_8",
+      "shape": [
+       16,
+       1,
+       96
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_8",
+      "shape": [
+       16,
+       1,
+       96
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_8",
+      "shape": [
+       1,
+       512,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_8",
+      "shape": [
+       1,
+       512,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_9",
+      "shape": [
+       16,
+       1,
+       256
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_9",
+      "shape": [
+       1,
+       1,
+       16,
+       384
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_9",
+      "shape": [
+       16,
+       1,
+       96
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_9",
+      "shape": [
+       16,
+       1,
+       96
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_9",
+      "shape": [
+       1,
+       512,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_9",
+      "shape": [
+       1,
+       512,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_10",
+      "shape": [
+       16,
+       1,
+       256
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_10",
+      "shape": [
+       1,
+       1,
+       16,
+       384
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_10",
+      "shape": [
+       16,
+       1,
+       96
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_10",
+      "shape": [
+       16,
+       1,
+       96
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_10",
+      "shape": [
+       1,
+       512,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_10",
+      "shape": [
+       1,
+       512,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_11",
+      "shape": [
+       32,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_11",
+      "shape": [
+       1,
+       1,
+       32,
+       288
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_11",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_11",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_11",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_11",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_12",
+      "shape": [
+       32,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_12",
+      "shape": [
+       1,
+       1,
+       32,
+       288
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_12",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_12",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_12",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_12",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_13",
+      "shape": [
+       32,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_13",
+      "shape": [
+       1,
+       1,
+       32,
+       288
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_13",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_13",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_13",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_13",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_14",
+      "shape": [
+       64,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_14",
+      "shape": [
+       1,
+       1,
+       64,
+       192
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_14",
+      "shape": [
+       64,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_14",
+      "shape": [
+       64,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_14",
+      "shape": [
+       1,
+       256,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_14",
+      "shape": [
+       1,
+       256,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_15",
+      "shape": [
+       64,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_15",
+      "shape": [
+       1,
+       1,
+       64,
+       192
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_15",
+      "shape": [
+       64,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_15",
+      "shape": [
+       64,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_15",
+      "shape": [
+       1,
+       256,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_15",
+      "shape": [
+       1,
+       256,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "embed_states",
+      "shape": [
+       1,
+       128,
+       3,
+       19
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "processed_lens",
+      "shape": [
+       1
+      ],
+      "dtype": "int64"
+     }
+    ],
+    "file": "model.onnx",
+    "bytes": 67759744,
+    "sha256": "27502b489a6a2826fb6527f0657b81a35c069657524ab5f8376309dd3ca39696",
+    "trainStep": 200,
+    "supported": [
+     "wrong_word",
+     "omitted_word",
+     "added_word",
+     "skipped_passage"
+    ],
+    "quantizedFrom": "c44fd00cfaee7c1972e28b039896fd494c71e5d9016db082472b9869b8c9755d"
+   },
+   "trainingFinalDiagnostic": {
+    "event": "final",
+    "clips": 300,
+    "chunk": 16,
+    "left": 128,
+    "perVsRef": 0.194019728729963,
+    "perVsTeacher": 0.1682562185848692,
+    "teacherPerVsRef": 0.08045622688039457,
+    "meanFrameDiff": -1.56,
+    "scriptedError": null,
+    "name": "paired-consonants-v1",
+    "size": "full",
+    "params": 64578082,
+    "step": 200,
+    "train_hours": 50.00077704861111,
+    "t": 1793462031.7336583
+   }
+  },
+  "control": {
+   "manifest": {
+    "schema": 1,
+    "id": "paired-control-int8",
+    "format": "onnx-int8",
+    "arch": "zipformer2-streaming-ctc",
+    "inventory": "muaalem-v3_2-phonemes",
+    "tokens": "ءبتثجحخدذرزسشصضطظعغفقكلمنهوياۦۥَُِ۪ـٲڇں۾ؙۜ",
+    "blank": 0,
+    "sampleRate": 16000,
+    "frameMs": 40,
+    "fbank": {
+     "mels": 80,
+     "frameShiftMs": 10,
+     "frameLengthMs": 25,
+     "highFreq": -400,
+     "snipEdges": true,
+     "padValue": -23.0259
+    },
+    "window": 45,
+    "shift": 32,
+    "chunk": 16,
+    "leftContext": 128,
+    "states": [
+     {
+      "name": "cached_key_0",
+      "shape": [
+       128,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_0",
+      "shape": [
+       1,
+       1,
+       128,
+       144
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_0",
+      "shape": [
+       128,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_0",
+      "shape": [
+       128,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_0",
+      "shape": [
+       1,
+       192,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_0",
+      "shape": [
+       1,
+       192,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_1",
+      "shape": [
+       128,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_1",
+      "shape": [
+       1,
+       1,
+       128,
+       144
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_1",
+      "shape": [
+       128,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_1",
+      "shape": [
+       128,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_1",
+      "shape": [
+       1,
+       192,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_1",
+      "shape": [
+       1,
+       192,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_2",
+      "shape": [
+       64,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_2",
+      "shape": [
+       1,
+       1,
+       64,
+       192
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_2",
+      "shape": [
+       64,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_2",
+      "shape": [
+       64,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_2",
+      "shape": [
+       1,
+       256,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_2",
+      "shape": [
+       1,
+       256,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_3",
+      "shape": [
+       64,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_3",
+      "shape": [
+       1,
+       1,
+       64,
+       192
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_3",
+      "shape": [
+       64,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_3",
+      "shape": [
+       64,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_3",
+      "shape": [
+       1,
+       256,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_3",
+      "shape": [
+       1,
+       256,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_4",
+      "shape": [
+       32,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_4",
+      "shape": [
+       1,
+       1,
+       32,
+       288
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_4",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_4",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_4",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_4",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_5",
+      "shape": [
+       32,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_5",
+      "shape": [
+       1,
+       1,
+       32,
+       288
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_5",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_5",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_5",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_5",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_6",
+      "shape": [
+       32,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_6",
+      "shape": [
+       1,
+       1,
+       32,
+       288
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_6",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_6",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_6",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_6",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_7",
+      "shape": [
+       16,
+       1,
+       256
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_7",
+      "shape": [
+       1,
+       1,
+       16,
+       384
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_7",
+      "shape": [
+       16,
+       1,
+       96
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_7",
+      "shape": [
+       16,
+       1,
+       96
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_7",
+      "shape": [
+       1,
+       512,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_7",
+      "shape": [
+       1,
+       512,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_8",
+      "shape": [
+       16,
+       1,
+       256
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_8",
+      "shape": [
+       1,
+       1,
+       16,
+       384
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_8",
+      "shape": [
+       16,
+       1,
+       96
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_8",
+      "shape": [
+       16,
+       1,
+       96
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_8",
+      "shape": [
+       1,
+       512,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_8",
+      "shape": [
+       1,
+       512,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_9",
+      "shape": [
+       16,
+       1,
+       256
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_9",
+      "shape": [
+       1,
+       1,
+       16,
+       384
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_9",
+      "shape": [
+       16,
+       1,
+       96
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_9",
+      "shape": [
+       16,
+       1,
+       96
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_9",
+      "shape": [
+       1,
+       512,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_9",
+      "shape": [
+       1,
+       512,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_10",
+      "shape": [
+       16,
+       1,
+       256
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_10",
+      "shape": [
+       1,
+       1,
+       16,
+       384
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_10",
+      "shape": [
+       16,
+       1,
+       96
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_10",
+      "shape": [
+       16,
+       1,
+       96
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_10",
+      "shape": [
+       1,
+       512,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_10",
+      "shape": [
+       1,
+       512,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_11",
+      "shape": [
+       32,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_11",
+      "shape": [
+       1,
+       1,
+       32,
+       288
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_11",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_11",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_11",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_11",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_12",
+      "shape": [
+       32,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_12",
+      "shape": [
+       1,
+       1,
+       32,
+       288
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_12",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_12",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_12",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_12",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_13",
+      "shape": [
+       32,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_13",
+      "shape": [
+       1,
+       1,
+       32,
+       288
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_13",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_13",
+      "shape": [
+       32,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_13",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_13",
+      "shape": [
+       1,
+       384,
+       7
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_14",
+      "shape": [
+       64,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_14",
+      "shape": [
+       1,
+       1,
+       64,
+       192
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_14",
+      "shape": [
+       64,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_14",
+      "shape": [
+       64,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_14",
+      "shape": [
+       1,
+       256,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_14",
+      "shape": [
+       1,
+       256,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_key_15",
+      "shape": [
+       64,
+       1,
+       128
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_nonlin_attn_15",
+      "shape": [
+       1,
+       1,
+       64,
+       192
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val1_15",
+      "shape": [
+       64,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_val2_15",
+      "shape": [
+       64,
+       1,
+       48
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv1_15",
+      "shape": [
+       1,
+       256,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "cached_conv2_15",
+      "shape": [
+       1,
+       256,
+       15
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "embed_states",
+      "shape": [
+       1,
+       128,
+       3,
+       19
+      ],
+      "dtype": "float32"
+     },
+     {
+      "name": "processed_lens",
+      "shape": [
+       1
+      ],
+      "dtype": "int64"
+     }
+    ],
+    "file": "model.onnx",
+    "bytes": 67759744,
+    "sha256": "6e0fc346216b17daa9605ca145bb8ba4b6e3c1083bbf9cba303858ecb6565c99",
+    "trainStep": 200,
+    "supported": [
+     "wrong_word",
+     "omitted_word",
+     "added_word",
+     "skipped_passage"
+    ],
+    "quantizedFrom": "6adf08a64f109e0062628ce3eddec7cf18674e049bf5f96678aaade617392909"
+   },
+   "trainingFinalDiagnostic": {
+    "event": "final",
+    "clips": 300,
+    "chunk": 16,
+    "left": 128,
+    "perVsRef": 0.1972256473489519,
+    "perVsTeacher": 0.1716071658718907,
+    "teacherPerVsRef": 0.08045622688039457,
+    "meanFrameDiff": -1.56,
+    "scriptedError": null,
+    "name": "paired-control-v1",
+    "size": "full",
+    "params": 64578082,
+    "step": 200,
+    "train_hours": 50.00077704861111,
+    "t": 1793461999.498239
+   }
+  }
+ }
+}
