@@ -1,0 +1,13 @@
+{
+ "id": "listener-targeted-consonants",
+ "component": "listener",
+ "hypothesis": "Upweight training-only phone degradations that invent or lose consonants or change repeats, preserving original transcript loss and short-consonant controls; reduce unsafe listener calls without new missed mistakes.",
+ "expected": {
+  "component": -4,
+  "overall": -4
+ },
+ "listener": "targeted-consonants-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-10-31T15:48:22+00:00",
+ "author": "Yazin"
+}
