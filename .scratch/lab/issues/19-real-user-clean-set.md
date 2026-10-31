@@ -2,7 +2,7 @@
 
 Status: ready-for-agent
 Type: task
-Blocked by: none
+Blocked by: 20 (lab-v1.5 registration)
 
 The test set is professional reciters with planted mistakes, so it barely measures false warnings on ordinary people reciting normally, the number users feel. This ticket adds a phone-only `realuser` slice of real non-professional recitation, scored for false warnings per recited minute. It has no planted mistakes.
 
@@ -77,3 +77,10 @@ Review applied (31 Oct). Your four listens (`/lab/reviews/realuser-v1/me.json`),
 - All 580 sessions still validate.
 - **Main line, practice, after review:** 1 false warning over 63.3 recited min in 297 sessions (0.016 / min, 0.003 / session; first 10 s 0, rest 1). Every practice false warning has been through the audio-review procedure.
 - Remaining for acceptance: register through `lab baseline` once the slice is joined into the current test set. That waits on your choice of `lab-v1.4` now or `lab-v1.5`. lab-v1.5 is built, and its registration waits on ticket 20's spot check.
+
+Decision (31 Oct): the slice joins **lab-v1.5** once ticket 20 registers it. That is the last step:
+
+1. `modal run modal/lab_realuser.py --action join --base lab-v1.5 --name lab-v1.5u` copies the base and carries its latest flags into `lab-v1.5u/flags-v1.json`. Add realuser-v1's 62 windows from `realuser-v1/flags-v1.json` to that file before registering, since `join` carries only the base's flags.
+2. Decode nothing new: both listeners' evidence is copied with the sessions.
+3. `python3 tools/lab.py baseline --manifest lab-v1.5u/manifest-v1.json --exclude lab-v1.5u/flags-v1.json`.
+4. Add the joined set's practice realuser numbers to the write-up. They should match realuser-v1's practice numbers: 1 false warning in 63.3 min.
