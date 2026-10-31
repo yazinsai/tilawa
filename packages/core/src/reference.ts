@@ -46,6 +46,10 @@ export interface ReferenceIndex {
   /** Every ayah's continuous phonemes, concatenated in mushaf order. */
   phonemes: string;
   words: ReferenceWord[];
+  /** Supported connected and isolated pronunciations, in word order. */
+  wordForms?: readonly (readonly string[])[];
+  /** Context-free pause pronunciations, kept separate from connected forms. */
+  isolatedWordForms?: readonly string[];
   gramSize: number;
   grams: ReadonlyMap<string, readonly number[]>;
   /** Index into `words` of the word covering a phoneme offset. */
@@ -56,12 +60,16 @@ const GRAM_SIZE = 4;
 
 export function loadReferenceIndex(asset: ReferenceAsset): ReferenceIndex {
   const words: ReferenceWord[] = [];
+  const wordForms: string[][] = [];
+  const isolatedWordForms: string[] = [];
   let phonemes = "";
   for (const ayah of asset.ayahs) {
     const base = phonemes.length;
     ayah.w.forEach((_, i) => {
       const end = i + 1 < ayah.o.length ? ayah.o[i + 1] : ayah.p.length;
       words.push({ surah: ayah.s, ayah: ayah.a, word: i + 1, start: base + ayah.o[i], end: base + end });
+      wordForms.push([...new Set([ayah.p.slice(ayah.o[i], end), ayah.iso[i]].filter(Boolean))]);
+      isolatedWordForms.push(ayah.iso[i]);
     });
     phonemes += ayah.p;
   }
@@ -92,6 +100,8 @@ export function loadReferenceIndex(asset: ReferenceAsset): ReferenceIndex {
     tokens: new Set(asset.inventory.tokens),
     phonemes,
     words,
+    wordForms,
+    isolatedWordForms,
     gramSize: GRAM_SIZE,
     grams,
     wordAt,

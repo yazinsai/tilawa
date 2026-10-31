@@ -5,6 +5,7 @@ import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
+import { lexicalWords } from "./checker-lexical.js";
 
 export interface CheckerPolicy {
   /** When a suspected wrong or added word is confirmed: after `ms` (2–3 s), or once the next word has begun. Default 2500 ms. */
@@ -139,6 +140,8 @@ interface Issue {
   obsFrom: number;
   obsTo: number;
   observed?: string;
+  /** A lexical candidate's exact neighboring visits; other occurrences must not widen its acoustic window. */
+  supportRange?: [number, number];
 }
 
 interface Open {
@@ -156,6 +159,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const tokenId = new Map([...index.tokens].map((t, i) => [t, i + 1]));
   const ref = index.phonemes;
   const words = index.words;
+  const lexical = lexicalWords(index);
   const wordStarts = new Set(words.map((w) => w.start));
   const ayahOf: number[] = [];
   const ayahFirst: number[] = [];
@@ -255,7 +259,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
    * Whether the posteriors over the error's word and a recited word either side favour what was decoded over the
    * written words by `SUPPORT`; null when there's no telling (no posteriors there, or a skipped passage).
    */
-  const supported = (issue: Issue): boolean | null => {
+  const supported = (issue: Issue, requireFinite = false): boolean | null => {
     if (!frames || frames.startFrame < 0 || issue.cls === "skipped_passage") return null;
     const heardAt = (wi: number) => steps.filter((s): s is Extract<Step, { op: "diag" }> => s.op === "diag" && index.wordAt(s.ref) === wi).map((s) => s.obs);
     const before = prevWord(issue.word);
@@ -264,7 +268,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const right = after < words.length ? heardAt(after) : [];
     const from = left.length ? before : issue.word;
     const to = right.length ? after : issue.cls === "added_word" ? issue.word : issue.last;
-    const at = [...left, ...right, ...(issue.obsTo > issue.obsFrom ? [issue.obsFrom, issue.obsTo - 1] : [])].filter((k) => k >= 0 && k < obs.length);
+    const at = (issue.supportRange ? [issue.supportRange[0], issue.supportRange[1] - 1] :
+      [...left, ...right, ...(issue.obsTo > issue.obsFrom ? [issue.obsFrom, issue.obsTo - 1] : [])]).filter((k) => k >= 0 && k < obs.length);
     if (!at.length) return null;
     const f0 = obs[Math.min(...at)].start;
     const f1 = obs[Math.max(...at)].end + 1;
@@ -278,7 +283,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         ? span(from, issue.word) + observed + span(issue.word, to + 1)
         : span(from, issue.word) + (issue.cls === "wrong_word" ? observed : "") + span(issue.last + 1, to + 1);
     const need = issue.cls === "wrong_word" && changedClarity(issue) < UNSURE ? 2 * support : support;
-    return frames.nll(ids(written), f0, f1) - frames.nll(ids(decoded), f0, f1) >= need;
+    const expectedNll = frames.nll(ids(written), f0, f1), observedNll = frames.nll(ids(decoded), f0, f1);
+    if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
+    return expectedNll - observedNll >= need;
   };
 
   /** Mean decoder confidence over a wrong word's decoded phonemes that differ from the written word. */
@@ -571,7 +578,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   /** The errors the current alignment shows, by word; and where it stands. */
-  const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; head: number; furthest: number; steps: Step[]; right: Set<number> } | null => {
+  const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; lexical: Issue[]; head: number; furthest: number; steps: Step[]; right: Set<number> } | null => {
     const visits: Visit[] = [];
     const added: Issue[] = [];
     let cur: Visit | null = null;
@@ -777,7 +784,36 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     flush();
     for (const a of added) if (a.word >= first && !issues.has(a.word)) issues.set(a.word, a);
-    return { issues, head, furthest: reached, steps, right };
+    const candidates: Issue[] = [];
+    const heard = (v: Visit) => obs.slice(v.obsFrom, v.obsTo).map(p => p.p).join("");
+    const complete = (v: Visit) => v.covered === length(v.word) && v.obsFrom >= 0 &&
+      v.stepFrom !== undefined && v.stepTo !== undefined && lexical.matches(v.word, heard(v));
+    const intact = visits.filter(v => counts(v) && !wrong(v) && complete(v));
+    for (let i = 1; i < intact.length; i++) {
+      const left = intact[i - 1], right = intact[i], wi = nextWord(left.word);
+      if (wi < first || nextWord(wi) !== right.word || left.obsTo >= right.obsFrom || issues.has(wi)) continue;
+      // Equal sounds straddling a boundary admit another split, especially madd and ghunna.
+      if ([left.obsTo, right.obsFrom].some(at => obs[at - 1]?.p === obs[at]?.p)) continue;
+      // A genuinely correct visit elsewhere protects repeats and self-corrections. The old soft `right` set alone
+      // cannot establish that: it includes the consonant changes this separate candidate path is meant to catch.
+      if (visits.some(v => v.word === wi && complete(v))) continue;
+      if (added.some(a => a.obsFrom < right.obsTo && a.obsTo > left.obsFrom)) continue;
+      const path = steps.slice(left.stepFrom!, right.stepTo!);
+      if (path.some(s => s.op === "jump" || s.op === "lead" ||
+        ("ref" in s && (index.wordAt(s.ref) < left.word || index.wordAt(s.ref) > right.word)))) continue;
+      const represented = path.flatMap(s => "obs" in s ? [s.obs] : []);
+      if (represented.length !== right.obsTo - left.obsFrom || represented.some((oi, j) => oi !== left.obsFrom + j)) continue;
+      if (obs.slice(left.obsFrom, right.obsTo).some(p => p.junk)) continue;
+      const observed = obs.slice(left.obsTo, right.obsFrom).map(p => p.p).join("");
+      if (lexical.alternative(wi, observed, {
+        before: ayahOf[left.word] === ayahOf[wi] ? heard(left) : undefined,
+        after: ayahOf[right.word] === ayahOf[wi] ? heard(right) : undefined,
+      })) candidates.push({
+        cls: "wrong_word", word: wi, last: wi, obsFrom: left.obsTo, obsTo: right.obsFrom, observed,
+        supportRange: [left.obsFrom, right.obsTo],
+      });
+    }
+    return { issues, lexical: candidates, head, furthest: reached, steps, right };
   };
 
   /** Matched phonemes on the word after an error, heard after it: the next word has begun. */
@@ -796,6 +832,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     if (!judged) return;
     steps = judged.steps;
     const { issues, head, furthest: reached, right } = judged;
+    // Use the final (possibly repaired) path and identical frames/context for both acoustic hypotheses. Unlike the
+    // legacy path, a lexical candidate needs affirmative support; absent or indeterminate posteriors mean abstain.
+    for (const candidate of judged.lexical) if (supported(candidate, true) === true) {
+      issues.set(candidate.word, candidate);
+      right.delete(candidate.word);
+    }
     furthest = Math.max(furthest, reached);
     for (const [wi, o] of [...open]) {
       const now = issues.get(wi);
@@ -851,7 +893,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const word = index.wordAt(at);
     for (const o of [...open.values()]) if (o.issue.word < word) decide(o, out);
     for (const o of open.values()) {
-      o.issue = { ...o.issue, obsFrom: Math.max(0, o.issue.obsFrom - cut), obsTo: Math.max(0, o.issue.obsTo - cut) };
+      const range = o.issue.supportRange;
+      o.issue = { ...o.issue, obsFrom: Math.max(0, o.issue.obsFrom - cut), obsTo: Math.max(0, o.issue.obsTo - cut),
+        ...(range ? { supportRange: [Math.max(0, range[0] - cut), Math.max(0, range[1] - cut)] as [number, number] } : {}) };
     }
     obs = obs.slice(cut);
     anchor = word;
