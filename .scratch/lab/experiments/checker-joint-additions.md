@@ -1,6 +1,6 @@
 # Joint neighboring-word fit for missed additions
 
-Status: implementation validated; practice score pending. Fold or discard belongs to the user.
+Status: practice measured; 10 fewer wrong calls with unchanged false warnings. Awaiting the user's fold or discard decision.
 
 ## Preregistered prediction
 
@@ -27,4 +27,27 @@ This differs from the already tried one-sided edge re-splitting and contiguous i
 - Full practice run `exp-checker-joint-additions-2213713-20261031T082400Z` (Modal app `ap-5fKVDEQM5nMafITIUwlGpE`) was aborted after that static review, before any score or partial case results were read. It is invalidated. The original hypothesis and prediction remain unchanged; the coverage guard is a correctness fix, not measured tuning.
 - Coverage-guard validation: `additions-exact-coverage-2213713-dirty-20261031T082704Z`, all three Modal shards exited 0; TypeScript build and all 59 checker tests passed again. Independent review confirmed that exact ordered index coverage proves no observed evidence can be lost or duplicated by replacement.
 - A temporary synthetic missing-onset/leading-vowel probe in another passage (`additions-prefix-guard-probe-2213713-dirty-20261031T082753Z`) did not reach an otherwise unsafe repair. It is not claimed as a regression test for the rare leading-edge path; the conservative guard and its exact-coverage invariant address that path. Probe instrumentation was removed.
-- Parent agent will run a fresh full practice score, then report frozen/new subsets and gain concentration. No benchmark case or speaker IDs are in production behavior.
+- The parent agent ran the fresh full practice score reported below. No benchmark case or speaker IDs are in production behavior.
+
+
+## Measured practice result
+
+Scored code: `5601949`. Run: `exp-checker-joint-additions-5601949-20261031T084117Z`, compared with `main-fe4daad-20261031T062538Z` on lab-v1.5 practice only. The original prediction remains 8 fewer overall wrong calls, with 8 fewer misses, no false-warning increase and 6 fewer checker-attributed wrong calls. No implementation was tuned after this measurement.
+
+| Phone practice measure | Baseline | Experiment | Change |
+| --- | ---: | ---: | ---: |
+| Wrong calls | 107 | 97 | -10 |
+| Missed mistakes | 82 | 72 | -10 |
+| False warnings | 25 | 25 | 0 |
+| Checker-attributed wrong calls | 58 | 48 | -10 |
+| Frozen 20 sessions: wrong calls | 11 | 8 | -3 |
+| New 80 sessions: wrong calls | 96 | 89 | -7 |
+| Fully clean sessions: false warnings | 5 | 5 | 0 |
+
+All 10 changes are recovered added-word mistakes. There are no new misses, no added or removed false warnings, and no changes to other mistake classes. Recoveries span 9 sessions, 7 readers and 6 surahs. They include old-session `lab-v1.4-p19/51:30:1@81.17` and new-session `lab-v1.5-p17/2:8:1@73.23` and `lab-v1.5-p35/54:51:1@239.95`.
+
+The gain survives two concentration checks: excluding surah 26 leaves 6 fewer wrong calls; excluding the reader with the largest gain leaves 7 fewer. Both the frozen and new sessions improve. Studio audio also improves: 78 to 67 wrong calls, comprising 65 to 54 misses and unchanged 13 false warnings. This supports the mechanism across these practice subsets; it does not establish performance on unseen recitation.
+
+Verdict: measured improvement beyond the two-call noise threshold, exceeding the preregistered overall and checker-attribution predictions. False warnings on fully clean recitation remain a limitation: 5 across the 26 fully clean practice sessions. The short/noisy-addition and rare-path limitations above remain; this result does not justify relaxing the conservative guards. Folding or discarding remains the user's decision.
+
+The result was checked against the sanitized practice score and comparison files supplied by the parent agent. The aborted `2213713` run above remains invalidated and contributed no results to this decision.
