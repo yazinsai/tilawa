@@ -436,8 +436,8 @@ def apply_corrections(doc: dict) -> dict:
 
 @app.function(**fn, cpu=2, memory=8192)
 def join(base: str, name: str) -> dict:
-    """/lab/data/<name>/: test set <base> plus the realuser sessions (files copied; <base> untouched). The base's flags
-    (the latest flags-v<n>.json) are carried over as <name>/flags-v1.json with `base` set to the new name."""
+    """/lab/data/<name>/: test set <base> plus the realuser sessions (files copied; <base> untouched). <name>/flags-v1.json
+    holds the base's latest flags-v<n>.json and realuser-v1's (seam and reviewed windows), `base` set to the new name."""
     import shutil
 
     import lab_realuser_core as U
@@ -468,11 +468,11 @@ def join(base: str, name: str) -> dict:
     out = U.join({**m, "testSet": name, "joinedFrom": base}, r)
     write(dst / "manifest-v1.json", U.dumps(out))
     flags = sorted(src.glob("flags-v*.json"), key=lambda p: int(p.stem.split("-v")[1]))
-    carried = None
-    if flags:
-        f = read(flags[-1])
-        write(dst / "flags-v1.json", U.dumps({**f, "testSet": name, "base": name, "carriedFrom": f"{base}/{flags[-1].name}"}))
-        carried = flags[-1].name
+    f = read(flags[-1]) if flags else {"version": 1, "kind": "lab-flags", "excluded": []}
+    own = read(ru / "flags-v1.json") or {"excluded": []}
+    write(dst / "flags-v1.json", U.dumps({**f, "testSet": name, "base": name, "excluded": f["excluded"] + own["excluded"],
+                                          "carriedFrom": [f"{base}/{flags[-1].name}"] * bool(flags) + [f"{U.TEST_SET}/flags-v1.json"]}))
+    carried = {"base": flags[-1].name if flags else None, "baseWindows": len(f["excluded"]), "realuserWindows": len(own["excluded"])}
     vol.commit()
     return {"testSet": name, "base": len(m["sessions"]), "realuser": len(r["sessions"]), "files": len(files), "flagsCarried": carried}
 

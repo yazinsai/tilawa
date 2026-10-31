@@ -80,7 +80,7 @@ Review applied (31 Oct). Your four listens (`/lab/reviews/realuser-v1/me.json`),
 
 Decision (31 Oct): the slice joins **lab-v1.5** once ticket 20 registers it. That is the last step:
 
-1. `modal run modal/lab_realuser.py --action join --base lab-v1.5 --name lab-v1.5u` copies the base and carries its latest flags into `lab-v1.5u/flags-v1.json`. Add realuser-v1's 62 windows from `realuser-v1/flags-v1.json` to that file before registering, since `join` carries only the base's flags.
+1. `modal run modal/lab_realuser.py --action join --base lab-v1.5 --name lab-v1.5u` copies the base. `lab-v1.5u/flags-v1.json` gets the base's latest flags plus realuser-v1's 62 windows.
 2. Decode nothing new: both listeners' evidence is copied with the sessions.
 3. `python3 tools/lab.py baseline --manifest lab-v1.5u/manifest-v1.json --exclude lab-v1.5u/flags-v1.json`.
 4. Add the joined set's practice realuser numbers to the write-up. They should match realuser-v1's practice numbers: 1 false warning in 63.3 min.
