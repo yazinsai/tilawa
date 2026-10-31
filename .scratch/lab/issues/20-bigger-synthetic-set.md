@@ -74,3 +74,5 @@ Built (31 Oct). Write-up in `docs/benchmarks/lab-v1.5.md`, counts in `lab-v1.5.j
   - Either the folded experiments fit the old 20 practice sessions, or the new sessions hold bad data. The spot check is the first test.
   - Run time: 565 s wall on 100 shards (one per session).
 - **Not done yet: registration.** `lab baseline --manifest lab-v1.5/manifest-v1.json --exclude lab-v1.5/flags-v1.json` would make lab-v1.5 the ledger's current test set and re-score the main line on practice and exam. It waits for the spot check, since the set isn't trusted before then. No experiments are open.
+
+Decision (31 Oct, you): the wrong-class shortfall (79 / 86 per half) is accepted, with no rule change and no more sessions. lab-v1.5 is registered once `review/spot-check.json` passes (at most 1 bad in 45). The spot check has 0 of 45 reviewed so far.
