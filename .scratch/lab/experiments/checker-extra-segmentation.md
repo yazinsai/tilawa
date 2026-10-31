@@ -1,6 +1,6 @@
 # Extra-word detours
 
-Status: full practice measurement pending; not folded.
+Status: first measured candidate fails the no-new-false-warning gate; regression diagnosis in progress. Not folded.
 
 ## Scope and prediction
 
@@ -29,3 +29,13 @@ Backward whole-word detours remain protected: adding a word that exactly repeats
 The initial full practice run on `0884670` was invalidated and stopped before any score or partial case outcome was read. Static review identified that replacing the old tolerant-neighbor candidate list could discard previous repairs. The final implementation attempts all original pairs first and uses stricter candidates only in non-overlapping regions; replacements are applied in reverse source order. A noisy-neighbor regression preserves the older repair. The original predictions are unchanged.
 
 A further adversarial repeat test (a preceding word repeated with one tolerated consonant change) passed on main but failed on `08c9b25`. The in-flight `08c9b25` practice run was stopped without reading its scores or case outcomes. Strict new candidates now preserve such counting, tolerated repeats of the preceding word; original candidates retain their behavior. Baseline control: `extra-repeat-baseline-08c9b25-dirty-20261031T141229Z`, pass. Red: `extra-repeat-variation-08c9b25-dirty-20261031T141131Z`.
+
+## First complete measurement
+
+Source `b11dd0c`, run `exp-checker-extra-segmentation-b11dd0c-20261031T141340Z`. Full core build and 607 tests passed (`extra-final-core-b11dd0c-20261031T141544Z`).
+
+Phone: 67 → 64 misses, 25 → 25 warnings; three recovered additions in chapters 2, 9 and 35, zero new misses and zero new warning incidents. Studio: 48 → 45 misses, 13 → 14 warnings; the same three recoveries, no new misses, one new added-word warning at 37:102:16. Perfect-evidence checker: 50 → 46 misses, 6 → 7 warnings. This is a failed safety gate despite the CLI's aggregate “better” verdict. Paired incidents are in `checker-extra-segmentation-comparison-v1.json`.
+
+## Regression diagnosis and revision
+
+The new warning was a real planted addition rediscovered about 12 seconds late after a second addition caused the older window to realign. It was not a new sound in clean speech, but it is still an unacceptable late alarm. New strict repairs now have to establish an addition while the following word is current or just completed (at most one later intact visit). An already open addition retains evidence through its normal confirmation delay. Original repair candidates are unchanged. This temporal guard is defined by streaming word progress, not case IDs, seconds from the scoring matcher or confidence tuning. The failed measurement remains recorded above; the original prediction is unchanged.

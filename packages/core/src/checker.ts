@@ -692,6 +692,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       for (const [left, right, strict] of pairs) {
         if (nextWord(left.word) !== right.word || left.obsTo > right.obsFrom || left.stepFrom === undefined || right.stepTo === undefined) continue;
         if (repairs.some(r => left.stepFrom! < r.to && right.stepTo! > r.from)) continue;
+        // New segmentation candidates must establish an addition while its following word
+        // is still current or just completed. Later realignment cannot open a stale warning;
+        // an already suspected addition keeps its evidence until confirmation.
+        if (strict && open.get(right.word)?.issue.cls !== "added_word" &&
+          intact.filter(v => v.obsFrom >= right.obsTo).length > 1) continue;
         // A tolerated repeat of the preceding word stays a repeat even if its pronunciation
         // is not an exact lexical form. Only the new strict candidates need this protection.
         if (strict && visits.some(v => v.word === left.word && v.obsFrom >= left.obsTo &&
