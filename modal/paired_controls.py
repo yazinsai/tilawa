@@ -12,6 +12,14 @@ def upload(rows: list[dict], audio: dict):
     root=Path('/lab/data/paired-real-controls')
     (root/'wav').mkdir(parents=True,exist_ok=True)
     for name,data in audio.items(): (root/'wav'/name).write_bytes(data)
+    manifest=json.loads(Path('/lab/data/realuser-v1/manifest-v1.json').read_text())
+    for entry in manifest['sessions']:
+        if entry['id'] not in ('realuser-v1-sob-028','realuser-v1-sob-032'): continue
+        session=entry['session']
+        name=entry['id']+'.wav'
+        (root/'wav'/name).write_bytes((Path('/lab/data/realuser-v1')/entry['audio']['phone']).read_bytes())
+        ayahs=list(dict.fromkeys(f"{x['from']['surah']}:{x['from']['ayah']}" for x in session['spans']))
+        rows.append(dict(id=entry['id'],speaker=entry['speaker'],kind='omitted_word',ayahs=ayahs,wav='wav/'+name,scored=True,split='eval',events=session['events'],non_errors=[]))
     (root/'labels.jsonl').write_text(''.join(json.dumps(r,ensure_ascii=False)+'\n' for r in rows))
     vol.commit()
 @app.local_entrypoint()
