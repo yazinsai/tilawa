@@ -1,7 +1,7 @@
 /** Inspect a benchmark's component boundaries without changing its data or scores. */
 import { createChecker } from "../checker.js";
 import type { CheckerPolicy } from "../checker.js";
-import { createTracker } from "../tracker.js";
+import { createTracker, trackerInput } from "../tracker.js";
 import type { TrackerOptions } from "../tracker.js";
 import type { CheckerEvent, EngineEvent, WordRef } from "../events.js";
 import type { PhonemeEvidence } from "../evidence.js";
@@ -52,11 +52,11 @@ export function replayComponents(index: ReferenceIndex, phrases: PhraseAsset, ev
   let fromMs = 0;
   for (const e of chunk(evidence as QudRecording, settings.chunkMs / 1000, !!evidence.posteriors?.ids.length)) {
     // This is the same boundary as scoreClip: tracker sees the greedy decode; checker also sees posteriors.
-    const { posteriors: _, ...trackerInput } = e;
-    const trackerOutput = tracker.push(trackerInput);
+    const input = trackerInput(e);
+    const trackerOutput = tracker.push(input);
     const checkerOutput = checker.push(e, trackerOutput);
     const toMs = (e.decodedTo ?? 0) * e.frameMs;
-    steps.push({ index: steps.length, fromMs, toMs, phase: "push", listenerOutput: e, trackerInput, trackerOutput, checkerInput: { evidence: e, trackerEvents: trackerOutput }, checkerOutput });
+    steps.push({ index: steps.length, fromMs, toMs, phase: "push", listenerOutput: e, trackerInput: input, trackerOutput, checkerInput: { evidence: e, trackerEvents: trackerOutput }, checkerOutput });
     fromMs = toMs;
   }
   const trackerOutput = tracker.end();

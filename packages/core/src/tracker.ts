@@ -128,6 +128,11 @@ const REPEAT_MAX_COST = 0.15;
 
 const ayahCompare = (a: AyahRef, b: AyahRef) => a.surah - b.surah || a.ayah - b.ayah;
 
+/** What the tracker is fed from one chunk of listener evidence, in the product and in every bench alike: phonemes only. */
+export function trackerInput(evidence: PhonemeEvidence): PhonemeEvidence {
+  return { ...evidence, posteriors: undefined };
+}
+
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
   const maxGramOccurrences = options.maxGramOccurrences ?? 5000;
   const maxCandidates = options.maxCandidates ?? 64;

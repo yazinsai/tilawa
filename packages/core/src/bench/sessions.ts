@@ -2,7 +2,7 @@ import type { CheckerEvent, EngineEvent, PositionEvent, WordRef } from "../event
 import { readFileSync } from "node:fs";
 import type { ReferenceIndex, PhraseAsset, PageAsset } from "../reference.js";
 import { pageRange } from "../reference.js";
-import { createTracker } from "../tracker.js";
+import { createTracker, trackerInput } from "../tracker.js";
 import type { TrackerOptions } from "../tracker.js";
 import { createChecker } from "../checker.js";
 import type { CheckerOptions } from "../checker.js";
@@ -392,7 +392,7 @@ export function runSession(s: BenchSession, evidence: SessionEvidence,
   const checker = createChecker(index, { phrases, ...adapter.checker });
   const out: EngineEvent[] = [];
   for (const e of chunk(evidence as QudRecording, 0.04, true)) {
-    const positions = tracker.push({ ...e, posteriors: undefined });
+    const positions = tracker.push(trackerInput(e));
     out.push(...positions, ...checker.push(e, positions));
   }
   const end = tracker.end(); out.push(...end, ...checker.end(end));

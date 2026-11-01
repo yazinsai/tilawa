@@ -4,7 +4,7 @@ import type { CheckerPolicy } from "../checker.js";
 import type { CheckerEvent, EngineEvent, PositionEvent, WordRef } from "../events.js";
 import { EVENT_SCHEMA_VERSION } from "../events.js";
 import type { PhraseAsset, ReferenceIndex } from "../reference.js";
-import { createTracker } from "../tracker.js";
+import { createTracker, trackerInput } from "../tracker.js";
 import { chunk } from "./index.js";
 import type { QudRecording } from "./index.js";
 
@@ -80,7 +80,7 @@ export function scoreClip(index: ReferenceIndex, clip: AcceptanceClip, o: { arm:
   };
   const posteriors = !!clip.evidence.posteriors?.ids.length;
   for (const e of chunk(clip.evidence as QudRecording, o.chunkS ?? 0.32, posteriors)) {
-    checks.push(...checker.push(e, feed(tracker.push({ ...e, posteriors: undefined }))));
+    checks.push(...checker.push(e, feed(tracker.push(trackerInput(e)))));
   }
   checks.push(...checker.end(feed(tracker.end())));
 

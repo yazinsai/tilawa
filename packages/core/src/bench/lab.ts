@@ -13,7 +13,7 @@ import { EVENT_SCHEMA_VERSION } from "../events.js";
 import type { CheckerEvent, EngineEvent, PositionEvent, WordRef } from "../events.js";
 import type { DecodedPhoneme } from "../evidence.js";
 import type { PhraseAsset, ReferenceIndex } from "../reference.js";
-import { createTracker } from "../tracker.js";
+import { createTracker, trackerInput } from "../tracker.js";
 import { chunk } from "./index.js";
 import type { QudRecording } from "./index.js";
 import { ERROR_CLASSES, ayahOrdinal, correctPosition, evidenceFits, inOccurrence, scoreSessionEvents, validateSession } from "./sessions.js";
@@ -248,7 +248,7 @@ export const chunks = (e: SessionEvidence) => chunk(e as QudRecording, CHUNK_S, 
 export function runEngine(s: BenchSession, evidence: SessionEvidence, index: ReferenceIndex, phrases?: PhraseAsset): EngineEvent[] {
   checkEvidence(s, evidence, index, "engine");
   const tracker = createTracker(index, { mode: "free", phrases }), checker = createChecker(index, { phrases }), out: EngineEvent[] = [];
-  for (const e of chunks(evidence)) { const p = tracker.push({ ...e, posteriors: undefined }); out.push(...p, ...checker.push(e, p)); }
+  for (const e of chunks(evidence)) { const p = tracker.push(trackerInput(e)); out.push(...p, ...checker.push(e, p)); }
   const end = tracker.end(); out.push(...end, ...checker.end(end));
   return out;
 }
@@ -264,7 +264,7 @@ export function runTruePosition(s: BenchSession, evidence: SessionEvidence, inde
 export function runTracker(s: BenchSession, evidence: SessionEvidence, index: ReferenceIndex, phrases?: PhraseAsset): EngineEvent[] {
   checkEvidence(s, evidence, index, "tracker");
   const tracker = createTracker(index, { mode: "free", phrases }), out: EngineEvent[] = [];
-  for (const e of chunks(evidence)) out.push(...tracker.push({ ...e, posteriors: undefined }));
+  for (const e of chunks(evidence)) out.push(...tracker.push(trackerInput(e)));
   return [...out, ...tracker.end()];
 }
 

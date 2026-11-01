@@ -1,4 +1,4 @@
-import { EVENT_SCHEMA_VERSION, createChecker, createTracker } from "@tilawa/core";
+import { EVENT_SCHEMA_VERSION, createChecker, createTracker, trackerInput } from "@tilawa/core";
 import type {
   CapabilityEvent,
   CheckerEvent,
@@ -133,7 +133,7 @@ export function createEngine(options: EngineOptions): Engine {
     const step = (e: PhonemeEvidence) => {
       if (options.recordEvidence) recorded.push(e);
       // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
-      const out = tracker.push({ ...e, posteriors: undefined });
+      const out = tracker.push(trackerInput(e));
       noteLocks(out);
       return emit([...out, ...checker.push(e, out)]);
     };
