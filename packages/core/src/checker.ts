@@ -6,6 +6,7 @@ import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
+import { procliticWords } from "./checker-proclitics.js";
 import { PHRASE_PEAK, PHRASE_SWITCH, parallelPaths } from "./parallel-phrases.js";
 
 export interface CheckerPolicy {
@@ -184,6 +185,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const ref = index.phonemes;
   const words = index.words;
   const lexical = lexicalWords(index);
+  const proclitics = procliticWords(index);
   const parallels = parallelPaths(index);
   const wordStarts = new Set(words.map((w) => w.start));
   const ayahOf: number[] = [];
@@ -690,7 +692,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   /** The errors the current alignment shows, by word; and where it stands. */
-  const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; lexical: Issue[]; head: number; furthest: number; steps: Step[]; right: Set<number> } | null => {
+  const judge = (steps: Step[], recoverAdditions = true, recoverProclitics = true): { issues: Map<number, Issue>; lexical: Issue[]; head: number; furthest: number; steps: Step[]; right: Set<number> } | null => {
     const visits: Visit[] = [];
     const added: Issue[] = [];
     let cur: Visit | null = null;
@@ -852,7 +854,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (repairs.length) {
         const repaired = [...steps];
         for (const r of repairs.sort((a, b) => b.from - a.from)) repaired.splice(r.from, r.to - r.from, ...r.path);
-        return judge(repaired, false);
+        return judge(repaired, false, recoverProclitics);
       }
     }
     const seen = [...last.keys()];
@@ -919,6 +921,35 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
     }
     flush();
+    if (recoverProclitics) {
+      const repairs: { from: number; to: number; path: Step[] }[] = [];
+      for (const gap of issues.values()) {
+        if (gap.cls !== "skipped_passage") continue;
+        const after = last.get(nextWord(gap.last));
+        if (!after || wrong(after) || after.stepTo === undefined || gap.obsFrom >= after.obsFrom) continue;
+        const from = gap.obsFrom, to = after.obsTo;
+        // Residue may be inserted or matched to a cut-off source visit. It cannot belong to another counted word.
+        if (visits.some(v => counts(v) && v.obsFrom < after.obsFrom && v.obsTo > from)) continue;
+        if (obs.slice(from, to).some(p => p.junk)) continue;
+        const residue = obs.slice(from, after.obsFrom).map(p => p.p).join("");
+        const heard = obs.slice(after.obsFrom, to).map(p => p.p).join("");
+        if (!proclitics.reattaches(gap.word, after.word, residue, heard)) continue;
+        const start = steps.findIndex(s => "obs" in s && s.obs === from);
+        if (start < 0 || repairs.some(r => start < r.to && after.stepTo! > r.from)) continue;
+        const path = steps.slice(start, after.stepTo);
+        const represented = path.flatMap(s => "obs" in s ? [s.obs] : []);
+        if (represented.length !== to - from || represented.some((oi, j) => oi !== from + j)) continue;
+        if (path.some(s => s.op === "lead" || ("ref" in s &&
+          (index.wordAt(s.ref) < gap.word || index.wordAt(s.ref) > after.word)))) continue;
+        // Rebuild the word unit, then let the ordinary gap and confirmation rules judge the repaired path.
+        repairs.push({ from: start, to: after.stepTo, path: [...wordSteps(gap.word, from, to), { op: "jump" }] });
+      }
+      if (repairs.length) {
+        const repaired = [...steps];
+        for (const r of repairs.sort((a, b) => b.from - a.from)) repaired.splice(r.from, r.to - r.from, ...r.path);
+        return judge(repaired, false, false);
+      }
+    }
     for (const a of added) if (a.word >= first && !issues.has(a.word)) issues.set(a.word, a);
     const candidates: Issue[] = [];
     const heard = (v: Visit) => obs.slice(v.obsFrom, v.obsTo).map(p => p.p).join("");
