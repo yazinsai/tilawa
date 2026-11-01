@@ -201,9 +201,18 @@ def default_ask(cfg: dict, role: str, prompt: str, timeout_s: int = 900) -> str:
     return res["text"]
 
 
+FINAL = ("\n\nYou have no tools and cannot read files, run commands or look anything up: everything you need is above. "
+         "Don't describe what you would check. Decide now, and answer with only the JSON block.")
+
+
 def extract(text: str):
     blocks = re.findall(r"```(?:json)?\s*\n(.*?)```", text, re.S)
-    return json.loads(blocks[-1] if blocks else text)
+    if blocks:
+        return json.loads(blocks[-1])
+    start = text.find("{")
+    if start < 0:
+        raise ValueError(f"no JSON in the answer (it began: {text.strip()[:120]!r})")
+    return json.JSONDecoder().raw_decode(text[start:])[0]
 
 
 def call(cfg: dict, role: str, prompt: str, check, ask=None):
@@ -212,7 +221,7 @@ def call(cfg: dict, role: str, prompt: str, check, ask=None):
     err = None
     for attempt in range(2):
         try:
-            text = ask(cfg, role, prompt if not err else f"{prompt}\n\nYour previous answer was rejected: {err}\nAnswer again, JSON only.")
+            text = ask(cfg, role, prompt + FINAL if not err else f"{prompt}{FINAL}\n\nYour previous answer was rejected: {err}\nAnswer again with only the JSON block.")
         except Unavailable:
             raise
         except Exception as e:  # noqa: BLE001 - any failure to get an answer is an outage, not a bad answer
