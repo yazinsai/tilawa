@@ -76,7 +76,10 @@ How to choose:
 - Do not restate a tried mechanism. A different threshold on the same idea is a restatement. If every obvious idea on a
   cluster has failed, change the level of attack (data, model, representation) rather than the constant.
 - Prefer changes whose gain would generalize to unseen reciters and passages. Never special-case sessions or verses.
-- Predictions are counts on the practice set; be honest, small gains are fine.
+- Predictions are counts on the practice set; be honest, small gains are fine. The context's "calibration" lists past
+  predictions against what was measured: if they ran optimistic, predict lower, and prefer mechanisms that reach more
+  incidents over ones that need every targeted case to flip. A change measured below the gate's bar but with nothing
+  lost is a near miss worth building on (combine it with a related fix rather than restating it).
 - Bets should be the kind of change the history shows small tweaks can't reach.
 
 {schema}
@@ -269,10 +272,25 @@ def pack(st: dict, clusters: dict[str, list[str]], lab_ledgers: list[dict], jour
     cov = st["coverage"]
     main = st.get("main") or {}
     return {"testSet": st["testSet"], "main": {"practice": main.get("practice"), "attribution": main.get("attribution")},
+            "calibration": calibration(st),
             "clusters": [{"key": k, "incidents": keys, "state": cov.get(k, {}).get("state", "untouched"),
                           "tried": cov.get(k, {}).get("experiments", []), "failedTries": P.failed_tries(st, k)}
                          for k, keys in sorted(clusters.items(), key=lambda kv: -len(kv[1]))],
             "frozen": st["counters"]["frozen"], "history": history(lab_ledgers, st), "journal": journal[-journal_chars:]}
+
+
+def calibration(st: dict) -> list[dict]:
+    """Predicted against measured practice change for every autolab experiment that got a number (the branch score, or
+    what its builder measured before killing it)."""
+    out = []
+    for e in st["experiments"].values():
+        r = e.get("results") or {}
+        got = ((r.get("branchRun") or {}).get("compare") or {}).get("overall", {}).get("change")
+        if got is None:
+            got = ((r.get("builderOutcome") or {}).get("measured") or {}).get("overall")
+        if isinstance(got, int):
+            out.append({"id": e["id"], "predicted": e["card"]["expected"]["overall"], "measured": got})
+    return out
 
 
 # Checks
