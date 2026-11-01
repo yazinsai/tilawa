@@ -443,6 +443,30 @@ def test_an_outage_mid_judging_leaves_the_card_proposed(w):
     assert set(states(st).values()) == {"proposed"}
 
 
+def test_a_builder_that_cannot_start_for_an_outage_retries_later_without_a_strike(w):
+    class Down(FakeExecutor):
+        def collect(self, handle):
+            return {"transcript": "", "summary": "startup: [unavailable] Server at capacity", "hours": 0.0}
+    w.executor = Down(script=lambda c, wt: (_ for _ in ()).throw(RuntimeError("x")))
+    st, id = advance(w, 1)
+    e = st["experiments"][id]
+    assert e["state"] == "accepted" and e["attempts"]["executor"] == 0 and e["results"]["retryAfter"] > T0
+    assert tick(w, "2026-11-01T10:05:00+00:00")["experiments"][id]["state"] == "accepted"
+    w.executor = FakeExecutor()
+    assert tick(w, "2026-11-01T10:11:00+00:00")["experiments"][id]["state"] in ("implementing", "validating", "scoring", "folding")
+
+
+def test_failed_tests_send_the_log_tail_back(w):
+    w.job_results["tests"] = {"exitCode": 1, "log": "packages/core test: 2 failed in checker.test.ts"}
+    st, id = advance(w, 2)
+    assert "2 failed in checker.test.ts" in st["experiments"][id]["note"]
+
+
+def test_outage_detection():
+    assert A.outage("startup: [unavailable] Server at capacity")
+    assert not A.outage("run-error: tests kept failing")
+
+
 def test_a_tick_that_raises_pauses_and_pages(w, monkeypatch):
     monkeypatch.setattr(A.Tick, "run", lambda self: (_ for _ in ()).throw(RuntimeError("boom")))
     st = A.tick_once(w)

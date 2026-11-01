@@ -62,7 +62,8 @@ DEFAULT_CONFIG = {
                  "env": {"MODAL_ENVIRONMENT": "autolab-exec"}},
     "betApprovalUsd": 25,
     "listenerModel": "models/spliced-clean-int8",
-    "tests": "pnpm --filter @tilawa/core... --filter @tilawa/sdk... build && pnpm --filter @tilawa/core --filter @tilawa/sdk test",
+    "tests": "bash tools/autolab_tests.sh",
+    "testShards": 6,
     "notify": {"topic": "", "dashboard": ""},
 }
 
@@ -133,6 +134,8 @@ class World:
         except (IndexError, json.JSONDecodeError):
             tail = Path(job["err"]).read_text()[-2000:] if Path(job["err"]).exists() else ""
             return "failed", {"error": tail or "no output"}
+        if res.get("exitCode"):
+            res["log"] = text[-3000:]
         return ("failed", res) if "error" in res or res.get("exitCode") else ("done", res)
 
     def kill(self, job: dict | None) -> None:
@@ -436,6 +439,8 @@ class Tick:
         if sum(1 for x in st["experiments"].values() if x["state"] == "implementing") >= w.cfg["slots"]:
             return
         c = e["card"]
+        if e["results"].get("retryAfter", "") > self.at:
+            return
         if e["tier"] == "bet" and c.get("gpuUsd", 0) > w.cfg.get("betApprovalUsd", 25) and not e["results"].get("approved"):
             return self.move(e, "needs-human", f"a bet asking for ${c['gpuUsd']} of GPU needs your approval: tools/autolab.py approve {e['id']}")
         if not e["worktree"]:
@@ -493,6 +498,12 @@ class Tick:
         res = self.finish_executor(e)
         if status == "finished":
             return self.move(e, "validating", res["summary"][:200])
+        if outage(res["summary"]):
+            e["attempts"]["executor"] -= 1
+            e["results"]["retryAfter"] = shift(self.at, 10)
+            e["state"] = "accepted"
+            self.events.append(S.event(e["id"], "implementing", "accepted", self.at, f"builder couldn't start (outage); retrying after {e['results']['retryAfter']}"))
+            return
         if e["attempts"]["executor"] < 2:
             self.events.append(S.event(e["id"], "implementing", "implementing", self.at, "executor failed; retrying with the fallback model"))
             e["state"] = "accepted"
@@ -573,7 +584,7 @@ class Tick:
             return self.bounce(e, "diff review: " + v["why"] + " " + "; ".join(v["concerns"][:5]))
         if st.get("dataHash") and w.data_hash(st["testSet"]) != st["dataHash"]:
             return self.pause("the test data on the volume changed since autolab started; check /lab/data before resuming")
-        r["testsJob"] = w.job(f"tests-{e['id']}-{e['attempts']['executor']}", w.lab_argv("run", wt, "--shards", 2, "--name", f"autolab-tests-{e['id']}", "--cmd", w.cfg["tests"]))
+        r["testsJob"] = w.job(f"tests-{e['id']}-{e['attempts']['executor']}", w.lab_argv("run", wt, "--shards", w.cfg.get("testShards", 6), "--name", f"autolab-tests-{e['id']}", "--cmd", test_command(w.cfg)))
 
     def after_tests(self, e):
         r, w, c = e["results"], self.w, e["card"]
@@ -712,8 +723,29 @@ class Tick:
             self.add(c)
 
 
+def test_command(cfg: dict) -> str:
+    """The validation command; a `bash tools/<script>` is sent as the main repo's script text, so older worktrees work
+    and an experiment's own copy of the script never decides its tests."""
+    cmd = cfg["tests"]
+    if cmd.startswith("bash tools/") and (REPO / cmd[5:]).exists():
+        return (REPO / cmd[5:]).read_text()
+    return cmd
+
+
+def outage(summary: str) -> bool:
+    """A builder that never got going for reasons outside the experiment (the model service at capacity, network)."""
+    s = (summary or "").lower()
+    return s.startswith(("startup", "sdk-error")) and any(k in s for k in ("unavailable", "capacity", "timeout", "timed out", "network", "connect"))
+
+
+def shift(at: str, minutes: int) -> str:
+    from datetime import datetime, timedelta  # noqa: PLC0415
+    return (datetime.fromisoformat(at) + timedelta(minutes=minutes)).isoformat()
+
+
 def tail(res: dict | None) -> str:
-    return ((res or {}).get("error") or json.dumps(res or {}))[-600:]
+    res = res or {}
+    return (res.get("log") or res.get("error") or json.dumps(res))[-2500:]
 
 
 def brief(e: dict, ctx: dict, feedback: str = "") -> str:

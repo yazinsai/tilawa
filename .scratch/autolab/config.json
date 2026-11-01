@@ -69,9 +69,10 @@
   "env": {}
  },
  "listenerModel": "models/spliced-clean-int8",
- "tests": "pnpm --filter @tilawa/core... --filter @tilawa/sdk... build && pnpm --filter @tilawa/core --filter @tilawa/sdk test",
+ "tests": "bash tools/autolab_tests.sh",
  "notify": {
   "topic": "tilawa-autolab-d9285cb5894c",
   "dashboard": ""
- }
+ },
+ "testShards": 6
 }
