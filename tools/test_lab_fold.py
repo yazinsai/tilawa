@@ -5,7 +5,7 @@ import io
 import json
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -26,7 +26,7 @@ def totals(missed):
 
 
 class PracticeOnlyFold(unittest.TestCase):
-    def fold(self, refresh):
+    def fold(self, refresh, check=True, **opts):
         with tempfile.TemporaryDirectory() as tmp:
             wt = Path(tmp)
             (wt / Path(lab.SUMMARY).parent).mkdir(parents=True)
@@ -39,7 +39,7 @@ class PracticeOnlyFold(unittest.TestCase):
                       "mainLine": [base], "experiments": {}}
             L.add_experiment(ledger, card, branch="exp/synthetic", worktree=str(wt))
             L.record_result(ledger, "synthetic", {**base, "sha": "bbbb222", "practice": L.score(totals(5))}, vs=base)
-            args = SimpleNamespace(id="synthetic", main="main", yes=True, practice_only=True)
+            args = SimpleNamespace(**{"id": "synthetic", "main": "main", "yes": True, "practice_only": True, **opts})
             requested = []
 
             def score(*_args, splits, **_kwargs):
@@ -70,7 +70,9 @@ class PracticeOnlyFold(unittest.TestCase):
                     patch.object(lab.subprocess, "run", return_value=SimpleNamespace(returncode=0)), \
                     patch.object(lab, "main_worktree", return_value=wt), \
                     patch.object(lab, "remove_worktree"), redirect_stdout(stdout):
-                lab.cmd_fold(args)
+                out = lab.cmd_fold(args)
+            if not check:
+                return out, ledger, calls
 
             self.assertEqual(refresh_score.call_count, int(refresh))
             self.assertEqual(requested, [("practice",)] * (1 + int(refresh)))
@@ -89,6 +91,73 @@ class PracticeOnlyFold(unittest.TestCase):
 
     def test_stale_main_refresh_also_scores_only_practice(self):
         self.fold(True)
+
+    def test_no_merge_records_and_stops_before_merging(self):
+        out, ledger, calls = self.fold(False, check=False, yes=False, no_merge=True)
+        self.assertEqual(out["state"], "waiting")
+        self.assertEqual((out["run"], out["base"], out["branchRun"]), ("rebased", "base", "base"))
+        self.assertEqual(out["compare"]["overall"]["change"], -5)
+        self.assertIsNone(out["examTripwire"])
+        self.assertEqual(ledger["experiments"]["synthetic"]["state"], "open")
+        self.assertEqual(ledger["experiments"]["synthetic"]["results"][-1]["kind"], "rebased")
+        self.assertFalse(any(c[0] == "merge" for c in calls))
+
+    def gated(self, verdict):
+        res = {"verdict": verdict, "tuning": False, "checks": [{"name": "gain", "ok": verdict == "pass", "blocking": True, "why": "overall -5"}]}
+        with patch.object(lab, "vol_get", return_value={}), patch.object(lab.G, "gate", return_value=res) as gate:
+            out = self.fold(False, check=False, yes=False, gate=True, json=True)
+        self.assertEqual(gate.call_count, 1)
+        return out
+
+    def test_gate_pass_folds_without_asking(self):
+        out, ledger, calls = self.gated("pass")
+        self.assertEqual(out["state"], "folded")
+        self.assertEqual(ledger["experiments"]["synthetic"]["state"], "folded")
+        self.assertIn(("merge", "-q", "--ff-only", "dddd444"), calls)
+
+    def test_gate_fail_discards_and_never_merges(self):
+        out, ledger, calls = self.gated("fail")
+        self.assertEqual(out["state"], "gate-failed")
+        self.assertEqual(ledger["experiments"]["synthetic"]["state"], "discarded")
+        self.assertIn("autolab gate: overall -5", ledger["experiments"]["synthetic"]["decision"]["note"])
+        self.assertFalse(any(c[0] == "merge" for c in calls))
+
+    def test_baseline_practice_only_scores_no_exam(self):
+        led = {"version": 1, "kind": "lab-ledger", "main": "main", "testSet": "synthetic", "mainLine": [], "experiments": {},
+               "testSets": {"synthetic": {"id": "synthetic", "manifest": "m.json", "sessions": {"practice": ["p1"]}}}}
+        res = {"sha": "aaaa111", "run": "base", "testSet": "synthetic", "listener": L.DEFAULT_LISTENER, "practice": L.score(totals(10))}
+        args = SimpleNamespace(manifest="m.json", exclude="", note="", practice_only=True, main="main")
+        with patch.object(lab, "load", return_value=led), patch.object(lab, "update", side_effect=lambda _a, fn: fn(led)), \
+                patch.object(lab, "score_main", return_value=res) as sm, redirect_stdout(io.StringIO()):
+            out = lab.cmd_baseline(args)
+        self.assertEqual(sm.call_args.kwargs["splits"], ("practice",))
+        self.assertNotIn("exam", led["mainLine"][-1])
+        self.assertEqual(out["practice"]["wrongCalls"], 10)
+
+    def test_json_mode_never_prompts(self):
+        with self.assertRaises(lab.Stop):
+            self.fold(False, check=False, yes=False, json=True)
+
+    def test_folded_result_names_the_new_head(self):
+        out, _, _ = self.fold(False, check=False)
+        self.assertEqual((out["state"], out["head"]), ("folded", "dddd444"))
+
+    def test_json_flag_prints_one_object_and_sends_prose_to_stderr(self):
+        led = {"version": 1, "kind": "lab-ledger", "main": "main", "testSet": None, "testSets": {}, "mainLine": [], "experiments": {}}
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with patch.object(lab, "load", return_value=led), patch.object(lab.sys, "argv", ["lab.py", "--json", "status"]), \
+                patch.object(lab.L, "format_status", return_value=["prose"]), redirect_stdout(stdout), redirect_stderr(stderr):
+            lab.main()
+        self.assertEqual(json.loads(stdout.getvalue()), {"testSet": None, "rows": []})
+        self.assertEqual(stderr.getvalue().strip(), "prose")
+
+    def test_json_errors_are_objects_with_a_nonzero_exit(self):
+        stdout = io.StringIO()
+        with patch.object(lab, "load", side_effect=lab.Stop("boom")), patch.object(lab.sys, "argv", ["lab.py", "--json", "status"]), \
+                redirect_stdout(stdout), self.assertRaises(SystemExit) as exit:
+            lab.main()
+        self.assertEqual(exit.exception.code, 1)
+        self.assertEqual(json.loads(stdout.getvalue()), {"error": "boom"})
 
     def test_main_refresh_forwards_the_requested_split(self):
         report = {"kind": "lab-score", "sha": "aaaa111", "run": "refresh", "testSet": "synthetic",

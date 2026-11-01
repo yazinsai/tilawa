@@ -13,6 +13,11 @@ an image with the workspace dependencies installed, then runs `cmd` under bash i
 
 Each shard's output tail and exit code are saved as LAB_OUT/log.txt and LAB_OUT/status.json. `--merge '<command>'` runs
 once after every shard succeeds, with LAB_OUT=/lab/runs/<run>/merge; `--run-file <path>` writes the run id locally.
+
+`fanout` does the same fan-out and merge server-side, so a caller can `.spawn()` it on the deployed app and poll the call
+(ticket autolab 03; `tools/lab.py` scores this way). Rerun `modal deploy modal/lab_run.py` from the main checkout whenever
+this file changes. The deployed image's dependencies come from the lockfile at deploy time; a shard whose source carries
+a different lockfile reinstalls them, as with `modal run`.
 """
 
 import hashlib
@@ -30,7 +35,8 @@ import modal
 ROOT = Path(os.environ.get("LAB_SRC") or Path(__file__).resolve().parent.parent)
 PNPM = "pnpm@10.18.0"
 FILTER = "--filter @tilawa/core... --filter @tilawa/sdk..."
-MANIFESTS = ["package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", *(str(p.relative_to(ROOT)) for p in sorted(ROOT.glob("packages/*/package.json")))]
+manifests = lambda root: ["package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", *(str(p.relative_to(root)) for p in sorted(root.glob("packages/*/package.json")))]
+MANIFESTS = manifests(ROOT)
 
 image = (
     modal.Image.debian_slim(python_version="3.12")
@@ -68,24 +74,43 @@ def shard(src: bytes, cmd: str, run: str, i: int, n: int, out_dir: str = "") -> 
     return status
 
 
-def source() -> tuple[bytes, str]:
-    git = lambda *a: subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True, check=True).stdout
-    files = [f for f in git("ls-files", "-co", "--exclude-standard").splitlines() if f in MANIFESTS or f.startswith(("packages/", "tools/")) and "/node_modules/" not in f]
+@app.function(cpu=0.25, memory=1024, volumes={"/lab": vol}, timeout=6 * 60 * 60)
+def fanout(src: bytes, cmd: str, shards: int, run: str, merge: str = "") -> dict:
+    """`main` without a local process: every shard, then `merge` if they all succeed. Returns {run, shards, merge, ok}."""
+    failed = lambda i, e: {"shard": i, "code": -1, "seconds": 0, "tail": f"{type(e).__name__}: {e}"[-2000:]}
+    results = [failed(i, s) if isinstance(s, BaseException) else s
+               for i, s in enumerate(shard.starmap([(src, cmd, run, i, shards) for i in range(shards)], return_exceptions=True, wrap_returned_exceptions=False))]
+    m = None
+    if merge and not any(s["code"] for s in results):
+        try:
+            m = shard.remote(src, merge, run, 0, 1, f"/lab/runs/{run}/merge")
+        except Exception as e:
+            m = failed(0, e)
+    return {"run": run, "shards": results, "merge": m, "ok": not any(s["code"] for s in results) and not (m and m["code"])}
+
+
+def source(root: Path = ROOT) -> tuple[bytes, str]:
+    git = lambda *a: subprocess.run(["git", *a], cwd=root, capture_output=True, text=True, check=True).stdout
+    keep = manifests(root)
+    files = [f for f in git("ls-files", "-co", "--exclude-standard").splitlines() if f in keep or f.startswith(("packages/", "tools/")) and "/node_modules/" not in f]
     buf = io.BytesIO()
     with tarfile.open(fileobj=buf, mode="w:gz") as t:
         for f in files:
-            if (ROOT / f).is_file():
-                t.add(ROOT / f, arcname=f)
+            if (root / f).is_file():
+                t.add(root / f, arcname=f)
     sha = git("rev-parse", "--short", "HEAD").strip()
     dirty = bool(git("status", "--porcelain", "--untracked-files=no").strip())
     return buf.getvalue(), sha + ("-dirty" if dirty else "")
+
+
+run_id = lambda name, sha: f"{name}-{sha}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
 
 
 @app.local_entrypoint()
 def main(cmd: str, shards: int = 1, name: str = "adhoc", merge: str = "", run_file: str = ""):
     """`merge`: a command run once after every shard succeeds (LAB_OUT=/lab/runs/<run>/merge). `run_file`: local path that gets the run id."""
     src, sha = source()
-    run = f"{name}-{sha}-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
+    run = run_id(name, sha)
     if run_file:
         Path(run_file).write_text(run)
     print(f"run {run}: {shards} shard(s), source {len(src) / 1e6:.1f} MB")

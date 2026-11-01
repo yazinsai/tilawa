@@ -12,20 +12,30 @@ tilawa-lab volume at /lab/ledger.json (logic in tools/lab_ledger.py).
     python3 tools/lab.py apply-flags [--dry-run]       # bad-data verdicts -> next test set version, re-score everything open
     python3 tools/lab.py run [worktree] --shards 4 --cmd '<command>'   # any command over shards (ticket 09)
 
-Global options: --main <branch> (default main, the main line), --ledger <volume path> (default /ledger.json).
+Global options: --main <branch> (default main, the main line), --ledger <volume path> (default /ledger.json),
+--json (one JSON object on stdout, prose on stderr, never prompts; for tools/autolab.py). `fold --no-merge` rebases,
+re-scores and records, then stops before merging; its exam result is only "pass" or "blocked" (tools/lab_gate.py).
+`fold --gate` merges only when the gate passes on the rebased run, and discards otherwise.
+`baseline --practice-only` scores practice alone, which is what the autolab ledger does (no exam per fold).
 """
 
 import argparse
 import contextlib
+import hashlib
+import importlib.util
+import io
 import json
 import os
 import subprocess
 import sys
+import tarfile
 import tempfile
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import lab_gate as G  # noqa: E402
 import lab_ledger as L  # noqa: E402
 
 REPO = Path(__file__).resolve().parent.parent
@@ -93,6 +103,139 @@ def update(a, fn):
 # Scoring on Modal
 
 
+APP, FANOUT = "tilawa-lab-run", "fanout"  # deployed with `modal deploy modal/lab_run.py`
+RUNS = Path(tempfile.gettempdir()) / "tilawa-lab-runs"  # run files outlive the caller, so a rerun resumes its call
+POLL = 60
+
+
+def runner():
+    """modal/lab_run.py as a module, for its `source` and `run_id`; importing it builds nothing."""
+    spec = importlib.util.spec_from_file_location("lab_run", RUNNER)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def source_key(src: bytes, *parts) -> str:
+    """Hash of the tarball's file names and contents plus `parts`: the same for a fresh checkout of the same commit."""
+    h = hashlib.sha256(json.dumps(parts).encode())
+    with tarfile.open(fileobj=io.BytesIO(src)) as t:
+        for m in sorted((m for m in t.getmembers() if m.isfile()), key=lambda m: m.name):
+            h.update(f"{m.name}\0{m.size}\0".encode())
+            h.update(t.extractfile(m).read())
+    return h.hexdigest()
+
+
+def read_run(f: Path) -> dict:
+    """A run file: JSON {run, callId, key}; older ones hold just the run id."""
+    if not f.exists():
+        return {}
+    text = f.read_text().strip()
+    try:
+        return json.loads(text)
+    except ValueError:
+        return {"run": text}
+
+
+def live_call(modal, call_id: str):
+    """The call if it is running or finished (Modal keeps results 7 days), else None."""
+    call = modal.FunctionCall.from_id(call_id)
+    try:
+        call.get(timeout=0)
+    except (modal.exception.OutputExpiredError, modal.exception.NotFoundError):
+        return None
+    except Exception:
+        pass
+    return call
+
+
+def wait_call(modal, call, say) -> dict:
+    """Polls `call` until it returns fanout's summary; a call that raised comes back as {ok: False, error}."""
+    t0 = time.time()
+    while True:
+        try:
+            return call.get(timeout=POLL)
+        except modal.exception.OutputExpiredError:
+            return {"ok": False, "error": f"call {call.object_id} expired"}
+        except modal.exception.FunctionTimeoutError as e:
+            return {"ok": False, "error": f"call {call.object_id} timed out: {e}"}
+        except (TimeoutError, modal.exception.TimeoutError):  # modal 1.3 raises the builtin one for a running call
+            say(f"waiting on call {call.object_id}: {(time.time() - t0) / 60:.0f} min")
+        except Exception as e:
+            return {"ok": False, "error": f"call {call.object_id} failed: {type(e).__name__}: {e}"}
+
+
+BORROW = """import contextlib, json, sys
+sys.path.insert(0, sys.argv[1])
+import lab
+wt, name, cmd, merge, n, log, what = json.loads(sys.argv[2])
+try:
+    with contextlib.redirect_stdout(sys.stderr):
+        out = {"run": lab.spawned(lab.Path(wt), name, cmd, merge, n, log and lab.Path(log), what)}
+except lab.Stop as e:
+    out = {"error": str(e)}
+print(json.dumps(out))
+"""
+
+
+def borrowed(*args) -> str:
+    """`spawned` in a uv Python that has the modal package; the CLI's own interpreter usually lacks it (the `modal` CLI has its own)."""
+    p = subprocess.run(["uv", "run", "-q", "--no-project", "--python", "3.12", "--with", "modal>=1.3", "python", "-P", "-c", BORROW,
+                        str(Path(__file__).resolve().parent), json.dumps([str(a) if isinstance(a, Path) else a for a in args])],
+                       stdout=subprocess.PIPE, text=True)
+    try:
+        out = json.loads(p.stdout.strip().splitlines()[-1])
+    except (IndexError, ValueError):
+        raise Stop(f"scoring through uv failed (exit {p.returncode}): {p.stdout.strip()[-2000:]}")
+    if "error" in out:
+        raise Stop(out["error"])
+    return out["run"]
+
+
+def spawned(wt: Path, name: str, cmd: str, merge: str, n: int, log: Path | None, what: str) -> str:
+    """Runs `cmd` over `n` shards of the worktree through lab_run's deployed `fanout`, polling the call; returns the run id.
+    Rerunning with the same source and commands resumes that call, even after the first caller died."""
+    try:
+        import modal
+        modal.Function
+    except (ImportError, AttributeError):  # AttributeError: the repo's modal/ directory shadowing the package
+        return borrowed(wt, name, cmd, merge, n, log, what)
+
+    R = runner()
+    src, sha = R.source(wt)
+    key = source_key(src, cmd, merge, n)
+    RUNS.mkdir(parents=True, exist_ok=True)
+    run_file = RUNS / f"{name}-{key[:16]}.run"
+    log = log or run_file.with_suffix(".log")
+    print(f"scoring {name} ({what}) on Modal: {n} shards; log {log}", flush=True)
+    with open(log, "a") as f:
+        say = lambda s: print(s, file=f, flush=True)
+        prev = read_run(run_file)
+        call = prev.get("key") == key and prev.get("callId") and live_call(modal, prev["callId"])
+        if call:
+            run = prev["run"]
+            say(f"run {run}: resuming call {call.object_id}")
+        else:
+            run = R.run_id(name, sha)
+            try:
+                call = modal.Function.from_name(APP, FANOUT).spawn(src, cmd, n, run, merge)
+            except modal.exception.NotFoundError as e:
+                raise Stop(f"{e}; deploy the runner: modal deploy {RUNNER.relative_to(REPO)}")
+            run_file.write_text(json.dumps({"run": run, "callId": call.object_id, "key": key}) + "\n")
+            say(f"run {run}: {n} shard(s), source {len(src) / 1e6:.1f} MB, call {call.object_id}")
+        out = wait_call(modal, call, say)
+        for s in out.get("shards", []) + [m for m in [out.get("merge")] if m]:
+            say(f"{'merge' if s is out.get('merge') else 'shard ' + str(s['shard'])}: exit {s['code']} in {s['seconds']} s")
+            if s["code"]:
+                say(s["tail"])
+        if out.get("error"):
+            say(out["error"])
+    if not out["ok"]:
+        run_file.unlink(missing_ok=True)
+        raise Stop(f"scoring {wt.name} failed; last lines of {log}:\n" + "\n".join(log.read_text().splitlines()[-25:]))
+    return run
+
+
 def score(a, wt: Path, *, name: str, listener: str, ts: dict, splits: tuple, log: Path | None = None) -> dict:
     """Scores a worktree's source over the test set version's sessions of `splits`, one shard per session; returns score.json."""
     n = min(MAX_SHARDS, sum(len(ts["sessions"][s]) for s in splits))
@@ -102,17 +245,10 @@ def score(a, wt: Path, *, name: str, listener: str, ts: dict, splits: tuple, log
     if ts["exclude"]:
         cmd += f" --exclude /lab/data/{ts['exclude']}"
     merge = "pnpm --filter @tilawa/core lab --merge /lab/runs/$LAB_RUN"
-    log = log or Path(tempfile.mkdtemp(prefix="lab-")) / f"{name}.log"
-    run_file = log.with_suffix(".run")
-    print(f"scoring {name} ({' + '.join(splits)}, {ts['id']}) on Modal: {n} shards; log {log}", flush=True)
-    with open(log, "w") as f:
-        p = subprocess.run(["modal", "run", str(RUNNER), "--shards", str(n), "--name", name, "--cmd", cmd, "--merge", merge, "--run-file", str(run_file)],
-                           cwd=REPO, env={**os.environ, "LAB_SRC": str(wt)}, stdout=f, stderr=subprocess.STDOUT)
-    if p.returncode or not run_file.exists():
-        raise Stop(f"scoring {wt.name} failed; last lines of {log}:\n" + "\n".join(log.read_text().splitlines()[-25:]))
-    report = vol_get(f"/runs/{run_file.read_text().strip()}/score.json")
+    run = spawned(wt, name, cmd, merge, n, log, f"{' + '.join(splits)}, {ts['id']}")
+    report = vol_get(f"/runs/{run}/score.json")
     if not report:
-        raise Stop(f"no merged score.json for run {run_file.read_text().strip()}")
+        raise Stop(f"no merged score.json for run {run}")
     if report["testSet"] != ts["id"]:
         raise Stop(f"scored test set {report['testSet']}, expected {ts['id']}")
     if report["sessions"]["excluded"]:
@@ -152,7 +288,9 @@ def card_of(wt: Path) -> dict:
     return L.validate_card(json.loads(f.read_text()))
 
 
-def ask(prompt: str) -> str:
+def ask(a, prompt: str) -> str:
+    if getattr(a, "json", False):
+        raise Stop(f"needs a decision ({prompt.strip()}); pass --yes or --no-merge")
     try:
         return input(prompt).strip().lower()
     except EOFError:
@@ -181,7 +319,8 @@ def cmd_baseline(a):
             new_ts.update(exclude=a.exclude, flags=len(ex["excluded"]))
         L.add_test_set(led, **new_ts)
     ts = L.test_set(led)
-    res = score_main(a, ts)
+    practice_only = getattr(a, "practice_only", False)
+    res = score_main(a, ts, splits=("practice",) if practice_only else ("practice", "exam"))
 
     def save(led):
         if new_ts and (led["testSet"] is None or L.test_set(led)["manifest"] != new_ts["manifest"]):
@@ -191,7 +330,9 @@ def cmd_baseline(a):
     update(a, save)
     print(f"main line {res['sha']} on {ts['id']}:")
     print(f"  practice: {counts(res['practice'])} over {res['practice']['sessions']} sessions")
-    print(f"  exam:     {counts(res['exam'])} over {res['exam']['sessions']} sessions")
+    if not practice_only:
+        print(f"  exam:     {counts(res['exam'])} over {res['exam']['sessions']} sessions")
+    return {"sha": res["sha"], "run": res["run"], "testSet": ts["id"], "practice": L.brief(res["practice"])}
 
 
 def cmd_new(a):
@@ -208,6 +349,7 @@ def cmd_new(a):
     update(a, lambda led: L.add_experiment(led, card, branch=branch, worktree=str(wt)))
     print(f"experiment {a.id}: branch {branch} at {wt}")
     print(f"change the {a.component} there, then: python3 tools/lab.py run {wt}")
+    return {"id": a.id, "branch": branch, "worktree": str(wt)}
 
 
 def run_experiment(a, wt: Path, card: dict, ts: dict, log: Path | None = None) -> dict:
@@ -229,8 +371,8 @@ def print_verdict(card: dict, res: dict, base: dict):
 def cmd_run(a):
     wt = Path(a.worktree).resolve()
     if a.cmd:
-        sys.exit(subprocess.run(["modal", "run", str(RUNNER), "--shards", str(a.shards or 1), "--name", a.name, "--cmd", a.cmd],
-                                cwd=REPO, env={**os.environ, "LAB_SRC": str(wt)}).returncode)
+        return {"exitCode": subprocess.run(["modal", "run", str(RUNNER), "--shards", str(a.shards or 1), "--name", a.name, "--cmd", a.cmd],
+                                           cwd=REPO, env={**os.environ, "LAB_SRC": str(wt)}).returncode}
     card = card_of(wt)
     led = load(a)
     ts, base = L.test_set(led), L.main_score(led)
@@ -246,13 +388,17 @@ def cmd_run(a):
         L.record_result(led, card["id"], res, vs=base)
 
     update(a, save)
-    print_verdict(card, res, base)
+    cmp = print_verdict(card, res, base)
     print(f"decide: python3 tools/lab.py fold {card['id']}   or   python3 tools/lab.py discard {card['id']}")
+    return {"id": card["id"], "sha": res["sha"], "run": res["run"], "base": base["run"], "testSet": ts["id"],
+            "practice": L.brief(res["practice"]), "compare": cmp, "verdict": L.headline(cmp, card)}
 
 
 def cmd_status(a):
     led = load(a)
-    print("\n".join(L.format_status(led, L.status_rows(led, all=a.all))))
+    rows = L.status_rows(led, all=a.all)
+    print("\n".join(L.format_status(led, rows)))
+    return {"testSet": led["testSet"], "rows": rows}
 
 
 def remove_worktree(wt: str, force=False):
@@ -270,6 +416,7 @@ def cmd_discard(a):
     update(a, lambda led: L.decide(led, a.id, "discarded", note=a.note or "", testSet=led["testSet"]))
     remove_worktree(e["worktree"], force=a.force)
     print(f"discarded {a.id}: card and results kept in the ledger, worktree removed, branch {e['branch']} kept")
+    return {"id": a.id, "state": "discarded", "branch": e["branch"]}
 
 
 def main_worktree(a) -> Path | None:
@@ -345,6 +492,8 @@ def cmd_fold(a):
         r.update(measurementScope=["practice"], examStatus="unmeasured_for_this_head")
     else:
         exam = L.compare(r["exam"], base["exam"], card)
+    out = {"id": a.id, "run": r["run"], "base": base["run"], "branchRun": b["run"], "sha": r["sha"], "testSet": ts["id"],
+           "compare": rcmp, "why": why, "practice": L.brief(r["practice"]), "examTripwire": None if practice_only else G.exam_tripwire(base["exam"], r["exam"], card["component"])}
 
     print(f"\n{a.id} ({card['component']}): {card['hypothesis']}")
     print(f"{'practice':10} {'expected':>9} {'on branch':>10} {'after rebase':>13}")
@@ -366,12 +515,20 @@ def cmd_fold(a):
     if state == "superseded":
         update(a, lambda led: record(led, "superseded", why))
         print(f"superseded: {why}. Not merged.")
-        return
+        return {**out, "state": "superseded"}
     print(f"after rebase it {why}.")
-    if not a.yes and ask(f"fold {a.id} into {a.main}? [y/N] ") not in ("y", "yes"):
+    if getattr(a, "gate", False):
+        verdict = G.gate(vol_get(f"/runs/{base['run']}/score.json"), vol_get(f"/runs/{r['run']}/score.json"), card,
+                         git("diff", "-U0", f"{a.main}...HEAD", cwd=wt))
+        out["gate"] = verdict
+        print("\n".join(G.format_gate(verdict)))
+        if verdict["verdict"] != "pass":
+            update(a, lambda led: record(led, "discarded", "autolab gate: " + "; ".join(c["why"] for c in verdict["checks"] if c["blocking"] and not c["ok"])))
+            return {**out, "state": "gate-failed"}
+    if not a.yes and not getattr(a, "gate", False) and (getattr(a, "no_merge", False) or ask(a, f"fold {a.id} into {a.main}? [y/N] ") not in ("y", "yes")):
         update(a, record)
         print("not folded; still waiting for your decision")
-        return
+        return {**out, "state": "waiting", "worktree": str(wt)}
 
     def folded(led):
         record(led, "folded", why)
@@ -402,6 +559,7 @@ def cmd_fold(a):
     remove_worktree(str(wt))
     exam_text = "exam not measured" if practice_only else f"exam {counts(r['exam'])}"
     print(f"folded {a.id}: {a.main} is now {tip[:7]}; main line practice {counts(r['practice'])}, {exam_text}")
+    return {**out, "state": "folded", "head": tip[:7]}
 
 
 def cmd_apply_flags(a):
@@ -415,12 +573,12 @@ def cmd_apply_flags(a):
         print(f"skipped {w}")
     if not new:
         print(f"no pending flags on {ts['id']} ({len(applied)} already applied)")
-        return
+        return {"testSet": ts["id"], "pending": []}
     print(f"{len(new)} pending flag(s) on {ts['id']}:")
     for f in new:
         print(f"  {f['item']}: {f['verdict']} by {f['reviewer']} ({f['session']} {f['startS']}-{f['endS']} s){' - ' + f['note'] if f['note'] else ''}")
     if a.dry_run:
-        return
+        return {"testSet": ts["id"], "pending": new}
     version = ts["version"] + 1
     doc = L.flags_doc(ts["base"], version, applied + new)
     path = f"{ts['base']}/flags-v{version}.json"
@@ -459,17 +617,21 @@ def cmd_apply_flags(a):
         print(f"  {id}: overall {cmp['overall']['change']:+d}, {open_exps[id]['card']['component']} {cmp[open_exps[id]['card']['component']]['change']:+d} -> {L.headline(cmp, open_exps[id]['card'])}")
     for id, err in failed.items():
         print(f"  {id}: scoring failed: {err.splitlines()[0]}")
+    return {"testSet": new_id, "run": base["run"], "practice": L.brief(base["practice"]),
+            "experiments": {id: r["run"] for id, r in results.items()}, "failed": failed}
 
 
 def parser():
     p = argparse.ArgumentParser(description="Lab experiments: cards, practice runs, fold-in, flags.")
     p.add_argument("--main", default=os.environ.get("LAB_MAIN", "main"), help="main line branch")
     p.add_argument("--ledger", default=os.environ.get("LAB_LEDGER", "/ledger.json"), help="ledger path on the tilawa-lab volume")
+    p.add_argument("--json", action="store_true", help="one JSON object on stdout, prose on stderr; never prompts")
     sub = p.add_subparsers(dest="op", required=True)
     b = sub.add_parser("baseline", help="score the main line on practice and exam")
     b.add_argument("--manifest", default="lab-v1.5/manifest-v1.json", help="under /lab/data; registers its test set when the ledger has none or another one")
     b.add_argument("--exclude", default="", help="under /lab/data: flags carried into a new test set (e.g. lab-v1.5/flags-v1.json, from lab-v1.4's)")
     b.add_argument("--note", default="")
+    b.add_argument("--practice-only", action="store_true", help="score practice only (the autolab ledger never scores the exam)")
     n = sub.add_parser("new", help="create an experiment worktree and card")
     n.add_argument("id")
     n.add_argument("--component", required=True, choices=L.COMPONENTS)
@@ -489,6 +651,8 @@ def parser():
     f.add_argument("id")
     f.add_argument("--yes", action="store_true", help="skip the confirmation (only when the user approved this fold)")
     f.add_argument("--practice-only", action="store_true", help="score only practice and leave exam unmeasured for the new main revision")
+    f.add_argument("--no-merge", action="store_true", help="rebase, re-score and record, then stop before merging (the autolab gate decides)")
+    f.add_argument("--gate", action="store_true", help="merge only if tools/lab_gate.py passes on the rebased run; discard otherwise (autolab)")
     d = sub.add_parser("discard", help="mark discarded, remove the worktree, keep the branch")
     d.add_argument("id")
     d.add_argument("--note", default="")
@@ -500,11 +664,22 @@ def parser():
 
 def main():
     a = parser().parse_args()
+    fn = {"baseline": cmd_baseline, "new": cmd_new, "run": cmd_run, "status": cmd_status, "fold": cmd_fold,
+          "discard": cmd_discard, "apply-flags": cmd_apply_flags}[a.op]
     try:
-        {"baseline": cmd_baseline, "new": cmd_new, "run": cmd_run, "status": cmd_status, "fold": cmd_fold,
-         "discard": cmd_discard, "apply-flags": cmd_apply_flags}[a.op](a)
+        if a.json:
+            with contextlib.redirect_stdout(sys.stderr):
+                out = fn(a) or {}
+            print(json.dumps(out, ensure_ascii=False))
+        else:
+            out = fn(a) or {}
     except (Stop, LookupError, ValueError) as err:
+        if a.json:
+            print(json.dumps({"error": str(err)}, ensure_ascii=False))
+            sys.exit(1)
         sys.exit(f"lab: {err}")
+    if out.get("exitCode"):
+        sys.exit(out["exitCode"])
 
 
 if __name__ == "__main__":
