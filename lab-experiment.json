@@ -1,0 +1,13 @@
+{
+ "id": "listener-ctc-omission-placement",
+ "component": "listener",
+ "hypothesis": "Two planted omissions are detected but charged to the neighbouring word (44:5 word 4 reported as word 5, 20:25 word 4 reported as word 5), giving one miss plus one false warning each. Deciding which word of the gap the heard segment belongs to by CTC forward score instead of greedy-string edit distance fixes both; predict listener -4 (2 false warnings and the 2 paired misses in listener/omitted_word/missed), overall -4.",
+ "expected": {
+  "component": -4,
+  "overall": -4
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-01T04:31:47+00:00",
+ "author": "autolab"
+}
