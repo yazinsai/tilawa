@@ -711,6 +711,11 @@ class Tick:
         c = e["card"]
         if (card["id"], card["component"], card["hypothesis"], card["expected"]) != (c["id"], c["component"], c["hypothesis"], c["expected"]):
             return self.discard(e, "the card was edited after it was accepted")
+        outcome = read_json(Path(wt, ".autolab", "outcome.json"))
+        if outcome.get("status") == "killed":
+            r["builderOutcome"] = outcome
+            return self.discard(e, f"killed by its builder: {str(outcome.get('reason', ''))[:300]}"
+                                   + (f" (measured: {json.dumps(outcome['measured'])[:200]})" if outcome.get("measured") else ""))
         diff = w.diff(e)
         if not any(not NOT_ENGINE.search(f) for f in G.diff_files(diff)):
             return self.bounce(e, "the diff changes no engine code (only write-ups, tests or docs); implement the change, or explain in the write-up why it can't be done")
@@ -902,6 +907,13 @@ class Tick:
             self.add(c)
 
 
+def read_json(path: Path) -> dict:
+    try:
+        return json.loads(path.read_text())
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
 def json_exit(*argvs: list[str]) -> list[str]:
     """Commands that print no JSON, run in turn until one fails, wrapped so the job ends in a JSON line saying how it
     exited (what poll reads)."""
@@ -1019,6 +1031,13 @@ Inspect a case with the trace tool:
 - Write `.scratch/lab/experiments/{c['id']}.md` like the other write-ups there: the prediction, the mechanism, what you
   validated and its limits.
 - Commit everything on this branch with clear messages. Finish with a short summary of what you changed and why.
+
+## If it doesn't work
+
+If your kill criterion fires, or you find the mechanism is wrong, stop: that is a useful result, not a failure.
+Revert your engine changes, explain what you found in the write-up, commit, and write `.autolab/outcome.json`:
+`{{"status": "killed", "reason": "<one sentence>", "measured": {{"overall": <practice change, if you scored>, "targets won": <n>}}}}`.
+Otherwise leave the change in place; the supervisor scores it and the fold gate decides.
 {f'''
 ## Feedback from the previous attempt
 

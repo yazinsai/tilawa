@@ -275,6 +275,17 @@ def test_a_diff_without_engine_code_goes_back_to_the_builder(w):
     assert st["experiments"][id]["state"] == "implementing" and "no engine code" in st["experiments"][id]["note"]
 
 
+def test_a_builder_that_killed_its_experiment_is_recorded_not_scored(w):
+    id = started(w)
+    d = w.tmp / id / ".autolab"
+    d.mkdir(exist_ok=True)
+    (d / "outcome.json").write_text(json.dumps({"status": "killed", "reason": "kill criterion hit: -2 only", "measured": {"overall": -2}}))
+    w.diff_text = "diff --git a/.scratch/lab/experiments/x.md b/.scratch/lab/experiments/x.md\n@@ -0,0 +1 @@\n+notes\n"
+    st = tick(w)
+    e = st["experiments"][id]
+    assert e["state"] == "discarded" and "killed by its builder: kill criterion hit" in e["note"] and not any(n.startswith("score-") for n in w.jobs)
+
+
 def test_failed_tests_bounce_with_the_log(w):
     w.job_results["tests"] = {"error": "vitest: 2 failed"}
     st, id = advance(w, 2)
