@@ -29,6 +29,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -51,6 +52,7 @@ RUN = REPO / ".scratch/autolab/run"
 BRANCH, WORKTREE = "autolab", REPO.parent / "tilawa-autolab"
 VOL_STATE, VOL_EVENTS, VOL_LEDGER, VOL_JOURNAL = "/autolab/state.json", "/autolab/events.jsonl", "/autolab/ledger.json", "/autolab/journal.md"
 VOL_INBOX, VOL_ELI5 = "/autolab/inbox", "/autolab/eli5.json"
+OWN_DATA = re.compile(r"(\.exp-[^/]+\.(phone|studio)\.evidence\.json|/decode-v1\.json)$")
 PRACTICE_SCORES = 3
 DEFAULT_CONFIG = {
     "slots": 6, "planEveryMinutes": 30, "tickSeconds": 120,
@@ -189,12 +191,15 @@ class World:
         return self._reports[run]
 
     def data_hash(self, test_set: str) -> str:
-        """Paths, sizes and times of every file under the test set's data directory."""
+        """Paths, sizes and times of every file under the test set's data directory, except what autolab writes there
+        itself: an experiment's own listener evidence (`*.exp-*.evidence.json`) and the decode record."""
         import modal  # noqa: PLC0415 - only the supervisor's environment has it
         base = test_set.split(".v")[0]
         entries = modal.Volume.from_name("tilawa-lab").listdir(f"/data/{base}", recursive=True)
         h = hashlib.sha256()
         for e in sorted(entries, key=lambda e: e.path):
+            if e.type.name != "FILE" or OWN_DATA.search(e.path):
+                continue
             h.update(f"{e.path}\t{e.size}\t{e.mtime}\n".encode())
         return h.hexdigest()
 
@@ -342,6 +347,8 @@ class Tick:
     def apply(self, c: dict):
         st, op = self.st, c["op"]
         if op == "pause":
+            if not c["why"] and "test data" in (st.get("paused") or ""):
+                st["dataHash"] = self.w.data_hash(st["testSet"])
             st["paused"] = c["why"] or None
             self.events.append(S.event(None, None, "paused" if c["why"] else "resumed", self.at, c["why"] or "by you"))
             return

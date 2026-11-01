@@ -306,6 +306,22 @@ def test_changed_test_data_pauses_everything(w):
     assert states(tick(w)) == before
 
 
+def test_resuming_after_a_data_pause_takes_a_fresh_hash(w):
+    w.hash = "h1"
+    st, _ = advance(w, 2)
+    assert "test data" in st["paused"]
+    w.queued = [{"op": "pause", "why": ""}]
+    st = tick(w)
+    assert st["paused"] is None and st["dataHash"] == "h1"
+
+
+def test_own_decode_output_is_not_test_data():
+    assert A.OWN_DATA.search("data/lab-v1.5/sessions/lab-v1.4-p04.exp-listener-x-7085852.phone.evidence.json")
+    assert A.OWN_DATA.search("data/lab-v1.5/decode-v1.json")
+    assert not A.OWN_DATA.search("data/lab-v1.5/sessions/lab-v1.4-p04.spliced-clean-int8.phone.evidence.json")
+    assert not A.OWN_DATA.search("data/lab-v1.5/manifest-v1.json")
+
+
 def test_rebase_conflict_pauses_on_a_new_day(w):
     w.rebase_ok = False
     st = tick(w, "2026-11-02T00:05:00+00:00")
