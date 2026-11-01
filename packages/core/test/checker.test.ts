@@ -178,6 +178,36 @@ describe("skips", () => {
     expect(confirmed(replayChecked(index, f, { phrases }, { phrases }))).toEqual([]);
   });
 
+  it("confirms a different word said before an ayah's first word", () => {
+    // The onset sticks to the ayah's first word and the tail jumps back; the real word is said afterwards.
+    const start = w(26, 122, 1);
+    const boundary = find(w(26, 123, 1)).start - find(start).start;
+    const f = syntheticFixture(index, { id: "c", from: start, to: w(26, 124, 4), edits: [{ kind: "ins", at: boundary, text: "قَبڇلِهِم" }], chunkSize: 8 });
+    expect(summary(confirmed(replayChecked(index, f, { phrases }, { phrases })))).toEqual(["confirmed added_word 26:123:1"]);
+  });
+
+  it("confirms an added word whose tail is the previous word's ending", () => {
+    const start = w(26, 122, 1);
+    const boundary = find(w(26, 123, 1)).start - find(start).start;
+    const f = syntheticFixture(index, { id: "c", from: start, to: w(26, 124, 4), edits: [{ kind: "ins", at: boundary, text: "كَرِۦۦم" }], chunkSize: 8 });
+    expect(summary(confirmed(replayChecked(index, f, { phrases }, { phrases })))).toEqual(["confirmed added_word 26:123:1"]);
+  });
+
+  it("does not call a one-consonant slip of the ayah's first word an added word", () => {
+    const start = w(26, 122, 1);
+    const boundary = find(w(26, 123, 1)).start - find(start).start;
+    const slip = text(w(26, 123, 1)).replace("ذ", "ز");
+    const f = syntheticFixture(index, { id: "c", from: start, to: w(26, 124, 4), edits: [{ kind: "ins", at: boundary, text: slip }], chunkSize: 8 });
+    expect(confirmed(replayChecked(index, f, { phrases }, { phrases })).filter((e) => e.errorClass === "added_word")).toEqual([]);
+  });
+
+  it("leaves صدق الله العظيم before an ayah alone", () => {
+    const start = w(2, 255, 45);
+    const closing = text(w(3, 95, 2)) + text(w(3, 95, 3)) + text(w(2, 255, 50));
+    const f = syntheticFixture(index, { id: "c", from: start, to: w(2, 256, 4), edits: [{ kind: "ins", at: find(w(2, 256, 1)).start - find(start).start, text: closing }], chunkSize: 8 });
+    expect(confirmed(replayChecked(index, f, { phrases }, { phrases })).filter((e) => e.errorClass === "added_word")).toEqual([]);
+  });
+
   it("confirm when they are not", () => {
     const edits: Edit[] = [{ kind: "del", at: at(w(2, 255, 30)), count: at(w(2, 255, 40)) - at(w(2, 255, 30)) }];
     expect(summary(run(edits, { to: w(2, 257, 5) }))).toEqual(["suspected skipped_passage 2:255:30", "confirmed skipped_passage 2:255:30"]);

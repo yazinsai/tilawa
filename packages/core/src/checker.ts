@@ -5,7 +5,7 @@ import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
-import { lexicalWords } from "./checker-lexical.js";
+import { hardConsonantEdits, lexicalWords } from "./checker-lexical.js";
 
 export interface CheckerPolicy {
   /** When a suspected wrong or added word is confirmed: after `ms` (2–3 s), or once the next word has begun. Default 2500 ms. */
@@ -443,6 +443,30 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
     }
   };
+  /** Isti'adha, basmala, amin, and صدق الله (with and without العظيم), plus the other known phrases. */
+  const atWord = (surah: number, ayah: number, word: number) => {
+    const w = words.find((x) => x.surah === surah && x.ayah === ayah && x.word === word);
+    return w ? ref.slice(w.start, w.end) : "";
+  };
+  const sadaq = atWord(3, 95, 2) + atWord(3, 95, 3);
+  const lexicon = [...phrases, sadaq, sadaq + atWord(2, 255, words.filter((w) => w.surah === 2 && w.ayah === 255).length)].filter((p) => p.length > 0);
+  /**
+   * The span is a known phrase when it covers one and the edit distance, per phrase phoneme, is within half the loose
+   * junk ceiling. A fragment or a two-consonant miss (كَرِۦۦم against آمين) does not.
+   */
+  const fitsPhrase = (heard: string) => lexicon.some((p) => {
+    if (heard.length * 2 < p.length) return false;
+    const a = alignSubstring(p, 0, p.length, heard, () => true);
+    return !!a && (a.end - a.start) * 2 >= p.length && a.cost / UNIT / p.length <= PHRASE_MAX_COST / 2;
+  });
+  /** A repeat or a one-consonant slip of `wi`, not a different word said in its place. */
+  const nearWord = (wi: number, heard: string) => {
+    if (lexical.matches(wi, heard)) return true;
+    const forms = [ref.slice(words[wi].start, words[wi].end)];
+    const iso = index.isolatedWordForms?.[wi];
+    if (iso) forms.push(iso);
+    return forms.some((form) => hardConsonantEdits(form, heard) < MIN_HARD);
+  };
 
   const charge = (v: Visit, cost: number) => {
     v.cost += cost;
@@ -836,6 +860,29 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         cls: "wrong_word", word: wi, last: wi, obsFrom: left.obsTo, obsTo: right.obsFrom, observed,
         supportRange: [left.obsFrom, right.obsTo],
       });
+    }
+    // Speech between an ayah and the next one's first correct visit. A known phrase stays quiet, and so does a jump
+    // back onto an earlier word, paused form included: that sequence is a repeat. Anything else with two consonants
+    // is an added word. A jump, or a first visit the real word then corrects, is cheaper than an insertion and was
+    // swallowing it. The phrase insertion cost itself stays put, so an ayah-start omission still prefers the word.
+    const seenStart = new Set<number>();
+    for (const start of intact) {
+      const wi = start.word;
+      if (seenStart.has(wi)) continue;
+      seenStart.add(wi);
+      if (ayahFirst[ayahOf[wi]] !== wi || wi < first || issues.has(wi)) continue;
+      const prev = prevWord(wi);
+      const left = intact.filter((v) => v.word === prev && v.obsTo <= start.obsFrom).reduce<Visit | null>((a, v) => !a || v.obsTo > a.obsTo ? v : a, null);
+      if (!left || nextWord(left.word) !== wi || left.obsTo >= start.obsFrom) continue;
+      const idx: number[] = [];
+      for (let k = left.obsTo; k < start.obsFrom; k++) if (!obs[k].junk) idx.push(k);
+      const phones = idx.map((k) => obs[k].p).join("");
+      const consonants = [...phones].filter((p) => CONSONANTS.has(p)).length;
+      if (phones.length < MIN_ADDED || consonants < 2 || fitsPhrase(phones)) continue;
+      // A jump back onto an earlier word, including its paused form, is a repeat. A jump forward is not.
+      const repeated = visits.some((v) => counts(v) && !wrong(v) && v.word < wi && v.obsFrom >= left.obsTo && v.obsTo <= start.obsFrom && nearWord(v.word, phones));
+      if (nearWord(wi, phones) || nearWord(prev, phones) || repeated) continue;
+      issues.set(wi, { cls: "added_word", word: wi, last: wi, obsFrom: idx[0], obsTo: idx.at(-1)! + 1, observed: phones });
     }
     return { issues, lexical: candidates, head, furthest: reached, steps, right };
   };
