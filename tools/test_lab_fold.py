@@ -27,6 +27,8 @@ def totals(missed):
 
 class PracticeOnlyFold(unittest.TestCase):
     def fold(self, refresh, check=True, **opts):
+        branch_listener = opts.pop("branch_listener", L.DEFAULT_LISTENER)
+        self.seen_listeners = []
         with tempfile.TemporaryDirectory() as tmp:
             wt = Path(tmp)
             (wt / Path(lab.SUMMARY).parent).mkdir(parents=True)
@@ -38,11 +40,12 @@ class PracticeOnlyFold(unittest.TestCase):
                       "testSets": {"synthetic": {"id": "synthetic", "sessions": {"practice": ["p1"]}}},
                       "mainLine": [base], "experiments": {}}
             L.add_experiment(ledger, card, branch="exp/synthetic", worktree=str(wt))
-            L.record_result(ledger, "synthetic", {**base, "sha": "bbbb222", "practice": L.score(totals(5))}, vs=base)
+            L.record_result(ledger, "synthetic", {**base, "sha": "bbbb222", "listener": branch_listener, "practice": L.score(totals(5))}, vs=base)
             args = SimpleNamespace(**{"id": "synthetic", "main": "main", "yes": True, "practice_only": True, **opts})
             requested = []
 
             def score(*_args, splits, **_kwargs):
+                self.seen_listeners.append(_kwargs.get("listener"))
                 requested.append(splits)
                 self.assertEqual(splits, ("practice",))
                 return {"kind": "lab-score", "sha": "bbbb222", "run": "rebased", "testSet": "synthetic",
@@ -91,6 +94,10 @@ class PracticeOnlyFold(unittest.TestCase):
 
     def test_stale_main_refresh_also_scores_only_practice(self):
         self.fold(True)
+
+    def test_fold_rescores_with_the_listener_the_branch_was_scored_with(self):
+        self.fold(False, check=False, yes=True, branch_listener="exp-x-abc")
+        self.assertEqual(self.seen_listeners, ["exp-x-abc"])
 
     def test_no_merge_records_and_stops_before_merging(self):
         out, ledger, calls = self.fold(False, check=False, yes=False, no_merge=True)

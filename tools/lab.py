@@ -471,6 +471,7 @@ def cmd_fold(a):
     if not b or not base:
         raise Stop(f"{a.id} has no practice result on {ts['id']} yet: python3 tools/lab.py run {e['worktree']}")
     b_base = L.base_for(led, b) or base
+    card = {**card, "listener": b.get("listener") or card["listener"]}  # the evidence the branch was scored with, not the card's creation-time default
     bcmp = L.compare(b["practice"], b_base["practice"], card)
     if not L.gains(bcmp, card):
         raise Stop(f"{a.id} has no practice gain on its branch ({L.headline(bcmp, card)}): nothing to fold; discard it")
