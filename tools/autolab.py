@@ -1047,6 +1047,10 @@ class Tick:
         st["foldLock"] = None
         if status == "failed":
             err = res.get("error", "")
+            if "moved while scoring" in err and e["attempts"].get("mainMoved", 0) < 3:
+                e["attempts"]["mainMoved"] = e["attempts"].get("mainMoved", 0) + 1
+                self.events.append(S.event(e["id"], "folding", "folding", self.at, "main moved while the fold was scoring; folding again"))
+                return
             if "conflicts" in err and e["attempts"].get("conflicts", 0) == 0:
                 e["attempts"]["conflicts"] = 1
                 e["state"] = "accepted"

@@ -261,6 +261,13 @@ def test_gate_failure_after_rebase_discards(w):
     assert "gate after rebase: 2 lost" in st["experiments"][id]["note"]
 
 
+def test_main_moving_during_a_fold_folds_again_instead_of_paging(w):
+    w.job_results["fold"] = {"error": "main moved while scoring; fold it again"}
+    st, id = advance(w, 6)
+    e = st["experiments"][id]
+    assert e["state"] == "folding" and e["attempts"]["mainMoved"] >= 1 and not st["needsHuman"]
+
+
 def test_hygiene_failure_bounces_once_then_discards(w):
     w.diff_text = "diff --git a/tools/lab.py b/tools/lab.py\n@@ -1 +1 @@\n-a\n+b\n"
     st, id = advance(w, 1)
