@@ -91,28 +91,36 @@ export class PosteriorFrames {
 
   /** CTC negative log-likelihood, in nats, of `labels` (token ids, no blanks) over frames `[from, to)`. */
   nll(labels: ArrayLike<number>, from: number, to: number): number {
-    const L = labels.length;
-    if (to <= from) return L ? Infinity : 0;
-    const S = 2 * L + 1;
-    const label = (s: number) => (s % 2 === 0 ? 0 : labels[(s - 1) >> 1]);
-    let prev = new Float64Array(S).fill(-Infinity);
-    let next = new Float64Array(S);
-    const r0 = this.row(from);
-    prev[0] = r0[0];
-    if (L) prev[1] = r0[label(1)];
-    for (let f = from + 1; f < to; f++) {
-      const row = this.row(f);
-      for (let s = 0; s < S; s++) {
-        let a = prev[s];
-        if (s > 0) a = logAdd(a, prev[s - 1]);
-        if (s > 1 && s % 2 === 1 && label(s) !== label(s - 2)) a = logAdd(a, prev[s - 2]);
-        next[s] = a + row[label(s)];
-      }
-      [prev, next] = [next, prev];
-    }
-    const end = L ? logAdd(prev[S - 1], prev[S - 2]) : prev[0];
-    return -end;
+    return ctcForward((frame) => this.row(frame), labels, from, to);
   }
+}
+
+/**
+ * CTC forward score: negative log-likelihood, in nats, of `labels` (token ids, blanks not included) over frames
+ * `[from, to)`. `logRow(frame)` is the natural log-probability of blank (index 0) and every token.
+ */
+export function ctcForward(logRow: (frame: number) => ArrayLike<number>, labels: ArrayLike<number>, from: number, to: number): number {
+  const L = labels.length;
+  if (to <= from) return L ? Infinity : 0;
+  const S = 2 * L + 1;
+  const label = (s: number) => (s % 2 === 0 ? 0 : labels[(s - 1) >> 1]);
+  let prev = new Float64Array(S).fill(-Infinity);
+  let next = new Float64Array(S);
+  const r0 = logRow(from);
+  prev[0] = r0[0];
+  if (L) prev[1] = r0[label(1)];
+  for (let f = from + 1; f < to; f++) {
+    const row = logRow(f);
+    for (let s = 0; s < S; s++) {
+      let a = prev[s];
+      if (s > 0) a = logAdd(a, prev[s - 1]);
+      if (s > 1 && s % 2 === 1 && label(s) !== label(s - 2)) a = logAdd(a, prev[s - 2]);
+      next[s] = a + row[label(s)];
+    }
+    [prev, next] = [next, prev];
+  }
+  const end = L ? logAdd(prev[S - 1], prev[S - 2]) : prev[0];
+  return -end;
 }
 
 function logAdd(a: number, b: number): number {
