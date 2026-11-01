@@ -12,7 +12,7 @@ and mounts:
 
     /lab/data       tilawa-lab-exec, read-only: practice sessions of the current test set, their evidence, the main model
     /scratch        tilawa-lab-scratch: /scratch/<exp> persists across an experiment's runs; LAB_OUT=/scratch/<exp>/runs/<n>/<shard>
-    /student        `train` only: tilawa-student's training data read-only (s1, aug, eval); /student/runs is in scratch
+    /student        `train` only: tilawa-student's training data read-only (s1, aug, eval, prior-runs); /student/runs is in scratch
 
 tilawa-lab is never mounted in a sandbox. `run` prints shard tails, copies LAB_OUT back to <worktree>/.autolab/modal-out-<n>/
 (unless "download" is false) and ends with a JSON line {"result": {...}, "exitCode": n}.
@@ -57,6 +57,7 @@ if [ -d /student-data ]; then
   mkdir -p /student "/scratch/$AUTOLAB_EXP/student-runs"
   for f in /student-data/*; do [ "$(basename "$f")" = runs ] || ln -sfn "$f" /student/; done
   ln -sfn "/scratch/$AUTOLAB_EXP/student-runs" /student/runs
+  ln -sfn /student-data/runs /student/prior-runs
   ln -sf /app/docs/benchmarks/gold-per-v1-exclude.txt /root/gold-per-v1-exclude.txt
 fi
 t0=$(date +%s)

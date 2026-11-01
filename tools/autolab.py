@@ -313,7 +313,7 @@ def practice_ids(t: dict) -> list[str]:
 def exec_spec(t: dict, cfg: dict, listener: str = L.DEFAULT_LISTENER) -> dict:
     """What modal/autolab_exec.py's sync copies into tilawa-lab-exec: the main line's current listener evidence among them."""
     return {"base": t["base"], "manifest": t["manifest"], "practice": practice_ids(t),
-            "listeners": sorted({L.DEFAULT_LISTENER, listener, "teacher"}), "models": [cfg["listenerModel"]]}
+            "listeners": sorted({L.DEFAULT_LISTENER, listener, "teacher"}), "models": sorted({cfg["listenerModel"], *cfg.get("execModels", [])})}
 
 
 def alive(pid: int) -> bool:
@@ -1098,7 +1098,9 @@ def brief(e: dict, ctx: dict, feedback: str = "") -> str:
     base, lim, b, al = ctx["testSet"].split(".v")[0], I.limits(config()), budget(e), f"python3 {REPO / 'tools/autolab.py'}"
     gpu = f"""
 GPUs (this is a bet): add `--gpu L4|A10|L40S|A100|H100` (and `--image train`: torch, k2 and icefall, with the training
-data read-only under /student: s1/, aug/, eval/; /student/runs is in your scratch area). The card's GPU budget is
+data read-only under /student: s1/, aug/, eval/; /student/runs is in your scratch area; earlier training runs, each with
+its ckpt.pt and log.jsonl, are read-only under /student/prior-runs: copy one into /student/runs to resume or fine-tune
+it). Earlier exported models are read-only under /lab/data/models. The card's GPU budget is
 ${b['gpuUsdBudget']} (${b['gpuUsdLeft']} left); a run reserves shards x the GPU's hourly rate x its timeout before it
 starts, and one that doesn't fit is refused. There is no Modal client inside a run: call training code directly, e.g.
 `python -c 'import types, student_train as T; T.vol = types.SimpleNamespace(commit=lambda: None); T.train.local({{...}})'`.
