@@ -6,7 +6,7 @@
   "component": -3,
   "overall": -3
  },
- "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "listener": "exp-listener-whole-word-embedding-adds-b3dd5c75",
  "testSet": "lab-v1.5",
  "created": "2026-11-01T18:13:42+00:00",
  "author": "autolab"
