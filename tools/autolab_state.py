@@ -29,7 +29,7 @@ TERMINAL = ("folded", "discarded", "superseded", "abandoned")
 TIERS = ("exploit", "explore", "bet")
 NEXT = {
     "proposed": ("accepted", "discarded", "needs-human"),
-    "accepted": ("implementing", "discarded"),
+    "accepted": ("implementing", "discarded", "needs-human"),
     "implementing": ("validating", "abandoned", "discarded", "needs-human"),
     "validating": ("scoring", "implementing", "discarded", "abandoned", "needs-human"),
     "scoring": ("folding", "discarded", "abandoned", "needs-human"),

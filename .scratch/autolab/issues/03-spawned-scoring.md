@@ -1,6 +1,6 @@
 # 03 Scoring survives its caller
 
-Status: ready-for-human
+Status: resolved
 Type: task
 Blocked by: none
 

@@ -342,6 +342,19 @@ def test_practice_score_requests_are_served_and_capped(w):
     assert w.load()["experiments"][id]["attempts"]["practiceScores"] == 3
 
 
+def test_an_expensive_bet_waits_for_approval(w):
+    w.answers["planner"] = lambda p: answer({"cards": [card(f"x-idea-{i}", component=s["component"], tier=s["tier"],
+                                                            **({"gpuUsd": 150} if s["tier"] == "bet" else {})) for i, s in enumerate(slots(p))]})
+    tick(w)
+    st = tick(w)
+    bet = next(e for e in st["experiments"].values() if e["tier"] == "bet")
+    assert bet["state"] == "needs-human" and "approve" in bet["note"] and bet["worktree"] is None
+    bet["results"]["approved"] = T0
+    S.move(st, bet["id"], "accepted", T0)
+    w.saved = st
+    assert tick(w)["experiments"][bet["id"]]["state"] == "implementing"
+
+
 def test_a_tick_that_raises_pauses_and_pages(w, monkeypatch):
     monkeypatch.setattr(A.Tick, "run", lambda self: (_ for _ in ()).throw(RuntimeError("boom")))
     st = A.tick_once(w)

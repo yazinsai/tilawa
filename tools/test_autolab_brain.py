@@ -97,6 +97,14 @@ def test_bets_need_a_budget_and_twice_failed_clusters_need_a_reason():
     assert B.check_card(card(reason="attacks the encoder, not the decoder"), ctx(st), set())
 
 
+def test_the_judge_never_sees_the_card_itself():
+    st = S.empty("lab-v1.5")
+    S.add(st, card(), "2026-11-01T00:00:00+00:00")
+    ask = Asker(answer({"accept": True, "restates": [], "why": "new"}))
+    B.judge(CFG, card(), ctx(st), ask)
+    assert '"listener-onset-boost"' not in ask.prompts[0][1].split("History of tried experiments")[1]
+
+
 def test_judge_and_diff_review_shapes():
     j = B.judge(CFG, card(), ctx(), Asker(answer({"accept": False, "restates": ["listener-blank-margin"], "why": "same rescue"})))
     assert j == {"accept": False, "restates": ["listener-blank-margin"], "why": "same rescue"}

@@ -271,7 +271,7 @@ def judge(cfg: dict, card: dict, ctx: dict, ask=None) -> dict:
         if not isinstance(a.get("accept"), bool) or not isinstance(a.get("why"), str):
             raise ValueError("accept (bool) and why (string) are required")
         return {"accept": a["accept"], "restates": list(a.get("restates") or []), "why": a["why"]}
-    same = [h for h in ctx["history"] if h["component"] == card["component"]]
+    same = [h for h in ctx["history"] if h["component"] == card["component"] and h["id"] != card["id"]]
     return call(cfg, "judge", JUDGE.format(about=ABOUT, card=dump(card), history=dump(same)), check, ask)
 
 

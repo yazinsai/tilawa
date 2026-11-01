@@ -10,6 +10,7 @@
     practice-score [worktree]   an executor's practice score through the supervisor (at most 3 per card, decision 20)
     watchdog                 notify when the heartbeat is stale (run from cron or launchd, apart from the loop)
     match <id> agree|disagree   your verdict on a shadow decision (ticket 11)
+    approve <id>             let a bet over betApprovalUsd start
 
 Every lab operation goes through tools/lab.py on the shadow line: `--main autolab --ledger /autolab/ledger.json --json`.
 Long ones (tests, decode, scoring, fold) run as detached jobs under .scratch/autolab/run/jobs/, so a restarted
@@ -52,6 +53,7 @@ DEFAULT_CONFIG = {
                "judge": "gpt-5.6-sol", "diffReviewer": "gpt-5.6-sol"},
     "executor": {"runtime": "cursor-local", "model": "grok-4.7", "fallbackModel": "gpt-5.6-sol",
                  "env": {"MODAL_ENVIRONMENT": "autolab-exec"}},
+    "betApprovalUsd": 25,
     "listenerModel": "models/spliced-clean-int8",
     "tests": "pnpm --filter @tilawa/core... --filter @tilawa/sdk... build && pnpm --filter @tilawa/core --filter @tilawa/sdk test",
     "notify": {"topic": "", "dashboard": ""},
@@ -339,6 +341,8 @@ class Tick:
         if sum(1 for x in st["experiments"].values() if x["state"] == "implementing") >= w.cfg["slots"]:
             return
         c = e["card"]
+        if e["tier"] == "bet" and c.get("gpuUsd", 0) > w.cfg.get("betApprovalUsd", 25) and not e["results"].get("approved"):
+            return self.move(e, "needs-human", f"a bet asking for ${c['gpuUsd']} of GPU needs your approval: tools/autolab.py approve {e['id']}")
         if not e["worktree"]:
             out = w.lab("new", e["id"], "--component", c["component"], "--hypothesis", c["hypothesis"],
                         "--expect-component", c["expected"]["component"], "--expect-overall", c["expected"]["overall"], "--author", "autolab")
@@ -789,6 +793,17 @@ def cmd_watchdog(a):
         vol_put(VOL_STATE, st)
 
 
+def cmd_approve(a):
+    w = World(config(), executor=object())
+    st = w.load()
+    e = st["experiments"][a.id]
+    if e["state"] != "needs-human":
+        sys.exit(f"autolab: {a.id} is {e['state']}, not waiting on you")
+    e["results"]["approved"] = S.now()
+    w.save(st, [S.move(st, a.id, "accepted", S.now(), "approved by you")])
+    print(f"approved {a.id}; it starts on the next tick")
+
+
 def cmd_match(a):
     w = World(config(), executor=object())
     st = w.load()
@@ -818,13 +833,16 @@ def main():
     ps = sub.add_parser("practice-score")
     ps.add_argument("worktree", nargs="?", default=".")
     sub.add_parser("watchdog")
+    ap = sub.add_parser("approve")
+    ap.add_argument("id")
     mp = sub.add_parser("match")
     mp.add_argument("id")
     mp.add_argument("verdict", choices=("agree", "disagree"))
     a = p.parse_args()
     try:
         {"init": cmd_init, "tick": cmd_tick, "loop": cmd_loop, "pause": cmd_pause, "resume": lambda a: cmd_pause(a, why=""),
-         "status": cmd_status, "practice-score": cmd_practice_score, "watchdog": cmd_watchdog, "match": cmd_match}[a.op](a)
+         "status": cmd_status, "practice-score": cmd_practice_score, "watchdog": cmd_watchdog, "match": cmd_match,
+         "approve": cmd_approve}[a.op](a)
     except Stop as err:
         sys.exit(f"autolab: {err}")
 
