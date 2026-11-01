@@ -79,6 +79,14 @@ const ONSET = 3;
 const HISTORY = 160;
 /** Phonemes kept when the tracker leaves the window: about what a jump holds before it commits. */
 const AFTER_DROP = 24;
+/**
+ * A brief lock loss parks open issues instead of ending them uncertain. The relock keeps an issue when the new
+ * lock is still that issue's passage: same surah, at or after the issue, within this many ayahs (the tracker's
+ * near-ayah window), and no more than `PARK_WORDS` reference-words of speech were heard since the loss. A later
+ * lock, or a loss that runs longer, ends them uncertain as a drop does today. Nothing here runs while locked.
+ */
+const PARK_NEAR_AYAHS = 2;
+const PARK_WORDS = 8;
 /** Above this many phonemes the window commits its older part, keeping the latest `KEEP`. */
 const MAX_WINDOW = 240;
 const KEEP = 120;
@@ -200,7 +208,18 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   let frameMs = 0;
   let nowMs = 0;
+  /** Phonemes accepted so far, to measure speech heard while issues are parked. */
+  let heardPhonemes = 0;
   let trackerLocked = false;
+  /** Set on a lock loss that still has open issues. Cleared when the relock is judged or the loss runs long. */
+  let parked: { heard: number } | null = null;
+  const medianWord = (() => {
+    const ls: number[] = [];
+    for (const w of words) if (w.end > w.start) ls.push(w.end - w.start);
+    ls.sort((a, b) => a - b);
+    return ls[ls.length >> 1] || 1;
+  })();
+  const wordsHeardParked = () => (parked ? (heardPhonemes - parked.heard) / medianWord : 0);
   /** Aligning against the declared passage; false while following a deliberate jump off it. */
   let declared = !!passage;
   /** Phonemes since the last anchor (or the latest `HISTORY` while not anchored). */
@@ -297,6 +316,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   const dropAnchor = (out: CheckerEvent[]) => {
+    parked = null;
     for (const o of [...open.values()]) {
       open.delete(o.issue.word);
       decided.add(o.issue.word);
@@ -305,6 +325,37 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     anchor = null;
     furthest = -1;
     obs = obs.slice(-AFTER_DROP);
+  };
+
+  /** The new lock is still this issue's passage. The caller has already checked the loss was short. */
+  const samePassage = (issueWord: number, lockWord: number) => {
+    const a = words[issueWord], b = words[lockWord];
+    return a.surah === b.surah && Math.abs(a.ayah - b.ayah) <= PARK_NEAR_AYAHS && lockWord >= issueWord;
+  };
+
+  /**
+   * Judge a park. Issues the relock still covers stay open against the text they were found on; the rest end
+   * uncertain. Returns whether the passage itself stays.
+   */
+  const releasePark = (out: CheckerEvent[], lockWord: number | null) => {
+    const brief = wordsHeardParked() <= PARK_WORDS;
+    let stay = false;
+    parked = null;
+    for (const o of [...open.values()]) {
+      if (lockWord !== null && brief && samePassage(o.issue.word, lockWord)) { stay = true; continue; }
+      open.delete(o.issue.word);
+      decided.add(o.issue.word);
+      out.push(event(o, "uncertain"));
+    }
+    if (stay) return true;
+    if (latched && passage) {
+      passage = undefined;
+      declared = false;
+    }
+    anchor = null;
+    furthest = -1;
+    obs = obs.slice(-AFTER_DROP);
+    return false;
   };
 
   const setWindow = () => {
@@ -934,7 +985,15 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const p = e as PositionEvent;
       if (p.state !== "locked") {
         trackerLocked = false;
-        // Lost, it latches again on the next lock.
+        // Open issues survive a short loss and are judged when the tracker locks again. With none open, a loss
+        // still drops the anchor and latches again on the next lock.
+        if (latched && anchor !== null && (parked || open.size)) {
+          parked ??= { heard: heardPhonemes };
+          if (wordsHeardParked() > PARK_WORDS) releasePark(out, null);
+          next = null;
+          continue;
+        }
+        parked = null;
         if (latched && passage) {
           passage = undefined;
           declared = false;
@@ -947,6 +1006,16 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       trackerLocked = true;
       const start = wordIndex(p.observed[0].span.start);
       const end = wordIndex(p.observed[0].word);
+      if (parked) {
+        if (releasePark(out, end)) {
+          // Still this passage: cover the relock so the next locked event is not read as a jump.
+          if (passage) {
+            passage.from = Math.min(passage.from, end);
+            passage.to = Math.max(passage.to, end);
+          }
+          continue;
+        }
+      }
       if (latched && !passage) {
         passage = { from: start, to: end };
         declared = true;
@@ -1002,20 +1071,25 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (frames && evidence.posteriors) frames.append(evidence.posteriors);
       const next = track(events, out);
       const before = obs.length;
+      heardPhonemes += evidence.phonemes.length;
       obs.push(...evidence.phonemes.map((p) => ({ ...p })));
       markPhrases(before);
       const lastPh = obs.at(-1);
       if (lastPh) nowMs = Math.max(nowMs, (lastPh.end + 1) * frameMs);
+      if (parked && wordsHeardParked() > PARK_WORDS) releasePark(out, null);
       anchorOn(next, events);
       if (anchor === null) {
         if (obs.length > HISTORY) obs = obs.slice(-HISTORY);
-      } else evaluate(out, false);
+      } else if (!parked) evaluate(out, false);
       if (frames && obs.length) frames.dropBefore(obs[0].start);
       return out;
     },
     end(events = []) {
       const out: CheckerEvent[] = [];
-      anchorOn(track(events, out), events);
+      const next = track(events, out);
+      // Still parked: the loss never relocked onto this passage.
+      if (parked) releasePark(out, null);
+      anchorOn(next, events);
       evaluate(out, true);
       return out;
     },

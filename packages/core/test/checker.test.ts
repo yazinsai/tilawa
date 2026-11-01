@@ -218,13 +218,38 @@ describe("unclear evidence", () => {
     expect(summary(events)).toEqual(["suspected wrong_word 2:255:23", "uncertain wrong_word 2:255:23"]);
   });
 
-  it("ends uncertain when the tracker stops being locked", () => {
-    // The wrong word, then noise long enough for the tracker to lose its lock.
+  it("confirms a wrong word when a brief loss relocks ahead in the same passage", () => {
+    // Noise after the mistake drops the lock; the same ayahs continue, so the parked issue is judged on its own text.
     const edits: Edit[] = [...replaceWord(target, ALIEN), { kind: "noise", at: at(w(2, 255, 24)), length: 60, seed: 7 }];
-    const events = run(edits, { checker: { policy: { confirm: { after: "delay", ms: 3000 } } } });
-    expect(confirmed(events)).toEqual([]);
-    expect(events.find((e) => key(e.location) === "2:255:23")?.state).toBe("suspected");
-    expect(events.some((e) => e.state === "uncertain")).toBe(true);
+    const events = run(edits, { to: w(2, 257, 5), checker: { policy: { confirm: { after: "delay", ms: 3000 } } } });
+    const atTarget = events.filter((e) => key(e.location) === key(target));
+    // The gap can look like a skip until the following words align; the settled call is the wrong word.
+    expect(atTarget.at(-1)).toMatchObject({ state: "confirmed", errorClass: "wrong_word", location: target });
+    expect(atTarget.some((e) => e.state === "uncertain")).toBe(false);
+  });
+
+  it("ends a parked mistake uncertain when the relock is another passage", () => {
+    const phonemes: DecodedPhoneme[] = [];
+    let frame = 0;
+    const take = (from: WordRef, to: WordRef, edits?: Edit[]) => {
+      const f = syntheticFixture(index, { id: "s", from, to, edits });
+      for (const ph of f.evidence[0]?.phonemes ?? []) phonemes.push({ ...ph, start: ph.start + frame, end: ph.end + frame });
+      frame = (phonemes.at(-1)?.end ?? frame) + 2;
+    };
+    take(w(2, 255, 1), w(2, 255, 28), replaceWord(target, ALIEN));
+    take(w(2, 255, 28), w(2, 255, 28), [{ kind: "noise", at: 0, length: 60, seed: 3 }, { kind: "del", at: 0, count: 99 }]);
+    take(w(36, 1, 1), w(36, 4, 1));
+    const evidence: PhonemeEvidence[] = [];
+    for (let i = 0; i < phonemes.length; i += 8) evidence.push({ inventory: index.inventoryId, frameMs: 20, phonemes: phonemes.slice(i, i + 8) });
+    const tracker = createTracker(index);
+    const checker = createChecker(index, { policy: { confirm: { after: "delay", ms: 8000 } } });
+    const events: CheckerEvent[] = [];
+    for (const e of evidence) events.push(...checker.push(e, tracker.push(e)));
+    events.push(...checker.end(tracker.end()));
+    const atTarget = events.filter((e) => key(e.location) === key(target));
+    expect(atTarget.some((e) => e.state === "suspected")).toBe(true);
+    expect(atTarget.some((e) => e.state === "confirmed")).toBe(false);
+    expect(atTarget.some((e) => e.state === "uncertain")).toBe(true);
   });
 
   it("never confirms a wrong word the session ended on", () => {
