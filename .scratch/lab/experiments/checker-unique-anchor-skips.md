@@ -1,50 +1,44 @@
 # Unique anchors for refrain skips
 
-Status: oracle arm on the six target sessions recovers five skips and drops the misplaced seams. 26:109 stays a miss. Practice score not folded here; the supervisor scores the branch.
+Status: engine change in place. The supervisor scores practice. This build was not practice-scored.
 
 ## Prediction
 
-Skip detection anchored only on words whose phonemes occur once in the surah, with repeated refrain words floated onto the copy that keeps recitation order. Expected on practice: checker −4, overall −4. The six checker `skipped_passage` misses sit on word 1 beside a refrain that repeats in the surah (26:103, 26:108, 26:131, 55:28/30, 77:34).
+Skip detection anchored only on words whose phonemes occur once in the surah, with repeated refrain words floated onto the copy that keeps recitation order. Expected on practice: checker −4, overall −4. The six checker `skipped_passage` misses sit on word 1 beside a refrain that repeats in its surah (26:103, 26:108, 26:131, 55:28/30, 77:34).
 
-## Step 0 (baseline oracle arm)
+## Step 0
 
-Same arm the scorer uses: perfect phonemes, oracle positions, default checker policy. Baseline seams:
+Baseline arm (perfect phonemes, oracle positions, default checker). Five of the six bind a refrain copy so the skip either vanishes or starts one word off. That clears the kill line (need at least three).
 
 | session | target | baseline |
 |---|---|---|
 | lab-v1.5-p24 | 26:103:1 | miss, false `skipped_passage` at 26:102:7 (المؤمنين / مؤمنين) |
 | lab-v1.5-p73 | 26:103:1 | miss, false `skipped_passage` at 26:102:7 |
 | lab-v1.5-p24 | 26:130:1 | miss, false `skipped_passage` at 26:131:2 (inside فاتقوا الله وأطيعون) |
-| lab-v1.4-p10 | 26:109:1 | miss, no seam. Later phonemes of 26:108:3 are bound back to 26:103:8 |
+| lab-v1.4-p10 | 26:109:1 | miss, no seam. 26:108:3 is bound back onto 26:103:8 |
 | lab-v1.5-p15 | 55:29:1 | miss, no false warning |
 | lab-v1.5-p16 | 77:33:1 | miss, false `wrong_word` at 77:33:1 |
 
-Five of the six are a refrain copy bound so the skip either vanishes or starts one word off. That clears the kill line (need at least three). 26:109 is the same bind, and the repair below does not catch it.
+## Mechanism
 
-## Change
+`duplicateSpans` marks a word unique when its collapsed phonemes occur once in its surah, and a refrain when it sits in a 3-word sequence that occurs again. Skip spans are taken only between heard unique words. Duplicate words between those anchors are laid on the copy that stays in order. A run is emitted only when the span still contains text that was not heard, so saying a refrain twice, with the unique words on either side still contiguous, stays quiet. A span with no refrain in it is left to the alignment.
 
-`duplicateSpans` marks a word unique when its collapsed phonemes occur once in its surah, and a refrain when it sits in a 3-word sequence that occurs again. Skip spans are taken only between heard unique words. Duplicate words between those anchors are laid on the copy that stays in order. A run is emitted only when something in the span was not heard, so saying a refrain twice, with the unique words on either side still contiguous, stays quiet.
+The alignment window commits before both anchors of a refrain skip are in it. The last unique word counted before the cut is kept, and so is every counted word after it. A backward bind onto an earlier copy does not rewrite that anchor. Words already matched stay heard, so the cut is not a hole.
 
-The alignment window commits before both anchors of a refrain skip are in it, so counted visits are kept in order past the commit. A return to words that were actually skipped rewrites the trail from there. A visit to a word already on the trail is the other refrain copy and does not.
+The alignment window stops on the refrain, and the next unique word is then bound to an earlier copy (55:31 heard as 55:26). A word that occurs once, is at least six phonemes, and sits in the phonemes within three ayahs of the last forward visit is still an anchor. Exact phonemes are what the clean tests have; phone audio rarely matches a whole word, so this does not fire on a near miss.
 
-A wrong word outside the gap does not cancel the skip. A seam the alignment places on non-unique text between the gap and the next unique anchor (26:102:7, 26:131:2) is dropped.
+A refrain seam can confirm a word early (26:102:7) before the next unique word shows the gap. That omission waits for a unique word past its end. When the anchor run is emitted it replaces the seam; a seam on the word before an ayah-start run, or on non-unique text between the run and the next anchor, is dropped only then.
 
-## Oracle arm after the change
+## What was rejected
 
-| session | baseline misses / false warnings | after |
-|---|---|---|
-| p24 | 3 / 2 | 1 / 0 (26:98 unchanged; 26:103 and 26:130 caught; both false seams gone) |
-| p73 | 3 / 1 | 2 / 0 (26:98 and 26:123 unchanged; 26:103 caught; 26:102:7 gone) |
-| p10 | 1 / 0 | 1 / 0 (26:109 still missed) |
-| p15 | 1 / 0 | 0 / 0 |
-| p16 | 1 / 1 | 0 / 0 |
+Keeping every counted visit past the commit, and splicing the trail when a word index went backwards, scored 89 → 110 wrong calls (checker 37 → 48). Committed words fell out of the trail and the next unique word turned the hole into a skip.
 
-No new miss and no new false warning on these five sessions. Net on the oracle arm: five skips caught, four false warnings removed.
+Searching the raw phoneme string for exact unique-word spellings recovers the skips on perfect phonemes and does not survive the phone channel. An unconditional drop of any alignment gap that sits on a non-unique word immediately before a refrain deletes a real omission when the anchor pass does not replace it. Neither is in this build.
+
+The session JSON and the dump harness keyed to the six targets are not part of the change.
 
 ## Limits
 
-26:109 is still missed. The aligner binds 26:108:3 back onto 26:103:8. Treating that jump as the reciter going back deletes the unique anchor in front of the skip, and keeping the anchor reopened a false omission at 26:103:8. The bind is left to the alignment.
+Unit coverage is clean phonemes: the six refrain shapes, a repeated refrain, a surah-55 stretch longer than the window with nothing missing, and a 26:130 skip whose left anchor has left the window. Phone posteriors and the clean-session slice are the supervisor's score.
 
-A visit history kept past the alignment commit recovered the same five skips on the oracle arm, then the practice score of that build was worse: overall 89 → 110 (+21), checker 37 → 48 (+11), almost all of it new false warnings (checker 4 → 16, listener 19 → 27). Words the window had already committed fell out of the history and the next unique word turned the hole into a skip. That history is gone. Anchors are the current window again, which is the build whose oracle numbers are in the table above. The three practice scores are used (two deadline failures on the card commit, one on the history build), so this note has no phone number for the window-only build. The supervisor's score is the one that counts.
-
-A repeated refrain with nothing unique missing stays quiet in the unit test.
+A restart onto an earlier unique word drops the carried words between the two copies out of this pass. The phoneme anchor only sees three ayahs past the last forward visit, and only an exact word, so a skip whose next unique word is further than that, or was heard with a phoneme changed, still depends on the alignment visiting it.

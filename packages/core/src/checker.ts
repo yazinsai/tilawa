@@ -5,7 +5,7 @@ import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
-import { anchorForm, anchorSkipRuns, duplicateSpans, phonemeSkipRuns } from "./checker-anchors.js";
+import { anchorForm, anchorSkipRuns, duplicateSpans } from "./checker-anchors.js";
 import type { AnchorVisit } from "./checker-anchors.js";
 import { lexicalWords } from "./checker-lexical.js";
 
@@ -173,7 +173,6 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     ayahLast[ayahFirst.length - 1] = i;
   });
   const spans = duplicateSpans(words, ref);
-  const rawWord = words.map((w) => (w.end > w.start ? ref.slice(w.start, w.end) : ""));
   const ayahStart = words.map((_, i) => ayahFirst[ayahOf[i]] === i);
   const fatiha = words.filter((w) => w.surah === 1 && w.ayah === 1);
   const phrases = [...(options.phrases?.phrases.map((p) => p.p) ?? []), ref.slice(fatiha[0].start, fatiha.at(-1)!.end)];
@@ -210,8 +209,15 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   let declared = !!passage;
   /** Phonemes since the last anchor (or the latest `HISTORY` while not anchored). */
   let obs: Heard[] = [];
-  /** Longer than the alignment window, so a refrain skip can still see both unique anchors after a commit. */
-  let skipHeard = "";
+  /**
+   * Last unique word counted before the commit cut, and the counted words after it. A refrain skip's two anchors
+   * are often further apart than the alignment window; the words already matched stay heard, so the cut is not a hole.
+   */
+  let heardAnchor = -1;
+  /** Latest unique word counted in order. A refrain omission waits for one past its end before it confirms. */
+  let uniqueReached = -1;
+  let carriedHeard: { word: number; wrong: boolean }[] = [];
+  let anchorCandidates: { word: number; obsTo: number; wrong: boolean }[] = [];
   /** Word the window's alignment starts from; null while not anchored. */
   let anchor: number | null = null;
   let lead = 0;
@@ -313,6 +319,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     anchor = null;
     furthest = -1;
+    heardAnchor = -1;
+    carriedHeard = [];
+    anchorCandidates = [];
+    uniqueReached = -1;
     obs = obs.slice(-AFTER_DROP);
   };
 
@@ -794,9 +804,6 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         gap = placements.find(onStart) ?? gap;
       }
       const n = words.slice(gap.word, gap.last + 1).filter((x) => x.end > x.start).length;
-      // المؤمنون before مؤمنين: the seam landed on the word before the refrain, which is not itself repeated text.
-      const next = nextWord(gap.word);
-      if (!spans.unique[gap.word] && !spans.refrain[gap.word] && next < spans.refrain.length && spans.refrain[next]) { gap = null; return; }
       issues.set(gap.word, { ...gap, cls: n >= 3 ? "skipped_passage" : "omitted_word" });
       gap = null;
     };
@@ -867,22 +874,60 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (!counts(v)) continue;
       views.push({ word: v.word, obsFrom: v.obsFrom, obsTo: v.obsTo, counts: true, wrong: wrong(v) });
     }
-    const w0 = index.wordAt(lo);
-    let w1 = index.wordAt(Math.max(lo, hi - 1));
-    const surah = words[w0].surah;
-    const ahead = ayahOf[w1] + 2;
-    while (w1 + 1 < words.length && words[w1 + 1].surah === surah && ayahOf[w1 + 1] <= ahead) w1++;
-    let textFrom = w0;
-    const minAyah = ayahOf[w0] - 4;
-    while (textFrom > 0 && words[textFrom - 1].surah === surah && ayahOf[textFrom - 1] >= minAyah) textFrom--;
-    const phoneRegions = phonemeSkipRuns({ raw: rawWord, unique: spans.unique, refrain: spans.refrain, ayahStart, from: textFrom, to: w1, heard: skipHeard });
-    // The alignment can still be sitting on the first refrain when the phonemes have already passed the next
-    // unique word. Confirmation waits for that word; count it as reached or the skip dies when the window jumps.
-    const phonemeReached = phoneRegions.reduce((n, r) => r.runs.length ? Math.max(n, r.to) : n, reached);
-    const regions = [
-      ...anchorSkipRuns({ form: spans.form, unique: spans.unique, refrain: spans.refrain, ayahStart, visits: views }),
-      ...phoneRegions,
-    ];
+    anchorCandidates = views.map((v) => ({ word: v.word, obsTo: v.obsTo, wrong: v.wrong }));
+    // The alignment window stops on the refrain, and the next unique word's phonemes get bound to an earlier copy.
+    // A word that occurs once and is actually in the phonemes is still an anchor; phone audio rarely matches exactly.
+    let scan = 0;
+    let prevWi = -1;
+    for (const v of views) {
+      if (v.wrong || v.word <= prevWi) continue;
+      prevWi = v.word;
+      scan = Math.max(scan, v.obsTo);
+    }
+    if (prevWi >= 0) {
+      const heardPh = obs.map((p) => p.p).join("");
+      const seen = new Set(views.map((v) => v.word));
+      const surah = words[prevWi].surah;
+      const horizon = ayahOf[prevWi] + 3;
+      for (let wi = prevWi + 1; wi < words.length && words[wi].surah === surah && ayahOf[wi] <= horizon; wi++) {
+        if (!spans.unique[wi] || seen.has(wi)) continue;
+        const text = words[wi].end > words[wi].start ? ref.slice(words[wi].start, words[wi].end) : "";
+        if (text.length < 6) continue;
+        const at = heardPh.indexOf(text, scan);
+        if (at < 0) continue;
+        views.push({ word: wi, obsFrom: at, obsTo: at + text.length, counts: true, wrong: false });
+        scan = at + text.length;
+      }
+    }
+    if (heardAnchor >= 0 && views.length && views.every((v) => words[v.word].surah !== words[heardAnchor].surah)) {
+      heardAnchor = -1;
+      carriedHeard = [];
+    }
+    // Words counted before the commit stay heard, in front of this window, so the cut does not look like a skip.
+    const anchored = (group: AnchorVisit[]): AnchorVisit[] => {
+      if (heardAnchor < 0 || !group.length || words[group[0].word].surah !== words[heardAnchor].surah) return group;
+      const present = new Set(group.map((v) => v.word));
+      const priorWords = carriedHeard.filter((c) => c.word > heardAnchor && !present.has(c.word) && words[c.word].surah === words[heardAnchor].surah);
+      if (!priorWords.length && present.has(heardAnchor)) return group;
+      const heard = group.find((v) => v.word === heardAnchor && !v.wrong);
+      const head: AnchorVisit[] = [heard
+        ? { ...heard, obsFrom: 0, obsTo: 1 }
+        : { word: heardAnchor, obsFrom: 0, obsTo: 1, counts: true, wrong: false }];
+      priorWords.forEach((c, i) => head.push({ word: c.word, obsFrom: i + 1, obsTo: i + 2, counts: true, wrong: c.wrong }));
+      const base = head.length + 1;
+      const rest = group.filter((v) => v.word > heardAnchor).map((v) => ({ ...v, obsFrom: v.obsFrom + base, obsTo: v.obsTo + base }));
+      return [...head, ...rest];
+    };
+    const groups: AnchorVisit[][] = [];
+    for (const v of views) {
+      const last = groups.at(-1);
+      if (!last || words[last[0].word].surah !== words[v.word].surah) groups.push([v]);
+      else last.push(v);
+    }
+    const regions = groups.flatMap((g) => anchorSkipRuns({ form: spans.form, unique: spans.unique, refrain: spans.refrain, ayahStart, visits: anchored(g) }));
+    let seq = heardAnchor;
+    for (const v of views) if (!v.wrong && spans.unique[v.word] && v.word > seq) seq = v.word;
+    uniqueReached = seq;
     for (const region of regions) {
       if (!region.runs.length) continue;
       for (const run of region.runs) {
@@ -919,7 +964,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         issues.set(run.word, { cls: n >= 3 ? "skipped_passage" : "omitted_word", word: run.word, last: run.last, obsFrom: before, obsTo: before });
       }
     }
-    return { issues, lexical: candidates, head, furthest: phonemeReached, steps, right };
+    return { issues, lexical: candidates, head, furthest: reached, steps, right };
   };
 
   /** Matched phonemes on the word after an error, heard after it: the next word has begun. */
@@ -965,8 +1010,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (const o of [...open.values()]) {
       const { issue } = o;
       const omission = issue.cls === "omitted_word" || issue.cls === "skipped_passage";
+      // The alignment's seam on a refrain can confirm a word early, before the next unique word shows where the gap
+      // actually is. Hold it until that word is in, or the session ends.
+      const held = omission && uniqueReached <= issue.last && spans.refrain.slice(issue.word, issue.last + 1).some(Boolean);
       const due = omission
-        ? final || ayahOf[reached] >= ayahOf[issue.last] + 2
+        ? final || (!held && ayahOf[reached] >= ayahOf[issue.last] + 2)
         : head !== issue.word &&
           onset(steps, issue) &&
           (confirm.after === "next-word" || nowMs - o.sinceMs >= confirm.ms || (final && declared && (!latched || (policy.finaliseFree ?? true)) && [...right].some((wi) => wi > issue.last)));
@@ -998,6 +1046,23 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     if (cut < 0) return;
     const word = index.wordAt(at);
+    // Freeze counted words that just left the window. The latest unique one is the left anchor of the next span;
+    // the rest stay heard so a refrain already said is not a hole.
+    if (heardAnchor >= 0 && words[heardAnchor].surah !== words[word].surah) {
+      heardAnchor = -1;
+      carriedHeard = [];
+    }
+    const surah = words[word].surah;
+    const frozen = carriedHeard.filter((c) => words[c.word].surah === surah);
+    let nextAnchor = heardAnchor;
+    for (const c of anchorCandidates) {
+      if (c.obsTo > cut || c.word >= word || c.word <= heardAnchor || words[c.word].surah !== surah) continue;
+      if (!frozen.some((f) => f.word === c.word)) frozen.push({ word: c.word, wrong: c.wrong });
+      if (!c.wrong && spans.unique[c.word] && c.word > nextAnchor) nextAnchor = c.word;
+    }
+    heardAnchor = nextAnchor;
+    carriedHeard = frozen.filter((c) => c.word > heardAnchor).sort((a, b) => a.word - b.word);
+    anchorCandidates = [];
     for (const o of [...open.values()]) if (o.issue.word < word) decide(o, out);
     for (const o of open.values()) {
       const range = o.issue.supportRange;
@@ -1086,8 +1151,6 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const next = track(events, out);
       const before = obs.length;
       obs.push(...evidence.phonemes.map((p) => ({ ...p })));
-      skipHeard += evidence.phonemes.map((p) => p.p).join("");
-      if (skipHeard.length > 600) skipHeard = skipHeard.slice(-600);
       markPhrases(before);
       const lastPh = obs.at(-1);
       if (lastPh) nowMs = Math.max(nowMs, (lastPh.end + 1) * frameMs);

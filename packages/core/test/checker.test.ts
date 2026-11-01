@@ -246,6 +246,18 @@ describe("skips", () => {
     const events = passage(from, w(55, 31, 4), [{ kind: "repeat", from: at55(w(55, 28, 1)), to: at55(w(55, 29, 1)) }]);
     expect(confirmed(events)).toEqual([]);
   });
+
+  it("stays quiet through repeated refrains longer than the alignment window", () => {
+    expect(confirmed(passage(w(55, 20, 1), w(55, 45, 4)))).toEqual([]);
+  });
+
+  it("catches a refrain skip after the left anchor has left the alignment window", () => {
+    const from = w(26, 116, 1);
+    const events = passage(from, w(26, 136, 2), drop(from, w(26, 130, 1), w(26, 130, 4)));
+    const got = confirmed(events).map((e) => `${e.errorClass} ${key(e.location)}`);
+    expect(got).toContain("skipped_passage 26:130:1");
+    expect(got.some((e) => e.includes("26:131"))).toBe(false);
+  });
 });
 
 describe("confirm delay", () => {
