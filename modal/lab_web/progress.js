@@ -1,5 +1,5 @@
 import { icon } from './item.js';
-import { $, esc, NAMES, qs, day, plural, fewer, sentence, sw, span, ago, api, topbar, staleNotice } from './al.js';
+import { $, esc, NAMES, qs, day, plural, fewer, sentence, sw, span, ago, api, topbar, staleNotice, plainLines, RESULT_KIND } from './al.js';
 
 const root = new URL(location.href).searchParams.get('root');
 const POLL_MS = 10_000;
@@ -14,6 +14,10 @@ let seen = null; // id -> outcome|state at the previous render of this scope, fo
 let seenScope = null;
 let seenTicks = null;
 let tips = [];
+let hover = null; // experiment under the pointer, in the graph or the list
+let pinned = null; // experiment clicked or tapped: its branch and row stay lit
+let labOpen = false;
+let listHtml = '';
 
 const clock = (t) => new Date(t).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 const dayOnly = (t) => new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -79,9 +83,7 @@ function branchTip(b) {
   const res =
     b.change != null
       ? `<p><span>Practice</span><b>${fewer(b.change)}</b>${b.expected != null ? ` · expected ${fewer(b.expected)}` : ''}${Math.abs(b.change) <= NOISE ? ' <i>(noise)</i>' : ''}</p>`
-      : b.expected != null
-        ? `<p><span>Expects</span>${fewer(b.expected)}</p>`
-        : '';
+      : '';
   const state =
     b.outcome === 'live'
       ? `<p><span>Now</span><b>${esc(b.stateText)}</b> for ${span(b.ageSeconds)}</p>`
@@ -91,9 +93,10 @@ function branchTip(b) {
           ? `<p><span>Open</span>${esc(b.stateText)}</p>`
           : `<p><span>${esc(sentence(b.state))}</span>${day(b.end)}</p>`;
   return `<h4>${sw(b.component)}${esc(b.id)}</h4><small>${esc(who)}</small>
-    ${b.hypothesis ? `<q>${esc(b.hypothesis)}</q>` : ''}
+    <div class="pg-plain">${plainLines(b)}</div>
+    <div class="pg-techd">${b.eli5?.plain && b.hypothesis ? `<q>${esc(b.hypothesis)}</q>` : ''}
     <p><span>Started</span>${day(b.start)}${b.base != null ? ` · line at ${b.base}` : ''}</p>${state}${res}
-    ${b.reason ? `<p class="pg-why">${esc(sentence(b.reason))}</p>` : ''}`;
+    ${b.reason && !b.resultText ? `<p class="pg-why">${esc(sentence(b.reason))}</p>` : ''}</div>`;
 }
 
 function fit(text, px) {
@@ -321,7 +324,49 @@ function section(v) {
     <p class="sec-p">The main line runs left to right with the practice count after each score; each experiment leaves it when it starts. A green join is a fold;
       a faded branch was let go (point at it for why); branches ending at now are still running. Quiet stretches are squeezed into breaks.
       <span id="pg-counts"></span></p>
-    ${key()}<div class="pg-fig" id="pg-fig"><div class="pg-tip" id="pg-tip" hidden></div><div id="pg-svg"></div></div></section>`;
+    ${key()}<div class="pg-fig" id="pg-fig"><div class="pg-tip" id="pg-tip" hidden></div><div id="pg-svg"></div></div>
+    <div class="pg-list" id="pg-list" aria-label="The experiments in this range, in plain words"></div></section>`;
+}
+
+// The experiments in this range, in words: always on the page, not only on hover.
+
+const CHIP = { folded: ['better', 'Folded in'], discarded: ['worse', 'Discarded'], superseded: ['', 'Gain gone'], abandoned: ['', 'Given up'] };
+
+function chip(b) {
+  if (b.outcome === 'live') return `<span class="verdict${b.waiting ? ' wait' : ''}">${esc(sentence(SHORT[b.state] || b.state))}</span>`;
+  if (b.outcome === 'open') return '<span class="verdict">Open</span>';
+  const [k, t] = CHIP[b.state] || [RESULT_KIND[b.state] ?? '', b.stateText];
+  return `<span class="verdict ${k}">${esc(t)}</span>`;
+}
+
+function rowMark(b) {
+  const kind = b.source === 'lab' ? 'hollow' : TIER_MARK[b.tier] || 'circle';
+  return `<svg class="pg-rm ${b.source}" width="14" height="14" viewBox="0 0 14 14" style="--c:var(--${b.component || 'g-500'})" aria-hidden="true">${mark(kind, 7, 7, '')}</svg>`;
+}
+
+function row(b) {
+  const when = b.outcome === 'live' ? `for ${span(b.ageSeconds)}` : b.outcome === 'open' ? `since ${dayOnly(b.start)}` : day(b.end);
+  const who = [NAMES[b.component] || b.component, b.tierText].filter(Boolean).join(' · ');
+  return `<li class="pg-row ${b.outcome} ${b.source}" data-k="${esc(b.id)}" tabindex="0">
+    <div class="pg-row-h">${rowMark(b)}<b>${esc(b.id)}</b>${chip(b)}<span class="muted small">${esc(who)}${who ? ' · ' : ''}${when}</span></div>
+    <div class="pg-row-b">${plainLines(b)}</div></li>`;
+}
+
+function list(view) {
+  const br = view.branches;
+  const t = (x) => Date.parse(x || 0);
+  const live = br.filter((b) => b.outcome === 'live').sort((a, b) => t(b.start) - t(a.start));
+  const done = br.filter((b) => b.source === 'autolab' && b.outcome !== 'live').sort((a, b) => t(b.end) - t(a.end));
+  const lab = br.filter((b) => b.source === 'lab').sort((a, b) => (b.outcome === 'open') - (a.outcome === 'open') || t(b.end) - t(a.end));
+  const group = (h, rows) => (rows.length ? `<h3 class="group-h">${h} <span>${rows.length}</span></h3><ol class="pg-rows">${rows.map(row).join('')}</ol>` : '');
+  const labOpenN = lab.filter((b) => b.outcome === 'open').length;
+  return (
+    group('In flight', live) +
+    group('Decided by autolab, newest first', done) +
+    (lab.length
+      ? `<details class="more pg-lab" id="pg-lab"${labOpen ? ' open' : ''}><summary>${icon('right')}Hand-run lab: ${plural(lab.length, 'experiment')}${labOpenN ? `, ${labOpenN} still open` : ''}</summary><ol class="pg-rows">${lab.map(row).join('')}</ol></details>`
+      : '') || '<p class="group-h">No experiments in this range</p>'
+  );
 }
 
 const counts = (c) => `${c.live} running, ${c.folded} folded, ${c.ended} let go${c.open ? `, ${c.open} still open in the hand-run lab` : ''}.`;
@@ -355,9 +400,16 @@ function render(v) {
   $('pg-notice').innerHTML = staleNotice(v.heartbeat) + (v.heartbeat?.paused ? `<div class="notice warn"><b>Paused:</b> ${esc(v.heartbeat.paused)}. Running work finishes; nothing new starts.</div>` : '');
   $('pg-hero').innerHTML = hero(v);
   $('pg-tick').innerHTML = ticker(v);
-  if (!$('pg-fig') || seenScope !== scope || last?.testSet !== v.testSet) $('pg-sec').innerHTML = section(v);
+  if (!$('pg-fig') || seenScope !== scope || last?.testSet !== v.testSet) {
+    $('pg-sec').innerHTML = section(v);
+    listHtml = '';
+  }
   $('pg-counts').textContent = counts(view.counts);
   $('pg-svg').innerHTML = draw(v, view, width());
+  const lh = list(view);
+  if (lh !== listHtml) $('pg-list').innerHTML = listHtml = lh;
+  if (pinned && !view.branches.some((b) => b.id === pinned)) pinned = null;
+  light();
   const t = $('pg-tip');
   if (!t.hidden) {
     const el = t.dataset.k && $('pg-svg').querySelector(`[data-k="${CSS.escape(t.dataset.k)}"]`);
@@ -383,9 +435,46 @@ function showTip(el, px, py) {
   t.style.top = `${Math.max(0, top)}px`;
 }
 
+// Highlight: an experiment under the pointer (or pinned) lights its branch and its row together.
+
+const sel = (id) => `#pg-sec [data-k="${CSS.escape(id)}"]`;
+
+function light() {
+  const id = hover ?? pinned;
+  for (const el of document.querySelectorAll('#pg-sec .hl, #pg-sec .pinned')) el.classList.remove('hl', 'pinned');
+  $('pg-svg')?.firstElementChild?.classList.toggle('focus', !!id);
+  if (id) for (const el of document.querySelectorAll(sel(id))) el.classList.add('hl');
+  if (pinned) $('pg-list')?.querySelector(`[data-k="${CSS.escape(pinned)}"]`)?.classList.add('pinned');
+}
+
+function pin(id, scroll = false) {
+  pinned = id;
+  light();
+  const row = id && $('pg-list')?.querySelector(`[data-k="${CSS.escape(id)}"]`);
+  if (!row || !scroll) return;
+  const d = row.closest('details');
+  if (d && !d.open) d.open = labOpen = true;
+  row.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+}
+
+function tipAt(el) {
+  const fig = $('pg-fig');
+  const a = el.getBoundingClientRect();
+  const r = fig.getBoundingClientRect();
+  showTip(el, a.left - r.left + fig.scrollLeft + 24, a.bottom - r.top - 8);
+}
+
+document.addEventListener('pointerover', (e) => {
+  const id = e.target.closest?.('#pg-sec [data-k]')?.dataset.k ?? null;
+  if (id === hover) return;
+  hover = id;
+  light();
+});
+document.addEventListener('toggle', (e) => e.target.id === 'pg-lab' && (labOpen = e.target.open), true);
+
 document.addEventListener('pointermove', (e) => {
   const fig = $('pg-fig');
-  if (!fig) return;
+  if (!fig || pinned) return;
   const el = e.target.closest?.('[data-i]');
   if (!el || !fig.contains(el)) {
     if (!$('pg-tip').hidden && !e.target.closest?.('.pg-tip')) $('pg-tip').hidden = true;
@@ -395,14 +484,46 @@ document.addEventListener('pointermove', (e) => {
   showTip(el, e.clientX - r.left + fig.scrollLeft, e.clientY - r.top);
 });
 document.addEventListener('focusin', (e) => {
+  const k = e.target.closest?.('#pg-sec [data-k]')?.dataset.k;
+  if (k && !pinned) {
+    hover = k;
+    light();
+  }
   const el = e.target.closest?.('#pg-fig [data-i]');
-  if (!el) return;
-  const fig = $('pg-fig');
-  const a = el.getBoundingClientRect();
-  const r = fig.getBoundingClientRect();
-  showTip(el, a.left - r.left + fig.scrollLeft + 24, a.bottom - r.top - 8);
+  if (el && !pinned) tipAt(el);
 });
-document.addEventListener('focusout', (e) => e.target.closest?.('#pg-fig [data-i]') && ($('pg-tip').hidden = true));
+document.addEventListener('focusout', (e) => !pinned && e.target.closest?.('#pg-fig [data-i]') && ($('pg-tip').hidden = true));
+
+// Click or tap a branch: its tooltip stays and its row is scrolled to and pinned. Click a row to pin its branch.
+function choose(e, el) {
+  const id = el.dataset.k;
+  if (el.closest('#pg-list')) {
+    pin(pinned === id ? null : id);
+    $('pg-tip').hidden = true;
+    return;
+  }
+  pin(id, true);
+  if (!e.clientX && !e.clientY) return tipAt(el);
+  const fig = $('pg-fig');
+  const r = fig.getBoundingClientRect();
+  showTip(el, e.clientX - r.left + fig.scrollLeft, e.clientY - r.top);
+}
+
+document.addEventListener('keydown', (e) => {
+  const el = (e.key === 'Enter' || e.key === ' ') && e.target.closest?.('#pg-sec [data-k]');
+  if (!el) return;
+  e.preventDefault();
+  choose(e, el);
+});
+document.addEventListener('click', (e) => {
+  if (!$('pg-sec') || e.target.closest('[data-scope], summary, a, button')) return;
+  const el = e.target.closest('#pg-sec [data-k]');
+  if (el) return choose(e, el);
+  if (pinned && !e.target.closest('.pg-tip')) {
+    pin(null);
+    $('pg-tip').hidden = true;
+  }
+});
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-scope]');
   if (!b || b.dataset.scope === scope) return;

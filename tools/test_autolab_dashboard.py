@@ -125,6 +125,43 @@ def test_exam_numbers_never_reach_the_page():
     assert V.scrub({"a": [{"exam": 1, "Exams": 2, "examTripwire": "pass", "b": 3}]}) == {"a": [{"examTripwire": "pass", "b": 3}]}
 
 
+def test_eli5_card_then_file_then_hypothesis():
+    assert V.eli5("x", {"eli5": " Card line. ", "hypothesis": "h"}, {"x": "File line."}) == {"text": "Card line.", "plain": True}
+    assert V.eli5("x", {"eli5": "", "hypothesis": "h"}, {"x": "File line."}) == {"text": "File line.", "plain": True}
+    assert V.eli5("x", {"hypothesis": "Technical words"}, {"y": "other"}) == {"text": "Technical words", "plain": False}
+    assert V.eli5("x", None, None) == {"text": "", "plain": False}
+
+
+def test_expectation_and_result_in_plain_words():
+    assert V.expect_text({"component": -5, "overall": -4}, "checker") == "Expected: about 4 fewer wrong calls overall (5 fewer charged to the checker)"
+    assert V.expect_text({"component": 0, "overall": 0}, "tracker") == "Expected: no change overall (no change charged to the tracker)"
+    assert V.expect_text({"component": 2, "overall": 1}, "tracker") == "Expected: about 1 more wrong call overall (2 more charged to the tracker)"
+    assert V.expect_text({"overall": -3}, None) == "Expected: about 3 fewer wrong calls overall"
+    assert V.expect_text(None, "checker") is None
+    e = {"overall": -8}
+    assert V.result_text("folded", -10, e) == "Result: 10 fewer (expected 8 fewer), kept"
+    assert V.result_text("discarded", -1, e, "Introduces new false alarms") == "Result: no real change (1 fewer; expected 8 fewer), dropped: introduces new false alarms"
+    assert V.result_text("discarded", 0, e) == "Result: no real change (expected 8 fewer), dropped"
+    assert V.result_text("discarded", 4, None) == "Result: 4 more, dropped"
+    assert V.result_text("superseded", -3, e, "x") == "Result: 3 fewer (expected 8 fewer), dropped: the gain was gone after catching up with the line"
+    assert V.result_text("abandoned", None, e, "timed out") == "Result: not scored, given up: timed out"
+    assert V.result_text("implementing", None, e) is None
+    long = V.result_text("discarded", 5, e, "word " * 80)
+    assert long.endswith("…") and len(long) < 220
+
+
+def test_rows_carry_the_plain_lines():
+    v = V.view(state(), events(), NOW, mainline(), {"checker-madd-length": "A long held vowel is not an extra word."})
+    r = v["running"][0]
+    assert r["eli5"] == {"text": "A long held vowel is not an extra word.", "plain": True}
+    assert r["expectText"].startswith("Expected: about ") and "charged to the checker" in r["expectText"]
+    assert v["queue"][0]["eli5"]["plain"] is False and v["queue"][0]["eli5"]["text"]
+    assert v["needsHuman"][0]["expectText"].startswith("Expected:") and v["needsHuman"][0]["eli5"]["text"].startswith("Widen the restart")
+    vs = {x["id"]: x for x in v["verdicts"]}
+    assert vs["checker-added-word-confirm"]["resultText"] == "Result: 5 fewer (expected 4 fewer), kept"
+    assert vs["listener-blank-penalty"]["resultText"].startswith("Result: 4 fewer (expected 5 fewer), dropped: failed the gate: fewer wrong calls")
+
+
 def test_portfolio_coverage_spend():
     v = page()
     p = v["portfolio"]

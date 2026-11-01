@@ -439,10 +439,15 @@ def web():
         led = led if isinstance(led, dict) and led.get("kind") == "lab-ledger" else None
         return d, st, led, datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
+    def explained(d: Path) -> dict:
+        """eli5.json: experiment id -> one plain sentence, for cards written before they carried their own."""
+        x = read_json(d / "eli5.json")
+        return {k: v for k, v in x.items() if isinstance(v, str)} if isinstance(x, dict) else {}
+
     @api.get("/api/autolab")
     def autolab(root: str | None = None):
         d, st, led, now = autolab_files(root)
-        return AD.view(st, tail_events(d / "events.jsonl"), now, led and led.get("mainLine"))
+        return AD.view(st, tail_events(d / "events.jsonl"), now, led and led.get("mainLine"), explained(d))
 
     import autolab_graph_core as AG
 
@@ -457,11 +462,12 @@ def web():
         d, st, led, now = autolab_files(root)
         lab = read_json(d / "lab-ledger.json") if root and (d / "lab-ledger.json").is_file() else read_json(LAB / "ledger.json")
         lab = lab if isinstance(lab, dict) and lab.get("kind") == "lab-ledger" else None
+        main = (st or {}).get("main") or {}
         try:
-            report = run_score(((st or {}).get("main") or {}).get("run"))
+            report = None if isinstance(main.get("teacherWrongCalls"), int) else run_score(main.get("run"))
         except HTTPException:
             report = None
-        return AG.progress(st, tail_events(d / "events.jsonl"), lab, led, now, report)
+        return AG.progress(st, tail_events(d / "events.jsonl"), lab, led, now, report, explained(d))
 
     import lab_models_core as M
 

@@ -65,6 +65,63 @@ def wc(x) -> int | None:
     return x if isinstance(x, int) else x.get("wrongCalls") if isinstance(x, dict) else None
 
 
+# Plain words for an experiment: what it is about, what it expects and what came of it (practice counts only).
+
+NOISE = 2
+KEPT = {"folded": "kept", "discarded": "dropped", "superseded": "dropped: the gain was gone after catching up with the line",
+        "abandoned": "given up"}
+REASON_CHARS = 140
+
+
+def eli5(id: str, card: dict | None, extra: dict | None = None) -> dict:
+    """{"text", "plain"}: the card's own eli5, else the explained-later file's line, else the hypothesis (not plain)."""
+    c = card or {}
+    for t in (c.get("eli5"), (extra or {}).get(id)):
+        if isinstance(t, str) and t.strip():
+            return {"text": t.strip(), "plain": True}
+    return {"text": (c.get("hypothesis") or "").strip(), "plain": False}
+
+
+def about(n: int) -> str:
+    return f"{abs(n)} {'fewer' if n < 0 else 'more'} wrong call{'' if abs(n) == 1 else 's'}"
+
+
+def expect_text(expected: dict | None, component: str | None) -> str | None:
+    """'Expected: about 4 fewer wrong calls overall (5 fewer charged to the checker)'."""
+    e = expected or {}
+    o, c = e.get("overall"), e.get("component")
+    if not isinstance(o, int):
+        return None
+    head = "Expected: no change overall" if o == 0 else f"Expected: about {about(o)} overall"
+    if isinstance(c, int) and component:
+        part = "no change" if c == 0 else f"{abs(c)} {'fewer' if c < 0 else 'more'}"
+        head += f" ({part} charged to the {component})"
+    return head
+
+
+def short(reason: str) -> str:
+    r = " ".join((reason or "").split())
+    return r if len(r) <= REASON_CHARS else r[:REASON_CHARS].rsplit(" ", 1)[0].rstrip(",;:") + "…"
+
+
+def result_text(state: str | None, change: int | None, expected: dict | None, reason: str = "") -> str | None:
+    """'Result: 10 fewer (expected 8 fewer), kept' or 'Result: no real change (1 fewer), dropped: <reason>'; None while running."""
+    if state not in KEPT and state != "open":
+        return None
+    o = (expected or {}).get("overall")
+    exp = f"expected {fewer(o)}" if isinstance(o, int) else ""
+    if change is None:
+        got = "not scored"
+    elif abs(change) <= NOISE:
+        got = "no real change" + (f" ({'; '.join(x for x in (fewer(change) if change else '', exp) if x)})" if change or exp else "")
+    else:
+        got = fewer(change) + (f" ({exp})" if exp else "")
+    if state == "open":
+        return f"So far: {got} on its branch, waiting for a decision"
+    why = short(reason) if state in ("discarded", "abandoned") else ""
+    return f"Result: {got}, {KEPT[state]}{f': {why[0].lower() + why[1:]}' if why else ''}"
+
+
 def scrub(x):
     """Drops every exam key, at any depth. The tripwire's word (pass or blocked) is the one exam fact the page shows."""
     if isinstance(x, dict):
@@ -91,12 +148,13 @@ def card_of(e: dict) -> dict:
     return e.get("card") or {}
 
 
-def row(e: dict, now: str) -> dict:
+def row(e: dict, now: str, explained: dict | None = None) -> dict:
     c = card_of(e)
     limit = S.timeout(e) if e.get("state") in S.TIMEOUTS else None
     age = seconds(e.get("since"), now)
     ex = e.get("executor") or {}
     return {"id": e["id"], "component": c.get("component"), "tier": e.get("tier") or c.get("tier"), "tierText": TIERS.get(e.get("tier"), e.get("tier")),
+            "eli5": eli5(e["id"], c, explained), "expectText": expect_text(c.get("expected"), c.get("component")),
             "state": e["state"], "stateText": STATE_TEXT.get(e["state"], e["state"]), "since": e.get("since"), "ageSeconds": age,
             "limitMinutes": limit, "late": bool(limit and age is not None and age > limit * 60), "hypothesis": c.get("hypothesis", ""),
             "cluster": c.get("cluster"), "expected": c.get("expected"), "executor": ex.get("model") or ex.get("runtime"),
@@ -161,11 +219,16 @@ def practice_change(res: dict, card: dict) -> dict | None:
     return None
 
 
-def verdict_row(e: dict, now: str) -> dict:
+def why_ended(e: dict, gate: dict | None) -> str:
+    return f"failed the gate: {', '.join(gate['failed']).lower()}" if gate and gate["failed"] else e.get("note", "")
+
+
+def verdict_row(e: dict, now: str, explained: dict | None = None) -> dict:
     res, c = e.get("results") or {}, card_of(e)
     fold = res.get("fold") if isinstance(res.get("fold"), dict) else {}
-    return {**{k: v for k, v in row(e, now).items() if k not in ("limitMinutes", "late")}, "at": e.get("since"),
-            "gate": gate_view(res.get("gate") or fold.get("gate")), "practice": practice_change(res, c),
+    gate, pc = gate_view(res.get("gate") or fold.get("gate")), practice_change(res, c)
+    return {**{k: v for k, v in row(e, now, explained).items() if k not in ("limitMinutes", "late")}, "at": e.get("since"),
+            "gate": gate, "practice": pc, "resultText": result_text(e["state"], pc and pc["overall"], c.get("expected"), why_ended(e, gate)),
             "examTripwire": fold.get("examTripwire"), "journal": f"{JOURNAL}#{e['id']}"}
 
 
@@ -243,8 +306,9 @@ def activity(events: list[dict]) -> list[dict]:
 # The page
 
 
-def view(state: dict | None, events: list[dict], now: str, mainline: list[dict] | None = None) -> dict:
-    """Everything the Autolab tab shows. `state` None means the supervisor hasn't written state.json yet."""
+def view(state: dict | None, events: list[dict], now: str, mainline: list[dict] | None = None, explained: dict | None = None) -> dict:
+    """Everything the Autolab tab shows. `state` None means the supervisor hasn't written state.json yet; `explained` is
+    /lab/autolab/eli5.json (experiment id -> plain sentence) for cards written before they carried one."""
     if not state:
         return scrub({"started": False, "testSet": None, "heartbeat": {"at": None, "ageSeconds": None, "tickSeconds": None, "stale": False, "paused": None, "ticks": 0},
                       "main": None, "needsHuman": [], "running": [], "queue": [], "verdicts": [], "trend": trend(mainline, None),
@@ -254,14 +318,16 @@ def view(state: dict | None, events: list[dict], now: str, mainline: list[dict] 
     need = []
     for h in state.get("needsHuman") or []:
         e = exps.get(h.get("id"))
+        c = card_of(e) if e else {}
         need.append({"id": h.get("id"), "what": h.get("what", ""), "at": h.get("at"), "ageSeconds": seconds(h.get("at"), now),
-                     "component": card_of(e).get("component") if e else None, "hypothesis": card_of(e).get("hypothesis", "") if e else ""})
+                     "component": c.get("component"), "hypothesis": c.get("hypothesis", ""), "tierText": TIERS.get(e.get("tier")) if e else None,
+                     "eli5": eli5(h.get("id") or "", c, explained), "expectText": expect_text(c.get("expected"), c.get("component"))})
     return scrub({
         "started": True, "testSet": state.get("testSet"), "heartbeat": heartbeat(state, now), "main": main_view(state.get("main")),
         "needsHuman": need,
-        "running": [row(e, now) for e in by_since(e for e in exps.values() if e.get("state") in RUNNING)],
-        "queue": [row(e, now) for e in by_since(e for e in exps.values() if e.get("state") in QUEUED)],
-        "verdicts": [verdict_row(e, now) for e in by_since((e for e in exps.values() if e.get("state") in S.TERMINAL), rev=True)][:VERDICTS],
+        "running": [row(e, now, explained) for e in by_since(e for e in exps.values() if e.get("state") in RUNNING)],
+        "queue": [row(e, now, explained) for e in by_since(e for e in exps.values() if e.get("state") in QUEUED)],
+        "verdicts": [verdict_row(e, now, explained) for e in by_since((e for e in exps.values() if e.get("state") in S.TERMINAL), rev=True)][:VERDICTS],
         "trend": trend(mainline, state.get("testSet")), "portfolio": portfolio(state), "coverage": coverage(state), "spend": spend(state),
         "activity": activity(events),
     })

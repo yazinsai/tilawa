@@ -1,11 +1,13 @@
 """Pure logic for the Autolab progress page (/autolab/live): the main line and every experiment drawn as a git-style
 graph, and the practice score with how close it is to the goal.
 
-    progress(state, events, lab, autolab, now, report=None) -> {"now", "testSet", "heartbeat", "views", "score", "ticker"}
+    progress(state, events, lab, autolab, now, report=None, explained=None)
+        -> {"now", "testSet", "heartbeat", "views", "score", "ticker"}
 
 `lab` is the hand-run lab's ledger (/lab/ledger.json), `autolab` the shadow line's (/lab/autolab/ledger.json), both in
 tools/lab_ledger.py's shape; `report` is the autolab line's latest score.json, of which only the practice teacher count
-is read. Each of `views` ("autolab", "testSet", "all") is one graph: spine points, test-set boundaries, branches with
+is read (state.main.teacherWrongCalls first); `explained` is /lab/autolab/eli5.json, the plain line for cards written
+before they carried one. Each of `views` ("autolab", "testSet", "all") is one graph: spine points, test-set boundaries, branches with
 non-overlapping lanes, and the stretches of time worth drawing (quiet ones longer than GAP_S become breaks).
 
 Served by modal/lab_review.py (GET /api/autolab/progress); tested by tools/test_autolab_graph.py. Practice numbers
@@ -63,7 +65,7 @@ def boundaries(pts: list[dict]) -> list[dict]:
 # Experiments
 
 
-def lab_branches(lab: dict | None, now: str) -> list[dict]:
+def lab_branches(lab: dict | None, now: str, explained: dict | None = None) -> list[dict]:
     out = []
     for id, e in ((lab or {}).get("experiments") or {}).items():
         c, d, state = e.get("card") or {}, e.get("decision") or {}, e.get("state")
@@ -73,7 +75,8 @@ def lab_branches(lab: dict | None, now: str) -> list[dict]:
                     "stateText": LAB_TEXT.get(state, state), "outcome": "folded" if state == "folded" else "open" if state == "open" else "ended",
                     "start": c.get("created"), "end": now if state == "open" else d.get("at"), "testSet": tset, "hypothesis": c.get("hypothesis", ""),
                     "expected": (c.get("expected") or {}).get("overall"), "result": AD.wc((run or {}).get("practice")), "change": None,
-                    "reason": d.get("note", ""), "stages": [], "ageSeconds": None})
+                    "reason": d.get("note", ""), "stages": [], "ageSeconds": None, "eli5": AD.eli5(id, c, explained),
+                    "expectText": AD.expect_text(c.get("expected"), component_of(id, c)), "baseN": None, "foldEventN": None})
     return out
 
 
@@ -100,7 +103,8 @@ def autolab_experiments(st: dict | None, events: list[dict]) -> dict:
     return exps
 
 
-def autolab_branches(st: dict | None, events: list[dict], now: str) -> list[dict]:
+def autolab_branches(st: dict | None, events: list[dict], now: str, explained: dict | None = None) -> list[dict]:
+    folds = {ev.get("id"): ev.get("wrongCalls") for ev in events if ev.get("to") == "folded" and isinstance(ev.get("wrongCalls"), int)}
     out = []
     for id, e in autolab_experiments(st, events).items():
         c, state, hist = e.get("card") or {}, e.get("state"), e.get("history") or []
@@ -109,7 +113,8 @@ def autolab_branches(st: dict | None, events: list[dict], now: str) -> list[dict
         gate = AD.gate_view(res.get("gate") or fold.get("gate"))
         pc = AD.practice_change(res, c)
         live = state in LIVE
-        reason = f"Failed the gate: {', '.join(gate['failed']).lower()}" if gate and gate["failed"] else e.get("note", "")
+        reason = AD.why_ended(e, gate)
+        base = e.get("base") if isinstance(e.get("base"), dict) else {}
         out.append({"id": id, "source": "autolab", "component": component_of(id, c), "tier": e.get("tier") or c.get("tier"),
                     "tierText": AD.TIERS.get(e.get("tier") or c.get("tier")), "state": state, "stateText": AD.STATE_TEXT.get(state, state),
                     "outcome": "folded" if state == "folded" else "live" if live else "ended",
@@ -117,7 +122,9 @@ def autolab_branches(st: dict | None, events: list[dict], now: str) -> list[dict
                     "testSet": c.get("testSet") or (st or {}).get("testSet"), "hypothesis": c.get("hypothesis", ""),
                     "expected": (c.get("expected") or {}).get("overall"), "result": None, "change": pc["overall"] if pc else None,
                     "reason": "" if live else reason, "stages": [{"state": h.get("state"), "at": h.get("at")} for h in hist],
-                    "ageSeconds": AD.seconds(e.get("since"), now) if live else None, "waiting": state == "needs-human"})
+                    "ageSeconds": AD.seconds(e.get("since"), now) if live else None, "waiting": state == "needs-human",
+                    "eli5": AD.eli5(id, c, explained), "expectText": AD.expect_text(c.get("expected"), component_of(id, c)),
+                    "baseN": base.get("wrongCalls") if isinstance(base.get("wrongCalls"), int) else None, "foldEventN": folds.get(id)})
     return out
 
 
@@ -162,10 +169,15 @@ def graph(pts: list[dict], branches: list[dict], now: str) -> dict:
     for b in bs:
         base = next((p for p in reversed(pts) if p["testSet"] == b["testSet"] and ts(p["at"]) <= ts(b["start"])), None)
         fold = next((p for p in pts if p["experiment"] == b["id"]), None) if b["outcome"] == "folded" else None
-        b["base"] = base["n"] if base else None
-        b["foldAt"], b["foldN"] = (fold["at"], fold["n"]) if fold else (b["end"], None) if b["outcome"] == "folded" else (None, None)
+        b["base"] = b.pop("baseN") if b.get("baseN") is not None else base["n"] if base else None
+        fn = b.pop("foldEventN", None)
+        b["foldAt"], b["foldN"] = (fold["at"], fold["n"]) if fold else (b["end"], fn) if b["outcome"] == "folded" else (None, None)
+        b.pop("baseN", None)
         if b["change"] is None and b["result"] is not None and b["base"] is not None:
             b["change"] = b["result"] - b["base"]
+        if b["change"] is None and fn is not None and b["base"] is not None:
+            b["change"] = fn - b["base"]
+        b["resultText"] = AD.result_text(b["state"], b["change"], {"overall": b["expected"]}, b["reason"])
     n = lanes(bs)
     # a hand-run branch left open isn't activity: only its start counts, so the nights after it still fold away
     ws = windows([(p["at"], p["at"]) for p in pts] + [(b["start"], b["start"] if b["outcome"] == "open" else b["end"]) for b in bs] + [(now, now)], now)
@@ -194,7 +206,8 @@ def score(pts: list[dict], st: dict | None, test_set: str | None, now: str, repo
     g = (st or {}).get("goal")
     goal = g if isinstance(g, int) and not isinstance(g, bool) else AD.wc(g) if isinstance(g, dict) else None
     goal = {"n": goal if goal is not None else 0, "source": "state" if goal is not None else "zero"}
-    out = {"testSet": test_set, "series": series, "current": cur, "goal": goal, "teacher": teacher(report, test_set),
+    tw = ((st or {}).get("main") or {}).get("teacherWrongCalls")
+    out = {"testSet": test_set, "series": series, "current": cur, "goal": goal, "teacher": tw if isinstance(tw, int) else teacher(report, test_set),
            "start": None, "change": None, "toGo": None, "rate": None, "projection": None, "lastDay": None, "autolab": None}
     if not series or not cur:
         return out
@@ -232,10 +245,11 @@ def ticker(events: list[dict], branches: list[dict]) -> list[dict]:
 # The page
 
 
-def progress(state: dict | None, events: list[dict], lab: dict | None, auto: dict | None, now: str, report: dict | None = None) -> dict:
+def progress(state: dict | None, events: list[dict], lab: dict | None, auto: dict | None, now: str, report: dict | None = None,
+             explained: dict | None = None) -> dict:
     pts = spine(lab, auto)
     cur = (state or {}).get("testSet") or (auto or {}).get("testSet") or (pts[-1]["testSet"] if pts else None)
-    lb, ab = lab_branches(lab, now), autolab_branches(state, events, now)
+    lb, ab = lab_branches(lab, now, explained), autolab_branches(state, events, now, explained)
     views = {"autolab": graph([p for p in pts if p["source"] == "autolab"], ab, now),
              "testSet": graph([p for p in pts if p["testSet"] == cur], [b for b in lb + ab if b["testSet"] == cur], now),
              "all": graph(pts, lb + ab, now)}

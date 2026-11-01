@@ -1,5 +1,5 @@
 import { icon } from './item.js';
-import { $, esc, NAMES, qs, day, plural, fewer, sentence, sw, span, ago, api, topbar, staleNotice } from './al.js';
+import { $, esc, NAMES, qs, day, plural, fewer, sentence, sw, span, ago, api, topbar, staleNotice, plainLines } from './al.js';
 
 const url = new URL(location.href);
 const root = url.searchParams.get('root');
@@ -62,13 +62,19 @@ function hero(v) {
 
 // Experiments
 
+const about = (r) =>
+  plainLines(r) +
+  (r.eli5?.plain && r.hypothesis
+    ? `<details class="more" data-k="hyp"><summary>${icon('right')}In technical terms</summary><p class="exp-hyp small">${esc(r.hypothesis)}</p></details>`
+    : '');
+
 const head = (r, extra = '') =>
   `<h3 class="exp-id">${sw(r.component)}${esc(r.id)} <small>${esc(NAMES[r.component] || r.component || '')}${r.tierText ? ` · ${esc(r.tierText)}` : ''}</small>${extra}</h3>`;
 
 function needsYou(rows) {
   if (!rows.length) return '';
   return `<div class="decide"><h3 class="group-h">Waiting for you <span>${rows.length}</span></h3>${rows
-    .map((h) => `<article class="exp"><div>${head(h)}<p class="exp-hyp">${esc(h.hypothesis)}</p>
+    .map((h) => `<article class="exp" data-k="h-${esc(h.id)}"><div>${head(h)}${about(h)}
         <p class="exp-note">${icon('info')}${esc(sentence(h.what))}</p></div>
       <div class="exp-res"><p class="res-line"><span>Asked</span><span>${ago(h.at)}</span></p></div></article>`)
     .join('')}</div>`;
@@ -77,12 +83,11 @@ function needsYou(rows) {
 function running(rows) {
   const body = rows.length
     ? rows
-        .map((r) => `<article class="exp"><div>${head(r)}<p class="exp-hyp">${esc(r.hypothesis)}</p>
+        .map((r) => `<article class="exp" data-k="r-${esc(r.id)}"><div>${head(r)}${about(r)}
           ${r.attempts > 1 ? `<p class="exp-note">${icon('info')}Try ${r.attempts}</p>` : ''}</div>
         <div class="exp-res"><p class="al-state">${esc(r.stateText)}</p>
           <p class="res-line"><span>For</span><span class="${r.late ? 'al-late' : ''}"><b class="num">${span(r.ageSeconds)}</b>${r.limitMinutes ? ` · gives up after ${limit(r.limitMinutes)}` : ''}</span></p>
-          ${r.executor ? `<p class="res-line"><span>Agent</span><span>${esc(r.executor)}</span></p>` : ''}
-          ${r.expected ? `<p class="res-line"><span>Expects</span><span>${fewer(r.expected.overall)} overall</span></p>` : ''}</div></article>`)
+          ${r.executor ? `<p class="res-line"><span>Agent</span><span>${esc(r.executor)}</span></p>` : ''}</div></article>`)
         .join('')
     : '<p class="group-h">Nothing running</p>';
   return `<section aria-labelledby="run-h"><div class="sec-h"><h2 id="run-h">Running now</h2></div>
@@ -93,7 +98,7 @@ function queue(rows) {
   if (!rows.length) return '';
   return `<section aria-labelledby="q-h"><div class="sec-h"><h2 id="q-h">Up next <span class="muted al-n">${rows.length}</span></h2></div>
     ${rows
-      .map((r) => `<article class="exp compact"><div>${head(r)}<p class="exp-hyp small">${esc(r.hypothesis)}</p></div>
+      .map((r) => `<article class="exp compact" data-k="q-${esc(r.id)}"><div>${head(r)}${about(r)}</div>
         <p class="res-line"><span>${esc(r.stateText)} · ${span(r.ageSeconds)}</span></p></article>`)
       .join('')}</section>`;
 }
@@ -121,7 +126,7 @@ function verdictRow(r) {
   const trip = r.examTripwire ? `<p class="res-line"><span>Exam check</span><span>${r.examTripwire === 'pass' ? 'no worse' : 'got worse: folding paused'}</span></p>` : '';
   return `<article class="exp" data-k="v-${esc(r.id)}"><div>
       ${head(r, `<span class="verdict ${kind}">${esc(text)}</span>`)}
-      <p class="exp-hyp">${esc(r.hypothesis)}</p>
+      ${about(r)}
       ${r.note && !r.gate ? `<p class="exp-note">${icon('info')}${esc(sentence(r.note))}</p>` : ''}
       ${gateList(r.gate)}
       <p class="exp-cmds">${copyBtn(r.journal, 'Journal:')}</p></div>

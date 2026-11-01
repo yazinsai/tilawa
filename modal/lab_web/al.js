@@ -30,6 +30,17 @@ export async function api(path) {
   return body;
 }
 
+// An experiment in plain words: what it is about, what it expects, and what came of it once decided.
+
+export const RESULT_KIND = { folded: 'better', discarded: 'worse', superseded: 'worse', abandoned: '', open: '' };
+
+export function plainLines(r) {
+  const e = r.eli5?.text ? r.eli5 : { text: r.hypothesis || '', plain: false };
+  return `<p class="pl-eli5${e.plain ? '' : ' tech'}">${e.plain ? '' : '<i>Not yet in plain words:</i> '}${esc(e.text)}</p>
+    ${r.expectText ? `<p class="pl-exp">${esc(r.expectText)}</p>` : ''}
+    ${r.resultText ? `<p class="pl-res ${RESULT_KIND[r.state] ?? ''}">${esc(r.resultText)}</p>` : ''}`;
+}
+
 // Top bar: the same tabs as the dashboard, and the supervisor's heartbeat on the right.
 
 export function beat(started, h) {

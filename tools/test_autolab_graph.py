@@ -90,7 +90,7 @@ def test_autolab_branches_live_and_finished():
     assert b["tracker-restart-window"]["waiting"] and b["tracker-restart-window"]["stateText"] == "Waiting for you"
     d = b["listener-blank-penalty"]
     assert d["outcome"] == "ended" and d["change"] == -4
-    assert d["reason"] == "Failed the gate: fewer wrong calls, not one reader's luck, breaks nothing else"
+    assert d["reason"] == "failed the gate: fewer wrong calls, not one reader's luck, breaks nothing else"
     assert b["checker-repeat-grace"]["reason"].startswith("implementing for more than 240 minutes")
     # base: the main-line score current when the branch left it (none in the autolab-only view before its first score)
     assert f["base"] is None and by_id(page()["views"]["testSet"])["checker-added-word-confirm"]["base"] == 98
@@ -180,6 +180,44 @@ def test_exam_numbers_never_reach_the_progress_page():
     out = json.dumps(G.progress(st, ev, lab(), led, NOW, load("autolab-score.json")))
     assert not re.search(r"777\d\d\d", out)
     assert '"exam' not in out.lower()
+
+
+def test_every_branch_says_what_it_is_about_what_it_expects_and_what_came_of_it():
+    explained = {"checker-joint-additions": "Added words now get lined up with both neighbours.", "checker-madd-length": "From the file."}
+    st = state()
+    st["experiments"]["checker-madd-length"]["card"]["eli5"] = "A long held vowel is not an extra word."
+    v = page(st)
+    b = by_id(G.progress(st, events(), lab(), auto(), NOW, None, explained)["views"]["testSet"])
+    assert b["checker-joint-additions"]["eli5"] == {"text": "Added words now get lined up with both neighbours.", "plain": True}
+    assert b["checker-madd-length"]["eli5"] == {"text": "A long held vowel is not an extra word.", "plain": True}  # the card beats the file
+    assert b["listener-phone-channel"]["eli5"] == {"text": "Fine-tune the listener on phone-channel audio", "plain": False}
+    j = b["checker-joint-additions"]
+    assert j["expectText"] == "Expected: about 6 fewer wrong calls overall (6 fewer charged to the checker)"
+    assert j["resultText"] == "Result: 6 fewer (expected 6 fewer), kept"
+    assert b["listener-phone-channel"]["resultText"] == "Result: 6 fewer (expected 8 fewer), dropped: user approved discard; introduces new false alarms."
+    assert b["checker-skip-boundaries"]["resultText"] == "Result: 3 more (expected 3 fewer), dropped"
+    assert b["listener-targeted-consonants"]["resultText"] == "So far: 6 fewer (expected 6 fewer) on its branch, waiting for a decision"
+    assert b["listener-blank-penalty"]["resultText"] == (
+        "Result: 4 fewer (expected 5 fewer), dropped: failed the gate: fewer wrong calls, not one reader's luck, breaks nothing else")
+    assert b["checker-repeat-grace"]["resultText"].startswith("Result: not scored, given up: implementing for more than 240 minutes")
+    assert b["checker-madd-length"]["resultText"] is None and v["views"]["autolab"]["branches"][0]["eli5"]["text"]
+
+
+def test_supervisor_fields_win_over_inference():
+    st = state()
+    st["experiments"]["checker-madd-length"]["base"] = {"sha": "a41c9e2", "wrongCalls": 91}
+    st["main"]["teacherWrongCalls"] = 100
+    led = auto()
+    led["mainLine"] = led["mainLine"][:1]  # the fold's main-line score isn't in the ledger yet
+    ev = events()
+    ev[18] = {**ev[18], "wrongCalls": 88}
+    assert ev[18]["to"] == "folded"
+    v = G.progress(st, ev, lab(), led, NOW, load("autolab-score.json"))
+    b = by_id(v["views"]["autolab"])
+    assert b["checker-madd-length"]["base"] == 91
+    f = b["checker-added-word-confirm"]
+    assert f["foldN"] == 88 and f["foldAt"] == "2026-11-01T01:22:00+00:00"
+    assert v["score"]["teacher"] == 100
 
 
 def test_ticker_newest_first_with_components():
