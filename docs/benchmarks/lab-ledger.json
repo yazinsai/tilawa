@@ -1,943 +1,316 @@
 {
  "version": 1,
  "kind": "lab-ledger-summary",
- "main": "main",
+ "main": "autolab",
  "testSet": "lab-v1.5",
  "note": "Mirror of the lab ledger (tilawa-lab volume /lab/ledger.json), written on fold-in. Counts of wrong calls; a change of 2 or fewer is noise.",
  "rows": [
   {
    "kind": "main",
-   "at": "2026-10-30T02:56:53+00:00",
-   "sha": "34170c0",
-   "testSet": "lab-v1.4",
+   "at": "2026-11-01T03:57:29+00:00",
+   "sha": "abb918b",
+   "testSet": "lab-v1.5",
    "experiment": null,
-   "note": "lab-v1.4 main-line baseline (spliced-clean-int8); listening check passed 126/126 reviewed, 3 bad",
+   "note": "autolab start",
    "practice": {
-    "wrongCalls": 50,
-    "missed": 34,
-    "falseWarnings": 16,
-    "listener": 15,
-    "tracker": 3,
-    "checker": 32
-   },
-   "exam": {
-    "wrongCalls": 58,
-    "missed": 28,
-    "falseWarnings": 30,
-    "listener": 26,
-    "tracker": 2,
-    "checker": 30
-   }
-  },
-  {
-   "kind": "main",
-   "at": "2026-10-30T03:03:39+00:00",
-   "sha": "34170c0",
-   "testSet": "lab-v1.4.v2",
-   "experiment": null,
-   "note": "re-scored on lab-v1.4.v2",
-   "practice": {
-    "wrongCalls": 50,
-    "missed": 34,
-    "falseWarnings": 16,
-    "listener": 15,
-    "tracker": 3,
-    "checker": 32
-   },
-   "exam": {
-    "wrongCalls": 58,
-    "missed": 28,
-    "falseWarnings": 30,
-    "listener": 26,
-    "tracker": 2,
-    "checker": 30
-   }
-  },
-  {
-   "kind": "main",
-   "at": "2026-10-30T09:12:48+00:00",
-   "sha": "f5b1757",
-   "testSet": "lab-v1.4.v2",
-   "experiment": null,
-   "note": "re-scored for fold of checker-added-words",
-   "practice": {
-    "wrongCalls": 50,
-    "missed": 34,
-    "falseWarnings": 16,
-    "listener": 15,
-    "tracker": 3,
-    "checker": 32
-   },
-   "exam": {
-    "wrongCalls": 58,
-    "missed": 28,
-    "falseWarnings": 30,
-    "listener": 26,
-    "tracker": 2,
-    "checker": 30
-   }
-  },
-  {
-   "kind": "main",
-   "at": "2026-10-30T09:12:59+00:00",
-   "sha": "34be77a",
-   "testSet": "lab-v1.4.v2",
-   "experiment": "checker-added-words",
-   "note": "An added word found inside a word (often a waqf word said alone at an ayah pause) takes that word's edge with it, so the local-window check tests the wrong text: re-split the heard phonemes so the word keeps its best fit",
-   "practice": {
-    "wrongCalls": 42,
-    "missed": 26,
-    "falseWarnings": 16,
-    "listener": 18,
-    "tracker": 3,
-    "checker": 21
-   },
-   "exam": {
-    "wrongCalls": 58,
-    "missed": 28,
-    "falseWarnings": 30,
-    "listener": 26,
-    "tracker": 2,
-    "checker": 30
-   }
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-30T09:12:59+00:00",
-   "id": "checker-added-words",
-   "component": "checker",
-   "hypothesis": "An added word found inside a word (often a waqf word said alone at an ayah pause) takes that word's edge with it, so the local-window check tests the wrong text: re-split the heard phonemes so the word keeps its best fit",
-   "expected": {
-    "component": -8,
-    "overall": -5
-   },
-   "state": "folded",
-   "testSet": "lab-v1.4.v2",
-   "note": "keeps its overall and checker gain",
-   "branch": {
-    "wrongCalls": 42,
-    "missed": 26,
-    "falseWarnings": 16,
-    "listener": 18,
-    "tracker": 3,
-    "checker": 21
-   },
-   "rebased": {
-    "practice": {
-     "wrongCalls": 42,
-     "missed": 26,
-     "falseWarnings": 16,
-     "listener": 18,
-     "tracker": 3,
-     "checker": 21
-    },
-    "exam": {
-     "wrongCalls": 58,
-     "missed": 28,
-     "falseWarnings": 30,
-     "listener": 26,
-     "tracker": 2,
-     "checker": 30
-    }
-   }
-  },
-  {
-   "kind": "main",
-   "at": "2026-10-30T09:22:05+00:00",
-   "sha": "c1f62e7",
-   "testSet": "lab-v1.4.v2",
-   "experiment": "checker-fewer-false-wrong",
-   "note": "A wrong word whose changed sounds the decoder heard at mean confidence below 0.8 must beat the written word by 2x SUPPORT (20 nats): phone mishearings of confusable sounds (ن/م, ف/ك) sit at even odds with blank yet sum past 10 nats; expect listener-charged false wrong words -5 (6 -> 1), lost-by-checker 0, no planted wrong word lost",
-   "practice": {
-    "wrongCalls": 37,
-    "missed": 26,
-    "falseWarnings": 11,
-    "listener": 13,
-    "tracker": 3,
-    "checker": 21
-   },
-   "exam": {
-    "wrongCalls": 52,
-    "missed": 31,
-    "falseWarnings": 21,
-    "listener": 19,
-    "tracker": 2,
-    "checker": 31
-   }
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-30T09:22:05+00:00",
-   "id": "checker-fewer-false-wrong",
-   "component": "checker",
-   "hypothesis": "A wrong word whose changed sounds the decoder heard at mean confidence below 0.8 must beat the written word by 2x SUPPORT (20 nats): phone mishearings of confusable sounds (ن/م, ف/ك) sit at even odds with blank yet sum past 10 nats; expect listener-charged false wrong words -5 (6 -> 1), lost-by-checker 0, no planted wrong word lost",
-   "expected": {
-    "component": 0,
-    "overall": -5
-   },
-   "state": "folded",
-   "testSet": "lab-v1.4.v2",
-   "note": "keeps its overall gain",
-   "branch": {
-    "wrongCalls": 45,
-    "missed": 34,
-    "falseWarnings": 11,
-    "listener": 10,
-    "tracker": 3,
-    "checker": 32
-   },
-   "rebased": {
-    "practice": {
-     "wrongCalls": 37,
-     "missed": 26,
-     "falseWarnings": 11,
-     "listener": 13,
-     "tracker": 3,
-     "checker": 21
-    },
-    "exam": {
-     "wrongCalls": 52,
-     "missed": 31,
-     "falseWarnings": 21,
-     "listener": 19,
-     "tracker": 2,
-     "checker": 31
-    }
-   }
-  },
-  {
-   "kind": "main",
-   "at": "2026-10-30T12:09:05+00:00",
-   "sha": "99dc36e",
-   "testSet": "lab-v1.4.v2",
-   "experiment": "checker-ayah-start-omissions",
-   "note": "Phonemes marked as a non-Quran phrase cost a hair above nothing to insert, so where the written word explains them as well (waqf endings like ٱلْعَـٰلَمِينَ, ٱلْبَاقِينَ, حِينٍ that the آمين check matches) the alignment reads the word: an ayah-initial omission after it is no longer pinned on that word; expect 6 of the 8 checker-charged ayah-initial omission misses caught and their 5 misplaced warnings gone, checker -9, overall -9",
-   "practice": {
-    "wrongCalls": 22,
-    "missed": 17,
-    "falseWarnings": 5,
-    "listener": 12,
-    "tracker": 2,
-    "checker": 8
-   },
-   "exam": {
-    "wrongCalls": 40,
-    "missed": 25,
-    "falseWarnings": 15,
-    "listener": 21,
-    "tracker": 2,
-    "checker": 17
-   }
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-30T12:09:05+00:00",
-   "id": "checker-ayah-start-omissions",
-   "component": "checker",
-   "hypothesis": "Phonemes marked as a non-Quran phrase cost a hair above nothing to insert, so where the written word explains them as well (waqf endings like ٱلْعَـٰلَمِينَ, ٱلْبَاقِينَ, حِينٍ that the آمين check matches) the alignment reads the word: an ayah-initial omission after it is no longer pinned on that word; expect 6 of the 8 checker-charged ayah-initial omission misses caught and their 5 misplaced warnings gone, checker -9, overall -9",
-   "expected": {
-    "component": -9,
-    "overall": -9
-   },
-   "state": "folded",
-   "testSet": "lab-v1.4.v2",
-   "note": "keeps its overall and checker gain",
-   "branch": {
-    "wrongCalls": 22,
-    "missed": 17,
-    "falseWarnings": 5,
-    "listener": 12,
-    "tracker": 2,
-    "checker": 8
-   },
-   "rebased": {
-    "practice": {
-     "wrongCalls": 22,
-     "missed": 17,
-     "falseWarnings": 5,
-     "listener": 12,
-     "tracker": 2,
-     "checker": 8
-    },
-    "exam": {
-     "wrongCalls": 40,
-     "missed": 25,
-     "falseWarnings": 15,
-     "listener": 21,
-     "tracker": 2,
-     "checker": 17
-    }
-   }
-  },
-  {
-   "kind": "main",
-   "at": "2026-10-30T13:00:46+00:00",
-   "sha": "975702f",
-   "testSet": "lab-v1.4.v2",
-   "experiment": null,
-   "note": "Scorer: a warning on the word just before an added word catches it (misclassified), so one slip there no longer counts as a miss plus a false warning",
-   "practice": {
-    "wrongCalls": 20,
-    "missed": 16,
-    "falseWarnings": 4,
-    "listener": 10,
-    "tracker": 2,
-    "checker": 8
-   },
-   "exam": {
-    "wrongCalls": 40,
-    "missed": 25,
-    "falseWarnings": 15,
-    "listener": 21,
-    "tracker": 2,
-    "checker": 17
-   }
-  },
-  {
-   "kind": "main",
-   "at": "2026-10-30T14:13:25+00:00",
-   "sha": "975702f",
-   "testSet": "lab-v1.4.v3",
-   "experiment": null,
-   "note": "re-scored on lab-v1.4.v3",
-   "practice": {
-    "wrongCalls": 19,
-    "missed": 16,
-    "falseWarnings": 3,
-    "listener": 9,
-    "tracker": 2,
-    "checker": 8
-   },
-   "exam": {
-    "wrongCalls": 40,
-    "missed": 25,
-    "falseWarnings": 15,
-    "listener": 21,
-    "tracker": 2,
-    "checker": 17
-   }
-  },
-  {
-   "kind": "main",
-   "at": "2026-10-30T16:25:51+00:00",
-   "sha": "b544715",
-   "testSet": "lab-v1.4.v3",
-   "experiment": "checker-listener-noise",
-   "note": "Checker word-gap alignment is brittle to listener noise: charge repeated inserted sounds and shortened doubles as held sounds, reject isolated-phoneme visits, and keep vowel-only residue from erasing an omission. Predict five fewer practice wrong calls, mostly currently listener-attributed (checker attribution delta 0); preserve the oracle-only checker and clean-audio false-warning rates.",
-   "practice": {
-    "wrongCalls": 14,
-    "missed": 11,
-    "falseWarnings": 3,
-    "listener": 3,
-    "tracker": 3,
-    "checker": 8
-   },
-   "exam": {
-    "wrongCalls": 38,
-    "missed": 21,
-    "falseWarnings": 17,
-    "listener": 22,
-    "tracker": 3,
-    "checker": 13
-   }
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-30T16:25:51+00:00",
-   "id": "checker-listener-noise",
-   "component": "checker",
-   "hypothesis": "Checker word-gap alignment is brittle to listener noise: charge repeated inserted sounds and shortened doubles as held sounds, reject isolated-phoneme visits, and keep vowel-only residue from erasing an omission. Predict five fewer practice wrong calls, mostly currently listener-attributed (checker attribution delta 0); preserve the oracle-only checker and clean-audio false-warning rates.",
-   "expected": {
-    "component": 0,
-    "overall": -5
-   },
-   "state": "folded",
-   "testSet": "lab-v1.4.v3",
-   "note": "keeps its overall gain; practice-only fold under the user restriction; exam not scored",
-   "branch": {
-    "wrongCalls": 14,
-    "missed": 11,
-    "falseWarnings": 3,
-    "listener": 3,
-    "tracker": 3,
-    "checker": 8
-   },
-   "rebased": {
-    "practice": {
-     "wrongCalls": 14,
-     "missed": 11,
-     "falseWarnings": 3,
-     "listener": 3,
-     "tracker": 3,
-     "checker": 8
-    },
-    "exam": null
-   }
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-30T17:30:26+00:00",
-   "id": "checker-noise-gaps",
-   "component": "checker",
-   "hypothesis": "Three checker rules for realistic listener noise around omissions and insertions: a jump out of the text and straight back to the next word is an added word said there (فَإِنَّ heard with an extra ن was read as فَإِذَا elsewhere); a multi-word gap whose few heard sounds fit its first or last word omits only the rest (عِزَاا كَلَّا -> only كَلَّا omitted); vowels alone in a gap are not the word (the waqf tail of سَلَامَا in the gap of قَالَ). Targets 5 of the 9 listener-charged practice wrong calls (p09 x2, p12 77:13:1 and 77:16:1, p19 51:25:6); they are charged to the listener today, so expect listener -4, checker 0, overall -4",
-   "expected": {
-    "component": 0,
-    "overall": -4
-   },
-   "state": "discarded",
-   "testSet": "lab-v1.4.v3",
-   "note": "superseded: checker-listener-noise fixes every practice case this fixed; rebased gain +0",
-   "branch": {
-    "wrongCalls": 14,
-    "missed": 12,
-    "falseWarnings": 2,
-    "listener": 4,
-    "tracker": 2,
-    "checker": 8
-   },
-   "rebased": {
-    "practice": {
-     "wrongCalls": 14,
-     "missed": 11,
-     "falseWarnings": 3,
-     "listener": 3,
-     "tracker": 3,
-     "checker": 8
-    },
-    "exam": {
-     "wrongCalls": 35,
-     "missed": 18,
-     "falseWarnings": 17,
-     "listener": 23,
-     "tracker": 3,
-     "checker": 9
-    }
-   }
-  },
-  {
-   "kind": "main",
-   "at": "2026-10-30T18:22:15+00:00",
-   "sha": "5716d49",
-   "testSet": "lab-v1.4.v3",
-   "experiment": null,
-   "note": "re-scored for fold of tracker-startup-persistence",
-   "practice": {
-    "wrongCalls": 14,
-    "missed": 11,
-    "falseWarnings": 3,
-    "listener": 3,
-    "tracker": 3,
-    "checker": 8
-   },
-   "exam": null
-  },
-  {
-   "kind": "main",
-   "at": "2026-10-30T18:22:23+00:00",
-   "sha": "241c788",
-   "testSet": "lab-v1.4.v3",
-   "experiment": "tracker-startup-persistence",
-   "note": "Canonical Quran text containing a near-repeat must not be collapsed as a reciter repeat. Preserve the full evidence when its best reference fit costs no more than the collapsed evidence. Predict removal of the three startup false warnings, with no checker or clean/studio regression.",
-   "practice": {
-    "wrongCalls": 11,
-    "missed": 11,
-    "falseWarnings": 0,
-    "listener": 3,
-    "tracker": 0,
-    "checker": 8
+    "wrongCalls": 89,
+    "missed": 64,
+    "falseWarnings": 25,
+    "listener": 47,
+    "tracker": 5,
+    "checker": 37
    },
    "exam": null
   },
   {
    "kind": "experiment",
-   "at": "2026-10-30T18:22:23+00:00",
-   "id": "tracker-startup-persistence",
-   "component": "tracker",
-   "hypothesis": "Canonical Quran text containing a near-repeat must not be collapsed as a reciter repeat. Preserve the full evidence when its best reference fit costs no more than the collapsed evidence. Predict removal of the three startup false warnings, with no checker or clean/studio regression.",
-   "expected": {
-    "component": -3,
-    "overall": -3
-   },
-   "state": "folded",
-   "testSet": "lab-v1.4.v3",
-   "note": "keeps its overall and tracker gain",
-   "branch": {
-    "wrongCalls": 11,
-    "missed": 11,
-    "falseWarnings": 0,
-    "listener": 3,
-    "tracker": 0,
-    "checker": 8
-   },
-   "rebased": {
-    "practice": {
-     "wrongCalls": 11,
-     "missed": 11,
-     "falseWarnings": 0,
-     "listener": 3,
-     "tracker": 0,
-     "checker": 8
-    },
-    "exam": null
-   }
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-30T18:31:04+00:00",
-   "id": "checker-contiguous-additions",
-   "component": "checker",
-   "hypothesis": "Held-sound discounts must extend a contiguous insertion path or a matching reference sound, not a substituted onset. Keep an insertion DP state so an added word cannot lend its repeated ending to the next word. Predict recovery of the p15 phone addition, with no change to its low-support oracle miss and no clean/studio regression.",
-   "expected": {
-    "component": 0,
-    "overall": -1
-   },
-   "state": "discarded",
-   "testSet": "lab-v1.4.v3",
-   "note": "Rejected by user. Small noise-rated gain overlaps the folded tracker fix; p15 classification limitation remains.",
-   "branch": {
-    "wrongCalls": 12,
-    "missed": 10,
-    "falseWarnings": 2,
-    "listener": 3,
-    "tracker": 2,
-    "checker": 7
-   },
-   "rebased": null
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-30T18:31:21+00:00",
-   "id": "checker-consonant-edits",
-   "component": "checker",
-   "hypothesis": "Actual Noah/Salih alignments map changed consonants to vowels, which were charged soft. Use the existing hard substitution cost across consonant/vowel pairs, retaining soft charges for ghunna and recitation marks. Predict three fewer checker-attributed and overall phone wrong calls with no clean or studio regression.",
-   "expected": {
-    "component": -3,
-    "overall": -3
-   },
-   "state": "discarded",
-   "testSet": "lab-v1.4.v3",
-   "note": "Rejected by user. Recovered three misses but introduced two phone false warnings; no fold.",
-   "branch": {
-    "wrongCalls": 13,
-    "missed": 8,
-    "falseWarnings": 5,
-    "listener": 5,
-    "tracker": 3,
-    "checker": 5
-   },
-   "rebased": null
-  },
-  {
-   "kind": "main",
-   "at": "2026-10-31T06:36:32+00:00",
-   "sha": "fe4daad",
-   "testSet": "lab-v1.5",
-   "experiment": null,
-   "note": "lab-v1.5 registered (ticket 20): 200 sessions, lab-v1.4's 40 frozen, flags carried; spot check 45/45 ok",
-   "practice": {
-    "wrongCalls": 107,
-    "missed": 82,
-    "falseWarnings": 25,
-    "listener": 44,
-    "tracker": 5,
-    "checker": 58
-   },
-   "exam": {
-    "wrongCalls": 149,
-    "missed": 83,
-    "falseWarnings": 66,
-    "listener": 99,
-    "tracker": 5,
-    "checker": 45
-   }
-  },
-  {
-   "kind": "main",
-   "at": "2026-10-31T11:21:41+00:00",
-   "sha": "e7b02bc",
-   "testSet": "lab-v1.5",
-   "experiment": null,
-   "note": "re-scored for fold of checker-joint-additions",
-   "practice": {
-    "wrongCalls": 107,
-    "missed": 82,
-    "falseWarnings": 25,
-    "listener": 44,
-    "tracker": 5,
-    "checker": 58
-   },
-   "exam": null
-  },
-  {
-   "kind": "main",
-   "at": "2026-10-31T11:21:49+00:00",
-   "sha": "27ddced",
-   "testSet": "lab-v1.5",
-   "experiment": "checker-joint-additions",
-   "note": "Jointly align added speech with both neighboring words so an insertion cannot disappear into a reference-word detour. Predict 8 fewer practice misses, no additional false warnings, 6 fewer checker-attributed wrong calls and 8 fewer overall. Check frozen and new sessions, clean and repeat controls, and gain concentration by reciter and passage.",
-   "practice": {
-    "wrongCalls": 97,
-    "missed": 72,
-    "falseWarnings": 25,
-    "listener": 44,
-    "tracker": 5,
-    "checker": 48
-   },
-   "exam": null
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-31T11:21:49+00:00",
-   "id": "checker-joint-additions",
-   "component": "checker",
-   "hypothesis": "Jointly align added speech with both neighboring words so an insertion cannot disappear into a reference-word detour. Predict 8 fewer practice misses, no additional false warnings, 6 fewer checker-attributed wrong calls and 8 fewer overall. Check frozen and new sessions, clean and repeat controls, and gain concentration by reciter and passage.",
-   "expected": {
-    "component": -6,
-    "overall": -8
-   },
-   "state": "folded",
-   "testSet": "lab-v1.5",
-   "note": "keeps its overall and checker gain",
-   "branch": {
-    "wrongCalls": 97,
-    "missed": 72,
-    "falseWarnings": 25,
-    "listener": 44,
-    "tracker": 5,
-    "checker": 48
-   },
-   "rebased": {
-    "practice": {
-     "wrongCalls": 97,
-     "missed": 72,
-     "falseWarnings": 25,
-     "listener": 44,
-     "tracker": 5,
-     "checker": 48
-    },
-    "exam": null
-   }
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-31T11:23:56+00:00",
-   "id": "checker-skip-boundaries",
-   "component": "checker",
-   "hypothesis": "Compare complete alternative skip placements against spoken boundary words instead of requiring exact consonant skeleton equality. Predict 3 fewer practice misses and 3 fewer false warnings, 6 fewer checker-attributed and overall wrong calls. Preserve real skips, clean recitation and the frozen subset; report the concentration in two surah-26 sessions.",
-   "expected": {
-    "component": -6,
-    "overall": -6
-   },
-   "state": "discarded",
-   "testSet": "lab-v1.5",
-   "note": "",
-   "branch": {
-    "wrongCalls": 104,
-    "missed": 80,
-    "falseWarnings": 24,
-    "listener": 44,
-    "tracker": 5,
-    "checker": 55
-   },
-   "rebased": null
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-31T12:09:10+00:00",
-   "id": "checker-gap-ownership",
-   "component": "checker",
-   "hypothesis": "Jointly fit the spoken words around an omission or skip so neighboring noisy sounds do not fill the missing word. Predict 2 fewer misses and 2 fewer false warnings, 4 fewer overall wrong calls, and unchanged checker attribution. Keep existing confidence gates; check old and new sessions, clean controls, and reader and passage concentration.",
-   "expected": {
-    "component": 0,
-    "overall": -4
-   },
-   "state": "discarded",
-   "testSet": "lab-v1.5",
-   "note": "User discarded after full practice result: 1 fewer wrong call is noise, gain concentrated in one case, clean warnings unchanged, and studio adds one miss. Preserve result and branch for history.",
-   "branch": {
-    "wrongCalls": 96,
-    "missed": 71,
-    "falseWarnings": 25,
-    "listener": 43,
-    "tracker": 5,
-    "checker": 48
-   },
-   "rebased": null
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-31T12:09:24+00:00",
-   "id": "checker-single-accusation",
-   "component": "checker",
-   "hypothesis": "Give one spoken edit one complete explanation instead of confirming overlapping adjacent wrong-word and added-word accusations. Predict unchanged misses and 3 fewer false warnings, 3 fewer overall wrong calls, and unchanged checker attribution. Preserve genuinely separate neighboring mistakes and clean repeats.",
-   "expected": {
-    "component": 0,
-    "overall": -3
-   },
-   "state": "discarded",
-   "testSet": "lab-v1.5",
-   "note": "User discarded after full practice result: 2 fewer false warnings is noise; both gains share one reader and surah, clean warnings unchanged. Preserve result and branch for history.",
-   "branch": {
-    "wrongCalls": 95,
-    "missed": 72,
-    "falseWarnings": 23,
-    "listener": 42,
-    "tracker": 5,
-    "checker": 48
-   },
-   "rebased": null
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-31T13:26:36+00:00",
-   "id": "checker-lexical-consonants",
-   "component": "checker",
-   "hypothesis": "A complete lexical alternative with two hard consonant edits and positive acoustic support recovers substitutions hidden by vowel alignment without adding false warnings",
+   "at": "2026-11-01T06:40:17+00:00",
+   "id": "listener-ctc-rescore-wrong-words",
+   "component": "listener",
+   "hypothesis": "Wrong-word false warnings come from greedy argmax spikes on phone-confusable consonants, while the written word still carries most of the summed CTC path mass. Veto a wrong-word warning when the written word's forced CTC score over the segment is within a small margin of the heard word's score; predict listener -4 and overall -4.",
    "expected": {
     "component": -4,
     "overall": -4
    },
    "state": "discarded",
    "testSet": "lab-v1.5",
-   "note": "User chose checker-independent-consonants and requested discarding the earlier lexical experiment.",
+   "note": "gate on the branch: overall +0 (needs -3 or better), listener +0 (needs +2 or better); without reader mp3quran-22: +0 (needs -1 or better)",
    "branch": {
-    "wrongCalls": 94,
-    "missed": 67,
-    "falseWarnings": 27,
-    "listener": 50,
+    "wrongCalls": 89,
+    "missed": 64,
+    "falseWarnings": 25,
+    "listener": 47,
     "tracker": 5,
-    "checker": 39
+    "checker": 37
    },
    "rebased": null
   },
   {
-   "kind": "main",
-   "at": "2026-10-31T13:37:37+00:00",
-   "sha": "3374b91",
+   "kind": "experiment",
+   "at": "2026-11-01T06:40:45+00:00",
+   "id": "listener-ctc-omission-placement",
+   "component": "listener",
+   "hypothesis": "Two planted omissions are detected but charged to the neighbouring word (44:5 word 4 reported as word 5, 20:25 word 4 reported as word 5), giving one miss plus one false warning each. Deciding which word of the gap the heard segment belongs to by CTC forward score instead of greedy-string edit distance fixes both; predict listener -4 (2 false warnings and the 2 paired misses in listener/omitted_word/missed), overall -4.",
+   "expected": {
+    "component": -4,
+    "overall": -4
+   },
+   "state": "discarded",
    "testSet": "lab-v1.5",
-   "experiment": "checker-independent-consonants",
-   "note": "Counting a contiguous doubled-consonant identity change once and requiring compatible lexical pronunciation context retains five recovered mistakes without adding warnings; practice-only fold, exam not measured",
-   "practice": {
-    "wrongCalls": 92,
-    "missed": 67,
+   "note": "gate on the branch: overall +0 (needs -3 or better), listener +0 (needs +2 or better); without reader mp3quran-22: +0 (needs -1 or better)",
+   "branch": {
+    "wrongCalls": 89,
+    "missed": 64,
     "falseWarnings": 25,
     "listener": 47,
     "tracker": 5,
-    "checker": 40
+    "checker": 37
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T07:39:11+00:00",
+   "id": "tracker-local-edit-vs-relocation",
+   "component": "tracker",
+   "hypothesis": "Mid-session, a one-word mistake next to a look-alike phrase (بالنذر in 54:36, فاعلموا/واعلموا أنكم غير معجزي الله in 9:2-3) makes another verse fit better than the current position, so the tracker relocates and the mistake is never compared against its own text. Relocation should have to beat the best local-edit explanation at the current position (one omission, substitution, or a skip of 3 ayahs or fewer) by a margin before committing. Predict tracker -3, overall -3; the p33 26:222 win is speculative.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +0 (needs -3 or better), tracker +0 (needs +2 or better); without reader mp3quran-22: +0 (needs -1 or better)",
+   "branch": {
+    "wrongCalls": 89,
+    "missed": 64,
+    "falseWarnings": 25,
+    "listener": 47,
+    "tracker": 5,
+    "checker": 37
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T07:43:09+00:00",
+   "id": "checker-ayah-seam-additions",
+   "component": "checker",
+   "hypothesis": "Extra words said in the pause between ayahs fall between two per-ayah comparison windows, so no insertion state ever prices them. Extend the folded joint-additions fit across the seam so it covers the previous ayah's last word, the heard speech in the gap, and word 1 of the next ayah. Predict 6 of the 11 word-1 targets won, checker -5, overall -4.",
+   "expected": {
+    "component": -5,
+    "overall": -4
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +0 (needs -3 or better), checker +0 (needs +2 or better); without reader mp3quran-22: +0 (needs -1 or better)",
+   "branch": {
+    "wrongCalls": 89,
+    "missed": 64,
+    "falseWarnings": 25,
+    "listener": 47,
+    "tracker": 5,
+    "checker": 37
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T07:43:47+00:00",
+   "id": "listener-faithful-splice-training",
+   "component": "listener",
+   "hypothesis": "The listener has learned an implicit Quran sequence prior from Quran-only training text, so it under-emits speech that does not continue the expected verse, such as words inserted at an ayah start or a name swapped in a refrain. Fine-tuning on spliced 'unfaithful' recitation with corrected transcripts and no new channel augmentation should fix this; predict listener -5 and overall -4, mostly from the 13 added-word misses.",
+   "expected": {
+    "component": -5,
+    "overall": -4
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +0 (needs -3 or better), listener +0 (needs +2 or better); without reader mp3quran-22: +0 (needs -1 or better)",
+   "branch": {
+    "wrongCalls": 89,
+    "missed": 64,
+    "falseWarnings": 25,
+    "listener": 47,
+    "tracker": 5,
+    "checker": 37
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T07:44:13+00:00",
+   "id": "listener-anchored-gap-scoring",
+   "component": "listener",
+   "hypothesis": "Omission warnings are decided on a heard segment cut by greedy alignment, which can split the surviving word (p79: the رِى tail of صَدْرِى scored as لِى) or miss a word whose phonemes are still in the posteriors. Score each omission warning with nll over the whole stretch between the confident neighbouring anchors. Compare the full written text against every single-omission placement, place the omission on the best placement, and veto it when the full text wins. Predict listener -4 (p79 pair = 2, plus 2 of the 3 unpaired omission false warnings, speculative), overall -4.",
+   "expected": {
+    "component": -4,
+    "overall": -4
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall -1 (needs -3 or better), listener -1 (needs +2 or better); without reader mp3quran-303: +0 (needs -1 or better)",
+   "branch": {
+    "wrongCalls": 88,
+    "missed": 64,
+    "falseWarnings": 24,
+    "listener": 46,
+    "tracker": 5,
+    "checker": 37
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T08:12:51+00:00",
+   "id": "listener-pause-gap-redecode",
+   "component": "listener",
+   "hypothesis": "Words added in the pause between two confidently matched words (10 of 13 listener added-word misses are at word 1) are lost because greedy argmax picks blank on frames where speech mass is spread over several phonemes. Re-decode only those gap frames when forcing them to blank costs more than 2x SUPPORT nats, and hand the recovered phonemes to the existing added-word rules; predict listener -4, overall -3.",
+   "expected": {
+    "component": -4,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "dropped by you: its builder reports the redecode was never wired; engine code unchanged",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T08:39:11+00:00",
+   "id": "checker-repeat-visit-skeleton",
+   "component": "checker",
+   "hypothesis": "Seam additions are decoded but their consonants are matched onto word 1, the previous word, or a nearby word as a second visit that repeat/restart tolerance accepts; accept an extra visit as a repeat only if its consonant skeleton fits that word under the existing held-sound rules, else send it to added-word confirmation. Predict 6 of 11 won, checker -5, overall -4.",
+   "expected": {
+    "component": -5,
+    "overall": -4
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Step 0 kill: 0 of 11 targets are an accepted repeat or restart with 2 or more supported consonant mismatches; the extra visits fit the short words they land on, so the skeleton gate would not fire. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T08:51:20+00:00",
+   "id": "listener-parallel-slot-scoring",
+   "component": "listener",
+   "hypothesis": "Refrain name swaps (26:106/142/161 word 5) are missed because the greedy string is the only thing asked, and it collapses to the written name; score the anchored slot against the closed set of names its parallel verses use and emit the swap when one beats the written name by SUPPORT. Predict 4 of the 8 cluster misses won, listener -4, overall -4 (-6 if the p11/p45 spillover warnings also vanish, speculative).",
+   "expected": {
+    "component": -4,
+    "overall": -4
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "dropped by you: prophet names are too specific (overfitting to the specific cases)",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T09:17:15+00:00",
+   "id": "tracker-park-issues-through-relock",
+   "component": "tracker",
+   "hypothesis": "A brief lock loss right after a mistake turns its open warning to uncertain even when the tracker relocks just ahead in the same passage (p46 54:36:4, p66 9:3:21). Park open issues through the loss and resolve them against their own text if the relock continues the same passage in order. Predict tracker -2 and overall -3; the third win is speculative and must come from the step-0 census.",
+   "expected": {
+    "component": -2,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall -1 (needs -3 or better), tracker -3 (needs +2 or better); without reader mp3quran-40: +0 (needs -1 or better); 3 incidents lost against 4 won",
+   "branch": {
+    "wrongCalls": 88,
+    "missed": 60,
+    "falseWarnings": 28,
+    "listener": 50,
+    "tracker": 2,
+    "checker": 36
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T10:16:55+00:00",
+   "id": "listener-seam-matched-word-verifier",
+   "component": "listener",
+   "hypothesis": "Three added words (p10, p33, p79) are already decoded and suspected, but they fail the 10-nat support test because the shipped posteriors are a weak judge of presence. A small text-conditioned verifier, trained to answer whether this anchored stretch holds an extra word beyond the text, confirms them; predict listener -4, overall -3, with the fourth win speculative.",
+   "expected": {
+    "component": -4,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Held-out seam-matched AUC was 0.988, but the three phone targets scored -1.06, -2.87 and -5.34 and stayed unconfirmed. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T10:25:11+00:00",
+   "id": "checker-lattice-word-insertion",
+   "component": "checker",
+   "hypothesis": "Seam additions are lost because the checker judges them on the greedy string, where the inserted speech can be split into valid fragments of nearby short words. Replace that decision with a reference-biased lattice decode over the full posteriors that compares [written text with contiguous repeat or restart arcs only] against [written text plus one whole mushaf-lexicon word inserted at a word boundary]. Predict checker -3 and overall -3 (-5 if the listener-charged p10, p33 and p79 also flip, speculative).",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: The lattice confirmed none of the 8 seam targets, on listener evidence or on perfect oracle phonemes. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-01T10:54:10+00:00",
+   "sha": "d5303ef8",
+   "testSet": "lab-v1.5",
+   "experiment": "listener-context-free-gap-decode",
+   "note": "Words added after a waqf pause are lost because the model's long left context makes it expect the next verse word, not because the audio is missing. Re-run the acoustic model on just the pause gap plus short padding, so it cannot see the verse, and pass any recovered phonemes to the existing added-word rules; predict listener -4, overall -3.; practice-only fold, exam not measured",
+   "practice": {
+    "wrongCalls": 84,
+    "missed": 61,
+    "falseWarnings": 23,
+    "listener": 42,
+    "tracker": 5,
+    "checker": 37
    },
    "exam": null
   },
   {
    "kind": "experiment",
-   "at": "2026-10-31T13:37:37+00:00",
-   "id": "checker-independent-consonants",
-   "component": "checker",
-   "hypothesis": "Counting a contiguous doubled-consonant identity change once and requiring compatible lexical pronunciation context retains five recovered mistakes without adding warnings",
+   "at": "2026-11-01T10:54:10+00:00",
+   "id": "listener-context-free-gap-decode",
+   "component": "listener",
+   "hypothesis": "Words added after a waqf pause are lost because the model's long left context makes it expect the next verse word, not because the audio is missing. Re-run the acoustic model on just the pause gap plus short padding, so it cannot see the verse, and pass any recovered phonemes to the existing added-word rules; predict listener -4, overall -3.",
    "expected": {
-    "component": -9,
-    "overall": -5
+    "component": -4,
+    "overall": -3
    },
    "state": "folded",
    "testSet": "lab-v1.5",
-   "note": "keeps its overall and checker gain",
+   "note": "keeps its overall and listener gain",
    "branch": {
-    "wrongCalls": 92,
-    "missed": 67,
-    "falseWarnings": 25,
-    "listener": 47,
-    "tracker": 5,
-    "checker": 40
-   },
-   "rebased": {
-    "practice": {
-     "wrongCalls": 92,
-     "missed": 67,
-     "falseWarnings": 25,
-     "listener": 47,
-     "tracker": 5,
-     "checker": 40
-    },
-    "exam": null
-   }
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-31T15:20:51+00:00",
-   "id": "listener-prefix-beam",
-   "component": "listener",
-   "hypothesis": "Greedy frame decoding chooses isolated peaks; summing CTC paths without a language model can reduce phone-noise substitutions and deletions while preserving heard mistakes. Beam width 8, same acoustic posteriors, no reference text; require zero new false warnings or misses.",
-   "expected": {
-    "component": -3,
-    "overall": -3
-   },
-   "state": "discarded",
-   "testSet": "lab-v1.5",
-   "note": "User approved discard; introduces new false alarms.",
-   "branch": {
-    "wrongCalls": 97,
-    "missed": 72,
-    "falseWarnings": 25,
-    "listener": 53,
-    "tracker": 4,
-    "checker": 40
-   },
-   "rebased": null
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-31T15:21:15+00:00",
-   "id": "listener-channel-adapt",
-   "component": "listener",
-   "hypothesis": "Fine-tuning the shipped listener on existing gold-excluded training speech with randomized microphone-band filtering addresses the phone-only recognition failures. Keep greedy decoding and the checker fixed; require fewer misses and zero new false-warning incidents.",
-   "expected": {
-    "component": -5,
-    "overall": -5
-   },
-   "state": "discarded",
-   "testSet": "lab-v1.5",
-   "note": "User approved discard; introduces new false alarms.",
-   "branch": {
-    "wrongCalls": 93,
-    "missed": 63,
-    "falseWarnings": 30,
-    "listener": 50,
-    "tracker": 3,
-    "checker": 40
-   },
-   "rebased": null
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-31T15:21:42+00:00",
-   "id": "listener-channel-blend",
-   "component": "listener",
-   "hypothesis": "A fixed 25 percent interpolation toward the channel-adapted weights retains microphone robustness while reducing changes from the shipped listener; fewer misses without new false warnings across chapters.",
-   "expected": {
-    "component": -3,
-    "overall": -3
-   },
-   "state": "discarded",
-   "testSet": "lab-v1.5",
-   "note": "User approved discard; introduces new false alarms.",
-   "branch": {
-    "wrongCalls": 91,
-    "missed": 65,
-    "falseWarnings": 26,
-    "listener": 48,
-    "tracker": 5,
-    "checker": 38
-   },
-   "rebased": null
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-31T15:22:13+00:00",
-   "id": "listener-phone-channel",
-   "component": "listener",
-   "hypothesis": "Training on the complete room, phone band, and active-speech-scaled noise chain reduces listener false warnings and misses; compare the combined candidate against the passing checker-only baseline.",
-   "expected": {
-    "component": -5,
-    "overall": -6
-   },
-   "state": "discarded",
-   "testSet": "lab-v1.5",
-   "note": "User approved discard; introduces new false alarms.",
-   "branch": {
-    "wrongCalls": 85,
-    "missed": 59,
-    "falseWarnings": 26,
-    "listener": 41,
-    "tracker": 7,
-    "checker": 37
-   },
-   "rebased": null
-  },
-  {
-   "kind": "main",
-   "at": "2026-10-31T15:40:20+00:00",
-   "sha": "da14389",
-   "testSet": "lab-v1.5",
-   "experiment": null,
-   "note": "re-scored for fold of checker-extra-segmentation",
-   "practice": {
-    "wrongCalls": 92,
-    "missed": 67,
-    "falseWarnings": 25,
-    "listener": 47,
-    "tracker": 5,
-    "checker": 40
-   },
-   "exam": {
-    "wrongCalls": 136,
-    "missed": 71,
-    "falseWarnings": 65,
-    "listener": 98,
-    "tracker": 5,
-    "checker": 33
-   }
-  },
-  {
-   "kind": "main",
-   "at": "2026-10-31T15:40:24+00:00",
-   "sha": "4001bd6",
-   "testSet": "lab-v1.5",
-   "experiment": "checker-extra-segmentation",
-   "note": "Remaining oracle additions are absorbed into partial or wrong neighboring visits; recover bounded extra speech while preserving complete repeats and corrected attempts. Require zero new warnings and gains across chapters.",
-   "practice": {
-    "wrongCalls": 89,
-    "missed": 64,
-    "falseWarnings": 25,
-    "listener": 47,
-    "tracker": 5,
-    "checker": 37
-   },
-   "exam": {
-    "wrongCalls": 132,
-    "missed": 67,
-    "falseWarnings": 65,
-    "listener": 101,
-    "tracker": 5,
-    "checker": 26
-   }
-  },
-  {
-   "kind": "experiment",
-   "at": "2026-10-31T15:40:24+00:00",
-   "id": "checker-extra-segmentation",
-   "component": "checker",
-   "hypothesis": "Remaining oracle additions are absorbed into partial or wrong neighboring visits; recover bounded extra speech while preserving complete repeats and corrected attempts. Require zero new warnings and gains across chapters.",
-   "expected": {
-    "component": -6,
-    "overall": -5
-   },
-   "state": "folded",
-   "testSet": "lab-v1.5",
-   "note": "keeps its overall and checker gain",
-   "branch": {
-    "wrongCalls": 89,
-    "missed": 64,
-    "falseWarnings": 25,
-    "listener": 47,
+    "wrongCalls": 84,
+    "missed": 61,
+    "falseWarnings": 23,
+    "listener": 42,
     "tracker": 5,
     "checker": 37
    },
    "rebased": {
     "practice": {
-     "wrongCalls": 89,
-     "missed": 64,
-     "falseWarnings": 25,
-     "listener": 47,
+     "wrongCalls": 84,
+     "missed": 61,
+     "falseWarnings": 23,
+     "listener": 42,
      "tracker": 5,
      "checker": 37
     },
-    "exam": {
-     "wrongCalls": 132,
-     "missed": 67,
-     "falseWarnings": 65,
-     "listener": 101,
-     "tracker": 5,
-     "checker": 26
-    }
+    "exam": null
    }
   }
  ]
