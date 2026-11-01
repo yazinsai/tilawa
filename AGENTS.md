@@ -8,7 +8,7 @@ The scoreboard (`docs/benchmarks/scoreboard.md`) holds the release gates, checke
 
 ## Lab experiments
 
-Any change that can move a lab number (listener, tracker, checker) is an experiment with a recorded result (`.scratch/lab/spec.md`): `python3 tools/lab.py new <id> --component ... --hypothesis '...' --expect-component N --expect-overall N` makes its worktree and card, and `python3 tools/lab.py run <worktree>` records its practice result and verdict. The user decides `lab fold` or `lab discard`. Pass `fold --yes` only when the user has approved that fold. Fold-in updates the main line (`main`). See `tools/lab.py` for every command.
+Any change that can move a lab number (listener, tracker, checker) is an experiment with a recorded result (`.scratch/lab/spec.md`): `python3 tools/lab.py new <id> --component ... --hypothesis '...' --expect-component N --expect-overall N` makes its worktree and card, and `python3 tools/lab.py run <worktree>` records its practice result and verdict. For hand-run experiments the user decides `lab fold` or `lab discard`; pass `fold --yes` only when the user has approved that fold. Autolab's experiments (`tools/autolab.py`) are folded or discarded by its gate (`tools/lab_gate.py`) straight onto `main`, tagged `autolab/fold/<id>`; the user can take one back out with `python3 tools/autolab.py revert <id>`. Fold-in updates the main line (`main`). See `tools/lab.py` for every command.
 
 ## Compute gotchas
 
