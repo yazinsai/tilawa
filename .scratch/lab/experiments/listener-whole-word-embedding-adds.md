@@ -64,13 +64,28 @@ The reference prefix bank also uses independent encodes of real prefixes,
 instead of truncating features that already saw the word's suffix. This bank
 can be rebuilt without changing the learned head or calibration radius.
 
+The reference has 15,905 distinct nonempty isolated word forms. A separate
+gallery pass searches all gold-excluded clean-match training shards for up to
+four real exemplars of each form absent from the bounded training sample.
+These extend the acoustic reference bank without changing the learned head,
+the existing prototypes or the held-out radius. Missing forms still abstain
+when they are neighbours. The reported held-out top-1 statistic describes the
+original training bank; its bank size is retained explicitly in the report.
+
 The first all-session diagnostic job (Modal 5) timed out. It is not evidence of
 complete clean-session coverage or a kill-criterion result. The replacement
 uses 20 shards and obtains gap bounds from the checker's actual support
 alignment. The diagnostic reads saved evidence and uses actual checker
 decision callbacks; it does not modify evidence, labels or the scorer.
 
-The corrected calibration, complete replay and test results will be recorded
+Modal 7 passed the core and SDK builds/tests on all 20 shards and collected
+exactly 200 unique session/variant pairs (100 sessions, phone and studio).
+There were 13 CTC-rejected addition queries, eight with an anchored gap. None
+of the queries came from the 26 fully clean sessions (52 variant cases). All
+three primary targets had a gap. These are query eligibility counts, not
+embedding confirmations or a practice score.
+
+The corrected calibration, gallery and embedding decisions will be recorded
 here when the jobs finish.
 
 ## Limits

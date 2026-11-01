@@ -10,7 +10,6 @@ import argparse
 import bisect
 import hashlib
 import io
-import itertools
 import json
 from pathlib import Path
 
@@ -65,7 +64,8 @@ class Lexicon:
         if start < 0 or not ref:
             return []
         out = []
-        for a, b, key in itertools.islice(self.words, bisect.bisect_left(self.starts, start), None):
+        for wi in range(bisect.bisect_left(self.starts, start), len(self.words)):
+            a, b, key = self.words[wi]
             if b > start + len(ref):
                 break
             if b > a and key:
@@ -458,9 +458,102 @@ def prefixes(args):
     (root / "report.json").write_text(json.dumps(artifact["report"], indent=2))
 
 
+def gallery(args):
+    """Cover remaining reference words with real training exemplars.
+
+    The contrastive head and its held-out radius remain fixed. A bounded
+    training sample should not arbitrarily remove rare words from the acoustic
+    reference lexicon. No practice query or label participates in selection.
+    """
+    import pyarrow.parquet as pq
+    import soundfile as sf
+    from student import exclusions
+
+    root = Path(args.out)
+    prefixes(args)
+    artifact = torch.load(root / "embedding.pt", map_location="cpu", weights_only=False)
+    original_size = len(artifact["keys"])
+    lexicon = Lexicon(json.loads(Path(args.reference).read_text()))
+    all_keys = {k for _, _, k in lexicon.words if k}
+    wanted = all_keys - set(artifact["keys"])
+    excluded = exclusions(Path(args.exclusions).read_text())
+    frozen = FrozenMiddle(args.checkpoint).cuda()
+    model = WordEncoder(artifact["channels"]).cuda().eval()
+    model.load_state_dict(artifact["model"])
+    vectors, counts, records, batch, batch_keys, durations = {}, {}, [], [], [], []
+
+    def flush():
+        if not batch:
+            return
+        x = nn.utils.rnn.pad_sequence(batch, batch_first=True, padding_value=-23.0259).cuda()
+        lens = torch.tensor([len(f) for f in batch], device="cuda")
+        with torch.no_grad(), torch.autocast("cuda", dtype=torch.bfloat16):
+            pooled = frozen(x, lens).half().float()
+        with torch.no_grad():
+            z = model(pooled, torch.tensor(durations, device="cuda")).cpu()
+        for key, e in zip(batch_keys, z):
+            vectors.setdefault(key, []).append(e)
+        batch.clear()
+        batch_keys.clear()
+        durations.clear()
+
+    for fi, path in enumerate(sorted(Path(args.data).glob("*.parquet"))):
+        meta = pq.read_table(path, columns=["shard", "row", "split", "bucket", "n_samples", "ref"]).to_pylist()
+        selected = []
+        for i, r in enumerate(meta):
+            if r["split"] != "train" or r["bucket"] != "clean-match" or r["n_samples"] > 30 * 16000:
+                continue
+            if (r["shard"], r["row"]) in excluded:
+                continue
+            if any(k in wanted and counts.get(k, 0) < 4 for _, _, k in lexicon.locate(r["ref"])):
+                selected.append(i)
+        if selected:
+            for row in pq.read_table(path).take(selected).to_pylist():
+                spans = [s for s in word_spans(row, lexicon) if s["key"] in wanted and counts.get(s["key"], 0) < 4]
+                if not spans:
+                    continue
+                wave, sr = sf.read(io.BytesIO(row["flac"]), dtype="float32")
+                assert sr == 16000 and wave.ndim == 1
+                for span in spans:
+                    k = span["key"]
+                    if counts.get(k, 0) >= 4:
+                        continue
+                    word = wave[span["start"]:span["end"]]
+                    if len(word) < 2560:
+                        continue
+                    batch.append(acoustic_features(word, frozen.cfg))
+                    batch_keys.append(k)
+                    durations.append(len(word) / sr)
+                    counts[k] = counts.get(k, 0) + 1
+                    records.append(dict(**span, split="train", source=f'{row["shard"]}:{row["row"]}',
+                                        cluster=row["cluster"], samples=len(word)))
+                    if len(batch) >= 96:
+                        flush()
+        if fi % 25 == 0:
+            print(json.dumps(dict(stage="gallery", files=fi + 1, new_words=len(counts), segments=len(records))), flush=True)
+        if all(counts.get(k, 0) >= 4 for k in wanted):
+            break
+    flush()
+    new_keys = sorted(vectors)
+    if new_keys:
+        artifact["keys"] += new_keys
+        new_bank = F.normalize(torch.stack([torch.stack(vectors[k]).mean(0) for k in new_keys]), dim=-1)
+        artifact["bank"] = torch.cat([artifact["bank"], new_bank])
+        extra_prefixes, extra_keys = real_prefix_bank(args, records, artifact["keys"], model)
+        artifact["prefix_bank"] = torch.cat([artifact["prefix_bank"], extra_prefixes])
+        artifact["prefix_keys"] += extra_keys
+    artifact["report"].update(lexicon=len(artifact["keys"]), reference_forms=len(all_keys),
+        heldout_top1_bank_size=original_size, gallery_words=len(new_keys), gallery_segments=len(records),
+        uncovered_forms=len(all_keys - set(artifact["keys"])), prefixes=len(artifact["prefix_keys"]))
+    (root / "gallery-segments.json").write_text(json.dumps(records, ensure_ascii=False))
+    torch.save(artifact, root / "embedding.pt")
+    (root / "report.json").write_text(json.dumps(artifact["report"], indent=2))
+    print(json.dumps(artifact["report"]), flush=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("stage", choices=["prepare", "extract", "train", "prefixes", "all"])
+    parser.add_argument("stage", choices=["prepare", "extract", "train", "prefixes", "gallery", "all"])
     parser.add_argument("--out", required=True)
     parser.add_argument("--data", default="/student/s1")
     parser.add_argument("--checkpoint", default="/student/prior-runs/spliced-clean/ckpt.pt")
@@ -473,6 +566,9 @@ def main():
     torch.set_num_threads(4)
     if args.stage == "prefixes":
         prefixes(args)
+        return
+    if args.stage == "gallery":
+        gallery(args)
         return
     for name, run in [("prepare", prepare), ("extract", extract), ("train", train)]:
         if args.stage in (name, "all"):
