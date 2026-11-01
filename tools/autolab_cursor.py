@@ -7,6 +7,7 @@ orchestrator's one-shot model call.
     python3 tools/autolab_cursor.py run <job.json>                the detached runner (start launches it)
     python3 tools/autolab_cursor.py models                        model ids the key can use
     python3 tools/autolab_cursor.py smoke <scratch-worktree> [file]  live check: one trivial card through start/poll/collect
+    python3 tools/autolab_cursor.py smoke-isolation <scratch-worktree>  live check: the agent can't reach Modal or write outside
 
 A run survives a supervisor restart: `start` launches this file's runner in its own session (process group), and the
 runner owns the agent. Everything the supervisor needs lives in files under `<worktree>/.autolab/<job>/` (job.json,
@@ -15,17 +16,22 @@ excluded through the main repo's `.git/info/exclude`, shared by every worktree.
 
 Config, `config["executor"]`: `model` and `fallbackModel` (an id or {"id", "params"}; checked against
 `Cursor.models.list()` when the executor is made; a card's `executorModel` overrides `model`), `env` (overrides for the
-runner; a value "$NAME" is copied from the supervisor's NAME), `envDrop` (names removed), `python` (the runner's
-interpreter argv, default this interpreter, which must have cursor-sdk), `cancelGraceS`.
+runner, applied last; a value "$NAME" is copied from the supervisor's NAME), `envDrop` (fnmatch patterns removed; every
+MODAL_* always is), `home` (default true: HOME is `<worktree>/.autolab/home`, keeping git's identity through
+GIT_CONFIG_GLOBAL), `seatbelt` (default true: the runner runs under `sandbox-exec` with `seatbelt()`'s profile), `python`
+(the runner's interpreter argv, default this interpreter, which must have cursor-sdk), `cancelGraceS`.
 
-Isolation, phase A, is by environment and convention: the runner swaps in the executor's Modal environment and token and
-pops CURSOR_API_KEY before the SDK bridge starts (the key goes to the SDK explicitly, so the agent's shell never sees it).
-A local agent still runs as this user and can read ~/.modal.toml or anything else on disk. Real isolation comes with phase B
-cloud agents.
+Isolation, phase A: a builder has no Modal identity. Its environment has no MODAL_* and a HOME without .modal.toml, the
+sandbox profile denies reading the real ~/.modal.toml, writing under the real home outside its worktree (so not the
+supervisor's code, config or other worktrees) and reading other processes' environments, and the runner pops
+CURSOR_API_KEY before the SDK bridge starts (the key goes to the SDK explicitly, so the agent's shell never sees it). Its
+Modal work goes through the supervisor (tools/autolab.py modal-run, modal/autolab_exec.py). It can still read the user's
+other files and use the network. Phase B cloud agents remove that.
 """
 
 import contextlib
 import dataclasses
+import fnmatch
 import importlib
 import json
 import os
@@ -38,7 +44,7 @@ import time
 from datetime import UTC, datetime
 from pathlib import Path
 
-DEFAULTS = {"model": "grok-4.7", "fallbackModel": "grok-4.7", "cancelGraceS": 30}
+DEFAULTS = {"model": "grok-4.7", "fallbackModel": "grok-4.7", "cancelGraceS": 30, "home": True, "seatbelt": True}
 TERMINAL = ("finished", "failed")
 
 
@@ -109,10 +115,18 @@ def exclude_autolab(worktree):
         path.write_text(text + ("" if not text or text.endswith("\n") else "\n") + ".autolab/\n")
 
 
-def runner_env(cfg, base=None):
+def runner_env(cfg, base=None, home=None):
+    """The runner's (and so the agent's shell's) environment: no MODAL_* and nothing in `envDrop` (fnmatch patterns),
+    HOME at `home` with git's identity and the read-only tool installs kept, then `env`."""
     env = dict(os.environ if base is None else base)
-    for name in cfg.get("envDrop", []):
-        env.pop(name, None)
+    for name in [k for k in env if k.startswith("MODAL_") or any(fnmatch.fnmatchcase(k, p) for p in cfg.get("envDrop", []))]:
+        del env[name]
+    if home:
+        real = Path(env.get("HOME") or Path.home())
+        Path(home).mkdir(parents=True, exist_ok=True)
+        keep = {"GIT_CONFIG_GLOBAL": real / ".gitconfig", "NVM_DIR": real / ".nvm", "PYENV_ROOT": real / ".pyenv",
+                "UV_PYTHON_INSTALL_DIR": real / ".local/share/uv/python"}
+        env.update({k: str(v) for k, v in keep.items() if k not in env and v.exists()}, HOME=str(home))
     for name, value in cfg.get("env", {}).items():
         if isinstance(value, str) and value.startswith("$"):
             if value[1:] not in env:
@@ -120,6 +134,27 @@ def runner_env(cfg, base=None):
             value = env[value[1:]]
         env[name] = str(value)
     return env
+
+
+def seatbelt(worktree, home=None):
+    """A macOS sandbox profile for the runner's process tree (the bridge and the agent's shells inherit it): no reading
+    the Modal token, no writing under the real home except this worktree and what its commits need (the objects and its
+    own branch), and no reading other processes' arguments and environment (the supervisor's holds CURSOR_API_KEY)."""
+    git = lambda *a: subprocess.run(["git", "-C", str(worktree), *a], capture_output=True, text=True, check=True).stdout.strip()  # noqa: E731
+    wt, home = Path(worktree).resolve(), Path(home or Path.home()).resolve()
+    common, gitdir = (wt / git("rev-parse", "--git-common-dir")).resolve(), (wt / git("rev-parse", "--git-dir")).resolve()
+    branch = git("branch", "--show-current")
+    q = lambda kind, p: f'({kind} "{p}")'  # noqa: E731
+    writable = [q("subpath", wt), q("subpath", gitdir), q("subpath", common / "objects")]
+    if branch:
+        writable += [q("literal", common / d / "refs/heads" / f"{branch}{s}") for d in ("", "logs") for s in ("", ".lock")]
+    return "\n".join([
+        "(version 1)", "(allow default)",
+        f"(deny file-write* {q('subpath', home)})",
+        f"(allow file-write* {' '.join(writable)})",
+        f"(deny file-read* file-write* {q('literal', home / '.modal.toml')} {q('subpath', home / '.modal')})",
+        '(deny sysctl-read (sysctl-name "kern.procargs2"))',
+    ])
 
 
 def available_models(sdk=None):
@@ -159,9 +194,11 @@ class CursorLocalExecutor:
                           "transcript": h["transcript"], "messages": str(d / "messages.jsonl")})
         _write(h["status"], {"status": "starting", "card": card["id"], "model": model, "started": h["started"]})
         py = self.cfg.get("python") or [sys.executable]
+        jail = ["/usr/bin/sandbox-exec", "-p", seatbelt(worktree)] if self.cfg["seatbelt"] and Path("/usr/bin/sandbox-exec").exists() else []
+        home = worktree / ".autolab" / "home" if self.cfg["home"] else None
         with open(d / "runner.log", "ab") as log:
-            p = subprocess.Popen([*([py] if isinstance(py, str) else py), str(Path(__file__).resolve()), "run", h["job"]],
-                                 cwd=worktree, env=runner_env(self.cfg), stdin=subprocess.DEVNULL, stdout=log,
+            p = subprocess.Popen([*jail, *([py] if isinstance(py, str) else py), str(Path(__file__).resolve()), "run", h["job"]],
+                                 cwd=worktree, env=runner_env(self.cfg, home=home), stdin=subprocess.DEVNULL, stdout=log,
                                  stderr=subprocess.STDOUT, start_new_session=True)
         h["pgid"] = p.pid
         _update(h["status"], pgid=p.pid)
@@ -366,9 +403,51 @@ def smoke(worktree, file=None):
     return 0 if state == "finished" and "autolab smoke test" in diff else 1
 
 
+def smoke_isolation(worktree):
+    """Live check of decision 14: the agent tries each way out; every shell call's exit and first output line are printed
+    from the run's messages (not the agent's account). Passes when Modal, the token and the main checkout are out of
+    reach and git, node and the autolab CLI still work."""
+    worktree = Path(worktree).resolve()
+    repo, home = Path(__file__).resolve().parent.parent, Path.home()
+    probe = repo / ".autolab-isolation-probe"
+    tries = {"modal volume ls tilawa-lab /": False, f"cat {home}/.modal.toml": False, "env | grep '^MODAL_'": False,
+             f"touch {probe}": False, f"echo x >> {home}/.zshrc.autolab-probe": False, "ps eww -o command= -p 1": False,
+             "git log --oneline -1 && git config user.email": True, "echo $HOME && pnpm --version && node --version": True,
+             f"python3 {repo}/tools/autolab.py modal-run --help": True}
+    brief = ("Isolation check of the autolab executor. Run each command below in the shell, one at a time, exactly as written, "
+             "even when an earlier one fails. Don't work around failures and change no files. Then reply with one line per "
+             "command: its exit code and the first line of its output.\n\n" + "\n".join(f"- `{c}`" for c in tries))
+    ex = CursorLocalExecutor(_config())
+    h = ex.start({"id": "smoke-isolation"}, worktree, brief)
+    deadline = time.time() + 900
+    while (state := ex.poll(h)) == "running" and time.time() < deadline:
+        time.sleep(5)
+    if state == "running":
+        ex.cancel(h)
+        state = "timeout"
+    seen = {}
+    for line in Path(h["dir"], "messages.jsonl").read_text().splitlines():
+        m = json.loads(line)
+        cmd = (m.get("args") or {}).get("command") if m.get("type") == "tool_call" and m.get("status") != "running" else None
+        if cmd:
+            v = ((m.get("result") or {}).get("value") or {})
+            seen[cmd.strip()] = (v.get("exitCode"), ((v.get("stdout") or "") + (v.get("stderr") or "")).strip().splitlines()[:1])
+    ok = state == "finished" and not probe.exists() and not Path(f"{home}/.zshrc.autolab-probe").exists()
+    for c, should in tries.items():
+        code, first = seen.get(c, (None, ["(not run)"]))
+        good = code is not None and (code == 0) == should and not (c.startswith("env") and first)
+        ok &= good
+        print(f"{'ok ' if good else 'BAD'} exit {code}: {c}\n      {first[0][:160] if first else ''}")
+    print(f"state {state}; probe files {'absent' if ok else 'check'}")
+    probe.unlink(missing_ok=True)
+    return 0 if ok else 1
+
+
 def main(argv):
     if argv[:1] == ["run"] and len(argv) == 2:
         return run(argv[1])
+    if argv[:1] == ["smoke-isolation"] and len(argv) == 2:
+        return smoke_isolation(argv[1])
     if argv[:1] == ["models"]:
         for m in available_models():
             print(m.id, "|", m.display_name, "|", ", ".join(v.display_name for v in m.variants))

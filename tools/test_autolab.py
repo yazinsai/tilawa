@@ -116,6 +116,11 @@ class World(A.World):
     def ledgers(self):
         return []
 
+    sessions = {"practice": ["lab-v1.5-p01", "lab-v1.5-p02"], "exam": ["lab-v1.5-e01"]}
+
+    def test_set(self, ts):
+        return {"id": ts, "base": "lab-v1.5", "manifest": "lab-v1.5/manifest-v1.json", "sessions": self.sessions}
+
     def modal_spend(self, day):
         return self.modal_usd
 
@@ -545,3 +550,152 @@ def test_a_tick_that_raises_pauses_and_pages(w, monkeypatch):
     monkeypatch.setattr(A.Tick, "run", lambda self: (_ for _ in ()).throw(RuntimeError("boom")))
     st = A.tick_once(w)
     assert "tick failed: RuntimeError: boom" in st["paused"]
+
+
+# builders' Modal work through the supervisor (decision 14)
+
+def builder(w, tier="exploit", component=None, polls=10**6):
+    """One card of `tier` implementing, with its executor still running and the practice-only data synced."""
+    w.executor = FakeExecutor(polls=polls)
+    st = tick(w)
+    id = next(e["id"] for e in st["experiments"].values() if e["tier"] == tier and component in (None, e["card"]["component"]))
+    st = only(st, id)
+    st["execData"] = {"testSet": st["testSet"]}
+    w.saved = st
+    assert states(tick(w))[id] == "implementing"
+    return id
+
+
+def ask(w, id, n, **req):
+    d = w.tmp / id / ".autolab"
+    d.mkdir(exist_ok=True)
+    (d / f"modal-request-{n}.json").write_text(json.dumps({"cmd": "ls /lab/data", **req}))
+    return d / f"modal-result-{n}.json"
+
+
+def run_of(w, name):
+    argv = w.jobs[name]["argv"]
+    assert argv[1].endswith("modal/autolab_exec.py") and argv[2] == "run"
+    return json.loads(argv[3])
+
+
+RESULT = {"code": 0, "shards": [{"shard": 0, "code": 0, "seconds": 3.0, "tail": "200"}], "seconds": 1800.0, "out": "/scratch/x/runs/1", "local": "l"}
+
+
+def test_modal_run_requests_run_in_a_sandbox_and_come_back(w):
+    w.job_results["modal"] = {"result": RESULT, "exitCode": 0}
+    id = builder(w)
+    result = ask(w, id, 1, shards=2)
+    tick(w)
+    q = run_of(w, f"modal-{id}-1")
+    assert q["exp"] == id and q["n"] == "1" and q["worktree"] == str(w.tmp / id) and q["shards"] == 2 and q["gpu"] is None and q["image"] == "node"
+    assert not result.exists()
+    tick(w)
+    out = json.loads(result.read_text())
+    assert out["code"] == 0 and out["usd"] == 0 and out["shards"][0]["tail"] == "200"
+    e = w.load()["experiments"][id]
+    assert e["results"]["modalJobs"] == {} and e["results"]["modalRuns"][0]["code"] == 0
+    tick(w)
+    assert len([n for n in w.jobs if n.startswith("modal-")]) == 1
+
+
+def test_gpus_are_for_bets_only(w):
+    id = builder(w, "exploit")
+    result = ask(w, id, 1, gpu="L4")
+    tick(w)
+    assert "bet cards only" in json.loads(result.read_text())["error"]
+    assert not any(n.startswith("modal-") for n in w.jobs)
+
+
+def test_a_bets_gpu_runs_fit_its_budget(w):
+    w.job_results["modal"] = {"result": {**RESULT, "gpu": "L4"}, "exitCode": 0}
+    id = builder(w, "bet")
+    big, small = ask(w, id, 1, gpu="H100", shards=4, timeout=600), ask(w, id, 2, gpu="L4", timeout=60)
+    tick(w)
+    assert "can cost up to $158.00" in json.loads(big.read_text())["error"]
+    assert run_of(w, f"modal-{id}-2")["gpu"] == "L4"
+    tick(w)
+    out = json.loads(small.read_text())
+    assert out["usd"] == 0.4 and out["gpuUsdLeft"] == 19.6 and out["gpuUsdBudget"] == 20
+    assert w.load()["experiments"][id]["results"]["gpuUsd"] == 0.4
+
+
+def test_concurrent_requests_are_capped_per_experiment(w):
+    w.job_results["modal"] = {"result": RESULT, "exitCode": 0}
+    id = builder(w)
+    results = [ask(w, id, n) for n in (1, 2, 3)]
+    w.job_polls = 10**6
+    tick(w)
+    assert sorted(n for n in w.jobs if n.startswith("modal-")) == [f"modal-{id}-1", f"modal-{id}-2"]
+    w.job_polls = 0
+    tick(w)
+    assert results[0].exists() and results[1].exists() and f"modal-{id}-3" in w.jobs and not results[2].exists()
+
+
+def test_requests_wait_for_the_practice_only_data(w):
+    w.job_results["exec"] = {"testSet": "lab-v1.5", "sessions": 2, "files": 9, "missing": []}
+    w.executor = FakeExecutor(polls=10**6)
+    id = started(w)
+    st = w.load()
+    assert st["execData"]["testSet"] == "lab-v1.5"
+    st["testSet"] = "lab-v1.5.v2"
+    w.saved = st
+    ask(w, id, 1)
+    st = tick(w)
+    sync = next(n for n in w.jobs if n.startswith("exec-sync-"))
+    spec = json.loads(w.jobs[sync]["argv"][3])
+    assert spec["practice"] == W_PRACTICE and "exam" not in json.dumps(spec) and spec["models"] == ["models/spliced-clean-int8"]
+    assert not any(n.startswith("modal-") for n in w.jobs)
+    st = tick(w)
+    assert st["execData"]["testSet"] == "lab-v1.5.v2" and any(n.startswith("modal-") for n in w.jobs)
+
+
+W_PRACTICE = ["lab-v1.5-p01", "lab-v1.5-p02"]
+
+
+def test_a_listener_bets_own_model_is_copied_and_decoded_on_practice_only(w):
+    id = builder(w, "bet", component="listener", polls=1)
+    (w.tmp / id / ".autolab").mkdir(exist_ok=True)
+    (w.tmp / id / ".autolab/model.json").write_text(json.dumps({"path": f"/scratch/{id}/exports/v2"}))
+    for _ in range(4):
+        st = tick(w)
+    cmd = " ".join(next(j for n, j in w.jobs.items() if n.startswith("decode-"))["argv"])
+    listener = st["experiments"][id]["results"]["listener"]
+    assert f"autolab_exec.py copy-model {id} exports/v2 models/{listener} &&" in cmd
+    assert f"--model models/{listener}" in cmd and "--force" in cmd
+    assert f"--only {','.join(W_PRACTICE)}" in cmd and "lab-v1.5-e01" not in cmd
+
+
+def test_a_listener_card_without_a_model_decodes_with_the_main_model(w):
+    id = builder(w, component="listener", polls=1)
+    for _ in range(4):
+        tick(w)
+    cmd = " ".join(next(j for n, j in w.jobs.items() if n.startswith("decode-"))["argv"])
+    assert "copy-model" not in cmd and "--model models/spliced-clean-int8" in cmd and "--force" not in cmd
+
+
+def test_a_decode_never_runs_without_practice_ids_or_with_exam_ones(w):
+    id = builder(w, component="listener", polls=1)
+    w.sessions = {"practice": ["lab-v1.5-p01", "lab-v1.5-e01"], "exam": ["lab-v1.5-e01"]}
+    for _ in range(4):
+        st = tick(w)
+    assert not any(n.startswith("decode-") for n in w.jobs)
+    assert st["experiments"][id]["state"] == "needs-human" and "also exam" in st["experiments"][id]["note"]
+
+
+def test_validation_tests_run_in_the_sandbox_not_on_tilawa_lab(w):
+    id = builder(w, polls=1)
+    tick(w)
+    q = run_of(w, next(n for n in w.jobs if n.startswith("tests-")))
+    assert q["exp"] == id and q["shards"] == 6 and q["download"] is False and "vitest" in q["cmd"]
+
+
+def test_the_brief_sends_modal_work_through_the_supervisor():
+    ctx = {"testSet": "lab-v1.5", "history": []}
+    e = {"card": card(component="listener"), "tier": "exploit", "branch": "exp/x", "results": {}}
+    b = A.brief(e, ctx)
+    assert "modal-run" in b and "no Modal credentials" in b and "practice-score" in b and ".autolab/model.json" in b
+    assert "lab.py run . --shards" not in b and "--gpu" not in b and str(A.REPO / "tools/autolab.py") in b
+    bet = A.brief({**e, "card": card(component="listener", tier="bet"), "tier": "bet"}, ctx)
+    assert "--gpu L4" in bet and "$20" in bet and "--image train" in bet
+    assert ".autolab/model.json" not in A.brief({**e, "card": card()}, ctx)

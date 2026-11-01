@@ -318,3 +318,39 @@ def test_make_picks_cursor_local(monkeypatch):
     monkeypatch.setattr(C, "check_models", lambda cfg, sdk=None: [])
     assert isinstance(autolab_exec.make({"executor": {"runtime": "cursor-local"}}), C.CursorLocalExecutor)
     assert "cursor_sdk" not in sys.modules
+
+
+# --- isolation (spec decision 14) ---
+
+def test_runner_env_drops_modal_and_moves_home(tmp_path):
+    real = tmp_path / "real"
+    real.mkdir()
+    (real / ".gitconfig").write_text("[user]\n\tname = r\n")
+    base = {"HOME": str(real), "MODAL_TOKEN_ID": "t", "MODAL_PROFILE": "p", "SONIOX_API_KEY": "s", "PATH": "/bin"}
+    home = tmp_path / "wt/.autolab/home"
+    env = C.runner_env({"envDrop": ["SONIOX_*"], "env": {"X": "1"}}, base, home=home)
+    assert not [k for k in env if k.startswith(("MODAL_", "SONIOX_"))]
+    assert env["HOME"] == str(home) and home.is_dir() and env["GIT_CONFIG_GLOBAL"] == str(real / ".gitconfig")
+    assert "NVM_DIR" not in env and env["PATH"] == "/bin" and env["X"] == "1"
+    assert C.runner_env({}, base)["HOME"] == str(real)
+
+
+@pytest.mark.skipif(not Path("/usr/bin/sandbox-exec").exists(), reason="macOS sandbox")
+def test_the_seatbelt_profile_keeps_a_builder_in_its_worktree(tmp_path):
+    home = (tmp_path / "home").resolve()
+    main, wt = home / "main", home / "wt"
+    home.mkdir()
+    (home / ".modal.toml").write_text("token_id = 'x'")
+    git = lambda *a, cwd=main: subprocess.run(["git", "-c", "user.name=a", "-c", "user.email=a@b", *a], cwd=cwd, capture_output=True, check=True)  # noqa: E731
+    main.mkdir()
+    git("init", "-q", "-b", "main")
+    git("commit", "-q", "--allow-empty", "-m", "base")
+    git("worktree", "add", "-q", "-b", "exp/x", str(wt))
+    profile = C.seatbelt(wt, home=home)
+    sh = lambda c: subprocess.run(["/usr/bin/sandbox-exec", "-p", profile, "bash", "-c", c], cwd=wt, capture_output=True, text=True).returncode  # noqa: E731
+    assert sh(f"cat {home}/.modal.toml") != 0
+    assert sh(f"touch {main}/x") != 0 and sh(f"touch {home}/.zshrc") != 0
+    assert sh("git -c user.name=a -c user.email=a@b commit -q --allow-empty -m mine") == 0
+    assert sh("git branch -f main HEAD") != 0
+    assert sh(f"touch {wt}/.autolab-x && cat {main}/.git/HEAD") == 0
+    assert sh("ps eww -o command= -p 1") != 0

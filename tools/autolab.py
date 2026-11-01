@@ -8,6 +8,10 @@
     pause [why] | resume
     status [--json]
     practice-score [worktree]   an executor's practice score through the supervisor (at most 3 per card, decision 20)
+    modal-run [--shards N] [--gpu L4] [--image node|train] [--timeout MIN] [--no-wait] -- '<command>'
+                             an executor's command on Modal through the supervisor (decision 14; modal/autolab_exec.py)
+    modal-result <n>         wait for an executor's modal-run started with --no-wait
+    sync-exec-data           refresh tilawa-lab-exec, the builders' practice-only data (the loop also does it per test set)
     watchdog                 notify when the heartbeat is stale (run from cron or launchd, apart from the loop)
     match <id> agree|disagree   your verdict on a shadow decision (ticket 11)
     waiting                  what needs you, with the command for each
@@ -38,6 +42,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import autolab_brain as B  # noqa: E402
+import autolab_isolation as I  # noqa: E402
 import autolab_notify as N  # noqa: E402
 import autolab_portfolio as P  # noqa: E402
 import autolab_state as S  # noqa: E402
@@ -48,6 +53,7 @@ from concurrent.futures import ThreadPoolExecutor  # noqa: E402
 from lab import REPO, Stop, vol_get, vol_ls, vol_put  # noqa: E402
 
 LAB = REPO / "tools/lab.py"
+EXEC = REPO / "modal/autolab_exec.py"
 CONFIG = REPO / ".scratch/autolab/config.json"
 RUN = REPO / ".scratch/autolab/run"
 BRANCH, WORKTREE = "autolab", REPO.parent / "tilawa-autolab"
@@ -62,8 +68,8 @@ DEFAULT_CONFIG = {
     "models": {**dict.fromkeys(("planner", "reviewer", "strategist"), {"id": "claude-opus-5-5", "params": [
                    {"id": "context", "value": "1m"}, {"id": "effort", "value": "medium"}, {"id": "fast", "value": "false"}]}),
                **dict.fromkeys(("judge", "diffReviewer"), GROK)},
-    "executor": {"runtime": "cursor-local", "model": GROK, "fallbackModel": GROK,
-                 "env": {"MODAL_ENVIRONMENT": "autolab-exec"}},
+    "executor": {"runtime": "cursor-local", "model": GROK, "fallbackModel": GROK, "env": {}},
+    "exec": dict(I.LIMITS),
     "betApprovalUsd": 25,
     "listenerModel": "models/spliced-clean-int8",
     "tests": "bash tools/autolab_tests.sh",
@@ -122,6 +128,16 @@ class World:
         if p.returncode or "error" in out:
             raise Stop(out.get("error") or p.stderr[-2000:])
         return out
+
+    def exec_argv(self, *args) -> list[str]:
+        return [sys.executable, str(EXEC), *map(str, args)]
+
+    def test_set(self, ts: str) -> dict:
+        """The autolab ledger's record of a test set version: manifest, exclude, sessions by split."""
+        t = ((vol_get(VOL_LEDGER) or {}).get("testSets") or {}).get(ts)
+        if not t:
+            raise Stop(f"test set {ts} is not in {VOL_LEDGER}")
+        return t
 
     def job(self, name: str, argv: list[str], env: dict | None = None) -> dict:
         jobs = RUN / "jobs"
@@ -255,6 +271,20 @@ def lab_argv(*args) -> list[str]:
     return [sys.executable, str(LAB), "--main", BRANCH, "--ledger", VOL_LEDGER, "--json", *map(str, args)]
 
 
+def practice_ids(t: dict) -> list[str]:
+    """The practice sessions of a ledger test set; never empty and never an exam session (an empty --only decodes all)."""
+    practice, exam = t["sessions"].get("practice") or [], set(t["sessions"].get("exam") or [])
+    if not practice or exam & set(practice):
+        raise Stop(f"test set {t.get('id') or t.get('manifest')}: no practice sessions, or some are also exam")
+    return practice
+
+
+def exec_spec(t: dict, cfg: dict) -> dict:
+    """What modal/autolab_exec.py's sync copies into tilawa-lab-exec."""
+    return {"base": t["base"], "manifest": t["manifest"], "practice": practice_ids(t),
+            "listeners": sorted({L.DEFAULT_LISTENER, "teacher"}), "models": [cfg["listenerModel"]]}
+
+
 def alive(pid: int) -> bool:
     try:
         if os.waitpid(pid, os.WNOHANG) != (0, 0):
@@ -343,6 +373,7 @@ class Tick:
         if st.get("paused"):
             return self.events
         self.daily()
+        self.exec_data()
         for state, step in (("implementing", self.implementing), ("validating", self.validating), ("scoring", self.scoring),
                             ("folding", self.folding), ("proposed", self.proposed), ("accepted", self.accepted)):
             for e in S.in_state(st, state):
@@ -405,6 +436,7 @@ class Tick:
                 raise ValueError(f"{e['id']} already ended ({e['state']})")
             if e["state"] == "implementing":
                 self.w.executor.cancel(e["executor"]["handle"])
+            self.stop_modal(e)
             for k in ("testsJob", "decodeJob", "scoreJob", "foldJob"):
                 self.w.kill(e["results"].pop(k, None))
             if self.st["foldLock"] == e["id"]:
@@ -449,6 +481,28 @@ class Tick:
                            "attribution": {c: practice[c] for c in L.COMPONENTS}, "teacherWrongCalls": teacher.get("wrongCalls")}
         P.update_coverage(self.st, P.incidents(report))
         self._ctx = None
+
+    def exec_data(self):
+        """Keeps tilawa-lab-exec, the builders' practice-only data, on the current test set version; modal-run requests
+        wait until it is."""
+        st, w = self.st, self.w
+        job = st.get("execSyncJob")
+        if job:
+            status, res = w.poll(job)
+            if status == "running":
+                return
+            st["execSyncJob"] = None
+            if status == "done":
+                st["execData"] = {"testSet": job["testSet"], "at": self.at, **{k: res.get(k) for k in ("sessions", "files", "missing")}}
+                self.events.append(S.event(None, None, "exec-data", self.at, f"practice-only data for builders: {res.get('sessions')} sessions, {res.get('files')} files"))
+            else:
+                st["execSyncFailed"] = self.at
+                w.notify(st, "needs-human", f"exec-sync:{self.at[:13]}", "Autolab: the builders' practice data didn't sync", tail(res), self.at)
+            return
+        if (st.get("execData") or {}).get("testSet") == st["testSet"] or (st.get("execSyncFailed") and S.minutes(st["execSyncFailed"], self.at) < 30):
+            return
+        spec = exec_spec(w.test_set(st["testSet"]), w.cfg)
+        st["execSyncJob"] = {**w.job(f"exec-sync-{int(time.time())}", w.exec_argv("sync", json.dumps(spec))), "testSet": st["testSet"]}
 
     def pause(self, why: str):
         self.st["paused"] = why
@@ -525,16 +579,63 @@ class Tick:
                 out = {k: res.get(k) for k in ("compare", "verdict", "practice", "sha")} if status == "done" else {"error": tail(res)}
                 result.write_text(json.dumps(out, ensure_ascii=False))
 
+    def serve_modal(self, e):
+        """An executor has no Modal access: `tools/autolab.py modal-run` writes .autolab/modal-request-<n>.json, the
+        supervisor runs it in a sandbox (modal/autolab_exec.py) and writes modal-result-<n>.json. GPUs only for bets,
+        within the card's gpuUsd (a run reserves its whole timeout up front); at most exec.concurrent at a time."""
+        d = Path(e["worktree"], ".autolab")
+        r, cfg = e["results"], self.w.cfg
+        jobs, runs = r.setdefault("modalJobs", {}), r.setdefault("modalRuns", [])
+        for n, j in list(jobs.items()):
+            status, res = self.w.poll(j["job"])
+            if status == "running":
+                continue
+            out = (res or {}).get("result") or {"error": tail(res)}
+            usd = I.cost(j["q"], out.get("seconds") or S.minutes(j["job"]["started"], self.at) * 60)
+            r["gpuUsd"] = round(r.get("gpuUsd", 0) + usd, 4)
+            runs.append({"n": n, "cmd": j["q"]["cmd"][:200], "gpu": j["q"]["gpu"], "code": out.get("code"), "usd": usd, "at": self.at})
+            del jobs[n]
+            write_json(d / f"modal-result-{n}.json", {**out, "usd": usd, **budget(e)})
+        if (self.st.get("execData") or {}).get("testSet") != self.st["testSet"]:
+            return
+        lim = I.limits(cfg)
+        for req in sorted(d.glob("modal-request-*.json"), key=lambda p: int(p.stem.rsplit("-", 1)[1])) if d.exists() else []:
+            n = req.stem.rsplit("-", 1)[1]
+            if n in jobs or (d / f"modal-result-{n}.json").exists():
+                continue
+            if len(jobs) >= lim["concurrent"]:
+                return
+            try:
+                q = I.request(json.loads(req.read_text()), e["tier"], cfg)
+                if q["gpu"] and I.reserve(q) > budget(e)["gpuUsdLeft"]:
+                    raise ValueError(f"this run can cost up to ${I.reserve(q):.2f} ({q['shards']} x {q['gpu']} for {q['timeout']} min); "
+                                     f"${budget(e)['gpuUsdLeft']:.2f} of the card's ${e['card'].get('gpuUsd', 0)} GPU budget is left")
+            except (ValueError, TypeError, json.JSONDecodeError) as err:
+                write_json(d / f"modal-result-{n}.json", {"error": str(err), **budget(e)})
+                continue
+            run = {**q, "exp": e["id"], "n": n, "worktree": e["worktree"]}
+            jobs[n] = {"q": q, "job": self.w.job(f"modal-{e['id']}-{n}", self.w.exec_argv("run", json.dumps(run)))}
+
+    def stop_modal(self, e):
+        """Ends an experiment's runs still going (their job terminates its sandboxes), charging the time they ran."""
+        r = e["results"]
+        for n, j in (r.pop("modalJobs", None) or {}).items():
+            self.w.kill(j["job"])
+            r["gpuUsd"] = round(r.get("gpuUsd", 0) + I.cost(j["q"], S.minutes(j["job"]["started"], self.at) * 60), 4)
+
     def implementing(self, e):
         w, h = self.w, e["executor"]["handle"]
         self.serve_practice(e)
+        self.serve_modal(e)
         status = w.executor.poll(h)
         if status == "running":
             if S.timed_out(e, self.at):
                 w.executor.cancel(h)
                 self.finish_executor(e)
+                self.stop_modal(e)
                 self.move(e, "abandoned", f"the executor ran past {S.timeout(e)} minutes")
             return
+        self.stop_modal(e)
         res = self.finish_executor(e)
         if status == "finished":
             return self.move(e, "validating", res["summary"][:200])
@@ -624,7 +725,10 @@ class Tick:
             return self.bounce(e, "diff review: " + v["why"] + " " + "; ".join(v["concerns"][:5]))
         if st.get("dataHash") and w.data_hash(st["testSet"]) != st["dataHash"]:
             return self.pause("the test data on the volume changed since autolab started; check /lab/data before resuming")
-        r["testsJob"] = w.job(f"tests-{e['id']}-{e['attempts']['executor']}", w.lab_argv("run", wt, "--shards", w.cfg.get("testShards", 6), "--name", f"autolab-tests-{e['id']}", "--cmd", test_command(w.cfg)))
+        n = e["attempts"]["executor"]
+        run = {"exp": e["id"], "n": f"tests-{n}", "worktree": wt, "cmd": test_command(w.cfg), "shards": w.cfg.get("testShards", 6),
+               "gpu": None, "image": "node", "timeout": 30, "download": False}
+        r["testsJob"] = w.job(f"tests-{e['id']}-{n}", w.exec_argv("run", json.dumps(run)))
 
     def after_tests(self, e):
         r, w, c = e["results"], self.w, e["card"]
@@ -633,10 +737,20 @@ class Tick:
             return self.start_scoring(e)
         sha = w.git("rev-parse", "--short", "HEAD", cwd=e["worktree"])
         r["listener"] = f"exp-{e['id']}-{sha}"[:60]
-        practice = (vol_get(VOL_LEDGER) or {}).get("testSets", {}).get(self.st["testSet"], {}).get("sessions", {}).get("practice", [])
-        decode = ["modal", "run", str(REPO / "modal/lab_decode.py"), "--listener", r["listener"], "--model", w.cfg["listenerModel"],
-                  "--test-set", self.st["testSet"].split(".v")[0], "--variants", "phone,studio", "--only", ",".join(practice)]
-        r["decodeJob"] = w.job(f"decode-{e['id']}-{sha}", json_exit(decode), env={"LAB_SRC": e["worktree"]})
+        practice = practice_ids(w.test_set(self.st["testSet"]))
+        model, copy = w.cfg["listenerModel"], []
+        f = Path(e["worktree"], ".autolab", "model.json")
+        if f.exists():
+            try:
+                path = I.model_path(json.loads(f.read_text()), e["id"])
+            except (ValueError, json.JSONDecodeError) as err:
+                return self.bounce(e, str(err))
+            model = f"models/{r['listener']}"
+            r["model"] = {"scratch": f"/scratch/{e['id']}/{path}", "path": model}
+            copy = [w.exec_argv("copy-model", e["id"], path, model)]
+        decode = ["modal", "run", str(REPO / "modal/lab_decode.py"), "--listener", r["listener"], "--model", model,
+                  "--test-set", self.st["testSet"].split(".v")[0], "--variants", "phone,studio", "--only", ",".join(practice)] + (["--force"] if copy else [])
+        r["decodeJob"] = w.job(f"decode-{e['id']}-{sha}", json_exit(*copy, decode), env={"LAB_SRC": e["worktree"]})
 
     def score_with_listener(self, e, listener: str):
         wt = e["worktree"]
@@ -784,10 +898,11 @@ class Tick:
             self.add(c)
 
 
-def json_exit(argv: list[str]) -> list[str]:
-    """A command that prints no JSON, wrapped so its job ends in a JSON line saying how it exited (what poll reads)."""
+def json_exit(*argvs: list[str]) -> list[str]:
+    """Commands that print no JSON, run in turn until one fails, wrapped so the job ends in a JSON line saying how it
+    exited (what poll reads)."""
     import shlex  # noqa: PLC0415
-    return ["bash", "-c", f'{shlex.join(argv)}; code=$?; echo "{{\\"exitCode\\": $code}}"']
+    return ["bash", "-c", f'{" && ".join(map(shlex.join, argvs))}; code=$?; echo "{{\\"exitCode\\": $code}}"']
 
 
 def test_command(cfg: dict) -> str:
@@ -810,6 +925,20 @@ def shift(at: str, minutes: int) -> str:
     return (datetime.fromisoformat(at) + timedelta(minutes=minutes)).isoformat()
 
 
+def budget(e: dict) -> dict:
+    """A card's GPU dollars: spent, and left after what running requests hold."""
+    r = e["results"]
+    held = sum(I.reserve(j["q"]) for j in (r.get("modalJobs") or {}).values())
+    total = e["card"].get("gpuUsd", 0) if e["tier"] == "bet" else 0
+    return {"gpuUsdBudget": total, "gpuUsdSpent": round(r.get("gpuUsd", 0), 2), "gpuUsdLeft": round(max(0, total - r.get("gpuUsd", 0) - held), 2)}
+
+
+def write_json(path: Path, doc: dict) -> None:
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(doc, ensure_ascii=False))
+    os.replace(tmp, path)
+
+
 def tail(res: dict | None) -> str:
     res = res or {}
     return (res.get("log") or res.get("error") or json.dumps(res))[-2500:]
@@ -820,6 +949,20 @@ def brief(e: dict, ctx: dict, feedback: str = "") -> str:
     c = e["card"]
     targets = "\n".join(f"- `{t}`" for t in c.get("targets", []))
     tried = [h for h in ctx["history"] if h.get("cluster") == c.get("cluster") and h["id"] != c["id"]]
+    base, lim, b, al = ctx["testSet"].split(".v")[0], I.limits(config()), budget(e), f"python3 {REPO / 'tools/autolab.py'}"
+    gpu = f"""
+GPUs (this is a bet): add `--gpu L4|A10|L40S|A100|H100` (and `--image train`: torch, k2 and icefall, with the training
+data read-only under /student: s1/, aug/, eval/; /student/runs is in your scratch area). The card's GPU budget is
+${b['gpuUsdBudget']} (${b['gpuUsdLeft']} left); a run reserves shards x the GPU's hourly rate x its timeout before it
+starts, and one that doesn't fit is refused. There is no Modal client inside a run: call training code directly, e.g.
+`python -c 'import types, student_train as T; T.vol = types.SimpleNamespace(commit=lambda: None); T.train.local({{...}})'`.
+""" if e["tier"] == "bet" else ""
+    model = f"""
+To be scored with a model of your own, export it like /lab/data/models/spliced-clean-int8 (model.onnx + manifest.json
+with its sha256) to a directory under /scratch/{c['id']}/, and write `.autolab/model.json` as
+`{{"path": "<that directory, relative to /scratch/{c['id']}>"}}`. The supervisor copies it and decodes the practice set
+with it itself; without model.json it decodes with the main listener model.
+""" if c["component"] == "listener" else ""
     return f"""You are implementing one experiment in Tilawa's lab, in this git worktree (branch {e.get('branch')}).
 Read AGENTS.md first. The experiment's card is lab-experiment.json; do not edit it.
 
@@ -837,10 +980,22 @@ Read AGENTS.md first. The experiment's card is lab-experiment.json; do not edit 
 
 {targets}
 
-Inspect a case with the trace tool (LAB_DATA must point at a copy of the practice data):
-`pnpm --filter @tilawa/core exec tsx src/bench/lab-trace-cli.ts --set {ctx['testSet'].split('.v')[0]} --session <session> --at <seconds>`
-Run code on Modal with `python3 tools/lab.py run . --shards N --cmd '<command>'`.
+## Running code on Modal
 
+You have no Modal credentials: `modal ...` and `tools/lab.py run` fail here. The supervisor runs things for you:
+
+    {al} modal-run [--shards N] [--timeout MIN] -- '<command>'
+
+runs the command under bash in /app, over this worktree's tracked and untracked files, and waits for it (add
+`--no-wait`, then `{al} modal-result <n>`, for long runs). Each shard gets LAB_SHARD and LAB_SHARDS,
+LAB_DATA=/lab/data (read-only: the practice sessions of {base} with their labels, audio and evidence, and
+models/spliced-clean-int8; the exam is not there), and LAB_OUT, which comes back to `.autolab/modal-out-<n>/<shard>/`
+with the command's log.txt. /scratch/{c['id']} keeps files across your runs. At most {lim['concurrent']} runs at a time,
+{lim['maxShards']} shards and {lim['maxMinutes']} minutes each{' (a bet: up to ' + str(lim['betMaxMinutes'] // 60) + ' h)' if e['tier'] == 'bet' else ''}.
+This worktree has no node_modules; run the tests there too: `{al} modal-run --shards 6 -- 'bash tools/autolab_tests.sh'`.
+Inspect a case with the trace tool:
+`{al} modal-run -- 'pnpm --filter @tilawa/core exec tsx src/bench/lab-trace-cli.ts --set {base} --session <session> --at <seconds>'`
+{gpu}{model}
 ## Tried before on this cluster
 
 {json.dumps(tried, ensure_ascii=False, indent=1) if tried else 'nothing yet'}
@@ -853,8 +1008,10 @@ Run code on Modal with `python3 tools/lab.py run . --shards N --cmd '<command>'`
   reject that.
 - Add or adjust unit tests for the behaviour you change; keep existing tests passing
   (`pnpm --filter @tilawa/core test`, `pnpm --filter @tilawa/sdk test`).
-- You may score the practice set at most {PRACTICE_SCORES} times in total: `python3 tools/autolab.py practice-score .`
-  (about 11 minutes each). Don't tune constants against it.
+- You may score the practice set at most {PRACTICE_SCORES} times in total: `{al} practice-score .`
+  (about 11 minutes each). Don't tune constants against it. Your own numbers from modal-run are notes; the supervisor
+  scores the branch itself.
+- Don't look for another way to Modal, the exam or files outside this worktree; writes outside it are blocked.
 - Write `.scratch/lab/experiments/{c['id']}.md` like the other write-ups there: the prediction, the mechanism, what you
   validated and its limits.
 - Commit everything on this branch with clear messages. Finish with a short summary of what you changed and why.
@@ -894,6 +1051,8 @@ def cmd_init(a):
     t = Tick(w, st, S.now())
     t.set_main(res["run"], res["sha"], res["practice"])
     st["dataHash"] = w.data_hash(st["testSet"])
+    out = sync_exec_data(cfg, st["testSet"])
+    st["execData"] = {"testSet": st["testSet"], "at": S.now(), **{k: out.get(k) for k in ("sessions", "files", "missing")}}
     w.save(st, [S.event(None, None, "started", S.now(), f"shadow line {res['sha']}")])
     print(f"autolab ready: shadow line {res['sha']}, practice {res['practice']['wrongCalls']} wrong calls; run `tools/autolab.py loop`")
 
@@ -1016,6 +1175,72 @@ def cmd_practice_score(a):
     sys.exit("autolab: no practice result within an hour; the supervisor may be paused")
 
 
+def worktree_root() -> Path:
+    return Path(subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True).stdout.strip())
+
+
+def cmd_modal_run(a):
+    """Run by an executor: asks the supervisor to run a command on Modal for this worktree, then waits for it."""
+    cmd = " ".join(a.cmd[1:] if a.cmd[:1] == ["--"] else a.cmd)
+    if not cmd.strip():
+        sys.exit("autolab: modal-run -- '<command>'")
+    d = worktree_root() / ".autolab"
+    d.mkdir(exist_ok=True)
+    n = 1
+    while True:
+        try:
+            fd = os.open(d / f"modal-request-{n}.json", os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            break
+        except FileExistsError:
+            n += 1
+    with os.fdopen(fd, "w") as f:
+        json.dump({"cmd": cmd, "shards": a.shards, "gpu": a.gpu, "image": a.image, "timeout": a.timeout, "at": S.now()}, f)
+    print(f"modal run {n} asked of the supervisor ({a.shards} shard(s){', ' + a.gpu if a.gpu else ''}, up to {a.timeout} min)", flush=True)
+    if a.no_wait:
+        print(f"wait for it with: python3 {Path(__file__).resolve()} modal-result {n}")
+        return
+    wait_modal(d, n, a.timeout)
+
+
+def cmd_modal_result(a):
+    wait_modal(worktree_root() / ".autolab", a.n, a.timeout)
+
+
+def wait_modal(d: Path, n: int, minutes: int):
+    result, deadline = d / f"modal-result-{n}.json", time.time() + (minutes + 60) * 60
+    while time.time() < deadline:
+        if result.exists():
+            out = json.loads(result.read_text())
+            if "error" in out:
+                sys.exit(f"autolab: modal run {n}: {out['error']}")
+            for s in out["shards"]:
+                print(f"--- shard {s['shard']}: exit {s['code']} after {s['seconds']} s\n{s['tail'].rstrip()}")
+            print(f"outputs (LAB_OUT per shard): {out.get('local')}; on Modal: {out.get('out')}")
+            if out.get("gpu"):
+                print(f"GPU ${out['usd']:.2f}; ${out['gpuUsdLeft']:.2f} of ${out['gpuUsdBudget']} left")
+            sys.exit(out["code"])
+        time.sleep(10)
+    sys.exit(f"autolab: no result for modal run {n} in {minutes + 60} minutes; the supervisor may be paused")
+
+
+def sync_exec_data(cfg: dict, ts: str) -> dict:
+    w = World(cfg, executor=object())
+    p = subprocess.run(w.exec_argv("sync", json.dumps(exec_spec(w.test_set(ts), cfg))), cwd=REPO, capture_output=True, text=True)
+    out = json.loads(p.stdout.strip().splitlines()[-1]) if p.stdout.strip() else {"error": p.stderr[-2000:]}
+    if "error" in out:
+        raise Stop(f"syncing the builders' practice data: {out['error']}")
+    return out
+
+
+def cmd_sync_exec_data(a):
+    """The practice-only copy of the current test set in tilawa-lab-exec. The loop also does this whenever the test set
+    version changes."""
+    st = World(config(), executor=object()).load()
+    out = sync_exec_data(config(), st["testSet"])
+    print(f"tilawa-lab-exec: {out['sessions']} practice sessions of {out['testSet']}, {out['files']} files, {out['bytes'] / 1e9:.2f} GB"
+          + (f"; not on tilawa-lab: {len(out['missing'])} ({', '.join(out['missing'][:3])}...)" if out["missing"] else ""))
+
+
 def cmd_watchdog(a):
     cfg = config()
     w = World(cfg, executor=object())
@@ -1090,6 +1315,17 @@ def main():
     sp.add_argument("--json", action="store_true")
     ps = sub.add_parser("practice-score")
     ps.add_argument("worktree", nargs="?", default=".")
+    mr = sub.add_parser("modal-run")
+    mr.add_argument("--shards", type=int, default=1)
+    mr.add_argument("--gpu", default=None)
+    mr.add_argument("--image", choices=I.IMAGES, default=None)
+    mr.add_argument("--timeout", type=int, default=30, help="minutes")
+    mr.add_argument("--no-wait", action="store_true")
+    mr.add_argument("cmd", nargs=argparse.REMAINDER)
+    mq = sub.add_parser("modal-result")
+    mq.add_argument("n", type=int)
+    mq.add_argument("--timeout", type=int, default=24 * 60, help="minutes")
+    sub.add_parser("sync-exec-data")
     sub.add_parser("watchdog")
     sub.add_parser("eli5")
     ap = sub.add_parser("approve")
@@ -1108,7 +1344,8 @@ def main():
     try:
         {"init": cmd_init, "tick": cmd_tick, "loop": cmd_loop, "pause": cmd_pause, "resume": lambda a: cmd_pause(a, why=""),
          "status": cmd_status, "practice-score": cmd_practice_score, "watchdog": cmd_watchdog, "match": cmd_match,
-         "approve": cmd_approve, "waiting": cmd_waiting, "retry": cmd_retry, "drop": cmd_drop, "eli5": cmd_eli5}[a.op](a)
+         "approve": cmd_approve, "waiting": cmd_waiting, "retry": cmd_retry, "drop": cmd_drop, "eli5": cmd_eli5,
+         "modal-run": cmd_modal_run, "modal-result": cmd_modal_result, "sync-exec-data": cmd_sync_exec_data}[a.op](a)
     except Stop as err:
         sys.exit(f"autolab: {err}")
 

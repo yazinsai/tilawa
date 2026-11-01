@@ -31,7 +31,7 @@ SEED = 20261101
 PROTECTED = (
     re.compile(r"^packages/core/src/bench/lab[^/]*\.ts$"),
     re.compile(r"^tools/(lab|autolab)[^/]*$"),
-    re.compile(r"^modal/(lab_|review_)[^/]*\.py$"),
+    re.compile(r"^modal/(lab_|review_|autolab_)[^/]*\.py$"),
     re.compile(r"^modal/lab_web/"),
     re.compile(r"^docs/benchmarks/lab-"),
     re.compile(r"^\.scratch/(lab|autolab)/(spec\.md|issues/)"),
