@@ -1,3 +1,15 @@
+/** A calibrated whole-word comparison for one already-suspected insertion. */
+export interface WholeWordEvidence {
+  source: "context-free-gap";
+  anchorWord: number;
+  fromFrame: number;
+  toFrame: number;
+  word: string;
+  distance: number;
+  neighbourDistance: number;
+  radius: number;
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -5,6 +17,8 @@ export interface DecodedPhoneme {
   start: number;
   end: number;
   conf: number;
+  /** Optional acoustic evidence attached only by the isolated gap listener. */
+  wholeWord?: WholeWordEvidence;
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

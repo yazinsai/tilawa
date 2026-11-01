@@ -291,6 +291,30 @@ describe("local-window confirmation", () => {
     expect(calls).toBe(0);
   });
 
+  it("requires a whole-word proof to match the addition's anchor, span, and repeat veto", () => {
+    const f = heard([{ kind: "ins", at: at(target), text: ALIEN }], (j, p) => j >= at(target) && j < at(target) + ALIEN.length
+      ? [[p, .45], ["", .5]] : undefined);
+    const queries: Parameters<NonNullable<CheckerOptions["additionEvidence"]>>[0][] = [];
+    replayChecked(index, f, {}, { additionEvidence: q => { queries.push(q); return false; } });
+    expect(queries).toHaveLength(1);
+    const q = queries[0];
+    expect(q.gap).not.toBeNull();
+    const neighbours = index.isolatedWordForms!.slice(q.anchorWord - 3, q.anchorWord + 4);
+    const proof = { source: "context-free-gap" as const, anchorWord: q.anchorWord, fromFrame: q.fromFrame, toFrame: q.toFrame,
+      word: index.isolatedWordForms!.find(word => !neighbours.includes(word))!, distance: .2, neighbourDistance: .5, radius: .3 };
+    const run = (changes: Partial<typeof proof> = {}) => {
+      const copy: Fixture = JSON.parse(JSON.stringify(f));
+      const p = copy.evidence.flatMap(e => e.phonemes).find(p => p.start === q.fromFrame)!;
+      p.wholeWord = { ...proof, ...changes };
+      return confirmed(replayChecked(index, copy));
+    };
+    expect(summary(run())).toEqual(["confirmed added_word 2:255:23"]);
+    for (const changes of [{ anchorWord: q.anchorWord + 1 }, { fromFrame: q.fromFrame + 1 }, { toFrame: q.toFrame + 1 },
+      { word: neighbours[0] }, { word: "unknown" }, { distance: .4 }, { neighbourDistance: .2 }, { radius: NaN }]) {
+      expect(run(changes)).toEqual([]);
+    }
+  });
+
   it("wants twice the margin when the decoder was unsure of the changed sounds", () => {
     // Phone audio: each misheard sound at even odds with blank, the written one unlisted.
     const f = heard(edits, (j, p) => (word(j) && (p === "س" || p === "م") ? [[p, 0.5], ["", 0.45]] : undefined));

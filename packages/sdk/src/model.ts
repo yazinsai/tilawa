@@ -1,4 +1,5 @@
 import type { ErrorClass } from "@tilawa/core";
+import type { WordEmbeddingModel } from "./word-embedding.js";
 
 export interface StateSpec {
   name: string;
@@ -27,6 +28,8 @@ export interface ModelManifest {
   file: string;
   bytes: number;
   sha256: string;
+  /** Optional independently calibrated whole-word listener, next to this model. */
+  wordEmbedding?: { file: string; sha256: string };
 }
 
 export interface Tensor {
@@ -47,4 +50,5 @@ export interface LoadedModel {
   backend: InferenceBackend;
   /** Error classes this model's evidence supports; the rest are reported `unsupported`. */
   supported: ErrorClass[];
+  wordEmbedding?: WordEmbeddingModel;
 }

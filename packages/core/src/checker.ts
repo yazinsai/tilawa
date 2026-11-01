@@ -282,7 +282,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const located = ((declared && !latched) || trackerLocked) && clarity(o.issue) >= minConfidence;
     const supportOk = located ? supported(o.issue) : null;
     let sure = located && supportOk !== false;
-    if (options.additionEvidence && !state && located && supportOk === false && o.issue.cls === "added_word" && o.issue.obsTo > o.issue.obsFrom) {
+    if (!state && located && supportOk === false && o.issue.cls === "added_word" && o.issue.obsTo > o.issue.obsFrom) {
       const atWord = (wi: number) => steps.flatMap(s => s.op === "diag" && index.wordAt(s.ref) === wi ? [obs[s.obs]] : []);
       const before = prevWord(o.issue.word), left = atWord(before), right = atWord(o.issue.word);
       const a = left.at(-1)?.end, b = right[0]?.start;
@@ -291,13 +291,24 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         && a < obs[o.issue.obsFrom].start && b >= obs[o.issue.obsTo - 1].end + 1
         ? { fromFrame: a + 1, toFrame: b, left: ref.slice(words[before].start, words[before].end),
             right: ref.slice(words[o.issue.word].start, words[o.issue.word].end) } : null;
-      sure = options.additionEvidence?.({
+      const span = {
         fromFrame: obs[o.issue.obsFrom].start,
         toFrame: obs[o.issue.obsTo - 1].end + 1,
         anchorWord: o.issue.word,
         observed: o.issue.observed ?? "",
         gap,
-      }) === true;
+      };
+      const neighbours = index.isolatedWordForms?.slice(Math.max(0, span.anchorWord - 3), span.anchorWord + 4);
+      sure = !!gap && !!neighbours && obs.slice(o.issue.obsFrom, o.issue.obsTo).some(p => {
+        const e = p.wholeWord;
+        return e?.source === "context-free-gap" && e.anchorWord === span.anchorWord
+          && e.fromFrame === span.fromFrame && e.toFrame === span.toFrame
+          && [e.distance, e.neighbourDistance, e.radius].every(Number.isFinite)
+          && e.distance >= 0 && e.neighbourDistance <= 2 && e.radius >= 0 && e.radius <= 2
+          && e.distance <= e.radius && e.distance < e.neighbourDistance
+          && index.isolatedWordForms!.includes(e.word) && !neighbours.includes(e.word);
+      });
+      if (!sure && options.additionEvidence) sure = options.additionEvidence(span);
     }
     out.push(event(o, state ?? (sure ? "confirmed" : "uncertain")));
   };

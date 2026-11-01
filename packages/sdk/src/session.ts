@@ -181,7 +181,10 @@ export function createEngine(options: EngineOptions): Engine {
               audio.set(part, o);
               o += part.length;
             }
-            const spliced = await spliceContextFreeGaps(model, audio, rate, recorded, locks, index);
+            const spliced = await spliceContextFreeGaps(model, audio, rate, recorded, locks, index, {
+              mode, phrases, ...(passage && { passage }),
+              policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
+            });
             recorded.splice(0, recorded.length, ...spliced);
           }
           return events;

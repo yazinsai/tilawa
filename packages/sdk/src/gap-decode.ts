@@ -5,8 +5,10 @@ import {
   minGapFrames,
   placeGap,
   recoverGapPhonemes,
+  createChecker,
+  createTracker,
 } from "@tilawa/core";
-import type { GapPhoneme, PhonemeEvidence, ReferenceIndex, WordGap } from "@tilawa/core";
+import type { CheckerOptions, GapPhoneme, PhonemeEvidence, ReferenceIndex, WordGap } from "@tilawa/core";
 import { createListener } from "./listener.js";
 import type { LoadedModel } from "./model.js";
 
@@ -23,6 +25,77 @@ interface FlatEvidence {
   ids: number[];
   probs: number[];
   nFrames: number;
+}
+
+export interface GapCheckContext {
+  mode?: "free" | "memorization";
+  phrases?: CheckerOptions["phrases"];
+  passage?: CheckerOptions["passage"];
+  policy?: CheckerOptions["policy"];
+}
+
+/** Confirm only existing uncertain additions inside evidence changed by the gap decoder.
+ * A canonical frame replay keeps these acoustic queries independent of audio push sizes.
+ * The optional result travels with the decoded phone; neither CTC rows nor text change.
+ */
+export async function confirmGapWords(
+  model: LoadedModel,
+  audio: Float32Array,
+  sampleRate: number,
+  original: PhonemeEvidence[],
+  folded: PhonemeEvidence[],
+  index: ReferenceIndex,
+  context: GapCheckContext = {},
+): Promise<PhonemeEvidence[]> {
+  if (!model.wordEmbedding) return folded;
+  const base = flatten(original), flat = flatten(folded);
+  if (!base || !flat || base.k !== flat.k || base.frameMs !== flat.frameMs || base.inventory !== flat.inventory) return folded;
+  type Query = Parameters<NonNullable<CheckerOptions["additionEvidence"]>>[0];
+  const queries: Query[] = [];
+  const changed = (gap: WordGap) => {
+    for (let f = gap.fromFrame; f < gap.toFrame && f < flat.nFrames; f++) {
+      for (let c = 0; c < flat.k; c++) {
+        const i = f * flat.k + c;
+        if (base.ids[i] !== flat.ids[i] || base.probs[i] !== flat.probs[i]) return true;
+      }
+    }
+    const inside = (phones: GapPhoneme[]) => phones.filter(p => (p.start + p.end) / 2 >= gap.fromFrame && (p.start + p.end) / 2 < gap.toFrame)
+      .map(p => [p.p, p.start, p.end, p.conf]);
+    return JSON.stringify(inside(base.phonemes)) !== JSON.stringify(inside(flat.phonemes));
+  };
+  const checker = createChecker(index, { phrases: context.phrases, passage: context.passage, policy: context.policy,
+    additionEvidence: query => { if (query.gap && changed(query.gap)) queries.push(query); return false; } });
+  const tracker = createTracker(index, { mode: context.mode ?? "free", phrases: context.phrases });
+  let pi = 0;
+  for (let a = 0; a < flat.nFrames;) {
+    let b = a + 1;
+    const phones: GapPhoneme[] = [];
+    while (pi < flat.phonemes.length && flat.phonemes[pi].start < b) {
+      const p = flat.phonemes[pi++];
+      phones.push(p);
+      b = Math.max(b, p.end + 1);
+    }
+    const chunk: PhonemeEvidence = { inventory: flat.inventory, frameMs: flat.frameMs, phonemes: phones, decodedTo: b,
+      posteriors: { k: flat.k, startFrame: a, nFrames: b - a, ids: flat.ids.slice(a * flat.k, b * flat.k), probs: flat.probs.slice(a * flat.k, b * flat.k) } };
+    checker.push(chunk, tracker.push({ ...chunk, posteriors: undefined }));
+    a = b;
+  }
+  checker.end(tracker.end());
+  const proofs = new Map<number, NonNullable<GapPhoneme["wholeWord"]>>();
+  for (const query of queries) {
+    const neighbours = index.isolatedWordForms?.slice(Math.max(0, query.anchorWord - 3), query.anchorWord + 4);
+    if (!neighbours || !query.gap) continue;
+    const a = Math.max(0, Math.floor(query.gap.fromFrame * flat.frameMs * sampleRate / 1000));
+    const b = Math.min(audio.length, Math.floor(query.gap.toFrame * flat.frameMs * sampleRate / 1000));
+    const match = await model.wordEmbedding.compare(audio.subarray(a, b), sampleRate, neighbours);
+    if (match) proofs.set(query.fromFrame, { ...match, source: "context-free-gap", anchorWord: query.anchorWord,
+      fromFrame: query.fromFrame, toFrame: query.toFrame });
+  }
+  if (!proofs.size) return folded;
+  return folded.map(chunk => ({ ...chunk, phonemes: chunk.phonemes.map(p => {
+    const wholeWord = proofs.get(p.start);
+    return wholeWord ? { ...p, wholeWord } : p;
+  }) }));
 }
 
 function flatten(chunks: PhonemeEvidence[]): FlatEvidence | null {
@@ -125,6 +198,7 @@ export async function spliceContextFreeGaps(
   chunks: PhonemeEvidence[],
   locks: LockPoint[],
   index: ReferenceIndex,
+  context: GapCheckContext = {},
 ): Promise<PhonemeEvidence[]> {
   const flat = flatten(chunks);
   if (!flat || !locks.length || !audio.length) return chunks;
@@ -161,10 +235,10 @@ export async function spliceContextFreeGaps(
     changed = true;
   }
   if (!changed) return chunks;
-  return [{
+  return confirmGapWords(model, audio, sampleRate, chunks, [{
     inventory: flat.inventory,
     frameMs: flat.frameMs,
     phonemes,
     posteriors: { k: flat.k, startFrame: 0, nFrames: flat.nFrames, ids, probs },
-  }];
+  }], index, context);
 }

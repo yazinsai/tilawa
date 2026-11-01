@@ -1,4 +1,5 @@
 import { align } from "./align.js";
+import type { DecodedPhoneme } from "./evidence.js";
 
 /**
  * Context-free gap decode. The streaming model carries a long left context, so speech in a pause between two
@@ -18,13 +19,7 @@ const CONSONANTS = new Set("ءبتثجحخدذرزسشصضطظعغفقكلمنه
 /** The checker's `MIN_ADDED`: fewer phones than this never become an added word. */
 const MIN_ADDED = 3;
 
-export interface GapPhoneme {
-  p: string;
-  /** Inclusive frame index. */
-  start: number;
-  end: number;
-  conf: number;
-}
+export type GapPhoneme = DecodedPhoneme;
 
 export interface WordGap {
   /** Half-open frame range between the left word's last aligned phone and the right word's first. */
