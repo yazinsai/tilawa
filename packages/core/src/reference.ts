@@ -50,6 +50,8 @@ export interface ReferenceIndex {
   wordForms?: readonly (readonly string[])[];
   /** Context-free pause pronunciations, kept separate from connected forms. */
   isolatedWordForms?: readonly string[];
+  /** Mushaf word text, in word order. Letter identity for parallel phrases; absent on hand-built indexes. */
+  wordText?: readonly string[];
   gramSize: number;
   grams: ReadonlyMap<string, readonly number[]>;
   /** Index into `words` of the word covering a phoneme offset. */
@@ -62,14 +64,16 @@ export function loadReferenceIndex(asset: ReferenceAsset): ReferenceIndex {
   const words: ReferenceWord[] = [];
   const wordForms: string[][] = [];
   const isolatedWordForms: string[] = [];
+  const wordText: string[] = [];
   let phonemes = "";
   for (const ayah of asset.ayahs) {
     const base = phonemes.length;
-    ayah.w.forEach((_, i) => {
+    ayah.w.forEach((text, i) => {
       const end = i + 1 < ayah.o.length ? ayah.o[i + 1] : ayah.p.length;
       words.push({ surah: ayah.s, ayah: ayah.a, word: i + 1, start: base + ayah.o[i], end: base + end });
       wordForms.push([...new Set([ayah.p.slice(ayah.o[i], end), ayah.iso[i]].filter(Boolean))]);
       isolatedWordForms.push(ayah.iso[i]);
+      wordText.push(text);
     });
     phonemes += ayah.p;
   }
@@ -102,6 +106,7 @@ export function loadReferenceIndex(asset: ReferenceAsset): ReferenceIndex {
     words,
     wordForms,
     isolatedWordForms,
+    wordText,
     gramSize: GRAM_SIZE,
     grams,
     wordAt,
