@@ -758,7 +758,8 @@ class Tick:
         card = json.loads(f.read_text())
         card["listener"] = listener
         f.write_text(json.dumps(card, indent=1, ensure_ascii=False) + "\n")
-        self.w.git("commit", "-q", "-am", f"autolab: score {e['id']} with listener evidence {listener}", cwd=wt)
+        if self.w.git("status", "--porcelain", "--", L.CARD, cwd=wt):
+            self.w.git("commit", "-q", "-am", f"autolab: score {e['id']} with listener evidence {listener}", cwd=wt)
         self.start_scoring(e)
 
     def start_scoring(self, e):
