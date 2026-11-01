@@ -6,7 +6,7 @@
   "component": -4,
   "overall": -4
  },
- "listener": "spliced-clean-int8",
+ "listener": "exp-listener-anchored-gap-scoring-170b523",
  "testSet": "lab-v1.5",
  "created": "2026-11-01T06:53:20+00:00",
  "author": "autolab"
