@@ -238,6 +238,7 @@ def test_nothing_yet():
 
 def test_split_gives_autolab_its_experiments_and_the_main_line_since_it_started():
     led = {"kind": "lab-ledger", "mainLine": [{"at": "2026-10-31T00:00:00+00:00", "experiment": "checker-old"},
+                                              {"at": "2026-11-01T03:59:00+00:00", "experiment": None, "note": "autolab start"},
                                               {"at": "2026-11-01T05:00:00+00:00", "experiment": None},
                                               {"at": "2026-11-01T06:00:00+00:00", "experiment": "checker-auto"},
                                               {"at": "2026-11-01T07:00:00+00:00", "experiment": "checker-hand"}],
@@ -245,5 +246,5 @@ def test_split_gives_autolab_its_experiments_and_the_main_line_since_it_started(
     st = {"started": "2026-11-01T04:00:00+00:00", "experiments": {"checker-auto": {}}}
     lab, auto = G.split(led, st)
     assert [m["experiment"] for m in lab["mainLine"]] == ["checker-old", "checker-hand"] and set(lab["experiments"]) == {"checker-old", "checker-hand"}
-    assert [m["experiment"] for m in auto["mainLine"]] == [None, "checker-auto"] and set(auto["experiments"]) == {"checker-auto"}
+    assert [m["experiment"] for m in auto["mainLine"]] == [None, None, "checker-auto"] and set(auto["experiments"]) == {"checker-auto"}
     assert G.split(led, None) == (led, None)

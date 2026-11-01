@@ -50,7 +50,7 @@ def split(led: dict | None, st: dict | None) -> tuple[dict | None, dict | None]:
     if not led or not st:
         return led, None
     mine, start = set(st.get("experiments") or {}), st.get("started") or ""
-    auto_line = lambda m: m.get("experiment") in mine or (not m.get("experiment") and (m.get("at") or "") >= start)  # noqa: E731
+    auto_line = lambda m: m.get("experiment") in mine or (not m.get("experiment") and ((m.get("at") or "") >= start or m.get("note") == "autolab start"))  # noqa: E731
     line = led.get("mainLine") or []
     exps = led.get("experiments") or {}
     lab = {**led, "mainLine": [m for m in line if not auto_line(m)], "experiments": {k: v for k, v in exps.items() if k not in mine}}
