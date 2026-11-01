@@ -30,12 +30,13 @@ STATE_TEXT = {
     "implementing": "An agent is writing the change",
     "validating": "Checking it builds and plays fair",
     "scoring": "Being scored on the practice set",
-    "folding": "Being folded into the autolab line",
+    "folding": "Being folded into main",
     "folded": "Folded in",
     "discarded": "Discarded",
     "superseded": "Gain gone after catching up with the line",
     "needs-human": "Waiting for you",
     "abandoned": "Given up",
+    "reverted": "Taken back out of main",
     "rejected": "Your command was turned down",
     "paused": "Autolab paused",
     "resumed": "Autolab resumed",
@@ -74,7 +75,7 @@ def wc(x) -> int | None:
 
 NOISE = 2
 KEPT = {"folded": "kept", "discarded": "dropped", "superseded": "dropped: the gain was gone after catching up with the line",
-        "abandoned": "given up"}
+        "abandoned": "given up", "reverted": "taken back out of main"}
 REASON_CHARS = 140
 
 
@@ -328,7 +329,7 @@ STUCK = (  # the supervisor's `what` prefix -> what broke, in plain words
     ("orchestrator:", "The planning model failed while handling it"),
     ("the listener decode failed:", "Re-running the listener on the practice audio failed"),
     ("scoring failed:", "Scoring it on the practice set failed"),
-    ("fold failed:", "Folding it into the autolab line failed"),
+    ("fold failed:", "Folding it into main failed"),
     ("fold ended in state", "Folding it didn't finish"),
     ("the novelty judge didn't answer in time", "The model that checks it's a new idea didn't answer in time"),
     ("proposed failed:", "Checking the proposal crashed"),

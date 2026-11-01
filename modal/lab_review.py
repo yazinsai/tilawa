@@ -437,6 +437,9 @@ def web():
         st, led = read_json(d / "state.json"), read_json(d / "ledger.json")
         st = st if isinstance(st, dict) and st.get("kind") == "autolab-state" else None
         led = led if isinstance(led, dict) and led.get("kind") == "lab-ledger" else None
+        if led is None and not root:
+            main = read_json(LAB / "ledger.json")
+            led = AG.split(main if isinstance(main, dict) and main.get("kind") == "lab-ledger" else None, st)[1]
         return d, st, led, datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
     def explained(d: Path) -> dict:
@@ -499,6 +502,8 @@ def web():
         d, st, led, now = autolab_files(root)
         lab = read_json(d / "lab-ledger.json") if root and (d / "lab-ledger.json").is_file() else read_json(LAB / "ledger.json")
         lab = lab if isinstance(lab, dict) and lab.get("kind") == "lab-ledger" else None
+        if not root and not (d / "ledger.json").is_file():
+            lab = AG.split(lab, st)[0]
         main = (st or {}).get("main") or {}
         try:
             report = None if isinstance(main.get("teacherWrongCalls"), int) else run_score(main.get("run"))

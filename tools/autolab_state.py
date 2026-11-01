@@ -24,8 +24,8 @@ cluster, killCriterion, and for bets gpuUsd.
 from datetime import datetime, timezone
 
 STATES = ("proposed", "accepted", "implementing", "validating", "scoring", "folding",
-          "folded", "discarded", "superseded", "needs-human", "abandoned")
-TERMINAL = ("folded", "discarded", "superseded", "abandoned")
+          "folded", "discarded", "superseded", "needs-human", "abandoned", "reverted")
+TERMINAL = ("folded", "discarded", "superseded", "abandoned", "reverted")
 TIERS = ("exploit", "explore", "bet")
 NEXT = {
     "proposed": ("accepted", "discarded", "needs-human"),
@@ -35,6 +35,7 @@ NEXT = {
     "scoring": ("folding", "discarded", "abandoned", "needs-human"),
     "folding": ("folded", "discarded", "superseded", "implementing", "abandoned", "needs-human"),
     "abandoned": ("validating",),
+    "folded": ("reverted",),
     "needs-human": ("proposed", "accepted", "implementing", "validating", "scoring", "folding", "discarded", "abandoned"),
 }
 # Minutes in a state before the supervisor gives up on it; implementing depends on the tier.

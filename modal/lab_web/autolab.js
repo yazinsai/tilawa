@@ -30,7 +30,7 @@ function notices(v) {
 
 const liveLink = () => `<a class="al-live" href="/autolab/live${root ? `?${qs({ root })}` : ''}">${icon('right')}Progress, live: the branches, the folds and how close the line is</a>`;
 
-// Hero: the autolab line's practice score, the one big number.
+// Hero: the main line's practice score, the one big number.
 
 function hero(v) {
   const m = v.main;
@@ -48,10 +48,10 @@ function hero(v) {
     `${plural(p.held, 'slot')} in use${p.slots ? ` of ${p.slots}` : ''}`,
   ].filter(Boolean);
   if (!m || m.wrongCalls == null)
-    return `<div class="hero"><p class="lede">The autolab line hasn’t been scored yet.</p><p class="facts">${facts.map((f) => `<span>${f}</span>`).join('')}</p>${liveLink()}</div>`;
+    return `<div class="hero"><p class="lede">The main line hasn’t been scored yet.</p><p class="facts">${facts.map((f) => `<span>${f}</span>`).join('')}</p>${liveLink()}</div>`;
   return `<div class="hero">
     <div class="score"><span class="score-n">${m.wrongCalls}</span>
-      <p class="score-u"><strong>wrong calls on the practice set</strong><span>The autolab line. Lower is better</span></p></div>
+      <p class="score-u"><strong>wrong calls on the practice set</strong><span>The main line. Lower is better</span></p></div>
     <p class="parts">${m.missed != null ? `<b class="num">${m.missed}</b> missed mistakes + <b class="num">${m.falseWarnings}</b> false warnings. ` : ''}Charged to the
       ${['listener', 'tracker', 'checker'].map((k) => `${k} <b class="num">${m.parts[k] ?? '–'}</b>`).join(', ')}.</p>
     ${delta}
@@ -153,7 +153,7 @@ function trend(t) {
   const keys = ['overall', 'listener', 'tracker', 'checker'].filter((k) => t.series[k]);
   if (!keys.length) return '';
   return `<section aria-labelledby="t-h"><div class="sec-h"><h2 id="t-h">Practice trend</h2></div>
-    <p class="sec-p">Wrong calls on the practice set at every score of the autolab line on ${esc(t.testSet)}. A change of 2 or fewer is noise.</p>
+    <p class="sec-p">Wrong calls on the practice set at every score of the main line since autolab started on ${esc(t.testSet)}. A change of 2 or fewer is noise.</p>
     <div class="al-trend">${keys
       .map((k) => {
         const s = t.series[k];

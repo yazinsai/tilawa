@@ -275,8 +275,8 @@ def main_checkout(a):
         git("worktree", "remove", "--force", path, check=False)
 
 
-def score_main(a, ts: dict, log: Path | None = None, *, splits=("practice", "exam")) -> dict:
-    listener = L.main_listener(load(a))
+def score_main(a, ts: dict, log: Path | None = None, *, splits=("practice", "exam"), listener: str | None = None) -> dict:
+    listener = listener or L.main_listener(load(a))
     with main_checkout(a) as (path, _):
         return L.from_report(score(a, path, name="main", listener=listener, ts=ts, splits=splits, log=log), splits)
 
@@ -328,7 +328,7 @@ def cmd_baseline(a):
         L.add_test_set(led, **new_ts)
     ts = L.test_set(led)
     practice_only = getattr(a, "practice_only", False)
-    res = score_main(a, ts, splits=("practice",) if practice_only else ("practice", "exam"))
+    res = score_main(a, ts, splits=("practice",) if practice_only else ("practice", "exam"), listener=getattr(a, "listener", None))
 
     def save(led):
         if new_ts and (led["testSet"] is None or L.test_set(led)["manifest"] != new_ts["manifest"]):
@@ -573,6 +573,16 @@ def cmd_fold(a):
     return {**out, "state": "folded", "head": tip[:7]}
 
 
+def cmd_mark_reverted(a):
+    def save(led):
+        e = L.experiment(led, a.id)
+        if e["state"] != "folded":
+            raise Stop(f"{a.id} is {e['state']}, not folded")
+        L.decide(led, a.id, "reverted", note=a.note)
+    update(a, save)
+    return {"id": a.id, "state": "reverted"}
+
+
 def cmd_apply_flags(a):
     led = load(a)
     ts = L.test_set(led)
@@ -643,6 +653,7 @@ def parser():
     b.add_argument("--exclude", default="", help="under /lab/data: flags carried into a new test set (e.g. lab-v1.5/flags-v1.json, from lab-v1.4's)")
     b.add_argument("--note", default="")
     b.add_argument("--practice-only", action="store_true", help="score practice only (the autolab ledger never scores the exam)")
+    b.add_argument("--listener", default=None, help="listener evidence to score with (default: the main line's); e.g. the one before a reverted listener fold")
     n = sub.add_parser("new", help="create an experiment worktree and card")
     n.add_argument("id")
     n.add_argument("--component", required=True, choices=L.COMPONENTS)
@@ -668,6 +679,9 @@ def parser():
     d.add_argument("id")
     d.add_argument("--note", default="")
     d.add_argument("--force", action="store_true", help="remove the worktree even with uncommitted changes")
+    rv = sub.add_parser("mark-reverted", help="record that a folded experiment's commits were reverted on the main line")
+    rv.add_argument("id")
+    rv.add_argument("--note", default="")
     af = sub.add_parser("apply-flags", help="bad-data verdicts -> next test set version; re-score the main line and open experiments")
     af.add_argument("--dry-run", action="store_true")
     return p
@@ -676,7 +690,7 @@ def parser():
 def main():
     a = parser().parse_args()
     fn = {"baseline": cmd_baseline, "new": cmd_new, "run": cmd_run, "status": cmd_status, "fold": cmd_fold,
-          "discard": cmd_discard, "apply-flags": cmd_apply_flags}[a.op]
+          "discard": cmd_discard, "mark-reverted": cmd_mark_reverted, "apply-flags": cmd_apply_flags}[a.op]
     try:
         if a.json:
             with contextlib.redirect_stdout(sys.stderr):

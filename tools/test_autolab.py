@@ -347,13 +347,78 @@ def test_own_decode_output_is_not_test_data():
     assert not A.OWN_DATA.search("data/lab-v1.5/manifest-v1.json")
 
 
-def test_rebase_conflict_pauses_on_a_new_day(w):
-    w.rebase_ok = False
+def test_a_new_day_leaves_an_unmoved_main_line_alone(w):
+    st = w.load()
+    st["main"]["head"] = "abc1234"
+    w.saved = st
     st = tick(w, "2026-11-02T00:05:00+00:00")
-    assert "conflicts" in st["paused"]
+    assert not st.get("baselineJob") and st["day"] == "2026-11-02"
 
 
-def test_new_day_rebases_and_rescores_the_shadow_line(w):
+def test_exam_verdicts_keep_no_exam_numbers():
+    def line(p, x):
+        return {"sha": f"s{p}", "practice": {"wrongCalls": p}, "exam": {"wrongCalls": x}}
+    assert A.exam_verdict({"mainLine": [line(89, 150)]}, 5, T0)["verdict"] == "pass"
+    v = A.exam_verdict({"mainLine": [line(89, 150), {"sha": "x", "practice": {"wrongCalls": 85}}, line(80, 154)]}, 5, T0)
+    assert v["verdict"] == "worse" and v["practiceChange"] == -9 and "154" not in v["why"] and "150" not in v["why"]
+    assert A.exam_verdict({"mainLine": [line(89, 150), line(80, 150)]}, 5, T0)["verdict"] == "no-transfer"
+    assert A.exam_verdict({"mainLine": [line(89, 150), line(80, 141)]}, 5, T0)["verdict"] == "pass"
+
+
+def test_the_exam_tripwire_runs_after_enough_folds_and_pages_when_the_exam_does_not_follow(w, monkeypatch):
+    st = w.load()
+    st["foldsSinceExam"], st["main"]["head"], st["lastPlanAt"] = 5, "abc1234", "2999-01-01T00:00:00+00:00"
+    w.saved = st
+    w.job_results["exam"] = {"run": "main-run-3", "sha": "m3", "practice": {**PRACTICE, "wrongCalls": 80}}
+    st = tick(w)
+    assert st["examJob"] and st["foldsSinceExam"] == 0
+    monkeypatch.setattr(A, "vol_get", lambda path: {"mainLine": [{"sha": "a", "practice": {"wrongCalls": 89}, "exam": {"wrongCalls": 150}},
+                                                                   {"sha": "b", "practice": {"wrongCalls": 80}, "exam": {"wrongCalls": 151}}]})
+    st = tick(w)
+    assert not st["examJob"] and st["examTripwire"]["verdict"] == "no-transfer" and st["main"]["sha"] == "m3"
+    assert any(k == "needs-human" and "exam" in t for k, t in w.notes)
+
+
+def test_a_revert_waits_for_main_to_be_still_then_reverts_and_rescores(w, monkeypatch):
+    st = w.load()
+    e, _ = S.add(st, card("checker-kept"), T0)
+    for to in ("accepted", "implementing", "validating", "scoring", "folding", "folded"):
+        S.move(st, e["id"], to, T0)
+    st["main"]["head"], st["lastPlanAt"] = "abc1234", "2999-01-01T00:00:00+00:00"
+    w.saved = st
+    w.reverted = []
+    w.revert_fold = lambda id: w.reverted.append(id) or "def5678"
+    monkeypatch.setattr(A, "vol_get", lambda path: {"mainLine": [{"listener": "spliced-clean-int8"}, {"experiment": "checker-kept", "listener": "exp-x"}]})
+    w.queued = [{"op": "revert", "id": e["id"], "why": "sounds wrong"}]
+    st = tick(w)
+    assert w.reverted == [e["id"]] and st["experiments"][e["id"]]["state"] == "reverted"
+    assert ("mark-reverted", e["id"], "--note", "reverted by you: sounds wrong") in w.lab_calls
+    assert "--listener" in w.jobs[st["baselineJob"]["name"]]["argv"] and "spliced-clean-int8" in w.jobs[st["baselineJob"]["name"]]["argv"]
+
+
+def test_revert_fold_takes_the_folds_commits_out_of_a_checked_out_main(tmp_path, monkeypatch):
+    import subprocess
+    repo = tmp_path / "repo"
+    g = lambda *a, cwd=repo: subprocess.run(["git", *a], cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()  # noqa: E731
+    repo.mkdir()
+    g("init", "-q", "-b", "main")
+    g("config", "user.email", "t@t"), g("config", "user.name", "t")
+    (repo / "a.txt").write_text("base\n")
+    g("add", "-A"), g("commit", "-qm", "base")
+    (repo / "card.json").write_text("{}\n")
+    g("add", "-A"), g("commit", "-qm", "Lab experiment checker-x (checker): idea")
+    (repo / "a.txt").write_text("changed\n")
+    g("commit", "-qam", "the change")
+    g("tag", "autolab/fold/checker-x")
+    (repo / "b.txt").write_text("later\n")
+    g("add", "-A"), g("commit", "-qm", "later work")
+    monkeypatch.setattr(A, "REPO", repo)
+    new = A.World(A.DEFAULT_CONFIG, executor=object()).revert_fold("checker-x")
+    assert g("rev-parse", "main") == new and (repo / "a.txt").read_text() == "base\n"
+    assert not (repo / "card.json").exists() and (repo / "b.txt").exists()
+
+
+def test_new_day_rescores_a_main_line_that_moved(w):
     w.job_results["baseline"] = {"run": "main-run-2", "sha": "m2", "practice": {**PRACTICE, "wrongCalls": 88}}
     st = tick(w, "2026-11-02T00:05:00+00:00")
     assert st["baselineJob"] and st["day"] == "2026-11-02"

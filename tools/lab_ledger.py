@@ -16,7 +16,7 @@ COMPONENTS = ("listener", "tracker", "checker")
 NOISE = 2
 DEFAULT_LISTENER = "spliced-clean-int8"
 CARD = "lab-experiment.json"
-STATES = ("open", "superseded", "folded", "discarded")
+STATES = ("open", "superseded", "folded", "discarded", "reverted")
 BAD = ("bad_label", "bad_audio", "bad_splice")
 WAITING = "waiting for your decision"
 ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,39}$")
@@ -225,7 +225,7 @@ def status_rows(led: dict, all: bool = False) -> list[dict]:
     Actual = the branch run against the main line it was measured on; `moved` when the main line has a newer score.
     """
     ts, cur = led["testSet"], main_score(led)
-    order = {WAITING: 0, "open": 1, "superseded": 2, "folded": 3, "discarded": 4}
+    order = {WAITING: 0, "open": 1, "superseded": 2, "folded": 3, "discarded": 4, "reverted": 5}
     rows = []
     for id, e in led["experiments"].items():
         state = shown_state(e, ts)

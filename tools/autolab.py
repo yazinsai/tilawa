@@ -2,7 +2,7 @@
 
     uv run --python cpython-3.12-macos-aarch64-none --with modal==1.3.4 --with cursor-sdk==1.2.0 tools/autolab.py <command>
 
-    init                     autolab branch and worktree, state, config, practice baseline of the shadow line
+    init                     state, config, practice baseline of the main line
     tick                     one pass (cron)
     loop [--every 120]       tick forever (phase A)
     pause [why] | resume
@@ -14,16 +14,20 @@
     modal-result <n>         wait for an executor's modal-run started with --no-wait
     sync-exec-data           refresh tilawa-lab-exec, the builders' practice-only data (the loop also does it per test set)
     watchdog                 notify when the heartbeat is stale (run from cron or launchd, apart from the loop)
-    match <id> agree|disagree   your verdict on a shadow decision (ticket 11)
+    match <id> agree|disagree   your verdict on a gate decision (ticket 11)
     waiting                  what needs you, with the command for each
     approve <id>             let a bet of betApprovalUsd or more start
     retry <id> [--note ...]  re-run checks, tests and scoring; with a note, back to the builder with it
     drop <id> [why]          end an experiment
+    revert <id> [why]        take a folded experiment back out of main (git revert of its commits, then a re-score)
+    reopen <id>              send an abandoned experiment with its worktree back to validation
     eli5                     plain one-liners for experiments whose cards predate the eli5 field
 Your commands (pause, resume, approve, retry, drop, match) go to /lab/autolab/inbox/ and the loop applies them at the
 start of its next tick, so a tick in flight never overwrites them.
 
-Every lab operation goes through tools/lab.py on the shadow line: `--main autolab --ledger /autolab/ledger.json --json`.
+Every lab operation goes through tools/lab.py on the main line: `--main main --ledger /ledger.json --json`. A fold lands
+on `main` with the tag autolab/fold/<id>; `revert <id>` takes it back out. Every `examEvery` folds the main line is
+scored on the exam too, as a tripwire that only says whether the exam followed practice (never fed to the models).
 Long ones (tests, decode, scoring, fold) run as detached jobs under .scratch/autolab/run/jobs/, so a restarted
 supervisor finds them still running or finished. State lives on the tilawa-lab volume (/lab/autolab/state.json,
 events.jsonl, journal.md); the dashboard reads it from there. A tick never decides a fold itself: `lab fold --gate`
@@ -59,8 +63,10 @@ LAB = REPO / "tools/lab.py"
 EXEC = REPO / "modal/autolab_exec.py"
 CONFIG = REPO / ".scratch/autolab/config.json"
 RUN = REPO / ".scratch/autolab/run"
-BRANCH, WORKTREE = "autolab", REPO.parent / "tilawa-autolab"
-VOL_STATE, VOL_EVENTS, VOL_LEDGER, VOL_JOURNAL = "/autolab/state.json", "/autolab/events.jsonl", "/autolab/ledger.json", "/autolab/journal.md"
+BRANCH, WORKTREE = "main", REPO.parent / "tilawa-autolab"
+VOL_STATE, VOL_EVENTS, VOL_LEDGER, VOL_JOURNAL = "/autolab/state.json", "/autolab/events.jsonl", "/ledger.json", "/autolab/journal.md"
+SHADOW_LEDGER = "/autolab/ledger.json"
+FOLD_TAG = "autolab/fold/"
 VOL_INBOX, VOL_ELI5 = "/autolab/inbox", "/autolab/eli5.json"
 NOT_ENGINE = re.compile(r"(^\.scratch/|^docs/|(^|/)lab-experiment\.json$|\.md$|(^|/)test/|\.test\.ts$|^tools/test_)")
 OWN_DATA = re.compile(r"(\.exp-[^/]+\.(phone|studio)\.evidence\.json|/decode-v1\.json)$")
@@ -227,12 +233,30 @@ class World:
             with open(f, "a") as out:
                 out.write(f"\n{pattern}\n")
 
-    def rebase_shadow(self) -> bool:
-        """Rebases the autolab branch onto main in its worktree; False (and aborted) on a conflict."""
-        if subprocess.run(["git", "rebase", "-q", "main"], cwd=WORKTREE, capture_output=True).returncode:
-            subprocess.run(["git", "rebase", "--abort"], cwd=WORKTREE, capture_output=True)
-            return False
-        return True
+    def revert_fold(self, id: str) -> str:
+        """Reverts a fold's commits (its card commit through its tag) on main, in a scratch checkout, then moves main
+        (fast-forward in the worktree that has it checked out); returns the new tip. Stop on a conflict."""
+        tip = self.git("rev-parse", FOLD_TAG + id)
+        start = self.git("log", "--format=%H", "--fixed-strings", f"--grep=Lab experiment {id} (", tip).split()
+        if not start:
+            raise Stop(f"no card commit for {id} under {FOLD_TAG + id}")
+        tmp = Path(subprocess.run(["mktemp", "-d"], capture_output=True, text=True).stdout.strip()) / "main"
+        self.git("worktree", "add", "--detach", "-q", tmp, BRANCH)
+        try:
+            p = subprocess.run(["git", "revert", "--no-edit", f"{start[-1]}^..{tip}"], cwd=tmp, capture_output=True, text=True)
+            if p.returncode:
+                subprocess.run(["git", "revert", "--abort"], cwd=tmp, capture_output=True)
+                raise Stop(f"reverting {id} conflicts with later work on main:\n{(p.stderr or p.stdout)[-1200:]}")
+            new = self.git("rev-parse", "HEAD", cwd=tmp)
+        finally:
+            self.git("worktree", "remove", "--force", tmp, check=False)
+        checked = [blk.splitlines()[0][9:] for blk in self.git("worktree", "list", "--porcelain").split("\n\n")
+                   if f"branch refs/heads/{BRANCH}" in blk.splitlines()]
+        if checked:
+            self.git("merge", "-q", "--ff-only", new, cwd=checked[0])
+        else:
+            self.git("branch", "-f", BRANCH, new)
+        return new
 
     def commits(self, e: dict) -> int:
         start = self.git("log", "--format=%H", "--fixed-strings", f"--grep=Lab experiment {e['id']} (", "HEAD", cwd=e["worktree"]).split()[-1]
@@ -274,7 +298,7 @@ class World:
         return float(sum(r["cost"] for r in modal.billing.workspace_billing_report(start=start, end=start + dt.timedelta(days=1), resolution="h")))
 
     def ledgers(self) -> list[dict]:
-        return [x for x in (vol_get("/ledger.json"), vol_get(VOL_LEDGER)) if x]
+        return [x for x in (vol_get(VOL_LEDGER),) if x]
 
     def journal(self) -> str:
         f = RUN / "journal.md"
@@ -405,6 +429,8 @@ class Tick:
         if st.get("paused"):
             return self.events
         self.daily()
+        self.reverts()
+        self.exam_check()
         self.exec_data()
         for state, step in (("implementing", self.implementing), ("validating", self.validating), ("scoring", self.scoring),
                             ("folding", self.folding), ("proposed", self.proposed), ("accepted", self.accepted)):
@@ -541,6 +567,15 @@ class Tick:
             for k in ("testsJob", "decodeJob", "scoreJob", "foldJob", "testsPassed"):
                 e["results"].pop(k, None)
             self.move(e, "validating", "reopened by you: checks, tests and scoring again")
+        elif op == "revert":
+            if e["state"] != "folded":
+                raise ValueError(f"{e['id']} is {e['state']}, not folded")
+            if self.w.git("rev-parse", "--verify", "--quiet", FOLD_TAG + e["id"], check=False) == "":
+                raise ValueError(f"{e['id']} has no {FOLD_TAG}{e['id']} tag")
+            if any(x["id"] == e["id"] for x in st.setdefault("pendingReverts", [])):
+                raise ValueError(f"{e['id']} is already queued to revert")
+            st["pendingReverts"].append({"id": e["id"], "why": c.get("why", ""), "at": self.at})
+            self.events.append(S.event(e["id"], "folded", "folded", self.at, "revert queued by you"))
         elif op == "drop":
             if e["state"] in S.TERMINAL:
                 raise ValueError(f"{e['id']} already ended ({e['state']})")
@@ -558,7 +593,7 @@ class Tick:
         else:
             raise ValueError(f"unknown command {op}")
 
-    # daily: digest, rebase the shadow line onto main, re-score it
+    # daily: digest, and a re-score when main moved without autolab (your own commits)
     def daily(self):
         st, at, w = self.st, self.at, self.w
         day = at[:10]
@@ -570,24 +605,81 @@ class Tick:
                 if status == "done":
                     self.set_main(res["run"], res["sha"], res["practice"])
                 else:
-                    self.pause(f"the daily re-score of the shadow line failed: {res['error'][:300]}")
+                    self.pause(f"the re-score of the main line failed: {res['error'][:300]}")
         if st.get("day") == day:
             return
         if st.get("day"):
             title, body = N.digest(st, w.events(), st["day"])
             w.notify(st, "digest", st["day"], title, body, at)
         st["day"] = day
-        if any(e["state"] == "folding" for e in st["experiments"].values()):
+        if any(e["state"] == "folding" for e in st["experiments"].values()) or st.get("examJob"):
             return
-        if not w.rebase_shadow():
-            self.pause("rebasing the autolab branch onto main conflicts; resolve it in " + str(WORKTREE))
-            return
-        st["baselineJob"] = w.job(f"baseline-{day}", w.lab_argv("baseline", "--practice-only", "--note", f"daily rebase {day}"))
+        main = st.get("main") or {}
+        if not w.git("rev-parse", BRANCH).startswith((main.get("head") or main.get("sha") or "-")[:7]):
+            st["baselineJob"] = w.job(f"baseline-{day}", w.lab_argv("baseline", "--practice-only", "--note", f"daily re-score {day}"))
 
-    def set_main(self, run: str, sha: str, practice: dict):
+    def tag_fold(self, e, head: str | None):
+        if head:
+            self.w.git("tag", "-f", FOLD_TAG + e["id"], head, check=False)
+        st = self.st
+        st["foldsSinceExam"] = st.get("foldsSinceExam", 0) + 1
+
+    def main_busy(self) -> bool:
+        """Something is moving or measuring main: a fold, the exam tripwire, a re-score."""
+        st = self.st
+        holder = st["experiments"].get(st.get("foldLock") or "")
+        return bool((holder and holder["state"] == "folding") or st.get("examJob") or st.get("baselineJob"))
+
+    # reverts: queued by you, applied when nothing else is moving main
+    def reverts(self):
+        st, w = self.st, self.w
+        queue = st.setdefault("pendingReverts", [])
+        if not queue or self.main_busy():
+            return
+        c = queue.pop(0)
+        e = st["experiments"][c["id"]]
+        try:
+            tip = w.revert_fold(e["id"])
+        except Stop as err:
+            return w.notify(st, "needs-human", f"revert:{e['id']}", f"Autolab couldn't revert {e['id']}", str(err)[:1500], self.at)
+        led = vol_get(VOL_LEDGER) or {}
+        line = led.get("mainLine", [])
+        i = next((k for k, m in enumerate(line) if m.get("experiment") == e["id"]), None)
+        listener = (line[i - 1] if i else {}).get("listener") if i is not None else None
+        w.lab("mark-reverted", e["id"], "--note", f"reverted by you: {c.get('why') or ''}".strip())
+        self.move(e, "reverted", f"reverted by you{': ' + c['why'] if c.get('why') else ''} (main is now {tip[:7]})")
+        st["baselineJob"] = w.job(f"baseline-revert-{e['id']}", w.lab_argv("baseline", "--practice-only", "--note", f"after reverting {e['id']}",
+                                                                          *(["--listener", listener] if listener else [])))
+
+    # exam tripwire: every examEvery folds, main on the exam too; only whether the exam followed practice is kept
+    def exam_check(self):
+        st, w = self.st, self.w
+        job = st.get("examJob")
+        if job:
+            status, res = w.poll(job)
+            if status == "running":
+                return
+            st["examJob"] = None
+            if status != "done":
+                return w.notify(st, "needs-human", f"exam:{self.at[:13]}", "Autolab: the exam tripwire run failed", tail(res), self.at)
+            self.set_main(res["run"], res["sha"], res["practice"], w.git("rev-parse", "--short", BRANCH))
+            st["examTripwire"] = trip = exam_verdict(vol_get(VOL_LEDGER) or {}, job["folds"], self.at)
+            self.events.append(S.event(None, None, "exam-tripwire", self.at, trip["why"]))
+            if trip["verdict"] != "pass":
+                w.notify(st, "needs-human", f"exam:{self.at[:13]}", "Autolab: the exam didn't follow practice",
+                         trip["why"] + "\nCheck the recent folds; `tools/autolab.py revert <id>` takes one back out.", self.at)
+            return
+        every = w.cfg.get("examEvery", 5)
+        if not every or st.get("foldsSinceExam", 0) < every or self.main_busy():
+            return
+        listener, folds = (st.get("main") or {}).get("listener") or L.DEFAULT_LISTENER, st["foldsSinceExam"]
+        st["foldsSinceExam"] = 0
+        st["examJob"] = {**w.job(f"exam-{self.at[:16].replace(':', '')}", exam_argv(w, st, listener)), "folds": folds}
+
+    def set_main(self, run: str, sha: str, practice: dict, head: str | None = None):
         report = self.w.report(run)
         teacher = ((report.get("splits") or {}).get("practice") or {}).get("teacher") or {}
-        self.st["main"] = {"sha": sha, "run": run, "practice": practice, "listener": report.get("listener") or L.DEFAULT_LISTENER,
+        self.st["main"] = {"sha": sha, "head": head or sha, "run": run, "practice": practice, "listener": report.get("listener") or L.DEFAULT_LISTENER,
                            "attribution": {c: practice[c] for c in L.COMPONENTS}, "teacherWrongCalls": teacher.get("wrongCalls")}
         P.update_coverage(self.st, P.incidents(report))
         self._ctx = None
@@ -885,6 +977,7 @@ class Tick:
             model = f"models/{r['listener']}"
             r["model"] = {"scratch": f"/scratch/{e['id']}/{path}", "path": model}
             copy = [w.exec_argv("copy-model", e["id"], path, model)]
+        self.st.setdefault("listenerModels", {})[r["listener"]] = model
         decode = ["modal", "run", str(REPO / "modal/lab_decode.py"), "--listener", r["listener"], "--model", model,
                   "--test-set", self.st["testSet"].split(".v")[0], "--variants", "phone,studio", "--only", ",".join(practice)] + (["--force"] if copy else [])
         r["decodeJob"] = w.job(f"decode-{e['id']}-{sha}", json_exit(*copy, decode), env={"LAB_SRC": e["worktree"]})
@@ -947,7 +1040,7 @@ class Tick:
             if "conflicts" in err and e["attempts"].get("conflicts", 0) == 0:
                 e["attempts"]["conflicts"] = 1
                 e["state"] = "accepted"
-                return self.start_executor(e, "Rebasing onto the autolab branch conflicts. Rebase your branch onto `autolab`, resolve the conflicts, keep the change's intent, and commit.\n" + err[-1500:])
+                return self.start_executor(e, "Rebasing onto main conflicts. Rebase your branch onto `main`, resolve the conflicts, keep the change's intent, and commit.\n" + err[-1500:])
             return self.move(e, "needs-human", "fold failed: " + err[:300])
         r["fold"] = {k: res.get(k) for k in ("run", "base", "sha", "compare", "why", "gate", "head", "practice")}
         state = {"folded": "folded", "superseded": "superseded", "gate-failed": "discarded"}.get(res["state"])
@@ -960,7 +1053,8 @@ class Tick:
         self.move(e, state, note)
         if state == "folded":
             self.events[-1].update(sha=res["sha"], wrongCalls=res["practice"]["wrongCalls"])
-            self.set_main(res["run"], res["sha"], res["practice"])
+            self.set_main(res["run"], res["sha"], res["practice"], res.get("head"))
+            self.tag_fold(e, res.get("head"))
             w.notify(st, "digest", f"fold:{e['id']}", f"Autolab kept {e['id']}",
                      f"{e['card']['hypothesis']}\nPractice change: overall {res['compare']['overall']['change']:+d}.", self.at)
         self.after(e, {"state": state, "why": note, "gate": res.get("gate"), "compare": res.get("compare")})
@@ -1048,6 +1142,40 @@ def json_exit(*argvs: list[str]) -> list[str]:
     exited (what poll reads)."""
     import shlex  # noqa: PLC0415
     return ["bash", "-c", f'{" && ".join(map(shlex.join, argvs))}; code=$?; echo "{{\\"exitCode\\": $code}}"']
+
+
+def exam_argv(w, st: dict, listener: str) -> list[str]:
+    """The tripwire job: in a clean checkout of main, decode the exam with main's listener when it is an experiment's
+    own (the shipped one's exam evidence exists), then a full baseline. Only the baseline's JSON reaches stdout."""
+    import shlex  # noqa: PLC0415
+    t = w.test_set(st["testSet"])
+    lines = ["set -eo pipefail", 'wt="$(mktemp -d)/main"', f'git -C {shlex.quote(str(REPO))} worktree add --detach -q "$wt" {BRANCH}',
+             f'trap \'git -C {shlex.quote(str(REPO))} worktree remove --force "$wt"\' EXIT']
+    if listener.startswith("exp-"):
+        model = (st.get("listenerModels") or {}).get(listener) or w.cfg["listenerModel"]
+        decode = ["modal", "run", str(REPO / "modal/lab_decode.py"), "--listener", listener, "--model", model,
+                  "--test-set", st["testSet"].split(".v")[0], "--variants", "phone,studio", "--only", ",".join(t["sessions"]["exam"])]
+        lines.append(f'LAB_SRC="$wt" {shlex.join(decode)} >&2')
+    lines.append(shlex.join(w.lab_argv("baseline", "--note", "autolab exam tripwire")))
+    return ["bash", "-c", "\n".join(lines)]
+
+
+def exam_verdict(led: dict, folds: int, at: str) -> dict:
+    """Whether the exam followed practice since the previous exam reading of the main line. Keeps the verdict and the
+    practice change, never the exam numbers (nothing downstream should steer by them)."""
+    read = [m for m in led.get("mainLine", []) if m.get("exam") and m.get("practice")]
+    out = {"at": at, "folds": folds}
+    if len(read) < 2:
+        return {**out, "verdict": "pass", "why": "first exam reading of the main line; nothing to compare yet"}
+    ref, new = read[-2], read[-1]
+    p = new["practice"]["wrongCalls"] - ref["practice"]["wrongCalls"]
+    x = new["exam"]["wrongCalls"] - ref["exam"]["wrongCalls"]
+    out.update(practiceChange=p, since=ref.get("head") or ref["sha"], head=new.get("head") or new["sha"])
+    if x > G.EXAM_SLACK:
+        return {**out, "verdict": "worse", "why": f"the exam got worse while practice changed {p:+d} over {folds} fold(s)"}
+    if p <= -6 and x >= 0:
+        return {**out, "verdict": "no-transfer", "why": f"practice improved {p:+d} over {folds} fold(s) but the exam did not improve"}
+    return {**out, "verdict": "pass", "why": f"the exam followed practice ({p:+d}) over {folds} fold(s)"}
 
 
 def test_command(cfg: dict) -> str:
@@ -1186,17 +1314,12 @@ def cmd_init(a):
         CONFIG.parent.mkdir(parents=True, exist_ok=True)
         CONFIG.write_text(json.dumps(DEFAULT_CONFIG, indent=1) + "\n")
         print(f"wrote {CONFIG}; set notify.topic and the executor's env there")
-    git = lambda *x, **k: subprocess.run(["git", *x], cwd=REPO, capture_output=True, text=True, **k)
-    if git("rev-parse", "--verify", "--quiet", BRANCH).returncode:
-        git("branch", BRANCH, "main", check=True)
-    if not WORKTREE.exists():
-        git("worktree", "add", str(WORKTREE), BRANCH, check=True)
     w = World(cfg, executor=object())
-    lab_led = vol_get("/ledger.json")
-    if not vol_get(VOL_LEDGER):
+    lab_led = vol_get(VOL_LEDGER)
+    if not L.main_score(lab_led):
         ts = L.test_set(lab_led)
         a2 = ["baseline", "--practice-only", "--manifest", ts["manifest"], "--note", "autolab start"] + (["--exclude", ts["exclude"]] if ts.get("exclude") else [])
-        print("scoring the shadow line's practice baseline (about 11 minutes)...", flush=True)
+        print("scoring the main line's practice baseline (about 11 minutes)...", flush=True)
         res = w.lab(*a2)
     else:
         m = L.main_score(vol_get(VOL_LEDGER))
@@ -1208,8 +1331,8 @@ def cmd_init(a):
     st["dataHash"] = w.data_hash(st["testSet"])
     out = sync_exec_data(cfg, st["testSet"])
     st["execData"] = {"testSet": st["testSet"], "at": S.now(), **{k: out.get(k) for k in ("sessions", "files", "missing")}}
-    w.save(st, [S.event(None, None, "started", S.now(), f"shadow line {res['sha']}")])
-    print(f"autolab ready: shadow line {res['sha']}, practice {res['practice']['wrongCalls']} wrong calls; run `tools/autolab.py loop`")
+    w.save(st, [S.event(None, None, "started", S.now(), f"main line {res['sha']}")])
+    print(f"autolab ready: main line {res['sha']}, practice {res['practice']['wrongCalls']} wrong calls; run `tools/autolab.py loop`")
 
 
 def tick_once(w: World) -> dict:
@@ -1303,7 +1426,9 @@ def cmd_status(a):
         return
     m = (st.get("main") or {}).get("practice") or {}
     print(f"heartbeat {st['heartbeat']} (tick {st['ticks']}){'; PAUSED: ' + st['paused'] if st.get('paused') else ''}")
-    print(f"shadow line {(st.get('main') or {}).get('sha')}: practice {m.get('wrongCalls')} wrong calls")
+    trip = st.get("examTripwire") or {}
+    print(f"main line {(st.get('main') or {}).get('head') or (st.get('main') or {}).get('sha')}: practice {m.get('wrongCalls')} wrong calls; "
+          f"{st.get('foldsSinceExam', 0)} fold(s) since the exam tripwire" + (f" (last: {trip['verdict']}: {trip['why']})" if trip else ""))
     for e in sorted(st["experiments"].values(), key=lambda e: e["since"], reverse=True)[:30]:
         print(f"  {e['state']:12} {e['id']:40} {e['card']['component']:8} {e['tier']:8} {e['note'][:80]}")
 
@@ -1464,6 +1589,11 @@ def cmd_reopen(a):
     send("reopen", id=a.id)
 
 
+def cmd_revert(a):
+    known(a.id)
+    send("revert", id=a.id, why=" ".join(a.why))
+
+
 def cmd_drop(a):
     known(a.id)
     send("drop", id=a.id, why=" ".join(a.why) or "dropped by you")
@@ -1511,6 +1641,9 @@ def main():
     rp.add_argument("--note", default="")
     op = sub.add_parser("reopen")
     op.add_argument("id")
+    rvp = sub.add_parser("revert")
+    rvp.add_argument("id")
+    rvp.add_argument("why", nargs="*")
     dp = sub.add_parser("drop")
     dp.add_argument("id")
     dp.add_argument("why", nargs="*")
@@ -1521,7 +1654,7 @@ def main():
     try:
         {"init": cmd_init, "tick": cmd_tick, "loop": cmd_loop, "pause": cmd_pause, "resume": lambda a: cmd_pause(a, why=""),
          "status": cmd_status, "ab": cmd_ab, "practice-score": cmd_practice_score, "watchdog": cmd_watchdog, "match": cmd_match,
-         "approve": cmd_approve, "waiting": cmd_waiting, "retry": cmd_retry, "reopen": cmd_reopen, "drop": cmd_drop, "eli5": cmd_eli5,
+         "approve": cmd_approve, "waiting": cmd_waiting, "retry": cmd_retry, "reopen": cmd_reopen, "revert": cmd_revert, "drop": cmd_drop, "eli5": cmd_eli5,
          "modal-run": cmd_modal_run, "modal-result": cmd_modal_result, "sync-exec-data": cmd_sync_exec_data}[a.op](a)
     except Stop as err:
         sys.exit(f"autolab: {err}")

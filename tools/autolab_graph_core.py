@@ -4,7 +4,7 @@ graph, and the practice score with how close it is to the goal.
     progress(state, events, lab, autolab, now, report=None, explained=None)
         -> {"now", "testSet", "heartbeat", "views", "score", "ticker"}
 
-`lab` is the hand-run lab's ledger (/lab/ledger.json), `autolab` the shadow line's (/lab/autolab/ledger.json), both in
+`lab` is the hand-run lab's ledger (/lab/ledger.json), `autolab` its autolab part (`split`), both in
 tools/lab_ledger.py's shape; `report` is the autolab line's latest score.json, of which only the practice teacher count
 is read (state.main.teacherWrongCalls first); `explained` is /lab/autolab/eli5.json, the plain line for cards written
 before they carried one. Each of `views` ("autolab", "testSet", "all") is one graph: spine points, test-set boundaries, branches with
@@ -20,7 +20,8 @@ import autolab_dashboard_core as AD
 
 LIVE = ("proposed", "accepted", "implementing", "validating", "scoring", "folding", "needs-human")
 LAB_TEXT = {"open": "Open in the hand-run lab, waiting for a decision", "folded": "Folded in", "discarded": "Discarded",
-            "superseded": "Gain gone after catching up with the line"}
+            "superseded": "Gain gone after catching up with the line",
+            "reverted": "Taken back out of main"}
 GAP_S = 2 * 3600
 PAD_S = 10 * 60
 LANE_GAP_S = 20 * 60
@@ -41,6 +42,20 @@ def component_of(id: str, card: dict) -> str | None:
 
 
 # The main line
+
+
+def split(led: dict | None, st: dict | None) -> tuple[dict | None, dict | None]:
+    """The one main-line ledger as the two views the pages draw: the hand-run lab's part, and autolab's (its experiments,
+    and the main line's scores since autolab started that aren't a hand-run fold)."""
+    if not led or not st:
+        return led, None
+    mine, start = set(st.get("experiments") or {}), st.get("started") or ""
+    auto_line = lambda m: m.get("experiment") in mine or (not m.get("experiment") and (m.get("at") or "") >= start)  # noqa: E731
+    line = led.get("mainLine") or []
+    exps = led.get("experiments") or {}
+    lab = {**led, "mainLine": [m for m in line if not auto_line(m)], "experiments": {k: v for k, v in exps.items() if k not in mine}}
+    auto = {**led, "mainLine": [m for m in line if auto_line(m)], "experiments": {k: v for k, v in exps.items() if k in mine}}
+    return lab, auto
 
 
 def spine(lab: dict | None, auto: dict | None) -> list[dict]:
