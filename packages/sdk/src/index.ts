@@ -1,5 +1,4 @@
 export * from "./audio.js";
-export * from "./ctc.js";
 export * from "./capabilities.js";
 export * from "./fbank.js";
 export * from "./listener.js";

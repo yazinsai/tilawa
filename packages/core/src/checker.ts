@@ -17,10 +17,8 @@ export interface CheckerPolicy {
   /**
    * Before confirming a wrong, omitted or added word, compare how well the chunk posteriors around it (the word and one
    * either side) support the written words versus what was decoded, over all CTC timings. If the written words fit
-   * nearly as well, the error ends `uncertain`. A wrong word also has to win by `WORD_MARGIN` on its own frames (±2),
-   * so a one-frame greedy spike cannot confirm while the written word still holds the segment. Default on; it needs
-   * posteriors on every chunk, and without them nothing changes. `nats` overrides the margin the decode must win by
-   * (`SUPPORT`, doubled for a wrong word heard `UNSURE`).
+   * nearly as well, the error ends `uncertain`. Default on; it needs posteriors on every chunk, and without them nothing
+   * changes. `nats` overrides the margin the decode must win by (`SUPPORT`, doubled for a wrong word heard `UNSURE`).
    */
   localWindow?: boolean | { nats: number };
   /**
@@ -96,13 +94,6 @@ const JUMP_WORDS = 4;
 const FITS_PASSAGE = 0.35;
 /** Nats by which the decoded words must beat the written ones over the local window for the error to stand. */
 const SUPPORT = 10;
-/**
- * Nats by which the heard word must beat the written word over that word's own frames (±`WORD_PAD`). A greedy spike
- * on one phone-confusable consonant clears the wider window's single margin while the written phoneme still holds
- * the neighbouring frames, so the two forward scores stay within this. The closest real swaps sit past it.
- */
-const WORD_MARGIN = 14;
-const WORD_PAD = 2;
 /**
  * A wrong word whose changed sounds the decoder heard below this mean confidence must win by twice the margin: on
  * degraded audio a confusable sound (ن for م, ف for ك) is heard at even odds with blank, yet a few of them sum past it.
@@ -294,25 +285,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const need = issue.cls === "wrong_word" && changedClarity(issue) < UNSURE ? 2 * support : support;
     const expectedNll = frames.nll(ids(written), f0, f1), observedNll = frames.nll(ids(decoded), f0, f1);
     if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-    // The wider window can pass on a high peak. The word itself has to win by `WORD_MARGIN` before a wrong word stands.
-    if (issue.cls === "wrong_word" && !wordWins(issue, ids)) return false;
     return expectedNll - observedNll >= need;
-  };
-
-  /**
-   * Heard phonemes of a wrong word versus the written word, CTC forward over their frames ±`WORD_PAD`. False when the
-   * written word is within `WORD_MARGIN`; true when there is no segment to score (the wider window still decides).
-   */
-  const wordWins = (issue: Issue, ids: (s: string) => number[]): boolean => {
-    if (!frames || !issue.observed) return true;
-    const wordPh = obs.slice(Math.max(0, issue.obsFrom), Math.max(issue.obsFrom, issue.obsTo));
-    if (!wordPh.length) return true;
-    const wf0 = Math.max(frames.startFrame, wordPh[0].start - WORD_PAD);
-    const wf1 = Math.min(frames.endFrame, wordPh[wordPh.length - 1].end + 1 + WORD_PAD);
-    if (wf1 <= wf0) return true;
-    const written = ref.slice(words[issue.word].start, words[issue.last].end);
-    const gap = frames.nll(ids(written), wf0, wf1) - frames.nll(ids(issue.observed), wf0, wf1);
-    return !Number.isFinite(gap) || gap >= WORD_MARGIN;
   };
 
   /** Mean decoder confidence over a wrong word's decoded phonemes that differ from the written word. */

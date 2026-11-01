@@ -269,26 +269,13 @@ describe("local-window confirmation", () => {
   });
 
   it("wants twice the margin when the decoder was unsure of the changed sounds", () => {
-    // Default posteriors: the written consonants are unlisted, so the word's forward score loses by more than the
-    // word margin. Only the peak-confidence gate still doubles the wider window's margin.
-    const f = heard(edits, () => undefined);
+    // Phone audio: each misheard sound at even odds with blank, the written one unlisted.
+    const f = heard(edits, (j, p) => (word(j) && (p === "س" || p === "م") ? [[p, 0.5], ["", 0.45]] : undefined));
     let j = 0;
     const unsure = { ...f, evidence: f.evidence.map((x) => ({ ...x, phonemes: x.phonemes.map((p) => (word(j++) && (p.p === "س" || p.p === "م") ? { ...p, conf: 0.5 } : p)) })) };
     expect(summary(check(f, true))).toEqual(["confirmed wrong_word 2:255:23"]);
     expect(summary(check(unsure, false))).toEqual(["confirmed wrong_word 2:255:23"]);
     expect(check(unsure, true)).toEqual([]);
-  });
-
-  it("doesn't confirm a high-peak wrong word when the written word's forward score stays within the margin", () => {
-    // Each changed sound at even odds with blank, the written one unlisted: the greedy peak is high, and the wider
-    // window's single margin is cleared, but the two word sequences are about 11 nats apart.
-    const f = heard(edits, (j, p) => (word(j) && (p === "س" || p === "م") ? [[p, 0.5], ["", 0.45]] : undefined));
-    expect(summary(check(f, false))).toEqual(["confirmed wrong_word 2:255:23"]);
-    expect(check(f, true)).toEqual([]);
-    const states = replayChecked(index, f, {}, { policy: { localWindow: true } })
-      .filter((e): e is CheckerEvent => e.type === "checker" && e.location.word === target.word)
-      .map((e) => e.state);
-    expect(states).toEqual(["suspected", "uncertain"]);
   });
 
   it("still confirms a wrong word the audio doesn't support as written", () => {
