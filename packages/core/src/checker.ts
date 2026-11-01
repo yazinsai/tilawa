@@ -99,6 +99,12 @@ const SUPPORT = 10;
  * degraded audio a confusable sound (ن for م, ف for ك) is heard at even odds with blank, yet a few of them sum past it.
  */
 const UNSURE = 0.8;
+/**
+ * A dropped consonant-bearing ending takes a consonant plus a long vowel. A brisk murattal phoneme is two frames of
+ * the 40 ms stride, and a long vowel is a madd of two counts, so both need 240 ms. A shorter hole between the
+ * remaining word and the next onset was not spoken; a longer one can be a phone channel that blanked speech.
+ */
+const SUFFIX_HOLD_MS = (1 + 2) * 2 * 40;
 
 const INF = Infinity;
 const OP_START = 0;
@@ -144,6 +150,16 @@ interface Issue {
   supportRange?: [number, number];
   /** Score this word's own frames. A short ending disappears when the next word's labels slide onto its tail. */
   wordLocal?: boolean;
+  /**
+   * Decoded hypothesis over `supportRange`: a shorter attested word plus the next written word. The next word's
+   * consonant has to be inside this comparison, or it is free to stand in for the missing ending.
+   */
+  pair?: string;
+  /**
+   * The joint fit matched the next word, but the main alignment lent its onset to the suffix, so that word has no
+   * visit and `onset` cannot see it. Confirmation may use this instead of a later diagonal.
+   */
+  pairOnset?: boolean;
 }
 
 interface Open {
@@ -282,6 +298,18 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const word = ref.slice(words[issue.word].start, words[issue.last].end);
       const need = issue.cls === "wrong_word" && changedClarity(issue) < UNSURE ? 2 * support : support;
       const expectedNll = frames.nll(ids(word), a0, b0), observedNll = frames.nll(ids(issue.observed ?? ""), a0, b0);
+      if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
+      return expectedNll - observedNll >= need;
+    }
+    // Same joint span as the edit comparison. A wide window that leaves the next word out lets its onset consonant
+    // explain the ending a second time.
+    if (issue.pair && issue.supportRange && issue.supportRange[1] > issue.supportRange[0]) {
+      const a0 = obs[issue.supportRange[0]].start, b0 = obs[issue.supportRange[1] - 1].end + 1;
+      if (a0 < frames.startFrame || b0 > frames.endFrame) return null;
+      const through = nextWord(issue.last);
+      const writtenPair = ref.slice(words[issue.word].start, words[through].end);
+      const need = issue.cls === "wrong_word" && changedClarity(issue) < UNSURE ? 2 * support : support;
+      const expectedNll = frames.nll(ids(writtenPair), a0, b0), observedNll = frames.nll(ids(issue.pair), a0, b0);
       if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
       return expectedNll - observedNll >= need;
     }
@@ -591,6 +619,62 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return path.reverse();
   };
 
+  /**
+   * One insertion/deletion alignment of `reference` against `obs[from, to)`, the same DP as `wordSteps`. Each heard
+   * phoneme is consumed once, so a consonant on the next word cannot also satisfy a suffix.
+   */
+  const fitSpan = (reference: string, from: number, to: number): { cost: number; matches: { refAt: number; obs: number }[] } | null => {
+    const n = reference.length, m = to - from;
+    if (!n || m < 0 || from < 0 || to > obs.length) return null;
+    const width = m + 1;
+    const d = new Float64Array((n + 1) * width);
+    const op = new Uint8Array(d.length);
+    const ins = (at: number, j: number) => Math.min(
+      insertionCost(reference, at, obs[from + j - 1].p, n),
+      obs[from + j - 1].p === obs[from + j - 2]?.p ? HELD : UNIT,
+    );
+    const del = (at: number) => reference[at] === reference[at - 1] || reference[at] === reference[at + 1] ? HELD : deletionCost(reference, at);
+    for (let j = 1; j <= m; j++) { d[j] = d[j - 1] + ins(0, j); op[j] = OP_INS; }
+    for (let i = 1; i <= n; i++) {
+      const row = i * width, prev = row - width, at = i - 1;
+      d[row] = d[prev] + del(at); op[row] = OP_DEL;
+      for (let j = 1; j <= m; j++) {
+        const p = obs[from + j - 1].p;
+        d[row + j] = d[prev + j - 1] + subCost(reference[at], p); op[row + j] = OP_DIAG;
+        const deletion = d[prev + j] + del(at);
+        if (deletion < d[row + j]) { d[row + j] = deletion; op[row + j] = OP_DEL; }
+        const insertion = d[row + j - 1] + ins(at + 1, j);
+        if (insertion < d[row + j]) { d[row + j] = insertion; op[row + j] = OP_INS; }
+      }
+    }
+    const matches: { refAt: number; obs: number }[] = [];
+    let i = n, j = m;
+    while (i || j) {
+      const o = op[i * width + j];
+      if (o === OP_DIAG) matches.push({ refAt: --i, obs: from + --j });
+      else if (o === OP_DEL) i--;
+      else if (j) j--;
+      else break;
+    }
+    return { cost: d[n * width + m], matches };
+  };
+
+  /**
+   * The hole between the remaining word's last confident phone and the next word's confident onset cannot hold the
+   * dropped consonant and a long vowel. No confident edge on either side is not evidence the ending was unspoken.
+   */
+  const suffixUnspoken = (formLength: number, matches: { refAt: number; obs: number }[]): boolean => {
+    if (frameMs <= 0) return false;
+    let stemEnd = -1, onsetStart = Infinity;
+    for (const m of matches) {
+      const ph = obs[m.obs];
+      if (ph.conf < minConfidence) continue;
+      if (m.refAt < formLength) stemEnd = Math.max(stemEnd, ph.end);
+      else onsetStart = Math.min(onsetStart, ph.start);
+    }
+    return stemEnd >= 0 && onsetStart < Infinity && (onsetStart - stemEnd - 1) * frameMs < SUFFIX_HOLD_MS;
+  };
+
   /** The errors the current alignment shows, by word; and where it stands. */
   const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; lexical: Issue[]; head: number; furthest: number; steps: Step[]; right: Set<number> } | null => {
     const visits: Visit[] = [];
@@ -878,6 +962,78 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         wordLocal: true,
       });
     }
+    // The other direction: the ending consonant was not said. A jump to the next word is cheaper than deleting it,
+    // and held-sound tolerance can lend that word's onset to the suffix, so the two words are fit as one span.
+    for (let i = 0; i < settled.length - 1; i++) {
+      const left = settled[i], right = settled[i + 1];
+      if (nextWord(left.word) !== right.word || left.obsTo > right.obsFrom || right.stepFrom! < left.stepTo!) continue;
+      if (issues.has(left.word) || candidates.some(c => c.word === left.word)) continue;
+      if (settled.some(v => v !== left && v.word === left.word && lexical.matches(v.word, heard(v)))) continue;
+      const alts = lexical.droppedSuffixes(left.word);
+      if (!alts.length) continue;
+      const from = left.obsFrom, to = right.obsTo;
+      if (to <= from || obs.slice(from, to).some(p => p.junk)) continue;
+      if (visits.some(v => v !== left && v !== right && v.obsFrom < to && v.obsTo > from)) continue;
+      if (added.some(a => a.obsFrom < to && a.obsTo > from)) continue;
+      const next = ref.slice(words[right.word].start, words[right.word].end);
+      const written = fitSpan(ref.slice(words[left.word].start, words[left.word].end) + next, from, to);
+      if (!written) continue;
+      let best: { form: string; cost: number; matches: { refAt: number; obs: number }[] } | null = null;
+      for (const form of alts) {
+        const fit = fitSpan(form + next, from, to);
+        if (fit && (!best || fit.cost < best.cost)) best = { form, cost: fit.cost, matches: fit.matches };
+      }
+      // The same margin as an added ending: the shorter pair beats the written pair by a consonant.
+      if (!best || written.cost - best.cost < UNIT) continue;
+      if (!suffixUnspoken(best.form.length, best.matches)) continue;
+      candidates.push({
+        cls: "wrong_word", word: left.word, last: left.word, obsFrom: from,
+        obsTo: right.obsFrom > from ? right.obsFrom : left.obsTo, observed: best.form,
+        supportRange: [from, to], pair: best.form + next,
+      });
+    }
+    // No visit of the next word: its phones were matched as the ending. The span is this visit plus whatever was
+    // heard before the following settled word, so the onset consonant is inside the fit and cannot also be the suffix.
+    for (const left of settled) {
+      if (left.covered !== length(left.word)) continue;
+      if (issues.has(left.word) || candidates.some(c => c.word === left.word)) continue;
+      if (settled.some(v => v !== left && v.word === left.word && lexical.matches(v.word, heard(v)))) continue;
+      const partner = nextWord(left.word);
+      if (partner >= words.length || settled.some(v => v.word === partner)) continue;
+      const alts = lexical.droppedSuffixes(left.word);
+      if (!alts.length) continue;
+      const later = settled.find(v => v.obsFrom >= left.obsTo && v.word > left.word);
+      const from = left.obsFrom, to = later ? later.obsFrom : left.obsTo;
+      if (to <= from || obs.slice(from, to).some(p => p.junk)) continue;
+      if (visits.some(v => v !== left && v.word !== partner && v.obsFrom < to && v.obsTo > from && counts(v))) continue;
+      if (added.some(a => a.obsFrom < to && a.obsTo > from)) continue;
+      const next = ref.slice(words[partner].start, words[partner].end);
+      if (!next) continue;
+      const written = fitSpan(ref.slice(words[left.word].start, words[left.word].end) + next, from, to);
+      if (!written) continue;
+      let best: { form: string; cost: number; matches: { refAt: number; obs: number }[] } | null = null;
+      for (const form of alts) {
+        const fit = fitSpan(form + next, from, to);
+        if (fit && (!best || fit.cost < best.cost)) best = { form, cost: fit.cost, matches: fit.matches };
+      }
+      if (!best || written.cost - best.cost < UNIT) continue;
+      const seq = best.form + next;
+      let need = 0, got = 0;
+      for (let k = 0; k < next.length; k++) if (CONSONANTS.has(next[k])) {
+        need++;
+        const at = best.form.length + k;
+        if (best.matches.some(m => m.refAt === at && obs[m.obs].p === seq[at])) got++;
+      }
+      if (!need || got < need) continue;
+      if (!suffixUnspoken(best.form.length, best.matches)) continue;
+      let onsetObs = to;
+      for (const m of best.matches) if (m.refAt >= best.form.length) onsetObs = Math.min(onsetObs, m.obs);
+      candidates.push({
+        cls: "wrong_word", word: left.word, last: left.word, obsFrom: from,
+        obsTo: onsetObs > from ? onsetObs : left.obsTo, observed: best.form,
+        supportRange: [from, to], pair: seq, pairOnset: true,
+      });
+    }
     return { issues, lexical: candidates, head, furthest: reached, steps, right };
   };
 
@@ -923,10 +1079,14 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (const o of [...open.values()]) {
       const { issue } = o;
       const omission = issue.cls === "omitted_word" || issue.cls === "skipped_passage";
+      // The swallowed next word never advances `head`. The joint fit already heard it; wait until a later word or
+      // the passage end so earlier audio can still resolve the suspicion.
+      const followed = issue.pairOnset || onset(steps, issue);
+      const past = head !== issue.word || (issue.pairOnset === true && final);
       const due = omission
         ? final || ayahOf[reached] >= ayahOf[issue.last] + 2
-        : head !== issue.word &&
-          onset(steps, issue) &&
+        : past &&
+          followed &&
           (confirm.after === "next-word" || nowMs - o.sinceMs >= confirm.ms || (final && declared && (!latched || (policy.finaliseFree ?? true)) && [...right].some((wi) => wi > issue.last)));
       if (due) decide(o, out);
       // The session ended first. A declared passage (or a latched free one, with `finaliseFree`) confirms once a later

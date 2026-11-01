@@ -15,10 +15,14 @@ const asset: ReferenceAsset = {
   ayahs: [
     { s: 1, a: 1, w: ["before", "short", "after"], p: "بَسَلَهِفِ", o: [0, 2, 8],
       iso: ["ب", "سَلَه", "ف"] },
-    { s: 1, a: 2, w: ["before", "long", "after"], p: "تَسَلَهِمَاكَ", o: [0, 2, 11],
-      iso: ["ت", "سَلَهِمَا", "ك"] },
+    // The last word is only there so the alignment cannot stop inside the ending: كَ's vowel matches the suffix.
+    { s: 1, a: 2, w: ["before", "long", "after", "tail"], p: "تَسَلَهِمَاكَذَ", o: [0, 2, 11, 13],
+      iso: ["ت", "سَلَهِمَا", "ك", "ذ"] },
     { s: 1, a: 3, w: ["bare", "dual"], p: "ذَهَبَذَهَبَا", o: [0, 5],
       iso: ["ذَهَب", "ذَهَبَا"] },
+    // The word after the long form starts with the ending's consonant, so a single heard م can be lent to either.
+    { s: 1, a: 4, w: ["long", "follows", "tail"], p: "سَلَهِمَامَكذَ", o: [0, 9, 12],
+      iso: ["سَلَهِمَا", "مَك", "ذ"] },
   ],
 };
 const index = loadReferenceIndex(asset);
@@ -29,9 +33,9 @@ const atWord = (r: WordRef) => index.words.indexOf(find(r));
 const text = (r: WordRef) => index.phonemes.slice(find(r).start, find(r).end);
 const iso = (r: WordRef) => index.isolatedWordForms![atWord(r)];
 
-function check(from: WordRef, to: WordRef, edits: (at: (r: WordRef) => number) => Edit[], acoustics: "decoded" | "missing" | "neutral" = "decoded") {
+function check(from: WordRef, to: WordRef, edits: (at: (r: WordRef) => number) => Edit[], acoustics: "decoded" | "missing" | "neutral" = "decoded", chunkSize = 4) {
   const at = (r: WordRef) => find(r).start - find(from).start;
-  const fixture = syntheticFixture(index, { id: "word-ending", from, to, edits: edits(at), chunkSize: 4 });
+  const fixture = syntheticFixture(index, { id: "word-ending", from, to, edits: edits(at), chunkSize });
   const checker = createChecker(index, { passage: { from, to }, policy: { confirm: { after: "next-word" } } });
   const events: CheckerEvent[] = [];
   const neutral: [string, number][] = ["", ...index.tokens].map(p => [p, 1 / (index.tokens.size + 1)]);
@@ -66,6 +70,13 @@ describe("attested endings", () => {
     expect(words.ending(atWord(w(1, 3, 1)), text(w(1, 3, 2)))).toBeNull();
     expect(words.ending(atWord(w(1, 3, 2)), text(w(1, 3, 1)))).toBeNull();
   });
+
+  it("lists only shorter forms whose missing tail holds a consonant", () => {
+    expect(words.droppedSuffixes(atWord(long)).sort()).toEqual([iso(short), text(short)].sort());
+    expect(words.droppedSuffixes(atWord(short))).toEqual([]);
+    expect(words.droppedSuffixes(atWord(w(1, 3, 1)))).toEqual([]);
+    expect(words.droppedSuffixes(atWord(w(1, 3, 2)))).toEqual([]);
+  });
 });
 
 describe("suffix swaps", () => {
@@ -75,10 +86,40 @@ describe("suffix swaps", () => {
       .toEqual([`wrong_word ${key(target)}`]);
   });
 
-  it("abstains when the changed consonant is missing and has no decoded acoustic anchor", () => {
+  it("catches a dropped consonant ending when nothing was spoken in its place", () => {
     const target = w(1, 2, 2);
-    expect(check(w(1, 2, 1), w(1, 2, 3), at => replace(at, target, text(w(1, 1, 2)))).mistakes)
-      .toEqual([]);
+    expect(check(w(1, 2, 1), w(1, 2, 4), at => replace(at, target, text(w(1, 1, 2)))).mistakes)
+      .toEqual([`wrong_word ${key(target)}`]);
+  });
+
+  it("catches the drop when the next word's onset is the ending consonant, so one م cannot pay twice", () => {
+    const target = w(1, 4, 1), stem = text(w(1, 1, 2));
+    expect(check(target, w(1, 4, 3), at => [
+      { kind: "del", at: at(target) + stem.length, count: text(target).length - stem.length },
+    ]).mistakes).toEqual([`wrong_word ${key(target)}`]);
+  });
+
+  it("abstains when the heard consonant still accounts for the ending", () => {
+    const target = w(1, 2, 2), stem = text(w(1, 1, 2));
+    expect(check(w(1, 2, 1), w(1, 2, 4), at => [
+      { kind: "del", at: at(target) + stem.length + 1, count: text(target).length - stem.length - 1 },
+    ]).mistakes).toEqual([]);
+  });
+
+  it("abstains when the hole could still have held the consonant and its long vowel", () => {
+    const target = w(1, 2, 2), stem = text(w(1, 1, 2));
+    // 12 silent frames plus the boundary frame is 260 ms at this fixture's 20 ms stride, past the 240 ms hold.
+    expect(check(w(1, 2, 1), w(1, 2, 4), at => [
+      ...replace(at, target, text(w(1, 1, 2))),
+      { kind: "gap", at: at(target) + stem.length, frames: 12 },
+    ], "decoded", 10_000).mistakes).toEqual([]);
+  });
+
+  it.each(["missing", "neutral"] as const)("abstains on a dropped ending with %s acoustic support", acoustics => {
+    const target = w(1, 2, 2);
+    const result = check(w(1, 2, 1), w(1, 2, 4), at => replace(at, target, text(w(1, 1, 2))), acoustics);
+    expect(result.events.filter(e => key(e.location) === key(target))).toEqual([]);
+    expect(result.mistakes).toEqual([]);
   });
 
   it("does not turn an unattested extra consonant into a suffix", () => {
@@ -116,5 +157,7 @@ describe("endings that are not a different word", () => {
 
   it("leaves the passage alone", () => {
     expect(check(w(1, 1, 1), w(1, 1, 3), () => []).mistakes).toEqual([]);
+    expect(check(w(1, 2, 1), w(1, 2, 4), () => []).mistakes).toEqual([]);
+    expect(check(w(1, 4, 1), w(1, 4, 3), () => []).mistakes).toEqual([]);
   });
 });
