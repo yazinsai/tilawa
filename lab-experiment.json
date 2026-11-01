@@ -1,0 +1,13 @@
+{
+ "id": "tracker-park-issues-through-relock",
+ "component": "tracker",
+ "hypothesis": "A brief lock loss right after a mistake turns its open warning to uncertain even when the tracker relocks just ahead in the same passage (p46 54:36:4, p66 9:3:21). Park open issues through the loss and resolve them against their own text if the relock continues the same passage in order. Predict tracker -2 and overall -3; the third win is speculative and must come from the step-0 census.",
+ "expected": {
+  "component": -2,
+  "overall": -3
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-01T07:47:10+00:00",
+ "author": "autolab"
+}
