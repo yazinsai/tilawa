@@ -71,6 +71,7 @@ VOL_INBOX, VOL_ELI5 = "/autolab/inbox", "/autolab/eli5.json"
 NOT_ENGINE = re.compile(r"(^\.scratch/|^docs/|(^|/)lab-experiment\.json$|\.md$|(^|/)test/|\.test\.ts$|^tools/test_)")
 OWN_DATA = re.compile(r"(\.exp-[^/]+\.(phone|studio)\.evidence\.json|/decode-v1\.json)$")
 PRACTICE_SCORES = 3
+ARM_WAIT_MINUTES = 20  # a card whose arm is full and whose builder never started moves to an arm with room
 ARM_DOWN_AFTER, ARM_DOWN_MINUTES = 3, 60  # an arm whose last builders all failed to start rests, then gets one more try
 GROK = {"id": "grok-4.7", "params": [{"id": "context", "value": "500k"}, {"id": "reasoning_effort", "value": "high"}, {"id": "fast", "value": "false"}]}
 DEFAULT_CONFIG = {
@@ -748,8 +749,14 @@ class Tick:
                 out = {"branch": f"exp/{e['id']}", "worktree": str(wt)}  # an earlier tick made it, then its state save failed
             e["branch"], e["worktree"] = out["branch"], out["worktree"]
             w.exclude(".autolab/")
-        if self.arm_full(self.arm_of(e)):
-            return
+        arm = self.arm_of(e)
+        if self.arm_full(arm):
+            others = [a for a in self.arms() if a["name"] != arm["name"] and not self.arm_full(a)]
+            waited = S.minutes(e["since"], self.at)
+            if others and not (e.get("executor") or {}).get("handle") and waited >= ARM_WAIT_MINUTES:
+                self.fall_back(e, others[0]["name"], f"{arm['name']} was at its {arm.get('maxConcurrent')} builders for {waited:.0f} min")
+            else:
+                return
         self.start_executor(e, e["results"].pop("feedback", ""))
 
     def arm_full(self, arm: dict) -> bool:
