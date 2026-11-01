@@ -1,0 +1,13 @@
+{
+ "id": "listener-context-free-gap-decode",
+ "component": "listener",
+ "hypothesis": "Words added after a waqf pause are lost because the model's long left context makes it expect the next verse word, not because the audio is missing. Re-run the acoustic model on just the pause gap plus short padding, so it cannot see the verse, and pass any recovered phonemes to the existing added-word rules; predict listener -4, overall -3.",
+ "expected": {
+  "component": -4,
+  "overall": -3
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-01T07:53:27+00:00",
+ "author": "autolab"
+}
