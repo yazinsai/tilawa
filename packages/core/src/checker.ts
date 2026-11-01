@@ -142,6 +142,8 @@ interface Issue {
   observed?: string;
   /** A lexical candidate's exact neighboring visits; other occurrences must not widen its acoustic window. */
   supportRange?: [number, number];
+  /** Score this word's own frames. A short ending disappears when the next word's labels slide onto its tail. */
+  wordLocal?: boolean;
 }
 
 interface Open {
@@ -270,11 +272,23 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const to = right.length ? after : issue.cls === "added_word" ? issue.word : issue.last;
     const at = (issue.supportRange ? [issue.supportRange[0], issue.supportRange[1] - 1] :
       [...left, ...right, ...(issue.obsTo > issue.obsFrom ? [issue.obsFrom, issue.obsTo - 1] : [])]).filter((k) => k >= 0 && k < obs.length);
+    if (!at.length && !issue.wordLocal) return null;
+    const ids = (s: string) => [...s].map((p) => tokenId.get(p) ?? 0);
+    // The ending is a few phones. Over the word plus its neighbours the next word's labels take those frames and
+    // the written word looks almost as likely; on the word's own frames the consonant has to be accounted for.
+    if (issue.wordLocal && issue.obsTo > issue.obsFrom) {
+      const a0 = obs[issue.obsFrom].start, b0 = obs[issue.obsTo - 1].end + 1;
+      if (a0 < frames.startFrame || b0 > frames.endFrame) return null;
+      const word = ref.slice(words[issue.word].start, words[issue.last].end);
+      const need = issue.cls === "wrong_word" && changedClarity(issue) < UNSURE ? 2 * support : support;
+      const expectedNll = frames.nll(ids(word), a0, b0), observedNll = frames.nll(ids(issue.observed ?? ""), a0, b0);
+      if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
+      return expectedNll - observedNll >= need;
+    }
     if (!at.length) return null;
     const f0 = obs[Math.min(...at)].start;
     const f1 = obs[Math.max(...at)].end + 1;
     if (f0 < frames.startFrame || f1 > frames.endFrame) return null;
-    const ids = (s: string) => [...s].map((p) => tokenId.get(p) ?? 0);
     const span = (a: number, b: number) => (a < b ? ref.slice(words[a].start, words[b - 1].end) : "");
     const written = ref.slice(words[from].start, words[to].end);
     const observed = issue.observed ?? "";
@@ -835,6 +849,33 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       })) candidates.push({
         cls: "wrong_word", word: wi, last: wi, obsFrom: left.obsTo, obsTo: right.obsFrom, observed,
         supportRange: [left.obsFrom, right.obsTo],
+      });
+    }
+    // A pronoun or dual ending rides in the tail, where a pause or a held vowel is cheap and no consonant was
+    // substituted. The insertion gap before the next visited word supplies the complete heard form.
+    const settled = visits.filter(v => counts(v) && !wrong(v) && v.word >= first && v.obsFrom >= 0 &&
+      v.stepFrom !== undefined && v.stepTo !== undefined);
+    for (let i = 0; i < settled.length - 1; i++) {
+      const left = settled[i], right = settled[i + 1];
+      if (nextWord(left.word) !== right.word || left.obsTo > right.obsFrom || right.stepFrom! < left.stepTo!) continue;
+      if (issues.has(left.word)) continue;
+      // Another visit that is this word keeps a repeat or a self-correction. The tail may sit past the last matched
+      // phone, so this visit's own slice can still be the written form.
+      if (settled.some(v => v !== left && v.word === left.word && lexical.matches(v.word, heard(v)))) continue;
+      const between = steps.slice(left.stepTo!, right.stepFrom!);
+      if (between.some(s => s.op !== "ins")) continue;
+      const gap = between.flatMap(s => s.op === "ins" ? [s.obs] : []);
+      if (gap.length !== right.obsFrom - left.obsTo || gap.some((oi, j) => oi !== left.obsTo + j)) continue;
+      if (obs.slice(left.obsFrom, right.obsFrom).some(p => p.junk)) continue;
+      if (added.some(a => a.obsFrom < right.obsFrom && a.obsTo > left.obsFrom)) continue;
+      const observed = obs.slice(left.obsFrom, right.obsFrom).map(p => p.p).join("");
+      const ending = lexical.ending(left.word, observed);
+      // An observed suffix has decoded consonant frames whose confidence and posteriors can corroborate it. A missing
+      // suffix has no such local anchor; the ordinary omission path remains responsible for that evidence.
+      if (!ending?.observedConsonant) continue;
+      candidates.push({
+        cls: "wrong_word", word: left.word, last: left.word, obsFrom: left.obsFrom, obsTo: right.obsFrom, observed,
+        wordLocal: true,
       });
     }
     return { issues, lexical: candidates, head, furthest: reached, steps, right };

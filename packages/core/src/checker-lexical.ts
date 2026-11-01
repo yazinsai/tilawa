@@ -3,6 +3,51 @@ import type { ReferenceIndex } from "./reference.js";
 
 const CONSONANTS = new Set("ءبتثجحخدذرزسشصضطظعغفقكلمنهوي");
 const form = (s: string) => collapseHeld([...s]).join("");
+/**
+ * A grammatical ending (ـما, a case vowel on top of it) stays at the tail. Longer than this, the divergence is the
+ * stem and the ordinary consonant rules own it.
+ */
+const END = 4;
+
+/** Common stem, then two short tails. The stem has to outlast either tail, so a short shared prefix is not an ending. */
+function residual(a: string, b: string): { stem: string; sa: string; sb: string } | null {
+  let i = 0;
+  while (i < a.length && i < b.length && a[i] === b[i]) i++;
+  const sa = a.slice(i), sb = b.slice(i);
+  if (!i || sa.length > END || sb.length > END || i <= sa.length || i <= sb.length) return null;
+  return { stem: a.slice(0, i), sa, sb };
+}
+
+function consonantsOf(s: string): string {
+  return [...s].filter(c => CONSONANTS.has(c)).join("");
+}
+
+/** One side adds or drops consonants and the other side is only vowels, madd or a waqf mark. A substitution is neither. */
+function endSegment(sa: string, sb: string): string | null {
+  const ca = consonantsOf(sa), cb = consonantsOf(sb);
+  if ((ca.length === 0) === (cb.length === 0)) return null;
+  return ca || cb;
+}
+
+/** Cost of the tails only. The matched stem stays put, so a following vowel cannot be rewritten into the consonant. */
+function endingCost(stem: string, sa: string, sb: string): number {
+  const ref = stem + sa, base = stem.length, n = sa.length, m = sb.length;
+  let row = new Float64Array(m + 1);
+  for (let j = 1; j <= m; j++) row[j] = row[j - 1] + insertionCost(ref, base, sb[j - 1], ref.length);
+  for (let i = 1; i <= n; i++) {
+    const next = new Float64Array(m + 1);
+    next[0] = row[0] + deletionCost(ref, base + i - 1);
+    for (let j = 1; j <= m; j++) {
+      next[j] = Math.min(
+        row[j - 1] + subCost(sa[i - 1], sb[j - 1]),
+        row[j] + deletionCost(ref, base + i - 1),
+        next[j - 1] + insertionCost(ref, base + i, sb[j - 1], ref.length),
+      );
+    }
+    row = next;
+  }
+  return row[m];
+}
 
 /**
  * Align individual consonants independently of vowels, using the existing costs. Hard edits sharing an original
@@ -81,9 +126,62 @@ function build(index: ReferenceIndex) {
     contexts.add(key);
     connected.set(text, contexts);
   });
+  const attested = new Set<string>();
+  for (const list of forms) for (const f of list) if (f) attested.add(f);
+  // Forms that share a stem and differ by a short tail. Queried from the written word's own tail, never from a verse.
+  const byStem = new Map<string, string[]>();
+  for (const f of attested) for (let n = 0; n <= END && n < f.length; n++) {
+    const stem = f.slice(0, f.length - n);
+    if (stem.length <= n) continue;
+    const list = byStem.get(stem);
+    if (list) list.push(f);
+    else byStem.set(stem, [f]);
+  }
   const matches = (wi: number, heard: string) => forms[wi].includes(form(heard));
+  /**
+   * The heard word is another mushaf form that the written word reaches by adding or dropping an ending, and that
+   * ending carries a consonant. Waqf and a held vowel change only vowels, tanween or a pause mark, which is one of
+   * this word's own forms or has no consonant to anchor.
+   */
+  const ending = (wi: number, heardRaw: string): { observedConsonant: boolean } | null => {
+    const heard = form(heardRaw);
+    const own = forms[wi];
+    if (!heard || !own.length || own.includes(heard)) return null;
+    // A vowel-only or pause-mark tail of any own pronunciation is this word, not a different one.
+    if (own.some(f => {
+      const r = residual(f, heard);
+      return !!r && !endSegment(r.sa, r.sb);
+    })) return null;
+    let written: { f: string; cost: number } | null = null;
+    for (const f of own) {
+      const r = residual(f, heard);
+      if (!r || !endSegment(r.sa, r.sb)) continue;
+      const cost = endingCost(r.stem, r.sa, r.sb);
+      if (!written || cost < written.cost) written = { f, cost };
+    }
+    if (!written || written.cost < UNIT) return null;
+    let best = Infinity;
+    const stems = new Set<string>();
+    for (let n = 0; n <= END && n < written.f.length; n++) {
+      const stem = written.f.slice(0, written.f.length - n);
+      if (stem.length > n) stems.add(stem);
+    }
+    for (const stem of stems) for (const alt of byStem.get(stem) ?? []) {
+      if (own.includes(alt)) continue;
+      const fromWritten = residual(written.f, alt);
+      if (!fromWritten || !endSegment(fromWritten.sa, fromWritten.sb)) continue;
+      const fromHeard = residual(alt, heard);
+      if (!fromHeard) continue;
+      best = Math.min(best, endingCost(fromHeard.stem, fromHeard.sa, fromHeard.sb));
+    }
+    // The other form has to beat the written word by a consonant, not by a cheaper way to spell the same tail.
+    if (written.cost - best < UNIT) return null;
+    const difference = residual(written.f, heard);
+    return difference ? { observedConsonant: consonantsOf(difference.sb).length > 0 } : null;
+  };
   return {
     matches,
+    ending,
     alternative(wi: number, heard: string, context?: { before?: string; after?: string }): boolean {
       const normalized = form(heard);
       const key = context && contextKey(context.before === undefined ? undefined : boundary(context.before, true),
