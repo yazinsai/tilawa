@@ -1,0 +1,31 @@
+{"at": "2026-10-31T19:00:00+00:00", "id": "checker-repeat-grace", "from": null, "to": "proposed", "note": "Give a repeated word a grace period before warning"}
+{"at": "2026-10-31T19:10:00+00:00", "id": "checker-repeat-grace", "from": "proposed", "to": "accepted", "note": ""}
+{"at": "2026-10-31T19:30:00+00:00", "id": "checker-repeat-grace", "from": "accepted", "to": "implementing", "note": ""}
+{"at": "2026-10-31T21:05:00+00:00", "id": "checker-added-word-confirm", "from": null, "to": "proposed", "note": "Hold an added-word warning until the next word confirms the slip, so a stretched vowel is not called an extra word"}
+{"at": "2026-10-31T21:20:00+00:00", "id": "checker-added-word-confirm", "from": "proposed", "to": "accepted", "note": "novel: no past card on added-word timing"}
+{"at": "2026-10-31T21:24:00+00:00", "id": "checker-added-word-confirm", "from": "accepted", "to": "implementing", "note": ""}
+{"at": "2026-10-31T22:00:00+00:00", "id": "listener-vowel-prior", "from": null, "to": "proposed", "note": "Bias the decoder toward the expected short vowel when the acoustic evidence is weak"}
+{"at": "2026-10-31T22:05:00+00:00", "id": "listener-vowel-prior", "from": "proposed", "to": "accepted", "note": ""}
+{"at": "2026-10-31T22:06:00+00:00", "id": "listener-vowel-prior", "from": "accepted", "to": "implementing", "note": ""}
+{"at": "2026-10-31T23:10:00+00:00", "id": "listener-blank-penalty", "from": null, "to": "proposed", "note": "A larger blank penalty in the decoder keeps short particles the listener now drops"}
+{"at": "2026-10-31T23:16:00+00:00", "id": "listener-blank-penalty", "from": "proposed", "to": "accepted", "note": ""}
+{"at": "2026-10-31T23:18:00+00:00", "id": "listener-blank-penalty", "from": "accepted", "to": "implementing", "note": ""}
+{"at": "2026-10-31T23:40:00+00:00", "id": "checker-repeat-grace", "from": "implementing", "to": "abandoned", "note": "implementing for more than 240 minutes"}
+{"at": "2026-10-31T23:58:00+00:00", "id": "checker-added-word-confirm", "from": "implementing", "to": "validating", "note": ""}
+{"at": "2026-11-01T00:12:00+00:00", "id": "checker-added-word-confirm", "from": "validating", "to": "scoring", "note": ""}
+{"at": "2026-11-01T00:41:00+00:00", "id": "checker-added-word-confirm", "from": "scoring", "to": "folding", "note": ""}
+{"at": "2026-11-01T01:10:00+00:00", "id": "listener-blank-penalty", "from": "implementing", "to": "validating", "note": ""}
+{"at": "2026-11-01T01:21:00+00:00", "id": "listener-blank-penalty", "from": "validating", "to": "scoring", "note": ""}
+{"at": "2026-11-01T01:22:00+00:00", "id": "checker-added-word-confirm", "from": "folding", "to": "folded", "note": "keeps its overall and checker gain", "sha": "a41c9e2"}
+{"at": "2026-11-01T01:40:00+00:00", "id": "checker-madd-length", "from": null, "to": "proposed", "note": "Treat a long madd held past six counts as allowed, not as an added word"}
+{"at": "2026-11-01T01:52:00+00:00", "id": "checker-madd-length", "from": "proposed", "to": "accepted", "note": ""}
+{"at": "2026-11-01T02:05:00+00:00", "id": "listener-blank-penalty", "from": "scoring", "to": "discarded", "note": "autolab gate failed"}
+{"at": "2026-11-01T02:10:00+00:00", "id": "checker-madd-length", "from": "accepted", "to": "implementing", "note": ""}
+{"at": "2026-11-01T02:20:00+00:00", "id": "tracker-restart-window", "from": null, "to": "proposed", "note": "Widen the restart search to the previous three ayahs so a reciter going back is followed, not lost"}
+{"at": "2026-11-01T02:20:00+00:00", "id": "listener-vowel-prior", "from": "implementing", "to": "validating", "note": ""}
+{"at": "2026-11-01T02:31:00+00:00", "id": "tracker-restart-window", "from": "proposed", "to": "needs-human", "note": "this cluster failed twice already and the card gives no new reason; keep it or drop it?"}
+{"at": "2026-11-01T02:36:00+00:00", "id": "tracker-jump-hysteresis", "from": null, "to": "proposed", "note": "Require two agreeing windows before the tracker jumps to a far ayah"}
+{"at": "2026-11-01T02:40:00+00:00", "id": "listener-vowel-prior", "from": "validating", "to": "scoring", "note": ""}
+{"at": "2026-11-01T02:44:00+00:00", "id": "tracker-jump-hysteresis", "from": "proposed", "to": "accepted", "note": ""}
+{"at": "2026-11-01T02:52:00+00:00", "id": "listener-noise-augment", "from": null, "to": "proposed", "note": "Fine-tune the listener on phone-noise augmented recitations so it hears quiet particles"}
+{"at": "2026-11-01T02:55:00+00:00", "id": null, "from": null, "to": "spend-cap", "note": "daily cap on Modal dollars reached (25.3 of 25)"}

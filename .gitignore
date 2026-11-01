@@ -33,4 +33,5 @@ packages/sample/public/clips/
 .scratch/session-bench/build/
 .scratch/help-review/
 .scratch/lab/cache/
+.scratch/autolab/run/
 modal/live-dist/

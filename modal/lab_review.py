@@ -12,7 +12,8 @@ The /record page records scripted-error takes (docs/benchmarks/lab-recordings.md
 tilawa-lab-recordings app (modal/lab_recordings.py, or LAB_RECORDINGS_APP at deploy time).
 
 Queues and audio are read from /lab/data on the tilawa-lab volume; verdicts go to /lab/reviews/<testSet>/<reviewer>.json.
-The dashboard reads /lab/ledger.json and the latest main-line run's /lab/runs/<run>/score.json.
+The dashboard reads /lab/ledger.json and the latest main-line run's /lab/runs/<run>/score.json. The Autolab tab
+(/autolab) reads the supervisor's /lab/autolab/state.json, the tail of its events.jsonl and its ledger.json.
 """
 
 import os
@@ -35,6 +36,8 @@ image = (
     .add_local_file(ROOT / "tools/lab_recordings_core.py", "/root/lab_recordings_core.py")
     .add_local_file(ROOT / "tools/lab_ledger.py", "/root/lab_ledger.py")
     .add_local_file(ROOT / "tools/lab_dashboard_core.py", "/root/lab_dashboard_core.py")
+    .add_local_file(ROOT / "tools/autolab_state.py", "/root/autolab_state.py")
+    .add_local_file(ROOT / "tools/autolab_dashboard_core.py", "/root/autolab_dashboard_core.py")
     .add_local_file(ROOT / "tools/review_asr_core.py", "/root/review_asr_core.py")
     .add_local_file(ROOT / "tools/lab_models_core.py", "/root/lab_models_core.py")
     .add_local_file(ROOT / "tools/lab_plain.py", "/root/lab_plain.py")
@@ -397,6 +400,43 @@ def web():
     @api.get("/api/release")
     def release():
         return {"release": gates, "source": "docs/benchmarks/scoreboard.md"}
+
+    # Autolab tab (.scratch/autolab/issues/07-dashboard-and-notifications.md). `root` is a throwaway folder at the volume
+    # root holding the same three files, for previews; the default is the supervisor's /lab/autolab.
+
+    import autolab_dashboard_core as AD
+
+    def tail_events(p: Path, n: int = 500, window: int = 1 << 20) -> list[dict]:
+        try:
+            with p.open("rb") as f:
+                size = f.seek(0, 2)
+                f.seek(max(0, size - window))
+                lines = f.read().decode(errors="replace").splitlines()[1 if size > window else 0:]
+        except OSError:
+            return []
+        out = []
+        for line in lines[-n:]:
+            try:
+                ev = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(ev, dict):
+                out.append(ev)
+        return out
+
+    @api.get("/autolab")
+    def autolab_page():
+        return FileResponse(WEB / "autolab.html", headers={"Cache-Control": "no-cache"})
+
+    @api.get("/api/autolab")
+    def autolab(root: str | None = None):
+        reload()
+        d = LAB / (name(root, "root") if root else "autolab")
+        st, led = read_json(d / "state.json"), read_json(d / "ledger.json")
+        st = st if isinstance(st, dict) and st.get("kind") == "autolab-state" else None
+        ml = led.get("mainLine") if isinstance(led, dict) and led.get("kind") == "lab-ledger" else None
+        now = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+        return AD.view(st, tail_events(d / "events.jsonl"), now, ml)
 
     import lab_models_core as M
 

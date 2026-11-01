@@ -1,0 +1,26 @@
+{
+ "version": 1,
+ "kind": "lab-ledger",
+ "main": "autolab",
+ "testSet": "lab-v1.5",
+ "testSets": {},
+ "experiments": {},
+ "mainLine": [
+  {"sha": "1b2c3d4", "testSet": "lab-v1.4", "run": "main-1b2c3d4-20261029T120000Z", "at": "2026-10-29T12:00:00+00:00", "note": "first score",
+   "practice": {"wrongCalls": 131, "missed": 70, "falseWarnings": 61, "listener": {"wrongCalls": 66, "missed": 40, "falseWarnings": 26}, "tracker": {"wrongCalls": 9, "missed": 5, "falseWarnings": 4}, "checker": {"wrongCalls": 56, "missed": 25, "falseWarnings": 31}},
+   "exam": {"wrongCalls": 777001, "missed": 777002, "falseWarnings": 777003, "listener": {"wrongCalls": 777004}, "tracker": {"wrongCalls": 777005}, "checker": {"wrongCalls": 777006}}},
+  {"sha": "5e6f7a8", "testSet": "lab-v1.5", "run": "main-5e6f7a8-20261030T090000Z", "at": "2026-10-30T09:00:00+00:00", "note": "new test set",
+   "practice": {"wrongCalls": 107, "missed": 60, "falseWarnings": 47, "listener": {"wrongCalls": 55, "missed": 34, "falseWarnings": 21}, "tracker": {"wrongCalls": 7, "missed": 4, "falseWarnings": 3}, "checker": {"wrongCalls": 45, "missed": 22, "falseWarnings": 23}},
+   "exam": {"wrongCalls": 777011, "missed": 777012, "falseWarnings": 777013, "listener": {"wrongCalls": 777014}, "tracker": {"wrongCalls": 777015}, "checker": {"wrongCalls": 777016}}},
+  {"sha": "9a0b1c2", "testSet": "lab-v1.5", "run": "main-9a0b1c2-20261030T210000Z", "at": "2026-10-30T21:00:00+00:00", "experiment": "listener-joined-particles", "note": "fold of listener-joined-particles",
+   "practice": {"wrongCalls": 101, "missed": 57, "falseWarnings": 44, "listener": {"wrongCalls": 52, "missed": 32, "falseWarnings": 20}, "tracker": {"wrongCalls": 6, "missed": 4, "falseWarnings": 2}, "checker": {"wrongCalls": 43, "missed": 21, "falseWarnings": 22}}},
+  {"sha": "3d4e5f6", "testSet": "lab-v1.5", "run": "main-3d4e5f6-20261031T080000Z", "at": "2026-10-31T08:00:00+00:00", "experiment": "listener-final-nun", "note": "fold of listener-final-nun",
+   "practice": {"wrongCalls": 98, "missed": 56, "falseWarnings": 42, "listener": {"wrongCalls": 50, "missed": 31, "falseWarnings": 19}, "tracker": {"wrongCalls": 6, "missed": 4, "falseWarnings": 2}, "checker": {"wrongCalls": 42, "missed": 21, "falseWarnings": 21}},
+   "exam": {"wrongCalls": 777021, "missed": 777022, "falseWarnings": 777023, "listener": {"wrongCalls": 777024}, "tracker": {"wrongCalls": 777025}, "checker": {"wrongCalls": 777026}}},
+  {"sha": "6d02b11", "testSet": "lab-v1.5", "run": "main-6d02b11-20261101T004500Z", "at": "2026-11-01T00:45:00+00:00", "experiment": "tracker-lookahead", "note": "re-scored for fold of checker-added-word-confirm",
+   "practice": {"wrongCalls": 94, "missed": 54, "falseWarnings": 40, "listener": {"wrongCalls": 47, "missed": 30, "falseWarnings": 17}, "tracker": {"wrongCalls": 5, "missed": 3, "falseWarnings": 2}, "checker": {"wrongCalls": 42, "missed": 21, "falseWarnings": 21}}},
+  {"sha": "a41c9e2", "testSet": "lab-v1.5", "run": "main-a41c9e2-20261101T012200Z", "at": "2026-11-01T01:22:00+00:00", "experiment": "checker-added-word-confirm", "note": "fold of checker-added-word-confirm",
+   "practice": {"wrongCalls": 89, "missed": 51, "falseWarnings": 38, "listener": {"wrongCalls": 47, "missed": 30, "falseWarnings": 17}, "tracker": {"wrongCalls": 5, "missed": 3, "falseWarnings": 2}, "checker": {"wrongCalls": 37, "missed": 18, "falseWarnings": 19}},
+   "exam": {"wrongCalls": 777031, "missed": 777032, "falseWarnings": 777033, "listener": {"wrongCalls": 777034}, "tracker": {"wrongCalls": 777035}, "checker": {"wrongCalls": 777036}}}
+ ]
+}

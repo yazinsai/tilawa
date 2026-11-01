@@ -409,7 +409,38 @@ body.has-dock main { padding-bottom: 200px; }
 .rec-progress { height: 3px; background: var(--g-200); }
 .rec-progress i { display: block; height: 100%; width: 0; background: var(--green-500); transition: width 0.2s linear; }
 
+/* Autolab page */
+.al-beat { display: inline-flex; align-items: center; gap: var(--s2); }
+.al-beat.fail { color: var(--worse); font-weight: 600; }
+.tbl .sw { display: inline-block; margin-right: 6px; }
+.al-n { font-size: var(--t-base); font-weight: 400; }
+.al-state { font-size: var(--t-sm); font-weight: 600; color: var(--g-900); margin-bottom: var(--s1); }
+.al-late, .al-worse { color: var(--worse); }
+.al-better { color: var(--better); }
+.al-checks { list-style: none; margin: var(--s3) 0 0; padding: 0; display: grid; gap: var(--s2); max-width: 44em; }
+.al-checks li { display: flex; gap: var(--s2); align-items: flex-start; color: var(--g-700); }
+.al-checks li .icon { margin-top: 3px; stroke-width: 2.25; }
+.al-checks b { color: var(--g-900); font-weight: 600; }
+.al-checks i { font-style: normal; color: var(--g-600); }
+.al-checks .yes { color: var(--better); }
+.al-checks .no { color: var(--worse); }
+.al-checks .na { color: var(--g-400); }
+.al-trend { margin-top: var(--s5); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s5); }
+.al-tr { border-top: 1px solid var(--g-200); padding-top: var(--s3); }
+.al-tr-h { display: flex; align-items: center; gap: var(--s2); font-weight: 600; }
+.al-tr-n { margin-top: var(--s2); display: flex; align-items: baseline; gap: var(--s3); flex-wrap: wrap; font-size: var(--t-sm); }
+.al-tr-n b { font-size: var(--t-4xl); font-weight: 600; line-height: 1; letter-spacing: -0.02em; }
+.al-spark { display: block; width: 100%; height: 48px; margin-top: var(--s3); overflow: visible; }
+.al-spend { margin-top: var(--s4); border-top: 1px solid var(--g-200); max-width: 720px; }
+.al-sp { display: grid; grid-template-columns: 140px minmax(0, 1fr) 160px; gap: var(--s4); align-items: center; padding: var(--s3) 0; border-bottom: 1px solid var(--g-200); font-size: var(--t-sm); }
+.al-sp .track { width: auto; }
+.al-sp > span:last-child { text-align: right; color: var(--g-600); }
+.al-sp b { color: var(--g-900); font-weight: 600; }
+.al-sp.over .track i { background: var(--worse); }
+.al-sp.over b { color: var(--worse); }
+
 @media (max-width: 860px) {
+  .al-trend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .top-in, main { padding-left: var(--s4); padding-right: var(--s4); }
   .top-in { gap: var(--s4); }
   .mini span { display: none; }
