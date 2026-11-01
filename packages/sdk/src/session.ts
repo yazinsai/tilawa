@@ -10,7 +10,9 @@ import type {
   ReferenceIndex,
   WordRef,
 } from "@tilawa/core";
+import { Resampler } from "./audio.js";
 import { capabilities } from "./capabilities.js";
+import { spliceContextFreeGaps } from "./gap-decode.js";
 import { createListener } from "./listener.js";
 import type { ListenerOptions } from "./listener.js";
 import type { LoadedModel } from "./model.js";
@@ -98,6 +100,27 @@ export function createEngine(options: EngineOptions): Engine {
       ...(passage && { passage }),
     });
     const listener = createListener(model, { posteriors: true, ...options.listener });
+    const wordIndex = new Map(index.words.map((w, i) => [`${w.surah}:${w.ayah}:${w.word}`, i]));
+    const locks: { wi: number; timeMs: number }[] = [];
+    const noteLocks = (events: EngineEvent[]) => {
+      for (const ev of events) {
+        if (ev.type !== "position" || ev.state !== "locked" || !ev.expected) continue;
+        const wi = wordIndex.get(`${ev.expected.surah}:${ev.expected.ayah}:${ev.expected.word}`);
+        if (wi !== undefined && locks.at(-1)?.wi !== wi) locks.push({ wi, timeMs: ev.timeMs });
+      }
+    };
+    const rate = model.manifest.sampleRate;
+    const pcmParts: Float32Array[] = [];
+    let pcmResampler: Resampler | null = null;
+    const keepAudio = (samples: Float32Array, sampleRate: number) => {
+      if (!options.recordEvidence) return;
+      let pcm = samples;
+      if (sampleRate !== rate) {
+        if (!pcmResampler || pcmResampler.from !== sampleRate) pcmResampler = new Resampler(sampleRate, rate);
+        pcm = pcmResampler.push(samples);
+      }
+      if (pcm.length) pcmParts.push(Float32Array.from(pcm));
+    };
     const subscribers = new Set<(e: EngineEvent) => void>();
     let queue = Promise.resolve();
     const emit = (events: EngineEvent[]) => {
@@ -111,10 +134,12 @@ export function createEngine(options: EngineOptions): Engine {
       if (options.recordEvidence) recorded.push(e);
       // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
       const out = tracker.push({ ...e, posteriors: undefined });
+      noteLocks(out);
       return emit([...out, ...checker.push(e, out)]);
     };
     const finish = () => {
       const out = tracker.end();
+      noteLocks(out);
       return emit([...out, ...checker.end(out)]);
     };
     /** Audio calls run one at a time even when the caller doesn't await them (an AudioWorklet callback won't). */
@@ -132,17 +157,34 @@ export function createEngine(options: EngineOptions): Engine {
         fn(caps);
         return () => subscribers.delete(fn);
       },
-      pushAudio: (samples, rate) =>
+      pushAudio: (samples, sampleRate) =>
         serial(async () => {
-          const e = await listener.push(samples, rate);
+          keepAudio(samples, sampleRate);
+          const e = await listener.push(samples, sampleRate);
           if (e) cells.add(e);
           return feed(cells.ready(listener.decoded));
         }),
       end: () =>
         serial(async () => {
+          if (pcmResampler) {
+            const tail = pcmResampler.flush();
+            if (tail.length) pcmParts.push(Float32Array.from(tail));
+          }
           const e = await listener.end();
           if (e) cells.add(e);
-          return [...feed(cells.rest()), ...finish()];
+          const events = [...feed(cells.rest()), ...finish()];
+          if (options.recordEvidence && pcmParts.length && locks.length > 1) {
+            const n = pcmParts.reduce((s, p) => s + p.length, 0);
+            const audio = new Float32Array(n);
+            let o = 0;
+            for (const part of pcmParts) {
+              audio.set(part, o);
+              o += part.length;
+            }
+            const spliced = await spliceContextFreeGaps(model, audio, rate, recorded, locks, index);
+            recorded.splice(0, recorded.length, ...spliced);
+          }
+          return events;
         }),
       pushEvidence: (e) => {
         cells.add(e);
