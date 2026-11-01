@@ -268,6 +268,13 @@ def test_hygiene_failure_bounces_once_then_discards(w):
     assert states(st)[id] == "discarded"
 
 
+def test_a_diff_without_engine_code_goes_back_to_the_builder(w):
+    w.diff_text = ("diff --git a/.scratch/lab/experiments/x.md b/.scratch/lab/experiments/x.md\n@@ -0,0 +1 @@\n+notes\n"
+                   "diff --git a/packages/core/test/x.test.ts b/packages/core/test/x.test.ts\n@@ -0,0 +1 @@\n+test\n")
+    st, id = advance(w, 1)
+    assert st["experiments"][id]["state"] == "implementing" and "no engine code" in st["experiments"][id]["note"]
+
+
 def test_failed_tests_bounce_with_the_log(w):
     w.job_results["tests"] = {"error": "vitest: 2 failed"}
     st, id = advance(w, 2)

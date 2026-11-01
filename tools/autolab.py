@@ -59,6 +59,7 @@ RUN = REPO / ".scratch/autolab/run"
 BRANCH, WORKTREE = "autolab", REPO.parent / "tilawa-autolab"
 VOL_STATE, VOL_EVENTS, VOL_LEDGER, VOL_JOURNAL = "/autolab/state.json", "/autolab/events.jsonl", "/autolab/ledger.json", "/autolab/journal.md"
 VOL_INBOX, VOL_ELI5 = "/autolab/inbox", "/autolab/eli5.json"
+NOT_ENGINE = re.compile(r"(^\.scratch/|^docs/|(^|/)lab-experiment\.json$|\.md$|(^|/)test/|\.test\.ts$|^tools/test_)")
 OWN_DATA = re.compile(r"(\.exp-[^/]+\.(phone|studio)\.evidence\.json|/decode-v1\.json)$")
 PRACTICE_SCORES = 3
 GROK = {"id": "grok-4.7", "params": [{"id": "context", "value": "500k"}, {"id": "reasoning_effort", "value": "high"}, {"id": "fast", "value": "false"}]}
@@ -711,6 +712,8 @@ class Tick:
         if (card["id"], card["component"], card["hypothesis"], card["expected"]) != (c["id"], c["component"], c["hypothesis"], c["expected"]):
             return self.discard(e, "the card was edited after it was accepted")
         diff = w.diff(e)
+        if not any(not NOT_ENGINE.search(f) for f in G.diff_files(diff)):
+            return self.bounce(e, "the diff changes no engine code (only write-ups, tests or docs); implement the change, or explain in the write-up why it can't be done")
         h = G.hygiene_check(diff)
         if not h["ok"]:
             return self.bounce(e, "hygiene: " + h["why"])
