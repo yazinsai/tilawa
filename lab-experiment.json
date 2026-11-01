@@ -6,7 +6,7 @@
   "component": -4,
   "overall": -4
  },
- "listener": "spliced-clean-int8",
+ "listener": "exp-listener-ctc-omission-placement-53686ed",
  "testSet": "lab-v1.5",
  "created": "2026-11-01T04:31:47+00:00",
  "author": "autolab"
