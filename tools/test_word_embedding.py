@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "modal"))
 import numpy as np
 import torch
 from student_word_embedding import BINS, Lexicon, WordEncoder, collapse_with_offsets, contrastive_loss, temporal_pool, word_spans
-from student_word_embedding_replay import compare, trim_gap
+from student_word_embedding_replay import compare, folded_gap_changed, trim_gap
 
 
 class WordEmbeddingTests(unittest.TestCase):
@@ -68,6 +68,18 @@ class WordEmbeddingTests(unittest.TestCase):
 
     def test_silence_has_no_word_embedding_crop(self):
         self.assertEqual(len(trim_gap(np.zeros(16000, np.float32))), 0)
+
+    def test_only_changes_inside_the_folded_gap_establish_provenance(self):
+        import copy
+        base = dict(inventory="test", frameMs=40, nFrames=3, phonemes=[],
+                    posteriors=dict(k=2, ids=[0, 1, 0, 1, 0, 1], probs=[.8, .2, .8, .2, .8, .2]))
+        folded = copy.deepcopy(base)
+        gap = dict(fromFrame=1, toFrame=2)
+        self.assertFalse(folded_gap_changed(base, folded, gap))
+        folded["posteriors"]["probs"][0] = .7
+        self.assertFalse(folded_gap_changed(base, folded, gap))
+        folded["posteriors"]["probs"][2] = .7
+        self.assertTrue(folded_gap_changed(base, folded, gap))
 
 
 if __name__ == "__main__":

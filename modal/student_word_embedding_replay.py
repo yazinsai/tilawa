@@ -14,6 +14,25 @@ import torch
 from student_word_embedding import FrozenMiddle, WordEncoder, acoustic_features
 
 
+def folded_gap_changed(base, folded, gap):
+    """Existing evidence predates provenance tags; compare the two gap paths.
+
+    The only changed evidence in the folded listener is its isolated gap pass.
+    Changes elsewhere in a recording cannot make this gap eligible.
+    """
+    if any(base[k] != folded[k] for k in ("inventory", "frameMs", "nFrames")):
+        raise ValueError("Gap provenance requires matching listener frame clocks")
+    a, b = gap["fromFrame"], gap["toFrame"]
+    left, right = base["posteriors"], folded["posteriors"]
+    if left["k"] != right["k"]:
+        raise ValueError("Gap provenance requires matching posterior widths")
+    k = left["k"]
+    if any(left[key][a*k:b*k] != right[key][a*k:b*k] for key in ("ids", "probs")):
+        return True
+    phones = lambda evidence: [p for p in evidence["phonemes"] if a <= (p["start"] + p["end"]) / 2 < b]
+    return phones(base) != phones(folded)
+
+
 def trim_gap(wave):
     """Remove edge silence, keeping the same 80 ms margin as real-word crops.
 
@@ -56,6 +75,8 @@ def main():
     parser.add_argument("--embedding", required=True)
     parser.add_argument("--queries", required=True)
     parser.add_argument("--audio", required=True)
+    parser.add_argument("--listener", required=True)
+    parser.add_argument("--base-listener", required=True)
     parser.add_argument("--checkpoint", default="/student/prior-runs/spliced-clean/ckpt.pt")
     parser.add_argument("--out", required=True)
     args = parser.parse_args()
@@ -74,6 +95,9 @@ def main():
         if item["queries"]:
             wave, sr = sf.read(audio_path, dtype="float32")
             assert sr == 16000 and wave.ndim == 1
+            evidence_path = lambda listener: Path(args.audio) / f'{item["session"]}.{listener}.{item["variant"]}.evidence.json'
+            base = json.loads(evidence_path(args.base_listener).read_text())
+            folded = json.loads(evidence_path(args.listener).read_text())
         for query in item["queries"]:
             # The anchored gap includes sounds omitted by greedy, including the
             # low-confidence ending of a word whose onset alone was decoded.
@@ -81,6 +105,9 @@ def main():
                 rows.append(dict(**query, accept=False, reason="no anchored gap"))
                 continue
             gap = min(query["gaps"], key=lambda g: g["toFrame"] - g["fromFrame"])
+            if not folded_gap_changed(base, folded, gap):
+                rows.append(dict(**query, accept=False, reason="not changed by folded gap path"))
+                continue
             frame_s = query["frameMs"] / 1000
             crop = trim_gap(wave[int(gap["fromFrame"] * frame_s * sr):int(gap["toFrame"] * frame_s * sr)])
             if not 3840 <= len(crop) <= 4 * sr:
