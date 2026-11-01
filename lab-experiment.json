@@ -1,0 +1,13 @@
+{
+ "id": "checker-boundary-phrase-absorption",
+ "component": "checker",
+ "hypothesis": "Added words at an ayah start are swallowed by the near-free non-Quran-phrase insertion introduced by the folded ayah-start-omissions fix. Require that path to actually fit a known phrase (isti'adha, basmala, آمين, صدق الله) and otherwise charge the residue as an added word; predict checker -5 and overall -4.",
+ "expected": {
+  "component": -5,
+  "overall": -4
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-01T04:02:36+00:00",
+ "author": "autolab"
+}
