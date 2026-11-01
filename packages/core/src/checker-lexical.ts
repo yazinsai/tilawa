@@ -128,6 +128,13 @@ function build(index: ReferenceIndex) {
   });
   const attested = new Set<string>();
   for (const list of forms) for (const f of list) if (f) attested.add(f);
+  const rawByForm = new Map<string, string[]>();
+  for (const list of index.wordForms ?? []) for (const raw of list) if (raw) {
+    const key = form(raw);
+    const have = rawByForm.get(key);
+    if (have) { if (!have.includes(raw)) have.push(raw); }
+    else rawByForm.set(key, [raw]);
+  }
   // Forms that share a stem and differ by a short tail. Queried from the written word's own tail, never from a verse.
   const byStem = new Map<string, string[]>();
   for (const f of attested) for (let n = 0; n <= END && n < f.length; n++) {
@@ -179,9 +186,38 @@ function build(index: ReferenceIndex) {
     const difference = residual(written.f, heard);
     return difference ? { observedConsonant: consonantsOf(difference.sb).length > 0 } : null;
   };
+  /**
+   * Attested pronunciations reached by dropping a consonant-bearing ending from this word. A pause or a held vowel
+   * drops no consonant, so waqf and اذهبا→اذهب are not here. The raw strings keep madd and ghunna runs; the checker
+   * aligns them with the next word so one heard consonant cannot pay for both.
+   */
+  const droppedSuffixes = (wi: number): string[] => {
+    const written = form(word(wi));
+    const own = forms[wi];
+    if (!written || !own.length) return [];
+    const stems = new Set<string>();
+    for (let n = 0; n <= END && n < written.length; n++) {
+      const stem = written.slice(0, written.length - n);
+      if (stem.length > n) stems.add(stem);
+    }
+    const out: string[] = [];
+    const seen = new Set<string>();
+    for (const stem of stems) for (const alt of byStem.get(stem) ?? []) {
+      if (own.includes(alt) || alt.length >= written.length) continue;
+      const r = residual(written, alt);
+      if (!r || !consonantsOf(r.sa).length || consonantsOf(r.sb).length) continue;
+      for (const raw of rawByForm.get(alt) ?? []) {
+        if (seen.has(raw)) continue;
+        seen.add(raw);
+        out.push(raw);
+      }
+    }
+    return out;
+  };
   return {
     matches,
     ending,
+    droppedSuffixes,
     alternative(wi: number, heard: string, context?: { before?: string; after?: string }): boolean {
       const normalized = form(heard);
       const key = context && contextKey(context.before === undefined ? undefined : boundary(context.before, true),
