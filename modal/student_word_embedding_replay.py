@@ -61,6 +61,8 @@ def main():
     args = parser.parse_args()
     torch.set_num_threads(4)
     artifact = torch.load(args.embedding, map_location="cpu", weights_only=False)
+    if artifact["report"].get("prefix_method") != "independently encoded real prefixes":
+        raise ValueError("Rebuild the reference prefix bank before evaluating additions")
     frozen = FrozenMiddle(args.checkpoint).cuda()
     model = WordEncoder(artifact["channels"]).cuda().eval()
     model.load_state_dict(artifact["model"])
@@ -88,7 +90,7 @@ def main():
             with torch.no_grad(), torch.autocast("cuda", dtype=torch.bfloat16):
                 pooled = frozen(feats[None].cuda(), torch.tensor([len(feats)], device="cuda"))
             with torch.no_grad():
-                z = model(pooled, torch.tensor([len(crop) / sr], device="cuda"))[0]
+                z = model(pooled.half().float(), torch.tensor([len(crop) / sr], device="cuda"))[0]
             rows.append(dict(**query, duration=len(crop) / sr, **compare(z, artifact, query["neighbours"])))
         result = dict(**item, results=rows)
         results.append(result)

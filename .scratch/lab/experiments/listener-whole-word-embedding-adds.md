@@ -31,9 +31,10 @@ Training-word prototypes form the whole-word bank. The acceptance radius is
 the 99th percentile of held-out real words' cosine distances to their matching
 prototype, using the higher empirical quantile. It is fixed before practice
 queries are evaluated. Neighbour alternatives include all seven words within
-±3 of the checker anchor and their proper prefixes. Prefix exemplars pool the
-corresponding leading features of real training words; they do not enter the
-training loss. Missing neighbour coverage causes abstention.
+±3 of the checker anchor and their proper prefixes. Each prefix of a real
+training segment is encoded independently so the frozen encoder cannot look
+ahead into its unseen suffix. Prefixes do not enter the training loss. Missing
+neighbour coverage causes abstention.
 
 Only an already-suspected added word with sufficient decoder confidence and
 failed CTC support can request this evidence. The proposed listener crop covers
@@ -59,6 +60,9 @@ of 0.855012. This model was not evaluated on practice. Before practice
 evaluation, construction fixes admitted short words needed as neighbour
 alternatives, included one-phone prefixes and made temporal pooling exportable.
 A fresh run with these fixes retains the same data limits and training steps.
+The reference prefix bank also uses independent encodes of real prefixes,
+instead of truncating features that already saw the word's suffix. This bank
+can be rebuilt without changing the learned head or calibration radius.
 
 The first all-session diagnostic job (Modal 5) timed out. It is not evidence of
 complete clean-session coverage or a kill-criterion result. The replacement
@@ -71,9 +75,8 @@ here when the jobs finish.
 
 ## Limits
 
-Prefix exemplars use leading frozen features from a complete real word rather
-than a separate encoding of every possible restart. The finite real-word bank
-cannot provide exemplars of every Quran pronunciation; uncovered neighbours
-must abstain. True-position checker replay tests the proposed evidence decision,
-not the full free-recitation release gate. No overall score can be inferred
-from a query count.
+The finite real-word bank cannot provide exemplars of every Quran pronunciation;
+uncovered neighbours must abstain. Prefixes use up to four real exemplars per
+word and cannot exhaust every possible restart. True-position checker replay
+tests the proposed evidence decision, not the full free-recitation release
+gate. No overall score can be inferred from a query count.

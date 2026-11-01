@@ -284,6 +284,71 @@ def contrastive_loss(z, labels, source):
     return -((logp * positive).sum(1) / positive.sum(1).clamp_min(1))[valid].mean()
 
 
+def real_prefix_bank(args, records, keys, model):
+    """Encode each real prefix independently, without the word's unseen suffix.
+
+    Truncating already-encoded features would retain the frozen encoder's
+    lookahead into that suffix, giving a restart explanation unavailable in
+    the actual gap. Prefixes are reference alternatives, never training items.
+    """
+    import pyarrow.parquet as pq
+    import soundfile as sf
+
+    by, counts = {}, {}
+    key_ids = {k: i for i, k in enumerate(keys)}
+    for r in records:
+        if r["split"] != "train" or counts.get(r["key"], 0) >= 4 or not r["prefixes"]:
+            continue
+        counts[r["key"]] = counts.get(r["key"], 0) + 1
+        shard, row = r["source"].rsplit(":", 1)
+        by.setdefault(shard, {}).setdefault(int(row), []).append(r)
+    frozen = FrozenMiddle(args.checkpoint).cuda()
+    embeddings, labels, batch, durations, batch_keys = [], [], [], [], []
+
+    def flush():
+        if not batch:
+            return
+        x = nn.utils.rnn.pad_sequence(batch, batch_first=True, padding_value=-23.0259).cuda()
+        lens = torch.tensor([len(f) for f in batch], device="cuda")
+        with torch.no_grad(), torch.autocast("cuda", dtype=torch.bfloat16):
+            pooled = frozen(x, lens).half().float()
+        with torch.no_grad():
+            embeddings.append(model(pooled, torch.tensor(durations, device="cuda")).cpu())
+        labels.extend(batch_keys)
+        batch.clear()
+        durations.clear()
+        batch_keys.clear()
+
+    for fi, (shard, rows) in enumerate(sorted(by.items())):
+        # Read each original shard once; no persistent word-audio cache is needed
+        # to reproduce the prefix alternatives from the segment provenance.
+        table = pq.read_table(Path(args.data) / f"{shard}.parquet", columns=["row", "flac"])
+        for item in table.to_pylist():
+            wanted = rows.get(item["row"])
+            if not wanted:
+                continue
+            wave, sr = sf.read(io.BytesIO(item["flac"]), dtype="float32")
+            assert sr == 16000 and wave.ndim == 1
+            for r in wanted:
+                word = wave[r["start"]:r["end"]]
+                for fraction in r["prefixes"]:
+                    prefix = word[:max(1, round(len(word) * fraction))]
+                    duration = len(prefix) / sr
+                    # Very short prefixes need silence for the frozen convolution
+                    # front end. Their duration feature remains the real duration.
+                    if len(prefix) < 2560:
+                        prefix = np.pad(prefix, (0, 2560 - len(prefix)))
+                    batch.append(acoustic_features(prefix, frozen.cfg))
+                    durations.append(duration)
+                    batch_keys.append(key_ids[r["key"]])
+                    if len(batch) >= 96:
+                        flush()
+        if fi % 10 == 0:
+            print(json.dumps(dict(stage="prefixes", shards=fi + 1, embeddings=len(labels))), flush=True)
+    flush()
+    return torch.cat(embeddings), labels
+
+
 def extract(args):
     root = Path(args.out)
     records = json.loads((root / "segments.json").read_text())
@@ -361,22 +426,7 @@ def train(args):
     if not distances:
         raise RuntimeError("No held-out same-word calibration segments")
     radius = float(np.quantile(distances, .99, method="higher"))
-    # Prefix alternatives come from real training words only. They are never
-    # positives or negatives in the contrastive objective.
-    prefix_bank, prefix_keys = [], []
-    with torch.no_grad():
-        for k in range(len(keys)):
-            candidates = []
-            durations_p = []
-            for i in by[k][:4]:
-                for fraction in records[i]["prefixes"]:
-                    n = max(1, min(BINS - 1, int(round(BINS * fraction))))
-                    candidates.append(F.interpolate(features[i * 3:i * 3+1, :, :n].float(), size=BINS, mode="linear", align_corners=False)[0])
-                    durations_p.append(float(durations[i]) * fraction)
-            if candidates:
-                e = model(torch.stack(candidates).cuda(), torch.tensor(durations_p, device="cuda")).cpu()
-                prefix_bank.append(e)
-                prefix_keys.extend([k] * len(e))
+    prefix_bank, prefix_keys = real_prefix_bank(args, records, keys, model)
     report = dict(train_segments=sum(r["split"] == "train" for r in records), val_segments=sum(r["split"] == "val" for r in records),
                   train_recordings=len(train_sources), val_recordings=len(val_sources),
                   shared_clusters=len({r["cluster"] for r in records if r["split"] == "train"}
@@ -384,16 +434,33 @@ def train(args):
                   segments_sha256=hashlib.sha256((root / "segments.json").read_bytes()).hexdigest(),
                   lexicon=len(keys), contrastive_words=len(eligible), calibration_examples=len(distances), radius=radius,
                   heldout_top1=float(np.mean(correct)), steps=args.steps, bins=BINS, loss=losses[-1],
+                  prefix_method="independently encoded real prefixes", prefixes=len(prefix_keys),
                   checkpoint_sha256=cached["checkpoint_sha256"], augmentation=cached["cfg"])
     torch.save(dict(model=model.cpu().state_dict(), channels=features.shape[1], keys=keys, bank=bank,
-                    prefix_bank=torch.cat(prefix_bank), prefix_keys=prefix_keys, report=report), root / "embedding.pt")
+                    prefix_bank=prefix_bank, prefix_keys=prefix_keys, report=report), root / "embedding.pt")
     (root / "report.json").write_text(json.dumps(report, indent=2))
     print(json.dumps(report), flush=True)
 
 
+def prefixes(args):
+    """Rebuild an older artifact's prefix bank without changing its head or cut."""
+    root = Path(args.out)
+    artifact = torch.load(root / "embedding.pt", map_location="cpu", weights_only=False)
+    if artifact["report"].get("prefix_method") == "independently encoded real prefixes":
+        print("Real prefix bank already present", flush=True)
+        return
+    records = json.loads((root / "segments.json").read_text())
+    model = WordEncoder(artifact["channels"]).cuda().eval()
+    model.load_state_dict(artifact["model"])
+    artifact["prefix_bank"], artifact["prefix_keys"] = real_prefix_bank(args, records, artifact["keys"], model)
+    artifact["report"].update(prefix_method="independently encoded real prefixes", prefixes=len(artifact["prefix_keys"]))
+    torch.save(artifact, root / "embedding.pt")
+    (root / "report.json").write_text(json.dumps(artifact["report"], indent=2))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("stage", choices=["prepare", "extract", "train", "all"])
+    parser.add_argument("stage", choices=["prepare", "extract", "train", "prefixes", "all"])
     parser.add_argument("--out", required=True)
     parser.add_argument("--data", default="/student/s1")
     parser.add_argument("--checkpoint", default="/student/prior-runs/spliced-clean/ckpt.pt")
@@ -404,6 +471,9 @@ def main():
     parser.add_argument("--steps", type=int, default=5000)
     args = parser.parse_args()
     torch.set_num_threads(4)
+    if args.stage == "prefixes":
+        prefixes(args)
+        return
     for name, run in [("prepare", prepare), ("extract", extract), ("train", train)]:
         if args.stage in (name, "all"):
             run(args)
