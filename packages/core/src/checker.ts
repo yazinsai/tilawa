@@ -6,6 +6,7 @@ import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
+import { minGapFrames } from "./gap-decode.js";
 import { PHRASE_PEAK, PHRASE_SWITCH, parallelPaths } from "./parallel-phrases.js";
 
 export interface CheckerPolicy {
@@ -881,20 +882,49 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (!(gap.last < head || was === "omitted_word" || was === "skipped_passage")) return void (gap = null);
       // A word either side of a skip can recur on the other side (برب الناس [ملك الناس] إله الناس), so the alignment
       // can place the gap a word off. Of the equal placements, take the one on an ayah's start: reciters skip ayahs.
+      // A look-alike ending (one leading consonant, the article heard erased) is the same slide, but only when that
+      // jump sits on a blank run the pause test already labels, or on a cut-off visit. Nothing anchored: the lexical
+      // placement stands, so a skip is never created or removed.
       const onStart = (i: Issue) => ayahFirst[ayahOf[i.word]] === i.word;
-      if (!onStart(gap)) {
-        const placements: Issue[] = [];
-        let r: Issue = gap;
-        for (let v = after; v && nextWord(r.last) === v.word && skeleton(r.word) === skeleton(v.word); v = last.get(nextWord(v.word))) {
+      const alike = (a: number, b: number) => {
+        const x = skeleton(a), y = skeleton(b);
+        if (!x || !y || x === y) return false;
+        const [longer, shorter] = x.length >= y.length ? [x, y] : [y, x];
+        return longer.length === shorter.length + 1 && longer.endsWith(shorter);
+      };
+      const slide = (match: (a: number, b: number) => boolean): Issue[] => {
+        const out: Issue[] = [];
+        let r: Issue = gap!;
+        for (let v = after; v && nextWord(r.last) === v.word && match(r.word, v.word); v = last.get(nextWord(v.word))) {
           r = { ...r, word: nextWord(r.word), last: v.word, obsFrom: v.obsTo, obsTo: v.obsTo };
-          placements.push(r);
+          out.push(r);
         }
-        let l: Issue = gap;
-        for (let v = last.get(prevWord(l.word)); v && skeleton(v.word) === skeleton(l.last); v = last.get(prevWord(v.word))) {
+        let l: Issue = gap!;
+        for (let v = last.get(prevWord(l.word)); v && match(v.word, l.last); v = last.get(prevWord(v.word))) {
           l = { ...l, word: v.word, last: prevWord(l.last), obsFrom: v.obsFrom, obsTo: v.obsFrom };
-          placements.push(l);
+          out.push(l);
         }
-        gap = placements.find(onStart) ?? gap;
+        return out;
+      };
+      // Frames between two phonemes that the blank already owns. Missing posteriors leave the greedy blank run.
+      const blankOwned = (from: number, to: number) => {
+        if (!frames || frames.startFrame < 0 || from < frames.startFrame || to > frames.endFrame) return true;
+        const owns = Math.log(0.5);
+        for (let f = from; f < to; f++) if (frames.row(f)[0] < owns) return false;
+        return true;
+      };
+      const anchored = (i: Issue) => {
+        const at = i.obsFrom;
+        if (at > 0 && at < obs.length && frameMs > 0) {
+          const a = obs[at - 1].end + 1, b = obs[at].start;
+          if (b - a >= minGapFrames(frameMs) && blankOwned(a, b)) return true;
+        }
+        return visits.some((v) => v.consumed > 0 && v.obsFrom >= 0 && v.covered / length(v.word) < MIN_COVERAGE && v.obsFrom <= at && at <= v.obsTo);
+      };
+      if (!onStart(gap)) {
+        const today = slide((a, b) => skeleton(a) === skeleton(b)).find(onStart) ?? gap;
+        const pauseSeam = onStart(today) ? undefined : slide(alike).find((i) => onStart(i) && anchored(i));
+        gap = pauseSeam ?? today;
       }
       const n = words.slice(gap.word, gap.last + 1).filter((x) => x.end > x.start).length;
       issues.set(gap.word, { ...gap, cls: n >= 3 ? "skipped_passage" : "omitted_word" });

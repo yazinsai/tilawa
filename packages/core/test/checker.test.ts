@@ -178,6 +178,37 @@ describe("skips", () => {
     expect(confirmed(replayChecked(index, f, { phrases }, { phrases }))).toEqual([]);
   });
 
+  it("places a look-alike skip on the ayah seam when the jump is a pause", () => {
+    // 26:102 ends المؤمنين; 26:103 ends مؤمنين. With the article erased the two endings tie, and the seam
+    // lands on 26:102:7. A pause after the heard word is the stop-and-resume, so the seam moves to 26:103:1.
+    const start = w(26, 102, 1);
+    const at26 = (r: WordRef) => find(r).start - find(start).start;
+    const ayah = find(w(26, 103, 1));
+    const ayahEnd = find(w(26, 103, 8));
+    const to = w(26, 105, 4);
+    const recite = (pause: boolean) => {
+      const edits: Edit[] = [
+        { kind: "del", at: at26(w(26, 102, 7)), count: 1 },
+        { kind: "del", at: ayah.start - find(start).start, count: ayahEnd.end - ayah.start },
+      ];
+      if (pause) edits.push({ kind: "gap", at: at26(w(26, 104, 1)), frames: 20 });
+      const f = syntheticFixture(index, { id: "c", from: start, to, edits, chunkSize: 8 });
+      return confirmed(replayChecked(index, f, {}, { passage: { from: start, to } }));
+    };
+    expect(summary(recite(false))).toEqual(["confirmed skipped_passage 26:102:7"]);
+    expect(summary(recite(true))).toEqual(["confirmed skipped_passage 26:103:1"]);
+  });
+
+  it("does not warn when the same pause is just the end of an ayah", () => {
+    const start = w(26, 102, 1);
+    const to = w(26, 105, 4);
+    const f = syntheticFixture(index, {
+      id: "c", from: start, to, chunkSize: 8,
+      edits: [{ kind: "gap", at: find(w(26, 104, 1)).start - find(start).start, frames: 20 }],
+    });
+    expect(confirmed(replayChecked(index, f, {}, { passage: { from: start, to } }))).toEqual([]);
+  });
+
   it("confirm when they are not", () => {
     const edits: Edit[] = [{ kind: "del", at: at(w(2, 255, 30)), count: at(w(2, 255, 40)) - at(w(2, 255, 30)) }];
     expect(summary(run(edits, { to: w(2, 257, 5) }))).toEqual(["suspected skipped_passage 2:255:30", "confirmed skipped_passage 2:255:30"]);
