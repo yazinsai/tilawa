@@ -50,11 +50,11 @@ export function beat(started, h) {
   return `<span class="who al-beat ${kind}" title="The supervisor checks in every ${span(h.tickSeconds)}; it counts as stopped after 3 missed check-ins"><i class="dot ${kind}"></i>${text}</span>`;
 }
 
-export function topbar(v) {
+export function topbar(v, extra = '') {
   const tab = (href, text, on) => `<a href="${href}" ${on ? 'aria-current="page"' : ''}>${text}</a>`;
   $('head').innerHTML = `<a class="brand" href="/">${icon('mark')}Tilawa lab</a>
     <nav class="tabs">${tab('/', 'Score')}${tab('/#/release', 'Release')}${tab('/review', 'Listening check')}${tab('/record', 'Record')}${tab('/live/', 'Live mic')}${tab('/autolab', 'Autolab', true)}</nav>
-    ${v ? beat(v.started, v.heartbeat) : ''}`;
+    ${v ? beat(v.started, v.heartbeat) : ''}${extra ? `<span class="al-top-act">${extra}</span>` : ''}`;
 }
 
 export function staleNotice(h) {

@@ -444,10 +444,47 @@ def web():
         x = read_json(d / "eli5.json")
         return {k: v for k, v in x.items() if isinstance(v, str)} if isinstance(x, dict) else {}
 
+    def inbox(d: Path) -> list[dict]:
+        """Your commands the supervisor hasn't applied yet (it deletes each one as it applies it)."""
+        docs = []
+        for p in sorted((d / "inbox").glob("*.json")) if (d / "inbox").is_dir() else []:
+            try:
+                docs.append(json.loads(p.read_text()))
+            except (json.JSONDecodeError, OSError):
+                continue
+        return AD.pending(docs)
+
     @api.get("/api/autolab")
     def autolab(root: str | None = None):
         d, st, led, now = autolab_files(root)
-        return AD.view(st, tail_events(d / "events.jsonl"), now, led and led.get("mainLine"), explained(d))
+        return AD.view(st, tail_events(d / "events.jsonl"), now, led and led.get("mainLine"), explained(d), inbox(d))
+
+    # Commands from the page. The URL is public and an approval spends real money, so every command needs the shared
+    # access code in /lab/autolab/ui-token.json (even for a preview root). It is only ever compared, never sent back.
+    TOKEN = LAB / "autolab" / "ui-token.json"
+
+    @api.post("/api/autolab/command")
+    def autolab_command(request: Request, body: dict = Body(...), root: str | None = None):
+        import secrets  # noqa: PLC0415
+
+        if read_json(TOKEN) is None:
+            reload(force=True)
+        code = AD.token_status(read_json(TOKEN), request.headers.get("x-autolab-token"))
+        if code == 503:
+            raise HTTPException(503, "No access code is set up yet: put {\"token\": \"...\"} in autolab/ui-token.json on the volume")
+        if code == 401:
+            raise HTTPException(401, "That access code isn't right")
+        reload(force=True)
+        d, st, _, now = autolab_files(root)
+        try:
+            cmd = AD.command(st, body, now, inbox(d))
+        except AD.CommandError as e:
+            raise HTTPException(409, str(e))
+        p = d / "inbox" / AD.inbox_name(cmd, secrets.token_hex(4))
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps(cmd, ensure_ascii=False))
+        commit_now()
+        return {"queued": True, "file": str(p.relative_to(LAB)), "appliesWithin": (st or {}).get("tickSeconds") or 120, "command": AD.pending([cmd])[0]}
 
     import autolab_graph_core as AG
 
@@ -467,7 +504,7 @@ def web():
             report = None if isinstance(main.get("teacherWrongCalls"), int) else run_score(main.get("run"))
         except HTTPException:
             report = None
-        return AG.progress(st, tail_events(d / "events.jsonl"), lab, led, now, report, explained(d))
+        return AG.progress(st, tail_events(d / "events.jsonl"), lab, led, now, report, explained(d), inbox(d))
 
     import lab_models_core as M
 

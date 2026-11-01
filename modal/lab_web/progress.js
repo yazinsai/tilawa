@@ -1,5 +1,6 @@
 import { icon } from './item.js';
 import { $, esc, NAMES, qs, day, plural, fewer, sentence, sw, span, ago, api, topbar, staleNotice, plainLines, RESULT_KIND } from './al.js';
+import { waitingPanel, pauseControl, pausedNotice, forgetLink, dropButton, typing, wire } from './act.js';
 
 const root = new URL(location.href).searchParams.get('root');
 const POLL_MS = 10_000;
@@ -297,12 +298,12 @@ function ticker(v) {
   const rows = v.ticker;
   const fresh = new Set(seenTicks ? rows.filter((e) => !seenTicks.has(e.key)).map((e) => e.key) : []);
   seenTicks = new Set(rows.map((e) => e.key));
-  const kind = (e) => (e.to === 'folded' ? 'better' : ['discarded', 'abandoned', 'superseded'].includes(e.to) ? 'worse' : e.to === 'needs-human' ? 'wait' : '');
+  const kind = (e) => (e.to === 'folded' ? 'better' : ['discarded', 'abandoned', 'superseded', 'rejected'].includes(e.to) ? 'worse' : e.to === 'needs-human' || e.to === 'paused' ? 'wait' : '');
   const h = v.heartbeat;
   return `<div class="pg-tick-h"><h2>Live</h2><span class="muted small">${h ? `${h.stale ? 'Supervisor silent' : 'Supervisor checked in'} ${span(h.ageSeconds)} ago` : 'Supervisor not started'} · refreshes every 10 s</span></div>
     ${rows.length ? `<ol>${rows
       .map((e) => `<li class="${fresh.has(e.key) ? 'new ' : ''}${kind(e)}" title="${esc(e.note)}"><time>${clock(e.at)}</time>
-          <span>${e.id ? `${sw(e.component)}<b>${esc(e.id)}</b> ${esc(e.toText)}` : esc(sentence(e.note || e.toText))}</span></li>`)
+          <span>${e.to === 'rejected' ? `${e.id ? `${sw(e.component)}<b>${esc(e.id)}</b> ` : ''}Your command was turned down: ${esc((e.note || '').replace(/^your \w+: /, ''))}` : e.id ? `${sw(e.component)}<b>${esc(e.id)}</b> ${esc(e.toText)}` : esc(sentence(e.note || e.toText))}</span></li>`)
       .join('')}</ol>` : '<p class="muted small">Nothing has happened yet.</p>'}`;
 }
 
@@ -349,7 +350,7 @@ function row(b) {
   const who = [NAMES[b.component] || b.component, b.tierText].filter(Boolean).join(' · ');
   return `<li class="pg-row ${b.outcome} ${b.source}" data-k="${esc(b.id)}" tabindex="0">
     <div class="pg-row-h">${rowMark(b)}<b>${esc(b.id)}</b>${chip(b)}<span class="muted small">${esc(who)}${who ? ' · ' : ''}${when}</span></div>
-    <div class="pg-row-b">${plainLines(b)}</div></li>`;
+    <div class="pg-row-b">${plainLines(b)}${b.source === 'autolab' && b.outcome === 'live' && b.state !== 'needs-human' ? `<p class="pg-row-a">${dropButton(b.id)}</p>` : ''}</div></li>`;
 }
 
 function list(view) {
@@ -393,11 +394,13 @@ function tween(el, from, to) {
 function render(v) {
   const view = v.views[scope] || v.views.testSet;
   const before = last?.score?.current?.wrongCalls;
-  topbar(v);
+  topbar(v, pauseControl(v));
   if (!$('pg-top'))
-    $('main').innerHTML = `<div id="pg-notice"></div><div class="pg-top" id="pg-top"><div id="pg-hero"></div><aside class="pg-tick" id="pg-tick" aria-live="polite"></aside></div><div id="pg-sec"></div>
-      <p class="pg-back"><a href="/autolab${root ? `?${qs({ root })}` : ''}">${icon('right')}Running now, verdicts, portfolio and spend</a></p>`;
-  $('pg-notice').innerHTML = staleNotice(v.heartbeat) + (v.heartbeat?.paused ? `<div class="notice warn"><b>Paused:</b> ${esc(v.heartbeat.paused)}. Running work finishes; nothing new starts.</div>` : '');
+    $('main').innerHTML = `<div id="pg-notice"></div><div id="pg-wait"></div><div class="pg-top" id="pg-top"><div id="pg-hero"></div><aside class="pg-tick" id="pg-tick" aria-live="polite"></aside></div><div id="pg-sec"></div>
+      <p class="pg-back"><a href="/autolab${root ? `?${qs({ root })}` : ''}">${icon('right')}Running now, verdicts, portfolio and spend</a><span id="pg-forget"></span></p>`;
+  $('pg-notice').innerHTML = staleNotice(v.heartbeat) + pausedNotice(v, v.ticker);
+  if (!typing()) $('pg-wait').innerHTML = waitingPanel(v.waiting, v, v.ticker);
+  $('pg-forget').innerHTML = forgetLink();
   $('pg-hero').innerHTML = hero(v);
   $('pg-tick').innerHTML = ticker(v);
   if (!$('pg-fig') || seenScope !== scope || last?.testSet !== v.testSet) {
@@ -548,6 +551,7 @@ async function load() {
   }
 }
 
+wire({ root, refresh: load, rerender: () => last && render(last) });
 load();
 setInterval(() => document.hidden || load(), POLL_MS);
 document.addEventListener('visibilitychange', () => document.hidden || load());

@@ -12,6 +12,8 @@ Practice numbers only: fields are picked by name, none of them exam, and `scrub`
 might carry.
 """
 
+import hmac
+import re
 from datetime import datetime
 
 import autolab_state as S
@@ -34,6 +36,9 @@ STATE_TEXT = {
     "superseded": "Gain gone after catching up with the line",
     "needs-human": "Waiting for you",
     "abandoned": "Given up",
+    "rejected": "Your command was turned down",
+    "paused": "Autolab paused",
+    "resumed": "Autolab resumed",
 }
 COVERAGE_TEXT = {"untouched": "Not tried yet", "tried": "Tried, not fixed yet", "fixed": "Fixed"}
 CHECKS = {
@@ -303,28 +308,177 @@ def activity(events: list[dict]) -> list[dict]:
     return out
 
 
+# Waiting for you: what each item needs, in plain words, and the commands it takes
+
+APPROVAL = re.compile(r"^a bet asking for \$(\d+(?:\.\d+)?) of GPU")
+STUCK = (  # the supervisor's `what` prefix -> what broke, in plain words
+    ("orchestrator:", "The planning model failed while handling it"),
+    ("the listener decode failed:", "Re-running the listener on the practice audio failed"),
+    ("scoring failed:", "Scoring it on the practice set failed"),
+    ("fold failed:", "Folding it into the autolab line failed"),
+    ("fold ended in state", "Folding it didn't finish"),
+    ("the novelty judge didn't answer in time", "The model that checks it's a new idea didn't answer in time"),
+    ("proposed failed:", "Checking the proposal crashed"),
+    ("accepted failed:", "Starting it crashed"),
+    ("implementing failed:", "Watching the agent write it crashed"),
+    ("validating failed:", "Checking that it builds and plays fair crashed"),
+    ("folding failed:", "Folding it crashed"),
+)
+
+def why_waiting(what: str) -> dict:
+    """{"kind": "approval" | "stuck", "usd", "text"}: a bet over the approval budget, or anything else that stopped."""
+    what = (what or "").strip()
+    if m := APPROVAL.match(what):
+        usd = float(m.group(1))
+        usd = int(usd) if usd.is_integer() else usd
+        return {"kind": "approval", "usd": usd,
+                "text": f"A big bet that wants about ${usd} of GPU time, more than autolab may spend without asking you. Approve it to start, or drop it."}
+    for pre, plain in STUCK:
+        if what.lower().startswith(pre):
+            rest = what[len(pre):].strip(" :")
+            return {"kind": "stuck", "usd": None, "text": f"{plain}{f': {short(rest)}' if rest else '.'}"}
+    return {"kind": "stuck", "usd": None, "text": sentence_of(short(what)) or "It stopped and needs you to look."}
+
+
+def sentence_of(s: str) -> str:
+    return s[:1].upper() + s[1:] if s else s
+
+
+ACTIONS = {"approval": ["approve", "drop"], "stuck": ["retry", "retryNote", "drop"]}
+
+
+def waiting(state: dict | None, now: str, explained: dict | None = None, inbox: list[dict] | None = None) -> list[dict]:
+    """state.needsHuman plus any experiment in needs-human it doesn't list, oldest first, each with the commands it
+    takes and any command of yours still in the inbox for it."""
+    if not state:
+        return []
+    exps = state.get("experiments") or {}
+    asks = {h.get("id"): h for h in state.get("needsHuman") or [] if h.get("id")}
+    for e in exps.values():
+        if e.get("state") == "needs-human" and e.get("id") not in asks:
+            asks[e["id"]] = {"id": e["id"], "what": e.get("note", ""), "at": e.get("since")}
+    out = []
+    for id, h in asks.items():
+        e = exps.get(id)
+        c = card_of(e) if e else {}
+        w = why_waiting(h.get("what", ""))
+        acts = ACTIONS[w["kind"]] if e and e.get("state") == "needs-human" else ["drop"] if e and e.get("state") not in S.TERMINAL else []
+        out.append({"id": id, "what": h.get("what", ""), "at": h.get("at"), "ageSeconds": seconds(h.get("at"), now), "kind": w["kind"], "usd": w["usd"],
+                    "whyText": w["text"], "actions": acts, "state": e.get("state") if e else None,
+                    "component": c.get("component"), "tierText": TIERS.get(e.get("tier")) if e else None, "hypothesis": c.get("hypothesis", ""),
+                    "eli5": eli5(id, c, explained), "expectText": expect_text(c.get("expected"), c.get("component")),
+                    "sent": [x for x in inbox or [] if x.get("id") == id]})
+    return sorted(out, key=lambda x: x["at"] or "")
+
+
+# Your commands from the page: validated here, written to the supervisor's inbox by modal/lab_review.py, applied by
+# tools/autolab.py at the start of its next tick (it rejects anything that went stale meanwhile, as an event).
+
+OPS = ("approve", "retry", "drop", "pause", "resume", "match")
+NOTE_CHARS = 1000
+WHY_CHARS = 300
+VERDICTS_MATCH = ("folded", "discarded")
+
+
+class CommandError(ValueError):
+    pass
+
+
+def text_arg(body: dict, key: str, cap: int) -> str:
+    v = body.get(key, "")
+    if v is None:
+        v = ""
+    if not isinstance(v, str):
+        raise CommandError(f"{key} must be text")
+    v = " ".join(v.split())
+    if len(v) > cap:
+        raise CommandError(f"{key} is {len(v)} characters; keep it under {cap}")
+    return v
+
+
+def command(state: dict | None, body: dict, now: str, inbox: list[dict] | None = None) -> dict:
+    """The inbox document for a command from the page, or CommandError saying in plain words why not."""
+    if not isinstance(body, dict):
+        raise CommandError("send a JSON object")
+    op = body.get("op")
+    if op not in OPS:
+        raise CommandError(f"op is one of {', '.join(OPS)}")
+    if not state:
+        raise CommandError("autolab hasn't started")
+    pending = inbox or []
+    if op in ("pause", "resume"):
+        if op == "resume" and not state.get("paused"):
+            raise CommandError("autolab isn't paused")
+        why = text_arg(body, "why", WHY_CHARS) if op == "pause" else ""
+        if op == "pause" and not why:
+            raise CommandError("say why you're pausing")
+        if any(x.get("op") == "pause" for x in pending):
+            raise CommandError("a pause or resume is already on its way")
+        return {"op": "pause", "at": now, "why": why}
+    id = body.get("id")
+    e = (state.get("experiments") or {}).get(id) if isinstance(id, str) else None
+    if not e:
+        raise CommandError(f"no experiment {id!r}")
+    st = e.get("state")
+    if any(x.get("id") == id and x.get("op") in ("approve", "retry", "drop") for x in pending) and op != "match":
+        raise CommandError(f"a command for {id} is already on its way")
+    if op in ("approve", "retry") and st != "needs-human":
+        raise CommandError(f"{id} isn't waiting for you ({STATE_TEXT.get(st, st).lower()})")
+    if op == "approve":
+        return {"op": "approve", "at": now, "id": id}
+    if op == "retry":
+        return {"op": "retry", "at": now, "id": id, "note": text_arg(body, "note", NOTE_CHARS)}
+    if op == "drop":
+        if st in S.TERMINAL:
+            raise CommandError(f"{id} already ended ({STATE_TEXT.get(st, st).lower()})")
+        return {"op": "drop", "at": now, "id": id, "why": text_arg(body, "why", WHY_CHARS) or "dropped from the dashboard"}
+    if st not in VERDICTS_MATCH:
+        raise CommandError(f"{id} wasn't folded or discarded, so there's no decision to agree with")
+    if body.get("verdict") not in ("agree", "disagree"):
+        raise CommandError("verdict is agree or disagree")
+    return {"op": "match", "at": now, "id": id, "verdict": body["verdict"]}
+
+
+def inbox_name(cmd: dict, rand: str) -> str:
+    """Same shape as `tools/autolab.py`'s own commands, so the supervisor applies them in time order."""
+    return f"{cmd['at'].replace(':', '')}-{cmd['op']}-{rand}.json"
+
+
+def pending(docs: list[dict]) -> list[dict]:
+    """Inbox documents not applied yet, as the page shows them (no free text)."""
+    return [{"op": d.get("op"), "id": d.get("id"), "at": d.get("at"), "resume": d.get("op") == "pause" and not d.get("why")}
+            for d in docs if isinstance(d, dict) and d.get("op") in OPS]
+
+
+def token_status(stored, given: str | None) -> int:
+    """200 when `given` matches the access code in ui-token.json, 401 when it doesn't, 503 when there is no code."""
+    tok = stored.get("token") if isinstance(stored, dict) else None
+    if not isinstance(tok, str) or len(tok) < 8:
+        return 503
+    return 200 if isinstance(given, str) and hmac.compare_digest(given.encode(), tok.encode()) else 401
+
+
+def matches(state: dict | None) -> dict:
+    """Your latest agree/disagree per experiment."""
+    return {m.get("id"): m.get("user") for m in (state or {}).get("matches") or [] if m.get("id") and m.get("user") in ("agree", "disagree")}
+
+
 # The page
 
 
-def view(state: dict | None, events: list[dict], now: str, mainline: list[dict] | None = None, explained: dict | None = None) -> dict:
+def view(state: dict | None, events: list[dict], now: str, mainline: list[dict] | None = None, explained: dict | None = None,
+         inbox: list[dict] | None = None) -> dict:
     """Everything the Autolab tab shows. `state` None means the supervisor hasn't written state.json yet; `explained` is
     /lab/autolab/eli5.json (experiment id -> plain sentence) for cards written before they carried one."""
     if not state:
         return scrub({"started": False, "testSet": None, "heartbeat": {"at": None, "ageSeconds": None, "tickSeconds": None, "stale": False, "paused": None, "ticks": 0},
-                      "main": None, "needsHuman": [], "running": [], "queue": [], "verdicts": [], "trend": trend(mainline, None),
+                      "main": None, "needsHuman": [], "pending": [], "matches": {}, "running": [], "queue": [], "verdicts": [], "trend": trend(mainline, None),
                       "portfolio": None, "coverage": {"clusters": [], "counts": {}}, "spend": None, "activity": activity(events)})
     exps = state.get("experiments") or {}
     by_since = lambda xs, rev=False: sorted(xs, key=lambda e: e.get("since") or "", reverse=rev)
-    need = []
-    for h in state.get("needsHuman") or []:
-        e = exps.get(h.get("id"))
-        c = card_of(e) if e else {}
-        need.append({"id": h.get("id"), "what": h.get("what", ""), "at": h.get("at"), "ageSeconds": seconds(h.get("at"), now),
-                     "component": c.get("component"), "hypothesis": c.get("hypothesis", ""), "tierText": TIERS.get(e.get("tier")) if e else None,
-                     "eli5": eli5(h.get("id") or "", c, explained), "expectText": expect_text(c.get("expected"), c.get("component"))})
     return scrub({
         "started": True, "testSet": state.get("testSet"), "heartbeat": heartbeat(state, now), "main": main_view(state.get("main")),
-        "needsHuman": need,
+        "needsHuman": waiting(state, now, explained, inbox), "pending": inbox or [], "matches": matches(state),
         "running": [row(e, now, explained) for e in by_since(e for e in exps.values() if e.get("state") in RUNNING)],
         "queue": [row(e, now, explained) for e in by_since(e for e in exps.values() if e.get("state") in QUEUED)],
         "verdicts": [verdict_row(e, now, explained) for e in by_since((e for e in exps.values() if e.get("state") in S.TERMINAL), rev=True)][:VERDICTS],

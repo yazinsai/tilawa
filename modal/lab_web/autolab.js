@@ -1,5 +1,6 @@
 import { icon } from './item.js';
 import { $, esc, NAMES, qs, day, plural, fewer, sentence, sw, span, ago, api, topbar, staleNotice, plainLines } from './al.js';
+import { waitingPanel, pauseControl, pausedNotice, forgetLink, dropButton, verdictAsk, typing, wire } from './act.js';
 
 const url = new URL(location.href);
 const root = url.searchParams.get('root');
@@ -23,9 +24,8 @@ document.addEventListener('click', (e) => {
 function notices(v) {
   const h = v.heartbeat;
   const out = [];
-  if (h.paused) out.push(['warn', `<b>Paused:</b> ${esc(h.paused)}. Work already running finishes; nothing new starts until you resume it. ${copyBtn(`${CLI} resume`)}`]);
   if (v.spend?.atCap.length) out.push(['warn', `<b>Daily cap reached:</b> ${esc(v.spend.atCap.join(', '))}. Running work finishes; nothing new starts today.`]);
-  return staleNotice(h) + out.map(([k, m]) => `<div class="notice ${k}">${m}</div>`).join('');
+  return staleNotice(h) + pausedNotice(v, v.activity) + out.map(([k, m]) => `<div class="notice ${k}">${m}</div>`).join('');
 }
 
 const liveLink = () => `<a class="al-live" href="/autolab/live${root ? `?${qs({ root })}` : ''}">${icon('right')}Progress, live: the branches, the folds and how close the line is</a>`;
@@ -71,15 +71,6 @@ const about = (r) =>
 const head = (r, extra = '') =>
   `<h3 class="exp-id">${sw(r.component)}${esc(r.id)} <small>${esc(NAMES[r.component] || r.component || '')}${r.tierText ? ` · ${esc(r.tierText)}` : ''}</small>${extra}</h3>`;
 
-function needsYou(rows) {
-  if (!rows.length) return '';
-  return `<div class="decide"><h3 class="group-h">Waiting for you <span>${rows.length}</span></h3>${rows
-    .map((h) => `<article class="exp" data-k="h-${esc(h.id)}"><div>${head(h)}${about(h)}
-        <p class="exp-note">${icon('info')}${esc(sentence(h.what))}</p></div>
-      <div class="exp-res"><p class="res-line"><span>Asked</span><span>${ago(h.at)}</span></p></div></article>`)
-    .join('')}</div>`;
-}
-
 function running(rows) {
   const body = rows.length
     ? rows
@@ -87,7 +78,7 @@ function running(rows) {
           ${r.attempts > 1 ? `<p class="exp-note">${icon('info')}Try ${r.attempts}</p>` : ''}</div>
         <div class="exp-res"><p class="al-state">${esc(r.stateText)}</p>
           <p class="res-line"><span>For</span><span class="${r.late ? 'al-late' : ''}"><b class="num">${span(r.ageSeconds)}</b>${r.limitMinutes ? ` · gives up after ${limit(r.limitMinutes)}` : ''}</span></p>
-          ${r.executor ? `<p class="res-line"><span>Agent</span><span>${esc(r.executor)}</span></p>` : ''}</div></article>`)
+          ${r.executor ? `<p class="res-line"><span>Agent</span><span>${esc(r.executor)}</span></p>` : ''}<p class="res-line">${dropButton(r.id)}</p></div></article>`)
         .join('')
     : '<p class="group-h">Nothing running</p>';
   return `<section aria-labelledby="run-h"><div class="sec-h"><h2 id="run-h">Running now</h2></div>
@@ -99,7 +90,7 @@ function queue(rows) {
   return `<section aria-labelledby="q-h"><div class="sec-h"><h2 id="q-h">Up next <span class="muted al-n">${rows.length}</span></h2></div>
     ${rows
       .map((r) => `<article class="exp compact" data-k="q-${esc(r.id)}"><div>${head(r)}${about(r)}</div>
-        <p class="res-line"><span>${esc(r.stateText)} · ${span(r.ageSeconds)}</span></p></article>`)
+        <div><p class="res-line"><span>${esc(r.stateText)} · ${span(r.ageSeconds)}</span></p><p class="res-line">${dropButton(r.id)}</p></div></article>`)
       .join('')}</section>`;
 }
 
@@ -129,6 +120,7 @@ function verdictRow(r) {
       ${about(r)}
       ${r.note && !r.gate ? `<p class="exp-note">${icon('info')}${esc(sentence(r.note))}</p>` : ''}
       ${gateList(r.gate)}
+      ${verdictAsk(r, cur?.matches, cur?.pending)}
       <p class="exp-cmds">${copyBtn(r.journal, 'Journal:')}</p></div>
     <div class="exp-res"><p class="res-line"><span>Decided</span><span>${ago(r.at)}</span></p>${lines}${trip}</div></article>`;
 }
@@ -221,11 +213,15 @@ function notStarted(v) {
     <div class="cmd-box">${copyBtn(`${CLI} loop --every 120`)}</div>${liveLink()}</div>${trend(v.trend)}${activity(v.activity)}`;
 }
 
+let cur = null;
+
 function render(v) {
+  cur = v;
+  if (typing()) return;
   const open = new Set([...document.querySelectorAll('details[open]')].map((d) => (d.closest('[data-k]:not(details)')?.dataset.k || '') + '/' + d.dataset.k));
-  topbar(v);
+  topbar(v, pauseControl(v));
   $('main').innerHTML = v.started
-    ? notices(v) + hero(v) + needsYou(v.needsHuman) + running(v.running) + queue(v.queue) + verdicts(v.verdicts) + trend(v.trend) + portfolio(v.portfolio) + coverage(v.coverage) + spend(v.spend) + activity(v.activity)
+    ? notices(v) + hero(v) + waitingPanel(v.needsHuman, v, v.activity) + running(v.running) + queue(v.queue) + verdicts(v.verdicts) + trend(v.trend) + portfolio(v.portfolio) + coverage(v.coverage) + spend(v.spend) + activity(v.activity) + `<p class="pg-back">${forgetLink()}</p>`
     : notStarted(v);
   for (const d of document.querySelectorAll('details[data-k]')) if (open.has((d.closest('[data-k]:not(details)')?.dataset.k || '') + '/' + d.dataset.k)) d.open = true;
 }
@@ -239,6 +235,7 @@ async function load() {
   }
 }
 
+wire({ root, refresh: load, rerender: () => cur && render(cur) });
 load();
 setInterval(() => document.hidden || load(), POLL_MS);
 document.addEventListener('visibilitychange', () => document.hidden || load());

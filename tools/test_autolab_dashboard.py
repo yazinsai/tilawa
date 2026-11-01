@@ -65,6 +65,101 @@ def test_needs_human():
     assert "failed twice" in h["what"] and h["hypothesis"].startswith("Widen the restart")
 
 
+def bet(st, usd=150):
+    e = st["experiments"]["listener-noise-augment"]
+    e["state"], e["tier"], e["since"] = "needs-human", "bet", "2026-11-01T02:40:00+00:00"
+    st["needsHuman"].append({"id": e["id"], "what": f"a bet asking for ${usd} of GPU needs your approval: tools/autolab.py approve {e['id']}", "at": e["since"]})
+    return st
+
+
+def test_waiting_says_why_in_plain_words_and_what_you_can_do():
+    st = bet(state())
+    e = st["experiments"]["listener-vowel-prior"]
+    e["state"], e["note"], e["since"] = "needs-human", "scoring failed: Traceback ... KeyError: 'wrongCalls'", "2026-11-01T02:50:00+00:00"
+    w = V.waiting(st, NOW, {}, [{"op": "retry", "id": "listener-vowel-prior", "at": NOW, "resume": False}])
+    assert [x["id"] for x in w] == ["tracker-restart-window", "listener-noise-augment", "listener-vowel-prior"]
+    restart, b, stuck = w
+    assert b["kind"] == "approval" and b["usd"] == 150 and b["actions"] == ["approve", "drop"]
+    assert b["whyText"].startswith("A big bet that wants about $150 of GPU time") and "tools/autolab.py" not in b["whyText"]
+    assert stuck["kind"] == "stuck" and stuck["actions"] == ["retry", "retryNote", "drop"] and stuck["ageSeconds"] == 600
+    assert stuck["whyText"] == "Scoring it on the practice set failed: Traceback ... KeyError: 'wrongCalls'" and stuck["sent"][0]["op"] == "retry"
+    assert restart["whyText"].startswith("This cluster failed twice") and restart["actions"] == ["retry", "retryNote", "drop"]
+    assert V.why_waiting("orchestrator: timeout after 600 s")["text"] == "The planning model failed while handling it: timeout after 600 s"
+    assert V.why_waiting("a bet asking for $37.5 of GPU needs your approval")["usd"] == 37.5
+    assert V.waiting(None, NOW) == []
+    v = V.view(st, events(), NOW)
+    assert len(v["needsHuman"]) == 3 and v["pending"] == [] and v["matches"] == {}
+
+
+def test_commands_are_checked_before_they_reach_the_inbox():
+    st = bet(state())
+    ok = lambda body, inbox=None: V.command(st, body, NOW, inbox)
+    assert ok({"op": "approve", "id": "listener-noise-augment"}) == {"op": "approve", "at": NOW, "id": "listener-noise-augment"}
+    assert ok({"op": "retry", "id": "tracker-restart-window", "note": "  try a  wider\nwindow "})["note"] == "try a wider window"
+    assert ok({"op": "retry", "id": "tracker-restart-window"})["note"] == ""
+    assert ok({"op": "drop", "id": "checker-madd-length", "why": "too slow"}) == {"op": "drop", "at": NOW, "id": "checker-madd-length", "why": "too slow"}
+    assert ok({"op": "drop", "id": "listener-noise-augment"})["why"] == "dropped from the dashboard"
+    assert ok({"op": "pause", "why": "checking the data"}) == {"op": "pause", "at": NOW, "why": "checking the data"}
+    assert ok({"op": "match", "id": "checker-added-word-confirm", "verdict": "disagree"})["verdict"] == "disagree"
+    paused = copy.deepcopy(st)
+    paused["paused"] = "test data changed"
+    assert V.command(paused, {"op": "resume"}, NOW) == {"op": "pause", "at": NOW, "why": ""}
+    bad = [
+        ({"op": "rm -rf"}, "op is one of"),
+        ({"op": "approve", "id": "nope"}, "no experiment 'nope'"),
+        ({"op": "approve", "id": ["x"]}, "no experiment"),
+        ({"op": "approve", "id": "checker-madd-length"}, "checker-madd-length isn't waiting for you (an agent is writing the change)"),
+        ({"op": "retry", "id": "listener-vowel-prior"}, "isn't waiting for you"),
+        ({"op": "drop", "id": "listener-blank-penalty"}, "already ended (discarded)"),
+        ({"op": "drop", "id": "checker-madd-length", "why": "x" * 301}, "keep it under 300"),
+        ({"op": "retry", "id": "tracker-restart-window", "note": "x" * 1001}, "keep it under 1000"),
+        ({"op": "retry", "id": "tracker-restart-window", "note": 5}, "note must be text"),
+        ({"op": "pause", "why": "  "}, "say why"),
+        ({"op": "resume"}, "isn't paused"),
+        ({"op": "match", "id": "checker-repeat-grace", "verdict": "agree"}, "wasn't folded or discarded"),
+        ({"op": "match", "id": "checker-added-word-confirm", "verdict": "meh"}, "agree or disagree"),
+    ]
+    for body, msg in bad:
+        try:
+            ok(body)
+        except V.CommandError as e:
+            assert msg in str(e), (body, str(e))
+        else:
+            raise AssertionError(f"accepted {body}")
+    sent = [{"op": "approve", "id": "listener-noise-augment", "at": NOW, "resume": False}]
+    for body in ({"op": "approve", "id": "listener-noise-augment"}, {"op": "drop", "id": "listener-noise-augment"}):
+        try:
+            ok(body, sent)
+            raise AssertionError("double send accepted")
+        except V.CommandError as e:
+            assert "already on its way" in str(e)
+    for body in ({"op": "approve", "id": "x"}, "not an object"):
+        try:
+            V.command(None if body != "not an object" else st, body, NOW)
+            raise AssertionError("accepted")
+        except V.CommandError:
+            pass
+
+
+def test_inbox_file_and_pending_view_carry_no_free_text():
+    cmd = {"op": "drop", "at": "2026-11-01T03:00:00+00:00", "id": "x", "why": "secret-ish reason"}
+    assert V.inbox_name(cmd, "ab12cd34") == "2026-11-01T030000+0000-drop-ab12cd34.json"
+    assert V.pending([cmd, {"op": "pause", "why": ""}, "junk", {"op": "nope"}]) == [
+        {"op": "drop", "id": "x", "at": "2026-11-01T03:00:00+00:00", "resume": False}, {"op": "pause", "id": None, "at": None, "resume": True}]
+
+
+def test_access_code():
+    good = {"token": "s3cret-code-123"}
+    assert V.token_status(good, "s3cret-code-123") == 200
+    assert V.token_status(good, "s3cret-code-12") == 401
+    assert V.token_status(good, None) == 401
+    assert V.token_status(good, "") == 401
+    assert V.token_status(None, "anything") == 503
+    assert V.token_status({"token": ""}, "") == 503
+    assert V.token_status({"token": "short"}, "short") == 503
+    assert V.token_status(["s3cret-code-123"], "s3cret-code-123") == 503
+
+
 def test_verdicts_newest_first_with_gate_in_plain_words():
     vs = page()["verdicts"]
     assert [(x["id"], x["state"]) for x in vs] == [("listener-blank-penalty", "discarded"), ("checker-added-word-confirm", "folded"),

@@ -246,7 +246,7 @@ def ticker(events: list[dict], branches: list[dict]) -> list[dict]:
 
 
 def progress(state: dict | None, events: list[dict], lab: dict | None, auto: dict | None, now: str, report: dict | None = None,
-             explained: dict | None = None) -> dict:
+             explained: dict | None = None, inbox: list[dict] | None = None) -> dict:
     pts = spine(lab, auto)
     cur = (state or {}).get("testSet") or (auto or {}).get("testSet") or (pts[-1]["testSet"] if pts else None)
     lb, ab = lab_branches(lab, now, explained), autolab_branches(state, events, now, explained)
@@ -254,4 +254,5 @@ def progress(state: dict | None, events: list[dict], lab: dict | None, auto: dic
              "testSet": graph([p for p in pts if p["testSet"] == cur], [b for b in lb + ab if b["testSet"] == cur], now),
              "all": graph(pts, lb + ab, now)}
     return AD.scrub({"now": now, "testSet": cur, "started": bool(state), "heartbeat": AD.heartbeat(state, now) if state else None,
-                     "views": views, "score": score(pts, state, cur, now, report), "ticker": ticker(events, lb + ab)})
+                     "views": views, "score": score(pts, state, cur, now, report), "ticker": ticker(events, lb + ab),
+                     "waiting": AD.waiting(state, now, explained, inbox), "pending": inbox or []})
