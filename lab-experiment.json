@@ -1,0 +1,13 @@
+{
+ "id": "checker-quran-wordform-suffixes",
+ "component": "checker",
+ "hypothesis": "Mutashabihat swaps that differ only by a pronoun or dual suffix (عليه↔عليهما, إنه↔إنهما, اذهب↔اذهبا) are absorbed by waqf-ending and held-sound tolerance. Check whether the heard word is a different attested mushaf word form that beats the written word; predict checker -5 and overall -4.",
+ "expected": {
+  "component": -5,
+  "overall": -4
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-01T04:02:47+00:00",
+ "author": "autolab"
+}
