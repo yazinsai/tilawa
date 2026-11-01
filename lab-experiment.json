@@ -1,0 +1,13 @@
+{
+ "id": "checker-morph-unit-alignment",
+ "component": "checker",
+ "hypothesis": "The checker aligns heard speech to whole words while letting a visit cover any phoneme span, so a proclitic such as ال can be split from its stem. At surah-26 skip seams this split produces a stub visit [ل of 26:102:7, then a jump, then مؤمنين bound to 26:103:8], which ties on word count with the true seam even on oracle phonemes, and the tie breaks early. Replace the checker's alignment unit with mushaf morph units (proclitic, stem, enclitic) and require every completed visit to own its stem; predict checker -4, overall -4 (floor -2 if only one of the paired seams flips).",
+ "expected": {
+  "component": -4,
+  "overall": -4
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-01T19:31:24+00:00",
+ "author": "autolab"
+}
