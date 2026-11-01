@@ -37,6 +37,7 @@ image = (
     .env({"PYTHONPATH": "/icefall:/icefall/egs/librispeech/ASR/zipformer:/root/tools", "HF_HOME": "/cache/hf"})
     .pip_install("rapidfuzz==3.14.1")
     .add_local_file("tools/student.py", "/root/tools/student.py")
+    .add_local_file("tools/splice.py", "/root/tools/splice.py")
     .add_local_file("tools/per_breakdown.py", "/root/tools/per_breakdown.py")
     .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
@@ -68,6 +69,10 @@ DEFAULTS = dict(
     name="",
     size="lite",
     init="",
+    init_run="",
+    max_steps=0,
+    splice_p=0.0,
+    splice_ops="insert,swap,delete",
     buckets="clean-match",
     target="teacher",
     max_hours=0.0,
@@ -175,12 +180,12 @@ def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, se
     for i in sorted(order):
         by.setdefault(meta[i][0], []).append(meta[i][1])
 
-    out = {k: [] for k in ("key", "ref", "hyp", "n_samples", "n_frames", "flac", "ids", "probs")}
+    out = {k: [] for k in ("key", "cluster", "ref", "hyp", "n_samples", "n_frames", "flac", "ids", "probs")}
     for fi, rows in by.items():
-        t = pq.read_table(files[fi], columns=["shard", "row", "ref", "hyp", "n_samples", "n_frames", "flac", "top5_ids", "top5_p"])
+        t = pq.read_table(files[fi], columns=["shard", "row", "cluster", "ref", "hyp", "n_samples", "n_frames", "flac", "top5_ids", "top5_p"])
         t = t.take(rows).to_pydict()
         out["key"] += [f"{s}:{r}" for s, r in zip(t["shard"], t["row"])]
-        for k in ("ref", "hyp", "n_samples", "n_frames"):
+        for k in ("cluster", "ref", "hyp", "n_samples", "n_frames"):
             out[k] += t[k]
         out["flac"] += [np.frombuffer(b, np.uint8) for b in t["flac"]]
         out["ids"] += [np.frombuffer(b, np.uint8) for b in t["top5_ids"]]
@@ -199,6 +204,10 @@ def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, se
 class ClipDataset:
     def __init__(self, clips: dict, cfg: dict, train: bool, aug: dict | None):
         self.c, self.cfg, self.train, self.aug = clips, cfg, train, aug
+        self.by_cluster: dict[object, list[int]] = {}
+        if train and cfg["splice_p"]:
+            for i, cluster in enumerate(clips["cluster"]):
+                self.by_cluster.setdefault(cluster, []).append(i)
 
     def __len__(self):
         return len(self.c["ref"])
@@ -208,11 +217,39 @@ class ClipDataset:
         import soundfile as sf
         import torch
         import torchaudio
-        from student import mix_noise, phoneme_ids
+        from student import ctc_token_spans, mix_noise, phoneme_ids, unfaithful_splice
 
         c, cfg = self.c, self.cfg
         rng = np.random.default_rng()
         wave, _ = sf.read(io.BytesIO(c["flac"][c["flac_off"][i] : c["flac_off"][i + 1]].tobytes()), dtype="float32")
+        target_ids = None
+        kd_edit = None
+        operation = ""
+        if self.train and cfg["splice_p"]:
+            splice_rng = np.random.default_rng(np.random.SeedSequence([cfg["seed"], i]))
+            if splice_rng.random() < cfg["splice_p"]:
+                donors = self.by_cluster[c["cluster"][i]]
+                donor_i = int(donors[int(splice_rng.integers(len(donors)))])
+                if donor_i == i and len(donors) > 1:
+                    donor_i = int(donors[(donors.index(i) + 1) % len(donors)])
+                hlo, hhi = c["top_off"][i], c["top_off"][i + 1]
+                dlo, dhi = c["top_off"][donor_i], c["top_off"][donor_i + 1]
+                host_frames = c["ids"][hlo:hhi].reshape(-1, 5)[:, 0]
+                donor_frames = c["ids"][dlo:dhi].reshape(-1, 5)[:, 0]
+                host_tokens, _ = ctc_token_spans(host_frames)
+                donor_tokens, _ = ctc_token_spans(donor_frames)
+                # Corrupt only clips whose stored greedy transcript is reproduced by the posterior buffer.
+                if host_tokens == phoneme_ids(c["hyp"][i]) and donor_tokens == phoneme_ids(c["hyp"][donor_i]):
+                    donor, _ = sf.read(
+                        io.BytesIO(c["flac"][c["flac_off"][donor_i] : c["flac_off"][donor_i + 1]].tobytes()),
+                        dtype="float32",
+                    )
+                    operation = splice_rng.choice(cfg["splice_ops"].split(",")).item()
+                    item = unfaithful_splice(wave, host_frames, donor, donor_frames, operation, splice_rng)
+                    if item:
+                        wave, target_ids, kd_edit = item["wave"], item["target_ids"], item["kd_edit"]
+                    else:
+                        operation = ""
         if self.train and self.aug:
             if rng.random() < cfg["rir_p"]:
                 wave = reverb(wave, pick(self.aug["rir"], rng))
@@ -229,9 +266,11 @@ class ClipDataset:
         return dict(
             i=i,
             feats=feats,
-            target=torch.tensor(phoneme_ids(c.get("target", c["hyp"])[i]), dtype=torch.long),
+            target=torch.tensor(target_ids or phoneme_ids(c.get("target", c["hyp"])[i]), dtype=torch.long),
             top_ids=torch.from_numpy(c["ids"][lo:hi].reshape(-1, 5).astype(np.int64)),
             top_p=torch.from_numpy(c["probs"][lo:hi].reshape(-1, 5).astype(np.float32)),
+            kd_edit=kd_edit,
+            operation=operation,
         )
 
 
@@ -276,6 +315,8 @@ def collate(items):
         top_ids=pad_sequence([x["top_ids"] for x in items], batch_first=True),
         top_p=pad_sequence([x["top_p"] for x in items], batch_first=True),
         n_teacher=torch.tensor([x["top_ids"].shape[0] for x in items]),
+        kd_edits=[x["kd_edit"] for x in items],
+        operations=[x["operation"] for x in items],
     )
 
 
@@ -306,7 +347,7 @@ def batches(n_samples, max_batch_s: float, seed: int, shuffle: bool = True):
 def losses(model, b, cfg, device):
     import torch
     import torch.nn.functional as F
-    from student import soft_target_loss
+    from student import soft_target_loss, splice_teacher_frames
 
     feats, feat_lens = b["feats"].to(device), b["feat_lens"].to(device)
     with torch.autocast("cuda", dtype=torch.bfloat16):
@@ -320,10 +361,17 @@ def losses(model, b, cfg, device):
         B, T, _ = log_probs.shape
         n_t = b["n_teacher"].to(device)
         idx = (torch.arange(T, device=device)[None] - cfg["kd_delay"]).clamp(min=0)
-        idx = torch.minimum(idx, (n_t - 1)[:, None])
+        idx = torch.minimum(idx.expand(B, T), (n_t - 1)[:, None]).clone()
+        valid = torch.arange(T, device=device)[None] < out_lens[:, None]
+        for k, edit in enumerate(b["kd_edits"]):
+            if edit:
+                n_output = int(out_lens[k])
+                mapped, keep = splice_teacher_frames(n_output, int(n_t[k]), edit)
+                mapped = torch.from_numpy(mapped).to(device).sub(cfg["kd_delay"]).clamp(min=0)
+                idx[k, :n_output] = mapped
+                valid[k, :n_output] &= torch.from_numpy(keep).to(device)
         top_ids = b["top_ids"].to(device).gather(1, idx[..., None].expand(B, T, 5))
         top_p = b["top_p"].to(device).gather(1, idx[..., None].expand(B, T, 5))
-        valid = torch.arange(T, device=device)[None] < out_lens[:, None]
         kd = soft_target_loss(log_probs, top_ids, top_p, valid)
         out["kd"] = kd
         out["loss"] = out["loss"] + cfg["kd_weight"] * kd
@@ -397,6 +445,8 @@ def train(args: dict) -> dict:
 
     cfg = {**DEFAULTS, **args}
     assert cfg["name"], "name is required"
+    assert 0 <= cfg["splice_p"] <= 1
+    assert set(cfg["splice_ops"].split(",")) <= {"insert", "swap", "delete"} and cfg["splice_ops"]
     run = f"/student/runs/{cfg['name']}"
     os.makedirs(run, exist_ok=True)
     log = open(f"{run}/log.jsonl", "a")
@@ -428,35 +478,46 @@ def train(args: dict) -> dict:
                      lr=cfg["base_lr"], clipping_scale=2.0)
     sched = Eden(opt, cfg["lr_batches"], cfg["lr_epochs"])
     state = {"epoch": 0, "batch": 0, "step": 0}
+    model_step_offset = 0
     if os.path.exists(f"{run}/ckpt.pt"):
         ck = torch.load(f"{run}/ckpt.pt", map_location="cpu", weights_only=False)
         model.load_state_dict(ck["model"])
         opt.load_state_dict(ck["opt"])
         sched.load_state_dict(ck["sched"])
         state = ck["state"]
+        model_step_offset = ck.get("model_step_offset", 0)
         emit(event="resume", **state)
+    elif cfg["init_run"]:
+        ck = torch.load(f"/student/runs/{cfg['init_run']}/ckpt.pt", map_location="cpu", weights_only=False)
+        if ck["cfg"]["size"] != cfg["size"]:
+            raise ValueError("initial checkpoint size differs")
+        model.load_state_dict(ck["model"])
+        model_step_offset = ck["state"]["step"] + ck.get("model_step_offset", 0)
+        emit(event="adapt", source=cfg["init_run"], source_step=model_step_offset)
     elif cfg["init"]:
         emit(event="init", **init_from(model, cfg["init"], cfg["size"]))
     emit(event="model", params=n_params)
 
     def save():
         torch.save({"model": model.state_dict(), "opt": opt.state_dict(), "sched": sched.state_dict(), "state": state,
-                    "cfg": cfg}, f"{run}/ckpt.pt.tmp")
+                    "cfg": cfg, "model_step_offset": model_step_offset}, f"{run}/ckpt.pt.tmp")
         os.replace(f"{run}/ckpt.pt.tmp", f"{run}/ckpt.pt")
         vol.commit()
 
     ds = ClipDataset(train_clips, cfg, train=True, aug=aug)
     model.train()
     seen_s, tick = 0.0, time.time()
-    while state["epoch"] < cfg["epochs"]:
+    while state["epoch"] < cfg["epochs"] and (not cfg["max_steps"] or state["step"] < cfg["max_steps"]):
         plan = batches(train_clips["n_samples"], cfg["max_batch_s"], cfg["seed"] + state["epoch"])
         loader = torch.utils.data.DataLoader(ds, batch_sampler=plan[state["batch"]:], collate_fn=collate,
                                              num_workers=cfg["workers"], prefetch_factor=4, persistent_workers=False)
         sched.step_epoch(state["epoch"])
         for b in loader:
+            if cfg["max_steps"] and state["step"] >= cfg["max_steps"]:
+                break
             if state["step"] % 10 == 0:
                 for m in model.modules():
-                    m.batch_count = state["step"] * cfg["max_batch_s"] / 600.0
+                    m.batch_count = (state["step"] + model_step_offset) * cfg["max_batch_s"] / 600.0
             out = losses(model, b, cfg, device)
             opt.zero_grad(set_to_none=True)
             if not torch.isfinite(out["loss"]):
@@ -475,7 +536,8 @@ def train(args: dict) -> dict:
             if state["step"] % 20 == 0:
                 el = time.time() - tick
                 emit(event="train", **state, lr=sched.get_last_lr()[0],
-                     **{k: float(v) for k, v in out.items() if k != "frames"}, audio_x_realtime=seen_s / el)
+                     **{k: float(v) for k, v in out.items() if k != "frames"}, audio_x_realtime=seen_s / el,
+                     splices={op: b["operations"].count(op) for op in cfg["splice_ops"].split(",")})
                 seen_s, tick = 0.0, time.time()
             if state["step"] % cfg["ckpt_every"] == 0:
                 save()
@@ -551,7 +613,9 @@ def transcribe(run: str, src: str, dest: str, chunk: int = 16, left: int = 128) 
 @app.local_entrypoint()
 def main(name: str, size: str = "lite", init: str = "", max_hours: float = 0.0, epochs: int = 6,
          kd_weight: float = 0.0, eval_max: int = 3000, eval_every: int = 2000, max_batch_s: float = 800.0,
-         base_lr: float = 0.045, target: str = "teacher"):
+         base_lr: float = 0.045, target: str = "teacher", init_run: str = "", max_steps: int = 0,
+         splice_p: float = 0.0, splice_ops: str = "insert,swap,delete"):
     print(train.remote(dict(name=name, size=size, init=init, max_hours=max_hours, epochs=epochs, kd_weight=kd_weight,
                             eval_max=eval_max, eval_every=eval_every, max_batch_s=max_batch_s, base_lr=base_lr,
-                            target=target)))
+                            target=target, init_run=init_run, max_steps=max_steps, splice_p=splice_p,
+                            splice_ops=splice_ops)))

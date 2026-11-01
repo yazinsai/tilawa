@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from student import TOKENS, corpus_per, ctc_collapse, exclusions, held_out, ids_phonemes, mix_noise, phoneme_ids, reference_phonemes, soft_target_loss, spliced_target, teacher_frames  # noqa: E402
+from student import TOKENS, corpus_per, ctc_collapse, ctc_token_spans, exclusions, held_out, ids_phonemes, mix_noise, phoneme_ids, reference_phonemes, soft_target_loss, splice_teacher_frames, spliced_target, teacher_frames, unfaithful_splice  # noqa: E402
 
 REF = json.loads((Path(__file__).resolve().parent.parent / "packages/core/assets/ref-v2.json").read_text())
 
@@ -81,6 +81,42 @@ def test_soft_target_loss_is_cross_entropy_to_renormalised_top_k_over_valid_fram
     valid = torch.tensor([[True, False]])
     # Frame 0: teacher renormalises to {1: 0.75, 0: 0.25}; -(0.75 ln 0.25 + 0.25 ln 0.5) = 1.21301. Frame 1 is padding.
     assert abs(soft_target_loss(student, top_ids, top_p, valid).item() - 1.21301) < 1e-4
+
+
+def test_ctc_token_spans_keep_repeated_tokens_separated_by_blank():
+    assert ctc_token_spans([0, 2, 2, 0, 2, 5, 5, 0]) == ([2, 2, 5], [(1, 3), (4, 5), (5, 7)])
+
+
+def test_unfaithful_splices_have_as_heard_targets_and_edit_maps():
+    import numpy as np
+
+    host_frames = [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0, 9, 0, 10, 0]
+    donor_frames = [0, 11, 0, 12, 0, 13, 0, 14, 0]
+    host = np.sin(np.arange(16000, dtype=np.float32) / 11)
+    donor = np.sin(np.arange(8000, dtype=np.float32) / 13)
+
+    inserted = unfaithful_splice(host, host_frames, donor, donor_frames, "insert", np.random.default_rng(0))
+    assert inserted and inserted["target_ids"][:4] == [11, 12, 13, 14]
+    assert inserted["target_ids"][4:] == list(range(1, 11))
+    assert inserted["kd_edit"]["delta"] > 0
+
+    deleted = unfaithful_splice(host, host_frames, donor, donor_frames, "delete", np.random.default_rng(1))
+    assert deleted and len(deleted["target_ids"]) < 10
+    assert deleted["kd_edit"]["delta"] < 0
+
+    swapped = unfaithful_splice(host, host_frames, donor, donor_frames, "swap", np.random.default_rng(2))
+    assert swapped and any(x >= 11 for x in swapped["target_ids"])
+    assert len(swapped["wave"]) != len(host)
+
+
+def test_splice_teacher_mapping_masks_edit_and_remaps_later_frames():
+    import numpy as np
+
+    edit = {"start": 4000, "end": 8000, "delta": 4000, "source_samples": 12000, "output_samples": 16000}
+    frames, valid = splice_teacher_frames(16, 12, edit, pad_s=0)
+    assert frames.tolist() == [0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    assert valid.tolist() == [True] * 4 + [False] * 4 + [True] * 8
+    assert np.all(np.diff(frames[8:]) >= 0)
 
 
 def test_gold_clips_are_held_out_of_training_only():

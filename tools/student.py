@@ -85,6 +85,103 @@ def soft_target_loss(log_probs, top_ids, top_p, valid):
     return (ce * valid).sum() / valid.sum().clamp_min(1)
 
 
+def ctc_token_spans(frame_ids) -> tuple[list[int], list[tuple[int, int]]]:
+    """Collapsed CTC tokens and the inclusive-exclusive frame span of each emitted token."""
+    tokens, spans = [], []
+    prev = -1
+    for frame, token in enumerate(frame_ids):
+        token = int(token)
+        if token and token != prev:
+            tokens.append(token)
+            spans.append((frame, frame + 1))
+        elif token and token == prev:
+            spans[-1] = (spans[-1][0], frame + 1)
+        prev = token
+    return tokens, spans
+
+
+def unfaithful_splice(host_wave, host_frames, donor_wave, donor_frames, operation: str, rng) -> dict | None:
+    """Make a training-only insertion, substitution or omission with an as-heard CTC target.
+
+    The old teacher remains usable outside the edited interval; `kd_edit` describes how output samples map back to
+    the unedited host. The caller masks the interval itself because the old host teacher is deliberately wrong there.
+    """
+    import numpy as np
+    from splice import boundaries, replace, shorten
+
+    host_tokens, host_spans = ctc_token_spans(host_frames)
+    donor_tokens, donor_spans = ctc_token_spans(donor_frames)
+    if len(host_tokens) < 8 or (operation in ("insert", "swap") and len(donor_tokens) < 2):
+        return None
+
+    def segment(tokens, spans, leave_edges: bool) -> tuple[int, int, int, int] | None:
+        lo, hi = (3, len(tokens) - 3) if leave_edges else (0, len(tokens))
+        if hi - lo < 2:
+            return None
+        width = int(rng.integers(2, min(9, hi - lo) + 1))
+        start = int(rng.integers(lo, hi - width + 1))
+        return start, start + width, spans[start][0], spans[start + width - 1][1]
+
+    host_bounds = boundaries(host_spans, len(host_frames), len(host_wave))
+    if operation == "insert":
+        # The first emitted phone follows the clip's leading pause, matching the strongest continuation-prior site.
+        h0 = h1 = 0
+        a = b = host_bounds[0][0]
+    else:
+        picked = segment(host_tokens, host_spans, True)
+        if not picked:
+            return None
+        h0, h1, _, _ = picked
+        a, b = host_bounds[h0][0], host_bounds[h1 - 1][1]
+
+    inserted = []
+    if operation in ("insert", "swap"):
+        picked = segment(donor_tokens, donor_spans, False)
+        if not picked:
+            return None
+        d0, d1, _, _ = picked
+        donor_bounds = boundaries(donor_spans, len(donor_frames), len(donor_wave))
+        da, db = donor_bounds[d0][0], donor_bounds[d1 - 1][1]
+        wave = replace(host_wave, a, b, donor_wave, da, db)
+        inserted = donor_tokens[d0:d1]
+    elif operation == "delete":
+        wave = shorten(host_wave, a, b, keep=0)
+    else:
+        raise ValueError(f"unknown splice operation: {operation}")
+
+    target = host_tokens[:h0] + inserted + host_tokens[h1:]
+    if not target or len(wave) < 400:
+        return None
+    delta = len(wave) - len(host_wave)
+    edited_samples = max(0, (b - a) + delta)
+    return {
+        "wave": np.asarray(wave, dtype=np.float32),
+        "target_ids": target,
+        "operation": operation,
+        "kd_edit": {
+            "start": a,
+            "end": a + edited_samples,
+            "delta": delta,
+            "source_samples": len(host_wave),
+            "output_samples": len(wave),
+        },
+    }
+
+
+def splice_teacher_frames(n_output: int, n_teacher: int, edit: dict, sample_rate: int = 16_000,
+                          pad_s: float = 0.08):
+    """Map edited output frames to the old host teacher and mask the edit plus its coarticulation boundary."""
+    import numpy as np
+
+    samples = (np.arange(n_output, dtype=np.float64) + 0.5) * edit["output_samples"] / max(1, n_output)
+    pad = pad_s * sample_rate
+    valid = (samples < edit["start"] - pad) | (samples >= edit["end"] + pad)
+    source_samples = np.where(samples < edit["start"], samples, samples - edit["delta"])
+    valid &= (source_samples >= 0) & (source_samples < edit["source_samples"])
+    frames = np.floor(source_samples * n_teacher / max(1, edit["source_samples"])).astype(np.int64)
+    return np.clip(frames, 0, max(0, n_teacher - 1)), valid
+
+
 def spliced_target(ref: str, teacher: str) -> str:
     """CTC target that lets the student outgrow the teacher: `per_breakdown.spliced` (teacher at the clip edges,
     reference between the first and last 3-phoneme exact match) with runs collapsed, leaving length to soft KD."""
