@@ -76,7 +76,14 @@ def vol_put(path: str, obj) -> None:
         json.dump(obj, f, indent=1, ensure_ascii=False)
         f.write("\n")
     try:
-        sh("modal", "volume", "put", "--force", VOLUME, f.name, path)
+        for wait in (2, 5, 10, 20, 40, 0):
+            try:
+                sh("modal", "volume", "put", "--force", VOLUME, f.name, path)
+                break
+            except Stop as err:
+                if not wait or "too many layers" not in str(err):
+                    raise
+                time.sleep(wait)  # Modal compacts the volume's layers, then accepts writes again
     finally:
         os.unlink(f.name)
 

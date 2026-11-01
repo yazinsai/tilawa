@@ -343,21 +343,24 @@ class Tick:
         if st.get("paused"):
             return self.events
         self.daily()
-        for e in S.in_state(st, "implementing"):
-            self.implementing(e)
-        for e in S.in_state(st, "validating"):
-            self.validating(e)
-        for e in S.in_state(st, "scoring"):
-            self.scoring(e)
-        for e in S.in_state(st, "folding"):
-            self.folding(e)
-        for e in S.in_state(st, "proposed"):
-            self.proposed(e)
-        for e in S.in_state(st, "accepted"):
-            self.accepted(e)
+        for state, step in (("implementing", self.implementing), ("validating", self.validating), ("scoring", self.scoring),
+                            ("folding", self.folding), ("proposed", self.proposed), ("accepted", self.accepted)):
+            for e in S.in_state(st, state):
+                self.guard(e, step)
         self.reviews()
         self.plan()
         return self.events
+
+    def guard(self, e, step):
+        """One experiment's step; an error in it sends that experiment to needs-human instead of pausing everything."""
+        try:
+            step(e)
+        except Exception as err:  # noqa: BLE001
+            if e["state"] in S.TERMINAL or e["state"] == "needs-human":
+                raise
+            if self.st["foldLock"] == e["id"]:
+                self.st["foldLock"] = None
+            self.events.append(S.move(self.st, e["id"], "needs-human", self.at, f"{e['state']} failed: {type(err).__name__}: {str(err)[:300]}"))
 
     # your commands
     def apply_inbox(self):
@@ -475,8 +478,14 @@ class Tick:
         if e["tier"] == "bet" and c.get("gpuUsd", 0) > w.cfg.get("betApprovalUsd", 25) and not e["results"].get("approved"):
             return self.move(e, "needs-human", f"a bet asking for ${c['gpuUsd']} of GPU needs your approval: tools/autolab.py approve {e['id']}")
         if not e["worktree"]:
-            out = w.lab("new", e["id"], "--component", c["component"], "--hypothesis", c["hypothesis"],
-                        "--expect-component", c["expected"]["component"], "--expect-overall", c["expected"]["overall"], "--author", "autolab")
+            try:
+                out = w.lab("new", e["id"], "--component", c["component"], "--hypothesis", c["hypothesis"],
+                            "--expect-component", c["expected"]["component"], "--expect-overall", c["expected"]["overall"], "--author", "autolab")
+            except Stop as err:
+                wt = REPO.parent / f"tilawa-lab-exp-{e['id']}"
+                if "already exists" not in str(err) or not wt.exists():
+                    raise
+                out = {"branch": f"exp/{e['id']}", "worktree": str(wt)}  # an earlier tick made it, then its state save failed
             e["branch"], e["worktree"] = out["branch"], out["worktree"]
             w.exclude(".autolab/")
         self.start_executor(e, e["results"].pop("feedback", ""))

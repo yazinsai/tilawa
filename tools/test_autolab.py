@@ -514,6 +514,33 @@ def test_reviews_wait_in_the_state_until_answered(w, monkeypatch):
     assert st["pendingReviews"] == {} and f"{id} (checker, exploit): discarded" in w.journal_text
 
 
+def test_one_experiments_error_waits_for_you_without_pausing_the_rest(w, monkeypatch):
+    id = started(w)
+    monkeypatch.setattr(A.Tick, "implementing", lambda self, e: (_ for _ in ()).throw(RuntimeError("disk full")))
+    st = tick(w)
+    assert st["experiments"][id]["state"] == "needs-human" and "disk full" in st["experiments"][id]["note"]
+    assert not st.get("paused")
+
+
+def test_lab_new_that_already_happened_is_adopted(w, monkeypatch):
+    real = w.lab
+    def lab(*args):
+        if args[0] == "new":
+            (A.REPO.parent / f"tilawa-lab-exp-{args[1]}").mkdir(exist_ok=True)
+            raise A.Stop(f"experiment {args[1]} already exists")
+        return real(*args)
+    w.lab = lab
+    st = tick(w)
+    st["lastPlanAt"] = "2999-01-01T00:00:00+00:00"
+    w.saved = only(st, next(iter(st["experiments"])))
+    id = next(iter(w.saved["experiments"]))
+    try:
+        st = tick(w)
+        assert st["experiments"][id]["worktree"].endswith(f"tilawa-lab-exp-{id}") and st["experiments"][id]["state"] == "implementing"
+    finally:
+        (A.REPO.parent / f"tilawa-lab-exp-{id}").rmdir()
+
+
 def test_a_tick_that_raises_pauses_and_pages(w, monkeypatch):
     monkeypatch.setattr(A.Tick, "run", lambda self: (_ for _ in ()).throw(RuntimeError("boom")))
     st = A.tick_once(w)
