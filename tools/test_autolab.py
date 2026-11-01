@@ -115,6 +115,11 @@ class World(A.World):
     def ledgers(self):
         return []
 
+    def modal_spend(self, day):
+        return self.modal_usd
+
+    modal_usd = 0.0
+
     def journal(self):
         return self.journal_text
 
@@ -305,6 +310,12 @@ def test_new_day_rebases_and_rescores_the_shadow_line(w):
     assert st["baselineJob"] and st["day"] == "2026-11-02"
     st = tick(w, "2026-11-02T00:07:00+00:00")
     assert st["main"]["sha"] == "m2" and st["main"]["practice"]["wrongCalls"] == 88
+
+
+def test_modal_spend_comes_from_billing_and_caps_new_work(w):
+    w.modal_usd = 3000.5
+    st = tick(w)
+    assert st["spend"]["modalUsd"] == 3000.5 and st["experiments"] == {}
 
 
 def test_spend_cap_stops_new_work(w):

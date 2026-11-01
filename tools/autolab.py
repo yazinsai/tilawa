@@ -188,6 +188,13 @@ class World:
             h.update(f"{e.path}\t{e.size}\t{e.mtime}\n".encode())
         return h.hexdigest()
 
+    def modal_spend(self, day: str) -> float:
+        """The whole workspace's Modal cost so far on a UTC day (your own runs count too)."""
+        import datetime as dt  # noqa: PLC0415
+        import modal.billing  # noqa: PLC0415 - only the supervisor's environment has it
+        start = dt.datetime.fromisoformat(day).replace(tzinfo=dt.timezone.utc)
+        return float(sum(r["cost"] for r in modal.billing.workspace_billing_report(start=start, end=start + dt.timedelta(days=1), resolution="h")))
+
     def ledgers(self) -> list[dict]:
         return [x for x in (vol_get("/ledger.json"), vol_get(VOL_LEDGER)) if x]
 
@@ -268,6 +275,12 @@ class Tick:
         st["heartbeat"], st["ticks"] = at, st.get("ticks", 0) + 1
         st["slots"], st["caps"], st["tickSeconds"] = self.w.cfg["slots"], self.w.cfg["caps"], self.w.cfg["tickSeconds"]
         S.roll_day(st, at)
+        if not st.get("modalCheckedAt") or S.minutes(st["modalCheckedAt"], at) >= 10:
+            try:
+                st["spend"]["modalUsd"] = round(self.w.modal_spend(at[:10]), 2)
+                st["modalCheckedAt"] = at
+            except Exception as err:  # noqa: BLE001 - billing being down mustn't stop the lab
+                print(f"modal billing: {err}", file=sys.stderr)
         if st.get("paused"):
             return self.events
         self.daily()
