@@ -1,0 +1,13 @@
+{
+ "id": "checker-unique-anchor-skips",
+ "component": "checker",
+ "hypothesis": "All 6 checker skipped-passage misses start at word 1 next to a refrain ayah repeated within its surah (26:103/108/131, 55:28/30, 77:34), so the heard refrain is bound to the wrong instance and the skip disappears or lands one word early (26:102:7, 26:131:2). Anchoring skip detection only on heard words whose text is unique in the local window, with refrain words floating to the order-consistent instance, should win 4 misses and 2 misplaced false warnings: checker -4, overall -4.",
+ "expected": {
+  "component": -4,
+  "overall": -4
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-01T06:39:31+00:00",
+ "author": "autolab"
+}
