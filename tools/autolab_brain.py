@@ -96,7 +96,9 @@ JUDGE = """{about}
 You are a skeptical reviewer guarding against research going in circles. Decide whether this proposed experiment is
 genuinely new, or a restatement of a mechanism already tried (folded, discarded or superseded) on the same incidents. A
 restatement includes: the same idea with a different constant; the same code path patched the same way; a narrower or
-broader version of a failed rule without a new reason it would work.
+broader version of a failed rule without a new reason it would work. An experiment with "measured": false never ran (it
+was blocked, or timed out before a result): it tested nothing, so a card that finally runs that idea is not a restatement
+of it.
 
 Proposed card:
 {card}
@@ -254,6 +256,9 @@ def dump(x) -> str:
 # Context
 
 
+BLOCKED = re.compile(r"^restates |changes no engine code|committed no change|ran too long|failed twice|ran past")
+
+
 def history(lab_ledgers: list[dict], st: dict) -> list[dict]:
     """Every experiment tried so far: the human lab's and autolab's ledgers, plus autolab cards still in flight."""
     out, seen = [], set()
@@ -264,13 +269,15 @@ def history(lab_ledgers: list[dict], st: dict) -> list[dict]:
             seen.add(id)
             c, d = e["card"], e.get("decision") or {}
             out.append({"id": id, "component": c["component"], "hypothesis": c["hypothesis"], "expected": c["expected"],
-                        "state": e["state"], "note": d.get("note", "")})
+                        "state": e["state"], "note": d.get("note", ""), "measured": bool(e.get("results")) or e["state"] in ("open", "folded", "superseded")})
     for id, e in st["experiments"].items():
         c = e["card"]
+        r = e.get("results") or {}
         row = {"id": id, "component": c["component"], "tier": e["tier"], "hypothesis": c["hypothesis"],
-               "mechanism": c.get("mechanism", ""), "cluster": c.get("cluster"), "state": e["state"], "note": e.get("note", "")}
+               "mechanism": c.get("mechanism", ""), "cluster": c.get("cluster"), "state": e["state"], "note": e.get("note", ""),
+               "measured": not (e["state"] in ("discarded", "abandoned") and BLOCKED.search(e.get("note", "")))}
         if id in seen:
-            out = [{**r, **row} if r["id"] == id else r for r in out]
+            out = [{**x, **row} if x["id"] == id else x for x in out]
         else:
             seen.add(id)
             out.append(row)

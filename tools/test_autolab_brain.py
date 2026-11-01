@@ -134,3 +134,13 @@ def test_review_and_strategy():
     assert r["deadEnd"] == "no onset"
     s = B.strategy(CFG, ctx(), ["listener"], [("listener", "bet")], Asker(answer({"memo": "Stuck.", "cards": [card(tier="bet", gpuUsd=50)]})))
     assert s["cards"][0]["tier"] == "bet"
+
+
+def test_the_judge_is_told_which_tried_experiments_never_ran():
+    st = S.empty("lab-v1.5")
+    for id, note in (("listener-blocked", "the diff changes no engine code (only write-ups)"), ("listener-twin", "restates listener-blocked: same"),
+                     ("listener-killed", "killed by its builder: 0 of 5 targets")):
+        e, _ = S.add(st, card(id), "2026-11-01T00:00:00+00:00")
+        e["state"], e["note"] = "discarded", note
+    h = {x["id"]: x["measured"] for x in B.history([LAB], st)}
+    assert h == {"checker-joint-additions": True, "listener-blocked": False, "listener-twin": False, "listener-killed": True}
