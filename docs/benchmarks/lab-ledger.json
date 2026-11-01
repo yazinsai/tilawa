@@ -265,7 +265,7 @@
   },
   {
    "kind": "main",
-   "at": "2026-11-01T10:54:10+00:00",
+   "at": "2026-11-01T10:54:14+00:00",
    "sha": "d5303ef8",
    "testSet": "lab-v1.5",
    "experiment": "listener-context-free-gap-decode",
@@ -282,7 +282,7 @@
   },
   {
    "kind": "experiment",
-   "at": "2026-11-01T10:54:10+00:00",
+   "at": "2026-11-01T10:54:14+00:00",
    "id": "listener-context-free-gap-decode",
    "component": "listener",
    "hypothesis": "Words added after a waqf pause are lost because the model's long left context makes it expect the next verse word, not because the audio is missing. Re-run the acoustic model on just the pause gap plus short padding, so it cannot see the verse, and pass any recovered phonemes to the existing added-word rules; predict listener -4, overall -3.",
@@ -309,6 +309,216 @@
      "listener": 42,
      "tracker": 5,
      "checker": 37
+    },
+    "exam": null
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T11:04:12+00:00",
+   "id": "listener-cropped-gap-support",
+   "component": "listener",
+   "hypothesis": "Cropped gap decode recovers inserted words, but their support is still scored on in-context posteriors that carry the verse prior, so 3 of 5 heard insertions end uncertain. Re-land 62ac8b5 on main and score added-word support for gap phones on the cropped-window posteriors; predict listener -4, overall -4.",
+   "expected": {
+    "component": -4,
+    "overall": -4
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Only 1 of the 3 uncertain added words confirmed on cropped-window support (p10 26:164:1); p07 and p33 stayed uncertain. (measured: {\"targets won\": 1})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T11:18:15+00:00",
+   "id": "listener-word-presence-verifier",
+   "component": "listener",
+   "hypothesis": "Listener omission false warnings fire because the shipped CTC head has erased the spoken word's consonants: anchored-gap measured the written word losing by 6 to 30 nats, so no rescoring of those posteriors can save it. A small text-conditioned word-presence verifier, reading a mid-layer of the frozen student encoder, would veto an omission warning when the word is present and place it on the absent word when the gap has two candidates. Predict 3 of 5 won, listener -3, overall -3.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: The frozen verifier rescued 0 of 5 targets and turned six previously caught planted omissions into misses in checker replay. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T11:48:11+00:00",
+   "id": "listener-cropped-slot-redecode",
+   "component": "listener",
+   "hypothesis": "Refrain-slot swaps (26:106/142/161 word 5) are heard as the written word because the in-context encoder prior overrides the audio, as the folded gap decode measured at pauses. Re-encode only the anchored stretch of each context-predictable word from a cold state with 300 ms padding, and hand any changed phones to the unchanged wrong-word confirmation; predict listener −3, overall −3.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Cold re-encoding recovered the planted distinguishing consonants on only one of four target slots, below the preregistered minimum of two. (measured: {\"targets won\": 1})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T12:12:10+00:00",
+   "id": "listener-cold-crop-skip-seams",
+   "component": "listener",
+   "hypothesis": "After a skip, the first word heard does not continue the verse, so the in-context encoder pulls it toward the expected next word. The seam then lands a word early (p26: 41:19:7 warned, 41:20:1 missed) or is absorbed. Cold-re-decode the anchored seam stretch wherever a skip or relocation is already proposed, and re-place the seam on that string. Predict listener -3, overall -3; the p31 4:162:15 win is speculative.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Cold re-decode of the proposed seams changed the boundary phones but left the emitted skip at 41:19:7 and left 77:39 uncaught. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T12:14:11+00:00",
+   "id": "listener-cropped-omission-redecode",
+   "component": "listener",
+   "hypothesis": "Omissions of a context-predictable word are placed on the next word, because the in-context encoder hears the spoken successor as the expected word (كنا as إنّا at 44:5, the صدري tail as لي at 20:25). Re-encoding only the proposed omission stretch from a cold state and re-running the unchanged placement and veto rules fixes both pairs. Predict listener -4 (2 false warnings plus their 2 paired misses), overall -4.",
+   "expected": {
+    "component": -4,
+    "overall": -4
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Cold re-encode restored neither /k/ of كنا nor ص of صدري, and added phones in 59 gaps of planted omissions the engine already catches. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T12:30:12+00:00",
+   "id": "tracker-fixed-lag-path-decode",
+   "component": "tracker",
+   "hypothesis": "The online tracker commits to one position before look-alike text is disambiguated, then goes lost or relocates, so skips in refrain text are missed, misplaced or invented (26:222, 54:36, 9:3, 25:57 and the surah-26 refrain seams). Replace commit-then-repair with a fixed-lag best-path decode over word positions, with priced next, delete, repeat and skip transitions, and emit positions about 4 heard words late. Predict tracker -3 and overall -5; 2 of the overall wins are speculative checker-charged spillover from the p24 and p73 surah-26 skip incidents.",
+   "expected": {
+    "component": -3,
+    "overall": -5
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Clean practice sessions gain deletion and skip edges, including Al-Rahman refrain copies, and p33 at the 26:222 skip is on 26:218 rather than the recited 26:221/223. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T12:52:12+00:00",
+   "id": "listener-spike-calibrated-student",
+   "component": "listener",
+   "hypothesis": "Phone wrong-word false warnings pass the folded 0.8 mean-confidence gate because the distilled student emits confusable-consonant spikes (ن/م, ف/ك) at near-1.0 peak confidence on one or two frames. Retrain the student so frame confidence tracks how much sustained evidence a phoneme has: KD at high temperature from the teacher, a penalty on frame-local confidence that the neighbouring frames do not support, and an argmax-agreement term to the shipped student, with augmentation and transcripts unchanged. The existing gate then catches the spikes; predict 3 of 9 won, listener -3, overall -3.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Lowering the winning logit enough to put the marginal wrong-word phones under 0.8 confidence also changes more than 1% of greedy phonemes. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T12:56:20+00:00",
+   "id": "listener-adapted-with-own-noise-costs",
+   "component": "listener",
+   "hypothesis": "Channel-adapted listeners hear phone audio better but fail on ~10 recurring new warnings, because the checker's soft costs and tolerances were fitted to the shipped listener's errors. Ship the phone-channel weights together with checker noise costs re-estimated from that model's own decodes of gold-excluded readers. Predict 5 of the 8 phone wrong-word false warnings won with the recurring new warnings gone: listener -5, overall -5.",
+   "expected": {
+    "component": -5,
+    "overall": -5
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "the diff changes no engine code (only write-ups, tests or docs); implement the change, or explain in the write-up why it can't be done",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T13:10:49+00:00",
+   "id": "checker-omission-residue-placement",
+   "component": "checker",
+   "hypothesis": "When the phone channel erases a word's onset consonant, omission placement goes by edit distance and picks the wrong survivor (كُنّا heard as إنّا at 44:5, صدري material scored as لي at 20:25). Placing a two-candidate omission by the surviving vowel and residual consonant identity fixes it; predict checker 0, overall -2 (one miss and false-warning pair), -4 if both pairs flip (speculative).",
+   "expected": {
+    "component": 0,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Both target traces retain an exact onset match for the incorrectly accepted survivor, so the proposed both-onsets-unmatched residue rule cannot move either target. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T13:25:39+00:00",
+   "id": "listener-retrained-channel-own-costs",
+   "component": "listener",
+   "hypothesis": "The joint listener-plus-noise-costs test was never run because the phone-channel weights were lost. Retrain them from the recorded listener-phone-channel recipe, refit the checker's soft costs and tolerance windows from that model's decodes of gold-excluded readers, and ship both as one diff; predict 5 of the 8 phone wrong-word false warnings won with the ~10 recurring new warnings gone, listener -5, overall -5.",
+   "expected": {
+    "component": -5,
+    "overall": -5
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "the diff changes no engine code (only write-ups, tests or docs); implement the change, or explain in the write-up why it can't be done",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-01T13:42:14+00:00",
+   "sha": "37712511",
+   "testSet": "lab-v1.5",
+   "experiment": "checker-dropped-suffix-wordform",
+   "note": "The folded-candidate wordform check abstains when the reciter drops a consonant-bearing suffix (عليهما→عليه, إنهما→إنه), so 3 targets were never attempted. Re-apply d608a17 and add the missing direction, gated on positive evidence that the suffix was not spoken; predict checker -5 and overall -4 against main, counting d608a17's 2 wins.; practice-only fold, exam not measured",
+   "practice": {
+    "wrongCalls": 80,
+    "missed": 57,
+    "falseWarnings": 23,
+    "listener": 45,
+    "tracker": 5,
+    "checker": 30
+   },
+   "exam": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T13:42:14+00:00",
+   "id": "checker-dropped-suffix-wordform",
+   "component": "checker",
+   "hypothesis": "The folded-candidate wordform check abstains when the reciter drops a consonant-bearing suffix (عليهما→عليه, إنهما→إنه), so 3 targets were never attempted. Re-apply d608a17 and add the missing direction, gated on positive evidence that the suffix was not spoken; predict checker -5 and overall -4 against main, counting d608a17's 2 wins.",
+   "expected": {
+    "component": -5,
+    "overall": -4
+   },
+   "state": "folded",
+   "testSet": "lab-v1.5",
+   "note": "keeps its overall and checker gain",
+   "branch": {
+    "wrongCalls": 80,
+    "missed": 57,
+    "falseWarnings": 23,
+    "listener": 45,
+    "tracker": 5,
+    "checker": 30
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 80,
+     "missed": 57,
+     "falseWarnings": 23,
+     "listener": 45,
+     "tracker": 5,
+     "checker": 30
     },
     "exam": null
    }
