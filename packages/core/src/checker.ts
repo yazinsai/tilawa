@@ -6,6 +6,7 @@ import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
+import { PHRASE_PEAK, PHRASE_SWITCH, parallelPaths } from "./parallel-phrases.js";
 
 export interface CheckerPolicy {
   /** When a suspected wrong or added word is confirmed: after `ms` (2–3 s), or once the next word has begun. Default 2500 ms. */
@@ -160,6 +161,11 @@ interface Issue {
    * visit and `onset` cannot see it. Confirmation may use this instead of a later diagonal.
    */
   pairOnset?: boolean;
+  /**
+   * Attested parallel phrase scored by CTC over `supportRange`. The written path and this one share the
+   * entry and exit words; only the interior word is substituted. No insertion or restart arc.
+   */
+  phrase?: { written: string; alt: string };
 }
 
 interface Open {
@@ -178,6 +184,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const ref = index.phonemes;
   const words = index.words;
   const lexical = lexicalWords(index);
+  const parallels = parallelPaths(index);
   const wordStarts = new Set(words.map((w) => w.start));
   const ayahOf: number[] = [];
   const ayahFirst: number[] = [];
@@ -317,6 +324,13 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const f0 = obs[Math.min(...at)].start;
     const f1 = obs[Math.max(...at)].end + 1;
     if (f0 < frames.startFrame || f1 > frames.endFrame) return null;
+    if (issue.phrase && issue.supportRange) {
+      const altNll = frames.nll(ids(issue.phrase.alt), f0, f1);
+      // A written phrase the frames cannot carry at all still loses to a finite parallel. NaN (both impossible)
+      // is not evidence either way.
+      if (!Number.isFinite(altNll)) return requireFinite ? null : false;
+      return frames.nll(ids(issue.phrase.written), f0, f1) - altNll >= PHRASE_SWITCH;
+    }
     const span = (a: number, b: number) => (a < b ? ref.slice(words[a].start, words[b - 1].end) : "");
     const written = ref.slice(words[from].start, words[to].end);
     const observed = issue.observed ?? "";
@@ -1039,10 +1053,106 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   /** Matched phonemes on the word after an error, heard after it: the next word has begun. */
   const onset = (steps: Step[], issue: Issue) => {
+    // A parallel phrase is only raised once its shared exit word has matched, which is already past the
+    // interior word. The immediate next word can be the suffix the two phrases disagree on, so exact
+    // phoneme hits there are the wrong test.
+    if (issue.phrase) return true;
     const next = nextWord(issue.last);
     let n = 0;
     for (const s of steps) if (s.op === "diag" && s.obs >= issue.obsTo && index.wordAt(s.ref) === next && ref[s.ref] === obs[s.obs].p) n++;
     return n >= Math.min(ONSET, words[next].end - words[next].start);
+  };
+
+  /**
+   * Parallel phrases the alignment has entered and left: the written phonemes against each attested substitute,
+   * over the frames from the shared entry word to the shared exit word. Suffix frames sit in that one span, so
+   * they cannot be lent to a neighbour and counted again. The best path that clears `PHRASE_SWITCH` is a wrong word.
+   */
+  const parallelCandidates = (aligned: Step[]): Issue[] => {
+    if (!frames || frames.startFrame < 0 || !parallels.size) return [];
+    let loW = Infinity;
+    let hiW = -1;
+    for (const s of aligned) if (s.op === "diag") {
+      const wi = index.wordAt(s.ref);
+      if (wi < loW) loW = wi;
+      if (wi > hiW) hiW = wi;
+    }
+    if (hiW < loW) return [];
+    const ids = (s: string) => [...s].map((p) => tokenId.get(p) ?? 0);
+    const covered = (start: number, length: number): { from: number; to: number } | null => {
+      const w0 = words[start].start;
+      const w1 = words[start + length - 1].end;
+      const entry = start;
+      const exit = start + length - 1;
+      let from = -1;
+      let to = -1;
+      let entryDiag = false;
+      let exitDiag = false;
+      let run = false;
+      const reset = () => { from = -1; to = -1; entryDiag = false; exitDiag = false; run = false; };
+      for (const s of aligned) {
+        if (s.op === "jump" || s.op === "lead") {
+          if (exitDiag) break;
+          reset();
+          continue;
+        }
+        const refAt = s.op === "ins" ? s.at : s.ref;
+        if (refAt < w0 || refAt >= w1) {
+          if (exitDiag) break;
+          if (run) reset();
+          continue;
+        }
+        run = true;
+        const wi = index.wordAt(Math.min(refAt, w1 - 1));
+        if (s.op === "diag" && wi === entry) entryDiag = true;
+        if (s.op === "diag" && wi === exit) exitDiag = true;
+        if ("obs" in s && entryDiag) {
+          if (from < 0) from = s.obs;
+          to = s.obs + 1;
+        }
+      }
+      return entryDiag && exitDiag && to > from ? { from, to } : null;
+    };
+    const out: Issue[] = [];
+    const taken = new Set<number>();
+    for (let w = loW; w <= hiW; w++) {
+      const paths = parallels.get(w);
+      if (!paths || taken.has(w) || decided.has(w)) continue;
+      let best: { path: (typeof paths)[number]; span: { from: number; to: number }; margin: number } | null = null;
+      for (const path of paths) {
+        const span = covered(path.start, 4);
+        if (!span) continue;
+        const f0 = obs[span.from].start;
+        const f1 = obs[span.to - 1].end + 1;
+        if (f1 - f0 < 4 || f0 < frames.startFrame || f1 > frames.endFrame) continue;
+        const altNll = frames.nll(ids(path.alt), f0, f1);
+        if (!Number.isFinite(altNll)) continue;
+        // Blank-owned frames say nothing about which phrase was said. A flat phone frame (the whole inventory
+        // sharing the mass) is not a heard word either.
+        let speech = 0;
+        let heard = 0;
+        const blankOwns = Math.log(0.5);
+        for (let f = f0; f < f1; f++) {
+          const row = frames.row(f);
+          if (row[0] >= blankOwns) continue;
+          let top = row[1];
+          for (let i = 2; i < row.length; i++) if (row[i] > top) top = row[i];
+          speech += Math.exp(top);
+          heard++;
+        }
+        if (heard < 4 || speech / heard < PHRASE_PEAK) continue;
+        const margin = frames.nll(ids(path.written), f0, f1) - altNll;
+        if (!(margin >= PHRASE_SWITCH) || (best && margin <= best.margin)) continue;
+        best = { path, span, margin };
+      }
+      if (!best) continue;
+      taken.add(w);
+      out.push({
+        cls: "wrong_word", word: w, last: w, obsFrom: best.span.from, obsTo: best.span.to, observed: best.path.altWord,
+        supportRange: [best.span.from, best.span.to], phrase: { written: best.path.written, alt: best.path.alt },
+      });
+    }
+    return out;
   };
 
   const evaluate = (out: CheckerEvent[], final: boolean) => {
@@ -1056,6 +1166,13 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     // Use the final (possibly repaired) path and identical frames/context for both acoustic hypotheses. Unlike the
     // legacy path, a lexical candidate needs affirmative support; absent or indeterminate posteriors mean abstain.
     for (const candidate of judged.lexical) if (supported(candidate, true) === true) {
+      issues.set(candidate.word, candidate);
+      right.delete(candidate.word);
+    }
+    for (const candidate of parallelCandidates(steps)) {
+      const existing = [...issues.values()].find((i) => i.word <= candidate.word && candidate.word <= i.last);
+      if (existing && !(existing.cls === "omitted_word" && existing.word === candidate.word && existing.last === candidate.word)) continue;
+      if (supported(candidate, true) !== true) continue;
       issues.set(candidate.word, candidate);
       right.delete(candidate.word);
     }
