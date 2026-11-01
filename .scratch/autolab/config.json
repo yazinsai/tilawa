@@ -8,9 +8,57 @@
   "modalUsd": 150
  },
  "models": {
-  "planner": "claude-opus-5-5",
-  "reviewer": "claude-opus-5-5",
-  "strategist": "claude-opus-5-5",
+  "planner": {
+   "id": "claude-opus-5-5",
+   "params": [
+    {
+     "id": "context",
+     "value": "1m"
+    },
+    {
+     "id": "effort",
+     "value": "medium"
+    },
+    {
+     "id": "fast",
+     "value": "false"
+    }
+   ]
+  },
+  "reviewer": {
+   "id": "claude-opus-5-5",
+   "params": [
+    {
+     "id": "context",
+     "value": "1m"
+    },
+    {
+     "id": "effort",
+     "value": "medium"
+    },
+    {
+     "id": "fast",
+     "value": "false"
+    }
+   ]
+  },
+  "strategist": {
+   "id": "claude-opus-5-5",
+   "params": [
+    {
+     "id": "context",
+     "value": "1m"
+    },
+    {
+     "id": "effort",
+     "value": "medium"
+    },
+    {
+     "id": "fast",
+     "value": "false"
+    }
+   ]
+  },
   "judge": "gpt-5.6-sol",
   "diffReviewer": "gpt-5.6-sol"
  },
@@ -23,7 +71,7 @@
  "listenerModel": "models/spliced-clean-int8",
  "tests": "pnpm --filter @tilawa/core... --filter @tilawa/sdk... build && pnpm --filter @tilawa/core --filter @tilawa/sdk test",
  "notify": {
-  "topic": "",
+  "topic": "tilawa-autolab-d9285cb5894c",
   "dashboard": ""
  }
 }

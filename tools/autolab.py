@@ -47,7 +47,8 @@ PRACTICE_SCORES = 3
 DEFAULT_CONFIG = {
     "slots": 6, "planEveryMinutes": 30, "tickSeconds": 120,
     "caps": {"agentRuns": 60, "agentHours": 40, "modalUsd": 150},
-    "models": {"planner": "claude-opus-5-5", "reviewer": "claude-opus-5-5", "strategist": "claude-opus-5-5",
+    "models": {**dict.fromkeys(("planner", "reviewer", "strategist"), {"id": "claude-opus-5-5", "params": [
+                   {"id": "context", "value": "1m"}, {"id": "effort", "value": "medium"}, {"id": "fast", "value": "false"}]}),
                "judge": "gpt-5.6-sol", "diffReviewer": "gpt-5.6-sol"},
     "executor": {"runtime": "cursor-local", "model": "grok-4.7", "fallbackModel": "gpt-5.6-sol",
                  "env": {"MODAL_ENVIRONMENT": "autolab-exec"}},
