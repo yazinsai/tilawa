@@ -16,7 +16,7 @@
     watchdog                 notify when the heartbeat is stale (run from cron or launchd, apart from the loop)
     match <id> agree|disagree   your verdict on a shadow decision (ticket 11)
     waiting                  what needs you, with the command for each
-    approve <id>             let a bet over betApprovalUsd start
+    approve <id>             let a bet of betApprovalUsd or more start
     retry <id> [--note ...]  re-run checks, tests and scoring; with a note, back to the builder with it
     drop <id> [why]          end an experiment
     eli5                     plain one-liners for experiments whose cards predate the eli5 field
@@ -78,7 +78,7 @@ DEFAULT_CONFIG = {
                               {"name": "astra", "runtime": "codex-azure", "azure": {"endpoint": "", "deployment": "", "apiVersion": ""}, "effort": "high"}],
                  "split": {"grok": 1, "astra": 1}},
     "exec": dict(I.LIMITS),
-    "betApprovalUsd": 25,
+    "betApprovalUsd": 100,
     "listenerModel": "models/spliced-clean-int8",
     "tests": "bash tools/autolab_tests.sh",
     "testShards": 6,
@@ -642,7 +642,7 @@ class Tick:
         c = e["card"]
         if e["results"].get("retryAfter", "") > self.at:
             return
-        if e["tier"] == "bet" and c.get("gpuUsd", 0) > w.cfg.get("betApprovalUsd", 25) and not e["results"].get("approved"):
+        if e["tier"] == "bet" and c.get("gpuUsd", 0) >= w.cfg.get("betApprovalUsd", 100) and not e["results"].get("approved"):
             return self.move(e, "needs-human", f"a bet asking for ${c['gpuUsd']} of GPU needs your approval: tools/autolab.py approve {e['id']}")
         if not e["worktree"]:
             try:
