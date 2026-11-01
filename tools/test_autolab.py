@@ -229,7 +229,8 @@ def advance(w, n, component="checker", tier="exploit"):
 def test_listener_cards_are_decoded_then_scored_with_their_own_evidence(w):
     st, id = advance(w, 3, component="listener")
     decode = next(j for n, j in w.jobs.items() if n.startswith("decode-"))
-    assert "modal/lab_decode.py" in " ".join(decode["argv"]) and "--listener" in decode["argv"]
+    cmd = " ".join(decode["argv"])
+    assert "modal/lab_decode.py" in cmd and "--listener exp-" in cmd and 'exitCode' in cmd
     card = json.loads((w.tmp / id / L.CARD).read_text())
     assert card["listener"].startswith(f"exp-{id}")
     assert states(st)[id] in ("scoring", "folding", "folded")
