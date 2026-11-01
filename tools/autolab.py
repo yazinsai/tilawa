@@ -54,13 +54,14 @@ VOL_STATE, VOL_EVENTS, VOL_LEDGER, VOL_JOURNAL = "/autolab/state.json", "/autola
 VOL_INBOX, VOL_ELI5 = "/autolab/inbox", "/autolab/eli5.json"
 OWN_DATA = re.compile(r"(\.exp-[^/]+\.(phone|studio)\.evidence\.json|/decode-v1\.json)$")
 PRACTICE_SCORES = 3
+GROK = {"id": "grok-4.7", "params": [{"id": "context", "value": "500k"}, {"id": "reasoning_effort", "value": "high"}, {"id": "fast", "value": "false"}]}
 DEFAULT_CONFIG = {
     "slots": 6, "planEveryMinutes": 30, "tickSeconds": 120,
     "caps": {"agentRuns": 60, "agentHours": 40, "modalUsd": 150},
     "models": {**dict.fromkeys(("planner", "reviewer", "strategist"), {"id": "claude-opus-5-5", "params": [
                    {"id": "context", "value": "1m"}, {"id": "effort", "value": "medium"}, {"id": "fast", "value": "false"}]}),
-               "judge": "gpt-5.6-sol", "diffReviewer": "gpt-5.6-sol"},
-    "executor": {"runtime": "cursor-local", "model": "grok-4.7", "fallbackModel": "gpt-5.6-sol",
+               **dict.fromkeys(("judge", "diffReviewer"), GROK)},
+    "executor": {"runtime": "cursor-local", "model": GROK, "fallbackModel": GROK,
                  "env": {"MODAL_ENVIRONMENT": "autolab-exec"}},
     "betApprovalUsd": 25,
     "listenerModel": "models/spliced-clean-int8",

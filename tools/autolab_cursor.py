@@ -38,7 +38,7 @@ import time
 from datetime import UTC, datetime
 from pathlib import Path
 
-DEFAULTS = {"model": "grok-4.7", "fallbackModel": "gpt-5.6-sol", "cancelGraceS": 30}  # ids unverified until a key runs `models`
+DEFAULTS = {"model": "grok-4.7", "fallbackModel": "grok-4.7", "cancelGraceS": 30}
 TERMINAL = ("finished", "failed")
 
 

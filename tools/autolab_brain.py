@@ -3,8 +3,8 @@ prompt, a context pack built by code, and a JSON answer checked against a schema
 with the error; a second failure raises BrainError and the supervisor marks the work needs-human.
 
     plan(cfg, pack, slots, st)          Opus: one card per free (component, tier) slot
-    judge(cfg, card, pack)              GPT:  is this a restatement of a tried mechanism?
-    review_diff(cfg, card, diff)        GPT:  does the diff special-case the benchmark or weaken checks?
+    judge(cfg, card, pack)              Grok:  is this a restatement of a tried mechanism?
+    review_diff(cfg, card, diff)        Grok:  does the diff special-case the benchmark or weaken checks?
     review(cfg, exp, outcome, pack)     Opus: the journal entry, and a follow-up card or why the line is dead
     strategy(cfg, pack, frozen, slots, st)  Opus: the "why stuck" memo and bets
 
