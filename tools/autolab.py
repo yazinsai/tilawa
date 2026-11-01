@@ -601,10 +601,9 @@ class Tick:
         sha = w.git("rev-parse", "--short", "HEAD", cwd=e["worktree"])
         r["listener"] = f"exp-{e['id']}-{sha}"[:60]
         practice = (vol_get(VOL_LEDGER) or {}).get("testSets", {}).get(self.st["testSet"], {}).get("sessions", {}).get("practice", [])
-        r["decodeJob"] = w.job(f"decode-{e['id']}-{sha}", ["modal", "run", str(REPO / "modal/lab_decode.py"), "--listener", r["listener"],
-                                                           "--model", w.cfg["listenerModel"], "--test-set", self.st["testSet"].split(".v")[0],
-                                                           "--variants", "phone,studio", "--only", ",".join(practice)],
-                               env={"LAB_SRC": e["worktree"]})
+        decode = ["modal", "run", str(REPO / "modal/lab_decode.py"), "--listener", r["listener"], "--model", w.cfg["listenerModel"],
+                  "--test-set", self.st["testSet"].split(".v")[0], "--variants", "phone,studio", "--only", ",".join(practice)]
+        r["decodeJob"] = w.job(f"decode-{e['id']}-{sha}", json_exit(decode), env={"LAB_SRC": e["worktree"]})
 
     def score_with_listener(self, e, listener: str):
         wt = e["worktree"]
@@ -728,6 +727,12 @@ class Tick:
         cards = self.brain(None, B.plan, self.ctx(), free)
         for c in cards or []:
             self.add(c)
+
+
+def json_exit(argv: list[str]) -> list[str]:
+    """A command that prints no JSON, wrapped so its job ends in a JSON line saying how it exited (what poll reads)."""
+    import shlex  # noqa: PLC0415
+    return ["bash", "-c", f'{shlex.join(argv)}; code=$?; echo "{{\\"exitCode\\": $code}}"']
 
 
 def test_command(cfg: dict) -> str:
