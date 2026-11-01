@@ -6,7 +6,7 @@
   "component": -5,
   "overall": -4
  },
- "listener": "spliced-clean-int8",
+ "listener": "exp-listener-faithful-splice-training-39e446f",
  "testSet": "lab-v1.5",
  "created": "2026-11-01T04:02:14+00:00",
  "author": "autolab"
