@@ -115,6 +115,19 @@ def test_judge_and_diff_review_shapes():
     assert r["ok"] and "10 more characters" in ask.prompts[0][1]
 
 
+def test_a_silent_diff_reviewer_falls_back_to_the_reviewer_model():
+    roles = []
+
+    def ask(cfg, role, prompt):
+        roles.append(role)
+        if role == "diffReviewer":
+            raise B.Unavailable("diffReviewer: no answer within 960 s")
+        return answer({"ok": True, "why": "fine"})
+    assert B.review_diff(CFG, card(), "diff", ask)["ok"] and roles == ["diffReviewer", "reviewer"]
+    with pytest.raises(B.Unavailable):
+        B.review_diff({"models": dict(CFG["models"], reviewer="model-diffReviewer")}, card(), "diff", ask)
+
+
 def test_review_and_strategy():
     exp = {"card": card(), "tier": "explore", "results": {"executor": {"summary": "done"}}}
     r = B.review(CFG, exp, {"state": "discarded"}, ctx(), Asker(answer({"journal": "It failed.", "followUp": None, "deadEnd": "no onset"})))

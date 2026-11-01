@@ -445,6 +445,31 @@ def test_inbox_retry_with_a_note_goes_back_to_the_builder(w):
     assert e["state"] in ("implementing", "validating", "scoring", "folding") and "use the smaller recipe" in " ".join(h["note"] for h in e["history"])
 
 
+def test_inbox_retry_of_a_judge_timeout_asks_the_judge_again(w):
+    st = w.load()
+    e, _ = S.add(st, card("checker-unjudged"), T0)
+    S.move(st, e["id"], "needs-human", T0, "the novelty judge didn't answer in time")
+    st["lastPlanAt"] = "2999-01-01T00:00:00+00:00"
+    w.saved = st
+    w.queued = [{"op": "retry", "id": e["id"], "note": ""}]
+    st = tick(w)
+    seen = [h["state"] for h in st["experiments"][e["id"]]["history"]]
+    assert seen[seen.index("needs-human") + 1] == "proposed" and "judge" in st["experiments"][e["id"]]["results"]
+
+
+def test_inbox_reopen_sends_an_abandoned_build_back_to_validation(w, tmp_path):
+    st = w.load()
+    e, _ = S.add(st, card("checker-slow-review"), T0)
+    for to in ("accepted", "implementing", "validating", "abandoned"):
+        S.move(st, e["id"], to, T0)
+    e["worktree"] = str(tmp_path)
+    st["lastPlanAt"] = "2999-01-01T00:00:00+00:00"
+    w.saved = st
+    w.queued = [{"op": "reopen", "id": e["id"]}]
+    st = tick(w)
+    assert "validating" in [h["state"] for h in st["experiments"][e["id"]]["history"]][-3:]
+
+
 def test_inbox_drop_and_rejections(w):
     id = waiting_bet(w)
     w.queued = [{"op": "drop", "id": id, "why": "too expensive"}, {"op": "approve", "id": "nope"}]

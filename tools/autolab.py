@@ -528,11 +528,19 @@ class Tick:
             for k in ("testsJob", "decodeJob", "scoreJob", "foldJob"):
                 self.w.kill(r.pop(k, None))
             r.pop("testsPassed", None)
-            if c.get("note") or not e["worktree"]:
+            if "judge" not in r and not e["worktree"]:
+                self.move(e, "proposed", "retry by you: the novelty judge again")
+            elif c.get("note") or not e["worktree"]:
                 r["feedback"] = c.get("note") or ""
                 self.move(e, "accepted", "retry by you" + (f": {c['note'][:120]}" if c.get("note") else ""))
             else:
                 self.move(e, "validating", "retry by you: checks, tests and scoring again")
+        elif op == "reopen":
+            if e["state"] != "abandoned" or not e["worktree"] or not Path(e["worktree"]).exists():
+                raise ValueError(f"{e['id']} is {e['state']}; only an abandoned experiment with its worktree can be reopened")
+            for k in ("testsJob", "decodeJob", "scoreJob", "foldJob", "testsPassed"):
+                e["results"].pop(k, None)
+            self.move(e, "validating", "reopened by you: checks, tests and scoring again")
         elif op == "drop":
             if e["state"] in S.TERMINAL:
                 raise ValueError(f"{e['id']} already ended ({e['state']})")
@@ -1449,6 +1457,11 @@ def cmd_retry(a):
     send("retry", id=a.id, note=a.note)
 
 
+def cmd_reopen(a):
+    known(a.id)
+    send("reopen", id=a.id)
+
+
 def cmd_drop(a):
     known(a.id)
     send("drop", id=a.id, why=" ".join(a.why) or "dropped by you")
@@ -1494,6 +1507,8 @@ def main():
     rp = sub.add_parser("retry")
     rp.add_argument("id")
     rp.add_argument("--note", default="")
+    op = sub.add_parser("reopen")
+    op.add_argument("id")
     dp = sub.add_parser("drop")
     dp.add_argument("id")
     dp.add_argument("why", nargs="*")
@@ -1504,7 +1519,7 @@ def main():
     try:
         {"init": cmd_init, "tick": cmd_tick, "loop": cmd_loop, "pause": cmd_pause, "resume": lambda a: cmd_pause(a, why=""),
          "status": cmd_status, "ab": cmd_ab, "practice-score": cmd_practice_score, "watchdog": cmd_watchdog, "match": cmd_match,
-         "approve": cmd_approve, "waiting": cmd_waiting, "retry": cmd_retry, "drop": cmd_drop, "eli5": cmd_eli5,
+         "approve": cmd_approve, "waiting": cmd_waiting, "retry": cmd_retry, "reopen": cmd_reopen, "drop": cmd_drop, "eli5": cmd_eli5,
          "modal-run": cmd_modal_run, "modal-result": cmd_modal_result, "sync-exec-data": cmd_sync_exec_data}[a.op](a)
     except Stop as err:
         sys.exit(f"autolab: {err}")

@@ -218,14 +218,20 @@ def extract(text: str):
     return json.JSONDecoder().raw_decode(text[start:])[0]
 
 
+FALLBACK = {"judge": "reviewer", "diffReviewer": "reviewer"}
+
+
 def call(cfg: dict, role: str, prompt: str, check, ask=None):
-    """Asks, parses and checks; one retry with the error appended."""
+    """Asks, parses and checks; one retry with the error appended. A role whose model doesn't answer is asked once more
+    on its fallback role's model (Grok can think past any limit on a large diff)."""
     ask = ask or default_ask
     err = None
     for attempt in range(2):
         try:
             text = ask(cfg, role, prompt + FINAL if not err else f"{prompt}{FINAL}\n\nYour previous answer was rejected: {err}\nAnswer again with only the JSON block.")
         except Unavailable:
+            if role in FALLBACK and cfg["models"].get(FALLBACK[role]) != cfg["models"].get(role):
+                return call(cfg, FALLBACK[role], prompt, check, ask)
             raise
         except Exception as e:  # noqa: BLE001 - any failure to get an answer is an outage, not a bad answer
             raise Unavailable(f"{role}: {e}") from e

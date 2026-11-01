@@ -34,7 +34,8 @@ NEXT = {
     "validating": ("scoring", "implementing", "discarded", "abandoned", "needs-human"),
     "scoring": ("folding", "discarded", "abandoned", "needs-human"),
     "folding": ("folded", "discarded", "superseded", "implementing", "abandoned", "needs-human"),
-    "needs-human": ("accepted", "implementing", "validating", "scoring", "folding", "discarded", "abandoned"),
+    "abandoned": ("validating",),
+    "needs-human": ("proposed", "accepted", "implementing", "validating", "scoring", "folding", "discarded", "abandoned"),
 }
 # Minutes in a state before the supervisor gives up on it; implementing depends on the tier.
 TIMEOUTS = {"proposed": 60, "validating": 90, "scoring": 90, "folding": 150,
