@@ -3,8 +3,8 @@
  "planEveryMinutes": 30,
  "tickSeconds": 120,
  "caps": {
-  "agentRuns": 100,
-  "agentHours": 40,
+  "agentRuns": 200,
+  "agentHours": 100,
   "modalUsd": 3000
  },
  "models": {
@@ -192,5 +192,21 @@
   "topic": "tilawa-autolab-d9285cb5894c",
   "dashboard": ""
  },
- "testShards": 6
+ "testShards": 6,
+ "betApprovalUsd": 100,
+ "execModels": [
+  "models/phone-channel-int8",
+  "models/channel-adapt-int8",
+  "models/channel-blend25-int8",
+  "models/paired-consonants-int8",
+  "models/paired-control-int8",
+  "models/targeted-consonants-int8",
+  "models/sparse-consonants-int8",
+  "models/sparse-random-int8",
+  "models/sparse-consonants-v2-int8",
+  "models/sparse-random-v2-int8",
+  "models/continuation-clean-int8",
+  "models/continuation-phone-int8"
+ ],
+ "examEvery": 5
 }
