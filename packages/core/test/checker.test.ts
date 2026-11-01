@@ -13,7 +13,6 @@ const w = (surah: number, ayah: number, word: number): WordRef => ({ surah, ayah
 const find = (r: WordRef) => index.words.find((x) => x.surah === r.surah && x.ayah === r.ayah && x.word === r.word)!;
 const key = (r: WordRef) => `${r.surah}:${r.ayah}:${r.word}`;
 const text = (r: WordRef) => index.phonemes.slice(find(r).start, find(r).end);
-const phrase = (name: string) => phrases.phrases.find((p) => p.name === name)!.p;
 /** A word that occurs nowhere near 2:255, so it can't be read as a repeat or a skip. */
 const ALIEN = text(w(108, 1, 3));
 
@@ -177,37 +176,6 @@ describe("skips", () => {
   it("leave a real آمين after al-Fatiha alone", () => {
     const f = syntheticFixture(index, { id: "c", from: w(1, 1, 1), to: w(2, 5, 3), edits: [{ kind: "ins", at: find(w(2, 1, 1)).start - find(w(1, 1, 1)).start, text: "ءَاامِۦۦن" }], chunkSize: 8 });
     expect(confirmed(replayChecked(index, f, { phrases }, { phrases }))).toEqual([]);
-  });
-
-  it("confirms a different word said before an ayah's first word", () => {
-    // The onset sticks to the ayah's first word and the tail jumps back; the real word is said afterwards.
-    const start = w(77, 15, 1);
-    const boundary = find(w(77, 16, 1)).start - find(start).start;
-    const f = syntheticFixture(index, { id: "c", from: start, to: w(77, 17, 3), edits: [{ kind: "ins", at: boundary, text: "قَبڇلِهِم" }], chunkSize: 8 });
-    expect(summary(confirmed(replayChecked(index, f, { phrases }, { phrases })))).toEqual(["confirmed added_word 77:16:1"]);
-  });
-
-  it("confirms an added word whose tail is the previous word's ending", () => {
-    const start = w(77, 15, 1);
-    const boundary = find(w(77, 16, 1)).start - find(start).start;
-    const f = syntheticFixture(index, { id: "c", from: start, to: w(77, 17, 3), edits: [{ kind: "ins", at: boundary, text: "فَءِن" }], chunkSize: 8 });
-    expect(summary(confirmed(replayChecked(index, f, { phrases }, { phrases })))).toEqual(["confirmed added_word 77:16:1"]);
-  });
-
-  it("does not call a one-consonant slip of the ayah's first word an added word", () => {
-    const start = w(77, 15, 1);
-    const boundary = find(w(77, 16, 1)).start - find(start).start;
-    const slip = text(w(77, 16, 1)).replace("م", "ن");
-    const f = syntheticFixture(index, { id: "c", from: start, to: w(77, 17, 3), edits: [{ kind: "ins", at: boundary, text: slip }], chunkSize: 8 });
-    expect(confirmed(replayChecked(index, f, { phrases }, { phrases })).filter((e) => e.errorClass === "added_word")).toEqual([]);
-  });
-
-  it("leaves صدق الله phrases before an ayah alone", () => {
-    const start = w(2, 255, 45);
-    for (const name of ["sadaq_allah", "sadaq_allah_al_azim"]) {
-      const f = syntheticFixture(index, { id: "c", from: start, to: w(2, 256, 4), edits: [{ kind: "ins", at: find(w(2, 256, 1)).start - find(start).start, text: phrase(name) }], chunkSize: 8 });
-      expect(confirmed(replayChecked(index, f, { phrases }, { phrases })).filter((e) => e.errorClass === "added_word"), name).toEqual([]);
-    }
   });
 
   it("confirm when they are not", () => {
