@@ -258,7 +258,7 @@ def alive(pid: int) -> bool:
 class Tick:
     def __init__(self, w: World, st: dict, at: str):
         self.w, self.st, self.at, self.events = w, st, at, []
-        self._ctx = None
+        self._ctx, self.brain_down = None, False
 
     def move(self, e, to, note=""):
         self.events.append(S.move(self.st, e["id"], to, self.at, note))
@@ -273,9 +273,23 @@ class Tick:
         return self._ctx
 
     def brain(self, e, fn, *args):
-        """An orchestrator call; a BrainError sends the experiment to needs-human."""
+        """An orchestrator call. A model outage leaves everything where it is for a later tick (and pages after an hour);
+        a malformed answer, after its retry, sends the experiment to needs-human."""
+        st = self.st
+        if self.brain_down:
+            return None
         try:
-            return fn(self.w.cfg, *args, ask=self.w.ask)
+            out = fn(self.w.cfg, *args, ask=self.w.ask)
+            st.pop("brainDown", None)
+            return out
+        except B.Unavailable as err:
+            self.brain_down = True
+            down = st.setdefault("brainDown", {"since": self.at})
+            down["error"] = str(err)[:300]
+            if S.minutes(down["since"], self.at) > 60:
+                self.w.notify(st, "needs-human", f"brain-down:{down['since']}", "Autolab: the models aren't answering",
+                              f"No answer since {down['since']}: {down['error']}", self.at)
+            return None
         except B.BrainError as err:
             if e:
                 self.move(e, "needs-human", f"orchestrator: {err}")
@@ -811,10 +825,26 @@ def count_states(st):
     return out
 
 
+TICK_LIMIT_S = 25 * 60
+
+
 def cmd_loop(a):
-    w = World(config())
+    """Ticks forever. A tick stuck past TICK_LIMIT_S exits the process (run it under a restarting shell loop): state is
+    on the volume and jobs are detached, so a fresh process picks up where this one hung."""
+    import threading  # noqa: PLC0415
+    w, started = World(config()), [time.time()]
+
+    def watchdog():
+        while True:
+            time.sleep(60)
+            if time.time() - started[0] > TICK_LIMIT_S:
+                print(f"{S.now()} tick stuck for over {TICK_LIMIT_S // 60} min; exiting so the loop restarts", flush=True)
+                os.killpg(os.getpgid(0), signal.SIGTERM) if os.getpgid(0) == os.getpid() else None
+                os._exit(3)
+
+    threading.Thread(target=watchdog, daemon=True).start()
     while True:
-        t0 = time.time()
+        t0 = started[0] = time.time()
         w.cfg = config()
         try:
             st = tick_once(w)

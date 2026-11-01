@@ -375,6 +375,14 @@ def main(argv):
         return 0
     if argv[:1] == ["smoke"] and len(argv) in (2, 3):
         return smoke(*argv[1:])
+    if argv[:1] == ["prompt"]:
+        job = json.loads(sys.stdin.read())
+        try:
+            print(json.dumps({"text": prompt_model(_config(), job["model"], job["prompt"], timeout_s=job.get("timeout", 900))}))
+        except Exception as e:  # noqa: BLE001 - the parent decides what a failure means
+            print(json.dumps({"error": str(e)}))
+            return 1
+        return 0
     print(__doc__)
     return 2
 

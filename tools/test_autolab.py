@@ -29,8 +29,8 @@ def report(run):
 
 
 def card(id="checker-edge-fit", tier="exploit", component="checker", **kw):
-    return {"id": id, "component": component, "tier": tier, **({"gpuUsd": 20} if tier == "bet" else {}), "hypothesis": "Fit added words at edges. Expect -3.", "eli5": "An extra word gets hidden inside its neighbour; look at both neighbours.",
-            "mechanism": "Added speech is absorbed by the neighbour.", "cluster": CLUSTER, "targets": [INCIDENT],
+    return {"id": id, "component": component, "tier": tier, **({"gpuUsd": 20} if tier == "bet" else {}), "hypothesis": "Fit added words at edges. Expect -3.",
+            "eli5": "An extra word gets hidden inside its neighbour; look at both neighbours.", "mechanism": "Added speech is absorbed by the neighbour.", "cluster": CLUSTER, "targets": [INCIDENT],
             "expected": {"component": -3, "overall": -3}, "killCriterion": "no target recovered", **kw}
 
 
@@ -416,6 +416,31 @@ def test_inbox_pause_and_resume(w):
     assert tick(w)["paused"] == "holiday"
     w.queued = [{"op": "pause", "why": ""}]
     assert tick(w)["paused"] is None
+
+
+def test_a_model_outage_waits_without_pausing_or_moving_anything(w):
+    def down(prompt):
+        raise RuntimeError("claude-opus-5-5 did not start: [unavailable] Server at capacity")
+    w.answers["planner"] = down
+    st = tick(w)
+    assert not st.get("paused") and st["experiments"] == {} and "capacity" in st["brainDown"]["error"]
+    st = tick(w, "2026-11-01T11:30:00+00:00")
+    assert any("aren't answering" in title for _, title in w.notes)
+    w.answers["planner"] = lambda p: answer({"cards": [card(f"c-{i}", component=s["component"], tier=s["tier"]) for i, s in enumerate(slots(p))]})
+    st = tick(w, "2026-11-01T11:32:00+00:00")
+    assert "brainDown" not in st and len(st["experiments"]) == 6
+
+
+def test_an_outage_mid_judging_leaves_the_card_proposed(w):
+    tick(w)
+    def down(prompt):
+        raise RuntimeError("timeout")
+    w.answers["judge"] = down
+    st = w.load()
+    st["lastPlanAt"] = "2999-01-01T00:00:00+00:00"
+    w.saved = st
+    st = tick(w)
+    assert set(states(st).values()) == {"proposed"}
 
 
 def test_a_tick_that_raises_pauses_and_pages(w, monkeypatch):

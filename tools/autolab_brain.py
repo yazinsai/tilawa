@@ -26,6 +26,10 @@ class BrainError(Exception):
     pass
 
 
+class Unavailable(BrainError):
+    """The model didn't answer (at capacity, timed out, network): try again on a later tick; not the experiment's fault."""
+
+
 ABOUT = """Tilawa is an offline streaming Quran recitation engine. A reciter recites freely; the engine must warn on real
 mistakes (wrong, omitted or added words, skipped passages, mutashabihat swaps) and stay quiet otherwise. Three components:
 - listener: the acoustic model (CTC phoneme posteriors) and its decoding (packages/sdk, modal/student_*.py);
@@ -172,9 +176,29 @@ def eli5(cfg: dict, items: dict[str, str], ask=None) -> dict[str, str]:
 # Calls
 
 
-def default_ask(cfg: dict, role: str, prompt: str) -> str:
-    from autolab_cursor import prompt_model  # noqa: PLC0415 - cursor-sdk only for real runs
-    return prompt_model(cfg, cfg["models"][role], prompt)
+def default_ask(cfg: dict, role: str, prompt: str, timeout_s: int = 900) -> str:
+    """One model call in a child process with a hard wall-clock limit: the SDK can block before its own timeout starts,
+    so on expiry the whole process group (SDK bridge included) is killed."""
+    import os  # noqa: PLC0415
+    import signal  # noqa: PLC0415
+    import subprocess  # noqa: PLC0415
+    import sys  # noqa: PLC0415
+    from pathlib import Path  # noqa: PLC0415
+    p = subprocess.Popen([sys.executable, str(Path(__file__).with_name("autolab_cursor.py")), "prompt"], stdin=subprocess.PIPE,
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
+    try:
+        out, err = p.communicate(json.dumps({"model": cfg["models"][role], "prompt": prompt, "timeout": timeout_s}), timeout=timeout_s + 60)
+    except subprocess.TimeoutExpired:
+        os.killpg(p.pid, signal.SIGKILL)
+        p.communicate()
+        raise Unavailable(f"{role}: no answer within {timeout_s + 60} s") from None
+    try:
+        res = json.loads(out.strip().splitlines()[-1])
+    except (IndexError, json.JSONDecodeError):
+        raise Unavailable(f"{role}: {(err or out)[-300:]}") from None
+    if "error" in res:
+        raise Unavailable(f"{role}: {res['error'][:300]}")
+    return res["text"]
 
 
 def extract(text: str):
@@ -187,7 +211,12 @@ def call(cfg: dict, role: str, prompt: str, check, ask=None):
     ask = ask or default_ask
     err = None
     for attempt in range(2):
-        text = ask(cfg, role, prompt if not err else f"{prompt}\n\nYour previous answer was rejected: {err}\nAnswer again, JSON only.")
+        try:
+            text = ask(cfg, role, prompt if not err else f"{prompt}\n\nYour previous answer was rejected: {err}\nAnswer again, JSON only.")
+        except Unavailable:
+            raise
+        except Exception as e:  # noqa: BLE001 - any failure to get an answer is an outage, not a bad answer
+            raise Unavailable(f"{role}: {e}") from e
         try:
             return check(extract(text))
         except (ValueError, KeyError, TypeError) as e:
