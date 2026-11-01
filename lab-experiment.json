@@ -1,0 +1,13 @@
+{
+ "id": "checker-ayah-seam-additions",
+ "component": "checker",
+ "hypothesis": "Extra words said in the pause between ayahs fall between two per-ayah comparison windows, so no insertion state ever prices them. Extend the folded joint-additions fit across the seam so it covers the previous ayah's last word, the heard speech in the gap, and word 1 of the next ayah. Predict 6 of the 11 word-1 targets won, checker -5, overall -4.",
+ "expected": {
+  "component": -5,
+  "overall": -4
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-01T06:23:50+00:00",
+ "author": "autolab"
+}
