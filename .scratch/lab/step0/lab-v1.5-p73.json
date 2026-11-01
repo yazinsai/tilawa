@@ -1,0 +1,9973 @@
+{
+ "version": 1,
+ "id": "lab-v1.5-p73",
+ "track": "recitation",
+ "speaker": "mp3quran-314",
+ "source": "stitched",
+ "audio": "sessions/lab-v1.5-p73.phone.wav",
+ "durationS": 316.5,
+ "context": {
+  "kind": "none"
+ },
+ "segments": [
+  {
+   "id": "seg-1",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 0.0,
+   "endS": 20.93,
+   "srcStartS": 611.485,
+   "srcEndS": 632.415,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-2",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 20.93,
+   "endS": 46.79,
+   "srcStartS": 633.225,
+   "srcEndS": 659.085,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-3",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 46.79,
+   "endS": 53.31,
+   "srcStartS": 663.885,
+   "srcEndS": 670.405,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-4",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 53.31,
+   "endS": 62.56,
+   "srcStartS": 671.425,
+   "srcEndS": 680.675,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-5",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 62.56,
+   "endS": 80.62,
+   "srcStartS": 681.785,
+   "srcEndS": 699.845,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-6",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 80.62,
+   "endS": 89.32,
+   "srcStartS": 700.125,
+   "srcEndS": 708.825,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-7",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 89.32,
+   "endS": 100.43,
+   "srcStartS": 713.715,
+   "srcEndS": 724.825,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-8",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 100.43,
+   "endS": 113.43,
+   "srcStartS": 734.105,
+   "srcEndS": 747.105,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-9",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 113.43,
+   "endS": 114.95,
+   "srcStartS": 953.365,
+   "srcEndS": 954.885,
+   "gainDb": -0.4
+  },
+  {
+   "id": "seg-10",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 114.95,
+   "endS": 141.03,
+   "srcStartS": 748.455,
+   "srcEndS": 774.535,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-11",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 141.03,
+   "endS": 155.21,
+   "srcStartS": 769.725,
+   "srcEndS": 783.905,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-12",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 155.21,
+   "endS": 179.31,
+   "srcStartS": 784.365,
+   "srcEndS": 808.465,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-13",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 179.31,
+   "endS": 193.78,
+   "srcStartS": 809.245,
+   "srcEndS": 823.715,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-14",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 193.78,
+   "endS": 209.53,
+   "srcStartS": 829.195,
+   "srcEndS": 844.945,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-15",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 209.53,
+   "endS": 212.7,
+   "srcStartS": 947.605,
+   "srcEndS": 950.775,
+   "gainDb": -0.7
+  },
+  {
+   "id": "seg-16",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 212.7,
+   "endS": 234.51,
+   "srcStartS": 848.505,
+   "srcEndS": 870.315,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-17",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 234.51,
+   "endS": 259.25,
+   "srcStartS": 871.575,
+   "srcEndS": 896.315,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-18",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 259.25,
+   "endS": 270.96,
+   "srcStartS": 902.635,
+   "srcEndS": 914.345,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-19",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 270.96,
+   "endS": 289.02,
+   "srcStartS": 915.105,
+   "srcEndS": 933.165,
+   "gainDb": 0.0
+  },
+  {
+   "id": "seg-20",
+   "speaker": "mp3quran-314",
+   "audio": "sources/mp3quran/314/026.wav",
+   "split": "eval",
+   "timing": "alignment",
+   "startS": 289.02,
+   "endS": 316.5,
+   "srcStartS": 934.655,
+   "srcEndS": 962.135,
+   "gainDb": 0.0
+  }
+ ],
+ "spans": [
+  {
+   "id": "span-1",
+   "kind": "recitation",
+   "from": {
+    "surah": 26,
+    "ayah": 83,
+    "word": 1
+   },
+   "startS": 0.155,
+   "to": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 5
+   },
+   "endS": 140.775
+  },
+  {
+   "id": "span-2",
+   "kind": "repeat",
+   "from": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 1
+   },
+   "startS": 141.065,
+   "to": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 5
+   },
+   "endS": 145.585
+  },
+  {
+   "id": "span-3",
+   "kind": "recitation",
+   "from": {
+    "surah": 26,
+    "ayah": 112,
+    "word": 1
+   },
+   "startS": 146.025,
+   "to": {
+    "surah": 26,
+    "ayah": 143,
+    "word": 4
+   },
+   "endS": 316.085
+  }
+ ],
+ "words": [
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 83,
+    "word": 1
+   },
+   "startS": 0.155,
+   "endS": 0.635
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 83,
+    "word": 2
+   },
+   "startS": 0.675,
+   "endS": 0.995
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 83,
+    "word": 3
+   },
+   "startS": 1.075,
+   "endS": 1.355
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 83,
+    "word": 4
+   },
+   "startS": 1.475,
+   "endS": 2.075
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 83,
+    "word": 5
+   },
+   "startS": 2.115,
+   "endS": 4.195
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 83,
+    "word": 6
+   },
+   "startS": 4.275,
+   "endS": 7.035
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 84,
+    "word": 1
+   },
+   "startS": 7.675,
+   "endS": 8.235
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 84,
+    "word": 2
+   },
+   "startS": 8.435,
+   "endS": 8.675
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 84,
+    "word": 3
+   },
+   "startS": 8.755,
+   "endS": 9.435
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 84,
+    "word": 4
+   },
+   "startS": 9.515,
+   "endS": 10.075
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 84,
+    "word": 5
+   },
+   "startS": 10.195,
+   "endS": 10.795
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 84,
+    "word": 6
+   },
+   "startS": 10.835,
+   "endS": 12.275
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 85,
+    "word": 1
+   },
+   "startS": 12.795,
+   "endS": 13.875
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 85,
+    "word": 2
+   },
+   "startS": 13.955,
+   "endS": 14.195
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 85,
+    "word": 3
+   },
+   "startS": 14.275,
+   "endS": 16.075
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 85,
+    "word": 4
+   },
+   "startS": 16.155,
+   "endS": 17.275
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 85,
+    "word": 5
+   },
+   "startS": 17.515,
+   "endS": 20.475
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 86,
+    "word": 2
+   },
+   "startS": 21.025,
+   "endS": 21.785
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 86,
+    "word": 3
+   },
+   "startS": 21.865,
+   "endS": 23.305
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 86,
+    "word": 4
+   },
+   "startS": 23.385,
+   "endS": 23.905
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 86,
+    "word": 5
+   },
+   "startS": 23.945,
+   "endS": 24.265
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 86,
+    "word": 6
+   },
+   "startS": 24.345,
+   "endS": 29.785
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 87,
+    "word": 1
+   },
+   "startS": 30.425,
+   "endS": 30.905
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 87,
+    "word": 2
+   },
+   "startS": 30.985,
+   "endS": 31.905
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 87,
+    "word": 3
+   },
+   "startS": 31.985,
+   "endS": 32.505
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 87,
+    "word": 4
+   },
+   "startS": 32.585,
+   "endS": 34.345
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 88,
+    "word": 1
+   },
+   "startS": 34.985,
+   "endS": 35.465
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 88,
+    "word": 2
+   },
+   "startS": 35.505,
+   "endS": 35.825
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 88,
+    "word": 3
+   },
+   "startS": 35.905,
+   "endS": 37.185
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 88,
+    "word": 4
+   },
+   "startS": 37.305,
+   "endS": 38.105
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 88,
+    "word": 5
+   },
+   "startS": 38.665,
+   "endS": 39.145
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 88,
+    "word": 6
+   },
+   "startS": 39.225,
+   "endS": 40.225
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 89,
+    "word": 1
+   },
+   "startS": 40.865,
+   "endS": 41.545
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 89,
+    "word": 2
+   },
+   "startS": 41.665,
+   "endS": 41.905
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 89,
+    "word": 3
+   },
+   "startS": 41.985,
+   "endS": 42.345
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 89,
+    "word": 4
+   },
+   "startS": 42.385,
+   "endS": 43.065
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 89,
+    "word": 5
+   },
+   "startS": 43.145,
+   "endS": 44.385
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 89,
+    "word": 6
+   },
+   "startS": 45.065,
+   "endS": 46.105
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 91,
+    "word": 1
+   },
+   "startS": 46.865,
+   "endS": 47.945
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 91,
+    "word": 2
+   },
+   "startS": 47.985,
+   "endS": 48.865
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 91,
+    "word": 3
+   },
+   "startS": 48.905,
+   "endS": 50.745
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 92,
+    "word": 1
+   },
+   "startS": 51.145,
+   "endS": 51.785
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 92,
+    "word": 2
+   },
+   "startS": 51.865,
+   "endS": 52.305
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 92,
+    "word": 3
+   },
+   "startS": 52.385,
+   "endS": 52.865
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 92,
+    "word": 4
+   },
+   "startS": 52.945,
+   "endS": 53.265
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 92,
+    "word": 6
+   },
+   "startS": 53.325,
+   "endS": 54.805
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 93,
+    "word": 1
+   },
+   "startS": 55.405,
+   "endS": 55.925
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 93,
+    "word": 2
+   },
+   "startS": 56.125,
+   "endS": 56.605
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 93,
+    "word": 3
+   },
+   "startS": 56.645,
+   "endS": 57.325
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 93,
+    "word": 4
+   },
+   "startS": 57.405,
+   "endS": 57.605
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 93,
+    "word": 5
+   },
+   "startS": 57.765,
+   "endS": 59.565
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 93,
+    "word": 6
+   },
+   "startS": 59.645,
+   "endS": 59.885
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 93,
+    "word": 7
+   },
+   "startS": 60.045,
+   "endS": 62.045
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 94,
+    "word": 2
+   },
+   "startS": 62.575,
+   "endS": 63.295
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 94,
+    "word": 3
+   },
+   "startS": 63.335,
+   "endS": 63.575
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 94,
+    "word": 4
+   },
+   "startS": 63.695,
+   "endS": 65.295
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 95,
+    "word": 1
+   },
+   "startS": 65.735,
+   "endS": 66.575
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 95,
+    "word": 2
+   },
+   "startS": 66.615,
+   "endS": 67.455
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 95,
+    "word": 3
+   },
+   "startS": 67.535,
+   "endS": 68.775
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 96,
+    "word": 1
+   },
+   "startS": 69.215,
+   "endS": 69.895
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 96,
+    "word": 2
+   },
+   "startS": 69.935,
+   "endS": 70.335
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 96,
+    "word": 3
+   },
+   "startS": 70.455,
+   "endS": 71.175
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 96,
+    "word": 4
+   },
+   "startS": 71.215,
+   "endS": 73.055
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 97,
+    "word": 1
+   },
+   "startS": 73.575,
+   "endS": 74.375
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 97,
+    "word": 2
+   },
+   "startS": 74.455,
+   "endS": 74.975
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 97,
+    "word": 3
+   },
+   "startS": 75.255,
+   "endS": 76.335
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 97,
+    "word": 4
+   },
+   "startS": 76.375,
+   "endS": 76.935
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 97,
+    "word": 5
+   },
+   "startS": 77.055,
+   "endS": 77.895
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 97,
+    "word": 6
+   },
+   "startS": 77.975,
+   "endS": 79.975
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 98,
+    "word": 2
+   },
+   "startS": 80.735,
+   "endS": 82.215
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 98,
+    "word": 3
+   },
+   "startS": 82.335,
+   "endS": 83.015
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 98,
+    "word": 4
+   },
+   "startS": 83.055,
+   "endS": 84.415
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 99,
+    "word": 1
+   },
+   "startS": 84.895,
+   "endS": 85.375
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 99,
+    "word": 2
+   },
+   "startS": 85.455,
+   "endS": 86.495
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 99,
+    "word": 3
+   },
+   "startS": 86.575,
+   "endS": 87.055
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 99,
+    "word": 4
+   },
+   "startS": 87.095,
+   "endS": 89.015
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 101,
+    "word": 1
+   },
+   "startS": 89.365,
+   "endS": 89.805
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 101,
+    "word": 2
+   },
+   "startS": 89.885,
+   "endS": 90.765
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 101,
+    "word": 3
+   },
+   "startS": 90.885,
+   "endS": 92.045
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 102,
+    "word": 1
+   },
+   "startS": 92.565,
+   "endS": 92.965
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 102,
+    "word": 2
+   },
+   "startS": 93.045,
+   "endS": 94.245
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 102,
+    "word": 3
+   },
+   "startS": 94.325,
+   "endS": 94.845
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 102,
+    "word": 4
+   },
+   "startS": 94.925,
+   "endS": 96.005
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 102,
+    "word": 5
+   },
+   "startS": 96.725,
+   "endS": 97.605
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 102,
+    "word": 6
+   },
+   "startS": 97.645,
+   "endS": 97.965
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 102,
+    "word": 7
+   },
+   "startS": 98.005,
+   "endS": 99.925
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 104,
+    "word": 1
+   },
+   "startS": 100.525,
+   "endS": 101.765
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 104,
+    "word": 2
+   },
+   "startS": 101.845,
+   "endS": 102.565
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 104,
+    "word": 3
+   },
+   "startS": 102.605,
+   "endS": 103.165
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 104,
+    "word": 4
+   },
+   "startS": 103.205,
+   "endS": 104.165
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 104,
+    "word": 5
+   },
+   "startS": 104.245,
+   "endS": 106.365
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 105,
+    "word": 1
+   },
+   "startS": 107.005,
+   "endS": 107.765
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 105,
+    "word": 2
+   },
+   "startS": 107.925,
+   "endS": 108.405
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 105,
+    "word": 3
+   },
+   "startS": 108.485,
+   "endS": 108.925
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 105,
+    "word": 4
+   },
+   "startS": 109.005,
+   "endS": 110.485
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 106,
+    "word": 1
+   },
+   "startS": 110.965,
+   "endS": 111.205
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 106,
+    "word": 2
+   },
+   "startS": 111.365,
+   "endS": 111.885
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 106,
+    "word": 3
+   },
+   "startS": 111.925,
+   "endS": 112.405
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 106,
+    "word": 4
+   },
+   "startS": 112.525,
+   "endS": 113.365
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 106,
+    "word": 5
+   },
+   "startS": 113.465,
+   "endS": 114.265,
+   "said": {
+    "text": "صَـٰلِحٌ",
+    "from": {
+     "surah": 26,
+     "ayah": 142,
+     "word": 5
+    }
+   }
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 106,
+    "word": 6
+   },
+   "startS": 114.345,
+   "endS": 114.865
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 106,
+    "word": 7
+   },
+   "startS": 114.95,
+   "endS": 116.495
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 107,
+    "word": 1
+   },
+   "startS": 117.095,
+   "endS": 118.975
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 107,
+    "word": 2
+   },
+   "startS": 119.015,
+   "endS": 119.415
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 107,
+    "word": 3
+   },
+   "startS": 119.495,
+   "endS": 120.295
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 107,
+    "word": 4
+   },
+   "startS": 120.415,
+   "endS": 121.335
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 108,
+    "word": 1
+   },
+   "startS": 121.735,
+   "endS": 122.375
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 108,
+    "word": 2
+   },
+   "startS": 122.575,
+   "endS": 123.055
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 108,
+    "word": 3
+   },
+   "startS": 123.135,
+   "endS": 124.495
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 1
+   },
+   "startS": 124.975,
+   "endS": 125.455
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 2
+   },
+   "startS": 125.495,
+   "endS": 126.455
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 3
+   },
+   "startS": 126.535,
+   "endS": 127.135
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 4
+   },
+   "startS": 127.215,
+   "endS": 127.455
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 5
+   },
+   "startS": 127.535,
+   "endS": 128.215
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 6
+   },
+   "startS": 128.295,
+   "endS": 128.535
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 7
+   },
+   "startS": 128.655,
+   "endS": 129.335
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 8
+   },
+   "startS": 129.375,
+   "endS": 130.055
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 9
+   },
+   "startS": 130.135,
+   "endS": 130.615
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 10
+   },
+   "startS": 130.655,
+   "endS": 131.135
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 11
+   },
+   "startS": 131.175,
+   "endS": 132.575
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 110,
+    "word": 1
+   },
+   "startS": 132.935,
+   "endS": 133.615
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 110,
+    "word": 2
+   },
+   "startS": 133.655,
+   "endS": 134.335
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 110,
+    "word": 3
+   },
+   "startS": 134.415,
+   "endS": 135.815
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 1
+   },
+   "startS": 136.255,
+   "endS": 136.895
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 2
+   },
+   "startS": 136.935,
+   "endS": 137.775
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 3
+   },
+   "startS": 137.855,
+   "endS": 138.175
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 4
+   },
+   "startS": 138.255,
+   "endS": 139.295
+  },
+  {
+   "span": "span-1",
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 5
+   },
+   "startS": 139.375,
+   "endS": 140.775
+  },
+  {
+   "span": "span-2",
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 1
+   },
+   "startS": 141.065,
+   "endS": 141.705
+  },
+  {
+   "span": "span-2",
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 2
+   },
+   "startS": 141.745,
+   "endS": 142.585
+  },
+  {
+   "span": "span-2",
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 3
+   },
+   "startS": 142.665,
+   "endS": 142.985
+  },
+  {
+   "span": "span-2",
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 4
+   },
+   "startS": 143.065,
+   "endS": 144.105
+  },
+  {
+   "span": "span-2",
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 5
+   },
+   "startS": 144.185,
+   "endS": 145.585
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 112,
+    "word": 1
+   },
+   "startS": 146.025,
+   "endS": 146.505
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 112,
+    "word": 2
+   },
+   "startS": 146.585,
+   "endS": 147.105
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 112,
+    "word": 3
+   },
+   "startS": 147.185,
+   "endS": 147.865
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 112,
+    "word": 4
+   },
+   "startS": 147.905,
+   "endS": 148.385
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 112,
+    "word": 5
+   },
+   "startS": 148.425,
+   "endS": 149.145
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 112,
+    "word": 6
+   },
+   "startS": 149.225,
+   "endS": 150.545
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 113,
+    "word": 1
+   },
+   "startS": 151.065,
+   "endS": 151.305
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 113,
+    "word": 2
+   },
+   "startS": 151.465,
+   "endS": 152.505
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 113,
+    "word": 3
+   },
+   "startS": 152.625,
+   "endS": 153.265
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 113,
+    "word": 4
+   },
+   "startS": 153.345,
+   "endS": 153.825
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 113,
+    "word": 5
+   },
+   "startS": 153.905,
+   "endS": 154.705
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 113,
+    "word": 7
+   },
+   "startS": 155.21,
+   "endS": 157.245
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 114,
+    "word": 1
+   },
+   "startS": 157.765,
+   "endS": 158.285
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 114,
+    "word": 2
+   },
+   "startS": 158.325,
+   "endS": 158.645
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 114,
+    "word": 3
+   },
+   "startS": 158.725,
+   "endS": 159.565
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 114,
+    "word": 4
+   },
+   "startS": 159.605,
+   "endS": 161.685
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 115,
+    "word": 1
+   },
+   "startS": 162.205,
+   "endS": 162.445
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 115,
+    "word": 2
+   },
+   "startS": 162.525,
+   "endS": 162.845
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 115,
+    "word": 3
+   },
+   "startS": 162.925,
+   "endS": 163.605
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 115,
+    "word": 4
+   },
+   "startS": 163.685,
+   "endS": 164.725
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 115,
+    "word": 5
+   },
+   "startS": 165.285,
+   "endS": 166.365
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 116,
+    "word": 1
+   },
+   "startS": 166.925,
+   "endS": 167.605
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 116,
+    "word": 2
+   },
+   "startS": 167.645,
+   "endS": 168.005
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 116,
+    "word": 3
+   },
+   "startS": 168.085,
+   "endS": 168.325
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 116,
+    "word": 4
+   },
+   "startS": 168.445,
+   "endS": 169.485
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 116,
+    "word": 5
+   },
+   "startS": 169.605,
+   "endS": 170.445
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 116,
+    "word": 6
+   },
+   "startS": 170.485,
+   "endS": 171.965
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 116,
+    "word": 7
+   },
+   "startS": 172.045,
+   "endS": 172.325
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 116,
+    "word": 8
+   },
+   "startS": 172.365,
+   "endS": 174.005
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 117,
+    "word": 1
+   },
+   "startS": 174.605,
+   "endS": 175.045
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 117,
+    "word": 2
+   },
+   "startS": 175.125,
+   "endS": 175.565
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 117,
+    "word": 3
+   },
+   "startS": 175.605,
+   "endS": 177.005
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 117,
+    "word": 4
+   },
+   "startS": 177.125,
+   "endS": 177.765
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 117,
+    "word": 5
+   },
+   "startS": 177.805,
+   "endS": 179.005
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 2
+   },
+   "startS": 179.345,
+   "endS": 179.985
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 3
+   },
+   "startS": 180.025,
+   "endS": 180.945
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 4
+   },
+   "startS": 181.065,
+   "endS": 181.665
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 5
+   },
+   "startS": 181.745,
+   "endS": 183.905
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 6
+   },
+   "startS": 183.945,
+   "endS": 184.385
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 7
+   },
+   "startS": 184.465,
+   "endS": 185.745
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 8
+   },
+   "startS": 185.825,
+   "endS": 186.105
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 9
+   },
+   "startS": 186.145,
+   "endS": 187.545
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 119,
+    "word": 1
+   },
+   "startS": 188.105,
+   "endS": 189.705
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 119,
+    "word": 2
+   },
+   "startS": 189.785,
+   "endS": 190.185
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 119,
+    "word": 3
+   },
+   "startS": 190.265,
+   "endS": 191.305
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 119,
+    "word": 4
+   },
+   "startS": 191.305,
+   "endS": 191.665
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 119,
+    "word": 5
+   },
+   "startS": 191.705,
+   "endS": 192.425
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 119,
+    "word": 6
+   },
+   "startS": 192.465,
+   "endS": 193.625
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 121,
+    "word": 1
+   },
+   "startS": 193.905,
+   "endS": 195.585
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 121,
+    "word": 2
+   },
+   "startS": 195.665,
+   "endS": 196.025
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 121,
+    "word": 3
+   },
+   "startS": 196.105,
+   "endS": 196.785
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 121,
+    "word": 4
+   },
+   "startS": 196.865,
+   "endS": 197.865
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 121,
+    "word": 5
+   },
+   "startS": 198.385,
+   "endS": 198.945
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 121,
+    "word": 6
+   },
+   "startS": 199.025,
+   "endS": 199.545
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 121,
+    "word": 7
+   },
+   "startS": 199.585,
+   "endS": 200.905
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 121,
+    "word": 8
+   },
+   "startS": 201.305,
+   "endS": 202.665
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 122,
+    "word": 1
+   },
+   "startS": 203.145,
+   "endS": 204.865
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 122,
+    "word": 2
+   },
+   "startS": 204.945,
+   "endS": 205.665
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 122,
+    "word": 3
+   },
+   "startS": 205.705,
+   "endS": 206.225
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 122,
+    "word": 4
+   },
+   "startS": 206.265,
+   "endS": 207.185
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 122,
+    "word": 5
+   },
+   "startS": 207.265,
+   "endS": 209.185
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 123,
+    "word": 1
+   },
+   "startS": 209.645,
+   "endS": 210.405
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 123,
+    "word": 2
+   },
+   "startS": 210.525,
+   "endS": 211.205,
+   "said": {
+    "text": "ثَمُودُ",
+    "from": {
+     "surah": 26,
+     "ayah": 141,
+     "word": 2
+    }
+   }
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 123,
+    "word": 3
+   },
+   "startS": 211.245,
+   "endS": 212.525
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 124,
+    "word": 1
+   },
+   "startS": 212.755,
+   "endS": 212.995
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 124,
+    "word": 2
+   },
+   "startS": 213.115,
+   "endS": 213.595
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 124,
+    "word": 3
+   },
+   "startS": 213.635,
+   "endS": 214.115
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 124,
+    "word": 4
+   },
+   "startS": 214.195,
+   "endS": 214.995
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 124,
+    "word": 5
+   },
+   "startS": 215.115,
+   "endS": 215.675
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 124,
+    "word": 6
+   },
+   "startS": 215.755,
+   "endS": 216.235
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 124,
+    "word": 7
+   },
+   "startS": 216.315,
+   "endS": 218.275
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 125,
+    "word": 1
+   },
+   "startS": 218.915,
+   "endS": 220.035
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 125,
+    "word": 2
+   },
+   "startS": 220.075,
+   "endS": 220.475
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 125,
+    "word": 3
+   },
+   "startS": 220.595,
+   "endS": 221.395
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 125,
+    "word": 4
+   },
+   "startS": 221.475,
+   "endS": 222.555
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 126,
+    "word": 1
+   },
+   "startS": 222.915,
+   "endS": 223.595
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 126,
+    "word": 2
+   },
+   "startS": 223.835,
+   "endS": 224.355
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 126,
+    "word": 3
+   },
+   "startS": 224.435,
+   "endS": 225.915
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 1
+   },
+   "startS": 226.475,
+   "endS": 226.955
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 2
+   },
+   "startS": 227.035,
+   "endS": 228.035
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 3
+   },
+   "startS": 228.155,
+   "endS": 228.835
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 4
+   },
+   "startS": 228.915,
+   "endS": 229.155
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 5
+   },
+   "startS": 229.235,
+   "endS": 229.875
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 6
+   },
+   "startS": 229.955,
+   "endS": 230.235
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 7
+   },
+   "startS": 230.315,
+   "endS": 231.035
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 8
+   },
+   "startS": 231.075,
+   "endS": 231.755
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 9
+   },
+   "startS": 231.795,
+   "endS": 232.275
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 10
+   },
+   "startS": 232.355,
+   "endS": 232.795
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 11
+   },
+   "startS": 232.835,
+   "endS": 234.155
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 128,
+    "word": 2
+   },
+   "startS": 234.535,
+   "endS": 235.175
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 128,
+    "word": 3
+   },
+   "startS": 235.295,
+   "endS": 235.895
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 128,
+    "word": 4
+   },
+   "startS": 235.975,
+   "endS": 237.055
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 128,
+    "word": 5
+   },
+   "startS": 237.335,
+   "endS": 238.775
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 129,
+    "word": 1
+   },
+   "startS": 239.375,
+   "endS": 240.735
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 129,
+    "word": 2
+   },
+   "startS": 240.815,
+   "endS": 241.695
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 129,
+    "word": 3
+   },
+   "startS": 241.775,
+   "endS": 242.735
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 129,
+    "word": 4
+   },
+   "startS": 242.855,
+   "endS": 244.255
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 130,
+    "word": 1
+   },
+   "startS": 244.775,
+   "endS": 245.455
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 130,
+    "word": 2
+   },
+   "startS": 245.495,
+   "endS": 246.695
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 130,
+    "word": 3
+   },
+   "startS": 247.255,
+   "endS": 248.055
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 130,
+    "word": 4
+   },
+   "startS": 248.175,
+   "endS": 249.615
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 131,
+    "word": 1
+   },
+   "startS": 249.975,
+   "endS": 250.655
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 131,
+    "word": 2
+   },
+   "startS": 250.895,
+   "endS": 251.415
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 131,
+    "word": 3
+   },
+   "startS": 251.455,
+   "endS": 253.055
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 132,
+    "word": 1
+   },
+   "startS": 253.535,
+   "endS": 254.255
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 132,
+    "word": 2
+   },
+   "startS": 254.335,
+   "endS": 255.015
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 132,
+    "word": 3
+   },
+   "startS": 255.055,
+   "endS": 256.095
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 132,
+    "word": 4
+   },
+   "startS": 257.135,
+   "endS": 257.615
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 132,
+    "word": 5
+   },
+   "startS": 257.695,
+   "endS": 258.895
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 134,
+    "word": 1
+   },
+   "startS": 259.255,
+   "endS": 261.015
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 134,
+    "word": 2
+   },
+   "startS": 261.415,
+   "endS": 263.655
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 135,
+    "word": 1
+   },
+   "startS": 264.135,
+   "endS": 265.695
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 135,
+    "word": 2
+   },
+   "startS": 265.735,
+   "endS": 266.535
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 135,
+    "word": 3
+   },
+   "startS": 266.575,
+   "endS": 267.415
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 135,
+    "word": 4
+   },
+   "startS": 267.535,
+   "endS": 268.295
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 135,
+    "word": 5
+   },
+   "startS": 268.375,
+   "endS": 269.055
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 135,
+    "word": 6
+   },
+   "startS": 269.175,
+   "endS": 270.415
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 2
+   },
+   "startS": 271.015,
+   "endS": 272.775
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 3
+   },
+   "startS": 272.855,
+   "endS": 273.695
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 4
+   },
+   "startS": 273.735,
+   "endS": 274.615
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 5
+   },
+   "startS": 274.695,
+   "endS": 274.935
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 6
+   },
+   "startS": 275.015,
+   "endS": 275.255
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 7
+   },
+   "startS": 275.415,
+   "endS": 275.855
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 8
+   },
+   "startS": 275.935,
+   "endS": 276.575
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 9
+   },
+   "startS": 276.615,
+   "endS": 277.975
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 137,
+    "word": 1
+   },
+   "startS": 278.495,
+   "endS": 278.735
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 137,
+    "word": 2
+   },
+   "startS": 278.855,
+   "endS": 279.535
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 137,
+    "word": 3
+   },
+   "startS": 279.615,
+   "endS": 280.255
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 137,
+    "word": 4
+   },
+   "startS": 280.335,
+   "endS": 280.855
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 137,
+    "word": 5
+   },
+   "startS": 280.895,
+   "endS": 282.175
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 138,
+    "word": 1
+   },
+   "startS": 282.655,
+   "endS": 283.135
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 138,
+    "word": 2
+   },
+   "startS": 283.215,
+   "endS": 283.655
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 138,
+    "word": 3
+   },
+   "startS": 283.735,
+   "endS": 285.295
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 1
+   },
+   "startS": 285.655,
+   "endS": 286.895
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 2
+   },
+   "startS": 286.975,
+   "endS": 288.575
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 4
+   },
+   "startS": 289.02,
+   "endS": 289.285
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 5
+   },
+   "startS": 289.365,
+   "endS": 290.045
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 6
+   },
+   "startS": 290.125,
+   "endS": 291.045
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 7
+   },
+   "startS": 291.565,
+   "endS": 292.125
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 8
+   },
+   "startS": 292.205,
+   "endS": 292.725
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 9
+   },
+   "startS": 292.765,
+   "endS": 293.805
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 10
+   },
+   "startS": 293.885,
+   "endS": 296.565
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 140,
+    "word": 1
+   },
+   "startS": 296.965,
+   "endS": 298.045
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 140,
+    "word": 2
+   },
+   "startS": 298.125,
+   "endS": 298.805
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 140,
+    "word": 3
+   },
+   "startS": 298.845,
+   "endS": 299.365
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 140,
+    "word": 4
+   },
+   "startS": 299.445,
+   "endS": 300.325
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 140,
+    "word": 5
+   },
+   "startS": 300.405,
+   "endS": 301.525
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 141,
+    "word": 1
+   },
+   "startS": 302.085,
+   "endS": 302.845
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 141,
+    "word": 2
+   },
+   "startS": 302.965,
+   "endS": 303.645
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 141,
+    "word": 3
+   },
+   "startS": 303.685,
+   "endS": 304.965
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 142,
+    "word": 1
+   },
+   "startS": 305.325,
+   "endS": 305.565
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 142,
+    "word": 2
+   },
+   "startS": 305.725,
+   "endS": 306.205
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 142,
+    "word": 3
+   },
+   "startS": 306.245,
+   "endS": 306.725
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 142,
+    "word": 4
+   },
+   "startS": 306.805,
+   "endS": 307.645
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 142,
+    "word": 5
+   },
+   "startS": 307.765,
+   "endS": 308.565
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 142,
+    "word": 6
+   },
+   "startS": 308.645,
+   "endS": 309.165
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 142,
+    "word": 7
+   },
+   "startS": 309.245,
+   "endS": 311.725
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 143,
+    "word": 1
+   },
+   "startS": 312.285,
+   "endS": 313.605
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 143,
+    "word": 2
+   },
+   "startS": 313.645,
+   "endS": 314.085
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 143,
+    "word": 3
+   },
+   "startS": 314.205,
+   "endS": 315.045
+  },
+  {
+   "span": "span-3",
+   "at": {
+    "surah": 26,
+    "ayah": 143,
+    "word": 4
+   },
+   "startS": 315.165,
+   "endS": 316.085
+  }
+ ],
+ "events": [
+  {
+   "span": "span-1",
+   "errorClass": "omitted_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 86,
+    "word": 1
+   },
+   "startS": 20.475,
+   "endS": 21.025,
+   "forms_other_ayah": false,
+   "expected": "وَٱغْفِرْ",
+   "observed": "",
+   "splice": "x1"
+  },
+  {
+   "span": "span-1",
+   "errorClass": "skipped_passage",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 90,
+    "word": 1
+   },
+   "startS": 46.105,
+   "endS": 46.865,
+   "forms_other_ayah": false,
+   "through": {
+    "surah": 26,
+    "ayah": 90,
+    "word": 3
+   },
+   "expected": "وَأُزْلِفَتِ ٱلْجَنَّةُ لِلْمُتَّقِينَ",
+   "observed": "",
+   "splice": "x2"
+  },
+  {
+   "span": "span-1",
+   "errorClass": "omitted_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 92,
+    "word": 5
+   },
+   "startS": 53.265,
+   "endS": 53.325,
+   "forms_other_ayah": false,
+   "expected": "كُنتُمْ",
+   "observed": "",
+   "splice": "x3"
+  },
+  {
+   "span": "span-1",
+   "errorClass": "omitted_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 94,
+    "word": 1
+   },
+   "startS": 62.045,
+   "endS": 62.575,
+   "forms_other_ayah": false,
+   "expected": "فَكُبْكِبُوا۟",
+   "observed": "",
+   "splice": "x4"
+  },
+  {
+   "span": "span-1",
+   "errorClass": "omitted_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 98,
+    "word": 1
+   },
+   "startS": 79.975,
+   "endS": 80.735,
+   "forms_other_ayah": false,
+   "expected": "إِذْ",
+   "observed": "",
+   "splice": "x5"
+  },
+  {
+   "span": "span-1",
+   "errorClass": "skipped_passage",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 100,
+    "word": 1
+   },
+   "startS": 89.015,
+   "endS": 89.365,
+   "forms_other_ayah": false,
+   "through": {
+    "surah": 26,
+    "ayah": 100,
+    "word": 4
+   },
+   "expected": "فَمَا لَنَا مِن شَـٰفِعِينَ",
+   "observed": "",
+   "splice": "x6"
+  },
+  {
+   "span": "span-1",
+   "errorClass": "skipped_passage",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 103,
+    "word": 1
+   },
+   "startS": 99.925,
+   "endS": 100.525,
+   "forms_other_ayah": false,
+   "through": {
+    "surah": 26,
+    "ayah": 103,
+    "word": 8
+   },
+   "expected": "إِنَّ فِى ذَٰلِكَ لَـَٔايَةًۭ وَمَا كَانَ أَكْثَرُهُم مُّؤْمِنِينَ",
+   "observed": "",
+   "splice": "x7"
+  },
+  {
+   "span": "span-1",
+   "errorClass": "wrong_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 106,
+    "word": 5
+   },
+   "startS": 113.465,
+   "endS": 114.265,
+   "forms_other_ayah": true,
+   "expected": "نُوحٌ",
+   "observed": "صَـٰلِحٌ",
+   "said": "صَاالِحُن",
+   "donor": "26:142:5",
+   "splice": "x8"
+  },
+  {
+   "span": "span-3",
+   "errorClass": "omitted_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 113,
+    "word": 6
+   },
+   "startS": 154.705,
+   "endS": 155.21,
+   "forms_other_ayah": false,
+   "expected": "لَوْ",
+   "observed": "",
+   "splice": "x10"
+  },
+  {
+   "span": "span-3",
+   "errorClass": "omitted_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 1
+   },
+   "startS": 179.005,
+   "endS": 179.345,
+   "forms_other_ayah": false,
+   "expected": "فَٱفْتَحْ",
+   "observed": "",
+   "splice": "x11"
+  },
+  {
+   "span": "span-3",
+   "errorClass": "skipped_passage",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 120,
+    "word": 1
+   },
+   "startS": 193.625,
+   "endS": 193.905,
+   "forms_other_ayah": false,
+   "through": {
+    "surah": 26,
+    "ayah": 120,
+    "word": 4
+   },
+   "expected": "ثُمَّ أَغْرَقْنَا بَعْدُ ٱلْبَاقِينَ",
+   "observed": "",
+   "splice": "x12"
+  },
+  {
+   "span": "span-3",
+   "errorClass": "wrong_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 123,
+    "word": 2
+   },
+   "startS": 210.525,
+   "endS": 211.205,
+   "forms_other_ayah": true,
+   "expected": "عَادٌ",
+   "observed": "ثَمُودُ",
+   "said": "ثَمُۥۥدُ",
+   "donor": "26:141:2",
+   "splice": "x13"
+  },
+  {
+   "span": "span-3",
+   "errorClass": "omitted_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 128,
+    "word": 1
+   },
+   "startS": 234.155,
+   "endS": 234.535,
+   "forms_other_ayah": false,
+   "expected": "أَتَبْنُونَ",
+   "observed": "",
+   "splice": "x14"
+  },
+  {
+   "span": "span-3",
+   "errorClass": "skipped_passage",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 133,
+    "word": 1
+   },
+   "startS": 258.895,
+   "endS": 259.255,
+   "forms_other_ayah": false,
+   "through": {
+    "surah": 26,
+    "ayah": 133,
+    "word": 3
+   },
+   "expected": "أَمَدَّكُم بِأَنْعَـٰمٍۢ وَبَنِينَ",
+   "observed": "",
+   "splice": "x15"
+  },
+  {
+   "span": "span-3",
+   "errorClass": "omitted_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 1
+   },
+   "startS": 270.415,
+   "endS": 271.015,
+   "forms_other_ayah": false,
+   "expected": "قَالُوا۟",
+   "observed": "",
+   "splice": "x16"
+  },
+  {
+   "span": "span-3",
+   "errorClass": "omitted_word",
+   "state": "confirmed",
+   "location": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 3
+   },
+   "startS": 288.575,
+   "endS": 289.02,
+   "forms_other_ayah": false,
+   "expected": "إِنَّ",
+   "observed": "",
+   "splice": "x17"
+  }
+ ],
+ "nonErrors": [
+  {
+   "span": "span-2",
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 1
+   },
+   "kind": "repeat",
+   "startS": 141.065,
+   "endS": 141.705
+  },
+  {
+   "span": "span-2",
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 2
+   },
+   "kind": "repeat",
+   "startS": 141.745,
+   "endS": 142.585
+  },
+  {
+   "span": "span-2",
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 3
+   },
+   "kind": "repeat",
+   "startS": 142.665,
+   "endS": 142.985
+  },
+  {
+   "span": "span-2",
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 4
+   },
+   "kind": "repeat",
+   "startS": 143.065,
+   "endS": 144.105
+  },
+  {
+   "span": "span-2",
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 5
+   },
+   "kind": "repeat",
+   "startS": 144.185,
+   "endS": 145.585
+  }
+ ],
+ "said": [
+  {
+   "startS": 0.155,
+   "endS": 0.635,
+   "at": {
+    "surah": 26,
+    "ayah": 83,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 83,
+    "word": 1
+   },
+   "text": "رَبِّ",
+   "phonemes": "رَببِ",
+   "role": "ref"
+  },
+  {
+   "startS": 0.675,
+   "endS": 0.995,
+   "at": {
+    "surah": 26,
+    "ayah": 83,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 83,
+    "word": 2
+   },
+   "text": "هَبْ",
+   "phonemes": "هَبڇ",
+   "role": "ref"
+  },
+  {
+   "startS": 1.075,
+   "endS": 1.355,
+   "at": {
+    "surah": 26,
+    "ayah": 83,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 83,
+    "word": 3
+   },
+   "text": "لِى",
+   "phonemes": "لِۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 1.475,
+   "endS": 2.075,
+   "at": {
+    "surah": 26,
+    "ayah": 83,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 83,
+    "word": 4
+   },
+   "text": "حُكْمًۭا",
+   "phonemes": "حُكمَوو",
+   "role": "ref"
+  },
+  {
+   "startS": 2.115,
+   "endS": 4.195,
+   "at": {
+    "surah": 26,
+    "ayah": 83,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 83,
+    "word": 5
+   },
+   "text": "وَأَلْحِقْنِى",
+   "phonemes": "وَءَلحِقڇنِۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 4.275,
+   "endS": 7.035,
+   "at": {
+    "surah": 26,
+    "ayah": 83,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 83,
+    "word": 6
+   },
+   "text": "بِٱلصَّـٰلِحِينَ",
+   "phonemes": "بِصصَاالِحِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 7.675,
+   "endS": 8.235,
+   "at": {
+    "surah": 26,
+    "ayah": 84,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 84,
+    "word": 1
+   },
+   "text": "وَٱجْعَل",
+   "phonemes": "وَجڇعَل",
+   "role": "ref"
+  },
+  {
+   "startS": 8.435,
+   "endS": 8.675,
+   "at": {
+    "surah": 26,
+    "ayah": 84,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 84,
+    "word": 2
+   },
+   "text": "لِّى",
+   "phonemes": "لِۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 8.755,
+   "endS": 9.435,
+   "at": {
+    "surah": 26,
+    "ayah": 84,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 84,
+    "word": 3
+   },
+   "text": "لِسَانَ",
+   "phonemes": "لِسَاانَ",
+   "role": "ref"
+  },
+  {
+   "startS": 9.515,
+   "endS": 10.075,
+   "at": {
+    "surah": 26,
+    "ayah": 84,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 84,
+    "word": 4
+   },
+   "text": "صِدْقٍۢ",
+   "phonemes": "صِدڇقِ",
+   "role": "ref"
+  },
+  {
+   "startS": 10.195,
+   "endS": 10.795,
+   "at": {
+    "surah": 26,
+    "ayah": 84,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 84,
+    "word": 5
+   },
+   "text": "فِى",
+   "phonemes": "ںںںفِ",
+   "role": "ref"
+  },
+  {
+   "startS": 10.835,
+   "endS": 12.275,
+   "at": {
+    "surah": 26,
+    "ayah": 84,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 84,
+    "word": 6
+   },
+   "text": "ٱلْـَٔاخِرِينَ",
+   "phonemes": "لءَااخِرِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 12.795,
+   "endS": 13.875,
+   "at": {
+    "surah": 26,
+    "ayah": 85,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 85,
+    "word": 1
+   },
+   "text": "وَٱجْعَلْنِى",
+   "phonemes": "وَجڇعَلنِۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 13.955,
+   "endS": 14.195,
+   "at": {
+    "surah": 26,
+    "ayah": 85,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 85,
+    "word": 2
+   },
+   "text": "مِن",
+   "phonemes": "مِو",
+   "role": "ref"
+  },
+  {
+   "startS": 14.275,
+   "endS": 16.075,
+   "at": {
+    "surah": 26,
+    "ayah": 85,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 85,
+    "word": 3
+   },
+   "text": "وَرَثَةِ",
+   "phonemes": "ووَرَثَتِ",
+   "role": "ref"
+  },
+  {
+   "startS": 16.155,
+   "endS": 17.275,
+   "at": {
+    "surah": 26,
+    "ayah": 85,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 85,
+    "word": 4
+   },
+   "text": "جَنَّةِ",
+   "phonemes": "جَننننَتِ",
+   "role": "ref"
+  },
+  {
+   "startS": 17.515,
+   "endS": 20.475,
+   "at": {
+    "surah": 26,
+    "ayah": 85,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 85,
+    "word": 5
+   },
+   "text": "ٱلنَّعِيمِ",
+   "phonemes": "ننننَعِۦۦم",
+   "role": "ref"
+  },
+  {
+   "startS": 21.025,
+   "endS": 21.785,
+   "at": {
+    "surah": 26,
+    "ayah": 86,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 86,
+    "word": 2
+   },
+   "text": "لِأَبِىٓ",
+   "phonemes": "لِءَبِۦۦۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 21.865,
+   "endS": 23.305,
+   "at": {
+    "surah": 26,
+    "ayah": 86,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 86,
+    "word": 3
+   },
+   "text": "إِنَّهُۥ",
+   "phonemes": "ءِننننَهُۥۥ",
+   "role": "ref"
+  },
+  {
+   "startS": 23.385,
+   "endS": 23.905,
+   "at": {
+    "surah": 26,
+    "ayah": 86,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 86,
+    "word": 4
+   },
+   "text": "كَانَ",
+   "phonemes": "كَاانَ",
+   "role": "ref"
+  },
+  {
+   "startS": 23.945,
+   "endS": 24.265,
+   "at": {
+    "surah": 26,
+    "ayah": 86,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 86,
+    "word": 5
+   },
+   "text": "مِنَ",
+   "phonemes": "مِنَ",
+   "role": "ref"
+  },
+  {
+   "startS": 24.345,
+   "endS": 29.785,
+   "at": {
+    "surah": 26,
+    "ayah": 86,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 86,
+    "word": 6
+   },
+   "text": "ٱلضَّآلِّينَ",
+   "phonemes": "ضضَااااااللِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 30.425,
+   "endS": 30.905,
+   "at": {
+    "surah": 26,
+    "ayah": 87,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 87,
+    "word": 1
+   },
+   "text": "وَلَا",
+   "phonemes": "وَلَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 30.985,
+   "endS": 31.905,
+   "at": {
+    "surah": 26,
+    "ayah": 87,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 87,
+    "word": 2
+   },
+   "text": "تُخْزِنِى",
+   "phonemes": "تُخزِنِۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 31.985,
+   "endS": 32.505,
+   "at": {
+    "surah": 26,
+    "ayah": 87,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 87,
+    "word": 3
+   },
+   "text": "يَوْمَ",
+   "phonemes": "يَومَ",
+   "role": "ref"
+  },
+  {
+   "startS": 32.585,
+   "endS": 34.345,
+   "at": {
+    "surah": 26,
+    "ayah": 87,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 87,
+    "word": 4
+   },
+   "text": "يُبْعَثُونَ",
+   "phonemes": "يُبڇعَثُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 34.985,
+   "endS": 35.465,
+   "at": {
+    "surah": 26,
+    "ayah": 88,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 88,
+    "word": 1
+   },
+   "text": "يَوْمَ",
+   "phonemes": "يَومَ",
+   "role": "ref"
+  },
+  {
+   "startS": 35.505,
+   "endS": 35.825,
+   "at": {
+    "surah": 26,
+    "ayah": 88,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 88,
+    "word": 2
+   },
+   "text": "لَا",
+   "phonemes": "لَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 35.905,
+   "endS": 37.185,
+   "at": {
+    "surah": 26,
+    "ayah": 88,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 88,
+    "word": 3
+   },
+   "text": "يَنفَعُ",
+   "phonemes": "يَںںںفَعُ",
+   "role": "ref"
+  },
+  {
+   "startS": 37.305,
+   "endS": 38.105,
+   "at": {
+    "surah": 26,
+    "ayah": 88,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 88,
+    "word": 4
+   },
+   "text": "مَالٌۭ",
+   "phonemes": "مَاالُوو",
+   "role": "ref"
+  },
+  {
+   "startS": 38.665,
+   "endS": 39.145,
+   "at": {
+    "surah": 26,
+    "ayah": 88,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 88,
+    "word": 5
+   },
+   "text": "وَلَا",
+   "phonemes": "وَلَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 39.225,
+   "endS": 40.225,
+   "at": {
+    "surah": 26,
+    "ayah": 88,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 88,
+    "word": 6
+   },
+   "text": "بَنُونَ",
+   "phonemes": "بَنُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 40.865,
+   "endS": 41.545,
+   "at": {
+    "surah": 26,
+    "ayah": 89,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 89,
+    "word": 1
+   },
+   "text": "إِلَّا",
+   "phonemes": "ءِللَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 41.665,
+   "endS": 41.905,
+   "at": {
+    "surah": 26,
+    "ayah": 89,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 89,
+    "word": 2
+   },
+   "text": "مَنْ",
+   "phonemes": "مَن",
+   "role": "ref"
+  },
+  {
+   "startS": 41.985,
+   "endS": 42.345,
+   "at": {
+    "surah": 26,
+    "ayah": 89,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 89,
+    "word": 3
+   },
+   "text": "أَتَى",
+   "phonemes": "ءَتَ",
+   "role": "ref"
+  },
+  {
+   "startS": 42.385,
+   "endS": 43.065,
+   "at": {
+    "surah": 26,
+    "ayah": 89,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 89,
+    "word": 4
+   },
+   "text": "ٱللَّهَ",
+   "phonemes": "للَااهَ",
+   "role": "ref"
+  },
+  {
+   "startS": 43.145,
+   "endS": 44.385,
+   "at": {
+    "surah": 26,
+    "ayah": 89,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 89,
+    "word": 5
+   },
+   "text": "بِقَلْبٍۢ",
+   "phonemes": "بِقَلبڇ",
+   "role": "ref"
+  },
+  {
+   "startS": 45.065,
+   "endS": 46.105,
+   "at": {
+    "surah": 26,
+    "ayah": 89,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 89,
+    "word": 6
+   },
+   "text": "سَلِيمٍۢ",
+   "phonemes": "سَلِۦۦم",
+   "role": "ref"
+  },
+  {
+   "startS": 46.865,
+   "endS": 47.945,
+   "at": {
+    "surah": 26,
+    "ayah": 91,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 91,
+    "word": 1
+   },
+   "text": "وَبُرِّزَتِ",
+   "phonemes": "وَبُررِزَتِ",
+   "role": "ref"
+  },
+  {
+   "startS": 47.985,
+   "endS": 48.865,
+   "at": {
+    "surah": 26,
+    "ayah": 91,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 91,
+    "word": 2
+   },
+   "text": "ٱلْجَحِيمُ",
+   "phonemes": "لجَحِۦۦمُ",
+   "role": "ref"
+  },
+  {
+   "startS": 48.905,
+   "endS": 50.745,
+   "at": {
+    "surah": 26,
+    "ayah": 91,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 91,
+    "word": 3
+   },
+   "text": "لِلْغَاوِينَ",
+   "phonemes": "لِلغَااوِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 51.145,
+   "endS": 51.785,
+   "at": {
+    "surah": 26,
+    "ayah": 92,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 92,
+    "word": 1
+   },
+   "text": "وَقِيلَ",
+   "phonemes": "وَقِۦۦلَ",
+   "role": "ref"
+  },
+  {
+   "startS": 51.865,
+   "endS": 52.305,
+   "at": {
+    "surah": 26,
+    "ayah": 92,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 92,
+    "word": 2
+   },
+   "text": "لَهُمْ",
+   "phonemes": "لَهُم",
+   "role": "ref"
+  },
+  {
+   "startS": 52.385,
+   "endS": 52.865,
+   "at": {
+    "surah": 26,
+    "ayah": 92,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 92,
+    "word": 3
+   },
+   "text": "أَيْنَ",
+   "phonemes": "ءَينَ",
+   "role": "ref"
+  },
+  {
+   "startS": 52.945,
+   "endS": 53.265,
+   "at": {
+    "surah": 26,
+    "ayah": 92,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 92,
+    "word": 4
+   },
+   "text": "مَا",
+   "phonemes": "مَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 53.325,
+   "endS": 54.805,
+   "at": {
+    "surah": 26,
+    "ayah": 92,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 92,
+    "word": 6
+   },
+   "text": "تَعْبُدُونَ",
+   "phonemes": "تَعبُدُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 55.405,
+   "endS": 55.925,
+   "at": {
+    "surah": 26,
+    "ayah": 93,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 93,
+    "word": 1
+   },
+   "text": "مِن",
+   "phonemes": "مِںںں",
+   "role": "ref"
+  },
+  {
+   "startS": 56.125,
+   "endS": 56.605,
+   "at": {
+    "surah": 26,
+    "ayah": 93,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 93,
+    "word": 2
+   },
+   "text": "دُونِ",
+   "phonemes": "دُۥۥنِ",
+   "role": "ref"
+  },
+  {
+   "startS": 56.645,
+   "endS": 57.325,
+   "at": {
+    "surah": 26,
+    "ayah": 93,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 93,
+    "word": 3
+   },
+   "text": "ٱللَّهِ",
+   "phonemes": "للَااهِ",
+   "role": "ref"
+  },
+  {
+   "startS": 57.405,
+   "endS": 57.605,
+   "at": {
+    "surah": 26,
+    "ayah": 93,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 93,
+    "word": 4
+   },
+   "text": "هَلْ",
+   "phonemes": "هَل",
+   "role": "ref"
+  },
+  {
+   "startS": 57.765,
+   "endS": 59.565,
+   "at": {
+    "surah": 26,
+    "ayah": 93,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 93,
+    "word": 5
+   },
+   "text": "يَنصُرُونَكُمْ",
+   "phonemes": "يَںںںصُرُۥۥنَكُم",
+   "role": "ref"
+  },
+  {
+   "startS": 59.645,
+   "endS": 59.885,
+   "at": {
+    "surah": 26,
+    "ayah": 93,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 93,
+    "word": 6
+   },
+   "text": "أَوْ",
+   "phonemes": "ءَو",
+   "role": "ref"
+  },
+  {
+   "startS": 60.045,
+   "endS": 62.045,
+   "at": {
+    "surah": 26,
+    "ayah": 93,
+    "word": 7
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 93,
+    "word": 7
+   },
+   "text": "يَنتَصِرُونَ",
+   "phonemes": "يَںںںتَصِرُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 62.575,
+   "endS": 63.295,
+   "at": {
+    "surah": 26,
+    "ayah": 94,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 94,
+    "word": 2
+   },
+   "text": "فِيهَا",
+   "phonemes": "فِۦۦهَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 63.335,
+   "endS": 63.575,
+   "at": {
+    "surah": 26,
+    "ayah": 94,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 94,
+    "word": 3
+   },
+   "text": "هُمْ",
+   "phonemes": "هُم",
+   "role": "ref"
+  },
+  {
+   "startS": 63.695,
+   "endS": 65.295,
+   "at": {
+    "surah": 26,
+    "ayah": 94,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 94,
+    "word": 4
+   },
+   "text": "وَٱلْغَاوُۥنَ",
+   "phonemes": "وَلغَااوُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 65.735,
+   "endS": 66.575,
+   "at": {
+    "surah": 26,
+    "ayah": 95,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 95,
+    "word": 1
+   },
+   "text": "وَجُنُودُ",
+   "phonemes": "وَجُنُۥۥدُ",
+   "role": "ref"
+  },
+  {
+   "startS": 66.615,
+   "endS": 67.455,
+   "at": {
+    "surah": 26,
+    "ayah": 95,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 95,
+    "word": 2
+   },
+   "text": "إِبْلِيسَ",
+   "phonemes": "ءِبڇلِۦۦسَ",
+   "role": "ref"
+  },
+  {
+   "startS": 67.535,
+   "endS": 68.775,
+   "at": {
+    "surah": 26,
+    "ayah": 95,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 95,
+    "word": 3
+   },
+   "text": "أَجْمَعُونَ",
+   "phonemes": "ءَجڇمَعُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 69.215,
+   "endS": 69.895,
+   "at": {
+    "surah": 26,
+    "ayah": 96,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 96,
+    "word": 1
+   },
+   "text": "قَالُوا۟",
+   "phonemes": "قَاالُۥۥ",
+   "role": "ref"
+  },
+  {
+   "startS": 69.935,
+   "endS": 70.335,
+   "at": {
+    "surah": 26,
+    "ayah": 96,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 96,
+    "word": 2
+   },
+   "text": "وَهُمْ",
+   "phonemes": "وَهُم",
+   "role": "ref"
+  },
+  {
+   "startS": 70.455,
+   "endS": 71.175,
+   "at": {
+    "surah": 26,
+    "ayah": 96,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 96,
+    "word": 3
+   },
+   "text": "فِيهَا",
+   "phonemes": "فِۦۦهَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 71.215,
+   "endS": 73.055,
+   "at": {
+    "surah": 26,
+    "ayah": 96,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 96,
+    "word": 4
+   },
+   "text": "يَخْتَصِمُونَ",
+   "phonemes": "يَختَصِمُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 73.575,
+   "endS": 74.375,
+   "at": {
+    "surah": 26,
+    "ayah": 97,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 97,
+    "word": 1
+   },
+   "text": "تَٱللَّهِ",
+   "phonemes": "تَللَااهِ",
+   "role": "ref"
+  },
+  {
+   "startS": 74.455,
+   "endS": 74.975,
+   "at": {
+    "surah": 26,
+    "ayah": 97,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 97,
+    "word": 2
+   },
+   "text": "إِن",
+   "phonemes": "ءِںںں",
+   "role": "ref"
+  },
+  {
+   "startS": 75.255,
+   "endS": 76.335,
+   "at": {
+    "surah": 26,
+    "ayah": 97,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 97,
+    "word": 3
+   },
+   "text": "كُنَّا",
+   "phonemes": "كُننننَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 76.375,
+   "endS": 76.935,
+   "at": {
+    "surah": 26,
+    "ayah": 97,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 97,
+    "word": 4
+   },
+   "text": "لَفِى",
+   "phonemes": "لَفِۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 77.055,
+   "endS": 77.895,
+   "at": {
+    "surah": 26,
+    "ayah": 97,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 97,
+    "word": 5
+   },
+   "text": "ضَلَـٰلٍۢ",
+   "phonemes": "ضَلَاالِممم",
+   "role": "ref"
+  },
+  {
+   "startS": 77.975,
+   "endS": 79.975,
+   "at": {
+    "surah": 26,
+    "ayah": 97,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 97,
+    "word": 6
+   },
+   "text": "مُّبِينٍ",
+   "phonemes": "مُبِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 80.735,
+   "endS": 82.215,
+   "at": {
+    "surah": 26,
+    "ayah": 98,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 98,
+    "word": 2
+   },
+   "text": "نُسَوِّيكُم",
+   "phonemes": "نُسَووِۦۦكُ۾۾۾",
+   "role": "ref"
+  },
+  {
+   "startS": 82.335,
+   "endS": 83.015,
+   "at": {
+    "surah": 26,
+    "ayah": 98,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 98,
+    "word": 3
+   },
+   "text": "بِرَبِّ",
+   "phonemes": "بِرَببِ",
+   "role": "ref"
+  },
+  {
+   "startS": 83.055,
+   "endS": 84.415,
+   "at": {
+    "surah": 26,
+    "ayah": 98,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 98,
+    "word": 4
+   },
+   "text": "ٱلْعَـٰلَمِينَ",
+   "phonemes": "لعَاالَمِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 84.895,
+   "endS": 85.375,
+   "at": {
+    "surah": 26,
+    "ayah": 99,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 99,
+    "word": 1
+   },
+   "text": "وَمَآ",
+   "phonemes": "وَمَاااا",
+   "role": "ref"
+  },
+  {
+   "startS": 85.455,
+   "endS": 86.495,
+   "at": {
+    "surah": 26,
+    "ayah": 99,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 99,
+    "word": 2
+   },
+   "text": "أَضَلَّنَآ",
+   "phonemes": "ءَضَللَنَاااا",
+   "role": "ref"
+  },
+  {
+   "startS": 86.575,
+   "endS": 87.055,
+   "at": {
+    "surah": 26,
+    "ayah": 99,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 99,
+    "word": 3
+   },
+   "text": "إِلَّا",
+   "phonemes": "ءِللَ",
+   "role": "ref"
+  },
+  {
+   "startS": 87.095,
+   "endS": 89.015,
+   "at": {
+    "surah": 26,
+    "ayah": 99,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 99,
+    "word": 4
+   },
+   "text": "ٱلْمُجْرِمُونَ",
+   "phonemes": "لمُجڇرِمُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 89.365,
+   "endS": 89.805,
+   "at": {
+    "surah": 26,
+    "ayah": 101,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 101,
+    "word": 1
+   },
+   "text": "وَلَا",
+   "phonemes": "وَلَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 89.885,
+   "endS": 90.765,
+   "at": {
+    "surah": 26,
+    "ayah": 101,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 101,
+    "word": 2
+   },
+   "text": "صَدِيقٍ",
+   "phonemes": "صَدِۦۦقِن",
+   "role": "ref"
+  },
+  {
+   "startS": 90.885,
+   "endS": 92.045,
+   "at": {
+    "surah": 26,
+    "ayah": 101,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 101,
+    "word": 3
+   },
+   "text": "حَمِيمٍۢ",
+   "phonemes": "حَمِۦۦم",
+   "role": "ref"
+  },
+  {
+   "startS": 92.565,
+   "endS": 92.965,
+   "at": {
+    "surah": 26,
+    "ayah": 102,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 102,
+    "word": 1
+   },
+   "text": "فَلَوْ",
+   "phonemes": "فَلَو",
+   "role": "ref"
+  },
+  {
+   "startS": 93.045,
+   "endS": 94.245,
+   "at": {
+    "surah": 26,
+    "ayah": 102,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 102,
+    "word": 2
+   },
+   "text": "أَنَّ",
+   "phonemes": "ءَننننَ",
+   "role": "ref"
+  },
+  {
+   "startS": 94.325,
+   "endS": 94.845,
+   "at": {
+    "surah": 26,
+    "ayah": 102,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 102,
+    "word": 3
+   },
+   "text": "لَنَا",
+   "phonemes": "لَنَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 94.925,
+   "endS": 96.005,
+   "at": {
+    "surah": 26,
+    "ayah": 102,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 102,
+    "word": 4
+   },
+   "text": "كَرَّةًۭ",
+   "phonemes": "كَررَه",
+   "role": "ref"
+  },
+  {
+   "startS": 96.725,
+   "endS": 97.605,
+   "at": {
+    "surah": 26,
+    "ayah": 102,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 102,
+    "word": 5
+   },
+   "text": "فَنَكُونَ",
+   "phonemes": "فَنَكُۥۥنَ",
+   "role": "ref"
+  },
+  {
+   "startS": 97.645,
+   "endS": 97.965,
+   "at": {
+    "surah": 26,
+    "ayah": 102,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 102,
+    "word": 6
+   },
+   "text": "مِنَ",
+   "phonemes": "مِنَ",
+   "role": "ref"
+  },
+  {
+   "startS": 98.005,
+   "endS": 99.925,
+   "at": {
+    "surah": 26,
+    "ayah": 102,
+    "word": 7
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 102,
+    "word": 7
+   },
+   "text": "ٱلْمُؤْمِنِينَ",
+   "phonemes": "لمُءمِنِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 100.525,
+   "endS": 101.765,
+   "at": {
+    "surah": 26,
+    "ayah": 104,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 104,
+    "word": 1
+   },
+   "text": "وَإِنَّ",
+   "phonemes": "وَءِننننَ",
+   "role": "ref"
+  },
+  {
+   "startS": 101.845,
+   "endS": 102.565,
+   "at": {
+    "surah": 26,
+    "ayah": 104,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 104,
+    "word": 2
+   },
+   "text": "رَبَّكَ",
+   "phonemes": "رَببَكَ",
+   "role": "ref"
+  },
+  {
+   "startS": 102.605,
+   "endS": 103.165,
+   "at": {
+    "surah": 26,
+    "ayah": 104,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 104,
+    "word": 3
+   },
+   "text": "لَهُوَ",
+   "phonemes": "لَهُوَ",
+   "role": "ref"
+  },
+  {
+   "startS": 103.205,
+   "endS": 104.165,
+   "at": {
+    "surah": 26,
+    "ayah": 104,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 104,
+    "word": 4
+   },
+   "text": "ٱلْعَزِيزُ",
+   "phonemes": "لعَزِۦۦزُ",
+   "role": "ref"
+  },
+  {
+   "startS": 104.245,
+   "endS": 106.365,
+   "at": {
+    "surah": 26,
+    "ayah": 104,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 104,
+    "word": 5
+   },
+   "text": "ٱلرَّحِيمُ",
+   "phonemes": "ررَحِۦۦم",
+   "role": "ref"
+  },
+  {
+   "startS": 107.005,
+   "endS": 107.765,
+   "at": {
+    "surah": 26,
+    "ayah": 105,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 105,
+    "word": 1
+   },
+   "text": "كَذَّبَتْ",
+   "phonemes": "كَذذَبَت",
+   "role": "ref"
+  },
+  {
+   "startS": 107.925,
+   "endS": 108.405,
+   "at": {
+    "surah": 26,
+    "ayah": 105,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 105,
+    "word": 2
+   },
+   "text": "قَوْمُ",
+   "phonemes": "قَومُ",
+   "role": "ref"
+  },
+  {
+   "startS": 108.485,
+   "endS": 108.925,
+   "at": {
+    "surah": 26,
+    "ayah": 105,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 105,
+    "word": 3
+   },
+   "text": "نُوحٍ",
+   "phonemes": "نُۥۥحِ",
+   "role": "ref"
+  },
+  {
+   "startS": 109.005,
+   "endS": 110.485,
+   "at": {
+    "surah": 26,
+    "ayah": 105,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 105,
+    "word": 4
+   },
+   "text": "ٱلْمُرْسَلِينَ",
+   "phonemes": "نِلمُرسَلِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 110.965,
+   "endS": 111.205,
+   "at": {
+    "surah": 26,
+    "ayah": 106,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 106,
+    "word": 1
+   },
+   "text": "إِذْ",
+   "phonemes": "ءِذ",
+   "role": "ref"
+  },
+  {
+   "startS": 111.365,
+   "endS": 111.885,
+   "at": {
+    "surah": 26,
+    "ayah": 106,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 106,
+    "word": 2
+   },
+   "text": "قَالَ",
+   "phonemes": "قَاالَ",
+   "role": "ref"
+  },
+  {
+   "startS": 111.925,
+   "endS": 112.405,
+   "at": {
+    "surah": 26,
+    "ayah": 106,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 106,
+    "word": 3
+   },
+   "text": "لَهُمْ",
+   "phonemes": "لَهُم",
+   "role": "ref"
+  },
+  {
+   "startS": 112.525,
+   "endS": 113.365,
+   "at": {
+    "surah": 26,
+    "ayah": 106,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 106,
+    "word": 4
+   },
+   "text": "أَخُوهُمْ",
+   "phonemes": "ءَخُۥۥهُم",
+   "role": "ref"
+  },
+  {
+   "startS": 113.465,
+   "endS": 114.265,
+   "at": {
+    "surah": 26,
+    "ayah": 106,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 142,
+    "word": 5
+   },
+   "text": "صَـٰلِحٌ",
+   "phonemes": "صَاالِحُن",
+   "role": "wrong",
+   "op": "x8"
+  },
+  {
+   "startS": 114.345,
+   "endS": 114.865,
+   "at": {
+    "surah": 26,
+    "ayah": 106,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 142,
+    "word": 6
+   },
+   "text": "أَلَا",
+   "phonemes": "ءَلَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 114.95,
+   "endS": 116.495,
+   "at": {
+    "surah": 26,
+    "ayah": 106,
+    "word": 7
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 106,
+    "word": 7
+   },
+   "text": "تَتَّقُونَ",
+   "phonemes": "تَتتَقُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 117.095,
+   "endS": 118.975,
+   "at": {
+    "surah": 26,
+    "ayah": 107,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 107,
+    "word": 1
+   },
+   "text": "إِنِّى",
+   "phonemes": "ءِننننِۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 119.015,
+   "endS": 119.415,
+   "at": {
+    "surah": 26,
+    "ayah": 107,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 107,
+    "word": 2
+   },
+   "text": "لَكُمْ",
+   "phonemes": "لَكُم",
+   "role": "ref"
+  },
+  {
+   "startS": 119.495,
+   "endS": 120.295,
+   "at": {
+    "surah": 26,
+    "ayah": 107,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 107,
+    "word": 3
+   },
+   "text": "رَسُولٌ",
+   "phonemes": "رَسُۥۥلُن",
+   "role": "ref"
+  },
+  {
+   "startS": 120.415,
+   "endS": 121.335,
+   "at": {
+    "surah": 26,
+    "ayah": 107,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 107,
+    "word": 4
+   },
+   "text": "أَمِينٌۭ",
+   "phonemes": "ءَمِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 121.735,
+   "endS": 122.375,
+   "at": {
+    "surah": 26,
+    "ayah": 108,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 108,
+    "word": 1
+   },
+   "text": "فَٱتَّقُوا۟",
+   "phonemes": "فَتتَقُ",
+   "role": "ref"
+  },
+  {
+   "startS": 122.575,
+   "endS": 123.055,
+   "at": {
+    "surah": 26,
+    "ayah": 108,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 108,
+    "word": 2
+   },
+   "text": "ٱللَّهَ",
+   "phonemes": "للَااهَ",
+   "role": "ref"
+  },
+  {
+   "startS": 123.135,
+   "endS": 124.495,
+   "at": {
+    "surah": 26,
+    "ayah": 108,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 108,
+    "word": 3
+   },
+   "text": "وَأَطِيعُونِ",
+   "phonemes": "وَءَطِۦۦعُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 124.975,
+   "endS": 125.455,
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 109,
+    "word": 1
+   },
+   "text": "وَمَآ",
+   "phonemes": "وَمَاااا",
+   "role": "ref"
+  },
+  {
+   "startS": 125.495,
+   "endS": 126.455,
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 109,
+    "word": 2
+   },
+   "text": "أَسْـَٔلُكُمْ",
+   "phonemes": "ءَسءَلُكُم",
+   "role": "ref"
+  },
+  {
+   "startS": 126.535,
+   "endS": 127.135,
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 109,
+    "word": 3
+   },
+   "text": "عَلَيْهِ",
+   "phonemes": "عَلَيهِ",
+   "role": "ref"
+  },
+  {
+   "startS": 127.215,
+   "endS": 127.455,
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 109,
+    "word": 4
+   },
+   "text": "مِنْ",
+   "phonemes": "مِن",
+   "role": "ref"
+  },
+  {
+   "startS": 127.535,
+   "endS": 128.215,
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 109,
+    "word": 5
+   },
+   "text": "أَجْرٍ",
+   "phonemes": "ءَجڇرِن",
+   "role": "ref"
+  },
+  {
+   "startS": 128.295,
+   "endS": 128.535,
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 109,
+    "word": 6
+   },
+   "text": "إِنْ",
+   "phonemes": "ءِن",
+   "role": "ref"
+  },
+  {
+   "startS": 128.655,
+   "endS": 129.335,
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 7
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 109,
+    "word": 7
+   },
+   "text": "أَجْرِىَ",
+   "phonemes": "ءَجڇرِيَ",
+   "role": "ref"
+  },
+  {
+   "startS": 129.375,
+   "endS": 130.055,
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 8
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 109,
+    "word": 8
+   },
+   "text": "إِلَّا",
+   "phonemes": "ءِللَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 130.135,
+   "endS": 130.615,
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 9
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 109,
+    "word": 9
+   },
+   "text": "عَلَىٰ",
+   "phonemes": "عَلَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 130.655,
+   "endS": 131.135,
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 10
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 109,
+    "word": 10
+   },
+   "text": "رَبِّ",
+   "phonemes": "رَببِ",
+   "role": "ref"
+  },
+  {
+   "startS": 131.175,
+   "endS": 132.575,
+   "at": {
+    "surah": 26,
+    "ayah": 109,
+    "word": 11
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 109,
+    "word": 11
+   },
+   "text": "ٱلْعَـٰلَمِينَ",
+   "phonemes": "لعَاالَمِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 132.935,
+   "endS": 133.615,
+   "at": {
+    "surah": 26,
+    "ayah": 110,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 110,
+    "word": 1
+   },
+   "text": "فَٱتَّقُوا۟",
+   "phonemes": "فَتتَقُ",
+   "role": "ref"
+  },
+  {
+   "startS": 133.655,
+   "endS": 134.335,
+   "at": {
+    "surah": 26,
+    "ayah": 110,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 110,
+    "word": 2
+   },
+   "text": "ٱللَّهَ",
+   "phonemes": "للَااهَ",
+   "role": "ref"
+  },
+  {
+   "startS": 134.415,
+   "endS": 135.815,
+   "at": {
+    "surah": 26,
+    "ayah": 110,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 110,
+    "word": 3
+   },
+   "text": "وَأَطِيعُونِ",
+   "phonemes": "وَءَطِۦۦعُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 136.255,
+   "endS": 136.895,
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 111,
+    "word": 1
+   },
+   "text": "قَالُوٓا۟",
+   "phonemes": "قَاالُۥۥۥۥ",
+   "role": "ref"
+  },
+  {
+   "startS": 136.935,
+   "endS": 137.775,
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 111,
+    "word": 2
+   },
+   "text": "أَنُؤْمِنُ",
+   "phonemes": "ءَنُءمِنُ",
+   "role": "ref"
+  },
+  {
+   "startS": 137.855,
+   "endS": 138.175,
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 111,
+    "word": 3
+   },
+   "text": "لَكَ",
+   "phonemes": "لَكَ",
+   "role": "ref"
+  },
+  {
+   "startS": 138.255,
+   "endS": 139.295,
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 111,
+    "word": 4
+   },
+   "text": "وَٱتَّبَعَكَ",
+   "phonemes": "وَتتَبَعَكَ",
+   "role": "ref"
+  },
+  {
+   "startS": 139.375,
+   "endS": 140.775,
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 111,
+    "word": 5
+   },
+   "text": "ٱلْأَرْذَلُونَ",
+   "phonemes": "لءَرذَلُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 141.065,
+   "endS": 141.705,
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 111,
+    "word": 1
+   },
+   "text": "قَالُوٓا۟",
+   "phonemes": "قَاالُۥۥۥۥ",
+   "role": "repeat",
+   "op": "x9"
+  },
+  {
+   "startS": 141.745,
+   "endS": 142.585,
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 111,
+    "word": 2
+   },
+   "text": "أَنُؤْمِنُ",
+   "phonemes": "ءَنُءمِنُ",
+   "role": "repeat",
+   "op": "x9"
+  },
+  {
+   "startS": 142.665,
+   "endS": 142.985,
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 111,
+    "word": 3
+   },
+   "text": "لَكَ",
+   "phonemes": "لَكَ",
+   "role": "repeat",
+   "op": "x9"
+  },
+  {
+   "startS": 143.065,
+   "endS": 144.105,
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 111,
+    "word": 4
+   },
+   "text": "وَٱتَّبَعَكَ",
+   "phonemes": "وَتتَبَعَكَ",
+   "role": "repeat",
+   "op": "x9"
+  },
+  {
+   "startS": 144.185,
+   "endS": 145.585,
+   "at": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 111,
+    "word": 5
+   },
+   "text": "ٱلْأَرْذَلُونَ",
+   "phonemes": "لءَرذَلُۥۥن",
+   "role": "repeat",
+   "op": "x9"
+  },
+  {
+   "startS": 146.025,
+   "endS": 146.505,
+   "at": {
+    "surah": 26,
+    "ayah": 112,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 112,
+    "word": 1
+   },
+   "text": "قَالَ",
+   "phonemes": "قَاالَ",
+   "role": "ref"
+  },
+  {
+   "startS": 146.585,
+   "endS": 147.105,
+   "at": {
+    "surah": 26,
+    "ayah": 112,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 112,
+    "word": 2
+   },
+   "text": "وَمَا",
+   "phonemes": "وَمَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 147.185,
+   "endS": 147.865,
+   "at": {
+    "surah": 26,
+    "ayah": 112,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 112,
+    "word": 3
+   },
+   "text": "عِلْمِى",
+   "phonemes": "عِلمِۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 147.905,
+   "endS": 148.385,
+   "at": {
+    "surah": 26,
+    "ayah": 112,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 112,
+    "word": 4
+   },
+   "text": "بِمَا",
+   "phonemes": "بِمَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 148.425,
+   "endS": 149.145,
+   "at": {
+    "surah": 26,
+    "ayah": 112,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 112,
+    "word": 5
+   },
+   "text": "كَانُوا۟",
+   "phonemes": "كَاانُۥۥ",
+   "role": "ref"
+  },
+  {
+   "startS": 149.225,
+   "endS": 150.545,
+   "at": {
+    "surah": 26,
+    "ayah": 112,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 112,
+    "word": 6
+   },
+   "text": "يَعْمَلُونَ",
+   "phonemes": "يَعمَلُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 151.065,
+   "endS": 151.305,
+   "at": {
+    "surah": 26,
+    "ayah": 113,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 113,
+    "word": 1
+   },
+   "text": "إِنْ",
+   "phonemes": "ءِن",
+   "role": "ref"
+  },
+  {
+   "startS": 151.465,
+   "endS": 152.505,
+   "at": {
+    "surah": 26,
+    "ayah": 113,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 113,
+    "word": 2
+   },
+   "text": "حِسَابُهُمْ",
+   "phonemes": "حِسَاابُهُم",
+   "role": "ref"
+  },
+  {
+   "startS": 152.625,
+   "endS": 153.265,
+   "at": {
+    "surah": 26,
+    "ayah": 113,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 113,
+    "word": 3
+   },
+   "text": "إِلَّا",
+   "phonemes": "ءِللَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 153.345,
+   "endS": 153.825,
+   "at": {
+    "surah": 26,
+    "ayah": 113,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 113,
+    "word": 4
+   },
+   "text": "عَلَىٰ",
+   "phonemes": "عَلَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 153.905,
+   "endS": 154.705,
+   "at": {
+    "surah": 26,
+    "ayah": 113,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 113,
+    "word": 5
+   },
+   "text": "رَبِّى",
+   "phonemes": "رَببِۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 155.21,
+   "endS": 157.245,
+   "at": {
+    "surah": 26,
+    "ayah": 113,
+    "word": 7
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 113,
+    "word": 7
+   },
+   "text": "تَشْعُرُونَ",
+   "phonemes": "تَشعُرُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 157.765,
+   "endS": 158.285,
+   "at": {
+    "surah": 26,
+    "ayah": 114,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 114,
+    "word": 1
+   },
+   "text": "وَمَآ",
+   "phonemes": "وَمَاااا",
+   "role": "ref"
+  },
+  {
+   "startS": 158.325,
+   "endS": 158.645,
+   "at": {
+    "surah": 26,
+    "ayah": 114,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 114,
+    "word": 2
+   },
+   "text": "أَنَا۠",
+   "phonemes": "ءَنَ",
+   "role": "ref"
+  },
+  {
+   "startS": 158.725,
+   "endS": 159.565,
+   "at": {
+    "surah": 26,
+    "ayah": 114,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 114,
+    "word": 3
+   },
+   "text": "بِطَارِدِ",
+   "phonemes": "بِطَاارِدِ",
+   "role": "ref"
+  },
+  {
+   "startS": 159.605,
+   "endS": 161.685,
+   "at": {
+    "surah": 26,
+    "ayah": 114,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 114,
+    "word": 4
+   },
+   "text": "ٱلْمُؤْمِنِينَ",
+   "phonemes": "لمُءمِنِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 162.205,
+   "endS": 162.445,
+   "at": {
+    "surah": 26,
+    "ayah": 115,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 115,
+    "word": 1
+   },
+   "text": "إِنْ",
+   "phonemes": "ءِن",
+   "role": "ref"
+  },
+  {
+   "startS": 162.525,
+   "endS": 162.845,
+   "at": {
+    "surah": 26,
+    "ayah": 115,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 115,
+    "word": 2
+   },
+   "text": "أَنَا۠",
+   "phonemes": "ءَنَ",
+   "role": "ref"
+  },
+  {
+   "startS": 162.925,
+   "endS": 163.605,
+   "at": {
+    "surah": 26,
+    "ayah": 115,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 115,
+    "word": 3
+   },
+   "text": "إِلَّا",
+   "phonemes": "ءِللَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 163.685,
+   "endS": 164.725,
+   "at": {
+    "surah": 26,
+    "ayah": 115,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 115,
+    "word": 4
+   },
+   "text": "نَذِيرٌۭ",
+   "phonemes": "نَذِۦۦرُممم",
+   "role": "ref"
+  },
+  {
+   "startS": 165.285,
+   "endS": 166.365,
+   "at": {
+    "surah": 26,
+    "ayah": 115,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 115,
+    "word": 5
+   },
+   "text": "مُّبِينٌۭ",
+   "phonemes": "مُبِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 166.925,
+   "endS": 167.605,
+   "at": {
+    "surah": 26,
+    "ayah": 116,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 116,
+    "word": 1
+   },
+   "text": "قَالُوا۟",
+   "phonemes": "قَاالُۥۥ",
+   "role": "ref"
+  },
+  {
+   "startS": 167.645,
+   "endS": 168.005,
+   "at": {
+    "surah": 26,
+    "ayah": 116,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 116,
+    "word": 2
+   },
+   "text": "لَئِن",
+   "phonemes": "لَءِل",
+   "role": "ref"
+  },
+  {
+   "startS": 168.085,
+   "endS": 168.325,
+   "at": {
+    "surah": 26,
+    "ayah": 116,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 116,
+    "word": 3
+   },
+   "text": "لَّمْ",
+   "phonemes": "لَم",
+   "role": "ref"
+  },
+  {
+   "startS": 168.445,
+   "endS": 169.485,
+   "at": {
+    "surah": 26,
+    "ayah": 116,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 116,
+    "word": 4
+   },
+   "text": "تَنتَهِ",
+   "phonemes": "تَںںںتَهِ",
+   "role": "ref"
+  },
+  {
+   "startS": 169.605,
+   "endS": 170.445,
+   "at": {
+    "surah": 26,
+    "ayah": 116,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 116,
+    "word": 5
+   },
+   "text": "يَـٰنُوحُ",
+   "phonemes": "يَاانُۥۥحُ",
+   "role": "ref"
+  },
+  {
+   "startS": 170.485,
+   "endS": 171.965,
+   "at": {
+    "surah": 26,
+    "ayah": 116,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 116,
+    "word": 6
+   },
+   "text": "لَتَكُونَنَّ",
+   "phonemes": "لَتَكُۥۥنَننننَ",
+   "role": "ref"
+  },
+  {
+   "startS": 172.045,
+   "endS": 172.325,
+   "at": {
+    "surah": 26,
+    "ayah": 116,
+    "word": 7
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 116,
+    "word": 7
+   },
+   "text": "مِنَ",
+   "phonemes": "مِنَ",
+   "role": "ref"
+  },
+  {
+   "startS": 172.365,
+   "endS": 174.005,
+   "at": {
+    "surah": 26,
+    "ayah": 116,
+    "word": 8
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 116,
+    "word": 8
+   },
+   "text": "ٱلْمَرْجُومِينَ",
+   "phonemes": "لمَرجُۥۥمِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 174.605,
+   "endS": 175.045,
+   "at": {
+    "surah": 26,
+    "ayah": 117,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 117,
+    "word": 1
+   },
+   "text": "قَالَ",
+   "phonemes": "قَاالَ",
+   "role": "ref"
+  },
+  {
+   "startS": 175.125,
+   "endS": 175.565,
+   "at": {
+    "surah": 26,
+    "ayah": 117,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 117,
+    "word": 2
+   },
+   "text": "رَبِّ",
+   "phonemes": "رَببِ",
+   "role": "ref"
+  },
+  {
+   "startS": 175.605,
+   "endS": 177.005,
+   "at": {
+    "surah": 26,
+    "ayah": 117,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 117,
+    "word": 3
+   },
+   "text": "إِنَّ",
+   "phonemes": "ءِننننَ",
+   "role": "ref"
+  },
+  {
+   "startS": 177.125,
+   "endS": 177.765,
+   "at": {
+    "surah": 26,
+    "ayah": 117,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 117,
+    "word": 4
+   },
+   "text": "قَوْمِى",
+   "phonemes": "قَومِۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 177.805,
+   "endS": 179.005,
+   "at": {
+    "surah": 26,
+    "ayah": 117,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 117,
+    "word": 5
+   },
+   "text": "كَذَّبُونِ",
+   "phonemes": "كَذذَبُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 179.345,
+   "endS": 179.985,
+   "at": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 118,
+    "word": 2
+   },
+   "text": "بَيْنِى",
+   "phonemes": "بَينِۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 180.025,
+   "endS": 180.945,
+   "at": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 118,
+    "word": 3
+   },
+   "text": "وَبَيْنَهُمْ",
+   "phonemes": "وَبَينَهُم",
+   "role": "ref"
+  },
+  {
+   "startS": 181.065,
+   "endS": 181.665,
+   "at": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 118,
+    "word": 4
+   },
+   "text": "فَتْحًۭا",
+   "phonemes": "فَتحَوو",
+   "role": "ref"
+  },
+  {
+   "startS": 181.745,
+   "endS": 183.905,
+   "at": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 118,
+    "word": 5
+   },
+   "text": "وَنَجِّنِى",
+   "phonemes": "وَنَججِنِۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 183.945,
+   "endS": 184.385,
+   "at": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 118,
+    "word": 6
+   },
+   "text": "وَمَن",
+   "phonemes": "وَمَم",
+   "role": "ref"
+  },
+  {
+   "startS": 184.465,
+   "endS": 185.745,
+   "at": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 7
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 118,
+    "word": 7
+   },
+   "text": "مَّعِىَ",
+   "phonemes": "مممَعِيَ",
+   "role": "ref"
+  },
+  {
+   "startS": 185.825,
+   "endS": 186.105,
+   "at": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 8
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 118,
+    "word": 8
+   },
+   "text": "مِنَ",
+   "phonemes": "مِنَ",
+   "role": "ref"
+  },
+  {
+   "startS": 186.145,
+   "endS": 187.545,
+   "at": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 9
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 118,
+    "word": 9
+   },
+   "text": "ٱلْمُؤْمِنِينَ",
+   "phonemes": "لمُءمِنِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 188.105,
+   "endS": 189.705,
+   "at": {
+    "surah": 26,
+    "ayah": 119,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 119,
+    "word": 1
+   },
+   "text": "فَأَنجَيْنَـٰهُ",
+   "phonemes": "فَءَںںںجَينَااهُ",
+   "role": "ref"
+  },
+  {
+   "startS": 189.785,
+   "endS": 190.185,
+   "at": {
+    "surah": 26,
+    "ayah": 119,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 119,
+    "word": 2
+   },
+   "text": "وَمَن",
+   "phonemes": "وَمَم",
+   "role": "ref"
+  },
+  {
+   "startS": 190.265,
+   "endS": 191.305,
+   "at": {
+    "surah": 26,
+    "ayah": 119,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 119,
+    "word": 3
+   },
+   "text": "مَّعَهُۥ",
+   "phonemes": "مممَعَهُ",
+   "role": "ref"
+  },
+  {
+   "startS": 191.305,
+   "endS": 191.665,
+   "at": {
+    "surah": 26,
+    "ayah": 119,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 119,
+    "word": 4
+   },
+   "text": "فِى",
+   "phonemes": "ۥۥفِ",
+   "role": "ref"
+  },
+  {
+   "startS": 191.705,
+   "endS": 192.425,
+   "at": {
+    "surah": 26,
+    "ayah": 119,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 119,
+    "word": 5
+   },
+   "text": "ٱلْفُلْكِ",
+   "phonemes": "لفُلكِ",
+   "role": "ref"
+  },
+  {
+   "startS": 192.465,
+   "endS": 193.625,
+   "at": {
+    "surah": 26,
+    "ayah": 119,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 119,
+    "word": 6
+   },
+   "text": "ٱلْمَشْحُونِ",
+   "phonemes": "لمَشحُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 193.905,
+   "endS": 195.585,
+   "at": {
+    "surah": 26,
+    "ayah": 121,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 121,
+    "word": 1
+   },
+   "text": "إِنَّ",
+   "phonemes": "ءِننننَ",
+   "role": "ref"
+  },
+  {
+   "startS": 195.665,
+   "endS": 196.025,
+   "at": {
+    "surah": 26,
+    "ayah": 121,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 121,
+    "word": 2
+   },
+   "text": "فِى",
+   "phonemes": "فِۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 196.105,
+   "endS": 196.785,
+   "at": {
+    "surah": 26,
+    "ayah": 121,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 121,
+    "word": 3
+   },
+   "text": "ذَٰلِكَ",
+   "phonemes": "ذَاالِكَ",
+   "role": "ref"
+  },
+  {
+   "startS": 196.865,
+   "endS": 197.865,
+   "at": {
+    "surah": 26,
+    "ayah": 121,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 121,
+    "word": 4
+   },
+   "text": "لَـَٔايَةًۭ",
+   "phonemes": "لَءَاايَه",
+   "role": "ref"
+  },
+  {
+   "startS": 198.385,
+   "endS": 198.945,
+   "at": {
+    "surah": 26,
+    "ayah": 121,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 121,
+    "word": 5
+   },
+   "text": "وَمَا",
+   "phonemes": "وووَمَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 199.025,
+   "endS": 199.545,
+   "at": {
+    "surah": 26,
+    "ayah": 121,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 121,
+    "word": 6
+   },
+   "text": "كَانَ",
+   "phonemes": "كَاانَ",
+   "role": "ref"
+  },
+  {
+   "startS": 199.585,
+   "endS": 200.905,
+   "at": {
+    "surah": 26,
+    "ayah": 121,
+    "word": 7
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 121,
+    "word": 7
+   },
+   "text": "أَكْثَرُهُم",
+   "phonemes": "ءَكثَرُهُممم",
+   "role": "ref"
+  },
+  {
+   "startS": 201.305,
+   "endS": 202.665,
+   "at": {
+    "surah": 26,
+    "ayah": 121,
+    "word": 8
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 121,
+    "word": 8
+   },
+   "text": "مُّؤْمِنِينَ",
+   "phonemes": "مُءمِنِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 203.145,
+   "endS": 204.865,
+   "at": {
+    "surah": 26,
+    "ayah": 122,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 122,
+    "word": 1
+   },
+   "text": "وَإِنَّ",
+   "phonemes": "وَءِننننَ",
+   "role": "ref"
+  },
+  {
+   "startS": 204.945,
+   "endS": 205.665,
+   "at": {
+    "surah": 26,
+    "ayah": 122,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 122,
+    "word": 2
+   },
+   "text": "رَبَّكَ",
+   "phonemes": "رَببَكَ",
+   "role": "ref"
+  },
+  {
+   "startS": 205.705,
+   "endS": 206.225,
+   "at": {
+    "surah": 26,
+    "ayah": 122,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 122,
+    "word": 3
+   },
+   "text": "لَهُوَ",
+   "phonemes": "لَهُوَ",
+   "role": "ref"
+  },
+  {
+   "startS": 206.265,
+   "endS": 207.185,
+   "at": {
+    "surah": 26,
+    "ayah": 122,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 122,
+    "word": 4
+   },
+   "text": "ٱلْعَزِيزُ",
+   "phonemes": "لعَزِۦۦزُ",
+   "role": "ref"
+  },
+  {
+   "startS": 207.265,
+   "endS": 209.185,
+   "at": {
+    "surah": 26,
+    "ayah": 122,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 122,
+    "word": 5
+   },
+   "text": "ٱلرَّحِيمُ",
+   "phonemes": "ررَحِۦۦم",
+   "role": "ref"
+  },
+  {
+   "startS": 209.645,
+   "endS": 210.405,
+   "at": {
+    "surah": 26,
+    "ayah": 123,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 141,
+    "word": 1
+   },
+   "text": "كَذَّبَتْ",
+   "phonemes": "كَذذَبَت",
+   "role": "ref"
+  },
+  {
+   "startS": 210.525,
+   "endS": 211.205,
+   "at": {
+    "surah": 26,
+    "ayah": 123,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 141,
+    "word": 2
+   },
+   "text": "ثَمُودُ",
+   "phonemes": "ثَمُۥۥدُ",
+   "role": "wrong",
+   "op": "x13"
+  },
+  {
+   "startS": 211.245,
+   "endS": 212.525,
+   "at": {
+    "surah": 26,
+    "ayah": 123,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 141,
+    "word": 3
+   },
+   "text": "ٱلْمُرْسَلِينَ",
+   "phonemes": "لمُرسَلِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 212.755,
+   "endS": 212.995,
+   "at": {
+    "surah": 26,
+    "ayah": 124,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 124,
+    "word": 1
+   },
+   "text": "إِذْ",
+   "phonemes": "ءِذ",
+   "role": "ref"
+  },
+  {
+   "startS": 213.115,
+   "endS": 213.595,
+   "at": {
+    "surah": 26,
+    "ayah": 124,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 124,
+    "word": 2
+   },
+   "text": "قَالَ",
+   "phonemes": "قَاالَ",
+   "role": "ref"
+  },
+  {
+   "startS": 213.635,
+   "endS": 214.115,
+   "at": {
+    "surah": 26,
+    "ayah": 124,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 124,
+    "word": 3
+   },
+   "text": "لَهُمْ",
+   "phonemes": "لَهُم",
+   "role": "ref"
+  },
+  {
+   "startS": 214.195,
+   "endS": 214.995,
+   "at": {
+    "surah": 26,
+    "ayah": 124,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 124,
+    "word": 4
+   },
+   "text": "أَخُوهُمْ",
+   "phonemes": "ءَخُۥۥهُم",
+   "role": "ref"
+  },
+  {
+   "startS": 215.115,
+   "endS": 215.675,
+   "at": {
+    "surah": 26,
+    "ayah": 124,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 124,
+    "word": 5
+   },
+   "text": "هُودٌ",
+   "phonemes": "هُۥۥدُن",
+   "role": "ref"
+  },
+  {
+   "startS": 215.755,
+   "endS": 216.235,
+   "at": {
+    "surah": 26,
+    "ayah": 124,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 124,
+    "word": 6
+   },
+   "text": "أَلَا",
+   "phonemes": "ءَلَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 216.315,
+   "endS": 218.275,
+   "at": {
+    "surah": 26,
+    "ayah": 124,
+    "word": 7
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 124,
+    "word": 7
+   },
+   "text": "تَتَّقُونَ",
+   "phonemes": "تَتتَقُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 218.915,
+   "endS": 220.035,
+   "at": {
+    "surah": 26,
+    "ayah": 125,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 125,
+    "word": 1
+   },
+   "text": "إِنِّى",
+   "phonemes": "ءِننننِۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 220.075,
+   "endS": 220.475,
+   "at": {
+    "surah": 26,
+    "ayah": 125,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 125,
+    "word": 2
+   },
+   "text": "لَكُمْ",
+   "phonemes": "لَكُم",
+   "role": "ref"
+  },
+  {
+   "startS": 220.595,
+   "endS": 221.395,
+   "at": {
+    "surah": 26,
+    "ayah": 125,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 125,
+    "word": 3
+   },
+   "text": "رَسُولٌ",
+   "phonemes": "رَسُۥۥلُن",
+   "role": "ref"
+  },
+  {
+   "startS": 221.475,
+   "endS": 222.555,
+   "at": {
+    "surah": 26,
+    "ayah": 125,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 125,
+    "word": 4
+   },
+   "text": "أَمِينٌۭ",
+   "phonemes": "ءَمِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 222.915,
+   "endS": 223.595,
+   "at": {
+    "surah": 26,
+    "ayah": 126,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 126,
+    "word": 1
+   },
+   "text": "فَٱتَّقُوا۟",
+   "phonemes": "فَتتَقُ",
+   "role": "ref"
+  },
+  {
+   "startS": 223.835,
+   "endS": 224.355,
+   "at": {
+    "surah": 26,
+    "ayah": 126,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 126,
+    "word": 2
+   },
+   "text": "ٱللَّهَ",
+   "phonemes": "للَااهَ",
+   "role": "ref"
+  },
+  {
+   "startS": 224.435,
+   "endS": 225.915,
+   "at": {
+    "surah": 26,
+    "ayah": 126,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 126,
+    "word": 3
+   },
+   "text": "وَأَطِيعُونِ",
+   "phonemes": "وَءَطِۦۦعُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 226.475,
+   "endS": 226.955,
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 127,
+    "word": 1
+   },
+   "text": "وَمَآ",
+   "phonemes": "وَمَاااا",
+   "role": "ref"
+  },
+  {
+   "startS": 227.035,
+   "endS": 228.035,
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 127,
+    "word": 2
+   },
+   "text": "أَسْـَٔلُكُمْ",
+   "phonemes": "ءَسءَلُكُم",
+   "role": "ref"
+  },
+  {
+   "startS": 228.155,
+   "endS": 228.835,
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 127,
+    "word": 3
+   },
+   "text": "عَلَيْهِ",
+   "phonemes": "عَلَيهِ",
+   "role": "ref"
+  },
+  {
+   "startS": 228.915,
+   "endS": 229.155,
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 127,
+    "word": 4
+   },
+   "text": "مِنْ",
+   "phonemes": "مِن",
+   "role": "ref"
+  },
+  {
+   "startS": 229.235,
+   "endS": 229.875,
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 127,
+    "word": 5
+   },
+   "text": "أَجْرٍ",
+   "phonemes": "ءَجڇرِن",
+   "role": "ref"
+  },
+  {
+   "startS": 229.955,
+   "endS": 230.235,
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 127,
+    "word": 6
+   },
+   "text": "إِنْ",
+   "phonemes": "ءِن",
+   "role": "ref"
+  },
+  {
+   "startS": 230.315,
+   "endS": 231.035,
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 7
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 127,
+    "word": 7
+   },
+   "text": "أَجْرِىَ",
+   "phonemes": "ءَجڇرِيَ",
+   "role": "ref"
+  },
+  {
+   "startS": 231.075,
+   "endS": 231.755,
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 8
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 127,
+    "word": 8
+   },
+   "text": "إِلَّا",
+   "phonemes": "ءِللَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 231.795,
+   "endS": 232.275,
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 9
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 127,
+    "word": 9
+   },
+   "text": "عَلَىٰ",
+   "phonemes": "عَلَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 232.355,
+   "endS": 232.795,
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 10
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 127,
+    "word": 10
+   },
+   "text": "رَبِّ",
+   "phonemes": "رَببِ",
+   "role": "ref"
+  },
+  {
+   "startS": 232.835,
+   "endS": 234.155,
+   "at": {
+    "surah": 26,
+    "ayah": 127,
+    "word": 11
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 127,
+    "word": 11
+   },
+   "text": "ٱلْعَـٰلَمِينَ",
+   "phonemes": "لعَاالَمِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 234.535,
+   "endS": 235.175,
+   "at": {
+    "surah": 26,
+    "ayah": 128,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 128,
+    "word": 2
+   },
+   "text": "بِكُلِّ",
+   "phonemes": "بِكُللِ",
+   "role": "ref"
+  },
+  {
+   "startS": 235.295,
+   "endS": 235.895,
+   "at": {
+    "surah": 26,
+    "ayah": 128,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 128,
+    "word": 3
+   },
+   "text": "رِيعٍ",
+   "phonemes": "رِۦۦعِن",
+   "role": "ref"
+  },
+  {
+   "startS": 235.975,
+   "endS": 237.055,
+   "at": {
+    "surah": 26,
+    "ayah": 128,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 128,
+    "word": 4
+   },
+   "text": "ءَايَةًۭ",
+   "phonemes": "ءَاايَتَںںں",
+   "role": "ref"
+  },
+  {
+   "startS": 237.335,
+   "endS": 238.775,
+   "at": {
+    "surah": 26,
+    "ayah": 128,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 128,
+    "word": 5
+   },
+   "text": "تَعْبَثُونَ",
+   "phonemes": "تَعبَثُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 239.375,
+   "endS": 240.735,
+   "at": {
+    "surah": 26,
+    "ayah": 129,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 129,
+    "word": 1
+   },
+   "text": "وَتَتَّخِذُونَ",
+   "phonemes": "وَتَتتَخِذُۥۥنَ",
+   "role": "ref"
+  },
+  {
+   "startS": 240.815,
+   "endS": 241.695,
+   "at": {
+    "surah": 26,
+    "ayah": 129,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 129,
+    "word": 2
+   },
+   "text": "مَصَانِعَ",
+   "phonemes": "مَصَاانِعَ",
+   "role": "ref"
+  },
+  {
+   "startS": 241.775,
+   "endS": 242.735,
+   "at": {
+    "surah": 26,
+    "ayah": 129,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 129,
+    "word": 3
+   },
+   "text": "لَعَلَّكُمْ",
+   "phonemes": "لَعَللَكُم",
+   "role": "ref"
+  },
+  {
+   "startS": 242.855,
+   "endS": 244.255,
+   "at": {
+    "surah": 26,
+    "ayah": 129,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 129,
+    "word": 4
+   },
+   "text": "تَخْلُدُونَ",
+   "phonemes": "تَخلُدُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 244.775,
+   "endS": 245.455,
+   "at": {
+    "surah": 26,
+    "ayah": 130,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 130,
+    "word": 1
+   },
+   "text": "وَإِذَا",
+   "phonemes": "وَءِذَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 245.495,
+   "endS": 246.695,
+   "at": {
+    "surah": 26,
+    "ayah": 130,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 130,
+    "word": 2
+   },
+   "text": "بَطَشْتُم",
+   "phonemes": "بَطَشتُ۾۾۾",
+   "role": "ref"
+  },
+  {
+   "startS": 247.255,
+   "endS": 248.055,
+   "at": {
+    "surah": 26,
+    "ayah": 130,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 130,
+    "word": 3
+   },
+   "text": "بَطَشْتُمْ",
+   "phonemes": "بَطَشتُم",
+   "role": "ref"
+  },
+  {
+   "startS": 248.175,
+   "endS": 249.615,
+   "at": {
+    "surah": 26,
+    "ayah": 130,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 130,
+    "word": 4
+   },
+   "text": "جَبَّارِينَ",
+   "phonemes": "جَببَاارِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 249.975,
+   "endS": 250.655,
+   "at": {
+    "surah": 26,
+    "ayah": 131,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 131,
+    "word": 1
+   },
+   "text": "فَٱتَّقُوا۟",
+   "phonemes": "فَتتَقُ",
+   "role": "ref"
+  },
+  {
+   "startS": 250.895,
+   "endS": 251.415,
+   "at": {
+    "surah": 26,
+    "ayah": 131,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 131,
+    "word": 2
+   },
+   "text": "ٱللَّهَ",
+   "phonemes": "للَااهَ",
+   "role": "ref"
+  },
+  {
+   "startS": 251.455,
+   "endS": 253.055,
+   "at": {
+    "surah": 26,
+    "ayah": 131,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 131,
+    "word": 3
+   },
+   "text": "وَأَطِيعُونِ",
+   "phonemes": "وَءَطِۦۦعُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 253.535,
+   "endS": 254.255,
+   "at": {
+    "surah": 26,
+    "ayah": 132,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 132,
+    "word": 1
+   },
+   "text": "وَٱتَّقُوا۟",
+   "phonemes": "وَتتَقُ",
+   "role": "ref"
+  },
+  {
+   "startS": 254.335,
+   "endS": 255.015,
+   "at": {
+    "surah": 26,
+    "ayah": 132,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 132,
+    "word": 2
+   },
+   "text": "ٱلَّذِىٓ",
+   "phonemes": "للَذِۦۦۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 255.055,
+   "endS": 256.095,
+   "at": {
+    "surah": 26,
+    "ayah": 132,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 132,
+    "word": 3
+   },
+   "text": "أَمَدَّكُم",
+   "phonemes": "ءَمَددَكُم",
+   "role": "ref"
+  },
+  {
+   "startS": 257.135,
+   "endS": 257.615,
+   "at": {
+    "surah": 26,
+    "ayah": 132,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 132,
+    "word": 4
+   },
+   "text": "بِمَا",
+   "phonemes": "بِمَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 257.695,
+   "endS": 258.895,
+   "at": {
+    "surah": 26,
+    "ayah": 132,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 132,
+    "word": 5
+   },
+   "text": "تَعْلَمُونَ",
+   "phonemes": "تَعلَمُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 259.255,
+   "endS": 261.015,
+   "at": {
+    "surah": 26,
+    "ayah": 134,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 134,
+    "word": 1
+   },
+   "text": "وَجَنَّـٰتٍۢ",
+   "phonemes": "وَجَننننَااتِوو",
+   "role": "ref"
+  },
+  {
+   "startS": 261.415,
+   "endS": 263.655,
+   "at": {
+    "surah": 26,
+    "ayah": 134,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 134,
+    "word": 2
+   },
+   "text": "وَعُيُونٍ",
+   "phonemes": "وَعُيُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 264.135,
+   "endS": 265.695,
+   "at": {
+    "surah": 26,
+    "ayah": 135,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 135,
+    "word": 1
+   },
+   "text": "إِنِّىٓ",
+   "phonemes": "ءِننننِۦۦۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 265.735,
+   "endS": 266.535,
+   "at": {
+    "surah": 26,
+    "ayah": 135,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 135,
+    "word": 2
+   },
+   "text": "أَخَافُ",
+   "phonemes": "ءَخَاافُ",
+   "role": "ref"
+  },
+  {
+   "startS": 266.575,
+   "endS": 267.415,
+   "at": {
+    "surah": 26,
+    "ayah": 135,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 135,
+    "word": 3
+   },
+   "text": "عَلَيْكُمْ",
+   "phonemes": "عَلَيكُم",
+   "role": "ref"
+  },
+  {
+   "startS": 267.535,
+   "endS": 268.295,
+   "at": {
+    "surah": 26,
+    "ayah": 135,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 135,
+    "word": 4
+   },
+   "text": "عَذَابَ",
+   "phonemes": "عَذَاابَ",
+   "role": "ref"
+  },
+  {
+   "startS": 268.375,
+   "endS": 269.055,
+   "at": {
+    "surah": 26,
+    "ayah": 135,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 135,
+    "word": 5
+   },
+   "text": "يَوْمٍ",
+   "phonemes": "يَومِن",
+   "role": "ref"
+  },
+  {
+   "startS": 269.175,
+   "endS": 270.415,
+   "at": {
+    "surah": 26,
+    "ayah": 135,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 135,
+    "word": 6
+   },
+   "text": "عَظِيمٍۢ",
+   "phonemes": "عَظِۦۦم",
+   "role": "ref"
+  },
+  {
+   "startS": 271.015,
+   "endS": 272.775,
+   "at": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 136,
+    "word": 2
+   },
+   "text": "سَوَآءٌ",
+   "phonemes": "سَوَااااءُن",
+   "role": "ref"
+  },
+  {
+   "startS": 272.855,
+   "endS": 273.695,
+   "at": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 136,
+    "word": 3
+   },
+   "text": "عَلَيْنَآ",
+   "phonemes": "عَلَينَاااا",
+   "role": "ref"
+  },
+  {
+   "startS": 273.735,
+   "endS": 274.615,
+   "at": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 136,
+    "word": 4
+   },
+   "text": "أَوَعَظْتَ",
+   "phonemes": "ءَوَعَظتَ",
+   "role": "ref"
+  },
+  {
+   "startS": 274.695,
+   "endS": 274.935,
+   "at": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 136,
+    "word": 5
+   },
+   "text": "أَمْ",
+   "phonemes": "ءَم",
+   "role": "ref"
+  },
+  {
+   "startS": 275.015,
+   "endS": 275.255,
+   "at": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 136,
+    "word": 6
+   },
+   "text": "لَمْ",
+   "phonemes": "لَم",
+   "role": "ref"
+  },
+  {
+   "startS": 275.415,
+   "endS": 275.855,
+   "at": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 7
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 136,
+    "word": 7
+   },
+   "text": "تَكُن",
+   "phonemes": "تَكُم",
+   "role": "ref"
+  },
+  {
+   "startS": 275.935,
+   "endS": 276.575,
+   "at": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 8
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 136,
+    "word": 8
+   },
+   "text": "مِّنَ",
+   "phonemes": "مممِنَ",
+   "role": "ref"
+  },
+  {
+   "startS": 276.615,
+   "endS": 277.975,
+   "at": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 9
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 136,
+    "word": 9
+   },
+   "text": "ٱلْوَٰعِظِينَ",
+   "phonemes": "لوَااعِظِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 278.495,
+   "endS": 278.735,
+   "at": {
+    "surah": 26,
+    "ayah": 137,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 137,
+    "word": 1
+   },
+   "text": "إِنْ",
+   "phonemes": "ءِن",
+   "role": "ref"
+  },
+  {
+   "startS": 278.855,
+   "endS": 279.535,
+   "at": {
+    "surah": 26,
+    "ayah": 137,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 137,
+    "word": 2
+   },
+   "text": "هَـٰذَآ",
+   "phonemes": "هَااذَاااا",
+   "role": "ref"
+  },
+  {
+   "startS": 279.615,
+   "endS": 280.255,
+   "at": {
+    "surah": 26,
+    "ayah": 137,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 137,
+    "word": 3
+   },
+   "text": "إِلَّا",
+   "phonemes": "ءِللَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 280.335,
+   "endS": 280.855,
+   "at": {
+    "surah": 26,
+    "ayah": 137,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 137,
+    "word": 4
+   },
+   "text": "خُلُقُ",
+   "phonemes": "خُلُقُ",
+   "role": "ref"
+  },
+  {
+   "startS": 280.895,
+   "endS": 282.175,
+   "at": {
+    "surah": 26,
+    "ayah": 137,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 137,
+    "word": 5
+   },
+   "text": "ٱلْأَوَّلِينَ",
+   "phonemes": "لءَووَلِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 282.655,
+   "endS": 283.135,
+   "at": {
+    "surah": 26,
+    "ayah": 138,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 138,
+    "word": 1
+   },
+   "text": "وَمَا",
+   "phonemes": "وَمَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 283.215,
+   "endS": 283.655,
+   "at": {
+    "surah": 26,
+    "ayah": 138,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 138,
+    "word": 2
+   },
+   "text": "نَحْنُ",
+   "phonemes": "نَحنُ",
+   "role": "ref"
+  },
+  {
+   "startS": 283.735,
+   "endS": 285.295,
+   "at": {
+    "surah": 26,
+    "ayah": 138,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 138,
+    "word": 3
+   },
+   "text": "بِمُعَذَّبِينَ",
+   "phonemes": "بِمُعَذذَبِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 285.655,
+   "endS": 286.895,
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 139,
+    "word": 1
+   },
+   "text": "فَكَذَّبُوهُ",
+   "phonemes": "فَكَذذَبُۥۥهُ",
+   "role": "ref"
+  },
+  {
+   "startS": 286.975,
+   "endS": 288.575,
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 139,
+    "word": 2
+   },
+   "text": "فَأَهْلَكْنَـٰهُمْ",
+   "phonemes": "فَءَهلَكنَااهُم",
+   "role": "ref"
+  },
+  {
+   "startS": 289.02,
+   "endS": 289.285,
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 139,
+    "word": 4
+   },
+   "text": "فِى",
+   "phonemes": "فِۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 289.365,
+   "endS": 290.045,
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 139,
+    "word": 5
+   },
+   "text": "ذَٰلِكَ",
+   "phonemes": "ذَاالِكَ",
+   "role": "ref"
+  },
+  {
+   "startS": 290.125,
+   "endS": 291.045,
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 139,
+    "word": 6
+   },
+   "text": "لَـَٔايَةًۭ",
+   "phonemes": "لَءَاايَه",
+   "role": "ref"
+  },
+  {
+   "startS": 291.565,
+   "endS": 292.125,
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 7
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 139,
+    "word": 7
+   },
+   "text": "وَمَا",
+   "phonemes": "وووَمَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 292.205,
+   "endS": 292.725,
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 8
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 139,
+    "word": 8
+   },
+   "text": "كَانَ",
+   "phonemes": "كَاانَ",
+   "role": "ref"
+  },
+  {
+   "startS": 292.765,
+   "endS": 293.805,
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 9
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 139,
+    "word": 9
+   },
+   "text": "أَكْثَرُهُم",
+   "phonemes": "ءَكثَرُهُممم",
+   "role": "ref"
+  },
+  {
+   "startS": 293.885,
+   "endS": 296.565,
+   "at": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 10
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 139,
+    "word": 10
+   },
+   "text": "مُّؤْمِنِينَ",
+   "phonemes": "مُءمِنِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 296.965,
+   "endS": 298.045,
+   "at": {
+    "surah": 26,
+    "ayah": 140,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 140,
+    "word": 1
+   },
+   "text": "وَإِنَّ",
+   "phonemes": "وَءِننننَ",
+   "role": "ref"
+  },
+  {
+   "startS": 298.125,
+   "endS": 298.805,
+   "at": {
+    "surah": 26,
+    "ayah": 140,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 140,
+    "word": 2
+   },
+   "text": "رَبَّكَ",
+   "phonemes": "رَببَكَ",
+   "role": "ref"
+  },
+  {
+   "startS": 298.845,
+   "endS": 299.365,
+   "at": {
+    "surah": 26,
+    "ayah": 140,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 140,
+    "word": 3
+   },
+   "text": "لَهُوَ",
+   "phonemes": "لَهُوَ",
+   "role": "ref"
+  },
+  {
+   "startS": 299.445,
+   "endS": 300.325,
+   "at": {
+    "surah": 26,
+    "ayah": 140,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 140,
+    "word": 4
+   },
+   "text": "ٱلْعَزِيزُ",
+   "phonemes": "لعَزِۦۦزُ",
+   "role": "ref"
+  },
+  {
+   "startS": 300.405,
+   "endS": 301.525,
+   "at": {
+    "surah": 26,
+    "ayah": 140,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 140,
+    "word": 5
+   },
+   "text": "ٱلرَّحِيمُ",
+   "phonemes": "ررَحِۦۦم",
+   "role": "ref"
+  },
+  {
+   "startS": 302.085,
+   "endS": 302.845,
+   "at": {
+    "surah": 26,
+    "ayah": 141,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 141,
+    "word": 1
+   },
+   "text": "كَذَّبَتْ",
+   "phonemes": "كَذذَبَت",
+   "role": "ref"
+  },
+  {
+   "startS": 302.965,
+   "endS": 303.645,
+   "at": {
+    "surah": 26,
+    "ayah": 141,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 141,
+    "word": 2
+   },
+   "text": "ثَمُودُ",
+   "phonemes": "ثَمُۥۥدُ",
+   "role": "ref"
+  },
+  {
+   "startS": 303.685,
+   "endS": 304.965,
+   "at": {
+    "surah": 26,
+    "ayah": 141,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 141,
+    "word": 3
+   },
+   "text": "ٱلْمُرْسَلِينَ",
+   "phonemes": "لمُرسَلِۦۦن",
+   "role": "ref"
+  },
+  {
+   "startS": 305.325,
+   "endS": 305.565,
+   "at": {
+    "surah": 26,
+    "ayah": 142,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 142,
+    "word": 1
+   },
+   "text": "إِذْ",
+   "phonemes": "ءِذ",
+   "role": "ref"
+  },
+  {
+   "startS": 305.725,
+   "endS": 306.205,
+   "at": {
+    "surah": 26,
+    "ayah": 142,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 142,
+    "word": 2
+   },
+   "text": "قَالَ",
+   "phonemes": "قَاالَ",
+   "role": "ref"
+  },
+  {
+   "startS": 306.245,
+   "endS": 306.725,
+   "at": {
+    "surah": 26,
+    "ayah": 142,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 142,
+    "word": 3
+   },
+   "text": "لَهُمْ",
+   "phonemes": "لَهُم",
+   "role": "ref"
+  },
+  {
+   "startS": 306.805,
+   "endS": 307.645,
+   "at": {
+    "surah": 26,
+    "ayah": 142,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 142,
+    "word": 4
+   },
+   "text": "أَخُوهُمْ",
+   "phonemes": "ءَخُۥۥهُم",
+   "role": "ref"
+  },
+  {
+   "startS": 307.765,
+   "endS": 308.565,
+   "at": {
+    "surah": 26,
+    "ayah": 142,
+    "word": 5
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 142,
+    "word": 5
+   },
+   "text": "صَـٰلِحٌ",
+   "phonemes": "صَاالِحُن",
+   "role": "ref"
+  },
+  {
+   "startS": 308.645,
+   "endS": 309.165,
+   "at": {
+    "surah": 26,
+    "ayah": 142,
+    "word": 6
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 142,
+    "word": 6
+   },
+   "text": "أَلَا",
+   "phonemes": "ءَلَاا",
+   "role": "ref"
+  },
+  {
+   "startS": 309.245,
+   "endS": 311.725,
+   "at": {
+    "surah": 26,
+    "ayah": 142,
+    "word": 7
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 142,
+    "word": 7
+   },
+   "text": "تَتَّقُونَ",
+   "phonemes": "تَتتَقُۥۥن",
+   "role": "ref"
+  },
+  {
+   "startS": 312.285,
+   "endS": 313.605,
+   "at": {
+    "surah": 26,
+    "ayah": 143,
+    "word": 1
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 143,
+    "word": 1
+   },
+   "text": "إِنِّى",
+   "phonemes": "ءِننننِۦۦ",
+   "role": "ref"
+  },
+  {
+   "startS": 313.645,
+   "endS": 314.085,
+   "at": {
+    "surah": 26,
+    "ayah": 143,
+    "word": 2
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 143,
+    "word": 2
+   },
+   "text": "لَكُمْ",
+   "phonemes": "لَكُم",
+   "role": "ref"
+  },
+  {
+   "startS": 314.205,
+   "endS": 315.045,
+   "at": {
+    "surah": 26,
+    "ayah": 143,
+    "word": 3
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 143,
+    "word": 3
+   },
+   "text": "رَسُولٌ",
+   "phonemes": "رَسُۥۥلُن",
+   "role": "ref"
+  },
+  {
+   "startS": 315.165,
+   "endS": 316.085,
+   "at": {
+    "surah": 26,
+    "ayah": 143,
+    "word": 4
+   },
+   "from": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "surah": 26,
+    "ayah": 143,
+    "word": 4
+   },
+   "text": "أَمِينٌۭ",
+   "phonemes": "ءَمِۦۦن",
+   "role": "ref"
+  }
+ ],
+ "splices": [
+  {
+   "id": "x1",
+   "type": "omitted_word",
+   "mutashabihat": false,
+   "formsOtherAyah": false,
+   "location": {
+    "surah": 26,
+    "ayah": 86,
+    "word": 1
+   },
+   "expected": "وَٱغْفِرْ",
+   "said": "",
+   "startS": 20.475,
+   "endS": 21.025,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:86:1",
+    "srcS": 632.6
+   },
+   "removed": [
+    "26:86:1"
+   ],
+   "donor": null,
+   "seams": [
+    {
+     "outS": 20.93,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 632.415,
+      "after": "26:85:5",
+      "cutDb": -26.1,
+      "boundary": "pause",
+      "tail": null,
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 633.225,
+      "before": "26:86:2",
+      "cutDb": -7.7,
+      "boundary": "link",
+      "head": "firm",
+      "tail": "closed",
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  },
+  {
+   "id": "x2",
+   "type": "skipped_passage",
+   "mutashabihat": false,
+   "formsOtherAyah": false,
+   "location": {
+    "surah": 26,
+    "ayah": 90,
+    "word": 1
+   },
+   "expected": "وَأُزْلِفَتِ ٱلْجَنَّةُ لِلْمُتَّقِينَ",
+   "said": "",
+   "startS": 46.105,
+   "endS": 46.865,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:90:1",
+    "srcS": 659.08
+   },
+   "removed": [
+    "26:90:1",
+    "26:90:2",
+    "26:90:3"
+   ],
+   "donor": null,
+   "seams": [
+    {
+     "outS": 46.79,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 659.085,
+      "after": "26:89:6",
+      "cutDb": -25.5,
+      "boundary": "pause",
+      "tail": null,
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 663.885,
+      "before": "26:91:1",
+      "cutDb": -24.3,
+      "boundary": "pause",
+      "head": null,
+      "tail": null,
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  },
+  {
+   "id": "x3",
+   "type": "omitted_word",
+   "mutashabihat": false,
+   "formsOtherAyah": false,
+   "location": {
+    "surah": 26,
+    "ayah": 92,
+    "word": 5
+   },
+   "expected": "كُنتُمْ",
+   "said": "",
+   "startS": 53.265,
+   "endS": 53.325,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:92:5",
+    "srcS": 670.4
+   },
+   "removed": [
+    "26:92:5"
+   ],
+   "donor": null,
+   "seams": [
+    {
+     "outS": 53.31,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 670.405,
+      "after": "26:92:4",
+      "cutDb": -9.5,
+      "boundary": "link",
+      "tail": "long",
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 671.425,
+      "before": "26:92:6",
+      "cutDb": -16.1,
+      "boundary": "link",
+      "head": "firm",
+      "tail": "closed",
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  },
+  {
+   "id": "x4",
+   "type": "omitted_word",
+   "mutashabihat": false,
+   "formsOtherAyah": false,
+   "location": {
+    "surah": 26,
+    "ayah": 94,
+    "word": 1
+   },
+   "expected": "فَكُبْكِبُوا۟",
+   "said": "",
+   "startS": 62.045,
+   "endS": 62.575,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:94:1",
+    "srcS": 680.68
+   },
+   "removed": [
+    "26:94:1"
+   ],
+   "donor": null,
+   "seams": [
+    {
+     "outS": 62.56,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 680.675,
+      "after": "26:93:7",
+      "cutDb": -19.2,
+      "boundary": "pause",
+      "tail": null,
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 681.785,
+      "before": "26:94:2",
+      "cutDb": -17.3,
+      "boundary": "link",
+      "head": "firm",
+      "tail": "long",
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  },
+  {
+   "id": "x5",
+   "type": "omitted_word",
+   "mutashabihat": false,
+   "formsOtherAyah": false,
+   "location": {
+    "surah": 26,
+    "ayah": 98,
+    "word": 1
+   },
+   "expected": "إِذْ",
+   "said": "",
+   "startS": 79.975,
+   "endS": 80.735,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:98:1",
+    "srcS": 699.88
+   },
+   "removed": [
+    "26:98:1"
+   ],
+   "donor": null,
+   "seams": [
+    {
+     "outS": 80.62,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 699.845,
+      "after": "26:97:6",
+      "cutDb": -23.6,
+      "boundary": "pause",
+      "tail": null,
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 700.125,
+      "before": "26:98:2",
+      "cutDb": -15.3,
+      "boundary": "link",
+      "head": "firm",
+      "tail": "closed",
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  },
+  {
+   "id": "x6",
+   "type": "skipped_passage",
+   "mutashabihat": false,
+   "formsOtherAyah": false,
+   "location": {
+    "surah": 26,
+    "ayah": 100,
+    "word": 1
+   },
+   "expected": "فَمَا لَنَا مِن شَـٰفِعِينَ",
+   "said": "",
+   "startS": 89.015,
+   "endS": 89.365,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:100:1",
+    "srcS": 709.12
+   },
+   "removed": [
+    "26:100:1",
+    "26:100:2",
+    "26:100:3",
+    "26:100:4"
+   ],
+   "donor": null,
+   "seams": [
+    {
+     "outS": 89.32,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 708.825,
+      "after": "26:99:4",
+      "cutDb": -22.9,
+      "boundary": "pause",
+      "tail": null,
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 713.715,
+      "before": "26:101:1",
+      "cutDb": -22.4,
+      "boundary": "pause",
+      "head": null,
+      "tail": null,
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  },
+  {
+   "id": "x7",
+   "type": "skipped_passage",
+   "mutashabihat": false,
+   "formsOtherAyah": false,
+   "location": {
+    "surah": 26,
+    "ayah": 103,
+    "word": 1
+   },
+   "expected": "إِنَّ فِى ذَٰلِكَ لَـَٔايَةًۭ وَمَا كَانَ أَكْثَرُهُم مُّؤْمِنِينَ",
+   "said": "",
+   "startS": 99.925,
+   "endS": 100.525,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:103:1",
+    "srcS": 724.88
+   },
+   "removed": [
+    "26:103:1",
+    "26:103:2",
+    "26:103:3",
+    "26:103:4",
+    "26:103:5",
+    "26:103:6",
+    "26:103:7",
+    "26:103:8"
+   ],
+   "donor": null,
+   "seams": [
+    {
+     "outS": 100.43,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 724.825,
+      "after": "26:102:7",
+      "cutDb": -25.7,
+      "boundary": "pause",
+      "tail": null,
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 734.105,
+      "before": "26:104:1",
+      "cutDb": -24.0,
+      "boundary": "pause",
+      "head": null,
+      "tail": null,
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  },
+  {
+   "id": "x8",
+   "type": "wrong_word",
+   "mutashabihat": true,
+   "formsOtherAyah": true,
+   "location": {
+    "surah": 26,
+    "ayah": 106,
+    "word": 5
+   },
+   "expected": "نُوحٌ",
+   "said": "صَـٰلِحٌ",
+   "startS": 113.465,
+   "endS": 114.265,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:106:5",
+    "srcS": 747.16
+   },
+   "removed": [
+    "26:106:5"
+   ],
+   "donor": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "rec": "314/026",
+    "word": "26:142:5",
+    "srcStartS": 953.4,
+    "srcEndS": 954.2,
+    "cutS": [
+     953.365,
+     954.885
+    ],
+    "cutDb": [
+     -13.5,
+     -11.3
+    ],
+    "sameRecording": true,
+    "span": [
+     "26:142:5",
+     "26:142:6"
+    ],
+    "shared": 1
+   },
+   "seams": [
+    {
+     "outS": 113.43,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 747.105,
+      "after": "26:106:4",
+      "cutDb": -6.0,
+      "boundary": "link",
+      "tail": "closed",
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 953.365,
+      "before": "26:142:5",
+      "cutDb": -13.5,
+      "boundary": "link",
+      "head": "firm",
+      "tail": "closed",
+      "piece": "donor"
+     },
+     "gainDb": -0.4
+    },
+    {
+     "outS": 114.95,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 954.885,
+      "after": "26:142:6",
+      "cutDb": -11.3,
+      "boundary": "link",
+      "tail": "long",
+      "piece": "donor"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 748.455,
+      "before": "26:106:7",
+      "cutDb": -9.6,
+      "boundary": "link",
+      "head": "firm",
+      "tail": "long",
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  },
+  {
+   "id": "x9",
+   "type": "repeat",
+   "mutashabihat": false,
+   "formsOtherAyah": false,
+   "location": {
+    "surah": 26,
+    "ayah": 111,
+    "word": 1
+   },
+   "expected": "قَالُوٓا۟ أَنُؤْمِنُ لَكَ وَٱتَّبَعَكَ ٱلْأَرْذَلُونَ",
+   "said": "قَالُوٓا۟ أَنُؤْمِنُ لَكَ وَٱتَّبَعَكَ ٱلْأَرْذَلُونَ",
+   "startS": 141.065,
+   "endS": 145.585,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:111:1",
+    "srcS": 769.76
+   },
+   "removed": [],
+   "donor": null,
+   "seams": [
+    {
+     "outS": 141.03,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 774.535,
+      "after": "26:111:5",
+      "cutDb": -19.0,
+      "boundary": "pause",
+      "tail": null,
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 769.725,
+      "before": "26:111:1",
+      "cutDb": -26.4,
+      "boundary": "pause",
+      "head": null,
+      "tail": null,
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  },
+  {
+   "id": "x10",
+   "type": "omitted_word",
+   "mutashabihat": false,
+   "formsOtherAyah": false,
+   "location": {
+    "surah": 26,
+    "ayah": 113,
+    "word": 6
+   },
+   "expected": "لَوْ",
+   "said": "",
+   "startS": 154.705,
+   "endS": 155.21,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:113:6",
+    "srcS": 783.96
+   },
+   "removed": [
+    "26:113:6"
+   ],
+   "donor": null,
+   "seams": [
+    {
+     "outS": 155.21,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 783.905,
+      "after": "26:113:5",
+      "cutDb": -21.5,
+      "boundary": "pause",
+      "tail": null,
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 784.365,
+      "before": "26:113:7",
+      "cutDb": -16.3,
+      "boundary": "link",
+      "head": "firm",
+      "tail": "closed",
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  },
+  {
+   "id": "x11",
+   "type": "omitted_word",
+   "mutashabihat": false,
+   "formsOtherAyah": false,
+   "location": {
+    "surah": 26,
+    "ayah": 118,
+    "word": 1
+   },
+   "expected": "فَٱفْتَحْ",
+   "said": "",
+   "startS": 179.005,
+   "endS": 179.345,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:118:1",
+    "srcS": 808.52
+   },
+   "removed": [
+    "26:118:1"
+   ],
+   "donor": null,
+   "seams": [
+    {
+     "outS": 179.31,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 808.465,
+      "after": "26:117:5",
+      "cutDb": -19.4,
+      "boundary": "pause",
+      "tail": null,
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 809.245,
+      "before": "26:118:2",
+      "cutDb": -15.2,
+      "boundary": "link",
+      "head": "firm",
+      "tail": "closed",
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  },
+  {
+   "id": "x12",
+   "type": "skipped_passage",
+   "mutashabihat": false,
+   "formsOtherAyah": false,
+   "location": {
+    "surah": 26,
+    "ayah": 120,
+    "word": 1
+   },
+   "expected": "ثُمَّ أَغْرَقْنَا بَعْدُ ٱلْبَاقِينَ",
+   "said": "",
+   "startS": 193.625,
+   "endS": 193.905,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:120:1",
+    "srcS": 824.04
+   },
+   "removed": [
+    "26:120:1",
+    "26:120:2",
+    "26:120:3",
+    "26:120:4"
+   ],
+   "donor": null,
+   "seams": [
+    {
+     "outS": 193.78,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 823.715,
+      "after": "26:119:6",
+      "cutDb": -23.2,
+      "boundary": "pause",
+      "tail": null,
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 829.195,
+      "before": "26:121:1",
+      "cutDb": -22.9,
+      "boundary": "pause",
+      "head": null,
+      "tail": null,
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  },
+  {
+   "id": "x13",
+   "type": "wrong_word",
+   "mutashabihat": true,
+   "formsOtherAyah": true,
+   "location": {
+    "surah": 26,
+    "ayah": 123,
+    "word": 2
+   },
+   "expected": "عَادٌ",
+   "said": "ثَمُودُ",
+   "startS": 210.525,
+   "endS": 211.205,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:123:2",
+    "srcS": 846.12
+   },
+   "removed": [
+    "26:123:2"
+   ],
+   "donor": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "rec": "314/026",
+    "word": "26:141:2",
+    "srcStartS": 948.6,
+    "srcEndS": 949.28,
+    "cutS": [
+     947.605,
+     950.775
+    ],
+    "cutDb": [
+     -23.2,
+     -18.6
+    ],
+    "sameRecording": true,
+    "span": [
+     "26:141:1",
+     "26:141:3"
+    ],
+    "shared": 2
+   },
+   "seams": [
+    {
+     "outS": 209.53,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 844.945,
+      "after": "26:122:5",
+      "cutDb": -19.8,
+      "boundary": "pause",
+      "tail": null,
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 947.605,
+      "before": "26:141:1",
+      "cutDb": -23.2,
+      "boundary": "pause",
+      "head": null,
+      "tail": null,
+      "piece": "donor"
+     },
+     "gainDb": -0.7
+    },
+    {
+     "outS": 212.7,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 950.775,
+      "after": "26:141:3",
+      "cutDb": -18.6,
+      "boundary": "pause",
+      "tail": null,
+      "piece": "donor"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 848.505,
+      "before": "26:124:1",
+      "cutDb": -20.8,
+      "boundary": "pause",
+      "head": null,
+      "tail": null,
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  },
+  {
+   "id": "x14",
+   "type": "omitted_word",
+   "mutashabihat": false,
+   "formsOtherAyah": false,
+   "location": {
+    "surah": 26,
+    "ayah": 128,
+    "word": 1
+   },
+   "expected": "أَتَبْنُونَ",
+   "said": "",
+   "startS": 234.155,
+   "endS": 234.535,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:128:1",
+    "srcS": 870.52
+   },
+   "removed": [
+    "26:128:1"
+   ],
+   "donor": null,
+   "seams": [
+    {
+     "outS": 234.51,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 870.315,
+      "after": "26:127:11",
+      "cutDb": -22.7,
+      "boundary": "pause",
+      "tail": null,
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 871.575,
+      "before": "26:128:2",
+      "cutDb": -11.9,
+      "boundary": "link",
+      "head": "firm",
+      "tail": "vowel",
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  },
+  {
+   "id": "x15",
+   "type": "skipped_passage",
+   "mutashabihat": false,
+   "formsOtherAyah": false,
+   "location": {
+    "surah": 26,
+    "ayah": 133,
+    "word": 1
+   },
+   "expected": "أَمَدَّكُم بِأَنْعَـٰمٍۢ وَبَنِينَ",
+   "said": "",
+   "startS": 258.895,
+   "endS": 259.255,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:133:1",
+    "srcS": 896.4
+   },
+   "removed": [
+    "26:133:1",
+    "26:133:2",
+    "26:133:3"
+   ],
+   "donor": null,
+   "seams": [
+    {
+     "outS": 259.25,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 896.315,
+      "after": "26:132:5",
+      "cutDb": -17.4,
+      "boundary": "pause",
+      "tail": null,
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 902.635,
+      "before": "26:134:1",
+      "cutDb": -21.7,
+      "boundary": "pause",
+      "head": null,
+      "tail": null,
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  },
+  {
+   "id": "x16",
+   "type": "omitted_word",
+   "mutashabihat": false,
+   "formsOtherAyah": false,
+   "location": {
+    "surah": 26,
+    "ayah": 136,
+    "word": 1
+   },
+   "expected": "قَالُوا۟",
+   "said": "",
+   "startS": 270.415,
+   "endS": 271.015,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:136:1",
+    "srcS": 914.36
+   },
+   "removed": [
+    "26:136:1"
+   ],
+   "donor": null,
+   "seams": [
+    {
+     "outS": 270.96,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 914.345,
+      "after": "26:135:6",
+      "cutDb": -23.5,
+      "boundary": "pause",
+      "tail": null,
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 915.105,
+      "before": "26:136:2",
+      "cutDb": -12.1,
+      "boundary": "link",
+      "head": "firm",
+      "tail": "long",
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  },
+  {
+   "id": "x17",
+   "type": "omitted_word",
+   "mutashabihat": false,
+   "formsOtherAyah": false,
+   "location": {
+    "surah": 26,
+    "ayah": 139,
+    "word": 3
+   },
+   "expected": "إِنَّ",
+   "said": "",
+   "startS": 288.575,
+   "endS": 289.02,
+   "host": {
+    "audio": "sources/mp3quran/314/026.wav",
+    "word": "26:139:3",
+    "srcS": 933.2
+   },
+   "removed": [
+    "26:139:3"
+   ],
+   "donor": null,
+   "seams": [
+    {
+     "outS": 289.02,
+     "xfadeS": 0.01,
+     "out": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 933.165,
+      "after": "26:139:2",
+      "cutDb": -16.4,
+      "boundary": "pause",
+      "tail": null,
+      "piece": "host"
+     },
+     "in": {
+      "audio": "sources/mp3quran/314/026.wav",
+      "srcS": 934.655,
+      "before": "26:139:4",
+      "cutDb": -17.1,
+      "boundary": "link",
+      "head": "firm",
+      "tail": "vowel",
+      "piece": "host"
+     },
+     "gainDb": 0.0
+    }
+   ]
+  }
+ ],
+ "meta": {
+  "testSet": "lab-v1.5",
+  "split": "practice",
+  "readId": 314,
+  "reciter": "Anas Alemadi",
+  "surah": 26,
+  "ayahs": [
+   83,
+   143
+  ],
+  "startWord": "26:83:1",
+  "disambiguationWords": 3,
+  "slice": "muta",
+  "strict": false,
+  "ayah1": false,
+  "windowSites": 4,
+  "clean": false,
+  "counts": {
+   "mutashabihat": 2,
+   "omitted_word": 9,
+   "repeat": 1,
+   "skipped_passage": 5
+  },
+  "mutashabihat": 2,
+  "formsOtherAyah": 2,
+  "audio": {
+   "studio": "sessions/lab-v1.5-p73.studio.wav",
+   "phone": "sessions/lab-v1.5-p73.phone.wav"
+  },
+  "phone": {
+   "rir": 162,
+   "rirName": "openslr-28/mediumroom/Room115/Room115-00090.wav",
+   "noise": [
+    89,
+    340,
+    83,
+    45,
+    307,
+    259,
+    305,
+    384,
+    320,
+    29,
+    320,
+    26,
+    394,
+    118,
+    341,
+    188,
+    342,
+    399,
+    381,
+    275,
+    326,
+    288,
+    385,
+    85,
+    265,
+    208,
+    206,
+    60,
+    15,
+    115,
+    137,
+    227
+   ],
+   "noiseNames": [
+    "freesound-commercial-50k/train-00103#227",
+    "freesound-commercial-50k/train-00102#229",
+    "freesound-commercial-50k/train-00103#224",
+    "freesound-commercial-50k/train-00103#241",
+    "freesound-commercial-50k/train-00101#217",
+    "freesound-commercial-50k/train-00100#116",
+    "freesound-commercial-50k/train-00103#207",
+    "freesound-commercial-50k/train-00103#52",
+    "freesound-commercial-50k/train-00103#174",
+    "freesound-commercial-50k/train-00101#53",
+    "freesound-commercial-50k/train-00103#174",
+    "freesound-commercial-50k/train-00102#165",
+    "freesound-commercial-50k/train-00103#225",
+    "freesound-commercial-50k/train-00102#117",
+    "freesound-commercial-50k/train-00100#31",
+    "freesound-commercial-50k/train-00103#210",
+    "freesound-commercial-50k/train-00100#17",
+    "freesound-commercial-50k/train-00101#131",
+    "freesound-commercial-50k/train-00101#113",
+    "freesound-commercial-50k/train-00102#21",
+    "freesound-commercial-50k/train-00102#186",
+    "freesound-commercial-50k/train-00103#158",
+    "freesound-commercial-50k/train-00102#243",
+    "freesound-commercial-50k/train-00103#23",
+    "freesound-commercial-50k/train-00100#36",
+    "freesound-commercial-50k/train-00101#222",
+    "freesound-commercial-50k/train-00102#60",
+    "freesound-commercial-50k/train-00100#69",
+    "freesound-commercial-50k/train-00103#37",
+    "freesound-commercial-50k/train-00103#161",
+    "freesound-commercial-50k/train-00103#261",
+    "freesound-commercial-50k/train-00102#85"
+   ],
+   "snrDb": 20.3,
+   "highpassHz": 120.0,
+   "lowpassHz": 7000.0
+  },
+  "sourceWindowS": [
+   611.485,
+   962.135
+  ],
+  "seed": 20261028,
+  "reviewSeamPadS": 1.0
+ }
+}
