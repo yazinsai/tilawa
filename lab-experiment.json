@@ -1,0 +1,13 @@
+{
+ "id": "tracker-local-edit-vs-relocation",
+ "component": "tracker",
+ "hypothesis": "Mid-session, a one-word mistake next to a look-alike phrase (بالنذر in 54:36, فاعلموا/واعلموا أنكم غير معجزي الله in 9:2-3) makes another verse fit better than the current position, so the tracker relocates and the mistake is never compared against its own text. Relocation should have to beat the best local-edit explanation at the current position (one omission, substitution, or a skip of 3 ayahs or fewer) by a margin before committing. Predict tracker -3, overall -3; the p33 26:222 win is speculative.",
+ "expected": {
+  "component": -3,
+  "overall": -3
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-01T06:39:44+00:00",
+ "author": "autolab"
+}
