@@ -1,0 +1,13 @@
+{
+ "id": "checker-parallel-verse-graph-decode",
+ "component": "checker",
+ "hypothesis": "Mutashabihat swaps (عليه↔عليهما in the as-Saffat refrains, 26:141, 7:66) are missed because the checker judges them as string end-edits, where held-sound and waqf tolerances lend neighbouring sounds to the suffix. Decode the anchored stretch on the posteriors against a graph of the written phrase plus every mushaf parallel-phrase path. Calibrate the switch penalty on real recitations of those parallel verses by gold-excluded readers. Predict checker -3, overall -3.",
+ "expected": {
+  "component": -3,
+  "overall": -3
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-01T13:09:01+00:00",
+ "author": "autolab"
+}
