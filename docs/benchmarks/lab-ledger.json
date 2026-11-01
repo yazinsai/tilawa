@@ -1476,7 +1476,7 @@
   },
   {
    "kind": "main",
-   "at": "2026-11-01T16:25:24+00:00",
+   "at": "2026-11-01T16:25:29+00:00",
    "sha": "d4ec2103",
    "testSet": "lab-v1.5",
    "experiment": "checker-parallel-verse-graph-decode",
@@ -1493,7 +1493,7 @@
   },
   {
    "kind": "experiment",
-   "at": "2026-11-01T16:25:24+00:00",
+   "at": "2026-11-01T16:25:29+00:00",
    "id": "checker-parallel-verse-graph-decode",
    "component": "checker",
    "hypothesis": "Mutashabihat swaps (عليه↔عليهما in the as-Saffat refrains, 26:141, 7:66) are missed because the checker judges them as string end-edits, where held-sound and waqf tolerances lend neighbouring sounds to the suffix. Decode the anchored stretch on the posteriors against a graph of the written phrase plus every mushaf parallel-phrase path. Calibrate the switch penalty on real recitations of those parallel verses by gold-excluded readers. Predict checker -3, overall -3.",
@@ -1520,6 +1520,192 @@
      "listener": 38,
      "tracker": 7,
      "checker": 28
+    },
+    "exam": null
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T18:02:50+00:00",
+   "id": "checker-pause-gated-restarts",
+   "component": "checker",
+   "hypothesis": "Seam additions are forgiven as repeats or restarts because that forgiveness looks only at phoneme content, and the killed lattice showed content cannot separate the two even on oracle phonemes. Admit a repeat or restart only when a real break (an existing waqf or pause run, or a cut-off) precedes its re-read point, and send fluent extra speech to added-word confirmation. Bundle the journal's p25 unique-lock guard and the studio 23:55:6 idgham-waw fix. Predict checker -3, overall -4.",
+   "expected": {
+    "component": -3,
+    "overall": -4
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Step 0: only 2 of 10 targets own the inserted word in an accepted repeat or restart with no pause or cut-off, and that visit is just the last syllable; the word itself is a first visit or already has a pause or a cut-off. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T18:03:33+00:00",
+   "id": "listener-quant-aware-student",
+   "component": "listener",
+   "hypothesis": "Phone wrong-word false warnings may come from int8 post-training quantization, which flips knife-edge ن/م and ف/ك frames, rather than from the float model's acoustics (speculative). Quantization-aware fine-tuning of the shipped student, self-distilled from its own fp32 outputs with no new data, removes the flips; predict 3 of 8 won, listener -3, overall -3.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: The exact shipped fp32 parent still confirms all 8 of 8 target warnings in both replay arms, exceeding the preregistered kill threshold of 6. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T18:15:15+00:00",
+   "id": "tracker-posterior-scored-lock",
+   "component": "tracker",
+   "hypothesis": "At session start the tracker picks between near-identical parallel openings using the greedy phoneme string, where phone noise erases the one sound that tells them apart (the name in the Noah refrain, قل vs وما before ما أسألكم). It locks onto the wrong copy, so the folded phrase graph reports the true copy as a swap (p25 26:105:3 and 26:106:5), and the later correction is reported as a skip (p06 and p54 at 25:57:8). Re-rank only the tied lock and relocation candidates by CTC forward sum on the posteriors over the anchored stretch, the same scoring that folded at -7 in the checker. Predict tracker -3, overall -3: p25 x2 fairly solid, one of the two 25:57:8 cases speculative.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: The practice runner and SDK strip posteriors before tracker.push, so the proposed posterior tie-break cannot affect the scored tracker without prohibited lab-runner changes. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T18:57:29+00:00",
+   "id": "checker-skip-edge-word-presence",
+   "component": "checker",
+   "hypothesis": "A skip seam lands one word early (26:102:7 instead of 26:103:1) because the skip span absorbs a phone-blurred ayah-final word that was actually spoken, and the span is never asked whether that word is present. Emit skips as whole unread ayahs and send any partial-ayah edge word through the existing omission presence rules, merging it back into the skip only if those rules confirm it absent. Predict checker -2, overall -2 (-4 if both p24 and p73 26:103 pairs flip; they share one seam, so the two are likely to flip together or not at all).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Existing omission rules confirm 26:102:7 absent in both p24 and p73: the gap holds only the article lam after the rest of the word is matched to 26:103:8. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T20:36:07+00:00",
+   "id": "tracker-two-best-phone-tokens",
+   "component": "tracker",
+   "hypothesis": "At session start the tracker picks between parallel refrain copies on greedy phonemes alone, and the phone-blurred phonemes that would separate the copies tie. It locks the wrong Noah-refrain copy, and the folded phrase graph then reports the true copy as a swap (p25 26:105:3, 26:106:5). Have the SDK attach each emitted phoneme's runner-up class and its log-odds to the token stream it already hands `tracker.push`, and let the tracker's substitution cost credit a runner-up match on low-confidence phonemes. Predict tracker -2, overall -2; the p06/p54 25:57:8 skips are speculative extra spillover that is not counted.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Frozen listener phonemes have no alt or altMargin, and the practice runner strips posteriors before tracker.push, so the SDK runner-up never reaches the scored tracker. (measured: {\"targets won\": 0})",
+   "branch": {
+    "wrongCalls": 69,
+    "missed": 45,
+    "falseWarnings": 24,
+    "listener": 39,
+    "tracker": 3,
+    "checker": 27
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T21:42:28+00:00",
+   "id": "tracker-pause-gated-skip-emission",
+   "component": "tracker",
+   "hypothesis": "The startup false skips at 25:57:8 (p06, p54) happen because the tracker turns any forward relocation across unread text into a skipped passage, even when the reciter flowed straight from من أجر into إلا من شاء with no break. Emit a skip only when the jump onset follows a heard pause or cut-off; otherwise re-anchor silently and replay the heard history on the destination. Predict tracker -2, overall -2, with p46 54:36:4 and p66 9:3:21 as uncounted speculative spillover.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Both target sessions have a labelled pause of at least 400 ms between أجر and إلا, and 24 caught planted skips have a pause-free onset, so a pause gate would keep the false warnings and drop real skips. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T21:58:28+00:00",
+   "id": "checker-accusation-to-skip-rekey",
+   "component": "checker",
+   "hypothesis": "Outside the surah-26 seams, a refrain skip is noticed but filed as a different mistake: in p16 the skipped 77:33 comes out as a wrong word at 77:33:1 (warned at 139.04, skip missed). When the accusations at an ayah start are explained by one whole-ayah forward skip with an exact destination fit, re-key them as that skip. Predict checker -3, overall -3; floor -2 is the p16 pair alone.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Only 1 of 3 targets (p16 77:33) has a pending accusation at the skipped ayah's start; p15 and p10 never accuse 55:29 or 26:109. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-01T22:47:49+00:00",
+   "sha": "70133f91",
+   "testSet": "lab-v1.5",
+   "experiment": null,
+   "note": "re-scored for fold of checker-pause-anchored-skip-seams",
+   "practice": {
+    "wrongCalls": 73,
+    "missed": 48,
+    "falseWarnings": 25,
+    "listener": 38,
+    "tracker": 7,
+    "checker": 28
+   },
+   "exam": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-01T22:48:00+00:00",
+   "sha": "3f140934",
+   "testSet": "lab-v1.5",
+   "experiment": "checker-pause-anchored-skip-seams",
+   "note": "Surah-26 skips are placed one look-alike word off (heard المؤمنين bound to the skipped ayah's مؤمنين; 26:131:2 instead of 26:130:1), giving a miss plus a false warning each, because seam placement uses only lexical or posterior fit, and that fit ties at look-alike endings. A memorisation skip is a stop-and-resume event, so require an already-proposed seam to sit at a pause or cut-off that the checker's existing pause detector has labelled in the heard audio. Predict 2 of 3 pairs won: checker -4, overall -4 (-2 if only one pair flips).; practice-only fold, exam not measured",
+   "practice": {
+    "wrongCalls": 69,
+    "missed": 46,
+    "falseWarnings": 23,
+    "listener": 38,
+    "tracker": 7,
+    "checker": 24
+   },
+   "exam": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-01T22:48:00+00:00",
+   "id": "checker-pause-anchored-skip-seams",
+   "component": "checker",
+   "hypothesis": "Surah-26 skips are placed one look-alike word off (heard المؤمنين bound to the skipped ayah's مؤمنين; 26:131:2 instead of 26:130:1), giving a miss plus a false warning each, because seam placement uses only lexical or posterior fit, and that fit ties at look-alike endings. A memorisation skip is a stop-and-resume event, so require an already-proposed seam to sit at a pause or cut-off that the checker's existing pause detector has labelled in the heard audio. Predict 2 of 3 pairs won: checker -4, overall -4 (-2 if only one pair flips).",
+   "expected": {
+    "component": -4,
+    "overall": -4
+   },
+   "state": "folded",
+   "testSet": "lab-v1.5",
+   "note": "keeps its overall and checker gain",
+   "branch": {
+    "wrongCalls": 69,
+    "missed": 46,
+    "falseWarnings": 23,
+    "listener": 38,
+    "tracker": 7,
+    "checker": 24
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 69,
+     "missed": 46,
+     "falseWarnings": 23,
+     "listener": 38,
+     "tracker": 7,
+     "checker": 24
     },
     "exam": null
    }
