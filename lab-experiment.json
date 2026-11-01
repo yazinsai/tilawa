@@ -1,0 +1,13 @@
+{
+ "id": "checker-proclitic-skip-edges",
+ "component": "checker",
+ "hypothesis": "Skip seams bind a heard word to a look-alike inside the skipped span that differs only by a proclitic, leaving the proclitic's sounds as orphan gap residue (heard ل+مؤمنين bound to 26:103:8 مؤمنين, not 26:102:7 المؤمنين). Re-attach adjacent proclitic residue before binding and treat proclitic identity as hard at skip edges. Predict the p24/p73 26:102:7 pair flips together (checker -4, overall -4), with p24 26:131:2 speculative (-6).",
+ "expected": {
+  "component": -4,
+  "overall": -4
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-01T19:13:28+00:00",
+ "author": "autolab"
+}
