@@ -7,6 +7,8 @@ import { UNIT, alignSubstring, deletionCost, insertionCost, subCost } from "./fu
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
 import { PHRASE_PEAK, PHRASE_SWITCH, parallelPaths } from "./parallel-phrases.js";
+import { GAP_MIN_CONF, minGapFrames } from "./gap-decode.js";
+import type { WordGap } from "./gap-decode.js";
 
 export interface CheckerPolicy {
   /** When a suspected wrong or added word is confirmed: after `ms` (2–3 s), or once the next word has begun. Default 2500 ms. */
@@ -39,6 +41,9 @@ export interface CheckerOptions {
    * a deliberate jump, followed until the tracker locks back inside the passage.
    */
   passage?: { from: WordRef; to: WordRef };
+  /** Optional whole-word listener evidence, consulted only for an otherwise
+   * uncertain suspected addition whose CTC support failed. */
+  additionEvidence?: (span: { fromFrame: number; toFrame: number; anchorWord: number; observed: string; gap: WordGap | null }) => boolean;
 }
 
 export interface Checker {
@@ -274,7 +279,26 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const decide = (o: Open, out: CheckerEvent[], state?: "uncertain") => {
     open.delete(o.issue.word);
     decided.add(o.issue.word);
-    const sure = ((declared && !latched) || trackerLocked) && clarity(o.issue) >= minConfidence && supported(o.issue) !== false;
+    const located = ((declared && !latched) || trackerLocked) && clarity(o.issue) >= minConfidence;
+    const supportOk = located ? supported(o.issue) : null;
+    let sure = located && supportOk !== false;
+    if (options.additionEvidence && !state && located && supportOk === false && o.issue.cls === "added_word" && o.issue.obsTo > o.issue.obsFrom) {
+      const atWord = (wi: number) => steps.flatMap(s => s.op === "diag" && index.wordAt(s.ref) === wi ? [obs[s.obs]] : []);
+      const before = prevWord(o.issue.word), left = atWord(before), right = atWord(o.issue.word);
+      const a = left.at(-1)?.end, b = right[0]?.start;
+      const gap: WordGap | null = before + 1 === o.issue.word && a !== undefined && b !== undefined
+        && b - a - 1 >= minGapFrames(frameMs) && left.some(p => p.conf >= GAP_MIN_CONF) && right.some(p => p.conf >= GAP_MIN_CONF)
+        && a < obs[o.issue.obsFrom].start && b >= obs[o.issue.obsTo - 1].end + 1
+        ? { fromFrame: a + 1, toFrame: b, left: ref.slice(words[before].start, words[before].end),
+            right: ref.slice(words[o.issue.word].start, words[o.issue.word].end) } : null;
+      sure = options.additionEvidence?.({
+        fromFrame: obs[o.issue.obsFrom].start,
+        toFrame: obs[o.issue.obsTo - 1].end + 1,
+        anchorWord: o.issue.word,
+        observed: o.issue.observed ?? "",
+        gap,
+      }) === true;
+    }
     out.push(event(o, state ?? (sure ? "confirmed" : "uncertain")));
   };
 

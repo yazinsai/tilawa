@@ -268,6 +268,29 @@ describe("local-window confirmation", () => {
     expect(check(f, true)).toEqual([]);
   });
 
+  it("consults whole-word evidence only for an addition rejected by CTC support", () => {
+    const insertion: Edit[] = [{ kind: "ins", at: at(target), text: ALIEN }];
+    const f = heard(insertion, (j, p) => j >= at(target) && j < at(target) + ALIEN.length
+      ? [[p, .45], ["", .5]] : undefined);
+    const queries: Parameters<NonNullable<CheckerOptions["additionEvidence"]>>[0][] = [];
+    const runWith = (accept: boolean) => replayChecked(index, f, {}, { additionEvidence: q => {
+      queries.push(q);
+      return accept;
+    } });
+    expect(confirmed(runWith(false))).toEqual([]);
+    expect(queries).toHaveLength(1);
+    expect(queries[0].observed).toBe(ALIEN);
+    expect(queries[0].toFrame).toBeGreaterThan(queries[0].fromFrame);
+    expect(summary(confirmed(runWith(true)))).toEqual(["confirmed added_word 2:255:23"]);
+    const wrong = heard(edits, (j, p) => word(j) && (p === "س" || p === "م")
+      ? [[p, .5], [p === "س" ? "ش" : "ف", .45], ["", .03]] : undefined);
+    let calls = 0;
+    replayChecked(index, wrong, {}, { additionEvidence: () => { calls++; return true; } });
+    replayChecked(index, heard([], () => undefined), {}, { additionEvidence: () => { calls++; return true; } });
+    replayChecked(index, heard(insertion, () => undefined), {}, { additionEvidence: () => { calls++; return true; } });
+    expect(calls).toBe(0);
+  });
+
   it("wants twice the margin when the decoder was unsure of the changed sounds", () => {
     // Phone audio: each misheard sound at even odds with blank, the written one unlisted.
     const f = heard(edits, (j, p) => (word(j) && (p === "س" || p === "م") ? [[p, 0.5], ["", 0.45]] : undefined));
