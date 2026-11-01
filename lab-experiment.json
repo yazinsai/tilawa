@@ -1,0 +1,13 @@
+{
+ "id": "tracker-two-best-phone-tokens",
+ "component": "tracker",
+ "hypothesis": "At session start the tracker picks between parallel refrain copies on greedy phonemes alone, and the phone-blurred phonemes that would separate the copies tie. It locks the wrong Noah-refrain copy, and the folded phrase graph then reports the true copy as a swap (p25 26:105:3, 26:106:5). Have the SDK attach each emitted phoneme's runner-up class and its log-odds to the token stream it already hands `tracker.push`, and let the tracker's substitution cost credit a runner-up match on low-confidence phonemes. Predict tracker -2, overall -2; the p06/p54 25:57:8 skips are speculative extra spillover that is not counted.",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-01T18:51:27+00:00",
+ "author": "autolab"
+}
