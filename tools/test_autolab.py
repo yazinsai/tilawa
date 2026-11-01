@@ -29,7 +29,7 @@ def report(run):
 
 
 def card(id="checker-edge-fit", tier="exploit", component="checker", **kw):
-    return {"id": id, "component": component, "tier": tier, **({"gpuUsd": 20} if tier == "bet" else {}), "hypothesis": "Fit added words at edges. Expect -3.",
+    return {"id": id, "component": component, "tier": tier, **({"gpuUsd": 20} if tier == "bet" else {}), "hypothesis": "Fit added words at edges. Expect -3.", "eli5": "An extra word gets hidden inside its neighbour; look at both neighbours.",
             "mechanism": "Added speech is absorbed by the neighbour.", "cluster": CLUSTER, "targets": [INCIDENT],
             "expected": {"component": -3, "overall": -3}, "killCriterion": "no target recovered", **kw}
 

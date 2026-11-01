@@ -48,6 +48,8 @@ CARD_SCHEMA = """A card is a JSON object:
  "component": "listener" | "tracker" | "checker";
  "tier": "exploit" | "explore" | "bet";
  "hypothesis": one line: what is wrong now and what change fixes it, with the predicted counts;
+ "eli5": one plain sentence (at most 160 characters) a smart 12-year-old would follow: what goes wrong for the reciter
+   and what the change does about it; no jargon (no CTC, posterior, checker, tracker, listener, alignment, threshold);
  "mechanism": 2-5 sentences: the causal story, which code path, why the targeted incidents fail, why the change fixes them
    without new losses, and how it differs from any tried mechanism on the same cluster;
  "cluster": one cluster key from the context;
@@ -144,6 +146,29 @@ Free slots, in order: {slots}
 Answer with one ```json block: {{"memo": "<markdown>", "cards": [<card>, ...]}}"""
 
 
+ELI5 = """Tilawa is an app that listens to someone reciting the Quran from memory and warns them when they make a mistake
+(a wrong, missing or extra word, or a skipped passage), while staying quiet when they recite correctly. Engineers run
+experiments to make it catch more mistakes and raise fewer false alarms.
+
+For each experiment below, write one plain sentence (at most 160 characters) a smart 12-year-old would follow: what goes
+wrong for the reciter today and what the change does about it. No jargon: don't say CTC, posterior, checker, tracker,
+listener, alignment, threshold, attribution or nats.
+
+Experiments (JSON, id -> hypothesis):
+{items}
+
+Answer with one ```json block: {{"<id>": "<sentence>", ...}} covering every id."""
+
+
+def eli5(cfg: dict, items: dict[str, str], ask=None) -> dict[str, str]:
+    """One-line plain explanations for experiments that predate the card's eli5 field."""
+    def check(a):
+        if not isinstance(a, dict) or set(a) != set(items) or not all(isinstance(v, str) and v.strip() and len(v) <= 200 for v in a.values()):
+            raise ValueError("answer every id with one sentence of at most 160 characters")
+        return {k: v.strip() for k, v in a.items()}
+    return call(cfg, "planner", ELI5.format(items=dump(items)), check, ask) if items else {}
+
+
 # Calls
 
 
@@ -229,6 +254,9 @@ def check_card(c: dict, ctx: dict, taken: set[str], slot: tuple[str, str] | None
             raise ValueError(f"{c['id']}: {k} is required")
     if "\n" in c["hypothesis"]:
         raise ValueError(f"{c['id']}: hypothesis must be one line")
+    eli5 = str(c.get("eli5", "")).strip()
+    if not eli5 or "\n" in eli5 or len(eli5) > 200:
+        raise ValueError(f"{c['id']}: eli5 must be one plain sentence of at most 160 characters")
     e = c.get("expected") or {}
     if not all(isinstance(e.get(k), int) and not isinstance(e.get(k), bool) for k in ("component", "overall")):
         raise ValueError(f"{c['id']}: expected.component and expected.overall must be whole counts")

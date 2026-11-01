@@ -14,6 +14,7 @@
     approve <id>             let a bet over betApprovalUsd start
     retry <id> [--note ...]  re-run checks, tests and scoring; with a note, back to the builder with it
     drop <id> [why]          end an experiment
+    eli5                     plain one-liners for experiments whose cards predate the eli5 field
 Your commands (pause, resume, approve, retry, drop, match) go to /lab/autolab/inbox/ and the loop applies them at the
 start of its next tick, so a tick in flight never overwrites them.
 
@@ -49,7 +50,7 @@ CONFIG = REPO / ".scratch/autolab/config.json"
 RUN = REPO / ".scratch/autolab/run"
 BRANCH, WORKTREE = "autolab", REPO.parent / "tilawa-autolab"
 VOL_STATE, VOL_EVENTS, VOL_LEDGER, VOL_JOURNAL = "/autolab/state.json", "/autolab/events.jsonl", "/autolab/ledger.json", "/autolab/journal.md"
-VOL_INBOX = "/autolab/inbox"
+VOL_INBOX, VOL_ELI5 = "/autolab/inbox", "/autolab/eli5.json"
 PRACTICE_SCORES = 3
 DEFAULT_CONFIG = {
     "slots": 6, "planEveryMinutes": 30, "tickSeconds": 120,
@@ -903,6 +904,28 @@ def known(id: str) -> None:
         sys.exit(f"autolab: no experiment {id}")
 
 
+def cmd_eli5(a):
+    """Plain one-liners for every experiment without a card eli5 (the hand-run lab's and early autolab cards), kept in
+    /lab/autolab/eli5.json for the dashboard."""
+    w = World(config(), executor=object())
+    have = vol_get(VOL_ELI5) or {}
+    items = {}
+    for led in w.ledgers():
+        for id, e in led.get("experiments", {}).items():
+            items[id] = e["card"]["hypothesis"]
+    for id, e in (w.load() or {"experiments": {}})["experiments"].items():
+        if not e["card"].get("eli5"):
+            items[id] = e["card"]["hypothesis"]
+    todo = {k: v for k, v in items.items() if k not in have}
+    for i in range(0, len(todo), 12):
+        batch = dict(list(todo.items())[i:i + 12])
+        have.update(B.eli5(w.cfg, batch))
+        print(f"{len(have)} explained", flush=True)
+    vol_put(VOL_ELI5, have)
+    for k in sorted(todo):
+        print(f"{k}: {have[k]}")
+
+
 def cmd_approve(a):
     known(a.id)
     send("approve", id=a.id)
@@ -938,6 +961,7 @@ def main():
     ps = sub.add_parser("practice-score")
     ps.add_argument("worktree", nargs="?", default=".")
     sub.add_parser("watchdog")
+    sub.add_parser("eli5")
     ap = sub.add_parser("approve")
     ap.add_argument("id")
     sub.add_parser("waiting")
@@ -954,7 +978,7 @@ def main():
     try:
         {"init": cmd_init, "tick": cmd_tick, "loop": cmd_loop, "pause": cmd_pause, "resume": lambda a: cmd_pause(a, why=""),
          "status": cmd_status, "practice-score": cmd_practice_score, "watchdog": cmd_watchdog, "match": cmd_match,
-         "approve": cmd_approve, "waiting": cmd_waiting, "retry": cmd_retry, "drop": cmd_drop}[a.op](a)
+         "approve": cmd_approve, "waiting": cmd_waiting, "retry": cmd_retry, "drop": cmd_drop, "eli5": cmd_eli5}[a.op](a)
     except Stop as err:
         sys.exit(f"autolab: {err}")
 

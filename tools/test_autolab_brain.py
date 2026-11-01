@@ -27,7 +27,7 @@ def ctx(st=None):
 
 
 def card(id="listener-onset-boost", component="listener", tier="explore", **kw):
-    return {"id": id, "component": component, "tier": tier, "hypothesis": "Weak onsets vanish; boost them. Expect -3.",
+    return {"id": id, "component": component, "tier": tier, "hypothesis": "Weak onsets vanish; boost them. Expect -3.", "eli5": "Quiet first sounds get lost, so the app thinks a word is missing.",
             "mechanism": "Short consonants peak for one frame and lose to blank.", "cluster": "listener/wrong_word/missed",
             "targets": ["s1/phone/mistake:wrong_word/2:8:1/73.2"], "expected": {"component": -3, "overall": -3},
             "killCriterion": "no recovered onset in the targets", **kw}
@@ -77,6 +77,8 @@ def test_plan_retries_once_then_gives_up():
     ({"cluster": "nope"}, "cluster"),
     ({"hypothesis": "two\nlines"}, "one line"),
     ({"tier": "bet"}, "slot"),
+    ({"eli5": ""}, "eli5"),
+    ({"eli5": "x" * 201}, "eli5"),
 ])
 def test_card_checks(bad, msg):
     with pytest.raises(ValueError, match=msg):
