@@ -1,0 +1,13 @@
+{
+ "version": 1,
+ "kind": "lab-score",
+ "testSet": "lab-v1.5",
+ "sha": "a41c9e2",
+ "run": "main-a41c9e2-20261101T012200Z",
+ "teacher": {"listener": "teacher-large", "examWrongCalls": 777201},
+ "splits": {
+  "practice": {"sessions": 160, "overall": {"wrongCalls": 89, "missed": 51, "falseWarnings": 38},
+               "teacher": {"wrongCalls": 102, "missed": 55, "falseWarnings": 47, "per5Min": 1.187}},
+  "exam": {"sessions": 40, "overall": {"wrongCalls": 777202}, "teacher": {"wrongCalls": 777203}}
+ }
+}

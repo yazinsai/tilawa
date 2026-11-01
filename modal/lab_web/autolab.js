@@ -1,40 +1,14 @@
 import { icon } from './item.js';
+import { $, esc, NAMES, qs, day, plural, fewer, sentence, sw, span, ago, api, topbar, staleNotice } from './al.js';
 
-const $ = (id) => document.getElementById(id);
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const url = new URL(location.href);
 const root = url.searchParams.get('root');
 const POLL_MS = 30_000;
-const NAMES = { listener: 'Listener', tracker: 'Tracker', checker: 'Checker', overall: 'Overall' };
 const CLI = 'python3 tools/autolab.py';
 
-const qs = (o) => new URLSearchParams(Object.entries(o).filter(([, v]) => v != null && v !== '')).toString();
-const day = (s) => (s ? new Date(s).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '');
-const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
-const fewer = (n) => (n == null ? '–' : n === 0 ? 'no change' : n < 0 ? `${-n} fewer` : `${n} more`);
-const sentence = (s) => (s ? s[0].toUpperCase() + s.slice(1) : '');
-const sw = (c) => (NAMES[c] ? `<i class="sw" style="--c:var(--${c === 'overall' ? 'g-900' : c})"></i>` : '');
 const copyBtn = (c, label = '') =>
   `<button class="copy" data-copy="${esc(c)}" title="Copy">${icon('copy')}${label ? `<span>${esc(label)}</span>` : ''}<code>${esc(c)}</code></button>`;
-
-function span(s) {
-  if (s == null) return '–';
-  if (s < 90) return `${Math.max(0, s)} s`;
-  const m = Math.round(s / 60);
-  if (m < 90) return `${m} min`;
-  const h = Math.floor(m / 60);
-  if (h < 36) return `${h} h${m % 60 ? ` ${m % 60} min` : ''}`;
-  return plural(Math.round(h / 24), 'day');
-}
 const limit = (min) => (min == null ? '' : min < 90 ? `${min} min` : `${Math.round(min / 60)} h`);
-const ago = (at) => (at ? span(Math.round((Date.now() - new Date(at)) / 1000)) + ' ago' : 'never');
-
-async function api(path) {
-  const r = await fetch(path, { cache: 'no-store' });
-  const body = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(typeof body.detail === 'string' ? body.detail : `HTTP ${r.status}`);
-  return body;
-}
 
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-copy]');
@@ -46,32 +20,15 @@ document.addEventListener('click', (e) => {
   navigator.clipboard?.writeText(b.dataset.copy).then(done, () => prompt('Copy this', b.dataset.copy));
 });
 
-// Top bar: the same tabs as the dashboard, and the supervisor's heartbeat on the right.
-
-function beat(v) {
-  const h = v.heartbeat;
-  if (!v.started) return '<span class="who"><i class="dot"></i>Not started</span>';
-  const kind = h.stale ? 'fail' : h.paused ? 'wait' : 'pass';
-  const text = h.stale ? `No check-in for ${h.at ? span(h.ageSeconds) : 'ever'}` : h.paused ? 'Paused' : `Checked in ${span(h.ageSeconds)} ago`;
-  return `<span class="who al-beat ${kind}" title="The supervisor checks in every ${span(h.tickSeconds)}; it counts as stopped after 3 missed check-ins"><i class="dot ${kind}"></i>${text}</span>`;
-}
-
-function topbar(v) {
-  const tab = (href, text, on) => `<a href="${href}" ${on ? 'aria-current="page"' : ''}>${text}</a>`;
-  $('head').innerHTML = `<a class="brand" href="/">${icon('mark')}Tilawa lab</a>
-    <nav class="tabs">${tab('/', 'Score')}${tab('/#/release', 'Release')}${tab('/review', 'Listening check')}${tab('/record', 'Record')}${tab('/live/', 'Live mic')}${tab('/autolab', 'Autolab', true)}</nav>
-    ${v ? beat(v) : ''}`;
-}
-
 function notices(v) {
   const h = v.heartbeat;
   const out = [];
-  if (h.stale)
-    out.push(['err', `<b>The supervisor seems to have stopped.</b> Its last check-in was ${h.at ? `${span(h.ageSeconds)} ago (${day(h.at)})` : 'never'}; it should check in every ${span(h.tickSeconds)}. Nothing on this page moves until it’s running again.`]);
   if (h.paused) out.push(['warn', `<b>Paused:</b> ${esc(h.paused)}. Work already running finishes; nothing new starts until you resume it. ${copyBtn(`${CLI} resume`)}`]);
   if (v.spend?.atCap.length) out.push(['warn', `<b>Daily cap reached:</b> ${esc(v.spend.atCap.join(', '))}. Running work finishes; nothing new starts today.`]);
-  return out.map(([k, m]) => `<div class="notice ${k}">${m}</div>`).join('');
+  return staleNotice(h) + out.map(([k, m]) => `<div class="notice ${k}">${m}</div>`).join('');
 }
+
+const liveLink = () => `<a class="al-live" href="/autolab/live${root ? `?${qs({ root })}` : ''}">${icon('right')}Progress, live: the branches, the folds and how close the line is</a>`;
 
 // Hero: the autolab line's practice score, the one big number.
 
@@ -91,7 +48,7 @@ function hero(v) {
     `${plural(p.held, 'slot')} in use${p.slots ? ` of ${p.slots}` : ''}`,
   ].filter(Boolean);
   if (!m || m.wrongCalls == null)
-    return `<div class="hero"><p class="lede">The autolab line hasn’t been scored yet.</p><p class="facts">${facts.map((f) => `<span>${f}</span>`).join('')}</p></div>`;
+    return `<div class="hero"><p class="lede">The autolab line hasn’t been scored yet.</p><p class="facts">${facts.map((f) => `<span>${f}</span>`).join('')}</p>${liveLink()}</div>`;
   return `<div class="hero">
     <div class="score"><span class="score-n">${m.wrongCalls}</span>
       <p class="score-u"><strong>wrong calls on the practice set</strong><span>The autolab line. Lower is better</span></p></div>
@@ -99,6 +56,7 @@ function hero(v) {
       ${['listener', 'tracker', 'checker'].map((k) => `${k} <b class="num">${m.parts[k] ?? '–'}</b>`).join(', ')}.</p>
     ${delta}
     <p class="facts">${facts.map((f) => `<span>${f}</span>`).join('')}</p>
+    ${liveLink()}
   </div>`;
 }
 
@@ -255,7 +213,7 @@ function activity(rows) {
 function notStarted(v) {
   return `<div class="empty"><h1>Autolab hasn’t started</h1>
     <p>Nothing has been written yet. Once the supervisor runs, this page shows what it’s working on and refreshes by itself.</p>
-    <div class="cmd-box">${copyBtn(`${CLI} loop --every 120`)}</div></div>${trend(v.trend)}${activity(v.activity)}`;
+    <div class="cmd-box">${copyBtn(`${CLI} loop --every 120`)}</div>${liveLink()}</div>${trend(v.trend)}${activity(v.activity)}`;
 }
 
 function render(v) {

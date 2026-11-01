@@ -13,7 +13,8 @@ tilawa-lab-recordings app (modal/lab_recordings.py, or LAB_RECORDINGS_APP at dep
 
 Queues and audio are read from /lab/data on the tilawa-lab volume; verdicts go to /lab/reviews/<testSet>/<reviewer>.json.
 The dashboard reads /lab/ledger.json and the latest main-line run's /lab/runs/<run>/score.json. The Autolab tab
-(/autolab) reads the supervisor's /lab/autolab/state.json, the tail of its events.jsonl and its ledger.json.
+(/autolab) reads the supervisor's /lab/autolab/state.json, the tail of its events.jsonl and its ledger.json; its live
+progress page (/autolab/live) adds /lab/ledger.json and the autolab line's score.json.
 """
 
 import os
@@ -38,6 +39,7 @@ image = (
     .add_local_file(ROOT / "tools/lab_dashboard_core.py", "/root/lab_dashboard_core.py")
     .add_local_file(ROOT / "tools/autolab_state.py", "/root/autolab_state.py")
     .add_local_file(ROOT / "tools/autolab_dashboard_core.py", "/root/autolab_dashboard_core.py")
+    .add_local_file(ROOT / "tools/autolab_graph_core.py", "/root/autolab_graph_core.py")
     .add_local_file(ROOT / "tools/review_asr_core.py", "/root/review_asr_core.py")
     .add_local_file(ROOT / "tools/lab_models_core.py", "/root/lab_models_core.py")
     .add_local_file(ROOT / "tools/lab_plain.py", "/root/lab_plain.py")
@@ -428,15 +430,38 @@ def web():
     def autolab_page():
         return FileResponse(WEB / "autolab.html", headers={"Cache-Control": "no-cache"})
 
-    @api.get("/api/autolab")
-    def autolab(root: str | None = None):
+    def autolab_files(root: str | None):
+        """(folder, state or None, the autolab ledger or None, now)."""
         reload()
         d = LAB / (name(root, "root") if root else "autolab")
         st, led = read_json(d / "state.json"), read_json(d / "ledger.json")
         st = st if isinstance(st, dict) and st.get("kind") == "autolab-state" else None
-        ml = led.get("mainLine") if isinstance(led, dict) and led.get("kind") == "lab-ledger" else None
-        now = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
-        return AD.view(st, tail_events(d / "events.jsonl"), now, ml)
+        led = led if isinstance(led, dict) and led.get("kind") == "lab-ledger" else None
+        return d, st, led, datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+    @api.get("/api/autolab")
+    def autolab(root: str | None = None):
+        d, st, led, now = autolab_files(root)
+        return AD.view(st, tail_events(d / "events.jsonl"), now, led and led.get("mainLine"))
+
+    import autolab_graph_core as AG
+
+    @api.get("/autolab/live")
+    def autolab_live_page():
+        return FileResponse(WEB / "progress.html", headers={"Cache-Control": "no-cache"})
+
+    @api.get("/api/autolab/progress")
+    def autolab_progress(root: str | None = None):
+        """The progress page: the hand-run lab's ledger (a preview root's own lab-ledger.json when it has one) and the
+        autolab line's latest score report, for its practice teacher count."""
+        d, st, led, now = autolab_files(root)
+        lab = read_json(d / "lab-ledger.json") if root and (d / "lab-ledger.json").is_file() else read_json(LAB / "ledger.json")
+        lab = lab if isinstance(lab, dict) and lab.get("kind") == "lab-ledger" else None
+        try:
+            report = run_score(((st or {}).get("main") or {}).get("run"))
+        except HTTPException:
+            report = None
+        return AG.progress(st, tail_events(d / "events.jsonl"), lab, led, now, report)
 
     import lab_models_core as M
 
