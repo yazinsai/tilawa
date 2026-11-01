@@ -391,9 +391,11 @@ class Tick:
         st["baselineJob"] = w.job(f"baseline-{day}", w.lab_argv("baseline", "--practice-only", "--note", f"daily rebase {day}"))
 
     def set_main(self, run: str, sha: str, practice: dict):
+        report = self.w.report(run)
+        teacher = ((report.get("splits") or {}).get("practice") or {}).get("teacher") or {}
         self.st["main"] = {"sha": sha, "run": run, "practice": practice,
-                           "attribution": {c: practice[c] for c in L.COMPONENTS}}
-        P.update_coverage(self.st, P.incidents(self.w.report(run)))
+                           "attribution": {c: practice[c] for c in L.COMPONENTS}, "teacherWrongCalls": teacher.get("wrongCalls")}
+        P.update_coverage(self.st, P.incidents(report))
         self._ctx = None
 
     def pause(self, why: str):
@@ -640,6 +642,7 @@ class Tick:
             c["why"] for c in (res.get("gate") or {}).get("checks", []) if c["blocking"] and not c["ok"])
         self.move(e, state, note)
         if state == "folded":
+            self.events[-1].update(sha=res["sha"], wrongCalls=res["practice"]["wrongCalls"])
             self.set_main(res["run"], res["sha"], res["practice"])
             w.notify(st, "digest", f"fold:{e['id']}", f"Autolab kept {e['id']}",
                      f"{e['card']['hypothesis']}\nPractice change: overall {res['compare']['overall']['change']:+d}.", self.at)
@@ -660,7 +663,9 @@ class Tick:
     def add(self, card: dict):
         if card["id"] in self.st["experiments"]:
             return
-        _, ev = S.add(self.st, card, self.at)
+        e, ev = S.add(self.st, card, self.at)
+        main = self.st.get("main") or {}
+        e["base"] = {"sha": main.get("sha"), "wrongCalls": (main.get("practice") or {}).get("wrongCalls")}
         self.events.append(ev)
         self._ctx = None
 
