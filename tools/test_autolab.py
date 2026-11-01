@@ -817,3 +817,13 @@ def test_a_rate_limit_mid_run_is_an_outage_not_a_failed_builder():
     assert A.outage("startup: [unavailable] Server at capacity")
     assert not A.outage("run-error: Agent turn stopped after repeated resumes")
     assert not A.outage("run-error: tests timed out")
+
+
+def test_an_arm_at_its_concurrency_cap_is_full(w):
+    st = w.load()
+    for i in range(2):
+        e, _ = S.add(st, card(f"checker-busy-{i}"), T0)
+        e["state"], e["executor"] = "implementing", {"arm": "astra"}
+    t = A.Tick(w, st, T0)
+    assert t.arm_full({"name": "astra", "maxConcurrent": 2}) and not t.arm_full({"name": "astra", "maxConcurrent": 3})
+    assert not t.arm_full({"name": "astra"}) and not t.arm_full({"name": "grok", "maxConcurrent": 1})

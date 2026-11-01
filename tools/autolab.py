@@ -748,7 +748,16 @@ class Tick:
                 out = {"branch": f"exp/{e['id']}", "worktree": str(wt)}  # an earlier tick made it, then its state save failed
             e["branch"], e["worktree"] = out["branch"], out["worktree"]
             w.exclude(".autolab/")
+        if self.arm_full(self.arm_of(e)):
+            return
         self.start_executor(e, e["results"].pop("feedback", ""))
+
+    def arm_full(self, arm: dict) -> bool:
+        """An arm at its `maxConcurrent` builders (a model quota, e.g. Azure tokens per minute): the card waits for it
+        rather than going to another arm, so the A/B stays as assigned."""
+        cap = arm.get("maxConcurrent")
+        busy = sum(1 for x in self.st["experiments"].values() if x["state"] == "implementing" and (x.get("executor") or {}).get("arm") == arm["name"])
+        return bool(cap) and busy >= cap
 
     def start_executor(self, e, feedback: str = ""):
         w = self.w

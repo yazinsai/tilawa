@@ -178,7 +178,8 @@
      "deployment": "gpt-6-astra",
      "apiVersion": "2025-04-01-preview"
     },
-    "effort": "high"
+    "effort": "high",
+    "maxConcurrent": 2
    }
   ],
   "split": {
