@@ -1198,8 +1198,9 @@ def test_command(cfg: dict) -> str:
 def outage(summary: str) -> bool:
     """A builder that never got going for reasons outside the experiment (the model service at capacity, network)."""
     s = (summary or "").lower()
-    return s.startswith(("startup", "sdk-error")) and any(k in s for k in ("unavailable", "capacity", "timeout", "timed out", "network", "connect",
-                                                                           "too many requests", "rate limit"))
+    if any(k in s for k in ("too many requests", "rate limit", "429")):  # a quota, at start or mid-run: wait, same arm
+        return True
+    return s.startswith(("startup", "sdk-error")) and any(k in s for k in ("unavailable", "capacity", "timeout", "timed out", "network", "connect"))
 
 
 def shift(at: str, minutes: int) -> str:

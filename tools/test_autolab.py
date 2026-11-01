@@ -810,3 +810,10 @@ def test_the_brief_sends_modal_work_through_the_supervisor():
     bet = A.brief({**e, "card": card(component="listener", tier="bet"), "tier": "bet"}, ctx)
     assert "--gpu L4" in bet and "$20" in bet and "--image train" in bet
     assert ".autolab/model.json" not in A.brief({**e, "card": card()}, ctx)
+
+
+def test_a_rate_limit_mid_run_is_an_outage_not_a_failed_builder():
+    assert A.outage("run-error: rate limit exceeded: Your requests to gpt-6-astra have exceeded the token rate limit")
+    assert A.outage("startup: [unavailable] Server at capacity")
+    assert not A.outage("run-error: Agent turn stopped after repeated resumes")
+    assert not A.outage("run-error: tests timed out")
