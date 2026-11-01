@@ -399,6 +399,7 @@ class Tick:
             st.pop("brainDown", None)
             return out
         except B.Unavailable as err:
+            print(f"{self.at} brain unavailable ({fn.__name__}): {str(err)[:300]}", file=sys.stderr, flush=True)
             self.brain_down = True
             down = st.setdefault("brainDown", {"since": self.at})
             down["error"] = str(err)[:300]

@@ -179,9 +179,14 @@ def eli5(cfg: dict, items: dict[str, str], ask=None) -> dict[str, str]:
 # Calls
 
 
-def default_ask(cfg: dict, role: str, prompt: str, timeout_s: int = 900) -> str:
+TIMEOUTS = {"planner": 2700, "strategist": 2700, "reviewer": 1500}
+
+
+def default_ask(cfg: dict, role: str, prompt: str, timeout_s: int | None = None) -> str:
     """One model call in a child process with a hard wall-clock limit: the SDK can block before its own timeout starts,
-    so on expiry the whole process group (SDK bridge included) is killed."""
+    so on expiry the whole process group (SDK bridge included) is killed. Writing a plan's cards takes Opus longer than
+    a verdict takes Grok, so the limit is per role (config `brainTimeouts` overrides)."""
+    timeout_s = timeout_s or {**TIMEOUTS, **cfg.get("brainTimeouts", {})}.get(role, 900)
     import os  # noqa: PLC0415
     import signal  # noqa: PLC0415
     import subprocess  # noqa: PLC0415
