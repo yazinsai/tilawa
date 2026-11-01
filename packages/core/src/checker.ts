@@ -5,6 +5,8 @@ import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
+import { anchorForm, anchorSkipRuns, duplicateSpans, phonemeSkipRuns } from "./checker-anchors.js";
+import type { AnchorVisit } from "./checker-anchors.js";
 import { lexicalWords } from "./checker-lexical.js";
 
 export interface CheckerPolicy {
@@ -170,6 +172,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     ayahOf.push(ayahFirst.length - 1);
     ayahLast[ayahFirst.length - 1] = i;
   });
+  const spans = duplicateSpans(words, ref);
+  const rawWord = words.map((w) => (w.end > w.start ? ref.slice(w.start, w.end) : ""));
+  const ayahStart = words.map((_, i) => ayahFirst[ayahOf[i]] === i);
   const fatiha = words.filter((w) => w.surah === 1 && w.ayah === 1);
   const phrases = [...(options.phrases?.phrases.map((p) => p.p) ?? []), ref.slice(fatiha[0].start, fatiha.at(-1)!.end)];
   const nextWord = (wi: number) => {
@@ -205,6 +210,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   let declared = !!passage;
   /** Phonemes since the last anchor (or the latest `HISTORY` while not anchored). */
   let obs: Heard[] = [];
+  /** Longer than the alignment window, so a refrain skip can still see both unique anchors after a commit. */
+  let skipHeard = "";
   /** Word the window's alignment starts from; null while not anchored. */
   let anchor: number | null = null;
   let lead = 0;
@@ -216,6 +223,13 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const open = new Map<number, Open>();
   /** Words whose error was confirmed or ended uncertain; never reopened. */
   const decided = new Set<number>();
+  /** Omissions the anchor pass rejected; a later window must not raise them again. */
+  const suppress = new Set<number>();
+  /**
+   * Counted visits in recitation order, kept past a commit. A refrain skip's two unique anchors are often further
+   * apart than the alignment window, and a wrong word between them is not itself the skip.
+   */
+  let trail: { word: number; wrong: boolean }[] = [];
   const emitted: CheckerEvent[] = [];
   let seq = 0;
 
@@ -304,6 +318,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     anchor = null;
     furthest = -1;
+    trail = [];
     obs = obs.slice(-AFTER_DROP);
   };
 
@@ -785,6 +800,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         gap = placements.find(onStart) ?? gap;
       }
       const n = words.slice(gap.word, gap.last + 1).filter((x) => x.end > x.start).length;
+      // المؤمنون before مؤمنين: the seam landed on the word before the refrain, which is not itself repeated text.
+      const next = nextWord(gap.word);
+      if (!spans.unique[gap.word] && !spans.refrain[gap.word] && next < spans.refrain.length && spans.refrain[next]) { gap = null; return; }
       issues.set(gap.word, { ...gap, cls: n >= 3 ? "skipped_passage" : "omitted_word" });
       gap = null;
     };
@@ -837,7 +855,100 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         supportRange: [left.obsFrom, right.obsTo],
       });
     }
-    return { issues, lexical: candidates, head, furthest: reached, steps, right };
+    // A refrain binds to every copy at the same cost, so the alignment's gap can hide the skip or start one word
+    // early. Re-place skips from words that occur once in the surah; the refrain words float.
+    const views: AnchorVisit[] = [];
+    for (let i = 0; i < visits.length; i++) {
+      const v = visits[i];
+      if (v.obsFrom < 0) continue;
+      const nxt = visits[i + 1];
+      if (nxt && nxt.obsFrom >= 0 && !counts(v) && v.consumed > 0 && v.word < nxt.word && counts(nxt) && !wrong(nxt) && !spans.unique[nxt.word]) {
+        const joined = obs.slice(v.obsFrom, nxt.obsTo).map((p) => p.p).join("");
+        if (anchorForm(joined) === spans.form[v.word]) {
+          views.push({ word: v.word, obsFrom: v.obsFrom, obsTo: nxt.obsTo, counts: true, wrong: false });
+          i++;
+          continue;
+        }
+      }
+      if (!counts(v)) continue;
+      views.push({ word: v.word, obsFrom: v.obsFrom, obsTo: v.obsTo, counts: true, wrong: wrong(v) });
+    }
+    let span = trail;
+    if (views.length) {
+      const windowStart = Math.min(...views.map((v) => v.word));
+      const merged = trail.filter((t) => t.word < windowStart && words[t.word].surah === words[windowStart].surah);
+      for (const v of [...views].sort((a, b) => a.obsFrom - b.obsFrom || a.word - b.word)) {
+        const prev = merged.at(-1);
+        if (prev && words[v.word].surah !== words[prev.word].surah) merged.length = 0;
+        else if (prev && v.word < prev.word) {
+          // The other copy of a word already counted. A word that was skipped is not on the trail:
+          // drop from there so the return can fill the gap.
+          if (merged.some((t) => t.word === v.word)) continue;
+          const at = merged.findIndex((t) => t.word >= v.word);
+          if (at >= 0) merged.splice(at);
+        }
+        if (merged.at(-1)?.word === v.word) continue;
+        merged.push({ word: v.word, wrong: v.wrong });
+      }
+      span = merged;
+      const anchors = merged.flatMap((t, i) => (!t.wrong && spans.unique[t.word] ? [i] : []));
+      // Runs below use `span` before this trim, so the left anchor survives the chunk that reaches the next unique ayah.
+      trail = anchors.length > 3 ? merged.slice(anchors[anchors.length - 3]) : merged;
+    }
+    const trailViews: AnchorVisit[] = span.map((t, i) => ({ word: t.word, obsFrom: i, obsTo: i + 1, counts: true, wrong: t.wrong }));
+    const w0 = index.wordAt(lo);
+    let w1 = index.wordAt(Math.max(lo, hi - 1));
+    const surah = words[w0].surah;
+    const ahead = ayahOf[w1] + 2;
+    while (w1 + 1 < words.length && words[w1 + 1].surah === surah && ayahOf[w1 + 1] <= ahead) w1++;
+    let textFrom = w0;
+    const minAyah = ayahOf[w0] - 4;
+    while (textFrom > 0 && words[textFrom - 1].surah === surah && ayahOf[textFrom - 1] >= minAyah) textFrom--;
+    const phoneRegions = phonemeSkipRuns({ raw: rawWord, unique: spans.unique, refrain: spans.refrain, ayahStart, from: textFrom, to: w1, heard: skipHeard });
+    // The alignment can still be sitting on the first refrain when the phonemes have already passed the next
+    // unique word. Confirmation waits for that word; count it as reached or the skip dies when the window jumps.
+    const phonemeReached = phoneRegions.reduce((n, r) => r.runs.length ? Math.max(n, r.to) : n, reached);
+    const regions = [
+      ...anchorSkipRuns({ form: spans.form, unique: spans.unique, refrain: spans.refrain, ayahStart, visits: trailViews }),
+      ...phoneRegions,
+    ];
+    for (const region of regions) {
+      if (!region.runs.length) continue;
+      for (const run of region.runs) {
+        // A wrong word inside the gap is that word, not a skip of it. A wrong word outside the gap is not.
+        if ([...issues.values()].some((issue) => issue.cls === "wrong_word" && issue.word >= run.word && issue.word <= run.last)) continue;
+        const covered = [...issues.values()].some((issue) =>
+          (issue.cls === "omitted_word" || issue.cls === "skipped_passage") && ayahStart[issue.word] && issue.word < run.word && issue.last >= run.last);
+        if (covered) continue;
+        if (ayahStart[run.word]) {
+          let prev = run.word - 1;
+          while (prev > 0 && words[prev].end === words[prev].start) prev--;
+          const earlier = prev >= 0 ? issues.get(prev) : undefined;
+          if (earlier && !ayahStart[prev] && (earlier.cls === "omitted_word" || earlier.cls === "skipped_passage")) {
+            issues.delete(prev);
+            suppress.add(prev);
+          }
+        }
+        for (const [wi, issue] of [...issues]) {
+          const omission = issue.cls === "omitted_word" || issue.cls === "skipped_passage";
+          if (wi === run.word || !omission) continue;
+          const overlap = !ayahStart[wi] && issue.word <= run.last && issue.last >= run.word;
+          // The alignment's seam on the refrain after the gap (الله inside فاتقوا الله وأطيعون).
+          const refrainSeam = issue.word > run.last && issue.word < region.to && !spans.unique[issue.word];
+          if (!overlap && !refrainSeam) continue;
+          issues.delete(wi);
+          suppress.add(wi);
+          if (refrainSeam) decided.add(wi);
+        }
+        const existing = issues.get(run.word);
+        // A one-word wrong reading stays. A passage the alignment called a wrong word is the refrain seam.
+        if (existing?.cls === "added_word" || (existing?.cls === "wrong_word" && run.last === run.word)) continue;
+        const n = words.slice(run.word, run.last + 1).filter((x) => x.end > x.start).length;
+        const before = views.filter((v) => v.word < run.word).reduce((a, v) => Math.max(a, v.obsTo), 0);
+        issues.set(run.word, { cls: n >= 3 ? "skipped_passage" : "omitted_word", word: run.word, last: run.last, obsFrom: before, obsTo: before });
+      }
+    }
+    return { issues, lexical: candidates, head, furthest: phonemeReached, steps, right };
   };
 
   /** Matched phonemes on the word after an error, heard after it: the next word has begun. */
@@ -867,6 +978,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const now = issues.get(wi);
       if (!now) {
         open.delete(wi);
+        if (suppress.has(wi)) decided.add(wi);
         out.push(event(o, "resolved"));
       } else if (now.cls !== o.issue.cls) {
         o.issue = now;
@@ -1003,6 +1115,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const next = track(events, out);
       const before = obs.length;
       obs.push(...evidence.phonemes.map((p) => ({ ...p })));
+      skipHeard += evidence.phonemes.map((p) => p.p).join("");
+      if (skipHeard.length > 600) skipHeard = skipHeard.slice(-600);
       markPhrases(before);
       const lastPh = obs.at(-1);
       if (lastPh) nowMs = Math.max(nowMs, (lastPh.end + 1) * frameMs);

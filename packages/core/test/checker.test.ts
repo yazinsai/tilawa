@@ -182,6 +182,70 @@ describe("skips", () => {
     const edits: Edit[] = [{ kind: "del", at: at(w(2, 255, 30)), count: at(w(2, 255, 40)) - at(w(2, 255, 30)) }];
     expect(summary(run(edits, { to: w(2, 257, 5) }))).toEqual(["suspected skipped_passage 2:255:30", "confirmed skipped_passage 2:255:30"]);
   });
+
+  // A repeated ayah is not a place the alignment may land: the same phonemes fit every copy, and the copy it picks
+  // either hides the skip or moves the seam onto the word before it.
+  const passage = (from: WordRef, to: WordRef, edits: Edit[] = []) => {
+    const f = syntheticFixture(index, { id: "c", from, to, edits, chunkSize: 8 });
+    return replayChecked(index, f, {}, { passage: { from, to } });
+  };
+  const drop = (from: WordRef, word: WordRef, last: WordRef) => {
+    const skipped = [find(word), find(last)];
+    return [{ kind: "del" as const, at: skipped[0].start - find(from).start, count: skipped[1].end - skipped[0].start }];
+  };
+
+  it("places a skip of the ayah between two refrain copies on that ayah", () => {
+    const from = w(55, 27, 1);
+    const events = passage(from, w(55, 31, 4), drop(from, w(55, 29, 1), w(55, 29, 10)));
+    expect(new Set(confirmed(events).map((e) => `${e.errorClass} ${key(e.location)}`))).toEqual(new Set(["skipped_passage 55:29:1"]));
+  });
+
+  it("places a skip of a refrain ayah on its first word, not the look-alike word before it", () => {
+    const from = w(26, 100, 1);
+    const events = passage(from, w(26, 106, 4), drop(from, w(26, 103, 1), w(26, 103, 8)));
+    expect(new Set(confirmed(events).map((e) => `${e.errorClass} ${key(e.location)}`))).toEqual(new Set(["skipped_passage 26:103:1"]));
+  });
+
+  it("places a skip before a repeated refrain on the skipped ayah, not inside the refrain", () => {
+    const from = w(26, 127, 1);
+    const events = passage(from, w(26, 133, 2), drop(from, w(26, 130, 1), w(26, 130, 4)));
+    expect(new Set(confirmed(events).map((e) => `${e.errorClass} ${key(e.location)}`))).toEqual(new Set(["skipped_passage 26:130:1"]));
+  });
+
+  it("places a skip of a repeated ayah between two copies of the refrain on that ayah", () => {
+    const from = w(26, 106, 1);
+    const events = passage(from, w(26, 112, 3), drop(from, w(26, 109, 1), w(26, 109, 11)));
+    expect(new Set(confirmed(events).map((e) => `${e.errorClass} ${key(e.location)}`))).toEqual(new Set(["skipped_passage 26:109:1"]));
+  });
+
+  it("places that skip when the unique name before the refrain was said wrong", () => {
+    // نوح said as هود sits between the anchors. It is its own mistake; it must not hide the skipped formula ayah.
+    const from = w(26, 105, 1);
+    const name = w(26, 106, 5);
+    const base = find(from).start;
+    const events = passage(from, w(26, 112, 5), [
+      ...drop(from, w(26, 109, 1), w(26, 109, 11)),
+      { kind: "del", at: find(name).start - base, count: text(name).length },
+      { kind: "ins", at: find(name).start - base, text: text(w(26, 124, 5)) },
+    ]);
+    const got = new Set(confirmed(events).map((e) => `${e.errorClass} ${key(e.location)}`));
+    expect(got.has("skipped_passage 26:109:1")).toBe(true);
+    expect(got.has("wrong_word 26:106:5")).toBe(true);
+    expect([...got].some((e) => e.startsWith("skipped_passage 26:108") || e.startsWith("skipped_passage 26:110"))).toBe(false);
+  });
+
+  it("places a skip before a repeated closing refrain on the skipped ayah", () => {
+    const from = w(77, 31, 1);
+    const events = passage(from, w(77, 35, 4), drop(from, w(77, 33, 1), w(77, 33, 3)));
+    expect(new Set(confirmed(events).map((e) => `${e.errorClass} ${key(e.location)}`))).toEqual(new Set(["skipped_passage 77:33:1"]));
+  });
+
+  it("stays quiet when a refrain is repeated and the recital continues", () => {
+    const from = w(55, 27, 1);
+    const at55 = (r: WordRef) => find(r).start - find(from).start;
+    const events = passage(from, w(55, 31, 4), [{ kind: "repeat", from: at55(w(55, 28, 1)), to: at55(w(55, 29, 1)) }]);
+    expect(confirmed(events)).toEqual([]);
+  });
 });
 
 describe("confirm delay", () => {
