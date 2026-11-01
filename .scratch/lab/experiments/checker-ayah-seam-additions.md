@@ -4,13 +4,19 @@ Status: stopped at step 0. No engine change. Practice was not scored.
 
 ## Preregistered prediction
 
-Test set lab-v1.5, practice only. The card predicted 6 of the 11 word-1 added-word targets won, checker −5, overall −4. The kill criterion was to stop if fewer than 6 of those 11 had window-trimmed gap phonemes carrying 2 or more consonants, before any rule was written.
+Test set lab-v1.5, practice only. The card predicted 6 of the 11 word-1 added-word targets won, checker −5, overall −4. The kill criterion was to stop before any rule if fewer than 6 of those 11 had window-trimmed gap phonemes carrying 2 or more consonants.
 
-## What step 0 checked
+## Mechanism that was going to be tested
 
-For each target, the decoded phonemes whose start time falls in the truth gap between the previous ayah's last word and word 1 were labeled from the checker's final alignment path, the same path `judge` consumes. A phoneme is window-trimmed when that path drops it as leading junk, as an insertion before the first visit, as trailing speech after the last visit, or never aligns it. Anything matched or inserted on a reference word, or held in the between-word insertion block, is inside a window.
+The checker does not open a fresh alignment at each ayah. The window already starts one ayah before the anchor and runs several ayahs ahead. `nextWord` walks the mushaf, skipping empty words only, so the last word of an ayah and word 1 of the next ayah are consecutive reference words. `judge` already opens an added-word issue for an insertion block between two consecutive visits of one run, and the folded joint-additions repair already refits a consecutive pair with an intervening insertion when both words stay explained.
 
-Three arms, one Modal run (`seam-gap-e1e61e9-dirty-20261101T063436Z`), eight shards, all exit 0. The temporary tracer was removed; it did not feed judgment. Per-phoneme rows are in `checker-ayah-seam-additions-step0.json`.
+The proposed change was that same fit over the seam span, sending residue that neither seam word owns to the existing added-word confirmation. It was not going to change the non-Quran phrase cost or use a phrase lexicon. That only prices residue. It does not move a diagonal match off a reference word that already owns the phonemes.
+
+## What step 0 showed
+
+For each target, decoded phonemes whose start time falls in the truth gap — after the previous ayah's last word, before word 1 — were labeled from the alignment path `judge` consumes. A phoneme is window-trimmed when that path drops it as lead, as an insertion before the first visit, as trailing speech, or never aligns it. A match or insertion on a reference word, or a between-word insertion block, is inside a window.
+
+Three arms, one Modal run (`seam-gap-e1e61e9-dirty-20261101T063436Z`), eight shards, all exit 0. The tracer was temporary and is not in the tree. The per-target rows were keyed by session, verse and time; they are not kept. Re-aggregation of that run:
 
 | Arm | Targets with ≥2 window-trimmed gap consonants |
 | --- | ---: |
@@ -18,32 +24,8 @@ Three arms, one Modal run (`seam-gap-e1e61e9-dirty-20261101T063436Z`), eight sha
 | Phone evidence, oracle position | 0 / 11 |
 | Phone evidence, tracker | 1 / 11 |
 
-No gap phoneme was marked as a non-Quran phrase. One phone vowel on 44:12:1 sat in the previous word's late half (a waqf tail). The rest are diagonal matches or between-word insertions.
+No gap phoneme was a non-Quran phrase. On the oracle arm the inserted word is in the decoded string in every case (3–5 consonants) and those consonants are diagonal matches: on word 1, on the previous word, or on a third reference word. One target holds three consonants in the between-word insertion block, which the current insertion state already prices; the warning confirms after the mistake's match window. The single engine window-trim is those same frames after a later tracker re-lock. True position on that phone evidence does not trim them, and oracle evidence matches them to earlier words of the previous ayah.
 
-## Where the oracle gap consonants went
+## Why there is no checker edit
 
-This is the checker arm. The inserted word is in the decoded string in every case (`saidConsonants` is 3–5). It is labeled as Quran text.
-
-| Target | Said | Gap consonants |
-| --- | --- | --- |
-| 44:10:1 | قَبڇلِهِم | 2 on word 1, 4 matched to 44:9:1 and 44:9:2 |
-| 44:12:1 | قَبڇلِهِم | 5 matched to 44:17:3 |
-| 2:11:1 | قَلِۦۦلَاا | 3 matched or inserted inside word 1 |
-| 54:39:1 | فَںںںتَصِر | 2 on word 1, 3 matched to 54:44:5 |
-| 26:123:1 | كَرِۦۦم | 2 on word 1, 2 matched to the previous word 26:122:5 |
-| 37:99:1 | وَقِفُۥۥهُم | 3 on word 1, 3 matched to 37:102:24–25; an added-word issue opened and resolved |
-| 51:18:1 | قَبڇل | 3 matched to 51:16:7 |
-| 51:20:1 | قَبڇل | 3 in the between-word insertion block; confirmed only at 126.9 s, after the mistake's match window (ends 118.8 s) |
-| 37:69:1 | وَقِفُۥۥهُم | 5 on word 1; a wrong-word issue opened and resolved |
-| 37:71:1 | وَقِفُۥۥهُم | 2 on word 1, 3 matched to 37:70:1; an added-word issue opened and resolved |
-| 37:139:1 | وَقِفُۥۥهُم | 3 on word 1, 2 matched to 37:139:2 |
-
-The phone true-position arm agrees: 0 / 11 window-trimmed. The same consonants are absorbed into word 1, the previous word, or a third reference word. 51:18:1's phone decode keeps only two between-word consonants (و ب) and drops the rest of قَبڇل, so that one is also thin in the listener string.
-
-The single engine case, 44:10:1, is not a gap the windows never saw. While both seam words were in the alignment those nine phonemes were between-word insertions, and an added-word warning was suspected at 80.5 s. A later tracker re-lock labeled the same frames as lead / before the first visit, and the warning ended uncertain at 80.9 s. True position on the same phone evidence confirms it. Oracle evidence never opens it, because those frames match 44:9:1 and 44:9:2.
-
-## Why the proposed change does not apply
-
-The seam fit was going to price gap residue that neither the previous ayah's last word nor word 1 owns. On these 11 targets that residue is not there. The inserted consonants are diagonal matches on some reference word, so they already belong to a visit. The one between-word block with two or more consonants is the block the current insertion state already prices. Extending the joint fit across the ayah boundary would not move matches off those words, and it would not touch the non-Quran cost or the ayah-start omission recoveries — there is nothing in that shape to repair.
-
-Stopped before any checker edit. No session, reader, or verse literal was added to engine code. Practice scores used: 0.
+0 of 11 on the checker arm is under the kill threshold of 6. The inserted consonants are labeled as Quran text inside a window, which the card treats as outside this change. Extending the joint fit across the ayah boundary would not take those matches off the words that own them. No session, reader, or verse literal was added to engine code. Practice scores used: 0.
