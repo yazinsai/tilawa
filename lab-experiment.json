@@ -1,0 +1,13 @@
+{
+ "id": "listener-faithful-splice-training",
+ "component": "listener",
+ "hypothesis": "The listener has learned an implicit Quran sequence prior from Quran-only training text, so it under-emits speech that does not continue the expected verse, such as words inserted at an ayah start or a name swapped in a refrain. Fine-tuning on spliced 'unfaithful' recitation with corrected transcripts and no new channel augmentation should fix this; predict listener -5 and overall -4, mostly from the 13 added-word misses.",
+ "expected": {
+  "component": -5,
+  "overall": -4
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-01T04:02:14+00:00",
+ "author": "autolab"
+}
