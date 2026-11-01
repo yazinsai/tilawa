@@ -174,9 +174,9 @@
     "name": "astra",
     "runtime": "codex-azure",
     "azure": {
-     "endpoint": "",
-     "deployment": "",
-     "apiVersion": ""
+     "endpoint": "https://amalinvest-ai-yazin.openai.azure.com",
+     "deployment": "gpt-6-astra",
+     "apiVersion": "2025-04-01-preview"
     },
     "effort": "high"
    }
