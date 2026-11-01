@@ -109,7 +109,7 @@ class World:
         self._executors = {}
         self._reports, self._procs = {}, {}
         self.background, self.futures = True, {}
-        self.pool = ThreadPoolExecutor(4)
+        self.pool = ThreadPoolExecutor(8)
 
     # builders
     def arm_executor(self, arm: dict):
@@ -1119,16 +1119,23 @@ class Tick:
                 for c in v["cards"][: len(free_now())]:
                     self.add(c)
                 free = free_now()
-        last, planning = st.get("lastPlanAt"), ("plan",) in w.futures
-        if not planning and (not free or (last and S.minutes(last, at) < w.cfg["planEveryMinutes"])):
-            return
-        if not planning:
-            st["lastPlanAt"] = at
-        cards = self.brain(None, B.plan, self.ctx(), free, key=("plan",))
-        if cards is PENDING or not cards:
-            return
-        for c in cards[: len(free_now())]:
-            self.add(c)
+        last, todo = st.get("lastPlanAt"), st.get("planSlots") or []
+        if not todo:
+            if not free or (last and S.minutes(last, at) < w.cfg["planEveryMinutes"]):
+                return
+            todo = [[c, t, i] for i, (c, t) in enumerate(free)]
+            st["lastPlanAt"], st["planSlots"] = at, todo
+        # one call per slot, in parallel: one card takes Opus about a minute, five in one answer never finished
+        for slot in list(todo):
+            cards = self.brain(None, B.plan, self.ctx(), [tuple(slot[:2])], key=("plan", *slot))
+            if cards is PENDING or (cards is None and self.brain_down):
+                continue
+            todo.remove(slot)
+            if cards and free_now():
+                c, base, n = cards[0], cards[0]["id"], 2
+                while c["id"] in st["experiments"]:
+                    c["id"], n = f"{base}-v{n}", n + 1
+                self.add(c)
 
 
 def read_json(path: Path) -> dict:

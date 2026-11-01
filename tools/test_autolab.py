@@ -4,6 +4,7 @@
 # ///
 """uv run --python cpython-3.12-macos-aarch64-none --with pytest pytest tools/test_autolab.py"""
 
+import itertools
 import json
 import sys
 from pathlib import Path
@@ -17,6 +18,7 @@ import lab_ledger as L  # noqa: E402
 from autolab_exec import FakeExecutor  # noqa: E402
 
 T0 = "2026-11-01T10:00:00+00:00"
+IDS = itertools.count()
 CLUSTER = "checker/added_word/missed"
 INCIDENT = "s1/phone/mistake:added_word/7:1:2/4.0"
 PRACTICE = {"wrongCalls": 89, "missed": 64, "falseWarnings": 25, "listener": 47, "tracker": 5, "checker": 37}
@@ -151,7 +153,7 @@ def w(tmp_path, monkeypatch):
     st.update(started=T0, day=T0[:10], dataHash="h0", main={"sha": "m1", "run": "main-run", "practice": PRACTICE,
                                                             "attribution": {c: PRACTICE[c] for c in L.COMPONENTS}})
     world.saved = st
-    world.answers = {"planner": lambda p: answer({"cards": [card(f"checker-idea-{i}", component=s["component"], tier=s["tier"])
+    world.answers = {"planner": lambda p: answer({"cards": [card(f"checker-idea-{next(IDS)}", component=s["component"], tier=s["tier"])
                                                             for i, s in enumerate(slots(p))]}),
                      "judge": answer({"accept": True, "restates": [], "why": "new"}),
                      "diffReviewer": answer({"ok": True, "why": "fine"}),
@@ -468,7 +470,7 @@ def test_practice_score_requests_are_served_and_capped(w):
 
 
 def test_an_expensive_bet_waits_for_approval(w):
-    w.answers["planner"] = lambda p: answer({"cards": [card(f"x-idea-{i}", component=s["component"], tier=s["tier"],
+    w.answers["planner"] = lambda p: answer({"cards": [card(f"x-idea-{next(IDS)}", component=s["component"], tier=s["tier"],
                                                             **({"gpuUsd": 150} if s["tier"] == "bet" else {})) for i, s in enumerate(slots(p))]})
     tick(w)
     st = tick(w)
@@ -481,7 +483,7 @@ def test_an_expensive_bet_waits_for_approval(w):
 
 
 def waiting_bet(w):
-    w.answers["planner"] = lambda p: answer({"cards": [card(f"x-idea-{i}", component=s["component"], tier=s["tier"],
+    w.answers["planner"] = lambda p: answer({"cards": [card(f"x-idea-{next(IDS)}", component=s["component"], tier=s["tier"],
                                                             **({"gpuUsd": 150} if s["tier"] == "bet" else {})) for i, s in enumerate(slots(p))]})
     tick(w)
     st = tick(w)
@@ -494,7 +496,7 @@ def test_inbox_approve_starts_the_bet(w):
     id = waiting_bet(w)
     w.queued = [{"op": "approve", "id": id}]
     st = tick(w)
-    assert st["experiments"][id]["state"] == "implementing" and st["needsHuman"] == []
+    assert st["experiments"][id]["state"] == "implementing" and id not in [h["id"] for h in st["needsHuman"]]
 
 
 def test_inbox_retry_with_a_note_goes_back_to_the_builder(w):
@@ -557,7 +559,7 @@ def test_a_model_outage_waits_without_pausing_or_moving_anything(w):
     assert not st.get("paused") and st["experiments"] == {} and "capacity" in st["brainDown"]["error"]
     st = tick(w, "2026-11-01T11:30:00+00:00")
     assert any("aren't answering" in title for _, title in w.notes)
-    w.answers["planner"] = lambda p: answer({"cards": [card(f"c-{i}", component=s["component"], tier=s["tier"]) for i, s in enumerate(slots(p))]})
+    w.answers["planner"] = lambda p: answer({"cards": [card(f"c-{next(IDS)}", component=s["component"], tier=s["tier"]) for s in slots(p)]})
     st = tick(w, "2026-11-01T11:32:00+00:00")
     assert "brainDown" not in st and len(st["experiments"]) == 6
 
@@ -609,7 +611,8 @@ def test_background_model_calls_never_hold_up_a_tick(w):
     st = tick(w, "2026-11-01T10:02:00+00:00")
     assert st["experiments"] == {}
     gate.set()
-    w.futures[("plan",)].result(timeout=5)
+    for k in [k for k in w.futures if k[0] == "plan"]:
+        w.futures[k].result(timeout=5)
     st = tick(w, "2026-11-01T10:04:00+00:00")
     assert len(st["experiments"]) == 6
 
