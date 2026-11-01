@@ -10,7 +10,12 @@
     practice-score [worktree]   an executor's practice score through the supervisor (at most 3 per card, decision 20)
     watchdog                 notify when the heartbeat is stale (run from cron or launchd, apart from the loop)
     match <id> agree|disagree   your verdict on a shadow decision (ticket 11)
+    waiting                  what needs you, with the command for each
     approve <id>             let a bet over betApprovalUsd start
+    retry <id> [--note ...]  re-run checks, tests and scoring; with a note, back to the builder with it
+    drop <id> [why]          end an experiment
+Your commands (pause, resume, approve, retry, drop, match) go to /lab/autolab/inbox/ and the loop applies them at the
+start of its next tick, so a tick in flight never overwrites them.
 
 Every lab operation goes through tools/lab.py on the shadow line: `--main autolab --ledger /autolab/ledger.json --json`.
 Long ones (tests, decode, scoring, fold) run as detached jobs under .scratch/autolab/run/jobs/, so a restarted
@@ -37,13 +42,14 @@ import autolab_state as S  # noqa: E402
 import lab_gate as G  # noqa: E402
 import lab_ledger as L  # noqa: E402
 from autolab_exec import make as make_executor  # noqa: E402
-from lab import REPO, Stop, vol_get, vol_put  # noqa: E402
+from lab import REPO, Stop, vol_get, vol_ls, vol_put  # noqa: E402
 
 LAB = REPO / "tools/lab.py"
 CONFIG = REPO / ".scratch/autolab/config.json"
 RUN = REPO / ".scratch/autolab/run"
 BRANCH, WORKTREE = "autolab", REPO.parent / "tilawa-autolab"
 VOL_STATE, VOL_EVENTS, VOL_LEDGER, VOL_JOURNAL = "/autolab/state.json", "/autolab/events.jsonl", "/autolab/ledger.json", "/autolab/journal.md"
+VOL_INBOX = "/autolab/inbox"
 PRACTICE_SCORES = 3
 DEFAULT_CONFIG = {
     "slots": 6, "planEveryMinutes": 30, "tickSeconds": 120,
@@ -188,6 +194,12 @@ class World:
             h.update(f"{e.path}\t{e.size}\t{e.mtime}\n".encode())
         return h.hexdigest()
 
+    def inbox(self) -> list[tuple[str, dict]]:
+        return [(p, c) for p in sorted(vol_ls(VOL_INBOX)) if (c := vol_get(p))]
+
+    def inbox_done(self, path: str) -> None:
+        subprocess.run(["modal", "volume", "rm", "tilawa-lab", path], capture_output=True)
+
     def modal_spend(self, day: str) -> float:
         """The whole workspace's Modal cost so far on a UTC day (your own runs count too)."""
         import datetime as dt  # noqa: PLC0415
@@ -275,6 +287,7 @@ class Tick:
         st["heartbeat"], st["ticks"] = at, st.get("ticks", 0) + 1
         st["slots"], st["caps"], st["tickSeconds"] = self.w.cfg["slots"], self.w.cfg["caps"], self.w.cfg["tickSeconds"]
         S.roll_day(st, at)
+        self.apply_inbox()
         if not st.get("modalCheckedAt") or S.minutes(st["modalCheckedAt"], at) >= 10:
             try:
                 st["spend"]["modalUsd"] = round(self.w.modal_spend(at[:10]), 2)
@@ -298,6 +311,58 @@ class Tick:
             self.accepted(e)
         self.plan()
         return self.events
+
+    # your commands
+    def apply_inbox(self):
+        for path, c in self.w.inbox():
+            try:
+                self.apply(c)
+            except (KeyError, ValueError) as err:
+                self.events.append(S.event(c.get("id"), None, "rejected", self.at, f"your {c['op']}: {err}"))
+            self.w.inbox_done(path)
+
+    def apply(self, c: dict):
+        st, op = self.st, c["op"]
+        if op == "pause":
+            st["paused"] = c["why"] or None
+            self.events.append(S.event(None, None, "paused" if c["why"] else "resumed", self.at, c["why"] or "by you"))
+            return
+        e = st["experiments"][c["id"]]
+        if op == "match":
+            st["matches"].append({"id": e["id"], "gate": e["state"], "user": c["verdict"], "at": self.at})
+            self.events.append(S.event(e["id"], e["state"], e["state"], self.at, f"you {c['verdict']}"))
+        elif op == "approve":
+            if e["state"] != "needs-human":
+                raise ValueError(f"{e['id']} is {e['state']}, not waiting on you")
+            e["results"]["approved"] = self.at
+            self.move(e, "accepted", "approved by you")
+        elif op == "retry":
+            if e["state"] != "needs-human":
+                raise ValueError(f"{e['id']} is {e['state']}, not waiting on you")
+            r = e["results"]
+            for k in ("testsJob", "decodeJob", "scoreJob", "foldJob"):
+                self.w.kill(r.pop(k, None))
+            r.pop("testsPassed", None)
+            if c.get("note") or not e["worktree"]:
+                r["feedback"] = c.get("note") or ""
+                self.move(e, "accepted", "retry by you" + (f": {c['note'][:120]}" if c.get("note") else ""))
+            else:
+                self.move(e, "validating", "retry by you: checks, tests and scoring again")
+        elif op == "drop":
+            if e["state"] in S.TERMINAL:
+                raise ValueError(f"{e['id']} already ended ({e['state']})")
+            if e["state"] == "implementing":
+                self.w.executor.cancel(e["executor"]["handle"])
+            for k in ("testsJob", "decodeJob", "scoreJob", "foldJob"):
+                self.w.kill(e["results"].pop(k, None))
+            if self.st["foldLock"] == e["id"]:
+                self.st["foldLock"] = None
+            if e["worktree"]:
+                self.discard(e, f"dropped by you: {c['why']}")
+            else:
+                self.move(e, "discarded", f"dropped by you: {c['why']}")
+        else:
+            raise ValueError(f"unknown command {op}")
 
     # daily: digest, rebase the shadow line onto main, re-score it
     def daily(self):
@@ -361,7 +426,7 @@ class Tick:
                         "--expect-component", c["expected"]["component"], "--expect-overall", c["expected"]["overall"], "--author", "autolab")
             e["branch"], e["worktree"] = out["branch"], out["worktree"]
             w.exclude(".autolab/")
-        self.start_executor(e)
+        self.start_executor(e, e["results"].pop("feedback", ""))
 
     def start_executor(self, e, feedback: str = ""):
         w, cfg = self.w, self.w.cfg
@@ -753,12 +818,32 @@ def cmd_loop(a):
         time.sleep(max(5, w.cfg["tickSeconds"] - (time.time() - t0)))
 
 
+def send(op: str, **args) -> None:
+    """Your commands go to an inbox the loop applies at the start of its next tick, so a tick in flight can't overwrite them."""
+    vol_put(f"{VOL_INBOX}/{S.now().replace(':', '')}-{op}-{os.getpid()}.json", {"op": op, "at": S.now(), **args})
+    print(f"{op} queued; the loop applies it within one tick (about {config()['tickSeconds'] // 60} min)")
+
+
 def cmd_pause(a, why=None):
-    w = World(config(), executor=object())
-    st = w.load()
-    st["paused"] = why if why is not None else (" ".join(a.why) or "paused by you")
-    w.save(st, [S.event(None, None, "paused" if st["paused"] else "resumed", S.now(), st["paused"] or "")])
-    print("paused" if st["paused"] else "resumed")
+    send("pause", why=why if why is not None else (" ".join(a.why) or "paused by you"))
+
+
+def cmd_waiting(a):
+    st = World(config(), executor=object()).load()
+    if not st["needsHuman"] and not st.get("paused"):
+        print("nothing is waiting on you")
+    if st.get("paused"):
+        print(f"autolab is paused: {st['paused']}\n  -> fix it, then: tools/autolab.py resume")
+    for h in st["needsHuman"]:
+        e = st["experiments"].get(h["id"], {})
+        c = e.get("card", {})
+        print(f"\n{h['id']} ({c.get('component')}, {e.get('tier')}), waiting since {h['at']}\n  {c.get('hypothesis', '')}\n  why: {h['what']}")
+        if "approval" in h["what"]:
+            print(f"  -> tools/autolab.py approve {h['id']}      or   tools/autolab.py drop {h['id']} 'too expensive'")
+        else:
+            print(f"  -> tools/autolab.py retry {h['id']}        (re-run its checks, tests and scoring)")
+            print(f"     tools/autolab.py retry {h['id']} --note 'what to change'   (back to the builder with your note)")
+            print(f"     tools/autolab.py drop {h['id']} 'why'")
 
 
 def cmd_status(a):
@@ -807,29 +892,30 @@ def cmd_watchdog(a):
         vol_put(VOL_STATE, st)
 
 
+def known(id: str) -> None:
+    st = World(config(), executor=object()).load()
+    if id not in st["experiments"]:
+        sys.exit(f"autolab: no experiment {id}")
+
+
 def cmd_approve(a):
-    w = World(config(), executor=object())
-    st = w.load()
-    e = st["experiments"][a.id]
-    if e["state"] != "needs-human":
-        sys.exit(f"autolab: {a.id} is {e['state']}, not waiting on you")
-    e["results"]["approved"] = S.now()
-    w.save(st, [S.move(st, a.id, "accepted", S.now(), "approved by you")])
-    print(f"approved {a.id}; it starts on the next tick")
+    known(a.id)
+    send("approve", id=a.id)
+
+
+def cmd_retry(a):
+    known(a.id)
+    send("retry", id=a.id, note=a.note)
+
+
+def cmd_drop(a):
+    known(a.id)
+    send("drop", id=a.id, why=" ".join(a.why) or "dropped by you")
 
 
 def cmd_match(a):
-    w = World(config(), executor=object())
-    st = w.load()
-    e = st["experiments"][a.id]
-    st["matches"].append({"id": a.id, "gate": e["state"], "user": a.verdict, "at": S.now()})
-    w.save(st, [S.event(a.id, e["state"], e["state"], S.now(), f"you {a.verdict}")])
-    run = 0
-    for m in reversed(st["matches"]):
-        if m["user"] != "agree":
-            break
-        run += 1
-    print(f"recorded; {run} agreeing decision(s) in a row")
+    known(a.id)
+    send("match", id=a.id, verdict=a.verdict)
 
 
 def main():
@@ -849,6 +935,13 @@ def main():
     sub.add_parser("watchdog")
     ap = sub.add_parser("approve")
     ap.add_argument("id")
+    sub.add_parser("waiting")
+    rp = sub.add_parser("retry")
+    rp.add_argument("id")
+    rp.add_argument("--note", default="")
+    dp = sub.add_parser("drop")
+    dp.add_argument("id")
+    dp.add_argument("why", nargs="*")
     mp = sub.add_parser("match")
     mp.add_argument("id")
     mp.add_argument("verdict", choices=("agree", "disagree"))
@@ -856,7 +949,7 @@ def main():
     try:
         {"init": cmd_init, "tick": cmd_tick, "loop": cmd_loop, "pause": cmd_pause, "resume": lambda a: cmd_pause(a, why=""),
          "status": cmd_status, "practice-score": cmd_practice_score, "watchdog": cmd_watchdog, "match": cmd_match,
-         "approve": cmd_approve}[a.op](a)
+         "approve": cmd_approve, "waiting": cmd_waiting, "retry": cmd_retry, "drop": cmd_drop}[a.op](a)
     except Stop as err:
         sys.exit(f"autolab: {err}")
 

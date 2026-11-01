@@ -119,6 +119,14 @@ class World(A.World):
         return self.modal_usd
 
     modal_usd = 0.0
+    queued: list = []
+
+    def inbox(self):
+        out, self.queued = [(f"/inbox/{i}", c) for i, c in enumerate(self.queued)], []
+        return out
+
+    def inbox_done(self, path):
+        pass
 
     def journal(self):
         return self.journal_text
@@ -364,6 +372,50 @@ def test_an_expensive_bet_waits_for_approval(w):
     S.move(st, bet["id"], "accepted", T0)
     w.saved = st
     assert tick(w)["experiments"][bet["id"]]["state"] == "implementing"
+
+
+def waiting_bet(w):
+    w.answers["planner"] = lambda p: answer({"cards": [card(f"x-idea-{i}", component=s["component"], tier=s["tier"],
+                                                            **({"gpuUsd": 150} if s["tier"] == "bet" else {})) for i, s in enumerate(slots(p))]})
+    tick(w)
+    st = tick(w)
+    st["lastPlanAt"] = "2999-01-01T00:00:00+00:00"
+    w.saved = st
+    return next(e["id"] for e in st["experiments"].values() if e["tier"] == "bet")
+
+
+def test_inbox_approve_starts_the_bet(w):
+    id = waiting_bet(w)
+    w.queued = [{"op": "approve", "id": id}]
+    st = tick(w)
+    assert st["experiments"][id]["state"] == "implementing" and st["needsHuman"] == []
+
+
+def test_inbox_retry_with_a_note_goes_back_to_the_builder(w):
+    id = waiting_bet(w)
+    w.queued = [{"op": "approve", "id": id}]
+    tick(w)
+    st = w.load()
+    S.move(st, id, "needs-human", T0, "scoring failed: boom")
+    w.saved = st
+    w.queued = [{"op": "retry", "id": id, "note": "use the smaller recipe"}]
+    st = tick(w)
+    e = st["experiments"][id]
+    assert e["state"] in ("implementing", "validating", "scoring", "folding") and "use the smaller recipe" in " ".join(h["note"] for h in e["history"])
+
+
+def test_inbox_drop_and_rejections(w):
+    id = waiting_bet(w)
+    w.queued = [{"op": "drop", "id": id, "why": "too expensive"}, {"op": "approve", "id": "nope"}]
+    st = tick(w)
+    assert st["experiments"][id]["state"] == "discarded" and "too expensive" in st["experiments"][id]["note"]
+
+
+def test_inbox_pause_and_resume(w):
+    w.queued = [{"op": "pause", "why": "holiday"}]
+    assert tick(w)["paused"] == "holiday"
+    w.queued = [{"op": "pause", "why": ""}]
+    assert tick(w)["paused"] is None
 
 
 def test_a_tick_that_raises_pauses_and_pages(w, monkeypatch):
