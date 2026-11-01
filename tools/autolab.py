@@ -44,6 +44,7 @@ import autolab_state as S  # noqa: E402
 import lab_gate as G  # noqa: E402
 import lab_ledger as L  # noqa: E402
 from autolab_exec import make as make_executor  # noqa: E402
+from concurrent.futures import ThreadPoolExecutor  # noqa: E402
 from lab import REPO, Stop, vol_get, vol_ls, vol_put  # noqa: E402
 
 LAB = REPO / "tools/lab.py"
@@ -86,6 +87,8 @@ class World:
         self.cfg, self.ask, self.sender = cfg, ask, sender
         self.executor = executor or make_executor(cfg)
         self._reports, self._procs = {}, {}
+        self.background, self.futures = True, {}
+        self.pool = ThreadPoolExecutor(4)
 
     # state on the volume
     def load(self) -> dict | None:
@@ -97,7 +100,13 @@ class World:
             with open(RUN / "events.jsonl", "a") as f:
                 f.writelines(json.dumps(e, ensure_ascii=False) + "\n" for e in events)
             subprocess.run(["modal", "volume", "put", "--force", "tilawa-lab", str(RUN / "events.jsonl"), VOL_EVENTS], capture_output=True)
-        vol_put(VOL_STATE, st)
+        for wait in (2, 5, 10, 20, 40, 0):
+            try:
+                return vol_put(VOL_STATE, st)
+            except Stop:
+                if not wait:
+                    raise
+                time.sleep(wait)  # e.g. "too many layers in volume": Modal compacts, then accepts writes again
 
     def events(self) -> list[dict]:
         f = RUN / "events.jsonl"
@@ -281,14 +290,27 @@ class Tick:
             self._ctx = B.pack(self.st, clusters, self.w.ledgers(), self.w.journal())
         return self._ctx
 
-    def brain(self, e, fn, *args):
-        """An orchestrator call. A model outage leaves everything where it is for a later tick (and pages after an hour);
-        a malformed answer, after its retry, sends the experiment to needs-human."""
-        st = self.st
+    def brain(self, e, fn, *args, key: tuple):
+        """An orchestrator call, run in the background in the real loop: the first tick starts it and returns PENDING,
+        a later tick picks up its answer, so a tick never waits minutes on a model. A model outage leaves everything
+        where it is for a later tick (and pages after an hour); a malformed answer, after its retry, sends the experiment
+        to needs-human. Returns the answer, PENDING, or None (outage or malformed)."""
+        st, w = self.st, self.w
         if self.brain_down:
             return None
+        if w.background:
+            f = w.futures.get(key)
+            if f is None:
+                w.futures[key] = w.pool.submit(fn, w.cfg, *args, ask=w.ask)
+                return PENDING
+            if not f.done():
+                return PENDING
+            del w.futures[key]
+            call = f.result
+        else:
+            call = lambda: fn(w.cfg, *args, ask=w.ask)  # noqa: E731
         try:
-            out = fn(self.w.cfg, *args, ask=self.w.ask)
+            out = call()
             st.pop("brainDown", None)
             return out
         except B.Unavailable as err:
@@ -333,6 +355,7 @@ class Tick:
             self.proposed(e)
         for e in S.in_state(st, "accepted"):
             self.accepted(e)
+        self.reviews()
         self.plan()
         return self.events
 
@@ -433,8 +456,8 @@ class Tick:
     def proposed(self, e):
         if S.timed_out(e, self.at):
             return self.move(e, "needs-human", "the novelty judge didn't answer in time")
-        v = self.brain(e, B.judge, e["card"], self.ctx())
-        if v is None:
+        v = self.brain(e, B.judge, e["card"], self.ctx(), key=("judge", e["id"]))
+        if v is None or v is PENDING:
             return
         e["results"]["judge"] = v
         self.move(e, "accepted" if v["accept"] else "discarded", v["why"] if v["accept"] else "restates " + ", ".join(v["restates"]) + ": " + v["why"])
@@ -584,8 +607,8 @@ class Tick:
         r["tuning"] = G.is_tuning(diff)
         if r["tuning"] and P.tuning_blocked(st, e["id"]):
             return self.discard(e, "another tuning experiment is already open (at most one)")
-        v = self.brain(e, B.review_diff, c, diff)
-        if v is None:
+        v = self.brain(e, B.review_diff, c, diff, key=("diff", e["id"], e["attempts"]["executor"]))
+        if v is None or v is PENDING:
             return
         r["diffReview"] = v
         if not v["ok"]:
@@ -681,17 +704,30 @@ class Tick:
                      f"{e['card']['hypothesis']}\nPractice change: overall {res['compare']['overall']['change']:+d}.", self.at)
         self.after(e, {"state": state, "why": note, "gate": res.get("gate"), "compare": res.get("compare")})
 
-    # after an experiment ends: journal entry and maybe a follow-up
+    # after an experiment ends: journal entry and maybe a follow-up (reviewed on this or a later tick)
     def after(self, e, outcome: dict):
         for cl in [e["card"].get("cluster")] if e["card"].get("cluster") else []:
             P.mark_tried(self.st, cl, e["id"])
-        v = self.brain(None, B.review, e, outcome, self.ctx())
-        if v is None:
-            return
-        self.w.journal_add(f"{e['id']} ({e['card']['component']}, {e['tier']}): {outcome['state']}", v["journal"]
-                           + (f"\n\nDead end: {v['deadEnd']}" if v.get("deadEnd") else ""), self.at)
-        if v.get("followUp"):
-            self.add(v["followUp"])
+        self.st.setdefault("pendingReviews", {})[e["id"]] = outcome
+        self.reviews()
+
+    def reviews(self):
+        pending = self.st.setdefault("pendingReviews", {})
+        for id, outcome in list(pending.items()):
+            e = self.st["experiments"].get(id)
+            if not e:
+                pending.pop(id)
+                continue
+            v = self.brain(None, B.review, e, outcome, self.ctx(), key=("review", id))
+            if v is PENDING or (v is None and self.brain_down):
+                continue
+            pending.pop(id)
+            if v is None:
+                continue
+            self.w.journal_add(f"{e['id']} ({e['card']['component']}, {e['tier']}): {outcome['state']}", v["journal"]
+                               + (f"\n\nDead end: {v['deadEnd']}" if v.get("deadEnd") else ""), self.at)
+            if v.get("followUp"):
+                self.add(v["followUp"])
 
     def add(self, card: dict):
         if card["id"] in self.st["experiments"]:
@@ -711,22 +747,31 @@ class Tick:
             st["counters"]["frozen"][c]["asked"] = at
             w.notify(st, "needs-human", f"stuck:{c}:{at[:10]}", f"Autolab is stuck on the {c}",
                      f"No fold in a day after a strategy change. Read the latest memo in the journal and tell autolab where to look.", at)
-        alloc = P.allocate(st["main"]["attribution"], w.cfg["slots"], set(st["counters"]["frozen"]))
-        free = P.free_slots(st, alloc)
+        free_now = lambda: P.free_slots(st, P.allocate(st["main"]["attribution"], w.cfg["slots"], set(st["counters"]["frozen"])))  # noqa: E731
+        free = free_now()
         newly = P.update_plateau(st, at, st.get("started") or at)
-        if newly and free:
-            v = self.brain(None, B.strategy, self.ctx(), newly, free)
+        if newly:
+            st["pendingStrategy"] = sorted(set(st.get("pendingStrategy") or []) | set(newly))
+        if st.get("pendingStrategy") and free:
+            stuck = st["pendingStrategy"]
+            v = self.brain(None, B.strategy, self.ctx(), stuck, free, key=("strategy",))
+            if v is PENDING or (v is None and self.brain_down):
+                return
+            st["pendingStrategy"] = []
             if v:
-                w.journal_add(f"Strategy: stuck on {', '.join(newly)}", v["memo"], at)
-                for c in v["cards"]:
+                w.journal_add(f"Strategy: stuck on {', '.join(stuck)}", v["memo"], at)
+                for c in v["cards"][: len(free_now())]:
                     self.add(c)
-                free = P.free_slots(st, P.allocate(st["main"]["attribution"], w.cfg["slots"], set(st["counters"]["frozen"])))
-        last = st.get("lastPlanAt")
-        if not free or (last and S.minutes(last, at) < w.cfg["planEveryMinutes"]):
+                free = free_now()
+        last, planning = st.get("lastPlanAt"), ("plan",) in w.futures
+        if not planning and (not free or (last and S.minutes(last, at) < w.cfg["planEveryMinutes"])):
             return
-        st["lastPlanAt"] = at
-        cards = self.brain(None, B.plan, self.ctx(), free)
-        for c in cards or []:
+        if not planning:
+            st["lastPlanAt"] = at
+        cards = self.brain(None, B.plan, self.ctx(), free, key=("plan",))
+        if cards is PENDING or not cards:
+            return
+        for c in cards[: len(free_now())]:
             self.add(c)
 
 
@@ -871,6 +916,7 @@ def count_states(st):
 
 
 TICK_LIMIT_S = 25 * 60
+PENDING = object()  # an orchestrator call still running in the background
 
 
 def cmd_loop(a):

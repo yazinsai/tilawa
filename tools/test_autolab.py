@@ -51,6 +51,7 @@ class World(A.World):
         self.tmp, self.saved, self.jobs, self.job_polls, self.lab_calls, self.notes = tmp, None, {}, 1, [], []
         self.job_results, self.answers, self.diff_text, self.hash, self.rebase_ok, self.journal_text = {}, {}, CODE, "h0", True, ""
         self.sender = lambda cfg, kind, title, body: self.notes.append((kind, title))
+        self.background = False
 
     def answer(self, cfg, role, prompt):
         a = self.answers.get(role)
@@ -482,6 +483,35 @@ def test_failed_tests_send_the_log_tail_back(w):
 def test_outage_detection():
     assert A.outage("startup: [unavailable] Server at capacity")
     assert not A.outage("run-error: tests kept failing")
+
+
+def test_background_model_calls_never_hold_up_a_tick(w):
+    import threading
+    gate = threading.Event()
+    plan = w.answers["planner"]
+    w.answers["planner"] = lambda p: (gate.wait(5), plan(p))[1]
+    w.background = True
+    st = tick(w)
+    assert st["experiments"] == {} and st["heartbeat"] == T0
+    st = tick(w, "2026-11-01T10:02:00+00:00")
+    assert st["experiments"] == {}
+    gate.set()
+    w.futures[("plan",)].result(timeout=5)
+    st = tick(w, "2026-11-01T10:04:00+00:00")
+    assert len(st["experiments"]) == 6
+
+
+def test_reviews_wait_in_the_state_until_answered(w, monkeypatch):
+    monkeypatch.setattr(A.G, "gate", lambda *a, **k: {"verdict": "fail", "tuning": False, "checks": [
+        {"name": "gain", "ok": False, "blocking": True, "why": "overall +0"}]})
+    down = {"on": True}
+    review = w.answers["reviewer"]
+    w.answers["reviewer"] = lambda p: (_ for _ in ()).throw(RuntimeError("capacity")) if down["on"] else review
+    st, id = advance(w, 4)
+    assert states(st)[id] == "discarded" and id in st["pendingReviews"]
+    down["on"] = False
+    st = tick(w)
+    assert st["pendingReviews"] == {} and f"{id} (checker, exploit): discarded" in w.journal_text
 
 
 def test_a_tick_that_raises_pauses_and_pages(w, monkeypatch):
