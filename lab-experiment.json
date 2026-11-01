@@ -6,7 +6,7 @@
   "component": -4,
   "overall": -4
  },
- "listener": "spliced-clean-int8",
+ "listener": "exp-listener-ctc-rescore-wrong-words-7085852",
  "testSet": "lab-v1.5",
  "created": "2026-11-01T04:02:24+00:00",
  "author": "autolab"
