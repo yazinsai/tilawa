@@ -1,0 +1,13 @@
+{
+ "id": "listener-anchored-gap-scoring",
+ "component": "listener",
+ "hypothesis": "Omission warnings are decided on a heard segment cut by greedy alignment, which can split the surviving word (p79: the رِى tail of صَدْرِى scored as لِى) or miss a word whose phonemes are still in the posteriors. Score each omission warning with nll over the whole stretch between the confident neighbouring anchors. Compare the full written text against every single-omission placement, place the omission on the best placement, and veto it when the full text wins. Predict listener -4 (p79 pair = 2, plus 2 of the 3 unpaired omission false warnings, speculative), overall -4.",
+ "expected": {
+  "component": -4,
+  "overall": -4
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-01T06:53:20+00:00",
+ "author": "autolab"
+}
