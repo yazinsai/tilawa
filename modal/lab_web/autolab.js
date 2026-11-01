@@ -78,7 +78,7 @@ function running(rows) {
           ${r.attempts > 1 ? `<p class="exp-note">${icon('info')}Try ${r.attempts}</p>` : ''}</div>
         <div class="exp-res"><p class="al-state">${esc(r.stateText)}</p>
           <p class="res-line"><span>For</span><span class="${r.late ? 'al-late' : ''}"><b class="num">${span(r.ageSeconds)}</b>${r.limitMinutes ? ` · gives up after ${limit(r.limitMinutes)}` : ''}</span></p>
-          ${r.executor ? `<p class="res-line"><span>Agent</span><span>${esc(r.executor)}</span></p>` : ''}<p class="res-line">${dropButton(r.id)}</p></div></article>`)
+          ${r.executor ? `<p class="res-line"><span>Agent</span><span>${esc([r.arm, r.executor].filter(Boolean).join(' · '))}</span></p>` : ''}<p class="res-line">${dropButton(r.id)}</p></div></article>`)
         .join('')
     : '<p class="group-h">Nothing running</p>';
   return `<section aria-labelledby="run-h"><div class="sec-h"><h2 id="run-h">Running now</h2></div>
@@ -199,6 +199,31 @@ function spend(s) {
       .join('')}</div></section>`;
 }
 
+// Builders: the A/B between the agents that write the changes.
+
+function builders(b) {
+  if (!b) return '';
+  const pct = (a) => (a.gated ? `${a.gatePassed} of ${a.gated} <span class="muted">(${Math.round(a.gatePassRate * 100)}%)</span>` : '<span class="muted">–</span>');
+  const num = (n, f = (x) => x) => (n == null ? '<span class="muted">–</span>' : f(n));
+  const cols = [
+    ['Started', (a) => a.started],
+    ['Running', (a) => a.running],
+    ['Killed by its agent', (a) => a.killedByBuilder],
+    ['Sent back', (a) => a.bounced],
+    ['Passed the gate', pct],
+    ['Near misses', (a) => a.nearMisses],
+    ['Folded', (a) => a.folds],
+    ['Typical change', (a) => num(a.medianChange, fewer)],
+    ['Agent hours each', (a) => num(a.meanBuilderHours, (h) => h.toFixed(1))],
+    ['Handed over', (a) => a.fallbacks],
+  ];
+  return `<section aria-labelledby="b-h"><div class="sec-h"><h2 id="b-h">Builders</h2></div>
+    <p class="sec-p">Each new experiment goes to one agent, about evenly per part, and keeps it for retries${b.since ? ` (since ${day(b.since)})` : ''}. A near miss saved 1 or 2 wrong calls and broke nothing. Typical change is the median on the practice set. Handed over: its agent failed twice, so the other one took it.</p>
+    ${b.skipped.map((s) => `<div class="notice warn"><b>${esc(s.arm)} is skipped:</b> ${esc(s.why)}</div>`).join('')}
+    <div class="tbl-wrap"><table class="tbl"><tr><th>Agent</th>${cols.map(([h]) => `<th class="r">${h}</th>`).join('')}</tr>
+      ${b.arms.map((a) => `<tr><td>${esc(a.arm)}</td>${cols.map(([, f]) => `<td class="r">${f(a)}</td>`).join('')}</tr>`).join('')}</table></div></section>`;
+}
+
 function activity(rows) {
   if (!rows.length) return '';
   const what = (e) =>
@@ -221,7 +246,7 @@ function render(v) {
   const open = new Set([...document.querySelectorAll('details[open]')].map((d) => (d.closest('[data-k]:not(details)')?.dataset.k || '') + '/' + d.dataset.k));
   topbar(v, pauseControl(v));
   $('main').innerHTML = v.started
-    ? notices(v) + hero(v) + waitingPanel(v.needsHuman, v, v.activity) + running(v.running) + queue(v.queue) + verdicts(v.verdicts) + trend(v.trend) + portfolio(v.portfolio) + coverage(v.coverage) + spend(v.spend) + activity(v.activity) + `<p class="pg-back">${forgetLink()}</p>`
+    ? notices(v) + hero(v) + waitingPanel(v.needsHuman, v, v.activity) + running(v.running) + queue(v.queue) + verdicts(v.verdicts) + trend(v.trend) + portfolio(v.portfolio) + coverage(v.coverage) + spend(v.spend) + builders(v.builders) + activity(v.activity) + `<p class="pg-back">${forgetLink()}</p>`
     : notStarted(v);
   for (const d of document.querySelectorAll('details[data-k]')) if (open.has((d.closest('[data-k]:not(details)')?.dataset.k || '') + '/' + d.dataset.k)) d.open = true;
 }

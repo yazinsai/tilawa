@@ -3,7 +3,7 @@ document (its schema is in tools/autolab_state.py), the tail of its events and t
 what the page shows.
 
     view(state, events, now, mainline) -> {"started", "testSet", "heartbeat", "main", "needsHuman", "running", "queue",
-                                           "verdicts", "trend", "portfolio", "coverage", "spend", "activity"}
+                                           "verdicts", "trend", "portfolio", "coverage", "spend", "builders", "activity"}
 
 Served by modal/lab_review.py (GET /api/autolab); tested by tools/test_autolab_dashboard.py. Standard library plus
 autolab_state.
@@ -158,11 +158,12 @@ def row(e: dict, now: str, explained: dict | None = None) -> dict:
     limit = S.timeout(e) if e.get("state") in S.TIMEOUTS else None
     age = seconds(e.get("since"), now)
     ex = e.get("executor") or {}
-    return {"id": e["id"], "component": c.get("component"), "tier": e.get("tier") or c.get("tier"), "tierText": TIERS.get(e.get("tier"), e.get("tier")),
+    model = ex.get("model")
+    return {"id": e["id"], "arm": ex.get("arm"), "component": c.get("component"), "tier": e.get("tier") or c.get("tier"), "tierText": TIERS.get(e.get("tier"), e.get("tier")),
             "eli5": eli5(e["id"], c, explained), "expectText": expect_text(c.get("expected"), c.get("component")),
             "state": e["state"], "stateText": STATE_TEXT.get(e["state"], e["state"]), "since": e.get("since"), "ageSeconds": age,
             "limitMinutes": limit, "late": bool(limit and age is not None and age > limit * 60), "hypothesis": c.get("hypothesis", ""),
-            "cluster": c.get("cluster"), "expected": c.get("expected"), "executor": ex.get("model") or ex.get("runtime"),
+            "cluster": c.get("cluster"), "expected": c.get("expected"), "executor": (model.get("id") if isinstance(model, dict) else model) or ex.get("runtime"),
             "attempts": (e.get("attempts") or {}).get("executor", 0), "note": e.get("note", "")}
 
 
@@ -298,6 +299,18 @@ def spend(st: dict) -> dict:
         rows.append({"key": k, "label": label, "unit": unit, "used": used, "cap": cap,
                      "share": round(min(used / cap, 1), 3) if cap else None, "over": cap is not None and used >= cap})
     return {"day": s.get("day"), "rows": rows, "atCap": [r["label"] for r in rows if r["over"]]}
+
+
+def builders(st: dict) -> dict | None:
+    """The builder A/B the supervisor keeps in state["ab"] (tools/autolab_ab.py), or None with fewer than two arms."""
+    ab = st.get("ab") if isinstance(st.get("ab"), dict) else {}
+    arms = [a for a in ab.get("arms") or [] if isinstance(a, dict)]
+    skipped = ab.get("skipped") or {}
+    if len(arms) < 2 and not skipped:
+        return None
+    return {"since": ab.get("since"), "split": ab.get("split") or {}, "skipped": [{"arm": k, "why": v} for k, v in skipped.items()],
+            "arms": [{k: a.get(k) for k in ("arm", "started", "running", "killedByBuilder", "bounced", "gated", "gatePassed", "gatePassRate",
+                                            "nearMisses", "folds", "abandoned", "fallbacks", "scored", "medianChange", "meanBuilderHours")} for a in arms]}
 
 
 def activity(events: list[dict]) -> list[dict]:
@@ -483,5 +496,5 @@ def view(state: dict | None, events: list[dict], now: str, mainline: list[dict] 
         "queue": [row(e, now, explained) for e in by_since(e for e in exps.values() if e.get("state") in QUEUED)],
         "verdicts": [verdict_row(e, now, explained) for e in by_since((e for e in exps.values() if e.get("state") in S.TERMINAL), rev=True)][:VERDICTS],
         "trend": trend(mainline, state.get("testSet")), "portfolio": portfolio(state), "coverage": coverage(state), "spend": spend(state),
-        "activity": activity(events),
+        "builders": builders(state), "activity": activity(events),
     })

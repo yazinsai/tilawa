@@ -124,7 +124,8 @@ def autolab_branches(st: dict | None, events: list[dict], now: str, explained: d
                     "reason": "" if live else reason, "stages": [{"state": h.get("state"), "at": h.get("at")} for h in hist],
                     "ageSeconds": AD.seconds(e.get("since"), now) if live else None, "waiting": state == "needs-human",
                     "eli5": AD.eli5(id, c, explained), "expectText": AD.expect_text(c.get("expected"), component_of(id, c)),
-                    "baseN": base.get("wrongCalls") if isinstance(base.get("wrongCalls"), int) else None, "foldEventN": folds.get(id)})
+                    "baseN": base.get("wrongCalls") if isinstance(base.get("wrongCalls"), int) else None, "foldEventN": folds.get(id),
+                    "arm": (e.get("executor") or {}).get("arm")})
     return out
 
 

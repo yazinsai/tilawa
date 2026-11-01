@@ -24,6 +24,49 @@ git worktree remove --force /tmp/autolab-smoke
 It should add a comment to a test file and report `finished`. This also confirms that the models accept `tools=[]` and
 that a cancel stops a run cleanly (ticket 05).
 
+## 2b. Second builder: GPT-6 Astra on Azure, through the Codex CLI (A/B)
+
+Builders come from `executor.runtimes`, a list of arms. `grok` (Cursor, `cursor-local`) is on. `astra` (`codex-azure`)
+is skipped, with one notification, until its Azure fields and key are there. Fill these in
+`.scratch/autolab/config.json`, under the `astra` arm of `executor.runtimes`:
+
+| Field | What |
+| --- | --- |
+| `azure.endpoint` | `https://<resource>.openai.azure.com` (or `.cognitiveservices.azure.com`); `/openai/v1` is added |
+| `azure.deployment` | the Azure deployment name of GPT-6 Astra; Codex sends it as the model |
+| `azure.apiVersion` | leave empty for the v1 API; `preview` for v1 preview features; a dated version (`2025-04-01-preview`) switches to the older `<endpoint>/openai?api-version=...` route |
+| `effort` | reasoning effort, default `high` |
+| `azure.keyEnv` | optional; the key's variable, default `AZURE_OPENAI_API_KEY` |
+| `azure.keyFile` | optional; a file holding the key, read when the variable isn't set |
+| `extraConfig` | optional; more Codex `config.toml` keys, e.g. `{"model_context_window": 400000}` (Codex has no metadata for a deployment name) |
+| `startupTimeoutS` | optional; a run with no answer from the model in this long fails as a startup failure (default 300) |
+
+`executor.split` weighs the arms (default `{"grok": 1, "astra": 1}`; `0` stops new work going to an arm). Each experiment
+gets its arm when its builder first starts, balanced per part, and keeps it for retries and bounces. After two failures
+of its own arm it moves once to the other arm. An arm whose last 3 builders failed to start rests for an hour. The old
+single-runtime keys (`executor.runtime`, `model`, `fallbackModel`) still work when `runtimes` is absent.
+
+The key: `export AZURE_OPENAI_API_KEY=...` in the loop's shell (a restart is needed for the loop to see it), or put it in
+a file and set `azure.keyFile`, which the loop reads at every tick, so no restart is needed. Cursor builders never get
+the key. Codex builders never get `CURSOR_API_KEY` or `MODAL_*`. Codex runs with its own sandbox off, inside the same
+Seatbelt profile as Cursor builders; its sandbox would stop a worktree from committing. `CODEX_HOME` is
+`<worktree>/.autolab/codex-home`, holding only the generated `config.toml`: no ChatGPT login and nothing from your
+`~/.codex`.
+
+Check, in order:
+
+```bash
+python3 tools/autolab_codex.py config        # the config.toml the arm gets, and whether it's ready
+python3 tools/autolab_codex.py probe         # offline: codex against a local 401 server (request shape, clean failure)
+git worktree add --detach /tmp/autolab-codex main
+python3 tools/autolab_codex.py smoke /tmp/autolab-codex              # live: one trivial card, should report finished
+git -C /tmp/autolab-codex checkout -- . && python3 tools/autolab_codex.py smoke-isolation /tmp/autolab-codex
+git worktree remove --force /tmp/autolab-codex
+```
+
+`smoke-isolation` runs the same tries as the Cursor one (section 3), plus `env | grep` for `AZURE_OPENAI*` and
+`CURSOR_API_KEY`, which must find nothing. Results: `tools/autolab.py ab`, or the Builders table on the Autolab tab.
+
 ## 3. Executor isolation (decision 14)
 
 Builders get no Modal credentials. Each runner starts with:
@@ -109,6 +152,8 @@ Then open the Autolab tab.
 ## Day to day
 
 - `tools/autolab.py status`, or the dashboard.
+- `tools/autolab.py ab`: the builder A/B per arm (started, killed by its builder, sent back, gate passes, near misses,
+  folds, median practice change, builder hours, handovers).
 - `tools/autolab.py pause [why]` / `resume`.
 - `tools/autolab.py match <id> agree|disagree` after reading a shadow decision. About 10 agreements in a row means
   folds can go straight to `main` (ticket 11).

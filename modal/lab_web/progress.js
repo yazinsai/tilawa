@@ -80,7 +80,7 @@ function mark(kind, cx, cy, cls) {
 }
 
 function branchTip(b) {
-  const who = [NAMES[b.component] || b.component, b.tierText, b.source === 'lab' ? 'hand-run lab' : 'autolab'].filter(Boolean).join(' · ');
+  const who = [NAMES[b.component] || b.component, b.tierText, b.source === 'lab' ? 'hand-run lab' : 'autolab', b.arm ? `built by ${b.arm}` : ''].filter(Boolean).join(' · ');
   const res =
     b.change != null
       ? `<p><span>Practice</span><b>${fewer(b.change)}</b>${b.expected != null ? ` · expected ${fewer(b.expected)}` : ''}${Math.abs(b.change) <= NOISE ? ' <i>(noise)</i>' : ''}</p>`

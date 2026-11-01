@@ -31,7 +31,6 @@ other files and use the network. Phase B cloud agents remove that.
 
 import contextlib
 import dataclasses
-import fnmatch
 import importlib
 import json
 import os
@@ -44,20 +43,17 @@ import time
 from datetime import UTC, datetime
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import autolab_runner as R  # noqa: E402
+from autolab_runner import TERMINAL, exclude_autolab, runner_env, seatbelt  # noqa: E402, F401 - re-exported
+
 DEFAULTS = {"model": "grok-4.7", "fallbackModel": "grok-4.7", "cancelGraceS": 30, "home": True, "seatbelt": True}
-TERMINAL = ("finished", "failed")
+_now, _hours, _read, _write, _update, _alive = R.now, R.hours, R.read, R.write, R.update, R.alive
+_Cancelled, _on_term = R.Cancelled, R.on_term
 
 
 def _sdk():
     return importlib.import_module("cursor_sdk")
-
-
-def _now():
-    return datetime.now(UTC).isoformat(timespec="seconds")
-
-
-def _hours(a, b):
-    return round((datetime.fromisoformat(b) - datetime.fromisoformat(a)).total_seconds() / 3600, 4)
 
 
 def _api_key():
@@ -69,92 +65,6 @@ def _api_key():
 
 def _model_id(m):
     return m["id"] if isinstance(m, dict) else m
-
-
-def _read(path):
-    try:
-        return json.loads(Path(path).read_text())
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {}
-
-
-def _write(path, doc):
-    tmp = Path(f"{path}.tmp")
-    tmp.write_text(json.dumps(doc, indent=1, default=str))
-    os.replace(tmp, path)
-
-
-def _update(path, **kv):
-    doc = {**_read(path), **kv, "updated": _now()}
-    _write(path, doc)
-    return doc
-
-
-def _alive(pgid):
-    try:
-        os.waitpid(pgid, os.WNOHANG)  # reap our own child so a zombie doesn't read as alive
-    except ChildProcessError:
-        pass
-    try:
-        os.killpg(pgid, 0)
-        return True
-    except ProcessLookupError:
-        return False
-    except PermissionError:
-        return True
-
-
-def exclude_autolab(worktree):
-    """Add `.autolab/` to the main repo's info/exclude (worktrees read the common dir's)."""
-    common = subprocess.run(["git", "-C", str(worktree), "rev-parse", "--git-common-dir"],
-                            capture_output=True, text=True, check=True).stdout.strip()
-    path = (Path(worktree) / common).resolve() / "info" / "exclude"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    text = path.read_text() if path.exists() else ""
-    if ".autolab/" not in text.split("\n"):
-        path.write_text(text + ("" if not text or text.endswith("\n") else "\n") + ".autolab/\n")
-
-
-def runner_env(cfg, base=None, home=None):
-    """The runner's (and so the agent's shell's) environment: no MODAL_* and nothing in `envDrop` (fnmatch patterns),
-    HOME at `home` with git's identity and the read-only tool installs kept, then `env`."""
-    env = dict(os.environ if base is None else base)
-    for name in [k for k in env if k.startswith("MODAL_") or any(fnmatch.fnmatchcase(k, p) for p in cfg.get("envDrop", []))]:
-        del env[name]
-    if home:
-        real = Path(env.get("HOME") or Path.home())
-        Path(home).mkdir(parents=True, exist_ok=True)
-        keep = {"GIT_CONFIG_GLOBAL": real / ".gitconfig", "NVM_DIR": real / ".nvm", "PYENV_ROOT": real / ".pyenv",
-                "UV_PYTHON_INSTALL_DIR": real / ".local/share/uv/python"}
-        env.update({k: str(v) for k, v in keep.items() if k not in env and v.exists()}, HOME=str(home))
-    for name, value in cfg.get("env", {}).items():
-        if isinstance(value, str) and value.startswith("$"):
-            if value[1:] not in env:
-                raise RuntimeError(f"executor env {name} wants ${value[1:]}, which is not set")
-            value = env[value[1:]]
-        env[name] = str(value)
-    return env
-
-
-def seatbelt(worktree, home=None):
-    """A macOS sandbox profile for the runner's process tree (the bridge and the agent's shells inherit it): no reading
-    the Modal token, no writing under the real home except this worktree and what its commits need (the objects and its
-    own branch), and no reading other processes' arguments and environment (the supervisor's holds CURSOR_API_KEY)."""
-    git = lambda *a: subprocess.run(["git", "-C", str(worktree), *a], capture_output=True, text=True, check=True).stdout.strip()  # noqa: E731
-    wt, home = Path(worktree).resolve(), Path(home or Path.home()).resolve()
-    common, gitdir = (wt / git("rev-parse", "--git-common-dir")).resolve(), (wt / git("rev-parse", "--git-dir")).resolve()
-    branch = git("branch", "--show-current")
-    q = lambda kind, p: f'({kind} "{p}")'  # noqa: E731
-    writable = [q("subpath", wt), q("subpath", gitdir), q("subpath", common / "objects")]
-    if branch:
-        writable += [q("literal", common / d / "refs/heads" / f"{branch}{s}") for d in ("", "logs") for s in ("", ".lock")]
-    return "\n".join([
-        "(version 1)", "(allow default)",
-        f"(deny file-write* {q('subpath', home)})",
-        f"(allow file-write* {' '.join(writable)})",
-        f"(deny file-read* file-write* {q('literal', home / '.modal.toml')} {q('subpath', home / '.modal')})",
-        '(deny sysctl-read (sysctl-name "kern.procargs2"))',
-    ])
 
 
 def available_models(sdk=None):
@@ -194,14 +104,10 @@ class CursorLocalExecutor:
                           "transcript": h["transcript"], "messages": str(d / "messages.jsonl")})
         _write(h["status"], {"status": "starting", "card": card["id"], "model": model, "started": h["started"]})
         py = self.cfg.get("python") or [sys.executable]
-        jail = ["/usr/bin/sandbox-exec", "-p", seatbelt(worktree)] if self.cfg["seatbelt"] and Path("/usr/bin/sandbox-exec").exists() else []
         home = worktree / ".autolab" / "home" if self.cfg["home"] else None
-        with open(d / "runner.log", "ab") as log:
-            p = subprocess.Popen([*jail, *([py] if isinstance(py, str) else py), str(Path(__file__).resolve()), "run", h["job"]],
-                                 cwd=worktree, env=runner_env(self.cfg, home=home), stdin=subprocess.DEVNULL, stdout=log,
-                                 stderr=subprocess.STDOUT, start_new_session=True)
-        h["pgid"] = p.pid
-        _update(h["status"], pgid=p.pid)
+        h["pgid"] = R.launch(self.cfg, {**h, "worktree": worktree}, [*([py] if isinstance(py, str) else py), str(Path(__file__).resolve()), "run", h["job"]],
+                             runner_env(self.cfg, home=home, drop=("AZURE_OPENAI_*",)))
+        _update(h["status"], pgid=h["pgid"])
         return h
 
     def poll(self, handle):
@@ -210,26 +116,10 @@ class CursorLocalExecutor:
         for k in ("agentId", "runId"):
             if st.get(k):
                 handle[k] = st[k]
-        if st.get("status") in TERMINAL:
-            return st["status"]
-        if handle.get("pgid") and _alive(handle["pgid"]):
-            return "running"
-        _update(handle["status"], status="failed", failure="runner-died", ended=_now())
-        return "failed"
+        return R.poll(handle)
 
     def cancel(self, handle):
-        pgid = handle.get("pgid")
-        if pgid and _alive(pgid):
-            os.killpg(pgid, signal.SIGTERM)  # the runner cancels its live run, disposes the agent and exits
-            deadline = time.time() + self.cfg["cancelGraceS"]
-            while time.time() < deadline and _alive(pgid):
-                time.sleep(0.5)
-            if _alive(pgid):
-                self._sdk_cancel(handle)
-                with contextlib.suppress(ProcessLookupError):
-                    os.killpg(pgid, signal.SIGKILL)
-        if _read(handle["status"]).get("status") not in TERMINAL:
-            _update(handle["status"], status="failed", failure="cancelled", ended=_now())
+        R.cancel(handle, self.cfg["cancelGraceS"], last_resort=self._sdk_cancel)
 
     def _sdk_cancel(self, handle, sdk=None):
         st = _read(handle["status"])
@@ -261,15 +151,6 @@ class CursorLocalExecutor:
 
 
 # --- runner (a separate process per job) ---
-
-class _Cancelled(Exception):
-    pass
-
-
-def _on_term(*_):
-    signal.signal(signal.SIGTERM, signal.SIG_IGN)  # one unwind; cleanup must not be interrupted again
-    raise _Cancelled
-
 
 def _plain(m):
     if dataclasses.is_dataclass(m):
@@ -408,23 +289,8 @@ def smoke_isolation(worktree):
     from the run's messages (not the agent's account). Passes when Modal, the token and the main checkout are out of
     reach and git, node and the autolab CLI still work."""
     worktree = Path(worktree).resolve()
-    repo, home = Path(__file__).resolve().parent.parent, Path.home()
-    probe = repo / ".autolab-isolation-probe"
-    tries = {"modal volume ls tilawa-lab /": False, f"cat {home}/.modal.toml": False, "env | grep '^MODAL_'": False,
-             f"touch {probe}": False, f"echo x >> {home}/.zshrc.autolab-probe": False, "ps eww -o command= -p 1": False,
-             "git log --oneline -1 && git config user.email": True, "echo $HOME && pnpm --version && node --version": True,
-             f"python3 {repo}/tools/autolab.py modal-run --help": True}
-    brief = ("Isolation check of the autolab executor. Run each command below in the shell, one at a time, exactly as written, "
-             "even when an earlier one fails. Don't work around failures and change no files. Then reply with one line per "
-             "command: its exit code and the first line of its output.\n\n" + "\n".join(f"- `{c}`" for c in tries))
-    ex = CursorLocalExecutor(_config())
-    h = ex.start({"id": "smoke-isolation"}, worktree, brief)
-    deadline = time.time() + 900
-    while (state := ex.poll(h)) == "running" and time.time() < deadline:
-        time.sleep(5)
-    if state == "running":
-        ex.cancel(h)
-        state = "timeout"
+    tries, probe = R.isolation_tries(Path(__file__).resolve().parent.parent, Path.home())
+    state, h, _ = R.drive(CursorLocalExecutor(_config()), worktree, "smoke-isolation", R.isolation_brief(tries))
     seen = {}
     for line in Path(h["dir"], "messages.jsonl").read_text().splitlines():
         m = json.loads(line)
@@ -432,15 +298,7 @@ def smoke_isolation(worktree):
         if cmd:
             v = ((m.get("result") or {}).get("value") or {})
             seen[cmd.strip()] = (v.get("exitCode"), ((v.get("stdout") or "") + (v.get("stderr") or "")).strip().splitlines()[:1])
-    ok = state == "finished" and not probe.exists() and not Path(f"{home}/.zshrc.autolab-probe").exists()
-    for c, should in tries.items():
-        code, first = seen.get(c, (None, ["(not run)"]))
-        good = code is not None and (code == 0) == should and not (c.startswith("env") and first)
-        ok &= good
-        print(f"{'ok ' if good else 'BAD'} exit {code}: {c}\n      {first[0][:160] if first else ''}")
-    print(f"state {state}; probe files {'absent' if ok else 'check'}")
-    probe.unlink(missing_ok=True)
-    return 0 if ok else 1
+    return R.isolation_report(tries, seen, state, probe)
 
 
 def main(argv):

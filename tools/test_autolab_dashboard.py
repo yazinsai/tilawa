@@ -302,3 +302,17 @@ def test_main_line_brief():
     st = copy.deepcopy(state())
     st["main"] = None
     assert page(st)["main"] is None
+
+
+def test_builders_table_from_the_ab_in_state():
+    assert page()["builders"] is None
+    st = state()
+    ab = {"since": "2026-11-01T01:00:00+00:00", "split": {"grok": 1, "astra": 1}, "skipped": {"astra": "no Azure endpoint"},
+          "arms": [{"arm": "grok", "started": 3, "gated": 2, "gatePassed": 1, "gatePassRate": 0.5, "medianChange": -2, "examWrong": 9},
+                   {"arm": "astra", "started": 0, "gated": 0}]}
+    st["ab"] = ab
+    b = page(st)["builders"]
+    assert [a["arm"] for a in b["arms"]] == ["grok", "astra"] and b["arms"][0]["gatePassRate"] == 0.5 and "examWrong" not in b["arms"][0]
+    assert b["skipped"] == [{"arm": "astra", "why": "no Azure endpoint"}] and b["since"] == ab["since"]
+    st["ab"] = {**ab, "skipped": {}, "arms": ab["arms"][:1]}
+    assert page(st)["builders"] is None

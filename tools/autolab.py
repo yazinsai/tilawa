@@ -7,6 +7,7 @@
     loop [--every 120]       tick forever (phase A)
     pause [why] | resume
     status [--json]
+    ab [--json]              the builder A/B: per arm, what its builders did and what came of it (tools/autolab_ab.py)
     practice-score [worktree]   an executor's practice score through the supervisor (at most 3 per card, decision 20)
     modal-run [--shards N] [--gpu L4] [--image node|train] [--timeout MIN] [--no-wait] -- '<command>'
                              an executor's command on Modal through the supervisor (decision 14; modal/autolab_exec.py)
@@ -41,7 +42,9 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import autolab_ab as AB  # noqa: E402
 import autolab_brain as B  # noqa: E402
+import autolab_exec as X  # noqa: E402
 import autolab_isolation as I  # noqa: E402
 import autolab_notify as N  # noqa: E402
 import autolab_portfolio as P  # noqa: E402
@@ -62,6 +65,7 @@ VOL_INBOX, VOL_ELI5 = "/autolab/inbox", "/autolab/eli5.json"
 NOT_ENGINE = re.compile(r"(^\.scratch/|^docs/|(^|/)lab-experiment\.json$|\.md$|(^|/)test/|\.test\.ts$|^tools/test_)")
 OWN_DATA = re.compile(r"(\.exp-[^/]+\.(phone|studio)\.evidence\.json|/decode-v1\.json)$")
 PRACTICE_SCORES = 3
+ARM_DOWN_AFTER, ARM_DOWN_MINUTES = 3, 60  # an arm whose last builders all failed to start rests, then gets one more try
 GROK = {"id": "grok-4.7", "params": [{"id": "context", "value": "500k"}, {"id": "reasoning_effort", "value": "high"}, {"id": "fast", "value": "false"}]}
 DEFAULT_CONFIG = {
     "slots": 6, "planEveryMinutes": 30, "tickSeconds": 120,
@@ -69,7 +73,10 @@ DEFAULT_CONFIG = {
     "models": {**dict.fromkeys(("planner", "reviewer", "strategist"), {"id": "claude-opus-5-5", "params": [
                    {"id": "context", "value": "1m"}, {"id": "effort", "value": "medium"}, {"id": "fast", "value": "false"}]}),
                **dict.fromkeys(("judge", "diffReviewer"), GROK)},
-    "executor": {"runtime": "cursor-local", "model": GROK, "fallbackModel": GROK, "env": {}},
+    "executor": {"runtime": "cursor-local", "model": GROK, "fallbackModel": GROK, "env": {},
+                 "runtimes": [{"name": "grok", "runtime": "cursor-local", "model": GROK, "fallbackModel": GROK},
+                              {"name": "astra", "runtime": "codex-azure", "azure": {"endpoint": "", "deployment": "", "apiVersion": ""}, "effort": "high"}],
+                 "split": {"grok": 1, "astra": 1}},
     "exec": dict(I.LIMITS),
     "betApprovalUsd": 25,
     "listenerModel": "models/spliced-clean-int8",
@@ -92,10 +99,33 @@ class World:
 
     def __init__(self, cfg: dict, executor=None, ask=None, sender=None):
         self.cfg, self.ask, self.sender = cfg, ask, sender
-        self.executor = executor or make_executor(cfg)
+        self.executor = executor  # one executor for every arm (tests, dry runs); None: one per arm, made on first use
+        self._executors = {}
         self._reports, self._procs = {}, {}
         self.background, self.futures = True, {}
         self.pool = ThreadPoolExecutor(4)
+
+    # builders
+    def arm_executor(self, arm: dict):
+        """The executor that starts `arm`'s builders; made again when the arm's config changes."""
+        if self.executor is not None:
+            return self.executor
+        key = json.dumps(X.arm_config(self.cfg, arm)["executor"], sort_keys=True, default=str)
+        if key not in self._executors:
+            self._executors[key] = make_executor(self.cfg, arm)
+        return self._executors[key]
+
+    def builder(self, handle: dict):
+        """The executor that owns a stored handle, by its runtime (handles from before arms existed are cursor-local)."""
+        if self.executor is not None:
+            return self.executor
+        rt, arms = handle.get("runtime") or "cursor-local", X.arms(self.cfg)
+        arm = next((a for a in arms if a["runtime"] == rt and a["name"] == handle.get("arm")), None) \
+            or next((a for a in arms if a["runtime"] == rt), {"name": rt, "runtime": rt})
+        key = ("handles", rt, arm["name"])
+        if key not in self._executors:
+            self._executors[key] = make_executor(self.cfg, arm, check=False)
+        return self._executors[key]
 
     # state on the volume
     def load(self) -> dict | None:
@@ -307,7 +337,7 @@ def alive(pid: int) -> bool:
 class Tick:
     def __init__(self, w: World, st: dict, at: str):
         self.w, self.st, self.at, self.events = w, st, at, []
-        self._ctx, self.brain_down = None, False
+        self._ctx, self.brain_down, self._arms, self.skipped = None, False, None, {}
 
     def move(self, e, to, note=""):
         self.events.append(S.move(self.st, e["id"], to, self.at, note))
@@ -371,6 +401,7 @@ class Tick:
                 st["modalCheckedAt"] = at
             except Exception as err:  # noqa: BLE001 - billing being down mustn't stop the lab
                 print(f"modal billing: {err}", file=sys.stderr)
+        self.ab()
         if st.get("paused"):
             return self.events
         self.daily()
@@ -381,7 +412,77 @@ class Tick:
                 self.guard(e, step)
         self.reviews()
         self.plan()
+        self.ab()
         return self.events
+
+    def ab(self):
+        self.arms()
+        self.st["ab"] = {**AB.stats(self.st, [a["name"] for a in X.arms(self.w.cfg)]), "skipped": self.skipped,
+                         "split": X.weights(self.w.cfg)}
+
+    # builder arms (the A/B)
+    def arms(self) -> list[dict]:
+        """The arms that can start a builder now. One that can't (its config incomplete, its key missing, or its last
+        builders all failed to start) is skipped, with one notification per reason."""
+        if self._arms is None:
+            ready = []
+            for a in X.arms(self.w.cfg):
+                why = X.unready(self.w.cfg, a) or self.arm_down(a["name"])
+                if not why:
+                    ready.append(a)
+                    continue
+                self.skipped[a["name"]] = why
+                self.w.notify(self.st, "arm", f"{a['name']}:{why[:100]}", f"Autolab: {a['name']} builders are skipped",
+                              f"{why}. New experiments go to the other builders until this is fixed.", self.at)
+            self._arms = ready
+        return self._arms
+
+    def arm_down(self, name: str) -> str | None:
+        h = (self.st.get("armHealth") or {}).get(name) or {}
+        if h.get("startupFails", 0) >= ARM_DOWN_AFTER and S.minutes(h["lastAt"], self.at) < ARM_DOWN_MINUTES:
+            return f"its last {ARM_DOWN_AFTER} builders failed to start ({h.get('why', '')[:120]}); one more try after {ARM_DOWN_MINUTES} min"
+        return None
+
+    def arm_health(self, name: str, res: dict | None):
+        """Counts an arm's builders that failed to start in a row (res None: one got going)."""
+        if not name:
+            return
+        h = self.st.setdefault("armHealth", {}).setdefault(name, {"startupFails": 0})
+        if res is None:
+            h["startupFails"] = 0
+        elif res["summary"].startswith("startup"):
+            h.update(startupFails=h["startupFails"] + 1, lastAt=self.at, why=res["summary"][:300])
+
+    def arm_of(self, e) -> dict:
+        """The arm that builds `e`: chosen when its builder first starts and kept for retries and bounces; another arm
+        only when its own can't run now (recorded as a fallback)."""
+        cfg, every, ready = self.w.cfg, X.arms(self.w.cfg), self.arms()
+        ex = e["executor"] = e.get("executor") or {}
+        if not ex.get("arm"):
+            if ex.get("handle"):  # its builder started before arms existed
+                rt = ex["handle"].get("runtime") or "cursor-local"
+                a = next((a for a in every if a["runtime"] == rt), every[0])
+                ex.update(arm=a["name"], assignedArm=a["name"], armInferred=True)
+            else:
+                a = AB.assign(e["id"], e["card"]["component"], ready or every[:1], X.weights(cfg), self.st)
+                ex.update(arm=a["name"], assignedArm=a["name"], assignedAt=self.at)
+        arm = next((a for a in every if a["name"] == ex["arm"]), None)
+        if arm is None:
+            rt = (ex.get("handle") or {}).get("runtime")
+            to = next((a for a in ready if a["runtime"] == rt), None) or (ready or every)[0]
+            self.fall_back(e, to["name"], f"arm {ex['arm']} is no longer in executor.runtimes")
+            return to
+        if ready and arm not in ready:
+            to = AB.assign(e["id"], e["card"]["component"], ready, X.weights(cfg), self.st)
+            self.fall_back(e, to["name"], f"{arm['name']} can't run now: {X.unready(cfg, arm) or self.arm_down(arm['name'])}")
+            return to
+        return arm
+
+    def fall_back(self, e, to: str, why: str):
+        ex = e["executor"]
+        ex.setdefault("fallbacks", []).append({"from": ex["arm"], "to": to, "why": why[:300], "at": self.at})
+        self.events.append(S.event(e["id"], e["state"], e["state"], self.at, f"builder {ex['arm']} -> {to}: {why[:200]}"))
+        ex["arm"], ex["armFailures"] = to, 0
 
     def guard(self, e, step):
         """One experiment's step; an error in it sends that experiment to needs-human instead of pausing everything."""
@@ -436,7 +537,7 @@ class Tick:
             if e["state"] in S.TERMINAL:
                 raise ValueError(f"{e['id']} already ended ({e['state']})")
             if e["state"] == "implementing":
-                self.w.executor.cancel(e["executor"]["handle"])
+                self.w.builder(e["executor"]["handle"]).cancel(e["executor"]["handle"])
             self.stop_modal(e)
             for k in ("testsJob", "decodeJob", "scoreJob", "foldJob"):
                 self.w.kill(e["results"].pop(k, None))
@@ -546,12 +647,17 @@ class Tick:
         self.start_executor(e, e["results"].pop("feedback", ""))
 
     def start_executor(self, e, feedback: str = ""):
-        w, cfg = self.w, self.w.cfg
-        model = cfg["executor"]["model"] if e["attempts"]["executor"] == 0 else cfg["executor"]["fallbackModel"]
-        e["executor"] = {"model": model, "handle": w.executor.start({**e["card"], "executorModel": model}, e["worktree"], brief(e, self.ctx(), feedback))}
+        w = self.w
+        arm = self.arm_of(e)
+        ex = e["executor"]
+        starts = ex.get("armStarts") or ({ex["arm"]: e["attempts"]["executor"]} if e["attempts"]["executor"] else {})
+        first, retry = X.arm_models(X.arm_config(w.cfg, arm)["executor"])
+        model = first if starts.get(arm["name"], 0) == 0 else retry
+        handle = w.arm_executor(arm).start({**e["card"], "executorModel": model}, e["worktree"], brief(e, self.ctx(), feedback))
+        ex.update(runtime=arm["runtime"], model=model, handle=handle, armStarts={**starts, arm["name"]: starts.get(arm["name"], 0) + 1})
         e["attempts"]["executor"] += 1
         S.charge(self.st, self.at, runs=1)
-        self.move(e, "implementing", f"{model}" + (f" (feedback: {feedback[:120]})" if feedback else ""))
+        self.move(e, "implementing", f"{arm['name']}: {model['id'] if isinstance(model, dict) else model}" + (f" (feedback: {feedback[:120]})" if feedback else ""))
 
     def cap(self):
         why = S.over_cap(self.st, self.w.cfg["caps"], self.at)
@@ -628,17 +734,19 @@ class Tick:
         w, h = self.w, e["executor"]["handle"]
         self.serve_practice(e)
         self.serve_modal(e)
-        status = w.executor.poll(h)
+        status = w.builder(h).poll(h)
         if status == "running":
             if S.timed_out(e, self.at):
-                w.executor.cancel(h)
+                w.builder(h).cancel(h)
                 self.finish_executor(e)
                 self.stop_modal(e)
                 self.move(e, "abandoned", f"the executor ran past {S.timeout(e)} minutes")
             return
         self.stop_modal(e)
         res = self.finish_executor(e)
+        ex = e["executor"]
         if status == "finished":
+            self.arm_health(ex.get("arm"), None)
             return self.move(e, "validating", res["summary"][:200])
         if outage(res["summary"]):
             e["attempts"]["executor"] -= 1
@@ -646,16 +754,26 @@ class Tick:
             e["state"] = "accepted"
             self.events.append(S.event(e["id"], "implementing", "accepted", self.at, f"builder couldn't start (outage); retrying after {e['results']['retryAfter']}"))
             return
-        if e["attempts"]["executor"] < 2:
+        self.arm_health(ex.get("arm"), res)
+        ex["armFailures"] = ex.get("armFailures", 0) + 1
+        if ex["armFailures"] < 2:
             self.events.append(S.event(e["id"], "implementing", "implementing", self.at, "executor failed; retrying with the fallback model"))
+            e["state"] = "accepted"
+            return self.start_executor(e, f"A previous attempt failed: {res['summary'][:500]}")
+        others = [a for a in self.arms() if a["name"] != ex.get("arm")]
+        if others and not ex.get("fallbacks"):
+            to = AB.assign(e["id"], e["card"]["component"], others, X.weights(self.w.cfg), self.st)
+            self.fall_back(e, to["name"], f"its builder failed twice: {res['summary'][:200]}")
             e["state"] = "accepted"
             return self.start_executor(e, f"A previous attempt failed: {res['summary'][:500]}")
         self.move(e, "abandoned", f"the executor failed twice: {res['summary'][:200]}")
 
     def finish_executor(self, e) -> dict:
-        res = self.w.executor.collect(e["executor"]["handle"])
+        ex = e["executor"]
+        res = self.w.builder(ex["handle"]).collect(ex["handle"])
         self.w.transcript(e["id"], res["transcript"])
-        e["results"]["executor"] = {"summary": res["summary"], "hours": res["hours"], "model": e["executor"]["model"]}
+        e["results"]["executor"] = {"summary": res["summary"], "hours": res["hours"], "model": ex["model"], "arm": ex.get("arm")}
+        ex["hours"] = round(ex.get("hours", 0) + res["hours"], 4)
         S.charge(self.st, self.at, hours=res["hours"])
         return res
 
@@ -933,7 +1051,8 @@ def test_command(cfg: dict) -> str:
 def outage(summary: str) -> bool:
     """A builder that never got going for reasons outside the experiment (the model service at capacity, network)."""
     s = (summary or "").lower()
-    return s.startswith(("startup", "sdk-error")) and any(k in s for k in ("unavailable", "capacity", "timeout", "timed out", "network", "connect"))
+    return s.startswith(("startup", "sdk-error")) and any(k in s for k in ("unavailable", "capacity", "timeout", "timed out", "network", "connect",
+                                                                           "too many requests", "rate limit"))
 
 
 def shift(at: str, minutes: int) -> str:
@@ -1176,6 +1295,19 @@ def cmd_status(a):
         print(f"  {e['state']:12} {e['id']:40} {e['card']['component']:8} {e['tier']:8} {e['note'][:80]}")
 
 
+def cmd_ab(a):
+    """The builder A/B so far, computed from the state on the volume."""
+    cfg = config()
+    st = World(cfg, executor=object()).load() or S.empty()
+    ab = AB.stats(st, [x["name"] for x in X.arms(cfg)])
+    if a.json:
+        print(json.dumps({**ab, "skipped": (st.get("ab") or {}).get("skipped", {})}, ensure_ascii=False))
+        return
+    print("\n".join(AB.table(ab)))
+    for name, why in ((st.get("ab") or {}).get("skipped") or {}).items():
+        print(f"skipped at the last tick: {name}: {why}")
+
+
 def cmd_practice_score(a):
     """Run by an executor: asks the supervisor for a practice score of this worktree and waits for it (spec decision 20)."""
     d = Path(a.worktree).resolve() / ".autolab"
@@ -1336,6 +1468,8 @@ def main():
     sub.add_parser("resume")
     sp = sub.add_parser("status")
     sp.add_argument("--json", action="store_true")
+    abp = sub.add_parser("ab")
+    abp.add_argument("--json", action="store_true")
     ps = sub.add_parser("practice-score")
     ps.add_argument("worktree", nargs="?", default=".")
     mr = sub.add_parser("modal-run")
@@ -1366,7 +1500,7 @@ def main():
     a = p.parse_args()
     try:
         {"init": cmd_init, "tick": cmd_tick, "loop": cmd_loop, "pause": cmd_pause, "resume": lambda a: cmd_pause(a, why=""),
-         "status": cmd_status, "practice-score": cmd_practice_score, "watchdog": cmd_watchdog, "match": cmd_match,
+         "status": cmd_status, "ab": cmd_ab, "practice-score": cmd_practice_score, "watchdog": cmd_watchdog, "match": cmd_match,
          "approve": cmd_approve, "waiting": cmd_waiting, "retry": cmd_retry, "drop": cmd_drop, "eli5": cmd_eli5,
          "modal-run": cmd_modal_run, "modal-result": cmd_modal_result, "sync-exec-data": cmd_sync_exec_data}[a.op](a)
     except Stop as err:

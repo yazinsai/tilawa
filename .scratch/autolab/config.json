@@ -130,7 +130,61 @@
     }
    ]
   },
-  "env": {}
+  "env": {},
+  "runtimes": [
+   {
+    "name": "grok",
+    "runtime": "cursor-local",
+    "model": {
+     "id": "grok-4.7",
+     "params": [
+      {
+       "id": "context",
+       "value": "500k"
+      },
+      {
+       "id": "reasoning_effort",
+       "value": "high"
+      },
+      {
+       "id": "fast",
+       "value": "false"
+      }
+     ]
+    },
+    "fallbackModel": {
+     "id": "grok-4.7",
+     "params": [
+      {
+       "id": "context",
+       "value": "500k"
+      },
+      {
+       "id": "reasoning_effort",
+       "value": "high"
+      },
+      {
+       "id": "fast",
+       "value": "false"
+      }
+     ]
+    }
+   },
+   {
+    "name": "astra",
+    "runtime": "codex-azure",
+    "azure": {
+     "endpoint": "",
+     "deployment": "",
+     "apiVersion": ""
+    },
+    "effort": "high"
+   }
+  ],
+  "split": {
+   "grok": 1,
+   "astra": 1
+  }
  },
  "listenerModel": "models/spliced-clean-int8",
  "tests": "bash tools/autolab_tests.sh",
