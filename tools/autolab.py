@@ -731,12 +731,13 @@ def cmd_loop(a):
     w = World(config())
     while True:
         t0 = time.time()
+        w.cfg = config()
         try:
             st = tick_once(w)
             print(f"{S.now()} tick {st['ticks']}: {count_states(st)}" + (f" PAUSED: {st['paused']}" if st.get("paused") else ""), flush=True)
         except Stop as err:
             print(f"{S.now()} {err}", flush=True)
-        time.sleep(max(5, a.every - (time.time() - t0)))
+        time.sleep(max(5, w.cfg["tickSeconds"] - (time.time() - t0)))
 
 
 def cmd_pause(a, why=None):

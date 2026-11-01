@@ -3,9 +3,9 @@
  "planEveryMinutes": 30,
  "tickSeconds": 120,
  "caps": {
-  "agentRuns": 60,
+  "agentRuns": 100,
   "agentHours": 40,
-  "modalUsd": 150
+  "modalUsd": 3000
  },
  "models": {
   "planner": {
