@@ -443,18 +443,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
     }
   };
-  /** Isti'adha, basmala, amin, and صدق الله (with and without العظيم), plus the other known phrases. */
-  const atWord = (surah: number, ayah: number, word: number) => {
-    const w = words.find((x) => x.surah === surah && x.ayah === ayah && x.word === word);
-    return w ? ref.slice(w.start, w.end) : "";
-  };
-  const sadaq = atWord(3, 95, 2) + atWord(3, 95, 3);
-  const lexicon = [...phrases, sadaq, sadaq + atWord(2, 255, words.filter((w) => w.surah === 2 && w.ayah === 255).length)].filter((p) => p.length > 0);
   /**
    * The span is a known phrase when it covers one and the edit distance, per phrase phoneme, is within half the loose
    * junk ceiling. A fragment or a two-consonant miss (كَرِۦۦم against آمين) does not.
    */
-  const fitsPhrase = (heard: string) => lexicon.some((p) => {
+  const fitsPhrase = (heard: string) => phrases.some((p) => {
     if (heard.length * 2 < p.length) return false;
     const a = alignSubstring(p, 0, p.length, heard, () => true);
     return !!a && (a.end - a.start) * 2 >= p.length && a.cost / UNIT / p.length <= PHRASE_MAX_COST / 2;

@@ -16,7 +16,7 @@ The phrase insertion cost stays at 1/64. Raising it would undo the tie-break tha
 
 Between the latest intact visit of the previous word and the earliest intact visit of the next ayah's first word, non-junk phonemes are residue.
 
-- A span that covers at least half of a known phrase, with edit distance per phrase phoneme at most half the old junk ceiling, stays quiet. The lexicon is the existing phrases (isti'adha, basmala, آمين, and the rest of the phrase asset) plus صدق الله with and without العظيم, taken from the reference.
+- A span that covers at least half of a known phrase, with edit distance per phrase phoneme at most half the old junk ceiling, stays quiet. The phrase asset now contains صدق الله with and without العظيم alongside isti'adha, آمين, and the other supported phrases; basmala remains derived from al-Fatiha as before. The checker consumes those supplied phoneme strings without Quran-coordinate exceptions.
 - A span within one hard consonant edit of the ayah's first word, the previous word, or an earlier word the alignment jumped back onto (connected or paused form) stays quiet. A jump forward is still an addition.
 - Anything else of at least three phonemes and two consonants is an added word on the ayah's first word. Confirmation, confidence, and posterior support are unchanged.
 
@@ -24,9 +24,10 @@ A one-consonant slip of كريم against آمين fitted the old 0.3 junk ceilin
 
 ## Validation
 
-- Synthetic قبلهم and كريم before 26:123:1 confirm as added words. A one-consonant slip of the ayah's first word, a real آمين, and صدق الله العظيم stay quiet. Existing ayah-start omission tests stay green.
+- Synthetic unrelated words before the non-target boundary 77:16:1 confirm as added words, including an addition sharing the previous word's final consonant. A one-consonant slip of the ayah's first word, a real آمين, and the phrase-asset صدق الله العظيم stay quiet. Existing ayah-start omission tests stay green.
 - The paused repeat قبل before 51:18:1 was flagged, then exempted: that visit is the earlier word said again, including its isolated form. `adhoc-42b744d-dirty-20261101T043148Z` failed that assertion; `adhoc-42b744d-dirty-20261101T043505Z` passed the addition and boundary tests.
 - Core shards 0–2 and the sdk suite: `adhoc-42b744d-dirty-20261101T043543Z`, exit 0. Shard 3 reported 153 passed, then Vitest's 60s worker RPC deadline. Checker tests re-run under that deadline: `adhoc-42b744d-dirty-20261101T043810Z`, exit 0 (all 49 checker tests plus 13 addition tests).
+- Review correction: final boundary/phrase regressions passed in `adhoc-08df619-dirty-20261101T050242Z`; the SDK suite passed in `adhoc-08df619-dirty-20261101T050052Z`. A full core rerun reported all 611 assertions passing in each worker, then hit Vitest's known 60-second worker RPC deadline.
 
 ## Measured practice result
 
@@ -49,3 +50,5 @@ Phone recovered six of the eleven targets, all still word 1: 44:12:1, 2:11:1, 54
 Seven new phone warnings, every one an added word at word 1, every one charged to the listener (perfect inputs still have 5 false warnings). One is on a fully clean session, 55:45:1 in lab-v1.4-p02, and studio warns there too. That is the kill criterion. The other six are on sessions that already contain planted mistakes. None of the old warnings went away.
 
 Fold gate on this report: fail, not a tuning diff. Overall +1 (needs −3). Leaving out the reader who gained most leaves +2. Collateral: 1 new false warning on a fully clean session, 7 incidents lost against 6 won. Studio −7. Hygiene passes.
+
+After diff review, the benchmark-target regression coordinate and Quran-coordinate phrase construction were removed. The regressions now use an unrelated boundary, and the phrase builder owns the two صدق الله entries. This review-only revision was not rescored: the measured version had already hit the clean-session kill criterion and failed the fold gate.
