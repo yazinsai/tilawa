@@ -225,11 +225,6 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const decided = new Set<number>();
   /** Omissions the anchor pass rejected; a later window must not raise them again. */
   const suppress = new Set<number>();
-  /**
-   * Counted visits in recitation order, kept past a commit. A refrain skip's two unique anchors are often further
-   * apart than the alignment window, and a wrong word between them is not itself the skip.
-   */
-  let trail: { word: number; wrong: boolean }[] = [];
   const emitted: CheckerEvent[] = [];
   let seq = 0;
 
@@ -318,7 +313,6 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     anchor = null;
     furthest = -1;
-    trail = [];
     obs = obs.slice(-AFTER_DROP);
   };
 
@@ -873,29 +867,6 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (!counts(v)) continue;
       views.push({ word: v.word, obsFrom: v.obsFrom, obsTo: v.obsTo, counts: true, wrong: wrong(v) });
     }
-    let span = trail;
-    if (views.length) {
-      const windowStart = Math.min(...views.map((v) => v.word));
-      const merged = trail.filter((t) => t.word < windowStart && words[t.word].surah === words[windowStart].surah);
-      for (const v of [...views].sort((a, b) => a.obsFrom - b.obsFrom || a.word - b.word)) {
-        const prev = merged.at(-1);
-        if (prev && words[v.word].surah !== words[prev.word].surah) merged.length = 0;
-        else if (prev && v.word < prev.word) {
-          // The other copy of a word already counted. A word that was skipped is not on the trail:
-          // drop from there so the return can fill the gap.
-          if (merged.some((t) => t.word === v.word)) continue;
-          const at = merged.findIndex((t) => t.word >= v.word);
-          if (at >= 0) merged.splice(at);
-        }
-        if (merged.at(-1)?.word === v.word) continue;
-        merged.push({ word: v.word, wrong: v.wrong });
-      }
-      span = merged;
-      const anchors = merged.flatMap((t, i) => (!t.wrong && spans.unique[t.word] ? [i] : []));
-      // Runs below use `span` before this trim, so the left anchor survives the chunk that reaches the next unique ayah.
-      trail = anchors.length > 3 ? merged.slice(anchors[anchors.length - 3]) : merged;
-    }
-    const trailViews: AnchorVisit[] = span.map((t, i) => ({ word: t.word, obsFrom: i, obsTo: i + 1, counts: true, wrong: t.wrong }));
     const w0 = index.wordAt(lo);
     let w1 = index.wordAt(Math.max(lo, hi - 1));
     const surah = words[w0].surah;
@@ -909,7 +880,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     // unique word. Confirmation waits for that word; count it as reached or the skip dies when the window jumps.
     const phonemeReached = phoneRegions.reduce((n, r) => r.runs.length ? Math.max(n, r.to) : n, reached);
     const regions = [
-      ...anchorSkipRuns({ form: spans.form, unique: spans.unique, refrain: spans.refrain, ayahStart, visits: trailViews }),
+      ...anchorSkipRuns({ form: spans.form, unique: spans.unique, refrain: spans.refrain, ayahStart, visits: views }),
       ...phoneRegions,
     ];
     for (const region of regions) {

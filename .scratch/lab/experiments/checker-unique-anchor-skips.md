@@ -43,6 +43,8 @@ No new miss and no new false warning on these five sessions. Net on the oracle a
 
 ## Limits
 
-26:109 is still missed. The aligner binds 26:108:3 back onto 26:103:8, and treating that as a return deletes the unique anchor in front of the skip. Keeping that anchor reopened a false omission at 26:103:8, so the bind is left to the alignment.
+26:109 is still missed. The aligner binds 26:108:3 back onto 26:103:8. Treating that jump as the reciter going back deletes the unique anchor in front of the skip, and keeping the anchor reopened a false omission at 26:103:8. The bind is left to the alignment.
 
-Phone and studio overall are not in this note. The fold gate is the supervisor's practice score. A repeated refrain with nothing unique missing stays quiet in the unit test; a clean session that only repeats a refrain is the gate's check, not something this oracle slice contains.
+A visit history kept past the alignment commit recovered the same five skips on the oracle arm, then the practice score of that build was worse: overall 89 → 110 (+21), checker 37 → 48 (+11), almost all of it new false warnings (checker 4 → 16, listener 19 → 27). Words the window had already committed fell out of the history and the next unique word turned the hole into a skip. That history is gone. Anchors are the current window again, which is the build whose oracle numbers are in the table above. The three practice scores are used (two deadline failures on the card commit, one on the history build), so this note has no phone number for the window-only build. The supervisor's score is the one that counts.
+
+A repeated refrain with nothing unique missing stays quiet in the unit test.
