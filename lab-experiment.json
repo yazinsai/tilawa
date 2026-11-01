@@ -1,0 +1,13 @@
+{
+ "id": "listener-whole-word-embedding-adds",
+ "component": "listener",
+ "hypothesis": "Three added words (p10 26:164:1, p07 37:36:1, p33 26:208:1) are already decoded and suspected, but stay uncertain because support is summed phone by phone on a CTC head that blurs weak phone-band onsets. A whole-word acoustic embedding, trained only on real single-word segments, can confirm that a gap holds a complete mushaf word that is not a re-read of its neighbours; predict 3 of 5 won, listener -3, overall -3 (honest floor -2).",
+ "expected": {
+  "component": -3,
+  "overall": -3
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-01T18:13:42+00:00",
+ "author": "autolab"
+}
