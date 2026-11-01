@@ -1,0 +1,13 @@
+{
+ "id": "listener-ctc-rescore-wrong-words",
+ "component": "listener",
+ "hypothesis": "Wrong-word false warnings come from greedy argmax spikes on phone-confusable consonants, while the written word still carries most of the summed CTC path mass. Veto a wrong-word warning when the written word's forced CTC score over the segment is within a small margin of the heard word's score; predict listener -4 and overall -4.",
+ "expected": {
+  "component": -4,
+  "overall": -4
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-01T04:02:24+00:00",
+ "author": "autolab"
+}
