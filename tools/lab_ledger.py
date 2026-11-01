@@ -160,6 +160,18 @@ def main_score(led: dict, ts: str | None = None) -> dict | None:
     return next((e for e in reversed(led["mainLine"]) if e["testSet"] == ts), None)
 
 
+def main_listener(led: dict) -> str:
+    """The listener evidence the main line is scored with: a folded listener experiment's own decode replaces the default."""
+    return (main_score(led) or {}).get("listener") or DEFAULT_LISTENER
+
+
+def scoring_listener(led: dict, listener: str) -> str:
+    """What a card scores with: a card on a main line's listener (the default or one a fold made main) follows the current
+    main line; an experiment's own decode stays its own."""
+    mains = {DEFAULT_LISTENER} | {m.get("listener") for m in led.get("mainLine", [])}
+    return main_listener(led) if listener in mains else listener
+
+
 def add_experiment(led: dict, card: dict, *, branch: str, worktree: str) -> dict:
     if card["id"] in led["experiments"]:
         raise ValueError(f"experiment {card['id']} already exists ({led['experiments'][card['id']]['state']})")

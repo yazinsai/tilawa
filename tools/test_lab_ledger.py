@@ -198,3 +198,13 @@ def test_results_compare_with_the_main_line_they_were_measured_on():
     rows = L.status_rows(led)
     assert [r["actual"]["overall"] for r in rows] == [-5, -5]
     assert all(r["state"] == L.WAITING + " (main line moved since; fold re-checks)" for r in rows)
+
+
+def test_a_folded_listener_becomes_the_main_listener_and_cards_follow_it():
+    led = L.empty()
+    assert L.main_listener(led) == L.DEFAULT_LISTENER
+    led["mainLine"].append({"sha": "a", "testSet": None, "listener": L.DEFAULT_LISTENER, "at": "t0"})
+    led["mainLine"].append({"sha": "b", "testSet": None, "listener": "exp-gap-62ac8b5", "at": "t1"})
+    assert L.main_listener(led) == "exp-gap-62ac8b5"
+    assert L.scoring_listener(led, L.DEFAULT_LISTENER) == "exp-gap-62ac8b5"
+    assert L.scoring_listener(led, "exp-other-123") == "exp-other-123"

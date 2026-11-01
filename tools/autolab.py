@@ -310,10 +310,10 @@ def practice_ids(t: dict) -> list[str]:
     return practice
 
 
-def exec_spec(t: dict, cfg: dict) -> dict:
-    """What modal/autolab_exec.py's sync copies into tilawa-lab-exec."""
+def exec_spec(t: dict, cfg: dict, listener: str = L.DEFAULT_LISTENER) -> dict:
+    """What modal/autolab_exec.py's sync copies into tilawa-lab-exec: the main line's current listener evidence among them."""
     return {"base": t["base"], "manifest": t["manifest"], "practice": practice_ids(t),
-            "listeners": sorted({L.DEFAULT_LISTENER, "teacher"}), "models": [cfg["listenerModel"]]}
+            "listeners": sorted({L.DEFAULT_LISTENER, listener, "teacher"}), "models": [cfg["listenerModel"]]}
 
 
 def alive(pid: int) -> bool:
@@ -579,7 +579,7 @@ class Tick:
     def set_main(self, run: str, sha: str, practice: dict):
         report = self.w.report(run)
         teacher = ((report.get("splits") or {}).get("practice") or {}).get("teacher") or {}
-        self.st["main"] = {"sha": sha, "run": run, "practice": practice,
+        self.st["main"] = {"sha": sha, "run": run, "practice": practice, "listener": report.get("listener") or L.DEFAULT_LISTENER,
                            "attribution": {c: practice[c] for c in L.COMPONENTS}, "teacherWrongCalls": teacher.get("wrongCalls")}
         P.update_coverage(self.st, P.incidents(report))
         self._ctx = None
@@ -595,16 +595,19 @@ class Tick:
                 return
             st["execSyncJob"] = None
             if status == "done":
-                st["execData"] = {"testSet": job["testSet"], "at": self.at, **{k: res.get(k) for k in ("sessions", "files", "missing")}}
+                st["execData"] = {"testSet": job["testSet"], "listener": job.get("listener"), "at": self.at, **{k: res.get(k) for k in ("sessions", "files", "missing")}}
                 self.events.append(S.event(None, None, "exec-data", self.at, f"practice-only data for builders: {res.get('sessions')} sessions, {res.get('files')} files"))
             else:
                 st["execSyncFailed"] = self.at
                 w.notify(st, "needs-human", f"exec-sync:{self.at[:13]}", "Autolab: the builders' practice data didn't sync", tail(res), self.at)
             return
-        if (st.get("execData") or {}).get("testSet") == st["testSet"] or (st.get("execSyncFailed") and S.minutes(st["execSyncFailed"], self.at) < 30):
+        listener = (st.get("main") or {}).get("listener") or L.DEFAULT_LISTENER
+        have = st.get("execData") or {}
+        if (have.get("testSet") == st["testSet"] and have.get("listener", L.DEFAULT_LISTENER) == listener) or \
+                (st.get("execSyncFailed") and S.minutes(st["execSyncFailed"], self.at) < 30):
             return
-        spec = exec_spec(w.test_set(st["testSet"]), w.cfg)
-        st["execSyncJob"] = {**w.job(f"exec-sync-{int(time.time())}", w.exec_argv("sync", json.dumps(spec))), "testSet": st["testSet"]}
+        spec = exec_spec(w.test_set(st["testSet"]), w.cfg, listener)
+        st["execSyncJob"] = {**w.job(f"exec-sync-{int(time.time())}", w.exec_argv("sync", json.dumps(spec))), "testSet": st["testSet"], "listener": listener}
 
     def pause(self, why: str):
         self.st["paused"] = why

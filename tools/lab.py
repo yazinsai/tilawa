@@ -276,8 +276,9 @@ def main_checkout(a):
 
 
 def score_main(a, ts: dict, log: Path | None = None, *, splits=("practice", "exam")) -> dict:
+    listener = L.main_listener(load(a))
     with main_checkout(a) as (path, _):
-        return L.from_report(score(a, path, name="main", listener=L.DEFAULT_LISTENER, ts=ts, splits=splits, log=log), splits)
+        return L.from_report(score(a, path, name="main", listener=listener, ts=ts, splits=splits, log=log), splits)
 
 
 def main_head(a) -> str:
@@ -345,7 +346,8 @@ def cmd_baseline(a):
 def cmd_new(a):
     led = load(a)
     card = L.new_card(a.id, a.component, a.hypothesis, a.expect_component, a.expect_overall, test_set=led["testSet"] or "lab-v1.4",
-                      author=a.author or git("config", "user.name", check=False) or os.environ.get("USER", "unknown"), listener=a.listener)
+                      author=a.author or git("config", "user.name", check=False) or os.environ.get("USER", "unknown"),
+                      listener=a.listener or L.main_listener(led))
     if a.id in led["experiments"]:
         raise Stop(f"experiment {a.id} already exists")
     wt, branch = REPO.parent / f"tilawa-lab-exp-{a.id}", f"exp/{a.id}"
@@ -360,7 +362,8 @@ def cmd_new(a):
 
 
 def run_experiment(a, wt: Path, card: dict, ts: dict, log: Path | None = None) -> dict:
-    return L.from_report(score(a, wt, name=f"exp-{card['id']}", listener=card["listener"], ts=ts, splits=("practice",), log=log))
+    listener = L.scoring_listener(load(a), card["listener"])
+    return L.from_report(score(a, wt, name=f"exp-{card['id']}", listener=listener, ts=ts, splits=("practice",), log=log))
 
 
 def print_verdict(card: dict, res: dict, base: dict):
@@ -471,7 +474,7 @@ def cmd_fold(a):
     if not b or not base:
         raise Stop(f"{a.id} has no practice result on {ts['id']} yet: python3 tools/lab.py run {e['worktree']}")
     b_base = L.base_for(led, b) or base
-    card = {**card, "listener": b.get("listener") or card["listener"]}  # the evidence the branch was scored with, not the card's creation-time default
+    card = {**card, "listener": L.scoring_listener(led, b.get("listener") or card["listener"])}  # its own decode, or the current main line's
     bcmp = L.compare(b["practice"], b_base["practice"], card)
     if not L.gains(bcmp, card):
         raise Stop(f"{a.id} has no practice gain on its branch ({L.headline(bcmp, card)}): nothing to fold; discard it")
@@ -646,7 +649,7 @@ def parser():
     n.add_argument("--hypothesis", required=True)
     n.add_argument("--expect-component", type=int, required=True, help="expected change in the component's wrong calls (negative = fewer)")
     n.add_argument("--expect-overall", type=int, required=True, help="expected change in overall wrong calls")
-    n.add_argument("--listener", default=L.DEFAULT_LISTENER, help="decoded listener evidence to score with")
+    n.add_argument("--listener", default=None, help="decoded listener evidence to score with (default: the main line's)")
     n.add_argument("--author", default="")
     r = sub.add_parser("run", help="score an experiment on the practice set (or --cmd: any command over shards)")
     r.add_argument("worktree", nargs="?", default=".")

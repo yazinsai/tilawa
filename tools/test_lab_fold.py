@@ -169,7 +169,8 @@ class PracticeOnlyFold(unittest.TestCase):
     def test_main_refresh_forwards_the_requested_split(self):
         report = {"kind": "lab-score", "sha": "aaaa111", "run": "refresh", "testSet": "synthetic",
                   "listener": L.DEFAULT_LISTENER, "sessions": {"excluded": []}, "splits": {"practice": totals(10)}}
-        with patch.object(lab, "main_checkout") as checkout, patch.object(lab, "score", return_value=report) as score:
+        with patch.object(lab, "main_checkout") as checkout, patch.object(lab, "score", return_value=report) as score, \
+                patch.object(lab, "load", return_value=L.empty()):
             checkout.return_value.__enter__.return_value = (Path("/unused"), "aaaa111")
             result = lab.score_main(SimpleNamespace(), {}, splits=("practice",))
         self.assertEqual(score.call_args.kwargs["splits"], ("practice",))
