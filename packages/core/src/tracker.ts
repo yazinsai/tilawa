@@ -16,7 +16,7 @@ export interface TrackerOptions {
   maxCandidates?: number;
   /** Fit: a candidate fits only with PER at most this. Default 0.35. */
   maxPer?: number;
-  /** Fit: and weighted cost per observed phoneme at most this. Default 0.35. */
+  /** Fit: and weighted cost per observed phoneme at most this. Default {@link MISFIT_MAX_COST}. */
   maxCost?: number;
   /** Evidence: `locked` needs at least this many observed phonemes. Default 10. */
   minPhonemes?: number;
@@ -24,7 +24,8 @@ export interface TrackerOptions {
   minWords?: number;
   /**
    * Separation: `locked` needs the best distinct candidate to trail by `max(minSeparation, separationScale / n)`
-   * plain edits for `n` observed phonemes, so short clips need a wider margin. Defaults 1 and 30.
+   * plain edits for `n` observed phonemes, so short clips need a wider margin. Defaults {@link COMMIT_MIN_SEPARATION}
+   * and {@link COMMIT_SEPARATION_SCALE}.
    */
   minSeparation?: number;
   separationScale?: number;
@@ -128,6 +129,63 @@ const REPEAT_MAX_COST = 0.15;
 
 const ayahCompare = (a: AyahRef, b: AyahRef) => a.surah - b.surah || a.ayah - b.ayah;
 
+/** Local recent cost above this, in plain edits per phoneme, is the misfit that starts a hold. */
+export const MISFIT_MAX_COST = 0.35;
+/** Commit separation, in plain edits: `max(COMMIT_MIN_SEPARATION, COMMIT_SEPARATION_SCALE / n)`. */
+export const COMMIT_MIN_SEPARATION = 1;
+export const COMMIT_SEPARATION_SCALE = 30;
+
+/** The lock's commit margin for `n` observed phonemes, in plain edits. */
+export function commitMargin(n: number, minSeparation = COMMIT_MIN_SEPARATION, separationScale = COMMIT_SEPARATION_SCALE): number {
+  return Math.max(minSeparation, separationScale / Math.max(1, n));
+}
+
+export interface IssueDropFit {
+  n: number;
+  /** Weighted cost per observed phoneme, in plain edits. */
+  unedited: number;
+  edited: number;
+  /** Plain edits by which the edited anchor beats the written one. */
+  gain: number;
+  /** {@link commitMargin} for this span. */
+  margin: number;
+  explains: boolean;
+}
+
+/**
+ * Cost of aligning every heard phoneme to a substring of `reference`, starting at its first phoneme, in `UNIT`s.
+ * The same weighted word costs as local tracking (`subCost`, `insertionCost`, `deletionCost`).
+ */
+export function anchorFitCost(reference: string, heard: string): number | null {
+  if (!reference || !heard) return null;
+  const fit = alignSubstring(reference, 0, reference.length, heard, (offset) => offset === 0, { strictStart: true });
+  return fit ? fit.cost : null;
+}
+
+/**
+ * Whether applying an issue's edit to the anchor text explains a misfit. `written` is the anchor from the issue
+ * through the drop; `edited` is that text with the issue's own edit applied; `heard` is the phonemes between them.
+ * The edited fit must beat the unedited fit by the commit margin and fall below the misfit cost. No new threshold.
+ */
+export function issueDropFit(
+  written: string,
+  edited: string,
+  heard: string,
+  maxCost = MISFIT_MAX_COST,
+  minSeparation = COMMIT_MIN_SEPARATION,
+  separationScale = COMMIT_SEPARATION_SCALE,
+): IssueDropFit | null {
+  const uneditedCost = anchorFitCost(written, heard);
+  const editedCost = anchorFitCost(edited, heard);
+  if (uneditedCost === null || editedCost === null) return null;
+  const n = heard.length;
+  const gain = (uneditedCost - editedCost) / UNIT;
+  const margin = commitMargin(n, minSeparation, separationScale);
+  const unedited = uneditedCost / UNIT / n;
+  const editedPer = editedCost / UNIT / n;
+  return { n, unedited, edited: editedPer, gain, margin, explains: gain >= margin && editedPer < maxCost };
+}
+
 /** What the tracker is fed from one chunk of listener evidence, in the product and in every bench alike: phonemes only. */
 export function trackerInput(evidence: PhonemeEvidence): PhonemeEvidence {
   return { ...evidence, posteriors: undefined };
@@ -137,11 +195,11 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const maxGramOccurrences = options.maxGramOccurrences ?? 5000;
   const maxCandidates = options.maxCandidates ?? 64;
   const maxPer = options.maxPer ?? 0.35;
-  const maxCost = options.maxCost ?? 0.35;
+  const maxCost = options.maxCost ?? MISFIT_MAX_COST;
   const minPhonemes = options.minPhonemes ?? 10;
   const minWords = options.minWords ?? 2;
-  const minSeparation = options.minSeparation ?? 1;
-  const separationScale = options.separationScale ?? 30;
+  const minSeparation = options.minSeparation ?? COMMIT_MIN_SEPARATION;
+  const separationScale = options.separationScale ?? COMMIT_SEPARATION_SCALE;
   const minLockConfidence = options.minLockConfidence ?? 0.08;
   const prior = options.prior;
   const priorRange = options.priorRange;
@@ -180,8 +238,9 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   /**
    * Lock kept while that search runs. A misfit used to emit `lost` before any destination had committed, and the
    * checker then dropped the anchor and the tokens heard in the gap. `lost` is emitted only when a lock commits off
-   * this anchor, or the session ends still uncommitted. The held event carries `hold: "start"` once, so issues
-   * already open are downgraded the way a lock drop would, and tokens after that still enter the window.
+   * this anchor, or the session ends still uncommitted. The held event carries `hold: "start"` once. The checker
+   * keeps an open issue only when that issue's edit explains the drop, and downgrades the rest; tokens after the
+   * signal still enter the window.
    */
   let holding: PositionEvent | null = null;
   /** Set at the first lock. The onset veto applies only to that lock. */
