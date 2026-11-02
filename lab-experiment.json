@@ -1,0 +1,13 @@
+{
+ "id": "tracker-first-lock-twin-continuation",
+ "component": "tracker",
+ "hypothesis": "The continuation resolver fixed both p25 name warnings but lost 3 practice incidents and 3 studio calls, plausibly because it also held and re-judged slot-differing refrain spans mid-session, where the lock already had unique context. Fire it only on the first lock of a session, before that lock has heard any location-unique word. Keep the branch stacked. Predict tracker −4, overall −4 (p25 ×2 plus the branch's 2), with 0 lost.",
+ "expected": {
+  "component": -4,
+  "overall": -4
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-02T15:09:51+00:00",
+ "author": "autolab"
+}
