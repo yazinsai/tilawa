@@ -1,0 +1,13 @@
+{
+ "id": "checker-learned-seam-token-tagger",
+ "component": "checker",
+ "hypothesis": "Seam additions keep the inserted word spelled whole in the engine's greedy tokens (10 of 16; 5 of 5 in the retimed-step trace). Every hand rule using that fact died on one clean long-tail seam: p15 تبع noise spelling, p02 whole-ayah restart. Replace the rule with a small sequence tagger trained on engine tokens from gold-excluded seams, calibrated to zero fires on real clean seams. Predict 3 of 6 targets won, checker -3, overall -3.",
+ "expected": {
+  "component": -3,
+  "overall": -3
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-02T16:56:20+00:00",
+ "author": "autolab"
+}
