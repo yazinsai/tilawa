@@ -4,7 +4,7 @@
  "tickSeconds": 120,
  "caps": {
   "agentRuns": 200,
-  "agentHours": 100,
+  "agentHours": 200,
   "modalUsd": 3000
  },
  "models": {
