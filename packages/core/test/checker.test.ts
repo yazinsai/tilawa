@@ -311,6 +311,54 @@ describe("local-window confirmation", () => {
     expect(check(unsure, true)).toEqual([]);
   });
 
+  it("withholds a heard non-word unless it clears twice the margin", () => {
+    // غ/ق for ش/ف is the same two-frame margin as يسمع above, and spells no mushaf word.
+    const subs: Edit[] = [
+      { kind: "sub", at: at(target) + text(target).indexOf("ش"), to: "غ" },
+      { kind: "sub", at: at(target) + text(target).indexOf("ف"), to: "ق" },
+    ];
+    const marginal = heard(subs, (j, p) => (word(j) && (p === "غ" || p === "ق") ? [[p, 0.5], ["", 0.45]] : undefined));
+    // Same frames as يسمع above: past one SUPPORT, short of two. Halving the margin puts two SUPPORT back at that level.
+    expect(summary(check(marginal, false))).toEqual(["confirmed wrong_word 2:255:23"]);
+    expect(check(marginal, true)).toEqual([]);
+    expect(summary(confirmed(replayChecked(index, marginal, {}, { policy: { localWindow: { nats: 5 } } })))).toEqual(["confirmed wrong_word 2:255:23"]);
+  });
+
+  it("keeps today's margin when the heard span has more consonants than the written word", () => {
+    // A vowel heard as a consonant is extra speech, not a same-length blur. The two real substitutions sit in the
+    // one-support band; the added consonant is tied with the vowel it replaced, so it does not clear two SUPPORT.
+    const vowel = at(target) + text(target).lastIndexOf("َ");
+    const fa = at(target) + text(target).indexOf("ف");
+    const subs: Edit[] = [
+      { kind: "sub", at: at(target) + text(target).indexOf("ش"), to: "غ" },
+      { kind: "sub", at: fa, to: "ق" },
+      { kind: "sub", at: vowel, to: "ق" },
+    ];
+    const glued = heard(subs, (j, p) => {
+      if (!word(j)) return undefined;
+      if (p === "غ" || j === fa) return [[p, 0.5], ["", 0.45]];
+      if (j === vowel) return [["ق", 0.5], ["َ", 0.45], ["", 0.03]];
+      return undefined;
+    });
+    expect(summary(check(glued, true))).toEqual(["confirmed wrong_word 2:255:23"]);
+  });
+
+  it("still confirms a spelled word once a waqf tail is stripped", () => {
+    // The final damma heard as a madd mark is a waqf tail. Under it the span is يَسمَع, an attested word.
+    const subs: Edit[] = [
+      { kind: "sub", at: at(target) + text(target).indexOf("ش"), to: "س" },
+      { kind: "sub", at: at(target) + text(target).indexOf("ف"), to: "م" },
+      { kind: "sub", at: at(target) + text(target).length - 1, to: "ۦ" },
+    ];
+    const marginal = heard(subs, (j, p) => {
+      if (!word(j)) return undefined;
+      if (p === "س" || p === "م") return [[p, 0.5], ["", 0.45]];
+      if (p === "ۦ") return [["ۦ", 0.5], ["ُ", 0.45], ["", 0.03]];
+      return undefined;
+    });
+    expect(summary(check(marginal, true))).toEqual(["confirmed wrong_word 2:255:23"]);
+  });
+
   it("still confirms a wrong word the audio doesn't support as written", () => {
     expect(summary(check(heard(replaceWord(target, ALIEN), () => undefined), true))).toEqual(["confirmed wrong_word 2:255:23"]);
     expect(summary(check(heard(edits, () => undefined), true))).toEqual(["confirmed wrong_word 2:255:23"]);

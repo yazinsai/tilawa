@@ -3,7 +3,7 @@ import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
-import { UNIT, alignSubstring, deletionCost, insertionCost, subCost } from "./fuzzy.js";
+import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import { issueDropFit } from "./tracker.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
@@ -174,6 +174,12 @@ interface Issue {
    * posterior support margin: the span is not needed to read the text.
    */
   lexicon?: boolean;
+  /**
+   * Substitution taken from the per-word alignment, not a parallel phrase or a lexical candidate. A span that
+   * spells another mushaf word, or that carries more consonants than the written word, keeps today's margin.
+   * Anything shorter or the same length that spells no such word needs twice the support margin.
+   */
+  stringPath?: boolean;
 }
 
 interface Open {
@@ -326,7 +332,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const a0 = obs[issue.obsFrom].start, b0 = obs[issue.obsTo - 1].end + 1;
       if (a0 < frames.startFrame || b0 > frames.endFrame) return null;
       const word = ref.slice(words[issue.word].start, words[issue.last].end);
-      const need = issue.cls === "wrong_word" && changedClarity(issue) < UNSURE ? 2 * support : support;
+      const need = supportNeed(issue);
       const expectedNll = frames.nll(ids(word), a0, b0), observedNll = frames.nll(ids(issue.observed ?? ""), a0, b0);
       if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
       return expectedNll - observedNll >= need;
@@ -338,7 +344,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (a0 < frames.startFrame || b0 > frames.endFrame) return null;
       const through = nextWord(issue.last);
       const writtenPair = ref.slice(words[issue.word].start, words[through].end);
-      const need = issue.cls === "wrong_word" && changedClarity(issue) < UNSURE ? 2 * support : support;
+      const need = supportNeed(issue);
       const expectedNll = frames.nll(ids(writtenPair), a0, b0), observedNll = frames.nll(ids(issue.pair), a0, b0);
       if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
       return expectedNll - observedNll >= need;
@@ -361,10 +367,42 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       issue.cls === "added_word"
         ? span(from, issue.word) + observed + span(issue.word, to + 1)
         : span(from, issue.word) + (issue.cls === "wrong_word" ? observed : "") + span(issue.last + 1, to + 1);
-    const need = issue.cls === "wrong_word" && changedClarity(issue) < UNSURE ? 2 * support : support;
+    const need = supportNeed(issue);
     const expectedNll = frames.nll(ids(written), f0, f1), observedNll = frames.nll(ids(decoded), f0, f1);
     if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
     return expectedNll - observedNll >= need;
+  };
+
+  /** Waqf and pause marks at the edges of a heard span. They are not part of the word. */
+  const waqfEdge = new Set("ۦۥں۾ڇؙۜ");
+  const stripEdge = (s: string) => {
+    let a = 0, b = s.length;
+    while (a < b && waqfEdge.has(s[a]!)) a++;
+    while (b > a && waqfEdge.has(s[b - 1]!)) b--;
+    return s.slice(a, b);
+  };
+  /** The heard word with phrase-labelled pauses removed and waqf tails stripped. */
+  const heardSpan = (issue: Issue): string => {
+    const from = Math.max(0, issue.obsFrom);
+    const to = Math.min(obs.length, issue.obsTo);
+    const live = from < to ? obs.slice(from, to).filter((p) => !p.junk).map((p) => p.p).join("") : "";
+    return stripEdge(live || issue.observed || "");
+  };
+  const consonantCount = (s: string) => collapseHeld([...s]).filter((p) => CONSONANTS.has(p)).length;
+  /**
+   * Nats the decoded hypothesis must win by. A per-word substitution that does not spell another mushaf word
+   * (not the written word, not a word or prefix within ±3) clears twice `SUPPORT`, unless the span has more
+   * consonants than the written word: that extra speech is the next word's, and today's margin still owns it.
+   * The weak-evidence gate already asks for twice `SUPPORT`. A spelled word keeps today's margin.
+   */
+  const supportNeed = (issue: Issue): number => {
+    const weak = issue.cls === "wrong_word" && changedClarity(issue) < UNSURE;
+    if (issue.stringPath) {
+      const heard = heardSpan(issue);
+      const written = ref.slice(words[issue.word].start, words[issue.last].end);
+      if (consonantCount(heard) <= consonantCount(written) && lexical.surplusWord(issue.word, heard) === null) return 2 * support;
+    }
+    return weak ? 2 * support : support;
   };
 
   /** Mean decoder confidence over a wrong word's decoded phonemes that differ from the written word. */
@@ -1027,7 +1065,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const expected = words[gap.last].end - words[gap.word].start;
       if (said.length >= Math.max(MIN_ADDED, expected / 2) && said.some((p) => CONSONANTS.has(p.p))) {
         if (wrong(scoreGap(gap.word, gap.last, said), gap.last)) {
-          issues.set(gap.word, { ...gap, cls: "wrong_word", obsTo: after!.obsFrom, observed: said.map((p) => p.p).join("") });
+          issues.set(gap.word, { ...gap, cls: "wrong_word", obsTo: after!.obsFrom, observed: said.map((p) => p.p).join(""), stringPath: true });
         }
         gap = null;
         return;
@@ -1100,7 +1138,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (wi === head && v.covered < length(wi)) continue;
       // Once recited right, a later wrong visit is a repeat that went astray; a wrong one then a right one is a correction.
       if (!right.has(wi)) {
-        issues.set(wi, { cls: "wrong_word", word: wi, last: wi, obsFrom: v.obsFrom, obsTo: v.obsTo, observed: obs.slice(v.obsFrom, v.obsTo).map((p) => p.p).join("") });
+        issues.set(wi, { cls: "wrong_word", word: wi, last: wi, obsFrom: v.obsFrom, obsTo: v.obsTo, observed: obs.slice(v.obsFrom, v.obsTo).map((p) => p.p).join(""), stringPath: true });
       }
     }
     flush();
@@ -1236,13 +1274,6 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     // An added word at an ayah start sits in the greedy phones before word 1, after both seam words already
     // have a complete in-order visit. Pauses and waqf tails are not part of that word. Neighbours, their
     // prefixes and non-Quran phrases are not an addition.
-    const waqfEdge = new Set("ۦۥں۾ڇؙۜ");
-    const stripEdge = (s: string) => {
-      let a = 0, b = s.length;
-      while (a < b && waqfEdge.has(s[a]!)) a++;
-      while (b > a && waqfEdge.has(s[b - 1]!)) b--;
-      return s.slice(a, b);
-    };
     const phraseSpan = (s: string) => phrases.some((p) => {
       if (Math.abs(p.length - s.length) > Math.ceil(p.length * 0.6) + 4) return false;
       const hit = alignSubstring(s, 0, s.length, p, () => true);

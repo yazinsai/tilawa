@@ -143,6 +143,18 @@ describe("lexical false-warning protections", () => {
   });
 });
 
+describe("a spelled word outside the neighbourhood", () => {
+  const lex = lexicalWords(index);
+  const wi = index.words.indexOf(find(w(2, 255, 23)));
+
+  it("accepts a distant mushaf word and rejects the written word, a ±3 neighbour and a non-word", () => {
+    expect(lex.surplusWord(wi, text(w(2, 171, 9)))).toBeTruthy();
+    expect(lex.surplusWord(wi, text(w(2, 255, 23)))).toBeNull();
+    expect(lex.surplusWord(wi, text(w(2, 255, 25)))).toBeNull();
+    expect(lex.surplusWord(wi, "يَغقَعُ")).toBeNull();
+  });
+});
+
 describe("lexical candidate boundaries", () => {
   it("abstains when the substituted word has no following neighbor", () => {
     const target = w(26, 106, 5);
