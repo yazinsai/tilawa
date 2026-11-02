@@ -2831,7 +2831,7 @@
   },
   {
    "kind": "main",
-   "at": "2026-11-02T20:58:36+00:00",
+   "at": "2026-11-02T20:58:41+00:00",
    "sha": "917f34ab",
    "testSet": "lab-v1.5",
    "experiment": "tracker-first-lock-twin-rebased",
@@ -2848,7 +2848,7 @@
   },
   {
    "kind": "experiment",
-   "at": "2026-11-02T20:58:36+00:00",
+   "at": "2026-11-02T20:58:41+00:00",
    "id": "tracker-first-lock-twin-rebased",
    "component": "tracker",
    "hypothesis": "The guarded first-lock continuation won all 4 tracker targets, but its rebase lost exactly the 6 incidents and 12 studio calls that the just-folded seam spelled-surplus rule had won, so the branch is undoing that fold rather than failing on its own. Re-land the guard and issue-explains-drop on current main with the folded seam rule intact and fed the same word-1 window tokens. Predict tracker −4 (−6 with the two recharged added-word misses), overall −4, 0 lost.",
@@ -2873,6 +2873,127 @@
      "missed": 37,
      "falseWarnings": 19,
      "listener": 41,
+     "tracker": 2,
+     "checker": 13
+    },
+    "exam": null
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-02T21:23:57+00:00",
+   "id": "checker-ayah-final-slot-graph",
+   "component": "checker",
+   "hypothesis": "Four of the six remaining wrong-word misses swap an ayah-final rhyme word (9:47:17, 2:284:28, 11:11:10, 37:84:5), and their leads are too short for the folded 4-word parallel-phrase index. Adding an ayah-final slot index, built from the mushaf and scored by the graph's forward sum with pausal forms, should catch them. Predict checker -1, overall -2 (upside -4 if the listener-charged ones flip).",
+   "expected": {
+    "component": -1,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Only 1 of the 4 ayah-final misses has a planted word in the 2-word-lead slot index: 9:47:17 is بالمتقين, while 2:284:28 is كثيرة, 11:11:10 is من, and 37:84:5 is من. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-02T21:29:37+00:00",
+   "id": "tracker-retimed-word1-step-r",
+   "component": "tracker",
+   "hypothesis": "After a waqf pause the tracker steps onto the next ayah's word 1 on the first heard token, so inserted speech is delivered as part of word 1's window, where checker visits absorb it. Make that step provisional and re-time it to the onset of the first contiguous in-order fit of word 1 and word 2, so the surplus tokens land in the seam gap that the folded gap path already judges. Stack this on the zero-loss issue-explains-drop branch. Predict about 1.5 of 5 targets won plus the branch's 2: tracker -2, overall -3 (floor -2 if no addition flips).",
+   "expected": {
+    "component": -2,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +2 (needs -3 or better), tracker +2 (needs +2 or better); without reader mp3quran-198: +4 (needs -1 or better); 5 incidents lost against 3 won",
+   "branch": {
+    "wrongCalls": 58,
+    "missed": 35,
+    "falseWarnings": 23,
+    "listener": 37,
+    "tracker": 4,
+    "checker": 17
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-02T22:39:42+00:00",
+   "id": "tracker-added-word-explains-drop",
+   "component": "tracker",
+   "hypothesis": "The folded issue-explains-drop rule keeps an open issue through a lock drop only for omission and substitution edits, so an added word whose own extra speech causes the misfit (p14 44:10:1, p63 37:69:1) still gets main's uncertain downgrade. Add the insertion edit: keep an open added-word issue when deleting its heard span makes the following words fit the anchor again. Predict tracker -2 and overall -3; the third call is speculative listener-charged spillover from uncertain gap additions sealed by the same drop (p33 26:208:1).",
+   "expected": {
+    "component": -2,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Only p14 has an open added-word issue at a misfit hold whose removal restores the anchor; p63's 37:69:1 opens as a wrong word and the added-word issue appears only after a jump to 37:24, so the insertion edit never runs. (measured: {\"targets won\": 1})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-02T22:55:40+00:00",
+   "id": "listener-retimed-gap-spell-guard",
+   "component": "listener",
+   "hypothesis": "Re-timing the word-1 step won listener-charged additions that the context-free gap decode recovers (p49 26:123:1, p50 37:99:1, plus p16 77:39:1), but it lost 5. Plausibly that is because the folded spelled-surplus rule no longer saw its word-1 span, and clean restarts entered the gap. Re-time on current main with the measured back-run guard, and let the spell rule read the seam span wherever its tokens land. Predict listener -3, overall -3 with 0 lost.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Guarded re-timing puts only p50's insertion into the seam gap the unchanged cold-crop alignment sees; p49 stays anchored on the inserted kaf even with the word-1 lock moved to the true onset. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-02T23:16:42+00:00",
+   "sha": "3bbe6794",
+   "testSet": "lab-v1.5",
+   "experiment": "listener-heard-word-must-be-lexical",
+   "note": "Phone wrong-word false warnings come from single channel-blurred consonants (ن/م, ف/ك, swallowed or truncated endings), and those blurs turn the written word into a non-word, whereas a planted swap is always a real attested word. Every try so far judged the heard span by a likelihood margin, where spikes and real swaps look equally marginal. Confirm a listener-evidenced wrong word only if its heard span spells a whole attested mushaf word other than the written word and its ±3 neighbours, using soft costs only. Predict 3 of 6 targets won with 1 loss: listener -3, overall -2.; practice-only fold, exam not measured",
+   "practice": {
+    "wrongCalls": 51,
+    "missed": 37,
+    "falseWarnings": 14,
+    "listener": 36,
+    "tracker": 2,
+    "checker": 13
+   },
+   "exam": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-02T23:16:42+00:00",
+   "id": "listener-heard-word-must-be-lexical",
+   "component": "listener",
+   "hypothesis": "Phone wrong-word false warnings come from single channel-blurred consonants (ن/م, ف/ك, swallowed or truncated endings), and those blurs turn the written word into a non-word, whereas a planted swap is always a real attested word. Every try so far judged the heard span by a likelihood margin, where spikes and real swaps look equally marginal. Confirm a listener-evidenced wrong word only if its heard span spells a whole attested mushaf word other than the written word and its ±3 neighbours, using soft costs only. Predict 3 of 6 targets won with 1 loss: listener -3, overall -2.",
+   "expected": {
+    "component": -3,
+    "overall": -2
+   },
+   "state": "folded",
+   "testSet": "lab-v1.5",
+   "note": "keeps its overall and listener gain",
+   "branch": {
+    "wrongCalls": 51,
+    "missed": 37,
+    "falseWarnings": 14,
+    "listener": 36,
+    "tracker": 2,
+    "checker": 13
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 51,
+     "missed": 37,
+     "falseWarnings": 14,
+     "listener": 36,
      "tracker": 2,
      "checker": 13
     },
