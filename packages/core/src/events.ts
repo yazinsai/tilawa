@@ -58,10 +58,22 @@ export interface PositionEvent {
   observed: PositionCandidate[];
   state: TrackerState;
   /**
-   * Set on the locked event that starts a misfit hold. Issues already open end `uncertain`, as they do when the
-   * lock drops, and the checker's window stays so tokens heard after this are still judged.
+   * Set on the locked event that starts a misfit hold. An open issue stays open only when its own edit makes the
+   * heard words after it fit the anchor again; every other open issue ends `uncertain`, as on a lock drop. The
+   * checker's window stays so tokens heard after this are still judged.
    */
   hold?: "start";
+  /**
+   * A slot-differing parallel span resolved. `from` and `to` are the member span starts. Equal means the
+   * continuation confirmed the locked copy, and held slot accusations are judged against it. Different means the
+   * heard word fit only the other member: the span is re-read against that copy.
+   */
+  relocated?: { from: WordRef; to: WordRef };
+  /**
+   * The session's first lock has not yet heard a word outside every slot-differing span. Slot accusations wait
+   * for the continuation. Absent once that word arrives, and on every later lock.
+   */
+  spanHold?: true;
   /** Present only when the tracker was created with `trace: true`. */
   trace?: TrackerTrace;
 }
