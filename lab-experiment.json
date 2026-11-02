@@ -1,0 +1,13 @@
+{
+ "id": "tracker-first-lock-twin-rebased",
+ "component": "tracker",
+ "hypothesis": "The guarded first-lock continuation won all 4 tracker targets, but its rebase lost exactly the 6 incidents and 12 studio calls that the just-folded seam spelled-surplus rule had won, so the branch is undoing that fold rather than failing on its own. Re-land the guard and issue-explains-drop on current main with the folded seam rule intact and fed the same word-1 window tokens. Predict tracker −4 (−6 with the two recharged added-word misses), overall −4, 0 lost.",
+ "expected": {
+  "component": -4,
+  "overall": -4
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-02T19:19:02+00:00",
+ "author": "autolab"
+}
