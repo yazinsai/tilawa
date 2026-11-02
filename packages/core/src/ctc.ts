@@ -89,12 +89,18 @@ export class PosteriorFrames {
     return row;
   }
 
-  /** CTC negative log-likelihood, in nats, of `labels` (token ids, no blanks) over frames `[from, to)`. */
-  nll(labels: ArrayLike<number>, from: number, to: number): number {
+  /**
+   * CTC negative log-likelihood, in nats, of `labels` (token ids, no blanks) over frames `[from, to)`.
+   * `repeats` are inclusive label spans that may be said again: from the end of the span, the forward
+   * sum may re-enter its first label. The same arcs the alignment already uses to repeat a contiguous
+   * word or ayah. No filler loop. Omitted, the sum is the plain chain.
+   */
+  nll(labels: ArrayLike<number>, from: number, to: number, repeats?: ReadonlyArray<readonly [number, number]>): number {
     const L = labels.length;
     if (to <= from) return L ? Infinity : 0;
     const S = 2 * L + 1;
     const label = (s: number) => (s % 2 === 0 ? 0 : labels[(s - 1) >> 1]);
+    const back = repeatBack(repeats, L);
     let prev = new Float64Array(S).fill(-Infinity);
     let next = new Float64Array(S);
     const r0 = this.row(from);
@@ -106,6 +112,10 @@ export class PosteriorFrames {
         let a = prev[s];
         if (s > 0) a = logAdd(a, prev[s - 1]);
         if (s > 1 && s % 2 === 1 && label(s) !== label(s - 2)) a = logAdd(a, prev[s - 2]);
+        if (back && s % 2 === 1) {
+          const extra = back[(s - 1) >> 1];
+          for (let k = 0; k < extra.length; k++) a = logAdd(a, prev[extra[k]]);
+        }
         next[s] = a + row[label(s)];
       }
       [prev, next] = [next, prev];
@@ -113,6 +123,27 @@ export class PosteriorFrames {
     const end = L ? logAdd(prev[S - 1], prev[S - 2]) : prev[0];
     return -end;
   }
+}
+
+/** States that may re-enter each label, for contiguous repeat arcs. Null when there are none. */
+function repeatBack(repeats: ReadonlyArray<readonly [number, number]> | undefined, L: number): Int32Array[] | null {
+  if (!repeats?.length || !L) return null;
+  const S = 2 * L + 1;
+  const lists: number[][] = Array.from({ length: L }, () => []);
+  const seen: Set<number>[] = Array.from({ length: L }, () => new Set());
+  let any = false;
+  for (const [start, end] of repeats) {
+    if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < start || end >= L) continue;
+    const add = (state: number) => {
+      if (state < 0 || state >= S || state === 2 * start + 1 || seen[start].has(state)) return;
+      seen[start].add(state);
+      lists[start].push(state);
+      any = true;
+    };
+    add(2 * end + 1);
+    add(2 * end + 2);
+  }
+  return any ? lists.map((xs) => Int32Array.from(xs)) : null;
 }
 
 function logAdd(a: number, b: number): number {

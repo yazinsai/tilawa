@@ -8,7 +8,8 @@ import { issueDropFit } from "./tracker.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
 import { minGapFrames } from "./gap-decode.js";
-import { PHRASE_PEAK, PHRASE_SWITCH, parallelPaths } from "./parallel-phrases.js";
+import { absenceMargin } from "./ayah-ledger.js";
+import { PHRASE_PEAK, PHRASE_SWITCH, letterSkeleton, parallelPaths } from "./parallel-phrases.js";
 import { spanId, slotSpans } from "./slot-spans.js";
 
 export interface CheckerPolicy {
@@ -207,6 +208,22 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const watching = new Set<string>();
   /** Latest locked word. A span that the cursor has left falls back to the copy it is on. */
   let cursor = -1;
+  /**
+   * Ayahs the alignment has actually read, and ayahs the tracker has locked, so a never-read ayah between
+   * two committed locks can be judged by the closed read-versus-skip forward sum. Cleared when the lock drops.
+   */
+  interface AyahSpan { wordFrom: number; wordTo: number; frameFrom: number; frameTo: number }
+  const readAyah = new Map<number, AyahSpan>();
+  const lockedAyah = new Map<number, AyahSpan>();
+  /** Last ayah the lock finished, or the alignment read through. A flash of the next ayah does not move it. */
+  let settled = -1;
+  let lockSurah = -1;
+  let pendingGap: { left: number; right: number } | null = null;
+  const ledgerDone = new Set<number>();
+  /** Skips the fit already accepted. Re-asserted each window so a later alignment does not resolve them. */
+  const ledgerIssues = new Map<number, Issue>();
+  /** Obs index where the current push's phonemes start, so a new lock can own that chunk's frames. */
+  let chunkFrom = 0;
   /**
    * Held slot accusations whose phones commit already trimmed. A locked step would have decided them; they wait
    * for the copy. The same-copy release confirms them, a move to the other copy drops them.
@@ -548,13 +565,150 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       passage.from += delta;
       passage.to = Math.max(passage.from, passage.to + delta);
     }
+    clearLedger();
   };
 
   const dropAnchor = (out: CheckerEvent[]) => {
+    // A fit that already accepted a skip has its evidence. The lock leaving is the same as the passage ending.
+    for (const wi of [...ledgerIssues.keys()]) {
+      const o = open.get(wi);
+      ledgerIssues.delete(wi);
+      if (!o) continue;
+      open.delete(wi);
+      decided.add(wi);
+      out.push(event(o, sureOf(o) ? "confirmed" : "uncertain"));
+    }
     sealAll(out);
     anchor = null;
     furthest = -1;
     obs = obs.slice(-AFTER_DROP);
+    // Ayahs already read stay read, so the next lock can still close a gap this jump opened.
+  };
+
+  const clearLedger = () => {
+    readAyah.clear();
+    lockedAyah.clear();
+    settled = -1;
+    lockSurah = -1;
+    pendingGap = null;
+    ledgerIssues.clear();
+  };
+
+  const growSpan = (map: Map<number, AyahSpan>, ayah: number, word: number, frameFrom: number, frameTo: number) => {
+    const h = map.get(ayah);
+    if (!h) map.set(ayah, { wordFrom: word, wordTo: word, frameFrom, frameTo });
+    else {
+      h.wordFrom = Math.min(h.wordFrom, word);
+      h.wordTo = Math.max(h.wordTo, word);
+      h.frameFrom = Math.min(h.frameFrom, frameFrom);
+      h.frameTo = Math.max(h.frameTo, frameTo);
+    }
+  };
+
+  /** Letter identity of an ayah. A refrain copy occurs among its neighbours; a skipped unique ayah does not. */
+  const ayahText = (ayah: number) => {
+    let s = "";
+    for (let i = ayahFirst[ayah]; i <= ayahLast[ayah]; i++) s += `${letterSkeleton(index.wordText?.[i] ?? "")}\0`;
+    return s || ref.slice(words[ayahFirst[ayah]].start, words[ayahLast[ayah]].end);
+  };
+
+  const wordPhones = (from: number, to: number) => {
+    const out: string[] = [];
+    for (let i = from; i <= to; i++) out.push(ref.slice(words[i].start, words[i].end));
+    return out;
+  };
+
+  const spanFrames = (ayah: number) => readAyah.get(ayah) ?? lockedAyah.get(ayah);
+
+  /**
+   * Frames still needed for an open gap: the left neighbour's speech, until the skip-versus-read sum runs.
+   * Null when nothing is waiting, so the window drops frames as before.
+   */
+  const ledgerFloor = (): number | null => {
+    if (!pendingGap || !frames) return null;
+    const span = spanFrames(pendingGap.left);
+    return span ? span.frameFrom : null;
+  };
+
+  /** The tracker locked on `right` having come from `left`. Score once the right ayah is in, or the passage moves on. */
+  const closeGap = (out: CheckerEvent[], issues: Map<number, Issue>, left: number, right: number, force: boolean) => {
+    if (!frames || frames.startFrame < 0 || words[ayahFirst[left]].surah !== words[ayahFirst[right]].surah) return;
+    const rightLock = lockedAyah.get(right);
+    const rightRead = readAyah.get(right);
+    const wordTo = Math.max(rightLock?.wordTo ?? -1, rightRead?.wordTo ?? -1);
+    if (!force && wordTo < ayahLast[right] && settled <= right) return;
+    if (pendingGap && pendingGap.left === left && pendingGap.right === right) pendingGap = null;
+    const leftSpan = spanFrames(left);
+    const rightTo = Math.max(rightLock?.frameTo ?? 0, rightRead?.frameTo ?? 0);
+    if (!leftSpan || wordTo < ayahFirst[right] || rightTo <= leftSpan.frameFrom) return;
+    if (leftSpan.frameFrom < frames.startFrame || rightTo > frames.endFrame) return;
+    const leftTo = Math.max(leftSpan.wordTo, lockedAyah.get(left)?.wordTo ?? -1);
+    const leftWords = wordPhones(Math.max(ayahFirst[left], leftSpan.wordFrom), Math.min(ayahLast[left], leftTo));
+    const rightWords = wordPhones(ayahFirst[right], Math.min(ayahLast[right], wordTo));
+    const idOf = (p: string) => tokenId.get(p) ?? 0;
+    let at = 0;
+    const boundary = rightLock?.frameFrom ?? rightRead?.frameFrom ?? rightTo;
+    for (let i = 0; i < obs.length; i++) if (obs[i].start < boundary) at = i;
+    for (let a = left + 1; a < right; a++) {
+      if (ayahFinished(a) || ledgerDone.has(a)) continue;
+      if (ayahText(a) === ayahText(left) || ayahText(a) === ayahText(right)) continue;
+      const n = words.slice(ayahFirst[a], ayahLast[a] + 1).filter((w) => w.end > w.start).length;
+      if (n < 3) continue;
+      const margin = absenceMargin(frames, idOf, [leftWords, wordPhones(ayahFirst[a], ayahLast[a]), rightWords], 1, leftSpan.frameFrom, rightTo);
+      ledgerDone.add(a);
+      if (margin === null || margin < PHRASE_SWITCH) continue;
+      const wi = ayahFirst[a];
+      if (decided.has(wi) || heldSlot(wi)) continue;
+      const openIssue = open.get(wi);
+      if (openIssue && openIssue.issue.cls !== "wrong_word" && openIssue.issue.cls !== "omitted_word") continue;
+      const existing = issues.get(wi);
+      if (existing && existing.cls !== "wrong_word" && existing.cls !== "omitted_word") continue;
+      if (openIssue) {
+        open.delete(wi);
+        out.push(event(openIssue, "resolved"));
+      }
+      const issue: Issue = { cls: "skipped_passage", word: wi, last: ayahLast[a], obsFrom: at, obsTo: at };
+      ledgerIssues.set(wi, issue);
+      issues.set(wi, issue);
+    }
+  };
+
+  const keepLedger = (issues: Map<number, Issue>) => {
+    for (const [wi, issue] of [...ledgerIssues]) {
+      if (decided.has(wi) || ayahFinished(ayahOf[wi])) {
+        ledgerIssues.delete(wi);
+        continue;
+      }
+      // A wrong or omitted word on this ayah start is the skip misfiled. The fit already chose.
+      const now = issues.get(wi);
+      if (!now || now.cls === "wrong_word" || now.cls === "omitted_word") issues.set(wi, issue);
+    }
+  };
+
+  const ayahFinished = (ayah: number) =>
+    (lockedAyah.get(ayah)?.wordTo ?? -1) >= ayahLast[ayah] || (readAyah.get(ayah)?.wordTo ?? -1) >= ayahLast[ayah];
+
+  const noteLock = () => {
+    if (cursor < 0 || !obs.length) return;
+    const ayah = ayahOf[cursor];
+    const surah = words[ayahFirst[ayah]].surah;
+    const from = obs[Math.min(chunkFrom, obs.length - 1)]!;
+    const to = obs.at(-1)!;
+    growSpan(lockedAyah, ayah, cursor, from.start, to.end + 1);
+    if (surah !== lockSurah) {
+      settled = -1;
+      lockSurah = surah;
+      pendingGap = null;
+    }
+    if (settled < 0) {
+      if (ayahFinished(ayah)) settled = ayah;
+      return;
+    }
+    if (ayah > settled + 1 && pendingGap?.right !== ayah && words[ayahFirst[settled]].surah === surah
+      && ayah - settled <= AHEAD_AYAHS + 1) {
+      pendingGap = { left: settled, right: ayah };
+    }
+    if (ayahFinished(ayah) && ayah > settled) settled = ayah;
   };
 
   const setWindow = () => {
@@ -972,6 +1126,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (!counts(v) || v.word < anchor!) continue;
       last.set(v.word, v);
       if (!wrong(v)) right.add(v.word);
+    }
+    for (const v of visits) {
+      if (!counts(v) || wrong(v) || v.word < anchor! || v.obsFrom < 0 || v.obsTo <= v.obsFrom) continue;
+      growSpan(readAyah, ayahOf[v.word], v.word, obs[v.obsFrom].start, obs[v.obsTo - 1].end + 1);
     }
     if (recoverAdditions) {
       // Use whole-word pronunciations here: a cheap one-consonant substitution is tolerated by the
@@ -1421,12 +1579,22 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     setWindow();
     steps = align();
     const judged = judge(steps);
-    if (!judged) return;
-    steps = judged.steps;
-    const { issues, head, furthest: reached, right } = judged;
+    const beforeGap = pendingGap;
+    noteLock();
+    const issues = judged?.issues ?? new Map<number, Issue>();
+    if (beforeGap && (!pendingGap || beforeGap.left !== pendingGap.left || beforeGap.right !== pendingGap.right)) {
+      closeGap(out, issues, beforeGap.left, beforeGap.right, true);
+    }
+    if (pendingGap) closeGap(out, issues, pendingGap.left, pendingGap.right, final);
+    keepLedger(issues);
+    if (!judged && !issues.size) return;
+    if (judged) steps = judged.steps;
+    const head = judged?.head ?? cursor;
+    const reached = judged?.furthest ?? cursor;
+    const right = judged?.right ?? new Set<number>();
     // Use the final (possibly repaired) path and identical frames/context for both acoustic hypotheses. Unlike the
     // legacy path, a lexical candidate needs affirmative support; absent or indeterminate posteriors mean abstain.
-    for (const candidate of judged.lexical) if (supported(candidate, true) === true) {
+    if (judged) for (const candidate of judged.lexical) if (supported(candidate, true) === true) {
       issues.set(candidate.word, candidate);
       right.delete(candidate.word);
     }
@@ -1619,6 +1787,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const next = track(events, out);
       const before = obs.length;
       obs.push(...evidence.phonemes.map((p) => ({ ...p })));
+      chunkFrom = before;
       markPhrases(before);
       const lastPh = obs.at(-1);
       if (lastPh) nowMs = Math.max(nowMs, (lastPh.end + 1) * frameMs);
@@ -1626,7 +1795,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (anchor === null) {
         if (obs.length > HISTORY) obs = obs.slice(-HISTORY);
       } else evaluate(out, false);
-      if (frames && obs.length) frames.dropBefore(obs[0].start);
+      if (frames && obs.length) {
+        const floor = ledgerFloor();
+        frames.dropBefore(floor === null ? obs[0].start : Math.min(obs[0].start, floor));
+      }
       return out;
     },
     end(events = []) {
