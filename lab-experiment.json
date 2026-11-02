@@ -1,0 +1,13 @@
+{
+ "id": "checker-skip-edge-whole-ayah-fit",
+ "component": "checker",
+ "hypothesis": "A proposed skip can start too late when a unique ayah just before its start is counted as read only because a refrain word after it is bound to the source. In p24, 26:130 is never heard, but the warning fires at 26:131:2 and the real skip at 26:130:1 is missed. Re-decide the skip's start with a closed forward-sum fit that compares reading the adjacent whole ayah against skipping it. Predict checker -2 (the p24 miss and false-warning pair), overall -3; the third call, a p26 41:19:7 edge fix, is speculative and the floor is -2.",
+ "expected": {
+  "component": -2,
+  "overall": -3
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-02T22:45:36+00:00",
+ "author": "autolab"
+}
