@@ -1,0 +1,13 @@
+{
+ "id": "listener-multi-ayah-real-phone-corpus",
+ "component": "listener",
+ "hypothesis": "Phone wrong-word false warnings are stable consonant confusions in the shipped weights, which have only ever seen synthetic band-limiting. The one real-narrowband fine-tune cleared 7 of 8 targets but collapsed because it was trained on a single verse. Fine-tuning on a real narrowband corpus that covers many ayahs and reciters, mixed with the original data and anchored to the shipped model, should keep part of that gain without the collapse; predict 4 of 8 won, listener -4, overall -3 after losses.",
+ "expected": {
+  "component": -4,
+  "overall": -3
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-02T13:26:04+00:00",
+ "author": "autolab"
+}
