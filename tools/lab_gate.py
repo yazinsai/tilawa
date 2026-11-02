@@ -188,6 +188,16 @@ def surah_check(bs: dict, ns: dict) -> dict:
     return check("surah spread", -w["remaining"] >= SPREAD, f"without surah {w['left out']}: {w['remaining']:+d}", blocking=False, worst=w)
 
 
+def incident_key(x: dict) -> str:
+    return x.get("key") or "/".join(str(x.get(k, "")) for k in ("session", "variant", "kind", "word", "class"))
+
+
+def wins(base: dict, new: dict) -> list[str]:
+    """The phone incidents a run fixes against its base (recovered misses and removed false warnings), by key."""
+    phone = compare_incidents(practice(base), practice(new))["variants"]["phone"]
+    return sorted(incident_key(x) for x in phone["recoveries"] + phone["removedWarnings"])
+
+
 def collateral_check(b: dict, n: dict, bs: dict, inc: dict) -> dict:
     phone = inc["variants"]["phone"]
     clean_new = [w for w in phone["newWarnings"] if bs[w["session"]]["clean"]]
@@ -208,7 +218,8 @@ def collateral_check(b: dict, n: dict, bs: dict, inc: dict) -> dict:
         problems.append(f"a trade ({won} won, {lost} lost) needs a net gain of {TUNING_GAIN}")
     why = "; ".join(problems) or (f"{won} incidents won, {lost} lost; studio {studio:+d}"
                                   + (f"; real users {realuser:+d}" if realuser is not None else ""))
-    return check("collateral", not problems, why, cleanNewWarnings=len(clean_new), studio=studio, realuser=realuser, won=won, lost=lost)
+    return check("collateral", not problems, why, cleanNewWarnings=len(clean_new), studio=studio, realuser=realuser, won=won, lost=lost,
+                 wonKeys=sorted(incident_key(x) for x in phone["recoveries"] + phone["removedWarnings"]))
 
 
 def hygiene_check(diff: str | None) -> dict:

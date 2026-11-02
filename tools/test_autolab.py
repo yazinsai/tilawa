@@ -840,3 +840,69 @@ def test_an_arm_at_its_concurrency_cap_is_full(w):
     t = A.Tick(w, st, T0)
     assert t.arm_full({"name": "astra", "maxConcurrent": 2}) and not t.arm_full({"name": "astra", "maxConcurrent": 3})
     assert not t.arm_full({"name": "astra"}) and not t.arm_full({"name": "grok", "maxConcurrent": 1})
+
+
+def near_miss(st, id, change, won, component="tracker"):
+    e, _ = S.add(st, card(id, component=component), T0)
+    e["state"], e["branch"] = "discarded", f"exp/{id}"
+    e["results"] = {"branchRun": {"compare": {"overall": {"change": change}, component: {"change": change}}},
+                    "gate": {"checks": [{"name": "gain", "ok": False, "blocking": True, "why": "small"},
+                                        {"name": "collateral", "ok": True, "blocking": True, "why": "", "won": len(won), "lost": 0, "wonKeys": won}]}}
+    return e
+
+
+def test_two_near_misses_with_different_wins_are_stacked_and_skip_the_builder(w):
+    st = w.load()
+    near_miss(st, "tracker-a", -2, ["i1", "i2"])
+    near_miss(st, "tracker-b", -2, ["i3"])
+    near_miss(st, "tracker-c", -1, ["i1"])
+    st["lastPlanAt"] = "2999-01-01T00:00:00+00:00"
+    w.saved = st
+    st = tick(w)
+    stacks = [e for e in st["experiments"].values() if e["card"].get("stack")]
+    assert len(stacks) == 1 and stacks[0]["card"]["stack"] == ["tracker-a", "tracker-b"]
+    assert stacks[0]["card"]["expected"]["overall"] == -4 and stacks[0]["state"] == "accepted"
+    st = tick(w)
+    stacks = [e for e in st["experiments"].values() if e["card"].get("stack")]
+    assert len(stacks) == 1 and stacks[0]["state"] in ("validating", "scoring") and not (stacks[0].get("executor") or {}).get("handle")
+
+
+def test_near_misses_that_win_the_same_incidents_or_sum_to_noise_are_not_stacked(w):
+    st = w.load()
+    near_miss(st, "tracker-a", -2, ["i1"])
+    near_miss(st, "tracker-b", -2, ["i1"])
+    near_miss(st, "tracker-c", -1, ["i9"])
+    st["lastPlanAt"] = "2999-01-01T00:00:00+00:00"
+    w.saved = st
+    st = tick(w)
+    assert st["stacked"] == [["tracker-a", "tracker-c"]]
+
+
+def test_a_stack_merges_its_parts_and_keeps_its_own_card(tmp_path):
+    import subprocess
+    repo = tmp_path / "r"
+    g = lambda *a: subprocess.run(["git", *a], cwd=repo, check=True, capture_output=True, text=True).stdout.strip()  # noqa: E731
+    repo.mkdir()
+    g("init", "-q", "-b", "main"), g("config", "user.email", "t@t"), g("config", "user.name", "t")
+    (repo / "base.txt").write_text("x\n")
+    g("add", "-A"), g("commit", "-qm", "base")
+    card_path = repo / L.CARD
+    card_path.parent.mkdir(parents=True, exist_ok=True)
+    for part in ("a", "b"):
+        g("checkout", "-q", "-b", f"exp/{part}", "main")
+        card_path.write_text(json.dumps({"id": part}))
+        (repo / f"{part}.txt").write_text(part)
+        g("add", "-A"), g("commit", "-qm", f"Lab experiment {part} (tracker): x")
+    g("checkout", "-q", "-b", "exp/s", "main")
+    card_path.write_text(json.dumps({"id": "s"}))
+    g("add", "-A"), g("commit", "-qm", "Lab experiment s (tracker): stack")
+    st = S.empty("lab-v1.5")
+    for part in ("a", "b"):
+        st["experiments"][part] = {"branch": f"exp/{part}"}
+    e, _ = S.add(st, card("tracker-s", component="tracker", stack=["a", "b"]), T0)
+    S.move(st, e["id"], "accepted", T0)
+    e["worktree"] = str(repo)
+    t = A.Tick(A.World(A.DEFAULT_CONFIG, executor=object()), st, T0)
+    t.build_stack(e)
+    assert e["state"] == "validating" and (repo / "a.txt").exists() and (repo / "b.txt").exists()
+    assert json.loads(card_path.read_text()) == {"id": "s"} and not g("status", "--porcelain")

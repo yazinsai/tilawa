@@ -440,6 +440,7 @@ class Tick:
             for e in S.in_state(st, state):
                 self.guard(e, step)
         self.reviews()
+        self.stack()
         self.plan()
         self.ab()
         return self.events
@@ -750,6 +751,8 @@ class Tick:
                 out = {"branch": f"exp/{e['id']}", "worktree": str(wt)}  # an earlier tick made it, then its state save failed
             e["branch"], e["worktree"] = out["branch"], out["worktree"]
             w.exclude(".autolab/")
+        if c.get("stack"):
+            return self.build_stack(e)
         arm = self.arm_of(e)
         if self.arm_full(arm):
             others = [a for a in self.arms() if a["name"] != arm["name"] and not self.arm_full(a) and X.weights(self.w.cfg).get(a["name"], 1) > 0]
@@ -759,6 +762,84 @@ class Tick:
             else:
                 return
         self.start_executor(e, e["results"].pop("feedback", ""))
+
+    # stacks: two near misses that win different incidents, merged and scored as one experiment (no builder)
+    def near_misses(self) -> list[dict]:
+        """Discarded experiments that measured -1 or -2 on their branch, lost no incident, and failed only on size (the
+        gain bar, or the reader spread that a gain this small can't clear); their branches still exist."""
+        st, out = self.st, []
+        broken = {k for ks in P.incidents(self.w.report(st["main"]["run"])).values() for k in ks} if (st.get("main") or {}).get("run") else set()
+        used = {p for x in st["experiments"].values() if x["card"].get("stack") and x["state"] not in ("discarded", "abandoned", "superseded")
+                for p in x["card"]["stack"]}
+        for e in st["experiments"].values():
+            r = e.get("results") or {}
+            change = (((r.get("branchRun") or {}).get("compare") or {}).get("overall") or {}).get("change")
+            checks = {c["name"]: c for c in (r.get("gate") or {}).get("checks", [])}
+            col = checks.get("collateral") or {}
+            failed = {n for n, c in checks.items() if c["blocking"] and not c["ok"]}
+            if (e["state"] != "discarded" or change not in (-1, -2) or col.get("lost") or not col.get("won") or not failed <= {"gain", "spread"}
+                    or e["id"] in used or r.get("model") or not e.get("branch")
+                    or not self.w.git("rev-parse", "--verify", "--quiet", e["branch"], check=False)):
+                continue
+            if "wonKeys" not in col:
+                try:
+                    col["wonKeys"] = G.wins(self.w.report(r["branchRun"]["base"]), self.w.report(r["branchRun"]["run"]))
+                except (KeyError, ValueError, TypeError, Stop):
+                    continue
+            still = set(col["wonKeys"]) & broken  # wins a later fold already took are not this branch's any more
+            if not still:
+                continue
+            out.append({"id": e["id"], "change": -len(still) if len(still) < -change else change, "won": still, "component": e["card"]["component"],
+                        "compare": r["branchRun"]["compare"]})
+        return out
+
+    def stack(self):
+        """One new stack per tick, when a slot is free: the pair of near misses with disjoint wins and the largest summed
+        change that hasn't been stacked before."""
+        st, w = self.st, self.w
+        if not st.get("main") or S.over_cap(st, w.cfg["caps"], self.at) or len(S.active(st)) >= w.cfg["slots"]:
+            return
+        tried = {tuple(p) for p in st.setdefault("stacked", [])}
+        nm = self.near_misses()
+        pairs = sorted(((a["change"] + b["change"], a, b) for i, a in enumerate(nm) for b in nm[i + 1:]
+                        if not a["won"] & b["won"] and tuple(sorted((a["id"], b["id"]))) not in tried), key=lambda x: (x[0], x[1]["id"]))
+        if not pairs or pairs[0][0] > -3:
+            return
+        total, a, b = pairs[0]
+        comp = "listener" if "listener" in (a["component"], b["component"]) else (a if a["change"] <= b["change"] else b)["component"]
+        ca, cb = (st["experiments"][x["id"]]["card"] for x in (a, b))
+        key = tuple(sorted((a["id"], b["id"])))
+        card = {"id": f"{comp}-stack-{hashlib.sha1('+'.join(key).encode()).hexdigest()[:6]}", "component": comp, "tier": "exploit",
+                "hypothesis": f"Stack {a['id']} ({a['change']:+d}) and {b['id']} ({b['change']:+d}): each won different incidents and lost none, "
+                              f"so together they should clear the fold bar; predict overall {total:+d}.",
+                "eli5": "Two small fixes that each helped a little, tried together.",
+                "mechanism": f"{ca['hypothesis'][:400]} | {cb['hypothesis'][:400]}", "cluster": ca.get("cluster") or cb.get("cluster"),
+                "targets": sorted(a["won"] | b["won"]),
+                "expected": {"component": sum(x["compare"].get(comp, {}).get("change", 0) for x in (a, b)), "overall": total},
+                "killCriterion": "the stack measures above -3 overall or loses an incident", "stack": list(key)}
+        st["stacked"].append(list(key))
+        self.add(card)
+        e = st["experiments"][card["id"]]
+        self.move(e, "accepted", f"stack of near misses {key[0]} and {key[1]}; no judge or builder: their branches are merged")
+
+    def build_stack(self, e):
+        w, wt = self.w, e["worktree"]
+        for part in e["card"]["stack"]:
+            branch = self.st["experiments"][part]["branch"]
+            p = subprocess.run(["git", "merge", "--no-edit", "-q", branch], cwd=wt, capture_output=True, text=True)
+            if p.returncode:
+                bad = [f for f in w.git("diff", "--name-only", "--diff-filter=U", cwd=wt, check=False).splitlines() if f != L.CARD]
+                if bad:
+                    subprocess.run(["git", "merge", "--abort"], cwd=wt, capture_output=True)
+                    return self.discard(e, f"stack: merging {part} conflicts in {', '.join(bad[:5])}")
+                w.git("checkout", "--ours", "--", L.CARD, cwd=wt)
+                w.git("add", L.CARD, cwd=wt)
+                w.git("commit", "-q", "--no-edit", cwd=wt)
+            elif w.git("diff", "--name-only", "HEAD~1", "HEAD", "--", L.CARD, cwd=wt, check=False):
+                w.git("checkout", "HEAD~1", "--", L.CARD, cwd=wt)
+                w.git("commit", "-q", "-m", f"autolab: keep the {e['id']} card", cwd=wt)
+        e["results"]["stackedAt"] = self.at
+        self.move(e, "validating", f"merged {' and '.join(e['card']['stack'])}")
 
     def arm_full(self, arm: dict) -> bool:
         """An arm at its `maxConcurrent` builders (a model quota, e.g. Azure tokens per minute): the card waits for it
