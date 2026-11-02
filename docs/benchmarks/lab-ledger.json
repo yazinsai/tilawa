@@ -2654,7 +2654,7 @@
   },
   {
    "kind": "main",
-   "at": "2026-11-02T18:53:04+00:00",
+   "at": "2026-11-02T18:53:09+00:00",
    "sha": "5dc0efc7",
    "testSet": "lab-v1.5",
    "experiment": "checker-surplus-spelled-lexicon-word-r",
@@ -2671,7 +2671,7 @@
   },
   {
    "kind": "experiment",
-   "at": "2026-11-02T18:53:04+00:00",
+   "at": "2026-11-02T18:53:09+00:00",
    "id": "checker-surplus-spelled-lexicon-word-r",
    "component": "checker",
    "hypothesis": "Seam additions are often spelled out whole in the greedy string (قبلهم, قليلا, وقفوهم in the unlocked-gap trace), but every judge so far re-scored them on diluted posteriors or let restart arcs explain them. Confirm an added word when surplus speech before word 1's complete in-order visit spells, with zero hard edits, a mushaf word of 2 or more consonants that is not a neighbour or a neighbour prefix. Predict 3 of 16 won, checker -3, overall -2 (floor -1).",
@@ -2697,6 +2697,183 @@
      "falseWarnings": 21,
      "listener": 41,
      "tracker": 6,
+     "checker": 13
+    },
+    "exam": null
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-02T18:56:15+00:00",
+   "id": "tracker-first-lock-twin-continuation",
+   "component": "tracker",
+   "hypothesis": "The continuation resolver fixed both p25 name warnings but lost 3 practice incidents and 3 studio calls, plausibly because it also held and re-judged slot-differing refrain spans mid-session, where the lock already had unique context. Fire it only on the first lock of a session, before that lock has heard any location-unique word. Keep the branch stacked. Predict tracker −4, overall −4 (p25 ×2 plus the branch's 2), with 0 lost.",
+   "expected": {
+    "component": -4,
+    "overall": -4
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "autolab gate: overall +2 (needs -3 or better), tracker -6 (needs +2 or better); without reader mp3quran-70: +4 (needs -1 or better); studio +12; 6 incidents lost against 4 won",
+   "branch": {
+    "wrongCalls": 62,
+    "missed": 43,
+    "falseWarnings": 19,
+    "listener": 38,
+    "tracker": 0,
+    "checker": 24
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 62,
+     "missed": 43,
+     "falseWarnings": 19,
+     "listener": 38,
+     "tracker": 0,
+     "checker": 24
+    },
+    "exam": null
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-02T19:14:52+00:00",
+   "id": "listener-voiced-dual-ear-word1-adds",
+   "component": "listener",
+   "hypothesis": "The relabelled student hears 4 of 7 added words that the shipped model blanks or folds into word 1, but it also emits phones in silent pauses, and gap-only consults cannot reach p33 or p56. Run it as a second full-session ear, accept its extra word-shaped spans anywhere in the word-1 window, and keep only spans that a raw-audio voicing detector finds voiced. Predict listener -3, overall -2 (upside -4).",
+   "expected": {
+    "component": -3,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: The maximum voiced fraction of gold-excluded clean-match pauses where the relabel ear emits phones is 1.0, so a gate strictly above that cut keeps none of the four target additions. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-02T19:28:52+00:00",
+   "id": "checker-mid-ayah-spelled-surplus",
+   "component": "checker",
+   "hypothesis": "All 5 remaining checker added-word misses are mid-ayah (38:4:6, 37:102:16, 37:113:5, 9:65:8, 11:10:11), and the just-folded spelled-surplus rule only fires before word 1 at ayah seams. Apply the same rule at every inner word boundary where both neighbours have complete in-order visits. Predict 3 of 5 won: checker −3, overall −3.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Only 1 of 5 mid-ayah targets has speech before the next word's complete in-order visit that spells a non-neighbour mushaf word under soft costs. (measured: {\"targets won\": 1})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-02T19:41:48+00:00",
+   "id": "checker-spelled-surplus-before-w1w2-fit",
+   "component": "checker",
+   "hypothesis": "Two separately killed rules each caught seam additions on engine input, and each was killed by a different clean seam: surplus spelling won 10 of 16 but flagged p15 تبع, and the retimed word-1 step won 5 of 5 but would have flagged p02's restart of 26:87. Confirm an added word only when the surplus before word 1 spells a non-neighbour mushaf word and also ends before the first zero-cost in-order fit of word 1 plus word 2, excluding contiguous back-runs that end at the previous ayah's last word. Predict 3 of 5 won, checker -3, overall -3 (floor -2).",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +0 (needs -3 or better), checker +1 (needs +2 or better); without reader mp3quran-294: +1 (needs -1 or better); studio +4; 1 incidents lost against 1 won",
+   "branch": {
+    "wrongCalls": 60,
+    "missed": 39,
+    "falseWarnings": 21,
+    "listener": 40,
+    "tracker": 6,
+    "checker": 14
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-02T20:19:36+00:00",
+   "id": "listener-cropped-gap-lexical-spell",
+   "component": "listener",
+   "hypothesis": "Inserted words that the folded cropped gap decode already hears (p07 37:36:1 and p33 26:208:1, plus the 3 seam misses recharged to the listener by the spelled-surplus fold) are lost because their cropped phones are judged by the support-margin gap confirmation, which never emitted even a perfect synthetic insert. Emit a cropped-gap span through the folded lexical spell test (a whole non-neighbour mushaf word under soft costs only, not a contiguous back-run) instead; predict 3 of 5 won, listener -3, overall -3.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: None of the 5 cropped gaps spells a whole non-neighbour mushaf word under soft costs: p07 is fal, p33's pause is 200 ms with farim beside it, both p57 crops are wabl fragments, and p50's gap is empty. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-02T20:35:36+00:00",
+   "id": "checker-learned-seam-token-tagger",
+   "component": "checker",
+   "hypothesis": "Seam additions keep the inserted word spelled whole in the engine's greedy tokens (10 of 16; 5 of 5 in the retimed-step trace). Every hand rule using that fact died on one clean long-tail seam: p15 تبع noise spelling, p02 whole-ayah restart. Replace the rule with a small sequence tagger trained on engine tokens from gold-excluded seams, calibrated to zero fires on real clean seams. Predict 3 of 6 targets won, checker -3, overall -3.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +33 (needs -3 or better), checker +30 (needs +2 or better); without reader mp3quran-198: +33 (needs -1 or better); 11 new false warning(s) on fully clean sessions; studio +38; 34 incidents lost against 1 won",
+   "branch": {
+    "wrongCalls": 93,
+    "missed": 41,
+    "falseWarnings": 52,
+    "listener": 45,
+    "tracker": 5,
+    "checker": 43
+   },
+   "rebased": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-02T20:58:36+00:00",
+   "sha": "917f34ab",
+   "testSet": "lab-v1.5",
+   "experiment": "tracker-first-lock-twin-rebased",
+   "note": "The guarded first-lock continuation won all 4 tracker targets, but its rebase lost exactly the 6 incidents and 12 studio calls that the just-folded seam spelled-surplus rule had won, so the branch is undoing that fold rather than failing on its own. Re-land the guard and issue-explains-drop on current main with the folded seam rule intact and fed the same word-1 window tokens. Predict tracker −4 (−6 with the two recharged added-word misses), overall −4, 0 lost.; practice-only fold, exam not measured",
+   "practice": {
+    "wrongCalls": 56,
+    "missed": 37,
+    "falseWarnings": 19,
+    "listener": 41,
+    "tracker": 2,
+    "checker": 13
+   },
+   "exam": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-02T20:58:36+00:00",
+   "id": "tracker-first-lock-twin-rebased",
+   "component": "tracker",
+   "hypothesis": "The guarded first-lock continuation won all 4 tracker targets, but its rebase lost exactly the 6 incidents and 12 studio calls that the just-folded seam spelled-surplus rule had won, so the branch is undoing that fold rather than failing on its own. Re-land the guard and issue-explains-drop on current main with the folded seam rule intact and fed the same word-1 window tokens. Predict tracker −4 (−6 with the two recharged added-word misses), overall −4, 0 lost.",
+   "expected": {
+    "component": -4,
+    "overall": -4
+   },
+   "state": "folded",
+   "testSet": "lab-v1.5",
+   "note": "keeps its overall and tracker gain",
+   "branch": {
+    "wrongCalls": 56,
+    "missed": 37,
+    "falseWarnings": 19,
+    "listener": 41,
+    "tracker": 2,
+    "checker": 13
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 56,
+     "missed": 37,
+     "falseWarnings": 19,
+     "listener": 41,
+     "tracker": 2,
      "checker": 13
     },
     "exam": null
