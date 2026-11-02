@@ -1,0 +1,13 @@
+{
+ "id": "listener-untranscribed-speech-relabel",
+ "component": "listener",
+ "hypothesis": "The student was trained on gold-excluded recitations whose canonical transcripts give nothing to real off-text speech (restarts, repeated phrases, isti'adha, corrections at waqf pauses), so CTC and KD reward blank on exactly the extra speech planted additions are made of. Mine those untranscribed speech stretches, relabel the confident ones with teacher free-decoded phones, mask the rest, and fine-tune with the same recipe; predict 3 of 11 won, listener -3, overall -3 (honest floor -2).",
+ "expected": {
+  "component": -3,
+  "overall": -3
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-02T02:47:44+00:00",
+ "author": "autolab"
+}
