@@ -1,0 +1,13 @@
+{
+ "id": "checker-ayah-absence-ledger",
+ "component": "checker",
+ "hypothesis": "Unique ayahs skipped between refrain copies (26:109, 55:29, 77:33, 26:130) are never accused, because skip detection only judges text the alignment bound, and a heard refrain can always bind to some copy. Add an ayah ledger plus a whole-ayah keyword-spotting decode on the stored posteriors that asks whether each never-windowed ayah's own text was spoken anywhere between its committed neighbours, and emit a skip when it was not. Predict 3 of 4 won: checker -3, overall -3 (-4 if the p16 77:33:1 wrong-word warning is re-keyed into the skip, speculative).",
+ "expected": {
+  "component": -3,
+  "overall": -3
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-02T04:07:44+00:00",
+ "author": "autolab"
+}
