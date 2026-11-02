@@ -97,6 +97,14 @@ const FITS_PASSAGE = 0.35;
 /** Nats by which the decoded words must beat the written ones over the local window for the error to stand. */
 const SUPPORT = 10;
 /**
+ * Extra nats, above a phone-loop filler, past which a never-bound ayah was not spoken between its
+ * committed neighbours. A recited ayah's own sequence sits on the frames that already favour its
+ * phones, so the extra cost stays under a nat; the gap left by an unsaid ayah is shorter than the
+ * sequence, or the sequence has to be forced onto other speech at several nats a phone. The same
+ * margin as `SUPPORT`. The unit is the whole ayah: a per-word margin under 2 nats does not separate them.
+ */
+const ABSENCE = SUPPORT;
+/**
  * A wrong word whose changed sounds the decoder heard below this mean confidence must win by twice the margin: on
  * degraded audio a confusable sound (ن for م, ف for ك) is heard at even odds with blank, yet a few of them sum past it.
  */
@@ -242,17 +250,36 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const open = new Map<number, Open>();
   /** Words whose error was confirmed or ended uncertain; never reopened. */
   const decided = new Set<number>();
+  /** Ayah ordinals the alignment has bound (a counting visit). */
+  const bound = new Set<number>();
+  /** Skips the alignment did not raise; kept out of `open` so a later alignment pass cannot resolve them. */
+  const pendingAbsence: Open[] = [];
+  /** Word the absence ledger has scanned up to. */
+  let ledgerAt = -1;
+  let jumpFrom: number | null = null;
+  let jumpF0 = -1;
+  /** End frame of the last visit of each ayah, captured before a jump drops the window. */
+  let jumpVisits: Map<number, number> | null = null;
+  const visitEnds = () => {
+    const m = new Map<number, number>();
+    for (const s of steps) if (s.op === "diag" && s.obs >= 0 && s.obs < obs.length) {
+      const ay = ayahOf[index.wordAt(s.ref)];
+      const frame = obs[s.obs].end;
+      if (frame > (m.get(ay) ?? -1)) m.set(ay, frame);
+    }
+    return m;
+  };
   const emitted: CheckerEvent[] = [];
   let seq = 0;
 
-  const event = (o: Open, state: CheckerState): CheckerEvent => {
+  const event = (o: Open, state: CheckerState, at = nowMs): CheckerEvent => {
     const { issue } = o;
     const conf = clarity(issue);
     const e: CheckerEvent = {
       type: "checker",
       v: EVENT_SCHEMA_VERSION,
       id: o.id,
-      timeMs: nowMs,
+      timeMs: at,
       state,
       errorClass: issue.cls,
       location: toRef(issue.word),
@@ -273,7 +300,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   const decide = (o: Open, out: CheckerEvent[], state?: "uncertain") => {
-    open.delete(o.issue.word);
+    if (open.get(o.issue.word) === o) open.delete(o.issue.word);
     decided.add(o.issue.word);
     const sure = ((declared && !latched) || trackerLocked) && clarity(o.issue) >= minConfidence && supported(o.issue) !== false;
     out.push(event(o, state ?? (sure ? "confirmed" : "uncertain")));
@@ -354,6 +381,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   const dropAnchor = (out: CheckerEvent[]) => {
+    jumpFrom = anchor;
+    jumpF0 = obs.length ? obs[0].start : -1;
+    jumpVisits = anchor !== null && obs.length ? visitEnds() : null;
     for (const o of [...open.values()]) {
       open.delete(o.issue.word);
       decided.add(o.issue.word);
@@ -369,6 +399,66 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     lo = words[ayahFirst[Math.max(0, a - 1)]].start;
     const f = ayahOf[Math.max(anchor!, furthest)];
     hi = words[ayahLast[Math.min(ayahLast.length - 1, f + AHEAD_AYAHS)]].end;
+  };
+
+  /**
+   * Ayahs between two committed words that the alignment never bound. A refrain copy can absorb the
+   * heard line, so the skipped ayah is inside the search window and still has no visit. Its own phone
+   * sequence, entered anywhere on the frames between those words, is scored against a phone-loop filler.
+   * The filler winning is a skip at the ayah's first word, through the ordinary confirm rules.
+   */
+  const spotAbsences = (fromWord: number, toWord: number, f0: number, f1: number, out: CheckerEvent[], final: boolean, jump: boolean) => {
+    if (!frames || frames.startFrame < 0 || fromWord < 0 || toWord <= fromWord) return;
+    if (words[fromWord].surah !== words[toWord].surah) return;
+    const leftPh = ref.slice(words[ayahFirst[ayahOf[fromWord]]].start, words[ayahLast[ayahOf[fromWord]]].end);
+    const rightPh = ref.slice(words[ayahFirst[ayahOf[toWord]]].start, words[ayahLast[ayahOf[toWord]]].end);
+    const a0 = Math.max(f0, frames.startFrame);
+    const b0 = Math.min(f1, frames.endFrame);
+    const lost = f0 < frames.startFrame;
+    for (let ay = ayahOf[fromWord] + 1; ay < ayahOf[toWord]; ay++) {
+      if (bound.has(ay)) continue;
+      const first = ayahFirst[ay];
+      const last = ayahLast[ay];
+      const n = words.slice(first, last + 1).filter((w) => w.end > w.start).length;
+      if (n < 3) continue;
+      const phones = ref.slice(words[first].start, words[last].end);
+      if (!phones || leftPh.includes(phones) || rightPh.includes(phones)) continue;
+      const labels = [...phones].map((p) => tokenId.get(p) ?? 0);
+      let cost = Infinity;
+      if (!lost && b0 - a0 >= labels.length) cost = frames.keywordExtra(labels, a0, b0);
+      else if (lost) continue;
+      const filler = cost > ABSENCE;
+      const ends = jump && jumpVisits ? jumpVisits : visitEnds();
+      let edge = -1;
+      for (const [a, frame] of ends) if (a < ay && frame > edge) edge = frame;
+      // The last matched frame of the ayah before the hole still belongs to that ayah. The frame's end
+      // is the next boundary, which can fall past the labelled word; its start is inside the word.
+      const at = edge >= 0 ? edge * frameMs : nowMs;
+      if (!filler) continue;
+      if (emitted.some((e) => e.errorClass === "skipped_passage" && e.location.surah === words[first].surah && e.location.ayah === words[first].ayah)) continue;
+      const tail = Math.max(0, obs.length - 4);
+      const issue: Issue = { cls: "skipped_passage", word: first, last, obsFrom: tail, obsTo: Math.max(tail + 1, obs.length) };
+      raiseAbsence(issue, out, final, toWord, at);
+    }
+  };
+
+  const settleAbsence = (o: Open, out: CheckerEvent[], final: boolean, toWord: number) => {
+    const past = toWord >= 0 && ayahOf[toWord] >= ayahOf[o.issue.last] + 2;
+    if (!past && !final) return;
+    const at = pendingAbsence.indexOf(o);
+    if (at >= 0) pendingAbsence.splice(at, 1);
+    if (obs.length) o.issue = { ...o.issue, obsFrom: Math.max(0, obs.length - 4), obsTo: obs.length };
+    decide(o, out, past ? undefined : "uncertain");
+  };
+
+  const raiseAbsence = (issue: Issue, out: CheckerEvent[], final: boolean, toWord: number, at: number) => {
+    const ay = ayahOf[issue.word];
+    if (pendingAbsence.some((o) => ayahOf[o.issue.word] === ay)) return;
+    for (let w = issue.word; w <= issue.last; w++) if (open.get(w)?.issue.cls === "skipped_passage") return;
+    const o: Open = { id: `${words[issue.word].surah}:${words[issue.word].ayah}:${words[issue.word].word}#${++seq}`, issue, sinceMs: nowMs };
+    pendingAbsence.push(o);
+    out.push(event(o, "suspected", at));
+    settleAbsence(o, out, final, toWord);
   };
 
   /** Per-window cost tables: every cell cost depends only on the window position and the heard phoneme. */
@@ -691,7 +781,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   /** The errors the current alignment shows, by word; and where it stands. */
-  const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; lexical: Issue[]; head: number; furthest: number; steps: Step[]; right: Set<number> } | null => {
+  const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; lexical: Issue[]; head: number; furthest: number; steps: Step[]; right: Set<number>; seen: number[] } | null => {
     const visits: Visit[] = [];
     const added: Issue[] = [];
     let cur: Visit | null = null;
@@ -1078,7 +1168,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         supportRange: [from, to], pair: seq, pairOnset: true,
       });
     }
-    return { issues, lexical: candidates, head, furthest: reached, steps, right };
+    return { issues, lexical: candidates, head, furthest: reached, steps, right, seen };
   };
 
   /** Matched phonemes on the word after an error, heard after it: the next word has begun. */
@@ -1192,7 +1282,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const judged = judge(steps);
     if (!judged) return;
     steps = judged.steps;
-    const { issues, head, furthest: reached, right } = judged;
+    const { issues, head, furthest: reached, right, seen } = judged;
+    for (const w of seen) bound.add(ayahOf[w]);
     // Use the final (possibly repaired) path and identical frames/context for both acoustic hypotheses. Unlike the
     // legacy path, a lexical candidate needs affirmative support; absent or indeterminate posteriors mean abstain.
     for (const candidate of judged.lexical) if (supported(candidate, true) === true) {
@@ -1244,6 +1335,22 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       passage.from = Math.max(passage.from, ayahFirst[Math.max(0, ayahOf[anchor] - 1)]);
       passage.to = Math.max(passage.to, furthest, anchor);
     }
+    if (anchor !== null && seen.length) {
+      const tip = Math.max(...seen);
+      if (ledgerAt < 0) ledgerAt = anchor;
+      if (tip > ledgerAt) {
+        let f0 = Infinity;
+        let f1 = -1;
+        for (const s of steps) if (s.op === "diag") {
+          const w = index.wordAt(s.ref);
+          if (w === ledgerAt) f0 = Math.min(f0, obs[s.obs].start);
+          if (w === tip) f1 = Math.max(f1, obs[s.obs].end + 1);
+        }
+        if (f0 < Infinity && f1 > f0) spotAbsences(ledgerAt, tip, f0, f1, out, final, false);
+        ledgerAt = tip;
+      }
+    }
+    for (const o of [...pendingAbsence]) settleAbsence(o, out, final, furthest);
     if (!final && obs.length > MAX_WINDOW) commit(steps, out);
   };
 
@@ -1327,13 +1434,24 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   /** Start aligning: from the declared passage, or where the tracker locked. */
-  const anchorOn = (next: number | null, events: EngineEvent[]) => {
+  const anchorOn = (next: number | null, events: EngineEvent[], out: CheckerEvent[]) => {
+    const land = (dest: number) => {
+      if (jumpFrom !== null && jumpFrom !== dest && jumpF0 >= 0 && obs.length) {
+        spotAbsences(jumpFrom, dest, jumpF0, obs[obs.length - 1].end + 1, out, false, true);
+      }
+      jumpFrom = null;
+      jumpF0 = -1;
+      ledgerAt = dest;
+    };
     if (anchor === null && next === null && declared && obs.length) {
-      anchor = passage!.from;
+      const dest = passage!.from;
+      land(dest);
+      anchor = dest;
       lead = obs.length;
       fromLock = false;
       furthest = -1;
     } else if (anchor === null && next !== null) {
+      land(next);
       anchor = next;
       const end = events.filter((e): e is PositionEvent => e.type === "position").at(-1)!.observed[0].word;
       const span = words[wordIndex(end)].end - words[next].start;
@@ -1354,7 +1472,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       markPhrases(before);
       const lastPh = obs.at(-1);
       if (lastPh) nowMs = Math.max(nowMs, (lastPh.end + 1) * frameMs);
-      anchorOn(next, events);
+      anchorOn(next, events, out);
       if (anchor === null) {
         if (obs.length > HISTORY) obs = obs.slice(-HISTORY);
       } else evaluate(out, false);
@@ -1363,7 +1481,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     },
     end(events = []) {
       const out: CheckerEvent[] = [];
-      anchorOn(track(events, out), events);
+      anchorOn(track(events, out), events, out);
       evaluate(out, true);
       return out;
     },

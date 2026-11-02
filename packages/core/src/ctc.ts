@@ -113,6 +113,44 @@ export class PosteriorFrames {
     const end = L ? logAdd(prev[S - 1], prev[S - 2]) : prev[0];
     return -end;
   }
+
+  /**
+   * Extra nats, above a phone-loop filler, of the best path that utters `labels` somewhere in frames
+   * `[from, to)`. The filler pays nothing: each frame keeps its best token. The keyword is a CTC
+   * sequence entered at any frame and left at any later frame; every other frame stays on the filler.
+   * Infinity when the sequence cannot be placed.
+   */
+  keywordExtra(labels: ArrayLike<number>, from: number, to: number): number {
+    const L = labels.length;
+    if (!L || to - from < L) return L ? Infinity : 0;
+    const S = 2 * L + 1;
+    const tokenAt = (s: number) => (s % 2 === 0 ? 0 : labels[(s - 1) >> 1]);
+    let prev = new Float64Array(S).fill(Infinity);
+    let next = new Float64Array(S);
+    let best = Infinity;
+    for (let f = from; f < to; f++) {
+      const row = this.row(f);
+      let top = row[0];
+      for (let i = 1; i < row.length; i++) if (row[i] > top) top = row[i];
+      const extra = (k: number) => Math.max(0, top - row[k]);
+      next.fill(Infinity);
+      // Filler so far, then enter the sequence on this frame.
+      next[0] = extra(0);
+      next[1] = extra(labels[0]);
+      for (let s = 0; s < S; s++) {
+        let src = prev[s];
+        if (s > 0 && prev[s - 1] < src) src = prev[s - 1];
+        if (s > 1 && s % 2 === 1 && tokenAt(s) !== tokenAt(s - 2) && prev[s - 2] < src) src = prev[s - 2];
+        if (src === Infinity) continue;
+        const cost = src + extra(tokenAt(s));
+        if (cost < next[s]) next[s] = cost;
+      }
+      const done = next[S - 1] < next[S - 2] ? next[S - 1] : next[S - 2];
+      if (done < best) best = done;
+      [prev, next] = [next, prev];
+    }
+    return best;
+  }
 }
 
 function logAdd(a: number, b: number): number {

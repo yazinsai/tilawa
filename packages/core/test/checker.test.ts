@@ -199,6 +199,26 @@ describe("skips", () => {
     expect(summary(recite(true))).toEqual(["confirmed skipped_passage 26:103:1"]);
   });
 
+  it("warns when a whole ayah between two committed words was never spoken", () => {
+    // 26:108 and 26:110 are the same refrain. Dropping 26:109 leaves no visit on it; the refrain
+    // audio is too short to carry 26:109, so the filler wins and the skip is the ayah's first word.
+    const start = w(26, 107, 1);
+    const to = w(26, 112, 3);
+    const ayah = find(w(26, 109, 1));
+    const ayahEnd = find(w(26, 109, 11));
+    const skipped: Edit[] = [{ kind: "del", at: ayah.start - find(start).start, count: ayahEnd.end - ayah.start }];
+    const play = (edits: Edit[]) => {
+      const fixture = syntheticFixture(index, { id: "c", from: start, to, edits, chunkSize: 8 });
+      const checker = createChecker(index, { passage: { from: start, to } });
+      const events: CheckerEvent[] = [];
+      for (const evidence of fixture.evidence) events.push(...checker.push(withPosteriors(index, evidence), []));
+      events.push(...checker.end());
+      return confirmed(events);
+    };
+    expect(summary(play(skipped))).toContain("confirmed skipped_passage 26:109:1");
+    expect(play([])).toEqual([]);
+  });
+
   it("does not warn when the same pause is just the end of an ayah", () => {
     const start = w(26, 102, 1);
     const to = w(26, 105, 4);
