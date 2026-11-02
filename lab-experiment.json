@@ -1,0 +1,13 @@
+{
+ "id": "tracker-issue-explains-drop",
+ "component": "tracker",
+ "hypothesis": "The folded hold fix downgrades every issue that is open at the lock drop, so the planted omission 54:36:4 (p46) and swap 9:3:21 (p66) stay uncertain alongside the false 26:221:5 and 54:37:2. Keep an open issue only when applying its own edit makes the heard words after it fit the anchor text again, meaning the issue explains the drop; otherwise downgrade as today. Predict tracker -2, overall -2 (honest; below the gate alone).",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-02T09:39:26+00:00",
+ "author": "autolab"
+}
