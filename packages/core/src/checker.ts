@@ -8,6 +8,8 @@ import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
 import { minGapFrames } from "./gap-decode.js";
 import { PHRASE_PEAK, PHRASE_SWITCH, parallelPaths } from "./parallel-phrases.js";
+import { ayahSeamGeoms, scoreSeam, seamThreshold } from "./seam-tagger.js";
+import type { SeamGeom, SeamToken } from "./seam-tagger.js";
 
 export interface CheckerPolicy {
   /** When a suspected wrong or added word is confirmed: after `ms` (2–3 s), or once the next word has begun. Default 2500 ms. */
@@ -34,6 +36,13 @@ export interface CheckerOptions {
   policy?: CheckerPolicy;
   /** Non-Quran phrases: an inserted block that is one of these (or a basmala) is not an added word. */
   phrases?: PhraseAsset;
+  /**
+   * Replaces the trained seam tagger. Return a score in `[0, 1]`; at an ayah seam a score of at least 0.5 confirms
+   * an added word without the 10-nat margin. Tests use this. Production leaves it unset.
+   */
+  seamScore?: (tokens: SeamToken[], span: readonly [number, number]) => number;
+  /** Called for every ayah seam that already passes the added-word shape and non-Quran checks, before the score gate. */
+  seamTrace?: (geom: SeamGeom) => void;
   /**
    * The passage the session declared (memorization): the checker aligns against it rather than the tracker's lock, so
    * a wrong word that forms another ayah is still wrong. A tracker lock off the passage spanning `JUMP_WORDS` words is
@@ -123,8 +132,8 @@ type Step =
   | { op: "lead"; obs: number }
   | { op: "jump" };
 
-/** An evidence phoneme; `junk` once it is known to be part of a non-Quran phrase. */
-type Heard = DecodedPhoneme & { junk?: boolean };
+/** An evidence phoneme; `junk` once it is known to be part of a non-Quran phrase. `step` when the tracker moved onto a new word on this phone. */
+type Heard = DecodedPhoneme & { junk?: boolean; step?: boolean };
 
 interface Visit {
   word: number;
@@ -167,6 +176,8 @@ interface Issue {
    * entry and exit words; only the interior word is substituted. No insertion or restart arc.
    */
   phrase?: { written: string; alt: string };
+  /** Set when the seam tagger accepted this added word, so confirmation does not also need the 10-nat margin. */
+  seamBypass?: boolean;
 }
 
 interface Open {
@@ -227,6 +238,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   let frameMs = 0;
   let nowMs = 0;
   let trackerLocked = false;
+  /** Word the tracker was on at the previous phone, and every locked step, so a seam token can carry the step. */
+  let trackerWord = -1;
+  const trackerMarks: { timeMs: number; wi: number }[] = [];
   /** Aligning against the declared passage; false while following a deliberate jump off it. */
   let declared = !!passage;
   /** Phonemes since the last anchor (or the latest `HISTORY` while not anchored). */
@@ -286,6 +300,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
    * written words by `SUPPORT`; null when there's no telling (no posteriors there, or a skipped passage).
    */
   const supported = (issue: Issue, requireFinite = false): boolean | null => {
+    if (issue.seamBypass) return true;
     if (!frames || frames.startFrame < 0 || issue.cls === "skipped_passage") return null;
     const heardAt = (wi: number) => steps.filter((s): s is Extract<Step, { op: "diag" }> => s.op === "diag" && index.wordAt(s.ref) === wi).map((s) => s.obs);
     const before = prevWord(issue.word);
@@ -1093,6 +1108,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     // phoneme hits there are the wrong test.
     if (issue.phrase) return true;
     const next = nextWord(issue.last);
+    if (next >= words.length) return false;
     let n = 0;
     for (const s of steps) if (s.op === "diag" && s.obs >= issue.obsTo && index.wordAt(s.ref) === next && ref[s.ref] === obs[s.obs].p) n++;
     return n >= Math.min(ONSET, words[next].end - words[next].start);
@@ -1211,6 +1227,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       issues.set(candidate.word, candidate);
       right.delete(candidate.word);
     }
+    tagSeams(issues);
     furthest = Math.max(furthest, reached);
     for (const [wi, o] of [...open]) {
       const now = issues.get(wi);
@@ -1280,11 +1297,86 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     fromLock = false;
   };
 
+  /**
+   * At an ayah seam where both neighbours already have a complete in-order visit, a span that passes the
+   * added-word shape and is not a non-Quran phrase is scored by the seam tagger. A score above the operating
+   * point confirms the addition in place of the 10-nat margin. A score below it leaves the margin in charge.
+   */
+  const tagSeams = (issues: Map<number, Issue>) => {
+    // The 10-nat margin only exists when posteriors do. Without them the checker is unchanged.
+    if (!frames || frames.startFrame < 0) return;
+    const pauseBefore = (i: number) => {
+      if (i <= 0 || frameMs <= 0) return false;
+      const a = obs[i - 1].end + 1;
+      const b = obs[i].start;
+      if (b - a < minGapFrames(frameMs)) return false;
+      if (!frames || frames.startFrame < 0 || a < frames.startFrame || b > frames.endFrame) return true;
+      const owns = Math.log(0.5);
+      for (let f = a; f < b; f++) if (frames.row(f)[0] < owns) return false;
+      return true;
+    };
+    const phrase = (from: number, to: number) => {
+      if (obs.slice(from, to).some((p) => p.junk)) return true;
+      const tail = obs.slice(from, to).map((p) => p.p).join("");
+      if (tail.length < MIN_ADDED) return false;
+      for (const p of phrases) {
+        const fit = alignSubstring(tail, 0, tail.length, p, () => true);
+        if (fit && fit.end >= tail.length - 1 && fit.cost / UNIT / p.length <= PHRASE_MAX_COST) return true;
+      }
+      return false;
+    };
+    const geoms = ayahSeamGeoms({
+      steps,
+      obs,
+      wordAt: (r) => index.wordAt(r),
+      wordLen: (wi) => words[wi].end - words[wi].start,
+      prevWord,
+      isAyahStart: (wi) => {
+        if (words[wi].word !== 1 || wi <= 0) return false;
+        const prev = prevWord(wi);
+        return words[prev].surah !== words[wi].surah || words[prev].ayah !== words[wi].ayah;
+      },
+      matches: (wi, heard) => {
+        if (lexical.matches(wi, heard)) return true;
+        // A phone-noisy reading still completed the word when its consonants are the word's.
+        const want = skeleton(wi);
+        if (!want) return false;
+        let got = "";
+        for (const p of heard) if (CONSONANTS.has(p)) got += p;
+        return got === want;
+      },
+      pauseBefore,
+    });
+    for (const geom of geoms) {
+      const span = obs.slice(geom.obsFrom, geom.obsTo);
+      const consonants = span.filter((p) => CONSONANTS.has(p.p)).length;
+      if (span.length < MIN_ADDED || consonants < 2 || phrase(geom.obsFrom, geom.obsTo)) continue;
+      options.seamTrace?.(geom);
+      const score = options.seamScore ? options.seamScore(geom.tokens, geom.span) : scoreSeam(geom.tokens, geom.span);
+      const accept = options.seamScore ? score >= 0.5 : score > seamThreshold();
+      if (!accept || decided.has(geom.rightWord)) continue;
+      const existing = issues.get(geom.rightWord);
+      if (existing && existing.cls !== "added_word") continue;
+      if (existing) {
+        existing.seamBypass = true;
+        continue;
+      }
+      issues.set(geom.rightWord, {
+        cls: "added_word", word: geom.rightWord, last: geom.rightWord, obsFrom: geom.obsFrom, obsTo: geom.obsTo,
+        observed: span.map((p) => p.p).join(""), seamBypass: true,
+      });
+    }
+  };
+
   const track = (events: EngineEvent[], out: CheckerEvent[]): number | null => {
     let next: number | null = null;
     for (const e of events) {
       if (e.type !== "position") continue;
       const p = e as PositionEvent;
+      if (p.state === "locked" && p.observed[0]) {
+        const wi = wordIndex(p.observed[0].word);
+        if (wi >= 0) trackerMarks.push({ timeMs: p.timeMs, wi });
+      }
       // A misfit hold keeps this lock and keeps delivering tokens. Issues already open are the ones a lock drop
       // would have hidden; evidence that arrives after the signal is judged in the window that stays.
       if (p.hold === "start") sealOpen(out);
@@ -1359,6 +1451,13 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const next = track(events, out);
       const before = obs.length;
       obs.push(...evidence.phonemes.map((p) => ({ ...p })));
+      for (let i = before; i < obs.length; i++) {
+        const t = (obs[i].end + 1) * frameMs;
+        let wi = trackerWord;
+        for (const m of trackerMarks) if (m.timeMs <= t + 1e-6) wi = m.wi;
+        obs[i].step = wi >= 0 && wi !== trackerWord;
+        if (wi >= 0) trackerWord = wi;
+      }
       markPhrases(before);
       const lastPh = obs.at(-1);
       if (lastPh) nowMs = Math.max(nowMs, (lastPh.end + 1) * frameMs);
