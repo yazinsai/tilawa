@@ -670,6 +670,12 @@ def test_a_tick_that_raises_pauses_and_pages(w, monkeypatch):
     assert "tick failed: RuntimeError: boom" in st["paused"]
 
 
+def test_a_tick_that_loses_the_network_is_skipped_without_pausing(w, monkeypatch):
+    monkeypatch.setattr(A.Tick, "run", lambda self: (_ for _ in ()).throw(A.Stop("modal volume get /runs/x/score.json failed: Could not connect to the Modal server.")))
+    st = A.tick_once(w)
+    assert not st.get("paused")
+
+
 # builders' Modal work through the supervisor (decision 14)
 
 def builder(w, tier="exploit", component=None, polls=10**6):

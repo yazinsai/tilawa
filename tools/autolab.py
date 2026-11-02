@@ -71,6 +71,7 @@ VOL_INBOX, VOL_ELI5 = "/autolab/inbox", "/autolab/eli5.json"
 NOT_ENGINE = re.compile(r"(^\.scratch/|^docs/|(^|/)lab-experiment\.json$|\.md$|(^|/)test/|\.test\.ts$|^tools/test_)")
 OWN_DATA = re.compile(r"(\.exp-[^/]+\.(phone|studio)\.evidence\.json|/decode-v1\.json)$")
 PRACTICE_SCORES = 3
+OFFLINE = re.compile(r"could not connect|cannot connect|timed out after|connection (reset|refused|error)|name resolution", re.I)
 ARM_WAIT_MINUTES = 20  # a card whose arm is full and whose builder never started moves to an arm with room
 ARM_DOWN_AFTER, ARM_DOWN_MINUTES = 3, 60  # an arm whose last builders all failed to start rests, then gets one more try
 GROK = {"id": "grok-4.7", "params": [{"id": "context", "value": "500k"}, {"id": "reasoning_effort", "value": "high"}, {"id": "fast", "value": "false"}]}
@@ -1372,8 +1373,12 @@ def tick_once(w: World) -> dict:
     try:
         events = t.run()
     except Exception as err:  # noqa: BLE001 - one bad tick must not stop the loop; it pauses and pages instead
-        t.pause(f"tick failed: {type(err).__name__}: {err}")
-        events = t.events
+        if OFFLINE.search(str(err)):  # the network or Modal is down: this tick is lost, the next one tries again
+            print(f"{S.now()} tick skipped, offline: {str(err)[:200]}", flush=True)
+            events = t.events
+        else:
+            t.pause(f"tick failed: {type(err).__name__}: {err}")
+            events = t.events
     w.save(st, events)
     return st
 

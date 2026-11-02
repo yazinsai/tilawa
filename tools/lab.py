@@ -49,8 +49,14 @@ class Stop(Exception):
     pass
 
 
-def sh(*cmd, cwd=None, check=True, env=None) -> str:
-    p = subprocess.run([str(c) for c in cmd], cwd=cwd, capture_output=True, text=True, env=env)
+VOLUME_TIMEOUT_S = 180  # a volume call that hangs (the network or Modal down) fails instead of holding a tick
+
+
+def sh(*cmd, cwd=None, check=True, env=None, timeout=None) -> str:
+    try:
+        p = subprocess.run([str(c) for c in cmd], cwd=cwd, capture_output=True, text=True, env=env, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        raise Stop(f"{' '.join(map(str, cmd[:4]))} timed out after {timeout} s (could not connect?)") from None
     if check and p.returncode:
         raise Stop(f"{' '.join(map(str, cmd))} failed:\n{(p.stderr or p.stdout).strip()}")
     return p.stdout.strip()
@@ -63,7 +69,10 @@ git = lambda *a, cwd=REPO, check=True: sh("git", *a, cwd=cwd, check=check)
 
 
 def vol_get(path: str):
-    p = subprocess.run(["modal", "volume", "get", VOLUME, path, "-"], capture_output=True)
+    try:
+        p = subprocess.run(["modal", "volume", "get", VOLUME, path, "-"], capture_output=True, timeout=VOLUME_TIMEOUT_S)
+    except subprocess.TimeoutExpired:
+        raise Stop(f"modal volume get {path} timed out after {VOLUME_TIMEOUT_S} s (could not connect?)") from None
     if p.returncode:
         if b"No such file" in p.stderr or b"No such file" in p.stdout:
             return None
@@ -78,7 +87,7 @@ def vol_put(path: str, obj) -> None:
     try:
         for wait in (2, 5, 10, 20, 40, 0):
             try:
-                sh("modal", "volume", "put", "--force", VOLUME, f.name, path)
+                sh("modal", "volume", "put", "--force", VOLUME, f.name, path, timeout=VOLUME_TIMEOUT_S)
                 break
             except Stop as err:
                 if not wait or "too many layers" not in str(err):
@@ -89,7 +98,10 @@ def vol_put(path: str, obj) -> None:
 
 
 def vol_ls(path: str) -> list[str]:
-    p = subprocess.run(["modal", "volume", "ls", "--json", VOLUME, path], capture_output=True, text=True)
+    try:
+        p = subprocess.run(["modal", "volume", "ls", "--json", VOLUME, path], capture_output=True, text=True, timeout=VOLUME_TIMEOUT_S)
+    except subprocess.TimeoutExpired:
+        raise Stop(f"modal volume ls {path} timed out after {VOLUME_TIMEOUT_S} s (could not connect?)") from None
     return [] if p.returncode else ["/" + x["Filename"] for x in json.loads(p.stdout) if x["Type"] == "file"]
 
 
