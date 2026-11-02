@@ -57,6 +57,11 @@ export interface PositionEvent {
   /** Ranked best first; deduplicated so each entry is a distinct location. */
   observed: PositionCandidate[];
   state: TrackerState;
+  /**
+   * Set on the locked event that starts a misfit hold. Issues already open end `uncertain`, as they do when the
+   * lock drops, and the checker's window stays so tokens heard after this are still judged.
+   */
+  hold?: "start";
   /** Present only when the tracker was created with `trace: true`. */
   trace?: TrackerTrace;
 }

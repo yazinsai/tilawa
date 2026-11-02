@@ -249,13 +249,15 @@ describe("unclear evidence", () => {
     expect(summary(events)).toEqual(["suspected wrong_word 2:255:23", "uncertain wrong_word 2:255:23"]);
   });
 
-  it("ends uncertain when the tracker stops being locked", () => {
-    // The wrong word, then noise long enough for the tracker to lose its lock.
+  it("ends uncertain when a misfit hold starts on an open issue", () => {
+    // The wrong word, then noise long enough to open a relocation search. The lock stays held so later tokens are
+    // still judged, but the issue already open when the hold starts is downgraded the way a lock drop would.
     const edits: Edit[] = [...replaceWord(target, ALIEN), { kind: "noise", at: at(w(2, 255, 24)), length: 60, seed: 7 }];
     const events = run(edits, { checker: { policy: { confirm: { after: "delay", ms: 3000 } } } });
-    expect(confirmed(events)).toEqual([]);
-    expect(events.find((e) => key(e.location) === "2:255:23")?.state).toBe("suspected");
-    expect(events.some((e) => e.state === "uncertain")).toBe(true);
+    const here = events.filter((e) => key(e.location) === "2:255:23");
+    expect(here.some((e) => e.state === "confirmed")).toBe(false);
+    expect(here[0]?.state).toBe("suspected");
+    expect(here.some((e) => e.state === "uncertain")).toBe(true);
   });
 
   it("never confirms a wrong word the session ended on", () => {

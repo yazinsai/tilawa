@@ -93,7 +93,7 @@ const WEAK_COST = 0.3;
 const LOOKBACK = 6;
 /** Global search while weak or after `lost` looks at only the latest this many phonemes. */
 const WINDOW = 48;
-/** While weak: `lost` once the window (lookback included) holds this many phonemes, nothing fits globally and local cost exceeds `maxCost`. */
+/** While weak: hold the anchor once the window (lookback included) holds this many phonemes, nothing fits globally and local cost exceeds `maxCost`. `lost` follows only when that search locks off the anchor. */
 const LOST_AFTER = 24;
 /** A global lock within this many ayahs of the local bookmark is the local search's to follow, not a jump. */
 const NEAR_AYAHS = 2;
@@ -175,8 +175,22 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   let weak = false;
   /** A distant global lock seen while weak, and for how many consecutive phonemes it has held. */
   let pending: { m: Match; held: number } | null = null;
-  /** After `lost`: global search over a rolling window, one phoneme at a time, until it locks again. */
+  /** After a misfit: global search over a rolling window, one phoneme at a time, until it locks again. */
   let reacquiring = false;
+  /**
+   * Lock kept while that search runs. A misfit used to emit `lost` before any destination had committed, and the
+   * checker then dropped the anchor and the tokens heard in the gap. `lost` is emitted only when a lock commits off
+   * this anchor, or the session ends still uncommitted. The held event carries `hold: "start"` once, so issues
+   * already open are downgraded the way a lock drop would, and tokens after that still enter the window.
+   */
+  let holding: PositionEvent | null = null;
+  /** Set at the first lock. The onset veto applies only to that lock. */
+  let everLocked = false;
+  /** Every phoneme until the first lock, untrimmed, so a first-lock veto can see back to the speech onset. */
+  let raw = "";
+  let rawConf: number[] = [];
+  /** Phones of `raw` consumed by a leading non-Quran phrase the streaming matcher already cut. */
+  let onsetCut = 0;
   /** Memorization mode: the expected bookmark held in place after the reciter jumped away from it. */
   let frozen: WordRef | null = null;
   /** The expected bookmark from before local fit last turned weak. */
@@ -405,6 +419,74 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   /** Overlapping or touching ranges describe one location, e.g. shifted spans of the same ayah. */
   const sameLocation = (a: Match, b: Match) => a.offset <= b.offset + b.length && b.offset <= a.offset + a.length;
 
+  /** Phoneme offset where the ayah containing `offset` starts. */
+  const ayahOrigin = (offset: number): number => {
+    let i = index.wordAt(Math.max(0, Math.min(offset, index.phonemes.length - 1)));
+    const w = index.words[i];
+    while (i > 0) {
+      const prev = index.words[i - 1];
+      if (prev.surah !== w.surah || prev.ayah !== w.ayah) break;
+      i--;
+    }
+    return index.words[i].start;
+  };
+  /** Ayah start immediately before an ayah start, or -1 at the beginning of the mushaf. */
+  const previousAyahOrigin = (origin: number): number => {
+    const i = index.wordAt(origin);
+    if (i <= 0) return -1;
+    return ayahOrigin(index.words[i - 1].start);
+  };
+
+  /**
+   * Heard phonemes from the first Quran onset. Phrases the streaming matcher already cut are dropped via
+   * `onsetCut`; anything still leading is stripped with the same phrase alignment.
+   */
+  const onsetSpeech = (): { text: string; conf: number[] } => {
+    let text = raw.slice(onsetCut);
+    let conf = rawConf.slice(onsetCut);
+    if (!phraseList.length) return { text, conf };
+    for (let guard = 0; guard < 6 && text.length; guard++) {
+      let cut = 0;
+      for (const phrase of phraseList) {
+        const n = phrase.p.length;
+        if (n < 2 || text.length < 2) continue;
+        const hi = Math.min(text.length, Math.ceil(n * 1.6) + 4);
+        // Same alignment as `hear`: the phrase is the query, any reference offset may start it, and the cost cap is
+        // PHRASE_MAX_COST. Only a match that begins at the onset is a leading phrase.
+        const a = alignSubstring(text, 0, hi, phrase.p, () => true);
+        if (!a || a.start !== 0 || a.end <= cut || a.cost / UNIT / n > PHRASE_MAX_COST) continue;
+        const heardEnd = a.path.filter((o) => o.op === "match" && o.obsAt >= n - 2).length;
+        if (heardEnd < 2) continue;
+        cut = a.end;
+      }
+      if (!cut) break;
+      text = text.slice(cut);
+      conf = conf.slice(cut);
+    }
+    return { text, conf };
+  };
+
+  /**
+   * Alignment of every onset phone against the contiguous ayahs ending at this candidate. The run walks back an ayah
+   * at a time until it covers that speech, so a look-alike tail has to match the heard opening with its own
+   * preceding ayah.
+   */
+  const contiguousRunCost = (m: Match, speech: string, conf: number[]): number => {
+    const refEnd = Math.min(index.phonemes.length, m.offset + Math.max(m.length, 0));
+    if (refEnd <= 0 || !speech) return Infinity;
+    let lo = ayahOrigin(Math.min(m.offset, refEnd - 1));
+    for (let guard = 0; refEnd - lo < speech.length && guard < 30; guard++) {
+      const prev = previousAyahOrigin(lo);
+      if (prev < 0 || prev >= lo) break;
+      lo = prev;
+    }
+    const a = alignSubstring(index.phonemes, lo, refEnd, speech, isWordStart, {
+      strictStart: true,
+      ...(conf.length === speech.length ? { conf } : {}),
+    });
+    return a ? a.cost : Infinity;
+  };
+
   /** Global search over the observed phonemes: the event it supports, the lock if any, and its trace. */
   const assess = () => {
     const frames = posteriors;
@@ -417,48 +499,69 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
 
     const n = observed.length;
     const required = UNIT * Math.max(minSeparation, separationScale / n);
-    // How far each candidate leads the best other fitting candidate; negative when it trails.
-    const lead = (c: (typeof fitting)[number]) => Math.min(...fitting.filter((o) => o !== c).map((o) => o.score - c.score), Infinity);
-    const top = fitting[0];
-    const separated = top !== undefined && lead(top) >= required;
-    const terms = (c: (typeof fitting)[number]) => ({
-      fit: Math.max(0, 1 - c.m.per / maxPer) * Math.max(0, 1 - fitCost(c.m) / maxCost),
-      separation: Math.min(1, Math.max(0, 0.5 + lead(c) / (2 * required))),
-    });
-    const confidence = (c: (typeof fitting)[number]) => {
-      const t = terms(c);
-      return t.fit * t.separation;
+    const decide = (pool: typeof fitting) => {
+      // How far each candidate leads the best other fitting candidate; negative when it trails.
+      const lead = (c: (typeof pool)[number]) => Math.min(...pool.filter((o) => o !== c).map((o) => o.score - c.score), Infinity);
+      const top = pool[0];
+      const separated = top !== undefined && lead(top) >= required;
+      const terms = (c: (typeof pool)[number]) => ({
+        fit: Math.max(0, 1 - c.m.per / maxPer) * Math.max(0, 1 - fitCost(c.m) / maxCost),
+        separation: Math.min(1, Math.max(0, 0.5 + lead(c) / (2 * required))),
+      });
+      const confidence = (c: (typeof pool)[number]) => {
+        const t = terms(c);
+        return t.fit * t.separation;
+      };
+      const enough =
+        n >= minPhonemes && top !== undefined && lastWord(top.m) - firstWord(top.m) + 1 >= minWords && confidence(top) >= minLockConfidence;
+      const state: TrackerState = !top ? "lost" : !separated ? "ambiguous" : !enough ? "acquiring" : "locked";
+      // Ambiguous lists every candidate within the margin of the best; otherwise only the best.
+      const shown = !top ? [] : separated ? [top] : pool.filter((c) => c.score - top.score < required);
+      const candidates = shown.map((c) => toCandidate(c.m, confidence(c)));
+      const event: PositionEvent = {
+        type: "position",
+        v: EVENT_SCHEMA_VERSION,
+        timeMs: lastFrame * (frameMs ?? 0),
+        referenceVersion: index.version,
+        expected: state === "locked" ? candidates[0].word : null,
+        observed: candidates,
+        state,
+      };
+      const trace = (from: TrackerState | null): TrackerTrace => ({
+        shortlist: scored.map(({ m }) => ({
+          span: toCandidate(m, 0).span,
+          offset: m.offset,
+          length: m.length,
+          votes: m.votes,
+          cost: normCost(m),
+          per: m.per,
+        })),
+        transition: { from, to: state },
+        path: scored[0]?.m.path ?? null,
+        decision: top ? { ...terms(top), leadEdits: lead(top) / UNIT, requiredEdits: required / UNIT } : null,
+      });
+      return { event, lock: state === "locked" ? top.m : null, trace, top: top && n >= minPhonemes && confidence(top) > 0 ? top.m : null, state };
     };
-    const enough =
-      n >= minPhonemes && top !== undefined && lastWord(top.m) - firstWord(top.m) + 1 >= minWords && confidence(top) >= minLockConfidence;
-    const state: TrackerState = !top ? "lost" : !separated ? "ambiguous" : !enough ? "acquiring" : "locked";
 
-    // Ambiguous lists every candidate within the margin of the best; otherwise only the best.
-    const shown = !top ? [] : separated ? [top] : fitting.filter((c) => c.score - top.score < required);
-    const candidates = shown.map((c) => toCandidate(c.m, confidence(c)));
-    const event: PositionEvent = {
-      type: "position",
-      v: EVENT_SCHEMA_VERSION,
-      timeMs: lastFrame * (frameMs ?? 0),
-      referenceVersion: index.version,
-      expected: state === "locked" ? candidates[0].word : null,
-      observed: candidates,
-      state,
-    };
-    const trace = (from: TrackerState | null): TrackerTrace => ({
-      shortlist: scored.map(({ m }) => ({
-        span: toCandidate(m, 0).span,
-        offset: m.offset,
-        length: m.length,
-        votes: m.votes,
-        cost: normCost(m),
-        per: m.per,
-      })),
-      transition: { from, to: state },
-      path: scored[0]?.m.path ?? null,
-      decision: top ? { ...terms(top), leadEdits: lead(top) / UNIT, requiredEdits: required / UNIT } : null,
-    });
-    return { event, lock: state === "locked" ? top.m : null, trace, top: top && n >= minPhonemes && confidence(top) > 0 ? top.m : null };
+    let decision = decide(fitting);
+    // First lock only. A suffix window can prefer a look-alike whose own ayah matches the tail. Score each
+    // candidate on the contiguous ayahs back to the speech onset, and drop the commit when that winner is beaten
+    // by the same margin that would commit a lock. A winner that is not beaten is left exactly as ranked.
+    // An opening that already starts on an ayah's first word is the clean case: the heard onset is that ayah, and
+    // the candidate stays. The veto is for a tail match, whose own preceding ayah has to cover the onset.
+    const ayahStart = decision.state === "locked" && index.words[firstWord(fitting[0].m)].word === 1;
+    if (decision.state === "locked" && !everLocked && fitting.length > 1 && !ayahStart) {
+      const speech = onsetSpeech();
+      if (speech.text.length >= minPhonemes) {
+        const costs = fitting.map((c) => contiguousRunCost(c.m, speech.text, speech.conf));
+        const best = Math.min(...costs);
+        if (costs[0] - best >= required) {
+          const kept = fitting.filter((_, i) => costs[i] - best < required);
+          if (kept.length) decision = decide(kept);
+        }
+      }
+    }
+    return { event: decision.event, lock: decision.lock, trace: decision.trace, top: decision.top };
   };
 
   const emit = (event: PositionEvent, trace: (from: TrackerState | null) => TrackerTrace): PositionEvent => {
@@ -487,6 +590,10 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     observedFrames.push({ start: ph.start, end: ph.end });
     observed += ph.p;
     observedConf.push(ph.conf);
+    if (!everLocked) {
+      raw += ph.p;
+      for (let i = 0; i < ph.p.length; i++) rawConf.push(ph.conf);
+    }
     lastFrame = Math.max(lastFrame, ph.end + 1);
   };
   /** Keep only the latest `n` observed phonemes. */
@@ -593,6 +700,11 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     weak = false;
     pending = null;
     reacquiring = false;
+    holding = null;
+    everLocked = true;
+    raw = "";
+    rawConf = [];
+    onsetCut = 0;
     surahStart = false;
     basmalaHeard = false;
     fatihaNext = false;
@@ -612,6 +724,30 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     const b = index.words[index.wordAt(Math.max(0, offset - 1))];
     return a.surah === b.surah && Math.abs(a.ayah - b.ayah) <= NEAR_AYAHS;
   };
+  /** Same passage the local search would keep: not a relocation. */
+  const nearWord = (a: WordRef, b: WordRef) => a.surah === b.surah && Math.abs(a.ayah - b.ayah) <= NEAR_AYAHS;
+
+  /**
+   * The anchor stays locked and relocation search continues. One event tells the checker to downgrade issues open
+   * now; `last` stays the plain lock, so later re-emits of the anchor compare unchanged.
+   */
+  const beginHold = (): PositionEvent => {
+    if (memorization) frozen ??= steady;
+    const anchor = last!;
+    holding = anchor;
+    local = null;
+    weak = false;
+    pending = null;
+    reacquiring = true;
+    const event: PositionEvent = { ...anchor, timeMs: lastFrame * (frameMs ?? 0), hold: "start" };
+    return options.trace ? { ...event, trace: quietTrace(anchor.state, "locked") } : event;
+  };
+
+  const lostEvent = (timeMs: number, trace: (from: TrackerState | null) => TrackerTrace): PositionEvent =>
+    emit(
+      { type: "position", v: EVENT_SCHEMA_VERSION, timeMs, referenceVersion: index.version, expected: expectedWhileLost(), observed: [], state: "lost" },
+      trace,
+    );
 
   /** The local search's position as an event, or null when its word and run start haven't changed. */
   const localEvent = (shortlist: TraceCandidate[]): PositionEvent | null => {
@@ -641,16 +777,11 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     return emit(event, (from) => quietTrace(from, "locked", shortlist));
   };
 
-  const goLost = (a: ReturnType<typeof assess>): PositionEvent => {
-    if (memorization) frozen ??= steady;
-    local = null;
-    weak = false;
-    pending = null;
-    reacquiring = true;
-    return emit({ ...a.event, expected: expectedWhileLost() }, a.trace);
-  };
-
-  /** After `lost`: global search over the latest phonemes, until it locks somewhere. */
+  /**
+   * Global search over the latest phonemes, until it locks somewhere. While `holding`, the anchor stays locked:
+   * non-locked assessments are not emitted. A lock off the anchor emits `lost` and then the new place; a lock on
+   * the same passage emits only that lock, so tokens heard in the gap stay in the checker's window.
+   */
   const reacquire = (): PositionEvent[] => {
     keepLast(WINDOW);
     if (phraseList.length) collapseRepeat();
@@ -671,21 +802,30 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         if (!(first.surah === afterBasmala.from.surah + 1 && first.ayah === 1)) frozen ??= steady;
       }
       afterBasmala = null;
+      const anchorWord = holding?.observed[0]?.word;
+      const dest = a.event.observed[0]?.word;
+      const release = !!(holding && anchorWord && dest && !nearWord(anchorWord, dest));
+      const released = release ? [lostEvent(a.event.timeMs, (from) => quietTrace(from, "lost"))] : [];
       startLocal(a.lock);
-      return [emit({ ...a.event, expected: expectedFor(a.event.observed[0].word) }, a.trace)];
+      return [...released, emit({ ...a.event, expected: expectedFor(a.event.observed[0].word) }, a.trace)];
     }
     // Between surahs the last position stays on screen, unless nothing locks for a while.
     if (afterBasmala && ++afterBasmala.held < WINDOW) return [];
-    const event = { ...a.event, expected: expectedWhileLost() };
     // Junk that fits nowhere would otherwise favour passages with text before the recited phrase to absorb it.
     if (a.event.state === "lost") keepLast(LOOKBACK);
+    if (holding) {
+      const event: PositionEvent = { ...holding, timeMs: lastFrame * (frameMs ?? 0) };
+      return unchanged(event) ? [] : [emit(event, (from) => quietTrace(from, "locked"))];
+    }
+    const event = { ...a.event, expected: expectedWhileLost() };
     return unchanged(event) ? [] : [emit(event, a.trace)];
   };
 
   /**
    * Phoneme by phoneme after the first lock. Local tracking emits one event per change of word or run start. When its
    * fit degrades, global search over the latest phonemes runs alongside: a distant global lock that holds for
-   * `jumpPhonemes` commits a jump, and nothing fitting anywhere for long enough is `lost`.
+   * `jumpPhonemes` commits a jump, and nothing fitting anywhere for long enough holds the anchor while the search
+   * continues. `lost` is emitted when that search locks off the anchor, or when the session ends still there.
    */
   const follow = (evidence: PhonemeEvidence): EngineEvent[] => {
     const events: EngineEvent[] = [];
@@ -757,7 +897,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
           if (memorization) frozen ??= steady;
           startLocal(pending.m);
         } else if (a.event.state === "lost" && pos.recentCost > maxCost && observed.length >= LOST_AFTER) {
-          events.push(goLost(a));
+          // Nothing has committed elsewhere. Keep this anchor until the search locks off it, or the session ends.
+          events.push(beginHold());
           continue;
         }
       }
@@ -775,6 +916,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
    */
   const trimHistory = () => {
     if (phraseCut) {
+      if (!everLocked) onsetCut += phraseCut;
       keepLast(observed.length - phraseCut);
       phraseCut = 0;
     }
@@ -832,6 +974,11 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
 
   const endLocal = (): PositionEvent[] => {
     const timeMs = lastFrame * (frameMs ?? 0);
+    // The search never committed. The anchor was held; give it up now.
+    if (holding) {
+      holding = null;
+      return [lostEvent(timeMs, (from) => quietTrace(from, "lost"))];
+    }
     // Nothing followed the lock: its event, with the global search's trace, is still the answer.
     if (local && !emittedSinceLock) {
       const e = { ...lockEvent!, timeMs };

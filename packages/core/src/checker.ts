@@ -353,12 +353,17 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return changed.length ? changed.reduce((a, c) => a + c, 0) / changed.length : 1;
   };
 
-  const dropAnchor = (out: CheckerEvent[]) => {
+  /** Main's lock-drop downgrade: every issue open now ends `uncertain` and is never reopened. */
+  const sealOpen = (out: CheckerEvent[]) => {
     for (const o of [...open.values()]) {
       open.delete(o.issue.word);
       decided.add(o.issue.word);
       out.push(event(o, "uncertain"));
     }
+  };
+
+  const dropAnchor = (out: CheckerEvent[]) => {
+    sealOpen(out);
     anchor = null;
     furthest = -1;
     obs = obs.slice(-AFTER_DROP);
@@ -1280,6 +1285,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (const e of events) {
       if (e.type !== "position") continue;
       const p = e as PositionEvent;
+      // A misfit hold keeps this lock and keeps delivering tokens. Issues already open are the ones a lock drop
+      // would have hidden; evidence that arrives after the signal is judged in the window that stays.
+      if (p.hold === "start") sealOpen(out);
       if (p.state !== "locked") {
         trackerLocked = false;
         // Lost, it latches again on the next lock.
