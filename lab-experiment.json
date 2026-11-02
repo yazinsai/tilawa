@@ -1,0 +1,13 @@
+{
+ "id": "checker-surplus-spelled-lexicon-word-r",
+ "component": "checker",
+ "hypothesis": "Seam additions are often spelled out whole in the greedy string (قبلهم, قليلا, وقفوهم in the unlocked-gap trace), but every judge so far re-scored them on diluted posteriors or let restart arcs explain them. Confirm an added word when surplus speech before word 1's complete in-order visit spells, with zero hard edits, a mushaf word of 2 or more consonants that is not a neighbour or a neighbour prefix. Predict 3 of 16 won, checker -3, overall -2 (floor -1).",
+ "expected": {
+  "component": -3,
+  "overall": -2
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-02T17:43:28+00:00",
+ "author": "autolab"
+}
