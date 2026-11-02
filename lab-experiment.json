@@ -1,0 +1,13 @@
+{
+ "id": "listener-wider-student-capacity",
+ "component": "listener",
+ "hypothesis": "Phone wrong-word false warnings are stable ن/م and ف/ك confusions baked into the shipped weights: the fp32 parent confirms all 8, and no re-read, veto or calibration separated them from planted swaps. Every listener try changed the data, the loss, the export or the read-out, and none changed the capacity of the model that hears. Re-distill a 2x-width student from the existing teacher with the shipped recipe, augmentation and int8 export, anchored to the shipped student on clean-match frames, and deploy it as the decoder. Predict 3 of 8 won with 1 loss: listener -3, overall -2.",
+ "expected": {
+  "component": -3,
+  "overall": -2
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-02T15:55:45+00:00",
+ "author": "autolab"
+}
