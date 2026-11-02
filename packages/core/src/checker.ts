@@ -167,6 +167,11 @@ interface Issue {
    * entry and exit words; only the interior word is substituted. No insertion or restart arc.
    */
   phrase?: { written: string; alt: string };
+  /**
+   * Surplus speech before an ayah's word 1 already spells a whole mushaf word. That identity replaces the
+   * posterior support margin: the span is not needed to read the text.
+   */
+  lexicon?: boolean;
 }
 
 interface Open {
@@ -286,6 +291,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
    * written words by `SUPPORT`; null when there's no telling (no posteriors there, or a skipped passage).
    */
   const supported = (issue: Issue, requireFinite = false): boolean | null => {
+    // Spelled surplus is structural. A likelihood contest over the neighbours is what loses the word.
+    if (issue.lexicon) return null;
     if (!frames || frames.startFrame < 0 || issue.cls === "skipped_passage") return null;
     const heardAt = (wi: number) => steps.filter((s): s is Extract<Step, { op: "diag" }> => s.op === "diag" && index.wordAt(s.ref) === wi).map((s) => s.obs);
     const before = prevWord(issue.word);
@@ -1081,6 +1088,45 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         cls: "wrong_word", word: left.word, last: left.word, obsFrom: from,
         obsTo: onsetObs > from ? onsetObs : left.obsTo, observed: best.form,
         supportRange: [from, to], pair: seq, pairOnset: true,
+      });
+    }
+    // An added word at an ayah start sits in the greedy phones before word 1, after both seam words already
+    // have a complete in-order visit. Pauses and waqf tails are not part of that word. Neighbours, their
+    // prefixes and non-Quran phrases are not an addition.
+    const waqfEdge = new Set("ۦۥں۾ڇؙۜ");
+    const stripEdge = (s: string) => {
+      let a = 0, b = s.length;
+      while (a < b && waqfEdge.has(s[a]!)) a++;
+      while (b > a && waqfEdge.has(s[b - 1]!)) b--;
+      return s.slice(a, b);
+    };
+    const phraseSpan = (s: string) => phrases.some((p) => {
+      if (Math.abs(p.length - s.length) > Math.ceil(p.length * 0.6) + 4) return false;
+      const hit = alignSubstring(s, 0, s.length, p, () => true);
+      return !!hit && hit.start === 0 && hit.end >= s.length - 1 && hit.cost / UNIT / p.length <= PHRASE_MAX_COST;
+    });
+    for (const w1 of new Set(visits.map((v) => v.word))) {
+      if (w1 < first || words[w1].end === words[w1].start || ayahFirst[ayahOf[w1]] !== w1) continue;
+      const prev = prevWord(w1);
+      if (prev < 0 || ayahOf[prev] === ayahOf[w1]) continue;
+      const lefts = visits.filter((v) => v.word === prev && complete(v));
+      const rights = visits.filter((v) => v.word === w1 && complete(v));
+      let best: { left: Visit; right: Visit } | null = null;
+      for (const right of rights) for (const left of lefts) {
+        if (left.obsTo > right.obsFrom) continue;
+        if (left.stepTo !== undefined && right.stepFrom !== undefined && right.stepFrom < left.stepTo) continue;
+        if (!best || right.obsFrom < best.right.obsFrom || (right.obsFrom === best.right.obsFrom && left.obsTo > best.left.obsTo)) best = { left, right };
+      }
+      if (!best || best.right.obsFrom <= best.left.obsTo) continue;
+      const raw = obs.slice(best.left.obsTo, best.right.obsFrom).filter((p) => !p.junk).map((p) => p.p).join("");
+      const said = stripEdge(raw);
+      if (!said || phraseSpan(said)) continue;
+      const spelled = lexical.surplusWord(w1, said);
+      if (!spelled) continue;
+      const existing = issues.get(w1);
+      if (existing && existing.cls !== "added_word") continue;
+      issues.set(w1, {
+        cls: "added_word", word: w1, last: w1, obsFrom: best.left.obsTo, obsTo: best.right.obsFrom, observed: said, lexicon: true,
       });
     }
     return { issues, lexical: candidates, head, furthest: reached, steps, right };

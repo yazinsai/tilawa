@@ -22,9 +22,9 @@ function check(from: WordRef, to: WordRef, edits: (at: (r: WordRef) => number) =
 }
 
 describe("added speech between neighboring words", () => {
-  it("preserves an isolated backward word repetition, including its paused form", () => {
+  it("reads a paused قبل outside the neighbouring words as an added word", () => {
     const from = w(51, 16, 1), to = w(51, 21, 4), added = w(51, 18, 1);
-    expect(check(from, to, at => [{ kind: "ins", at: at(added), text: "قَبڇل" }])).toEqual([]);
+    expect(check(from, to, at => [{ kind: "ins", at: at(added), text: "قَبڇل" }])).toEqual([`added_word ${key(added)}`]);
   });
 
   it("does not mistake a one-consonant detour for a correctly repeated word", () => {

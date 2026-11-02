@@ -214,10 +214,78 @@ function build(index: ReferenceIndex) {
     }
     return out;
   };
+  // Sukun and pause marks. They are not consonants; a spelled word stays the same word without them.
+  const MARK = new Set(["ڇ", "ۜ", "ؙ"]);
+  const norm = (s: string) => collapseHeld([...s].filter(c => !MARK.has(c))).join("");
+  const skel = (s: string) => [...s].filter(c => CONSONANTS.has(c)).join("");
+  const wordNorms = forms.map(list => [...new Set(list.map(norm).filter(Boolean))]);
+  const bySkel = new Map<string, string[]>();
+  for (const list of wordNorms) for (const n of list) {
+    const sk = skel(n);
+    if (sk.length < 2) continue;
+    const have = bySkel.get(sk);
+    if (!have) bySkel.set(sk, [n]);
+    else if (!have.includes(n)) have.push(n);
+  };
+  // Same consonants, and vowels only where the sounds differ. A shorter string is not that word.
+  const same = (a: string, b: string) => {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] === b[i]) continue;
+      if (CONSONANTS.has(a[i]) || CONSONANTS.has(b[i]) || subCost(a[i], b[i]) >= UNIT) return false;
+    }
+    return true;
+  };
+  const nearIds = (wi: number) => {
+    const before: number[] = [], after: number[] = [];
+    for (let i = wi - 1; i >= 0 && before.length < 3; i--) if (index.words[i].start !== index.words[i].end) before.push(i);
+    for (let i = wi + 1; i < index.words.length && after.length < 3; i++) if (index.words[i].start !== index.words[i].end) after.push(i);
+    const ids = [...before.reverse(), wi, ...after];
+    return index.words[wi].start === index.words[wi].end ? ids.filter(i => i !== wi) : ids;
+  };
+  /**
+   * The span is a word, a prefix, or a contiguous run of words within ±3 of `wi`. Restarts and false starts
+   * spell that neighbourhood; an added word does not.
+   */
+  const explainsSeam = (wi: number, heard: string) => {
+    const n = norm(heard);
+    if (!n) return true;
+    const ids = nearIds(wi);
+    const lists = ids.map(i => wordNorms[i]);
+    for (const list of lists) for (const f of list) {
+      if (same(n, f) || (n.length < f.length && same(n, f.slice(0, n.length)))) return true;
+    }
+    for (let a = 0; a < ids.length; a++) {
+      let combos = [""];
+      for (let b = a; b < ids.length && b < a + 4; b++) {
+        const next: string[] = [];
+        for (const c of combos) for (const f of lists[b]) next.push(c + f);
+        const uniq = [...new Set(next)];
+        if (b > a) for (const acc of uniq) {
+          if (same(n, acc) || (n.length < acc.length && same(n, acc.slice(0, n.length)))) return true;
+        }
+        combos = uniq.slice(0, 8);
+      }
+    }
+    return false;
+  };
+  /**
+   * A whole mushaf word of at least two consonants, equal under soft costs only: no hard consonant edit and no
+   * dropped or added phone. Null when the span is a neighbour, a neighbour prefix, or a run within ±3.
+   */
+  const surplusWord = (wi: number, heard: string): string | null => {
+    if (explainsSeam(wi, heard)) return null;
+    const n = norm(heard);
+    const sk = skel(n);
+    if (sk.length < 2) return null;
+    for (const f of bySkel.get(sk) ?? []) if (same(n, f)) return f;
+    return null;
+  };
   return {
     matches,
     ending,
     droppedSuffixes,
+    surplusWord,
     alternative(wi: number, heard: string, context?: { before?: string; after?: string }): boolean {
       const normalized = form(heard);
       const key = context && contextKey(context.before === undefined ? undefined : boundary(context.before, true),
