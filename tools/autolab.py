@@ -752,7 +752,7 @@ class Tick:
             w.exclude(".autolab/")
         arm = self.arm_of(e)
         if self.arm_full(arm):
-            others = [a for a in self.arms() if a["name"] != arm["name"] and not self.arm_full(a)]
+            others = [a for a in self.arms() if a["name"] != arm["name"] and not self.arm_full(a) and X.weights(self.w.cfg).get(a["name"], 1) > 0]
             waited = S.minutes(e["since"], self.at)
             if others and not (e.get("executor") or {}).get("handle") and waited >= ARM_WAIT_MINUTES:
                 self.fall_back(e, others[0]["name"], f"{arm['name']} was at its {arm.get('maxConcurrent')} builders for {waited:.0f} min")
@@ -881,7 +881,7 @@ class Tick:
             self.events.append(S.event(e["id"], "implementing", "implementing", self.at, "executor failed; retrying with the fallback model"))
             e["state"] = "accepted"
             return self.start_executor(e, f"A previous attempt failed: {res['summary'][:500]}")
-        others = [a for a in self.arms() if a["name"] != ex.get("arm")]
+        others = [a for a in self.arms() if a["name"] != ex.get("arm") and X.weights(self.w.cfg).get(a["name"], 1) > 0]
         if others and not ex.get("fallbacks"):
             to = AB.assign(e["id"], e["card"]["component"], others, X.weights(self.w.cfg), self.st)
             self.fall_back(e, to["name"], f"its builder failed twice: {res['summary'][:200]}")

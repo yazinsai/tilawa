@@ -183,8 +183,8 @@
    }
   ],
   "split": {
-   "grok": 4,
-   "astra": 1
+   "grok": 1,
+   "astra": 0
   }
  },
  "listenerModel": "models/spliced-clean-int8",
