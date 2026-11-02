@@ -4,6 +4,7 @@ import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, P
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, deletionCost, insertionCost, subCost } from "./fuzzy.js";
+import { issueDropFit } from "./tracker.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
 import { minGapFrames } from "./gap-decode.js";
@@ -353,8 +354,16 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return changed.length ? changed.reduce((a, c) => a + c, 0) / changed.length : 1;
   };
 
-  /** Main's lock-drop downgrade: every issue open now ends `uncertain` and is never reopened. */
-  const sealOpen = (out: CheckerEvent[]) => {
+  /** Heard phonemes after the issue, up to `to`, against the anchor with the word at `cutAt` removed. */
+  const continuationFit = (issue: Issue, cutAt: number, to: number) => {
+    const from = words[issue.word]?.start;
+    if (from === undefined || cutAt <= from || from >= hi || cutAt > hi) return null;
+    const heard = obs.slice(issue.obsTo, to).map((p) => p.p).join("");
+    return issueDropFit(ref.slice(from, hi), ref.slice(cutAt, hi), heard);
+  };
+
+  /** Every issue open now ends `uncertain` and is never reopened. A real lock loss still does this to all of them. */
+  const sealAll = (out: CheckerEvent[]) => {
     for (const o of [...open.values()]) {
       open.delete(o.issue.word);
       decided.add(o.issue.word);
@@ -362,8 +371,29 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
   };
 
+  /**
+   * A misfit hold. An issue stays open when removing its own word makes the heard words after it, up to the next
+   * open issue, fit the anchor again: the edited fit beats the unedited fit by the commit margin and falls below
+   * the misfit cost. That issue explains the drop. Anything else is downgraded as on a lock loss.
+   */
+  const sealOpen = (out: CheckerEvent[]) => {
+    const ordered = [...open.values()].sort((a, b) => a.issue.obsFrom - b.issue.obsFrom);
+    const keep = new Set<number>();
+    for (const o of ordered) {
+      const next = ordered.find((x) => x.issue.obsFrom > o.issue.obsTo);
+      const fit = continuationFit(o.issue, words[o.issue.word].end, next ? next.issue.obsFrom : obs.length);
+      if (fit?.explains) keep.add(o.issue.word);
+    }
+    for (const o of [...open.values()]) {
+      if (keep.has(o.issue.word)) continue;
+      open.delete(o.issue.word);
+      decided.add(o.issue.word);
+      out.push(event(o, "uncertain"));
+    }
+  };
+
   const dropAnchor = (out: CheckerEvent[]) => {
-    sealOpen(out);
+    sealAll(out);
     anchor = null;
     furthest = -1;
     obs = obs.slice(-AFTER_DROP);
@@ -1285,8 +1315,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (const e of events) {
       if (e.type !== "position") continue;
       const p = e as PositionEvent;
-      // A misfit hold keeps this lock and keeps delivering tokens. Issues already open are the ones a lock drop
-      // would have hidden; evidence that arrives after the signal is judged in the window that stays.
+      // A misfit hold keeps this lock and keeps delivering tokens. An open issue stays only when its edit
+      // explains the drop; the rest end uncertain. Evidence after the signal is judged in the window that stays.
       if (p.hold === "start") sealOpen(out);
       if (p.state !== "locked") {
         trackerLocked = false;
