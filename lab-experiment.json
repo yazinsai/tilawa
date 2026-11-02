@@ -1,0 +1,13 @@
+{
+ "id": "tracker-retimed-word1-step-r",
+ "component": "tracker",
+ "hypothesis": "After a waqf pause the tracker steps onto the next ayah's word 1 on the first heard token, so inserted speech is delivered as part of word 1's window, where checker visits absorb it. Make that step provisional and re-time it to the onset of the first contiguous in-order fit of word 1 and word 2, so the surplus tokens land in the seam gap that the folded gap path already judges. Stack this on the zero-loss issue-explains-drop branch. Predict about 1.5 of 5 targets won plus the branch's 2: tracker -2, overall -3 (floor -2 if no addition flips).",
+ "expected": {
+  "component": -2,
+  "overall": -3
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-02T18:17:20+00:00",
+ "author": "autolab"
+}
