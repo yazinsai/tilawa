@@ -1,0 +1,13 @@
+{
+ "id": "listener-heard-word-must-be-lexical",
+ "component": "listener",
+ "hypothesis": "Phone wrong-word false warnings come from single channel-blurred consonants (ن/م, ف/ك, swallowed or truncated endings), and those blurs turn the written word into a non-word, whereas a planted swap is always a real attested word. Every try so far judged the heard span by a likelihood margin, where spikes and real swaps look equally marginal. Confirm a listener-evidenced wrong word only if its heard span spells a whole attested mushaf word other than the written word and its ±3 neighbours, using soft costs only. Predict 3 of 6 targets won with 1 loss: listener -3, overall -2.",
+ "expected": {
+  "component": -3,
+  "overall": -2
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-02T19:51:30+00:00",
+ "author": "autolab"
+}
