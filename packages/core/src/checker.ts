@@ -4,10 +4,12 @@ import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, P
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, deletionCost, insertionCost, subCost } from "./fuzzy.js";
+import { issueDropFit } from "./tracker.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
 import { minGapFrames } from "./gap-decode.js";
 import { PHRASE_PEAK, PHRASE_SWITCH, parallelPaths } from "./parallel-phrases.js";
+import { spanId, slotSpans } from "./slot-spans.js";
 
 export interface CheckerPolicy {
   /** When a suspected wrong or added word is confirmed: after `ms` (2–3 s), or once the next word has begun. Default 2500 ms. */
@@ -191,6 +193,19 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const parallels = parallelPaths(index);
+  const allSpans = slotSpans(index);
+  const spanById = new Map(allSpans.map((s) => [spanId(s), s]));
+  /** Spans whose continuation already picked a copy. Their slots are no longer held. */
+  const resolvedSpans = new Set<string>();
+  /** Spans the lock has sat in and not yet resolved. */
+  const watching = new Set<string>();
+  /** Latest locked word. A span that the cursor has left falls back to the copy it is on. */
+  let cursor = -1;
+  /**
+   * Held slot accusations whose phones commit already trimmed. A locked step would have decided them; they wait
+   * for the copy. The same-copy release confirms them, a move to the other copy drops them.
+   */
+  const frozen = new Map<number, { o: Open; sure: boolean }>();
   const wordStarts = new Set(words.map((w) => w.start));
   const ayahOf: number[] = [];
   const ayahFirst: number[] = [];
@@ -360,8 +375,16 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return changed.length ? changed.reduce((a, c) => a + c, 0) / changed.length : 1;
   };
 
-  /** Main's lock-drop downgrade: every issue open now ends `uncertain` and is never reopened. */
-  const sealOpen = (out: CheckerEvent[]) => {
+  /** Heard phonemes after the issue, up to `to`, against the anchor with the word at `cutAt` removed. */
+  const continuationFit = (issue: Issue, cutAt: number, to: number) => {
+    const from = words[issue.word]?.start;
+    if (from === undefined || cutAt <= from || from >= hi || cutAt > hi) return null;
+    const heard = obs.slice(issue.obsTo, to).map((p) => p.p).join("");
+    return issueDropFit(ref.slice(from, hi), ref.slice(cutAt, hi), heard);
+  };
+
+  /** Every issue open now ends `uncertain` and is never reopened. A real lock loss still does this to all of them. */
+  const sealAll = (out: CheckerEvent[]) => {
     for (const o of [...open.values()]) {
       open.delete(o.issue.word);
       decided.add(o.issue.word);
@@ -369,8 +392,128 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
   };
 
+  /**
+   * A misfit hold. An issue stays open when removing its own word makes the heard words after it, up to the next
+   * open issue, fit the anchor again: the edited fit beats the unedited fit by the commit margin and falls below
+   * the misfit cost. That issue explains the drop. Anything else is downgraded as on a lock loss.
+   */
+  const sealOpen = (out: CheckerEvent[], skip?: Set<number>) => {
+    const ordered = [...open.values()].sort((a, b) => a.issue.obsFrom - b.issue.obsFrom);
+    const keep = new Set<number>();
+    for (const o of ordered) {
+      const next = ordered.find((x) => x.issue.obsFrom > o.issue.obsTo);
+      const fit = continuationFit(o.issue, words[o.issue.word].end, next ? next.issue.obsFrom : obs.length);
+      if (fit?.explains) keep.add(o.issue.word);
+    }
+    for (const o of [...open.values()]) {
+      if (keep.has(o.issue.word) || skip?.has(o.issue.word)) continue;
+      open.delete(o.issue.word);
+      decided.add(o.issue.word);
+      out.push(event(o, "uncertain"));
+    }
+  };
+
+  const noteSpan = (wi: number) => {
+    if (wi < 0) return;
+    for (const s of allSpans) {
+      const id = spanId(s);
+      if (resolvedSpans.has(id) || watching.has(id)) continue;
+      if (s.starts.some((st) => wi >= st && wi < st + s.length)) watching.add(id);
+    }
+  };
+
+  /** A differing slot of a span the lock is still inside. Accusations there wait for the continuation. */
+  const heldSlot = (wi: number) => {
+    for (const id of watching) {
+      if (resolvedSpans.has(id)) continue;
+      const s = spanById.get(id);
+      if (!s) continue;
+      for (const st of s.starts) for (const off of s.slots) if (st + off === wi) return true;
+    }
+    return false;
+  };
+
+  const slotWords = () => {
+    const out = new Set<number>();
+    for (const id of watching) {
+      if (resolvedSpans.has(id)) continue;
+      const s = spanById.get(id);
+      if (!s) continue;
+      for (const st of s.starts) for (const off of s.slots) out.add(st + off);
+    }
+    return out;
+  };
+
+  const resolveWatching = () => {
+    for (const id of watching) resolvedSpans.add(id);
+    watching.clear();
+  };
+
+  const sureOf = (o: Open) =>
+    ((declared && !latched) || trackerLocked) && clarity(o.issue) >= minConfidence && supported(o.issue) !== false;
+
+  /** Confirm frozen slot accusations, or drop the ones that named the copy the continuation rejected. */
+  const releaseFrozen = (out: CheckerEvent[], drop: boolean, from = -1, end = Infinity) => {
+    for (const [wi, f] of [...frozen]) {
+      if (wi < from || wi >= end) continue;
+      frozen.delete(wi);
+      decided.add(f.o.issue.word);
+      out.push(event(f.o, drop ? "resolved" : (f.sure ? "confirmed" : "uncertain")));
+    }
+  };
+
+  const freezeSlot = (wi: number, o: Open) => {
+    if (frozen.has(wi)) return;
+    frozen.set(wi, { o, sure: sureOf(o) });
+    open.delete(wi);
+  };
+
+  /** True while the cursor is still inside a watched span or on its first few continuation words. */
+  const spanStillOpen = (wi: number) => {
+    for (const id of watching) {
+      if (resolvedSpans.has(id)) continue;
+      const s = spanById.get(id);
+      if (!s) continue;
+      if (s.starts.some((st) => wi >= st && wi < st + s.length + 4)) return true;
+    }
+    return false;
+  };
+
+  /**
+   * The continuation picked the other member. Slot accusations named the old copy, so they drop. Every other
+   * decision stays, and the phones stay in the window a locked step already committed: no fresh-lock `lead`, no
+   * slice of the word-1 gap. The anchor slides onto the parallel text and the next step keeps appending.
+   */
+  const rebase = (from: number, to: number, out: CheckerEvent[]) => {
+    const span = allSpans.find((s) => s.starts.includes(from) && s.starts.includes(to));
+    if (!span || anchor === null) return;
+    const delta = to - from;
+    const end = from + span.length;
+    const slotAt = new Set(span.slots.map((off) => from + off));
+    for (const wi of [...open.keys()]) {
+      if (wi < from || wi >= end) continue;
+      const o = open.get(wi)!;
+      open.delete(wi);
+      if (slotAt.has(wi)) out.push(event(o, "resolved"));
+      else {
+        const issue = { ...o.issue, word: o.issue.word + delta, last: o.issue.last + delta };
+        open.set(issue.word, { ...o, issue });
+      }
+    }
+    releaseFrozen(out, true, from, end);
+    for (const w of [...decided]) if (w >= from && w < end && !slotAt.has(w)) decided.add(w + delta);
+    if (anchor >= from && anchor <= end) anchor += delta;
+    else if (anchor < from) anchor = to;
+    if (furthest >= from && furthest < end) furthest += delta;
+    if (furthest < anchor) furthest = anchor;
+    if (passage) {
+      passage.from += delta;
+      passage.to = Math.max(passage.from, passage.to + delta);
+    }
+  };
+
   const dropAnchor = (out: CheckerEvent[]) => {
-    sealOpen(out);
+    sealAll(out);
     anchor = null;
     furthest = -1;
     obs = obs.slice(-AFTER_DROP);
@@ -1237,6 +1380,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   const evaluate = (out: CheckerEvent[], final: boolean) => {
+    // The session ended, or the cursor left the span, before a unique continuation arrived.
+    // Frozen slot accusations were judged on the committed window; this copy is the one they name.
+    if (watching.size && (final || (cursor >= 0 && !spanStillOpen(cursor)))) {
+      resolveWatching();
+      releaseFrozen(out, false);
+    }
     if (anchor === null || !obs.length) return;
     setWindow();
     steps = align();
@@ -1261,6 +1410,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (const [wi, o] of [...open]) {
       const now = issues.get(wi);
       if (!now) {
+        // Commit moved the anchor past a held slot. The accusation was made on the locked-step window;
+        // keep it until the continuation, instead of dropping it because this window no longer covers it.
+        if (heldSlot(wi) && wi < anchor!) {
+          freezeSlot(wi, o);
+          continue;
+        }
         open.delete(wi);
         out.push(event(o, "resolved"));
       } else if (now.cls !== o.issue.cls) {
@@ -1286,6 +1441,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         : past &&
           followed &&
           (confirm.after === "next-word" || nowMs - o.sinceMs >= confirm.ms || (final && declared && (!latched || (policy.finaliseFree ?? true)) && [...right].some((wi) => wi > issue.last)));
+      // A slot the two copies disagree on stays open until the continuation picks a copy.
+      if (heldSlot(issue.word)) continue;
       if (due) decide(o, out);
       // The session ended first. A declared passage (or a latched free one, with `finaliseFree`) confirms once a later
       // word was recited right; otherwise it ends uncertain.
@@ -1295,6 +1452,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       passage.from = Math.max(passage.from, ayahFirst[Math.max(0, ayahOf[anchor] - 1)]);
       passage.to = Math.max(passage.to, furthest, anchor);
     }
+    // Same commit a locked step uses, including while a span is held. Skipping it left `lead` set and the
+    // whole opening in one alignment, so the word-1 gap the spelled-surplus rule reads was no longer that gap.
     if (!final && obs.length > MAX_WINDOW) commit(steps, out);
   };
 
@@ -1314,7 +1473,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     if (cut < 0) return;
     const word = index.wordAt(at);
-    for (const o of [...open.values()]) if (o.issue.word < word) decide(o, out);
+    for (const o of [...open.values()]) if (o.issue.word < word && heldSlot(o.issue.word)) freezeSlot(o.issue.word, o);
+    for (const o of [...open.values()]) if (o.issue.word < word && !heldSlot(o.issue.word)) decide(o, out);
     for (const o of open.values()) {
       const range = o.issue.supportRange;
       o.issue = { ...o.issue, obsFrom: Math.max(0, o.issue.obsFrom - cut), obsTo: Math.max(0, o.issue.obsTo - cut),
@@ -1331,9 +1491,32 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (const e of events) {
       if (e.type !== "position") continue;
       const p = e as PositionEvent;
-      // A misfit hold keeps this lock and keeps delivering tokens. Issues already open are the ones a lock drop
-      // would have hidden; evidence that arrives after the signal is judged in the window that stays.
-      if (p.hold === "start") sealOpen(out);
+      // The continuation picked a copy. Held slots are judged against that member, not sealed here.
+      if (p.relocated) {
+        trackerLocked = true;
+        const from = wordIndex(p.relocated.from);
+        const to = wordIndex(p.relocated.to);
+        resolveWatching();
+        if (from >= 0 && to >= 0 && from !== to) rebase(from, to, out);
+        else releaseFrozen(out, false);
+        continue;
+      }
+      if (p.state === "locked" && p.observed[0]) {
+        cursor = wordIndex(p.observed[0].word);
+        // Only the first lock, before it has heard a location-unique word, holds differing slots.
+        if (p.spanHold) {
+          noteSpan(cursor);
+          noteSpan(wordIndex(p.observed[0].span.start));
+        }
+      }
+      // A misfit hold keeps this lock and keeps delivering tokens. An open issue stays only when its edit
+      // explains the drop; the rest end uncertain. Slot accusations fall back to this copy instead of being sealed.
+      if (p.hold === "start") {
+        const skip = slotWords();
+        resolveWatching();
+        releaseFrozen(out, false);
+        sealOpen(out, skip);
+      }
       if (p.state !== "locked") {
         trackerLocked = false;
         // Lost, it latches again on the next lock.

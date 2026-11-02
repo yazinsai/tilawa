@@ -6,8 +6,10 @@ import type { EngineEvent, PositionCandidate, PositionEvent, TraceCandidate, Tra
 import { EvidenceError } from "./evidence.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { createLocalSearch } from "./local.js";
-import type { LocalSearch } from "./local.js";
+import type { LocalPosition, LocalSearch } from "./local.js";
 import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
+import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-spans.js";
+import type { SlotSpan } from "./slot-spans.js";
 
 export interface TrackerOptions {
   mode?: "free" | "memorization";
@@ -16,7 +18,7 @@ export interface TrackerOptions {
   maxCandidates?: number;
   /** Fit: a candidate fits only with PER at most this. Default 0.35. */
   maxPer?: number;
-  /** Fit: and weighted cost per observed phoneme at most this. Default 0.35. */
+  /** Fit: and weighted cost per observed phoneme at most this. Default {@link MISFIT_MAX_COST}. */
   maxCost?: number;
   /** Evidence: `locked` needs at least this many observed phonemes. Default 10. */
   minPhonemes?: number;
@@ -24,7 +26,8 @@ export interface TrackerOptions {
   minWords?: number;
   /**
    * Separation: `locked` needs the best distinct candidate to trail by `max(minSeparation, separationScale / n)`
-   * plain edits for `n` observed phonemes, so short clips need a wider margin. Defaults 1 and 30.
+   * plain edits for `n` observed phonemes, so short clips need a wider margin. Defaults {@link COMMIT_MIN_SEPARATION}
+   * and {@link COMMIT_SEPARATION_SCALE}.
    */
   minSeparation?: number;
   separationScale?: number;
@@ -128,6 +131,63 @@ const REPEAT_MAX_COST = 0.15;
 
 const ayahCompare = (a: AyahRef, b: AyahRef) => a.surah - b.surah || a.ayah - b.ayah;
 
+/** Local recent cost above this, in plain edits per phoneme, is the misfit that starts a hold. */
+export const MISFIT_MAX_COST = 0.35;
+/** Commit separation, in plain edits: `max(COMMIT_MIN_SEPARATION, COMMIT_SEPARATION_SCALE / n)`. */
+export const COMMIT_MIN_SEPARATION = 1;
+export const COMMIT_SEPARATION_SCALE = 30;
+
+/** The lock's commit margin for `n` observed phonemes, in plain edits. */
+export function commitMargin(n: number, minSeparation = COMMIT_MIN_SEPARATION, separationScale = COMMIT_SEPARATION_SCALE): number {
+  return Math.max(minSeparation, separationScale / Math.max(1, n));
+}
+
+export interface IssueDropFit {
+  n: number;
+  /** Weighted cost per observed phoneme, in plain edits. */
+  unedited: number;
+  edited: number;
+  /** Plain edits by which the edited anchor beats the written one. */
+  gain: number;
+  /** {@link commitMargin} for this span. */
+  margin: number;
+  explains: boolean;
+}
+
+/**
+ * Cost of aligning every heard phoneme to a substring of `reference`, starting at its first phoneme, in `UNIT`s.
+ * The same weighted word costs as local tracking (`subCost`, `insertionCost`, `deletionCost`).
+ */
+export function anchorFitCost(reference: string, heard: string): number | null {
+  if (!reference || !heard) return null;
+  const fit = alignSubstring(reference, 0, reference.length, heard, (offset) => offset === 0, { strictStart: true });
+  return fit ? fit.cost : null;
+}
+
+/**
+ * Whether applying an issue's edit to the anchor text explains a misfit. `written` is the anchor from the issue
+ * through the drop; `edited` is that text with the issue's own edit applied; `heard` is the phonemes between them.
+ * The edited fit must beat the unedited fit by the commit margin and fall below the misfit cost. No new threshold.
+ */
+export function issueDropFit(
+  written: string,
+  edited: string,
+  heard: string,
+  maxCost = MISFIT_MAX_COST,
+  minSeparation = COMMIT_MIN_SEPARATION,
+  separationScale = COMMIT_SEPARATION_SCALE,
+): IssueDropFit | null {
+  const uneditedCost = anchorFitCost(written, heard);
+  const editedCost = anchorFitCost(edited, heard);
+  if (uneditedCost === null || editedCost === null) return null;
+  const n = heard.length;
+  const gain = (uneditedCost - editedCost) / UNIT;
+  const margin = commitMargin(n, minSeparation, separationScale);
+  const unedited = uneditedCost / UNIT / n;
+  const editedPer = editedCost / UNIT / n;
+  return { n, unedited, edited: editedPer, gain, margin, explains: gain >= margin && editedPer < maxCost };
+}
+
 /** What the tracker is fed from one chunk of listener evidence, in the product and in every bench alike: phonemes only. */
 export function trackerInput(evidence: PhonemeEvidence): PhonemeEvidence {
   return { ...evidence, posteriors: undefined };
@@ -137,11 +197,11 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const maxGramOccurrences = options.maxGramOccurrences ?? 5000;
   const maxCandidates = options.maxCandidates ?? 64;
   const maxPer = options.maxPer ?? 0.35;
-  const maxCost = options.maxCost ?? 0.35;
+  const maxCost = options.maxCost ?? MISFIT_MAX_COST;
   const minPhonemes = options.minPhonemes ?? 10;
   const minWords = options.minWords ?? 2;
-  const minSeparation = options.minSeparation ?? 1;
-  const separationScale = options.separationScale ?? 30;
+  const minSeparation = options.minSeparation ?? COMMIT_MIN_SEPARATION;
+  const separationScale = options.separationScale ?? COMMIT_SEPARATION_SCALE;
   const minLockConfidence = options.minLockConfidence ?? 0.08;
   const prior = options.prior;
   const priorRange = options.priorRange;
@@ -180,12 +240,24 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   /**
    * Lock kept while that search runs. A misfit used to emit `lost` before any destination had committed, and the
    * checker then dropped the anchor and the tokens heard in the gap. `lost` is emitted only when a lock commits off
-   * this anchor, or the session ends still uncommitted. The held event carries `hold: "start"` once, so issues
-   * already open are downgraded the way a lock drop would, and tokens after that still enter the window.
+   * this anchor, or the session ends still uncommitted. The held event carries `hold: "start"` once. The checker
+   * keeps an open issue only when that issue's edit explains the drop, and downgrades the rest; tokens after the
+   * signal still enter the window.
    */
   let holding: PositionEvent | null = null;
   /** Set at the first lock. The onset veto applies only to that lock. */
   let everLocked = false;
+  /** Slot-differing span the lock is inside, until its continuation picks a member. */
+  let twin: { span: SlotSpan; memberStart: number; endPhone: number; buf: string } | null = null;
+  /**
+   * Holding and continuation resolution run only on the first lock, and only until that lock's position leaves
+   * every slot-differing span. A word outside those spans is unique to its location. Any later `startLocal`
+   * (a jump, a reacquisition, the re-anchor after a copy change) closes it.
+   */
+  let arm = false;
+  /** Spans already resolved or given up at the lost timeout. Not watched again. */
+  const twinSettled = new Set<string>();
+  const allSpans = slotSpans(index);
   /** Every phoneme until the first lock, untrimmed, so a first-lock veto can see back to the speech onset. */
   let raw = "";
   let rawConf: number[] = [];
@@ -564,16 +636,23 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     return { event: decision.event, lock: decision.lock, trace: decision.trace, top: decision.top };
   };
 
+  const marked = (event: PositionEvent): PositionEvent => (arm ? { ...event, spanHold: true } : event);
   const emit = (event: PositionEvent, trace: (from: TrackerState | null) => TrackerTrace): PositionEvent => {
     const from = last?.state ?? null;
-    last = event;
-    return options.trace ? { ...event, trace: trace(from) } : event;
+    const out = marked(event);
+    last = out;
+    return options.trace ? { ...out, trace: trace(from) } : out;
   };
-  const unchanged = (event: PositionEvent) => !!last && JSON.stringify({ ...last, timeMs: 0 }) === JSON.stringify({ ...event, timeMs: 0 });
+  const bare = (event: PositionEvent) => {
+    const { spanHold: _, timeMs: __, trace: ___, ...rest } = event;
+    return JSON.stringify(rest);
+  };
+  const unchanged = (event: PositionEvent) => !!last && bare(last) === bare(event);
 
   const evaluate = (final: boolean): PositionEvent[] => {
     if (!observed) return [];
     const a = assessOutsidePhrases();
+    if (a.lock && !everLocked && longestSpanAt(allSpans, lastWord(a.lock)) !== null) arm = true;
     if (unchanged(a.event) && !final) return [];
     if (a.lock && !final) lockedOn = a.lock;
     return [emit(a.event, a.trace)];
@@ -701,6 +780,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     pending = null;
     reacquiring = false;
     holding = null;
+    if (everLocked) arm = false;
     everLocked = true;
     raw = "";
     rawConf = [];
@@ -711,6 +791,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     takbirHeard = false;
     afterBasmala = null;
     afterPhrase = false;
+    twin = null;
     keepLast(0);
   };
 
@@ -732,6 +813,10 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
    * now; `last` stays the plain lock, so later re-emits of the anchor compare unchanged.
    */
   const beginHold = (): PositionEvent => {
+    if (twin) {
+      twinSettled.add(spanId(twin.span));
+      twin = null;
+    }
     if (memorization) frozen ??= steady;
     const anchor = last!;
     holding = anchor;
@@ -748,6 +833,103 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       { type: "position", v: EVENT_SCHEMA_VERSION, timeMs, referenceVersion: index.version, expected: expectedWhileLost(), observed: [], state: "lost" },
       trace,
     );
+
+  /** Next word that has its own phonemes. Assimilated words are skipped. */
+  const spoken = (wi: number) => {
+    let k = wi;
+    while (k < index.words.length && index.words[k].end === index.words[k].start) k++;
+    return k;
+  };
+
+  /**
+   * While the lock sits in a slot-differing span, score heard phones against each member's next word. The current
+   * copy wins when its own continuation fits. Another copy wins only when the heard word fits that continuation and
+   * beats every other member by the commit margin. Held slot accusations then follow that copy.
+   */
+  const considerTwin = (p: string, pos: LocalPosition): PositionEvent | null => {
+    const wi = index.wordAt(Math.max(0, pos.offset - 1));
+    const outside = longestSpanAt(allSpans, wi) === null;
+    if (!twin && !arm) return null;
+    if (!twin) {
+      if (outside) {
+        arm = false;
+        return null;
+      }
+      const span = longestSpanAt(allSpans, wi);
+      if (!span || twinSettled.has(spanId(span))) return null;
+      const memberStart = span.starts.find((st) => wi >= st && wi < st + span.length);
+      if (memberStart === undefined) return null;
+      const endWi = memberStart + span.length;
+      if (endWi >= index.words.length) return null;
+      twin = { span, memberStart, endPhone: index.words[endWi].start, buf: "" };
+    }
+    // A clean phone still inside the span belongs to the shared text, not to the continuation.
+    if (pos.offset <= twin.endPhone && pos.stepCost < 1) twin.buf = "";
+    else {
+      twin.buf += p;
+      if (twin.buf.length > 96) twin.buf = twin.buf.slice(-96);
+    }
+    const span = twin.span;
+    const candidates = span.starts.map((st) => {
+      const w = spoken(st + span.length);
+      const word = index.words[w];
+      return { id: st, phonemes: word ? index.phonemes.slice(word.start, word.end) : "" };
+    });
+    const pick = continuationDecision(twin.buf, candidates, twin.memberStart, (n) => commitMargin(n, minSeparation, separationScale), maxCost);
+    // Past the first continuation word with no unique other copy: keep the locked one and let the window move on.
+    // The continuation word itself sits outside the span; the open span still gets to judge it.
+    if (!pick && wi < twin.memberStart + twin.span.length + 4) return null;
+    if (!pick) {
+      const fromWi = twin.memberStart;
+      twinSettled.add(spanId(twin.span));
+      twin = null;
+      if (outside) arm = false;
+      const word = ref(wi);
+      emittedSinceLock = true;
+      return emit({
+        type: "position",
+        v: EVENT_SCHEMA_VERSION,
+        timeMs: lastFrame * (frameMs ?? 0),
+        referenceVersion: index.version,
+        expected: expectedFor(word),
+        observed: [{ word, span: { start: ref(index.wordAt(pos.origin)), end: word }, confidence: 1, cost: pos.recentCost, per: 0 }],
+        state: "locked",
+        relocated: { from: ref(fromWi), to: ref(fromWi) },
+      }, (from) => quietTrace(from, "locked"));
+    }
+    const fromWi = twin.memberStart;
+    const toWi = pick.id;
+    twinSettled.add(spanId(span));
+    twin = null;
+    if (outside) arm = false;
+    const at = toWi === fromWi ? wi : spoken(toWi + span.length);
+    const origin = toWi === fromWi ? index.wordAt(pos.origin) : toWi;
+    const word = ref(at);
+    const event: PositionEvent = {
+      type: "position",
+      v: EVENT_SCHEMA_VERSION,
+      timeMs: lastFrame * (frameMs ?? 0),
+      referenceVersion: index.version,
+      expected: expectedFor(word),
+      observed: [{
+        word,
+        span: { start: ref(origin), end: word },
+        confidence: 1,
+        cost: pos.recentCost,
+        per: 0,
+      }],
+      state: "locked",
+      relocated: { from: ref(fromWi), to: ref(toWi) },
+    };
+    emittedSinceLock = true;
+    if (toWi !== fromWi) {
+      const dest = index.words[at];
+      if (!dest) return null;
+      stepCosts.length = 0;
+      startLocal({ offset: dest.end, length: 0, cost: 0, per: 0, votes: 0, path: [] });
+    }
+    return emit(event, (from) => quietTrace(from, "locked"));
+  };
 
   /** The local search's position as an event, or null when its word and run start haven't changed. */
   const localEvent = (shortlist: TraceCandidate[]): PositionEvent | null => {
@@ -876,6 +1058,11 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         }
       }
       const pos = local.position();
+      const relocated = considerTwin(ph.p, pos);
+      if (relocated) {
+        events.push(relocated);
+        continue;
+      }
       if (!weak && pos.recentCost > WEAK_COST) {
         weak = true;
         steady = expectedHistory[0] ?? last!.expected;
@@ -940,6 +1127,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     const a = assessOutsidePhrases();
     if (a.lock) {
       lockedOn = a.lock;
+      if (!everLocked && longestSpanAt(allSpans, lastWord(a.lock)) !== null) arm = true;
       return [emit(a.event, a.trace)];
     }
     observed = saved.observed;
