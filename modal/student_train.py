@@ -38,6 +38,7 @@ image = (
     .pip_install("rapidfuzz==3.14.1")
     .add_local_file("tools/student.py", "/root/tools/student.py")
     .add_local_file("tools/per_breakdown.py", "/root/tools/per_breakdown.py")
+    .add_local_file("modal/student_relabel.py", "/root/tools/student_relabel.py")
     .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
 app = modal.App("tilawa-student-train", image=image)
@@ -70,6 +71,7 @@ DEFAULTS = dict(
     init="",
     buckets="clean-match",
     target="teacher",
+    relabel="",
     max_hours=0.0,
     max_clip_s=30.0,
     epochs=6,
@@ -226,13 +228,17 @@ class ClipDataset:
         if self.train and cfg["spec_aug"]:
             feats = spec_augment(feats, rng)
         lo, hi = c["top_off"][i], c["top_off"][i + 1]
-        return dict(
+        item = dict(
             i=i,
             feats=feats,
             target=torch.tensor(phoneme_ids(c.get("target", c["hyp"])[i]), dtype=torch.long),
             top_ids=torch.from_numpy(c["ids"][lo:hi].reshape(-1, 5).astype(np.int64)),
             top_p=torch.from_numpy(c["probs"][lo:hi].reshape(-1, 5).astype(np.float32)),
         )
+        if "loss_mask" in c:
+            item["loss_mask"] = torch.zeros(item["top_ids"].shape[0], dtype=torch.bool)
+            item["loss_mask"][c["loss_mask"][i]] = True
+        return item
 
 
 def pick(bank, rng):
@@ -267,7 +273,7 @@ def collate(items):
     import torch
     from torch.nn.utils.rnn import pad_sequence
 
-    return dict(
+    batch = dict(
         i=torch.tensor([x["i"] for x in items]),
         feats=pad_sequence([x["feats"] for x in items], batch_first=True, padding_value=-23.0259),
         feat_lens=torch.tensor([x["feats"].shape[0] for x in items]),
@@ -277,6 +283,9 @@ def collate(items):
         top_p=pad_sequence([x["top_p"] for x in items], batch_first=True),
         n_teacher=torch.tensor([x["top_ids"].shape[0] for x in items]),
     )
+    if "loss_mask" in items[0]:
+        batch["loss_mask"] = pad_sequence([x["loss_mask"] for x in items], batch_first=True)
+    return batch
 
 
 def batches(n_samples, max_batch_s: float, seed: int, shuffle: bool = True):
@@ -313,17 +322,26 @@ def losses(model, b, cfg, device):
         log_probs, out_lens = model(feats, feat_lens)
     log_probs = log_probs.float()
     frames = out_lens.sum().clamp_min(1)
-    ctc = F.ctc_loss(log_probs.transpose(0, 1), b["targets"].to(device), out_lens, b["target_lens"].to(device),
+    B, T, _ = log_probs.shape
+    n_t = b["n_teacher"].to(device)
+    idx = (torch.arange(T, device=device)[None] - cfg["kd_delay"]).clamp(min=0)
+    idx = torch.minimum(idx, (n_t - 1)[:, None])
+    masked = None
+    ctc_probs = log_probs
+    if "loss_mask" in b:
+        from student_relabel import masked_ctc_log_probs
+
+        masked = b["loss_mask"].to(device).gather(1, idx)
+        ctc_probs = masked_ctc_log_probs(log_probs, masked)
+    ctc = F.ctc_loss(ctc_probs.transpose(0, 1), b["targets"].to(device), out_lens, b["target_lens"].to(device),
                      blank=0, reduction="sum", zero_infinity=True) / frames
     out = {"ctc": ctc, "loss": cfg["ctc_weight"] * ctc}
     if cfg["kd_weight"]:
-        B, T, _ = log_probs.shape
-        n_t = b["n_teacher"].to(device)
-        idx = (torch.arange(T, device=device)[None] - cfg["kd_delay"]).clamp(min=0)
-        idx = torch.minimum(idx, (n_t - 1)[:, None])
         top_ids = b["top_ids"].to(device).gather(1, idx[..., None].expand(B, T, 5))
         top_p = b["top_p"].to(device).gather(1, idx[..., None].expand(B, T, 5))
         valid = torch.arange(T, device=device)[None] < out_lens[:, None]
+        if masked is not None:
+            valid = valid & ~masked
         kd = soft_target_loss(log_probs, top_ids, top_p, valid)
         out["kd"] = kd
         out["loss"] = out["loss"] + cfg["kd_weight"] * kd
@@ -416,6 +434,12 @@ def train(args: dict) -> dict:
         from student import spliced_target
 
         train_clips["target"] = [spliced_target(r, h) for r, h in zip(train_clips["ref"], train_clips["hyp"])]
+    if cfg["relabel"]:
+        from student_relabel import apply_labels
+
+        if cfg["target"] != "spliced":
+            raise ValueError("Natural-speech relabels require the spliced base target")
+        emit(event="relabel", **apply_labels(train_clips, cfg["relabel"]))
     eval_clips = load_clips("clean-match", "test", 0, 60.0, 1, cfg["eval_max"])
     aug = {k: dict(np.load(f"/student/aug/{k}.npz")) for k in ("noise", "rir")} if os.path.exists("/student/aug/rir.npz") else None
     hours = train_clips["n_samples"].sum() / SR / 3600
@@ -551,7 +575,7 @@ def transcribe(run: str, src: str, dest: str, chunk: int = 16, left: int = 128) 
 @app.local_entrypoint()
 def main(name: str, size: str = "lite", init: str = "", max_hours: float = 0.0, epochs: int = 6,
          kd_weight: float = 0.0, eval_max: int = 3000, eval_every: int = 2000, max_batch_s: float = 800.0,
-         base_lr: float = 0.045, target: str = "teacher"):
+         base_lr: float = 0.045, target: str = "teacher", relabel: str = ""):
     print(train.remote(dict(name=name, size=size, init=init, max_hours=max_hours, epochs=epochs, kd_weight=kd_weight,
                             eval_max=eval_max, eval_every=eval_every, max_batch_s=max_batch_s, base_lr=base_lr,
-                            target=target)))
+                            target=target, relabel=relabel)))
