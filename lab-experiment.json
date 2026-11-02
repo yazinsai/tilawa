@@ -1,0 +1,13 @@
+{
+ "id": "checker-spelled-surplus-before-w1w2-fit",
+ "component": "checker",
+ "hypothesis": "Two separately killed rules each caught seam additions on engine input, and each was killed by a different clean seam: surplus spelling won 10 of 16 but flagged p15 تبع, and the retimed word-1 step won 5 of 5 but would have flagged p02's restart of 26:87. Confirm an added word only when the surplus before word 1 spells a non-neighbour mushaf word and also ends before the first zero-cost in-order fit of word 1 plus word 2, excluding contiguous back-runs that end at the previous ayah's last word. Predict 3 of 5 won, checker -3, overall -3 (floor -2).",
+ "expected": {
+  "component": -3,
+  "overall": -3
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-02T17:29:16+00:00",
+ "author": "autolab"
+}
