@@ -144,3 +144,15 @@ def test_the_judge_is_told_which_tried_experiments_never_ran():
         e["state"], e["note"] = "discarded", note
     h = {x["id"]: x["measured"] for x in B.history([LAB], st)}
     assert h == {"checker-joint-additions": True, "listener-blocked": False, "listener-twin": False, "listener-killed": True}
+
+
+def test_of_two_twin_cards_waiting_for_the_judge_only_the_younger_sees_the_older():
+    st = S.empty("lab-v1.5")
+    S.add(st, card("listener-twin-a"), "2026-11-01T00:00:00+00:00")
+    S.add(st, card("listener-twin-b"), "2026-11-01T00:00:00+00:00")
+    seen = {}
+    for id in ("listener-twin-a", "listener-twin-b"):
+        ask = Asker(answer({"accept": True, "restates": [], "why": "new"}))
+        B.judge(CFG, card(id), ctx(st), ask)
+        seen[id] = ask.prompts[0][1].split("History of tried experiments")[1]
+    assert '"listener-twin-b"' not in seen["listener-twin-a"] and '"listener-twin-a"' in seen["listener-twin-b"]

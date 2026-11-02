@@ -274,7 +274,7 @@ def history(lab_ledgers: list[dict], st: dict) -> list[dict]:
         c = e["card"]
         r = e.get("results") or {}
         row = {"id": id, "component": c["component"], "tier": e["tier"], "hypothesis": c["hypothesis"],
-               "mechanism": c.get("mechanism", ""), "cluster": c.get("cluster"), "state": e["state"], "note": e.get("note", ""),
+               "mechanism": c.get("mechanism", ""), "cluster": c.get("cluster"), "state": e["state"], "note": e.get("note", ""), "created": e.get("created", ""),
                "measured": not (e["state"] in ("discarded", "abandoned") and BLOCKED.search(e.get("note", "")))}
         if id in seen:
             out = [{**x, **row} if x["id"] == id else x for x in out]
@@ -373,7 +373,10 @@ def judge(cfg: dict, card: dict, ctx: dict, ask=None) -> dict:
         if not isinstance(a.get("accept"), bool) or not isinstance(a.get("why"), str):
             raise ValueError("accept (bool) and why (string) are required")
         return {"accept": a["accept"], "restates": list(a.get("restates") or []), "why": a["why"]}
-    same = [h for h in ctx["history"] if h["component"] == card["component"] and h["id"] != card["id"]]
+    mine = next(((h.get("created") or "", h["id"]) for h in ctx["history"] if h["id"] == card["id"]), ("~", card["id"]))
+    # of two cards still waiting for this judge (planned in parallel), only the younger sees the older: one of them runs
+    same = [h for h in ctx["history"] if h["component"] == card["component"] and h["id"] != card["id"]
+            and not (h["state"] == "proposed" and ((h.get("created") or "", h["id"]) > mine))]
     return call(cfg, "judge", JUDGE.format(about=ABOUT, card=dump(card), history=dump(same)), check, ask)
 
 
