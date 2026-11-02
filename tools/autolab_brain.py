@@ -59,7 +59,10 @@ CARD_SCHEMA = """A card is a JSON object:
  "cluster": one cluster key from the context;
  "targets": [incident keys from that cluster that this change should win];
  "expected": {"component": <int, negative = fewer wrong calls>, "overall": <int>};
- "killCriterion": one line: the observation that ends this line of work;
+ "killCriterion": one line: a check on the targets that shows the premise is false (for example "fewer than 3 of the
+   targets have <the property the mechanism relies on>"). Never a collateral clause ("or any clean seam / pause / session
+   gains ..."): the fold gate already prices losses against wins, and a builder that stops on one counterexample never
+   learns whether the trade would have folded;
  "reason": required only when the cluster has 2 or more failed tries: why this attempt is different;
  "gpuUsd": bets only: the Modal GPU budget in dollars; "earlyCheck": bets only: a cheap check and its kill threshold}
 Tiers: exploit = a bounded fix to one incident cluster (hours of work); explore = a new mechanism (at most a day);

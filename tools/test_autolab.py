@@ -295,6 +295,18 @@ def test_a_builder_that_killed_its_experiment_is_recorded_not_scored(w):
     assert e["state"] == "discarded" and "killed by its builder: kill criterion hit" in e["note"] and not any(n.startswith("score-") for n in w.jobs)
 
 
+def test_a_builder_that_stops_with_wins_and_no_score_is_sent_back_to_score(w):
+    id = started(w)
+    d = w.tmp / id / ".autolab"
+    d.mkdir(exist_ok=True)
+    (d / "outcome.json").write_text(json.dumps({"status": "killed", "reason": "a clean seam also spells a word", "measured": {"targets won": 10}}))
+    w.diff_text = "diff --git a/.scratch/lab/experiments/x.md b/.scratch/lab/experiments/x.md\n@@ -0,0 +1 @@\n+notes\n"
+    st = tick(w)
+    e = st["experiments"][id]
+    assert e["state"] == "implementing" and e["attempts"]["bounces"] == 1 and "10 targets won and no practice score" in e["note"]
+    assert not (d / "outcome.json").exists()
+
+
 def test_failed_tests_bounce_with_the_log(w):
     w.job_results["tests"] = {"error": "vitest: 2 failed"}
     st, id = advance(w, 2)
@@ -542,6 +554,22 @@ def test_inbox_reopen_sends_an_abandoned_build_back_to_validation(w, tmp_path):
     w.queued = [{"op": "reopen", "id": e["id"]}]
     st = tick(w)
     assert "validating" in [h["state"] for h in st["experiments"][e["id"]]["history"]][-3:]
+
+
+def test_inbox_rebuild_makes_a_new_accepted_card_from_a_builder_kill(w):
+    st = w.load()
+    e, _ = S.add(st, card("checker-surplus-word"), T0)
+    for to in ("accepted", "implementing", "validating", "discarded"):
+        S.move(st, e["id"], to, T0)
+    e["branch"] = "exp/checker-surplus-word"
+    e["results"]["builderOutcome"] = {"status": "killed", "reason": "one clean speller", "measured": {"targets won": 10}}
+    st["lastPlanAt"] = "2999-01-01T00:00:00+00:00"
+    w.saved = st
+    w.queued = [{"op": "rebuild", "id": e["id"], "note": ""}]
+    st = tick(w)
+    n = st["experiments"]["checker-surplus-word-r"]
+    assert "accepted" in [h["state"] for h in n["history"]] and "collateral" in n["card"]["reason"]
+    assert n["card"]["killCriterion"].startswith("the built change wins fewer than 3")
 
 
 def test_inbox_drop_and_rejections(w):

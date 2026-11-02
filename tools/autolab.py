@@ -73,6 +73,7 @@ OWN_DATA = re.compile(r"(\.exp-[^/]+\.(phone|studio)\.evidence\.json|/decode-v1\
 PRACTICE_SCORES = 3
 OFFLINE = re.compile(r"could not connect|cannot connect|timed out after|connection (reset|refused|error)|name resolution", re.I)
 ARM_WAIT_MINUTES = 20  # a card whose arm is full and whose builder never started moves to an arm with room
+UNSCORED_KILL_WINS = 3  # a builder that stops with this many targets won and no practice score is sent back to score
 ARM_DOWN_AFTER, ARM_DOWN_MINUTES = 3, 60  # an arm whose last builders all failed to start rests, then gets one more try
 GROK = {"id": "grok-4.7", "params": [{"id": "context", "value": "500k"}, {"id": "reasoning_effort", "value": "high"}, {"id": "fast", "value": "false"}]}
 DEFAULT_CONFIG = {
@@ -571,6 +572,20 @@ class Tick:
             for k in ("testsJob", "decodeJob", "scoreJob", "foldJob", "testsPassed"):
                 e["results"].pop(k, None)
             self.move(e, "validating", "reopened by you: checks, tests and scoring again")
+        elif op == "rebuild":
+            if e["state"] != "discarded" or "builderOutcome" not in e["results"]:
+                raise ValueError(f"{e['id']} is {e['state']}; only an experiment its builder killed can be rebuilt")
+            new = f"{e['id'][:37]}-r"
+            if new in st["experiments"]:
+                raise ValueError(f"{new} already exists")
+            won = (e["results"]["builderOutcome"].get("measured") or {}).get("targets won")
+            self.add({**e["card"], "id": new, "killCriterion": "the built change wins fewer than 3 targets, or its practice score fails the gate",
+                      "reason": f"rebuild of {e['id']}: its builder stopped on a collateral counterexample with {won} targets won, before any score"})
+            n = st["experiments"][new]
+            n["results"]["feedback"] = (f"This rebuilds {e['id']}, which stopped before scoring: {e['results']['builderOutcome'].get('reason', '')} "
+                                        f"Its write-up is on branch {e['branch']} (`git show {e['branch']}:.scratch/lab/experiments/{e['id']}.md`). "
+                                        "Build the change, run practice-score once, and let the gate weigh the counterexample. " + (c.get("note") or ""))
+            self.move(n, "accepted", f"rebuilt by you from {e['id']}")
         elif op == "revert":
             if e["state"] != "folded":
                 raise ValueError(f"{e['id']} is {e['state']}, not folded")
@@ -1034,6 +1049,13 @@ class Tick:
         outcome = read_json(Path(wt, ".autolab", "outcome.json"))
         if outcome.get("status") == "killed":
             r["builderOutcome"] = outcome
+            m = outcome.get("measured") if isinstance(outcome.get("measured"), dict) else {}
+            won = m.get("targets won")
+            if isinstance(won, int) and won >= UNSCORED_KILL_WINS and m.get("overall") is None and not e["attempts"]["practiceScores"]:
+                Path(wt, ".autolab", "outcome.json").unlink()
+                return self.bounce(e, f"you stopped with {won} targets won and no practice score: {str(outcome.get('reason', ''))[:200]} "
+                                      "Restore the change (or build it if you stopped at step 0), run practice-score once, and stop "
+                                      "only if that score loses more than the gate allows.")
             return self.discard(e, f"killed by its builder: {str(outcome.get('reason', ''))[:300]}"
                                    + (f" (measured: {json.dumps(outcome['measured'])[:200]})" if outcome.get("measured") else ""))
         diff = w.diff(e)
@@ -1205,7 +1227,7 @@ class Tick:
             st["counters"]["frozen"][c]["asked"] = at
             w.notify(st, "needs-human", f"stuck:{c}:{at[:10]}", f"Autolab is stuck on the {c}",
                      f"No fold in a day after a strategy change. Read the latest memo in the journal and tell autolab where to look.", at)
-        free_now = lambda: P.free_slots(st, P.allocate(st["main"]["attribution"], w.cfg["slots"], set(st["counters"]["frozen"])))  # noqa: E731
+        free_now = lambda: P.free_slots(st, P.allocate(st["main"]["attribution"], w.cfg["slots"], set(st["counters"]["frozen"]), P.fold_record(st)))  # noqa: E731
         free = free_now()
         newly = P.update_plateau(st, at, st.get("started") or at)
         if newly:
@@ -1405,7 +1427,13 @@ Inspect a case with the trace tool:
 
 ## If it doesn't work
 
-If your kill criterion fires, or you find the mechanism is wrong, stop: that is a useful result, not a failure.
+Kill only on the premise: the targets don't have what the mechanism relies on, or the built change wins fewer than 3
+of them. Losses elsewhere (a clean seam, a pause, a planted mistake caught before) are not a reason to stop, even if
+the card's kill criterion names them: the fold gate trades wins against losses (losses up to 30% of wins, studio up to
+2 worse; only a new false warning on a fully clean session is a hard stop). If the change wins 3 or more targets, run
+`{al} practice-score .` before deciding; narrow the change only when that score shows the gate failing.
+
+If your kill criterion fires that way, or you find the mechanism is wrong, stop: that is a useful result, not a failure.
 Revert your engine changes, explain what you found in the write-up, commit, and write `.autolab/outcome.json`:
 `{{"status": "killed", "reason": "<one sentence>", "measured": {{"overall": <practice change, if you scored>, "targets won": <n>}}}}`.
 Otherwise leave the change in place; the supervisor scores it and the fold gate decides.
@@ -1704,6 +1732,11 @@ def cmd_reopen(a):
     send("reopen", id=a.id)
 
 
+def cmd_rebuild(a):
+    known(a.id)
+    send("rebuild", id=a.id, note=a.note)
+
+
 def cmd_revert(a):
     known(a.id)
     send("revert", id=a.id, why=" ".join(a.why))
@@ -1756,6 +1789,9 @@ def main():
     rp.add_argument("--note", default="")
     op = sub.add_parser("reopen")
     op.add_argument("id")
+    rbp = sub.add_parser("rebuild")
+    rbp.add_argument("id")
+    rbp.add_argument("--note", default="")
     rvp = sub.add_parser("revert")
     rvp.add_argument("id")
     rvp.add_argument("why", nargs="*")
@@ -1769,7 +1805,7 @@ def main():
     try:
         {"init": cmd_init, "tick": cmd_tick, "loop": cmd_loop, "pause": cmd_pause, "resume": lambda a: cmd_pause(a, why=""),
          "status": cmd_status, "ab": cmd_ab, "practice-score": cmd_practice_score, "watchdog": cmd_watchdog, "match": cmd_match,
-         "approve": cmd_approve, "waiting": cmd_waiting, "retry": cmd_retry, "reopen": cmd_reopen, "revert": cmd_revert, "drop": cmd_drop, "eli5": cmd_eli5,
+         "approve": cmd_approve, "waiting": cmd_waiting, "retry": cmd_retry, "reopen": cmd_reopen, "rebuild": cmd_rebuild, "revert": cmd_revert, "drop": cmd_drop, "eli5": cmd_eli5,
          "modal-run": cmd_modal_run, "modal-result": cmd_modal_result, "sync-exec-data": cmd_sync_exec_data}[a.op](a)
     except Stop as err:
         sys.exit(f"autolab: {err}")

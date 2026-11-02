@@ -31,11 +31,24 @@ def largest_remainder(weights: dict[str, float], n: int, floor: int = 0) -> dict
     return out
 
 
-def allocate(attribution: dict[str, int], slots: int, frozen: set[str] = frozenset()) -> list[tuple[str, str]]:
-    """(component, tier) per slot. Components get slots in proportion to their wrong calls, at least 1 each; tiers split
-    all slots 50/30/20. Bets go to the components with the most wrong calls first, then explore, then exploit. A frozen
-    component's exploit slots become bets."""
-    per = largest_remainder({c: attribution.get(c, 0) for c in COMPONENTS}, slots, floor=1)
+def fold_record(st: dict) -> dict[str, tuple[int, int]]:
+    """component -> (folds, decided experiments)."""
+    out = {c: [0, 0] for c in COMPONENTS}
+    for e in st["experiments"].values():
+        if e["state"] in TERMINAL and (c := e["card"]["component"]) in out:
+            out[c][0] += e["state"] == "folded"
+            out[c][1] += 1
+    return {c: (f, n) for c, (f, n) in out.items()}
+
+
+def allocate(attribution: dict[str, int], slots: int, frozen: set[str] = frozenset(),
+             record: dict[str, tuple[int, int]] | None = None) -> list[tuple[str, str]]:
+    """(component, tier) per slot. Components get slots in proportion to their wrong calls times their smoothed fold
+    rate ((folds + 1) / (decided + 2), from `record`), with no floor; tiers split all slots 50/30/20. Bets go to the
+    components with the most wrong calls first, then explore, then exploit. A frozen component's exploit slots become
+    explore: a plateau needs a new mechanism, and bets fold least."""
+    rate = {c: (f + 1) / (n + 2) for c, (f, n) in (record or {}).items()}
+    per = largest_remainder({c: attribution.get(c, 0) * rate.get(c, 0.5) for c in COMPONENTS}, slots)
     tiers = largest_remainder(TIER_SHARE, slots)
     order = sorted(COMPONENTS, key=lambda c: (-attribution.get(c, 0), c))
     room, out = dict(per), []
@@ -47,19 +60,20 @@ def allocate(attribution: dict[str, int], slots: int, frozen: set[str] = frozens
             room[c] -= 1
             out.append((c, tier))
     out += [(c, "exploit") for c in order for _ in range(room[c])]
-    return sorted(((c, "bet" if t == "exploit" and c in frozen else t) for c, t in out), key=lambda s: (order.index(s[0]), s[1]))
+    return sorted(((c, "explore" if t == "exploit" and c in frozen else t) for c, t in out), key=lambda s: (order.index(s[0]), s[1]))
 
 
 def free_slots(st: dict, alloc: list[tuple[str, str]]) -> list[tuple[str, str]]:
-    """The allocated slots no active experiment holds."""
-    held = Counter((e["card"]["component"], e["tier"]) for e in active(st))
+    """The allocated slots no active experiment holds, no more than the slots left once every active experiment
+    (including ones the allocation no longer has a slot for) holds one."""
+    held, now = Counter((e["card"]["component"], e["tier"]) for e in active(st)), len(active(st))
     out = []
     for s in alloc:
         if held[s]:
             held[s] -= 1
         else:
             out.append(s)
-    return out
+    return out[:max(0, len(alloc) - now)]
 
 
 # Plateau

@@ -28,21 +28,43 @@ def card(id, component="checker", tier="exploit", **kw):
 
 def test_allocation_with_todays_attribution():
     a = P.allocate(TODAY, 6)
-    assert Counter(c for c, _ in a) == {"listener": 3, "checker": 2, "tracker": 1}
+    assert Counter(c for c, _ in a) == {"listener": 3, "checker": 3}
     assert Counter(t for _, t in a) == {"exploit": 3, "explore": 2, "bet": 1}
     assert ("listener", "bet") in a
 
 
-def test_every_component_gets_a_slot_and_tiers_hold_with_few_slots():
+def test_no_slot_for_a_component_without_wrong_calls_and_tiers_hold_with_few_slots():
     a = P.allocate({"listener": 0, "checker": 100, "tracker": 0}, 3)
-    assert Counter(c for c, _ in a) == {"listener": 1, "checker": 1, "tracker": 1}
+    assert Counter(c for c, _ in a) == {"checker": 3}
+    assert Counter(t for _, t in a) == {"exploit": 1, "explore": 1, "bet": 1}
     assert P.allocate(TODAY, 0) == []
 
 
-def test_frozen_component_trades_exploit_for_bets():
-    a = P.allocate(TODAY, 6, frozen={"checker"})
-    assert ("checker", "exploit") not in a
-    assert Counter(t for c, t in a if c == "checker")["bet"] >= 1
+def test_fold_rate_moves_slots_off_a_component_that_never_folds():
+    a = P.allocate({"listener": 38, "checker": 24, "tracker": 4}, 6, record={"listener": (1, 45), "checker": (3, 47), "tracker": (1, 22)})
+    assert Counter(c for c, _ in a) == {"listener": 2, "checker": 3, "tracker": 1}
+    assert Counter(t for _, t in a)["bet"] == 1
+
+
+def test_frozen_component_trades_exploit_for_explore_not_bets():
+    a = P.allocate(TODAY, 6, frozen={"listener", "checker"})
+    assert not {("listener", "exploit"), ("checker", "exploit")} & set(a)
+    assert Counter(t for _, t in a)["bet"] == 1
+
+
+def test_fold_record_counts_decided_experiments():
+    st = S.empty()
+    for i, state in enumerate(("folded", "discarded", "discarded", "implementing")):
+        e, _ = S.add(st, card(f"x{i}", "tracker"), T0)
+        e["state"] = state
+    assert P.fold_record(st)["tracker"] == (1, 3)
+
+
+def test_free_slots_never_exceed_room_left_by_active_experiments():
+    st = S.empty()
+    for i in range(5):
+        S.add(st, card(f"b{i}", "listener", "bet"), T0)
+    assert len(P.free_slots(st, P.allocate(TODAY, 6))) == 1
 
 
 def test_free_slots_subtract_active_experiments():
