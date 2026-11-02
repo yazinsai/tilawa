@@ -323,9 +323,10 @@ def losses(model, b, cfg, device):
     log_probs = log_probs.float()
     frames = out_lens.sum().clamp_min(1)
     B, T, _ = log_probs.shape
-    n_t = b["n_teacher"].to(device)
-    idx = (torch.arange(T, device=device)[None] - cfg["kd_delay"]).clamp(min=0)
-    idx = torch.minimum(idx, (n_t - 1)[:, None])
+    if cfg["kd_weight"] or "loss_mask" in b:
+        n_t = b["n_teacher"].to(device)
+        idx = (torch.arange(T, device=device)[None] - cfg["kd_delay"]).clamp(min=0)
+        idx = torch.minimum(idx, (n_t - 1)[:, None])
     masked = None
     ctc_probs = log_probs
     if "loss_mask" in b:

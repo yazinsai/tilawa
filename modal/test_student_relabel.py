@@ -117,3 +117,19 @@ def test_overlay_rejects_stale_labels_and_keeps_unselected_items(tmp_path):
     assert clips['loss_mask'] == [[7, 8], []]
     with pytest.raises(ValueError, match='Stale relabel'):
         apply_labels(clips, path)
+
+
+def test_ctc_only_training_still_works_without_teacher_buffers():
+    from student_train import losses
+
+    logits = torch.zeros((1, 3, 3), requires_grad=True)
+
+    def model(feats, lens):
+        return logits.log_softmax(-1), torch.tensor([3])
+
+    batch = dict(feats=torch.zeros((1, 3, 80)), feat_lens=torch.tensor([3]),
+                 targets=torch.tensor([1, 2]), target_lens=torch.tensor([2]))
+    out = losses(model, batch, dict(ctc_weight=1., kd_weight=0.), 'cpu')
+    assert 'kd' not in out and torch.isfinite(out['loss'])
+    out['loss'].backward()
+    assert logits.grad.abs().sum() > 0
