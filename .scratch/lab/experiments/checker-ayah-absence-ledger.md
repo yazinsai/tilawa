@@ -10,30 +10,31 @@ Test set lab-v1.5, practice, phone. Three of the four unique ayahs skipped betwe
 
 Skip detection only judges text the alignment bound. A heard refrain can bind to some copy, so the skipped ayah sits inside the search window and still gets no visit. The ledger does not move alignment, anchors or placement.
 
-After the visited frontier advances, and when the tracker jumps the anchor, the checker lists mushaf ayahs between those two words that still have no counting visit and whose phonemes are not the neighbours' text. Each one is a whole ayah of at least three words, the same bar as a passage skip. A CTC keyword decode places that ayah's phone sequence anywhere on the stored posteriors between the neighbours and compares it with a phone-loop filler. The filler pays nothing: every frame keeps its best token. The keyword's extra cost is how much worse its best path is. Above `SUPPORT` (10 nats) the filler wins, and a `skipped_passage` at the ayah's first word goes through the ordinary confirm rules.
+After the visited frontier advances, and when the tracker jumps the anchor, the checker lists mushaf ayahs between those two words that still have no counting visit and whose phonemes are not the neighbours' text. A hole of more than two such ayahs is a lost lock, not a refrain gap, and is left alone. Each remaining one is a whole ayah of at least three words, the same bar as a passage skip. A CTC keyword decode places that ayah's phone sequence anywhere on the stored posteriors between the neighbours and compares it with a phone-loop filler. The filler pays nothing: every frame keeps its best token. The keyword's extra cost is how much worse its best path is. The decode has to actually run (the span has to be long enough to hold the sequence). Above `SUPPORT` (10 nats) the filler wins, and a `skipped_passage` at the ayah's first word goes through the confirm rules. The warning time is the first later ayah the tracker locked inside that same audio, so a refrain bound backward cannot push the time past the omission horizon. With no tracker locks (a passage replay) any time in the span is enough for the confirm rules.
 
-The warning time is the start of the last frame matched to an ayah before the hole. That frame is still the previous word. The end of the frame can sit past the labelled word, which is too late for the scorer's window.
+The neighbour already being committed is enough to confirm. Waiting two further ayahs never arrives when every later refrain binds backward.
 
 ## What the replay showed
 
-No-engine replay, listener `spliced-clean-int8`, phone. A recited ayah on its own audio costs under 1 nat (worst 0.9). The unsaid ayah on the neighbour's audio costs hundreds of nats, or cannot be placed because the gap is shorter than the sequence.
+Listener `spliced-clean-int8`, practice, compared with the ledger off. Phone engine is the overall arm. Oracle evidence with true positions is the checker arm.
 
-| Ayah | Bound | Filler | Warning time | Label window | Result |
-| --- | --- | --- | --- | --- | --- |
-| p10 26:109 | never | 514 nats | 40.80 s | 35.63–43.45 | inside |
-| p15 55:29 | never | 428 nats | 179.52 s | 167.88–179.54 | inside |
-| p16 77:33 | never | 198 nats | 136.08 s | 127.68–136.41 | inside |
-| p24 26:130 | word 2 at 256.76 s | not ledgered | — | — | stays missed |
+| Ayah | Phone engine | Phone oracle | Studio engine |
+| --- | --- | --- | --- |
+| p10 26:109 | won, filler 514 nats | won | won |
+| p15 55:29 | won, filler 428 nats | won (168.36 s, inside the window) | not ledgered (a visit) |
+| p16 77:33 | won, filler 198 nats; the wrong word at 77:33:1 stays | won | won, and the late false skip at 136.64 s goes away |
+| p16 77:39 | won (was a separate miss) | already hit | unchanged |
+| p24 26:130 | not ledgered (word 2 is a visit) | won, filler 149 nats | won |
 
-All four were inside the lookahead window. Three were never bound, which is the list the ledger uses. p16 still confirms its separate `wrong_word` at 77:33:1. The same pass also confirms the planted skip at 77:39 (153.00 s, window to 154.44). Skips the alignment already raised (26:115, 26:136, 77:36) are not raised again.
+On this replay that is overall −3 (−4 misses, +1 false warning) and checker −4. The false warning is `lab-v1.5-p63` phone and studio engine, `skipped_passage` at 37:25:1. Oracle evidence binds 37:25, so the checker arm does not raise it; the listener posteriors between 37:24 and 37:26 do not, and the filler wins at 169 nats. One loss against four wins.
 
-26 fully clean practice sessions, phone and studio: no recited ayah was ledgered with the filler winning.
+26 fully clean practice sessions, phone and studio, true position and engine: no recited ayah was ledgered with the filler winning. A tracker jump across a stretch of unbound ayahs (p25, 40 of them; p74, nine) is not accused. A span shorter than the ayah (2:24, 2:283, 4:15, 19:65, 25:58) is not a decode and is not a skip.
 
 ## Validation
 
-- Unit: deleting 26:109 between the surrounding refrains, with posteriors, confirms `skipped_passage` at 26:109:1. The same span recited whole confirms nothing. A sequence on its own frames costs under 1 nat; a different sequence on those frames costs far more. `test/keyword-spot.test.ts` and `test/checker.test.ts`: 50 passed.
-- Core and sdk tests: `bash tools/autolab_tests.sh` on six shards. One shard hit Vitest's RPC deadline after every test in it had passed. The keyword threshold in that file was then raised; the re-run above covers it.
+- Unit: deleting 26:109 between the surrounding refrains, with posteriors and no tracker locks, confirms `skipped_passage` at 26:109:1. The same span recited whole confirms nothing. A sequence on its own frames costs under 1 nat; a different sequence on those frames costs far more.
+- Core and sdk tests: `bash tools/autolab_tests.sh` on six shards, every shard exit 0. One shard hit Vitest's RPC deadline after every test in it had passed.
 
 ## Limits
 
-26:130 is visited on word 2, so the ledger never asks about it. A skip the alignment binds any word of is left to the existing rules. Practice was not scored here.
+26:130 on phone is visited, so the ledger never asks. p63 37:25 is a recited ayah the listener did not bind and the keyword did not find; that one false warning is the loss. Practice was not scored here.

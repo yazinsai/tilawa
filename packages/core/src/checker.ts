@@ -256,19 +256,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const pendingAbsence: Open[] = [];
   /** Word the absence ledger has scanned up to. */
   let ledgerAt = -1;
+  /** First and latest time the tracker locked each ayah. The ledger places a skip at the continuation's onset. */
+  const firstLock = new Map<number, number>();
+  const lastLock = new Map<number, number>();
   let jumpFrom: number | null = null;
   let jumpF0 = -1;
-  /** End frame of the last visit of each ayah, captured before a jump drops the window. */
-  let jumpVisits: Map<number, number> | null = null;
-  const visitEnds = () => {
-    const m = new Map<number, number>();
-    for (const s of steps) if (s.op === "diag" && s.obs >= 0 && s.obs < obs.length) {
-      const ay = ayahOf[index.wordAt(s.ref)];
-      const frame = obs[s.obs].end;
-      if (frame > (m.get(ay) ?? -1)) m.set(ay, frame);
-    }
-    return m;
-  };
   const emitted: CheckerEvent[] = [];
   let seq = 0;
 
@@ -383,7 +375,6 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const dropAnchor = (out: CheckerEvent[]) => {
     jumpFrom = anchor;
     jumpF0 = obs.length ? obs[0].start : -1;
-    jumpVisits = anchor !== null && obs.length ? visitEnds() : null;
     for (const o of [...open.values()]) {
       open.delete(o.issue.word);
       decided.add(o.issue.word);
@@ -407,7 +398,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
    * sequence, entered anywhere on the frames between those words, is scored against a phone-loop filler.
    * The filler winning is a skip at the ayah's first word, through the ordinary confirm rules.
    */
-  const spotAbsences = (fromWord: number, toWord: number, f0: number, f1: number, out: CheckerEvent[], final: boolean, jump: boolean) => {
+  const spotAbsences = (fromWord: number, toWord: number, f0: number, f1: number, out: CheckerEvent[], final: boolean) => {
     if (!frames || frames.startFrame < 0 || fromWord < 0 || toWord <= fromWord) return;
     if (words[fromWord].surah !== words[toWord].surah) return;
     const leftPh = ref.slice(words[ayahFirst[ayahOf[fromWord]]].start, words[ayahLast[ayahOf[fromWord]]].end);
@@ -415,6 +406,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const a0 = Math.max(f0, frames.startFrame);
     const b0 = Math.min(f1, frames.endFrame);
     const lost = f0 < frames.startFrame;
+    // One unbound ayah between two committed neighbours is a skip the alignment never windowed.
+    // A run of them is a lost lock: the retained audio cannot witness each ayah, and accusing the run
+    // is a pile of warnings. Two is the most a refrain hole holds (the skipped ayah, and one neighbour
+    // copy the alignment did not visit).
+    const holes: { ay: number; first: number; last: number; labels: number[] }[] = [];
     for (let ay = ayahOf[fromWord] + 1; ay < ayahOf[toWord]; ay++) {
       if (bound.has(ay)) continue;
       const first = ayahFirst[ay];
@@ -423,17 +419,35 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (n < 3) continue;
       const phones = ref.slice(words[first].start, words[last].end);
       if (!phones || leftPh.includes(phones) || rightPh.includes(phones)) continue;
-      const labels = [...phones].map((p) => tokenId.get(p) ?? 0);
-      let cost = Infinity;
-      if (!lost && b0 - a0 >= labels.length) cost = frames.keywordExtra(labels, a0, b0);
-      else if (lost) continue;
-      const filler = cost > ABSENCE;
-      const ends = jump && jumpVisits ? jumpVisits : visitEnds();
-      let edge = -1;
-      for (const [a, frame] of ends) if (a < ay && frame > edge) edge = frame;
-      // The last matched frame of the ayah before the hole still belongs to that ayah. The frame's end
-      // is the next boundary, which can fall past the labelled word; its start is inside the word.
-      const at = edge >= 0 ? edge * frameMs : nowMs;
+      holes.push({ ay, first, last, labels: [...phones].map((p) => tokenId.get(p) ?? 0) });
+    }
+    if (holes.length > 2) return;
+    for (const { ay, first, last, labels } of holes) {
+      // A span shorter than the ayah never ran the decode. That is not the filler winning.
+      if (lost || b0 - a0 < labels.length) continue;
+      const cost = frames.keywordExtra(labels, a0, b0);
+      const filler = Number.isFinite(cost) && cost > ABSENCE;
+      // A refrain bound backward puts its last frame on the earlier copy, past the omission's horizon.
+      // Place the skip at the first later ayah locked inside the audio we searched.
+      const span0 = f0 * frameMs;
+      const span1 = f1 * frameMs;
+      let resume = Infinity;
+      for (let a = ay + 1; a < ayahFirst.length; a++) {
+        const t0 = firstLock.get(a);
+        const t1 = lastLock.get(a);
+        const t = t0 !== undefined && t0 >= span0 && t0 <= span1 ? t0 : t1 !== undefined && t1 >= span0 && t1 <= span1 ? t1 : undefined;
+        if (t === undefined) continue;
+        resume = t;
+        break;
+      }
+      // The continuation has to have been locked inside the audio we searched. Otherwise the span is
+      // not the gap between two committed neighbours. A passage replay has no tracker locks; the span
+      // itself is the gap, and any time in it only has to reach the confirm rules.
+      let at = resume;
+      if (resume === Infinity) {
+        if (firstLock.size > 0 || !(span1 > span0)) continue;
+        at = span0;
+      }
       if (!filler) continue;
       if (emitted.some((e) => e.errorClass === "skipped_passage" && e.location.surah === words[first].surah && e.location.ayah === words[first].ayah)) continue;
       const tail = Math.max(0, obs.length - 4);
@@ -443,12 +457,17 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   const settleAbsence = (o: Open, out: CheckerEvent[], final: boolean, toWord: number) => {
-    const past = toWord >= 0 && ayahOf[toWord] >= ayahOf[o.issue.last] + 2;
+    // The right neighbour is already committed, so the hole is behind us. The ordinary +2 ayah wait
+    // never arrives when every later refrain binds backward and no correct visit lands past it.
+    const later = toWord >= 0 && toWord < words.length && ayahOf[toWord] > ayahOf[o.issue.last];
+    const past = later || (furthest >= 0 && ayahOf[furthest] >= ayahOf[o.issue.last] + 2);
     if (!past && !final) return;
+    if (obs.length) o.issue = { ...o.issue, obsFrom: Math.max(0, obs.length - 4), obsTo: obs.length };
+    const sure = ((declared && !latched) || trackerLocked) && clarity(o.issue) >= minConfidence && supported(o.issue) !== false;
+    if (past && !final && !sure) return;
     const at = pendingAbsence.indexOf(o);
     if (at >= 0) pendingAbsence.splice(at, 1);
-    if (obs.length) o.issue = { ...o.issue, obsFrom: Math.max(0, obs.length - 4), obsTo: obs.length };
-    decide(o, out, past ? undefined : "uncertain");
+    decide(o, out, past && sure ? undefined : "uncertain");
   };
 
   const raiseAbsence = (issue: Issue, out: CheckerEvent[], final: boolean, toWord: number, at: number) => {
@@ -1346,7 +1365,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
           if (w === ledgerAt) f0 = Math.min(f0, obs[s.obs].start);
           if (w === tip) f1 = Math.max(f1, obs[s.obs].end + 1);
         }
-        if (f0 < Infinity && f1 > f0) spotAbsences(ledgerAt, tip, f0, f1, out, final, false);
+        if (f0 < Infinity && f1 > f0) spotAbsences(ledgerAt, tip, f0, f1, out, final);
         ledgerAt = tip;
       }
     }
@@ -1402,6 +1421,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       trackerLocked = true;
       const start = wordIndex(p.observed[0].span.start);
       const end = wordIndex(p.observed[0].word);
+      if (end >= 0) {
+        const ay = ayahOf[end];
+        if (!firstLock.has(ay)) firstLock.set(ay, p.timeMs);
+        lastLock.set(ay, p.timeMs);
+      }
       if (latched && !passage) {
         passage = { from: start, to: end };
         declared = true;
@@ -1437,7 +1461,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const anchorOn = (next: number | null, events: EngineEvent[], out: CheckerEvent[]) => {
     const land = (dest: number) => {
       if (jumpFrom !== null && jumpFrom !== dest && jumpF0 >= 0 && obs.length) {
-        spotAbsences(jumpFrom, dest, jumpF0, obs[obs.length - 1].end + 1, out, false, true);
+        spotAbsences(jumpFrom, dest, jumpF0, obs[obs.length - 1].end + 1, out, false);
       }
       jumpFrom = null;
       jumpF0 = -1;
