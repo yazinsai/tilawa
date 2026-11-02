@@ -93,6 +93,26 @@ describe("added speech between neighboring words", () => {
     expect(check(w(2, 6, 1), w(2, 11, 8), () => [])).toEqual([]);
   });
 
+  it("flags a non-neighbour word spelled before word 1 once word 1 and word 2 fit", () => {
+    const from = w(37, 68, 1), to = w(37, 70, 4), seam = w(37, 69, 1);
+    const planted = text(w(37, 24, 1));
+    expect(check(from, to, at => [{ kind: "ins", at: at(seam), text: planted }])).toContain(`added_word ${key(seam)}`);
+  });
+
+  it("stays quiet when the surplus is the previous ayah read again", () => {
+    const from = w(37, 68, 1), to = w(37, 70, 4), seam = w(37, 69, 1);
+    expect(check(from, to, at => [{ kind: "repeat", from: at(from), to: at(seam) }])).toEqual([]);
+  });
+
+  it("stays quiet when the extra phones leave no zero-cost fit of word 1 and word 2", () => {
+    const from = w(38, 6, 1), to = w(38, 8, 2), seam = w(38, 7, 1);
+    const events = check(from, to, at => [
+      { kind: "ins", at: at(seam), text: "تَبِعَ" },
+      { kind: "del", at: at(seam), count: text(seam).length },
+    ]);
+    expect(events).not.toContain(`added_word ${key(seam)}`);
+  });
+
   it("preserves a genuine multiword repeat between those neighbors", () => {
     const from = w(2, 6, 1), to = w(2, 11, 8);
     expect(check(from, to, at => [{ kind: "repeat", from: at(w(2, 7, 1)), to: at(w(2, 8, 1)) }])).toEqual([]);

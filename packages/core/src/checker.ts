@@ -3,7 +3,7 @@ import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
-import { UNIT, alignSubstring, deletionCost, insertionCost, subCost } from "./fuzzy.js";
+import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
 import { minGapFrames } from "./gap-decode.js";
@@ -67,6 +67,8 @@ const WRONG = 0.3;
  * `SOFT` to change; a sound held longer or shorter (beside the same sound) costs `HELD`. Consonant edits are hard.
  */
 const CONSONANTS = new Set("ءبتثجحخدذرزسشصضطظعغفقكلمنهوي");
+/** Pause signs. A waqf tail is every leading non-consonant; these two are dropped wherever they sit. */
+const PAUSE_MARK = new Set(["ۜ", "ؙ"]);
 const SOFT = 3;
 const HELD = 2;
 /** A wrong word needs this many hard edits, or one in a word with at most one consonant. */
@@ -167,12 +169,70 @@ interface Issue {
    * entry and exit words; only the interior word is substituted. No insertion or restart arc.
    */
   phrase?: { written: string; alt: string };
+  /**
+   * The span before word 1 spells a whole non-neighbour word and ends at a zero-cost word-1+word-2 fit.
+   * That is the support evidence, so the posterior margin is not asked again.
+   */
+  spelled?: boolean;
 }
 
 interface Open {
   id: string;
   issue: Issue;
   sinceMs: number;
+}
+
+const collapsePh = (s: string) => collapseHeld([...s]).join("");
+const skeletonOf = (s: string) => [...collapsePh(s)].filter(c => CONSONANTS.has(c)).join("");
+
+/** Both strings consumed, and every edit cheaper than one consonant. */
+function softOnly(ref: string, obs: string): boolean {
+  if (!ref || !obs) return false;
+  const n = ref.length;
+  const m = obs.length;
+  const INF = 1e12;
+  let prev = new Float64Array(m + 1).fill(INF);
+  prev[0] = 0;
+  for (let j = 1; j <= m; j++) {
+    const ic = insertionCost(ref, 0, obs[j - 1], n);
+    prev[j] = ic < UNIT ? prev[j - 1] + ic : INF;
+  }
+  for (let i = 1; i <= n; i++) {
+    const next = new Float64Array(m + 1).fill(INF);
+    const dc = deletionCost(ref, i - 1);
+    if (dc < UNIT) next[0] = prev[0] + dc;
+    for (let j = 1; j <= m; j++) {
+      let best = INF;
+      const sc = subCost(ref[i - 1], obs[j - 1]);
+      if (sc < UNIT) best = prev[j - 1] + sc;
+      if (dc < UNIT) best = Math.min(best, prev[j] + dc);
+      const ic = insertionCost(ref, i, obs[j - 1], n);
+      if (ic < UNIT) best = Math.min(best, next[j - 1] + ic);
+      next[j] = best;
+    }
+    prev = next;
+  }
+  return prev[m] < INF / 2;
+}
+
+function alignCost(ref: string, obs: string): number {
+  const n = ref.length;
+  const m = obs.length;
+  let prev = new Float64Array(m + 1);
+  for (let j = 1; j <= m; j++) prev[j] = prev[j - 1] + insertionCost(ref, 0, obs[j - 1], n);
+  for (let i = 1; i <= n; i++) {
+    const next = new Float64Array(m + 1);
+    next[0] = prev[0] + deletionCost(ref, i - 1);
+    for (let j = 1; j <= m; j++) {
+      next[j] = Math.min(
+        prev[j - 1] + subCost(ref[i - 1], obs[j - 1]),
+        prev[j] + deletionCost(ref, i - 1),
+        next[j - 1] + insertionCost(ref, i, obs[j - 1], n),
+      );
+    }
+    prev = next;
+  }
+  return prev[m];
 }
 
 export function createChecker(index: ReferenceIndex, options: CheckerOptions = {}): Checker {
@@ -198,6 +258,48 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   });
   const fatiha = words.filter((w) => w.surah === 1 && w.ayah === 1);
   const phrases = [...(options.phrases?.phrases.map((p) => p.p) ?? []), ref.slice(fatiha[0].start, fatiha.at(-1)!.end)];
+  /** Whole mushaf forms of at least two consonants, keyed by their collapsed consonant skeleton. */
+  const spelledBySkeleton = new Map<string, string[]>();
+  for (let i = 0; i < words.length; i++) {
+    const forms = new Set<string>();
+    if (words[i].end > words[i].start) forms.add(ref.slice(words[i].start, words[i].end));
+    for (const f of index.wordForms?.[i] ?? []) if (f) forms.add(f);
+    for (const form of forms) {
+      const sk = skeletonOf(form);
+      if (sk.length < 2) continue;
+      const list = spelledBySkeleton.get(sk) ?? [];
+      if (!list.includes(form)) list.push(form);
+      spelledBySkeleton.set(sk, list);
+    }
+  }
+  const wordFormsOf = (wi: number): string[] => {
+    const out = new Set<string>();
+    if (words[wi].end > words[wi].start) out.add(ref.slice(words[wi].start, words[wi].end));
+    for (const f of index.wordForms?.[wi] ?? []) if (f) out.add(f);
+    return [...out];
+  };
+  /** A contiguous re-read of any length that ends on `prevIdx`, priced with the ordinary edit costs. */
+  const backRun = (span: string, prevIdx: number): boolean => {
+    const want = skeletonOf(span);
+    if (!want) return false;
+    for (let n = 1, wi = prevIdx; wi >= 0; n++, wi--) {
+      const w = words[wi];
+      if (n > 1 && w.surah !== words[wi + 1].surah) break;
+      if (w.start === w.end) continue;
+      const text = ref.slice(w.start, words[prevIdx].end);
+      const sk = skeletonOf(text);
+      if (sk.length > want.length) break;
+      if (sk === want && softOnly(text, span)) return true;
+    }
+    return false;
+  };
+  const phraseSpan = (span: string): boolean => {
+    for (const p of phrases) {
+      if (!p || Math.abs(p.length - span.length) > Math.max(6, p.length)) continue;
+      if (alignCost(p, span) / UNIT / p.length <= PHRASE_MAX_COST && span.length >= Math.min(MIN_ADDED, p.length)) return true;
+    }
+    return false;
+  };
   const nextWord = (wi: number) => {
     let k = wi + 1;
     while (k < words.length && words[k].end === words[k].start) k++;
@@ -286,6 +388,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
    * written words by `SUPPORT`; null when there's no telling (no posteriors there, or a skipped passage).
    */
   const supported = (issue: Issue, requireFinite = false): boolean | null => {
+    // A spelled seam surplus is the evidence the margin would have been. Posteriors are not asked.
+    if (issue.spelled) return true;
     if (!frames || frames.startFrame < 0 || issue.cls === "skipped_passage") return null;
     const heardAt = (wi: number) => steps.filter((s): s is Extract<Step, { op: "diag" }> => s.op === "diag" && index.wordAt(s.ref) === wi).map((s) => s.obs);
     const before = prevWord(issue.word);
@@ -1081,6 +1185,75 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         cls: "wrong_word", word: left.word, last: left.word, obsFrom: from,
         obsTo: onsetObs > from ? onsetObs : left.obsTo, observed: best.form,
         supportRange: [from, to], pair: seq, pairOnset: true,
+      });
+    }
+    // Ayah seam: previous last word already read, and word 1 plus word 2 fit at cost 0 only after some
+    // leftover. That leftover, pauses and waqf tails stripped, is an added word when it spells one
+    // mushaf word that is not a neighbour, a prefix, a phrase, or a back-run onto the previous word.
+    const stream = obs.map(o => o.p);
+    const formEnds = (wi: number): number[] => {
+      const forms = wordFormsOf(wi);
+      const want = new Set(forms.map(collapsePh));
+      if (!want.size) return [];
+      const cap = Math.max(...[...want].map(s => s.length)) + 2;
+      const maxRaw = Math.max(...forms.map(f => f.length)) + 12;
+      const ends: number[] = [];
+      for (let s = 0; s < stream.length; s++) {
+        let raw = "";
+        for (let e = s; e < stream.length && e < s + maxRaw; e++) {
+          raw += stream[e];
+          const col = collapsePh(raw);
+          if (want.has(col)) ends.push(e);
+          if (col.length > cap) break;
+        }
+      }
+      return ends;
+    };
+    const ayahLo = ayahOf[anchor!];
+    const ayahHi = Math.min(ayahLast.length - 1, ayahOf[Math.max(anchor!, reached)] + 1);
+    for (let a = ayahLo; a < ayahHi; a++) {
+      const prevIdx = ayahLast[a];
+      const word1 = ayahFirst[a + 1];
+      if (word1 < first || issues.has(word1)) continue;
+      const w2 = word1 + 1;
+      if (w2 >= words.length || words[w2].ayah !== words[word1].ayah || words[w2].surah !== words[word1].surah || words[w2].word !== 2) continue;
+      if (words[w2].end <= words[word1].start) continue;
+      const pair = ref.slice(words[word1].start, words[w2].end);
+      const ends = formEnds(prevIdx);
+      if (!ends.length || !pair) continue;
+      let fit = -1;
+      for (let s = 0; s + pair.length <= stream.length; s++) {
+        let ok = true;
+        for (let k = 0; k < pair.length; k++) if (stream[s + k] !== pair[k]) { ok = false; break; }
+        if (!ok) continue;
+        if (ends.some(e => e < s)) { fit = s; break; }
+      }
+      if (fit < 0) continue;
+      let end = -1;
+      for (const e of ends) if (e < fit && e > end) end = e;
+      let from = end + 1;
+      while (from < fit && !CONSONANTS.has(stream[from])) from++;
+      const phones = stream.slice(from, fit).filter(p => !PAUSE_MARK.has(p));
+      const span = phones.join("");
+      if (span.length < MIN_ADDED || skeletonOf(span).length < 2) continue;
+      const near: string[] = [];
+      for (let wi = Math.max(0, prevIdx - 3); wi <= Math.min(words.length - 1, word1 + 3); wi++) near.push(...wordFormsOf(wi));
+      const sk = skeletonOf(span);
+      const collapsed = collapsePh(span);
+      let blocked = false;
+      for (const n of near) {
+        if (!n) continue;
+        if (skeletonOf(n) === sk && softOnly(n, span)) blocked = true;
+        const c = collapsePh(n);
+        if (c !== collapsed && c.startsWith(collapsed) && skeletonOf(collapsed).length >= 2) blocked = true;
+      }
+      if (blocked || phraseSpan(span) || backRun(span, prevIdx)) continue;
+      if (!(spelledBySkeleton.get(sk) ?? []).some(form => softOnly(form, span))) continue;
+      // The alignment already spent these phones on a word with the same pronunciation: a repeat.
+      if (visits.some(v => v.obsFrom >= 0 && v.obsTo > from && v.obsFrom < fit &&
+        wordFormsOf(v.word).some(f => skeletonOf(f) === sk && softOnly(f, span)))) continue;
+      issues.set(word1, {
+        cls: "added_word", word: word1, last: word1, obsFrom: from, obsTo: fit, observed: span, spelled: true,
       });
     }
     return { issues, lexical: candidates, head, furthest: reached, steps, right };
