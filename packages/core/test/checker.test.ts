@@ -249,13 +249,12 @@ describe("unclear evidence", () => {
     expect(summary(events)).toEqual(["suspected wrong_word 2:255:23", "uncertain wrong_word 2:255:23"]);
   });
 
-  it("ends uncertain when the tracker stops being locked", () => {
-    // The wrong word, then noise long enough for the tracker to lose its lock.
+  it("confirms a wrong word when the tracker holds its lock through later noise", () => {
+    // Noise long enough to open the relocation search, then the same passage continues.
+    // The anchor stays locked, so the confirm delay still applies.
     const edits: Edit[] = [...replaceWord(target, ALIEN), { kind: "noise", at: at(w(2, 255, 24)), length: 60, seed: 7 }];
     const events = run(edits, { checker: { policy: { confirm: { after: "delay", ms: 3000 } } } });
-    expect(confirmed(events)).toEqual([]);
-    expect(events.find((e) => key(e.location) === "2:255:23")?.state).toBe("suspected");
-    expect(events.some((e) => e.state === "uncertain")).toBe(true);
+    expect(confirmed(events).map((e) => `${e.errorClass} ${key(e.location)}`)).toContain("wrong_word 2:255:23");
   });
 
   it("never confirms a wrong word the session ended on", () => {

@@ -110,6 +110,24 @@ describe("a distant jump", () => {
   });
 });
 
+describe("a misfit on the same passage", () => {
+  it("holds the lock through the search and relocks without emitting lost", () => {
+    const from = w(2, 255, 1);
+    const at15 = find(w(2, 255, 15)).start - find(from).start;
+    // Same noise as the lost-then-jump case below, inserted inside the ayah instead of replacing what follows.
+    // It is long enough to exhaust the lost window. The passage continues, so the anchor stays locked.
+    const { events } = run([{ from, to: w(2, 255, 30), edits: [{ kind: "noise", at: at15, length: 60, seed: 3 }] }]);
+    expect(events.some((e) => e.state === "locked")).toBe(true);
+    expect(events.some((e) => e.state === "lost")).toBe(false);
+    for (const e of events) if (e.state === "locked") {
+      expect(e.observed[0].word.surah).toBe(2);
+      expect(Math.abs(e.observed[0].word.ayah - 255)).toBeLessThanOrEqual(2);
+    }
+    expect(events.at(-1)!.state).toBe("locked");
+    expect(key(events.at(-1)!.observed[0].word)).toBe("2:255:30");
+  });
+});
+
 describe("after lost", () => {
   it("re-acquires elsewhere without a restart", () => {
     const { events } = run([

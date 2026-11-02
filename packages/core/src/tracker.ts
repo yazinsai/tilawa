@@ -93,7 +93,7 @@ const WEAK_COST = 0.3;
 const LOOKBACK = 6;
 /** Global search while weak or after `lost` looks at only the latest this many phonemes. */
 const WINDOW = 48;
-/** While weak: `lost` once the window (lookback included) holds this many phonemes, nothing fits globally and local cost exceeds `maxCost`. */
+/** While weak: hold the anchor once the window (lookback included) holds this many phonemes, nothing fits globally and local cost exceeds `maxCost`. `lost` follows only if the search then locks off the anchor. */
 const LOST_AFTER = 24;
 /** A global lock within this many ayahs of the local bookmark is the local search's to follow, not a jump. */
 const NEAR_AYAHS = 2;
@@ -175,8 +175,14 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   let weak = false;
   /** A distant global lock seen while weak, and for how many consecutive phonemes it has held. */
   let pending: { m: Match; held: number } | null = null;
-  /** After `lost`: global search over a rolling window, one phoneme at a time, until it locks again. */
+  /** After a misfit: global search over a rolling window, one phoneme at a time, until it locks again. */
   let reacquiring = false;
+  /**
+   * Lock kept on screen while that search runs. A misfit used to emit `lost` before any destination had committed,
+   * and the checker then dropped the anchor and the tokens heard in the gap. The search itself is unchanged; `lost`
+   * is emitted only when a lock commits off this anchor, or the session ends still uncommitted.
+   */
+  let holding: PositionEvent | null = null;
   /** Memorization mode: the expected bookmark held in place after the reciter jumped away from it. */
   let frozen: WordRef | null = null;
   /** The expected bookmark from before local fit last turned weak. */
@@ -599,6 +605,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     takbirHeard = false;
     afterBasmala = null;
     afterPhrase = false;
+    holding = null;
     keepLast(0);
   };
 
@@ -612,6 +619,24 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     const b = index.words[index.wordAt(Math.max(0, offset - 1))];
     return a.surah === b.surah && Math.abs(a.ayah - b.ayah) <= NEAR_AYAHS;
   };
+  /** Same passage the local search would keep: not a relocation. */
+  const nearWord = (a: WordRef, b: WordRef) => a.surah === b.surah && Math.abs(a.ayah - b.ayah) <= NEAR_AYAHS;
+
+  /** The anchor stays locked; relocation search continues from `reacquire`. */
+  const beginHold = () => {
+    if (memorization) frozen ??= steady;
+    holding = last;
+    local = null;
+    weak = false;
+    pending = null;
+    reacquiring = true;
+  };
+
+  const lostEvent = (timeMs: number, trace: (from: TrackerState | null) => TrackerTrace): PositionEvent =>
+    emit(
+      { type: "position", v: EVENT_SCHEMA_VERSION, timeMs, referenceVersion: index.version, expected: expectedWhileLost(), observed: [], state: "lost" },
+      trace,
+    );
 
   /** The local search's position as an event, or null when its word and run start haven't changed. */
   const localEvent = (shortlist: TraceCandidate[]): PositionEvent | null => {
@@ -641,16 +666,11 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     return emit(event, (from) => quietTrace(from, "locked", shortlist));
   };
 
-  const goLost = (a: ReturnType<typeof assess>): PositionEvent => {
-    if (memorization) frozen ??= steady;
-    local = null;
-    weak = false;
-    pending = null;
-    reacquiring = true;
-    return emit({ ...a.event, expected: expectedWhileLost() }, a.trace);
-  };
-
-  /** After `lost`: global search over the latest phonemes, until it locks somewhere. */
+  /**
+   * Global search over the latest phonemes, until it locks somewhere. While `holding`, the anchor stays locked:
+   * non-locked assessments are not emitted. A lock off the anchor emits `lost` and then the new place; a lock on
+   * the same passage emits only that lock.
+   */
   const reacquire = (): PositionEvent[] => {
     keepLast(WINDOW);
     if (phraseList.length) collapseRepeat();
@@ -671,21 +691,30 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         if (!(first.surah === afterBasmala.from.surah + 1 && first.ayah === 1)) frozen ??= steady;
       }
       afterBasmala = null;
+      const anchorWord = holding?.observed[0]?.word;
+      const dest = a.event.observed[0]?.word;
+      const release = !!(holding && anchorWord && dest && !nearWord(anchorWord, dest));
+      const released = release ? [lostEvent(a.event.timeMs, (from) => quietTrace(from, "lost"))] : [];
       startLocal(a.lock);
-      return [emit({ ...a.event, expected: expectedFor(a.event.observed[0].word) }, a.trace)];
+      return [...released, emit({ ...a.event, expected: expectedFor(a.event.observed[0].word) }, a.trace)];
     }
     // Between surahs the last position stays on screen, unless nothing locks for a while.
     if (afterBasmala && ++afterBasmala.held < WINDOW) return [];
-    const event = { ...a.event, expected: expectedWhileLost() };
     // Junk that fits nowhere would otherwise favour passages with text before the recited phrase to absorb it.
     if (a.event.state === "lost") keepLast(LOOKBACK);
+    if (holding) {
+      const event: PositionEvent = { ...holding, timeMs: lastFrame * (frameMs ?? 0) };
+      return unchanged(event) ? [] : [emit(event, (from) => quietTrace(from, "locked"))];
+    }
+    const event = { ...a.event, expected: expectedWhileLost() };
     return unchanged(event) ? [] : [emit(event, a.trace)];
   };
 
   /**
    * Phoneme by phoneme after the first lock. Local tracking emits one event per change of word or run start. When its
    * fit degrades, global search over the latest phonemes runs alongside: a distant global lock that holds for
-   * `jumpPhonemes` commits a jump, and nothing fitting anywhere for long enough is `lost`.
+   * `jumpPhonemes` commits a jump, and nothing fitting anywhere for long enough holds the anchor while the search
+   * continues. `lost` is emitted when that search locks off the anchor, or when the session ends still there.
    */
   const follow = (evidence: PhonemeEvidence): EngineEvent[] => {
     const events: EngineEvent[] = [];
@@ -757,7 +786,9 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
           if (memorization) frozen ??= steady;
           startLocal(pending.m);
         } else if (a.event.state === "lost" && pos.recentCost > maxCost && observed.length >= LOST_AFTER) {
-          events.push(goLost(a));
+          // The window fits nowhere, but nothing has committed elsewhere. Keep this anchor until the search
+          // locks off it, or the session ends.
+          beginHold();
           continue;
         }
       }
@@ -832,6 +863,11 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
 
   const endLocal = (): PositionEvent[] => {
     const timeMs = lastFrame * (frameMs ?? 0);
+    // The search never committed. The anchor was held; give it up now.
+    if (holding) {
+      holding = null;
+      return [lostEvent(timeMs, (from) => quietTrace(from, "lost"))];
+    }
     // Nothing followed the lock: its event, with the global search's trace, is still the answer.
     if (local && !emittedSinceLock) {
       const e = { ...lockEvent!, timeMs };
