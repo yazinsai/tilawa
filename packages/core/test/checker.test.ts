@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createChecker, createTracker, loadReferenceIndex } from "../src/index.js";
-import type { CheckerEvent, CheckerOptions, DecodedPhoneme, PhonemeEvidence, PhraseAsset, ReferenceAsset, WordRef } from "../src/index.js";
+import type { CheckerEvent, CheckerOptions, DecodedPhoneme, EngineEvent, PhonemeEvidence, PhraseAsset, ReferenceAsset, WordRef } from "../src/index.js";
 import { isAssertable, replayChecked, syntheticFixture, withPosteriors } from "../src/fixtures/index.js";
 import type { Edit, Fixture } from "../src/fixtures/index.js";
 import { alignSubstring } from "../src/fuzzy.js";
@@ -197,6 +197,69 @@ describe("skips", () => {
     };
     expect(summary(recite(false))).toEqual(["confirmed skipped_passage 26:102:7"]);
     expect(summary(recite(true))).toEqual(["confirmed skipped_passage 26:103:1"]);
+  });
+
+  it("moves a skip off the refrain and onto the unvisited ayah before it", () => {
+    // 26:130 deleted. The lock jumps 26:129 → 26:131, so the window starts on فاتقوا and the gap opens at 26:131:2.
+    // The frames are the landing, not 26:130, and skipping that whole ayah still fits them better.
+    const start = w(26, 128, 1);
+    const end = w(26, 135, 6);
+    const cut0 = find(w(26, 130, 1));
+    const cut1 = find(w(26, 130, 4));
+    const base = find(start);
+    const skipped = new Set<number>();
+    for (let i = index.words.indexOf(cut0); i <= index.words.indexOf(cut1); i++) skipped.add(i);
+    const fixture = syntheticFixture(index, {
+      id: "c", from: start, to: end, chunkSize: 12,
+      edits: [{ kind: "del", at: cut0.start - base.start, count: cut1.end - cut0.start }],
+    });
+    const all = fixture.evidence.flatMap((e) => e.phonemes);
+    const whole = withPosteriors(index, { ...fixture.evidence[0], phonemes: all });
+    const { k, startFrame, ids, probs } = whole.posteriors!;
+    let frame = startFrame;
+    const evidence = fixture.evidence.map((x, i) => {
+      const next = i + 1 < fixture.evidence.length ? fixture.evidence[i + 1].phonemes[0].start : startFrame + whole.posteriors!.nFrames;
+      const rows = {
+        k, startFrame: frame, nFrames: next - frame,
+        ids: Array.from(ids).slice((frame - startFrame) * k, (next - startFrame) * k),
+        probs: Array.from(probs).slice((frame - startFrame) * k, (next - startFrame) * k),
+      };
+      frame = next;
+      return { ...x, posteriors: rows };
+    });
+    const owned: number[] = [];
+    for (let wi = index.words.indexOf(base); wi < index.words.length; wi++) {
+      const word = index.words[wi];
+      if (skipped.has(wi)) continue;
+      for (let p = word.start; p < word.end; p++) owned.push(wi);
+      if (word.surah === end.surah && word.ayah === end.ayah && word.word === end.word) break;
+    }
+    expect(owned.length).toBe(all.length);
+    const refOf = (wi: number): WordRef => ({ surah: index.words[wi].surah, ayah: index.words[wi].ayah, word: index.words[wi].word });
+    const checker = createChecker(index, { phrases });
+    const out: CheckerEvent[] = [];
+    let phone = 0;
+    let run = owned[0];
+    for (const chunk of evidence) {
+      const events: EngineEvent[] = [];
+      let prev = phone > 0 ? owned[phone - 1] : owned[0];
+      for (const ph of chunk.phonemes) {
+        const wi = owned[phone++];
+        if (Math.abs(index.words[wi].ayah - index.words[prev].ayah) > 1 || index.words[wi].surah !== index.words[prev].surah) run = wi;
+        if (wi !== prev || events.length === 0) {
+          events.push({
+            type: "position", v: 1, timeMs: (ph.end + 1) * chunk.frameMs, referenceVersion: index.version,
+            expected: refOf(wi), state: "locked",
+            observed: [{ word: refOf(wi), span: { start: refOf(run), end: refOf(wi) }, confidence: 1, cost: 0, per: 0 }],
+          });
+        }
+        prev = wi;
+      }
+      out.push(...checker.push(chunk, events));
+    }
+    out.push(...checker.end());
+    const skips = confirmed(out).filter((e) => e.errorClass === "skipped_passage").map((e) => key(e.location));
+    expect(skips).toEqual(["26:130:1"]);
   });
 
   it("does not warn when the same pause is just the end of an ayah", () => {

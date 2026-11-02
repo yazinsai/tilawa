@@ -8,7 +8,8 @@ import { issueDropFit } from "./tracker.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
 import { minGapFrames } from "./gap-decode.js";
-import { PHRASE_PEAK, PHRASE_SWITCH, parallelPaths } from "./parallel-phrases.js";
+import { letterSkeleton, PHRASE_PEAK, PHRASE_SWITCH, parallelPaths } from "./parallel-phrases.js";
+import { sequenceNll } from "./skip-edge.js";
 import { spanId, slotSpans } from "./slot-spans.js";
 
 export interface CheckerPolicy {
@@ -262,6 +263,13 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const open = new Map<number, Open>();
   /** Words whose error was confirmed or ended uncertain; never reopened. */
   const decided = new Set<number>();
+  /**
+   * Skip starts this fit moved. The word stays out of `decided` until it confirms, and a later window that no
+   * longer reaches back to it keeps the same span instead of opening a second gap on the words it covers.
+   */
+  const fitHeld = new Set<number>();
+  const confirmedWord = (wi: number) => emitted.some((e) =>
+    e.state === "confirmed" && e.location.surah === words[wi].surah && e.location.ayah === words[wi].ayah && e.location.word === words[wi].word);
   const emitted: CheckerEvent[] = [];
   let seq = 0;
 
@@ -1014,11 +1022,118 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const seen = [...last.keys()];
     const issues = new Map<number, Issue>();
     if (!seen.length) return null;
+    // A skip whose start this fit already moved stays one span. The window's anchor is often already past the
+    // ayah, so the scan would otherwise open a second gap on the words the moved skip still covers.
+    for (const wi of [...fitHeld]) {
+      const o = open.get(wi);
+      if (!o) { fitHeld.delete(wi); continue; }
+      if (last.has(o.issue.word)) { fitHeld.delete(wi); continue; }
+      let pending = false;
+      for (let w = o.issue.word; w <= o.issue.last; w++) if (length(w) > 0 && !last.has(w)) pending = true;
+      if (pending) issues.set(wi, o.issue);
+      else fitHeld.delete(wi);
+    }
+    const heldSpan = (wi: number) => {
+      for (const h of fitHeld) {
+        const o = open.get(h);
+        if (o && o.issue.word <= wi && wi <= o.issue.last) return true;
+      }
+      return false;
+    };
     // The lock span's first word can be a cut-off tail or leading junk: span edges are only good to a word.
     const first = Math.min(...seen) + (fromLock ? 1 : 0);
     // A wrong visit far ahead can be junk aligned to a short word; only correct visits show how far the reciter got.
     const reached = Math.max(...seen.filter((wi) => right.has(wi)), first);
     let gap: Issue | null = null;
+    /**
+     * Move an already-proposed skip's start onto the adjacent whole ayah when the forward sum says so.
+     * The previous ayah, when the window holds it and no word of it was visited: skipping it, with the bound
+     * refrain word after it kept as the destination. The ayah that holds the start, when that previous ayah
+     * was visited: reading it, so a start inside it moves to the next ayah. Either move has to beat the other
+     * hypothesis by `PHRASE_SWITCH`. No new penalty.
+     */
+    const edgeAyahMove = (g: Issue): { word: number; last: number } | null => {
+      if (!frames || frames.startFrame < 0 || !index.wordText || hi <= lo) return null;
+      const post = frames;
+      const winLo = index.wordAt(lo);
+      const winHi = Math.min(words.length - 1, index.wordAt(Math.max(lo, hi - 1)));
+      const sk = (w: number) => letterSkeleton(index.wordText![w] ?? "");
+      const counts = new Map<string, number>();
+      for (let w = winLo; w <= winHi; w++) {
+        const s = sk(w);
+        if (s) counts.set(s, (counts.get(s) ?? 0) + 1);
+      }
+      const unique = (w: number) => { const s = sk(w); return !!s && counts.get(s) === 1; };
+      const framed = (w: number) => {
+        const v = last.get(w);
+        if (!v || v.obsFrom < 0 || v.obsTo <= v.obsFrom || v.obsFrom >= obs.length || v.obsTo > obs.length) return null;
+        const f0 = obs[v.obsFrom].start;
+        const f1 = obs[v.obsTo - 1].end + 1;
+        if (f1 <= f0 || f0 < post.startFrame || f1 > post.endFrame) return null;
+        return { f0, f1 };
+      };
+      let left = -1;
+      for (let w = g.word - 1; w >= winLo; w--) if (length(w) > 0 && right.has(w) && unique(w) && framed(w)) { left = w; break; }
+      let rightW = -1;
+      for (let w = g.last + 1; w <= winHi; w++) if (length(w) > 0 && right.has(w) && unique(w) && framed(w)) { rightW = w; break; }
+      const lf = left >= 0 ? framed(left) : null;
+      const rf = rightW >= 0 ? framed(rightW) : null;
+      if (!lf || !rf || rf.f1 <= lf.f0) return null;
+      const f0 = lf.f0;
+      const f1 = rf.f1;
+      const ay = ayahOf[g.word];
+      const same = (a: number) => a >= 0 && words[ayahFirst[a]].surah === words[g.word].surah;
+      const spanOf = (a: number) => ({ a: ayahFirst[a], b: ayahLast[a] });
+      const untouched = (e: { a: number; b: number }) => {
+        for (let w = e.a; w <= e.b; w++) if (length(w) > 0 && last.has(w)) return false;
+        return e.a >= winLo;
+      };
+      const before = ay > 0 && same(ay - 1) ? spanOf(ay - 1) : null;
+      const holding = spanOf(ay);
+      const labelsOf = (edge: { a: number; b: number }, include: boolean) => {
+        const from = Math.min(left, edge.a);
+        const ids: number[] = [];
+        const wordLast: number[] = [];
+        for (let w = from; w <= rightW; w++) {
+          if (length(w) === 0) continue;
+          const inEdge = w >= edge.a && w <= edge.b;
+          if (inEdge ? !include : w >= g.word && w <= g.last) continue;
+          const phones = ref.slice(words[w].start, words[w].end);
+          if (!phones) continue;
+          for (const p of phones) ids.push(tokenId.get(p) ?? 0);
+          wordLast.push(ids.length - 1);
+        }
+        return { ids, wordLast };
+      };
+      const margin = (edge: { a: number; b: number }) => {
+        const inn = labelsOf(edge, true);
+        const out = labelsOf(edge, false);
+        if (!inn.ids.length || !out.ids.length) return null;
+        const nIn = sequenceNll(post, inn.ids, inn.wordLast, f0, f1);
+        const nOut = sequenceNll(post, out.ids, out.wordLast, f0, f1);
+        // More labels than frames cannot be emitted: that hypothesis lost, it did not abstain.
+        if (!Number.isFinite(nIn) && !Number.isFinite(nOut)) return null;
+        return { skip: nIn - nOut, read: nOut - nIn };
+      };
+      // The untouched ayah just before the start is the one a bound refrain hides. Reading the ayah that
+      // holds the start is the other edge, and only when that previous ayah was actually visited.
+      // One bound word (the refrain) sits between the unvisited ayah and the skip. A skip that already
+      // starts on an ayah's first word has no such word, and is left where the alignment put it.
+      const bound = before ? nextWord(before.b) : -1;
+      if (before && untouched(before) && bound < g.word && last.has(bound)) {
+        const m = margin(before);
+        if (m && m.skip >= PHRASE_SWITCH) return { word: before.a, last: Math.max(g.last, before.b) };
+        return null;
+      }
+      if (holding.a < g.word && g.word <= holding.b) {
+        let readBefore = false;
+        for (let w = holding.a; w < g.word; w++) if (right.has(w)) readBefore = true;
+        const m = readBefore ? margin(holding) : null;
+        const nxt = nextWord(holding.b);
+        if (m && m.read >= PHRASE_SWITCH && nxt <= g.last) return { word: nxt, last: g.last };
+      }
+      return null;
+    };
     const flush = (after?: Visit) => {
       if (!gap) return;
       // Evidence inside the gap means the words were said, differently: a wrong word, not an omission. Phrase marks
@@ -1081,7 +1196,20 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         const pauseSeam = onStart(today) ? undefined : slide(alike).find((i) => onStart(i) && anchored(i));
         gap = pauseSeam ?? today;
       }
-      const n = words.slice(gap.word, gap.last + 1).filter((x) => x.end > x.start).length;
+      // A skip start can sit one refrain word late: the ayah before it was never visited, because the refrain
+      // word after it is bound and the window then starts past the ayah. Score that whole ayah, and the ayah
+      // the start sits in, on the frames between the committed unique words either side. The path that drops
+      // the ayah has to win by the phrase graph's switch penalty. An omission is not a skip, so it is not moved.
+      let n = words.slice(gap.word, gap.last + 1).filter((x) => x.end > x.start).length;
+      if (n >= 3) {
+        const moved = edgeAyahMove(gap);
+        if (moved && moved.word !== gap.word) {
+          gap = { ...gap, word: moved.word, last: moved.last };
+          if (!confirmedWord(gap.word)) decided.delete(gap.word);
+          fitHeld.add(gap.word);
+          n = words.slice(gap.word, gap.last + 1).filter((x) => x.end > x.start).length;
+        }
+      }
       issues.set(gap.word, { ...gap, cls: n >= 3 ? "skipped_passage" : "omitted_word" });
       gap = null;
     };
@@ -1089,6 +1217,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (length(wi) === 0) continue;
       const v = last.get(wi);
       if (!v) {
+        if (heldSpan(wi)) continue;
         // The phonemes either side of the gap: the last one before it in the evidence is where the skip happened.
         const before = [...last.values()].filter((x) => x.word < wi).reduce((a, x) => Math.max(a, x.obsTo), 0);
         if (gap) gap.last = wi;
