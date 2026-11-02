@@ -2952,7 +2952,7 @@
   },
   {
    "kind": "main",
-   "at": "2026-11-02T23:16:42+00:00",
+   "at": "2026-11-02T23:16:46+00:00",
    "sha": "3bbe6794",
    "testSet": "lab-v1.5",
    "experiment": "listener-heard-word-must-be-lexical",
@@ -2969,7 +2969,7 @@
   },
   {
    "kind": "experiment",
-   "at": "2026-11-02T23:16:42+00:00",
+   "at": "2026-11-02T23:16:46+00:00",
    "id": "listener-heard-word-must-be-lexical",
    "component": "listener",
    "hypothesis": "Phone wrong-word false warnings come from single channel-blurred consonants (ن/م, ف/ك, swallowed or truncated endings), and those blurs turn the written word into a non-word, whereas a planted swap is always a real attested word. Every try so far judged the heard span by a likelihood margin, where spikes and real swaps look equally marginal. Confirm a listener-evidenced wrong word only if its heard span spells a whole attested mushaf word other than the written word and its ±3 neighbours, using soft costs only. Predict 3 of 6 targets won with 1 loss: listener -3, overall -2.",
@@ -2996,6 +2996,56 @@
      "listener": 36,
      "tracker": 2,
      "checker": 13
+    },
+    "exam": null
+   }
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-02T23:33:25+00:00",
+   "sha": "75fde7d1",
+   "testSet": "lab-v1.5",
+   "experiment": "checker-ledger-with-without-ayah-fit",
+   "note": "The ayah-absence ledger found the right skip candidates (26:109, 55:29, 77:33; checker -4) but lost 4 calls. It judged absence by whole-ayah spotting against an open phone-loop filler, and that filler outscores any phone-blurred ayah that was actually recited. Keep the ledger's candidates, but decide each one by a closed two-way forward-sum fit on the stored posteriors over the span between the committed unique neighbours: the in-order text with the ayah against the in-order text without it, and no filler. Predict 3 of 4 targets kept and 3 of the 4 ledger losses gone: checker -3, overall -3.; practice-only fold, exam not measured",
+   "practice": {
+    "wrongCalls": 46,
+    "missed": 31,
+    "falseWarnings": 15,
+    "listener": 34,
+    "tracker": 4,
+    "checker": 8
+   },
+   "exam": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-02T23:33:25+00:00",
+   "id": "checker-ledger-with-without-ayah-fit",
+   "component": "checker",
+   "hypothesis": "The ayah-absence ledger found the right skip candidates (26:109, 55:29, 77:33; checker -4) but lost 4 calls. It judged absence by whole-ayah spotting against an open phone-loop filler, and that filler outscores any phone-blurred ayah that was actually recited. Keep the ledger's candidates, but decide each one by a closed two-way forward-sum fit on the stored posteriors over the span between the committed unique neighbours: the in-order text with the ayah against the in-order text without it, and no filler. Predict 3 of 4 targets kept and 3 of the 4 ledger losses gone: checker -3, overall -3.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "folded",
+   "testSet": "lab-v1.5",
+   "note": "keeps its overall and checker gain",
+   "branch": {
+    "wrongCalls": 51,
+    "missed": 31,
+    "falseWarnings": 20,
+    "listener": 39,
+    "tracker": 4,
+    "checker": 8
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 46,
+     "missed": 31,
+     "falseWarnings": 15,
+     "listener": 34,
+     "tracker": 4,
+     "checker": 8
     },
     "exam": null
    }
