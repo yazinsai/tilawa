@@ -851,10 +851,11 @@ def near_miss(st, id, change, won, component="tracker"):
     return e
 
 
-def test_two_near_misses_with_different_wins_are_stacked_and_skip_the_builder(w):
+def test_two_near_misses_with_different_wins_are_stacked_and_skip_the_builder(w, monkeypatch):
+    monkeypatch.setattr(A.P, "incidents", lambda report: {"x": ["i1", "i2", "i3", "i4", "i9"]})
     st = w.load()
     near_miss(st, "tracker-a", -2, ["i1", "i2"])
-    near_miss(st, "tracker-b", -2, ["i3"])
+    near_miss(st, "tracker-b", -2, ["i3", "i4"])
     near_miss(st, "tracker-c", -1, ["i1"])
     st["lastPlanAt"] = "2999-01-01T00:00:00+00:00"
     w.saved = st
@@ -867,10 +868,11 @@ def test_two_near_misses_with_different_wins_are_stacked_and_skip_the_builder(w)
     assert len(stacks) == 1 and stacks[0]["state"] in ("validating", "scoring") and not (stacks[0].get("executor") or {}).get("handle")
 
 
-def test_near_misses_that_win_the_same_incidents_or_sum_to_noise_are_not_stacked(w):
+def test_near_misses_that_win_the_same_incidents_or_sum_to_noise_are_not_stacked(w, monkeypatch):
+    monkeypatch.setattr(A.P, "incidents", lambda report: {"x": ["i1", "i2", "i3", "i4", "i9"]})
     st = w.load()
-    near_miss(st, "tracker-a", -2, ["i1"])
-    near_miss(st, "tracker-b", -2, ["i1"])
+    near_miss(st, "tracker-a", -2, ["i1", "i2"])
+    near_miss(st, "tracker-b", -2, ["i1", "i3"])
     near_miss(st, "tracker-c", -1, ["i9"])
     st["lastPlanAt"] = "2999-01-01T00:00:00+00:00"
     w.saved = st
@@ -906,3 +908,11 @@ def test_a_stack_merges_its_parts_and_keeps_its_own_card(tmp_path):
     t.build_stack(e)
     assert e["state"] == "validating" and (repo / "a.txt").exists() and (repo / "b.txt").exists()
     assert json.loads(card_path.read_text()) == {"id": "s"} and not g("status", "--porcelain")
+
+
+def test_a_near_miss_whose_wins_a_later_fold_took_is_not_stacked(w, monkeypatch):
+    monkeypatch.setattr(A.P, "incidents", lambda report: {"x": ["i3", "i4"]})
+    st = w.load()
+    near_miss(st, "tracker-a", -2, ["i1", "i2"])
+    near_miss(st, "tracker-b", -2, ["i3", "i4"])
+    assert [x["id"] for x in A.Tick(w, st, T0).near_misses()] == ["tracker-b"]
