@@ -1,0 +1,13 @@
+{
+ "id": "tracker-hold-lock-through-misfit",
+ "component": "tracker",
+ "hypothesis": "When heard words stop fitting the next expected word (an added word after an ayah pause, or a swap such as فاعلموا/واعلموا), the tracker drops out of `locked` while it searches, and the checker discards both the tokens and the open issues from that interval. Keep the lock held at its anchor until the unchanged relocation search actually commits elsewhere, and deliver the misfit tokens into the current window; predict tracker -2 (p66 9:3:21, p46 54:36:4) and overall -3, where the third call is speculative checker added-word spillover.",
+ "expected": {
+  "component": -2,
+  "overall": -3
+ },
+ "listener": "exp-listener-context-free-gap-decode-62ac8b5",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-02T01:03:52+00:00",
+ "author": "autolab"
+}
