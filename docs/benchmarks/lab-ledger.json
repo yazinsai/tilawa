@@ -3337,7 +3337,7 @@
   },
   {
    "kind": "main",
-   "at": "2026-11-03T03:36:11+00:00",
+   "at": "2026-11-03T03:36:14+00:00",
    "sha": "272db316",
    "testSet": "lab-v1.5",
    "experiment": "checker-inner-waqf-proclitic-onset-visit",
@@ -3354,7 +3354,7 @@
   },
   {
    "kind": "experiment",
-   "at": "2026-11-03T03:36:11+00:00",
+   "at": "2026-11-03T03:36:14+00:00",
    "id": "checker-inner-waqf-proclitic-onset-visit",
    "component": "checker",
    "hypothesis": "The inner-waqf run-end seam wins 37:113:5 and 9:65:8 but misses 38:4:6, because the phone channel erased the proclitic و of the next word وقال, so its visit is never complete and the folded spell rule never emits. Re-land the seam and, on that path only, accept a next-word visit whose only gap is an unmatched word-initial proclitic consonant; predict 3 of 3 won, checker −3, overall −3.",
@@ -3380,6 +3380,169 @@
      "falseWarnings": 15,
      "listener": 36,
      "tracker": 4,
+     "checker": 3
+    },
+    "exam": null
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T04:56:53+00:00",
+   "id": "listener-wide-ear-shaky-word-swaps",
+   "component": "listener",
+   "hypothesis": "Planted wrong words reach the checker as the written word because the shipped student loses the consonants that tell them apart, and every try on this cluster re-read or retrained that same student. At matched words the shipped student heard weakly, ask the already-trained 2x-width student, and confirm a swap only if it spells a different attested mushaf word. Predict 2 of 4 won, listener -2, overall -2 (honest; speculative that the wide ear hears these slots).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Wide-ear tokens spell the planted word under soft costs on 0 of 4 anchored slots. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T05:34:52+00:00",
+   "id": "listener-wide-ear-seam-spelled-adds",
+   "component": "listener",
+   "hypothesis": "Added words at ayah and inner-waqf seams reach the checker as blank or fragments because the shipped student never hears them. The 2x-width student did hear p31, p50, p55, p56 and p79 when deployed globally, but it lost 58 elsewhere because its string moved everywhere. Consult the wide ear only at seams whose shipped surplus spells nothing, and emit its span only through the folded lexical spell test. Predict 2 of 5 won with 0 lost: listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Wide-student greedy tokens in the seam window spell the planted word at 0 of the 5 targets. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T06:11:03+00:00",
+   "id": "listener-inner-waqf-twin-visit-hum",
+   "component": "listener",
+   "hypothesis": "At inner-waqf stops the reciter halts on a planted particle (وإن, فإن, من). Its held final nūn ں is stripped as the previous word's ghunna, or the whole particle is bound as a soft-onset visit of the next written word (4:170:12 فَءِںںں read as وإن). On the folded inner-waqf seam, add two rules. First, when the next word has an earlier soft-onset visit and a later zero-edit visit across a labelled pause, the zero-edit visit owns the word and the earlier one becomes surplus. Second, keep a ں run as ن when the frame before it is unowned surplus. Predict 3 of 4 won: listener -3, overall -3 (floor -2).",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: 0 of 4 targets spell the planted particle: 4:170 and 9:5 keep the hum inside the next word's visit with no later zero-edit owner, and 4:157 and 11:10 never pair on the inner-waqf seam. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T06:20:51+00:00",
+   "id": "listener-wide-ear-seam-support-adds",
+   "component": "listener",
+   "hypothesis": "The 2x-width student won the listener-charged seam additions at p50, p55, p56 and p79 as the global decoder, through the ordinary support path rather than spelling, but it lost 58 because its string moved everywhere. Swap in its tokens and rows only over ayah-seam and inner-waqf seam windows, and let the unchanged added-word confirmation judge them. Predict 2 of 4 won with 0 lost: listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Wide-student tokens and rows inside the seam window confirmed 0 of 4 added words under the unchanged rules. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T07:31:45+00:00",
+   "id": "listener-runnerup-spelled-suspect-adds",
+   "component": "listener",
+   "hypothesis": "Several added words already reach the checker as suspected but uncertain spans that miss the planted word by one phone-blurred consonant (p50 ت for ق, p56 ق for ط, p55 near قليلا). They still fail because every spell test reads only the greedy argmax, which drops the runner-up class that often holds the right consonant. Spell those suspected spans over each token's top-2 classes and emit the addition if exactly one whole non-neighbour mushaf word results. Predict 2 of 3 won: listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Only p55 has a suspected-addition span whose consonants are argmax or one runner-up; p50's suspicion is the fragment ifuhu missing waw and qaf, and p56 never raises an added word at 32:21. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-03T08:09:56+00:00",
+   "sha": "02f85ae7",
+   "testSet": "lab-v1.5",
+   "experiment": null,
+   "note": "autolab exam tripwire",
+   "practice": {
+    "wrongCalls": 43,
+    "missed": 28,
+    "falseWarnings": 15,
+    "listener": 36,
+    "tracker": 4,
+    "checker": 3
+   },
+   "exam": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T08:55:16+00:00",
+   "id": "checker-skip-tail-words-forward-fit",
+   "component": "checker",
+   "hypothesis": "Skips are keyed too early when the phone channel blurs the last words of the ayah the reciter left. p26 41:19:7 فهم decodes as a low-confidence ه plus the tail of يوزعون, so فهم يوزعون are folded into the skip. Before emitting, decide those trailing source-ayah words with the folded closed with/without forward-sum fit, and drop them from the span when reading them wins. Predict the p26 pair won (41:19:7 false warning plus its paired 41:20:1 miss): checker 0, overall -2. p31 4:162:15 is speculative.",
+   "expected": {
+    "component": 0,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: On p26 the frames from the last 41:19 counting visit to the destination onset are 4 frames, so H_read of 41:19:7-8 cannot beat H_skip by PHRASE_SWITCH (both sums impossible); the tail audio sits inside the destination visit, and scoring through that visit still loses by 68.9 nats. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-03T09:21:05+00:00",
+   "sha": "7801f4e9",
+   "testSet": "lab-v1.5",
+   "experiment": "tracker-excursion-rebinds-ayah-window",
+   "note": "The folded with/without-ayah ledger reports false skips at p41 26:144:1 and p46 54:36:1, plausibly because those ayahs were heard while the tracker sat on a look-alike copy (another فاتقوا الله وأطيعون refrain, or 54:23/33 after the planted 54:36 omission), so neither ayah ever got a window. When an excursion ends with an in-order return to the anchor's continuation, the tracker should retroactively rebind that excursion's window to the in-order ayah if that ayah's text fits it no worse. Ride the verified zero-loss shared-word insertion-support branch. Predict tracker -3, overall -3 (rider -2 solid, at least 1 of 2 skips; upside -4).; practice-only fold, exam not measured",
+   "practice": {
+    "wrongCalls": 40,
+    "missed": 26,
+    "falseWarnings": 14,
+    "listener": 36,
+    "tracker": 1,
+    "checker": 3
+   },
+   "exam": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T09:21:05+00:00",
+   "id": "tracker-excursion-rebinds-ayah-window",
+   "component": "tracker",
+   "hypothesis": "The folded with/without-ayah ledger reports false skips at p41 26:144:1 and p46 54:36:1, plausibly because those ayahs were heard while the tracker sat on a look-alike copy (another فاتقوا الله وأطيعون refrain, or 54:23/33 after the planted 54:36 omission), so neither ayah ever got a window. When an excursion ends with an in-order return to the anchor's continuation, the tracker should retroactively rebind that excursion's window to the in-order ayah if that ayah's text fits it no worse. Ride the verified zero-loss shared-word insertion-support branch. Predict tracker -3, overall -3 (rider -2 solid, at least 1 of 2 skips; upside -4).",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "folded",
+   "testSet": "lab-v1.5",
+   "note": "keeps its overall and tracker gain",
+   "branch": {
+    "wrongCalls": 40,
+    "missed": 26,
+    "falseWarnings": 14,
+    "listener": 36,
+    "tracker": 1,
+    "checker": 3
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 40,
+     "missed": 26,
+     "falseWarnings": 14,
+     "listener": 36,
+     "tracker": 1,
      "checker": 3
     },
     "exam": null
