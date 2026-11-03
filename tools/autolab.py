@@ -822,9 +822,11 @@ class Tick:
         st, w = self.st, self.w
         if not st.get("main") or S.over_cap(st, w.cfg["caps"], self.at) or len(S.active(st)) >= w.cfg["slots"]:
             return
-        conflicted = {tuple(sorted(x["card"]["stack"])) for x in st["experiments"].values() if x["card"].get("stack")
-                      and x["state"] == "discarded" and x.get("note", "").startswith("stack: merging ")}
-        tried = {tuple(p) for p in st.setdefault("stacked", [])} - conflicted
+        stacks = [x for x in st["experiments"].values() if x["card"].get("stack")]
+        unmerged = lambda x: x["state"] == "discarded" and x.get("note", "").startswith("stack: merging ")  # noqa: E731
+        retry = ({tuple(sorted(x["card"]["stack"])) for x in stacks if unmerged(x)}
+                 - {tuple(sorted(x["card"]["stack"])) for x in stacks if not unmerged(x)})
+        tried = {tuple(p) for p in st.setdefault("stacked", [])} - retry
         nm = self.near_misses()
         pairs = sorted(((a["change"] + b["change"], a, b) for i, a in enumerate(nm) for b in nm[i + 1:]
                         if not a["won"] & b["won"] and tuple(sorted((a["id"], b["id"]))) not in tried), key=lambda x: (x[0], x[1]["id"]))

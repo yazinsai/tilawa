@@ -936,6 +936,10 @@ def test_a_pair_whose_stack_died_on_a_merge_conflict_is_stacked_again(w, monkeyp
     st = tick(w)
     live = [e for e in st["experiments"].values() if e["card"].get("stack") and e["state"] != "discarded"]
     assert len(live) == 1 and live[0]["card"]["stack"] == ["tracker-a", "tracker-b"]
+    S.move(st, live[0]["id"], "discarded", T0, "gate on the branch: overall -1")
+    w.saved = st
+    st = tick(w)
+    assert not [e for e in st["experiments"].values() if e["card"].get("stack") and e["state"] != "discarded"]
 
 
 def test_a_stack_that_conflicts_goes_to_a_builder_with_the_merge_to_resolve(tmp_path):
