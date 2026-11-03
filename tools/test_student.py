@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from student import TOKENS, corpus_per, ctc_collapse, exclusions, held_out, ids_phonemes, mix_noise, phoneme_ids, reference_phonemes, soft_target_loss, spliced_target, teacher_frames  # noqa: E402
+from student import FULL_SIZE, TOKENS, corpus_per, ctc_collapse, double_width, exclusions, held_out, ids_phonemes, kl_to_log_probs, mix_noise, phoneme_ids, reference_phonemes, soft_target_loss, spliced_target, teacher_frames  # noqa: E402
 
 REF = json.loads((Path(__file__).resolve().parent.parent / "packages/core/assets/ref-v2.json").read_text())
 
@@ -81,6 +81,32 @@ def test_soft_target_loss_is_cross_entropy_to_renormalised_top_k_over_valid_fram
     valid = torch.tensor([[True, False]])
     # Frame 0: teacher renormalises to {1: 0.75, 0: 0.25}; -(0.75 ln 0.25 + 0.25 ln 0.5) = 1.21301. Frame 1 is padding.
     assert abs(soft_target_loss(student, top_ids, top_p, valid).item() - 1.21301) < 1e-4
+
+
+def test_kl_to_log_probs_is_mean_kl_of_the_anchor_over_valid_frames():
+    import math
+
+    import torch
+
+    log_p = torch.tensor([[[0.5, 0.5], [0.2, 0.8]]]).log()
+    log_q = torch.tensor([[[0.25, 0.75], [0.5, 0.5]]]).log()
+    # Frame 0: 0.5 ln(0.5/0.25) + 0.5 ln(0.5/0.75). Frame 1 is padding and must not move the mean.
+    expect = 0.5 * math.log(2.0) + 0.5 * math.log(0.5 / 0.75)
+    log_q.requires_grad_(True)
+    got = kl_to_log_probs(log_q, log_p, torch.tensor([1]))
+    assert abs(got.item() - expect) < 1e-5
+    got.backward()
+    assert log_p.grad is None and log_q.grad is not None
+
+
+def test_double_width_keeps_depth_and_doubles_every_width():
+    wide = double_width(FULL_SIZE)
+    assert wide["num_encoder_layers"] == "2,2,3,4,3,2"
+    assert wide["encoder_dim"] == "384,512,768,1024,768,512"
+    assert wide["encoder_unmasked_dim"] == "384,384,512,512,512,384"
+    assert wide["feedforward_dim"] == "1024,1536,2048,3072,2048,1536"
+    for u, d in zip(wide["encoder_unmasked_dim"].split(","), wide["encoder_dim"].split(",")):
+        assert int(u) <= int(d) and int(d) % 2 == 0
 
 
 def test_gold_clips_are_held_out_of_training_only():

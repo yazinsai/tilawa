@@ -85,6 +85,33 @@ def soft_target_loss(log_probs, top_ids, top_p, valid):
     return (ce * valid).sum() / valid.sum().clamp_min(1)
 
 
+def kl_to_log_probs(log_q, log_p, valid_lens):
+    """Mean per-frame KL(p || q). `log_p` is the frozen anchor, `log_q` the student, both (B, T, V).
+
+    Frames at or past `valid_lens` are padding. p is detached: the anchor is not trained.
+    """
+    import torch
+
+    log_p = log_p.detach()
+    kl = (log_p.exp() * (log_p - log_q)).sum(-1)
+    valid = torch.arange(log_q.shape[1], device=log_q.device)[None] < valid_lens.to(log_q.device)[:, None]
+    return (kl * valid).sum() / valid.sum().clamp_min(1)
+
+
+# Zipformer-S / Zipformer-M width (ticket 02). `wide` is `full` with every width doubled and the depth unchanged.
+FULL_SIZE = dict(num_encoder_layers="2,2,3,4,3,2", feedforward_dim="512,768,1024,1536,1024,768",
+                 encoder_dim="192,256,384,512,384,256", encoder_unmasked_dim="192,192,256,256,256,192")
+
+
+def double_width(size: dict) -> dict:
+    """Same depth, twice the encoder, unmasked and feed-forward width. Head count stays with the caller."""
+    def twice(s: str) -> str:
+        return ",".join(str(int(x) * 2) for x in str(s).split(","))
+
+    return {**size, "feedforward_dim": twice(size["feedforward_dim"]), "encoder_dim": twice(size["encoder_dim"]),
+            "encoder_unmasked_dim": twice(size["encoder_unmasked_dim"])}
+
+
 def spliced_target(ref: str, teacher: str) -> str:
     """CTC target that lets the student outgrow the teacher: `per_breakdown.spliced` (teacher at the clip edges,
     reference between the first and last 3-phoneme exact match) with runs collapsed, leaving length to soft KD."""

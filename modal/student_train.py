@@ -56,12 +56,20 @@ COMMON = dict(
     left_context_frames="64,128,256,-1",
 )
 # icefall's Zipformer-S and Zipformer-M; ticket 02 measured 20M and 70M streaming Zipformers as real time on phones.
+# `wide` is Zipformer-M at 2x width (same depth, same 40 ms frames): the capacity bet, not a new recipe.
 SIZES = {
     "lite": dict(num_encoder_layers="2,2,2,2,2,2", feedforward_dim="512,768,768,768,768,768",
                  encoder_dim="192,256,256,256,256,256", encoder_unmasked_dim="192,192,192,192,192,192"),
     "full": dict(num_encoder_layers="2,2,3,4,3,2", feedforward_dim="512,768,1024,1536,1024,768",
                  encoder_dim="192,256,384,512,384,256", encoder_unmasked_dim="192,192,256,256,256,192"),
 }
+
+
+def _sizes() -> dict:
+    from student import FULL_SIZE, double_width
+
+    assert SIZES["full"] == FULL_SIZE
+    return {**SIZES, "wide": double_width(SIZES["full"])}
 INITS = {"librispeech-m": ("Zengwei/icefall-asr-librispeech-streaming-zipformer-2023-05-17", "exp/pretrained.pt", "full")}
 
 DEFAULTS = dict(
@@ -80,6 +88,8 @@ DEFAULTS = dict(
     ctc_weight=1.0,
     kd_weight=0.0,
     kd_delay=0,
+    anchor="",
+    anchor_weight=0.0,
     noise_p=0.5,
     snr_db=(5.0, 25.0),
     rir_p=0.2,
@@ -103,7 +113,7 @@ def build_model(size: str):
     from subsampling import Conv2dSubsampling
     from zipformer import Zipformer2
 
-    p = {**COMMON, **SIZES[size]}
+    p = {**COMMON, **_sizes()[size]}
     dims = ints(p["encoder_dim"])
 
     class Student(nn.Module):
@@ -148,9 +158,18 @@ def build_model(size: str):
     return Student()
 
 
-def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, seed: int, max_clips: int = 0):
-    """Selected s1 clips held in memory: FLAC bytes and teacher top-5 in flat buffers with offsets."""
+_CLIP_COLUMNS = ["shard", "row", "ref", "hyp", "n_samples", "n_frames", "flac", "top5_ids", "top5_p"]
+
+
+def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, seed: int, max_clips: int = 0,
+               cache_dir: str = ""):
+    """Selected s1 clips: FLAC bytes and teacher top-5 in flat buffers with offsets.
+
+    `cache_dir` writes those buffers once and reopens them as memmaps. The sandbox that trains the wide student
+    has 32 GB of RAM and the clean-match train split does not fit in it; the clip set and its order are unchanged.
+    """
     import glob
+    import hashlib
 
     import numpy as np
     import pyarrow.parquet as pq
@@ -174,11 +193,13 @@ def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, se
     by: dict[int, list[int]] = {}
     for i in sorted(order):
         by.setdefault(meta[i][0], []).append(meta[i][1])
+    if cache_dir:
+        tag = hashlib.sha256(f"{buckets}|{split}|{max_hours}|{max_clip_s}|{seed}|{max_clips}|{len(order)}".encode()).hexdigest()[:16]
+        return _cached_clips(files, by, os.path.join(cache_dir, tag))
 
     out = {k: [] for k in ("key", "ref", "hyp", "n_samples", "n_frames", "flac", "ids", "probs")}
     for fi, rows in by.items():
-        t = pq.read_table(files[fi], columns=["shard", "row", "ref", "hyp", "n_samples", "n_frames", "flac", "top5_ids", "top5_p"])
-        t = t.take(rows).to_pydict()
+        t = pq.read_table(files[fi], columns=_CLIP_COLUMNS).take(rows).to_pydict()
         out["key"] += [f"{s}:{r}" for s, r in zip(t["shard"], t["row"])]
         for k in ("ref", "hyp", "n_samples", "n_frames"):
             out[k] += t[k]
@@ -194,6 +215,86 @@ def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, se
     probs, _ = flat(out.pop("probs"))
     out["n_samples"], out["n_frames"] = np.array(out["n_samples"]), np.array(out["n_frames"])
     return dict(**out, flac=flac, flac_off=flac_off, ids=ids, probs=probs, top_off=top_off)
+
+
+def _as_bytes(b) -> bytes:
+    return b if isinstance(b, (bytes, bytearray)) else bytes(b)
+
+
+def _build_clip_cache(files, by: dict, dest: str) -> None:
+    """Stream the selected rows to `dest`. One parquet at a time, so the RAM stays a file, not the corpus."""
+    import numpy as np
+    import pyarrow.parquet as pq
+
+    partial = dest + ".partial"
+    if os.path.isdir(partial):
+        import shutil
+        shutil.rmtree(partial)
+    os.makedirs(partial)
+    keys, refs, hyps, n_samples, n_frames = [], [], [], [], []
+    flac_off, top_off = [0], [0]
+    with open(f"{partial}/flac.bin", "wb") as ff, open(f"{partial}/ids.bin", "wb") as fid, open(f"{partial}/probs.bin", "wb") as fp:
+        for n, (fi, rows) in enumerate(by.items()):
+            t = pq.read_table(files[fi], columns=_CLIP_COLUMNS).take(rows).to_pydict()
+            keys += [f"{s}:{r}" for s, r in zip(t["shard"], t["row"])]
+            refs += t["ref"]
+            hyps += t["hyp"]
+            n_samples += t["n_samples"]
+            n_frames += t["n_frames"]
+            for b in t["flac"]:
+                raw = _as_bytes(b)
+                ff.write(raw)
+                flac_off.append(flac_off[-1] + len(raw))
+            for b in t["top5_ids"]:
+                raw = _as_bytes(b)
+                fid.write(raw)
+                top_off.append(top_off[-1] + len(raw))
+            for b in t["top5_p"]:
+                fp.write(_as_bytes(b))
+            if n % 100 == 0:
+                print(json.dumps({"event": "cache", "files": n, "clips": len(keys), "flac": flac_off[-1]}), flush=True)
+        if fp.tell() != top_off[-1] * 2 or fid.tell() != top_off[-1]:
+            raise RuntimeError(f"top-5 buffers are not frame-aligned ({fid.tell()} ids bytes, {fp.tell()} prob bytes, {top_off[-1]} elements)")
+    np.save(f"{partial}/flac_off.npy", np.asarray(flac_off, dtype=np.int64))
+    np.save(f"{partial}/top_off.npy", np.asarray(top_off, dtype=np.int64))
+    with open(f"{partial}/meta.json", "w") as f:
+        json.dump({"key": keys, "ref": refs, "hyp": hyps, "n_samples": n_samples, "n_frames": n_frames}, f)
+    with open(f"{partial}/manifest.json", "w") as f:
+        json.dump({"clips": len(keys), "flac": flac_off[-1], "ids": top_off[-1]}, f)
+    os.rename(partial, dest)
+
+
+def _stage_local(dest: str) -> str:
+    """Random clip reads on the scratch volume are the slow path; the local disk is not."""
+    import shutil
+
+    local = f"/tmp/clipcache/{os.path.basename(dest)}"
+    if os.path.exists(f"{local}/manifest.json"):
+        return local
+    os.makedirs("/tmp/clipcache", exist_ok=True)
+    print(json.dumps({"event": "stage", "from": dest, "to": local}), flush=True)
+    try:
+        shutil.copytree(dest, local)
+    except OSError as err:
+        print(json.dumps({"event": "stage_skip", "error": str(err)}), flush=True)
+        return dest
+    return local
+
+
+def _cached_clips(files, by: dict, dest: str) -> dict:
+    import numpy as np
+
+    if not os.path.exists(f"{dest}/manifest.json"):
+        _build_clip_cache(files, by, dest)
+    dest = _stage_local(dest)
+    meta = json.load(open(f"{dest}/meta.json"))
+    return dict(
+        key=meta["key"], ref=meta["ref"], hyp=meta["hyp"],
+        n_samples=np.asarray(meta["n_samples"]), n_frames=np.asarray(meta["n_frames"]),
+        flac=np.memmap(f"{dest}/flac.bin", dtype=np.uint8, mode="r"), flac_off=np.load(f"{dest}/flac_off.npy"),
+        ids=np.memmap(f"{dest}/ids.bin", dtype=np.uint8, mode="r"), probs=np.memmap(f"{dest}/probs.bin", dtype=np.float16, mode="r"),
+        top_off=np.load(f"{dest}/top_off.npy"),
+    )
 
 
 class ClipDataset:
@@ -303,10 +404,10 @@ def batches(n_samples, max_batch_s: float, seed: int, shuffle: bool = True):
     return out
 
 
-def losses(model, b, cfg, device):
+def losses(model, b, cfg, device, anchor=None):
     import torch
     import torch.nn.functional as F
-    from student import soft_target_loss
+    from student import kl_to_log_probs, soft_target_loss
 
     feats, feat_lens = b["feats"].to(device), b["feat_lens"].to(device)
     with torch.autocast("cuda", dtype=torch.bfloat16):
@@ -327,6 +428,14 @@ def losses(model, b, cfg, device):
         kd = soft_target_loss(log_probs, top_ids, top_p, valid)
         out["kd"] = kd
         out["loss"] = out["loss"] + cfg["kd_weight"] * kd
+    if cfg["anchor_weight"] and anchor is not None:
+        with torch.no_grad(), torch.autocast("cuda", dtype=torch.bfloat16):
+            a_lp, a_lens = anchor(feats, feat_lens)
+        t = min(log_probs.shape[1], a_lp.shape[1])
+        lens = torch.minimum(out_lens, a_lens.to(device)).clamp(max=t)
+        kl = kl_to_log_probs(log_probs[:, :t], a_lp.float()[:, :t], lens)
+        out["anchor"] = kl
+        out["loss"] = out["loss"] + cfg["anchor_weight"] * kl
     out["frames"] = frames
     return out
 
@@ -411,7 +520,8 @@ def train(args: dict) -> dict:
     random.seed(cfg["seed"])
     device = torch.device("cuda")
     t0 = time.time()
-    train_clips = load_clips(cfg["buckets"], "train", cfg["max_hours"], cfg["max_clip_s"], cfg["seed"])
+    train_clips = load_clips(cfg["buckets"], "train", cfg["max_hours"], cfg["max_clip_s"], cfg["seed"],
+                             cache_dir=os.environ.get("TILAWA_CLIP_CACHE", ""))
     if cfg["target"] == "spliced":
         from student import spliced_target
 
@@ -437,6 +547,17 @@ def train(args: dict) -> dict:
         emit(event="resume", **state)
     elif cfg["init"]:
         emit(event="init", **init_from(model, cfg["init"], cfg["size"]))
+    anchor = None
+    if cfg["anchor_weight"]:
+        path = cfg["anchor"] if os.path.exists(cfg["anchor"]) else f"/student/prior-runs/{cfg['anchor']}/ckpt.pt"
+        ck_a = torch.load(path, map_location="cpu", weights_only=False)
+        if ck_a["cfg"]["size"] != "full":
+            raise RuntimeError(f"anchor {path} is size {ck_a['cfg']['size']}, want the shipped full student")
+        anchor = build_model("full").to(device).eval()
+        anchor.load_state_dict(ck_a["model"])
+        for p in anchor.parameters():
+            p.requires_grad_(False)
+        emit(event="anchor", path=path, step=ck_a["state"]["step"], weight=cfg["anchor_weight"])
     emit(event="model", params=n_params)
 
     def save():
@@ -457,7 +578,7 @@ def train(args: dict) -> dict:
             if state["step"] % 10 == 0:
                 for m in model.modules():
                     m.batch_count = state["step"] * cfg["max_batch_s"] / 600.0
-            out = losses(model, b, cfg, device)
+            out = losses(model, b, cfg, device, anchor)
             opt.zero_grad(set_to_none=True)
             if not torch.isfinite(out["loss"]):
                 state["skipped"] = state.get("skipped", 0) + 1
