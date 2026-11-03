@@ -1,6 +1,6 @@
 import type { AlignmentOp } from "./align.js";
 import { PosteriorFrames } from "./ctc.js";
-import { MID_WORD_START, UNIT, alignSubstring, collapseHeld, isHeld } from "./fuzzy.js";
+import { MID_WORD_START, UNIT, alignSubstring, collapseHeld, insertionCost, isHeld } from "./fuzzy.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { EngineEvent, PositionCandidate, PositionEvent, TraceCandidate, TrackerState, TrackerTrace, WordRef } from "./events.js";
 import { EvidenceError } from "./evidence.js";
@@ -186,6 +186,87 @@ export function issueDropFit(
   const unedited = uneditedCost / UNIT / n;
   const editedPer = editedCost / UNIT / n;
   return { n, unedited, edited: editedPer, gain, margin, explains: gain >= margin && editedPer < maxCost };
+}
+
+/**
+ * An added word's heard phones deleted, the phones after them kept. `heard` is the issue through the drop;
+ * `kept` is `heard` without the inserted span. The margin is the commit margin of the full span, so a short
+ * tail is not asked to clear the margin a longer one would. Same word costs as {@link issueDropFit}.
+ */
+export function insertionDropFit(
+  reference: string,
+  heard: string,
+  kept: string,
+  maxCost = MISFIT_MAX_COST,
+  minSeparation = COMMIT_MIN_SEPARATION,
+  separationScale = COMMIT_SEPARATION_SCALE,
+): IssueDropFit | null {
+  if (!reference || !heard || !kept) return null;
+  const uneditedCost = anchorFitCost(reference, heard);
+  const editedCost = anchorFitCost(reference, kept);
+  if (uneditedCost === null || editedCost === null) return null;
+  const n = heard.length;
+  const gain = (uneditedCost - editedCost) / UNIT;
+  const margin = commitMargin(n, minSeparation, separationScale);
+  const unedited = uneditedCost / UNIT / n;
+  const editedPer = editedCost / UNIT / n;
+  return { n, unedited, edited: editedPer, gain, margin, explains: gain >= margin && editedPer < maxCost };
+}
+
+export interface DestinationWord {
+  /** Phonemes of the destination word this span aligned to. */
+  destination: string;
+  /** Heard phonemes the destination alignment gave that word. */
+  heard: string;
+}
+
+/**
+ * Heard words that fit a relocation's destination better than the anchor continuation with exactly one
+ * inserted heard word, by the commit margin. A word the insertion hypothesis also fits, such as the anchor's
+ * own next word, counts zero. `total` is the winning hypothesis's cost, in `UNIT`s, so callers can prefer the
+ * anchor start the hypothesis actually explains.
+ */
+export function relocationSupport(
+  anchorWords: readonly string[],
+  heard: readonly DestinationWord[],
+  minSeparation = COMMIT_MIN_SEPARATION,
+  separationScale = COMMIT_SEPARATION_SCALE,
+): { count: number; total: number } | null {
+  const words = heard.filter((h) => h.heard.length > 0 && h.destination.length > 0);
+  if (!words.length || !anchorWords.length) return null;
+  let best: { count: number; total: number } | null = null;
+  for (let ins = 0; ins < words.length; ins++) {
+    let ai = 0;
+    let total = 0;
+    let count = 0;
+    let placed = true;
+    for (let i = 0; i < words.length; i++) {
+      const h = words[i];
+      const dest = anchorFitCost(h.destination, h.heard);
+      let hyp: number | null = null;
+      if (i === ins) {
+        let c = 0;
+        for (const ch of h.heard) c += insertionCost("", 0, ch);
+        hyp = c;
+      } else if (ai < anchorWords.length) {
+        hyp = anchorFitCost(anchorWords[ai], h.heard);
+        ai++;
+      }
+      if (dest === null || hyp === null) {
+        placed = false;
+        break;
+      }
+      // The commit margin widens on a short span. A word the destination reads exactly is already that sure, so it
+      // counts once it leads by the margin's floor; a partial or imperfect reading has to clear the wide margin, which
+      // is what keeps a shared word heard in part from voting.
+      const gain = (hyp - dest) / UNIT;
+      const margin = commitMargin(h.heard.length, minSeparation, separationScale);
+      if (gain >= margin || (dest === 0 && gain >= minSeparation)) count++;
+      total += hyp;
+    }
+    if (placed && (!best || total < best.total)) best = { count, total };
+  }
+  return best;
 }
 
 /** What the tracker is fed from one chunk of listener evidence, in the product and in every bench alike: phonemes only. */
@@ -808,6 +889,67 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   /** Same passage the local search would keep: not a relocation. */
   const nearWord = (a: WordRef, b: WordRef) => a.surah === b.surah && Math.abs(a.ayah - b.ayah) <= NEAR_AYAHS;
 
+  const spokenStep = (wi: number, dir: -1 | 1): number => {
+    if (wi < 0) return -1;
+    for (let k = wi + dir; k >= 0 && k < index.words.length; k += dir) {
+      if (index.words[k].end > index.words[k].start) return k;
+    }
+    return -1;
+  };
+  /** Heard words of a destination match: reference word, and the phonemes the alignment heard for it. */
+  const destinationWords = (m: Match): DestinationWord[] => {
+    const groups: { wi: number; heard: string }[] = [];
+    let cur: { wi: number; heard: string } | null = null;
+    let lead = "";
+    for (const op of m.path) {
+      if (op.op === "ins") {
+        if (cur) cur.heard += op.obs;
+        else lead += op.obs;
+        continue;
+      }
+      const wi = index.wordAt(Math.max(0, Math.min(index.phonemes.length - 1, m.offset + op.refAt)));
+      if (!cur || cur.wi !== wi) {
+        cur = { wi, heard: lead };
+        lead = "";
+        groups.push(cur);
+      }
+      if (op.op === "match") cur.heard += op.ref;
+      else if (op.op === "sub") cur.heard += op.obs;
+    }
+    if (lead) {
+      if (groups.length) groups[0].heard = lead + groups[0].heard;
+      else groups.push({ wi: -1, heard: lead });
+    }
+    return groups.filter((g) => g.heard.length > 0 && g.wi >= 0).map((g) => ({
+      destination: index.phonemes.slice(index.words[g.wi].start, index.words[g.wi].end),
+      heard: g.heard,
+    }));
+  };
+  const anchorWordsFrom = (wi: number, n: number): string[] => {
+    const out: string[] = [];
+    for (let k = wi; k < index.words.length && out.length < n; k++) {
+      const w = index.words[k];
+      if (w.end > w.start) out.push(index.phonemes.slice(w.start, w.end));
+    }
+    return out;
+  };
+  /**
+   * A distant lock relocates only when enough heard words fit it better than the anchor plus one inserted word.
+   * The anchor start is whichever of the cursor and its neighbours that hypothesis explains cheapest: the cursor
+   * sits on the word before a shared word as often as on the shared word itself.
+   */
+  const relocationCommits = (m: Match, anchorWi: number): boolean => {
+    const heard = destinationWords(m);
+    if (heard.length < minWords) return false;
+    const seeds = [anchorWi, spokenStep(anchorWi, -1), spokenStep(anchorWi, 1), spokenStep(spokenStep(anchorWi, 1), 1)].filter((i) => i >= 0);
+    let best: { count: number; total: number } | null = null;
+    for (const seed of seeds) {
+      const fit = relocationSupport(anchorWordsFrom(seed, heard.length + 1), heard, minSeparation, separationScale);
+      if (fit && (!best || fit.total < best.total)) best = fit;
+    }
+    return !!best && best.count >= minWords;
+  };
+
   /**
    * The anchor stays locked and relocation search continues. One event tells the checker to downgrade issues open
    * now; `last` stays the plain lock, so later re-emits of the anchor compare unchanged.
@@ -979,17 +1121,21 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       }
     }
     if (a.lock) {
-      if (memorization && afterBasmala) {
-        const first = index.words[firstWord(a.lock)];
-        if (!(first.surah === afterBasmala.from.surah + 1 && first.ayah === 1)) frozen ??= steady;
-      }
-      afterBasmala = null;
       const anchorWord = holding?.observed[0]?.word;
       const dest = a.event.observed[0]?.word;
       const release = !!(holding && anchorWord && dest && !nearWord(anchorWord, dest));
-      const released = release ? [lostEvent(a.event.timeMs, (from) => quietTrace(from, "lost"))] : [];
-      startLocal(a.lock);
-      return [...released, emit({ ...a.event, expected: expectedFor(a.event.observed[0].word) }, a.trace)];
+      const anchorWi = anchorWord ? index.words.findIndex((w) => w.surah === anchorWord.surah && w.ayah === anchorWord.ayah && w.word === anchorWord.word) : -1;
+      // A lookalike of the anchor plus one inserted word has not earned the move. Keep searching.
+      if (!(release && anchorWi >= 0 && !relocationCommits(a.lock, anchorWi))) {
+        if (memorization && afterBasmala) {
+          const first = index.words[firstWord(a.lock)];
+          if (!(first.surah === afterBasmala.from.surah + 1 && first.ayah === 1)) frozen ??= steady;
+        }
+        afterBasmala = null;
+        const released = release ? [lostEvent(a.event.timeMs, (from) => quietTrace(from, "lost"))] : [];
+        startLocal(a.lock);
+        return [...released, emit({ ...a.event, expected: expectedFor(a.event.observed[0].word) }, a.trace)];
+      }
     }
     // Between surahs the last position stays on screen, unless nothing locks for a while.
     if (afterBasmala && ++afterBasmala.held < WINDOW) return [];
@@ -1080,10 +1226,10 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         if (a.lock && !near(a.lock, pos.offset)) {
           pending = { m: a.lock, held: pending && sameLocation(pending.m, a.lock) ? pending.held + 1 : 1 };
         } else pending = null;
-        if (pending && pending.held >= (afterPhrase ? 1 : jumpPhonemes)) {
+        if (pending && pending.held >= (afterPhrase ? 1 : jumpPhonemes) && relocationCommits(pending.m, index.wordAt(Math.max(0, pos.offset - 1)))) {
           if (memorization) frozen ??= steady;
           startLocal(pending.m);
-        } else if (a.event.state === "lost" && pos.recentCost > maxCost && observed.length >= LOST_AFTER) {
+        } else if (!pending && a.event.state === "lost" && pos.recentCost > maxCost && observed.length >= LOST_AFTER) {
           // Nothing has committed elsewhere. Keep this anchor until the search locks off it, or the session ends.
           events.push(beginHold());
           continue;
