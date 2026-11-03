@@ -1,0 +1,13 @@
+{
+ "id": "listener-final-slot-manner-rekey",
+ "component": "listener",
+ "hypothesis": "Two planted ayah-final swaps (11:11:10 كبير→من heard مَںں, 37:84:5 سليم→من heard مِل) are missed for two different reasons. In the first the slot is judged on a confidence cut, and the pausal-final manner contrast already clears it by 28.6 nats. In the second the speech in the slot is filed as an omission of the written word. Ship the manner-mismatch rule and add one path: when an omission is proposed on an ayah-final word before a labelled pause, the slot holds heard consonant speech, and that speech contradicts the written pausal final's manner, file it as a wrong word. Predict listener -2, overall -2 (honest, below the gate alone; 2:284:28 at 8.9 nats is not counted).",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-03T16:03:55+00:00",
+ "author": "autolab"
+}
