@@ -143,6 +143,37 @@ export function commitMargin(n: number, minSeparation = COMMIT_MIN_SEPARATION, s
   return Math.max(minSeparation, separationScale / Math.max(1, n));
 }
 
+/**
+ * Which forward word a heard span steps to. Words are in mushaf order. Cost is {@link anchorFitCost}, the tracker's
+ * word cost; a candidate fits only under `maxCost` per heard phoneme. The nearest fit wins unless a farther one
+ * beats it by `margin`, the same commit margin a lock uses. Null when nothing fits.
+ */
+export function forwardStepChoice(
+  heard: string,
+  words: readonly { index: number; phonemes: string }[],
+  margin: (n: number) => number,
+  maxCost: number,
+): number | null {
+  if (!heard || !words.length) return null;
+  const scored: { index: number; edits: number }[] = [];
+  for (const w of words) {
+    if (!w.phonemes) continue;
+    const cost = anchorFitCost(w.phonemes, heard);
+    if (cost === null) continue;
+    const edits = cost / UNIT;
+    if (edits / heard.length > maxCost) continue;
+    scored.push({ index: w.index, edits });
+  }
+  if (!scored.length) return null;
+  const nearest = scored[0];
+  const need = margin(Math.max(1, heard.length));
+  let winner = nearest;
+  for (const s of scored) {
+    if (s.index > nearest.index && nearest.edits - s.edits >= need && s.edits < winner.edits) winner = s;
+  }
+  return winner.index;
+}
+
 export interface IssueDropFit {
   n: number;
   /** Weighted cost per observed phoneme, in plain edits. */
@@ -361,6 +392,16 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const expectedHistory: (WordRef | null)[] = [];
   /** The local search's cost for each of the last `CONFIRM` phonemes. */
   const stepCosts: number[] = [];
+  /**
+   * Phones heard since the cursor entered its current word. A forward run restart is scored against this span,
+   * not against the one phoneme that crossed.
+   */
+  let wordBuf = "";
+  /**
+   * A forward restart that has not been committed. Emission waits until the heard span fits a word in the
+   * anchor window, so a one-phoneme landing cannot lock a farther rhyme ahead of the word being said.
+   */
+  let openForward: { anchor: number; buf: string; origin: number; word: number } | null = null;
 
   const phraseList = options.phrases ? [...options.phrases.phrases, { name: "basmala", text: "", p: basmala }] : [];
   /** The latest phonemes, with the local search's cost for each and its state before each, for phrase detection. */
@@ -886,6 +927,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     afterBasmala = null;
     afterPhrase = false;
     twin = null;
+    wordBuf = "";
+    openForward = null;
     keepLast(0);
   };
 
@@ -979,6 +1022,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     weak = false;
     pending = null;
     reacquiring = true;
+    openForward = null;
+    wordBuf = "";
     const event: PositionEvent = { ...anchor, timeMs: lastFrame * (frameMs ?? 0), hold: "start" };
     return options.trace ? { ...event, trace: quietTrace(anchor.state, "locked") } : event;
   };
@@ -1257,6 +1302,96 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     return unchanged(event) ? [] : [emit(event, a.trace)];
   };
 
+  /** Spoken words after `anchorWi`, through the same ayah horizon the local search keeps ahead of the cursor. */
+  const forwardCandidates = (anchorWi: number): { index: number; phonemes: string }[] => {
+    const out: { index: number; phonemes: string }[] = [];
+    const anchor = index.words[anchorWi];
+    if (!anchor) return out;
+    let ayahs = 0;
+    let surah = anchor.surah;
+    let ayah = anchor.ayah;
+    let i = spoken(anchorWi + 1);
+    while (i < index.words.length) {
+      const word = index.words[i];
+      if (word.surah !== surah || word.ayah !== ayah) {
+        ayahs++;
+        surah = word.surah;
+        ayah = word.ayah;
+        if (ayahs > NEAR_AYAHS) break;
+      }
+      out.push({ index: i, phonemes: index.phonemes.slice(word.start, word.end) });
+      const n = spoken(i + 1);
+      if (n <= i) break;
+      i = n;
+    }
+    return out;
+  };
+  const stepMargin = (n: number) => commitMargin(n, minSeparation, separationScale);
+  const wordPhones = (wi: number) => {
+    const w = index.words[wi];
+    return w && w.end > w.start ? index.phonemes.slice(w.start, w.end) : "";
+  };
+  /** A nearer landing replaces the one the search took only when it fits the heard span at equal or lower word cost. */
+  const preferNearer = (choice: number, landing: number, buf: string) => {
+    if (choice === landing) return false;
+    const near = anchorFitCost(wordPhones(choice), buf);
+    const far = anchorFitCost(wordPhones(landing), buf);
+    return near !== null && far !== null && near <= far;
+  };
+  /** Place the cursor on `wi` where `buf` aligned, and drop the forward restart. False when the word cannot take the phones. */
+  const snapTo = (wi: number, buf: string): boolean => {
+    const word = index.words[wi];
+    const place = alignSubstring(index.phonemes, word.start, word.end, buf, (o) => o === word.start, { strictStart: true });
+    if (!place || place.end <= word.start || place.end > word.end) return false;
+    const length = place.end - word.start;
+    local = createLocalSearch(index, { offset: place.end, origin: word.start, edits: Math.round(place.per * length) });
+    stepCosts.length = 0;
+    openForward = null;
+    wordBuf = "";
+    return true;
+  };
+  /**
+   * A forward run restart steps to the nearest fitting word when that word costs no more than the landing.
+   * `forwardStepChoice` only lets a farther fit win by the commit margin, and a landing that is strictly cheaper
+   * stays where the search put it. Returns true while the landing word has not been heard yet, so it is not emitted.
+   */
+  const correctForward = (prev: LocalPosition, phone: string): boolean => {
+    if (!local) return false;
+    const pos = local.position();
+    const prevWi = index.wordAt(Math.max(0, prev.offset - 1));
+    const nowWi = index.wordAt(Math.max(0, pos.offset - 1));
+    const originWi = index.wordAt(pos.origin);
+    const choose = (anchor: number, buf: string) => forwardStepChoice(buf, forwardCandidates(anchor), stepMargin, maxCost);
+    const landingLen = (wi: number) => wordPhones(wi).length;
+    if (openForward) {
+      openForward.buf += phone;
+      const ready = openForward.buf.length >= landingLen(openForward.word);
+      const left = pos.origin === openForward.origin && nowWi > openForward.word;
+      if (!ready && !left && openForward.buf.length <= HEARD) return true;
+      const choice = ready ? choose(openForward.anchor, openForward.buf) : null;
+      if (!(choice !== null && preferNearer(choice, openForward.word, openForward.buf) && snapTo(choice, openForward.buf))) {
+        openForward = null;
+        wordBuf = phone;
+      }
+      return false;
+    }
+    const jumpedForward = pos.origin !== prev.origin && originWi > prevWi;
+    if (jumpedForward) {
+      const buf = wordBuf + phone;
+      if (buf.length < landingLen(originWi)) {
+        openForward = { anchor: prevWi, buf, origin: pos.origin, word: originWi };
+        return true;
+      }
+      const choice = choose(prevWi, buf);
+      if (choice !== null && preferNearer(choice, originWi, buf) && snapTo(choice, buf)) return false;
+      wordBuf = phone;
+      return false;
+    }
+    if (pos.origin !== prev.origin || nowWi !== prevWi) wordBuf = phone;
+    else wordBuf += phone;
+    return false;
+  };
+
   /**
    * Phoneme by phoneme after the first lock. Local tracking emits one event per change of word or run start. When its
    * fit degrades, global search over the latest phonemes runs alongside: a distant global lock that holds for
@@ -1280,6 +1415,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         continue;
       }
       const before = local.save();
+      const prev = local.position();
       local.step(ph.p);
       stepCosts.push(local.position().stepCost);
       if (stepCosts.length > CONFIRM) stepCosts.shift();
@@ -1289,6 +1425,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         const cost = heardCost.slice(from).reduce((a, b) => a + b, 0) / heardPhrase.length;
         if (cost >= PHRASE_LOCAL_COST) {
           // Not Quran text where we are: rewind the local search to before the phrase, as if it was never heard.
+          openForward = null;
+          wordBuf = "";
           if (heardPhrase.name === "basmala") {
             // A surah starts, not necessarily the next one: hand over to global search, favouring openings.
             afterBasmala = { from: last!.observed[0].word, held: 0 };
@@ -1311,6 +1449,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
           continue;
         }
       }
+      if (correctForward(prev, ph.p)) continue;
       const pos = local.position();
       const relocated = considerTwin(ph.p, pos);
       if (relocated) {
