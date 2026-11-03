@@ -1,6 +1,6 @@
 import type { AlignmentOp } from "./align.js";
 import { PosteriorFrames } from "./ctc.js";
-import { MID_WORD_START, UNIT, alignSubstring, collapseHeld, isHeld } from "./fuzzy.js";
+import { MID_WORD_START, UNIT, alignSubstring, collapseHeld, insertionCost, isHeld } from "./fuzzy.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { EngineEvent, PositionCandidate, PositionEvent, TraceCandidate, TrackerState, TrackerTrace, WordRef } from "./events.js";
 import { EvidenceError } from "./evidence.js";
@@ -8,6 +8,7 @@ import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { createLocalSearch } from "./local.js";
 import type { LocalPosition, LocalSearch } from "./local.js";
 import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
+import { letterSkeleton } from "./parallel-phrases.js";
 import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-spans.js";
 import type { SlotSpan } from "./slot-spans.js";
 
@@ -188,6 +189,87 @@ export function issueDropFit(
   return { n, unedited, edited: editedPer, gain, margin, explains: gain >= margin && editedPer < maxCost };
 }
 
+/**
+ * An added word's heard phones deleted, the phones after them kept. `heard` is the issue through the drop;
+ * `kept` is `heard` without the inserted span. The margin is the commit margin of the full span, so a short
+ * tail is not asked to clear the margin a longer one would. Same word costs as {@link issueDropFit}.
+ */
+export function insertionDropFit(
+  reference: string,
+  heard: string,
+  kept: string,
+  maxCost = MISFIT_MAX_COST,
+  minSeparation = COMMIT_MIN_SEPARATION,
+  separationScale = COMMIT_SEPARATION_SCALE,
+): IssueDropFit | null {
+  if (!reference || !heard || !kept) return null;
+  const uneditedCost = anchorFitCost(reference, heard);
+  const editedCost = anchorFitCost(reference, kept);
+  if (uneditedCost === null || editedCost === null) return null;
+  const n = heard.length;
+  const gain = (uneditedCost - editedCost) / UNIT;
+  const margin = commitMargin(n, minSeparation, separationScale);
+  const unedited = uneditedCost / UNIT / n;
+  const editedPer = editedCost / UNIT / n;
+  return { n, unedited, edited: editedPer, gain, margin, explains: gain >= margin && editedPer < maxCost };
+}
+
+export interface DestinationWord {
+  /** Phonemes of the destination word this span aligned to. */
+  destination: string;
+  /** Heard phonemes the destination alignment gave that word. */
+  heard: string;
+}
+
+/**
+ * Heard words that fit a relocation's destination better than the anchor continuation with exactly one
+ * inserted heard word, by the commit margin. A word the insertion hypothesis also fits, such as the anchor's
+ * own next word, counts zero. `total` is the winning hypothesis's cost, in `UNIT`s, so callers can prefer the
+ * anchor start the hypothesis actually explains.
+ */
+export function relocationSupport(
+  anchorWords: readonly string[],
+  heard: readonly DestinationWord[],
+  minSeparation = COMMIT_MIN_SEPARATION,
+  separationScale = COMMIT_SEPARATION_SCALE,
+): { count: number; total: number } | null {
+  const words = heard.filter((h) => h.heard.length > 0 && h.destination.length > 0);
+  if (!words.length || !anchorWords.length) return null;
+  let best: { count: number; total: number } | null = null;
+  for (let ins = 0; ins < words.length; ins++) {
+    let ai = 0;
+    let total = 0;
+    let count = 0;
+    let placed = true;
+    for (let i = 0; i < words.length; i++) {
+      const h = words[i];
+      const dest = anchorFitCost(h.destination, h.heard);
+      let hyp: number | null = null;
+      if (i === ins) {
+        let c = 0;
+        for (const ch of h.heard) c += insertionCost("", 0, ch);
+        hyp = c;
+      } else if (ai < anchorWords.length) {
+        hyp = anchorFitCost(anchorWords[ai], h.heard);
+        ai++;
+      }
+      if (dest === null || hyp === null) {
+        placed = false;
+        break;
+      }
+      // The commit margin widens on a short span. A word the destination reads exactly is already that sure, so it
+      // counts once it leads by the margin's floor; a partial or imperfect reading has to clear the wide margin, which
+      // is what keeps a shared word heard in part from voting.
+      const gain = (hyp - dest) / UNIT;
+      const margin = commitMargin(h.heard.length, minSeparation, separationScale);
+      if (gain >= margin || (dest === 0 && gain >= minSeparation)) count++;
+      total += hyp;
+    }
+    if (placed && (!best || total < best.total)) best = { count, total };
+  }
+  return best;
+}
+
 /** What the tracker is fed from one chunk of listener evidence, in the product and in every bench alike: phonemes only. */
 export function trackerInput(evidence: PhonemeEvidence): PhonemeEvidence {
   return { ...evidence, posteriors: undefined };
@@ -249,6 +331,11 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   let everLocked = false;
   /** Slot-differing span the lock is inside, until its continuation picks a member. */
   let twin: { span: SlotSpan; memberStart: number; endPhone: number; buf: string } | null = null;
+  /**
+   * A lock onto the other member of a parallel span (or an exact copy of the next ayah). The phones heard until
+   * the in-order continuation commits are what a retro rebind is scored on.
+   */
+  let excursion: { home: number; dest: number; length: number; entry: number; phones: string; trimmed: boolean } | null = null;
   /**
    * Holding and continuation resolution run only on the first lock, and only until that lock's position leaves
    * every slot-differing span. A word outside those spans is unique to its location. Any later `startLocal`
@@ -674,6 +761,13 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       for (let i = 0; i < ph.p.length; i++) rawConf.push(ph.conf);
     }
     lastFrame = Math.max(lastFrame, ph.end + 1);
+    if (excursion) {
+      excursion.phones += ph.p;
+      if (excursion.phones.length > 480) {
+        excursion.phones = excursion.phones.slice(-480);
+        excursion.trimmed = true;
+      }
+    }
   };
   /** Keep only the latest `n` observed phonemes. */
   const keepLast = (n: number) => {
@@ -808,6 +902,67 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   /** Same passage the local search would keep: not a relocation. */
   const nearWord = (a: WordRef, b: WordRef) => a.surah === b.surah && Math.abs(a.ayah - b.ayah) <= NEAR_AYAHS;
 
+  const spokenStep = (wi: number, dir: -1 | 1): number => {
+    if (wi < 0) return -1;
+    for (let k = wi + dir; k >= 0 && k < index.words.length; k += dir) {
+      if (index.words[k].end > index.words[k].start) return k;
+    }
+    return -1;
+  };
+  /** Heard words of a destination match: reference word, and the phonemes the alignment heard for it. */
+  const destinationWords = (m: Match): DestinationWord[] => {
+    const groups: { wi: number; heard: string }[] = [];
+    let cur: { wi: number; heard: string } | null = null;
+    let lead = "";
+    for (const op of m.path) {
+      if (op.op === "ins") {
+        if (cur) cur.heard += op.obs;
+        else lead += op.obs;
+        continue;
+      }
+      const wi = index.wordAt(Math.max(0, Math.min(index.phonemes.length - 1, m.offset + op.refAt)));
+      if (!cur || cur.wi !== wi) {
+        cur = { wi, heard: lead };
+        lead = "";
+        groups.push(cur);
+      }
+      if (op.op === "match") cur.heard += op.ref;
+      else if (op.op === "sub") cur.heard += op.obs;
+    }
+    if (lead) {
+      if (groups.length) groups[0].heard = lead + groups[0].heard;
+      else groups.push({ wi: -1, heard: lead });
+    }
+    return groups.filter((g) => g.heard.length > 0 && g.wi >= 0).map((g) => ({
+      destination: index.phonemes.slice(index.words[g.wi].start, index.words[g.wi].end),
+      heard: g.heard,
+    }));
+  };
+  const anchorWordsFrom = (wi: number, n: number): string[] => {
+    const out: string[] = [];
+    for (let k = wi; k < index.words.length && out.length < n; k++) {
+      const w = index.words[k];
+      if (w.end > w.start) out.push(index.phonemes.slice(w.start, w.end));
+    }
+    return out;
+  };
+  /**
+   * A distant lock relocates only when enough heard words fit it better than the anchor plus one inserted word.
+   * The anchor start is whichever of the cursor and its neighbours that hypothesis explains cheapest: the cursor
+   * sits on the word before a shared word as often as on the shared word itself.
+   */
+  const relocationCommits = (m: Match, anchorWi: number): boolean => {
+    const heard = destinationWords(m);
+    if (heard.length < minWords) return false;
+    const seeds = [anchorWi, spokenStep(anchorWi, -1), spokenStep(anchorWi, 1), spokenStep(spokenStep(anchorWi, 1), 1)].filter((i) => i >= 0);
+    let best: { count: number; total: number } | null = null;
+    for (const seed of seeds) {
+      const fit = relocationSupport(anchorWordsFrom(seed, heard.length + 1), heard, minSeparation, separationScale);
+      if (fit && (!best || fit.total < best.total)) best = fit;
+    }
+    return !!best && best.count >= minWords;
+  };
+
   /**
    * The anchor stays locked and relocation search continues. One event tells the checker to downgrade issues open
    * now; `last` stays the plain lock, so later re-emits of the anchor compare unchanged.
@@ -839,6 +994,97 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     let k = wi;
     while (k < index.words.length && index.words[k].end === index.words[k].start) k++;
     return k;
+  };
+
+  const ayahStartOf = (wi: number) => {
+    let k = wi;
+    const w = index.words[wi];
+    while (k > 0 && index.words[k - 1].surah === w.surah && index.words[k - 1].ayah === w.ayah) k--;
+    return k;
+  };
+  const ayahEndOf = (wi: number) => {
+    let k = wi + 1;
+    const w = index.words[wi];
+    while (k < index.words.length && index.words[k].surah === w.surah && index.words[k].ayah === w.ayah) k++;
+    return k;
+  };
+  const phonesBetween = (from: number, to: number) => {
+    if (from < 0 || to <= from || to > index.words.length) return "";
+    return index.phonemes.slice(index.words[from].start, index.words[to - 1].end);
+  };
+  const skeleton = (from: number, to: number) => {
+    let s = "";
+    for (let i = from; i < to; i++) s += `${letterSkeleton(index.wordText?.[i] ?? "")}\0`;
+    return s;
+  };
+  /**
+   * A jump off the in-order ayah onto a parallel copy. Closed when a later lock is that copy's in-order
+   * continuation and the skipped-over text fits the excursion's phones no worse than the copy does.
+   * Exact copies tie. A one-word variant pays that word's edits, so the heard copy is the cheaper one.
+   */
+  const beginExcursion = (fromWi: number, m: Match) => {
+    const destWi = firstWord(m);
+    if (fromWi < 0 || destWi < 0) return;
+    if (excursion && destWi >= excursion.dest && destWi < excursion.dest + excursion.length) return;
+    const at = lastWord(m);
+    const span = longestSpanAt(allSpans, destWi);
+    if (span) {
+      const dest = span.starts.find((st) => destWi >= st && destWi < st + span.length);
+      const home = span.starts.find((st) => fromWi >= st && fromWi < st + span.length);
+      if (dest !== undefined && home !== undefined && dest !== home) {
+        excursion = { home, dest, length: span.length, entry: Math.max(0, Math.min(span.length - 1, at - dest)), phones: "", trimmed: false };
+        return;
+      }
+    }
+    const homeLo = fromWi < index.words.length ? ayahEndOf(fromWi) : -1;
+    const destLo = destWi < index.words.length ? ayahStartOf(destWi) : -1;
+    if (homeLo >= 0 && homeLo < index.words.length && destLo >= 0 && destLo !== homeLo) {
+      const homeHi = ayahEndOf(homeLo);
+      const destHi = ayahEndOf(destLo);
+      const length = homeHi - homeLo;
+      if (length > 0 && destHi - destLo === length && skeleton(homeLo, homeHi) === skeleton(destLo, destHi)) {
+        excursion = { home: homeLo, dest: destLo, length, entry: Math.max(0, Math.min(length - 1, at - destLo)), phones: "", trimmed: false };
+        return;
+      }
+    }
+    excursion = null;
+  };
+  /** Retro locked event, or null when this lock does not close the excursion. */
+  const finishExcursion = (destWi: number): PositionEvent | null => {
+    const ex = excursion;
+    if (!ex || ex.trimmed || destWi < 0) return null;
+    if (destWi >= ex.dest && destWi < ex.dest + ex.length) return null;
+    const cont = spoken(ex.home + ex.length);
+    // Landing here is the commit: the search already preferred this continuation by the commit margin.
+    if (destWi < cont || destWi >= cont + 4) return null;
+    const from = ex.entry;
+    const homeText = phonesBetween(ex.home + from, ex.home + ex.length);
+    const destText = phonesBetween(ex.dest + from, ex.dest + ex.length);
+    const homeCost = anchorFitCost(homeText, ex.phones);
+    const destCost = anchorFitCost(destText, ex.phones);
+    // Exact copies tie. A one-word variant pays that word, so the copy that was heard stays cheaper.
+    if (homeCost === null || destCost === null || homeCost > destCost) return null;
+    const end = ex.home + ex.length - 1;
+    const event: PositionEvent = {
+      type: "position",
+      v: EVENT_SCHEMA_VERSION,
+      timeMs: lastFrame * (frameMs ?? 0),
+      referenceVersion: index.version,
+      expected: expectedFor(ref(ex.home)),
+      observed: [{ word: ref(end), span: { start: ref(ex.home), end: ref(end) }, confidence: 1, cost: 0, per: 0 }],
+      state: "locked",
+      relocated: { from: ref(ex.dest), to: ref(ex.home) },
+    };
+    return emit(event, (fromState) => quietTrace(fromState, "locked"));
+  };
+  const takeJump = (fromWi: number, m: Match): PositionEvent | null => {
+    const closing = finishExcursion(firstWord(m));
+    if (closing) {
+      excursion = null;
+      return closing;
+    }
+    beginExcursion(fromWi, m);
+    return null;
   };
 
   /**
@@ -876,6 +1122,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       return { id: st, phonemes: word ? index.phonemes.slice(word.start, word.end) : "" };
     });
     const pick = continuationDecision(twin.buf, candidates, twin.memberStart, (n) => commitMargin(n, minSeparation, separationScale), maxCost);
+    // The continuation settled the copy. A later global return must not rebind it again.
+    if (pick) excursion = null;
     // Past the first continuation word with no unique other copy: keep the locked one and let the window move on.
     // The continuation word itself sits outside the span; the open span still gets to judge it.
     if (!pick && wi < twin.memberStart + twin.span.length + 4) return null;
@@ -979,17 +1227,23 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       }
     }
     if (a.lock) {
-      if (memorization && afterBasmala) {
-        const first = index.words[firstWord(a.lock)];
-        if (!(first.surah === afterBasmala.from.surah + 1 && first.ayah === 1)) frozen ??= steady;
-      }
-      afterBasmala = null;
       const anchorWord = holding?.observed[0]?.word;
       const dest = a.event.observed[0]?.word;
       const release = !!(holding && anchorWord && dest && !nearWord(anchorWord, dest));
-      const released = release ? [lostEvent(a.event.timeMs, (from) => quietTrace(from, "lost"))] : [];
-      startLocal(a.lock);
-      return [...released, emit({ ...a.event, expected: expectedFor(a.event.observed[0].word) }, a.trace)];
+      const anchorWi = anchorWord ? index.words.findIndex((w) => w.surah === anchorWord.surah && w.ayah === anchorWord.ayah && w.word === anchorWord.word) : -1;
+      // A lookalike of the anchor plus one inserted word has not earned the move. Keep searching.
+      if (!(release && anchorWi >= 0 && !relocationCommits(a.lock, anchorWi))) {
+        if (memorization && afterBasmala) {
+          const first = index.words[firstWord(a.lock)];
+          if (!(first.surah === afterBasmala.from.surah + 1 && first.ayah === 1)) frozen ??= steady;
+        }
+        afterBasmala = null;
+        const released = release ? [lostEvent(a.event.timeMs, (from) => quietTrace(from, "lost"))] : [];
+        const fromWi = anchorWi >= 0 ? anchorWi : -1;
+        const rebind = fromWi >= 0 ? takeJump(fromWi, a.lock) : null;
+        startLocal(a.lock);
+        return [...released, ...(rebind ? [rebind] : []), emit({ ...a.event, expected: expectedFor(a.event.observed[0].word) }, a.trace)];
+      }
     }
     // Between surahs the last position stays on screen, unless nothing locks for a while.
     if (afterBasmala && ++afterBasmala.held < WINDOW) return [];
@@ -1080,10 +1334,13 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         if (a.lock && !near(a.lock, pos.offset)) {
           pending = { m: a.lock, held: pending && sameLocation(pending.m, a.lock) ? pending.held + 1 : 1 };
         } else pending = null;
-        if (pending && pending.held >= (afterPhrase ? 1 : jumpPhonemes)) {
+        if (pending && pending.held >= (afterPhrase ? 1 : jumpPhonemes) && relocationCommits(pending.m, index.wordAt(Math.max(0, pos.offset - 1)))) {
           if (memorization) frozen ??= steady;
+          const fromWi = index.wordAt(Math.max(0, pos.offset - 1));
+          const rebind = takeJump(fromWi, pending.m);
+          if (rebind) events.push(rebind);
           startLocal(pending.m);
-        } else if (a.event.state === "lost" && pos.recentCost > maxCost && observed.length >= LOST_AFTER) {
+        } else if (!pending && a.event.state === "lost" && pos.recentCost > maxCost && observed.length >= LOST_AFTER) {
           // Nothing has committed elsewhere. Keep this anchor until the search locks off it, or the session ends.
           events.push(beginHold());
           continue;

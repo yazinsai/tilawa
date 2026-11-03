@@ -4,7 +4,7 @@ import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, P
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
-import { issueDropFit } from "./tracker.js";
+import { insertionDropFit, issueDropFit } from "./tracker.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
 import { minGapFrames } from "./gap-decode.js";
@@ -439,6 +439,15 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return issueDropFit(ref.slice(from, hi), ref.slice(cutAt, hi), heard);
   };
 
+  /** An added word: delete its heard phones and align what follows to the anchor, which still contains that word. */
+  const insertionFit = (issue: Issue, to: number) => {
+    const from = words[issue.word]?.start;
+    if (from === undefined || issue.obsTo <= issue.obsFrom || to <= issue.obsTo || from >= hi) return null;
+    const heard = obs.slice(issue.obsFrom, to).map((p) => p.p).join("");
+    const kept = obs.slice(issue.obsTo, to).map((p) => p.p).join("");
+    return insertionDropFit(ref.slice(from, hi), heard, kept);
+  };
+
   /** Every issue open now ends `uncertain` and is never reopened. A real lock loss still does this to all of them. */
   const sealAll = (out: CheckerEvent[]) => {
     for (const o of [...open.values()]) {
@@ -449,17 +458,21 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   /**
-   * A misfit hold. An issue stays open when removing its own word makes the heard words after it, up to the next
-   * open issue, fit the anchor again: the edited fit beats the unedited fit by the commit margin and falls below
-   * the misfit cost. That issue explains the drop. Anything else is downgraded as on a lock loss.
+   * A misfit hold. An issue stays open when its own edit makes the heard words up to the next open issue fit the
+   * anchor again: the edited fit beats the unedited fit by the commit margin and falls below the misfit cost.
+   * An omission or a wrong word deletes that written word. An added word deletes its heard phones instead and
+   * keeps the phones that follow, against the anchor text those phones are. Anything else is downgraded as on a
+   * lock loss.
    */
   const sealOpen = (out: CheckerEvent[], skip?: Set<number>) => {
     const ordered = [...open.values()].sort((a, b) => a.issue.obsFrom - b.issue.obsFrom);
     const keep = new Set<number>();
     for (const o of ordered) {
       const next = ordered.find((x) => x.issue.obsFrom > o.issue.obsTo);
-      const fit = continuationFit(o.issue, words[o.issue.word].end, next ? next.issue.obsFrom : obs.length);
-      if (fit?.explains) keep.add(o.issue.word);
+      const to = next ? next.issue.obsFrom : obs.length;
+      const fit = continuationFit(o.issue, words[o.issue.word].end, to);
+      const inserted = o.issue.cls === "added_word" ? insertionFit(o.issue, to) : null;
+      if (fit?.explains || inserted?.explains) keep.add(o.issue.word);
     }
     for (const o of [...open.values()]) {
       if (keep.has(o.issue.word) || skip?.has(o.issue.word)) continue;
@@ -552,8 +565,15 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       open.delete(wi);
       if (slotAt.has(wi)) out.push(event(o, "resolved"));
       else {
-        const issue = { ...o.issue, word: o.issue.word + delta, last: o.issue.last + delta };
-        open.set(issue.word, { ...o, issue });
+        const moved = o.issue.word + delta;
+        // The in-order word was already accused (the real skip). Close the copy's duplicate instead of reopening it.
+        if (decided.has(moved)) {
+          decided.add(o.issue.word);
+          out.push(event(o, "resolved"));
+        } else {
+          const issue = { ...o.issue, word: moved, last: o.issue.last + delta };
+          open.set(issue.word, { ...o, issue });
+        }
       }
     }
     releaseFrozen(out, true, from, end);
@@ -567,6 +587,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       passage.to = Math.max(passage.from, passage.to + delta);
     }
     clearLedger();
+    // The next lock in this same batch is the continuation. Score it against the slid window, not the copy's.
+    const ayah = ayahOf[anchor!];
+    lo = words[ayahFirst[Math.max(0, ayah - 1)]].start;
+    const far = ayahOf[Math.max(anchor!, furthest)];
+    hi = words[ayahLast[Math.min(ayahLast.length - 1, far + AHEAD_AYAHS)]].end;
   };
 
   const dropAnchor = (out: CheckerEvent[]) => {
