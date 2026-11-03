@@ -884,6 +884,70 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const insCharge = (at: number, p: string, prev?: string) =>
     p === ref[at - 1] || p === ref[at] || p === prev ? HELD : CONSONANTS.has(p) ? UNIT : SOFT;
 
+  /**
+   * Min-charge alignment of `obs[from, to)` onto word `wi`, using the visit charges. Among equal charges, the
+   * path with fewer hard edits (a charge of `UNIT` or more) wins. `path` is that alignment.
+   */
+  const chargeAlign = (wi: number, from: number, to: number) => {
+    const start = words[wi].start;
+    const n = words[wi].end - start;
+    const m = Math.max(0, to - from);
+    const W = m + 1;
+    const cost = new Float64Array((n + 1) * W);
+    const hardA = new Int32Array((n + 1) * W);
+    const back = new Int32Array((n + 1) * W);
+    const kind = new Uint8Array((n + 1) * W);
+    const bump = (c: number) => (c >= UNIT ? 1 : 0);
+    for (let j = 1; j <= m; j++) {
+      const c = insCharge(start, obs[from + j - 1].p, obs[from + j - 2]?.p);
+      cost[j] = cost[j - 1] + c;
+      hardA[j] = hardA[j - 1] + bump(c);
+      back[j] = j - 1;
+      kind[j] = OP_INS;
+    }
+    for (let i = 1; i <= n; i++) {
+      const at = start + i - 1;
+      const del = delCharge(at);
+      const row = i * W;
+      const above = row - W;
+      cost[row] = cost[above] + del;
+      hardA[row] = hardA[above] + bump(del);
+      back[row] = above;
+      kind[row] = OP_DEL;
+      for (let j = 1; j <= m; j++) {
+        const p = obs[from + j - 1].p;
+        const sub = subCharge(ref[at], p);
+        let best = cost[above + j - 1] + sub;
+        let bh = hardA[above + j - 1] + bump(sub);
+        let b = above + j - 1;
+        let k = OP_DIAG;
+        const dcost = cost[above + j] + del;
+        const dh = hardA[above + j] + bump(del);
+        if (dcost < best || (dcost === best && dh < bh)) { best = dcost; bh = dh; b = above + j; k = OP_DEL; }
+        const ic = insCharge(at + 1, p, obs[from + j - 2]?.p);
+        const icost = cost[row + j - 1] + ic;
+        const ih = hardA[row + j - 1] + bump(ic);
+        if (icost < best || (icost === best && ih < bh)) { best = icost; bh = ih; b = row + j - 1; k = OP_INS; }
+        cost[row + j] = best;
+        hardA[row + j] = bh;
+        back[row + j] = b;
+        kind[row + j] = k;
+      }
+    }
+    const path: Step[] = [];
+    for (let cell = n * W + m; cell > 0;) {
+      const i = Math.floor(cell / W);
+      const j = cell % W;
+      const k = kind[cell];
+      if (k === OP_DIAG) path.push({ op: "diag", ref: start + i - 1, obs: from + j - 1 });
+      else if (k === OP_DEL) path.push({ op: "del", ref: start + i - 1 });
+      else path.push({ op: "ins", at: start + i, obs: from + j - 1 });
+      cell = back[cell];
+    }
+    path.reverse();
+    return { hard: hardA[n * W + m], cost: cost[n * W + m], path };
+  };
+
   /** Whether a visit's cost makes the words `[v.word, last]` it covers a wrong word rather than a mispronounced one. */
   const wrong = (v: Visit, last = v.word) => {
     let weight = 0;
@@ -1233,6 +1297,28 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         return judge(repaired, false);
       }
     }
+    // One heard segment, two adjacent words, the outer neighbours already accepted. The alignment
+    // kept the segment on the word whose omission is cheaper in total charge. Hard consonant edits
+    // outrank that sum: soft charges exist to absorb channel noise, and a point of them can hide an
+    // extra hard contradiction. Total charge breaks a hard tie. The omission moves; it is not created
+    // or removed. Applied step rewrites wait until every visit index has been read.
+    const stepEdits: { lo: number; hi: number; path: Step[] }[] = [];
+    const dropCost = (wi: number) => {
+      let hard = 0, cost = 0;
+      for (let k = words[wi].start; k < words[wi].end; k++) {
+        const c = delCharge(k);
+        cost += c;
+        if (c >= UNIT) hard++;
+      }
+      return { hard, cost };
+    };
+    const placed = (keep: number, drop: number, from: number, to: number) => {
+      const a = chargeAlign(keep, from, to);
+      const d = dropCost(drop);
+      return { hard: a.hard + d.hard, cost: a.cost + d.cost, path: a.path };
+    };
+    const beats = (a: { hard: number; cost: number }, b: { hard: number; cost: number }) =>
+      a.hard < b.hard || (a.hard === b.hard && a.cost < b.cost);
     const seen = [...last.keys()];
     const issues = new Map<number, Issue>();
     if (!seen.length) return null;
@@ -1257,6 +1343,46 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       // Words past the head may still be coming: a gap is an omission once the reciter is past it, or already suspected.
       const was = open.get(gap.word)?.issue.cls;
       if (!(gap.last < head || was === "omitted_word" || was === "skipped_passage")) return void (gap = null);
+      // The gap has no phones of its own: the previous word's visit is the only segment for that word and
+      // this one. Rank the two omissions by hard edits, then total charge, and move this omission onto the
+      // previous word when that placement wins. One omission either way.
+      if (gap.word === gap.last && after && !said.length) {
+        const y = gap.word, x = prevWord(y), left = prevWord(x);
+        const seg = last.get(x), leftV = last.get(left);
+        if (ayahOf[x] === ayahOf[y] && seg && right.has(x) && seg.obsTo === gap.obsFrom && seg.obsFrom >= 0
+          && seg.stepFrom !== undefined && seg.stepTo !== undefined
+          && leftV && right.has(left)
+          && after.word === nextWord(y) && right.has(after.word)) {
+          // A zero-charge reading is that word. Re-rank only when the segment is a blurred fit, so a
+          // fully heard neighbour cannot take the omission of the word after it.
+          const owned = chargeAlign(x, seg.obsFrom, seg.obsTo);
+          const cur = { hard: owned.hard + dropCost(y).hard, cost: owned.cost + dropCost(y).cost };
+          const alt = placed(y, x, seg.obsFrom, seg.obsTo);
+          if (owned.cost > 0 && beats(alt, cur)) {
+            const dels: Step[] = [];
+            for (let k = words[x].start; k < words[x].end; k++) dels.push({ op: "del", ref: k });
+            let lo = seg.stepFrom, hi = seg.stepTo;
+            for (let k = 0; k < steps.length; k++) {
+              const s = steps[k];
+              const at = s.op === "diag" || s.op === "del" ? s.ref : s.op === "ins" ? s.at : -1;
+              if (at < 0) continue;
+              const w = index.wordAt(at);
+              if (w === x || w === y) { lo = Math.min(lo, k); hi = Math.max(hi, k + 1); }
+            }
+            if (hi < steps.length && steps[hi].op === "jump") {
+              let k = hi + 1;
+              while (k < steps.length && (steps[k].op === "jump" || steps[k].op === "lead")) k++;
+              const s = steps[k];
+              const at = s && (s.op === "diag" || s.op === "del") ? s.ref : s && s.op === "ins" ? s.at : -1;
+              if (at >= 0 && index.wordAt(at) === after.word) hi++;
+            }
+            stepEdits.push({ lo, hi, path: [...dels, ...alt.path] });
+            issues.set(x, { cls: "omitted_word", word: x, last: x, obsFrom: leftV.obsTo, obsTo: seg.obsFrom });
+            gap = null;
+            return;
+          }
+        }
+      }
       // A word either side of a skip can recur on the other side (برب الناس [ملك الناس] إله الناس), so the alignment
       // can place the gap a word off. Of the equal placements, take the one on an ayah's start: reciters skip ayahs.
       // A look-alike ending (one leading consonant, the article heard erased) is the same slide, but only when that
@@ -1584,6 +1710,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         cls: "added_word", word: rightWord, last: rightWord, obsFrom: best.left.obsTo, obsTo: cut, observed: said, lexicon: true,
       });
     }
+    for (const e of stepEdits.sort((a, b) => b.lo - a.lo)) steps.splice(e.lo, e.hi - e.lo, ...e.path);
     return { issues, lexical: candidates, head, furthest: reached, steps, right };
   };
 
