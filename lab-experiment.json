@@ -1,0 +1,13 @@
+{
+ "id": "listener-blank-frame-shadow-consonants",
+ "component": "listener",
+ "hypothesis": "Omission false warnings fire on spoken words whose phone-blurred consonants survive only as non-blank mass on frames that blank wins: ك of كنا at 0.219 on 36.88 s in p14, and ب 0.274 and ن 0.403 inside مبين in p50. No token, runner-up or forward sum reads those frames as named classes. Name each blank-won frame in the anchored stretch by its top non-blank class with no mass cut, and use those names only to place or veto omissions the engine already proposed. Predict p14 44:5 placement plus its paired miss, and p50 vetoed: listener -2, overall -2 (upside -3).",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-03T13:48:08+00:00",
+ "author": "autolab"
+}
