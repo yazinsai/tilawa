@@ -8,6 +8,7 @@ import { issueDropFit } from "./tracker.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
 import { minGapFrames } from "./gap-decode.js";
+import { procliticOnset, waqfMarked } from "./mushaf-marks.js";
 import { absenceMargin } from "./ayah-ledger.js";
 import { PHRASE_PEAK, PHRASE_SWITCH, letterSkeleton, parallelPaths } from "./parallel-phrases.js";
 import { spanId, slotSpans } from "./slot-spans.js";
@@ -1459,6 +1460,103 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (existing && existing.cls !== "added_word") continue;
       issues.set(w1, {
         cls: "added_word", word: w1, last: w1, obsFrom: best.left.obsTo, obsTo: best.right.obsFrom, observed: said, lexicon: true,
+      });
+    }
+    // A mushaf waqf sign inside an ayah, where the reciter actually stops. The previous word is read in its
+    // pausal form and the pause is measured from the end of that token's own run, so one held frame of the
+    // same class does not eat the silence. Ayah seams stay on the loop above.
+    const formed = (s: string) => collapseHeld([...s]).join("");
+    const vowel = new Set("َُِاۦۥ۪");
+    const residueConsonant = new Set([...CONSONANTS, "ڇ", "ں", "۾"]);
+    const inventory = [...index.tokens];
+    const gapBlank = (from: number, to: number) => {
+      if (!frames || frames.startFrame < 0 || from < frames.startFrame || to > frames.endFrame) return true;
+      const owns = Math.log(0.5);
+      for (let f = from; f < to; f++) if (frames.row(f)[0] < owns) return false;
+      return true;
+    };
+    const argmax = (frame: number) => {
+      const row = frames!.row(frame);
+      let best = 0;
+      for (let i = 1; i < row.length; i++) if (row[i] > row[best]) best = i;
+      return best;
+    };
+    /** The silence after `prev`, starting once that token's class is no longer the argmax. */
+    const runEndPause = (prev: number) => {
+      if (frameMs <= 0 || prev < 0 || prev + 1 >= obs.length) return false;
+      let a = obs[prev].end + 1;
+      const b = obs[prev + 1].start;
+      if (frames && frames.startFrame >= 0 && a >= frames.startFrame && b <= frames.endFrame) {
+        const id = tokenId.get(obs[prev].p);
+        if (id) while (a < b && argmax(a) === id) a++;
+      }
+      return b - a >= minGapFrames(frameMs) && gapBlank(a, b);
+    };
+    const pausalVisit = (v: Visit) => {
+      const iso = index.isolatedWordForms?.[v.word];
+      if (!iso || v.obsFrom < 0 || v.obsTo <= v.obsFrom || v.stepFrom === undefined || v.stepTo === undefined) return false;
+      return formed(heard(v)) === formed(iso) || formed(stripEdge(heard(v))) === formed(stripEdge(iso));
+    };
+    // Obs index where the stem (and its proclitic vowel, if heard) begins. Phones before that in the
+    // visit were glued on from the surplus. Null when the visit is not this word minus its proclitic.
+    const residueClear = (at: number) => {
+      if (!frames || frames.startFrame < 0) return true;
+      const a = obs[at].start, b = obs[at].end + 1;
+      if (a < frames.startFrame || b > frames.endFrame) return true;
+      for (let f = a; f < b; f++) {
+        const id = argmax(f);
+        if (id !== 0 && residueConsonant.has(inventory[id - 1] ?? "")) return false;
+      }
+      return true;
+    };
+    const procliticCut = (v: Visit): number | null => {
+      if (!procliticOnset(v.word) || v.obsFrom < 0 || v.obsTo <= v.obsFrom || v.stepFrom === undefined || v.stepTo === undefined) return null;
+      const heardRaw = heard(v);
+      const tails: string[] = [];
+      for (const full of [ref.slice(words[v.word].start, words[v.word].end), index.isolatedWordForms?.[v.word] ?? ""]) {
+        if (full && "وفبكل".includes(full[0]!) && formed(heardRaw) !== formed(full)) tails.push(full.slice(1));
+      }
+      for (const tail of tails) {
+        const stem = vowel.has(tail[0] ?? "") ? tail.slice(1) : tail;
+        const wantTail = formed(tail), wantStem = formed(stem);
+        if (!wantStem) continue;
+        for (let i = 0; i < heardRaw.length; i++) {
+          const suf = formed(heardRaw.slice(i));
+          if (suf !== wantTail && suf !== wantStem) continue;
+          const keepsVowel = suf === wantTail && vowel.has(tail[0] ?? "");
+          if (keepsVowel && !residueClear(v.obsFrom + i)) return null;
+          return v.obsFrom + i;
+        }
+      }
+      return null;
+    };
+    for (const rightWord of new Set(visits.map((v) => v.word))) {
+      if (rightWord < first || words[rightWord].end === words[rightWord].start || ayahFirst[ayahOf[rightWord]] === rightWord) continue;
+      const prev = prevWord(rightWord);
+      if (prev < 0 || ayahOf[prev] !== ayahOf[rightWord] || !waqfMarked(prev)) continue;
+      const lefts = visits.filter((v) => v.word === prev && (complete(v) || pausalVisit(v)));
+      const rights = visits.filter((v) => v.word === rightWord && (complete(v) || procliticCut(v) !== null));
+      let best: { left: Visit; right: Visit } | null = null;
+      for (const right of rights) for (const left of lefts) {
+        if (left.obsTo > right.obsFrom) continue;
+        if (left.stepTo !== undefined && right.stepFrom !== undefined && right.stepFrom < left.stepTo) continue;
+        if (!best || right.obsFrom < best.right.obsFrom || (right.obsFrom === best.right.obsFrom && left.obsTo > best.left.obsTo)) best = { left, right };
+      }
+      if (!best) continue;
+      // A waqf-tail phone can sit just outside the pausal visit. The silence is after that phone.
+      const cut = complete(best.right) ? best.right.obsFrom : procliticCut(best.right)!;
+      let pauseAt = best.left.obsTo - 1;
+      while (pauseAt + 1 < cut && waqfEdge.has(obs[pauseAt + 1]!.p)) pauseAt++;
+      if (cut <= best.left.obsTo || !runEndPause(pauseAt)) continue;
+      const raw = obs.slice(best.left.obsTo, cut).filter((p) => !p.junk).map((p) => p.p).join("");
+      const said = stripEdge(raw);
+      if (!said || phraseSpan(said)) continue;
+      const spelled = lexical.surplusWord(rightWord, said);
+      if (!spelled) continue;
+      const existing = issues.get(rightWord);
+      if (existing && existing.cls !== "added_word") continue;
+      issues.set(rightWord, {
+        cls: "added_word", word: rightWord, last: rightWord, obsFrom: best.left.obsTo, obsTo: cut, observed: said, lexicon: true,
       });
     }
     return { issues, lexical: candidates, head, furthest: reached, steps, right };
