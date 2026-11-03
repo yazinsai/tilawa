@@ -1,0 +1,13 @@
+{
+ "id": "listener-nonspeech-class-relabel",
+ "component": "listener",
+ "hypothesis": "Added words after a pause come out as blank because training labels every off-text frame as blank. Relabelling them as phones recovered 4 of 7 targets, but the student then put phones into breaths. Add an explicit non-speech output class (breath, lip noise, hiss), train it with the relabel set, and consult the model only in the folded gap path. Predict 3 of 7 targets won and 1 lost: listener -2, overall -2.",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-03T04:17:00+00:00",
+ "author": "autolab"
+}
