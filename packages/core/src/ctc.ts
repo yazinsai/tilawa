@@ -56,6 +56,19 @@ export class PosteriorFrames {
     for (const f of this.cache.keys()) if (f < this.start) this.cache.delete(f);
   }
 
+  /**
+   * Token id of the top non-blank class when the stored rank-1 class is blank. Rank only: a listed runner-up
+   * counts however small it is. Null when the frame is outside the buffer, blank did not win, or no non-blank
+   * was listed.
+   */
+  blankShadow(frame: number): number | null {
+    if (!this.k || frame < this.start || frame >= this.endFrame) return null;
+    const r = (frame - this.start) * this.k;
+    if (this.ids[r] !== 0) return null;
+    for (let c = 1; c < this.k; c++) if (this.ids[r + c] !== 0) return this.ids[r + c];
+    return null;
+  }
+
   /** Whether token `id` is among the listed top-k at `frame`. */
   lists(frame: number, id: number): boolean {
     const r = (frame - this.start) * this.k;

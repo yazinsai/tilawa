@@ -196,6 +196,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const minConfidence = policy.minConfidence ?? 0.6;
   const frames = (policy.localWindow ?? true) ? new PosteriorFrames(index.tokens.size) : null;
   const support = typeof policy.localWindow === "object" ? policy.localWindow.nats : SUPPORT;
+  const tokenById = ["", ...index.tokens];
   const tokenId = new Map([...index.tokens].map((t, i) => [t, i + 1]));
   const ref = index.phonemes;
   const words = index.words;
@@ -1241,6 +1242,175 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     // A wrong visit far ahead can be junk aligned to a short word; only correct visits show how far the reciter got.
     const reached = Math.max(...seen.filter((wi) => right.has(wi)), first);
     let gap: Issue | null = null;
+    /**
+     * A consonant the greedy decode never emitted, read off a blank-won frame no token owns. Rank only, so a
+     * sub-blank runner-up still names the frame. Used only to move or drop an omission already proposed.
+     * A name that is the decaying tail or the onset of the neighbouring token, or the facing consonant of the
+     * word whose visit the blank run touches, is not evidence: it is that neighbour's own edge. Dropped names
+     * stay as barriers, so removing one cannot join the two sides into a new slice or a new ending.
+     */
+    const shadowFrames = (from: number, to: number): { frame: number; p: string }[] => {
+      if (!frames || frames.startFrame < 0 || to <= from) return [];
+      const lo = Math.max(from, frames.startFrame), hi = Math.min(to, frames.endFrame);
+      if (hi <= lo) return [];
+      const owned = new Uint8Array(hi - lo);
+      for (let k = 0; k < obs.length; k++) {
+        const a = Math.max(lo, obs[k].start), b = Math.min(hi - 1, obs[k].end);
+        for (let f = a; f <= b; f++) owned[f - lo] = 1;
+      }
+      const out: { frame: number; p: string }[] = [];
+      for (let f = lo; f < hi; f++) {
+        if (owned[f - lo]) continue;
+        const id = frames.blankShadow(f);
+        const t = id === null ? "" : tokenById[id] ?? "";
+        if (!CONSONANTS.has(t)) continue;
+        out.push({ frame: f, p: t });
+      }
+      return out;
+    };
+    const consonantsOf = (wi: number) => [...ref.slice(words[wi].start, words[wi].end)].filter((p) => CONSONANTS.has(p));
+    /** The previous word's last consonant, the edge that faces the gap after it. */
+    const facingTail = (wi: number) => consonantsOf(wi).at(-1) ?? null;
+    /** The next word's first consonant after a proclitic or a hamza, the edge that faces the gap before it. */
+    const facingHead = (wi: number) => {
+      const c = consonantsOf(wi);
+      let i = 0;
+      if (procliticOnset(wi) && i < c.length) i++;
+      if (c[i] === "ء") i++;
+      return c[i] ?? null;
+    };
+    const smear = (items: { frame: number; p: string }[], left: Visit | null, right: Visit | null): Set<number> => {
+      const drop = new Set<number>();
+      if (!items.length) return drop;
+      const byFrame = new Map(items.map((s) => [s.frame, s.p]));
+      for (const ph of obs) {
+        if (!CONSONANTS.has(ph.p)) continue;
+        for (let f = ph.end + 1; byFrame.get(f) === ph.p; f++) drop.add(f);
+        for (let f = ph.start - 1; byFrame.get(f) === ph.p; f--) drop.add(f);
+      }
+      let lo = items[0].frame, hi = items.at(-1)!.frame + 1;
+      const edgeOf = (v: Visit | null, end: boolean) => v && v.obsFrom >= 0 && v.obsTo > v.obsFrom ? (end ? obs[v.obsTo - 1].end : obs[v.obsFrom].start) : null;
+      const leftEdge = edgeOf(left, true), rightEdge = edgeOf(right, false);
+      if (leftEdge !== null) lo = Math.min(lo, leftEdge + 1);
+      if (rightEdge !== null) hi = Math.max(hi, rightEdge);
+      const owned = new Uint8Array(Math.max(0, hi - lo));
+      for (const ph of obs) {
+        const a = Math.max(lo, ph.start), b = Math.min(hi - 1, ph.end);
+        for (let f = a; f <= b; f++) owned[f - lo] = 1;
+      }
+      const freeUntil = (frame: number, edge: number, dir: 1 | -1) => {
+        for (let f = edge + dir; f !== frame; f += dir) if (owned[f - lo]) return false;
+        return true;
+      };
+      if (left && leftEdge !== null) {
+        const face = facingTail(left.word);
+        if (face) for (const s of items) if (s.p === face && s.frame > leftEdge && freeUntil(s.frame, leftEdge, 1)) drop.add(s.frame);
+      }
+      if (right && rightEdge !== null) {
+        const face = facingHead(right.word);
+        if (face) for (const s of items) if (s.p === face && s.frame < rightEdge && freeUntil(s.frame, rightEdge, -1)) drop.add(s.frame);
+      }
+      return drop;
+    };
+    /** Kept names, in order. A dropped frame is a barrier: the two sides are not one slice and not one ending. */
+    const shadowText = (items: { frame: number; p: string }[], drop: Set<number>): string => {
+      let out = "";
+      for (const s of items) {
+        if (drop.has(s.frame)) { if (!out.endsWith("\0")) out += "\0"; continue; }
+        if (!out.endsWith(s.p)) out += s.p;
+      }
+      return out;
+    };
+    const confidentEnd = (v: Visit): number | null => {
+      if (v.obsFrom < 0) return null;
+      let end: number | null = null;
+      for (let k = v.obsFrom; k < v.obsTo; k++) if (obs[k].conf >= minConfidence) end = obs[k].end;
+      return end;
+    };
+    const confidentStart = (v: Visit): number | null => {
+      if (v.obsFrom < 0) return null;
+      for (let k = v.obsFrom; k < v.obsTo; k++) if (obs[k].conf >= minConfidence) return obs[k].start;
+      return null;
+    };
+    const visitBefore = (wi: number): Visit | null => {
+      let best: Visit | null = null;
+      for (const v of last.values()) if (v.word < wi && (!best || v.word > best.word)) best = v;
+      return best;
+    };
+    /** Onset consonant of `omitted` when `other` is the same word with that one consonant changed. */
+    const distinguishingOnset = (omitted: number, other: number): string | null => {
+      const a = skeleton(omitted), b = skeleton(other);
+      if (a.length < 2 || b.length < 2 || a[0] === b[0] || a.slice(1) !== b.slice(1)) return null;
+      return a[0];
+    };
+    /** Consonants of the written words on either side. A neighbour's own consonant is not evidence this word was said. */
+    const around = (wi: number): string => {
+      let s = "";
+      const p = prevWord(wi);
+      if (p >= 0 && p < wi) s += skeleton(p);
+      const n = nextWord(wi);
+      if (n > wi && n < words.length) s += skeleton(n);
+      return s;
+    };
+    /**
+     * Two consonants of `word`, distinct and contiguous, inside one kept run of `shadows`, and none of them written
+     * on either neighbour. The added-word shape unit, kept off the adjacent words' own letters.
+     */
+    const spells = (shadows: string, word: string, beside: string): boolean => {
+      if (word.length < 2) return false;
+      for (const part of shadows.split("\0")) {
+        if (part.length < 2) continue;
+        for (let i = 0; i < part.length; i++) for (let j = i + 2; j <= part.length; j++) {
+          const slice = part.slice(i, j);
+          if (new Set(slice).size < 2 || [...slice].some((c) => beside.includes(c))) continue;
+          if (word.includes(slice)) return true;
+        }
+      }
+      return false;
+    };
+    /**
+     * Blank-won frames in the anchored stretch name the consonant the argmax dropped. Between two adjacent
+     * candidates that differ by one onset, that onset sitting in front of the heard body is the word that was
+     * said, so the omission moves onto the other candidate — unless the name belongs to a neighbour's token or
+     * to the facing edge of the visit it touches. One candidate is dropped when the kept names spell two of its
+     * consonants in order. Neither path opens an omission, and a dropped name cannot create one.
+     */
+    const byShadow = (issue: Issue, after?: Visit): Issue | null => {
+      if (!frames || frames.startFrame < 0 || issue.word !== issue.last) return issue;
+      const neighbors: Visit[] = [];
+      const prev = last.get(prevWord(issue.word));
+      if (prev && prev.word === prevWord(issue.word)) neighbors.push(prev);
+      if (after && after.word === nextWord(issue.word)) neighbors.push(after);
+      let paired = false;
+      for (const nb of neighbors) {
+        const onset = distinguishingOnset(issue.word, nb.word);
+        if (!onset || nb.obsFrom < 0) continue;
+        paired = true;
+        const left = visitBefore(Math.min(issue.word, nb.word));
+        const leftEnd = left && left.obsTo >= 0 ? confidentEnd(left) : null;
+        if (leftEnd === null || !left) continue;
+        // The heard body starts at the first token after the anchor, including a phone the alignment inserted.
+        let body = Infinity;
+        for (let k = left.obsTo; k < obs.length; k++) if (obs[k].start > leftEnd && obs[k].start < body) body = obs[k].start;
+        if (!Number.isFinite(body) || issues.has(nb.word)) continue;
+        const heard = shadowFrames(leftEnd + 1, body);
+        const drop = smear(heard, left, nb);
+        const lastName = heard.at(-1);
+        // The unfiltered ending has to be the onset, and that frame has to survive. Dropping a later smear
+        // must not uncover an earlier consonant and move somewhere the branch did not.
+        if (!lastName || lastName.p !== onset || drop.has(lastName.frame)) continue;
+        return nb.word < issue.word
+          ? { ...issue, word: nb.word, last: nb.word, obsFrom: nb.obsFrom, obsTo: nb.obsFrom }
+          : { ...issue, word: nb.word, last: nb.word, obsFrom: nb.obsTo, obsTo: nb.obsTo };
+      }
+      if (paired) return issue;
+      const left = visitBefore(issue.word);
+      const leftEnd = left ? confidentEnd(left) : null;
+      const rightStart = after && after.word > issue.word ? confidentStart(after) : null;
+      if (leftEnd === null || rightStart === null || rightStart <= leftEnd) return issue;
+      const heard = shadowFrames(leftEnd + 1, rightStart);
+      return spells(shadowText(heard, smear(heard, left, after ?? null)), skeleton(issue.word), around(issue.word)) ? null : issue;
+    };
     const flush = (after?: Visit) => {
       if (!gap) return;
       // Evidence inside the gap means the words were said, differently: a wrong word, not an omission. Phrase marks
@@ -1304,6 +1474,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         gap = pauseSeam ?? today;
       }
       const n = words.slice(gap.word, gap.last + 1).filter((x) => x.end > x.start).length;
+      if (n === 1) {
+        const placed = byShadow(gap, after);
+        if (!placed) { gap = null; return; }
+        gap = placed;
+      }
       issues.set(gap.word, { ...gap, cls: n >= 3 ? "skipped_passage" : "omitted_word" });
       gap = null;
     };

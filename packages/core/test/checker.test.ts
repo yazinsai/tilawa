@@ -568,6 +568,153 @@ describe("free recitation", () => {
   });
 });
 
+describe("blank-frame shadow consonants", () => {
+  // The name on a blank-won frame no token owns. Rank only: the listed runner-up, under the blank.
+  const paint = (evidence: PhonemeEvidence, marks: { frame: number; token: string }[]): PhonemeEvidence => {
+    const e = withPosteriors(index, evidence);
+    const post = e.posteriors!;
+    const ids = Array.from(post.ids as ArrayLike<number>);
+    const probs = Array.from(post.probs as ArrayLike<number>);
+    const idOf = (t: string) => [...index.tokens].indexOf(t) + 1;
+    for (const { frame, token } of marks) {
+      const r = (frame - post.startFrame) * post.k;
+      ids[r] = 0;
+      probs[r] = 0.7;
+      ids[r + 1] = idOf(token);
+      probs[r + 1] = 0.2;
+      for (let c = 2; c < post.k; c++) { ids[r + c] = 0; probs[r + c] = 0; }
+    }
+    return { ...e, posteriors: { ...post, ids, probs } };
+  };
+  const runPainted = (from: WordRef, to: WordRef, edits: Edit[], marks: (ph: DecodedPhoneme[]) => { frame: number; token: string }[]) => {
+    const f = syntheticFixture(index, { id: "shadow", from, to, edits });
+    f.evidence = [paint(f.evidence[0], marks(f.evidence[0].phonemes))];
+    return confirmed(replayChecked(index, f, {}, { passage: { from, to } }));
+  };
+  const omittedAt = (events: CheckerEvent[], surah: number, ayah: number) =>
+    summary(events).filter((s) => s.startsWith("confirmed omitted_word") && s.includes(` ${surah}:${ayah}:`));
+  const widestHole = (ph: DecodedPhoneme[]) => {
+    let best: number[] = [];
+    for (let i = 1; i < ph.length; i++) {
+      const frames: number[] = [];
+      for (let f = ph[i - 1].end + 1; f < ph[i].start; f++) frames.push(f);
+      if (frames.length > best.length) best = frames;
+    }
+    return best;
+  };
+
+  it("moves the omission off the word whose onset is shadowed in front of the heard body", () => {
+    // كُنَّا heard as ءُنّا, with ك only on the blank frames before that body. The omission belongs on إِنَّا.
+    const start = w(44, 5, 1), to = w(44, 7, 2);
+    const at44 = (r: WordRef) => find(r).start - find(start).start;
+    const inna = find(w(44, 5, 4));
+    const edits: Edit[] = [
+      { kind: "del", at: at44(w(44, 5, 4)), count: inna.end - inna.start },
+      { kind: "sub", at: at44(w(44, 5, 5)), to: "ء" },
+      { kind: "gap", at: at44(w(44, 5, 5)), frames: 4 },
+    ];
+    const beforeHamza = (ph: DecodedPhoneme[]) => {
+      const i = ph.findIndex((p, j) => p.p === "ء" && ph[j + 1]?.p === "ُ");
+      return [{ frame: ph[i].start - 1, token: "ك" }];
+    };
+    expect(omittedAt(runPainted(start, to, edits, beforeHamza), 44, 5)).toEqual(["confirmed omitted_word 44:5:4"]);
+    expect(omittedAt(runPainted(start, to, edits, () => []), 44, 5)).toEqual(["confirmed omitted_word 44:5:5"]);
+  });
+
+  it("does not move when that onset is the tail of the neighbouring token", () => {
+    // The same ك, but it continues a ك token. It is that token's decay, not كُنَّا.
+    const start = w(44, 5, 1), to = w(44, 7, 2);
+    const at44 = (r: WordRef) => find(r).start - find(start).start;
+    const inna = find(w(44, 5, 4));
+    const edits: Edit[] = [
+      { kind: "del", at: at44(w(44, 5, 4)), count: inna.end - inna.start },
+      { kind: "ins", at: at44(w(44, 5, 5)), text: "ك" },
+      { kind: "sub", at: at44(w(44, 5, 5)), to: "ء" },
+    ];
+    const tail = (ph: DecodedPhoneme[]) => {
+      const i = ph.findIndex((p, j) => p.p === "ء" && ph[j + 1]?.p === "ُ");
+      const prev = ph[i - 1];
+      if (prev?.p !== "ك" || prev.end + 1 !== ph[i].start - 1) throw new Error(`expected a ك token against the blank, got ${prev?.p}`);
+      return [{ frame: ph[i].start - 1, token: "ك" }];
+    };
+    expect(omittedAt(runPainted(start, to, edits, tail), 44, 5)).toEqual(["confirmed omitted_word 44:5:5"]);
+  });
+
+  it("drops a one-word omission once blank frames spell two of its consonants in order", () => {
+    const start = w(37, 113, 7), to = w(37, 115, 2);
+    const at37 = (r: WordRef) => find(r).start - find(start).start;
+    const mubin = find(w(37, 113, 10));
+    const edits: Edit[] = [
+      { kind: "del", at: at37(w(37, 113, 10)), count: mubin.end - mubin.start },
+      { kind: "gap", at: at37(w(37, 113, 10)), frames: 6 },
+    ];
+    const spell = (ph: DecodedPhoneme[]) => {
+      const frames = widestHole(ph);
+      return [{ frame: frames[0], token: "م" }, { frame: frames[1], token: "ب" }];
+    };
+    expect(omittedAt(runPainted(start, to, edits, spell), 37, 113)).toEqual([]);
+    expect(omittedAt(runPainted(start, to, edits, () => []), 37, 113)).toEqual(["confirmed omitted_word 37:113:10"]);
+    const reversed = (ph: DecodedPhoneme[]) => {
+      const frames = widestHole(ph);
+      return [{ frame: frames[0], token: "ن" }, { frame: frames[1], token: "ب" }];
+    };
+    expect(omittedAt(runPainted(start, to, edits, reversed), 37, 113)).toEqual(["confirmed omitted_word 37:113:10"]);
+  });
+
+  it("does not veto by joining the consonants around a dropped facing-edge smear", () => {
+    // م ه ب. ه is the last consonant of لِنَفسِهِ and sits in the blank run against that visit.
+    // Deleting it must not turn the two sides into مب.
+    const start = w(37, 113, 7), to = w(37, 115, 2);
+    const at37 = (r: WordRef) => find(r).start - find(start).start;
+    const mubin = find(w(37, 113, 10));
+    const edits: Edit[] = [
+      { kind: "del", at: at37(w(37, 113, 10)), count: mubin.end - mubin.start },
+      { kind: "gap", at: at37(w(37, 113, 10)), frames: 6 },
+    ];
+    const smeared = (ph: DecodedPhoneme[]) => {
+      const frames = widestHole(ph);
+      return [{ frame: frames[0], token: "م" }, { frame: frames[1], token: "ه" }, { frame: frames[2], token: "ب" }];
+    };
+    expect(omittedAt(runPainted(start, to, edits, smeared), 37, 113)).toEqual(["confirmed omitted_word 37:113:10"]);
+  });
+
+  it("keeps an omission whose shadow pair is a consonant of the neighbouring word", () => {
+    // وَكُلَّ starts with و, which the previous word وَءَاثَارَهُمْ already writes. موك is not this word.
+    const start = w(36, 12, 6), to = w(36, 13, 2);
+    const at36 = (r: WordRef) => find(r).start - find(start).start;
+    const kul = find(w(36, 12, 9));
+    const edits: Edit[] = [
+      { kind: "del", at: at36(w(36, 12, 9)), count: kul.end - kul.start },
+      { kind: "gap", at: at36(w(36, 12, 9)), frames: 6 },
+    ];
+    const painted = (ph: DecodedPhoneme[]) => {
+      const best = widestHole(ph);
+      return [{ frame: best[0], token: "م" }, { frame: best[1], token: "و" }, { frame: best[2], token: "ك" }];
+    };
+    expect(omittedAt(runPainted(start, to, edits, painted), 36, 12)).toEqual(["confirmed omitted_word 36:12:9"]);
+  });
+
+  it("does not veto from a shadow consonant that is the onset of the next token", () => {
+    const start = w(37, 113, 7), to = w(37, 115, 2);
+    const at37 = (r: WordRef) => find(r).start - find(start).start;
+    const mubin = find(w(37, 113, 10));
+    const edits: Edit[] = [
+      { kind: "del", at: at37(w(37, 113, 10)), count: mubin.end - mubin.start },
+      { kind: "gap", at: at37(w(37, 113, 10)), frames: 6 },
+      { kind: "ins", at: at37(w(37, 114, 1)), text: "ب" },
+    ];
+    const onset = (ph: DecodedPhoneme[]) => {
+      const b = ph.findIndex((p) => p.p === "ب");
+      const prev = ph[b - 1];
+      if (b < 0 || !prev || prev.end + 1 >= ph[b].start) throw new Error(`no blank before ب`);
+      const hole = widestHole(ph);
+      if (hole.at(-1) !== ph[b].start - 1) throw new Error(`hole does not touch ب`);
+      return [{ frame: hole[0], token: "م" }, { frame: hole.at(-1)!, token: "ب" }];
+    };
+    expect(omittedAt(runPainted(start, to, edits, onset), 37, 113)).toEqual(["confirmed omitted_word 37:113:10"]);
+  });
+});
+
 describe("a lock the tracker reaches only at the end of the session", () => {
   it("still gets the recitation checked", () => {
     const start = w(94, 5, 1);
