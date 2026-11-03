@@ -97,4 +97,19 @@ describe("added speech between neighboring words", () => {
     const from = w(2, 6, 1), to = w(2, 11, 8);
     expect(check(from, to, at => [{ kind: "repeat", from: at(w(2, 7, 1)), to: at(w(2, 8, 1)) }])).toEqual([]);
   });
+
+  it("drops a support-path addition whose consonants were recited one or two ayahs back", () => {
+    const from = w(7, 196, 1), to = w(7, 199, 1), added = w(7, 198, 7);
+    // كُم is the tail of نصركم in 7:197, nine words before this boundary, so ±3 does not see it.
+    expect(check(from, to, at => [{ kind: "ins", at: at(added), text: "كُم" }])).not.toContain(`added_word ${key(added)}`);
+  });
+
+  it("keeps an addition that was not recited in the current or previous two ayahs", () => {
+    const from = w(7, 196, 1), to = w(7, 199, 1), added = w(7, 198, 7);
+    // قُم is one confusable consonant off كُم. A different consonant stays an addition.
+    expect(check(from, to, at => [{ kind: "ins", at: at(added), text: "قُم" }])).toContain(`added_word ${key(added)}`);
+    expect(check(from, to, at => [{ kind: "ins", at: at(added), text: "كَوثَر" }])).toContain(`added_word ${key(added)}`);
+    const early = w(26, 3, 1), boundary = w(26, 5, 1);
+    expect(check(early, w(26, 6, 1), at => [{ kind: "ins", at: at(boundary), text: "قَلِۦۦلُمن" }])).toContain(`added_word ${key(boundary)}`);
+  });
 });

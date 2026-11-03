@@ -216,6 +216,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   interface AyahSpan { wordFrom: number; wordTo: number; frameFrom: number; frameTo: number }
   const readAyah = new Map<number, AyahSpan>();
   const lockedAyah = new Map<number, AyahSpan>();
+  /**
+   * Words read correctly, kept across window commits the way `readAyah` is. A support-path addition is a re-read
+   * when its consonants are already in here, inside the current ayah or the two before it.
+   */
+  const recitedWords = new Set<number>();
   /** Last ayah the lock finished, or the alignment read through. A flash of the next ayah does not move it. */
   let settled = -1;
   let lockSurah = -1;
@@ -319,7 +324,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const decide = (o: Open, out: CheckerEvent[], state?: "uncertain") => {
     open.delete(o.issue.word);
     decided.add(o.issue.word);
-    const sure = ((declared && !latched) || trackerLocked) && clarity(o.issue) >= minConfidence && supported(o.issue) !== false;
+    const sure = accepts(o.issue);
     out.push(event(o, state ?? (sure ? "confirmed" : "uncertain")));
   };
 
@@ -518,8 +523,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     watching.clear();
   };
 
-  const sureOf = (o: Open) =>
-    ((declared && !latched) || trackerLocked) && clarity(o.issue) >= minConfidence && supported(o.issue) !== false;
+  const sureOf = (o: Open) => accepts(o.issue);
 
   /** Confirm frozen slot accusations, or drop the ones that named the copy the continuation rejected. */
   const releaseFrozen = (out: CheckerEvent[], drop: boolean, from = -1, end = Infinity) => {
@@ -613,6 +617,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   const clearLedger = () => {
     readAyah.clear();
+    recitedWords.clear();
     lockedAyah.clear();
     settled = -1;
     lockSurah = -1;
@@ -883,6 +888,85 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   /** Inserting `p` before `ref[at]`, after the heard `prev`. */
   const insCharge = (at: number, p: string, prev?: string) =>
     p === ref[at - 1] || p === ref[at] || p === prev ? HELD : CONSONANTS.has(p) ? UNIT : SOFT;
+
+  /**
+   * A support-path added word (not a spell-rule emission) whose stripped phones are a contiguous run already
+   * recited in this ayah or the two before it. The consonants have to be that same run; a different consonant
+   * is a different word. Vowel, madd and held-length differences are charged with the judging costs and must
+   * come in at no more than inserting the span, which is what the added word pays now.
+   */
+  const consonantMarks = (s: string): { ch: string; at: number }[] => {
+    const out: { ch: string; at: number }[] = [];
+    for (let i = 0; i < s.length; i++) {
+      const p = s[i]!;
+      if (p === "\0") out.push({ ch: p, at: i });
+      else if (CONSONANTS.has(p) && s[i - 1] !== p) out.push({ ch: p, at: i });
+    }
+    return out;
+  };
+  const sliceCharge = (run: string, heard: string): number => {
+    const n = run.length, m = heard.length;
+    const d = new Uint32Array((n + 1) * (m + 1));
+    const at = (i: number, j: number) => i * (m + 1) + j;
+    const del = (i: number) => run[i] === run[i - 1] || run[i] === run[i + 1] ? HELD : CONSONANTS.has(run[i]!) ? UNIT : SOFT;
+    const ins = (i: number, j: number) => {
+      const p = heard[j - 1]!;
+      return p === run[i - 1] || p === run[i] || p === heard[j - 2] ? HELD : CONSONANTS.has(p) ? UNIT : SOFT;
+    };
+    for (let j = 1; j <= m; j++) d[at(0, j)] = d[at(0, j - 1)] + ins(0, j);
+    for (let i = 1; i <= n; i++) {
+      d[at(i, 0)] = d[at(i - 1, 0)] + del(i - 1);
+      for (let j = 1; j <= m; j++) {
+        d[at(i, j)] = Math.min(
+          d[at(i - 1, j - 1)] + subCharge(run[i - 1]!, heard[j - 1]!),
+          d[at(i - 1, j)] + del(i - 1),
+          d[at(i, j - 1)] + ins(i, j),
+        );
+      }
+    }
+    return d[at(n, m)];
+  };
+  const recitedRunExplains = (issue: Issue): boolean => {
+    if (issue.cls !== "added_word" || issue.lexicon) return false;
+    const heard = heardSpan(issue);
+    const h = consonantMarks(heard);
+    if (h.length < 2) return false;
+    const ayah = ayahOf[issue.word];
+    let corpus = "";
+    let open = false;
+    for (let a = Math.max(0, ayah - 2); a <= ayah; a++) {
+      for (let w = ayahFirst[a]!; w <= ayahLast[a]! && w < issue.word; w++) {
+        if (words[w]!.end === words[w]!.start) continue;
+        if (!recitedWords.has(w)) { open = false; continue; }
+        if (!open && corpus) corpus += "\0";
+        corpus += ref.slice(words[w]!.start, words[w]!.end);
+        open = true;
+      }
+    }
+    if (!corpus) return false;
+    let budget = 0;
+    for (let j = 0; j < heard.length; j++) {
+      const p = heard[j]!;
+      budget += p === heard[j - 1] ? HELD : CONSONANTS.has(p) ? UNIT : SOFT;
+    }
+    const marks = consonantMarks(corpus);
+    for (let s = 0; s + h.length <= marks.length; s++) {
+      let same = true;
+      for (let k = 0; k < h.length; k++) {
+        const rc = marks[s + k]!;
+        if (rc.ch !== h[k]!.ch) { same = false; break; }
+      }
+      if (!same) continue;
+      let to = marks[s + h.length - 1]!.at + 1;
+      const last = corpus[to - 1]!;
+      while (to < corpus.length && corpus[to] === last) to++;
+      if (sliceCharge(corpus.slice(marks[s]!.at, to), heard) <= budget) return true;
+    }
+    return false;
+  };
+  /** Confirming an open issue. A recited run takes the place of a support-path addition; everything else is as before. */
+  const accepts = (issue: Issue) =>
+    !recitedRunExplains(issue) && ((declared && !latched) || trackerLocked) && clarity(issue) >= minConfidence && supported(issue) !== false;
 
   /** Whether a visit's cost makes the words `[v.word, last]` it covers a wrong word rather than a mispronounced one. */
   const wrong = (v: Visit, last = v.word) => {
@@ -1155,6 +1239,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     for (const v of visits) {
       if (!counts(v) || wrong(v) || v.word < anchor! || v.obsFrom < 0 || v.obsTo <= v.obsFrom) continue;
+      recitedWords.add(v.word);
       growSpan(readAyah, ayahOf[v.word], v.word, obs[v.obsFrom].start, obs[v.obsTo - 1].end + 1);
     }
     if (recoverAdditions) {
