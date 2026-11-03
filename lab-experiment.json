@@ -1,0 +1,13 @@
+{
+ "id": "tracker-continuation-revokes-far-step",
+ "component": "tracker",
+ "hypothesis": "In p46 the in-lock step after the planted omission at 54:36:4 binds heard بالنذر to the look-alike ونذر at 54:37:9, so 54:36 never gets its own window and the ledger reports a false skip at 54:36:1. The fix: keep the far step provisional, and revoke it when the next heard words continue in order from the near one-word-deletion position (54:36:5, then 54:37:1) instead of from 54:37:9. Predict tracker -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-03T21:55:22+00:00",
+ "author": "autolab"
+}
