@@ -259,7 +259,7 @@ def dump(x) -> str:
 # Context
 
 
-BLOCKED = re.compile(r"^restates |changes no engine code|committed no change|ran too long|failed twice|ran past|strips? posteriors")
+BLOCKED = re.compile(r"^restates |^stack: merging .* conflicts in |changes no engine code|committed no change|ran too long|failed twice|ran past|strips? posteriors")
 
 
 def history(lab_ledgers: list[dict], st: dict) -> list[dict]:

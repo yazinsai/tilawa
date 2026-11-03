@@ -139,11 +139,12 @@ def test_review_and_strategy():
 def test_the_judge_is_told_which_tried_experiments_never_ran():
     st = S.empty("lab-v1.5")
     for id, note in (("listener-blocked", "the diff changes no engine code (only write-ups)"), ("listener-twin", "restates listener-blocked: same"),
-                     ("listener-killed", "killed by its builder: 0 of 5 targets")):
+                     ("listener-killed", "killed by its builder: 0 of 5 targets"),
+                     ("listener-stack-x", "stack: merging listener-a conflicts in packages/core/src/checker.ts")):
         e, _ = S.add(st, card(id), "2026-11-01T00:00:00+00:00")
         e["state"], e["note"] = "discarded", note
     h = {x["id"]: x["measured"] for x in B.history([LAB], st)}
-    assert h == {"checker-joint-additions": True, "listener-blocked": False, "listener-twin": False, "listener-killed": True}
+    assert h == {"checker-joint-additions": True, "listener-blocked": False, "listener-twin": False, "listener-killed": True, "listener-stack-x": False}
 
 
 def test_of_two_twin_cards_waiting_for_the_judge_only_the_younger_sees_the_older():

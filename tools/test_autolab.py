@@ -924,6 +924,46 @@ def test_two_near_misses_with_different_wins_are_stacked_and_skip_the_builder(w,
     assert len(stacks) == 1 and stacks[0]["state"] in ("validating", "scoring") and not (stacks[0].get("executor") or {}).get("handle")
 
 
+def test_a_pair_whose_stack_died_on_a_merge_conflict_is_stacked_again(w, monkeypatch):
+    monkeypatch.setattr(A.P, "incidents", lambda report: {"x": ["i1", "i2", "i3", "i4"]})
+    st = w.load()
+    near_miss(st, "tracker-a", -2, ["i1", "i2"])
+    near_miss(st, "tracker-b", -1, ["i3"])
+    old, _ = S.add(st, card("tracker-stack-old", component="tracker", stack=["tracker-a", "tracker-b"]), T0)
+    old["state"], old["note"] = "discarded", "stack: merging tracker-b conflicts in packages/core/src/checker.ts"
+    st["stacked"], st["lastPlanAt"] = [["tracker-a", "tracker-b"]], "2999-01-01T00:00:00+00:00"
+    w.saved = st
+    st = tick(w)
+    live = [e for e in st["experiments"].values() if e["card"].get("stack") and e["state"] != "discarded"]
+    assert len(live) == 1 and live[0]["card"]["stack"] == ["tracker-a", "tracker-b"]
+
+
+def test_a_stack_that_conflicts_goes_to_a_builder_with_the_merge_to_resolve(tmp_path):
+    import subprocess
+    repo = tmp_path / "r"
+    g = lambda *a: subprocess.run(["git", *a], cwd=repo, check=True, capture_output=True, text=True).stdout.strip()  # noqa: E731
+    repo.mkdir()
+    g("init", "-q", "-b", "main"), g("config", "user.email", "t@t"), g("config", "user.name", "t")
+    (repo / "checker.ts").write_text("x\n")
+    g("add", "-A"), g("commit", "-qm", "base")
+    for part in ("a", "b"):
+        g("checkout", "-q", "-b", f"exp/{part}", "main")
+        (repo / "checker.ts").write_text(f"{part}\n")
+        g("add", "-A"), g("commit", "-qm", f"Lab experiment {part} (tracker): x")
+    g("checkout", "-q", "-b", "exp/s", "main")
+    st = S.empty("lab-v1.5")
+    for part in ("a", "b"):
+        st["experiments"][part] = {"branch": f"exp/{part}"}
+    e, _ = S.add(st, card("tracker-s", component="tracker", stack=["a", "b"]), T0)
+    S.move(st, e["id"], "accepted", T0)
+    e["worktree"] = str(repo)
+    t = A.Tick(A.World(A.DEFAULT_CONFIG, executor=object()), st, T0)
+    t.build_stack(e)
+    assert e["state"] == "accepted" and e["results"]["stackConflict"] == ["checker.ts"]
+    assert "git merge exp/b" in e["results"]["feedback"] and "checker.ts" in e["results"]["feedback"]
+    assert (repo / "checker.ts").read_text() == "a\n" and not g("status", "--porcelain")
+
+
 def test_near_misses_that_win_the_same_incidents_or_sum_to_noise_are_not_stacked(w, monkeypatch):
     monkeypatch.setattr(A.P, "incidents", lambda report: {"x": ["i1", "i2", "i3", "i4", "i9"]})
     st = w.load()

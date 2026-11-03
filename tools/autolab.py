@@ -774,7 +774,7 @@ class Tick:
                 out = {"branch": f"exp/{e['id']}", "worktree": str(wt)}  # an earlier tick made it, then its state save failed
             e["branch"], e["worktree"] = out["branch"], out["worktree"]
             w.exclude(".autolab/")
-        if c.get("stack"):
+        if c.get("stack") and not e["results"].get("stackConflict"):
             return self.build_stack(e)
         arm = self.arm_of(e)
         if self.arm_full(arm):
@@ -822,7 +822,9 @@ class Tick:
         st, w = self.st, self.w
         if not st.get("main") or S.over_cap(st, w.cfg["caps"], self.at) or len(S.active(st)) >= w.cfg["slots"]:
             return
-        tried = {tuple(p) for p in st.setdefault("stacked", [])}
+        conflicted = {tuple(sorted(x["card"]["stack"])) for x in st["experiments"].values() if x["card"].get("stack")
+                      and x["state"] == "discarded" and x.get("note", "").startswith("stack: merging ")}
+        tried = {tuple(p) for p in st.setdefault("stacked", [])} - conflicted
         nm = self.near_misses()
         pairs = sorted(((a["change"] + b["change"], a, b) for i, a in enumerate(nm) for b in nm[i + 1:]
                         if not a["won"] & b["won"] and tuple(sorted((a["id"], b["id"]))) not in tried), key=lambda x: (x[0], x[1]["id"]))
@@ -832,7 +834,10 @@ class Tick:
         comp = "listener" if "listener" in (a["component"], b["component"]) else (a if a["change"] <= b["change"] else b)["component"]
         ca, cb = (st["experiments"][x["id"]]["card"] for x in (a, b))
         key = tuple(sorted((a["id"], b["id"])))
-        card = {"id": f"{comp}-stack-{hashlib.sha1('+'.join(key).encode()).hexdigest()[:6]}", "component": comp, "tier": "exploit",
+        cid = f"{comp}-stack-{hashlib.sha1('+'.join(key).encode()).hexdigest()[:6]}"
+        while cid in st["experiments"]:
+            cid += "-m"
+        card = {"id": cid, "component": comp, "tier": "exploit",
                 "hypothesis": f"Stack {a['id']} ({a['change']:+d}) and {b['id']} ({b['change']:+d}): each won different incidents and lost none, "
                               f"so together they should clear the fold bar; predict overall {total:+d}.",
                 "eli5": "Two small fixes that each helped a little, tried together.",
@@ -846,15 +851,23 @@ class Tick:
         self.move(e, "accepted", f"stack of near misses {key[0]} and {key[1]}; no judge or builder: their branches are merged")
 
     def build_stack(self, e):
-        w, wt = self.w, e["worktree"]
-        for part in e["card"]["stack"]:
+        w, wt, parts = self.w, e["worktree"], e["card"]["stack"]
+        for i, part in enumerate(parts):
             branch = self.st["experiments"][part]["branch"]
             p = subprocess.run(["git", "merge", "--no-edit", "-q", branch], cwd=wt, capture_output=True, text=True)
             if p.returncode:
                 bad = [f for f in w.git("diff", "--name-only", "--diff-filter=U", cwd=wt, check=False).splitlines() if f != L.CARD]
                 if bad:
                     subprocess.run(["git", "merge", "--abort"], cwd=wt, capture_output=True)
-                    return self.discard(e, f"stack: merging {part} conflicts in {', '.join(bad[:5])}")
+                    left = [self.st["experiments"][x]["branch"] for x in parts[i:]]
+                    e["results"]["stackConflict"] = bad
+                    e["results"]["feedback"] = (
+                        f"This stack has no new idea: it is {' and '.join(parts)} applied together. Run "
+                        + "; ".join(f"`git merge {b}`" for b in left)
+                        + f". Git can't merge {', '.join(bad[:5])} on its own: resolve it so both changes apply exactly as on their branches, "
+                        f"keep this card's own {L.CARD}, change nothing else, then run the tests and practice-score once.")
+                    self.events.append(S.event(e["id"], e["state"], e["state"], self.at, f"stack: merging {part} conflicts in {', '.join(bad[:5])}; a builder resolves it"))
+                    return
                 w.git("checkout", "--ours", "--", L.CARD, cwd=wt)
                 w.git("add", L.CARD, cwd=wt)
                 w.git("commit", "-q", "--no-edit", cwd=wt)
