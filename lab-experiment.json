@@ -1,0 +1,13 @@
+{
+ "id": "listener-shadow-names-neighbour-guard",
+ "component": "listener",
+ "hypothesis": "Blank-frame shadow names fixed the 44:5 placement and vetoed p50 37:113:10, but lost 2 incidents, plausibly because some vetoing shadow consonants are smear from an adjacent token or a neighbour word's facing edge. Re-land that branch and add one generic ownership guard. Predict 1 to 2 of the 2 losses removed and all 4 wins kept: listener -3, overall -3, with an upside of -4.",
+ "expected": {
+  "component": -3,
+  "overall": -3
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-03T17:23:59+00:00",
+ "author": "autolab"
+}
