@@ -196,6 +196,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const minConfidence = policy.minConfidence ?? 0.6;
   const frames = (policy.localWindow ?? true) ? new PosteriorFrames(index.tokens.size) : null;
   const support = typeof policy.localWindow === "object" ? policy.localWindow.nats : SUPPORT;
+  const tokenById = ["", ...index.tokens];
   const tokenId = new Map([...index.tokens].map((t, i) => [t, i + 1]));
   const ref = index.phonemes;
   const words = index.words;
@@ -1241,6 +1242,111 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     // A wrong visit far ahead can be junk aligned to a short word; only correct visits show how far the reciter got.
     const reached = Math.max(...seen.filter((wi) => right.has(wi)), first);
     let gap: Issue | null = null;
+    /**
+     * A consonant the greedy decode never emitted, read off a blank-won frame no token owns. Rank only, so a
+     * sub-blank runner-up still names the frame. Used only to move or drop an omission already proposed.
+     */
+    const shadowCons = (from: number, to: number): string => {
+      if (!frames || frames.startFrame < 0 || to <= from) return "";
+      const lo = Math.max(from, frames.startFrame), hi = Math.min(to, frames.endFrame);
+      if (hi <= lo) return "";
+      const owned = new Uint8Array(hi - lo);
+      for (let k = 0; k < obs.length; k++) {
+        const a = Math.max(lo, obs[k].start), b = Math.min(hi - 1, obs[k].end);
+        for (let f = a; f <= b; f++) owned[f - lo] = 1;
+      }
+      let out = "";
+      for (let f = lo; f < hi; f++) {
+        if (owned[f - lo]) continue;
+        const id = frames.blankShadow(f);
+        const t = id === null ? "" : tokenById[id] ?? "";
+        if (!CONSONANTS.has(t) || out.endsWith(t)) continue;
+        out += t;
+      }
+      return out;
+    };
+    const confidentEnd = (v: Visit): number | null => {
+      if (v.obsFrom < 0) return null;
+      let end: number | null = null;
+      for (let k = v.obsFrom; k < v.obsTo; k++) if (obs[k].conf >= minConfidence) end = obs[k].end;
+      return end;
+    };
+    const confidentStart = (v: Visit): number | null => {
+      if (v.obsFrom < 0) return null;
+      for (let k = v.obsFrom; k < v.obsTo; k++) if (obs[k].conf >= minConfidence) return obs[k].start;
+      return null;
+    };
+    const visitBefore = (wi: number): Visit | null => {
+      let best: Visit | null = null;
+      for (const v of last.values()) if (v.word < wi && (!best || v.word > best.word)) best = v;
+      return best;
+    };
+    /** Onset consonant of `omitted` when `other` is the same word with that one consonant changed. */
+    const distinguishingOnset = (omitted: number, other: number): string | null => {
+      const a = skeleton(omitted), b = skeleton(other);
+      if (a.length < 2 || b.length < 2 || a[0] === b[0] || a.slice(1) !== b.slice(1)) return null;
+      return a[0];
+    };
+    /** Consonants of the written words on either side. A neighbour's own consonant is not evidence this word was said. */
+    const around = (wi: number): string => {
+      let s = "";
+      const p = prevWord(wi);
+      if (p >= 0 && p < wi) s += skeleton(p);
+      const n = nextWord(wi);
+      if (n > wi && n < words.length) s += skeleton(n);
+      return s;
+    };
+    /**
+     * Two consonants of `word`, distinct and contiguous, inside `shadows`, and none of them written on either
+     * neighbour. The added-word shape unit, kept off the adjacent words' own letters.
+     */
+    const spells = (shadows: string, word: string, beside: string): boolean => {
+      if (shadows.length < 2 || word.length < 2) return false;
+      for (let i = 0; i < shadows.length; i++) for (let j = i + 2; j <= shadows.length; j++) {
+        const slice = shadows.slice(i, j);
+        if (new Set(slice).size < 2 || [...slice].some((c) => beside.includes(c))) continue;
+        if (word.includes(slice)) return true;
+      }
+      return false;
+    };
+    /**
+     * Blank-won frames in the anchored stretch name the consonant the argmax dropped. Between two adjacent
+     * candidates that differ by one onset, that onset sitting in front of the heard body is the word that was
+     * said, so the omission moves onto the other candidate. One candidate is dropped when those names spell two
+     * of its consonants in order. Neither path opens an omission.
+     */
+    const byShadow = (issue: Issue, after?: Visit): Issue | null => {
+      if (!frames || frames.startFrame < 0 || issue.word !== issue.last) return issue;
+      const neighbors: Visit[] = [];
+      const prev = last.get(prevWord(issue.word));
+      if (prev && prev.word === prevWord(issue.word)) neighbors.push(prev);
+      if (after && after.word === nextWord(issue.word)) neighbors.push(after);
+      let paired = false;
+      for (const nb of neighbors) {
+        const onset = distinguishingOnset(issue.word, nb.word);
+        if (!onset || nb.obsFrom < 0) continue;
+        paired = true;
+        const left = visitBefore(Math.min(issue.word, nb.word));
+        const leftEnd = left && left.obsTo >= 0 ? confidentEnd(left) : null;
+        if (leftEnd === null || !left) continue;
+        // The heard body starts at the first token after the anchor, including a phone the alignment inserted.
+        let body = Infinity;
+        for (let k = left.obsTo; k < obs.length; k++) if (obs[k].start > leftEnd && obs[k].start < body) body = obs[k].start;
+        if (!Number.isFinite(body) || issues.has(nb.word)) continue;
+        const onsetShadows = shadowCons(leftEnd + 1, body);
+        if (!onsetShadows.endsWith(onset)) continue;
+        return nb.word < issue.word
+          ? { ...issue, word: nb.word, last: nb.word, obsFrom: nb.obsFrom, obsTo: nb.obsFrom }
+          : { ...issue, word: nb.word, last: nb.word, obsFrom: nb.obsTo, obsTo: nb.obsTo };
+      }
+      if (paired) return issue;
+      const left = visitBefore(issue.word);
+      const leftEnd = left ? confidentEnd(left) : null;
+      const rightStart = after && after.word > issue.word ? confidentStart(after) : null;
+      if (leftEnd === null || rightStart === null || rightStart <= leftEnd) return issue;
+      const shadows = shadowCons(leftEnd + 1, rightStart);
+      return spells(shadows, skeleton(issue.word), around(issue.word)) ? null : issue;
+    };
     const flush = (after?: Visit) => {
       if (!gap) return;
       // Evidence inside the gap means the words were said, differently: a wrong word, not an omission. Phrase marks
@@ -1304,6 +1410,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         gap = pauseSeam ?? today;
       }
       const n = words.slice(gap.word, gap.last + 1).filter((x) => x.end > x.start).length;
+      if (n === 1) {
+        const placed = byShadow(gap, after);
+        if (!placed) { gap = null; return; }
+        gap = placed;
+      }
       issues.set(gap.word, { ...gap, cls: n >= 3 ? "skipped_passage" : "omitted_word" });
       gap = null;
     };
