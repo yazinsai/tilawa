@@ -1,5 +1,5 @@
-"""Pure logic for the Autolab progress page (/autolab/live): the main line and every experiment drawn as a git-style
-graph, and the practice score with how close it is to the goal.
+"""Pure logic for the Autolab progress page (/autolab/live): the main line and every experiment drawn as a tree (a comb
+of experiments at each state of the line), and the practice score with how close it is to the goal.
 
     progress(state, events, lab, autolab, now, report=None, explained=None)
         -> {"now", "testSet", "heartbeat", "views", "score", "ticker"}
@@ -7,8 +7,8 @@ graph, and the practice score with how close it is to the goal.
 `lab` is the hand-run lab's ledger (/lab/ledger.json), `autolab` its autolab part (`split`), both in
 tools/lab_ledger.py's shape; `report` is the autolab line's latest score.json, of which only the practice teacher count
 is read (state.main.teacherWrongCalls first); `explained` is /lab/autolab/eli5.json, the plain line for cards written
-before they carried one. Each of `views` ("autolab", "testSet", "all") is one graph: spine points, test-set boundaries, branches with
-non-overlapping lanes, and the stretches of time worth drawing (quiet ones longer than GAP_S become breaks).
+before they carried one. Each of `views` ("autolab", "testSet", "all") is one graph: spine points, the columns they make
+(one per state of the main line, each with the experiments that started from it), test-set boundaries and branches.
 
 Served by modal/lab_review.py (GET /api/autolab/progress); tested by tools/test_autolab_graph.py. Practice numbers
 only: every field is picked by name and the result goes through autolab_dashboard_core.scrub.
@@ -22,9 +22,6 @@ LIVE = ("proposed", "accepted", "implementing", "validating", "scoring", "foldin
 LAB_TEXT = {"open": "Open in the hand-run lab, waiting for a decision", "folded": "Folded in", "discarded": "Discarded",
             "superseded": "Gain gone after catching up with the line",
             "reverted": "Taken back out of main"}
-GAP_S = 2 * 3600
-PAD_S = 10 * 60
-LANE_GAP_S = 20 * 60
 TICKER = 12
 DAY = 86400
 
@@ -147,37 +144,25 @@ def autolab_branches(st: dict | None, events: list[dict], now: str, explained: d
 # Layout
 
 
-def lanes(branches: list[dict]) -> int:
-    """Gives each branch the lowest lane free at its start (a lane frees LANE_GAP_S after its branch ends); returns the count."""
-    ends: list[datetime] = []
-    for b in sorted(branches, key=lambda b: (ts(b["start"]), b["id"])):
-        s, e = ts(b["start"]), ts(b["end"] or b["start"])
-        i = next((i for i, x in enumerate(ends) if x + timedelta(seconds=LANE_GAP_S) <= s), len(ends))
-        ends[i:i + 1] = [max(e, s)]
-        b["lane"] = i
-    return len(ends)
-
-
-def windows(spans: list[tuple[str, str]], now: str | None = None) -> list[dict]:
-    """Stretches of activity: spans (start, end) closer than GAP_S join, each padded by PAD_S (never past `now`); the
-    space between is a break."""
-    out: list[list[datetime]] = []
-    for a, b in sorted((ts(a), ts(b or a)) for a, b in spans if a):
-        if out and (a - out[-1][1]).total_seconds() <= GAP_S:
-            out[-1][1] = max(out[-1][1], b)
+def columns(pts: list[dict], branches: list[dict]) -> list[dict]:
+    """One column per state of the main line: a fold, a new test set, or a score that moved the count. Re-scores that
+    left it where it was join the column before (`also`). Each branch gets `col`, the column it started from (the last
+    on its test set at its start, else the first on its test set), and a folded one `foldCol`, the column it made."""
+    cols: list[dict] = []
+    of = {}
+    for i, p in enumerate(pts):
+        c = cols[-1] if cols else None
+        if c and p["kind"] != "fold" and p["n"] == pts[c["point"]]["n"] and p["testSet"] == pts[c["point"]]["testSet"]:
+            c["also"].append(i)
         else:
-            out.append([a, b])
-    pad = timedelta(seconds=PAD_S)
-    merged: list[list[datetime]] = []
-    for a, b in out:
-        a, b = a - pad, b + pad
-        if merged and a <= merged[-1][1]:
-            merged[-1][1] = b
-        else:
-            merged.append([a, b])
-    if now and merged:
-        merged[-1][1] = min(merged[-1][1], max(ts(now), merged[-1][0]))
-    return [{"from": iso(a), "to": iso(b), "seconds": round((b - a).total_seconds())} for a, b in merged]
+            cols.append({"point": i, "also": []})
+        of[i] = len(cols) - 1
+    for b in branches:
+        same = [of[i] for i, p in enumerate(pts) if p["testSet"] == b["testSet"]] or list(of.values())
+        before = [of[i] for i, p in enumerate(pts) if of[i] in same and ts(p["at"]) <= ts(b["start"])]
+        b["col"] = before[-1] if before else same[0] if same else None
+        b["foldCol"] = next((of[i] for i, p in enumerate(pts) if p["experiment"] == b["id"]), None) if b["outcome"] == "folded" else None
+    return cols
 
 
 def graph(pts: list[dict], branches: list[dict], now: str) -> dict:
@@ -194,12 +179,9 @@ def graph(pts: list[dict], branches: list[dict], now: str) -> dict:
         if b["change"] is None and fn is not None and b["base"] is not None:
             b["change"] = fn - b["base"]
         b["resultText"] = AD.result_text(b["state"], b["change"], {"overall": b["expected"]}, b["reason"])
-    n = lanes(bs)
-    # a hand-run branch left open isn't activity: only its start counts, so the nights after it still fold away
-    ws = windows([(p["at"], p["at"]) for p in pts] + [(b["start"], b["start"] if b["outcome"] == "open" else b["end"]) for b in bs] + [(now, now)], now)
+    cols = columns(pts, bs)
     auto = next((p["at"] for p in pts if p["source"] == "autolab"), None) or min((b["start"] for b in bs if b["source"] == "autolab"), key=ts, default=None)
-    return {"from": ws[0]["from"], "to": ws[-1]["to"], "windows": ws, "spine": pts, "boundaries": boundaries(pts),
-            "branches": sorted(bs, key=lambda b: (b["lane"], ts(b["start"]))), "lanes": n, "autolabStart": auto,
+    return {"spine": pts, "columns": cols, "boundaries": boundaries(pts), "branches": sorted(bs, key=lambda b: (ts(b["start"]), b["id"])), "autolabStart": auto,
             "counts": {k: sum(b["outcome"] == k for b in bs) for k in ("folded", "ended", "live", "open")}}
 
 

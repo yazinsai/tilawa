@@ -110,35 +110,26 @@ def test_events_fill_in_experiments_state_no_longer_holds_and_drop_removed_ones(
     assert "listener-dupe" not in b
 
 
-def test_lanes_never_overlap():
-    v = page()["views"]["autolab"]
-    lane = {b["id"]: b["lane"] for b in v["branches"]}
-    assert lane == {"checker-repeat-grace": 0, "checker-added-word-confirm": 1, "listener-vowel-prior": 2, "listener-blank-penalty": 3,
-                    "checker-madd-length": 0, "tracker-restart-window": 1, "tracker-jump-hysteresis": 3, "listener-noise-augment": 4}
-    assert v["lanes"] == 5
-    for view in page()["views"].values():
-        bs = view["branches"]
-        for a in bs:
-            for b in bs:
-                if a is not b and a["lane"] == b["lane"]:
-                    assert G.ts(a["end"]) + G.timedelta(seconds=G.LANE_GAP_S) <= G.ts(b["start"]) or G.ts(b["end"]) + G.timedelta(seconds=G.LANE_GAP_S) <= G.ts(a["start"])
-    # a lane frees only LANE_GAP_S after its branch ends; a live branch (ending now) never frees it
-    t = lambda h, m=0: f"2026-11-01T{h:02d}:{m:02d}:00+00:00"
-    bs = [{"id": "a", "start": t(1), "end": t(2)}, {"id": "b", "start": t(2, 10), "end": t(3)}, {"id": "c", "start": t(2, 20), "end": t(4)},
-          {"id": "d", "start": t(3, 30), "end": t(9)}, {"id": "e", "start": t(5), "end": t(6)}]
-    assert G.lanes(bs) == 2 and [b["lane"] for b in bs] == [0, 1, 0, 1, 0]
-    bs[2]["start"] = t(2, 19)  # a's lane is still cooling down
-    assert G.lanes(bs) == 3 and [b["lane"] for b in bs] == [0, 1, 2, 0, 1]
+def test_each_experiment_hangs_off_the_line_it_started_from():
+    v = page()["views"]["testSet"]
+    assert [v["spine"][c["point"]]["n"] for c in v["columns"]] == [107, 101, 98, 94, 89]
+    col = {b["id"]: (b["col"], b["foldCol"]) for b in v["branches"]}
+    assert col["checker-joint-additions"] == (0, 1) and col["checker-skip-boundaries"] == (0, None)
+    # started on 98 and folded after the line had moved on to 94: it made the 89 column, not the next one
+    assert col["checker-added-word-confirm"] == (2, 4) and col["listener-targeted-consonants"] == (2, None)
+    assert {col[i][0] for i in ("checker-madd-length", "tracker-restart-window", "listener-noise-augment")} == {4}
+    # a branch on an older test set hangs off that test set's columns even in the full view
+    a = {b["id"]: b["col"] for b in page()["views"]["all"]["branches"]}
+    assert a["checker-listener-noise"] == 0 and a["checker-joint-additions"] == 2
 
 
-def test_quiet_stretches_become_breaks():
-    ws = page()["views"]["all"]["windows"]
-    assert [(w["from"], w["to"]) for w in ws] == [
-        ("2026-10-30T14:03:25+00:00", "2026-10-30T17:40:26+00:00"),
-        ("2026-10-31T06:26:32+00:00", "2026-10-31T15:58:22+00:00"),
-        ("2026-10-31T18:50:00+00:00", NOW)]
-    assert ws[0]["seconds"] == 3 * 3600 + 37 * 60 + 1
-    assert len(page()["views"]["autolab"]["windows"]) == 1
+def test_rescores_that_leave_the_count_join_the_column_before():
+    pt = lambda at, n, exp=None, ts="s": {"at": f"2026-11-01T{at:02d}:00:00+00:00", "n": n, "testSet": ts, "experiment": exp, "kind": "fold" if exp else "score"}
+    pts = [pt(1, 89), pt(2, 84, "a"), pt(3, 84), pt(4, 83), pt(5, 83, "b"), pt(6, 83, ts="t")]
+    bs = [{"id": "x", "start": "2026-11-01T03:30:00+00:00", "testSet": "s", "outcome": "ended"},
+          {"id": "b", "start": "2026-11-01T00:30:00+00:00", "testSet": "s", "outcome": "folded"}]
+    assert G.columns(pts, bs) == [{"point": 0, "also": []}, {"point": 1, "also": [2]}, {"point": 3, "also": []}, {"point": 4, "also": []}, {"point": 5, "also": []}]
+    assert (bs[0]["col"], bs[1]["col"], bs[1]["foldCol"]) == (1, 0, 3)
 
 
 def test_score_how_close_and_pace():
@@ -230,7 +221,7 @@ def test_ticker_newest_first_with_components():
 def test_nothing_yet():
     v = G.progress(None, [], None, None, NOW)
     assert not v["started"] and v["heartbeat"] is None and v["score"]["current"] is None and v["score"]["series"] == []
-    assert all(g["branches"] == [] and g["spine"] == [] and len(g["windows"]) == 1 for g in v["views"].values())
+    assert all(g["branches"] == [] and g["spine"] == [] and g["columns"] == [] for g in v["views"].values())
     # the hand-run lab's ledger alone already draws a line
     v = G.progress(None, [], lab(), None, NOW)
     assert v["testSet"] == "lab-v1.5" and v["score"]["current"]["wrongCalls"] == 98 and v["score"]["autolab"] is None

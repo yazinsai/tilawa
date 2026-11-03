@@ -23,60 +23,75 @@ let listHtml = '';
 const clock = (t) => new Date(t).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 const dayOnly = (t) => new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
-// Time axis: windows of activity side by side, quiet stretches squeezed into fixed-width breaks.
+// Layout: one column per state of the main line, a node on the trunk with a comb after it holding one tooth per
+// experiment that started from that state. The tooth that made the next node lies on the trunk, so the line runs
+// through it; the others stack below and above, oldest nearest the trunk, each ending in a cap (its kind). Caps
+// alternate short and long so neighbours never sit side by side, which lets rows pack tighter than a cap is wide;
+// a comb with labels keeps rows a label apart.
 
-// The stretch holding now gets at least NOW_SHARE of the width, so live work isn't squashed by a long history.
-const NOW_SHARE = 0.3;
+const ROW = 8;
+const ROW_LABELLED = 13;
+const SHORT_T = 22;
+const LONG_T = 42;
+const GAP = 10;
+const CH = 5.9;
+const R = 112;
 
-function xscale(view, x0, x1, B = 36) {
-  const ws = view.windows.map((w) => [Date.parse(w.from), Date.parse(w.to)]);
-  const dur = ws.map(([a, b]) => Math.max(b - a, 1));
-  const avail = Math.max(0, x1 - x0 - B * (ws.length - 1));
-  const total = dur.reduce((s, d) => s + d, 0);
-  let px = dur.map((d) => (d / total) * avail);
-  if (ws.length > 1 && px.at(-1) < avail * NOW_SHARE) {
-    const rest = total - dur.at(-1);
-    px = dur.map((d, i) => (i === ws.length - 1 ? avail * NOW_SHARE : (d / rest) * avail * (1 - NOW_SHARE)));
-  }
-  const win = [];
-  let x = x0;
-  ws.forEach(([a, b], i) => {
-    win.push({ a, b, x0: x, x1: x + px[i], k: px[i] / dur[i] });
-    x += px[i] + B;
-  });
-  const f = (t) => {
-    const v = typeof t === 'number' ? t : Date.parse(t);
-    for (let i = 0; i < win.length; i++) {
-      const w = win[i];
-      if (v < w.a) return i === 0 ? w.x0 : win[i - 1].x1 + (B * (v - win[i - 1].b)) / (w.a - win[i - 1].b);
-      if (v <= w.b) return w.x0 + (v - w.a) * w.k;
-    }
-    return x1;
-  };
-  f.windows = win;
-  f.breaks = win.slice(1).map((w, i) => ({ x0: win[i].x1, x1: w.x0, ms: w.a - win[i].b }));
-  return f;
+const minutes = (b) => Math.max(0, Date.parse(b.end || b.start) - Date.parse(b.start)) / 60e3;
+const toothLen = (b, k) => (b.slot === 0 ? SHORT_T : Math.abs(b.slot) % 2 ? SHORT_T : LONG_T) * k;
+const sum = (xs) => xs.reduce((s, x) => s + x, 0);
+
+function toothLabel(b, i) {
+  if (b.outcome === 'live') return `${b.id} · ${SHORT[b.state] || b.state} ${span(b.ageSeconds)}`;
+  if (b.outcome === 'open') return b.id;
+  if (b.outcome === 'folded' && b.foldCol !== i + 1 && b.foldN != null) return `→ ${b.foldN}`;
+  return '';
 }
 
-function ticks(x) {
-  const out = [];
-  const steps = [0.25, 0.5, 1, 2, 3, 6, 12, 24].map((h) => h * 3600e3);
-  for (const w of x.windows) {
-    const step = steps.find((s) => s * w.k >= 72) || steps.at(-1);
-    out.push({ x: w.x0, t: w.a, first: true });
-    for (let t = Math.ceil(w.a / step) * step; t <= w.b; t += step) if ((t - w.a) * w.k >= 80 && (w.b - t) * w.k >= 8) out.push({ x: x(t), t });
-  }
-  return out;
+function combs(view) {
+  const cs = view.columns.map(() => ({ teeth: [], above: 0, below: 0 }));
+  for (const b of view.branches) if (b.col != null && cs[b.col]) cs[b.col].teeth.push(b);
+  cs.forEach((c, i) => {
+    const win = c.teeth.find((b) => b.foldCol === i + 1);
+    let k = 0;
+    for (const b of c.teeth) {
+      b.slot = b === win ? 0 : k % 2 ? -(k + 1) / 2 : k / 2 + 1;
+      if (b !== win) k++;
+      c.below = Math.max(c.below, b.slot);
+      c.above = Math.max(c.above, -b.slot);
+    }
+  });
+  return cs;
+}
+
+// Only the last column (the line as it is now, where live work usually sits) makes room for its labels, which may run
+// on into the right margin; earlier ones are cut to the room before the next node.
+const labelAt = (k) => LONG_T * k + 11;
+const widths = (cs, k) =>
+  cs.map((c, i) => {
+    const short = (b) => (b.outcome === 'folded' ? labelAt(k) + toothLabel(b, i).length * CH : 0);
+    const teeth = Math.max(40, GAP + 16 + Math.max(0, ...c.teeth.map((b) => Math.max(toothLen(b, k) + 6, short(b)))));
+    if (i < cs.length - 1) return teeth;
+    return Math.max(teeth, GAP + labelAt(k) + Math.max(0, ...c.teeth.map((b) => toothLabel(b, i).length * CH)) - R + 40);
+  });
+
+// A comb's rows can sit closer than a label is tall unless two labelled teeth are neighbours on the same side.
+const rowOf = (c, i) =>
+  c.teeth.some((a) => a.slot && toothLabel(a, i) && c.teeth.some((b) => b.slot === a.slot + Math.sign(a.slot) && toothLabel(b, i))) ? ROW_LABELLED : ROW;
+
+function fit(text, px) {
+  const n = Math.floor(px / CH);
+  return text.length <= n ? text : n >= 8 ? text.slice(0, n - 1) + '…' : '';
 }
 
 // Graph pieces
 
 const tip = (html) => tips.push(html) - 1;
 
-function mark(kind, cx, cy, cls) {
-  if (kind === 'diamond') return `<path class="${cls}" d="M${cx} ${cy - 5}L${cx + 5} ${cy}L${cx} ${cy + 5}L${cx - 5} ${cy}Z"/>`;
-  if (kind === 'square') return `<rect class="${cls}" x="${cx - 4}" y="${cy - 4}" width="8" height="8" rx="1"/>`;
-  return `<circle class="${cls}" cx="${cx}" cy="${cy}" r="${kind === 'hollow' ? 3 : 4}"/>`;
+function mark(kind, cx, cy, cls, s = 1) {
+  if (kind === 'diamond') return `<path class="${cls}" d="M${cx} ${cy - 5 * s}L${cx + 5 * s} ${cy}L${cx} ${cy + 5 * s}L${cx - 5 * s} ${cy}Z"/>`;
+  if (kind === 'square') return `<rect class="${cls}" x="${cx - 4 * s}" y="${cy - 4 * s}" width="${8 * s}" height="${8 * s}" rx="1"/>`;
+  return `<circle class="${cls}" cx="${cx}" cy="${cy}" r="${(kind === 'hollow' ? 3 : 4) * s}"/>`;
 }
 
 function branchTip(b) {
@@ -92,7 +107,7 @@ function branchTip(b) {
         ? `<p><span>Folded</span>${day(b.foldAt)}${b.foldN != null ? ` · the line went to <b>${b.foldN}</b>` : ''}</p>`
         : b.outcome === 'open'
           ? `<p><span>Open</span>${esc(b.stateText)}</p>`
-          : `<p><span>${esc(sentence(b.state))}</span>${day(b.end)}</p>`;
+          : `<p><span>${esc(sentence(b.state))}</span>${day(b.end)} · ran ${span(Math.round(minutes(b) * 60))}</p>`;
   return `<h4>${sw(b.component)}${esc(b.id)}</h4><small>${esc(who)}</small>
     <div class="pg-plain">${plainLines(b)}</div>
     <div class="pg-techd">${b.eli5?.plain && b.hypothesis ? `<q>${esc(b.hypothesis)}</q>` : ''}
@@ -100,161 +115,132 @@ function branchTip(b) {
     ${b.reason && !b.resultText ? `<p class="pg-why">${esc(sentence(b.reason))}</p>` : ''}</div>`;
 }
 
-function fit(text, px) {
-  const n = Math.floor(px / 6.3);
-  return n >= text.length ? text : n >= 16 ? text.slice(0, n - 1) + '…' : '';
-}
-
 function draw(v, view, W) {
   tips = [];
   const s = v.score;
-  const L = 48;
-  const R = 112;
-  const chartTop = 26;
-  const chartH = 168;
-  const chartBot = chartTop + chartH;
-  const spineY = chartBot + 54;
-  const LANE = 22;
-  const laneY = (i) => spineY + 30 + i * LANE;
-  const graphBot = laneY(Math.max(view.lanes, 1) - 1) + 30;
-  const H = graphBot + 34;
-  const x = xscale(view, L, W - R);
-  const now = Date.parse(v.now);
-  const xNow = x(now);
   const pts = view.spine;
+  const cols = view.columns;
+  if (!cols.length) return '<p class="group-h">No main-line score in this range yet</p>';
+  const L = 48;
+  const chartTop = 26;
+  const chartH = 150;
+  const chartBot = chartTop + chartH;
+  const cs = combs(view);
+  let k = 1;
+  let ws = widths(cs, k);
+  while (k > 0.5 && sum(ws) > W - L - R - 10) ws = widths(cs, (k -= 0.1));
+  const extra = Math.max(0, W - L - R - 10 - sum(ws)) / cols.length;
+  ws = ws.map((w) => w + extra);
+  const X = [L + 10];
+  ws.forEach((w) => X.push(X.at(-1) + w));
+  const end = X.pop();
+  const Wd = Math.max(W, end + R);
+  const row = cs.map(rowOf);
+  const above = Math.max(0, ...cs.map((c, i) => c.above * row[i]));
+  const below = Math.max(0, ...cs.map((c, i) => c.below * row[i]));
+  const trunkY = chartBot + 46 + above;
+  const graphBot = trunkY + below + 20;
+  const H = graphBot + 30;
+  const P = cols.map((c) => pts[c.point]);
+  const right = (i) => (i + 1 < cols.length ? X[i + 1] : end);
   const out = [];
 
-  // background: breaks, the hand-run era, boundaries
-  for (const b of x.breaks)
-    out.push(`<rect class="pg-break" x="${b.x0}" y="${chartTop - 8}" width="${b.x1 - b.x0}" height="${graphBot - chartTop + 8}"/>
-      <text class="pg-break-t" x="${(b.x0 + b.x1) / 2}" y="${chartBot + 22}"><tspan x="${(b.x0 + b.x1) / 2}">${span(Math.round(b.ms / 1000)).replace(/ \d+ min$/, '')}</tspan><tspan x="${(b.x0 + b.x1) / 2}" dy="12">quiet</tspan></text>`);
-  const auto = view.autolabStart ? x(view.autolabStart) : null;
-  const firstLab = pts.find((p) => p.source === 'lab') || view.branches.find((b) => b.source === 'lab');
-  if (firstLab) {
-    const x1 = auto ?? xNow;
-    out.push(`<rect class="pg-era" x="${L}" y="${spineY - 26}" width="${Math.max(0, x1 - L)}" height="${graphBot - spineY + 26}"/>
+  // background: the hand-run era, test-set boundaries
+  const firstAuto = P.findIndex((p) => p.source === 'autolab');
+  if (P.some((p) => p.source === 'lab')) {
+    const x1 = firstAuto >= 0 ? X[firstAuto] - 8 : end;
+    out.push(`<rect class="pg-era" x="${L}" y="${chartBot + 16}" width="${Math.max(0, x1 - L)}" height="${graphBot - chartBot - 16}"/>
       <text class="pg-era-t" x="${L + 6}" y="${graphBot - 6}">Hand-run lab</text>`);
   }
-  if (auto != null) out.push(`<line class="pg-auto" x1="${auto}" x2="${auto}" y1="${spineY - 26}" y2="${graphBot}"/><text class="pg-era-t pg-auto-t" x="${auto + 6}" y="${graphBot - 6}">Autolab</text>`);
+  if (firstAuto > 0)
+    out.push(`<line class="pg-auto" x1="${X[firstAuto] - 8}" x2="${X[firstAuto] - 8}" y1="${chartBot + 16}" y2="${graphBot}"/><text class="pg-era-t pg-auto-t" x="${X[firstAuto] - 2}" y="${graphBot - 6}">Autolab</text>`);
   for (const b of view.boundaries) {
-    const bx = x(b.at);
+    const i = P.findIndex((p) => p.at === b.at);
+    if (i < 0) continue;
+    const bx = X[i] - 8;
     out.push(`<g class="pg-bound" data-i="${tip(`<h4>New test set</h4><p>${esc(b.from)} → <b>${esc(b.to)}</b> on ${day(b.at)}</p><p class="pg-why">The line read ${b.before} on ${esc(b.from)} and ${b.after} on ${esc(b.to)}: counts on two test sets don’t compare, so the line is broken here.</p>`)}">
       <line x1="${bx}" x2="${bx}" y1="${chartTop - 14}" y2="${graphBot}"/><text x="${bx + 4}" y="${chartTop - 16}">${esc(b.to)}</text><rect class="hit" x="${bx - 6}" y="${chartTop - 26}" width="12" height="${graphBot - chartTop + 26}"/></g>`);
   }
 
-  // score chart: practice wrong calls stacked by part, one step line per test set
-  const ns = pts.map((p) => p.n);
-  const top = Math.max(10, ...ns, s.teacher != null && view.spine.some((p) => p.testSet === s.testSet) ? s.teacher : 0);
+  // score chart: one step per column, practice wrong calls stacked by part, broken at a new test set
+  const top = Math.max(10, ...P.map((p) => p.n), s.teacher != null && P.some((p) => p.testSet === s.testSet) ? s.teacher : 0);
   const stepY = top <= 30 ? 5 : top <= 60 ? 10 : top <= 150 ? 25 : 50;
   const ymax = Math.ceil((top * 1.06) / stepY) * stepY;
   const y = (n) => chartTop + chartH * (1 - n / ymax);
   for (let g = 0; g <= ymax; g += stepY * (ymax / stepY > 6 ? 2 : 1))
-    out.push(`<line class="pg-grid" x1="${L}" x2="${W - R}" y1="${y(g)}" y2="${y(g)}"/><text class="pg-yl" x="${L - 8}" y="${y(g) + 4}" text-anchor="end">${g}</text>`);
-  const segs = [];
-  for (const p of pts) (segs.at(-1)?.ts === p.testSet ? segs.at(-1).pts : segs[segs.push({ ts: p.testSet, pts: [] }) - 1].pts).push(p);
-  segs.forEach((sg, i) => {
-    const end = i + 1 < segs.length ? x(segs[i + 1].pts[0].at) : xNow;
-    const line = [];
-    sg.pts.forEach((p, j) => {
-      const xa = x(p.at);
-      const xb = j + 1 < sg.pts.length ? x(sg.pts[j + 1].at) : end;
-      if (PARTS.every((k) => p.parts[k] != null)) {
-        let acc = 0;
-        for (const k of PARTS) {
-          out.push(`<rect class="pg-stack" style="--c:var(--${k})" x="${xa}" y="${y(acc + p.parts[k])}" width="${Math.max(0, xb - xa)}" height="${y(acc) - y(acc + p.parts[k])}"/>`);
-          acc += p.parts[k];
-        }
+    out.push(`<line class="pg-grid" x1="${L}" x2="${end}" y1="${y(g)}" y2="${y(g)}"/><text class="pg-yl" x="${L - 8}" y="${y(g) + 4}" text-anchor="end">${g}</text>`);
+  let line = '';
+  P.forEach((p, i) => {
+    const xa = X[i];
+    const xb = right(i);
+    if (PARTS.every((q) => p.parts[q] != null)) {
+      let acc = 0;
+      for (const q of PARTS) {
+        out.push(`<rect class="pg-stack" style="--c:var(--${q})" x="${xa}" y="${y(acc + p.parts[q])}" width="${Math.max(0, xb - xa)}" height="${y(acc) - y(acc + p.parts[q])}"/>`);
+        acc += p.parts[q];
       }
-      line.push(`${j ? `L${xa} ${y(sg.pts[j - 1].n)}` : `M${xa} ${y(p.n)}`}L${xa} ${y(p.n)}`);
-      if (j + 1 === sg.pts.length) line.push(`L${xb} ${y(p.n)}`);
-    });
-    out.push(`<path class="pg-line" d="${line.join('')}"/>`);
-  });
-  const cur = segs.at(-1);
-  if (s.teacher != null && cur?.ts === s.testSet) {
-    const x0 = x(cur.pts[0].at);
-    out.push(`<g data-i="${tip(`<h4>Big reference listener</h4><p>${s.teacher} wrong calls on the ${esc(s.testSet)} practice set with the big reference listener in place of the app’s.</p>`)}">
-      <line class="pg-ref" x1="${x0}" x2="${W - R + 4}" y1="${y(s.teacher)}" y2="${y(s.teacher)}"/><text class="pg-ref-t" x="${W - R + 8}" y="${y(s.teacher) + 4}">Reference ${s.teacher}</text>
-      <rect class="hit" x="${x0}" y="${y(s.teacher) - 5}" width="${W - R - x0}" height="10"/></g>`);
-  }
-  out.push(`<text class="pg-goal-t" x="${W - R + 8}" y="${y(s.goal.n) + 4}">Goal ${s.goal.n}</text>`);
-  if (s.goal.n > 0) out.push(`<line class="pg-ref goal" x1="${L}" x2="${W - R + 4}" y1="${y(s.goal.n)}" y2="${y(s.goal.n)}"/>`);
-  if (s.rate && s.rate.perDay > 0 && s.current && cur?.ts === s.testSet) {
-    const n1 = Math.max(s.goal.n, s.current.wrongCalls - s.rate.perDay);
-    const x1 = W - R + 52;
-    out.push(`<g data-i="${tip(`<h4>Projection</h4><p>If the line kept removing about ${Math.round(s.rate.perDay)} wrong calls a day, it would be near <b>${Math.round(n1)}</b> a day from now. A straight line from the pace so far, not a forecast.</p>`)}">
-      <path class="pg-proj" d="M${xNow} ${y(s.current.wrongCalls)}L${x1} ${y(n1)}"/><text class="pg-proj-t" x="${x1 - 2}" y="${y(n1) + 14}" text-anchor="end">+1 day ≈ ${Math.round(n1)}</text>
-      <rect class="hit" x="${xNow}" y="${Math.min(y(s.current.wrongCalls), y(n1)) - 6}" width="${x1 - xNow}" height="${Math.abs(y(n1) - y(s.current.wrongCalls)) + 12}"/></g>`);
-  }
-
-  // the spine
-  if (pts.length) {
-    const x0 = x(pts[0].at);
-    for (const w of x.windows) {
-      const a = Math.max(x0, w.x0);
-      const b = Math.min(xNow, w.x1);
-      if (b > a) out.push(`<line class="pg-spine" x1="${a}" x2="${b}" y1="${spineY}" y2="${spineY}"/>`);
     }
-    for (const b of x.breaks) if (b.x1 > x0 && b.x0 < xNow) out.push(`<line class="pg-spine gap" x1="${Math.max(b.x0, x0)}" x2="${b.x1}" y1="${spineY}" y2="${spineY}"/>`);
+    line += i && P[i - 1].testSet === p.testSet ? `V${y(p.n)}H${xb}` : `M${xa} ${y(p.n)}H${xb}`;
+  });
+  out.push(`<path class="pg-line" d="${line}"/>`);
+  const cur = P.findIndex((p) => p.testSet === s.testSet);
+  if (s.teacher != null && cur >= 0) {
+    out.push(`<g data-i="${tip(`<h4>Big reference listener</h4><p>${s.teacher} wrong calls on the ${esc(s.testSet)} practice set with the big reference listener in place of the app’s.</p>`)}">
+      <line class="pg-ref" x1="${X[cur]}" x2="${end + 4}" y1="${y(s.teacher)}" y2="${y(s.teacher)}"/><text class="pg-ref-t" x="${end + 8}" y="${y(s.teacher) + 4}">Reference ${s.teacher}</text>
+      <rect class="hit" x="${X[cur]}" y="${y(s.teacher) - 5}" width="${end - X[cur]}" height="10"/></g>`);
   }
+  out.push(`<text class="pg-goal-t" x="${end + 8}" y="${y(s.goal.n) + 4}">Goal ${s.goal.n}</text>`);
+  if (s.goal.n > 0) out.push(`<line class="pg-ref goal" x1="${L}" x2="${end + 4}" y1="${y(s.goal.n)}" y2="${y(s.goal.n)}"/>`);
 
-  // branches, in lanes under the spine
-  const r = 8;
+  // the trunk, then each column's comb
+  // green where the line moved by a fold, thin grey otherwise (a new test set, a re-score, the stretch to now)
+  P.forEach((p, i) => {
+    const fold = P[i + 1]?.kind === 'fold' && P[i + 1].testSet === p.testSet;
+    out.push(`<line class="pg-spine ${fold ? 'fold' : 'quiet'}" x1="${X[i]}" x2="${right(i)}" y1="${trunkY}" y2="${trunkY}"/>`);
+  });
+  out.push(`<text class="pg-now-t" x="${end + 8}" y="${trunkY + 4}">now</text>`);
   const labels = [];
-  for (const b of view.branches) {
-    const xs = x(b.start);
-    const yl = laneY(b.lane);
-    const xe = Math.max(x(b.end), xs + r + 3);
-    const xf = b.outcome === 'folded' ? Math.max(x(b.foldAt), xs + 2 * r + 2) : null;
-    const was = seen?.get(b.id);
-    const anim = seen && seenScope === scope ? (!was ? ' enter' : b.outcome === 'folded' && !was.startsWith('folded') ? ' merging' : was !== `${b.outcome}|${b.state}` ? ' changed' : '') : '';
-    const cls = `pg-br ${b.outcome} ${b.source}${b.waiting ? ' waiting' : ''}${anim}`;
-    const body = `M${xs} ${spineY}V${yl - r}Q${xs} ${yl} ${xs + r} ${yl}H${xf != null ? xf - r : xe}`;
-    const parts = [`<path class="br" pathLength="1" d="${body}"/>`];
-    if (xf != null) parts.push(`<path class="br-merge" pathLength="1" d="M${xf - r} ${yl}Q${xf} ${yl} ${xf} ${yl - r}V${spineY}"/>`);
-    if (b.source === 'autolab') for (const st of b.stages.slice(1, -1)) parts.push(`<line class="stage" x1="${x(st.at)}" x2="${x(st.at)}" y1="${yl - 3}" y2="${yl + 3}"/>`);
-    parts.push(mark(b.source === 'lab' ? 'hollow' : TIER_MARK[b.tier] || 'circle', xs + r + 4, yl, 'tier'));
-    if (b.outcome === 'ended') parts.push(b.state === 'discarded' ? `<path class="end" d="M${xe - 3.5} ${yl - 3.5}l7 7m0 -7l-7 7"/>` : `<path class="end" d="M${xe} ${yl - 5}v10"/>`);
-    if (b.outcome === 'live') parts.push(`<circle class="pulse" cx="${xe}" cy="${yl}" r="4.5"/><circle class="tip" cx="${xe}" cy="${yl}" r="4.5"/>`);
-    if (b.outcome === 'open') parts.push(`<circle class="tip" cx="${xe}" cy="${yl}" r="3.5"/>`);
-    const room = (xf ?? xe) - xs - r - 14;
-    const text = b.outcome === 'live' ? fit(`${b.id} · ${SHORT[b.state] || b.state} ${span(b.ageSeconds)}`, room) || fit(`${SHORT[b.state] || b.state} ${span(b.ageSeconds)}`, room) : fit(b.id, room);
-    const lc = `pg-bl ${b.outcome} ${b.source}${b.waiting ? ' waiting' : ''}${anim}`;
-    if (text) labels.push(`<text class="${lc}" x="${xs + r + 12}" y="${yl - 5}">${esc(text)}</text>`);
-    else if (b.outcome === 'live') labels.push(`<text class="${lc} left" x="${xs - 6}" y="${yl + 4}" text-anchor="end">${esc(`${b.id} · ${SHORT[b.state] || b.state} ${span(b.ageSeconds)}`)}</text>`);
-    const hit = `M${xs} ${spineY}V${yl}H${xf ?? xe}${xf != null ? `V${spineY}` : ''}`;
-    out.push(`<g class="${cls}" style="--c:var(--${b.component || 'g-500'})" data-k="${esc(b.id)}" data-i="${tip(branchTip(b))}" tabindex="0" role="img" aria-label="${esc(`${b.id}: ${b.stateText}`)}">${parts.join('')}<path class="hit" d="${hit}"/></g>`);
-  }
+  cs.forEach((c, i) => {
+    const sx = X[i] + GAP;
+    const ty = (slot) => trunkY + slot * row[i];
+    if (c.above || c.below) out.push(`<line class="pg-comb" x1="${sx}" x2="${sx}" y1="${ty(-c.above)}" y2="${ty(c.below)}"/>`);
+    for (const b of c.teeth) {
+      const yl = ty(b.slot);
+      const xe = sx + toothLen(b, k);
+      const was = seen?.get(b.id);
+      const anim = seen && seenScope === scope ? (!was ? ' enter' : b.outcome === 'folded' && !was.startsWith('folded') ? ' merging' : was !== `${b.outcome}|${b.state}` ? ' changed' : '') : '';
+      const cls = `pg-br ${b.outcome} ${b.source}${b.slot === 0 ? ' win' : ''}${b.waiting ? ' waiting' : ''}${anim}`;
+      const parts = [`<path class="br" pathLength="1" d="M${sx} ${yl}H${xe}"/>`];
+      if (b.outcome === 'live') parts.push(`<circle class="pulse" cx="${xe}" cy="${yl}" r="4.5"/>`);
+      if (b.slot !== 0) parts.push(mark(b.source === 'lab' ? 'hollow' : TIER_MARK[b.tier] || 'circle', xe, yl, 'cap', b.source === 'lab' ? 1.4 : 1.05));
+      const lx = sx + labelAt(k);
+      const text = fit(toothLabel(b, i), (i + 1 < cols.length ? X[i + 1] : Wd) - lx - 4);
+      if (text && lx - xe > 12) labels.push(`<line class="pg-lead" x1="${xe + 7}" x2="${lx - 4}" y1="${yl}" y2="${yl}"/>`);
+      if (text) labels.push(`<text class="pg-bl ${b.outcome} ${b.source}${b.waiting ? ' waiting' : ''}${anim}" x="${lx}" y="${yl + 3.5}">${esc(text)}</text>`);
+      out.push(`<g class="${cls}" style="--c:var(--${b.component || 'g-500'})" data-k="${esc(b.id)}" data-i="${tip(branchTip(b))}" tabindex="0" role="img" aria-label="${esc(`${b.id}: ${b.stateText}`)}">${parts.join('')}<path class="hit" d="M${sx} ${yl}H${xe + 6}"/></g>`);
+    }
+  });
   out.push(...labels);
 
-  // spine nodes on top, labelled with the count after them where there is room
-  const placed = [];
-  const order = pts.map((p, i) => i).sort((a, b) => (pts[b].kind === 'fold') - (pts[a].kind === 'fold') || b - a);
-  const show = new Set(order.filter((i) => {
-    const px = x(pts[i].at);
-    if (placed.some((q) => Math.abs(q - px) < 22)) return false;
-    placed.push(px);
-    return true;
-  }));
-  pts.forEach((p, i) => {
-    const px = x(p.at);
+  // nodes on top, with the count after them; the date of each under the graph where there is room
+  let lastX = -1e9;
+  let lastDay = null;
+  cols.forEach((col, i) => {
+    const p = P[i];
     const isNew = seen && seenScope === scope && p.experiment && seen.get(p.experiment) && !seen.get(p.experiment).startsWith('folded');
     const what = p.experiment ? `Fold of <b>${esc(p.experiment)}</b>` : esc(sentence(p.note) || 'Main-line score');
-    const parts = p.parts && PARTS.every((k) => p.parts[k] != null) ? `<p>${PARTS.map((k) => `${sw(k)}${p.parts[k]}`).join(' ')}</p>` : '';
-    out.push(`<g class="pg-node ${p.kind} ${p.source}${isNew ? ' pop' : ''}" data-i="${tip(`<h4>${p.n} wrong calls</h4><small>${esc(p.testSet)} · ${day(p.at)} · <code>${esc(p.sha)}</code></small><p>${what}</p>${parts}`)}">
-      <circle cx="${px}" cy="${spineY}" r="${p.kind === 'fold' ? 6 : 3.5}"/>${show.has(i) ? `<text x="${px}" y="${spineY - 11}" text-anchor="middle">${p.n}</text>` : ''}<circle class="hit" cx="${px}" cy="${spineY}" r="10"/></g>`);
-  });
-
-  // now, and the time axis
-  out.push(`<line class="pg-now" x1="${xNow}" x2="${xNow}" y1="${chartTop - 8}" y2="${graphBot}"/><text class="pg-now-t" x="${xNow}" y="${chartTop - 14}" text-anchor="middle">now</text>`);
-  let lastDay = null;
-  for (const t of ticks(x)) {
-    const d = dayOnly(t.t);
-    const label = t.first || d !== lastDay ? `${d} ${clock(t.t)}` : clock(t.t);
+    const parts = p.parts && PARTS.every((q) => p.parts[q] != null) ? `<p>${PARTS.map((q) => `${sw(q)}${p.parts[q]}`).join(' ')}</p>` : '';
+    const also = col.also.length ? `<p class="pg-why">Re-scored ${plural(col.also.length, 'more time')} after, still ${p.n}: ${col.also.map((j) => esc(pts[j].note || day(pts[j].at))).join('; ')}.</p>` : '';
+    const n = cs[i].teeth.length;
+    out.push(`<g class="pg-node ${p.kind} ${p.source}${isNew ? ' pop' : ''}" data-i="${tip(`<h4>${p.n} wrong calls</h4><small>${esc(p.testSet)} · ${day(p.at)} · <code>${esc(p.sha)}</code></small><p>${what}</p>${parts}${also}<p>${plural(n, 'experiment')} started from here</p>`)}">
+      <circle cx="${X[i]}" cy="${trunkY}" r="${p.kind === 'fold' ? 6 : 3.5}"/><text x="${X[i]}" y="${trunkY - 11}">${p.n}</text><circle class="hit" cx="${X[i]}" cy="${trunkY}" r="10"/></g>`);
+    if (X[i] - lastX < 70) return;
+    const d = dayOnly(p.at);
+    out.push(`<line class="pg-axt" x1="${X[i]}" x2="${X[i]}" y1="${graphBot + 4}" y2="${graphBot + 9}"/><text class="pg-xl" x="${X[i]}" y="${graphBot + 22}" text-anchor="middle">${d !== lastDay ? `${d} ` : ''}${clock(p.at)}</text>`);
+    lastX = X[i];
     lastDay = d;
-    out.push(`<line class="pg-axt" x1="${t.x}" x2="${t.x}" y1="${graphBot + 4}" y2="${graphBot + 9}"/><text class="pg-xl" x="${t.x}" y="${graphBot + 22}">${label}</text>`);
-  }
-  return `<svg class="pg-svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="group" aria-label="Main line and experiments over time">${out.join('')}</svg>`;
+  });
+  return `<svg class="pg-svg" width="${Wd}" height="${H}" viewBox="0 0 ${Wd} ${H}" role="group" aria-label="Main line and the experiments started from each of its states">${out.join('')}</svg>`;
 }
 
 // Sections
@@ -313,7 +299,7 @@ function key() {
   return `<div class="axis-key pg-key">
     ${PARTS.map((p) => k(sw(p), NAMES[p])).join('')}
     ${k(svg('<circle cx="9" cy="6" r="4" fill="var(--g-700)"/>'), 'Quick fix')}${k(svg('<path d="M9 1L14 6L9 11L4 6Z" fill="var(--g-700)"/>'), 'New idea')}${k(svg('<rect x="5" y="2" width="8" height="8" rx="1" fill="var(--g-700)"/>'), 'Big bet')}
-    ${k(svg('<circle cx="9" cy="6" r="5" fill="var(--better)"/>'), 'Folded in')}${k(svg('<path d="M5.5 2.5l7 7m0-7l-7 7" stroke="var(--g-500)" stroke-width="1.75" fill="none"/>'), 'Discarded')}
+    ${k(svg('<circle cx="9" cy="6" r="5" fill="var(--better)"/>'), 'Folded in')}${k(svg('<path d="M2 6h14" stroke="var(--g-500)" stroke-width="2" opacity="0.4"/>'), 'Let go')}
     ${k(svg('<circle cx="9" cy="6" r="4.5" fill="var(--gold-400)"/>'), 'Waiting for you')}${k(svg('<path d="M1 6h16" stroke="var(--g-400)" stroke-width="1.5" stroke-dasharray="3 2"/>'), 'Open, hand-run')}</div>`;
 }
 
@@ -322,9 +308,9 @@ function section(v) {
     .map(([k, t]) => `<button data-scope="${k}" aria-pressed="${k === scope}">${esc(t)}</button>`)
     .join('');
   return `<section aria-labelledby="g-h"><div class="sec-h"><h2 id="g-h">Branches and folds</h2><div class="seg" role="group" aria-label="How far back">${seg}</div></div>
-    <p class="sec-p">The main line runs left to right with the practice count after each score; each experiment leaves it when it starts. A green join is a fold;
-      a faded branch was let go (point at it for why); branches ending at now are still running. Quiet stretches are squeezed into breaks.
-      <span id="pg-counts"></span></p>
+    <p class="sec-p">The main line runs left to right, one node per state with its practice count. The comb after a node holds every experiment started from that state, one tooth each,
+      capped with its kind; the line is green where a fold moved it, through the tooth that made the next node. A faded tooth was let go (point at it for why), a pulsing one is still running,
+      and <b>→ n</b> marks a fold that landed later, after the line had moved on. <span id="pg-counts"></span></p>
     ${key()}<div class="pg-fig" id="pg-fig"><div class="pg-tip" id="pg-tip" hidden></div><div id="pg-svg"></div></div>
     <div class="pg-list" id="pg-list" aria-label="The experiments in this range, in plain words"></div></section>`;
 }
@@ -375,6 +361,7 @@ const counts = (c) => `${c.live} running, ${c.folded} folded, ${c.ended} let go$
 // Render and refresh
 
 function width() {
+  if ($('pg-fig')?.clientWidth) return Math.max(720, $('pg-fig').clientWidth);
   const m = $('main');
   const cs = getComputedStyle(m);
   return Math.max(720, m.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight));
@@ -403,12 +390,14 @@ function render(v) {
   $('pg-forget').innerHTML = forgetLink();
   $('pg-hero').innerHTML = hero(v);
   $('pg-tick').innerHTML = ticker(v);
-  if (!$('pg-fig') || seenScope !== scope || last?.testSet !== v.testSet) {
+  const fresh = !$('pg-fig') || seenScope !== scope || last?.testSet !== v.testSet;
+  if (fresh) {
     $('pg-sec').innerHTML = section(v);
     listHtml = '';
   }
   $('pg-counts').textContent = counts(view.counts);
   $('pg-svg').innerHTML = draw(v, view, width());
+  if (fresh) $('pg-fig').scrollLeft = $('pg-fig').scrollWidth;
   const lh = list(view);
   if (lh !== listHtml) $('pg-list').innerHTML = listHtml = lh;
   if (pinned && !view.branches.some((b) => b.id === pinned)) pinned = null;
