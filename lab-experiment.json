@@ -1,0 +1,13 @@
+{
+ "id": "tracker-nearest-forward-step",
+ "component": "tracker",
+ "hypothesis": "In p46, after the planted omission of فتماروا (54:36:4), the heard بالنذر (54:36:5) is bound by an in-lock forward step to the rhyme look-alike ونذر (54:37:9). That bind leaves 54:36 unread, and the ayah ledger reports a false skip at 54:36:1. When several forward positions fit a heard word, take the nearest one unless a farther one beats it by the existing commit margin. Predict tracker -1, overall -1 (honest; below the gate alone).",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-03T18:04:01+00:00",
+ "author": "autolab"
+}
