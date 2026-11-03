@@ -3002,7 +3002,7 @@
   },
   {
    "kind": "main",
-   "at": "2026-11-02T23:33:25+00:00",
+   "at": "2026-11-02T23:33:29+00:00",
    "sha": "75fde7d1",
    "testSet": "lab-v1.5",
    "experiment": "checker-ledger-with-without-ayah-fit",
@@ -3019,7 +3019,7 @@
   },
   {
    "kind": "experiment",
-   "at": "2026-11-02T23:33:25+00:00",
+   "at": "2026-11-02T23:33:29+00:00",
    "id": "checker-ledger-with-without-ayah-fit",
    "component": "checker",
    "hypothesis": "The ayah-absence ledger found the right skip candidates (26:109, 55:29, 77:33; checker -4) but lost 4 calls. It judged absence by whole-ayah spotting against an open phone-loop filler, and that filler outscores any phone-blurred ayah that was actually recited. Keep the ledger's candidates, but decide each one by a closed two-way forward-sum fit on the stored posteriors over the span between the committed unique neighbours: the in-order text with the ayah against the in-order text without it, and no filler. Predict 3 of 4 targets kept and 3 of the 4 ledger losses gone: checker -3, overall -3.",
@@ -3046,6 +3046,341 @@
      "listener": 34,
      "tracker": 4,
      "checker": 8
+    },
+    "exam": null
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-02T23:35:38+00:00",
+   "id": "listener-added-word-must-be-lexical",
+   "component": "listener",
+   "hypothesis": "Listener-charged added-word false warnings (22:13:3, 26:5:1, 7:198:7) are phone-blurred repeats or noise bursts that pass the 3-phone/2-consonant shape test and 10-nat support, but they do not spell a real word, while planted additions are always whole attested mushaf words. Confirm a support-path added word only if its span spells a whole non-neighbour mushaf word under soft costs; otherwise it must clear 2x SUPPORT. Predict 2 of 3 won, listener -2, overall -2 (honest; below the gate alone, upside -3).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: None of the three spans both fail the soft-cost whole-word test and sit under 2x SUPPORT: 22:13:3 confirms as an omission before that gate, 26:5:1 fails the spell test but wins by 28.7 nats, and 7:198:7 spells كم at 17.6 nats. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-02T23:39:36+00:00",
+   "id": "tracker-one-word-excursion-is-insertion",
+   "component": "tracker",
+   "hypothesis": "Main misses both tracker-charged added words because the tracker has no insertion explanation. At p63 37:69:1 the planted وقفوهم is verbatim 37:24:2, so the tracker relocates on that one word and the checker never prices an addition. At p14 44:10:1 the open added-word issue is sealed uncertain by the lock-drop rules. Revoke a relocation backed by exactly one destination word when the heard words after it continue the anchor text, and re-land the verified insertion-explains-drop edit. Predict tracker -2, overall -2 (speculative -3 if a listener-charged surah-37 word-1 addition rides the same rule).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: p63's relocation to 37:24 commits on two heard destination words (37:24:1 وقفوهم and 37:24:2 إنهم), so a one-word revoke never fires. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-02T23:40:00+00:00",
+   "id": "listener-lexical-gate-edge-lending",
+   "component": "listener",
+   "hypothesis": "The folded lexical gate lets a non-word heard span confirm at today's margin when it has more consonants than the written word. The 3 surviving phone wrong-word false warnings (26:106:1 إذ, 55:48:1 ذواتا, 26:174:8 مؤمنين) plausibly use that escape with a consonant that is really the neighbour's edge sound split across the seam. Stop counting surplus consonants that duplicate the adjacent neighbour's edge consonant. Predict 3 of 3 won with 0 lost: listener −3, overall −3.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: None of the 3 targets is confirmed through the more-consonants escape by a neighbour-edge consonant: إذ is يَاا (1 consonant vs 2, 24 nats at 2×SUPPORT), ذواتا is د و ف vs ذ و ت (20.4 nats at 2×SUPPORT), and مؤمنين's surplus is the glued word قليل, not وإن's onset, and already clears 2×SUPPORT. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T00:15:36+00:00",
+   "id": "checker-inner-waqf-seams",
+   "component": "checker",
+   "hypothesis": "Four of the 5 checker mid-ayah added-word misses (38:4:6, 37:113:5, 9:65:8, 11:10:11) insert the word right after an inner mushaf waqf mark (منهم ۖ, إسحاق ۚ, ونلعب ۚ, عني ۚ), where the reciter stops just as at an ayah end. The folded seam spelled-surplus rule only treats ayah ends as seams, and it judges the neighbouring words in their connected (wasl) form. Treat a waqf-marked inner boundary with a heard labelled pause as a seam, with the neighbours in pausal form, so the folded seam rule runs there unchanged. Predict checker -2, overall -2; upside -3 if one listener-charged inner-waqf addition (4:157:24, 4:170:12, 9:5:15, 20:40:25) also flips.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Only 2 of 4 targets have both a detector-labelled pause and a spelled surplus after a pausal fit: 37:113:5's gap fails blank-ownership on one trailing ڇ frame, and 11:10:11 is heard as مَںںں which spells nothing. (measured: {\"targets won\": 2})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T00:15:58+00:00",
+   "id": "checker-skip-edge-whole-ayah-fit",
+   "component": "checker",
+   "hypothesis": "A proposed skip can start too late when a unique ayah just before its start is counted as read only because a refrain word after it is bound to the source. In p24, 26:130 is never heard, but the warning fires at 26:131:2 and the real skip at 26:130:1 is missed. Re-decide the skip's start with a closed forward-sum fit that compares reading the adjacent whole ayah against skipping it. Predict checker -2 (the p24 miss and false-warning pair), overall -3; the third call, a p26 41:19:7 edge fix, is speculative and the floor is -2.",
+   "expected": {
+    "component": -2,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +9 (needs -3 or better), checker +3 (needs +2 or better); without reader mp3quran-22: +9 (needs -1 or better); 3 new false warning(s) on fully clean sessions; studio +7; 12 incidents lost against 3 won",
+   "branch": {
+    "wrongCalls": 55,
+    "missed": 36,
+    "falseWarnings": 19,
+    "listener": 41,
+    "tracker": 3,
+    "checker": 11
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T00:19:38+00:00",
+   "id": "checker-ledger-span-from-visits",
+   "component": "checker",
+   "hypothesis": "The folded with/without-ayah fit created two false skips (p41 26:144:1, p46 54:36:1), plausibly because its frame span is bounded by tracker commit times. Those times sit after a lock drop or a wrong-copy bind, so the recited ayah's own frames fall outside the span and the skip hypothesis wins trivially. Bound the span by the neighbours' in-order checker visits, including any lost or relocated interval between them, and bundle the verified p14 insertion-explains-drop edit as a rider. Predict checker 0, overall −3 (−2 from the two losses, −1 from the rider).",
+   "expected": {
+    "component": 0,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Neither false skip has in-order speech of the ledgered ayah outside the fit span: 54:36:1-3 is visited inside 110.96-121.84s and still loses by 804 nats, and 26:144 is never visited or flashed. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T00:39:38+00:00",
+   "id": "listener-two-ear-consonant-agreement",
+   "component": "listener",
+   "hypothesis": "The relabel ear already spells the planted word whole at p07 37:36:1 (فبم) and p33 26:208:1 (كريم), but p07 fails on 0.58 confidence and p33 is sealed uncertain when the insertion drops the lock. Accept a relabel-ear spelled word when the shipped greedy tokens in the same frames hold at least 2 of its consonants in order, whichever visit owns them. Add the builder-verified insertion-explains-drop edit as a rider. Predict listener -2, overall -3 (the p14 rider is tracker -1).",
+   "expected": {
+    "component": -2,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Only p33's relabel-ear span (كريم) has two shipped consonants in order; p07's seam is سَل, سَبِ, or لِۦۦم, not فبم, and those frames hold one consonant. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T01:15:39+00:00",
+   "id": "checker-inner-waqf-cold-crop-spell",
+   "component": "checker",
+   "hypothesis": "Four listener-charged mid-ayah additions (4:157:24, 4:170:12, 9:5:15, 20:40:25) appear to sit right after an inner mushaf waqf mark, where the in-context string is blank. The inner-waqf seam path only spells in-context greedy tokens, and the cold-crop gap path only uses the 10-nat support test, which never confirms. At inner-waqf seams with a labelled pause, feed the folded cold-crop gap phones into the same pausal-fit spell test. Predict 2 of 4 won: checker 0, overall -2.",
+   "expected": {
+    "component": 0,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: All four targets have an inner waqf and a run-end pause, but the cold-crop phones do not spell the planted word under soft costs after the pausal fit and tail strip (0 of 4). (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T01:23:41+00:00",
+   "id": "checker-inner-waqf-run-end-pause",
+   "component": "checker",
+   "hypothesis": "The inner-waqf seam rule isolates spelled additions at 38:4:6 and 9:65:8, but 37:113:5 is lost because the pause test counts the previous token's own held run (a `ڇ` frame at 0.70) as a non-blank frame inside a 1.68 s silence. Land the inner-waqf seam with its pause gap measured from the end of the previous token's argmax run, only on that new path. Predict 3 of 3 won: checker −3, overall −3.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: 38:4:6 spells إن after an 18-frame blank pause, but وقال is heard without its و, so the folded complete-visit rule never emits and the engine wins 2 of 3. (measured: {\"targets won\": 2})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T01:24:00+00:00",
+   "id": "listener-wider-student-capacity",
+   "component": "listener",
+   "hypothesis": "Phone wrong-word false warnings are stable ن/م and ف/ك confusions baked into the shipped weights: the fp32 parent confirms all 8, and no re-read, veto or calibration separated them from planted swaps. Every listener try changed the data, the loss, the export or the read-out, and none changed the capacity of the model that hears. Re-distill a 2x-width student from the existing teacher with the shipped recipe, augmentation and int8 export, anchored to the shipped student on clean-match frames, and deploy it as the decoder. Predict 3 of 8 won with 1 loss: listener -3, overall -2.",
+   "expected": {
+    "component": -3,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +41 (needs -3 or better), listener +36 (needs +2 or better); without reader mp3quran-38: +41 (needs -1 or better); 7 new false warning(s) on fully clean sessions; studio +26; 58 incidents lost against 17 won",
+   "branch": {
+    "wrongCalls": 87,
+    "missed": 48,
+    "falseWarnings": 39,
+    "listener": 70,
+    "tracker": 9,
+    "checker": 8
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T01:27:41+00:00",
+   "id": "listener-pause-onset-glottal-artifact",
+   "component": "listener",
+   "hypothesis": "After a pause, the listener emits a hamza (ء) at the start of any resumed word whose onset burst the phone channel erased. In p14 that is كُنّا heard as ءُنننَاا, and the fake ء exactly matches the omitted إنّا, so the omission is placed on كنا. Have the sdk tag a ء that is the first token after a labelled pause as a pause-onset token, and have omission placement treat it as matching neither candidate's onset, so the surviving vowel /u/ decides. Predict listener -2, overall -2: the p14 44:5:4 miss and its paired 44:5:5 false warning. 44:23:1 is a speculative extra and is not counted.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +0 (needs -3 or better), listener +0 (needs +2 or better); without reader mp3quran-40: +2 (needs -1 or better); 1 new false warning(s) on fully clean sessions; 2 incidents lost against 2 won",
+   "branch": {
+    "wrongCalls": 46,
+    "missed": 30,
+    "falseWarnings": 16,
+    "listener": 34,
+    "tracker": 4,
+    "checker": 8
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T01:29:37+00:00",
+   "id": "listener-inner-waqf-gap-anchors",
+   "component": "listener",
+   "hypothesis": "Four listener-charged added words sit right after an inner mushaf waqf mark (4:157:24, 4:170:12, 9:5:15, 20:40:25), where the folded cold-crop gap decode plausibly never runs. Its gap selector needs the previous word's written (wasl) ending as a confident anchor and starts the gap at that token's emission frame, so a pausal ending or a held tail frame removes the gap. Select gaps at waqf-marked inner boundaries using the previous word's pausal form, starting after its argmax run; predict 2 of 4 won, listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: All four inner-waqf boundaries already have a shipped cold-crop gap, and the one span the pausal run moved (20:40, 160 ms earlier) cold-decodes as فَاا with nothing kept. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T01:49:36+00:00",
+   "id": "checker-ikhfaa-nun-spell-realization",
+   "component": "checker",
+   "hypothesis": "At inner-waqf seams the planted وإن/فإن are heard as `وَءِںںں`. The spell test treats the hidden-nūn nasal ں as a waqf tail and strips it, so `وَءِ` spells nothing. Let a ں run that sits directly before a heard consonant, where tajweed gives ikhfaa after nūn sākina, stand for ن in the spell test instead of being stripped. Predict 2 of 3 listener targets won: checker 0, overall −2, or −3 if 11:10:11 من also flips.",
+   "expected": {
+    "component": 0,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Only 1 of 3 targets (9:5:15) has its ں run followed, with no labelled pause, by an ikhfaa consonant; 4:157:24 and 4:170:12 both have a blank-owned pause before the next consonant. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T02:59:42+00:00",
+   "id": "tracker-shared-word-insertion-support",
+   "component": "tracker",
+   "hypothesis": "At p63 the planted وقفوهم plus the next word إنهم match 37:24:1-2, so the tracker relocates on 2 words even though إنهم is also the anchor's 37:69:1. Count relocation support only from heard words that an anchor-plus-one-inserted-word explanation cannot fit, and re-land the p14 edit in heard-phone-deletion form; predict tracker -2, overall -2 (-3 speculative).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall -2 (needs -3 or better), tracker -2 (needs +2 or better)",
+   "branch": {
+    "wrongCalls": 44,
+    "missed": 29,
+    "falseWarnings": 15,
+    "listener": 34,
+    "tracker": 2,
+    "checker": 8
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T03:25:39+00:00",
+   "id": "checker-surplus-owned-nasal-tail",
+   "component": "checker",
+   "hypothesis": "At inner-waqf seams the planted وإن/فإن/من are heard as `وَءِںںں`/`فَءِںںں`/`مَںںں` before a pause, and the waqf-tail strip deletes the `ں` as if it were the previous word's ghunna, even though it follows surplus phones that no written word owns. Strip a `ں` run only when it is contiguous with the previous word's pausal-fit final phone; when it follows unowned surplus phones, keep it as ن at soft cost. Predict 3 of the 3 listener targets plus 11:10:11 won: checker −1, overall −3 (−4 if all flip).",
+   "expected": {
+    "component": -1,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Two of the three listener targets spell وإن once an unowned ں run is kept, but 4:170:12's فإن is the next word's alignment visit, so the seam never sees a surplus nasal. (measured: {\"targets won\": 2})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-03T03:35:58+00:00",
+   "sha": "e16de82c",
+   "testSet": "lab-v1.5",
+   "experiment": null,
+   "note": "re-scored for fold of checker-inner-waqf-proclitic-onset-visit",
+   "practice": {
+    "wrongCalls": 46,
+    "missed": 31,
+    "falseWarnings": 15,
+    "listener": 34,
+    "tracker": 4,
+    "checker": 8
+   },
+   "exam": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-03T03:36:11+00:00",
+   "sha": "272db316",
+   "testSet": "lab-v1.5",
+   "experiment": "checker-inner-waqf-proclitic-onset-visit",
+   "note": "The inner-waqf run-end seam wins 37:113:5 and 9:65:8 but misses 38:4:6, because the phone channel erased the proclitic و of the next word وقال, so its visit is never complete and the folded spell rule never emits. Re-land the seam and, on that path only, accept a next-word visit whose only gap is an unmatched word-initial proclitic consonant; predict 3 of 3 won, checker −3, overall −3.; practice-only fold, exam not measured",
+   "practice": {
+    "wrongCalls": 43,
+    "missed": 28,
+    "falseWarnings": 15,
+    "listener": 36,
+    "tracker": 4,
+    "checker": 3
+   },
+   "exam": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T03:36:11+00:00",
+   "id": "checker-inner-waqf-proclitic-onset-visit",
+   "component": "checker",
+   "hypothesis": "The inner-waqf run-end seam wins 37:113:5 and 9:65:8 but misses 38:4:6, because the phone channel erased the proclitic و of the next word وقال, so its visit is never complete and the folded spell rule never emits. Re-land the seam and, on that path only, accept a next-word visit whose only gap is an unmatched word-initial proclitic consonant; predict 3 of 3 won, checker −3, overall −3.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "folded",
+   "testSet": "lab-v1.5",
+   "note": "keeps its overall and checker gain",
+   "branch": {
+    "wrongCalls": 43,
+    "missed": 28,
+    "falseWarnings": 15,
+    "listener": 36,
+    "tracker": 4,
+    "checker": 3
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 43,
+     "missed": 28,
+     "falseWarnings": 15,
+     "listener": 36,
+     "tracker": 4,
+     "checker": 3
     },
     "exam": null
    }
