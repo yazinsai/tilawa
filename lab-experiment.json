@@ -1,0 +1,13 @@
+{
+ "id": "listener-stack-1720e6-m",
+ "component": "listener",
+ "hypothesis": "Stack checker-connected-madd-vowel-drops (-1) and listener-final-slot-manner-rekey (-2): each won different incidents and lost none, so together they should clear the fold bar; predict overall -3.",
+ "expected": {
+  "component": -2,
+  "overall": -3
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-03T19:29:38+00:00",
+ "author": "autolab"
+}
