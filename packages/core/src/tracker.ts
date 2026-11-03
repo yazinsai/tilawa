@@ -337,6 +337,16 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
    */
   let excursion: { home: number; dest: number; length: number; entry: number; phones: string; trimmed: boolean } | null = null;
   /**
+   * An in-lock jump that left two or more words unread. Withheld until the phonemes after the landing word
+   * decide it: the next word's continuation (one deletion) or the landing's. Either one has to win by the
+   * commit margin. Still open at the end, the jump stands.
+   */
+  let farStep: { fromWi: number; farWi: number; shadowWi: number; cont: string; pending: PositionEvent[]; past: boolean } | null = null;
+  /** After a revoke, later locks in the same push would hide the rebound word from the checker's one cursor update. */
+  let swallowRest = false;
+  /** Continuation locks held until the next push, so the rebound word is evaluated on its own. */
+  let deferred: PositionEvent[] = [];
+  /**
    * Holding and continuation resolution run only on the first lock, and only until that lock's position leaves
    * every slot-differing span. A word outside those spans is unique to its location. Any later `startLocal`
    * (a jump, a reacquisition, the re-anchor after a copy change) closes it.
@@ -876,6 +886,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     holding = null;
     if (everLocked) arm = false;
     everLocked = true;
+    farStep = null;
     raw = "";
     rawConf = [];
     onsetCut = 0;
@@ -1011,6 +1022,98 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const phonesBetween = (from: number, to: number) => {
     if (from < 0 || to <= from || to > index.words.length) return "";
     return index.phonemes.slice(index.words[from].start, index.words[to - 1].end);
+  };
+  const unreadBetween = (a: number, b: number) => {
+    let n = 0;
+    for (let k = a + 1; k < b && k < index.words.length; k++) if (index.words[k].end > index.words[k].start) n++;
+    return n;
+  };
+  /** Phonemes of the words after `wi`, at least `minPhones` long, so a continuation can be aligned. */
+  const phonesAfter = (wi: number, minPhones: number) => {
+    const start = spoken(wi + 1);
+    if (start < 0) return "";
+    let end = start;
+    let n = 0;
+    for (let k = start; k < index.words.length && n < minPhones; k++) {
+      const w = index.words[k];
+      if (w.end > w.start) n += w.end - w.start;
+      end = k + 1;
+    }
+    return phonesBetween(start, end);
+  };
+  /**
+   * The landing word is already spent. The phonemes after it are an in-order continuation of the next word,
+   * or of the landing. The commit margin is the same one a lock uses, so a short lag cannot revoke a jump.
+   */
+  const farStepVerdict = (): "shadow" | "far" | null => {
+    const step = farStep;
+    if (!step?.past || step.cont.length === 0) return null;
+    const nearCost = anchorFitCost(phonesAfter(step.shadowWi, step.cont.length), step.cont);
+    const farCost = anchorFitCost(phonesAfter(step.farWi, step.cont.length), step.cont);
+    if (nearCost === null || farCost === null) return null;
+    const margin = commitMargin(step.cont.length, minSeparation, separationScale);
+    const gain = (farCost - nearCost) / UNIT;
+    if (gain >= margin) return "shadow";
+    if (-gain >= margin) return "far";
+    return null;
+  };
+  const noteFarStep = (before: LocalPosition, pos: LocalPosition, p: string) => {
+    const prevWi = index.wordAt(Math.max(0, before.offset - 1));
+    const wi = index.wordAt(Math.max(0, pos.offset - 1));
+    if (!farStep && wi > prevWi && pos.origin !== before.origin && unreadBetween(prevWi, wi) >= 2) {
+      const shadowWi = spoken(prevWi + 1);
+      if (shadowWi >= 0 && shadowWi < wi) farStep = { fromWi: prevWi, farWi: wi, shadowWi, cont: "", pending: [], past: false };
+    }
+    if (!farStep) return;
+    if (!farStep.past) {
+      if (wi !== farStep.farWi) {
+        farStep.past = true;
+        farStep.cont += p;
+      }
+    } else farStep.cont += p;
+  };
+  const commitFarStep = (): PositionEvent[] => {
+    const pending = farStep?.pending ?? [];
+    farStep = null;
+    if (pending.length) return pending;
+    const e = localEvent([]);
+    return e ? [e] : [];
+  };
+  /** The withheld jump lost. Lock the next word and replay the continuation from there. */
+  const revokeFarStep = (): PositionEvent[] => {
+    const step = farStep!;
+    farStep = null;
+    const at = step.shadowWi;
+    const word = ref(at);
+    const event: PositionEvent = {
+      type: "position",
+      v: EVENT_SCHEMA_VERSION,
+      timeMs: lastFrame * (frameMs ?? 0),
+      referenceVersion: index.version,
+      expected: expectedFor(word),
+      observed: [{ word, span: { start: word, end: word }, confidence: 1, cost: 0, per: 0 }],
+      state: "locked",
+    };
+    emittedSinceLock = true;
+    const dest = index.words[at];
+    local = createLocalSearch(index, { offset: dest.end, origin: dest.start, edits: 0 });
+    stepCosts.length = 0;
+    weak = false;
+    pending = null;
+    // Catch the search up, and hand those locks to the next push. This push publishes only the rebound
+    // word: the checker notes the last cursor in a push, so a later word in the same batch would hide it.
+    const locked = emit(event, (from) => quietTrace(from, "locked"));
+    const later: PositionEvent[] = [];
+    for (const p of step.cont) {
+      local.step(p);
+      stepCosts.push(local.position().stepCost);
+      if (stepCosts.length > CONFIRM) stepCosts.shift();
+      const e = localEvent([]);
+      if (e) later.push(e);
+    }
+    deferred = later;
+    swallowRest = true;
+    return [locked];
   };
   const skeleton = (from: number, to: number) => {
     let s = "";
@@ -1264,7 +1367,9 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
    * continues. `lost` is emitted when that search locks off the anchor, or when the session ends still there.
    */
   const follow = (evidence: PhonemeEvidence): EngineEvent[] => {
-    const events: EngineEvent[] = [];
+    const events: EngineEvent[] = [...deferred];
+    deferred = [];
+    swallowRest = false;
     for (const ph of evidence.phonemes) {
       observe(ph);
       if (!local) {
@@ -1280,6 +1385,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         continue;
       }
       const before = local.save();
+      const beforePos = local.position();
       local.step(ph.p);
       stepCosts.push(local.position().stepCost);
       if (stepCosts.length > CONFIRM) stepCosts.shift();
@@ -1291,6 +1397,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
           // Not Quran text where we are: rewind the local search to before the phrase, as if it was never heard.
           if (heardPhrase.name === "basmala") {
             // A surah starts, not necessarily the next one: hand over to global search, favouring openings.
+            if (farStep) events.push(...commitFarStep());
             afterBasmala = { from: last!.observed[0].word, held: 0 };
             if (memorization) steady = last!.expected;
             local = null;
@@ -1312,11 +1419,24 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         }
       }
       const pos = local.position();
+      if (swallowRest) {
+        const e = localEvent([]);
+        if (e) deferred.push(e);
+        expectedHistory.push(last!.expected);
+        if (expectedHistory.length > WEAK_LAG) expectedHistory.shift();
+        continue;
+      }
+      noteFarStep(beforePos, pos, ph.p);
       const relocated = considerTwin(ph.p, pos);
       if (relocated) {
+        farStep = null;
         events.push(relocated);
         continue;
       }
+      const bump = () => {
+        expectedHistory.push(last!.expected);
+        if (expectedHistory.length > WEAK_LAG) expectedHistory.shift();
+      };
       if (!weak && pos.recentCost > WEAK_COST) {
         weak = true;
         steady = expectedHistory[0] ?? last!.expected;
@@ -1335,21 +1455,45 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
           pending = { m: a.lock, held: pending && sameLocation(pending.m, a.lock) ? pending.held + 1 : 1 };
         } else pending = null;
         if (pending && pending.held >= (afterPhrase ? 1 : jumpPhonemes) && relocationCommits(pending.m, index.wordAt(Math.max(0, pos.offset - 1)))) {
+          if (farStepVerdict() === "shadow") {
+            events.push(...revokeFarStep());
+            bump();
+            continue;
+          }
+          if (farStep) events.push(...commitFarStep());
           if (memorization) frozen ??= steady;
           const fromWi = index.wordAt(Math.max(0, pos.offset - 1));
           const rebind = takeJump(fromWi, pending.m);
           if (rebind) events.push(rebind);
           startLocal(pending.m);
         } else if (!pending && a.event.state === "lost" && pos.recentCost > maxCost && observed.length >= LOST_AFTER) {
-          // Nothing has committed elsewhere. Keep this anchor until the search locks off it, or the session ends.
-          events.push(beginHold());
-          continue;
+          // Nothing has committed elsewhere. A provisional far step still waiting on its continuation is not a
+          // misfit hold: the phonemes after the landing have not chosen yet.
+          const verdict = farStep ? farStepVerdict() : null;
+          if (verdict === "shadow") {
+            events.push(...revokeFarStep());
+            bump();
+            continue;
+          }
+          if (verdict === "far" || !farStep) {
+            if (farStep) events.push(...commitFarStep());
+            events.push(beginHold());
+            continue;
+          }
         }
       }
+      const verdict = farStepVerdict();
+      if (verdict === "shadow") {
+        events.push(...revokeFarStep());
+        bump();
+        continue;
+      }
       const e = localEvent(shortlist);
-      if (e) events.push(e);
-      expectedHistory.push(last!.expected);
-      if (expectedHistory.length > WEAK_LAG) expectedHistory.shift();
+      if (farStep) {
+        if (e) farStep.pending.push(e);
+        if (verdict === "far") events.push(...commitFarStep());
+      } else if (e) events.push(e);
+      bump();
     }
     return events;
   };
@@ -1472,7 +1616,9 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         cell = [];
         return [...events, ...(local ? endLocal() : evaluate(true))];
       }
-      return endLocal();
+      const pending = [...(farStep ? commitFarStep() : []), ...deferred];
+      deferred = [];
+      return [...pending, ...endLocal()];
     },
   };
 }
