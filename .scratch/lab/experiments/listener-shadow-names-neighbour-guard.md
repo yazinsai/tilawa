@@ -26,7 +26,7 @@ On the current main phone posteriors (the lexical listener and spliced-clean-int
 
 A smear of the previous word's last consonant between م and ب does not become مب. A pair that borrows و from the neighbouring word stays an omission. A ب that continues a ب token does not complete a veto.
 
-Core and sdk tests on Modal.
+Core and sdk tests on Modal, six shards. One shard hit Vitest's worker RPC deadline after its tests had passed.
 
 ## Limits
 
