@@ -238,12 +238,14 @@ describe("confirm delay", () => {
 
 describe("unclear evidence", () => {
   it("ends uncertain on low decoder confidence", () => {
-    const f = syntheticFixture(index, { id: "c", from, to: w(2, 256, 10), edits: replaceWord(target, ALIEN), chunkSize: 8 });
+    // ش→ص and ف→ب stay obstruents, so a manner skeleton does not skip the 0.6 cut. الكوثر would: it is another word.
+    const said = "يَصبَعُ";
+    const f = syntheticFixture(index, { id: "c", from, to: w(2, 256, 10), edits: replaceWord(target, said), chunkSize: 8 });
     const start = at(target);
     let k = 0;
     const evidence = f.evidence.map((e) => ({
       ...e,
-      phonemes: e.phonemes.map((p) => (k++ >= start && k <= start + ALIEN.length ? { ...p, conf: 0.3 } : p)),
+      phonemes: e.phonemes.map((p) => (k++ >= start && k <= start + said.length ? { ...p, conf: 0.3 } : p)),
     }));
     const events = replayChecked(index, { ...f, evidence });
     expect(summary(events)).toEqual(["suspected wrong_word 2:255:23", "uncertain wrong_word 2:255:23"]);

@@ -11,6 +11,8 @@ import { minGapFrames } from "./gap-decode.js";
 import { procliticOnset, waqfMarked } from "./mushaf-marks.js";
 import { absenceMargin } from "./ayah-ledger.js";
 import { PHRASE_PEAK, PHRASE_SWITCH, letterSkeleton, parallelPaths } from "./parallel-phrases.js";
+import { isMaddLetter, maddSites, stemConsonant } from "./madd-drops.js";
+import { mannerChanges, mannerWords } from "./manner.js";
 import { spanId, slotSpans } from "./slot-spans.js";
 
 export interface CheckerPolicy {
@@ -177,6 +179,17 @@ interface Issue {
    */
   lexicon?: boolean;
   /**
+   * A word-final long vowel before a hamza, judged by its duration against this reciter's earlier madd
+   * munfasil. The forward sum prices one vowel as nothing, so the length is the whole decision.
+   */
+  madd?: boolean;
+  /**
+   * The heard word's manner skeleton contradicts the written word at two or more aligned consonants and
+   * is another mushaf word. Stands in for the lexical gate and the 0.6 confidence cut. `SUPPORT` and the
+   * weak-evidence gate are unchanged.
+   */
+  manner?: boolean;
+  /**
    * Substitution taken from the per-word alignment, not a parallel phrase or a lexical candidate. A span that
    * spells another mushaf word, or that carries more consonants than the written word, keeps today's margin.
    * Anything shorter or the same length that spells no such word needs twice the support margin.
@@ -200,7 +213,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const ref = index.phonemes;
   const words = index.words;
   const lexical = lexicalWords(index);
+  const manners = mannerWords(index);
   const parallels = parallelPaths(index);
+  const madd = maddSites(index);
   const allSpans = slotSpans(index);
   const spanById = new Map(allSpans.map((s) => [spanId(s), s]));
   /** Spans whose continuation already picked a copy. Their slots are no longer held. */
@@ -275,6 +290,89 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   let declared = !!passage;
   /** Phonemes since the last anchor (or the latest `HISTORY` while not anchored). */
   let obs: Heard[] = [];
+  /**
+   * Matched madd-munfasil lengths already scrolled out of the window, in frames from the stem consonant to the
+   * next hamza. The threshold for a vowel drop is the shortest of these, plus any still in the window.
+   */
+  const pastMadd: { frame: number; span: number }[] = [];
+  /** The same silence the inner-waqf path labels: a blank of `GAP_PAD_S` between two phones. */
+  const labelledPause = (prev: number): boolean => {
+    if (frameMs <= 0 || prev < 0 || prev + 1 >= obs.length) return false;
+    let a = obs[prev]!.end + 1;
+    const b = obs[prev + 1]!.start;
+    if (frames && frames.startFrame >= 0 && a >= frames.startFrame && b <= frames.endFrame) {
+      const id = tokenId.get(obs[prev]!.p);
+      if (id) while (a < b) {
+        const row = frames.row(a);
+        let best = 0;
+        for (let i = 1; i < row.length; i++) if (row[i]! > row[best]!) best = i;
+        if (best !== id) break;
+        a++;
+      }
+    }
+    if (b - a < minGapFrames(frameMs)) return false;
+    if (!frames || frames.startFrame < 0 || a < frames.startFrame || b > frames.endFrame) return true;
+    const owns = Math.log(0.5);
+    for (let f = a; f < b; f++) if (frames.row(f)[0]! < owns) return false;
+    return true;
+  };
+  interface MaddHit {
+    word: number;
+    frame: number;
+    span: number;
+    consObs: number;
+    hamzaObs: number;
+    pause: boolean;
+    /** A madd letter of the written word was heard between the consonant and the hamza. */
+    matched: boolean;
+  }
+  /** Connected madds the alignment has both edges for. A pause between the words is not one of them. */
+  const measureMadd = (aligned: Step[]): MaddHit[] => {
+    const exact = new Map<number, number>();
+    const seen = new Set<number>();
+    for (const s of aligned) if (s.op === "diag" && ref[s.ref] === obs[s.obs]!.p) {
+      exact.set(s.ref, s.obs);
+      seen.add(index.wordAt(s.ref));
+    }
+    const out: MaddHit[] = [];
+    for (const wi of seen) {
+      const next = madd.munfasil.get(wi);
+      if (next === undefined) continue;
+      const cons = stemConsonant(ref, words[wi]!.start, words[wi]!.end);
+      const hamza = words[next]!.start;
+      const consObs = exact.get(cons);
+      const hamzaObs = exact.get(hamza);
+      if (cons < words[wi]!.start || consObs === undefined || hamzaObs === undefined || hamzaObs <= consObs) continue;
+      const span = obs[hamzaObs]!.start - obs[consObs]!.start;
+      if (span <= 0) continue;
+      let pause = false;
+      for (let k = consObs; k < hamzaObs && !pause; k++) pause = labelledPause(k);
+      let matched = false;
+      if (!pause) for (const s of aligned) {
+        if (s.op !== "diag" || s.obs <= consObs || s.obs >= hamzaObs) continue;
+        if (s.ref < words[wi]!.start || s.ref >= words[wi]!.end) continue;
+        if (ref[s.ref] === obs[s.obs]!.p && isMaddLetter(ref[s.ref]!)) matched = true;
+      }
+      out.push({ word: wi, frame: obs[consObs]!.start, span, consObs, hamzaObs, pause, matched });
+    }
+    return out;
+  };
+  /**
+   * Vowel-drop candidates shorter than every earlier matched madd in this session. A matched madd that is not
+   * that short joins the baseline; a flagged drop does not, so one miss cannot lower the bar for the next.
+   */
+  const maddNow = (aligned: Step[]) => {
+    const hits = measureMadd(aligned).sort((a, b) => a.frame - b.frame);
+    const baseline = pastMadd.map((p) => ({ ...p }));
+    const flags: MaddHit[] = [];
+    for (const m of hits) {
+      const earlier = baseline.filter((b) => b.frame < m.frame);
+      const min = earlier.reduce((n, b) => Math.min(n, b.span), Infinity);
+      if (madd.drops.has(m.word) && !m.pause && earlier.length > 0 && m.span < min) flags.push(m);
+      else if (m.matched && !m.pause && !baseline.some((b) => b.frame === m.frame)) baseline.push({ frame: m.frame, span: m.span });
+    }
+    return { flags, baseline };
+  };
   /** Word the window's alignment starts from; null while not anchored. */
   let anchor: number | null = null;
   let lead = 0;
@@ -319,7 +417,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const decide = (o: Open, out: CheckerEvent[], state?: "uncertain") => {
     open.delete(o.issue.word);
     decided.add(o.issue.word);
-    const sure = ((declared && !latched) || trackerLocked) && clarity(o.issue) >= minConfidence && supported(o.issue) !== false;
+    const sure = ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false;
     out.push(event(o, state ?? (sure ? "confirmed" : "uncertain")));
   };
 
@@ -332,6 +430,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const supported = (issue: Issue, requireFinite = false): boolean | null => {
     // Spelled surplus is structural. A likelihood contest over the neighbours is what loses the word.
     if (issue.lexicon) return null;
+    // The madd's length was already compared with this reciter's own. One vowel does not move the forward sum.
+    if (issue.madd) return null;
     if (!frames || frames.startFrame < 0 || issue.cls === "skipped_passage") return null;
     const heardAt = (wi: number) => steps.filter((s): s is Extract<Step, { op: "diag" }> => s.op === "diag" && index.wordAt(s.ref) === wi).map((s) => s.obs);
     const before = prevWord(issue.word);
@@ -407,14 +507,19 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return stripEdge(live || issue.observed || "");
   };
   const consonantCount = (s: string) => collapseHeld([...s]).filter((p) => CONSONANTS.has(p)).length;
+  /** A manner skeleton match is sure without the 0.6 cut. The weak-evidence gate still reads the changed phones. */
+  const heardSure = (issue: Issue) => issue.manner === true || clarity(issue) >= minConfidence;
   /**
    * Nats the decoded hypothesis must win by. A per-word substitution that does not spell another mushaf word
    * (not the written word, not a word or prefix within ±3) clears twice `SUPPORT`, unless the span has more
    * consonants than the written word: that extra speech is the next word's, and today's margin still owns it.
-   * The weak-evidence gate already asks for twice `SUPPORT`. A spelled word keeps today's margin.
+   * A manner skeleton replaces that lexical doubling. The weak-evidence gate still asks for twice `SUPPORT`.
+   * A spelled word keeps today's margin.
    */
   const supportNeed = (issue: Issue): number => {
     const weak = issue.cls === "wrong_word" && changedClarity(issue) < UNSURE;
+    // The lexical doubling is the gate a manner skeleton replaces. Weak evidence still doubles.
+    if (issue.manner) return weak ? 2 * support : support;
     if (issue.stringPath) {
       const heard = heardSpan(issue);
       const written = ref.slice(words[issue.word].start, words[issue.last].end);
@@ -519,7 +624,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   const sureOf = (o: Open) =>
-    ((declared && !latched) || trackerLocked) && clarity(o.issue) >= minConfidence && supported(o.issue) !== false;
+    ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false;
 
   /** Confirm frozen slot accusations, or drop the ones that named the copy the continuation rejected. */
   const releaseFrozen = (out: CheckerEvent[], drop: boolean, from = -1, end = Infinity) => {
@@ -1064,7 +1169,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   /** The errors the current alignment shows, by word; and where it stands. */
-  const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; lexical: Issue[]; head: number; furthest: number; steps: Step[]; right: Set<number> } | null => {
+  const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; lexical: Issue[]; manner: Issue[]; head: number; furthest: number; steps: Step[]; right: Set<number> } | null => {
     const visits: Visit[] = [];
     const added: Issue[] = [];
     let cur: Visit | null = null;
@@ -1584,7 +1689,52 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         cls: "added_word", word: rightWord, last: rightWord, obsFrom: best.left.obsTo, obsTo: cut, observed: said, lexicon: true,
       });
     }
-    return { issues, lexical: candidates, head, furthest: reached, steps, right };
+    // A twin that only drops the madd before a hamza. Waqf still removes that vowel, so a labelled pause stays
+    // quiet. Everywhere else the span has to be shorter than this reciter's own matched madd munfasil.
+    for (const m of maddNow(steps).flags) {
+      if (issues.has(m.word) || decided.has(m.word)) continue;
+      const drop = madd.drops.get(m.word)!;
+      const visit = visits.find((v) => v.word === m.word && v.obsFrom >= 0 && v.obsFrom <= m.consObs && v.obsTo > m.consObs);
+      issues.set(m.word, {
+        cls: "wrong_word", word: m.word, last: m.word, obsFrom: visit?.obsFrom ?? m.consObs, obsTo: m.hamzaObs,
+        observed: drop.alt, madd: true,
+      });
+      right.delete(m.word);
+    }
+    // Heard tokens the alignment already gave this word. Two consonant positions whose manner class changes,
+    // and a manner sequence that is a whole mushaf word outside this word and its ±3 neighbours, is a wrong word.
+    // The confirmation path is unchanged: the skeleton stands in for the lexical gate and the 0.6 cut.
+    const wordHeard = (v: Visit) => obs.slice(v.obsFrom, v.obsTo).filter((p) => !p.junk).map((p) => p.p).join("");
+    const mannerContradicts = (wi: number, heard: string) =>
+      mannerChanges(ref.slice(words[wi].start, words[wi].end), heard) >= MIN_HARD && manners.outside(wi, heard);
+    const mannerCandidates: Issue[] = [];
+    const contradicted = new Set<number>();
+    for (const v of visits) {
+      if (!counts(v) || v.word < anchor! || v.obsFrom < 0 || v.obsTo <= v.obsFrom) continue;
+      if (mannerContradicts(v.word, wordHeard(v))) contradicted.add(v.word);
+    }
+    for (const wi of contradicted) {
+      // A visit that keeps this word's manner and is not already a hard edit is the word, or a correction.
+      if (visits.some((v) => counts(v) && v.word === wi && v.obsFrom >= 0 && !wrong(v) && !mannerContradicts(v.word, wordHeard(v)))) continue;
+      const existing = issues.get(wi);
+      if (existing?.madd || existing?.phrase || (existing && existing.cls !== "wrong_word")) continue;
+      if (existing) {
+        existing.manner = true;
+        continue;
+      }
+      if (decided.has(wi)) continue;
+      const v = [...visits].reverse().find((x) => x.word === wi && counts(x) && x.obsFrom >= 0 && mannerContradicts(x.word, wordHeard(x)));
+      if (!v) continue;
+      mannerCandidates.push({
+        cls: "wrong_word", word: wi, last: wi, obsFrom: v.obsFrom, obsTo: v.obsTo,
+        observed: wordHeard(v), stringPath: true, manner: true,
+      });
+    }
+    for (const [wi, issue] of issues) {
+      if (issue.manner || issue.madd || issue.phrase || issue.cls !== "wrong_word" || issue.last !== wi) continue;
+      if (mannerContradicts(wi, issue.observed ?? "")) issue.manner = true;
+    }
+    return { issues, lexical: candidates, manner: mannerCandidates, head, furthest: reached, steps, right };
   };
 
   /** Matched phonemes on the word after an error, heard after it: the next word has begun. */
@@ -1721,6 +1871,13 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       issues.set(candidate.word, candidate);
       right.delete(candidate.word);
     }
+    if (judged) for (const candidate of judged.manner) {
+      if (issues.has(candidate.word)) continue;
+      if (supported(candidate, true) === true) {
+        issues.set(candidate.word, candidate);
+        right.delete(candidate.word);
+      }
+    }
     for (const candidate of parallelCandidates(steps)) {
       const existing = [...issues.values()].find((i) => i.word <= candidate.word && candidate.word <= i.last);
       if (existing && !(existing.cls === "omitted_word" && existing.word === candidate.word && existing.last === candidate.word)) continue;
@@ -1794,6 +1951,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
     }
     if (cut < 0) return;
+    const floor = obs[cut]!.start;
+    for (const b of maddNow(steps).baseline) if (b.frame < floor && !pastMadd.some((p) => p.frame === b.frame)) pastMadd.push(b);
     const word = index.wordAt(at);
     for (const o of [...open.values()]) if (o.issue.word < word && heldSlot(o.issue.word)) freezeSlot(o.issue.word, o);
     for (const o of [...open.values()]) if (o.issue.word < word && !heldSlot(o.issue.word)) decide(o, out);
