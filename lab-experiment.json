@@ -1,0 +1,13 @@
+{
+ "id": "checker-word-manner-skeleton-swaps",
+ "component": "checker",
+ "hypothesis": "Checker wrong-word misses (9:47:17 بالمتقين for بالظالمين; 20:43:1 اذهب for اذهبا) are judged on consonant identity or phrase likelihood, which phone blur erases. Manner class (nasal, stop, fricative, lateral/trill), which the manner near-miss showed survives the phone band, is never compared over the whole word. Confirm a wrong word when the heard word's manner skeleton contradicts the written word's at 2 or more aligned consonant positions and fits an attested mushaf word's skeleton exactly, and re-land the zero-loss connected-madd rule unchanged for 20:43:1. Predict checker -2, overall -2 (honest; upside -3 if 2:284:28 or 12:78:8 also flip).",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-03T22:26:41+00:00",
+ "author": "autolab"
+}
