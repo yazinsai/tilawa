@@ -1,0 +1,13 @@
+{
+ "id": "checker-inner-waqf-proclitic-onset-visit",
+ "component": "checker",
+ "hypothesis": "The inner-waqf run-end seam wins 37:113:5 and 9:65:8 but misses 38:4:6, because the phone channel erased the proclitic و of the next word وقال, so its visit is never complete and the folded spell rule never emits. Re-land the seam and, on that path only, accept a next-word visit whose only gap is an unmatched word-initial proclitic consonant; predict 3 of 3 won, checker −3, overall −3.",
+ "expected": {
+  "component": -3,
+  "overall": -3
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-03T01:29:54+00:00",
+ "author": "autolab"
+}
