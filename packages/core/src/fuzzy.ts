@@ -1,4 +1,5 @@
 import type { AlignmentOp } from "./align.js";
+import { pairCost } from "./calibration.js";
 
 /** Integer cost units; one plain edit costs `UNIT`. */
 export const UNIT = 10;
@@ -13,6 +14,8 @@ const confusable = new Set(CONFUSABLE_PAIRS.flatMap(([a, b]) => [a + b, b + a]))
 
 export function subCost(ref: string, obs: string): number {
   if (ref === obs) return 0;
+  const soft = pairCost(ref, obs);
+  if (soft !== null) return soft;
   if (confusable.has(ref + obs)) return CONFUSABLE;
   if (SHORT_VOWELS.has(ref) && SHORT_VOWELS.has(obs)) return SHORT_VOWEL;
   return UNIT;

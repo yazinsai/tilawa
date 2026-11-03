@@ -38,6 +38,20 @@ def edit_distance(a, b) -> int:
     return row[-1]
 
 
+# Zipformer-M width (ticket 02). `wide` is this with every width doubled and the depth unchanged.
+FULL_SIZE = dict(num_encoder_layers="2,2,3,4,3,2", feedforward_dim="512,768,1024,1536,1024,768",
+                 encoder_dim="192,256,384,512,384,256", encoder_unmasked_dim="192,192,256,256,256,192")
+
+
+def double_width(size: dict) -> dict:
+    """Same depth, twice the encoder, unmasked and feed-forward width. Head count stays with the caller."""
+    def twice(s: str) -> str:
+        return ",".join(str(int(x) * 2) for x in str(s).split(","))
+
+    return {**size, "feedforward_dim": twice(size["feedforward_dim"]), "encoder_dim": twice(size["encoder_dim"]),
+            "encoder_unmasked_dim": twice(size["encoder_unmasked_dim"])}
+
+
 def corpus_per(pairs) -> float:
     """Total edits over total reference length, for (hypothesis, reference) pairs."""
     edits = sum(edit_distance(h, r) for h, r in pairs)

@@ -26,6 +26,16 @@ def test_partial_span_is_cut_at_word_offsets():
     assert reference_phonemes(REF, span(1, 1, 2, 1, 1, 3)) == "للَااهِررَحمَاانِ"
 
 
+def test_wide_doubles_full_width_and_keeps_depth():
+    from student import FULL_SIZE, double_width
+
+    wide = double_width(FULL_SIZE)
+    assert wide["num_encoder_layers"] == FULL_SIZE["num_encoder_layers"]
+    assert wide["encoder_dim"].split(",")[0] == "384"
+    assert wide["feedforward_dim"].split(",")[3] == "3072"
+    assert wide["encoder_unmasked_dim"].split(",")[2] == "512"
+
+
 def test_phonemes_map_to_teacher_vocab_ids_with_blank_zero():
     # muaalem-model-v3_2 vocab.json phoneme level: ب=2, ِ=34, س=12, م=24.
     assert phoneme_ids("بِسم") == [2, 34, 12, 24]

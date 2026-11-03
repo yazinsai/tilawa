@@ -1,14 +1,7 @@
 import type { ReferenceIndex } from "./reference.js";
+import { PHRASE_SWITCH } from "./calibration.js";
 
-/**
- * Nats by which an attested parallel phrase must beat the written phrase on the CTC forward sum.
- * Correct unspliced surah-37 recitations by four readers outside the lab held-out set, decoded with the
- * shipped listener, never preferred the parallel (175 phrases, worst −8.0 nats). On phone audio the same
- * contrast moves up: fully clean practice spans stay negative (worst −0.7), and the worst correct span
- * away from a planted mistake is +2.9. Four nats sits above that tail and below the planted swaps.
- * Not a per-edit cost. One switch, per phrase.
- */
-export const PHRASE_SWITCH = 4;
+export { PHRASE_SWITCH };
 
 /**
  * Mean probability of the best non-blank token, on frames the blank does not own, below which the window is

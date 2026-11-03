@@ -1,4 +1,5 @@
 import { align as editPath } from "./align.js";
+import { SOFT, SUPPORT, UNSURE } from "./calibration.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
@@ -70,7 +71,6 @@ const WRONG = 0.3;
  * `SOFT` to change; a sound held longer or shorter (beside the same sound) costs `HELD`. Consonant edits are hard.
  */
 const CONSONANTS = new Set("ءبتثجحخدذرزسشصضطظعغفقكلمنهوي");
-const SOFT = 3;
 const HELD = 2;
 /** A wrong word needs this many hard edits, or one in a word with at most one consonant. */
 const MIN_HARD = 2;
@@ -97,13 +97,6 @@ const JUMP_WORDS = 4;
  * shares most of its words with the passage, a deliberate jump doesn't.
  */
 const FITS_PASSAGE = 0.35;
-/** Nats by which the decoded words must beat the written ones over the local window for the error to stand. */
-const SUPPORT = 10;
-/**
- * A wrong word whose changed sounds the decoder heard below this mean confidence must win by twice the margin: on
- * degraded audio a confusable sound (ن for م, ف for ك) is heard at even odds with blank, yet a few of them sum past it.
- */
-const UNSURE = 0.8;
 /**
  * A dropped consonant-bearing ending takes a consonant plus a long vowel. A brisk murattal phoneme is two frames of
  * the 40 ms stride, and a long vowel is a madd of two counts, so both need 240 ms. A shorter hole between the

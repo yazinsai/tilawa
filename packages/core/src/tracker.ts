@@ -1,4 +1,5 @@
 import type { AlignmentOp } from "./align.js";
+import { NATS_PER_EDIT } from "./calibration.js";
 import { PosteriorFrames } from "./ctc.js";
 import { MID_WORD_START, UNIT, alignSubstring, collapseHeld, isHeld } from "./fuzzy.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
@@ -81,8 +82,6 @@ interface Match {
 const MAX_BASMALA_PER = 0.25;
 /** The largest prior bonus, in `UNIT`s; below `minSeparation` so a prior alone never separates. */
 const MAX_PRIOR_BONUS = UNIT / 2;
-/** Nats of CTC likelihood, relative to the decoded sequence, that cost as much as one plain edit. */
-const NATS_PER_EDIT = 3;
 /** Posteriors are rejected when fewer decoded phonemes than this appear in the top-k over their frames. */
 const MIN_LISTED = 0.5;
 /**

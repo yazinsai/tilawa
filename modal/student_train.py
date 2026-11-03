@@ -62,6 +62,17 @@ SIZES = {
     "full": dict(num_encoder_layers="2,2,3,4,3,2", feedforward_dim="512,768,1024,1536,1024,768",
                  encoder_dim="192,256,384,512,384,256", encoder_unmasked_dim="192,192,256,256,256,192"),
 }
+
+
+def _wide_size() -> dict:
+    """Zipformer-M depth with every width doubled. Head count stays at `COMMON`."""
+    from student import double_width
+
+    return double_width(SIZES["full"])
+
+
+# `wide` is the 2×-width student (wide-clean).
+SIZES["wide"] = _wide_size()
 INITS = {"librispeech-m": ("Zengwei/icefall-asr-librispeech-streaming-zipformer-2023-05-17", "exp/pretrained.pt", "full")}
 
 DEFAULTS = dict(
