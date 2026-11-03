@@ -1,0 +1,13 @@
+{
+ "id": "listener-hard-edits-first-omission-place",
+ "component": "listener",
+ "hypothesis": "Two-candidate omission placement ranks by total edit cost, so a one-point soft-cost difference overrides a clear hard-edit preference. At p79 20:25, omitting صدري costs hard 3 / total 45 and omitting the truly absent لي costs hard 2 / total 46, so the omission lands on صدري. Rank placements by hard edits first and use total cost only to break ties. Predict the p79 20:25:5 false warning and its paired 20:25:4 miss won: listener -2, overall -2 (honest, below the gate alone; upside -3 if p50 37:113:10 or p65 4:12:40 has the same inversion, speculative).",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-03T21:51:18+00:00",
+ "author": "autolab"
+}
