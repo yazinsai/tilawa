@@ -718,19 +718,27 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     hi = words[ayahLast[Math.min(ayahLast.length - 1, f + AHEAD_AYAHS)]].end;
   };
 
-  /** Per-window cost tables: every cell cost depends only on the window position and the heard phoneme. */
+  /**
+   * Per-window cost tables. A pause-onset ء is not an onset match: it costs `UNIT` against every word-onset
+   * consonant, the charge a mismatched onset already pays, so both candidates tie on the hamza and the
+   * remaining phones decide which word was said. Anything else keeps `subCost`.
+   */
   let costLo = -1;
   let costHi = -1;
   let delCost = new Float64Array(0);
   const rowCosts = new Map<string, { sub: Float64Array; ins: Float64Array }>();
-  const costsFor = (p: string) => {
-    let c = rowCosts.get(p);
+  const costsFor = (p: string, pauseOnset = false) => {
+    const key = pauseOnset ? `pause:${p}` : p;
+    let c = rowCosts.get(key);
     if (!c) {
       const n = hi - lo;
       c = { sub: new Float64Array(n), ins: new Float64Array(n + 1) };
-      for (let i = 0; i < n; i++) c.sub[i] = subCost(ref[lo + i], p);
+      for (let i = 0; i < n; i++) {
+        const at = lo + i;
+        c.sub[i] = pauseOnset && wordStarts.has(at) && CONSONANTS.has(ref[at]) ? UNIT : subCost(ref[at], p);
+      }
       for (let i = 0; i <= n; i++) c.ins[i] = insertionCost(ref, lo + i, p, hi);
-      rowCosts.set(p, c);
+      rowCosts.set(key, c);
     }
     return c;
   };
@@ -777,8 +785,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     jumps(0);
     for (let j = 1; j <= m; j++) {
-      const p = obs[j - 1].p;
-      const { sub, ins: insCost } = costsFor(p);
+      const heardPh = obs[j - 1];
+      const p = heardPh.p;
+      const { sub, ins: insCost } = costsFor(p, heardPh.pauseOnset === true && p === "ء");
       // A repeated decoded sound can be lengthening even at a word edge, where the reference has no matching run.
       // Use the same held-sound charge as judging; keep ordinary insertion costs for unrelated speech.
       const noise = p === obs[j - 2]?.p ? HELD : UNIT;

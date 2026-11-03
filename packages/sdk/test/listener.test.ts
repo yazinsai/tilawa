@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import type { PhonemeEvidence } from "@tilawa/core";
+import { minGapFrames } from "@tilawa/core";
+import type { DecodedPhoneme, PhonemeEvidence } from "@tilawa/core";
 import { createListener } from "../src/listener.js";
 import type { InferenceBackend, Tensor } from "../src/model.js";
 import { loadNodeModel } from "../src/node.js";
@@ -101,5 +102,64 @@ describe("streaming listener on onnxruntime-node", () => {
     count(await listener.end());
     expect(frames).toBeGreaterThan(0);
     expect(frames).toBeLessThanOrEqual(reference.frames);
+  });
+});
+
+describe("pause-onset hamza", () => {
+  const spec = (id: number, n: number, prob = 1) => Array.from({ length: n }, () => ({ id, prob }));
+
+  async function decode(frames: { id: number; prob: number }[]) {
+    const tiny = await loadNodeModel(fixture("tiny").pathname);
+    const m = tiny.manifest;
+    const vocab = m.tokens.length + 1;
+    const per = m.chunk / 2;
+    let cursor = 0;
+    const backend: InferenceBackend = {
+      name: "stub",
+      async run(feeds) {
+        const out: Record<string, Tensor> = Object.fromEntries(m.states.map((s) => [`new_${s.name}`, feeds[s.name]]));
+        const lp = new Float32Array(per * vocab);
+        const floor = Math.log(1e-6);
+        for (let t = 0; t < per; t++) {
+          const row = frames[cursor] ?? { id: 0, prob: 1 };
+          if (cursor < frames.length) cursor++;
+          lp.fill(floor, t * vocab, (t + 1) * vocab);
+          lp[t * vocab + row.id] = Math.log(row.prob);
+        }
+        out.log_probs = { type: "float32", data: lp, dims: [1, per, vocab] };
+        return out;
+      },
+    };
+    const listener = createListener({ ...tiny, backend });
+    const silence = new Float32Array(m.sampleRate * 3);
+    const phonemes: DecodedPhoneme[] = [];
+    const take = (e: PhonemeEvidence | null) => { if (e) phonemes.push(...e.phonemes); };
+    take(await listener.push(silence, m.sampleRate));
+    take(await listener.end());
+    return { phonemes, pause: minGapFrames(m.frameMs), hamza: m.tokens[0], other: m.tokens[1] };
+  }
+
+  it("tags the hamza that is the first token after a blank-owned pause, including across a window", async () => {
+    const pause = minGapFrames(40);
+    // Three frames of a consonant, then the pause, so the blank run starts mid-window and crosses the next one.
+    const { phonemes, hamza } = await decode([...spec(2, 3), ...spec(0, pause), ...spec(1, 2), ...spec(2, 2)]);
+    const marked = phonemes.filter((p) => p.pauseOnset);
+    expect(hamza).toBe("ء");
+    expect(marked.map((p) => p.p)).toEqual(["ء"]);
+    expect(phonemes.filter((p) => p.p === "ء")).toHaveLength(1);
+  });
+
+  it("does not tag a hamza after a shorter gap, a blank run below 0.5, a non-hamza, or no gap", async () => {
+    const pause = minGapFrames(40);
+    const short = await decode([...spec(0, pause - 1), ...spec(1, 2)]);
+    expect(short.phonemes.find((p) => p.p === "ء")?.pauseOnset).toBeUndefined();
+    const weak = await decode([...spec(0, pause, 0.4), ...spec(1, 2)]);
+    expect(weak.phonemes.find((p) => p.p === "ء")?.pauseOnset).toBeUndefined();
+    const consonant = await decode([...spec(0, pause), ...spec(2, 2)]);
+    expect(consonant.phonemes.some((p) => p.p === consonant.other)).toBe(true);
+    expect(consonant.phonemes.some((p) => p.pauseOnset)).toBe(false);
+    const bare = await decode(spec(1, 3));
+    expect(bare.phonemes[0]).toMatchObject({ p: "ء" });
+    expect(bare.phonemes[0].pauseOnset).toBeUndefined();
   });
 });

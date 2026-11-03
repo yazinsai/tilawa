@@ -1,7 +1,11 @@
+import { minGapFrames } from "@tilawa/core";
 import type { DecodedPhoneme, PhonemeEvidence } from "@tilawa/core";
 import { Resampler } from "./audio.js";
 import { Fbank } from "./fbank.js";
 import type { LoadedModel, Tensor } from "./model.js";
+
+/** Blank probability at or above this owns the frame. The checker's pause test uses `log` of the same cut. */
+const PAUSE_BLANK_MIN = 0.5;
 
 export interface ListenerOptions {
   /** Attach per-frame top-k posteriors to each chunk: the checker's local-window check reads them. Default false; sessions turn it on. */
@@ -49,6 +53,9 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   let open: DecodedPhoneme | null = null;
   /** The run at the end of the previous window was emitted; its continuation is the same phoneme. */
   let carried = false;
+  /** Blank run not yet closed by a token: its first frame, and whether every frame is blank-owned. */
+  let blankAt = -1;
+  let blankOwned = true;
   let done: DecodedPhoneme[] = [];
   let ids: number[] = [];
   let probs: number[] = [];
@@ -66,12 +73,25 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
       if (options.posteriors) for (const [id, p] of top) ids.push(id), probs.push(round4(p));
       const [id, p] = top[0];
       const frame = outFrames + t;
+      // A pause is the checker's blank run: at least `minGapFrames`, every frame blank-owned. The ء that
+      // resumes after it is a glottal attack on whatever vowel follows, not a heard hamza.
+      const starting = id !== 0 && id !== prev;
+      let pauseOnset = false;
+      if (id === 0) {
+        if (blankAt < 0) blankAt = frame;
+        if (p < PAUSE_BLANK_MIN) blankOwned = false;
+      } else if (starting) {
+        const run = blankAt < 0 ? 0 : frame - blankAt;
+        pauseOnset = run >= minGapFrames(m.frameMs) && blankOwned && m.tokens[id - 1] === "ء";
+        blankAt = -1;
+        blankOwned = true;
+      }
       if (id !== 0 && id === prev && open) {
         open.end = frame;
         open.conf = Math.max(open.conf, round4(p));
       } else if (!(id !== 0 && id === prev && carried)) {
         if (open) done.push(open);
-        open = id !== 0 ? { p: m.tokens[id - 1], start: frame, end: frame, conf: round4(p) } : null;
+        open = id !== 0 ? { p: m.tokens[id - 1], start: frame, end: frame, conf: round4(p), ...(pauseOnset ? { pauseOnset: true } : {}) } : null;
         carried = false;
       }
       if (id !== prev) carried = false;

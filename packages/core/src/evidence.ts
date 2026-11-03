@@ -5,6 +5,11 @@ export interface DecodedPhoneme {
   start: number;
   end: number;
   conf: number;
+  /**
+   * This ء is the first token after a pause. A vowel that starts out of silence is a glottal attack, so the
+   * hamza is not evidence of a written onset. Omission placement charges it equally against either candidate.
+   */
+  pauseOnset?: boolean;
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */
