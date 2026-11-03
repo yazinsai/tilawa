@@ -1,0 +1,13 @@
+{
+ "id": "checker-skip-start-after-read-tail",
+ "component": "checker",
+ "hypothesis": "Skips are keyed one word early (p26 warns at 41:19:7, misses 41:20:1) because the destination's first visit owns heard tokens from before its own word 1+2 fit, and those tokens still spell the source ayah's last word (يوزعون's tail). Release those pre-fit tokens, and start the skip after the last source word they read in order. Predict the p26 pair won (p31 4:162:15 speculative): checker 0, overall -2.",
+ "expected": {
+  "component": 0,
+  "overall": -2
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-03T17:33:15+00:00",
+ "author": "autolab"
+}
