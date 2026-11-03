@@ -1,0 +1,13 @@
+{
+ "id": "checker-connected-madd-vowel-drops",
+ "component": "checker",
+ "hypothesis": "A twin-verse swap that only drops a word-final long vowel in connected speech (اذهبا read as اذهب at 20:43:1, which is 20:24's text) is always abstained as waqf or held-vowel noise. Decide it by the measured length of that long vowel against this reciter's own madd munfasil. Predict checker -1, overall -1 (honest, below the gate).",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-03T14:30:16+00:00",
+ "author": "autolab"
+}
