@@ -1,0 +1,13 @@
+{
+ "id": "tracker-shared-word-insertion-support",
+ "component": "tracker",
+ "hypothesis": "At p63 the planted وقفوهم plus the next word إنهم match 37:24:1-2, so the tracker relocates on 2 words even though إنهم is also the anchor's 37:69:1. Count relocation support only from heard words that an anchor-plus-one-inserted-word explanation cannot fit, and re-land the p14 edit in heard-phone-deletion form; predict tracker -2, overall -2 (-3 speculative).",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-03T01:27:58+00:00",
+ "author": "autolab"
+}
