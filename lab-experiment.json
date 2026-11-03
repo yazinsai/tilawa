@@ -1,0 +1,13 @@
+{
+ "id": "listener-recited-run-explains-add",
+ "component": "listener",
+ "hypothesis": "Listener added-word false warnings at 26:5:1 and 7:198:7 are real speech: the wide ear holds 4 of 26:5:1's consonants in order, and 7:198:7 spells كم, as in نصركم from 7:197. They are plausibly blurred re-reads of text from one or two ayahs back, which the ±3 neighbour and back-run exclusions cannot see. Veto a support-path added word when its heard span fits a contiguous run of text already recited in the session at no more than its insertion cost. Predict 1-2 of 2 won: listener -2, overall -2 (honest, below the gate alone).",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-03T18:00:37+00:00",
+ "author": "autolab"
+}
