@@ -1,0 +1,13 @@
+{
+ "id": "listener-pause-onset-glottal-artifact",
+ "component": "listener",
+ "hypothesis": "After a pause, the listener emits a hamza (ء) at the start of any resumed word whose onset burst the phone channel erased. In p14 that is كُنّا heard as ءُنننَاا, and the fake ء exactly matches the omitted إنّا, so the omission is placed on كنا. Have the sdk tag a ء that is the first token after a labelled pause as a pause-onset token, and have omission placement treat it as matching neither candidate's onset, so the surviving vowel /u/ decides. Predict listener -2, overall -2: the p14 44:5:4 miss and its paired 44:5:5 false warning. 44:23:1 is a speculative extra and is not counted.",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-03T00:11:36+00:00",
+ "author": "autolab"
+}
