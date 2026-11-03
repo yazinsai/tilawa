@@ -1,0 +1,13 @@
+{
+ "id": "listener-wide-ear-refit-calibration",
+ "component": "listener",
+ "hypothesis": "The 2x-width student hears added words the shipped student blanks (won p31, p50, p55, p56, p79), but it lost 58 incidents because every listener-dependent checker constant is fitted to the shipped student. Deploy it with those constants re-derived by estimator code from its own gold-excluded decodes; predict 4 of 6 targets won and losses cut from 58 to at most 3: listener -5, overall -4.",
+ "expected": {
+  "component": -5,
+  "overall": -4
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-03T03:01:44+00:00",
+ "author": "autolab"
+}
