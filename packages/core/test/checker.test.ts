@@ -199,6 +199,29 @@ describe("skips", () => {
     expect(summary(recite(true))).toEqual(["confirmed skipped_passage 26:103:1"]);
   });
 
+  it("starts a skip after a source-ayah tail carried into the landing", () => {
+    // 41:19 ends فهم يوزعون, then 41:20 is skipped and 41:21 begins. The tail decodes as ه plus
+    // ع ن of يوزعون and rides in front of وقالوا لِ, so the unread span used to open on فهم.
+    const start = w(41, 19, 1);
+    const at19 = (r: WordRef) => find(r).start - find(start).start;
+    const fromTail = find(w(41, 19, 7));
+    const dest = find(w(41, 21, 1));
+    const to = w(41, 21, 6);
+    const skipped: Edit[] = [{ kind: "del", at: at19(w(41, 19, 7)), count: dest.start - fromTail.start }];
+    const recite = (tail: string) => {
+      const edits: Edit[] = tail ? [...skipped, { kind: "ins", at: at19(w(41, 19, 7)), text: tail }] : skipped;
+      const f = syntheticFixture(index, { id: "c", from: start, to, edits, chunkSize: 8 });
+      return confirmed(replayChecked(index, f, {}, { passage: { from: start, to } })).map((e) => `${e.errorClass} ${key(e.location)}`);
+    };
+    const cleanCut = recite("");
+    const blurred = recite("هَسَعُۥۥن");
+    expect(cleanCut).toContain("skipped_passage 41:19:7");
+    expect(cleanCut).not.toContain("skipped_passage 41:20:1");
+    expect(blurred).toContain("skipped_passage 41:20:1");
+    expect(blurred).not.toContain("skipped_passage 41:19:7");
+    expect(blurred).not.toContain("omitted_word 41:19:8");
+  });
+
   it("does not warn when the same pause is just the end of an ayah", () => {
     const start = w(26, 102, 1);
     const to = w(26, 105, 4);

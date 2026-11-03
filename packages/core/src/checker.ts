@@ -1303,6 +1303,111 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         const pauseSeam = onStart(today) ? undefined : slide(alike).find((i) => onStart(i) && anchored(i));
         gap = pauseSeam ?? today;
       }
+      // The landing visit can still hold the source ayah's tail, heard before that ayah's next word 1 and
+      // word 2 fit at zero hard cost. Release the tokens before the fit and read the trailing words from
+      // the right edge. Two consonants in order, the same shape an added word needs, means the word was read.
+      const spanN = (a: number, b: number) => words.slice(a, b + 1).filter((w) => w.end > w.start).length;
+      if (after && after.obsFrom >= 0 && gap.word !== ayahFirst[ayahOf[gap.word]] && gap.word <= ayahLast[ayahOf[gap.word]] && spanN(gap.word, gap.last) >= 3) {
+        const g = gap;
+        const src = ayahOf[g.word];
+        const trailTo = Math.min(g.last, ayahLast[src]);
+        const forms = (wi: number) => {
+          const out = [skeleton(wi)];
+          const iso = index.isolatedWordForms?.[wi];
+          if (!iso) return out.filter(Boolean);
+          const c = [...iso].filter((p) => CONSONANTS.has(p)).join("");
+          return c && !out.includes(c) ? [...out, c].filter(Boolean) : out.filter(Boolean);
+        };
+        let far = ayahOf[after.word];
+        for (const v of visits) if (counts(v) && v.obsFrom >= after.obsFrom) far = Math.max(far, ayahOf[v.word]);
+        const consAt: number[] = [];
+        for (let i = after.obsFrom; i < obs.length; i++) if (!obs[i].junk && CONSONANTS.has(obs[i].p)) consAt.push(i);
+        const seq = consAt.map((i) => obs[i].p).join("");
+        let onset = -1;
+        for (let a = src + 1; a <= far && a < ayahFirst.length; a++) {
+          const w1 = ayahFirst[a], w2 = nextWord(w1);
+          if (w2 > ayahLast[a]) continue;
+          const visitsOf = visits.filter((v) => v.word === w1 && counts(v) && v.obsTo > v.obsFrom && v.obsFrom >= after.obsFrom);
+          if (!visitsOf.length) continue;
+          for (const c1 of forms(w1)) for (const c2 of forms(w2)) {
+            const needle = c1 + c2[0];
+            if (needle.length < 2) continue;
+            const at = seq.indexOf(needle);
+            if (at < 0 || !visitsOf.some((v) => v.obsFrom <= consAt[at] && consAt[at] < v.obsTo)) continue;
+            let s = consAt[at];
+            while (s > after.obsFrom && !obs[s - 1].junk && !CONSONANTS.has(obs[s - 1].p)) s--;
+            if (onset < 0 || s < onset) onset = s;
+          }
+        }
+        if (onset > after.obsFrom && trailTo >= g.word) {
+          const toks: number[] = [];
+          for (let i = after.obsFrom; i < onset; i++) if (!obs[i].junk) toks.push(i);
+          const cells: { wi: number; at: number }[] = [];
+          for (let wi = g.word; wi <= trailTo; wi++) for (let at = words[wi].start; at < words[wi].end; at++) cells.push({ wi, at });
+          if (toks.length && cells.length) {
+            const nRef = cells.length, m = toks.length, width = m + 1;
+            const phone = (j: number) => obs[toks[j - 1]].p;
+            const d = new Float64Array((nRef + 1) * width);
+            const op = new Uint8Array(d.length);
+            for (let j = 1; j <= m; j++) {
+              d[j] = d[j - 1] + insCharge(cells[0].at, phone(j), j > 1 ? phone(j - 1) : undefined);
+              op[j] = OP_INS;
+            }
+            for (let i = 1; i <= nRef; i++) {
+              const at = cells[i - 1].at, row = i * width, prev = row - width;
+              d[row] = d[prev] + delCharge(at);
+              op[row] = OP_DEL;
+              for (let j = 1; j <= m; j++) {
+                const p = phone(j), prevP = j > 1 ? phone(j - 1) : undefined;
+                let best = d[prev + j - 1] + subCharge(ref[at], p), how = OP_DIAG;
+                const deletion = d[prev + j] + delCharge(at);
+                if (deletion < best) { best = deletion; how = OP_DEL; }
+                const insertion = d[row + j - 1] + insCharge(at + 1, p, prevP);
+                if (insertion < best) { best = insertion; how = OP_INS; }
+                d[row + j] = best;
+                op[row + j] = how;
+              }
+            }
+            const held = new Map<number, number[]>();
+            const give = (wi: number, j: number) => held.set(wi, [...(held.get(wi) ?? []), toks[j - 1]]);
+            let i = nRef, j = m;
+            while (i || j) {
+              const how = op[i * width + j];
+              if (how === OP_DIAG && i && j) { give(cells[i - 1].wi, j); i--; j--; }
+              else if (how === OP_DEL && i) i--;
+              else if (how === OP_INS && j) { give(i <= 0 ? cells[0].wi : i >= nRef ? cells[nRef - 1].wi : cells[i].wi, j); j--; }
+              else break;
+            }
+            const read = (wi: number) => {
+              const ids = held.get(wi);
+              if (!ids) return false;
+              const sk = skeleton(wi);
+              const heard: string[] = [];
+              let k = 0, got = 0;
+              for (const id of ids.sort((a, b) => a - b)) {
+                const p = obs[id].p;
+                if (!CONSONANTS.has(p)) continue;
+                heard.push(p);
+                const at = sk.indexOf(p, k);
+                if (at >= 0) { got++; k = at + 1; }
+              }
+              // One leading consonant is the look-alike seam: a pause moves it, and this rule must not.
+              const body = heard.join("");
+              const [longer, shorter] = sk.length >= body.length ? [sk, body] : [body, sk];
+              if (longer.length === shorter.length + 1 && longer.endsWith(shorter)) return false;
+              return got >= 2;
+            };
+            let lastRead = -1;
+            for (let wi = g.word; wi <= trailTo; wi++) if (read(wi)) lastRead = wi;
+            const newStart = lastRead >= 0 ? nextWord(lastRead) : g.word;
+            // Words before the last one read stay out of the skip. Re-filing them on the same warning
+            // keeps the early key: the id was already opened as a skip, and a one-consonant remainder confirms.
+            if (lastRead >= g.word && newStart > g.word && newStart <= g.last) {
+              gap = { ...g, word: newStart, obsFrom: onset, obsTo: onset };
+            }
+          }
+        }
+      }
       const n = words.slice(gap.word, gap.last + 1).filter((x) => x.end > x.start).length;
       issues.set(gap.word, { ...gap, cls: n >= 3 ? "skipped_passage" : "omitted_word" });
       gap = null;
