@@ -17,7 +17,8 @@
     match <id> agree|disagree   your verdict on a gate decision (ticket 11)
     waiting                  what needs you, with the command for each
     approve <id>             let a bet of betApprovalUsd or more start
-    retry <id> [--note ...]  re-run checks, tests and scoring; with a note, back to the builder with it
+    retry <id> [--note ...]  re-run checks, tests and scoring; with a note, back to the builder with it; an abandoned
+                             experiment gets a fresh builder in its worktree
     drop <id> [why]          end an experiment
     revert <id> [why]        take a folded experiment back out of main (git revert of its commits, then a re-score)
     reopen <id>              send an abandoned experiment with its worktree back to validation
@@ -552,6 +553,12 @@ class Tick:
                 raise ValueError(f"{e['id']} is {e['state']}, not waiting on you")
             e["results"]["approved"] = self.at
             self.move(e, "accepted", "approved by you")
+        elif op == "retry" and e["state"] == "abandoned":
+            if not e["worktree"] or not Path(e["worktree"]).exists():
+                raise ValueError(f"{e['id']} is abandoned without its worktree; nothing to build in")
+            e["executor"].update(armFailures=0, fallbacks=[])
+            e["results"]["feedback"] = c.get("note") or "A previous attempt was cut off from outside the experiment; carry on from the worktree."
+            self.move(e, "accepted", "retry by you: a fresh builder in the same worktree")
         elif op == "retry":
             if e["state"] != "needs-human":
                 raise ValueError(f"{e['id']} is {e['state']}, not waiting on you")
@@ -680,6 +687,7 @@ class Tick:
                 return
             st["examJob"] = None
             if status != "done":
+                st["foldsSinceExam"] = st.get("foldsSinceExam", 0) + job["folds"]
                 return w.notify(st, "needs-human", f"exam:{self.at[:13]}", "Autolab: the exam tripwire run failed", tail(res), self.at)
             self.set_main(res["run"], res["sha"], res["practice"], w.git("rev-parse", "--short", BRANCH))
             st["examTripwire"] = trip = exam_verdict(vol_get(VOL_LEDGER) or {}, job["folds"], self.at)
@@ -1322,6 +1330,8 @@ def test_command(cfg: dict) -> str:
 def outage(summary: str) -> bool:
     """A builder that never got going for reasons outside the experiment (the model service at capacity, network)."""
     s = (summary or "").lower()
+    if s.startswith(("runner-died", "cancelled")):  # the host killed the builder's process; the supervisor's own cancels never get here
+        return True
     if any(k in s for k in ("too many requests", "rate limit", "429")):  # a quota, at start or mid-run: wait, same arm
         return True
     return s.startswith(("startup", "sdk-error")) and any(k in s for k in ("unavailable", "capacity", "timeout", "timed out", "network", "connect"))

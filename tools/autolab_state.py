@@ -34,7 +34,7 @@ NEXT = {
     "validating": ("scoring", "implementing", "discarded", "abandoned", "needs-human"),
     "scoring": ("folding", "discarded", "abandoned", "needs-human"),
     "folding": ("folded", "discarded", "superseded", "implementing", "abandoned", "needs-human"),
-    "abandoned": ("validating",),
+    "abandoned": ("validating", "accepted"),
     "folded": ("reverted",),
     "needs-human": ("proposed", "accepted", "implementing", "validating", "scoring", "folding", "discarded", "abandoned"),
 }

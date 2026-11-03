@@ -400,6 +400,19 @@ def test_the_exam_tripwire_runs_after_enough_folds_and_pages_when_the_exam_does_
     assert any(k == "needs-human" and "exam" in t for k, t in w.notes)
 
 
+def test_a_failed_exam_puts_its_folds_back_so_the_next_tick_runs_it_again(w):
+    st = w.load()
+    st["foldsSinceExam"], st["main"]["head"], st["lastPlanAt"] = 5, "abc1234", "2999-01-01T00:00:00+00:00"
+    w.saved = st
+    w.job_results["exam"] = {"error": "runner killed"}
+    st = tick(w)
+    assert st["examJob"] and st["foldsSinceExam"] == 0
+    st = tick(w)
+    assert any(k == "needs-human" and "exam" in t for k, t in w.notes) and st["foldsSinceExam"] == 5
+    st = tick(w)
+    assert st["examJob"] and st["examJob"]["folds"] == 5
+
+
 def test_a_revert_waits_for_main_to_be_still_then_reverts_and_rescores(w, monkeypatch):
     st = w.load()
     e, _ = S.add(st, card("checker-kept"), T0)
@@ -531,6 +544,20 @@ def test_inbox_retry_with_a_note_goes_back_to_the_builder(w):
     assert e["state"] in ("implementing", "validating", "scoring", "folding") and "use the smaller recipe" in " ".join(h["note"] for h in e["history"])
 
 
+def test_inbox_retry_of_an_abandoned_build_starts_a_fresh_builder_in_its_worktree(w, tmp_path):
+    st, id = advance(w, 1)
+    e = st["experiments"][id]
+    e["worktree"], e["executor"]["armFailures"], e["executor"]["fallbacks"] = str(tmp_path), 1, [{"from": "a", "to": "b"}]
+    S.move(st, id, "abandoned", T0, "the executor failed twice: cancelled:")
+    w.saved = st
+    w.queued = [{"op": "retry", "id": id, "note": ""}]
+    st = tick(w)
+    e = st["experiments"][id]
+    seen = [h["state"] for h in e["history"]]
+    assert seen[seen.index("abandoned") + 1] == "accepted" and e["state"] in ("implementing", "validating", "scoring", "folding")
+    assert e["worktree"] == str(tmp_path)
+
+
 def test_inbox_retry_of_a_judge_timeout_asks_the_judge_again(w):
     st = w.load()
     e, _ = S.add(st, card("checker-unjudged"), T0)
@@ -632,6 +659,7 @@ def test_failed_tests_send_the_log_tail_back(w):
 
 def test_outage_detection():
     assert A.outage("startup: [unavailable] Server at capacity")
+    assert A.outage("runner-died: ") and A.outage("cancelled: ")
     assert not A.outage("run-error: tests kept failing")
 
 
