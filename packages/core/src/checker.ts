@@ -11,6 +11,7 @@ import { minGapFrames } from "./gap-decode.js";
 import { procliticOnset, waqfMarked } from "./mushaf-marks.js";
 import { absenceMargin } from "./ayah-ledger.js";
 import { PHRASE_PEAK, PHRASE_SWITCH, letterSkeleton, parallelPaths } from "./parallel-phrases.js";
+import { isMaddLetter, maddSites, stemConsonant } from "./madd-drops.js";
 import { spanId, slotSpans } from "./slot-spans.js";
 
 export interface CheckerPolicy {
@@ -177,6 +178,11 @@ interface Issue {
    */
   lexicon?: boolean;
   /**
+   * A word-final long vowel before a hamza, judged by its duration against this reciter's earlier madd
+   * munfasil. The forward sum prices one vowel as nothing, so the length is the whole decision.
+   */
+  madd?: boolean;
+  /**
    * Substitution taken from the per-word alignment, not a parallel phrase or a lexical candidate. A span that
    * spells another mushaf word, or that carries more consonants than the written word, keeps today's margin.
    * Anything shorter or the same length that spells no such word needs twice the support margin.
@@ -201,6 +207,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const parallels = parallelPaths(index);
+  const madd = maddSites(index);
   const allSpans = slotSpans(index);
   const spanById = new Map(allSpans.map((s) => [spanId(s), s]));
   /** Spans whose continuation already picked a copy. Their slots are no longer held. */
@@ -275,6 +282,89 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   let declared = !!passage;
   /** Phonemes since the last anchor (or the latest `HISTORY` while not anchored). */
   let obs: Heard[] = [];
+  /**
+   * Matched madd-munfasil lengths already scrolled out of the window, in frames from the stem consonant to the
+   * next hamza. The threshold for a vowel drop is the shortest of these, plus any still in the window.
+   */
+  const pastMadd: { frame: number; span: number }[] = [];
+  /** The same silence the inner-waqf path labels: a blank of `GAP_PAD_S` between two phones. */
+  const labelledPause = (prev: number): boolean => {
+    if (frameMs <= 0 || prev < 0 || prev + 1 >= obs.length) return false;
+    let a = obs[prev]!.end + 1;
+    const b = obs[prev + 1]!.start;
+    if (frames && frames.startFrame >= 0 && a >= frames.startFrame && b <= frames.endFrame) {
+      const id = tokenId.get(obs[prev]!.p);
+      if (id) while (a < b) {
+        const row = frames.row(a);
+        let best = 0;
+        for (let i = 1; i < row.length; i++) if (row[i]! > row[best]!) best = i;
+        if (best !== id) break;
+        a++;
+      }
+    }
+    if (b - a < minGapFrames(frameMs)) return false;
+    if (!frames || frames.startFrame < 0 || a < frames.startFrame || b > frames.endFrame) return true;
+    const owns = Math.log(0.5);
+    for (let f = a; f < b; f++) if (frames.row(f)[0]! < owns) return false;
+    return true;
+  };
+  interface MaddHit {
+    word: number;
+    frame: number;
+    span: number;
+    consObs: number;
+    hamzaObs: number;
+    pause: boolean;
+    /** A madd letter of the written word was heard between the consonant and the hamza. */
+    matched: boolean;
+  }
+  /** Connected madds the alignment has both edges for. A pause between the words is not one of them. */
+  const measureMadd = (aligned: Step[]): MaddHit[] => {
+    const exact = new Map<number, number>();
+    const seen = new Set<number>();
+    for (const s of aligned) if (s.op === "diag" && ref[s.ref] === obs[s.obs]!.p) {
+      exact.set(s.ref, s.obs);
+      seen.add(index.wordAt(s.ref));
+    }
+    const out: MaddHit[] = [];
+    for (const wi of seen) {
+      const next = madd.munfasil.get(wi);
+      if (next === undefined) continue;
+      const cons = stemConsonant(ref, words[wi]!.start, words[wi]!.end);
+      const hamza = words[next]!.start;
+      const consObs = exact.get(cons);
+      const hamzaObs = exact.get(hamza);
+      if (cons < words[wi]!.start || consObs === undefined || hamzaObs === undefined || hamzaObs <= consObs) continue;
+      const span = obs[hamzaObs]!.start - obs[consObs]!.start;
+      if (span <= 0) continue;
+      let pause = false;
+      for (let k = consObs; k < hamzaObs && !pause; k++) pause = labelledPause(k);
+      let matched = false;
+      if (!pause) for (const s of aligned) {
+        if (s.op !== "diag" || s.obs <= consObs || s.obs >= hamzaObs) continue;
+        if (s.ref < words[wi]!.start || s.ref >= words[wi]!.end) continue;
+        if (ref[s.ref] === obs[s.obs]!.p && isMaddLetter(ref[s.ref]!)) matched = true;
+      }
+      out.push({ word: wi, frame: obs[consObs]!.start, span, consObs, hamzaObs, pause, matched });
+    }
+    return out;
+  };
+  /**
+   * Vowel-drop candidates shorter than every earlier matched madd in this session. A matched madd that is not
+   * that short joins the baseline; a flagged drop does not, so one miss cannot lower the bar for the next.
+   */
+  const maddNow = (aligned: Step[]) => {
+    const hits = measureMadd(aligned).sort((a, b) => a.frame - b.frame);
+    const baseline = pastMadd.map((p) => ({ ...p }));
+    const flags: MaddHit[] = [];
+    for (const m of hits) {
+      const earlier = baseline.filter((b) => b.frame < m.frame);
+      const min = earlier.reduce((n, b) => Math.min(n, b.span), Infinity);
+      if (madd.drops.has(m.word) && !m.pause && earlier.length > 0 && m.span < min) flags.push(m);
+      else if (m.matched && !m.pause && !baseline.some((b) => b.frame === m.frame)) baseline.push({ frame: m.frame, span: m.span });
+    }
+    return { flags, baseline };
+  };
   /** Word the window's alignment starts from; null while not anchored. */
   let anchor: number | null = null;
   let lead = 0;
@@ -332,6 +422,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const supported = (issue: Issue, requireFinite = false): boolean | null => {
     // Spelled surplus is structural. A likelihood contest over the neighbours is what loses the word.
     if (issue.lexicon) return null;
+    // The madd's length was already compared with this reciter's own. One vowel does not move the forward sum.
+    if (issue.madd) return null;
     if (!frames || frames.startFrame < 0 || issue.cls === "skipped_passage") return null;
     const heardAt = (wi: number) => steps.filter((s): s is Extract<Step, { op: "diag" }> => s.op === "diag" && index.wordAt(s.ref) === wi).map((s) => s.obs);
     const before = prevWord(issue.word);
@@ -1584,6 +1676,18 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         cls: "added_word", word: rightWord, last: rightWord, obsFrom: best.left.obsTo, obsTo: cut, observed: said, lexicon: true,
       });
     }
+    // A twin that only drops the madd before a hamza. Waqf still removes that vowel, so a labelled pause stays
+    // quiet. Everywhere else the span has to be shorter than this reciter's own matched madd munfasil.
+    for (const m of maddNow(steps).flags) {
+      if (issues.has(m.word) || decided.has(m.word)) continue;
+      const drop = madd.drops.get(m.word)!;
+      const visit = visits.find((v) => v.word === m.word && v.obsFrom >= 0 && v.obsFrom <= m.consObs && v.obsTo > m.consObs);
+      issues.set(m.word, {
+        cls: "wrong_word", word: m.word, last: m.word, obsFrom: visit?.obsFrom ?? m.consObs, obsTo: m.hamzaObs,
+        observed: drop.alt, madd: true,
+      });
+      right.delete(m.word);
+    }
     return { issues, lexical: candidates, head, furthest: reached, steps, right };
   };
 
@@ -1794,6 +1898,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
     }
     if (cut < 0) return;
+    const floor = obs[cut]!.start;
+    for (const b of maddNow(steps).baseline) if (b.frame < floor && !pastMadd.some((p) => p.frame === b.frame)) pastMadd.push(b);
     const word = index.wordAt(at);
     for (const o of [...open.values()]) if (o.issue.word < word && heldSlot(o.issue.word)) freezeSlot(o.issue.word, o);
     for (const o of [...open.values()]) if (o.issue.word < word && !heldSlot(o.issue.word)) decide(o, out);
