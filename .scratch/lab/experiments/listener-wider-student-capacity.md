@@ -47,7 +47,9 @@ Studio clean sessions were decoded and did not show up in that list. Those five 
 
 ## Practice score
 
-The first practice score was taken before rebasing onto main. It read 66 wrong calls against main's 46 (+20 overall, listener +4, checker +16). Main had folded four experiments after this branch was cut (surplus lexicon −6, first-lock twin −4, lexical wrong-word −5, ledger forward-sum −5), and 6+4+5+5=20. That score is the missing folds, not the wider student. The branch is rebased onto that main.
+The first practice score was taken before rebasing onto main. It read 66 wrong calls against main's 46 (+20 overall, listener +4, checker +16). Main had folded four experiments after this branch was cut (surplus lexicon −6, first-lock twin −4, lexical wrong-word −5, ledger forward-sum −5), and 6+4+5+5=20. That score is the missing folds, not the wider student.
+
+After the rebase, the same practice score on main's stored listener evidence is 46 vs 46 (+0 overall, listener, tracker and checker). `lab run` replays stored evidence; it does not decode `.autolab/model.json`. The 2× int8 student is what the supervisor copies and decodes. That decode is the measurement of the five cleared targets and the five new phone warnings.
 
 ## Limits
 
