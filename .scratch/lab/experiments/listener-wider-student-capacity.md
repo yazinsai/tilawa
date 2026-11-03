@@ -43,8 +43,12 @@ Five of eight targets cleared. The same replay added warnings the shipped studen
 - `lab-v1.5-p43/phone` wrong_word 22:13:3 at 213.84 s
 - `lab-v1.5-p43/phone` wrong_word 22:15:3 at 237.68 s
 
-Studio clean sessions were decoded and did not show up in that list. Those five are a true-position note, not the practice score. The fold gate is the practice score.
+Studio clean sessions were decoded and did not show up in that list. Those five are a true-position note. The fold gate is the practice score of the rebased branch.
+
+## Practice score
+
+The first practice score was taken before rebasing onto main. It read 66 wrong calls against main's 46 (+20 overall, listener +4, checker +16). Main had folded four experiments after this branch was cut (surplus lexicon −6, first-lock twin −4, lexical wrong-word −5, ledger forward-sum −5), and 6+4+5+5=20. That score is the missing folds, not the wider student. The branch is rebased onto that main.
 
 ## Limits
 
-The clean-match anchor held PER versus the shipped string to about half a point, and the phone decode still moved. Whether the five new phone warnings survive the tracker and count as fully-clean false warnings is what the practice score measures.
+The clean-match anchor held PER versus the shipped string to about half a point, and the phone decode still moved. The int8 export matches the shipped streaming interface (45/32 window, 40 ms, 98 states, same tokens). Whether the five new phone warnings survive the tracker and count as fully-clean false warnings is what the supervisor's decode of this model measures.
