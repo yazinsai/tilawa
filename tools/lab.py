@@ -360,6 +360,18 @@ def cmd_baseline(a):
     return {"sha": res["sha"], "run": res["run"], "testSet": ts["id"], "practice": L.brief(res["practice"])}
 
 
+def drop_leftover_branch(branch: str, base: str, cwd=REPO) -> bool:
+    """A branch with no commits of its own, checked out nowhere, is what an interrupted `new` leaves (the branch made,
+    the card never committed); it's deleted so `new` can start over from `base`. A branch with work, or in use, stays."""
+    if not sh("git", "branch", "--list", branch, cwd=cwd) or sh("git", "rev-list", f"{base}..{branch}", cwd=cwd):
+        return False
+    sh("git", "worktree", "prune", cwd=cwd)  # a worktree whose directory is gone no longer holds the branch
+    if f"branch refs/heads/{branch}\n" in sh("git", "worktree", "list", "--porcelain", cwd=cwd) + "\n":
+        return False
+    sh("git", "branch", "-D", branch, cwd=cwd)
+    return True
+
+
 def cmd_new(a):
     led = load(a)
     card = L.new_card(a.id, a.component, a.hypothesis, a.expect_component, a.expect_overall, test_set=led["testSet"] or "lab-v1.4",
@@ -368,6 +380,7 @@ def cmd_new(a):
     if a.id in led["experiments"]:
         raise Stop(f"experiment {a.id} already exists")
     wt, branch = REPO.parent / f"tilawa-lab-exp-{a.id}", f"exp/{a.id}"
+    drop_leftover_branch(branch, a.main)
     git("worktree", "add", "-b", branch, wt, a.main)
     (wt / L.CARD).write_text(json.dumps(card, indent=1, ensure_ascii=False) + "\n")
     git("add", L.CARD, cwd=wt)
