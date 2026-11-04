@@ -1,7 +1,8 @@
 # Stack final-slot manner rekey and pause-bounded swap-tail merge
 
-Status: implemented; tests passed, one practice score gives overall −3 and
-listener −3. Left in place for the supervisor's fold gate.
+Status: implemented and rebased onto main; post-rebase tests passed, one
+practice score gives overall −3 and listener −3. Left in place for the
+supervisor's fold gate.
 
 ## Prediction
 
@@ -77,6 +78,31 @@ that late confirmation. **Targets won: 3.**
 Run 4's temporary diagnostic was under ignored `.autolab` and was not
 transferred to Modal; run 5 repeated it inline successfully. The temporary
 script was removed. Neither run altered engine code or requested another score.
+
+## Rebase retry
+
+Rebased onto current `main` (`136abe38`) after the supervisor reported the
+parent manner commit's conflict. Resolved both `checker.ts` conflicts manually:
+retain main's step edits, closed formula-slot comparison and connected-madd
+flags, append the parent's closing-slot manner block, then return the counting
+visits needed by the tail merge. Parent card and listener-evidence commits were
+excluded where they conflicted with this experiment's card. The supervisor's
+card at the start of this retry is preserved byte for byte.
+
+The completed rebase (`b43ea3ff`) has the exact same git tree as the previous
+stack (`ddb9af5b`): `773574636a5c8fa016fef2290935c53edfa20920`.
+The engine and both unit-test suites also match individually byte for byte.
+Consequently the three validated target wins and the existing practice result
+above still describe this engine. No additional practice score was requested;
+the experiment has used one of its three allowed requests in total.
+
+Post-rebase Modal run 6 reran `bash tools/autolab_tests.sh` across six shards.
+All shards exited 0, core and SDK builds passed, and 734 core tests and 16 SDK
+tests passed with one existing SDK skip. The 12 manner tests, seven tail tests,
+six madd tests and formula-slot tests passed. The checker suite again hit only
+the known Vitest `onTaskUpdate` RPC timeout after all its tests passed; the
+unchanged repository wrapper accepted that condition. No further engine
+changes or practice requests followed this validation.
 
 ## Limits
 
