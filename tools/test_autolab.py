@@ -658,6 +658,13 @@ def test_failed_tests_send_the_log_tail_back(w):
     assert "2 failed in checker.test.ts" in st["experiments"][id]["note"]
 
 
+def test_failed_sharded_tests_quote_the_failing_shard_not_the_last():
+    res = {"exitCode": 1, "log": "...shard 5: excused RPC deadline", "result": {"shards": [
+        {"shard": 2, "code": 1, "tail": "FAIL test/mbr-risk.test.ts"}, {"shard": 5, "code": 0, "tail": "excused RPC deadline"}]}}
+    assert A.tests_tail(res) == "shard 2: FAIL test/mbr-risk.test.ts"
+    assert A.tests_tail({"exitCode": 1, "log": "plain"}) == "plain"
+
+
 def test_outage_detection():
     assert A.outage("startup: [unavailable] Server at capacity")
     assert A.outage("runner-died: ") and A.outage("cancelled: ")

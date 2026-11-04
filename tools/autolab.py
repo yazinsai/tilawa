@@ -1046,7 +1046,7 @@ class Tick:
                 return
             r.pop("testsJob")
             if status == "failed":
-                return self.bounce(e, "build or tests fail on Modal: " + tail(res))
+                return self.bounce(e, "build or tests fail on Modal: " + tests_tail(res))
             r["testsPassed"] = True
         if r.get("decodeJob"):
             status, res = w.poll(r["decodeJob"])
@@ -1373,6 +1373,13 @@ def write_json(path: Path, doc: dict) -> None:
 def tail(res: dict | None) -> str:
     res = res or {}
     return (res.get("log") or res.get("error") or json.dumps(res))[-2500:]
+
+
+def tests_tail(res: dict | None) -> str:
+    """A sharded test run's failing shards, not the log's end (the last shard's, often one that passed or whose only
+    failure was excused): this text goes back to the builder."""
+    bad = [s for s in (((res or {}).get("result") or {}).get("shards") or []) if s.get("code")]
+    return "\n".join(f"shard {s.get('shard')}: {(s.get('tail') or '')[-1500:]}" for s in bad)[-2500:] if bad else tail(res)
 
 
 def brief(e: dict, ctx: dict, feedback: str = "") -> str:
