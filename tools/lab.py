@@ -68,11 +68,16 @@ git = lambda *a, cwd=REPO, check=True: sh("git", *a, cwd=cwd, check=check)
 # Volume
 
 
-def vol_get(path: str):
-    try:
-        p = subprocess.run(["modal", "volume", "get", VOLUME, path, "-"], capture_output=True, timeout=VOLUME_TIMEOUT_S)
-    except subprocess.TimeoutExpired:
-        raise Stop(f"modal volume get {path} timed out after {VOLUME_TIMEOUT_S} s (could not connect?)") from None
+def vol_get(path: str, tries: int = 2):
+    """A read is safe to repeat, and a hung `modal volume get` usually answers on a fresh call, so a timeout is tried
+    again before it fails (it once threw away a finished 100-shard score)."""
+    for k in range(tries):
+        try:
+            p = subprocess.run(["modal", "volume", "get", VOLUME, path, "-"], capture_output=True, timeout=VOLUME_TIMEOUT_S)
+            break
+        except subprocess.TimeoutExpired:
+            if k == tries - 1:
+                raise Stop(f"modal volume get {path} timed out after {tries} tries of {VOLUME_TIMEOUT_S} s (could not connect?)") from None
     if p.returncode:
         if b"No such file" in p.stderr or b"No such file" in p.stdout:
             return None

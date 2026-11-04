@@ -138,5 +138,18 @@ class SpawnedScore(unittest.TestCase):
         self.assertIn("RuntimeError: container died", str(stop.exception))
 
 
+class VolGetRetry(unittest.TestCase):
+    def test_a_hung_read_is_tried_again_before_it_fails(self):
+        import subprocess  # noqa: PLC0415
+        ok = SimpleNamespace(returncode=0, stdout=b'{"n": 1}\nFinished downloading', stderr=b"")
+        hang = subprocess.TimeoutExpired("modal", lab.VOLUME_TIMEOUT_S)
+        with patch.object(lab.subprocess, "run", side_effect=[hang, ok]) as run:
+            self.assertEqual(lab.vol_get("/x.json"), {"n": 1})
+            self.assertEqual(run.call_count, 2)
+        with patch.object(lab.subprocess, "run", side_effect=[hang, hang]):
+            with self.assertRaisesRegex(lab.Stop, "timed out after .*could not connect"):
+                lab.vol_get("/x.json")
+
+
 if __name__ == "__main__":
     unittest.main()
