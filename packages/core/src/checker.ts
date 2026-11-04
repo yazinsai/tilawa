@@ -4,6 +4,8 @@ import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, P
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
+import { channelFromCounts, spanLogP, type Channel, type ChannelCounts } from "./noisy-channel.js";
+import { LISTENER_CHANNEL } from "./listener-channel.js";
 import { insertionDropFit, issueDropFit } from "./tracker.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
@@ -44,6 +46,11 @@ export interface CheckerOptions {
    * a deliberate jump, followed until the tracker locks back inside the passage.
    */
   passage?: { from: WordRef; to: WordRef };
+  /**
+   * Listener confusion counts for two-candidate omission placement. The scored build uses
+   * {@link LISTENER_CHANNEL}. An empty phone list leaves that placement on the alignment.
+   */
+  channel?: ChannelCounts;
 }
 
 export interface Checker {
@@ -197,6 +204,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const frames = (policy.localWindow ?? true) ? new PosteriorFrames(index.tokens.size) : null;
   const support = typeof policy.localWindow === "object" ? policy.localWindow.nats : SUPPORT;
   const tokenId = new Map([...index.tokens].map((t, i) => [t, i + 1]));
+  const omissionChannel: Channel = channelFromCounts(options.channel ?? LISTENER_CHANNEL);
+  const rankOmission = omissionChannel.phones.length > 0;
   const ref = index.phonemes;
   const words = index.words;
   const lexical = lexicalWords(index);
@@ -884,6 +893,57 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const insCharge = (at: number, p: string, prev?: string) =>
     p === ref[at - 1] || p === ref[at] || p === prev ? HELD : CONSONANTS.has(p) ? UNIT : SOFT;
 
+  /** Min-charge alignment of `obs[from, to)` onto word `wi`. The path is that alignment. */
+  const chargeAlign = (wi: number, from: number, to: number): Step[] => {
+    const start = words[wi].start;
+    const n = words[wi].end - start;
+    const m = Math.max(0, to - from);
+    const W = m + 1;
+    const cost = new Float64Array((n + 1) * W);
+    const back = new Int32Array((n + 1) * W);
+    const kind = new Uint8Array((n + 1) * W);
+    for (let j = 1; j <= m; j++) {
+      cost[j] = cost[j - 1] + insCharge(start, obs[from + j - 1].p, obs[from + j - 2]?.p);
+      back[j] = j - 1;
+      kind[j] = OP_INS;
+    }
+    for (let i = 1; i <= n; i++) {
+      const at = start + i - 1;
+      const del = delCharge(at);
+      const row = i * W;
+      const above = row - W;
+      cost[row] = cost[above] + del;
+      back[row] = above;
+      kind[row] = OP_DEL;
+      for (let j = 1; j <= m; j++) {
+        const p = obs[from + j - 1].p;
+        const sub = subCharge(ref[at], p);
+        let best = cost[above + j - 1] + sub;
+        let b = above + j - 1;
+        let k = OP_DIAG;
+        const dcost = cost[above + j] + del;
+        if (dcost < best) { best = dcost; b = above + j; k = OP_DEL; }
+        const icost = cost[row + j - 1] + insCharge(at + 1, p, obs[from + j - 2]?.p);
+        if (icost < best) { best = icost; b = row + j - 1; k = OP_INS; }
+        cost[row + j] = best;
+        back[row + j] = b;
+        kind[row + j] = k;
+      }
+    }
+    const path: Step[] = [];
+    for (let cell = n * W + m; cell > 0;) {
+      const i = Math.floor(cell / W);
+      const j = cell % W;
+      const how = kind[cell];
+      if (how === OP_DIAG) path.push({ op: "diag", ref: start + i - 1, obs: from + j - 1 });
+      else if (how === OP_DEL) path.push({ op: "del", ref: start + i - 1 });
+      else path.push({ op: "ins", at: start + i, obs: from + j - 1 });
+      cell = back[cell];
+    }
+    path.reverse();
+    return path;
+  };
+
   /** Whether a visit's cost makes the words `[v.word, last]` it covers a wrong word rather than a mispronounced one. */
   const wrong = (v: Visit, last = v.word) => {
     let weight = 0;
@@ -1233,6 +1293,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         return judge(repaired, false);
       }
     }
+    const stepEdits: { lo: number; hi: number; path: Step[] }[] = [];
     const seen = [...last.keys()];
     const issues = new Map<number, Issue>();
     if (!seen.length) return null;
@@ -1257,6 +1318,56 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       // Words past the head may still be coming: a gap is an omission once the reciter is past it, or already suspected.
       const was = open.get(gap.word)?.issue.cls;
       if (!(gap.last < head || was === "omitted_word" || was === "skipped_passage")) return void (gap = null);
+      // One heard stretch, two adjacent words, the outer neighbour already accepted. The alignment kept the
+      // stretch on the word its hand costs prefer. Rank the two survivors by the listener channel instead,
+      // and move the omission onto the other word when that survivor explains the stretch. The omission
+      // count does not change. A tie, or an empty channel, leaves the alignment's placement.
+      if (rankOmission && gap.word === gap.last && after && !said.length && !issues.has(prevWord(gap.word))) {
+        const y = gap.word;
+        const x = prevWord(y);
+        const left = prevWord(x);
+        const seg = last.get(x);
+        const leftV = last.get(left);
+        if (ayahOf[x] === ayahOf[y] && seg && right.has(x) && seg.obsTo === gap.obsFrom && seg.obsFrom >= 0
+          && seg.stepFrom !== undefined && seg.stepTo !== undefined
+          && leftV && right.has(left) && leftV.obsTo >= 0
+          && after.word === nextWord(y)) {
+          const from = leftV.obsTo;
+          const to = seg.obsTo;
+          // More phones than the two words is other speech, not one segment shared by them.
+          const budget = words[x].end - words[x].start + (words[y].end - words[y].start);
+          const heard = to > from && to - from <= budget ? collapseHeld(obs.slice(from, to).filter((p) => !p.junk).map((p) => p.p)) : [];
+          const written = (wi: number) => collapseHeld([...ref.slice(words[wi].start, words[wi].end)]);
+          if (heard.length && spanLogP(heard, written(y), omissionChannel) > spanLogP(heard, written(x), omissionChannel)) {
+            const dels: Step[] = [];
+            for (let k = words[x].start; k < words[x].end; k++) dels.push({ op: "del", ref: k });
+            let lo = seg.stepFrom;
+            let hi = seg.stepTo;
+            for (let k = 0; k < steps.length; k++) {
+              const s = steps[k];
+              const o = s.op === "diag" || s.op === "ins" || s.op === "lead" ? s.obs : -1;
+              const at = s.op === "diag" || s.op === "del" ? s.ref : s.op === "ins" ? s.at : -1;
+              const w = at >= 0 ? index.wordAt(at) : -1;
+              if ((o >= from && o < to) || w === x || w === y) {
+                lo = Math.min(lo, k);
+                hi = Math.max(hi, k + 1);
+              }
+            }
+            if (hi < steps.length && steps[hi].op === "jump") {
+              let k = hi + 1;
+              while (k < steps.length && (steps[k].op === "jump" || steps[k].op === "lead")) k++;
+              const s = steps[k];
+              const at = s && (s.op === "diag" || s.op === "del") ? s.ref : s && s.op === "ins" ? s.at : -1;
+              if (at >= 0 && index.wordAt(at) === after.word) hi++;
+            }
+            stepEdits.push({ lo, hi, path: [...dels, ...chargeAlign(y, from, to)] });
+            right.delete(x);
+            issues.set(x, { cls: "omitted_word", word: x, last: x, obsFrom: from, obsTo: from });
+            gap = null;
+            return;
+          }
+        }
+      }
       // A word either side of a skip can recur on the other side (برب الناس [ملك الناس] إله الناس), so the alignment
       // can place the gap a word off. Of the equal placements, take the one on an ayah's start: reciters skip ayahs.
       // A look-alike ending (one leading consonant, the article heard erased) is the same slide, but only when that
@@ -1584,6 +1695,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         cls: "added_word", word: rightWord, last: rightWord, obsFrom: best.left.obsTo, obsTo: cut, observed: said, lexicon: true,
       });
     }
+    for (const e of stepEdits.sort((a, b) => b.lo - a.lo)) steps.splice(e.lo, e.hi - e.lo, ...e.path);
     return { issues, lexical: candidates, head, furthest: reached, steps, right };
   };
 
