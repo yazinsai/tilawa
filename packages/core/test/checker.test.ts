@@ -209,6 +209,28 @@ describe("skips", () => {
     expect(confirmed(replayChecked(index, f, {}, { passage: { from: start, to } }))).toEqual([]);
   });
 
+  it("drops an in-ayah skip when the next two words continue the word a look-alike visit stole", () => {
+    // 4:162:15 والمقيمين heard as والمؤمنون (4:162:19, one vowel off). The following الصلاة والمؤتون
+    // are 4:162:16-17, not 4:162:20-21, so the visit belongs on 15 and there is no skip.
+    const start = w(4, 162, 12);
+    const at4 = (r: WordRef) => find(r).start - find(start).start;
+    const heard = "وَلمُءمِنِۥۥنَ";
+    const blur: Edit[] = [
+      { kind: "del", at: at4(w(4, 162, 15)), count: text(w(4, 162, 15)).length },
+      { kind: "ins", at: at4(w(4, 162, 15)), text: heard },
+    ];
+    const to = w(4, 162, 23);
+    const run4 = (edits: Edit[]) => {
+      const f = syntheticFixture(index, { id: "c", from: start, to, edits, chunkSize: 4 });
+      return replayChecked(index, f, {}, { passage: { from: start, to } });
+    };
+    const at15 = (e: CheckerEvent) => e.location.surah === 4 && e.location.ayah === 162 && e.location.word === 15;
+    expect(run4(blur).filter(at15)).toEqual([]);
+    // A real jump from 14 to 19 continues بالله واليوم, so the skip stays.
+    const dropped: Edit[] = [{ kind: "del", at: at4(w(4, 162, 15)), count: at4(w(4, 162, 19)) - at4(w(4, 162, 15)) }];
+    expect(summary(confirmed(run4(dropped)))).toContain("confirmed skipped_passage 4:162:15");
+  });
+
   it("confirm when they are not", () => {
     const edits: Edit[] = [{ kind: "del", at: at(w(2, 255, 30)), count: at(w(2, 255, 40)) - at(w(2, 255, 30)) }];
     expect(summary(run(edits, { to: w(2, 257, 5) }))).toEqual(["suspected skipped_passage 2:255:30", "confirmed skipped_passage 2:255:30"]);

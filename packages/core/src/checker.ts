@@ -4,7 +4,7 @@ import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, P
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
-import { insertionDropFit, issueDropFit } from "./tracker.js";
+import { anchorFitCost, commitMargin, insertionDropFit, issueDropFit } from "./tracker.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
 import { minGapFrames } from "./gap-decode.js";
@@ -270,6 +270,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   let frameMs = 0;
   let nowMs = 0;
+  /** `evaluate`'s `final`: an in-ayah look-alike skip may wait for two continuation words, but not past the session. */
+  let atEnd = false;
   let trackerLocked = false;
   /** Aligning against the declared passage; false while following a deliberate jump off it. */
   let declared = !!passage;
@@ -1241,8 +1243,142 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     // A wrong visit far ahead can be junk aligned to a short word; only correct visits show how far the reciter got.
     const reached = Math.max(...seen.filter((wi) => right.has(wi)), first);
     let gap: Issue | null = null;
+    /**
+     * Hard/soft cost of `phones` against word `wi`, the same charges a visit pays. `hard` counts consonant edits
+     * (`cost >= UNIT`); `kept` is consonants heard as themselves.
+     */
+    const scoreHeard = (wi: number, phones: string[]) => {
+      const w = words[wi];
+      const n = w.end - w.start;
+      const m = phones.length;
+      const pack = (cost: number, hard: number, kept: number) => ({ cost, hard, kept });
+      const better = (a: { cost: number; hard: number; kept: number }, b: { cost: number; hard: number; kept: number }) =>
+        a.cost < b.cost || (a.cost === b.cost && (a.hard < b.hard || (a.hard === b.hard && a.kept >= b.kept)));
+      let row = [pack(0, 0, 0)];
+      for (let j = 1; j <= m; j++) {
+        const c = insCharge(w.start, phones[j - 1]!, phones[j - 2]);
+        const prev = row[j - 1]!;
+        row[j] = pack(prev.cost + c, prev.hard + (c >= UNIT ? 1 : 0), prev.kept);
+      }
+      for (let i = 1; i <= n; i++) {
+        const next = [pack(0, 0, 0)];
+        const dc = delCharge(w.start + i - 1);
+        const prev0 = row[0]!;
+        next[0] = pack(prev0.cost + dc, prev0.hard + (dc >= UNIT ? 1 : 0), prev0.kept);
+        const refPh = ref[w.start + i - 1]!;
+        for (let j = 1; j <= m; j++) {
+          const sc = subCharge(refPh, phones[j - 1]!);
+          const ic = insCharge(w.start + i, phones[j - 1]!, phones[j - 2]);
+          const left = row[j - 1]!;
+          const up = row[j]!;
+          const back = next[j - 1]!;
+          const sub = pack(left.cost + sc, left.hard + (sc >= UNIT ? 1 : 0), left.kept + (sc === 0 && CONSONANTS.has(refPh) ? 1 : 0));
+          const del = pack(up.cost + dc, up.hard + (dc >= UNIT ? 1 : 0), up.kept);
+          const ins = pack(back.cost + ic, back.hard + (ic >= UNIT ? 1 : 0), back.kept);
+          next[j] = [sub, del, ins].reduce((a, b) => better(a, b) ? a : b);
+        }
+        row = next;
+      }
+      return row[m]!;
+    };
+    const phonesOf = (v: Visit) => obs.slice(v.obsFrom, v.obsTo).map((p) => p.p);
+    /**
+     * An in-ayah look-alike binding: the visit's phones fit the unread word within one hard edit of the word they
+     * landed on (`MIN_HARD` is two, so one worse is still this word), and the next two heard words continue the
+     * unread word by the tracker's commit margin. Fewer than two words yet: wait, unless the session is over.
+     */
+    const lookalike = (start: number, v: Visit): "rebind" | "hold" | "no" => {
+      if (start < 0 || start >= words.length || v.word === start || v.obsFrom < 0 || v.obsTo <= v.obsFrom) return "no";
+      if (ayahOf[start] !== ayahOf[v.word]) return "no";
+      if (last.has(start) && last.get(start) !== v) return "no";
+      const heard = phonesOf(v);
+      if (!heard.length || heard.some((p) => !p)) return "no";
+      const atStart = scoreHeard(start, heard);
+      const atDest = scoreHeard(v.word, heard);
+      if (atStart.kept < 1 || atStart.hard >= atDest.hard + MIN_HARD) return "no";
+      const later = visits.filter((x) => x !== v && counts(x) && x.obsFrom >= v.obsTo);
+      if (later.length < 2) return atEnd ? "no" : "hold";
+      const h0 = phonesOf(later[0]!).join("");
+      const h1 = phonesOf(later[1]!).join("");
+      const c0 = nextWord(start);
+      const c1 = nextWord(c0);
+      const d0 = nextWord(v.word);
+      const d1 = nextWord(d0);
+      if (c1 >= words.length || d1 >= words.length) return "no";
+      const wordPh = (i: number) => ref.slice(words[i]!.start, words[i]!.end);
+      if (!wordPh(c0) || !wordPh(c1) || !wordPh(d0) || !wordPh(d1)) return "no";
+      const startCost = anchorFitCost(wordPh(c0), h0);
+      const startCost2 = anchorFitCost(wordPh(c1), h1);
+      const destCost = anchorFitCost(wordPh(d0), h0);
+      const destCost2 = anchorFitCost(wordPh(d1), h1);
+      if (startCost === null || startCost2 === null || destCost === null || destCost2 === null) return "no";
+      const gain = (destCost + destCost2 - (startCost + startCost2)) / UNIT;
+      return gain >= commitMargin(h0.length + h1.length) ? "rebind" : "no";
+    };
+    const retarget = (v: Visit, start: number) => {
+      const old = v.word;
+      const heard = phonesOf(v);
+      const scored = scoreHeard(start, heard);
+      v.word = start;
+      v.cost = scored.cost;
+      v.hard = scored.hard;
+      v.kept = scored.kept;
+      v.covered = words[start]!.end - words[start]!.start;
+      v.consumed = heard.length;
+      if (last.get(old) === v) {
+        last.delete(old);
+        right.delete(old);
+        let prev: Visit | null = null;
+        for (const x of visits) if (x !== v && x.word === old && counts(x)) prev = x;
+        if (prev) {
+          last.set(old, prev);
+          if (!wrong(prev)) right.add(old);
+        }
+      }
+      last.set(start, v);
+      if (!wrong(v)) right.add(start);
+      else {
+        right.delete(start);
+        issues.set(start, {
+          cls: "wrong_word", word: start, last: start, obsFrom: v.obsFrom, obsTo: v.obsTo,
+          observed: heard.join(""), stringPath: true,
+        });
+      }
+    };
     const flush = (after?: Visit) => {
       if (!gap) return;
+      // The destination visit jumped ahead inside this ayah, or the same phones sit in the hole as a back-repeat
+      // of a look-alike. Either way the next two heard words say which word was recited.
+      const candidates: Visit[] = [];
+      const gapWord = gap.word;
+      const gapAyah = ayahOf[gapWord];
+      const sameAyah = (v: Visit) => ayahOf[v.word] === gapAyah && v.word !== gapWord;
+      if (after && counts(after) && sameAyah(after)) candidates.push(after);
+      const holeTo = after ? after.obsFrom : gap.obsFrom;
+      for (const v of visits) {
+        if (!counts(v) || v === after || v.obsFrom < 0 || !sameAyah(v)) continue;
+        // Overlaps the hole, or ends where the hole starts and is not the in-order word before it.
+        const inHole = v.obsFrom < holeTo && v.obsTo > gap.obsFrom;
+        const endsHole = v.obsTo === gap.obsFrom && v.word !== prevWord(gap.word);
+        if (!inHole && !endsHole) continue;
+        candidates.push(v);
+      }
+      let hold = false;
+      let rebound: Visit | null = null;
+      for (const v of candidates) {
+        const action = lookalike(gap.word, v);
+        if (action === "rebind") rebound = v;
+        else if (action === "hold") hold = true;
+      }
+      if (rebound) {
+        retarget(rebound, gap.word);
+        gap = null;
+        return;
+      }
+      if (hold) {
+        gap = null;
+        return;
+      }
       // Evidence inside the gap means the words were said, differently: a wrong word, not an omission. Phrase marks
       // don't count against that, a garbled word can look like "amin".
       const said = after ? obs.slice(gap.obsFrom, after.obsFrom) : [];
@@ -1318,6 +1454,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         continue;
       }
       flush(v);
+      // The look-alike visit was moved onto the unread word. This index is no longer that visit.
+      if (v.word !== wi) continue;
       // The word being recited is judged only once it reaches the word's end: before that it may still come right.
       if (wi === head && v.covered < length(wi)) continue;
       // Once recited right, a later wrong visit is a repeat that went astray; a wrong one then a right one is a correction.
@@ -1692,6 +1830,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   const evaluate = (out: CheckerEvent[], final: boolean) => {
+    atEnd = final;
     // The session ended, or the cursor left the span, before a unique continuation arrived.
     // Frozen slot accusations were judged on the committed window; this copy is the one they name.
     if (watching.size && (final || (cursor >= 0 && !spanStillOpen(cursor)))) {
