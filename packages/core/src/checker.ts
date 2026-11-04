@@ -9,6 +9,7 @@ import { LISTENER_CHANNEL } from "./listener-channel.js";
 import { insertionDropFit, issueDropFit } from "./tracker.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
+import { swapTailUnion } from "./checker-swap-tail.js";
 import { minGapFrames } from "./gap-decode.js";
 import { procliticOnset, waqfMarked } from "./mushaf-marks.js";
 import { absenceMargin } from "./ayah-ledger.js";
@@ -177,6 +178,8 @@ interface Issue {
   obsFrom: number;
   obsTo: number;
   observed?: string;
+  /** Absorbed speech reported as one word. The original span still owns this accusation's confirmation gates. */
+  heardUnion?: { obsFrom: number; obsTo: number; observed: string };
   /** A lexical candidate's exact neighboring visits; other occurrences must not widen its acoustic window. */
   supportRange?: [number, number];
   /** Score this word's own frames. A short ending disappears when the next word's labels slide onto its tail. */
@@ -429,7 +432,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       errorClass: issue.cls,
       location: toRef(issue.word),
       expected: ref.slice(words[issue.word].start, words[issue.last].end),
-      ...(issue.observed !== undefined ? { observed: issue.observed } : {}),
+      ...(issue.heardUnion ? { observed: issue.heardUnion.observed } : issue.observed !== undefined ? { observed: issue.observed } : {}),
       confidence: conf,
     };
     emitted.push(e);
@@ -1300,7 +1303,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   /** The errors the current alignment shows, by word; and where it stands. `bound` is the words a counting visit holds. */
-  const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; lexical: Issue[]; head: number; furthest: number; steps: Step[]; right: Set<number>; bound: Set<number> } | null => {
+  const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; lexical: Issue[]; head: number; furthest: number; steps: Step[]; right: Set<number>; bound: Set<number>; visits: Visit[] } | null => {
     const visits: Visit[] = [];
     const added: Issue[] = [];
     let cur: Visit | null = null;
@@ -1980,7 +1983,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         observed: phones.join(""), stringPath: true, manner: true,
       });
     }
-    return { issues, lexical: candidates, head, furthest: reached, steps, right, bound: new Set(last.keys()) };
+    return { issues, lexical: candidates, head, furthest: reached, steps, right, bound: new Set(last.keys()), visits: visits.filter(counts) };
   };
 
   /** Matched phonemes on the word after an error, heard after it: the next word has begun. */
@@ -2141,6 +2144,26 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       issues.set(candidate.word, candidate);
       right.delete(candidate.word);
     }
+    // Only the support-path addition is removed. Keep the wrong word's decision evidence and report the
+    // combined heard span, so absorbing a tail cannot promote an uncertain wrong word into a warning.
+    if (judged) for (const [wi, added] of [...issues]) {
+      if (added.cls !== "added_word" || added.lexicon || decided.has(wi)) continue;
+      const wrong = issues.get(prevWord(wi));
+      if (!wrong || wrong.cls !== "wrong_word") continue;
+      const location = toRef(wrong.word);
+      const confirmed = decided.has(wrong.word) ? emitted.find(e => e.state === "confirmed" && e.errorClass === "wrong_word" &&
+        e.location.surah === location.surah && e.location.ayah === location.ayah && e.location.word === location.word) : undefined;
+      // An uncertain decision is not an accusation that can own another word's speech.
+      if (decided.has(wrong.word) && !confirmed) continue;
+      const union = swapTailUnion(wrong, added, {
+        nextWord, visits: judged.visits, labelledPause,
+        heard: span => heardSpan({ ...wrong, ...span }), spellsWord: lexical.surplusWord,
+      });
+      if (!union) continue;
+      issues.set(wrong.word, { ...wrong, heardUnion: union });
+      issues.delete(wi);
+      if (confirmed) confirmed.observed = union.observed;
+    }
     furthest = Math.max(furthest, reached);
     for (const [wi, o] of [...open]) {
       const now = issues.get(wi);
@@ -2215,7 +2238,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (const o of [...open.values()]) if (o.issue.word < word && !heldSlot(o.issue.word)) decide(o, out);
     for (const o of open.values()) {
       const range = o.issue.supportRange;
+      const union = o.issue.heardUnion;
       o.issue = { ...o.issue, obsFrom: Math.max(0, o.issue.obsFrom - cut), obsTo: Math.max(0, o.issue.obsTo - cut),
+        ...(union ? { heardUnion: { ...union, obsFrom: Math.max(0, union.obsFrom - cut), obsTo: Math.max(0, union.obsTo - cut) } } : {}),
         ...(range ? { supportRange: [Math.max(0, range[0] - cut), Math.max(0, range[1] - cut)] as [number, number] } : {}) };
     }
     obs = obs.slice(cut);
