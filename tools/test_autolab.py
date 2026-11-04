@@ -364,6 +364,7 @@ def test_resuming_after_a_data_pause_takes_a_fresh_hash(w):
 def test_own_decode_output_is_not_test_data():
     assert A.OWN_DATA.search("data/lab-v1.5/sessions/lab-v1.4-p04.exp-listener-x-7085852.phone.evidence.json")
     assert A.OWN_DATA.search("data/lab-v1.5/decode-v1.json")
+    assert A.OWN_DATA.search("data/lab-v1.5/review/dashboard.json")
     assert not A.OWN_DATA.search("data/lab-v1.5/sessions/lab-v1.4-p04.spliced-clean-int8.phone.evidence.json")
     assert not A.OWN_DATA.search("data/lab-v1.5/manifest-v1.json")
 
