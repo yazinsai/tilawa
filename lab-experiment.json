@@ -1,0 +1,13 @@
+{
+ "id": "listener-kd-teacher-seam-ear",
+ "component": "listener",
+ "hypothesis": "Eight listener-charged word-1 additions reach the checker blank or fragmented. Every student traced so far (shipped, wide, relabel, nsp, long-form, re-distilled) shares one distillation bottleneck, but the fp32 KD teacher itself has never been decoded at these seams. Use it as a second ear only inside tracker-step-bounded seam spans, feeding the unchanged folded emission paths; predict listener -2, overall -1 (honest, below the gate alone).",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T20:42:03+00:00",
+ "author": "autolab"
+}
