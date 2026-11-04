@@ -223,6 +223,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const ledgerDone = new Set<number>();
   /** Skips the fit already accepted. Re-asserted each window so a later alignment does not resolve them. */
   const ledgerIssues = new Map<number, Issue>();
+  /**
+   * Ayah span of each accepted ledger skip. The seam can open in a later window, after this one has confirmed
+   * and the anchor has moved, so the span outlives `ledgerIssues`.
+   */
+  const ledgerSpans = new Map<number, number>();
   /** Obs index where the current push's phonemes start, so a new lock can own that chunk's frames. */
   let chunkFrom = 0;
   /**
@@ -578,6 +583,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     releaseFrozen(out, true, from, end);
     for (const w of [...decided]) if (w >= from && w < end && !slotAt.has(w)) decided.add(w + delta);
+    for (const [w, last] of [...ledgerSpans]) {
+      if (w < from || w >= end) continue;
+      ledgerSpans.delete(w);
+      // A whole ayah sits inside the span, so the end slides with the start. A slot was the other copy.
+      if (!slotAt.has(w)) ledgerSpans.set(w + delta, last + delta);
+    }
     if (anchor >= from && anchor <= end) anchor += delta;
     else if (anchor < from) anchor = to;
     if (furthest >= from && furthest < end) furthest += delta;
@@ -638,6 +649,28 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return s || ref.slice(words[ayahFirst[ayah]].start, words[ayahLast[ayah]].end);
   };
 
+  /**
+   * Refrain words (an ayah whose letter text occurs again) and the shared words of a near-duplicate span.
+   * The word a span's members disagree on is the slot, not duplicate text.
+   */
+  const copyText = new Set<number>();
+  {
+    const skel: string[] = [];
+    const copies = new Map<string, number>();
+    for (let a = 0; a < ayahFirst.length; a++) {
+      const t = ayahText(a);
+      skel.push(t);
+      copies.set(t, (copies.get(t) ?? 0) + 1);
+    }
+    for (let a = 0; a < skel.length; a++) if ((copies.get(skel[a]) ?? 0) > 1) {
+      for (let w = ayahFirst[a]; w <= ayahLast[a]; w++) copyText.add(w);
+    }
+    for (const s of allSpans) {
+      const slot = new Set(s.slots);
+      for (const st of s.starts) for (let off = 0; off < s.length; off++) if (!slot.has(off)) copyText.add(st + off);
+    }
+  }
+
   const wordPhones = (from: number, to: number) => {
     const out: string[] = [];
     for (let i = from; i <= to; i++) out.push(ref.slice(words[i].start, words[i].end));
@@ -686,15 +719,23 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const wi = ayahFirst[a];
       if (decided.has(wi) || heldSlot(wi)) continue;
       const openIssue = open.get(wi);
-      if (openIssue && openIssue.issue.cls !== "wrong_word" && openIssue.issue.cls !== "omitted_word") continue;
+      if (openIssue && openIssue.issue.cls !== "wrong_word" && openIssue.issue.cls !== "omitted_word") {
+        // The seam already keyed this ayah. Remember the ayah so a later seam on the same run can be dropped.
+        if (openIssue.issue.cls === "skipped_passage") ledgerSpans.set(wi, ayahLast[a]);
+        continue;
+      }
       const existing = issues.get(wi);
-      if (existing && existing.cls !== "wrong_word" && existing.cls !== "omitted_word") continue;
+      if (existing && existing.cls !== "wrong_word" && existing.cls !== "omitted_word") {
+        if (existing.cls === "skipped_passage") ledgerSpans.set(wi, ayahLast[a]);
+        continue;
+      }
       if (openIssue) {
         open.delete(wi);
         out.push(event(openIssue, "resolved"));
       }
       const issue: Issue = { cls: "skipped_passage", word: wi, last: ayahLast[a], obsFrom: at, obsTo: at };
       ledgerIssues.set(wi, issue);
+      ledgerSpans.set(wi, issue.last);
       issues.set(wi, issue);
     }
   };
@@ -703,6 +744,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (const [wi, issue] of [...ledgerIssues]) {
       if (decided.has(wi) || ayahFinished(ayahOf[wi])) {
         ledgerIssues.delete(wi);
+        // Confirmed skips stay. A finished ayah was read, so the skip did not stand.
+        if (!decided.has(wi)) ledgerSpans.delete(wi);
         continue;
       }
       // A wrong or omitted word on this ayah start is the skip misfiled. The fit already chose.
@@ -1063,8 +1106,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return stemEnd >= 0 && onsetStart < Infinity && (onsetStart - stemEnd - 1) * frameMs < SUFFIX_HOLD_MS;
   };
 
-  /** The errors the current alignment shows, by word; and where it stands. */
-  const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; lexical: Issue[]; head: number; furthest: number; steps: Step[]; right: Set<number> } | null => {
+  /** The errors the current alignment shows, by word; and where it stands. `bound` is the words a counting visit holds. */
+  const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; lexical: Issue[]; head: number; furthest: number; steps: Step[]; right: Set<number>; bound: Set<number> } | null => {
     const visits: Visit[] = [];
     const added: Issue[] = [];
     let cur: Visit | null = null;
@@ -1584,7 +1627,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         cls: "added_word", word: rightWord, last: rightWord, obsFrom: best.left.obsTo, obsTo: cut, observed: said, lexicon: true,
       });
     }
-    return { issues, lexical: candidates, head, furthest: reached, steps, right };
+    return { issues, lexical: candidates, head, furthest: reached, steps, right, bound: new Set(last.keys()) };
   };
 
   /** Matched phonemes on the word after an error, heard after it: the next word has begun. */
@@ -1710,6 +1753,23 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     if (pendingGap) closeGap(out, issues, pendingGap.left, pendingGap.right, final);
     keepLedger(issues);
+    // One unread run, two emitters. The seam starts after the ledger ayah and the words between them are bound
+    // refrain or shared duplicate-span text (or there are none). The ledger key is the earlier one, so the seam
+    // is dropped. A unique word between them keeps both. The span is the one the fit already accepted, including
+    // a skip confirmed before this window's anchor.
+    const bound = judged?.bound ?? new Set<number>();
+    if (ledgerSpans.size) for (const [wi, issue] of [...issues]) {
+      if (issue.cls !== "skipped_passage" || ledgerSpans.has(wi)) continue;
+      for (const [, last] of ledgerSpans) {
+        if (issue.word <= last) continue;
+        let same = true;
+        for (let w = last + 1; w < issue.word; w++) {
+          if (words[w].end === words[w].start) continue;
+          if (!bound.has(w) || !copyText.has(w)) { same = false; break; }
+        }
+        if (same) { issues.delete(wi); break; }
+      }
+    }
     if (!judged && !issues.size) return;
     if (judged) steps = judged.steps;
     const head = judged?.head ?? cursor;
@@ -1740,6 +1800,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         }
         open.delete(wi);
         out.push(event(o, "resolved"));
+        ledgerSpans.delete(wi);
       } else if (now.cls !== o.issue.cls) {
         o.issue = now;
         out.push(event(o, "suspected"));

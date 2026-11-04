@@ -121,3 +121,87 @@ describe("ayah absence between committed locks", () => {
     expect(recite([28, 29, 30])).not.toContain("skipped_passage 55:29:1");
   });
 });
+
+describe("a ledger skip and a seam skip on one unread run", () => {
+  /**
+   * Recite the listed words of surah 26, locking each one, with posteriors on the phones actually said.
+   * `26:131` is a repeated ayah, so a bound word of it is refrain text.
+   */
+  const recite = (plan: { ayah: number; words?: number[] }[]) => {
+    const phonemes = [];
+    const locks: WordRef[] = [];
+    let frame = 0;
+    for (const part of plan) {
+      for (const word of words(26, part.ayah)) {
+        if (part.words && !part.words.includes(word.word)) continue;
+        const text = index.phonemes.slice(word.start, word.end);
+        if (!text) continue;
+        for (const p of text) {
+          phonemes.push({ p, start: frame, end: frame + 2, conf: 0.99 });
+          frame += 3;
+        }
+        locks.push({ surah: 26, ayah: part.ayah, word: word.word });
+      }
+    }
+    const evidence = withPosteriors(index, { inventory: index.inventoryId, frameMs: 20, phonemes });
+    const checker = createChecker(index, { passage: { from: w(26, 129, 1), to: w(26, 140, 1) } });
+    const events = [];
+    let at = 0;
+    const spanStart = locks[0];
+    for (const lock of locks) {
+      const word = words(26, lock.ayah).find((x) => x.word === lock.word)!;
+      const n = word.end - word.start;
+      const slice = evidence.phonemes.slice(at, at + n);
+      at += n;
+      const rows = evidence.posteriors!;
+      const f0 = slice[0].start;
+      const f1 = slice.at(-1)!.end + 1;
+      const pos: PositionEvent = {
+        type: "position", v: 1, timeMs: f1 * 20, referenceVersion: index.version, expected: lock, state: "locked",
+        observed: [{ word: lock, span: { start: spanStart, end: lock }, confidence: 1, cost: 0, per: 0 }],
+      };
+      events.push(...checker.push({
+        inventory: evidence.inventory, frameMs: 20, phonemes: slice,
+        posteriors: { k: rows.k, startFrame: f0, nFrames: f1 - f0, ids: Array.from(rows.ids).slice(f0 * rows.k, f1 * rows.k), probs: Array.from(rows.probs).slice(f0 * rows.k, f1 * rows.k) },
+      }, [pos]));
+    }
+    events.push(...checker.end());
+    return events.filter((e) => e.state === "confirmed").map((e) => `${e.errorClass} ${key(e.location)}`);
+  };
+
+  const skips = (plan: { ayah: number; words?: number[] }[]) => recite(plan).filter((e) => e.startsWith("skipped_passage"));
+
+  it("drops the seam skip that a bound refrain word separates from the ledger ayah", () => {
+    // 26:130 unread, then only فاتقوا (26:131:1) is said, then 26:131:2–26:132:1 unread.
+    const got = skips([
+      { ayah: 129 },
+      { ayah: 131, words: [1] },
+      { ayah: 132, words: [2, 3, 4, 5] },
+      { ayah: 133 },
+      { ayah: 134 },
+      { ayah: 135 },
+    ]);
+    expect(got).toContain("skipped_passage 26:130:1");
+    expect(got).not.toContain("skipped_passage 26:131:2");
+  });
+
+  it("keeps both when a unique unread word separates them", () => {
+    // 26:132:1 is unique and unread, between the ledger ayah and the seam at 26:135:2.
+    const got = skips([
+      { ayah: 129 },
+      { ayah: 131 },
+      { ayah: 132, words: [2, 3, 4, 5] },
+      { ayah: 133 },
+      { ayah: 134 },
+      { ayah: 135, words: [1] },
+      { ayah: 136 },
+      { ayah: 137 },
+    ]);
+    expect(got).toContain("skipped_passage 26:130:1");
+    expect(got).toContain("skipped_passage 26:135:2");
+  });
+
+  it("stays quiet when those ayahs are read", () => {
+    expect(skips([{ ayah: 129 }, { ayah: 130 }, { ayah: 131 }, { ayah: 132 }, { ayah: 133 }])).toEqual([]);
+  });
+});
