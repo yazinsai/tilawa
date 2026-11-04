@@ -9,8 +9,9 @@ with the error; a second failure raises BrainError and the supervisor marks the 
     strategy(cfg, pack, frozen, slots, st)  Opus: the "why stuck" memo and bets
 
 Models come from cfg["models"] by role (planner, judge, diffReviewer, reviewer, strategist). `ask` defaults to a one-shot
-call: a claude-* model through the Claude Code CLI (`claude -p`, no tools), any other through the Cursor SDK
-(tools/autolab_cursor.py prompt_model); tests pass their own.
+call: a claude-* model through the Claude Code CLI (`claude -p`, no tools), a gpt-* model through the Azure Responses
+API of the codex-azure builder whose deployment it names, any other through the Cursor SDK (tools/autolab_cursor.py
+prompt_model); tests pass their own.
 """
 
 import json
@@ -190,11 +191,16 @@ def eli5(cfg: dict, items: dict[str, str], ask=None) -> dict[str, str]:
 TIMEOUTS = {"planner": 2700, "strategist": 2700, "reviewer": 1500}
 
 
+def split_model(model) -> tuple[str, dict]:
+    """(id, {param: value}) of a model id or {"id", "params": [{"id", "value"}]}."""
+    return (model, {}) if isinstance(model, str) else (model["id"], {p["id"]: p["value"] for p in model.get("params", [])})
+
+
 def claude_argv(model) -> list[str]:
     """`claude -p` for a model id or {"id", "params"} (context "1m" and effort carry over; fast has no CLI flag). No tools,
     no MCP servers and no user/project settings (so none of their hooks or plugins), JSON out. The loop's PATH may not
     have the CLI, so it falls back to the installer's location."""
-    mid, params = (model, {}) if isinstance(model, str) else (model["id"], {p["id"]: p["value"] for p in model.get("params", [])})
+    mid, params = split_model(model)
     argv = [shutil.which("claude") or str(Path.home() / ".local/bin/claude"), "-p",
             "--model", mid + ("[1m]" if params.get("context") == "1m" else ""), "--tools", "", "--strict-mcp-config",
             "--setting-sources", "", "--no-session-persistence", "--output-format", "json"]
@@ -202,7 +208,41 @@ def claude_argv(model) -> list[str]:
 
 
 def is_claude(model) -> bool:
-    return (model if isinstance(model, str) else model["id"]).startswith("claude-")
+    return split_model(model)[0].startswith("claude-")
+
+
+def azure_request(cfg: dict, model, prompt: str):
+    """(url, headers, body) of a Responses call to the codex-azure builder (executor.runtimes) whose deployment is this
+    model's id, so endpoint, API version and key are configured once; effort becomes reasoning effort."""
+    import autolab_codex as CX  # noqa: PLC0415
+    import autolab_exec as X  # noqa: PLC0415
+    from urllib.parse import urlencode  # noqa: PLC0415
+    mid, params = split_model(model)
+    arm = next((c for a in X.arms(cfg) if a["runtime"] == "codex-azure"
+                and CX.azure(c := X.arm_config(cfg, a)["executor"])["deployment"] == mid), None)
+    if arm is None:
+        raise BrainError(f"no codex-azure builder in executor.runtimes has the deployment {mid}")
+    a = CX.azure(arm)
+    url, query = CX.base_url(a["endpoint"], a["apiVersion"])
+    body = {"model": mid, "input": prompt, **({"reasoning": {"effort": params["effort"]}} if params.get("effort") else {})}
+    return f"{url}/responses" + (f"?{urlencode(query)}" if query else ""), {"api-key": CX.api_key(arm), "content-type": "application/json"}, body
+
+
+def azure_ask(cfg: dict, role: str, model, prompt: str, timeout_s: int) -> str:
+    import urllib.error  # noqa: PLC0415
+    import urllib.request  # noqa: PLC0415
+    url, headers, body = azure_request(cfg, model, prompt)
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, json.dumps(body).encode(), headers), timeout=timeout_s) as r:
+            res = json.load(r)
+    except urllib.error.HTTPError as e:
+        raise Unavailable(f"{role}: azure {e.code}: {e.read()[:300]!r}") from None
+    except (urllib.error.URLError, TimeoutError, OSError) as e:
+        raise Unavailable(f"{role}: azure: {e}") from None
+    if res.get("status") != "completed":
+        raise Unavailable(f"{role}: azure run {res.get('status')}: {str(res.get('error') or res.get('incomplete_details'))[:300]}")
+    return "".join(c.get("text", "") for o in res.get("output") or [] if o.get("type") == "message"
+                   for c in o.get("content") or [] if c.get("type") == "output_text")
 
 
 def default_ask(cfg: dict, role: str, prompt: str, timeout_s: int | None = None) -> str:
@@ -216,6 +256,8 @@ def default_ask(cfg: dict, role: str, prompt: str, timeout_s: int | None = None)
     import sys  # noqa: PLC0415
     import tempfile  # noqa: PLC0415
     model = cfg["models"][role]
+    if split_model(model)[0].startswith("gpt-"):
+        return azure_ask(cfg, role, model, prompt, timeout_s)
     claude = is_claude(model)
     if claude:
         argv, stdin = claude_argv(model), prompt

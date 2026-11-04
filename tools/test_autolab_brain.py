@@ -166,3 +166,14 @@ def test_claude_roles_go_through_the_cli_with_no_tools_or_settings():
     assert a[a.index("--tools") + 1] == "" and a[a.index("--setting-sources") + 1] == "" and "--strict-mcp-config" in a
     assert B.claude_argv("claude-sonnet-5-5")[3] == "claude-sonnet-5-5" and "--effort" not in B.claude_argv("claude-sonnet-5-5")
     assert B.is_claude(m) and not B.is_claude({"id": "grok-4.7"})
+
+
+def test_gpt_roles_call_the_azure_deployment_of_the_codex_builder(monkeypatch):
+    monkeypatch.setenv("AZURE_OPENAI_API_KEY", "k")
+    cfg = {"executor": {"runtimes": [{"name": "grok", "runtime": "cursor-local"},
+                                     {"name": "astra", "runtime": "codex-azure", "azure": {"endpoint": "https://x.openai.azure.com", "deployment": "gpt-6-astra", "apiVersion": "2025-04-01-preview"}}]}}
+    url, headers, body = B.azure_request(cfg, {"id": "gpt-6-astra", "params": [{"id": "effort", "value": "high"}]}, "p")
+    assert url == "https://x.openai.azure.com/openai/responses?api-version=2025-04-01-preview" and headers["api-key"] == "k"
+    assert body == {"model": "gpt-6-astra", "input": "p", "reasoning": {"effort": "high"}}
+    with pytest.raises(B.BrainError):
+        B.azure_request(cfg, "gpt-7", "p")

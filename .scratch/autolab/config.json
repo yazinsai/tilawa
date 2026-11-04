@@ -60,19 +60,11 @@
    ]
   },
   "judge": {
-   "id": "grok-4.7",
+   "id": "gpt-6-astra",
    "params": [
     {
-     "id": "context",
-     "value": "500k"
-    },
-    {
-     "id": "reasoning_effort",
+     "id": "effort",
      "value": "high"
-    },
-    {
-     "id": "fast",
-     "value": "false"
     }
    ]
   },
