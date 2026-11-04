@@ -1,0 +1,13 @@
+{
+ "id": "checker-merge-ledger-and-seam-skips",
+ "component": "checker",
+ "hypothesis": "p24 still gets a false skip warning at 26:131:2, even though the folded ayah-absence ledger now catches the real skip of 26:130 (that miss is gone from the clusters). The likely cause is that two skip emitters fire on one unread run: the ledger keys a whole-ayah skip at 26:130:1, and the older word-level seam emission still keys its own skip at 26:131:2, because the refrain word فاتقوا (26:131:1) was bound to the source. Merge adjacent skip events that one unread run explains into a single event keyed at the earliest start. Predict checker -1, overall -1 (honest, below the gate).",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T04:02:18+00:00",
+ "author": "autolab"
+}
