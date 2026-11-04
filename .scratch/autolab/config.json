@@ -133,44 +133,6 @@
   "env": {},
   "runtimes": [
    {
-    "name": "grok",
-    "runtime": "cursor-local",
-    "model": {
-     "id": "grok-4.7",
-     "params": [
-      {
-       "id": "context",
-       "value": "500k"
-      },
-      {
-       "id": "reasoning_effort",
-       "value": "high"
-      },
-      {
-       "id": "fast",
-       "value": "false"
-      }
-     ]
-    },
-    "fallbackModel": {
-     "id": "grok-4.7",
-     "params": [
-      {
-       "id": "context",
-       "value": "500k"
-      },
-      {
-       "id": "reasoning_effort",
-       "value": "high"
-      },
-      {
-       "id": "fast",
-       "value": "false"
-      }
-     ]
-    }
-   },
-   {
     "name": "astra",
     "runtime": "codex-azure",
     "azure": {
@@ -183,8 +145,7 @@
    }
   ],
   "split": {
-   "grok": 1,
-   "astra": 0
+   "astra": 1
   }
  },
  "listenerModel": "models/spliced-clean-int8",
