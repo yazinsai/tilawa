@@ -1,0 +1,13 @@
+{
+ "id": "listener-shipped-wide-posterior-product",
+ "component": "listener",
+ "hypothesis": "The 2x-width student hears seam additions the shipped student blanks, but every way of using it so far failed. Deployed alone it moved the string everywhere (+41). Scoped to seam windows or tracker input it won 0, because its wins seem to come from whole-ayah alignment and not from seam tokens. Decode with an equal-weight log-linear product of both students' posteriors, so the output moves only where the shipped student is unsure. Predict 2 of 5 wide-won additions kept with about 1 loss: listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T11:56:14+00:00",
+ "author": "autolab"
+}
