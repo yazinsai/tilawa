@@ -74,6 +74,11 @@ export interface PositionEvent {
    * for the continuation. Absent once that word arrives, and on every later lock.
    */
   spanHold?: true;
+  /**
+   * Ayahs entered on consecutive next-word steps in order at zero edit cost. This coverage only
+   * excludes an ayah from the absence ledger; it does not rebind a window or suppress word-level accusations.
+   */
+  steppedAyahs?: Pick<WordRef, "surah" | "ayah">[];
   /** Present only when the tracker was created with `trace: true`. */
   trace?: TrackerTrace;
 }

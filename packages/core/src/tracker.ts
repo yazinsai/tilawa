@@ -11,6 +11,7 @@ import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
 import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-spans.js";
 import type { SlotSpan } from "./slot-spans.js";
+import { createSteppedAyahs } from "./stepped-ayahs.js";
 
 export interface TrackerOptions {
   mode?: "free" | "memorization";
@@ -361,6 +362,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const expectedHistory: (WordRef | null)[] = [];
   /** The local search's cost for each of the last `CONFIRM` phonemes. */
   const stepCosts: number[] = [];
+  const steppedAyahs = createSteppedAyahs(index);
 
   const phraseList = options.phrases ? [...options.phrases.phrases, { name: "basmala", text: "", p: basmala }] : [];
   /** The latest phonemes, with the local search's cost for each and its state before each, for phrase detection. */
@@ -724,14 +726,19 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const marked = (event: PositionEvent): PositionEvent => (arm ? { ...event, spanHold: true } : event);
+  const withCoverage = (event: PositionEvent): PositionEvent => {
+    const coverage = steppedAyahs.take();
+    const { steppedAyahs: _, ...plain } = event;
+    return coverage.length ? { ...plain, steppedAyahs: coverage } : plain;
+  };
   const emit = (event: PositionEvent, trace: (from: TrackerState | null) => TrackerTrace): PositionEvent => {
     const from = last?.state ?? null;
-    const out = marked(event);
+    const out = withCoverage(marked(event));
     last = out;
     return options.trace ? { ...out, trace: trace(from) } : out;
   };
   const bare = (event: PositionEvent) => {
-    const { spanHold: _, timeMs: __, trace: ___, ...rest } = event;
+    const { spanHold: _, timeMs: __, trace: ___, steppedAyahs: ____, ...rest } = event;
     return JSON.stringify(rest);
   };
   const unchanged = (event: PositionEvent) => !!last && bare(last) === bare(event);
@@ -869,6 +876,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
+    steppedAyahs.reset();
     local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
     weak = false;
     pending = null;
@@ -1279,6 +1287,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         events.push(...reacquire());
         continue;
       }
+      const beforePos = local.position();
       const before = local.save();
       local.step(ph.p);
       stepCosts.push(local.position().stepCost);
@@ -1312,6 +1321,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         }
       }
       const pos = local.position();
+      steppedAyahs.step(beforePos, pos);
       const relocated = considerTwin(ph.p, pos);
       if (relocated) {
         events.push(relocated);
@@ -1472,7 +1482,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         cell = [];
         return [...events, ...(local ? endLocal() : evaluate(true))];
       }
-      return endLocal();
+      return endLocal().map(withCoverage);
     },
   };
 }

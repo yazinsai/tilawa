@@ -74,7 +74,7 @@ describe("closed read-versus-skip fit", () => {
 
 describe("ayah absence between committed locks", () => {
   /** Recite `ayahs` in order, locking each word, with posteriors on the phones actually said. */
-  const recite = (ayahs: number[]) => {
+  const recite = (ayahs: number[], steppedAyah?: number) => {
     const phonemes = [];
     const locks: WordRef[] = [];
     let frame = 0;
@@ -103,6 +103,7 @@ describe("ayah absence between committed locks", () => {
       const pos: PositionEvent = {
         type: "position", v: 1, timeMs: f1 * 20, referenceVersion: index.version, expected: lock, state: "locked",
         observed: [{ word: lock, span: { start: w(55, lock.ayah, 1), end: lock }, confidence: 1, cost: 0, per: 0 }],
+        ...(steppedAyah === undefined ? {} : { steppedAyahs: [{ surah: 55, ayah: steppedAyah }] }),
       };
       events.push(...checker.push({
         inventory: evidence.inventory, frameMs: 20, phonemes: slice,
@@ -119,6 +120,11 @@ describe("ayah absence between committed locks", () => {
 
   it("stays quiet when the lock reads that ayah", () => {
     expect(recite([28, 29, 30])).not.toContain("skipped_passage 55:29:1");
+  });
+
+  it("excludes a tracker-stepped ayah from the ledger without excluding a different gap", () => {
+    expect(recite([28, 30, 31], 29)).not.toContain("skipped_passage 55:29:1");
+    expect(recite([28, 30, 31], 27)).toContain("skipped_passage 55:29:1");
   });
 });
 
