@@ -1,0 +1,13 @@
+{
+ "id": "listener-fwdsum-neighbours-channel-spell",
+ "component": "listener",
+ "hypothesis": "Seam additions the shipped tokens already hold are lost twice over: blurred neighbours fail visit tests, and one-consonant blur fails the exact spell test (p33 فريم). Certify neighbours by the verified excise-then-forward-sum fit, and judge identity by the shipped listener's measured confusion channel instead of zero hard edits. Predict p19, p50 and p33 won with 0 lost: listener -3, overall -3.",
+ "expected": {
+  "component": -3,
+  "overall": -3
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T03:44:09+00:00",
+ "author": "autolab"
+}
