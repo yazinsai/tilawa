@@ -1,0 +1,13 @@
+{
+ "id": "listener-stack-fwdsum-madd-merge",
+ "component": "listener",
+ "hypothesis": "Three gate-measured zero-loss riders each sit at −1 on disjoint code paths and readers. Stacked byte-identical on current main they should give listener −1, checker −2, overall −3 with 0 lost: forward-sum confirmation of uncertain omissions (p14 44:23:1, mp3quran-40), the connected-madd vowel-drop rule (p79 20:43:1, mp3quran-10905) and the ledger/seam skip merge (p24 26:131:2, mp3quran-70).",
+ "expected": {
+  "component": -1,
+  "overall": -3
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T08:53:57+00:00",
+ "author": "autolab"
+}
