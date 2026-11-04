@@ -244,6 +244,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
    * and the anchor has moved, so the span outlives `ledgerIssues`.
    */
   const ledgerSpans = new Map<number, number>();
+  /**
+   * Absolute frames of an open omission's read-versus-omit stretch: the previous word's last confident
+   * phoneme through the onset of the word after the next one. Kept until the omission is decided, so a
+   * later commit can still score it.
+   */
+  const omissionStretch = new Map<number, { from: number; to: number }>();
   /** Obs index where the current push's phonemes start, so a new lock can own that chunk's frames. */
   let chunkFrom = 0;
   /**
@@ -420,11 +426,82 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return span.length ? span.reduce((a, p) => a + p.conf, 0) / span.length : 0;
   };
 
+  /**
+   * Frames still in this window for an omission the clarity gate has not confirmed. The left edge is the
+   * previous word's last phoneme at or above `minConfidence`; the right edge is the onset of the word
+   * after the next one. Either edge can already have scrolled out; the stored one stands.
+   */
+  const stretchEnds = (issue: Issue): { from: number; to: number } | null => {
+    const prev = prevWord(issue.word);
+    const next = nextWord(issue.last);
+    if (prev < 0 || next >= words.length) return null;
+    const after = nextWord(next);
+    let left = -1;
+    let right = -1;
+    for (const s of steps) {
+      if (s.op !== "diag" || s.obs < 0 || s.obs >= obs.length) continue;
+      const wi = index.wordAt(s.ref);
+      const ph = obs[s.obs];
+      if (wi === prev && s.obs < issue.obsFrom && ph.conf >= minConfidence) left = s.obs;
+      if (after < words.length && wi === after && s.obs >= issue.obsTo && right < 0) right = s.obs;
+    }
+    const from = left >= 0 ? obs[left].start : -1;
+    const to = right >= 0 ? obs[right].start : -1;
+    if (from < 0 && to < 0) return null;
+    return { from, to };
+  };
+
+  const noteStretch = (issue: Issue) => {
+    if (issue.cls !== "omitted_word") return;
+    const got = stretchEnds(issue);
+    if (!got) return;
+    const prev = omissionStretch.get(issue.word) ?? { from: -1, to: -1 };
+    // The last confident phone only moves later; the following onset only moves earlier. A window that
+    // has already lost one edge must not drag the stored frame toward whatever fragment remains.
+    omissionStretch.set(issue.word, {
+      from: got.from >= 0 && (prev.from < 0 || got.from > prev.from) ? got.from : prev.from,
+      to: got.to >= 0 && (prev.to < 0 || got.to < prev.to) ? got.to : prev.to,
+    });
+  };
+
+  /**
+   * Greedy clarity reads a neighbour's own low-confidence phones as doubt about the omitted word. The
+   * closed read-versus-omit sum charges that neighbour to both paths: `H_read` is the previous word, the
+   * flagged word and the next, `H_omit` drops the flagged word, with the ledger's repeat arcs and no
+   * filler. Confirm only when omitting wins by `PHRASE_SWITCH`.
+   */
+  const omittedByForwardSum = (issue: Issue): boolean => {
+    if (!frames || frames.startFrame < 0) return false;
+    noteStretch(issue);
+    const span = omissionStretch.get(issue.word);
+    if (!span || span.from < 0 || span.to <= span.from) return false;
+    if (span.from < frames.startFrame || span.to > frames.endFrame) return false;
+    const prev = prevWord(issue.word);
+    const next = nextWord(issue.last);
+    if (prev < 0 || next >= words.length) return false;
+    const margin = absenceMargin(
+      frames,
+      (p) => tokenId.get(p) ?? 0,
+      [wordPhones(prev, prev), wordPhones(issue.word, issue.last), wordPhones(next, next)],
+      1,
+      span.from,
+      span.to,
+    );
+    return margin !== null && margin >= PHRASE_SWITCH;
+  };
+
   const decide = (o: Open, out: CheckerEvent[], state?: "uncertain") => {
+    const locked = (declared && !latched) || trackerLocked;
+    const clear = clarity(o.issue) >= minConfidence;
+    const backed = supported(o.issue) !== false;
+    const sure = locked && clear && backed;
+    // Clarity is the only gate this replaces. A support rejection, an unlocked stretch, and a forced
+    // uncertain stay as they are; a confirmation the old gates already accepted is untouched.
+    const byFit = !state && locked && backed && !clear && o.issue.cls === "omitted_word" && omittedByForwardSum(o.issue);
     open.delete(o.issue.word);
     decided.add(o.issue.word);
-    const sure = ((declared && !latched) || trackerLocked) && clarity(o.issue) >= minConfidence && supported(o.issue) !== false;
-    out.push(event(o, state ?? (sure ? "confirmed" : "uncertain")));
+    omissionStretch.delete(o.issue.word);
+    out.push(event(o, state ?? (sure || byFit ? "confirmed" : "uncertain")));
   };
 
   /** The steps of the window's latest alignment. */
@@ -558,6 +635,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const sealAll = (out: CheckerEvent[]) => {
     for (const o of [...open.values()]) {
       open.delete(o.issue.word);
+      omissionStretch.delete(o.issue.word);
       decided.add(o.issue.word);
       out.push(event(o, "uncertain"));
     }
@@ -583,6 +661,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (const o of [...open.values()]) {
       if (keep.has(o.issue.word) || skip?.has(o.issue.word)) continue;
       open.delete(o.issue.word);
+      omissionStretch.delete(o.issue.word);
       decided.add(o.issue.word);
       out.push(event(o, "uncertain"));
     }
@@ -730,6 +809,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     lockSurah = -1;
     pendingGap = null;
     ledgerIssues.clear();
+    omissionStretch.clear();
   };
 
   const growSpan = (map: Map<number, AyahSpan>, ayah: number, word: number, frameFrom: number, frameTo: number) => {
@@ -788,6 +868,13 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     if (!pendingGap || !frames) return null;
     const span = spanFrames(pendingGap.left);
     return span ? span.frameFrom : null;
+  };
+
+  /** Frames an open omission still has to score. Null when none is waiting, so the window drops as before. */
+  const omissionFrameFloor = (): number | null => {
+    let m = Infinity;
+    for (const [wi, span] of omissionStretch) if (open.has(wi) && span.from >= 0) m = Math.min(m, span.from);
+    return m === Infinity ? null : m;
   };
 
   /** The tracker locked on `right` having come from `left`. Score once the right ayah is in, or the passage moves on. */
@@ -2005,6 +2092,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       right.delete(candidate.word);
     }
     furthest = Math.max(furthest, reached);
+    for (const issue of issues.values()) noteStretch(issue);
     for (const [wi, o] of [...open]) {
       const now = issues.get(wi);
       if (!now) {
@@ -2015,6 +2103,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
           continue;
         }
         open.delete(wi);
+        omissionStretch.delete(wi);
         out.push(event(o, "resolved"));
         ledgerSpans.delete(wi);
       } else if (now.cls !== o.issue.cls) {
@@ -2198,7 +2287,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         if (obs.length > HISTORY) obs = obs.slice(-HISTORY);
       } else evaluate(out, false);
       if (frames && obs.length) {
-        const floor = ledgerFloor();
+        const floors = [ledgerFloor(), omissionFrameFloor()].filter((f): f is number => f !== null);
+        const floor = floors.length ? Math.min(...floors) : null;
         frames.dropBefore(floor === null ? obs[0].start : Math.min(obs[0].start, floor));
       }
       return out;
