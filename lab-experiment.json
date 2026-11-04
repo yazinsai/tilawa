@@ -1,0 +1,13 @@
+{
+ "id": "tracker-stepped-ayah-not-skipped",
+ "component": "tracker",
+ "hypothesis": "In p46 the tracker steps through 54:36 word by word, but the ayah-absence ledger still calls 54:36 skipped, because a far in-lock step binds بالنذر to 54:37:9 and 54:36 never gets its own window. Have the tracker export the ayahs it actually stepped through in order, and keep those ayahs off the ledger; predict tracker -1, overall -1 (honest, zero-loss rider candidate below the gate).",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T15:25:25+00:00",
+ "author": "autolab"
+}
