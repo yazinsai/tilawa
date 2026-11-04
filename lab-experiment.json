@@ -1,0 +1,13 @@
+{
+ "id": "listener-help-train-swap-evidence-gate",
+ "component": "listener",
+ "hypothesis": "Three phone false wrong words (26:106:1, 55:48:1, 26:174:8) confirm on the non-lexical 2x SUPPORT fallback or the more-consonants escape, and no rival, channel, ear or coherence score separates them from real swaps. Veto those accusations with a small gate fitted on real learner phone recordings from help-train, where every substitution is labelled. Predict 2 of 3 vetoed and about 1 caught swap lost: listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T16:25:14+00:00",
+ "author": "autolab"
+}
