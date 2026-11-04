@@ -1,0 +1,13 @@
+{
+ "id": "listener-fwdsum-uncertain-omission",
+ "component": "listener",
+ "hypothesis": "The planted ayah-initial omission at p14 44:23:1 is proposed but ends uncertain at clarity 0.58, because clarity is computed from greedy residue that includes the next word's own low-confidence phones. Decide uncertain proposed omissions with the folded closed read-versus-omit forward-sum fit on the stored posteriors instead of greedy clarity; predict listener -1, overall -1 (honest, a zero-loss rider candidate below the gate alone).",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T06:57:31+00:00",
+ "author": "autolab"
+}
