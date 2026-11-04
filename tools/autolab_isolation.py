@@ -109,6 +109,32 @@ def exam_pattern(exam: list[str]) -> re.Pattern:
     return re.compile("|".join(re.escape(i) + r"(?![0-9])" for i in sorted(exam, key=len, reverse=True)) or r"(?!x)x")
 
 
+HELP_DIR = "help-train"
+
+
+def copy_help_train(src: Path, stage: Path) -> dict:
+    """The train-speaker half of the help-page recordings (tilawa-help: labels.jsonl + wav/, real learners reading with
+    scripted mistakes) into `stage`/help-train, for training only. The eval half is the release benchmark's: raises,
+    leaving `stage` to be thrown away, if any eval clip or eval speaker's clip would be copied."""
+    rows = [json.loads(x) for x in (src / "labels.jsonl").read_text().splitlines() if x.strip()]
+    train = [r for r in rows if r.get("split") == "train"]
+    held = {r["speaker"] for r in rows if r.get("split") != "train"}
+    if leak := sorted({r["speaker"] for r in train} & held):
+        raise ValueError(f"help speakers in both splits: {leak[:5]}")
+    out, nbytes = stage / HELP_DIR, 0
+    (out / "wav").mkdir(parents=True, exist_ok=True)
+    for r in train:
+        wav = Path(posixpath.normpath(r["wav"]))
+        if wav.is_absolute() or wav.parts[0] != "wav":
+            raise ValueError(f"{r['id']}: wav {r['wav']} is outside wav/")
+        shutil.copyfile(src / wav, out / wav)
+        nbytes += (out / wav).stat().st_size
+    (out / "labels.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in train))
+    if stray := {r["id"] for r in rows if r.get("split") != "train"} & {f.stem for f in (out / "wav").iterdir()}:
+        raise ValueError(f"eval help clips in the copy: {sorted(stray)[:5]}")
+    return {"clips": len(train), "speakers": len({r["speaker"] for r in train}), "bytes": nbytes}
+
+
 def copy_practice(src: Path, stage: Path, spec: dict) -> dict:
     """Copies from `src` (a /lab/data) into `stage` what practice needs of one test set: {manifest, practice, listeners,
     models}. Raises, leaving `stage` to be thrown away, when any file name or JSON text names an exam session."""

@@ -44,6 +44,11 @@ that lost it, so listener + tracker + checker = overall. Scoring is deterministi
 An incident key looks like `<session>/phone/mistake:<class>/<surah:ayah:word>/<seconds>` (a missed mistake) or a false
 warning's key. A cluster groups incidents by charged component, error class and kind.
 
+Training data beyond the practice set: help-train, about 490 recordings by real learners (mostly phones) of single ayahs
+with one scripted mistake each (skipped word or ayah, substituted word, vowel, tajweed) or a repeat, or none, labelled
+with what was planted. It is for training and analysis only, never scoring (its held-out speakers are the release
+benchmark's).
+
 The fold gate (code, not you) keeps a change only if overall improves by 3 or more, its component gets no more than 2
 worse, the gain survives leaving out the reader who gained most, no new false warnings appear on fully clean sessions,
 studio audio gets no more than 2 worse, and incidents lost are at most 30% of those won (any loss needs a net gain of 5).

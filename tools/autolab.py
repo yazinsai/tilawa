@@ -1429,7 +1429,9 @@ You have no Modal credentials: `modal ...` and `tools/lab.py run` fail here. The
 runs the command under bash in /app, over this worktree's tracked and untracked files, and waits for it (add
 `--no-wait`, then `{al} modal-result <n>`, for long runs). Each shard gets LAB_SHARD and LAB_SHARDS,
 LAB_DATA=/lab/data (read-only: the practice sessions of {base} with their labels, audio and evidence, and
-models/spliced-clean-int8; the exam is not there), and LAB_OUT, which comes back to `.autolab/modal-out-<n>/<shard>/`
+models/spliced-clean-int8; the exam is not there; and help-train/: real learners' phone and laptop recordings of
+single ayahs with scripted mistakes, labels.jsonl in core's event vocabulary, repeats in non_errors; for training and
+analysis only, its held-out speakers are the release benchmark's and are not there), and LAB_OUT, which comes back to `.autolab/modal-out-<n>/<shard>/`
 with the command's log.txt. /scratch/{c['id']} keeps files across your runs. At most {lim['concurrent']} runs at a time,
 {lim['maxShards']} shards and {lim['maxMinutes']} minutes each{' (a bet: up to ' + str(lim['betMaxMinutes'] // 60) + ' h)' if e['tier'] == 'bet' else ''}.
 This worktree has no node_modules; run the tests there too: `{al} modal-run --shards 6 -- 'bash tools/autolab_tests.sh'`.

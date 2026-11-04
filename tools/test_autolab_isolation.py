@@ -120,3 +120,19 @@ def test_model_paths_stay_in_the_experiments_scratch_area():
     for bad in ("", ".", "../other/x", "/scratch/other/x", "/lab/data/models/x", "a/../../b"):
         with pytest.raises(ValueError):
             I.model_path({"path": bad}, "listener-x")
+
+
+def test_help_train_copies_train_speakers_only(tmp_path):
+    src, stage = tmp_path / "help", tmp_path / "stage"
+    (src / "wav").mkdir(parents=True)
+    rows = [{"id": "a", "speaker": "s1", "split": "train", "wav": "wav/a.wav"},
+            {"id": "b", "speaker": "s2", "split": "eval", "wav": "wav/b.wav"}]
+    for r in rows:
+        (src / r["wav"]).write_bytes(b"RIFF")
+    (src / "labels.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
+    out = I.copy_help_train(src, stage)
+    assert out["clips"] == 1 and [f.name for f in (stage / I.HELP_DIR / "wav").iterdir()] == ["a.wav"]
+    assert [json.loads(x)["id"] for x in (stage / I.HELP_DIR / "labels.jsonl").read_text().splitlines()] == ["a"]
+    (src / "labels.jsonl").write_text("".join(json.dumps(r) + "\n" for r in [*rows, {"id": "c", "speaker": "s2", "split": "train", "wav": "wav/b.wav"}]))
+    with pytest.raises(ValueError, match="both splits"):
+        I.copy_help_train(src, tmp_path / "stage2")

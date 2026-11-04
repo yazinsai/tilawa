@@ -3,6 +3,7 @@
     modal deploy modal/autolab_exec.py                       # from the main checkout, whenever this file changes
     python modal/autolab_exec.py run '<request json>'         # one builder command over shards (a tools/autolab.py job)
     python modal/autolab_exec.py sync '<spec json>'           # refresh tilawa-lab-exec, the practice-only data copy
+    python modal/autolab_exec.py sync-help                     # replace only help-train/ (help recordings, train speakers)
     python modal/autolab_exec.py copy-model <exp> <path> <dst>   # tilawa-lab-scratch /<exp>/<path> -> tilawa-lab /data/<dst>
 
 A builder's command runs in a Modal Sandbox, never in a function container: code in a function container talks to Modal
@@ -37,12 +38,14 @@ sys.path[:0] = [str(ROOT / "modal"), str(ROOT / "tools")]
 import autolab_isolation as I  # noqa: E402
 
 APP, LAB, EXEC, SCRATCH, STUDENT = "tilawa-autolab-exec", "tilawa-lab", "tilawa-lab-exec", "tilawa-lab-scratch", "tilawa-student"
+HELP = "tilawa-help"  # the help-page recordings; only their train speakers reach tilawa-lab-exec
 MAX_FILE, MAX_MODEL, MAX_DOWNLOAD = 10 << 20, 4 << 30, 500 << 20
 
 app = modal.App(APP)
 lab_vol = modal.Volume.from_name(LAB)
 exec_vol = modal.Volume.from_name(EXEC, create_if_missing=True)
 scratch_vol = modal.Volume.from_name(SCRATCH, create_if_missing=True)
+help_vol = modal.Volume.from_name(HELP)
 fn_image = modal.Image.debian_slim(python_version="3.12").add_local_python_source("autolab_isolation")
 
 ENTRY = r"""set -u
@@ -157,18 +160,33 @@ def run(q: dict) -> dict:
             "out": f"/scratch{out}", "local": str(local) if local else None}
 
 
-@app.function(image=fn_image, volumes={"/src": lab_vol.read_only(), "/dst": exec_vol}, cpu=2, memory=4096, timeout=60 * 60)
+@app.function(image=fn_image, volumes={"/src": lab_vol.read_only(), "/help": help_vol.read_only(), "/dst": exec_vol}, cpu=2, memory=4096, timeout=60 * 60)
 def sync(spec: dict) -> dict:
-    """tilawa-lab-exec becomes the practice-only copy of one test set: {base, manifest, practice, listeners, models}.
-    Nothing else survives in it, so sessions that are exam in this version can't linger from an older one."""
+    """tilawa-lab-exec becomes the practice-only copy of one test set: {base, manifest, practice, listeners, models},
+    plus the help recordings' train speakers in help-train/. Nothing else survives in it, so sessions that are exam in
+    this version can't linger from an older one."""
     dst, stage = Path("/dst"), Path("/dst/.staging")
     shutil.rmtree(stage, ignore_errors=True)
     out = I.copy_practice(Path("/src/data"), stage, spec)
+    out["help"] = I.copy_help_train(Path("/help"), stage)
     for old in dst.iterdir():
         if old != stage:
             shutil.rmtree(old) if old.is_dir() else old.unlink()
     for new in stage.iterdir():
         new.rename(dst / new.name)
+    stage.rmdir()
+    exec_vol.commit()
+    return out
+
+
+@app.function(image=fn_image, volumes={"/help": help_vol.read_only(), "/dst": exec_vol}, cpu=2, memory=4096, timeout=30 * 60)
+def sync_help() -> dict:
+    """Only help-train/ replaced, the practice data left as it is (builds may be reading it)."""
+    stage = Path("/dst/.staging-help")
+    shutil.rmtree(stage, ignore_errors=True)
+    out = I.copy_help_train(Path("/help"), stage)
+    shutil.rmtree(Path("/dst") / I.HELP_DIR, ignore_errors=True)
+    (stage / I.HELP_DIR).rename(Path("/dst") / I.HELP_DIR)
     stage.rmdir()
     exec_vol.commit()
     return out
@@ -212,6 +230,8 @@ def main(argv: list[str]) -> int:
                 out = {"result": res, "exitCode": res["code"]}
             elif op == "sync":
                 out = modal.Function.from_name(APP, "sync").remote(json.loads(argv[1]))
+            elif op == "sync-help":
+                out = modal.Function.from_name(APP, "sync_help").remote()
             elif op == "copy-model":
                 out = modal.Function.from_name(APP, "copy_model").remote(*argv[1:4])
             else:
