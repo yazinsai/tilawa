@@ -1187,6 +1187,7 @@ class Tick:
             if "conflicts" in err and e["attempts"].get("conflicts", 0) == 0:
                 e["attempts"]["conflicts"] = 1
                 e["state"] = "accepted"
+                self.events.append(S.event(e["id"], "folding", "accepted", self.at, "sent back: rebasing onto main conflicts"))
                 return self.start_executor(e, "Rebasing onto main conflicts. Rebase your branch onto `main`, resolve the conflicts, keep the change's intent, and commit.\n" + err[-1500:])
             return self.move(e, "needs-human", "fold failed: " + err[:300])
         r["fold"] = {k: res.get(k) for k in ("run", "base", "sha", "compare", "why", "gate", "head", "practice")}

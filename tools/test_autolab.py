@@ -64,6 +64,7 @@ class World(A.World):
 
     def save(self, st, events):
         self.saved = json.loads(json.dumps(st))
+        self.logged = [*getattr(self, "logged", []), *events]
 
     def events(self):
         return []
@@ -169,8 +170,7 @@ def w(tmp_path, monkeypatch):
 
 def tick(w, at=T0):
     st = w.load()
-    A.Tick(w, st, at).run()
-    w.save(st, [])
+    w.save(st, A.Tick(w, st, at).run())
     return st
 
 
@@ -266,6 +266,13 @@ def test_main_moving_during_a_fold_folds_again_instead_of_paging(w):
     st, id = advance(w, 6)
     e = st["experiments"][id]
     assert e["state"] == "folding" and e["attempts"]["mainMoved"] >= 1 and not st["needsHuman"]
+
+
+def test_a_fold_that_conflicts_goes_back_to_a_builder_on_the_record(w):
+    w.job_results["fold"] = {"error": "rebasing onto main conflicts in packages/core/src/checker.ts"}
+    st, id = advance(w, 6)
+    assert st["experiments"][id]["attempts"]["conflicts"] == 1
+    assert any(e["id"] == id and e["from"] == "folding" and e["to"] == "accepted" for e in w.logged)
 
 
 def test_hygiene_failure_bounces_once_then_discards(w):
