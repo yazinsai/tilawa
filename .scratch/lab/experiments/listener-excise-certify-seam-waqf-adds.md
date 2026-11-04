@@ -1,6 +1,8 @@
 # Excise and certify spelled words at ayah and waqf seams
 
-Status: narrowed rule confirms three targets; full tests pass; final score pending.
+Status: implemented; three targets confirmed; final practice overall +11, listener +5.
+The premise holds, but the measured change fails the improvement gate. Patch left
+in place for the supervisor's fold gate, as instructed.
 
 ## Prediction
 
@@ -113,7 +115,8 @@ this refinement no longer claims it.
 
 ## Final validation
 
-Modal run 9: builds and all core/SDK tests passed on six shards. The harness
+Modal run 9: builds, 709 core tests and 16 SDK tests passed on six shards; the
+optional SDK end-to-end test was skipped. The harness
 accepted the documented Vitest worker RPC timeout after all tests passed. The
 previous clean-fixture and lexical regressions are gone. New tests cover a
 blurred neighbour at each seam type, both pause boundaries, a bare nasal, a
@@ -123,8 +126,30 @@ concatenated rows, including repeat arcs.
 Modal run 10: the narrowed engine and true-position replays both confirm p19
 at 106.36 s (`وَمِن`), p50 at 153.24 s (`وَقِفُۥۥهُم`), and 4:157:24 at 59.40 s
 (`وَءِن`). The other two targets do not confirm. Three of five retained; the
-premise kill criterion does not fire. The third and final practice attempt is
-reserved for this tested version. Temporary diagnostic scripts were removed.
+premise kill criterion does not fire. Temporary diagnostic scripts were removed.
+
+## Final practice score
+
+Attempt 3 scored committed engine version `6cf7f34d`:
+
+| Attribution | Main | Experiment | Change |
+| --- | ---: | ---: | ---: |
+| Overall | 36 | 47 | +11 |
+| Listener | 32 | 37 | +5 |
+| Tracker | 1 | 1 | 0 |
+| Checker | 3 | 9 | +6 |
+
+Misses fell from 24 to 17, but false warnings rose from 12 to 30. Bounding the
+candidate by pauses and excluding neighbouring text fragments removed most of
+the broad version's false warnings, but did not make this rule precise enough.
+The final result is worse and does not meet the predicted improvement or the
+fold gate's overall/component requirements.
+
+All three allowed practice requests were used (one timeout, two completed).
+The aggregate receipt does not identify fully clean sessions or report studio
+or leave-reader-out results; those gates have not been established here. Three
+target confirmations remain, so this is not a premise kill. The tested engine
+change remains committed for the supervisor's scoring and gate decision.
 
 ## Limits
 
