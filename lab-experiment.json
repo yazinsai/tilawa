@@ -1,0 +1,13 @@
+{
+ "id": "listener-pause-bounded-swap-tail-merge",
+ "component": "listener",
+ "hypothesis": "At 7:198:7 one planted long substitution is reported twice, as a wrong word plus a false added word كم made from its tail; the earlier merge failed only because it demanded strict frame contiguity across a 4-frame (~120 ms) blank between the spans. Merge an added span into the preceding wrong-word accusation when no labelled pause and no counting visit separate them and the union spells an attested word; predict listener -1, overall -1 (honest, a zero-loss rider candidate below the gate).",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T20:42:25+00:00",
+ "author": "autolab"
+}
