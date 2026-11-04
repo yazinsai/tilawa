@@ -1,0 +1,13 @@
+{
+ "id": "listener-stack-d47946",
+ "component": "listener",
+ "hypothesis": "Stack listener-final-slot-manner-rekey (-2) and listener-fwdsum-uncertain-omission (-1): each won different incidents and lost none, so together they should clear the fold bar; predict overall -3.",
+ "expected": {
+  "component": -3,
+  "overall": -3
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T08:23:11+00:00",
+ "author": "autolab"
+}
