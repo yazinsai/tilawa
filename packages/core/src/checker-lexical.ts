@@ -286,6 +286,7 @@ function build(index: ReferenceIndex) {
     ending,
     droppedSuffixes,
     surplusWord,
+    explainsSeam,
     alternative(wi: number, heard: string, context?: { before?: string; after?: string }): boolean {
       const normalized = form(heard);
       const key = context && contextKey(context.before === undefined ? undefined : boundary(context.before, true),

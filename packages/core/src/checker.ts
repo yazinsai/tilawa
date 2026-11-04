@@ -16,6 +16,7 @@ import { PHRASE_PEAK, PHRASE_SWITCH, letterSkeleton, parallelPaths } from "./par
 import { isMaddLetter, maddSites, stemConsonant } from "./madd-drops.js";
 import { formulaSlots } from "./formula-slots.js";
 import { spanId, slotSpans } from "./slot-spans.js";
+import { pausalChannelChoice } from "./pausal-channel.js";
 
 export interface CheckerPolicy {
   /** When a suspected wrong or added word is confirmed: after `ms` (2–3 s), or once the next word has begun. Default 2500 ms. */
@@ -49,7 +50,7 @@ export interface CheckerOptions {
    */
   passage?: { from: WordRef; to: WordRef };
   /**
-   * Listener confusion counts for closed omission placement and ayah-final formula choices. The scored
+   * Listener confusion counts for closed omission placement, ayah-final formula choices and manner rekeys. The scored
    * build uses {@link LISTENER_CHANNEL}. An empty phone list leaves the channel decisions off.
    */
   channel?: ChannelCounts;
@@ -114,6 +115,22 @@ const SUPPORT = 10;
  * degraded audio a confusable sound (ن for م, ف for ك) is heard at even odds with blank, yet a few of them sum past it.
  */
 const UNSURE = 0.8;
+/**
+ * Manner that a held pausal final still separates on a phone band. Nasal hum, liquid (trill or lateral),
+ * obstruent (stop or fricative) and glide. ن/م are one nasal; ف/ك are one obstruent, so those channel
+ * pairs are not a contradiction. Ghunna marks take the nasal of ن/م; qalqala is not a manner.
+ */
+const MANNER: Readonly<Record<string, "nasal" | "liquid" | "obstruent" | "glide">> = {
+  "ن": "nasal", "م": "nasal", "ں": "nasal", "۾": "nasal",
+  "ر": "liquid", "ل": "liquid",
+  "و": "glide", "ي": "glide",
+  "ء": "obstruent", "ب": "obstruent", "ت": "obstruent", "ث": "obstruent", "ج": "obstruent", "ح": "obstruent",
+  "خ": "obstruent", "د": "obstruent", "ذ": "obstruent", "ز": "obstruent", "س": "obstruent", "ش": "obstruent",
+  "ص": "obstruent", "ض": "obstruent", "ط": "obstruent", "ظ": "obstruent", "ع": "obstruent", "غ": "obstruent",
+  "ف": "obstruent", "ق": "obstruent", "ك": "obstruent", "ه": "obstruent",
+};
+/** Saktah and waqf tokens the listener can emit. A frame gap the pause test labels is the other pause. */
+const PAUSE_TOKEN = new Set("ؙۜ");
 /**
  * A dropped consonant-bearing ending takes a consonant plus a long vowel. A brisk murattal phoneme is two frames of
  * the 40 ms stride, and a long vowel is a madd of two counts, so both need 240 ms. A shorter hole between the
@@ -196,6 +213,12 @@ interface Issue {
    * Anything shorter or the same length that spells no such word needs twice the support margin.
    */
   stringPath?: boolean;
+  /**
+   * Ayah-final slot before a labelled pause whose last consonant manner contradicts the written pausal
+   * final. Stands in for the lexical gate and the 0.6 confidence cut. `SUPPORT` and the weak-evidence
+   * gate are unchanged.
+   */
+  manner?: boolean;
 }
 
 interface Open {
@@ -213,6 +236,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const tokenId = new Map([...index.tokens].map((t, i) => [t, i + 1]));
   const omissionChannel: Channel = channelFromCounts(options.channel ?? LISTENER_CHANNEL);
   const rankOmission = omissionChannel.phones.length > 0;
+  const mannerChoices = new Map<string, boolean>();
   const ref = index.phonemes;
   const words = index.words;
   const lexical = lexicalWords(index);
@@ -425,7 +449,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const decide = (o: Open, out: CheckerEvent[], state?: "uncertain") => {
     open.delete(o.issue.word);
     decided.add(o.issue.word);
-    const sure = ((declared && !latched) || trackerLocked) && clarity(o.issue) >= minConfidence && supported(o.issue) !== false;
+    const sure = ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false;
     out.push(event(o, state ?? (sure ? "confirmed" : "uncertain")));
   };
 
@@ -515,14 +539,31 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return stripEdge(live || issue.observed || "");
   };
   const consonantCount = (s: string) => collapseHeld([...s]).filter((p) => CONSONANTS.has(p)).length;
+  /** Manner of the last consonant run after waqf tails are stripped. Null when no consonant remains. */
+  const lastManner = (phones: string) => {
+    const bare = stripEdge(phones);
+    for (let i = bare.length - 1; i >= 0; i--) {
+      const m = MANNER[bare[i]!];
+      if (m) return m;
+    }
+    return null;
+  };
+  /** The isolated pausal form's final consonant. Connected text when the index has no pause form. */
+  const pausalManner = (wi: number) =>
+    lastManner(index.isolatedWordForms?.[wi] || ref.slice(words[wi].start, words[wi].end));
+  /** A manner mismatch is sure without the 0.6 cut. The weak-evidence gate still reads the changed phones. */
+  const heardSure = (issue: Issue) => issue.manner === true || clarity(issue) >= minConfidence;
   /**
    * Nats the decoded hypothesis must win by. A per-word substitution that does not spell another mushaf word
    * (not the written word, not a word or prefix within ±3) clears twice `SUPPORT`, unless the span has more
    * consonants than the written word: that extra speech is the next word's, and today's margin still owns it.
-   * The weak-evidence gate already asks for twice `SUPPORT`. A spelled word keeps today's margin.
+   * A manner mismatch replaces that lexical doubling. The weak-evidence gate still asks for twice `SUPPORT`.
+   * A spelled word keeps today's margin.
    */
   const supportNeed = (issue: Issue): number => {
     const weak = issue.cls === "wrong_word" && changedClarity(issue) < UNSURE;
+    // The lexical doubling is the gate a manner mismatch replaces. Weak evidence still doubles.
+    if (issue.manner) return weak ? 2 * support : support;
     if (issue.stringPath) {
       const heard = heardSpan(issue);
       const written = ref.slice(words[issue.word].start, words[issue.last].end);
@@ -627,7 +668,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   const sureOf = (o: Open) =>
-    ((declared && !latched) || trackerLocked) && clarity(o.issue) >= minConfidence && supported(o.issue) !== false;
+    ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false;
 
   /** Confirm frozen slot accusations, or drop the ones that named the copy the continuation rejected. */
   const releaseFrozen = (out: CheckerEvent[], drop: boolean, from = -1, end = Infinity) => {
@@ -1881,6 +1922,80 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         observed: drop.alt, madd: true,
       });
       right.delete(m.word);
+    }
+    // Phones from the previous word's last in-order visit up to the first labelled pause.
+    // A gap inside that previous word is already before `start`.
+    const closingSlot = (wi: number, fallbackFrom: number): { from: number; to: number } | null => {
+      if (ayahLast[ayahOf[wi]] !== wi) return null;
+      const ayah = ayahOf[wi];
+      const prev = prevWord(wi);
+      let anchored = -1;
+      for (const v of visits) {
+        if (v.word !== prev || v.obsFrom < 0 || v.obsTo <= anchored) continue;
+        // A repeat after a later word is not the in-order visit.
+        if (visits.some((u) => u.obsFrom >= 0 && u.word > prev && u.obsTo > 0 && u.obsTo <= v.obsFrom)) continue;
+        anchored = v.obsTo;
+      }
+      const start = anchored >= 0 ? anchored : fallbackFrom;
+      if (start < 0 || start > obs.length) return null;
+      let limit = obs.length;
+      for (const v of visits) {
+        if (v.obsFrom < start || ayahOf[v.word] === ayah) continue;
+        if (v.obsFrom < limit) limit = v.obsFrom;
+      }
+      if (limit <= start) return null;
+      // The first labelled pause after the previous word. Speech before it is the slot; a pause
+      // earlier than that word is already outside `start`. Unowned phones after the pause (the
+      // next ayah's onset, not yet a visit) stay out.
+      let to = -1;
+      for (let i = start; i < limit; i++) {
+        if (PAUSE_TOKEN.has(obs[i]!.p)) { to = i; break; }
+        if (i + 1 < obs.length && runEndPause(i)) { to = i + 1; break; }
+      }
+      return to > start ? { from: start, to } : null;
+    };
+    const slotText = (from: number, to: number) =>
+      obs.slice(from, to).filter((p) => !p.junk && !PAUSE_TOKEN.has(p.p)).map((p) => p.p);
+    const mannerContradicts = (wi: number, phones: string[]) => {
+      const heard = lastManner(phones.join(""));
+      const written = pausalManner(wi);
+      return !!heard && !!written && heard !== written;
+    };
+    for (const [wi, issue] of [...issues]) {
+      if (issue.phrase || issue.word !== wi) continue;
+      if (issue.cls !== "wrong_word" && issue.cls !== "omitted_word") continue;
+      const slot = closingSlot(wi, issue.obsFrom);
+      if (!slot) continue;
+      const phones = slotText(slot.from, slot.to);
+      if (!mannerContradicts(wi, phones)) continue;
+      if (issue.cls === "wrong_word" && issue.last === wi) {
+        issue.manner = true;
+        continue;
+      }
+      // An omission already raised on this word. Speech in the slot (two non-blank tokens, one a
+      // consonant) that contradicts the pausal final becomes that same accusation as a wrong word.
+      if (issue.cls !== "omitted_word" || issue.word !== wi) continue;
+      const consonant = phones.some((p) => CONSONANTS.has(p) || MANNER[p] === "nasal");
+      if (phones.length < 2 || !consonant) continue;
+      issues.set(wi, {
+        cls: "wrong_word", word: wi, last: wi, obsFrom: slot.from, obsTo: slot.to,
+        observed: phones.join(""), stringPath: true, manner: true,
+      });
+    }
+    // Filter only the rekey's own accusations, after either original path has fired. The support
+    // margin and weak-evidence gates still decide every surviving wrong word.
+    for (const [wi, issue] of [...issues]) {
+      if (!issue.manner) continue;
+      const slot = closingSlot(wi, issue.obsFrom);
+      const heard = slot ? slotText(slot.from, slot.to).join("") : "";
+      const key = `${wi}|${heard}`;
+      let keep = mannerChoices.get(key);
+      if (keep === undefined) {
+        const choice = pausalChannelChoice(index, wi, heard, lastManner, omissionChannel);
+        keep = choice.rivalLogP > choice.writtenLogP;
+        mannerChoices.set(key, keep);
+      }
+      if (!keep) issues.delete(wi);
     }
     return { issues, lexical: candidates, head, furthest: reached, steps, right, bound: new Set(last.keys()) };
   };
