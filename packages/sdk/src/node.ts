@@ -1,5 +1,5 @@
 /** Node entry: onnxruntime-node, models from a directory, WAV input. */
-import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import * as ort from "onnxruntime-node";
 import { MEMORIZATION_CLASSES } from "./capabilities.js";
@@ -10,6 +10,7 @@ import { MODEL_REGISTRY } from "./registry.js";
 import type { OrtModule } from "./ort.js";
 import { ortBackend } from "./ort.js";
 import { decodeWav } from "./wav.js";
+import { createSeamTeacher } from "./seam-teacher.js";
 
 export * from "./index.js";
 export { decodeWav };
@@ -21,7 +22,12 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return { manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES };
+  const teacher = join(dir, "teacher.onnx");
+  const hasTeacher = await access(teacher).then(() => true, e => { if (e.code === "ENOENT") return false; throw e; });
+  const seamEar = hasTeacher ? createSeamTeacher(await ortBackend(ort as unknown as OrtModule, teacher, "onnxruntime-node", {
+    executionProviders: ["cpu"], intraOpNumThreads: options.threads ?? 1, graphOptimizationLevel: "disabled",
+  }), manifest.tokens, manifest.inventory) : undefined;
+  return { manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES, ...(seamEar && { seamEar }) };
 }
 
 export async function readWav(path: string) {

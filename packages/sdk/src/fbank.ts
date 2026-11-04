@@ -14,9 +14,9 @@ const mel = (hz: number) => 1127 * Math.log(1 + hz / 700);
 
 const povey = Float64Array.from({ length: WIN }, (_, i) => Math.pow(0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (WIN - 1)), 0.85));
 
-const melBank = (() => {
+const makeMelBank = (highFrequency: number) => {
   const lo = mel(20);
-  const hi = mel(SAMPLE_RATE / 2 - 400);
+  const hi = mel(highFrequency);
   const step = (hi - lo) / (MELS + 1);
   return Array.from({ length: MELS }, (_, m) => {
     const [l, c, r] = [lo + m * step, lo + (m + 1) * step, lo + (m + 2) * step];
@@ -32,7 +32,8 @@ const melBank = (() => {
     }
     return { start: bins[0] ?? 0, weights: Float64Array.from(weights) };
   });
-})();
+};
+const melBank = makeMelBank(SAMPLE_RATE / 2 - 400);
 
 const cos = Float64Array.from({ length: NFFT / 2 }, (_, k) => Math.cos((-2 * Math.PI * k) / NFFT));
 const sin = Float64Array.from({ length: NFFT / 2 }, (_, k) => Math.sin((-2 * Math.PI * k) / NFFT));
@@ -71,6 +72,10 @@ function fft(re: Float64Array, im: Float64Array) {
 }
 
 export class Fbank {
+  private readonly bank: typeof melBank;
+  constructor(options: { highFrequency?: number } = {}) {
+    this.bank = options.highFrequency === undefined ? melBank : makeMelBank(options.highFrequency);
+  }
   private pending = new Float32Array(0);
   private readonly re = new Float64Array(NFFT);
   private readonly im = new Float64Array(NFFT);
@@ -97,7 +102,7 @@ export class Fbank {
       fft(re, im);
       const frame = new Float32Array(MELS);
       for (let m = 0; m < MELS; m++) {
-        const { start, weights } = melBank[m];
+        const { start, weights } = this.bank[m];
         let e = 0;
         for (let j = 0; j < weights.length; j++) {
           const k = start + j;

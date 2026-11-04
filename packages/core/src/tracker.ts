@@ -272,7 +272,8 @@ export function relocationSupport(
 
 /** What the tracker is fed from one chunk of listener evidence, in the product and in every bench alike: phonemes only. */
 export function trackerInput(evidence: PhonemeEvidence): PhonemeEvidence {
-  return { ...evidence, posteriors: undefined };
+  const phonemes = evidence.phonemes.some(p => p.seams) ? evidence.phonemes.map(({ seams: _seams, ...p }) => p) : evidence.phonemes;
+  return { ...evidence, phonemes, posteriors: undefined };
 }
 
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {

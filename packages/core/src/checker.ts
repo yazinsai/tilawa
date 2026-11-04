@@ -1,7 +1,7 @@
 import { align as editPath } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
-import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
+import type { DecodedPhoneme, PhonemeEvidence, SeamEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import { channelFromCounts, spanLogP, type Channel, type ChannelCounts } from "./noisy-channel.js";
@@ -204,7 +204,7 @@ interface Open {
   sinceMs: number;
 }
 
-export function createChecker(index: ReferenceIndex, options: CheckerOptions = {}): Checker {
+function createSingleChecker(index: ReferenceIndex, options: CheckerOptions = {}, note?: (event: CheckerEvent, from: number, to: number) => void): Checker {
   const policy = options.policy ?? {};
   const confirm = policy.confirm ?? { after: "delay", ms: 2500 };
   const minConfidence = policy.minConfidence ?? 0.6;
@@ -411,6 +411,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       confidence: conf,
     };
     emitted.push(e);
+    const from = Math.max(0, Math.min(issue.obsFrom, obs.length - 1));
+    const to = Math.min(obs.length, Math.max(issue.obsTo, from + 1));
+    note?.(e, obs[from]?.start ?? 0, (obs[to - 1]?.end ?? 0) + 1);
     return e;
   };
 
@@ -2251,5 +2254,69 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     mistakes() {
       return emitted.filter((e) => e.state === "confirmed" || (policy.countResolved && e.state === "resolved"));
     },
+  };
+}
+
+/** Run a seam ear through the same checker, selecting only additions whose heard frames meet that seam. */
+export function createChecker(index: ReferenceIndex, options: CheckerOptions = {}): Checker {
+  const ranges = [new Map<string, [number, number]>(), new Map<string, [number, number]>()];
+  const main = createSingleChecker(index, options, (e, a, b) => ranges[0].set(e.id, [a, b]));
+  let ear: Checker | null = null;
+  let seams: SeamEvidence[] = [];
+  let firstPhone = false;
+  const prelude: { evidence: PhonemeEvidence; events: EngineEvent[] }[] = [];
+  const selected = [new Set<string>(), new Set<string>()];
+  const emitted: CheckerEvent[] = [];
+  const key = (w: WordRef) => `${w.surah}:${w.ayah}:${w.word}`;
+  const inSeam = (event: CheckerEvent, which: number) => {
+    if (selected[which].has(event.id)) return true;
+    const range = ranges[which].get(event.id);
+    if (!range || !seams.some(s => key(s.word) === key(event.location) && range[0] < s.toFrame && range[1] > s.fromFrame)) return false;
+    selected[which].add(event.id);
+    return true;
+  };
+  const overlay = (e: PhonemeEvidence): PhonemeEvidence => {
+    const post = e.posteriors;
+    if (!post) return e;
+    const from = post.startFrame, to = from + post.nFrames;
+    const active = seams.filter(s => s.fromFrame < to && s.toFrame > from);
+    if (!active.length) return e;
+    const phonemes = e.phonemes.filter(p => !active.some(s => p.start >= s.fromFrame && p.start < s.toFrame));
+    // A later crop owns overlapping frames, for tokens and rows alike.
+    for (const [i, s] of active.entries()) phonemes.push(...s.phonemes.filter(p => p.start >= from && p.start < to
+      && !active.slice(i + 1).some(next => p.start >= next.fromFrame && p.start < next.toFrame)));
+    phonemes.sort((a, b) => a.start - b.start);
+    const ids = Array.from(post.ids), probs = Array.from(post.probs);
+    for (const s of active) {
+      if (s.posteriors.k !== post.k) throw new Error("Seam ear posterior width differs from the listener");
+      for (let f = Math.max(from, s.fromFrame); f < Math.min(to, s.toFrame); f++) {
+        const src = (f - s.posteriors.startFrame) * post.k, dst = (f - from) * post.k;
+        if (src < 0 || src + post.k > s.posteriors.ids.length) throw new Error("Seam ear does not cover its tracker span");
+        for (let j = 0; j < post.k; j++) ids[dst + j] = Number(s.posteriors.ids[src + j]), probs[dst + j] = Number(s.posteriors.probs[src + j]);
+      }
+    }
+    return { ...e, phonemes, posteriors: { ...post, ids, probs } };
+  };
+  const merge = (a: CheckerEvent[], b: CheckerEvent[]) => {
+    const out = [...a.filter(e => e.errorClass !== "added_word" || !inSeam(e, 0)),
+      ...b.filter(e => e.errorClass === "added_word" && inSeam(e, 1)).map(e => ({ ...e, id: `seam:${e.id}` }))];
+    emitted.push(...out);
+    return out;
+  };
+  return {
+    push(evidence, events) {
+      if (!firstPhone && evidence.phonemes.length) {
+        firstPhone = true;
+        seams = evidence.phonemes.flatMap(p => p.seams ?? []);
+        if (seams.length) {
+          ear = createSingleChecker(index, options, (e, a, b) => ranges[1].set(e.id, [a, b]));
+          for (const p of prelude) ear.push(p.evidence, p.events);
+        }
+        prelude.length = 0;
+      } else if (!firstPhone) prelude.push({ evidence, events });
+      return merge(main.push(evidence, events), ear?.push(overlay(evidence), events) ?? []);
+    },
+    end(events = []) { return merge(main.end(events), ear?.end(events) ?? []); },
+    mistakes() { return emitted.filter(e => e.state === "confirmed" || (options.policy?.countResolved && e.state === "resolved")); },
   };
 }

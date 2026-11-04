@@ -154,7 +154,7 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   };
 }
 
-function topK(row: Float32Array, k: number): [number, number][] {
+export function topK(row: Float32Array, k: number): [number, number][] {
   const best: [number, number][] = [];
   for (let i = 0; i < row.length; i++) {
     const v = row[i];

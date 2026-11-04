@@ -5,6 +5,17 @@ export interface DecodedPhoneme {
   start: number;
   end: number;
   conf: number;
+  /** Optional second-ear evidence, carried on the recording's first phoneme. The main decode stays intact. */
+  seams?: SeamEvidence[];
+}
+
+/** A second ear may replace acoustic evidence only at this tracker-defined seam. */
+export interface SeamEvidence {
+  word: import("./events.js").WordRef;
+  fromFrame: number;
+  toFrame: number;
+  phonemes: DecodedPhoneme[];
+  posteriors: TopKPosteriors;
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

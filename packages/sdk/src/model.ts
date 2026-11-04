@@ -1,4 +1,4 @@
-import type { ErrorClass } from "@tilawa/core";
+import type { ErrorClass, PhonemeEvidence } from "@tilawa/core";
 
 export interface StateSpec {
   name: string;
@@ -47,4 +47,6 @@ export interface LoadedModel {
   backend: InferenceBackend;
   /** Error classes this model's evidence supports; the rest are reported `unsupported`. */
   supported: ErrorClass[];
+  /** Optional fp32 teacher, used only for tracker-bounded seam additions. */
+  seamEar?: { decode(samples: Float32Array, topK: number): Promise<PhonemeEvidence> };
 }
