@@ -1,0 +1,13 @@
+{
+ "id": "listener-erasable-written-fallback",
+ "component": "listener",
+ "hypothesis": "The two phone wrong-word false warnings left on the non-lexical 2x SUPPORT fallback (26:106:1 إذ heard يَاا at 24.0 nats; 55:48:1 ذواتا heard وَاافَا at 20.4) clear the bar largely because the written word is forced to pay for consonants (ء, ذ) that the phone channel erased. On that path only, make the written word's unmatched consonants optional (allowed to fall on blank or vowel frames) and confirm only if the heard span still wins by 2x SUPPORT. Predict 2 of 2 vetoed with about 1 caught planted swap lost: listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T13:55:39+00:00",
+ "author": "autolab"
+}
