@@ -1,6 +1,7 @@
 # Stack final-slot manner rekey and pause-bounded swap-tail merge
 
-Status: implemented; tests passed, one practice score pending.
+Status: implemented; tests passed, one practice score gives overall −3 and
+listener −3. Left in place for the supervisor's fold gate.
 
 ## Prediction
 
@@ -50,16 +51,44 @@ closing-slot block, tail-merge block, helper and unit tests match their parent
 revisions exactly. The experiment card also matches the initial stack commit
 byte for byte. No scorer, lab tooling, test data, evidence or manifest was edited.
 
-One `practice-score .` is pending to measure the combined behavior against
-current main.
+One `practice-score .` completed on commit `9ce7a89a`, verdict **better**:
+
+| Wrong calls | Main | Stack | Change |
+| --- | ---: | ---: | ---: |
+| Overall | 33 | 30 | −3 |
+| Listener | 32 | 29 | −3 |
+| Tracker | 1 | 1 | 0 |
+| Checker | 0 | 0 | 0 |
+
+Misses fell from 22 to 20 and false warnings from 11 to 10. This matches the
+preregistered component and overall prediction. Only one practice score was
+requested; the engine code has not changed since that scored revision.
+
+True-position target traces (Modal run 2, shipped `spliced-clean-int8` phone
+evidence) reproduce the confirmed wrong word at 11:11:10, time 147.36 s,
+confidence 0.5997, and remove the added-word tail at 7:198:7. The substitute at
+7:198:6 still confirms at 198.96 s, confidence 0.9294454545, reporting the full
+`يَتتَبِعُۥۥكُم` union. At 37:84:5 the rekey produces a suspected wrong word
+`مِل` at 52.24 s. The full-session event check (run 5) confirms it at 84.76 s
+in both the true-position and product paths, confidence 0.7236333333. The
+initial seven-second trace and the wider trace through 83.27 s (run 3) omitted
+that late confirmation. **Targets won: 3.**
+
+Run 4's temporary diagnostic was under ignored `.autolab` and was not
+transferred to Modal; run 5 repeated it inline successfully. The temporary
+script was removed. Neither run altered engine code or requested another score.
 
 ## Limits
 
-The parents' earlier independent gains do not establish this stack's current
-practice result. Their original write-ups document their target trace evidence;
-this experiment adds no independent listening judgment or label changes.
+The score establishes the combined practice gain, rather than inferring it from
+the parents' earlier independent gains. The original write-ups document their
+earlier target trace evidence; this experiment adds no independent listening
+judgment or label changes.
 
 Manner contradictions can also arise from phone-channel blur. Tail merging can
 absorb a separate addition whose union happens to spell one attested word.
-Reader concentration, clean-session warnings, incident losses and studio audio
-must be assessed from the practice score and the supervisor's fold gate.
+The 37:84:5 warning confirms about 34.5 s after the planted swap starts; this
+stack preserves the parent's decision timing rather than reducing that delay.
+The practice result returned aggregate counts, not an incident diff or fold-gate
+checks. Reader concentration, new warnings on fully clean sessions, individual
+incident losses and studio audio remain the supervisor's fold-gate decision.
