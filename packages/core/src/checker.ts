@@ -234,6 +234,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   interface AyahSpan { wordFrom: number; wordTo: number; frameFrom: number; frameTo: number }
   const readAyah = new Map<number, AyahSpan>();
   const lockedAyah = new Map<number, AyahSpan>();
+  /** Committed local coverage persists across windows; it is used only by the ayah absence candidate filter. */
+  const steppedAyahs = new Set<number>();
   /** Last ayah the lock finished, or the alignment read through. A flash of the next ayah does not move it. */
   let settled = -1;
   let lockSurah = -1;
@@ -812,7 +814,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const boundary = rightLock?.frameFrom ?? rightRead?.frameFrom ?? rightTo;
     for (let i = 0; i < obs.length; i++) if (obs[i].start < boundary) at = i;
     for (let a = left + 1; a < right; a++) {
-      if (ayahFinished(a) || ledgerDone.has(a)) continue;
+      if (ayahFinished(a) || ledgerDone.has(a) || steppedAyahs.has(a)) continue;
       if (ayahText(a) === ayahText(left) || ayahText(a) === ayahText(right)) continue;
       const n = words.slice(ayahFirst[a], ayahLast[a] + 1).filter((w) => w.end > w.start).length;
       if (n < 3) continue;
@@ -2131,6 +2133,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (const e of events) {
       if (e.type !== "position") continue;
       const p = e as PositionEvent;
+      for (const ayah of p.steppedAyahs ?? []) {
+        const wi = wordIndex({ ...ayah, word: 1 });
+        if (wi >= 0) steppedAyahs.add(ayahOf[wi]);
+      }
       // The continuation picked a copy. Held slots are judged against that member, not sealed here.
       if (p.relocated) {
         trackerLocked = true;
