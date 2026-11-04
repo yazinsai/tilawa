@@ -74,6 +74,16 @@ export interface PositionEvent {
    * for the continuation. Absent once that word arrives, and on every later lock.
    */
   spanHold?: true;
+  /**
+   * Ayahs a near one-deletion shadow is still reading after a farther in-lock step. The ayah-absence ledger
+   * may list them, but does not confirm that skip until this hold ends. An empty list ends it: the far step stood.
+   */
+  coveragePending?: { surah: number; ayah: number }[];
+  /**
+   * Ayahs that shadow read in order, once its continuation beat the far step by the commit margin over the hold
+   * lag. The ledger drops them. The lock, the window and every other field stay as they were.
+   */
+  coverage?: { surah: number; ayah: number }[];
   /** Present only when the tracker was created with `trace: true`. */
   trace?: TrackerTrace;
 }

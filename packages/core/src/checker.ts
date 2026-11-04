@@ -223,6 +223,13 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const ledgerDone = new Set<number>();
   /** Skips the fit already accepted. Re-asserted each window so a later alignment does not resolve them. */
   const ledgerIssues = new Map<number, Issue>();
+  /**
+   * Ayahs a far in-lock step's one-deletion shadow has already read. Removed from the ledger's candidate list.
+   * `shadowHold` is the same shadow before its continuation is scored: the skip may be listed, not confirmed.
+   */
+  const witnessed = new Set<number>();
+  let shadowHold = new Set<number>();
+  const ayahIndex = new Map<string, number>();
   /** Obs index where the current push's phonemes start, so a new lock can own that chunk's frames. */
   let chunkFrom = 0;
   /**
@@ -239,6 +246,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     if (!prev || prev.surah !== w.surah || prev.ayah !== w.ayah) ayahFirst.push(i);
     ayahOf.push(ayahFirst.length - 1);
     ayahLast[ayahFirst.length - 1] = i;
+  });
+  ayahFirst.forEach((wi, i) => {
+    const w = words[wi];
+    ayahIndex.set(`${w.surah}:${w.ayah}`, i);
   });
   const fatiha = words.filter((w) => w.surah === 1 && w.ayah === 1);
   const phrases = [...(options.phrases?.phrases.map((p) => p.p) ?? []), ref.slice(fatiha[0].start, fatiha.at(-1)!.end)];
@@ -677,6 +688,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (let i = 0; i < obs.length; i++) if (obs[i].start < boundary) at = i;
     for (let a = left + 1; a < right; a++) {
       if (ayahFinished(a) || ledgerDone.has(a)) continue;
+      // A shadow that already read this ayah in order is not an absence. The fit is not rerun.
+      if (witnessed.has(a)) { ledgerDone.add(a); continue; }
       if (ayahText(a) === ayahText(left) || ayahText(a) === ayahText(right)) continue;
       const n = words.slice(ayahFirst[a], ayahLast[a] + 1).filter((w) => w.end > w.start).length;
       if (n < 3) continue;
@@ -697,6 +710,39 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       ledgerIssues.set(wi, issue);
       issues.set(wi, issue);
     }
+  };
+
+  /** The shadow's continuation won. A ledger skip on a witnessed ayah ends resolved, never confirmed. */
+  const retractWitnessed = (out: CheckerEvent[]) => {
+    for (const a of witnessed) {
+      shadowHold.delete(a);
+      const wi = ayahFirst[a];
+      if (wi === undefined || !ledgerIssues.has(wi) || decided.has(wi)) continue;
+      ledgerIssues.delete(wi);
+      ledgerDone.add(a);
+      const o = open.get(wi);
+      if (!o) continue;
+      open.delete(wi);
+      decided.add(wi);
+      out.push(event(o, "resolved"));
+    }
+  };
+
+  const noteCoverage = (p: PositionEvent) => {
+    if (p.coveragePending) {
+      shadowHold = new Set(p.coveragePending.flatMap((a) => {
+        const i = ayahIndex.get(`${a.surah}:${a.ayah}`);
+        return i === undefined ? [] : [i];
+      }));
+    }
+    let added = false;
+    for (const a of p.coverage ?? []) {
+      const i = ayahIndex.get(`${a.surah}:${a.ayah}`);
+      if (i === undefined) continue;
+      witnessed.add(i);
+      added = true;
+    }
+    return added;
   };
 
   const keepLedger = (issues: Map<number, Issue>) => {
@@ -1765,6 +1811,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
           (confirm.after === "next-word" || nowMs - o.sinceMs >= confirm.ms || (final && declared && (!latched || (policy.finaliseFree ?? true)) && [...right].some((wi) => wi > issue.last)));
       // A slot the two copies disagree on stays open until the continuation picks a copy.
       if (heldSlot(issue.word)) continue;
+      // The far step is still provisional for the ledger: list the skip, confirm it only once the shadow loses.
+      if (issue.cls === "skipped_passage" && ledgerIssues.has(issue.word) && shadowHold.has(ayahOf[issue.word])) continue;
       if (due) decide(o, out);
       // The session ended first. A declared passage (or a latched free one, with `finaliseFree`) confirms once a later
       // word was recited right; otherwise it ends uncertain.
@@ -1813,6 +1861,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (const e of events) {
       if (e.type !== "position") continue;
       const p = e as PositionEvent;
+      // Before a hold can seal the open ledger skip. The witness is the same event as the misfit hold.
+      if (noteCoverage(p)) retractWitnessed(out);
       // The continuation picked a copy. Held slots are judged against that member, not sealed here.
       if (p.relocated) {
         trackerLocked = true;

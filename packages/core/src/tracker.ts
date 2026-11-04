@@ -337,6 +337,13 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
    */
   let excursion: { home: number; dest: number; length: number; entry: number; phones: string; trimmed: boolean } | null = null;
   /**
+   * A far in-lock step, kept as the lock, with the nearest one-deletion landing beside it. After {@link LOST_AFTER}
+   * phonemes the two continuations are scored; until then the checker holds the near ayah's ledger skip.
+   */
+  let shadow: { origin: number; farWi: number; nearWi: number; buf: string } | null = null;
+  /** Stamped onto the next position event. Absent fields are left off so other events stay byte-identical. */
+  let coverageNote: { pending?: { surah: number; ayah: number }[]; coverage?: { surah: number; ayah: number }[] } | null = null;
+  /**
    * Holding and continuation resolution run only on the first lock, and only until that lock's position leaves
    * every slot-differing span. A word outside those spans is unique to its location. Any later `startLocal`
    * (a jump, a reacquisition, the re-anchor after a copy change) closes it.
@@ -868,7 +875,18 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     observedFrames.length = keep;
   };
 
+  const dropShadow = () => {
+    if (!shadow) return;
+    // The run ended before the hold lag. Score the continuation already heard; a short span asks for a wider margin.
+    if (shadow.buf.length > 0) settleShadow(shadow.buf.length);
+    else {
+      shadow = null;
+      coverageNote = { ...(coverageNote?.coverage ? { coverage: coverageNote.coverage } : {}), pending: [] };
+    }
+  };
+
   const startLocal = (m: Match) => {
+    dropShadow();
     local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
     weak = false;
     pending = null;
@@ -968,6 +986,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
    * now; `last` stays the plain lock, so later re-emits of the anchor compare unchanged.
    */
   const beginHold = (): PositionEvent => {
+    dropShadow();
     if (twin) {
       twinSettled.add(spanId(twin.span));
       twin = null;
@@ -1257,6 +1276,84 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     return unchanged(event) ? [] : [emit(event, a.trace)];
   };
 
+  const textFrom = (wi: number, n: number) => {
+    let s = "";
+    for (let k = wi; k < index.words.length && s.length < n; k++) {
+      const w = index.words[k];
+      if (w.end > w.start) s += index.phonemes.slice(w.start, w.end);
+    }
+    return s;
+  };
+  /** The landing ayah, then the ayahs the in-order continuation covers across `n` phonemes. */
+  const readAyahs = (wi: number, n: number) => {
+    const out: { surah: number; ayah: number }[] = [];
+    const push = (k: number) => {
+      const w = index.words[k];
+      if (!w) return;
+      const last = out.at(-1);
+      if (!last || last.surah !== w.surah || last.ayah !== w.ayah) out.push({ surah: w.surah, ayah: w.ayah });
+    };
+    push(wi);
+    let len = 0;
+    for (let k = spoken(wi + 1); k < index.words.length && len < n; k++) {
+      const w = index.words[k];
+      if (w.end === w.start) continue;
+      len += w.end - w.start;
+      push(k);
+    }
+    return out;
+  };
+  /** The near continuation has to beat the far one by the commit margin of this span, or the far step stands. */
+  const settleShadow = (n = LOST_AFTER) => {
+    const s = shadow;
+    if (!s) return;
+    const heard = s.buf.slice(0, n);
+    shadow = null;
+    const keep = coverageNote?.coverage ? { coverage: coverageNote.coverage } : {};
+    // One edit per phoneme is the most the far path can lose by. A wider margin cannot be cleared.
+    const margin = commitMargin(heard.length, minSeparation, separationScale);
+    if (!heard.length || margin > heard.length) {
+      coverageNote = { ...keep, pending: [] };
+      return;
+    }
+    const nearCost = anchorFitCost(textFrom(spoken(s.nearWi + 1), heard.length), heard);
+    const farCost = anchorFitCost(textFrom(spoken(s.farWi + 1), heard.length), heard);
+    if (nearCost === null || farCost === null) {
+      coverageNote = { ...keep, pending: [] };
+      return;
+    }
+    const gain = (farCost - nearCost) / UNIT;
+    coverageNote = gain + 1e-9 >= margin ? { coverage: readAyahs(s.nearWi, heard.length), pending: [] } : { ...keep, pending: [] };
+  };
+  /**
+   * An in-lock jump that leaves more than the one deleted word unread. The landing stays where local search put it.
+   * The shadow is the word after that one deletion; its continuation is scored over the hold lag.
+   */
+  const onLocalStep = (pre: { offset: number; origin: number }, post: { offset: number; origin: number }, ph: string) => {
+    if (shadow && post.origin === shadow.origin) {
+      shadow.buf += ph;
+      if (shadow.buf.length >= LOST_AFTER) settleShadow();
+      return;
+    }
+    if (post.origin === pre.origin) return;
+    if (shadow) dropShadow();
+    const preWi = index.wordAt(Math.max(0, pre.offset - 1));
+    const preWord = index.words[preWi];
+    if (!preWord || post.offset <= pre.offset) return;
+    const base = pre.offset >= preWord.end ? preWi : spokenStep(preWi, -1);
+    const postWi = index.wordAt(Math.max(0, post.offset - 1));
+    if (base < 0 || postWi <= base) return;
+    let unread = 0;
+    for (let k = base + 1; k < postWi; k++) if (index.words[k].end > index.words[k].start) unread++;
+    // One deleted word is the shadow itself. Wider than that is the far step.
+    if (unread < 2) return;
+    const nearWi = spoken(spoken(base + 1) + 1);
+    if (nearWi >= postWi || nearWi >= index.words.length) return;
+    shadow = { origin: post.origin, farWi: postWi, nearWi, buf: ph };
+    const w = index.words[nearWi];
+    coverageNote = { ...(coverageNote?.coverage ? { coverage: coverageNote.coverage } : {}), pending: [{ surah: w.surah, ayah: w.ayah }] };
+  };
+
   /**
    * Phoneme by phoneme after the first lock. Local tracking emits one event per change of word or run start. When its
    * fit degrades, global search over the latest phonemes runs alongside: a distant global lock that holds for
@@ -1268,6 +1365,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     for (const ph of evidence.phonemes) {
       observe(ph);
       if (!local) {
+        dropShadow();
         const heardPhrase = hear(ph.p, null, NaN);
         if (heardPhrase) {
           forget();
@@ -1279,6 +1377,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         events.push(...reacquire());
         continue;
       }
+      const pre = local.position();
       const before = local.save();
       local.step(ph.p);
       stepCosts.push(local.position().stepCost);
@@ -1289,6 +1388,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         const cost = heardCost.slice(from).reduce((a, b) => a + b, 0) / heardPhrase.length;
         if (cost >= PHRASE_LOCAL_COST) {
           // Not Quran text where we are: rewind the local search to before the phrase, as if it was never heard.
+          dropShadow();
           if (heardPhrase.name === "basmala") {
             // A surah starts, not necessarily the next one: hand over to global search, favouring openings.
             afterBasmala = { from: last!.observed[0].word, held: 0 };
@@ -1311,6 +1411,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
           continue;
         }
       }
+      onLocalStep(pre, local.position(), ph.p);
       const pos = local.position();
       const relocated = considerTwin(ph.p, pos);
       if (relocated) {
@@ -1417,7 +1518,25 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     return events;
   };
 
+  const deliver = (events: EngineEvent[]): EngineEvent[] => {
+    if (!coverageNote) return events;
+    const stamp = coverageNote;
+    let used = false;
+    const out = events.map((e) => {
+      if (used || e.type !== "position") return e;
+      used = true;
+      return {
+        ...e,
+        ...(stamp.pending !== undefined ? { coveragePending: stamp.pending } : {}),
+        ...(stamp.coverage ? { coverage: stamp.coverage } : {}),
+      };
+    });
+    if (used) coverageNote = null;
+    return out;
+  };
+
   const endLocal = (): PositionEvent[] => {
+    dropShadow();
     const timeMs = lastFrame * (frameMs ?? 0);
     // The search never committed. The anchor was held; give it up now.
     if (holding) {
@@ -1443,9 +1562,9 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       frameMs = evidence.frameMs;
       if (evidence.posteriors) withPosteriors = true;
       else decodedOnly = true;
-      if (local || reacquiring) return follow(evidence);
+      if (local || reacquiring) return deliver(follow(evidence));
       if (evidence.posteriors) (posteriors ??= new PosteriorFrames(index.tokens.size)).append(evidence.posteriors);
-      if (!options.acquireMs) return acquire(evidence.phonemes);
+      if (!options.acquireMs) return deliver(acquire(evidence.phonemes));
       const events: EngineEvent[] = [];
       const phs = evidence.phonemes;
       for (let i = 0; i < phs.length; i++) {
@@ -1455,7 +1574,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
           cell = [];
           cellAt++;
         }
-        if (local) return [...events, ...follow({ ...evidence, phonemes: phs.slice(i), posteriors: undefined })];
+        if (local) return deliver([...events, ...follow({ ...evidence, phonemes: phs.slice(i), posteriors: undefined })]);
         cell.push(phs[i]);
       }
       const complete = evidence.decodedTo === undefined ? 0 : Math.floor((evidence.decodedTo * frameMs) / options.acquireMs);
@@ -1464,15 +1583,15 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         cell = [];
         cellAt++;
       }
-      return events;
+      return deliver(events);
     },
     end() {
       if (!local && !reacquiring) {
         const events = cell.length ? acquire(cell) : [];
         cell = [];
-        return [...events, ...(local ? endLocal() : evaluate(true))];
+        return deliver([...events, ...(local ? endLocal() : evaluate(true))]);
       }
-      return endLocal();
+      return deliver(endLocal());
     },
   };
 }
