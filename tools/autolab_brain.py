@@ -8,12 +8,15 @@ with the error; a second failure raises BrainError and the supervisor marks the 
     review(cfg, exp, outcome, pack)     Opus: the journal entry, and a follow-up card or why the line is dead
     strategy(cfg, pack, frozen, slots, st)  Opus: the "why stuck" memo and bets
 
-Models come from cfg["models"] by role (planner, judge, diffReviewer, reviewer, strategist). `ask` defaults to the
-Cursor SDK one-shot call (tools/autolab_cursor.py prompt_model); tests pass their own.
+Models come from cfg["models"] by role (planner, judge, diffReviewer, reviewer, strategist). `ask` defaults to a one-shot
+call: a claude-* model through the Claude Code CLI (`claude -p`, no tools), any other through the Cursor SDK
+(tools/autolab_cursor.py prompt_model); tests pass their own.
 """
 
 import json
 import re
+import shutil
+from pathlib import Path
 
 import autolab_portfolio as P
 from lab_ledger import COMPONENTS, ID
@@ -187,28 +190,55 @@ def eli5(cfg: dict, items: dict[str, str], ask=None) -> dict[str, str]:
 TIMEOUTS = {"planner": 2700, "strategist": 2700, "reviewer": 1500}
 
 
+def claude_argv(model) -> list[str]:
+    """`claude -p` for a model id or {"id", "params"} (context "1m" and effort carry over; fast has no CLI flag). No tools,
+    no MCP servers and no user/project settings (so none of their hooks or plugins), JSON out. The loop's PATH may not
+    have the CLI, so it falls back to the installer's location."""
+    mid, params = (model, {}) if isinstance(model, str) else (model["id"], {p["id"]: p["value"] for p in model.get("params", [])})
+    argv = [shutil.which("claude") or str(Path.home() / ".local/bin/claude"), "-p",
+            "--model", mid + ("[1m]" if params.get("context") == "1m" else ""), "--tools", "", "--strict-mcp-config",
+            "--setting-sources", "", "--no-session-persistence", "--output-format", "json"]
+    return argv + (["--effort", params["effort"]] if params.get("effort") else [])
+
+
+def is_claude(model) -> bool:
+    return (model if isinstance(model, str) else model["id"]).startswith("claude-")
+
+
 def default_ask(cfg: dict, role: str, prompt: str, timeout_s: int | None = None) -> str:
     """One model call in a child process with a hard wall-clock limit: the SDK can block before its own timeout starts,
-    so on expiry the whole process group (SDK bridge included) is killed. Writing a plan's cards takes Opus longer than
-    a verdict takes Grok, so the limit is per role (config `brainTimeouts` overrides)."""
+    so on expiry the whole process group (SDK bridge or CLI included) is killed. Writing a plan's cards takes Opus longer
+    than a verdict takes Grok, so the limit is per role (config `brainTimeouts` overrides)."""
     timeout_s = timeout_s or {**TIMEOUTS, **cfg.get("brainTimeouts", {})}.get(role, 900)
     import os  # noqa: PLC0415
     import signal  # noqa: PLC0415
     import subprocess  # noqa: PLC0415
     import sys  # noqa: PLC0415
-    from pathlib import Path  # noqa: PLC0415
-    p = subprocess.Popen([sys.executable, str(Path(__file__).with_name("autolab_cursor.py")), "prompt"], stdin=subprocess.PIPE,
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True)
-    try:
-        out, err = p.communicate(json.dumps({"model": cfg["models"][role], "prompt": prompt, "timeout": timeout_s}), timeout=timeout_s + 60)
-    except subprocess.TimeoutExpired:
-        os.killpg(p.pid, signal.SIGKILL)
-        p.communicate()
-        raise Unavailable(f"{role}: no answer within {timeout_s + 60} s") from None
+    import tempfile  # noqa: PLC0415
+    model = cfg["models"][role]
+    claude = is_claude(model)
+    if claude:
+        argv, stdin = claude_argv(model), prompt
+    else:
+        argv = [sys.executable, str(Path(__file__).with_name("autolab_cursor.py")), "prompt"]
+        stdin = json.dumps({"model": model, "prompt": prompt, "timeout": timeout_s})
+    with tempfile.TemporaryDirectory(prefix="autolab-brain-") as tmp:  # an empty cwd: no project CLAUDE.md to pick up
+        p = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                             start_new_session=True, cwd=tmp)
+        try:
+            out, err = p.communicate(stdin, timeout=timeout_s + 60)
+        except subprocess.TimeoutExpired:
+            os.killpg(p.pid, signal.SIGKILL)
+            p.communicate()
+            raise Unavailable(f"{role}: no answer within {timeout_s + 60} s") from None
     try:
         res = json.loads(out.strip().splitlines()[-1])
     except (IndexError, json.JSONDecodeError):
         raise Unavailable(f"{role}: {(err or out)[-300:]}") from None
+    if claude:
+        if res.get("is_error") or res.get("subtype") != "success":
+            raise Unavailable(f"{role}: claude {res.get('subtype')}: {str(res.get('result'))[:300]}")
+        return res["result"]
     if "error" in res:
         raise Unavailable(f"{role}: {res['error'][:300]}")
     return res["text"]

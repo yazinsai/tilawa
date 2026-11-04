@@ -157,3 +157,12 @@ def test_of_two_twin_cards_waiting_for_the_judge_only_the_younger_sees_the_older
         B.judge(CFG, card(id), ctx(st), ask)
         seen[id] = ask.prompts[0][1].split("History of tried experiments")[1]
     assert '"listener-twin-b"' not in seen["listener-twin-a"] and '"listener-twin-a"' in seen["listener-twin-b"]
+
+
+def test_claude_roles_go_through_the_cli_with_no_tools_or_settings():
+    m = {"id": "claude-opus-5-5", "params": [{"id": "context", "value": "1m"}, {"id": "effort", "value": "medium"}, {"id": "fast", "value": "false"}]}
+    a = B.claude_argv(m)
+    assert a[a.index("--model") + 1] == "claude-opus-5-5[1m]" and a[a.index("--effort") + 1] == "medium"
+    assert a[a.index("--tools") + 1] == "" and a[a.index("--setting-sources") + 1] == "" and "--strict-mcp-config" in a
+    assert B.claude_argv("claude-sonnet-5-5")[3] == "claude-sonnet-5-5" and "--effort" not in B.claude_argv("claude-sonnet-5-5")
+    assert B.is_claude(m) and not B.is_claude({"id": "grok-4.7"})
