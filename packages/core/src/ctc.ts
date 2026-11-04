@@ -94,18 +94,29 @@ export class PosteriorFrames {
    * `repeats` are inclusive label spans that may be said again: from the end of the span, the forward
    * sum may re-enter its first label. The same arcs the alignment already uses to repeat a contiguous
    * word or ayah. No filler loop. Omitted, the sum is the plain chain.
+   * `alternatives` adds allowed emissions at selected label positions. An erased consonant can emit blank or a
+   * vowel instead of its phone, while every other label and all transition rules stay on the same chain.
    */
-  nll(labels: ArrayLike<number>, from: number, to: number, repeats?: ReadonlyArray<readonly [number, number]>): number {
+  nll(labels: ArrayLike<number>, from: number, to: number, repeats?: ReadonlyArray<readonly [number, number]>,
+    alternatives?: ReadonlyMap<number, readonly number[]>): number {
     const L = labels.length;
     if (to <= from) return L ? Infinity : 0;
     const S = 2 * L + 1;
     const label = (s: number) => (s % 2 === 0 ? 0 : labels[(s - 1) >> 1]);
+    const emissions = alternatives?.size ? Array.from({ length: L }, (_, i) =>
+      [...new Set([labels[i], ...(alternatives.get(i) ?? [])])]) : null;
+    const emission = (row: Float64Array, s: number) => {
+      if (!emissions || s % 2 === 0) return row[label(s)];
+      let p = -Infinity;
+      for (const id of emissions[(s - 1) >> 1]) p = logAdd(p, row[id]);
+      return p;
+    };
     const back = repeatBack(repeats, L);
     let prev = new Float64Array(S).fill(-Infinity);
     let next = new Float64Array(S);
     const r0 = this.row(from);
     prev[0] = r0[0];
-    if (L) prev[1] = r0[label(1)];
+    if (L) prev[1] = emission(r0, 1);
     for (let f = from + 1; f < to; f++) {
       const row = this.row(f);
       for (let s = 0; s < S; s++) {
@@ -116,7 +127,7 @@ export class PosteriorFrames {
           const extra = back[(s - 1) >> 1];
           for (let k = 0; k < extra.length; k++) a = logAdd(a, prev[extra[k]]);
         }
-        next[s] = a + row[label(s)];
+        next[s] = a + emission(row, s);
       }
       [prev, next] = [next, prev];
     }

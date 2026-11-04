@@ -343,6 +343,31 @@ describe("local-window confirmation", () => {
     expect(summary(check(glued, true))).toEqual(["confirmed wrong_word 2:255:23"]);
   });
 
+  it("doesn't confirm a non-word on the cost of written consonants erased onto blanks", () => {
+    const dropped: Edit[] = [
+      { kind: "del", at: at(target) + text(target).indexOf("ش"), count: 1 },
+      { kind: "del", at: at(target) + text(target).indexOf("ف"), count: 1 },
+    ];
+    const f = heard(dropped, (_, p) => [[p, 0.999], ["", 0.000999]]);
+    for (const e of f.evidence) {
+      const rows = e.posteriors!;
+      for (let i = 0; i < rows.ids.length; i += rows.k) {
+        if (rows.ids[i] === 0) (rows.probs as number[])[i] = 0.999999;
+      }
+    }
+    expect(summary(check(f, false))).toEqual(["confirmed wrong_word 2:255:23"]);
+    expect(check(f, true)).toEqual([]);
+  });
+
+  it("keeps contradictory consonants as evidence on the non-lexical fallback", () => {
+    const swapped: Edit[] = [
+      { kind: "sub", at: at(target) + text(target).indexOf("ش"), to: "غ" },
+      { kind: "sub", at: at(target) + text(target).indexOf("ف"), to: "ق" },
+    ];
+    const f = heard(swapped, (j, p) => word(j) && (p === "غ" || p === "ق") ? [[p, 0.99], ["", 0.009]] : undefined);
+    expect(summary(check(f, true))).toEqual(["confirmed wrong_word 2:255:23"]);
+  });
+
   it("still confirms a spelled word once a waqf tail is stripped", () => {
     // The final damma heard as a madd mark is a waqf tail. Under it the span is يَسمَع, an attested word.
     const subs: Edit[] = [

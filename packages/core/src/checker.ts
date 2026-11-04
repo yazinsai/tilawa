@@ -395,7 +395,18 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         ? span(from, issue.word) + observed + span(issue.word, to + 1)
         : span(from, issue.word) + (issue.cls === "wrong_word" ? observed : "") + span(issue.last + 1, to + 1);
     const need = supportNeed(issue);
-    const expectedNll = frames.nll(ids(written), f0, f1), observedNll = frames.nll(ids(decoded), f0, f1);
+    const alternatives = new Map<number, readonly number[]>();
+    if (nonlexicalFallback(issue)) {
+      const erased = [0, ...[..."َُِاۦۥ"].flatMap(p => tokenId.has(p) ? [tokenId.get(p)!] : [])];
+      // A different heard consonant is substitution evidence. Only a deletion or a consonant aligned to a
+      // non-consonant can be a channel erasure; neighbours and the decoded hypothesis remain untouched.
+      const counterparts = new Set(steps.flatMap(s => s.op === "diag" &&
+        s.obs >= issue.obsFrom && s.obs < issue.obsTo && CONSONANTS.has(obs[s.obs].p) ? [s.ref] : []));
+      for (let k = words[issue.word].start; k < words[issue.last].end; k++) {
+        if (CONSONANTS.has(ref[k]) && !counterparts.has(k)) alternatives.set(k - words[from].start, erased);
+      }
+    }
+    const expectedNll = frames.nll(ids(written), f0, f1, undefined, alternatives), observedNll = frames.nll(ids(decoded), f0, f1);
     if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
     return expectedNll - observedNll >= need;
   };
@@ -416,6 +427,13 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return stripEdge(live || issue.observed || "");
   };
   const consonantCount = (s: string) => collapseHeld([...s]).filter((p) => CONSONANTS.has(p)).length;
+  /** The non-lexical twice-support fallback, excluding graph wins, spelled words and surplus consonants. */
+  const nonlexicalFallback = (issue: Issue): boolean => {
+    if (issue.cls !== "wrong_word" || !issue.stringPath || issue.phrase) return false;
+    const heard = heardSpan(issue);
+    const written = ref.slice(words[issue.word].start, words[issue.last].end);
+    return consonantCount(heard) <= consonantCount(written) && lexical.surplusWord(issue.word, heard) === null;
+  };
   /**
    * Nats the decoded hypothesis must win by. A per-word substitution that does not spell another mushaf word
    * (not the written word, not a word or prefix within ±3) clears twice `SUPPORT`, unless the span has more
@@ -424,11 +442,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
    */
   const supportNeed = (issue: Issue): number => {
     const weak = issue.cls === "wrong_word" && changedClarity(issue) < UNSURE;
-    if (issue.stringPath) {
-      const heard = heardSpan(issue);
-      const written = ref.slice(words[issue.word].start, words[issue.last].end);
-      if (consonantCount(heard) <= consonantCount(written) && lexical.surplusWord(issue.word, heard) === null) return 2 * support;
-    }
+    if (nonlexicalFallback(issue)) return 2 * support;
     return weak ? 2 * support : support;
   };
 
