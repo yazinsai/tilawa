@@ -3500,7 +3500,7 @@
   },
   {
    "kind": "main",
-   "at": "2026-11-03T09:21:05+00:00",
+   "at": "2026-11-03T09:21:12+00:00",
    "sha": "7801f4e9",
    "testSet": "lab-v1.5",
    "experiment": "tracker-excursion-rebinds-ayah-window",
@@ -3517,7 +3517,7 @@
   },
   {
    "kind": "experiment",
-   "at": "2026-11-03T09:21:05+00:00",
+   "at": "2026-11-03T09:21:12+00:00",
    "id": "tracker-excursion-rebinds-ayah-window",
    "component": "tracker",
    "hypothesis": "The folded with/without-ayah ledger reports false skips at p41 26:144:1 and p46 54:36:1, plausibly because those ayahs were heard while the tracker sat on a look-alike copy (another فاتقوا الله وأطيعون refrain, or 54:23/33 after the planted 54:36 omission), so neither ayah ever got a window. When an excursion ends with an in-order return to the anchor's continuation, the tracker should retroactively rebind that excursion's window to the in-order ayah if that ayah's text fits it no worse. Ride the verified zero-loss shared-word insertion-support branch. Predict tracker -3, overall -3 (rider -2 solid, at least 1 of 2 skips; upside -4).",
@@ -3542,6 +3542,1446 @@
      "missed": 26,
      "falseWarnings": 14,
      "listener": 36,
+     "tracker": 1,
+     "checker": 3
+    },
+    "exam": null
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T09:23:19+00:00",
+   "id": "listener-wide-ear-refit-calibration",
+   "component": "listener",
+   "hypothesis": "The 2x-width student hears added words the shipped student blanks (won p31, p50, p55, p56, p79), but it lost 58 incidents because every listener-dependent checker constant is fitted to the shipped student. Deploy it with those constants re-derived by estimator code from its own gold-excluded decodes; predict 4 of 6 targets won and losses cut from 58 to at most 3: listener -5, overall -4.",
+   "expected": {
+    "component": -5,
+    "overall": -4
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Re-derived constants did not absorb the wide student's losses: practice overall +5 with the phrase-switch penalty kept at 4 (it was +7 at 7.37), checker misses +5 and listener net zero. (measured: {\"overall\": 5, \"targets won\": 5})",
+   "branch": {
+    "wrongCalls": 48,
+    "missed": 31,
+    "falseWarnings": 17,
+    "listener": 36,
+    "tracker": 4,
+    "checker": 8
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T10:04:16+00:00",
+   "id": "listener-session-gated-pause-onset",
+   "component": "listener",
+   "hypothesis": "The pause-onset glottal fix won the p14 44:5 pair but lost 2 and added 1 clean false warning, because it treated every post-pause ء as fake. Apply that neutral-ء rule only in sessions where this reciter's own channel has already been seen erasing onset consonants of that manner class after pauses. Predict that the 44:5:4 miss and its paired 44:5:5 false warning are kept and the earlier losses mostly vanish: listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Before 36.26 s, p14 has no accepted post-pause stop-onset word whose written onset is unmatched while the rest matches exactly, so the gate never opens and 44:5 stays on كنا. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T10:18:02+00:00",
+   "id": "listener-pause-frozen-feature-stats",
+   "component": "listener",
+   "hypothesis": "Speculative: the sdk's streaming feature normalisation keeps updating its running statistics through waqf pauses, so the first word after a pause is normalised against silence-biased stats. That out-of-distribution onset is where planted word-1 additions vanish. Freezing the running statistics over pause frames fixes it; predict 2 of the 10 word-1 targets won, listener -3 counting cross-cluster post-pause onset spillover, overall -2.",
+   "expected": {
+    "component": -3,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: The streaming front end has no running mean or variance: log-mel frames enter the model raw, and BiasNorm rescales each activation by its own channel RMS, so a waqf cannot bias the next onset. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T10:36:27+00:00",
+   "id": "listener-wpe-dereverb-front-end",
+   "component": "listener",
+   "hypothesis": "Practice phone audio passes through a simulated room, and its reverberation tail carries the previous word's held waqf vowel across the pause and over the onset of an inserted word, so the shipped student hears a continuing vowel and then blank. Run streaming linear-prediction dereverberation (online WPE) on the input before feature extraction. Predict 3 of the 8 targets won with about 1 loss elsewhere: listener -3, overall -2 (speculative that reverb rather than noise is the masking cause).",
+   "expected": {
+    "component": -3,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Online WPE left all 8 pauses above half their energy (best ratio 0.73) and raised in-order consonants of the planted word on 0 of 8. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T10:40:26+00:00",
+   "id": "listener-nonspeech-class-relabel",
+   "component": "listener",
+   "hypothesis": "Added words after a pause come out as blank because training labels every off-text frame as blank. Relabelling them as phones recovered 4 of 7 targets, but the student then put phones into breaths. Add an explicit non-speech output class (breath, lip noise, hiss), train it with the relabel set, and consult the model only in the folded gap path. Predict 3 of 7 targets won and 1 lost: listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Cold crops decode phones on 6 of 7 planted spans, but the folded gap path leaves 5 evidence strings identical to the shipped listener and the checker confirms 0 of 7. (measured: {\"targets won\": 0})",
+   "branch": {
+    "wrongCalls": 43,
+    "missed": 28,
+    "falseWarnings": 15,
+    "listener": 36,
+    "tracker": 4,
+    "checker": 3
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T10:52:24+00:00",
+   "id": "checker-return-borrowed-edge-consonant",
+   "component": "checker",
+   "hypothesis": "Two of the 3 surviving phone wrong-word false warnings clear 2x SUPPORT only by a few nats: 55:48:1 ذواتا, heard د و ف, at 20.4 nats; 26:106:1 إذ, heard يَاا, at 24 nats. Their heard spans plausibly hold an edge consonant that belongs to the adjacent word, whose own visit lacks that consonant: the ف of أفنان, and the ي of المرسلين. Hand that consonant back to the neighbour and re-run the unchanged confirmation on the shrunken span. Predict 2 of 3 vetoed: checker 0, overall -2.",
+   "expected": {
+    "component": 0,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Neither target visit is missing its facing-edge consonant: أفنان matches ف as خ, and المرسلين matches both madd ۦ and final ن, so the span-edge ف and ي are not borrowed. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T11:10:21+00:00",
+   "id": "listener-pause-reset-stream-cache",
+   "component": "listener",
+   "hypothesis": "Words added right after a waqf pause are blanked or folded into word 1 because the streaming encoder carries its attention and conv caches across the pause, and no other state crosses it, since the front end is raw fbank with no CMVN. Re-decode only the post-pause stretch with those caches cleared at the labelled pause, as at session start, and send the result to the folded spell rule. Predict 2-3 of 8 word-1 targets won: listener -3, overall -2.",
+   "expected": {
+    "component": -3,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Resetting the streaming caches at the labelled pause gained 2 or more consonant tokens in the post-pause window on 0 of 8 targets (1 of 8 if the pause silence is included). (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T11:43:08+00:00",
+   "id": "checker-seam-borrowed-proclitic-onset",
+   "component": "checker",
+   "hypothesis": "When a planted word starts with the same proclitic letter as the ayah's word 1 (وقفوهم before وقال, a و-word before وبالأسحار or وفي), word 1's visit takes that one heard و or ف. The surplus then spells only a fragment (the 'ifuhu missing waw and qaf' of p50, the wabl pieces of p57), and the folded seam spell rule never emits. At ayah seams, move word 1's matched word-initial proclitic consonant to the surplus when that makes the surplus a whole non-neighbour mushaf word and leaves word 1 complete from its stem onward. Predict 2 of 7 won: checker 0, overall -2.",
+   "expected": {
+    "component": 0,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: On a true-position trace, 0 of 7 targets have a non-empty pre-word-1 surplus that spells a whole non-neighbour mushaf word once word 1's matched proclitic consonant is prepended. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T11:51:13+00:00",
+   "id": "listener-restart-prefix-rejoins-surplus",
+   "component": "listener",
+   "hypothesis": "Where a planted seam word begins with the same onset as the next ayah's word 1 (p49 ك before كذبت, p50 وق of وقفوهم before وقال, p57 وب of وابل before وبالأسحار), the onset is forgiven as a false-start visit of word 1. The spell test then sees only a non-word remainder. Return word-1 restart-prefix phones that run straight into unowned surplus, with no pause between, to that surplus before spelling. Predict 2 of 3 won: listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Only p50 has a word-1 restart prefix running pause-free into unowned surplus whose union spells the planted word; p49's remainder is owned by the previous word and p57's unowned span is وب, which spells neither قبل nor وابل. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T11:59:07+00:00",
+   "id": "listener-warm-crop-wide-ear-omissions",
+   "component": "listener",
+   "hypothesis": "Omissions next to a phone-erased onset are misplaced or hidden because only the shipped student is consulted. The 2x-width student won the p14 44:5 and p16 54:28:6 omissions as the global decoder, but the scoped recheck of it was abandoned for runtime and never measured. Consult that student only at doubtful omission sites, through a bounded warm crop with 4 s of real left context. Predict listener -3 (the 44:5 pair plus 54:28:6) and overall -2 after an expected loss.",
+   "expected": {
+    "component": -3,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: The wide warm crop never emits the kaf of kunna on the flagged 44:5 stretch, and 54:28:6 is not a flagged doubt site, so 0 of 2 targets carry the distinction. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T12:07:10+00:00",
+   "id": "listener-short-rhyme-slot-duration",
+   "component": "listener",
+   "hypothesis": "Planted من swapped in for a long ayah-final rhyme word (11:11:10 كبير, 37:84:5 سليم) is already heard as مَںں, but it stays uncertain because the 0.6 confirm cut reads mean argmax confidence (0.5997 at 11:11:10), and a held nasal splits its mass. Let wall-clock slot time stand in for that cut: when the slot's span before the labelled waqf pause is too short to hold the written word at the reciter's own rate, and the heard tokens spell a whole non-neighbour mushaf word, confirm the swap. Predict listener -2, overall -2 (honest, below the gate alone).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Neither target spells من under the folded lexical test inside a pre-pause span shorter than the written word's 2-count madd minimum: 11:11:10 is heard مَںں (rejected) and its span is longer than كبير, and 37:84:5 is heard مِل and never becomes a wrong word. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T12:35:05+00:00",
+   "id": "listener-word-onset-head-gap-sites",
+   "component": "listener",
+   "hypothesis": "Added words after a pause are lost because the engine never asks about the frames where the extra word sits: the gap selector and the tracker's word-1 step define sites by text fit, so the planted span is folded into word 1's window. The <nsp> relabel student already decodes the planted word on 6 of 7 oracle-timed crops but confirms 0 for this reason. Train a small word-onset head on the frozen shipped encoder, use acoustic word onsets that the text does not explain to define seam sites, cold-decode those spans with the <nsp> ear, and judge them only by the folded spell rule. Predict listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: The onset head peaks inside all 7 planted spans, but only one target has the in-order seam window, and no extra segment's nsp crop spells the planted word. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T12:47:10+00:00",
+   "id": "checker-session-null-uncertain-adds",
+   "component": "checker",
+   "hypothesis": "Heard-but-uncertain added words (p07 0.58 confidence, p33 +7.93 nats, p55, p56 0.59) fail fixed absolute bars tuned to studio-scale evidence. Confirm an uncertain added word when its own support and confidence both exceed the maximum of the same statistics at this session's earlier issue-free boundaries; predict 3 of 4 won, checker 0, overall -3 (floor -2, speculative).",
+   "expected": {
+    "component": 0,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: 0 of 4 targets beat both session-null maxima: p07 confidence 0.67 loses to a clean gap at 0.99, and p33/p56 have no non-blank clean gap so the confidence null is undefined (p55 never reaches the comparison). (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T13:01:13+00:00",
+   "id": "listener-nsp-ear-seam-window-spell",
+   "component": "listener",
+   "hypothesis": "The non-speech-class student already decodes phones on 6 of 7 oracle-timed planted spans, but it was consulted only inside shipped gap sites, which never cover the planted frames. Cold-decode with it over the whole time-defined seam window, from the end of the previous ayah's last in-order visit to the onset of the first zero-cost word 1 plus word 2 fit, and judge only through the folded spell rule. Predict 2 of 5 word-1 targets won: listener -2, overall -2 (honest, below the gate alone).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Only 1 of 5 targets spells the planted word from an <nsp> cold decode of the seam window (p49 كريم); the only cost-0 word-1+word-2 fit, p57, spells وبل rather than قبل. (measured: {\"targets won\": 1})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T13:07:14+00:00",
+   "id": "listener-session-exemplar-rank-veto",
+   "component": "listener",
+   "hypothesis": "The 3 surviving phone wrong-word false warnings are written words the reciter actually said, but the channel blurred them past every margin and lexical gate. Each is judged in isolation, never against how this reciter and this phone already said the same word. Veto a string-path wrong word when, among the session's own confident word renditions, the nearest by posteriorgram DTW is the written word itself. Predict 2 of 3 won: listener -2, overall -2 (floor -1).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: None of the 3 targets has an earlier zero-edit 0.8-confidence rendition of the written word that ranks first: إذ's one earlier rendition loses to another word (1.62 vs 0.69), and ذواتا and مؤمنين have no earlier rendition in the session. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T13:27:41+00:00",
+   "id": "listener-runnerup-omission-onsets",
+   "component": "listener",
+   "hypothesis": "Omission placement and presence read only argmax tokens. A phone-erased onset such as the ك of كنا keeps about 0.2 posterior mass as the top non-blank runner-up under a fake ء, so the omission lands on the spoken word. Let a token under the 0.8 confidence cut match a candidate through its runner-up, only at omissions the engine already proposed. Predict the p14 44:5 pair won plus at most one unpaired warning: listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: On the current main listener the p14 44:5 token under 0.8 has runner-up ق, not ك, and neither other target has a sub-0.8 token whose runner-up is a missing consonant of the flagged word. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T13:45:26+00:00",
+   "id": "checker-waqf-strip-keeps-final-phone",
+   "component": "checker",
+   "hypothesis": "Two of the 4 listener omission false warnings are on ayah-final words said in pausal form (p79 20:25:5 صدري, p50 37:113:10 مبين). Plausibly the waqf-tail strip removes the held run of the word's own last phone (the madd ي or the final ن heard as ں). That leaves the word too thin, so the omission rules call it absent or move the omission onto it. Before stripping at an ayah end, let the final word's pausal form claim a held run that matches its own last phone. Predict 1 to 2 of the 2 targets won plus the paired p79 20:25:4 miss: checker 0, overall -2 (upside -3).",
+   "expected": {
+    "component": 0,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Neither target has a held run of the ayah-final word's own pausal phone that the waqf-tail strip removes: p79's single ۦ is matched to لي, and p50 decodes no ن or ں on مبين. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T13:54:20+00:00",
+   "id": "listener-wide-ear-drives-tracker",
+   "component": "listener",
+   "hypothesis": "The 2x-width student won the seam additions at p50, p55, p56 and p79 as the global decoder but confirms 0 of 4 when its tokens are swapped in only inside seam windows, so its win plausibly came from where the tracker stepped, not from checker evidence; build tracker input from the wide ear while the checker keeps shipped evidence, predict 2 of 4 won, listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Wide-ear tokens move the tracker at 3 of 4 targets, but the step still lands on the insertion or not at all, and 0 of 4 added words confirm. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T13:58:17+00:00",
+   "id": "listener-student-aware-speech-enhancer",
+   "component": "listener",
+   "hypothesis": "Phone added-word misses come from a degraded input that no tried lever undid: WPE was linear, the session affine was a per-band gain, and the channel arms retrained the model away from the studio calibration the checker trusts. A small causal neural enhancer, trained so the frozen shipped student's posteriors on enhanced phone audio match its posteriors on the clean source, restores the planted words while keeping the checker's calibration intact. Predict 3 of 10 word-1 targets won with about 1 loss: listener -3, overall -2.",
+   "expected": {
+    "component": -3,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: On raw phone audio the shipped student already has two or more planted consonants in order on 5 of 10 targets, including whole words (p50 وقفوهم, p19 ومن, p33 and p49 كرم) that the checker still misses, so the misses are not unheard audio. (measured: {\"targets won\": 0, \"already heard\": 5})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T13:58:50+00:00",
+   "id": "listener-wide-ear-omission-vote",
+   "component": "listener",
+   "hypothesis": "Two planted omissions are placed on the surviving neighbour (44:5 إنا blamed on كنا, 20:25 صدري blamed on لي) because the shipped student never emits the survivor's onset, while the already-trained 2x-width student won the p14 omission when deployed globally. Let the wide student vote only on which of the two adjacent candidates was spoken, with the omission's existence and confirmation still computed on shipped evidence exactly as today. Predict the p14 pair won (one miss plus its paired false warning): listener -2, overall -2 (upside -4 if the p79 pair flips too).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +2 (needs -3 or better), listener +2 (needs +2 or better); without reader mp3quran-10905: +4 (needs -1 or better); studio +3; 7 incidents lost against 5 won",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T14:29:36+00:00",
+   "id": "listener-onset-peak-bounded-nsp-crops",
+   "component": "listener",
+   "hypothesis": "The <nsp> ear spells planted post-pause words only when its crop matches the planted span. Every engine window so far was defined by text fit (visits, anchors, word 1+2 fits), and those windows either did not exist or let neighbouring audio take over the decode. Instead, bound the crop by the already-trained word-onset head alone: decode the first onset-to-onset segment after each labelled pause, and let the folded spell rule's neighbour exclusion reject the clean case, where that segment is word 1 itself. Predict 2 of 7 targets won: listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: The first post-pause onset-to-onset segment spells the planted word on 0 of 7 targets: the planted onset peak sits inside the labelled pause, or the next peak cuts the word into a fragment the <nsp> crop does not spell. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T14:37:54+00:00",
+   "id": "listener-blank-shadow-wrong-word-veto",
+   "component": "listener",
+   "hypothesis": "Two of the 3 surviving phone wrong-word false warnings (26:106:1 إذ heard يَاا, 55:48:1 ذواتا heard د و ف) are real readings whose missing written consonants plausibly survive only as sub-blank mass on blank-won frames inside the accused span, which no token, runner-up or forward-sum rule reads. Veto a string-path wrong word when every written consonant the heard tokens lack is shadow-named, in text order, on the blank-won frames of its own slot. Predict 1-2 of 2 reachable targets won: listener -2, overall -2 (honest; below the gate alone, floor -1).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Neither target shadow-names every missing written consonant, in text order, as the top non-blank on a blank-won frame of that consonant's slot: إذ's ذ never enters the top-5, and ذواتا's ذ and ت are not the blank-frame runner-up in their slots. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T15:41:55+00:00",
+   "id": "listener-pausal-final-manner-mismatch",
+   "component": "listener",
+   "hypothesis": "Three of the 4 listener wrong-word misses swap an ayah-final word: 11:11:10 كبير heard مَںں, 37:84:5 سليم heard مِل, and 2:284:28 قدير against a planted كثيرة. They stay quiet because confirmation asks for a lexical spelling of the heard word, its confidence, or a parallel-slot filler, and phone blur breaks all three. The held pausal final consonant before a waqf still carries its manner class (nasal, trill or lateral, stop, fricative) through the phone band. Raise a wrong word when that class contradicts the written word's pausal final; predict 2 of 3 won, listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Only 1 of 3 slots confirms: 11:11:10 clears 28.6 nats, 37:84:5 stays an omission, and 2:284:28's margin is 8.9 nats, under the 10-nat floor. (measured: {\"targets won\": 1})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T15:50:43+00:00",
+   "id": "listener-wide-ear-add-corroboration",
+   "component": "listener",
+   "hypothesis": "Listener-charged added-word false warnings (22:13:3, 26:5:1, 7:198:7) are consonants the shipped student invents in phone noise or blurred re-reads, and they clear support by large margins (26:5:1 by 28.7 nats, 7:198:7 by 17.6), so no margin, confidence, exemplar or lexical test separates them from real insertions. Confirm a support-path added word only if the independently trained 2x-width student, warm-cropped over the same span, also holds at least 2 of its consonants in order. Predict 2 of 3 vetoed with about 1 caught addition lost: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Wide-ear warm-crop tokens hold the heard consonants at 26:5:1 (4 in order) and 22:13:3 is not a confirmed support-path addition, so only 7:198:7 is vetoed. (measured: {\"targets won\": 1})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T15:51:34+00:00",
+   "id": "checker-connected-madd-vowel-drops",
+   "component": "checker",
+   "hypothesis": "A twin-verse swap that only drops a word-final long vowel in connected speech (اذهبا read as اذهب at 20:43:1, which is 20:24's text) is always abstained as waqf or held-vowel noise. Decide it by the measured length of that long vowel against this reciter's own madd munfasil. Predict checker -1, overall -1 (honest, below the gate).",
+   "expected": {
+    "component": -1,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall -1 (needs -3 or better), checker -1 (needs +2 or better); without reader mp3quran-10905: +0 (needs -1 or better)",
+   "branch": {
+    "wrongCalls": 39,
+    "missed": 25,
+    "falseWarnings": 14,
+    "listener": 36,
+    "tracker": 1,
+    "checker": 2
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T15:55:50+00:00",
+   "id": "listener-fbank-vot-masked-stop-onset",
+   "component": "listener",
+   "hypothesis": "After a pause, p14 says كنا, but its /k/ is decoded as a fake ء. That ء matches the omitted إنا exactly, so the omission lands on كنا. A real ء starts voicing at once, while a voiceless stop has a short noise burst before voicing. That burst can be measured on the 10 ms fbank frames the model never resolves, so only a post-pause ء that has a burst before voicing is made neutral in two-candidate placement. Predict the 44:5 pair won: listener -2, overall -2 (honest, below the gate alone).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: On p14's post-pause ء at 36.92s the upper mel bands peak inside the pause and never rise above the session pause-floor maximum, or above that pause's own maximum, before low-band voicing. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T16:41:32+00:00",
+   "id": "tracker-edit-aware-excursion-rebind",
+   "component": "tracker",
+   "hypothesis": "In p46 the reciter omits فتماروا at 54:36:4, so the remaining words of 54:36 fit a look-alike بالنذر copy at no edit cost, while the in-order 54:36 pays one omission. The folded excursion rebind therefore refuses to rebind, 54:36 never gets a window, and the ayah ledger reports a false skip at 54:36:1. Compare the in-order ayah with each open issue's own edit applied, using the folded issue-explains-drop scoring, against the destination copy. Predict tracker -1, overall -1 (honest; a zero-loss rider candidate, not a fold on its own).",
+   "expected": {
+    "component": -1,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: On p46 the tracker walks 54:33 through 54:36 in order and never opens or closes an excursion, so the 54:36:4 omission is never applied in a rebind comparison. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T17:02:28+00:00",
+   "id": "listener-blank-frame-shadow-consonants",
+   "component": "listener",
+   "hypothesis": "Omission false warnings fire on spoken words whose phone-blurred consonants survive only as non-blank mass on frames that blank wins: ك of كنا at 0.219 on 36.88 s in p14, and ب 0.274 and ن 0.403 inside مبين in p50. No token, runner-up or forward sum reads those frames as named classes. Name each blank-won frame in the anchored stretch by its top non-blank class with no mass cut, and use those names only to place or veto omissions the engine already proposed. Predict p14 44:5 placement plus its paired miss, and p50 vetoed: listener -2, overall -2 (upside -3).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall -2 (needs -3 or better), listener -2 (needs +2 or better); without reader mp3quran-40: +0 (needs -1 or better); 2 incidents lost against 4 won",
+   "branch": {
+    "wrongCalls": 38,
+    "missed": 25,
+    "falseWarnings": 13,
+    "listener": 34,
+    "tracker": 1,
+    "checker": 3
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T17:04:16+00:00",
+   "id": "checker-deletion-test-spelled-seam-span",
+   "component": "checker",
+   "hypothesis": "On raw phone audio the shipped greedy tokens already spell 4 or more planted seam words whole (p50 وقفوهم, p19 ومن, p33 and p49 كرم/كريم). They are lost because the alignment lends their phones to neighbour visits, so the unowned residue is empty or a fragment. Find spelled whole-word spans by searching the seam's token stream without regard to ownership, and emit one when deleting it still leaves every written word fully read. Predict 2 of 4 won: checker 0, overall -2.",
+   "expected": {
+    "component": 0,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: 0 of 4 seams have a soft-cost spelling of the planted word whose deletion still leaves both neighbours fully read: only p50 spells وقفوهم, and cutting it fails the zero-hard visit test. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T17:36:59+00:00",
+   "id": "listener-nsp-ear-seam-pause-labels",
+   "component": "listener",
+   "hypothesis": "At ayah and inner-waqf seams, planted words fall inside spans that are labelled as pause from shipped-blank runs. Every downstream rule, and every second ear, strips or segments on those labels, so speech the <nsp> student hears there is deleted before it can be spelled. At seams only, count a frame as pause only when the shipped model and the <nsp> ear both call it silent (blank or <nsp>). Predict 2 of 6 won: listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: 0 of 6 targets have <nsp>-ear consonants of the planted word in order on frames the shipped model labels as pause; the ear hears the word in the non-blank gap between those runs. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T17:45:18+00:00",
+   "id": "listener-excision-restores-seam-fit",
+   "component": "listener",
+   "hypothesis": "On 5 of 10 targets the shipped listener already decodes the planted word whole (p50 وقفوهم, p19 ومن, p49 and p33 كرم), but the alignment lends its phones to the neighbours, so no surplus exists to spell. Confirm an added word when cutting a token span that spells a whole non-neighbour mushaf word leaves the seam window fitting the written text with no extra hard edits. Predict listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: 0 of 4 seams have a spelled planted-word span whose excision leaves every written word with a complete in-order visit: the neighbours' own phones are not a lexical reading of those words. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T17:59:43+00:00",
+   "id": "listener-final-slot-manner-rekey",
+   "component": "listener",
+   "hypothesis": "Two planted ayah-final swaps (11:11:10 كبير→من heard مَںں, 37:84:5 سليم→من heard مِل) are missed for two different reasons. In the first the slot is judged on a confidence cut, and the pausal-final manner contrast already clears it by 28.6 nats. In the second the speech in the slot is filed as an omission of the written word. Ship the manner-mismatch rule and add one path: when an omission is proposed on an ayah-final word before a labelled pause, the slot holds heard consonant speech, and that speech contradicts the written pausal final's manner, file it as a wrong word. Predict listener -2, overall -2 (honest, below the gate alone; 2:284:28 at 8.9 nats is not counted).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall -2 (needs -3 or better), listener -2 (needs +2 or better)",
+   "branch": {
+    "wrongCalls": 38,
+    "missed": 24,
+    "falseWarnings": 14,
+    "listener": 34,
+    "tracker": 1,
+    "checker": 3
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T18:03:29+00:00",
+   "id": "listener-stack-1720e6",
+   "component": "listener",
+   "hypothesis": "Stack checker-connected-madd-vowel-drops (-1) and listener-final-slot-manner-rekey (-2): each won different incidents and lost none, so together they should clear the fold bar; predict overall -3.",
+   "expected": {
+    "component": -2,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "stack: merging listener-final-slot-manner-rekey conflicts in packages/core/src/checker.ts",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T19:27:49+00:00",
+   "id": "tracker-nearest-forward-step",
+   "component": "tracker",
+   "hypothesis": "In p46, after the planted omission of فتماروا (54:36:4), the heard بالنذر (54:36:5) is bound by an in-lock forward step to the rhyme look-alike ونذر (54:37:9). That bind leaves 54:36 unread, and the ayah ledger reports a false skip at 54:36:1. When several forward positions fit a heard word, take the nearest one unless a farther one beats it by the existing commit margin. Predict tracker -1, overall -1 (honest; below the gate alone).",
+   "expected": {
+    "component": -1,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +0 (needs -3 or better), tracker -1 (needs +2 or better); without reader mp3quran-22: +0 (needs -1 or better); 1 incidents lost against 1 won",
+   "branch": {
+    "wrongCalls": 40,
+    "missed": 26,
+    "falseWarnings": 14,
+    "listener": 37,
+    "tracker": 0,
+    "checker": 3
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T19:33:08+00:00",
+   "id": "listener-shadow-names-neighbour-guard",
+   "component": "listener",
+   "hypothesis": "Blank-frame shadow names fixed the 44:5 placement and vetoed p50 37:113:10, but lost 2 incidents, plausibly because some vetoing shadow consonants are smear from an adjacent token or a neighbour word's facing edge. Re-land that branch and add one generic ownership guard. Predict 1 to 2 of the 2 losses removed and all 4 wins kept: listener -3, overall -3, with an upside of -4.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall -2 (needs -3 or better), listener -2 (needs +2 or better); without reader mp3quran-40: +0 (needs -1 or better); 1 new false warning(s) on fully clean sessions; 1 incidents lost against 3 won",
+   "branch": {
+    "wrongCalls": 38,
+    "missed": 25,
+    "falseWarnings": 13,
+    "listener": 34,
+    "tracker": 1,
+    "checker": 3
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T19:37:37+00:00",
+   "id": "checker-skip-start-after-read-tail",
+   "component": "checker",
+   "hypothesis": "Skips are keyed one word early (p26 warns at 41:19:7, misses 41:20:1) because the destination's first visit owns heard tokens from before its own word 1+2 fit, and those tokens still spell the source ayah's last word (يوزعون's tail). Release those pre-fit tokens, and start the skip after the last source word they read in order. Predict the p26 pair won (p31 4:162:15 speculative): checker 0, overall -2.",
+   "expected": {
+    "component": 0,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +1 (needs -3 or better), checker +0 (needs +2 or better); without reader mp3quran-70: +2 (needs -1 or better); 3 incidents lost against 2 won",
+   "branch": {
+    "wrongCalls": 41,
+    "missed": 27,
+    "falseWarnings": 14,
+    "listener": 37,
+    "tracker": 1,
+    "checker": 3
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T19:39:55+00:00",
+   "id": "listener-held-final-run-in-support",
+   "component": "listener",
+   "hypothesis": "The verified manner-rekey branch catches 11:11:10 and 37:84:5, but 2:284:28 (planted كثيرة, pausal ة heard as ه) stays 1.1 nats under SUPPORT. A plausible cause is that the waqf-tail strip drops the held final run before the heard-vs-written margin is scored, which removes the frames where the ر/ه contradiction lives. On manner-mismatch slots only, score that margin over the frames through the pause onset. Predict 3 of 3: listener -3, overall -3 (floor -2 from the branch alone).",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: 2:284:28 has no held ه frames past the token, and scoring both hypotheses through the pause onset stays at 8.89 nats. (measured: {\"targets won\": 2})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T19:50:33+00:00",
+   "id": "listener-recited-run-explains-add",
+   "component": "listener",
+   "hypothesis": "Listener added-word false warnings at 26:5:1 and 7:198:7 are real speech: the wide ear holds 4 of 26:5:1's consonants in order, and 7:198:7 spells كم, as in نصركم from 7:197. They are plausibly blurred re-reads of text from one or two ayahs back, which the ±3 neighbour and back-run exclusions cannot see. Veto a support-path added word when its heard span fits a contiguous run of text already recited in the session at no more than its insertion cost. Predict 1-2 of 2 won: listener -2, overall -2 (honest, below the gate alone).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +1 (needs -3 or better), listener +0 (needs +2 or better); without reader mp3quran-295: +2 (needs -1 or better); 2 incidents lost against 1 won",
+   "branch": {
+    "wrongCalls": 41,
+    "missed": 27,
+    "falseWarnings": 14,
+    "listener": 36,
+    "tracker": 1,
+    "checker": 4
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T20:46:07+00:00",
+   "id": "listener-lent-phone-visit-hides-omission",
+   "component": "listener",
+   "hypothesis": "Two planted omissions (p16 54:28:6 كل, p14 44:23:1 فأسر) are never proposed because the absent word gets a counting visit made only of phones borrowed from its neighbours: held-sound runs of an adjacent token, or an early or late copy of a neighbour's facing-edge consonant. Stop such borrowed-only visits from counting as a read, so the unchanged omission rules judge the word. Predict listener -1, overall -1 (upside -2 if both flip; speculative).",
+   "expected": {
+    "component": -1,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Neither target has a counting visit whose matched consonants are all held-sound-lent or frame-contiguous copies of a neighbour's facing-edge consonant: 54:28:6's visit keeps its own lam, and 44:23:1 keeps no consonant so the omission is already proposed. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T20:48:06+00:00",
+   "id": "listener-particle-omission-tiebreak",
+   "component": "listener",
+   "hypothesis": "Two planted omissions of short particles (44:5 إنّا, 20:25 لي) are placed on the adjacent content word (كنا, صدري), because phone blur makes both placements tie on hard edits and soft-cost noise breaks the tie. When the two placements tie on hard edits, put the omission on the particle, using the mushaf morphology class; predict listener -2, overall -2 (upside -4 if both paired false warnings flip too).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: 0 of 2 targets are hard-edit ties: 44:5's ءُننننَاا matches إنّا in 0 hard edits and كنا in 1, and 20:25's لِۦ matches لي in 0 and صدري in 1. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T21:00:16+00:00",
+   "id": "listener-stack-1720e6-m",
+   "component": "listener",
+   "hypothesis": "Stack checker-connected-madd-vowel-drops (-1) and listener-final-slot-manner-rekey (-2): each won different incidents and lost none, so together they should clear the fold bar; predict overall -3.",
+   "expected": {
+    "component": -2,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall -1 (needs -3 or better), listener +0 (needs +2 or better); without reader mp3quran-10905: +1 (needs -1 or better); 1 new false warning(s) on fully clean sessions; 2 incidents lost against 3 won",
+   "branch": {
+    "wrongCalls": 39,
+    "missed": 23,
+    "falseWarnings": 16,
+    "listener": 36,
+    "tracker": 1,
+    "checker": 2
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T21:13:14+00:00",
+   "id": "listener-onset-count-exceeds-text",
+   "component": "listener",
+   "hypothesis": "Seam additions are lost because every rule judges which written word owns the inserted phones, and word 1 or its neighbour always owns them. The already-trained word-onset head peaks inside every planted span, so count its onset peaks between two confident anchors against the written words plus accepted repeats, and emit an added word where one onset is unexplained. Predict 3 of 8 targets won with about 1 loss: listener -3, overall -2.",
+   "expected": {
+    "component": -3,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: The cut that clears extra onset peaks on 164 clean phone seams is 0.971, and at that cut 0 of 8 targets have exactly one surplus peak (2 have no zero-cost word-2 seam; the other 6 have no peak above the cut). (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T21:26:30+00:00",
+   "id": "listener-erasure-head-omission-placement",
+   "component": "listener",
+   "hypothesis": "Omission placement fails because the phone channel erases a survivor's distinguishing consonant and the student fills the gap with a confident fake one. In p14 the ك of كنا comes out as a post-pause ء that matches إنّا, and in p79 the ر of صدري comes out as ل, which spells لي. Every rule then trusts that fake match. Train a small per-token erasure head on the frozen shipped encoder, with labels from paired clean and degraded copies of gold-excluded speech under the shipped augmentation chain. Use it only to neutralise flagged consonants in two-candidate omission placement. Predict the p14 44:5 pair won and the p79 pair speculative: listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: The erasure head scores p14's fake ء at 0.79 and p79's fake ل at 0.004, both below the 0.985 clean-studio maximum already reached partway through the studio scan. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T21:30:38+00:00",
+   "id": "listener-stack-1720e6-m-m",
+   "component": "listener",
+   "hypothesis": "Stack checker-connected-madd-vowel-drops (-1) and listener-final-slot-manner-rekey (-2): each won different incidents and lost none, so together they should clear the fold bar; predict overall -3.",
+   "expected": {
+    "component": -2,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "dropped by you: re-stacks a pair its earlier stack already scored at -1",
+   "branch": {
+    "wrongCalls": 37,
+    "missed": 23,
+    "falseWarnings": 14,
+    "listener": 34,
+    "tracker": 1,
+    "checker": 2
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T21:37:15+00:00",
+   "id": "listener-stack-1720e6-m-m-m",
+   "component": "listener",
+   "hypothesis": "Stack checker-connected-madd-vowel-drops (-1) and listener-final-slot-manner-rekey (-2): each won different incidents and lost none, so together they should clear the fold bar; predict overall -3.",
+   "expected": {
+    "component": -2,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "dropped by you: re-stacks a pair its earlier stack already scored at -1",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T21:41:26+00:00",
+   "id": "checker-onset-count-extra-word",
+   "component": "checker",
+   "hypothesis": "Seam additions are missed because every rule asks what the extra speech is: its spelling, likelihood, owner, duration or second-ear phones, and phone blur defeats all of these. Yet the trained word-onset head already peaks inside all 7 planted spans. Confirm an added word when a seam stretch holds one more head onset than the aligned text has word starts, and the extra segment holds 2 or more shipped consonants that are neither a back-run nor a restart prefix. Predict 3 of 10 word-1 targets won with 1 lost: checker 0, overall -2.",
+   "expected": {
+    "component": 0,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: 0 of 10 targets have an unexplained onset segment with 2 shipped consonants: 4 seams never have more head peaks than written starts, and on the other 6 the next peak arrives within 40-400 ms, leaving at most one consonant. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T22:54:38+00:00",
+   "id": "listener-real-ear-spells-written-veto",
+   "component": "listener",
+   "hypothesis": "The 3 surviving phone wrong-word false warnings (26:106:1 إذ heard يَاا, 55:48:1 ذواتا heard د و ف, 26:174:8 مؤمنين plus glued قليل) are written words that the shipped student mishears. The already-trained multi-ayah real-narrowband student cleared 6 of 8 such targets, but as the global decoder it went +175. Consult it only at pending string-path wrong words, through a warm crop, and veto only when its tokens spell the written word itself under soft costs. Predict 2 of 3 vetoed and about 1 caught planted swap lost: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: None of the 3 target slots has the multi-ayah warm-crop tokens spelling the written word with zero hard edits: إذ is ء (1), ذواتا is واكا (2), and مؤمنين keeps a glued tail (4). (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T23:10:48+00:00",
+   "id": "tracker-continuation-revokes-far-step",
+   "component": "tracker",
+   "hypothesis": "In p46 the in-lock step after the planted omission at 54:36:4 binds heard بالنذر to the look-alike ونذر at 54:37:9, so 54:36 never gets its own window and the ledger reports a false skip at 54:36:1. The fix: keep the far step provisional, and revoke it when the next heard words continue in order from the near one-word-deletion position (54:36:5, then 54:37:1) instead of from 54:37:9. Predict tracker -1, overall -1.",
+   "expected": {
+    "component": -1,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +1 (needs -3 or better), tracker -1 (needs +2 or better); without reader mp3quran-22: +1 (needs -1 or better); 2 incidents lost against 1 won",
+   "branch": {
+    "wrongCalls": 41,
+    "missed": 26,
+    "falseWarnings": 15,
+    "listener": 38,
+    "tracker": 0,
+    "checker": 3
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T23:30:48+00:00",
+   "id": "listener-hard-edits-first-omission-place",
+   "component": "listener",
+   "hypothesis": "Two-candidate omission placement ranks by total edit cost, so a one-point soft-cost difference overrides a clear hard-edit preference. At p79 20:25, omitting صدري costs hard 3 / total 45 and omitting the truly absent لي costs hard 2 / total 46, so the omission lands on صدري. Rank placements by hard edits first and use total cost only to break ties. Predict the p79 20:25:5 false warning and its paired 20:25:4 miss won: listener -2, overall -2 (honest, below the gate alone; upside -3 if p50 37:113:10 or p65 4:12:40 has the same inversion, speculative).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +9 (needs -3 or better), listener +9 (needs +2 or better); without reader mp3quran-10905: +11 (needs -1 or better); 1 new false warning(s) on fully clean sessions; studio +7; 11 incidents lost against 2 won",
+   "branch": {
+    "wrongCalls": 49,
+    "missed": 30,
+    "falseWarnings": 19,
+    "listener": 45,
+    "tracker": 1,
+    "checker": 3
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-03T23:51:32+00:00",
+   "id": "checker-word-manner-skeleton-swaps",
+   "component": "checker",
+   "hypothesis": "Checker wrong-word misses (9:47:17 بالمتقين for بالظالمين; 20:43:1 اذهب for اذهبا) are judged on consonant identity or phrase likelihood, which phone blur erases. Manner class (nasal, stop, fricative, lateral/trill), which the manner near-miss showed survives the phone band, is never compared over the whole word. Confirm a wrong word when the heard word's manner skeleton contradicts the written word's at 2 or more aligned consonant positions and fits an attested mushaf word's skeleton exactly, and re-land the zero-loss connected-madd rule unchanged for 20:43:1. Predict checker -2, overall -2 (honest; upside -3 if 2:284:28 or 12:78:8 also flip).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall -2 (needs -3 or better), checker -2 (needs +2 or better); without reader mp3quran-10905: +1 (needs -1 or better); 1 incidents lost against 3 won",
+   "branch": {
+    "wrongCalls": 38,
+    "missed": 23,
+    "falseWarnings": 15,
+    "listener": 36,
+    "tracker": 1,
+    "checker": 1
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T00:03:30+00:00",
+   "id": "tracker-seam-word2-step-keeps-omission",
+   "component": "tracker",
+   "hypothesis": "The planted ayah-initial omission at p14 44:23:1 (فأسر) is proposed but still missed. Speculative cause: with word 1 missing, the tracker crosses the 44:22|44:23 seam by a forward step onto word 2, inside the look-alike phrase بعبادي … إنكم متبعون (26:52, 20:77), and treats that step as a relocation or misfit hold, so the new window seals the open omission as uncertain. Treat a seam step that skips exactly word 1 and is then confirmed by in-order continuation as ordinary continuation that keeps the omission open. Predict tracker 0, listener -1, overall -1 (honest, below the gate; a zero-loss rider candidate).",
+   "expected": {
+    "component": 0,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: On the p14 runEngine trace, 44:23:1 stays suspected inside a continuously locked window and ends uncertain at 214.96 s when the two-ayah horizon arrives with clarity 0.58, with no relocation, hold, or lost event at the 44:22|44:23 seam. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-04T00:17:17+00:00",
+   "sha": "a990cd74",
+   "testSet": "lab-v1.5",
+   "experiment": null,
+   "note": "daily re-score 2026-11-04",
+   "practice": {
+    "wrongCalls": 40,
+    "missed": 26,
+    "falseWarnings": 14,
+    "listener": 36,
+    "tracker": 1,
+    "checker": 3
+   },
+   "exam": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T00:19:32+00:00",
+   "id": "listener-noisy-channel-seam-spelling",
+   "component": "listener",
+   "hypothesis": "On 5 of 10 word-1 targets the shipped tokens already hold the planted word with 2 or more consonants in order (p50 وقفوهم, p19 ومن, p33/p49 كرم). The spell rules miss them because they need an exact soft-cost match, and phone blur leaves one or two hard edits. Rank whole-word explanations of the time-defined seam span under the shipped listener's own measured confusion channel, with neighbour, restart, back-run and no-word competitors; predict 2 of 5 won, listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Only 1 of 5 targets has a zero-cost word-1+word-2 fit anywhere in the greedy string, so the seam span does not exist for the other four. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T01:01:31+00:00",
+   "id": "checker-pause-bounded-seam-slots",
+   "component": "checker",
+   "hypothesis": "At ayah ends, a wrong-word slot can reach across the waqf pause and take in the next ayah's speech: at 26:174:8 the word مؤمنين gets a glued قليل and is falsely accused. Cap every ayah-final wrong-word slot at the labelled pause onset and send later frames to the next ayah's window. Re-land the zero-loss-on-target manner-skeleton and connected-madd rules byte-identical on top. Predict checker -2, overall -3 (upside -4 if the manner branch's one loss was also a pause-crossing slot, speculative).",
+   "expected": {
+    "component": -2,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: On the current-main trace of 26:174:8, قليل's consonants sit before the last in-order ن at 106.20s and before the labelled pause that follows it at 106.24s, so the pause bound cannot shrink that slot. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T01:13:30+00:00",
+   "id": "listener-seam-consonant-balance",
+   "component": "listener",
+   "hypothesis": "On about half the seam additions the shipped tokens already hold the planted consonants (p50 وقفوهم, p19 ومن, p33/p49 كرم), but every rule asks which written word owns them, and blurred neighbours always claim some of them or fail their visit tests. Instead, count consonant tokens across a seam stretch bounded by tracker step times, minus the written consonants and any back-run, and emit an added word when the surplus exceeds the clean maximum. Predict 2 of 5 won with about 1 lost: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Only 1 of 5 targets (p50, surplus 5) exceeds the clean phone and studio seam maximum of 3; p19 and p33 tie that ceiling. (measured: {\"targets won\": 1})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T01:33:39+00:00",
+   "id": "listener-attested-rival-forward-veto",
+   "component": "listener",
+   "hypothesis": "The phone wrong-word false warnings at 26:106:1 (إذ heard يَاا) and 55:48:1 (ذواتا heard د و ف) fail the lexical gate, but they still confirm at 2x SUPPORT because the competitor is the greedy string itself, which is fitted to those same frames. Replace that competitor with the best attested mushaf word, scored by forward sum over the slot; predict 2 of 2 vetoed and about 1 caught swap lost: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: On both target slots an attested non-neighbour beats the written word by more than SUPPORT under forward sum (يَر by 13.7 nats at 26:106:1, أمات by 31.4 nats at 55:48:1), so neither warning is vetoed. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T01:37:31+00:00",
+   "id": "tracker-revoke-replay-explains-issues",
+   "component": "tracker",
+   "hypothesis": "Every correct rebind of 54:36 in p46 removes the false skip at 54:36:1, but it also exposes a false wrong word at 54:37:2 that main hides only because the lock drops. Keep the continuation revoke, and judge any issue born from the replayed provisional tokens with the folded issue-explains-drop test, so 54:37:2 stays uncertain and the planted 54:36:4 omission survives. Predict tracker -1, overall -1 (honest; zero-loss rider candidate, below the gate alone).",
+   "expected": {
+    "component": -1,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: On the p46 revoke, 54:37:2 is born inside the provisional interval and its edited fit passes issue-explains-drop (gain 4.70 against a margin of 3.00). (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T02:25:37+00:00",
+   "id": "checker-attested-rival-add-veto",
+   "component": "checker",
+   "hypothesis": "Listener-charged added-word false warnings on the support path are judged against the greedy heard string, which is fitted to its own frames, so a blurred non-word re-read such as 26:5:1 wins by 28.7 nats. Make the competitor the best attested non-neighbour mushaf word, scored by forward sum over the span, and veto the addition unless that word beats no-addition by SUPPORT. Predict 1 of the cluster won with 0 lost: checker 0, overall -1 (honest; a zero-loss rider candidate).",
+   "expected": {
+    "component": 0,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: At 26:5:1 the best attested non-neighbour word (قليلون, قَلِۦۦلُۥۥن) beats the no-addition path by 23.5 nats on the forward sum, above SUPPORT, so the veto does not fire. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T02:27:36+00:00",
+   "id": "listener-tail-run-omission-clarity",
+   "component": "listener",
+   "hypothesis": "The planted ayah-initial omission at p14 44:23:1 is proposed but ends uncertain at clarity 0.58. The likely cause is leftover gap residue that is really the held argmax run of the previous word's pausal tail or the next word's onset. Exclude neighbour-contiguous runs from the clarity residue, and ride the verified zero-loss final-slot-manner-rekey rule byte-identical. Predict listener -3, overall -3 (floor -2 from the rider alone).",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: On the p14 runEngine trace, none of the frames behind 44:23:1's 0.58 clarity extend the argmax run of 44:22's final ن or 44:23:2's onset without a blank break: 16 blank frames separate them, and the low-confidence phones are 44:23:2's own visit. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T03:02:13+00:00",
+   "id": "tracker-certified-anchor-seam-spans",
+   "component": "tracker",
+   "hypothesis": "Seam spell rules fail on p19, p33, p49 and p50 because their neighbour words never get a clean visit. The tracker, however, stays locked across all of these seams, and its step times exist on 5 of 5 seam targets. Have the tracker certify neighbours from in-order continuation and export the seam surplus span from its own step times plus a right-anchored fit of word 1, then feed that span to the folded spell rule. Predict 2-3 of 4 won: tracker 0, overall -2 (upside -3).",
+   "expected": {
+    "component": 0,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: The right-anchored fit's onset stays on the step onto word 1 for 3 of 4 targets, and p19's span وَمِںںں does not spell ومن under soft costs. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T03:15:43+00:00",
+   "id": "listener-excise-span-neighbour-fit",
+   "component": "listener",
+   "hypothesis": "On p50, p19, p33 and p49 the shipped tokens already spell the planted seam word, but it is lost because both neighbours must have a zero-hard-edit greedy visit, and phone blur breaks those visits. Keep the lexical spell test as the evidence for the addition, and instead certify the neighbours with the folded closed read-versus-omit forward-sum fit on the frames left after cutting the spelled span. Predict 2 of 4 won and 1 lost: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: 2 of 4 targets confirm at true position (p19, p50); p33 is heard as فريم so it fails the spell test, and p49's كريم loses the word-1 read-versus-omit test on the seam that actually holds it. (measured: {\"targets won\": 2})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T03:43:51+00:00",
+   "id": "listener-ctc-word-separator-seams",
+   "component": "listener",
+   "hypothesis": "On 5 of 10 seam targets the shipped greedy tokens already hold the planted consonants in order, but phone-level alignment lends them to word 1 or the previous word, and the onset head fires 5-18 times per seam. A CTC head over phones plus a word-separator token on the frozen encoder gives sequence-consistent word edges (one per boundary by CTC construction), and the shipped tokens inside an extra separator-bounded segment then go to the folded spell rule. Predict 2 of 4 won, listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: The separator head emitted no extra |-bounded segment on any of the 4 seam targets; the planted word stayed inside a neighbour's segment. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T03:53:46+00:00",
+   "id": "listener-prompt-dropout-seam-decoder",
+   "component": "listener",
+   "hypothesis": "Planted seam words are lost because every listener read-out either ignores the text or learned from canonical-only or spliced data, so it either copies the expected text or misses off-text speech. A text-prompted phone decoder trained on real audio with words deleted from the prompt (not added to the audio) learns to emit speech the prompt lacks; used only at seams and judged by the folded spell rule, it should win 2 of 8 targets: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Three of eight absent spans hold two planted consonants, but the folded spell rule matches none: each span differs in length from every lexicon form of that skeleton. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T04:01:51+00:00",
+   "id": "listener-label-prior-ctc-doubt-ear",
+   "component": "listener",
+   "hypothesis": "Omission false warnings fire on spoken words whose phone-blurred consonants keep 0.2-0.46 posterior mass but never win a frame against blank (the ك of كنا at 44:5; ب 0.27 and ن 0.40 inside مبين at 37:113), because peaky CTC training teaches blank to win every ambiguous frame. Train a second, non-peaky ear with label-prior CTC and consult it only inside the anchored stretch of omissions the engine already proposed. Predict 1-2 of 2 targets won with about 1 loss: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: A label-prior fine-tune of spliced-clean (alpha 0.3, one epoch) cut blank mass from 0.70 to 0.35 but never emitted ك of كنا (max 0.008, was 0.59 on the same cold crop) or ب of مبين (max 0.008); its ن's are a repeated-token smear on frames the shipped model already labels ن. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T04:09:56+00:00",
+   "id": "listener-word-unit-ctc-head-seams",
+   "component": "listener",
+   "hypothesis": "On 5 of 10 seam additions the shipped string already holds the planted word, but phone-level alignment hands its sounds to neighbouring words. A CTC head that outputs whole mushaf words on the frozen encoder, diffed word-by-word against the text at seams, sees the extra word as one unit; predict 2 of 5 won, listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: The word head emits the planted word in 0 of 5 seam windows; its posterior there is at most 0.0004, under the 0.80 clean-seam gate, and blank is already 1. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T04:17:46+00:00",
+   "id": "listener-reference-recitation-dtw-stalls",
+   "component": "listener",
+   "hypothesis": "Seam additions are lost because every judge asks which written word owns the inserted phones. Blurred neighbours always claim some of them, and the clean word-1+word-2 fit exists on only 1 of 5 targets. Align the session's posteriorgram over the seam window to gold-excluded studio readers' posteriorgrams of the same written text by DTW, and flag a contiguous run of non-blank session frames that stalls the reference. That is speech with no counterpart in any reading of the text. Predict 2 of 6 won: listener -2, overall -2 (honest, below the gate alone).",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: 0 of 6 targets have a median stall covering the planted span above the largest clean phone or studio seam (62 non-blank frames; the strongest target is 13, and 15 already occurs on a clean seam). (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T05:51:01+00:00",
+   "id": "listener-chunked-4s-crop-onset-restore",
+   "component": "listener",
+   "hypothesis": "Two planted omissions are put on the spoken neighbour (44:5 كنا, 20:25 صدري) because in-context decoding erases that word's onset. The shipped student on a 4 s chunk-masked cold crop has now been measured to emit the ك of كنا at 36.88 s (0.590, winning its frame), which tight 300 ms crops never did. At proposed two-candidate omissions only, move the omission when such a crop restores the blamed word's onset consonant. Predict both pairs if ص also returns, discounted for calibration: listener -3, overall -3 (floor -2 if only p14 flips).",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: On neither target does the 4 s chunk-masked crop emit the blamed onset (ك of كنا, ص of صدري) as a frame-winning token inside the anchored stretch. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T06:00:59+00:00",
+   "id": "checker-merge-ledger-and-seam-skips",
+   "component": "checker",
+   "hypothesis": "p24 still gets a false skip warning at 26:131:2, even though the folded ayah-absence ledger now catches the real skip of 26:130 (that miss is gone from the clusters). The likely cause is that two skip emitters fire on one unread run: the ledger keys a whole-ayah skip at 26:130:1, and the older word-level seam emission still keys its own skip at 26:131:2, because the refrain word فاتقوا (26:131:1) was bound to the source. Merge adjacent skip events that one unread run explains into a single event keyed at the earliest start. Predict checker -1, overall -1 (honest, below the gate).",
+   "expected": {
+    "component": -1,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall -1 (needs -3 or better), checker -1 (needs +2 or better); without reader mp3quran-70: +0 (needs -1 or better)",
+   "branch": {
+    "wrongCalls": 39,
+    "missed": 26,
+    "falseWarnings": 13,
+    "listener": 36,
+    "tracker": 1,
+    "checker": 2
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T06:17:00+00:00",
+   "id": "tracker-shadow-coverage-not-rebind",
+   "component": "tracker",
+   "hypothesis": "p46 gets a false skip at 54:36:1 because, after the planted 54:36:4 omission, an in-lock step binds بالنذر to 54:37:9 and 54:36 never gets a window. Rebinding fixes the skip but exposes a false 54:37:2 wrong word that main hides. Keep main's events and windows byte-identical, and have the tracker only certify 54:36 as covered for the ayah-absence ledger when the near one-deletion continuation beats the far step; predict tracker -1, overall -1.",
+   "expected": {
+    "component": -1,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +0 (needs -3 or better), tracker +0 (needs +2 or better); without reader mp3quran-22: +0 (needs -1 or better); 1 incidents lost against 1 won",
+   "branch": {
+    "wrongCalls": 40,
+    "missed": 27,
+    "falseWarnings": 13,
+    "listener": 36,
+    "tracker": 1,
+    "checker": 3
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T06:24:56+00:00",
+   "id": "listener-step-span-noisy-channel-rank",
+   "component": "listener",
+   "hypothesis": "On p50, p19, p33 and p49 the shipped tokens already hold the planted seam word, but zero-hard-edit spell tests reject one-consonant phone blur, and the noisy-channel ranker died only because its greedy span existed on just 1 of 5 targets. Rank whole-word explanations over a seam span bounded by tracker step times, which exist on 5 of 5, using the shipped listener's measured confusion channel. Predict 2 of 4 won with about 1 loss: listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall +1 (needs -3 or better), listener -4 (needs +2 or better); without reader mp3quran-198: +2 (needs -1 or better); 4 incidents lost against 3 won",
+   "branch": {
+    "wrongCalls": 41,
+    "missed": 23,
+    "falseWarnings": 18,
+    "listener": 32,
+    "tracker": 4,
+    "checker": 5
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T06:30:49+00:00",
+   "id": "listener-long-form-stream-training",
+   "component": "listener",
+   "hypothesis": "The student was trained on short single-ayah clips but is deployed on minutes-long sessions with a carried streaming cache, so posteriors drift out of distribution late in sessions and faint post-pause words (planted additions) collapse to blank or fragments. The p14 ك comes back at 0.59 on a 4 s chunk-masked crop but is lost in the full stream. Fine-tune the student on session-length real streams in the deployed chunk and cache regime; predict 3 of 10 targets won with about 2 lost elsewhere: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: Shipped int8 student in the deployed chunk regime, left history cut to the median 7.0 s training clip, gained 2 or more planted consonants in order on 0 of 10 targets (1 of 10 at the 4 s crop, and that one matched the full stream again at 7 s). (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T07:07:23+00:00",
+   "id": "listener-stack-c63ce0",
+   "component": "listener",
+   "hypothesis": "Stack listener-final-slot-manner-rekey (-2) and checker-merge-ledger-and-seam-skips (-1): each won different incidents and lost none, so together they should clear the fold bar; predict overall -3.",
+   "expected": {
+    "component": -2,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall -2 (needs -3 or better), listener -1 (needs +2 or better); 1 new false warning(s) on fully clean sessions; 1 incidents lost against 3 won",
+   "branch": {
+    "wrongCalls": 38,
+    "missed": 24,
+    "falseWarnings": 14,
+    "listener": 35,
+    "tracker": 1,
+    "checker": 2
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T07:26:58+00:00",
+   "id": "listener-real-deviant-insertion-labels",
+   "component": "listener",
+   "hypothesis": "The shipped student blanks or blurs extra words after a pause because it has never been trained on a real reciter adding a real word: its training uses canonical labels, teacher pseudolabels or synthetic splices. Fine-tune it on real phone-mic deviant recitations whose added words carry human-verified transcripts. Keep a KL anchor to the shipped student outside those spans so the rest of the decoded string stays put. Predict 3 of 10 word-1 targets won and about 2 lost elsewhere: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: tlog deviant phone clips have canonical and teacher labels only; the human review never transcribed an added word, so there is nothing to fine-tune the insertion span on. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T07:42:55+00:00",
+   "id": "listener-4s-sliding-attention",
+   "component": "listener",
+   "hypothesis": "Onset consonants are erased because the deployed stream lets the encoder attend over minutes of carried history, which it never saw in training; the shipped student on a 4 s chunk-masked crop wins the ك of كنا at 0.59 while the full stream, the 300 ms cold crop and the pause cache reset all lose it. Cap left attention at a 4 s sliding window, first at inference and then fine-tuned, so deploy matches training; predict listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: With the shipped weights, a 4 s left-attention window still leaves the ك of كنا at 36.88 s under blank (0.22) and neither ب nor ن of مبين wins a frame (0.19 and 0.41). (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T08:10:43+00:00",
+   "id": "listener-fwdsum-neighbours-channel-spell",
+   "component": "listener",
+   "hypothesis": "Seam additions the shipped tokens already hold are lost twice over: blurred neighbours fail visit tests, and one-consonant blur fails the exact spell test (p33 فريم). Certify neighbours by the verified excise-then-forward-sum fit, and judge identity by the shipped listener's measured confusion channel instead of zero hard edits. Predict p19, p50 and p33 won with 0 lost: listener -3, overall -3.",
+   "expected": {
+    "component": -3,
+    "overall": -3
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: p33's كريم scores 13.6 nats and p19's best span 13.4, under clean shipped seams at 15.0, so a cut that keeps the blurs also confirms clean clips (practice overall +11). (measured: {\"overall\": 11, \"targets won\": 3})",
+   "branch": {
+    "wrongCalls": 51,
+    "missed": 20,
+    "falseWarnings": 31,
+    "listener": 46,
+    "tracker": 1,
+    "checker": 4
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T08:16:57+00:00",
+   "id": "listener-fwdsum-uncertain-omission",
+   "component": "listener",
+   "hypothesis": "The planted ayah-initial omission at p14 44:23:1 is proposed but ends uncertain at clarity 0.58, because clarity is computed from greedy residue that includes the next word's own low-confidence phones. Decide uncertain proposed omissions with the folded closed read-versus-omit forward-sum fit on the stored posteriors instead of greedy clarity; predict listener -1, overall -1 (honest, a zero-loss rider candidate below the gate alone).",
+   "expected": {
+    "component": -1,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "gate on the branch: overall -1 (needs -3 or better), listener -1 (needs +2 or better); without reader mp3quran-40: +0 (needs -1 or better)",
+   "branch": {
+    "wrongCalls": 39,
+    "missed": 25,
+    "falseWarnings": 14,
+    "listener": 35,
+    "tracker": 1,
+    "checker": 3
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T08:30:54+00:00",
+   "id": "tracker-shadow-deletion-hands-omission",
+   "component": "tracker",
+   "hypothesis": "Every p46 fix removed the false 54:36:1 skip but scored +0 or worse. The likely cause is that the skip is currently what catches the planted 54:36:4 omission, so dropping it loses that catch. Rebinding the window brings back the false 54:37:2 wrong word. Keep events byte-identical, and when the near one-deletion shadow beats the far step, hand the checker the deleted word as an omission candidate in place of the ledger skip; predict tracker -1, overall -1 (honest, below the gate).",
+   "expected": {
+    "component": -1,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5",
+   "note": "killed by its builder: The planted 54:36:4 omission is already a misclassified hit on the alignment warning at that word, and dropping the 54:36:1 ledger skip leaves the hit in place, so the shadow-coverage loss is not that omission. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-04T08:53:34+00:00",
+   "sha": "f03222e3",
+   "testSet": "lab-v1.5",
+   "experiment": null,
+   "note": "re-scored for fold of checker-channel-odds-omission-place",
+   "practice": {
+    "wrongCalls": 40,
+    "missed": 26,
+    "falseWarnings": 14,
+    "listener": 36,
+    "tracker": 1,
+    "checker": 3
+   },
+   "exam": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-04T08:54:41+00:00",
+   "sha": "76656430",
+   "testSet": "lab-v1.5",
+   "experiment": "checker-channel-odds-omission-place",
+   "note": "Two planted omissions are placed on the spoken neighbour (44:5 إنا blamed on كنا, 20:25 لي blamed on صدري), giving a miss plus a false warning each. Two-candidate placement ranks by hand-set hard and soft costs that are not calibrated to how this listener actually garbles phone audio. Rank the two placements by likelihood under the shipped listener's measured confusion channel instead. Predict 1 of 2 pairs flips: checker 0, overall -2 (upside -4).; practice-only fold, exam not measured",
+   "practice": {
+    "wrongCalls": 36,
+    "missed": 24,
+    "falseWarnings": 12,
+    "listener": 32,
+    "tracker": 1,
+    "checker": 3
+   },
+   "exam": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-04T08:54:41+00:00",
+   "id": "checker-channel-odds-omission-place",
+   "component": "checker",
+   "hypothesis": "Two planted omissions are placed on the spoken neighbour (44:5 إنا blamed on كنا, 20:25 لي blamed on صدري), giving a miss plus a false warning each. Two-candidate placement ranks by hand-set hard and soft costs that are not calibrated to how this listener actually garbles phone audio. Rank the two placements by likelihood under the shipped listener's measured confusion channel instead. Predict 1 of 2 pairs flips: checker 0, overall -2 (upside -4).",
+   "expected": {
+    "component": 0,
+    "overall": -2
+   },
+   "state": "folded",
+   "testSet": "lab-v1.5",
+   "note": "keeps its overall gain",
+   "branch": {
+    "wrongCalls": 36,
+    "missed": 24,
+    "falseWarnings": 12,
+    "listener": 32,
+    "tracker": 1,
+    "checker": 3
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 36,
+     "missed": 24,
+     "falseWarnings": 12,
+     "listener": 32,
      "tracker": 1,
      "checker": 3
     },
