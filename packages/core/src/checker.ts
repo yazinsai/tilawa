@@ -12,6 +12,9 @@ import { procliticOnset, waqfMarked } from "./mushaf-marks.js";
 import { absenceMargin } from "./ayah-ledger.js";
 import { PHRASE_PEAK, PHRASE_SWITCH, letterSkeleton, parallelPaths } from "./parallel-phrases.js";
 import { spanId, slotSpans } from "./slot-spans.js";
+import { LISTENER_CHANNEL } from "./listener-channel.js";
+import { ayahSeamSpans, channelFromCounts, phrasePhones, rankSeam } from "./noisy-channel.js";
+import type { ChannelCounts, TrackerStep } from "./noisy-channel.js";
 
 export interface CheckerPolicy {
   /** When a suspected wrong or added word is confirmed: after `ms` (2–3 s), or once the next word has begun. Default 2500 ms. */
@@ -44,6 +47,11 @@ export interface CheckerOptions {
    * a deliberate jump, followed until the tracker locks back inside the passage.
    */
   passage?: { from: WordRef; to: WordRef };
+  /**
+   * Shipped-listener confusion counts. Default is the gold-excluded estimate. An empty phone list
+   * leaves the seam ranker off. Tests pass their own counts.
+   */
+  channel?: ChannelCounts;
 }
 
 export interface Checker {
@@ -192,6 +200,15 @@ interface Open {
 
 export function createChecker(index: ReferenceIndex, options: CheckerOptions = {}): Checker {
   const policy = options.policy ?? {};
+  const channelCounts = options.channel ?? LISTENER_CHANNEL;
+  const seamChannel = channelCounts.phones.length === index.tokens.size ? channelFromCounts(channelCounts) : null;
+  const seamPhrases = phrasePhones(options.phrases);
+  const trackerSteps: TrackerStep[] = [];
+  const seamDone = new Set<number>();
+  const seamQueue: { word1: number; t0: number; t1: number }[] = [];
+  /** Ranked once, re-asserted until the window confirms it. Later alignments do not re-derive the span. */
+  const seamHeld = new Map<number, { t0: number; t1: number; observed: string }>();
+  let stepWord = -2;
   const confirm = policy.confirm ?? { after: "delay", ms: 2500 };
   const minConfidence = policy.minConfidence ?? 0.6;
   const frames = (policy.localWindow ?? true) ? new PosteriorFrames(index.tokens.size) : null;
@@ -1584,6 +1601,37 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         cls: "added_word", word: rightWord, last: rightWord, obsFrom: best.left.obsTo, obsTo: cut, observed: said, lexicon: true,
       });
     }
+    // Tracker-step seam. A whole mushaf word explains the span better than neighbours, restarts,
+    // back-runs or noise, by more than any clean gold-excluded seam. A blurred consonant is priced,
+    // not vetoed. The decoded string and the tracker are untouched.
+    if (seamChannel) while (seamQueue.length) {
+      const seam = seamQueue.shift()!;
+      let said = "";
+      for (let i = 0; i < obs.length; i++) {
+        const t = obs[i].start * frameMs;
+        if (t < seam.t0 || t >= seam.t1 || obs[i].junk) continue;
+        said += obs[i].p;
+      }
+      if (!said) continue;
+      const rank = rankSeam(said, seam.word1, index, seamPhrases, seamChannel);
+      if (!rank.word || !(rank.logOdds > seamChannel.cut) || issues.has(seam.word1)) continue;
+      seamHeld.set(seam.word1, { t0: seam.t0, t1: seam.t1, observed: rank.word });
+    }
+    for (const [wi, held] of seamHeld) {
+      if (decided.has(wi) || (issues.has(wi) && issues.get(wi)!.cls !== "added_word")) continue;
+      let obsFrom = -1;
+      let obsTo = -1;
+      for (let i = 0; i < obs.length; i++) {
+        const t = obs[i].start * frameMs;
+        if (t < held.t0 || t >= held.t1 || obs[i].junk) continue;
+        if (obsFrom < 0) obsFrom = i;
+        obsTo = i + 1;
+      }
+      if (obsFrom < 0) continue;
+      issues.set(wi, {
+        cls: "added_word", word: wi, last: wi, obsFrom, obsTo, observed: held.observed, lexicon: true,
+      });
+    }
     return { issues, lexical: candidates, head, furthest: reached, steps, right };
   };
 
@@ -1825,6 +1873,15 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
       if (p.state === "locked" && p.observed[0]) {
         cursor = wordIndex(p.observed[0].word);
+        if (seamChannel && cursor >= 0 && cursor !== stepWord) {
+          stepWord = cursor;
+          trackerSteps.push({ wi: cursor, timeMs: p.timeMs });
+          for (const seam of ayahSeamSpans(trackerSteps, index)) {
+            if (seamDone.has(seam.word1)) continue;
+            seamDone.add(seam.word1);
+            seamQueue.push(seam);
+          }
+        }
         // Only the first lock, before it has heard a location-unique word, holds differing slots.
         if (p.spanHold) {
           noteSpan(cursor);
