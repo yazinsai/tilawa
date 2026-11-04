@@ -27,7 +27,9 @@ const dayOnly = (t) => new Date(t).toLocaleDateString(undefined, { month: 'short
 // experiment that started from that state. The tooth that made the next node lies on the trunk, so the line runs
 // through it; the others stack below and above, oldest nearest the trunk, each ending in a cap (its kind). Caps
 // alternate short and long so neighbours never sit side by side, which lets rows pack tighter than a cap is wide;
-// a comb with labels keeps rows a label apart.
+// a comb with labels keeps rows a label apart. A comb of more than TWO_SIDED teeth grows teeth on both sides of its
+// stem, halving its height, and one of more than TWO_STEMS splits over two such stems side by side; labelled teeth
+// stay on the right of the last stem, where their label is.
 
 const ROW = 8;
 const ROW_LABELLED = 13;
@@ -36,6 +38,8 @@ const LONG_T = 42;
 const GAP = 10;
 const CH = 5.9;
 const R = 112;
+const TWO_SIDED = 12;
+const TWO_STEMS = 40;
 
 const minutes = (b) => Math.max(0, Date.parse(b.end || b.start) - Date.parse(b.start)) / 60e3;
 const toothLen = (b, k) => (b.slot === 0 ? SHORT_T : Math.abs(b.slot) % 2 ? SHORT_T : LONG_T) * k;
@@ -53,10 +57,22 @@ function combs(view) {
   for (const b of view.branches) if (b.col != null && cs[b.col]) cs[b.col].teeth.push(b);
   cs.forEach((c, i) => {
     const win = c.teeth.find((b) => b.foldCol === i + 1);
-    let k = 0;
+    c.two = c.teeth.length > TWO_SIDED;
+    c.stems = c.teeth.length > TWO_STEMS ? 2 : 1;
+    // teeth placed so far per side, side s = stem * 2 + (left ? 1 : 0); the last stem's right side comes first
+    const n = Array(c.two ? c.stems * 2 : 1).fill(0);
+    const own = Math.max(0, n.length - 2);
+    c.ext = Array.from({ length: c.stems }, () => [0, 0]); // each stem's rows above, below
     for (const b of c.teeth) {
+      const s = b === win || toothLabel(b, i) ? own : n.reduce((m, x, j) => (x < n[m] ? j : m), own);
+      b.stem = s >> 1;
+      b.left = s % 2 === 1;
+      const k = n[s];
       b.slot = b === win ? 0 : k % 2 ? -(k + 1) / 2 : k / 2 + 1;
-      if (b !== win) k++;
+      if (b !== win) n[s]++;
+      const e = c.ext[b.stem];
+      e[1] = Math.max(e[1], b.slot);
+      e[0] = Math.max(e[0], -b.slot);
       c.below = Math.max(c.below, b.slot);
       c.above = Math.max(c.above, -b.slot);
     }
@@ -67,17 +83,20 @@ function combs(view) {
 // Only the last column (the line as it is now, where live work usually sits) makes room for its labels, which may run
 // on into the right margin; earlier ones are cut to the room before the next node.
 const labelAt = (k) => LONG_T * k + 11;
+// how far right of its node's GAP a comb's stem sits: room for the left teeth on a two-sided comb
+const stemW = (k) => 2 * LONG_T * k + 16;
+const stemAt = (c, k) => (c.two ? LONG_T * k + 10 + (c.stems - 1) * stemW(k) : 0);
 const widths = (cs, k) =>
   cs.map((c, i) => {
     const short = (b) => (b.outcome === 'folded' ? labelAt(k) + toothLabel(b, i).length * CH : 0);
-    const teeth = Math.max(40, GAP + 16 + Math.max(0, ...c.teeth.map((b) => Math.max(toothLen(b, k) + 6, short(b)))));
+    const teeth = Math.max(40, stemAt(c, k) + GAP + 16 + Math.max(0, ...c.teeth.map((b) => Math.max(toothLen(b, k) + 6, short(b)))));
     if (i < cs.length - 1) return teeth;
-    return Math.max(teeth, GAP + labelAt(k) + Math.max(0, ...c.teeth.map((b) => toothLabel(b, i).length * CH)) - R + 40);
+    return Math.max(teeth, stemAt(c, k) + GAP + labelAt(k) + Math.max(0, ...c.teeth.map((b) => toothLabel(b, i).length * CH)) - R + 40);
   });
 
 // A comb's rows can sit closer than a label is tall unless two labelled teeth are neighbours on the same side.
 const rowOf = (c, i) =>
-  c.teeth.some((a) => a.slot && toothLabel(a, i) && c.teeth.some((b) => b.slot === a.slot + Math.sign(a.slot) && toothLabel(b, i))) ? ROW_LABELLED : ROW;
+  c.teeth.some((a) => a.slot && toothLabel(a, i) && c.teeth.some((b) => b.stem === a.stem && b.left === a.left && b.slot === a.slot + Math.sign(a.slot) && toothLabel(b, i))) ? ROW_LABELLED : ROW;
 
 function fit(text, px) {
   const n = Math.floor(px / CH);
@@ -201,12 +220,16 @@ function draw(v, view, W) {
   out.push(`<text class="pg-now-t" x="${end + 8}" y="${trunkY + 4}">now</text>`);
   const labels = [];
   cs.forEach((c, i) => {
-    const sx = X[i] + GAP;
+    const sx = X[i] + GAP + stemAt(c, k);
     const ty = (slot) => trunkY + slot * row[i];
-    if (c.above || c.below) out.push(`<line class="pg-comb" x1="${sx}" x2="${sx}" y1="${ty(-c.above)}" y2="${ty(c.below)}"/>`);
+    const stemX = (j) => sx - (c.stems - 1 - j) * stemW(k);
+    c.ext.forEach(([up, down], j) => {
+      if (up || down) out.push(`<line class="pg-comb" x1="${stemX(j)}" x2="${stemX(j)}" y1="${ty(-up)}" y2="${ty(down)}"/>`);
+    });
     for (const b of c.teeth) {
+      const sx = stemX(b.stem);
       const yl = ty(b.slot);
-      const xe = sx + toothLen(b, k);
+      const xe = sx + (b.left ? -1 : 1) * toothLen(b, k);
       const was = seen?.get(b.id);
       const anim = seen && seenScope === scope ? (!was ? ' enter' : b.outcome === 'folded' && !was.startsWith('folded') ? ' merging' : was !== `${b.outcome}|${b.state}` ? ' changed' : '') : '';
       const cls = `pg-br ${b.outcome} ${b.source}${b.slot === 0 ? ' win' : ''}${b.waiting ? ' waiting' : ''}${anim}`;
@@ -217,7 +240,7 @@ function draw(v, view, W) {
       const text = fit(toothLabel(b, i), (i + 1 < cols.length ? X[i + 1] : Wd) - lx - 4);
       if (text && lx - xe > 12) labels.push(`<line class="pg-lead" x1="${xe + 7}" x2="${lx - 4}" y1="${yl}" y2="${yl}"/>`);
       if (text) labels.push(`<text class="pg-bl ${b.outcome} ${b.source}${b.waiting ? ' waiting' : ''}${anim}" x="${lx}" y="${yl + 3.5}">${esc(text)}</text>`);
-      out.push(`<g class="${cls}" style="--c:var(--${b.component || 'g-500'})" data-k="${esc(b.id)}" data-i="${tip(branchTip(b))}" tabindex="0" role="img" aria-label="${esc(`${b.id}: ${b.stateText}`)}">${parts.join('')}<path class="hit" d="M${sx} ${yl}H${xe + 6}"/></g>`);
+      out.push(`<g class="${cls}" style="--c:var(--${b.component || 'g-500'})" data-k="${esc(b.id)}" data-i="${tip(branchTip(b))}" tabindex="0" role="img" aria-label="${esc(`${b.id}: ${b.stateText}`)}">${parts.join('')}<path class="hit" d="M${sx} ${yl}H${xe + (b.left ? -6 : 6)}"/></g>`);
     }
   });
   out.push(...labels);
