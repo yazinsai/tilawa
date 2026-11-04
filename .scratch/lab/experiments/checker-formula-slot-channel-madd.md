@@ -1,6 +1,6 @@
 # Closed formula slots under the listener channel, with madd and skip merging
 
-Status: implemented and validated on the three target sessions. Practice score pending.
+Status: practice-scored once. Overall and checker both improve by 3. Left in place for the supervisor’s fold gate.
 
 ## Prediction
 
@@ -40,11 +40,20 @@ The current p76 slot is exactly `بِلمُتتَقِۦۦن`, with mean confiden
 
 The planted filler beats the written word by 35.12501 nats, so the card's premise kill criterion does not fire. The real streamed candidate passes the unchanged support and confidence gates.
 
-Unit tests: 8 formula tests plus the 6 original madd tests and 8 ledger tests passed in Modal run 8. They cover soft consonant swaps, written-word controls, ties, missing text, mid-ayah and short-ayah exclusions, locks, labelled pauses before and after the slot, affirmative posterior support, confidence, and the doubled weak-evidence margin. The madd module and its tests match their original commit byte for byte; the ledger's added tests match its original patch. The final full core/SDK build and test run is pending (run 9).
+Unit tests: 8 formula tests plus the 6 original madd tests and 8 ledger tests passed in Modal run 8. They cover soft consonant swaps, written-word controls, ties, missing text, mid-ayah and short-ayah exclusions, locks, labelled pauses before and after the slot, affirmative posterior support, confidence, and the doubled weak-evidence margin. The madd module and its tests match their original commit byte for byte; the ledger's added tests match its original patch. The final full core/SDK builds and tests passed on all six Modal shards (run 9): 715 core tests, 16 SDK tests, and one skipped SDK test. No worker RPC exception was needed on that final run.
 
 ## Practice result
 
-Pending. All three intended calls improve, so the required full practice score will be run before deciding the experiment.
+One practice score, on implementation commit `749780da`. No constants were adjusted and no second score was requested.
+
+| Wrong calls | Main line (missed + false) | Experiment (missed + false) | Change |
+| --- | ---: | ---: | ---: |
+| Overall | 36 (24 + 12) | 33 (22 + 11) | −3 |
+| Listener | 32 (22 + 10) | 32 (22 + 10) | 0 |
+| Tracker | 1 (0 + 1) | 1 (0 + 1) | 0 |
+| Checker | 3 (2 + 1) | 0 (0 + 0) | −3 |
+
+The compare verdict is better. The predicted upside holds in the aggregate: two fewer misses and one fewer false warning. The premise is validated and the built change wins all three intended calls, so it is retained for the fold gate.
 
 ## Limits
 
@@ -52,4 +61,4 @@ This is a closed choice over attested final fillers. Unindexed slots are unchang
 
 The connected-madd rider compares with the shortest earlier matched madd; it abstains without such a baseline. The skip rider can merge a second skip across bound refrain text; unique intervening words preserve separate skips. Both limitations are inherited unchanged.
 
-Three-session checks and synthetic tests do not establish the full practice fold gates, reader transfer, studio behavior or fully clean-session warnings. The supervisor's scorer and fold gate decide those.
+The aggregate practice compare does not expose incident losses, reader leave-one-out, studio behavior or fully clean-session warnings. Matching net totals to the three target wins does not prove that no other incidents changed. Those remaining decisions belong to the supervisor's fold gate; this experiment was not folded by hand.
