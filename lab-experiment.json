@@ -1,0 +1,13 @@
+{
+ "id": "listener-excise-certify-seam-waqf-adds",
+ "component": "listener",
+ "hypothesis": "Two killed cards each found planted words already spelled in the shipped tokens. One was lost because blurred neighbours fail zero-hard visit tests (p19, p50 at ayah seams). The other was lost because the waqf-tail strip or next-word ownership eats the held nūn (4:157:24, 9:5:15, 4:170:12 at inner-waqf seams). One ownership-free rule should fix both: keep a surplus-adjacent ں as ن, find exactly spelled non-neighbour words, and certify the neighbours by forward-sum read-vs-omit after cutting the span. Predict 3 of 5 won, listener -3, overall -3 (floor -2).",
+ "expected": {
+  "component": -3,
+  "overall": -3
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T11:20:37+00:00",
+ "author": "autolab"
+}
