@@ -1,6 +1,5 @@
 """Export the existing fp32 KD teacher's phoneme head for the SDK seam ear."""
 import os
-import shutil
 from pathlib import Path
 
 import torch
@@ -28,6 +27,4 @@ torch.onnx.export(model, args, str(root / 'teacher.onnx'),
     input_names=['input_features', 'attention_mask'], output_names=['log_probs'],
     dynamic_shapes=({1: frames}, {1: frames}), opset_version=18, dynamo=True,
     external_data=True, optimize=False, report=True, artifacts_dir=str(root))
-for file in ('model.onnx', 'manifest.json'):
-    shutil.copyfile(Path(os.environ['LAB_DATA']) / 'models/spliced-clean-int8' / file, root / file)
 print('exported', [(f.name, f.stat().st_size) for f in root.iterdir()], flush=True)

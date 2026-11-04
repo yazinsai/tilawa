@@ -1,8 +1,8 @@
 # KD teacher as a tracker-bounded seam ear
 
-Status: implemented. The acoustic premise passes on seven targets and
-the packaged model catches six. The supervisor's final teacher-evidence
-practice score and fold gate remain outstanding.
+Status: implemented, with the rejected lab model-selection override removed.
+The acoustic premise passes on seven targets and the packaged model catches
+six. The teacher arm has no full-practice score or fold verdict.
 
 ## Preregistered prediction
 
@@ -164,9 +164,36 @@ charged 32 listener, 1 tracker, 0 checker. This verifies the path with no
 auxiliary evidence and is not a score of the teacher arm. The supplied
 `serve_practice` implementation replays the card's existing listener
 evidence through `lab run`; it does not decode `.autolab/model.json`.
-The supervisor's final `after_tests` stage does copy and decode that
-model directory. The requested score therefore must be identified by
-the evidence it actually uses. No narrowing or threshold change was made
-against this unchanged-evidence result. The teacher's full-practice
-losses, clean-session warnings, studio result and reader robustness are
-left to that final score and gate.
+The requested score therefore must be identified by the evidence it actually
+uses. No narrowing or threshold change was made against this unchanged-evidence
+result. The teacher's full-practice losses, clean-session warnings, studio
+result and reader robustness remain unmeasured.
+
+## Diff-review correction
+
+The previous attempt added `.autolab/model.json` to point the scoring stage at
+the exported bundle. Diff review rejected that file as a prohibited change
+to lab control. This revision deletes it without adding another scoring
+override. It also removes the exporter’s copies of the practice model and
+manifest: the exporter now produces only the generic teacher graph and
+weights, independent of `LAB_DATA` and any practice model name.
+
+The SDK still loads `teacher.onnx` once when it is beside the caller's primary
+model. It continues to load the primary model specified by that caller's
+manifest. No adjacent teacher means the ordinary shipped path. Supplying the
+auxiliary graph is an SDK deployment prerequisite; this branch does not
+redirect the supervisor to the diagnostic bundle. The remaining allowed
+scoring path replays the existing shipped evidence and cannot measure this
+arm without auxiliary evidence already present. Repeating that score would
+not resolve the missing teacher-arm measurement. One practice-score request
+has been used in total; no additional score is claimed here.
+
+Supervisor Modal run 23 rebuilt both packages and completed all six test
+shards with exit code 0: 718 core tests and 23 SDK tests passed, with one
+existing help E2E test skipped. Three new loader tests verify that an adjacent
+teacher is loaded once across repeated crops without replacing the caller's
+primary backend, that an absent teacher preserves the ordinary path, and that
+an inaccessible installed teacher reports an error. Local Python syntax and
+`git diff --check` also passed. No acoustic inference or threshold changed in
+this correction; the saved six-target result still applies to the explicitly
+supplied diagnostic bundle, subject to the unmeasured practice limits above.

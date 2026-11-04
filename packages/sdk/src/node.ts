@@ -15,7 +15,7 @@ import { createSeamTeacher } from "./seam-teacher.js";
 export * from "./index.js";
 export { decodeWav };
 
-/** Loads `manifest.json` and its ONNX file from `dir`. */
+/** Loads the primary manifest and model from `dir`, plus an optional adjacent fp32 `teacher.onnx` seam ear. */
 export async function loadNodeModel(dir: string, options: { threads?: number } = {}): Promise<LoadedModel> {
   const manifest = JSON.parse(await readFile(join(dir, "manifest.json"), "utf8")) as ModelManifest & { supported?: LoadedModel["supported"] };
   const backend = await ortBackend(ort as unknown as OrtModule, join(dir, manifest.file), "onnxruntime-node", {
