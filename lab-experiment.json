@@ -1,0 +1,13 @@
+{
+ "id": "listener-stack-cc5da9",
+ "component": "listener",
+ "hypothesis": "Stack listener-final-slot-manner-rekey (-2) and tracker-stepped-ayah-not-skipped (-1): each won different incidents and lost none, so together they should clear the fold bar; predict overall -3.",
+ "expected": {
+  "component": -2,
+  "overall": -3
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T16:10:36+00:00",
+ "author": "autolab"
+}
