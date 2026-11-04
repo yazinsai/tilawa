@@ -1,4 +1,4 @@
-"""The builder A/B (Grok through Cursor against GPT-6 Astra through Codex, or any arms in executor.runtimes). Pure
+"""The builder A/B between the arms in executor.runtimes. Pure
 functions over the state document (tools/autolab_state.py); tools/autolab.py calls them.
 
     assign(id, component, arms, weights, st) -> arm    which arm builds a new experiment

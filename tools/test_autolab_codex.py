@@ -114,7 +114,7 @@ def test_start_writes_config_and_launches_a_jailed_runner_with_the_key_only_for_
     seen = {}
     real = subprocess.Popen
     monkeypatch.setattr(K.subprocess, "Popen", lambda argv, **kw: real(argv, **kw) if argv[0] == "git" else seen.update(argv=argv, **kw) or NS(pid=4242))
-    for k, v in {"AZURE_OPENAI_API_KEY": "az-key", "MODAL_TOKEN_ID": "t", "CURSOR_API_KEY": "c", "SONIOX_API_KEY": "s"}.items():
+    for k, v in {"AZURE_OPENAI_API_KEY": "az-key", "MODAL_TOKEN_ID": "t", "SONIOX_API_KEY": "s"}.items():
         monkeypatch.setenv(k, v)
     real_home = tmp_path / "realhome"
     (real_home / ".codex").mkdir(parents=True)
@@ -123,7 +123,7 @@ def test_start_writes_config_and_launches_a_jailed_runner_with_the_key_only_for_
     h = K.CodexExecutor(arm(codex, envDrop=["SONIOX_*"]), check=False).start({"id": "checker-x"}, repo, "do the card")
     assert seen["argv"][-2:] == ["run", h["job"]] and seen["argv"][-3].endswith("autolab_codex.py") and seen["start_new_session"]
     env = seen["env"]
-    assert env["AZURE_OPENAI_API_KEY"] == "az-key" and not [k for k in env if k.startswith(("MODAL_", "CURSOR_", "SONIOX_"))]
+    assert env["AZURE_OPENAI_API_KEY"] == "az-key" and not [k for k in env if k.startswith(("MODAL_", "SONIOX_"))]
     assert env["HOME"] == str(repo.resolve() / ".autolab" / "home")
     job = json.loads(Path(h["job"]).read_text())
     ch = Path(job["codexHome"])
@@ -257,28 +257,26 @@ def test_poll_marks_a_dead_runner_and_cancel_kills_the_process_group(codex, repo
 
 # --- arms in autolab_exec ---
 
-CFG = {"executor": {"runtime": "cursor-local", "model": "grok", "fallbackModel": "grok-2", "envDrop": ["SONIOX_*"],
+CFG = {"executor": {"model": "m", "fallbackModel": "m-2", "envDrop": ["SONIOX_*"],
                     "codex": {"effort": "medium", "azure": {"apiVersion": "preview"}},
-                    "runtimes": [{"name": "grok", "runtime": "cursor-local"},
+                    "runtimes": [{"name": "alt", "runtime": "fake"},
                                  {"name": "astra", "runtime": "codex-azure", "effort": "high", "azure": {"endpoint": "https://e", "deployment": "astra-dep"}}],
-                    "split": {"grok": 1, "astra": 3}}}
+                    "split": {"alt": 1, "astra": 3}}}
 
 
-def test_arms_merge_shared_settings_and_keep_the_old_single_runtime_config():
-    grok, astra = X.arms(CFG)
-    g, a = X.arm_config(CFG, grok)["executor"], X.arm_config(CFG, astra)["executor"]
-    assert X.arm_models(g) == ("grok", "grok-2") and g["envDrop"] == ["SONIOX_*", "AZURE_OPENAI_API_KEY"]
+def test_arms_merge_shared_settings_and_default_to_codex():
+    alt, astra = X.arms(CFG)
+    g, a = X.arm_config(CFG, alt)["executor"], X.arm_config(CFG, astra)["executor"]
+    assert X.arm_models(g) == ("m", "m-2") and g["envDrop"] == ["SONIOX_*", "AZURE_OPENAI_API_KEY"]
     assert X.arm_models(a) == ("astra-dep", "astra-dep") and a["effort"] == "high" and a["azure"]["apiVersion"] == "preview"
     assert "model" not in a and a["envDrop"] == ["SONIOX_*"] and "runtimes" not in a
-    assert X.weights(CFG) == {"grok": 1.0, "astra": 3.0}
-    legacy = {"executor": {"runtime": "cursor-local", "model": "grok", "fallbackModel": "grok-2"}}
-    assert X.arms(legacy) == [{"name": "cursor-local", "runtime": "cursor-local"}]
-    assert X.arm_models(X.arm_config(legacy, X.arms(legacy)[0])["executor"]) == ("grok", "grok-2")
+    assert X.weights(CFG) == {"alt": 1.0, "astra": 3.0}
+    assert X.arms({"executor": {}}) == [{"name": "codex-azure", "runtime": "codex-azure"}]
 
 
 def test_unready_per_runtime(monkeypatch):
-    grok, astra = X.arms(CFG)
-    assert "CURSOR_API_KEY" in X.unready(CFG, grok, {}) and X.unready(CFG, grok, {"CURSOR_API_KEY": "c"}) is None
+    alt, astra = X.arms(CFG)
+    assert X.unready(CFG, alt, {}) is None
     monkeypatch.setattr(K, "codex_bin", lambda cfg: "/bin/codex")
     assert "AZURE_OPENAI_API_KEY" in X.unready(CFG, astra, {}) and X.unready(CFG, astra, {"AZURE_OPENAI_API_KEY": "k"}) is None
     empty = {**astra, "azure": {"endpoint": "", "deployment": ""}}

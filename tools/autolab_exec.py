@@ -10,8 +10,8 @@ A handle must survive a supervisor restart: poll/cancel/collect work from the st
 `runtime`, and the supervisor dispatches poll/cancel/collect by it.
 
 Builder arms (the A/B between runtimes): `config["executor"]["runtimes"]` is a list of arms, each {"name", "runtime",
-...its settings}, and `executor.split` weighs them ({name: weight}, default equal). Without `runtimes`, the old
-single-runtime config (`executor.runtime`, `model`, `fallbackModel`) is one arm named after its runtime. An arm's
+...its settings}, and `executor.split` weighs them ({name: weight}, default equal). Without `runtimes`,
+`executor.runtime` (default codex-azure) is one arm named after its runtime. An arm's
 settings override `executor`'s shared ones (env, envDrop, home, seatbelt, cancelGraceS, and `executor.codex` for
 codex-azure arms).
 
@@ -23,7 +23,7 @@ codex-azure arms).
 import os
 from typing import Protocol
 
-RUNTIMES = ("cursor-local", "codex-azure", "fake")
+RUNTIMES = ("codex-azure", "fake")
 
 
 class Executor(Protocol):
@@ -68,9 +68,9 @@ class FakeExecutor:
 def arms(config: dict) -> list[dict]:
     ex = config.get("executor", {})
     if not ex.get("runtimes"):
-        rt = ex.get("runtime", "cursor-local")
+        rt = ex.get("runtime", "codex-azure")
         return [{"name": ex.get("name") or rt, "runtime": rt}]
-    return [{**a, "name": a.get("name") or a.get("runtime", "cursor-local"), "runtime": a.get("runtime", "cursor-local")} for a in ex["runtimes"]]
+    return [{**a, "name": a.get("name") or a.get("runtime", "codex-azure"), "runtime": a.get("runtime", "codex-azure")} for a in ex["runtimes"]]
 
 
 def weights(config: dict) -> dict:
@@ -87,7 +87,7 @@ def arm_config(config: dict, arm: dict) -> dict:
     base = {k: v for k, v in ex.items() if k not in ("runtimes", "split", "codex")}
     if arm["runtime"] == "codex-azure":
         shared = ex.get("codex") or {}
-        base = {k: v for k, v in base.items() if k not in ("model", "fallbackModel")}  # the Cursor models aren't this arm's
+        base = {k: v for k, v in base.items() if k not in ("model", "fallbackModel")}  # the arm's model is its Azure deployment
         merged = {**base, **shared, **arm, "azure": {**(shared.get("azure") or {}), **(arm.get("azure") or {})}}
     else:
         merged = {**base, **arm}
@@ -107,8 +107,6 @@ def arm_models(cfg: dict) -> tuple:
 def unready(config: dict, arm: dict, environ=None) -> str | None:
     env = os.environ if environ is None else environ
     cfg = arm_config(config, arm)["executor"]
-    if arm["runtime"] == "cursor-local":
-        return None if env.get("CURSOR_API_KEY", "").strip() else "CURSOR_API_KEY is not set in the loop's environment"
     if arm["runtime"] == "codex-azure":
         import autolab_codex  # noqa: PLC0415
         return autolab_codex.unready(cfg, env)
@@ -116,15 +114,12 @@ def unready(config: dict, arm: dict, environ=None) -> str | None:
 
 
 def make(config: dict, arm: dict | None = None, check: bool = True) -> Executor:
-    """The executor of `arm` (default: the first arm): "fake", "cursor-local" or "codex-azure". `check` False skips the
+    """The executor of `arm` (default: the first arm): "fake" or "codex-azure". `check` False skips the
     startup checks (model ids, codex flags): enough to poll, cancel and collect stored handles."""
     arm = arm or arms(config)[0]
     cfg, runtime = arm_config(config, arm), arm["runtime"]
     if runtime == "fake":
         return FakeExecutor()
-    if runtime == "cursor-local":
-        from autolab_cursor import CursorLocalExecutor  # noqa: PLC0415 - cursor-sdk is only needed for real runs
-        return CursorLocalExecutor(cfg, check=check)
     if runtime == "codex-azure":
         from autolab_codex import CodexExecutor  # noqa: PLC0415
         return CodexExecutor(cfg, check=check)

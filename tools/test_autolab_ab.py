@@ -18,7 +18,7 @@ import autolab_state as S  # noqa: E402
 from autolab_exec import FakeExecutor  # noqa: E402
 from test_autolab import T0, World, card, only, states, tick, w as w  # noqa: E402, F401 - the fixture
 
-ARMS = [{"name": "grok", "runtime": "cursor-local", "model": "grok-4.7", "fallbackModel": "grok-4.7-b"},
+ARMS = [{"name": "grok", "runtime": "fake", "model": "grok-4.7", "fallbackModel": "grok-4.7-b"},
         {"name": "astra", "runtime": "codex-azure", "azure": {"endpoint": "https://res.openai.azure.com", "deployment": "astra-dep"}}]
 
 
@@ -87,10 +87,9 @@ def arms(w, monkeypatch):
     """Two arms with a fake executor per runtime, made through make_executor like the real ones."""
     w.executor = None
     w.cfg = {**w.cfg, "executor": {**w.cfg["executor"], "runtimes": ARMS, "split": {"grok": 1, "astra": 1}}}
-    fakes = {"cursor-local": FakeExecutor(runtime="cursor-local"), "codex-azure": FakeExecutor(runtime="codex-azure")}
+    fakes = {"fake": FakeExecutor(runtime="fake"), "codex-azure": FakeExecutor(runtime="codex-azure")}
     made = []
     monkeypatch.setattr(A, "make_executor", lambda cfg, arm=None, check=True: made.append((arm["name"], check)) or fakes[arm["runtime"]])
-    monkeypatch.setenv("CURSOR_API_KEY", "c")
     monkeypatch.setenv("AZURE_OPENAI_API_KEY", "k")
     monkeypatch.setattr(X, "unready", lambda cfg, arm, environ=None: None if arm["runtime"] != "codex-azure" or (arm.get("azure") or {}).get("endpoint") else "no Azure endpoint")
     return fakes, made
@@ -103,13 +102,13 @@ def test_each_builder_gets_an_arm_and_its_handle_goes_back_to_its_runtime(w, arm
     impl = [e for e in st["experiments"].values() if e["executor"]]
     assert impl and all(e["executor"]["arm"] in ("grok", "astra") and e["executor"]["assignedAt"] == T0 for e in impl)
     for e in impl:
-        assert e["executor"]["handle"]["runtime"] == {"grok": "cursor-local", "astra": "codex-azure"}[e["executor"]["arm"]]
+        assert e["executor"]["handle"]["runtime"] == {"grok": "fake", "astra": "codex-azure"}[e["executor"]["arm"]]
         assert e["executor"]["model"] == {"grok": "grok-4.7", "astra": "astra-dep"}[e["executor"]["arm"]]
     assert {a for a, _ in made} == {e["executor"]["arm"] for e in impl}
     assert Counter(e["executor"]["arm"] for e in impl)["grok"] in range(1, len(impl))
     assert {a["arm"] for a in st["ab"]["arms"]} == {"grok", "astra"} and sum(a["started"] for a in st["ab"]["arms"]) == len(impl)
     tick(w)
-    assert sum(fakes["cursor-local"].seen.values()) and sum(fakes["codex-azure"].seen.values())
+    assert sum(fakes["fake"].seen.values()) and sum(fakes["codex-azure"].seen.values())
 
 
 def test_an_incomplete_arm_is_skipped_with_one_notification(w, arms):
@@ -170,11 +169,11 @@ def test_a_handle_from_before_arms_keeps_working(w, arms):
     st = w.load()
     e = st["experiments"][id]
     e.update(state="implementing", since=T0, worktree=str(w.tmp / id), branch=f"exp/{id}",
-             executor={"model": "grok-4.7", "handle": {"runtime": "cursor-local", "id": f"fake-{id}"}})
+             executor={"model": "grok-4.7", "handle": {"runtime": "fake", "id": f"fake-{id}"}})
     (w.tmp / id).mkdir(exist_ok=True)
     w.saved = st
     st = tick(w)
-    assert ("grok", False) in made and fakes["cursor-local"].seen[f"fake-{id}"] == 1
+    assert ("grok", False) in made and fakes["fake"].seen[f"fake-{id}"] == 1
     assert states(st)[id] != "implementing" and st["experiments"][id]["executor"].get("arm") is None
 
 
@@ -185,6 +184,6 @@ def test_one_executor_world_still_runs_every_arm(w):
     assert all(e["executor"]["handle"]["runtime"] == "fake" for e in st["experiments"].values() if e["executor"])
 
 
-def test_old_and_new_config_both_load(w):
-    assert X.arms({"executor": A.DEFAULT_CONFIG["executor"]})[1]["runtime"] == "codex-azure"
+def test_default_config_loads(w):
+    assert X.arms({"executor": A.DEFAULT_CONFIG["executor"]})[0]["runtime"] == "codex-azure"
     assert card()["id"] and S.empty()["experiments"] == {}

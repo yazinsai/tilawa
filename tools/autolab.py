@@ -1,6 +1,6 @@
 """Autolab supervisor (.scratch/autolab/spec.md; ticket 04): the reconciling loop that runs the lab unattended.
 
-    uv run --python cpython-3.12-macos-aarch64-none --with modal==1.3.4 --with cursor-sdk==1.2.0 tools/autolab.py <command>
+    uv run --python cpython-3.12-macos-aarch64-none --with modal==1.3.4 tools/autolab.py <command>
 
     init                     state, config, practice baseline of the main line
     tick                     one pass (cron)
@@ -76,17 +76,16 @@ OFFLINE = re.compile(r"could not connect|cannot connect|timed out after|connecti
 ARM_WAIT_MINUTES = 20  # a card whose arm is full and whose builder never started moves to an arm with room
 UNSCORED_KILL_WINS = 3  # a builder that stops with this many targets won and no practice score is sent back to score
 ARM_DOWN_AFTER, ARM_DOWN_MINUTES = 3, 60  # an arm whose last builders all failed to start rests, then gets one more try
-GROK = {"id": "grok-4.7", "params": [{"id": "context", "value": "500k"}, {"id": "reasoning_effort", "value": "high"}, {"id": "fast", "value": "false"}]}
+SOL = {"id": "gpt-6.1-sol", "params": [{"id": "effort", "value": "high"}]}
 DEFAULT_CONFIG = {
     "slots": 6, "planEveryMinutes": 30, "tickSeconds": 120,
     "caps": {"agentRuns": 60, "agentHours": 40, "modalUsd": 150},
     "models": {**dict.fromkeys(("planner", "reviewer", "strategist"), {"id": "claude-opus-5-5", "params": [
                    {"id": "context", "value": "1m"}, {"id": "effort", "value": "medium"}, {"id": "fast", "value": "false"}]}),
-               **dict.fromkeys(("judge", "diffReviewer"), GROK)},
-    "executor": {"runtime": "cursor-local", "model": GROK, "fallbackModel": GROK, "env": {},
-                 "runtimes": [{"name": "grok", "runtime": "cursor-local", "model": GROK, "fallbackModel": GROK},
-                              {"name": "astra", "runtime": "codex-azure", "azure": {"endpoint": "", "deployment": "", "apiVersion": ""}, "effort": "high"}],
-                 "split": {"grok": 1, "astra": 1}},
+               **dict.fromkeys(("judge", "diffReviewer"), SOL)},
+    "executor": {"env": {},
+                 "runtimes": [{"name": "sol", "runtime": "codex-azure", "azure": {"endpoint": "", "deployment": "gpt-6.1-sol", "apiVersion": ""}, "effort": "high"}],
+                 "split": {"sol": 1}},
     "exec": dict(I.LIMITS),
     "betApprovalUsd": 100,
     "listenerModel": "models/spliced-clean-int8",
@@ -126,10 +125,10 @@ class World:
         return self._executors[key]
 
     def builder(self, handle: dict):
-        """The executor that owns a stored handle, by its runtime (handles from before arms existed are cursor-local)."""
+        """The executor that owns a stored handle, by its runtime."""
         if self.executor is not None:
             return self.executor
-        rt, arms = handle.get("runtime") or "cursor-local", X.arms(self.cfg)
+        rt, arms = handle.get("runtime"), X.arms(self.cfg)
         arm = next((a for a in arms if a["runtime"] == rt and a["name"] == handle.get("arm")), None) \
             or next((a for a in arms if a["runtime"] == rt), {"name": rt, "runtime": rt})
         key = ("handles", rt, arm["name"])
@@ -492,7 +491,7 @@ class Tick:
         ex = e["executor"] = e.get("executor") or {}
         if not ex.get("arm"):
             if ex.get("handle"):  # its builder started before arms existed
-                rt = ex["handle"].get("runtime") or "cursor-local"
+                rt = ex["handle"].get("runtime")
                 a = next((a for a in every if a["runtime"] == rt), every[0])
                 ex.update(arm=a["name"], assignedArm=a["name"], armInferred=True)
             else:

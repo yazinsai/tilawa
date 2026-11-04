@@ -338,7 +338,7 @@ def test_executor_failure_retries_with_the_fallback_model_once(w):
     w.executor = FakeExecutor(script=boom)
     st, id = advance(w, 1)
     e = st["experiments"][id]
-    assert e["state"] == "implementing" and e["executor"]["model"] == A.DEFAULT_CONFIG["executor"]["fallbackModel"]
+    assert e["state"] == "implementing" and e["executor"]["model"] == "gpt-6.1-sol"
     st = tick(w)
     assert states(st)[id] == "abandoned"
 

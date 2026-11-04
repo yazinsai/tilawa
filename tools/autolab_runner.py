@@ -1,6 +1,6 @@
 """What every local builder runtime shares (.scratch/autolab/spec.md decision 14): the job files under
 `<worktree>/.autolab/<job>/`, the detached runner's process group, and the builder's isolation (environment and macOS
-Seatbelt profile). tools/autolab_cursor.py and tools/autolab_codex.py use it; neither imports the other.
+Seatbelt profile). tools/autolab_codex.py uses it.
 
     runner_env(cfg, base, home, drop)   the runner's environment: no MODAL_*, nothing in envDrop or `drop`, HOME moved
     seatbelt(worktree, home)            the sandbox profile: no Modal token, no writes under the real home outside the
@@ -175,7 +175,7 @@ def isolation_tries(repo, home):
     """The isolation smoke's commands -> whether each should succeed (decision 14), and the probe file it must not make."""
     probe = repo / ".autolab-isolation-probe"
     return {"modal volume ls tilawa-lab /": False, f"cat {home}/.modal.toml": False,
-            "env | grep -E '^(MODAL_|AZURE_OPENAI|CURSOR_API_KEY)'": False,
+            "env | grep -E '^(MODAL_|AZURE_OPENAI|ANTHROPIC_API_KEY)'": False,
             f"touch {probe}": False, f"echo x >> {home}/.zshrc.autolab-probe": False, "ps eww -o command= -p 1": False,
             "git log --oneline -1 && git config user.email": True, "echo $HOME && pnpm --version && node --version": True,
             f"python3 {repo}/tools/autolab.py modal-run --help": True}, probe

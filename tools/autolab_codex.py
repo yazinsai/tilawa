@@ -1,5 +1,5 @@
 """Autolab executor on the Codex CLI with an Azure OpenAI deployment (.scratch/autolab/spec.md decisions 1 and 14): the
-`codex-azure` runtime behind tools/autolab_exec.py, used by A/B arms such as GPT-6 Astra next to the Cursor (Grok) arm.
+`codex-azure` runtime behind tools/autolab_exec.py, the builders, e.g. GPT-6.1 Sol.
 
     CodexExecutor(config)                          start/poll/cancel/collect; config["executor"] is one arm's settings
     config_toml(cfg) / base_url(endpoint, ver)     the generated $CODEX_HOME/config.toml and the provider URL
@@ -11,7 +11,7 @@
     python3 tools/autolab_codex.py smoke <scratch-worktree> [--arm NAME]           live check: one trivial card
     python3 tools/autolab_codex.py smoke-isolation <scratch-worktree> [--arm NAME] live check: no way out
 
-Same restart-survival design as tools/autolab_cursor.py: `start` launches this file's runner in its own session, the
+Restart-survival (tools/autolab_runner.py): `start` launches this file's runner in its own session, the
 runner owns `codex exec`, and everything lives in `<worktree>/.autolab/<job>/` (job.json, brief.md, status.json,
 transcript.txt, messages.jsonl (codex's JSON events), last-message.txt, codex.log, runner.log), so poll/cancel/collect
 need only the stored handle. Cancel is SIGTERM then SIGKILL to the runner's process group, which holds codex too.
@@ -22,11 +22,11 @@ Config, one arm (tools/autolab_exec.arm_config merges `executor.codex` defaults,
 dated version like 2025-04-01-preview: <endpoint>/openai with it), `azure.keyEnv` (default AZURE_OPENAI_API_KEY),
 `azure.keyFile` (optional; read when keyEnv isn't set, so a key can be added without restarting the loop), `effort`
 (model_reasoning_effort, default high), `extraConfig` (more top-level config.toml keys, e.g. model_context_window),
-`bin`, `cancelGraceS`, `home`, `seatbelt`, `env`, `envDrop` as for the Cursor runtime.
+`bin`, `cancelGraceS`, `home`, `seatbelt`, `env`, `envDrop` (tools/autolab_runner.py).
 
-Isolation, as the Cursor runtime: HOME is <worktree>/.autolab/home, CODEX_HOME is <worktree>/.autolab/codex-home with
+Isolation: HOME is <worktree>/.autolab/home, CODEX_HOME is <worktree>/.autolab/codex-home with
 only the generated config.toml (no ChatGPT login, no copy of ~/.codex: none of its auth, MCP servers, skills or hooks),
-no MODAL_* and no CURSOR_API_KEY, the same Seatbelt profile (CODEX_HOME is inside the worktree, so it's writable). The
+no MODAL_*, the Seatbelt profile of tools/autolab_runner.py (CODEX_HOME is inside the worktree, so it's writable). The
 key reaches the runner in its environment; the runner pops it and hands it to the codex process only, and
 shell_environment_policy keeps it (and any *_API_KEY, *TOKEN*, *SECRET*) out of the agent's shells.
 
@@ -56,7 +56,7 @@ import autolab_runner as R  # noqa: E402
 DEFAULTS = {"bin": "codex", "effort": "high", "cancelGraceS": 30, "home": True, "seatbelt": True, "startupTimeoutS": 300}
 KEY_ENV = "AZURE_OPENAI_API_KEY"
 FLAGS = ("--json", "--strict-config", "--dangerously-bypass-approvals-and-sandbox", "--output-last-message", "--cd")
-SHELL_EXCLUDE = ["AZURE_*", "*_API_KEY", "*TOKEN*", "*SECRET*", "CURSOR_*", "MODAL_*"]
+SHELL_EXCLUDE = ["AZURE_*", "*_API_KEY", "*TOKEN*", "*SECRET*", "MODAL_*"]
 ACTED = ("agent_message", "command_execution", "file_change", "mcp_tool_call")
 
 
@@ -173,7 +173,7 @@ class CodexExecutor:
                            "codexLog": str(d / "codex.log"), "codexHome": str(codex_home), "bin": codex_bin(self.cfg), "keyEnv": a["keyEnv"],
                            "startupTimeoutS": self.cfg["startupTimeoutS"]})
         R.write(h["status"], {"status": "starting", "card": card["id"], "model": model, "started": h["started"]})
-        env = R.runner_env(self.cfg, home=home, drop=("CURSOR_API_KEY", "CURSOR_*"))
+        env = R.runner_env(self.cfg, home=home)
         env[a["keyEnv"]] = api_key(self.cfg)
         py = self.cfg.get("python") or [sys.executable]
         h["pgid"] = R.launch(self.cfg, {**h, "worktree": worktree}, [*([py] if isinstance(py, str) else py), str(Path(__file__).resolve()), "run", h["job"]], env)
@@ -363,7 +363,7 @@ def probe(config):
         wt = Path(tmp) / "wt"
         wt.mkdir()
         subprocess.run(["git", "init", "-q", str(wt)], check=True)
-        env = {**R.runner_env(cfg, home=Path(tmp) / "home", drop=("CURSOR_*",)), a["keyEnv"]: "probe-key"}
+        env = {**R.runner_env(cfg, home=Path(tmp) / "home"), a["keyEnv"]: "probe-key"}
         R.write(Path(tmp) / "job.json", {"card": "probe", "worktree": str(wt), "brief": "Reply with one word.", "model": cfg["azure"]["deployment"],
                                          "status": f"{tmp}/status.json", "transcript": f"{tmp}/transcript.txt", "messages": f"{tmp}/messages.jsonl",
                                          "last": f"{tmp}/last-message.txt", "codexLog": f"{tmp}/codex.log", "codexHome": f"{tmp}/codex-home",
