@@ -7,7 +7,6 @@ import type {
   EngineEvent,
   PhonemeEvidence,
   PhraseAsset,
-  PositionEvent,
   ReferenceIndex,
   WordRef,
 } from "@tilawa/core";
@@ -105,13 +104,13 @@ export function createEngine(options: EngineOptions): Engine {
     const wordIndex = new Map(index.words.map((w, i) => [`${w.surah}:${w.ayah}:${w.word}`, i]));
     const locks: { wi: number; timeMs: number }[] = [];
     const seamSteps: { wi: number; timeMs: number }[] = [];
-    const trackerEvents: PositionEvent[] = [];
+    const trackerUpdates: EngineEvent[][] = [];
+    let finalUpdates: EngineEvent[] = [];
     let audioMode = false;
     let replayed: ReturnType<typeof createChecker> | null = null;
     const bufferedAdditions: CheckerEvent[] = [];
     const noteLocks = (events: EngineEvent[]) => {
       for (const ev of events) {
-        if (model.seamEar && ev.type === "position") trackerEvents.push(ev);
         if (model.seamEar && ev.type === "position" && ev.state !== "locked") seamSteps.push({ wi: -1, timeMs: ev.timeMs });
         if (ev.type !== "position" || ev.state !== "locked" || !ev.expected) continue;
         const wi = wordIndex.get(`${ev.expected.surah}:${ev.expected.ayah}:${ev.expected.word}`);
@@ -144,6 +143,7 @@ export function createEngine(options: EngineOptions): Engine {
       if (options.recordEvidence || model.seamEar) recorded.push(e);
       // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
       const out = tracker.push(trackerInput(e));
+      if (model.seamEar) trackerUpdates.push(out);
       noteLocks(out);
       const checked = checker.push(e, out);
       if (model.seamEar && audioMode) bufferedAdditions.push(...checked.filter(e => e.errorClass === "added_word"));
@@ -151,6 +151,7 @@ export function createEngine(options: EngineOptions): Engine {
     };
     const finish = () => {
       const out = tracker.end();
+      if (model.seamEar) finalUpdates = out;
       noteLocks(out);
       const checked = checker.end(out);
       if (model.seamEar && audioMode) bufferedAdditions.push(...checked.filter(e => e.errorClass === "added_word"));
@@ -203,19 +204,15 @@ export function createEngine(options: EngineOptions): Engine {
             if (model.seamEar) {
               replayed = createChecker(index, { phrases, policy: { countResolved: policy.countSelfCorrections ?? false,
                 confirm: policy.confirm, minConfidence: policy.minConfidence }, ...(passage && { passage }) });
-              let ti = 0;
               const additions: CheckerEvent[] = [];
               const metadata = enriched.flatMap(c => c.phonemes).find(p => p.seams)?.seams;
               let carried = false;
               const live = original.map(c => !carried && c.phonemes.length ? (carried = true, { ...c,
                 phonemes: c.phonemes.map((p, j) => j || !metadata ? p : { ...p, seams: metadata }) }) : c);
-              for (const chunk of live) {
-                const until = chunk.posteriors ? (chunk.posteriors.startFrame + chunk.posteriors.nFrames) * chunk.frameMs : Infinity;
-                const updates: EngineEvent[] = [];
-                while (ti < trackerEvents.length && trackerEvents[ti].timeMs <= until) updates.push(trackerEvents[ti++]);
-                additions.push(...replayed.push(chunk, updates).filter(e => e.errorClass === "added_word"));
+              for (const [i, chunk] of live.entries()) {
+                additions.push(...replayed.push(chunk, trackerUpdates[i]).filter(e => e.errorClass === "added_word"));
               }
-              additions.push(...replayed.end(trackerEvents.slice(ti)).filter(e => e.errorClass === "added_word"));
+              additions.push(...replayed.end(finalUpdates).filter(e => e.errorClass === "added_word"));
               events.push(...emit(additions));
             }
           }
