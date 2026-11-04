@@ -13,6 +13,8 @@ import { minGapFrames } from "./gap-decode.js";
 import { procliticOnset, waqfMarked } from "./mushaf-marks.js";
 import { absenceMargin } from "./ayah-ledger.js";
 import { PHRASE_PEAK, PHRASE_SWITCH, letterSkeleton, parallelPaths } from "./parallel-phrases.js";
+import { isMaddLetter, maddSites, stemConsonant } from "./madd-drops.js";
+import { formulaSlots } from "./formula-slots.js";
 import { spanId, slotSpans } from "./slot-spans.js";
 
 export interface CheckerPolicy {
@@ -47,8 +49,8 @@ export interface CheckerOptions {
    */
   passage?: { from: WordRef; to: WordRef };
   /**
-   * Listener confusion counts for two-candidate omission placement. The scored build uses
-   * {@link LISTENER_CHANNEL}. An empty phone list leaves that placement on the alignment.
+   * Listener confusion counts for closed omission placement and ayah-final formula choices. The scored
+   * build uses {@link LISTENER_CHANNEL}. An empty phone list leaves the channel decisions off.
    */
   channel?: ChannelCounts;
 }
@@ -184,6 +186,11 @@ interface Issue {
    */
   lexicon?: boolean;
   /**
+   * A word-final long vowel before a hamza, judged by its duration against this reciter's earlier madd
+   * munfasil. The forward sum prices one vowel as nothing, so the length is the whole decision.
+   */
+  madd?: boolean;
+  /**
    * Substitution taken from the per-word alignment, not a parallel phrase or a lexical candidate. A span that
    * spells another mushaf word, or that carries more consonants than the written word, keeps today's margin.
    * Anything shorter or the same length that spells no such word needs twice the support margin.
@@ -210,6 +217,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const parallels = parallelPaths(index);
+  const madd = maddSites(index);
+  const formulas = formulaSlots(index);
   const allSpans = slotSpans(index);
   const spanById = new Map(allSpans.map((s) => [spanId(s), s]));
   /** Spans whose continuation already picked a copy. Their slots are no longer held. */
@@ -232,6 +241,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const ledgerDone = new Set<number>();
   /** Skips the fit already accepted. Re-asserted each window so a later alignment does not resolve them. */
   const ledgerIssues = new Map<number, Issue>();
+  /**
+   * Ayah span of each accepted ledger skip. The seam can open in a later window, after this one has confirmed
+   * and the anchor has moved, so the span outlives `ledgerIssues`.
+   */
+  const ledgerSpans = new Map<number, number>();
   /** Obs index where the current push's phonemes start, so a new lock can own that chunk's frames. */
   let chunkFrom = 0;
   /**
@@ -284,6 +298,89 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   let declared = !!passage;
   /** Phonemes since the last anchor (or the latest `HISTORY` while not anchored). */
   let obs: Heard[] = [];
+  /**
+   * Matched madd-munfasil lengths already scrolled out of the window, in frames from the stem consonant to the
+   * next hamza. The threshold for a vowel drop is the shortest of these, plus any still in the window.
+   */
+  const pastMadd: { frame: number; span: number }[] = [];
+  /** The same silence the inner-waqf path labels: a blank of `GAP_PAD_S` between two phones. */
+  const labelledPause = (prev: number): boolean => {
+    if (frameMs <= 0 || prev < 0 || prev + 1 >= obs.length) return false;
+    let a = obs[prev]!.end + 1;
+    const b = obs[prev + 1]!.start;
+    if (frames && frames.startFrame >= 0 && a >= frames.startFrame && b <= frames.endFrame) {
+      const id = tokenId.get(obs[prev]!.p);
+      if (id) while (a < b) {
+        const row = frames.row(a);
+        let best = 0;
+        for (let i = 1; i < row.length; i++) if (row[i]! > row[best]!) best = i;
+        if (best !== id) break;
+        a++;
+      }
+    }
+    if (b - a < minGapFrames(frameMs)) return false;
+    if (!frames || frames.startFrame < 0 || a < frames.startFrame || b > frames.endFrame) return true;
+    const owns = Math.log(0.5);
+    for (let f = a; f < b; f++) if (frames.row(f)[0]! < owns) return false;
+    return true;
+  };
+  interface MaddHit {
+    word: number;
+    frame: number;
+    span: number;
+    consObs: number;
+    hamzaObs: number;
+    pause: boolean;
+    /** A madd letter of the written word was heard between the consonant and the hamza. */
+    matched: boolean;
+  }
+  /** Connected madds the alignment has both edges for. A pause between the words is not one of them. */
+  const measureMadd = (aligned: Step[]): MaddHit[] => {
+    const exact = new Map<number, number>();
+    const seen = new Set<number>();
+    for (const s of aligned) if (s.op === "diag" && ref[s.ref] === obs[s.obs]!.p) {
+      exact.set(s.ref, s.obs);
+      seen.add(index.wordAt(s.ref));
+    }
+    const out: MaddHit[] = [];
+    for (const wi of seen) {
+      const next = madd.munfasil.get(wi);
+      if (next === undefined) continue;
+      const cons = stemConsonant(ref, words[wi]!.start, words[wi]!.end);
+      const hamza = words[next]!.start;
+      const consObs = exact.get(cons);
+      const hamzaObs = exact.get(hamza);
+      if (cons < words[wi]!.start || consObs === undefined || hamzaObs === undefined || hamzaObs <= consObs) continue;
+      const span = obs[hamzaObs]!.start - obs[consObs]!.start;
+      if (span <= 0) continue;
+      let pause = false;
+      for (let k = consObs; k < hamzaObs && !pause; k++) pause = labelledPause(k);
+      let matched = false;
+      if (!pause) for (const s of aligned) {
+        if (s.op !== "diag" || s.obs <= consObs || s.obs >= hamzaObs) continue;
+        if (s.ref < words[wi]!.start || s.ref >= words[wi]!.end) continue;
+        if (ref[s.ref] === obs[s.obs]!.p && isMaddLetter(ref[s.ref]!)) matched = true;
+      }
+      out.push({ word: wi, frame: obs[consObs]!.start, span, consObs, hamzaObs, pause, matched });
+    }
+    return out;
+  };
+  /**
+   * Vowel-drop candidates shorter than every earlier matched madd in this session. A matched madd that is not
+   * that short joins the baseline; a flagged drop does not, so one miss cannot lower the bar for the next.
+   */
+  const maddNow = (aligned: Step[]) => {
+    const hits = measureMadd(aligned).sort((a, b) => a.frame - b.frame);
+    const baseline = pastMadd.map((p) => ({ ...p }));
+    const flags: MaddHit[] = [];
+    for (const m of hits) {
+      const earlier = baseline.filter((b) => b.frame < m.frame);
+      const min = earlier.reduce((n, b) => Math.min(n, b.span), Infinity);
+      if (madd.drops.has(m.word) && !m.pause && earlier.length > 0 && m.span < min) flags.push(m);
+      else if (m.matched && !m.pause && !baseline.some((b) => b.frame === m.frame)) baseline.push({ frame: m.frame, span: m.span });
+    }
+    return { flags, baseline };
+  };
   /** Word the window's alignment starts from; null while not anchored. */
   let anchor: number | null = null;
   let lead = 0;
@@ -341,6 +438,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const supported = (issue: Issue, requireFinite = false): boolean | null => {
     // Spelled surplus is structural. A likelihood contest over the neighbours is what loses the word.
     if (issue.lexicon) return null;
+    // The madd's length was already compared with this reciter's own. One vowel does not move the forward sum.
+    if (issue.madd) return null;
     if (!frames || frames.startFrame < 0 || issue.cls === "skipped_passage") return null;
     const heardAt = (wi: number) => steps.filter((s): s is Extract<Step, { op: "diag" }> => s.op === "diag" && index.wordAt(s.ref) === wi).map((s) => s.obs);
     const before = prevWord(issue.word);
@@ -587,6 +686,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     releaseFrozen(out, true, from, end);
     for (const w of [...decided]) if (w >= from && w < end && !slotAt.has(w)) decided.add(w + delta);
+    for (const [w, last] of [...ledgerSpans]) {
+      if (w < from || w >= end) continue;
+      ledgerSpans.delete(w);
+      // A whole ayah sits inside the span, so the end slides with the start. A slot was the other copy.
+      if (!slotAt.has(w)) ledgerSpans.set(w + delta, last + delta);
+    }
     if (anchor >= from && anchor <= end) anchor += delta;
     else if (anchor < from) anchor = to;
     if (furthest >= from && furthest < end) furthest += delta;
@@ -647,6 +752,28 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return s || ref.slice(words[ayahFirst[ayah]].start, words[ayahLast[ayah]].end);
   };
 
+  /**
+   * Refrain words (an ayah whose letter text occurs again) and the shared words of a near-duplicate span.
+   * The word a span's members disagree on is the slot, not duplicate text.
+   */
+  const copyText = new Set<number>();
+  {
+    const skel: string[] = [];
+    const copies = new Map<string, number>();
+    for (let a = 0; a < ayahFirst.length; a++) {
+      const t = ayahText(a);
+      skel.push(t);
+      copies.set(t, (copies.get(t) ?? 0) + 1);
+    }
+    for (let a = 0; a < skel.length; a++) if ((copies.get(skel[a]) ?? 0) > 1) {
+      for (let w = ayahFirst[a]; w <= ayahLast[a]; w++) copyText.add(w);
+    }
+    for (const s of allSpans) {
+      const slot = new Set(s.slots);
+      for (const st of s.starts) for (let off = 0; off < s.length; off++) if (!slot.has(off)) copyText.add(st + off);
+    }
+  }
+
   const wordPhones = (from: number, to: number) => {
     const out: string[] = [];
     for (let i = from; i <= to; i++) out.push(ref.slice(words[i].start, words[i].end));
@@ -695,15 +822,23 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const wi = ayahFirst[a];
       if (decided.has(wi) || heldSlot(wi)) continue;
       const openIssue = open.get(wi);
-      if (openIssue && openIssue.issue.cls !== "wrong_word" && openIssue.issue.cls !== "omitted_word") continue;
+      if (openIssue && openIssue.issue.cls !== "wrong_word" && openIssue.issue.cls !== "omitted_word") {
+        // The seam already keyed this ayah. Remember the ayah so a later seam on the same run can be dropped.
+        if (openIssue.issue.cls === "skipped_passage") ledgerSpans.set(wi, ayahLast[a]);
+        continue;
+      }
       const existing = issues.get(wi);
-      if (existing && existing.cls !== "wrong_word" && existing.cls !== "omitted_word") continue;
+      if (existing && existing.cls !== "wrong_word" && existing.cls !== "omitted_word") {
+        if (existing.cls === "skipped_passage") ledgerSpans.set(wi, ayahLast[a]);
+        continue;
+      }
       if (openIssue) {
         open.delete(wi);
         out.push(event(openIssue, "resolved"));
       }
       const issue: Issue = { cls: "skipped_passage", word: wi, last: ayahLast[a], obsFrom: at, obsTo: at };
       ledgerIssues.set(wi, issue);
+      ledgerSpans.set(wi, issue.last);
       issues.set(wi, issue);
     }
   };
@@ -712,6 +847,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     for (const [wi, issue] of [...ledgerIssues]) {
       if (decided.has(wi) || ayahFinished(ayahOf[wi])) {
         ledgerIssues.delete(wi);
+        // Confirmed skips stay. A finished ayah was read, so the skip did not stand.
+        if (!decided.has(wi)) ledgerSpans.delete(wi);
         continue;
       }
       // A wrong or omitted word on this ayah start is the skip misfiled. The fit already chose.
@@ -1123,8 +1260,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return stemEnd >= 0 && onsetStart < Infinity && (onsetStart - stemEnd - 1) * frameMs < SUFFIX_HOLD_MS;
   };
 
-  /** The errors the current alignment shows, by word; and where it stands. */
-  const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; lexical: Issue[]; head: number; furthest: number; steps: Step[]; right: Set<number> } | null => {
+  /** The errors the current alignment shows, by word; and where it stands. `bound` is the words a counting visit holds. */
+  const judge = (steps: Step[], recoverAdditions = true): { issues: Map<number, Issue>; lexical: Issue[]; head: number; furthest: number; steps: Step[]; right: Set<number>; bound: Set<number> } | null => {
     const visits: Visit[] = [];
     const added: Issue[] = [];
     let cur: Visit | null = null;
@@ -1696,7 +1833,56 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       });
     }
     for (const e of stepEdits.sort((a, b) => b.lo - a.lo)) steps.splice(e.lo, e.hi - e.lo, ...e.path);
-    return { issues, lexical: candidates, head, furthest: reached, steps, right };
+    // The identical two-word lead plus a locked ayah end closes this choice. Score only the greedy
+    // phones before its labelled pause, treating waqf tails and held sounds identically on both sides.
+    // These candidates still need affirmative posterior support and the unchanged weak-evidence gate.
+    if (rankOmission && trackerLocked) for (const slot of visits) {
+      const wi = slot.word;
+      const fillers = formulas.get(wi);
+      if (!fillers || slot.obsFrom < 0 || slot.obsTo <= slot.obsFrom || slot.stepFrom === undefined) continue;
+      if (wi < first || decided.has(wi)) continue;
+      if (cursor !== wi && (lockedAyah.get(ayahOf[wi])?.wordTo ?? -1) < wi) continue;
+      const left = visits.find((v) => v.word === wi - 1 && v.obsTo <= slot.obsFrom && counts(v) && !wrong(v));
+      const lead = left && visits.find((v) => v.word === wi - 2 && v.obsTo <= left.obsFrom && counts(v) && !wrong(v));
+      if (!left || !lead) continue;
+      const from = slot.obsFrom;
+      const next = visits.find((v) => v.obsFrom >= slot.obsTo && v.word > wi);
+      const limit = next?.obsFrom ?? obs.length;
+      let to = slot.obsTo;
+      while (to < limit && !labelledPause(to - 1)) to++;
+      if (!labelledPause(to - 1)) continue;
+      if (obs.slice(from, to).some((p) => p.junk)) continue;
+      const path = steps.slice(slot.stepFrom).filter((s) => "obs" in s && s.obs >= from && s.obs < to);
+      if (path.length !== to - from || path.some((s) =>
+        (s.op !== "diag" && s.op !== "ins") || index.wordAt(s.op === "ins" ? s.at : s.ref) !== wi)) continue;
+      const said = stripEdge(obs.slice(from, to).map((p) => p.p).join(""));
+      const phones = (s: string) => collapseHeld([...stripEdge(s)]);
+      if (!said) continue;
+      const written = ref.slice(words[wi].start, words[wi].end);
+      let best = spanLogP(phones(said), phones(written), omissionChannel);
+      let alternative: string | null = null;
+      for (const filler of fillers) {
+        const score = spanLogP(phones(said), phones(filler), omissionChannel);
+        if (score > best) { best = score; alternative = filler; }
+      }
+      if (!alternative) continue;
+      candidates.push({
+        cls: "wrong_word", word: wi, last: wi, obsFrom: from, obsTo: to, observed: said,
+      });
+    }
+    // A twin that only drops the madd before a hamza. Waqf still removes that vowel, so a labelled pause stays
+    // quiet. Everywhere else the span has to be shorter than this reciter's own matched madd munfasil.
+    for (const m of maddNow(steps).flags) {
+      if (issues.has(m.word) || decided.has(m.word)) continue;
+      const drop = madd.drops.get(m.word)!;
+      const visit = visits.find((v) => v.word === m.word && v.obsFrom >= 0 && v.obsFrom <= m.consObs && v.obsTo > m.consObs);
+      issues.set(m.word, {
+        cls: "wrong_word", word: m.word, last: m.word, obsFrom: visit?.obsFrom ?? m.consObs, obsTo: m.hamzaObs,
+        observed: drop.alt, madd: true,
+      });
+      right.delete(m.word);
+    }
+    return { issues, lexical: candidates, head, furthest: reached, steps, right, bound: new Set(last.keys()) };
   };
 
   /** Matched phonemes on the word after an error, heard after it: the next word has begun. */
@@ -1822,6 +2008,23 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     if (pendingGap) closeGap(out, issues, pendingGap.left, pendingGap.right, final);
     keepLedger(issues);
+    // One unread run, two emitters. The seam starts after the ledger ayah and the words between them are bound
+    // refrain or shared duplicate-span text (or there are none). The ledger key is the earlier one, so the seam
+    // is dropped. A unique word between them keeps both. The span is the one the fit already accepted, including
+    // a skip confirmed before this window's anchor.
+    const bound = judged?.bound ?? new Set<number>();
+    if (ledgerSpans.size) for (const [wi, issue] of [...issues]) {
+      if (issue.cls !== "skipped_passage" || ledgerSpans.has(wi)) continue;
+      for (const [, last] of ledgerSpans) {
+        if (issue.word <= last) continue;
+        let same = true;
+        for (let w = last + 1; w < issue.word; w++) {
+          if (words[w].end === words[w].start) continue;
+          if (!bound.has(w) || !copyText.has(w)) { same = false; break; }
+        }
+        if (same) { issues.delete(wi); break; }
+      }
+    }
     if (!judged && !issues.size) return;
     if (judged) steps = judged.steps;
     const head = judged?.head ?? cursor;
@@ -1852,6 +2055,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         }
         open.delete(wi);
         out.push(event(o, "resolved"));
+        ledgerSpans.delete(wi);
       } else if (now.cls !== o.issue.cls) {
         o.issue = now;
         out.push(event(o, "suspected"));
@@ -1906,6 +2110,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
     }
     if (cut < 0) return;
+    const floor = obs[cut]!.start;
+    for (const b of maddNow(steps).baseline) if (b.frame < floor && !pastMadd.some((p) => p.frame === b.frame)) pastMadd.push(b);
     const word = index.wordAt(at);
     for (const o of [...open.values()]) if (o.issue.word < word && heldSlot(o.issue.word)) freezeSlot(o.issue.word, o);
     for (const o of [...open.values()]) if (o.issue.word < word && !heldSlot(o.issue.word)) decide(o, out);
