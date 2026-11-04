@@ -3,15 +3,14 @@ prompt, a context pack built by code, and a JSON answer checked against a schema
 with the error; a second failure raises BrainError and the supervisor marks the work needs-human.
 
     plan(cfg, pack, slots, st)          Opus: one card per free (component, tier) slot
-    judge(cfg, card, pack)              Grok:  is this a restatement of a tried mechanism?
-    review_diff(cfg, card, diff)        Grok:  does the diff special-case the benchmark or weaken checks?
+    judge(cfg, card, pack)              GPT:  is this a restatement of a tried mechanism?
+    review_diff(cfg, card, diff)        GPT:  does the diff special-case the benchmark or weaken checks?
     review(cfg, exp, outcome, pack)     Opus: the journal entry, and a follow-up card or why the line is dead
     strategy(cfg, pack, frozen, slots, st)  Opus: the "why stuck" memo and bets
 
 Models come from cfg["models"] by role (planner, judge, diffReviewer, reviewer, strategist). `ask` defaults to a one-shot
-call: a claude-* model through the Claude Code CLI (`claude -p`, no tools), a gpt-* model through the Azure Responses
-API of the codex-azure builder whose deployment it names, any other through the Cursor SDK (tools/autolab_cursor.py
-prompt_model); tests pass their own.
+call: a claude-* model through the Claude Code CLI (`claude -p --bare`, no tools, on $ANTHROPIC_API_KEY), a gpt-* model
+through the Azure Responses API of the codex-azure builder whose deployment it names; tests pass their own.
 """
 
 import json
@@ -197,11 +196,11 @@ def split_model(model) -> tuple[str, dict]:
 
 
 def claude_argv(model) -> list[str]:
-    """`claude -p` for a model id or {"id", "params"} (context "1m" and effort carry over; fast has no CLI flag). No tools,
-    no MCP servers and no user/project settings (so none of their hooks or plugins), JSON out. The loop's PATH may not
-    have the CLI, so it falls back to the installer's location."""
+    """`claude -p` for a model id or {"id", "params"} (context "1m" and effort carry over; fast has no CLI flag). Bare:
+    authenticated by $ANTHROPIC_API_KEY only (never the desktop login), no hooks, plugins or CLAUDE.md; no tools, no MCP
+    servers, no settings, JSON out. The loop's PATH may not have the CLI, so it falls back to the installer's location."""
     mid, params = split_model(model)
-    argv = [shutil.which("claude") or str(Path.home() / ".local/bin/claude"), "-p",
+    argv = [shutil.which("claude") or str(Path.home() / ".local/bin/claude"), "-p", "--bare",
             "--model", mid + ("[1m]" if params.get("context") == "1m" else ""), "--tools", "", "--strict-mcp-config",
             "--setting-sources", "", "--no-session-persistence", "--output-format", "json"]
     return argv + (["--effort", params["effort"]] if params.get("effort") else [])
@@ -246,29 +245,24 @@ def azure_ask(cfg: dict, role: str, model, prompt: str, timeout_s: int) -> str:
 
 
 def default_ask(cfg: dict, role: str, prompt: str, timeout_s: int | None = None) -> str:
-    """One model call in a child process with a hard wall-clock limit: the SDK can block before its own timeout starts,
-    so on expiry the whole process group (SDK bridge or CLI included) is killed. Writing a plan's cards takes Opus longer
-    than a verdict takes Grok, so the limit is per role (config `brainTimeouts` overrides)."""
+    """One model call with a hard wall-clock limit: a CLI call runs in its own process group, killed whole on expiry.
+    Writing a plan's cards takes Opus longer than a verdict takes GPT, so the limit is per role (config `brainTimeouts`
+    overrides)."""
     timeout_s = timeout_s or {**TIMEOUTS, **cfg.get("brainTimeouts", {})}.get(role, 900)
     import os  # noqa: PLC0415
     import signal  # noqa: PLC0415
     import subprocess  # noqa: PLC0415
-    import sys  # noqa: PLC0415
     import tempfile  # noqa: PLC0415
     model = cfg["models"][role]
     if split_model(model)[0].startswith("gpt-"):
         return azure_ask(cfg, role, model, prompt, timeout_s)
-    claude = is_claude(model)
-    if claude:
-        argv, stdin = claude_argv(model), prompt
-    else:
-        argv = [sys.executable, str(Path(__file__).with_name("autolab_cursor.py")), "prompt"]
-        stdin = json.dumps({"model": model, "prompt": prompt, "timeout": timeout_s})
+    if not is_claude(model):
+        raise BrainError(f"{role}: no route for model {split_model(model)[0]} (claude-* or gpt-*)")
     with tempfile.TemporaryDirectory(prefix="autolab-brain-") as tmp:  # an empty cwd: no project CLAUDE.md to pick up
-        p = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        p = subprocess.Popen(claude_argv(model), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                              start_new_session=True, cwd=tmp)
         try:
-            out, err = p.communicate(stdin, timeout=timeout_s + 60)
+            out, err = p.communicate(prompt, timeout=timeout_s + 60)
         except subprocess.TimeoutExpired:
             os.killpg(p.pid, signal.SIGKILL)
             p.communicate()
@@ -277,13 +271,9 @@ def default_ask(cfg: dict, role: str, prompt: str, timeout_s: int | None = None)
         res = json.loads(out.strip().splitlines()[-1])
     except (IndexError, json.JSONDecodeError):
         raise Unavailable(f"{role}: {(err or out)[-300:]}") from None
-    if claude:
-        if res.get("is_error") or res.get("subtype") != "success":
-            raise Unavailable(f"{role}: claude {res.get('subtype')}: {str(res.get('result'))[:300]}")
-        return res["result"]
-    if "error" in res:
-        raise Unavailable(f"{role}: {res['error'][:300]}")
-    return res["text"]
+    if res.get("is_error") or res.get("subtype") != "success":
+        raise Unavailable(f"{role}: claude {res.get('subtype')}: {str(res.get('result'))[:300]}")
+    return res["result"]
 
 
 FINAL = ("\n\nYou have no tools and cannot read files, run commands or look anything up: everything you need is above. "
@@ -305,7 +295,7 @@ FALLBACK = {"judge": "reviewer", "diffReviewer": "reviewer"}
 
 def call(cfg: dict, role: str, prompt: str, check, ask=None):
     """Asks, parses and checks; one retry with the error appended. A role whose model doesn't answer is asked once more
-    on its fallback role's model (Grok can think past any limit on a large diff)."""
+    on its fallback role's model (a model can think past any limit on a large diff)."""
     ask = ask or default_ask
     err = None
     for attempt in range(2):

@@ -164,7 +164,8 @@ def test_claude_roles_go_through_the_cli_with_no_tools_or_settings():
     a = B.claude_argv(m)
     assert a[a.index("--model") + 1] == "claude-opus-5-5[1m]" and a[a.index("--effort") + 1] == "medium"
     assert a[a.index("--tools") + 1] == "" and a[a.index("--setting-sources") + 1] == "" and "--strict-mcp-config" in a
-    assert B.claude_argv("claude-sonnet-5-5")[3] == "claude-sonnet-5-5" and "--effort" not in B.claude_argv("claude-sonnet-5-5")
+    plain = B.claude_argv("claude-sonnet-5-5")
+    assert "--bare" in a and plain[plain.index("--model") + 1] == "claude-sonnet-5-5" and "--effort" not in plain
     assert B.is_claude(m) and not B.is_claude({"id": "grok-4.7"})
 
 

@@ -60,7 +60,7 @@
    ]
   },
   "judge": {
-   "id": "gpt-6-astra",
+   "id": "gpt-6.1-sol",
    "params": [
     {
      "id": "effort",
@@ -69,67 +69,24 @@
    ]
   },
   "diffReviewer": {
-   "id": "grok-4.7",
+   "id": "gpt-6.1-sol",
    "params": [
     {
-     "id": "context",
-     "value": "500k"
-    },
-    {
-     "id": "reasoning_effort",
+     "id": "effort",
      "value": "high"
-    },
-    {
-     "id": "fast",
-     "value": "false"
     }
    ]
   }
  },
  "executor": {
-  "runtime": "cursor-local",
-  "model": {
-   "id": "grok-4.7",
-   "params": [
-    {
-     "id": "context",
-     "value": "500k"
-    },
-    {
-     "id": "reasoning_effort",
-     "value": "high"
-    },
-    {
-     "id": "fast",
-     "value": "false"
-    }
-   ]
-  },
-  "fallbackModel": {
-   "id": "grok-4.7",
-   "params": [
-    {
-     "id": "context",
-     "value": "500k"
-    },
-    {
-     "id": "reasoning_effort",
-     "value": "high"
-    },
-    {
-     "id": "fast",
-     "value": "false"
-    }
-   ]
-  },
   "env": {},
   "runtimes": [
    {
-    "name": "astra",
+    "name": "sol",
     "runtime": "codex-azure",
     "azure": {
      "endpoint": "https://amalinvest-ai-yazin.openai.azure.com",
-     "deployment": "gpt-6-astra",
+     "deployment": "gpt-6.1-sol",
      "apiVersion": "2025-04-01-preview"
     },
     "effort": "high",
@@ -137,7 +94,7 @@
    }
   ],
   "split": {
-   "astra": 1
+   "sol": 1
   }
  },
  "listenerModel": "models/spliced-clean-int8",
