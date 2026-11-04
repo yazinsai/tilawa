@@ -1,0 +1,13 @@
+{
+ "id": "listener-stack-c63ce0",
+ "component": "listener",
+ "hypothesis": "Stack listener-final-slot-manner-rekey (-2) and checker-merge-ledger-and-seam-skips (-1): each won different incidents and lost none, so together they should clear the fold bar; predict overall -3.",
+ "expected": {
+  "component": -2,
+  "overall": -3
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T06:02:46+00:00",
+ "author": "autolab"
+}
