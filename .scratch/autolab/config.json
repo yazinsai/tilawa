@@ -141,7 +141,7 @@
      "apiVersion": "2025-04-01-preview"
     },
     "effort": "high",
-    "maxConcurrent": 1
+    "maxConcurrent": 10
    }
   ],
   "split": {
