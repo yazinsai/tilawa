@@ -1,0 +1,13 @@
+{
+ "id": "tracker-shadow-coverage-not-rebind",
+ "component": "tracker",
+ "hypothesis": "p46 gets a false skip at 54:36:1 because, after the planted 54:36:4 omission, an in-lock step binds بالنذر to 54:37:9 and 54:36 never gets a window. Rebinding fixes the skip but exposes a false 54:37:2 wrong word that main hides. Keep main's events and windows byte-identical, and have the tracker only certify 54:36 as covered for the ayah-absence ledger when the near one-deletion continuation beats the far step; predict tracker -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T04:29:51+00:00",
+ "author": "autolab"
+}
