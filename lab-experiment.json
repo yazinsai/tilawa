@@ -1,0 +1,13 @@
+{
+ "id": "checker-formula-slot-channel-madd",
+ "component": "checker",
+ "hypothesis": "9:47:17 (planted بالمتقين for بالظالمين after the shared lead والله عليم) is a closed formula-slot swap that string rules lose to phone blur. Decide it as a closed two-way choice under the folded channel table, and bundle the connected-madd rule (20:43:1) and the ledger/seam skip merge (p24 26:131:2) unchanged; predict checker -2, overall -2 (upside -3 if all three hold).",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T13:31:44+00:00",
+ "author": "autolab"
+}
