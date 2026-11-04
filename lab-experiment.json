@@ -1,0 +1,13 @@
+{
+ "id": "listener-manner-rekey-channel-confirm",
+ "component": "listener",
+ "hypothesis": "The pausal-final manner rekey catches 11:11:10 and 37:84:5, but in every stack on current main it also accuses at least one clean ayah end, because a single manner contradiction is weak evidence on phone audio. Keep its accusations only when the folded channel table makes the slot's tokens strictly more probable under an attested rival with the heard final manner than under the written pausal word; predict listener -2, overall -2 (honest, below the gate alone).",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T20:12:26+00:00",
+ "author": "autolab"
+}
