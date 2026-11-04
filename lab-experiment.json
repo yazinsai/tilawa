@@ -1,0 +1,13 @@
+{
+ "id": "listener-in-ayah-skip-continuation-veto",
+ "component": "listener",
+ "hypothesis": "p31 gets a false skip at 4:162:15 because the phone-blurred والمقيمين (ق heard as ء) binds to the look-alike والمؤمنون at 4:162:19, four words ahead. The words 16-18 then read are forgiven as a back-repeat, so 15-18 look unread. Before emitting an in-ayah skip, check whether the heard words after the destination visit continue the skipped span's start in order better than they continue the destination; if so, rebind and drop the skip. Predict listener -1, overall -1 (honest; below the gate, a zero-loss rider candidate).",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-heard-word-must-be-lexical-41570706",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-04T06:43:35+00:00",
+ "author": "autolab"
+}
