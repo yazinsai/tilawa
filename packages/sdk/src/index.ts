@@ -4,6 +4,7 @@ export * from "./fbank.js";
 export * from "./listener.js";
 export * from "./model.js";
 export * from "./ort.js";
+export * from "./posterior-product.js";
 export * from "./wav.js";
 export * from "./session.js";
 export * from "./models.js";
