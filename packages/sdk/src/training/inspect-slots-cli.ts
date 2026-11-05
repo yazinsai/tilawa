@@ -67,7 +67,7 @@ try {
   for (const [input, result] of [[baseline, b], [replay, n]] as const)
     if (JSON.stringify(run(input, createChecker, false).events) !== JSON.stringify(result.events)) throw new Error("Tracing changed checker events");
   const rows = cases.map(c => {
-    const known = b.decisions.filter(e => e.errorClass === "wrong_word" && key(e.location) === key(c.location) && e.state === "suspected")
+    const known = b.decisions.filter(e => e.errorClass === "wrong_word" && key(e.location) === key(c.location) && e.state === "confirmed")
       .sort((x, y) => Math.abs(x.timeMs / 1000 - c.timeS) - Math.abs(y.timeMs / 1000 - c.timeS))[0];
     if (!known) throw new Error("Target baseline accusation absent");
     if (!Number.isFinite(known.from) || !Number.isFinite(known.to) || known.to <= known.from) throw new Error("Missing baseline frame slot");
