@@ -147,6 +147,9 @@ class World:
                 f.writelines(json.dumps(e, ensure_ascii=False) + "\n" for e in events)
             subprocess.run(["modal", "volume", "put", "--force", "tilawa-lab", str(RUN / "events.jsonl"), VOL_EVENTS], capture_output=True)
         for wait in (2, 5, 10, 20, 40, 0):
+            # A tick (and a failed upload) can take minutes: date the check-in
+            # when publishing it, rather than publishing the tick's old start time.
+            st["heartbeat"] = S.now()
             try:
                 return vol_put(VOL_STATE, st)
             except Stop:

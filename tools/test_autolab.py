@@ -1057,3 +1057,18 @@ def test_test_set_switch_waits_for_experiments_scoring_on_the_old_set(w, monkeyp
 
 
 RICH_PRACTICE = {"wrongCalls": 30, "missed": 20, "falseWarnings": 10, **{c: {"wrongCalls": n} for c, n in (("listener", 29), ("tracker", 1), ("checker", 0))}}
+
+
+def test_save_heartbeat_dates_publication_after_slow_work_and_retries(monkeypatch):
+    times = iter(["2026-11-05T11:30:00+00:00", "2026-11-05T11:30:02+00:00"])
+    monkeypatch.setattr(A.S, "now", lambda: next(times))
+    monkeypatch.setattr(A.time, "sleep", lambda _: None)
+    saved = []
+    def publish(path, st):
+        saved.append(st["heartbeat"])
+        if len(saved) == 1:
+            raise A.Stop("temporary volume failure")
+    monkeypatch.setattr(A, "vol_put", publish)
+    st = {"heartbeat": "2026-11-05T11:22:09+00:00"}
+    A.World(A.DEFAULT_CONFIG, executor=object()).save(st, [])
+    assert saved == ["2026-11-05T11:30:00+00:00", "2026-11-05T11:30:02+00:00"]
