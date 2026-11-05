@@ -60,6 +60,18 @@ export interface ReferenceIndex {
 
 const GRAM_SIZE = 4;
 
+/**
+ * The connected form opened the way the word is said after a pause. The previous word's assimilated ending doubles
+ * this word's first consonant in connected speech (وجوهٌ يومئذ: يييَومَءِذِن); a reader who stops between the two
+ * starts it plainly, with the rest still joined to what follows (يَومَءِذِن). The isolated form keeps the plain onset.
+ */
+function plainOnset(connected: string, iso: string | undefined): string | undefined {
+  if (!connected || !iso || connected[0] !== iso[0]) return undefined;
+  const run = (s: string) => { let n = 1; while (s[n] === s[0]) n++; return n; };
+  const extra = run(connected) - run(iso);
+  return extra > 0 ? connected.slice(extra) : undefined;
+}
+
 export function loadReferenceIndex(asset: ReferenceAsset): ReferenceIndex {
   const words: ReferenceWord[] = [];
   const wordForms: string[][] = [];
@@ -71,7 +83,8 @@ export function loadReferenceIndex(asset: ReferenceAsset): ReferenceIndex {
     ayah.w.forEach((text, i) => {
       const end = i + 1 < ayah.o.length ? ayah.o[i + 1] : ayah.p.length;
       words.push({ surah: ayah.s, ayah: ayah.a, word: i + 1, start: base + ayah.o[i], end: base + end });
-      wordForms.push([...new Set([ayah.p.slice(ayah.o[i], end), ayah.iso[i]].filter(Boolean))]);
+      const connected = ayah.p.slice(ayah.o[i], end);
+      wordForms.push([...new Set([connected, ayah.iso[i], plainOnset(connected, ayah.iso[i])].filter(Boolean))]);
       isolatedWordForms.push(ayah.iso[i]);
       wordText.push(text);
     });
