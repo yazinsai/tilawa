@@ -111,3 +111,46 @@ requiring neither a large embedded source nor an exported baseline file.
 Temporary local baseline files were removed. These transport attempts yielded
 no measurements. The successful audit's events are retained in the baseline
 results JSON.
+
+## Requested practice score and its limit
+
+Practice score 1 returned for engine commit `8f896d58`:
+
+| Attribution | Main | This requested replay | Change |
+| --- | ---: | ---: | ---: |
+| Overall | 30 (20 missed, 10 false) | 30 (20 missed, 10 false) | 0 |
+| Listener | 29 | 29 | 0 |
+| Tracker | 1 | 1 | 0 |
+| Checker | 0 | 0 | 0 |
+
+The receipt's verdict is noise. It does **not** measure the fresh shifted-grid
+listener. Read-only inspection of the existing supervisor flow establishes the
+reason: `serve_practice` invokes the lab replay directly with the card's cached
+listener evidence, without first decoding this branch's SDK. That evidence
+predates the newly introduced `seamGrid` metadata, so the agreement gate fails
+closed and creates no excise-certify emissions. The earlier target replay
+explicitly supplied the full-session shifted rows and produced four new
+confirmations; the cached replay cannot adjudicate their precision.
+
+The supervisor's normal validation flow, after this executor finishes, runs the
+SDK decode with this worktree as `LAB_SRC`, then scores its newly named listener
+evidence. The existing SDK decoder records phoneme objects directly, retaining
+the metadata; the cold-gap preservation helper retains the rows through that
+path. Neither the scorer, its tooling, the card, the test data nor manifests
+were changed to force a different practice replay. A second cached practice
+request would repeat the same limitation, so only one of the three requests was
+used. The practice receipt is retained alongside this write-up.
+
+## Final state and limits
+
+The premise passes: **four new target confirmations**, with identical spellings
+on both full-session grids. Builds, all 749 core tests and all 19 SDK tests pass,
+with one existing SDK test skipped. The implementation and all diagnostic
+results are committed; no engine change was narrowed after the target result.
+
+Leave the change in place for the supervisor's fresh decode and fold gate.
+Precision on clean seams, incident losses, studio behaviour, reader exclusion
+and a full practice delta for the actual two-grid listener remain unestablished.
+The cached +0 receipt supplies no evidence for either improvement or regression
+of this new evidence path. No model export, training, manual fold or discard was
+performed, and no premise-kill outcome is warranted.
