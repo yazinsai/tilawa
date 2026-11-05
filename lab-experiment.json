@@ -1,0 +1,13 @@
+{
+ "id": "listener-session-embedding-conditioned",
+ "component": "listener",
+ "hypothesis": "Phone false wrong words are confusions specific to one speaker and one phone, but the student decodes each frame without knowing which speaker or channel it is hearing. Retrain it to take a causal embedding of the session's own audio so far as an extra input; predict 3 of 7 targets won, about 1 caught swap lost: listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-stack-be988c-6a17f391",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-05T12:54:52+00:00",
+ "author": "autolab"
+}
