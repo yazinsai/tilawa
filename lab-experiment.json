@@ -1,0 +1,13 @@
+{
+ "id": "listener-teacher-insert-marginal-gate",
+ "component": "listener",
+ "hypothesis": "Ownership-free seam spelling (excise-certify) recovers heard planted additions (p19, p50, 4:157:24, 9:5:15) but lost 18 calls, because clean seams also spell words stitched from neighbour material. Emit a spelled span only if the fp32 KD teacher's whole-seam CTC lattice, with an optional arc for that exact word and free word boundaries, gives the arc a marginal above one half. Predict 3 of 4 targets kept and most losses removed: listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-stack-be988c-6a17f391",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-05T17:18:48+00:00",
+ "author": "autolab"
+}
