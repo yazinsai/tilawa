@@ -181,7 +181,9 @@ def main():
     ap.add_argument("--steps", type=int, default=3000)
     ap.add_argument("--max-seconds", type=int, default=3000, help="Save and return before the supervisor timeout; resume to the same fixed step count")
     ap.add_argument("--prepare-only", action="store_true")
+    ap.add_argument("--diagnose", action="store_true", help="Trace a non-finite backward operation")
     args = ap.parse_args()
+    torch.autograd.set_detect_anomaly(args.diagnose)
     torch.set_num_threads(4)
     torch.manual_seed(0)
     random.seed(0)
@@ -326,7 +328,8 @@ def main():
                 sums[k] += float(losses[k].detach()) / 5
         objective.backward()
         if any(p.grad is not None and not torch.isfinite(p.grad).all() for p in model.parameters()):
-            print(json.dumps({"step": step, "event": "nonfinite-gradient", "lengths": [len(s[0]) for s in samples]}), flush=True)
+            print(json.dumps({"step": step, "event": "nonfinite-gradient", "lengths": [len(s[0]) for s in samples],
+                "parameters": [name for name, p in model.named_parameters() if p.grad is not None and not torch.isfinite(p.grad).all()]}), flush=True)
             raise ValueError("Non-finite gradient")
         torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
         opt.step()

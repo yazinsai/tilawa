@@ -80,6 +80,22 @@ Checkpoints preserve optimizer and augmentation-generator state so a timed run
 can resume to the same preregistered 3,000 steps. No partial checkpoint is
 selected by looking at practice.
 
+Run 6's full-stream alignments admitted 234 recordings and rejected seven
+unsupported or unalignable labels, leaving eight correct-word negative slots
+and 29 protected substitutions. Six Python tests passed. The first optimization
+attempt failed before checkpointing on a non-finite loss. Run 8 passed seven
+Python tests, including mixed-length EOS padding and zero loss gradient on
+padding, but failed on a non-finite gradient at step three. Both are numerical
+implementation failures, not target measurements. Anomaly tracing is being
+used to identify the backward operation before proceeding with the fixed
+recipe.
+
+Run 7 replayed each of the seven stored baseline sessions through the passive
+slot inspector. Its temporary diagnostic checker produced byte-identical
+events to the original checker. Every baseline target still has at least one
+hard edit (counts 2, 2, 5, 2, 2, 1, 1); none qualifies as recovered. This
+validates the continuation check on the shipped model, not an adapted result.
+
 ## Limits
 
 Scripted labels are supervision, not an independent listening review. The
