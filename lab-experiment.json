@@ -1,0 +1,13 @@
+{
+ "id": "tracker-position-margin-wrong-word-doubt",
+ "component": "tracker",
+ "hypothesis": "Phone false wrong words cluster in duplicated or refrain text (26:106:1, 26:174:8, 55:48:1, 88:2:2), where the tracker committed its step onto the accused word with almost no margin over another mushaf location. Have the tracker export that per-step position margin. A string-path wrong word on a step committed under the existing commit margin ends uncertain, and parallel-graph wins stay exempt. Predict 4 of 7 removed with about 1 caught swap lost: tracker 0, overall -3.",
+ "expected": {
+  "component": 0,
+  "overall": -3
+ },
+ "listener": "exp-listener-stack-be988c-6a17f391",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-05T06:47:51+00:00",
+ "author": "autolab"
+}
