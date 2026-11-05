@@ -1,0 +1,13 @@
+{
+ "id": "listener-mined-false-accuse-finetune",
+ "component": "listener",
+ "hypothesis": "Phone wrong-word false warnings, 3 on practice and 4 on realuser lexical and graph paths, are stable confusions in the shipped student's weights. Every retrain so far updated it everywhere, on synthetic channel data, on broad real phone data or on corrected deviant transcripts, and moved the string globally (+41, +175). Fine-tune only on the frames where the unchanged engine falsely accuses a correctly read word in real learner phone recordings, plus labelled real swaps as protected positives, with a strong KL anchor to the shipped student on every other frame. Predict 3 of 7 targets won, about 1 caught swap lost: listener -2, overall -2.",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-stack-be988c-6a17f391",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-05T05:51:38+00:00",
+ "author": "autolab"
+}
