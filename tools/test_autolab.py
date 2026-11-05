@@ -1072,3 +1072,18 @@ def test_save_heartbeat_dates_publication_after_slow_work_and_retries(monkeypatc
     st = {"heartbeat": "2026-11-05T11:22:09+00:00"}
     A.World(A.DEFAULT_CONFIG, executor=object()).save(st, [])
     assert saved == ["2026-11-05T11:30:00+00:00", "2026-11-05T11:30:02+00:00"]
+
+
+def test_same_day_adopts_manual_fold_measurement_without_rescoring(w, monkeypatch):
+    st = w.load()
+    st['day'] = T0[:10]
+    led = {'testSet': st['testSet'], 'mainLine': [{'testSet': st['testSet'], 'run': 'manual-fold', 'sha': 'm2',
+                                                   'head': 'fold-tip', 'practice': RICH_PRACTICE}]}
+    reads = []
+    monkeypatch.setattr(w, 'ledgers', lambda: reads.append(1) or [led])
+    A.Tick(w, st, T0).daily()
+    assert st['main']['run'] == 'manual-fold'
+    assert st['main']['head'] == 'fold-tip'
+    assert not st.get('baselineJob')
+    A.Tick(w, st, T0).daily()
+    assert len(reads) == 1

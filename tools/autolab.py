@@ -636,6 +636,18 @@ class Tick:
                     self.set_main(res["run"], res["sha"], res["practice"])
                 else:
                     self.pause(f"the re-score of the main line failed: {res['error'][:300]}")
+        # Manual folds update the shared ledger during the day too. Reuse their
+        # measured baseline for planning instead of keeping yesterday's run until
+        # the daily refresh. Read the ledger only once per main revision.
+        head = w.git("rev-parse", BRANCH)
+        if not st.get("baselineJob") and not any(e["state"] == "folding" for e in st["experiments"].values()) and st.get("mainLedgerCheckedHead") != head:
+            for led in w.ledgers():
+                m = L.main_score(led, st["testSet"])
+                if m and m["run"] != (st.get("main") or {}).get("run"):
+                    self.set_main(m["run"], m["sha"], L.brief(m["practice"]), m.get("head"))
+                    self.events.append(S.event(None, None, "main-sync", at, f"adopted measured main line {m['sha']} from the lab ledger"))
+                    break
+            st["mainLedgerCheckedHead"] = head
         if st.get("day") == day:
             return
         if st.get("day"):
