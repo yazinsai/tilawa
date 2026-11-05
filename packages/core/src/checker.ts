@@ -540,14 +540,6 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     while (b > a && waqfEdge.has(s[b - 1]!)) b--;
     return s.slice(a, b);
   };
-  /** Binary identity agreement after the parent selected its exact frame cut. */
-  const gridAgrees = (issue: Issue): boolean => {
-    const raw = gridSpan(seamGridRows, [...index.tokens], obs[issue.obsFrom].start, obs[issue.obsTo - 1].end + 1);
-    if (raw === null) return false;
-    const said = stripEdge(surplusNasal(raw));
-    return !!said && lexical.surplusWord(issue.word, said) === lexical.surplusWord(issue.word, issue.observed!) &&
-      !phraseSpan(said) && !lexical.fragmentOfSeam(issue.word, said);
-  };
   /** The heard word with phrase-labelled pauses removed and waqf tails stripped. */
   const heardSpan = (issue: Issue): string => {
     const from = Math.max(0, issue.obsFrom);
@@ -1890,6 +1882,14 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         cls: "added_word", word: rightWord, last: rightWord, obsFrom: best.left.obsTo, obsTo: cut, observed: said, lexicon: true,
       });
     }
+    /** Binary identity agreement after the parent selected its exact frame cut. */
+    const gridAgrees = (issue: Issue): boolean => {
+      const raw = gridSpan(seamGridRows, [...index.tokens], obs[issue.obsFrom].start, obs[issue.obsTo - 1].end + 1);
+      if (raw === null) return false;
+      const said = stripEdge(surplusNasal(raw));
+      return !!said && lexical.surplusWord(issue.word, said) === lexical.surplusWord(issue.word, issue.observed!) &&
+        !phraseSpan(said) && !lexical.fragmentOfSeam(issue.word, said);
+    };
     // A spelled span can be lent to either neighbour by the greedy alignment.
     // Use visits only to bound the seam, then certify presence on the posteriors
     // left after excision. No complete visit or initial ownership is required.
