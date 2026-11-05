@@ -11,6 +11,7 @@ import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
 import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-spans.js";
 import type { SlotSpan } from "./slot-spans.js";
+import { createWordRun } from "./tracker-word-run.js";
 
 export interface TrackerOptions {
   mode?: "free" | "memorization";
@@ -361,6 +362,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const expectedHistory: (WordRef | null)[] = [];
   /** The local search's cost for each of the last `CONFIRM` phonemes. */
   const stepCosts: number[] = [];
+  const wordRun = createWordRun(index);
 
   const phraseList = options.phrases ? [...options.phrases.phrases, { name: "basmala", text: "", p: basmala }] : [];
   /** The latest phonemes, with the local search's cost for each and its state before each, for phrase detection. */
@@ -869,6 +871,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
+    wordRun.reset();
     local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
     weak = false;
     pending = null;
@@ -968,6 +971,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
    * now; `last` stays the plain lock, so later re-emits of the anchor compare unchanged.
    */
   const beginHold = (): PositionEvent => {
+    wordRun.reset();
     if (twin) {
       twinSettled.add(spanId(twin.span));
       twin = null;
@@ -1180,7 +1184,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   /** The local search's position as an event, or null when its word and run start haven't changed. */
-  const localEvent = (shortlist: TraceCandidate[]): PositionEvent | null => {
+  const localEvent = (shortlist: TraceCandidate[], step?: { before: LocalPosition; phone: DecodedPhoneme }): PositionEvent | null => {
     const pos = local!.position();
     const word = ref(index.wordAt(pos.offset - 1));
     const length = pos.offset - pos.origin;
@@ -1204,7 +1208,10 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       state: "locked",
     };
     emittedSinceLock = true;
-    return emit(event, (from) => quietTrace(from, "locked", shortlist));
+    const out = emit(event, (from) => quietTrace(from, "locked", shortlist));
+    if (newRun || !step) wordRun.reset();
+    else wordRun.commit(out, step.before, pos, step.phone);
+    return out;
   };
 
   /**
@@ -1279,6 +1286,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         events.push(...reacquire());
         continue;
       }
+      const beforePos = local.position();
       const before = local.save();
       local.step(ph.p);
       stepCosts.push(local.position().stepCost);
@@ -1288,6 +1296,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         const from = heardCost.length - heardPhrase.length;
         const cost = heardCost.slice(from).reduce((a, b) => a + b, 0) / heardPhrase.length;
         if (cost >= PHRASE_LOCAL_COST) {
+          wordRun.reset();
           // Not Quran text where we are: rewind the local search to before the phrase, as if it was never heard.
           if (heardPhrase.name === "basmala") {
             // A surah starts, not necessarily the next one: hand over to global search, favouring openings.
@@ -1312,8 +1321,10 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         }
       }
       const pos = local.position();
+      wordRun.observe(beforePos, pos);
       const relocated = considerTwin(ph.p, pos);
       if (relocated) {
+        wordRun.reset();
         events.push(relocated);
         continue;
       }
@@ -1346,7 +1357,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
           continue;
         }
       }
-      const e = localEvent(shortlist);
+      const e = localEvent(shortlist, { before: beforePos, phone: ph });
       if (e) events.push(e);
       expectedHistory.push(last!.expected);
       if (expectedHistory.length > WEAK_LAG) expectedHistory.shift();

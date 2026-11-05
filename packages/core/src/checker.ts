@@ -17,6 +17,8 @@ import { PHRASE_PEAK, PHRASE_SWITCH, letterSkeleton, parallelPaths } from "./par
 import { isMaddLetter, maddSites, stemConsonant } from "./madd-drops.js";
 import { formulaSlots } from "./formula-slots.js";
 import { spanId, slotSpans } from "./slot-spans.js";
+import { committedWordSpan, type CommittedWordSpan } from "./tracker-word-run.js";
+import { CONSONANTS, SOFT, HELD, subCharge, delCharge as wordDelCharge, insCharge as wordInsCharge, wordFit } from "./word-fit.js";
 
 export interface CheckerPolicy {
   /** When a suspected wrong or added word is confirmed: after `ms` (2–3 s), or once the next word has begun. Default 2500 ms. */
@@ -76,13 +78,6 @@ const LEAD = 1;
 const PHRASE = 1 / 64;
 /** A word is wrong above this weighted cost per reference phoneme it covers, with at least `MIN_WRONG_EDITS` plain edits. */
 const WRONG = 0.3;
-/**
- * Memorization costs: a different word changes consonants. Vowels, madd and the marks for qalqalah and ghunna cost
- * `SOFT` to change; a sound held longer or shorter (beside the same sound) costs `HELD`. Consonant edits are hard.
- */
-const CONSONANTS = new Set("ءبتثجحخدذرزسشصضطظعغفقكلمنهوي");
-const SOFT = 3;
-const HELD = 2;
 /** A wrong word needs this many hard edits, or one in a word with at most one consonant. */
 const MIN_HARD = 2;
 /** Inserted phonemes between two words that make an added word. */
@@ -323,6 +318,18 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   let declared = !!passage;
   /** Phonemes since the last anchor (or the latest `HISTORY` while not anchored). */
   let obs: Heard[] = [];
+  const trackerSpans = new Map<number, (CommittedWordSpan & { heard: string })[]>();
+  const frozenVeto = new WeakSet<Issue>();
+  const trackerFitsWritten = (issue: Issue): boolean => {
+    if (issue.cls !== "wrong_word" || issue.word !== issue.last || !issue.observed) return false;
+    if (frozenVeto.has(issue)) return true;
+    const left = obs[issue.obsFrom], right = obs[issue.obsTo - 1];
+    if (!left || !right) return false;
+    const written = ref.slice(words[issue.word].start, words[issue.word].end);
+    return (trackerSpans.get(issue.word) ?? []).some(s =>
+      s.frameFrom <= right.end && s.frameTo > left.start &&
+      wordFit(written, s.heard).hard <= wordFit(issue.observed!, s.heard).hard);
+  };
   /**
    * Matched madd-munfasil lengths already scrolled out of the window, in frames from the stem consonant to the
    * next hamza. The threshold for a vowel drop is the shortest of these, plus any still in the window.
@@ -418,10 +425,14 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   /** Words whose error was confirmed or ended uncertain; never reopened. */
   const decided = new Set<number>();
   const emitted: CheckerEvent[] = [];
+  /** Preserve internal accusation ownership when the independent witness changes only its outward verdict. */
+  const vetoedConfirmations = new WeakSet<CheckerEvent>();
   let seq = 0;
 
   const event = (o: Open, state: CheckerState): CheckerEvent => {
     const { issue } = o;
+    const vetoed = state === "confirmed" && trackerFitsWritten(issue);
+    if (vetoed) state = "uncertain";
     const conf = clarity(issue);
     const e: CheckerEvent = {
       type: "checker",
@@ -435,6 +446,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       ...(issue.heardUnion ? { observed: issue.heardUnion.observed } : issue.observed !== undefined ? { observed: issue.observed } : {}),
       confidence: conf,
     };
+    if (vetoed) vetoedConfirmations.add(e);
     emitted.push(e);
     return e;
   };
@@ -683,6 +695,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   const freezeSlot = (wi: number, o: Open) => {
     if (frozen.has(wi)) return;
+    if (trackerFitsWritten(o.issue)) frozenVeto.add(o.issue);
     frozen.set(wi, { o, sure: sureOf(o) });
     open.delete(wi);
   };
@@ -1066,11 +1079,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     v.cost += cost;
     if (cost >= UNIT) v.hard++;
   };
-  const subCharge = (r: string, p: string) => (r === p ? 0 : CONSONANTS.has(r) && CONSONANTS.has(p) ? subCost(r, p) : SOFT);
-  const delCharge = (at: number) => (ref[at] === ref[at - 1] || ref[at] === ref[at + 1] ? HELD : CONSONANTS.has(ref[at]) ? UNIT : SOFT);
+  const delCharge = (at: number) => wordDelCharge(ref, at);
   /** Inserting `p` before `ref[at]`, after the heard `prev`. */
   const insCharge = (at: number, p: string, prev?: string) =>
-    p === ref[at - 1] || p === ref[at] || p === prev ? HELD : CONSONANTS.has(p) ? UNIT : SOFT;
+    wordInsCharge(ref, at, p, prev);
 
   /** Min-charge alignment of `obs[from, to)` onto word `wi`. The path is that alignment. */
   const chargeAlign = (wi: number, from: number, to: number): Step[] => {
@@ -2151,7 +2163,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const wrong = issues.get(prevWord(wi));
       if (!wrong || wrong.cls !== "wrong_word") continue;
       const location = toRef(wrong.word);
-      const confirmed = decided.has(wrong.word) ? emitted.find(e => e.state === "confirmed" && e.errorClass === "wrong_word" &&
+      const confirmed = decided.has(wrong.word) ? emitted.find(e => (e.state === "confirmed" || vetoedConfirmations.has(e)) && e.errorClass === "wrong_word" &&
         e.location.surah === location.surah && e.location.ayah === location.ayah && e.location.word === location.word) : undefined;
       // An uncertain decision is not an accusation that can own another word's speech.
       if (decided.has(wrong.word) && !confirmed) continue;
@@ -2348,6 +2360,17 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const out: CheckerEvent[] = [];
       frameMs = evidence.frameMs;
       if (frames && evidence.posteriors) frames.append(evidence.posteriors);
+      // Read private metadata before track can settle an older accusation. Do not change obs or its alignment.
+      const available = [...obs, ...evidence.phonemes];
+      for (const e of events) if (e.type === "position") {
+        const s = committedWordSpan(e);
+        if (!s || !available.length || available[0].start > s.frameFrom) continue;
+        const heard = available.filter(p => p.start >= s.frameFrom && p.start < s.frameTo).map(p => p.p).join("");
+        if (!heard) continue;
+        const list = trackerSpans.get(s.word) ?? [];
+        if (!list.some(p => p.frameFrom === s.frameFrom && p.frameTo === s.frameTo)) list.push({ ...s, heard });
+        trackerSpans.set(s.word, list);
+      }
       const next = track(events, out);
       const before = obs.length;
       obs.push(...evidence.phonemes.map((p) => ({ ...p })));
@@ -2362,6 +2385,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (frames && obs.length) {
         const floor = ledgerFloor();
         frames.dropBefore(floor === null ? obs[0].start : Math.min(obs[0].start, floor));
+      }
+      if (obs.length) for (const [wi, list] of trackerSpans) {
+        const kept = list.filter(s => s.frameTo > obs[0].start);
+        if (kept.length) trackerSpans.set(wi, kept);
+        else trackerSpans.delete(wi);
       }
       return out;
     },
