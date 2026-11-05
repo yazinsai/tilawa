@@ -1,0 +1,13 @@
+{
+ "id": "listener-cross-reader-word-rank-adds",
+ "component": "listener",
+ "hypothesis": "Heard seam additions (p19, p33, p50, p49) are spelled by the channel-cost candidate search, but its single clean-seam log-odds cut cannot separate them from clean seams, which also reach 13-15 nats. Instead, confirm a candidate only if, by posteriorgram DTW, the span is nearer to other readers' phone-augmented renditions of that candidate word than to renditions of every neighbour, back-run or prefix. Predict 2 of 4 won with about 1 loss: listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-stack-be988c-6a17f391",
+ "testSet": "lab-v1.5",
+ "created": "2026-11-05T01:47:34+00:00",
+ "author": "autolab"
+}
