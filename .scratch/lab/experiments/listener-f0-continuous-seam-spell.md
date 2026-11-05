@@ -1,6 +1,9 @@
 # Session-relative F0 continuity for seam spellings
 
-Status: implemented; all four targets confirmed. Practice score pending.
+Status: implemented; all four targets confirmed in fresh SDK decodes.
+The requested practice score is +0 on existing listener evidence. Fresh SDK
+decoding of the full practice set and the final fold decision remain with the
+supervisor.
 
 ## Prediction
 
@@ -75,4 +78,86 @@ All 754 core tests passed, including the parent excision tests and new integrati
 cases for a pitch reset, an internal unvoiced gap, missing pitch, and a steady
 contour at both seam types. SDK pitch tests verify tone recovery, push-boundary
 invariance and internal silence. Existing listener tests check identical CTC
-runs and posteriors across push sizes. All 18 SDK tests passed; the optional end-to-end test was skipped. Practice score pending.
+runs and posteriors across push sizes. All 18 SDK tests passed; the optional
+end-to-end test was skipped.
+
+## Fresh SDK validation
+
+Modal run 9 loaded `/lab/data/models/spliced-clean-int8` through the normal SDK
+model loader and decoded each target's entire phone recording through
+`createEngine`, with 20 ms audio pushes and evidence recording enabled. This
+includes the normal context-free gap replacement. Its newly generated evidence
+was replayed through the unchanged free-recitation engine, with no source
+instrumentation, truth-position input, or saved-evidence edits.
+
+| Target | Added-word confirmation | All token pitch arrays finite |
+| --- | ---: | --- |
+| p19, 51:33:1 | 106.36 s | yes |
+| p50, 37:99:1 | 153.24 s | yes |
+| p31, 4:157:24 | 59.40 s | yes |
+| p66, 9:5:15 | 116.44 s | yes |
+
+All four confirm, exceeding the card's three-target premise. None confirms on
+the existing pitch-free evidence replayed through this branch. The fresh token
+records equal the cached records for p31; the other three are not byte-identical
+to the cache, with small confidence differences visible in the event records.
+This comparison establishes fresh-path coverage and target recall; it does not
+establish byte equivalence between separately recorded decodes. No acceptance
+cut or engine code changed during this continuation.
+
+Modal run 8 passed all 754 core tests. Its slowest shard hit the already
+documented Vitest worker RPC timeout after all tests passed, which the existing
+test script accepts. A new SDK regression checks absolute pitch coverage through
+explicit blank runs and chunk boundaries, plus JSON recording. Its first version
+incorrectly assumed that the tiny model fixture emitted blank argmaxes; the final
+test supplies a controlled blank/token sequence. Modal run 10 passed all 19 SDK
+tests; the optional end-to-end test remains skipped. Both packages compiled.
+The first fresh-decode probe (run 7) failed before decoding because core had not
+been built; run 9 added that build step and passed on all four shards.
+
+## Practice score and evidence coverage
+
+Practice request 1 scored engine commit `a050edaa` and returned:
+
+| Attribution | Main | Experiment | Change |
+| --- | ---: | ---: | ---: |
+| Overall | 30 | 30 | 0 |
+| Listener | 29 | 29 | 0 |
+| Tracker | 1 | 1 | 0 |
+| Checker | 0 | 0 | 0 |
+
+Both sides have 20 missed mistakes and 10 false warnings. The receipt's verdict
+is `noise`. One of the three allowed practice requests was used.
+
+This is a replay of existing evidence, not a fresh decode of the SDK change.
+Read-only inspection of the existing workflow confirmed that `serve_practice`
+invokes `lab run`, which reads the card/main listener's saved evidence. The
+supervisor's later `after_tests` stage separately decodes listener changes through
+this worktree's SDK and then scores that new evidence. No tooling was edited.
+The new path deliberately abstains when raw pitch is absent. Therefore this
+cached-evidence result cannot establish the F0 gate's precision, target recall,
+clean-session behaviour, studio delta or incident tradeoff. The initial four
+target confirmations came from replaying the existing phone strings with the
+new SDK's measured raw F0 attached. The subsequent run 9 independently confirms
+all four through fresh SDK decoding as described above.
+
+The implementation is left in place for the supervisor's normal fresh decode
+and fold gate. The target premise passed, so there is no premise-kill outcome
+file. No threshold or candidate rule was tuned after the practice result.
+
+## Limits
+
+A greedy zero-edit visit is the calibration criterion, not an independent audio
+transcription. Autocorrelation on phone-band audio can select a harmonic or a
+subharmonic, and extrema retain even a single such jump. The measured session
+maxima are consequently broad: up to 2.75 octaves and 9 unvoiced frames (360 ms).
+Keeping four targets establishes recall, but does not establish that these maxima
+reject the clean seam spellings that motivated the card. No pitch thresholds were
+changed after observing the targets.
+
+This implementation is causal: later words do not widen an earlier candidate's
+band. No eligible prior word means abstention. Pitch is measured only within the
+candidate's existing token bounds, which can truncate a held sound at a streaming
+window boundary; neither those bounds nor CTC emissions were retimed. The
+candidate set inherits all limitations of the parent generator. The diagnostic
+replay did not substitute truth-timed windows or change the tracker.

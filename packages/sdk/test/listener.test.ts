@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { PhonemeEvidence } from "@tilawa/core";
 import { createListener } from "../src/listener.js";
-import type { InferenceBackend, Tensor } from "../src/model.js";
+import { PitchTrack } from "../src/pitch.js";
+import type { InferenceBackend, LoadedModel, Tensor } from "../src/model.js";
 import { loadNodeModel } from "../src/node.js";
 import { decodeWav } from "../src/wav.js";
 
@@ -11,8 +12,8 @@ const reference = JSON.parse(readFileSync(fixture("tiny/reference.json"), "utf8"
 const wav = decodeWav(readFileSync(fixture("tlog-clean-00010-630.wav")));
 const VOCAB = reference.logProbs.length / reference.frames;
 
-async function run(step: number) {
-  const listener = createListener(await loadNodeModel(fixture("tiny").pathname), { posteriors: true });
+async function run(step: number, model?: LoadedModel) {
+  const listener = createListener(model ?? await loadNodeModel(fixture("tiny").pathname), { posteriors: true });
   const out: PhonemeEvidence[] = [];
   for (let a = 0; a < wav.samples.length; a += step) {
     const e = await listener.push(wav.samples.subarray(a, a + step), wav.sampleRate);
@@ -60,6 +61,39 @@ describe("streaming listener on onnxruntime-node", () => {
       prev = id;
     }
     expect(flat(a).length).toBe(greedy.length);
+  });
+
+  it("preserves the raw pitch clock through blank frames, chunk boundaries and JSON recording", async () => {
+    const model = await loadNodeModel(fixture("tiny").pathname);
+    let frame = 0;
+    // The tiny graph has no blank argmaxes. Alternate two token frames with
+    // two blank frames so this test actually exercises inter-token silence.
+    const backend: InferenceBackend = {
+      name: "blank-runs",
+      release: () => model.backend.release(),
+      async run(feeds) {
+        const out = await model.backend.run(feeds);
+        const lp = new Float32Array(out.log_probs.data.length).fill(-10);
+        const vocab = model.manifest.tokens.length + 1;
+        for (let t = 0; t < lp.length / vocab; t++) lp[t * vocab + (frame++ % 4 < 2 ? 1 : 0)] = 0;
+        return { ...out, log_probs: { ...out.log_probs, data: lp } };
+      },
+    };
+    const chunks = await run(317, { ...model, backend });
+    const pitch = new PitchTrack(wav.sampleRate, chunks[0].frameMs);
+    pitch.push(wav.samples);
+    pitch.end();
+    const phones = chunks.flatMap(c => c.phonemes);
+    expect(JSON.parse(JSON.stringify(phones))).toEqual(phones);
+    let until = 0;
+    let blankFrames = 0;
+    for (const p of phones) {
+      expect(p.pitch).toEqual(pitch.slice(until, p.end + 1));
+      expect(p.pitch).toHaveLength(p.end + 1 - until);
+      blankFrames += p.start - until;
+      until = p.end + 1;
+    }
+    expect(blankFrames).toBeGreaterThan(0);
   });
 
   it("holds nothing back past the last complete window: a token run still open there is returned with it, once", async () => {
