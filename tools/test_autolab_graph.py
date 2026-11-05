@@ -239,3 +239,21 @@ def test_split_gives_autolab_its_experiments_and_the_main_line_since_it_started(
     assert [m["experiment"] for m in lab["mainLine"]] == ["checker-old", "checker-hand"] and set(lab["experiments"]) == {"checker-old", "checker-hand"}
     assert [m["experiment"] for m in auto["mainLine"]] == [None, None, "checker-auto"] and set(auto["experiments"]) == {"checker-auto"}
     assert G.split(led, None) == (led, None)
+
+
+def test_autolab_experiments_keep_the_test_set_they_ended_on_after_a_switch():
+    """Autolab cards carry no test set. After the supervisor moves onto a new one, an experiment that ended before the
+    switch stays on the old set's graph; a live one is on the new set's."""
+    st, led = state(), auto()
+    last = led["mainLine"][-1]
+    led = {**led, "testSet": "lab-v1.5u", "mainLine": led["mainLine"] + [{**last, "testSet": "lab-v1.5u", "at": NOW, "recordedAt": NOW, "experiment": None, "note": "switch"}]}
+    exps = {i: {**e, "card": {k: v for k, v in (e.get("card") or {}).items() if k != "testSet"}} for i, e in st["experiments"].items()}
+    st = {**st, "testSet": "lab-v1.5u", "experiments": exps}
+    later = "2026-11-02T03:00:00+00:00"
+    v = G.progress(st, events(), lab(), led, later)
+    every = by_id(v["views"]["all"])
+    ended = [b for b in every.values() if b["source"] == "autolab" and b["outcome"] != "live" and G.ts(b["end"]) < G.ts(NOW)]
+    live = [b for b in every.values() if b["source"] == "autolab" and b["outcome"] == "live"]
+    assert ended and all(b["testSet"] == "lab-v1.5" for b in ended)
+    assert all(b["testSet"] == "lab-v1.5u" for b in live)
+    assert not set(by_id(v["views"]["testSet"])) & {b["id"] for b in ended}

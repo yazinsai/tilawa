@@ -115,6 +115,15 @@ def autolab_experiments(st: dict | None, events: list[dict]) -> dict:
     return exps
 
 
+def test_set_at(pts: list[dict], at: str | None) -> str | None:
+    """The test set the main line was on at `at`: autolab cards carry none, and an experiment is scored on the one in
+    effect when it ends (now, for a live one)."""
+    if not at:
+        return None
+    on = [p["testSet"] for p in pts if p.get("testSet") and ts(p["at"]) <= ts(at)]
+    return on[-1] if on else None
+
+
 def autolab_branches(st: dict | None, events: list[dict], now: str, explained: dict | None = None) -> list[dict]:
     folds = {ev.get("id"): ev.get("wrongCalls") for ev in events if ev.get("to") == "folded" and isinstance(ev.get("wrongCalls"), int)}
     out = []
@@ -131,7 +140,7 @@ def autolab_branches(st: dict | None, events: list[dict], now: str, explained: d
                     "tierText": AD.TIERS.get(e.get("tier") or c.get("tier")), "state": state, "stateText": AD.STATE_TEXT.get(state, state),
                     "outcome": "folded" if state == "folded" else "live" if live else "ended",
                     "start": e.get("created") or (hist[0]["at"] if hist else e.get("since")), "end": now if live else e.get("since"),
-                    "testSet": c.get("testSet") or (st or {}).get("testSet"), "hypothesis": c.get("hypothesis", ""),
+                    "testSet": c.get("testSet"), "hypothesis": c.get("hypothesis", ""),
                     "expected": (c.get("expected") or {}).get("overall"), "result": None, "change": pc["overall"] if pc else None,
                     "reason": "" if live else reason, "stages": [{"state": h.get("state"), "at": h.get("at")} for h in hist],
                     "ageSeconds": AD.seconds(e.get("since"), now) if live else None, "waiting": state == "needs-human",
@@ -248,6 +257,8 @@ def progress(state: dict | None, events: list[dict], lab: dict | None, auto: dic
     pts = spine(lab, auto)
     cur = (state or {}).get("testSet") or (auto or {}).get("testSet") or (pts[-1]["testSet"] if pts else None)
     lb, ab = lab_branches(lab, now, explained), autolab_branches(state, events, now, explained)
+    for b in ab:
+        b["testSet"] = b["testSet"] or test_set_at(pts, b["end"]) or cur
     views = {"autolab": graph([p for p in pts if p["source"] == "autolab"], ab, now),
              "testSet": graph([p for p in pts if p["testSet"] == cur], [b for b in lb + ab if b["testSet"] == cur], now),
              "all": graph(pts, lb + ab, now)}
