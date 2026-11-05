@@ -1,0 +1,13 @@
+{
+ "id": "listener-same-text-replay-add-veto",
+ "component": "listener",
+ "hypothesis": "Ownership-free seam spelling recovers heard planted words: excise-certify won 7, including p19, p50, 4:157:24 and 9:5:15. It lost 18 because clean seams also spell whole words, plausibly assembled from the neighbours' own text and blur. Emit an ownership-free seam spelling only if the unchanged engine never spells that same word at the same seam on clean gold-excluded replays of the same text; predict listener -3, overall -2.",
+ "expected": {
+  "component": -3,
+  "overall": -2
+ },
+ "listener": "exp-listener-stack-be988c-6a17f391",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-05T07:35:25+00:00",
+ "author": "autolab"
+}
