@@ -94,9 +94,14 @@ export class PosteriorFrames {
    * `repeats` are inclusive label spans that may be said again: from the end of the span, the forward
    * sum may re-enter its first label. The same arcs the alignment already uses to repeat a contiguous
    * word or ayah. No filler loop. Omitted, the sum is the plain chain.
+   * `cut`, when present, removes those frames from both the emissions and the
+   * recurrence; it does not replace them with blank or modify stored evidence.
    */
-  nll(labels: ArrayLike<number>, from: number, to: number, repeats?: ReadonlyArray<readonly [number, number]>): number {
+  nll(labels: ArrayLike<number>, from: number, to: number, repeats?: ReadonlyArray<readonly [number, number]>, cut?: readonly [number, number]): number {
     const L = labels.length;
+    // Excise frames, rather than forcing them to blank. The state distribution carries directly
+    // across the cut, exactly as it would on the concatenated remaining rows.
+    if (cut && from >= cut[0] && from < cut[1]) from = cut[1];
     if (to <= from) return L ? Infinity : 0;
     const S = 2 * L + 1;
     const label = (s: number) => (s % 2 === 0 ? 0 : labels[(s - 1) >> 1]);
@@ -107,6 +112,7 @@ export class PosteriorFrames {
     prev[0] = r0[0];
     if (L) prev[1] = r0[label(1)];
     for (let f = from + 1; f < to; f++) {
+      if (cut && f >= cut[0] && f < cut[1]) continue;
       const row = this.row(f);
       for (let s = 0; s < S; s++) {
         let a = prev[s];

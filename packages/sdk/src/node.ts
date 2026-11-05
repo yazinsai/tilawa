@@ -1,5 +1,5 @@
 /** Node entry: onnxruntime-node, models from a directory, WAV input. */
-import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import * as ort from "onnxruntime-node";
 import { MEMORIZATION_CLASSES } from "./capabilities.js";
@@ -10,6 +10,7 @@ import { MODEL_REGISTRY } from "./registry.js";
 import type { OrtModule } from "./ort.js";
 import { ortBackend } from "./ort.js";
 import { decodeWav } from "./wav.js";
+import { createInsertionTeacher } from "./insertion-teacher.js";
 
 export * from "./index.js";
 export { decodeWav };
@@ -21,7 +22,29 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return { manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES };
+  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+}
+
+/** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
+async function attachInsertionTeacher(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
+  const asset = MODEL_REGISTRY.auxiliary?.find(a => a.purpose === "seam-insertion");
+  if (!asset) return model;
+  const installed = await access(join(dir, asset.file)).then(() => true,
+    e => { if (e.code === "ENOENT") return false; throw e; });
+  if (!installed) return model;
+  if (asset.inventory !== model.manifest.inventory) throw new Error("Insertion teacher inventory differs from the primary model");
+  for (const data of asset.externalData) await access(join(dir, data.file));
+  let auxiliary: Promise<ReturnType<typeof createInsertionTeacher>> | undefined;
+  let teacherBackend: import("./model.js").InferenceBackend | undefined;
+  const release = model.backend.release.bind(model.backend);
+  model.backend.release = async () => { if (auxiliary) await auxiliary; await teacherBackend?.release(); await release(); };
+  model.insertionTeacher = { async decode(samples, k) {
+    auxiliary ??= ortBackend(ort as unknown as OrtModule, join(dir, asset.file), "onnxruntime-node", {
+      executionProviders: ["cpu"], intraOpNumThreads: threads, graphOptimizationLevel: "disabled",
+    }).then(b => { teacherBackend = b; return createInsertionTeacher(b, model.manifest.tokens, model.manifest.inventory); });
+    return (await auxiliary).decode(samples, k);
+  } };
+  return model;
 }
 
 export async function readWav(path: string) {
@@ -64,5 +87,6 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return { manifest: tier.manifest, backend, supported: tier.supported };
+  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
+    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
 }

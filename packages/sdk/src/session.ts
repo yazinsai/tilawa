@@ -12,6 +12,7 @@ import type {
 } from "@tilawa/core";
 import { Resampler } from "./audio.js";
 import { capabilities } from "./capabilities.js";
+import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
 import { createListener } from "./listener.js";
 import type { ListenerOptions } from "./listener.js";
@@ -55,7 +56,7 @@ export interface Session {
   subscribe(listener: (event: EngineEvent) => void): () => void;
   /** Microphone or file audio at any sample rate. */
   pushAudio(samples: Float32Array, sampleRate: number): Promise<EngineEvent[]>;
-  /** Drains the listener and decides every open error. */
+  /** Drains the listener and decides every open error, including warm-crop seam judgments when a teacher is installed. */
   end(): Promise<EngineEvent[]>;
   /** Evidence from another listener, bypassing the model; use `endEvidence` to finish. */
   pushEvidence(evidence: PhonemeEvidence): EngineEvent[];
@@ -94,11 +95,12 @@ export function createEngine(options: EngineOptions): Engine {
 
   function start(mode: Session["mode"], passage: Session["passage"], policy: SessionPolicy = {}): Session {
     const tracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
-    const checker = createChecker(index, {
+    const checkerOptions = {
       phrases,
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
       ...(passage && { passage }),
-    });
+    };
+    const checker = createChecker(index, checkerOptions);
     const listener = createListener(model, { posteriors: true, ...options.listener });
     const wordIndex = new Map(index.words.map((w, i) => [`${w.surah}:${w.ayah}:${w.word}`, i]));
     const locks: { wi: number; timeMs: number }[] = [];
@@ -113,7 +115,7 @@ export function createEngine(options: EngineOptions): Engine {
     const pcmParts: Float32Array[] = [];
     let pcmResampler: Resampler | null = null;
     const keepAudio = (samples: Float32Array, sampleRate: number) => {
-      if (!options.recordEvidence) return;
+      if (!options.recordEvidence && !model.insertionTeacher) return;
       let pcm = samples;
       if (sampleRate !== rate) {
         if (!pcmResampler || pcmResampler.from !== sampleRate) pcmResampler = new Resampler(sampleRate, rate);
@@ -128,10 +130,11 @@ export function createEngine(options: EngineOptions): Engine {
       return events;
     };
     const recorded: PhonemeEvidence[] = [];
+    const auxiliaryMistakes: CheckerEvent[] = [];
     const cells = evidenceGrid(policy.evidenceMs ?? model.manifest.frameMs);
     const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
-      if (options.recordEvidence) recorded.push(e);
+      if (options.recordEvidence || model.insertionTeacher) recorded.push(e);
       // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
       const out = tracker.push(trackerInput(e));
       noteLocks(out);
@@ -173,7 +176,7 @@ export function createEngine(options: EngineOptions): Engine {
           const e = await listener.end();
           if (e) cells.add(e);
           const events = [...feed(cells.rest()), ...finish()];
-          if (options.recordEvidence && pcmParts.length && locks.length > 1) {
+          if ((options.recordEvidence || model.insertionTeacher) && pcmParts.length) {
             const n = pcmParts.reduce((s, p) => s + p.length, 0);
             const audio = new Float32Array(n);
             let o = 0;
@@ -181,8 +184,29 @@ export function createEngine(options: EngineOptions): Engine {
               audio.set(part, o);
               o += part.length;
             }
-            const spliced = await spliceContextFreeGaps(model, audio, rate, recorded, locks, index);
-            recorded.splice(0, recorded.length, ...spliced);
+            const spliced = options.recordEvidence && locks.length > 1
+              ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
+            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            recorded.splice(0, recorded.length, ...enriched);
+            if (model.insertionTeacher) {
+              // Auxiliary replay cannot replace primary events or change the live tracker.
+              // Only newly certified seam additions are published at end().
+              const reviewTracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
+              const review = createChecker(index, checkerOptions);
+              for (const e of insertionCells(enriched)) review.push(e, reviewTracker.push(trackerInput(e)));
+              review.end(reviewTracker.end());
+              const known = new Set(checker.mistakes().filter(e => e.errorClass === "added_word")
+                .map(e => JSON.stringify(e.location)));
+              const certificates = enriched.flatMap(e => e.phonemes.flatMap(p => p.seamInsertions ?? []));
+              for (const e of review.mistakes()) {
+                if (e.errorClass !== "added_word" || known.has(JSON.stringify(e.location)) ||
+                  !certificates.some(c => c.marginal > 0.5 && c.observed === e.observed &&
+                    c.word.surah === e.location.surah && c.word.ayah === e.location.ayah && c.word.word === e.location.word)) continue;
+                auxiliaryMistakes.push(e);
+                known.add(JSON.stringify(e.location));
+              }
+              events.push(...emit(auxiliaryMistakes));
+            }
           }
           return events;
         }),
@@ -191,8 +215,8 @@ export function createEngine(options: EngineOptions): Engine {
         return feed(cells.ready(e.posteriors && e.posteriors.startFrame + e.posteriors.nFrames));
       },
       endEvidence: () => [...feed(cells.rest()), ...finish()],
-      mistakes: () => checker.mistakes(),
-      evidence: () => recorded,
+      mistakes: () => [...checker.mistakes(), ...auxiliaryMistakes],
+      evidence: () => options.recordEvidence ? recorded : [],
     };
   }
 

@@ -13,6 +13,7 @@ import { swapTailUnion } from "./checker-swap-tail.js";
 import { minGapFrames } from "./gap-decode.js";
 import { procliticOnset, waqfMarked } from "./mushaf-marks.js";
 import { absenceMargin } from "./ayah-ledger.js";
+import { excisedNeighbourMargins, surplusNasal } from "./seam-excision.js";
 import { PHRASE_PEAK, PHRASE_SWITCH, letterSkeleton, parallelPaths } from "./parallel-phrases.js";
 import { isMaddLetter, maddSites, stemConsonant } from "./madd-drops.js";
 import { formulaSlots } from "./formula-slots.js";
@@ -39,7 +40,19 @@ export interface CheckerPolicy {
   finaliseFree?: boolean;
 }
 
+export interface SeamInsertionCandidate {
+  word: number;
+  said: string;
+  fromFrame: number;
+  toFrame: number;
+  seamFromFrame: number;
+  seamToFrame: number;
+  prefixFrame?: number;
+}
+
 export interface CheckerOptions {
+  /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
+  seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
   policy?: CheckerPolicy;
   /** Non-Quran phrases: an inserted block that is one of these (or a basmala) is not an added word. */
   phrases?: PhraseAsset;
@@ -242,6 +255,15 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const ref = index.phonemes;
   const words = index.words;
   const lexical = lexicalWords(index);
+  const insertionEvidence = new Map<string, number>();
+  const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
+    JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
+  // A completed seam remains in the streaming window over many pushes. Its
+  // immutable rows and tokens need only be certified once. Coordinates in a
+  // cached result are relative to that window, so commits may trim obs safely.
+  const seamExcisionCache = new Map<string, {
+    until: number; span: { from: number; to: number; said: string } | null;
+  }>();
   const parallels = parallelPaths(index);
   const madd = maddSites(index);
   const formulas = formulaSlots(index);
@@ -1875,6 +1897,81 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         cls: "added_word", word: rightWord, last: rightWord, obsFrom: best.left.obsTo, obsTo: cut, observed: said, lexicon: true,
       });
     }
+    // A spelled span can be lent to either neighbour by the greedy alignment.
+    // Use visits only to bound the seam, then certify presence on the posteriors
+    // left after excision. No complete visit or initial ownership is required.
+    const seamPauses = [0], seamJunk = [0];
+    const seamUtterances: { from: number; to: number }[] = [];
+    let utteranceFrom = -1;
+    for (const [key, value] of seamExcisionCache) if (value.until < obs[0].start) seamExcisionCache.delete(key);
+    if (frames && frames.startFrame >= 0) for (let i = 0; i < obs.length; i++) {
+      seamPauses.push(seamPauses[i] + Number(runEndPause(i)));
+      seamJunk.push(seamJunk[i] + Number(!!obs[i].junk));
+      if (seamPauses[i + 1] > seamPauses[i]) {
+        if (utteranceFrom >= 0) seamUtterances.push({ from: utteranceFrom, to: i + 1 });
+        utteranceFrom = i + 1;
+      }
+    }
+    seamUtterances.sort((a, b) => (b.to - b.from) - (a.to - a.from) || a.from - b.from);
+    if (frames && frames.startFrame >= 0) for (const w1 of new Set(visits.map(v => v.word))) {
+      if (w1 < first || !length(w1) || decided.has(w1) || issues.get(w1)?.lexicon) continue;
+      const prev = prevWord(w1), w2 = nextWord(w1);
+      if (prev < 0 || w2 >= words.length || words[prev].surah !== words[w1].surah) continue;
+      const inner = ayahOf[prev] === ayahOf[w1];
+      if (inner ? !waqfMarked(prev) : ayahFirst[ayahOf[w1]] !== w1) continue;
+      const lefts = visits.filter(v => v.word === prev && v.obsFrom >= 0 && v.obsTo > v.obsFrom);
+      const ends = visits.filter(v => v.word === w2 && v.obsFrom >= 0 && v.obsTo > v.obsFrom);
+      let found: Issue | undefined;
+      for (const left of lefts) for (const end of ends) {
+        if (found || left.obsTo > end.obsFrom) continue;
+        const from = left.obsFrom, to = end.obsTo;
+        const f0 = obs[from].start, f1 = obs[to - 1].end + 1;
+        if (f0 < frames.startFrame || f1 > frames.endFrame) continue;
+        if (inner && seamPauses[end.obsFrom] === seamPauses[from]) continue;
+        if (!seamUtterances.some(s => s.from >= from && s.to <= end.obsFrom)) continue;
+        const key = JSON.stringify([w1, f0, f1, obs.slice(from, end.obsFrom).map(p => [p.p, p.start, p.end, !!p.junk])]);
+        const cached = seamExcisionCache.get(key);
+        if (cached) {
+          if (cached.span) found = {
+            cls: "added_word", word: w1, last: w1, obsFrom: from + cached.span.from,
+            obsTo: from + cached.span.to, observed: cached.span.said, lexicon: true,
+          };
+          continue;
+        }
+        const forms = [prev, w1, w2].map(wi => [...new Set([
+          ref.slice(words[wi].start, words[wi].end), index.isolatedWordForms?.[wi] ?? "",
+        ].filter(Boolean))]);
+        // Longer spans first: a whole word takes precedence over its lexical tail.
+        for (const { from: a, to: b } of seamUtterances) {
+          if (found) break;
+          if (a < from || b > end.obsFrom) continue;
+          if (seamJunk[b] !== seamJunk[a]) continue;
+          // Excision must take an entire pause-bounded utterance, not a fragment
+          // of a word or a held run that the remaining frames can still explain.
+          const said = stripEdge(surplusNasal(obs.slice(a, b).map(p => p.p).join("")));
+          if (!said || !lexical.surplusWord(w1, said) || phraseSpan(said)) continue;
+          if (lexical.fragmentOfSeam(w1, said)) continue;
+          const margins = excisedNeighbourMargins(frames, p => tokenId.get(p) ?? 0, forms, f0, f1,
+            [obs[a].start, obs[b - 1].end + 1]);
+          if (!margins || margins.some(m => m < PHRASE_SWITCH)) continue;
+          const preceding = prevWord(prev);
+          const prefix = visits.filter(v => v.word === preceding && ayahOf[preceding] === ayahOf[prev] &&
+            v.obsFrom >= 0 && v.obsTo <= left.obsFrom).sort((a, b) => b.obsTo - a.obsTo)[0];
+          const candidate: SeamInsertionCandidate = { word: w1, said,
+            fromFrame: obs[a].start, toFrame: obs[b - 1].end + 1, seamFromFrame: f0, seamToFrame: f1,
+            prefixFrame: prefix && obs[prefix.obsFrom].start };
+          const permitted = options.seamInsertion ? options.seamInsertion(candidate) :
+            (insertionEvidence.get(insertionKey(words[w1], said, candidate.fromFrame, candidate.toFrame)) ?? 0) > 0.5;
+          if (!permitted) continue;
+          found = { cls: "added_word", word: w1, last: w1, obsFrom: a, obsTo: b, observed: said, lexicon: true };
+          break;
+        }
+        seamExcisionCache.set(key, { until: f1, span: found ? {
+          from: found.obsFrom - from, to: found.obsTo - from, said: found.observed!,
+        } : null });
+      }
+      if (found) issues.set(w1, found);
+    }
     for (const e of stepEdits.sort((a, b) => b.lo - a.lo)) steps.splice(e.lo, e.hi - e.lo, ...e.path);
     // The identical two-word lead plus a locked ayah end closes this choice. Score only the greedy
     // phones before its labelled pause, treating waqf tails and held sounds identically on both sides.
@@ -2358,6 +2455,13 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
+        if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
+          Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {
+          const key = insertionKey(m.word, m.observed, m.fromFrame, m.toFrame);
+          insertionEvidence.set(key, Math.max(insertionEvidence.get(key) ?? 0, m.marginal));
+        }
+      }
       const out: CheckerEvent[] = [];
       frameMs = evidence.frameMs;
       if (frames && evidence.posteriors) frames.append(evidence.posteriors);

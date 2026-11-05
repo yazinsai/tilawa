@@ -24,6 +24,11 @@ export interface ModelTier {
 export interface ModelRegistry {
   schema: 1;
   tiers: ModelTier[];
+  auxiliary?: {
+    id: string; purpose: "seam-insertion"; precision: "float32"; inventory: string;
+    file: string; bytes: number; sha256: string;
+    externalData: { file: string; bytes: number; sha256: string }[];
+  }[];
 }
 
 /** Persistent bytes by key: Cache API on web, a directory on Node, an app-provided store on React Native. */
