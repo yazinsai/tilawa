@@ -7234,7 +7234,7 @@
   },
   {
    "kind": "main",
-   "at": "2026-11-05T10:54:22+00:00",
+   "at": "2026-11-05T10:54:26+00:00",
    "sha": "06c04a52",
    "testSet": "lab-v1.5u",
    "experiment": "checker-parallel-verse-illa-inna",
@@ -7247,18 +7247,11 @@
     "tracker": 1,
     "checker": 0
    },
-   "exam": {
-    "wrongCalls": 107,
-    "missed": 46,
-    "falseWarnings": 61,
-    "listener": 94,
-    "tracker": 8,
-    "checker": 5
-   }
+   "exam": null
   },
   {
    "kind": "experiment",
-   "at": "2026-11-05T10:54:22+00:00",
+   "at": "2026-11-05T10:54:26+00:00",
    "id": "checker-parallel-verse-illa-inna",
    "component": "checker",
    "hypothesis": "checker-parallel-verse-graph-decode added a real-user wrong-word false warning at sob-027 84:25:1 (إلّا heard as إنّ). Find why the parallel-verse graph accepts the rival spelling there and narrow it without giving back its practice wins. Predict real-user false warnings -1, practice unchanged.",
@@ -7286,14 +7279,667 @@
      "tracker": 1,
      "checker": 0
     },
-    "exam": {
-     "wrongCalls": 107,
-     "missed": 46,
-     "falseWarnings": 61,
-     "listener": 94,
-     "tracker": 8,
-     "checker": 5
-    }
+    "exam": null
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T11:04:30+00:00",
+   "id": "listener-prompt-decoder-swap-veto",
+   "component": "listener",
+   "hypothesis": "Four phone wrong-word false warnings on the string paths (26:106:1, 55:48:1, 26:174:8, 92:13:1) are blurred readings of the written word. Each veto so far used a text-blind ear, a fixed score or another reader's audio, so none of them had real evidence about whether the written word was spoken. Veto a pending string-path wrong word when the already-trained prompt-dropout decoder, which was trained not to copy prompt words the audio lacks, reads the slot as the written word. Predict 2 of 4 vetoed and about 1 caught swap lost: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The stipulated reusable prompt-dropout decoder is neither a declared SDK asset nor present in the supplied exported models or saved training runs, so the proposed veto cannot be instantiated with that checkpoint. (measured: {\"targets won\": 0, \"targets tested\": 0, \"checkpoint available\": false, \"practice scores\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T11:18:42+00:00",
+   "id": "listener-mined-offtext-phrase-lexicon",
+   "component": "listener",
+   "hypothesis": "The two listener added-word false warnings (26:5:1, about 9 real off-text tokens heard by both ears; 22:13:3) may be ordinary non-Quran utterances, such as a takbir, a short du'a, a teacher-style prompt or a self-correction formula, that the hand-written four-entry non-Quran phrase list does not cover. Mine the recurring off-text phrases that real gold-excluded reciters say and add them to that list; predict 1 of 2 vetoed, 0 lost: listener -1, overall -1 (honest, below the gate alone).",
+   "expected": {
+    "component": -1,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: Neither target matches any of 129 help-train off-text spans, including all 19 three-speaker recurring candidates; the required recurring multi-word phrase is absent from the available training corpus. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T11:19:38+00:00",
+   "id": "tracker-word1-progress-reset-spell-span",
+   "component": "tracker",
+   "hypothesis": "At seam additions the tracker steps onto word 1 during the inserted speech, and its match pointer inside word 1 plausibly falls back to word 1's first phones when the real word 1 starts. The tokens before that fall-back are the inserted word, yet no rule reads them as one span. Export the reset point and feed the pre-reset tokens to the unchanged folded spell rule; predict 2 of 4 won with about 1 loss: tracker 0, overall -1 (honest; listener-charged wins).",
+   "expected": {
+    "component": 0,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: Only one of four targets has a within-word reset to the first two phones in the same local run with two planted consonants before it, below the required two-target premise. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T11:37:13+00:00",
+   "id": "listener-same-text-replay-add-veto",
+   "component": "listener",
+   "hypothesis": "Ownership-free seam spelling recovers heard planted words: excise-certify won 7, including p19, p50, 4:157:24 and 9:5:15. It lost 18 because clean seams also spell whole words, plausibly assembled from the neighbours' own text and blur. Emit an ownership-free seam spelling only if the unchanged engine never spells that same word at the same seam on clean gold-excluded replays of the same text; predict listener -3, overall -2.",
+   "expected": {
+    "component": -3,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The shipped same-text replay veto retained five target detections but introduced confirmed added-word warnings on two fully clean practice sessions. (measured: {\"overall\": 8, \"targets won\": 5})",
+   "branch": {
+    "wrongCalls": 38,
+    "missed": 13,
+    "falseWarnings": 25,
+    "listener": 31,
+    "tracker": 1,
+    "checker": 6
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T12:03:43+00:00",
+   "id": "listener-prompt-dec-retrain-swap-veto",
+   "component": "listener",
+   "hypothesis": "Four phone wrong-word false warnings on the string paths (26:106:1, 55:48:1, 26:174:8, 92:13:1) are blurred readings of the written word, and no text-blind veto separates them from planted swaps. Retrain the prompt-dropout decoder, save it as a declared sdk asset this time, and veto a string-path wrong word when that decoder, prompted with the written text, reads the slot as the written word. Predict 2 of 4 vetoed with about 1 caught swap lost: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The retrained int8 prompt-dropout decoder spells the written word without hard edits and excludes the rival on only one of four target slots, below the three-target continuation minimum. (measured: {\"targets won\": 1, \"targets tested\": 4, \"practice scores\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T12:14:33+00:00",
+   "id": "tracker-midayah-restart-needs-pause",
+   "component": "tracker",
+   "hypothesis": "In p46 the planted omission at 54:36:4 is followed by a mid-ayah run restart onto the rhyme look-alike 54:37:9. That restart leaves 54:36 unwindowed, and the ledger reports a false skip at 54:36:1. Allow an in-lock restart onto a non-initial word only after a labelled pause or cut-off; otherwise keep the in-order continuation. Predict tracker -1, overall -1 (honest, below the gate).",
+   "expected": {
+    "component": -1,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The target mid-ayah restart begins after a source visit covering only 2 of 11 phonemes, so the proposed cut-off exception admits it. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T12:24:06+00:00",
+   "id": "listener-slot-duration-written-vs-rival",
+   "component": "listener",
+   "hypothesis": "Phone wrong-word false warnings are blurred written words. Consonant blur changes what a word sounds like but not how long it takes, while a planted swap is the rival word's own audio and takes the rival's time. Veto an accusation when its anchored slot's duration fits the written word's expected length at this reciter's rate clearly better than the rival's. Predict 3 of 7 vetoed and about 1 caught swap lost: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: Only two listed targets favour the written slot duration, and neither exceeds its session's confident-word duration spread; the built veto wins zero targets. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T12:47:32+00:00",
+   "id": "tracker-restart-explains-paid-span",
+   "component": "tracker",
+   "hypothesis": "The listener added-word false warning at 26:5:1 is real speech: the tracker pays about 9 tokens there and then restarts its run, and those paid tokens are plausibly a re-read that runs into the restart point. Veto a support-path added word only when its tokens fit the text immediately before the tracker's own committed restart target; predict tracker 0, overall -1 (honest, a zero-loss rider candidate below the gate).",
+   "expected": {
+    "component": 0,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The target's paid span has no committed tracker run-origin change: the tentative local detour is rejected and returns to the original run. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T13:17:25+00:00",
+   "id": "listener-cross-reader-word-rank-adds",
+   "component": "listener",
+   "hypothesis": "Heard seam additions (p19, p33, p50, p49) are spelled by the channel-cost candidate search, but its single clean-seam log-odds cut cannot separate them from clean seams, which also reach 13-15 nats. Instead, confirm a candidate only if, by posteriorgram DTW, the span is nearer to other readers' phone-augmented renditions of that candidate word than to renditions of every neighbour, back-run or prefix. Predict 2 of 4 won with about 1 loss: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "diff review: The experiment reports raising two unrelated tracker tests’ timeouts from 5 to 30 seconds after timeout failures, without a corresponding tracker fix. This relaxes existing test enforcement to make the suite pass, which the review rules prohibit. .scratch/lab/experiments/listener-cross-reader-word-rank-adds.md:154-166 - Documents selectively increasing the long-silence and same-passage misfit test budgets while leaving tracker runtime behavior unchanged.",
+   "branch": {
+    "wrongCalls": 30,
+    "missed": 20,
+    "falseWarnings": 10,
+    "listener": 29,
+    "tracker": 1,
+    "checker": 0
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T13:20:47+00:00",
+   "id": "listener-spell-span-nucleus-match",
+   "component": "listener",
+   "hypothesis": "Ownership-free seam spelling (excise-certify) recovers heard planted words but lets through clean-seam spellings stitched from neighbour tails and onsets; emit a spelled span only if the low-band vowel-nucleus count inside its own frames equals the spelled word's written vowel count, predict listener -2, overall -1 (calibrated low).",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: Only one of four target excise-certify spans matches its spelled word's written vowel count; the nucleus veto retains only that target confirmation. (measured: {\"targets won\": 1, \"target nucleus matches\": 1, \"targets checked\": 4})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T13:31:10+00:00",
+   "id": "listener-grid-stable-seam-spellings",
+   "component": "listener",
+   "hypothesis": "Ownership-free seam spelling (excise-certify) recovered 7 heard added words but lost 18, because clean seams also yield exact whole-word spellings. Those are plausibly knife-edge greedy picks made from neighbour blur, while a planted word the model really hears is spelled robustly. Emit a seam spelling only if a second full-session pass with the chunk grid shifted by half a chunk spells the same word over the same frames; predict 3 of 5 targets kept, losses cut to about 3, listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "gate on the branch: overall +12 (needs -3 or better), listener +12 (needs +2 or better); without reader mp3quran-198: +16 (needs -1 or better); 7 new false warning(s) on fully clean sessions; studio +15; real users' clean false warnings +3; 20 incidents lost against 5 won",
+   "branch": {
+    "wrongCalls": 42,
+    "missed": 15,
+    "falseWarnings": 27,
+    "listener": 41,
+    "tracker": 1,
+    "checker": 0
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T13:51:29+00:00",
+   "id": "listener-tentative-detour-names-add",
+   "component": "listener",
+   "hypothesis": "Planted seam additions are mushaf words, so the tracker briefly tries a local detour to that word's own location and then rejects it when the reciter returns to the text. That rejected detour names the inserted word, but no rule reads it, and the spell rules fail on blur and neighbour ownership. Emit an added word when a rejected detour's destination word is a non-neighbour word whose consonants the detour's tokens hold in order. Predict listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: None of the eight target seams has a rejected tentative local detour whose destination names the planted word, below the required three-target premise. (measured: {\"targets won\": 0, \"targets with premise\": 0, \"targets checked\": 8})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T14:06:33+00:00",
+   "id": "listener-excise-span-scoped-hum-keep",
+   "component": "listener",
+   "hypothesis": "Two unrelated gates on excise-certify (half-chunk grid stability, F0 continuity) both scored exactly +12, near the ungated +11, so its losses plausibly come from a part no gate touches: the bundled 'keep a held ں as ن' strip change, which rewrites strip decisions outside the gated emission. Confine that hum reading to frames inside a candidate span that already passes spelling and neighbour certification, leaving every other strip byte-identical to main; predict 3 of 4 targets kept and most losses gone: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The parent and both cited gates already apply hum-as-nun only to candidate-local strings and leave the shared tail strip unchanged, so the proposed side-effect-removal mechanism is absent. (measured: {\"targets won\": 0, \"targets evaluated\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T14:20:55+00:00",
+   "id": "listener-f0-continuous-seam-spell",
+   "component": "listener",
+   "hypothesis": "Ownership-free seam spelling (excise-certify) recovered heard additions (p19, p50, 4:157:24, 9:5:15) but lost 18, plausibly because clean-seam spellings are stitched across a waqf tail, a breath and the next word's onset. Emit a spelled span only if its voiced frames form one pitch-continuous stretch, judged against this session's own within-word pitch jumps. Predict 3 of 4 targets kept and losses cut to about 3: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "gate on the branch: overall +13 (needs -3 or better), listener +13 (needs +2 or better); without reader mp3quran-198: +17 (needs -1 or better); 5 new false warning(s) on fully clean sessions; studio +14; real users' clean false warnings +2; 22 incidents lost against 7 won",
+   "branch": {
+    "wrongCalls": 43,
+    "missed": 13,
+    "falseWarnings": 30,
+    "listener": 42,
+    "tracker": 1,
+    "checker": 0
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T14:47:59+00:00",
+   "id": "listener-own-voice-resynth-swap-veto",
+   "component": "listener",
+   "hypothesis": "Phone false wrong words (26:106:1, 55:48:1, 26:174:8, 92:13:1) are this listener's habitual mishearing of the written word in this reciter's voice, but every veto so far compared against other readers' audio or fixed weights. Resynthesise the correct window in the session's own voice, push it through the phone chain and decode it; veto when the correct reading reproduces the same accusation. Predict 2 of 4 vetoed, about 1 caught swap lost: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The reusable resynthesiser supports fixed training-speaker IDs, not conditioning on a session's committed words, and no supplied asset implements the required own-voice synthesis. (measured: {\"targets won\": 0, \"targets tested\": 0, \"practice scores\": 0, \"own-voice conditioner available\": false})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T15:05:28+00:00",
+   "id": "listener-session-phone-centroid-veto",
+   "component": "listener",
+   "hypothesis": "Phone wrong-word false warnings (26:106:1, 55:48:1, 92:13:1) rest on one or two consonants the channel blurred, such as ذ heard as د or ت heard as ف. Every veto so far compared the accused word as a whole against other readers, a lexicon or a channel table, never against how this reciter on this phone sounds when saying those exact consonants. Veto when, at every contradicting consonant, the frame is closer to the session's own confident renditions of the written consonant than to its renditions of the heard one. Predict 2 of 3 vetoed with about 1 caught swap lost: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The built causal phone-centroid veto removes none of the three target warnings: both covered consonant comparisons favor the heard class, and the real-user alignment has no eligible contradiction diagonal. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T15:28:54+00:00",
+   "id": "listener-fbank-manner-landmark-veto",
+   "component": "listener",
+   "hypothesis": "Phone false wrong words such as 55:48:1 (ذواتا heard د و ف) and 26:106:1 (إذ heard يَاا) can rest on consonants the student puts in the wrong manner class, such as a stop for a fricative or a glide for a glottal stop. The raw signal may still show the written manner: steady hiss with no closure, or a sudden onset. Veto a string-path wrong word when a classifier reading raw log-mel landmarks, independent of the network, prefers the written manner at every position where the manner changed. Predict listener -1, overall -1 (honest).",
+   "expected": {
+    "component": -1,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The existing weighted alignment has no manner-changing consonant pair at 92:13:1, so the prescribed veto can reach at most two of three targets, below the task's three-target continuation minimum. (measured: {\"targets won\": 0, \"eligible targets\": 2, \"target wins upper bound\": 2, \"classifiers fitted\": 0, \"practice scores\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T15:29:57+00:00",
+   "id": "listener-cold-crop-agrees-seam-spell",
+   "component": "listener",
+   "hypothesis": "Ownership-free seam spelling (excise-certify) finds heard planted words (p19, p50, 4:157:24, 9:5:15) but loses on clean seams, plausibly because in-context posteriors stitch neighbour tails and pause blips into a word. Emit a spelled span only if a cold crop of its own frames spells the same word; predict 3 of 4 kept, losses cut to about 3: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "gate on the branch: missing in candidate: lab-v1.5-p40/studio, lab-v1.5-p42/studio",
+   "branch": {
+    "wrongCalls": 35,
+    "missed": 15,
+    "falseWarnings": 20,
+    "listener": 34,
+    "tracker": 1,
+    "checker": 0
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T15:34:18+00:00",
+   "id": "listener-session-embedding-conditioned",
+   "component": "listener",
+   "hypothesis": "Phone false wrong words are confusions specific to one speaker and one phone, but the student decodes each frame without knowing which speaker or channel it is hearing. Retrain it to take a causal embedding of the session's own audio so far as an extra input; predict 3 of 7 targets won, about 1 caught swap lost: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "gate on the branch: missing in candidate: lab-v1.5-p55/studio, lab-v1.5-p69/phone",
+   "branch": {
+    "wrongCalls": 55,
+    "missed": 34,
+    "falseWarnings": 21,
+    "listener": 50,
+    "tracker": 5,
+    "checker": 0
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T15:49:18+00:00",
+   "id": "listener-separator-head-one-word-span",
+   "component": "listener",
+   "hypothesis": "Ownership-free seam spelling (excise-certify) recovered heard additions (p19, p50, 4:157:24, 9:5:15) but lost 18. The likely cause is that clean-seam spellings are stitched across a real word boundary, such as a neighbour's tail plus word 1's onset. Re-land excise-certify and emit a span only if the already-trained word-separator CTC head puts no word boundary strictly inside it. Predict 3 of 4 targets kept and losses cut to about 3: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "gate on the branch: overall +13 (needs -3 or better), listener +13 (needs +2 or better); without reader mp3quran-198: +15 (needs -1 or better); 5 new false warning(s) on fully clean sessions; studio +14; 21 incidents lost against 7 won",
+   "branch": {
+    "wrongCalls": 43,
+    "missed": 13,
+    "falseWarnings": 30,
+    "listener": 42,
+    "tracker": 1,
+    "checker": 0
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T16:01:02+00:00",
+   "id": "listener-spell-span-edge-run-break",
+   "component": "listener",
+   "hypothesis": "Ownership-free seam spelling (excise-certify) recovers heard additions (p19, p50, 4:157:24, 9:5:15) but loses on clean seams, plausibly because those spellings start inside the previous word's held argmax run or end inside word 1's onset run. Emit a span only if a blank frame on the stored posteriors separates both of its edges from the neighbouring visits' token runs; predict 3 of 4 targets kept, losses cut to about 3: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: Only two of four target spans have blank-argmax separation at both neighbouring counting-visit edges and retain confirmation. (measured: {\"targets won\": 2})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T16:03:03+00:00",
+   "id": "listener-resynth-counterfactual-adds",
+   "component": "listener",
+   "hypothesis": "Extra words said after a pause come out blank or as fragments because the student has never heard a real-sounding off-text word without seam cues. Fine-tune it on vocoder-resynthesised recitations in which the paired clean and inserted-word versions differ only by that word; predict listener -3, overall -2.",
+   "expected": {
+    "component": -3,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: Only one of six full-session int8 target streams gained any planted consonant (+1), and none gained the required two. (measured: {\"targets won\": 0, \"targets evaluated\": 6, \"targets with any planted-consonant gain\": 1, \"targets newly reaching two ordered consonants\": 1, \"practice scores\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T16:28:12+00:00",
+   "id": "listener-full-lookahead-swap-rejudge",
+   "component": "listener",
+   "hypothesis": "Phone false wrong words (26:106:1, 55:48:1, 26:174:8, 92:13:1) are confirmed from a streaming decode that sees only a short right lookahead, so a blurred consonant can be committed before the vowel and next word that would resolve it arrive. Re-judge each pending wrong word once on an offline decode of an 8 s warm crop with right attention widened to the end of the crop, and veto it if that decode no longer raises the accusation. Predict 2 of 4 vetoed with about 1 caught swap lost: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The supplied fixed-window int8 exports omit the original convolution edge parameters needed for the stipulated unchanged-weight full-lookahead decode, and no source checkpoint or full-lookahead asset is available. (measured: {\"targets won\": 0, \"targets tested\": 0, \"practice scores\": 0, \"full-lookahead decoder available\": false})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T16:30:13+00:00",
+   "id": "tracker-rejected-detour-reread-add-veto",
+   "component": "tracker",
+   "hypothesis": "The phone added-word false warning at 26:5:1 is real speech: the tracker pays about 9 tokens there and makes a tentative local detour that it then rejects, which looks like a stumbled re-read. Export each rejected detour's destination, and veto a support-path addition whose span lies inside a detour that landed on text already committed in the current or previous two ayahs. Predict 1 of 2 won with 0 lost: tracker 0, overall -1 (honest; a zero-loss rider candidate below the gate).",
+   "expected": {
+    "component": 0,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The target span begins before the rejected detour, whose destinations are future text at 26:7:7–8 rather than committed text in the current or previous two ayahs. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T16:59:04+00:00",
+   "id": "listener-teacher-ayah-marginal-swap-veto",
+   "component": "listener",
+   "hypothesis": "Phone wrong-word false warnings (26:106:1, 55:48:1, 26:174:8, 92:13:1) survive because every closed test reads the shipped student, which itself favours the rival: its whole-ayah substitution marginals stay above 0.5. Re-run that same whole-ayah substitution-marginal veto on the undistilled fp32 KD teacher's posteriors, only at pending string-path wrong words. Predict 2-3 of 4 vetoed, about 1 caught swap lost: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The fp32 teacher's whole-ayah substitution marginal falls below 0.5 on only one of four registered targets, fewer than the required three. (measured: {\"targets won\": 1})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T17:02:11+00:00",
+   "id": "listener-ayah-local-blur-null-swaps",
+   "component": "listener",
+   "hypothesis": "Phone wrong-word false warnings (26:106:1, 55:48:1, 26:174:8, 92:13:1) are judged against fixed absolute bars, even though the same channel blur pushes nearby accepted words almost as far from their written form. Veto a string-path wrong word whose margin does not beat the largest heard-over-written margin among this and the previous ayah's accepted words; predict 3 of 4 vetoed with about 1 caught swap lost: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: All four target margins exceed the maximum among accepted words in their current and previous ayah, so the built veto removes zero targets. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T17:09:52+00:00",
+   "id": "tracker-entry-span-omission-fit",
+   "component": "tracker",
+   "hypothesis": "Two omission false warnings (p50 37:113:10 مبين, p65 4:12:40) are judged on a greedy-anchored stretch that holds other words' interiors, while the tracker committed its own cost-1 entry onto each flagged word. Re-run the folded read-versus-omit forward-sum fit on the tracker's entry interval for that word and veto when reading wins; ride the zero-loss stepped-ayah ledger note (p46). Predict tracker -1, overall -2 (upside -3).",
+   "expected": {
+    "component": -1,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: Neither committed cost-1 tracker entry has a read-versus-omit gain reaching PHRASE_SWITCH, alone or with its available same-run neighbour (0 of 2 omission targets). (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T17:42:57+00:00",
+   "id": "listener-seam-stitch-substring-excl",
+   "component": "listener",
+   "hypothesis": "Ownership-free seam spelling (excise-certify) won 7 heard additions but lost 18, plausibly because clean seams spell 'words' stitched from the previous word's tail plus word 1's head, which its neighbour, prefix and back-run exclusions never test. Exclude spellings that are a soft-cost substring of the local seam text across the word boundary; predict 4 targets kept, listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The final excise-certify parent already excludes interior and cross-boundary substrings of nearby connected and pausal text, contradicting the experiment's missing-exclusion premise. (measured: {\"targets won\": 0, \"targets evaluated\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T18:26:43+00:00",
+   "id": "listener-spell-span-fwdsum-lexical-rank",
+   "component": "listener",
+   "hypothesis": "Ownership-free seam spelling (excise-certify) finds heard planted words (p19, p50, 4:157:24, 9:5:15) but loses on clean seams, plausibly because those greedy spellings are argmax accidents that a sequence-level score would not choose. Emit a spelled span only if, by forward sum on the stored posteriors, its word beats every lexicon word within one edit of it and every word or back-run within ±3. Predict 3 of 4 targets kept and losses cut to about 3: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: Only one of four target spans is forward-sum best; three nasal-final forms lose to held-nasal one-edit rivals. (measured: {\"targets won\": 1})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T18:28:09+00:00",
+   "id": "tracker-future-detour-anticipation-veto",
+   "component": "tracker",
+   "hypothesis": "The phone added-word false warning at 26:5:1 is real speech in which the reciter jumped ahead. The rejected-detour kill measured that the tracker's tentative local detour over that span landed on not-yet-recited text (26:7:7-8) and then returned to the anchor run. Export rejected detours and veto a support-path addition that overlaps one aimed at unread text within the next two ayahs, with the stepped-ayah ledger note (p46 54:36:1) as rider. Predict tracker -1, overall -2 (honest, below the gate).",
+   "expected": {
+    "component": -1,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The built anticipation veto leaves the primary target unchanged and only its stepped-ayah rider wins, fewer than the required three target wins. (measured: {\"targets won\": 0, \"rider wins\": 1})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T18:58:45+00:00",
+   "id": "listener-teacher-skip-marginal-propose",
+   "component": "listener",
+   "hypothesis": "Two planted omissions stay hidden because only the student's evidence judges them. At 54:28:6 كل, a one-lam visit counts the word as read; at 44:23:1 فأسر, the omission ends uncertain at clarity 0.58. Run the fp32 KD teacher's whole-ayah skip marginal at words whose visit holds fewer consonants than written, and at uncertain omissions, and confirm an omission when that marginal is above 0.5. Predict listener -1, overall -1 (upside -2).",
+   "expected": {
+    "component": -1,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The target-scoped prototype recovered two registered omissions, below the required three-target minimum. (measured: {\"targets won\": 2})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T19:04:49+00:00",
+   "id": "listener-pause-noise-subtract-swap-veto",
+   "component": "listener",
+   "hypothesis": "Three phone false wrong words are the first word after a pause (26:106:1, 55:48:1, 92:13:1). The phone's background noise, heard alone in that pause, probably masks the onset consonant, so the student confidently hears a rival. Subtract the noise spectrum measured in that pause from a warm crop, re-decode the slot, and veto the accusation if the slot then spells the written word; predict 2 of 3 vetoed with about 1 caught swap lost: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: Only one of three noise-subtracted target slots spells the written word, and its raw warm crop already spells it too. (measured: {\"targets won\": 1})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T19:06:41+00:00",
+   "id": "tracker-undone-inayah-jump-reads-start",
+   "component": "tracker",
+   "hypothesis": "p31 warns a false skip at 4:162:15 because the tracker jumps from the blurred والمقيمين (ق heard as ء) forward to its in-ayah look-alike والمؤمنون (4:162:19), then back-runs to read 16-18, and no rule treats that jump plus back-run as one misbinding of word 15. Export each in-ayah forward step that the tracker undoes within its lag by a back-run onto the first jumped-over word, and count the jumped-from word as read with no accusation when the destination later gets its own in-order step. Predict tracker 0, listener -1, overall -1 (honest; a zero-loss rider candidate below the gate).",
+   "expected": {
+    "component": 0,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The target's committed back-run onto 4:162:16 arrives nine observed phonemes after the forward jump to 4:162:19, beyond the existing eight-phoneme tracker lag. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T19:46:42+00:00",
+   "id": "listener-spell-recurs-in-session-veto",
+   "component": "listener",
+   "hypothesis": "Ownership-free seam spelling (excise-certify) recovers heard planted words but loses about 18 calls on clean seams, plausibly because those false spellings are this reciter's habitual pause-transition sounds and recur at many seams. Keep only words the generator spells at a single seam in the session: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: Only two of four target additions are unique by generator candidate text position and remain confirmed after the session recurrence veto. (measured: {\"targets won\": 2})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-05T20:00:10+00:00",
+   "sha": "977e3311",
+   "testSet": "lab-v1.5u",
+   "experiment": null,
+   "note": "re-scored for fold of listener-teacher-insert-marginal-gate",
+   "practice": {
+    "wrongCalls": 30,
+    "missed": 20,
+    "falseWarnings": 10,
+    "listener": 29,
+    "tracker": 1,
+    "checker": 0
+   },
+   "exam": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-05T20:00:38+00:00",
+   "sha": "23e9311d",
+   "testSet": "lab-v1.5u",
+   "experiment": "listener-teacher-insert-marginal-gate",
+   "note": "Ownership-free seam spelling (excise-certify) recovers heard planted additions (p19, p50, 4:157:24, 9:5:15) but lost 18 calls, because clean seams also spell words stitched from neighbour material. Emit a spelled span only if the fp32 KD teacher's whole-seam CTC lattice, with an optional arc for that exact word and free word boundaries, gives the arc a marginal above one half. Predict 3 of 4 targets kept and most losses removed: listener -2, overall -1.; practice-only fold, exam not measured",
+   "practice": {
+    "wrongCalls": 24,
+    "missed": 13,
+    "falseWarnings": 11,
+    "listener": 23,
+    "tracker": 1,
+    "checker": 0
+   },
+   "exam": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T20:00:38+00:00",
+   "id": "listener-teacher-insert-marginal-gate",
+   "component": "listener",
+   "hypothesis": "Ownership-free seam spelling (excise-certify) recovers heard planted additions (p19, p50, 4:157:24, 9:5:15) but lost 18 calls, because clean seams also spell words stitched from neighbour material. Emit a spelled span only if the fp32 KD teacher's whole-seam CTC lattice, with an optional arc for that exact word and free word boundaries, gives the arc a marginal above one half. Predict 3 of 4 targets kept and most losses removed: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "folded",
+   "testSet": "lab-v1.5u",
+   "note": "keeps its overall and listener gain",
+   "branch": {
+    "wrongCalls": 24,
+    "missed": 13,
+    "falseWarnings": 11,
+    "listener": 23,
+    "tracker": 1,
+    "checker": 0
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 24,
+     "missed": 13,
+     "falseWarnings": 11,
+     "listener": 23,
+     "tracker": 1,
+     "checker": 0
+    },
+    "exam": null
    }
   }
  ]
