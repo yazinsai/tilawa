@@ -188,3 +188,21 @@ def test_bootstrap_is_seeded():
     d = [-1, 0, 0, -1, 1, -1, 0, 0, -2, 0]
     assert G.bootstrap_upper(d) == G.bootstrap_upper(d)
     assert G.bootstrap_upper([-1] * 10) == -10
+
+
+def test_incomplete_variant_coverage_fails_without_crashing_or_ignoring_missing_audio():
+    b = report(spread_base(), 'base')
+    n = report(recover(spread_base(), {'p0', 'p1', 'p2', 'p3', 'p4', 'p5'}), 'candidate')
+    del n['results'][0]['variants']['studio']
+    res = G.gate(b, n, CARD, CODE)
+    assert res['verdict'] == 'fail'
+    assert blocking(res) == ['coverage']
+    assert 'p0/studio' in res['checks'][0]['why']
+
+
+def test_matching_phone_only_sessions_are_valid_coverage():
+    b = report(spread_base(), 'base')
+    n = report(recover(spread_base(), {'p0', 'p1', 'p2', 'p3', 'p4', 'p5'}), 'candidate')
+    for r in (b, n):
+        del r['results'][0]['variants']['studio']
+    assert G.gate(b, n, CARD, CODE)['verdict'] == 'pass'

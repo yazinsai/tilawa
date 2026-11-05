@@ -238,6 +238,18 @@ def gate(base: dict, new: dict, card: dict, diff: str | None, *, tests_ok: bool 
     b, n = practice(base), practice(new)
     if b["testSet"] != n["testSet"]:
         raise ValueError(f"test sets differ: {b['testSet']} vs {n['testSet']}")
+    # Missing evidence must not silently shrink the comparison or reach incident
+    # matching's equal-case assertions. Real-user sessions may be phone-only,
+    # provided both reports cover the same session/variant pairs.
+    coverage = lambda r: {f"{s['id']}/{v}" for s in r["results"] for v in s["variants"]}
+    bc, nc = coverage(b), coverage(n)
+    if bc != nc:
+        why = "; ".join(part for part in (
+            "missing in candidate: " + ", ".join(sorted(bc - nc)) if bc - nc else "",
+            "missing in baseline: " + ", ".join(sorted(nc - bc)) if nc - bc else "",
+        ) if part)
+        return {"verdict": "fail", "tuning": diff is not None and is_tuning(diff),
+                "checks": [check("coverage", False, why)]}
     bs, ns = sessions(b), sessions(n)
     if bs.keys() != ns.keys():
         raise ValueError("the reports score different practice sessions")
