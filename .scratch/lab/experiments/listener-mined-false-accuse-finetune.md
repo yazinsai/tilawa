@@ -1,6 +1,6 @@
 # Mined real-phone false accusations in listener fine-tuning
 
-Status: building and validating the fixed recipe. Experiment card unchanged.
+Status: fixed recipe built; full-session int8 continuation checked; practice score pending. Experiment card unchanged.
 
 ## Prediction
 
@@ -32,7 +32,7 @@ than just the first word. Impossible alignments and unsupported phone symbols
 are rejected.
 
 The fixed fine-tune starts from spliced-clean, uses AdamW at 0.0003 for 3,000
-steps and KL-to-shipped weight 10. Each step contains one selected learner item
+steps (default weight decay 0.01) and KL-to-shipped weight 10. Each step contains one selected learner item
 and four clean anchors: one other clean learner item when available and three
 original clean-match items, otherwise four original items. Original items use
 the existing split, gold exclusion, noise/RIR/gain and SpecAugment filters.
@@ -108,6 +108,40 @@ Run 9 also saved the 8,592-item original clean-match pool; the audio-only cache
 can be derived from that exact pool without scanning teacher columns again.
 Run 11's disposable helper was excluded from the supervisor upload and did
 not execute; it is not an acoustic or training result.
+
+Run 13 passed all nine Python unit tests. Run 14 passed those tests again and
+completed all 3,000 steps with finite losses and gradients: 2,405.8 seconds of
+optimization, 3,335.8 seconds through the supervisor. The final logged minibatch
+has CTC 0.003033 and KL 0.103322; nonzero KL demonstrates that the anchor does
+not keep every outside posterior unchanged.
+
+Run 15 exported the complete checkpoint with the unchanged streaming exporter
+and dynamic MatMul int8 quantizer. On six admitted clean learner clips the fp32
+Torch/ONNX full-stream top-token agreement was 100%, with maximum posterior
+difference 0.000001461. Int8 SHA-256:
+`8ec9378b064896ce294f833d033271177dbe300e8a494aa041f0362dd43cbca4`.
+The persistent artifact is `model-fp32-int8` in this experiment's scratch area.
+
+Run 16 decoded the complete seven phone recordings with that int8 artifact and
+the current SDK. The diagnostic replays use the same 40 ms chunks as the lab;
+passive tracing reproduces every original checker event on both baseline and
+candidate evidence. Slots are selected by timing, never by smallest edit count.
+
+| Target | Baseline hard edits | Candidate hard edits | Target warning removed |
+| --- | ---: | ---: | --- |
+| p11 / 26:106:1 | 2 | 2 | no |
+| p36 / 55:48:1 | 2 | 1 | yes |
+| p55 / 26:174:8 | 5 | 5 | yes |
+| sob-027 / 84:25:1 | 2 | 0 | yes |
+| sob-049 / 92:13:1 | 2 | 0 | yes |
+| sob-053 / 88:2:2 | 1 | 1 | no |
+| tlo-127 / 2:29:16 | 1 | 1 | no |
+
+Two slots meet the card's written-word identity criterion, below its minimum of
+three. Four target warning incidents disappear. The user's later continuation
+instruction requires practice scoring for three or more target warning wins,
+so one official score is being run to measure that trade without changing the
+recipe or the phonetic criterion. These two counts are kept separate.
 
 Run 7 replayed each of the seven stored baseline sessions through the passive
 slot inspector. Its temporary diagnostic checker produced byte-identical
