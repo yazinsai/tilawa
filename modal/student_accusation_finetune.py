@@ -148,6 +148,22 @@ def chunk_masked(model, feats):
     return lp[0, :int(lens[0])]
 
 
+def eos_batch(samples):
+    """EOS padding is valid encoder context, as in the SDK; it never receives a loss.
+
+    A long masked tail in a mixed-length evaluation batch can create fully masked
+    attention rows, then NaN gradients even when the real output rows are finite.
+    """
+    import torch
+    from student_export import LOG_EPS
+
+    real = [((len(f) - 7) // 2 + 1) // 2 for f, _ in samples]
+    windows = max(1, -(-max(real) // 8))
+    total = 45 + (windows - 1) * 32
+    padded = torch.stack([torch.cat([f, torch.full((max(0, total - len(f)), 80), LOG_EPS, device=f.device)])[:total] for f, _ in samples])
+    return padded, torch.full((len(samples),), total, device=padded.device, dtype=torch.int64), real
+
+
 def main():
     training_deps()
     import numpy as np
@@ -180,10 +196,27 @@ def main():
         p.requires_grad_(False)
     reference = json.loads(Path("/app/packages/core/assets/ref-v2.json").read_text())
     mining = json.loads(Path(args.mined).read_text())
+    source_hash = hashlib.sha256((Path(args.source) / "ckpt.pt").read_bytes()).hexdigest()
+    mining_hash = hashlib.sha256(Path(args.mined).read_bytes()).hexdigest()
+    cache = json.loads((out / "admission.json").read_text()) if (out / "admission.json").exists() else {}
+    cached = cache.get("sourceSha256") == source_hash and cache.get("miningSha256") == mining_hash
+    cache_rows = {r["id"]: r for r in cache.get("accepted", [])} if cached else {}
+    cache_bad = {r["id"]: r for r in cache.get("rejected", [])} if cached else {}
     accepted, rejected = [], []
     for row in mining:
         l = row["label"]
+        if l["id"] in cache_bad:
+            rejected.append(cache_bad[l["id"]]); continue
         try:
+            if l["id"] in cache_rows:
+                r = cache_rows[l["id"]]
+                path = (Path(args.data) / l["wav"]).resolve()
+                if not path.is_relative_to((Path(args.data) / "wav").resolve()) or hashlib.sha256(path.read_bytes()).hexdigest() != r["audioSha256"]:
+                    raise ValueError("Changed cached training audio")
+                wave, sr = sf.read(path, dtype="float32")
+                if sr != T.SR or wave.ndim != 1:
+                    raise ValueError("Changed cached audio format")
+                accepted.append({**r, "wave": wave}); continue
             words = corrected_words(l, reference)
             target, owners = transcript(words, reference)
             selected = set().union(*(accusation_words(e, reference) for e in row["mined"]))
@@ -212,11 +245,10 @@ def main():
         except (ValueError, KeyError, AssertionError, IndexError) as e:
             rejected.append({"id": l["id"], "reason": str(e)})
     audit = {"accepted": [{k: v for k, v in r.items() if k != "wave"} for r in accepted], "rejected": rejected,
-        "sourceSha256": hashlib.sha256((Path(args.source) / "ckpt.pt").read_bytes()).hexdigest(),
-        "miningSha256": hashlib.sha256(Path(args.mined).read_bytes()).hexdigest(), "cfg": cfg}
+        "sourceSha256": source_hash, "miningSha256": mining_hash, "cfg": cfg}
     (out / "admission.json").write_text(json.dumps(audit, ensure_ascii=False, indent=1))
     print(json.dumps({"admitted": len(accepted), "rejected": len(rejected), "negative": sum(len(x["negative"]) for x in accepted),
-        "positive": sum(len(x["positive"]) for x in accepted)}, ensure_ascii=False), flush=True)
+        "positive": sum(len(x["positive"]) for x in accepted), "cached": cached}, ensure_ascii=False), flush=True)
     focus = [x for x in accepted if x["slots"]]
     help_clean = [x for x in accepted if not x["slots"]]
     if not any(x["negative"] for x in focus) or not any(x["positive"] for x in focus):
@@ -224,7 +256,16 @@ def main():
     if args.prepare_only:
         return
     aug = {k: dict(np.load(f"/student/aug/{k}.npz")) for k in ("noise", "rir")}
-    originals = T.load_clips("clean-match", "train", 20.0, 30.0, 0)
+    pool_key = {"source": source_hash, "bucket": "clean-match", "split": "train", "hours": 20.0, "max_clip_s": 30.0, "seed": 0,
+        "gold": hashlib.sha256(Path("/root/gold-per-v1-exclude.txt").read_bytes()).hexdigest()}
+    pool_file = out / "originals-cache.pt"
+    pool = torch.load(pool_file, map_location="cpu", weights_only=False) if pool_file.exists() else {}
+    if pool.get("key") == pool_key:
+        originals = pool["clips"]
+    else:
+        originals = T.load_clips("clean-match", "train", 20.0, 30.0, 0)
+        torch.save({"key": pool_key, "clips": originals}, pool_file)
+    print(json.dumps({"originals": len(originals["ref"]), "poolCached": pool.get("key") == pool_key}), flush=True)
     clean = T.ClipDataset(originals, cfg, train=True, aug=aug)
     model = T.build_model(cfg["size"]).to(device)
     model.load_state_dict(ck["model"]); model.eval()
@@ -260,8 +301,7 @@ def main():
         for _ in range(3 if help_clean else 4):
             samples.append((clean[int(rng.integers(len(clean)))]["feats"].to(device), []))
         sums = {"ctc": 0.0, "kl": 0.0}
-        feats = torch.nn.utils.rnn.pad_sequence([s[0] for s in samples], batch_first=True, padding_value=-23.0259)
-        lengths = torch.tensor([len(s[0]) for s in samples], device=device)
+        feats, lengths, real_frames = eos_batch(samples)
         model.eval(); model.streaming_eval(16, 128)
         shipped.eval(); shipped.streaming_eval(16, 128)
         with torch.no_grad():
@@ -269,16 +309,25 @@ def main():
         lp, out_lens = model(feats, lengths)
         if not torch.equal(anchor_lens, out_lens):
             raise ValueError("Changed output frame grid")
-        objective = lp.sum() * 0
+        objective = torch.zeros((), device=device)
         for i, (_, slots) in enumerate(samples):
-            n = int(out_lens[i])
+            n = real_frames[i]
+            if n > int(out_lens[i]):
+                raise ValueError("Missing real output frames")
             losses = masked_loss(lp[i, :n], anchor[i, :n], slots, kl_weight=10.0)
             if not torch.isfinite(losses["loss"]):
+                print(json.dumps({"step": step, "sample": i, "clip": item["id"], "frames": n, "slots": slots,
+                    "ctc": float(losses["ctc"].detach()), "kl": float(losses["kl"].detach()),
+                    "modelNonfinite": int((~torch.isfinite(lp[i, :n])).sum()),
+                    "anchorNonfinite": int((~torch.isfinite(anchor[i, :n])).sum())}), flush=True)
                 raise ValueError("Non-finite local objective")
             objective = objective + losses["loss"] / 5
             for k in sums:
                 sums[k] += float(losses[k].detach()) / 5
         objective.backward()
+        if any(p.grad is not None and not torch.isfinite(p.grad).all() for p in model.parameters()):
+            print(json.dumps({"step": step, "event": "nonfinite-gradient", "lengths": [len(s[0]) for s in samples]}), flush=True)
+            raise ValueError("Non-finite gradient")
         torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
         opt.step()
         if (step + 1) % 50 == 0:

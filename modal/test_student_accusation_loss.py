@@ -3,10 +3,23 @@ import unittest
 import numpy as np
 import torch
 from student_accusation_loss import collapse_owned, masked_loss, viterbi_states, word_slots
-from student_accusation_finetune import corrected_words, accusation_words
+from student_accusation_finetune import corrected_words, accusation_words, eos_batch
 
 
 class SlotLossTest(unittest.TestCase):
+    def test_eos_batch_trims_losses_to_real_frames(self):
+        f, lengths, real = eos_batch([(torch.ones(55, 80), []), (torch.ones(137, 80), [])])
+        self.assertEqual(real, [12, 33])
+        self.assertEqual(tuple(f.shape), (2, 173, 80))
+        self.assertEqual(lengths.tolist(), [173, 173])
+        self.assertTrue(torch.all(f[0, 55:] == -23.0259))
+        logits = torch.randn(2, 42, 4, requires_grad=True)
+        lp = logits.log_softmax(-1)
+        loss = sum(masked_loss(lp[i, :n], torch.randn(n, 4).log_softmax(-1), [])["loss"] for i, n in enumerate(real))
+        loss.backward()
+        self.assertEqual(float(logits.grad[0, 12:].abs().sum() + logits.grad[1, 33:].abs().sum()), 0)
+        self.assertTrue(torch.isfinite(logits.grad).all())
+
     def test_multiword_graph_scope_cannot_be_truncated_to_first_word(self):
         ref = {"ayahs": [{"s": 1, "a": 2, "p": "abc", "o": [0, 1]}, {"s": 1, "a": 3, "p": "de", "o": [0]}]}
         event = {"location": {"surah": 1, "ayah": 2, "word": 2}, "expected": "bcde"}
