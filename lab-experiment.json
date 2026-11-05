@@ -1,0 +1,13 @@
+{
+ "id": "checker-pause-onset-isolated-form",
+ "component": "checker",
+ "hypothesis": "Real learners who pause between two words start the second plainly, but the wrong-word check expects the onset doubled from the previous word's tanween (يييَومَءِذِن after وجوهٌ, ووَهُوَ after سماواتٍ), so sob-053 88:2:2 and tlo-127 2:29:16 are false warnings (added by checker-dropped-suffix-wordform). The index already holds each word's isolated form. After a heard pause before the word, accept its isolated onset as the written word. Predict real-user false warnings -2 (7 to 5), practice unchanged.",
+ "expected": {
+  "component": 0,
+  "overall": 0
+ },
+ "listener": "exp-listener-stack-be988c-6a17f391",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-05T07:18:49+00:00",
+ "author": "Yazin"
+}
