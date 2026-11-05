@@ -199,6 +199,38 @@ def clean_anchor_clips(root=Path("/student/s1"), exclusions_path=Path("/root/gol
     return {"audio": clips, "key": keys}
 
 
+def stable_swoosh_training():
+    """Use stable log(1+exp(x)) backward; no-grad inference/export stays original.
+
+    Icefall's evaluation fallback replaces an infinite forward exp result, but
+    its unused branch still contributes inf * 0 in autograd. Preserve the exact
+    installed activation formula and constants, replacing only that operation.
+    """
+    import inspect
+    import torch
+    import scaling
+
+    if hasattr(scaling, "_accusation_original_swoosh"):
+        return scaling._accusation_original_swoosh
+    originals = {}
+    for name in ("SwooshRForward",):
+        original = getattr(scaling, name)
+        source = inspect.getsource(original)
+        needle = "(1.0 + x_offset.exp()).log().to(x.dtype)"
+        if source.count(needle) != 1:
+            raise ValueError("Installed Swoosh formula changed")
+        scope = {}
+        exec(compile(source.replace(needle, "torch.nn.functional.softplus(x_offset).to(x.dtype)"),
+                     f"<stable-{name}>", "exec"), scaling.__dict__, scope)
+        stable = scope[name]
+        def forward(x, original=original, stable=stable):
+            return stable(x) if torch.is_grad_enabled() and x.requires_grad else original(x)
+        originals[name] = original
+        setattr(scaling, name, forward)
+    scaling._accusation_original_swoosh = originals
+    return originals
+
+
 def main():
     training_deps()
     import numpy as np
@@ -219,6 +251,7 @@ def main():
     ap.add_argument("--diagnose", action="store_true", help="Trace a non-finite backward operation")
     args = ap.parse_args()
     torch.autograd.set_detect_anomaly(args.diagnose)
+    stable_swoosh_training()
     torch.set_num_threads(4)
     torch.manual_seed(0)
     random.seed(0)
@@ -301,7 +334,14 @@ def main():
         originals = pool["clips"]
     else:
         print("Loading original clean-match audio (no teacher columns)", flush=True)
-        originals = clean_anchor_clips()
+        legacy_file = out / "originals-cache.pt"
+        legacy = torch.load(legacy_file, map_location="cpu", weights_only=False) if legacy_file.exists() else {}
+        if legacy.get("key") == pool_key:
+            c = legacy["clips"]
+            originals = {"audio": [c["flac"][a:b].tobytes() for a, b in zip(c["flac_off"][:-1], c["flac_off"][1:])], "key": c["key"]}
+            del c, legacy
+        else:
+            originals = clean_anchor_clips()
         torch.save({"key": pool_key, "clips": originals}, str(pool_file) + ".tmp")
         Path(str(pool_file) + ".tmp").replace(pool_file)
     print(json.dumps({"originals": len(originals["audio"]), "poolCached": pool.get("key") == pool_key}), flush=True)

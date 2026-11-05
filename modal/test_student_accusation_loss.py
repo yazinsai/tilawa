@@ -6,10 +6,29 @@ import tempfile
 import numpy as np
 import torch
 from student_accusation_loss import collapse_owned, masked_loss, viterbi_states, word_slots
-from student_accusation_finetune import corrected_words, accusation_words, eos_batch, clean_anchor_clips
+from student_accusation_finetune import corrected_words, accusation_words, eos_batch, clean_anchor_clips, stable_swoosh_training
 
 
 class SlotLossTest(unittest.TestCase):
+    def test_stable_activation_backward_and_original_no_grad_export(self):
+        import student_train as T
+        T.build_model("lite")  # loads the installed icefall modules
+        import scaling
+        originals = stable_swoosh_training()
+        for name, original in originals.items():
+            x = torch.linspace(-160, 160, 257, requires_grad=True)
+            got = getattr(scaling, name)(x)
+            with torch.no_grad():
+                expected = original(x)
+                self.assertTrue(torch.equal(getattr(scaling, name)(x), expected))
+            torch.testing.assert_close(got, expected, atol=1e-5, rtol=1e-6)
+            got.sum().backward()
+            self.assertTrue(torch.isfinite(x.grad).all())
+            near = torch.linspace(-5, 5, 31, requires_grad=True)
+            a = torch.autograd.grad(original(near).sum(), near)[0]
+            b = torch.autograd.grad(getattr(scaling, name)(near).sum(), near)[0]
+            torch.testing.assert_close(a, b)
+
     def test_clean_anchor_loader_excludes_holdouts_and_needs_no_teacher_columns(self):
         import pyarrow as pa
         import pyarrow.parquet as pq
