@@ -506,7 +506,13 @@ def cmd_fold(a):
     b_base = L.base_for(led, b) or base
     card = {**card, "listener": L.scoring_listener(led, b.get("listener") or card["listener"])}  # its own decode, or the current main line's
     bcmp = L.compare(b["practice"], b_base["practice"], card)
-    if not L.gains(bcmp, card):
+    realuser = getattr(a, "realuser", False)
+    b_ru = L.realuser_change(b["practice"], b_base["practice"])
+    if realuser:
+        state, why = L.realuser_fold_check(card, bcmp, bcmp, b_ru, b_ru)
+        if state != "ok":
+            raise Stop(f"{a.id}: {why}: nothing to fold")
+    elif not L.gains(bcmp, card):
         raise Stop(f"{a.id} has no practice gain on its branch ({L.headline(bcmp, card)}): nothing to fold; discard it")
     wt = Path(e["worktree"])
     if git("status", "--porcelain", "--untracked-files=no", cwd=wt):
@@ -528,7 +534,10 @@ def cmd_fold(a):
             base = {**main_f.result(), "note": f"re-scored for fold of {a.id}", "at": L.now()}
             base["head"] = base["sha"]
     rcmp = L.compare(r["practice"], base["practice"], card)
-    state, why = L.fold_check(card, bcmp, rcmp)
+    if realuser:
+        state, why = L.realuser_fold_check(card, bcmp, rcmp, b_ru, L.realuser_change(r["practice"], base["practice"]))
+    else:
+        state, why = L.fold_check(card, bcmp, rcmp)
     if practice_only:
         r.update(measurementScope=["practice"], examStatus="unmeasured_for_this_head")
     else:
@@ -704,6 +713,8 @@ def parser():
     f.add_argument("--yes", action="store_true", help="skip the confirmation (only when the user approved this fold)")
     f.add_argument("--practice-only", action="store_true", help="score only practice and leave exam unmeasured for the new main revision")
     f.add_argument("--no-merge", action="store_true", help="rebase, re-score and record, then stop before merging (the autolab gate decides)")
+    f.add_argument("--realuser", action="store_true",
+                   help="the gain is fewer false warnings on real users' clean recitation, with practice not worse (practice-neutral fixes)")
     f.add_argument("--gate", action="store_true", help="merge only if tools/lab_gate.py passes on the rebased run; discard otherwise (autolab)")
     d = sub.add_parser("discard", help="mark discarded, remove the worktree, keep the branch")
     d.add_argument("id")

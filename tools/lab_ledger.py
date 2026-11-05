@@ -254,6 +254,27 @@ def fold_check(card: dict, branch: dict, rebased: dict) -> tuple[str, str]:
     return "ok", "keeps its " + " and ".join(kept) + " gain" + (f" (lost {', '.join(lost)})" if lost else "")
 
 
+def realuser_change(new: dict, base: dict) -> int | None:
+    """Change in false warnings on real users' clean recitation (one split), or None when either side lacks it."""
+    n, b = new.get("realuser"), base.get("realuser")
+    return None if not n or not b else n["falseWarnings"] - b["falseWarnings"]
+
+
+def realuser_fold_check(card: dict, branch: dict, rebased: dict, branch_ru: int | None, rebased_ru: int | None) -> tuple[str, str]:
+    """fold_check for a practice-neutral experiment whose gain is fewer real-user false warnings: the gain must hold
+    after rebase and practice must not get worse (overall or the card's component)."""
+    worse = lambda cmp: [w for w in ("overall", card["component"]) if cmp[w]["verdict"] == "worse"]
+    if branch_ru is None or branch_ru >= 0:
+        return "no-gain", "no real-user false-warning gain on its branch"
+    if worse(branch):
+        return "no-gain", f"practice got worse on its branch ({', '.join(worse(branch))})"
+    if rebased_ru is None or rebased_ru >= 0:
+        return "superseded", f"the real-user false-warning gain is gone after rebase ({rebased_ru if rebased_ru is None else f'{rebased_ru:+d}'})"
+    if worse(rebased):
+        return "superseded", f"practice got worse after rebase ({', '.join(f'{w} {rebased[w]['change']:+d}' for w in worse(rebased))})"
+    return "ok", f"keeps its real-user false-warning gain ({rebased_ru:+d}), practice not worse"
+
+
 # Flags
 
 

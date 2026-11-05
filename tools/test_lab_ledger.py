@@ -135,6 +135,20 @@ def test_fold_check():
     assert L.fold_check(c, gain, partial) == ("ok", "keeps its checker gain (lost overall)")
 
 
+def test_realuser_fold_check():
+    c, base = card(), L.score(totals())
+    same = L.compare(base, base, c)
+    worse = L.compare(L.score(totals(missed=15, att={"listener": (5, 1), "tracker": (0, 2), "checker": (10, 0)})), base, c)
+    assert L.realuser_change({"realuser": {"falseWarnings": 5}}, {"realuser": {"falseWarnings": 7}}) == -2
+    assert L.realuser_change({}, {"realuser": {"falseWarnings": 7}}) is None
+    assert L.realuser_fold_check(c, same, same, -2, -2)[0] == "ok"
+    assert L.realuser_fold_check(c, same, same, 0, 0)[0] == "no-gain"
+    assert L.realuser_fold_check(c, same, same, None, None)[0] == "no-gain"
+    assert L.realuser_fold_check(c, worse, same, -2, -2)[0] == "no-gain"
+    assert L.realuser_fold_check(c, same, same, -2, 0)[0] == "superseded"
+    assert L.realuser_fold_check(c, same, worse, -2, -2)[0] == "superseded"
+
+
 def test_pending_flags_take_the_latest_bad_verdict_with_its_window():
     queue = {"items": [
         {"id": "lab-v1-p01-x3", "audio": {"path": "lab-v1/sessions/lab-v1-p01.studio.wav", "startS": 10.0, "endS": 16.5}},
