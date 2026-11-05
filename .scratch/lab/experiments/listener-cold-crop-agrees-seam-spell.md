@@ -1,6 +1,6 @@
 # Cold-crop agreement for ownership-free seam spellings
 
-Status: acoustic premise passes; normal SDK evidence retains four targets and live sessions retain three. Practice pending.
+Status: acoustic premise passes; normal SDK evidence retains four targets and live sessions retain three. Cached-evidence practice is unchanged; fresh full-practice decode is left to the supervisor.
 
 ## Prediction
 
@@ -150,3 +150,40 @@ and they perform additional short encodes for pause-bounded lexical utterances.
 Peak memory, latency and total inference cost have not been benchmarked. The
 fourth target requires the existing recorded-evidence gap splice; it is not a
 live-stream win.
+
+
+## Practice receipt and disposition
+
+Practice request 1 returned for implementation commit `970d0154`:
+
+| Charge | Main | Experiment | Change |
+| --- | ---: | ---: | ---: |
+| Overall | 30 | 30 | 0 |
+| Listener | 29 | 29 | 0 |
+| Tracker | 1 | 1 | 0 |
+| Checker | 0 | 0 | 0 |
+
+Both arms report 20 missed mistakes and 10 false warnings; verdict: noise.
+This receipt is a cached-evidence check, not a fresh audio evaluation of this
+listener change. The practice-request handler invokes `lab run`, which scores
+the listener evidence already named by the card. It does not run the modified
+SDK decoder. That supplied evidence has no cold-spelling proofs; the new gate
+fails closed on it. Run 11 directly established that fresh normal SDK evidence
+contains the proofs and confirms all four targets while preserving the main
+phonemes, posteriors and tracker events.
+
+The supervisor's post-executor validation separately decodes practice phone
+and studio audio through this branch's SDK and then scores that fresh listener
+name. Leave the implementation for that evaluation and the fold gate; this
+cached zero is not evidence that cold agreement lost the acoustic premise.
+One of the three allowed practice requests has been used. No constants were
+tuned and no card, scorer, lab tool, manifest or test-data file was changed.
+The candidate generation and neighbour certification block was also compared
+directly with the parent branch and is byte-identical before the added gate.
+
+Final validation: Modal run 9 passed builds, 753 core tests and 19 SDK tests
+(one existing SDK test skipped); run 11 passed all four fresh baseline/target
+comparisons. `git diff --check` passes. All source changes and this result are
+committed; temporary diagnostic source files are removed. A full-practice gain,
+clean-session precision, studio change and reader-exclusion robustness remain
+unestablished until the supervisor's fresh decode and fold-gate evaluation.
