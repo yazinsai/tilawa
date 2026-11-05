@@ -1,6 +1,6 @@
 # Causal session embedding conditioned student
 
-Status: implementation and validation in progress. The experiment card is unchanged.
+Status: implemented and validated, left selected for the supervisor's custom-model fold gate. Practice request 1 was a +0 replay of the card's stored listener, not a score of this model. Four reproduced target warnings disappear. Three candidate slots spell the written word, but two already do so in the fresh control. The experiment card is unchanged.
 
 ## Prediction and continuation check
 
@@ -33,7 +33,7 @@ of the same remaining cluster, with a prefix duration sampled between one
 second and the clip's full duration. Both clips use the same seed through the
 shipped noise/RIR/gain/SpecAugment chain and the parent's saved probabilities.
 The supervision is canonical collapsed-phone CTC and the original teacher's
-KD. Every fourth item zeros the condition and adds KL-to-shipped at weight
+KD, each at weight 1. Every fourth item zeros the condition and adds KL-to-shipped at weight
 10. AdamW uses 0.00003 for acoustic weights and 0.0003 for FiLM and the frame
 encoder, for a fixed 3,000 steps; checkpoint resumes preserve optimizer and
 random states. No training setting is selected using practice.
@@ -138,3 +138,83 @@ are checked by choosing the baseline's counting visit nearest the target time
 plus the existing 2.5-second confirmation delay, before reading edit counts.
 No phonetic score is used to choose a span. Baseline absence is retained in the
 output, and these cases cannot inflate the warning-removal count.
+
+
+## Complete target check
+
+Run 14 checked all seven completed full-session streams and both fresh
+controls, without further decoding, weight changes or threshold selection.
+Passive tracing reproduced every original checker event in every replay.
+For the three absent baseline accusations it chose the counting visit nearest
+the historical target time plus the unchanged 2.5-second delay. The choice is
+made by time, not phonetic score, and identical baseline/candidate spans are
+used where the word alignment does not change.
+
+| Target | Fresh control hard edits | Candidate hard edits | Original warning reproduced | Warning removed |
+| --- | ---: | ---: | --- | --- |
+| p11 / 26:106:1 | 2 | 2 | yes | yes |
+| p36 / 55:48:1 | 2 | 1 | yes | yes |
+| p55 / 26:174:8 | 5 | 0 | yes | yes |
+| sob-027 / 84:25:1 | 2 | 2 | no | not a gain |
+| sob-049 / 92:13:1 | 2 | 1 | yes | yes |
+| sob-053 / 88:2:2 | 0 | 0 | no | not a gain |
+| tlo-127 / 2:29:16 | 0 | 0 | no | not a gain |
+
+The literal card criterion is met: three candidate slots have zero hard edits.
+Only **one is newly restored**; the other two were already spelled correctly
+and quiet in the fresh control. This does not validate the prediction of three
+new phonetic recoveries. Four currently reproduced warnings disappear, so the
+user's continuation instruction requires practice scoring before a decision.
+The fixed trained graph is retained for that evaluation and the supervisor's
+fold gate; the control result is not used to invent a stricter stopping rule
+or to count already-correct words as gains.
+
+The only restored word, p55's مؤمنين, has a complete candidate slot of frames
+2491–2549 rather than the baseline's 2491–2656 glued surplus. p36 recovers its
+initial ذ but retains ف in place of ت. sob-049 recovers ن but retains surplus
+ي. p11 still has the wrong glide. Warning disappearance therefore mostly
+reflects changed confidence, margins or alignment, rather than all the missing
+written consonants being recovered.
+
+The temporary diagnostic source and target-input files have been removed.
+Practice score request 1 uses committed model selector `model-int8` and commit
+`3fd6f290`; the complete validated implementation is preserved on this branch.
+
+No zero-embedding practice ablation was selected or scored. Because acoustic
+weights also fine-tuned, these observations cannot isolate the benefit of the
+session vector from changes shared by all sessions. The target checks do not
+measure caught-swap retention, fully clean sessions, studio behavior or
+reader-excluded gains. Those remain the fold gate's responsibility.
+
+## Practice scoring path limitation
+
+Read-only inspection of the current supervisor confirms the previously
+reported custom-model limitation: `serve_practice` calls `lab run` directly;
+`run_experiment` chooses `card["listener"]`, which remains the original
+`exp-listener-stack-be988c-6a17f391` as instructed. That path does not read the
+new model selector. Only the supervisor's later `after_tests` path reads
+`.autolab/model.json`, copies the persistent model and forces new phone/studio
+decodes before scoring with the new listener. No scorer, tooling or card was
+changed to bypass this. The requested score can validate the unchanged
+engine on stored baseline evidence, but cannot establish this model's overall,
+clean-session, studio or incident trade. Repeating the same request would
+not resolve that limitation.
+
+
+Practice request 1 completed with **30 wrong calls** (20 missed, 10 false),
+matching its baseline: overall +0, listener +0 (29 wrong calls), tracker +0
+(one) and checker +0 (zero), verdict noise. It scored commit `3fd6f290` through
+the stored-listener path described above. This is not a measured overall
+change for the conditioned graph. One of three practice requests was used;
+no repeat was requested because the same path would use the same listener.
+
+The literal three-slot spelling check passes and four reproduced warnings
+are removed. The implementation and final model selector remain in place for
+the supervisor's actual custom-model decode and fold gate. No killed outcome
+is written, no fold is requested, and no overall gain, clean-session safety,
+studio safety or planted-swap retention is claimed. The target gain is four
+removed warnings and one newly restored spelling, not three new recoveries.
+All engine code, tests, model selection and this write-up are committed. The
+card, scorer, lab tooling, test data, existing manifests and evidence are
+unchanged. Generated weights and export files remain in the experiment's
+persistent scratch area and are selected by `.autolab/model.json`.
