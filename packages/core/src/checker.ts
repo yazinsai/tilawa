@@ -1,7 +1,7 @@
 import { align as editPath } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
-import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
+import type { DecodedPhoneme, PhonemeEvidence, SeamInsertionEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import { channelFromCounts, spanLogP, type Channel, type ChannelCounts } from "./noisy-channel.js";
@@ -40,6 +40,13 @@ export interface CheckerPolicy {
   finaliseFree?: boolean;
 }
 
+export interface SeamInsertionWindow {
+  word: number;
+  seamFromFrame: number;
+  seamToFrame: number;
+  prefixFrame?: number;
+}
+
 export interface SeamInsertionCandidate {
   word: number;
   said: string;
@@ -53,6 +60,8 @@ export interface SeamInsertionCandidate {
 export interface CheckerOptions {
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
+  /** Read-only seam discovery; does not require a spelled insertion. */
+  seamPhoneLoop?: (seam: SeamInsertionWindow) => void;
   policy?: CheckerPolicy;
   /** Non-Quran phrases: an inserted block that is one of these (or a basmala) is not an added word. */
   phrases?: PhraseAsset;
@@ -218,6 +227,8 @@ interface Issue {
    * posterior support margin: the span is not needed to read the text.
    */
   lexicon?: boolean;
+  /** Sequence-level teacher confidence replaces the student shape/support bars. */
+  phoneLoop?: number;
   /**
    * A word-final long vowel before a hamza, judged by its duration against this reciter's earlier madd
    * munfasil. The forward sum prices one vowel as nothing, so the length is the whole decision.
@@ -256,6 +267,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const insertionEvidence = new Map<string, number>();
+  const phoneLoopEvidence = new Map<string, SeamInsertionEvidence>();
   const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
     JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
   // A completed seam remains in the streaming window over many pushes. Its
@@ -464,6 +476,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   /** Mean decoder confidence over an error's phonemes; for an omission, the phonemes either side of the gap. */
   const clarity = (issue: Issue): number => {
+    if (issue.phoneLoop !== undefined) return issue.phoneLoop;
     const from = Math.max(0, Math.min(issue.obsFrom, obs.length - 1));
     const to = Math.min(obs.length, Math.max(issue.obsTo, from + 1));
     const span = issue.cls === "omitted_word" || issue.cls === "skipped_passage" ? obs.slice(Math.max(0, from - 3), to + 3) : obs.slice(from, to);
@@ -485,7 +498,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
    */
   const supported = (issue: Issue, requireFinite = false): boolean | null => {
     // Spelled surplus is structural. A likelihood contest over the neighbours is what loses the word.
-    if (issue.lexicon) return null;
+    if (issue.lexicon || issue.phoneLoop !== undefined) return null;
     // The madd's length was already compared with this reciter's own. One vowel does not move the forward sum.
     if (issue.madd) return null;
     if (!frames || frames.startFrame < 0 || issue.cls === "skipped_passage") return null;
@@ -576,7 +589,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const pausalManner = (wi: number) =>
     lastManner(index.isolatedWordForms?.[wi] || ref.slice(words[wi].start, words[wi].end));
   /** A manner mismatch is sure without the 0.6 cut. The weak-evidence gate still reads the changed phones. */
-  const heardSure = (issue: Issue) => issue.manner === true || clarity(issue) >= minConfidence;
+  const heardSure = (issue: Issue) => (issue.phoneLoop !== undefined && issue.phoneLoop > 0.5) || issue.manner === true || clarity(issue) >= minConfidence;
   /**
    * Nats the decoded hypothesis must win by. A per-word substitution that does not spell another mushaf word
    * (not the written word, not a word or prefix within ±3) clears twice `SUPPORT`, unless the span has more
@@ -1897,6 +1910,39 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         cls: "added_word", word: rightWord, last: rightWord, obsFrom: best.left.obsTo, obsTo: cut, observed: said, lexicon: true,
       });
     }
+    // Discover whole seams before spelling or excision can discard their extra
+    // speech. Visits bound the same lattice as the exact-word teacher gate.
+    if ((options.seamPhoneLoop || phoneLoopEvidence.size) && frames && frames.startFrame >= 0) for (const w1 of new Set(visits.map(v => v.word))) {
+      const prev = prevWord(w1), w2 = nextWord(w1);
+      if (w1 < first || !length(w1) || prev < 0 || w2 >= words.length || words[prev].surah !== words[w1].surah) continue;
+      const inner = ayahOf[prev] === ayahOf[w1];
+      if (inner ? !waqfMarked(prev) : ayahFirst[ayahOf[w1]] !== w1) continue;
+      for (const left of visits.filter(v => v.word === prev && v.obsFrom >= 0 && v.obsTo > v.obsFrom))
+        for (const end of visits.filter(v => v.word === w2 && v.obsFrom >= left.obsTo && v.obsTo > v.obsFrom)) {
+          if (inner && !obs.slice(left.obsFrom, end.obsFrom).some((_, i) => runEndPause(left.obsFrom + i))) continue;
+          const preceding = prevWord(prev);
+          const prefix = visits.filter(v => v.word === preceding && ayahOf[preceding] === ayahOf[prev] &&
+            v.obsFrom >= 0 && v.obsTo <= left.obsFrom).sort((a, b) => b.obsTo - a.obsTo)[0];
+          const seamFromFrame = obs[left.obsFrom].start, seamToFrame = obs[end.obsTo - 1].end + 1;
+          options.seamPhoneLoop?.({ word: w1, seamFromFrame, seamToFrame, prefixFrame: prefix && obs[prefix.obsFrom].start });
+          if (decided.has(w1) || issues.get(w1)?.lexicon) continue;
+          for (const certificate of phoneLoopEvidence.values()) {
+            if (certificate.marginal <= 0.5 || certificate.word.surah !== words[w1].surah ||
+              certificate.word.ayah !== words[w1].ayah || certificate.word.word !== words[w1].word ||
+              certificate.fromFrame < seamFromFrame || certificate.toFrame > seamToFrame ||
+              consonantCount(certificate.observed) < 2 || phraseSpan(certificate.observed) ||
+              lexical.fragmentOfSeam(w1,certificate.observed)) continue;
+            let a = left.obsFrom;
+            while (a < end.obsTo && obs[a].end < certificate.fromFrame) a++;
+            if (a >= end.obsTo) continue;
+            let b = a;
+            while (b < end.obsTo && obs[b].start < certificate.toFrame) b++;
+            issues.set(w1, { cls: "added_word", word: w1, last: w1, obsFrom:a,obsTo:Math.max(a+1,b),
+              observed:certificate.observed, phoneLoop:certificate.marginal });
+            break;
+          }
+        }
+    }
     // A spelled span can be lent to either neighbour by the greedy alignment.
     // Use visits only to bound the seam, then certify presence on the posteriors
     // left after excision. No complete visit or initial ownership is required.
@@ -2259,7 +2305,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     // Only the support-path addition is removed. Keep the wrong word's decision evidence and report the
     // combined heard span, so absorbing a tail cannot promote an uncertain wrong word into a warning.
     if (judged) for (const [wi, added] of [...issues]) {
-      if (added.cls !== "added_word" || added.lexicon || decided.has(wi)) continue;
+      if (added.cls !== "added_word" || added.lexicon || added.phoneLoop !== undefined || decided.has(wi)) continue;
       const wrong = issues.get(prevWord(wi));
       if (!wrong || wrong.cls !== "wrong_word") continue;
       const location = toRef(wrong.word);
@@ -2461,7 +2507,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {
           const key = insertionKey(m.word, m.observed, m.fromFrame, m.toFrame);
-          insertionEvidence.set(key, Math.max(insertionEvidence.get(key) ?? 0, m.marginal));
+          if (m.kind === "phone-loop") phoneLoopEvidence.set(key,m);
+          else insertionEvidence.set(key, Math.max(insertionEvidence.get(key) ?? 0, m.marginal));
         }
       }
       const out: CheckerEvent[] = [];

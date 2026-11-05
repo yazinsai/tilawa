@@ -1,7 +1,9 @@
 import type { WordRef } from "./events.js";
 
-/** Auxiliary listener judgment over a complete seam, tied to one proposed spelling. */
+/** Auxiliary listener judgment over a complete seam. */
 export interface SeamInsertionEvidence {
+  /** Omitted for an exact spelled word; a phone loop makes no identity claim. */
+  kind?: "phone-loop";
   word: WordRef;
   observed: string;
   fromFrame: number;
