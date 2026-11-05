@@ -7,6 +7,8 @@ export interface ListenerOptions {
   /** Attach per-frame top-k posteriors to each chunk: the checker's local-window check reads them. Default false; sessions turn it on. */
   posteriors?: boolean;
   topK?: number;
+  /** Attach an independent half-chunk-offset stream for seam spelling agreement. Default true. */
+  seamGrid?: boolean;
 }
 
 export interface Listener {
@@ -32,13 +34,20 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   const k = options.topK ?? 5;
   const fbank = new Fbank();
   const vocab = m.tokens.length + 1;
+  const offset = options.seamGrid === false ? 0 : m.shift / 2;
+  if (offset && m.shift % 8 !== 0) throw new RangeError("Half-chunk grids require an even number of output frames");
   let resampler: Resampler | null = null;
-  let states: Record<string, Tensor> = Object.fromEntries(
+  const initStates = (): Record<string, Tensor> => Object.fromEntries(
     m.states.map((s) => {
       const n = s.shape.reduce((a, b) => a * b, 1);
       return [s.name, { type: s.dtype, data: s.dtype === "int64" ? new BigInt64Array(n) : new Float32Array(n), dims: s.shape }];
     }),
   );
+  let states = initStates();
+  let shiftedStates = initStates();
+  let shiftedTail: number[] = [];
+  let gridStart = 0;
+  let gridIds: number[] = [];
   let feats: Float32Array[] = [];
   let consumed = 0;
   let fbankFrames = 0;
@@ -53,12 +62,33 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   let ids: number[] = [];
   let probs: number[] = [];
 
-  async function step(window: Float32Array[], keep: number) {
+  async function infer(window: Float32Array[], state: Record<string, Tensor>) {
     const x = new Float32Array(m.window * m.fbank.mels);
     window.forEach((f, i) => x.set(f, i * m.fbank.mels));
-    const out = await model.backend.run({ x: { type: "float32", data: x, dims: [1, m.window, m.fbank.mels] }, ...states });
-    states = Object.fromEntries(m.states.map((s) => [s.name, out[`new_${s.name}`]]));
-    const lp = out.log_probs.data as Float32Array;
+    const out = await model.backend.run({ x: { type: "float32", data: x, dims: [1, m.window, m.fbank.mels] }, ...state });
+    return {
+      lp: out.log_probs.data as Float32Array,
+      states: Object.fromEntries(m.states.map((s) => [s.name, out[`new_${s.name}`]])),
+    };
+  }
+
+  async function step(window: Float32Array[], keep: number) {
+    const base = await infer(window.slice(0, m.window), states);
+    states = base.states;
+    const lp = base.lp;
+    if (offset) {
+      const shifted = await infer(window.slice(offset, offset + m.window), shiftedStates);
+      shiftedStates = shifted.states;
+      const rowIds = Array.from({ length: shifted.lp.length / vocab }, (_, t) =>
+        topK(shifted.lp.subarray(t * vocab, (t + 1) * vocab), 1)[0][0]);
+      const half = rowIds.length / 2;
+      // Unlike merging grids, retain every shifted row. Its last half belongs
+      // to the next base chunk; the first chunk's uncovered prefix is unknown.
+      gridIds.push(...[...(shiftedTail.length ? shiftedTail : Array(half).fill(-1)),
+        ...rowIds.slice(0, half)].slice(0, Math.min(keep, lp.length / vocab)));
+      shiftedTail = rowIds.slice(half);
+    }
+    const doneFrom = done.length;
     const n = Math.min(keep, lp.length / vocab);
     for (let t = 0; t < n; t++) {
       const row = lp.subarray(t * vocab, (t + 1) * vocab);
@@ -84,6 +114,11 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
       open = null;
       carried = true;
     }
+    if (offset && done.length > doneFrom) {
+      done[doneFrom].seamGrid = { startFrame: gridStart, ids: gridIds };
+      gridStart += gridIds.length;
+      gridIds = [];
+    }
   }
 
   function flush(final: boolean): PhonemeEvidence | null {
@@ -108,8 +143,8 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   const outputsFor = (frames: number) => Math.floor((Math.floor((frames - 7) / 2) + 1) / 2);
 
   async function drain() {
-    while (feats.length - consumed >= m.window) {
-      await step(feats.slice(consumed, consumed + m.window), Infinity);
+    while (feats.length - consumed >= m.window + offset) {
+      await step(feats.slice(consumed, consumed + m.window + offset), Infinity);
       consumed += m.shift;
     }
     if (consumed > 4 * m.window) {
@@ -145,8 +180,8 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
       const total = outputsFor(fbankFrames);
       const pad = new Float32Array(m.fbank.mels).fill(m.fbank.padValue);
       while (outFrames < total) {
-        while (feats.length - consumed < m.window) feats.push(pad);
-        await step(feats.slice(consumed, consumed + m.window), total - outFrames);
+        while (feats.length - consumed < m.window + offset) feats.push(pad);
+        await step(feats.slice(consumed, consumed + m.window + offset), total - outFrames);
         consumed += m.shift;
       }
       return flush(true);

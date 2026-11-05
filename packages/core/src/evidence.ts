@@ -5,6 +5,10 @@ export interface DecodedPhoneme {
   start: number;
   end: number;
   conf: number;
+  /** Independent half-chunk grid argmax rows, on the same absolute clock. Carried
+   * by a token so evidence re-chunking preserves them; they never change `p`.
+   * -1 marks frames before the shifted stream starts. */
+  seamGrid?: { startFrame: number; ids: number[] };
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

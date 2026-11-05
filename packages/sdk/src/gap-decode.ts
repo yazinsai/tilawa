@@ -6,7 +6,7 @@ import {
   placeGap,
   recoverGapPhonemes,
 } from "@tilawa/core";
-import type { GapPhoneme, PhonemeEvidence, ReferenceIndex, WordGap } from "@tilawa/core";
+import type { DecodedPhoneme, GapPhoneme, PhonemeEvidence, ReferenceIndex, WordGap } from "@tilawa/core";
 import { createListener } from "./listener.js";
 import type { LoadedModel } from "./model.js";
 
@@ -18,7 +18,7 @@ export interface LockPoint {
 interface FlatEvidence {
   inventory: string;
   frameMs: number;
-  phonemes: GapPhoneme[];
+  phonemes: DecodedPhoneme[];
   k: number;
   ids: number[];
   probs: number[];
@@ -47,7 +47,7 @@ function flatten(chunks: PhonemeEvidence[]): FlatEvidence | null {
 }
 
 async function decodeIsolated(model: LoadedModel, samples: Float32Array, sampleRate: number, k: number) {
-  const listener = createListener(model, { posteriors: true, topK: k });
+  const listener = createListener(model, { posteriors: true, topK: k, seamGrid: false });
   const out: PhonemeEvidence[] = [];
   const step = Math.max(1, Math.round(sampleRate * 0.02));
   for (let i = 0; i < samples.length; i += step) {
@@ -164,7 +164,23 @@ export async function spliceContextFreeGaps(
   return [{
     inventory: flat.inventory,
     frameMs: flat.frameMs,
-    phonemes,
+    phonemes: preserveSeamGrids(flat.phonemes, phonemes),
     posteriors: { k: flat.k, startFrame: 0, nFrames: flat.nFrames, ids, probs },
   }];
+}
+
+/** Cold-gap replacement can remove the token that carried a full-stream grid
+ * block. Move those immutable rows onto the next surviving token; the cold crop
+ * does not supply or overwrite the independent streaming evidence. */
+export function preserveSeamGrids(before: DecodedPhoneme[], after: DecodedPhoneme[]): DecodedPhoneme[] {
+  const blocks = before.flatMap(p => p.seamGrid ? [p.seamGrid] : []);
+  if (!blocks.length) return after;
+  let b = 0;
+  return after.map(({ seamGrid: _, ...p }) => {
+    const start = b;
+    while (b < blocks.length && blocks[b].startFrame <= p.end) b++;
+    if (b === start) return p;
+    const rows = blocks.slice(start, b);
+    return { ...p, seamGrid: { startFrame: rows[0].startFrame, ids: rows.flatMap(r => r.ids) } };
+  });
 }
