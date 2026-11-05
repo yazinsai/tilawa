@@ -49,6 +49,19 @@ image = image.run_commands(f"cd /app && CI=1 pnpm install --frozen-lockfile {FIL
 
 app = modal.App("tilawa-lab-run", image=image)
 vol = modal.Volume.from_name("tilawa-lab", create_if_missing=True)
+
+
+def commit(tries: int = 5) -> None:
+    """vol.commit(), retried: with a few hundred shards committing at once the server now and then refuses one with
+    DataLossError, and that shard's outputs were lost with it. The files are still in the container, so a retry
+    publishes them."""
+    for k in range(tries):
+        try:
+            return vol.commit()
+        except modal.exception.DataLossError:
+            if k == tries - 1:
+                raise
+            time.sleep(2 ** k)
 lock_hash = lambda: hashlib.sha256(Path("/app/pnpm-lock.yaml").read_bytes()).hexdigest()
 
 
@@ -70,7 +83,7 @@ def shard(src: bytes, cmd: str, run: str, i: int, n: int, out_dir: str = "") -> 
     status = {"shard": i, "code": p.returncode, "seconds": round(time.time() - t0, 1), "tail": log[-2000:]}
     (out / "log.txt").write_text(log)
     (out / "status.json").write_text(json.dumps(status, indent=1))
-    vol.commit()
+    commit()
     return status
 
 
