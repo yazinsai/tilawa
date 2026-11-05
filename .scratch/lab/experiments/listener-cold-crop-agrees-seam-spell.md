@@ -60,8 +60,9 @@ Run 6 requests the complete SDK suite with the corrected test. The documented
 Vitest worker RPC deadline occurred only after the affected core shard's tests
 had all passed and is handled by the existing test harness.
 
-No practice score has been requested. Acoustic agreement alone cannot establish
-precision, studio behaviour, reader exclusion or a release result.
+Practice score 1 was requested after the normal SDK path cleared the target
+floor. Acoustic agreement alone cannot establish precision, studio behaviour,
+reader exclusion or a release result.
 
 ## Target acoustic result
 
@@ -130,3 +131,22 @@ phones/posteriors only on p31. Run 11 compares against fresh decodes using the
 starting commit's SDK session and gap code, to distinguish older cached data
 from an unintended change in this experiment. Temporary baseline copies and
 executable probes are removed before the final diff.
+
+
+## Fresh baseline comparison
+
+Run 11 completed successfully on all four target recordings. Against fresh
+SDK decodes using the starting commit's session and gap code, every main
+phoneme (with only `seamCold` removed) and every posterior entry is identical.
+Tracker events also match with and without the side evidence. The differences
+from the older supplied listener cache therefore do not come from this patch.
+The four recorded-evidence target assignments are confirmed; the same three
+live targets remain confirmed. The temporary probe and baseline source copies
+were removed after this check.
+
+This is an experiment, not an on-device cost validation. Live sessions now
+retain their input audio to supply cold crops even without evidence recording,
+and they perform additional short encodes for pause-bounded lexical utterances.
+Peak memory, latency and total inference cost have not been benchmarked. The
+fourth target requires the existing recorded-evidence gap splice; it is not a
+live-stream win.
