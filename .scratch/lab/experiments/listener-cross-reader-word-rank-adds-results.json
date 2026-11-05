@@ -1,0 +1,1891 @@
+{
+  "metadata": {
+    "files": 3858,
+    "expectedJobs": 3858,
+    "partial": false,
+    "manifest": {
+      "schema": 1,
+      "id": "spliced-clean",
+      "format": "onnx-int8",
+      "arch": "zipformer2-streaming-ctc",
+      "inventory": "muaalem-v3_2-phonemes",
+      "tokens": "ءبتثجحخدذرزسشصضطظعغفقكلمنهوياۦۥَُِ۪ـٲڇں۾ؙۜ",
+      "blank": 0,
+      "sampleRate": 16000,
+      "frameMs": 40,
+      "fbank": {
+        "mels": 80,
+        "frameShiftMs": 10,
+        "frameLengthMs": 25,
+        "highFreq": -400,
+        "snipEdges": true,
+        "padValue": -23.0259
+      },
+      "window": 45,
+      "shift": 32,
+      "chunk": 16,
+      "leftContext": 128,
+      "states": [
+        {
+          "name": "cached_key_0",
+          "shape": [
+            128,
+            1,
+            128
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_nonlin_attn_0",
+          "shape": [
+            1,
+            1,
+            128,
+            144
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val1_0",
+          "shape": [
+            128,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val2_0",
+          "shape": [
+            128,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv1_0",
+          "shape": [
+            1,
+            192,
+            15
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv2_0",
+          "shape": [
+            1,
+            192,
+            15
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_key_1",
+          "shape": [
+            128,
+            1,
+            128
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_nonlin_attn_1",
+          "shape": [
+            1,
+            1,
+            128,
+            144
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val1_1",
+          "shape": [
+            128,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val2_1",
+          "shape": [
+            128,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv1_1",
+          "shape": [
+            1,
+            192,
+            15
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv2_1",
+          "shape": [
+            1,
+            192,
+            15
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_key_2",
+          "shape": [
+            64,
+            1,
+            128
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_nonlin_attn_2",
+          "shape": [
+            1,
+            1,
+            64,
+            192
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val1_2",
+          "shape": [
+            64,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val2_2",
+          "shape": [
+            64,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv1_2",
+          "shape": [
+            1,
+            256,
+            15
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv2_2",
+          "shape": [
+            1,
+            256,
+            15
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_key_3",
+          "shape": [
+            64,
+            1,
+            128
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_nonlin_attn_3",
+          "shape": [
+            1,
+            1,
+            64,
+            192
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val1_3",
+          "shape": [
+            64,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val2_3",
+          "shape": [
+            64,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv1_3",
+          "shape": [
+            1,
+            256,
+            15
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv2_3",
+          "shape": [
+            1,
+            256,
+            15
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_key_4",
+          "shape": [
+            32,
+            1,
+            128
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_nonlin_attn_4",
+          "shape": [
+            1,
+            1,
+            32,
+            288
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val1_4",
+          "shape": [
+            32,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val2_4",
+          "shape": [
+            32,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv1_4",
+          "shape": [
+            1,
+            384,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv2_4",
+          "shape": [
+            1,
+            384,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_key_5",
+          "shape": [
+            32,
+            1,
+            128
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_nonlin_attn_5",
+          "shape": [
+            1,
+            1,
+            32,
+            288
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val1_5",
+          "shape": [
+            32,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val2_5",
+          "shape": [
+            32,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv1_5",
+          "shape": [
+            1,
+            384,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv2_5",
+          "shape": [
+            1,
+            384,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_key_6",
+          "shape": [
+            32,
+            1,
+            128
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_nonlin_attn_6",
+          "shape": [
+            1,
+            1,
+            32,
+            288
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val1_6",
+          "shape": [
+            32,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val2_6",
+          "shape": [
+            32,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv1_6",
+          "shape": [
+            1,
+            384,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv2_6",
+          "shape": [
+            1,
+            384,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_key_7",
+          "shape": [
+            16,
+            1,
+            256
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_nonlin_attn_7",
+          "shape": [
+            1,
+            1,
+            16,
+            384
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val1_7",
+          "shape": [
+            16,
+            1,
+            96
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val2_7",
+          "shape": [
+            16,
+            1,
+            96
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv1_7",
+          "shape": [
+            1,
+            512,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv2_7",
+          "shape": [
+            1,
+            512,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_key_8",
+          "shape": [
+            16,
+            1,
+            256
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_nonlin_attn_8",
+          "shape": [
+            1,
+            1,
+            16,
+            384
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val1_8",
+          "shape": [
+            16,
+            1,
+            96
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val2_8",
+          "shape": [
+            16,
+            1,
+            96
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv1_8",
+          "shape": [
+            1,
+            512,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv2_8",
+          "shape": [
+            1,
+            512,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_key_9",
+          "shape": [
+            16,
+            1,
+            256
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_nonlin_attn_9",
+          "shape": [
+            1,
+            1,
+            16,
+            384
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val1_9",
+          "shape": [
+            16,
+            1,
+            96
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val2_9",
+          "shape": [
+            16,
+            1,
+            96
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv1_9",
+          "shape": [
+            1,
+            512,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv2_9",
+          "shape": [
+            1,
+            512,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_key_10",
+          "shape": [
+            16,
+            1,
+            256
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_nonlin_attn_10",
+          "shape": [
+            1,
+            1,
+            16,
+            384
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val1_10",
+          "shape": [
+            16,
+            1,
+            96
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val2_10",
+          "shape": [
+            16,
+            1,
+            96
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv1_10",
+          "shape": [
+            1,
+            512,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv2_10",
+          "shape": [
+            1,
+            512,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_key_11",
+          "shape": [
+            32,
+            1,
+            128
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_nonlin_attn_11",
+          "shape": [
+            1,
+            1,
+            32,
+            288
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val1_11",
+          "shape": [
+            32,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val2_11",
+          "shape": [
+            32,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv1_11",
+          "shape": [
+            1,
+            384,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv2_11",
+          "shape": [
+            1,
+            384,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_key_12",
+          "shape": [
+            32,
+            1,
+            128
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_nonlin_attn_12",
+          "shape": [
+            1,
+            1,
+            32,
+            288
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val1_12",
+          "shape": [
+            32,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val2_12",
+          "shape": [
+            32,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv1_12",
+          "shape": [
+            1,
+            384,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv2_12",
+          "shape": [
+            1,
+            384,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_key_13",
+          "shape": [
+            32,
+            1,
+            128
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_nonlin_attn_13",
+          "shape": [
+            1,
+            1,
+            32,
+            288
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val1_13",
+          "shape": [
+            32,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val2_13",
+          "shape": [
+            32,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv1_13",
+          "shape": [
+            1,
+            384,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv2_13",
+          "shape": [
+            1,
+            384,
+            7
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_key_14",
+          "shape": [
+            64,
+            1,
+            128
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_nonlin_attn_14",
+          "shape": [
+            1,
+            1,
+            64,
+            192
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val1_14",
+          "shape": [
+            64,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val2_14",
+          "shape": [
+            64,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv1_14",
+          "shape": [
+            1,
+            256,
+            15
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv2_14",
+          "shape": [
+            1,
+            256,
+            15
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_key_15",
+          "shape": [
+            64,
+            1,
+            128
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_nonlin_attn_15",
+          "shape": [
+            1,
+            1,
+            64,
+            192
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val1_15",
+          "shape": [
+            64,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_val2_15",
+          "shape": [
+            64,
+            1,
+            48
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv1_15",
+          "shape": [
+            1,
+            256,
+            15
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "cached_conv2_15",
+          "shape": [
+            1,
+            256,
+            15
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "embed_states",
+          "shape": [
+            1,
+            128,
+            3,
+            19
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "processed_lens",
+          "shape": [
+            1
+          ],
+          "dtype": "int64"
+        }
+      ],
+      "file": "model.onnx",
+      "bytes": 67759744,
+      "sha256": "714e98addee73b1b8781ad7d99b6d3c745acd9116638baf4e12891f53a15af1b",
+      "trainStep": 30287,
+      "supported": [
+        "wrong_word",
+        "omitted_word",
+        "added_word",
+        "skipped_passage"
+      ],
+      "quantizedFrom": "a8552d517fa1393b91c9fe00145fafe0c80166e2aa408aeda08b2685930c71a8"
+    },
+    "readers": [
+      "Abdullaah_3awwaad_Al-Juhaynee_128kbps",
+      "Maher_AlMuaiqly_64kbps",
+      "Minshawy_Murattal_128kbps"
+    ],
+    "shardCodes": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "fixed_span_ranks": [
+    {
+      "case": "lab-v1.4-p19",
+      "candidateKey": "ومن",
+      "w1": 67329,
+      "from": 2552,
+      "to": 2563,
+      "source": "وَمِں",
+      "candidateReferences": 733,
+      "rivalReferences": 514,
+      "nearestCandidate": [
+        {
+          "id": "word:45998",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 45998,
+          "end": 45998,
+          "from": 811,
+          "to": 856,
+          "distance": 0.2055662354266959
+        },
+        {
+          "id": "word:31856",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 31856,
+          "end": 31856,
+          "from": 746,
+          "to": 780,
+          "distance": 0.2064249107844235
+        },
+        {
+          "id": "word:29364",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 29364,
+          "end": 29364,
+          "from": 675,
+          "to": 710,
+          "distance": 0.2086492048999821
+        },
+        {
+          "id": "word:33348",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 33348,
+          "end": 33348,
+          "from": 408,
+          "to": 429,
+          "distance": 0.21224071787234972
+        },
+        {
+          "id": "word:17224",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 17224,
+          "end": 17224,
+          "from": 674,
+          "to": 692,
+          "distance": 0.22106003486143608
+        }
+      ],
+      "nearestRivals": [
+        {
+          "id": "run:67327:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67327,
+          "end": 67328,
+          "from": 312,
+          "to": 407,
+          "distance": 0.7772379680083141
+        },
+        {
+          "id": "run:67326:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67326,
+          "end": 67328,
+          "from": 271,
+          "to": 407,
+          "distance": 0.7772379680083141
+        },
+        {
+          "id": "run:67325:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67325,
+          "end": 67328,
+          "from": 210,
+          "to": 407,
+          "distance": 0.7772379680083141
+        },
+        {
+          "id": "run:67324:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67324,
+          "end": 67328,
+          "from": 152,
+          "to": 407,
+          "distance": 0.7772379680083141
+        },
+        {
+          "id": "run:67323:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67323,
+          "end": 67328,
+          "from": 117,
+          "to": 407,
+          "distance": 0.7772379680083141
+        }
+      ],
+      "bestByKind": {
+        "run": {
+          "id": "run:67327:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67327,
+          "end": 67328,
+          "from": 312,
+          "to": 407,
+          "distance": 0.7772379680083141
+        },
+        "word": {
+          "id": "word:32130",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 32130,
+          "end": 32130,
+          "from": 1491,
+          "to": 1544,
+          "distance": 0.9376549708729908
+        },
+        "prefix": {
+          "id": "prefix:67329:7",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 67329,
+          "end": 67329,
+          "from": 159,
+          "to": 189,
+          "distance": 1.4605515348257645
+        }
+      },
+      "wordCounts": {
+        "مجرمين": 21,
+        "لنرسل": 2,
+        "عليهم": 463
+      },
+      "prefixCounts": {
+        "1": 2,
+        "2": 2,
+        "3": 2,
+        "4": 2,
+        "5": 2,
+        "6": 2,
+        "7": 2,
+        "8": 2
+      },
+      "runCounts": {
+        "67328:67328": 2,
+        "67327:67328": 2,
+        "67326:67328": 2,
+        "67325:67328": 2,
+        "67324:67328": 2,
+        "67323:67328": 2
+      },
+      "coverage": true,
+      "ranksFirst": true,
+      "confirms": true
+    },
+    {
+      "case": "lab-v1.4-p19",
+      "candidateKey": "ومن",
+      "w1": 67329,
+      "from": 2552,
+      "to": 2566,
+      "source": "وَمِںں",
+      "candidateReferences": 733,
+      "rivalReferences": 514,
+      "nearestCandidate": [
+        {
+          "id": "word:33348",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 33348,
+          "end": 33348,
+          "from": 408,
+          "to": 429,
+          "distance": 0.22369585102783648
+        },
+        {
+          "id": "word:45998",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 45998,
+          "end": 45998,
+          "from": 811,
+          "to": 856,
+          "distance": 0.2254055959140135
+        },
+        {
+          "id": "word:17224",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 17224,
+          "end": 17224,
+          "from": 674,
+          "to": 692,
+          "distance": 0.23228652180836054
+        },
+        {
+          "id": "word:31856",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 31856,
+          "end": 31856,
+          "from": 746,
+          "to": 780,
+          "distance": 0.24075757870231027
+        },
+        {
+          "id": "word:28387",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 28387,
+          "end": 28387,
+          "from": 578,
+          "to": 600,
+          "distance": 0.24190279082437244
+        }
+      ],
+      "nearestRivals": [
+        {
+          "id": "run:67327:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67327,
+          "end": 67328,
+          "from": 312,
+          "to": 407,
+          "distance": 0.7157871164637442
+        },
+        {
+          "id": "run:67326:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67326,
+          "end": 67328,
+          "from": 271,
+          "to": 407,
+          "distance": 0.7157871164637442
+        },
+        {
+          "id": "run:67325:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67325,
+          "end": 67328,
+          "from": 210,
+          "to": 407,
+          "distance": 0.7157871164637442
+        },
+        {
+          "id": "run:67324:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67324,
+          "end": 67328,
+          "from": 152,
+          "to": 407,
+          "distance": 0.7157871164637442
+        },
+        {
+          "id": "run:67323:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67323,
+          "end": 67328,
+          "from": 117,
+          "to": 407,
+          "distance": 0.7157871164637442
+        }
+      ],
+      "bestByKind": {
+        "run": {
+          "id": "run:67327:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67327,
+          "end": 67328,
+          "from": 312,
+          "to": 407,
+          "distance": 0.7157871164637442
+        },
+        "word": {
+          "id": "word:32130",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 32130,
+          "end": 32130,
+          "from": 1491,
+          "to": 1544,
+          "distance": 0.8363151681666298
+        },
+        "prefix": {
+          "id": "prefix:67329:7",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 67329,
+          "end": 67329,
+          "from": 159,
+          "to": 189,
+          "distance": 1.2506638301001263
+        }
+      },
+      "wordCounts": {
+        "مجرمين": 21,
+        "لنرسل": 2,
+        "عليهم": 463
+      },
+      "prefixCounts": {
+        "1": 2,
+        "2": 2,
+        "3": 2,
+        "4": 2,
+        "5": 2,
+        "6": 2,
+        "7": 2,
+        "8": 2
+      },
+      "runCounts": {
+        "67328:67328": 2,
+        "67327:67328": 2,
+        "67326:67328": 2,
+        "67325:67328": 2,
+        "67324:67328": 2,
+        "67323:67328": 2
+      },
+      "coverage": true,
+      "ranksFirst": true,
+      "confirms": true
+    },
+    {
+      "case": "lab-v1.4-p19",
+      "candidateKey": "ومن",
+      "w1": 67329,
+      "from": 2552,
+      "to": 2570,
+      "source": "وَمِںںں",
+      "candidateReferences": 733,
+      "rivalReferences": 514,
+      "nearestCandidate": [
+        {
+          "id": "word:33348",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 33348,
+          "end": 33348,
+          "from": 408,
+          "to": 429,
+          "distance": 0.26157795635943615
+        },
+        {
+          "id": "word:17224",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 17224,
+          "end": 17224,
+          "from": 674,
+          "to": 692,
+          "distance": 0.275403811366577
+        },
+        {
+          "id": "word:29364",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 29364,
+          "end": 29364,
+          "from": 457,
+          "to": 493,
+          "distance": 0.27937872422456844
+        },
+        {
+          "id": "word:31856",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 31856,
+          "end": 31856,
+          "from": 746,
+          "to": 780,
+          "distance": 0.2823518623580716
+        },
+        {
+          "id": "word:45998",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 45998,
+          "end": 45998,
+          "from": 811,
+          "to": 856,
+          "distance": 0.2838729786826566
+        }
+      ],
+      "nearestRivals": [
+        {
+          "id": "run:67327:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67327,
+          "end": 67328,
+          "from": 312,
+          "to": 407,
+          "distance": 0.6773495967062828
+        },
+        {
+          "id": "run:67326:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67326,
+          "end": 67328,
+          "from": 271,
+          "to": 407,
+          "distance": 0.6773495967062828
+        },
+        {
+          "id": "run:67325:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67325,
+          "end": 67328,
+          "from": 210,
+          "to": 407,
+          "distance": 0.6773495967062828
+        },
+        {
+          "id": "run:67324:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67324,
+          "end": 67328,
+          "from": 152,
+          "to": 407,
+          "distance": 0.6773495967062828
+        },
+        {
+          "id": "run:67323:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67323,
+          "end": 67328,
+          "from": 117,
+          "to": 407,
+          "distance": 0.6773495967062828
+        }
+      ],
+      "bestByKind": {
+        "run": {
+          "id": "run:67327:67328",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 67327,
+          "end": 67328,
+          "from": 312,
+          "to": 407,
+          "distance": 0.6773495967062828
+        },
+        "word": {
+          "id": "word:32130",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 32130,
+          "end": 32130,
+          "from": 1491,
+          "to": 1544,
+          "distance": 0.7653126131944037
+        },
+        "prefix": {
+          "id": "prefix:67329:7",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 67329,
+          "end": 67329,
+          "from": 159,
+          "to": 189,
+          "distance": 1.0912154279389734
+        }
+      },
+      "wordCounts": {
+        "مجرمين": 21,
+        "لنرسل": 2,
+        "عليهم": 463
+      },
+      "prefixCounts": {
+        "1": 2,
+        "2": 2,
+        "3": 2,
+        "4": 2,
+        "5": 2,
+        "6": 2,
+        "7": 2,
+        "8": 2
+      },
+      "runCounts": {
+        "67328:67328": 2,
+        "67327:67328": 2,
+        "67326:67328": 2,
+        "67325:67328": 2,
+        "67324:67328": 2,
+        "67323:67328": 2
+      },
+      "coverage": true,
+      "ranksFirst": true,
+      "confirms": true
+    },
+    {
+      "case": "lab-v1.5-p33",
+      "candidateKey": "كريم",
+      "w1": 48328,
+      "from": 3904,
+      "to": 3924,
+      "source": "فَرِۦۦم",
+      "candidateReferences": 40,
+      "rivalReferences": 9009,
+      "nearestCandidate": [
+        {
+          "id": "word:48785",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 48785,
+          "end": 48785,
+          "from": 567,
+          "to": 637,
+          "distance": 0.24524718847744867
+        },
+        {
+          "id": "word:69589",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 69589,
+          "end": 69589,
+          "from": 858,
+          "to": 939,
+          "distance": 0.27663580806702853
+        },
+        {
+          "id": "word:63973",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 63973,
+          "end": 63973,
+          "from": 414,
+          "to": 470,
+          "distance": 0.2774639900745184
+        },
+        {
+          "id": "word:22599",
+          "reader": "Abdullaah_3awwaad_Al-Juhaynee_128kbps",
+          "start": 22599,
+          "end": 22599,
+          "from": 446,
+          "to": 494,
+          "distance": 0.27813132056304163
+        },
+        {
+          "id": "word:47174",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 47174,
+          "end": 47174,
+          "from": 469,
+          "to": 524,
+          "distance": 0.29206730178855317
+        }
+      ],
+      "nearestRivals": [
+        {
+          "id": "word:14306",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 14306,
+          "end": 14306,
+          "from": 549,
+          "to": 656,
+          "distance": 0.7740893578409712
+        },
+        {
+          "id": "prefix:14306:3",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 14306,
+          "end": 14306,
+          "from": 549,
+          "to": 623,
+          "distance": 0.7740893578409712
+        },
+        {
+          "id": "prefix:14306:4",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 14306,
+          "end": 14306,
+          "from": 549,
+          "to": 629,
+          "distance": 0.7740893578409712
+        },
+        {
+          "id": "prefix:14306:5",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 14306,
+          "end": 14306,
+          "from": 549,
+          "to": 654,
+          "distance": 0.7740893578409712
+        },
+        {
+          "id": "word:13518",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 13518,
+          "end": 13518,
+          "from": 2755,
+          "to": 2892,
+          "distance": 0.8194442836039165
+        }
+      ],
+      "bestByKind": {
+        "word": {
+          "id": "word:14306",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 14306,
+          "end": 14306,
+          "from": 549,
+          "to": 656,
+          "distance": 0.7740893578409712
+        },
+        "prefix": {
+          "id": "prefix:14306:3",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 14306,
+          "end": 14306,
+          "from": 549,
+          "to": 623,
+          "distance": 0.7740893578409712
+        },
+        "run": {
+          "id": "run:48326:48327",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 48326,
+          "end": 48327,
+          "from": 206,
+          "to": 264,
+          "distance": 1.0943556944554924
+        }
+      },
+      "wordCounts": {
+        "يمتعون": 2,
+        "وما": 1390,
+        "أهلكنا": 33
+      },
+      "prefixCounts": {
+        "1": 1390,
+        "2": 1390,
+        "3": 1390,
+        "4": 1342,
+        "5": 1342,
+        "6": 348,
+        "7": 348
+      },
+      "runCounts": {
+        "48327:48327": 2,
+        "48326:48327": 2,
+        "48325:48327": 2,
+        "48324:48327": 2,
+        "48323:48327": 2,
+        "48322:48327": 2
+      },
+      "coverage": true,
+      "ranksFirst": true,
+      "confirms": true
+    },
+    {
+      "case": "lab-v1.5-p50",
+      "candidateKey": "وقفوهم",
+      "w1": 57881,
+      "from": 3662,
+      "to": 3693,
+      "source": "وَقِفُۥۥهُم",
+      "candidateReferences": 2,
+      "rivalReferences": 1669,
+      "nearestCandidate": [
+        {
+          "id": "word:57525",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 57525,
+          "end": 57525,
+          "from": 182,
+          "to": 259,
+          "distance": 0.3316832051248083
+        },
+        {
+          "id": "word:57525",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 57525,
+          "end": 57525,
+          "from": 140,
+          "to": 212,
+          "distance": 0.3668922223172712
+        }
+      ],
+      "nearestRivals": [
+        {
+          "id": "word:23312",
+          "reader": "Abdullaah_3awwaad_Al-Juhaynee_128kbps",
+          "start": 23312,
+          "end": 23312,
+          "from": 1066,
+          "to": 1129,
+          "distance": 0.8829961638807512
+        },
+        {
+          "id": "word:15130",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 15130,
+          "end": 15130,
+          "from": 873,
+          "to": 937,
+          "distance": 0.9398011394334593
+        },
+        {
+          "id": "prefix:15130:6",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 15130,
+          "end": 15130,
+          "from": 873,
+          "to": 932,
+          "distance": 0.9398011394334593
+        },
+        {
+          "id": "prefix:15130:7",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 15130,
+          "end": 15130,
+          "from": 873,
+          "to": 934,
+          "distance": 0.9398011394334593
+        },
+        {
+          "id": "prefix:15130:5",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 15130,
+          "end": 15130,
+          "from": 873,
+          "to": 929,
+          "distance": 0.9678512066476508
+        }
+      ],
+      "bestByKind": {
+        "word": {
+          "id": "word:23312",
+          "reader": "Abdullaah_3awwaad_Al-Juhaynee_128kbps",
+          "start": 23312,
+          "end": 23312,
+          "from": 1066,
+          "to": 1129,
+          "distance": 0.8829961638807512
+        },
+        "prefix": {
+          "id": "prefix:15130:6",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 15130,
+          "end": 15130,
+          "from": 873,
+          "to": 932,
+          "distance": 0.9398011394334593
+        },
+        "run": {
+          "id": "run:57876:57880",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 57876,
+          "end": 57880,
+          "from": 174,
+          "to": 418,
+          "distance": 0.9985834385780717
+        }
+      },
+      "wordCounts": {
+        "الأسفلين": 4,
+        "وقال": 171,
+        "إنى": 277
+      },
+      "prefixCounts": {
+        "1": 171,
+        "2": 171,
+        "3": 171,
+        "4": 171,
+        "5": 171,
+        "6": 171,
+        "7": 171
+      },
+      "runCounts": {
+        "57880:57880": 2,
+        "57879:57880": 2,
+        "57878:57880": 2,
+        "57877:57880": 2,
+        "57876:57880": 2
+      },
+      "coverage": true,
+      "ranksFirst": true,
+      "confirms": true
+    },
+    {
+      "case": "lab-v1.5-p49",
+      "candidateKey": "كريم",
+      "w1": 47857,
+      "from": 3806,
+      "to": 3827,
+      "source": "كَرِۦۦم",
+      "candidateReferences": 40,
+      "rivalReferences": 377,
+      "nearestCandidate": [
+        {
+          "id": "word:69589",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 69589,
+          "end": 69589,
+          "from": 858,
+          "to": 939,
+          "distance": 0.2946523213789852
+        },
+        {
+          "id": "word:47516",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 47516,
+          "end": 47516,
+          "from": 238,
+          "to": 293,
+          "distance": 0.2947918715975105
+        },
+        {
+          "id": "word:48785",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 48785,
+          "end": 48785,
+          "from": 404,
+          "to": 445,
+          "distance": 0.31979061715142876
+        },
+        {
+          "id": "word:75667",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 75667,
+          "end": 75667,
+          "from": 224,
+          "to": 293,
+          "distance": 0.321271165471927
+        },
+        {
+          "id": "word:48785",
+          "reader": "Minshawy_Murattal_128kbps",
+          "start": 48785,
+          "end": 48785,
+          "from": 567,
+          "to": 637,
+          "distance": 0.3229219421245003
+        }
+      ],
+      "nearestRivals": [
+        {
+          "id": "word:60203",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 60203,
+          "end": 60203,
+          "from": 223,
+          "to": 256,
+          "distance": 0.6732664339697055
+        },
+        {
+          "id": "prefix:60203:2",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 60203,
+          "end": 60203,
+          "from": 223,
+          "to": 240,
+          "distance": 0.6732664339697055
+        },
+        {
+          "id": "prefix:60203:3",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 60203,
+          "end": 60203,
+          "from": 223,
+          "to": 243,
+          "distance": 0.6732664339697055
+        },
+        {
+          "id": "prefix:60203:4",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 60203,
+          "end": 60203,
+          "from": 223,
+          "to": 244,
+          "distance": 0.6732664339697055
+        },
+        {
+          "id": "prefix:60203:5",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 60203,
+          "end": 60203,
+          "from": 223,
+          "to": 247,
+          "distance": 0.6732664339697055
+        }
+      ],
+      "bestByKind": {
+        "word": {
+          "id": "word:60203",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 60203,
+          "end": 60203,
+          "from": 223,
+          "to": 256,
+          "distance": 0.6732664339697055
+        },
+        "prefix": {
+          "id": "prefix:60203:2",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 60203,
+          "end": 60203,
+          "from": 223,
+          "to": 240,
+          "distance": 0.6732664339697055
+        },
+        "run": {
+          "id": "run:47853:47856",
+          "reader": "Maher_AlMuaiqly_64kbps",
+          "start": 47853,
+          "end": 47856,
+          "from": 212,
+          "to": 308,
+          "distance": 0.687116686586611
+        }
+      },
+      "wordCounts": {
+        "الرحيم": 67,
+        "كذبت": 33,
+        "عاد": 36
+      },
+      "prefixCounts": {
+        "1": 33,
+        "2": 33,
+        "3": 33,
+        "4": 33,
+        "5": 33,
+        "6": 33,
+        "7": 33
+      },
+      "runCounts": {
+        "47856:47856": 2,
+        "47855:47856": 2,
+        "47854:47856": 2,
+        "47853:47856": 2,
+        "47852:47856": 2
+      },
+      "coverage": true,
+      "ranksFirst": true,
+      "confirms": true
+    }
+  ]
+}
