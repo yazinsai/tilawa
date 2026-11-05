@@ -24,8 +24,13 @@ practice with its own listener evidence, without touching the ledger:
   pausal-ending paths use it (`checker.ts` pausalManner, pausalVisit). Fix: after a heard pause, accept the isolated
   onset as the written word.
 - **sob-027 (parallel-verse-graph-decode).** إلّا heard as إنّ at 84:25:1. Not yet looked at.
-- **ret-017, sob-034 ×2 (ledger-with-without-ayah-fit).** Skips of whole ayahs that were recited. sob-034's two are also
-  raised by the teacher and the oracle-evidence checker, so the ledger fit is wrong on real audio, not the listener.
+- **ret-017, sob-034 ×2 (ledger-with-without-ayah-fit): bad labels, not a checker fault.** The realuser builder joins
+  clips and, where clips were left out or never recorded, joins the neighbours with a `jump` seam without a
+  `skipped_passage` event. The audio really skips 110:2 (ret-017), 79:28-29 and 79:43-44 (sob-034); the listener's
+  decode and the oracle evidence both run straight across each seam, and the ledger is right to call the skip. Of the
+  580 realuser labels, 22 have a forward jump within a surah; the 3 warnings are exactly the ones whose skipped ayahs
+  have 3 or more words. Fix in the data: label such a jump as a skip (or don't build one), then apply it as the next
+  test set version. Experiment checker-ledger-fit-real-audio-skips made no change.
 
 ## Next
 
