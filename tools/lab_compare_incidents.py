@@ -35,8 +35,9 @@ def compare(b,n):
   assert miss_counts[1]-miss_counts[0]==len(missed)-len(recovered)
   assert len(nw)-len(bw)==len(new)-len(removed)
   for report,miss_count,warns in [(b,miss_counts[0],bw),(n,miss_counts[1],nw)]:
-   assert sum(r['variants'][v]['missed'] for r in report['results'])==miss_count
-   assert sum(r['variants'][v]['falseWarnings'] for r in report['results'])==len(warns)
+   has=[r['variants'][v] for r in report['results'] if v in r['variants']]  # realuser sessions are phone only
+   assert sum(x['missed'] for x in has)==miss_count
+   assert sum(x['falseWarnings'] for x in has)==len(warns)
   out['variants'][v]={'misses':miss_counts, 'warnings':[len(bw),len(nw)],'recoveries':recovered,'newMisses':missed,'newWarnings':new,'removedWarnings':removed,'warningClassChanges':class_changes, 'recoveriesByChapter':dict(collections.Counter(c['word'].split(':')[0] for c in recovered))}
  return out
 
