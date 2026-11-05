@@ -251,7 +251,6 @@ def main():
     ap.add_argument("--diagnose", action="store_true", help="Trace a non-finite backward operation")
     args = ap.parse_args()
     torch.autograd.set_detect_anomaly(args.diagnose)
-    stable_swoosh_training()
     torch.set_num_threads(4)
     torch.manual_seed(0)
     random.seed(0)
@@ -261,6 +260,7 @@ def main():
     ck = torch.load(Path(args.source) / "ckpt.pt", map_location="cpu", weights_only=False)
     cfg = {**T.DEFAULTS, **ck["cfg"]}
     shipped = T.build_model(cfg["size"]).to(device)
+    stable_swoosh_training()  # build_model first establishes icefall's module path
     shipped.load_state_dict(ck["model"]); shipped.eval()
     for p in shipped.parameters():
         p.requires_grad_(False)
