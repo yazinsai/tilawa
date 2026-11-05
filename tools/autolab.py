@@ -1461,6 +1461,9 @@ Inspect a case with the trace tool:
 {gpu}{model}
 ## Tried before on this cluster
 
+Every experiment that was built, folded or not, keeps its code on its branch `exp/<id>` in this repository: `git diff main...exp/<id>`
+shows it, and `git cherry-pick` or `git checkout exp/<id> -- <path>` brings it in when the card builds on it.
+
 {json.dumps(tried, ensure_ascii=False, indent=1) if tried else 'nothing yet'}
 
 ## Rules
