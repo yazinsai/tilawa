@@ -1,0 +1,13 @@
+{
+ "id": "listener-tracker-run-fits-written-veto",
+ "component": "listener",
+ "hypothesis": "Phone wrong-word false warnings (the 4 realuser ones on lexical or graph paths, plus 26:106:1, 55:48:1 and 26:174:8) are judged only on the checker's own slot cut, so sounds lent across a word edge can make a blurred written word look like a rival. Veto a pending wrong word when the tracker's independently timed in-lock step onto that word, inside one locked run, fits the written word with no more hard edits than the checker's rival; predict listener -1, overall -1 (honest, upside -2).",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-stack-be988c-6a17f391",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-05T05:53:24+00:00",
+ "author": "autolab"
+}
