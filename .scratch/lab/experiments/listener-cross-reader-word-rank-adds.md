@@ -1,6 +1,7 @@
 # Cross-reader posteriorgram word rank at seams
 
-Status: acoustic premise passed on four targets; runtime source recovery pending.
+Status: needs-info. Acoustic premise passed on four targets; runtime integration
+is blocked on the unavailable parent candidate-generator patch.
 Experiment card unchanged.
 
 ## Prediction and mechanism
@@ -126,6 +127,17 @@ Supervisor run 13 prepares a generic all-word corpus with the same fixed readers
 and augmentation, storing packed contextual decodes in the experiment's scratch
 directory. It is the first of two planned batches and is not a shipped SDK asset.
 The later batch and runtime integration depend on recovering the parent source.
+
+Supervisor run 14 was rejected before executing the full suites with
+`ResourceExhaustedError: too many layers in volume`; run 15 retries the supplied
+six-shard test command and passed both builds and all six shards: 740 core tests
+and 16 SDK tests, with the existing help E2E test skipped. The supplied harness
+accepted the same known Vitest worker RPC deadline seen at baseline after every
+test passed. Both new reference test files ran successfully.
+
+A small Node source-level check also passed exact packed/live
+posterior equality, malformed asset rejection, full-query DTW, strict rank
+including non-finite rivals, and prefix cuts. It does not replace the full suites.
 
 No practice score has been requested. This early bank and optimistic acoustic
 query selection cannot by
