@@ -260,7 +260,7 @@ def main():
     ck = torch.load(Path(args.source) / "ckpt.pt", map_location="cpu", weights_only=False)
     cfg = {**T.DEFAULTS, **ck["cfg"]}
     shipped = T.build_model(cfg["size"]).to(device)
-    stable_swoosh_training()  # build_model first establishes icefall's module path
+    stable_swoosh_training()  # load the encoder's icefall modules before patching
     shipped.load_state_dict(ck["model"]); shipped.eval()
     for p in shipped.parameters():
         p.requires_grad_(False)
