@@ -1,6 +1,6 @@
 # 19 Real-user clean set
 
-Status: ready-for-agent
+Status: resolved
 Type: task
 Blocked by: 20 (lab-v1.5 registration)
 
@@ -84,3 +84,12 @@ Decision (31 Oct): the slice joins **lab-v1.5** once ticket 20 registers it. Tha
 2. Decode nothing new: both listeners' evidence is copied with the sessions.
 3. `python3 tools/lab.py baseline --manifest lab-v1.5u/manifest-v1.json --exclude lab-v1.5u/flags-v1.json`.
 4. Add the joined set's practice realuser numbers to the write-up. They should match realuser-v1's practice numbers: 1 false warning in 63.3 min.
+
+## Joined (5 Nov)
+
+- `lab-v1.5u` built from `lab-v1.5` + realuser-v1: 200 + 580 sessions, flags 4 + 62 carried. Main-line listener evidence
+  (`exp-listener-stack-be988c-6a17f391`) decoded for all 980 files from main `2b50d856`.
+- `lab baseline` on `lab-v1.5u`: practice 30 (20 + 10), exam 113 (44 + 69); autolab switched with `autolab.py test-set`.
+- Realuser, main `2b50d856`: practice **7 false warnings** in 63.3 min (wrong_word 4, skipped_passage 3); exam 6 in 62.5 min.
+  This does not match the 1 in 63.3 min recorded above. That figure was on an older main line, so the folds since then
+  are the likely cause; not yet confirmed by scoring the older main on this set.
