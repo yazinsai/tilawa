@@ -67,6 +67,60 @@ def export(source, checkpoint, out):
     m.update(format='onnx-int8', sessionConditioning=dict(dimensions=64, frameMs=20, startMs=1000))
     (out / 'manifest.json').write_text(json.dumps(m, ensure_ascii=False, indent=1))
     print(json.dumps(dict(event='exported', sha256=m['sha256'], bytes=m['bytes'])), flush=True)
+    # Parity uses training-pool clips, never practice. The float graph
+    # must preserve both acoustic outputs and the feedback feature stream.
+    import io
+    import numpy as np
+    import onnxruntime as ort
+    import soundfile as sf
+    import torchaudio
+    ort_session = ort.InferenceSession(fp, sess_options=_ort_options(), providers=['CPUExecutionProvider'])
+    int8_session = ort.InferenceSession(path, sess_options=_ort_options(), providers=['CPUExecutionProvider'])
+    pool_path = Path(checkpoint).parent / 'pool.pt'
+    rows = []
+    for clip in torch.load(pool_path, weights_only=False)['clips'][:3]:
+        wave, _ = sf.read(io.BytesIO(clip['flac']), dtype='float32')
+        f = torchaudio.compliance.kaldi.fbank(torch.from_numpy(wave)[None], **__import__('student_export').FBANK)
+        need = ((len(f)-7)//2+1)//2
+        windows = max(1, (need+7)//8)
+        f = torch.nn.functional.pad(f, (0,0,0,max(0,45+(windows-1)*32-len(f))), value=-23.0259)
+        st = stream.init_states()
+        ort_st = {n: t.numpy() for n,t in zip(names,st)}
+        q_st = {n: t.numpy() for n,t in zip(names,st)}
+        sums = np.zeros(64, dtype=np.float64)
+        q_sum = sums.copy(); count = 0
+        worst_lp = 0.; worst_features = 0.; agree = 0; frames = 0
+        with torch.no_grad():
+            for i in range(windows):
+                embedding = (sums/count if count>=50 else np.zeros(64)).astype(np.float32)[None]
+                q_embedding = (q_sum/count if count>=50 else np.zeros(64)).astype(np.float32)[None]
+                x = f[None,i*32:i*32+45]
+                lp, features, st = stream(x,torch.from_numpy(embedding),st)
+                got = dict(zip([v.name for v in ort_session.get_outputs()], ort_session.run(None, dict(x=x.numpy(), session_embedding=embedding, **ort_st))))
+                quant = dict(zip([v.name for v in int8_session.get_outputs()], int8_session.run(None, dict(x=x.numpy(), session_embedding=q_embedding, **q_st))))
+                ort_st = {n: got['new_'+n] for n in names}
+                q_st = {n: quant['new_'+n] for n in names}
+                keep = min(8, need-i*8)
+                worst_lp = max(worst_lp,float(np.abs(lp.numpy()-got['log_probs']).max()))
+                worst_features = max(worst_features,float(np.abs(features.numpy()-got['session_features']).max()))
+                agree += int((got['log_probs'][0,:keep].argmax(-1)==quant['log_probs'][0,:keep].argmax(-1)).sum())
+                frames += keep
+                sums += got['session_features'][0,:keep*2].sum(0,dtype=np.float64)
+                q_sum += quant['session_features'][0,:keep*2].sum(0,dtype=np.float64)
+                count += keep*2
+        rows.append(dict(key=f"{clip['shard']}:{clip['row']}", floatLogProbMaxDiff=worst_lp,
+            floatFeatureMaxDiff=worst_features, int8Top1Agreement=agree/frames, frames=frames))
+    (out/'parity.json').write_text(json.dumps(rows,indent=1))
+    print(json.dumps(dict(event='parity',clips=rows)),flush=True)
+    if any(r['floatLogProbMaxDiff']>0.003 or r['floatFeatureMaxDiff']>0.003 for r in rows):
+        raise ValueError('Float streaming export parity failed')
+
+
+def _ort_options():
+    import onnxruntime as ort
+    options = ort.SessionOptions()
+    options.intra_op_num_threads = 4
+    return options
 
 
 if __name__ == '__main__':
