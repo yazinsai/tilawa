@@ -144,3 +144,17 @@ query selection cannot by
 themselves establish production candidate coverage, warning timing, clean-session
 precision, reader robustness or studio behaviour. No independent listening
 judgment or benchmark label correction is made.
+
+## Continuation audit
+
+The continuation confirmed that the parent branch still contains only its card
+and result write-up. Preserving its generator and neighbour checks byte-for-byte
+requires the original patch; reconstructing them requires clarification of that
+constraint. The source request remains pending, and no warning-path change or
+additional practice score has been made. This is a source dependency, not a fired
+acoustic kill criterion; no killed outcome is claimed.
+
+Supervisor result requests for run 13 and the scratch-corpus status inspection
+(run 16) have not returned. Full-corpus completion and asset coverage therefore
+remain unverified; the completed requested-word bank above is the only measured
+reference coverage.
