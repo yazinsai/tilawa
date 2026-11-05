@@ -1031,3 +1031,29 @@ def test_a_near_miss_whose_wins_a_later_fold_took_is_not_stacked(w, monkeypatch)
     near_miss(st, "tracker-a", -2, ["i1", "i2"])
     near_miss(st, "tracker-b", -2, ["i3", "i4"])
     assert [x["id"] for x in A.Tick(w, st, T0).near_misses()] == ["tracker-b"]
+
+
+def test_test_set_switch_moves_onto_the_ledgers_new_set_and_main_score(w, monkeypatch):
+    led = {"testSet": "lab-v1.5u", "mainLine": [{"testSet": "lab-v1.5u", "run": "u-run", "sha": "m2", "practice": RICH_PRACTICE}]}
+    monkeypatch.setattr(w, "ledgers", lambda: [led], raising=False)
+    w.hash = "hu"
+    w.queued = [{"op": "test-set"}]
+    st = tick(w)
+    assert st["testSet"] == "lab-v1.5u" and st["dataHash"] == "hu" and st["main"]["run"] == "u-run"
+    w.queued = [{"op": "test-set"}]
+    assert tick(w)["testSet"] == "lab-v1.5u"  # a second switch is rejected, not an error
+
+
+def test_test_set_switch_waits_for_experiments_scoring_on_the_old_set(w, monkeypatch):
+    led = {"testSet": "lab-v1.5u", "mainLine": [{"testSet": "lab-v1.5u", "run": "u-run", "sha": "m2", "practice": RICH_PRACTICE}]}
+    monkeypatch.setattr(w, "ledgers", lambda: [led], raising=False)
+    st = w.load()
+    st["experiments"]["x"] = {"id": "x", "state": "scoring"}
+    w.saved = st
+    t = A.Tick(w, st, T0)
+    with pytest.raises(ValueError, match="wait for x"):
+        t.apply({"op": "test-set"})
+    assert st["testSet"] == "lab-v1.5"
+
+
+RICH_PRACTICE = {"wrongCalls": 30, "missed": 20, "falseWarnings": 10, **{c: {"wrongCalls": n} for c, n in (("listener", 29), ("tracker", 1), ("checker", 0))}}

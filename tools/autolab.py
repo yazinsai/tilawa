@@ -543,6 +543,8 @@ class Tick:
             st["paused"] = c["why"] or None
             self.events.append(S.event(None, None, "paused" if c["why"] else "resumed", self.at, c["why"] or "by you"))
             return
+        if op == "test-set":
+            return self.switch_test_set()
         e = st["experiments"][c["id"]]
         if op == "match":
             st["matches"].append({"id": e["id"], "gate": e["state"], "user": c["verdict"], "at": self.at})
@@ -709,6 +711,24 @@ class Tick:
                            "attribution": {c: practice[c] for c in L.COMPONENTS}, "teacherWrongCalls": teacher.get("wrongCalls")}
         P.update_coverage(self.st, P.incidents(report))
         self._ctx = None
+
+    def switch_test_set(self):
+        """Moves onto the ledger's current test set and its main-line score (after `lab baseline` registered a new one).
+        Refused while an experiment holds a score on the old set: the gate can't compare across test sets."""
+        st, led = self.st, (self.w.ledgers() or [{}])[0]
+        new, m = led.get("testSet"), L.main_score(led) if led.get("testSet") else None
+        if not m:
+            raise ValueError(f"the ledger has no main-line score on {new}; run `lab baseline` on it first")
+        if new == st["testSet"]:
+            raise ValueError(f"already on {new}")
+        busy = [e["id"] for e in S.active(st) if e["state"] in ("validating", "scoring", "folding")]
+        if busy:
+            raise ValueError(f"wait for {', '.join(busy)} to finish on {st['testSet']}")
+        old, st["testSet"] = st["testSet"], new
+        st["dataHash"] = self.w.data_hash(new)
+        self.set_main(m["run"], m["sha"], L.brief(m["practice"]), m.get("head"))
+        P.reset_plateau(st)
+        self.events.append(S.event(None, None, "test-set", self.at, f"{old} -> {new}: main line {m['sha']}, practice {st['main']['practice']['wrongCalls']} wrong calls"))
 
     def exec_data(self):
         """Keeps tilawa-lab-exec, the builders' practice-only data, on the current test set version; modal-run requests
@@ -1796,6 +1816,7 @@ def main():
     pp = sub.add_parser("pause")
     pp.add_argument("why", nargs="*")
     sub.add_parser("resume")
+    sub.add_parser("test-set", help="move onto the ledger's current test set (after `lab baseline` on a new one)")
     sp = sub.add_parser("status")
     sp.add_argument("--json", action="store_true")
     abp = sub.add_parser("ab")
@@ -1837,7 +1858,7 @@ def main():
     mp.add_argument("verdict", choices=("agree", "disagree"))
     a = p.parse_args()
     try:
-        {"init": cmd_init, "tick": cmd_tick, "loop": cmd_loop, "pause": cmd_pause, "resume": lambda a: cmd_pause(a, why=""),
+        {"init": cmd_init, "tick": cmd_tick, "loop": cmd_loop, "pause": cmd_pause, "resume": lambda a: cmd_pause(a, why=""), "test-set": lambda a: send("test-set"),
          "status": cmd_status, "ab": cmd_ab, "practice-score": cmd_practice_score, "watchdog": cmd_watchdog, "match": cmd_match,
          "approve": cmd_approve, "waiting": cmd_waiting, "retry": cmd_retry, "reopen": cmd_reopen, "rebuild": cmd_rebuild, "revert": cmd_revert, "drop": cmd_drop, "eli5": cmd_eli5,
          "modal-run": cmd_modal_run, "modal-result": cmd_modal_result, "sync-exec-data": cmd_sync_exec_data}[a.op](a)
