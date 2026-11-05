@@ -103,3 +103,48 @@ describe("streaming listener on onnxruntime-node", () => {
     expect(frames).toBeLessThanOrEqual(reference.frames);
   });
 });
+
+describe("causal session conditioning", () => {
+  it("uses completed audio after one second and is independent of push size and other sessions", async () => {
+    const manifest = JSON.parse(readFileSync(fixture("tiny/manifest.json"), "utf8"));
+    manifest.sessionConditioning = { dimensions: 64, frameMs: 20, startMs: 1000 };
+    const execute = async (pushSize: number) => {
+      const embeddings: number[][] = [];
+      const backend: InferenceBackend = {
+        name: "conditioned-stub",
+        async run(feeds) {
+          embeddings.push(Array.from(feeds.session_embedding.data as Float32Array));
+          const call = embeddings.length;
+          const n = manifest.shift / 4;
+          return {
+            ...Object.fromEntries(manifest.states.map((s: { name: string }) => [`new_${s.name}`, feeds[s.name]])),
+            log_probs: { type: "float32", data: new Float32Array(n * (manifest.tokens.length + 1)).fill(-10), dims: [1, n, manifest.tokens.length + 1] },
+            session_features: { type: "float32", data: new Float32Array(n * 2 * 64).fill(call), dims: [1, n * 2, 64] },
+          };
+        },
+      };
+      const listener = createListener({ manifest, backend, supported: [] });
+      const audio = new Float32Array(16000 * 3);
+      for (let a = 0; a < audio.length; a += pushSize) await listener.push(audio.subarray(a, a + pushSize), 16000);
+      await listener.end();
+      return embeddings;
+    };
+    const small = await execute(1600), large = await execute(48000);
+    expect(small).toEqual(large);
+    expect(small.slice(0, 4).every(e => e.every(v => v === 0))).toBe(true);
+    expect(small[4]).toEqual(new Array(64).fill(2.5));
+    expect(small[5]).toEqual(new Array(64).fill(3));
+    // A new listener starts from zero even when the model is shared.
+    const empty: number[][] = [];
+    const backend: InferenceBackend = {
+      name: "missing-features",
+      async run(feeds) {
+        empty.push(Array.from(feeds.session_embedding.data as Float32Array));
+        return { log_probs: { type: "float32", data: new Float32Array(8 * (manifest.tokens.length + 1)), dims: [1, 8, manifest.tokens.length + 1] },
+          ...Object.fromEntries(manifest.states.map((s: { name: string }) => [`new_${s.name}`, feeds[s.name]])) };
+      },
+    };
+    await expect(createListener({ manifest, backend, supported: [] }).push(new Float32Array(16000), 16000)).rejects.toThrow("session_features");
+    expect(empty[0]).toEqual(new Array(64).fill(0));
+  });
+});

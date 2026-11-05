@@ -52,14 +52,35 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   let done: DecodedPhoneme[] = [];
   let ids: number[] = [];
   let probs: number[] = [];
+  const conditioning = m.sessionConditioning;
+  const sessionSum = new Float64Array(conditioning?.dimensions ?? 0);
+  let sessionFrames = 0;
 
   async function step(window: Float32Array[], keep: number) {
     const x = new Float32Array(m.window * m.fbank.mels);
     window.forEach((f, i) => x.set(f, i * m.fbank.mels));
-    const out = await model.backend.run({ x: { type: "float32", data: x, dims: [1, m.window, m.fbank.mels] }, ...states });
+    const feeds: Record<string, Tensor> = { x: { type: "float32", data: x, dims: [1, m.window, m.fbank.mels] }, ...states };
+    if (conditioning) {
+      const embedding = new Float32Array(conditioning.dimensions);
+      if (sessionFrames * conditioning.frameMs >= conditioning.startMs)
+        for (let i = 0; i < embedding.length; i++) embedding[i] = sessionSum[i] / sessionFrames;
+      feeds.session_embedding = { type: "float32", data: embedding, dims: [1, embedding.length] };
+    }
+    const out = await model.backend.run(feeds);
     states = Object.fromEntries(m.states.map((s) => [s.name, out[`new_${s.name}`]]));
     const lp = out.log_probs.data as Float32Array;
     const n = Math.min(keep, lp.length / vocab);
+    if (conditioning) {
+      const features = out.session_features;
+      const width = conditioning.dimensions;
+      const count = Math.min(Math.round(n * m.frameMs / conditioning.frameMs), features?.dims[1] ?? 0);
+      if (!features || features.type !== "float32" || features.dims[2] !== width || !count)
+        throw new Error("Conditioned listener requires session_features on the declared frame grid");
+      const values = features.data as Float32Array;
+      for (let t = 0; t < count; t++)
+        for (let i = 0; i < width; i++) sessionSum[i] += values[t * width + i];
+      sessionFrames += count;
+    }
     for (let t = 0; t < n; t++) {
       const row = lp.subarray(t * vocab, (t + 1) * vocab);
       const top = topK(row, k);

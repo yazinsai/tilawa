@@ -24,6 +24,8 @@ export interface ModelManifest {
   window: number;
   shift: number;
   states: StateSpec[];
+  /** Optional causal speaker/channel conditioning produced by the model's frozen encoder. */
+  sessionConditioning?: { dimensions: number; frameMs: number; startMs: number };
   file: string;
   bytes: number;
   sha256: string;
