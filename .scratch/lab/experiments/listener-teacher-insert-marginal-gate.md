@@ -1,6 +1,6 @@
 # Teacher whole-seam insertion marginal
 
-Status: acoustic premise passed; SDK target validation and practice scoring pending. The experiment card is unchanged.
+Status: implemented; acoustic premise and SDK target validation passed. Stored-evidence practice replay was unchanged; fresh supervisor SDK decoding remains necessary. The experiment card is unchanged.
 
 ## Prediction and mechanism
 
@@ -37,7 +37,7 @@ duplicate pronunciation forms, missing evidence and impossible reads.
 Target diagnostics replay the free tracker and checker on the card's declared
 listener evidence. Labels select and report cases only; they do not choose the
 candidate or its insertion frames. Warm-crop and whole-seam bounds are obtained
-from the actual generator and committed tracker steps. Teacher frame indices
+from the actual generator visits in the tracker/checker replay. Teacher frame indices
 remain on their native 40 ms clock. Full-vocabulary fp32 posteriors avoid a
 top-k reconstruction artifact. These acoustic diagnostics are not a practice
 score or an independent listening judgment.
@@ -81,3 +81,46 @@ tests (one optional integration test skipped). These include native warm-crop
 timing independent of the candidate interval, shared crop inference, JSON and
 frame-cell transport, and private audio retention plus end-of-session warning
 publication with recording disabled.
+
+Run 12 passed the actual Node SDK path on all four targets, using the exported
+ONNX teacher and current card evidence. The same marginal ranges in the table
+above survived the SDK frontend and runtime. Ordinary JSON serialization, native
+frame-cell rechunking and the default checker produced a confirmed addition at
+each registered location. Across each complete target session, primary phoneme
+identity, confidence and frame bounds, primary posterior values, and the entire
+tracker event sequence compared equal with and without teacher metadata. The
+probe discovered all candidates generically; target labels only selected the
+cases and reported the warnings. Run 12 took 747 seconds in the container.
+The kill criterion therefore did not fire: four of four targets retained.
+
+One practice score completed at implementation commit `0b8699a3`; two remain
+available. Overall stayed at 30 wrong calls (20 missed, 10 false), listener at
+29 (20 missed, 9 false), tracker at 1, and checker at 0: all changes zero, verdict
+noise. The card remained unchanged and still selects
+`exp-listener-stack-be988c-6a17f391`.
+
+This was a stored-evidence compatibility replay. `serve_practice` invokes
+`lab.py run`; its score command runs the core lab CLI on that existing listener
+evidence, rather than decoding the selected SDK model bundle. Those primary
+tokens contain no `seamInsertions` certificates, so the experiment's emissions
+are disabled by construction. The replay therefore does not measure the
+teacher's population precision, target gain, clean-session behavior or studio
+regression. It must not be reported as a measured zero gain for the new SDK ear.
+
+The supervisor's normal post-implementation `after_tests` path reads
+`.autolab/model.json`, copies the exported bundle, and invokes the SDK decoder
+on the practice phone and studio sessions before scoring its new listener
+evidence. The selection is `{"path":"bundle"}` and the exported assets persist
+under this experiment's scratch directory. Leave the implementation for that
+fresh decode and the fold gate. Four retained targets pass the card's premise;
+no conclusion about the aggregate precision gain is established yet.
+
+Diagnostic sources have been removed from the engine/source snapshot and
+retained only with the ignored run artifacts. No scorer, supplied manifest,
+test data, evidence or experiment-card edits were made. No fold was performed.
+
+A final no-certificate fast path avoids excision scans when neither teacher
+metadata nor a discovery callback is available. It preserves the generator when
+evidence exists and removes unnecessary work on ordinary primary-only clients.
+Run 14 passed the updated build, the 14 focused core tests and all 25 SDK tests
+(one optional integration test skipped).
