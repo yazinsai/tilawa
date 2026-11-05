@@ -1,97 +1,89 @@
 # Same-text clean replay veto for ownership-free seam spellings
 
-Status: premise cleared; corpus-wide construction and scoring pending. Experiment card unchanged.
+Status: implementation complete; shipped-asset validation pending. Card unchanged.
 
-## Prediction
+## Prediction and mechanism
 
-Listener −3, overall −2 on the practice set, using the shipped listener. The
-required continuation criterion is at least three target wins; the five targets
-are those in the experiment card. No practice score has been requested.
+Predict listener −3, overall −2 on practice with the shipped model. Continue to
+practice scoring only if the completed mechanism wins at least three targets.
 
-## Mechanism
+Re-land the final enumeration from `exp/listener-excise-certify-seam-waqf-adds`:
+whole pause-bounded greedy utterances at ayah and marked inner-waqf seams, stopped
+nasal retention, exact whole-word spelling, neighbour/prefix/back-run/phrase and
+neighbouring-text-fragment exclusions. After cutting the candidate frames,
+certify both neighbours with the existing closed read-versus-omit forward sum
+and PHRASE_SWITCH. No numeric constants change.
 
-Re-land the final ownership-free enumeration from
-`exp/listener-excise-certify-seam-waqf-adds`: whole pause-bounded utterances at ayah
-and marked inner-waqf seams, stopped nasal retention, exact whole-word spelling,
-neighbour/prefix/back-run/phrase and neighbouring-text-fragment exclusions, then
-closed read-versus-omit neighbour certification after excising the candidate's
-frames. The main phoneme string and tracker stay fixed.
+The new veto identifies a seam by the full phoneme text of its adjacent ayahs
+and its offset. It requires at least two distinct clean source collections. Any
+matching canonical spelling from any clean replay vetoes the candidate; missing
+or incompatible coverage abstains. Apply this after the parent enumeration
+selects its candidate, so rejection cannot substitute another word. The main
+listener string, tracker and other warning paths keep their existing behaviour.
 
-Build clean reference contexts from the same EveryAyah source used by the earlier
-same-ayah reference bank. This source is excluded from the evaluation reader pool
-by the source registry (`docs/benchmarks/lab-reciters-v1.md`). Keep Arabic Hafs
-murattal collections, one bitrate per source name, and the established seeded
-three-collection sample. The preliminary probe joins preceding, current and following ayahs; the
-shipped asset uses complete surahs, joined from the same source clips, before the
-shipped phone transform. Its noise and simulated rooms come from public training
-sources, rather than the practice augmentation bank. One augmentation is fixed
-per collection/context before any result is examined.
+## Clean replay asset
 
-The shipped SDK listener records its ordinary context-free-gap evidence. Replay
-that evidence through the unchanged free tracker and checker, observing the
-ownership-free enumeration before the new veto and neighbour certification, also retaining ordinary seam
-spellings. A through-reading at an inner seam remains a replay when no pause is
-present. An inspected seam counts as coverage even if no word is spelled. The offline
-negative set joins all spellings from each distinct collection at each seam;
-repeated streaming callbacks and overlapping contexts do not add replays.
+The supplied mount had no existing same-ayah reference bank. Reconstruct the
+established EveryAyah source, which the evaluation reader registry excludes
+wholesale (`docs/benchmarks/lab-reciters-v1.md`). Preserve the prior generic Hafs
+murattal filters, one bitrate per collection and seeded three-collection sample:
+Juhaynee, Maher Al-Muaiqly and Minshawy murattal. No result-dependent selection.
 
-Text of the two adjacent ayahs plus the seam's offset identifies a seam, without
-session, reader or verse conditions in engine code. A spelling may proceed only
-with at least two replays and no equal canonical spelling in that seam's clean
-negative set. One matching negative suffices. Missing or incompatible coverage
-abstains. All other warning paths retain their existing behaviour.
+Join each source's ayah clips into complete surahs: 342 recordings, 69.998 hours.
+Apply the unchanged shipped phone transform with deterministic per-context
+seeds. Its training augmentation sources contain 212 public noise clips and 64
+simulated rooms; they differ from the practice augmentation bank.
 
-## Validation so far
+Record ordinary SDK listener evidence, including the folded context-free gaps.
+Replay through the unchanged free tracker and checker with an empty veto asset.
+Observe ownership-free spellings before certification/veto and ordinary seam
+spellings. A usable inspected seam counts even if it spells nothing; an inner
+through-reading without a pause is also a replay. Deduplicate callbacks and
+source collections before unioning each seam's spellings.
 
-- Read AGENTS.md, the card, the parent diff and recorded result, and the previous
-  reference-bank construction and source-exclusion documentation.
-- The supplied data mount contains practice, models and help-train, but no
-  existing same-ayah reference bank. The generic corpus builder reconstructs
-  contexts from the established public source.
-- Initial Modal builds and six-shard suites passed: 747 core tests, 16 SDK tests,
-  one SDK E2E test skipped.
-- Modal run 4 passed both builds and 18 focused tests. Its ungated upper-bound
-  replay confirmed all five planted identities in both the free engine and
-  true-position arms: p19 at 106.36 s, p50 at 153.20 s, 4:157:24 at 59.40 s,
-  9:5:15 at 116.44 s, and p49 at 158.48 s. These are not wins for the final veto.
-- Run 4's corpus preparation failed because the node image lacked NumPy. Run 6
-  installed the preparation dependencies and successfully prepared all 15
-  contexts. The fixed collections are Juhaynee, Maher Al-Muaiqly and Minshawy
-  murattal, the same seeded sample used by the earlier bank.
-- Added a regression for clean through-reading coverage without an inner pause.
-  Modal run 8 passed both builds and all 19 focused tests.
-- Run 9 inspected all 15 completed reference records. P19, p50 and p49 each have
-  two usable clean collections; 9:5:15 has three. Their negative spelling sets
-  are empty. 4:157:24 has one usable collection in the preliminary protocol.
-  This clears the acoustic/coverage premise for four targets, rather than
-  claiming an overall gain. The training augmentation bank is 212 noise clips
-  and 64 simulated rooms.
-- Run 7's combined guarded engine replay exceeded the supervisor's 30-minute
-  sandbox deadline; the completed clean reference records remain available.
-  This is an execution failure, not a measured overall result or a premise kill.
-  Run 12 retries the diagnostic without raw enumeration logging and skips
-  sessions where every requested candidate fails coverage/existence by construction.
-- Run 12 completed successfully (200.7 seconds). The guarded free engine and
-  true-position arms both confirm p19, p50, p66 and p49. P31 abstains with one
-  preliminary replay. Four target wins clear the three-target premise.
-- Modal run 10 prepared every surah of all three source collections: 342
-  recordings, all 20 shards exited zero, no unavailable clips reported.
-  Full-surah contexts avoid the startup coverage loss in short crops. Run 11
-  is constructing the corpus-wide asset, including the through-reading coverage
-  and ordinary seam-spelling observations. No target-only asset will ship.
+The packer requires every corpus record and matching reference, inventory,
+listener SHA, job identity and collector fingerprint; it rejects incomplete or
+mixed banks. Corpus collector fingerprint:
+`3445d2b3ca9111f2468c167a3b8c270190b9ee2615d7a0fb0306a868058903b7`.
+Listener SHA:
+`714e98addee73b1b8781ad7d99b6d3c745acd9116638baf4e12891f53a15af1b`.
+Moving the consumer veto after candidate selection does not change the empty
+asset collector's observations.
 
-- Run 13 counted 111/342 completed full-surah records at inspection time.
-  The input is 69.998 hours, with a longest recording of 136.84 minutes.
-  Construction is resumable and the packer rejects incomplete or mixed-version
-  banks. Run 14 waits for completeness, then packs and checks the shipped default
-  asset rather than a diagnostic override.
+Builders: `modal/student_seam_replays.py` (`--all-seams --whole-surahs --prepare`),
+`packages/sdk/src/seam-replay-build.ts` (`--jobs --model --out --resume`), and
+`packages/sdk/src/seam-replay-pack.ts` (`--jobs --model --bank --out`). All acoustic
+work runs through the authorized supervisor. The collector resumes matching
+cached records, and the packer writes the declared engine data module.
+
+## Validation
+
+- Initial Modal builds and six-shard suites passed: 747 core tests and 16 SDK
+  tests; one optional SDK E2E test skipped. The final suite is pending.
+- Run 4's ungated enumeration confirmed all five planted words, in both the
+  free-engine and true-position arms. This is an upper bound, not final wins.
+- Runs 8 and 18 retain 19 passing focused tests for excision, pausal handling,
+  neighbouring-text exclusion, coverage, version/inventory compatibility and
+  matching-word vetoes. Run 18 also tried a two-candidate fixture whose positive
+  control lost the neighbour fit; that invalid regression was removed.
+- Preliminary three-ayah contexts (15 recordings) left four target spellings
+  absent from at least two clean replays. Run 12's guarded free engine and
+  true-position arms both confirmed p19, p50, p66 and p49. P31 abstained with one
+  replay. This preliminary four-target result clears the acoustic premise.
+- Run 10 prepared all 342 full-surah recordings without unavailable clips.
+  Run 11 exceeded its sandbox deadline; run 15 resumed the matching records and
+  completed the bank with all 20 shards exiting zero. Waiting run 14 also timed
+  out without producing an asset. These are execution limits, not scores.
+- Run 19 packages the complete asset, runs all six core/SDK test shards, and
+  checks the five targets through the shipped default asset without an override.
+- No practice score has been requested yet.
 
 ## Limits
 
-Canonical source recitations serve as clean negatives; this is an automated
-text/acoustic probe, not an independent listening review. The fixed sample contains three distinct named reciters. The
-phone formula matches the shipped transform, while its training noise and room
-samples differ from the held-out practice augmentation bank. Missing tracker
-pairing reduces usable replay coverage; a clean inner through-reading still counts. Target
-selection is confined to a temporary externally supplied diagnostic request;
-a target-only asset is not a shipping asset.
+Canonical source recitations supply clean negatives without an independent
+listening review. Three named reciters and one fixed augmentation per recording
+cannot cover every realization or microphone. Missing tracker pairing reduces
+usable coverage; full-surah context reduces startup loss. Matching clean words
+are a conservative existence veto, while unseen one-off blur remains possible.
+Target requests belong only to a temporary diagnostic, which will be removed.
+No test identities enter the shipped code or corpus selection.

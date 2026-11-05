@@ -1911,7 +1911,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (inner ? !waqfMarked(prev) : ayahFirst[ayahOf[w1]] !== w1) continue;
       // Uncovered seams cannot emit; only offline construction needs their
       // raw enumeration. Avoid doing that work on the device or in a replay.
-      if (!options.onSeamSpelling && !replayHasCoverage(options.seamReplays ?? SEAM_REPLAYS, index, w1)) continue;
+      const covered = replayHasCoverage(options.seamReplays ?? SEAM_REPLAYS, index, w1);
+      if (!options.onSeamSpelling && !covered) continue;
       const lefts = visits.filter(v => v.word === prev && v.obsFrom >= 0 && v.obsTo > v.obsFrom);
       const ends = visits.filter(v => v.word === w2 && v.obsFrom >= 0 && v.obsTo > v.obsFrom);
       let found: Issue | undefined;
@@ -1949,7 +1950,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
           if (!spelled || phraseSpan(said)) continue;
           if (lexical.fragmentOfSeam(w1, said)) continue;
           options.onSeamSpelling?.(w1, spelled);
-          if (!replayAllows(options.seamReplays ?? SEAM_REPLAYS, index, w1, spelled)) continue;
+          if (!covered) continue;
           const margins = excisedNeighbourMargins(frames, p => tokenId.get(p) ?? 0, forms, f0, f1,
             [obs[a].start, obs[b - 1].end + 1]);
           if (!margins || margins.some(m => m < PHRASE_SWITCH)) continue;
@@ -1960,7 +1961,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
           from: found.obsFrom - from, to: found.obsTo - from, said: found.observed!,
         } : null });
       }
-      if (found) issues.set(w1, found);
+      // Veto only the unchanged enumeration's selected emission. Continuing
+      // the search after a veto could instead emit a different word.
+      if (found) {
+        const spelled = lexical.surplusWord(w1, found.observed!);
+        if (spelled && replayAllows(options.seamReplays ?? SEAM_REPLAYS, index, w1, spelled)) issues.set(w1, found);
+      }
     }
     for (const e of stepEdits.sort((a, b) => b.lo - a.lo)) steps.splice(e.lo, e.hi - e.lo, ...e.path);
     // The identical two-word lead plus a locked ayah end closes this choice. Score only the greedy
