@@ -5,6 +5,10 @@ import {
   minGapFrames,
   placeGap,
   recoverGapPhonemes,
+  lexicalWords,
+  pauseSpellingSpans,
+  preserveColdSpellings,
+  seamSpellingText,
 } from "@tilawa/core";
 import type { GapPhoneme, PhonemeEvidence, ReferenceIndex, WordGap } from "@tilawa/core";
 import { createListener } from "./listener.js";
@@ -46,7 +50,7 @@ function flatten(chunks: PhonemeEvidence[]): FlatEvidence | null {
   return { inventory: chunks[0].inventory, frameMs, phonemes, k, ids, probs, nFrames };
 }
 
-async function decodeIsolated(model: LoadedModel, samples: Float32Array, sampleRate: number, k: number) {
+export async function decodeIsolated(model: LoadedModel, samples: Float32Array, sampleRate: number, k: number) {
   const listener = createListener(model, { posteriors: true, topK: k });
   const out: PhonemeEvidence[] = [];
   const step = Math.max(1, Math.round(sampleRate * 0.02));
@@ -63,6 +67,52 @@ async function decodeIsolated(model: LoadedModel, samples: Float32Array, sampleR
     ids: posts.flatMap((p) => Array.from(p.ids)),
     probs: posts.flatMap((p) => Array.from(p.probs)),
   };
+}
+
+/** Side evidence for the acoustic superset of exact, pause-bounded spellings.
+ * The checker still selects and certifies its own seam candidate unchanged. */
+export function coldSpellingDecoder(model: LoadedModel, index: ReferenceIndex, cache = new Map<string, string>()) {
+  const spans = pauseSpellingSpans([...index.tokens]), lexical = lexicalWords(index);
+  const done = cache;
+  return {
+    cache,
+    async push(e: PhonemeEvidence, audio: () => Float32Array, sampleRate: number): Promise<void> {
+      let samples: Float32Array | undefined;
+      for (const span of spans.push(e)) {
+        if (!lexical.spelledWord(seamSpellingText(span.raw))) continue;
+        const key = `${span.fromFrame}:${span.toFrame}`;
+        let phonemes = done.get(key);
+        if (phonemes === undefined) {
+          const cold = await decodeColdSpan(model, samples ??= audio(), sampleRate, span.fromFrame, span.toFrame, e.frameMs, e.posteriors!.k);
+          phonemes = cold.map(p => p.p).join("");
+          done.set(key, phonemes);
+        }
+        const proofs = span.carrier.seamCold ??= [];
+        if (!proofs.some(p => p.fromFrame === span.fromFrame && p.toFrame === span.toFrame)) {
+          proofs.push({ fromFrame: span.fromFrame, toFrame: span.toFrame, phonemes });
+        }
+      }
+    },
+  };
+}
+
+/** Re-encode a selected span from a fresh listener with the existing gap padding.
+ * Padding gives the model edge context, but only token centres inside the span
+ * contribute to its identity confirmation. No neighbour phones are removed. */
+export async function decodeColdSpan(
+  model: LoadedModel, audio: Float32Array, sampleRate: number,
+  fromFrame: number, toFrame: number, frameMs: number, k: number,
+): Promise<GapPhoneme[]> {
+  if (fromFrame < 0 || toFrame <= fromFrame || frameMs <= 0 || sampleRate <= 0 ||
+      toFrame * frameMs / 1000 > audio.length / sampleRate) return [];
+  const frameS = frameMs / 1000;
+  const t0 = Math.max(0, fromFrame * frameS - GAP_PAD_S);
+  const t1 = Math.min(audio.length / sampleRate, toFrame * frameS + GAP_PAD_S);
+  const i0 = Math.floor(t0 * sampleRate), i1 = Math.min(audio.length, Math.ceil(t1 * sampleRate));
+  const crop = await decodeIsolated(model, audio.subarray(i0, i1), sampleRate, k);
+  const shift = Math.round(t0 / frameS);
+  return crop.phonemes.map(p => ({ ...p, start: p.start + shift, end: p.end + shift }))
+    .filter(p => (p.start + p.end) / 2 >= fromFrame && (p.start + p.end) / 2 < toFrame);
 }
 
 function gapsFor(index: ReferenceIndex, locks: LockPoint[], obs: GapPhoneme[], frameMs: number): WordGap[] {
@@ -164,7 +214,7 @@ export async function spliceContextFreeGaps(
   return [{
     inventory: flat.inventory,
     frameMs: flat.frameMs,
-    phonemes,
+    phonemes: preserveColdSpellings(flat.phonemes, phonemes),
     posteriors: { k: flat.k, startFrame: 0, nFrames: flat.nFrames, ids, probs },
   }];
 }

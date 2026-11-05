@@ -84,7 +84,7 @@ export function loadReferenceIndex(asset: ReferenceAsset): ReferenceIndex {
       const end = i + 1 < ayah.o.length ? ayah.o[i + 1] : ayah.p.length;
       words.push({ surah: ayah.s, ayah: ayah.a, word: i + 1, start: base + ayah.o[i], end: base + end });
       const connected = ayah.p.slice(ayah.o[i], end);
-      wordForms.push([...new Set([connected, ayah.iso[i], plainOnset(connected, ayah.iso[i])].filter(Boolean))]);
+      wordForms.push([...new Set([connected, ayah.iso[i], plainOnset(connected, ayah.iso[i])].filter((p): p is string => !!p))]);
       isolatedWordForms.push(ayah.iso[i]);
       wordText.push(text);
     });

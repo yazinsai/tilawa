@@ -1,3 +1,11 @@
+/** Greedy identity evidence from a fresh encode of exactly these frames, with
+ * the gap path's padding excluded from the string. It never replaces warm phones. */
+export interface ColdSpelling {
+  fromFrame: number;
+  toFrame: number;
+  phonemes: string;
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -5,6 +13,8 @@ export interface DecodedPhoneme {
   start: number;
   end: number;
   conf: number;
+  /** Carried by a token so evidence serialization and re-chunking preserve it. */
+  seamCold?: ColdSpelling[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

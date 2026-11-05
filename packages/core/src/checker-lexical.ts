@@ -247,14 +247,21 @@ function build(index: ReferenceIndex) {
    * The span is a word, a prefix, or a contiguous run of words within ±3 of `wi`. Restarts and false starts
    * spell that neighbourhood; an added word does not.
    */
-  const explainsSeam = (wi: number, heard: string) => {
+  const explainsSeam = (wi: number, heard: string, fragments = false) => {
     const n = norm(heard);
     if (!n) return true;
     const ids = nearIds(wi);
-    const lists = ids.map(i => wordNorms[i]);
-    for (const list of lists) for (const f of list) {
-      if (same(n, f) || (n.length < f.length && same(n, f.slice(0, n.length)))) return true;
-    }
+    const lists = ids.map(i => fragments ? [...new Set([
+      ...wordNorms[i], norm(index.isolatedWordForms?.[i] ?? ""),
+    ].filter(Boolean))] : wordNorms[i]);
+    const matches = (f: string) => {
+      if (fragments) {
+        for (let a = 0; a + n.length <= f.length; a++) if (same(n, f.slice(a, a + n.length))) return true;
+        return false;
+      }
+      return same(n, f) || (n.length < f.length && same(n, f.slice(0, n.length)));
+    };
+    for (const list of lists) for (const f of list) if (matches(f)) return true;
     for (let a = 0; a < ids.length; a++) {
       let combos = [""];
       for (let b = a; b < ids.length && b < a + 4; b++) {
@@ -262,7 +269,7 @@ function build(index: ReferenceIndex) {
         for (const c of combos) for (const f of lists[b]) next.push(c + f);
         const uniq = [...new Set(next)];
         if (b > a) for (const acc of uniq) {
-          if (same(n, acc) || (n.length < acc.length && same(n, acc.slice(0, n.length)))) return true;
+          if (matches(acc)) return true;
         }
         combos = uniq.slice(0, 8);
       }
@@ -274,18 +281,28 @@ function build(index: ReferenceIndex) {
    * dropped or added phone. Null when the span is a neighbour, a neighbour prefix, or a run within ±3.
    */
   const surplusWord = (wi: number, heard: string): string | null => {
-    if (explainsSeam(wi, heard)) return null;
     const n = norm(heard);
     const sk = skel(n);
     if (sk.length < 2) return null;
-    for (const f of bySkel.get(sk) ?? []) if (same(n, f)) return f;
+    for (const f of bySkel.get(sk) ?? []) if (same(n, f)) return explainsSeam(wi, heard) ? null : f;
     return null;
   };
   return {
+    /** Whole-word spelling before contextual neighbour exclusions. Used only to
+     * avoid cold encoding utterances that no seam could name as a candidate. */
+    spelledWord(heard: string): string | null {
+      const n = norm(heard), sk = skel(n);
+      if (sk.length < 2) return null;
+      for (const f of bySkel.get(sk) ?? []) if (same(n, f)) return f;
+      return null;
+    },
     matches,
     ending,
     droppedSuffixes,
     surplusWord,
+    /** A substring of the nearby text can leave enough of its word to beat total omission.
+     * Excision must not call that fragment surplus, even when it is itself an attested word. */
+    fragmentOfSeam: (wi: number, heard: string) => explainsSeam(wi, heard, true),
     alternative(wi: number, heard: string, context?: { before?: string; after?: string }): boolean {
       const normalized = form(heard);
       const key = context && contextKey(context.before === undefined ? undefined : boundary(context.before, true),

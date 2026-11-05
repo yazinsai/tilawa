@@ -12,7 +12,7 @@ import type {
 } from "@tilawa/core";
 import { Resampler } from "./audio.js";
 import { capabilities } from "./capabilities.js";
-import { spliceContextFreeGaps } from "./gap-decode.js";
+import { coldSpellingDecoder, spliceContextFreeGaps } from "./gap-decode.js";
 import { createListener } from "./listener.js";
 import type { ListenerOptions } from "./listener.js";
 import type { LoadedModel } from "./model.js";
@@ -100,6 +100,7 @@ export function createEngine(options: EngineOptions): Engine {
       ...(passage && { passage }),
     });
     const listener = createListener(model, { posteriors: true, ...options.listener });
+    const coldSpellings = coldSpellingDecoder(model, index);
     const wordIndex = new Map(index.words.map((w, i) => [`${w.surah}:${w.ayah}:${w.word}`, i]));
     const locks: { wi: number; timeMs: number }[] = [];
     const noteLocks = (events: EngineEvent[]) => {
@@ -113,13 +114,18 @@ export function createEngine(options: EngineOptions): Engine {
     const pcmParts: Float32Array[] = [];
     let pcmResampler: Resampler | null = null;
     const keepAudio = (samples: Float32Array, sampleRate: number) => {
-      if (!options.recordEvidence) return;
       let pcm = samples;
       if (sampleRate !== rate) {
         if (!pcmResampler || pcmResampler.from !== sampleRate) pcmResampler = new Resampler(sampleRate, rate);
         pcm = pcmResampler.push(samples);
       }
       if (pcm.length) pcmParts.push(Float32Array.from(pcm));
+    };
+    const audioSnapshot = () => {
+      const audio = new Float32Array(pcmParts.reduce((n, p) => n + p.length, 0));
+      let at = 0;
+      for (const part of pcmParts) { audio.set(part, at); at += part.length; }
+      return audio;
     };
     const subscribers = new Set<(e: EngineEvent) => void>();
     let queue = Promise.resolve();
@@ -161,7 +167,10 @@ export function createEngine(options: EngineOptions): Engine {
         serial(async () => {
           keepAudio(samples, sampleRate);
           const e = await listener.push(samples, sampleRate);
-          if (e) cells.add(e);
+          if (e) {
+            await coldSpellings.push(e, audioSnapshot, rate);
+            cells.add(e);
+          }
           return feed(cells.ready(listener.decoded));
         }),
       end: () =>
@@ -171,17 +180,20 @@ export function createEngine(options: EngineOptions): Engine {
             if (tail.length) pcmParts.push(Float32Array.from(tail));
           }
           const e = await listener.end();
-          if (e) cells.add(e);
+          if (e) {
+            await coldSpellings.push(e, audioSnapshot, rate);
+            cells.add(e);
+          }
           const events = [...feed(cells.rest()), ...finish()];
           if (options.recordEvidence && pcmParts.length && locks.length > 1) {
-            const n = pcmParts.reduce((s, p) => s + p.length, 0);
-            const audio = new Float32Array(n);
-            let o = 0;
-            for (const part of pcmParts) {
-              audio.set(part, o);
-              o += part.length;
-            }
+            const audio = audioSnapshot();
             const spliced = await spliceContextFreeGaps(model, audio, rate, recorded, locks, index);
+            // The existing recorded-evidence gap splice may change an utterance's
+            // bounds. Certify those final bounds too, without moving any phones.
+            if (spliced !== recorded) {
+              const finalSpellings = coldSpellingDecoder(model, index, coldSpellings.cache);
+              for (const chunk of spliced) await finalSpellings.push(chunk, () => audio, rate);
+            }
             recorded.splice(0, recorded.length, ...spliced);
           }
           return events;
