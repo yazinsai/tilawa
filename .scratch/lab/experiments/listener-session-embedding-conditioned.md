@@ -108,3 +108,33 @@ The inference wrapper now starts in evaluation mode; the small-model test
 asserts that every submodule stays in evaluation mode. Parity state arrays
 also receive independent copies rather than sharing Torch memory. This is an
 export/validation fix, not a new training arm or a target-driven adjustment.
+
+Run 10 passed all three Python tests with the mode regression assertion and
+exported the final checkpoint with `--require-complete`. It reproduced run 9's
+int8 graph hash, confirming that the failed parity check concerned the Torch
+oracle rather than a different exported graph. On three training-pool clips,
+float streaming log-probability errors were at most 0.0000191 and feature
+errors at most 0.000000716. Int8 top-token agreement against the float graph
+was 99.39%, 100% and 99.32% (165, 87 and 441 frames). The int8 feature feedback
+uses its own running mean, as the SDK does.
+
+Final persistent export: `model-int8/` under this experiment's scratch area;
+136,252,537 bytes. SHA-256:
+`71f8fc19ab1bc01300eb4b64e6975ede569cf672c25329eab0e8f73ca74f74d3`.
+
+Runs 11 and 12 freshly decoded the seven complete phone recordings with the
+shipped and final conditioned int8 graphs, using the SDK's final gap-spliced
+evidence. Run 13 replayed the controls with a passive slot inspector. On the
+current checker, only four historical target warnings reproduce even from
+the supplied stored baseline evidence: p11, p36, p55 and sob-049. The other
+three are absent and cannot be counted as warnings removed by this model.
+
+The first inspector required a confirmed baseline accusation and therefore
+aborted on those three absent targets. The completed four candidate checks
+all removed their original warning, but only p55 spelled the written word
+with zero hard edits (p11: two, p36: one, sob-049: one). This is a preliminary
+four-slot result, not the seven-slot continuation verdict. The missing cases
+are checked by choosing the baseline's counting visit nearest the target time
+plus the existing 2.5-second confirmation delay, before reading edit counts.
+No phonetic score is used to choose a span. Baseline absence is retained in the
+output, and these cases cannot inflate the warning-removal count.
