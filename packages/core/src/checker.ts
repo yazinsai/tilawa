@@ -1900,11 +1900,13 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     // A spelled span can be lent to either neighbour by the greedy alignment.
     // Use visits only to bound the seam, then certify presence on the posteriors
     // left after excision. No complete visit or initial ownership is required.
+    // Without certificates or a discovery callback, this path cannot emit.
+    const inspectSeams = !!options.seamInsertion || insertionEvidence.size > 0;
     const seamPauses = [0], seamJunk = [0];
     const seamUtterances: { from: number; to: number }[] = [];
     let utteranceFrom = -1;
     for (const [key, value] of seamExcisionCache) if (value.until < obs[0].start) seamExcisionCache.delete(key);
-    if (frames && frames.startFrame >= 0) for (let i = 0; i < obs.length; i++) {
+    if (inspectSeams && frames && frames.startFrame >= 0) for (let i = 0; i < obs.length; i++) {
       seamPauses.push(seamPauses[i] + Number(runEndPause(i)));
       seamJunk.push(seamJunk[i] + Number(!!obs[i].junk));
       if (seamPauses[i + 1] > seamPauses[i]) {
@@ -1913,7 +1915,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
     }
     seamUtterances.sort((a, b) => (b.to - b.from) - (a.to - a.from) || a.from - b.from);
-    if (frames && frames.startFrame >= 0) for (const w1 of new Set(visits.map(v => v.word))) {
+    if (inspectSeams && frames && frames.startFrame >= 0) for (const w1 of new Set(visits.map(v => v.word))) {
       if (w1 < first || !length(w1) || decided.has(w1) || issues.get(w1)?.lexicon) continue;
       const prev = prevWord(w1), w2 = nextWord(w1);
       if (prev < 0 || w2 >= words.length || words[prev].surah !== words[w1].surah) continue;
