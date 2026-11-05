@@ -1,0 +1,13 @@
+{
+ "id": "listener-cold-crop-agrees-seam-spell",
+ "component": "listener",
+ "hypothesis": "Ownership-free seam spelling (excise-certify) finds heard planted words (p19, p50, 4:157:24, 9:5:15) but loses on clean seams, plausibly because in-context posteriors stitch neighbour tails and pause blips into a word. Emit a spelled span only if a cold crop of its own frames spells the same word; predict 3 of 4 kept, losses cut to about 3: listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-stack-be988c-6a17f391",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-05T11:57:20+00:00",
+ "author": "autolab"
+}
