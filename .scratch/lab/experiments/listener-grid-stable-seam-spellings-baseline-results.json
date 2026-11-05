@@ -1,0 +1,94 @@
+[
+  {
+    "session": "lab-v1.4-p19",
+    "at": 102.06,
+    "events": [
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "51:33:1#8",
+        "timeMs": 103520,
+        "state": "suspected",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 51,
+          "ayah": 33,
+          "word": 1
+        },
+        "expected": "لِنُرسِلَ",
+        "observed": "وَمِںںں",
+        "confidence": 0.8253857142857143
+      }
+    ]
+  },
+  {
+    "session": "lab-v1.5-p50",
+    "at": 146.47,
+    "events": [
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "37:99:1#10",
+        "timeMs": 147440,
+        "state": "suspected",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 37,
+          "ayah": 99,
+          "word": 1
+        },
+        "expected": "وَقَاالَ",
+        "observed": "ِفُۥۥه",
+        "confidence": 0.8404666666666666
+      },
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "37:99:1#10",
+        "timeMs": 149560,
+        "state": "resolved",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 37,
+          "ayah": 99,
+          "word": 1
+        },
+        "expected": "وَقَاالَ",
+        "observed": "ِفُۥۥهُمو",
+        "confidence": 0.8211222222222221
+      }
+    ]
+  },
+  {
+    "session": "lab-v1.5-p31",
+    "at": 55.47,
+    "events": [
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "4:157:24#2",
+        "timeMs": 56880,
+        "state": "suspected",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 4,
+          "ayah": 157,
+          "word": 24
+        },
+        "expected": "مَاا",
+        "observed": "وَءِں",
+        "confidence": 0.8711399999999999
+      }
+    ]
+  },
+  {
+    "session": "lab-v1.5-p66",
+    "at": 112.2,
+    "events": []
+  },
+  {
+    "session": "lab-v1.5-p49",
+    "at": 152.25,
+    "events": []
+  }
+]

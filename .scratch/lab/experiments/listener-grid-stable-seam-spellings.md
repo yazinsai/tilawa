@@ -95,3 +95,19 @@ span/candidate diagnostics. Labelled-span strings in the table are descriptive;
 the production gate uses the parent's actual candidate cut, not truth timings.
 The target probe establishes recall and frame-grid agreement, not precision,
 studio behaviour, release performance or a full practice delta.
+
+A separate baseline audit (Modal run 10) reconstructed the starting checker by
+removing only this experiment's additions and verified its complete source
+SHA-256 against commit `2df59d0e` before running it. The reconstructed source is
+byte-identical to that commit. With the same supplied main evidence and free
+tracker, the baseline confirmed **0 of 5** targets. Thus the four gated target
+confirmations are new wins, rather than warnings already present on this
+worktree's starting engine.
+
+The baseline audit initially exceeded the command transport limit; temporary
+root text files were also absent from remote snapshots. The final retained
+baseline probe reconstructs and hashes the source inside the remote run,
+requiring neither a large embedded source nor an exported baseline file.
+Temporary local baseline files were removed. These transport attempts yielded
+no measurements. The successful audit's events are retained in the baseline
+results JSON.
