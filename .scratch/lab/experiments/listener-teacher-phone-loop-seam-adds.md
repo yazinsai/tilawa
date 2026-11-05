@@ -1,6 +1,6 @@
 # Teacher phone-loop seam additions
 
-Status: implemented; acoustic premise passed, population validation pending. The experiment card is unchanged.
+Status: implemented; six of six targets recovered through the native SDK. Stored-evidence practice replay was unchanged; fresh supervisor decoding and population validation remain pending. The experiment card is unchanged.
 
 ## Prediction and mechanism
 
@@ -104,7 +104,7 @@ unchanged occurrence matching. The last completed window per prefix yielded:
 
 The phone strings make no lexical identity claim. Some Viterbi spans include
 pausal neighbour tails. Target recall alone therefore does not establish clean
-seam precision; the required practice score determines population behavior.
+seam precision; fresh practice decoding and scoring must determine population behavior.
 
 Run 11 exported the original fp32 teacher with the folded export script and
 dependency versions (torch/torchaudio 2.8.0 CPU, quran-muaalem 0.2.2,
@@ -117,4 +117,51 @@ the SDK asset declaration records that actual artifact. No training, supplied
 manifest or primary model change was made. The bundle contains unmodified
 copies of `spliced-clean-int8/model.onnx` and `manifest.json`, selected by the
 existing `.autolab/model.json` (`{"path":"bundle"}`). Native SDK validation
-is running before drawing conclusions about the exported teacher.
+uses this bundle through the normal `loadNodeModel` path.
+
+Run 12 passed native Node SDK loading, teacher inference, posterior transport,
+default checker replay and unchanged occurrence matching on all six targets.
+Each was missed in the baseline replay and confirmed with its teacher loop
+certificate. The tracker event sequence remained byte-identical. The exported
+teacher's selected phone strings and bounds matched the original checkpoint
+diagnostic. This run enriched only the selected target windows.
+
+Run 13 exercised the actual `addInsertionEvidence` function across each complete
+target session, including every discovered seam and the existing exact-word gate.
+All six target additions were still missed in the baseline and confirmed after
+enrichment under unchanged occurrence matching. Primary tokens, confidence,
+frame bounds and posterior values compared byte-identical after stripping only
+auxiliary certificates; the entire tracker event sequence also compared equal.
+Each shard passed its build and assertions, taking 268–350 seconds in the
+container. The two p57 shards independently replayed the same session, reporting
+its two target locations.
+
+This wider replay produced 7, 6, 3, 15 and 5 confirmed added-word warnings in
+p07, p48, p56, p57 and p79 respectively. These are total warning counts, including
+baseline additions, not measured false-warning counts. None of these selected
+sessions is a fully clean population control. Qualifying target mass and six
+recoveries satisfy the premise, but the extra emissions leave precision
+unresolved. No threshold or guard was adjusted from these diagnostics.
+
+One official practice score completed at implementation commit `74a842c1`;
+two scores remain available. Overall stayed at 24 wrong calls (13 missed,
+11 false), listener at 23 (13 missed, 10 false), tracker at 1 (one false), and
+checker at 0. All changes were zero, verdict noise.
+
+This request replayed the card's existing listener evidence,
+`exp-listener-teacher-insert-marginal-gate-ad6eb8c0`. The supervisor's
+`serve_practice` runs `lab.py run`, which scores that selected evidence without
+fresh SDK decoding. Those files predate phone-loop certificates; the new path
+has no certificate to act on. This compatibility result therefore does not
+measure the new ear's population gain, false warnings on fully clean sessions,
+studio regression or lost/won tradeoff. Repeating it would not resolve those
+questions, so no additional practice score was requested and no narrowing was
+justified from this replay.
+
+The normal post-implementation supervisor path reads `.autolab/model.json`,
+copies this experiment's bundle, and decodes phone and studio practice audio
+with the modified SDK before scoring the resulting listener evidence. Leave
+the implementation for that fresh decode and the fold gate. Six native
+full-session recoveries pass the premise; aggregate precision remains unproved.
+No killed outcome or fold was issued. No scorer, lab tooling, supplied manifest,
+test data, evidence or experiment-card edit was made.
