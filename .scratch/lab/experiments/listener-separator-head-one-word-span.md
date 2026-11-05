@@ -1,6 +1,7 @@
 # Separator-head veto on ownership-free spelled seam words
 
-Status: implemented; four targets retained; practice score pending.
+Status: implemented; four targets retained; practice evidence replay unchanged;
+supervisor model decode and fold gate pending.
 
 ## Prediction
 
@@ -31,7 +32,12 @@ tracker inputs keep their original values.
 
 ## Validation
 
-Modal run 6 passed the TypeScript builds and all 752 core and 17 SDK tests; one optional SDK end-to-end test was skipped. Tests include an internal-boundary veto, endpoint boundaries, missing and discontinuous coverage, and identical main phones/posteriors with an auxiliary head output. Modal run 10 replayed the retained original fp32 separator export
+Modal run 6 passed the TypeScript builds and all 752 core and 17 SDK tests;
+one optional SDK end-to-end test was skipped. Tests cover an internal-boundary
+veto, endpoint boundaries, missing and discontinuous coverage, and identical
+main phones/posteriors with auxiliary head output.
+
+Modal run 10 replayed the retained original fp32 separator export
 (`word-sep-v2`, model SHA-256
 `27c85f6ffcfc5dcbd691a4be5f8cfef71ca4de1598bef87089ee244b57b269a0`).
 All four original spans have no internal separator, and all four gated additions
@@ -47,7 +53,9 @@ confirm in the free engine replay:
 The parent-span census and these replays use this card's baseline evidence,
 `exp-listener-stack-be988c-6a17f391`, without changing its phones or rows. The
 separator export survived under its parent's scratch directory, so no training
-or practice-fitted parameter was needed. Modal run 13 attached 19 head nodes to the shared mid-stack and final features,
+or practice-fitted parameter was needed.
+
+Modal run 13 attached 19 head nodes to the shared mid-stack and final features,
 adding 183,439 bytes and no cache states. The resulting model is 67,943,183
 bytes, SHA-256 `0d8ab96b53327c00f82fa5cccad42c9e39a8e5534df3c781ac18bc9daa6b9d75`.
 Modal run 14 passed all four exported-model replays: each candidate again has
@@ -60,11 +68,33 @@ the 19 auxiliary nodes read features without feeding back into them.
 The model is exported under this experiment's scratch directory as
 `model-separator`; `.autolab/model.json` selects it for supervisor decoding.
 Temporary scripts containing target identifiers were removed before scoring.
-The required practice score is pending. The first Modal test
-request stopped at a pre-existing TypeScript narrowing error in `reference.ts`;
-an explicit string type predicate fixes compilation without changing filtering.
-A temporary diagnostic syntax error was corrected before resubmitting the
-parent-span replay. Neither attempt produced a practice score.
+The only change outside the seam/head paths is an explicit string type
+predicate in `reference.ts`, needed to compile the existing reference-form
+filter without changing which values it retains. Initial diagnostic failures
+(syntax and audio-path assumptions) produced no practice scores.
+
+## Practice result
+
+Practice score 1 on commit `4240fcff` returned **overall +0, listener +0**
+(noise). Both main and this branch have 30 wrong calls: 20 missed mistakes and
+10 false warnings. Attribution is 29 listener, 1 tracker and 0 checker in both.
+The receipt is `.autolab/practice-result-1.json`; only one of the three allowed
+practice requests was used.
+
+This result does not measure the exported separator model. The practice helper's
+`serve_practice` calls `lab run`, which replays the card's existing listener
+evidence (or its current main-line successor). It does not read
+`.autolab/model.json` or decode a replacement model. Existing evidence lacks the
+auxiliary separator coverage, so the new generator's emissions are vetoed and
+the replay is unchanged. The supervisor's separate `after_tests` path copies the
+selected model and decodes it before its final score; that remains necessary to
+measure precision, studio effects, clean-session warnings and the fold gates.
+
+The premise kill did not fire: all four target spans are separator-free and
+confirm with the exported head in the diagnostic free-engine replays. Keep the
+implementation and model selection for the supervisor's decode. No threshold was
+tuned and no second practice replay was requested, since it would use the same
+head-free evidence.
 
 ## Limits
 
