@@ -81,9 +81,12 @@ try {
     const span = nearby ?? { from: known.from, to: known.to, heard: fixed, timeMs: known.timeMs, location: c.location };
     const hard = Math.min(...forms.map(f => hardEdits(f, span.heard)));
     return { ...c, baseline: known, candidate: span, hardEdits: hard, spellsWritten: hard === 0,
-      confirmed: n.decisions.filter(e => e.state === "confirmed" && key(e.location) === key(c.location)) };
+      confirmed: n.decisions.filter(e => e.state === "confirmed" && e.errorClass === "wrong_word" &&
+        key(e.location) === key(c.location) && e.from < known.to && e.to > known.from) };
   });
-  const output = { modelSha256: replay.modelSha256, passiveTracingIdentical: true, targetsWon: rows.filter(r => r.spellsWritten).length, rows };
+  const output = { modelSha256: replay.modelSha256, passiveTracingIdentical: true,
+    writtenSlots: rows.filter(r => r.spellsWritten).length,
+    targetsWon: rows.filter(r => r.spellsWritten && !r.confirmed.length).length, rows };
   writeFileSync(v.out, JSON.stringify(output, null, 1));
   console.log(JSON.stringify(output));
 } finally {
