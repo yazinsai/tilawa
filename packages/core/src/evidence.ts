@@ -5,6 +5,9 @@ export interface DecodedPhoneme {
   start: number;
   end: number;
   conf: number;
+  /** Raw-audio F0 in Hz (0 = unvoiced), ending at this token’s inclusive end.
+   * Includes the CTC-blank frames since the preceding token. */
+  pitch?: number[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

@@ -1,5 +1,6 @@
 import type { DecodedPhoneme, PhonemeEvidence } from "@tilawa/core";
 import { Resampler } from "./audio.js";
+import { PitchTrack } from "./pitch.js";
 import { Fbank } from "./fbank.js";
 import type { LoadedModel, Tensor } from "./model.js";
 
@@ -31,6 +32,8 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   const m = model.manifest;
   const k = options.topK ?? 5;
   const fbank = new Fbank();
+  const pitch = new PitchTrack(m.sampleRate, m.frameMs);
+  let pitchUntil = 0;
   const vocab = m.tokens.length + 1;
   let resampler: Resampler | null = null;
   let states: Record<string, Tensor> = Object.fromEntries(
@@ -93,6 +96,10 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
     }
     const until = open ? open.start : outFrames;
     if (until <= emitted && !done.length) return null;
+    for (const p of done) {
+      p.pitch = pitch.slice(pitchUntil, p.end + 1);
+      pitchUntil = p.end + 1;
+    }
     const e: PhonemeEvidence = { inventory: m.inventory, frameMs: m.frameMs, phonemes: done };
     if (options.posteriors) {
       const n = until - emitted;
@@ -130,6 +137,7 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
         if (!resampler || resampler.from !== sampleRate) resampler = new Resampler(sampleRate, m.sampleRate);
         samples = resampler.push(samples);
       }
+      pitch.push(samples);
       const f = fbank.push(samples);
       fbankFrames += f.length;
       feats.push(...f);
@@ -138,10 +146,13 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
     },
     async end() {
       if (resampler) {
-        const f = fbank.push(resampler.flush());
+        const tail = resampler.flush();
+        pitch.push(tail);
+        const f = fbank.push(tail);
         fbankFrames += f.length;
         feats.push(...f);
       }
+      pitch.end();
       const total = outputsFor(fbankFrames);
       const pad = new Float32Array(m.fbank.mels).fill(m.fbank.padValue);
       while (outFrames < total) {

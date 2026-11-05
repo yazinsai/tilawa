@@ -161,6 +161,17 @@ export async function spliceContextFreeGaps(
     changed = true;
   }
   if (!changed) return chunks;
+  const pitch = new Map<number, number>();
+  for (const p of chunks.flatMap(c => c.phonemes)) if (p.pitch) {
+    const from = p.end + 1 - p.pitch.length;
+    p.pitch.forEach((hz, i) => pitch.set(from + i, hz));
+  }
+  let pitchUntil = 0;
+  phonemes = phonemes.map(p => {
+    const track = Array.from({ length: p.end + 1 - pitchUntil }, (_, i) => pitch.get(pitchUntil + i) ?? NaN);
+    pitchUntil = p.end + 1;
+    return { ...p, pitch: track };
+  });
   return [{
     inventory: flat.inventory,
     frameMs: flat.frameMs,
