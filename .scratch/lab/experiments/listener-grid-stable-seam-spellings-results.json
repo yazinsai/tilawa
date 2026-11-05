@@ -1,0 +1,742 @@
+[
+  {
+    "session": "lab-v1.4-p19",
+    "at": 102.06,
+    "target": {
+      "span": "span-1",
+      "errorClass": "added_word",
+      "state": "confirmed",
+      "location": {
+        "surah": 51,
+        "ayah": 33,
+        "word": 1
+      },
+      "startS": 102.055,
+      "endS": 102.775,
+      "forms_other_ayah": false,
+      "expected": "",
+      "observed": "وَمِن",
+      "said": "وَمِن",
+      "donor": "51:49:1",
+      "splice": "x6"
+    },
+    "base": [
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "51:33:1#8",
+        "timeMs": 103520,
+        "state": "suspected",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 51,
+          "ayah": 33,
+          "word": 1
+        },
+        "expected": "لِنُرسِلَ",
+        "observed": "وَمِںںں",
+        "confidence": 0.8253857142857143
+      },
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "51:33:1#8",
+        "timeMs": 104400,
+        "state": "suspected",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 51,
+          "ayah": 33,
+          "word": 1
+        },
+        "expected": "لِنُرسِلَ",
+        "observed": "وَمِن",
+        "confidence": 0.8253857142857143
+      },
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "51:33:1#8",
+        "timeMs": 106360,
+        "state": "confirmed",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 51,
+          "ayah": 33,
+          "word": 1
+        },
+        "expected": "لِنُرسِلَ",
+        "observed": "وَمِن",
+        "confidence": 0.8253857142857143
+      }
+    ],
+    "gated": [
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "51:33:1#8",
+        "timeMs": 103520,
+        "state": "suspected",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 51,
+          "ayah": 33,
+          "word": 1
+        },
+        "expected": "لِنُرسِلَ",
+        "observed": "وَمِںںں",
+        "confidence": 0.8253857142857143
+      },
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "51:33:1#8",
+        "timeMs": 104400,
+        "state": "suspected",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 51,
+          "ayah": 33,
+          "word": 1
+        },
+        "expected": "لِنُرسِلَ",
+        "observed": "وَمِن",
+        "confidence": 0.8253857142857143
+      },
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "51:33:1#8",
+        "timeMs": 106360,
+        "state": "confirmed",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 51,
+          "ayah": 33,
+          "word": 1
+        },
+        "expected": "لِنُرسِلَ",
+        "observed": "وَمِن",
+        "confidence": 0.8253857142857143
+      }
+    ],
+    "span": {
+      "frames": [
+        2551,
+        2570
+      ],
+      "shipped": "وَمِںںں",
+      "shifted": "وَمِںںں"
+    },
+    "candidates": [
+      {
+        "frames": [
+          2552,
+          2560
+        ],
+        "said": "وَمِ",
+        "word": "وَمَ",
+        "shifted": "وَمِ",
+        "shiftedWord": "وَمَ"
+      },
+      {
+        "frames": [
+          2552,
+          2563
+        ],
+        "said": "وَمِن",
+        "word": "وَمِن",
+        "shifted": "وَمِں",
+        "shiftedWord": "وَمِن"
+      },
+      {
+        "frames": [
+          2552,
+          2566
+        ],
+        "said": "وَمِن",
+        "word": "وَمِن",
+        "shifted": "وَمِںں",
+        "shiftedWord": "وَمِن"
+      },
+      {
+        "frames": [
+          2552,
+          2570
+        ],
+        "said": "وَمِن",
+        "word": "وَمِن",
+        "shifted": "وَمِںںں",
+        "shiftedWord": "وَمِن"
+      }
+    ]
+  },
+  {
+    "session": "lab-v1.5-p50",
+    "at": 146.47,
+    "target": {
+      "span": "span-3",
+      "errorClass": "added_word",
+      "state": "confirmed",
+      "location": {
+        "surah": 37,
+        "ayah": 99,
+        "word": 1
+      },
+      "startS": 146.465,
+      "endS": 147.745,
+      "forms_other_ayah": false,
+      "expected": "",
+      "observed": "وَقِفُوهُمْ",
+      "said": "وَقِفُۥۥهُم",
+      "donor": "37:24:1",
+      "splice": "x6"
+    },
+    "base": [
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "37:99:1#10",
+        "timeMs": 147440,
+        "state": "suspected",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 37,
+          "ayah": 99,
+          "word": 1
+        },
+        "expected": "وَقَاالَ",
+        "observed": "ِفُۥۥه",
+        "confidence": 0.8404666666666666
+      },
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "37:99:1#10",
+        "timeMs": 149560,
+        "state": "resolved",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 37,
+          "ayah": 99,
+          "word": 1
+        },
+        "expected": "وَقَاالَ",
+        "observed": "ِفُۥۥهُمو",
+        "confidence": 0.8211222222222221
+      },
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "37:99:1#11",
+        "timeMs": 150680,
+        "state": "suspected",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 37,
+          "ayah": 99,
+          "word": 1
+        },
+        "expected": "وَقَاالَ",
+        "observed": "وَقِفُۥۥهُم",
+        "confidence": 0.7919090909090909
+      },
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "37:99:1#11",
+        "timeMs": 153240,
+        "state": "confirmed",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 37,
+          "ayah": 99,
+          "word": 1
+        },
+        "expected": "وَقَاالَ",
+        "observed": "وَقِفُۥۥهُم",
+        "confidence": 0.7919090909090909
+      }
+    ],
+    "gated": [
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "37:99:1#10",
+        "timeMs": 147440,
+        "state": "suspected",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 37,
+          "ayah": 99,
+          "word": 1
+        },
+        "expected": "وَقَاالَ",
+        "observed": "ِفُۥۥه",
+        "confidence": 0.8404666666666666
+      },
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "37:99:1#10",
+        "timeMs": 149560,
+        "state": "resolved",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 37,
+          "ayah": 99,
+          "word": 1
+        },
+        "expected": "وَقَاالَ",
+        "observed": "ِفُۥۥهُمو",
+        "confidence": 0.8211222222222221
+      },
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "37:99:1#11",
+        "timeMs": 150680,
+        "state": "suspected",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 37,
+          "ayah": 99,
+          "word": 1
+        },
+        "expected": "وَقَاالَ",
+        "observed": "وَقِفُۥۥهُم",
+        "confidence": 0.7919090909090909
+      },
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "37:99:1#11",
+        "timeMs": 153240,
+        "state": "confirmed",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 37,
+          "ayah": 99,
+          "word": 1
+        },
+        "expected": "وَقَاالَ",
+        "observed": "وَقِفُۥۥهُم",
+        "confidence": 0.7919090909090909
+      }
+    ],
+    "span": {
+      "frames": [
+        3661,
+        3694
+      ],
+      "shipped": "وَقِفُۥۥهُم",
+      "shifted": "وَقِفُۥۥهُم"
+    },
+    "candidates": [
+      {
+        "frames": [
+          3662,
+          3680
+        ],
+        "said": "وَقِفُۥ",
+        "word": "وُقِفُۥ",
+        "shifted": "وَقِفُۥ",
+        "shiftedWord": "وُقِفُۥ"
+      },
+      {
+        "frames": [
+          3662,
+          3682
+        ],
+        "said": "وَقِفُۥۥ",
+        "word": "وُقِفُۥ",
+        "shifted": "وَقِفُۥۥ",
+        "shiftedWord": "وُقِفُۥ"
+      },
+      {
+        "frames": [
+          3662,
+          3693
+        ],
+        "said": "وَقِفُۥۥهُم",
+        "word": "وَقِفُۥهُم",
+        "shifted": "وَقِفُۥۥهُم",
+        "shiftedWord": "وَقِفُۥهُم"
+      },
+      {
+        "frames": [
+          3685,
+          3693
+        ],
+        "said": "هُم",
+        "word": "هُم",
+        "shifted": "هُم",
+        "shiftedWord": "هُم"
+      }
+    ]
+  },
+  {
+    "session": "lab-v1.5-p31",
+    "at": 55.47,
+    "target": {
+      "span": "span-1",
+      "errorClass": "added_word",
+      "state": "confirmed",
+      "location": {
+        "surah": 4,
+        "ayah": 157,
+        "word": 24
+      },
+      "startS": 55.465,
+      "endS": 56.145,
+      "forms_other_ayah": false,
+      "expected": "",
+      "observed": "وَإِن",
+      "said": "وَءِن",
+      "donor": "4:129:15",
+      "splice": "x2"
+    },
+    "base": [
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "4:157:24#2",
+        "timeMs": 56880,
+        "state": "suspected",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 4,
+          "ayah": 157,
+          "word": 24
+        },
+        "expected": "مَاا",
+        "observed": "وَءِں",
+        "confidence": 0.8711399999999999
+      },
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "4:157:24#2",
+        "timeMs": 59400,
+        "state": "confirmed",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 4,
+          "ayah": 157,
+          "word": 24
+        },
+        "expected": "مَاا",
+        "observed": "وَءِن",
+        "confidence": 0.8081714285714285
+      }
+    ],
+    "gated": [
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "4:157:24#2",
+        "timeMs": 56880,
+        "state": "suspected",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 4,
+          "ayah": 157,
+          "word": 24
+        },
+        "expected": "مَاا",
+        "observed": "وَءِں",
+        "confidence": 0.8711399999999999
+      },
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "4:157:24#2",
+        "timeMs": 59400,
+        "state": "confirmed",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 4,
+          "ayah": 157,
+          "word": 24
+        },
+        "expected": "مَاا",
+        "observed": "وَءِن",
+        "confidence": 0.8081714285714285
+      }
+    ],
+    "span": {
+      "frames": [
+        1386,
+        1404
+      ],
+      "shipped": "وَءِںںں",
+      "shifted": "وَءِںںں"
+    },
+    "candidates": [
+      {
+        "frames": [
+          1386,
+          1398
+        ],
+        "said": "وَءِن",
+        "word": "وَءِن",
+        "shifted": "وَءِں",
+        "shiftedWord": "وَءِن"
+      },
+      {
+        "frames": [
+          1386,
+          1401
+        ],
+        "said": "وَءِن",
+        "word": "وَءِن",
+        "shifted": "وَءِںں",
+        "shiftedWord": "وَءِن"
+      },
+      {
+        "frames": [
+          1386,
+          1404
+        ],
+        "said": "وَءِن",
+        "word": "وَءِن",
+        "shifted": "وَءِںںں",
+        "shiftedWord": "وَءِن"
+      },
+      {
+        "frames": [
+          1391,
+          1398
+        ],
+        "said": "ءِن",
+        "word": "ءِن",
+        "shifted": "ءِں",
+        "shiftedWord": "ءِن"
+      },
+      {
+        "frames": [
+          1391,
+          1401
+        ],
+        "said": "ءِن",
+        "word": "ءِن",
+        "shifted": "ءِںں",
+        "shiftedWord": "ءِن"
+      },
+      {
+        "frames": [
+          1391,
+          1404
+        ],
+        "said": "ءِن",
+        "word": "ءِن",
+        "shifted": "ءِںںں",
+        "shiftedWord": "ءِن"
+      }
+    ]
+  },
+  {
+    "session": "lab-v1.5-p66",
+    "at": 112.2,
+    "target": {
+      "span": "span-1",
+      "errorClass": "added_word",
+      "state": "confirmed",
+      "location": {
+        "surah": 9,
+        "ayah": 5,
+        "word": 15
+      },
+      "startS": 112.2,
+      "endS": 112.96,
+      "forms_other_ayah": false,
+      "expected": "",
+      "observed": "وَإِن",
+      "said": "وَءِن",
+      "donor": "9:3:21",
+      "splice": "x2"
+    },
+    "base": [],
+    "gated": [],
+    "span": {
+      "frames": [
+        2805,
+        2824
+      ],
+      "shipped": "وَءِںں",
+      "shifted": "وَءِںں"
+    },
+    "candidates": [
+      {
+        "frames": [
+          2805,
+          2818
+        ],
+        "said": "وَءِن",
+        "word": "وَءِن",
+        "shifted": "وَءِں",
+        "shiftedWord": "وَءِن"
+      },
+      {
+        "frames": [
+          2805,
+          2822
+        ],
+        "said": "وَءِن",
+        "word": "وَءِن",
+        "shifted": "وَءِںں",
+        "shiftedWord": "وَءِن"
+      },
+      {
+        "frames": [
+          2805,
+          2825
+        ],
+        "said": "وَءِن",
+        "word": "وَءِن",
+        "shifted": "وَءِںںں",
+        "shiftedWord": "وَءِن"
+      },
+      {
+        "frames": [
+          2811,
+          2818
+        ],
+        "said": "ءِن",
+        "word": "ءِن",
+        "shifted": "ءِں",
+        "shiftedWord": "ءِن"
+      },
+      {
+        "frames": [
+          2811,
+          2822
+        ],
+        "said": "ءِن",
+        "word": "ءِن",
+        "shifted": "ءِںں",
+        "shiftedWord": "ءِن"
+      },
+      {
+        "frames": [
+          2811,
+          2825
+        ],
+        "said": "ءِن",
+        "word": "ءِن",
+        "shifted": "ءِںںں",
+        "shiftedWord": "ءِن"
+      }
+    ]
+  },
+  {
+    "session": "lab-v1.5-p49",
+    "at": 152.25,
+    "target": {
+      "span": "span-3",
+      "errorClass": "added_word",
+      "state": "confirmed",
+      "location": {
+        "surah": 26,
+        "ayah": 123,
+        "word": 1
+      },
+      "startS": 152.245,
+      "endS": 153.085,
+      "forms_other_ayah": false,
+      "expected": "",
+      "observed": "كَرِيمٍۢ",
+      "said": "كَرِۦۦم",
+      "donor": "26:58:3",
+      "splice": "x10"
+    },
+    "base": [
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "26:123:1#13",
+        "timeMs": 155800,
+        "state": "suspected",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 26,
+          "ayah": 123,
+          "word": 1
+        },
+        "expected": "كَذذَبَت",
+        "observed": "كَرِۦۦم",
+        "confidence": 0.7713714285714285
+      },
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "26:123:1#13",
+        "timeMs": 158480,
+        "state": "confirmed",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 26,
+          "ayah": 123,
+          "word": 1
+        },
+        "expected": "كَذذَبَت",
+        "observed": "كَرِۦۦم",
+        "confidence": 0.7713714285714285
+      }
+    ],
+    "gated": [
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "26:123:1#13",
+        "timeMs": 155800,
+        "state": "suspected",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 26,
+          "ayah": 123,
+          "word": 1
+        },
+        "expected": "كَذذَبَت",
+        "observed": "كَرِۦۦم",
+        "confidence": 0.7713714285714285
+      },
+      {
+        "type": "checker",
+        "v": 1,
+        "id": "26:123:1#13",
+        "timeMs": 158480,
+        "state": "confirmed",
+        "errorClass": "added_word",
+        "location": {
+          "surah": 26,
+          "ayah": 123,
+          "word": 1
+        },
+        "expected": "كَذذَبَت",
+        "observed": "كَرِۦۦم",
+        "confidence": 0.7713714285714285
+      }
+    ],
+    "span": {
+      "frames": [
+        3806,
+        3828
+      ],
+      "shipped": "كَرِۦۦم",
+      "shifted": "كَرِۦۦم"
+    },
+    "candidates": [
+      {
+        "frames": [
+          3806,
+          3827
+        ],
+        "said": "كَرِۦۦم",
+        "word": "كَرِۦم",
+        "shifted": "كَرِۦۦم",
+        "shiftedWord": "كَرِۦم"
+      }
+    ]
+  }
+]
