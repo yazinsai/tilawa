@@ -1,0 +1,13 @@
+{
+ "id": "listener-grid-stable-seam-spellings",
+ "component": "listener",
+ "hypothesis": "Ownership-free seam spelling (excise-certify) recovered 7 heard added words but lost 18, because clean seams also yield exact whole-word spellings. Those are plausibly knife-edge greedy picks made from neighbour blur, while a planted word the model really hears is spelled robustly. Emit a seam spelling only if a second full-session pass with the chunk grid shifted by half a chunk spells the same word over the same frames; predict 3 of 5 targets kept, losses cut to about 3, listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-stack-be988c-6a17f391",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-05T08:39:35+00:00",
+ "author": "autolab"
+}
