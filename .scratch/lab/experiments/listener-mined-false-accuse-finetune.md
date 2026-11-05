@@ -42,6 +42,12 @@ the deployment settings (16/128). Full streaming inference supplies alignment
 and the deployment check. The architecture and dynamic MatMul int8 exporter
 are unchanged.
 
+Original anchors now read only FLAC audio columns after selecting the same
+20-hour clean-match/train pool (seed zero, 30-second cap, shipped holdout
+filter). Teacher arrays and transcripts are unused by the KL objective. Audio
+uses the same noise/RIR/gain/SpecAugment functions with checkpointed randomness.
+The pool cache records its source and exclusion hashes.
+
 CTC is computed only inside selected windows. KL covers every other frame and
 all frames of each clean anchor. This makes the CTC gradient zero outside the
 windows and removes the anchor inside them. Shared weights can still change

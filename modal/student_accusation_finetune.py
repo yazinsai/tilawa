@@ -164,6 +164,41 @@ def eos_batch(samples):
     return padded, torch.full((len(samples),), total, device=padded.device, dtype=torch.int64), real
 
 
+def clean_anchor_clips(root=Path("/student/s1"), exclusions_path=Path("/root/gold-per-v1-exclude.txt")):
+    """Select exactly the shipped clean-match pool, reading only audio for the KL anchor.
+
+    Teacher top-5 arrays and transcripts have no role in this objective. Avoid
+    loading those large columns merely to discard them in ClipDataset.
+    """
+    import numpy as np
+    import pyarrow.parquet as pq
+    import student_train as T
+    from student import exclusions, held_out
+
+    gold = exclusions(exclusions_path.read_text())
+    files = sorted(root.glob("*.parquet"))
+    meta = []
+    for fi, f in enumerate(files):
+        t = pq.read_table(f, columns=["shard", "row", "bucket", "split", "n_samples"]).to_pydict()
+        for r, (sh, row, bk, sp, n) in enumerate(zip(t["shard"], t["row"], t["bucket"], t["split"], t["n_samples"])):
+            if bk == "clean-match" and sp == "train" and n <= 30.0 * T.SR and not held_out(gold, sh, row, sp):
+                meta.append((fi, r, n))
+    order = np.random.default_rng(0).permutation(len(meta))
+    cum = np.cumsum([meta[i][2] for i in order]) / T.SR / 3600
+    order = order[:int(np.searchsorted(cum, 20.0)) + 1]
+    by = {}
+    for i in sorted(order):
+        by.setdefault(meta[i][0], []).append(meta[i][1])
+    clips, keys = [], []
+    for fi, rows in by.items():
+        t = pq.read_table(files[fi], columns=["shard", "row", "flac"]).take(rows).to_pydict()
+        clips.extend(t["flac"])
+        keys.extend(f"{s}:{r}" for s, r in zip(t["shard"], t["row"]))
+    if not clips:
+        raise ValueError("No original clean-match anchors")
+    return {"audio": clips, "key": keys}
+
+
 def main():
     training_deps()
     import numpy as np
@@ -260,15 +295,16 @@ def main():
     aug = {k: dict(np.load(f"/student/aug/{k}.npz")) for k in ("noise", "rir")}
     pool_key = {"source": source_hash, "bucket": "clean-match", "split": "train", "hours": 20.0, "max_clip_s": 30.0, "seed": 0,
         "gold": hashlib.sha256(Path("/root/gold-per-v1-exclude.txt").read_bytes()).hexdigest()}
-    pool_file = out / "originals-cache.pt"
+    pool_file = out / "originals-audio-cache.pt"
     pool = torch.load(pool_file, map_location="cpu", weights_only=False) if pool_file.exists() else {}
     if pool.get("key") == pool_key:
         originals = pool["clips"]
     else:
-        originals = T.load_clips("clean-match", "train", 20.0, 30.0, 0)
-        torch.save({"key": pool_key, "clips": originals}, pool_file)
-    print(json.dumps({"originals": len(originals["ref"]), "poolCached": pool.get("key") == pool_key}), flush=True)
-    clean = T.ClipDataset(originals, cfg, train=True, aug=aug)
+        print("Loading original clean-match audio (no teacher columns)", flush=True)
+        originals = clean_anchor_clips()
+        torch.save({"key": pool_key, "clips": originals}, str(pool_file) + ".tmp")
+        Path(str(pool_file) + ".tmp").replace(pool_file)
+    print(json.dumps({"originals": len(originals["audio"]), "poolCached": pool.get("key") == pool_key}), flush=True)
     model = T.build_model(cfg["size"]).to(device)
     model.load_state_dict(ck["model"]); model.eval()
     opt = torch.optim.AdamW(model.parameters(), lr=0.0003)
@@ -301,7 +337,10 @@ def main():
         if help_clean:
             samples.append((feature(help_clean[step % len(help_clean)]["wave"]), []))
         for _ in range(3 if help_clean else 4):
-            samples.append((clean[int(rng.integers(len(clean)))]["feats"].to(device), []))
+            wave, sr = sf.read(io.BytesIO(originals["audio"][int(rng.integers(len(originals["audio"])))]), dtype="float32")
+            if sr != T.SR or wave.ndim != 1:
+                raise ValueError("Invalid original clean-match audio")
+            samples.append((feature(wave), []))
         sums = {"ctc": 0.0, "kl": 0.0}
         feats, lengths, real_frames = eos_batch(samples)
         model.eval(); model.streaming_eval(16, 128)

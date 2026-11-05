@@ -1,12 +1,29 @@
 import unittest
+from unittest.mock import patch
+from pathlib import Path
+import tempfile
 
 import numpy as np
 import torch
 from student_accusation_loss import collapse_owned, masked_loss, viterbi_states, word_slots
-from student_accusation_finetune import corrected_words, accusation_words, eos_batch
+from student_accusation_finetune import corrected_words, accusation_words, eos_batch, clean_anchor_clips
 
 
 class SlotLossTest(unittest.TestCase):
+    def test_clean_anchor_loader_excludes_holdouts_and_needs_no_teacher_columns(self):
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            pq.write_table(pa.table({"shard": ["allowed", "excluded", "allowed", "allowed", "allowed"],
+                "row": [1, 2, 3, 4, 5], "bucket": ["clean-match", "clean-match", "other", "clean-match", "clean-match"],
+                "split": ["train", "train", "train", "test", "train"], "n_samples": [100, 100, 100, 100, 480001],
+                "flac": [b"audio"] * 5}), root / "shard.parquet")
+            gold = root / "exclude.txt"; gold.write_text("")
+            with patch("student.exclusions", return_value={}), patch("student.held_out", side_effect=lambda g, sh, row, sp: sh == "excluded"):
+                clips = clean_anchor_clips(root, gold)
+            self.assertEqual(clips, {"key": ["allowed:1"], "audio": [b"audio"]})
+
     def test_eos_batch_trims_losses_to_real_frames(self):
         f, lengths, real = eos_batch([(torch.ones(55, 80), []), (torch.ones(137, 80), [])])
         self.assertEqual(real, [12, 33])
