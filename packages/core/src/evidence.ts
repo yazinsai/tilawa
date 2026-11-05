@@ -5,6 +5,17 @@ export interface DecodedPhoneme {
   start: number;
   end: number;
   conf: number;
+  /** Read-only separator-head coverage. Carried by a main token so saved evidence
+   * and arbitrary evidence chunking preserve it without changing the phone string. */
+  wordSeparators?: WordSeparatorEvidence[];
+}
+
+export interface WordSeparatorEvidence {
+  /** Half-open range of frames examined by the auxiliary CTC head. */
+  fromFrame: number;
+  toFrame: number;
+  /** Frames whose greedy head class is the word separator `|`. */
+  frames: number[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

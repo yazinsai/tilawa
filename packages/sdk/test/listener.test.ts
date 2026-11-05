@@ -89,6 +89,44 @@ describe("streaming listener on onnxruntime-node", () => {
     expect([...got, ...(last ? [last] : [])].flatMap((e) => e.phonemes)).toHaveLength(1);
   });
 
+  it("carries separator frames on main tokens without changing phones or posteriors", async () => {
+    async function decode(aux: boolean) {
+      const tiny = await loadNodeModel(fixture("tiny").pathname);
+      let frame = 0;
+      const backend: InferenceBackend = {
+        name: "separator-stub",
+        async run(feeds) {
+          const out = await tiny.backend.run(feeds);
+          const n = out.log_probs.data.length / (tiny.manifest.tokens.length + 1);
+          if (aux) {
+            const mask = new BigInt64Array(n);
+            for (let t = 0; t < n; t++) if ((frame + t) % 7 === 3) mask[t] = 1n;
+            out.word_separator = { type: "int64", data: mask, dims: [1, n] };
+          }
+          frame += n;
+          return out;
+        },
+        release: () => tiny.backend.release(),
+      };
+      const listener = createListener({ ...tiny, backend }, { posteriors: true });
+      const a = await listener.push(wav.samples, wav.sampleRate);
+      const b = await listener.end();
+      await backend.release();
+      return [a, b].filter((e): e is PhonemeEvidence => !!e);
+    }
+    const before = await decode(false), after = await decode(true);
+    const withoutHead = (cs: PhonemeEvidence[]) => cs.map(e => ({ ...e,
+      phonemes: e.phonemes.map(({ wordSeparators: _, ...p }) => p),
+    }));
+    expect(withoutHead(after)).toEqual(before);
+    const proofs = after.flatMap(e=>e.phonemes.flatMap(p=>p.wordSeparators ?? []));
+    expect(proofs.length).toBeGreaterThan(0);
+    expect(proofs[0].fromFrame).toBe(0);
+    const end = proofs.at(-1)!.toFrame;
+    expect(proofs.flatMap(p=>p.frames)).toEqual(Array.from({length:end}, (_,f)=>f).filter(f=>f%7===3));
+    expect(end).toBeLessThanOrEqual(reference.frames);
+  });
+
   it("resamples 44.1 kHz input to the model rate", async () => {
     const listener = createListener(await loadNodeModel(fixture("tiny").pathname));
     const up = new Float32Array(Math.floor((wav.samples.length * 44100) / 16000));

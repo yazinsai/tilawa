@@ -1,4 +1,4 @@
-import type { DecodedPhoneme, PhonemeEvidence } from "@tilawa/core";
+import type { DecodedPhoneme, PhonemeEvidence, WordSeparatorEvidence } from "@tilawa/core";
 import { Resampler } from "./audio.js";
 import { Fbank } from "./fbank.js";
 import type { LoadedModel, Tensor } from "./model.js";
@@ -52,6 +52,7 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   let done: DecodedPhoneme[] = [];
   let ids: number[] = [];
   let probs: number[] = [];
+  let separatorProof: WordSeparatorEvidence | null = null;
 
   async function step(window: Float32Array[], keep: number) {
     const x = new Float32Array(m.window * m.fbank.mels);
@@ -60,6 +61,15 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
     states = Object.fromEntries(m.states.map((s) => [s.name, out[`new_${s.name}`]]));
     const lp = out.log_probs.data as Float32Array;
     const n = Math.min(keep, lp.length / vocab);
+    // The optional auxiliary output is a binary argmax mask on the same frame
+    // clock. It never contributes phones or posterior rows to the main decoder.
+    const separators = out.word_separator;
+    if (separators) {
+      if (separators.data.length < n) throw new Error("Truncated word-separator head output");
+      separatorProof ??= { fromFrame: outFrames, toFrame: outFrames, frames: [] };
+      for (let t = 0; t < n; t++) if (Number(separators.data[t]) === 1) separatorProof.frames.push(outFrames + t);
+      separatorProof.toFrame = outFrames + n;
+    }
     for (let t = 0; t < n; t++) {
       const row = lp.subarray(t * vocab, (t + 1) * vocab);
       const top = topK(row, k);
@@ -101,6 +111,10 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
       probs = probs.slice(n * k);
     }
     done = [];
+    if (separatorProof && e.phonemes.length) {
+      e.phonemes[0].wordSeparators = [separatorProof];
+      separatorProof = null;
+    }
     emitted = until;
     return e;
   }

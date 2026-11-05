@@ -6,7 +6,7 @@ import {
   placeGap,
   recoverGapPhonemes,
 } from "@tilawa/core";
-import type { GapPhoneme, PhonemeEvidence, ReferenceIndex, WordGap } from "@tilawa/core";
+import type { DecodedPhoneme, GapPhoneme, PhonemeEvidence, ReferenceIndex, WordGap } from "@tilawa/core";
 import { createListener } from "./listener.js";
 import type { LoadedModel } from "./model.js";
 
@@ -18,7 +18,7 @@ export interface LockPoint {
 interface FlatEvidence {
   inventory: string;
   frameMs: number;
-  phonemes: GapPhoneme[];
+  phonemes: DecodedPhoneme[];
   k: number;
   ids: number[];
   probs: number[];
@@ -146,7 +146,9 @@ export async function spliceContextFreeGaps(
     const crop = await decodeIsolated(model, audio.subarray(i0, i1), sampleRate, flat.k);
     if (crop.k !== flat.k) continue;
     const shift = Math.round(t0 / frameS);
-    const shifted = crop.phonemes.map((p) => ({ ...p, start: p.start + shift, end: p.end + shift }));
+    // Only the full streaming head can certify seam boundaries. The crop has
+    // its own frame clock and context, so discard its auxiliary annotations.
+    const shifted = crop.phonemes.map(({ wordSeparators: _, ...p }) => ({ ...p, start: p.start + shift, end: p.end + shift }));
     const kept = recoverGapPhonemes(shifted, gap.fromFrame, gap.toFrame, gap.left, gap.right);
     if (!gapCarriesAddition(kept)) continue;
     phonemes = placeGap(phonemes, gap, kept);
@@ -161,6 +163,13 @@ export async function spliceContextFreeGaps(
     changed = true;
   }
   if (!changed) return chunks;
+  // A gap splice may remove the token carrying a full-stream head proof. Carry
+  // every original proof through the replacement without changing any phones.
+  const proofs = flat.phonemes.flatMap(p => p.wordSeparators ?? []);
+  if (proofs.length && phonemes.length) {
+    phonemes = phonemes.map(({ wordSeparators: _, ...p }) => p);
+    phonemes[0] = { ...phonemes[0], wordSeparators: proofs };
+  }
   return [{
     inventory: flat.inventory,
     frameMs: flat.frameMs,
