@@ -1,0 +1,13 @@
+{
+ "id": "listener-f0-continuous-seam-spell",
+ "component": "listener",
+ "hypothesis": "Ownership-free seam spelling (excise-certify) recovered heard additions (p19, p50, 4:157:24, 9:5:15) but lost 18, plausibly because clean-seam spellings are stitched across a waqf tail, a breath and the next word's onset. Emit a spelled span only if its voiced frames form one pitch-continuous stretch, judged against this session's own within-word pitch jumps. Predict 3 of 4 targets kept and losses cut to about 3: listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-stack-be988c-6a17f391",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-05T11:29:13+00:00",
+ "author": "autolab"
+}
