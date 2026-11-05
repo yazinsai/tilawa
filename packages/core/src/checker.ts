@@ -196,9 +196,10 @@ interface Issue {
   pairOnset?: boolean;
   /**
    * Attested parallel phrase scored by CTC over `supportRange`. The written path and this one share the
-   * entry and exit words; only the interior word is substituted. No insertion or restart arc.
+   * entry and exit words; only the interior word is substituted. No insertion or restart arc. `need` is the
+   * margin it must win by.
    */
-  phrase?: { written: string; alt: string };
+  phrase?: { written: string; alt: string; need: number };
   /**
    * Surplus speech before an ayah's word 1 already spells a whole mushaf word. That identity replaces the
    * posterior support margin: the span is not needed to read the text.
@@ -509,7 +510,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       // A written phrase the frames cannot carry at all still loses to a finite parallel. NaN (both impossible)
       // is not evidence either way.
       if (!Number.isFinite(altNll)) return requireFinite ? null : false;
-      return frames.nll(ids(issue.phrase.written), f0, f1) - altNll >= PHRASE_SWITCH;
+      return frames.nll(ids(issue.phrase.written), f0, f1) - altNll >= issue.phrase.need;
     }
     const span = (a: number, b: number) => (a < b ? ref.slice(words[a].start, words[b - 1].end) : "");
     const written = ref.slice(words[from].start, words[to].end);
@@ -2048,12 +2049,20 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
       return entryDiag && exitDiag && to > from ? { from, to } : null;
     };
+    /** Mean decoder confidence over the heard phones that miss the written phrase and match the parallel. */
+    const switchedClarity = (path: { written: string; alt: string }, span: { from: number; to: number }) => {
+      const heard = obs.slice(span.from, span.to);
+      const said = heard.map((p) => p.p).join("");
+      const off = new Set(editPath(path.written, said).flatMap((o) => (o.op === "sub" || o.op === "ins" ? [o.obsAt] : [])));
+      const on = editPath(path.alt, said).flatMap((o) => (o.op === "match" && off.has(o.obsAt) ? [heard[o.obsAt].conf] : []));
+      return on.length ? on.reduce((a, c) => a + c, 0) / on.length : 1;
+    };
     const out: Issue[] = [];
     const taken = new Set<number>();
     for (let w = loW; w <= hiW; w++) {
       const paths = parallels.get(w);
       if (!paths || taken.has(w) || decided.has(w)) continue;
-      let best: { path: (typeof paths)[number]; span: { from: number; to: number }; margin: number } | null = null;
+      let best: { path: (typeof paths)[number]; span: { from: number; to: number }; margin: number; need: number } | null = null;
       for (const path of paths) {
         const span = covered(path.start, 4);
         if (!span) continue;
@@ -2077,14 +2086,18 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         }
         if (heard < 4 || speech / heard < PHRASE_PEAK) continue;
         const margin = frames.nll(ids(path.written), f0, f1) - altNll;
-        if (!(margin >= PHRASE_SWITCH) || (best && margin <= best.margin)) continue;
-        best = { path, span, margin };
+        // The attested-parallel discount is for a substitute heard surely. Where the phones that leave the written
+        // phrase for this one were decoded below `UNSURE` (ل heard as ن on a phone band), it is the confusable
+        // sound `supportNeed` doubles for, and it takes that same bar.
+        const need = switchedClarity(path, span) < UNSURE ? 2 * support : PHRASE_SWITCH;
+        if (!(margin >= need) || (best && margin <= best.margin)) continue;
+        best = { path, span, margin, need };
       }
       if (!best) continue;
       taken.add(w);
       out.push({
         cls: "wrong_word", word: w, last: w, obsFrom: best.span.from, obsTo: best.span.to, observed: best.path.altWord,
-        supportRange: [best.span.from, best.span.to], phrase: { written: best.path.written, alt: best.path.alt },
+        supportRange: [best.span.from, best.span.to], phrase: { written: best.path.written, alt: best.path.alt, need: best.need },
       });
     }
     return out;
