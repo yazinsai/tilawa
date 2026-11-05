@@ -213,7 +213,7 @@ def stable_swoosh_training():
     if hasattr(scaling, "_accusation_original_swoosh"):
         return scaling._accusation_original_swoosh
     originals = {}
-    for name in ("SwooshRForward",):
+    for name in ("SwooshRForward", "SwooshLForward"):
         original = getattr(scaling, name)
         source = inspect.getsource(original)
         needle = "(1.0 + x_offset.exp()).log().to(x.dtype)"
