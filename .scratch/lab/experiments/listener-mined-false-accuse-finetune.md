@@ -96,6 +96,19 @@ implementation failures, not target measurements. Anomaly tracing is being
 used to identify the backward operation before proceeding with the fixed
 recipe.
 
+Run 9 isolated the gradient failure to icefall's evaluation-mode
+`SwooshRForward`: its overflow fallback repairs the forward value but leaves
+an `exp` branch whose backward computes `inf * 0`. The training entry point
+now preserves the installed activation formula and constants, replacing only
+`log(1 + exp(x))` with stable softplus when gradients are enabled. No-grad
+alignment, inference and ONNX export call the original function. Run 14 checks
+extreme-input finite gradients, agreement near ordinary inputs and exact
+no-grad preservation before resuming the same recipe from the shipped parent.
+Run 9 also saved the 8,592-item original clean-match pool; the audio-only cache
+can be derived from that exact pool without scanning teacher columns again.
+Run 11's disposable helper was excluded from the supervisor upload and did
+not execute; it is not an acoustic or training result.
+
 Run 7 replayed each of the seven stored baseline sessions through the passive
 slot inspector. Its temporary diagnostic checker produced byte-identical
 events to the original checker. Every baseline target still has at least one
