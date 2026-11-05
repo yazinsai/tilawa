@@ -7083,7 +7083,7 @@
   },
   {
    "kind": "main",
-   "at": "2026-11-05T10:16:47+00:00",
+   "at": "2026-11-05T10:16:51+00:00",
    "sha": "b14ef5f5",
    "testSet": "lab-v1.5u",
    "experiment": "checker-pause-onset-isolated-form",
@@ -7107,7 +7107,7 @@
   },
   {
    "kind": "experiment",
-   "at": "2026-11-05T10:16:47+00:00",
+   "at": "2026-11-05T10:16:51+00:00",
    "id": "checker-pause-onset-isolated-form",
    "component": "checker",
    "hypothesis": "Real learners who pause between two words start the second plainly, but the wrong-word check expects the onset doubled from the previous word's tanween (يييَومَءِذِن after وجوهٌ, ووَهُوَ after سماواتٍ), so sob-053 88:2:2 and tlo-127 2:29:16 are false warnings (added by checker-dropped-suffix-wordform). The index already holds each word's isolated form. After a heard pause before the word, accept its isolated onset as the written word. Predict real-user false warnings -2 (7 to 5), practice unchanged.",
@@ -7140,6 +7140,157 @@
      "missed": 44,
      "falseWarnings": 61,
      "listener": 92,
+     "tracker": 8,
+     "checker": 5
+    }
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T10:18:18+00:00",
+   "id": "checker-ledger-fit-real-audio-skips",
+   "component": "checker",
+   "hypothesis": "checker-ledger-with-without-ayah-fit reports recited ayahs as skipped on real learner audio (ret-017 110:2:1, sob-034 79:29:1 and 79:44:1; sob-034's two are also raised with the teacher's and oracle evidence, so the fit, not the listener, is wrong). Find what in real audio makes the without-ayah fit win and require that evidence the fit is missing. Predict real-user false warnings -3, practice unchanged.",
+   "expected": {
+    "component": 0,
+    "overall": 0
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "no change; the three real-user skip warnings are unlabelled jumps in the data",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T10:24:11+00:00",
+   "id": "listener-mined-false-accuse-finetune",
+   "component": "listener",
+   "hypothesis": "Phone wrong-word false warnings, 3 on practice and 4 on realuser lexical and graph paths, are stable confusions in the shipped student's weights. Every retrain so far updated it everywhere, on synthetic channel data, on broad real phone data or on corrected deviant transcripts, and moved the string globally (+41, +175). Fine-tune only on the frames where the unchanged engine falsely accuses a correctly read word in real learner phone recordings, plus labelled real swaps as protected positives, with a strong KL anchor to the shipped student on every other frame. Predict 3 of 7 targets won, about 1 caught swap lost: listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The fine-tuned full-session int8 stream restores only two of seven target slots with zero hard edits, below the card's three-slot minimum. (measured: {\"targets won\": 2})",
+   "branch": {
+    "wrongCalls": 30,
+    "missed": 20,
+    "falseWarnings": 10,
+    "listener": 29,
+    "tracker": 1,
+    "checker": 0
+   },
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T10:33:52+00:00",
+   "id": "tracker-adjacent-ayah-echo-forward-bind",
+   "component": "tracker",
+   "hypothesis": "The listener added-word false warning at 22:13:3 (ضره) plausibly comes from the tracker binding the opening of 22:13 (يدعو لمن ضره) back onto the near-identical 22:12 (يدعو من دون الله ما لا يضره) as a back-repeat, so 22:13's own words reach the checker as surplus; keep near-parallel adjacent-ayah echoes on the forward copy unless a back-copy-unique word is heard: predict tracker 0, listener -1, overall -1 (honest, below the gate).",
+   "expected": {
+    "component": 0,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: The p43 runEngine replay commits 22:13:1–3 forward in the existing run, with no committed back-repeat or restart onto 22:12 before the accusation opens. (measured: {\"targets won\": 0})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T10:42:33+00:00",
+   "id": "listener-help-train-post-silence-onset",
+   "component": "listener",
+   "hypothesis": "Six of the 7 phone wrong-word false warnings are the first word heard after a pause (26:106:1, 55:48:1, 84:25:1, 92:13:1, 2:29:16, 88:2:2). Every confirmation path, lexical, non-lexical, escape and graph, counts the first post-silence consonant as full swap evidence, even though the listener habitually garbles it. Neutralise that position only when its (written, heard) pair is a habitual post-silence rendering measured on help-train's real phone clips, which all start from silence. Predict 3 of 6 vetoed with about 1 caught swap lost: listener -2, overall -2.",
+   "expected": {
+    "component": -2,
+    "overall": -2
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: Only two of six targets can benefit from onset neutralisation: two warnings are already fixed and the other two retain identical onset phones, so no help-train pair table can reach three. (measured: {\"targets won\": 0, \"target wins upper bound\": 2, \"targets reproduced\": 4, \"unrestricted onset margin wins\": 2})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T10:48:37+00:00",
+   "id": "listener-half-chunk-grid-swap-agreement",
+   "component": "listener",
+   "hypothesis": "Phone wrong-word false warnings, on the lexical, graph and non-lexical paths, plausibly come from consonant spikes that depend on where each frame sits in the fixed streaming chunk grid, while planted swaps hold on any grid. Confirm a wrong word only if a full-session second pass of the same student, with the chunk grid shifted by half a chunk, raises the same accusation; predict 3 of 7 vetoed with about 1 caught swap lost: listener -2, overall -1.",
+   "expected": {
+    "component": -2,
+    "overall": -1
+   },
+   "state": "discarded",
+   "testSet": "lab-v1.5u",
+   "note": "killed by its builder: Full-session half-chunk rejudgment vetoes only two target accusations, below the required three; two additional listed targets are absent in the current baseline. (measured: {\"targets won\": 2})",
+   "branch": null,
+   "rebased": null
+  },
+  {
+   "kind": "main",
+   "at": "2026-11-05T10:54:22+00:00",
+   "sha": "06c04a52",
+   "testSet": "lab-v1.5u",
+   "experiment": "checker-parallel-verse-illa-inna",
+   "note": "checker-parallel-verse-graph-decode added a real-user wrong-word false warning at sob-027 84:25:1 (إلّا heard as إنّ). Find why the parallel-verse graph accepts the rival spelling there and narrow it without giving back its practice wins. Predict real-user false warnings -1, practice unchanged.",
+   "practice": {
+    "wrongCalls": 30,
+    "missed": 20,
+    "falseWarnings": 10,
+    "listener": 29,
+    "tracker": 1,
+    "checker": 0
+   },
+   "exam": {
+    "wrongCalls": 107,
+    "missed": 46,
+    "falseWarnings": 61,
+    "listener": 94,
+    "tracker": 8,
+    "checker": 5
+   }
+  },
+  {
+   "kind": "experiment",
+   "at": "2026-11-05T10:54:22+00:00",
+   "id": "checker-parallel-verse-illa-inna",
+   "component": "checker",
+   "hypothesis": "checker-parallel-verse-graph-decode added a real-user wrong-word false warning at sob-027 84:25:1 (إلّا heard as إنّ). Find why the parallel-verse graph accepts the rival spelling there and narrow it without giving back its practice wins. Predict real-user false warnings -1, practice unchanged.",
+   "expected": {
+    "component": 0,
+    "overall": 0
+   },
+   "state": "folded",
+   "testSet": "lab-v1.5u",
+   "note": "keeps its real-user false-warning gain (-1), practice not worse",
+   "branch": {
+    "wrongCalls": 30,
+    "missed": 20,
+    "falseWarnings": 10,
+    "listener": 29,
+    "tracker": 1,
+    "checker": 0
+   },
+   "rebased": {
+    "practice": {
+     "wrongCalls": 30,
+     "missed": 20,
+     "falseWarnings": 10,
+     "listener": 29,
+     "tracker": 1,
+     "checker": 0
+    },
+    "exam": {
+     "wrongCalls": 107,
+     "missed": 46,
+     "falseWarnings": 61,
+     "listener": 94,
      "tracker": 8,
      "checker": 5
     }
