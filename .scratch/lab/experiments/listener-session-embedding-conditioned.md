@@ -58,3 +58,53 @@ The frozen branch increases inference compute and recurrent-state memory.
 Mobile latency and footprint need measurement before a release claim. A KL
 anchor discourages output drift but does not guarantee unchanged strings.
 No independent listening review or label correction is part of this experiment.
+
+Runs 2 and 3 failed in Modal's volume infrastructure (`too many layers in
+volume`); neither returned a usable training/test result. Run 4 reached the
+six-shard build but found a pre-existing TypeScript error in `reference.ts`:
+`filter(Boolean)` retained `undefined` in the inferred type of optional plain
+onset forms. The explicit type predicate preserves that filter's runtime
+behavior and changes no pronunciation form.
+
+Run 6 passed core and SDK builds and all six validation shards: 737 core tests
+and 17 SDK tests passed, with one existing optional SDK test skipped. The
+unchanged test wrapper accepted the known Vitest RPC timeout only after all
+core tests in that shard passed. The new SDK case checks the one-second gate,
+completed-chunk running mean, silence inclusion, push-size independence,
+per-listener reset and rejection of missing feature output.
+
+Run 6 also read the persistent pool audit: 8,445 clips from 90 training voice
+clusters, sampled to 20.0002 hours, after excluding all 48 clusters linked to
+the gold clip exclusions. At that snapshot only data preparation was visible;
+no completed optimization checkpoint was yet reported.
+
+Run 7 passed all three Python tests, including a small actual Zipformer stream:
+64-dimensional frozen features on the 20 ms grid, unchanged initial logits,
+separate recurrent states, frozen parameters, zero-vector identity after
+nonzero FiLM weights, and both BiasNorm batch layouts. Run 8 read a valid
+2,000-step checkpoint from the persistent scratch area. Open log files were
+not visible in that concurrent container's snapshot.
+
+Run 5 completed the fixed 3,000-step training run with finite objectives and
+gradients. Optimization took 1,378.2 seconds; the supervisor command took
+1,855.2 seconds including preparation. GPU cost was $2.04 (plus $0.50 spent
+on the earlier infrastructure failure), leaving $117.46. The final minibatch
+logged CTC 0.09661, KD 0.24614, embedding norm 0.54325 and FiLM weight norm
+12.1902. Logs are sampled every 50 steps and therefore miss the every-fourth
+zero-conditioned items; their printed KL values are zero and must not be read
+as an aggregate KL measurement. The zero-conditioned term is computed on the
+intervening items by the fixed training loop.
+
+Parent checkpoint SHA-256:
+`bcd41fcffe1b298cb4da36ea0e3df87d1033e209b8bba1cbff7d0a654b749b9f`.
+No intermediate checkpoint was selected using target or practice results.
+
+Run 9's export preflight read the final 3,000-step checkpoint. It produced an
+int8 graph but failed its Torch/float-ONNX parity assertion (maximum log-prob
+error 4.1–5.9 and feature error 0.025–0.040). Inspection identified a validation
+mode bug: the outer `Streaming` wrapper defaulted to training mode, so ONNX's
+mode restoration re-enabled dropout on the reused Torch oracle after export.
+The inference wrapper now starts in evaluation mode; the small-model test
+asserts that every submodule stays in evaluation mode. Parity state arrays
+also receive independent copies rather than sharing Torch memory. This is an
+export/validation fix, not a new training arm or a target-driven adjustment.

@@ -44,6 +44,7 @@ class StreamingArchitecture(unittest.TestCase):
             parent = T.build_model('session-test').eval()
             model = SessionStudent(parent).eval()
             s = Streaming(model)
+            self.assertTrue(all(not module.training for module in s.modules()))
             x = torch.randn(1,45,80)
             with torch.no_grad():
                 a, f, states = s(x, torch.randn(1,64), s.init_states())

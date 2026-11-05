@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import torch
 from torch import nn
-from student_export import wrap, PAD, manifest, onnx_deps
+from student_export import wrap, manifest, onnx_deps
 from student_session import SessionStudent
 import student_train as T
 
@@ -16,6 +16,9 @@ class Streaming(nn.Module):
         self.frozen = wrap(model.frozen, chunk, left)
         self.acoustic = wrap(model.acoustic, chunk, left)
         self.n = len(self.acoustic.init_states())
+        # ONNX restores the outer module's training flag after tracing. Keep
+        # this inference wrapper in eval mode so it cannot re-enable dropout.
+        self.eval()
 
     def forward(self, x, embedding, states):
         _, frozen_states = self.frozen(x, states[self.n:])
@@ -28,21 +31,26 @@ class Streaming(nn.Module):
         return self.acoustic.init_states() + self.frozen.init_states()
 
 
-def load(source, checkpoint):
+def load(source, checkpoint, require_complete=False):
     ck = torch.load(source, map_location='cpu', weights_only=False)
     parent = T.build_model(ck['cfg']['size'])
     parent.load_state_dict(ck['model'])
     model = SessionStudent(parent)
     if checkpoint:
-        model.load_state_dict(torch.load(checkpoint, map_location='cpu', weights_only=False)['model'])
+        saved = torch.load(checkpoint, map_location='cpu', weights_only=False)
+        if require_complete and saved['step'] != saved['totalSteps']:
+            raise ValueError('Final export requires the complete fixed training run')
+        model.load_state_dict(saved['model'])
+        ck['sessionStep'] = saved['step']
     return model.eval(), ck
 
 
-def export(source, checkpoint, out):
+def export(source, checkpoint, out, require_complete=False):
     from icefall.utils import get_onnx_export_kwargs
     from onnxruntime.quantization import quantize_dynamic, QuantType
     torch.set_num_threads(4)
-    model, ck = load(source, checkpoint)
+    model, ck = load(source, checkpoint, require_complete)
+    print(json.dumps(dict(event='export-checkpoint', sessionStep=ck.get('sessionStep'))), flush=True)
     stream = Streaming(model)
     states = stream.init_states()
     kinds = ['cached_key', 'cached_nonlin_attn', 'cached_val1', 'cached_val2', 'cached_conv1', 'cached_conv2']
@@ -64,7 +72,8 @@ def export(source, checkpoint, out):
     path = str(out / 'model.onnx')
     quantize_dynamic(fp, path, weight_type=QuantType.QInt8, op_types_to_quantize=['MatMul'])
     m = manifest('session-conditioned-int8', specs, 16, 128, path, ck)
-    m.update(format='onnx-int8', sessionConditioning=dict(dimensions=64, frameMs=20, startMs=1000))
+    m.update(format='onnx-int8', sessionTrainingSteps=ck.get('sessionStep'),
+        sessionConditioning=dict(dimensions=64, frameMs=20, startMs=1000))
     (out / 'manifest.json').write_text(json.dumps(m, ensure_ascii=False, indent=1))
     print(json.dumps(dict(event='exported', sha256=m['sha256'], bytes=m['bytes'])), flush=True)
     # Parity uses training-pool clips, never practice. The float graph
@@ -85,8 +94,8 @@ def export(source, checkpoint, out):
         windows = max(1, (need+7)//8)
         f = torch.nn.functional.pad(f, (0,0,0,max(0,45+(windows-1)*32-len(f))), value=-23.0259)
         st = stream.init_states()
-        ort_st = {n: t.numpy() for n,t in zip(names,st)}
-        q_st = {n: t.numpy() for n,t in zip(names,st)}
+        ort_st = {n: t.numpy().copy() for n,t in zip(names,st)}
+        q_st = {n: t.numpy().copy() for n,t in zip(names,st)}
         sums = np.zeros(64, dtype=np.float64)
         q_sum = sums.copy(); count = 0
         worst_lp = 0.; worst_features = 0.; agree = 0; frames = 0
@@ -128,6 +137,7 @@ if __name__ == '__main__':
     sys.path.insert(0, '/app/tools')
     p = argparse.ArgumentParser()
     p.add_argument('--source', required=True); p.add_argument('--checkpoint', required=True); p.add_argument('--out', required=True)
+    p.add_argument('--require-complete', action='store_true')
     a = p.parse_args()
     onnx_deps()
-    export(a.source, a.checkpoint, a.out)
+    export(a.source, a.checkpoint, a.out, a.require_complete)
