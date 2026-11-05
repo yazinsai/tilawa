@@ -6,6 +6,7 @@ import { loadReferenceIndex } from "../src/reference.js";
 import { syntheticFixture, withPosteriors } from "../src/fixtures/index.js";
 import type { Edit } from "../src/fixtures/index.js";
 import type { CheckerEvent, WordRef } from "../src/events.js";
+import type { PhonemeEvidence } from "../src/evidence.js";
 import type { ParallelPath } from "../src/parallel-phrases.js";
 
 const index = loadReferenceIndex(JSON.parse(readFileSync(new URL("../assets/ref-v2.json", import.meta.url), "utf8")));
@@ -16,13 +17,19 @@ const phone = (r: WordRef) => index.phonemes.slice(index.words[at(r)].start, ind
 const MARKS = new Set("َُِ۪ۦۥاـؙۜ");
 const consonants = (s: string) => [...s].filter((c) => !MARKS.has(c)).join("");
 
-function run(from: WordRef, to: WordRef, edits: Edit[], acoustics: "decoded" | "neutral" | "off") {
+/** Heard ن at decoder confidence `conf`, with ل a weaker rival on its frames: ل/ن on a phone band. */
+const nasal = (conf: number) => (evidence: PhonemeEvidence) => {
+  const e = { ...evidence, phonemes: evidence.phonemes.map((p) => (p.p === "ن" ? { ...p, conf } : p)) };
+  return withPosteriors(index, e, (j) => (e.phonemes[j].p === "ن" ? [["ن", 0.6], ["ل", 0.05], ["", 0.3]] : undefined));
+};
+
+function run(from: WordRef, to: WordRef, edits: Edit[], acoustics: "decoded" | "neutral" | "off" | ((e: PhonemeEvidence) => PhonemeEvidence)) {
   const fixture = syntheticFixture(index, { id: "parallel-phrase", from, to, edits, chunkSize: 6 });
   const checker = createChecker(index, { passage: { from, to }, policy: { confirm: { after: "next-word" } } });
   const events: CheckerEvent[] = [];
   const neutral: [string, number][] = ["", ...index.tokens].map((p) => [p, 1 / (index.tokens.size + 1)]);
   for (const evidence of fixture.evidence) {
-    const chunk = acoustics === "off" ? evidence
+    const chunk = typeof acoustics === "function" ? acoustics(evidence) : acoustics === "off" ? evidence
       : acoustics === "neutral" ? withPosteriors(index, evidence, () => neutral, neutral.length)
         : withPosteriors(index, evidence);
     events.push(...checker.push(chunk, []));
@@ -91,6 +98,15 @@ describe("parallel phrase graph", () => {
   it("stays quiet when the written phrase is what was said", () => {
     const s = span(alayhi, false);
     expect(run(s.from, s.to, s.edits, "decoded")).toEqual([]);
+  });
+
+  it("asks a parallel heard unsure to clear the per-word bar", () => {
+    // إِلَّا ٱلَّذِينَ against the attested إِنَّ ٱلَّذِينَ: the posteriors favour إنّ by more than the parallel
+    // switch, less than twice the support margin. Heard surely it is a wrong word; at even odds it is not.
+    const inna = (parallelPaths(index).get(at(w(84, 25, 1))) ?? []).find((p) => p.altWord === "ءِننننَ" && p.start === at(w(84, 24, 3)))!;
+    const s = span(inna, true);
+    expect(run(s.from, s.to, s.edits, nasal(0.95))).toEqual([`wrong_word ${key(s.word)}`]);
+    expect(run(s.from, s.to, s.edits, nasal(0.6))).toEqual([]);
   });
 
   it("does not switch on flat posteriors or without them", () => {
