@@ -314,6 +314,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   });
   const fatiha = words.filter((w) => w.surah === 1 && w.ayah === 1);
   const phrases = [...(options.phrases?.phrases.map((p) => p.p) ?? []), ref.slice(fatiha[0].start, fatiha.at(-1)!.end)];
+  const phraseSpan = (s: string) => phrases.some((p) => {
+    if (Math.abs(p.length - s.length) > Math.ceil(p.length * 0.6) + 4) return false;
+    const hit = alignSubstring(s, 0, s.length, p, () => true);
+    return !!hit && hit.start === 0 && hit.end >= s.length - 1 && hit.cost / UNIT / p.length <= PHRASE_MAX_COST;
+  });
   const nextWord = (wi: number) => {
     let k = wi + 1;
     while (k < words.length && words[k].end === words[k].start) k++;
@@ -1772,11 +1777,6 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     // An added word at an ayah start sits in the greedy phones before word 1, after both seam words already
     // have a complete in-order visit. Pauses and waqf tails are not part of that word. Neighbours, their
     // prefixes and non-Quran phrases are not an addition.
-    const phraseSpan = (s: string) => phrases.some((p) => {
-      if (Math.abs(p.length - s.length) > Math.ceil(p.length * 0.6) + 4) return false;
-      const hit = alignSubstring(s, 0, s.length, p, () => true);
-      return !!hit && hit.start === 0 && hit.end >= s.length - 1 && hit.cost / UNIT / p.length <= PHRASE_MAX_COST;
-    });
     for (const w1 of new Set(visits.map((v) => v.word))) {
       if (w1 < first || words[w1].end === words[w1].start || ayahFirst[ayahOf[w1]] !== w1) continue;
       const prev = prevWord(w1);
@@ -2498,7 +2498,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         if (wi < 0 || prev < 0 || nextWord(wi) >= words.length || words[wi].end === words[wi].start) continue;
         const inner = ayahOf[prev] === ayahOf[wi];
         if (inner ? !waqfMarked(prev) : ayahFirst[ayahOf[wi]] !== wi) continue;
-        if (!lexical.surplusWord(wi,c.observed) || lexical.fragmentOfSeam(wi,c.observed)) continue;
+        if (!lexical.surplusWord(wi,c.observed) || lexical.fragmentOfSeam(wi,c.observed) || phraseSpan(c.observed)) continue;
         if (emitted.some(e => e.state === "confirmed" && e.errorClass === "added_word" &&
           e.location.surah === c.word.surah && e.location.ayah === c.word.ayah && e.location.word === c.word.word)) continue;
         const e: CheckerEvent = { type: "checker", v: EVENT_SCHEMA_VERSION,
