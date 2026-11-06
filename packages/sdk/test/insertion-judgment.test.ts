@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PhonemeEvidence, ReferenceIndex, SeamInsertionCandidate, SeamInsertionWindow, EngineEvent } from "@tilawa/core";
 import type { LoadedModel } from "../src/model.js";
 
@@ -14,6 +14,12 @@ vi.mock("@tilawa/core", async original => ({
   lexicalWords: () => ({ surplusWord: (_: number, said: string) => said, fragmentOfSeam: () => false }),
 }));
 import { addInsertionEvidence } from "../src/seam-insertion.js";
+
+beforeEach(() => {
+  candidates.length = 0;
+  seams.length = 0;
+  steps.length = 0;
+});
 
 describe("warm whole-seam teacher judgment", () => {
   it("uses the two-word prefix and native clock, sharing crops and freeing the insertion timing", async () => {
