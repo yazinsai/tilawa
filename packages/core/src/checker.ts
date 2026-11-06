@@ -476,7 +476,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     open.delete(o.issue.word);
     decided.add(o.issue.word);
     const sure = ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false &&
-      (state === "uncertain" || o.issue.cls !== "wrong_word" || o.issue.phrase !== undefined ||
+      // Limit the locality prior to ayah onsets. Interior and final slots still need the ordinary swap paths.
+      (state === "uncertain" || o.issue.cls !== "wrong_word" || o.issue.phrase !== undefined || words[o.issue.word].word !== 1 ||
         locality.assess(o.issue.word, heardSpan(o.issue), omissionChannel,
           o.issue.stringPath ? undefined : o.issue.observed)?.keep !== false);
     out.push(event(o, state ?? (sure ? "confirmed" : "uncertain")));

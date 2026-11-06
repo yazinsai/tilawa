@@ -13,10 +13,10 @@ const phrases = [
 const tokens = [...new Set(phrases.flat().join(""))].join("");
 const index = loadReferenceIndex({
   version: "test", text: "test", profile: {}, inventory: { id: "test", tokens },
-  ayahs: phrases.map((words, s) => ({
-    s: s + 1, a: 1, w: words, iso: words, p: words.join(""),
-    o: words.map((_, i) => words.slice(0, i).join("").length),
-  })),
+  ayahs: phrases.flatMap((words, s) => [words.slice(0, 1), words.slice(1)].map((part, a) => ({
+    s: s + 1, a: a + 1, w: part, iso: part, p: part.join(""),
+    o: part.map((_, i) => part.slice(0, i).join("").length),
+  }))),
 });
 const counts = emptyCounts([...tokens]);
 counts.phones.forEach((_, i) => { counts.sub[i][i] = 1000; counts.nWritten += 1000; });
@@ -49,14 +49,31 @@ describe("attested swap locality", () => {
     expect(locality.assess(1, "سَمِعَ", channel, "غَسَلَ")).toMatchObject({ rival: "غَسَلَ", keep: false });
   });
 
+  it("prefers an exact local pronunciation over a soft spelling with a different case ending", () => {
+    const cases = loadReferenceIndex({
+      version: "test", text: "test", profile: {}, inventory: { id: "test", tokens: tokens + "ن" },
+      ayahs: [
+        { s: 1, a: 1, w: ["سَمِعًا"], p: "سَمِعَن", iso: ["سَمِعَن"], o: [0] },
+        { s: 2, a: 1, w: ["كَتَبَ", "رَفَعَ", "دَخَلَ", "بَعُدَ", "نَزَلَ", "رَفَعَ", "دَخَلَ", "بَعُدَ", "سَمِعٌ"],
+          p: "كَتَبَرَفَعَدَخَلَبَعُدَنَزَلَرَفَعَدَخَلَبَعُدَسَمِعُن",
+          iso: ["كَتَبَ", "رَفَعَ", "دَخَلَ", "بَعُدَ", "نَزَلَ", "رَفَعَ", "دَخَلَ", "بَعُدَ", "سَمِعُن"],
+          o: [0, 6, 12, 18, 24, 30, 36, 42, 48] },
+      ],
+    });
+    expect(lexicalWords(cases).surplusWord(5, "سَمِعُن")).toBe("سَمِعَن");
+    expect(swapLocality(cases).assess(5, "سَمِعُن", channel)).toMatchObject({
+      rival: "سَمِعُن", sameSurah: true, keep: true,
+    });
+  });
+
   it("abstains without mushaf text or a channel for a non-word", () => {
     expect(swapLocality({ ...index, wordText: undefined }).assess(1, "غَسَلَ", channel)).toBeNull();
     expect(locality.assess(1, "غَسَل", channelFromCounts(emptyCounts([])))).toBeNull();
   });
 });
 
-function check(said?: string) {
-  const from = index.words[0], to = index.words[7], target = index.words[1];
+function check(said?: string, wi = 1) {
+  const from = index.words[0], to = index.words[7], target = index.words[wi];
   const fixture = syntheticFixture(index, {
     id: "swap-locality", from, to, chunkSize: 4,
     edits: said ? [
@@ -71,7 +88,8 @@ function check(said?: string) {
 }
 
 describe("wrong-word confirmation with locality", () => {
-  it("vetoes a remote string-path rival", () => { expect(check("غَسَلَ")).toEqual([]); });
+  it("vetoes a remote string-path rival at an ayah onset", () => { expect(check("غَسَلَ")).toEqual([]); });
+  it("keeps a remote substitution inside the ayah", () => { expect(check("غَسَلَ", 3)).toHaveLength(1); });
   it("preserves a local swap", () => { expect(check("سَمِعَ")).toHaveLength(1); });
   it("preserves a parallel swap", () => { expect(check("بَقِيَ")).toHaveLength(1); });
   it("stays quiet on clean text", () => { expect(check()).toEqual([]); });

@@ -49,6 +49,9 @@ function build(index: ReferenceIndex) {
     assess(wi: number, heard: string, channel: Channel, named?: string) {
       if (!identities.size) return null;
       let rival = named && identities.has(form(named)) ? form(named) : lexical.surplusWord(wi, heard);
+      // The spelling test permits soft vowel differences and returns its first form. An exact attested
+      // pronunciation identifies the heard word before those softer variants (e.g. different case endings).
+      if (!named && rival && identities.has(form(heard))) rival = form(heard);
       if (!rival) {
         if (!channel.phones.length) return null;
         const phones = [...form(heard)];
