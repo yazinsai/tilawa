@@ -123,10 +123,15 @@ than the planted قبل. Three warnings therefore have the recovered planted
 word shape. The fourth does not establish the acoustic premise at that site
 and must be judged by the practice gate, together with warnings elsewhere.
 
-The scoring bundle is `offline-bundle` in this experiment's persistent
-scratch. Its primary `model.onnx` and `manifest.json` are byte-for-byte copies
-of the supplied spliced-clean-int8 export. `offline-student.onnx` is the
-separate declared ear. The baseline teacher was regenerated with the unchanged
+The previous attempt assembled `offline-bundle` in this experiment's
+persistent scratch, with byte-identical primary `model.onnx` and
+`manifest.json` copies of the supplied spliced-clean-int8 export and the
+separate declared `offline-student.onnx` ear. Review rejected redirecting
+`.autolab/model.json` to that directory. The selector is now restored
+byte-for-byte to its inherited `{"path":"bundle"}` value. The declared
+offline SDK asset belongs beside the primary model in that existing bundle;
+no evaluation configuration change is needed. The baseline teacher was
+regenerated with the unchanged
 `student_teacher_export.py`: its 2,422,885,632-byte parameter file has the
 baseline SHA-256 `d3f24efba836219f0c556ad25e3a1046f9caf36b2ed639cd283f795c78da58b4`.
 The regenerated graph has different serialization bytes (10,559,071 bytes,
@@ -162,8 +167,46 @@ stored evidence was changed to bypass this separation.
 
 The acoustic census passes the premise on four targets; the serialized target
 replay adds three warnings with the recovered planted word shape, plus one
-fragile location match. Retain the implementation and `offline-bundle` for the
-supervisor to measure the new evidence on all practice sessions and apply the
+fragile location match. Retain the implementation and the declared ear in
+the inherited `bundle` for the supervisor to measure the new evidence on all practice sessions and apply the
 fold gate. The new ear's overall gain, losses, clean-session behaviour and
 studio behaviour remain unmeasured by this requested score. No fold verdict
 for the freshly decoded ear is claimed.
+
+## Review correction
+
+The previous diff changed lab model selection from `bundle` to
+`offline-bundle`. That exceeded the permitted engine scope. This revision
+restores `.autolab/model.json` exactly to the inherited file. It leaves
+`lab-experiment.json`, scoring code, supplied manifests and evidence untouched.
+The trained ear remains a declared SDK auxiliary asset, loaded lazily from
+the primary model's directory by the normal Node loader. No acoustic training
+or checker decision was changed in response to review.
+
+Modal run 25 rebuilt core and SDK and passed all 760 core and 35 SDK tests,
+with the one optional SDK integration skip. The supplied harness accepted
+its documented `onTaskUpdate` RPC timeout only after all 134 tests in the
+affected core shard passed. No tests, test deadlines or harness rules were
+changed for this correction.
+
+Run 24 found no `bundle` directory in this experiment's persistent scratch.
+Run 26 materialized that inherited path from the already-built model files.
+The primary model SHA-256 is
+`714e98addee73b1b8781ad7d99b6d3c745acd9116638baf4e12891f53a15af1b`;
+the unchanged manifest SHA-256 is
+`785f5eb4724bc0ecd7217b48066aa34ba6dd8ba77f144f6f422c2436a1fc442f`.
+Both match `/lab/data/models/spliced-clean-int8` byte-for-byte. The offline
+asset hash matches the SDK registry, and the baseline teacher files were
+retained. The run then stopped on a diagnostic read of `.autolab/model.json`,
+which is omitted from Modal's source snapshot; this occurred after successful
+installation and hash checks. Local byte comparisons verify that the selector
+and experiment card both match commit `607471c1` exactly.
+
+Run 27 passed the normal `loadNodeModel` smoke check against the inherited
+`bundle`: it retained primary model `spliced-clean`, attached both declared
+auxiliaries, decoded a one-second input through the offline ear to 23 frames
+at 40 ms with the expected inventory, and released the backend successfully.
+No further practice-score request was made: this correction changes neither
+model weights nor engine decisions, and the earlier requested replay result
+remains 24 → 24. Fresh decoded practice and fold-gate results remain the
+supervisor's responsibility.
