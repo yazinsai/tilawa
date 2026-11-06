@@ -141,6 +141,10 @@ this card's premise. Run 28 restarts the fixed recipe from shipped weights in
 extends isolation to every even native cutoff from 0 to 14, plus batched
 late-cut gradients. Checkpoints now retain optimizer state at wall-time exit,
 and an already-completed resume preserves its completed update count.
+Run 28 passed this preflight and completed 224 fresh updates before its
+48-minute training limit. Every logged loss and gradient remained finite;
+10 of 23 sampled log entries were masked items, and 19 had labelled pauses.
+Run 31 continues the unchanged recipe with the saved optimizer state.
 
 The supplied student directory lacks teacher files. The unchanged original
 teacher exporter recreates the public fp32 model. Its external weights match
