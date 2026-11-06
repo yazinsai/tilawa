@@ -57,6 +57,35 @@ reported. In particular, it would be incorrect to report zero target wins as a
 measured kill. Resume validation before deciding whether the task's three-win
 minimum or the card's two-target premise threshold is met.
 
+### Retry after supervisor storage feedback
+
+The supervisor's subsequent feedback reported `No space left on device` while
+creating this experiment's Modal `runs` directories, followed by missing shard
+status and log files. On 2026-11-06 the authorized runner was retried:
+
+- Run 6: six shards of `bash tools/autolab_tests.sh`, with a 30-minute timeout.
+- Run 7: two shards replaying p50 and p65, with a 20-minute timeout. Each shard
+  was requested to run the baseline and instrumented candidate through both `runEngine` and
+  `runTruePosition`, using the card's listener and stored phone evidence. The
+  saved baseline was checked locally against the experiment's base checker and
+  was identical. Diagnostic sources were placed under `.scratch/lab/vowel-probe/`
+  for the supervisor snapshot.
+
+Both retries returned `NotFoundError: No such file or directory`, zero reported
+spend and no shard logs or event outputs. The new results do not identify the
+missing path and do not establish that the command bodies ran. The earlier
+storage feedback is an infrastructure finding, not a build/test or acoustic
+finding. No additional practice score was requested and no premise kill is
+claimed. The user was asked whether supervisor storage had been restored and
+whether a missing-path diagnostic was available. The temporary snapshot sources
+were removed locally after the requests completed; the ignored diagnostic
+copies remain under `.autolab/vowel-probe/` for a future authorized retry.
+
+The existing engine implementation and eight tests remain committed and
+unchanged. Local `git diff --check` passed again. Target margins, target wins,
+core/SDK build and test results, and all population safety claims still require
+successful supervisor execution.
+
 The proposed replays use the card's declared listener
 `exp-listener-teacher-insert-marginal-gate-ad6eb8c0` on phone audio. Labels and
 target references select reported cases only, never engine behavior. These are
