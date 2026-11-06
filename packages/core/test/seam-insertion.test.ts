@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { PHRASE_SWITCH } from "../src/parallel-phrases.js";
 import { PosteriorFrames } from "../src/ctc.js";
-import { seamInsertionMarginal } from "../src/seam-insertion.js";
+import { seamInsertionMarginal, seamPhoneLoop } from "../src/seam-insertion.js";
 
 function framesOf(rows: number[][]) {
   const frames = new PosteriorFrames(rows[0].length - 1);
@@ -65,5 +66,96 @@ describe("whole-seam insertion marginal", () => {
     expect(seamInsertionMarginal(frames, [[[1]]], [[2]], [[[3]]], -1, 1, 4)).toBeNull();
     expect(seamInsertionMarginal(frames, [[[1]]], [[2]], [[[3]]], 0, 2, 4)).toBeNull();
     expect(seamInsertionMarginal(frames, [[[1]]], [[2]], [[[3]]], 0, 1, 4)).toBeNull();
+  });
+});
+
+
+describe("identity-free seam phone loop", () => {
+  it("sums exactly the CTC paths with two consonant onsets", () => {
+    const rows = [
+      [.1,.5,.2,.1,.1], [.2,.1,.4,.1,.2], [.3,.1,.3,.1,.2],
+      [.2,.1,.4,.1,.2], [.1,.1,.2,.5,.1],
+    ];
+    let yes = 0, no = 0;
+    const visit = (path: number[], mass: number) => {
+      if (path.length < rows.length) {
+        rows[path.length].forEach((p, id) => visit([...path, id], mass * p)); return;
+      }
+      const text = collapse(path);
+      if (text === "13") no += mass;
+      if (/^1[24]+3$/.test(text) && [...text.slice(1,-1)].filter(p => p === "2").length >= 2)
+        yes += mass * Math.exp(-PHRASE_SWITCH);
+    };
+    visit([], 1);
+    const result = seamPhoneLoop(framesOf(rows), [[[1]]], [[[3]]], [2,4], [2], 0, rows.length, PHRASE_SWITCH, false);
+    expect(result!.marginal).toBeCloseTo(yes / (yes + no), 12);
+  });
+  const paint = (text: number[]) => framesOf(text.map(id => Array.from({ length: 6 }, (_, i) => i === id ? .9995 : .0001)));
+  it("returns the inserted Viterbi phones and native free boundaries", () => {
+    const frames = paint([1,0,2,2,0,4,0,5,0,3]);
+    expect(seamPhoneLoop(frames, [[[1]]], [[[3]]], [1,2,3,4,5], [1,2,3,5],0,10,PHRASE_SWITCH))
+      .toMatchObject({ phones: [2,4,5], fromFrame: 2, toFrame: 8 });
+  });
+  it("extracts a conditional insertion when many paths outweigh one no-word timing", () => {
+    const rows = [
+      [0,1,0,0,0], ...Array.from({length:20},()=>[.7,0,.15,0,.15]), [0,0,0,1,0],
+    ];
+    const frames={startFrame:0,endFrame:rows.length,row(f:number){return Float64Array.from(rows[f],Math.log)}};
+    const result=seamPhoneLoop(frames,[[[1]]],[[[3]]],[2,4],[2,4],0,rows.length,PHRASE_SWITCH,false)!;
+    expect(result.marginal).toBeGreaterThan(.5);
+    expect(result.phones.length).toBeGreaterThanOrEqual(2);
+    expect(result.fromFrame).toBeGreaterThanOrEqual(1);
+    expect(result.toFrame).toBeLessThanOrEqual(21);
+  });
+  it("does not advance the consonant count on a held frame", () => {
+    const text = [1,2,2,2,3];
+    const frames = { startFrame:0,endFrame:text.length,row(f:number) {
+      const row=new Float64Array(4).fill(-Infinity); row[text[f]]=0; return row;
+    } };
+    // No blank or other label can split this deterministic held run into
+    // two onsets. Both the no-word and the constrained loop read are impossible.
+    expect(seamPhoneLoop(frames, [[[1]]], [[[3]]], [2], [2],0,text.length,PHRASE_SWITCH)).toBeNull();
+  });
+  it("does not mistake blank or vowel-only mass for a word", () => {
+    const text=[1,0,4,4,4,0,3];
+    const frames={startFrame:0,endFrame:text.length,row(f:number){
+      const row=new Float64Array(6).fill(-Infinity); row[0]=Math.log(.1); row[text[f]]=Math.log(.9); return row;
+    }};
+    expect(seamPhoneLoop(frames, [[[1]]], [[[3]]], [1,2,3,4,5], [1,2,3,5],0,text.length,PHRASE_SWITCH)!.marginal).toBeLessThan(.5);
+    const silence=paint([1,0,0,0,3]);
+    expect(seamPhoneLoop(silence, [[[1]]], [[[3]]], [1,2,3,4,5], [1,2,3,5],0,5,PHRASE_SWITCH)!.marginal).toBeLessThan(.5);
+  });
+  it("lets the existing contiguous repeat arcs explain restarts", () => {
+    const frames = paint([1,0,2,0,1,0,2,0,3]);
+    expect(seamPhoneLoop(frames, [[[1,2]]], [[[3]]], [1,2,3,4,5], [1,2,3,5],0,9,PHRASE_SWITCH)!.marginal).toBeLessThan(.5);
+  });
+});
+
+
+describe("pause-onset cold phone loop", () => {
+  it("matches exhaustive CTC mass with no left text side", () => {
+    const rows = [[.2,.3,.2,.1,.2],[.3,.1,.2,.2,.2],[.1,.2,.3,.2,.2],[.3,.1,.2,.2,.2],[.2,.2,.1,.3,.2]];
+    let yes = 0, no = 0;
+    const visit = (path: number[], mass: number) => {
+      if (path.length < rows.length) {
+        rows[path.length].forEach((p,id) => visit([...path,id],mass*p)); return;
+      }
+      const text = collapse(path);
+      if (text === "12") no += mass;
+      if (/^[34]+12$/.test(text) && text.length >= 4) yes += mass * Math.exp(-PHRASE_SWITCH);
+    };
+    visit([],1);
+    const result = seamPhoneLoop(framesOf(rows),[],[[[1]],[[2]]],[3,4],[3,4],0,rows.length,PHRASE_SWITCH,false);
+    expect(result!.marginal).toBeCloseTo(yes/(yes+no),12);
+  });
+  it("keeps a real two-consonant onset and rejects a blank pause before the neighbours", () => {
+    const paint = (text: number[]) => framesOf(text.map(id => Array.from({length:5},(_,i) => i === id ? .9996 : .0001)));
+    const extra = paint([0,3,0,4,0,1,0,2]), clean = paint([0,0,0,0,0,1,0,2]);
+    expect(seamPhoneLoop(extra,[],[[[1]],[[2]]],[1,2,3,4],[1,2,3,4],0,8,PHRASE_SWITCH))
+      .toMatchObject({ fromFrame:1,toFrame:4,phones:[3,4] });
+    expect(seamPhoneLoop(extra,[],[[[1]],[[2]]],[1,2,3,4],[1,2,3,4],0,8,PHRASE_SWITCH)!.marginal).toBeGreaterThan(.5);
+    expect(seamPhoneLoop(clean,[],[[[1]],[[2]]],[1,2,3,4],[1,2,3,4],0,8,PHRASE_SWITCH)!.marginal).toBeLessThan(.5);
+    // Exact-word callers still require their preceding text.
+    expect(seamInsertionMarginal(extra,[],[[3,4]],[[[1]],[[2]]],0,8,PHRASE_SWITCH)).toBeNull();
   });
 });

@@ -1,5 +1,5 @@
-import { createChecker, createTracker, trackerInput, PosteriorFrames, PHRASE_SWITCH, seamInsertionMarginal, collapseHeld, lexicalWords } from "@tilawa/core";
-import type { PhonemeEvidence, PhraseAsset, ReferenceIndex, SeamInsertionCandidate, SeamInsertionEvidence } from "@tilawa/core";
+import { createChecker, createTracker, trackerInput, PosteriorFrames, PHRASE_SWITCH, seamInsertionMarginal, seamPhoneLoop, collapseHeld, lexicalWords } from "@tilawa/core";
+import type { PhonemeEvidence, PhraseAsset, ReferenceIndex, SeamInsertionCandidate, SeamInsertionWindow, SeamInsertionEvidence, EngineEvent } from "@tilawa/core";
 import type { LoadedModel } from "./model.js";
 
 /** One native frame at a time, extending a cell through a token's entire run.
@@ -37,6 +37,8 @@ export async function addInsertionEvidence(model: LoadedModel, audio: Float32Arr
   const cells = insertionCells(chunks);
   if (!cells.length) return chunks;
   const candidates: SeamInsertionCandidate[] = [];
+  const seams = new Map<string, SeamInsertionWindow>();
+  const wordSteps: { word: number; frame: number }[] = [];
   const seen = new Set<string>();
   const tracker = createTracker(index, { mode: "free", phrases });
   const checker = createChecker(index, { phrases, seamInsertion(c) {
@@ -44,35 +46,64 @@ export async function addInsertionEvidence(model: LoadedModel, audio: Float32Arr
     if (!seen.has(key)) { seen.add(key); candidates.push(c); }
     // Discovery runs the unchanged generator, including its issue state.
     return true;
+  }, seamPhoneLoop(c) {
+    const key = `${c.word}:${c.prefixFrame ?? c.seamFromFrame}`;
+    const prior = seams.get(key);
+    if (!prior || c.seamToFrame > prior.seamToFrame) seams.set(key, c);
   } });
-  for (const e of cells) checker.push(e, tracker.push(trackerInput(e)));
-  checker.end(tracker.end());
+  const rememberSteps = (events: EngineEvent[]) => {
+    for (const e of events) if (e.type === "position" && e.state === "locked" && !e.hold && e.observed[0]) {
+      const r = e.observed[0].word;
+      const word = index.words.findIndex(w => w.surah === r.surah && w.ayah === r.ayah && w.word === r.word);
+      if (word >= 0) wordSteps.push({ word, frame: Math.round(e.timeMs / cells[0].frameMs) });
+    }
+  };
+  for (const e of cells) {
+    const events = tracker.push(trackerInput(e));
+    rememberSteps(events);
+    checker.push(e, events);
+  }
+  const finalEvents = tracker.end();
+  rememberSteps(finalEvents);
+  checker.end(finalEvents);
   const lex = lexicalWords(index);
   const frameMs = cells[0].frameMs, ids = new Map([...index.tokens].map((p,i) => [p,i+1]));
   const forms = (wi: number) => [...new Set([index.phonemes.slice(index.words[wi].start,index.words[wi].end),
     index.isolatedWordForms?.[wi] ?? ""].filter(Boolean).map(collapse))];
   const cache = new Map<string, { frames: PosteriorFrames; shift: number }>();
   const metadata: SeamInsertionEvidence[] = [];
-  for (const c of candidates) {
-    const prev = previousWord(index,c.word), prev2 = previousWord(index,prev), next = followingWord(index,c.word);
-    if (prev < 0 || next >= index.words.length) continue;
-    const before = prev2 >= 0 && index.words[prev2].ayah === index.words[prev].ayah &&
-      index.words[prev2].surah === index.words[prev].surah ? [prev2,prev] : [prev];
-    // A whole two-word prefix needs its actual onset; no tight candidate-frame fallback.
-    if (before.length === 2 && c.prefixFrame === undefined) continue;
-    const from = c.prefixFrame ?? c.seamFromFrame;
-    const start = Math.max(0, from - Math.round(4000/frameMs));
-    const end = c.seamToFrame + Math.round(300/frameMs), key = `${start}:${end}`;
+  const cropFrames = async (start: number, end: number) => {
+    const key = `${start}:${end}`;
     let crop = cache.get(key);
     if (!crop) {
       const offset = Math.round(start*frameMs*16), limit = Math.min(audio.length,Math.round(end*frameMs*16));
-      if (limit <= offset) continue;
-      const e = await model.insertionTeacher.decode(audio.subarray(offset,limit),index.tokens.size+1);
+      if (limit <= offset) return null;
+      const e = await model.insertionTeacher!.decode(audio.subarray(offset,limit),index.tokens.size+1);
       if (e.inventory !== index.inventoryId || e.frameMs !== frameMs || !e.posteriors) throw new Error("Insertion teacher clock or inventory differs from primary evidence");
       const frames = new PosteriorFrames(index.tokens.size);
       frames.append({ ...e.posteriors, startFrame: e.posteriors.startFrame + start });
       crop = { frames, shift: start }; cache.set(key,crop);
     }
+    return crop.frames;
+  };
+  const teacherSeam = async (c: SeamInsertionWindow) => {
+    const prev = previousWord(index,c.word), prev2 = previousWord(index,prev), next = followingWord(index,c.word);
+    if (prev < 0 || next >= index.words.length) return null;
+    const before = prev2 >= 0 && index.words[prev2].ayah === index.words[prev].ayah &&
+      index.words[prev2].surah === index.words[prev].surah ? [prev2,prev] : [prev];
+    // A whole two-word prefix needs its actual onset; no tight candidate-frame fallback.
+    if (before.length === 2 && c.prefixFrame === undefined) return null;
+    const from = c.prefixFrame ?? c.seamFromFrame;
+    const start = Math.max(0, from - Math.round(4000/frameMs));
+    const end = c.seamToFrame + Math.round(300/frameMs);
+    const frames = await cropFrames(start,end);
+    if (!frames) return null;
+    return { before, next, from, to: Math.min(end,frames.endFrame), frames };
+  };
+  for (const c of candidates) {
+    const seam = await teacherSeam(c);
+    if (!seam) continue;
+    const { before, next, from, to, frames } = seam;
     const map = (ws: number[]) => ws.map(w => forms(w).map(f => [...f].map(p => ids.get(p)!)));
     // The candidate's exact soft-only spelling is already certified by the generator.
     const spelling = lex.surplusWord(c.word, c.said);
@@ -82,10 +113,36 @@ export async function addInsertionEvidence(model: LoadedModel, audio: Float32Arr
     for (const list of index.wordForms ?? []) for (const f of list)
       if (norm(f) === spelling) candidateForms.add(collapse(f));
     const candidate = [...candidateForms].map(f => [...f].map(p => ids.get(p)!));
-    const marginal = seamInsertionMarginal(crop.frames,map(before),candidate,map([c.word,next]),from,
-      Math.min(end,crop.frames.endFrame),PHRASE_SWITCH);
+    const marginal = seamInsertionMarginal(frames,map(before),candidate,map([c.word,next]),from,to,PHRASE_SWITCH);
     if (marginal !== null) metadata.push({ word: { surah:index.words[c.word].surah, ayah:index.words[c.word].ayah, word:index.words[c.word].word },
       observed:c.said,fromFrame:c.fromFrame,toFrame:c.toFrame,marginal });
+  }
+  const phones = [...ids].filter(([p]) => !"ڇؙۜ".includes(p)).map(([,id]) => id);
+  const consonants = [...ids].filter(([p]) => "ءبتثجحخدذرزسشصضطظعغفقكلمنهوي".includes(p)).map(([,id]) => id);
+  const inventory = [...index.tokens];
+  for (const c of seams.values()) {
+    const seam = await teacherSeam(c);
+    if (!seam) continue;
+    const map = (ws: number[]) => ws.map(w => forms(w).map(f => [...f].map(p => ids.get(p)!)));
+    const result = seamPhoneLoop(seam.frames,map(seam.before),map([c.word,seam.next]),phones,consonants,
+      seam.from,seam.to,PHRASE_SWITCH);
+    if (!result || result.marginal <= 0.5 || !result.phones.length) continue;
+    const observed = result.phones.map(p => inventory[p-1]).join("");
+    // The checker applies the same non-Quran guard to these teacher phones.
+    if (lex.fragmentOfSeam(c.word,observed)) continue;
+    if (c.pauseFromFrame === undefined) continue;
+    const step = wordSteps.find(s => s.word === seam.next && s.frame >= c.pauseFromFrame! && s.frame <= c.seamToFrame);
+    if (!step) continue;
+    const end = step.frame + Math.round(300/frameMs);
+    // No left padding: previous-word frames are outside this cold teacher pass.
+    const cold = await cropFrames(c.pauseFromFrame,end);
+    if (!cold) continue;
+    const agreement = seamPhoneLoop(cold,[],map([c.word,seam.next]),phones,consonants,
+      c.pauseFromFrame,Math.min(end,cold.endFrame),PHRASE_SWITCH);
+    if (!agreement || agreement.marginal <= 0.5 ||
+      Math.max(result.fromFrame,agreement.fromFrame) >= Math.min(result.toFrame,agreement.toFrame)) continue;
+    metadata.push({ kind: "phone-loop", word: { surah:index.words[c.word].surah, ayah:index.words[c.word].ayah,
+      word:index.words[c.word].word }, observed, fromFrame:result.fromFrame,toFrame:result.toFrame,marginal:result.marginal });
   }
   return carryInsertionEvidence(chunks,metadata);
 }
