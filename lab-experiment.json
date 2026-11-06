@@ -1,0 +1,13 @@
+{
+ "id": "listener-loop-pause-onset-cold-agree",
+ "component": "listener",
+ "hypothesis": "The teacher phone-loop seam arc finds 8 of 9 word-1 additions but floods clean seams, plausibly by buying the previous word's held tail and breath. Emit a loop only if it also wins on a teacher crop that starts cold at the pause onset; predict listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-06T12:11:02+00:00",
+ "author": "autolab"
+}
