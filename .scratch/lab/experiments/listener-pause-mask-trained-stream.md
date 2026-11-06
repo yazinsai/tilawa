@@ -1,6 +1,7 @@
 # Pause-mask-trained streaming student
 
-Status: training; structural and export checks passed. The card is unchanged.
+Status: trained and exported; three registered additions confirmed in paired
+replay, awaiting practice scoring. The card is unchanged.
 
 ## Prediction and premise
 
@@ -206,6 +207,44 @@ The primary SHA remains `714e98ad...15af1b`, and the original external teacher
 weights remain `d3f24efb...da58b4`. The trained parity results exactly reproduce
 run 35's checks. Run 36 uses these masked weights and the same reconstructed
 teacher for both baseline and candidate judgments.
+
+## Completed target check
+
+Run 36 completed all six recordings with the final 800-update int8 model. Counts
+below are exact in-order planted consonants inside the labelled insertion times,
+not oracle-crop output. Mask eligibility is selected from primary tracker steps
+and blank pauses, without consulting these labels. Held-nasal equivalence leaves
+every count in this table unchanged.
+
+| Target | Primary count | Folded-gap count | Deployed scoped count | Newly confirmed addition |
+| --- | ---: | ---: | ---: | --- |
+| p07, 37:36:1, 144.115 s | 1 | 1 | 2 | yes |
+| p48, 12:76:1, 39.975 s | 0 | 0 | 0 | no |
+| p56, 32:21:1, 106.760 s | 1 | 1 | 2 | no |
+| p57, 51:18:1, 95.260 s | 1 | 2 | 3 | yes |
+| p57, 51:20:1, 112.260 s | 2 | 2 | 1 | no |
+| p33, 26:208:1, 156.160 s | 2 | 2 | 2 | no |
+| p79, 20:40:25, 136.100 s | 3 | 3 | 3 | yes |
+
+p07 gains the ordered س/ل pair, p56 corrects ق to ط and spells طين, and the first
+p57 target gains ق and spells قبل. The folded crop already held ب/ل at that p57
+target; the new evidence is its missing ق and complete spelling. p33's trained
+pass spells كريم, but no eligible mask span covers the planted interval, so its
+deployed evidence stays فريم and that improvement is not counted. The second p57
+target loses ل. p79 gains no planted consonant, but changed seam evidence confirms
+the existing صصف span through the unchanged rules. None of the seven baseline
+replays confirmed an addition at these locations; three candidate replays did.
+
+This passes the built-change three-target condition and therefore requires a
+practice score before any loss-based narrowing or decision. These are replay
+checks, not an overall score or proof of incident matching by the lab scorer.
+
+Run 38 copies the verified export to this experiment's scratch `bundle` directory
+and verifies primary, masked and teacher asset hashes. The inherited tracked
+`.autolab/model.json` protocol stub is removed from the index, while the untracked
+export descriptor still names exactly `bundle`. No selector path is changed:
+that directory now contains the actual completed export required by the user's
+model-export protocol. No scorer, registry manifest or experiment card is edited.
 
 ## Limits
 
