@@ -124,6 +124,42 @@ chunk with changed pre-pause input and old caches. All masked output rows were
 bit-identical; unmasked output still depended on that history. The eleven Python
 tests passed in run 21, and the extended focused case passed in run 22.
 
+An additional late, unaligned-cut test in run 26 exposed pre-pause history
+leaking through learned downsampling pools (maximum post-cut logit difference
+0.807 when old caches/pre-pause input changed). The earlier aligned tests had
+missed this. The shared wrapper now excludes earlier contributions inside a
+straddling pooling group, propagates the maximum native cutoff to the pooled
+stage, and zeros attention contributions where no eligible key exists. Run 27
+passed all eleven Python tests, including exact complete-encoder isolation at
+unaligned offsets. Float export probability differences were at most 2.4e-7;
+int8 differences were at most 0.001366 with unchanged argmax on four carried-state
+calls. These checks used old weights only as an export fixture.
+
+The 574-update prototype was trained with the leaking mask and cannot establish
+this card's premise. Run 28 restarts the fixed recipe from shipped weights in
+`train-isolated`, reusing only the unchanged training catalog. Its preflight
+extends isolation to every even native cutoff from 0 to 14, plus batched
+late-cut gradients. Checkpoints now retain optimizer state at wall-time exit,
+and an already-completed resume preserves its completed update count.
+
+The supplied student directory lacks teacher files. The unchanged original
+teacher exporter recreates the public fp32 model. Its external weights match
+the shipped SHA exactly (`d3f24efb...da58b4`), while its ONNX graph serialization
+differs (`4e1d2ca9...4ed`, shipped `5ee50c2b...1e18`). The bundle exporter records
+actual asset hashes in a local descriptor and requires original teacher weight
+identity. The Node loader verifies declared files and fails on missing/corrupted
+assets, leaving the global shipped registry and decision rule unchanged. Run 30
+passed native fp32-versus-ONNX parity on three random feature lengths and eight
+seconds of training-only learner audio: argmax agreement was 100% on every input,
+with maximum probability differences 1.2e-7, 2.49e-6, 4.38e-6 and 1.91e-5.
+Graph byte identity is not claimed. This finite check cannot prove parity on
+every future crop; baseline and candidate diagnostics use the same teacher.
+
+Run 30 passed the updated supplied test harness: 758 core tests and 36 SDK
+tests, one optional integration skipped. Its asset-loading tests cover the
+local descriptor, corruption, missing files and release on failure. The harness
+accepted a Vitest RPC deadline after every test in that shard had passed.
+
 Final training and trained int8 paired target streams remain pending. The paired
 diagnostic records both folded-baseline and masked-candidate checker replay,
 including unchanged teacher judgments. No practice-score calls have been made.

@@ -291,6 +291,18 @@ def export(args):
     shutil.copytree(directory,bundle/'pause-mask',ignore=shutil.ignore_patterns('float.onnx'),dirs_exist_ok=True)
     primary=json.loads((bundle/'manifest.json').read_text())
     primary['pauseMaskModel']=dict(manifest='pause-mask/manifest.json')
+    if args.teacher:
+        registry=json.loads(Path('/app/packages/sdk/src/models-v1.json').read_text())
+        asset=copy.deepcopy(next(a for a in registry['auxiliary'] if a['purpose']=='seam-insertion'))
+        # Graph serialization depends on the exporter build; weights must match
+        # the original teacher exactly and its actual graph hash is declared.
+        for file in [asset,*asset['externalData']]:
+            p=bundle/file['file']
+            with p.open('rb') as stream_file: sha=hashlib.file_digest(stream_file,'sha256').hexdigest()
+            if file is not asset and sha!=file['sha256']:
+                raise ValueError('teacher weights differ from the shipped teacher')
+            file['sha256']=sha; file['bytes']=p.stat().st_size
+        primary['insertionTeacher']=asset
     (bundle/'manifest.json').write_text(json.dumps(primary,ensure_ascii=False,indent=1))
     print(json.dumps(dict(export=str(path),sha256=m['sha256'],bytes=m['bytes'],step=ck['state']['step'])),flush=True)
     print(json.dumps(dict(bundle=str(bundle),primary_sha256=primary['sha256'],teacher_files=[p.name for p in bundle.glob('teacher*')])),flush=True)

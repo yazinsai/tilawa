@@ -1,4 +1,5 @@
 import type { ErrorClass, PhonemeEvidence } from "@tilawa/core";
+import type { ModelRegistry } from "./models.js";
 
 export interface StateSpec {
   name: string;
@@ -31,6 +32,8 @@ export interface ModelManifest {
   pauseMask?: { input: string; clockMs: 20 };
   /** Relative manifest of the pause-trained auxiliary inside an exported bundle. */
   pauseMaskModel?: { manifest: string };
+  /** Bundle-local serialization of the fp32 teacher, with its actual asset hashes. */
+  insertionTeacher?: NonNullable<ModelRegistry["auxiliary"]>[number];
 }
 
 export interface Tensor {

@@ -1,6 +1,8 @@
 /** Node entry: onnxruntime-node, models from a directory, WAV input. */
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
+import { createReadStream } from "node:fs";
+import { createHash } from "node:crypto";
 import * as ort from "onnxruntime-node";
 import { MEMORIZATION_CLASSES } from "./capabilities.js";
 import type { LoadedModel, ModelManifest } from "./model.js";
@@ -54,8 +56,22 @@ async function attachPauseModel(primary: LoadedModel,dir: string,threads = 1): P
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
 async function attachInsertionTeacher(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
-  const asset = MODEL_REGISTRY.auxiliary?.find(a => a.purpose === "seam-insertion");
+  const declared = model.manifest.insertionTeacher;
+  const asset = declared ?? MODEL_REGISTRY.auxiliary?.find(a => a.purpose === "seam-insertion");
   if (!asset) return model;
+  if (declared) {
+    try {
+      if (asset.purpose !== "seam-insertion" || asset.precision !== "float32" || asset.inventory !== model.manifest.inventory)
+        throw new Error("Declared insertion teacher differs from the primary inventory or precision");
+      for (const file of [asset,...asset.externalData]) {
+        const hash = createHash("sha256");
+        let bytes = 0;
+        for await (const chunk of createReadStream(join(dir,file.file))) { hash.update(chunk); bytes += chunk.length; }
+        if (bytes !== file.bytes || hash.digest("hex") !== file.sha256)
+          throw new Error(`Declared insertion teacher asset integrity failed: ${file.file}`);
+      }
+    } catch (e) { await model.backend.release(); throw e; }
+  }
   const installed = await access(join(dir, asset.file)).then(() => true,
     e => { if (e.code === "ENOENT") return false; throw e; });
   if (!installed) return model;

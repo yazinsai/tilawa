@@ -1,6 +1,7 @@
 import { mkdtemp,rm,writeFile,mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { createHash } from "node:crypto";
 import { afterEach,describe,expect,it,vi } from "vitest";
 import type { ModelManifest } from "../src/model.js";
 
@@ -35,5 +36,32 @@ describe("declared pause-trained model loading",() => {
     await bundle(80);
     await expect(loadNodeModel(directory)).rejects.toThrow("differs from the deployed primary regime");
     expect(backends.map(b => b.release.mock.calls.length)).toEqual([1,1]);
+  });
+  it("loads the bundle's verified fp32 teacher without relying on registry serialization",async () => {
+    await bundle();
+    const data="same teacher weights",graph="recreated graph";
+    const file=(name: string,text: string) => ({ file: name,bytes: Buffer.byteLength(text),sha256: createHash("sha256").update(text).digest("hex") });
+    await writeFile(join(directory,"teacher.onnx"),graph);
+    await writeFile(join(directory,"teacher.onnx.data"),data);
+    await writeFile(join(directory,"manifest.json"),JSON.stringify({ ...manifest,insertionTeacher: {
+      id: "teacher",purpose: "seam-insertion",precision: "float32",inventory: manifest.inventory,
+      ...file("teacher.onnx",graph),externalData: [file("teacher.onnx.data",data)],
+    } }));
+    const model=await loadNodeModel(directory);
+    expect(model.insertionTeacher).toBeDefined();
+    await model.backend.release();
+    expect(backends[0].release).toHaveBeenCalledOnce();
+    await writeFile(join(directory,"teacher.onnx.data"),"changed teacher");
+    await expect(loadNodeModel(directory)).rejects.toThrow("asset integrity failed");
+    expect(backends[1].release).toHaveBeenCalledOnce();
+  });
+  it("fails explicitly when a declared teacher is missing",async () => {
+    await bundle();
+    await writeFile(join(directory,"manifest.json"),JSON.stringify({ ...manifest,insertionTeacher: {
+      id: "teacher",purpose: "seam-insertion",precision: "float32",inventory: manifest.inventory,
+      file: "absent.onnx",bytes: 0,sha256: "",externalData: [],
+    } }));
+    await expect(loadNodeModel(directory)).rejects.toThrow("ENOENT");
+    expect(backends[0].release).toHaveBeenCalledOnce();
   });
 });
