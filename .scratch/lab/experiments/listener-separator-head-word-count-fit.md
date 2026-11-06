@@ -1,7 +1,7 @@
 # Separator-head closed word-count fit
 
 Status: implemented; three occurrence-matched phone target recoveries. Official
-practice request is pending; leave the change for the supervisor's fresh decode
+stored-evidence replay is unchanged; leave the change for the supervisor's fresh decode
 and fold gate.
 
 ## Prediction
@@ -46,7 +46,28 @@ paths. Other checks require both extra separators, distinguish a held consonant
 from two emissions separated by blank, explain separator-bearing repeats, and
 abstain on missing rows or impossible complete text.
 
-No practice score has been requested.
+Practice score request 1 of 3 was submitted at 2026-11-06T21:26:47Z after the
+three occurrence-matched phone recoveries. It completed against implementation
+commit `4d01bbee`: overall 24 wrong calls (13 missed, 11 false), listener 23
+(13 missed, 10 false), tracker 1 and checker 0. Every change was zero, verdict
+noise. Two requests remain unused.
+
+The parent teacher-insert experiment documents that `serve_practice` calls
+`lab.py run` on the card's existing listener evidence. This card still names
+`exp-listener-teacher-insert-marginal-gate-ad6eb8c0`; its stored evidence predates
+the word-count output. The new detector abstains without complete auxiliary
+rows, so this compatibility replay does not measure the exported head's
+population result. The supervisor's post-implementation fresh SDK decode
+reads `.autolab/model.json` and will supply those rows. No narrowing follows
+from the unchanged stored-evidence result.
+
+Run 19 independently audited all 497 stored evidence files for the card's
+listener in the supplied sessions directory: **zero word-count packets**.
+The exported bundle's model SHA and 1.955775473547149-nat cutoff matched the
+validated export, and both existing teacher asset files were present. This
+read-only audit did not decode or score sessions. Its initial invocation could
+not read the experiment card because the card is absent from the Modal
+snapshot; the corrected invocation passed the unchanged selection explicitly.
 
 Both package builds and the unchanged six-shard test harness passed in runs
 13 and 14: 764 core tests and 27 SDK tests, one optional SDK integration test
