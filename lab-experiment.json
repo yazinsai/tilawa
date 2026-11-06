@@ -1,0 +1,13 @@
+{
+ "id": "listener-heard-skeleton-root-plausible",
+ "component": "listener",
+ "hypothesis": "Three phone wrong-word false warnings confirm on the non-lexical paths with heard strings that no Arabic word could form: 26:106:1 heard يَاا (one consonant), 55:48:1 heard د و ف (no attested root), and 26:174:8, a glued two-root string. Veto non-lexical accusations whose heard consonant skeleton cannot be read as one mushaf root plus attested clitics; predict listener -2, overall -1 after an expected loss.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-06T03:12:43+00:00",
+ "author": "autolab"
+}
