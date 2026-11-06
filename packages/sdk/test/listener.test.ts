@@ -102,4 +102,37 @@ describe("streaming listener on onnxruntime-node", () => {
     expect(frames).toBeGreaterThan(0);
     expect(frames).toBeLessThanOrEqual(reference.frames);
   });
+
+  it("carries unrounded auxiliary rows without changing main phones or posteriors", async () => {
+    const tiny=await loadNodeModel(fixture("tiny").pathname);
+    const head={tokens:tiny.manifest.tokens+"|",cleanMaxMargin:2};
+    const wrapped: InferenceBackend={name:"head",release:()=>tiny.backend.release(),async run(feeds){
+      const out=await tiny.backend.run(feeds),n=out.log_probs.data.length/(tiny.manifest.tokens.length+1);
+      return {...out,word_count_log_probs:{type:"float32",dims:[1,n,head.tokens.length+1],
+        data:new Float32Array(n*(head.tokens.length+1)).fill(-0.123456789)}};
+    }};
+    const primary=createListener(tiny,{posteriors:true});
+    const extra=createListener({...tiny,manifest:{...tiny.manifest,wordCount:head},backend:wrapped},{posteriors:true});
+    const a=[await primary.push(wav.samples,wav.sampleRate),await primary.end()].filter(Boolean) as PhonemeEvidence[];
+    const b=[await extra.push(wav.samples,wav.sampleRate),await extra.end()].filter(Boolean) as PhonemeEvidence[];
+    const strip=(cs:PhonemeEvidence[])=>cs.map(c=>({...c,phonemes:c.phonemes.map(({wordCountPosteriors:_,...p})=>p)}));
+    expect(strip(b)).toEqual(a);
+    const packets=b.flatMap(c=>c.phonemes.flatMap(p=>p.wordCountPosteriors??[]));
+    expect(packets.length).toBeGreaterThan(0);
+    expect(packets[0].startFrame).toBe(0);
+    expect(packets[0].logProbs[0]).toBe(Math.fround(-0.123456789));
+    expect(JSON.parse(JSON.stringify(packets))).toEqual(packets);
+    for(let i=1;i<packets.length;i++)expect(packets[i].startFrame).toBe(packets[i-1].startFrame+packets[i-1].nFrames);
+    await tiny.backend.release();
+  });
+
+  it("fails when an export declares a head but omits its output or calibration", async () => {
+    const tiny=await loadNodeModel(fixture("tiny").pathname);
+    const manifest={...tiny.manifest,wordCount:{tokens:tiny.manifest.tokens+"|",cleanMaxMargin:2}};
+    const listener=createListener({...tiny,manifest});
+    await expect(listener.push(wav.samples,wav.sampleRate)).rejects.toThrow("head output");
+    expect(()=>createListener({...tiny,manifest:{...manifest,wordCount:{...manifest.wordCount,cleanMaxMargin:NaN}}}))
+      .toThrow("training clean envelope");
+    await tiny.backend.release();
+  });
 });

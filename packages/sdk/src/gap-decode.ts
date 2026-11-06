@@ -6,7 +6,7 @@ import {
   placeGap,
   recoverGapPhonemes,
 } from "@tilawa/core";
-import type { GapPhoneme, PhonemeEvidence, ReferenceIndex, WordGap } from "@tilawa/core";
+import type { DecodedPhoneme, GapPhoneme, PhonemeEvidence, ReferenceIndex, WordGap } from "@tilawa/core";
 import { createListener } from "./listener.js";
 import type { LoadedModel } from "./model.js";
 
@@ -18,7 +18,7 @@ export interface LockPoint {
 interface FlatEvidence {
   inventory: string;
   frameMs: number;
-  phonemes: GapPhoneme[];
+  phonemes: DecodedPhoneme[];
   k: number;
   ids: number[];
   probs: number[];
@@ -58,7 +58,9 @@ async function decodeIsolated(model: LoadedModel, samples: Float32Array, sampleR
   if (tail) out.push(tail);
   const posts = out.flatMap((c) => (c.posteriors ? [c.posteriors] : []));
   return {
-    phonemes: out.flatMap((c) => c.phonemes),
+    // Cold-crop head rows have a different clock and context. Only primary
+    // crop phones participate in the existing gap replacement.
+    phonemes: out.flatMap((c) => c.phonemes).map(({wordCountPosteriors: _head,...p}) => p),
     k: posts[0]?.k ?? k,
     ids: posts.flatMap((p) => Array.from(p.ids)),
     probs: posts.flatMap((p) => Array.from(p.probs)),
@@ -131,7 +133,8 @@ export async function spliceContextFreeGaps(
   const gaps = gapsFor(index, locks, flat.phonemes, flat.frameMs);
   if (!gaps.length) return chunks;
   const frameS = flat.frameMs / 1000;
-  let phonemes = flat.phonemes;
+  const head = flat.phonemes.flatMap(p=>p.wordCountPosteriors ?? []);
+  let phonemes: DecodedPhoneme[] = flat.phonemes.map(({wordCountPosteriors: _head,...p})=>p);
   const ids = flat.ids.slice();
   const probs = flat.probs.slice();
   let changed = false;
@@ -161,6 +164,7 @@ export async function spliceContextFreeGaps(
     changed = true;
   }
   if (!changed) return chunks;
+  if(head.length && phonemes.length) phonemes[0] = {...phonemes[0],wordCountPosteriors:head};
   return [{
     inventory: flat.inventory,
     frameMs: flat.frameMs,

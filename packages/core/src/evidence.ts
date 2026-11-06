@@ -9,6 +9,16 @@ export interface SeamInsertionEvidence {
   marginal: number;
 }
 
+/** Frozen auxiliary head on the primary stream's native clock. Its clean
+ * envelope is calibrated on training speakers and shipped with the head. */
+export interface WordCountPosteriors {
+  tokens: string;
+  cleanMaxMargin: number;
+  startFrame: number;
+  nFrames: number;
+  logProbs: number[];
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -18,6 +28,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  wordCountPosteriors?: WordCountPosteriors[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

@@ -27,6 +27,8 @@ export interface ModelManifest {
   file: string;
   bytes: number;
   sha256: string;
+  /** Additional frozen separator head; primary logits and caches are unchanged. */
+  wordCount?: { tokens: string; cleanMaxMargin: number };
 }
 
 export interface Tensor {

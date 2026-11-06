@@ -2,6 +2,8 @@ import { align as editPath } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
+import { createWordCountDetector } from "./seam-word-count.js";
+import type { WordCountAddition } from "./seam-word-count.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import { channelFromCounts, spanLogP, type Channel, type ChannelCounts } from "./noisy-channel.js";
@@ -218,6 +220,8 @@ interface Issue {
    * posterior support margin: the span is not needed to read the text.
    */
   lexicon?: boolean;
+  /** Complete separator-head count beats its training clean envelope. */
+  wordCount?: boolean;
   /**
    * A word-final long vowel before a hamza, judged by its duration against this reciter's earlier madd
    * munfasil. The forward sum prices one vowel as nothing, so the length is the whole decision.
@@ -256,6 +260,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const insertionEvidence = new Map<string, number>();
+  const wordCountDetector = createWordCountDetector(index);
+  const wordCountAdditions = new Map<number, WordCountAddition>();
   const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
     JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
   // A completed seam remains in the streaming window over many pushes. Its
@@ -464,6 +470,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   /** Mean decoder confidence over an error's phonemes; for an omission, the phonemes either side of the gap. */
   const clarity = (issue: Issue): number => {
+    if (issue.wordCount) return 1;
     const from = Math.max(0, Math.min(issue.obsFrom, obs.length - 1));
     const to = Math.min(obs.length, Math.max(issue.obsTo, from + 1));
     const span = issue.cls === "omitted_word" || issue.cls === "skipped_passage" ? obs.slice(Math.max(0, from - 3), to + 3) : obs.slice(from, to);
@@ -1776,6 +1783,17 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const hit = alignSubstring(s, 0, s.length, p, () => true);
       return !!hit && hit.start === 0 && hit.end >= s.length - 1 && hit.cost / UNIT / p.length <= PHRASE_MAX_COST;
     });
+    for (const certificate of wordCountAdditions.values()) {
+      const w1 = certificate.word, said = certificate.observed;
+      if (w1 < first || decided.has(w1) || issues.get(w1)?.lexicon || consonantCount(said)<2 ||
+        phraseSpan(said) || lexical.fragmentOfSeam(w1,said)) continue;
+      const a=obs.findIndex(p=>p.end>=certificate.fromFrame);
+      if(a<0) continue;
+      let b=a;
+      while(b<obs.length && obs[b].start<certificate.toFrame) b++;
+      issues.set(w1,{cls:"added_word",word:w1,last:w1,obsFrom:a,obsTo:Math.max(a+1,b),
+        observed:said,lexicon:true,wordCount:true});
+    }
     for (const w1 of new Set(visits.map((v) => v.word))) {
       if (w1 < first || words[w1].end === words[w1].start || ayahFirst[ayahOf[w1]] !== w1) continue;
       const prev = prevWord(w1);
@@ -2457,6 +2475,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const c of wordCountDetector.push(evidence,events)) wordCountAdditions.set(c.word,c);
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {

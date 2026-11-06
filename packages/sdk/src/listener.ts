@@ -1,4 +1,4 @@
-import type { DecodedPhoneme, PhonemeEvidence } from "@tilawa/core";
+import type { DecodedPhoneme, PhonemeEvidence, WordCountPosteriors } from "@tilawa/core";
 import { Resampler } from "./audio.js";
 import { Fbank } from "./fbank.js";
 import type { LoadedModel, Tensor } from "./model.js";
@@ -52,6 +52,9 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   let done: DecodedPhoneme[] = [];
   let ids: number[] = [];
   let probs: number[] = [];
+  let wordCountPending: WordCountPosteriors[] = [];
+  if (m.wordCount && (!m.wordCount.tokens.includes("|") || !Number.isFinite(m.wordCount.cleanMaxMargin)))
+    throw new Error("Word-count head requires its training clean envelope");
 
   async function step(window: Float32Array[], keep: number) {
     const x = new Float32Array(m.window * m.fbank.mels);
@@ -60,6 +63,14 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
     states = Object.fromEntries(m.states.map((s) => [s.name, out[`new_${s.name}`]]));
     const lp = out.log_probs.data as Float32Array;
     const n = Math.min(keep, lp.length / vocab);
+    if (m.wordCount) {
+      const side = out.word_count_log_probs;
+      const width = m.wordCount.tokens.length + 1;
+      if (!side || side.type !== "float32" || side.data.length < n * width)
+        throw new Error("Declared word-count head output is missing or incomplete");
+      wordCountPending.push({ ...m.wordCount, startFrame:outFrames,nFrames:n,
+        logProbs:Array.from((side.data as Float32Array).subarray(0,n*width)) });
+    }
     for (let t = 0; t < n; t++) {
       const row = lp.subarray(t * vocab, (t + 1) * vocab);
       const top = topK(row, k);
@@ -94,6 +105,12 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
     const until = open ? open.start : outFrames;
     if (until <= emitted && !done.length) return null;
     const e: PhonemeEvidence = { inventory: m.inventory, frameMs: m.frameMs, phonemes: done };
+    // Blank-only pushes keep their rows until a primary token can carry them
+    // through ordinary evidence recording. No primary token value changes.
+    if (wordCountPending.length && e.phonemes.length) {
+      e.phonemes[0] = { ...e.phonemes[0],wordCountPosteriors:wordCountPending };
+      wordCountPending = [];
+    }
     if (options.posteriors) {
       const n = until - emitted;
       e.posteriors = { k, startFrame: emitted, nFrames: n, ids: ids.slice(0, n * k), probs: probs.slice(0, n * k) };
