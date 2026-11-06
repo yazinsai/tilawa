@@ -1,0 +1,13 @@
+{
+ "id": "listener-pause-mask-seam-scoped-asset",
+ "component": "listener",
+ "hypothesis": "The pause-mask-trained student heard 4 of 7 post-pause added words, but its run silently replaced the shared decode (+15, studio +14). Re-land that checkpoint as a declared sdk side ear that is consulted only between a labelled pause and the tracker's step onto word 2, and prove the primary decode is byte-identical before scoring; predict listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-06T17:27:26+00:00",
+ "author": "autolab"
+}
