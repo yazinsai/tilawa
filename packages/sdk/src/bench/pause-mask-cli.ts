@@ -8,6 +8,7 @@ import { createListener } from "../listener.js";
 import { loadNodeModel } from "../node.js";
 import { decodeWav } from "../wav.js";
 import { insertionCells } from "../seam-insertion.js";
+import { spliceContextFreeGaps } from "../gap-decode.js";
 import { decodePauseMasked, pauseMaskSpans } from "../pause-mask.js";
 
 const { values } = parseArgs({ options: {
@@ -47,6 +48,10 @@ if (values.masked) {
   masked = await decodePauseMasked(auxiliary,wave.samples,spans,5);
   await auxiliary.backend.release();
 }
-writeFileSync(values.out,JSON.stringify({ frameMs: primary.manifest.frameMs, spans, locks, primary: chunks, masked }));
+// Keep both baselines: the primary tracker stream and the already-folded gap ear.
+// A consonant the folded ear already recovered is not a gain from training.
+const folded = values.masked
+  ? await spliceContextFreeGaps(primary,wave.samples,wave.sampleRate,chunks,locks,index) : undefined;
+writeFileSync(values.out,JSON.stringify({ frameMs: primary.manifest.frameMs, spans, locks, primary: chunks, folded, masked }));
 console.log(JSON.stringify({ frames: listener.decoded, spans: spans.length, masked: !!masked }));
 await primary.backend.release();
