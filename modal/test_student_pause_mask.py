@@ -7,6 +7,23 @@ torch.set_num_threads(2)
 
 
 class PauseMaskTests(unittest.TestCase):
+    def test_export_reads_the_shipped_sdk_teacher_declaration(self):
+        from pathlib import Path
+        from student_pause_train import insertion_teacher_asset
+        source=(Path(__file__).resolve().parents[1]/'packages/sdk/src/registry.ts').read_text()
+        asset=insertion_teacher_asset(source)
+        self.assertEqual(asset['purpose'],'seam-insertion')
+        self.assertEqual(asset['precision'],'float32')
+        self.assertEqual(asset['file'],'teacher.onnx')
+        self.assertEqual(asset['externalData'][0]['file'],'teacher.onnx.data')
+        self.assertEqual(len(asset['sha256']),64)
+        self.assertEqual(len(asset['externalData'][0]['sha256']),64)
+        # Nested arrays, trailing commas and brackets inside literal strings.
+        fixture='auxiliary: [{purpose: "other",}, {purpose: "seam-insertion", id: "]", externalData: [{file: "x",},],},]'
+        self.assertEqual(insertion_teacher_asset(fixture),{
+            'purpose':'seam-insertion','id':']','externalData':[{'file':'x'}]})
+        with self.assertRaises(ValueError): insertion_teacher_asset('auxiliary: [')
+
     def test_streaming_eval_activation_has_finite_gradient_at_large_inputs(self):
         from student_train import build_model
         from scaling import ActivationDropoutAndLinear

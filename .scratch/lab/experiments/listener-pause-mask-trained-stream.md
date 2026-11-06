@@ -172,6 +172,41 @@ Final training and trained int8 paired target streams remain pending. The paired
 diagnostic records both folded-baseline and masked-candidate checker replay,
 including unchanged teacher judgments. No practice-score calls have been made.
 
+Run 32 reached update 666 at its wall-time limit and saved the exact optimizer
+state with finite losses and gradients. Run 34 resumes the remaining 134 updates
+of the same 800-update recipe and exports only at completion. Run 33 is waiting
+for that final bundle before starting its paired full-session diagnostics. The
+incomplete 666-update checkpoint is not used to select a recipe or claim recall.
+
+Run 34 completed update 800 and saved the final checkpoint after 1,600 seconds.
+Its export step failed because the training image had no `onnxruntime` package.
+Run 35 exports that completed checkpoint on CPU with the same ONNX 1.19.0 and
+ONNX Runtime 1.22.1 versions used by the successful earlier export checks; it
+does not resume or change training. Total recorded GPU spend is $18.41, leaving
+$231.59 of the $250 cap. Target checks still await the trained export.
+
+Run 33 exhausted its sandbox deadline while waiting for the export and produced
+no paired target result. Run 36 repeats the same six full-session paired checks
+after the final export. This infrastructure timeout is not a premise verdict.
+
+Run 35 exported the completed model and passed its four carried-state parity
+checks: float probability differences were at most 2.4e-7, int8 differences at
+most 0.001500, and every checked argmax agreed. Bundle assembly then failed on a
+code defect: it read `models-v1.json`, while the SDK's shipped teacher declaration
+is added in `registry.ts`. The exporter now reads that existing literal, retaining
+its original external-weight integrity check. A regression covers the actual
+shipped declaration, nested external-data arrays, literal brackets and incomplete
+input. Run 37 repeats CPU export and the Python tests with the corrected lookup;
+it changes no checkpoint, teacher weights or decision rule.
+
+Run 37 passed all twelve Python tests and completed the final bundle. The
+800-update masked int8 export is 72,403,248 bytes, SHA256
+`22c8e197f2e60955f0b7794a8198db4d5ae9ee57aa679d3fc163075092fd8c58`.
+The primary SHA remains `714e98ad...15af1b`, and the original external teacher
+weights remain `d3f24efb...da58b4`. The trained parity results exactly reproduce
+run 35's checks. Run 36 uses these masked weights and the same reconstructed
+teacher for both baseline and candidate judgments.
+
 ## Limits
 
 Blank pause labels can include weak speech the shipped model missed. Canonical

@@ -21,6 +21,36 @@ from student_pause_mask import PauseStreaming,stream
 SR=16000
 
 
+def insertion_teacher_asset(source):
+    """Read the shipped auxiliary literal without copying its hashes or sizes.
+
+    The SDK adds this JSON-compatible object in registry.ts rather than in the
+    tier JSON. Reject nonliteral expressions instead of silently omitting it.
+    """
+    import re
+    match=re.search(r'\bauxiliary\s*:\s*\[',source)
+    if not match: raise ValueError('SDK registry has no auxiliary declaration')
+    start=match.end()-1; depth=0; quoted=False; escaped=False
+    for end in range(start,len(source)):
+        c=source[end]
+        if quoted:
+            if escaped: escaped=False
+            elif c=='\\': escaped=True
+            elif c=='"': quoted=False
+            continue
+        if c=='"': quoted=True
+        elif c=='[': depth+=1
+        elif c==']':
+            depth-=1
+            if depth==0: break
+    else: raise ValueError('SDK auxiliary declaration is incomplete')
+    literal=source[start:end+1]
+    literal=re.sub(r'(?<=[{,])\s*([A-Za-z_]\w*)\s*:',r'"\1":',literal)
+    literal=re.sub(r',\s*([}\]])',r'\1',literal)
+    assets=json.loads(literal)
+    return next(a for a in assets if a['purpose']=='seam-insertion')
+
+
 def collapse(s):
     return ''.join(p for i,p in enumerate(s) if i==0 or p!=s[i-1])
 
@@ -292,8 +322,7 @@ def export(args):
     primary=json.loads((bundle/'manifest.json').read_text())
     primary['pauseMaskModel']=dict(manifest='pause-mask/manifest.json')
     if args.teacher:
-        registry=json.loads(Path('/app/packages/sdk/src/models-v1.json').read_text())
-        asset=copy.deepcopy(next(a for a in registry['auxiliary'] if a['purpose']=='seam-insertion'))
+        asset=insertion_teacher_asset(Path('/app/packages/sdk/src/registry.ts').read_text())
         # Graph serialization depends on the exporter build; weights must match
         # the original teacher exactly and its actual graph hash is declared.
         for file in [asset,*asset['externalData']]:
