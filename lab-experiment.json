@@ -1,0 +1,13 @@
+{
+ "id": "listener-pause-mask-ear-swap-agree",
+ "component": "listener",
+ "hypothesis": "Three phone wrong-word false warnings (26:106:1, 55:48:1, 26:174:8) all disappeared when the pause-mask-trained student was the decoder, but that run swapped the shared decode and lost 24 elsewhere. Keep the shipped decode, and confirm a string-path wrong word only if the pause-mask ear, run as a side ear on stored evidence, raises the same accusation; predict 3 of 4 vetoed with about 1 caught swap lost: listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-06T17:58:55+00:00",
+ "author": "autolab"
+}
