@@ -144,7 +144,11 @@ and an already-completed resume preserves its completed update count.
 Run 28 passed this preflight and completed 224 fresh updates before its
 48-minute training limit. Every logged loss and gradient remained finite;
 10 of 23 sampled log entries were masked items, and 19 had labelled pauses.
-Run 31 continues the unchanged recipe with the saved optimizer state.
+Run 31 resumed the unchanged recipe and optimizer to update 503. Run 32
+continues to the fixed 800-update endpoint and exports only at completion.
+Run 33 waits for that final export, then runs the six complete recordings
+covering the seven registered incidents with the primary acquisition clock,
+the folded gap baseline, masked int8 stream, and unchanged teacher judgments.
 
 The supplied student directory lacks teacher files. The unchanged original
 teacher exporter recreates the public fp32 model. Its external weights match
