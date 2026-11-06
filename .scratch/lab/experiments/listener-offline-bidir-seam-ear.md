@@ -235,3 +235,11 @@ and replaces only this declared offline ear. The old bundle remains available.
 The inherited tracked protocol stub is removed; the untracked descriptor names
 the actual repaired export. Normal autolab validation/gate decides its result;
 no fold or engine gain is claimed here.
+
+Original-case verification completed on Modal: the normal Node decode CLI
+(`--push 20`, same unchanged engine path) decoded both original lab-v1.5-p30
+phone/studio WAVs through bundle-shape-fix without a reshape error. Each produced
+8,281 evidence frames; phone 2,510 phonemes, studio 2,524. This proves the reported
+shape failure is fixed; these counts are not a wrong-call score or fold verdict.
+Recorded sandbox: sb-Zy7ceKIYFFDlLxHMfrtqIU. Repaired bundle copy also completed
+with all five files and 2,570,118,032 bytes. Normal full validation is next.
