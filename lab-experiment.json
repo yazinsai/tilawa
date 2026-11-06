@@ -1,0 +1,13 @@
+{
+ "id": "listener-word-ear-teacher-arc-adds",
+ "component": "listener",
+ "hypothesis": "The short-crop word-level ear already writes the planted extra word whole on 6 seam targets, but it was killed only because its own confidence could not beat clean seams. Send its extra words to the folded teacher insert-marginal gate as candidate arcs and let that gate alone decide; predict listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-06T12:12:19+00:00",
+ "author": "autolab"
+}
