@@ -10,8 +10,8 @@ export const MODEL_REGISTRY: ModelRegistry = { ...registry as ModelRegistry, aux
     sha256: "d3f24efba836219f0c556ad25e3a1046f9caf36b2ed639cd283f795c78da58b4" }],
 }, {
   id:"offline-bidir-seam-v1",purpose:"offline-seam-spelling",precision:"int8",
-  inventory:"muaalem-v3_2-phonemes",file:"offline-student.onnx",bytes:69361638,
-  sha256:"9f3ca5df47543a825b182a13941c192452790441d3e1e0efcd23d728c5afb56d",externalData:[],
+  inventory:"muaalem-v3_2-phonemes",file:"offline-student.onnx",bytes:68902541,
+  sha256:"853c0eeebdafc57f7f775c5b65c58cd782895960af0d70ea6e6dd6e622df2f2e",externalData:[],
 }] };
 
 export function withBase(r: ModelRegistry, base: string): ModelRegistry {

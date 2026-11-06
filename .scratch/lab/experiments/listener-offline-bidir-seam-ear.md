@@ -210,3 +210,28 @@ No further practice-score request was made: this correction changes neither
 model weights nor engine decisions, and the earlier requested replay result
 remains 24 → 24. Fresh decoded practice and fold-gate results remain the
 supervisor's responsibility.
+
+## Two-hour check: variable-length export repair (6 November)
+
+The saved p30 phone/studio errors were reproduced on the existing exported model
+with generated long feature sequences, independently of labels. The export traced
+Zipformer's prefilled 3,999-row CompactRelPositionalEncoding cache. At longer
+runtime lengths it sliced too few rows, causing attention Reshape_3 to fail.
+
+`test_student_offline_export.py` reproduces the actual exporter/module seam: it
+failed at 2,001 frames (one positional row rather than 4,001). Clearing the
+positional cache immediately before tracing generates its table with a dynamic
+Range graph. The regression passes at 401, 1,999, 2,001, 3,201 and 6,401 frames;
+all four existing offline tests also pass on Modal. No runtime crop, weights,
+training data, labels or decision thresholds changed.
+
+The unchanged 2,400-step checkpoint was re-exported into a separate directory,
+with all 11 native/fp32/int8 parity checks passing, including 4,007 and 6,409 fbank
+frames (the latter exercises the original requested 6,401-position reshape).
+Maximum fp32 error: 0.000010014; all random-input
+int8 argmax agreements 1.0. New auxiliary: 68902541 bytes, SHA-256
+`853c0eeebdafc57f7f775c5b65c58cd782895960af0d70ea6e6dd6e622df2f2e`. `bundle-shape-fix` preserves every primary/teacher file byte-for-byte
+and replaces only this declared offline ear. The old bundle remains available.
+The inherited tracked protocol stub is removed; the untracked descriptor names
+the actual repaired export. Normal autolab validation/gate decides its result;
+no fold or engine gain is claimed here.

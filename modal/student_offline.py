@@ -199,6 +199,20 @@ def train(args):
     save()
 
 
+def export_graph(model, x, lens, path):
+    """Serialize the offline model with a genuinely variable time axis."""
+    import torch
+    from zipformer import CompactRelPositionalEncoding
+    # A populated cache makes tracing freeze the initial table and its size.
+    # Trace the table construction instead, so Range/Sin/Cos follow runtime time.
+    for module in model.modules():
+        if isinstance(module, CompactRelPositionalEncoding):
+            module.pe = None
+    torch.onnx.export(model, (x, lens), str(path), input_names=["x", "x_lens"],
+        output_names=["log_probs", "out_lens"], dynamic_axes={"x": {1: "time"}, "log_probs": {1: "frames"}},
+        opset_version=17, dynamo=False)
+
+
 def export(run, dest):
     import torch
     import hashlib
@@ -213,16 +227,14 @@ def export(run, dest):
     convert_scaled_to_non_scaled(model, inplace=True)
     dest = Path(dest); dest.mkdir(parents=True, exist_ok=True)
     x = torch.randn(1, 401, 80); lens = torch.tensor([401])
-    torch.onnx.export(model, (x,lens), str(dest/"fp32.onnx"), input_names=["x","x_lens"],
-        output_names=["log_probs","out_lens"], dynamic_axes={"x":{1:"time"},"log_probs":{1:"frames"}},
-        opset_version=17, dynamo=False)
+    export_graph(model, x, lens, dest/"fp32.onnx")
     quantize_dynamic(str(dest/"fp32.onnx"), str(dest/"model.onnx"), weight_type=QuantType.QInt8,
         op_types_to_quantize=["MatMul","Gemm"])
     sessions = [ort.InferenceSession(str(dest/f), providers=["CPUExecutionProvider"]) for f in ("fp32.onnx","model.onnx")]
     parity=[]
     # Exercise different subsampling/padding residues, not only lengths that
     # share the trace input's remainder. Seams may also exceed eight seconds.
-    for n in (200,201,202,397,401,515,738,801,914):
+    for n in (200,201,202,397,401,515,738,801,914,4007,6409):
         x = torch.randn(1,n,80); lens=torch.tensor([n])
         with torch.no_grad(): lp, lengths = model(x,lens)
         out = [s.run(None, {"x":x.numpy(),"x_lens":lens.numpy()}) for s in sessions]
