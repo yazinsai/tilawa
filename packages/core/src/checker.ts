@@ -13,6 +13,7 @@ import { swapTailUnion } from "./checker-swap-tail.js";
 import { minGapFrames } from "./gap-decode.js";
 import { procliticOnset, waqfMarked } from "./mushaf-marks.js";
 import { absenceMargin } from "./ayah-ledger.js";
+import { vowelPresenceMargin } from "./vowel-omission.js";
 import { excisedNeighbourMargins, surplusNasal } from "./seam-excision.js";
 import { PHRASE_PEAK, PHRASE_SWITCH, letterSkeleton, parallelPaths } from "./parallel-phrases.js";
 import { isMaddLetter, maddSites, stemConsonant } from "./madd-drops.js";
@@ -2082,6 +2083,28 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         cls: "wrong_word", word: wi, last: wi, obsFrom: slot.from, obsTo: slot.to,
         observed: phones.join(""), stringPath: true, manner: true,
       });
+    }
+    // A blurred consonant must not decide presence when the word's vowels still favour reading it.
+    // The outer visits include both neighbours in the fit, freeing their internal boundaries.
+    if (frames && trackerLocked) for (const [wi, issue] of [...issues]) {
+      if (issue.cls !== "omitted_word" || issue.last !== wi) continue;
+      const lo = prevWord(prevWord(wi)), hi = nextWord(nextWord(wi));
+      if (lo < 0 || hi >= words.length || words[lo].surah !== words[hi].surah) continue;
+      const left = visits.filter(v => v.word === lo && counts(v) && v.obsFrom >= 0 && v.obsTo <= issue.obsFrom)
+        .sort((a, b) => b.obsTo - a.obsTo)[0];
+      const right = visits.filter(v => v.word === hi && counts(v) && v.obsFrom >= issue.obsFrom && v.obsTo > v.obsFrom)
+        .sort((a, b) => a.obsFrom - b.obsFrom)[0];
+      if (!left || !right || right.obsTo > obs.length) continue;
+      const text: string[][] = [];
+      let drop = { ayah: 0, word: 0 }, lastAyah = -1;
+      for (let w = lo; w <= hi; w++) {
+        if (ayahOf[w] !== lastAyah) { text.push([]); lastAyah = ayahOf[w]; }
+        if (w === wi) drop = { ayah: text.length - 1, word: text.at(-1)!.length };
+        text.at(-1)!.push(ref.slice(words[w].start, words[w].end));
+      }
+      const from = obs[left.obsFrom].start, to = obs[right.obsTo - 1].end + 1;
+      const margin = vowelPresenceMargin(frames, inventory, text, drop, from, to);
+      if (margin !== null && margin >= PHRASE_SWITCH) issues.delete(wi);
     }
     return { issues, lexical: candidates, head, furthest: reached, steps, right, bound: new Set(last.keys()), visits: visits.filter(counts) };
   };
