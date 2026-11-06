@@ -292,6 +292,9 @@ function build(index: ReferenceIndex) {
     ending,
     droppedSuffixes,
     surplusWord,
+    /** Whole attested words used when a blurred span has no exact lexical spelling. */
+    attestedForms: [...new Set(wordNorms.flat())].filter(f => skel(f).length >= 2),
+    nearbyWord: (wi: number, heard: string) => explainsSeam(wi, heard),
     /** A substring of the nearby text can leave enough of its word to beat total omission.
      * Excision must not call that fragment surplus, even when it is itself an attested word. */
     fragmentOfSeam: (wi: number, heard: string) => explainsSeam(wi, heard, true),

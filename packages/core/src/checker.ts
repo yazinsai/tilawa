@@ -9,6 +9,7 @@ import { LISTENER_CHANNEL } from "./listener-channel.js";
 import { insertionDropFit, issueDropFit } from "./tracker.js";
 import type { PhraseAsset, ReferenceIndex } from "./reference.js";
 import { lexicalWords } from "./checker-lexical.js";
+import { swapLocality } from "./checker-swap-locality.js";
 import { swapTailUnion } from "./checker-swap-tail.js";
 import { minGapFrames } from "./gap-decode.js";
 import { procliticOnset, waqfMarked } from "./mushaf-marks.js";
@@ -255,6 +256,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const ref = index.phonemes;
   const words = index.words;
   const lexical = lexicalWords(index);
+  const locality = swapLocality(index);
   const insertionEvidence = new Map<string, number>();
   const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
     JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
@@ -473,7 +475,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const decide = (o: Open, out: CheckerEvent[], state?: "uncertain") => {
     open.delete(o.issue.word);
     decided.add(o.issue.word);
-    const sure = ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false;
+    const sure = ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false &&
+      (state === "uncertain" || o.issue.cls !== "wrong_word" || o.issue.phrase !== undefined ||
+        locality.assess(o.issue.word, heardSpan(o.issue), omissionChannel,
+          o.issue.stringPath ? undefined : o.issue.observed)?.keep !== false);
     out.push(event(o, state ?? (sure ? "confirmed" : "uncertain")));
   };
 
