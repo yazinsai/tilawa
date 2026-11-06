@@ -188,7 +188,7 @@ def train(args):
     if not catalog: raise RuntimeError('no eligible real continuous recordings')
     banks={k:dict(np.load('/student/aug/'+k+'.npz')) for k in ('noise','rir')}
     ds=Dataset(catalog,banks,cfg)
-    log=open(out/'log.jsonl','a'); started=time.time()
+    log=open(out/'log.jsonl','a'); started=time.time(); completed=current
     for step in range(current,args.steps):
         i=int(np.random.default_rng([2026,step,1]).integers(len(catalog)))
         b=ds.get(i,step); feats=b['feats'][None].cuda()
@@ -227,14 +227,16 @@ def train(args):
             print(json.dumps(dict(step=step+1,nonfinite_gradient_count=len(bad),nonfinite_gradients=bad[:12])),flush=True)
             raise
         optimizer.step()
+        completed=step+1
         if step%10==0:
             record=dict(step=step+1,ctc=float(ctc.detach()),kd=float(kd.detach()),kl=float(kl.detach()),pauses=len(pauses),masked_frames=int((~unmasked).sum()),seconds=time.time()-started)
             print(json.dumps(record),flush=True); log.write(json.dumps(record)+'\n'); log.flush()
-        if (step+1)%25==0 or step+1==args.steps:
+        expired=time.time()-started>args.minutes*60
+        if (step+1)%25==0 or step+1==args.steps or expired:
             torch.save(dict(model=model.state_dict(),opt=optimizer.state_dict(),step=step+1),out/'training.tmp'); (out/'training.tmp').replace(out/'training.pt')
-        if time.time()-started>args.minutes*60: break
+        if expired: break
     plain={k:v.cpu() for k,v in model.state_dict().items()}
-    torch.save(dict(model=plain,cfg=cfg,state=dict(step=step+1)),out/'ckpt.pt')
+    torch.save(dict(model=plain,cfg=cfg,state=dict(step=completed)),out/'ckpt.pt')
 
 
 def export(args):

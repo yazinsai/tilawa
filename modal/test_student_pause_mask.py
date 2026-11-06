@@ -72,7 +72,7 @@ class PauseMaskTests(unittest.TestCase):
         torch.manual_seed(3)
         m=PauseStreaming(build_model('lite'))
         x=torch.randn(2,77,80)
-        floors=torch.full((2,32),-1,dtype=torch.int64); floors[0,16:]=16
+        floors=torch.full((2,32),-1,dtype=torch.int64); floors[0,16:]=16; floors[1,30:]=30
         y=stream(m,x,floors)
         self.assertTrue(torch.isfinite(y).all())
         y.square().mean().backward()
@@ -89,7 +89,7 @@ class PauseMaskTests(unittest.TestCase):
             for i in range(len(states)-1): states[i]=torch.randn_like(states[i])
             states[-1].fill_(128)
         x=torch.randn(1,45,80)
-        for onset in (0,8):
+        for onset in range(0,16,2):
             cut=torch.full((1,16),128+onset,dtype=torch.int64)
             cut[:,:onset]=-1
             changed=x.clone(); changed[:,:2*onset]+=10

@@ -36,6 +36,17 @@ def stable_activation(self,x):
     return F.linear(F.softplus(x-offset)-.08*x-constant,self.weight,self.bias)
 
 
+def downsample(self,src):
+    """A straddling pool cannot lend pre-pause features to later native rows."""
+    if not torch.jit.is_tracing() and not self.pause_active:
+        return self.pause_original_forward(src)
+    floor=self.pause_floor.reshape(src.shape[1],-1,self.downsample).amax(-1)
+    floor=floor.repeat_interleave(self.downsample,dim=1)
+    keys=self.pause_processed[:,None]+torch.arange(src.shape[0],device=src.device)[None]
+    keep=(floor<0) | (keys>=floor)
+    return self.pause_original_forward(src*keep.transpose(0,1)[:,:,None])
+
+
 def attention(self, x, pos_emb, cached_key, left_context_len, key_padding_mask):
     if not torch.jit.is_tracing() and not self.pause_active:
         return self.pause_original(x, pos_emb, cached_key, left_context_len, key_padding_mask)
@@ -58,7 +69,9 @@ def attention(self, x, pos_emb, cached_key, left_context_len, key_padding_mask):
         scores = scores.masked_fill(key_padding_mask.bool()[None,:,None,:],-1000)
     allowed = allowed_sources(self.pause_floor, self.pause_processed,n,left_context_len)
     scores = scores.masked_fill(~allowed[None],-1000)
-    return scores.softmax(-1), new_key
+    # A pool straddling a late cutoff can have no eligible key in this chunk.
+    # Its attention contribution is zero, rather than uniform over old keys.
+    return scores.softmax(-1).masked_fill(~allowed[None],0), new_key
 
 
 def depthwise(self, x, cache):
@@ -120,7 +133,14 @@ class PauseStreaming(torch.nn.Module):
                 module.pause_original_forward=module.forward
                 module.forward=types.MethodType(stable_activation,module)
         self.masked = []
+        self.pools = []
         for stage,ds in zip(self.encoder.encoders,self.encoder.downsampling_factor):
+            if hasattr(stage,'downsample'):
+                pool=stage.downsample
+                pool.pause_original_forward=pool.forward
+                pool.pause_active=True
+                pool.forward=types.MethodType(downsample,pool)
+                self.pools.append(pool)
             inner = stage.encoder if hasattr(stage,'encoder') else stage
             for layer in inner.layers:
                 a = layer.self_attn_weights
@@ -148,10 +168,15 @@ class PauseStreaming(torch.nn.Module):
         clocks = {}
         for module,ds in self.masked:
             if ds not in clocks:
-                floor = pause_floor[:,::ds]
+                # Every native query sharing a pooled frame must respect its
+                # cutoff, including an onset inside the pooling group.
+                floor = pause_floor.reshape(x.shape[0],-1,ds).amax(-1)
                 clocks[ds] = (torch.where(floor<0,floor,(floor+ds-1)//ds),processed//ds)
             module.pause_floor,module.pause_processed = clocks[ds]
             module.pause_active = active
+        for pool in self.pools:
+            pool.pause_floor,pool.pause_processed=pause_floor,processed
+            pool.pause_active=active
         self.encoder_embed.convnext.pause_floor = pause_floor
         self.encoder_embed.convnext.pause_processed = processed
         self.encoder_embed.convnext.pause_active = active
