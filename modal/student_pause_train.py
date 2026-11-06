@@ -283,6 +283,9 @@ def export(args):
     (directory/'manifest.json').write_text(json.dumps(m,ensure_ascii=False,indent=1))
     bundle=out/'bundle'
     shutil.copytree('/lab/data/models/spliced-clean-int8',bundle,dirs_exist_ok=True)
+    if args.teacher:
+        for name in ('teacher.onnx','teacher.onnx.data'):
+            shutil.copy2(Path(args.teacher)/name,bundle/name)
     shutil.copytree(directory,bundle/'pause-mask',ignore=shutil.ignore_patterns('float.onnx'),dirs_exist_ok=True)
     primary=json.loads((bundle/'manifest.json').read_text())
     primary['pauseMaskModel']=dict(manifest='pause-mask/manifest.json')
@@ -292,7 +295,7 @@ def export(args):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(); p.add_argument('command',choices=['catalog','train','export']); p.add_argument('--out',required=True); p.add_argument('--hours',type=float,default=20); p.add_argument('--steps',type=int,default=800); p.add_argument('--minutes',type=float,default=48); p.add_argument('--anomaly',action='store_true')
+    p=argparse.ArgumentParser(); p.add_argument('command',choices=['catalog','train','export']); p.add_argument('--out',required=True); p.add_argument('--hours',type=float,default=20); p.add_argument('--steps',type=int,default=800); p.add_argument('--minutes',type=float,default=48); p.add_argument('--anomaly',action='store_true'); p.add_argument('--teacher',help='directory of the shipped fp32 teacher export to include in the bundle')
     a=p.parse_args()
     if a.command=='catalog': continuous_catalog(Path(a.out),a.hours)
     elif a.command=='train': train(a)
