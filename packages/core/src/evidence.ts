@@ -9,7 +9,7 @@ export interface SeamInsertionEvidence {
   marginal: number;
 }
 
-/** A whole pause-bounded utterance heard by an offline ear at a primary seam.
+/** A complete offline crop at a primary seam, for whole-word prefix spelling.
  * These phones never enter the tracker or the primary alignment. */
 export interface SeamSpellingEvidence {
   word: WordRef;

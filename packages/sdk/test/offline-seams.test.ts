@@ -57,7 +57,7 @@ it("does not call unblank speech a pause or use evidence with no rows", () => {
   expect(offlineSeams(evidence.map(({posteriors:_,...e})=>e),index)).toEqual([]);
 });
 
-it("keeps whole secondary utterances as metadata with primary tokens and rows intact", async () => {
+it("keeps the whole secondary crop across internal blanks with primary tokens and rows intact", async () => {
   const original=structuredClone(evidence);
   const decode=vi.fn(async () => ({inventory:"test",frameMs:40,
     phonemes:[{p:"ب",start:1,end:1,conf:1},{p:"ت",start:2,end:2,conf:1},{p:"د",start:20,end:20,conf:1}],
@@ -68,8 +68,7 @@ it("keeps whole secondary utterances as metadata with primary tokens and rows in
   expect(decode).toHaveBeenCalledOnce();
   expect(decode.mock.calls[0][0]).toHaveLength((68-12)*640);
   expect(enriched[0].phonemes[0].seamSpellings).toMatchObject([
-    {word:{surah:1,ayah:2,word:1},toFrame:68,phonemes:[{p:"ب",start:13},{p:"ت",start:14}]},
-    {phonemes:[{p:"د",start:32}]}]);
+    {word:{surah:1,ayah:2,word:1},toFrame:68,phonemes:[{p:"ب",start:13},{p:"ت",start:14},{p:"د",start:32}]}]);
   expect(enriched[0].posteriors).toBe(evidence[0].posteriors);
   expect(evidence).toEqual(original);
   expect(enriched[0].phonemes.map(({seamSpellings:_,...p}) => p)).toEqual(original[0].phonemes);

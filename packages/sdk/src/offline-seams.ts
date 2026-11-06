@@ -1,5 +1,5 @@
 import { createTracker, minGapFrames, PosteriorFrames, trackerInput, waqfMarked } from "@tilawa/core";
-import type { DecodedPhoneme, EngineEvent, PhonemeEvidence, PhraseAsset, ReferenceIndex, SeamSpellingEvidence } from "@tilawa/core";
+import type { EngineEvent, PhonemeEvidence, PhraseAsset, ReferenceIndex, SeamSpellingEvidence } from "@tilawa/core";
 import { insertionCells } from "./seam-insertion.js";
 import type { LoadedModel } from "./model.js";
 
@@ -87,7 +87,7 @@ export function offlineSeams(chunks: PhonemeEvidence[], index: ReferenceIndex, p
   return out;
 }
 
-/** Keep whole utterances from the secondary crop as spelling evidence only.
+/** Keep the complete secondary crop as spelling evidence only.
  * Primary token values, posterior rows and tracker inputs remain intact. */
 export async function addOfflineEvidence(model: LoadedModel, audio: Float32Array, chunks: PhonemeEvidence[],
   index: ReferenceIndex, phrases?: PhraseAsset, positions?: EngineEvent[]): Promise<PhonemeEvidence[]> {
@@ -101,19 +101,9 @@ export async function addOfflineEvidence(model: LoadedModel, audio: Float32Array
     const e: PhonemeEvidence = await model.offlineStudent.decode(audio.subarray(offset,limit),index.tokens.size+1);
     if (e.inventory !== index.inventoryId || e.frameMs !== chunks[0].frameMs || !e.posteriors)
       throw new Error("Offline student clock or inventory differs from primary evidence");
-    const pauses = labelledPauses([e],index);
     const w = index.words[span.word];
-    let utterance: DecodedPhoneme[] = [];
-    const save = () => {
-      if (utterance.length) metadata.push({ word:{surah:w.surah,ayah:w.ayah,word:w.word}, toFrame:span.toFrame,
-        phonemes:utterance.map(p => ({...p,start:p.start+span.fromFrame,end:p.end+span.fromFrame})) });
-      utterance = [];
-    };
-    for (const p of e.phonemes) {
-      if (utterance.length && pauses.some(f => f > utterance.at(-1)!.end && f < p.start)) save();
-      utterance.push(p);
-    }
-    save();
+    if (e.phonemes.length) metadata.push({word:{surah:w.surah,ayah:w.ayah,word:w.word},toFrame:span.toFrame,
+      phonemes:e.phonemes.map(p => ({...p,start:p.start+span.fromFrame,end:p.end+span.fromFrame}))});
   }
   if (!metadata.length) return chunks;
   const at = chunks.findIndex(c => c.phonemes.length);

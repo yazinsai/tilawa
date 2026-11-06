@@ -2499,19 +2499,28 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       anchorOn(track(events, out), events);
       evaluate(out, true);
       // The primary word-two step has already closed each stored seam. Apply
-      // the folded whole-word spelling and exclusions to its offline utterance.
+      // the folded whole-word spelling and exclusions to its offline prefixes.
       for (const m of seamSpellings.splice(0).sort((a,b) => a.toFrame-b.toFrame)) {
         const wi = wordIndex(m.word);
         if (wi < 0 || emitted.some(e => e.state === "confirmed" && e.errorClass === "added_word" &&
           e.location.surah === m.word.surah && e.location.ayah === m.word.ayah && e.location.word === m.word.word)) continue;
-        const said = stripEdge(m.phonemes.map(p => p.p).join(""));
-        if (!said || phraseSpan(said) || !lexical.surplusWord(wi,said)) continue;
-        const issue: Issue = { cls:"added_word",word:wi,last:wi,obsFrom:0,obsTo:0,
-          observed:said,lexicon:true,auxiliaryPhones:m.phonemes };
-        if (!heardSure(issue) || supported(issue) === false) continue;
-        const e = event({id:`${m.word.surah}:${m.word.ayah}:${m.word.word}#${++seq}`,issue,sinceMs:m.toFrame*frameMs},"confirmed");
-        e.timeMs = m.toFrame*frameMs;
-        out.push(e);
+        const raw = m.phonemes.map(p => p.p).join("");
+        const formula = phrases.map(p => ({length:p.length,hit:alignSubstring(raw,0,raw.length,p,() => true)}));
+        // Longest whole-word prefix first. A CTC blank run inside a held vowel
+        // cannot split a word, and internal substrings are never candidates.
+        for (let to=m.phonemes.length; to>0; to--) {
+          const said = stripEdge(raw.slice(0,to));
+          if (!said || phraseSpan(said) || !lexical.surplusWord(wi,said)) continue;
+          if (formula.some(({length,hit}) => hit && hit.start<to && hit.end>0 &&
+            hit.cost/UNIT/length<=PHRASE_MAX_COST)) continue;
+          const issue: Issue = { cls:"added_word",word:wi,last:wi,obsFrom:0,obsTo:0,
+            observed:said,lexicon:true,auxiliaryPhones:m.phonemes.slice(0,to) };
+          if (!heardSure(issue) || supported(issue) === false) continue;
+          const e = event({id:`${m.word.surah}:${m.word.ayah}:${m.word.word}#${++seq}`,issue,sinceMs:m.toFrame*frameMs},"confirmed");
+          e.timeMs = m.toFrame*frameMs;
+          out.push(e);
+          break;
+        }
       }
       return out;
     },

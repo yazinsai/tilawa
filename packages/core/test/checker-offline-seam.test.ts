@@ -11,7 +11,7 @@ const spelling = (said:string,conf=1): SeamSpellingEvidence => ({word,toFrame:60
   phonemes:[...said].map((p,i) => ({p,start:20+i,end:20+i,conf}))});
 function run(extra:SeamSpellingEvidence[]) {
   const checker = createChecker(index,{passage:{from:{surah:1,ayah:1,word:1},to:{surah:1,ayah:2,word:2}},
-    phrases:{version:"test",phrases:[{name:"formula",text:"formula",p:"ثج"}]}});
+    phrases:{version:"test",phrases:[{name:"formula",text:"formula",p:"ثج"},{name:"long-formula",text:"long formula",p:"سمثج"}]}});
   const e:PhonemeEvidence = {inventory:"test",frameMs:40,
     phonemes:[..."بتدحبتدح"].map((p,i) => ({p,start:i*4,end:i*4,conf:1,...(i===0?{seamSpellings:extra}:{})}))};
   checker.push(e,[]);
@@ -35,4 +35,11 @@ it("emits only one addition for duplicate crops and rejects invalid token clocks
   expect(run([spelling("سم"),spelling("سم")]).mistakes.filter(e => e.errorClass==="added_word")).toHaveLength(1);
   const invalid=spelling("سم"); invalid.phonemes[0].end=60;
   expect(run([invalid]).mistakes.filter(e => e.errorClass==="added_word")).toEqual([]);
+});
+
+it("spells the complete leading word across blank gaps and rejects formula prefixes",() => {
+  const crop=spelling("سمبتدح");
+  for(let i=1;i<crop.phonemes.length;i++) crop.phonemes[i].start=crop.phonemes[i].end=34+i;
+  expect(run([crop]).mistakes.filter(e => e.errorClass==="added_word")).toMatchObject([{observed:"سم"}]);
+  expect(run([spelling("سمثجبتدح")]).mistakes.filter(e => e.errorClass==="added_word")).toEqual([]);
 });
