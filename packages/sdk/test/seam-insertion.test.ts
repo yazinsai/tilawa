@@ -24,7 +24,7 @@ describe("seam insertion evidence transport", () => {
     expect(cells.flatMap(e => Array.from(e.posteriors!.ids))).toEqual(evidence[0].posteriors!.ids);
   });
 
-  it("requires primary posteriors and a candidate before consulting the teacher", async () => {
+  it("requires primary posteriors and a seam before consulting the teacher", async () => {
     const decode = vi.fn();
     const model = { manifest: { sampleRate: 16000 }, insertionTeacher: { decode } } as unknown as LoadedModel;
     expect(await addInsertionEvidence(model, new Float32Array(16000), [], index)).toEqual([]);

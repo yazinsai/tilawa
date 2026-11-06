@@ -3,6 +3,8 @@ import type { PosteriorFrames } from "./ctc.js";
 const add = (a: number, b: number): number => a === -Infinity ? b : b === -Infinity ? a
   : Math.max(a, b) + Math.log1p(Math.exp(-Math.abs(a - b)));
 
+type FrameRows = Pick<PosteriorFrames, "startFrame" | "endFrame" | "row">;
+type Forms = readonly (readonly (readonly number[])[])[];
 type Arc = { src: number; dst: number; cost: number; insertion: boolean };
 type Word = { first: number[]; last: number[]; blank: number };
 
@@ -27,7 +29,12 @@ export function seamInsertionMarginal(
 ): number | null {
   if (!before.length || !after.length || !candidate.length || !Number.isFinite(insertionCost) ||
     from < frames.startFrame || to > frames.endFrame || to <= from) return null;
-  const groups = [...before, candidate, ...after];
+  return score(frames, lattice(before, candidate, after, insertionCost, repeats), from, to)?.marginal ?? null;
+}
+
+function lattice(before: Forms, candidate: readonly (readonly number[])[] | null, after: Forms,
+  insertionCost: number, repeats: boolean, loop?: { phones: number[]; consonants: Set<number> }) {
+  const groups = [...before, ...(candidate ? [candidate] : []), ...after];
   if (groups.some(g => !g.length || g.some(f => !f.length || f.some(p => !Number.isInteger(p) || p <= 0)))) return null;
   const labels = [0];
   const arcs: Arc[] = [];
@@ -77,19 +84,76 @@ export function seamInsertionMarginal(
   };
   const left = side(before, [0]);
   const boundary = [...left.last, left.blank];
-  const extra = word(candidate, boundary, true);
+  const loopStates = new Set<number>();
+  const phoneLoop = (): Word => {
+    // State tracks the number of CTC consonant onsets, capped at two. Staying
+    // on a consonant holds it; a blank then the same consonant starts a new one.
+    const blanks = [state(0), state(0), state(0)];
+    const nodes = Array.from({ length: 3 }, (_, count) => new Map(
+      loop!.phones.filter(p => count > 0 || !loop!.consonants.has(p)).map(p => [p, state(p)])));
+    for (const b of blanks) loopStates.add(b);
+    for (const list of nodes) for (const s of list.values()) loopStates.add(s);
+    for (const p of loop!.phones) connect(boundary, [nodes[Number(loop!.consonants.has(p))].get(p)!], insertionCost, true);
+    for (let count = 0; count <= 2; count++) {
+      for (const [p, src] of nodes[count]) {
+        arc(src, blanks[count]);
+        for (const q of loop!.phones) if (p !== q)
+          arc(src, nodes[Math.min(2, count + Number(loop!.consonants.has(q)))].get(q)!);
+      }
+      for (const p of loop!.phones)
+        arc(blanks[count], nodes[Math.min(2, count + Number(loop!.consonants.has(p)))].get(p)!);
+    }
+    return { first: [], last: [...nodes[2].values()], blank: blanks[2] };
+  };
+  const extra = candidate ? word(candidate, boundary, true) : phoneLoop();
   // Direct no-word transitions avoid an epsilon skip and duplicate blank runs.
   const right = side(after, [...boundary, ...extra.last, extra.blank]);
   const finals = [...right.last, right.blank];
   for (let s = 0; s < labels.length; s++) arc(s, s);
+  return { labels, arcs, finals, loopStates };
+}
+
+/** Identity-free insertion with at least two consonant onsets. The returned
+ * Phones stay inside the tracker interval; boundary blanks may wait for the next written word.
+ * Viterbi decoding is conditioned on using the inserted arc. */
+export function seamPhoneLoop(frames: FrameRows, before: Forms, after: Forms,
+  phones: readonly number[], consonants: readonly number[], from: number, to: number,
+  insertionCost: number, interval: readonly [number, number], repeats = true): { marginal: number; phones: number[]; fromFrame: number; toFrame: number } | null {
+  if (!before.length || !after.length || !phones.length || !consonants.length ||
+    !Number.isFinite(insertionCost) || !Number.isInteger(from) || !Number.isInteger(to) ||
+    from < frames.startFrame || to > frames.endFrame || to <= from ||
+    phones.some(p => !Number.isInteger(p) || p <= 0) || consonants.some(p => !phones.includes(p)) ||
+    !Number.isInteger(interval[0]) || !Number.isInteger(interval[1]) || interval[0] < from || interval[1] > to || interval[1] <= interval[0]) return null;
+  const graph = lattice(before, null, after, insertionCost, repeats,
+    { phones: [...new Set(phones)], consonants: new Set(consonants) });
+  return score(frames, graph, from, to, true, interval);
+}
+
+function score(frames: FrameRows, graph: ReturnType<typeof lattice>, from: number, to: number, viterbi = false, interval?: readonly [number, number]) {
+  if (!graph) return null;
+  const { labels, arcs, finals, loopStates } = graph;
   const S = labels.length, T = to - from;
   const alpha: Float64Array[] = [new Float64Array(S).fill(-Infinity)];
   alpha[0][0] = 0;
+  let best = new Float64Array(2*S).fill(-Infinity);
+  best[0] = 0;
+  const back: Int32Array[] = [];
   for (let t = 0; t < T; t++) {
     const prev = alpha[t], next = new Float64Array(S).fill(-Infinity), row = frames.row(from + t);
     if (labels.some(p => p >= row.length)) return null;
-    for (const a of arcs) next[a.dst] = add(next[a.dst], prev[a.src] - a.cost + row[labels[a.dst]]);
+    const winners = viterbi ? new Int32Array(2*S).fill(-1) : null;
+    const nextBest = viterbi ? new Float64Array(2*S).fill(-Infinity) : null;
+    for (const a of arcs) {
+      if (interval && loopStates.has(a.dst) && labels[a.dst] !== 0 && (from + t < interval[0] || from + t >= interval[1])) continue;
+      const emission = -a.cost + row[labels[a.dst]];
+      next[a.dst] = add(next[a.dst], viterbi ? prev[a.src] + emission : prev[a.src] - a.cost + row[labels[a.dst]]);
+      if (nextBest && winners) for (let used=0; used<=1; used++) {
+        const src=used*S+a.src, dst=(used || a.insertion ? S : 0)+a.dst;
+        if (best[src]+emission > nextBest[dst]) { nextBest[dst]=best[src]+emission; winners[dst]=src; }
+      }
+    }
     alpha.push(next);
+    if (winners && nextBest) { back.push(winners); best = nextBest; }
   }
   let z = -Infinity;
   for (const s of finals) z = add(z, alpha[T][s]);
@@ -99,11 +163,27 @@ export function seamInsertionMarginal(
   for (let t = T - 1; t >= 0; t--) {
     const prev = new Float64Array(S).fill(-Infinity), row = frames.row(from + t);
     for (const a of arcs) {
+      if (interval && loopStates.has(a.dst) && labels[a.dst] !== 0 && (from + t < interval[0] || from + t >= interval[1])) continue;
       const b = -a.cost + row[labels[a.dst]] + beta[a.dst];
       prev[a.src] = add(prev[a.src], b);
       if (a.insertion) used = add(used, alpha[t][a.src] + b);
     }
     beta = prev;
   }
-  return Math.max(0, Math.min(1, Math.exp(used - z)));
+  const marginal = Math.max(0, Math.min(1, Math.exp(used - z)));
+  const phones: number[] = [];
+  let fromFrame = to, toFrame = from;
+  if (viterbi) {
+    // The posterior decision concerns all insertion paths. Extract the best
+    // such path even if a single no-insertion timing wins the global argmax.
+    let at = finals.map(s=>S+s).reduce((a, b) => best[a] >= best[b] ? a : b);
+    if (!Number.isFinite(best[at])) return { marginal, phones, fromFrame, toFrame };
+    const path = new Int32Array(T);
+    for (let t = T - 1; t >= 0; t--) { path[t] = at%S; at = back[t][at]; }
+    for (let t = 0; t < T; t++) if (loopStates.has(path[t]) && labels[path[t]]) {
+      fromFrame = Math.min(fromFrame, from + t); toFrame = from + t + 1;
+      if (!t || path[t] !== path[t - 1]) phones.push(labels[path[t]]);
+    }
+  }
+  return { marginal, phones, fromFrame, toFrame };
 }

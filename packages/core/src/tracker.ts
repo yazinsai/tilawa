@@ -13,6 +13,8 @@ import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-s
 import type { SlotSpan } from "./slot-spans.js";
 
 export interface TrackerOptions {
+  /** Read-only comparison over the actual global candidate paths of an auxiliary token stream. */
+  insertionShadow?: { word: number; report: (interval: ShadowInsertionInterval) => void };
   mode?: "free" | "memorization";
   /** Grams occurring more often than this carry too little location information to vote. */
   maxGramOccurrences?: number;
@@ -61,6 +63,16 @@ export interface TrackerOptions {
 export interface Tracker {
   push(evidence: PhonemeEvidence): EngineEvent[];
   end(): EngineEvent[];
+}
+
+export interface ShadowInsertionInterval {
+  fromFrame: number;
+  toFrame: number;
+  observed: string;
+  plain: number;
+  inserted: number;
+  gain: number;
+  margin: number;
 }
 
 interface Match {
@@ -273,6 +285,23 @@ export function relocationSupport(
 /** What the tracker is fed from one chunk of listener evidence, in the product and in every bench alike: phonemes only. */
 export function trackerInput(evidence: PhonemeEvidence): PhonemeEvidence {
   return { ...evidence, posteriors: undefined };
+}
+
+/** Run the ordinary global search on each auxiliary prefix, with its existing history bound.
+ * The primary tracker, tokens and events are never used as mutable state. */
+export function shadowInsertionIntervals(index: ReferenceIndex, word: number,
+  tokens: readonly DecodedPhoneme[], frameMs: number): ShadowInsertionInterval[] {
+  if (word < 0 || word >= index.words.length || !tokens.length) return [];
+  const intervals = new Map<string, ShadowInsertionInterval>();
+  for (let to = 1; to <= tokens.length; to++) {
+    const shadow = createTracker(index, { insertionShadow: { word, report(interval) {
+      const key = `${interval.fromFrame}:${interval.toFrame}`;
+      const prior = intervals.get(key);
+      if (!prior || interval.gain - interval.margin > prior.gain - prior.margin) intervals.set(key, interval);
+    } } });
+    shadow.push({ inventory: index.inventoryId, frameMs, phonemes: tokens.slice(Math.max(0,to-WINDOW),to) });
+  }
+  return [...intervals.values()];
 }
 
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
@@ -651,6 +680,15 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     const frames = posteriors;
     const self = frames ? frames.nll(toIds([...observed]), observedFrames[0].start, observedFrames.at(-1)!.end + 1) : 0;
     const matches = frames ? locate().map((m) => ({ ...m, cost: posteriorCost(frames, m, self), decodedCost: m.cost })) : locate();
+    if (options.insertionShadow) {
+      const shadow=options.insertionShadow;
+      const fits=matches.map(m=>insertionComparison(m,shadow.word)).filter((f):f is ShadowInsertionInterval=>f!==null);
+      const plain=Math.min(...fits.map(f=>f.plain));
+      for (const fit of fits) {
+        const gain=plain-fit.inserted;
+        if (gain>=fit.margin) shadow.report({...fit,plain,gain});
+      }
+    }
     const scored = matches.map((m) => ({ m, score: m.cost - priorBonus(m) })).sort((a, b) => a.score - b.score || a.m.offset - b.m.offset);
     const distinct: typeof scored = [];
     for (const c of scored) if (!distinct.some((k) => sameLocation(k.m, c.m))) distinct.push(c);
@@ -945,6 +983,33 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       if (w.end > w.start) out.push(index.phonemes.slice(w.start, w.end));
     }
     return out;
+  };
+  const insertionComparison = (m: Match, word: number): ShadowInsertionInterval | null => {
+    const groups: { wi: number; tokens: number[] }[] = [];
+    let cur: typeof groups[number] | undefined;
+    let lead: number[] = [];
+    for (const op of m.path) {
+      if (op.op === "ins") { if (cur) cur.tokens.push(op.obsAt); else lead.push(op.obsAt); continue; }
+      const wi = index.wordAt(Math.max(0,Math.min(index.phonemes.length-1,m.offset+op.refAt)));
+      if (!cur || cur.wi !== wi) { cur={wi,tokens:lead}; lead=[]; groups.push(cur); }
+      if (op.op !== "del") cur.tokens.push(op.obsAt);
+    }
+    const units = groups.filter(g=>g.tokens.length);
+    if (units.length < minWords) return null;
+    const anchor = anchorWordsFrom(word,units.length);
+    if (anchor.length < units.length) return null;
+    let plain=0, inserted=0;
+    for (let i=0;i<units.length;i++) {
+      const heard=units[i].tokens.map(j=>observed[j]).join("");
+      const no=anchorFitCost(anchor[i],heard);
+      const yes=i ? anchorFitCost(anchor[i-1],heard) : [...heard].reduce((sum,p)=>sum+insertionCost("",0,p),0);
+      if (no===null || yes===null) return null;
+      plain+=no; inserted+=yes;
+    }
+    const gain=(plain-inserted)/UNIT, margin=commitMargin(observed.length,minSeparation,separationScale);
+    const first=units[0].tokens;
+    return { fromFrame:observedFrames[first[0]].start,toFrame:observedFrames[first.at(-1)!].end+1,
+      observed:first.map(j=>observed[j]).join(""),plain:plain/UNIT,inserted:inserted/UNIT,gain,margin };
   };
   /**
    * A distant lock relocates only when enough heard words fit it better than the anchor plus one inserted word.

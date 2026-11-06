@@ -1,0 +1,958 @@
+{
+  "run": 12,
+  "source": "stored teacher phone evidence, native-clock SDK replay",
+  "targets won": 3,
+  "targets": [
+    {
+      "session": "lab-v1.5-p07",
+      "target": "37:36:1",
+      "at": 144.12,
+      "labels": [
+        {
+          "span": "span-1",
+          "errorClass": "added_word",
+          "state": "confirmed",
+          "location": {
+            "surah": 37,
+            "ayah": 36,
+            "word": 1
+          },
+          "startS": 144.115,
+          "endS": 144.955,
+          "forms_other_ayah": false,
+          "expected": "",
+          "observed": "سَلِيمٍ",
+          "said": "سَلِۦۦم",
+          "donor": "37:84:5",
+          "splice": "x8"
+        }
+      ],
+      "sdkWarnings": [
+        {
+          "type": "checker",
+          "v": 1,
+          "id": "37:36:1#12",
+          "timeMs": 148960,
+          "state": "confirmed",
+          "errorClass": "added_word",
+          "location": {
+            "surah": 37,
+            "ayah": 36,
+            "word": 1
+          },
+          "expected": "وَيَقُۥۥلُۥۥنَ",
+          "observed": "سَرِۦۦم",
+          "confidence": 1
+        }
+      ],
+      "sdkCalls": 52,
+      "sdkPrimaryIdentical": true,
+      "sdkTrackerIdentical": true,
+      "teacherTopK": 5,
+      "teacherInventory": 42,
+      "windows": [
+        {
+          "pause": {
+            "from": 3569,
+            "to": 3577
+          },
+          "primaryEntry": 144.12,
+          "primaryWord2": 147.6,
+          "intervals": [
+            {
+              "fromFrame": 3576,
+              "toFrame": 3624,
+              "observed": "نسَرِۦۦم",
+              "plain": 15.9,
+              "inserted": 7,
+              "gain": 8.9,
+              "margin": 1.3043478260869565
+            },
+            {
+              "fromFrame": 3576,
+              "toFrame": 3617,
+              "observed": "نسَرِۦۦ",
+              "plain": 15.9,
+              "inserted": 7,
+              "gain": 8.9,
+              "margin": 1.3043478260869565
+            },
+            {
+              "fromFrame": 3576,
+              "toFrame": 3660,
+              "observed": "نسَرِۦۦموَ",
+              "plain": 15.9,
+              "inserted": 11,
+              "gain": 4.9,
+              "margin": 1.3043478260869565
+            }
+          ]
+        },
+        {
+          "pause": {
+            "from": 3578,
+            "to": 3602
+          },
+          "primaryEntry": 144.12,
+          "primaryWord2": 147.6,
+          "intervals": [
+            {
+              "fromFrame": 3603,
+              "toFrame": 3624,
+              "observed": "سَرِۦۦم",
+              "plain": 15,
+              "inserted": 6,
+              "gain": 9,
+              "margin": 1.3636363636363635
+            },
+            {
+              "fromFrame": 3603,
+              "toFrame": 3617,
+              "observed": "سَرِۦۦ",
+              "plain": 15,
+              "inserted": 6,
+              "gain": 9,
+              "margin": 1.3636363636363635
+            },
+            {
+              "fromFrame": 3603,
+              "toFrame": 3660,
+              "observed": "سَرِۦۦموَ",
+              "plain": 15,
+              "inserted": 11,
+              "gain": 4,
+              "margin": 1.3636363636363635
+            }
+          ]
+        },
+        {
+          "pause": {
+            "from": 3612,
+            "to": 3657
+          },
+          "primaryEntry": 144.12,
+          "primaryWord2": 147.6,
+          "intervals": [
+            {
+              "fromFrame": 3615,
+              "toFrame": 3624,
+              "observed": "ۦم",
+              "plain": 10,
+              "inserted": 2,
+              "gain": 8,
+              "margin": 1.875
+            },
+            {
+              "fromFrame": 3615,
+              "toFrame": 3660,
+              "observed": "ۦموَ",
+              "plain": 10,
+              "inserted": 6,
+              "gain": 4,
+              "margin": 1.875
+            }
+          ]
+        }
+      ],
+      "boundedLoops": [
+        {
+          "seam": {
+            "word": 57591,
+            "seamFromFrame": 3538,
+            "seamToFrame": 3724,
+            "prefixFrame": 3520
+          },
+          "interval": [
+            3576,
+            3624
+          ],
+          "loop": {
+            "marginal": 1,
+            "phones": [
+              12,
+              32,
+              10,
+              34,
+              30,
+              30,
+              24
+            ],
+            "fromFrame": 3603,
+            "toFrame": 3624
+          },
+          "observed": "سَرِۦۦم",
+          "fragment": false
+        },
+        {
+          "seam": {
+            "word": 57591,
+            "seamFromFrame": 3538,
+            "seamToFrame": 3724,
+            "prefixFrame": 3520
+          },
+          "interval": [
+            3576,
+            3617
+          ],
+          "loop": {
+            "marginal": 1,
+            "phones": [
+              12,
+              32,
+              10,
+              34,
+              30,
+              30
+            ],
+            "fromFrame": 3603,
+            "toFrame": 3617
+          },
+          "observed": "سَرِۦۦ",
+          "fragment": false
+        },
+        {
+          "seam": {
+            "word": 57591,
+            "seamFromFrame": 3538,
+            "seamToFrame": 3724,
+            "prefixFrame": 3520
+          },
+          "interval": [
+            3576,
+            3660
+          ],
+          "loop": {
+            "marginal": 1,
+            "phones": [
+              12,
+              32,
+              10,
+              34,
+              30,
+              30,
+              24
+            ],
+            "fromFrame": 3603,
+            "toFrame": 3624
+          },
+          "observed": "سَرِۦۦم",
+          "fragment": false
+        },
+        {
+          "seam": {
+            "word": 57591,
+            "seamFromFrame": 3538,
+            "seamToFrame": 3724,
+            "prefixFrame": 3520
+          },
+          "interval": [
+            3603,
+            3624
+          ],
+          "loop": {
+            "marginal": 0.9999999999999787,
+            "phones": [
+              12,
+              32,
+              10,
+              34,
+              30,
+              30,
+              24
+            ],
+            "fromFrame": 3603,
+            "toFrame": 3624
+          },
+          "observed": "سَرِۦۦم",
+          "fragment": false
+        },
+        {
+          "seam": {
+            "word": 57591,
+            "seamFromFrame": 3538,
+            "seamToFrame": 3724,
+            "prefixFrame": 3520
+          },
+          "interval": [
+            3603,
+            3617
+          ],
+          "loop": {
+            "marginal": 0.9999999999999716,
+            "phones": [
+              12,
+              32,
+              10,
+              34,
+              30,
+              30
+            ],
+            "fromFrame": 3603,
+            "toFrame": 3617
+          },
+          "observed": "سَرِۦۦ",
+          "fragment": false
+        },
+        {
+          "seam": {
+            "word": 57591,
+            "seamFromFrame": 3538,
+            "seamToFrame": 3724,
+            "prefixFrame": 3520
+          },
+          "interval": [
+            3603,
+            3660
+          ],
+          "loop": {
+            "marginal": 1,
+            "phones": [
+              12,
+              32,
+              10,
+              34,
+              30,
+              30,
+              24
+            ],
+            "fromFrame": 3603,
+            "toFrame": 3624
+          },
+          "observed": "سَرِۦۦم",
+          "fragment": false
+        },
+        {
+          "seam": {
+            "word": 57591,
+            "seamFromFrame": 3538,
+            "seamToFrame": 3724,
+            "prefixFrame": 3520
+          },
+          "interval": [
+            3615,
+            3624
+          ],
+          "loop": {
+            "marginal": 0.9986049439933968,
+            "phones": [
+              30,
+              24,
+              24
+            ],
+            "fromFrame": 3615,
+            "toFrame": 3624
+          },
+          "observed": "ۦمم",
+          "fragment": false
+        },
+        {
+          "seam": {
+            "word": 57591,
+            "seamFromFrame": 3538,
+            "seamToFrame": 3724,
+            "prefixFrame": 3520
+          },
+          "interval": [
+            3615,
+            3660
+          ],
+          "loop": {
+            "marginal": 0.9991030837577833,
+            "phones": [
+              30,
+              24,
+              24
+            ],
+            "fromFrame": 3615,
+            "toFrame": 3624
+          },
+          "observed": "ۦمم",
+          "fragment": false
+        }
+      ]
+    },
+    {
+      "session": "lab-v1.5-p48",
+      "target": "12:76:1",
+      "at": 39.98,
+      "labels": [
+        {
+          "span": "span-1",
+          "errorClass": "added_word",
+          "state": "confirmed",
+          "location": {
+            "surah": 12,
+            "ayah": 76,
+            "word": 1
+          },
+          "startS": 39.975,
+          "endS": 40.575,
+          "forms_other_ayah": false,
+          "expected": "",
+          "observed": "كَذِبٍۢ",
+          "said": "كَذِبڇ",
+          "donor": "12:18:5",
+          "splice": "x2"
+        }
+      ],
+      "sdkWarnings": [],
+      "sdkCalls": 17,
+      "sdkPrimaryIdentical": true,
+      "sdkTrackerIdentical": true,
+      "teacherTopK": 5,
+      "teacherInventory": 42,
+      "windows": [
+        {
+          "pause": {
+            "from": 930,
+            "to": 941
+          },
+          "primaryEntry": 43.88,
+          "primaryWord2": 44.28,
+          "intervals": []
+        },
+        {
+          "pause": {
+            "from": 942,
+            "to": 1002
+          },
+          "primaryEntry": 43.88,
+          "primaryWord2": 44.28,
+          "intervals": []
+        },
+        {
+          "pause": {
+            "from": 1008,
+            "to": 1088
+          },
+          "primaryEntry": 43.88,
+          "primaryWord2": 44.28,
+          "intervals": []
+        }
+      ],
+      "boundedLoops": []
+    },
+    {
+      "session": "lab-v1.5-p56",
+      "target": "32:21:1",
+      "at": 106.76,
+      "labels": [
+        {
+          "span": "span-1",
+          "errorClass": "added_word",
+          "state": "confirmed",
+          "location": {
+            "surah": 32,
+            "ayah": 21,
+            "word": 1
+          },
+          "startS": 106.76,
+          "endS": 109.075,
+          "forms_other_ayah": false,
+          "expected": "",
+          "observed": "طِينٍۢ",
+          "said": "طِۦۦن",
+          "donor": "32:7:10",
+          "splice": "x5"
+        }
+      ],
+      "sdkWarnings": [
+        {
+          "type": "checker",
+          "v": 1,
+          "id": "32:21:1#8",
+          "timeMs": 113840,
+          "state": "confirmed",
+          "errorClass": "added_word",
+          "location": {
+            "surah": 32,
+            "ayah": 21,
+            "word": 1
+          },
+          "expected": "وَلَنُذِۦۦقَننننَهُم",
+          "observed": "قِۦۦۦۦن",
+          "confidence": 0.9999999999999858
+        }
+      ],
+      "sdkCalls": 14,
+      "sdkPrimaryIdentical": true,
+      "sdkTrackerIdentical": true,
+      "teacherTopK": 5,
+      "teacherInventory": 42,
+      "windows": [
+        {
+          "pause": {
+            "from": 2611,
+            "to": 2658
+          },
+          "primaryEntry": 106.8,
+          "primaryWord2": 113.24,
+          "intervals": [
+            {
+              "fromFrame": 2613,
+              "toFrame": 2726,
+              "observed": "ۥۥنقِۦۦۦۦن",
+              "plain": 21.4,
+              "inserted": 9.5,
+              "gain": 11.899999999999999,
+              "margin": 1
+            }
+          ]
+        },
+        {
+          "pause": {
+            "from": 2659,
+            "to": 2669
+          },
+          "primaryEntry": 106.8,
+          "primaryWord2": 113.24,
+          "intervals": [
+            {
+              "fromFrame": 2669,
+              "toFrame": 2726,
+              "observed": "قِۦۦۦۦن",
+              "plain": 20,
+              "inserted": 6.5,
+              "gain": 13.5,
+              "margin": 1.1111111111111112
+            }
+          ]
+        },
+        {
+          "pause": {
+            "from": 2674,
+            "to": 2725
+          },
+          "primaryEntry": 106.8,
+          "primaryWord2": 113.24,
+          "intervals": [
+            {
+              "fromFrame": 2677,
+              "toFrame": 2726,
+              "observed": "ۦۦۦن",
+              "plain": 18,
+              "inserted": 4,
+              "gain": 14,
+              "margin": 1.25
+            }
+          ]
+        },
+        {
+          "pause": {
+            "from": 2726,
+            "to": 2772
+          },
+          "primaryEntry": 106.8,
+          "primaryWord2": 113.24,
+          "intervals": []
+        },
+        {
+          "pause": {
+            "from": 2804,
+            "to": 2815
+          },
+          "primaryEntry": 106.8,
+          "primaryWord2": 113.24,
+          "intervals": []
+        }
+      ],
+      "boundedLoops": [
+        {
+          "seam": {
+            "word": 53618,
+            "seamFromFrame": 2581,
+            "seamToFrame": 2853,
+            "prefixFrame": 2567
+          },
+          "interval": [
+            2613,
+            2726
+          ],
+          "loop": {
+            "marginal": 1,
+            "phones": [
+              21,
+              34,
+              30,
+              30,
+              30,
+              30,
+              25
+            ],
+            "fromFrame": 2669,
+            "toFrame": 2726
+          },
+          "observed": "قِۦۦۦۦن",
+          "fragment": false
+        },
+        {
+          "seam": {
+            "word": 53618,
+            "seamFromFrame": 2581,
+            "seamToFrame": 2853,
+            "prefixFrame": 2567
+          },
+          "interval": [
+            2669,
+            2726
+          ],
+          "loop": {
+            "marginal": 0.9999999999999858,
+            "phones": [
+              21,
+              34,
+              30,
+              30,
+              30,
+              30,
+              25
+            ],
+            "fromFrame": 2669,
+            "toFrame": 2726
+          },
+          "observed": "قِۦۦۦۦن",
+          "fragment": false
+        },
+        {
+          "seam": {
+            "word": 53618,
+            "seamFromFrame": 2581,
+            "seamToFrame": 2853,
+            "prefixFrame": 2567
+          },
+          "interval": [
+            2677,
+            2726
+          ],
+          "loop": {
+            "marginal": 0.9999999900128529,
+            "phones": [
+              30,
+              30,
+              24,
+              25
+            ],
+            "fromFrame": 2677,
+            "toFrame": 2726
+          },
+          "observed": "ۦۦمن",
+          "fragment": false
+        }
+      ]
+    },
+    {
+      "session": "lab-v1.5-p57",
+      "target": "51:18:1",
+      "at": 95.26,
+      "labels": [
+        {
+          "span": "span-1",
+          "errorClass": "added_word",
+          "state": "confirmed",
+          "location": {
+            "surah": 51,
+            "ayah": 18,
+            "word": 1
+          },
+          "startS": 95.26,
+          "endS": 95.78,
+          "forms_other_ayah": false,
+          "expected": "",
+          "observed": "قَبْلُ",
+          "said": "قَبڇل",
+          "donor": "51:46:4",
+          "splice": "x5"
+        }
+      ],
+      "sdkWarnings": [
+        {
+          "type": "checker",
+          "v": 1,
+          "id": "51:18:1#8",
+          "timeMs": 102120,
+          "state": "confirmed",
+          "errorClass": "added_word",
+          "location": {
+            "surah": 51,
+            "ayah": 18,
+            "word": 1
+          },
+          "expected": "وَبِلءَسحَاارِ",
+          "observed": "قبل",
+          "confidence": 0.9999792219500885
+        }
+      ],
+      "sdkCalls": 43,
+      "sdkPrimaryIdentical": true,
+      "sdkTrackerIdentical": true,
+      "teacherTopK": 5,
+      "teacherInventory": 42,
+      "windows": [
+        {
+          "pause": {
+            "from": 2311,
+            "to": 2364
+          },
+          "primaryEntry": 95.36,
+          "primaryWord2": 98.44,
+          "intervals": [
+            {
+              "fromFrame": 2313,
+              "toFrame": 2394,
+              "observed": "ۥۥنقبل",
+              "plain": 17,
+              "inserted": 6,
+              "gain": 11,
+              "margin": 1.3636363636363635
+            }
+          ]
+        },
+        {
+          "pause": {
+            "from": 2365,
+            "to": 2383
+          },
+          "primaryEntry": 95.36,
+          "primaryWord2": 98.44,
+          "intervals": []
+        },
+        {
+          "pause": {
+            "from": 2395,
+            "to": 2422
+          },
+          "primaryEntry": 95.36,
+          "primaryWord2": 98.44,
+          "intervals": []
+        },
+        {
+          "pause": {
+            "from": 2311,
+            "to": 2364
+          },
+          "primaryEntry": 97.2,
+          "primaryWord2": 98.44,
+          "intervals": [
+            {
+              "fromFrame": 2313,
+              "toFrame": 2394,
+              "observed": "ۥۥنقبل",
+              "plain": 17,
+              "inserted": 6,
+              "gain": 11,
+              "margin": 1.3636363636363635
+            }
+          ]
+        },
+        {
+          "pause": {
+            "from": 2365,
+            "to": 2383
+          },
+          "primaryEntry": 97.2,
+          "primaryWord2": 98.44,
+          "intervals": []
+        },
+        {
+          "pause": {
+            "from": 2395,
+            "to": 2422
+          },
+          "primaryEntry": 97.2,
+          "primaryWord2": 98.44,
+          "intervals": []
+        }
+      ],
+      "boundedLoops": [
+        {
+          "seam": {
+            "word": 67236,
+            "seamFromFrame": 2286,
+            "seamToFrame": 2466,
+            "prefixFrame": 2277
+          },
+          "interval": [
+            2313,
+            2394
+          ],
+          "loop": {
+            "marginal": 0.9999792219500885,
+            "phones": [
+              21,
+              2,
+              23
+            ],
+            "fromFrame": 2382,
+            "toFrame": 2394
+          },
+          "observed": "قبل",
+          "fragment": false
+        },
+        {
+          "seam": {
+            "word": 67236,
+            "seamFromFrame": 2286,
+            "seamToFrame": 2466,
+            "prefixFrame": 2277
+          },
+          "interval": [
+            2313,
+            2394
+          ],
+          "loop": {
+            "marginal": 0.9999792219500885,
+            "phones": [
+              21,
+              2,
+              23
+            ],
+            "fromFrame": 2382,
+            "toFrame": 2394
+          },
+          "observed": "قبل",
+          "fragment": false
+        }
+      ]
+    },
+    {
+      "session": "lab-v1.5-p57",
+      "target": "51:20:1",
+      "at": 112.26,
+      "labels": [
+        {
+          "span": "span-1",
+          "errorClass": "added_word",
+          "state": "confirmed",
+          "location": {
+            "surah": 51,
+            "ayah": 20,
+            "word": 1
+          },
+          "startS": 112.26,
+          "endS": 112.78,
+          "forms_other_ayah": false,
+          "expected": "",
+          "observed": "قَبْلُ",
+          "said": "قَبڇل",
+          "donor": "51:46:4",
+          "splice": "x6"
+        }
+      ],
+      "sdkWarnings": [],
+      "sdkCalls": 43,
+      "sdkPrimaryIdentical": true,
+      "sdkTrackerIdentical": true,
+      "teacherTopK": 5,
+      "teacherInventory": 42,
+      "windows": [
+        {
+          "pause": {
+            "from": 2682,
+            "to": 2715
+          },
+          "primaryEntry": 112.32,
+          "primaryWord2": 112.76,
+          "intervals": []
+        },
+        {
+          "pause": {
+            "from": 2754,
+            "to": 2792
+          },
+          "primaryEntry": 112.32,
+          "primaryWord2": 112.76,
+          "intervals": []
+        },
+        {
+          "pause": {
+            "from": 2793,
+            "to": 2807
+          },
+          "primaryEntry": 112.32,
+          "primaryWord2": 112.76,
+          "intervals": []
+        },
+        {
+          "pause": {
+            "from": 2682,
+            "to": 2715
+          },
+          "primaryEntry": 114.48,
+          "primaryWord2": 114.56,
+          "intervals": []
+        },
+        {
+          "pause": {
+            "from": 2754,
+            "to": 2792
+          },
+          "primaryEntry": 114.48,
+          "primaryWord2": 114.56,
+          "intervals": []
+        },
+        {
+          "pause": {
+            "from": 2793,
+            "to": 2807
+          },
+          "primaryEntry": 114.48,
+          "primaryWord2": 114.56,
+          "intervals": []
+        },
+        {
+          "pause": {
+            "from": 2819,
+            "to": 2853
+          },
+          "primaryEntry": 114.48,
+          "primaryWord2": 114.56,
+          "intervals": []
+        }
+      ],
+      "boundedLoops": []
+    },
+    {
+      "session": "lab-v1.5-p33",
+      "target": "26:208:1",
+      "at": 156.16,
+      "labels": [
+        {
+          "span": "span-1",
+          "errorClass": "added_word",
+          "state": "confirmed",
+          "location": {
+            "surah": 26,
+            "ayah": 208,
+            "word": 1
+          },
+          "startS": 156.16,
+          "endS": 156.945,
+          "forms_other_ayah": false,
+          "expected": "",
+          "observed": "كَرِيمٍ",
+          "said": "كَرِۦۦم",
+          "donor": "26:7:11",
+          "splice": "x10"
+        }
+      ],
+      "sdkWarnings": [],
+      "sdkCalls": 47,
+      "sdkPrimaryIdentical": true,
+      "sdkTrackerIdentical": true,
+      "teacherTopK": 5,
+      "teacherInventory": 42,
+      "windows": [
+        {
+          "pause": {
+            "from": 3924,
+            "to": 3939
+          },
+          "primaryEntry": 156.2,
+          "primaryWord2": 158.12,
+          "intervals": []
+        }
+      ],
+      "boundedLoops": []
+    }
+  ]
+}
