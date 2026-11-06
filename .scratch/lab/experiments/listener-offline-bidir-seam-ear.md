@@ -1,6 +1,6 @@
 # Full bidirectional student seam ear
 
-Status: implementing; acoustic premise not yet measured. The experiment card is unchanged.
+Status: acoustic premise and target-warning checks passed; practice scoring requested. The experiment card is unchanged.
 
 ## Prediction and mechanism
 
@@ -40,9 +40,101 @@ or enforcement was changed. A subsequent diagnostic invocation in shard 0
 failed because ignored analysis files were omitted from the source snapshot;
 that failure did not occur in either test suite.
 
-Pending: checkpoint compatibility, crop label tests, distant-right-context
-test, full-context training, dynamic-length export parity, and six-target
-greedy consonant census. Fewer than three targets with two planted consonants
-in order kills the acoustic premise without practice scoring. If the model
-passes that census, complete SDK integration and test the actual warnings
-before practice scoring.
+Run 3 passed all four Python tests, including the distant-future perturbation
+check. It trained 2,400 updates on 12,762 gold-excluded clean-match recordings
+(30.0025 hours), with 53,844 eligible natural gap starts. The original full
+student supplied 669 compatible state entries. The symmetric convolutions
+needed 64 new entries; the 160 streaming convolution entries were not loaded.
+CTC fell from 0.702 at update 20 to 0.171 at update 2,400; KD fell from 1.445
+to 0.437. These are training losses, not engine scores.
+
+Run 12 evaluated 512 held-out real crops: 2,871 edits / 13,583 reference phones
+= 21.14% PER. This is a crop diagnostic with incomplete edge phones excluded
+from the reference, not release PER or a practice wrong-call score.
+
+Run 14 exported the same checkpoint at 69,361,638 bytes, SHA-256
+`9f3ca5df47543a825b182a13941c192452790441d3e1e0efcd23d728c5afb56d`.
+Native/fp32 ONNX parity passed at 200, 201, 202, 397, 401, 515, 738, 801 and
+914 fbank frames, covering different subsampling remainders and a span longer
+than the training crops. Maximum fp32 log-probability error was below 1e-5;
+random-input int8 argmax agreement was 100%. Native/int8 target-crop agreement
+ranged from 97.46% to 100%.
+
+Run 13 discovered the crops from primary evidence and tracker events. Holds
+across silence do not break a seam, and a revisit of word 1 before word 2
+retains the original seam entry. Tests cover both, skips and relocations. All
+six targets have a span that covers their planted interval. Labels select
+and report cases only; they never set the engine's crop bounds.
+
+The run-14 int8 census found two planted consonants in order inside four of
+six insertions, exceeding the kill threshold of three. Counting the entire
+crop would claim five: the second 51:20 target borrows its qaf from outside
+the planted interval, so that does not establish recovery.
+
+| Target | Best decode inside the planted interval | Ordered planted consonants |
+|---|---|---:|
+| p07 37:36:1 | سَلِۦۦم | 3 |
+| p48 12:76:1 | َ | 0 |
+| p55 26:193:1 | قَلِۦۦلُ | 3 |
+| p56 32:21:1 | طِۦۦۦۦن | 2 |
+| p57 51:18:1 | قَبڇل | 3 |
+| p57 51:20:1 | َبڇ | 1 |
+
+This is evidence that the trained full-context copy can recover acoustic
+material at these sites; it does not prove right context is the only cause,
+that every recovered string is a whole lexical word, or that clean seams
+will stay quiet. No checkpoint or training constant was chosen against these
+results.
+
+The runtime declares the int8 ear separately in the SDK registry. The normal
+Node loader loads it lazily beside the caller's unchanged primary model. It retains the whole crop and checks its prefixes longest first for a whole
+word under the folded spelling costs. CTC blanks inside held vowels do not
+split these candidates, and internal substrings are never enumerated. Tokens
+travel as `seamSpellings` metadata, survive JSON serialization, and enter only
+the folded lexical surplus exclusions and confidence check. The existing
+phrase costs also reject a prefix belonging to a complete non-Quran formula
+in the same crop.
+Primary tokens and posterior arrays are preserved. Live audio supplies its
+original tracker events for crop bounds. Like the existing auxiliary teacher
+path, secondary warnings are delivered by session `end()`; their evidence
+time is the seam's word-two step plus 300 ms.
+
+Run 19 verified JSON-preserved primary evidence, tracker positions and all
+non-addition checker events. Its initial utterance-segmentation implementation
+produced two new target warnings (p07 and 51:18). The per-frame baseline replay
+already reports p55, so that is not an additional win in this diagnostic.
+The implementation incorrectly split p56's recovered طين at a long CTC blank
+run inside the word. That extra condition was not the folded spelling rule;
+it was removed. The complete secondary crop now supplies longest-first whole
+prefixes to the same lexical and phrase exclusions. No training, model or
+numeric decision constant changed after the census.
+
+Runs 18 and 20 together passed all 756 existing core tests, three added core
+tests, and all 35 SDK tests, with one optional SDK skip. Run 18's two new-test
+failures were fixture/assertion defects fixed in run 20; its documented
+Vitest RPC timeout occurred only after every test in that shard passed.
+Run 22 passed the four revised core regression tests and all 35 SDK tests.
+Together with the existing-core checks, that is 760 core and 35 SDK tests
+passed, with one optional SDK skip. The serialized replay again preserved
+primary evidence, all tracker events and every non-addition checker event.
+It generated four new target-location/class matches: p07's سليم, p56's طين,
+51:18's قبل, and a fragile 51:20 match whose observed phones are ممَ rather
+than the planted قبل. Three warnings therefore have the recovered planted
+word shape. The fourth does not establish the acoustic premise at that site
+and must be judged by the practice gate, together with warnings elsewhere.
+
+The scoring bundle is `offline-bundle` in this experiment's persistent
+scratch. Its primary `model.onnx` and `manifest.json` are byte-for-byte copies
+of the supplied spliced-clean-int8 export. `offline-student.onnx` is the
+separate declared ear. The baseline teacher was regenerated with the unchanged
+`student_teacher_export.py`: its 2,422,885,632-byte parameter file has the
+baseline SHA-256 `d3f24efba836219f0c556ad25e3a1046f9caf36b2ed639cd283f795c78da58b4`.
+The regenerated graph has different serialization bytes (10,559,071 bytes,
+SHA-256 `6b8d451823dbbd0a42411a36ce10ad26e5013b170999296c40a3715b5ac67220`).
+Run 23 checked it against the same native fp32 teacher at 121, 300 and 401
+feature frames: maximum log-probability error 5.34e-5 and 100% argmax agreement.
+The existing teacher registry entry, weights, decoding and gate code are
+unchanged. No supplied manifest was edited.
+
+Pending: first practice score. No practice numbers or fold verdict are yet
+available.
