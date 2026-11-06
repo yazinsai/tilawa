@@ -11,6 +11,7 @@ import type { OrtModule } from "./ort.js";
 import { ortBackend } from "./ort.js";
 import { decodeWav } from "./wav.js";
 import { createInsertionTeacher } from "./insertion-teacher.js";
+import { createOfflineStudent } from "./offline-student.js";
 
 export * from "./index.js";
 export { decodeWav };
@@ -22,7 +23,25 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachOfflineStudent(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads),dir,options.threads);
+}
+
+async function attachOfflineStudent(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
+  const asset = MODEL_REGISTRY.auxiliary?.find(a => a.purpose === "offline-seam-spelling");
+  if (!asset || !await access(join(dir,asset.file)).then(() => true,
+    e => { if (e.code === "ENOENT") return false; throw e; })) return model;
+  if (asset.inventory !== model.manifest.inventory) throw new Error("Offline student inventory differs from primary model");
+  let ear: Promise<ReturnType<typeof createOfflineStudent>> | undefined;
+  let auxiliary: import("./model.js").InferenceBackend | undefined;
+  const release = model.backend.release.bind(model.backend);
+  model.backend.release = async () => { if (ear) await ear; await auxiliary?.release(); await release(); };
+  model.offlineStudent = { async decode(samples,k) {
+    ear ??= ortBackend(ort as unknown as OrtModule,join(dir,asset.file),"onnxruntime-node", {
+      executionProviders:["cpu"],intraOpNumThreads:threads,
+    }).then(b => { auxiliary=b; return createOfflineStudent(b,model.manifest.tokens,model.manifest.inventory); });
+    return (await ear).decode(samples,k);
+  } };
+  return model;
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +106,7 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  const dir = join(o.cacheDir, `${tier.id}@${tier.version}`);
+  return attachOfflineStudent(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
+    dir, o.threads),dir,o.threads);
 }

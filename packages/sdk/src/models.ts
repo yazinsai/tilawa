@@ -25,7 +25,7 @@ export interface ModelRegistry {
   schema: 1;
   tiers: ModelTier[];
   auxiliary?: {
-    id: string; purpose: "seam-insertion"; precision: "float32"; inventory: string;
+    id: string; purpose: "seam-insertion" | "offline-seam-spelling"; precision: "float32" | "int8"; inventory: string;
     file: string; bytes: number; sha256: string;
     externalData: { file: string; bytes: number; sha256: string }[];
   }[];

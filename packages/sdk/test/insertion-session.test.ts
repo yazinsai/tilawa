@@ -12,10 +12,20 @@ vi.mock("@tilawa/core", async original => ({
   createChecker: () => {
     const found: CheckerEvent[] = [];
     return { push(e: PhonemeEvidence) {
-      if (e.phonemes.some(p => p.seamInsertions?.length)) found.push({ type: "checker", state: "confirmed", errorClass: "added_word",
+      if (e.phonemes.some(p => p.seamInsertions?.length || p.seamSpellings?.length)) found.push({ type: "checker", state: "confirmed", errorClass: "added_word",
         location: { surah: 1, ayah: 2, word: 1 }, observed: "بت" } as CheckerEvent);
       return [];
     }, end: () => [], mistakes: () => found };
+  },
+}));
+vi.mock("../src/offline-seams.js", () => ({
+  addOfflineEvidence: async (model:LoadedModel,audio:Float32Array,chunks:PhonemeEvidence[]) => {
+    fixtures.audio=Array.from(audio);
+    if (!model.offlineStudent) return chunks;
+    return chunks.map(e => ({...e,phonemes:e.phonemes.map(p => ({...p,seamSpellings:[{
+      word:{surah:1,ayah:2,word:1},toFrame:2,
+      phonemes:[{p:"ب",start:0,end:0,conf:1},{p:"ت",start:1,end:1,conf:1}],
+    }]}))}));
   },
 }));
 vi.mock("../src/seam-insertion.js", async original => ({
@@ -35,17 +45,23 @@ describe("auxiliary seam session completion", () => {
       posteriors: { startFrame: 0, nFrames: 2, k: 1, ids: [1,0], probs: [1,1] } }];
     const index = { inventoryId: "test", version: "test", words: [], tokens: new Set("بت") } as unknown as ReferenceIndex;
     const model = { manifest: { inventory: "test", id: "test", frameMs: 40, sampleRate: 16000 }, supported: ["added_word"] } as unknown as LoadedModel;
-    const run = async (teacher: boolean) => {
-      const session = createEngine({ reference: index, model: { ...model, ...(teacher && { insertionTeacher: { decode: vi.fn() } }) } }).startFreeRecitation();
+    const run = async (auxiliary?: "teacher" | "offline") => {
+      const session = createEngine({ reference: index, model: { ...model,
+        ...(auxiliary === "teacher" && { insertionTeacher: { decode: vi.fn() } }),
+        ...(auxiliary === "offline" && { offlineStudent: { decode: vi.fn() } }),
+      } }).startFreeRecitation();
       await session.pushAudio(new Float32Array([.25,.5]), 16000);
       const events = await session.end();
       return { session, events };
     };
-    const baseline = await run(false), judged = await run(true);
+    const baseline = await run();
+    for (const auxiliary of ["teacher","offline"] as const) {
+    const judged = await run(auxiliary);
     expect(fixtures.audio).toEqual([.25,.5]);
     expect(judged.events.filter(e => e.type !== "checker")).toEqual(baseline.events);
     expect(judged.session.mistakes()).toMatchObject([{ state: "confirmed", errorClass: "added_word" }]);
     expect(judged.events).toContainEqual(judged.session.mistakes()[0]);
     expect(judged.session.evidence()).toEqual([]);
+    }
   });
 });

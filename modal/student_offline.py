@@ -220,7 +220,9 @@ def export(run, dest):
         op_types_to_quantize=["MatMul","Gemm"])
     sessions = [ort.InferenceSession(str(dest/f), providers=["CPUExecutionProvider"]) for f in ("fp32.onnx","model.onnx")]
     parity=[]
-    for n in (201,401,801):
+    # Exercise different subsampling/padding residues, not only lengths that
+    # share the trace input's remainder. Seams may also exceed eight seconds.
+    for n in (200,201,202,397,401,515,738,801,914):
         x = torch.randn(1,n,80); lens=torch.tensor([n])
         with torch.no_grad(): lp, lengths = model(x,lens)
         out = [s.run(None, {"x":x.numpy(),"x_lens":lens.numpy()}) for s in sessions]

@@ -6,7 +6,8 @@ const mock = vi.hoisted(() => ({ events: [] as unknown[] }));
 vi.mock("@tilawa/core", async original => ({ ...await original<typeof import("@tilawa/core")>(),
   createTracker: () => ({ push: () => mock.events.splice(0), end: () => [] }),
 }));
-import { offlineSeams } from "../src/offline-seams.js";
+import { addOfflineEvidence, offlineSeams } from "../src/offline-seams.js";
+import type { LoadedModel } from "../src/model.js";
 
 const index = loadReferenceIndex({ version: "test", text: "test", profile: {},
   inventory: { id: "test", tokens: "بتثجدحخز" }, ayahs: [
@@ -38,6 +39,11 @@ it("keeps a pause span across a held primary position", () => {
   expect(offlineSeams(evidence,index)).toEqual([{word:2,fromFrame:12,toFrame:68}]);
 });
 
+it("uses supplied live tracker steps without acquiring a second position", () => {
+  mock.events=[];
+  expect(offlineSeams(evidence,index,undefined,steps)).toEqual([{word:2,fromFrame:12,toFrame:68}]);
+});
+
 it("retains the seam entry when word one is revisited before word two", () => {
   mock.events = [steps[0], steps[1], steps[2], { ...steps[1], timeMs: 1600 },
     { ...steps[2], timeMs: 1800 }, steps[3]];
@@ -49,4 +55,22 @@ it("does not call unblank speech a pause or use evidence with no rows", () => {
   for (let f=12; f<31; f++) (speech[0].posteriors!.ids as number[])[f]=1;
   expect(offlineSeams(speech,index)).toEqual([]);
   expect(offlineSeams(evidence.map(({posteriors:_,...e})=>e),index)).toEqual([]);
+});
+
+it("keeps whole secondary utterances as metadata with primary tokens and rows intact", async () => {
+  const original=structuredClone(evidence);
+  const decode=vi.fn(async () => ({inventory:"test",frameMs:40,
+    phonemes:[{p:"ب",start:1,end:1,conf:1},{p:"ت",start:2,end:2,conf:1},{p:"د",start:20,end:20,conf:1}],
+    posteriors:{startFrame:0,nFrames:50,k:1,ids:Array.from({length:50},(_,f) => f===1?1:f===2?2:f===20?5:0),probs:Array(50).fill(1)}}));
+  const model={manifest:{sampleRate:16000},offlineStudent:{decode}} as unknown as LoadedModel;
+  const audio=new Float32Array(50000);
+  const enriched=await addOfflineEvidence(model,audio,evidence,index);
+  expect(decode).toHaveBeenCalledOnce();
+  expect(decode.mock.calls[0][0]).toHaveLength((68-12)*640);
+  expect(enriched[0].phonemes[0].seamSpellings).toMatchObject([
+    {word:{surah:1,ayah:2,word:1},toFrame:68,phonemes:[{p:"ب",start:13},{p:"ت",start:14}]},
+    {phonemes:[{p:"د",start:32}]}]);
+  expect(enriched[0].posteriors).toBe(evidence[0].posteriors);
+  expect(evidence).toEqual(original);
+  expect(enriched[0].phonemes.map(({seamSpellings:_,...p}) => p)).toEqual(original[0].phonemes);
 });

@@ -1,6 +1,7 @@
 import { createTracker, minGapFrames, PosteriorFrames, trackerInput, waqfMarked } from "@tilawa/core";
-import type { PhonemeEvidence, PhraseAsset, ReferenceIndex } from "@tilawa/core";
+import type { DecodedPhoneme, EngineEvent, PhonemeEvidence, PhraseAsset, ReferenceIndex, SeamSpellingEvidence } from "@tilawa/core";
 import { insertionCells } from "./seam-insertion.js";
+import type { LoadedModel } from "./model.js";
 
 export interface OfflineSeam {
   /** First written word after the ayah/inner-waqf boundary. */
@@ -11,10 +12,9 @@ export interface OfflineSeam {
 
 /** Label pauses on primary evidence and bound secondary crops with primary
  * tracker steps. No greedy word-fit or auxiliary phones choose these spans. */
-export function offlineSeams(chunks: PhonemeEvidence[], index: ReferenceIndex, phrases?: PhraseAsset): OfflineSeam[] {
-  const cells = insertionCells(chunks);
-  if (!cells.length) return [];
-  const clock = cells[0].frameMs;
+function labelledPauses(chunks: PhonemeEvidence[], index: ReferenceIndex): number[] {
+  if (!chunks.length || chunks.some(c => !c.posteriors)) return [];
+  const clock = chunks[0].frameMs;
   const frames = new PosteriorFrames(index.tokens.size);
   for (const e of chunks) if (e.posteriors) frames.append(e.posteriors);
   const phones = chunks.flatMap(c => c.phonemes);
@@ -36,11 +36,17 @@ export function offlineSeams(chunks: PhonemeEvidence[], index: ReferenceIndex, p
     for (let f = a; f < b; f++) if (frames.row(f)[0] < Math.log(.5)) { blank = false; break; }
     if (blank) pauses.push(a);
   }
+  return pauses;
+}
+
+export function offlineSeams(chunks: PhonemeEvidence[], index: ReferenceIndex, phrases?: PhraseAsset, positions?: EngineEvent[]): OfflineSeam[] {
+  const cells = insertionCells(chunks);
+  if (!cells.length) return [];
+  const clock = cells[0].frameMs, pauses = labelledPauses(chunks,index);
   const lookup = new Map(index.words.map((w, i) => [`${w.surah}:${w.ayah}:${w.word}`, i]));
   const steps: { word: number; frame: number; run: number }[] = [];
-  const tracker = createTracker(index, { mode: "free", phrases });
   let run = 0;
-  const note = (events: ReturnType<typeof tracker.push>) => {
+  const note = (events: EngineEvent[]) => {
     for (const e of events) {
       if (e.type !== "position") continue;
       if (e.state !== "locked" || e.relocated) { run++; continue; }
@@ -52,8 +58,12 @@ export function offlineSeams(chunks: PhonemeEvidence[], index: ReferenceIndex, p
         steps.push({ word: wi, frame: Math.round(e.timeMs / clock), run });
     }
   };
-  for (const c of cells) note(tracker.push(trackerInput(c)));
-  note(tracker.end());
+  if (positions) note(positions);
+  else {
+    const tracker = createTracker(index, { mode: "free", phrases });
+    for (const c of cells) note(tracker.push(trackerInput(c)));
+    note(tracker.end());
+  }
   const nextWord = (wi: number) => { do { wi++; } while (wi < index.words.length && index.words[wi].end === index.words[wi].start); return wi; };
   const out: OfflineSeam[] = [];
   for (let i = 1; i + 1 < steps.length; i++) {
@@ -75,4 +85,38 @@ export function offlineSeams(chunks: PhonemeEvidence[], index: ReferenceIndex, p
       out.push({ word: one.word, fromFrame: pause, toFrame: two.frame + Math.round(300 / clock) });
   }
   return out;
+}
+
+/** Keep whole utterances from the secondary crop as spelling evidence only.
+ * Primary token values, posterior rows and tracker inputs remain intact. */
+export async function addOfflineEvidence(model: LoadedModel, audio: Float32Array, chunks: PhonemeEvidence[],
+  index: ReferenceIndex, phrases?: PhraseAsset, positions?: EngineEvent[]): Promise<PhonemeEvidence[]> {
+  if (!model.offlineStudent || !audio.length) return chunks;
+  if (model.manifest.sampleRate !== 16000 || chunks[0]?.frameMs !== 40)
+    throw new Error("Offline student requires the 16 kHz / 40 ms evidence clock");
+  const metadata: SeamSpellingEvidence[] = [];
+  for (const span of offlineSeams(chunks,index,phrases,positions)) {
+    const offset = span.fromFrame * 640, limit = Math.min(audio.length,span.toFrame * 640);
+    if (limit <= offset) continue;
+    const e: PhonemeEvidence = await model.offlineStudent.decode(audio.subarray(offset,limit),index.tokens.size+1);
+    if (e.inventory !== index.inventoryId || e.frameMs !== chunks[0].frameMs || !e.posteriors)
+      throw new Error("Offline student clock or inventory differs from primary evidence");
+    const pauses = labelledPauses([e],index);
+    const w = index.words[span.word];
+    let utterance: DecodedPhoneme[] = [];
+    const save = () => {
+      if (utterance.length) metadata.push({ word:{surah:w.surah,ayah:w.ayah,word:w.word}, toFrame:span.toFrame,
+        phonemes:utterance.map(p => ({...p,start:p.start+span.fromFrame,end:p.end+span.fromFrame})) });
+      utterance = [];
+    };
+    for (const p of e.phonemes) {
+      if (utterance.length && pauses.some(f => f > utterance.at(-1)!.end && f < p.start)) save();
+      utterance.push(p);
+    }
+    save();
+  }
+  if (!metadata.length) return chunks;
+  const at = chunks.findIndex(c => c.phonemes.length);
+  return chunks.map((c,i) => i !== at ? c : { ...c, phonemes:c.phonemes.map((p,j) => j ? p :
+    {...p,seamSpellings:[...(p.seamSpellings ?? []),...metadata]}) });
 }

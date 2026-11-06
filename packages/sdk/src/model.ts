@@ -49,4 +49,6 @@ export interface LoadedModel {
   supported: ErrorClass[];
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
+  /** Stateless full-context student, consulted only at primary tracker seams. */
+  offlineStudent?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
 }

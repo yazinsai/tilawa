@@ -13,6 +13,7 @@ import type {
 import { Resampler } from "./audio.js";
 import { capabilities } from "./capabilities.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
+import { addOfflineEvidence } from "./offline-seams.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
 import { createListener } from "./listener.js";
 import type { ListenerOptions } from "./listener.js";
@@ -104,7 +105,9 @@ export function createEngine(options: EngineOptions): Engine {
     const listener = createListener(model, { posteriors: true, ...options.listener });
     const wordIndex = new Map(index.words.map((w, i) => [`${w.surah}:${w.ayah}:${w.word}`, i]));
     const locks: { wi: number; timeMs: number }[] = [];
+    const primaryPositions: EngineEvent[] = [];
     const noteLocks = (events: EngineEvent[]) => {
+      if (model.offlineStudent) primaryPositions.push(...events);
       for (const ev of events) {
         if (ev.type !== "position" || ev.state !== "locked" || !ev.expected) continue;
         const wi = wordIndex.get(`${ev.expected.surah}:${ev.expected.ayah}:${ev.expected.word}`);
@@ -115,7 +118,7 @@ export function createEngine(options: EngineOptions): Engine {
     const pcmParts: Float32Array[] = [];
     let pcmResampler: Resampler | null = null;
     const keepAudio = (samples: Float32Array, sampleRate: number) => {
-      if (!options.recordEvidence && !model.insertionTeacher) return;
+      if (!options.recordEvidence && !model.insertionTeacher && !model.offlineStudent) return;
       let pcm = samples;
       if (sampleRate !== rate) {
         if (!pcmResampler || pcmResampler.from !== sampleRate) pcmResampler = new Resampler(sampleRate, rate);
@@ -134,7 +137,7 @@ export function createEngine(options: EngineOptions): Engine {
     const cells = evidenceGrid(policy.evidenceMs ?? model.manifest.frameMs);
     const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
-      if (options.recordEvidence || model.insertionTeacher) recorded.push(e);
+      if (options.recordEvidence || model.insertionTeacher || model.offlineStudent) recorded.push(e);
       // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
       const out = tracker.push(trackerInput(e));
       noteLocks(out);
@@ -176,7 +179,7 @@ export function createEngine(options: EngineOptions): Engine {
           const e = await listener.end();
           if (e) cells.add(e);
           const events = [...feed(cells.rest()), ...finish()];
-          if ((options.recordEvidence || model.insertionTeacher) && pcmParts.length) {
+          if ((options.recordEvidence || model.insertionTeacher || model.offlineStudent) && pcmParts.length) {
             const n = pcmParts.reduce((s, p) => s + p.length, 0);
             const audio = new Float32Array(n);
             let o = 0;
@@ -186,9 +189,10 @@ export function createEngine(options: EngineOptions): Engine {
             }
             const spliced = options.recordEvidence && locks.length > 1
               ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const judged = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const enriched = await addOfflineEvidence(model, audio, judged, index, phrases, primaryPositions);
             recorded.splice(0, recorded.length, ...enriched);
-            if (model.insertionTeacher) {
+            if (model.insertionTeacher || model.offlineStudent) {
               // Auxiliary replay cannot replace primary events or change the live tracker.
               // Only newly certified seam additions are published at end().
               const reviewTracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
@@ -198,10 +202,13 @@ export function createEngine(options: EngineOptions): Engine {
               const known = new Set(checker.mistakes().filter(e => e.errorClass === "added_word")
                 .map(e => JSON.stringify(e.location)));
               const certificates = enriched.flatMap(e => e.phonemes.flatMap(p => p.seamInsertions ?? []));
+              const spellings = enriched.flatMap(e => e.phonemes.flatMap(p => p.seamSpellings ?? []));
               for (const e of review.mistakes()) {
                 if (e.errorClass !== "added_word" || known.has(JSON.stringify(e.location)) ||
-                  !certificates.some(c => c.marginal > 0.5 && c.observed === e.observed &&
-                    c.word.surah === e.location.surah && c.word.ayah === e.location.ayah && c.word.word === e.location.word)) continue;
+                  !(certificates.some(c => c.marginal > 0.5 && c.observed === e.observed &&
+                    c.word.surah === e.location.surah && c.word.ayah === e.location.ayah && c.word.word === e.location.word) ||
+                    spellings.some(c => c.word.surah === e.location.surah && c.word.ayah === e.location.ayah &&
+                      c.word.word === e.location.word && !!e.observed && c.phonemes.map(p => p.p).join("").includes(e.observed)))) continue;
                 auxiliaryMistakes.push(e);
                 known.add(JSON.stringify(e.location));
               }

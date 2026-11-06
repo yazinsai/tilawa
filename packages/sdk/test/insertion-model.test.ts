@@ -59,3 +59,26 @@ describe("Node insertion teacher loading", () => {
     await expect(loadNodeModel("/models/caller")).rejects.toBe(denied);
   });
 });
+
+it("loads the declared offline ear lazily without changing or running the primary backend",async () => {
+  mocks.access.mockImplementation(async (path:string) => {
+    if(path.endsWith("teacher.onnx")) throw Object.assign(new Error("absent"),{code:"ENOENT"});
+  });
+  const primary={name:"primary",run:vi.fn(),release:vi.fn()};
+  const offline={name:"offline",release:vi.fn(),run:vi.fn().mockResolvedValue({
+    log_probs:{type:"float32",data:Float32Array.from([.01,.98,.01],Math.log),dims:[1,1,3]},
+    out_lens:{type:"int64",data:BigInt64Array.of(1n),dims:[1]},
+  })};
+  mocks.ortBackend.mockResolvedValueOnce(primary).mockResolvedValueOnce(offline);
+  const model=await loadNodeModel("/models/caller",{threads:2});
+  expect(model.backend).toBe(primary);
+  expect(mocks.ortBackend).toHaveBeenCalledTimes(1);
+  await model.offlineStudent!.decode(new Float32Array(16000),3);
+  await model.offlineStudent!.decode(new Float32Array(32000),3);
+  expect(mocks.ortBackend.mock.calls[1][1]).toBe("/models/caller/offline-student.onnx");
+  expect(offline.run).toHaveBeenCalledTimes(2);
+  expect(primary.run).not.toHaveBeenCalled();
+  await model.backend.release();
+  expect(offline.release).toHaveBeenCalledOnce();
+  expect(primary.release).toHaveBeenCalledOnce();
+});

@@ -1,7 +1,7 @@
 import { align as editPath } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
-import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
+import type { DecodedPhoneme, PhonemeEvidence, SeamSpellingEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import { channelFromCounts, spanLogP, type Channel, type ChannelCounts } from "./noisy-channel.js";
@@ -218,6 +218,8 @@ interface Issue {
    * posterior support margin: the span is not needed to read the text.
    */
   lexicon?: boolean;
+  /** Secondary phones supply clarity only for their own spelled addition. */
+  auxiliaryPhones?: DecodedPhoneme[];
   /**
    * A word-final long vowel before a hamza, judged by its duration against this reciter's earlier madd
    * munfasil. The forward sum prices one vowel as nothing, so the length is the whole decision.
@@ -441,6 +443,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   /** Words whose error was confirmed or ended uncertain; never reopened. */
   const decided = new Set<number>();
   const emitted: CheckerEvent[] = [];
+  const seamSpellings: SeamSpellingEvidence[] = [];
   let seq = 0;
 
   const event = (o: Open, state: CheckerState): CheckerEvent => {
@@ -464,6 +467,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   /** Mean decoder confidence over an error's phonemes; for an omission, the phonemes either side of the gap. */
   const clarity = (issue: Issue): number => {
+    if (issue.auxiliaryPhones) return issue.auxiliaryPhones.reduce((s,p) => s+p.conf,0) / issue.auxiliaryPhones.length;
     const from = Math.max(0, Math.min(issue.obsFrom, obs.length - 1));
     const to = Math.min(obs.length, Math.max(issue.obsTo, from + 1));
     const span = issue.cls === "omitted_word" || issue.cls === "skipped_passage" ? obs.slice(Math.max(0, from - 3), to + 3) : obs.slice(from, to);
@@ -555,6 +559,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     while (b > a && waqfEdge.has(s[b - 1]!)) b--;
     return s.slice(a, b);
   };
+  const phraseSpan = (s: string) => phrases.some((p) => {
+    if (Math.abs(p.length - s.length) > Math.ceil(p.length * 0.6) + 4) return false;
+    const hit = alignSubstring(s, 0, s.length, p, () => true);
+    return !!hit && hit.start === 0 && hit.end >= s.length - 1 && hit.cost / UNIT / p.length <= PHRASE_MAX_COST;
+  });
   /** The heard word with phrase-labelled pauses removed and waqf tails stripped. */
   const heardSpan = (issue: Issue): string => {
     const from = Math.max(0, issue.obsFrom);
@@ -1771,11 +1780,6 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     // An added word at an ayah start sits in the greedy phones before word 1, after both seam words already
     // have a complete in-order visit. Pauses and waqf tails are not part of that word. Neighbours, their
     // prefixes and non-Quran phrases are not an addition.
-    const phraseSpan = (s: string) => phrases.some((p) => {
-      if (Math.abs(p.length - s.length) > Math.ceil(p.length * 0.6) + 4) return false;
-      const hit = alignSubstring(s, 0, s.length, p, () => true);
-      return !!hit && hit.start === 0 && hit.end >= s.length - 1 && hit.cost / UNIT / p.length <= PHRASE_MAX_COST;
-    });
     for (const w1 of new Set(visits.map((v) => v.word))) {
       if (w1 < first || words[w1].end === words[w1].start || ayahFirst[ayahOf[w1]] !== w1) continue;
       const prev = prevWord(w1);
@@ -2457,6 +2461,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const m of p.seamSpellings ?? []) {
+        if (Number.isInteger(m.toFrame) && m.phonemes.length && m.phonemes.every(p =>
+          index.tokens.has(p.p) && Number.isInteger(p.start) && p.start >= 0 &&
+          Number.isInteger(p.end) && p.end >= p.start && p.end < m.toFrame &&
+          Number.isFinite(p.conf) && p.conf >= 0 && p.conf <= 1)) seamSpellings.push(m);
+      }
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {
@@ -2488,6 +2498,21 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const out: CheckerEvent[] = [];
       anchorOn(track(events, out), events);
       evaluate(out, true);
+      // The primary word-two step has already closed each stored seam. Apply
+      // the folded whole-word spelling and exclusions to its offline utterance.
+      for (const m of seamSpellings.splice(0).sort((a,b) => a.toFrame-b.toFrame)) {
+        const wi = wordIndex(m.word);
+        if (wi < 0 || emitted.some(e => e.state === "confirmed" && e.errorClass === "added_word" &&
+          e.location.surah === m.word.surah && e.location.ayah === m.word.ayah && e.location.word === m.word.word)) continue;
+        const said = stripEdge(m.phonemes.map(p => p.p).join(""));
+        if (!said || phraseSpan(said) || !lexical.surplusWord(wi,said)) continue;
+        const issue: Issue = { cls:"added_word",word:wi,last:wi,obsFrom:0,obsTo:0,
+          observed:said,lexicon:true,auxiliaryPhones:m.phonemes };
+        if (!heardSure(issue) || supported(issue) === false) continue;
+        const e = event({id:`${m.word.surah}:${m.word.ayah}:${m.word.word}#${++seq}`,issue,sinceMs:m.toFrame*frameMs},"confirmed");
+        e.timeMs = m.toFrame*frameMs;
+        out.push(e);
+      }
       return out;
     },
     mistakes() {

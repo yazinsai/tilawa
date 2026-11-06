@@ -9,6 +9,14 @@ export interface SeamInsertionEvidence {
   marginal: number;
 }
 
+/** A whole pause-bounded utterance heard by an offline ear at a primary seam.
+ * These phones never enter the tracker or the primary alignment. */
+export interface SeamSpellingEvidence {
+  word: WordRef;
+  toFrame: number;
+  phonemes: DecodedPhoneme[];
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -18,6 +26,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  seamSpellings?: SeamSpellingEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */
