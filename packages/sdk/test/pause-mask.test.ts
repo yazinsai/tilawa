@@ -23,6 +23,13 @@ describe("pause-blocked auxiliary streaming", () => {
   it("requires contiguous in-order primary steps across the seam", () => {
     expect(pauseMaskSpans(evidence(.9),[locks[0],locks[2],locks[1]],index)).toEqual([]);
   });
+  it("masks every labelled seam pause instead of discarding earlier warm-up spans", () => {
+    const chunks=evidence(.9), p=chunks[0].posteriors!;
+    for (let t=12;t<20;t++) p.probs[t*2]=.9,p.probs[t*2+1]=.1;
+    const spans=pauseMaskSpans(chunks,[locks[0],{ wi: 1,timeMs: 840 },locks[2]],index);
+    expect(spans).toEqual([{ fromFrame: 3,toFrame: 24 },{ fromFrame: 12,toFrame: 24 }]);
+    expect(Array.from(pauseFloor(spans,20,16))).toEqual([6n,6n,6n,6n,...Array(12).fill(24n)]);
+  });
   it("keeps original positions and masks only query frames inside the half-open span", () => {
     const spans = [{ fromFrame: 3, toFrame: 8 }];
     expect(Array.from(pauseFloor(spans,0,16))).toEqual([-1n,-1n,-1n,-1n,-1n,-1n,6n,6n,6n,6n,6n,6n,6n,6n,6n,6n]);

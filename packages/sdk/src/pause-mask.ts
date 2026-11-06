@@ -32,8 +32,8 @@ export function pauseMaskSpans(chunks: PhonemeEvidence[], locks: LockPoint[], in
     const inner = prev.ayah === word.ayah && waqfMarked(left.wi);
     if (!ayah && !inner) continue;
     const from = left.timeMs/frameMs, entry = first.timeMs/frameMs, end = Math.ceil(second.timeMs/frameMs);
-    const pause = pauses.filter(p => p.fromFrame >= from && p.fromFrame <= entry && p.toFrame < end).at(-1);
-    if (pause) spans.push({ fromFrame: pause.fromFrame, toFrame: end });
+    for (const pause of pauses.filter(p => p.fromFrame >= from && p.fromFrame <= entry && p.toFrame < end))
+      spans.push({ fromFrame: pause.fromFrame, toFrame: end });
   }
   return spans;
 }
