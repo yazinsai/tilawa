@@ -1,6 +1,6 @@
 # Vowel-projected single-word omission veto
 
-Status: implemented; Modal validation blocked before command execution. The
+Status: implemented; Modal validation blocked without command output. The
 experiment card is unchanged. No premise kill or practice score is recorded.
 
 ## Prediction
@@ -45,9 +45,10 @@ NotFoundError: No such file or directory
 Each result reported zero spend and returned no command logs or shard output.
 The first replay request used `git show` to select the baseline; the retry
 used a saved baseline source file instead. The unchanged test harness failed
-identically. This is an infrastructure result, not evidence about vowel
-presence or a build/test failure. A minimal `pwd` request was also submitted
-to isolate the runner failure. The user was asked for the missing path or a
+identically. Execution cannot be established from those results; they provide
+no evidence about vowel presence or build/test status. Run 5, a minimal `pwd`
+request to isolate the runner failure, returned the same error, zero spend and
+no command output. The user was asked for the missing path or a
 runner restore; no alternative Modal access was attempted.
 
 Targets evaluated: zero. Targets won and margins: unknown. Tests passed: unknown.
