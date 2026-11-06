@@ -96,7 +96,7 @@ def ints(s: str) -> tuple:
     return tuple(int(x) for x in str(s).split(","))
 
 
-def build_model(size: str):
+def build_model(size: str, *, causal: bool = True):
     import torch.nn as nn
     from scaling import ScheduledFloat
     from student import VOCAB
@@ -125,7 +125,7 @@ def build_model(size: str):
                 cnn_module_kernel=ints(p["cnn_module_kernel"]),
                 dropout=ScheduledFloat((0.0, 0.3), (20000.0, 0.1)),
                 warmup_batches=4000.0,
-                causal=True,
+                causal=causal,
                 chunk_size=ints(p["chunk_size"]),
                 left_context_frames=ints(p["left_context_frames"]),
             )
