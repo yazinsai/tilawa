@@ -1,0 +1,13 @@
+{
+ "id": "listener-swap-rival-surah-locality",
+ "component": "listener",
+ "hypothesis": "Phone wrong-word false warnings (26:106:1, 55:48:1, 26:174:8, 92:13:1) accuse the reciter of saying a word that has no memorisation link to where they are reading, such as يرى for إذ, or أمات or يخافا for ذواتا. Real hifz swaps come from the same surah or from a parallel verse. Veto a non-graph string-path wrong word when its best attested rival is neither in the current surah nor in the folded parallel-phrase index for that slot. Predict 2 of 4 vetoed and about 1 caught swap lost: listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-06T17:28:02+00:00",
+ "author": "autolab"
+}
