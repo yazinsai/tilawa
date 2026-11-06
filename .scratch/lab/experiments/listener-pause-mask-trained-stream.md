@@ -1,7 +1,9 @@
 # Pause-mask-trained streaming student
 
-Status: trained and exported; three registered additions confirmed in paired
-replay, awaiting practice scoring. The card is unchanged.
+Status: implementation complete, trained and exported; three registered additions
+confirmed in paired, normal SDK and core-clock replay. Practice request 1 returned
+unchanged totals on inherited listener evidence; fresh exported-model scoring
+remains with the supervisor. The card is unchanged.
 
 ## Prediction and premise
 
@@ -169,10 +171,6 @@ tests, one optional integration skipped. Its asset-loading tests cover the
 local descriptor, corruption, missing files and release on failure. The harness
 accepted a Vitest RPC deadline after every test in that shard had passed.
 
-Final training and trained int8 paired target streams remain pending. The paired
-diagnostic records both folded-baseline and masked-candidate checker replay,
-including unchanged teacher judgments. No practice-score calls have been made.
-
 Run 32 reached update 666 at its wall-time limit and saved the exact optimizer
 state with finite losses and gradients. Run 34 resumes the remaining 134 updates
 of the same 800-update recipe and exports only at completion. Run 33 is waiting
@@ -246,6 +244,66 @@ export descriptor still names exactly `bundle`. No selector path is changed:
 that directory now contains the actual completed export required by the user's
 model-export protocol. No scorer, registry manifest or experiment card is edited.
 
+Run 38 verified every declared asset at `bundle`, including the 67,759,744-byte
+unchanged primary model and the final 800-update masked model. Practice score 1
+of 3 was requested at 2026-11-06 15:25 UTC after fixing this export. No practice
+numbers have been used to select a checkpoint, training recipe or constant.
+
+## Practice request and evidence provenance
+
+Practice request 1 completed with overall 24 → 24 (13 misses, 11 false warnings),
+listener 23 → 23, tracker 1 → 1 and checker 0 → 0. This is the requested branch
+score, but it did not freshly decode the exported model: the untouched card still
+selects inherited `exp-listener-teacher-insert-marginal-gate-ad6eb8c0` evidence.
+The result therefore measures the code on that existing evidence, which contains
+no new pause-mask metadata, and cannot establish this trained listener's effect.
+
+Read-only inspection explains the distinction: `serve_practice()` invokes
+`lab run`, and `run_experiment()` takes the listener from the card. The normal
+supervisor `after_tests()` stage, after this builder finishes, reads
+`.autolab/model.json`, copies the declared scratch bundle, decodes fresh practice
+phone and studio evidence, and updates the card itself before scoring. No card,
+scorer or tooling change was made to bypass that sequence. A second identical
+practice request would use the same inherited evidence and is not requested.
+The export and implementation remain for that automatic decode and fold gate;
+no exported-model overall gain or gate pass is claimed.
+
+## Normal SDK transport check
+
+Run 39 decodes the same six full phone recordings through the ordinary
+`decode-cli.ts` path with the verified bundle and 20 ms audio pushes. Every shard
+completed successfully. The saved primary tokens, rows and attached metadata
+match run 36's candidate evidence exactly as parsed JSON values; replayed mistakes
+also match exactly. All six recordings retain their scoped mask spans (168 merged
+spans in total), and the same teacher certificates survive serialization. The
+three new target confirmations therefore survive normal SDK production and
+stored-evidence replay, rather than relying on manual diagnostic assembly.
+
+The SDK uses a one-second acquisition clock, while practice's core replay
+acquires on each evidence cell. A separate diagnostic checks the paired evidence
+on that core clock without changing the tracker. Run 40 could not read the local
+download directory because `.autolab` is excluded from run snapshots; it produced
+no replay result. Run 41 instead reads the preserved run 36 outputs directly from
+scratch storage and also checks run 39's normal SDK evidence when present. This
+is a target replay diagnostic, not a second practice score.
+
+Run 41 completed successfully on every shard. On the core replay clock, baseline
+confirms none of the seven registered targets; both the paired candidate and
+normal SDK evidence confirm p07 `37:36:1`, p57 `51:18:1`, and p79 `20:40:25`.
+Normal SDK and paired candidate mistakes match exactly on all six recordings.
+Across those recordings, the other changed calls are a new omission at
+`37:22:1`, a removed wrong-word call at `37:50:1`, and a removed omission at
+`51:25:1`. These are call changes, not scored wins or losses; the lab must match
+them to labels and apply its gate. They do not justify narrowing before fresh
+scoring. No new training, constant, model path or decision-rule change followed
+the practice request.
+
+The final bundle remains at
+`/scratch/listener-pause-mask-trained-stream/bundle`, with the untracked protocol
+descriptor `.autolab/model.json` containing `{"path":"bundle"}`. The implementation
+is left in place because three built target confirmations survive both replay
+clocks. No killed outcome or fold approval is asserted.
+
 ## Limits
 
 Blank pause labels can include weak speech the shipped model missed. Canonical
@@ -253,3 +311,7 @@ training and the original KD teacher still carry their original supervision;
 this experiment changes the context regime rather than adding insertion labels.
 The finite-resolution stages quantize a pause cutoff on their native clock.
 Teacher evidence is correlated model evidence, not an independent listening review.
+The paired comparison measures the complete fine-tuning and scoped-mask change;
+it does not isolate mask training from ordinary fine-tuning. Full clean-session,
+studio, reader-removal and incident-churn gates require the supervisor's fresh
+decode and score.
