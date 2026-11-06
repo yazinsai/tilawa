@@ -1,6 +1,6 @@
 # Word-ear identity confirmed by undistilled SSL tokens
 
-Status: three target warnings verified; final tests and practice scoring pending. The experiment card is unchanged.
+Status: implemented, committed and validated on three target slots; awaiting the supervisor's fresh-decode fold gate. The experiment card is unchanged.
 
 ## Prediction and mechanism
 
@@ -34,7 +34,7 @@ before any emission, pause-boundary or certificate-transport restriction.
 Failure to reach three targets even under that bound kills the premise.
 
 Modal run 1 confirmed that both recorded exports remain available in supervisor
-scratch. Word asset sizes match the short-crop parent; hash verification is pending;
+scratch. Word asset sizes match the short-crop parent; run 9 also verified all hashes;
 the SSL export is the completed eligible plain-CTC-v4 model, not its collapsed
 optimization predecessors. The auxiliary word and SSL models total about
 1.23 GB; this probe does not establish on-device memory or latency suitability.
@@ -45,13 +45,15 @@ construction, native SSL timing and context dispatch, word reconstruction,
 seam discovery and lexical proposal guards. No scorer, lab tooling, test data,
 supplied manifest, evidence or experiment card is changed.
 
-Practice score calls: 0 of 3. No score change or confirmed warning is claimed
-until the target prerequisite is measured.
+Practice score calls: 1 of 3. The first call completed with overall and
+listener changes of zero on the card's stored primary evidence.
 
 ## Acoustic premise probe (Modal run 6)
 
 The probe used the saved short-crop word decoder and native SSL decoder on
-the generic spans discovered from the primary stored evidence. It found:
+the generic spans discovered from the primary stored evidence. The audio
+path is `session.audio`, which the session generator sets to the phone rendering;
+the probe did not substitute studio audio. It found:
 
 | Registered site | Word ear and SSL result |
 | --- | --- |
@@ -90,3 +92,110 @@ then emits through the same end-of-session seam path with duplicate
 suppression. The normal Node directory loader installs both declared ears
 lazily and releases their backends with the primary model. The existing
 teacher file pins and its insertion lattice code are unchanged.
+
+## Final code and bundle checks
+
+Modal runs 7/9 exercised the unchanged supplied six-shard test harness: all
+764 core tests passed, as did all SDK tests except an assertion in the new
+loader test that checked the wrapped release function as a spy. That assertion
+was corrected to retain and check the original primary release spy. Run 10
+built core and SDK and passed all three tests in that file. Together the
+checks pass all 47 SDK tests, with one optional help end-to-end test skipped.
+No production change followed these checks.
+
+Run 9 verified the SHA-256 of every primary, teacher, word and SSL model file
+and copied the original files into this experiment's scratch bundle. The
+primary model remains `714e98addee73b1b8781ad7d99b6d3c745acd9116638baf4e12891f53a15af1b`;
+the teacher and word/SSL hashes match their existing registry pins. The SSL
+export's original geometry is chunk 16, left 128, right 7 on its 20 ms clock.
+The primary manifest and SSL export metadata were copied byte for byte.
+`.autolab/model.json` points to `bundle` for supervisor decoding.
+
+The paired ears add 1,229,042,497 model/tokenizer bytes before runtime memory,
+in addition to the existing primary and teacher. This is a lab inference
+experiment, not an established device-budget or latency improvement. No
+training, numerical tuning, scorer change or data edit was performed.
+
+## Practice score 1 and its evidence-path limit
+
+The authorized `practice-score .` call completed on commit `a10bd14e-dirty`:
+
+| Wrong calls | Main line | This change | Delta |
+| --- | --- | --- | --- |
+| Overall | 24 (13 missed + 11 false) | 24 (13 missed + 11 false) | 0 |
+| Listener | 23 (13 missed + 10 false) | 23 (13 missed + 10 false) | 0 |
+| Tracker | 1 (0 missed + 1 false) | 1 (0 missed + 1 false) | 0 |
+| Checker | 0 | 0 | 0 |
+
+The score is unchanged, below the improvement requirement. This call does
+not exercise the auxiliary models: `serve_practice` invokes the normal lab
+run, which selects the experiment card's stored listener evidence. It does
+not read `.autolab/model.json` or perform a fresh decode. Those stored rows
+contain no new word-agreement certificates, so the checker has no new votes
+to consume. Neither the experiment card nor this scoring path was changed.
+
+The supervisor's listener validation after implementation uses a different
+existing path: it copies the complete directory selected by `.autolab/model.json`,
+decodes phone and studio audio with the branch's SDK, then scores the resulting
+listener evidence. The new Node loader and session enrichment are wired on
+that path. The final four-session diagnostic ran the installed bundle
+through the normal SDK audio API, with 20 ms pushes, all seam sites and both
+auxiliary ears plus the unchanged teacher. It established three actual SDK
+target warnings, so the implementation is retained for the supervisor's gate. No fresh
+full-practice improvement or precision result is claimed from the cached
+score.
+
+## Normal SDK audio verification (Modal run 11)
+
+All four sessions loaded the installed primary bundle through `loadNodeModel`
+and reported teacher, word ear and SSL ear present. Phone WAVs were pushed
+in 20 ms chunks into a normal free-recitation session with recording enabled.
+No seam, candidate, bound or model output was supplied from labels or the
+earlier cached probe. All generic seam sites ran, and the session's `end()`
+published its new certificates and warnings. Each model backend released
+without error.
+
+| Session | Agreement certificates | Certificate-supported warnings | Registered targets caught |
+| --- | --- | --- | --- |
+| p07 | 20 | 5 | 0 |
+| p48 | 1 | 1 | 0 |
+| p56 | 8 | 2 | 1 |
+| p57 | 53 | 6 | 2 |
+
+The actual SDK path caught the same three registered target slots as the
+cached acoustic replay, at 95.76 s, 112.76 s and 113.12 s. The third still
+names later `عنهم`, not the planted `طين`. Eleven other certificate-supported
+warnings appeared elsewhere in these planted sessions; this selected-session
+run does not establish full-practice precision, clean-session silence or a
+fold-gate gain. Those losses are not used to kill a change that reaches three
+target slots: the supervisor's fresh full-set decode and gate must judge it.
+
+Comparison of the new primary token tuples with the older stored listener
+artifact matched exactly for p57 and differed for p07, p48 and p56. This is
+a comparison across decode artifacts, not a before/after test of the new
+metadata function. Unit tests directly verify that enrichment preserves all
+primary token values, posterior rows and existing teacher certificates. The
+primary streaming decoder, tracker and teacher lattice source files are
+unchanged. Run 12 confirmed that the supplied primary manifest and the bundle
+manifest are exactly equal. Both declare the primary SHA-256 verified in
+run 9; the experiment preserves the supplied main model.
+
+## Outcome
+
+Leave the engine change in place: the normal audio SDK path meets the
+three-target prerequisite. The registered physical word is independently
+identified at only the two `قبل` sites; the p56 slot is caught by a later
+continuation fragment. Extra warnings elsewhere and the 1.23 GB auxiliary
+asset cost remain material limits. The stored-evidence practice score is
+unchanged; it does not show a gain or establish the fresh-evidence fold gate.
+
+The supervisor must perform its existing fresh phone/studio decode from the
+selected bundle and let its gate weigh wins, losses, readers and fully clean
+sessions. No fold, numeric tuning, scoring-path edit, experiment-card edit,
+data edit or manifest mutation was made. One of the three permitted practice
+scores was used; the second and third were not requested because the same
+stored rows cannot carry new model judgments.
+
+Implementation commits: `69ec12fb` (the acoustic proposal/agreement prototype)
+and `a10bd14e` (SDK assets, certificate transport and emission). Validation
+results are in Modal runs 6, 8, 9, 10, 11 and 12 and practice result 1.
