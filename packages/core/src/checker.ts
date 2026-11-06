@@ -18,6 +18,7 @@ import { PHRASE_PEAK, PHRASE_SWITCH, letterSkeleton, parallelPaths } from "./par
 import { isMaddLetter, maddSites, stemConsonant } from "./madd-drops.js";
 import { formulaSlots } from "./formula-slots.js";
 import { spanId, slotSpans } from "./slot-spans.js";
+import { pauseEvidenceReader } from "./pause-evidence.js";
 
 export interface CheckerPolicy {
   /** When a suspected wrong or added word is confirmed: after `ms` (2–3 s), or once the next word has begun. Default 2500 ms. */
@@ -244,6 +245,48 @@ interface Open {
 }
 
 export function createChecker(index: ReferenceIndex, options: CheckerOptions = {}): Checker {
+  const primary = createPrimaryChecker(index, options);
+  let review: Checker | undefined;
+  let prefix: { evidence: PhonemeEvidence; events: EngineEvent[] }[] = [];
+  let decided = false;
+  const read = pauseEvidenceReader(index.tokens);
+  const additions: CheckerEvent[] = [];
+  return {
+    push(evidence, events) {
+      const out = primary.push(evidence, events);
+      // Side evidence is transported on the first primary token. Only retain
+      // the initial blank cells until that token establishes whether it exists.
+      if (!decided) {
+        prefix.push({ evidence, events });
+        if (evidence.phonemes.length) {
+          decided = true;
+          if (evidence.phonemes.some(p => p.pauseMaskEvidence?.length)) {
+            const spans = evidence.phonemes.flatMap(p => p.pauseMaskEvidence ?? []);
+            review = createPrimaryChecker(index, options, spans);
+            for (const cell of prefix) review.push(read(cell.evidence), cell.events);
+          }
+          prefix = [];
+        }
+      } else review?.push(read(evidence), events);
+      return out;
+    },
+    end(events = []) {
+      const out = primary.end(events);
+      review?.end(events);
+      const known = new Set(primary.mistakes().filter(e => e.errorClass === "added_word").map(e => JSON.stringify(e.location)));
+      for (const e of review?.mistakes() ?? []) {
+        if (e.errorClass !== "added_word" || known.has(JSON.stringify(e.location))) continue;
+        const added = { ...e, id: `pause-mask/${e.id}` };
+        additions.push(added); out.push(added); known.add(JSON.stringify(e.location));
+      }
+      return out;
+    },
+    mistakes() { return [...primary.mistakes(), ...additions]; },
+  };
+}
+
+/** All primary rules and state remain independent of the side-ear review. */
+function createPrimaryChecker(index: ReferenceIndex, options: CheckerOptions = {}, reviewSpans?: readonly { fromFrame: number; toFrame: number }[]): Checker {
   const policy = options.policy ?? {};
   const confirm = policy.confirm ?? { after: "delay", ms: 2500 };
   const minConfidence = policy.minConfidence ?? 0.6;
@@ -458,7 +501,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       ...(issue.heardUnion ? { observed: issue.heardUnion.observed } : issue.observed !== undefined ? { observed: issue.observed } : {}),
       confidence: conf,
     };
-    emitted.push(e);
+    if (!reviewSpans || (issue.cls === "added_word" && issue.lexicon && reviewSpans.some(s =>
+      obs[issue.obsFrom]?.start >= s.fromFrame && obs[issue.obsTo - 1]?.end < s.toFrame))) emitted.push(e);
     return e;
   };
 

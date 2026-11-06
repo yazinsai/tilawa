@@ -9,6 +9,18 @@ export interface SeamInsertionEvidence {
   marginal: number;
 }
 
+/** Auxiliary acoustic rows inside a labelled pause-to-word-2 span. */
+export interface PauseMaskEvidence {
+  inventory: string;
+  frameMs: number;
+  fromFrame: number;
+  toFrame: number;
+  phonemes: Pick<DecodedPhoneme, "p" | "start" | "end" | "conf">[];
+  posteriors: TopKPosteriors;
+  /** Separate teacher judgments for this side ear; primary certificates stay intact. */
+  seamInsertions?: SeamInsertionEvidence[];
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -18,6 +30,8 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  /** Scoped checker evidence; the primary token itself remains unchanged. */
+  pauseMaskEvidence?: PauseMaskEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

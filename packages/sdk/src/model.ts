@@ -24,6 +24,8 @@ export interface ModelManifest {
   window: number;
   shift: number;
   states: StateSpec[];
+  /** Present only on the auxiliary pause-trained export. */
+  pauseMask?: { input: "pause_floor"; clockMs: 20 };
   file: string;
   bytes: number;
   sha256: string;
@@ -47,6 +49,8 @@ export interface LoadedModel {
   backend: InferenceBackend;
   /** Error classes this model's evidence supports; the rest are reported `unsupported`. */
   supported: ErrorClass[];
+  /** Registry-installed pause-trained side ear, never the primary backend. */
+  pauseModel?: LoadedModel;
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
 }

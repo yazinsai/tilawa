@@ -24,7 +24,9 @@ describe("Node insertion teacher loading", () => {
     const teacher = { name: "teacher", run: vi.fn().mockResolvedValue({
       log_probs: { type: "float32", data: rows, dims: [1, 1, 3] },
     }), release: vi.fn() };
-    mocks.access.mockResolvedValue(undefined);
+    mocks.access.mockImplementation(async (path: string) => {
+      if (path.includes("pause-mask")) throw Object.assign(new Error("absent"),{code:"ENOENT"});
+    });
     mocks.ortBackend.mockResolvedValueOnce(primary).mockResolvedValueOnce(teacher);
 
     const model = await loadNodeModel("/models/caller", { threads: 2 });
