@@ -105,8 +105,10 @@ async function attachPauseModel(primary: LoadedModel,dir: string,threads = 1): P
     const manifest = JSON.parse(await readFile(join(dir,asset.manifestFile),"utf8")) as ModelManifest;
     const m = primary.manifest;
     if (manifest.id !== asset.id || asset.inventory !== m.inventory || manifest.inventory !== m.inventory ||
+      manifest.schema !== m.schema || manifest.arch !== m.arch || manifest.blank !== m.blank ||
       manifest.tokens !== m.tokens || manifest.sampleRate !== m.sampleRate || manifest.frameMs !== m.frameMs ||
-      manifest.window !== m.window || manifest.shift !== m.shift || JSON.stringify(manifest.states) !== JSON.stringify(m.states) ||
+      JSON.stringify(manifest.fbank) !== JSON.stringify(m.fbank) || manifest.window !== m.window || manifest.shift !== m.shift ||
+      JSON.stringify(manifest.states) !== JSON.stringify(m.states) ||
       manifest.pauseMask?.input !== "pause_floor" || manifest.pauseMask.clockMs !== 20 ||
       manifest.sha256 !== asset.sha256 || manifest.bytes !== asset.bytes || manifest.format !== "onnx-int8")
       throw new Error("Pause ear differs from the declared asset or primary streaming regime");

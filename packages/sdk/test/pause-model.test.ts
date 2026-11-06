@@ -8,7 +8,8 @@ vi.mock("../src/registry.js",()=>({MODEL_REGISTRY:{schema:1,tiers:[],pauseMask:{
   id:"side",precision:"int8",inventory:"test",file:"pause-mask/model.onnx",manifestFile:"pause-mask/manifest.json",bytes:4,sha256:"hash",
 }}}));
 import {loadNodeModel} from "../src/node.js";
-const primary={id:"primary",file:"primary.onnx",tokens:"بت",inventory:"test",sampleRate:16000,frameMs:40,window:45,shift:32,
+const primary={schema:1,arch:"zipformer2-streaming-ctc",blank:0,fbank:{mels:80,padValue:-23.0259},
+  id:"primary",file:"primary.onnx",tokens:"بت",inventory:"test",sampleRate:16000,frameMs:40,window:45,shift:32,
   states:[{name:"processed_lens",dtype:"int64",shape:[1]}]};
 const side={...primary,id:"side",file:"model.onnx",format:"onnx-int8",sha256:"hash",bytes:4,pauseMask:{input:"pause_floor",clockMs:20}};
 beforeEach(()=>{
@@ -32,10 +33,14 @@ describe("registry-declared pause ear",()=>{
     const model=await loadNodeModel("/models");expect(model.pauseModel).toBeUndefined();expect(model.manifest).toEqual(primary);
     expect(mocks.ortBackend).toHaveBeenCalledOnce();
   });
-  it.each(["clock","weights"])("rejects a mismatched %s instead of replacing the primary",async mismatch=>{
+  it.each(["clock","weights","frontend","blank","architecture"])("rejects a mismatched %s instead of replacing the primary",async mismatch=>{
     const parent={name:"primary",release:vi.fn()};mocks.ortBackend.mockResolvedValue(parent);
     if(mismatch==="clock") mocks.readFile.mockImplementation(async(path:string)=>JSON.stringify(path.includes("pause-mask")?{...side,frameMs:20}:primary));
-    else mocks.digest.mockReturnValue("corrupt");
+    else if(mismatch==="weights") mocks.digest.mockReturnValue("corrupt");
+    else {
+      const changes=mismatch==="frontend"?{fbank:{...side.fbank,mels:40}}:mismatch==="blank"?{blank:1}:{arch:"other"};
+      mocks.readFile.mockImplementation(async(path:string)=>JSON.stringify(path.includes("pause-mask")?{...side,...changes}:primary));
+    }
     await expect(loadNodeModel("/models")).rejects.toThrow(/Pause ear/);
     expect(parent.release).toHaveBeenCalledOnce();expect(mocks.ortBackend).toHaveBeenCalledOnce();
   });

@@ -1,8 +1,10 @@
 # Pause-mask ear agreement for wrong words
 
-Status: engine implementation committed and both packages build and pass their
-unit suites. Acoustic validation awaits the exact saved pause-mask export in an
-authorized input mount. The experiment card is unchanged.
+Status: complete verified bundle declared in the untracked `.autolab/model.json`.
+The actual trained side ear vetoes all four tested target accusations. All seven
+paired phone/studio diagnostics pass. The change remains for the supervisor's
+normal fresh decode and fold gate; no overall gain or fold is claimed. The
+experiment card is unchanged by this continuation.
 
 ## Prediction
 
@@ -10,8 +12,7 @@ Keep the shipped decode and ask the existing pause-mask-trained student to agree
 with each string-path wrong-word accusation. Predict three of four target
 warnings vetoed, with about one caught swap lost: listener −2, overall −1.
 The registered kill condition is fewer than three target accusations vetoed by
-the built unchanged-checker rejudgment. Missing weights do not establish that
-condition; no zero-win acoustic result is claimed.
+the built unchanged-checker rejudgment.
 
 ## Mechanism
 
@@ -24,8 +25,8 @@ no auxiliary selector is added to it. No weights are retrained or substituted.
 The side ear runs a full-session streaming pass in its trained regime. Pause
 spans and the native embedding-clock mask are reused from the original
 pause-mask-trained-stream implementation: primary blank-labelled ayah or marked
-inner-waqf boundaries open a span, and the primary step onto the following word
-closes it. Primary listener feeds remain identical when its manifest has no mask
+inner-waqf boundaries open a span, and the primary step onto the second word
+after the boundary closes it. Primary listener feeds remain identical when its manifest has no mask
 input. The side pass supplies no tracker tokens or positions.
 
 A read-only checker observer records confirmations from every non-graph
@@ -60,81 +61,102 @@ the evidence can be saved for scoring.
 The registry loader tests enforce preservation of the primary model object and
 manifest, with release and asset-integrity checks.
 
-## Validation
+## Original validation
 
-Modal run 1 inspected only the authorized model mount and this experiment's
-scratch. `/lab/data/models` contains the shipped model and older channel,
-continuation, paired, sparse and targeted variants, but no pause-mask export.
-This experiment's scratch contains only its diagnostic runs. The exact final
-checkpoint cannot currently be loaded, so none of the four target slots has
-been acoustically tested. The user has been asked to expose the saved export
-through an authorized mount; no alternate storage route is used.
+The earlier implementation commits passed both builds and all six unit-test
+shards in run 8: 760 core tests and 36 SDK tests, one optional integration test
+skipped. Tests cover exact-rival and support-bar agreement, visit and acquisition
+clock isolation, unchanged default/graph behavior, JSON and native rechunking,
+primary tracker preservation, teacher-certificate preservation, mask geometry,
+resource release and veto-only session completion.
 
-Modal run 2 built an earlier, in-flight source snapshot and reported two
-TypeScript integration errors: the waqf helper was not exported and the new
-certificate lacked its acquisition-clock value. Both were corrected before
-run 3, which requests the supplied six-shard build/test harness.
+Runs 1 and 9 inventoried only the then-authorized model mount and this
+experiment's scratch; no saved ear or teacher files were exposed there. Thus the
+earlier implementation had no acoustic result and no published model descriptor.
+The feedback's baseline-only decode/score was invalid and held; it is excluded
+from the experiment's measurements.
 
-Unit coverage includes unchanged default lexical confirmation, exact-rival and
-support-bar agreement, stored disagreement veto, visit and acquisition-clock
-isolation, same-ear and correct-reading side rejudgment, JSON and rechunking
-transport, unchanged primary tracker events, preserved teacher certificates,
-mask geometry, asset-integrity failures and primary/side resource release.
-The primary invariant also rejects modified rows and teacher certificates.
-Run 3 passed both builds and all existing tests in the six-shard harness, but
-four newly added core agreement assertions used a held parallel-name swap that
-did not reach the non-graph observer. The corresponding SDK tests passed. Run 4
-repeated those core failures on the earlier fixture. The core agreement fixture
-now uses the existing unrelated lexical-swap example, and held accusations retain
-their frame descriptor before window trimming. Run 5 requests the full harness
-with that correction, end-of-session isolation tests and decode-time gates. Run 5 passed both builds and all six shards: 760 core tests and 36 SDK tests
-passed, with one optional SDK integration test skipped. The harness accepted
-its documented Vitest RPC timeout after all tests in that shard passed. Runs 6–7 exposed an incorrect extra test assumption: an attested parallel
-phrase can be confirmed by the lexical path, so that fixture does not establish
-a graph-only warning. The invalid new assertion was removed; existing parallel
-phrase tests are unchanged. Run 8 requests the full harness on the final code,
-including rival identity normalisation across string and side-graph paths.
-These are unit checks, not acoustic target results.
+## Completion after artifact feedback
 
-Run 8 passed both builds and every shard (all six status codes are 0): 760 core
-tests and 36 SDK tests passed; one optional SDK integration test was skipped. The
-harness accepted only its documented RPC deadline after all tests passed.
-`git diff --check` passed. The engine and tests are committed as `e537901d` and
-`5c94788d`.
+Collected all existing requests 1–9 before requesting compute. None ran the
+saved ear. Run 10 confirms both authorized scratch bundles exist. The stored
+lab copy named in the feedback is absent from this run's mount, so the actual
+saved scratch export is used.
 
-Run 9 recursively inventoried the complete authorized `/lab/data/models` tree,
-including nested files and every manifest. There is no pause-mask export or
-checkpoint, no manifest with a pause-mask input, and no folded teacher ONNX asset
-or external-data file. The shipped primary has its expected SHA256
-`714e98addee73b1b8781ad7d99b6d3c745acd9116638baf4e12891f53a15af1b`.
-No directories outside the supplied model mount and this experiment’s own scratch
-were searched. The exact pause ear and folded teacher files remain required for
-a complete bundle; no acoustic diagnostic or target count is claimed.
+Run 12 verifies the exact trained ear and preserves the original primary and
+teacher from `/scratch/listener-word-ear-ssl-ear-agree-adds/bundle`. It assembles
+only those four primary/teacher files and the two existing pause-ear files into
+`/scratch/listener-pause-mask-ear-swap-agree/bundle`. Both manifests are copied
+byte-identically; no missing manifest is generated. The pause training bundle's
+other teacher graph is deliberately excluded because it is not the declared
+original graph.
 
-The generic SDK diagnostic `src/bench/pause-agreement-cli.ts` requires both
-side assets. It compares the bundle's primary manifest bytes with a supplied
-original directory and checks the primary model hash. For each supplied WAV,
-normal SDK decodes with and without the pause ear must have identical primary
-evidence, teacher certificates, native-clock tracker events and non-wrong-word
-mistakes. A new warning rejects the check. It prints each accusation and its
-side-ear agreement, without scoring labels or identifying targets in engine code.
-Run this on the supplied phone and studio recordings before publishing a model
-selector or requesting practice scoring.
+| Asset | Bytes | SHA256 |
+| --- | ---: | --- |
+| Primary manifest | 11,044 | `785f5eb4724bc0ecd7217b48066aa34ba6dd8ba77f144f6f422c2436a1fc442f` |
+| Primary ONNX | 67,759,744 | `714e98addee73b1b8781ad7d99b6d3c745acd9116638baf4e12891f53a15af1b` |
+| Teacher ONNX | 11,342,825 | `5ee50c2b14d7e8e4808ee4adc33e6114f73481b607291136992a5d45444a1e18` |
+| Teacher external weights | 2,422,885,632 | `d3f24efba836219f0c556ad25e3a1046f9caf36b2ed639cd283f795c78da58b4` |
+| Pause-ear manifest | 11,023 | `5891eb7f5452da611af275622f5279cff6b07d1c35bf36c7be3706e14f39e1ab` |
+| Pause-ear ONNX | 72,403,248 | `22c8e197f2e60955f0b7794a8198db4d5ae9ee57aa679d3fc163075092fd8c58` |
 
-Practice scores requested: 0 of 3. No `.autolab/model.json` is published because
-there is no complete verified bundle. No `.autolab/outcome.json` is written:
-weights being unavailable is not the user-defined premise kill. The scorer,
-lab tooling, test data, supplied manifests and evidence are untouched.
+Manifest checks compare schema, architecture, blank class, inventory, tokens,
+rate, CTC clock, fbank, window, shift, chunk, left context and every state.
+The SDK loader now also rejects mismatched frontend, blank class and architecture;
+unit tests cover these rejection paths. Run 11 passes both package builds and
+all six test shards: 760 core tests and 39 SDK tests, one optional integration
+test skipped. Only the harness's documented post-test RPC deadline is tolerated.
 
-## Limits and remaining work
+Run 13 completed all seven paired ordinary SDK decodes successfully (every
+shard exits 0): phone and studio for p11, p36 and p55, plus the fourth phone
+slot from the cluster history, realuser-v1-sob-049 at 92:13:1. Every asset hash
+matches the declaration; the primary manifest is byte-identical to the original.
+The actual ONNX accepts exactly `x`, all declared states and `pause_floor`, with
+native int64 mask shape `[1,16]`. Its posterior output is `[1,8,43]`; every cache
+output matches the primary state shape and dtype.
 
-The unit tests verify mechanics with synthetic evidence, not the proposed
-acoustic separation. The earlier global-decode wins do not prove agreement on
-these slots while the shipped tracker remains in charge. The exact saved export
-and folded teacher files must be exposed, copied into this experiment's scratch
-bundle with an unchanged primary model/manifest, and pass the paired diagnostic.
-If fewer than three target accusations are vetoed, revert the engine change,
-record that premise result and write the requested killed outcome. If at least
-three are vetoed, request practice scoring before judging losses. Only the
-supervisor's fresh decode and fold gate can establish overall, studio,
-clean-session, reader-removal and incident-churn results.
+The diagnostic uses complete ordinary SDK decodes with and without the ear.
+All seven comparisons preserve primary phonemes/rows, tracker events, folded
+teacher certificates and every non-wrong-word judgment byte-identically. No new
+warning appears. The runtime also checks veto-only behavior on both the native
+practice acquisition clock and the SDK's one-second clock before evidence can
+be saved.
+
+| Phone target | Primary slot, native frames | Primary accusation | Side rejudgment | Result |
+| --- | --- | --- | --- | --- |
+| p11, 26:106:1 | `[2593,2601)` | 20-nat bar | no accusation | vetoed |
+| p36, 55:48:1 | `[7044,7062)` | 20-nat bar | no accusation | vetoed |
+| p55, 26:174:8 | `[2491,2656)` | 20-nat bar | no accusation | vetoed |
+| realuser-v1-sob-049, 92:13:1 | `[895,909)` | 20-nat bar | no accusation | vetoed |
+
+On native stored-evidence replay, these are exactly the four removed warnings.
+All other warnings in the tested phone recordings survive, including p55's
+planted 26:172:2 swap and its confirmed addition at 26:175:1. Studio warning
+counts are unchanged: p11 6 → 6, p36 0 → 0, p55 10 → 10. p11's studio lexical
+swap retains the exact rival `صَالِحُن`. These are paired diagnostic results,
+not practice-set scores or release-gate results.
+
+The registered fewer-than-three-target kill does not fire: 4 of 4 tested slots
+are vetoed, including all three card-listed practice incidents. No narrowing,
+constant change, new training or checkpoint selection follows the measurements.
+The completed bundle remains at
+`/scratch/listener-pause-mask-ear-swap-agree/bundle`, with untracked descriptor
+`{"path":"bundle"}`. No killed outcome is written.
+
+The earlier baseline-only score remains excluded. Read-only inspection of the
+worktree's `serve_practice()` shows a builder request runs the card's currently
+selected evidence rather than performing a fresh model decode. Repeating that
+request would repeat the invalid measurement identified in the feedback. As
+explicitly requested there, the verified descriptor is left for the normal
+supervisor fresh-decode/practice/gate sequence. No stale-evidence score is
+requested, no overall result is asserted, and no fold decision is made here.
+
+## Limits
+
+Unit tests verify mechanics with synthetic evidence; the seven-recording
+diagnostic establishes the targeted acoustic veto count with the shipped
+tracker in charge. It does not measure losses across the full practice set. An
+agreement veto is delivered at session end in the live SDK. Only a fresh
+supervisor decode and fold gate can establish overall, full-set studio,
+clean-session, reader-removal and incident-churn results. No manual fold is
+requested or performed.
