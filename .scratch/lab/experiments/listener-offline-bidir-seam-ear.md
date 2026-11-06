@@ -1,6 +1,6 @@
 # Full bidirectional student seam ear
 
-Status: acoustic premise and target-warning checks passed; practice scoring requested. The experiment card is unchanged.
+Status: built and retained for the supervisor's fresh listener decode and fold gate. Acoustic premise and target-warning checks passed. The first requested practice score returned noise on the card's existing listener evidence. The experiment card is unchanged.
 
 ## Prediction and mechanism
 
@@ -136,5 +136,34 @@ feature frames: maximum log-probability error 5.34e-5 and 100% argmax agreement.
 The existing teacher registry entry, weights, decoding and gate code are
 unchanged. No supplied manifest was edited.
 
-Pending: first practice score. No practice numbers or fold verdict are yet
-available.
+## Requested practice score
+
+Practice request 1 returned for commit `32b114fc`:
+
+| Wrong calls | Main | This branch | Change |
+|---|---:|---:|---:|
+| Overall | 24 | 24 | 0 |
+| Listener | 23 | 23 | 0 |
+| Tracker | 1 | 1 | 0 |
+| Checker | 0 | 0 | 0 |
+
+Both runs have 13 missed mistakes and 11 false warnings. The reported verdict
+is noise. One of the three permitted practice requests was used; no constants
+or engine code changed in response.
+
+This request does not measure the new ear across practice. Inspection of
+`serve_practice` in `tools/autolab.py` shows that it invokes `lab run`, which
+replays the listener named in the unchanged experiment card,
+`exp-listener-teacher-insert-marginal-gate-ad6eb8c0`. It neither copies the
+declared bundle nor generates new listener evidence. The supervisor's
+`after_tests` phase performs that copy and fresh SDK decode after the executor
+finishes, then scores with the resulting listener. No scorer, tooling, card or
+stored evidence was changed to bypass this separation.
+
+The acoustic census passes the premise on four targets; the serialized target
+replay adds three warnings with the recovered planted word shape, plus one
+fragile location match. Retain the implementation and `offline-bundle` for the
+supervisor to measure the new evidence on all practice sessions and apply the
+fold gate. The new ear's overall gain, losses, clean-session behaviour and
+studio behaviour remain unmeasured by this requested score. No fold verdict
+for the freshly decoded ear is claimed.
