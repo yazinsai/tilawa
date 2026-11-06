@@ -1,7 +1,8 @@
 # Word-ear candidates judged by teacher insertion arcs
 
 Status: implemented; three of six registered targets pass the teacher gate in
-audio-backed replay. Practice scoring is pending. The experiment card is unchanged.
+audio-backed replay. Practice replay is unchanged; the supervisor's fresh
+audio-backed decode and fold gate remain pending. The experiment card is unchanged.
 
 ## Prediction and mechanism
 
@@ -117,3 +118,31 @@ results, not a measured overall or component score. The probe is retained only
 in ignored local `.autolab` files; it is not part of the engine or scoring path.
 `.autolab/model.json` declares the scratch `bundle` so the supervisor can decode
 with all reused assets. No supplied manifest is modified.
+
+Read-only route inspection confirms that `serve_practice` invokes `lab run`,
+which replays the ledger's recorded listener evidence. It does not copy or
+decode the new bundle. The supervisor's later listener validation copies every
+bundle file and forces phone/studio decodes through the SDK audio session with
+`recordEvidence: true`; its output retains the auxiliary certificates. Therefore
+the requested practice replay and the audio-backed diagnostic measure different
+available evidence until that fresh decode occurs. No scorer or decode-tool
+change is needed or made to generate these certificates in the normal SDK path.
+
+Practice score 1 completed at implementation commit `c577a5b8`:
+
+| Charged component | Main | Branch | Change |
+| --- | ---: | ---: | ---: |
+| Overall | 24 (13 missed, 11 false) | 24 (13 missed, 11 false) | 0 |
+| Listener | 23 (13 missed, 10 false) | 23 (13 missed, 10 false) | 0 |
+| Tracker | 1 (0 missed, 1 false) | 1 (0 missed, 1 false) | 0 |
+| Checker | 0 | 0 | 0 |
+
+The verdict is noise, with no practice gain claimed. This requested replay has
+no newly generated word-ear certificates, so it does not reproduce the three
+audio-backed target confirmations. The aggregate result does not satisfy the
+fold gain requirement. The teacher-marginal prerequisite nevertheless passes
+on three registered targets, and no loss-based narrowing is justified by this
+unchanged replay. The implementation and declared bundle remain in place for
+the supervisor's forced fresh listener decode and gate; no killed outcome is
+written and no fold is performed here. One of the three permitted practice
+scores was used. No further engine changes followed the passing tests.
