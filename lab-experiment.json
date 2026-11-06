@@ -1,0 +1,13 @@
+{
+ "id": "listener-offline-bidir-seam-ear",
+ "component": "listener",
+ "hypothesis": "The six blank post-pause additions are decoded by a streaming student that sees only a short right lookahead, so a weak post-silence onset is committed before the vowel and next word that would identify it arrive. Retrain a non-streaming, full-right-context copy of the student and run it only on tracker-step seam spans, feeding the folded spell rule. Predict 2 of 6 won with about 1 loss: listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-06T05:13:04+00:00",
+ "author": "autolab"
+}
