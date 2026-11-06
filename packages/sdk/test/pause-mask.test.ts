@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pauseFloor, pauseMaskSpans } from "../src/pause-mask.js";
+import { carryPauseEvidence,pauseFloor,pauseMaskSpans } from "../src/pause-mask.js";
 import type { PhonemeEvidence, ReferenceIndex } from "@tilawa/core";
 import { createListener } from "../src/listener.js";
 import type { LoadedModel, Tensor } from "../src/model.js";
@@ -16,6 +16,22 @@ const evidence = (blank: number): PhonemeEvidence[] => [{ inventory: "test", fra
     probs: Array.from({ length: 24 }, (_, t) => t >= 3 && t < 11 ? [blank,1-blank] : [.1,.9]).flat() } }];
 
 describe("pause-blocked auxiliary streaming", () => {
+  it("carries only scoped rows, merges overlapping masks and preserves primary values", () => {
+    const primary=evidence(.9); primary[0].phonemes=[{ p: "ب",start: 0,end: 0,conf: .8 }];
+    const masked=structuredClone(primary); masked[0].phonemes=[{ p: "ت",start: 4,end: 5,conf: .9 }];
+    const r=masked[0].posteriors!;
+    for (let t=0;t<r.nFrames;t++) r.ids[t*2]=2;
+    const original=structuredClone(primary);
+    const carried=carryPauseEvidence(primary,masked,[{ fromFrame: 3,toFrame: 8 },{ fromFrame: 5,toFrame: 8 }]);
+    expect(carried[0].posteriors).toBe(primary[0].posteriors);
+    expect(carried[0].phonemes.map(({ pauseMaskEvidence: _,...p }) => p)).toEqual(primary[0].phonemes);
+    expect(primary).toEqual(original);
+    const scope=JSON.parse(JSON.stringify(carried))[0].phonemes[0].pauseMaskEvidence;
+    expect(scope).toHaveLength(1);
+    expect(scope[0]).toMatchObject({ fromFrame: 3,toFrame: 8,phonemes: masked[0].phonemes,
+      posteriors: { startFrame: 3,nFrames: 5,k: 2 } });
+    expect(scope[0].posteriors.ids).toHaveLength(10);
+  });
   it("uses the labelled pause onset and ends at the primary step onto word 2", () => {
     expect(pauseMaskSpans(evidence(.9),locks,index)).toEqual([{ fromFrame: 3, toFrame: 24 }]);
     expect(pauseMaskSpans(evidence(.49),locks,index)).toEqual([]);

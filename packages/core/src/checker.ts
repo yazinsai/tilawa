@@ -18,6 +18,7 @@ import { PHRASE_PEAK, PHRASE_SWITCH, letterSkeleton, parallelPaths } from "./par
 import { isMaddLetter, maddSites, stemConsonant } from "./madd-drops.js";
 import { formulaSlots } from "./formula-slots.js";
 import { spanId, slotSpans } from "./slot-spans.js";
+import { pauseEvidenceReader } from "./pause-evidence.js";
 
 export interface CheckerPolicy {
   /** When a suspected wrong or added word is confirmed: after `ms` (2–3 s), or once the next word has begun. Default 2500 ms. */
@@ -256,6 +257,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const insertionEvidence = new Map<string, number>();
+  const readPauseEvidence = pauseEvidenceReader(index.tokens);
   const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
     JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
   // A completed seam remains in the streaming window over many pushes. Its
@@ -2464,6 +2466,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
           insertionEvidence.set(key, Math.max(insertionEvidence.get(key) ?? 0, m.marginal));
         }
       }
+      evidence = readPauseEvidence(evidence);
       const out: CheckerEvent[] = [];
       frameMs = evidence.frameMs;
       if (frames && evidence.posteriors) frames.append(evidence.posteriors);

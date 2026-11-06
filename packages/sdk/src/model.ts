@@ -29,6 +29,8 @@ export interface ModelManifest {
   sha256: string;
   /** Optional pause-blocked export; absence keeps the ordinary model feed. */
   pauseMask?: { input: string; clockMs: 20 };
+  /** Relative manifest of the pause-trained auxiliary inside an exported bundle. */
+  pauseMaskModel?: { manifest: string };
 }
 
 export interface Tensor {
@@ -51,4 +53,6 @@ export interface LoadedModel {
   supported: ErrorClass[];
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
+  /** Trained streaming copy, read only by the scoped pause path. */
+  pauseModel?: LoadedModel;
 }

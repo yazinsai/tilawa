@@ -1,5 +1,5 @@
 import { minGapFrames, waqfMarked } from "@tilawa/core";
-import type { PhonemeEvidence, ReferenceIndex } from "@tilawa/core";
+import type { PhonemeEvidence, ReferenceIndex, PauseMaskEvidence } from "@tilawa/core";
 import type { LockPoint } from "./gap-decode.js";
 import type { LoadedModel } from "./model.js";
 
@@ -49,8 +49,46 @@ export function pauseFloor(spans: PauseSpan[], processed: number, chunk: number)
   return floors;
 }
 
+/** Preserve primary values and carry checker-only rows through token-preserving JSON. */
+export function carryPauseEvidence(primary: PhonemeEvidence[], masked: PhonemeEvidence[], spans: PauseSpan[]): PhonemeEvidence[] {
+  if (!spans.length || !primary.length || !masked.length) return primary;
+  const at = primary.findIndex(c => c.phonemes.length);
+  if (at < 0) return primary;
+  if (masked.some(c => c.inventory !== primary[0].inventory || c.frameMs !== primary[0].frameMs || !c.posteriors))
+    throw new Error("Pause-trained evidence differs from the primary inventory or clock");
+  const k = primary[0].posteriors?.k;
+  if (!k || masked.some(c => c.posteriors!.k !== k)) throw new Error("Pause-trained posterior width differs from primary evidence");
+  const ranges: PauseSpan[] = [];
+  for (const s of [...spans].sort((a,b) => a.fromFrame-b.fromFrame)) {
+    const last = ranges.at(-1);
+    if (last && s.fromFrame <= last.toFrame) last.toFrame = Math.max(last.toFrame,s.toFrame);
+    else ranges.push({ ...s });
+  }
+  const phones = masked.flatMap(c => c.phonemes), rows = new Map<number,{ ids: number[]; probs: number[] }>();
+  for (const c of masked) {
+    const r = c.posteriors!;
+    for (let t = 0; t < r.nFrames; t++) rows.set(r.startFrame+t,{
+      ids: Array.from({ length: k },(_,j) => r.ids[t*k+j]),probs: Array.from({ length: k },(_,j) => r.probs[t*k+j]),
+    });
+  }
+  const metadata: PauseMaskEvidence[] = [];
+  for (const s of ranges) {
+    const data = Array.from({ length: s.toFrame-s.fromFrame },(_,i) => rows.get(s.fromFrame+i));
+    if (data.some(r => !r)) continue;
+    metadata.push({ ...s,inventory: primary[0].inventory,frameMs: primary[0].frameMs,
+      phonemes: phones.filter(p => p.start < s.toFrame && p.end >= s.fromFrame).map(p => ({
+        p: p.p,start: Math.max(p.start,s.fromFrame),end: Math.min(p.end,s.toFrame-1),conf: p.conf,
+      })),posteriors: { startFrame: s.fromFrame,nFrames: data.length,k,
+        ids: data.flatMap(r => r!.ids),probs: data.flatMap(r => r!.probs) } });
+  }
+  if (!metadata.length) return primary;
+  return primary.map((c,i) => i !== at ? c : { ...c,phonemes: c.phonemes.map((p,j) => j ? p : { ...p,pauseMaskEvidence: metadata }) });
+}
+
 /** Full streaming pass with the original grid, frontend and carried positions. */
 export async function decodePauseMasked(model: LoadedModel, samples: Float32Array, spans: PauseSpan[], k: number): Promise<PhonemeEvidence[]> {
+  if (!model.manifest.pauseMask || model.manifest.pauseMask.clockMs !== 20 || model.manifest.frameMs !== 40)
+    throw new Error("Pause-trained streaming requires the declared mask and native 40 ms CTC clock");
   const { createListener } = await import("./listener.js");
   const listener = createListener(model, { posteriors: true, topK: k, pauseMask: spans });
   const chunks: PhonemeEvidence[] = [];

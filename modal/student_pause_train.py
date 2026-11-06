@@ -238,6 +238,7 @@ def train(args):
 
 
 def export(args):
+    import shutil
     import student_train as T
     from student_export import manifest
     from icefall.utils import get_onnx_export_kwargs
@@ -280,7 +281,14 @@ def export(args):
     print(json.dumps({'parity':parity}),flush=True)
     m=manifest('pause-mask-trained',specs,16,128,str(path),ck); m['format']='onnx-int8'; m['pauseMask']=dict(input='pause_floor',clockMs=20)
     (directory/'manifest.json').write_text(json.dumps(m,ensure_ascii=False,indent=1))
+    bundle=out/'bundle'
+    shutil.copytree('/lab/data/models/spliced-clean-int8',bundle,dirs_exist_ok=True)
+    shutil.copytree(directory,bundle/'pause-mask',ignore=shutil.ignore_patterns('float.onnx'),dirs_exist_ok=True)
+    primary=json.loads((bundle/'manifest.json').read_text())
+    primary['pauseMaskModel']=dict(manifest='pause-mask/manifest.json')
+    (bundle/'manifest.json').write_text(json.dumps(primary,ensure_ascii=False,indent=1))
     print(json.dumps(dict(export=str(path),sha256=m['sha256'],bytes=m['bytes'],step=ck['state']['step'])),flush=True)
+    print(json.dumps(dict(bundle=str(bundle),primary_sha256=primary['sha256'],teacher_files=[p.name for p in bundle.glob('teacher*')])),flush=True)
 
 
 if __name__=='__main__':

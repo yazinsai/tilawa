@@ -22,7 +22,34 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  const primary = await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachPauseModel(primary,dir,options.threads);
+}
+
+async function attachPauseModel(primary: LoadedModel,dir: string,threads = 1): Promise<LoadedModel> {
+  const asset = primary.manifest.pauseMaskModel;
+  if (!asset) return primary;
+  let auxiliary: LoadedModel | undefined;
+  try {
+    const path = join(dir,asset.manifest);
+    const manifest = JSON.parse(await readFile(path,"utf8")) as ModelManifest;
+    const backend = await ortBackend(ort as unknown as OrtModule,join(dirname(path),manifest.file),"onnxruntime-node",{
+      executionProviders: ["cpu"],intraOpNumThreads: threads,
+    });
+    auxiliary = { manifest,backend,supported: primary.supported };
+    if (!manifest.pauseMask || manifest.pauseMask.clockMs !== 20 || manifest.frameMs !== 40 ||
+      manifest.inventory !== primary.manifest.inventory || manifest.tokens !== primary.manifest.tokens ||
+      manifest.sampleRate !== primary.manifest.sampleRate || manifest.frameMs !== primary.manifest.frameMs ||
+      manifest.window !== primary.manifest.window || manifest.shift !== primary.manifest.shift ||
+      JSON.stringify(manifest.states) !== JSON.stringify(primary.manifest.states))
+      throw new Error("Pause-trained auxiliary differs from the deployed primary regime");
+    primary.pauseModel = auxiliary;
+    const release = primary.backend.release.bind(primary.backend), child = auxiliary;
+    primary.backend.release = async () => { try { await child.backend.release(); } finally { await release(); } };
+    return primary;
+  } catch (e) {
+    await auxiliary?.backend.release(); await primary.backend.release(); throw e;
+  }
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +114,6 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  const dir = join(o.cacheDir, `${tier.id}@${tier.version}`);
+  return attachPauseModel(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },dir,o.threads),dir,o.threads);
 }
