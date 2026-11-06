@@ -2,11 +2,15 @@
 import copy
 import unittest
 import torch
-from student_pause_mask import allowed_sources,PauseStreaming,stream
+from student_pause_mask import allowed_sources,PauseStreaming,stream,time_windows
 torch.set_num_threads(2)
 
 
 class PauseMaskTests(unittest.TestCase):
+    def test_indexed_windows_match_convolution_windows(self):
+        x=torch.arange(14.).reshape(2,7)
+        torch.testing.assert_close(time_windows(x,5,3),x.unfold(-1,3,1),rtol=0,atol=0)
+
     def test_canonical_seam_skips_empty_assimilated_words(self):
         from student_pause_train import seam_offsets
         self.assertEqual(seam_offsets({'p':'abc','o':[0,0,1,1,2]},0),(0,1))

@@ -16,8 +16,14 @@ def allowed_sources(floors, processed, sources, left=0):
     return (floors[:, :, None] < 0) | (keys[:, None] >= floors[:, :, None])
 
 
+def time_windows(x,count,width):
+    """Indexed sliding windows also export when ONNX Pad loses static sizes."""
+    indices=torch.arange(count,device=x.device)[:,None]+torch.arange(width,device=x.device)[None]
+    return x.index_select(-1,indices.reshape(-1)).reshape(*x.shape[:-1],count,width)
+
+
 def attention(self, x, pos_emb, cached_key, left_context_len, key_padding_mask):
-    if not torch.jit.is_tracing() and not (self.pause_floor >= 0).any():
+    if not torch.jit.is_tracing() and not self.pause_active:
         return self.pause_original(x, pos_emb, cached_key, left_context_len, key_padding_mask)
     projected = self.in_proj(x)
     t, b, _ = projected.shape
@@ -43,18 +49,18 @@ def attention(self, x, pos_emb, cached_key, left_context_len, key_padding_mask):
 
 def depthwise(self, x, cache):
     original, new_cache = self.pause_original(x, cache=cache)
-    if not torch.jit.is_tracing() and not (self.pause_floor >= 0).any():
+    if not torch.jit.is_tracing() and not self.pause_active:
         return original, new_cache
     b, c, t = x.shape
     left = cache.shape[-1]
-    causal = torch.cat([cache,x],dim=-1).unfold(-1,left+1,1)
+    causal = time_windows(torch.cat([cache,x],dim=-1),t,left+1)
     allow = allowed_sources(self.pause_floor,self.pause_processed,t+left,left)
     offsets = torch.arange(t,device=x.device)[:,None]+torch.arange(left+1,device=x.device)[None]
     keep = torch.gather(allow,2,offsets[None].expand(b,-1,-1))
     causal = (causal*keep[:,None]*self.causal_conv.weight[:,0][None,:,None]).sum(-1)
     if self.causal_conv.bias is not None: causal = causal+self.causal_conv.bias[None,:,None]
     width = self.kernel_size
-    local = F.pad(x,(left,left)).unfold(-1,width,1)
+    local = time_windows(F.pad(x,(left,left)),t,width)
     local_keys = self.pause_processed[:,None,None] + torch.arange(t,device=x.device)[None,:,None] + torch.arange(width,device=x.device)[None,None] - left
     keep = (self.pause_floor[:,:,None]<0) | (local_keys>=self.pause_floor[:,:,None])
     local = (local*keep[:,None]*self.chunkwise_conv.weight[:,0][None,:,None]).sum(-1)
@@ -65,12 +71,16 @@ def depthwise(self, x, cache):
 
 def convnext(self,x,cached_left_pad):
     original,new_pad = self.pause_original(x,cached_left_pad=cached_left_pad)
-    if not torch.jit.is_tracing() and not (self.pause_floor >= 0).any():
+    if not torch.jit.is_tracing() and not self.pause_active:
         return original, new_pad
     pt,pf = self.padding
     t = x.shape[2]-pt
     source = F.pad(torch.cat([cached_left_pad,x],dim=2),(pf,pf))
-    windows = source.unfold(2,2*pt+1,1).unfold(3,2*pf+1,1)
+    kt,kf = 2*pt+1,2*pf+1
+    times=torch.arange(t,device=x.device)[:,None]+torch.arange(kt,device=x.device)[None]
+    freqs=torch.arange(x.shape[3],device=x.device)[:,None]+torch.arange(kf,device=x.device)[None]
+    windows=source.index_select(2,times.reshape(-1)).reshape(x.shape[0],x.shape[1],t,kt,source.shape[3]).permute(0,1,2,4,3)
+    windows=windows.index_select(3,freqs.reshape(-1)).reshape(x.shape[0],x.shape[1],t,x.shape[3],kf,kt).permute(0,1,2,3,5,4)
     keys = self.pause_processed[:,None,None]+torch.arange(t,device=x.device)[None,:,None]+torch.arange(2*pt+1,device=x.device)[None,None]-pt
     keep = (self.pause_floor[:,:t,None]<0) | (keys>=self.pause_floor[:,:t,None])
     hidden = (windows*keep[:,None,:,None,:,None]*self.depthwise_conv.weight[:,0][None,:,None,None]).sum((-1,-2))
@@ -96,14 +106,17 @@ class PauseStreaming(torch.nn.Module):
             for layer in inner.layers:
                 a = layer.self_attn_weights
                 a.pause_original = a.streaming_forward
+                a.pause_active = True
                 a.streaming_forward = types.MethodType(attention,a)
                 self.masked.append((a,ds))
                 for conv in (layer.conv_module1.depthwise_conv,layer.conv_module2.depthwise_conv):
                     conv.pause_original = conv.streaming_forward
+                    conv.pause_active = True
                     conv.streaming_forward = types.MethodType(depthwise,conv)
                     self.masked.append((conv,ds))
         embed = self.encoder_embed.convnext
         embed.pause_original = embed.streaming_forward
+        embed.pause_active = True
         embed.streaming_forward = types.MethodType(convnext,embed)
 
     def init_states(self,batch=1,device=None):
@@ -112,12 +125,17 @@ class PauseStreaming(torch.nn.Module):
 
     def forward(self,x,states,pause_floor):
         processed = states[-1]
+        active = True if torch.jit.is_tracing() else bool((pause_floor >= 0).any())
+        clocks = {}
         for module,ds in self.masked:
-            floor = pause_floor[:,::ds]
-            module.pause_floor = torch.where(floor<0,floor,(floor+ds-1)//ds)
-            module.pause_processed = processed//ds
+            if ds not in clocks:
+                floor = pause_floor[:,::ds]
+                clocks[ds] = (torch.where(floor<0,floor,(floor+ds-1)//ds),processed//ds)
+            module.pause_floor,module.pause_processed = clocks[ds]
+            module.pause_active = active
         self.encoder_embed.convnext.pause_floor = pause_floor
         self.encoder_embed.convnext.pause_processed = processed
+        self.encoder_embed.convnext.pause_active = active
         lengths = torch.full((x.shape[0],),2*self.chunk+13,dtype=torch.int64,device=x.device)
         embedded,lengths,pad = self.encoder_embed.streaming_forward(x,lengths,states[-2])
         mask = (processed[:,None]<=torch.arange(self.left,device=x.device)[None]).int().flip(1)
