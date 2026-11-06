@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { pauseFloor, pauseMaskSpans } from "../src/pause-mask.js";
 import type { PhonemeEvidence, ReferenceIndex } from "@tilawa/core";
+import { createListener } from "../src/listener.js";
+import type { LoadedModel, Tensor } from "../src/model.js";
 
 const index = { words: [
   { surah: 1, ayah: 1, word: 1, start: 0, end: 1 },
@@ -25,5 +27,32 @@ describe("pause-blocked auxiliary streaming", () => {
     const spans = [{ fromFrame: 3, toFrame: 8 }];
     expect(Array.from(pauseFloor(spans,0,16))).toEqual([-1n,-1n,-1n,-1n,-1n,-1n,6n,6n,6n,6n,6n,6n,6n,6n,6n,6n]);
     expect(Array.from(pauseFloor(spans,16,16))).toEqual(Array(16).fill(-1n));
+  });
+  it("feeds the declared dynamic mask at the carried clock and leaves ordinary feeds intact", async () => {
+    const run = async (enabled: boolean) => {
+      const feeds: Record<string, Tensor>[] = [];
+      const model: LoadedModel = {
+        manifest: { schema: 1, id: "test", format: "test", arch: "zipformer2-streaming-ctc",
+          inventory: "test", tokens: "ب", blank: 0, sampleRate: 16000, frameMs: 40,
+          fbank: { mels: 80, padValue: -23.0259 }, window: 45, shift: 32,
+          states: [{ name: "processed_lens", shape: [1], dtype: "int64" }], file: "test", bytes: 0, sha256: "",
+          ...(enabled && { pauseMask: { input: "pause_floor", clockMs: 20 } as const }) },
+        supported: [], backend: { name: "stub", async release() {}, async run(f) {
+          feeds.push(f);
+          return { log_probs: { type: "float32", data: new Float32Array(16), dims: [1,8,2] },
+            new_processed_lens: { type: "int64", data: BigInt64Array.of((f.processed_lens.data as BigInt64Array)[0]+16n), dims: [1] } };
+        } },
+      };
+      const listener = createListener(model,{ pauseMask: [{ fromFrame: 3, toFrame: 8 }] });
+      await listener.push(new Float32Array(16000),16000);
+      await listener.end();
+      return feeds;
+    };
+    const masked = await run(true), ordinary = await run(false);
+    expect(masked.length).toBeGreaterThan(1);
+    expect(Array.from(masked[0].pause_floor.data as BigInt64Array)).toEqual([-1n,-1n,-1n,-1n,-1n,-1n,6n,6n,6n,6n,6n,6n,6n,6n,6n,6n]);
+    expect(Array.from(masked[1].pause_floor.data as BigInt64Array)).toEqual(Array(16).fill(-1n));
+    expect(Array.from(masked[1].processed_lens.data as BigInt64Array)).toEqual([16n]);
+    for (const f of ordinary) expect(Object.keys(f)).toEqual(["x","processed_lens"]);
   });
 });
