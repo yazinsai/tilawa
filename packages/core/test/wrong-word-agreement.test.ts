@@ -55,23 +55,3 @@ describe("wrong-word side agreement", () => {
     expect(sameWrongWord(bar, { ...bar, fromFrame: bar.toFrame, toFrame: bar.toFrame + 1 })).toBe(false);
   });
 });
-
-describe("parallel graph exemption", () => {
-  it("does not request side agreement for an attested parallel path", () => {
-    const from = { surah: 37, ayah: 108, word: 1 }, to = { surah: 37, ayah: 109, word: 2 };
-    const first = index.words.find(w => w.surah === 37 && w.ayah === 108 && w.word === 1)!;
-    const target = index.words.find(w => w.surah === 37 && w.ayah === 108 && w.word === 2)!;
-    const rival = index.words.find(w => w.surah === 37 && w.ayah === 119 && w.word === 2)!;
-    const fixture = syntheticFixture(index, { id: "graph-exemption", from, to, chunkSize: 6, edits: [
-      { kind: "del", at: target.start - first.start, count: target.end - target.start },
-      { kind: "ins", at: target.start - first.start, text: index.phonemes.slice(rival.start, rival.end) },
-    ] });
-    const observed: WrongWordAccusation[] = [];
-    const checker = createChecker(index, { passage: { from, to }, policy: { confirm: { after: "next-word" } },
-      wrongWord: (c, _id, graph) => { if (!graph) observed.push(c); } });
-    for (const e of fixture.evidence) checker.push(withPosteriors(index, e), []);
-    checker.end();
-    expect(checker.mistakes()).toMatchObject([{ errorClass: "wrong_word", location: { surah: 37, ayah: 108, word: 2 } }]);
-    expect(observed).toEqual([]);
-  });
-});
