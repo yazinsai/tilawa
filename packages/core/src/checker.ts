@@ -1,7 +1,8 @@
 import { align as editPath } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
-import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
+import type { DecodedPhoneme, PhonemeEvidence, SeamWordAgreementEvidence } from "./evidence.js";
+import { validSeamWordAgreement } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import { channelFromCounts, spanLogP, type Channel, type ChannelCounts } from "./noisy-channel.js";
@@ -256,6 +257,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const insertionEvidence = new Map<string, number>();
+  const wordAgreementEvidence = new Map<string, SeamWordAgreementEvidence>();
   const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
     JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
   // A completed seam remains in the streaming window over many pushes. Its
@@ -313,6 +315,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   });
   const fatiha = words.filter((w) => w.surah === 1 && w.ayah === 1);
   const phrases = [...(options.phrases?.phrases.map((p) => p.p) ?? []), ref.slice(fatiha[0].start, fatiha.at(-1)!.end)];
+  const phraseSpan = (s: string) => phrases.some((p) => {
+    if (Math.abs(p.length - s.length) > Math.ceil(p.length * 0.6) + 4) return false;
+    const hit = alignSubstring(s, 0, s.length, p, () => true);
+    return !!hit && hit.start === 0 && hit.end >= s.length - 1 && hit.cost / UNIT / p.length <= PHRASE_MAX_COST;
+  });
   const nextWord = (wi: number) => {
     let k = wi + 1;
     while (k < words.length && words[k].end === words[k].start) k++;
@@ -1771,11 +1778,6 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     // An added word at an ayah start sits in the greedy phones before word 1, after both seam words already
     // have a complete in-order visit. Pauses and waqf tails are not part of that word. Neighbours, their
     // prefixes and non-Quran phrases are not an addition.
-    const phraseSpan = (s: string) => phrases.some((p) => {
-      if (Math.abs(p.length - s.length) > Math.ceil(p.length * 0.6) + 4) return false;
-      const hit = alignSubstring(s, 0, s.length, p, () => true);
-      return !!hit && hit.start === 0 && hit.end >= s.length - 1 && hit.cost / UNIT / p.length <= PHRASE_MAX_COST;
-    });
     for (const w1 of new Set(visits.map((v) => v.word))) {
       if (w1 < first || words[w1].end === words[w1].start || ayahFirst[ayahOf[w1]] !== w1) continue;
       const prev = prevWord(w1);
@@ -2457,6 +2459,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const c of p.seamWordAgreements ?? []) {
+        if (validSeamWordAgreement(c))
+          wordAgreementEvidence.set(insertionKey(c.word, c.observed, c.fromFrame, c.toFrame), c);
+      }
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {
@@ -2488,6 +2494,22 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const out: CheckerEvent[] = [];
       anchorOn(track(events, out), events);
       evaluate(out, true);
+      // Auxiliary identities are retained independently of primary token ownership.
+      // Recheck the folded lexical/site guards before publishing a closed fit.
+      for (const c of wordAgreementEvidence.values()) {
+        const wi = wordIndex(c.word), prev = prevWord(wi);
+        if (wi < 0 || prev < 0 || nextWord(wi) >= words.length || words[wi].end === words[wi].start) continue;
+        const inner = ayahOf[prev] === ayahOf[wi];
+        if (inner ? !waqfMarked(prev) : ayahFirst[ayahOf[wi]] !== wi) continue;
+        if (!lexical.surplusWord(wi, c.observed) || lexical.fragmentOfSeam(wi, c.observed) || phraseSpan(c.observed)) continue;
+        if (emitted.some(e => e.state === "confirmed" && e.errorClass === "added_word" &&
+          e.location.surah === c.word.surah && e.location.ayah === c.word.ayah && e.location.word === c.word.word)) continue;
+        const e: CheckerEvent = { type: "checker", v: EVENT_SCHEMA_VERSION,
+          id: `${c.word.surah}:${c.word.ayah}:${c.word.word}#${++seq}`, timeMs: c.toFrame * frameMs,
+          state: "confirmed", errorClass: "added_word", location: c.word,
+          expected: ref.slice(words[wi].start, words[wi].end), observed: c.observed, confidence: 1 };
+        emitted.push(e); out.push(e);
+      }
       return out;
     },
     mistakes() {

@@ -29,7 +29,17 @@ export interface ModelRegistry {
     file: string; bytes: number; sha256: string;
     externalData: { file: string; bytes: number; sha256: string }[];
   }[];
+  wordEar?: {
+    id: string; purpose: "seam-word-candidates"; precision: "int8";
+    encoder: ModelFile; decoder: ModelFile; tokenizer: ModelFile;
+  };
+  sslEar?: {
+    id: string; purpose: "seam-word-agreement"; precision: "int8"; inventory: string;
+    model: ModelFile; externalData: ModelFile[]; spec: { file: string };
+  };
 }
+
+interface ModelFile { file: string; bytes: number; sha256: string }
 
 /** Persistent bytes by key: Cache API on web, a directory on Node, an app-provided store on React Native. */
 export interface ModelStorage {

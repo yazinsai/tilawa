@@ -10,3 +10,4 @@ export * from "./tracker.js";
 export { collapseHeld } from "./fuzzy.js";
 export { lexicalWords } from "./checker-lexical.js";
 export { waqfMarked } from "./mushaf-marks.js";
+export { seamWordFit, seamWordCompetitors, seamWordAgreement } from "./seam-word-agreement.js";

@@ -49,4 +49,6 @@ export interface LoadedModel {
   supported: ErrorClass[];
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
+  wordEar?: { decode(samples: Float32Array): Promise<import("./word-decoder.js").HeardWord[]> };
+  sslEar?: { decodeSeams(samples: Float32Array, spans: readonly import("./ssl-ear.js").SslEarSpan[]): Promise<import("@tilawa/core").DecodedPhoneme[]> };
 }

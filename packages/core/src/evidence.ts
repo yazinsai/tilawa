@@ -9,6 +9,25 @@ export interface SeamInsertionEvidence {
   marginal: number;
 }
 
+/** A word-level proposal independently ranked by native SSL seam tokens. */
+export interface SeamWordAgreementEvidence {
+  word: WordRef;
+  observed: string;
+  fromFrame: number;
+  toFrame: number;
+  cost: number;
+  hard: number;
+  rival: number;
+}
+
+export function validSeamWordAgreement(c: SeamWordAgreementEvidence): boolean {
+  return [c.word.surah, c.word.ayah, c.word.word].every(n => Number.isInteger(n) && n > 0) &&
+    !!c.observed && Number.isInteger(c.fromFrame) && c.fromFrame >= 0 &&
+    Number.isInteger(c.toFrame) && c.toFrame > c.fromFrame &&
+    Number.isFinite(c.cost) && c.cost >= 0 && Number.isFinite(c.rival) && c.cost < c.rival &&
+    Number.isInteger(c.hard) && c.hard >= 0 && c.hard <= 1;
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -18,6 +37,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  seamWordAgreements?: SeamWordAgreementEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

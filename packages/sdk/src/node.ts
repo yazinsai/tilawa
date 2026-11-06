@@ -11,6 +11,8 @@ import type { OrtModule } from "./ort.js";
 import { ortBackend } from "./ort.js";
 import { decodeWav } from "./wav.js";
 import { createInsertionTeacher } from "./insertion-teacher.js";
+import { createWordDecoder, type WordTokenizer } from "./word-decoder.js";
+import { createSslEar, type SslEarGeometry } from "./ssl-ear.js";
 
 export * from "./index.js";
 export { decodeWav };
@@ -22,7 +24,8 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachWordSslEars(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES },
+    dir, options.threads), dir, options.threads);
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -49,6 +52,50 @@ async function attachInsertionTeacher(model: LoadedModel, dir: string, threads =
 
 export async function readWav(path: string) {
   return decodeWav(new Uint8Array(await readFile(path)));
+}
+
+/** Install the two independently trained seam ears together. Both are lazy;
+ * their inference and release never replace the primary streaming backend. */
+async function attachWordSslEars(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
+  const word = MODEL_REGISTRY.wordEar, ssl = MODEL_REGISTRY.sslEar;
+  if (!word || !ssl) return model;
+  const installed = async (file: string) => access(join(dir, file)).then(() => true,
+    e => { if (e.code === "ENOENT") return false; throw e; });
+  if (!await installed(word.encoder.file) || !await installed(ssl.model.file)) return model;
+  for (const file of [word.decoder, word.tokenizer, ssl.spec, ...ssl.externalData]) await access(join(dir, file.file));
+  const tokenizer = JSON.parse(await readFile(join(dir, word.tokenizer.file), "utf8")) as WordTokenizer;
+  const spec = JSON.parse(await readFile(join(dir, ssl.spec.file), "utf8")) as {
+    tokens: string; inventory: string; geometry: SslEarGeometry;
+  };
+  if (ssl.inventory !== model.manifest.inventory || spec.inventory !== model.manifest.inventory || spec.tokens !== model.manifest.tokens)
+    throw new Error("SSL ear inventory differs from the primary model");
+  let wordDecoder: Promise<ReturnType<typeof createWordDecoder>> | undefined;
+  let sslDecoder: Promise<ReturnType<typeof createSslEar>> | undefined;
+  const backends: import("./model.js").InferenceBackend[] = [];
+  const open = async (file: string) => {
+    const b = await ortBackend(ort as unknown as OrtModule, join(dir, file), "onnxruntime-node", {
+      executionProviders: ["cpu"], intraOpNumThreads: threads,
+    });
+    backends.push(b);
+    return b;
+  };
+  const release = model.backend.release.bind(model.backend);
+  model.backend.release = async () => {
+    try { await Promise.all([wordDecoder, sslDecoder]); }
+    finally {
+      try { await Promise.all(backends.map(b => b.release())); }
+      finally { await release(); }
+    }
+  };
+  model.wordEar = { async decode(samples) {
+    wordDecoder ??= (async () => createWordDecoder(await open(word.encoder.file), await open(word.decoder.file), tokenizer))();
+    return (await wordDecoder).decode(samples);
+  } };
+  model.sslEar = { async decodeSeams(samples, spans) {
+    sslDecoder ??= open(ssl.model.file).then(b => createSslEar(b, spec.tokens, spec.inventory, spec.geometry));
+    return (await sslDecoder).decodeSeams(samples, spans);
+  } };
+  return model;
 }
 
 /** Model files under `dir`, one path per versioned key. */
@@ -87,6 +134,7 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  const dir = join(o.cacheDir, `${tier.id}@${tier.version}`);
+  return attachWordSslEars(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
+    dir, o.threads), dir, o.threads);
 }
