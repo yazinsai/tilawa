@@ -1,7 +1,8 @@
 # Pause-onset cold agreement for the teacher phone loop
 
-Status: implemented; acoustic agreement and engine recovery pass on 3/6 targets.
-Full tests and required practice scoring are pending. Experiment card unchanged.
+Status: implemented; acoustic agreement and SDK recovery pass on 3/6 targets.
+Full core/SDK tests passed. Official practice result: overall +0, listener +0
+(noise). The required overall fold gain is not met. Experiment card unchanged.
 
 ## Prediction and mechanism
 
@@ -53,15 +54,12 @@ population precision or release readiness.
 
 The first harness run exposed a new test-fixture error: its exhaustive cold
 example named phone 4 while providing only IDs 0–3. The fixture vocabulary was
-corrected. All existing core tests passed, and focused run 4 passed all 18 core loop/certificate tests and all six SDK
-agreement/transport tests. The suite's documented worker RPC timeout was accepted
-only after that shard's tests passed; no timeout was edited.
-
-Acoustic run 3 did not receive the ignored `.autolab/probes` sources and exited
-before any decode. Run 5 also did not receive scratch-tree probes. Run 6 transferred the SDK probes but lacked the experiment card under `/app`.
-Run 7 receives the card's declared listener ID as an environment variable. Those
-temporary sources will be removed before final review and retained with the
-ignored run artifacts. No practice score has been requested.
+corrected. All existing core tests passed, and focused run 4 passed all 18 core
+loop/certificate tests and all six SDK agreement/transport tests. The suite's
+documented worker RPC timeout was accepted only after that shard's tests
+passed; no timeout was edited. Early probes that lacked transferred sources or
+the card exited before acoustic measurement; run 7 passed the declared listener
+ID explicitly and received the diagnostic sources under the SDK package.
 
 Run 7 passed on all six shards (155–171 seconds each), with the original
 `quran-muaalem==0.2.2`, `transformers==4.55.2`, torch/torchaudio 2.8.0 CPU teacher.
@@ -112,12 +110,36 @@ target-session analysis, not a full practice score, and does not justify
 stopping before the required score.
 
 Run 13 repeats the supplied full core/SDK test harness on the final candidate,
-including the corrected teacher graph declaration. Results are pending.
+including the corrected teacher graph declaration. All six shards pass:
+767 core tests and 28 SDK tests, with one optional help end-to-end test skipped.
+The documented Vitest worker RPC deadline occurs after all affected core tests
+pass; the supplied harness accepts that error. No timeout or harness is changed.
 Temporary diagnostic sources have been removed from the reviewable worktree
 and archived under ignored `.autolab/probes`. `.autolab/model.json` requests the
 persistent scratch `bundle` for practice scoring; its primary graph and
 manifest are unchanged copies of the shipped student. The teacher declaration
 names the actual exported graph bytes and checksum.
+
+## Official practice result
+
+Practice score 1 of 3 was run on implementation commit `056fcfa2` and returned
+`noise`. No parameters were tuned and no further score was requested.
+
+| Charged component | Main | Experiment | Change |
+| --- | ---: | ---: | ---: |
+| Overall | 24 (13 missed, 11 false) | 24 (13 missed, 11 false) | 0 |
+| Listener | 23 (13 missed, 10 false) | 23 (13 missed, 10 false) | 0 |
+| Tracker | 1 | 1 | 0 |
+| Checker | 0 | 0 | 0 |
+
+This does not meet the required overall gain of three. It also does not show
+the fresh SDK replay's three target gains or its added wrong calls in the
+aggregate practice counts. The returned result contains aggregate counts and
+the implementation SHA, without a fresh evidence trace or per-incident
+assignments. It therefore does not establish that the new teacher certificates
+reached the scored replay, or that cold agreement improves practice precision.
+The SDK recovery count is three, so the instructed premise stop does not fire.
+The implementation is left on the experiment branch for the supervisor's gate.
 
 No scorer, lab tooling, supplied labels, manifests or evidence are modified.
 Raw artifacts remain under this experiment's Modal scratch directory.
