@@ -27,6 +27,8 @@ export interface ModelManifest {
   file: string;
   bytes: number;
   sha256: string;
+  /** Optional pause-blocked export; absence keeps the ordinary model feed. */
+  pauseMask?: { input: string; clockMs: 20 };
 }
 
 export interface Tensor {

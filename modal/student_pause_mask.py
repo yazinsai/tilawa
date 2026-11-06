@@ -1,0 +1,143 @@
+"""Pause-blocked streaming student, shared by training and ONNX deployment.
+
+Cutoffs use the native 20 ms embedding clock. A negative cutoff leaves a query
+unchanged. State and positions advance normally; no cache is reset. Each query
+can read its own pause warm-up and subsequent frames, but no earlier frame.
+"""
+from __future__ import annotations
+
+import types
+import torch
+import torch.nn.functional as F
+
+
+def allowed_sources(floors, processed, sources, left=0):
+    keys = processed[:, None] + torch.arange(sources, device=floors.device)[None] - left
+    return (floors[:, :, None] < 0) | (keys[:, None] >= floors[:, :, None])
+
+
+def attention(self, x, pos_emb, cached_key, left_context_len, key_padding_mask):
+    if not torch.jit.is_tracing() and not (self.pause_floor >= 0).any():
+        return self.pause_original(x, pos_emb, cached_key, left_context_len, key_padding_mask)
+    projected = self.in_proj(x)
+    t, b, _ = projected.shape
+    h, d, pd = self.num_heads, self.query_head_dim, self.pos_head_dim
+    q, k, p = torch.split(projected, [h*d, h*d, h*pd], dim=-1)
+    keys = torch.cat([cached_key, k], dim=0)
+    new_key = keys[-left_context_len:]
+    n = keys.shape[0]
+    q = q.reshape(t,b,h,d).permute(2,1,0,3)
+    k = keys.reshape(n,b,h,d).permute(2,1,3,0)
+    p = p.reshape(t,b,h,pd).permute(2,1,0,3)
+    positions = self.linear_pos(pos_emb).reshape(-1,2*t-1+left_context_len,h,pd).permute(2,0,3,1)
+    relative = torch.matmul(p,positions)
+    indices = (t-1-torch.arange(t,device=x.device))[:,None] + torch.arange(n,device=x.device)[None]
+    relative = torch.gather(relative,-1,indices[None,None].expand(h,b,t,n))
+    scores = torch.matmul(q,k) + relative
+    if key_padding_mask is not None:
+        scores = scores.masked_fill(key_padding_mask.bool()[None,:,None,:],-1000)
+    allowed = allowed_sources(self.pause_floor, self.pause_processed,n,left_context_len)
+    scores = scores.masked_fill(~allowed[None],-1000)
+    return scores.softmax(-1), new_key
+
+
+def depthwise(self, x, cache):
+    original, new_cache = self.pause_original(x, cache=cache)
+    if not torch.jit.is_tracing() and not (self.pause_floor >= 0).any():
+        return original, new_cache
+    b, c, t = x.shape
+    left = cache.shape[-1]
+    causal = torch.cat([cache,x],dim=-1).unfold(-1,left+1,1)
+    allow = allowed_sources(self.pause_floor,self.pause_processed,t+left,left)
+    offsets = torch.arange(t,device=x.device)[:,None]+torch.arange(left+1,device=x.device)[None]
+    keep = torch.gather(allow,2,offsets[None].expand(b,-1,-1))
+    causal = (causal*keep[:,None]*self.causal_conv.weight[:,0][None,:,None]).sum(-1)
+    if self.causal_conv.bias is not None: causal = causal+self.causal_conv.bias[None,:,None]
+    width = self.kernel_size
+    local = F.pad(x,(left,left)).unfold(-1,width,1)
+    local_keys = self.pause_processed[:,None,None] + torch.arange(t,device=x.device)[None,:,None] + torch.arange(width,device=x.device)[None,None] - left
+    keep = (self.pause_floor[:,:,None]<0) | (local_keys>=self.pause_floor[:,:,None])
+    local = (local*keep[:,None]*self.chunkwise_conv.weight[:,0][None,:,None]).sum(-1)
+    if self.chunkwise_conv.bias is not None: local = local+self.chunkwise_conv.bias[None,:,None]
+    masked = causal + local*self._get_chunk_scale(chunk_size=t)
+    return torch.where(self.pause_floor[:,None]>=0,masked,original), new_cache
+
+
+def convnext(self,x,cached_left_pad):
+    original,new_pad = self.pause_original(x,cached_left_pad=cached_left_pad)
+    if not torch.jit.is_tracing() and not (self.pause_floor >= 0).any():
+        return original, new_pad
+    pt,pf = self.padding
+    t = x.shape[2]-pt
+    source = F.pad(torch.cat([cached_left_pad,x],dim=2),(pf,pf))
+    windows = source.unfold(2,2*pt+1,1).unfold(3,2*pf+1,1)
+    keys = self.pause_processed[:,None,None]+torch.arange(t,device=x.device)[None,:,None]+torch.arange(2*pt+1,device=x.device)[None,None]-pt
+    keep = (self.pause_floor[:,:t,None]<0) | (keys>=self.pause_floor[:,:t,None])
+    hidden = (windows*keep[:,None,:,None,:,None]*self.depthwise_conv.weight[:,0][None,:,None,None]).sum((-1,-2))
+    hidden = hidden+self.depthwise_conv.bias[None,:,None,None]
+    hidden = self.pointwise_conv1(hidden)
+    hidden = self.hidden_balancer(hidden)
+    hidden = self.activation(hidden)
+    hidden = self.pointwise_conv2(hidden)
+    hidden = x[:,:,:t]+hidden
+    return torch.where(self.pause_floor[:,None,:t,None]>=0,hidden,original),new_pad
+
+
+class PauseStreaming(torch.nn.Module):
+    def __init__(self,model,chunk=16,left=128):
+        super().__init__()
+        model.eval()
+        model.streaming_eval(chunk,left)
+        self.encoder,self.encoder_embed,self.ctc_output = model.encoder,model.encoder_embed,model.ctc_output
+        self.chunk,self.left = chunk,left
+        self.masked = []
+        for stage,ds in zip(self.encoder.encoders,self.encoder.downsampling_factor):
+            inner = stage.encoder if hasattr(stage,'encoder') else stage
+            for layer in inner.layers:
+                a = layer.self_attn_weights
+                a.pause_original = a.streaming_forward
+                a.streaming_forward = types.MethodType(attention,a)
+                self.masked.append((a,ds))
+                for conv in (layer.conv_module1.depthwise_conv,layer.conv_module2.depthwise_conv):
+                    conv.pause_original = conv.streaming_forward
+                    conv.streaming_forward = types.MethodType(depthwise,conv)
+                    self.masked.append((conv,ds))
+        embed = self.encoder_embed.convnext
+        embed.pause_original = embed.streaming_forward
+        embed.streaming_forward = types.MethodType(convnext,embed)
+
+    def init_states(self,batch=1,device=None):
+        device = device or next(self.parameters()).device
+        return self.encoder.get_init_states(batch,device)+[self.encoder_embed.get_init_states(batch,device),torch.zeros(batch,dtype=torch.int64,device=device)]
+
+    def forward(self,x,states,pause_floor):
+        processed = states[-1]
+        for module,ds in self.masked:
+            floor = pause_floor[:,::ds]
+            module.pause_floor = torch.where(floor<0,floor,(floor+ds-1)//ds)
+            module.pause_processed = processed//ds
+        self.encoder_embed.convnext.pause_floor = pause_floor
+        self.encoder_embed.convnext.pause_processed = processed
+        lengths = torch.full((x.shape[0],),2*self.chunk+13,dtype=torch.int64,device=x.device)
+        embedded,lengths,pad = self.encoder_embed.streaming_forward(x,lengths,states[-2])
+        mask = (processed[:,None]<=torch.arange(self.left,device=x.device)[None]).int().flip(1)
+        mask = torch.cat([mask,torch.zeros(x.shape[0],self.chunk,dtype=torch.int32,device=x.device)],dim=1)
+        output,_,new_states = self.encoder.streaming_forward(embedded.permute(1,0,2),lengths,states[:-2],mask)
+        return self.ctc_output(output.permute(1,0,2)).log_softmax(-1),new_states+[pad,processed+lengths]
+
+
+def stream(model,feats,floors=None,detach_every=8):
+    """Carried deployed caches, with truncated backpropagation through state only."""
+    states = model.init_states(feats.shape[0],feats.device)
+    total = ((feats.shape[1]-7)//2+1)//2
+    windows = (total+model.chunk//2-1)//(model.chunk//2)
+    needed = (windows-1)*2*model.chunk+2*model.chunk+13
+    feats = F.pad(feats,(0,0,0,max(0,needed-feats.shape[1])),value=-23.0259)
+    rows = []
+    for i in range(windows):
+        cut = torch.full((feats.shape[0],model.chunk),-1,dtype=torch.int64,device=feats.device) if floors is None else floors[:,i*model.chunk:(i+1)*model.chunk]
+        if cut.shape[1]<model.chunk: cut = F.pad(cut,(0,model.chunk-cut.shape[1]),value=-1)
+        lp,states = model(feats[:,i*2*model.chunk:i*2*model.chunk+2*model.chunk+13],states,cut)
+        rows.append(lp)
+        if detach_every and (i+1)%detach_every==0: states = [s.detach() for s in states]
+    return torch.cat(rows,dim=1)[:,:total]
