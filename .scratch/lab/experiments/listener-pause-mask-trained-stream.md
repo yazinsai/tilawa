@@ -51,7 +51,13 @@ The SDK mask input and seam selector are generic engine code. Every labelled pau
 at an ayah or waqf-marked inner boundary opens a span, and the unchanged
 primary tracker's next in-order word step closes it. Primary model feeds remain
 unchanged when the manifest has no mask input. Primary strings and tracker rules
-are unchanged; deployment of the candidate evidence is pending the acoustic check.
+are unchanged. A declared auxiliary in the export bundle runs a second streaming
+pass on the same audio. Its rows and tokens are carried as checker-only metadata
+on the first primary token, surviving stored-evidence JSON and rechunking. The
+checker replaces only declared span rows and tokens, while the primary tracker
+continues reading primary phones. The folded candidate generator and teacher gate
+read that scoped evidence unchanged. The existing teacher path publishes newly
+certified additions at session end; this experiment retains that timing.
 
 ## Validation
 
@@ -80,9 +86,11 @@ not target recall or population quality.
 Run 8 decoded the six complete target recordings with the shipped SDK and
 derived their primary tracker steps. Baseline ordered planted-consonant counts
 on the seven labelled intervals are 1, 0, 1, 1, 2, 2, 3 in card order. The
-37:36, 12:76, 32:21, both 51 seams and inner 20:40 sites have qualifying detector
-pauses. The 26:208 target has no qualifying pause before its primary step onto
-word 1. Labels report these intervals only; they do not select SDK spans.
+span eligibility was provisional: the diagnostic initially used per-push
+acquisition rather than the SDK's one-second acquisition clock. The final paired
+diagnostic now uses that primary clock, and also records the already-folded cold
+gap output. A recovery that this folded baseline already holds is not a training
+gain. Labels report intervals and planted phones only; they do not select SDK spans.
 
 The baseline exposed a selector defect: taking only the last detector pause
 could start masking halfway through a blanked addition. The implementation now
@@ -100,8 +108,25 @@ inference/export. No data item was dropped and no training constant changed.
 Run 15 passed the large-input gradient regression and unmasked streaming-state
 parity checks. Loss/gradient guards prevent saving a corrupted optimizer update.
 
-Final training, trained int8 paired target streams and evidence deployment remain
-pending. No practice-score calls have been made.
+Run 14 passed all ten Python tests and continued training for its 48-minute
+limit, reaching approximately 300 updates. The logged updates include ten masked
+items out of thirty samples; these are sampled log entries, not population
+counts. Losses and gradients stayed finite. Run 20 resumes the same 800-update
+recipe and optimizer, without using practice results for any training choice.
+
+Run 17 passed the supplied build/test harness: 758 core tests and 34 SDK tests,
+including loading/releasing the declared auxiliary, private audio retention,
+preservation of primary tracker inputs, and scoped evidence survival through JSON
+and primary rechunking. One optional integration test was skipped. The harness
+accepted a Vitest worker RPC timeout after all tests in that shard had passed.
+Runs 21–22 passed the complete-encoder cache test, including a pause inside a
+chunk with changed pre-pause input and old caches. All masked output rows were
+bit-identical; unmasked output still depended on that history. The eleven Python
+tests passed in run 21, and the extended focused case passed in run 22.
+
+Final training and trained int8 paired target streams remain pending. The paired
+diagnostic records both folded-baseline and masked-candidate checker replay,
+including unchanged teacher judgments. No practice-score calls have been made.
 
 ## Limits
 
