@@ -63,6 +63,7 @@ describe("Node insertion teacher loading", () => {
 
   it("loads the declared word ear lazily alongside the teacher and releases both word backends", async () => {
     const primary = { name:"primary", run:vi.fn(), release:vi.fn() };
+    const releasePrimary = primary.release;
     const encoder = { name:"encoder", run:vi.fn().mockResolvedValue({encoder_hidden_states:{type:"float32",data:new Float32Array(1),dims:[1,1,1]}}), release:vi.fn() };
     const decoder = { name:"decoder", run:vi.fn().mockResolvedValue({logits:{type:"float32",data:Float32Array.from([10,0]),dims:[1,1,2]}}), release:vi.fn() };
     mocks.access.mockResolvedValue(undefined);
@@ -79,6 +80,6 @@ describe("Node insertion teacher loading", () => {
     await model.backend.release();
     expect(encoder.release).toHaveBeenCalledOnce();
     expect(decoder.release).toHaveBeenCalledOnce();
-    expect(primary.release).toHaveBeenCalledOnce();
+    expect(releasePrimary).toHaveBeenCalledOnce();
   });
 });
