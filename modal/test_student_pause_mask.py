@@ -78,6 +78,13 @@ class PauseMaskTests(unittest.TestCase):
             v,_=a.streaming_forward(x,pos,cache+100,128,torch.zeros(1,144,dtype=torch.bool))
         torch.testing.assert_close(u,v,rtol=0,atol=0)
         self.assertEqual(u[...,:128].count_nonzero().item(),0)
+        a.pause_floor[:,:8]=-1; a.pause_floor[:,8:]=136
+        changed=x.clone(); changed[:8]+=100
+        with torch.no_grad():
+            u,_=a.streaming_forward(x,pos,cache,128,torch.zeros(1,144,dtype=torch.bool))
+            v,_=a.streaming_forward(changed,pos,cache,128,torch.zeros(1,144,dtype=torch.bool))
+        torch.testing.assert_close(u[:,:,8:],v[:,:,8:],rtol=0,atol=0)
+        self.assertEqual(u[:,:,8:,:136].count_nonzero().item(),0)
 
     def test_convolution_has_no_pre_pause_cache_dependency(self):
         from student_train import build_model
