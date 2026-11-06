@@ -22,6 +22,20 @@ def time_windows(x,count,width):
     return x.index_select(-1,indices.reshape(-1)).reshape(*x.shape[:-1],count,width)
 
 
+def stable_activation(self,x):
+    """Same eval activation, with an overflow-safe derivative during training.
+
+    Icefall's eval helper selects a finite result after exp overflows, but its
+    unused exp branch still poisons backward. Keep inference/export unchanged.
+    """
+    if torch.jit.is_tracing() or not x.requires_grad:
+        return self.pause_original_forward(x)
+    if self.activation=='SwooshL': offset,constant=4.,.035
+    elif self.activation=='SwooshR': offset,constant=1.,.313261687
+    else: raise ValueError(self.activation)
+    return F.linear(F.softplus(x-offset)-.08*x-constant,self.weight,self.bias)
+
+
 def attention(self, x, pos_emb, cached_key, left_context_len, key_padding_mask):
     if not torch.jit.is_tracing() and not self.pause_active:
         return self.pause_original(x, pos_emb, cached_key, left_context_len, key_padding_mask)
@@ -100,6 +114,11 @@ class PauseStreaming(torch.nn.Module):
         model.streaming_eval(chunk,left)
         self.encoder,self.encoder_embed,self.ctc_output = model.encoder,model.encoder_embed,model.ctc_output
         self.chunk,self.left = chunk,left
+        from scaling import ActivationDropoutAndLinear
+        for module in self.modules():
+            if isinstance(module,ActivationDropoutAndLinear):
+                module.pause_original_forward=module.forward
+                module.forward=types.MethodType(stable_activation,module)
         self.masked = []
         for stage,ds in zip(self.encoder.encoders,self.encoder.downsampling_factor):
             inner = stage.encoder if hasattr(stage,'encoder') else stage

@@ -172,6 +172,7 @@ def train(args):
     import student_train as T
     from student import soft_target_loss
     torch.set_num_threads(4); torch.manual_seed(2026)
+    if args.anomaly: torch.autograd.set_detect_anomaly(True)
     out=Path(args.out); out.mkdir(parents=True,exist_ok=True)
     base=torch.load('/student/prior-runs/spliced-clean/ckpt.pt',map_location='cpu',weights_only=False)
     cfg=base['cfg']; raw=T.build_model(cfg['size']); raw.load_state_dict(base['model'])
@@ -206,10 +207,28 @@ def train(args):
         # The anchor is on unmasked items; masked items learn the new regime.
         kl=kl.mean() if bool(unmasked.all()) else kl.sum()*0
         loss=ctc+2*kd+4*kl
-        if not torch.isfinite(loss): raise RuntimeError('non-finite training loss')
-        optimizer.zero_grad(set_to_none=True); loss.backward(); torch.nn.utils.clip_grad_norm_(model.parameters(),5); optimizer.step()
+        if args.anomaly:
+            print(json.dumps(dict(step=step+1,frames=n,targets=len(phones),ctc=float(ctc.detach()),kd=float(kd.detach()),kl=float(kl.detach()))),flush=True)
+            diagnostics={}
+            for name,term in [('ctc',ctc),('kd',kd),('kl',kl)]:
+                grad=torch.autograd.grad(term,lp,retain_graph=True)[0]
+                diagnostics[name]=dict(value=float(term.detach()),finite_gradient=bool(torch.isfinite(grad).all()))
+            print(json.dumps(dict(step=step+1,frames=n,targets=len(phones),losses=diagnostics)),flush=True)
+        if not torch.isfinite(loss):
+            print(json.dumps(dict(step=step+1,ctc=float(ctc.detach()),kd=float(kd.detach()),kl=float(kl.detach()),
+                frames=n,targets=len(phones),finite_lp=bool(torch.isfinite(lp).all()),
+                finite_shipped=bool(torch.isfinite(shipped).all()),finite_feats=bool(torch.isfinite(feats).all()))),flush=True)
+            raise RuntimeError('non-finite training loss')
+        optimizer.zero_grad(set_to_none=True); loss.backward()
+        try:
+            torch.nn.utils.clip_grad_norm_(model.parameters(),5,error_if_nonfinite=True)
+        except RuntimeError:
+            bad=[name for name,p in model.named_parameters() if p.grad is not None and not torch.isfinite(p.grad).all()]
+            print(json.dumps(dict(step=step+1,nonfinite_gradient_count=len(bad),nonfinite_gradients=bad[:12])),flush=True)
+            raise
+        optimizer.step()
         if step%10==0:
-            record=dict(step=step+1,ctc=float(ctc),kd=float(kd),kl=float(kl),pauses=len(pauses),masked_frames=int((~unmasked).sum()),seconds=time.time()-started)
+            record=dict(step=step+1,ctc=float(ctc.detach()),kd=float(kd.detach()),kl=float(kl.detach()),pauses=len(pauses),masked_frames=int((~unmasked).sum()),seconds=time.time()-started)
             print(json.dumps(record),flush=True); log.write(json.dumps(record)+'\n'); log.flush()
         if (step+1)%25==0 or step+1==args.steps:
             torch.save(dict(model=model.state_dict(),opt=optimizer.state_dict(),step=step+1),out/'training.tmp'); (out/'training.tmp').replace(out/'training.pt')
@@ -265,7 +284,7 @@ def export(args):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser(); p.add_argument('command',choices=['catalog','train','export']); p.add_argument('--out',required=True); p.add_argument('--hours',type=float,default=20); p.add_argument('--steps',type=int,default=800); p.add_argument('--minutes',type=float,default=48)
+    p=argparse.ArgumentParser(); p.add_argument('command',choices=['catalog','train','export']); p.add_argument('--out',required=True); p.add_argument('--hours',type=float,default=20); p.add_argument('--steps',type=int,default=800); p.add_argument('--minutes',type=float,default=48); p.add_argument('--anomaly',action='store_true')
     a=p.parse_args()
     if a.command=='catalog': continuous_catalog(Path(a.out),a.hours)
     elif a.command=='train': train(a)

@@ -1,6 +1,6 @@
 # Pause-mask-trained streaming student
 
-Status: implementing. The card is unchanged.
+Status: training; structural and export checks passed. The card is unchanged.
 
 ## Prediction and premise
 
@@ -47,16 +47,61 @@ carried caches and the deployed lookahead, with state gradients detached every
 eight chunks. The ordinary checkpoint architecture and MatMul int8 quantizer
 remain. Training does not read practice audio or labels.
 
-The SDK mask input and seam selector are generic engine code. A labelled pause
-at an ayah or waqf-marked inner boundary opens the span, and the unchanged
+The SDK mask input and seam selector are generic engine code. Every labelled pause
+at an ayah or waqf-marked inner boundary opens a span, and the unchanged
 primary tracker's next in-order word step closes it. Primary model feeds remain
 unchanged when the manifest has no mask input. Primary strings and tracker rules
 are unchanged; deployment of the candidate evidence is pending the acoustic check.
 
 ## Validation
 
-Pending Modal smoke, corpus census, unit tests, training, export and paired target
-streams. No practice-score calls have been made.
+Modal run 7 found 10,642 eligible original recordings from 95 speaker clusters;
+the deterministic selection contains 4,428 recordings, 20.0106 hours. Eight
+Python structural tests passed, including attention/cache isolation, convolution
+and frontend-pad isolation, batched gradients, real-pause selection and
+unmasked streaming-state parity. Five actual GPU updates completed; step 1 had
+one real labelled pause and 89 masked CTC frames. The fixed 800-update recipe is
+continuing in run 14; the five-update checkpoint is only an export smoke fixture.
+
+Run 6 passed the supplied six-shard build/test harness: 756 core tests and 29 SDK
+tests; one optional integration test was skipped. Run 11 passed the updated build
+and nine focused SDK tests, including preservation of earlier labelled pauses
+when another detector pause follows them.
+
+The first export failed because legacy ONNX could not lower Unfold after dynamic
+padding. Equivalent indexed sliding-window gathers fixed that export limitation.
+Run 10 exported the five-update checkpoint and checked four carried-state calls:
+unmasked, a cutoff inside a chunk, continued masking, then unmasked again. Float
+ONNX probability differences were at most 1.8e-7, with cache values also checked
+against PyTorch. Int8 differences were at most 0.001482; argmax phones agreed in
+every checked frame. These random-window checks establish the export contract,
+not target recall or population quality.
+
+Run 8 decoded the six complete target recordings with the shipped SDK and
+derived their primary tracker steps. Baseline ordered planted-consonant counts
+on the seven labelled intervals are 1, 0, 1, 1, 2, 2, 3 in card order. The
+37:36, 12:76, 32:21, both 51 seams and inner 20:40 sites have qualifying detector
+pauses. The 26:208 target has no qualifying pause before its primary step onto
+word 1. Labels report these intervals only; they do not select SDK spans.
+
+The baseline exposed a selector defect: taking only the last detector pause
+could start masking halfway through a blanked addition. The implementation now
+applies every eligible seam pause, as registered, using the latest cutoff where
+spans overlap. This changes no detector threshold or checker constant.
+
+Resumed training exposed an Icefall eval-helper backward overflow at update 6.
+Runs 12–13 verified that both saved checkpoints had finite weights, all three
+losses had finite gradients at the posterior head, and ExpBackward in
+SwooshRForward produced the invalid encoder gradient. Its selected forward value
+stays finite after exp overflows, but its unused exponential branch still
+poisons backward. The wrapper now uses the mathematically equivalent softplus
+expression only when gradients are enabled, and retains the original helper for
+inference/export. No data item was dropped and no training constant changed.
+Run 15 passed the large-input gradient regression and unmasked streaming-state
+parity checks. Loss/gradient guards prevent saving a corrupted optimizer update.
+
+Final training, trained int8 paired target streams and evidence deployment remain
+pending. No practice-score calls have been made.
 
 ## Limits
 

@@ -7,6 +7,20 @@ torch.set_num_threads(2)
 
 
 class PauseMaskTests(unittest.TestCase):
+    def test_streaming_eval_activation_has_finite_gradient_at_large_inputs(self):
+        from student_train import build_model
+        from scaling import ActivationDropoutAndLinear
+        model=PauseStreaming(build_model('lite'))
+        for activation in ('SwooshL','SwooshR'):
+            layer=next(m for m in model.modules() if isinstance(m,ActivationDropoutAndLinear) and m.activation==activation)
+            x=torch.linspace(-1000,1000,layer.weight.shape[1])[None].requires_grad_(True)
+            got=layer(x)
+            with torch.no_grad(): expected=layer.pause_original_forward(x.detach())
+            torch.testing.assert_close(got,expected,rtol=1e-5,atol=1e-5)
+            got.square().mean().backward()
+            self.assertTrue(torch.isfinite(x.grad).all())
+            self.assertTrue(torch.isfinite(layer.weight.grad).all())
+
     def test_indexed_windows_match_convolution_windows(self):
         x=torch.arange(14.).reshape(2,7)
         torch.testing.assert_close(time_windows(x,5,3),x.unfold(-1,3,1),rtol=0,atol=0)
