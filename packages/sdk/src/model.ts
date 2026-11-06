@@ -49,4 +49,6 @@ export interface LoadedModel {
   supported: ErrorClass[];
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
+  /** Word-level seam proposer. Its confidence never decides an insertion. */
+  wordEar?: { decode(samples: Float32Array): Promise<import("./word-decoder.js").HeardWord[]> };
 }

@@ -1,6 +1,7 @@
 import { createChecker, createTracker, trackerInput, PosteriorFrames, PHRASE_SWITCH, seamInsertionMarginal, collapseHeld, lexicalWords } from "@tilawa/core";
 import type { PhonemeEvidence, PhraseAsset, ReferenceIndex, SeamInsertionCandidate, SeamInsertionEvidence } from "@tilawa/core";
 import type { LoadedModel } from "./model.js";
+import { wordEarCandidates, wordEarSpans } from "./word-ear.js";
 
 /** One native frame at a time, extending a cell through a token's entire run.
  * This is an engine evidence clock; no scoring code or labels participate. */
@@ -47,6 +48,14 @@ export async function addInsertionEvidence(model: LoadedModel, audio: Float32Arr
   } });
   for (const e of cells) checker.push(e, tracker.push(trackerInput(e)));
   checker.end(tracker.end());
+  const earCandidates = new Set<SeamInsertionCandidate>();
+  if (model.wordEar) for (const span of wordEarSpans(chunks,index,phrases)) {
+    const from = Math.round(span.fromFrame*cells[0].frameMs*16);
+    const to = Math.min(audio.length,Math.round(span.toFrame*cells[0].frameMs*16));
+    if (to <= from) continue;
+    const heard = await model.wordEar.decode(audio.subarray(from,to));
+    for (const c of wordEarCandidates(index,span,heard,phrases)) { candidates.push(c); earCandidates.add(c); }
+  }
   const lex = lexicalWords(index);
   const frameMs = cells[0].frameMs, ids = new Map([...index.tokens].map((p,i) => [p,i+1]));
   const forms = (wi: number) => [...new Set([index.phonemes.slice(index.words[wi].start,index.words[wi].end),
@@ -85,7 +94,8 @@ export async function addInsertionEvidence(model: LoadedModel, audio: Float32Arr
     const marginal = seamInsertionMarginal(crop.frames,map(before),candidate,map([c.word,next]),from,
       Math.min(end,crop.frames.endFrame),PHRASE_SWITCH);
     if (marginal !== null) metadata.push({ word: { surah:index.words[c.word].surah, ayah:index.words[c.word].ayah, word:index.words[c.word].word },
-      observed:c.said,fromFrame:c.fromFrame,toFrame:c.toFrame,marginal });
+      observed:c.said,fromFrame:c.fromFrame,toFrame:c.toFrame,marginal,
+      ...(earCandidates.has(c) && { source: "word-ear" as const }) });
   }
   return carryInsertionEvidence(chunks,metadata);
 }

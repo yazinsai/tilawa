@@ -11,6 +11,7 @@ import type { OrtModule } from "./ort.js";
 import { ortBackend } from "./ort.js";
 import { decodeWav } from "./wav.js";
 import { createInsertionTeacher } from "./insertion-teacher.js";
+import { createWordDecoder, type WordTokenizer } from "./word-decoder.js";
 
 export * from "./index.js";
 export { decodeWav };
@@ -43,6 +44,34 @@ async function attachInsertionTeacher(model: LoadedModel, dir: string, threads =
       executionProviders: ["cpu"], intraOpNumThreads: threads, graphOptimizationLevel: "disabled",
     }).then(b => { teacherBackend = b; return createInsertionTeacher(b, model.manifest.tokens, model.manifest.inventory); });
     return (await auxiliary).decode(samples, k);
+  } };
+  const ear = MODEL_REGISTRY.wordEar;
+  if (!ear) return model;
+  const earInstalled = await access(join(dir, ear.encoder.file)).then(() => true,
+    e => { if (e.code === "ENOENT") return false; throw e; });
+  if (!earInstalled) return model;
+  await access(join(dir, ear.decoder.file));
+  const tokenizer = JSON.parse(await readFile(join(dir, ear.tokenizer.file), "utf8")) as WordTokenizer;
+  let wordDecoder: Promise<ReturnType<typeof createWordDecoder>> | undefined;
+  const earBackends: import("./model.js").InferenceBackend[] = [];
+  const releaseTeacher = model.backend.release.bind(model.backend);
+  model.backend.release = async () => {
+    try { if (wordDecoder) await wordDecoder; }
+    finally { for (const b of earBackends) await b.release(); await releaseTeacher(); }
+  };
+  model.wordEar = { async decode(samples) {
+    wordDecoder ??= (async () => {
+      const encoder = await ortBackend(ort as unknown as OrtModule, join(dir, ear.encoder.file), "onnxruntime-node", {
+        executionProviders: ["cpu"], intraOpNumThreads: threads,
+      });
+      earBackends.push(encoder);
+      const decoder = await ortBackend(ort as unknown as OrtModule, join(dir, ear.decoder.file), "onnxruntime-node", {
+        executionProviders: ["cpu"], intraOpNumThreads: threads,
+      });
+      earBackends.push(decoder);
+      return createWordDecoder(encoder, decoder, tokenizer);
+    })();
+    return (await wordDecoder).decode(samples);
   } };
   return model;
 }

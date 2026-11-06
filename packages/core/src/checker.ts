@@ -1,7 +1,7 @@
 import { align as editPath } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
-import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
+import type { DecodedPhoneme, PhonemeEvidence, SeamInsertionEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import { channelFromCounts, spanLogP, type Channel, type ChannelCounts } from "./noisy-channel.js";
@@ -256,6 +256,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const insertionEvidence = new Map<string, number>();
+  const wordEarEvidence = new Map<string, SeamInsertionEvidence>();
   const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
     JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
   // A completed seam remains in the streaming window over many pushes. Its
@@ -2462,6 +2463,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {
           const key = insertionKey(m.word, m.observed, m.fromFrame, m.toFrame);
           insertionEvidence.set(key, Math.max(insertionEvidence.get(key) ?? 0, m.marginal));
+          if (m.source === "word-ear" && m.marginal > (wordEarEvidence.get(key)?.marginal ?? 0)) wordEarEvidence.set(key,m);
         }
       }
       const out: CheckerEvent[] = [];
@@ -2488,6 +2490,23 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const out: CheckerEvent[] = [];
       anchorOn(track(events, out), events);
       evaluate(out, true);
+      // The auxiliary word decoder proposes identity without student token ownership.
+      // Its only acoustic decision is the same closed teacher arc certificate.
+      for (const c of wordEarEvidence.values()) {
+        if (!(c.marginal > 0.5)) continue;
+        const wi = wordIndex(c.word), prev = prevWord(wi);
+        if (wi < 0 || prev < 0 || nextWord(wi) >= words.length || !length(wi)) continue;
+        const inner = ayahOf[prev] === ayahOf[wi];
+        if (inner ? !waqfMarked(prev) : ayahFirst[ayahOf[wi]] !== wi) continue;
+        if (!lexical.surplusWord(wi,c.observed) || lexical.fragmentOfSeam(wi,c.observed) || phraseSpan(c.observed)) continue;
+        if (emitted.some(e => e.state === "confirmed" && e.errorClass === "added_word" &&
+          e.location.surah === c.word.surah && e.location.ayah === c.word.ayah && e.location.word === c.word.word)) continue;
+        const e: CheckerEvent = { type: "checker", v: EVENT_SCHEMA_VERSION,
+          id: `${c.word.surah}:${c.word.ayah}:${c.word.word}#${++seq}`, timeMs: c.toFrame*frameMs,
+          state: "confirmed", errorClass: "added_word", location: c.word,
+          expected: ref.slice(words[wi].start,words[wi].end), observed: c.observed, confidence: c.marginal };
+        emitted.push(e); out.push(e);
+      }
       return out;
     },
     mistakes() {

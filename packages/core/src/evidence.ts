@@ -7,6 +7,8 @@ export interface SeamInsertionEvidence {
   fromFrame: number;
   toFrame: number;
   marginal: number;
+  /** A word-level listener proposal; no student token spelling is required. */
+  source?: "word-ear";
 }
 
 export interface DecodedPhoneme {

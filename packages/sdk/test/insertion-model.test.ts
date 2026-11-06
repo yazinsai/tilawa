@@ -24,7 +24,9 @@ describe("Node insertion teacher loading", () => {
     const teacher = { name: "teacher", run: vi.fn().mockResolvedValue({
       log_probs: { type: "float32", data: rows, dims: [1, 1, 3] },
     }), release: vi.fn() };
-    mocks.access.mockResolvedValue(undefined);
+    mocks.access.mockImplementation(async (path: string) => {
+      if (path.endsWith("word-encoder.onnx")) throw Object.assign(new Error("absent"), {code:"ENOENT"});
+    });
     mocks.ortBackend.mockResolvedValueOnce(primary).mockResolvedValueOnce(teacher);
 
     const model = await loadNodeModel("/models/caller", { threads: 2 });
@@ -57,5 +59,26 @@ describe("Node insertion teacher loading", () => {
     mocks.access.mockRejectedValue(denied);
     mocks.ortBackend.mockResolvedValue({ name: "primary" });
     await expect(loadNodeModel("/models/caller")).rejects.toBe(denied);
+  });
+
+  it("loads the declared word ear lazily alongside the teacher and releases both word backends", async () => {
+    const primary = { name:"primary", run:vi.fn(), release:vi.fn() };
+    const encoder = { name:"encoder", run:vi.fn().mockResolvedValue({encoder_hidden_states:{type:"float32",data:new Float32Array(1),dims:[1,1,1]}}), release:vi.fn() };
+    const decoder = { name:"decoder", run:vi.fn().mockResolvedValue({logits:{type:"float32",data:Float32Array.from([10,0]),dims:[1,1,2]}}), release:vi.fn() };
+    mocks.access.mockResolvedValue(undefined);
+    mocks.readFile.mockImplementation(async (path: string) => JSON.stringify(path.endsWith("word-tokenizer.json")
+      ? {schema:1,samples:16,prefix:[1],eos:0,maxTokens:4,suppressed:[],vocabulary:["", "a"]} : manifest));
+    mocks.ortBackend.mockResolvedValueOnce(primary).mockResolvedValueOnce(encoder).mockResolvedValueOnce(decoder);
+    const model = await loadNodeModel("/models/caller");
+    expect(model.wordEar).toBeDefined();
+    expect(mocks.ortBackend).toHaveBeenCalledOnce();
+    await model.wordEar!.decode(new Float32Array(8));
+    await model.wordEar!.decode(new Float32Array(8));
+    expect(mocks.ortBackend).toHaveBeenCalledTimes(3);
+    expect(primary.run).not.toHaveBeenCalled();
+    await model.backend.release();
+    expect(encoder.release).toHaveBeenCalledOnce();
+    expect(decoder.release).toHaveBeenCalledOnce();
+    expect(primary.release).toHaveBeenCalledOnce();
   });
 });
