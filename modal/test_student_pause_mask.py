@@ -3,20 +3,22 @@ import copy
 import unittest
 import torch
 from student_pause_mask import allowed_sources,PauseStreaming,stream
+torch.set_num_threads(2)
 
 
 class PauseMaskTests(unittest.TestCase):
     def test_training_cut_keeps_real_pause_frames(self):
         import numpy as np
         from student_pause_train import pause_floors
-        ids=[1,1]+[0]*8+[2,2]
-        lp=torch.full((12,3),-10.)
+        ids=[1,1]+[0]*8+[2,2,3,3]
+        lp=torch.full((14,4),-10.)
         for i,p in enumerate(ids): lp[i,p]=0
-        floors,pauses=pause_floors(lp,[1,2],[1],np.random.default_rng(0),1.)
+        floors,pauses=pause_floors(lp,[1,2,3],[(1,2)],np.random.default_rng(0),1.)
         self.assertEqual(pauses,[(2,10)])
         self.assertEqual(floors[:4].tolist(),[-1]*4)
-        self.assertEqual(floors[4:].unique().tolist(),[4])
-        none,_=pause_floors(lp,[1,2],[1],np.random.default_rng(0),0.)
+        self.assertEqual(floors[4:24].unique().tolist(),[4])
+        self.assertEqual(floors[24:].unique().tolist(),[-1])
+        none,_=pause_floors(lp,[1,2,3],[(1,2)],np.random.default_rng(0),0.)
         self.assertEqual(none.unique().tolist(),[-1])
 
     def test_only_pre_pause_sources_are_blocked(self):

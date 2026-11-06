@@ -32,9 +32,12 @@ The training catalog uses only clean-match/train recordings from supplied s1,
 with the existing gold exclusion function. A generic canonical-text matcher
 requires consecutive complete ayahs inside one recording. No recordings are
 joined and no audio is spliced. A frozen shipped streaming decode supplies the
-existing 300 ms, blank-posterior-at-least-one-half pause labels. Canonical CTC
-Viterbi associates those pauses with ayah seams; it does not label silence from
-text alone. Each such pause is masked with probability 0.5, preserving its frames.
+existing 300 ms, blank-posterior-at-least-one-half pause labels on the original
+audio before augmentation, so SpecAugment cannot create seam labels. Canonical CTC
+Viterbi associates those pauses with ayah or existing mushaf-marked inner seams;
+it does not label silence from text alone. Each such pause is masked with
+probability 0.5, preserving its frames. Training closes the mask at the aligned
+onset of the seam's second audible canonical word, matching deployment's bound.
 
 Fixed recipe: seed 2026, at most 20 hours of eligible recordings, 800 AdamW
 updates at LR 0.00005, canonical CTC plus shipped top-five KD (weight 2), and

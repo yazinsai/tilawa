@@ -2,7 +2,6 @@ import { minGapFrames, waqfMarked } from "@tilawa/core";
 import type { PhonemeEvidence, ReferenceIndex } from "@tilawa/core";
 import type { LockPoint } from "./gap-decode.js";
 import type { LoadedModel } from "./model.js";
-import { createListener } from "./listener.js";
 
 /** Half-open native CTC span. Cut at pause onset; keep the pause as warm-up. */
 export interface PauseSpan { fromFrame: number; toFrame: number }
@@ -23,9 +22,10 @@ export function pauseMaskSpans(chunks: PhonemeEvidence[], locks: LockPoint[], in
     a = b;
   }
   const spans: PauseSpan[] = [];
+  const nextWord = (wi: number) => { do { wi++; } while (wi < index.words.length && index.words[wi].end === index.words[wi].start); return wi; };
   for (let i = 1; i+1 < locks.length; i++) {
     const left = locks[i-1], first = locks[i], second = locks[i+1];
-    if (first.wi !== left.wi+1 || second.wi !== first.wi+1) continue;
+    if (first.wi !== nextWord(left.wi) || second.wi !== nextWord(first.wi)) continue;
     const prev = index.words[left.wi], word = index.words[first.wi];
     if (!prev || !word || prev.surah !== word.surah) continue;
     const ayah = prev.ayah !== word.ayah && word.word === 1;
@@ -51,6 +51,7 @@ export function pauseFloor(spans: PauseSpan[], processed: number, chunk: number)
 
 /** Full streaming pass with the original grid, frontend and carried positions. */
 export async function decodePauseMasked(model: LoadedModel, samples: Float32Array, spans: PauseSpan[], k: number): Promise<PhonemeEvidence[]> {
+  const { createListener } = await import("./listener.js");
   const listener = createListener(model, { posteriors: true, topK: k, pauseMask: spans });
   const chunks: PhonemeEvidence[] = [];
   for (let a = 0; a < samples.length; a += model.manifest.sampleRate) {

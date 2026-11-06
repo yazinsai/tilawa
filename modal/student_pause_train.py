@@ -6,6 +6,7 @@ from this module. Export retains the deployed chunk/cache geometry.
 """
 from __future__ import annotations
 import argparse
+from collections import OrderedDict
 import copy
 import hashlib
 import io
@@ -26,17 +27,35 @@ def collapse(s):
 
 def continuous_catalog(out,max_hours=20):
     import ahocorasick
+    import base64
+    import re
     import pyarrow.parquet as pq
     from student import held_out,exclusions
     ref=json.loads(Path('/app/packages/core/assets/ref-v2.json').read_text())
     gold=exclusions(Path('/app/docs/benchmarks/gold-per-v1-exclude.txt').read_text())
     trie=ahocorasick.Automaton()
     ayahs=ref['ayahs']
+    # Reuse the engine's generic mushaf-mark data, without an independent table.
+    source=Path('/app/packages/core/src/mushaf-marks.ts').read_text()
+    bits=base64.b64decode(re.search(r'const WAQF = "([A-Za-z0-9+/=]+)"',source).group(1))
+    marked={}; word_index=0
+    for ayah in ayahs:
+        ends=[]
+        for i in range(len(ayah['w'])):
+            if word_index//8<len(bits) and bits[word_index//8] & (1<<(word_index%8)) and i+2<len(ayah['o']):
+                ends.append((ayah['o'][i+1],ayah['o'][i+2]))
+            word_index+=1
+        marked[(ayah['s'],ayah['a'])]=ends
     patterns={}
     for left,right in zip(ayahs,ayahs[1:]):
         if left['s']!=right['s'] or left['a']+1!=right['a']: continue
         pattern=collapse(left['p']+right['p'])
-        patterns.setdefault(pattern,[]).append(len(collapse(left['p'])))
+        ends=[]
+        if len(right['o'])>1:
+            ends.append((len(collapse(left['p'])),len(collapse(left['p']+right['p'][:right['o'][1]]))))
+        ends.extend((len(collapse(left['p'][:e])),len(collapse(left['p'][:stop]))) for e,stop in marked[(left['s'],left['a'])])
+        ends.extend((len(collapse(left['p']+right['p'][:e])),len(collapse(left['p']+right['p'][:stop]))) for e,stop in marked[(right['s'],right['a'])])
+        patterns.setdefault(pattern,[]).extend(ends)
     for pattern,ends in patterns.items(): trie.add_word(pattern,(pattern,ends))
     trie.make_automaton()
     rows=[]
@@ -48,11 +67,11 @@ def continuous_catalog(out,max_hours=20):
             normalized=collapse(r['ref']); boundaries=set()
             for end,(pattern,ends) in trie.iter(normalized):
                 start=end+1-len(pattern)
-                boundaries.update(start+v for v in ends)
+                boundaries.update((start+v,start+stop) for v,stop in ends)
             if not boundaries: continue
             # Convert normalized canonical boundaries back to the original phone clock.
             indices=[i for i,p in enumerate(r['ref']) if i==0 or p!=r['ref'][i-1]]
-            boundaries=[indices[b] for b in sorted(boundaries) if b<len(indices)]
+            boundaries=[(indices[b],indices[stop]) for b,stop in sorted(boundaries) if stop<len(indices)]
             rows.append(dict(path=str(path),offset=offset,boundaries=boundaries,cluster=r['cluster'],samples=r['n_samples']))
             clusters.add(r['cluster'])
     rng=np.random.default_rng(2026); rng.shuffle(rows)
@@ -61,7 +80,7 @@ def continuous_catalog(out,max_hours=20):
         selected.append(row); samples+=row['samples']
         if samples>=max_hours*SR*3600: break
     out.mkdir(parents=True,exist_ok=True)
-    report=dict(eligible_recordings=len(rows),eligible_clusters=len(clusters),selected_recordings=len(selected),hours=samples/SR/3600,selected=selected)
+    report=dict(schema=2,eligible_recordings=len(rows),eligible_clusters=len(clusters),selected_recordings=len(selected),hours=samples/SR/3600,selected=selected)
     (out/'catalog.json').write_text(json.dumps(report))
     print(json.dumps({k:v for k,v in report.items() if k!='selected'}),flush=True)
     return selected
@@ -95,22 +114,24 @@ def pause_floors(lp,phones,boundaries,rng,probability=.5):
     labels=alignment_indices(lp,phones)
     blank=(lp[:,0]>=np.log(.5)).detach().cpu().numpy()
     floors=np.full(len(lp)*2+16,-1,dtype=np.int64)
-    pauses=[]; start=0; latest=-1
+    pauses=[]; start=0
     while start<len(blank):
         end=start+1
         while end<len(blank) and blank[end]==blank[start]: end+=1
         if blank[start] and end-start>=8:
             before=labels[:start]; after=labels[end:]; before=before[before>=0]; after=after[after>=0]
-            if len(before) and len(after) and any(before[-1]<b<=after[0] for b in boundaries):
+            seam=next(((b,stop) for b,stop in boundaries if len(before) and len(after) and before[-1]<b<=after[0]),None)
+            if seam:
                 pauses.append((start,end))
                 if rng.random()<probability:
-                    latest=2*start; floors[latest:]=latest
+                    word2=np.flatnonzero(labels>=seam[1])
+                    if len(word2): floors[2*start:2*int(word2[0])]=2*start
         start=end
     return torch.from_numpy(floors).to(lp.device),pauses
 
 
 class Dataset:
-    def __init__(self,catalog,banks,cfg): self.rows,self.banks,self.cfg=catalog,banks,cfg; self.tables={}
+    def __init__(self,catalog,banks,cfg): self.rows,self.banks,self.cfg=catalog,banks,cfg; self.tables=OrderedDict()
     def get(self,i,step):
         import pyarrow.parquet as pq
         import soundfile as sf
@@ -119,17 +140,21 @@ class Dataset:
         import student_train as T
         from student_export import FBANK
         row=self.rows[i]; path=row['path']
-        if path not in self.tables: self.tables[path]=pq.read_table(path,columns=['flac','ref','n_frames','top5_ids','top5_p'])
+        if path not in self.tables:
+            self.tables[path]=pq.read_table(path,columns=['flac','ref','n_frames','top5_ids','top5_p'])
+            if len(self.tables)>2: self.tables.popitem(last=False)
+        self.tables.move_to_end(path)
         r=self.tables[path].slice(row['offset'],1).to_pylist()[0]
         wave,rate=sf.read(io.BytesIO(r['flac']),dtype='float32')
         if rate!=SR or wave.ndim!=1: raise ValueError('expected original mono 16 kHz audio')
+        native_feats=torchaudio.compliance.kaldi.fbank(torch.from_numpy(wave).unsqueeze(0),**FBANK)
         rng=np.random.default_rng(np.random.SeedSequence([2026,step,i]))
         if rng.random()<self.cfg['rir_p']: wave=T.reverb(wave,T.pick(self.banks['rir'],rng))
         if rng.random()<self.cfg['noise_p']: wave=mix_noise(wave,T.pick(self.banks['noise'],rng),rng.uniform(*self.cfg['snr_db']),rng)
         wave=np.ascontiguousarray(wave*10**(rng.uniform(-10,6)/20),dtype=np.float32)
         feats=torchaudio.compliance.kaldi.fbank(torch.from_numpy(wave).unsqueeze(0),**FBANK)
         if self.cfg['spec_aug']: feats=T.spec_augment(feats,rng)
-        return dict(feats=feats,phones=phoneme_ids(r['ref']),boundaries=row['boundaries'],
+        return dict(feats=feats,native_feats=native_feats,phones=phoneme_ids(r['ref']),boundaries=row['boundaries'],
                     ids=torch.from_numpy(np.frombuffer(r['top5_ids'],np.uint8).copy().reshape(-1,5).astype(np.int64)),
                     probs=torch.from_numpy(np.frombuffer(r['top5_p'],np.float16).copy().reshape(-1,5).astype(np.float32)))
 
@@ -148,20 +173,24 @@ def train(args):
     if (out/'training.pt').exists():
         ck=torch.load(out/'training.pt',map_location='cuda',weights_only=False)
         model.load_state_dict(ck['model']); optimizer.load_state_dict(ck['opt']); current=ck['step']
-    catalog=json.loads((out/'catalog.json').read_text())['selected'] if (out/'catalog.json').exists() else continuous_catalog(out,args.hours)
+    stored=json.loads((out/'catalog.json').read_text()) if (out/'catalog.json').exists() else {}
+    catalog=stored['selected'] if stored.get('schema')==2 else continuous_catalog(out,args.hours)
     if not catalog: raise RuntimeError('no eligible real continuous recordings')
     banks={k:dict(np.load('/student/aug/'+k+'.npz')) for k in ('noise','rir')}
-    ds=Dataset(catalog,banks,cfg); rng=np.random.default_rng(2026)
+    ds=Dataset(catalog,banks,cfg)
     log=open(out/'log.jsonl','a'); started=time.time()
     for step in range(current,args.steps):
-        i=int(rng.integers(len(catalog)))
+        i=int(np.random.default_rng([2026,step,1]).integers(len(catalog)))
         b=ds.get(i,step); feats=b['feats'][None].cuda()
-        with torch.no_grad(): shipped=stream(anchor,feats)[0]
-        cut,pauses=pause_floors(shipped,b['phones'],b['boundaries'],np.random.default_rng([2026,step]))
+        with torch.no_grad():
+            original=stream(anchor,b['native_feats'][None].cuda())[0]
+            shipped=stream(anchor,feats)[0]
+        # Real pauses are labelled before augmentation; time masks cannot create seams.
+        cut,pauses=pause_floors(original,b['phones'],b['boundaries'],np.random.default_rng([2026,step]))
         lp=stream(model,feats,cut[None])[0].float(); n=len(lp)
         phones=torch.tensor(b['phones'],dtype=torch.long,device='cuda')
         ctc=F.ctc_loss(lp[:,None],phones,torch.tensor([n]),torch.tensor([len(phones)]),reduction='sum',zero_infinity=True)/n
-        teacher_idx=torch.arange(n).clamp(max=len(b['ids'])-1)
+        teacher_idx=(torch.arange(n)-cfg.get('kd_delay',0)).clamp(min=0,max=len(b['ids'])-1)
         kd=soft_target_loss(lp[None],b['ids'][teacher_idx][None].cuda(),b['probs'][teacher_idx][None].cuda(),torch.ones(1,n,dtype=torch.bool,device='cuda'))
         unmasked=(cut[:2*n:2]<0)
         kl=F.kl_div(lp,shipped.detach(),log_target=True,reduction='none').sum(-1)
@@ -185,6 +214,8 @@ def export(args):
     from student_export import manifest
     from icefall.utils import get_onnx_export_kwargs
     from onnxruntime.quantization import quantize_dynamic,QuantType
+    import onnxruntime as ort
+    torch.set_num_threads(4); torch.manual_seed(2026)
     out=Path(args.out); ck=torch.load(out/'ckpt.pt',map_location='cpu',weights_only=False)
     raw=T.build_model(ck['cfg']['size']); raw.load_state_dict(ck['model'])
     model=PauseStreaming(raw).eval(); init=model.init_states()
@@ -195,6 +226,30 @@ def export(args):
     fp=directory/'float.onnx'; path=directory/'model.onnx'
     with torch.no_grad(): torch.onnx.export(model,(torch.randn(1,45,80),init,torch.full((1,16),-1,dtype=torch.int64)),str(fp),input_names=['x',*names,'pause_floor'],output_names=['log_probs',*[f'new_{n}' for n in names]],opset_version=17,**get_onnx_export_kwargs())
     quantize_dynamic(str(fp),str(path),weight_type=QuantType.QInt8,op_types_to_quantize=['MatMul'])
+    options=ort.SessionOptions(); options.intra_op_num_threads=2
+    sessions=[ort.InferenceSession(str(p),sess_options=options,providers=['CPUExecutionProvider']) for p in (fp,path)]
+    native=model.init_states(); cached=[{n:v.numpy() for n,v in zip(names,model.init_states())} for _ in sessions]
+    parity=[]
+    for turn in range(4):
+        x=torch.randn(1,45,80)
+        floor=torch.full((1,16),-1,dtype=torch.int64)
+        if turn==1: floor[:,4:]=20
+        elif turn==2: floor[:]=20
+        with torch.no_grad(): expected,native=model(x,native,floor)
+        row={'turn':turn,'masked_queries':int((floor>=0).sum())}
+        for i,session in enumerate(sessions):
+            actual=session.run(None,{'x':x.numpy(),'pause_floor':floor.numpy(),**cached[i]})
+            cached[i]={n:v for n,v in zip(names,actual[1:])}
+            label='float' if i==0 else 'int8'
+            row[label+'_max_probability_difference']=float(np.abs(np.exp(actual[0])-expected.exp().numpy()).max())
+            row[label+'_top1_agreement']=float((actual[0].argmax(-1)==expected.argmax(-1).numpy()).mean())
+            if i==0:
+                np.testing.assert_allclose(actual[0],expected.numpy(),rtol=2e-4,atol=2e-4)
+                for a,b in zip(actual[1:],native): np.testing.assert_allclose(a,b.numpy(),rtol=2e-4,atol=2e-4)
+            np.testing.assert_array_equal(actual[-1],native[-1].numpy())
+        parity.append(row)
+    (directory/'parity.json').write_text(json.dumps(parity,indent=2))
+    print(json.dumps({'parity':parity}),flush=True)
     m=manifest('pause-mask-trained',specs,16,128,str(path),ck); m['format']='onnx-int8'; m['pauseMask']=dict(input='pause_floor',clockMs=20)
     (directory/'manifest.json').write_text(json.dumps(m,ensure_ascii=False,indent=1))
     print(json.dumps(dict(export=str(path),sha256=m['sha256'],bytes=m['bytes'],step=ck['state']['step'])),flush=True)
