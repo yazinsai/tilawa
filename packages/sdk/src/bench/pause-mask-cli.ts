@@ -7,9 +7,10 @@ import type { EngineEvent, PhraseAsset, ReferenceAsset, PhonemeEvidence } from "
 import { createListener } from "../listener.js";
 import { loadNodeModel } from "../node.js";
 import { decodeWav } from "../wav.js";
-import { insertionCells } from "../seam-insertion.js";
+import { addInsertionEvidence, insertionCells } from "../seam-insertion.js";
 import { spliceContextFreeGaps } from "../gap-decode.js";
-import { decodePauseMasked, pauseMaskSpans } from "../pause-mask.js";
+import { carryPauseEvidence, decodePauseMasked, pauseMaskSpans } from "../pause-mask.js";
+import { createEngine } from "../session.js";
 
 const { values } = parseArgs({ options: {
   model: { type: "string" }, masked: { type: "string" }, wav: { type: "string" }, out: { type: "string" },
@@ -28,7 +29,7 @@ for (let a = 0; a < wave.samples.length; a += wave.sampleRate) {
 }
 const tail = await listener.end();
 if (tail) chunks.push(tail);
-const tracker = createTracker(index, { mode: "free", phrases });
+const tracker = createTracker(index, { mode: "free", phrases, acquireMs: 1000 });
 const wi = new Map(index.words.map((w,i) => [`${w.surah}:${w.ayah}:${w.word}`,i]));
 const locks: { wi: number; timeMs: number }[] = [];
 const record = (events: EngineEvent[]) => {
@@ -52,6 +53,18 @@ if (values.masked) {
 // A consonant the folded ear already recovered is not a gain from training.
 const folded = values.masked
   ? await spliceContextFreeGaps(primary,wave.samples,wave.sampleRate,chunks,locks,index) : undefined;
-writeFileSync(values.out,JSON.stringify({ frameMs: primary.manifest.frameMs, spans, locks, primary: chunks, folded, masked }));
+let baseline: PhonemeEvidence[] | undefined, candidate: PhonemeEvidence[] | undefined;
+const replay = (evidence: PhonemeEvidence[]) => {
+  const session=createEngine({ reference: index,phrases,model: primary }).startFreeRecitation();
+  for (const e of evidence) session.pushEvidence(e);
+  session.endEvidence();
+  return session.mistakes();
+};
+if (folded && masked) {
+  baseline=await addInsertionEvidence(primary,wave.samples,folded,index,phrases);
+  candidate=await addInsertionEvidence(primary,wave.samples,carryPauseEvidence(folded,masked,spans),index,phrases);
+}
+writeFileSync(values.out,JSON.stringify({ frameMs: primary.manifest.frameMs, spans, locks, primary: chunks, folded, masked,
+  baseline, candidate, baselineMistakes: baseline && replay(baseline), candidateMistakes: candidate && replay(candidate) }));
 console.log(JSON.stringify({ frames: listener.decoded, spans: spans.length, masked: !!masked }));
 await primary.backend.release();

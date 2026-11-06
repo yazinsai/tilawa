@@ -80,6 +80,26 @@ class PauseMaskTests(unittest.TestCase):
         _,states=m(x[:,:45],m.init_states(2),floors[:,:16])
         self.assertEqual(states[-1].tolist(),[16,16])
 
+    def test_complete_masked_encoder_ignores_pre_pause_caches(self):
+        from student_train import build_model
+        torch.manual_seed(7)
+        m=PauseStreaming(build_model('lite'))
+        a,b=m.init_states(),m.init_states()
+        for states in (a,b):
+            for i in range(len(states)-1): states[i]=torch.randn_like(states[i])
+            states[-1].fill_(128)
+        x=torch.randn(1,45,80)
+        for onset in (0,8):
+            cut=torch.full((1,16),128+onset,dtype=torch.int64)
+            cut[:,:onset]=-1
+            changed=x.clone(); changed[:,:2*onset]+=10
+            with torch.no_grad():
+                y,_=m(x,a,cut); z,_=m(changed,b,cut)
+                warm_y,_=m(x,a,torch.full_like(cut,-1))
+                warm_z,_=m(changed,b,torch.full_like(cut,-1))
+            torch.testing.assert_close(y[:,onset//2:],z[:,onset//2:],rtol=0,atol=0)
+            self.assertGreater((warm_y-warm_z).abs().max().item(),1e-5)
+
     def test_attention_has_no_pre_pause_key_dependency(self):
         from student_train import build_model
         m=PauseStreaming(build_model('lite'))
