@@ -2495,10 +2495,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       for (const c of wordEarEvidence.values()) {
         if (!(c.marginal > 0.5)) continue;
         const wi = wordIndex(c.word), prev = prevWord(wi);
-        if (wi < 0 || prev < 0 || nextWord(wi) >= words.length || !length(wi)) continue;
+        if (wi < 0 || prev < 0 || nextWord(wi) >= words.length || words[wi].end === words[wi].start) continue;
         const inner = ayahOf[prev] === ayahOf[wi];
         if (inner ? !waqfMarked(prev) : ayahFirst[ayahOf[wi]] !== wi) continue;
-        if (!lexical.surplusWord(wi,c.observed) || lexical.fragmentOfSeam(wi,c.observed) || phraseSpan(c.observed)) continue;
+        if (!lexical.surplusWord(wi,c.observed) || lexical.fragmentOfSeam(wi,c.observed)) continue;
         if (emitted.some(e => e.state === "confirmed" && e.errorClass === "added_word" &&
           e.location.surah === c.word.surah && e.location.ayah === c.word.ayah && e.location.word === c.word.word)) continue;
         const e: CheckerEvent = { type: "checker", v: EVENT_SCHEMA_VERSION,
