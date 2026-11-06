@@ -1,0 +1,13 @@
+{
+ "id": "listener-word-ear-ssl-ear-agree-adds",
+ "component": "listener",
+ "hypothesis": "Post-pause added words (p07, p48, p56, p57 x2) are lost because every judge that needs a word's identity reads one model, and that model either cannot spell the word or cannot be trusted alone. Two already-trained ears from outside the shipped lineage each carry these words: the short-crop word ear wrote 6 planted words whole, and the undistilled SSL CTC ear kept 2 or more ordered planted consonants on 5 of 6. Emit an added word only when the SSL ear's seam tokens confirm the exact word the word ear proposed; predict 2 of 5 won with about 1 loss: listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-06T15:18:57+00:00",
+ "author": "autolab"
+}
