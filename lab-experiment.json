@@ -1,0 +1,13 @@
+{
+ "id": "listener-vowel-projected-omit-veto",
+ "component": "listener",
+ "hypothesis": "Omission false warnings (p50 37:113:10, p65 4:12:40, p65 4:15:6) fire on words that were spoken but whose consonants the phone channel blurred, and every presence test lets those blurred consonants decide. Project the stored student posteriors onto vowel classes plus one merged 'other' class, then veto a proposed single-candidate omission when a closed with-word versus without-word fit on that projection prefers the word. Predict 1 of 3 vetoed, 0 lost: listener -1, overall -1 (honest, a zero-loss rider candidate below the gate).",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-06T04:23:15+00:00",
+ "author": "autolab"
+}
