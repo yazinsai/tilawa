@@ -1,0 +1,13 @@
+{
+ "id": "listener-separator-head-word-count-fit",
+ "component": "listener",
+ "hypothesis": "Extra words said after a pause are lost because every rule must name the word or decide who owns its sounds. A closed choice on the trained word-separator head, asking whether this seam holds N or N+1 words without naming the extra one, should catch some of them. Predict 3 of 9 won with about 1 lost: listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-06T20:06:00+00:00",
+ "author": "autolab"
+}
