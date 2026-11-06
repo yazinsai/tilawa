@@ -1,0 +1,13 @@
+{
+ "id": "tracker-teacher-token-shadow-insert-span",
+ "component": "tracker",
+ "hypothesis": "Word-1 additions are missed because the tracker reads the student's blanked seam tokens and finds no extra word. A read-only shadow tracker on the teacher's seam tokens can bound the inserted span, and the folded teacher lattice then judges it. Predict tracker 0, overall -1.",
+ "expected": {
+  "component": 0,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-06T20:06:42+00:00",
+ "author": "autolab"
+}
