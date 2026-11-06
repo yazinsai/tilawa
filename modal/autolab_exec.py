@@ -83,7 +83,7 @@ def images() -> dict:
         .pip_install("lhotse", "kaldialign", "sentencepiece", "tensorboard", "pypinyin==0.50.0", "typeguard", "dill",
                      "pyarrow", "soundfile", "numpy", "scipy", "huggingface_hub", "urllib3", "requests")
         .run_commands(f"git clone https://github.com/k2-fsa/icefall /icefall && cd /icefall && git checkout {T.ICEFALL}")
-        .pip_install("rapidfuzz==3.14.1", "modal==1.3.4")
+        .pip_install("rapidfuzz==3.14.1", "modal==1.3.4", "onnx==1.19.0", "onnxruntime==1.22.1")
     )
     return {"node": lab_run.image, "train": train}
 
