@@ -1,0 +1,13 @@
+{
+ "id": "listener-pause-mask-trained-stream",
+ "component": "listener",
+ "hypothesis": "Inference-time masking failed because the student never saw post-pause frames cut off from pre-pause attention, so masking put it out of distribution. Train it with that pause mask applied at random, then deploy with the mask at labelled pauses. Predict 2 of 9 recovered with about 1 lost: listener -2, overall -1.",
+ "expected": {
+  "component": -2,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-06T08:48:47+00:00",
+ "author": "autolab"
+}
