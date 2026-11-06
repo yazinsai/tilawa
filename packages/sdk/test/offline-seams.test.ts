@@ -33,6 +33,17 @@ it("does not bridge a relocation or a skipped tracker word", () => {
   expect(offlineSeams(evidence,index)).toEqual([]);
 });
 
+it("keeps a pause span across a held primary position", () => {
+  mock.events = [steps[0], steps[1], { ...steps[1], timeMs: 800, hold: true }, steps[2], steps[3]];
+  expect(offlineSeams(evidence,index)).toEqual([{word:2,fromFrame:12,toFrame:68}]);
+});
+
+it("retains the seam entry when word one is revisited before word two", () => {
+  mock.events = [steps[0], steps[1], steps[2], { ...steps[1], timeMs: 1600 },
+    { ...steps[2], timeMs: 1800 }, steps[3]];
+  expect(offlineSeams(evidence,index)).toEqual([{word:2,fromFrame:12,toFrame:68}]);
+});
+
 it("does not call unblank speech a pause or use evidence with no rows", () => {
   const speech = structuredClone(evidence);
   for (let f=12; f<31; f++) (speech[0].posteriors!.ids as number[])[f]=1;
