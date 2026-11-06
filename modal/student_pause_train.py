@@ -25,6 +25,13 @@ def collapse(s):
     return ''.join(p for i,p in enumerate(s) if i==0 or p!=s[i-1])
 
 
+def seam_offsets(ayah,at):
+    """First two audible words after a seam, skipping fully assimilated words."""
+    offsets=ayah['o']; ends=offsets[1:]+[len(ayah['p'])]
+    audible=[i for i in range(at,len(offsets)) if ends[i]>offsets[i]]
+    return (offsets[audible[0]],offsets[audible[1]]) if len(audible)>1 else None
+
+
 def continuous_catalog(out,max_hours=20):
     import ahocorasick
     import base64
@@ -42,8 +49,9 @@ def continuous_catalog(out,max_hours=20):
     for ayah in ayahs:
         ends=[]
         for i in range(len(ayah['w'])):
-            if word_index//8<len(bits) and bits[word_index//8] & (1<<(word_index%8)) and i+2<len(ayah['o']):
-                ends.append((ayah['o'][i+1],ayah['o'][i+2]))
+            if word_index//8<len(bits) and bits[word_index//8] & (1<<(word_index%8)):
+                boundary=seam_offsets(ayah,i+1)
+                if boundary: ends.append(boundary)
             word_index+=1
         marked[(ayah['s'],ayah['a'])]=ends
     patterns={}
@@ -51,8 +59,9 @@ def continuous_catalog(out,max_hours=20):
         if left['s']!=right['s'] or left['a']+1!=right['a']: continue
         pattern=collapse(left['p']+right['p'])
         ends=[]
-        if len(right['o'])>1:
-            ends.append((len(collapse(left['p'])),len(collapse(left['p']+right['p'][:right['o'][1]]))))
+        boundary=seam_offsets(right,0)
+        if boundary:
+            ends.append((len(collapse(left['p']+right['p'][:boundary[0]])),len(collapse(left['p']+right['p'][:boundary[1]]))))
         ends.extend((len(collapse(left['p'][:e])),len(collapse(left['p'][:stop]))) for e,stop in marked[(left['s'],left['a'])])
         ends.extend((len(collapse(left['p']+right['p'][:e])),len(collapse(left['p']+right['p'][:stop]))) for e,stop in marked[(right['s'],right['a'])])
         patterns.setdefault(pattern,[]).extend(ends)

@@ -7,6 +7,12 @@ torch.set_num_threads(2)
 
 
 class PauseMaskTests(unittest.TestCase):
+    def test_canonical_seam_skips_empty_assimilated_words(self):
+        from student_pause_train import seam_offsets
+        self.assertEqual(seam_offsets({'p':'abc','o':[0,0,1,1,2]},0),(0,1))
+        self.assertEqual(seam_offsets({'p':'abc','o':[0,0,1,1,2]},2),(1,2))
+        self.assertIsNone(seam_offsets({'p':'abc','o':[0,0,1,1,2]},4))
+
     def test_training_cut_keeps_real_pause_frames(self):
         import numpy as np
         from student_pause_train import pause_floors
