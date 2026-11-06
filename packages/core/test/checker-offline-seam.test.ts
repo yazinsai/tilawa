@@ -5,7 +5,7 @@ import type { PhonemeEvidence, SeamSpellingEvidence } from "../src/evidence.js";
 
 const index = loadReferenceIndex({version:"test",text:"test",profile:{},inventory:{id:"test",tokens:"بتثجدحخزسم"},
   ayahs:Array.from({length:8},(_,i) => ({s:1,a:i+1,w:i===7?["سم","خز"]:i===6?["ثج","خز"]:["بت","دح"],
-    p:i===7?"سمخز":i===6?"ثجخز":"بتدح",o:[0,2]}))});
+    p:i===7?"سمخز":i===6?"ثجخز":"بتدح",o:[0,2],iso:i===7?["سم","خز"]:i===6?["ثج","خز"]:["بت","دح"]}))});
 const word = {surah:1,ayah:2,word:1};
 const spelling = (said:string,conf=1): SeamSpellingEvidence => ({word,toFrame:60,
   phonemes:[...said].map((p,i) => ({p,start:20+i,end:20+i,conf}))});

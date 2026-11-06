@@ -64,7 +64,8 @@ it("loads the declared offline ear lazily without changing or running the primar
   mocks.access.mockImplementation(async (path:string) => {
     if(path.endsWith("teacher.onnx")) throw Object.assign(new Error("absent"),{code:"ENOENT"});
   });
-  const primary={name:"primary",run:vi.fn(),release:vi.fn()};
+  const release=vi.fn();
+  const primary={name:"primary",run:vi.fn(),release};
   const offline={name:"offline",release:vi.fn(),run:vi.fn().mockResolvedValue({
     log_probs:{type:"float32",data:Float32Array.from([.01,.98,.01],Math.log),dims:[1,1,3]},
     out_lens:{type:"int64",data:BigInt64Array.of(1n),dims:[1]},
@@ -80,5 +81,5 @@ it("loads the declared offline ear lazily without changing or running the primar
   expect(primary.run).not.toHaveBeenCalled();
   await model.backend.release();
   expect(offline.release).toHaveBeenCalledOnce();
-  expect(primary.release).toHaveBeenCalledOnce();
+  expect(release).toHaveBeenCalledOnce();
 });
