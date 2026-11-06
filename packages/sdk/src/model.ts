@@ -27,6 +27,8 @@ export interface ModelManifest {
   file: string;
   bytes: number;
   sha256: string;
+  /** Mask input of the separately trained pause ear. */
+  pauseMask?: { input: string; clockMs: 20 };
 }
 
 export interface Tensor {
@@ -47,6 +49,8 @@ export interface LoadedModel {
   backend: InferenceBackend;
   /** Error classes this model's evidence supports; the rest are reported `unsupported`. */
   supported: ErrorClass[];
+  /** Declared side ear; never drives the primary stream or tracker. */
+  pauseModel?: LoadedModel;
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
 }

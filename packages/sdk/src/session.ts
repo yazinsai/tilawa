@@ -1,4 +1,4 @@
-import { EVENT_SCHEMA_VERSION, createChecker, createTracker, trackerInput } from "@tilawa/core";
+import { EVENT_SCHEMA_VERSION, createChecker, createTracker, trackerInput, sameWrongWord } from "@tilawa/core";
 import type {
   CapabilityEvent,
   CheckerEvent,
@@ -9,9 +9,11 @@ import type {
   PhraseAsset,
   ReferenceIndex,
   WordRef,
+  WrongWordAccusation,
 } from "@tilawa/core";
 import { Resampler } from "./audio.js";
 import { capabilities } from "./capabilities.js";
+import { addWrongWordAgreements } from "./wrong-word-agreement.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
 import { createListener } from "./listener.js";
@@ -95,7 +97,12 @@ export function createEngine(options: EngineOptions): Engine {
 
   function start(mode: Session["mode"], passage: Session["passage"], policy: SessionPolicy = {}): Session {
     const tracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
+    const liveAccusations = new Map<string, WrongWordAccusation>();
     const checkerOptions = {
+      agreementClock: ACQUIRE_MS,
+      wrongWord: model.pauseModel ? (c: WrongWordAccusation, id: string, graph: boolean) => {
+        if (!graph) liveAccusations.set(id, c);
+      } : undefined,
       phrases,
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
       ...(passage && { passage }),
@@ -115,7 +122,7 @@ export function createEngine(options: EngineOptions): Engine {
     const pcmParts: Float32Array[] = [];
     let pcmResampler: Resampler | null = null;
     const keepAudio = (samples: Float32Array, sampleRate: number) => {
-      if (!options.recordEvidence && !model.insertionTeacher) return;
+      if (!options.recordEvidence && !model.insertionTeacher && !model.pauseModel) return;
       let pcm = samples;
       if (sampleRate !== rate) {
         if (!pcmResampler || pcmResampler.from !== sampleRate) pcmResampler = new Resampler(sampleRate, rate);
@@ -131,10 +138,11 @@ export function createEngine(options: EngineOptions): Engine {
     };
     const recorded: PhonemeEvidence[] = [];
     const auxiliaryMistakes: CheckerEvent[] = [];
+    const vetoed = new Set<string>();
     const cells = evidenceGrid(policy.evidenceMs ?? model.manifest.frameMs);
     const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
-      if (options.recordEvidence || model.insertionTeacher) recorded.push(e);
+      if (options.recordEvidence || model.insertionTeacher || model.pauseModel) recorded.push(e);
       // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
       const out = tracker.push(trackerInput(e));
       noteLocks(out);
@@ -176,7 +184,7 @@ export function createEngine(options: EngineOptions): Engine {
           const e = await listener.end();
           if (e) cells.add(e);
           const events = [...feed(cells.rest()), ...finish()];
-          if ((options.recordEvidence || model.insertionTeacher) && pcmParts.length) {
+          if ((options.recordEvidence || model.insertionTeacher || model.pauseModel) && pcmParts.length) {
             const n = pcmParts.reduce((s, p) => s + p.length, 0);
             const audio = new Float32Array(n);
             let o = 0;
@@ -186,8 +194,21 @@ export function createEngine(options: EngineOptions): Engine {
             }
             const spliced = options.recordEvidence && locks.length > 1
               ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const certified = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const enriched = await addWrongWordAgreements(model, audio, certified, recorded, locks, index, checkerOptions, mode, ACQUIRE_MS);
             recorded.splice(0, recorded.length, ...enriched);
+            if (model.pauseModel) {
+              const certificates = enriched.flatMap(e => e.phonemes.flatMap(p => p.wrongWordAgreements ?? []));
+              for (const e of checker.mistakes()) {
+                const candidate = liveAccusations.get(e.id);
+                const c = candidate && certificates.find(c => c.acquireMs === ACQUIRE_MS &&
+                  JSON.stringify(c.primary) === JSON.stringify(candidate));
+                if (!c || c.rejudged.some(r => sameWrongWord(c.primary, r))) continue;
+                // End-of-stream side review can retract a primary warning, never publish a new one.
+                vetoed.add(e.id);
+                events.push(...emit([{ ...e, state: "uncertain" }]));
+              }
+            }
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.
               // Only newly certified seam additions are published at end().
@@ -215,7 +236,7 @@ export function createEngine(options: EngineOptions): Engine {
         return feed(cells.ready(e.posteriors && e.posteriors.startFrame + e.posteriors.nFrames));
       },
       endEvidence: () => [...feed(cells.rest()), ...finish()],
-      mistakes: () => [...checker.mistakes(), ...auxiliaryMistakes],
+      mistakes: () => [...checker.mistakes().filter(e => !vetoed.has(e.id)), ...auxiliaryMistakes],
       evidence: () => options.recordEvidence ? recorded : [],
     };
   }

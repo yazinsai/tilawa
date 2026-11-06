@@ -24,6 +24,7 @@ export interface ModelTier {
 export interface ModelRegistry {
   schema: 1;
   tiers: ModelTier[];
+  pauseMask?: { id: string; precision: "int8"; inventory: string; file: string; manifestFile: string; bytes: number; sha256: string };
   auxiliary?: {
     id: string; purpose: "seam-insertion"; precision: "float32"; inventory: string;
     file: string; bytes: number; sha256: string;

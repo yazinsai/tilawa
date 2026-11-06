@@ -1,5 +1,23 @@
 import type { WordRef } from "./events.js";
 
+/** A confirmed accusation, before any auxiliary veto. Graph wins are observed but never gated. */
+export interface WrongWordAccusation {
+  word: WordRef;
+  last: WordRef;
+  fromFrame: number;
+  toFrame: number;
+  accusation: { rival: string } | { bar: number };
+}
+
+/** Listener-stage rejudgment by the same checker, with the side ear's slot evidence retained. */
+export interface WrongWordAgreement {
+  /** Tracker acquisition clock used for this rejudgment; 0 means the core default. */
+  acquireMs: number;
+  primary: WrongWordAccusation;
+  rejudged: WrongWordAccusation[];
+  evidence: PhonemeEvidence[];
+}
+
 /** Auxiliary listener judgment over a complete seam, tied to one proposed spelling. */
 export interface SeamInsertionEvidence {
   word: WordRef;
@@ -18,6 +36,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  wrongWordAgreements?: WrongWordAgreement[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

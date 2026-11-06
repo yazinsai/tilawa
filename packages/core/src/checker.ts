@@ -1,7 +1,7 @@
 import { align as editPath } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
-import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
+import type { DecodedPhoneme, PhonemeEvidence, WrongWordAccusation, WrongWordAgreement } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import { channelFromCounts, spanLogP, type Channel, type ChannelCounts } from "./noisy-channel.js";
@@ -51,6 +51,10 @@ export interface SeamInsertionCandidate {
 }
 
 export interface CheckerOptions {
+  /** Acquisition clock of the primary tracker, for matching listener-stage certificates. */
+  agreementClock?: number;
+  /** Read-only observation of the existing confirmation rule, before auxiliary agreement. */
+  wrongWord?: (candidate: WrongWordAccusation, id: string, graph: boolean) => void;
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
   policy?: CheckerPolicy;
@@ -76,6 +80,14 @@ export interface Checker {
   end(events?: EngineEvent[]): CheckerEvent[];
   /** Confirmed errors, plus resolved ones when the policy counts them. */
   mistakes(): CheckerEvent[];
+}
+
+/** Same slot and rival, or the identical existing support bar. No acoustic cut is added. */
+export function sameWrongWord(a: WrongWordAccusation, b: WrongWordAccusation): boolean {
+  const word = (x: WordRef, y: WordRef) => x.surah === y.surah && x.ayah === y.ayah && x.word === y.word;
+  return word(a.word, b.word) && word(a.last, b.last) && a.fromFrame < b.toFrame && b.fromFrame < a.toFrame &&
+    ("rival" in a.accusation && "rival" in b.accusation ? a.accusation.rival === b.accusation.rival :
+      "bar" in a.accusation && "bar" in b.accusation && a.accusation.bar === b.accusation.bar);
 }
 
 /** Leaving the current place for any word start in the window: a restart or repeat (back) or a skip (ahead). */
@@ -241,6 +253,8 @@ interface Open {
   id: string;
   issue: Issue;
   sinceMs: number;
+  /** A held slot may confirm after its observation window has been trimmed. */
+  accusation?: WrongWordAccusation;
 }
 
 export function createChecker(index: ReferenceIndex, options: CheckerOptions = {}): Checker {
@@ -256,6 +270,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const insertionEvidence = new Map<string, number>();
+  const wrongWordEvidence = new Map<string, WrongWordAgreement>();
   const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
     JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
   // A completed seam remains in the streaming window over many pushes. Its
@@ -441,10 +456,20 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   /** Words whose error was confirmed or ended uncertain; never reopened. */
   const decided = new Set<number>();
   const emitted: CheckerEvent[] = [];
+  // Internal accusation history retains the primary verdict: later tail ownership must stay identical.
+  const agreementVetoes = new Set<string>();
   let seq = 0;
 
   const event = (o: Open, state: CheckerState): CheckerEvent => {
     const { issue } = o;
+    if ((options.wrongWord || wrongWordEvidence.size) && state === "confirmed" && issue.cls === "wrong_word") {
+      const candidate = o.accusation ?? accusationOf(issue);
+      if (candidate) {
+        options.wrongWord?.(candidate, o.id, !!issue.phrase);
+        const certificate = wrongWordEvidence.get(JSON.stringify([options.agreementClock ?? 0, candidate]));
+        if (!issue.phrase && certificate && !certificate.rejudged.some(c => sameWrongWord(candidate, c))) agreementVetoes.add(o.id);
+      }
+    }
     const conf = clarity(issue);
     const e: CheckerEvent = {
       type: "checker",
@@ -459,7 +484,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       confidence: conf,
     };
     emitted.push(e);
-    return e;
+    return agreementVetoes.has(e.id) && e.state === "confirmed" ? { ...e, state: "uncertain" } : e;
   };
 
   /** Mean decoder confidence over an error's phonemes; for an omission, the phonemes either side of the gap. */
@@ -596,6 +621,17 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return weak ? 2 * support : support;
   };
 
+  const accusationOf = (issue: Issue): WrongWordAccusation | undefined => {
+    if (issue.cls !== "wrong_word") return;
+    const heard = obs.slice(Math.max(0, issue.obsFrom), issue.obsTo);
+    if (!heard.length) return;
+    const named = issue.stringPath ? heardSpan(issue) : issue.observed ?? heardSpan(issue);
+    const rival = lexical.surplusWord(issue.word, named) ??
+      (issue.stringPath ? null : collapseHeld([...stripEdge(named)]).join(""));
+    return { word: toRef(issue.word), last: toRef(issue.last), fromFrame: heard[0].start, toFrame: heard.at(-1)!.end + 1,
+      accusation: rival ? { rival } : { bar: supportNeed(issue) } };
+  };
+
   /** Mean decoder confidence over a wrong word's decoded phonemes that differ from the written word. */
   const changedClarity = (issue: Issue): number => {
     const heard = obs.slice(Math.max(0, issue.obsFrom), issue.obsTo);
@@ -706,6 +742,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   const freezeSlot = (wi: number, o: Open) => {
     if (frozen.has(wi)) return;
+    if (options.wrongWord || wrongWordEvidence.size) o.accusation = accusationOf(o.issue);
     frozen.set(wi, { o, sure: sureOf(o) });
     open.delete(wi);
   };
@@ -2457,6 +2494,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const c of p.wrongWordAgreements ?? []) {
+        if (c.evidence.length && c.evidence.every(e => e.inventory === index.inventoryId && e.frameMs === evidence.frameMs && e.posteriors))
+          wrongWordEvidence.set(JSON.stringify([c.acquireMs, c.primary]), c);
+      }
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {
@@ -2491,7 +2532,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       return out;
     },
     mistakes() {
-      return emitted.filter((e) => e.state === "confirmed" || (policy.countResolved && e.state === "resolved"));
+      return emitted.filter((e) => !agreementVetoes.has(e.id) && (e.state === "confirmed" || (policy.countResolved && e.state === "resolved")));
     },
   };
 }

@@ -1,6 +1,8 @@
 /** Node entry: onnxruntime-node, models from a directory, WAV input. */
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
+import { createReadStream } from "node:fs";
+import { createHash } from "node:crypto";
 import * as ort from "onnxruntime-node";
 import { MEMORIZATION_CLASSES } from "./capabilities.js";
 import type { LoadedModel, ModelManifest } from "./model.js";
@@ -22,7 +24,7 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachPauseModel(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads),dir,options.threads);
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +89,36 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  return attachPauseModel(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
+    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads),join(o.cacheDir, `${tier.id}@${tier.version}`),o.threads);
+}
+
+/** A registry declaration installs beside the caller's untouched primary manifest. */
+async function attachPauseModel(primary: LoadedModel,dir: string,threads = 1): Promise<LoadedModel> {
+  const asset = MODEL_REGISTRY.pauseMask;
+  if (!asset) return primary;
+  const installed = await access(join(dir,asset.manifestFile)).then(() => true,
+    e => { if (e.code === "ENOENT") return false; throw e; });
+  if (!installed) return primary;
+  let child: LoadedModel | undefined;
+  try {
+    const manifest = JSON.parse(await readFile(join(dir,asset.manifestFile),"utf8")) as ModelManifest;
+    const m = primary.manifest;
+    if (manifest.id !== asset.id || asset.inventory !== m.inventory || manifest.inventory !== m.inventory ||
+      manifest.tokens !== m.tokens || manifest.sampleRate !== m.sampleRate || manifest.frameMs !== m.frameMs ||
+      manifest.window !== m.window || manifest.shift !== m.shift || JSON.stringify(manifest.states) !== JSON.stringify(m.states) ||
+      manifest.pauseMask?.input !== "pause_floor" || manifest.pauseMask.clockMs !== 20 ||
+      manifest.sha256 !== asset.sha256 || manifest.bytes !== asset.bytes || manifest.format !== "onnx-int8")
+      throw new Error("Pause ear differs from the declared asset or primary streaming regime");
+    const hash = createHash("sha256"); let bytes = 0;
+    for await (const chunk of createReadStream(join(dir,asset.file))) { hash.update(chunk); bytes += chunk.length; }
+    if (bytes !== asset.bytes || hash.digest("hex") !== asset.sha256) throw new Error("Pause ear integrity check failed");
+    child = { manifest,supported:primary.supported,backend:await ortBackend(ort as unknown as OrtModule,join(dir,asset.file),"onnxruntime-node",{
+      executionProviders:["cpu"],intraOpNumThreads:threads,
+    }) };
+    primary.pauseModel = child;
+    const release = primary.backend.release.bind(primary.backend), auxiliary = child;
+    primary.backend.release = async () => { try { await auxiliary.backend.release(); } finally { await release(); } };
+    return primary;
+  } catch(e) { await child?.backend.release(); await primary.backend.release(); throw e; }
 }
