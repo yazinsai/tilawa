@@ -1,6 +1,8 @@
 # Normalized marginal token edit alignments
 
-Status: experiment in progress; training, ordering and product validation pending.
+Status: blocked on missing Modal supervisor results. No experiment verdict.
+Prototype: `751f6abc`. The decoder and comparison/replay helpers are retained
+so the pending validation can resume. The experiment card is unchanged.
 
 ## Prediction
 
@@ -90,3 +92,39 @@ recordings also differ from artificially degraded practice studio audio.
 
 No full practice score has been requested (0 of the allowed 3 used). No overall,
 component, studio, clean-session or leave-one-reader delta is claimed.
+
+## Pending supervisor work
+
+At 2026-11-07 15:35 UTC, the run-1 inspection log and its shard status were
+downloaded, but even run 1's supervisor completion record had not appeared.
+Runs 2–4 had neither completion records nor downloaded outputs. Consequently
+there is no usable fitted model, test result, target ordering or recovery count
+to report. This infrastructure delay does not establish a premise kill.
+
+The following requests are saved under `.autolab/modal-request-<n>.json`:
+
+| Run | Work | Expected output |
+| --- | --- | --- |
+| 1 | Inspect training schema and model bundle | `.autolab/modal-out-1/0/log.txt` (downloaded, shard code 0) |
+| 2 | Decode eligible training phone recordings, six shards | Own experiment's `/scratch/tracker-marginal-edit-alignments/decodes/` |
+| 3 | Full core and SDK builds/tests, six shards | `.autolab/modal-out-3/<shard>/log.txt` |
+| 4 | Focused tests, frozen fit, all-endpoint ordering and ordinary product replay | `.autolab/modal-out-4/0/{fit,ordering,baseline,prototype,target}.json` |
+| 5 | Fresh full core and SDK builds/tests for the committed prototype | `.autolab/modal-out-5/<shard>/log.txt` |
+
+Run 4 waits for every expected decode before fitting. It hashes the model before
+reading practice evidence, checks every reconstructed path's complete heard
+interval and ordinary cost, compares every baseline tracker push and end, and
+replays the fitted model through the ordinary checker. Run 5 was queued after
+the tracker integration and final unit-test assertions to validate that version.
+
+The supervisor enforces its two-run concurrency limit. No direct Modal command,
+alternative credential route or full practice score was used.
+
+The prototype is optional and requires the fitted model: it is **not enabled by
+default** and is not ready for a practice-score or fold decision. Next, collect
+the pending results with the authorized `modal-result` command. If the frozen
+ordering still prefers the rhyme restart, or the built prototype wins fewer
+than three targets, remove the engine prototype and temporary helpers, commit
+the measured write-up and a killed `.autolab/outcome.json`. Otherwise install
+the training-frozen model in engine code, validate it, and request practice-score
+before deciding. No killed outcome file is written without those measurements.
