@@ -1,0 +1,13 @@
+{
+ "id": "listener-pausemask-engine-omit-read-cert",
+ "component": "listener",
+ "hypothesis": "Omission false warnings (p65 4:15:6, p50 37:113:10, p65 4:12:40) are judged only on shipped evidence. The pause-mask student, run as a whole-session engine, already won 4:15:6 at its key, which no replay, squeeze or lattice reached. Downgrade a shipped single-candidate omission to uncertain only when that engine's own complete run gave the word a zero-hard-edit counting visit. Predict 1-2 of 3 with 0-1 lost: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-07T02:52:38+00:00",
+ "author": "autolab"
+}
