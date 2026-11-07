@@ -42,8 +42,10 @@ export async function addInsertionEvidence(model: LoadedModel, audio: Float32Arr
   const checker = createChecker(index, { phrases, seamInsertion(c) {
     const key = JSON.stringify(c);
     if (!seen.has(key)) { seen.add(key); candidates.push(c); }
-    // Discovery runs the unchanged generator, including its issue state.
-    return true;
+    // A provisional spelling must not occupy the seam's issue slot: the teacher
+    // may reject it while accepting a later candidate. The consuming checker
+    // keeps the existing ranking and suppression after reading these verdicts.
+    return false;
   } });
   for (const e of cells) checker.push(e, tracker.push(trackerInput(e)));
   checker.end(tracker.end());
