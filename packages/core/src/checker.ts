@@ -50,7 +50,17 @@ export interface SeamInsertionCandidate {
   prefixFrame?: number;
 }
 
+export interface CountingReadVisit {
+  word: WordRef;
+  fromFrame: number;
+  toFrame: number;
+  hard: number;
+  locked: boolean;
+}
+
 export interface CheckerOptions {
+  /** Read-only diagnostic: every counting visit of each completed alignment, including provisional ones. */
+  onCountingVisit?: (visit: CountingReadVisit) => void;
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
   policy?: CheckerPolicy;
@@ -2239,7 +2249,17 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
     }
     if (!judged && !issues.size) return;
-    if (judged) steps = judged.steps;
+    if (judged) {
+      steps = judged.steps;
+      if (options.onCountingVisit) for (const v of judged.visits) {
+        const length = words[v.word].end - words[v.word].start;
+        if (v.word < anchor || v.consumed <= 0 || v.covered / length < MIN_COVERAGE ||
+          (hasConsonant(v.word) && !(v.kept > 0 && v.consumed >= Math.min(2, length))) ||
+          v.obsFrom < 0 || v.obsTo <= v.obsFrom) continue;
+        options.onCountingVisit({ word: toRef(v.word), fromFrame: obs[v.obsFrom].start,
+          toFrame: obs[v.obsTo - 1].end + 1, hard: v.hard, locked: trackerLocked });
+      }
+    }
     const head = judged?.head ?? cursor;
     const reached = judged?.furthest ?? cursor;
     const right = judged?.right ?? new Set<number>();

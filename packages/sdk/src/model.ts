@@ -27,6 +27,8 @@ export interface ModelManifest {
   file: string;
   bytes: number;
   sha256: string;
+  /** Native input of the existing pause-mask-trained streaming export. */
+  pauseMask?: { input: "pause_floor"; clockMs: 20 };
 }
 
 export interface Tensor {
@@ -49,4 +51,6 @@ export interface LoadedModel {
   supported: ErrorClass[];
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
+  /** Complete second engine; its confirmed additions can only certify existing primary doubts. */
+  pauseModel?: LoadedModel;
 }

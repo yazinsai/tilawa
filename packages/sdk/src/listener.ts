@@ -2,8 +2,12 @@ import type { DecodedPhoneme, PhonemeEvidence } from "@tilawa/core";
 import { Resampler } from "./audio.js";
 import { Fbank } from "./fbank.js";
 import type { LoadedModel, Tensor } from "./model.js";
+import { pauseFloor } from "./pause-mask.js";
+import type { PauseSpan } from "./pause-mask.js";
 
 export interface ListenerOptions {
+  /** Trained pause mask on this ear's native complete-session clock. */
+  pauseMask?: PauseSpan[];
   /** Attach per-frame top-k posteriors to each chunk: the checker's local-window check reads them. Default false; sessions turn it on. */
   posteriors?: boolean;
   topK?: number;
@@ -56,7 +60,9 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   async function step(window: Float32Array[], keep: number) {
     const x = new Float32Array(m.window * m.fbank.mels);
     window.forEach((f, i) => x.set(f, i * m.fbank.mels));
-    const out = await model.backend.run({ x: { type: "float32", data: x, dims: [1, m.window, m.fbank.mels] }, ...states });
+    const mask: Record<string, Tensor> = m.pauseMask ? { [m.pauseMask.input]: { type: "int64",
+      data: pauseFloor(options.pauseMask ?? [], outFrames * 2, m.shift / 2), dims: [1, m.shift / 2] } } : {};
+    const out = await model.backend.run({ x: { type: "float32", data: x, dims: [1, m.window, m.fbank.mels] }, ...states, ...mask });
     states = Object.fromEntries(m.states.map((s) => [s.name, out[`new_${s.name}`]]));
     const lp = out.log_probs.data as Float32Array;
     const n = Math.min(keep, lp.length / vocab);
