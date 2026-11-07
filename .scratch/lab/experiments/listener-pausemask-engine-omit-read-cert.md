@@ -1,6 +1,7 @@
 # Whole-session pause-mask counting reads for omission doubts
 
-Status: investigating the counting-visit premise; no practice score requested.
+Status: blocked on the required pause-mask/teacher bundle; counting-visit probe
+implemented and tested. No acoustic verdict or practice score.
 
 ## Prediction
 
@@ -69,3 +70,12 @@ The mounted practice directory contains the original primary, folded
 teacher-insert and teacher evidence, but no whole-session pause-mask evidence.
 No missing-asset condition has been reported as an acoustic kill; no target win,
 practice gain or loss has been claimed. No practice scoring attempt was used.
+
+The probe and its tests are preserved in commit `b6919832`. Certificate transport
+and the omission downgrade have deliberately not been built before this
+prerequisite measurement. This branch is not a completed scoring candidate.
+Resume by provisioning the verified previous bundle into this experiment's own
+scratch directory (or explicitly authorizing that exact source), auditing all
+original manifests and weight hashes, then running the diagnostic on the two
+complete phone recordings. The implementation brief's three-target stop rule
+still applies. No `.autolab/model.json` or killed outcome was written.
