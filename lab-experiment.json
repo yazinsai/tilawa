@@ -6,7 +6,7 @@
   "component": -1,
   "overall": -1
  },
- "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "listener": "exp-listener-verify-before-span-suppression-5d8c9ccc",
  "testSet": "lab-v1.5u",
  "created": "2026-11-07T14:54:51+00:00",
  "author": "autolab"
