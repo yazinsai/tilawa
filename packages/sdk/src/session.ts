@@ -9,7 +9,9 @@ import type {
   PhraseAsset,
   ReferenceIndex,
   WordRef,
+  SpectralResidualRequest,
 } from "@tilawa/core";
+import { addSpectralResidualEvidence, compareSpectralCrop } from "./spectral-residual-evidence.js";
 import { Resampler } from "./audio.js";
 import { capabilities } from "./capabilities.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
@@ -99,6 +101,21 @@ export function createEngine(options: EngineOptions): Engine {
       phrases,
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
       ...(passage && { passage }),
+      ...(model.spectralResidual && { spectralResidual: (r: SpectralResidualRequest) => {
+        const first = r.fromFrame * model.manifest.frameMs * 16;
+        const last = r.toFrame * model.manifest.frameMs * 16 + 240;
+        if (model.manifest.sampleRate !== 16000 || last > retainedSamples || first < 0 || last <= first) return null;
+        const crop = new Float32Array(last - first);
+        let offset = 0;
+        for (const part of pcmParts) {
+          const a = Math.max(first, offset), b = Math.min(last, offset + part.length);
+          if (b > a) crop.set(part.subarray(a - offset, b - offset), a - first);
+          offset += part.length;
+          if (offset >= last) break;
+        }
+        const score = compareSpectralCrop(model.spectralResidual!, crop, r, model.manifest.frameMs);
+        return score ? !(score.writtenLogLikelihood > score.accusedLogLikelihood) : null;
+      } }),
     };
     const checker = createChecker(index, checkerOptions);
     const listener = createListener(model, { posteriors: true, ...options.listener });
@@ -113,15 +130,16 @@ export function createEngine(options: EngineOptions): Engine {
     };
     const rate = model.manifest.sampleRate;
     const pcmParts: Float32Array[] = [];
+    let retainedSamples = 0;
     let pcmResampler: Resampler | null = null;
     const keepAudio = (samples: Float32Array, sampleRate: number) => {
-      if (!options.recordEvidence && !model.insertionTeacher) return;
+      if (!options.recordEvidence && !model.insertionTeacher && !model.spectralResidual) return;
       let pcm = samples;
       if (sampleRate !== rate) {
         if (!pcmResampler || pcmResampler.from !== sampleRate) pcmResampler = new Resampler(sampleRate, rate);
         pcm = pcmResampler.push(samples);
       }
-      if (pcm.length) pcmParts.push(Float32Array.from(pcm));
+      if (pcm.length) { pcmParts.push(Float32Array.from(pcm)); retainedSamples += pcm.length; }
     };
     const subscribers = new Set<(e: EngineEvent) => void>();
     let queue = Promise.resolve();
@@ -134,7 +152,7 @@ export function createEngine(options: EngineOptions): Engine {
     const cells = evidenceGrid(policy.evidenceMs ?? model.manifest.frameMs);
     const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
-      if (options.recordEvidence || model.insertionTeacher) recorded.push(e);
+      if (options.recordEvidence || model.insertionTeacher || model.spectralResidual) recorded.push(e);
       // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
       const out = tracker.push(trackerInput(e));
       noteLocks(out);
@@ -171,12 +189,12 @@ export function createEngine(options: EngineOptions): Engine {
         serial(async () => {
           if (pcmResampler) {
             const tail = pcmResampler.flush();
-            if (tail.length) pcmParts.push(Float32Array.from(tail));
+            if (tail.length) { pcmParts.push(Float32Array.from(tail)); retainedSamples += tail.length; }
           }
           const e = await listener.end();
           if (e) cells.add(e);
           const events = [...feed(cells.rest()), ...finish()];
-          if ((options.recordEvidence || model.insertionTeacher) && pcmParts.length) {
+          if ((options.recordEvidence || model.insertionTeacher || model.spectralResidual) && pcmParts.length) {
             const n = pcmParts.reduce((s, p) => s + p.length, 0);
             const audio = new Float32Array(n);
             let o = 0;
@@ -186,7 +204,9 @@ export function createEngine(options: EngineOptions): Engine {
             }
             const spliced = options.recordEvidence && locks.length > 1
               ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const inserted = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const enriched = model.spectralResidual
+              ? addSpectralResidualEvidence(model.spectralResidual, audio, inserted, index, phrases) : inserted;
             recorded.splice(0, recorded.length, ...enriched);
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.

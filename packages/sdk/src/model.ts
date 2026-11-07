@@ -1,4 +1,5 @@
 import type { ErrorClass, PhonemeEvidence } from "@tilawa/core";
+import type { createSpectralResidualScorer } from "./spectral-residual.js";
 
 export interface StateSpec {
   name: string;
@@ -47,6 +48,8 @@ export interface LoadedModel {
   backend: InferenceBackend;
   /** Error classes this model's evidence supports; the rest are reported `unsupported`. */
   supported: ErrorClass[];
+  /** Training-frozen within-band acoustic scorer; it can only veto string-path wrong words. */
+  spectralResidual?: ReturnType<typeof createSpectralResidualScorer>;
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
 }

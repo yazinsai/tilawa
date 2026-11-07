@@ -4,6 +4,7 @@ import type { EngineEvent } from "@tilawa/core";
 import { Resampler, Vad } from "./audio.js";
 import type { VadOptions } from "./audio.js";
 import type { InferenceBackend, LoadedModel } from "./model.js";
+import { decodeSpectralResidual } from "./spectral-residual.js";
 import { fetchModel } from "./models.js";
 import type { ModelRegistry, ModelStorage, TierName } from "./models.js";
 import type { OrtModule } from "./ort.js";
@@ -50,7 +51,7 @@ export interface WebModelOptions {
 
 /** `fallbacks`: why each earlier provider was skipped. */
 export async function loadWebModel(o: WebModelOptions = {}): Promise<LoadedModel & { fromCache: boolean; fallbacks: string[] }> {
-  const { tier, bytes, fromCache } = await fetchModel({
+  const { tier, bytes, fromCache, spectralResidual } = await fetchModel({
     tier: o.tier ?? "full",
     registry: o.registry ?? MODEL_REGISTRY,
     storage: o.storage ?? cacheStorage(),
@@ -69,7 +70,8 @@ export async function loadWebModel(o: WebModelOptions = {}): Promise<LoadedModel
     try {
       const backend = await ortBackend(ort as unknown as OrtModule, bytes, `onnxruntime-web/${p}`, { executionProviders: [p] });
       await warmup(backend, tier.manifest);
-      return { manifest: tier.manifest, backend, supported: tier.supported, fromCache, fallbacks: errors };
+      return { manifest: tier.manifest, backend, supported: tier.supported, fromCache, fallbacks: errors,
+        ...(spectralResidual && { spectralResidual: decodeSpectralResidual(spectralResidual, tier.manifest) }) };
     } catch (e) {
       errors.push(`${p}: ${(e as Error).message}`);
     }

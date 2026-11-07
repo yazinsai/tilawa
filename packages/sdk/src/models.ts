@@ -24,6 +24,8 @@ export interface ModelTier {
 export interface ModelRegistry {
   schema: 1;
   tiers: ModelTier[];
+  /** Optional independently versioned acoustic side scorers installed beside a tier. */
+  scorers?: { id: string; purpose: "wrong-word-spectral"; inventory: string; file: string; bytes: number; sha256: string }[];
   auxiliary?: {
     id: string; purpose: "seam-insertion"; precision: "float32"; inventory: string;
     file: string; bytes: number; sha256: string;
@@ -57,6 +59,7 @@ export interface FetchedModel {
   tier: ModelTier;
   bytes: Uint8Array;
   fromCache: boolean;
+  spectralResidual?: Uint8Array;
 }
 
 const keyOf = (t: ModelTier) => `${t.id}@${t.version}/${t.manifest.file}`;
@@ -69,11 +72,12 @@ export async function fetchModel(o: FetchModelOptions): Promise<FetchedModel> {
   const others = o.registry.tiers.filter((t) => t.tier !== o.tier);
   const held = (await o.storage.keys()).filter((k) => k !== key);
   const heldOther = others.filter((t) => held.includes(keyOf(t))).reduce((n, t) => n + t.bytes, 0);
-  if (!o.allowOverBudget && tier.bytes + heldOther > budget)
+  const scorerBytes = o.registry.scorers?.reduce((sum, a) => sum + a.bytes, 0) ?? 0;
+  if (!o.allowOverBudget && tier.bytes + heldOther + scorerBytes > budget)
     throw new ModelBudgetError(`${tier.id}@${tier.version} (${mb(tier.bytes)}) plus cached tiers (${mb(heldOther)}) exceeds the ${mb(budget)} model budget`);
 
   const cached = await o.storage.get(key);
-  if (cached && cached.length === tier.bytes) return { tier, bytes: cached, fromCache: true };
+  if (cached && cached.length === tier.bytes) return { tier, bytes: cached, fromCache: true, spectralResidual: await fetchSpectralResidual(o, tier) };
   if (cached) await o.storage.delete(key);
 
   const fetchFn = o.fetch ?? ((u: string) => fetch(u));
@@ -87,7 +91,30 @@ export async function fetchModel(o: FetchModelOptions): Promise<FetchedModel> {
   // Other versions of this model are stale once the new one is in.
   for (const k of held) if (k.startsWith(`${tier.id}@`)) await o.storage.delete(k);
   await o.storage.put(key, bytes);
-  return { tier, bytes, fromCache: false };
+  return { tier, bytes, fromCache: false, spectralResidual: await fetchSpectralResidual(o, tier) };
+}
+
+async function fetchSpectralResidual(o: FetchModelOptions, tier: ModelTier): Promise<Uint8Array | undefined> {
+  const asset = o.registry.scorers?.find(a => a.purpose === "wrong-word-spectral");
+  if (!asset) return undefined;
+  if (asset.inventory !== tier.manifest.inventory) throw new ModelIntegrityError("Spectral residual inventory mismatch");
+  const key = `${tier.id}@${tier.version}/${asset.file}`;
+  const cached = await o.storage.get(key);
+  const valid = async (b: Uint8Array) => {
+    if (b.length !== asset.bytes) return false;
+    const digest = await sha256(b);
+    return digest === null || digest === asset.sha256;
+  };
+  if (cached && await valid(cached)) return cached;
+  if (cached) await o.storage.delete(key);
+  const res = await (o.fetch ?? fetch)(tier.base + asset.file);
+  if (!res.ok) throw new ModelIntegrityError(`Missing declared spectral residual asset: ${res.status}`);
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  if (bytes.length !== asset.bytes) throw new ModelIntegrityError("Truncated spectral residual asset");
+  const digest = await sha256(bytes);
+  if (digest !== null && digest !== asset.sha256) throw new ModelIntegrityError("Spectral residual checksum mismatch");
+  await o.storage.put(key, bytes);
+  return bytes;
 }
 
 const mb = (n: number) => `${(n / 1024 / 1024).toFixed(1)} MB`;

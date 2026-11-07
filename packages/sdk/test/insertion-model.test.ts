@@ -14,7 +14,10 @@ const manifest = { file: "primary.onnx", tokens: "بت", inventory: "muaalem-v3_
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.readFile.mockResolvedValue(JSON.stringify(manifest));
+  mocks.readFile.mockImplementation(async (p: string) => {
+    if (p.endsWith("manifest.json")) return JSON.stringify(manifest);
+    throw Object.assign(new Error("absent"), { code: "ENOENT" });
+  });
 });
 
 describe("Node insertion teacher loading", () => {

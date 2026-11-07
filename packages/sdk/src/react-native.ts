@@ -5,6 +5,7 @@
  */
 import * as ort from "onnxruntime-react-native";
 import type { LoadedModel } from "./model.js";
+import { decodeSpectralResidual } from "./spectral-residual.js";
 import { fetchModel } from "./models.js";
 import type { ModelRegistry, ModelStorage, TierName } from "./models.js";
 import type { OrtModule } from "./ort.js";
@@ -27,7 +28,7 @@ export interface NativeModelOptions {
 }
 
 export async function loadNativeModel(o: NativeModelOptions): Promise<LoadedModel> {
-  const { tier, bytes } = await fetchModel({
+  const { tier, bytes, spectralResidual } = await fetchModel({
     tier: o.tier ?? "full",
     registry: o.registry ?? MODEL_REGISTRY,
     storage: o.storage,
@@ -39,5 +40,6 @@ export async function loadNativeModel(o: NativeModelOptions): Promise<LoadedMode
     executionProviders: o.providers ?? ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return { manifest: tier.manifest, backend, supported: tier.supported };
+  return { manifest: tier.manifest, backend, supported: tier.supported,
+    ...(spectralResidual && { spectralResidual: decodeSpectralResidual(spectralResidual, tier.manifest) }) };
 }

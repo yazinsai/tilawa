@@ -26,7 +26,13 @@ export function compareSpectralWindow(scorer: ReturnType<typeof createSpectralRe
   const first = r.fromFrame * frameMs * 16, last = r.toFrame * frameMs * 16 + 240;
   if (![first, last].every(Number.isInteger) || first < 0 || last <= first) return null;
   // The last 25 ms analysis window starts one 10 ms hop before the exclusive end.
-  const features = spectralObservations(audio.subarray(first, last), scorer.parameters);
+  return compareSpectralCrop(scorer, audio.subarray(first, last), r, frameMs);
+}
+
+/** The crop starts at the request's original FFT-grid origin and includes the 240-sample analysis tail. */
+export function compareSpectralCrop(scorer: ReturnType<typeof createSpectralResidualScorer>, crop: Float32Array,
+  r: SpectralResidualRequest, frameMs = 40) {
+  const features = spectralObservations(crop, scorer.parameters);
   return scorer.compare(features, { ...r, fromFrame: 0, toFrame: r.toFrame - r.fromFrame }, frameMs);
 }
 

@@ -1,4 +1,6 @@
 /** Node entry: onnxruntime-node, models from a directory, WAV input. */
+import { createHash } from "node:crypto";
+import { createSpectralResidualScorer } from "./spectral-residual.js";
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import * as ort from "onnxruntime-node";
@@ -16,13 +18,14 @@ export * from "./index.js";
 export { decodeWav };
 
 /** Loads `manifest.json` and its ONNX file from `dir`. */
-export async function loadNodeModel(dir: string, options: { threads?: number } = {}): Promise<LoadedModel> {
+export async function loadNodeModel(dir: string, options: { threads?: number; registry?: ModelRegistry } = {}): Promise<LoadedModel> {
   const manifest = JSON.parse(await readFile(join(dir, "manifest.json"), "utf8")) as ModelManifest & { supported?: LoadedModel["supported"] };
   const backend = await ortBackend(ort as unknown as OrtModule, join(dir, manifest.file), "onnxruntime-node", {
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  const model = await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachSpectralResidual(model, dir, options.registry ?? MODEL_REGISTRY);
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -44,6 +47,21 @@ async function attachInsertionTeacher(model: LoadedModel, dir: string, threads =
     }).then(b => { teacherBackend = b; return createInsertionTeacher(b, model.manifest.tokens, model.manifest.inventory); });
     return (await auxiliary).decode(samples, k);
   } };
+  return model;
+}
+
+/** Installed, declared side assets are integrity-checked; absent optional assets preserve primary-only clients. */
+async function attachSpectralResidual(model: LoadedModel, dir: string, registry: ModelRegistry): Promise<LoadedModel> {
+  const asset = registry.scorers?.find(a => a.purpose === "wrong-word-spectral");
+  if (!asset) return model;
+  const bytes = await readFile(join(dir, asset.file)).catch(e => { if (e.code === "ENOENT") return null; throw e; });
+  if (!bytes) return model;
+  if (bytes.length !== asset.bytes || createHash("sha256").update(bytes).digest("hex") !== asset.sha256)
+    throw new Error("Spectral residual asset integrity mismatch");
+  const parameters = JSON.parse(bytes.toString("utf8"));
+  if (asset.inventory !== model.manifest.inventory || parameters.tokens !== model.manifest.tokens || model.manifest.sampleRate !== 16000)
+    throw new Error("Spectral residual clock or inventory differs from primary model");
+  model.spectralResidual = createSpectralResidualScorer(parameters);
   return model;
 }
 
@@ -87,6 +105,7 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  const dir = join(o.cacheDir, `${tier.id}@${tier.version}`);
+  const model = await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported }, dir, o.threads);
+  return attachSpectralResidual(model, dir, o.registry ?? MODEL_REGISTRY);
 }

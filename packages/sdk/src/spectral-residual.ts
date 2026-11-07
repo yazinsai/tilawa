@@ -1,3 +1,4 @@
+import type { ModelManifest } from "./model.js";
 import type { SpectralResidualRequest } from "@tilawa/core";
 import { Fbank } from "./fbank.js";
 
@@ -82,4 +83,12 @@ export function createSpectralResidualScorer(p: SpectralResidualParameters) {
         ? { writtenLogLikelihood, accusedLogLikelihood } : null;
     },
   };
+}
+
+/** Runtime-independent loading after registry integrity checks. */
+export function decodeSpectralResidual(bytes: Uint8Array, manifest: ModelManifest) {
+  const parameters = JSON.parse(new TextDecoder().decode(bytes)) as SpectralResidualParameters;
+  if (parameters.tokens !== manifest.tokens || manifest.sampleRate !== 16000)
+    throw new Error("Spectral residual clock or inventory differs from primary model");
+  return createSpectralResidualScorer(parameters);
 }
