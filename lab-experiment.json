@@ -1,0 +1,13 @@
+{
+ "id": "tracker-marginal-edit-alignments",
+ "component": "tracker",
+ "hypothesis": "The rhyme-look-alike restart may win through one unusually cheap token alignment rather than stronger aggregate evidence; marginalizing alternative edit alignments predicts 1 tracker recovery and 1 exposed listener warning: tracker -1, overall 0.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-07T14:57:55+00:00",
+ "author": "autolab"
+}
