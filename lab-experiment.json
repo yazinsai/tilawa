@@ -1,0 +1,13 @@
+{
+ "id": "listener-verify-before-span-suppression",
+ "component": "listener",
+ "hypothesis": "Speculatively, overlapping seam candidates suppress one another before acoustic verification, so rejecting the retained candidate also loses a valid alternative; verify before suppression, predicting 1 recovered addition, no losses, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-07T14:54:51+00:00",
+ "author": "autolab"
+}
