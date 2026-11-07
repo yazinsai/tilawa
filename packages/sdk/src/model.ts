@@ -49,4 +49,9 @@ export interface LoadedModel {
   supported: ErrorClass[];
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
+  segmentPresence?: {
+    model: import("./segment-presence.js").SegmentPresenceModel;
+    /** Frozen streaming features, one row per primary native output frame. */
+    features(samples: Float32Array): Promise<ArrayLike<number>[]>;
+  };
 }

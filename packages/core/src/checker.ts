@@ -51,6 +51,8 @@ export interface SeamInsertionCandidate {
 }
 
 export interface CheckerOptions {
+  /** Read-only listener discovery. True supplies a read certificate for an existing single-word omission. */
+  omissionRead?: (candidate: OmissionReadCandidate) => boolean;
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
   policy?: CheckerPolicy;
@@ -67,6 +69,12 @@ export interface CheckerOptions {
    * build uses {@link LISTENER_CHANNEL}. An empty phone list leaves the channel decisions off.
    */
   channel?: ChannelCounts;
+}
+
+export interface OmissionReadCandidate {
+  word: number;
+  fromFrame: number;
+  toFrame: number;
 }
 
 export interface Checker {
@@ -256,6 +264,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const insertionEvidence = new Map<string, number>();
+  const presenceEvidence = new Set<string>();
+  const presenceKey = (word: WordRef, from: number, to: number) => JSON.stringify([word.surah, word.ayah, word.word, from, to]);
   const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
     JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
   // A completed seam remains in the streaming window over many pushes. Its
@@ -473,7 +483,16 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const decide = (o: Open, out: CheckerEvent[], state?: "uncertain") => {
     open.delete(o.issue.word);
     decided.add(o.issue.word);
-    const sure = ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false;
+    let read = false;
+    if (o.issue.cls === "omitted_word" && o.issue.word === o.issue.last) {
+      const span = spanFrames(ayahOf[o.issue.word]);
+      if (span && span.frameTo > span.frameFrom) {
+        const c = { word: o.issue.word, fromFrame: span.frameFrom, toFrame: span.frameTo };
+        const key = presenceKey(toRef(c.word), c.fromFrame, c.toFrame);
+        read = presenceEvidence.has(key) || options.omissionRead?.(c) === true;
+      }
+    }
+    const sure = !read && ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false;
     out.push(event(o, state ?? (sure ? "confirmed" : "uncertain")));
   };
 
@@ -2457,6 +2476,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const m of p.segmentPresence ?? []) {
+        if (Number.isFinite(m.read) && Number.isFinite(m.omit) && m.read > m.omit &&
+          Number.isInteger(m.fromFrame) && Number.isInteger(m.toFrame) && m.fromFrame >= 0 && m.toFrame > m.fromFrame) {
+          presenceEvidence.add(presenceKey(m.word, m.fromFrame, m.toFrame));
+        }
+      }
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {

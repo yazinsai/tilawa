@@ -1,5 +1,14 @@
 import type { WordRef } from "./events.js";
 
+/** Closed read/omit judgment on exactly the checker's existing ayah interval. */
+export interface SegmentPresenceEvidence {
+  word: WordRef;
+  fromFrame: number;
+  toFrame: number;
+  read: number;
+  omit: number;
+}
+
 /** Auxiliary listener judgment over a complete seam, tied to one proposed spelling. */
 export interface SeamInsertionEvidence {
   word: WordRef;
@@ -18,6 +27,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  segmentPresence?: SegmentPresenceEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */
