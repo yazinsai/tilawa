@@ -20,12 +20,22 @@ export function carrySpectralResidualEvidence(chunks: PhonemeEvidence[], certifi
   });
 }
 
+/** Re-extracts the very same globally aligned FFT windows; no acoustic context is needed by this frame-local scorer. */
+export function compareSpectralWindow(scorer: ReturnType<typeof createSpectralResidualScorer>, audio: Float32Array,
+  r: SpectralResidualRequest, frameMs = 40) {
+  const first = r.fromFrame * frameMs * 16, last = r.toFrame * frameMs * 16 + 240;
+  if (![first, last].every(Number.isInteger) || first < 0 || last <= first) return null;
+  // The last 25 ms analysis window starts one 10 ms hop before the exclusive end.
+  const features = spectralObservations(audio.subarray(first, last), scorer.parameters);
+  return scorer.compare(features, { ...r, fromFrame: 0, toFrame: r.toFrame - r.fromFrame }, frameMs);
+}
+
 export function addSpectralResidualEvidence(scorer: ReturnType<typeof createSpectralResidualScorer>, audio: Float32Array,
   chunks: PhonemeEvidence[], index: ReferenceIndex, phrases?: PhraseAsset): PhonemeEvidence[] {
   if (!chunks.length) return chunks;
-  const features = spectralObservations(audio, scorer.parameters), certificates: SpectralResidualEvidence[] = [];
+  const certificates: SpectralResidualEvidence[] = [];
   for (const r of spectralResidualRequests(chunks, index, phrases)) {
-    const score = scorer.compare(features, r, chunks[0].frameMs);
+    const score = compareSpectralWindow(scorer, audio, r, chunks[0].frameMs);
     if (!score || score.writtenLogLikelihood <= score.accusedLogLikelihood) continue;
     const { word, ...bounds } = r, w = index.words[word];
     certificates.push({ ...bounds, word: { surah: w.surah, ayah: w.ayah, word: w.word }, ...score });

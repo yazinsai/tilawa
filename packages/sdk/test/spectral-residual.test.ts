@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Fbank } from "../src/fbank.js";
 import { createSpectralResidualScorer, residualLikelihood, spectralObservations, logadd, type SpectralResidualParameters } from "../src/spectral-residual.js";
-import { carrySpectralResidualEvidence } from "../src/spectral-residual-evidence.js";
+import { carrySpectralResidualEvidence, compareSpectralWindow } from "../src/spectral-residual-evidence.js";
 
 function parameters(): SpectralResidualParameters {
   return { schema: 1, tokens: "بت", projection: [Array.from({ length: 256 }, (_, k) => k === 20 ? 1 : 0)],
@@ -54,6 +54,15 @@ describe("within-band spectral evidence", () => {
     const observed = spectralObservations(audio, parameters());
     expect(observed).toHaveLength(primary.length);
     expect(observed.every(x => Number.isFinite(x[0]))).toBe(true);
+  });
+
+  it("extracts byte-identical original windows and scores without reprocessing the full session", () => {
+    const audio = Float32Array.from({ length: 4000 }, (_, i) => Math.sin(i * .131) * .1);
+    const p = parameters(), scorer = createSpectralResidualScorer(p), full = spectralObservations(audio, p);
+    const r = { ...request, fromFrame: 1, toFrame: 3, slotFromFrame: 1, slotToFrame: 3 };
+    expect(spectralObservations(audio.subarray(640, 3 * 640 + 240), p)).toEqual(full.slice(4, 12));
+    expect(compareSpectralWindow(scorer, audio, r)).toEqual(scorer.compare(full, r));
+    expect(compareSpectralWindow(scorer, audio.subarray(0, 1400), r)).toBeNull();
   });
 
   it("carries certificates through JSON without changing primary phones or insertion certificates", () => {
