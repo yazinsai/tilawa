@@ -1,0 +1,13 @@
+{
+ "id": "listener-within-band-spectral-detail",
+ "component": "listener",
+ "hypothesis": "Mel-band aggregation may discard narrow spectral distinctions needed to reject false word substitutions; score the discarded within-band detail independently, predicting 1 false warning removed, no losses, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-07T22:49:30+00:00",
+ "author": "autolab"
+}
