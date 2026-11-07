@@ -9,12 +9,14 @@ import type {
   PhraseAsset,
   ReferenceIndex,
   WordRef,
+  SegmentPresenceEvidence,
 } from "@tilawa/core";
 import { Resampler } from "./audio.js";
 import { capabilities } from "./capabilities.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
 import { createListener } from "./listener.js";
+import { addSegmentPresenceEvidence, omissionReadCertificate } from "./omission-presence.js";
 import type { ListenerOptions } from "./listener.js";
 import type { LoadedModel } from "./model.js";
 
@@ -76,6 +78,8 @@ export function createEngine(options: EngineOptions): Engine {
   const { reference: index, phrases, model } = options;
   if (model.manifest.inventory !== index.inventoryId)
     throw new Error(`Model inventory ${model.manifest.inventory} does not match reference ${index.inventoryId}`);
+  if (model.manifest.segmentPresence && !model.segmentPresence?.stream)
+    throw new Error("Declared segment scorer requires its streaming feature provider");
   const caps: CapabilityEvent = {
     type: "capabilities",
     v: EVENT_SCHEMA_VERSION,
@@ -95,13 +99,21 @@ export function createEngine(options: EngineOptions): Engine {
 
   function start(mode: Session["mode"], passage: Session["passage"], policy: SessionPolicy = {}): Session {
     const tracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
+    const segmentStream=model.segmentPresence?.stream?.();
+    const readCertificates:SegmentPresenceEvidence[]=[];
     const checkerOptions = {
+      omissionRead(c: import("@tilawa/core").OmissionReadCandidate) {
+        if (!segmentStream || !model.segmentPresence) return false;
+        const result=omissionReadCertificate(model.segmentPresence.model,segmentStream.rows,index,c);
+        if (result) readCertificates.push(result);
+        return !!result;
+      },
       phrases,
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
       ...(passage && { passage }),
     };
     const checker = createChecker(index, checkerOptions);
-    const listener = createListener(model, { posteriors: true, ...options.listener });
+    const listener = createListener(model, { posteriors: true, ...options.listener, segmentFeatures:segmentStream });
     const wordIndex = new Map(index.words.map((w, i) => [`${w.surah}:${w.ayah}:${w.word}`, i]));
     const locks: { wi: number; timeMs: number }[] = [];
     const noteLocks = (events: EngineEvent[]) => {
@@ -115,7 +127,7 @@ export function createEngine(options: EngineOptions): Engine {
     const pcmParts: Float32Array[] = [];
     let pcmResampler: Resampler | null = null;
     const keepAudio = (samples: Float32Array, sampleRate: number) => {
-      if (!options.recordEvidence && !model.insertionTeacher) return;
+      if (!options.recordEvidence && !model.insertionTeacher && !model.segmentPresence) return;
       let pcm = samples;
       if (sampleRate !== rate) {
         if (!pcmResampler || pcmResampler.from !== sampleRate) pcmResampler = new Resampler(sampleRate, rate);
@@ -134,7 +146,7 @@ export function createEngine(options: EngineOptions): Engine {
     const cells = evidenceGrid(policy.evidenceMs ?? model.manifest.frameMs);
     const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
-      if (options.recordEvidence || model.insertionTeacher) recorded.push(e);
+      if (options.recordEvidence || model.insertionTeacher || model.segmentPresence) recorded.push(e);
       // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
       const out = tracker.push(trackerInput(e));
       noteLocks(out);
@@ -176,7 +188,7 @@ export function createEngine(options: EngineOptions): Engine {
           const e = await listener.end();
           if (e) cells.add(e);
           const events = [...feed(cells.rest()), ...finish()];
-          if ((options.recordEvidence || model.insertionTeacher) && pcmParts.length) {
+          if ((options.recordEvidence || model.insertionTeacher || model.segmentPresence) && pcmParts.length) {
             const n = pcmParts.reduce((s, p) => s + p.length, 0);
             const audio = new Float32Array(n);
             let o = 0;
@@ -186,7 +198,18 @@ export function createEngine(options: EngineOptions): Engine {
             }
             const spliced = options.recordEvidence && locks.length > 1
               ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            let enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            if (model.segmentPresence) {
+              // Reuse features collected beside the primary stream. The existing end-of-session gap
+              // decode can change recorded spans, so certify those proposals on their own intervals too.
+              const cached=segmentStream ? {...model,segmentPresence:{...model.segmentPresence,features:async()=>segmentStream.rows}} : model;
+              enriched=await addSegmentPresenceEvidence(cached,audio,enriched,index,phrases);
+              if (readCertificates.length) {
+                const at=enriched.findIndex(c=>c.phonemes.length);
+                enriched=enriched.map((c,i)=>i!==at?c:{...c,phonemes:c.phonemes.map((p,j)=>j?p:{...p,
+                  segmentPresence:[...(p.segmentPresence??[]),...readCertificates]})});
+              }
+            }
             recorded.splice(0, recorded.length, ...enriched);
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.

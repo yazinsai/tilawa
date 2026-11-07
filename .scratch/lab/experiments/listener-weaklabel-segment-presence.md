@@ -1,7 +1,8 @@
 # Whole-recording weak-label segment presence
 
-Status: implementation and training validation in progress. The experiment card
-is unchanged; no fold has been performed.
+Status: trained scorer frozen; three target rescues verified on supplied evidence.
+Fresh SDK validation and the required practice score are in progress. The
+experiment card is unchanged; no fold has been performed.
 
 ## Prediction and mechanism
 
@@ -83,10 +84,57 @@ supervisor source snapshot excludes the experiment card. The diagnostic was
 relaunched with its unchanged listener and set values passed as command
 arguments. This changed no training, engine behavior or supplied files.
 
-Target results are pending. No practice score has been requested.
-The supervisor's fresh SDK path and complete declared model bundle must be
-verified if the target premise survives; a primary-only run cannot evaluate
-this experiment.
+Run 7 evaluated the frozen model on the three targets without selecting any
+parameter on them. Complete-read minus exact-omit log scores on the existing
+checker intervals were:
+
+| Target | Existing interval, 40 ms frames | Read − omit |
+| --- | --- | ---: |
+| p50 37:113:10 | [6453, 6877) | 4.064109 |
+| p65 4:12:40 | [1848, 3415) | 8.780668 |
+| p65 4:15:6 | [5067, 5626) | 2.442514 |
+
+All three baseline suspected→confirmed warnings became suspected→uncertain,
+both with the direct callback and with SDK-generated metadata serialized through
+JSON and replayed through the normal checker. Removing only the new metadata
+left primary evidence identical; tracker events were identical. Thus the built
+change clears the stricter three-target premise bar.
+
+The existing ayah intervals are imperfect: p50 ends before the labelled final
+word's audio, and 4:12's interval covers only part of its ayah. They were retained
+unchanged. Analysis-only controls over the complete labelled intervals also
+preferred reading, by 9.652161, 8.547022 and 2.440802 respectively. These controls
+do not supply runtime boundaries or supervision. Positive preferences alone do
+not establish correct acoustic ownership or prove that earlier forced cuts were
+the cause; the learned prior, latent path multiplicity and durations can influence
+the result.
+
+Run 10 passed all 760 core tests. Run 11 built both packages and passed all 35 SDK
+tests, with one optional integration test skipped. New SDK checks cover per-session
+feature state, pooling and final-padding truncation, ready features before a live
+confirmation, and failure on absent or corrupt declared assets. One loader test's
+release assertion initially compared the wrapped method with its original spy;
+retaining the original spy fixed the test, without changing runtime behavior.
+
+The normal Node loader installs the scorer and lazily creates its frozen encoder.
+Each listener collects features beside its unchanged primary inference stream,
+before the checker decides. Recorded sessions additionally discover proposals on
+their existing post-splice evidence and attach exact-span certificates. This
+preserves the transport used by fresh lab decoding. A declared scorer without its
+streaming provider fails at engine creation.
+
+Run 11 exported and hash-verified the complete bundle at
+`/scratch/listener-weaklabel-segment-presence/bundle`. It contains the unchanged
+67,759,744-byte primary model, 67,759,782-byte frozen feature graph, 207,460-byte
+scorer JSON and the existing teacher graph with its external weights. The teacher
+external weights match the baseline registry exactly; re-export serialized its
+graph differently, so the new export declares its actual graph hash without
+editing the supplied model or registry. Bundle manifest SHA-256:
+`3117d26b35764e03eecfbcde4b898180e51a0f3aa0366d7cf6347be11f53b750`.
+
+No practice score has been requested yet. A primary-only decode cannot evaluate
+this change. Run 12 is checking actual SDK frontend/ONNX features, fresh sessions,
+certificate transport and primary/tracker equivalence before model declaration.
 
 The weak labels remove dependence on word-cut supervision, but do not guarantee
 correct latent segmentation. Neighboring speech can still explain a missing

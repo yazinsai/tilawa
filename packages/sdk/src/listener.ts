@@ -4,6 +4,8 @@ import { Fbank } from "./fbank.js";
 import type { LoadedModel, Tensor } from "./model.js";
 
 export interface ListenerOptions {
+  /** Auxiliary frozen encoder; primary outputs and states are untouched. */
+  segmentFeatures?: import("./segment-encoder.js").SegmentFeatureStream;
   /** Attach per-frame top-k posteriors to each chunk: the checker's local-window check reads them. Default false; sessions turn it on. */
   posteriors?: boolean;
   topK?: number;
@@ -60,6 +62,7 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
     states = Object.fromEntries(m.states.map((s) => [s.name, out[`new_${s.name}`]]));
     const lp = out.log_probs.data as Float32Array;
     const n = Math.min(keep, lp.length / vocab);
+    await options.segmentFeatures?.step({ type: "float32", data: x, dims: [1, m.window, m.fbank.mels] }, n);
     for (let t = 0; t < n; t++) {
       const row = lp.subarray(t * vocab, (t + 1) * vocab);
       const top = topK(row, k);

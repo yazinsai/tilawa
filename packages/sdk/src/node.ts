@@ -11,6 +11,11 @@ import type { OrtModule } from "./ort.js";
 import { ortBackend } from "./ort.js";
 import { decodeWav } from "./wav.js";
 import { createInsertionTeacher } from "./insertion-teacher.js";
+import { createHash } from "node:crypto";
+import { createReadStream } from "node:fs";
+import { createSegmentFeatureStream, segmentFeatures } from "./segment-encoder.js";
+import type { SegmentPresenceModel } from "./segment-presence.js";
+import { validateSegmentScorer } from "./segment-presence.js";
 
 export * from "./index.js";
 export { decodeWav };
@@ -22,18 +27,50 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  const model = { manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES } as LoadedModel;
+  try { return await attachSegmentPresence(await attachInsertionTeacher(model,dir,options.threads),dir,options.threads); }
+  catch(error) { await model.backend.release?.(); throw error; }
+}
+
+/** A manifest declaration is mandatory evidence: missing or corrupt files fail loading. */
+async function attachSegmentPresence(model: LoadedModel, dir: string, threads=1): Promise<LoadedModel> {
+  const spec=model.manifest.segmentPresence;
+  if (!spec) return model;
+  const checked=async (file:string,sha:string) => {
+    const data=await readFile(join(dir,file));
+    if (createHash("sha256").update(data).digest("hex")!==sha) throw new Error(`Segment asset hash mismatch: ${file}`);
+    return data;
+  };
+  const scorer=JSON.parse((await checked(spec.file,spec.sha256)).toString("utf8")) as SegmentPresenceModel;
+  validateSegmentScorer(scorer);
+  await checked(spec.encoder.file,spec.encoder.sha256);
+  if (scorer.schema!==1 || scorer.inventory!==model.manifest.inventory || scorer.tokens!==model.manifest.tokens ||
+    scorer.encoderSha256!==spec.encoder.sha256 || !scorer.mean.length || scorer.std.length!==scorer.mean.length ||
+    scorer.std.some(v=>!Number.isFinite(v)||v<=0)) throw new Error("Invalid segment scorer declaration");
+  let pending:Promise<import("./model.js").InferenceBackend>|undefined;
+  const backend=()=>pending??=ortBackend(ort as unknown as OrtModule,join(dir,spec.encoder.file),"onnxruntime-node",
+    {executionProviders:["cpu"],intraOpNumThreads:threads});
+  const stream=()=>createSegmentFeatureStream(backend,model.manifest,scorer.featureNode,scorer.mean.length);
+  const release=model.backend.release.bind(model.backend);
+  model.backend.release=async()=>{if(pending)await (await pending).release();await release();};
+  model.segmentPresence={model:scorer,stream,features:samples=>segmentFeatures(samples,model.manifest,stream())};
+  return model;
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
 async function attachInsertionTeacher(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
-  const asset = MODEL_REGISTRY.auxiliary?.find(a => a.purpose === "seam-insertion");
+  const asset = model.manifest.insertionTeacher ?? MODEL_REGISTRY.auxiliary?.find(a => a.purpose === "seam-insertion");
   if (!asset) return model;
   const installed = await access(join(dir, asset.file)).then(() => true,
-    e => { if (e.code === "ENOENT") return false; throw e; });
+    e => { if (e.code === "ENOENT" && !model.manifest.insertionTeacher) return false; throw e; });
   if (!installed) return model;
   if (asset.inventory !== model.manifest.inventory) throw new Error("Insertion teacher inventory differs from the primary model");
   for (const data of asset.externalData) await access(join(dir, data.file));
+  if (model.manifest.insertionTeacher) for (const part of [asset,...asset.externalData]) {
+    const hash=createHash("sha256");let bytes=0;
+    for await (const chunk of createReadStream(join(dir,part.file))) { bytes+=chunk.length;hash.update(chunk); }
+    if (bytes!==part.bytes || hash.digest("hex")!==part.sha256) throw new Error(`Insertion teacher hash mismatch: ${part.file}`);
+  }
   let auxiliary: Promise<ReturnType<typeof createInsertionTeacher>> | undefined;
   let teacherBackend: import("./model.js").InferenceBackend | undefined;
   const release = model.backend.release.bind(model.backend);
@@ -87,6 +124,6 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  const dir=join(o.cacheDir, `${tier.id}@${tier.version}`);
+  return attachSegmentPresence(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },dir,o.threads),dir,o.threads);
 }

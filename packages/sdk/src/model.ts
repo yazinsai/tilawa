@@ -27,6 +27,11 @@ export interface ModelManifest {
   file: string;
   bytes: number;
   sha256: string;
+  /** Optional learned segment scorer and frozen feature graph, both required when declared. */
+  segmentPresence?: { file: string; sha256: string; encoder: { file: string; sha256: string } };
+  /** Re-export of the existing teacher, with file hashes specific to this bundle. */
+  insertionTeacher?: { inventory: string; file: string; bytes: number; sha256: string;
+    externalData: { file: string; bytes: number; sha256: string }[] };
 }
 
 export interface Tensor {
@@ -53,5 +58,6 @@ export interface LoadedModel {
     model: import("./segment-presence.js").SegmentPresenceModel;
     /** Frozen streaming features, one row per primary native output frame. */
     features(samples: Float32Array): Promise<ArrayLike<number>[]>;
+    stream?(): import("./segment-encoder.js").SegmentFeatureStream;
   };
 }

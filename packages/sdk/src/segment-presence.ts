@@ -19,6 +19,18 @@ export interface SegmentPresenceModel {
   };
 }
 
+export function validateSegmentScorer(m: SegmentPresenceModel): void {
+  const finite=(a:number[])=>Array.isArray(a)&&a.every(Number.isFinite);
+  const matrix=(a:number[][],columns:number)=>Array.isArray(a)&&a.length===m.hidden&&a.every(row=>finite(row)&&row.length===columns);
+  const w=m.weights;
+  if (m.schema!==1 || !Number.isInteger(m.hidden) || m.hidden<1 || !finite(m.mean) || !m.mean.length ||
+    !finite(m.std) || m.std.length!==m.mean.length || m.std.some(v=>v<=0) || !w ||
+    !matrix(w["acoustic.weight"],m.mean.length) || !matrix(w["text.weight"],3*m.tokens.length+33) ||
+    !finite(w["acoustic.bias"]) || w["acoustic.bias"].length!==m.hidden ||
+    !finite(w["text.bias"]) || w["text.bias"].length!==m.hidden ||
+    !finite(w.duration) || w.duration.length!==2 || !Number.isFinite(w.skip_logit)) throw new Error("Invalid segment scorer dimensions or weights");
+}
+
 export function segmentTextFeatures(words: string[], tokens: string): number[][] {
   const ids = new Map([...tokens].map((p,i) => [p,i])), k = tokens.length;
   return words.map(word => {
