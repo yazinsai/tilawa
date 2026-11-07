@@ -1,5 +1,22 @@
 import type { WordRef } from "./events.js";
 
+/** Exact two-hypothesis acoustic request. Neighbouring text is identical in both strings. */
+export interface SpectralResidualRequest {
+  word: number;
+  written: string;
+  accused: string;
+  fromFrame: number;
+  toFrame: number;
+  slotFromFrame: number;
+  slotToFrame: number;
+}
+
+export interface SpectralResidualEvidence extends Omit<SpectralResidualRequest, "word"> {
+  word: WordRef;
+  writtenLogLikelihood: number;
+  accusedLogLikelihood: number;
+}
+
 /** Auxiliary listener judgment over a complete seam, tied to one proposed spelling. */
 export interface SeamInsertionEvidence {
   word: WordRef;
@@ -18,6 +35,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  spectralResiduals?: SpectralResidualEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */
