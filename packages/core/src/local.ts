@@ -1,5 +1,7 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import { editAlignmentCosts } from "./edit-alignment.js";
+import type { EditAlignmentModel } from "./edit-alignment.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -45,7 +47,8 @@ export interface LocalSearch {
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">, model?: EditAlignmentModel): LocalSearch {
+  const channel = model ? editAlignmentCosts(model) : null;
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -68,6 +71,9 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let cost = new Float64Array(0);
   let origin = new Int32Array(0);
   let edits = new Int32Array(0);
+  // Plain edit-cost witness for confidence: marginal probability ranks locations,
+  // while the existing confirmation and misfit thresholds retain their units.
+  let plain = new Float64Array(0);
   let best = start.offset;
   let ayah = -1;
   const recent: number[] = [];
@@ -81,46 +87,72 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     const c = new Float64Array(newHi - newLo + 1).fill(Infinity);
     const o = new Int32Array(c.length);
     const e = new Int32Array(c.length);
+    const v = new Float64Array(c.length).fill(Infinity);
     for (let i = 0; i < c.length; i++) {
       const old = newLo + i - lo;
       if (old >= 0 && old < cost.length) {
         c[i] = cost[old];
         o[i] = origin[old];
         e[i] = edits[old];
+        v[i] = plain[old];
       }
     }
     lo = newLo;
     cost = c;
     origin = o;
     edits = e;
+    plain = v;
   };
 
   recentre(start.offset);
   cost[start.offset - lo] = 0;
   origin[start.offset - lo] = start.origin;
   edits[start.offset - lo] = start.edits;
+  plain[start.offset - lo] = 0;
+  if (channel) {
+    for (let i = start.offset - lo + 1; i < cost.length; i++) {
+      cost[i] = cost[i - 1] + channel.deletion(ref[lo + i - 1]) + entry(lo + i - 1);
+      plain[i] = plain[i - 1] + deletionCost(ref, lo + i - 1) + entry(lo + i - 1);
+      origin[i] = start.origin;
+      edits[i] = edits[i - 1] + 1;
+    }
+  }
 
 
   return {
     step(p) {
       const n = cost.length;
       const base = cost[best - lo];
+      const plainBase = plain[best - lo];
       const c = new Float64Array(n);
       const o = new Int32Array(n);
       const e = new Int32Array(n);
+      const v = new Float64Array(n);
       for (let i = 0; i < n; i++) {
         const at = lo + i;
-        let bc = cost[i] + insertionCost(ref, at, p);
+        const insertion = insertionCost(ref, at, p);
+        let bc = cost[i] + (channel ? channel.insertion(p) : insertion);
+        let bv = plain[i] + insertion;
         let bo = origin[i];
         let be = edits[i] + 1;
         if (i > 0) {
-          const s = subCost(ref[at - 1], p) + entry(at - 1);
+          const s = (channel ? channel.emission(ref[at - 1], p) : subCost(ref[at - 1], p)) + entry(at - 1);
           const edit = ref[at - 1] === p ? 0 : 1;
           // On a tie, consuming the reference beats an insertion, so a correct recitation keeps advancing.
-          if (cost[i - 1] + s <= bc) {
-            bc = cost[i - 1] + s;
+          const diagonal = cost[i - 1] + s;
+          const acousticInsertion = bc;
+          if (diagonal <= bc) {
+            bc = diagonal;
             bo = origin[i - 1];
             be = edits[i - 1] + edit;
+            bv = plain[i - 1] + subCost(ref[at - 1], p) + entry(at - 1);
+          }
+          // Sum acoustic alignments to this destination, including reference-only
+          // deletions. Each route carries the normalized channel probability.
+          const deletion = c[i - 1] + (channel ? channel.deletion(ref[at - 1]) : deletionCost(ref, at - 1)) + entry(at - 1);
+          if (channel) {
+            if (deletion < bc) { bo = o[i - 1]; be = e[i - 1] + 1; bv = v[i - 1] + deletionCost(ref, at - 1) + entry(at - 1); }
+            bc = channel.sum(channel.sum(acousticInsertion, diagonal), deletion);
           }
           const from = at - 1;
           if (from !== best && wordStarts.has(from)) {
@@ -129,18 +161,21 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
               bc = j;
               bo = from;
               be = edit;
+              bv = plainBase + JUMP_COST + Math.abs(from - best) * JUMP_DISTANCE + subCost(ref[from], p)
+                + entry(from) + (entry(from) ? 0 : crossing(from));
             }
           }
-          const d = c[i - 1] + deletionCost(ref, at - 1) + entry(at - 1);
-          if (d < bc) {
-            bc = d;
+          if (!channel && deletion < bc) {
+            bc = deletion;
             bo = o[i - 1];
             be = e[i - 1] + 1;
+            bv = v[i - 1] + deletionCost(ref, at - 1) + entry(at - 1);
           }
         }
         c[i] = bc;
         o[i] = bo;
         e[i] = be;
+        v[i] = bv;
       }
 
       // Lowest cost wins; ties go to the state nearest plain forward progress.
@@ -150,11 +185,14 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       }
       const min = c[k];
       for (let i = 0; i < n; i++) c[i] -= min;
-      recent.push(min - base);
+      const plainMin = v[k];
+      for (let i = 0; i < n; i++) v[i] -= plainMin;
+      recent.push(channel ? plainMin - plainBase : min - base);
       if (recent.length > RECENT) recent.shift();
       cost = c;
       origin = o;
       edits = e;
+      plain = v;
       best = lo + k;
       recentre(best);
     },
@@ -164,10 +202,10 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    save: () => ({ lo, cost, origin, edits, plain, best, ayah, recent: [...recent] }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
-      ({ lo, cost, origin, edits, best, ayah } = s);
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; plain: typeof plain; best: number; ayah: number; recent: number[] };
+      ({ lo, cost, origin, edits, plain, best, ayah } = s);
       recent.splice(0, recent.length, ...s.recent);
     },
   };
