@@ -1,6 +1,6 @@
 # Live page: folded 24-call engine
 
-Status: ready-for-agent
+Status: ready-for-human
 
 The user authorized deploying the best autolab findings on 2026-11-08 for manual
 microphone testing. The latest folded result is already on main: practice phone
@@ -26,3 +26,16 @@ The service verifies both teacher hashes on container start.
 Deployment: python3 tools/build_live_review.py, modal deploy modal/live_teacher.py,
 then modal deploy modal/lab_review.py. User testing URL:
 https://amal-invest--tilawa-lab-review-web.us-east.modal.run/live/.
+
+## Verification
+
+2026-11-08: 756 core, 25 SDK and 7 probe tests passed (one optional SDK test
+skipped); TypeScript build passed and all four live-report validation tests
+passed. Public page and linked assets returned HTTP 200, HTML no-store;
+downloaded live model SHA256 matched the folded primary bundle. Real recitation
+through /api/live/teacher?k=42 returned 75 frames with all 42 posteriors per
+frame and the expected inventory and clock. A warm repeat took 5.05 seconds for
+a three-second crop. Invalid crop returned HTTP 422. Teacher container startup
+imports and workspace dependency resolution were fixed during smoke testing.
+The user will assess live microphone behavior; this smoke test does not rerun
+the practice or exam corpus.
