@@ -35,7 +35,8 @@ function controls() {
   $<HTMLButtonElement>("download").disabled = !session;
 }
 function report() {
-  return { schema: 1, id: sessionId, beganAt, build, model: session?.capabilities, durationMs: samples / 16,
+  return { schema: 1, id: sessionId, beganAt, build,
+    model: { ...session?.capabilities, auxiliary: MODEL_REGISTRY.auxiliary, auxiliaryBackend: "tilawa-live-teacher" }, durationMs: samples / 16,
     userAgent: navigator.userAgent, flags, events, evidence: session?.evidence(), savedAt: new Date().toISOString() };
 }
 function wav(): Blob {
@@ -121,6 +122,7 @@ async function save() {
 async function stop() {
   if (!mic || busy) return;
   busy = true; active = false; controls();
+  status("Finishing checks for added words…");
   const current = mic; mic = null;
   try { await current.stop(); status("Recording stopped. Listen back or flag a moment."); }
   catch (e) { status(`Recording stopped with an error: ${(e as Error).message}`); }
@@ -141,8 +143,16 @@ start.onclick = async () => {
       status("Loading the main listener…");
       const model = await loadWebModel({ registry: withBase(MODEL_REGISTRY, new URL("/live/", location.href).href), wasmPaths: "/live/ort/", threads: 1,
         onProgress: (n, total) => status(`Loading model: ${Math.round(n / total * 100)}%`) });
+      model.insertionTeacher = { async decode(samples, k) {
+        const response = await fetch(`/api/live/teacher?k=${k}`, {
+          method: "POST", headers: { "Content-Type": "application/octet-stream" },
+          body: new Blob([Float32Array.from(samples).buffer]),
+        });
+        if (!response.ok) throw new Error(`Final added-word check failed (${response.status})`);
+        return response.json();
+      } };
       engine = createEngine({ reference: index, phrases: phrases as PhraseAsset, model, recordEvidence: true });
-      $("model-info").textContent = `${model.manifest.id} / ${model.manifest.format} / ${model.backend.name}. Built ${build.builtAt}. Reference ${index.version}.`;
+      $("model-info").textContent = `${model.manifest.id} / ${model.manifest.format} / ${model.backend.name}. Added-word checks finish online when you stop. Built ${build.builtAt}. Reference ${index.version}.`;
     }
     chunks = []; samples = 0; events = []; flags = []; warnings = new Map(); latest = null; lastSounds = 0; soundTrail = []; $("sounds").textContent = "—"; savedFlags = 0; stopped = false; audio = null;
     sessionId = crypto.randomUUID(); beganAt = new Date().toISOString();
