@@ -6,21 +6,23 @@ import subprocess
 from pathlib import Path
 
 import modal
-import lab_run
 
 ROOT = Path(__file__).resolve().parents[1]
 BUNDLE = "/lab/data/models/exp-listener-teacher-insert-marginal-gate-ad6eb8c0"
-image = lab_run.image
-for filename in ("packages/core/tsconfig.json",):
-    image = image.add_local_file(ROOT / filename, "/app/" + filename, copy=True)
-for directory in ("packages/core/src", "packages/core/assets", "packages/sdk/src"):
-    image = image.add_local_dir(ROOT / directory, "/app/" + directory, copy=True)
-image = image.add_local_file(ROOT / "tools/live_teacher_worker.ts", "/app/tools/live_teacher_worker.ts", copy=True)
-image = image.run_commands("cd /app && pnpm --filter @tilawa/core build")
+image = modal.Image.debian_slim(python_version="3.12")
+if modal.is_local():
+    import lab_run
+    image = lab_run.image
+    image = image.add_local_file(ROOT / "packages/core/tsconfig.json", "/app/packages/core/tsconfig.json", copy=True)
+    for directory in ("packages/core/src", "packages/core/assets", "packages/sdk/src"):
+        image = image.add_local_dir(ROOT / directory, "/app/" + directory, copy=True)
+    image = image.add_local_file(ROOT / "tools/live_teacher_worker.ts", "/app/tools/live_teacher_worker.ts", copy=True)
+    image = image.run_commands("cd /app && pnpm --filter @tilawa/core build")
 app = modal.App("tilawa-live-teacher", image=image)
+vol = modal.Volume.from_name("tilawa-lab")
 
 
-@app.cls(cpu=4, memory=12288, volumes={"/lab": lab_run.vol}, timeout=600,
+@app.cls(cpu=4, memory=12288, volumes={"/lab": vol}, timeout=600,
          max_containers=2, scaledown_window=300)
 class Teacher:
     @modal.enter()
