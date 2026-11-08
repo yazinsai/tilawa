@@ -736,16 +736,6 @@ def web():
     # Live browser sessions share this single-writer container and durable review volume.
     import live_review_core as live
 
-    @api.post("/api/live/teacher")
-    async def live_teacher(request: Request, k: int = 5):
-        if int(request.headers.get("content-length", "0")) > 16000 * 4 * 60:
-            raise HTTPException(413, "Teacher crop exceeds 60 seconds")
-        audio = await request.body()
-        if not 1280 <= len(audio) <= 16000 * 4 * 60 or len(audio) % 4 or not 1 <= k <= 64:
-            raise HTTPException(422, "Invalid teacher crop")
-        teacher = modal.Cls.from_name("tilawa-live-teacher", "Teacher")()
-        return await teacher.decode.remote.aio(audio, k)
-
     @api.post("/api/live/sessions")
     async def live_save(request: Request):
         # Bound the body before the multipart parser can spool an arbitrary upload.
