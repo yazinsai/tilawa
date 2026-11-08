@@ -1,12 +1,13 @@
 /** Persistent worker serving the folded teacher through the SDK's exact frontend. */
 import { createInterface } from "node:readline";
-import * as ort from "onnxruntime-node";
+import { createRequire } from "node:module";
 import { ortBackend } from "../packages/sdk/src/ort.js";
 import type { OrtModule } from "../packages/sdk/src/ort.js";
 import { createInsertionTeacher } from "../packages/sdk/src/insertion-teacher.js";
 import { MODEL_REGISTRY } from "../packages/sdk/src/registry.js";
 
 const manifest = MODEL_REGISTRY.tiers.find(t => t.tier === "full")!.manifest;
+const ort = createRequire(new URL("../packages/sdk/package.json", import.meta.url))("onnxruntime-node");
 const backend = await ortBackend(ort as unknown as OrtModule, process.argv[2], "onnxruntime-node", {
   executionProviders: ["cpu"], intraOpNumThreads: 4, graphOptimizationLevel: "disabled",
 });
