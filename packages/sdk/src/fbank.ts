@@ -81,7 +81,7 @@ export class Fbank {
   private readonly im = new Float64Array(NFFT);
 
   /** Accepts 16 kHz float samples in [-1, 1]; returns every newly complete frame. */
-  push(samples: Float32Array): Float32Array[] {
+  push(samples: Float32Array, observeSpectrum?: (power: Float64Array) => void): Float32Array[] {
     const buf = new Float32Array(this.pending.length + samples.length);
     buf.set(this.pending);
     buf.set(samples, this.pending.length);
@@ -100,6 +100,7 @@ export class Fbank {
         re[i] = (x - 0.97 * prev) * povey[i];
       }
       fft(re, im);
+      if (observeSpectrum) observeSpectrum(Float64Array.from({ length: NFFT / 2 }, (_, k) => re[k] ** 2 + im[k] ** 2));
       const frame = new Float32Array(MELS);
       for (let m = 0; m < MELS; m++) {
         const { start, weights } = this.bank[m];
