@@ -37,6 +37,8 @@ image = (
     .env({"PYTHONPATH": "/icefall:/icefall/egs/librispeech/ASR/zipformer:/root/tools", "HF_HOME": "/cache/hf"})
     .pip_install("rapidfuzz==3.14.1")
     .add_local_file("tools/student.py", "/root/tools/student.py")
+    .add_local_file("modal/student_memory.py", "/root/tools/student_memory.py")
+    .add_local_file("modal/student_none.py", "/root/tools/student_none.py")
     .add_local_file("tools/per_breakdown.py", "/root/tools/per_breakdown.py")
     .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
@@ -89,6 +91,14 @@ DEFAULTS = dict(
     ckpt_every=1000,
     workers=12,
     seed=0,
+    duration_memory=False,
+    preservation_weight=0.0,
+    preservation_run="",
+    augmentation_seed=None,
+    streaming_chunk=None,
+    streaming_left=None,
+    help_none_dir="",
+    help_reference="",
 )
 
 
@@ -96,7 +106,28 @@ def ints(s: str) -> tuple:
     return tuple(int(x) for x in str(s).split(","))
 
 
-def build_model(size: str):
+def validate_continuation(cfg, baseline=None):
+    """Require an auditable matched recipe for either continuation arm."""
+    if not (cfg["duration_memory"] or cfg["preservation_weight"]):
+        return
+    if cfg["target"] != "reference" or not cfg["preservation_run"] or cfg["preservation_weight"] <= 0:
+        raise ValueError("memory continuation requires reference transcripts and ordinary-reading preservation")
+    if cfg["streaming_chunk"] is None or cfg["streaming_left"] is None or cfg["augmentation_seed"] is None:
+        raise ValueError("matched continuation requires fixed streaming geometry and augmentation seed")
+    if not cfg["help_none_dir"] or not cfg["help_reference"]:
+        raise ValueError("memory continuation requires authorized none-labelled help training takes")
+    if cfg["init"]:
+        raise ValueError("continuation initialization comes only from its preservation listener")
+    if baseline is not None:
+        for field in ("noise_p", "snr_db", "rir_p", "spec_aug"):
+            before, after = baseline[field], cfg[field]
+            if field == "snr_db":
+                before, after = tuple(before), tuple(after)
+            if before != after:
+                raise ValueError(f"continuation must retain the shipped augmentation: {field}")
+
+
+def build_model(size: str, duration_memory: bool = False):
     import torch.nn as nn
     from scaling import ScheduledFloat
     from student import VOCAB
@@ -142,10 +173,18 @@ def build_model(size: str):
             self.encoder.chunk_size, self.encoder.left_context_frames = (chunk,), (left,)
 
         def training_mode(self):
-            self.encoder.chunk_size = ints(p["chunk_size"])
-            self.encoder.left_context_frames = ints(p["left_context_frames"])
+            if hasattr(self, "continuation_geometry"):
+                self.streaming_eval(*self.continuation_geometry)
+            else:
+                self.encoder.chunk_size = ints(p["chunk_size"])
+                self.encoder.left_context_frames = ints(p["left_context_frames"])
 
-    return Student()
+    model = Student()
+    if duration_memory:
+        from student_memory import install_memory
+
+        install_memory(model)
+    return model
 
 
 def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, seed: int, max_clips: int = 0):
@@ -199,6 +238,7 @@ def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, se
 class ClipDataset:
     def __init__(self, clips: dict, cfg: dict, train: bool, aug: dict | None):
         self.c, self.cfg, self.train, self.aug = clips, cfg, train, aug
+        self.epoch = 0
 
     def __len__(self):
         return len(self.c["ref"])
@@ -211,7 +251,8 @@ class ClipDataset:
         from student import mix_noise, phoneme_ids
 
         c, cfg = self.c, self.cfg
-        rng = np.random.default_rng()
+        seed = cfg.get("augmentation_seed")
+        rng = np.random.default_rng(None if seed is None else np.random.SeedSequence([seed, self.epoch, i]))
         wave, _ = sf.read(io.BytesIO(c["flac"][c["flac_off"][i] : c["flac_off"][i + 1]].tobytes()), dtype="float32")
         if self.train and self.aug:
             if rng.random() < cfg["rir_p"]:
@@ -232,6 +273,7 @@ class ClipDataset:
             target=torch.tensor(phoneme_ids(c.get("target", c["hyp"])[i]), dtype=torch.long),
             top_ids=torch.from_numpy(c["ids"][lo:hi].reshape(-1, 5).astype(np.int64)),
             top_p=torch.from_numpy(c["probs"][lo:hi].reshape(-1, 5).astype(np.float32)),
+            n_teacher=int(c["n_frames"][i]),
         )
 
 
@@ -275,7 +317,7 @@ def collate(items):
         target_lens=torch.tensor([len(x["target"]) for x in items]),
         top_ids=pad_sequence([x["top_ids"] for x in items], batch_first=True),
         top_p=pad_sequence([x["top_p"] for x in items], batch_first=True),
-        n_teacher=torch.tensor([x["top_ids"].shape[0] for x in items]),
+        n_teacher=torch.tensor([x["n_teacher"] for x in items]),
     )
 
 
@@ -303,7 +345,7 @@ def batches(n_samples, max_batch_s: float, seed: int, shuffle: bool = True):
     return out
 
 
-def losses(model, b, cfg, device):
+def losses(model, b, cfg, device, anchor=None):
     import torch
     import torch.nn.functional as F
     from student import soft_target_loss
@@ -320,13 +362,24 @@ def losses(model, b, cfg, device):
         B, T, _ = log_probs.shape
         n_t = b["n_teacher"].to(device)
         idx = (torch.arange(T, device=device)[None] - cfg["kd_delay"]).clamp(min=0)
-        idx = torch.minimum(idx, (n_t - 1)[:, None])
+        idx = torch.minimum(idx, (n_t - 1).clamp_min(0)[:, None])
         top_ids = b["top_ids"].to(device).gather(1, idx[..., None].expand(B, T, 5))
         top_p = b["top_p"].to(device).gather(1, idx[..., None].expand(B, T, 5))
-        valid = torch.arange(T, device=device)[None] < out_lens[:, None]
+        valid = (torch.arange(T, device=device)[None] < out_lens[:, None]) & (n_t > 0)[:, None]
         kd = soft_target_loss(log_probs, top_ids, top_p, valid)
         out["kd"] = kd
         out["loss"] = out["loss"] + cfg["kd_weight"] * kd
+    if cfg.get("preservation_weight", 0):
+        if anchor is None:
+            raise ValueError("ordinary-reading preservation requires a frozen listener")
+        with torch.no_grad(), torch.autocast("cuda", dtype=torch.bfloat16):
+            baseline, baseline_lens = anchor(feats, feat_lens)
+        if not torch.equal(out_lens, baseline_lens):
+            raise ValueError("preservation listener output clock differs")
+        valid = torch.arange(log_probs.shape[1], device=device)[None] < out_lens[:, None]
+        preservation = (F.kl_div(log_probs, baseline.float().exp(), reduction="none").sum(-1) * valid).sum() / frames
+        out["preservation"] = preservation
+        out["loss"] = out["loss"] + cfg["preservation_weight"] * preservation
     out["frames"] = frames
     return out
 
@@ -397,6 +450,7 @@ def train(args: dict) -> dict:
 
     cfg = {**DEFAULTS, **args}
     assert cfg["name"], "name is required"
+    validate_continuation(cfg)
     run = f"/student/runs/{cfg['name']}"
     os.makedirs(run, exist_ok=True)
     log = open(f"{run}/log.jsonl", "a")
@@ -416,13 +470,48 @@ def train(args: dict) -> dict:
         from student import spliced_target
 
         train_clips["target"] = [spliced_target(r, h) for r, h in zip(train_clips["ref"], train_clips["hyp"])]
-    eval_clips = load_clips("clean-match", "test", 0, 60.0, 1, cfg["eval_max"])
+    elif cfg["target"] == "reference":
+        if cfg["buckets"] != "clean-match":
+            raise ValueError("reference supervision requires reliably transcribed clean-match clips")
+        train_clips["target"] = list(train_clips["ref"])
+    help_count = 0
+    if cfg["help_none_dir"]:
+        if cfg["target"] != "reference":
+            raise ValueError("none-labelled help supervision requires reference CTC")
+        from student_none import append_none
+
+        help_count = append_none(train_clips, cfg["help_none_dir"], cfg["help_reference"])
+    # A matched continuation reports training-only diagnostics at fixed steps;
+    # release/test speakers cannot select an experimental checkpoint.
+    eval_split = "train" if cfg["preservation_weight"] else "test"
+    eval_clips = load_clips("clean-match", eval_split, 0, 60.0, 1, cfg["eval_max"])
     aug = {k: dict(np.load(f"/student/aug/{k}.npz")) for k in ("noise", "rir")} if os.path.exists("/student/aug/rir.npz") else None
+    if cfg["preservation_weight"] and aug is None:
+        raise ValueError("matched continuation requires the shipped augmentation banks")
     hours = train_clips["n_samples"].sum() / SR / 3600
     emit(event="data", train_clips=len(train_clips["ref"]), train_hours=float(hours), eval_clips=len(eval_clips["ref"]),
-         aug=aug is not None, load_s=time.time() - t0, cfg=cfg)
+         help_none_clips=help_count, aug=aug is not None, load_s=time.time() - t0, cfg=cfg)
 
-    model = build_model(cfg["size"]).to(device)
+    anchor = None
+    if cfg["preservation_weight"]:
+        anchor, anchor_ck = load_student(cfg["preservation_run"])
+        if anchor_ck["cfg"]["size"] != cfg["size"] or anchor_ck["cfg"].get("duration_memory", False):
+            raise ValueError("preservation requires the matching ordinary-attention listener")
+        validate_continuation(cfg, anchor_ck["cfg"])
+        anchor = anchor.to(device).eval().requires_grad_(False)
+        anchor.streaming_eval(cfg["streaming_chunk"], cfg["streaming_left"])
+    resume = os.path.exists(f"{run}/ckpt.pt")
+    model = build_model(cfg["size"], duration_memory=cfg["duration_memory"] and resume).to(device)
+    if anchor is not None and not resume:
+        model.load_state_dict(anchor.state_dict())
+        if cfg["duration_memory"]:
+            from student_memory import install_memory
+
+            install_memory(model)
+            model.to(device)
+    if cfg["streaming_chunk"] is not None:
+        model.continuation_geometry = (cfg["streaming_chunk"], cfg["streaming_left"])
+        model.training_mode()
     n_params = sum(p.numel() for p in model.parameters())
     opt = ScaledAdam(get_parameter_groups_with_lrs(model, lr=cfg["base_lr"], include_names=True),
                      lr=cfg["base_lr"], clipping_scale=2.0)
@@ -430,6 +519,8 @@ def train(args: dict) -> dict:
     state = {"epoch": 0, "batch": 0, "step": 0}
     if os.path.exists(f"{run}/ckpt.pt"):
         ck = torch.load(f"{run}/ckpt.pt", map_location="cpu", weights_only=False)
+        if ck["cfg"].get("duration_memory", False) != cfg["duration_memory"]:
+            raise ValueError("resumed checkpoint attention mode differs")
         model.load_state_dict(ck["model"])
         opt.load_state_dict(ck["opt"])
         sched.load_state_dict(ck["sched"])
@@ -449,6 +540,7 @@ def train(args: dict) -> dict:
     model.train()
     seen_s, tick = 0.0, time.time()
     while state["epoch"] < cfg["epochs"]:
+        ds.epoch = state["epoch"]
         plan = batches(train_clips["n_samples"], cfg["max_batch_s"], cfg["seed"] + state["epoch"])
         loader = torch.utils.data.DataLoader(ds, batch_sampler=plan[state["batch"]:], collate_fn=collate,
                                              num_workers=cfg["workers"], prefetch_factor=4, persistent_workers=False)
@@ -457,7 +549,7 @@ def train(args: dict) -> dict:
             if state["step"] % 10 == 0:
                 for m in model.modules():
                     m.batch_count = state["step"] * cfg["max_batch_s"] / 600.0
-            out = losses(model, b, cfg, device)
+            out = losses(model, b, cfg, device, anchor=anchor)
             opt.zero_grad(set_to_none=True)
             if not torch.isfinite(out["loss"]):
                 state["skipped"] = state.get("skipped", 0) + 1
@@ -480,7 +572,7 @@ def train(args: dict) -> dict:
             if state["step"] % cfg["ckpt_every"] == 0:
                 save()
             if state["step"] % cfg["eval_every"] == 0:
-                emit(event="eval", set="clean-match-test", step=state["step"],
+                emit(event="eval", set=f"clean-match-{eval_split}", step=state["step"],
                      **{k: v for k, v in evaluate(model, eval_clips, cfg, device).items() if k != "samples"})
         state["epoch"] += 1
         state["batch"] = 0
@@ -488,7 +580,7 @@ def train(args: dict) -> dict:
 
     final = evaluate(model, eval_clips, cfg, device)
     final.update(name=cfg["name"], size=cfg["size"], params=n_params, step=state["step"], train_hours=float(hours), cfg=cfg)
-    json.dump(final, open(f"{run}/eval-clean-match-test.json", "w"), ensure_ascii=False, indent=1)
+    json.dump(final, open(f"{run}/eval-clean-match-{eval_split}.json", "w"), ensure_ascii=False, indent=1)
     vol.commit()
     emit(event="final", **{k: v for k, v in final.items() if k not in ("samples", "cfg")})
     return {k: v for k, v in final.items() if k != "samples"}
@@ -498,7 +590,7 @@ def load_student(run: str):
     import torch
 
     ck = torch.load(f"/student/runs/{run}/ckpt.pt", map_location="cpu", weights_only=False)
-    model = build_model(ck["cfg"]["size"])
+    model = build_model(ck["cfg"]["size"], duration_memory=ck["cfg"].get("duration_memory", False))
     model.load_state_dict(ck["model"])
     return model, ck
 
