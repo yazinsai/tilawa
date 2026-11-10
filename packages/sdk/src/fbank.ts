@@ -73,8 +73,10 @@ function fft(re: Float64Array, im: Float64Array) {
 
 export class Fbank {
   private readonly bank: typeof melBank;
-  constructor(options: { highFrequency?: number } = {}) {
+  private readonly spectrum?: (power: Float64Array) => void;
+  constructor(options: { highFrequency?: number; spectrum?: (power: Float64Array) => void } = {}) {
     this.bank = options.highFrequency === undefined ? melBank : makeMelBank(options.highFrequency);
+    this.spectrum = options.spectrum;
   }
   private pending = new Float32Array(0);
   private readonly re = new Float64Array(NFFT);
@@ -100,6 +102,7 @@ export class Fbank {
         re[i] = (x - 0.97 * prev) * povey[i];
       }
       fft(re, im);
+      if (this.spectrum) this.spectrum(Float64Array.from({ length: NFFT / 2 + 1 }, (_, k) => re[k] * re[k] + im[k] * im[k]));
       const frame = new Float32Array(MELS);
       for (let m = 0; m < MELS; m++) {
         const { start, weights } = this.bank[m];
