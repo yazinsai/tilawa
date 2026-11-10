@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ access: vi.fn(), readFile: vi.fn(), ortBackend: vi.fn() }));
@@ -14,7 +15,10 @@ const manifest = { file: "primary.onnx", tokens: "بت", inventory: "muaalem-v3_
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.readFile.mockResolvedValue(JSON.stringify(manifest));
+  mocks.readFile.mockImplementation(async (path: string) => {
+    if (path.endsWith("predictive-phone-asset.json")) throw Object.assign(new Error("absent"), {code:"ENOENT"});
+    return JSON.stringify(manifest);
+  });
 });
 
 describe("Node insertion teacher loading", () => {
@@ -57,5 +61,52 @@ describe("Node insertion teacher loading", () => {
     mocks.access.mockRejectedValue(denied);
     mocks.ortBackend.mockResolvedValue({ name: "primary" });
     await expect(loadNodeModel("/models/caller")).rejects.toBe(denied);
+  });
+});
+
+
+describe("Node Bayesian side-scorer assets", () => {
+  const fixture = () => {
+    const matrix = Array.from({length:8},(_,i)=>Array.from({length:8},(_,j)=>i===j?3:0));
+    const emission = {mean:Array(8).fill(0),kappa:2,nu:12,psi:matrix,count:1};
+    const value = {schema:1,inventory:manifest.inventory,tokens:manifest.tokens,frameMs:40,observationMs:10,dimensions:8,
+      center:Array(8).fill(0),scale:Array(8).fill(1),phones:[emission,emission,emission],stay:.8,draws:128,maxFrames:2048};
+    const bytes = Buffer.from(JSON.stringify(value));
+    return {bytes,descriptor:JSON.stringify({schema:1,file:"predictive-phone-emissions.json",bytes:bytes.length,
+      sha256:createHash("sha256").update(bytes).digest("hex")})};
+  };
+  const primary = () => ({name:"primary",run:vi.fn(),release:vi.fn()});
+  it("verifies the declared asset and retains the caller's model", async () => {
+    const p=primary(), f=fixture();
+    mocks.access.mockRejectedValue(Object.assign(new Error("no teacher"),{code:"ENOENT"}));
+    mocks.ortBackend.mockResolvedValue(p);
+    mocks.readFile.mockImplementation(async (path:string)=>path.endsWith("manifest.json")?JSON.stringify({...manifest,sampleRate:16000,frameMs:40}):
+      path.endsWith("asset.json")?f.descriptor:f.bytes);
+    const m=await loadNodeModel("/models/caller");
+    expect(m.backend).toBe(p);
+    expect(m.predictivePhone?.phones).toHaveLength(3);
+    expect(p.run).not.toHaveBeenCalled();
+  });
+  it("rejects a missing declared file and releases the backend", async () => {
+    const p=primary(), f=fixture();
+    mocks.access.mockRejectedValue(Object.assign(new Error("no teacher"),{code:"ENOENT"}));
+    mocks.ortBackend.mockResolvedValue(p);
+    mocks.readFile.mockImplementation(async (path:string)=> {
+      if (path.endsWith("manifest.json")) return JSON.stringify(manifest);
+      if (path.endsWith("asset.json")) return f.descriptor;
+      throw Object.assign(new Error("missing emissions"),{code:"ENOENT"});
+    });
+    await expect(loadNodeModel("/models/caller")).rejects.toThrow("missing emissions");
+    expect(p.release).toHaveBeenCalledOnce();
+  });
+  it("rejects altered model bytes instead of silently falling back", async () => {
+    const p=primary(), f=fixture();
+    mocks.access.mockRejectedValue(Object.assign(new Error("no teacher"),{code:"ENOENT"}));
+    mocks.ortBackend.mockResolvedValue(p);
+    const corrupt=Buffer.from(f.bytes); corrupt[0]=32;
+    mocks.readFile.mockImplementation(async (path:string)=>path.endsWith("manifest.json")?JSON.stringify(manifest):
+      path.endsWith("asset.json")?f.descriptor:corrupt);
+    await expect(loadNodeModel("/models/caller")).rejects.toThrow("checksum");
+    expect(p.release).toHaveBeenCalledOnce();
   });
 });
