@@ -1,0 +1,13 @@
+{
+ "id": "listener-intraphone-phase-evidence",
+ "component": "listener",
+ "hypothesis": "False substitutions may match a sound's average spectrum but not its ordered attack, sustain and release; phase-structured acoustic scoring predicts 1 warning removed and no losses, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T15:51:18+00:00",
+ "author": "autolab"
+}
