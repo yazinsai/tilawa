@@ -1,88 +1,99 @@
 # Lexical prominence evidence
 
-Status: ready-for-human — supervisor execution is unavailable; acoustic premise unmeasured.
+Status: ready-for-human — supervisor execution is unavailable; implementation
+cannot be completed and the acoustic premise remains unmeasured.
 
 ## Prediction and mechanism
 
-The unchanged experiment card predicts one false substitution warning removed,
-no losses counted: listener −1 and overall −1. The hypothesis is that consonant
-blur can leave relative syllable prominence intact even when the existing
-listener prefers an incorrect pronunciation.
+The unchanged card predicts one false substitution warning removed, no losses
+counted: listener −1 and overall −1. Consonant blur might leave relative
+syllable prominence intact despite a misleading decoded pronunciation.
 
-The proposed CPU scorer compares the complete written and already-accused
-pronunciations on the identical existing string-path acoustic window. Its
-observations are relative vowel duration, energy and pitch movement. Syllable
-weight and stop-versus-connected position condition a learned prominence
-pattern; they do not impose a deterministic stress rule. Syllable boundaries
-and recitation lengthening must be marginalized. Fit and model selection must
-use only none-labelled help-train training speakers, with speaker-grouped
-training-only partitions and release-held-out speakers excluded.
+The proposed CPU scorer compares complete written and already-accused
+pronunciations on identical existing string-path warning windows. It models
+relative vowel duration, energy and pitch movement, conditioned on syllable
+weight and stop-versus-connected position. Boundaries and recitation
+lengthening are marginalized; the model must learn prominence rather than
+impose a stress rule. Fit and model selection use only none-labelled help-train
+training speakers, with speaker-grouped training-only validation and
+release-held-out speakers excluded.
 
-A veto requires both different predicted prominence patterns and a frozen
+A certificate requires different predicted prominence patterns and a frozen
 acoustic preference for the written pattern. Primary decoding, tracker events,
-parallel-graph confirmations and insertion decisions must remain unchanged.
-The task's continuation requirement is at least three actual target wins. The
-card's smaller prediction does not waive that requirement.
+parallel-graph confirmations and insertion decisions remain unchanged. The
+task requires at least three actual target wins before practice scoring,
+despite the card's smaller prediction.
 
-## Work completed and limits
+## Why the engine change cannot be completed here
 
-A temporary engine draft exposed read-only discovery of complete, otherwise
-supported string-path hypotheses at the existing sequence-scoring windows,
-including word-local and paired paths. It kept the complete sequences and
-marked the accused word's range within their identical neighbour context.
-Graph-path comparisons bypassed the hook. The draft reused the checker's
-existing labelled-pause test for stop conditioning.
+The authorized supervisor fails before container execution. The current
+attempt retried data inspection, a current target trace and the required
+six-shard tests. All three returned `NotFoundError: No such file or directory`,
+zero compute cost and no container logs.
 
-A temporary SDK syllable compiler grouped expanded madd labels into one
-nucleus, kept consonant gemination as coda/onset weight, and centered the
-conditioning design inside each word. Identical weight/position designs
-abstained even when the consonants differed. This is a structural prerequisite,
-not a trained predictor or evidence about any target.
+These failures prevent access to the authorized training recordings, their
+speaker split assignments, the shipped listener bundle and the actual target
+waveforms and warning windows. Local unit fixtures do not supply the required
+none-labelled training corpus. Thus no acoustic parameters can be fitted or
+selected by the stipulated procedure, and no complete side-scorer bundle can
+be exported and verified. A source-only hook with no trained asset would run
+the main listener unchanged and would not evaluate this experiment. This is
+the reason no engine change is shipped after the previous attempt's feedback;
+the mechanism has not been implemented or measured successfully.
 
-Lightweight local checks passed for vowel lengthening, separate syllables,
-gemination, stop conditioning and identical-design abstention. A synthetic
-checker replay also verified that discovery returned the complete original
-window without changing the baseline verdict, and that a false callback could
-veto its string-path substitution. These checks used Node's TypeScript
-transformation and temporary copies with import suffixes adapted. They were
-not Vitest, a TypeScript build, an acoustic evaluation or an independent
-listening judgment.
+The failure does not establish that the corpus is absent, that prominence
+patterns agree on the targets, or that the kill criterion fired. No killed
+outcome is asserted. Target wins and overall change remain unknown. No
+practice score has been requested in either attempt; all three allowances
+remain available.
 
-The incomplete engine draft is retained under ignored
-`.autolab/prominence-draft/` for resumption. It is removed from the branch's
-engine diff. No trained scorer, registry descriptor or model bundle is shipped.
+## Draft and validation limits
 
-## Execution blocker
+The current attempt restored and inspected the previous draft, then removed
+it from the engine diff. The draft remains under ignored
+`.autolab/prominence-draft/` for resumption. It contains a checker discovery
+hook and an SDK syllable/design compiler, not a trained acoustic scorer.
 
-The authorized supervisor failed before container execution. Requests and
-results are retained under `.autolab/modal-request-*.json` and
-`.autolab/modal-result-*.json`:
+Discovery exposes the complete otherwise-supported written and accused
+sequences and the exact existing acoustic interval, marking the word within
+its shared context on ordinary, word-local and paired string paths. Graph
+comparisons bypass the hook. Stop conditioning uses the existing labelled
+pause test. The compiler groups expanded madd into a nucleus, retains
+gemination as coda/onset weight, centers predictor inputs within the word and
+abstains for identical designs. Identical designs guarantee identical
+predictions for every fitted parameter, so consonant changes alone cannot
+trigger this mechanism.
 
-1. Run 1: read-only authorized training-data and model-layout inspection.
-   Returned `NotFoundError: No such file or directory`.
-2. Run 2: the required six-shard `bash tools/autolab_tests.sh` harness.
-   Returned the same error.
-3. Run 3: minimal working-directory and `/lab/data` inspection.
-   Returned the same error.
+Seven local structural assertions passed using Node's TypeScript
+transformation, covering madd expansion invariance, gemination weight,
+identical-design abstention, differing-weight eligibility, vowel-free
+abstention and stop conditioning. The earlier attempt also checked a
+synthetic discovery/veto replay. Neither check is a TypeScript build, a
+Vitest suite, training, independent listening, target evaluation or practice
+scoring.
 
-All three failure results report zero compute cost and supply no container
-logs. They do not establish missing training recordings, missing prominence
-differences, or a fired kill criterion. No training recording or target window
-was accessed. No model was fitted or selected. Target wins and the overall
-change are unknown; zero practice scores were requested, so all three scoring
-attempts remain available. No killed outcome is asserted.
+## Supervisor request record
 
-Restore supervisor execution before continuing. Inspect the authorized data
-and split assignments, obtain actual complete target comparisons from the
-unchanged engine, and test whether their predictor inputs can differ. Fit and
-freeze the acoustic model on training speakers before target acoustic
-evaluation. If fewer than three targets are won, record the premise kill; if
-at least three are won, complete the side-asset bundle, preserve the existing
-primary and teacher assets, pass the required tests and run practice scoring.
+Request and result files are ignored under `.autolab/`.
 
-Variable recitation style, uncertain vowel boundaries, sparse syllable-weight
-coverage and unreliable phone pitch estimation remain untested risks. A
-positive prominence preference can still forgive a genuine substitution;
-aggregate losses belong to the fold gate after the required target validation.
-No scorer, lab tooling, supplied manifest, evidence, test data or experiment
-card was changed. No fold or discard was performed.
+| Run | Request | Result |
+| --- | --- | --- |
+| 1 | Previous training-data/model inspection | Pre-execution `NotFoundError` |
+| 2 | Previous six-shard required tests | Pre-execution `NotFoundError` |
+| 3 | Previous minimal working-directory/data inspection | Pre-execution `NotFoundError` |
+| 4 | Current help-train layout, label split/kind counts and model layout inspection | Pre-execution `NotFoundError` |
+| 5 | Current trace for the registered 55:48:1 target at 282.64 s | Pre-execution `NotFoundError` |
+| 6 | Current six-shard `bash tools/autolab_tests.sh` | Pre-execution `NotFoundError` |
+
+Restore the authorized supervisor before continuing. Obtain exact target
+comparisons and test the differing-design prerequisite, fit and freeze the
+scorer on training speakers, then evaluate acoustic preferences on the target
+windows. Fewer than three wins requires reverting and recording the premise
+kill. At least three requires the complete verified bundle, passing required
+tests and practice scoring; aggregate losses belong to the fold gate.
+
+Variable recitation style, uncertain vowel boundaries, sparse weight coverage
+and unreliable pitch on phone audio remain untested risks. A positive
+prominence preference can still erase a genuine substitution. The scorer,
+lab tooling, supplied manifests, evidence, test data and experiment card were
+not changed. No model override, fold or discard was performed.
