@@ -1,0 +1,13 @@
+{
+ "id": "tracker-path-risk-medoid",
+ "component": "tracker",
+ "hypothesis": "The best-scoring individual trajectory may be an unrepresentative rhyme restart; selecting the minimum expected position-sequence-error trajectory predicts 1 tracker recovery offset by 1 exposed listener warning: tracker -1, overall 0.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T19:43:27+00:00",
+ "author": "autolab"
+}
