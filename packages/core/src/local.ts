@@ -1,5 +1,7 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import { editParameterCounter, parameterTrajectoryDecision } from "./edit-parameter.js";
+import type { EditParameterPosterior, EditStatistics } from "./edit-parameter.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -18,6 +20,29 @@ const AHEAD_AYAHS = 2;
 const SURAH_ENTRY = 3 * UNIT;
 /** Recent cost is averaged over this many observed phonemes. */
 const RECENT = 16;
+
+export interface LocalParameterTrajectory {
+  offset: number;
+  origin: number;
+  edits: number;
+  /** Raw existing weighted cost over the whole interval since this local search began. */
+  acousticCost: number;
+  statistics: EditStatistics;
+}
+
+export interface LocalParameterComparison {
+  previous: { offset: number; origin: number };
+  weightedSelected: number;
+  trajectories: LocalParameterTrajectory[];
+  decision: NonNullable<ReturnType<typeof parameterTrajectoryDecision>>;
+}
+
+export interface LocalParameterOptions {
+  posterior: EditParameterPosterior;
+  /** Audit preserves the original search; mean isolates the same channel without parameter integration. */
+  mode?: "audit" | "mean" | "marginal";
+  onComparison?: (comparison: LocalParameterComparison) => void;
+}
 
 export interface LocalPosition {
   /** Reference phonemes consumed up to here (exclusive end of the last matched phoneme). */
@@ -45,7 +70,8 @@ export interface LocalSearch {
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">,
+  parameters?: LocalParameterOptions): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -68,6 +94,13 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let cost = new Float64Array(0);
   let origin = new Int32Array(0);
   let edits = new Int32Array(0);
+  // Conditional on the original weighted representative at each cell, not a marginal over edit alignments.
+  let statistics: (EditStatistics | undefined)[] = [];
+  const parameterPosterior = parameters ? { ...parameters.posterior, phones: [...parameters.posterior.phones],
+    operations: parameters.posterior.operations.map(row => [...row]), insertion: [...parameters.posterior.insertion] as [number, number],
+    substituted: parameters.posterior.substituted.map(row => [...row]), inserted: [...parameters.posterior.inserted] } : null;
+  const counter = parameterPosterior ? editParameterCounter(parameterPosterior) : null;
+  let accumulated = 0;
   let best = start.offset;
   let ayah = -1;
   const recent: number[] = [];
@@ -81,24 +114,28 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     const c = new Float64Array(newHi - newLo + 1).fill(Infinity);
     const o = new Int32Array(c.length);
     const e = new Int32Array(c.length);
+    const t: typeof statistics = counter ? Array(c.length) : [];
     for (let i = 0; i < c.length; i++) {
       const old = newLo + i - lo;
       if (old >= 0 && old < cost.length) {
         c[i] = cost[old];
         o[i] = origin[old];
         e[i] = edits[old];
+        if (counter) t[i] = statistics[old];
       }
     }
     lo = newLo;
     cost = c;
     origin = o;
     edits = e;
+    statistics = t;
   };
 
   recentre(start.offset);
   cost[start.offset - lo] = 0;
   origin[start.offset - lo] = start.origin;
   edits[start.offset - lo] = start.edits;
+  if (counter) statistics[start.offset - lo] = counter.empty();
 
 
   return {
@@ -108,11 +145,14 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       const c = new Float64Array(n);
       const o = new Int32Array(n);
       const e = new Int32Array(n);
+      const t: typeof statistics = counter ? Array(n) : [];
       for (let i = 0; i < n; i++) {
         const at = lo + i;
         let bc = cost[i] + insertionCost(ref, at, p);
         let bo = origin[i];
         let be = edits[i] + 1;
+        let bt = counter && statistics[i] ? counter.extend(statistics[i]!,
+          { kind: "insert", heard: p, duration: insertionCost(ref, at, p) === 2 }) : undefined;
         if (i > 0) {
           const s = subCost(ref[at - 1], p) + entry(at - 1);
           const edit = ref[at - 1] === p ? 0 : 1;
@@ -121,6 +161,8 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
             bc = cost[i - 1] + s;
             bo = origin[i - 1];
             be = edits[i - 1] + edit;
+            bt = counter && statistics[i - 1] ? counter.extend(statistics[i - 1]!,
+              { kind: "diagonal", reference: ref[at - 1], heard: p }, entry(at - 1)) : undefined;
           }
           const from = at - 1;
           if (from !== best && wordStarts.has(from)) {
@@ -129,6 +171,8 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
               bc = j;
               bo = from;
               be = edit;
+              bt = counter && statistics[best - lo] ? counter.extend(statistics[best - lo]!,
+                { kind: "diagonal", reference: ref[at - 1], heard: p }, j - base - subCost(ref[at - 1], p)) : undefined;
             }
           }
           const d = c[i - 1] + deletionCost(ref, at - 1) + entry(at - 1);
@@ -136,17 +180,36 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
             bc = d;
             bo = o[i - 1];
             be = e[i - 1] + 1;
+            bt = counter && t[i - 1] ? counter.extend(t[i - 1]!,
+              { kind: "delete", reference: ref[at - 1], duration: deletionCost(ref, at - 1) === 2 }, entry(at - 1)) : undefined;
           }
         }
         c[i] = bc;
         o[i] = bo;
         e[i] = be;
+        if (counter) t[i] = bt;
       }
 
       // Lowest cost wins; ties go to the state nearest plain forward progress.
       let k = -1;
       for (let i = 0; i < n; i++) {
         if (k === -1 || c[i] < c[k] || (c[i] === c[k] && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1))) k = i;
+      }
+      if (parameters && o[k] !== origin[best - lo]) {
+        const trajectories: LocalParameterTrajectory[] = [];
+        const cells: number[] = [];
+        for (let i = 0; i < n; i++) if (Number.isFinite(c[i]) && t[i]) {
+          cells.push(i);
+          trajectories.push({ offset: lo + i, origin: o[i], edits: e[i], acousticCost: c[i] + accumulated, statistics: t[i]! });
+        }
+        const decision = parameterTrajectoryDecision(parameterPosterior!, trajectories.map(p => p.statistics));
+        if (decision) {
+          const comparison = { previous: { offset: best, origin: origin[best - lo] }, weightedSelected: cells.indexOf(k), trajectories, decision };
+          if (parameters.mode !== "audit") k = cells[(parameters.mode === "mean" ? decision.mean : decision.marginal).selected];
+          // The hook receives owned statistics, so retained DP history cannot be changed by an audit consumer.
+          parameters.onComparison?.({ ...comparison, trajectories: trajectories.map(p => ({ ...p,
+            statistics: { ...p.statistics, counts: [...p.statistics.counts] } })) });
+        }
       }
       const min = c[k];
       for (let i = 0; i < n; i++) c[i] -= min;
@@ -155,6 +218,8 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       cost = c;
       origin = o;
       edits = e;
+      statistics = t;
+      accumulated += min;
       best = lo + k;
       recentre(best);
     },
@@ -164,10 +229,11 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    save: () => ({ lo, cost, origin, edits, statistics, accumulated, best, ayah, recent: [...recent] }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
-      ({ lo, cost, origin, edits, best, ayah } = s);
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits;
+        statistics: typeof statistics; accumulated: number; best: number; ayah: number; recent: number[] };
+      ({ lo, cost, origin, edits, statistics, accumulated, best, ayah } = s);
       recent.splice(0, recent.length, ...s.recent);
     },
   };
