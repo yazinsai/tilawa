@@ -1,6 +1,7 @@
 export * from "./checker.js";
 export * from "./events.js";
 export * from "./evidence.js";
+export * from "./pronunciation-match.js";
 export { PosteriorFrames } from "./ctc.js";
 export { seamInsertionMarginal } from "./seam-insertion.js";
 export { PHRASE_SWITCH } from "./parallel-phrases.js";

@@ -43,7 +43,7 @@ const reversed = Uint16Array.from({ length: NFFT }, (_, i) => {
   return r;
 });
 
-function fft(re: Float64Array, im: Float64Array) {
+export function fft512(re: Float64Array, im: Float64Array) {
   for (let i = 0; i < NFFT; i++) {
     const j = reversed[i];
     if (i < j) {
@@ -99,7 +99,7 @@ export class Fbank {
         const prev = i > 0 ? buf[off + i - 1] - mean : x;
         re[i] = (x - 0.97 * prev) * povey[i];
       }
-      fft(re, im);
+      fft512(re, im);
       const frame = new Float32Array(MELS);
       for (let m = 0; m < MELS; m++) {
         const { start, weights } = this.bank[m];

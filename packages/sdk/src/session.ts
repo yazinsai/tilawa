@@ -15,6 +15,8 @@ import { capabilities } from "./capabilities.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
 import { createListener } from "./listener.js";
+import { addNonlocalEvidence } from "./nonlocal-recheck.js";
+import { NONLOCAL_GEOMETRY } from "./nonlocal-acoustic.js";
 import type { ListenerOptions } from "./listener.js";
 import type { LoadedModel } from "./model.js";
 
@@ -39,6 +41,8 @@ export interface MemorizationPassage {
 }
 
 export interface EngineOptions {
+  /** Separate nonlocal acoustic wrong-word rechecks. Disable for an identical raw control. */
+  nonlocalRecheck?: boolean;
   reference: ReferenceIndex;
   phrases?: PhraseAsset;
   model: LoadedModel;
@@ -94,6 +98,7 @@ export function createEngine(options: EngineOptions): Engine {
   }
 
   function start(mode: Session["mode"], passage: Session["passage"], policy: SessionPolicy = {}): Session {
+    const nonlocal = options.nonlocalRecheck !== false && NONLOCAL_GEOMETRY !== null;
     const tracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
     const checkerOptions = {
       phrases,
@@ -115,7 +120,7 @@ export function createEngine(options: EngineOptions): Engine {
     const pcmParts: Float32Array[] = [];
     let pcmResampler: Resampler | null = null;
     const keepAudio = (samples: Float32Array, sampleRate: number) => {
-      if (!options.recordEvidence && !model.insertionTeacher) return;
+      if (!nonlocal && !options.recordEvidence && !model.insertionTeacher) return;
       let pcm = samples;
       if (sampleRate !== rate) {
         if (!pcmResampler || pcmResampler.from !== sampleRate) pcmResampler = new Resampler(sampleRate, rate);
@@ -131,10 +136,11 @@ export function createEngine(options: EngineOptions): Engine {
     };
     const recorded: PhonemeEvidence[] = [];
     const auxiliaryMistakes: CheckerEvent[] = [];
+    const repairedMistakes = new Set<string>();
     const cells = evidenceGrid(policy.evidenceMs ?? model.manifest.frameMs);
     const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
-      if (options.recordEvidence || model.insertionTeacher) recorded.push(e);
+      if (nonlocal || options.recordEvidence || model.insertionTeacher) recorded.push(e);
       // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
       const out = tracker.push(trackerInput(e));
       noteLocks(out);
@@ -176,7 +182,7 @@ export function createEngine(options: EngineOptions): Engine {
           const e = await listener.end();
           if (e) cells.add(e);
           const events = [...feed(cells.rest()), ...finish()];
-          if ((options.recordEvidence || model.insertionTeacher) && pcmParts.length) {
+          if (pcmParts.length) {
             const n = pcmParts.reduce((s, p) => s + p.length, 0);
             const audio = new Float32Array(n);
             let o = 0;
@@ -186,8 +192,26 @@ export function createEngine(options: EngineOptions): Engine {
             }
             const spliced = options.recordEvidence && locks.length > 1
               ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const inserted = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const enriched = nonlocal ? await addNonlocalEvidence(model, audio, inserted, index, phrases) : inserted;
             recorded.splice(0, recorded.length, ...enriched);
+            const repairs = enriched.flatMap(e => e.phonemes.flatMap(p => p.wrongWordRepairs ?? []));
+            if (repairs.length) {
+              const reviewTracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
+              const review = createChecker(index, checkerOptions);
+              for (const e of insertionCells(enriched)) review.push(e,reviewTracker.push(trackerInput(e)));
+              review.end(reviewTracker.end());
+              for (const mistake of checker.mistakes()) {
+                if (mistake.errorClass !== "wrong_word" || !repairs.some(r => r.word.surah === mistake.location.surah &&
+                  r.word.ayah === mistake.location.ayah && r.word.word === mistake.location.word &&
+                  r.written === mistake.expected && r.observed === mistake.observed)) continue;
+                // The core replay enforces string-path scope; a graph confirmation cannot be withdrawn here.
+                if (review.mistakes().some(e => e.errorClass === "wrong_word" &&
+                  JSON.stringify(e.location) === JSON.stringify(mistake.location))) continue;
+                repairedMistakes.add(mistake.id);
+                events.push(...emit([{ ...mistake,state:"uncertain" }]));
+              }
+            }
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.
               // Only newly certified seam additions are published at end().
@@ -215,7 +239,7 @@ export function createEngine(options: EngineOptions): Engine {
         return feed(cells.ready(e.posteriors && e.posteriors.startFrame + e.posteriors.nFrames));
       },
       endEvidence: () => [...feed(cells.rest()), ...finish()],
-      mistakes: () => [...checker.mistakes(), ...auxiliaryMistakes],
+      mistakes: () => [...checker.mistakes().filter(e => !repairedMistakes.has(e.id)), ...auxiliaryMistakes],
       evidence: () => options.recordEvidence ? recorded : [],
     };
   }

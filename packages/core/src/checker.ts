@@ -1,4 +1,5 @@
 import { align as editPath } from "./align.js";
+import { completePronunciationMatch } from "./pronunciation-match.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
@@ -53,6 +54,8 @@ export interface SeamInsertionCandidate {
 export interface CheckerOptions {
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
+  /** Read-only listener rechecks. False vetoes only this string-path wrong word. */
+  wrongWordRecheck?: (candidate: WrongWordRecheckCandidate) => boolean;
   policy?: CheckerPolicy;
   /** Non-Quran phrases: an inserted block that is one of these (or a basmala) is not an added word. */
   phrases?: PhraseAsset;
@@ -67,6 +70,14 @@ export interface CheckerOptions {
    * build uses {@link LISTENER_CHANNEL}. An empty phone list leaves the channel decisions off.
    */
   channel?: ChannelCounts;
+}
+
+export interface WrongWordRecheckCandidate {
+  word: number;
+  written: string;
+  observed: string;
+  fromFrame: number;
+  toFrame: number;
 }
 
 export interface Checker {
@@ -256,6 +267,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const insertionEvidence = new Map<string, number>();
+  const repairedWords = new Map<string, string>();
+  const repairKey = (word: WordRef, written: string, observed: string, from: number, to: number) =>
+    JSON.stringify([word.surah, word.ayah, word.word, written, observed, from, to]);
   const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
     JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
   // A completed seam remains in the streaming window over many pushes. Its
@@ -483,7 +497,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
    * Whether the posteriors over the error's word and a recited word either side favour what was decoded over the
    * written words by `SUPPORT`; null when there's no telling (no posteriors there, or a skipped passage).
    */
-  const supported = (issue: Issue, requireFinite = false): boolean | null => {
+  const acousticSupport = (issue: Issue, requireFinite = false): boolean | null => {
     // Spelled surplus is structural. A likelihood contest over the neighbours is what loses the word.
     if (issue.lexicon) return null;
     // The madd's length was already compared with this reciter's own. One vowel does not move the forward sum.
@@ -545,6 +559,20 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const expectedNll = frames.nll(ids(written), f0, f1), observedNll = frames.nll(ids(decoded), f0, f1);
     if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
     return expectedNll - observedNll >= need;
+  };
+
+  const supported = (issue: Issue, requireFinite = false): boolean | null => {
+    const original = acousticSupport(issue, requireFinite);
+    if (original === false || issue.cls !== "wrong_word" || !issue.stringPath || issue.phrase ||
+      issue.last !== issue.word || issue.obsTo <= issue.obsFrom || issue.obsFrom < 0 || issue.obsTo > obs.length)
+      return original;
+    const c: WrongWordRecheckCandidate = { word: issue.word,
+      written: ref.slice(words[issue.word].start, words[issue.word].end), observed: issue.observed ?? heardSpan(issue),
+      fromFrame: obs[issue.obsFrom].start, toFrame: obs[issue.obsTo-1].end+1 };
+    const recovered = repairedWords.get(repairKey(words[c.word],c.written,c.observed,c.fromFrame,c.toFrame));
+    if (recovered !== undefined && completePronunciationMatch(c.written,recovered) &&
+      !completePronunciationMatch(c.observed,recovered)) return false;
+    return options.wrongWordRecheck?.(c) === false ? false : original;
   };
 
   /** Waqf and pause marks at the edges of a heard span. They are not part of the word. */
@@ -2457,6 +2485,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const m of p.wrongWordRepairs ?? []) {
+        if (Number.isInteger(m.fromFrame) && Number.isInteger(m.toFrame) && m.fromFrame >= 0 &&
+          m.toFrame > m.fromFrame && typeof m.recovered === "string" &&
+          Number.isFinite(m.writtenNll) && Number.isFinite(m.rivalNll) && m.writtenNll <= m.rivalNll)
+          repairedWords.set(repairKey(m.word,m.written,m.observed,m.fromFrame,m.toFrame),m.recovered);
+      }
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {

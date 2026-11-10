@@ -9,6 +9,18 @@ export interface SeamInsertionEvidence {
   marginal: number;
 }
 
+/** A positive recovered reading, scoped to the exact primary string-path accusation. */
+export interface WrongWordRepairEvidence {
+  word: WordRef;
+  written: string;
+  observed: string;
+  fromFrame: number;
+  toFrame: number;
+  recovered: string;
+  writtenNll: number;
+  rivalNll: number;
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -18,6 +30,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  wrongWordRepairs?: WrongWordRepairEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */
