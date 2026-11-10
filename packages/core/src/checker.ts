@@ -18,6 +18,7 @@ import { PHRASE_PEAK, PHRASE_SWITCH, letterSkeleton, parallelPaths } from "./par
 import { isMaddLetter, maddSites, stemConsonant } from "./madd-drops.js";
 import { formulaSlots } from "./formula-slots.js";
 import { spanId, slotSpans } from "./slot-spans.js";
+import { LexicalChangeCertificates, type WordLocalizationCandidate, type WordLocalizationContext } from "./lexical-change.js";
 
 export interface CheckerPolicy {
   /** When a suspected wrong or added word is confirmed: after `ms` (2–3 s), or once the next word has begun. Default 2500 ms. */
@@ -51,6 +52,10 @@ export interface SeamInsertionCandidate {
 }
 
 export interface CheckerOptions {
+  /** Read-only discovery of existing non-graph word confirmations for a listener recheck. */
+  onWordLocalization?: (candidate: WordLocalizationCandidate, issueId: string) => void;
+  /** Read-only ayah acoustic windows; never changes alignment or tracker events. */
+  onLocalizationContext?: (context: WordLocalizationContext) => void;
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
   policy?: CheckerPolicy;
@@ -441,10 +446,20 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   /** Words whose error was confirmed or ended uncertain; never reopened. */
   const decided = new Set<number>();
   const emitted: CheckerEvent[] = [];
+  const lexicalChanges = new LexicalChangeCertificates();
   let seq = 0;
 
   const event = (o: Open, state: CheckerState): CheckerEvent => {
     const { issue } = o;
+    if (state === "confirmed" && issue.cls === "wrong_word" && !issue.phrase && !issue.madd &&
+      !issue.lexicon && issue.word === issue.last && issue.obsTo > issue.obsFrom &&
+      obs[issue.obsFrom] && obs[issue.obsTo - 1]) {
+      const candidate: WordLocalizationCandidate = { word: toRef(issue.word),
+        expected: ref.slice(words[issue.word].start, words[issue.last].end), observed: issue.observed ?? "",
+        fromFrame: obs[issue.obsFrom].start, toFrame: obs[issue.obsTo - 1].end + 1 };
+      options.onWordLocalization?.(candidate, o.id);
+      if (lexicalChanges.veto(candidate)) state = "uncertain";
+    }
     const conf = clarity(issue);
     const e: CheckerEvent = {
       type: "checker",
@@ -2240,6 +2255,28 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     if (!judged && !issues.size) return;
     if (judged) steps = judged.steps;
+    if (options.onLocalizationContext) {
+      const groups = new Map<string, { words: Set<number>; fromFrame: number; toFrame: number }>();
+      for (const s of steps) if (s.op === "diag") {
+        const wi = index.wordAt(s.ref), w = words[wi], p = obs[s.obs];
+        if (!w || !p) continue;
+        const key = `${w.surah}:${w.ayah}`;
+        const g = groups.get(key) ?? { words: new Set<number>(), fromFrame: p.start, toFrame: p.end + 1 };
+        g.words.add(wi); g.fromFrame = Math.min(g.fromFrame, p.start); g.toFrame = Math.max(g.toFrame, p.end + 1);
+        groups.set(key, g);
+      }
+      for (const g of groups.values()) {
+        const wi = g.words.values().next().value!;
+        const ayah = words[wi];
+        const ws: number[] = [];
+        for (let i = wi; i >= 0 && words[i].surah === ayah.surah && words[i].ayah === ayah.ayah; i--)
+          if (words[i].end > words[i].start) ws.unshift(i);
+        for (let i = wi + 1; i < words.length && words[i].surah === ayah.surah && words[i].ayah === ayah.ayah; i++)
+          if (words[i].end > words[i].start) ws.push(i);
+        if (ws.length) options.onLocalizationContext({ words: ws, coveredWords: [...g.words],
+          fromFrame: g.fromFrame, toFrame: g.toFrame });
+      }
+    }
     const head = judged?.head ?? cursor;
     const reached = judged?.furthest ?? cursor;
     const right = judged?.right ?? new Set<number>();
@@ -2457,6 +2494,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const c of p.lexicalChanges ?? []) lexicalChanges.add(c);
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {

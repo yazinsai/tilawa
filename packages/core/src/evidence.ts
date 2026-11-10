@@ -9,6 +9,18 @@ export interface SeamInsertionEvidence {
   marginal: number;
 }
 
+/** Training-calibrated lexical-change score for one existing word accusation.
+ * The exact spelling and acoustic interval prevent reuse on another visit. */
+export interface LexicalChangeEvidence {
+  word: WordRef;
+  expected: string;
+  observed: string;
+  fromFrame: number;
+  toFrame: number;
+  score: number;
+  preservation: number;
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -18,6 +30,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  lexicalChanges?: LexicalChangeEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

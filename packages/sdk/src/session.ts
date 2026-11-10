@@ -1,4 +1,4 @@
-import { EVENT_SCHEMA_VERSION, createChecker, createTracker, trackerInput } from "@tilawa/core";
+import { EVENT_SCHEMA_VERSION, createChecker, createTracker, trackerInput, LexicalChangeCertificates } from "@tilawa/core";
 import type {
   CapabilityEvent,
   CheckerEvent,
@@ -9,12 +9,14 @@ import type {
   PhraseAsset,
   ReferenceIndex,
   WordRef,
+  WordLocalizationCandidate,
 } from "@tilawa/core";
 import { Resampler } from "./audio.js";
 import { capabilities } from "./capabilities.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
 import { createListener } from "./listener.js";
+import { addEditLocalizationEvidence } from "./edit-localization.js";
 import type { ListenerOptions } from "./listener.js";
 import type { LoadedModel } from "./model.js";
 
@@ -95,10 +97,12 @@ export function createEngine(options: EngineOptions): Engine {
 
   function start(mode: Session["mode"], passage: Session["passage"], policy: SessionPolicy = {}): Session {
     const tracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
+    const localizationCandidates = new Map<string,WordLocalizationCandidate>();
     const checkerOptions = {
       phrases,
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
       ...(passage && { passage }),
+      ...(model.editLocalization && { onWordLocalization: (c: WordLocalizationCandidate, id: string) => localizationCandidates.set(id,c) }),
     };
     const checker = createChecker(index, checkerOptions);
     const listener = createListener(model, { posteriors: true, ...options.listener });
@@ -115,7 +119,7 @@ export function createEngine(options: EngineOptions): Engine {
     const pcmParts: Float32Array[] = [];
     let pcmResampler: Resampler | null = null;
     const keepAudio = (samples: Float32Array, sampleRate: number) => {
-      if (!options.recordEvidence && !model.insertionTeacher) return;
+      if (!options.recordEvidence && !model.insertionTeacher && !model.editLocalization) return;
       let pcm = samples;
       if (sampleRate !== rate) {
         if (!pcmResampler || pcmResampler.from !== sampleRate) pcmResampler = new Resampler(sampleRate, rate);
@@ -131,10 +135,11 @@ export function createEngine(options: EngineOptions): Engine {
     };
     const recorded: PhonemeEvidence[] = [];
     const auxiliaryMistakes: CheckerEvent[] = [];
+    const localizedUncertain = new Set<string>();
     const cells = evidenceGrid(policy.evidenceMs ?? model.manifest.frameMs);
     const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
-      if (options.recordEvidence || model.insertionTeacher) recorded.push(e);
+      if (options.recordEvidence || model.insertionTeacher || model.editLocalization) recorded.push(e);
       // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
       const out = tracker.push(trackerInput(e));
       noteLocks(out);
@@ -176,7 +181,7 @@ export function createEngine(options: EngineOptions): Engine {
           const e = await listener.end();
           if (e) cells.add(e);
           const events = [...feed(cells.rest()), ...finish()];
-          if ((options.recordEvidence || model.insertionTeacher) && pcmParts.length) {
+          if ((options.recordEvidence || model.insertionTeacher || model.editLocalization) && pcmParts.length) {
             const n = pcmParts.reduce((s, p) => s + p.length, 0);
             const audio = new Float32Array(n);
             let o = 0;
@@ -186,7 +191,8 @@ export function createEngine(options: EngineOptions): Engine {
             }
             const spliced = options.recordEvidence && locks.length > 1
               ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const enriched = await addEditLocalizationEvidence(model, audio,
+              await addInsertionEvidence(model, audio, spliced, index, phrases), index, phrases);
             recorded.splice(0, recorded.length, ...enriched);
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.
@@ -207,6 +213,18 @@ export function createEngine(options: EngineOptions): Engine {
               }
               events.push(...emit(auxiliaryMistakes));
             }
+            if (model.editLocalization) {
+              const certificates = new LexicalChangeCertificates();
+              for (const e of enriched) for (const p of e.phonemes) for (const c of p.lexicalChanges ?? []) certificates.add(c);
+              for (const e of checker.mistakes()) {
+                const c = localizationCandidates.get(e.id);
+                if (!c || !certificates.veto(c) || localizedUncertain.has(e.id)) continue;
+                localizedUncertain.add(e.id);
+                // Live callers receive an explicit final uncertainty update for
+                // this issue. Recorded evidence carries the same veto for replay.
+                events.push(...emit([{ ...e, state: "uncertain" }]));
+              }
+            }
           }
           return events;
         }),
@@ -215,7 +233,7 @@ export function createEngine(options: EngineOptions): Engine {
         return feed(cells.ready(e.posteriors && e.posteriors.startFrame + e.posteriors.nFrames));
       },
       endEvidence: () => [...feed(cells.rest()), ...finish()],
-      mistakes: () => [...checker.mistakes(), ...auxiliaryMistakes],
+      mistakes: () => [...checker.mistakes().filter(e => !localizedUncertain.has(e.id)), ...auxiliaryMistakes],
       evidence: () => options.recordEvidence ? recorded : [],
     };
   }

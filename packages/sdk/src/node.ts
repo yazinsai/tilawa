@@ -1,9 +1,10 @@
 /** Node entry: onnxruntime-node, models from a directory, WAV input. */
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
+import { createHash } from "node:crypto";
 import * as ort from "onnxruntime-node";
 import { MEMORIZATION_CLASSES } from "./capabilities.js";
-import type { LoadedModel, ModelManifest } from "./model.js";
+import type { InferenceBackend, LoadedModel, ModelManifest } from "./model.js";
 import { fetchModel } from "./models.js";
 import type { FetchModelOptions, ModelRegistry, ModelStorage } from "./models.js";
 import { MODEL_REGISTRY } from "./registry.js";
@@ -11,6 +12,7 @@ import type { OrtModule } from "./ort.js";
 import { ortBackend } from "./ort.js";
 import { decodeWav } from "./wav.js";
 import { createInsertionTeacher } from "./insertion-teacher.js";
+import { encodeFrozenWords } from "./edit-localization.js";
 
 export * from "./index.js";
 export { decodeWav };
@@ -22,7 +24,53 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  try {
+    return await attachEditLocalization(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads), dir, options.threads);
+  } catch (error) {
+    await backend.release?.();
+    throw error;
+  }
+}
+
+/** A declaration is a promise of a complete trained bundle, never an optional
+ * missing-file fallback. Models without a declaration retain the ordinary path. */
+async function attachEditLocalization(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
+  const declaration = model.manifest.editLocalization;
+  if (!declaration) return model;
+  const probabilities = [declaration.preservation, declaration.independentPreservation];
+  if (probabilities.some(p => !Number.isFinite(p) || p <= 0 || p > 1) ||
+    !Number.isInteger(declaration.featureDim) || declaration.featureDim <= 0)
+    throw new Error("Invalid edit-localization declaration");
+  for (const asset of [declaration.feature,declaration.head]) {
+    if (!asset.file || /^(\/|\\)|(^|[\/\\])\.\.([\/\\]|$)/.test(asset.file)) throw new Error("Localization asset must be inside its bundle");
+    const bytes = await readFile(join(dir,asset.file));
+    if (createHash("sha256").update(bytes).digest("hex") !== asset.sha256) throw new Error(`Localization asset hash mismatch: ${asset.file}`);
+  }
+  let feature: InferenceBackend | undefined, head: InferenceBackend | undefined;
+  let loading: Promise<void> | undefined;
+  const load = () => loading ??= (async () => {
+    feature = await ortBackend(ort as unknown as OrtModule,join(dir,declaration.feature.file),"onnxruntime-node", {
+      executionProviders:["cpu"],intraOpNumThreads:threads });
+    head = await ortBackend(ort as unknown as OrtModule,join(dir,declaration.head.file),"onnxruntime-node", {
+      executionProviders:["cpu"],intraOpNumThreads:threads });
+  })();
+  const release = model.backend.release.bind(model.backend);
+  model.backend.release = async () => {
+    try { if (loading) await loading; } finally { await head?.release(); await feature?.release(); await release(); }
+  };
+  model.editLocalization = {
+    preservation:declaration.preservation, independentPreservation:declaration.independentPreservation,
+    async encode(audio) { await load(); return encodeFrozenWords(feature!,model.manifest,audio); },
+    async score(features,words) {
+      if (features.length !== words*declaration.featureDim || !words) throw new Error("Localization feature shape differs from trained head");
+      await load();
+      const out = await head!.run({ x:{type:"float32",data:features,dims:[words,declaration.featureDim]} });
+      const contextual = Array.from(out.contextual.data as Float32Array), independent = Array.from(out.independent.data as Float32Array);
+      if (contextual.length !== words || independent.length !== words) throw new Error("Localization output differs from word count");
+      return {contextual,independent};
+    },
+  };
+  return model;
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +135,7 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  const dir = join(o.cacheDir, `${tier.id}@${tier.version}`);
+  return attachEditLocalization(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
+    dir, o.threads), dir, o.threads);
 }

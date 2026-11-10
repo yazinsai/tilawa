@@ -59,3 +59,26 @@ describe("Node insertion teacher loading", () => {
     await expect(loadNodeModel("/models/caller")).rejects.toBe(denied);
   });
 });
+
+describe("declared localization assets", () => {
+  const declaration = {feature:{file:"edit-encoder.onnx",sha256:"0".repeat(64)},
+    head:{file:"edit-head.onnx",sha256:"0".repeat(64)},preservation:.2,independentPreservation:.3,featureDim:12};
+
+  it("fails on a missing declared file and releases the primary session", async () => {
+    const absent = Object.assign(new Error("missing localization encoder"),{code:"ENOENT"});
+    const primary = {name:"primary",release:vi.fn()};
+    mocks.access.mockRejectedValue(Object.assign(new Error("no teacher"),{code:"ENOENT"}));
+    mocks.ortBackend.mockResolvedValue(primary);
+    mocks.readFile.mockResolvedValueOnce(JSON.stringify({...manifest,editLocalization:declaration})).mockRejectedValueOnce(absent);
+    await expect(loadNodeModel("/models/caller")).rejects.toBe(absent);
+    expect(primary.release).toHaveBeenCalledOnce();
+  });
+
+  it("rejects an asset hash mismatch before any side inference", async () => {
+    mocks.access.mockRejectedValue(Object.assign(new Error("no teacher"),{code:"ENOENT"}));
+    mocks.ortBackend.mockResolvedValue({name:"primary",release:vi.fn()});
+    mocks.readFile.mockResolvedValueOnce(JSON.stringify({...manifest,editLocalization:declaration})).mockResolvedValueOnce(Buffer.from("wrong file"));
+    await expect(loadNodeModel("/models/caller")).rejects.toThrow("Localization asset hash mismatch");
+    expect(mocks.ortBackend).toHaveBeenCalledTimes(1);
+  });
+});
