@@ -17,7 +17,15 @@ const AHEAD_AYAHS = 2;
  */
 const SURAH_ENTRY = 3 * UNIT;
 /** Recent cost is averaged over this many observed phonemes. */
-const RECENT = 16;
+export const LOCAL_RECENT = 16;
+
+export interface LocalCandidate {
+  offset: number;
+  origin: number;
+  cost: number;
+  edits: number;
+  recent: readonly number[];
+}
 
 export interface LocalPosition {
   /** Reference phonemes consumed up to here (exclusive end of the last matched phoneme). */
@@ -39,6 +47,10 @@ export interface LocalSearch {
   /** The search state, to rewind to with `restore`. */
   save(): unknown;
   restore(state: unknown): void;
+  /** All retained reference frontiers and their cost over the complete consumed observation interval. */
+  candidates(): LocalCandidate[];
+  /** Replace frontier costs after a common-interval acoustic comparison. Movement and tie rules are unchanged. */
+  rescore(candidates: readonly LocalCandidate[], progress: number): void;
 }
 
 /**
@@ -70,6 +82,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let edits = new Int32Array(0);
   let best = start.offset;
   let ayah = -1;
+  let total = 0;
   const recent: number[] = [];
 
   const recentre = (offset: number) => {
@@ -149,9 +162,10 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
         if (k === -1 || c[i] < c[k] || (c[i] === c[k] && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1))) k = i;
       }
       const min = c[k];
+      total += min;
       for (let i = 0; i < n; i++) c[i] -= min;
       recent.push(min - base);
-      if (recent.length > RECENT) recent.shift();
+      if (recent.length > LOCAL_RECENT) recent.shift();
       cost = c;
       origin = o;
       edits = e;
@@ -164,10 +178,36 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    candidates() {
+      const history = [...recent];
+      return Array.from(cost, (c, i) => ({ offset: lo + i, origin: origin[i], edits: edits[i], cost: total + c, recent: history }));
+    },
+    rescore(candidates, progress) {
+      // Keep the existing local window. Acoustic alternatives neither add reference destinations nor widen it.
+      const within = candidates.filter((c) => c.offset >= lo && c.offset < lo + cost.length && Number.isFinite(c.cost));
+      if (!within.length) return;
+      const selected = within.reduce((a, b) => b.cost < a.cost || b.cost === a.cost && Math.abs(b.offset - progress) < Math.abs(a.offset - progress) ? b : a);
+      const c = new Float64Array(cost.length).fill(Infinity);
+      const o = new Int32Array(cost.length);
+      const e = new Int32Array(cost.length);
+      for (const candidate of within) {
+        const i = candidate.offset - lo;
+        c[i] = candidate.cost - selected.cost;
+        o[i] = candidate.origin;
+        e[i] = candidate.edits;
+      }
+      cost = c;
+      origin = o;
+      edits = e;
+      total = selected.cost;
+      best = selected.offset;
+      recent.splice(0, recent.length, ...selected.recent);
+      recentre(best);
+    },
+    save: () => ({ lo, cost, origin, edits, best, ayah, total, recent: [...recent] }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
-      ({ lo, cost, origin, edits, best, ayah } = s);
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; total: number; recent: number[] };
+      ({ lo, cost, origin, edits, best, ayah, total } = s);
       recent.splice(0, recent.length, ...s.recent);
     },
   };

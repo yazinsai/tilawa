@@ -1,11 +1,13 @@
 import type { AlignmentOp } from "./align.js";
 import { PosteriorFrames } from "./ctc.js";
+import { acousticPrefixes, MAX_LATTICE_FRAMES } from "./ctc-prefix.js";
+import { localAcousticCandidates } from "./local-acoustic.js";
 import { MID_WORD_START, UNIT, alignSubstring, collapseHeld, insertionCost, isHeld } from "./fuzzy.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { EngineEvent, PositionCandidate, PositionEvent, TraceCandidate, TrackerState, TrackerTrace, WordRef } from "./events.js";
 import { EvidenceError } from "./evidence.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
-import { createLocalSearch } from "./local.js";
+import { createLocalSearch, LOCAL_RECENT } from "./local.js";
 import type { LocalPosition, LocalSearch } from "./local.js";
 import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
@@ -270,9 +272,9 @@ export function relocationSupport(
   return best;
 }
 
-/** What the tracker is fed from one chunk of listener evidence, in the product and in every bench alike: phonemes only. */
+/** Keep acquisition decoded-only; retain posterior evidence solely for competing local tokenizations. */
 export function trackerInput(evidence: PhonemeEvidence): PhonemeEvidence {
-  return { ...evidence, posteriors: undefined };
+  return { ...evidence, posteriors: undefined, trackerPosteriors: evidence.posteriors };
 }
 
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
@@ -309,6 +311,9 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   let last: PositionEvent | null = null;
   /** Set once locked: from then on the tracker follows the reciter locally, phoneme by phoneme. */
   let local: LocalSearch | null = null;
+  const localFrames = new PosteriorFrames(index.tokens.size);
+  const localTokens = [...index.tokens];
+  const localHistory: { ph: DecodedPhoneme; checkpoint: unknown }[] = [];
   let lockedOn: Match | null = null;
   /** The event that reported the lock, kept with its trace until a local event replaces it. */
   let lockEvent: PositionEvent | null = null;
@@ -869,6 +874,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
+    localHistory.length = 0;
     local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
     weak = false;
     pending = null;
@@ -1280,7 +1286,18 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         continue;
       }
       const before = local.save();
+      const progress = local.position();
+      localHistory.push({ ph, checkpoint: before });
+      if (localHistory.length > LOCAL_RECENT) localHistory.shift();
       local.step(ph.p);
+      if (local.position().origin !== progress.origin && localHistory.length) {
+        const from = localHistory[0].ph.start, to = ph.end + 1;
+        if (from >= localFrames.startFrame && to <= localFrames.endFrame) {
+          const prefixes = acousticPrefixes(localFrames, localTokens, from, to);
+          const costs = localAcousticCandidates(local, localHistory[0].checkpoint, prefixes, NATS_PER_EDIT);
+          local.rescore(costs, progress.offset + 1);
+        }
+      }
       stepCosts.push(local.position().stepCost);
       if (stepCosts.length > CONFIRM) stepCosts.shift();
       const heardPhrase = hear(ph.p, before, local.position().stepCost);
@@ -1301,6 +1318,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
             continue;
           }
           local.restore(heardState[from]);
+          localHistory.length = 0;
           if (heardPhrase.name === "takbir") fatihaNext = true;
           afterPhrase = true;
           forget();
@@ -1440,6 +1458,11 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   return {
     push(evidence) {
       validate(evidence);
+      const frames = evidence.trackerPosteriors ?? evidence.posteriors;
+      if (frames) {
+        localFrames.append(frames);
+        localFrames.dropBefore(Math.max(localHistory[0]?.ph.start ?? frames.startFrame, frames.startFrame - MAX_LATTICE_FRAMES));
+      }
       frameMs = evidence.frameMs;
       if (evidence.posteriors) withPosteriors = true;
       else decodedOnly = true;
