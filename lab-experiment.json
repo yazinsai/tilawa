@@ -1,0 +1,13 @@
+{
+ "id": "tracker-lattice-token-boundaries",
+ "component": "tracker",
+ "hypothesis": "Greedy phoneme segmentation may irreversibly favour the rhyme restart; retaining alternative token boundaries during local tracking predicts 1 tracker recovery offset by 1 exposed listener warning: tracker -1, overall 0.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T18:39:24+00:00",
+ "author": "autolab"
+}
