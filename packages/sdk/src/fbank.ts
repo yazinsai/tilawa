@@ -43,7 +43,7 @@ const reversed = Uint16Array.from({ length: NFFT }, (_, i) => {
   return r;
 });
 
-function fft(re: Float64Array, im: Float64Array) {
+export function fft(re: Float64Array, im: Float64Array) {
   for (let i = 0; i < NFFT; i++) {
     const j = reversed[i];
     if (i < j) {
