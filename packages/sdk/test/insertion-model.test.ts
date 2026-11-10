@@ -18,13 +18,29 @@ beforeEach(() => {
 });
 
 describe("Node insertion teacher loading", () => {
+  it("loads only a radius rule calibrated for the installed primary weights", async () => {
+    const primary = { name: "primary", run: vi.fn(), release: vi.fn() };
+    const rule = { schema: 1, inventory: manifest.inventory, primarySha256: "parent", rejectionEnergy: .2,
+      search: { dimensions: 4, iterations: 8, difference: .05, maxEnergy: 4 } };
+    mocks.access.mockImplementation(async (path: string) => {
+      if (!path.endsWith("acoustic-radius.json")) throw Object.assign(new Error("absent"), { code: "ENOENT" });
+    });
+    mocks.readFile.mockImplementation(async (path: string) => JSON.stringify(path.endsWith("acoustic-radius.json") ? rule : { ...manifest, sha256: "parent" }));
+    mocks.ortBackend.mockResolvedValue(primary);
+    expect((await loadNodeModel("/models/caller")).acousticRadius).toEqual(rule);
+    rule.primarySha256 = "different-parent";
+    await expect(loadNodeModel("/models/caller")).rejects.toThrow("Invalid or mismatched");
+    expect(primary.release).toHaveBeenCalledOnce();
+  });
   it("retains the caller's primary model and loads the adjacent teacher once for repeated crops", async () => {
     const primary = { name: "primary", run: vi.fn(), release: vi.fn() };
     const rows = Float32Array.from([.9, .05, .05], Math.log);
     const teacher = { name: "teacher", run: vi.fn().mockResolvedValue({
       log_probs: { type: "float32", data: rows, dims: [1, 1, 3] },
     }), release: vi.fn() };
-    mocks.access.mockResolvedValue(undefined);
+    mocks.access.mockImplementation(async (path: string) => {
+      if (path.endsWith("acoustic-radius.json")) throw Object.assign(new Error("absent"), { code: "ENOENT" });
+    });
     mocks.ortBackend.mockResolvedValueOnce(primary).mockResolvedValueOnce(teacher);
 
     const model = await loadNodeModel("/models/caller", { threads: 2 });

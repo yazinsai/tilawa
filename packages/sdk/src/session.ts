@@ -15,6 +15,7 @@ import { capabilities } from "./capabilities.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
 import { createListener } from "./listener.js";
+import { addAcousticRadiusEvidence } from "./acoustic-radius.js";
 import type { ListenerOptions } from "./listener.js";
 import type { LoadedModel } from "./model.js";
 
@@ -115,7 +116,7 @@ export function createEngine(options: EngineOptions): Engine {
     const pcmParts: Float32Array[] = [];
     let pcmResampler: Resampler | null = null;
     const keepAudio = (samples: Float32Array, sampleRate: number) => {
-      if (!options.recordEvidence && !model.insertionTeacher) return;
+      if (!options.recordEvidence && !model.insertionTeacher && !model.acousticRadius) return;
       let pcm = samples;
       if (sampleRate !== rate) {
         if (!pcmResampler || pcmResampler.from !== sampleRate) pcmResampler = new Resampler(sampleRate, rate);
@@ -131,10 +132,11 @@ export function createEngine(options: EngineOptions): Engine {
     };
     const recorded: PhonemeEvidence[] = [];
     const auxiliaryMistakes: CheckerEvent[] = [];
+    const radiusVetoes = new Set<string>();
     const cells = evidenceGrid(policy.evidenceMs ?? model.manifest.frameMs);
     const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
-      if (options.recordEvidence || model.insertionTeacher) recorded.push(e);
+      if (options.recordEvidence || model.insertionTeacher || model.acousticRadius) recorded.push(e);
       // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
       const out = tracker.push(trackerInput(e));
       noteLocks(out);
@@ -176,7 +178,7 @@ export function createEngine(options: EngineOptions): Engine {
           const e = await listener.end();
           if (e) cells.add(e);
           const events = [...feed(cells.rest()), ...finish()];
-          if ((options.recordEvidence || model.insertionTeacher) && pcmParts.length) {
+          if ((options.recordEvidence || model.insertionTeacher || model.acousticRadius) && pcmParts.length) {
             const n = pcmParts.reduce((s, p) => s + p.length, 0);
             const audio = new Float32Array(n);
             let o = 0;
@@ -186,8 +188,30 @@ export function createEngine(options: EngineOptions): Engine {
             }
             const spliced = options.recordEvidence && locks.length > 1
               ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const enriched = await addAcousticRadiusEvidence(model, audio,
+              await addInsertionEvidence(model, audio, spliced, index, phrases), index, phrases);
             recorded.splice(0, recorded.length, ...enriched);
+            if (model.acousticRadius) {
+              const reviewTracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
+              const baselineReview = createChecker(index, checkerOptions);
+              const review = createChecker(index, checkerOptions);
+              const uncertain = new Set<string>();
+              for (const e of insertionCells(enriched)) {
+                const positions = reviewTracker.push(trackerInput(e));
+                baselineReview.push({ ...e, phonemes: e.phonemes.map(({ acousticRadii: _, ...p }) => p) }, positions);
+                for (const result of review.push(e, positions)) if (result.state === "uncertain") uncertain.add(result.id);
+              }
+              const finalPositions = reviewTracker.end();
+              baselineReview.end(finalPositions);
+              for (const result of review.end(finalPositions)) if (result.state === "uncertain") uncertain.add(result.id);
+              const vetoed = new Set(baselineReview.mistakes().filter(e => e.errorClass === "wrong_word" && uncertain.has(e.id))
+                .map(e => JSON.stringify(e)));
+              // Match the actual occurrence and complete baseline event, including timing and rival.
+              for (const e of checker.mistakes()) if (vetoed.has(JSON.stringify(e))) {
+                radiusVetoes.add(e.id);
+                events.push(...emit([{ ...e, state: "uncertain" }]));
+              }
+            }
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.
               // Only newly certified seam additions are published at end().
@@ -215,7 +239,7 @@ export function createEngine(options: EngineOptions): Engine {
         return feed(cells.ready(e.posteriors && e.posteriors.startFrame + e.posteriors.nFrames));
       },
       endEvidence: () => [...feed(cells.rest()), ...finish()],
-      mistakes: () => [...checker.mistakes(), ...auxiliaryMistakes],
+      mistakes: () => [...checker.mistakes().filter(e => !radiusVetoes.has(e.id)), ...auxiliaryMistakes],
       evidence: () => options.recordEvidence ? recorded : [],
     };
   }

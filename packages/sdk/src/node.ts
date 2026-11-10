@@ -22,7 +22,27 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachRadiusRule(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads), dir);
+}
+
+/** No rule is enabled until an explicitly installed, training-frozen calibration matches these weights. */
+async function attachRadiusRule(model: LoadedModel, dir: string): Promise<LoadedModel> {
+  const manifest = model.manifest;
+  const radiusPath = join(dir, "acoustic-radius.json");
+  try {
+    const installed = await access(radiusPath).then(() => true, e => { if (e.code === "ENOENT") return false; throw e; });
+    if (!installed) return model;
+    const calibration = JSON.parse(await readFile(radiusPath, "utf8")) as import("./acoustic-radius.js").RadiusCalibration;
+    if (calibration.schema !== 1 || calibration.inventory !== manifest.inventory || calibration.primarySha256 !== manifest.sha256 ||
+      !Number.isFinite(calibration.rejectionEnergy) || calibration.rejectionEnergy <= 0 ||
+      !Number.isInteger(calibration.search?.dimensions) || calibration.search.dimensions < 1 || calibration.search.dimensions > 8 ||
+      !Number.isInteger(calibration.search.iterations) || calibration.search.iterations < 1 || calibration.search.iterations > 32 ||
+      !Number.isFinite(calibration.search.difference) || calibration.search.difference <= 0 ||
+      !Number.isFinite(calibration.search.maxEnergy) || calibration.search.maxEnergy <= 0)
+      throw new Error("Invalid or mismatched acoustic-radius calibration");
+    model.acousticRadius = calibration;
+    return model;
+  } catch (e) { await model.backend.release(); throw e; }
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +107,6 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  const dir = join(o.cacheDir, `${tier.id}@${tier.version}`);
+  return attachRadiusRule(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported }, dir, o.threads), dir);
 }

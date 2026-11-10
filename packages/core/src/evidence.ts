@@ -9,6 +9,21 @@ export interface SeamInsertionEvidence {
   marginal: number;
 }
 
+/** Listener-only rejection of one fixed string-path acoustic comparison. */
+export interface AcousticRadiusEvidence {
+  word: WordRef;
+  written: string;
+  accused: string;
+  fromFrame: number;
+  toFrame: number;
+  need: number;
+  baselineMargin: number;
+  boundaryMargin: number;
+  /** Added waveform energy divided by the observed pause energy over the same duration. */
+  energy: number;
+  rejectionEnergy: number;
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -18,6 +33,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  acousticRadii?: AcousticRadiusEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */
