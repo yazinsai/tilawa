@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { PhonemeEvidence } from "@tilawa/core";
 import { createListener } from "../src/listener.js";
-import type { InferenceBackend, Tensor } from "../src/model.js";
+import type { InferenceBackend, ModelManifest, Tensor } from "../src/model.js";
+import { Fbank } from "../src/fbank.js";
 import { loadNodeModel } from "../src/node.js";
 import { decodeWav } from "../src/wav.js";
 
@@ -24,6 +25,26 @@ async function run(step: number) {
 }
 
 describe("streaming listener on onnxruntime-node", () => {
+  it("uses the primary model's learned filters in every new listener", async () => {
+    const m = JSON.parse(readFileSync(fixture("tiny/manifest.json"), "utf8")) as ModelManifest;
+    m.fbank.frequencyPooling = { schema: 1, fftSize: 512,
+      filters: Array.from({ length: 80 }, () => ({ start: 21, weights: [0.25, 0.75], scale: 2 })) };
+    const seen: Float32Array[] = [];
+    const backend: InferenceBackend = { name: "inspect-features", release: async () => {}, async run(feeds) {
+      seen.push((feeds.x.data as Float32Array).slice());
+      return { ...Object.fromEntries(m.states.map(s => [`new_${s.name}`, feeds[s.name]])),
+        log_probs: { type: "float32", data: new Float32Array(8 * (m.tokens.length + 1)), dims: [1, 8, m.tokens.length + 1] } };
+    } };
+    const expected = new Fbank({ frequencyPooling: m.fbank.frequencyPooling }).push(wav.samples);
+    // Fresh listeners include cold-crop calls; each must get the same contract.
+    for (let i = 0; i < 2; i++) {
+      const listener = createListener({ manifest: m, backend, supported: [] });
+      await listener.push(wav.samples.subarray(0, (m.window - 1) * 160 + 400), 16000);
+    }
+    expect(seen).toHaveLength(2);
+    for (const features of seen) expect(features).toEqual(Float32Array.from(expected.slice(0, m.window).flatMap(f => [...f])));
+  });
+
   it("emits the same per-frame posteriors as the reference streaming loop over the same graph", async () => {
     const chunks = await run(4000);
     const frames = chunks.reduce((n, c) => n + c.posteriors!.nFrames, 0);

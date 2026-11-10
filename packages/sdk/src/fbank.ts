@@ -10,6 +10,28 @@ const NFFT = 512;
 const MELS = 80;
 const EPS = 1.1920928955078125e-7;
 
+/** Positive normalized filters with a fixed energy scale, exported with the encoder. */
+export interface FrequencyPooling {
+  schema: 1;
+  fftSize: 512;
+  filters: { start: number; weights: number[]; scale: number }[];
+}
+
+function poolingBank(pooling: FrequencyPooling): typeof melBank {
+  if (pooling.schema !== 1 || pooling.fftSize !== NFFT || pooling.filters.length !== MELS) {
+    throw new Error("Frequency pooling differs from the listener's analysis geometry");
+  }
+  return pooling.filters.map(({ start, weights, scale }) => {
+    if (!Number.isInteger(start) || start < 0 || weights.length === 0 || start + weights.length > NFFT / 2 ||
+        !Number.isFinite(scale) || scale <= 0 || weights.some(w => !Number.isFinite(w) || w <= 0) ||
+        Math.abs(weights.reduce((a, b) => a + b, 0) - 1) > 1e-5) {
+      throw new Error("Frequency pooling requires normalized positive contiguous filters");
+    }
+    // Snapshot the exported data: later manifest mutations cannot change a stream.
+    return { start, weights: Float64Array.from(weights, w => w * scale) };
+  });
+}
+
 const mel = (hz: number) => 1127 * Math.log(1 + hz / 700);
 
 const povey = Float64Array.from({ length: WIN }, (_, i) => Math.pow(0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (WIN - 1)), 0.85));
@@ -73,8 +95,12 @@ function fft(re: Float64Array, im: Float64Array) {
 
 export class Fbank {
   private readonly bank: typeof melBank;
-  constructor(options: { highFrequency?: number } = {}) {
-    this.bank = options.highFrequency === undefined ? melBank : makeMelBank(options.highFrequency);
+  constructor(options: { highFrequency?: number; frequencyPooling?: FrequencyPooling } = {}) {
+    if (options.highFrequency !== undefined && options.frequencyPooling !== undefined) {
+      throw new Error("Frequency pooling already defines the frequency regions");
+    }
+    this.bank = options.frequencyPooling ? poolingBank(options.frequencyPooling) :
+      options.highFrequency === undefined ? melBank : makeMelBank(options.highFrequency);
   }
   private pending = new Float32Array(0);
   private readonly re = new Float64Array(NFFT);

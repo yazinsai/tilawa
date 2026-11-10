@@ -1,4 +1,5 @@
 import type { ErrorClass, PhonemeEvidence } from "@tilawa/core";
+import type { FrequencyPooling } from "./fbank.js";
 
 export interface StateSpec {
   name: string;
@@ -19,7 +20,7 @@ export interface ModelManifest {
   blank: 0;
   sampleRate: number;
   frameMs: number;
-  fbank: { mels: number; padValue: number };
+  fbank: { mels: number; padValue: number; frequencyPooling?: FrequencyPooling };
   /** Fbank frames per call and frames to advance by. */
   window: number;
   shift: number;

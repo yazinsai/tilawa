@@ -30,7 +30,7 @@ const round4 = (x: number) => Math.round(x * 1e4) / 1e4;
 export function createListener(model: LoadedModel, options: ListenerOptions = {}): Listener {
   const m = model.manifest;
   const k = options.topK ?? 5;
-  const fbank = new Fbank();
+  const fbank = new Fbank({ frequencyPooling: m.fbank.frequencyPooling });
   const vocab = m.tokens.length + 1;
   let resampler: Resampler | null = null;
   let states: Record<string, Tensor> = Object.fromEntries(
