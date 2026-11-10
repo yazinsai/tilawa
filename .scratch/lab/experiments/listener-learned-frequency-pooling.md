@@ -1,6 +1,6 @@
 # Learned frequency pooling
 
-Status: needs-info; implementation ready, execution service unavailable.
+Status: ready-for-human; implementation unvalidated, execution service unavailable.
 
 ## Prediction and premise
 
@@ -76,11 +76,19 @@ image (one CPU shard, ten-minute limit). Run 2 requested the supplied core/SDK
 build and tests (six CPU shards, twenty-minute limit). Both returned exactly
 `NotFoundError: No such file or directory`, without any returned container log.
 Their result files report zero GPU spend and the full $120 budget remaining.
-Run 3 requests only `pwd`, listing `/lab/data`, and disk availability under
+Run 3 requested only `pwd`, listing `/lab/data`, and disk availability under
 `/scratch` on the default image, to isolate service startup from training imports.
+It returned the same `NotFoundError` with zero spend and no container log. All
+three attempts therefore failed before project code could execute. Restoration
+of the supervisor execution service is required; no alternative Modal access
+was attempted.
 
 No GPU training, checkpoint selection, model export, target diagnosis or practice
-score has completed. No model bundle is selected. Running the shipped model
+score has completed. No trained model bundle exists. The ignored
+`.autolab/model.json` declares the intended `paired/learned` export location,
+which is currently unavailable: this prevents a later supervisor run from
+silently scoring the unchanged shipped model as the experiment. The ignored
+outcome records an infrastructure block, not an acoustic kill. Running the shipped model
 would not evaluate learned frequency pooling, and no zero-gain or zero-target
 result is claimed. The implementation requires restored supervisor execution,
 successful full tests and Python parity tests, a verified shipped starting
