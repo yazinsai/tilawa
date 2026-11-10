@@ -1,0 +1,13 @@
+{
+ "id": "tracker-interemission-gap-channel",
+ "component": "tracker",
+ "hypothesis": "Local matching discards blank intervals between emitted sounds, potentially favouring a rhyme restart whose deleted vowel predicts incompatible emission timing; modelling those intervals predicts tracker -1 and overall 0 after one exposed listener warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T14:22:05+00:00",
+ "author": "autolab"
+}
