@@ -1,0 +1,13 @@
+{
+ "id": "listener-learned-frequency-pooling",
+ "component": "listener",
+ "hypothesis": "Fixed mel aggregation may merge weak consonant structure with stronger neighbouring frequencies; learning frequency pooling before that information is discarded predicts 3 recovered additions and 1 collateral wrong call: listener -2, overall -2.",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T14:18:26+00:00",
+ "author": "autolab"
+}
