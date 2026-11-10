@@ -1,0 +1,13 @@
+{
+ "id": "tracker-joint-phone-coalescence",
+ "component": "tracker",
+ "hypothesis": "Local matching may mistake several sounds merged into one decoded token for independent missing sounds; explicit coalescence transitions predict tracker -1 and overall 0 after one exposed listener warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T20:47:37+00:00",
+ "author": "autolab"
+}
