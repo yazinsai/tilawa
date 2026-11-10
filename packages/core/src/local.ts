@@ -1,5 +1,7 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import { createEpisodeLocalSearch } from "./episode-local.js";
+import type { EpisodeMotionModel } from "./episode-motion.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -45,7 +47,10 @@ export interface LocalSearch {
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">, episodeMotion?: EpisodeMotionModel): LocalSearch {
+  if (episodeMotion && episodeMotion.dependent !== false) return createEpisodeLocalSearch(index, start, episodeMotion, {
+    jump: JUMP_COST, distance: JUMP_DISTANCE, back: BACK_AYAHS, ahead: AHEAD_AYAHS, surahEntry: SURAH_ENTRY, recent: RECENT,
+  });
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
