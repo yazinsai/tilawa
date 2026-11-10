@@ -96,7 +96,7 @@ def ints(s: str) -> tuple:
     return tuple(int(x) for x in str(s).split(","))
 
 
-def build_model(size: str):
+def build_model(size: str, specialist_arm: str = ""):
     import torch.nn as nn
     from scaling import ScheduledFloat
     from student import VOCAB
@@ -145,10 +145,16 @@ def build_model(size: str):
             self.encoder.chunk_size = ints(p["chunk_size"])
             self.encoder.left_context_frames = ints(p["left_context_frames"])
 
-    return Student()
+    model = Student()
+    if specialist_arm:
+        from student_specialists import replace_upper_block
+
+        replace_upper_block(model, specialist_arm)
+    return model
 
 
-def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, seed: int, max_clips: int = 0):
+def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, seed: int, max_clips: int = 0,
+               exclude_path: str = "/root/gold-per-v1-exclude.txt"):
     """Selected s1 clips held in memory: FLAC bytes and teacher top-5 in flat buffers with offsets."""
     import glob
 
@@ -156,7 +162,7 @@ def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, se
     import pyarrow.parquet as pq
     from student import exclusions, held_out
 
-    gold = exclusions(open("/root/gold-per-v1-exclude.txt").read())
+    gold = exclusions(open(exclude_path).read())
     want = set(buckets.split(","))
     files = sorted(glob.glob("/student/s1/*.parquet"))
     meta = []
@@ -498,7 +504,7 @@ def load_student(run: str):
     import torch
 
     ck = torch.load(f"/student/runs/{run}/ckpt.pt", map_location="cpu", weights_only=False)
-    model = build_model(ck["cfg"]["size"])
+    model = build_model(ck["cfg"]["size"], ck["cfg"].get("specialist_arm", ""))
     model.load_state_dict(ck["model"])
     return model, ck
 

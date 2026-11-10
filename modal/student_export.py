@@ -14,7 +14,7 @@ from pathlib import Path
 import modal
 from student_train import SR, image, load_student, vol
 
-app = modal.App("tilawa-student-export", image=image.add_local_python_source("student_train"))
+app = modal.App("tilawa-student-export", image=image.add_local_python_source("student_train", "student_specialists"))
 
 
 def onnx_deps():
