@@ -1,0 +1,13 @@
+{
+ "id": "listener-gesture-path-signatures",
+ "component": "listener",
+ "hypothesis": "Variable within-word pacing may distort time-based acoustic comparisons while preserving articulation order; tempo-invariant gesture-path scoring predicts 2 false warnings removed and 1 caught substitution lost: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T22:48:07+00:00",
+ "author": "autolab"
+}
