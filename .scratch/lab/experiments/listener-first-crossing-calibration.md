@@ -28,13 +28,23 @@ Supervisor requests:
 | 2 | Six-shard `bash tools/autolab_tests.sh` | Same wrapper error; no test results returned |
 | 3 | Minimal filesystem/workspace preflight | Same wrapper error; no command output returned |
 | 4 | Corrected SDK-source target trajectory replay | Same wrapper error; no shard logs or trajectories returned |
+| 5 | Retry four-shard SDK-source target trajectory replay | Same wrapper error; no shard logs or trajectories returned |
+| 6 | Independent filesystem/workspace preflight (`pwd`, `df`, session-directory listing) | Same wrapper error; even the preflight returned no command output |
+| 7 | Four-shard replay with traced-versus-ordinary event and mistake equality assertions; distinct actual windows counted by frame endpoints | Same wrapper error; no trajectories or equivalence results returned |
+| 8 | Six-shard `bash tools/autolab_tests.sh`, including a new diagnostic equivalence unit test | Same wrapper error; no build or test results returned |
 
 The initial temporary utility was placed under `.scratch`, which the supervisor's source archive omits. It was moved to `packages/sdk/src/bench` and its reference-asset paths were made relative to its module before request 4. The independent tests and filesystem preflight also failed, so the wrapper failures cannot be explained solely by that initial utility placement. The available results do not identify the missing filesystem object or prove a storage-capacity cause.
+
+## Why the engine change cannot be completed here
+
+The retry reproduced the infrastructure blocker on every authorized runner request. All eight result files report `NotFoundError: No such file or directory`, with zero reported compute spend and no shard output. The required runtime evidence and help-train recordings are available only through that runner. Source inspection and synthetic unit fixtures cannot establish the registered target premise or estimate a speaker-grouped, training-only null distribution. A first-crossing veto with an invented cutoff would not implement this card's calibration mechanism.
+
+The temporary engine changes instrumented the real score calculation, and the SDK replay exercised it using the requested baseline. The retry added strict equality assertions against a checker without instrumentation, counted acoustic windows separately from hypothesis comparisons, and supplied a unit test for observational equivalence. Neither runtime equivalence nor that test is claimed to have passed. No calibrated veto or complete verified asset bundle can be produced from the returned results. Recovery requires the supervisor runner to return command output before this experiment can continue; this is an infrastructure block, not a premise kill or a measured zero-win result.
 
 ## Limits and remaining work
 
 No target trajectories, help-train calibration data, calibration parameters, target wins, losses or practice score have been obtained. Practice-score requests used: **0 of 3**. The core/SDK tests were requested but could not be verified. No hypothesis kill criterion has been established. Infrastructure failures must not be recorded as zero wins or as a negative experimental result.
 
-All temporary engine and SDK diagnostic changes were removed. The final tracked change is this write-up; the card, scorer, lab tooling, test data, evidence and manifests are unchanged. No model or side-ear asset is declared. The diagnostic callback patch and corrected generic replay utility are archived locally under ignored `.autolab/first-crossing-diagnostic.patch` and `.autolab/first-crossing-trace-cli.ts`; the four wrapper-error responses are `.autolab/modal-result-{1,2,3,4}.json`. The untracked outcome marks infrastructure blockage, not a killed hypothesis, and contains no invented measured numbers.
+All temporary engine, SDK and unit-test changes were removed after the runner requests finished. The final tracked change is this write-up; the card, scorer, lab tooling, test data, evidence and manifests are unchanged. No model or side-ear asset is declared. The diagnostic callback patch, corrected generic replay utility and equivalence test are archived locally under ignored `.autolab/first-crossing-diagnostic.patch`, `.autolab/first-crossing-trace-cli.ts` and `.autolab/verification-trace.test.ts`; the eight wrapper-error responses are `.autolab/modal-result-{1,2,3,4,5,6,7,8}.json`. The untracked outcome marks infrastructure blockage, not a killed hypothesis, and contains no invented measured numbers. Local `git diff --check` passes.
 
 Once the authorized supervisor runner works, first repeat the target trajectory probe and verify observational equivalence with the ordinary engine. Only if the registered temporal premise survives should the training utility, frozen calibration and listener certificate consumption be built and unit-tested. A built rule winning at least three targets requires the practice score before a gate-based decision.
