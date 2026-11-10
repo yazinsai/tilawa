@@ -1,0 +1,13 @@
+{
+ "id": "tracker-heterogeneous-phone-fragments",
+ "component": "tracker",
+ "hypothesis": "One sustained articulation may decode into several different phone tokens that local matching treats as separate sounds; model this fragmentation explicitly, predicting tracker -1 and overall 0 after one exposed listener warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T23:49:09+00:00",
+ "author": "autolab"
+}
