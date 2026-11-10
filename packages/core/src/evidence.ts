@@ -9,6 +9,17 @@ export interface SeamInsertionEvidence {
   marginal: number;
 }
 
+/** Listener comparison on the original interval, conditioned on exterior CTC state. */
+export interface SequenceBoundaryEvidence {
+  word: WordRef;
+  written: string;
+  accused: string;
+  fromFrame: number;
+  toFrame: number;
+  resetMargin: number;
+  conditionalMargin: number;
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -18,6 +29,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  sequenceBoundaries?: SequenceBoundaryEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

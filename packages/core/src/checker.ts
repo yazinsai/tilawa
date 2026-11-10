@@ -51,6 +51,8 @@ export interface SeamInsertionCandidate {
 }
 
 export interface CheckerOptions {
+  /** Listener-only veto of a complete non-graph sequence comparison; no primary evidence is changed. */
+  sequenceEvidence?: (candidate: SequenceEvidenceCandidate, frames: PosteriorFrames) => boolean;
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
   policy?: CheckerPolicy;
@@ -67,6 +69,18 @@ export interface CheckerOptions {
    * build uses {@link LISTENER_CHANNEL}. An empty phone list leaves the channel decisions off.
    */
   channel?: ChannelCounts;
+}
+
+export interface SequenceEvidenceCandidate {
+  word: WordRef;
+  written: string;
+  accused: string;
+  fromFrame: number;
+  toFrame: number;
+  prefix: DecodedPhoneme[];
+  suffix: DecodedPhoneme[];
+  margin: number;
+  need: number;
 }
 
 export interface Checker {
@@ -256,6 +270,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const insertionEvidence = new Map<string, number>();
+  const boundaryEvidence = new Set<string>();
+  const boundaryKey = (word: WordRef, written: string, accused: string, from: number, to: number) =>
+    JSON.stringify([word.surah, word.ayah, word.word, written, accused, from, to]);
   const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
     JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
   // A completed seam remains in the streaming window over many pushes. Its
@@ -500,6 +517,22 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       [...left, ...right, ...(issue.obsTo > issue.obsFrom ? [issue.obsFrom, issue.obsTo - 1] : [])]).filter((k) => k >= 0 && k < obs.length);
     if (!at.length && !issue.wordLocal) return null;
     const ids = (s: string) => [...s].map((p) => tokenId.get(p) ?? 0);
+    const compare = (written: string, accused: string, a: number, b: number, need: number) => {
+      const wn = frames!.nll(ids(written), a, b), an = frames!.nll(ids(accused), a, b);
+      if (requireFinite && (!Number.isFinite(wn) || !Number.isFinite(an))) return null;
+      const margin = wn - an;
+      if (margin >= need && issue.cls === "wrong_word" && !issue.phrase) {
+        const w = words[issue.word];
+        const word = { surah: w.surah, ayah: w.ayah, word: w.word };
+        if (boundaryEvidence.has(boundaryKey(word, written, accused, a, b))) return false;
+        if (options.sequenceEvidence && !options.sequenceEvidence({ word, written, accused,
+          fromFrame: a, toFrame: b, margin, need,
+          prefix: obs.filter(p => p.end < a && p.start >= frames!.startFrame && !p.junk),
+          suffix: obs.filter(p => p.start >= b && p.end < frames!.endFrame && !p.junk),
+        }, frames!)) return false;
+      }
+      return margin >= need;
+    };
     // The ending is a few phones. Over the word plus its neighbours the next word's labels take those frames and
     // the written word looks almost as likely; on the word's own frames the consonant has to be accounted for.
     if (issue.wordLocal && issue.obsTo > issue.obsFrom) {
@@ -507,9 +540,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (a0 < frames.startFrame || b0 > frames.endFrame) return null;
       const word = ref.slice(words[issue.word].start, words[issue.last].end);
       const need = supportNeed(issue);
-      const expectedNll = frames.nll(ids(word), a0, b0), observedNll = frames.nll(ids(issue.observed ?? ""), a0, b0);
-      if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-      return expectedNll - observedNll >= need;
+      return compare(word, issue.observed ?? "", a0, b0, need);
     }
     // Same joint span as the edit comparison. A wide window that leaves the next word out lets its onset consonant
     // explain the ending a second time.
@@ -519,9 +550,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const through = nextWord(issue.last);
       const writtenPair = ref.slice(words[issue.word].start, words[through].end);
       const need = supportNeed(issue);
-      const expectedNll = frames.nll(ids(writtenPair), a0, b0), observedNll = frames.nll(ids(issue.pair), a0, b0);
-      if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-      return expectedNll - observedNll >= need;
+      return compare(writtenPair, issue.pair, a0, b0, need);
     }
     if (!at.length) return null;
     const f0 = obs[Math.min(...at)].start;
@@ -542,9 +571,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         ? span(from, issue.word) + observed + span(issue.word, to + 1)
         : span(from, issue.word) + (issue.cls === "wrong_word" ? observed : "") + span(issue.last + 1, to + 1);
     const need = supportNeed(issue);
-    const expectedNll = frames.nll(ids(written), f0, f1), observedNll = frames.nll(ids(decoded), f0, f1);
-    if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-    return expectedNll - observedNll >= need;
+    return compare(written, decoded, f0, f1, need);
   };
 
   /** Waqf and pause marks at the edges of a heard span. They are not part of the word. */
@@ -2457,6 +2484,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const m of p.sequenceBoundaries ?? []) {
+        if (Number.isFinite(m.resetMargin) && m.resetMargin > 0 &&
+          Number.isFinite(m.conditionalMargin) && m.conditionalMargin < 0 &&
+          Number.isInteger(m.fromFrame) && Number.isInteger(m.toFrame) && m.toFrame > m.fromFrame)
+          boundaryEvidence.add(boundaryKey(m.word, m.written, m.accused, m.fromFrame, m.toFrame));
+      }
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {

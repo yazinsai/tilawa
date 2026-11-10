@@ -17,6 +17,9 @@ import { spliceContextFreeGaps } from "./gap-decode.js";
 import { createListener } from "./listener.js";
 import type { ListenerOptions } from "./listener.js";
 import type { LoadedModel } from "./model.js";
+import { conditionedComparison } from "./conditioned-ctc.js";
+import { addBoundaryEvidence } from "./sequence-boundaries.js";
+import type { SequenceEvidenceCandidate, PosteriorFrames } from "@tilawa/core";
 
 export interface SessionPolicy {
   /** Decision 5: a self-correction (or a recovered skip) goes `suspected` then `resolved`; count it as a mistake? Default false. */
@@ -95,7 +98,10 @@ export function createEngine(options: EngineOptions): Engine {
 
   function start(mode: Session["mode"], passage: Session["passage"], policy: SessionPolicy = {}): Session {
     const tracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
+    const tokenIds = new Map([...index.tokens].map((p, i) => [p, i + 1]));
     const checkerOptions = {
+      sequenceEvidence: (c: SequenceEvidenceCandidate, frames: PosteriorFrames) =>
+        !conditionedComparison(frames, c, tokenIds)?.reverses,
       phrases,
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
       ...(passage && { passage }),
@@ -186,7 +192,7 @@ export function createEngine(options: EngineOptions): Engine {
             }
             const spliced = options.recordEvidence && locks.length > 1
               ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const enriched = addBoundaryEvidence(await addInsertionEvidence(model, audio, spliced, index, phrases), index, phrases);
             recorded.splice(0, recorded.length, ...enriched);
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.
