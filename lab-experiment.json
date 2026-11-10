@@ -1,0 +1,13 @@
+{
+ "id": "listener-acoustic-decision-radius",
+ "component": "listener",
+ "hypothesis": "False substitutions may lie close to the recognizer's decision boundary despite high confidence; calibrated acoustic robustness radii should remove 2 false warnings while losing 1 caught mistake: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T22:16:39+00:00",
+ "author": "autolab"
+}
