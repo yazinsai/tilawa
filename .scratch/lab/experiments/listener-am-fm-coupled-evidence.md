@@ -107,16 +107,24 @@ frequency is marginalized symmetrically, and a tiny synthetic EM fit enforces
 provenance and produces finite positive-definite parameters. No recording was
 trained on the host. Eight synthetic Python/SDK sequence scores, covering both
 arms and different complete pronunciations, agree to maximum absolute error
-3.55e−15. Both TypeScript builds passed. `git diff --check` and Python syntax
-compilation passed.
+3.55e−15. Both TypeScript builds and standalone type-checking of the training
+preparation utility passed. `git diff --check` and Python syntax compilation
+passed.
 
 The full SDK suite passed locally with one worker and a 120 s process timeout:
 35 passed, one optional integration test skipped. Its first two-worker run hit
 a 30 s timeout in the existing evidence-chunking session test; the unchanged
 test passed on the final run. The initial unrestricted core run also hit
-worker-contention timeouts and was interrupted. The constrained core rerun
-is recorded below after completion. No test implementation or repository
-timeout setting was changed. These host checks do not replace Modal validation.
+worker-contention timeouts and was interrupted. The constrained core rerun completed with 759 passed and two existing
+startup-persistence cases timing out at their explicit 15 s limit, plus two
+Vitest `onTaskUpdate` RPC timeouts. The startup file also timed out on both
+cases when run alone. The additional six-case core AM-FM file passed after
+the insertion-preservation test was added. No test implementation or repository
+timeout setting was changed. An ignored Vitest alias substituted the unchanged pre-experiment checker
+for the standalone startup test: that baseline also timed out on one of the
+two cases. Its aggregate test time was 34.47 s versus 34.38 s for the draft.
+This does not establish a passing core run; the required Modal suites remain
+unverified. These host checks do not replace Modal validation.
 
 Zero practice scores were requested; all three allowances remain. Target wins,
 losses, overall change, clean-session behavior and studio behavior are unknown.
