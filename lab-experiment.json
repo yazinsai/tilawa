@@ -1,0 +1,13 @@
+{
+ "id": "listener-contrastive-edit-localization",
+ "component": "listener",
+ "hypothesis": "Isolated acoustic judges cannot distinguish a genuinely changed word from ordinary within-ayah distortion; training a contextual edit-localization model should remove 2 false warnings while losing 1 caught mistake: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T22:18:41+00:00",
+ "author": "autolab"
+}
