@@ -1,0 +1,4 @@
+{
+  "status": "needs-human",
+  "reason": "Three supervisor Modal requests failed with NotFoundError before producing training, trace or test output; the prototype channel remains inactive and the target risk premise is unmeasured."
+}
