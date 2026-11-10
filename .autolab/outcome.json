@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "Three supervisor Modal requests failed before execution with NotFoundError, leaving the exact-recombination premise and core/SDK tests unvalidated.",
+  "measured": {}
+}
