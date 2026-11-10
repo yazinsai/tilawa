@@ -1,0 +1,13 @@
+{
+ "id": "listener-am-fm-coupled-evidence",
+ "component": "listener",
+ "hypothesis": "False substitutions may match sound energy or timing separately but not their within-band coupling; jointly scoring amplitude and instantaneous-frequency changes predicts 2 false warnings removed and 1 caught substitution lost: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T16:25:28+00:00",
+ "author": "autolab"
+}
