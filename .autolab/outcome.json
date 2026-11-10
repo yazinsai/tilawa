@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "The supplied supervisor runner repeatedly fails before execution with NotFoundError, preventing training-frozen calibration, target validation and required build/tests; the optional confidence-channel prototype is retained with default activation pending.",
+  "measured": {}
+}
