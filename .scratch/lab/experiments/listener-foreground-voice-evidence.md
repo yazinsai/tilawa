@@ -2,6 +2,14 @@
 
 Status: ready-for-human
 
+Cannot complete the specified engine experiment with the currently supplied
+execution environment. The authorized supervisor interface fails before any
+container output, preventing access to the target waveforms, training-speaker
+help-train audio, and shipped model. Those inputs are required to establish the
+competing-voice premise, freeze the decomposition settings, and verify complete
+written-word recovery. Deploying arbitrary prototype settings or scoring the
+unchanged main model would not test this card.
+
 Blocked by the supervisor's Modal execution infrastructure. The acoustic premise
 is untested; this is neither a killed experiment nor a validated candidate.
 The experiment card is unchanged. No engine change remains on the branch.
@@ -74,6 +82,47 @@ shard logs or diagnostic outputs. They do not establish which runtime file or
 service was missing, and they do not justify attributing the current failure to
 storage exhaustion. GPU usage was zero. Restoration of the supervisor's Modal
 runtime/data access was requested while local work continued.
+
+## Retry after the implementation feedback
+
+The feedback asked for engine code or an explanation of why the change cannot
+be done. The blocker was rechecked rather than assuming the previous failure
+still applied. Read AGENTS.md first, then the unchanged card, audio-review
+instructions, SDK frontend and auxiliary evidence transport. Restored the saved
+prototype into SDK source temporarily while waiting for the new requests; no
+new test or acoustic result was obtained, and those files were removed again.
+
+| Run | Request | Result |
+| --- | --- | --- |
+| 6 | Read-only environment, authorized LAB_DATA directory and help-train/model layout inspection | `NotFoundError: No such file or directory` |
+| 7 | Required six-shard `bash tools/autolab_tests.sh` | `NotFoundError: No such file or directory` |
+
+Both commands were submitted through the supplied absolute-path
+`tools/autolab.py modal-run` interface and awaited to completion. Both returned
+exit code 1 and only error objects in `.autolab/modal-result-6.json` and
+`.autolab/modal-result-7.json`, with no shard logs. The layout inspection never
+ran, so it does not establish that any particular data directory is missing.
+The test harness never ran either; there is no new build/test verdict. No direct
+Modal invocation, alternate service, external corpus, or outside-worktree file
+search was attempted.
+
+Saved human findings were reused: `.scratch/lab/issues/19-real-user-clean-set.md`
+records sob-049 as said as written with a tajweed slip after the user's listening
+review. That review establishes its prior label judgment, not the presence or
+absence of overlapping speech. The available tools expose no independent audio
+review service. The original four target intervals remain an unresolved
+competing-voice listening queue; neither text traces, source provenance nor
+synthetic-tone separation tests can resolve it. Supervisor runtime restoration
+was requested through the text-input interface.
+
+The remaining work is substantive engine work, not a missing write-up: causal
+confident-speech dictionary acquisition, training-frozen speech decomposition,
+unchanged-model redecoding, complete-pronunciation/rival checks, and transport of
+the resulting span-specific veto into the scored SDK path. An uncalibrated
+separator alone is not that implementation. With no way to run its required
+training or target checks, no enabled engine change or partial asset declaration
+is retained. This explicitly explains why the branch still contains only the
+experiment report.
 
 ## Limits and next step
 
