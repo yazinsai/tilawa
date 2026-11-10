@@ -9,6 +9,16 @@ export interface SeamInsertionEvidence {
   marginal: number;
 }
 
+/** A stable quiet-event majority for exactly one primary wrong-word judgement window. */
+export interface WrongWordEventEvidence {
+  word: WordRef;
+  observed: string;
+  fromFrame: number;
+  toFrame: number;
+  quiet: number;
+  enlargedQuiet: number;
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -18,6 +28,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  wrongWordEvents?: WrongWordEventEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

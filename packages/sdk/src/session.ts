@@ -14,6 +14,7 @@ import { Resampler } from "./audio.js";
 import { capabilities } from "./capabilities.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
+import { addEventPosteriorEvidence, eventPosteriorRecheck } from "./event-posterior.js";
 import { createListener } from "./listener.js";
 import type { ListenerOptions } from "./listener.js";
 import type { LoadedModel } from "./model.js";
@@ -96,6 +97,7 @@ export function createEngine(options: EngineOptions): Engine {
   function start(mode: Session["mode"], passage: Session["passage"], policy: SessionPolicy = {}): Session {
     const tracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
     const checkerOptions = {
+      wrongWordRecheck: eventPosteriorRecheck(index),
       phrases,
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
       ...(passage && { passage }),
@@ -186,7 +188,7 @@ export function createEngine(options: EngineOptions): Engine {
             }
             const spliced = options.recordEvidence && locks.length > 1
               ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const enriched = addEventPosteriorEvidence(await addInsertionEvidence(model, audio, spliced, index, phrases), index, phrases);
             recorded.splice(0, recorded.length, ...enriched);
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.

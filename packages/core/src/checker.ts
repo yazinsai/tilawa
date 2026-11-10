@@ -51,6 +51,8 @@ export interface SeamInsertionCandidate {
 }
 
 export interface CheckerOptions {
+  /** Listener-only event marginalization. The replay is isolated and uses this judgement's fixed rows and window. */
+  wrongWordRecheck?: (candidate: WrongWordRecheck, judge: (transcription: DecodedPhoneme[]) => MemorizationErrorClass[]) => boolean;
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
   policy?: CheckerPolicy;
@@ -67,6 +69,15 @@ export interface CheckerOptions {
    * build uses {@link LISTENER_CHANNEL}. An empty phone list leaves the channel decisions off.
    */
   channel?: ChannelCounts;
+}
+
+export interface WrongWordRecheck {
+  word: WordRef;
+  observed: string;
+  fromFrame: number;
+  toFrame: number;
+  phonemes: DecodedPhoneme[];
+  rows: Float64Array[];
 }
 
 export interface Checker {
@@ -256,6 +267,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const insertionEvidence = new Map<string, number>();
+  const eventEvidence = new Set<string>();
   const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
     JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
   // A completed seam remains in the streaming window over many pushes. Its
@@ -441,6 +453,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   /** Words whose error was confirmed or ended uncertain; never reopened. */
   const decided = new Set<number>();
   const emitted: CheckerEvent[] = [];
+  /** Publish quiet-event vetoes without feeding a changed verdict back into other issue generators. */
+  const quietEvents = new Set<string>();
   let seq = 0;
 
   const event = (o: Open, state: CheckerState): CheckerEvent => {
@@ -459,7 +473,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       confidence: conf,
     };
     emitted.push(e);
-    return e;
+    return state === "confirmed" && quietEvents.has(o.id) ? { ...e, state: "uncertain" } : e;
   };
 
   /** Mean decoder confidence over an error's phonemes; for an omission, the phonemes either side of the gap. */
@@ -471,14 +485,16 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   const decide = (o: Open, out: CheckerEvent[], state?: "uncertain") => {
+    const sure = sureOf(o);
+    if (!state && sure && eventVeto(o.issue)) quietEvents.add(o.id);
     open.delete(o.issue.word);
     decided.add(o.issue.word);
-    const sure = ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false;
     out.push(event(o, state ?? (sure ? "confirmed" : "uncertain")));
   };
 
   /** The steps of the window's latest alignment. */
   let steps: Step[] = [];
+  let replayWindow: readonly [number, number] | null = null;
   /**
    * Whether the posteriors over the error's word and a recited word either side favour what was decoded over the
    * written words by `SUPPORT`; null when there's no telling (no posteriors there, or a skipped passage).
@@ -503,7 +519,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     // The ending is a few phones. Over the word plus its neighbours the next word's labels take those frames and
     // the written word looks almost as likely; on the word's own frames the consonant has to be accounted for.
     if (issue.wordLocal && issue.obsTo > issue.obsFrom) {
-      const a0 = obs[issue.obsFrom].start, b0 = obs[issue.obsTo - 1].end + 1;
+      const [a0, b0] = replayWindow ?? [obs[issue.obsFrom].start, obs[issue.obsTo - 1].end + 1];
       if (a0 < frames.startFrame || b0 > frames.endFrame) return null;
       const word = ref.slice(words[issue.word].start, words[issue.last].end);
       const need = supportNeed(issue);
@@ -514,7 +530,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     // Same joint span as the edit comparison. A wide window that leaves the next word out lets its onset consonant
     // explain the ending a second time.
     if (issue.pair && issue.supportRange && issue.supportRange[1] > issue.supportRange[0]) {
-      const a0 = obs[issue.supportRange[0]].start, b0 = obs[issue.supportRange[1] - 1].end + 1;
+      const [a0, b0] = replayWindow ?? [obs[issue.supportRange[0]].start, obs[issue.supportRange[1] - 1].end + 1];
       if (a0 < frames.startFrame || b0 > frames.endFrame) return null;
       const through = nextWord(issue.last);
       const writtenPair = ref.slice(words[issue.word].start, words[through].end);
@@ -524,8 +540,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       return expectedNll - observedNll >= need;
     }
     if (!at.length) return null;
-    const f0 = obs[Math.min(...at)].start;
-    const f1 = obs[Math.max(...at)].end + 1;
+    const [f0, f1] = replayWindow ?? [obs[Math.min(...at)].start, obs[Math.max(...at)].end + 1];
     if (f0 < frames.startFrame || f1 > frames.endFrame) return null;
     if (issue.phrase && issue.supportRange) {
       const altNll = frames.nll(ids(issue.phrase.alt), f0, f1);
@@ -694,6 +709,69 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const sureOf = (o: Open) =>
     ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false;
 
+  let preJudgement: { obs: Heard[]; open: Map<number, Open>; decided: Set<number>; read: Map<number, AyahSpan>;
+    locked: Map<number, AyahSpan>; cache: typeof seamExcisionCache } | null = null;
+  const replaceMap = <K, V>(target: Map<K, V>, source: Map<K, V>) => {
+    target.clear(); for (const [k, v] of source) target.set(k, v);
+  };
+  /** Re-run the existing generator and confirmation gates; no events or tracker updates are published. */
+  const eventVeto = (issue: Issue): boolean => {
+    if ((!options.wrongWordRecheck && !eventEvidence.size) || replayWindow || !frames ||
+      issue.cls !== "wrong_word" || issue.phrase || issue.madd) return false;
+    const at = issue.supportRange ? [issue.supportRange[0], issue.supportRange[1] - 1] :
+      steps.flatMap(s => s.op === "diag" && (index.wordAt(s.ref) === prevWord(issue.word) ||
+        index.wordAt(s.ref) === nextWord(issue.last)) ? [s.obs] : []).concat([issue.obsFrom, issue.obsTo - 1]);
+    const indices = (issue.wordLocal ? [issue.obsFrom, issue.obsTo - 1] : at).filter(k => k >= 0 && k < obs.length);
+    if (!indices.length) return false;
+    const from = Math.min(...indices), to = Math.max(...indices) + 1;
+    const a = obs[from].start, b = obs[to - 1].end + 1;
+    if (a < frames.startFrame || b > frames.endFrame) return false;
+    if (eventEvidence.has(insertionKey(toRef(issue.word), issue.observed ?? "", a, b))) return true;
+    if (!options.wrongWordRecheck || !preJudgement) return false;
+    const saved = preJudgement;
+    const candidate: WrongWordRecheck = { word: toRef(issue.word), observed: issue.observed ?? "",
+      fromFrame: a, toFrame: b, phonemes: obs.slice(from, to).map(p => ({ ...p })),
+      rows: Array.from({ length: b - a }, (_, j) => frames.row(a + j)) };
+    const replay = (transcription: DecodedPhoneme[]): MemorizationErrorClass[] => {
+      const live = { obs, steps, open: new Map(open), decided: new Set(decided), read: new Map(readAyah),
+        locked: new Map(lockedAyah), cache: new Map(seamExcisionCache) };
+      try {
+        obs = [...saved.obs.slice(0, from), ...transcription.map(p => ({ ...p })), ...saved.obs.slice(to)];
+        replaceMap(open, structuredClone(saved.open));
+        decided.clear(); for (const w of saved.decided) decided.add(w);
+        replaceMap(readAyah, structuredClone(saved.read));
+        replaceMap(lockedAyah, structuredClone(saved.locked));
+        replaceMap(seamExcisionCache, structuredClone(saved.cache));
+        replayWindow = [a, b];
+        steps = align();
+        const judged = judge(steps);
+        if (!judged) return ["wrong_word"]; // An unlocated replay is not a correct reading.
+        steps = judged.steps;
+        const issues = new Map(judged.issues);
+        for (const c of judged.lexical) if (supported(c, true) === true) issues.set(c.word, c);
+        for (const c of parallelCandidates(steps)) {
+          const existing = [...issues.values()].find(i => i.word <= c.word && c.word <= i.last);
+          if (existing && !(existing.cls === "omitted_word" && existing.word === c.word && existing.last === c.word)) continue;
+          if (supported(c, true) === true) issues.set(c.word, c);
+        }
+        const targetA = live.obs[issue.obsFrom]?.start ?? a;
+        const targetB = (live.obs[issue.obsTo - 1]?.end ?? b - 1) + 1;
+        const warnings = [...issues.values()].filter(i => (i.word <= issue.word && i.last >= issue.word) ||
+          (i.obsTo > i.obsFrom && obs[i.obsFrom]?.start < targetB && obs[i.obsTo - 1]?.end >= targetA))
+          .filter(i => heardSure(i) && supported(i) !== false).map(i => i.cls);
+        if (!warnings.length && !judged.bound.has(issue.word) && !judged.issues.has(issue.word)) return ["wrong_word"];
+        return [...new Set(warnings)];
+      } finally {
+        obs = live.obs; steps = live.steps; replayWindow = null;
+        replaceMap(open, live.open); decided.clear(); for (const w of live.decided) decided.add(w);
+        replaceMap(readAyah, live.read); replaceMap(lockedAyah, live.locked); replaceMap(seamExcisionCache, live.cache);
+      }
+    };
+    // Reproducing the primary verdict is required before marginalizing alternatives.
+    if (!replay(candidate.phonemes).includes("wrong_word")) return false;
+    return options.wrongWordRecheck(candidate, replay);
+  };
+
   /** Confirm frozen slot accusations, or drop the ones that named the copy the continuation rejected. */
   const releaseFrozen = (out: CheckerEvent[], drop: boolean, from = -1, end = Infinity) => {
     for (const [wi, f] of [...frozen]) {
@@ -706,7 +784,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   const freezeSlot = (wi: number, o: Open) => {
     if (frozen.has(wi)) return;
-    frozen.set(wi, { o, sure: sureOf(o) });
+    const sure = sureOf(o);
+    if (sure && eventVeto(o.issue)) quietEvents.add(o.id);
+    frozen.set(wi, { o, sure });
     open.delete(wi);
   };
 
@@ -2211,6 +2291,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     if (anchor === null || !obs.length) return;
     setWindow();
+    if (options.wrongWordRecheck) preJudgement = { obs: obs.map(p => ({ ...p })), open: structuredClone(open),
+      decided: new Set(decided), read: structuredClone(readAyah), locked: structuredClone(lockedAyah), cache: structuredClone(seamExcisionCache) };
     steps = align();
     const judged = judge(steps);
     const beforeGap = pendingGap;
@@ -2457,6 +2539,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const m of p.wrongWordEvents ?? []) {
+        if (Number.isFinite(m.quiet) && m.quiet > 0.5 && m.quiet <= 1 &&
+          Number.isFinite(m.enlargedQuiet) && m.enlargedQuiet > 0.5 && m.enlargedQuiet <= 1 &&
+          Number.isInteger(m.fromFrame) && Number.isInteger(m.toFrame) && m.toFrame > m.fromFrame)
+          eventEvidence.add(insertionKey(m.word, m.observed, m.fromFrame, m.toFrame));
+      }
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {
@@ -2491,7 +2579,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       return out;
     },
     mistakes() {
-      return emitted.filter((e) => e.state === "confirmed" || (policy.countResolved && e.state === "resolved"));
+      return emitted.filter((e) => (e.state === "confirmed" && !quietEvents.has(e.id)) || (policy.countResolved && e.state === "resolved"));
     },
   };
 }
