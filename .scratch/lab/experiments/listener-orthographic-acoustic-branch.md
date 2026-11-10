@@ -1,6 +1,8 @@
 # Orthographic acoustic candidate branch
 
-Status: blocked by the supplied execution service; not implemented or acoustically evaluated. The experiment card is unchanged.
+Status: blocked by the supplied execution service on the implementation retry.
+The experiment is not implemented or acoustically evaluated. The experiment
+card is unchanged.
 
 ## Prediction and mechanism
 
@@ -49,11 +51,54 @@ The supplied supervisor command failed before returning container output:
 - Run 2: normal-image working-directory/data/storage probe, one CPU shard,
   five-minute limit. Result: the same `NotFoundError`.
 - Run 3: L4 training-image working-directory/data/storage probe, one shard,
-  five-minute container limit. Still pending without container output after
-  eleven minutes of wall time; it performs no training or writes. Its pending
-  status does not establish that the training runtime works.
+  five-minute container limit. Its completed result now reports the same
+  `NotFoundError`, with no container output and $0.9929 charged.
 - Run 4: the supplied `bash tools/autolab_tests.sh` harness, six shards,
   five-minute limit. Result: the same `NotFoundError`, with no test output.
+
+## Implementation retry (11 November 2026, Bahrain)
+
+The previous review requested engine code or an explanation of why the change
+cannot be implemented. This retry read `AGENTS.md` first and submitted fresh
+requests through the supplied supervisor, without modifying that supervisor or
+trying another execution route:
+
+| Run | Request | Completed result |
+| --- | --- | --- |
+| 5 | One training-image CPU shard, ten-minute limit: print runtime paths and available storage, then inspect the first supplied training parquet's schema and metadata | `NotFoundError: No such file or directory`; no container output; $0 charged |
+| 6 | Six ordinary-image CPU shards, ten-minute limit: `bash tools/autolab_tests.sh` | `NotFoundError: No such file or directory`; no build or test output; $0 charged |
+| 7 | One L4 training-image shard, five-minute limit: print working directory, CUDA availability and whether the supplied training/scratch mounts exist | Pending after more than nine minutes of wall time, with no container output |
+
+Run 5 never returned its first working-directory print. The failure therefore
+does not establish which remote file, application or volume is missing, and
+does not establish a disk-space problem. Run 6 also failed before returning
+test output; no test has passed or failed on its assertions in this retry.
+The corresponding supervisor result files are local, untracked
+`.autolab/modal-result-5.json` and `.autolab/modal-result-6.json`.
+Run 7's pending status does not establish that a GPU container started; it
+performs no training or writes. Its eventual result can be retrieved with the
+supplied `python3 /Users/rock/ai/projects/tilawa/tools/autolab.py modal-result 7`
+command. The stated five-minute limit has not bounded the startup/result wait.
+
+The mechanism cannot be completed here because the authorized training audio,
+speaker metadata and prior checkpoints are supplied only inside those remote
+containers. This worktree has no training checkpoint and no `node_modules`;
+its only tracked ONNX model is the tiny unit-test fixture. Until a container
+starts, the required speaker exclusions and letter transcripts cannot be
+audited, the matched encoders cannot be trained or selected on training-only
+partitions, and a complete exported asset bundle cannot be verified. The
+user explicitly requires the complete bundle before handoff. Declaring a
+missing branch or scoring the baseline would leave that requirement unmet.
+
+Source inspection also identifies a necessary integration detail for the
+eventual implementation. The current checker exposes `seamInsertion` only
+after exact phone spelling and student neighbour certification. The new
+letter branch must receive the existing seam bounds before that spelling
+filter; otherwise the remaining candidate-free targets would never be
+consulted. Its complete word hypotheses must then pass the unchanged
+original-audio teacher gate and exclusions through the existing certificate
+route. This observation describes the required wiring; it is not a measured
+acoustic recovery or an implemented change.
 
 No corpus, speaker exclusion, matched-arm training, checkpoint selection,
 ONNX export or acoustic premise test has completed. No target was evaluated,
@@ -72,8 +117,8 @@ incomplete model bundle to hand back. Implementation and its required unit
 tests must resume after the supplied execution service can start a container.
 No fold or discard was performed.
 
-The supervisor's result files for completed runs report zero actual GPU spend;
-run 3 has a small outstanding reservation. No killed outcome was written,
-because neither acoustic stopping condition was measured. Restore the supplied
-runtime and its mounts, then retry the corpus audit before implementing or
-scoring the experiment.
+No killed outcome was written, because neither acoustic stopping condition was
+measured. The completed run 3 charge updates the previously pending reservation;
+runs 5 and 6 report $179.01 of the $180 GPU budget remaining. Restore the supplied
+execution service and its mounts, then complete the corpus audit, matched-arm
+training, bundle verification and actual-window premise check before scoring.
