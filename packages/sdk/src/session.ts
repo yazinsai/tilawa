@@ -3,7 +3,6 @@ import type {
   CapabilityEvent,
   CheckerEvent,
   CheckerPolicy,
-  DecodedPhoneme,
   EngineEvent,
   PhonemeEvidence,
   PhraseAsset,
@@ -11,9 +10,11 @@ import type {
   WordRef,
 } from "@tilawa/core";
 import { Resampler } from "./audio.js";
+import { evidenceGrid } from "./evidence-grid.js";
 import { capabilities } from "./capabilities.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
+import { addCycleEvidence, CycleObservations, cycleComparison, cycleReversal } from "./cycle-turbulence.js";
 import { createListener } from "./listener.js";
 import type { ListenerOptions } from "./listener.js";
 import type { LoadedModel } from "./model.js";
@@ -95,10 +96,24 @@ export function createEngine(options: EngineOptions): Engine {
 
   function start(mode: Session["mode"], passage: Session["passage"], policy: SessionPolicy = {}): Session {
     const tracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
+    if (model.cycle && (model.manifest.sampleRate !== 16000 || model.manifest.frameMs !== 40))
+      throw new Error("cycle turbulence scorer requires 16 kHz audio and a 40 ms evidence clock");
+    const cycleObservations = model.cycle ? new CycleObservations() : null;
+    const cycleDecisions = new Map<string,boolean>();
     const checkerOptions = {
       phrases,
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
       ...(passage && { passage }),
+      ...(model.cycle && { sequenceEvidence(c: import("@tilawa/core").SequenceEvidenceCandidate) {
+        const key=JSON.stringify(c), cached=cycleDecisions.get(key);
+        if (cached !== undefined) return cached;
+        const frames=cycleObservations!.frames;
+        if (c.fromFrame<0 || c.toFrame*4>frames.length) return true;
+        const comparison=cycleComparison(model.cycle!,frames.slice(c.fromFrame*4,c.toFrame*4),c);
+        const permitted=!(comparison && cycleReversal(comparison));
+        cycleDecisions.set(key,permitted);
+        return permitted;
+      } }),
     };
     const checker = createChecker(index, checkerOptions);
     const listener = createListener(model, { posteriors: true, ...options.listener });
@@ -115,13 +130,14 @@ export function createEngine(options: EngineOptions): Engine {
     const pcmParts: Float32Array[] = [];
     let pcmResampler: Resampler | null = null;
     const keepAudio = (samples: Float32Array, sampleRate: number) => {
-      if (!options.recordEvidence && !model.insertionTeacher) return;
+      if (!options.recordEvidence && !model.insertionTeacher && !model.cycle) return;
       let pcm = samples;
       if (sampleRate !== rate) {
         if (!pcmResampler || pcmResampler.from !== sampleRate) pcmResampler = new Resampler(sampleRate, rate);
         pcm = pcmResampler.push(samples);
       }
       if (pcm.length) pcmParts.push(Float32Array.from(pcm));
+      cycleObservations?.push(pcm);
     };
     const subscribers = new Set<(e: EngineEvent) => void>();
     let queue = Promise.resolve();
@@ -134,7 +150,7 @@ export function createEngine(options: EngineOptions): Engine {
     const cells = evidenceGrid(policy.evidenceMs ?? model.manifest.frameMs);
     const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
-      if (options.recordEvidence || model.insertionTeacher) recorded.push(e);
+      if (options.recordEvidence || model.insertionTeacher || model.cycle) recorded.push(e);
       // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
       const out = tracker.push(trackerInput(e));
       noteLocks(out);
@@ -172,11 +188,12 @@ export function createEngine(options: EngineOptions): Engine {
           if (pcmResampler) {
             const tail = pcmResampler.flush();
             if (tail.length) pcmParts.push(Float32Array.from(tail));
+            cycleObservations?.push(tail);
           }
           const e = await listener.end();
           if (e) cells.add(e);
           const events = [...feed(cells.rest()), ...finish()];
-          if ((options.recordEvidence || model.insertionTeacher) && pcmParts.length) {
+          if ((options.recordEvidence || model.insertionTeacher || model.cycle) && pcmParts.length) {
             const n = pcmParts.reduce((s, p) => s + p.length, 0);
             const audio = new Float32Array(n);
             let o = 0;
@@ -186,7 +203,8 @@ export function createEngine(options: EngineOptions): Engine {
             }
             const spliced = options.recordEvidence && locks.length > 1
               ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const insertions = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const enriched = addCycleEvidence(model.cycle, audio, insertions, index, phrases, checkerOptions, mode, undefined, policy.evidenceMs);
             recorded.splice(0, recorded.length, ...enriched);
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.
@@ -228,54 +246,3 @@ export function createEngine(options: EngineOptions): Engine {
 
 /** Before its first lock the tracker searches once per second of evidence: shorter prefixes lock on the wrong ayah. */
 const ACQUIRE_MS = 1000;
-
-/**
- * Cuts an evidence stream into cells of `ms` audio by phoneme start, whatever chunks it arrives in. A cell is ready once
- * a phoneme from a later cell arrives or decoding has passed its end.
- */
-function evidenceGrid(ms: number) {
-  let held: DecodedPhoneme[] = [];
-  let frameMs = 0;
-  let inventory = "";
-  let post: { k: number; startFrame: number; ids: number[]; probs: number[] } | null = null;
-  const cellOf = (frame: number) => Math.floor((frame * frameMs) / ms);
-  const cut = (n: number, until: number, decodedTo?: number): PhonemeEvidence => {
-    const e: PhonemeEvidence = { inventory, frameMs, phonemes: held.slice(0, n), ...(decodedTo !== undefined && { decodedTo }) };
-    held = held.slice(n);
-    if (post) {
-      const take = Math.max(0, Math.min(until, post.startFrame + post.ids.length / post.k) - post.startFrame);
-      e.posteriors = { k: post.k, startFrame: post.startFrame, nFrames: take, ids: post.ids.splice(0, take * post.k), probs: post.probs.splice(0, take * post.k) };
-      post.startFrame += take;
-    }
-    return e;
-  };
-  return {
-    add(e: PhonemeEvidence) {
-      frameMs = e.frameMs;
-      inventory = e.inventory;
-      held.push(...e.phonemes);
-      if (e.posteriors) {
-        post ??= { k: e.posteriors.k, startFrame: e.posteriors.startFrame, ids: [], probs: [] };
-        post.ids.push(...Array.from(e.posteriors.ids));
-        post.probs.push(...Array.from(e.posteriors.probs));
-      }
-    },
-    /** Complete cells; `decoded`: the first frame whose phonemes may still be coming, when the source knows it. */
-    ready(decoded?: number): PhonemeEvidence[] {
-      const out: PhonemeEvidence[] = [];
-      while (held.length) {
-        const c = cellOf(held[0].start);
-        const n = held.findIndex((p) => cellOf(p.start) > c);
-        if (n < 0 && !(decoded !== undefined && cellOf(decoded) > c)) break;
-        const end = Math.ceil(((c + 1) * ms) / frameMs);
-        out.push(cut(n < 0 ? held.length : n, n < 0 ? end : held[n].start, end));
-      }
-      return out;
-    },
-    rest(): PhonemeEvidence[] {
-      const out = this.ready();
-      if (held.length || post?.ids.length) out.push(cut(held.length, Infinity));
-      return out;
-    },
-  };
-}
