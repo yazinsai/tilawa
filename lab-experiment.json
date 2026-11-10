@@ -1,0 +1,13 @@
+{
+ "id": "listener-encoder-depth-trajectory",
+ "component": "listener",
+ "hypothesis": "False substitutions may arise when later encoder layers overwrite earlier acoustic distinctions; scoring the trajectory across encoder depth should remove 2 false warnings while losing 1 caught substitution, predicting listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T21:45:35+00:00",
+ "author": "autolab"
+}
