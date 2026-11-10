@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "Supervisor Modal requests fail with NotFoundError, blocking training-frozen calibration, build/tests and target replay; the committed recovery model remains opt-in.",
+  "measured": {}
+}
