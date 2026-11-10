@@ -1,5 +1,7 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import { coalescenceCosts } from "./coalescence.js";
+import type { CoalescenceModel } from "./coalescence.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -45,7 +47,7 @@ export interface LocalSearch {
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">, model?: CoalescenceModel): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -57,6 +59,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     ayahEnd[ayahStart.length - 1] = w.end;
   });
   const wordStarts = new Set(index.words.map((w) => w.start));
+  const channel = model ? coalescenceCosts(model, ref, wordStarts) : undefined;
   // At-Tawba is the one surah entered without a basmala.
   const surahFirst = new Set(index.words.filter((w, i) => i > 0 && w.surah !== index.words[i - 1].surah && w.surah !== 9).map((w) => w.start));
   const surahOf = (offset: number) => index.words[index.wordAt(offset)].surah;
@@ -114,7 +117,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
         let bo = origin[i];
         let be = edits[i] + 1;
         if (i > 0) {
-          const s = subCost(ref[at - 1], p) + entry(at - 1);
+          const s = subCost(ref[at - 1], p) + entry(at - 1) + (channel?.ordinary(at - 1) ?? 0);
           const edit = ref[at - 1] === p ? 0 : 1;
           // On a tie, consuming the reference beats an insertion, so a correct recitation keeps advancing.
           if (cost[i - 1] + s <= bc) {
@@ -131,7 +134,26 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
               be = edit;
             }
           }
-          const d = c[i - 1] + deletionCost(ref, at - 1) + entry(at - 1);
+          // Consuming transitions read the immutable previous observation row. A coalescence consumes two
+          // distinct reference articulations once; it cannot reuse the observation or absorb a word boundary.
+          if (channel && i >= 2) {
+            const from = at - 2;
+            const merged = channel.merged(from, p) + entry(from);
+            if (cost[i - 2] + merged < bc) {
+              bc = cost[i - 2] + merged;
+              bo = origin[i - 2];
+              be = edits[i - 2] + 1;
+            }
+            if (from !== best && wordStarts.has(from)) {
+              const j = base + JUMP_COST + Math.abs(from - best) * JUMP_DISTANCE + merged + (entry(from) ? 0 : crossing(from));
+              if (j < bc) {
+                bc = j;
+                bo = from;
+                be = 1;
+              }
+            }
+          }
+          const d = c[i - 1] + deletionCost(ref, at - 1) + entry(at - 1) + (channel?.ordinary(at - 1) ?? 0);
           if (d < bc) {
             bc = d;
             bo = o[i - 1];

@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "All three supervisor requests failed before execution with NotFoundError, preventing training calibration, target validation and required build/tests; the prototype has no fitted default model.",
+  "measured": {}
+}
