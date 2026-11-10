@@ -1,0 +1,13 @@
+{
+ "id": "listener-reverberant-emission-memory",
+ "component": "listener",
+ "hypothesis": "Acoustic scoring may attribute lingering energy from earlier sounds to the current consonant; explicitly modelling that cross-phone reverberation should remove 1 false warning, with no losses predicted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T22:47:36+00:00",
+ "author": "autolab"
+}
