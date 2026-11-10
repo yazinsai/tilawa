@@ -55,6 +55,20 @@ describe("exact-window listener AM-FM certificates",()=> {
     run([],()=>false,vetoed);
     expect(vetoed).toEqual(baseline.map(e=>e.state==="confirmed" && e.errorClass==="wrong_word" ? {...e,state:"uncertain"} : e));
   });
+  it("preserves confirmed additions when every string substitution is vetoed",()=> {
+    const word=(surah:number,ayah:number,n:number)=>index.words.find(w=>w.surah===surah&&w.ayah===ayah&&w.word===n)!;
+    const first=word(2,255,18), last=word(2,255,30), before=word(2,255,23), extra=word(108,1,3);
+    const chunks=syntheticFixture(index,{id:"am-fm-addition-preservation",from:first,to:last,chunkSize:4,edits:[
+      {kind:"ins",at:before.start-first.start,text:index.phonemes.slice(extra.start,extra.end)},
+    ]}).evidence.map(e=>withPosteriors(index,e));
+    const check=(veto:boolean)=> {
+      const c=createChecker(index,{passage:{from:first,to:last},sequenceEvidence:veto?()=>false:undefined});
+      for(const e of chunks)c.push(e,[]);c.end();return c.mistakes();
+    };
+    const baseline=check(false);
+    expect(baseline.some(e=>e.errorClass==="added_word")).toBe(true);
+    expect(check(true)).toEqual(baseline);
+  });
   it("preserves graph confirmations when the side scorer rejects every string comparison",()=> {
     const paths=parallelPaths(index);
     const wi=index.words.findIndex(w=>w.surah===84 && w.ayah===25 && w.word===1);
