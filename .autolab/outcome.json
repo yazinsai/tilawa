@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "The supplied supervisor Modal runner fails before command execution with NotFoundError, preventing training-only calibration, target validation and required build/tests; the prototype is retained with production integration pending.",
+  "measured": {}
+}
