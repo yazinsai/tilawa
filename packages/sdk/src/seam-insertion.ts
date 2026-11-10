@@ -1,4 +1,4 @@
-import { createChecker, createTracker, trackerInput, PosteriorFrames, PHRASE_SWITCH, seamInsertionMarginal, collapseHeld, lexicalWords } from "@tilawa/core";
+import { createChecker, createTracker, trackerInput, PosteriorFrames, PHRASE_SWITCH, seamInsertionMarginal, collapseHeld, lexicalWords, openEdgeUtteranceSplits } from "@tilawa/core";
 import type { PhonemeEvidence, PhraseAsset, ReferenceIndex, SeamInsertionCandidate, SeamInsertionEvidence } from "@tilawa/core";
 import type { LoadedModel } from "./model.js";
 
@@ -39,10 +39,10 @@ export async function addInsertionEvidence(model: LoadedModel, audio: Float32Arr
   const candidates: SeamInsertionCandidate[] = [];
   const seen = new Set<string>();
   const tracker = createTracker(index, { mode: "free", phrases });
-  const checker = createChecker(index, { phrases, seamInsertion(c) {
+  const checker = createChecker(index, { phrases, parseSeamUtterance: openEdgeUtteranceSplits, seamInsertion(c) {
     const key = JSON.stringify(c);
     if (!seen.has(key)) { seen.add(key); candidates.push(c); }
-    // Discovery runs the unchanged generator, including its issue state.
+    // Discovery keeps the folded issue state and collects every eligible split.
     return true;
   } });
   for (const e of cells) checker.push(e, tracker.push(trackerInput(e)));

@@ -14,6 +14,7 @@ import { minGapFrames } from "./gap-decode.js";
 import { procliticOnset, waqfMarked } from "./mushaf-marks.js";
 import { absenceMargin } from "./ayah-ledger.js";
 import { excisedNeighbourMargins, surplusNasal } from "./seam-excision.js";
+import { openEdgeUtteranceSplits } from "./utterance-parse.js";
 import { PHRASE_PEAK, PHRASE_SWITCH, letterSkeleton, parallelPaths } from "./parallel-phrases.js";
 import { isMaddLetter, maddSites, stemConsonant } from "./madd-drops.js";
 import { formulaSlots } from "./formula-slots.js";
@@ -53,6 +54,9 @@ export interface SeamInsertionCandidate {
 export interface CheckerOptions {
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
+  /** Listener discovery may parse matched neighbour fragments at utterance edges.
+   * Certificate replay uses the same parser; ordinary primary checking does not. */
+  parseSeamUtterance?: typeof openEdgeUtteranceSplits;
   policy?: CheckerPolicy;
   /** Non-Quran phrases: an inserted block that is one of these (or a basmala) is not an added word. */
   phrases?: PhraseAsset;
@@ -1944,29 +1948,35 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
           ref.slice(words[wi].start, words[wi].end), index.isolatedWordForms?.[wi] ?? "",
         ].filter(Boolean))]);
         // Longer spans first: a whole word takes precedence over its lexical tail.
-        for (const { from: a, to: b } of seamUtterances) {
+        for (const utterance of seamUtterances) {
           if (found) break;
-          if (a < from || b > end.obsFrom) continue;
-          if (seamJunk[b] !== seamJunk[a]) continue;
-          // Excision must take an entire pause-bounded utterance, not a fragment
-          // of a word or a held run that the remaining frames can still explain.
-          const said = stripEdge(surplusNasal(obs.slice(a, b).map(p => p.p).join("")));
-          if (!said || !lexical.surplusWord(w1, said) || phraseSpan(said)) continue;
-          if (lexical.fragmentOfSeam(w1, said)) continue;
-          const margins = excisedNeighbourMargins(frames, p => tokenId.get(p) ?? 0, forms, f0, f1,
-            [obs[a].start, obs[b - 1].end + 1]);
-          if (!margins || margins.some(m => m < PHRASE_SWITCH)) continue;
-          const preceding = prevWord(prev);
-          const prefix = visits.filter(v => v.word === preceding && ayahOf[preceding] === ayahOf[prev] &&
-            v.obsFrom >= 0 && v.obsTo <= left.obsFrom).sort((a, b) => b.obsTo - a.obsTo)[0];
-          const candidate: SeamInsertionCandidate = { word: w1, said,
-            fromFrame: obs[a].start, toFrame: obs[b - 1].end + 1, seamFromFrame: f0, seamToFrame: f1,
-            prefixFrame: prefix && obs[prefix.obsFrom].start };
-          const permitted = options.seamInsertion ? options.seamInsertion(candidate) :
-            (insertionEvidence.get(insertionKey(words[w1], said, candidate.fromFrame, candidate.toFrame)) ?? 0) > 0.5;
-          if (!permitted) continue;
-          found = { cls: "added_word", word: w1, last: w1, obsFrom: a, obsTo: b, observed: said, lexicon: true };
-          break;
+          if (utterance.from < from || utterance.to > end.obsFrom) continue;
+          if (seamJunk[utterance.to] !== seamJunk[utterance.from]) continue;
+          const parse = options.parseSeamUtterance ?? (insertionEvidence.size ? openEdgeUtteranceSplits : undefined);
+          const splits = parse?.(obs.slice(utterance.from, utterance.to).map(p => p.p).join(""), forms[0], forms[1]) ?? [];
+          const spans = [utterance, ...splits.map(s => ({ from: utterance.from + s.from, to: utterance.from + s.to }))];
+          for (const { from: a, to: b } of spans) {
+            // The whole utterance remains first. Parsed edges consume disjoint
+            // tokens matched to the neighbours, and only the middle is excised.
+            const said = stripEdge(surplusNasal(obs.slice(a, b).map(p => p.p).join("")));
+            if (!said || !lexical.surplusWord(w1, said) || phraseSpan(said)) continue;
+            if (lexical.fragmentOfSeam(w1, said)) continue;
+            const margins = excisedNeighbourMargins(frames, p => tokenId.get(p) ?? 0, forms, f0, f1,
+              [obs[a].start, obs[b - 1].end + 1]);
+            if (!margins || margins.some(m => m < PHRASE_SWITCH)) continue;
+            const preceding = prevWord(prev);
+            const prefix = visits.filter(v => v.word === preceding && ayahOf[preceding] === ayahOf[prev] &&
+              v.obsFrom >= 0 && v.obsTo <= left.obsFrom).sort((a, b) => b.obsTo - a.obsTo)[0];
+            const candidate: SeamInsertionCandidate = { word: w1, said,
+              fromFrame: obs[a].start, toFrame: obs[b - 1].end + 1, seamFromFrame: f0, seamToFrame: f1,
+              prefixFrame: prefix && obs[prefix.obsFrom].start };
+            const permitted = options.seamInsertion ? options.seamInsertion(candidate) :
+              (insertionEvidence.get(insertionKey(words[w1], said, candidate.fromFrame, candidate.toFrame)) ?? 0) > 0.5;
+            if (!permitted) continue;
+            found ??= { cls: "added_word", word: w1, last: w1, obsFrom: a, obsTo: b, observed: said, lexicon: true };
+            // Discovery retains every eligible split for independent teacher
+            // verification. Final replay still keeps the first permitted one.
+          }
         }
         seamExcisionCache.set(key, { until: f1, span: found ? {
           from: found.obsFrom - from, to: found.obsTo - from, said: found.observed!,

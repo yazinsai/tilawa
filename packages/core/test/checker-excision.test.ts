@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createChecker } from "../src/checker.js";
+import { openEdgeUtteranceSplits } from "../src/utterance-parse.js";
 import { lexicalWords } from "../src/checker-lexical.js";
 import { loadReferenceIndex } from "../src/reference.js";
 import { syntheticFixture, withPosteriors } from "../src/fixtures/index.js";
@@ -12,7 +13,8 @@ const phrases = JSON.parse(readFileSync(new URL("../assets/phrases-v1.json", imp
 const w = (surah: number, ayah: number, word: number): WordRef => ({ surah, ayah, word });
 const wi = (r: WordRef) => index.words.findIndex(x => x.surah === r.surah && x.ayah === r.ayah && x.word === r.word);
 
-function check(inner: boolean, extra: string, pause = true, endPause = true, gate: "generator" | "missing" | "mismatch" | number = "generator") {
+function check(inner: boolean, extra: string, pause = true, endPause = true, gate: "generator" | "missing" | "mismatch" | number = "generator",
+  { openEdges = false, blurOnset = true } = {}) {
   const from = inner ? w(38, 4, 1) : w(44, 9, 1);
   const to = inner ? w(38, 5, 1) : w(44, 11, 5);
   const seam = inner ? w(38, 4, 6) : w(44, 10, 1);
@@ -33,13 +35,13 @@ function check(inner: boolean, extra: string, pause = true, endPause = true, gat
     evidence.phonemes[i] = { ...p, start: p.start + 20, end: p.end + 20 };
   }
   const written = evidence.phonemes[at].p;
-  evidence.phonemes[at] = { ...evidence.phonemes[at], p: "غ", conf: 0.5 };
-  const painted = withPosteriors(index, evidence, j => j === at ? [["غ", 0.5], [written, 0.42], ["", 0.06]] : undefined);
+  if (blurOnset) evidence.phonemes[at] = { ...evidence.phonemes[at], p: "غ", conf: 0.5 };
+  const painted = withPosteriors(index, evidence, j => blurOnset && j === at ? [["غ", 0.5], [written, 0.42], ["", 0.06]] : undefined);
   // Isolate lexical confirmation: ordinary added-word support must not make the
   // missing-pause control pass through an unrelated path.
   const options = { passage: { from, to }, phrases, policy: { localWindow: { nats: Infinity } } };
   if (typeof gate === "number" || gate === "mismatch") {
-    const discovery = createChecker(index, { ...options, seamInsertion(c) {
+    const discovery = createChecker(index, { ...options, ...(openEdges && { parseSeamUtterance: openEdgeUtteranceSplits }), seamInsertion(c) {
       (painted.phonemes[0].seamInsertions ??= []).push({ word: seam, observed: c.said,
         fromFrame: c.fromFrame + (gate === "mismatch" ? 1 : 0), toFrame: c.toFrame,
         marginal: typeof gate === "number" ? gate : 1 });
@@ -47,7 +49,8 @@ function check(inner: boolean, extra: string, pause = true, endPause = true, gat
     } });
     discovery.push(painted, []); discovery.end();
   }
-  const checker = createChecker(index, { ...options, ...(gate === "generator" && { seamInsertion: () => true }) });
+  const checker = createChecker(index, { ...options, ...(gate === "generator" && { seamInsertion: () => true }),
+    ...(openEdges && gate === "generator" && { parseSeamUtterance: openEdgeUtteranceSplits }) });
   checker.push(painted, []);
   checker.end();
   return checker.mistakes().filter(e => e.errorClass === "added_word" && wi(e.location) === wi(seam));
@@ -79,5 +82,19 @@ describe("spelled seam spans with posterior-certified neighbours", () => {
     expect(lex.surplusWord(seam, "تَق")).not.toBeNull();
     expect(lex.fragmentOfSeam(seam, "تَق")).toBe(true);
     expect(lex.fragmentOfSeam(seam, "وَءِن")).toBe(false);
+  });
+  it("finds a complete middle word only with pronunciation-matched open edges", () => {
+    const utterance = "بُۥۥن" + "وَءِںںں" + "فَ";
+    // Keep the next-word visit: this fixture tests segmentation, whereas the
+    // original whole-word fixture above separately tests a blurred onset.
+    expect(check(false, utterance, true, true, "generator", { blurOnset: false })).toHaveLength(0);
+    expect(check(false, utterance, true, true, "generator", { openEdges: true, blurOnset: false })).toMatchObject([{ observed: "وَءِن" }]);
+    expect(check(false, "زُۥۥن" + "وَءِںںں" + "فَ", true, true, "generator", { openEdges: true, blurOnset: false })).toHaveLength(0);
+  });
+  it("replays a parsed middle on the ordinary certificate route with the same verification bar", () => {
+    const utterance = "بُۥۥن" + "وَءِںںں" + "فَ";
+    expect(check(false, utterance, true, true, 0.5001, { openEdges: true, blurOnset: false })).toMatchObject([{ observed: "وَءِن" }]);
+    for (const gate of [0.5, "missing", "mismatch"] as const)
+      expect(check(false, utterance, true, true, gate, { openEdges: true, blurOnset: false })).toHaveLength(0);
   });
 });
