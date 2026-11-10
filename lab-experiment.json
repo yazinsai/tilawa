@@ -1,0 +1,13 @@
+{
+ "id": "listener-edit-typed-acoustic-verdicts",
+ "component": "listener",
+ "hypothesis": "An acoustic verdict may survive an issue's change from addition to omission even though its compared hypotheses have changed; edit-typed verification records should remove 1 false warning, predicting listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T21:15:07+00:00",
+ "author": "autolab"
+}
