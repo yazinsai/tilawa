@@ -1,0 +1,13 @@
+{
+ "id": "listener-localization-information",
+ "component": "listener",
+ "hypothesis": "Spoken but blurred words may have reliably localized acoustic evidence despite poor absolute likelihood; measuring acoustic information about their boundaries predicts 1 omission false warning removed, no losses counted: listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T23:48:40+00:00",
+ "author": "autolab"
+}
