@@ -1,0 +1,13 @@
+{
+ "id": "listener-spectral-ridge-connectivity",
+ "component": "listener",
+ "hypothesis": "False substitutions may preserve the written pronunciation's connected spectral ridges despite misleading band energies; topology-sensitive acoustic scoring predicts 1 false warning removed, no losses counted: listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T20:46:11+00:00",
+ "author": "autolab"
+}
