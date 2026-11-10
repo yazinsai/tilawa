@@ -1,0 +1,13 @@
+{
+ "id": "tracker-session-confusion-posterior",
+ "component": "tracker",
+ "hypothesis": "A pooled acoustic-error model may misprice this reciter's sound confusions and favour the rhyme restart; infer a session-specific confusion distribution from earlier speech, predicting tracker -1 and overall 0 after one exposed listener warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T15:26:00+00:00",
+ "author": "autolab"
+}
