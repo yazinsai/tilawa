@@ -1,0 +1,13 @@
+{
+ "id": "tracker-event-preserving-recombination",
+ "component": "tracker",
+ "hypothesis": "Cost-equivalent tracker histories may differ in which text was read, yet recombination discards that distinction; preserving event semantics should remove 1 false skip, predicting tracker -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T21:46:40+00:00",
+ "author": "autolab"
+}
