@@ -1,5 +1,7 @@
 /** Node entry: onnxruntime-node, models from a directory, WAV input. */
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { validateRecurrenceModel } from "./acoustic-recurrence.js";
 import { dirname, join, relative } from "node:path";
 import * as ort from "onnxruntime-node";
 import { MEMORIZATION_CLASSES } from "./capabilities.js";
@@ -22,7 +24,18 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachRecurrenceModel(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads), dir);
+}
+
+async function attachRecurrenceModel(model: LoadedModel, dir: string): Promise<LoadedModel> {
+  const asset = MODEL_REGISTRY.acousticRecurrence;
+  if (!asset) return model;
+  const bytes = await readFile(join(dir, asset.file));
+  if (bytes.length !== asset.bytes || createHash("sha256").update(bytes).digest("hex") !== asset.sha256)
+    throw new Error("Acoustic recurrence asset checksum mismatch");
+  if (asset.inventory !== model.manifest.inventory) throw new Error("Acoustic recurrence inventory mismatch");
+  model.acousticRecurrence = validateRecurrenceModel(JSON.parse(bytes.toString("utf8")), model.manifest.inventory, model.manifest.tokens);
+  return model;
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +100,6 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  return attachRecurrenceModel(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
+    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads), join(o.cacheDir, `${tier.id}@${tier.version}`));
 }

@@ -9,6 +9,22 @@ export interface SeamInsertionEvidence {
   marginal: number;
 }
 
+/** Complete symmetric comparison on the exact original string-path warning window. */
+export interface AcousticRecurrenceEvidence {
+  word: WordRef;
+  written: string;
+  accused: string;
+  fromFrame: number;
+  toFrame: number;
+  relationshipFromFrame: number;
+  relationshipToFrame: number;
+  localWritten: number;
+  localAccused: number;
+  relationalWritten: number;
+  relationalAccused: number;
+  positiveWritten: number;
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -18,6 +34,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  acousticRecurrence?: AcousticRecurrenceEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

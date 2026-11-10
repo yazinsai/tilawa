@@ -50,7 +50,19 @@ export interface SeamInsertionCandidate {
   prefixFrame?: number;
 }
 
+export interface WrongWordAcousticCandidate {
+  word: WordRef;
+  written: string;
+  accused: string;
+  fromFrame: number;
+  toFrame: number;
+  relationshipFromFrame: number;
+  relationshipToFrame: number;
+}
+
 export interface CheckerOptions {
+  /** Read-only discovery of otherwise supported string-path substitutions. False may only veto. */
+  wrongWordAcoustic?: (candidate: WrongWordAcousticCandidate) => boolean;
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
   policy?: CheckerPolicy;
@@ -256,6 +268,16 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const insertionEvidence = new Map<string, number>();
+  const recurrenceEvidence = new Set<string>();
+  const recurrenceKey = (c: WrongWordAcousticCandidate) => JSON.stringify([c.word.surah,c.word.ayah,c.word.word,c.written,c.accused,c.fromFrame,c.toFrame,c.relationshipFromFrame,c.relationshipToFrame]);
+  const acousticSupport = (issue: Issue, written: string, accused: string, fromFrame: number, toFrame: number, supported: boolean) => {
+    if (!supported || issue.cls !== "wrong_word" || issue.phrase) return supported;
+    if (issue.obsFrom < 0 || issue.obsTo <= issue.obsFrom || issue.obsTo > obs.length) return supported;
+    const candidate = { word: toRef(issue.word), written, accused, fromFrame, toFrame,
+      relationshipFromFrame: obs[issue.obsFrom].start, relationshipToFrame: obs[issue.obsTo-1].end+1 };
+    if (recurrenceEvidence.has(recurrenceKey(candidate))) return false;
+    return options.wrongWordAcoustic?.(candidate) !== false;
+  };
   const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
     JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
   // A completed seam remains in the streaming window over many pushes. Its
@@ -509,7 +531,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const need = supportNeed(issue);
       const expectedNll = frames.nll(ids(word), a0, b0), observedNll = frames.nll(ids(issue.observed ?? ""), a0, b0);
       if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-      return expectedNll - observedNll >= need;
+      return acousticSupport(issue, word, issue.observed ?? "", a0, b0, expectedNll - observedNll >= need);
     }
     // Same joint span as the edit comparison. A wide window that leaves the next word out lets its onset consonant
     // explain the ending a second time.
@@ -544,7 +566,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const need = supportNeed(issue);
     const expectedNll = frames.nll(ids(written), f0, f1), observedNll = frames.nll(ids(decoded), f0, f1);
     if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-    return expectedNll - observedNll >= need;
+    return acousticSupport(issue, written, decoded, f0, f1, expectedNll - observedNll >= need);
   };
 
   /** Waqf and pause marks at the edges of a heard span. They are not part of the word. */
@@ -2457,6 +2479,14 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const c of p.acousticRecurrence ?? []) {
+        if (Number.isInteger(c.fromFrame) && Number.isInteger(c.toFrame) && c.toFrame > c.fromFrame &&
+          Number.isInteger(c.relationshipFromFrame) && Number.isInteger(c.relationshipToFrame) &&
+          c.relationshipFromFrame >= c.fromFrame && c.relationshipToFrame <= c.toFrame && c.relationshipToFrame > c.relationshipFromFrame &&
+          [c.localWritten,c.localAccused,c.relationalWritten,c.relationalAccused,c.positiveWritten].every(Number.isFinite) &&
+          c.localWritten < c.localAccused && c.relationalWritten > c.relationalAccused && c.positiveWritten > 0)
+          recurrenceEvidence.add(recurrenceKey(c));
+      }
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {
