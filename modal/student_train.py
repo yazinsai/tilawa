@@ -2,7 +2,10 @@
 
 The CTC target is the teacher's greedy path from the tlog pass, or with `--target spliced` the reference inside the
 teacher-anchored span and the teacher at the clip edges, runs collapsed (`student.spliced_target`). `--kd-weight` adds cross-entropy to the teacher's
-renormalised top-5 posteriors per frame (E5). `--init librispeech-m` starts `full` from icefall's streaming
+renormalised top-5 posteriors per frame (E5). Programmatic `kd_mode="temporal"`,
+`target="reference"` and `temporal_calibration=<JSON path>` replace only the KD
+correspondence with occurrence-constrained monotone transport. Its bounds must
+be measured on training data before use. `--init librispeech-m` starts `full` from icefall's streaming
 Zipformer-M (E2). Student and teacher both emit at 25 Hz.
 
     modal run modal/student_train.py --name smoke --size lite --max-hours 5 --epochs 1 --eval-max 200
@@ -38,6 +41,7 @@ image = (
     .pip_install("rapidfuzz==3.14.1")
     .add_local_file("tools/student.py", "/root/tools/student.py")
     .add_local_file("tools/per_breakdown.py", "/root/tools/per_breakdown.py")
+    .add_local_file("modal/student_temporal.py", "/root/tools/student_temporal.py")
     .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
 app = modal.App("tilawa-student-train", image=image)
@@ -80,6 +84,8 @@ DEFAULTS = dict(
     ctc_weight=1.0,
     kd_weight=0.0,
     kd_delay=0,
+    kd_mode="framewise",
+    temporal_calibration="",
     noise_p=0.5,
     snr_db=(5.0, 25.0),
     rir_p=0.2,
@@ -317,6 +323,28 @@ def losses(model, b, cfg, device):
                      blank=0, reduction="sum", zero_infinity=True) / frames
     out = {"ctc": ctc, "loss": cfg["ctc_weight"] * ctc}
     if cfg["kd_weight"]:
+        if cfg.get("kd_mode", "framewise") == "temporal":
+            from student_temporal import calibrated_bounds, temporal_target_loss
+
+            if cfg["target"] != "reference" or cfg["kd_delay"] != 0:
+                raise ValueError("Temporal KD requires transcript CTC and calibrated, unclamped timing")
+            bounds = calibrated_bounds(cfg["temporal_calibration_record"])
+            numerators, mass, offset = [], 0, 0
+            for k, (n_s, n_t, n_labels) in enumerate(zip(out_lens.tolist(), b["n_teacher"].tolist(), b["target_lens"].tolist())):
+                numerator, n_mass = temporal_target_loss(
+                    log_probs[k, :n_s], b["top_ids"][k, :n_t].to(device), b["top_p"][k, :n_t].to(device),
+                    b["targets"][offset : offset + n_labels].tolist(), bounds,
+                )
+                numerators.append(numerator)
+                mass += n_mass
+                offset += n_labels
+            kd = torch.stack(numerators).sum() / mass
+            out["kd"] = kd
+            out["loss"] = out["loss"] + cfg["kd_weight"] * kd
+            out["frames"] = frames
+            return out
+        if cfg.get("kd_mode", "framewise") != "framewise":
+            raise ValueError("Unknown KD correspondence mode")
         B, T, _ = log_probs.shape
         n_t = b["n_teacher"].to(device)
         idx = (torch.arange(T, device=device)[None] - cfg["kd_delay"]).clamp(min=0)
@@ -397,6 +425,16 @@ def train(args: dict) -> dict:
 
     cfg = {**DEFAULTS, **args}
     assert cfg["name"], "name is required"
+    if cfg["kd_mode"] == "temporal":
+        from student_temporal import calibrated_bounds
+
+        if cfg["target"] != "reference" or cfg["kd_delay"] != 0 or not cfg["kd_weight"]:
+            raise ValueError("Temporal KD requires reference targets, nonzero KD, and no framewise delay")
+        with open(cfg["temporal_calibration"]) as calibration:
+            cfg["temporal_calibration_record"] = json.load(calibration)
+        calibrated_bounds(cfg["temporal_calibration_record"])
+    elif cfg["kd_mode"] != "framewise":
+        raise ValueError("Unknown KD correspondence mode")
     run = f"/student/runs/{cfg['name']}"
     os.makedirs(run, exist_ok=True)
     log = open(f"{run}/log.jsonl", "a")
@@ -416,6 +454,10 @@ def train(args: dict) -> dict:
         from student import spliced_target
 
         train_clips["target"] = [spliced_target(r, h) for r, h in zip(train_clips["ref"], train_clips["hyp"])]
+    elif cfg["target"] == "reference":
+        train_clips["target"] = list(train_clips["ref"])
+    elif cfg["target"] != "teacher":
+        raise ValueError("Unknown CTC target source")
     eval_clips = load_clips("clean-match", "test", 0, 60.0, 1, cfg["eval_max"])
     aug = {k: dict(np.load(f"/student/aug/{k}.npz")) for k in ("noise", "rir")} if os.path.exists("/student/aug/rir.npz") else None
     hours = train_clips["n_samples"].sum() / SR / 3600
