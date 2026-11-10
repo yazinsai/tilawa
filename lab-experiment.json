@@ -1,0 +1,13 @@
+{
+ "id": "listener-predictive-phone-uncertainty",
+ "component": "listener",
+ "hypothesis": "Acoustic rechecks may overstate substitution evidence by treating sparsely learned phone distributions as certain; posterior-predictive scoring should remove 1 false warning with no losses predicted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T18:43:31+00:00",
+ "author": "autolab"
+}
