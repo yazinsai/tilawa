@@ -66,10 +66,12 @@ Modal access, credentials, exam access or files outside this worktree were used.
   the same `NotFoundError: No such file or directory`, with no container output.
   This command did not depend on any corpus path or diagnostic implementation.
 - Run 4: the requested six-shard `bash tools/autolab_tests.sh` harness, explicit
-  Node image, timeout 5 minutes. Pending when this record was first written.
+  Node image, timeout 5 minutes. Returned the same `NotFoundError: No such file
+  or directory`, before any test log or result was returned.
 
-The ignored supervisor result files for runs 1 and 3 report zero actual GPU
-cost. No premise diagnostics, training, export or practice score has completed.
+The ignored supervisor result files for runs 1, 3 and 4 report zero actual GPU
+cost. Run 2 remains pending at the last status check (15:00:59 UTC on
+10 November 2026); it is an inventory request, not training. No premise diagnostics, training, export or practice score has completed.
 All three practice-score opportunities remain unused.
 
 ## Limits and next step
@@ -77,7 +79,9 @@ All three practice-score opportunities remain unused.
 There is no measured target-win count, ordinary correspondence range, loss
 comparison or evidence for or against the hypothesis. Infrastructure failure is
 not the card's acoustic kill criterion. Do not interpret this record as a
-zero-target result or a measured failed distillation experiment.
+zero-target result or a measured failed distillation experiment. No killed
+outcome is written, because neither the premise nor the built-change kill
+criterion has been measured.
 
 Implementation cannot responsibly proceed to a scoreable model here until the
 supplied execution service starts a container: the required training inputs and
