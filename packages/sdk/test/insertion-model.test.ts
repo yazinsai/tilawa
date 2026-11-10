@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createHash } from "node:crypto";
 
 const mocks = vi.hoisted(() => ({ access: vi.fn(), readFile: vi.fn(), ortBackend: vi.fn() }));
 vi.mock("node:fs/promises", async importOriginal => ({
@@ -10,11 +11,14 @@ vi.mock("../src/ort.js", () => ({ ortBackend: mocks.ortBackend }));
 
 import { loadNodeModel } from "../src/node.js";
 
-const manifest = { file: "primary.onnx", tokens: "بت", inventory: "muaalem-v3_2-phonemes", supported: ["added_word"] };
+const manifest = { file: "primary.onnx", tokens: "بت", inventory: "muaalem-v3_2-phonemes", supported: ["added_word"],sampleRate:16000,frameMs:40 };
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.readFile.mockResolvedValue(JSON.stringify(manifest));
+  mocks.readFile.mockImplementation(async (path: string) => {
+    if (path.endsWith("manifest.json")) return JSON.stringify(manifest);
+    throw Object.assign(new Error("absent"),{code:"ENOENT"});
+  });
 });
 
 describe("Node insertion teacher loading", () => {
@@ -57,5 +61,41 @@ describe("Node insertion teacher loading", () => {
     mocks.access.mockRejectedValue(denied);
     mocks.ortBackend.mockResolvedValue({ name: "primary" });
     await expect(loadNodeModel("/models/caller")).rejects.toBe(denied);
+  });
+
+  it("loads a verified quotient asset while preserving the primary manifest and backend", async () => {
+    const primary={name:"primary",release:vi.fn()};
+    mocks.access.mockRejectedValue(Object.assign(new Error("absent"),{code:"ENOENT"}));
+    mocks.ortBackend.mockResolvedValue(primary);
+    const emission={mean:Array(32).fill(0),variance:Array(32).fill(1)};
+    const asset={schema:1,inventory:manifest.inventory,tokens:manifest.tokens,frameMs:40,dimensions:32,
+      scale:Array(32).fill(1),phoneCounts:[10,10],maxPart:32,maxFrames:1024,
+      quotient:{ب:emission},absolute:{ب:emission}};
+    const bytes=Buffer.from(JSON.stringify(asset));
+    const descriptor={schema:1,file:"quotient-emissions.json",bytes:bytes.length,sha256:createHash("sha256").update(bytes).digest("hex")};
+    mocks.readFile.mockImplementation(async (path:string) => path.endsWith("manifest.json") ? JSON.stringify(manifest)
+      : path.endsWith("quotient-asset.json") ? JSON.stringify(descriptor) : bytes);
+    const loaded=await loadNodeModel("/models/caller");
+    expect(loaded.manifest).toEqual(manifest);
+    expect(loaded.backend).toBe(primary);
+    expect(loaded.spectralQuotients).toEqual(asset);
+    expect(primary.release).not.toHaveBeenCalled();
+  });
+
+  it("rejects a declared missing or corrupt quotient file and releases the backend",async()=> {
+    for (const missing of [false,true]) {
+      const primary={name:"primary",release:vi.fn()};
+      mocks.access.mockRejectedValue(Object.assign(new Error("absent"),{code:"ENOENT"}));
+      mocks.ortBackend.mockResolvedValue(primary);
+      const descriptor={schema:1,file:"quotient-emissions.json",bytes:1,sha256:"0".repeat(64)};
+      mocks.readFile.mockImplementation(async(path:string)=> {
+        if(path.endsWith("manifest.json")) return JSON.stringify(manifest);
+        if(path.endsWith("quotient-asset.json")) return JSON.stringify(descriptor);
+        if(missing) throw Object.assign(new Error("absent"),{code:"ENOENT"});
+        return Buffer.from("bad");
+      });
+      await expect(loadNodeModel("/models/caller")).rejects.toThrow();
+      expect(primary.release).toHaveBeenCalledOnce();
+    }
   });
 });
