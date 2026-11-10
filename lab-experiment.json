@@ -1,0 +1,13 @@
+{
+ "id": "listener-open-edge-utterance-parse",
+ "component": "listener",
+ "hypothesis": "Pause-bounded discovery may reject an added word because its utterance also contains incomplete neighbouring speech; explicitly parsing those boundary fragments should recover 1 addition with no predicted losses, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-10T19:24:09+00:00",
+ "author": "autolab"
+}
