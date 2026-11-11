@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from student import TOKENS, phoneme_ids, ctc_collapse, edit_distance
 from student_future import (admitted_none, speaker_partition, continuation_pool,
                             input_deadline, output_chunk, marginal_targets,
-                            probabilities, disagreement_rows)
+                            probabilities, disagreement_rows, aligned_pronunciation_ends)
 from student_future_export import digest, expose, session, stream, insertion_assets, graft
 
 SEED, DRAWS, CHUNKS, EPOCHS, LR = 1729, 4, 8, 12, .02
@@ -80,7 +80,7 @@ def enrollment(help_path):
     path = Path(help_path)
     labels = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
     reference = json.loads((Path(__file__).resolve().parents[1] / "packages/core/assets/ref-v2.json").read_text())
-    ayahs = {f'{a["s"]}:{a["a"]}': a["p"] for a in reference["ayahs"]}
+    ayahs = {f'{a["s"]}:{a["a"]}': a for a in reference["ayahs"]}
     rows, seen = [], set()
     for label in admitted_none(labels):
         wav = contained(path.parent, label["wav"])
@@ -88,12 +88,16 @@ def enrollment(help_path):
         if checksum in seen:
             raise ValueError("Duplicate audio could leak across speaker partitions")
         seen.add(checksum)
-        phones = "".join(ayahs[a] for a in label["ayahs"])
+        phones, word_offsets = "", []
+        for key in label["ayahs"]:
+            ayah = ayahs[key]
+            word_offsets.extend(len(phones) + o for o in ayah["o"])
+            phones += ayah["p"]
         target = np.asarray(phoneme_ids(phones), dtype=np.int64)
         if not len(target):
             raise ValueError("None take has no complete canonical transcript")
         rows.append(dict(id=label["id"], speaker=label["speaker"], wav=str(wav),
-                         audioSha256=checksum, target=target, wave=read_wave(wav)))
+                         audioSha256=checksum, target=target, wordOffsets=word_offsets, wave=read_wave(wav)))
     groups = speaker_partition(r["speaker"] for r in rows)
     return rows, groups
 
@@ -136,20 +140,24 @@ def prepare(args):
         np.testing.assert_array_equal(lp, baseline, err_msg="Feature exposure changed student output")
         if len(lp) < len(r["target"]) + int((r["target"][1:] == r["target"][:-1]).sum()):
             raise ValueError("Complete none transcript cannot align on native clock")
+        teacher_lp = teacher_rows(teacher, wave)
+        ordinary = probabilities(teacher_lp)[:len(lp)].astype("float32")
+        if len(ordinary) != len(lp) or ordinary.shape[1] != lp.shape[1]:
+            raise ValueError("Teacher cannot cover valid student rows")
+        word_ends = aligned_pronunciation_ends(teacher_lp, r["target"], r["wordOffsets"], m)
+        pronunciation = {s: int(word_ends[s:min(len(lp), s + output_chunk(m))].max())
+                         for s in range(0, len(lp), output_chunk(m))}
         eligible = [s for s in range(0, len(lp), output_chunk(m))
-                    if sum(len(d["wave"]) >= max(1, len(wave) - input_deadline(s, m))
+                    if sum(len(d["wave"]) >= max(1, len(wave) - max(input_deadline(s, m), pronunciation[s]))
                            for d in continuation_pool(rows, groups, r)) >= DRAWS]
         if not eligible:
             raise ValueError("None take lacks independently replaceable futures")
         # Bounded, evenly spaced chunks selected by geometry, never identities.
         selected = [eligible[int(j)] for j in np.linspace(0, len(eligible) - 1,
                                                         min(CHUNKS, len(eligible)), dtype=int)]
-        ordinary = probabilities(teacher_rows(teacher, wave))[:len(lp)].astype("float32")
-        if len(ordinary) != len(lp) or ordinary.shape[1] != lp.shape[1]:
-            raise ValueError("Teacher cannot cover valid student rows")
         marginal, mask, audits = ordinary.copy(), np.zeros(len(lp), dtype=bool), []
         for start in selected:
-            deadline = input_deadline(start, m)
+            deadline = max(input_deadline(start, m), pronunciation[start])
             stop = min(len(lp), start + output_chunk(m))
             mask[start:stop] = True
             if deadline >= len(wave):
@@ -157,14 +165,15 @@ def prepare(args):
             donors, provenance = donors_for(rows, groups, r, len(wave) - deadline, SEED + i * 1000 + start)
             _, changed, audit = marginal_targets(lambda w: teacher_rows(teacher, w), wave, donors,
                 len(lp), m, chunks=[start], student_rows=lp,
-                infer_student=lambda w: stream(original, m, fbank(w))[0])
+                infer_student=lambda w: stream(original, m, fbank(w))[0], pronunciation_ends=pronunciation)
             marginal[start:stop] = changed[start:stop]
             audits.append(dict(**audit[0], donors=provenance))
         file = f"recording-{i:05d}.npz"
         np.savez_compressed(out / file, features=x, shipped=lp, target=r["target"],
                             ordinary=ordinary, marginal=marginal, mask=mask, fbank=fb)
         cached.append(dict(id=r["id"], speaker=r["speaker"], audioSha256=r["audioSha256"],
-                           file=file, sha256=digest(out / file), audits=audits))
+                           file=file, sha256=digest(out / file), audits=audits,
+                           wordOffsets=r["wordOffsets"], pronunciationEnds=pronunciation))
         print(json.dumps(dict(prepared=i + 1, total=len(rows))), flush=True)
     write_json(out / "prepared.json", dict(source=str(Path(args.model).resolve()),
         sourceSha256=m["sha256"], auxiliaryHashes=auxiliary, width=width, groups=groups,
@@ -315,7 +324,9 @@ def diagnose(args):
         frames = min(len(full) - crop_frame, ((len(fbank(crop)) - 7) // 2 + 1) // 2)
         selected = sorted(set((f - crop_frame) // output_chunk(m) * output_chunk(m)
                               for f in range(start, stop)))
-        needed = max(1, len(crop) - input_deadline(selected[0], m))
+        # Externally enrolled stop must cover the complete planted pronunciation.
+        pronunciation = {s: int(np.ceil(case["stop"] * 16000)) - crop_sample for s in selected}
+        needed = max(1, len(crop) - max(input_deadline(selected[0], m), pronunciation[selected[0]]))
         dummy = dict(id="diagnostic-query", speaker=pool[0]["speaker"])
         donors, provenance = donors_for(pool, groups, dummy, needed, SEED + i)
         def observed(changed):
@@ -324,7 +335,7 @@ def diagnose(args):
             return stream(original, m, fbank(altered))[0][crop_frame:crop_frame + frames]
         ordinary, marginal, audit = marginal_targets(lambda w: teacher_rows(teacher, w), crop,
             donors, frames, m, chunks=selected, infer_student=observed,
-            student_rows=full[crop_frame:crop_frame + frames])
+            student_rows=full[crop_frame:crop_frame + frames], pronunciation_ends=pronunciation)
         a, b = start - crop_frame, stop - crop_frame
         student = probabilities(full[start:stop])
         consonants = {t for t in phoneme_ids(case["phones"]) if t <= 28}

@@ -1,11 +1,12 @@
 import copy
+import itertools
 import unittest
 
 import numpy as np
 
 from student_future import (admitted_none, continuation_pool, input_deadline,
                             marginal_targets, output_chunk, probabilities, disagreement_rows,
-                            replace_future, speaker_partition)
+                            replace_future, speaker_partition, aligned_pronunciation_ends)
 
 
 def manifest():
@@ -125,6 +126,42 @@ class FutureTargetsTest(unittest.TestCase):
         marginal = np.eye(3)[[0, 2, 2, 0]]
         self.assertEqual(disagreement_rows(student, teacher, marginal, {1}), [0, 2])
         self.assertEqual(disagreement_rows(student, teacher, marginal, {2}), [3])
+
+    def test_held_pronunciation_is_protected_beyond_native_deadline(self):
+        path = [1] * 21 + [0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0]
+        lp = np.full((len(path), 3), -20.)
+        lp[np.arange(len(path)), path] = 0
+        ends = aligned_pronunciation_ends(lp, np.array([1, 2]), [0, 1], manifest())
+        self.assertEqual(int(ends[:8].max()), 13840)
+        wave, calls = np.zeros(25000), []
+        def teacher(audio):
+            calls.append(audio.copy())
+            return lp
+        _, _, audit = marginal_targets(teacher, wave, [np.ones(25000)], len(lp), manifest(),
+                                       chunks=[0], pronunciation_ends={0: 13840})
+        np.testing.assert_array_equal(calls[1][:13840], wave[:13840])
+        self.assertTrue(calls[1][13840:].all())
+        self.assertEqual(audit[0]["nativeDeadline"], 7440)
+        self.assertEqual(audit[0]["pronunciationEnd"], 13840)
+
+    def test_canonical_word_alignment_matches_exhaustive_ctc_paths(self):
+        for target in ([1, 2], [1, 1]):
+            lp = np.random.default_rng(18).normal(size=(6, 3))
+            def collapse(path):
+                return [v for i, v in enumerate(path) if v and (i == 0 or path[i - 1] != v)]
+            paths = [p for p in itertools.product(range(3), repeat=6) if collapse(p) == target]
+            best = max(paths, key=lambda p: lp[np.arange(6), p].sum())
+            # Each target occurrence is a different canonical word, including
+            # equal phones separated by the mandatory CTC blank.
+            split = next(i for i in range(1, 6) if best[i] == target[1] and
+                         (target[0] != target[1] or (best[i - 1] == 0 and target[0] in best[:i - 1])))
+            last = [max(i for i in range(split) if best[i] == target[0]),
+                    max(i for i in range(split, 6) if best[i] == target[1])]
+            ends = aligned_pronunciation_ends(lp, np.array(target), [0, 1], manifest())
+            for word, frame in enumerate(last):
+                self.assertEqual(ends[frame], (frame + 1) * 640 + 400)
+        with self.assertRaises(ValueError):
+            aligned_pronunciation_ends(np.zeros((2, 3)), np.array([1, 1]), [0], manifest())
 
 
 if __name__ == "__main__":

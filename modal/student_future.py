@@ -69,7 +69,7 @@ def probabilities(rows):
 
 
 def marginal_targets(infer_teacher, wave, donors, frames, manifest, *,
-                     infer_student=None, student_rows=None, chunks=None):
+                     infer_student=None, student_rows=None, chunks=None, pronunciation_ends=None):
     """Return ordinary and equal-probability-mixture targets on the same clock.
 
     Each chunk gets independent teacher encodes with futures starting strictly
@@ -98,7 +98,13 @@ def marginal_targets(infer_teacher, wave, donors, frames, manifest, *,
         raise ValueError("Supervision must select distinct native output chunks")
     for start in starts:
         stop = min(frames, start + output_chunk(manifest))
-        deadline = input_deadline(start, manifest)
+        native_deadline = input_deadline(start, manifest)
+        pronunciation_end = native_deadline
+        if pronunciation_ends is not None:
+            pronunciation_end = pronunciation_ends[start]
+            if type(pronunciation_end) is not int or pronunciation_end < 0:
+                raise ValueError("Invalid complete pronunciation boundary")
+        deadline = max(native_deadline, pronunciation_end)
         if deadline >= len(wave):
             continue
         total = np.zeros_like(ordinary[start:stop])
@@ -114,8 +120,67 @@ def marginal_targets(infer_teacher, wave, donors, frames, manifest, *,
                 raise ValueError("Continuation changed the teacher alphabet or frame clock")
             total += p[start:stop]
         marginal[start:stop] = total / len(donors)
-        audit.append(dict(start=start, stop=stop, deadline=deadline, draws=len(donors)))
+        item = dict(start=start, stop=stop, deadline=deadline, draws=len(donors))
+        if pronunciation_ends is not None:
+            item.update(nativeDeadline=native_deadline, pronunciationEnd=pronunciation_end)
+        audit.append(item)
     return ordinary.astype(np.float32), marginal.astype(np.float32), audit
+
+
+def aligned_pronunciation_ends(log_rows, target, word_offsets, manifest):
+    """Conservative word-end bounds from original canonical CTC alignment.
+
+    These are estimated boundaries, not ground-truth listening judgments. The
+    caller must audit alignment on real training audio before using the cache
+    as evidence for the experiment. All labels, including held/repeated phones,
+    must occur. Blanks between words protect the following word too.
+    """
+    lp = np.asarray(log_rows, dtype=np.float64)
+    target = np.asarray(target)
+    offsets = np.asarray(word_offsets)
+    if (lp.ndim != 2 or not len(lp) or not np.isfinite(lp).all() or target.ndim != 1 or not len(target)
+            or not np.issubdtype(target.dtype, np.integer) or np.any(target <= 0)
+            or np.any(target >= lp.shape[1]) or offsets.ndim != 1 or not len(offsets)
+            or not np.issubdtype(offsets.dtype, np.integer) or offsets[0] != 0
+            or np.any(np.diff(offsets) <= 0) or offsets[-1] >= len(target)):
+        raise ValueError("Invalid complete canonical alignment input")
+    labels = np.zeros(2 * len(target) + 1, dtype=int)
+    labels[1::2] = target
+    count = len(labels)
+    prev = np.full(count, -np.inf)
+    prev[:2] = lp[0, labels[:2]]
+    back = np.zeros((len(lp), count), dtype=np.int8)
+    can_skip = (np.arange(count) >= 2) & (labels != 0) & (labels != np.roll(labels, 2))
+    for frame in range(1, len(lp)):
+        one = np.concatenate(([-np.inf], prev[:-1]))
+        two = np.concatenate(([-np.inf, -np.inf], prev[:-2]))
+        two[~can_skip] = -np.inf
+        choices = np.stack((prev, one, two))
+        back[frame] = choices.argmax(0)
+        prev = choices.max(0) + lp[frame, labels]
+    state = count - 2 + int(prev[-1] > prev[-2])
+    if not np.isfinite(prev[state]):
+        raise ValueError("Complete canonical transcript has no CTC alignment")
+    path = np.zeros(len(lp), dtype=int)
+    for frame in range(len(lp) - 1, -1, -1):
+        path[frame] = state
+        state -= int(back[frame, state])
+    final_frames = []
+    word_stops = np.concatenate((offsets[1:], [len(target)]))
+    for start, stop in zip(offsets, word_stops):
+        # Include all repeated frames, not just the phone's first emission.
+        assigned = np.flatnonzero((path >= 2 * start + 1) & (path <= 2 * stop - 1))
+        if not len(assigned):
+            raise ValueError("A canonical word is absent from the forced alignment")
+        final_frames.append(int(assigned[-1]))
+    phone_index = np.minimum(path // 2, len(target) - 1)
+    word_index = np.searchsorted(offsets, phone_index, side="right") - 1
+    samples_per_frame = manifest["frameMs"] * manifest["sampleRate"] / 1000
+    analysis = manifest["fbank"]["frameLengthMs"] * manifest["sampleRate"] / 1000
+    ends = (np.asarray(final_frames)[word_index] + 1) * samples_per_frame + analysis
+    if not np.equal(ends, ends.astype(np.int64)).all():
+        raise ValueError("Pronunciation boundaries differ from the raw sample clock")
+    return ends.astype(np.int64)
 
 
 def disagreement_rows(student, ordinary, marginal, consonants):
