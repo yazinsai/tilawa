@@ -1,0 +1,13 @@
+{
+ "id": "listener-invariant-acoustic-readout",
+ "component": "listener",
+ "hypothesis": "False substitutions may exploit acoustic features whose relationship to phone identity changes across recording conditions; an invariant acoustic readout predicts 2 warnings removed and 1 caught substitution lost: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T05:10:38+00:00",
+ "author": "autolab"
+}
