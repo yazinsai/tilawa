@@ -1,0 +1,13 @@
+{
+ "id": "listener-substitution-training-support",
+ "component": "listener",
+ "hypothesis": "False substitutions may rely on acoustic distinctions learned from too few independent recordings; recording-level jackknife influence should identify unsupported accusations, predicting 1 fewer listener and overall wrong call.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T02:28:14+00:00",
+ "author": "autolab"
+}
