@@ -1,0 +1,6 @@
+{
+  "status": "needs-human",
+  "reason": "All three supervised Modal requests failed with NotFoundError before returning logs, blocking the action audit, help-train policy training and build/tests; only the action-selection integration checkpoint is implemented.",
+  "measured": {},
+  "practiceScoresUsed": 0
+}

@@ -41,11 +41,21 @@ export interface LocalSearch {
   restore(state: unknown): void;
 }
 
+/** A retained endpoint in the existing local edit search, before normalization. */
+export interface LocalAction {
+  offset: number;
+  origin: number;
+  edits: number;
+  cost: number;
+}
+
+export type LocalActionSelector = (previous: LocalPosition, selected: number, actions: readonly LocalAction[]) => number | undefined;
+
 /**
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">, select?: LocalActionSelector): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -147,6 +157,17 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       let k = -1;
       for (let i = 0; i < n; i++) {
         if (k === -1 || c[i] < c[k] || (c[i] === c[k] && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1))) k = i;
+      }
+      if (select) {
+        const previous = this.position();
+        const actions = Array.from(c, (value, i) => ({ offset: lo + i, origin: o[i], edits: e[i], cost: value / UNIT }))
+          .filter(action => Number.isFinite(action.cost));
+        const chosen = select(previous, lo + k, actions);
+        if (chosen !== undefined) {
+          const cell = chosen - lo;
+          if (!Number.isInteger(cell) || cell < 0 || cell >= n || !Number.isFinite(c[cell])) throw new Error("Recovery action is not a retained local endpoint");
+          k = cell;
+        }
       }
       const min = c[k];
       for (let i = 0; i < n; i++) c[i] -= min;
