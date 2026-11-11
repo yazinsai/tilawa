@@ -1,0 +1,13 @@
+{
+ "id": "listener-collapse-sequence-distill",
+ "component": "listener",
+ "hypothesis": "Framewise distillation loses the teacher's joint evidence for complete phone sequences; a bounded sequence-distribution phone-head refit predicts 1 recovered addition and 0 losses: listener -1, overall -1, with substantial zero-gain risk.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T11:24:33+00:00",
+ "author": "autolab"
+}
