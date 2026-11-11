@@ -5,6 +5,11 @@ teacher-anchored span and the teacher at the clip edges, runs collapsed (`studen
 renormalised top-5 posteriors per frame (E5). `--init librispeech-m` starts `full` from icefall's streaming
 Zipformer-M (E2). Student and teacher both emit at 25 Hz.
 
+When KD is enabled, waveform augmentation is materialized once and the frozen
+teacher evaluates that same observation. Cached original targets are used only
+when the waveform is unchanged, or explicitly in the current-target control
+(`paired_kd=False`). Feature-only SpecAugment remains student-only.
+
     modal run modal/student_train.py --name smoke --size lite --max-hours 5 --epochs 1 --eval-max 200
     modal deploy modal/student_train.py
     python -c "import modal; modal.Function.from_name('tilawa-student-train', 'train').spawn(dict(name='e5-top1-lite', size='lite'))"
@@ -36,7 +41,9 @@ image = (
     .run_commands(f"git clone https://github.com/k2-fsa/icefall /icefall && cd /icefall && git checkout {ICEFALL}")
     .env({"PYTHONPATH": "/icefall:/icefall/egs/librispeech/ASR/zipformer:/root/tools", "HF_HOME": "/cache/hf"})
     .pip_install("rapidfuzz==3.14.1")
+    .pip_install("quran-muaalem==0.2.2", "quran-transcript>=0.6.4", "transformers==4.55.2")
     .add_local_file("tools/student.py", "/root/tools/student.py")
+    .add_local_file("modal/student_paired_kd.py", "/root/tools/student_paired_kd.py")
     .add_local_file("tools/per_breakdown.py", "/root/tools/per_breakdown.py")
     .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
@@ -80,6 +87,7 @@ DEFAULTS = dict(
     ctc_weight=1.0,
     kd_weight=0.0,
     kd_delay=0,
+    paired_kd=True,
     noise_p=0.5,
     snr_db=(5.0, 25.0),
     rir_p=0.2,
@@ -197,8 +205,9 @@ def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, se
 
 
 class ClipDataset:
-    def __init__(self, clips: dict, cfg: dict, train: bool, aug: dict | None):
+    def __init__(self, clips: dict, cfg: dict, train: bool, aug: dict | None, seed: int | None = None):
         self.c, self.cfg, self.train, self.aug = clips, cfg, train, aug
+        self.seed = seed
 
     def __len__(self):
         return len(self.c["ref"])
@@ -209,18 +218,21 @@ class ClipDataset:
         import torch
         import torchaudio
         from student import mix_noise, phoneme_ids
+        from student_paired_kd import AcousticInput
 
         c, cfg = self.c, self.cfg
-        rng = np.random.default_rng()
+        rng = np.random.default_rng(None if self.seed is None else np.random.SeedSequence([self.seed, i]))
         wave, _ = sf.read(io.BytesIO(c["flac"][c["flac_off"][i] : c["flac_off"][i + 1]].tobytes()), dtype="float32")
+        original = AcousticInput.materialize(wave, SR)
         if self.train and self.aug:
             if rng.random() < cfg["rir_p"]:
                 wave = reverb(wave, pick(self.aug["rir"], rng))
             if rng.random() < cfg["noise_p"]:
                 wave = mix_noise(wave, pick(self.aug["noise"], rng), rng.uniform(*cfg["snr_db"]), rng)
             wave = wave * 10 ** (rng.uniform(-10, 6) / 20)
+        observation = AcousticInput.materialize(wave, SR)
         feats = torchaudio.compliance.kaldi.fbank(
-            torch.from_numpy(np.ascontiguousarray(wave)).unsqueeze(0), num_mel_bins=80, sample_frequency=SR, dither=0.0,
+            torch.from_numpy(observation.waveform().copy()).unsqueeze(0), num_mel_bins=80, sample_frequency=SR, dither=0.0,
             energy_floor=1e-10, high_freq=-400,
         )
         if self.train and cfg["spec_aug"]:
@@ -228,6 +240,8 @@ class ClipDataset:
         lo, hi = c["top_off"][i], c["top_off"][i + 1]
         return dict(
             i=i,
+            observation=observation,
+            acoustic_mismatch=observation != original,
             feats=feats,
             target=torch.tensor(phoneme_ids(c.get("target", c["hyp"])[i]), dtype=torch.long),
             top_ids=torch.from_numpy(c["ids"][lo:hi].reshape(-1, 5).astype(np.int64)),
@@ -269,6 +283,8 @@ def collate(items):
 
     return dict(
         i=torch.tensor([x["i"] for x in items]),
+        observations=[x["observation"] for x in items],
+        acoustic_mismatch=[x["acoustic_mismatch"] for x in items],
         feats=pad_sequence([x["feats"] for x in items], batch_first=True, padding_value=-23.0259),
         feat_lens=torch.tensor([x["feats"].shape[0] for x in items]),
         targets=torch.cat([x["target"] for x in items]),
@@ -303,7 +319,7 @@ def batches(n_samples, max_batch_s: float, seed: int, shuffle: bool = True):
     return out
 
 
-def losses(model, b, cfg, device):
+def losses(model, b, cfg, device, teacher=None):
     import torch
     import torch.nn.functional as F
     from student import soft_target_loss
@@ -317,12 +333,27 @@ def losses(model, b, cfg, device):
                      blank=0, reduction="sum", zero_infinity=True) / frames
     out = {"ctc": ctc, "loss": cfg["ctc_weight"] * ctc}
     if cfg["kd_weight"]:
+        if cfg.get("paired_kd", True) and any(b["acoustic_mismatch"]):
+            if teacher is None:
+                raise ValueError("Paired KD requires the teacher for these materialized inputs")
+            from torch.nn.utils.rnn import pad_sequence
+
+            targets = [teacher.get(w).tensors() if changed else
+                       (b["top_ids"][i, :b["n_teacher"][i]], b["top_p"][i, :b["n_teacher"][i]])
+                       for i, (w, changed) in enumerate(zip(b["observations"], b["acoustic_mismatch"]))]
+            # Do not write back into the batch: the current-target control uses
+            # its original cached targets on identical student observations.
+            top_ids_source = pad_sequence([x[0] for x in targets], batch_first=True)
+            top_p_source = pad_sequence([x[1] for x in targets], batch_first=True)
+            n_teacher = torch.tensor([x[0].shape[0] for x in targets])
+        else:
+            top_ids_source, top_p_source, n_teacher = b["top_ids"], b["top_p"], b["n_teacher"]
         B, T, _ = log_probs.shape
-        n_t = b["n_teacher"].to(device)
+        n_t = n_teacher.to(device)
         idx = (torch.arange(T, device=device)[None] - cfg["kd_delay"]).clamp(min=0)
         idx = torch.minimum(idx, (n_t - 1)[:, None])
-        top_ids = b["top_ids"].to(device).gather(1, idx[..., None].expand(B, T, 5))
-        top_p = b["top_p"].to(device).gather(1, idx[..., None].expand(B, T, 5))
+        top_ids = top_ids_source.to(device).gather(1, idx[..., None].expand(B, T, 5))
+        top_p = top_p_source.to(device).gather(1, idx[..., None].expand(B, T, 5))
         valid = torch.arange(T, device=device)[None] < out_lens[:, None]
         kd = soft_target_loss(log_probs, top_ids, top_p, valid)
         out["kd"] = kd
@@ -446,6 +477,11 @@ def train(args: dict) -> dict:
         vol.commit()
 
     ds = ClipDataset(train_clips, cfg, train=True, aug=aug)
+    teacher = None
+    if cfg["kd_weight"] and cfg["paired_kd"]:
+        from student_paired_kd import muaalem_targets
+
+        teacher = muaalem_targets(device=str(device))
     model.train()
     seen_s, tick = 0.0, time.time()
     while state["epoch"] < cfg["epochs"]:
@@ -457,7 +493,7 @@ def train(args: dict) -> dict:
             if state["step"] % 10 == 0:
                 for m in model.modules():
                     m.batch_count = state["step"] * cfg["max_batch_s"] / 600.0
-            out = losses(model, b, cfg, device)
+            out = losses(model, b, cfg, device, teacher)
             opt.zero_grad(set_to_none=True)
             if not torch.isfinite(out["loss"]):
                 state["skipped"] = state.get("skipped", 0) + 1
@@ -551,7 +587,7 @@ def transcribe(run: str, src: str, dest: str, chunk: int = 16, left: int = 128) 
 @app.local_entrypoint()
 def main(name: str, size: str = "lite", init: str = "", max_hours: float = 0.0, epochs: int = 6,
          kd_weight: float = 0.0, eval_max: int = 3000, eval_every: int = 2000, max_batch_s: float = 800.0,
-         base_lr: float = 0.045, target: str = "teacher"):
+         base_lr: float = 0.045, target: str = "teacher", paired_kd: bool = True):
     print(train.remote(dict(name=name, size=size, init=init, max_hours=max_hours, epochs=epochs, kd_weight=kd_weight,
                             eval_max=eval_max, eval_every=eval_every, max_batch_s=max_batch_s, base_lr=base_lr,
-                            target=target)))
+                            target=target, paired_kd=paired_kd)))
