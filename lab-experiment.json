@@ -1,0 +1,13 @@
+{
+ "id": "listener-occlusion-censored-head",
+ "component": "listener",
+ "hypothesis": "Synthetic time masking may train the listener to assert consonants whose acoustic evidence was removed; censor that supervision during a bounded phone-head refit, predicting 1 false warning removed, 0 losses, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T09:27:02+00:00",
+ "author": "autolab"
+}
