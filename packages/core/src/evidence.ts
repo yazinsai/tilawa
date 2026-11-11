@@ -38,6 +38,8 @@ export interface PhonemeEvidence {
   frameMs: number;
   phonemes: DecodedPhoneme[];
   posteriors?: TopKPosteriors;
+  /** Tracker-only acoustic seam channel; kept separate from acquisition CTC ranking. */
+  boundaryPosteriors?: TopKPosteriors;
   /** Frames before this one are final: no later evidence has a phoneme starting earlier. Optional; streams set it. */
   decodedTo?: number;
 }

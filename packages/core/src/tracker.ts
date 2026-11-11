@@ -11,8 +11,12 @@ import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
 import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-spans.js";
 import type { SlotSpan } from "./slot-spans.js";
+import { boundaryFeatures, boundaryLikelihood } from "./word-boundary.js";
+import type { BoundaryModel } from "./word-boundary.js";
 
 export interface TrackerOptions {
+  /** Frozen training-speaker seam model. Unconfigured until its training and premise checks pass. */
+  boundaryModel?: BoundaryModel;
   mode?: "free" | "memorization";
   /** Grams occurring more often than this carry too little location information to vote. */
   maxGramOccurrences?: number;
@@ -270,9 +274,9 @@ export function relocationSupport(
   return best;
 }
 
-/** What the tracker is fed from one chunk of listener evidence, in the product and in every bench alike: phonemes only. */
+/** The same input in product and benches; posteriors feed seams, separately from acquisition ranking. */
 export function trackerInput(evidence: PhonemeEvidence): PhonemeEvidence {
-  return { ...evidence, posteriors: undefined };
+  return { ...evidence, posteriors: undefined, boundaryPosteriors: evidence.posteriors ?? evidence.boundaryPosteriors };
 }
 
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
@@ -305,6 +309,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   let decodedOnly = false;
   let withPosteriors = false;
   let frameMs: number | null = null;
+  const boundaryFrames = new PosteriorFrames(index.tokens.size);
+  let previousBoundaryPhone: DecodedPhoneme | null = null;
   let lastFrame = 0;
   let last: PositionEvent | null = null;
   /** Set once locked: from then on the tracker follows the reciter locally, phoneme by phoneme. */
@@ -870,6 +876,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
 
   const startLocal = (m: Match) => {
     local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+    previousBoundaryPhone = null;
     weak = false;
     pending = null;
     reacquiring = false;
@@ -1280,7 +1287,10 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         continue;
       }
       const before = local.save();
-      local.step(ph.p);
+      const features = options.boundaryModel && previousBoundaryPhone ? boundaryFeatures(boundaryFrames, previousBoundaryPhone, ph, frameMs!) : null;
+      local.step(ph.p, features ? boundaryLikelihood(features, options.boundaryModel!) : undefined);
+      previousBoundaryPhone = ph;
+      boundaryFrames.dropBefore(Math.max(boundaryFrames.startFrame, ph.end - 3));
       stepCosts.push(local.position().stepCost);
       if (stepCosts.length > CONFIRM) stepCosts.shift();
       const heardPhrase = hear(ph.p, before, local.position().stepCost);
@@ -1443,6 +1453,13 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       frameMs = evidence.frameMs;
       if (evidence.posteriors) withPosteriors = true;
       else decodedOnly = true;
+      const seamRows = evidence.boundaryPosteriors ?? evidence.posteriors;
+      if (options.boundaryModel && seamRows) {
+        boundaryFrames.append(seamRows);
+        // Cap silence without dropping rows of a large push before its phones have consumed them.
+        const first = evidence.phonemes[0]?.start ?? boundaryFrames.endFrame;
+        boundaryFrames.dropBefore(first - 256);
+      }
       if (local || reacquiring) return follow(evidence);
       if (evidence.posteriors) (posteriors ??= new PosteriorFrames(index.tokens.size)).append(evidence.posteriors);
       if (!options.acquireMs) return acquire(evidence.phonemes);

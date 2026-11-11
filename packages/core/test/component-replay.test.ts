@@ -24,12 +24,13 @@ describe('component replay', () => {
     expect(result.steps.at(-1)?.toMs).toBe(evidence.nFrames * evidence.frameMs);
     expect(result.steps.some(s => s.trackerOutput.some(e => e.type === 'position' && e.trace))).toBe(true);
   });
-  it('sends the same sounds to both components and sends probabilities only to the checker', () => {
+  it('sends the same sounds and preserves separate posterior channels for tracking and checking', () => {
     const before = JSON.stringify(evidence);
     const result = replayComponents(index, phrases, evidence, null, REPLAY_DEFAULTS);
     for (const s of result.steps.filter(s => s.phase === 'push')) {
       expect(s.trackerInput?.phonemes).toEqual(s.listenerOutput?.phonemes);
       expect(s.trackerInput?.posteriors).toBeUndefined();
+      expect(s.trackerInput?.boundaryPosteriors).toBe(s.listenerOutput?.posteriors);
       expect(s.checkerInput.evidence).toBe(s.listenerOutput);
       expect(s.checkerInput.evidence?.posteriors).toBeDefined();
       expect(s.checkerInput.trackerEvents).toBe(s.trackerOutput);

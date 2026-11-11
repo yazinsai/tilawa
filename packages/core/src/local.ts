@@ -1,5 +1,6 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import type { BoundaryLikelihood } from "./word-boundary.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -34,7 +35,7 @@ export interface LocalPosition {
 
 export interface LocalSearch {
   /** Consume one observed phoneme. */
-  step(p: string): void;
+  step(p: string, seam?: BoundaryLikelihood): void;
   position(): LocalPosition;
   /** The search state, to rewind to with `restore`. */
   save(): unknown;
@@ -68,6 +69,9 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let cost = new Float64Array(0);
   let origin = new Int32Array(0);
   let edits = new Int32Array(0);
+  // Last acoustically consumed word, carried through insertions and reference-only deletions.
+  let word = new Int32Array(0);
+  let boundaryNats = new Float64Array(0);
   let best = start.offset;
   let ayah = -1;
   const recent: number[] = [];
@@ -81,54 +85,75 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     const c = new Float64Array(newHi - newLo + 1).fill(Infinity);
     const o = new Int32Array(c.length);
     const e = new Int32Array(c.length);
+    const w = new Int32Array(c.length).fill(-1);
+    const b = new Float64Array(c.length);
     for (let i = 0; i < c.length; i++) {
       const old = newLo + i - lo;
       if (old >= 0 && old < cost.length) {
         c[i] = cost[old];
         o[i] = origin[old];
         e[i] = edits[old];
+        w[i] = word[old];
+        b[i] = boundaryNats[old];
       }
     }
     lo = newLo;
     cost = c;
     origin = o;
     edits = e;
+    word = w;
+    boundaryNats = b;
   };
 
   recentre(start.offset);
   cost[start.offset - lo] = 0;
   origin[start.offset - lo] = start.origin;
   edits[start.offset - lo] = start.edits;
+  word[start.offset - lo] = index.wordAt(Math.max(0, start.offset - 1));
 
 
   return {
-    step(p) {
+    step(p, seam) {
       const n = cost.length;
       const base = cost[best - lo];
       const c = new Float64Array(n);
       const o = new Int32Array(n);
       const e = new Int32Array(n);
+      const w = new Int32Array(n);
+      const b = new Float64Array(n);
+      // The existing tracker likelihood scale: three nats carry one plain edit.
+      const evidence = (boundary: boolean) => seam ? -(boundary ? seam.boundary : seam.within) : 0;
       for (let i = 0; i < n; i++) {
         const at = lo + i;
-        let bc = cost[i] + insertionCost(ref, at, p);
+        let bn = evidence(false);
+        let bc = cost[i] + insertionCost(ref, at, p) + bn * UNIT / 3;
         let bo = origin[i];
         let be = edits[i] + 1;
+        let bw = word[i];
+        let bb = boundaryNats[i] + bn;
         if (i > 0) {
           const s = subCost(ref[at - 1], p) + entry(at - 1);
           const edit = ref[at - 1] === p ? 0 : 1;
+          const matchedWord = index.wordAt(at - 1);
+          bn = evidence(word[i - 1] >= 0 && word[i - 1] !== matchedWord);
           // On a tie, consuming the reference beats an insertion, so a correct recitation keeps advancing.
-          if (cost[i - 1] + s <= bc) {
-            bc = cost[i - 1] + s;
+          if (cost[i - 1] + s + bn * UNIT / 3 <= bc) {
+            bc = cost[i - 1] + s + bn * UNIT / 3;
             bo = origin[i - 1];
             be = edits[i - 1] + edit;
+            bw = matchedWord;
+            bb = boundaryNats[i - 1] + bn;
           }
           const from = at - 1;
           if (from !== best && wordStarts.has(from)) {
-            const j = base + JUMP_COST + Math.abs(from - best) * JUMP_DISTANCE + s + (entry(at - 1) ? 0 : crossing(from));
+            bn = evidence(true);
+            const j = base + JUMP_COST + Math.abs(from - best) * JUMP_DISTANCE + s + (entry(at - 1) ? 0 : crossing(from)) + bn * UNIT / 3;
             if (j < bc) {
               bc = j;
               bo = from;
               be = edit;
+              bw = matchedWord;
+              bb = boundaryNats[best - lo] + bn;
             }
           }
           const d = c[i - 1] + deletionCost(ref, at - 1) + entry(at - 1);
@@ -136,11 +161,15 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
             bc = d;
             bo = o[i - 1];
             be = e[i - 1] + 1;
+            bw = w[i - 1];
+            bb = b[i - 1];
           }
         }
         c[i] = bc;
         o[i] = bo;
         e[i] = be;
+        w[i] = bw;
+        b[i] = bb;
       }
 
       // Lowest cost wins; ties go to the state nearest plain forward progress.
@@ -155,6 +184,8 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       cost = c;
       origin = o;
       edits = e;
+      word = w;
+      boundaryNats = b;
       best = lo + k;
       recentre(best);
     },
@@ -164,10 +195,10 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    save: () => ({ lo, cost, origin, edits, word, boundaryNats, best, ayah, recent: [...recent] }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
-      ({ lo, cost, origin, edits, best, ayah } = s);
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; word: typeof word; boundaryNats: typeof boundaryNats; best: number; ayah: number; recent: number[] };
+      ({ lo, cost, origin, edits, word, boundaryNats, best, ayah } = s);
       recent.splice(0, recent.length, ...s.recent);
     },
   };
