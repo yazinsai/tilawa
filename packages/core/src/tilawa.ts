@@ -67,6 +67,20 @@ export interface MicrophoneOptions {
   onEvents?: (events: EngineEvent[]) => void;
   /** A failed push (inference error). Default: logged, except `SessionEndedError`. */
   onError?: (e: unknown) => void;
+  /**
+   * Web: a context + stream acquired by `prepareMicrophone()` inside the user's tap. iOS Safari only starts audio
+   * created or resumed during a user gesture, so call `prepareMicrophone()` synchronously in the click handler when
+   * anything async (such as the first model download) happens before `listen()`. `listen()` takes ownership.
+   */
+  prepared?: PreparedMicrophone;
+}
+
+/** Web only: see `prepareMicrophone()` in `@tilawa/core/web`. */
+export interface PreparedMicrophone {
+  readonly context: AudioContext;
+  readonly stream: Promise<MediaStream>;
+  /** Releases the context and tracks if `listen()` is never called. */
+  release(): void;
 }
 
 export interface Microphone {
