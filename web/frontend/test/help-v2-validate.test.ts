@@ -16,6 +16,7 @@ describe("validateReport (contract §6)", () => {
   });
   test("schema, uuids and consent", () => {
     expect(check((r) => (r.schema = "tilawa.report/2"))).toContain("schema");
+    expect(check((r) => (r.schema = "tilawa.report/1.3"))).toEqual([]);
     expect(check((r) => (r.reportId = "not-a-uuid"))).toContain("uuid.reportId");
     expect(check((r) => (r.reportId = r.reportId.toUpperCase()))).toContain("uuid.reportId");
     expect(check((r) => (r.incidents[0].id = "x"))).toContain("uuid.incidents[0].id");
