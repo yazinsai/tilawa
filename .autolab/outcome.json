@@ -1,0 +1,7 @@
+{
+  "status": "needs-human",
+  "reason": "Authorized Modal data inspection, a minimal pwd retry, and six-shard core/SDK validation all failed with NotFoundError before execution, preventing training and target validation.",
+  "measured": {},
+  "practiceScores": 0,
+  "pendingModalRuns": []
+}
