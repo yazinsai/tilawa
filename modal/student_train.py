@@ -37,6 +37,7 @@ image = (
     .env({"PYTHONPATH": "/icefall:/icefall/egs/librispeech/ASR/zipformer:/root/tools", "HF_HOME": "/cache/hf"})
     .pip_install("rapidfuzz==3.14.1")
     .add_local_file("tools/student.py", "/root/tools/student.py")
+    .add_local_file("modal/student_occlusion.py", "/root/tools/student_occlusion.py")
     .add_local_file("tools/per_breakdown.py", "/root/tools/per_breakdown.py")
     .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
@@ -224,11 +225,14 @@ class ClipDataset:
             energy_floor=1e-10, high_freq=-400,
         )
         if self.train and cfg["spec_aug"]:
-            feats = spec_augment(feats, rng)
+            feats, time_mask = spec_augment(feats, rng, return_mask=True)
+        else:
+            time_mask = torch.zeros(feats.shape[0], dtype=torch.bool)
         lo, hi = c["top_off"][i], c["top_off"][i + 1]
         return dict(
             i=i,
             feats=feats,
+            time_mask=time_mask,
             target=torch.tensor(phoneme_ids(c.get("target", c["hyp"])[i]), dtype=torch.long),
             top_ids=torch.from_numpy(c["ids"][lo:hi].reshape(-1, 5).astype(np.int64)),
             top_p=torch.from_numpy(c["probs"][lo:hi].reshape(-1, 5).astype(np.float32)),
@@ -249,18 +253,10 @@ def reverb(wave, rir):
     return (out * (np.sqrt(np.mean(wave**2)) / max(1e-8, np.sqrt(np.mean(out**2))))).astype(np.float32)
 
 
-def spec_augment(feats, rng, n_freq=2, max_f=27, n_time=10, max_t_frac=0.05):
-    feats = feats.clone()
-    T = feats.shape[0]
-    for _ in range(n_freq):
-        f = int(rng.integers(0, max_f + 1))
-        f0 = int(rng.integers(0, 80 - f + 1))
-        feats[:, f0 : f0 + f] = 0
-    for _ in range(int(rng.integers(0, n_time + 1))):
-        t = int(rng.integers(0, max(1, int(T * max_t_frac)) + 1))
-        t0 = int(rng.integers(0, max(1, T - t)))
-        feats[t0 : t0 + t] = 0
-    return feats
+def spec_augment(feats, rng, n_freq=2, max_f=27, n_time=10, max_t_frac=0.05, *, return_mask=False):
+    from student_occlusion import spec_augment as augment
+
+    return augment(feats, rng, n_freq, max_f, n_time, max_t_frac, return_mask=return_mask)
 
 
 def collate(items):
@@ -271,6 +267,7 @@ def collate(items):
         i=torch.tensor([x["i"] for x in items]),
         feats=pad_sequence([x["feats"] for x in items], batch_first=True, padding_value=-23.0259),
         feat_lens=torch.tensor([x["feats"].shape[0] for x in items]),
+        time_mask=pad_sequence([x["time_mask"] for x in items], batch_first=True, padding_value=False),
         targets=torch.cat([x["target"] for x in items]),
         target_lens=torch.tensor([len(x["target"]) for x in items]),
         top_ids=pad_sequence([x["top_ids"] for x in items], batch_first=True),
