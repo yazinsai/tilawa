@@ -1,0 +1,1 @@
+{"status":"needs-human","reason":"All three authorized supervisor Modal runs, including pwd and the six-shard tests, failed with NotFoundError before returning worker output; paired training and the premise test remain unmeasured.","measured":{}}
