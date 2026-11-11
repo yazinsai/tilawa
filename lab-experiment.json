@@ -1,0 +1,13 @@
+{
+ "id": "listener-outofpassage-distillation",
+ "component": "listener",
+ "hypothesis": "Distillation may transfer a teacher's memorized training passages rather than transferable acoustic evidence; out-of-passage teacher supervision predicts 3 recovered additions and 1 collateral wrong call, listener -2 and overall -2.",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T12:15:56+00:00",
+ "author": "autolab"
+}
