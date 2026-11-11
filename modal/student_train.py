@@ -38,6 +38,7 @@ image = (
     .pip_install("rapidfuzz==3.14.1")
     .add_local_file("tools/student.py", "/root/tools/student.py")
     .add_local_file("tools/per_breakdown.py", "/root/tools/per_breakdown.py")
+    .add_local_file("modal/student_ctc.py", "/root/tools/student_ctc.py")
     .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
 app = modal.App("tilawa-student-train", image=image)
@@ -78,6 +79,7 @@ DEFAULTS = dict(
     lr_batches=7500,
     lr_epochs=3.5,
     ctc_weight=1.0,
+    ctc_arithmetic="native",
     kd_weight=0.0,
     kd_delay=0,
     noise_p=0.5,
@@ -131,12 +133,13 @@ def build_model(size: str):
             )
             self.ctc_output = nn.Sequential(nn.Dropout(p=0.1), nn.Linear(max(dims), VOCAB))
 
-        def forward(self, feats, feat_lens):
+        def forward(self, feats, feat_lens, return_logits=False):
             from icefall.utils import make_pad_mask
 
             x, x_lens = self.encoder_embed(feats, feat_lens)
             out, out_lens = self.encoder(x.permute(1, 0, 2), x_lens, make_pad_mask(x_lens))
-            return self.ctc_output(out.permute(1, 0, 2)).log_softmax(-1), out_lens
+            logits = self.ctc_output(out.permute(1, 0, 2))
+            return (logits if return_logits else logits.log_softmax(-1)), out_lens
 
         def streaming_eval(self, chunk: int = 16, left: int = 128):
             self.encoder.chunk_size, self.encoder.left_context_frames = (chunk,), (left,)
@@ -309,12 +312,26 @@ def losses(model, b, cfg, device):
     from student import soft_target_loss
 
     feats, feat_lens = b["feats"].to(device), b["feat_lens"].to(device)
+    arithmetic = cfg.get("ctc_arithmetic", "native")
+    if arithmetic not in ("native", "stable"):
+        raise ValueError("ctc_arithmetic must be native or stable")
     with torch.autocast("cuda", dtype=torch.bfloat16):
-        log_probs, out_lens = model(feats, feat_lens)
+        if arithmetic == "stable":
+            logits, out_lens = model(feats, feat_lens, return_logits=True)
+            # KD keeps the original autocast log-softmax and validity semantics.
+            log_probs = logits.log_softmax(-1)
+        else:
+            log_probs, out_lens = model(feats, feat_lens)
     log_probs = log_probs.float()
     frames = out_lens.sum().clamp_min(1)
-    ctc = F.ctc_loss(log_probs.transpose(0, 1), b["targets"].to(device), out_lens, b["target_lens"].to(device),
-                     blank=0, reduction="sum", zero_infinity=True) / frames
+    if arithmetic == "stable":
+        from student_ctc import stable_ctc_loss
+
+        ctc = stable_ctc_loss(logits.transpose(0, 1), b["targets"].to(device), out_lens, b["target_lens"].to(device),
+                              blank=0, reduction="sum", zero_infinity=True) / frames
+    else:
+        ctc = F.ctc_loss(log_probs.transpose(0, 1), b["targets"].to(device), out_lens, b["target_lens"].to(device),
+                         blank=0, reduction="sum", zero_infinity=True) / frames
     out = {"ctc": ctc, "loss": cfg["ctc_weight"] * ctc}
     if cfg["kd_weight"]:
         B, T, _ = log_probs.shape
@@ -551,7 +568,7 @@ def transcribe(run: str, src: str, dest: str, chunk: int = 16, left: int = 128) 
 @app.local_entrypoint()
 def main(name: str, size: str = "lite", init: str = "", max_hours: float = 0.0, epochs: int = 6,
          kd_weight: float = 0.0, eval_max: int = 3000, eval_every: int = 2000, max_batch_s: float = 800.0,
-         base_lr: float = 0.045, target: str = "teacher"):
+         base_lr: float = 0.045, target: str = "teacher", ctc_arithmetic: str = "native"):
     print(train.remote(dict(name=name, size=size, init=init, max_hours=max_hours, epochs=epochs, kd_weight=kd_weight,
                             eval_max=eval_max, eval_every=eval_every, max_batch_s=max_batch_s, base_lr=base_lr,
-                            target=target)))
+                            target=target, ctc_arithmetic=ctc_arithmetic)))

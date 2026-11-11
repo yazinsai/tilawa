@@ -1,96 +1,120 @@
 # Stable CTC training gradients
 
-Status: blocked by the supervisor runtime; the numerical premise is unresolved.
-The experiment card and engine remain unchanged. This is not a killed experiment
-or a completed model refit.
+Status: opt-in training intervention implemented; target diagnosis, matched head
+refit and export blocked by the supplied supervisor runtime. The numerical
+premise is unresolved. This is not a killed experiment or a completed listener
+model. The experiment card is unchanged.
 
 ## Prediction and mechanism
 
-The card predicts listener -1 and overall -1, with substantial zero-gain risk.
-Its proposed cause is loss of legitimate alternative-alignment gradients through
-underflow or cancellation in transcript-conditioned CTC training. The proposed
-intervention retains forward/backward accumulators and their gradient combination
-in stable log-space arithmetic outside reduced-precision execution, preserving
-the objective, valid lengths and recording weights.
+Predict listener -1 and overall -1, with substantial zero-gain risk. The proposed
+cause is disappearance or sign reversal of legitimate alternative-alignment
+gradients through underflow or cancellation despite a finite sequence loss.
 
-Before changing training, the card requires at least two target incidents with
-a missing planted consonant whose original-arithmetic training gradient vanishes
-or changes sign against a high-precision reference on identical logits. Target
-gradients are diagnostics only. A subsequent bounded phone-head refit must use
-cached frozen-encoder features from authorized transcribed recordings and
-help-train training-speaker none-labelled takes, with an identical-data,
-identical-update-count original-arithmetic control. Training-speaker partitions
-alone select checkpoints; release-held-out speakers and practice targets cannot
-contribute updates or checkpoint selection.
+The premise requires at least two registered targets with a missing planted
+consonant whose transcript-conditioned gradient vanishes or changes sign under
+the original arithmetic relative to a high-precision reference on identical
+logits. Target transcripts and gradients are diagnostics only: never updates,
+regularization selection or checkpoint selection. This premise has not been
+measured. Infrastructure failure is not evidence against it.
+
+## Implemented intervention
+
+modal/student_ctc.py implements CTC directly on logits, with float64 log-softmax,
+transcript-conditioned forward/backward log accumulators and log-space aggregation
+of repeated-label state occupancy. Skip transitions preserve ordinary CTC
+semantics. State occupancy is normalized per frame in log space before gradient
+combination. A signed expm1 difference combines acoustic probability and
+occupancy before rounding to the logit dtype, avoiding an intermediate rounded
+occupancy or separate rounded log-softmax backward operation.
+
+Float64 gradients are retained through upstream recording weights before
+conversion at the head boundary. Float32 callers receive float32 losses. Only
+first derivatives are supported. Computation is explicitly outside autocast.
+
+modal/student_train.py exposes ctc_arithmetic="stable" in training configuration
+and its CLI, includes the new module in the Modal image, and requests raw logits
+from the same model without changing architecture or weights. CTC remains summed
+over recordings and divided by the existing sum of valid output lengths, with
+blank zero and zero_infinity=True. KD retains its original autocast log-softmax,
+validity mask, teacher gathering, delay, reduction and configured weight.
+
+The default and ctc_arithmetic="native" preserve the original arithmetic as the
+matched control. Export and ordinary model calls still return original log
+probabilities. This is a training intervention, not an inference probability
+conversion or a warning-bar change. No trained head or model bundle is claimed.
 
 ## Source findings
 
-Audited `modal/student_train.py`, SHA-256
-`e5b2dc0d99880b686f562a80d9b28714ba2dd086609afc579cac02b67a5cb448`.
-`losses` evaluates the model within bfloat16 CUDA autocast, then casts its log
-probabilities to float32 and calls native `F.ctc_loss` outside that context.
-The loss uses the returned per-recording output lengths, the supplied transcript
-lengths, blank 0, summed reduction and `zero_infinity=True`, divided by the sum
-of valid output frames. Optional KD retains its existing valid-frame mask and
-configured weight. There is no direct bfloat16 CTC accumulator in this source.
+The original loss already casts returned log probabilities to float32 before
+native F.ctc_loss outside bfloat16 CUDA autocast. The source does not establish a
+bfloat16 CTC accumulator. The previous audit checked seven loss-contract
+properties. Previously inspected upstream PyTorch 2.8.0 CPU/CUDA CTC sources use
+max-shift log-space sums but subtract probability and occupancy in backward.
+That motivates the new stable combination; it does not identify the unavailable
+supervisor runtime or demonstrate a defect on any target.
 
-This does not disprove the card's cancellation premise. The separately inspected
-upstream PyTorch v2.8.0 native CPU and CUDA CTC sources use max-shift log-space
-forward/backward sums, but combine probability and alignment occupancy by
-subtraction in their backward kernels. Close terms can lose precision. These
-upstream sources are contextual evidence, not a verified identification of the
-unavailable supervisor runtime or proof of a defect on any target.
+Simply promoting already-rounded log probabilities would leave the separate
+log-softmax gradient combination unresolved, which is why the new API takes
+logits. It cannot recover information already rounded in a reduced-precision
+head projection or guarantee that parameter-gradient accumulation preserves it.
 
 ## Validation and limits
 
-The read-only source/AST audit passed seven contract checks. An independent
-float64 NumPy CTC reference passed 25 feasible short-sequence comparisons against
-exhaustive path enumeration and 294 logit finite-difference checks. Cases cover
-empty transcripts, repeated labels, skip-transition restrictions and impossible
-alignments. The reference retains log-space state occupancy and uses signed
-`expm1` subtraction for close probability/occupancy terms.
+tools/test_student_ctc.py adds small CPU checks against independently enumerated
+CTC paths and double-precision native PyTorch. Cases cover empty/repeated
+transcripts, alternate blank IDs, impossible alignments, valid lengths, recording
+weights, zero padding gradients, longer sequences, finite differences, autocast
+boundaries and gradients through linear-head parameters. A dispatch check uses
+the actual losses function with a tiny model to verify the frame divisor,
+unchanged KD and weighted loss composition.
 
-A synthetic sensitivity control produced float32 zero versus a float64 signed
-difference of approximately -1.35e-9 for two deliberately nearby log masses.
-This is neither an actual native-PyTorch gradient measurement nor a measured
-target failure. It does not establish that such differences survive the
-log-softmax Jacobian, head gradients or optimizer updates. A target audit must
-compare the complete upstream training-gradient chain on identical logits;
-leaf log-probability differences alone are insufficient.
+A synthetic two-frame case excludes an almost impossible all-blank path and
+produces a logit gradient around 3.8e-11, retained at float64, float32 and bf16
+logit boundaries. On identical float32 logits, CPU native CTC returns a zero loss
+and a correctly signed gradient of 3.5470e-11; stable CTC returns loss 3.7751e-11
+and gradient 3.7751e-11, matching the double reference. This exercises complete
+CTC gradients rather than subtracting two chosen scalars. The native gradient
+does not vanish or reverse sign in this example; it is not evidence satisfying
+the target premise. All 10 numerical tests passed locally on CPU with PyTorch 2.8.0 in an
+isolated environment under .autolab/. Python syntax and git diff --check pass.
+CUDA execution and performance have not been validated. The explicit Python
+time-step loops prioritize inspectable arithmetic over throughput; a bounded
+refit still needs a measured runtime before choosing its update budget.
 
-The small reference checks ran locally without training or acoustic inference.
-Their disposable scripts remain ignored at `.autolab/ctc_reference.py` and
-`.autolab/ctc_source_audit.py`. Local PyTorch and the core/SDK dependencies are
-unavailable.
-
-All three authorized supervisor requests failed before command execution with
-`NotFoundError: No such file or directory`:
+The first attempt's supervisor requests 1–3 failed before execution. This attempt
+used the same authorized service:
 
 | Request | Requested work | Result |
 |---|---|---|
-| 1 | Inspect PyTorch/runtime and read-only lab-data layout | No execution |
-| 2 | Six shards of `bash tools/autolab_tests.sh` | No build or tests ran |
-| 3 | Inspect the training image and read-only lab-data layout | No execution |
+| 4 | PyTorch/runtime and read-only supplied-data layout | NotFoundError: No such file or directory, before execution |
+| 5 | Six shards of the supplied core/SDK build/test harness | Same infrastructure error; no build or tests ran |
+| 6 | New CTC unit tests in the supervisor container | Same infrastructure error; tests did not execute there |
 
-The ignored `.autolab/modal-request-{1,2,3}.json` and corresponding result files
-retain the requests and errors. No alternative Modal access was attempted.
-Core and SDK tests are unverified, not passing. No permanent unit test was
-added because no engine behavior changed.
+No alternative Modal access was attempted. Requests/results and disposable
+diagnostics remain ignored under .autolab/. Core/SDK tests are unverified, not
+passing. No scorer, lab tooling, supplied manifest, evidence or test data was
+edited.
 
-## Outstanding work
+## Outstanding model work
 
-The five target incidents have not been acoustically or numerically evaluated.
-No target recovery count, practice delta or satisfied kill criterion can be
-reported. There were zero practice-score calls. No refit, checkpoint selection,
-export or model-bundle verification ran; no `.autolab/model.json` is declared.
-The write-up is the only tracked change, and no killed outcome is recorded.
+The supervisor must execute before acoustic target diagnosis can establish the
+premise. If fewer than two targets satisfy it, revert the opt-in engine changes,
+record a premise kill and write the killed outcome. Otherwise cache frozen
+encoder features from authorized transcribed recordings and help-train training
+speakers' none-labelled takes only, excluding release-held-out speakers and
+without treating mistake scripts as performed transcripts.
 
-Resume after the supplied supervisor runtime is restored: establish missing
-consonants and compare original native gradients with the high-precision
-reference, including the actual head/log-softmax chain. If fewer than two
-targets meet the numerical premise, record a premise kill. Otherwise implement
-and unit-test the stable loss, run the matched training-only head refits, select
-within training speakers and verify a complete export. Evaluate target recovery
-before spending a practice-score call; three or more target wins require that
-score before a gate decision. Infrastructure failure is not evidence for killing
-the hypothesis, and scoring the unchanged main model would not evaluate it.
+Run stable/native head refits with identical data, initial head, updates,
+objective weights and training-speaker partitions. Retain ordinary speech and
+real pauses; select checkpoints solely within those training-speaker partitions.
+Export and verify the complete primary listener bundle under this experiment's
+persistent scratch directory, preserving vocabulary, frame clock, tracker,
+checker and folded insertion verification. Only then declare .autolab/model.json.
+No model is declared; scoring the unchanged model would not evaluate this loss.
+
+There have been zero practice-score calls. Targets evaluated, targets won and
+practice deltas are unknown, not measured zero. Three or more built-change target
+recoveries require a practice score before a gate decision; fewer than three
+require rollback and a recorded kill. Neither condition can currently be tested.
+No fold or killed outcome is recorded.
