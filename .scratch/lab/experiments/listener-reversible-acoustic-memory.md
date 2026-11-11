@@ -80,7 +80,9 @@ generated manifest is published. Missing assets or invalid parity abort export.
 
 ## Validation and remaining work
 
-Python syntax compilation and `git diff --check` pass. The focused unit suite
+Python syntax compilation and `git diff --check` pass. With PyTorch 2.8.0 on the
+local CPU, all ten focused unit tests pass; one native icefall integration test
+is skipped because the pinned icefall environment is unavailable locally. The suite
 covers nontrivial inversion with incoming caches and masks, full-versus-streaming
 equivalence, gradients through both halves, a singular ordinary residual
 counterexample, six-cache routing, padding preservation, deterministic disjoint
@@ -96,11 +98,9 @@ and direct paired trainer on H100, using the conventional
 `/student/prior-runs/spliced-clean/ckpt.pt` initialization path. The checkpoint
 path itself remains unverified because the inventory probes never executed.
 
-The local machine initially had no PyTorch. A separate ignored virtual
-environment installs the small CPU-test dependencies; an attempted suite run
-before installation completed could not import the still-incomplete PyTorch
-package. This is not a unit-test pass or an acoustic result. Native icefall,
-full export parity, core tests and SDK tests require the supervised image.
+The CPU test dependencies are isolated in an ignored virtual environment.
+Native icefall, full export parity, core tests and SDK tests still require the
+supervised image. The CPU unit result is not a target-recovery measurement.
 
 The infrastructure error is not an acoustic result. No replacement checkpoint,
 complete exported bundle, target recovery count, aggregate score, clean-session
