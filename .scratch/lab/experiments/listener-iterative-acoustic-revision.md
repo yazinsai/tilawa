@@ -71,3 +71,56 @@ and test data are unchanged. No fold was performed.
 Retry requires restoring the supplied execution service, then inspecting actual
 training-speaker provenance, completing paired training and exported decoding,
 and measuring the registered targets before requesting any practice score.
+
+## Retry after the implementation feedback
+
+The feedback requested an engine implementation or an explanation of why it
+cannot be completed. On retry, the saved implementation was restored into
+`modal/student_revision.py`, `modal/student_revision_train.py`,
+`modal/student_revision_export.py`, `modal/test_student_revision.py` and
+`modal/student_train.py`. The ordinary builder and checkpoint loader accepted
+revision configuration; the native training loss jointly supervised the
+intermediate and final CTC heads. Additional checks covered speaker admission,
+speaker-disjoint checkpoint selection, control feedback gradients and rejection
+of partial reinstallation. Augmentation settings were taken from the shipped
+checkpoint rather than assumed to equal training defaults. The export prototype
+checked the unchanged alphabet, feature geometry, frame clock and recurrent-state
+contract and restored the native exporter method on failure.
+
+Local Python compilation and `git diff --check` passed. These are syntax and
+whitespace checks only; the model, native encoder integration, tests and export
+remain unvalidated until the execution service actually runs them.
+
+The retry used only the supplied supervisor:
+
+| Run | Request | Result |
+| --- | --- | --- |
+| 5 | Default-image storage and model availability probe, 1 shard, 5 minutes | `NotFoundError: No such file or directory`, before container output |
+| 6 | Training-image torch, prior-checkpoint and pinned-encoder source probe, 1 shard, 5 minutes | Same error, before container output |
+| 7 | Synthetic revision tests in the training image, 1 shard, 5 minutes | Same error, before container output |
+| 8 | `bash tools/autolab_tests.sh`, 6 shards, 10 minutes | Same error, before container output |
+
+The current blocker is the supplied execution service, not a measured acoustic
+failure. The probes returned neither filesystem listings nor torch/encoder
+output. Their opaque error does not establish missing training recordings,
+missing checkpoints or a full disk. It prevents inspecting actual provenance,
+training the matched arms, selecting training-only checkpoints and verifying the
+complete model bundle required by the task. Declaring a model path or scoring
+the main listener would not evaluate this experiment.
+
+All four retry results report `usd: 0.0`, `gpuUsdSpent: 0.0` and
+`gpuUsdLeft: 80.0`. Neither the new unit tests nor the required core/SDK suites
+executed. Training, checkpoint selection, export parity, target decoding and
+practice scoring did not run. Zero targets were evaluated; zero recovery is
+not a measured result, and neither the two-target card criterion nor the
+three-target task criterion can be assessed.
+
+The engine changes were reverted because a complete verified model bundle
+cannot be produced through the currently failing execution service. The updated
+prototype and its builder patch are retained only in the ignored
+`.autolab/revision-prototype/` retry snapshot. No model path is declared, no
+model assets are missing from a declared bundle, and no unchanged-main practice
+score is presented as evaluation of the proposed change. Only this explanation
+is committed. The experiment remains untested and `needs-human`, rather than
+acoustically killed; all three practice scores and the entire GPU budget remain
+available for a retry after the supplied execution service is repaired.
