@@ -7,8 +7,8 @@
 - **Real audio only.** The recitation must be the presenter's own, or recorded with the reciter's written permission. No recordings from apps, broadcasts or datasets without permission.
 - **Real output only.** Record the live demo and the live /help page on the release candidate. No edited or mocked UI.
 - **A genuine correction.** The mistake in shot 3 has to be caught by the engine during that take. If you make the slip on purpose (scripted), label the video "Demonstration: the reader slips on purpose". Retake until the engine catches it; don't splice in a catch from another take.
-- **No numbers** on screen or in captions unless they come from the release report ({{RELEASE_NUMBERS}}).
-- **Say "preview"** while the release label is pending ({{PENDING: decision 6}}).
+- **No numbers** on screen or in captions unless they come from the model card's Evaluation section.
+- **Say "preview"** (the release is labelled Preview).
 - Show nothing personal: hide bookmarks, tabs, notifications and other people's recordings. Blur the delete code on the success screen.
 - Pronunciation and tajweed are not supported. Don't show or imply them.
 

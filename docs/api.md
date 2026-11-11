@@ -1,6 +1,6 @@
 # API reference
 
-`@tilawa/core` 1.0.0-rc.0. {{PENDING: decision 6}}
+`@tilawa/core` 1.0.0-rc.0 (Preview, npm tag `next`).
 
 Start with the [quickstart](quickstart.md). This page lists every public export, by import path.
 
@@ -367,4 +367,4 @@ Each part is versioned on its own:
 
 What counts as additive: new exports, new optional options, new optional event or report fields, new values in `unsupported`. Handle unknown fields and unknown future error classes gracefully.
 
-Exceptions: `@tilawa/core/react-native` is experimental until it is validated on devices. Pre-release versions (`1.0.0-rc.x`) may still change before 1.0.0. {{PENDING: decision 6}}
+Exceptions: `@tilawa/core/react-native` is experimental until it is validated on devices. Pre-release versions (`1.0.0-rc.x`) may still change before 1.0.0.

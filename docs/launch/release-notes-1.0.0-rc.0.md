@@ -1,6 +1,6 @@
 # Tilawa 1.0.0-rc.0 (preview)
 
-**Draft.** For the GitHub release and the npm `next` tag. {{PENDING: decision 6}}
+**Draft.** For the GitHub release and the npm `next` tag. Labelled **Preview**.
 
 This is a preview of Tilawa 1.0. It is published as `@tilawa/core@next`; `latest` stays on 0.4.0 until 1.0.0 is released.
 
@@ -65,7 +65,7 @@ Everything. 1.0 is a new API with new events, a new model and new assets. The [m
 
 ## Evaluation
 
-{{RELEASE_NUMBERS}}
+Preview quality. In our tests on long recitations recorded through a simulated phone, it caught about 9 in 10 planted mistakes, with about 0.7 false warnings per 5 minutes. On recordings from real users, we measured between 0.4 and 3.5 false warnings per 5 minutes, depending on the recording set; learners' phone recordings were at the high end. 7 of our 13 release bars pass; the full table is in the [model card](../model-card.md#evaluation). Phone and browser performance has not been measured yet. Please report wrong feedback at tilawa.dev/help so we can fix it.
 
 ## Known issues
 

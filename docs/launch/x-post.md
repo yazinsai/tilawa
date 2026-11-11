@@ -2,11 +2,11 @@
 
 **Draft only. Not for posting** without the account owner's explicit go-ahead.
 
-Status: the release label is pending ({{PENDING: decision 6}}). These drafts say "preview" where it matters. If 1.0.0 ships as stable, drop "preview" from C.
+Status: the release is labelled **Preview** (`1.0.0-rc`, npm `next`). Every variant must say "preview".
 
 Rules these follow:
 
-- No accuracy or latency numbers. If we add any, they must come from the release report ({{RELEASE_NUMBERS}}).
+- No accuracy or latency numbers. If we add any, they must come from the model card's Evaluation section.
 - Only claims the release supports: following recitation, and memorization feedback (wrong, missed and added words, skipped passages). Nothing about pronunciation or tajweed.
 - "On your device" refers to the engine. /help sends a recording only when the reader chooses to.
 
@@ -16,10 +16,10 @@ Before posting, check in the composer that `npmjs.com/package/@tilawa/core` stay
 
 Attach the launch video ([video-script.md](video-script.md)) or a screenshot of the demo following a recitation.
 
-## A: the product, all links (279/280)
+## A: the product, all links (273/280)
 
 ```text
-Tilawa follows your Quran recitation word by word, on your device, and flags memorization slips: wrong, missed or added words, and skipped passages.
+Preview: Tilawa follows your Quran recitation on your device and flags memorization slips: wrong, missed or added words, and skipped passages.
 
 Try it: tilawa.dev
 Help it learn: tilawa.dev/help
@@ -27,12 +27,12 @@ npm: npmjs.com/package/@tilawa/core
 Docs: github.com/yazinsai/tilawa
 ```
 
-## B: the contribution loop (276/280)
+## B: the contribution loop (268/280)
 
 ```text
-Recite any part of the Quran. Tilawa finds your place and follows you, word by word, on your device.
+Recite any part of the Quran. Tilawa (preview) finds your place and follows you, word by word, on your device.
 
-Help it learn: recite for a few minutes at tilawa.dev/help and tell us where it got it wrong.
+Help it learn: recite at tilawa.dev/help and tell us where it got it wrong.
 
 Try it: tilawa.dev
 For developers: github.com/yazinsai/tilawa

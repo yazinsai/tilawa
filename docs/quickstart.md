@@ -2,7 +2,7 @@
 
 `@tilawa/core` follows someone reciting the Quran, word by word, and flags memorization mistakes as they happen. It runs on the device. Audio is not uploaded.
 
-This is a preview release (`1.0.0-rc`). {{PENDING: decision 6}}
+This is a **Preview** release (`1.0.0-rc`, npm tag `next`). It does not yet meet all of Tilawa's own release bars; see the [model card](model-card.md#evaluation). `latest` stays on 0.4.0 until 1.0.0.
 
 Every snippet on this page is also in [`docs/examples/`](examples/) and typechecked against the built package.
 

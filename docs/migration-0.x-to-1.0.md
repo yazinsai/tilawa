@@ -21,7 +21,7 @@ The 0.4 snippets are abridged from the 0.4.0 README. The 1.0 snippets are typech
 5. Render the Quran text yourself from `{ surah, ayah, word }`.
 6. Optionally, delete the old model cache (below).
 
-`@tilawa/core@next` is the 1.0 preview. `latest` stays on 0.4.0 until 1.0.0 is released. {{PENDING: decision 6}}
+`@tilawa/core@next` is the 1.0 preview. `latest` stays on 0.4.0 until 1.0.0 is released.
 
 ## Setup
 

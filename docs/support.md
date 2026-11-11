@@ -1,8 +1,8 @@
 # Support matrix
 
-What `@tilawa/core` 1.0.0-rc runs on, and what it needs. {{PENDING: decision 6}}
+What `@tilawa/core` 1.0.0-rc (Preview) runs on, and what it needs.
 
-Measured results (latency, memory, device floor) are being collected for this release and will replace the `{{RELEASE_NUMBERS}}` placeholders. Until then, treat anything not marked as tested as untested.
+Measured results below are from desktop CPU only. Phone and browser performance has not been measured yet.
 
 ## Platforms
 
@@ -32,12 +32,12 @@ The package is ESM only. Its JavaScript uses JSON import attributes (`import …
 
 | Browser | OS | Result |
 |---|---|---|
-| Chrome | Android | {{RELEASE_NUMBERS}} |
-| Safari | iOS | {{RELEASE_NUMBERS}} |
-| Chrome | macOS / Windows | {{RELEASE_NUMBERS}} |
-| Safari | macOS | {{RELEASE_NUMBERS}} |
-| Firefox | desktop | {{RELEASE_NUMBERS}} |
-| Edge | Windows | {{RELEASE_NUMBERS}} |
+| Chrome | Android | Not yet tested on a device |
+| Safari | iOS | Not yet tested on a device |
+| Chrome | macOS / Windows | Works (macOS, headless Chrome 2026-11-11: demo and /help follow a recitation, WASM backend, cross-origin isolated) |
+| Safari | macOS | Not yet tested |
+| Firefox | desktop | Not yet tested |
+| Edge | Windows | Not yet tested |
 
 iOS Safari only starts audio created during a user gesture. Use `prepareMicrophone()` in the tap handler ([quickstart](quickstart.md#ios-safari-open-the-microphone-inside-the-tap)).
 
@@ -58,7 +58,7 @@ Cross-Origin-Embedder-Policy: require-corp
 
 Without isolation, the SDK uses one thread whatever you pass. With isolation, every cross-origin file the page loads must allow it. `https://tilawa.dev/v1/` sends `Cross-Origin-Resource-Policy: cross-origin` and `Access-Control-Allow-Origin: *`, so the default asset host works on an isolated page. A mirror must do the same ([self-hosting](self-hosting.md#headers)).
 
-Whether more threads help on a given device: {{RELEASE_NUMBERS}}.
+Whether more threads help on a given device has not been measured yet.
 
 ### ONNX Runtime versions
 
@@ -101,11 +101,13 @@ Runtime memory and speed, per tier and backend:
 
 | Device | Tier | Backend | Peak memory | Real-time factor | Mistake latency |
 |---|---|---|---|---|---|
-| {{RELEASE_NUMBERS}} | | | | | |
+| Desktop (Apple M4), Node | full | onnxruntime-node CPU | not measured | 0.055 per session (listener 0.026) | first warning p95 1,079 ms; word highlight p95 468 ms |
+| Desktop (Apple M4), Node | lite | onnxruntime-node CPU | not measured | 0.037 per session (listener 0.018) | not measured |
+| Phones, browsers | full / lite | WebGPU / WASM | not measured | not measured | not measured |
 
 ## Device floor
 
-The oldest devices this release is checked on, and how they did: {{RELEASE_NUMBERS}}.
+Not yet measured. The target floor is a 2020 mid-range Android phone (Snapdragon 7xx, 4 GB) and iPhone XR/11; until it is checked, treat phone performance as unknown.
 
 ## What 1.0 checks
 

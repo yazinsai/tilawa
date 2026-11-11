@@ -35,7 +35,7 @@ The models don't output text, and they aren't a general Arabic speech recogniser
 - **Augmentation.** Room impulse responses and noise from the same plan: OpenSLR-28 (Apache-2.0), the MIT IR survey (CC-BY), the MUSAN noise subset, and `obadx/freesound-commercial-50k-noise-only`.
 - **Excluded.** All Quran-Lab / Muno459 models and data (NPL-1.2) and data tagged non-commercial. These models are not derived from the 0.x Quran-Lab model.
 - **Licensing of the training data.** Some sources carry no licence tag. They were used for training at the project's own risk. {{PENDING: decision 7}}
-- **Leakage controls.** Splits are by reciter, never by clip. Quran-Lab benchmark clips (including `tlog_holdout`) were removed before training. The held-out evaluation sets: {{RELEASE_NUMBERS}}.
+- **Leakage controls.** Splits are by reciter, never by clip. Quran-Lab benchmark clips (including `tlog_holdout`) were removed before training. Evaluation uses held-out reciters and held-out help-page speakers (see Evaluation).
 - **Reference text.** The Quran reference (`ref-v2`) is the Hafs riwayah, Uthmani text from Tanzil, phonemized with quran-transcript 0.6.4 (MIT).
 
 ### Credits
@@ -75,18 +75,27 @@ Use the warnings as prompts for the reader, not as verdicts. Each one says "this
 
 ## Evaluation
 
-{{RELEASE_NUMBERS}}
+Release readiness of engine `73c6a92f` with `spliced-clean@1-int8`, 11 November 2026. **Preview quality: 7 of Tilawa's 13 release bars pass, and the 6 below their bar are marked.** The bars have not been lowered.
 
-| Measure | `full` | `lite` |
+| Measure (`full`) | Result | Release bar |
 |---|---|---|
-| Listener phoneme error rate (gold set) | {{RELEASE_NUMBERS}} | {{RELEASE_NUMBERS}} |
-| Tracking: locates the reader, wrong jumps | {{RELEASE_NUMBERS}} | {{RELEASE_NUMBERS}} |
-| Mistakes caught (recall), by class | {{RELEASE_NUMBERS}} | {{RELEASE_NUMBERS}} |
-| Warnings that were real mistakes (precision) | {{RELEASE_NUMBERS}} | {{RELEASE_NUMBERS}} |
-| False warnings per 5 minutes of clean recitation | {{RELEASE_NUMBERS}} | {{RELEASE_NUMBERS}} |
-| Device latency and real-time factor | {{RELEASE_NUMBERS}} | {{RELEASE_NUMBERS}} |
+| Listener phoneme error rate (gold set, 233 clips) | 4.82% | ≤ 3.7% (not met) |
+| Long recitations, simulated phone audio, held-out reciters (427 min): mistakes caught | 91.2% (485 of 532) | — |
+| Same: warnings that were real mistakes | 88.8% | — |
+| Same: false warnings per 5 min | 0.71 | — |
+| Same: locked within 5 s / on the right place / wrong jumps | 98.7% / 99.2% / 38 in 427 min | — |
+| Learner clips (help page), free recitation with 1–2 ayahs before and after: mistakes caught | 87.5% (56 of 64) | ≥ 80% |
+| Same: warnings that were real mistakes | 81.2% | ≥ 90% (not met) |
+| Declared passage: mistakes caught / warnings correct | 87.5% / 83.6% | ≥ 80% / ≥ 90% (not met) |
+| Correct ayah within 5 s, short learner clips | 84.0% | ≥ 95% (not met) |
+| Wrong jumps, short learner clips | 0 of 225 | ≤ 2% |
+| False warnings per 5 min: short clips / repeats / recitation before / after the clip / long stitched sessions | 0.76 / 0 / 0.54 / 1.69 / 1.35 | ≤ 1 each (last two not met) |
+| Real users' clean recitation | 0.36 false warnings per 5 min (126 min) | — |
+| Speed, desktop CPU (Apple M4, onnxruntime-node) | about 1/18 of real time per session | — |
 
-Evaluation sets, how they were split, and the release gates: {{RELEASE_NUMBERS}}.
+`lite` (`spliced-clean-lite@1-int8`): gold phoneme error rate 5.74%; about 1/27 of real time per session on the same desktop. Its mistake and warning rates were not re-measured for this release; earlier measurements showed similar recall and about twice the false warnings of `full`.
+
+Not measured yet: latency and memory on phones and in browsers, long sessions with self-corrections, and scripted-error recordings from volunteers. Added words and skipped passages are measured only on the lab set (no learner examples), where planted additions sit at pauses.
 
 ## Versioning
 
