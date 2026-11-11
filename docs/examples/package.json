@@ -1,0 +1,9 @@
+{
+  "name": "tilawa-docs-examples",
+  "private": true,
+  "type": "module",
+  "description": "The code in docs/*.md, typechecked against packages/core/dist. Not published.",
+  "scripts": {
+    "typecheck": "node typecheck.mjs"
+  }
+}
