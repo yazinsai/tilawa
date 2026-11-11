@@ -1,221 +1,124 @@
 # Tilawa
 
-> Formerly called offline-tarteel.
+Offline, streaming Quran recitation engine. It follows a reciter word by word and flags memorization mistakes (wrong, omitted and added words, and skipped passages) as they happen, entirely on-device: in the browser, Node, and (soon) React Native. Audio never leaves the device.
 
-[![Maintained by auto-maintainer](https://am.whhite.com/badge/yazinsai/tilawa)](https://am.whhite.com/stats/yazinsai/tilawa)
+`@tilawa/core` is TypeScript with no runtime dependencies. You install the ONNX Runtime for your platform as a peer dependency.
 
-Offline Quran recognition. Give it 16 kHz mono audio, get back `surah:ayah`. Fully on-device — web, mobile, or node, no network at inference time.
-
-`@tilawa/core` is pure TypeScript with **zero native dependencies**. You inject the ONNX runtime.
-
-**Licence split:** package code is MIT. The Zipformer model and phoneme corpus are **NPL-1.2** (non-commercial, share-alike). FastConformer assets are MIT / NVIDIA CC-BY-4.0. Details: [NOTICE.md](https://github.com/yazinsai/tilawa/blob/main/NOTICE.md).
-
-Two engines ship in the box. The default is **Zipformer** — streaming Zipformer2-CTC over a 251-token tajweed-phoneme vocabulary. **FastConformer** (text CTC) is still there under its original API.
+> **Upgrading from 0.x?** 1.0 is a new engine with a new API. See the [migration guide](https://github.com/yazinsai/tilawa/blob/main/packages/core/CHANGELOG.md#migrating-from-04).
 
 ## Install
 
 ```bash
-npm i @tilawa/core
-# plus the onnxruntime for your platform (you own this dep):
-npm i onnxruntime-web            # browser / WASM
-npm i onnxruntime-node           # node
-npm i onnxruntime-react-native   # React Native
+npm i @tilawa/core@next onnxruntime-web    # browser
+npm i @tilawa/core@next onnxruntime-node   # Node
 ```
 
-Default-engine assets: the model from [release zipformer-a0w-ep1-a0.5](https://github.com/yazinsai/tilawa/releases/tag/zipformer-a0w-ep1-a0.5), the corpus from [v0.3.0](https://github.com/yazinsai/tilawa/releases/tag/v0.3.0):
-
-```bash
-curl -L -O https://github.com/yazinsai/tilawa/releases/download/zipformer-a0w-ep1-a0.5/zipformer_a0w_ep1_a05.int8.onnx  # 66 MB, NPL-1.2
-curl -L -O https://github.com/yazinsai/tilawa/releases/download/v0.3.0/zipformer_quran.json                            # 5.5 MB, NPL-1.2
-# optional — Arabic text on verse_match events
-curl -L -O https://github.com/yazinsai/tilawa/releases/download/v0.2.0/quran.json
-```
-
-The model's I/O manifest is bundled (`DEFAULT_ZIPFORMER_IO`). The previous default, `zipformer_interp_gentle_a05.int8.onnx` (v0.3.0), still works with the same manifest. `quran.json` is display text only; matching works without it.
+`onnxruntime-web` ≥ 1.19, `onnxruntime-node` ≥ 1.20. Node ≥ 20.12.
 
 ## Browser
 
 ```ts
-import * as ort from "onnxruntime-web";
-// `onnxruntime-web/wasm` works too
-import { createRecognitionSession } from "@tilawa/core";
+import { createTilawa } from "@tilawa/core/web";
 
-// Vite copies `*.wasm` into the bundle by default. A raw <script type=module>
-// or a bundler that doesn't should set:
-// ort.env.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.24.2/dist/";
+// Downloads the model and the Quran reference once, then serves them from the Cache API.
+const tilawa = await createTilawa({ onProgress: (p) => (bar.value = p.fraction) });
 
-const session = await createRecognitionSession({
-  ort,
-  model: () => fetch("/zipformer_a0w_ep1_a05.int8.onnx").then((r) => r.arrayBuffer()),
-  corpus: () => fetch("/zipformer_quran.json").then((r) => r.json()),
-  quran: () => fetch("/quran.json").then((r) => r.json()), // optional
-  onEvent: (msg) => {
-    if (msg.type === "verse_match") console.log(`${msg.surah}:${msg.ayah}`, msg.verse_text);
-  },
+const session = tilawa.startFreeRecitation();
+session.subscribe((e) => {
+  if (e.type === "position" && e.observed[0]) highlight(e.observed[0].word); // { surah, ayah, word }
+  if (e.type === "checker" && e.state === "confirmed") mark(e.location, e.errorClass);
 });
 
-for await (const chunk of micChunks) await session.feed(chunk);
-const final = await session.stop();
-session.reset();
+const mic = await tilawa.listen(session); // microphone → session
+// …
+await mic.stop();                         // stops the tracks, then ends the session
+console.log(session.mistakes());
+tilawa.dispose();                         // releases the ONNX session
 ```
 
-Passing `ort` + `model` picks the provider automatically: `["wasm"]` under onnxruntime-web, `["cpu"]` under onnxruntime-node. Override with `executionProviders`. On web we also set `ort.env.wasm.numThreads = 1` unless you already set it — pthread init hangs in workers without COOP/COEP; single-thread is what the demo ships.
+`listen()` needs a secure context (https or localhost). If it can't open the microphone it rejects with a `MicrophoneError` whose `reason` is `"denied"`, `"unavailable"` or `"insecure-context"`.
 
-`createZipformerSession(opts)` is the same thing without the engine switch, and returns the richer `ZipformerSession` (`transcript`, `verses`, `engineState`, …).
+### A declared passage
+
+When the app knows what the reciter is about to read, for example a page on screen, start a memorization session for it:
+
+```ts
+const session = tilawa.startMemorization(
+  { surah: 18, fromAyah: 60, toAyah: 70 },
+  { confirm: { after: "next-word" } }, // confirm a mistake once the next word starts (default: 2.5 s after it)
+);
+```
+
+The tracker then stays inside the passage, and `position` events carry the word the reciter should be on (`expected`).
 
 ## Node
 
 ```ts
-import { readFile } from "node:fs/promises";
-import * as ort from "onnxruntime-node";
-import { createRecognitionSession } from "@tilawa/core";
+import { createTilawa, readWav } from "@tilawa/core/node";
 
-const session = await createRecognitionSession({
-  ort,
-  model: () => readFile("zipformer_a0w_ep1_a05.int8.onnx"),
-  corpus: async () => JSON.parse(await readFile("zipformer_quran.json", "utf8")),
-  quran: async () => JSON.parse(await readFile("quran.json", "utf8")),
-  onEvent: (msg) => {
-    if (msg.type === "verse_match") console.log(`${msg.surah}:${msg.ayah}`);
-    if (msg.type === "raw_transcript") console.log(msg.text);
-  },
+const tilawa = await createTilawa(); // model cached in ~/.cache/tilawa; the reference ships in the package
+const session = tilawa.startMemorization({ surah: 1, fromAyah: 1, toAyah: 7 });
+session.subscribe((e) => {
+  if (e.type === "checker" && e.state === "confirmed") console.log(e.errorClass, e.location);
 });
 
-const CHUNK = Math.round(0.3 * 16000); // 300 ms
-for (let i = 0; i < pcm16k.length; i += CHUNK) {
-  await session.feed(pcm16k.subarray(i, i + CHUNK));
-}
-const final = await session.stop();
-session.reset();
+const { samples, sampleRate } = await readWav("take.wav");
+for (let i = 0; i < samples.length; i += 4800) session.pushAudio(samples.subarray(i, i + 4800), sampleRate);
+await session.end();
+console.log(session.mistakes());
+await tilawa.dispose();
 ```
 
-## React Native
+`pushAudio` takes audio at any sample rate. Calls run one at a time in call order, so a capture callback doesn't need to await them. Use `modelDir` to load a model directory you already have, or `cacheDir` to put downloads somewhere else.
 
-RN can't hand the model to ORT as an `ArrayBuffer` — bundle the `.onnx` as an asset, copy it to the documents dir, create the session from the **path**, and pass that session in with the runtime's `Tensor`:
+## Events
 
-```ts
-import * as ort from "onnxruntime-react-native";
-import { createZipformerSession } from "@tilawa/core";
+The event schema is versioned (`v: 1`). Every session sends three kinds of event:
 
-const session = await createZipformerSession({
-  session: await ort.InferenceSession.create(modelPath),
-  Tensor: ort.Tensor,
-  corpus: () => loadJsonAsset("zipformer_quran.json"),
-  quran: () => loadJsonAsset("quran.json"),
-});
-```
+- **`capabilities`** comes first. It lists which error classes the model supports and which it doesn't, and carries `modelVersion`, `referenceVersion`, `sdkVersion`, `modelSha256`, `tier` and `backend`. V1 supports the four memorization classes `wrong_word`, `omitted_word`, `added_word` and `skipped_passage`.
+- **`position`**: where the reciter is. `observed` lists candidates, best first, each with a `word` (`{surah, ayah, word}`, 1-based word index), a `span` and a `confidence`. `state` is `acquiring`, `locked`, `ambiguous` or `lost`. In memorization sessions `expected` is the passage word the reciter should be on.
+- **`checker`**: a possible mistake, with an `id` that stays the same across its states. Each one goes `suspected` → `confirmed`, or `resolved` (a self-correction), or `uncertain` (the audio was too unclear to judge). It carries `errorClass`, `location`, and the `expected`/`observed` phonemes.
 
-Walkthrough: [examples/react-native.md](https://github.com/yazinsai/tilawa/blob/main/packages/core/examples/react-native.md). Copy-paste runners: [examples/](https://github.com/yazinsai/tilawa/tree/main/packages/core/examples).
+`timeMs` on every event is the session audio clock: ms of 16 kHz audio delivered since the first sample. `session.now()` reads the same clock. `ayahsRecited(events)` gives the ayahs recited, in order.
 
-## Alternate engine: FastConformer
+## Sessions
 
-Pick it for one-shot `transcribe()`, a raw Arabic transcript, or MIT-only assets. Download from [release v0.2.0](https://github.com/yazinsai/tilawa/releases/tag/v0.2.0):
+- A session is one take. `end()` drains the audio and decides every open mistake. It is idempotent, and after it starts `pushAudio` rejects with `SessionEndedError`. To start again, start a new session.
+- `dispose()` drops a session's subscribers and buffers. `tilawa.dispose()` disposes every session and releases the model.
+- `session.id` is a uuid. `session.startedAt` is the wall-clock time of the first sample, and `session.policy` is the policy with its defaults filled in.
+- Policy: `confirm` (`{ after: "delay", ms }` or `{ after: "next-word" }`), `minConfidence` (default 0.6), and `countSelfCorrections` (default false: resolved mistakes aren't in `mistakes()`).
 
-```bash
-base=https://github.com/yazinsai/tilawa/releases/download/v0.2.0
-curl -L -O "$base/fastconformer_full_mixed.onnx"
-curl -L -O "$base/vocab.json"
-curl -L -O "$base/quran_ctc_tokens.json"
-```
+## Models and hosting
 
-Write a `SessionRunner` that owns `ort`, then hand it to `createTilawaSession` with `{ vocab, quranCtcTokens, quran }`. Missing keys throw `Error("fastconformer engine requires assets: vocab, ctcTokens, quran ...")` before anything is read.
+| Tier | Model | Size | Picked when |
+|---|---|---|---|
+| `full` | `spliced-clean@1-int8` | 68 MB | default |
+| `lite` | `spliced-clean-lite@1-int8` | 25 MB | `tier: "auto"` on a device reporting under 4 GB of memory, or on mobile without WebGPU |
 
-```ts
-import * as ort from "onnxruntime-web";
-import { createTilawaSession, type SessionRunner } from "@tilawa/core";
+By default the browser entry loads from `https://tilawa.dev/v1/`: models from `models/<id>/<version>/model.onnx`, the reference from `reference/ref-v2.json`, and the onnxruntime-web WASM files from `runtime/ort/<version>/`. These files are immutable; a new model or reference gets a new path. Downloads are checked against the sha256 in the bundled registry.
 
-async function createWebSessionRunner(modelBuffer: ArrayBuffer): Promise<SessionRunner> {
-  const session = await ort.InferenceSession.create(modelBuffer, {
-    executionProviders: ["wasm"],
-  });
-  return {
-    async run(audio) {
-      const input = new ort.Tensor("float32", audio, [1, audio.length]);
-      const length = new ort.Tensor("int64", BigInt64Array.from([BigInt(audio.length)]), [1]);
-      const results = await session.run({ audio_signal: input, length });
-      const output = results[session.outputNames[0]];
-      const [, timeSteps, vocabSize] = output.dims as number[];
-      return { logprobs: output.data as Float32Array, timeSteps, vocabSize };
-    },
-  };
-}
+- **Self-hosting**: mirror that layout and pass `assetBase`.
+- **Offline**: pass `reference` (import `@tilawa/core/assets/ref-v2.json`) and a `model` you loaded with `loadWebModel` / `loadNodeModel`. If you serve the WASM files yourself, also pass `wasmPaths`.
 
-const session = createTilawaSession(await createWebSessionRunner(modelBuffer), {
-  vocab,
-  quranCtcTokens,
-  quran,
-});
-const pred = await session.transcribe(audioFloat32);
-// { surah: 1, ayah: 1, ayah_end: 3, score: 0.92, transcript: "..." }
-```
+Load failures reject `createTilawa` with `TilawaLoadError` (`stage`: `model`, `reference` or `warmup`), `ModelIntegrityError` or `ModelBudgetError`. Pass `signal` to cancel a download.
 
-Same runner shape on node (`onnxruntime-node`) and RN (create from a file path). FastConformer has no `stop()` — it finalizes on trailing silence. Wrap it in `createRecognitionSession({ engine: "fastconformer", runner, assets })` for the uniform `feed()` / `stop()` / `reset()` surface.
+## Packages
 
-## Verse events
+| Import | What |
+|---|---|
+| `@tilawa/core` | Runtime-neutral engine: `createEngine`, event types, `loadReferenceIndex`, the model registry, `ayahsRecited`, errors |
+| `@tilawa/core/web` | `createTilawa`, `loadWebModel`, `startMicrophone`, `cacheStorage`, `decodeWav` |
+| `@tilawa/core/node` | `createTilawa`, `loadNodeModel`, `loadNodeTier`, `fsStorage`, `readWav` |
+| `@tilawa/core/react-native` | `createTilawa`, `loadNativeModel`. Experimental: not yet validated on devices |
+| `@tilawa/core/report` | Opt-in problem reports (no audio is kept or sent unless the app asks) |
+| `@tilawa/core/assets/*.json` | `ref-v2.json`, `phrases-v1.json` |
 
-Both engines emit the same `WorkerOutbound` union — via `onEvent` / `onOutput`, and as the return value of `feed()` / `stop()`:
+## Licence and credits
 
-| `msg.type` | Meaning | Key fields |
-|---|---|---|
-| `verse_match` | Confident match for the current verse | `surah`, `ayah`, `verse_text`, `surah_name`, `confidence`, `surrounding_verses` |
-| `verse_candidate` | Ranked candidates before lock-in | `candidates[]`, `stable`, `final_flush` |
-| `word_progress` | Word-level alignment within a verse | `surah`, `ayah`, `word_index`, `total_words`, `matched_indices` |
-| `raw_transcript` | Accumulated transcript so far (and again on `stop()`) | `text`, `confidence` |
-| `final_sequence` | Full ordered sequence when recitation ends | `verses[]`, `confidence` |
-
-## API
-
-### `createRecognitionSession(options)`
-
-`engine` defaults to `"zipformer"` (`DEFAULT_ENGINE`). Pass `engine: "fastconformer"` with `{ runner, assets }`. Returns `feed()`, `stop()` / `flush()`, `reset()`, plus `zipformer` / `fastconformer` (the other is `null`).
-
-### `createZipformerSession(options)` → `ZipformerSession`
-
-- `{ ort, model }` — runtime namespace + model bytes (or a loader). Providers: `["wasm"]` under onnxruntime-web, `["cpu"]` under onnxruntime-node.
-- `{ session, Tensor }` — an `InferenceSession` you created plus that runtime's `Tensor`. RN shape.
-
-| Option | Default | Purpose |
-|---|---|---|
-| `corpus` | *required* | Parsed `zipformer_quran.json`, or a loader |
-| `quran` | empty | Arabic text for `verse_match` |
-| `io` | `DEFAULT_ZIPFORMER_IO` | Override only for your own export |
-| `executionProviders` | auto | See above |
-| `onEvent` | — | Verse events, same order `feed()` / `stop()` return them |
-| `minWordFraction` | `0.5` | Fraction of an ayah's words that must land |
-| `enableFallback` | `true` | Whole-ayah search when nothing locked |
-| `tailSeconds` | `2.0` | Silence `stop()` appends to flush the CTC tail |
-
-Also: `transcript`, `tallies` / `verses`, `engineState`, `config`.
-
-#### Structural correction rules (on by default in correction mode)
-
-Correction mode (`setMode("correction")`) adds two text-only rules over the free decode, validated with the a0w model. They are on by default (`DEFAULT_STRUCTURAL`). Pass `structural: false` to turn them off, or `structural: {...}` / `await session.setStructural({...})` to choose; the look-alike index (56 KB gzipped) loads when the session is created. Tracking mode never runs them.
-
-| Rule | Raises | Needs `setExpected`? |
-|---|---|---|
-| `ayahOrder: true` (`"guarded"` for the previous interp model) | `possible_skipped_ayah` — a whole ayah skipped between two read ones, found by matching pause-delimited segments to a local ayah window | No. Without a passage the window is the first located ayah −1 .. +4; with one it is the passage |
-| `similarVerse: true` | `possible_substitution` (a word from a look-alike ayah), `possible_omission` (a dropped word) | For substitutions, yes: without a passage a swapped-in look-alike word reads as the other ayah. Drops work either way |
-
-Issues they raise carry `source: "ayah_order" | "similar_verse"`. By default (`timing: "stop"`) they run once over the whole take at `stop()`, which is how they were validated; each `correct()` that closes an issue raises the next one. `timing: "pause"` also runs them at each pause so a flag can interrupt mid-recitation (more false flags). Similar-verse flags on or next to an ayah flagged as skipped are dropped.
-
-### `createTilawaSession(runner, assets, options?)` → `TilawaSession`
-
-`assets`: `{ vocab, quranCtcTokens, quran, blankId? }`. `transcribe()` / `transcribeRaw()` / `feed()` / `reset()` / `setConfig()` / `getConfig()`. Streaming presets: `"conservative"` / `"balanced"` / `"aggressiveAdvance"`.
-
-`audio` on `SessionRunner.run` is **borrowed, not owned** — treat it as read-only.
-
-## Models
-
-| | Zipformer (default) | FastConformer |
-|---|---|---|
-| **File** | `zipformer_a0w_ep1_a05.int8.onnx` (66 MB; previous: `zipformer_interp_gentle_a05.int8.onnx`) | `fastconformer_full_mixed.onnx` (88 MB) |
-| **Input** | 16 kHz mono `Float32Array`, streamed | same, preprocessing in-graph |
-| **Recall / Precision / SeqAcc** | 100% / 100% / 100% on v1 (53/53); held-out multi-ayah windows 56/58 | 100% / 100% / 100% on v1 (53/53) |
-| **Phoneme error rate** | 3.59% on the 600-clip q-lab benchmark (Quran-Lab v3: 4.45%) | — |
-| **Licence** | **NPL-1.2** non-commercial share-alike | NVIDIA [CC-BY-4.0](https://huggingface.co/nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0) |
+The code is MIT. The listener model is trained and evaluated on tlog (Tarteel, CC-BY) and Quranic Universal Ayahs / the QUD alignment benchmark (QUD Technologies, CC-BY). It is distilled from `obadx/muaalem-model-v3_2` (MIT) and uses the `quran-transcript` phoneme inventory (MIT). The architecture and export follow k2-fsa icefall (Apache-2.0). The Quran text derives from Tanzil. Full notices: [NOTICE.md](https://github.com/yazinsai/tilawa/blob/main/NOTICE.md).
 
 ## This repository
 
-Live demo: [web/frontend](https://github.com/yazinsai/tilawa/tree/main/web/frontend) (Zipformer only). Bake-off writeups: [lab/EXPERIMENTS.md](https://github.com/yazinsai/tilawa/blob/main/lab/EXPERIMENTS.md).
-
-Zipformer models, vocabulary, and the phoneme corpus derive from [Quran-Lab/zipformer_p-arabic-v3](https://huggingface.co/Quran-Lab/zipformer_p-arabic-v3) and alketab's [ملقّن القرآن](https://prompter.alketab.app/). They are **NPL-1.2** and are not covered by this repo's MIT licence. [NOTICE.md](https://github.com/yazinsai/tilawa/blob/main/NOTICE.md).
+- `packages/core/`: the SDK. `src/engine/` and `src/runtime/` are vendored from the research engine by `scripts/sync-engine.mjs`. Don't edit them by hand.
+- `web/`: the demo at tilawa.dev.
+- `lab/`: the earlier Python research harness.
