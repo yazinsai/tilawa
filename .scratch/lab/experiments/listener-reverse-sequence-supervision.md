@@ -2,7 +2,8 @@
 
 Status: training implementation present; corpus audit, matched training, model
 export and acoustic evaluation incomplete. The supplied supervisor failed to
-start the first three requests. Two subsequent requests are pending. This is an
+start the first four requests, including a plain `pwd`. The latest regression
+request is pending. This is an
 unmeasured experiment, not an acoustic kill. The card is unchanged.
 
 ## Prediction and premise
@@ -105,10 +106,10 @@ access, release exam or outside-worktree corpus search was used.
 | 1 | CPU checkpoint/help inventory | Startup `NotFoundError: No such file or directory`; no command output |
 | 2 | Train image, CPU checkpoint/s1/help inventory | Same startup failure; no inventory ran |
 | 3 | Six CPU shards, core/SDK regression suites | Same startup failure; no tests ran |
-| 4 | CPU, `pwd`, two-minute timeout | Pending |
+| 4 | CPU, `pwd`, two-minute timeout | Same startup failure; even `pwd` did not run |
 | 5 | Six CPU shards, core/SDK regression suites, five-minute timeout | Pending |
 
-The three completed requests report $0 GPU spend and $75 remaining. No GPU
+The completed requests report $0 GPU spend and $75 remaining. No GPU
 training request, trained checkpoint, exported bundle or `.autolab/model.json`
 exists. No practice score has been requested; all three opportunities remain.
 Scoring the unchanged main model would not evaluate this training mechanism.
