@@ -2093,6 +2093,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     // phoneme hits there are the wrong test.
     if (issue.phrase) return true;
     const next = nextWord(issue.last);
+    // After the Quran's last word there is no next word to begin: decide at the passage end instead.
+    if (next >= words.length) return false;
     let n = 0;
     for (const s of steps) if (s.op === "diag" && s.obs >= issue.obsTo && index.wordAt(s.ref) === next && ref[s.ref] === obs[s.obs].p) n++;
     return n >= Math.min(ONSET, words[next].end - words[next].start);
@@ -2276,6 +2278,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       issues.delete(wi);
       if (confirmed) confirmed.observed = union.observed;
     }
+    // An addition after the Quran's last word (past the end of An-Nas) has no following word to sit before, so it
+    // cannot be located or reported; without this its index is out of range and the session dies.
+    for (const wi of [...issues.keys()]) if (wi >= words.length) issues.delete(wi);
     furthest = Math.max(furthest, reached);
     for (const [wi, o] of [...open]) {
       const now = issues.get(wi);
