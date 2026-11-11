@@ -1,0 +1,13 @@
+{
+ "id": "listener-duration-stratified-distill",
+ "component": "listener",
+ "hypothesis": "Distillation may underrepresent brief phone occurrences because long realizations supply more training frames; occurrence-balanced head training predicts 2 recovered additions and 1 collateral wrong call: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T06:43:30+00:00",
+ "author": "autolab"
+}
