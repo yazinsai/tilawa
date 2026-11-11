@@ -23,7 +23,7 @@
 import { createHash } from "node:crypto";
 import { createReadStream, createWriteStream, existsSync } from "node:fs";
 import { copyFile, mkdir, readFile, readdir, rename, rm, stat, writeFile } from "node:fs/promises";
-import { dirname, join, relative, resolve, sep } from "node:path";
+import { dirname, join, resolve, sep } from "node:path";
 import { Readable, Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -77,11 +77,21 @@ function modelUrl(base, tier) {
 
 async function download(url, dest, log) {
   log(`  downloading ${url}`);
-  const res = await fetch(url);
+  let res;
+  try {
+    res = await fetch(url);
+  } catch (e) {
+    throw new AssetError(`Could not download ${url}: ${e?.cause?.message ?? e?.message ?? e}`);
+  }
   if (!res.ok || !res.body) throw new AssetError(`${res.status} ${res.statusText} downloading ${url}`);
   await mkdir(dirname(dest), { recursive: true });
   const part = `${dest}.part`;
-  await pipeline(Readable.fromWeb(res.body), createWriteStream(part));
+  try {
+    await pipeline(Readable.fromWeb(res.body), createWriteStream(part));
+  } catch (e) {
+    await rm(part, { force: true });
+    throw new AssetError(`Download of ${url} failed: ${e?.message ?? e}`);
+  }
   await rename(part, dest);
 }
 
@@ -158,11 +168,10 @@ export async function prepare(o) {
       src = modelCandidates(resolve(o.modelsDir), t).find((p) => existsSync(p));
       if (!src) throw new AssetError(`No model for ${t.id}@${t.version} in ${o.modelsDir} (tried ${modelCandidates(o.modelsDir, t).join(", ")})`);
     } else {
-      src = join(out, `.download-${t.id}-${t.version}.onnx`);
-      cleanup = src;
-      await download(modelUrl(o.modelsUrl, t), src, log);
+      src = cleanup = join(out, `.download-${t.id}-${t.version}.onnx`);
     }
     try {
+      if (o.modelsUrl) await download(modelUrl(o.modelsUrl, t), src, log);
       await verify(src, t, `${t.id}@${t.version}`);
       await place(out, join(rel, t.manifest.file), src, t, written);
     } finally {
@@ -182,7 +191,7 @@ export async function prepare(o) {
   const manifest = { schema: 1, ort: d.ort.version, files: written };
   // The listing changes when files are added, so it's rewritten (it isn't one of the immutable files).
   await writeFile(join(out, "manifest.json"), `${JSON.stringify(manifest, null, 1)}\n`);
-  log(`wrote ${written.length} files to ${relative(process.cwd(), out) || out}`);
+  log(`wrote ${written.length} files to ${out}`);
   return manifest;
 }
 
