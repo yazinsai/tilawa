@@ -1,6 +1,7 @@
 # Invariant acoustic phone readout
 
-Status: implementation prepared; Modal execution is currently unavailable.
+Status: blocked on the supervisor's Modal environment; implementation committed,
+but neither a trained bundle nor a measured result is available.
 
 ## Prediction and mechanism
 
@@ -19,6 +20,10 @@ transcripts. Exact CTC forward/backward produces soft phone occupancies, retaini
 blank frames and genuine repeated articulations. Substitution-labelled recordings
 provide preservation comparisons only where the unchanged engine actually
 requests one; no script is imposed as a performed phone transcript.
+Recording-level exclusions and unscorable takes are skipped independently of the
+speaker split, so unusable audio and takes with extra unscripted mistakes cannot
+supply canonical supervision. None-labelled takes containing labelled mistakes or
+repeats are rejected. Supplied labels are never modified.
 
 Recording groups come from eight text-independent acoustic descriptors: level,
 dynamic range, four relative spectral-band levels, temporal variation and
@@ -64,15 +69,17 @@ model selection is declared.
 
 Added unit tests cover soft phone-distribution balancing, text-independent
 grouping, second-order gradients into the representation, repeated-phone
-occupancies, speaker folds, exact-window certificates, finite strict reversals,
+occupancies, speaker folds, recording eligibility, exact-window certificates, finite strict reversals,
 complete-pronunciation scoring, streaming feature geometry, asset corruption,
 audio-session downgrades, graph exemptions and insertion preservation.
 
 Local Python syntax checks and `git diff --check` pass. Modal request 1 (data/model
-audit) and request 2 (the supplied six-shard build/test harness) each failed with
+audit), request 2 (the supplied six-shard build/test harness), request 3 (a smaller
+audit), and request 4 (training/export) each failed with
 `NotFoundError: No such file or directory` before command execution. The returned
-results contain no shard logs and report zero compute spend. A smaller audit
-retry and a training/export request are pending. These infrastructure errors
+results contain no shard logs and report zero compute spend. Request 5 is a
+corrected training/export retry, explicitly installing CPU Torch, NumPy, ONNX and
+ONNX Runtime in the default Node sandbox. It is pending. These infrastructure errors
 establish no acoustic result, target recovery, test pass or score.
 
 No practice score has been used. There is no verified trained bundle and no
@@ -80,6 +87,15 @@ No practice score has been used. There is no verified trained bundle and no
 experiment. The mechanism has not been killed: unavailable infrastructure is not
 evidence that recording-condition shortcuts are absent or that fewer than three
 target warnings are removed.
+
+Do not evaluate this branch with the primary model alone. Once the supervisor is
+restored, finish request 5, verify normal SDK loading and all declared bundle
+files, rerun the six-shard tests, and inspect all four targets using the generic
+SDK comparison CLI on their actual evidence and audio. Declare the verified
+`bundle` through untracked `.autolab/model.json` only then. Fewer than three
+actual target wins requires reverting the implementation and recording a kill;
+three or more requires the authorized practice score before a decision. No
+infrastructure failure is reported as a zero-target acoustic measurement.
 
 Limited none-labelled coverage, discarded classes without common group support,
 alignment errors and a potentially uninformative invariant representation remain

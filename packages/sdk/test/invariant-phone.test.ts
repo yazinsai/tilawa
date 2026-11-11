@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { carryInvariantEvidence, featureBoundaryScore, featureComparison, featureObservations, featureReversal, recordingDescriptor, validateInvariantModel } from "../src/invariant-phone.js";
+import { carryInvariantEvidence, featureBoundaryScore, featureComparison, featureObservations, featureReversal, invariantTrainingRole, recordingDescriptor, validateInvariantModel } from "../src/invariant-phone.js";
 import type { InvariantModel, FeatureHead } from "../src/invariant-phone.js";
 import type { InferenceBackend, ModelManifest, Tensor } from "../src/model.js";
 import { createListener } from "../src/listener.js";
@@ -13,6 +13,19 @@ const candidate={word:{surah:1,ayah:1,word:1},written:"ب",rival:"ت",fromFrame:
 const features=Array.from({length:4},()=>Array(32).fill(0));
 
 describe("matched acoustic pronunciation heads",()=>{
+  it("respects recording exclusions as well as held-out speakers and scripted deviations",()=>{
+    const take={split:"train",speaker:"learner",kind:"none",events:[],non_errors:[]};
+    const held=new Set(["held"]);
+    expect(invariantTrainingRole(take,held)).toBe("none");
+    expect(invariantTrainingRole({...take,excluded:"unusable audio"},held)).toBeNull();
+    expect(invariantTrainingRole({...take,scored:false},held)).toBeNull();
+    expect(invariantTrainingRole({...take,speaker:"held"},held)).toBeNull();
+    expect(invariantTrainingRole({...take,split:"eval"},held)).toBeNull();
+    expect(invariantTrainingRole({...take,kind:"repeat",non_errors:[{kind:"repeat"}]},held)).toBeNull();
+    expect(()=>invariantTrainingRole({...take,non_errors:[{kind:"repeat"}]},held)).toThrow();
+    expect(invariantTrainingRole({...take,kind:"substitution",events:[{errorClass:"wrong_word"}]},held)).toBe("preservation");
+    expect(invariantTrainingRole({...take,kind:"substitution",events:[{errorClass:"omitted_word"}]},held)).toBeNull();
+  });
   it("extracts finite recording descriptors from acoustics without candidate text",()=>{
     const audio=Float32Array.from({length:16000},(_,i)=>.2*Math.sin(i*.08));
     const descriptors=recordingDescriptor(audio);

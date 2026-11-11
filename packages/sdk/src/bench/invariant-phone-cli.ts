@@ -6,7 +6,7 @@ import { parseArgs } from "node:util";
 import * as ort from "onnxruntime-node";
 import { createChecker, createTracker, loadReferenceIndex, trackerInput } from "@tilawa/core";
 import type { PhonemeEvidence, SequenceEvidenceCandidate, WordRef } from "@tilawa/core";
-import { addInvariantEvidence, featureObservations, recordingDescriptor, type InvariantModel } from "../invariant-phone.js";
+import { addInvariantEvidence, featureObservations, invariantTrainingRole, recordingDescriptor, type InvariantModel } from "../invariant-phone.js";
 import { loadNodeModel } from "../node.js";
 import { ortBackend } from "../ort.js";
 import type { OrtModule } from "../ort.js";
@@ -40,17 +40,15 @@ try {
     try {
       const rows:any[]=[];
       for(const r of labels) {
-        if(r.split!=="train"||excluded.has(r.speaker))continue;
-        const substitution=(r.events??[]).some((e:any)=>e.errorClass==="wrong_word");
-        if(r.kind!=="none"&&!substitution)continue;
-        if(r.kind==="none"&&((r.events??[]).length||(r.non_errors??[]).length))throw new Error("None-labelled anchor contains scripted deviations");
+        const role=invariantTrainingRole(r,excluded);
+        if(!role)continue;
         if(!r.speaker||!r.wav||!r.ayahs?.length)throw new Error("Training label lacks speaker, WAV or ayahs");
         const words=(r.ayahs as string[]).flatMap(a=>index.words.filter(w=>`${w.surah}:${w.ayah}`===a&&w.end>w.start));
         if(!words.length)throw new Error("No canonical training pronunciation");
         const samples=audio(resolve(dirname(values.labels),r.wav));
         const features=await featureObservations(extractor,primary.manifest,metadata,samples);
         const provenance={source:"help-train",split:"train",excluded:false,speaker:r.speaker,id:r.id};
-        if(r.kind==="none") {
+        if(role==="none") {
           const pronunciation=words.map(w=>index.phonemes.slice(w.start,w.end)).join("");
           const ids=[...pronunciation].map(p=>metadata.tokens.indexOf(p)+1);
           if(ids.some(p=>p<1))throw new Error("Unknown canonical phone");

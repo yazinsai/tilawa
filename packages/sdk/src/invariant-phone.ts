@@ -10,6 +10,19 @@ export interface InvariantModel {
   featureOutput: string; projection: number[][]; center: number[]; scale: number[];
   invariant: FeatureHead; control: FeatureHead;
 }
+export interface InvariantTrainingTake {
+  split: string; speaker: string; kind: string; excluded?: unknown; scored?: boolean;
+  events?: { errorClass: string }[]; non_errors?: unknown[];
+}
+/** Recording exclusions concern audio/label validity independently of the speaker split. */
+export function invariantTrainingRole(take: InvariantTrainingTake, heldSpeakers: ReadonlySet<string>): "none" | "preservation" | null {
+  if (take.split !== "train" || !take.speaker || heldSpeakers.has(take.speaker) || take.excluded || take.scored === false) return null;
+  if (take.kind === "none") {
+    if (take.events?.length || take.non_errors?.length) throw new Error("None-labelled anchor contains scripted deviations");
+    return "none";
+  }
+  return take.events?.some(e => e.errorClass === "wrong_word") ? "preservation" : null;
+}
 /** Recording conditions use acoustics alone: level, spread, spectral shape and temporal variation. */
 export function recordingDescriptor(audio: Float32Array): number[] {
   const frames = new Fbank().push(audio);
