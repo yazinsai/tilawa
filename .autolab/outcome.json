@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "All four supervised Modal requests returned NotFoundError without command logs, so training, tests and the acceptance-volume premise could not be validated.",
+  "measured": {}
+}
