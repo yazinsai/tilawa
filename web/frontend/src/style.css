@@ -23,6 +23,7 @@ nav { display: flex; align-items: center; gap: 32px; font-size: 14px; }
 .page-split, .developers { display: grid; grid-template-columns: minmax(0, 600px) minmax(0, 504px); gap: clamp(48px, 7.78vw, 112px); justify-content: space-between; }
 .page-split { align-items: start; padding-block: 72px 80px; }
 .intro { display: flex; flex-direction: column; gap: 28px; min-width: 0; padding-top: 48px; }
+.preview-note { margin-top: 12px; font-size: 14px; line-height: 20px; opacity: .8; max-width: 34em; }
 .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .14em; line-height: 16px; }
 h1 { font-size: 72px; font-weight: 500; letter-spacing: -.055em; line-height: 78px; }
 .lede-copy { max-width: 470px; color: var(--color-muted); font-size: 19px; line-height: 31px; }
