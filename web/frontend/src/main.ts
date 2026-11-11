@@ -263,9 +263,13 @@ class RecitationView {
     const top = e.observed[0];
     if (e.state === "lost") $("hint").textContent = "Lost your place. Keep reciting and Tilawa will find it again.";
     else if (e.state === "acquiring" && !this.shown) $("hint").textContent = "Finding your place…";
-    if (!top || (e.state !== "locked" && e.state !== "ambiguous")) return;
-    $("hint").hidden = e.state === "locked";
-    if (e.state === "ambiguous") $("hint").textContent = "A few places match. Keep going.";
+    if (e.state === "ambiguous") {
+      $("hint").hidden = false;
+      $("hint").textContent = "A few places match. Keep going.";
+    }
+    // Only a locked position moves the display: ambiguous candidates would flicker between ayahs.
+    if (!top || e.state !== "locked") return;
+    $("hint").hidden = true;
     this.showWord(top.word);
   }
 

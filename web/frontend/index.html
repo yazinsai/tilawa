@@ -161,14 +161,15 @@
           <div class="quickstart">
             <pre><code><span class="c">// npm i @tilawa/core@next onnxruntime-web</span>
 import { createTilawa } from "@tilawa/core/web";
-
 const tilawa = await createTilawa();
 const session = tilawa.startFreeRecitation();
 session.subscribe((e) =&gt; {
-  if (e.type === "position") console.log(e.observed[0]?.word);
-  if (e.type === "checker" &amp;&amp; e.state === "confirmed") console.log(e.errorClass, e.location);
+  if (e.type === "position") show(e.observed[0]?.word);
+  if (e.type === "checker" &amp;&amp; e.state === "confirmed")
+    mark(e.location, e.errorClass);
 });
-const mic = await tilawa.listen(session); <span class="c">// later: await mic.stop()</span></code></pre>
+const mic = await tilawa.listen(session);
+<span class="c">// later: await mic.stop(); session.mistakes()</span></code></pre>
           </div>
         </section>
       </main>

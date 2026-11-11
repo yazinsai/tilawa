@@ -36,9 +36,10 @@ async function recite(page: Page, label: string) {
   await expect(page.locator("body")).toHaveAttribute("data-view", "listening", { timeout: 120_000 });
   const readyMs = Date.now() - started;
 
-  // The clip ends on 36:5.
+  // The clip ends on 36:5 (three words; the reference counts تَنزِيلَ ٱلْعَزِيزِ ٱلرَّحِيمِ).
   await expect(page.locator("#ayah")).toHaveAttribute("data-ref", "36:5", { timeout: 90_000 });
   await page.screenshot({ path: `${SCREENS}/${label}-listening.png`, fullPage: true });
+  await expect(page.locator("#ayah")).toHaveAttribute("data-word", "3", { timeout: 30_000 });
   const backend = await page.locator("#tech-list").getAttribute("data-backend");
 
   await page.click("#btn-stop");

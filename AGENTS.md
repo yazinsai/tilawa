@@ -51,26 +51,19 @@ All of these must be green before merge. CI (`.github/workflows/ci.yml`) runs th
 
 ## Run the web demo
 
-The demo is the SDK's regression guard: if it still recognizes recitation against `@tilawa/core`, the SDK is correct.
+The demo is the SDK's regression guard: if it still recognizes recitation against `@tilawa/core`, the SDK is correct. It uses the built package (`file:../../packages/core`), so build core first.
 
 ```bash
 cd web/frontend
-npm install
-npm run dev                # vite dev server
-npm run build              # tsc && vite build
-npm run build:server && npm run start   # bundled node server (dist-server/index.mjs)
+npm ci
+npm run build                                   # tsc && vite build (/ and /help)
+npm run assets:v1 -- --models-dir <exports>     # dist/v1: models, reference, ORT runtime (after the build)
+npm run build:server && npm run start           # bundled node server (dist-server/index.mjs)
+npx vitest run                                  # deterministic tests
+TILAWA_MODELS_DIR=<exports> npx playwright test # opt-in: recites a real clip into the built demo
 ```
 
-`Dockerfile` at the root builds and serves this demo.
-
-### Streaming validation
-
-```bash
-cd web/frontend
-npm run test:streaming            # Zipformer recordings, one run
-npm run test:streaming:matrix     # three repeated runs
-npm run test:correction           # tracking + correction recording regression
-```
+`Dockerfile` at the root builds and serves this demo (`--build-arg TILAWA_ASSETS_URL=...`, see its header).
 
 ## Making changes
 

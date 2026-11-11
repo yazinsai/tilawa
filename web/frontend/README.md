@@ -1,40 +1,37 @@
-# Tilawa web frontend
+# Tilawa web frontend (tilawa.dev)
 
-Vanilla TypeScript + Vite 7. The demo uses Zipformer2-CTC (`a0w-ep1-a0.5` int8) for both Tracking and Correction. The previous default, `interp-gentle-a0.5` int8, is still fetched for comparison.
+Vanilla TypeScript + Vite 7, served by a small Hono server (`server/`).
 
-## Zipformer (`a0w-ep1-a0.5`)
+- `/` is the demo (`index.html`, `src/`). It runs `@tilawa/core/web` with no options except a same-origin `assetBase`: one Start button, free recitation, the current ayah and word, and confirmed memorization mistakes as notes. "Practise a passage" starts a declared-passage session.
+- `/help` is the mistake-recording site (`help/`).
+- `/v1/*` serves the immutable SDK assets (models, reference, onnxruntime-web runtime) from `ASSETS_V1_DIR` (default `dist/v1`).
 
-Streaming Zipformer2-CTC. The status pill shows the active engine. Model artefacts are NPL-1.2; the word-level tracker is the native MIT recitation engine, written from `lab/docs/specs/recitation-engine-spec.md` plus 23 vector oracles. It now lives in the SDK (`packages/core/src/recitation/`) and the worker here is a thin host over `ZipformerSession` from `@tilawa/core`.
-
-Assets are gitignored (ONNX + NPL-derived lexicon). The `*.io.json` manifests are committed. Fetch the rest once:
-
-```bash
-bash web/frontend/scripts/fetch-zipformer-assets.sh
-# copies from a local export / the main checkout public/ tree, else downloads
-# zipformer_a0w_ep1_a05.int8.onnx from GitHub release zipformer-a0w-ep1-a0.5,
-# zipformer_interp_gentle_a05.int8.onnx and zipformer_quran.json from v0.3.0
-```
-
-Then from `web/frontend` (symlink `node_modules` from the main checkout if you are in a worktree):
+`@tilawa/core` is a `file:../../packages/core` dependency, so the demo uses the built package. Build it first.
 
 ```bash
-npm run dev
-# open http://localhost:5173/
+(cd ../../packages/core && npm ci && npm run build)
+npm ci
+npm run build                 # tsc + vite build: / and /help (BUILD_ONLY=help for just /help)
+npm run assets:v1 -- --models-dir <exports>   # dist/v1, after the build (vite empties dist/)
+npm run build:server && npm start             # http://localhost:5000
+npm run dev                   # vite dev server; serves dist/v1 at /v1 too
 ```
 
-Node smoke (onnxruntime-node, no browser):
+## /v1 assets
+
+`scripts/prepare-v1-assets.mjs` writes `models/<id>/<version>/{model.onnx,manifest.json}` for every tier in `packages/core/src/runtime/models-v1.json`, `reference/ref-v2.json`, `runtime/ort/<version>/` (the onnxruntime-web files `@tilawa/core/web` loads, for the version in `package-lock.json`) and `manifest.json` (path, bytes, sha256 of each). Models come from `--models-dir` (`<id>-<suffix>/model.onnx`, e.g. `spliced-clean-int8/`) or `--models-url` (a `/v1/` mirror, or a template with `{id}` and `{version}`). Each is checked against the registry's sha256. Existing files are never overwritten with different bytes.
+
+The demo bundles onnxruntime-web's non-inlined build, so its `.mjs`/`.wasm` load only from `/v1/runtime/ort/<version>/`. Keep one onnxruntime-web version (`package.json` pins it) so the bundle and that folder agree.
+
+## Tests
 
 ```bash
-cd web/frontend
-npx tsx test/zipformer-node-smoke.ts
+npx vitest run                # deterministic: server, /help, demo helpers, asset script, old-client cleanup
+TILAWA_MODELS_DIR=<exports> npx playwright test   # opt-in end to end (see playwright.config.ts)
 ```
 
-Streaming stability:
+The Playwright test builds everything, prepares `dist/v1`, starts the built server and recites `lab/benchmark/test_corpus/multi_036_001_005.wav` (Yā-Sīn 36:1–5) into Chromium's fake microphone. Screenshots go to `test/demo-screens/`.
 
-```bash
-npx tsx test/stability-report.ts --repeats=3 --json=test/track-c-v1-stability.json
-npx tsx test/stability-report.ts --repeats=3 --corpus=test_corpus_v2 --json=test/track-c-v2-stability.json
-npx tsx test/stability-report.ts --repeats=1 --corpus=test_corpus_v3 --json=test/track-c-v3-stability.json
-```
+## Old clients
 
-int8 ONNX sha256 `eaf099af…` (66 MB). Threads stay off (`numThreads=1`, EP `wasm`). First load is ~66 MB into IndexedDB under `zipformer-interp-gentle-a05-int8`.
+Browsers that ran the 0.x demo have a ~66 MB model in the IndexedDB database `tarteel-models`, and possibly a service worker. `src/migrate.ts` deletes that database, unregisters service workers and drops every Cache API cache except the SDK's `tilawa-models`. `public/sw.js` is the old service worker's kill switch. The 0.x `/api/reports` and `/api/diagnostics` POST routes stay on the server for old clients.
