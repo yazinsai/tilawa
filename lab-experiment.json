@@ -1,0 +1,13 @@
+{
+ "id": "listener-transfer-weighted-head",
+ "component": "listener",
+ "hypothesis": "Some training examples improve their own fit while worsening recognition on other speakers; learning transferable example weights during a frozen-encoder head refit should remove 2 false warnings while losing 1 caught mistake: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T09:55:19+00:00",
+ "author": "autolab"
+}
