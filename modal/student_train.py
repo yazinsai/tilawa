@@ -37,6 +37,7 @@ image = (
     .env({"PYTHONPATH": "/icefall:/icefall/egs/librispeech/ASR/zipformer:/root/tools", "HF_HOME": "/cache/hf"})
     .pip_install("rapidfuzz==3.14.1")
     .add_local_file("tools/student.py", "/root/tools/student.py")
+    .add_local_file("modal/student_prototypes.py", "/root/tools/student_prototypes.py")
     .add_local_file("tools/per_breakdown.py", "/root/tools/per_breakdown.py")
     .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
@@ -96,7 +97,7 @@ def ints(s: str) -> tuple:
     return tuple(int(x) for x in str(s).split(","))
 
 
-def build_model(size: str):
+def build_model(size: str, phone_head: str = "linear", prototypes: int = 2):
     import torch.nn as nn
     from scaling import ScheduledFloat
     from student import VOCAB
@@ -130,6 +131,15 @@ def build_model(size: str):
                 left_context_frames=ints(p["left_context_frames"]),
             )
             self.ctc_output = nn.Sequential(nn.Dropout(p=0.1), nn.Linear(max(dims), VOCAB))
+            if phone_head != "linear":
+                from student_prototypes import ConventionalHead, PrototypeHead
+
+                if phone_head == "prototypes":
+                    self.ctc_output[1] = PrototypeHead(max(dims), VOCAB, prototypes)
+                elif phone_head == "conventional":
+                    self.ctc_output[1] = ConventionalHead(self.ctc_output[1], prototypes)
+                else:
+                    raise ValueError(f"unknown phone head: {phone_head}")
 
         def forward(self, feats, feat_lens):
             from icefall.utils import make_pad_mask
@@ -211,7 +221,8 @@ class ClipDataset:
         from student import mix_noise, phoneme_ids
 
         c, cfg = self.c, self.cfg
-        rng = np.random.default_rng()
+        seed = cfg.get("augmentation_seed")
+        rng = np.random.default_rng(None if seed is None else seed + i)
         wave, _ = sf.read(io.BytesIO(c["flac"][c["flac_off"][i] : c["flac_off"][i + 1]].tobytes()), dtype="float32")
         if self.train and self.aug:
             if rng.random() < cfg["rir_p"]:
@@ -498,7 +509,7 @@ def load_student(run: str):
     import torch
 
     ck = torch.load(f"/student/runs/{run}/ckpt.pt", map_location="cpu", weights_only=False)
-    model = build_model(ck["cfg"]["size"])
+    model = build_model(ck["cfg"]["size"], ck["cfg"].get("phone_head", "linear"), ck["cfg"].get("prototypes", 2))
     model.load_state_dict(ck["model"])
     return model, ck
 
