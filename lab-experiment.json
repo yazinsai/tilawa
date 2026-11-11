@@ -1,0 +1,13 @@
+{
+ "id": "listener-convolution-tap-parity",
+ "component": "listener",
+ "hypothesis": "A training-to-export convolution tap-order mismatch may distort short consonant transitions despite correct streaming state; restoring operator parity predicts 1 recovered addition, no losses counted, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T06:43:55+00:00",
+ "author": "autolab"
+}
