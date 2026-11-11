@@ -249,6 +249,10 @@ def fit(args):
                 raise ValueError("Target clock or distribution differs")
             torch.testing.assert_close(v[arm].sum(-1), torch.ones(len(v[arm])))
         for a in r["audits"]:
+            if (a["nativeDeadline"] != input_deadline(a["start"], m) or
+                    a["deadline"] != max(a["nativeDeadline"], a["pronunciationEnd"]) or
+                    a["pronunciationEnd"] != r["pronunciationEnds"][str(a["start"])]):
+                raise ValueError("Cached continuation crosses a protected pronunciation")
             for donor in a["donors"]:
                 if donor["id"] == r["id"] or groups[donor["speaker"]] != groups[r["speaker"]]:
                     raise ValueError("Continuation provenance leaked across partitions")

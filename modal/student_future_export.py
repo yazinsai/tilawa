@@ -135,6 +135,8 @@ def stream(runtime, manifest, features, extra=None):
         if extra:
             if result[-1].shape[:2] != result[0].shape[:2]:
                 raise ValueError("Encoder features do not share the primary frame clock")
+            if not np.isfinite(result[-1]).all():
+                raise ValueError("Non-finite native encoder features")
             observations.append(result[-1][0, :keep].copy())
         state = {s["name"]: r.copy() for s, r in zip(manifest["states"], result[1:1 + len(manifest["states"])])}
         consumed += manifest["shift"]

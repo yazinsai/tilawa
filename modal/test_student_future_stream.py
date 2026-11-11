@@ -29,6 +29,8 @@ class RecordingRuntime:
                   np.array([[position + 8]], dtype=np.float32)]
         if names[-1] == "native":
             feature = np.repeat(rows[None, :, None], 3, axis=2)
+            if self.invalid == "native-nonfinite":
+                feature[0, 0, 0] = np.nan
             result.append(feature[:, :-1] if self.invalid == "clock" else feature)
         return result
 
@@ -64,7 +66,7 @@ class FrozenStreamTest(unittest.TestCase):
         for bad in (features[:, :79], features[:8], np.full_like(features, np.nan)):
             with self.assertRaises(ValueError):
                 stream(RecordingRuntime(), manifest(), bad)
-        for invalid in ("clock", "nonfinite"):
+        for invalid in ("clock", "nonfinite", "native-nonfinite"):
             with self.assertRaises(ValueError):
                 stream(RecordingRuntime(invalid), manifest(), features, "native")
 
