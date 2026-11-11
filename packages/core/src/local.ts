@@ -30,6 +30,22 @@ export interface LocalPosition {
   recentCost: number;
   /** Weighted cost of the last observed phoneme, in plain edits. */
   stepCost: number;
+  /** Raw-cost lead over every different word, in plain edits; memory admission only. */
+  wordLead?: number;
+  wordEvidencePhonemes?: number;
+}
+
+export interface LocalWordCandidate {
+  word: number;
+  cost: number;
+}
+export interface LocalWordComparison {
+  continuation: LocalWordCandidate;
+  restart: LocalWordCandidate;
+}
+export interface LocalWordOptions {
+  /** Relative match likelihood in UNITs, positive in favour of continuation. Null retains raw scoring. */
+  compare(comparison: LocalWordComparison): number | null;
 }
 
 export interface LocalSearch {
@@ -45,7 +61,7 @@ export interface LocalSearch {
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">, words?: LocalWordOptions): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -71,6 +87,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let best = start.offset;
   let ayah = -1;
   const recent: number[] = [];
+  let cachedPosition: LocalPosition | null = null;
 
   const recentre = (offset: number) => {
     const a = ayahOf(offset);
@@ -148,6 +165,24 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       for (let i = 0; i < n; i++) {
         if (k === -1 || c[i] < c[k] || (c[i] === c[k] && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1))) k = i;
       }
+      if (words && o[k] !== origin[best - lo]) {
+        const restartWord = index.wordAt(Math.max(0, lo + k - 1));
+        let continuation = -1;
+        for (let i = 0; i < n; i++) {
+          if (!Number.isFinite(c[i]) || o[i] !== origin[best - lo]
+            || index.wordAt(Math.max(0, lo + i - 1)) === restartWord) continue;
+          if (continuation === -1 || c[i] < c[continuation]) continuation = i;
+        }
+        if (continuation !== -1) {
+          const likelihood = words.compare({
+            continuation: { word: index.wordAt(Math.max(0, lo + continuation - 1)), cost: c[continuation] },
+            restart: { word: restartWord, cost: c[k] },
+          });
+          // This is a replacement comparison on the current interval, never accumulated again as token support.
+          // The original movement/edit costs remain in c and still determine the landing's fit and confirmation.
+          if (likelihood !== null && Number.isFinite(likelihood) && c[continuation] - likelihood < c[k]) k = continuation;
+        }
+      }
       const min = c[k];
       for (let i = 0; i < n; i++) c[i] -= min;
       recent.push(min - base);
@@ -157,11 +192,21 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       edits = e;
       best = lo + k;
       recentre(best);
+      cachedPosition = null;
     },
     position() {
+      if (cachedPosition) return { ...cachedPosition };
       const i = best - lo;
       const recentCost = recent.length ? recent.reduce((a, b) => a + b, 0) / UNIT / recent.length : 0;
-      return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
+      const word = index.wordAt(Math.max(0, best - 1));
+      let other = Infinity;
+      if (words) for (let j = 0; j < cost.length; j++) {
+        if (index.wordAt(Math.max(0, lo + j - 1)) !== word) other = Math.min(other, cost[j]);
+      }
+      const position = { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT,
+        ...(words ? { wordLead: (other - cost[i]) / UNIT, wordEvidencePhonemes: recent.length } : {}) };
+      if (words) cachedPosition = position;
+      return { ...position };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
     save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
@@ -169,6 +214,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
       ({ lo, cost, origin, edits, best, ayah } = s);
       recent.splice(0, recent.length, ...s.recent);
+      cachedPosition = null;
     },
   };
 }

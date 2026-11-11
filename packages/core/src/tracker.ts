@@ -11,8 +11,18 @@ import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
 import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-spans.js";
 import type { SlotSpan } from "./slot-spans.js";
+import { WordOccurrenceMemory, validateOccurrenceCalibration } from "./recurring-word.js";
+import type { OccurrenceCalibration, OccurrenceComparison, WordOccurrence } from "./recurring-word.js";
+import { recurringWordCalibration } from "./recurring-word-model.js";
 
 export interface TrackerOptions {
+  /** Training-frozen acoustic memory; inspect without calibration is read-only and cannot change a decision. */
+  acousticMemory?: {
+    calibration?: OccurrenceCalibration;
+    audit?: boolean;
+    inspect?: (comparison: OccurrenceComparison & { continuationCost: number; restartCost: number }) => void;
+    occurrence?: (occurrence: WordOccurrence) => void;
+  };
   mode?: "free" | "memorization";
   /** Grams occurring more often than this carry too little location information to vote. */
   maxGramOccurrences?: number;
@@ -270,9 +280,9 @@ export function relocationSupport(
   return best;
 }
 
-/** What the tracker is fed from one chunk of listener evidence, in the product and in every bench alike: phonemes only. */
+/** Local memory gets rows separately; startup and global product scoring remain decoded-only. */
 export function trackerInput(evidence: PhonemeEvidence): PhonemeEvidence {
-  return { ...evidence, posteriors: undefined };
+  return { ...evidence, occurrencePosteriors: evidence.occurrencePosteriors ?? evidence.posteriors, posteriors: undefined };
 }
 
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
@@ -289,6 +299,11 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const priorRange = options.priorRange;
   const jumpPhonemes = options.jumpPhonemes ?? 8;
   const memorization = options.mode === "memorization";
+  const occurrenceCalibration = options.acousticMemory?.calibration ?? recurringWordCalibration ?? undefined;
+  if (occurrenceCalibration) validateOccurrenceCalibration(occurrenceCalibration);
+  const occurrenceMemory = options.acousticMemory || occurrenceCalibration
+    ? new WordOccurrenceMemory(index.tokens.size, options.acousticMemory?.occurrence) : null;
+  const wordOrdinals = occurrenceMemory ? new Map(index.words.map((w, i) => [`${w.surah}:${w.ayah}:${w.word}`, i])) : null;
   const wordStarts = new Set(index.words.map((w) => w.start));
   const isWordStart = (offset: number) => wordStarts.has(offset);
   const fatiha = index.words.filter((w) => w.surah === 1 && w.ayah === 1);
@@ -306,6 +321,15 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   let withPosteriors = false;
   let frameMs: number | null = null;
   let lastFrame = 0;
+  let lastPhonemeStart = 0;
+  let occurrenceQueryStart: number | null = null;
+  let occurrenceQueryWord = "";
+  const resetOccurrence = () => {
+    occurrenceMemory?.interrupt();
+    occurrenceMemory?.retainFrom(null);
+    occurrenceQueryStart = null;
+    occurrenceQueryWord = "";
+  };
   let last: PositionEvent | null = null;
   /** Set once locked: from then on the tracker follows the reciter locally, phoneme by phoneme. */
   let local: LocalSearch | null = null;
@@ -728,6 +752,30 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     const from = last?.state ?? null;
     const out = marked(event);
     last = out;
+    if (occurrenceMemory && wordOrdinals) {
+      const candidate = out.observed[0];
+      if (out.state !== "locked" || out.hold || out.relocated || !candidate) {
+        occurrenceQueryStart = null;
+        occurrenceQueryWord = "";
+      } else {
+        const at = `${candidate.word.surah}:${candidate.word.ayah}:${candidate.word.word}`;
+        if (at !== occurrenceQueryWord) { occurrenceQueryStart = lastPhonemeStart; occurrenceQueryWord = at; }
+      }
+      occurrenceMemory.retainFrom(occurrenceQueryStart);
+      const wi = candidate ? wordOrdinals.get(`${candidate.word.surah}:${candidate.word.ayah}:${candidate.word.word}`) : undefined;
+      const pos = local?.position();
+      const clear = out.state === "locked" && out.observed.length === 1 && !out.hold && !out.relocated && !out.spanHold
+        && candidate.confidence > 0 && wi !== undefined && pos !== undefined
+        && index.wordAt(pos.offset - 1) === wi;
+      if (!clear || wi === undefined) occurrenceMemory.interrupt();
+      else {
+        const word = index.words[wi];
+        occurrenceMemory.commit({ word: wi, pronunciation: index.phonemes.slice(word.start, word.end),
+          run: `${candidate.span.start.surah}:${candidate.span.start.ayah}:${candidate.span.start.word}`,
+          fromFrame: lastPhonemeStart, unambiguous: true,
+          supported: (pos!.wordLead ?? 0) >= commitMargin(pos!.wordEvidencePhonemes ?? 0, minSeparation, separationScale) });
+      }
+    }
     return options.trace ? { ...out, trace: trace(from) } : out;
   };
   const bare = (event: PositionEvent) => {
@@ -753,6 +801,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   });
 
   const observe = (ph: DecodedPhoneme) => {
+    lastPhonemeStart = ph.start;
     observedFrames.push({ start: ph.start, end: ph.end });
     observed += ph.p;
     observedConf.push(ph.conf);
@@ -869,7 +918,20 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
-    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+    resetOccurrence();
+    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) }, occurrenceMemory ? {
+      compare({ continuation, restart }) {
+        const from = occurrenceQueryStart;
+        if (from === null) return null;
+        const a = index.words[continuation.word], b = index.words[restart.word];
+        // The interval began at this word's observed entry. A candidate for another word needs its own boundary.
+        if (`${a.surah}:${a.ayah}:${a.word}` !== occurrenceQueryWord) return null;
+        const result = occurrenceMemory.compare(index.phonemes.slice(a.start, a.end), index.phonemes.slice(b.start, b.end), from, lastFrame, occurrenceCalibration);
+        options.acousticMemory?.inspect?.({ ...result, continuationCost: continuation.cost / UNIT, restartCost: restart.cost / UNIT });
+        if (options.acousticMemory?.audit || result.continuationLogLikelihood === null) return null;
+        return result.continuationLogLikelihood * UNIT / NATS_PER_EDIT;
+      },
+    } : undefined);
     weak = false;
     pending = null;
     reacquiring = false;
@@ -1281,10 +1343,16 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       }
       const before = local.save();
       local.step(ph.p);
+      if (occurrenceMemory) {
+        const position = local.position();
+        occurrenceMemory.support(index.wordAt(position.offset - 1),
+          (position.wordLead ?? 0) >= commitMargin(position.wordEvidencePhonemes ?? 0, minSeparation, separationScale));
+      }
       stepCosts.push(local.position().stepCost);
       if (stepCosts.length > CONFIRM) stepCosts.shift();
       const heardPhrase = hear(ph.p, before, local.position().stepCost);
       if (heardPhrase) {
+        resetOccurrence();
         const from = heardCost.length - heardPhrase.length;
         const cost = heardCost.slice(from).reduce((a, b) => a + b, 0) / heardPhrase.length;
         if (cost >= PHRASE_LOCAL_COST) {
@@ -1440,6 +1508,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   return {
     push(evidence) {
       validate(evidence);
+      const occurrenceRows = evidence.occurrencePosteriors ?? evidence.posteriors;
+      if (occurrenceRows) occurrenceMemory?.append(occurrenceRows);
       frameMs = evidence.frameMs;
       if (evidence.posteriors) withPosteriors = true;
       else decodedOnly = true;
