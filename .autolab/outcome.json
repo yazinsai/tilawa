@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "All three supplied supervisor requests failed before execution with NotFoundError, preventing training-frozen calibration, target validation and required build/tests; the optional fragmentation prototype has no fitted default model.",
+  "measured": {}
+}

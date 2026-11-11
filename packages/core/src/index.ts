@@ -7,5 +7,6 @@ export { PHRASE_SWITCH } from "./parallel-phrases.js";
 export * from "./gap-decode.js";
 export * from "./reference.js";
 export * from "./tracker.js";
+export type { FragmentationModel } from "./fragmentation.js";
 export { collapseHeld } from "./fuzzy.js";
 export { lexicalWords } from "./checker-lexical.js";
