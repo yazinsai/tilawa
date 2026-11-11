@@ -1,0 +1,13 @@
+{
+ "id": "listener-future-marginal-distill",
+ "component": "listener",
+ "hypothesis": "The teacher may supervise weak consonants using future audio unavailable to the streaming student; marginalizing that inaccessible context before distillation predicts 1 recovered addition, no losses counted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T08:55:39+00:00",
+ "author": "autolab"
+}
