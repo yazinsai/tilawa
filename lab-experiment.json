@@ -1,0 +1,13 @@
+{
+ "id": "listener-iterative-acoustic-revision",
+ "component": "listener",
+ "hypothesis": "Weak added-word consonants may be lost because recognition has no explicit hypothesis-revision stage; acoustically grounded self-conditioned CTC predicts 2 recovered additions and 1 collateral wrong call: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T06:10:35+00:00",
+ "author": "autolab"
+}
