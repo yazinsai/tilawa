@@ -1,5 +1,7 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import { acousticPathSuffix, appendAcousticPath } from "./acoustic-run.js";
+import type { AcousticPath } from "./acoustic-run.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -41,11 +43,32 @@ export interface LocalSearch {
   restore(state: unknown): void;
 }
 
+export interface AcousticCandidate {
+  offset: number;
+  origin: number;
+  cost: number;
+  pronunciation: string;
+  acousticCost: number;
+  observations: number;
+  rankedCost?: number;
+}
+
+export interface LocalAcousticOptions {
+  /** Return a calibrated acoustic cost on the identical recent observation interval. */
+  score?: (pronunciation: string, observations: number) => number | null;
+  /** Restrict expensive inference to competitors inside the unchanged tracker commitment margin. */
+  margin?: (observations: number) => number;
+  /** Training/auditing receives candidates from the original search without changing its decisions. */
+  inspect?: (candidates: AcousticCandidate[], original: number, selected: number) => void;
+  training?: boolean;
+  audit?: boolean;
+}
+
 /**
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">, options?: LocalAcousticOptions): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -68,6 +91,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let cost = new Float64Array(0);
   let origin = new Int32Array(0);
   let edits = new Int32Array(0);
+  let paths: (AcousticPath | null)[] = [];
   let best = start.offset;
   let ayah = -1;
   const recent: number[] = [];
@@ -81,18 +105,21 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     const c = new Float64Array(newHi - newLo + 1).fill(Infinity);
     const o = new Int32Array(c.length);
     const e = new Int32Array(c.length);
+    const p: (AcousticPath | null)[] = options ? new Array(c.length).fill(null) : [];
     for (let i = 0; i < c.length; i++) {
       const old = newLo + i - lo;
       if (old >= 0 && old < cost.length) {
         c[i] = cost[old];
         o[i] = origin[old];
         e[i] = edits[old];
+        if (options) p[i] = paths[old];
       }
     }
     lo = newLo;
     cost = c;
     origin = o;
     edits = e;
+    paths = p;
   };
 
   recentre(start.offset);
@@ -108,11 +135,13 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       const c = new Float64Array(n);
       const o = new Int32Array(n);
       const e = new Int32Array(n);
+      const nextPaths: (AcousticPath | null)[] = options ? new Array(n).fill(null) : [];
       for (let i = 0; i < n; i++) {
         const at = lo + i;
         let bc = cost[i] + insertionCost(ref, at, p);
         let bo = origin[i];
         let be = edits[i] + 1;
+        let path = options ? appendAcousticPath(paths[i], "", insertionCost(ref, at, p), true) : null;
         if (i > 0) {
           const s = subCost(ref[at - 1], p) + entry(at - 1);
           const edit = ref[at - 1] === p ? 0 : 1;
@@ -121,6 +150,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
             bc = cost[i - 1] + s;
             bo = origin[i - 1];
             be = edits[i - 1] + edit;
+            if (options) path = appendAcousticPath(paths[i - 1], ref[at - 1], subCost(ref[at - 1], p), true);
           }
           const from = at - 1;
           if (from !== best && wordStarts.has(from)) {
@@ -129,6 +159,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
               bc = j;
               bo = from;
               be = edit;
+              if (options) path = appendAcousticPath(paths[best - lo], ref[at - 1], subCost(ref[at - 1], p), true);
             }
           }
           const d = c[i - 1] + deletionCost(ref, at - 1) + entry(at - 1);
@@ -136,17 +167,51 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
             bc = d;
             bo = o[i - 1];
             be = e[i - 1] + 1;
+            if (options) path = appendAcousticPath(nextPaths[i - 1], ref[at - 1], deletionCost(ref, at - 1), false);
           }
         }
         c[i] = bc;
         o[i] = bo;
         e[i] = be;
+        if (options) nextPaths[i] = path;
       }
 
       // Lowest cost wins; ties go to the state nearest plain forward progress.
       let k = -1;
       for (let i = 0; i < n; i++) {
         if (k === -1 || c[i] < c[k] || (c[i] === c[k] && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1))) k = i;
+      }
+      // Only a competing run-origin change calls the learned comparison. Movement charges remain in c.
+      if (options && (options.training || o[k] !== origin[best - lo])) {
+        const candidates: AcousticCandidate[] = [];
+        let selected = k, lowest = Infinity;
+        let count: number | undefined;
+        let complete = true;
+        const horizon = acousticPathSuffix(nextPaths[k]).observations;
+        const margin = options.margin?.(horizon) ?? Infinity;
+        for (let i = 0; i < n; i++) {
+          if (!Number.isFinite(c[i])) continue;
+          if (!options.training && c[i] > c[k] + margin) continue;
+          const suffix = acousticPathSuffix(nextPaths[i]);
+          count ??= suffix.observations;
+          if (count !== suffix.observations) throw new Error("Acoustic comparison intervals disagree");
+          const candidate: AcousticCandidate = { offset: lo + i, origin: o[i], cost: c[i], ...suffix };
+          candidates.push(candidate);
+          if (!options.score) continue;
+          // Reference-free insertion states have no competing pronunciation.
+          if (!suffix.pronunciation) continue;
+          const acoustic = options.score(suffix.pronunciation, suffix.observations);
+          if (acoustic === null) { complete = false; continue; }
+          const ranked = c[i] - suffix.acousticCost + acoustic;
+          candidate.rankedCost = ranked;
+          if (ranked < lowest || (ranked === lowest && Math.abs(lo + i - best - 1) < Math.abs(lo + selected - best - 1))) {
+            lowest = ranked;
+            selected = i;
+          }
+        }
+        if (!complete || !acousticPathSuffix(nextPaths[k]).pronunciation) selected = k;
+        options.inspect?.(candidates, lo + k, lo + selected);
+        if (options.score && !options.audit) k = selected;
       }
       const min = c[k];
       for (let i = 0; i < n; i++) c[i] -= min;
@@ -155,6 +220,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       cost = c;
       origin = o;
       edits = e;
+      paths = nextPaths;
       best = lo + k;
       recentre(best);
     },
@@ -164,10 +230,10 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    save: () => ({ lo, cost, origin, edits, paths, best, ayah, recent: [...recent] }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
-      ({ lo, cost, origin, edits, best, ayah } = s);
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; paths: typeof paths; best: number; ayah: number; recent: number[] };
+      ({ lo, cost, origin, edits, paths, best, ayah } = s);
       recent.splice(0, recent.length, ...s.recent);
     },
   };

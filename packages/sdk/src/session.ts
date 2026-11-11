@@ -135,7 +135,7 @@ export function createEngine(options: EngineOptions): Engine {
     const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
       if (options.recordEvidence || model.insertionTeacher) recorded.push(e);
-      // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
+      // Keep startup decoded-only; reserve the posterior trajectories for local tracking comparisons.
       const out = tracker.push(trackerInput(e));
       noteLocks(out);
       return emit([...out, ...checker.push(e, out)]);

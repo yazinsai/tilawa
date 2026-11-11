@@ -11,8 +11,14 @@ import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
 import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-spans.js";
 import type { SlotSpan } from "./slot-spans.js";
+import { acousticRows, createAcousticRunScorer } from "./acoustic-run.js";
+import type { AcousticRunModel } from "./acoustic-run.js";
+import type { LocalAcousticOptions } from "./local.js";
+import { acousticRunModel } from "./acoustic-run-model.js";
 
 export interface TrackerOptions {
+  /** Training-frozen local acoustic comparison. Audit preserves the original decisions. */
+  acousticRun?: { model: AcousticRunModel; audit?: boolean; inspect?: LocalAcousticOptions["inspect"] };
   mode?: "free" | "memorization";
   /** Grams occurring more often than this carry too little location information to vote. */
   maxGramOccurrences?: number;
@@ -270,9 +276,9 @@ export function relocationSupport(
   return best;
 }
 
-/** What the tracker is fed from one chunk of listener evidence, in the product and in every bench alike: phonemes only. */
+/** Preserve local acoustic trajectories without enabling posterior startup reranking. */
 export function trackerInput(evidence: PhonemeEvidence): PhonemeEvidence {
-  return { ...evidence, posteriors: undefined };
+  return { ...evidence, posteriors: undefined, localPosteriors: evidence.localPosteriors ?? evidence.posteriors };
 }
 
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
@@ -302,6 +308,25 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const tokenIds = new Map([...index.tokens].map((t, i) => [t, i + 1]));
   /** Only the first acquisition reranks with posteriors; dropped at lock, so later global searches are decoded-only. */
   let posteriors: PosteriorFrames | null = null;
+  const model = options.acousticRun?.model ?? acousticRunModel;
+  const acousticScore = model && createAcousticRunScorer(model, index.inventoryId);
+  const localFrames = model ? new PosteriorFrames(index.tokens.size) : null;
+  const localPhones: DecodedPhoneme[] = [];
+  let localRows: { from: number; to: number; rows: number[][] | null } | null = null;
+  const localAcoustic: LocalAcousticOptions | undefined = acousticScore ? {
+    margin: n => commitMargin(n, minSeparation, separationScale) * UNIT,
+    audit: options.acousticRun?.audit,
+    inspect: options.acousticRun?.inspect,
+    score: (pronunciation, n) => {
+      if (!localFrames || !model || !n || n > localPhones.length) return null;
+      const from = localPhones[localPhones.length - n].start;
+      const to = localPhones.at(-1)!.end + 1;
+      if (!localRows || localRows.from !== from || localRows.to !== to) {
+        localRows = { from, to, rows: acousticRows(localFrames, from, to, model.frames) };
+      }
+      return localRows.rows && acousticScore(localRows.rows, pronunciation);
+    },
+  } : undefined;
   let decodedOnly = false;
   let withPosteriors = false;
   let frameMs: number | null = null;
@@ -869,7 +894,19 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
-    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+    localPhones.length = 0;
+    const search = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) }, localAcoustic);
+    // Phrase cancellation rewinds both the search and its observation interval.
+    local = localAcoustic ? {
+      step: p => search.step(p),
+      position: () => search.position(),
+      save: () => ({ search: search.save(), phones: [...localPhones] }),
+      restore: state => {
+        const saved = state as { search: unknown; phones: DecodedPhoneme[] };
+        search.restore(saved.search);
+        localPhones.splice(0, localPhones.length, ...saved.phones);
+      },
+    } : search;
     weak = false;
     pending = null;
     reacquiring = false;
@@ -1280,6 +1317,10 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         continue;
       }
       const before = local.save();
+      if (localAcoustic) {
+        localPhones.push(ph);
+        if (localPhones.length > 16) localPhones.shift();
+      }
       local.step(ph.p);
       stepCosts.push(local.position().stepCost);
       if (stepCosts.length > CONFIRM) stepCosts.shift();
@@ -1440,6 +1481,12 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   return {
     push(evidence) {
       validate(evidence);
+      const trajectories = evidence.localPosteriors ?? evidence.posteriors;
+      if (localFrames && trajectories) {
+        localFrames.append(trajectories);
+        if (localPhones.length) localFrames.dropBefore(localPhones[0].start);
+        else localFrames.dropBefore(trajectories.startFrame);
+      }
       frameMs = evidence.frameMs;
       if (evidence.posteriors) withPosteriors = true;
       else decodedOnly = true;

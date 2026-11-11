@@ -38,6 +38,8 @@ export interface PhonemeEvidence {
   frameMs: number;
   phonemes: DecodedPhoneme[];
   posteriors?: TopKPosteriors;
+  /** Posterior trajectories reserved for local tracking; startup remains decoded-only. */
+  localPosteriors?: TopKPosteriors;
   /** Frames before this one are final: no later evidence has a phoneme starting earlier. Optional; streams set it. */
   decodedTo?: number;
 }

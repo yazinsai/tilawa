@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "The supplied supervisor runner fails before execution with NotFoundError, preventing training, frozen calibration, full tests and target validation; the acoustic premise remains unmeasured.",
+  "measured": {}
+}
