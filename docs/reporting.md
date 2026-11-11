@@ -165,7 +165,7 @@ interface Incident {
 - **Evidence.** `evidence: true` in the recorder options adds the phoneme evidence for the clip. It needs `createTilawa({ recordEvidence: true })`, or there is no evidence to add. Evidence is dropped first if the JSON would exceed 4 MiB.
 - **The audio rides alongside.** The report object that `report()`, `contribution()` and `decodeReport()` return has its WAV attached. A copy (spread, `structuredClone`, a JSON round trip) loses it, and `encodeReport` then throws a `TypeError`. `reportAudio(report)` returns the attached bytes.
 
-> **Known issue in 1.0.0-rc.0:** `capabilities.modelVersion` holds the model id (`spliced-clean`), so `engine.modelVersion` in reports also reads `spliced-clean`. Until it is fixed, pass the version yourself: `createRecorder(session, { …, engine: { modelVersion: tilawa.model.version ?? undefined } })`. `engine.modelSha256` identifies the model exactly either way.
+`engine.modelId` is the model id (`spliced-clean`) and `engine.modelVersion` its registry version (`1-int8`, from `capabilities.modelRelease`; `"unknown"` for an injected model outside the registry). `engine.modelSha256` identifies the model exactly either way.
 
 ## Validation
 

@@ -190,7 +190,8 @@ Sent first to every subscriber.
 
 | Field | Type | Meaning |
 |---|---|---|
-| `modelVersion` | `string` | The model's id, for example `spliced-clean`. The version (`1-int8`) is in `tilawa.model.version`. |
+| `modelVersion` | `string` | The model's id, for example `spliced-clean` (name kept from schema v1). |
+| `modelRelease` | `string?` | The model's registry version, for example `1-int8`. Absent for an injected model outside the registry. |
 | `referenceVersion` | `string` | The reference, for example `ref-v2`. |
 | `supported` | `ErrorClass[]` | Error classes this model checks. In 1.0: `wrong_word`, `omitted_word`, `added_word`, `skipped_passage`. |
 | `unsupported` | `ErrorClass[]` | Every other class. Never emitted. |

@@ -185,7 +185,7 @@ function finiteNonNeg(v: unknown, name: string): number {
 
 export function createRecorder(session: RecordableSession, options: RecorderOptions): Recorder {
   if (!options || typeof options.source !== "string" || !options.source) throw new TypeError("createRecorder needs options.source (app tag)");
-  if (options.source.length > 200) throw new RangeError("options.source must be at most 200 chars");
+  if (options.source.length > 128) throw new RangeError("options.source must be at most 128 chars");
   if (options.contributor !== undefined && !CONTRIBUTOR_RE.test(options.contributor))
     throw new RangeError("options.contributor must be 1-64 chars of [A-Za-z0-9_-]");
   const retain = options.retain ?? {};
@@ -574,11 +574,14 @@ export function passageOf(p: RecordableSession["passage"]): ReportPassage | null
   return { surah: p.from.surah, fromAyah: p.from.ayah, toAyah: p.to.ayah };
 }
 
-/** Engine identity from the capabilities event. `modelVersion` there is a model id such as `name@version`. */
+/**
+ * Engine identity from the capabilities event. The engine's `modelVersion` is the model id (`spliced-clean`); the
+ * registry version comes from `modelRelease` (`1-int8`). Older `name@version` ids are still split.
+ */
 export function engineOf(caps: CapabilityEvent, override: Partial<Omit<ReportEngine, "eventSchema">> = {}): ReportEngine {
   const at = caps.modelVersion.lastIndexOf("@");
   const modelId = at > 0 ? caps.modelVersion.slice(0, at) : caps.modelVersion;
-  const modelVersion = at > 0 ? caps.modelVersion.slice(at + 1) : caps.modelVersion;
+  const modelVersion = caps.modelRelease ?? (at > 0 ? caps.modelVersion.slice(at + 1) : "unknown");
   const engine: ReportEngine = {
     sdkVersion: override.sdkVersion ?? caps.sdkVersion ?? "unknown",
     modelId: override.modelId ?? modelId,

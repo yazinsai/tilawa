@@ -27,6 +27,8 @@ export type { MemorizationPassage, SessionPolicy };
 /** Schema v1 `capabilities`, plus the optional fields V1 adds. */
 export interface CapabilityEvent extends ResearchCapabilityEvent {
   sdkVersion?: string;
+  /** Registry version of the model, e.g. `1-int8` (`modelVersion` above is the model id, e.g. `spliced-clean`). */
+  modelRelease?: string;
   modelSha256?: string;
   tier?: string;
   backend?: string;
@@ -105,7 +107,7 @@ export type Session = TilawaSession;
 
 export interface EngineOptions extends ResearchEngineOptions {
   /** Filled into `capabilities`; `backend` and `modelSha256` default to the model's. */
-  info?: { tier?: string; backend?: string; modelSha256?: string };
+  info?: { tier?: string; backend?: string; modelSha256?: string; modelRelease?: string };
 }
 
 export interface Engine {
@@ -137,6 +139,7 @@ export function createEngine(options: EngineOptions): Engine {
     (caps ??= {
       ...s.capabilities,
       sdkVersion: SDK_VERSION,
+      ...(info.modelRelease && { modelRelease: info.modelRelease }),
       ...(modelSha256 && { modelSha256 }),
       ...(info.tier && { tier: info.tier }),
       ...(backend && { backend }),

@@ -177,7 +177,12 @@ export async function createTilawaWith<O extends TilawaOptions>(platform: Platfo
       phrases: o.phrases ?? BUNDLED_PHRASES,
       model,
       recordEvidence: o.recordEvidence,
-      info: { backend: info.backend, ...(info.tier && { tier: info.tier }), ...(info.sha256 && { modelSha256: info.sha256 }) },
+      info: {
+        backend: info.backend,
+        ...(info.tier && { tier: info.tier }),
+        ...(info.version && { modelRelease: info.version }),
+        ...(info.sha256 && { modelSha256: info.sha256 }),
+      },
     });
   } catch (e) {
     return fail(new TilawaLoadError("reference", e));

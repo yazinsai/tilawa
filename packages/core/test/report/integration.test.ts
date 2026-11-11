@@ -46,3 +46,14 @@ describe("recorder on a real session", () => {
     expect(report!.observations.events[0]?.type).toBe("capabilities");
   });
 });
+
+describe("report engine identity", () => {
+  it("takes the model id from modelVersion and the registry version from modelRelease", async () => {
+    const { engineOf } = await import("../../src/report/recorder.js");
+    const caps = { type: "capabilities", v: 1, modelVersion: "spliced-clean", modelRelease: "1-int8", referenceVersion: "ref-v2",
+      supported: [], unsupported: [], sdkVersion: "1.0.0-rc.0" } as const;
+    expect(engineOf(caps as never)).toMatchObject({ modelId: "spliced-clean", modelVersion: "1-int8", sdkVersion: "1.0.0-rc.0" });
+    const { modelRelease: _, ...bare } = caps;
+    expect(engineOf(bare as never)).toMatchObject({ modelId: "spliced-clean", modelVersion: "unknown" });
+  });
+});

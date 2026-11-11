@@ -77,7 +77,7 @@ await tilawa.dispose();
 
 The event schema is versioned (`v: 1`). Every session sends three kinds of event:
 
-- **`capabilities`** comes first. It lists which error classes the model supports and which it doesn't, and carries `modelVersion`, `referenceVersion`, `sdkVersion`, `modelSha256`, `tier` and `backend`. V1 supports the four memorization classes `wrong_word`, `omitted_word`, `added_word` and `skipped_passage`.
+- **`capabilities`** comes first. It lists which error classes the model supports and which it doesn't, and carries `modelVersion` (the model id), `modelRelease`, `referenceVersion`, `sdkVersion`, `modelSha256`, `tier` and `backend`. V1 supports the four memorization classes `wrong_word`, `omitted_word`, `added_word` and `skipped_passage`.
 - **`position`**: where the reciter is. `observed` lists candidates, best first, each with a `word` (`{surah, ayah, word}`, 1-based word index), a `span` and a `confidence`. `state` is `acquiring`, `locked`, `ambiguous` or `lost`. In memorization sessions `expected` is the passage word the reciter should be on.
 - **`checker`**: a possible mistake, with an `id` that stays the same across its states. Each one goes `suspected` → `confirmed`, or `resolved` (a self-correction), or `uncertain` (the audio was too unclear to judge). It carries `errorClass`, `location`, and the `expected`/`observed` phonemes.
 
