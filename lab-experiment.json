@@ -1,0 +1,13 @@
+{
+ "id": "listener-alignment-noise-marginal",
+ "component": "listener",
+ "hypothesis": "Acoustic rechecks may learn incorrect phone associations from uncertain training alignments; explicitly modelling alignment-label noise should remove 1 false wrong-word warning, predicting listener -1 and overall -1, with substantial zero-gain risk.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T03:25:33+00:00",
+ "author": "autolab"
+}
