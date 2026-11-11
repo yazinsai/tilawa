@@ -1,0 +1,13 @@
+{
+ "id": "tracker-reference-range-contract",
+ "component": "tracker",
+ "hypothesis": "A cross-ayah matched interval may lose its source-side portion when converted into per-ayah progress; explicit reference-range projection should remove one false skip, predicting tracker -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T05:11:34+00:00",
+ "author": "autolab"
+}
