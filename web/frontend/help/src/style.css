@@ -1,0 +1,165 @@
+/* tilawa.dev/help. Brand: white paper, warm grey cards, near-black ink. Large type and ≥48px targets throughout. */
+@import "./fonts.css";
+
+:root {
+  --paper: #ffffff;
+  --card: #f6f6f4;
+  --ink: #171717;
+  --muted: #555555;
+  --line: #d6d6d2;
+  --accent: #171717;
+  --accent-ink: #ffffff;
+  --gold: #8a6420;
+  --flag: #a32121;
+  --ok: #255b3b;
+  --radius: 14px;
+  --sans: "IBM Plex Sans", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --sans-ar: "IBM Plex Sans Arabic", "IBM Plex Sans", system-ui, sans-serif;
+  --quran: "Amiri Quran", "Amiri", serif;
+  font-family: var(--sans);
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--paper);
+}
+[dir="rtl"] { font-family: var(--sans-ar); }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; -webkit-font-smoothing: antialiased; }
+main { max-width: 640px; margin: 0 auto; padding: 24px 20px 48px; }
+
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip-link { position: absolute; inset-inline-start: 8px; top: -100px; background: var(--ink); color: var(--paper); padding: 12px 16px; border-radius: 8px; z-index: 100; }
+.skip-link:focus { top: 8px; }
+
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; border-radius: 6px; }
+h1:focus, h2:focus, p:focus, legend:focus { outline: none; }
+h1:focus-visible, p:focus-visible, legend:focus-visible { outline: 3px solid var(--ink); }
+
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.wordmark { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); min-height: 48px; }
+.wordmark > :first-child { font: 800 27px/34px system-ui, sans-serif; letter-spacing: -0.06em; }
+.wordmark [lang="ar"] { font: 400 24px/30px var(--sans-ar); }
+.lang { font-family: var(--sans-ar); }
+[dir="rtl"] .lang { font-family: var(--sans); }
+
+h1 { font-size: clamp(28px, 6.5vw, 38px); line-height: 1.2; letter-spacing: -0.03em; margin: 0 0 14px; font-weight: 600; }
+[dir="rtl"] h1 { letter-spacing: 0; line-height: 1.45; }
+h1.small-h1 { font-size: 26px; }
+h2 { font-size: 21px; margin: 0 0 12px; font-weight: 600; line-height: 1.35; }
+h3 { font-size: 18px; margin: 16px 0 8px; }
+.eyebrow { font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; margin: 0 0 10px; color: var(--muted); }
+[dir="rtl"] .eyebrow { letter-spacing: 0; }
+.lede { font-size: 19px; color: var(--ink); margin: 0 0 20px; }
+.note { font-size: 17px; margin: 8px 0; }
+.note.quiet { color: var(--muted); }
+.error { color: var(--flag); font-weight: 600; margin: 8px 0; }
+.error:empty { display: none; }
+a { color: var(--ink); text-underline-offset: 3px; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin: 16px 0; }
+.card.notice { background: #fbf6ea; border-color: #e5d6ae; }
+.card.problem { background: #fff4f2; border-color: #efc4bd; }
+.card.problem ol { padding-inline-start: 24px; margin: 4px 0 8px; }
+.card.problem li { margin-bottom: 6px; }
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 12px; }
+
+button { font: inherit; font-size: 18px; font-weight: 500; min-height: 52px; padding: 12px 20px; border-radius: 10px; border: 2px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button.big { width: 100%; min-height: 60px; font-size: 20px; margin-top: 8px; }
+button.secondary { border-color: var(--ink); }
+button.link { background: none; border-color: transparent; text-decoration: underline; text-underline-offset: 4px; padding-inline: 4px; color: var(--ink); }
+button.danger, button.link.danger { color: var(--flag); }
+button.danger:not(.link) { border-color: var(--flag); }
+.lang { min-height: 48px; font-size: 17px; border-color: transparent; }
+@media (hover: hover) { button.primary:not(:disabled):hover { background: #333; } button:not(.primary):not(:disabled):hover { background: var(--card); } }
+.icon { width: 26px; height: 26px; flex-shrink: 0; }
+[dir="rtl"] .directional { transform: scaleX(-1); }
+
+/* Consent */
+.consent-group { border: 0; padding: 0; margin: 0; min-width: 0; }
+.consent-group legend { padding: 0; }
+.check { display: flex; gap: 14px; align-items: flex-start; padding: 12px 0; min-height: 48px; cursor: pointer; font-size: 18px; }
+.check input { width: 28px; height: 28px; margin: 2px 0 0; flex-shrink: 0; accent-color: var(--ink); }
+.check + .check { border-top: 1px solid var(--line); }
+.tag { color: var(--muted); font-weight: 500; font-size: 16px; white-space: nowrap; }
+summary, .learn-more summary, .surah-pick summary, .advanced summary { min-height: 48px; display: flex; align-items: center; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
+.mission { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 12px; }
+.mission p { color: var(--muted); }
+.mission-links { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.mission-links a { display: inline-flex; align-items: center; min-height: 48px; }
+
+/* Ready */
+.surah-pick { margin: 8px 0 16px; }
+.field { display: grid; gap: 6px; margin: 8px 0; font-size: 17px; }
+select, textarea, input[type="text"] { font: inherit; font-size: 18px; min-height: 52px; width: 100%; padding: 10px 12px; border-radius: 10px; border: 2px solid var(--line); background: var(--paper); color: var(--ink); }
+textarea { min-height: 80px; resize: vertical; }
+.start { width: 100%; min-height: 96px; font-size: 26px; font-weight: 600; border-radius: 20px; background: var(--ink); color: var(--paper); border-color: var(--ink); margin: 12px 0; }
+.start .icon { width: 34px; height: 34px; }
+.loading { margin: 12px 0; }
+.loading p { font-size: 19px; font-weight: 500; margin: 0 0 8px; }
+progress { width: 100%; height: 14px; accent-color: var(--ink); }
+
+/* Reading */
+.reading-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.status { font-size: 20px; font-weight: 600; margin: 0; }
+.timer { font-variant-numeric: tabular-nums; color: var(--muted); margin: 0; font-size: 18px; }
+.ref { color: var(--muted); font-size: 17px; margin: 12px 0 4px; }
+.quran { font-family: var(--quran); font-size: clamp(32px, 8vw, 42px); line-height: 2.2; padding: 16px 18px; background: var(--card); border-radius: 14px; min-height: 140px; overflow-wrap: anywhere; text-align: start; }
+.quran.small { font-size: clamp(28px, 7vw, 34px); min-height: 0; background: var(--paper); }
+.quran .w { border-radius: 8px; padding: 0 2px; transition: background-color 120ms; }
+.quran .w.read { color: #4a4a4a; }
+.quran .w.now { background: #f2e6c9; box-shadow: inset 0 -3px 0 var(--gold); color: var(--ink); }
+.quran .w.flag { text-decoration: underline wavy var(--flag); text-decoration-thickness: 2px; text-underline-offset: 10px; }
+.ayah-no { font-size: 0.8em; color: var(--gold); }
+@media (prefers-reduced-motion: reduce) { .quran .w { transition: none; } }
+.reading-dock { position: sticky; bottom: 0; background: var(--paper); padding: 16px 0 max(16px, env(safe-area-inset-bottom)); display: grid; gap: 12px; margin-top: 16px; }
+.stumble { min-height: 88px; font-size: 24px; font-weight: 600; border: 3px solid var(--gold); color: #5c4214; background: #fbf6ea; border-radius: 18px; }
+.stumble .icon { width: 32px; height: 32px; }
+.stumble.pulse { animation: pulse 600ms ease-out; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(138, 100, 32, 0.5); } 100% { box-shadow: 0 0 0 16px rgba(138, 100, 32, 0); } }
+@media (prefers-reduced-motion: reduce) { .stumble.pulse { animation: none; } }
+.stumble-count { text-align: center; margin: 0; min-height: 1.5em; color: var(--muted); }
+.stop { min-height: 64px; font-size: 21px; border-color: var(--ink); }
+
+/* Review */
+.moment { padding-bottom: 12px; }
+.why { font-size: 19px; font-weight: 500; margin: 0 0 4px; }
+.player { display: grid; gap: 10px; margin: 16px 0; }
+.play { min-height: 72px; font-size: 22px; background: var(--ink); color: var(--paper); border-color: var(--ink); border-radius: 16px; }
+.play .i-pause, .play.playing .i-play { display: none; }
+.play.playing .i-pause { display: inline; }
+.question { border: 0; padding: 0; margin: 8px 0 0; min-width: 0; }
+.question legend { font-size: 24px; font-weight: 600; padding: 0; margin-bottom: 12px; line-height: 1.35; }
+.answers { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.answer { min-height: 64px; font-size: 21px; font-weight: 600; border-color: var(--ink); }
+.answer.quiet { font-weight: 500; border-color: var(--line); }
+.answer[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+#moment-wrong-ayah { margin-top: 12px; }
+#moment-wrong-ayah[aria-pressed="true"] { font-weight: 600; text-decoration: none; }
+.advanced { margin: 12px 0; }
+
+/* Send */
+audio { width: 100%; margin: 8px 0; }
+#discard { margin-top: 16px; }
+
+/* Done */
+.thank-you { width: 64px; height: 64px; display: grid; place-items: center; background: #ecede8; border-radius: 50%; margin-bottom: 16px; }
+.thank-you .icon { width: 32px; height: 32px; }
+.field-label { font-weight: 600; display: block; margin-bottom: 8px; }
+.code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 15px; word-break: break-all; }
+
+dialog { border: 0; border-radius: 16px; padding: 24px; max-width: min(92vw, 460px); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25); color: var(--ink); }
+dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+
+footer { margin-top: 32px; font-size: 16px; color: var(--muted); }
+
+@media (max-width: 600px) {
+  main { padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+  .topbar { margin-bottom: 16px; padding-bottom: 10px; }
+  .card { padding: 16px; }
+  .quran { padding: 12px; }
+  body[data-screen="reading"] footer { display: none; }
+}

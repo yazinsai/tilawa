@@ -19,10 +19,26 @@ export default defineConfig({
     __BUILD_ID__: JSON.stringify(Date.now().toString(36)),
   },
   resolve: {
-    alias: {
-      "@tilawa/core": fileURLToPath(
-        new URL("../../packages/core/src/index.ts", import.meta.url),
-      ),
+    // Exact match only, so subpaths (@tilawa/core/web, /report) resolve to the built package
+    // (node_modules/@tilawa/core -> packages/core, dist) that /help bundles.
+    alias: [
+      {
+        find: /^@tilawa\/core$/,
+        replacement: fileURLToPath(
+          new URL("../../packages/core/src/index.ts", import.meta.url),
+        ),
+      },
+    ],
+    // packages/core's dist imports onnxruntime-web; use this app's copy, not the core devDependency.
+    dedupe: ["onnxruntime-web"],
+  },
+  build: {
+    rollupOptions: {
+      // BUILD_ONLY=help builds just /help (e.g. while the demo page is being rewritten).
+      input:
+        process.env.BUILD_ONLY === "help"
+          ? { help: path.join(root, "help/index.html") }
+          : { main: path.join(root, "index.html"), help: path.join(root, "help/index.html") },
     },
   },
   worker: {
