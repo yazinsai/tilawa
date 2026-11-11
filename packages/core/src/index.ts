@@ -9,3 +9,5 @@ export * from "./reference.js";
 export * from "./tracker.js";
 export { collapseHeld } from "./fuzzy.js";
 export { lexicalWords } from "./checker-lexical.js";
+export { channelFromCounts, accumulateChannel, emptyCounts } from "./noisy-channel.js";
+export type { Channel, ChannelCounts } from "./noisy-channel.js";

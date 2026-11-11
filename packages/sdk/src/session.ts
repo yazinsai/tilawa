@@ -3,6 +3,7 @@ import type {
   CapabilityEvent,
   CheckerEvent,
   CheckerPolicy,
+  ChannelCounts,
   DecodedPhoneme,
   EngineEvent,
   PhonemeEvidence,
@@ -17,6 +18,7 @@ import { spliceContextFreeGaps } from "./gap-decode.js";
 import { createListener } from "./listener.js";
 import type { ListenerOptions } from "./listener.js";
 import type { LoadedModel } from "./model.js";
+import { addComposedEvidence, composedWrongWordScorer } from "./composed-evidence.js";
 
 export interface SessionPolicy {
   /** Decision 5: a self-correction (or a recovered skip) goes `suspected` then `resolved`; count it as a mistake? Default false. */
@@ -39,6 +41,8 @@ export interface MemorizationPassage {
 }
 
 export interface EngineOptions {
+  /** Frozen training-speaker confusion counts for the composed string-path veto. */
+  wrongWordChannel?: ChannelCounts;
   reference: ReferenceIndex;
   phrases?: PhraseAsset;
   model: LoadedModel;
@@ -96,6 +100,7 @@ export function createEngine(options: EngineOptions): Engine {
   function start(mode: Session["mode"], passage: Session["passage"], policy: SessionPolicy = {}): Session {
     const tracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
     const checkerOptions = {
+      ...(options.wrongWordChannel && { wrongWordEvidence: composedWrongWordScorer(options.wrongWordChannel, index) }),
       phrases,
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
       ...(passage && { passage }),
@@ -186,7 +191,9 @@ export function createEngine(options: EngineOptions): Engine {
             }
             const spliced = options.recordEvidence && locks.length > 1
               ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const insertionEvidence = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const enriched = options.wrongWordChannel
+              ? addComposedEvidence(options.wrongWordChannel, insertionEvidence, index, phrases) : insertionEvidence;
             recorded.splice(0, recorded.length, ...enriched);
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.

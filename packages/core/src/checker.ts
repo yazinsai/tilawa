@@ -2,6 +2,7 @@ import { align as editPath } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
+import { composedReversal, wrongWordKey, type WrongWordCandidate, type WrongWordEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import { channelFromCounts, spanLogP, type Channel, type ChannelCounts } from "./noisy-channel.js";
@@ -51,6 +52,8 @@ export interface SeamInsertionCandidate {
 }
 
 export interface CheckerOptions {
+  /** Read-only listener scorer, consulted only after an existing non-graph wrong word clears its bar. */
+  wrongWordEvidence?: (candidate: WrongWordCandidate, frames: PosteriorFrames) => WrongWordEvidence | null;
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
   policy?: CheckerPolicy;
@@ -441,6 +444,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   /** Words whose error was confirmed or ended uncertain; never reopened. */
   const decided = new Set<number>();
   const emitted: CheckerEvent[] = [];
+  const vetoedIssues = new WeakSet<Issue>();
+  const vetoedEvents = new WeakSet<CheckerEvent>();
+  const reported = (e: CheckerEvent): CheckerEvent => vetoedEvents.has(e) ? { ...e, state: "uncertain" } : e;
   let seq = 0;
 
   const event = (o: Open, state: CheckerState): CheckerEvent => {
@@ -458,8 +464,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       ...(issue.heardUnion ? { observed: issue.heardUnion.observed } : issue.observed !== undefined ? { observed: issue.observed } : {}),
       confidence: conf,
     };
+    // Keep the baseline decision for internal ownership (including swap-tail
+    // absorption). The listener veto changes only the published accusation.
+    if (state === "confirmed" && vetoedIssues.has(issue)) vetoedEvents.add(e);
     emitted.push(e);
-    return e;
+    return reported(e);
   };
 
   /** Mean decoder confidence over an error's phonemes; for an omission, the phonemes either side of the gap. */
@@ -470,10 +479,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     return span.length ? span.reduce((a, p) => a + p.conf, 0) / span.length : 0;
   };
 
+  const wrongWordEvidence = new Map<string, WrongWordEvidence>();
+
   const decide = (o: Open, out: CheckerEvent[], state?: "uncertain") => {
     open.delete(o.issue.word);
     decided.add(o.issue.word);
-    const sure = ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false;
+    const sure = ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue, false, state === undefined) !== false;
     out.push(event(o, state ?? (sure ? "confirmed" : "uncertain")));
   };
 
@@ -483,7 +494,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
    * Whether the posteriors over the error's word and a recited word either side favour what was decoded over the
    * written words by `SUPPORT`; null when there's no telling (no posteriors there, or a skipped passage).
    */
-  const supported = (issue: Issue, requireFinite = false): boolean | null => {
+  const supported = (issue: Issue, requireFinite = false, listenerVeto = false): boolean | null => {
     // Spelled surplus is structural. A likelihood contest over the neighbours is what loses the word.
     if (issue.lexicon) return null;
     // The madd's length was already compared with this reciter's own. One vowel does not move the forward sum.
@@ -500,6 +511,19 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       [...left, ...right, ...(issue.obsTo > issue.obsFrom ? [issue.obsFrom, issue.obsTo - 1] : [])]).filter((k) => k >= 0 && k < obs.length);
     if (!at.length && !issue.wordLocal) return null;
     const ids = (s: string) => [...s].map((p) => tokenId.get(p) ?? 0);
+    const verify = (passes: boolean, written: string, accused: string, fromFrame: number, toFrame: number): boolean => {
+      if (!listenerVeto || !passes || issue.cls !== "wrong_word" || issue.phrase || !(issue.stringPath || issue.wordLocal)) return passes;
+      const w = words[issue.word];
+      const candidate: WrongWordCandidate = { word: { surah: w.surah, ayah: w.ayah, word: w.word },
+        written, accused, fromFrame, toFrame };
+      const key = wrongWordKey(candidate);
+      const certificate = wrongWordEvidence.get(key) ?? options.wrongWordEvidence?.(candidate, frames!) ?? null;
+      if (certificate && wrongWordKey(certificate) === key && composedReversal(certificate)) {
+        wrongWordEvidence.set(key, certificate);
+        vetoedIssues.add(issue);
+      }
+      return passes;
+    };
     // The ending is a few phones. Over the word plus its neighbours the next word's labels take those frames and
     // the written word looks almost as likely; on the word's own frames the consonant has to be accounted for.
     if (issue.wordLocal && issue.obsTo > issue.obsFrom) {
@@ -509,7 +533,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const need = supportNeed(issue);
       const expectedNll = frames.nll(ids(word), a0, b0), observedNll = frames.nll(ids(issue.observed ?? ""), a0, b0);
       if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-      return expectedNll - observedNll >= need;
+      return verify(expectedNll - observedNll >= need, word, issue.observed ?? "", a0, b0);
     }
     // Same joint span as the edit comparison. A wide window that leaves the next word out lets its onset consonant
     // explain the ending a second time.
@@ -521,7 +545,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const need = supportNeed(issue);
       const expectedNll = frames.nll(ids(writtenPair), a0, b0), observedNll = frames.nll(ids(issue.pair), a0, b0);
       if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-      return expectedNll - observedNll >= need;
+      return verify(expectedNll - observedNll >= need, writtenPair, issue.pair, a0, b0);
     }
     if (!at.length) return null;
     const f0 = obs[Math.min(...at)].start;
@@ -544,7 +568,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const need = supportNeed(issue);
     const expectedNll = frames.nll(ids(written), f0, f1), observedNll = frames.nll(ids(decoded), f0, f1);
     if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-    return expectedNll - observedNll >= need;
+    return verify(expectedNll - observedNll >= need, written, decoded, f0, f1);
   };
 
   /** Waqf and pause marks at the edges of a heard span. They are not part of the word. */
@@ -692,7 +716,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   const sureOf = (o: Open) =>
-    ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false;
+    ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue, false, true) !== false;
 
   /** Confirm frozen slot accusations, or drop the ones that named the copy the continuation rejected. */
   const releaseFrozen = (out: CheckerEvent[], drop: boolean, from = -1, end = Infinity) => {
@@ -2457,6 +2481,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const c of p.wrongWordEvidence ?? []) {
+        if (Number.isInteger(c.fromFrame) && Number.isInteger(c.toFrame) && c.toFrame > c.fromFrame && composedReversal(c))
+          wrongWordEvidence.set(wrongWordKey(c), c);
+      }
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {
@@ -2491,7 +2519,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       return out;
     },
     mistakes() {
-      return emitted.filter((e) => e.state === "confirmed" || (policy.countResolved && e.state === "resolved"));
+      return emitted.map(reported).filter((e) => e.state === "confirmed" || (policy.countResolved && e.state === "resolved"));
     },
   };
 }
