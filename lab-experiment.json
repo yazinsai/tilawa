@@ -1,0 +1,13 @@
+{
+ "id": "tracker-paired-path-distortion",
+ "component": "tracker",
+ "hypothesis": "Phone degradation may systematically distort relative scores of complete tracking paths; learning that distortion from paired recordings predicts tracker -1 and overall 0, allowing one exposed listener false warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T07:44:10+00:00",
+ "author": "autolab"
+}
