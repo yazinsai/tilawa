@@ -6,3 +6,7 @@ node_modules/
 README.md
 LICENSE
 NOTICE.md
+
+# Deterministic test fixtures (the repo root ignores model and audio files)
+!test/fixtures/tiny/model.onnx
+!test/fixtures/*.wav
