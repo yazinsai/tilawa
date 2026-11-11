@@ -4,7 +4,7 @@ Offline, streaming Quran recitation engine. It follows a reciter word by word an
 
 `@tilawa/core` is TypeScript with no runtime dependencies. You install the ONNX Runtime for your platform as a peer dependency.
 
-> **Upgrading from 0.x?** 1.0 is a new engine with a new API. See the [migration guide](https://github.com/yazinsai/tilawa/blob/main/packages/core/CHANGELOG.md#migrating-from-04).
+> **Upgrading from 0.x?** 1.0 is a new engine with a new API. See the [migration guide](https://github.com/yazinsai/tilawa/blob/main/docs/migration-0.x-to-1.0.md).
 
 ## Install
 
@@ -14,6 +14,8 @@ npm i @tilawa/core@next onnxruntime-node   # Node
 ```
 
 `onnxruntime-web` ≥ 1.19, `onnxruntime-node` ≥ 1.20. Node ≥ 20.12.
+
+In the browser, onnxruntime-web's `.wasm` files load from `https://tilawa.dev/v1/runtime/ort/<your onnxruntime-web version>/` by default. The versions hosted there are listed in [`/v1/manifest.json`](https://tilawa.dev/v1/manifest.json) (1.30.0 at the time of writing). For any other version, pass `wasmPaths` or [self-host](https://github.com/yazinsai/tilawa/blob/main/docs/self-hosting.md).
 
 ## Browser
 
@@ -79,7 +81,7 @@ The event schema is versioned (`v: 1`). Every session sends three kinds of event
 - **`position`**: where the reciter is. `observed` lists candidates, best first, each with a `word` (`{surah, ayah, word}`, 1-based word index), a `span` and a `confidence`. `state` is `acquiring`, `locked`, `ambiguous` or `lost`. In memorization sessions `expected` is the passage word the reciter should be on.
 - **`checker`**: a possible mistake, with an `id` that stays the same across its states. Each one goes `suspected` → `confirmed`, or `resolved` (a self-correction), or `uncertain` (the audio was too unclear to judge). It carries `errorClass`, `location`, and the `expected`/`observed` phonemes.
 
-`timeMs` on every event is the session audio clock: ms of 16 kHz audio delivered since the first sample. `session.now()` reads the same clock. `ayahsRecited(events)` gives the ayahs recited, in order.
+`timeMs` on `position` and `checker` events is the session audio clock: ms of 16 kHz audio delivered since the first sample. `session.now()` reads the same clock. `ayahsRecited(events)` gives the ayahs recited, in order.
 
 ## Sessions
 
@@ -98,20 +100,31 @@ The event schema is versioned (`v: 1`). Every session sends three kinds of event
 By default the browser entry loads from `https://tilawa.dev/v1/`: models from `models/<id>/<version>/model.onnx`, the reference from `reference/ref-v2.json`, and the onnxruntime-web WASM files from `runtime/ort/<version>/`. These files are immutable; a new model or reference gets a new path. Downloads are checked against the sha256 in the bundled registry.
 
 - **Self-hosting**: mirror that layout and pass `assetBase`.
-- **Offline**: pass `reference` (import `@tilawa/core/assets/ref-v2.json`) and a `model` you loaded with `loadWebModel` / `loadNodeModel`. If you serve the WASM files yourself, also pass `wasmPaths`.
+- **Offline**: pass `reference` (import `@tilawa/core/assets/ref-v2.json`) and a `model` you loaded with `loadWebModel` / `loadNodeModel`. If you serve the WASM files yourself, pass `wasmPaths` to `loadWebModel` (with your own `model`, `createTilawa` doesn't use it).
 
-Load failures reject `createTilawa` with `TilawaLoadError` (`stage`: `model`, `reference` or `warmup`), `ModelIntegrityError` or `ModelBudgetError`. Pass `signal` to cancel a download.
+Load failures reject `createTilawa` with `TilawaLoadError` (`stage`: `model` or `reference`), `ModelIntegrityError` or `ModelBudgetError`. Pass `signal` to cancel a download.
 
 ## Packages
 
 | Import | What |
 |---|---|
 | `@tilawa/core` | Runtime-neutral engine: `createEngine`, event types, `loadReferenceIndex`, the model registry, `ayahsRecited`, errors |
-| `@tilawa/core/web` | `createTilawa`, `loadWebModel`, `startMicrophone`, `cacheStorage`, `decodeWav` |
+| `@tilawa/core/web` | `createTilawa`, `prepareMicrophone`, `loadWebModel`, `startMicrophone`, `cacheStorage`, `decodeWav` |
 | `@tilawa/core/node` | `createTilawa`, `loadNodeModel`, `loadNodeTier`, `fsStorage`, `readWav` |
 | `@tilawa/core/react-native` | `createTilawa`, `loadNativeModel`. Experimental: not yet validated on devices |
 | `@tilawa/core/report` | Opt-in problem reports (no audio is kept or sent unless the app asks) |
 | `@tilawa/core/assets/*.json` | `ref-v2.json`, `phrases-v1.json` |
+
+## Documentation
+
+- [Quickstart](https://github.com/yazinsai/tilawa/blob/main/docs/quickstart.md): web, Node, declared passages, cleanup, errors, iOS
+- [API reference](https://github.com/yazinsai/tilawa/blob/main/docs/api.md): every export, events, lifecycle, version policy
+- [Support matrix](https://github.com/yazinsai/tilawa/blob/main/docs/support.md): browsers, Node, React Native, model sizes
+- [Self-hosting and offline use](https://github.com/yazinsai/tilawa/blob/main/docs/self-hosting.md)
+- [Reporting](https://github.com/yazinsai/tilawa/blob/main/docs/reporting.md): opt-in problem reports
+- [Migrating from 0.x](https://github.com/yazinsai/tilawa/blob/main/docs/migration-0.x-to-1.0.md)
+- [Model card](https://github.com/yazinsai/tilawa/blob/main/docs/model-card.md)
+- Contributors: [recite at tilawa.dev/help](https://github.com/yazinsai/tilawa/blob/main/docs/contributing-recordings.md), [privacy](https://github.com/yazinsai/tilawa/blob/main/docs/privacy.md)
 
 ## Licence and credits
 
