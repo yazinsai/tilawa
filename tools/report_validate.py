@@ -24,7 +24,7 @@ MAX_JSON_BYTES = 4 * 1024 * 1024
 MAX_AUDIO_MS = 300_000
 SAMPLE_RATE = 16000
 WAV_FMT = (16, 1, 1, 16000, 32000, 2, 16)
-KINDS = {"false_warning", "missed_mistake", "wrong_position", "stumble", "unflagged_sample", "other"}
+KINDS = {"warning", "false_warning", "missed_mistake", "wrong_position", "stumble", "unflagged_sample", "other"}
 ANSWERS = {"yes", "no", "unsure", "skipped"}
 
 
@@ -167,6 +167,8 @@ def report_problems(r):
                     e.append(f"{at}.claim.{k} must be a string")
             if "note" in c and (not isinstance(c["note"], str) or _jslen(c["note"]) > MAX_NOTE_CHARS):
                 e.append(f"{at}.claim.note must be at most {MAX_NOTE_CHARS} chars")
+            if "text" in c and isinstance(c["text"], str) and _jslen(c["text"]) > MAX_NOTE_CHARS:
+                e.append(f"{at}.claim.text must be at most {MAX_NOTE_CHARS} chars")
 
     obs = r.get("observations")
     if not _obj(obs) or not isinstance(obs.get("events"), list):

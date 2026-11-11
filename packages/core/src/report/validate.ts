@@ -14,7 +14,7 @@ const SCHEMA_RE = /^tilawa\.report\/(\d+)(\.\d+)?$/;
 const SHA_RE = /^[0-9a-f]{64}$/;
 const CONTRIBUTOR_RE = /^[A-Za-z0-9_-]{1,64}$/;
 const MAX_SOURCE_CHARS = 128;
-const INCIDENT_KINDS = new Set(["false_warning", "missed_mistake", "wrong_position", "stumble", "unflagged_sample", "other"]);
+const INCIDENT_KINDS = new Set(["warning", "false_warning", "missed_mistake", "wrong_position", "stumble", "unflagged_sample", "other"]);
 const ANSWERS = new Set(["yes", "no", "unsure", "skipped"]);
 
 export interface ReportValidation {
@@ -118,6 +118,8 @@ export function reportProblems(r: unknown): string[] {
         if (c[k] !== undefined && typeof c[k] !== "string") e.push(`${at}.claim.${k} must be a string`);
       if (c.note !== undefined && (typeof c.note !== "string" || c.note.length > REPORT_LIMITS.maxNoteChars))
         e.push(`${at}.claim.note must be at most ${REPORT_LIMITS.maxNoteChars} chars`);
+      if (c.text !== undefined && (typeof c.text !== "string" || c.text.length > REPORT_LIMITS.maxNoteChars))
+        e.push(`${at}.claim.text must be at most ${REPORT_LIMITS.maxNoteChars} chars`);
     });
   }
 

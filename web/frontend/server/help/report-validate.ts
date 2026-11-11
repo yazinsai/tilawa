@@ -32,7 +32,7 @@ export const MAX_SAMPLES = (MAX_AUDIO_MS / 1000) * SAMPLE_RATE;
 export const MAX_WAV_BYTES = WAV_HEADER_BYTES + MAX_SAMPLES * 2;
 export const MAX_INCIDENTS = 100;
 export const MAX_NOTE_CHARS = 2000;
-export const INCIDENT_KINDS = ["false_warning", "missed_mistake", "wrong_position", "stumble", "unflagged_sample", "other"] as const;
+export const INCIDENT_KINDS = ["warning", "false_warning", "missed_mistake", "wrong_position", "stumble", "unflagged_sample", "other"] as const;
 const ANSWERS = new Set(["yes", "no", "unsure", "skipped"]);
 const MODES = new Set(["free", "memorization"]);
 const SCHEMA = /^tilawa\.report\/1(\.\d+)?$/;
@@ -127,7 +127,7 @@ function checkShape(r: Obj, need: (ok: boolean, code: string) => void) {
   const req = isObj(a) ? a.requested : undefined;
   need(
     isObj(a) && a.format === "pcm_s16le" && a.sampleRate === 16000 && a.channels === 1 &&
-      isNum(a.startMs) && a.startMs >= 0 && isNum(a.durationMs) && a.durationMs >= 0 &&
+      isNum(a.startMs) && a.startMs >= 0 && isNum(a.durationMs) && a.durationMs > 0 &&
       typeof a.sha256 === "string" && SHA256.test(a.sha256) &&
       isObj(req) && isNum(req.startMs) && isNum(req.endMs) && isBool(a.truncatedStart) && isBool(a.truncatedEnd),
     "fields.audio",

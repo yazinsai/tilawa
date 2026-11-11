@@ -28,8 +28,8 @@ export function createApp(env = process.env) {
     if (isHelp(path)) {
       if (!data) c.header("Cache-Control", "no-cache");
       // Opt-in cross-origin isolation for /help (the V1 SDK runs inference there).
-      // /help still loads Google Fonts cross-origin: self-host them before setting
-      // HELP_ISOLATION=1, or COEP require-corp will block the fonts.
+      // /help self-hosts its fonts and bundles the SDK (dist/help + dist/assets), so
+      // COEP require-corp has nothing cross-origin to block.
       if (env.HELP_ISOLATION === "1") {
         c.header("Cross-Origin-Opener-Policy", "same-origin");
         c.header("Cross-Origin-Embedder-Policy", "require-corp");

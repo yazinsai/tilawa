@@ -37,7 +37,7 @@ v1 changes: `/help/api/submit`, `/subscribe`, `/export`, `/subscribers` and
 | `HELP_DELETE_RETENTION_DAYS` | `30` | How long a soft-deleted report keeps its audio before `purge` may drop it. |
 | `HELP_MIN_FREE_BYTES` | `1073741824` | New reports get `507` when the storage filesystem has less free space than this. |
 | `HELP_V2_DIR` | `$HELP_DATA_DIR/v2` | Storage root. `HELP_DATA_DIR` defaults to `./storage/help`, which is `/app/storage/help` in the container. |
-| `HELP_ISOLATION` | unset | `1` adds COOP `same-origin` + COEP `require-corp` to `/help*` (needed for threaded WASM inference under the V1 SDK). **Self-host the Google Fonts that `/help` loads before turning this on**, or COEP blocks them. Self-hosting also stops the visitor IP leaking to Google. |
+| `HELP_ISOLATION` | unset | `1` adds COOP `same-origin` + COEP `require-corp` to `/help*` (needed for threaded WASM inference under the V1 SDK). `/help` self-hosts its fonts and bundles the SDK, so nothing on the page is cross-origin except the model and runtime under `assetBase` (`/v1/`, served with CORP `cross-origin`). |
 | `ASSETS_V1_DIR` | `./dist/v1` | Directory served at `/v1/`. Fill it at build or deploy time. Never commit model files. |
 | `IP_SALT` | random per boot | Salt for IP hashes, shared by the v1 and v2 rate limiters. v2 never stores IP hashes. |
 | `HELP_ADMIN_TOKEN`, `ADMIN_PASSWORD` | unset | Admin bearer and `/admin` password. With neither set, every admin route is closed. |
@@ -118,6 +118,39 @@ token from `dokku config:get` unless `HELP_ADMIN_TOKEN` is set locally, so it
 picks up the new one. Update any other script that has a copy (lab data pulls). To rotate `ADMIN_PASSWORD`,
 set it the same way. Every `/admin` session is signed with the password, so all
 sessions end too.
+
+## What /help sends
+
+The page lives in `web/frontend/help/` (a second Vite page, built to `dist/help/index.html` with its scripts,
+styles and fonts under `dist/assets/`). Each take becomes one `contribution()` report: the whole take as
+`audio.wav` (capped at 5 minutes, decision 5), the engine's own events in `observations`, and the reader's
+answers as `incidents`. Consent policy `tilawa-help-report`, version `2026-11-report-1` (decision 4).
+
+After the reader stops, the page asks about at most 5 moments, in the order they happened: confirmed warnings,
+then the reader's "I stumbled here" bookmarks, then suspected or uncertain warnings, then places where we lost or
+moved the reader's position. One or two random regions with no warning and no bookmark are always added as the
+bias sample. The reader can also mark more moments while listening back. Each answer becomes one incident:
+
+| Incident `kind` | Where it comes from | `claim.question` | What `claim.answer` means |
+|---|---|---|---|
+| `warning` | a warning we raised (`eventIds` = its checker ids) | `made_mistake` | `no` = the reader says the warning was false; `yes` = they agree they made a mistake |
+| `stumble` | a bookmark tapped while reciting (`markedAt` = the tap) | `made_mistake` | as above; `null` with no question when the review never reached it |
+| `wrong_position` | a position wobble, or "We showed the wrong ayah" on any moment | `wrong_ayah` | `yes` = we showed the wrong ayah |
+| `unflagged_sample` | a random region with no warning or bookmark | `reading_correct` | `yes` = the reader says they read it correctly |
+| `missed_mistake` | a moment the reader marked while listening back | `made_mistake` | as above |
+
+`skipped` and `unsure` are recorded as given. `claim.text` / `claim.note` are the optional "what I actually
+recited" and free-text boxes. A warning is never treated as the truth about itself, unflagged audio is never
+labelled clean, and nothing in the report is inferred: everything in `incidents` is something the reader did
+or said. Incident spans are the clip the reader heard (6 s before to 2 s after the moment, 8 s for samples).
+
+Failed uploads keep the encoded report in memory and retry with the same bytes. Retrying after a refresh only
+works if the reader ticks "Keep it on this device for 7 days", which stores the encoded report in IndexedDB
+(`tilawa-help` / `unsent`). It is deleted after a successful send, on discard, or when it expires. The
+success screen shows the delete code once as `<reportId>.<deleteToken>` and offers an immediate delete.
+
+Tests: `npm test` (selection and mapping unit tests in `test/help/`) and `npm run test:help-e2e` (Playwright,
+`?mock=1`, real server with a temp store; screenshots and axe results in `test/help-screens/`).
 
 ## Third-party apps
 

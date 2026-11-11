@@ -39,7 +39,8 @@ function v1Assets(): Plugin {
 export default defineConfig({
   plugins: [v1Assets()],
   resolve: {
-    // @tilawa/core is linked (file:../../packages/core) and has its own dev copy of onnxruntime-web: use ours.
+    // No alias: @tilawa/core and its subpaths resolve to the built package (file:../../packages/core → dist).
+    // packages/core has its own dev copy of onnxruntime-web: use this app's.
     dedupe: ["onnxruntime-web"],
     // onnxruntime-web's non-bundled build: its .mjs/.wasm load from /v1/runtime/ort/<version>/ (the SDK's
     // wasmPaths) instead of being inlined into our bundle and copied into dist/assets.
@@ -56,10 +57,11 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      input: {
-        main: path.resolve(root, "index.html"),
-        // Other pages (e.g. /help) add their own entry here.
-      },
+      // BUILD_ONLY=help builds just /help.
+      input:
+        process.env.BUILD_ONLY === "help"
+          ? { help: path.join(root, "help/index.html") }
+          : { main: path.join(root, "index.html"), help: path.join(root, "help/index.html") },
     },
   },
 });

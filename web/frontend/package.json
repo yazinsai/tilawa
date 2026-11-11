@@ -5,14 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -p tsconfig.app.json && vite build && node scripts/version-help-assets.mjs",
+    "build": "tsc -p tsconfig.app.json && vite build",
     "build:server": "npx esbuild server/index.ts --bundle --platform=node --format=esm --outfile=dist-server/index.mjs --packages=external",
     "start": "node dist-server/index.mjs",
     "preview": "vite preview",
     "help:dashboard": "node scripts/help-dashboard.mjs",
     "test": "vitest run",
     "assets:v1": "node scripts/prepare-v1-assets.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "typecheck:help": "tsc -p tsconfig.help.json --noEmit",
+    "test:help-e2e": "BUILD_ONLY=help vite build && node test/help-e2e/flow.mjs"
   },
   "dependencies": {
     "@fontsource/amiri": "^5.2.8",
@@ -24,9 +26,12 @@
     "onnxruntime-web": "1.30.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.56.1",
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.65.0",
     "esbuild": "^0.27.3",
     "fake-indexeddb": "^6.2.4",
+    "playwright": "^1.65.0",
+    "tsx": "^4.19.0",
     "typescript": "~5.9.3",
     "vite": "^7.3.1",
     "vitest": "^3.2.7"

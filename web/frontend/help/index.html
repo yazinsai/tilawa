@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Help improve Quran recitation apps — Tilawa</title>
+  <meta name="description" content="Recite any part of the Quran for up to 5 minutes, then tell us where Tilawa got it wrong. No account needed." />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="application-name" content="Tilawa" />
+  <link rel="canonical" href="https://tilawa.dev/help/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Tilawa" />
+  <meta property="og:url" content="https://tilawa.dev/help/" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Help improve Quran recitation apps — Tilawa" />
+  <meta property="og:description" content="Recite any part of the Quran, then tell us where Tilawa got it wrong. No account needed." />
+  <meta property="og:image" content="https://tilawa.dev/help/social-preview.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Tilawa. Lend your voice to the Quran engine." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Help improve Quran recitation apps — Tilawa" />
+  <meta name="twitter:description" content="Recite any part of the Quran, then tell us where Tilawa got it wrong. No account needed." />
+  <meta name="twitter:image" content="https://tilawa.dev/help/social-preview.png" />
+  <link rel="icon" href="/icon-192.png" />
+</head>
+<body>
+  <a class="skip-link" href="#main" data-i18n="skipToContent">Skip to content</a>
+  <main id="main">
+    <header class="topbar">
+      <a class="wordmark" href="/" aria-label="Tilawa"><span>tilawa</span><span lang="ar">تلاوة</span></a>
+      <button id="lang" class="lang" type="button" data-i18n="toggle">العربية</button>
+    </header>
+
+    <p id="limit-note" class="card notice" role="status" data-i18n="limitReached" hidden></p>
+
+    <!-- 1. Explanation and consent -->
+    <section id="screen-consent" class="screen" aria-labelledby="consent-h1">
+      <p class="eyebrow" data-i18n="eyebrow"></p>
+      <h1 id="consent-h1" tabindex="-1" data-i18n="h1"></h1>
+      <p class="lede" data-i18n="lede"></p>
+      <details class="learn-more">
+        <summary data-i18n="learnMore"></summary>
+        <div class="mission">
+          <h2 data-i18n="missionTitle"></h2>
+          <p data-i18n="missionBody"></p>
+          <p data-i18n="missionHelp"></p>
+          <p class="mission-links"><a href="/" data-i18n="tryTilawa"></a><a href="https://github.com/yazinsai/tilawa" data-i18n="forDevelopers"></a></p>
+        </div>
+      </details>
+
+      <div id="kept" class="card notice" role="region" aria-labelledby="kept-title" hidden>
+        <h2 id="kept-title" data-i18n="keptTitle"></h2>
+        <p id="kept-body"></p>
+        <div class="row">
+          <button id="kept-send" class="primary" type="button" data-i18n="keptSend"></button>
+          <button id="kept-delete" type="button" data-i18n="keptDelete"></button>
+        </div>
+      </div>
+
+      <form id="consent-form" class="card" novalidate>
+        <fieldset class="consent-group">
+          <legend><h2 data-i18n="consentTitle"></h2></legend>
+          <label class="check required">
+            <input type="checkbox" id="consent-send" required aria-describedby="consent-error" />
+            <span><span data-i18n="consentSend"></span> <strong class="tag" data-i18n="consentRequired"></strong></span>
+          </label>
+          <label class="check">
+            <input type="checkbox" id="consent-training" />
+            <span><span data-i18n="consentTraining"></span> <span class="tag" data-i18n="optional"></span></span>
+          </label>
+          <label class="check">
+            <input type="checkbox" id="consent-public" />
+            <span><span data-i18n-html="consentPublic"></span> <span class="tag" data-i18n="optional"></span></span>
+          </label>
+        </fieldset>
+        <p class="note" data-i18n="under16"></p>
+        <p class="note quiet" data-i18n="privacy"></p>
+        <p id="consent-error" class="error" role="alert"></p>
+        <button id="consent-continue" class="primary big" type="submit"><span data-i18n="continue"></span></button>
+      </form>
+    </section>
+
+    <!-- 2. One Start button -->
+    <section id="screen-ready" class="screen" aria-labelledby="ready-h1" hidden>
+      <h1 id="ready-h1" tabindex="-1" data-i18n="readyTitle"></h1>
+      <p class="lede" data-i18n="readyBody"></p>
+      <p class="note quiet" data-i18n="readyTip"></p>
+      <details class="surah-pick">
+        <summary data-i18n="surahPick"></summary>
+        <label class="field">
+          <span class="visually-hidden" data-i18n="surahPick"></span>
+          <select id="surah"></select>
+        </label>
+        <p class="note quiet" data-i18n="surahHint"></p>
+      </details>
+      <button id="start" class="start" type="button">
+        <svg class="icon" aria-hidden="true"><use href="/help/icons.svg#microphone-3-linear" /></svg>
+        <span data-i18n="start"></span>
+      </button>
+      <div id="loading" class="loading" hidden>
+        <p id="loading-text" role="status" aria-live="polite"></p>
+        <progress id="loading-bar" max="1" aria-labelledby="loading-text"></progress>
+      </div>
+      <div id="ready-error" class="card problem" role="alert" hidden></div>
+    </section>
+
+    <!-- 3. Natural reading -->
+    <section id="screen-reading" class="screen" aria-labelledby="reading-status" hidden>
+      <div class="reading-head">
+        <p id="reading-status" class="status" tabindex="-1"></p>
+        <p class="timer"><span class="visually-hidden" data-i18n="elapsed"></span> <span id="timer" dir="ltr">0:00</span> <span id="time-left"></span></p>
+      </div>
+      <p id="ayah-ref" class="ref"></p>
+      <div id="ayah" class="quran" dir="rtl" lang="ar"></div>
+      <p id="live" class="visually-hidden" aria-live="polite" aria-atomic="true"></p>
+      <div class="reading-dock">
+        <button id="stumble" class="stumble" type="button">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          <span data-i18n="stumble"></span>
+        </button>
+        <p id="stumble-count" class="stumble-count" aria-live="polite"></p>
+        <button id="stop" class="stop" type="button">
+          <svg class="icon" aria-hidden="true"><use href="/help/icons.svg#stop-bold" /></svg>
+          <span data-i18n="stop"></span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 4. Review, one question at a time -->
+    <section id="screen-review" class="screen" aria-labelledby="review-h1" hidden>
+      <h1 id="review-h1" class="small-h1" data-i18n="reviewTitle"></h1>
+      <p class="note quiet" data-i18n="reviewIntro"></p>
+      <article id="moment" class="card moment">
+        <p id="moment-count" class="eyebrow"></p>
+        <p id="moment-why" class="why"></p>
+        <p id="moment-ref" class="ref"></p>
+        <div id="moment-ayah" class="quran small" dir="rtl" lang="ar"></div>
+        <div class="player">
+          <button id="moment-play" class="play" type="button" aria-describedby="moment-why">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M7 4l13 8-13 8z" fill="currentColor"/><path class="i-pause" d="M6 4h4v16H6zM14 4h4v16h-4z" fill="currentColor"/></svg>
+            <span id="moment-play-label"></span>
+          </button>
+          <button id="moment-mark" class="secondary" type="button" hidden><span data-i18n="markHere"></span></button>
+          <p id="moment-mark-status" class="note" aria-live="polite"></p>
+          <audio id="moment-audio" preload="auto"></audio>
+        </div>
+        <fieldset class="question">
+          <legend id="moment-question" tabindex="-1"></legend>
+          <div class="answers">
+            <button type="button" class="answer" data-answer="yes" data-i18n="yes"></button>
+            <button type="button" class="answer" data-answer="no" data-i18n="no"></button>
+            <button type="button" class="answer" data-answer="unsure" data-i18n="unsure"></button>
+            <button type="button" class="answer quiet" data-answer="skipped" data-i18n="skip"></button>
+          </div>
+        </fieldset>
+        <button id="moment-wrong-ayah" class="link" type="button" aria-pressed="false"></button>
+        <details id="moment-details" class="advanced">
+          <summary data-i18n="details"></summary>
+          <label class="field"><span data-i18n="detailsText"></span>
+            <textarea id="moment-text" rows="2" dir="rtl" lang="ar" maxlength="2000"></textarea></label>
+          <label class="field"><span data-i18n="detailsNote"></span>
+            <textarea id="moment-note" rows="2" maxlength="2000"></textarea></label>
+        </details>
+        <div class="row">
+          <button id="moment-back" class="link" type="button" data-i18n="back"></button>
+        </div>
+      </article>
+    </section>
+
+    <!-- 5. Send -->
+    <section id="screen-send" class="screen" aria-labelledby="send-h1" hidden>
+      <h1 id="send-h1" tabindex="-1" data-i18n="sendTitle"></h1>
+      <p id="send-summary" class="lede"></p>
+      <details id="listen-all" class="advanced">
+        <summary data-i18n="listenAll"></summary>
+        <p class="note quiet" data-i18n="listenAllHint"></p>
+        <audio id="take-audio" controls preload="metadata"></audio>
+        <button id="take-mark" class="secondary" type="button"><span data-i18n="markWhile"></span></button>
+      </details>
+      <button id="send" class="primary big" type="button"><span id="send-label" data-i18n="send"></span></button>
+      <div id="send-progress" class="loading" hidden>
+        <p id="send-progress-text" role="status" aria-live="polite"></p>
+        <progress id="send-bar" max="1" aria-labelledby="send-progress-text"></progress>
+      </div>
+      <div id="send-error" class="card problem" hidden>
+        <p id="send-error-text" role="alert"></p>
+        <label class="check">
+          <input type="checkbox" id="keep" aria-describedby="keep-hint" />
+          <span data-i18n="keepLabel"></span>
+        </label>
+        <p id="keep-hint" class="note quiet" data-i18n="keepHint"></p>
+        <p id="keep-status" class="note" role="status"></p>
+      </div>
+      <button id="discard" class="link danger" type="button" data-i18n="discard"></button>
+    </section>
+
+    <!-- 6. Success -->
+    <section id="screen-done" class="screen" aria-labelledby="done-h1" hidden>
+      <div class="thank-you" aria-hidden="true"><svg class="icon"><use href="/help/icons.svg#heart-linear" /></svg></div>
+      <h1 id="done-h1" tabindex="-1" data-i18n="doneTitle"></h1>
+      <p class="lede" data-i18n="doneBody"></p>
+      <div class="card">
+        <label for="code" class="field-label" data-i18n="codeLabel"></label>
+        <input id="code" class="code" type="text" readonly dir="ltr" aria-describedby="code-help" />
+        <p id="code-help" class="note quiet" data-i18n="codeHelp"></p>
+        <div class="row">
+          <button id="copy" type="button"><span data-i18n="copy"></span></button>
+          <button id="delete-now" class="link danger" type="button" data-i18n="deleteNow"></button>
+        </div>
+        <p id="code-status" class="note" role="status"></p>
+      </div>
+      <button id="again" class="primary big" type="button" data-i18n="again"></button>
+    </section>
+
+    <footer><p data-i18n-html="footer"></p></footer>
+  </main>
+
+  <dialog id="confirm" aria-labelledby="confirm-title" aria-describedby="confirm-body">
+    <h2 id="confirm-title"></h2>
+    <p id="confirm-body"></p>
+    <div class="row">
+      <button id="confirm-no" class="primary" type="button"></button>
+      <button id="confirm-yes" class="danger" type="button"></button>
+    </div>
+  </dialog>
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>
