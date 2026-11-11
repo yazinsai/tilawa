@@ -11,6 +11,7 @@ import type { OrtModule } from "./ort.js";
 import { ortBackend } from "./ort.js";
 import { decodeWav } from "./wav.js";
 import { createInsertionTeacher } from "./insertion-teacher.js";
+import { createHash } from "node:crypto";
 
 export * from "./index.js";
 export { decodeWav };
@@ -22,7 +23,33 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachAntialias(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads), dir, options.threads);
+}
+
+/** The builder declares an independent graph in the model bundle. A partial or mismatched bundle fails closed. */
+async function attachAntialias(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
+  try {
+    const declaration = await readFile(join(dir, "antialias.json"), "utf8").catch(e => {
+      if (e.code === "ENOENT") return null; throw e;
+    });
+    if (!declaration) return model;
+    const asset = JSON.parse(declaration) as { recipe: string; sourceSha256: string; sha256: string };
+    if (asset.recipe !== "centered-binomial-strides-v1" || asset.sourceSha256 !== model.manifest.sha256)
+      throw new Error("Antialias graph recipe or parent differs from the primary model");
+    const bytes = await readFile(join(dir, "antialias.onnx"));
+    if (createHash("sha256").update(bytes).digest("hex") !== asset.sha256)
+      throw new Error("Antialias graph checksum mismatch");
+    const backend = await ortBackend(ort as unknown as OrtModule, bytes, "onnxruntime-node", {
+      executionProviders: ["cpu"], intraOpNumThreads: threads,
+    });
+    model.antialiasModel = { manifest: model.manifest, supported: model.supported, backend };
+    const release = model.backend.release.bind(model.backend);
+    model.backend.release = async () => { await backend.release(); await release(); };
+    return model;
+  } catch (error) {
+    await model.backend.release();
+    throw error;
+  }
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +114,7 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  const dir = join(o.cacheDir, `${tier.id}@${tier.version}`);
+  return attachAntialias(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
+    dir, o.threads), dir, o.threads);
 }

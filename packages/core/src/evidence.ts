@@ -9,6 +9,22 @@ export interface SeamInsertionEvidence {
   marginal: number;
 }
 
+/** Complete positive reading under the separate antialiased graph on an unchanged string-path window. */
+export interface AntialiasEvidence {
+  word: WordRef;
+  written: string;
+  accused: string;
+  wordWritten: string;
+  wordAccused: string;
+  fromFrame: number;
+  toFrame: number;
+  slotFromFrame: number;
+  slotToFrame: number;
+  recovered: string;
+  writtenNll: number;
+  accusedNll: number;
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -18,6 +34,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  antialiasRechecks?: AntialiasEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */
