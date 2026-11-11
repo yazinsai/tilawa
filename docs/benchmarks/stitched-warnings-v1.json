@@ -1,7 +1,7 @@
 {
  "version": "stitched-warnings-v1",
  "manifest": "jumps-v1",
- "commit": "67bb18c",
+ "commit": "441dddc3",
  "tailS": 20,
  "results": [
   {
@@ -13,10 +13,10 @@
    "tally": {
     "sessions": 129,
     "minutes": 746.8573333333335,
-    "warnings": 311,
+    "warnings": 279,
     "atEnd": 2,
-    "tail": 13,
-    "mid": 296,
+    "tail": 10,
+    "mid": 267,
     "missing": 0
    },
    "detail": [
@@ -33,6 +33,11 @@
        "timeMs": 163560,
        "ayah": "2:13",
        "atEnd": false
+      },
+      {
+       "timeMs": 186640,
+       "ayah": "2:16",
+       "atEnd": false
       }
      ]
     },
@@ -41,8 +46,13 @@
      "audioS": 551.9,
      "warnings": [
       {
-       "timeMs": 196520,
-       "ayah": "2:63",
+       "timeMs": 175480,
+       "ayah": "2:61",
+       "atEnd": false
+      },
+      {
+       "timeMs": 468600,
+       "ayah": "2:86",
        "atEnd": false
       }
      ]
@@ -72,11 +82,6 @@
        "atEnd": false
       },
       {
-       "timeMs": 419560,
-       "ayah": "2:125",
-       "atEnd": false
-      },
-      {
        "timeMs": 541840,
        "ayah": "2:133",
        "atEnd": false
@@ -98,11 +103,6 @@
        "atEnd": false
       },
       {
-       "timeMs": 384720,
-       "ayah": "2:173",
-       "atEnd": false
-      },
-      {
        "timeMs": 387080,
        "ayah": "2:173",
        "atEnd": false
@@ -119,12 +119,7 @@
      "audioS": 610.5,
      "warnings": [
       {
-       "timeMs": 39920,
-       "ayah": "2:185",
-       "atEnd": false
-      },
-      {
-       "timeMs": 43960,
+       "timeMs": 42120,
        "ayah": "2:186",
        "atEnd": false
       },
@@ -134,7 +129,7 @@
        "atEnd": false
       },
       {
-       "timeMs": 297000,
+       "timeMs": 297720,
        "ayah": "2:207",
        "atEnd": false
       },
@@ -154,7 +149,7 @@
        "atEnd": false
       },
       {
-       "timeMs": 522680,
+       "timeMs": 504560,
        "ayah": "2:228",
        "atEnd": false
       }
@@ -163,18 +158,18 @@
     {
      "id": "tlog-contiguous-005",
      "audioS": 335.4,
-     "warnings": [
-      {
-       "timeMs": 172600,
-       "ayah": "2:257",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-006",
      "audioS": 451.8,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 339920,
+       "ayah": "3:16",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-007",
@@ -207,11 +202,6 @@
        "atEnd": false
       },
       {
-       "timeMs": 371600,
-       "ayah": "3:107",
-       "atEnd": false
-      },
-      {
        "timeMs": 373040,
        "ayah": "3:107",
        "atEnd": false
@@ -227,6 +217,11 @@
      "id": "tlog-contiguous-009",
      "audioS": 504.7,
      "warnings": [
+      {
+       "timeMs": 183560,
+       "ayah": "3:144",
+       "atEnd": false
+      },
       {
        "timeMs": 388560,
        "ayah": "3:168",
@@ -306,11 +301,6 @@
        "atEnd": false
       },
       {
-       "timeMs": 167800,
-       "ayah": "4:89",
-       "atEnd": false
-      },
-      {
        "timeMs": 411560,
        "ayah": "4:110",
        "atEnd": false
@@ -337,11 +327,6 @@
        "atEnd": false
       },
       {
-       "timeMs": 92240,
-       "ayah": "4:126",
-       "atEnd": false
-      },
-      {
        "timeMs": 277040,
        "ayah": "4:151",
        "atEnd": false
@@ -352,11 +337,6 @@
      "id": "tlog-contiguous-014",
      "audioS": 524.9,
      "warnings": [
-      {
-       "timeMs": 43960,
-       "ayah": "5:3",
-       "atEnd": false
-      },
       {
        "timeMs": 137160,
        "ayah": "5:14",
@@ -426,11 +406,6 @@
        "atEnd": false
       },
       {
-       "timeMs": 242040,
-       "ayah": "6:100",
-       "atEnd": false
-      },
-      {
        "timeMs": 232720,
        "ayah": "6:100",
        "atEnd": false
@@ -444,16 +419,6 @@
       {
        "timeMs": 9840,
        "ayah": "6:157",
-       "atEnd": false
-      },
-      {
-       "timeMs": 66160,
-       "ayah": "6:164",
-       "atEnd": false
-      },
-      {
-       "timeMs": 133240,
-       "ayah": "7:7",
        "atEnd": false
       },
       {
@@ -476,18 +441,7 @@
     {
      "id": "tlog-contiguous-020",
      "audioS": 214.2,
-     "warnings": [
-      {
-       "timeMs": 50000,
-       "ayah": "7:146",
-       "atEnd": false
-      },
-      {
-       "timeMs": 67160,
-       "ayah": "7:151",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-021",
@@ -504,11 +458,6 @@
      "id": "tlog-contiguous-022",
      "audioS": 246.1,
      "warnings": [
-      {
-       "timeMs": 41240,
-       "ayah": "9:59",
-       "atEnd": false
-      },
       {
        "timeMs": 194920,
        "ayah": "9:77",
@@ -539,6 +488,11 @@
       {
        "timeMs": 69320,
        "ayah": "11:47",
+       "atEnd": false
+      },
+      {
+       "timeMs": 125040,
+       "ayah": "11:52",
        "atEnd": false
       }
      ]
@@ -572,11 +526,6 @@
        "timeMs": 83240,
        "ayah": "12:103",
        "atEnd": false
-      },
-      {
-       "timeMs": 69920,
-       "ayah": "12:104",
-       "atEnd": false
       }
      ]
     },
@@ -586,7 +535,7 @@
      "warnings": [
       {
        "timeMs": 207240,
-       "ayah": "13:35",
+       "ayah": "13:36",
        "atEnd": false
       }
      ]
@@ -595,11 +544,6 @@
      "id": "tlog-contiguous-029",
      "audioS": 558.8,
      "warnings": [
-      {
-       "timeMs": 115320,
-       "ayah": "14:13",
-       "atEnd": false
-      },
       {
        "timeMs": 272320,
        "ayah": "14:36",
@@ -630,13 +574,7 @@
     {
      "id": "tlog-contiguous-030",
      "audioS": 214.9,
-     "warnings": [
-      {
-       "timeMs": 117360,
-       "ayah": "15:53",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-031",
@@ -674,11 +612,6 @@
      "id": "tlog-contiguous-033",
      "audioS": 355.7,
      "warnings": [
-      {
-       "timeMs": 51000,
-       "ayah": "16:123",
-       "atEnd": false
-      },
       {
        "timeMs": 342880,
        "ayah": "17:26",
@@ -723,13 +656,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 435640,
+       "timeMs": 434560,
        "ayah": "19:13",
-       "atEnd": false
-      },
-      {
-       "timeMs": 414600,
-       "ayah": "19:14",
        "atEnd": false
       }
      ]
@@ -764,11 +692,6 @@
        "atEnd": false
       },
       {
-       "timeMs": 295160,
-       "ayah": "19:49",
-       "atEnd": false
-      },
-      {
        "timeMs": 311360,
        "ayah": "19:50",
        "atEnd": false
@@ -787,11 +710,6 @@
       {
        "timeMs": 159480,
        "ayah": "19:70",
-       "atEnd": false
-      },
-      {
-       "timeMs": 235560,
-       "ayah": "19:81",
        "atEnd": false
       }
      ]
@@ -854,8 +772,18 @@
      "audioS": 261.1,
      "warnings": [
       {
-       "timeMs": 201640,
-       "ayah": "22:67",
+       "timeMs": 8960,
+       "ayah": "22:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 237880,
+       "ayah": "22:68",
+       "atEnd": false
+      },
+      {
+       "timeMs": 241880,
+       "ayah": "22:71",
        "atEnd": false
       },
       {
@@ -881,23 +809,8 @@
      "audioS": 212.3,
      "warnings": [
       {
-       "timeMs": 143640,
-       "ayah": "24:21",
-       "atEnd": false
-      },
-      {
-       "timeMs": 168760,
-       "ayah": "24:21",
-       "atEnd": false
-      },
-      {
-       "timeMs": 205920,
-       "ayah": "24:27",
-       "atEnd": false
-      },
-      {
-       "timeMs": 205920,
-       "ayah": "24:27",
+       "timeMs": 73320,
+       "ayah": "24:13",
        "atEnd": false
       }
      ]
@@ -927,8 +840,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 217000,
-       "ayah": "25:72",
+       "timeMs": 200880,
+       "ayah": "25:71",
        "atEnd": false
       }
      ]
@@ -962,13 +875,7 @@
     {
      "id": "tlog-contiguous-048",
      "audioS": 191.8,
-     "warnings": [
-      {
-       "timeMs": 188280,
-       "ayah": "28:8",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-049",
@@ -1053,6 +960,11 @@
      "audioS": 605,
      "warnings": [
       {
+       "timeMs": 208000,
+       "ayah": "33:36",
+       "atEnd": false
+      },
+      {
        "timeMs": 323240,
        "ayah": "33:47",
        "atEnd": false
@@ -1087,6 +999,11 @@
       {
        "timeMs": 299000,
        "ayah": "36:44",
+       "atEnd": false
+      },
+      {
+       "timeMs": 347120,
+       "ayah": "36:53",
        "atEnd": false
       },
       {
@@ -1137,11 +1054,6 @@
        "atEnd": false
       },
       {
-       "timeMs": 132480,
-       "ayah": "39:68",
-       "atEnd": false
-      },
-      {
        "timeMs": 163440,
        "ayah": "39:69",
        "atEnd": false
@@ -1163,11 +1075,6 @@
      "audioS": 292.2,
      "warnings": [
       {
-       "timeMs": 64480,
-       "ayah": "40:42",
-       "atEnd": false
-      },
-      {
        "timeMs": 257920,
        "ayah": "40:60",
        "atEnd": false
@@ -1178,6 +1085,11 @@
      "id": "tlog-contiguous-058",
      "audioS": 293,
      "warnings": [
+      {
+       "timeMs": 121120,
+       "ayah": "41:35",
+       "atEnd": false
+      },
       {
        "timeMs": 235560,
        "ayah": "41:48",
@@ -1246,6 +1158,11 @@
        "timeMs": 80320,
        "ayah": "48:4",
        "atEnd": false
+      },
+      {
+       "timeMs": 101280,
+       "ayah": "48:6",
+       "atEnd": false
       }
      ]
     },
@@ -1278,21 +1195,20 @@
     {
      "id": "tlog-contiguous-067",
      "audioS": 234.2,
-     "warnings": [
-      {
-       "timeMs": 16160,
-       "ayah": "51:43",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-068",
      "audioS": 524.7,
      "warnings": [
       {
-       "timeMs": 115520,
-       "ayah": "53:11",
+       "timeMs": 157440,
+       "ayah": "53:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 238760,
+       "ayah": "53:30",
        "atEnd": false
       },
       {
@@ -1306,7 +1222,7 @@
        "atEnd": false
       },
       {
-       "timeMs": 444280,
+       "timeMs": 444840,
        "ayah": "54:5",
        "atEnd": false
       }
@@ -1322,13 +1238,13 @@
        "atEnd": false
       },
       {
-       "timeMs": 47160,
+       "timeMs": 51280,
        "ayah": "54:42",
        "atEnd": false
       },
       {
-       "timeMs": 51280,
-       "ayah": "54:42",
+       "timeMs": 117320,
+       "ayah": "54:51",
        "atEnd": false
       },
       {
@@ -1351,6 +1267,11 @@
        "timeMs": 84320,
        "ayah": "56:14",
        "atEnd": false
+      },
+      {
+       "timeMs": 188520,
+       "ayah": "56:37",
+       "atEnd": false
       }
      ]
     },
@@ -1358,11 +1279,6 @@
      "id": "tlog-contiguous-071",
      "audioS": 483.7,
      "warnings": [
-      {
-       "timeMs": 8840,
-       "ayah": "56:49",
-       "atEnd": false
-      },
       {
        "timeMs": 55080,
        "ayah": "56:59",
@@ -1409,11 +1325,6 @@
        "timeMs": 298720,
        "ayah": "63:3",
        "atEnd": false
-      },
-      {
-       "timeMs": 377040,
-       "ayah": "63:11",
-       "atEnd": false
       }
      ]
     },
@@ -1429,11 +1340,6 @@
       {
        "timeMs": 249760,
        "ayah": "66:8",
-       "atEnd": false
-      },
-      {
-       "timeMs": 255840,
-       "ayah": "66:10",
        "atEnd": false
       },
       {
@@ -1463,21 +1369,6 @@
        "atEnd": false
       },
       {
-       "timeMs": 101320,
-       "ayah": "68:29",
-       "atEnd": false
-      },
-      {
-       "timeMs": 109400,
-       "ayah": "68:31",
-       "atEnd": false
-      },
-      {
-       "timeMs": 315000,
-       "ayah": "69:9",
-       "atEnd": false
-      },
-      {
        "timeMs": 332000,
        "ayah": "69:12",
        "atEnd": false
@@ -1500,11 +1391,6 @@
      "audioS": 359.6,
      "warnings": [
       {
-       "timeMs": 47080,
-       "ayah": "72:27",
-       "atEnd": false
-      },
-      {
        "timeMs": 125360,
        "ayah": "73:9",
        "atEnd": false
@@ -1512,11 +1398,6 @@
       {
        "timeMs": 180720,
        "ayah": "73:17",
-       "atEnd": false
-      },
-      {
-       "timeMs": 201760,
-       "ayah": "74:1",
        "atEnd": false
       },
       {
@@ -1530,11 +1411,6 @@
      "id": "tlog-contiguous-079",
      "audioS": 618.5,
      "warnings": [
-      {
-       "timeMs": 86320,
-       "ayah": "75:15",
-       "atEnd": false
-      },
       {
        "timeMs": 86320,
        "ayah": "75:16",
@@ -1562,6 +1438,11 @@
      "audioS": 693.6,
      "warnings": [
       {
+       "timeMs": 11040,
+       "ayah": "78:1",
+       "atEnd": false
+      },
+      {
        "timeMs": 13880,
        "ayah": "78:2",
        "atEnd": false
@@ -1574,11 +1455,6 @@
       {
        "timeMs": 161280,
        "ayah": "78:35",
-       "atEnd": false
-      },
-      {
-       "timeMs": 258720,
-       "ayah": "79:8",
        "atEnd": false
       },
       {
@@ -1618,18 +1494,13 @@
      "audioS": 670.2,
      "warnings": [
       {
-       "timeMs": 75120,
-       "ayah": "82:5",
-       "atEnd": false
-      },
-      {
        "timeMs": 424480,
        "ayah": "84:22",
        "atEnd": false
       },
       {
-       "timeMs": 574120,
-       "ayah": "86:3",
+       "timeMs": 553920,
+       "ayah": "85:21",
        "atEnd": false
       },
       {
@@ -1669,6 +1540,11 @@
        "atEnd": false
       },
       {
+       "timeMs": 440240,
+       "ayah": "91:5",
+       "atEnd": false
+      },
+      {
        "timeMs": 465120,
        "ayah": "91:10",
        "atEnd": false
@@ -1692,6 +1568,11 @@
       {
        "timeMs": 566480,
        "ayah": "109:3",
+       "atEnd": false
+      },
+      {
+       "timeMs": 597560,
+       "ayah": "110:3",
        "atEnd": false
       },
       {
@@ -1728,11 +1609,6 @@
       {
        "timeMs": 97560,
        "ayah": "24:31",
-       "atEnd": false
-      },
-      {
-       "timeMs": 125640,
-       "ayah": "24:32",
        "atEnd": false
       },
       {
@@ -1777,11 +1653,6 @@
        "timeMs": 168240,
        "ayah": "50:35",
        "atEnd": false
-      },
-      {
-       "timeMs": 186640,
-       "ayah": "50:40",
-       "atEnd": false
       }
      ]
     },
@@ -1789,6 +1660,11 @@
      "id": "tlog-jump-092",
      "audioS": 240.1,
      "warnings": [
+      {
+       "timeMs": 44880,
+       "ayah": "16:74",
+       "atEnd": false
+      },
       {
        "timeMs": 80040,
        "ayah": "16:75",
@@ -1800,6 +1676,11 @@
      "id": "tlog-jump-093",
      "audioS": 325,
      "warnings": [
+      {
+       "timeMs": 145480,
+       "ayah": "40:82",
+       "atEnd": false
+      },
       {
        "timeMs": 269640,
        "ayah": "26:84",
@@ -1859,11 +1740,6 @@
      "id": "tlog-jump-097",
      "audioS": 356.6,
      "warnings": [
-      {
-       "timeMs": 61040,
-       "ayah": "5:91",
-       "atEnd": false
-      },
       {
        "timeMs": 152360,
        "ayah": "5:100",
@@ -1944,11 +1820,6 @@
      "audioS": 221,
      "warnings": [
       {
-       "timeMs": 19040,
-       "ayah": "39:41",
-       "atEnd": false
-      },
-      {
        "timeMs": 151240,
        "ayah": "37:47",
        "atEnd": false
@@ -1975,6 +1846,11 @@
      "audioS": 275.1,
      "warnings": [
       {
+       "timeMs": 59040,
+       "ayah": "7:88",
+       "atEnd": false
+      },
+      {
        "timeMs": 177720,
        "ayah": "12:42",
        "atEnd": false
@@ -1991,8 +1867,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 40160,
-       "ayah": "30:29",
+       "timeMs": 47120,
+       "ayah": "30:30",
        "atEnd": false
       },
       {
@@ -2031,13 +1907,7 @@
     {
      "id": "tlog-jump-109",
      "audioS": 297.5,
-     "warnings": [
-      {
-       "timeMs": 172920,
-       "ayah": "41:3",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-110",
@@ -2047,13 +1917,7 @@
     {
      "id": "tlog-jump-111",
      "audioS": 236.4,
-     "warnings": [
-      {
-       "timeMs": 29080,
-       "ayah": "47:15",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-112",
@@ -2063,13 +1927,7 @@
     {
      "id": "tlog-jump-113",
      "audioS": 283.8,
-     "warnings": [
-      {
-       "timeMs": 120160,
-       "ayah": "33:13",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-114",
@@ -2092,23 +1950,8 @@
      "audioS": 275.2,
      "warnings": [
       {
-       "timeMs": 31920,
-       "ayah": "25:45",
-       "atEnd": false
-      },
-      {
        "timeMs": 38960,
        "ayah": "25:45",
-       "atEnd": false
-      },
-      {
-       "timeMs": 84320,
-       "ayah": "37:30",
-       "atEnd": false
-      },
-      {
-       "timeMs": 244880,
-       "ayah": "39:7",
        "atEnd": false
       }
      ]
@@ -2133,11 +1976,6 @@
      "id": "tlog-jump-119",
      "audioS": 245.4,
      "warnings": [
-      {
-       "timeMs": 32040,
-       "ayah": "9:117",
-       "atEnd": false
-      },
       {
        "timeMs": 141160,
        "ayah": "9:39",
@@ -2176,16 +2014,6 @@
        "atEnd": false
       },
       {
-       "timeMs": 269280,
-       "ayah": "21:49",
-       "atEnd": false
-      },
-      {
-       "timeMs": 274240,
-       "ayah": "21:49",
-       "atEnd": false
-      },
-      {
        "timeMs": 400040,
        "ayah": "56:76",
        "atEnd": false
@@ -2197,28 +2025,23 @@
      "audioS": 179.4,
      "warnings": [
       {
-       "timeMs": 12000,
-       "ayah": "101:3",
-       "atEnd": false
-      },
-      {
-       "timeMs": 15000,
+       "timeMs": 12440,
        "ayah": "101:4",
        "atEnd": false
       },
       {
-       "timeMs": 90000,
+       "timeMs": 93480,
+       "ayah": "18:42",
+       "atEnd": false
+      },
+      {
+       "timeMs": 89480,
        "ayah": "18:43",
        "atEnd": false
       },
       {
        "timeMs": 92480,
        "ayah": "18:43",
-       "atEnd": false
-      },
-      {
-       "timeMs": 102560,
-       "ayah": "78:16",
        "atEnd": false
       }
      ]
@@ -2233,13 +2056,18 @@
        "atEnd": false
       },
       {
-       "timeMs": 84280,
-       "ayah": "86:3",
+       "timeMs": 29960,
+       "ayah": "25:74",
        "atEnd": false
       },
       {
-       "timeMs": 91360,
-       "ayah": "86:4",
+       "timeMs": 35960,
+       "ayah": "25:74",
+       "atEnd": false
+      },
+      {
+       "timeMs": 79280,
+       "ayah": "83:13",
        "atEnd": false
       },
       {
@@ -2264,13 +2092,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 115480,
-       "ayah": "79:22",
-       "atEnd": false
-      },
-      {
-       "timeMs": 365640,
-       "ayah": "55:3",
+       "timeMs": 208400,
+       "ayah": "102:7",
        "atEnd": false
       }
      ]
@@ -2283,6 +2106,26 @@
        "timeMs": 18080,
        "ayah": "75:23",
        "atEnd": false
+      },
+      {
+       "timeMs": 289400,
+       "ayah": "20:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 423160,
+       "ayah": "13:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 439200,
+       "ayah": "85:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 506480,
+       "ayah": "50:32",
+       "atEnd": false
       }
      ]
     },
@@ -2291,23 +2134,13 @@
      "audioS": 314.9,
      "warnings": [
       {
-       "timeMs": 83360,
-       "ayah": "67:25",
-       "atEnd": false
-      },
-      {
-       "timeMs": 187800,
-       "ayah": "56:43",
-       "atEnd": false
-      },
-      {
        "timeMs": 199840,
-       "ayah": "56:47",
+       "ayah": "56:44",
        "atEnd": false
       },
       {
-       "timeMs": 266040,
-       "ayah": "37:38",
+       "timeMs": 201840,
+       "ayah": "56:47",
        "atEnd": false
       },
       {
@@ -2339,10 +2172,10 @@
    "tally": {
     "sessions": 129,
     "minutes": 746.8573333333335,
-    "warnings": 211,
+    "warnings": 212,
     "atEnd": 2,
-    "tail": 10,
-    "mid": 199,
+    "tail": 9,
+    "mid": 201,
     "missing": 0
    },
    "detail": [
@@ -2351,8 +2184,23 @@
      "audioS": 563.2,
      "warnings": [
       {
+       "timeMs": 39080,
+       "ayah": "1:7",
+       "atEnd": false
+      },
+      {
+       "timeMs": 124200,
+       "ayah": "2:9",
+       "atEnd": false
+      },
+      {
        "timeMs": 163560,
        "ayah": "2:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 203720,
+       "ayah": "2:17",
        "atEnd": false
       }
      ]
@@ -2362,8 +2210,13 @@
      "audioS": 551.9,
      "warnings": [
       {
-       "timeMs": 196520,
-       "ayah": "2:63",
+       "timeMs": 175480,
+       "ayah": "2:61",
+       "atEnd": false
+      },
+      {
+       "timeMs": 280000,
+       "ayah": "2:72",
        "atEnd": false
       }
      ]
@@ -2373,16 +2226,6 @@
      "audioS": 557.9,
      "warnings": [
       {
-       "timeMs": 131560,
-       "ayah": "2:106",
-       "atEnd": false
-      },
-      {
-       "timeMs": 189760,
-       "ayah": "2:110",
-       "atEnd": false
-      },
-      {
        "timeMs": 231920,
        "ayah": "2:114",
        "atEnd": false
@@ -2390,11 +2233,6 @@
       {
        "timeMs": 241920,
        "ayah": "2:114",
-       "atEnd": false
-      },
-      {
-       "timeMs": 419560,
-       "ayah": "2:125",
        "atEnd": false
       },
       {
@@ -2430,23 +2268,23 @@
      "audioS": 610.5,
      "warnings": [
       {
-       "timeMs": 39920,
-       "ayah": "2:185",
-       "atEnd": false
-      },
-      {
-       "timeMs": 43960,
+       "timeMs": 42120,
        "ayah": "2:186",
        "atEnd": false
       },
       {
-       "timeMs": 60240,
-       "ayah": "2:187",
+       "timeMs": 297720,
+       "ayah": "2:207",
        "atEnd": false
       },
       {
-       "timeMs": 297000,
-       "ayah": "2:207",
+       "timeMs": 314000,
+       "ayah": "2:210",
+       "atEnd": false
+      },
+      {
+       "timeMs": 346120,
+       "ayah": "2:213",
        "atEnd": false
       },
       {
@@ -2459,18 +2297,18 @@
     {
      "id": "tlog-contiguous-005",
      "audioS": 335.4,
-     "warnings": [
-      {
-       "timeMs": 172600,
-       "ayah": "2:257",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-006",
      "audioS": 451.8,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 339920,
+       "ayah": "3:16",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-007",
@@ -2503,13 +2341,13 @@
        "atEnd": false
       },
       {
-       "timeMs": 371600,
-       "ayah": "3:107",
+       "timeMs": 230720,
+       "ayah": "3:94",
        "atEnd": false
       },
       {
-       "timeMs": 373040,
-       "ayah": "3:107",
+       "timeMs": 357680,
+       "ayah": "3:105",
        "atEnd": false
       },
       {
@@ -2523,11 +2361,6 @@
      "id": "tlog-contiguous-009",
      "audioS": 504.7,
      "warnings": [
-      {
-       "timeMs": 388560,
-       "ayah": "3:168",
-       "atEnd": false
-      },
       {
        "timeMs": 433080,
        "ayah": "3:172",
@@ -2548,11 +2381,6 @@
        "timeMs": 228440,
        "ayah": "4:3",
        "atEnd": false
-      },
-      {
-       "timeMs": 302840,
-       "ayah": "4:11",
-       "atEnd": false
       }
      ]
     },
@@ -2572,13 +2400,13 @@
      "audioS": 451.1,
      "warnings": [
       {
-       "timeMs": 167800,
-       "ayah": "4:89",
+       "timeMs": 411560,
+       "ayah": "4:110",
        "atEnd": false
       },
       {
-       "timeMs": 411560,
-       "ayah": "4:110",
+       "timeMs": 419520,
+       "ayah": "4:112",
        "atEnd": false
       }
      ]
@@ -2593,8 +2421,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 92240,
-       "ayah": "4:126",
+       "timeMs": 214800,
+       "ayah": "4:142",
        "atEnd": false
       },
       {
@@ -2609,18 +2437,13 @@
      "audioS": 524.9,
      "warnings": [
       {
-       "timeMs": 43960,
-       "ayah": "5:3",
-       "atEnd": false
-      },
-      {
-       "timeMs": 137160,
-       "ayah": "5:14",
-       "atEnd": false
-      },
-      {
        "timeMs": 175200,
        "ayah": "5:20",
+       "atEnd": false
+      },
+      {
+       "timeMs": 302520,
+       "ayah": "5:36",
        "atEnd": false
       }
      ]
@@ -2665,16 +2488,6 @@
        "timeMs": 100200,
        "ayah": "6:84",
        "atEnd": false
-      },
-      {
-       "timeMs": 242040,
-       "ayah": "6:100",
-       "atEnd": false
-      },
-      {
-       "timeMs": 232720,
-       "ayah": "6:100",
-       "atEnd": false
       }
      ]
     },
@@ -2683,23 +2496,8 @@
      "audioS": 566.7,
      "warnings": [
       {
-       "timeMs": 66160,
-       "ayah": "6:164",
-       "atEnd": false
-      },
-      {
-       "timeMs": 133240,
-       "ayah": "7:7",
-       "atEnd": false
-      },
-      {
        "timeMs": 184640,
        "ayah": "7:14",
-       "atEnd": false
-      },
-      {
-       "timeMs": 240760,
-       "ayah": "7:23",
        "atEnd": false
       }
      ]
@@ -2709,13 +2507,13 @@
      "audioS": 214.2,
      "warnings": [
       {
-       "timeMs": 50000,
-       "ayah": "7:146",
+       "timeMs": 40080,
+       "ayah": "7:148",
        "atEnd": false
       },
       {
-       "timeMs": 67160,
-       "ayah": "7:151",
+       "timeMs": 87240,
+       "ayah": "7:153",
        "atEnd": false
       }
      ]
@@ -2723,18 +2521,18 @@
     {
      "id": "tlog-contiguous-021",
      "audioS": 424.1,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 279880,
+       "ayah": "8:29",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-022",
      "audioS": 246.1,
-     "warnings": [
-      {
-       "timeMs": 41240,
-       "ayah": "9:59",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-023",
@@ -2746,8 +2544,8 @@
      "audioS": 300,
      "warnings": [
       {
-       "timeMs": 133160,
-       "ayah": "10:26",
+       "timeMs": 173640,
+       "ayah": "10:29",
        "atEnd": false
       }
      ]
@@ -2755,7 +2553,13 @@
     {
      "id": "tlog-contiguous-025",
      "audioS": 294.9,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 125040,
+       "ayah": "11:52",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-026",
@@ -2776,26 +2580,27 @@
        "timeMs": 83240,
        "ayah": "12:103",
        "atEnd": false
-      },
-      {
-       "timeMs": 69920,
-       "ayah": "12:104",
-       "atEnd": false
       }
      ]
     },
     {
      "id": "tlog-contiguous-028",
      "audioS": 355.3,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 285800,
+       "ayah": "13:43",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-029",
      "audioS": 558.8,
      "warnings": [
       {
-       "timeMs": 115320,
-       "ayah": "14:13",
+       "timeMs": 216000,
+       "ayah": "14:32",
        "atEnd": false
       },
       {
@@ -2804,18 +2609,13 @@
        "atEnd": false
       },
       {
+       "timeMs": 365800,
+       "ayah": "14:41",
+       "atEnd": false
+      },
+      {
        "timeMs": 357240,
        "ayah": "14:43",
-       "atEnd": false
-      },
-      {
-       "timeMs": 387760,
-       "ayah": "14:46",
-       "atEnd": false
-      },
-      {
-       "timeMs": 411920,
-       "ayah": "14:47",
        "atEnd": false
       },
       {
@@ -2828,51 +2628,22 @@
     {
      "id": "tlog-contiguous-030",
      "audioS": 214.9,
-     "warnings": [
-      {
-       "timeMs": 117360,
-       "ayah": "15:53",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-031",
      "audioS": 217.1,
-     "warnings": [
-      {
-       "timeMs": 63320,
-       "ayah": "15:95",
-       "atEnd": false
-      },
-      {
-       "timeMs": 142600,
-       "ayah": "16:6",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-032",
      "audioS": 198.5,
-     "warnings": [
-      {
-       "timeMs": 72240,
-       "ayah": "16:26",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-033",
      "audioS": 355.7,
-     "warnings": [
-      {
-       "timeMs": 342880,
-       "ayah": "17:26",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-034",
@@ -2881,6 +2652,11 @@
       {
        "timeMs": 118560,
        "ayah": "17:111",
+       "atEnd": false
+      },
+      {
+       "timeMs": 188240,
+       "ayah": "18:6",
        "atEnd": false
       }
      ]
@@ -2904,11 +2680,6 @@
        "timeMs": 129200,
        "ayah": "18:95",
        "atEnd": false
-      },
-      {
-       "timeMs": 435640,
-       "ayah": "19:13",
-       "atEnd": false
       }
      ]
     },
@@ -2917,18 +2688,8 @@
      "audioS": 327.1,
      "warnings": [
       {
-       "timeMs": 190880,
-       "ayah": "19:39",
-       "atEnd": false
-      },
-      {
        "timeMs": 279160,
        "ayah": "19:48",
-       "atEnd": false
-      },
-      {
-       "timeMs": 295160,
-       "ayah": "19:49",
        "atEnd": false
       },
       {
@@ -2951,6 +2712,11 @@
        "timeMs": 159480,
        "ayah": "19:70",
        "atEnd": false
+      },
+      {
+       "timeMs": 301920,
+       "ayah": "19:89",
+       "atEnd": false
       }
      ]
     },
@@ -2959,8 +2725,8 @@
      "audioS": 575.4,
      "warnings": [
       {
-       "timeMs": 450320,
-       "ayah": "20:70",
+       "timeMs": 479400,
+       "ayah": "20:75",
        "atEnd": false
       },
       {
@@ -2986,8 +2752,8 @@
      "audioS": 459.2,
      "warnings": [
       {
-       "timeMs": 24040,
-       "ayah": "21:84",
+       "timeMs": 387200,
+       "ayah": "22:14",
        "atEnd": false
       },
       {
@@ -3002,8 +2768,13 @@
      "audioS": 261.1,
      "warnings": [
       {
-       "timeMs": 201640,
-       "ayah": "22:67",
+       "timeMs": 237880,
+       "ayah": "22:68",
+       "atEnd": false
+      },
+      {
+       "timeMs": 255920,
+       "ayah": "22:72",
        "atEnd": false
       }
      ]
@@ -3018,18 +2789,13 @@
      "audioS": 212.3,
      "warnings": [
       {
-       "timeMs": 168760,
+       "timeMs": 73320,
+       "ayah": "24:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 146600,
        "ayah": "24:21",
-       "atEnd": false
-      },
-      {
-       "timeMs": 205920,
-       "ayah": "24:27",
-       "atEnd": false
-      },
-      {
-       "timeMs": 205920,
-       "ayah": "24:27",
        "atEnd": false
       }
      ]
@@ -3049,18 +2815,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 69320,
-       "ayah": "25:60",
-       "atEnd": false
-      },
-      {
        "timeMs": 77360,
        "ayah": "25:60",
-       "atEnd": false
-      },
-      {
-       "timeMs": 217000,
-       "ayah": "25:72",
        "atEnd": false
       }
      ]
@@ -3069,11 +2825,6 @@
      "id": "tlog-contiguous-047",
      "audioS": 442.6,
      "warnings": [
-      {
-       "timeMs": 198840,
-       "ayah": "27:17",
-       "atEnd": false
-      },
       {
        "timeMs": 209960,
        "ayah": "27:22",
@@ -3084,13 +2835,7 @@
     {
      "id": "tlog-contiguous-048",
      "audioS": 191.8,
-     "warnings": [
-      {
-       "timeMs": 188280,
-       "ayah": "28:8",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-049",
@@ -3118,6 +2863,11 @@
      "audioS": 320.9,
      "warnings": [
       {
+       "timeMs": 103280,
+       "ayah": "29:63",
+       "atEnd": false
+      },
+      {
        "timeMs": 208560,
        "ayah": "30:8",
        "atEnd": false
@@ -3130,6 +2880,11 @@
       {
        "timeMs": 269000,
        "ayah": "30:18",
+       "atEnd": false
+      },
+      {
+       "timeMs": 286960,
+       "ayah": "30:20",
        "atEnd": false
       }
      ]
@@ -3157,6 +2912,11 @@
        "timeMs": 307640,
        "ayah": "31:26",
        "atEnd": false
+      },
+      {
+       "timeMs": 318840,
+       "ayah": "31:28",
+       "atEnd": false
       }
      ]
     },
@@ -3165,9 +2925,29 @@
      "audioS": 605,
      "warnings": [
       {
+       "timeMs": 77440,
+       "ayah": "33:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 208000,
+       "ayah": "33:36",
+       "atEnd": false
+      },
+      {
+       "timeMs": 311200,
+       "ayah": "33:46",
+       "atEnd": false
+      },
+      {
        "timeMs": 526320,
        "ayah": "33:67",
        "atEnd": false
+      },
+      {
+       "timeMs": 602120,
+       "ayah": "34:1",
+       "atEnd": true
       }
      ]
     },
@@ -3180,6 +2960,11 @@
      "id": "tlog-contiguous-054",
      "audioS": 545.5,
      "warnings": [
+      {
+       "timeMs": 154560,
+       "ayah": "36:23",
+       "atEnd": false
+      },
       {
        "timeMs": 251320,
        "ayah": "36:35",
@@ -3213,13 +2998,13 @@
      "audioS": 517.4,
      "warnings": [
       {
-       "timeMs": 132480,
-       "ayah": "39:68",
+       "timeMs": 163440,
+       "ayah": "39:69",
        "atEnd": false
       },
       {
-       "timeMs": 163440,
-       "ayah": "39:69",
+       "timeMs": 231680,
+       "ayah": "39:75",
        "atEnd": false
       }
      ]
@@ -3229,7 +3014,7 @@
      "audioS": 292.2,
      "warnings": [
       {
-       "timeMs": 64480,
+       "timeMs": 69440,
        "ayah": "40:42",
        "atEnd": false
       }
@@ -3238,15 +3023,31 @@
     {
      "id": "tlog-contiguous-058",
      "audioS": 293,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 183480,
+       "ayah": "41:41",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-059",
      "audioS": 360,
      "warnings": [
       {
-       "timeMs": 224400,
-       "ayah": "42:16",
+       "timeMs": 67160,
+       "ayah": "42:7",
+       "atEnd": false
+      },
+      {
+       "timeMs": 176280,
+       "ayah": "42:15",
+       "atEnd": false
+      },
+      {
+       "timeMs": 327560,
+       "ayah": "42:28",
        "atEnd": false
       }
      ]
@@ -3256,8 +3057,23 @@
      "audioS": 613,
      "warnings": [
       {
+       "timeMs": 213480,
+       "ayah": "43:42",
+       "atEnd": false
+      },
+      {
        "timeMs": 297800,
        "ayah": "43:51",
+       "atEnd": false
+      },
+      {
+       "timeMs": 421160,
+       "ayah": "43:65",
+       "atEnd": false
+      },
+      {
+       "timeMs": 459240,
+       "ayah": "43:71",
        "atEnd": false
       }
      ]
@@ -3265,7 +3081,13 @@
     {
      "id": "tlog-contiguous-061",
      "audioS": 277.6,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 26000,
+       "ayah": "44:4",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-062",
@@ -3290,6 +3112,16 @@
        "timeMs": 80320,
        "ayah": "48:4",
        "atEnd": false
+      },
+      {
+       "timeMs": 101280,
+       "ayah": "48:6",
+       "atEnd": false
+      },
+      {
+       "timeMs": 218720,
+       "ayah": "48:20",
+       "atEnd": false
       }
      ]
     },
@@ -3297,11 +3129,6 @@
      "id": "tlog-contiguous-065",
      "audioS": 332.7,
      "warnings": [
-      {
-       "timeMs": 16800,
-       "ayah": "48:29",
-       "atEnd": false
-      },
       {
        "timeMs": 46080,
        "ayah": "49:2",
@@ -3322,21 +3149,15 @@
     {
      "id": "tlog-contiguous-067",
      "audioS": 234.2,
-     "warnings": [
-      {
-       "timeMs": 16160,
-       "ayah": "51:43",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-068",
      "audioS": 524.7,
      "warnings": [
       {
-       "timeMs": 282880,
-       "ayah": "53:37",
+       "timeMs": 238760,
+       "ayah": "53:30",
        "atEnd": false
       },
       {
@@ -3345,8 +3166,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 444280,
-       "ayah": "54:5",
+       "timeMs": 442240,
+       "ayah": "54:4",
        "atEnd": false
       }
      ]
@@ -3355,11 +3176,6 @@
      "id": "tlog-contiguous-069",
      "audioS": 352.8,
      "warnings": [
-      {
-       "timeMs": 17960,
-       "ayah": "54:35",
-       "atEnd": false
-      },
       {
        "timeMs": 229680,
        "ayah": "55:22",
@@ -3375,13 +3191,7 @@
     {
      "id": "tlog-contiguous-071",
      "audioS": 483.7,
-     "warnings": [
-      {
-       "timeMs": 55080,
-       "ayah": "56:59",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-072",
@@ -3397,15 +3207,26 @@
     {
      "id": "tlog-contiguous-073",
      "audioS": 219.5,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 208720,
+       "ayah": "60:9",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-074",
      "audioS": 472.6,
      "warnings": [
       {
-       "timeMs": 295960,
-       "ayah": "63:3",
+       "timeMs": 457360,
+       "ayah": "64:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 458400,
+       "ayah": "64:6",
        "atEnd": false
       }
      ]
@@ -3425,18 +3246,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 255840,
-       "ayah": "66:10",
-       "atEnd": false
-      },
-      {
        "timeMs": 305920,
        "ayah": "67:1",
-       "atEnd": false
-      },
-      {
-       "timeMs": 357000,
-       "ayah": "67:8",
        "atEnd": false
       }
      ]
@@ -3446,23 +3257,18 @@
      "audioS": 583.9,
      "warnings": [
       {
-       "timeMs": 101320,
+       "timeMs": 47160,
+       "ayah": "68:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 96400,
        "ayah": "68:29",
        "atEnd": false
       },
       {
-       "timeMs": 109400,
-       "ayah": "68:31",
-       "atEnd": false
-      },
-      {
-       "timeMs": 315000,
-       "ayah": "69:9",
-       "atEnd": false
-      },
-      {
-       "timeMs": 332000,
-       "ayah": "69:12",
+       "timeMs": 504520,
+       "ayah": "69:40",
        "atEnd": false
       }
      ]
@@ -3470,31 +3276,15 @@
     {
      "id": "tlog-contiguous-077",
      "audioS": 339.7,
-     "warnings": [
-      {
-       "timeMs": 228760,
-       "ayah": "72:4",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-078",
      "audioS": 359.6,
      "warnings": [
       {
-       "timeMs": 47080,
-       "ayah": "72:27",
-       "atEnd": false
-      },
-      {
        "timeMs": 125360,
        "ayah": "73:9",
-       "atEnd": false
-      },
-      {
-       "timeMs": 201760,
-       "ayah": "74:1",
        "atEnd": false
       }
      ]
@@ -3504,18 +3294,13 @@
      "audioS": 618.5,
      "warnings": [
       {
-       "timeMs": 86320,
-       "ayah": "75:15",
+       "timeMs": 324320,
+       "ayah": "76:15",
        "atEnd": false
       },
       {
-       "timeMs": 86320,
-       "ayah": "75:16",
-       "atEnd": false
-      },
-      {
-       "timeMs": 288440,
-       "ayah": "76:11",
+       "timeMs": 418840,
+       "ayah": "76:26",
        "atEnd": false
       },
       {
@@ -3530,6 +3315,11 @@
      "audioS": 693.6,
      "warnings": [
       {
+       "timeMs": 11040,
+       "ayah": "78:1",
+       "atEnd": false
+      },
+      {
        "timeMs": 29080,
        "ayah": "78:7",
        "atEnd": false
@@ -3537,11 +3327,6 @@
       {
        "timeMs": 161280,
        "ayah": "78:35",
-       "atEnd": false
-      },
-      {
-       "timeMs": 258720,
-       "ayah": "79:8",
        "atEnd": false
       },
       {
@@ -3574,11 +3359,6 @@
        "timeMs": 424480,
        "ayah": "84:22",
        "atEnd": false
-      },
-      {
-       "timeMs": 574120,
-       "ayah": "86:3",
-       "atEnd": false
       }
      ]
     },
@@ -3587,13 +3367,18 @@
      "audioS": 678.6,
      "warnings": [
       {
+       "timeMs": 275880,
+       "ayah": "89:21",
+       "atEnd": false
+      },
+      {
        "timeMs": 392200,
        "ayah": "90:13",
        "atEnd": false
       },
       {
-       "timeMs": 465120,
-       "ayah": "91:10",
+       "timeMs": 440240,
+       "ayah": "91:5",
        "atEnd": false
       }
      ]
@@ -3608,13 +3393,13 @@
        "atEnd": false
       },
       {
-       "timeMs": 193200,
-       "ayah": "99:3",
+       "timeMs": 566480,
+       "ayah": "109:3",
        "atEnd": false
       },
       {
-       "timeMs": 566480,
-       "ayah": "109:3",
+       "timeMs": 597560,
+       "ayah": "110:3",
        "atEnd": false
       },
       {
@@ -3637,17 +3422,18 @@
     {
      "id": "tlog-jump-086",
      "audioS": 197.9,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 126360,
+       "ayah": "23:78",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-jump-087",
      "audioS": 224.1,
      "warnings": [
-      {
-       "timeMs": 125640,
-       "ayah": "24:32",
-       "atEnd": false
-      },
       {
        "timeMs": 173720,
        "ayah": "24:38",
@@ -3663,13 +3449,7 @@
     {
      "id": "tlog-jump-089",
      "audioS": 252.1,
-     "warnings": [
-      {
-       "timeMs": 66080,
-       "ayah": "74:50",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-090",
@@ -3685,18 +3465,7 @@
     {
      "id": "tlog-jump-091",
      "audioS": 290.2,
-     "warnings": [
-      {
-       "timeMs": 168240,
-       "ayah": "50:35",
-       "atEnd": false
-      },
-      {
-       "timeMs": 186640,
-       "ayah": "50:40",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-092",
@@ -3712,7 +3481,13 @@
     {
      "id": "tlog-jump-093",
      "audioS": 325,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 145480,
+       "ayah": "40:82",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-jump-094",
@@ -3735,8 +3510,8 @@
      "audioS": 220,
      "warnings": [
       {
-       "timeMs": 35160,
-       "ayah": "10:1",
+       "timeMs": 201520,
+       "ayah": "10:104",
        "atEnd": false
       }
      ]
@@ -3745,6 +3520,11 @@
      "id": "tlog-jump-096",
      "audioS": 314.8,
      "warnings": [
+      {
+       "timeMs": 96440,
+       "ayah": "7:190",
+       "atEnd": false
+      },
       {
        "timeMs": 209800,
        "ayah": "25:25",
@@ -3762,18 +3542,18 @@
      "audioS": 356.6,
      "warnings": [
       {
-       "timeMs": 61040,
-       "ayah": "5:91",
-       "atEnd": false
-      },
-      {
-       "timeMs": 152360,
-       "ayah": "5:100",
-       "atEnd": false
-      },
-      {
        "timeMs": 200760,
        "ayah": "28:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 234960,
+       "ayah": "28:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 294200,
+       "ayah": "28:35",
        "atEnd": false
       },
       {
@@ -3787,6 +3567,11 @@
      "id": "tlog-jump-098",
      "audioS": 206.5,
      "warnings": [
+      {
+       "timeMs": 65280,
+       "ayah": "21:70",
+       "atEnd": false
+      },
       {
        "timeMs": 151480,
        "ayah": "21:79",
@@ -3808,7 +3593,13 @@
     {
      "id": "tlog-jump-100",
      "audioS": 237.6,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 159360,
+       "ayah": "7:96",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-jump-101",
@@ -3820,9 +3611,9 @@
        "atEnd": false
       },
       {
-       "timeMs": 221120,
-       "ayah": "30:40",
-       "atEnd": true
+       "timeMs": 84320,
+       "ayah": "42:45",
+       "atEnd": false
       }
      ]
     },
@@ -3841,6 +3632,11 @@
      "audioS": 275.1,
      "warnings": [
       {
+       "timeMs": 59040,
+       "ayah": "7:88",
+       "atEnd": false
+      },
+      {
        "timeMs": 177720,
        "ayah": "12:42",
        "atEnd": false
@@ -3851,16 +3647,6 @@
      "id": "tlog-jump-105",
      "audioS": 214.6,
      "warnings": [
-      {
-       "timeMs": 6960,
-       "ayah": "30:27",
-       "atEnd": false
-      },
-      {
-       "timeMs": 40160,
-       "ayah": "30:29",
-       "atEnd": false
-      },
       {
        "timeMs": 78240,
        "ayah": "30:30",
@@ -3892,13 +3678,7 @@
     {
      "id": "tlog-jump-109",
      "audioS": 297.5,
-     "warnings": [
-      {
-       "timeMs": 172920,
-       "ayah": "41:3",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-110",
@@ -3908,13 +3688,7 @@
     {
      "id": "tlog-jump-111",
      "audioS": 236.4,
-     "warnings": [
-      {
-       "timeMs": 29080,
-       "ayah": "47:15",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-112",
@@ -3926,8 +3700,8 @@
      "audioS": 283.8,
      "warnings": [
       {
-       "timeMs": 120160,
-       "ayah": "33:13",
+       "timeMs": 27120,
+       "ayah": "33:5",
        "atEnd": false
       }
      ]
@@ -3935,7 +3709,13 @@
     {
      "id": "tlog-jump-114",
      "audioS": 219.2,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 137960,
+       "ayah": "10:81",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-jump-115",
@@ -3952,13 +3732,13 @@
        "atEnd": false
       },
       {
-       "timeMs": 84320,
-       "ayah": "37:30",
+       "timeMs": 180640,
+       "ayah": "39:3",
        "atEnd": false
       },
       {
-       "timeMs": 244880,
-       "ayah": "39:7",
+       "timeMs": 221760,
+       "ayah": "39:6",
        "atEnd": false
       }
      ]
@@ -3966,7 +3746,13 @@
     {
      "id": "tlog-jump-117",
      "audioS": 261.3,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 153960,
+       "ayah": "17:87",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-jump-118",
@@ -3977,6 +3763,11 @@
      "id": "tlog-jump-119",
      "audioS": 245.4,
      "warnings": [
+      {
+       "timeMs": 15960,
+       "ayah": "9:117",
+       "atEnd": false
+      },
       {
        "timeMs": 141160,
        "ayah": "9:39",
@@ -3994,8 +3785,18 @@
      "audioS": 250.7,
      "warnings": [
       {
+       "timeMs": 10000,
+       "ayah": "46:25",
+       "atEnd": false
+      },
+      {
        "timeMs": 159560,
        "ayah": "47:10",
+       "atEnd": false
+      },
+      {
+       "timeMs": 186760,
+       "ayah": "9:27",
        "atEnd": false
       }
      ]
@@ -4005,18 +3806,13 @@
      "audioS": 463.3,
      "warnings": [
       {
+       "timeMs": 95440,
+       "ayah": "36:9",
+       "atEnd": false
+      },
+      {
        "timeMs": 166760,
        "ayah": "11:82",
-       "atEnd": false
-      },
-      {
-       "timeMs": 269280,
-       "ayah": "21:49",
-       "atEnd": false
-      },
-      {
-       "timeMs": 274240,
-       "ayah": "21:49",
        "atEnd": false
       },
       {
@@ -4031,23 +3827,23 @@
      "audioS": 179.4,
      "warnings": [
       {
-       "timeMs": 15000,
+       "timeMs": 12440,
        "ayah": "101:4",
        "atEnd": false
       },
       {
-       "timeMs": 90000,
+       "timeMs": 93480,
+       "ayah": "18:42",
+       "atEnd": false
+      },
+      {
+       "timeMs": 89480,
        "ayah": "18:43",
        "atEnd": false
       },
       {
        "timeMs": 92480,
        "ayah": "18:43",
-       "atEnd": false
-      },
-      {
-       "timeMs": 102560,
-       "ayah": "78:16",
        "atEnd": false
       }
      ]
@@ -4062,13 +3858,18 @@
        "atEnd": false
       },
       {
-       "timeMs": 84280,
-       "ayah": "86:3",
+       "timeMs": 29960,
+       "ayah": "25:74",
        "atEnd": false
       },
       {
-       "timeMs": 91360,
-       "ayah": "86:4",
+       "timeMs": 35960,
+       "ayah": "25:74",
+       "atEnd": false
+      },
+      {
+       "timeMs": 79280,
+       "ayah": "83:13",
        "atEnd": false
       },
       {
@@ -4081,7 +3882,13 @@
     {
      "id": "help-help-124",
      "audioS": 208.1,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 70480,
+       "ayah": "89:23",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "help-help-125",
@@ -4093,8 +3900,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 365640,
-       "ayah": "55:3",
+       "timeMs": 208400,
+       "ayah": "102:7",
        "atEnd": false
       }
      ]
@@ -4102,30 +3909,61 @@
     {
      "id": "help-help-126",
      "audioS": 566.4,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 182760,
+       "ayah": "78:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 237200,
+       "ayah": "2:64",
+       "atEnd": false
+      },
+      {
+       "timeMs": 306320,
+       "ayah": "7:26",
+       "atEnd": false
+      },
+      {
+       "timeMs": 373840,
+       "ayah": "67:17",
+       "atEnd": false
+      },
+      {
+       "timeMs": 423160,
+       "ayah": "13:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 439200,
+       "ayah": "85:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 506480,
+       "ayah": "50:32",
+       "atEnd": false
+      },
+      {
+       "timeMs": 537480,
+       "ayah": "30:3",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "help-help-127",
      "audioS": 314.9,
      "warnings": [
       {
-       "timeMs": 83360,
-       "ayah": "67:25",
-       "atEnd": false
-      },
-      {
-       "timeMs": 187800,
-       "ayah": "56:43",
-       "atEnd": false
-      },
-      {
        "timeMs": 199840,
-       "ayah": "56:47",
+       "ayah": "56:44",
        "atEnd": false
       },
       {
-       "timeMs": 266040,
-       "ayah": "37:38",
+       "timeMs": 201840,
+       "ayah": "56:47",
        "atEnd": false
       },
       {
@@ -4151,10 +3989,10 @@
    "tally": {
     "sessions": 129,
     "minutes": 746.8573333333335,
-    "warnings": 209,
+    "warnings": 210,
     "atEnd": 0,
-    "tail": 10,
-    "mid": 199,
+    "tail": 9,
+    "mid": 201,
     "missing": 0
    },
    "detail": [
@@ -4163,8 +4001,23 @@
      "audioS": 563.2,
      "warnings": [
       {
+       "timeMs": 39080,
+       "ayah": "1:7",
+       "atEnd": false
+      },
+      {
+       "timeMs": 124200,
+       "ayah": "2:9",
+       "atEnd": false
+      },
+      {
        "timeMs": 163560,
        "ayah": "2:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 203720,
+       "ayah": "2:17",
        "atEnd": false
       }
      ]
@@ -4174,8 +4027,13 @@
      "audioS": 551.9,
      "warnings": [
       {
-       "timeMs": 196520,
-       "ayah": "2:63",
+       "timeMs": 175480,
+       "ayah": "2:61",
+       "atEnd": false
+      },
+      {
+       "timeMs": 280000,
+       "ayah": "2:72",
        "atEnd": false
       }
      ]
@@ -4185,16 +4043,6 @@
      "audioS": 557.9,
      "warnings": [
       {
-       "timeMs": 131560,
-       "ayah": "2:106",
-       "atEnd": false
-      },
-      {
-       "timeMs": 189760,
-       "ayah": "2:110",
-       "atEnd": false
-      },
-      {
        "timeMs": 231920,
        "ayah": "2:114",
        "atEnd": false
@@ -4202,11 +4050,6 @@
       {
        "timeMs": 241920,
        "ayah": "2:114",
-       "atEnd": false
-      },
-      {
-       "timeMs": 419560,
-       "ayah": "2:125",
        "atEnd": false
       },
       {
@@ -4242,23 +4085,23 @@
      "audioS": 610.5,
      "warnings": [
       {
-       "timeMs": 39920,
-       "ayah": "2:185",
-       "atEnd": false
-      },
-      {
-       "timeMs": 43960,
+       "timeMs": 42120,
        "ayah": "2:186",
        "atEnd": false
       },
       {
-       "timeMs": 60240,
-       "ayah": "2:187",
+       "timeMs": 297720,
+       "ayah": "2:207",
        "atEnd": false
       },
       {
-       "timeMs": 297000,
-       "ayah": "2:207",
+       "timeMs": 314000,
+       "ayah": "2:210",
+       "atEnd": false
+      },
+      {
+       "timeMs": 346120,
+       "ayah": "2:213",
        "atEnd": false
       },
       {
@@ -4271,18 +4114,18 @@
     {
      "id": "tlog-contiguous-005",
      "audioS": 335.4,
-     "warnings": [
-      {
-       "timeMs": 172600,
-       "ayah": "2:257",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-006",
      "audioS": 451.8,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 339920,
+       "ayah": "3:16",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-007",
@@ -4315,13 +4158,13 @@
        "atEnd": false
       },
       {
-       "timeMs": 371600,
-       "ayah": "3:107",
+       "timeMs": 230720,
+       "ayah": "3:94",
        "atEnd": false
       },
       {
-       "timeMs": 373040,
-       "ayah": "3:107",
+       "timeMs": 357680,
+       "ayah": "3:105",
        "atEnd": false
       },
       {
@@ -4335,11 +4178,6 @@
      "id": "tlog-contiguous-009",
      "audioS": 504.7,
      "warnings": [
-      {
-       "timeMs": 388560,
-       "ayah": "3:168",
-       "atEnd": false
-      },
       {
        "timeMs": 433080,
        "ayah": "3:172",
@@ -4360,11 +4198,6 @@
        "timeMs": 228440,
        "ayah": "4:3",
        "atEnd": false
-      },
-      {
-       "timeMs": 302840,
-       "ayah": "4:11",
-       "atEnd": false
       }
      ]
     },
@@ -4384,13 +4217,13 @@
      "audioS": 451.1,
      "warnings": [
       {
-       "timeMs": 167800,
-       "ayah": "4:89",
+       "timeMs": 411560,
+       "ayah": "4:110",
        "atEnd": false
       },
       {
-       "timeMs": 411560,
-       "ayah": "4:110",
+       "timeMs": 419520,
+       "ayah": "4:112",
        "atEnd": false
       }
      ]
@@ -4405,8 +4238,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 92240,
-       "ayah": "4:126",
+       "timeMs": 214800,
+       "ayah": "4:142",
        "atEnd": false
       },
       {
@@ -4421,18 +4254,13 @@
      "audioS": 524.9,
      "warnings": [
       {
-       "timeMs": 43960,
-       "ayah": "5:3",
-       "atEnd": false
-      },
-      {
-       "timeMs": 137160,
-       "ayah": "5:14",
-       "atEnd": false
-      },
-      {
        "timeMs": 175200,
        "ayah": "5:20",
+       "atEnd": false
+      },
+      {
+       "timeMs": 302520,
+       "ayah": "5:36",
        "atEnd": false
       }
      ]
@@ -4477,16 +4305,6 @@
        "timeMs": 100200,
        "ayah": "6:84",
        "atEnd": false
-      },
-      {
-       "timeMs": 242040,
-       "ayah": "6:100",
-       "atEnd": false
-      },
-      {
-       "timeMs": 232720,
-       "ayah": "6:100",
-       "atEnd": false
       }
      ]
     },
@@ -4495,23 +4313,8 @@
      "audioS": 566.7,
      "warnings": [
       {
-       "timeMs": 66160,
-       "ayah": "6:164",
-       "atEnd": false
-      },
-      {
-       "timeMs": 133240,
-       "ayah": "7:7",
-       "atEnd": false
-      },
-      {
        "timeMs": 184640,
        "ayah": "7:14",
-       "atEnd": false
-      },
-      {
-       "timeMs": 240760,
-       "ayah": "7:23",
        "atEnd": false
       }
      ]
@@ -4521,13 +4324,13 @@
      "audioS": 214.2,
      "warnings": [
       {
-       "timeMs": 50000,
-       "ayah": "7:146",
+       "timeMs": 40080,
+       "ayah": "7:148",
        "atEnd": false
       },
       {
-       "timeMs": 67160,
-       "ayah": "7:151",
+       "timeMs": 87240,
+       "ayah": "7:153",
        "atEnd": false
       }
      ]
@@ -4535,18 +4338,18 @@
     {
      "id": "tlog-contiguous-021",
      "audioS": 424.1,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 279880,
+       "ayah": "8:29",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-022",
      "audioS": 246.1,
-     "warnings": [
-      {
-       "timeMs": 41240,
-       "ayah": "9:59",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-023",
@@ -4558,8 +4361,8 @@
      "audioS": 300,
      "warnings": [
       {
-       "timeMs": 133160,
-       "ayah": "10:26",
+       "timeMs": 173640,
+       "ayah": "10:29",
        "atEnd": false
       }
      ]
@@ -4567,7 +4370,13 @@
     {
      "id": "tlog-contiguous-025",
      "audioS": 294.9,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 125040,
+       "ayah": "11:52",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-026",
@@ -4588,26 +4397,27 @@
        "timeMs": 83240,
        "ayah": "12:103",
        "atEnd": false
-      },
-      {
-       "timeMs": 69920,
-       "ayah": "12:104",
-       "atEnd": false
       }
      ]
     },
     {
      "id": "tlog-contiguous-028",
      "audioS": 355.3,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 285800,
+       "ayah": "13:43",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-029",
      "audioS": 558.8,
      "warnings": [
       {
-       "timeMs": 115320,
-       "ayah": "14:13",
+       "timeMs": 216000,
+       "ayah": "14:32",
        "atEnd": false
       },
       {
@@ -4616,18 +4426,13 @@
        "atEnd": false
       },
       {
+       "timeMs": 365800,
+       "ayah": "14:41",
+       "atEnd": false
+      },
+      {
        "timeMs": 357240,
        "ayah": "14:43",
-       "atEnd": false
-      },
-      {
-       "timeMs": 387760,
-       "ayah": "14:46",
-       "atEnd": false
-      },
-      {
-       "timeMs": 411920,
-       "ayah": "14:47",
        "atEnd": false
       },
       {
@@ -4640,51 +4445,22 @@
     {
      "id": "tlog-contiguous-030",
      "audioS": 214.9,
-     "warnings": [
-      {
-       "timeMs": 117360,
-       "ayah": "15:53",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-031",
      "audioS": 217.1,
-     "warnings": [
-      {
-       "timeMs": 63320,
-       "ayah": "15:95",
-       "atEnd": false
-      },
-      {
-       "timeMs": 142600,
-       "ayah": "16:6",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-032",
      "audioS": 198.5,
-     "warnings": [
-      {
-       "timeMs": 72240,
-       "ayah": "16:26",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-033",
      "audioS": 355.7,
-     "warnings": [
-      {
-       "timeMs": 342880,
-       "ayah": "17:26",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-034",
@@ -4693,6 +4469,11 @@
       {
        "timeMs": 118560,
        "ayah": "17:111",
+       "atEnd": false
+      },
+      {
+       "timeMs": 188240,
+       "ayah": "18:6",
        "atEnd": false
       }
      ]
@@ -4716,11 +4497,6 @@
        "timeMs": 129200,
        "ayah": "18:95",
        "atEnd": false
-      },
-      {
-       "timeMs": 435640,
-       "ayah": "19:13",
-       "atEnd": false
       }
      ]
     },
@@ -4729,18 +4505,8 @@
      "audioS": 327.1,
      "warnings": [
       {
-       "timeMs": 190880,
-       "ayah": "19:39",
-       "atEnd": false
-      },
-      {
        "timeMs": 279160,
        "ayah": "19:48",
-       "atEnd": false
-      },
-      {
-       "timeMs": 295160,
-       "ayah": "19:49",
        "atEnd": false
       },
       {
@@ -4763,6 +4529,11 @@
        "timeMs": 159480,
        "ayah": "19:70",
        "atEnd": false
+      },
+      {
+       "timeMs": 301920,
+       "ayah": "19:89",
+       "atEnd": false
       }
      ]
     },
@@ -4771,8 +4542,8 @@
      "audioS": 575.4,
      "warnings": [
       {
-       "timeMs": 450320,
-       "ayah": "20:70",
+       "timeMs": 479400,
+       "ayah": "20:75",
        "atEnd": false
       },
       {
@@ -4798,8 +4569,8 @@
      "audioS": 459.2,
      "warnings": [
       {
-       "timeMs": 24040,
-       "ayah": "21:84",
+       "timeMs": 387200,
+       "ayah": "22:14",
        "atEnd": false
       },
       {
@@ -4814,8 +4585,13 @@
      "audioS": 261.1,
      "warnings": [
       {
-       "timeMs": 201640,
-       "ayah": "22:67",
+       "timeMs": 237880,
+       "ayah": "22:68",
+       "atEnd": false
+      },
+      {
+       "timeMs": 255920,
+       "ayah": "22:72",
        "atEnd": false
       }
      ]
@@ -4830,18 +4606,13 @@
      "audioS": 212.3,
      "warnings": [
       {
-       "timeMs": 168760,
+       "timeMs": 73320,
+       "ayah": "24:13",
+       "atEnd": false
+      },
+      {
+       "timeMs": 146600,
        "ayah": "24:21",
-       "atEnd": false
-      },
-      {
-       "timeMs": 205920,
-       "ayah": "24:27",
-       "atEnd": false
-      },
-      {
-       "timeMs": 205920,
-       "ayah": "24:27",
        "atEnd": false
       }
      ]
@@ -4861,18 +4632,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 69320,
-       "ayah": "25:60",
-       "atEnd": false
-      },
-      {
        "timeMs": 77360,
        "ayah": "25:60",
-       "atEnd": false
-      },
-      {
-       "timeMs": 217000,
-       "ayah": "25:72",
        "atEnd": false
       }
      ]
@@ -4881,11 +4642,6 @@
      "id": "tlog-contiguous-047",
      "audioS": 442.6,
      "warnings": [
-      {
-       "timeMs": 198840,
-       "ayah": "27:17",
-       "atEnd": false
-      },
       {
        "timeMs": 209960,
        "ayah": "27:22",
@@ -4896,13 +4652,7 @@
     {
      "id": "tlog-contiguous-048",
      "audioS": 191.8,
-     "warnings": [
-      {
-       "timeMs": 188280,
-       "ayah": "28:8",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-049",
@@ -4930,6 +4680,11 @@
      "audioS": 320.9,
      "warnings": [
       {
+       "timeMs": 103280,
+       "ayah": "29:63",
+       "atEnd": false
+      },
+      {
        "timeMs": 208560,
        "ayah": "30:8",
        "atEnd": false
@@ -4942,6 +4697,11 @@
       {
        "timeMs": 269000,
        "ayah": "30:18",
+       "atEnd": false
+      },
+      {
+       "timeMs": 286960,
+       "ayah": "30:20",
        "atEnd": false
       }
      ]
@@ -4969,6 +4729,11 @@
        "timeMs": 307640,
        "ayah": "31:26",
        "atEnd": false
+      },
+      {
+       "timeMs": 318840,
+       "ayah": "31:28",
+       "atEnd": false
       }
      ]
     },
@@ -4976,6 +4741,21 @@
      "id": "tlog-contiguous-052",
      "audioS": 605,
      "warnings": [
+      {
+       "timeMs": 77440,
+       "ayah": "33:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 208000,
+       "ayah": "33:36",
+       "atEnd": false
+      },
+      {
+       "timeMs": 311200,
+       "ayah": "33:46",
+       "atEnd": false
+      },
       {
        "timeMs": 526320,
        "ayah": "33:67",
@@ -4992,6 +4772,11 @@
      "id": "tlog-contiguous-054",
      "audioS": 545.5,
      "warnings": [
+      {
+       "timeMs": 154560,
+       "ayah": "36:23",
+       "atEnd": false
+      },
       {
        "timeMs": 251320,
        "ayah": "36:35",
@@ -5025,13 +4810,13 @@
      "audioS": 517.4,
      "warnings": [
       {
-       "timeMs": 132480,
-       "ayah": "39:68",
+       "timeMs": 163440,
+       "ayah": "39:69",
        "atEnd": false
       },
       {
-       "timeMs": 163440,
-       "ayah": "39:69",
+       "timeMs": 231680,
+       "ayah": "39:75",
        "atEnd": false
       }
      ]
@@ -5041,7 +4826,7 @@
      "audioS": 292.2,
      "warnings": [
       {
-       "timeMs": 64480,
+       "timeMs": 69440,
        "ayah": "40:42",
        "atEnd": false
       }
@@ -5050,15 +4835,31 @@
     {
      "id": "tlog-contiguous-058",
      "audioS": 293,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 183480,
+       "ayah": "41:41",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-059",
      "audioS": 360,
      "warnings": [
       {
-       "timeMs": 224400,
-       "ayah": "42:16",
+       "timeMs": 67160,
+       "ayah": "42:7",
+       "atEnd": false
+      },
+      {
+       "timeMs": 176280,
+       "ayah": "42:15",
+       "atEnd": false
+      },
+      {
+       "timeMs": 327560,
+       "ayah": "42:28",
        "atEnd": false
       }
      ]
@@ -5068,8 +4869,23 @@
      "audioS": 613,
      "warnings": [
       {
+       "timeMs": 213480,
+       "ayah": "43:42",
+       "atEnd": false
+      },
+      {
        "timeMs": 297800,
        "ayah": "43:51",
+       "atEnd": false
+      },
+      {
+       "timeMs": 421160,
+       "ayah": "43:65",
+       "atEnd": false
+      },
+      {
+       "timeMs": 459240,
+       "ayah": "43:71",
        "atEnd": false
       }
      ]
@@ -5077,7 +4893,13 @@
     {
      "id": "tlog-contiguous-061",
      "audioS": 277.6,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 26000,
+       "ayah": "44:4",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-062",
@@ -5102,6 +4924,16 @@
        "timeMs": 80320,
        "ayah": "48:4",
        "atEnd": false
+      },
+      {
+       "timeMs": 101280,
+       "ayah": "48:6",
+       "atEnd": false
+      },
+      {
+       "timeMs": 218720,
+       "ayah": "48:20",
+       "atEnd": false
       }
      ]
     },
@@ -5109,11 +4941,6 @@
      "id": "tlog-contiguous-065",
      "audioS": 332.7,
      "warnings": [
-      {
-       "timeMs": 16800,
-       "ayah": "48:29",
-       "atEnd": false
-      },
       {
        "timeMs": 46080,
        "ayah": "49:2",
@@ -5134,21 +4961,15 @@
     {
      "id": "tlog-contiguous-067",
      "audioS": 234.2,
-     "warnings": [
-      {
-       "timeMs": 16160,
-       "ayah": "51:43",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-068",
      "audioS": 524.7,
      "warnings": [
       {
-       "timeMs": 282880,
-       "ayah": "53:37",
+       "timeMs": 238760,
+       "ayah": "53:30",
        "atEnd": false
       },
       {
@@ -5157,8 +4978,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 444280,
-       "ayah": "54:5",
+       "timeMs": 442240,
+       "ayah": "54:4",
        "atEnd": false
       }
      ]
@@ -5167,11 +4988,6 @@
      "id": "tlog-contiguous-069",
      "audioS": 352.8,
      "warnings": [
-      {
-       "timeMs": 17960,
-       "ayah": "54:35",
-       "atEnd": false
-      },
       {
        "timeMs": 229680,
        "ayah": "55:22",
@@ -5187,13 +5003,7 @@
     {
      "id": "tlog-contiguous-071",
      "audioS": 483.7,
-     "warnings": [
-      {
-       "timeMs": 55080,
-       "ayah": "56:59",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-072",
@@ -5209,15 +5019,26 @@
     {
      "id": "tlog-contiguous-073",
      "audioS": 219.5,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 208720,
+       "ayah": "60:9",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-074",
      "audioS": 472.6,
      "warnings": [
       {
-       "timeMs": 295960,
-       "ayah": "63:3",
+       "timeMs": 457360,
+       "ayah": "64:4",
+       "atEnd": false
+      },
+      {
+       "timeMs": 458400,
+       "ayah": "64:6",
        "atEnd": false
       }
      ]
@@ -5237,18 +5058,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 255840,
-       "ayah": "66:10",
-       "atEnd": false
-      },
-      {
        "timeMs": 305920,
        "ayah": "67:1",
-       "atEnd": false
-      },
-      {
-       "timeMs": 357000,
-       "ayah": "67:8",
        "atEnd": false
       }
      ]
@@ -5258,23 +5069,18 @@
      "audioS": 583.9,
      "warnings": [
       {
-       "timeMs": 101320,
+       "timeMs": 47160,
+       "ayah": "68:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 96400,
        "ayah": "68:29",
        "atEnd": false
       },
       {
-       "timeMs": 109400,
-       "ayah": "68:31",
-       "atEnd": false
-      },
-      {
-       "timeMs": 315000,
-       "ayah": "69:9",
-       "atEnd": false
-      },
-      {
-       "timeMs": 332000,
-       "ayah": "69:12",
+       "timeMs": 504520,
+       "ayah": "69:40",
        "atEnd": false
       }
      ]
@@ -5282,31 +5088,15 @@
     {
      "id": "tlog-contiguous-077",
      "audioS": 339.7,
-     "warnings": [
-      {
-       "timeMs": 228760,
-       "ayah": "72:4",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-078",
      "audioS": 359.6,
      "warnings": [
       {
-       "timeMs": 47080,
-       "ayah": "72:27",
-       "atEnd": false
-      },
-      {
        "timeMs": 125360,
        "ayah": "73:9",
-       "atEnd": false
-      },
-      {
-       "timeMs": 201760,
-       "ayah": "74:1",
        "atEnd": false
       }
      ]
@@ -5316,18 +5106,13 @@
      "audioS": 618.5,
      "warnings": [
       {
-       "timeMs": 86320,
-       "ayah": "75:15",
+       "timeMs": 324320,
+       "ayah": "76:15",
        "atEnd": false
       },
       {
-       "timeMs": 86320,
-       "ayah": "75:16",
-       "atEnd": false
-      },
-      {
-       "timeMs": 288440,
-       "ayah": "76:11",
+       "timeMs": 418840,
+       "ayah": "76:26",
        "atEnd": false
       },
       {
@@ -5342,6 +5127,11 @@
      "audioS": 693.6,
      "warnings": [
       {
+       "timeMs": 11040,
+       "ayah": "78:1",
+       "atEnd": false
+      },
+      {
        "timeMs": 29080,
        "ayah": "78:7",
        "atEnd": false
@@ -5349,11 +5139,6 @@
       {
        "timeMs": 161280,
        "ayah": "78:35",
-       "atEnd": false
-      },
-      {
-       "timeMs": 258720,
-       "ayah": "79:8",
        "atEnd": false
       },
       {
@@ -5386,11 +5171,6 @@
        "timeMs": 424480,
        "ayah": "84:22",
        "atEnd": false
-      },
-      {
-       "timeMs": 574120,
-       "ayah": "86:3",
-       "atEnd": false
       }
      ]
     },
@@ -5399,13 +5179,18 @@
      "audioS": 678.6,
      "warnings": [
       {
+       "timeMs": 275880,
+       "ayah": "89:21",
+       "atEnd": false
+      },
+      {
        "timeMs": 392200,
        "ayah": "90:13",
        "atEnd": false
       },
       {
-       "timeMs": 465120,
-       "ayah": "91:10",
+       "timeMs": 440240,
+       "ayah": "91:5",
        "atEnd": false
       }
      ]
@@ -5420,13 +5205,13 @@
        "atEnd": false
       },
       {
-       "timeMs": 193200,
-       "ayah": "99:3",
+       "timeMs": 566480,
+       "ayah": "109:3",
        "atEnd": false
       },
       {
-       "timeMs": 566480,
-       "ayah": "109:3",
+       "timeMs": 597560,
+       "ayah": "110:3",
        "atEnd": false
       },
       {
@@ -5449,17 +5234,18 @@
     {
      "id": "tlog-jump-086",
      "audioS": 197.9,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 126360,
+       "ayah": "23:78",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-jump-087",
      "audioS": 224.1,
      "warnings": [
-      {
-       "timeMs": 125640,
-       "ayah": "24:32",
-       "atEnd": false
-      },
       {
        "timeMs": 173720,
        "ayah": "24:38",
@@ -5475,13 +5261,7 @@
     {
      "id": "tlog-jump-089",
      "audioS": 252.1,
-     "warnings": [
-      {
-       "timeMs": 66080,
-       "ayah": "74:50",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-090",
@@ -5497,18 +5277,7 @@
     {
      "id": "tlog-jump-091",
      "audioS": 290.2,
-     "warnings": [
-      {
-       "timeMs": 168240,
-       "ayah": "50:35",
-       "atEnd": false
-      },
-      {
-       "timeMs": 186640,
-       "ayah": "50:40",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-092",
@@ -5524,7 +5293,13 @@
     {
      "id": "tlog-jump-093",
      "audioS": 325,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 145480,
+       "ayah": "40:82",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-jump-094",
@@ -5547,8 +5322,8 @@
      "audioS": 220,
      "warnings": [
       {
-       "timeMs": 35160,
-       "ayah": "10:1",
+       "timeMs": 201520,
+       "ayah": "10:104",
        "atEnd": false
       }
      ]
@@ -5557,6 +5332,11 @@
      "id": "tlog-jump-096",
      "audioS": 314.8,
      "warnings": [
+      {
+       "timeMs": 96440,
+       "ayah": "7:190",
+       "atEnd": false
+      },
       {
        "timeMs": 209800,
        "ayah": "25:25",
@@ -5574,18 +5354,18 @@
      "audioS": 356.6,
      "warnings": [
       {
-       "timeMs": 61040,
-       "ayah": "5:91",
-       "atEnd": false
-      },
-      {
-       "timeMs": 152360,
-       "ayah": "5:100",
-       "atEnd": false
-      },
-      {
        "timeMs": 200760,
        "ayah": "28:23",
+       "atEnd": false
+      },
+      {
+       "timeMs": 234960,
+       "ayah": "28:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 294200,
+       "ayah": "28:35",
        "atEnd": false
       }
      ]
@@ -5594,6 +5374,11 @@
      "id": "tlog-jump-098",
      "audioS": 206.5,
      "warnings": [
+      {
+       "timeMs": 65280,
+       "ayah": "21:70",
+       "atEnd": false
+      },
       {
        "timeMs": 151480,
        "ayah": "21:79",
@@ -5615,7 +5400,13 @@
     {
      "id": "tlog-jump-100",
      "audioS": 237.6,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 159360,
+       "ayah": "7:96",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-jump-101",
@@ -5624,6 +5415,11 @@
       {
        "timeMs": 54160,
        "ayah": "11:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 84320,
+       "ayah": "42:45",
        "atEnd": false
       }
      ]
@@ -5643,6 +5439,11 @@
      "audioS": 275.1,
      "warnings": [
       {
+       "timeMs": 59040,
+       "ayah": "7:88",
+       "atEnd": false
+      },
+      {
        "timeMs": 177720,
        "ayah": "12:42",
        "atEnd": false
@@ -5653,16 +5454,6 @@
      "id": "tlog-jump-105",
      "audioS": 214.6,
      "warnings": [
-      {
-       "timeMs": 6960,
-       "ayah": "30:27",
-       "atEnd": false
-      },
-      {
-       "timeMs": 40160,
-       "ayah": "30:29",
-       "atEnd": false
-      },
       {
        "timeMs": 78240,
        "ayah": "30:30",
@@ -5694,13 +5485,7 @@
     {
      "id": "tlog-jump-109",
      "audioS": 297.5,
-     "warnings": [
-      {
-       "timeMs": 172920,
-       "ayah": "41:3",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-110",
@@ -5710,13 +5495,7 @@
     {
      "id": "tlog-jump-111",
      "audioS": 236.4,
-     "warnings": [
-      {
-       "timeMs": 29080,
-       "ayah": "47:15",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-112",
@@ -5728,8 +5507,8 @@
      "audioS": 283.8,
      "warnings": [
       {
-       "timeMs": 120160,
-       "ayah": "33:13",
+       "timeMs": 27120,
+       "ayah": "33:5",
        "atEnd": false
       }
      ]
@@ -5737,7 +5516,13 @@
     {
      "id": "tlog-jump-114",
      "audioS": 219.2,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 137960,
+       "ayah": "10:81",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-jump-115",
@@ -5754,13 +5539,13 @@
        "atEnd": false
       },
       {
-       "timeMs": 84320,
-       "ayah": "37:30",
+       "timeMs": 180640,
+       "ayah": "39:3",
        "atEnd": false
       },
       {
-       "timeMs": 244880,
-       "ayah": "39:7",
+       "timeMs": 221760,
+       "ayah": "39:6",
        "atEnd": false
       }
      ]
@@ -5768,7 +5553,13 @@
     {
      "id": "tlog-jump-117",
      "audioS": 261.3,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 153960,
+       "ayah": "17:87",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-jump-118",
@@ -5779,6 +5570,11 @@
      "id": "tlog-jump-119",
      "audioS": 245.4,
      "warnings": [
+      {
+       "timeMs": 15960,
+       "ayah": "9:117",
+       "atEnd": false
+      },
       {
        "timeMs": 141160,
        "ayah": "9:39",
@@ -5796,8 +5592,18 @@
      "audioS": 250.7,
      "warnings": [
       {
+       "timeMs": 10000,
+       "ayah": "46:25",
+       "atEnd": false
+      },
+      {
        "timeMs": 159560,
        "ayah": "47:10",
+       "atEnd": false
+      },
+      {
+       "timeMs": 186760,
+       "ayah": "9:27",
        "atEnd": false
       }
      ]
@@ -5807,18 +5613,13 @@
      "audioS": 463.3,
      "warnings": [
       {
+       "timeMs": 95440,
+       "ayah": "36:9",
+       "atEnd": false
+      },
+      {
        "timeMs": 166760,
        "ayah": "11:82",
-       "atEnd": false
-      },
-      {
-       "timeMs": 269280,
-       "ayah": "21:49",
-       "atEnd": false
-      },
-      {
-       "timeMs": 274240,
-       "ayah": "21:49",
        "atEnd": false
       },
       {
@@ -5833,23 +5634,23 @@
      "audioS": 179.4,
      "warnings": [
       {
-       "timeMs": 15000,
+       "timeMs": 12440,
        "ayah": "101:4",
        "atEnd": false
       },
       {
-       "timeMs": 90000,
+       "timeMs": 93480,
+       "ayah": "18:42",
+       "atEnd": false
+      },
+      {
+       "timeMs": 89480,
        "ayah": "18:43",
        "atEnd": false
       },
       {
        "timeMs": 92480,
        "ayah": "18:43",
-       "atEnd": false
-      },
-      {
-       "timeMs": 102560,
-       "ayah": "78:16",
        "atEnd": false
       }
      ]
@@ -5864,13 +5665,18 @@
        "atEnd": false
       },
       {
-       "timeMs": 84280,
-       "ayah": "86:3",
+       "timeMs": 29960,
+       "ayah": "25:74",
        "atEnd": false
       },
       {
-       "timeMs": 91360,
-       "ayah": "86:4",
+       "timeMs": 35960,
+       "ayah": "25:74",
+       "atEnd": false
+      },
+      {
+       "timeMs": 79280,
+       "ayah": "83:13",
        "atEnd": false
       },
       {
@@ -5883,7 +5689,13 @@
     {
      "id": "help-help-124",
      "audioS": 208.1,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 70480,
+       "ayah": "89:23",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "help-help-125",
@@ -5895,8 +5707,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 365640,
-       "ayah": "55:3",
+       "timeMs": 208400,
+       "ayah": "102:7",
        "atEnd": false
       }
      ]
@@ -5904,30 +5716,61 @@
     {
      "id": "help-help-126",
      "audioS": 566.4,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 182760,
+       "ayah": "78:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 237200,
+       "ayah": "2:64",
+       "atEnd": false
+      },
+      {
+       "timeMs": 306320,
+       "ayah": "7:26",
+       "atEnd": false
+      },
+      {
+       "timeMs": 373840,
+       "ayah": "67:17",
+       "atEnd": false
+      },
+      {
+       "timeMs": 423160,
+       "ayah": "13:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 439200,
+       "ayah": "85:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 506480,
+       "ayah": "50:32",
+       "atEnd": false
+      },
+      {
+       "timeMs": 537480,
+       "ayah": "30:3",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "help-help-127",
      "audioS": 314.9,
      "warnings": [
       {
-       "timeMs": 83360,
-       "ayah": "67:25",
-       "atEnd": false
-      },
-      {
-       "timeMs": 187800,
-       "ayah": "56:43",
-       "atEnd": false
-      },
-      {
        "timeMs": 199840,
-       "ayah": "56:47",
+       "ayah": "56:44",
        "atEnd": false
       },
       {
-       "timeMs": 266040,
-       "ayah": "37:38",
+       "timeMs": 201840,
+       "ayah": "56:47",
        "atEnd": false
       },
       {
@@ -5953,10 +5796,10 @@
    "tally": {
     "sessions": 129,
     "minutes": 742.5606666666664,
-    "warnings": 217,
+    "warnings": 200,
     "atEnd": 0,
-    "tail": 12,
-    "mid": 205,
+    "tail": 8,
+    "mid": 192,
     "missing": 0
    },
    "detail": [
@@ -5965,8 +5808,18 @@
      "audioS": 560.4,
      "warnings": [
       {
+       "timeMs": 202560,
+       "ayah": "2:17",
+       "atEnd": false
+      },
+      {
        "timeMs": 389800,
        "ayah": "2:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 451120,
+       "ayah": "2:36",
        "atEnd": false
       }
      ]
@@ -5984,6 +5837,11 @@
        "timeMs": 170440,
        "ayah": "2:61",
        "atEnd": false
+      },
+      {
+       "timeMs": 278760,
+       "ayah": "2:72",
+       "atEnd": false
       }
      ]
     },
@@ -5991,11 +5849,6 @@
      "id": "tlog-contiguous-002",
      "audioS": 555.6,
      "warnings": [
-      {
-       "timeMs": 418160,
-       "ayah": "2:125",
-       "atEnd": false
-      },
       {
        "timeMs": 539280,
        "ayah": "2:133",
@@ -6006,19 +5859,20 @@
     {
      "id": "tlog-contiguous-003",
      "audioS": 540.6,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 527320,
+       "ayah": "2:184",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-004",
      "audioS": 607.6,
      "warnings": [
       {
-       "timeMs": 39840,
-       "ayah": "2:185",
-       "atEnd": false
-      },
-      {
-       "timeMs": 44160,
+       "timeMs": 42040,
        "ayah": "2:186",
        "atEnd": false
       },
@@ -6028,13 +5882,33 @@
        "atEnd": false
       },
       {
-       "timeMs": 293960,
+       "timeMs": 295960,
        "ayah": "2:207",
+       "atEnd": false
+      },
+      {
+       "timeMs": 312080,
+       "ayah": "2:210",
+       "atEnd": false
+      },
+      {
+       "timeMs": 344160,
+       "ayah": "2:213",
        "atEnd": false
       },
       {
        "timeMs": 483480,
        "ayah": "2:225",
+       "atEnd": false
+      },
+      {
+       "timeMs": 506520,
+       "ayah": "2:228",
+       "atEnd": false
+      },
+      {
+       "timeMs": 534640,
+       "ayah": "2:228",
        "atEnd": false
       }
      ]
@@ -6042,23 +5916,18 @@
     {
      "id": "tlog-contiguous-005",
      "audioS": 334.2,
-     "warnings": [
-      {
-       "timeMs": 173400,
-       "ayah": "2:257",
-       "atEnd": false
-      },
-      {
-       "timeMs": 263680,
-       "ayah": "2:263",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-006",
      "audioS": 449.4,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 239160,
+       "ayah": "3:5",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-007",
@@ -6100,21 +5969,6 @@
        "timeMs": 54160,
        "ayah": "3:188",
        "atEnd": false
-      },
-      {
-       "timeMs": 149360,
-       "ayah": "3:196",
-       "atEnd": false
-      },
-      {
-       "timeMs": 300720,
-       "ayah": "4:11",
-       "atEnd": false
-      },
-      {
-       "timeMs": 441280,
-       "ayah": "4:24",
-       "atEnd": false
       }
      ]
     },
@@ -6126,17 +5980,18 @@
     {
      "id": "tlog-contiguous-012",
      "audioS": 449.1,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 417800,
+       "ayah": "4:112",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-013",
      "audioS": 476.8,
      "warnings": [
-      {
-       "timeMs": 71120,
-       "ayah": "4:126",
-       "atEnd": false
-      },
       {
        "timeMs": 275440,
        "ayah": "4:151",
@@ -6147,18 +6002,7 @@
     {
      "id": "tlog-contiguous-014",
      "audioS": 521.5,
-     "warnings": [
-      {
-       "timeMs": 136400,
-       "ayah": "5:14",
-       "atEnd": false
-      },
-      {
-       "timeMs": 377240,
-       "ayah": "5:43",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-015",
@@ -6170,8 +6014,8 @@
      "audioS": 234,
      "warnings": [
       {
-       "timeMs": 18720,
-       "ayah": "5:110",
+       "timeMs": 54280,
+       "ayah": "5:113",
        "atEnd": false
       }
      ]
@@ -6183,11 +6027,6 @@
       {
        "timeMs": 95360,
        "ayah": "6:33",
-       "atEnd": false
-      },
-      {
-       "timeMs": 127360,
-       "ayah": "6:37",
        "atEnd": false
       }
      ]
@@ -6207,18 +6046,13 @@
        "atEnd": false
       },
       {
-       "timeMs": 132120,
-       "ayah": "6:91",
+       "timeMs": 258560,
+       "ayah": "6:102",
        "atEnd": false
       },
       {
-       "timeMs": 240440,
-       "ayah": "6:100",
-       "atEnd": false
-      },
-      {
-       "timeMs": 244440,
-       "ayah": "6:101",
+       "timeMs": 258560,
+       "ayah": "6:102",
        "atEnd": false
       }
      ]
@@ -6239,13 +6073,8 @@
      "audioS": 212.8,
      "warnings": [
       {
-       "timeMs": 49560,
+       "timeMs": 57200,
        "ayah": "7:146",
-       "atEnd": false
-      },
-      {
-       "timeMs": 47200,
-       "ayah": "7:148",
        "atEnd": false
       }
      ]
@@ -6255,28 +6084,18 @@
      "audioS": 421.8,
      "warnings": [
       {
-       "timeMs": 116240,
-       "ayah": "8:9",
-       "atEnd": false
-      },
-      {
        "timeMs": 268800,
        "ayah": "8:28",
        "atEnd": false
       },
       {
-       "timeMs": 346960,
-       "ayah": "8:38",
+       "timeMs": 278760,
+       "ayah": "8:29",
        "atEnd": false
       },
       {
        "timeMs": 380960,
        "ayah": "8:44",
-       "atEnd": false
-      },
-      {
-       "timeMs": 384040,
-       "ayah": "8:45",
        "atEnd": false
       }
      ]
@@ -6291,23 +6110,33 @@
        "atEnd": false
       },
       {
-       "timeMs": 224720,
+       "timeMs": 196680,
        "ayah": "9:79",
        "atEnd": false
       },
       {
-       "timeMs": 198680,
+       "timeMs": 193440,
+       "ayah": "9:79",
+       "atEnd": false
+      },
+      {
+       "timeMs": 193440,
+       "ayah": "9:80",
+       "atEnd": false
+      },
+      {
+       "timeMs": 196680,
+       "ayah": "9:80",
+       "atEnd": false
+      },
+      {
+       "timeMs": 210640,
+       "ayah": "9:79",
+       "atEnd": false
+      },
+      {
+       "timeMs": 199680,
        "ayah": "9:82",
-       "atEnd": false
-      },
-      {
-       "timeMs": 198680,
-       "ayah": "9:87",
-       "atEnd": false
-      },
-      {
-       "timeMs": 224720,
-       "ayah": "9:91",
        "atEnd": false
       }
      ]
@@ -6328,8 +6157,8 @@
      "audioS": 298.6,
      "warnings": [
       {
-       "timeMs": 281640,
-       "ayah": "10:43",
+       "timeMs": 196560,
+       "ayah": "10:31",
        "atEnd": false
       }
      ]
@@ -6337,23 +6166,22 @@
     {
      "id": "tlog-contiguous-025",
      "audioS": 293.1,
-     "warnings": [
-      {
-       "timeMs": 136480,
-       "ayah": "11:53",
-       "atEnd": false
-      },
-      {
-       "timeMs": 150480,
-       "ayah": "11:56",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-026",
      "audioS": 331.5,
      "warnings": [
+      {
+       "timeMs": 82200,
+       "ayah": "12:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 133280,
+       "ayah": "12:11",
+       "atEnd": false
+      },
       {
        "timeMs": 181080,
        "ayah": "12:15",
@@ -6364,12 +6192,23 @@
     {
      "id": "tlog-contiguous-027",
      "audioS": 234,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 176520,
+       "ayah": "13:5",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-028",
      "audioS": 353.6,
      "warnings": [
+      {
+       "timeMs": 191480,
+       "ayah": "13:34",
+       "atEnd": false
+      },
       {
        "timeMs": 238760,
        "ayah": "13:37",
@@ -6382,8 +6221,13 @@
      "audioS": 556.2,
      "warnings": [
       {
-       "timeMs": 115360,
-       "ayah": "14:13",
+       "timeMs": 159480,
+       "ayah": "14:24",
+       "atEnd": false
+      },
+      {
+       "timeMs": 214680,
+       "ayah": "14:32",
        "atEnd": false
       },
       {
@@ -6392,28 +6236,18 @@
        "atEnd": false
       },
       {
+       "timeMs": 347200,
+       "ayah": "14:41",
+       "atEnd": false
+      },
+      {
        "timeMs": 360120,
        "ayah": "14:43",
        "atEnd": false
       },
       {
-       "timeMs": 387360,
-       "ayah": "14:46",
-       "atEnd": false
-      },
-      {
-       "timeMs": 417400,
-       "ayah": "14:47",
-       "atEnd": false
-      },
-      {
        "timeMs": 528560,
        "ayah": "15:17",
-       "atEnd": false
-      },
-      {
-       "timeMs": 541640,
-       "ayah": "15:19",
        "atEnd": false
       }
      ]
@@ -6427,11 +6261,6 @@
      "id": "tlog-contiguous-031",
      "audioS": 215.8,
      "warnings": [
-      {
-       "timeMs": 60040,
-       "ayah": "15:95",
-       "atEnd": false
-      },
       {
        "timeMs": 118400,
        "ayah": "16:3",
@@ -6449,8 +6278,8 @@
      "audioS": 353.9,
      "warnings": [
       {
-       "timeMs": 143280,
-       "ayah": "17:5",
+       "timeMs": 271920,
+       "ayah": "17:16",
        "atEnd": false
       }
      ]
@@ -6458,28 +6287,12 @@
     {
      "id": "tlog-contiguous-034",
      "audioS": 526.5,
-     "warnings": [
-      {
-       "timeMs": 45120,
-       "ayah": "17:104",
-       "atEnd": false
-      },
-      {
-       "timeMs": 182440,
-       "ayah": "18:5",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-035",
      "audioS": 418.4,
      "warnings": [
-      {
-       "timeMs": 59040,
-       "ayah": "18:44",
-       "atEnd": false
-      },
       {
        "timeMs": 51280,
        "ayah": "18:45",
@@ -6497,18 +6310,8 @@
      "audioS": 325.5,
      "warnings": [
       {
-       "timeMs": 18000,
-       "ayah": "19:23",
-       "atEnd": false
-      },
-      {
-       "timeMs": 70120,
+       "timeMs": 80120,
        "ayah": "19:27",
-       "atEnd": false
-      },
-      {
-       "timeMs": 189400,
-       "ayah": "19:39",
        "atEnd": false
       },
       {
@@ -6517,7 +6320,7 @@
        "atEnd": false
       },
       {
-       "timeMs": 309120,
+       "timeMs": 310120,
        "ayah": "19:50",
        "atEnd": false
       }
@@ -6528,8 +6331,13 @@
      "audioS": 349.5,
      "warnings": [
       {
-       "timeMs": 304040,
-       "ayah": "19:90",
+       "timeMs": 30040,
+       "ayah": "19:55",
+       "atEnd": false
+      },
+      {
+       "timeMs": 300000,
+       "ayah": "19:89",
        "atEnd": false
       }
      ]
@@ -6537,18 +6345,7 @@
     {
      "id": "tlog-contiguous-039",
      "audioS": 570.6,
-     "warnings": [
-      {
-       "timeMs": 127320,
-       "ayah": "20:22",
-       "atEnd": false
-      },
-      {
-       "timeMs": 542360,
-       "ayah": "20:84",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-040",
@@ -6576,6 +6373,11 @@
      "audioS": 258.8,
      "warnings": [
       {
+       "timeMs": 33120,
+       "ayah": "23:95",
+       "atEnd": false
+      },
+      {
        "timeMs": 233800,
        "ayah": "23:118",
        "atEnd": false
@@ -6587,13 +6389,8 @@
      "audioS": 211.4,
      "warnings": [
       {
-       "timeMs": 205600,
-       "ayah": "24:27",
-       "atEnd": false
-      },
-      {
-       "timeMs": 205600,
-       "ayah": "24:27",
+       "timeMs": 146400,
+       "ayah": "24:21",
        "atEnd": false
       }
      ]
@@ -6601,13 +6398,7 @@
     {
      "id": "tlog-contiguous-045",
      "audioS": 256.9,
-     "warnings": [
-      {
-       "timeMs": 97360,
-       "ayah": "24:58",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-046",
@@ -6640,18 +6431,8 @@
      "audioS": 440.4,
      "warnings": [
       {
-       "timeMs": 192640,
-       "ayah": "27:21",
-       "atEnd": false
-      },
-      {
        "timeMs": 231760,
        "ayah": "27:23",
-       "atEnd": false
-      },
-      {
-       "timeMs": 235800,
-       "ayah": "27:25",
        "atEnd": false
       }
      ]
@@ -6669,11 +6450,6 @@
        "timeMs": 107320,
        "ayah": "28:79",
        "atEnd": false
-      },
-      {
-       "timeMs": 279480,
-       "ayah": "29:9",
-       "atEnd": false
       }
      ]
     },
@@ -6681,6 +6457,11 @@
      "id": "tlog-contiguous-050",
      "audioS": 319.1,
      "warnings": [
+      {
+       "timeMs": 102320,
+       "ayah": "29:63",
+       "atEnd": false
+      },
       {
        "timeMs": 267800,
        "ayah": "30:18",
@@ -6703,11 +6484,6 @@
        "atEnd": false
       },
       {
-       "timeMs": 94520,
-       "ayah": "31:6",
-       "atEnd": false
-      },
-      {
        "timeMs": 144280,
        "ayah": "31:12",
        "atEnd": false
@@ -6715,11 +6491,6 @@
       {
        "timeMs": 186080,
        "ayah": "31:13",
-       "atEnd": false
-      },
-      {
-       "timeMs": 310360,
-       "ayah": "31:26",
        "atEnd": false
       }
      ]
@@ -6729,18 +6500,13 @@
      "audioS": 602.2,
      "warnings": [
       {
-       "timeMs": 480880,
-       "ayah": "33:61",
+       "timeMs": 77200,
+       "ayah": "33:23",
        "atEnd": false
       },
       {
        "timeMs": 524000,
        "ayah": "33:67",
-       "atEnd": false
-      },
-      {
-       "timeMs": 578280,
-       "ayah": "33:73",
        "atEnd": false
       }
      ]
@@ -6748,20 +6514,21 @@
     {
      "id": "tlog-contiguous-053",
      "audioS": 305.2,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 265720,
+       "ayah": "35:12",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-054",
      "audioS": 541.2,
      "warnings": [
       {
-       "timeMs": 28080,
-       "ayah": "36:1",
-       "atEnd": false
-      },
-      {
-       "timeMs": 64960,
-       "ayah": "36:9",
+       "timeMs": 153360,
+       "ayah": "36:23",
        "atEnd": false
       },
       {
@@ -6781,6 +6548,11 @@
      "audioS": 213.9,
      "warnings": [
       {
+       "timeMs": 129480,
+       "ayah": "38:14",
+       "atEnd": false
+      },
+      {
        "timeMs": 188880,
        "ayah": "38:22",
        "atEnd": false
@@ -6790,25 +6562,25 @@
     {
      "id": "tlog-contiguous-056",
      "audioS": 515.1,
-     "warnings": [
-      {
-       "timeMs": 137440,
-       "ayah": "39:69",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-057",
      "audioS": 290.8,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 69200,
+       "ayah": "40:42",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-058",
      "audioS": 291.6,
      "warnings": [
       {
-       "timeMs": 124400,
+       "timeMs": 123360,
        "ayah": "41:35",
        "atEnd": false
       }
@@ -6819,13 +6591,18 @@
      "audioS": 358.6,
      "warnings": [
       {
+       "timeMs": 66040,
+       "ayah": "42:7",
+       "atEnd": false
+      },
+      {
        "timeMs": 165120,
        "ayah": "42:14",
        "atEnd": false
       },
       {
-       "timeMs": 210160,
-       "ayah": "42:14",
+       "timeMs": 174920,
+       "ayah": "42:15",
        "atEnd": false
       }
      ]
@@ -6834,6 +6611,11 @@
      "id": "tlog-contiguous-060",
      "audioS": 609.4,
      "warnings": [
+      {
+       "timeMs": 208680,
+       "ayah": "43:42",
+       "atEnd": false
+      },
       {
        "timeMs": 258080,
        "ayah": "43:47",
@@ -6854,7 +6636,13 @@
     {
      "id": "tlog-contiguous-061",
      "audioS": 275.6,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 18920,
+       "ayah": "44:3",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-062",
@@ -6864,13 +6652,7 @@
     {
      "id": "tlog-contiguous-063",
      "audioS": 265.8,
-     "warnings": [
-      {
-       "timeMs": 253520,
-       "ayah": "46:20",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-064",
@@ -6882,7 +6664,7 @@
        "atEnd": false
       },
       {
-       "timeMs": 207840,
+       "timeMs": 217880,
        "ayah": "48:20",
        "atEnd": false
       }
@@ -6891,18 +6673,7 @@
     {
      "id": "tlog-contiguous-065",
      "audioS": 331.1,
-     "warnings": [
-      {
-       "timeMs": 16760,
-       "ayah": "48:29",
-       "atEnd": false
-      },
-      {
-       "timeMs": 25040,
-       "ayah": "48:29",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-066",
@@ -6916,11 +6687,6 @@
       {
        "timeMs": 16080,
        "ayah": "51:42",
-       "atEnd": false
-      },
-      {
-       "timeMs": 32160,
-       "ayah": "51:43",
        "atEnd": false
       }
      ]
@@ -6946,18 +6712,8 @@
      "audioS": 349.8,
      "warnings": [
       {
-       "timeMs": 18000,
-       "ayah": "54:35",
-       "atEnd": false
-      },
-      {
        "timeMs": 169320,
        "ayah": "55:9",
-       "atEnd": false
-      },
-      {
-       "timeMs": 227440,
-       "ayah": "55:22",
        "atEnd": false
       },
       {
@@ -6977,8 +6733,8 @@
      "audioS": 480,
      "warnings": [
       {
-       "timeMs": 54120,
-       "ayah": "56:59",
+       "timeMs": 303640,
+       "ayah": "57:3",
        "atEnd": false
       }
      ]
@@ -6996,25 +6752,26 @@
     {
      "id": "tlog-contiguous-074",
      "audioS": 470.4,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 456240,
+       "ayah": "64:6",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-075",
      "audioS": 563.2,
      "warnings": [
       {
-       "timeMs": 182640,
-       "ayah": "66:4",
-       "atEnd": false
-      },
-      {
        "timeMs": 211440,
        "ayah": "66:5",
        "atEnd": false
       },
       {
-       "timeMs": 253920,
-       "ayah": "66:10",
+       "timeMs": 248640,
+       "ayah": "66:8",
        "atEnd": false
       },
       {
@@ -7029,23 +6786,33 @@
      "audioS": 579.6,
      "warnings": [
       {
-       "timeMs": 100320,
+       "timeMs": 45920,
+       "ayah": "68:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 95320,
        "ayah": "68:29",
        "atEnd": false
       },
       {
-       "timeMs": 329840,
-       "ayah": "69:12",
-       "atEnd": false
-      },
-      {
-       "timeMs": 344840,
-       "ayah": "69:13",
+       "timeMs": 116320,
+       "ayah": "68:32",
        "atEnd": false
       },
       {
        "timeMs": 437000,
        "ayah": "69:28",
+       "atEnd": false
+      },
+      {
+       "timeMs": 470120,
+       "ayah": "69:33",
+       "atEnd": false
+      },
+      {
+       "timeMs": 501080,
+       "ayah": "69:40",
        "atEnd": false
       }
      ]
@@ -7060,8 +6827,8 @@
      "audioS": 356,
      "warnings": [
       {
-       "timeMs": 47040,
-       "ayah": "72:27",
+       "timeMs": 138320,
+       "ayah": "73:10",
        "atEnd": false
       },
       {
@@ -7081,28 +6848,23 @@
        "atEnd": false
       },
       {
+       "timeMs": 44000,
+       "ayah": "75:7",
+       "atEnd": false
+      },
+      {
        "timeMs": 46120,
        "ayah": "75:9",
        "atEnd": false
       },
       {
-       "timeMs": 86000,
-       "ayah": "75:15",
-       "atEnd": false
-      },
-      {
-       "timeMs": 285760,
-       "ayah": "76:11",
+       "timeMs": 156320,
+       "ayah": "75:33",
        "atEnd": false
       },
       {
        "timeMs": 568480,
        "ayah": "77:28",
-       "atEnd": false
-      },
-      {
-       "timeMs": 565400,
-       "ayah": "77:27",
        "atEnd": false
       }
      ]
@@ -7114,11 +6876,6 @@
       {
        "timeMs": 159400,
        "ayah": "78:35",
-       "atEnd": false
-      },
-      {
-       "timeMs": 255600,
-       "ayah": "79:8",
        "atEnd": false
       },
       {
@@ -7143,6 +6900,16 @@
      "audioS": 664.3,
      "warnings": [
       {
+       "timeMs": 226600,
+       "ayah": "83:16",
+       "atEnd": false
+      },
+      {
+       "timeMs": 422160,
+       "ayah": "84:22",
+       "atEnd": false
+      },
+      {
        "timeMs": 519200,
        "ayah": "85:15",
        "atEnd": false
@@ -7163,11 +6930,6 @@
      "id": "tlog-contiguous-082",
      "audioS": 671.6,
      "warnings": [
-      {
-       "timeMs": 41120,
-       "ayah": "87:9",
-       "atEnd": false
-      },
       {
        "timeMs": 407760,
        "ayah": "90:13",
@@ -7190,6 +6952,11 @@
        "atEnd": false
       },
       {
+       "timeMs": 592280,
+       "ayah": "110:3",
+       "atEnd": false
+      },
+      {
        "timeMs": 656520,
        "ayah": "113:2",
        "atEnd": false
@@ -7204,40 +6971,17 @@
     {
      "id": "tlog-hard-085",
      "audioS": 201.5,
-     "warnings": [
-      {
-       "timeMs": 105240,
-       "ayah": "21:35",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-086",
      "audioS": 196.7,
-     "warnings": [
-      {
-       "timeMs": 142360,
-       "ayah": "23:80",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-087",
      "audioS": 222.9,
-     "warnings": [
-      {
-       "timeMs": 162280,
-       "ayah": "24:33",
-       "atEnd": false
-      },
-      {
-       "timeMs": 205400,
-       "ayah": "24:37",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-088",
@@ -7249,6 +6993,11 @@
      "audioS": 250.2,
      "warnings": [
       {
+       "timeMs": 10040,
+       "ayah": "74:40",
+       "atEnd": false
+      },
+      {
        "timeMs": 25960,
        "ayah": "74:44",
        "atEnd": false
@@ -7256,11 +7005,6 @@
       {
        "timeMs": 66080,
        "ayah": "74:50",
-       "atEnd": false
-      },
-      {
-       "timeMs": 174600,
-       "ayah": "22:38",
        "atEnd": false
       }
      ]
@@ -7272,6 +7016,11 @@
       {
        "timeMs": 73000,
        "ayah": "9:6",
+       "atEnd": false
+      },
+      {
+       "timeMs": 185400,
+       "ayah": "7:124",
        "atEnd": false
       }
      ]
@@ -7290,35 +7039,32 @@
     {
      "id": "tlog-jump-092",
      "audioS": 238.8,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 216680,
+       "ayah": "23:38",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-jump-093",
      "audioS": 322.8,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 144520,
+       "ayah": "40:82",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-jump-094",
      "audioS": 280.3,
      "warnings": [
       {
-       "timeMs": 90280,
-       "ayah": "9:12",
-       "atEnd": false
-      },
-      {
-       "timeMs": 93320,
-       "ayah": "9:12",
-       "atEnd": false
-      },
-      {
-       "timeMs": 117200,
-       "ayah": "9:14",
-       "atEnd": false
-      },
-      {
-       "timeMs": 189400,
-       "ayah": "9:18",
+       "timeMs": 142320,
+       "ayah": "9:17",
        "atEnd": false
       }
      ]
@@ -7326,13 +7072,7 @@
     {
      "id": "tlog-jump-095",
      "audioS": 219,
-     "warnings": [
-      {
-       "timeMs": 123280,
-       "ayah": "10:10",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-096",
@@ -7350,18 +7090,23 @@
      "audioS": 354.9,
      "warnings": [
       {
-       "timeMs": 59040,
+       "timeMs": 60080,
        "ayah": "5:91",
-       "atEnd": false
-      },
-      {
-       "timeMs": 152320,
-       "ayah": "5:100",
        "atEnd": false
       },
       {
        "timeMs": 224440,
        "ayah": "28:28",
+       "atEnd": false
+      },
+      {
+       "timeMs": 233440,
+       "ayah": "28:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 293200,
+       "ayah": "28:35",
        "atEnd": false
       }
      ]
@@ -7371,8 +7116,8 @@
      "audioS": 205,
      "warnings": [
       {
-       "timeMs": 28040,
-       "ayah": "21:64",
+       "timeMs": 65160,
+       "ayah": "21:70",
        "atEnd": false
       },
       {
@@ -7386,6 +7131,21 @@
      "id": "tlog-jump-099",
      "audioS": 264.8,
      "warnings": [
+      {
+       "timeMs": 95200,
+       "ayah": "70:18",
+       "atEnd": false
+      },
+      {
+       "timeMs": 127200,
+       "ayah": "37:85",
+       "atEnd": false
+      },
+      {
+       "timeMs": 127200,
+       "ayah": "37:85",
+       "atEnd": false
+      },
       {
        "timeMs": 127200,
        "ayah": "37:86",
@@ -7408,13 +7168,13 @@
        "atEnd": false
       },
       {
-       "timeMs": 170240,
-       "ayah": "42:52",
+       "timeMs": 84040,
+       "ayah": "42:45",
        "atEnd": false
       },
       {
-       "timeMs": 178360,
-       "ayah": "30:36",
+       "timeMs": 170240,
+       "ayah": "42:52",
        "atEnd": false
       }
      ]
@@ -7422,21 +7182,15 @@
     {
      "id": "tlog-jump-102",
      "audioS": 219.4,
-     "warnings": [
-      {
-       "timeMs": 17000,
-       "ayah": "39:41",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-103",
      "audioS": 199.5,
      "warnings": [
       {
-       "timeMs": 157280,
-       "ayah": "27:64",
+       "timeMs": 154200,
+       "ayah": "27:63",
        "atEnd": false
       }
      ]
@@ -7457,7 +7211,7 @@
      "audioS": 213.8,
      "warnings": [
       {
-       "timeMs": 47080,
+       "timeMs": 78160,
        "ayah": "30:30",
        "atEnd": false
       }
@@ -7471,13 +7225,7 @@
     {
      "id": "tlog-jump-107",
      "audioS": 240.4,
-     "warnings": [
-      {
-       "timeMs": 67160,
-       "ayah": "6:122",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-108",
@@ -7497,37 +7245,25 @@
     {
      "id": "tlog-jump-111",
      "audioS": 234.9,
-     "warnings": [
-      {
-       "timeMs": 29040,
-       "ayah": "47:15",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-112",
      "audioS": 281.2,
-     "warnings": [
-      {
-       "timeMs": 167400,
-       "ayah": "6:58",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-113",
      "audioS": 282.2,
      "warnings": [
       {
-       "timeMs": 120320,
-       "ayah": "33:13",
+       "timeMs": 26800,
+       "ayah": "33:5",
        "atEnd": false
       },
       {
-       "timeMs": 236720,
-       "ayah": "6:151",
+       "timeMs": 120320,
+       "ayah": "33:13",
        "atEnd": false
       }
      ]
@@ -7535,18 +7271,18 @@
     {
      "id": "tlog-jump-114",
      "audioS": 218,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 140480,
+       "ayah": "10:81",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-jump-115",
      "audioS": 201.6,
-     "warnings": [
-      {
-       "timeMs": 77280,
-       "ayah": "16:56",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-116",
@@ -7558,8 +7294,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 243360,
-       "ayah": "39:7",
+       "timeMs": 220520,
+       "ayah": "39:6",
        "atEnd": false
       }
      ]
@@ -7567,13 +7303,7 @@
     {
      "id": "tlog-jump-117",
      "audioS": 259.4,
-     "warnings": [
-      {
-       "timeMs": 181360,
-       "ayah": "23:52",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-118",
@@ -7590,11 +7320,6 @@
      "id": "tlog-jump-119",
      "audioS": 244.2,
      "warnings": [
-      {
-       "timeMs": 29080,
-       "ayah": "9:117",
-       "atEnd": false
-      },
       {
        "timeMs": 168360,
        "ayah": "9:40",
@@ -7636,16 +7361,6 @@
        "timeMs": 267160,
        "ayah": "21:49",
        "atEnd": false
-      },
-      {
-       "timeMs": 272160,
-       "ayah": "21:49",
-       "atEnd": false
-      },
-      {
-       "timeMs": 397520,
-       "ayah": "56:77",
-       "atEnd": false
       }
      ]
     },
@@ -7654,12 +7369,12 @@
      "audioS": 178.3,
      "warnings": [
       {
-       "timeMs": 14960,
+       "timeMs": 12400,
        "ayah": "101:4",
        "atEnd": false
       },
       {
-       "timeMs": 87120,
+       "timeMs": 89040,
        "ayah": "18:43",
        "atEnd": false
       },
@@ -7669,7 +7384,7 @@
        "atEnd": false
       },
       {
-       "timeMs": 101160,
+       "timeMs": 102160,
        "ayah": "78:16",
        "atEnd": false
       }
@@ -7680,17 +7395,12 @@
      "audioS": 168.8,
      "warnings": [
       {
-       "timeMs": 30040,
-       "ayah": "25:74",
-       "atEnd": false
-      },
-      {
        "timeMs": 79280,
        "ayah": "83:13",
        "atEnd": false
       },
       {
-       "timeMs": 92200,
+       "timeMs": 91280,
        "ayah": "86:2",
        "atEnd": false
       },
@@ -7726,13 +7436,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 363440,
-       "ayah": "55:3",
-       "atEnd": false
-      },
-      {
-       "timeMs": 364440,
-       "ayah": "55:4",
+       "timeMs": 207520,
+       "ayah": "102:7",
        "atEnd": false
       }
      ]
@@ -7742,8 +7447,53 @@
      "audioS": 564.2,
      "warnings": [
       {
-       "timeMs": 505600,
-       "ayah": "50:31",
+       "timeMs": 182640,
+       "ayah": "78:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 235960,
+       "ayah": "2:64",
+       "atEnd": false
+      },
+      {
+       "timeMs": 305400,
+       "ayah": "7:26",
+       "atEnd": false
+      },
+      {
+       "timeMs": 372440,
+       "ayah": "67:17",
+       "atEnd": false
+      },
+      {
+       "timeMs": 375400,
+       "ayah": "67:18",
+       "atEnd": false
+      },
+      {
+       "timeMs": 385400,
+       "ayah": "56:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 421760,
+       "ayah": "13:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 437680,
+       "ayah": "85:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 502000,
+       "ayah": "50:32",
+       "atEnd": false
+      },
+      {
+       "timeMs": 535680,
+       "ayah": "30:3",
        "atEnd": false
       }
      ]
@@ -7753,18 +7503,13 @@
      "audioS": 313.8,
      "warnings": [
       {
-       "timeMs": 83240,
-       "ayah": "67:25",
+       "timeMs": 195840,
+       "ayah": "56:44",
        "atEnd": false
       },
       {
-       "timeMs": 162800,
-       "ayah": "1:5",
-       "atEnd": false
-      },
-      {
-       "timeMs": 186840,
-       "ayah": "56:43",
+       "timeMs": 195840,
+       "ayah": "56:44",
        "atEnd": false
       },
       {
@@ -7773,8 +7518,13 @@
        "atEnd": false
       },
       {
-       "timeMs": 204880,
-       "ayah": "56:44",
+       "timeMs": 298280,
+       "ayah": "29:60",
+       "atEnd": false
+      },
+      {
+       "timeMs": 299240,
+       "ayah": "29:60",
        "atEnd": false
       }
      ]
@@ -7795,10 +7545,10 @@
    "tally": {
     "sessions": 129,
     "minutes": 742.5606666666664,
-    "warnings": 217,
+    "warnings": 200,
     "atEnd": 0,
-    "tail": 12,
-    "mid": 205,
+    "tail": 8,
+    "mid": 192,
     "missing": 0
    },
    "detail": [
@@ -7807,8 +7557,18 @@
      "audioS": 560.4,
      "warnings": [
       {
+       "timeMs": 202560,
+       "ayah": "2:17",
+       "atEnd": false
+      },
+      {
        "timeMs": 389800,
        "ayah": "2:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 451120,
+       "ayah": "2:36",
        "atEnd": false
       }
      ]
@@ -7826,6 +7586,11 @@
        "timeMs": 170440,
        "ayah": "2:61",
        "atEnd": false
+      },
+      {
+       "timeMs": 278760,
+       "ayah": "2:72",
+       "atEnd": false
       }
      ]
     },
@@ -7833,11 +7598,6 @@
      "id": "tlog-contiguous-002",
      "audioS": 555.6,
      "warnings": [
-      {
-       "timeMs": 418160,
-       "ayah": "2:125",
-       "atEnd": false
-      },
       {
        "timeMs": 539280,
        "ayah": "2:133",
@@ -7848,19 +7608,20 @@
     {
      "id": "tlog-contiguous-003",
      "audioS": 540.6,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 527320,
+       "ayah": "2:184",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-004",
      "audioS": 607.6,
      "warnings": [
       {
-       "timeMs": 39840,
-       "ayah": "2:185",
-       "atEnd": false
-      },
-      {
-       "timeMs": 44160,
+       "timeMs": 42040,
        "ayah": "2:186",
        "atEnd": false
       },
@@ -7870,13 +7631,33 @@
        "atEnd": false
       },
       {
-       "timeMs": 293960,
+       "timeMs": 295960,
        "ayah": "2:207",
+       "atEnd": false
+      },
+      {
+       "timeMs": 312080,
+       "ayah": "2:210",
+       "atEnd": false
+      },
+      {
+       "timeMs": 344160,
+       "ayah": "2:213",
        "atEnd": false
       },
       {
        "timeMs": 483480,
        "ayah": "2:225",
+       "atEnd": false
+      },
+      {
+       "timeMs": 506520,
+       "ayah": "2:228",
+       "atEnd": false
+      },
+      {
+       "timeMs": 534640,
+       "ayah": "2:228",
        "atEnd": false
       }
      ]
@@ -7884,23 +7665,18 @@
     {
      "id": "tlog-contiguous-005",
      "audioS": 334.2,
-     "warnings": [
-      {
-       "timeMs": 173400,
-       "ayah": "2:257",
-       "atEnd": false
-      },
-      {
-       "timeMs": 263680,
-       "ayah": "2:263",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-006",
      "audioS": 449.4,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 239160,
+       "ayah": "3:5",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-007",
@@ -7942,21 +7718,6 @@
        "timeMs": 54160,
        "ayah": "3:188",
        "atEnd": false
-      },
-      {
-       "timeMs": 149360,
-       "ayah": "3:196",
-       "atEnd": false
-      },
-      {
-       "timeMs": 300720,
-       "ayah": "4:11",
-       "atEnd": false
-      },
-      {
-       "timeMs": 441280,
-       "ayah": "4:24",
-       "atEnd": false
       }
      ]
     },
@@ -7968,17 +7729,18 @@
     {
      "id": "tlog-contiguous-012",
      "audioS": 449.1,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 417800,
+       "ayah": "4:112",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-013",
      "audioS": 476.8,
      "warnings": [
-      {
-       "timeMs": 71120,
-       "ayah": "4:126",
-       "atEnd": false
-      },
       {
        "timeMs": 275440,
        "ayah": "4:151",
@@ -7989,18 +7751,7 @@
     {
      "id": "tlog-contiguous-014",
      "audioS": 521.5,
-     "warnings": [
-      {
-       "timeMs": 136400,
-       "ayah": "5:14",
-       "atEnd": false
-      },
-      {
-       "timeMs": 377240,
-       "ayah": "5:43",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-015",
@@ -8012,8 +7763,8 @@
      "audioS": 234,
      "warnings": [
       {
-       "timeMs": 18720,
-       "ayah": "5:110",
+       "timeMs": 54280,
+       "ayah": "5:113",
        "atEnd": false
       }
      ]
@@ -8025,11 +7776,6 @@
       {
        "timeMs": 95360,
        "ayah": "6:33",
-       "atEnd": false
-      },
-      {
-       "timeMs": 127360,
-       "ayah": "6:37",
        "atEnd": false
       }
      ]
@@ -8049,18 +7795,13 @@
        "atEnd": false
       },
       {
-       "timeMs": 132120,
-       "ayah": "6:91",
+       "timeMs": 258560,
+       "ayah": "6:102",
        "atEnd": false
       },
       {
-       "timeMs": 240440,
-       "ayah": "6:100",
-       "atEnd": false
-      },
-      {
-       "timeMs": 244440,
-       "ayah": "6:101",
+       "timeMs": 258560,
+       "ayah": "6:102",
        "atEnd": false
       }
      ]
@@ -8081,13 +7822,8 @@
      "audioS": 212.8,
      "warnings": [
       {
-       "timeMs": 49560,
+       "timeMs": 57200,
        "ayah": "7:146",
-       "atEnd": false
-      },
-      {
-       "timeMs": 47200,
-       "ayah": "7:148",
        "atEnd": false
       }
      ]
@@ -8097,28 +7833,18 @@
      "audioS": 421.8,
      "warnings": [
       {
-       "timeMs": 116240,
-       "ayah": "8:9",
-       "atEnd": false
-      },
-      {
        "timeMs": 268800,
        "ayah": "8:28",
        "atEnd": false
       },
       {
-       "timeMs": 346960,
-       "ayah": "8:38",
+       "timeMs": 278760,
+       "ayah": "8:29",
        "atEnd": false
       },
       {
        "timeMs": 380960,
        "ayah": "8:44",
-       "atEnd": false
-      },
-      {
-       "timeMs": 384040,
-       "ayah": "8:45",
        "atEnd": false
       }
      ]
@@ -8133,23 +7859,33 @@
        "atEnd": false
       },
       {
-       "timeMs": 224720,
+       "timeMs": 196680,
        "ayah": "9:79",
        "atEnd": false
       },
       {
-       "timeMs": 198680,
+       "timeMs": 193440,
+       "ayah": "9:79",
+       "atEnd": false
+      },
+      {
+       "timeMs": 193440,
+       "ayah": "9:80",
+       "atEnd": false
+      },
+      {
+       "timeMs": 196680,
+       "ayah": "9:80",
+       "atEnd": false
+      },
+      {
+       "timeMs": 210640,
+       "ayah": "9:79",
+       "atEnd": false
+      },
+      {
+       "timeMs": 199680,
        "ayah": "9:82",
-       "atEnd": false
-      },
-      {
-       "timeMs": 198680,
-       "ayah": "9:87",
-       "atEnd": false
-      },
-      {
-       "timeMs": 224720,
-       "ayah": "9:91",
        "atEnd": false
       }
      ]
@@ -8170,8 +7906,8 @@
      "audioS": 298.6,
      "warnings": [
       {
-       "timeMs": 281640,
-       "ayah": "10:43",
+       "timeMs": 196560,
+       "ayah": "10:31",
        "atEnd": false
       }
      ]
@@ -8179,23 +7915,22 @@
     {
      "id": "tlog-contiguous-025",
      "audioS": 293.1,
-     "warnings": [
-      {
-       "timeMs": 136480,
-       "ayah": "11:53",
-       "atEnd": false
-      },
-      {
-       "timeMs": 150480,
-       "ayah": "11:56",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-026",
      "audioS": 331.5,
      "warnings": [
+      {
+       "timeMs": 82200,
+       "ayah": "12:5",
+       "atEnd": false
+      },
+      {
+       "timeMs": 133280,
+       "ayah": "12:11",
+       "atEnd": false
+      },
       {
        "timeMs": 181080,
        "ayah": "12:15",
@@ -8206,12 +7941,23 @@
     {
      "id": "tlog-contiguous-027",
      "audioS": 234,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 176520,
+       "ayah": "13:5",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-028",
      "audioS": 353.6,
      "warnings": [
+      {
+       "timeMs": 191480,
+       "ayah": "13:34",
+       "atEnd": false
+      },
       {
        "timeMs": 238760,
        "ayah": "13:37",
@@ -8224,8 +7970,13 @@
      "audioS": 556.2,
      "warnings": [
       {
-       "timeMs": 115360,
-       "ayah": "14:13",
+       "timeMs": 159480,
+       "ayah": "14:24",
+       "atEnd": false
+      },
+      {
+       "timeMs": 214680,
+       "ayah": "14:32",
        "atEnd": false
       },
       {
@@ -8234,28 +7985,18 @@
        "atEnd": false
       },
       {
+       "timeMs": 347200,
+       "ayah": "14:41",
+       "atEnd": false
+      },
+      {
        "timeMs": 360120,
        "ayah": "14:43",
        "atEnd": false
       },
       {
-       "timeMs": 387360,
-       "ayah": "14:46",
-       "atEnd": false
-      },
-      {
-       "timeMs": 417400,
-       "ayah": "14:47",
-       "atEnd": false
-      },
-      {
        "timeMs": 528560,
        "ayah": "15:17",
-       "atEnd": false
-      },
-      {
-       "timeMs": 541640,
-       "ayah": "15:19",
        "atEnd": false
       }
      ]
@@ -8269,11 +8010,6 @@
      "id": "tlog-contiguous-031",
      "audioS": 215.8,
      "warnings": [
-      {
-       "timeMs": 60040,
-       "ayah": "15:95",
-       "atEnd": false
-      },
       {
        "timeMs": 118400,
        "ayah": "16:3",
@@ -8291,8 +8027,8 @@
      "audioS": 353.9,
      "warnings": [
       {
-       "timeMs": 143280,
-       "ayah": "17:5",
+       "timeMs": 271920,
+       "ayah": "17:16",
        "atEnd": false
       }
      ]
@@ -8300,28 +8036,12 @@
     {
      "id": "tlog-contiguous-034",
      "audioS": 526.5,
-     "warnings": [
-      {
-       "timeMs": 45120,
-       "ayah": "17:104",
-       "atEnd": false
-      },
-      {
-       "timeMs": 182440,
-       "ayah": "18:5",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-035",
      "audioS": 418.4,
      "warnings": [
-      {
-       "timeMs": 59040,
-       "ayah": "18:44",
-       "atEnd": false
-      },
       {
        "timeMs": 51280,
        "ayah": "18:45",
@@ -8339,18 +8059,8 @@
      "audioS": 325.5,
      "warnings": [
       {
-       "timeMs": 18000,
-       "ayah": "19:23",
-       "atEnd": false
-      },
-      {
-       "timeMs": 70120,
+       "timeMs": 80120,
        "ayah": "19:27",
-       "atEnd": false
-      },
-      {
-       "timeMs": 189400,
-       "ayah": "19:39",
        "atEnd": false
       },
       {
@@ -8359,7 +8069,7 @@
        "atEnd": false
       },
       {
-       "timeMs": 309120,
+       "timeMs": 310120,
        "ayah": "19:50",
        "atEnd": false
       }
@@ -8370,8 +8080,13 @@
      "audioS": 349.5,
      "warnings": [
       {
-       "timeMs": 304040,
-       "ayah": "19:90",
+       "timeMs": 30040,
+       "ayah": "19:55",
+       "atEnd": false
+      },
+      {
+       "timeMs": 300000,
+       "ayah": "19:89",
        "atEnd": false
       }
      ]
@@ -8379,18 +8094,7 @@
     {
      "id": "tlog-contiguous-039",
      "audioS": 570.6,
-     "warnings": [
-      {
-       "timeMs": 127320,
-       "ayah": "20:22",
-       "atEnd": false
-      },
-      {
-       "timeMs": 542360,
-       "ayah": "20:84",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-040",
@@ -8418,6 +8122,11 @@
      "audioS": 258.8,
      "warnings": [
       {
+       "timeMs": 33120,
+       "ayah": "23:95",
+       "atEnd": false
+      },
+      {
        "timeMs": 233800,
        "ayah": "23:118",
        "atEnd": false
@@ -8429,13 +8138,8 @@
      "audioS": 211.4,
      "warnings": [
       {
-       "timeMs": 205600,
-       "ayah": "24:27",
-       "atEnd": false
-      },
-      {
-       "timeMs": 205600,
-       "ayah": "24:27",
+       "timeMs": 146400,
+       "ayah": "24:21",
        "atEnd": false
       }
      ]
@@ -8443,13 +8147,7 @@
     {
      "id": "tlog-contiguous-045",
      "audioS": 256.9,
-     "warnings": [
-      {
-       "timeMs": 97360,
-       "ayah": "24:58",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-046",
@@ -8482,18 +8180,8 @@
      "audioS": 440.4,
      "warnings": [
       {
-       "timeMs": 192640,
-       "ayah": "27:21",
-       "atEnd": false
-      },
-      {
        "timeMs": 231760,
        "ayah": "27:23",
-       "atEnd": false
-      },
-      {
-       "timeMs": 235800,
-       "ayah": "27:25",
        "atEnd": false
       }
      ]
@@ -8511,11 +8199,6 @@
        "timeMs": 107320,
        "ayah": "28:79",
        "atEnd": false
-      },
-      {
-       "timeMs": 279480,
-       "ayah": "29:9",
-       "atEnd": false
       }
      ]
     },
@@ -8523,6 +8206,11 @@
      "id": "tlog-contiguous-050",
      "audioS": 319.1,
      "warnings": [
+      {
+       "timeMs": 102320,
+       "ayah": "29:63",
+       "atEnd": false
+      },
       {
        "timeMs": 267800,
        "ayah": "30:18",
@@ -8545,11 +8233,6 @@
        "atEnd": false
       },
       {
-       "timeMs": 94520,
-       "ayah": "31:6",
-       "atEnd": false
-      },
-      {
        "timeMs": 144280,
        "ayah": "31:12",
        "atEnd": false
@@ -8557,11 +8240,6 @@
       {
        "timeMs": 186080,
        "ayah": "31:13",
-       "atEnd": false
-      },
-      {
-       "timeMs": 310360,
-       "ayah": "31:26",
        "atEnd": false
       }
      ]
@@ -8571,18 +8249,13 @@
      "audioS": 602.2,
      "warnings": [
       {
-       "timeMs": 480880,
-       "ayah": "33:61",
+       "timeMs": 77200,
+       "ayah": "33:23",
        "atEnd": false
       },
       {
        "timeMs": 524000,
        "ayah": "33:67",
-       "atEnd": false
-      },
-      {
-       "timeMs": 578280,
-       "ayah": "33:73",
        "atEnd": false
       }
      ]
@@ -8590,20 +8263,21 @@
     {
      "id": "tlog-contiguous-053",
      "audioS": 305.2,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 265720,
+       "ayah": "35:12",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-054",
      "audioS": 541.2,
      "warnings": [
       {
-       "timeMs": 28080,
-       "ayah": "36:1",
-       "atEnd": false
-      },
-      {
-       "timeMs": 64960,
-       "ayah": "36:9",
+       "timeMs": 153360,
+       "ayah": "36:23",
        "atEnd": false
       },
       {
@@ -8623,6 +8297,11 @@
      "audioS": 213.9,
      "warnings": [
       {
+       "timeMs": 129480,
+       "ayah": "38:14",
+       "atEnd": false
+      },
+      {
        "timeMs": 188880,
        "ayah": "38:22",
        "atEnd": false
@@ -8632,25 +8311,25 @@
     {
      "id": "tlog-contiguous-056",
      "audioS": 515.1,
-     "warnings": [
-      {
-       "timeMs": 137440,
-       "ayah": "39:69",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-057",
      "audioS": 290.8,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 69200,
+       "ayah": "40:42",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-058",
      "audioS": 291.6,
      "warnings": [
       {
-       "timeMs": 124400,
+       "timeMs": 123360,
        "ayah": "41:35",
        "atEnd": false
       }
@@ -8661,13 +8340,18 @@
      "audioS": 358.6,
      "warnings": [
       {
+       "timeMs": 66040,
+       "ayah": "42:7",
+       "atEnd": false
+      },
+      {
        "timeMs": 165120,
        "ayah": "42:14",
        "atEnd": false
       },
       {
-       "timeMs": 210160,
-       "ayah": "42:14",
+       "timeMs": 174920,
+       "ayah": "42:15",
        "atEnd": false
       }
      ]
@@ -8676,6 +8360,11 @@
      "id": "tlog-contiguous-060",
      "audioS": 609.4,
      "warnings": [
+      {
+       "timeMs": 208680,
+       "ayah": "43:42",
+       "atEnd": false
+      },
       {
        "timeMs": 258080,
        "ayah": "43:47",
@@ -8696,7 +8385,13 @@
     {
      "id": "tlog-contiguous-061",
      "audioS": 275.6,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 18920,
+       "ayah": "44:3",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-062",
@@ -8706,13 +8401,7 @@
     {
      "id": "tlog-contiguous-063",
      "audioS": 265.8,
-     "warnings": [
-      {
-       "timeMs": 253520,
-       "ayah": "46:20",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-064",
@@ -8724,7 +8413,7 @@
        "atEnd": false
       },
       {
-       "timeMs": 207840,
+       "timeMs": 217880,
        "ayah": "48:20",
        "atEnd": false
       }
@@ -8733,18 +8422,7 @@
     {
      "id": "tlog-contiguous-065",
      "audioS": 331.1,
-     "warnings": [
-      {
-       "timeMs": 16760,
-       "ayah": "48:29",
-       "atEnd": false
-      },
-      {
-       "timeMs": 25040,
-       "ayah": "48:29",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-contiguous-066",
@@ -8758,11 +8436,6 @@
       {
        "timeMs": 16080,
        "ayah": "51:42",
-       "atEnd": false
-      },
-      {
-       "timeMs": 32160,
-       "ayah": "51:43",
        "atEnd": false
       }
      ]
@@ -8788,18 +8461,8 @@
      "audioS": 349.8,
      "warnings": [
       {
-       "timeMs": 18000,
-       "ayah": "54:35",
-       "atEnd": false
-      },
-      {
        "timeMs": 169320,
        "ayah": "55:9",
-       "atEnd": false
-      },
-      {
-       "timeMs": 227440,
-       "ayah": "55:22",
        "atEnd": false
       },
       {
@@ -8819,8 +8482,8 @@
      "audioS": 480,
      "warnings": [
       {
-       "timeMs": 54120,
-       "ayah": "56:59",
+       "timeMs": 303640,
+       "ayah": "57:3",
        "atEnd": false
       }
      ]
@@ -8838,25 +8501,26 @@
     {
      "id": "tlog-contiguous-074",
      "audioS": 470.4,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 456240,
+       "ayah": "64:6",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-contiguous-075",
      "audioS": 563.2,
      "warnings": [
       {
-       "timeMs": 182640,
-       "ayah": "66:4",
-       "atEnd": false
-      },
-      {
        "timeMs": 211440,
        "ayah": "66:5",
        "atEnd": false
       },
       {
-       "timeMs": 253920,
-       "ayah": "66:10",
+       "timeMs": 248640,
+       "ayah": "66:8",
        "atEnd": false
       },
       {
@@ -8871,23 +8535,33 @@
      "audioS": 579.6,
      "warnings": [
       {
-       "timeMs": 100320,
+       "timeMs": 45920,
+       "ayah": "68:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 95320,
        "ayah": "68:29",
        "atEnd": false
       },
       {
-       "timeMs": 329840,
-       "ayah": "69:12",
-       "atEnd": false
-      },
-      {
-       "timeMs": 344840,
-       "ayah": "69:13",
+       "timeMs": 116320,
+       "ayah": "68:32",
        "atEnd": false
       },
       {
        "timeMs": 437000,
        "ayah": "69:28",
+       "atEnd": false
+      },
+      {
+       "timeMs": 470120,
+       "ayah": "69:33",
+       "atEnd": false
+      },
+      {
+       "timeMs": 501080,
+       "ayah": "69:40",
        "atEnd": false
       }
      ]
@@ -8902,8 +8576,8 @@
      "audioS": 356,
      "warnings": [
       {
-       "timeMs": 47040,
-       "ayah": "72:27",
+       "timeMs": 138320,
+       "ayah": "73:10",
        "atEnd": false
       },
       {
@@ -8923,28 +8597,23 @@
        "atEnd": false
       },
       {
+       "timeMs": 44000,
+       "ayah": "75:7",
+       "atEnd": false
+      },
+      {
        "timeMs": 46120,
        "ayah": "75:9",
        "atEnd": false
       },
       {
-       "timeMs": 86000,
-       "ayah": "75:15",
-       "atEnd": false
-      },
-      {
-       "timeMs": 285760,
-       "ayah": "76:11",
+       "timeMs": 156320,
+       "ayah": "75:33",
        "atEnd": false
       },
       {
        "timeMs": 568480,
        "ayah": "77:28",
-       "atEnd": false
-      },
-      {
-       "timeMs": 565400,
-       "ayah": "77:27",
        "atEnd": false
       }
      ]
@@ -8956,11 +8625,6 @@
       {
        "timeMs": 159400,
        "ayah": "78:35",
-       "atEnd": false
-      },
-      {
-       "timeMs": 255600,
-       "ayah": "79:8",
        "atEnd": false
       },
       {
@@ -8985,6 +8649,16 @@
      "audioS": 664.3,
      "warnings": [
       {
+       "timeMs": 226600,
+       "ayah": "83:16",
+       "atEnd": false
+      },
+      {
+       "timeMs": 422160,
+       "ayah": "84:22",
+       "atEnd": false
+      },
+      {
        "timeMs": 519200,
        "ayah": "85:15",
        "atEnd": false
@@ -9005,11 +8679,6 @@
      "id": "tlog-contiguous-082",
      "audioS": 671.6,
      "warnings": [
-      {
-       "timeMs": 41120,
-       "ayah": "87:9",
-       "atEnd": false
-      },
       {
        "timeMs": 407760,
        "ayah": "90:13",
@@ -9032,6 +8701,11 @@
        "atEnd": false
       },
       {
+       "timeMs": 592280,
+       "ayah": "110:3",
+       "atEnd": false
+      },
+      {
        "timeMs": 656520,
        "ayah": "113:2",
        "atEnd": false
@@ -9046,40 +8720,17 @@
     {
      "id": "tlog-hard-085",
      "audioS": 201.5,
-     "warnings": [
-      {
-       "timeMs": 105240,
-       "ayah": "21:35",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-086",
      "audioS": 196.7,
-     "warnings": [
-      {
-       "timeMs": 142360,
-       "ayah": "23:80",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-087",
      "audioS": 222.9,
-     "warnings": [
-      {
-       "timeMs": 162280,
-       "ayah": "24:33",
-       "atEnd": false
-      },
-      {
-       "timeMs": 205400,
-       "ayah": "24:37",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-088",
@@ -9091,6 +8742,11 @@
      "audioS": 250.2,
      "warnings": [
       {
+       "timeMs": 10040,
+       "ayah": "74:40",
+       "atEnd": false
+      },
+      {
        "timeMs": 25960,
        "ayah": "74:44",
        "atEnd": false
@@ -9098,11 +8754,6 @@
       {
        "timeMs": 66080,
        "ayah": "74:50",
-       "atEnd": false
-      },
-      {
-       "timeMs": 174600,
-       "ayah": "22:38",
        "atEnd": false
       }
      ]
@@ -9114,6 +8765,11 @@
       {
        "timeMs": 73000,
        "ayah": "9:6",
+       "atEnd": false
+      },
+      {
+       "timeMs": 185400,
+       "ayah": "7:124",
        "atEnd": false
       }
      ]
@@ -9132,35 +8788,32 @@
     {
      "id": "tlog-jump-092",
      "audioS": 238.8,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 216680,
+       "ayah": "23:38",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-jump-093",
      "audioS": 322.8,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 144520,
+       "ayah": "40:82",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-jump-094",
      "audioS": 280.3,
      "warnings": [
       {
-       "timeMs": 90280,
-       "ayah": "9:12",
-       "atEnd": false
-      },
-      {
-       "timeMs": 93320,
-       "ayah": "9:12",
-       "atEnd": false
-      },
-      {
-       "timeMs": 117200,
-       "ayah": "9:14",
-       "atEnd": false
-      },
-      {
-       "timeMs": 189400,
-       "ayah": "9:18",
+       "timeMs": 142320,
+       "ayah": "9:17",
        "atEnd": false
       }
      ]
@@ -9168,13 +8821,7 @@
     {
      "id": "tlog-jump-095",
      "audioS": 219,
-     "warnings": [
-      {
-       "timeMs": 123280,
-       "ayah": "10:10",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-096",
@@ -9192,18 +8839,23 @@
      "audioS": 354.9,
      "warnings": [
       {
-       "timeMs": 59040,
+       "timeMs": 60080,
        "ayah": "5:91",
-       "atEnd": false
-      },
-      {
-       "timeMs": 152320,
-       "ayah": "5:100",
        "atEnd": false
       },
       {
        "timeMs": 224440,
        "ayah": "28:28",
+       "atEnd": false
+      },
+      {
+       "timeMs": 233440,
+       "ayah": "28:30",
+       "atEnd": false
+      },
+      {
+       "timeMs": 293200,
+       "ayah": "28:35",
        "atEnd": false
       }
      ]
@@ -9213,8 +8865,8 @@
      "audioS": 205,
      "warnings": [
       {
-       "timeMs": 28040,
-       "ayah": "21:64",
+       "timeMs": 65160,
+       "ayah": "21:70",
        "atEnd": false
       },
       {
@@ -9228,6 +8880,21 @@
      "id": "tlog-jump-099",
      "audioS": 264.8,
      "warnings": [
+      {
+       "timeMs": 95200,
+       "ayah": "70:18",
+       "atEnd": false
+      },
+      {
+       "timeMs": 127200,
+       "ayah": "37:85",
+       "atEnd": false
+      },
+      {
+       "timeMs": 127200,
+       "ayah": "37:85",
+       "atEnd": false
+      },
       {
        "timeMs": 127200,
        "ayah": "37:86",
@@ -9250,13 +8917,13 @@
        "atEnd": false
       },
       {
-       "timeMs": 170240,
-       "ayah": "42:52",
+       "timeMs": 84040,
+       "ayah": "42:45",
        "atEnd": false
       },
       {
-       "timeMs": 178360,
-       "ayah": "30:36",
+       "timeMs": 170240,
+       "ayah": "42:52",
        "atEnd": false
       }
      ]
@@ -9264,21 +8931,15 @@
     {
      "id": "tlog-jump-102",
      "audioS": 219.4,
-     "warnings": [
-      {
-       "timeMs": 17000,
-       "ayah": "39:41",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-103",
      "audioS": 199.5,
      "warnings": [
       {
-       "timeMs": 157280,
-       "ayah": "27:64",
+       "timeMs": 154200,
+       "ayah": "27:63",
        "atEnd": false
       }
      ]
@@ -9299,7 +8960,7 @@
      "audioS": 213.8,
      "warnings": [
       {
-       "timeMs": 47080,
+       "timeMs": 78160,
        "ayah": "30:30",
        "atEnd": false
       }
@@ -9313,13 +8974,7 @@
     {
      "id": "tlog-jump-107",
      "audioS": 240.4,
-     "warnings": [
-      {
-       "timeMs": 67160,
-       "ayah": "6:122",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-108",
@@ -9339,37 +8994,25 @@
     {
      "id": "tlog-jump-111",
      "audioS": 234.9,
-     "warnings": [
-      {
-       "timeMs": 29040,
-       "ayah": "47:15",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-112",
      "audioS": 281.2,
-     "warnings": [
-      {
-       "timeMs": 167400,
-       "ayah": "6:58",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-113",
      "audioS": 282.2,
      "warnings": [
       {
-       "timeMs": 120320,
-       "ayah": "33:13",
+       "timeMs": 26800,
+       "ayah": "33:5",
        "atEnd": false
       },
       {
-       "timeMs": 236720,
-       "ayah": "6:151",
+       "timeMs": 120320,
+       "ayah": "33:13",
        "atEnd": false
       }
      ]
@@ -9377,18 +9020,18 @@
     {
      "id": "tlog-jump-114",
      "audioS": 218,
-     "warnings": []
+     "warnings": [
+      {
+       "timeMs": 140480,
+       "ayah": "10:81",
+       "atEnd": false
+      }
+     ]
     },
     {
      "id": "tlog-jump-115",
      "audioS": 201.6,
-     "warnings": [
-      {
-       "timeMs": 77280,
-       "ayah": "16:56",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-116",
@@ -9400,8 +9043,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 243360,
-       "ayah": "39:7",
+       "timeMs": 220520,
+       "ayah": "39:6",
        "atEnd": false
       }
      ]
@@ -9409,13 +9052,7 @@
     {
      "id": "tlog-jump-117",
      "audioS": 259.4,
-     "warnings": [
-      {
-       "timeMs": 181360,
-       "ayah": "23:52",
-       "atEnd": false
-      }
-     ]
+     "warnings": []
     },
     {
      "id": "tlog-jump-118",
@@ -9432,11 +9069,6 @@
      "id": "tlog-jump-119",
      "audioS": 244.2,
      "warnings": [
-      {
-       "timeMs": 29080,
-       "ayah": "9:117",
-       "atEnd": false
-      },
       {
        "timeMs": 168360,
        "ayah": "9:40",
@@ -9478,16 +9110,6 @@
        "timeMs": 267160,
        "ayah": "21:49",
        "atEnd": false
-      },
-      {
-       "timeMs": 272160,
-       "ayah": "21:49",
-       "atEnd": false
-      },
-      {
-       "timeMs": 397520,
-       "ayah": "56:77",
-       "atEnd": false
       }
      ]
     },
@@ -9496,12 +9118,12 @@
      "audioS": 178.3,
      "warnings": [
       {
-       "timeMs": 14960,
+       "timeMs": 12400,
        "ayah": "101:4",
        "atEnd": false
       },
       {
-       "timeMs": 87120,
+       "timeMs": 89040,
        "ayah": "18:43",
        "atEnd": false
       },
@@ -9511,7 +9133,7 @@
        "atEnd": false
       },
       {
-       "timeMs": 101160,
+       "timeMs": 102160,
        "ayah": "78:16",
        "atEnd": false
       }
@@ -9522,17 +9144,12 @@
      "audioS": 168.8,
      "warnings": [
       {
-       "timeMs": 30040,
-       "ayah": "25:74",
-       "atEnd": false
-      },
-      {
        "timeMs": 79280,
        "ayah": "83:13",
        "atEnd": false
       },
       {
-       "timeMs": 92200,
+       "timeMs": 91280,
        "ayah": "86:2",
        "atEnd": false
       },
@@ -9568,13 +9185,8 @@
        "atEnd": false
       },
       {
-       "timeMs": 363440,
-       "ayah": "55:3",
-       "atEnd": false
-      },
-      {
-       "timeMs": 364440,
-       "ayah": "55:4",
+       "timeMs": 207520,
+       "ayah": "102:7",
        "atEnd": false
       }
      ]
@@ -9584,8 +9196,53 @@
      "audioS": 564.2,
      "warnings": [
       {
-       "timeMs": 505600,
-       "ayah": "50:31",
+       "timeMs": 182640,
+       "ayah": "78:14",
+       "atEnd": false
+      },
+      {
+       "timeMs": 235960,
+       "ayah": "2:64",
+       "atEnd": false
+      },
+      {
+       "timeMs": 305400,
+       "ayah": "7:26",
+       "atEnd": false
+      },
+      {
+       "timeMs": 372440,
+       "ayah": "67:17",
+       "atEnd": false
+      },
+      {
+       "timeMs": 375400,
+       "ayah": "67:18",
+       "atEnd": false
+      },
+      {
+       "timeMs": 385400,
+       "ayah": "56:19",
+       "atEnd": false
+      },
+      {
+       "timeMs": 421760,
+       "ayah": "13:43",
+       "atEnd": false
+      },
+      {
+       "timeMs": 437680,
+       "ayah": "85:12",
+       "atEnd": false
+      },
+      {
+       "timeMs": 502000,
+       "ayah": "50:32",
+       "atEnd": false
+      },
+      {
+       "timeMs": 535680,
+       "ayah": "30:3",
        "atEnd": false
       }
      ]
@@ -9595,18 +9252,13 @@
      "audioS": 313.8,
      "warnings": [
       {
-       "timeMs": 83240,
-       "ayah": "67:25",
+       "timeMs": 195840,
+       "ayah": "56:44",
        "atEnd": false
       },
       {
-       "timeMs": 162800,
-       "ayah": "1:5",
-       "atEnd": false
-      },
-      {
-       "timeMs": 186840,
-       "ayah": "56:43",
+       "timeMs": 195840,
+       "ayah": "56:44",
        "atEnd": false
       },
       {
@@ -9615,8 +9267,13 @@
        "atEnd": false
       },
       {
-       "timeMs": 204880,
-       "ayah": "56:44",
+       "timeMs": 298280,
+       "ayah": "29:60",
+       "atEnd": false
+      },
+      {
+       "timeMs": 299240,
+       "ayah": "29:60",
        "atEnd": false
       }
      ]
