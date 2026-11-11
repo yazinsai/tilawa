@@ -1,0 +1,13 @@
+{
+ "id": "listener-stable-ctc-training-gradients",
+ "component": "listener",
+ "hypothesis": "Low-precision sequence-loss arithmetic may erase training gradients for weak consonants despite a finite loss; stable forward-backward gradients and a bounded head refit predict listener -1 and overall -1, with substantial zero-gain risk.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T07:43:10+00:00",
+ "author": "autolab"
+}
