@@ -131,12 +131,17 @@ def build_model(size: str):
             )
             self.ctc_output = nn.Sequential(nn.Dropout(p=0.1), nn.Linear(max(dims), VOCAB))
 
-        def forward(self, feats, feat_lens):
+        def forward_features(self, feats, feat_lens):
+            """Phone-head input for training-only occurrence distillation."""
             from icefall.utils import make_pad_mask
 
             x, x_lens = self.encoder_embed(feats, feat_lens)
             out, out_lens = self.encoder(x.permute(1, 0, 2), x_lens, make_pad_mask(x_lens))
-            return self.ctc_output(out.permute(1, 0, 2)).log_softmax(-1), out_lens
+            return out.permute(1, 0, 2), out_lens
+
+        def forward(self, feats, feat_lens):
+            out, out_lens = self.forward_features(feats, feat_lens)
+            return self.ctc_output(out).log_softmax(-1), out_lens
 
         def streaming_eval(self, chunk: int = 16, left: int = 128):
             self.encoder.chunk_size, self.encoder.left_context_frames = (chunk,), (left,)
