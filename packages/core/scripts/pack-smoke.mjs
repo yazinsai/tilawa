@@ -71,7 +71,7 @@ for (const k of ["createEngine", "loadReferenceIndex", "ayahsRecited", "DEFAULTS
 for (const k of ["createTilawa", "loadWebModel", "startMicrophone", "cacheStorage", "decodeWav"]) assert.equal(typeof web[k], "function", "web." + k);
 for (const k of ["createTilawa", "loadNodeModel", "loadNodeTier", "fsStorage", "readWav"]) assert.equal(typeof node[k], "function", "node." + k);
 for (const k of ["createTilawa", "loadNativeModel"]) assert.equal(typeof rn[k], "function", "react-native." + k);
-assert.deepEqual(Object.keys(report), []);
+for (const name of ["createRecorder", "encodeReport", "decodeReport", "validateReport", "sendReport", "REPORT_SCHEMA"]) assert.ok(name in report, "report export missing: " + name);
 assert.equal(ref.version, "ref-v2");
 assert.equal(phrases.version, "phrases-v1");
 assert.equal(manifest.version, root.SDK_VERSION);
