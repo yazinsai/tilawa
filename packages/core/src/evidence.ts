@@ -1,3 +1,4 @@
+import type { SequenceEvidenceCandidate } from "./checker.js";
 import type { WordRef } from "./events.js";
 
 /** Auxiliary listener judgment over a complete seam, tied to one proposed spelling. */
@@ -9,6 +10,11 @@ export interface SeamInsertionEvidence {
   marginal: number;
 }
 
+export interface CompletenessEvidence extends SequenceEvidenceCandidate {
+  completeProbability: number;
+  cutoff: number;
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -18,6 +24,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  completenessVetoes?: CompletenessEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

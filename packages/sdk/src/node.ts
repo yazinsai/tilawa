@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import { validateCompletenessModel } from "./pronunciation-completeness.js";
 /** Node entry: onnxruntime-node, models from a directory, WAV input. */
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
@@ -22,7 +24,7 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachCompleteness(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads), dir, options.threads);
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +89,42 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  const dir = join(o.cacheDir, `${tier.id}@${tier.version}`);
+  return attachCompleteness(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported }, dir, o.threads), dir, o.threads);
+}
+
+/** A declared completeness bundle is validated before any primary decode. */
+async function attachCompleteness(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
+  let backend: import("./model.js").InferenceBackend | undefined;
+  let head: import("./model.js").InferenceBackend | undefined;
+  try {
+    const descriptor = await readFile(join(dir, "completeness-assets.json"), "utf8").catch(e => {
+      if (e.code === "ENOENT") return null;
+      throw e;
+    });
+    if (descriptor === null) return model;
+    const declared = JSON.parse(descriptor);
+    for (const file of ["pronunciation-completeness.json", "completeness-features.onnx", "completeness-head.onnx"]) {
+      const entry = declared[file];
+      if (!entry || !Number.isSafeInteger(entry.bytes) || entry.bytes <= 0 || !/^[0-9a-f]{64}$/.test(entry.sha256))
+        throw new Error("Invalid completeness asset descriptor");
+      const data = await readFile(join(dir, file));
+      if (data.length !== entry.bytes || createHash("sha256").update(data).digest("hex") !== entry.sha256)
+        throw new Error("Completeness asset checksum mismatch");
+    }
+    if (model.manifest.sampleRate !== 16000 || model.manifest.frameMs !== 40)
+      throw new Error("Completeness scorer requires the primary 16 kHz, 40 ms clock");
+    const parameters = validateCompletenessModel(JSON.parse(await readFile(join(dir, "pronunciation-completeness.json"), "utf8")), model.manifest);
+    backend = await ortBackend(ort as unknown as OrtModule, join(dir, "completeness-features.onnx"), "onnxruntime-node", {
+      executionProviders: ["cpu"], intraOpNumThreads: threads, graphOptimizationLevel: "disabled",
+    });
+    head = await ortBackend(ort as unknown as OrtModule, join(dir, "completeness-head.onnx"), "onnxruntime-node", {
+      executionProviders: ["cpu"], intraOpNumThreads: threads,
+    });
+    const featureBackend = backend, headBackend = head;
+    const release = model.backend.release.bind(model.backend);
+    model.backend.release = async () => { await headBackend.release(); await featureBackend.release(); await release(); };
+    model.pronunciationCompleteness = { model: parameters, backend, head };
+    return model;
+  } catch (e) { await head?.release(); await backend?.release(); await model.backend.release(); throw e; }
 }
