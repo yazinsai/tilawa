@@ -1,0 +1,13 @@
+{
+ "id": "listener-transition-coupled-evidence",
+ "component": "listener",
+ "hypothesis": "Independent frame-label scores may support a rival whose sound transitions are acoustically inconsistent; a transition-coupled acoustic scorer predicts 1 false warning removed and 0 losses counted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T06:40:21+00:00",
+ "author": "autolab"
+}
