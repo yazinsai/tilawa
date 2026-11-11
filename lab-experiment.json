@@ -1,0 +1,13 @@
+{
+ "id": "listener-interacting-phone-code-head",
+ "component": "listener",
+ "hypothesis": "Weak added-word consonants may require interactions between acoustic cues that the final linear classifier cannot express; a nonlinear interacting-code head predicts 2 recovered additions and 1 collateral wrong call: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T02:56:40+00:00",
+ "author": "autolab"
+}
