@@ -22,11 +22,12 @@ The native streaming geometry is a 45-feature-frame input window, advancing by
 exclusive bound 7440, rows 8–15 through 12560, and rows 16–23 through 17680.
 This conservatively protects the full deployed input window and cached past.
 
-Eight focused Python tests passed locally under the Python architecture matching
-the installed NumPy. They check observable-sample preservation, probability
+Ten focused Python tests passed locally under the Python architecture matching
+the installed NumPy; three Torch/ONNX-dependent tests were skipped. They check observable-sample preservation, probability
 averaging rather than averaging logits, teacher frame coverage, a runtime audit
 that rejects nonlocal student changes, deterministic training-speaker admission
-and donor partitioning, and exact streaming replay. Replay coverage exercises
+and donor partitioning, native chunk selection, same-frame disagreement
+bookkeeping, and exact streaming replay. Replay coverage exercises
 every tail phase for feature lengths 9–129, verifies cache progression and pad
 placement, and rejects nonfinite or differently timed native-feature evidence.
 These tests use synthetic distributions and a recording runtime; they establish
