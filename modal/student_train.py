@@ -37,6 +37,7 @@ image = (
     .env({"PYTHONPATH": "/icefall:/icefall/egs/librispeech/ASR/zipformer:/root/tools", "HF_HOME": "/cache/hf"})
     .pip_install("rapidfuzz==3.14.1")
     .add_local_file("tools/student.py", "/root/tools/student.py")
+    .add_local_file("modal/student_masked_convolutions.py", "/root/tools/student_masked_convolutions.py")
     .add_local_file("tools/per_breakdown.py", "/root/tools/per_breakdown.py")
     .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
@@ -96,7 +97,7 @@ def ints(s: str) -> tuple:
     return tuple(int(x) for x in str(s).split(","))
 
 
-def build_model(size: str):
+def build_model(size: str, masked_training_convolutions: bool = False):
     import torch.nn as nn
     from scaling import ScheduledFloat
     from student import VOCAB
@@ -145,7 +146,12 @@ def build_model(size: str):
             self.encoder.chunk_size = ints(p["chunk_size"])
             self.encoder.left_context_frames = ints(p["left_context_frames"])
 
-    return Student()
+    model = Student()
+    if masked_training_convolutions:
+        from student_masked_convolutions import install_validity_masks
+
+        install_validity_masks(model)
+    return model
 
 
 def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, seed: int, max_clips: int = 0):
@@ -422,7 +428,7 @@ def train(args: dict) -> dict:
     emit(event="data", train_clips=len(train_clips["ref"]), train_hours=float(hours), eval_clips=len(eval_clips["ref"]),
          aug=aug is not None, load_s=time.time() - t0, cfg=cfg)
 
-    model = build_model(cfg["size"]).to(device)
+    model = build_model(cfg["size"], cfg.get("masked_training_convolutions", False)).to(device)
     n_params = sum(p.numel() for p in model.parameters())
     opt = ScaledAdam(get_parameter_groups_with_lrs(model, lr=cfg["base_lr"], include_names=True),
                      lr=cfg["base_lr"], clipping_scale=2.0)
@@ -498,7 +504,7 @@ def load_student(run: str):
     import torch
 
     ck = torch.load(f"/student/runs/{run}/ckpt.pt", map_location="cpu", weights_only=False)
-    model = build_model(ck["cfg"]["size"])
+    model = build_model(ck["cfg"]["size"], ck["cfg"].get("masked_training_convolutions", False))
     model.load_state_dict(ck["model"])
     return model, ck
 
