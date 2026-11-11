@@ -1,5 +1,7 @@
 /** Node entry: onnxruntime-node, models from a directory, WAV input. */
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { validateTrainingSupportModel } from "./training-support.js";
 import { dirname, join, relative } from "node:path";
 import * as ort from "onnxruntime-node";
 import { MEMORIZATION_CLASSES } from "./capabilities.js";
@@ -22,7 +24,7 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachTrainingSupport(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads), dir);
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +89,23 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  return attachTrainingSupport(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
+    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads), join(o.cacheDir, `${tier.id}@${tier.version}`));
+}
+
+/** Optional side scorer is verified as a complete bundle; a declared missing file fails closed. */
+async function attachTrainingSupport(model: LoadedModel, dir: string): Promise<LoadedModel> {
+  try {
+    let descriptor: string;
+    try { descriptor = await readFile(join(dir, "training-support-asset.json"), "utf8"); }
+    catch (e) { if ((e as NodeJS.ErrnoException).code === "ENOENT") return model; throw e; }
+    const asset = JSON.parse(descriptor);
+    if (asset.schema !== 1 || asset.file !== "training-support-emissions.json" || !Number.isInteger(asset.bytes) || asset.bytes <= 0 ||
+      typeof asset.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(asset.sha256)) throw new Error("Invalid recording-support asset descriptor");
+    const bytes = await readFile(join(dir, asset.file));
+    if (bytes.length !== asset.bytes || createHash("sha256").update(bytes).digest("hex") !== asset.sha256)
+      throw new Error("Recording-support asset checksum differs");
+    model.trainingSupport = validateTrainingSupportModel(JSON.parse(bytes.toString("utf8")), model.manifest.inventory, model.manifest.tokens);
+    return model;
+  } catch (e) { await model.backend.release(); throw e; }
 }

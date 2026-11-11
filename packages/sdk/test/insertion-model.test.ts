@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ access: vi.fn(), readFile: vi.fn(), ortBackend: vi.fn() }));
@@ -14,7 +15,10 @@ const manifest = { file: "primary.onnx", tokens: "بت", inventory: "muaalem-v3_
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.readFile.mockResolvedValue(JSON.stringify(manifest));
+  mocks.readFile.mockImplementation(async (path:string) => {
+    if (path.endsWith("training-support-asset.json")) throw Object.assign(new Error("absent"), {code:"ENOENT"});
+    return JSON.stringify(manifest);
+  });
 });
 
 describe("Node insertion teacher loading", () => {
@@ -57,5 +61,38 @@ describe("Node insertion teacher loading", () => {
     mocks.access.mockRejectedValue(denied);
     mocks.ortBackend.mockResolvedValue({ name: "primary" });
     await expect(loadNodeModel("/models/caller")).rejects.toBe(denied);
+  });
+});
+
+
+describe("recording-support bundle loading", () => {
+  const fixture = () => {
+    const phone = {mean:Array(8).fill(0),variance:Array(8).fill(1),count:1};
+    const fit = {center:Array(8).fill(0),scale:Array(8).fill(1),phones:[phone,phone,phone]};
+    const value = {schema:1,inventory:manifest.inventory,tokens:manifest.tokens,frameMs:40,observationMs:10,dimensions:8,
+      stay:.8,maxFrames:2048,cutoff:0,full:fit,deletions:[fit,fit]};
+    const bytes = Buffer.from(JSON.stringify(value));
+    return {bytes,descriptor:JSON.stringify({schema:1,file:"training-support-emissions.json",bytes:bytes.length,
+      sha256:createHash("sha256").update(bytes).digest("hex")})};
+  };
+  for (const state of ["valid", "missing", "corrupt"] as const) it(`handles a ${state} declared bundle`, async () => {
+    const p={name:"primary",run:vi.fn(),release:vi.fn()}, f=fixture();
+    mocks.access.mockRejectedValue(Object.assign(new Error("no teacher"),{code:"ENOENT"}));
+    mocks.ortBackend.mockResolvedValue(p);
+    mocks.readFile.mockImplementation(async (path:string)=> {
+      if (path.endsWith("manifest.json")) return JSON.stringify(manifest);
+      if (path.endsWith("asset.json")) return f.descriptor;
+      if (state==="missing") throw Object.assign(new Error("missing emissions"),{code:"ENOENT"});
+      return state==="corrupt" ? Buffer.from("altered") : f.bytes;
+    });
+    if (state==="valid") {
+      const m=await loadNodeModel("/models/caller");
+      expect(m.trainingSupport?.deletions).toHaveLength(2);
+      expect(m.backend).toBe(p);
+      expect(p.run).not.toHaveBeenCalled();
+    } else {
+      await expect(loadNodeModel("/models/caller")).rejects.toThrow(state==="missing"?"missing emissions":"checksum");
+      expect(p.release).toHaveBeenCalledOnce();
+    }
   });
 });
