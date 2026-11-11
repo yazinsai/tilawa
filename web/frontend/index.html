@@ -5,174 +5,180 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tilawa — Recite the Quran. See the verse.</title>
     <meta name="title" content="Tilawa — Recite the Quran. See the verse." />
-    <meta name="description" content="On-device Quran verse tracking and correction. Recite in the browser, then take the engine from GitHub into your app. No account, no audio upload." />
-    <meta name="keywords" content="Tilawa, Offline Tarteel, offline-tarteel, Quran recitation recognition, Quran verse detection, offline Quran AI, on-device speech recognition" />
+    <meta name="description" content="Recite from anywhere in the Quran and Tilawa follows you word by word, noting missed, extra and different words. It runs on your device; your audio is never uploaded." />
     <meta name="robots" content="index, follow" />
     <meta name="application-name" content="Tilawa" />
     <meta name="theme-color" content="#FFFFFF" />
     <link rel="canonical" href="https://tilawa.dev" />
+    <link rel="icon" href="/icon-192.png" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Tilawa" />
     <meta property="og:title" content="Tilawa — Recite the Quran. See the verse." />
-    <meta property="og:description" content="On-device Quran verse tracking and correction. Recite in the browser, then take the engine from GitHub into your app." />
+    <meta property="og:description" content="Recite from anywhere in the Quran and Tilawa follows you word by word, on your device." />
     <meta property="og:url" content="https://tilawa.dev" />
     <meta property="og:image" content="https://tilawa.dev/meta-image.png" />
-    <meta property="og:image:secure_url" content="https://tilawa.dev/meta-image.png" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="800" />
     <meta property="og:image:height" content="420" />
-    <meta property="og:image:alt" content="Tilawa preview showing Quran recitation recognition running fully on-device." />
+    <meta property="og:image:alt" content="Tilawa following a Quran recitation word by word." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Tilawa — Recite the Quran. See the verse." />
-    <meta name="twitter:description" content="On-device Quran verse tracking and correction. Recite in the browser, then take the engine from GitHub into your app." />
+    <meta name="twitter:description" content="Recite from anywhere in the Quran and Tilawa follows you word by word, on your device." />
     <meta name="twitter:image" content="https://tilawa.dev/meta-image.png" />
-    <meta name="twitter:image:alt" content="Tilawa preview showing Quran recitation recognition running fully on-device." />
   </head>
-  <body>
+  <body data-view="idle">
     <div id="app">
       <header class="nav-edge">
         <a class="wordmark" href="/" aria-label="Tilawa"><span>tilawa</span><span lang="ar">تلاوة</span></a>
-        <nav aria-label="Main navigation"><button id="language-toggle" type="button" lang="ar">العربية</button><a id="github-link" href="https://github.com/yazinsai/tilawa" target="_blank" rel="noopener" dir="ltr">GitHub ↗</a></nav>
+        <nav aria-label="Main navigation">
+          <a href="#developers">Developers</a>
+          <a href="https://github.com/yazinsai/tilawa" target="_blank" rel="noopener">GitHub ↗</a>
+        </nav>
       </header>
       <main>
-      <div class="page-split">
-        <section id="intro-screen" class="intro-screen" aria-labelledby="intro-title">
-          <p data-en="RECITE. RECOGNIZE. STAY OFFLINE." data-ar="اتلُ، وتابع الآيات دون اتصال." class="eyebrow">RECITE. RECOGNIZE. STAY OFFLINE.</p>
-          <h1 id="intro-title"><span data-en="Recite the Quran." data-ar="اتلُ القرآن." >Recite the Quran.</span><br><span data-en="See the verse." data-ar="وشاهد الآية." >See the verse.</span></h1>
-          <p data-en="Tilawa recognizes the ayah you recite and highlights each word as you read. Download once, then use it fully offline." data-ar="تتعرّف تلاوة على الآية التي تقرؤها، وتُبرز كل كلمة أثناء تلاوتك. نزّل النموذج مرة واحدة، ثم استخدمه دون إنترنت." class="lede-copy desktop-copy">Tilawa recognizes the ayah you recite and highlights each word as you read. Download once, then use it fully offline.</p>
-          <p data-en="Tilawa recognizes the ayah you recite and highlights each word as you read. Download once, then use it fully offline." data-ar="تتعرّف تلاوة على الآية التي تقرؤها، وتُبرز كل كلمة أثناء تلاوتك. نزّل النموذج مرة واحدة، ثم استخدمه دون إنترنت." class="lede-copy mobile-copy">Tilawa recognizes the ayah you recite and highlights each word as you read. Download once, then use it fully offline.</p>
-          <p class="facts"><span data-en="Under 100 MB" data-ar="أقل من ١٠٠ ميجابايت" >Under 100 MB</span><span aria-hidden="true">/</span><span data-en="No audio uploads" data-ar="دون رفع الصوت" >No audio uploads</span></p>
-          <p class="developer-prompt"><span data-en="Building a Quran app?" data-ar="تطوّر تطبيقًا للقرآن؟" >Building a Quran app?</span><a data-en="Use Tilawa ↗" data-ar="أضف تلاوة إلى تطبيقك ↖" href="https://github.com/yazinsai/tilawa" target="_blank" rel="noopener">Use Tilawa ↗</a></p>
-        </section>
-        <section class="bench" aria-label="Live recitation demo">
-          <header class="bench-heading"><h2 id="demo-title" data-en="Try Tilawa" data-ar="جرّب تلاوة">Try Tilawa</h2><span id="model-status" role="status">100% offline recognition</span></header>
-          <div class="recitation-mode">
-            <div class="mode-options" role="group" aria-label="Recitation mode" aria-describedby="mode-help">
-              <button type="button" id="mode-tracking" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h5m6 0h5M4 18h16M12 9v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span data-en="Tracking" data-ar="تتبّع التلاوة">Tracking</span></button>
-              <button type="button" id="mode-correction" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m8 12 3 3 5-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-en="Correction" data-ar="التصحيح">Correction</span></button>
-            </div>
-            <p id="mode-help" role="status">Find your ayah and follow each word.</p>
-          </div>
-          <div class="bench-frame">
-            <div id="bench-idle">
+        <div class="page-split">
+          <section class="intro" aria-labelledby="intro-title">
+            <p class="eyebrow">RECITE. BE FOLLOWED. STAY OFFLINE.</p>
+            <h1 id="intro-title">Recite the Quran.<br />See the verse.</h1>
+            <p class="lede-copy">Start anywhere. Tilawa finds your place, follows you word by word, and gently notes words that were missed, added or different.</p>
+            <p class="facts"><span>Runs on your device</span><span aria-hidden="true">/</span><span>No audio uploads</span></p>
+          </section>
+
+          <section class="bench" aria-labelledby="demo-title">
+            <header class="bench-heading">
+              <h2 id="demo-title">Try Tilawa</h2>
+              <span id="status" role="status">On-device</span>
+            </header>
+
+            <div id="view-idle" class="view">
               <div class="demo-intro">
-                <p data-en="EXAMPLE · AL-IKHLAS, 112:1" data-ar="مثال · الإخلاص، ١١٢:١" class="example-label">EXAMPLE · AL-IKHLAS, 112:1</p>
-                <p class="example-verse" dir="rtl" lang="ar"><span class="spoken">قُلْ</span> <span class="current">هُوَ</span> <span>ٱللَّهُ</span> <span>أَحَدٌ</span> <span>۝١</span></p>
-                <hr>
-                <h3><span data-en="Start anywhere" data-ar="ابدأ من أي موضع" >Start anywhere</span><br><span data-en="in the Quran." data-ar="في القرآن." >in the Quran.</span></h3>
-                <p data-en="Recite a few words. Find your ayah and follow each word as you read." data-ar="اتلُ بضع كلمات لتظهر الآية، وتابع الكلمات أثناء تلاوتك." class="demo-copy desktop-copy">Recite a few words. Find your ayah and follow each word as you read.</p>
-                <p data-en="Find your ayah and follow each word as you recite." data-ar="تظهر الآية وتُميَّز كلماتها أثناء تلاوتك." class="demo-copy mobile-copy">Find your ayah and follow each word as you recite.</p>
+                <p class="example-label">EXAMPLE · AL-IKHLAS, 112:1</p>
+                <p class="example-verse" dir="rtl" lang="ar"><span class="said">قُلْ</span> <span class="current">هُوَ</span> <span>ٱللَّهُ</span> <span>أَحَدٌ</span></p>
+                <hr />
+                <h3>Start anywhere<br />in the Quran.</h3>
+                <p class="demo-copy">Press start, allow the microphone, and recite. There's nothing to set up.</p>
               </div>
-              <button id="btn-begin-test" class="primary-btn" type="button"><svg width="18" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0014 0v-2M12 19v3M8 22h8"/></svg><span data-en="Start reciting" data-ar="ابدأ التلاوة" >Start reciting</span></button>
-              <p class="demo-note"><span data-en="One-time download under 100 MB." data-ar="تنزيل لمرة واحدة، أقل من ١٠٠ ميجابايت." >One-time download under 100 MB.</span><br><span data-en="No internet needed after setup." data-ar="بعد الإعداد، لا تحتاج إلى الإنترنت." >No internet needed after setup.</span></p>
+              <button id="btn-start" class="primary-btn" type="button">
+                <svg width="18" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3" /><path d="M5 10v2a7 7 0 0014 0v-2M12 19v3M8 22h8" /></svg>
+                <span>Start reciting</span>
+              </button>
+              <p class="demo-note">The first start downloads about 70 MB, once.<br />Your audio stays on this device.</p>
             </div>
-            <div id="loading-status" hidden>
+
+            <div id="view-loading" class="view" hidden>
               <div class="state-content">
-                <p data-en="One-time setup · Under 100 MB" data-ar="إعداد لمرة واحدة · أقل من ١٠٠ ميجابايت" class="example-label">One-time setup · Under 100 MB</p>
-                <h3><span data-en="A small download." data-ar="تنزيل صغير." >A small download.</span><br><span data-en="Then, all yours." data-ar="ثم كلّه على جهازك." >Then, all yours.</span></h3>
-                <p data-en="Keep this tab open while the model downloads. Your audio stays on your device." data-ar="أبقِ هذه الصفحة مفتوحة أثناء تنزيل النموذج. صوتك يبقى على جهازك." class="demo-copy">Keep this tab open while the model downloads. Your audio stays on your device.</p>
+                <h3>Getting ready…</h3>
+                <p id="loading-detail" class="demo-copy">Downloading once. Next time Tilawa starts straight away, even offline.</p>
               </div>
-              <p id="loading-detail" role="status">Starting download</p>
-              <div class="loading-progress-track" role="progressbar" aria-label="Model download" aria-valuemin="0" aria-valuemax="100"><div id="loading-progress"></div></div>
-              <p data-en="Next: allow microphone access to begin your recitation." data-ar="التالي: اسمح بالوصول إلى الميكروفون لبدء التلاوة." class="demo-note">Next: allow microphone access to begin your recitation.</p>
-              <button data-en="Cancel download" data-ar="إلغاء التنزيل" id="btn-cancel-download" class="secondary-btn" type="button">Cancel download</button>
-              <button data-en="Retry download" data-ar="إعادة التنزيل" id="btn-retry-download" class="primary-btn" type="button" hidden>Retry download</button>
+              <div class="progress-track" id="progress-track" role="progressbar" aria-label="Getting ready" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress"></div></div>
+              <p id="progress-label" class="demo-note">0%</p>
+              <button id="btn-cancel" class="secondary-btn" type="button">Cancel</button>
             </div>
-            <div id="mic-pending" class="state-content" role="status" hidden>
-              <div class="device-icon" aria-hidden="true"><svg width="24" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0014 0v-2M12 19v3M8 22h8"/></svg></div>
-              <h3 data-en="Allow microphone access" data-ar="اسمح بالوصول إلى الميكروفون">Allow microphone access</h3>
-              <p class="demo-copy" data-en="Choose Allow in your browser’s microphone prompt to start reciting. If you don’t see it, check the permission icon beside the address bar." data-ar="اختر السماح في طلب الميكروفون في المتصفح لبدء التلاوة. إذا لم يظهر الطلب، تحقّق من رمز الأذونات بجانب شريط العنوان.">Choose Allow in your browser’s microphone prompt to start reciting. If you don’t see it, check the permission icon beside the address bar.</p>
-              <p class="demo-note muted" data-en="Waiting for microphone permission…" data-ar="بانتظار إذن الميكروفون…">Waiting for microphone permission…</p>
-            </div>
-            <div id="ready-state" hidden>
-              <div class="state-content"><div class="device-icon"><svg width="32" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="4" y="2" width="12" height="20" rx="2"/><path d="M8 18h3M13 11l3 3 5-6"/></svg></div>
-                <h3 data-en="Ready. Even without internet." data-ar="جاهز. حتى دون إنترنت." >Ready. Even without internet.</h3>
-                <p class="demo-copy"><span data-en="The model is saved on this device." data-ar="النموذج محفوظ على جهازك." >The model is saved on this device.</span><br><span data-en="You can now recite without a connection." data-ar="يمكنك الآن التلاوة دون أي اتصال." >You can now recite without a connection.</span></p>
+
+            <div id="view-load-error" class="view" role="alert" hidden>
+              <div class="state-content">
+                <h3>Tilawa couldn't get ready.</h3>
+                <p class="demo-copy">Check your connection and try again. Anything already downloaded is kept.</p>
+                <p id="load-error-detail" class="error-detail"></p>
               </div>
-              <button id="btn-start" class="primary-btn" type="button"><svg width="18" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0014 0v-2M12 19v3M8 22h8"/></svg><span data-en="Start reciting" data-ar="ابدأ التلاوة" >Start reciting</span></button>
-              <p data-en="Try airplane mode. Tilawa still works." data-ar="جرّب وضع الطيران. ستعمل تلاوة." class="demo-note muted">Try airplane mode. Tilawa still works.</p>
+              <button id="btn-retry-load" class="primary-btn" type="button">Try again</button>
             </div>
-            <div id="recording-state" hidden>
-              <div id="listening-status" class="state-content" hidden>
-                <div class="waveform" id="listening-waveform" aria-hidden="true"><span class="waveform-bar"></span><span class="waveform-bar"></span><span class="waveform-bar"></span><span class="waveform-bar"></span><span class="waveform-bar"></span><span class="waveform-bar"></span><span class="waveform-bar"></span><span class="waveform-bar"></span><span class="waveform-bar"></span><span class="waveform-bar"></span><span class="waveform-bar"></span></div>
-                <h3 data-en="Begin your recitation." data-ar="ابدأ تلاوتك." id="listening-title">Begin your recitation.</h3>
-                <p data-en="Start with any ayah. We’ll find your place as you recite." data-ar="ابدأ بأي آية. سنحدّد موضعك أثناء التلاوة." class="demo-copy" id="listening-help">Start with any ayah. We’ll find your place as you recite.</p>
+
+            <div id="view-mic-pending" class="view" role="status" hidden>
+              <div class="state-content">
+                <div class="device-icon" aria-hidden="true"><svg width="24" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="9" y="2" width="6" height="12" rx="3" /><path d="M5 10v2a7 7 0 0014 0v-2M12 19v3M8 22h8" /></svg></div>
+                <h3>Allow microphone access</h3>
+                <p class="demo-copy">Choose Allow in your browser's prompt. If you don't see one, check the icon beside the address bar.</p>
               </div>
             </div>
-            <div id="verses"></div><div id="candidate-status" hidden></div><div id="raw-transcript" dir="rtl" lang="ar"></div>
-            <div id="recording-actions" hidden>
-              <button id="btn-stop" class="secondary-btn" type="button"><span class="stop-icon" aria-hidden="true"></span><span data-en="Stop reciting" data-ar="إيقاف التلاوة" >Stop reciting</span></button>
-              <p data-en="Microphone on · Audio stays here" data-ar="الميكروفون يعمل · صوتك يبقى هنا" class="demo-note muted" id="recording-note">Microphone on · Audio stays here</p>
+
+            <div id="view-mic-error" class="view" role="alert" hidden>
+              <div class="state-content">
+                <h3 id="mic-error-title">Microphone access is blocked.</h3>
+                <p id="mic-error-detail" class="demo-copy"></p>
+              </div>
+              <button id="btn-retry-mic" class="primary-btn" type="button">Try again</button>
             </div>
-            <div id="post-recording" hidden>
-              <p data-en="Recitation paused." data-ar="توقّفت التلاوة." class="paused-title">Recitation paused.</p>
-              <div class="post-actions"><button data-en="Recite again" data-ar="اتلُ مجددًا" id="btn-restart" class="primary-btn" type="button">Recite again</button><button data-en="Report a mismatch" data-ar="أبلغ عن خطأ" id="btn-report" class="text-btn" type="button">Report a mismatch</button></div>
+
+            <div id="recitation" class="recitation" hidden>
+              <div class="place-row">
+                <p id="place" class="place">Listening</p>
+                <span id="level" class="level" aria-hidden="true"><span></span></span>
+              </div>
+              <p id="ayah" class="ayah" dir="rtl" lang="ar" aria-live="off"></p>
+              <p id="hint" class="hint">Recite a few words. Tilawa will find your place.</p>
+              <div id="notes-wrap" class="notes-wrap" hidden>
+                <h3 class="notes-title">Worth a second look</h3>
+                <ol id="notes" class="notes" aria-live="polite"></ol>
+              </div>
             </div>
-            <div id="permission-prompt" role="alert" hidden><h3 data-en="Microphone access is blocked." data-ar="الوصول إلى الميكروفون محظور." >Microphone access is blocked.</h3><p data-en="Allow microphone access in your browser settings, then try again." data-ar="اسمح بالوصول إلى الميكروفون في إعدادات المتصفح، ثم حاول مجددًا." >Allow microphone access in your browser settings, then try again.</p><button data-en="Try again" data-ar="حاول مجددًا" id="btn-retry-mic" class="text-btn" type="button">Try again</button></div>
-            <details id="debug-panel" class="debug-panel" hidden><summary><span>Debug view</span><span id="debug-copy-status" role="status"></span><button id="debug-copy" type="button">Copy JSON</button><span id="debug-summary">0 events</span></summary><div id="debug-content"></div></details>
-            <div id="listening-indicator" hidden></div>
+
+            <div id="view-listening" class="view" hidden>
+              <button id="btn-stop" class="secondary-btn" type="button"><span class="stop-icon" aria-hidden="true"></span><span>Stop</span></button>
+              <p class="demo-note muted">Microphone on · audio stays on this device</p>
+            </div>
+
+            <div id="view-stopped" class="view" hidden>
+              <p id="summary" class="summary"></p>
+              <button id="btn-again" class="primary-btn" type="button">Recite again</button>
+            </div>
+
+            <details id="passage" class="disclosure">
+              <summary>Practise a passage</summary>
+              <form id="passage-form" class="passage-form">
+                <p class="muted">Pick what you're about to recite. Tilawa stays inside it and points out anything missed, added or different.</p>
+                <label>Surah <select id="passage-surah" required><option value="">Loading…</option></select></label>
+                <div class="passage-range">
+                  <label>From ayah <input id="passage-from" type="number" min="1" value="1" required inputmode="numeric" /></label>
+                  <label>To ayah <input id="passage-to" type="number" min="1" value="7" required inputmode="numeric" /></label>
+                </div>
+                <button id="btn-passage" class="secondary-btn" type="submit">Start this passage</button>
+              </form>
+            </details>
+
+            <p class="scope-note">Tilawa notes wrong, missed and extra words, and skipped passages. It doesn't check pronunciation or tajweed yet.</p>
+
+            <details id="tech" class="disclosure tech">
+              <summary>Details</summary>
+              <dl id="tech-list">
+                <dt>Runs on</dt><dd id="tech-backend">Not loaded yet. Tilawa uses WebGPU where it can and falls back to WebAssembly (WASM).</dd>
+              </dl>
+            </details>
+          </section>
+        </div>
+
+        <section id="developers" class="developers" aria-labelledby="developers-title">
+          <div class="developer-copy">
+            <p class="eyebrow muted">FOR DEVELOPERS</p>
+            <h2 id="developers-title">The same engine. In your app.</h2>
+            <p class="muted">This page is <code>@tilawa/core</code> with no options. TypeScript for the browser and Node, MIT licensed, with no network calls of its own beyond fetching its model.</p>
+            <div class="developer-links">
+              <a href="https://github.com/yazinsai/tilawa#readme" target="_blank" rel="noopener"><span>Docs</span><span aria-hidden="true">↗</span></a>
+              <a href="https://www.npmjs.com/package/@tilawa/core" target="_blank" rel="noopener"><span>npm</span><span aria-hidden="true">↗</span></a>
+              <a href="https://github.com/yazinsai/tilawa" target="_blank" rel="noopener"><span>GitHub</span><span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+          <div class="quickstart">
+            <pre><code><span class="c">// npm i @tilawa/core@next onnxruntime-web</span>
+import { createTilawa } from "@tilawa/core/web";
+const tilawa = await createTilawa();
+const session = tilawa.startFreeRecitation();
+session.subscribe((e) =&gt; {
+  if (e.type === "position") show(e.observed[0]?.word);
+  if (e.type === "checker" &amp;&amp; e.state === "confirmed")
+    mark(e.location, e.errorClass);
+});
+const mic = await tilawa.listen(session);
+<span class="c">// later: await mic.stop(); session.mistakes()</span></code></pre>
           </div>
         </section>
-      </div>
-      <section class="developers" aria-labelledby="developers-title"><div class="developer-copy">
-        <p data-en="FOR DEVELOPERS" data-ar="للمطوّرين" class="eyebrow muted">FOR DEVELOPERS</p>
-        <h2 data-en="The same engine. In your app." data-ar="المحرّك نفسه. داخل تطبيقك." id="developers-title">The same engine. In your app.</h2>
-        <p class="muted"><span data-en="Bring offline Quran recognition to your next project." data-ar="أضف التعرّف على التلاوة دون إنترنت إلى مشروعك." >Bring offline Quran recognition to your next project.</span><br><span data-en="A TypeScript core for web, Node.js, and React Native." data-ar="نواة TypeScript للويب وNode.js وReact Native." >A TypeScript core for web, Node.js, and React Native.</span></p>
-      </div><div class="developer-link"><a href="https://github.com/yazinsai/tilawa" target="_blank" rel="noopener"><span data-en="Explore the code on GitHub" data-ar="استكشف الكود على GitHub" >Explore the code on GitHub</span><span data-en="↗" data-ar="↖" >↗</span></a><p data-en="Open source · MIT licensed · @tilawa/core" data-ar="مفتوح المصدر · ترخيص MIT · @tilawa/core" class="muted">Open source · MIT licensed · @tilawa/core</p></div></section>
       </main>
-      <footer class="colophon"><span>Tilawa · تلاوة</span><span data-en="Fully offline after setup. Your audio stays on your device." data-ar="دون إنترنت بعد الإعداد. صوتك يبقى على جهازك." class="footer-note">Fully offline after setup. Your audio stays on your device.</span><a data-en="Source ↗" data-ar="المصدر ↖" href="https://github.com/yazinsai/tilawa" target="_blank" rel="noopener">Source ↗</a></footer>
-
-      <dialog id="report-dialog">
-        <div class="dialog-content">
-          <h2 class="dialog-title">Report a miss</h2>
-
-          <div class="dialog-section">
-            <label class="dialog-label" for="report-audio">Your recording</label>
-            <audio id="report-audio" controls></audio>
-            <p class="field-help">Stays in this report. It is not used for training unless you send it.</p>
-          </div>
-
-          <div class="dialog-section">
-            <label class="dialog-label" for="report-surah">What were you reciting?</label>
-            <div class="verse-selectors">
-              <select id="report-surah"></select>
-              <select id="report-ayah"></select>
-            </div>
-            <p class="field-help">Pick the surah and ayah you intended.</p>
-          </div>
-
-          <div class="dialog-section">
-            <label class="dialog-label">Model predicted</label>
-            <p id="report-prediction" class="prediction-text"></p>
-            <p class="field-help"></p>
-          </div>
-
-          <div class="dialog-section">
-            <label class="dialog-label" for="report-notes">Notes (optional)</label>
-            <textarea id="report-notes" rows="3" placeholder="e.g. jumped from 2:255 to 2:256"></textarea>
-            <p class="field-help">What broke, and what you expected.</p>
-          </div>
-
-          <div class="dialog-actions">
-            <button id="btn-submit-report" class="action-btn action-btn--report" type="button">Send report</button>
-            <button id="btn-cancel-report" class="action-btn action-btn--restart" type="button">Cancel</button>
-          </div>
-
-          <p id="report-status" class="report-status" hidden></p>
-        </div>
-      </dialog>
+      <footer class="colophon">
+        <span>Tilawa · تلاوة</span>
+        <span class="footer-note">Runs on your device. Your audio is never uploaded.</span>
+        <a href="https://github.com/yazinsai/tilawa" target="_blank" rel="noopener">Source ↗</a>
+      </footer>
     </div>
-    <script>
-      // Unregister old service worker that cached stale assets
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function (regs) {
-          for (var r of regs) r.unregister();
-        });
-        caches.keys().then(function (keys) {
-          for (var k of keys) caches.delete(k);
-        });
-      }
-    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

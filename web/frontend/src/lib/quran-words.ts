@@ -1,39 +1,81 @@
-const WAQF_MARKS = new Set([
-  "\u06D6", "\u06D7", "\u06D8", "\u06D9", "\u06DA", "\u06DB", "\u06DC",
-]);
+/**
+ * Display text for the engine's word positions. The engine counts words in its reference (ref-v2); the page shows
+ * Uthmani text from public/quran.json. They agree once the display text is cleaned up, except for three ayahs where
+ * quran.json writes بَعْدَمَا as one word and the reference splits it in two.
+ */
 
-function isWaqfToken(token: string): boolean {
-  return token.length <= 2 && [...token].every((c) => WAQF_MARKS.has(c));
+export interface QuranVerse {
+  surah: number;
+  ayah: number;
+  text_uthmani: string;
+  surah_name: string;
+  surah_name_en: string;
 }
 
-interface WordToken {
-  text: string;
-  isRealWord: boolean;
+export interface DisplayAyah {
+  surah: number;
+  ayah: number;
+  surahName: string;
+  surahNameEn: string;
+  words: string[];
 }
 
-export function splitUthmaniWords(text: string): WordToken[] {
-  const raw = text.split(/\s+/).filter((w) => w.length > 0);
-  const result: WordToken[] = [];
+// Pause marks (ۖ … ۜ) and the sajda mark (۩) attach to the word before them.
+const ATTACHED = /^[\u06D6-\u06DC\u06E9]{1,2}$/;
+const RUB_EL_HIZB = "\u06DE";
+const BISMILLAH_WORDS = 4;
 
-  for (const token of raw) {
-    if (isWaqfToken(token) && result.length > 0) {
-      result[result.length - 1].text += " " + token;
-    } else {
-      result.push({ text: token, isRealWord: true });
-    }
+/** Uthmani words as the reference counts them for this ayah. */
+export function splitDisplayWords(text: string, surah: number, ayah: number): string[] {
+  const out: string[] = [];
+  for (const token of text.replace(/\uFEFF/g, "").split(/\s+/)) {
+    if (!token || token === RUB_EL_HIZB) continue;
+    if (ATTACHED.test(token) && out.length) out[out.length - 1] += ` ${token}`;
+    else out.push(token);
   }
-
-  return result;
+  // quran.json prefixes the basmala to the first ayah of every surah but 1 and 9; the reference doesn't.
+  if (ayah === 1 && surah !== 1 && surah !== 9 && out.length > BISMILLAH_WORDS) return out.slice(BISMILLAH_WORDS);
+  return out;
 }
 
-export const BISMILLAH_WORD_COUNT = 4;
-const BISMILLAH_BASE = "بسم الله الرحمن الرحيم";
+/** "surah:ayah" → the display word that holds two reference words (word numbers are 1-based). */
+const MERGED: Record<string, number> = { "2:181": 3, "8:6": 4, "13:37": 8 };
 
-function stripDiacritics(s: string): string {
-  return s.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED]/g, "");
+/** The 0-based display word for a 1-based reference word. */
+export function displayIndex(surah: number, ayah: number, word: number): number {
+  const merged = MERGED[`${surah}:${ayah}`];
+  return merged !== undefined && word > merged ? word - 2 : word - 1;
 }
 
-export function startsWithBismillah(text: string): boolean {
-  const stripped = stripDiacritics(text).replace(/ٱ/g, "ا");
-  return stripped.startsWith(BISMILLAH_BASE) || stripped.startsWith(stripDiacritics(BISMILLAH_BASE));
+export type QuranText = Map<string, DisplayAyah>;
+
+export const ayahKey = (surah: number, ayah: number) => `${surah}:${ayah}`;
+
+export function indexQuran(verses: QuranVerse[]): QuranText {
+  const map: QuranText = new Map();
+  for (const v of verses)
+    map.set(ayahKey(v.surah, v.ayah), {
+      surah: v.surah,
+      ayah: v.ayah,
+      surahName: v.surah_name,
+      surahNameEn: v.surah_name_en,
+      words: splitDisplayWords(v.text_uthmani, v.surah, v.ayah),
+    });
+  return map;
+}
+
+export interface SurahInfo {
+  surah: number;
+  nameEn: string;
+  name: string;
+  ayahs: number;
+}
+
+export function surahList(text: QuranText): SurahInfo[] {
+  const out: SurahInfo[] = [];
+  for (const a of text.values()) {
+    const s = out[a.surah - 1] ?? (out[a.surah - 1] = { surah: a.surah, nameEn: a.surahNameEn, name: a.surahName, ayahs: 0 });
+    s.ayahs = Math.max(s.ayahs, a.ayah);
+  }
+  return out;
 }
