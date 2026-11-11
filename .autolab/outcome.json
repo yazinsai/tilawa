@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "The supplied supervisor runner failed before executing all three inspection, calibration and test requests, leaving no training-frozen model or measured target result.",
+  "measured": {}
+}

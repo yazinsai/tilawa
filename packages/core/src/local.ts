@@ -1,5 +1,7 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import { createWordMetric, wordMetricEdit, wordMetricPathScore } from "./word-metric.js";
+import type { WordMetricModel, WordMetricPath, WordMetricScore, WordMetricStep } from "./word-metric.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -41,12 +43,20 @@ export interface LocalSearch {
   restore(state: unknown): void;
 }
 
+export interface LocalWordMetricOptions {
+  model: WordMetricModel;
+  /** Audit keeps original decisions and reports the training-frozen alternative. */
+  mode?: "audit" | "apply";
+  audit?: (comparison: { original: number; selected: number; candidates: { offset: number; origin: number; score: WordMetricScore }[] }) => void;
+}
+
 /**
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">, options?: LocalWordMetricOptions): LocalSearch {
   const ref = index.phonemes;
+  const metric = options && createWordMetric(options.model, index.inventoryId);
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
   const ayahEnd: number[] = [];
@@ -68,6 +78,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let cost = new Float64Array(0);
   let origin = new Int32Array(0);
   let edits = new Int32Array(0);
+  let paths: (WordMetricPath | null)[] = [];
   let best = start.offset;
   let ayah = -1;
   const recent: number[] = [];
@@ -81,18 +92,21 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     const c = new Float64Array(newHi - newLo + 1).fill(Infinity);
     const o = new Int32Array(c.length);
     const e = new Int32Array(c.length);
+    const p: (WordMetricPath | null)[] = metric ? new Array(c.length).fill(null) : [];
     for (let i = 0; i < c.length; i++) {
       const old = newLo + i - lo;
       if (old >= 0 && old < cost.length) {
         c[i] = cost[old];
         o[i] = origin[old];
         e[i] = edits[old];
+        if (metric) p[i] = paths[old];
       }
     }
     lo = newLo;
     cost = c;
     origin = o;
     edits = e;
+    paths = p;
   };
 
   recentre(start.offset);
@@ -108,11 +122,14 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       const c = new Float64Array(n);
       const o = new Int32Array(n);
       const e = new Int32Array(n);
+      const nextPaths: (WordMetricPath | null)[] = metric ? new Array(n).fill(null) : [];
+      const append = (previous: WordMetricPath | null, step: WordMetricStep): WordMetricPath => ({ previous, step });
       for (let i = 0; i < n; i++) {
         const at = lo + i;
         let bc = cost[i] + insertionCost(ref, at, p);
         let bo = origin[i];
         let be = edits[i] + 1;
+        let path = metric ? append(paths[i], wordMetricEdit(ref, at, p, "ins", index.wordAt(Math.max(0, at - 1)))) : null;
         if (i > 0) {
           const s = subCost(ref[at - 1], p) + entry(at - 1);
           const edit = ref[at - 1] === p ? 0 : 1;
@@ -121,6 +138,11 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
             bc = cost[i - 1] + s;
             bo = origin[i - 1];
             be = edits[i - 1] + edit;
+            if (metric) {
+              path = paths[i - 1];
+              if (entry(at - 1)) path = append(path, { cost: entry(at - 1) });
+              path = append(path, wordMetricEdit(ref, at - 1, p, "sub", index.wordAt(at - 1)));
+            }
           }
           const from = at - 1;
           if (from !== best && wordStarts.has(from)) {
@@ -129,6 +151,10 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
               bc = j;
               bo = from;
               be = edit;
+              if (metric) {
+                path = append(paths[best - lo], { cost: j - base - subCost(ref[at - 1], p), move: true });
+                path = append(path, wordMetricEdit(ref, at - 1, p, "sub", index.wordAt(at - 1)));
+              }
             }
           }
           const d = c[i - 1] + deletionCost(ref, at - 1) + entry(at - 1);
@@ -136,17 +162,41 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
             bc = d;
             bo = o[i - 1];
             be = e[i - 1] + 1;
+            if (metric) {
+              path = nextPaths[i - 1];
+              if (entry(at - 1)) path = append(path, { cost: entry(at - 1) });
+              path = append(path, wordMetricEdit(ref, at - 1, null, "del", index.wordAt(at - 1)));
+            }
           }
         }
         c[i] = bc;
         o[i] = bo;
         e[i] = be;
+        if (metric) nextPaths[i] = path;
       }
 
       // Lowest cost wins; ties go to the state nearest plain forward progress.
       let k = -1;
       for (let i = 0; i < n; i++) {
         if (k === -1 || c[i] < c[k] || (c[i] === c[k] && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1))) k = i;
+      }
+      if (metric && o[k] !== origin[best - lo]) {
+        const candidates = [];
+        let selected = k, selectedCost = Infinity;
+        let observations: number | undefined;
+        for (let i = 0; i < n; i++) {
+          if (!Number.isFinite(c[i])) continue;
+          const score = wordMetricPathScore(nextPaths[i], metric);
+          observations ??= score.observations;
+          if (score.observations !== observations) throw new Error("Local word metric compared different heard intervals");
+          candidates.push({ offset: lo + i, origin: o[i], score });
+          if (score.learned < selectedCost || (score.learned === selectedCost && Math.abs(lo + i - best - 1) < Math.abs(lo + selected - best - 1))) {
+            selectedCost = score.learned;
+            selected = i;
+          }
+        }
+        options!.audit?.({ original: lo + k, selected: lo + selected, candidates });
+        if (options!.mode !== "audit") k = selected;
       }
       const min = c[k];
       for (let i = 0; i < n; i++) c[i] -= min;
@@ -155,6 +205,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       cost = c;
       origin = o;
       edits = e;
+      paths = nextPaths;
       best = lo + k;
       recentre(best);
     },
@@ -164,10 +215,10 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    save: () => ({ lo, cost, origin, edits, paths, best, ayah, recent: [...recent] }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
-      ({ lo, cost, origin, edits, best, ayah } = s);
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; paths: typeof paths; best: number; ayah: number; recent: number[] };
+      ({ lo, cost, origin, edits, paths, best, ayah } = s);
       recent.splice(0, recent.length, ...s.recent);
     },
   };
