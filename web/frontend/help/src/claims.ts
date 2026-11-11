@@ -1,7 +1,7 @@
 // Turns the reader's answers into report incidents. Pure and deterministic given `uuid`.
 //
 // What an incident's kind means here (docs/help-collection.md, "What /help sends"):
-//   false_warning    a warning we raised, put to the reader ("made_mistake"); answer "no" = they say it was false
+//   warning          a warning we raised, put to the reader ("made_mistake"); answer "no" = they say it was false
 //   stumble          a bookmark the reader tapped while reciting; answer null when they were never asked about it
 //   wrong_position   "Did we show the wrong ayah?", asked or volunteered
 //   unflagged_sample a random moment with no warning ("reading_correct"); never assumed clean
@@ -33,7 +33,7 @@ export interface ReviewResult {
 }
 
 const KIND: Record<Moment["kind"], IncidentKind> = {
-  warning: "false_warning",
+  warning: "warning",
   stumble: "stumble",
   position: "wrong_position",
   sample: "unflagged_sample",

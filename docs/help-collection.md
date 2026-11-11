@@ -133,7 +133,7 @@ bias sample. The reader can also mark more moments while listening back. Each an
 
 | Incident `kind` | Where it comes from | `claim.question` | What `claim.answer` means |
 |---|---|---|---|
-| `false_warning` | a warning we raised (`eventIds` = its checker ids) | `made_mistake` | `no` = the reader says the warning was false; `yes` = they agree they made a mistake |
+| `warning` | a warning we raised (`eventIds` = its checker ids) | `made_mistake` | `no` = the reader says the warning was false; `yes` = they agree they made a mistake |
 | `stumble` | a bookmark tapped while reciting (`markedAt` = the tap) | `made_mistake` | as above; `null` with no question when the review never reached it |
 | `wrong_position` | a position wobble, or "We showed the wrong ayah" on any moment | `wrong_ayah` | `yes` = we showed the wrong ayah |
 | `unflagged_sample` | a random region with no warning or bookmark | `reading_correct` | `yes` = the reader says they read it correctly |

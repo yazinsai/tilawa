@@ -33,6 +33,9 @@ export interface ReportPassage {
 }
 
 export type IncidentKind =
+  /** A warning the app showed and asked the user about; the claim holds the answer. Neutral until reviewed. */
+  | "warning"
+  /** The app's UI asserts the warning is wrong (e.g. a "this is wrong" button). */
   | "false_warning"
   | "missed_mistake"
   | "wrong_position"

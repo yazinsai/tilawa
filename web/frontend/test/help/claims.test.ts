@@ -39,7 +39,7 @@ describe("buildIncidents", () => {
       uuid,
     );
     expect(out.map((i) => [i.kind, i.claim.question, i.claim.answer])).toEqual([
-      ["false_warning", "made_mistake", "no"],
+      ["warning", "made_mistake", "no"],
       ["stumble", "made_mistake", "yes"],
       ["wrong_position", "wrong_ayah", "unsure"],
       ["unflagged_sample", "reading_correct", "no"],
@@ -77,7 +77,7 @@ describe("buildIncidents", () => {
       uuid,
     );
     expect(out.map((i) => [i.kind, i.claim.answer])).toEqual([
-      ["false_warning", "unsure"],
+      ["warning", "unsure"],
       ["stumble", "unsure"],
     ]);
     expect(out[1].id).toBe(b.id);
