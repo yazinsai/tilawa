@@ -9,6 +9,18 @@ export interface SeamInsertionEvidence {
   marginal: number;
 }
 
+/** Closed joint-edit listener comparison, tied to the original accusation and decision horizon. */
+export interface PendingEditEvidence {
+  word: WordRef;
+  observed: string;
+  fromFrame: number;
+  toFrame: number;
+  availableFrame: number;
+  replacement: number;
+  correctWithNeighbour: number;
+  independentReplacement: number;
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -18,6 +30,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  pendingEdits?: PendingEditEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

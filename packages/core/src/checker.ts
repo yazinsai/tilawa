@@ -1,7 +1,7 @@
 import { align as editPath } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
-import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
+import type { DecodedPhoneme, PhonemeEvidence, PendingEditEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import { channelFromCounts, spanLogP, type Channel, type ChannelCounts } from "./noisy-channel.js";
@@ -51,6 +51,10 @@ export interface SeamInsertionCandidate {
 }
 
 export interface CheckerOptions {
+  /** Read-only listener discovery, before independently confirming competing edits. */
+  pendingEdits?: (window: PendingEditWindow) => void;
+  /** Joint listener comparison at the two-ayah horizon. True vetoes only the held string accusation. */
+  jointPendingEdit?: (window: PendingEditWindow, frames: PosteriorFrames, availableFrame: number) => boolean | null;
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
   policy?: CheckerPolicy;
@@ -67,6 +71,23 @@ export interface CheckerOptions {
    * build uses {@link LISTENER_CHANNEL}. An empty phone list leaves the channel decisions off.
    */
   channel?: ChannelCounts;
+}
+
+export interface PendingEdit {
+  kind: "replace" | "insert";
+  word: number;
+  observed: string;
+  fromFrame: number;
+  toFrame: number;
+}
+
+export interface PendingEditWindow {
+  target: PendingEdit;
+  wordFrom: number;
+  wordTo: number;
+  fromFrame: number;
+  toFrame: number;
+  neighbours: PendingEdit[];
 }
 
 export interface Checker {
@@ -256,6 +277,10 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const insertionEvidence = new Map<string, number>();
+  const jointEvidence: PendingEditEvidence[] = [];
+  const jointWindows = new Map<number, PendingEditWindow>();
+  const jointHeld = new Map<number, { event: CheckerEvent; target: PendingEdit; certificate?: PendingEditEvidence }>();
+  const jointResolved = new Map<CheckerEvent, CheckerEvent>();
   const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
     JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
   // A completed seam remains in the streaming window over many pushes. Its
@@ -474,7 +499,47 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     open.delete(o.issue.word);
     decided.add(o.issue.word);
     const sure = ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false;
-    out.push(event(o, state ?? (sure ? "confirmed" : "uncertain")));
+    const e = event(o, state ?? (sure ? "confirmed" : "uncertain"));
+    const i = o.issue;
+    if (e.state === "confirmed" && i.cls === "wrong_word" && i.stringPath && !i.phrase && !i.manner &&
+      lexical.surplusWord(i.word, heardSpan(i)) === null && i.obsFrom >= 0 && i.obsTo > i.obsFrom && i.obsTo <= obs.length) {
+      const target: PendingEdit = { kind: "replace", word: i.word, observed: i.observed ?? "",
+        fromFrame: obs[i.obsFrom].start, toFrame: obs[i.obsTo - 1].end + 1 };
+      const certificate = jointEvidence.find(c => c.word.surah === e.location.surah && c.word.ayah === e.location.ayah &&
+        c.word.word === e.location.word && c.observed === target.observed && c.fromFrame === target.fromFrame && c.toFrame === target.toFrame);
+      const window = jointWindows.get(i.word);
+      if ((options.jointPendingEdit && window && frames && frames.startFrame >= 0 &&
+        window.fromFrame >= frames.startFrame && window.toFrame <= frames.endFrame) || certificate) {
+        jointHeld.set(i.word, { event: e, target, certificate });
+        return;
+      }
+    }
+    jointWindows.delete(i.word);
+    out.push(e);
+  };
+
+  // The original decision has already settled the primary issue state. Only its publication waits;
+  // neighbouring confirmations and subsequent alignment run exactly as before.
+  const releaseJoint = (out: CheckerEvent[], final: boolean) => {
+    for (const [wi, held] of jointHeld) {
+      const window = jointWindows.get(wi);
+      // A temporary far-ahead alignment can precede a pending lexical recovery.
+      // Require the primary tracker to have left the window, or (without tracker
+      // positions) an observed ending of the following ayah as well as progress.
+      const following = Math.min(ayahLast.length - 1, ayahOf[wi] + 1);
+      const horizonObserved = cursor >= 0 ? ayahOf[cursor] >= ayahOf[wi] + 2
+        : !!window && window.wordTo > ayahLast[following];
+      const reachedHorizon = furthest >= 0 && ayahOf[furthest] >= ayahOf[wi] + 2 && horizonObserved;
+      const certificateReady = !!held.certificate && nowMs / frameMs >= held.certificate.availableFrame;
+      if (!final && !(held.certificate ? certificateReady : reachedHorizon)) continue;
+      const veto = held.certificate ? certificateReady : !!(window && frames && options.jointPendingEdit?.(
+        { ...window, target: held.target }, frames, Math.ceil(nowMs / frameMs)));
+      const result = veto ? { ...held.event, state: "uncertain" as const } : held.event;
+      jointResolved.set(held.event, result);
+      out.push(result);
+      jointHeld.delete(wi);
+      jointWindows.delete(wi);
+    }
   };
 
   /** The steps of the window's latest alignment. */
@@ -784,6 +849,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       out.push(event(o, sureOf(o) ? "confirmed" : "uncertain"));
     }
     sealAll(out);
+    // A lost or changed passage closes this acoustic window, just as EOF does.
+    releaseJoint(out, true);
+    jointWindows.clear();
     anchor = null;
     furthest = -1;
     obs = obs.slice(-AFTER_DROP);
@@ -2243,6 +2311,46 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const head = judged?.head ?? cursor;
     const reached = judged?.furthest ?? cursor;
     const right = judged?.right ?? new Set<number>();
+    if ((options.pendingEdits || options.jointPendingEdit) && judged) {
+      // Observe existing hypotheses before their separate support tests or tail merge.
+      // A lexical neighbour may still be pending when the string accusation is due.
+      const edit = (i: Issue): PendingEdit => ({ kind: i.cls === "added_word" ? "insert" : "replace",
+        word: i.word, observed: i.observed ?? "", fromFrame: obs[i.obsFrom].start,
+        toFrame: obs[i.obsTo - 1].end + 1 });
+      const usable = (i: Issue) => i.obsFrom >= 0 && i.obsTo > i.obsFrom && i.obsTo <= obs.length && !!i.observed;
+      const targets = [...issues.values()].filter(target => target.cls === "wrong_word" && target.stringPath &&
+        !target.phrase && !target.manner && usable(target) &&
+        lexical.surplusWord(target.word, heardSpan(target)) === null).map(edit);
+      for (const held of jointHeld.values()) if (!targets.some(t => t.word === held.target.word)) targets.push(held.target);
+      for (const target of targets) {
+        if (target.kind !== "replace" ||
+          (decided.has(target.word) && !jointHeld.has(target.word))) continue;
+        const previous = jointWindows.get(target.word);
+        if (!previous && target.toFrame <= target.fromFrame) continue;
+        const ayah = ayahOf[target.word];
+        const inWindow = (wi: number) => words[wi].surah === words[target.word].surah &&
+          ayahOf[wi] >= ayah && ayahOf[wi] <= ayah + 1;
+        const visits = judged.visits.filter(v => inWindow(v.word) && v.obsFrom >= 0 && v.obsTo > v.obsFrom &&
+          v.covered === words[v.word].end - words[v.word].start);
+        if (!visits.length) continue;
+        const first = Math.min(previous?.wordFrom ?? target.word, target.word, ...visits.map(v => v.word));
+        const last = Math.max((previous?.wordTo ?? target.word + 1) - 1, target.word, ...visits.map(v => v.word));
+        const neighbours = [...judged.lexical, ...issues.values()].filter(i => i.word !== target.word &&
+          i.word >= first && i.word <= last && usable(i) &&
+          i.last === i.word && (i.cls === "added_word" || (i.cls === "wrong_word" && !i.phrase &&
+            (!i.stringPath || lexical.surplusWord(i.word, heardSpan(i)) !== null))));
+        const all = [...(previous?.neighbours ?? []), ...neighbours.map(edit)];
+        const window: PendingEditWindow = { target: jointHeld.get(target.word)?.target ?? target,
+          wordFrom: first, wordTo: last + 1,
+          fromFrame: Math.min(previous?.fromFrame ?? target.fromFrame, target.fromFrame,
+            ...visits.map(v => obs[v.obsFrom].start), ...all.map(e => e.fromFrame)),
+          toFrame: Math.max(previous?.toFrame ?? target.toFrame, target.toFrame,
+            ...visits.map(v => obs[v.obsTo - 1].end + 1), ...all.map(e => e.toFrame)),
+          neighbours: [...new Map(all.map(e => [`${e.kind}:${e.word}:${e.observed}`, e])).values()] };
+        jointWindows.set(target.word, window);
+        options.pendingEdits?.(window);
+      }
+    }
     // Use the final (possibly repaired) path and identical frames/context for both acoustic hypotheses. Unlike the
     // legacy path, a lexical candidate needs affirmative support; absent or indeterminate posteriors mean abstain.
     if (judged) for (const candidate of judged.lexical) if (supported(candidate, true) === true) {
@@ -2287,6 +2395,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
           continue;
         }
         open.delete(wi);
+        if (!jointHeld.has(wi)) jointWindows.delete(wi);
         out.push(event(o, "resolved"));
         ledgerSpans.delete(wi);
       } else if (now.cls !== o.issue.cls) {
@@ -2319,6 +2428,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       // word was recited right; otherwise it ends uncertain.
       else if (final) decide(o, out, "uncertain");
     }
+    releaseJoint(out, final);
     if (latched && passage) {
       passage.from = Math.max(passage.from, ayahFirst[Math.max(0, ayahOf[anchor] - 1)]);
       passage.to = Math.max(passage.to, furthest, anchor);
@@ -2457,6 +2567,14 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const c of p.pendingEdits ?? []) {
+        const masses = [c.replacement, c.correctWithNeighbour, c.independentReplacement];
+        if (masses.every(x => Number.isFinite(x) && x >= 0 && x <= 1) &&
+          c.independentReplacement > 0.5 && c.correctWithNeighbour > c.replacement &&
+          c.correctWithNeighbour + c.replacement <= 1 + 8 * Number.EPSILON &&
+          Number.isInteger(c.fromFrame) && c.fromFrame >= 0 && Number.isInteger(c.toFrame) && c.toFrame > c.fromFrame &&
+          Number.isInteger(c.availableFrame) && c.availableFrame >= c.toFrame) jointEvidence.push(c);
+      }
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {
@@ -2480,7 +2598,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       } else evaluate(out, false);
       if (frames && obs.length) {
         const floor = ledgerFloor();
-        frames.dropBefore(floor === null ? obs[0].start : Math.min(obs[0].start, floor));
+        const jointFloor = [...jointHeld.keys(), ...open.keys()].reduce((f, wi) =>
+          Math.min(f, jointWindows.get(wi)?.fromFrame ?? f), obs[0].start);
+        frames.dropBefore(Math.min(jointFloor, floor === null ? obs[0].start : floor));
       }
       return out;
     },
@@ -2488,10 +2608,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const out: CheckerEvent[] = [];
       anchorOn(track(events, out), events);
       evaluate(out, true);
+      releaseJoint(out, true);
       return out;
     },
     mistakes() {
-      return emitted.filter((e) => e.state === "confirmed" || (policy.countResolved && e.state === "resolved"));
+      return emitted.filter(e => ![...jointHeld.values()].some(h => h.event === e)).map(e => jointResolved.get(e) ?? e)
+        .filter(e => e.state === "confirmed" || (policy.countResolved && e.state === "resolved"));
     },
   };
 }
