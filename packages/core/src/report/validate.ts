@@ -118,6 +118,8 @@ export function reportProblems(r: unknown): string[] {
         if (c[k] !== undefined && typeof c[k] !== "string") e.push(`${at}.claim.${k} must be a string`);
       if (c.note !== undefined && (typeof c.note !== "string" || c.note.length > REPORT_LIMITS.maxNoteChars))
         e.push(`${at}.claim.note must be at most ${REPORT_LIMITS.maxNoteChars} chars`);
+      if (c.text !== undefined && (typeof c.text !== "string" || c.text.length > REPORT_LIMITS.maxNoteChars))
+        e.push(`${at}.claim.text must be at most ${REPORT_LIMITS.maxNoteChars} chars`);
     });
   }
 

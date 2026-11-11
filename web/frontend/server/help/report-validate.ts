@@ -127,7 +127,7 @@ function checkShape(r: Obj, need: (ok: boolean, code: string) => void) {
   const req = isObj(a) ? a.requested : undefined;
   need(
     isObj(a) && a.format === "pcm_s16le" && a.sampleRate === 16000 && a.channels === 1 &&
-      isNum(a.startMs) && a.startMs >= 0 && isNum(a.durationMs) && a.durationMs >= 0 &&
+      isNum(a.startMs) && a.startMs >= 0 && isNum(a.durationMs) && a.durationMs > 0 &&
       typeof a.sha256 === "string" && SHA256.test(a.sha256) &&
       isObj(req) && isNum(req.startMs) && isNum(req.endMs) && isBool(a.truncatedStart) && isBool(a.truncatedEnd),
     "fields.audio",
