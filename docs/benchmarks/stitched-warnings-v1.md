@@ -46,3 +46,17 @@ The ≤ 1 per 5 min bar fails on long clean sessions as well, at 1.46 for int8 a
 - Evidence is stitched per clip, not one decode of continuous audio. Seams are clean and the student never sees context across clips.
 - tlog sessions change speaker at most seams (see `jumps-v1.md`).
 - The 20 s tail is a fixed window, not the lead-out's exact length (1–2 ayahs).
+
+## Re-run at 441dddc3 (V1 release candidate, 2026-11-11)
+
+Same manifest and evidence (int8 decodes re-verified byte-identical to the frozen listener), engine at the frozen V1 commit `441dddc3`. Evaluation only; the JSON above now holds this run.
+
+| Listener | Posteriors | Finalise | Sessions / min | Warnings (per 5 min) | Mid-session | Last 20 s | At session end | tlog sessions | help-speaker sessions |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|
+| teacher | off | on | 129 / 747 | 279 (1.87) | 267 | 10 | 2 | | |
+| teacher | on | on | 129 / 747 | 212 (1.42) | 201 | 9 | 2 | 186 in 706 min (1.32) | 26 in 40.5 min (3.21) |
+| teacher | on | off | 129 / 747 | 210 (1.41) | 201 | 9 | 0 | | |
+| spliced-clean-int8 | on | on | 129 / 743 | 200 (1.35) | 192 | 8 | 0 | 172 in 702 min (1.22) | 28 in 40.3 min (3.48) |
+| spliced-clean-int8 | on | off | 129 / 743 | 200 (1.35) | 192 | 8 | 0 | | |
+
+The int8 gate number moves 217 → 200 (1.46 → 1.35 per 5 min), still above the ≤ 1 bar. Help-speaker audio is still about 2.5× the tlog rate. See `v1-release-readiness.md`.
