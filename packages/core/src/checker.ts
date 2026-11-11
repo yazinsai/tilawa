@@ -1,4 +1,5 @@
 import { align as editPath } from "./align.js";
+import { completePronunciationMatch } from "./pronunciation-match.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
@@ -51,6 +52,8 @@ export interface SeamInsertionCandidate {
 }
 
 export interface CheckerOptions {
+  /** Read-only listener recheck of a complete string-path acoustic comparison. False can only veto. */
+  wrongWordRecheck?: (candidate: WrongWordRecheckCandidate) => boolean;
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
   policy?: CheckerPolicy;
@@ -76,6 +79,20 @@ export interface Checker {
   end(events?: EngineEvent[]): CheckerEvent[];
   /** Confirmed errors, plus resolved ones when the policy counts them. */
   mistakes(): CheckerEvent[];
+}
+
+export interface WrongWordRecheckCandidate {
+  word: WordRef;
+  written: string;
+  accused: string;
+  wordWritten: string;
+  wordAccused: string;
+  fromFrame: number;
+  toFrame: number;
+  slotFromFrame: number;
+  slotToFrame: number;
+  margin: number;
+  need: number;
 }
 
 /** Leaving the current place for any word start in the window: a restart or repeat (back) or a skip (ahead). */
@@ -256,6 +273,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const insertionEvidence = new Map<string, number>();
+  const robustNormEvidence = new Map<string, import("./evidence.js").RobustNormEvidence>();
+  const robustNormKey = (c: Omit<WrongWordRecheckCandidate, "margin" | "need">) => JSON.stringify([
+    c.word.surah, c.word.ayah, c.word.word, c.written, c.accused, c.wordWritten, c.wordAccused,
+    c.fromFrame, c.toFrame, c.slotFromFrame, c.slotToFrame,
+  ]);
   const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
     JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
   // A completed seam remains in the streaming window over many pushes. Its
@@ -500,6 +522,27 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       [...left, ...right, ...(issue.obsTo > issue.obsFrom ? [issue.obsFrom, issue.obsTo - 1] : [])]).filter((k) => k >= 0 && k < obs.length);
     if (!at.length && !issue.wordLocal) return null;
     const ids = (s: string) => [...s].map((p) => tokenId.get(p) ?? 0);
+    const compare = (written: string, accused: string, a: number, b: number, need: number) => {
+      const wn = frames!.nll(ids(written), a, b), an = frames!.nll(ids(accused), a, b);
+      if (requireFinite && (!Number.isFinite(wn) || !Number.isFinite(an))) return null;
+      const margin = wn - an;
+      if (margin >= need && (robustNormEvidence.size || options.wrongWordRecheck) &&
+          issue.cls === "wrong_word" && issue.stringPath && !issue.phrase && issue.last === issue.word &&
+          issue.obsFrom >= 0 && issue.obsTo > issue.obsFrom && issue.obsTo <= obs.length) {
+        const w = words[issue.word];
+        const c: WrongWordRecheckCandidate = { word: { surah: w.surah, ayah: w.ayah, word: w.word },
+          written, accused, wordWritten: ref.slice(w.start, w.end), wordAccused: issue.observed ?? heardSpan(issue),
+          fromFrame: a, toFrame: b, slotFromFrame: obs[issue.obsFrom].start, slotToFrame: obs[issue.obsTo - 1].end + 1,
+          margin, need };
+        const certified = robustNormEvidence.get(robustNormKey(c));
+        if (certified && certified.writtenNll - certified.accusedNll < need &&
+            certified.writtenNll - certified.accusedNll < certified.gainMargin &&
+            completePronunciationMatch(c.wordWritten, certified.recovered) &&
+            !completePronunciationMatch(c.wordAccused, certified.recovered)) return false;
+        if (options.wrongWordRecheck?.(c) === false) return false;
+      }
+      return margin >= need;
+    };
     // The ending is a few phones. Over the word plus its neighbours the next word's labels take those frames and
     // the written word looks almost as likely; on the word's own frames the consonant has to be accounted for.
     if (issue.wordLocal && issue.obsTo > issue.obsFrom) {
@@ -507,9 +550,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (a0 < frames.startFrame || b0 > frames.endFrame) return null;
       const word = ref.slice(words[issue.word].start, words[issue.last].end);
       const need = supportNeed(issue);
-      const expectedNll = frames.nll(ids(word), a0, b0), observedNll = frames.nll(ids(issue.observed ?? ""), a0, b0);
-      if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-      return expectedNll - observedNll >= need;
+      return compare(word, issue.observed ?? "", a0, b0, need);
     }
     // Same joint span as the edit comparison. A wide window that leaves the next word out lets its onset consonant
     // explain the ending a second time.
@@ -519,9 +560,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const through = nextWord(issue.last);
       const writtenPair = ref.slice(words[issue.word].start, words[through].end);
       const need = supportNeed(issue);
-      const expectedNll = frames.nll(ids(writtenPair), a0, b0), observedNll = frames.nll(ids(issue.pair), a0, b0);
-      if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-      return expectedNll - observedNll >= need;
+      return compare(writtenPair, issue.pair, a0, b0, need);
     }
     if (!at.length) return null;
     const f0 = obs[Math.min(...at)].start;
@@ -542,9 +581,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         ? span(from, issue.word) + observed + span(issue.word, to + 1)
         : span(from, issue.word) + (issue.cls === "wrong_word" ? observed : "") + span(issue.last + 1, to + 1);
     const need = supportNeed(issue);
-    const expectedNll = frames.nll(ids(written), f0, f1), observedNll = frames.nll(ids(decoded), f0, f1);
-    if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-    return expectedNll - observedNll >= need;
+    return compare(written, decoded, f0, f1, need);
   };
 
   /** Waqf and pause marks at the edges of a heard span. They are not part of the word. */
@@ -2457,6 +2494,13 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const c of p.robustNormRechecks ?? []) {
+        if (Number.isFinite(c.writtenNll) && Number.isFinite(c.accusedNll) && Number.isFinite(c.gainMargin) &&
+            Number.isInteger(c.fromFrame) && c.fromFrame >= 0 && Number.isInteger(c.toFrame) &&
+            c.toFrame > c.fromFrame && Number.isInteger(c.slotFromFrame) && Number.isInteger(c.slotToFrame) &&
+            c.slotFromFrame >= c.fromFrame && c.slotToFrame <= c.toFrame && c.slotToFrame > c.slotFromFrame)
+          robustNormEvidence.set(robustNormKey(c), c);
+      }
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {

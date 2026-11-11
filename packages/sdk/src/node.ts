@@ -11,6 +11,7 @@ import type { OrtModule } from "./ort.js";
 import { ortBackend } from "./ort.js";
 import { decodeWav } from "./wav.js";
 import { createInsertionTeacher } from "./insertion-teacher.js";
+import { createHash } from "node:crypto";
 
 export * from "./index.js";
 export { decodeWav };
@@ -22,7 +23,39 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachRobustNorm(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads), dir, options.threads);
+}
+
+/** The builder declares an independent graph in the model bundle. A partial or mismatched bundle fails closed. */
+async function attachRobustNorm(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
+  const opened: import("./model.js").InferenceBackend[] = [];
+  try {
+    const declaration = await readFile(join(dir, "robust-norm.json"), "utf8").catch(e => {
+      if (e.code === "ENOENT") return null; throw e;
+    });
+    if (!declaration) return model;
+    const asset = JSON.parse(declaration) as { recipe: string; sourceSha256: string; sha256: string; gainSha256: string };
+    if (asset.recipe !== "huber-biasnorm-m-scale-v1" || asset.sourceSha256 !== model.manifest.sha256)
+      throw new Error("RobustNorm graph recipe or parent differs from the primary model");
+    // Verify both files before opening either backend; the control is required.
+    const bytes = await readFile(join(dir, "robust-norm.onnx"));
+    const gainBytes = await readFile(join(dir, "robust-norm-gain.onnx"));
+    if (createHash("sha256").update(bytes).digest("hex") !== asset.sha256 ||
+        createHash("sha256").update(gainBytes).digest("hex") !== asset.gainSha256)
+      throw new Error("RobustNorm graph checksum mismatch");
+    for (const data of [bytes, gainBytes]) opened.push(await ortBackend(ort as unknown as OrtModule, data, "onnxruntime-node", {
+      executionProviders: ["cpu"], intraOpNumThreads: threads,
+    }));
+    model.robustNormModel = { manifest: model.manifest, supported: model.supported, backend: opened[0] };
+    model.robustNormGainModel = { manifest: model.manifest, supported: model.supported, backend: opened[1] };
+    const release = model.backend.release.bind(model.backend);
+    model.backend.release = async () => { for (const backend of opened) await backend.release(); await release(); };
+    return model;
+  } catch (error) {
+    for (const backend of opened) await backend.release();
+    await model.backend.release();
+    throw error;
+  }
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +120,7 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  const dir = join(o.cacheDir, `${tier.id}@${tier.version}`);
+  return attachRobustNorm(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
+    dir, o.threads), dir, o.threads);
 }

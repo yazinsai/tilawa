@@ -49,4 +49,8 @@ export interface LoadedModel {
   supported: ErrorClass[];
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
+  /** Separate robust BiasNorm graph, with the same weights and streaming clock. */
+  robustNormModel?: LoadedModel;
+  /** Matched gain-only control; cannot drive the primary decode. */
+  robustNormGainModel?: LoadedModel;
 }

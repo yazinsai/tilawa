@@ -9,6 +9,23 @@ export interface SeamInsertionEvidence {
   marginal: number;
 }
 
+/** Complete positive reading under robust BiasNorm on an unchanged string-path window. */
+export interface RobustNormEvidence {
+  word: WordRef;
+  written: string;
+  accused: string;
+  wordWritten: string;
+  wordAccused: string;
+  fromFrame: number;
+  toFrame: number;
+  slotFromFrame: number;
+  slotToFrame: number;
+  recovered: string;
+  writtenNll: number;
+  accusedNll: number;
+  gainMargin: number;
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -18,6 +35,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  robustNormRechecks?: RobustNormEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */
