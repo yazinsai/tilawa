@@ -1,0 +1,13 @@
+{
+ "id": "listener-reliability-fused-subband-ear",
+ "component": "listener",
+ "hypothesis": "A broadband encoder may let locally corrupted frequency bands dominate word identity; independently encoded bands with learned reliability fusion should remove 2 false warnings while losing 1 caught substitution: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T07:42:10+00:00",
+ "author": "autolab"
+}
