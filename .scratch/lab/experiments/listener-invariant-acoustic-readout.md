@@ -75,11 +75,12 @@ audio-session downgrades, graph exemptions and insertion preservation.
 
 Local Python syntax checks and `git diff --check` pass. Modal request 1 (data/model
 audit), request 2 (the supplied six-shard build/test harness), request 3 (a smaller
-audit), and request 4 (training/export) each failed with
+audit), request 4 (training/export), and request 5 (dependency-corrected
+training/export) each failed with
 `NotFoundError: No such file or directory` before command execution. The returned
-results contain no shard logs and report zero compute spend. Request 5 is a
-corrected training/export retry, explicitly installing CPU Torch, NumPy, ONNX and
-ONNX Runtime in the default Node sandbox. It is pending. These infrastructure errors
+results contain no shard logs and report zero compute spend. Request 5 explicitly
+installed CPU Torch, NumPy, ONNX and ONNX Runtime in its requested command for the
+default Node sandbox, but that command never launched. These infrastructure errors
 establish no acoustic result, target recovery, test pass or score.
 
 No practice score has been used. There is no verified trained bundle and no
@@ -89,7 +90,8 @@ evidence that recording-condition shortcuts are absent or that fewer than three
 target warnings are removed.
 
 Do not evaluate this branch with the primary model alone. Once the supervisor is
-restored, finish request 5, verify normal SDK loading and all declared bundle
+restored, reissue the dependency-corrected training/export command from request 5,
+verify normal SDK loading and all declared bundle
 files, rerun the six-shard tests, and inspect all four targets using the generic
 SDK comparison CLI on their actual evidence and audio. Declare the verified
 `bundle` through untracked `.autolab/model.json` only then. Fewer than three
