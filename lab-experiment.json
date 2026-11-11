@@ -1,0 +1,13 @@
+{
+ "id": "tracker-joint-boundary-realizations",
+ "component": "tracker",
+ "hypothesis": "Independent stop/continuation pronunciation choices may give the rhyme restart an impossible acoustic fit; sharing pronunciation state across each boundary predicts tracker -1 and overall 0 after one exposed listener warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T11:14:49+00:00",
+ "author": "autolab"
+}
