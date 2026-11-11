@@ -37,6 +37,7 @@ image = (
     .env({"PYTHONPATH": "/icefall:/icefall/egs/librispeech/ASR/zipformer:/root/tools", "HF_HOME": "/cache/hf"})
     .pip_install("rapidfuzz==3.14.1")
     .add_local_file("tools/student.py", "/root/tools/student.py")
+    .add_local_file("modal/student_reversible.py", "/root/student_reversible.py")
     .add_local_file("tools/per_breakdown.py", "/root/tools/per_breakdown.py")
     .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
@@ -96,12 +97,18 @@ def ints(s: str) -> tuple:
     return tuple(int(x) for x in str(s).split(","))
 
 
-def build_model(size: str):
+def build_model(size: str, upper_blocks: str | None = None):
     import torch.nn as nn
     from scaling import ScheduledFloat
     from student import VOCAB
     from subsampling import Conv2dSubsampling
     from zipformer import Zipformer2
+
+    encoder_factory = Zipformer2
+    if upper_blocks is not None:
+        from student_reversible import make_upper_encoder
+
+        encoder_factory = lambda **kwargs: make_upper_encoder(upper_blocks, **kwargs)
 
     p = {**COMMON, **SIZES[size]}
     dims = ints(p["encoder_dim"])
@@ -110,7 +117,7 @@ def build_model(size: str):
         def __init__(self):
             super().__init__()
             self.encoder_embed = Conv2dSubsampling(80, dims[0], dropout=ScheduledFloat((0.0, 0.3), (20000.0, 0.1)))
-            self.encoder = Zipformer2(
+            self.encoder = encoder_factory(
                 output_downsampling_factor=2,
                 downsampling_factor=ints(p["downsampling_factor"]),
                 num_encoder_layers=ints(p["num_encoder_layers"]),
@@ -498,7 +505,7 @@ def load_student(run: str):
     import torch
 
     ck = torch.load(f"/student/runs/{run}/ckpt.pt", map_location="cpu", weights_only=False)
-    model = build_model(ck["cfg"]["size"])
+    model = build_model(ck["cfg"]["size"], ck["cfg"].get("upper_blocks"))
     model.load_state_dict(ck["model"])
     return model, ck
 
