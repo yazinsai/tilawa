@@ -6,6 +6,7 @@ import { ayahsRecited, type CheckerEvent, type EngineEvent, type MemorizationPas
 import type { LoadProgress, Microphone, Tilawa } from "@tilawa/core/web";
 import { EXPLAIN, isShown } from "./lib/explain";
 import { ayahKey, displayIndex, indexQuran, surahList, type QuranText, type QuranVerse } from "./lib/quran-words";
+import { prepareMic } from "./lib/mic";
 import { cleanupOldClient } from "./migrate";
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -134,6 +135,8 @@ let starting = false;
 async function start(passage?: MemorizationPassage) {
   if (starting || take) return;
   starting = true;
+  // Before any await: keeps the tap's user gesture for iOS audio (listen() takes ownership).
+  let prepared = prepareMic();
   try {
     show("loading");
     const [tilawa, quran] = await Promise.all([loadTilawa(), loadQuran()]);
@@ -147,7 +150,9 @@ async function start(passage?: MemorizationPassage) {
       current.view.handle(e);
     });
     try {
-      current.mic = await tilawa.listen(session, { onLevel: meter });
+      const mic = prepared ? { onLevel: meter, prepared } : { onLevel: meter };
+      prepared = null;
+      current.mic = await tilawa.listen(session, mic);
     } catch (e) {
       session.dispose();
       showMicError(e);
@@ -156,6 +161,7 @@ async function start(passage?: MemorizationPassage) {
     take = current;
     show("listening");
   } catch (e) {
+    prepared?.release();
     if (e instanceof Error && e.name === "AbortError") return show("idle");
     console.error(e);
     $("load-error-detail").textContent = e instanceof Error ? e.message : String(e);
