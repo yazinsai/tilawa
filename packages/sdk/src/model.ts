@@ -47,7 +47,8 @@ export interface LoadedModel {
   backend: InferenceBackend;
   /** Error classes this model's evidence supports; the rest are reported `unsupported`. */
   supported: ErrorClass[];
-  /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
+  /** Frozen pronunciation completeness scorer; primary streaming outputs are preserved. */
   pronunciationCompleteness?: { model: import("./pronunciation-completeness.js").CompletenessModel; backend: InferenceBackend; head: InferenceBackend };
+  /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
 }
