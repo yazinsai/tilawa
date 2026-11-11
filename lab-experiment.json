@@ -1,0 +1,13 @@
+{
+ "id": "listener-preactivation-residual-score",
+ "component": "listener",
+ "hypothesis": "Non-invertible encoder activations may discard weak consonant distinctions before existing readouts see them; scoring the discarded information predicts 2 false warnings removed and 1 caught substitution lost: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T05:40:31+00:00",
+ "author": "autolab"
+}
