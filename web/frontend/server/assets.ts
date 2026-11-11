@@ -62,7 +62,8 @@ export function createAssetsV1(dir = process.env.ASSETS_V1_DIR ?? "./dist/v1") {
     const headers: Record<string, string> = {
       ...SHARED,
       "Content-Type": MIME[extname(path).toLowerCase()] ?? "application/octet-stream",
-      "Cache-Control": "public, max-age=31536000, immutable",
+      // Versioned files never change; the top-level index grows as versions are added.
+      "Cache-Control": rel === "manifest.json" ? "no-cache" : "public, max-age=31536000, immutable",
       "Accept-Ranges": "bytes",
       "Access-Control-Expose-Headers": "Content-Length, Content-Range, Accept-Ranges",
       "Last-Modified": stats.mtime.toUTCString(),

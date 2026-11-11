@@ -31,6 +31,7 @@ await writeFile(join(assets, "models", "m.onnx"), Buffer.from("0123456789abcdef"
 await writeFile(join(assets, "ort.wasm"), Buffer.from([0, 0x61, 0x73, 0x6d]));
 await writeFile(join(assets, "ort.mjs"), "export {}");
 await writeFile(join(assets, "ref-v1.json"), "{}");
+await writeFile(join(assets, "manifest.json"), "{}");
 
 const { createApp } = await import("../server/app");
 const { app } = createApp({ ...process.env, ASSETS_V1_DIR: assets });
@@ -106,6 +107,7 @@ test("/v1 assets: immutable, CORS *, CORP cross-origin, MIME, Range", async () =
   const r = await app.request("/v1/models/m.onnx");
   expect(r.status).toBe(200);
   expect(r.headers.get("cache-control")).toBe("public, max-age=31536000, immutable");
+  expect((await app.request("/v1/manifest.json")).headers.get("cache-control")).toBe("no-cache");
   expect(r.headers.get("access-control-allow-origin")).toBe("*");
   expect(r.headers.get("cross-origin-resource-policy")).toBe("cross-origin");
   expect(r.headers.get("content-type")).toBe("application/octet-stream");

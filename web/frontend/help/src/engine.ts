@@ -160,7 +160,7 @@ export async function loadEngine(onProgress: (p: LoadProgress) => void, options:
     if (mock) tilawa = await (await import("./engine-mock")).createMockTilawa({ onProgress: progress, signal: options.signal });
     else {
       const web = await import("@tilawa/core/web");
-      const real = await web.createTilawa({ onProgress: progress, signal: options.signal });
+      const real = await web.createTilawa({ assetBase: new URL("/v1/", location.href).href, onProgress: progress, signal: options.signal });
       tilawa = {
         startFreeRecitation: () => real.startFreeRecitation(),
         // VAD off: the session clock is then the whole take, so clips line up with what was said.
