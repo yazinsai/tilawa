@@ -58,10 +58,13 @@ equality, exact-window matching, graph preservation, evidence transport,
 end-of-session publication, and missing/corrupt asset rejection. These
 TypeScript tests have been written but have not returned a remote result.
 
-Supervisor runs 1 (data inspection) and 2 (environment probe) returned
+Supervisor runs 1 (data inspection), 2 (environment probe), and 3 (the required
+six-shard test harness) returned
 `NotFoundError: No such file or directory`, no container output and zero compute
-charge. Run 3 submitted the required six-shard test harness; run 4 submitted
-`bash modal/student_completeness_run.sh`. Both remain pending at this checkpoint.
+charge. Run 4 submitted `bash modal/student_completeness_run.sh` and remains
+pending at this checkpoint. The supervisor service must be restored before the
+experiment can be completed; this is an infrastructure blocker, not an acoustic
+kill result.
 The local NumPy installation cannot load its binary extension on this CPU;
 construction checks were made independent of that dependency and passed.
 
