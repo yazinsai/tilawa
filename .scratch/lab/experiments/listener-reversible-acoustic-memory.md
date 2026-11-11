@@ -92,11 +92,13 @@ unchanged stem, output clock and warmed caches against pinned icefall.
 
 Supervisor runs 1 and 4 (six-shard core/SDK tests), 2 (training-data/checkpoint
 probe), and 3 (training-image probe/focused tests) all failed before execution
-with `NotFoundError: No such file or directory`. All reported zero GPU spend
-and the entire $120 budget remaining. Run 5 requests the focused/native tests
-and direct paired trainer on H100, using the conventional
-`/student/prior-runs/spliced-clean/ckpt.pt` initialization path. The checkpoint
-path itself remains unverified because the inventory probes never executed.
+with `NotFoundError: No such file or directory`. Run 5 requested the focused/native
+tests and direct paired trainer on H100 and returned the same infrastructure
+error without command logs or a usable training result. The first four requests
+reported zero spend. Run 5 reported $0.5848 billed, $0.58 cumulative GPU spend
+and $119.42 remaining. Run 5 used the conventional
+`/student/prior-runs/spliced-clean/ckpt.pt` initialization path; the path itself
+remains unverified because the inventory probes never executed.
 
 The CPU test dependencies are isolated in an ignored virtual environment.
 Native icefall, full export parity, core tests and SDK tests still require the
