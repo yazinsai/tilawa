@@ -1,4 +1,13 @@
 import type { WordRef } from "./events.js";
+import type { SequenceEvidenceCandidate } from "./checker.js";
+
+/** Independent waveform codes reverse a matched shipped-feature scorer on this exact comparison. */
+export interface WavecodecEvidence extends SequenceEvidenceCandidate {
+  controlWritten: number;
+  controlRival: number;
+  codecWritten: number;
+  codecRival: number;
+}
 
 /** Auxiliary listener judgment over a complete seam, tied to one proposed spelling. */
 export interface SeamInsertionEvidence {
@@ -18,6 +27,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  wavecodecVetoes?: WavecodecEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

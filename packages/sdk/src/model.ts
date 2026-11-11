@@ -47,6 +47,8 @@ export interface LoadedModel {
   backend: InferenceBackend;
   /** Error classes this model's evidence supports; the rest are reported `unsupported`. */
   supported: ErrorClass[];
+  /** Frozen wavecodec extractor and training-selected matched emission arms. */
+  wavecodec?: { model: import("./wavecodec.js").WavecodecModel; backend: InferenceBackend };
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
 }
