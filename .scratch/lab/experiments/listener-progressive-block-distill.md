@@ -3,6 +3,40 @@
 Status: blocked by supervisor execution; no trained model or measured target result.
 The experiment card is unchanged.
 
+## Why the implementation cannot be completed here
+
+The supplied supervisor is the only authorized path to the training runtime,
+teacher checkpoints, enrolled training recordings and export environment. On
+revalidation, even a default-image request containing only `pwd` (run 5) failed
+with `NotFoundError: No such file or directory`. The training-image inventory
+request (run 6) failed with the same error. Neither returned command output.
+This establishes an execution blocker beyond an error in a proposed training
+script; it does not identify which supervisor resource is missing.
+
+Local package discovery confirms that Torch, Transformers, quran_muaalem and
+pytest are unavailable; this worktree also has no node_modules. Heavy training
+must run remotely, and the user prohibits looking for an alternative Modal
+connection or training files outside this worktree. Consequently, neither the
+progressive arm nor its required matched conventional control can be trained,
+selected or exported through an available permitted execution path.
+
+This matters to implementation as well as measurement. The teacher layer
+implementation is supplied by quran_muaalem, while the student stages come from
+icefall in the training image. The repository specifies how to construct and
+call these models, but does not contain those dependencies' actual encoder
+block implementations. Their interfaces and the available pretrained weights
+could not be inspected. A generic replacement wrapper, an assumed block API,
+or a different teacher cannot establish that compact blocks were trained
+through the actual remaining teacher network. Even a completed training script
+would still lack the trained, verified model bundle required for this experiment.
+
+The engine remains unchanged. The missing work
+is the real teacher/student block integration, audited training-speaker data
+admission, matched training, compact streaming export, complete insertion-teacher
+bundle verification and paired full-session target comparison. These require
+the supplied supervisor to execute commands successfully. The requested
+implementation remains incomplete until that execution environment is restored.
+
 ## Prediction and mechanism
 
 The prediction is two recovered additions and one collateral wrong call:
@@ -70,10 +104,25 @@ Supervisor run 4 requests only `pwd` in the default image to distinguish a
 general execution failure from a training-specific failure. It also returned
 `NotFoundError: No such file or directory` without command output.
 
-All four requests failed on 2026-11-11. No remote test, data inventory or training
-command produced a result. The supervisor reported $0.1022 for failed run 3,
-rounded cumulative spend of $0.10 and $299.90 remaining; this is not a completed
-training run.
+On revalidation, run 5 repeated `pwd` in the default image and run 6 retried
+dependency/checkpoint discovery in the training image. Both failed with the same
+error. Run 7 retried the six-shard build/core/SDK test harness with a five-minute
+timeout and also returned `NotFoundError: No such file or directory` without
+command output. Neither test request reached a reported build or test result.
+
+All seven requests failed on 2026-11-11. No remote test, data inventory
+or training command produced a result. Run 7 reports rounded cumulative spend
+of $0.10 and $299.90 remaining; this is not a completed training run.
+
+Static source inspection was repeated against `modal/student_train.py`,
+`modal/student_teacher_export.py`, `modal/student_export.py` and
+`packages/sdk/src/model.ts`. It confirms the distinct model construction and
+feature inputs, native streaming export state requirements, and the SDK's
+Zipformer-only primary architecture contract. It does not validate an actual
+replacement forward pass, gradient path, training partition, trained checkpoint
+or exported inference result. No engine behaviour was changed, so no new unit
+test is offered as a substitute for those checks. The required existing test
+harness was requested again; no passing test result is available.
 
 The experiment has not been killed on its premise. Neither zero target wins nor
 zero score change can be inferred from failed infrastructure requests. No
