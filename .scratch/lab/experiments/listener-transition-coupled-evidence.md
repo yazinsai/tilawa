@@ -1,7 +1,10 @@
 # Transition-coupled acoustic evidence
 
 Status: blocked by the supervisor's execution service; acoustic premise untested.
-No trained candidate is submitted. The experiment card is unchanged.
+The second attempt restored and improved the engine implementation, but cannot
+submit it with the required trained and verified assets: even a one-line
+command fails through the only authorized compute route. No trained candidate
+is submitted. The experiment card is unchanged.
 
 ## Prediction and decision rule
 
@@ -47,51 +50,78 @@ preferences: the independent control favours the rival and the coupled head
 favours the written pronunciation on that identical window. Graph
 confirmations are exempt. Public wrong-word verdicts are revised without
 changing the internal ownership ledger, preserving primary tracker events and
-insertion merges. The prototype's audio-side review occurs at session end;
-its live warning latency would need further validation before deployment.
+insertion merges. The second attempt replaced the end-only audio review with
+live frozen-feature capture on the identical primary streaming feeds and
+synchronous scoring before public confirmation. It also retains exact-window
+certificates for evidence replay after existing gap/insertion enrichment.
+Synthetic streaming tests passed, but real-model parity and live latency remain
+unverified.
 
 ## Validation and execution blocker
 
 Local Python syntax compilation and `git diff --check` passed for the
-prototype. Unit tests were authored for exhaustive tiny CTC path sums,
-forward/backward derivatives, equal parameter counts, strict finite
-reversals, exact certificate binding, and graph preservation. These tests
-were **not executed successfully**. Local core and SDK test commands cannot
-start Vitest because this worktree has no `node_modules`. The local NumPy
-installation also cannot import because its binary architecture differs from
-the local Python architecture. Heavy computation was not attempted locally.
+prototype. Three tiny Python tests passed using `arch -x86_64 python3`:
+exhaustive CTC path sums with complete acceptance, analytic forward/backward
+derivatives against finite differences, and empty-window semantics. The
+fourth test, instantiating the matched heads to count their parameters, could
+not run because that interpreter has no PyTorch. Native ARM Python cannot
+import the installed x86 NumPy extension. No training or heavy computation
+was attempted locally.
 
-Only the authorized supervisor runner was used. Its first three requests
-failed with `NotFoundError: No such file or directory`, without any returned
-container log or output directory:
+Node's built-in TypeScript transpiler and a small assert-backed harness ran
+four SDK tests and five checker tests successfully. These check exhaustive
+path sums, strict finite reversal, identical synthetic streaming feeds and
+primary evidence across push sizes, exact certificate binding, baseline
+issue creation, public-verdict-only changes, and graph preservation. The
+harness used the existing reference asset and authored synthetic fixtures.
+These isolated checks do not establish type-checking, real ONNX parity,
+actual target behaviour, or a pass of the required suites. Local core and SDK
+test commands cannot start Vitest because this worktree has no `node_modules`.
+
+Only the authorized supervisor runner was used. All eight requests have now
+finished with `NotFoundError: No such file or directory`, without any returned
+container log or output directory. The renewed minimal-command failure shows
+that the blocker also occurs without prototype code or data dependencies:
 
 | Request | Purpose | Result |
 | --- | --- | --- |
 | 1 | Probe authorized data, model directories and Python dependencies | Failed before any returned command output |
 | 2 | Required six-shard `bash tools/autolab_tests.sh` | Failed before any returned command output |
 | 3 | Retry authorized data and dependency discovery | Failed before any returned command output |
-| 4 | `python3 modal/test_student_transition.py` | No output after more than seven minutes; pending at cleanup |
-| 5 | Minimal `python3 -c "print(1729)"` | No output after more than seven minutes; pending at cleanup |
+| 4 | `python3 modal/test_student_transition.py` | Failed before any returned command output |
+| 5 | Minimal `python3 -c "print(1729)"` | Failed before any returned command output |
+| 6 | Renewed minimal `python3 -c "print(1729)"` | Failed before any returned command output |
+| 7 | Python unit tests, then authorized data/model/schema discovery | Failed before any returned command output |
+| 8 | Renewed required six-shard `bash tools/autolab_tests.sh` | Failed before any returned command output |
 
 The failure's underlying cause is unknown. It cannot be attributed to the
 training code, missing help-train recordings, or an acoustic mismatch without
-a container log. The remaining requests distinguish a basic runner failure
-from failures of data access or the prototype's dependencies.
+a container log. Results are retained locally in the ignored
+`.autolab/modal-result-1.json` through `.autolab/modal-result-8.json`; each
+reports the same error and zero dollars of compute. No request is pending.
 
 ## Limits and disposition
 
-No ONNX parity check, feature extraction, training, speaker-grouped model
+No real ONNX parity check, feature extraction, training, speaker-grouped model
 selection, SDK bundle-load check, or actual engine-window comparison completed.
 Target wins, losses, clean-session changes and studio changes are unmeasured.
 **Practice scores used: 0 of 3.** No overall delta is claimed.
 
-The unverified engine, training and test changes were removed after repeated
-runner failures and the two unanswered retries. The prototype is retained
-only in ignored worktree scratch at `.autolab/dev/transition-prototype/`;
-it is not a validated implementation. No `.autolab/model.json` or declared
-side bundle has been submitted: scoring the main listener without the trained
-side assets would not evaluate this mechanism. No killed outcome is recorded,
-because the acoustic premise and target-win threshold were not tested.
+The second attempt restored the prior prototype, corrected empty-window
+acceptance and added the live streaming hook and its parity test. After all
+renewed supervisor requests failed, the unverified engine, training and test
+changes were removed from the submission. The latest prototype is retained
+in ignored worktree scratch at `.autolab/dev/transition-prototype/`, with an
+updated `tracked.patch`, source/test files and `NOTES.md` for resuming. It is
+not a validated implementation.
+
+The final tracked change is this explanation of why the implementation cannot
+be completed in the available environment. The user's submission requirement
+is to finish and verify the complete side-asset bundle; the unavailable runner
+prevents that prerequisite. No `.autolab/model.json` or declared side bundle
+has been submitted: scoring the main listener without the trained side assets
+would not evaluate this mechanism. No killed outcome is recorded, because the
+acoustic premise and target-win threshold were not tested.
 
 To resume, the supervisor must first execute a basic command and the required
 tests. Then inspect eligible training-speaker coverage, export and verify the
