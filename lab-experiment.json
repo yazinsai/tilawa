@@ -1,0 +1,13 @@
+{
+ "id": "listener-reversible-acoustic-memory",
+ "component": "listener",
+ "hypothesis": "Upper encoder blocks may irreversibly discard faint consonant cues; reversible acoustic blocks should recover 2 of 9 missed additions, predicting listener -2 and overall -2, with substantial zero-gain risk.",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T09:58:41+00:00",
+ "author": "autolab"
+}
