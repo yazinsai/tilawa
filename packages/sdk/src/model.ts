@@ -47,6 +47,8 @@ export interface LoadedModel {
   backend: InferenceBackend;
   /** Error classes this model's evidence supports; the rest are reported `unsupported`. */
   supported: ErrorClass[];
+  /** Frozen encoder features and training-selected matched pronunciation heads. */
+  adversarialFeature?: { model: import("./adversarial-feature.js").AdversarialModel; backend: InferenceBackend };
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
 }
