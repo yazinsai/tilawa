@@ -1,0 +1,13 @@
+{
+ "id": "tracker-downstream-recovery-policy",
+ "component": "tracker",
+ "hypothesis": "Local restart selection optimizes position fit without learning its downstream warning consequences; train a recovery policy on complete engine continuations, predicting tracker -1 and overall 0 after one exposed listener warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T00:21:54+00:00",
+ "author": "autolab"
+}
