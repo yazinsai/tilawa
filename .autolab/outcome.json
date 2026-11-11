@@ -1,4 +1,4 @@
 {
   "status": "needs-human",
-  "reason": "Supervisor target reads returned NotFoundError and full-test/calibration requests have returned no results; a training-frozen model and measured target verdict remain unavailable."
+  "reason": "All four supervisor requests failed with NotFoundError and no usable command output; full tests, training calibration and a measured target verdict require infrastructure recovery."
 }

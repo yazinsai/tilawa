@@ -45,10 +45,10 @@ Supervisor requests:
 | --- | --- | --- |
 | 1 | Read target session/evidence layout | Supervisor `NotFoundError: No such file or directory`; no command log or data returned |
 | 2 | Read-only earlier-occurrence target audit | Same supervisor error; no target result |
-| 3 | Required build/core/SDK tests on six shards | Submitted at 04:09 UTC; still no result or logs at 04:31 UTC |
-| 4 | Build and training-only calibration | Submitted at 04:09 UTC; still no result or fit at 04:31 UTC |
+| 3 | Required build/core/SDK tests on six shards | Same supervisor `NotFoundError`; no build or test logs returned |
+| 4 | Build and training-only calibration | Same supervisor `NotFoundError`; no fit returned |
 
-Requests 3 and 4 remain pending; their execution has not been reported successful or failed. Read-only `modal-result` requests likewise returned no status during this work. The source changed after their submission, so the final committed branch requires the checks below even if an older snapshot eventually finishes.
+All four supervisor requests failed with no usable command output. Requests 3 and 4 took considerably longer to return their errors; neither ran a reported successful check or calibration. The final committed branch still requires the checks below after supervisor recovery.
 
 No practice score was requested (0 of 3). There is no measured target-win count or overall delta. An unavailable audit is not a zero-win result, and infrastructure trouble does not establish the card's premise kill.
 
