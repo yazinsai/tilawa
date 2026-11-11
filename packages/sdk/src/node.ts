@@ -1,4 +1,6 @@
 /** Node entry: onnxruntime-node, models from a directory, WAV input. */
+import { createHash } from "node:crypto";
+import { validateExemplarModel } from "./exemplar-density.js";
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import * as ort from "onnxruntime-node";
@@ -22,7 +24,7 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachExemplarDensity(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads), dir, options.threads);
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +89,36 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  const dir = join(o.cacheDir, `${tier.id}@${tier.version}`);
+  return attachExemplarDensity(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported }, dir, o.threads), dir, o.threads);
+}
+
+/** Optional declared side bundle; missing declared files fail before any decode. */
+async function attachExemplarDensity(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
+  try {
+    const descriptor = await readFile(join(dir, "exemplar-assets.json"), "utf8").catch(e => {
+      if (e.code === "ENOENT") return null;
+      throw e;
+    });
+    if (descriptor === null) return model;
+    const declared = JSON.parse(descriptor);
+    for (const file of ["exemplar-density.json", "exemplar-features.onnx"]) {
+      const entry = declared[file];
+      if (!entry || !Number.isSafeInteger(entry.bytes) || entry.bytes <= 0 || !/^[0-9a-f]{64}$/.test(entry.sha256))
+        throw new Error("Invalid exemplar asset descriptor");
+      const data = await readFile(join(dir, file));
+      if (data.length !== entry.bytes || createHash("sha256").update(data).digest("hex") !== entry.sha256)
+        throw new Error("Exemplar asset checksum mismatch");
+    }
+    if (model.manifest.sampleRate !== 16000 || model.manifest.frameMs !== 40)
+      throw new Error("Exemplar scorer requires the primary 16 kHz, 40 ms clock");
+    const parameters = validateExemplarModel(JSON.parse(await readFile(join(dir, "exemplar-density.json"), "utf8")), model.manifest);
+    const backend = await ortBackend(ort as unknown as OrtModule, join(dir, "exemplar-features.onnx"), "onnxruntime-node", {
+      executionProviders: ["cpu"], intraOpNumThreads: threads, graphOptimizationLevel: "disabled",
+    });
+    const release = model.backend.release.bind(model.backend);
+    model.backend.release = async () => { await backend.release(); await release(); };
+    model.exemplarDensity = { model: parameters, backend };
+    return model;
+  } catch (e) { await model.backend.release(); throw e; }
 }

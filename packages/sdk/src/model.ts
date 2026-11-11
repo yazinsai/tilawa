@@ -47,6 +47,8 @@ export interface LoadedModel {
   backend: InferenceBackend;
   /** Error classes this model's evidence supports; the rest are reported `unsupported`. */
   supported: ErrorClass[];
-  /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
+  /** Frozen pre-head exemplar side scorer; primary streaming outputs are preserved. */
+  exemplarDensity?: { model: import("./exemplar-density.js").ExemplarModel; backend: InferenceBackend };
+  /** Declared fp32 KD teacher for seam insertions. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
 }
