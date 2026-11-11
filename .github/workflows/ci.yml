@@ -22,44 +22,11 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: packages/core/package-lock.json
-      - uses: actions/cache@v4
-        id: zipformer
-        with:
-          key: zipformer-assets-a0w-ep1-a0.5-v1
-          path: |
-            web/frontend/public/models/zipformer_a0w_ep1_a05.int8.onnx
-            web/frontend/public/models/zipformer_interp_gentle_a05.int8.onnx
-            web/frontend/public/zipformer_quran.json
-      - if: steps.zipformer.outputs.cache-hit != 'true'
-        run: ../../web/frontend/scripts/fetch-zipformer-assets.sh
-      - run: npm ci # `prepare` runs tsc -> dist
-      - run: npx vitest run
-
-  browser:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: packages/core/package-lock.json
-      - uses: actions/cache@v4
-        id: zipformer
-        with:
-          key: zipformer-assets-a0w-ep1-a0.5-v1
-          path: |
-            web/frontend/public/models/zipformer_a0w_ep1_a05.int8.onnx
-            web/frontend/public/models/zipformer_interp_gentle_a05.int8.onnx
-            web/frontend/public/zipformer_quran.json
-      - if: steps.zipformer.outputs.cache-hit != 'true'
-        run: web/frontend/scripts/fetch-zipformer-assets.sh
       - run: npm ci
-        working-directory: packages/core
-      - run: npx playwright install --with-deps chromium
-        working-directory: packages/core
-      - run: npm run test:browser
-        working-directory: packages/core
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npx vitest run
+      - run: npm run test:pack
 
   demo:
     runs-on: ubuntu-latest

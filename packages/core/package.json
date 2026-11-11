@@ -1,22 +1,46 @@
 {
   "name": "@tilawa/core",
-  "version": "0.4.0",
-  "description": "Offline Quran verse recognition. Give it 16kHz audio, get surah:ayah. Pure TypeScript core with a pluggable ONNX runtime seam — works in web, node, and React Native.",
+  "version": "1.0.0-rc.0",
+  "description": "Offline, streaming Quran recitation engine: follows the reciter word by word and flags memorization mistakes, on-device in the browser, Node and React Native.",
   "type": "module",
+  "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    }
+    },
+    "./web": {
+      "types": "./dist/web.d.ts",
+      "import": "./dist/web.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "import": "./dist/node.js"
+    },
+    "./react-native": {
+      "types": "./dist/react-native.d.ts",
+      "import": "./dist/react-native.js"
+    },
+    "./report": {
+      "types": "./dist/report/index.d.ts",
+      "import": "./dist/report/index.js"
+    },
+    "./assets/*": "./assets/*",
+    "./package.json": "./package.json"
   },
   "files": [
     "dist",
+    "assets",
     "README.md",
-    "CHANGELOG.md",
     "LICENSE",
-    "NOTICE.md"
+    "NOTICE.md",
+    "CHANGELOG.md"
   ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20.12"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yazinsai/tilawa.git",
@@ -27,32 +51,47 @@
     "url": "https://github.com/yazinsai/tilawa/issues"
   },
   "author": "yazinsai",
+  "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
-  "scripts": {
-    "build": "rm -rf dist && tsc -p tsconfig.json",
-    "sync-docs": "cp ../../README.md README.md && cp ../../LICENSE LICENSE && cp ../../NOTICE.md NOTICE.md",
-    "prepare": "npm run build",
-    "prepack": "npm run sync-docs && npm run build",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:browser": "npm run build && node examples/browser/test.mjs"
-  },
   "keywords": [
     "quran",
-    "tarteel",
-    "asr",
+    "recitation",
+    "memorization",
+    "hifz",
     "speech-recognition",
     "onnx",
     "offline",
     "arabic"
   ],
-  "license": "MIT",
-  "devDependencies": {
-    "playwright": "^1.57.0",
-    "typescript": "^5.4.0",
-    "vitest": "^1.6.0"
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "sync-engine": "node scripts/sync-engine.mjs",
+    "sync-docs": "cp ../../README.md README.md && cp ../../LICENSE LICENSE && cp ../../NOTICE.md NOTICE.md",
+    "parity:golden": "node scripts/parity-golden.mjs",
+    "prepack": "npm run sync-docs && npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:pack": "node scripts/pack-smoke.mjs"
   },
-  "sideEffects": false
+  "peerDependencies": {
+    "onnxruntime-node": ">=1.20.0",
+    "onnxruntime-react-native": ">=1.20.0",
+    "onnxruntime-web": ">=1.19.0"
+  },
+  "peerDependenciesMeta": {
+    "onnxruntime-node": { "optional": true },
+    "onnxruntime-react-native": { "optional": true },
+    "onnxruntime-web": { "optional": true }
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "esbuild": "^0.28.2",
+    "onnxruntime-node": "1.30.0",
+    "onnxruntime-web": "1.30.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
+  }
 }

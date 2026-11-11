@@ -9,7 +9,7 @@ export interface ReportReceipt {
   receivedAt: string | null;
   /** Shown to the contributor once, for `DELETE …/reports/:id` with `X-Delete-Token`. Null when not returned. */
   deleteToken: string | null;
-  /** The server already had this `reportId` (HTTP 409, or a 200 for a repeated upload). */
+  /** The server already had this `reportId` (HTTP 200 for a byte-identical repeated upload). */
   duplicate: boolean;
   status: number;
 }
@@ -37,7 +37,7 @@ export class ReportSendError extends Error {
 
 /**
  * POSTs multipart `report` (report.json) + `audio` (audio.wav) to the app's endpoint. Idempotent on `reportId`, so
- * retries are safe and a duplicate reply counts as success. This is the only network I/O in @tilawa/core/report.
+ * retries are safe and a 200 duplicate reply counts as success (409 does not). This is the only network I/O in @tilawa/core/report.
  */
 export async function sendReport(report: TilawaReport, options: SendReportOptions): Promise<ReportReceipt> {
   if (!options || typeof options.endpoint !== "string" || !options.endpoint) throw new TypeError("sendReport needs options.endpoint");
@@ -66,7 +66,8 @@ export async function sendReport(report: TilawaReport, options: SendReportOption
       continue;
     }
     const text = await res.text().catch(() => "");
-    if (res.status === 409 || res.ok) return receiptOf(report.reportId, res.status, text);
+    // 201 new, 200 an identical retry. 409 means a different payload or a deleted id under this reportId: an error.
+    if (res.ok) return receiptOf(report.reportId, res.status, text);
     last = new ReportSendError(`Report upload failed with HTTP ${res.status}`, res.status, text);
     if (res.status !== 429 && res.status < 500) throw last;
   }
@@ -87,7 +88,7 @@ function receiptOf(reportId: string, status: number, text: string): ReportReceip
     reportId,
     receivedAt: typeof body.receivedAt === "string" ? body.receivedAt : null,
     deleteToken: typeof body.deleteToken === "string" ? body.deleteToken : null,
-    duplicate: status === 409 || body.duplicate === true,
+    duplicate: status === 200 || body.duplicate === true,
     status,
   };
 }

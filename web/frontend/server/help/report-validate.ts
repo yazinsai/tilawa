@@ -6,7 +6,7 @@
 // Rules (error code: rule):
 //   size.json        report.json ≤ 4 MiB (UTF-8 bytes)
 //   json             valid UTF-8 JSON object
-//   schema           schema === "tilawa.report/1" (unknown majors rejected; extra fields allowed)
+//   schema           "tilawa.report/1" or "tilawa.report/1.<minor>" (other majors rejected; extra fields allowed)
 //   uuid.*           reportId, sessionId, incidents[].id are lowercase 8-4-4-4-12 hex uuids
 //   fields.*         required field types (see checkShape)
 //   wav.header       canonical 44-byte header: "RIFF" size=len-8 "WAVE", "fmt " size 16,
@@ -35,13 +35,14 @@ export const MAX_NOTE_CHARS = 2000;
 export const INCIDENT_KINDS = ["false_warning", "missed_mistake", "wrong_position", "stumble", "unflagged_sample", "other"] as const;
 const ANSWERS = new Set(["yes", "no", "unsure", "skipped"]);
 const MODES = new Set(["free", "memorization"]);
+const SCHEMA = /^tilawa\.report\/1(\.\d+)?$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const CONTRIBUTOR = /^[A-Za-z0-9_-]{1,64}$/;
 const SHA256 = /^[0-9a-f]{64}$/;
 
 export type ReportIncidentKind = (typeof INCIDENT_KINDS)[number];
 export interface ValidatedReport {
-  schema: typeof REPORT_SCHEMA;
+  schema: string;
   reportId: string;
   sessionId: string;
   createdAt: string;
@@ -98,7 +99,7 @@ function checkIncident(inc: unknown, i: number, need: (ok: boolean, code: string
 }
 
 function checkShape(r: Obj, need: (ok: boolean, code: string) => void) {
-  need(r.schema === REPORT_SCHEMA, "schema");
+  need(typeof r.schema === "string" && SCHEMA.test(r.schema), "schema");
   need(isUuid(r.reportId), "uuid.reportId");
   need(isUuid(r.sessionId), "uuid.sessionId");
   need(isIso(r.createdAt), "fields.createdAt");

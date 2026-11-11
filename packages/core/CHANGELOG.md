@@ -1,5 +1,48 @@
 # Changelog
 
+## 1.0.0-rc.0
+
+A new engine. 1.0 replaces the 0.x verse matcher with the Tilawa streaming engine. It follows the reciter word by word and flags memorization mistakes as they happen. The API, events, model and assets are all new. See [Migrating from 0.4](#migrating-from-04).
+
+- **Word-level tracking and a mistake checker.** `position` events give the reciter's word (`{surah, ayah, word}`), and `checker` events flag `wrong_word`, `omitted_word`, `added_word` and `skipped_passage`. Each mistake goes `suspected` → `confirmed` / `resolved` / `uncertain`.
+- **Zero-config setup.** `createTilawa()` from `@tilawa/core/web` or `@tilawa/core/node` loads the model and the Quran reference: from `https://tilawa.dev/v1/` by default, cached, and checked against sha256. Use `assetBase` to self-host, or pass `reference` and `model` for offline use.
+- **Free recitation and declared passages.** `tilawa.startFreeRecitation()`, or `tilawa.startMemorization({ surah, fromAyah, toAyah })` when the app knows what is being read.
+- **Session lifecycle.** `active` → `ending` → `ended`, and `disposed`. `end()` is idempotent, and `pushAudio` after it rejects with `SessionEndedError`. Sessions have an `id` (uuid), a `startedAt` time and a session clock (`now()`). `pushAudio` takes audio at any sample rate and serialises calls itself.
+- **Model tiers.** `full` (`spliced-clean@1-int8`, 68 MB) and `lite` (`spliced-clean-lite@1-int8`, 25 MB). The default `tier: "auto"` picks `lite` on low-memory devices, and on mobile without WebGPU.
+- **Errors.** `TilawaLoadError {stage, cause}`, `ModelIntegrityError`, `ModelBudgetError`, `MicrophoneError {reason}`, `SessionEndedError`.
+- **Packaging.** Subpath exports with type conditions: `.`, `./web`, `./node`, `./react-native` (experimental), `./report`, `./assets/*`. ONNX Runtime is an optional peer dependency: `onnxruntime-web` ≥ 1.19, `onnxruntime-node` ≥ 1.20, `onnxruntime-react-native` ≥ 1.20. Node ≥ 20.12.
+- **Licensing.** The 1.x model and assets are not derived from Quran-Lab, so the 0.x NPL-1.2 restrictions don't apply to them. Attribution notices are in `NOTICE.md`.
+
+### Breaking changes
+
+- `createRecognitionSession`, `createZipformerSession`, `ZipformerSession`, `createTilawaSession` (FastConformer), `QuranDB`, `TextCTCDecoder`, `RecitationTracker`, `StreamingConfig` and its presets, `DEFAULT_ZIPFORMER_IO`, `DEFAULT_STRUCTURAL` and the `WorkerOutbound` event union are removed.
+- The `ort` namespace is no longer passed in. Install `onnxruntime-web` / `onnxruntime-node` and import the matching subpath.
+- Events: `verse_match`, `verse_candidate`, `word_progress`, `final_sequence`, `correction`, `correction_note`, `raw_transcript` and `debug` are replaced by `capabilities`, `position` and `checker` (schema `v: 1`).
+- The 0.x models (`zipformer-a0w-ep1-a0.5`, `interp-gentle`) and `zipformer_quran.json` / `quran.json` are not used. Their GitHub release URLs stay up for 0.x users.
+- The engine no longer returns display text. `WordRef` indexes Uthmani words; the app renders the text.
+- The model cache moves from the IndexedDB database `tarteel-models` to the Cache API cache `tilawa-models`. Apps can delete the old database.
+
+### Migrating from 0.4
+
+| 0.4 | 1.0 |
+|---|---|
+| `createRecognitionSession({ ort, model, corpus, quran })` | `const tilawa = await createTilawa()` (`@tilawa/core/web` or `/node`), then `tilawa.startFreeRecitation()` |
+| `setExpected({ surah, ayah, ayahEnd })` + `setMode("correction")` | `tilawa.startMemorization({ surah, fromAyah, toAyah })` |
+| `feed(samples16k)` | `session.pushAudio(samples, sampleRate)` (any rate) |
+| `stop()` / `flush()` | `await session.end()` |
+| `reset()` | `session.dispose()`, then start a new session |
+| `onEvent` / `onOutput` / returned `WorkerOutbound[]` | `session.subscribe(fn)`; `pushAudio`/`end` also return the same events |
+| `verse_match {surah, ayah, confidence}` / `verse_candidate` | `position` event: `observed[0].word`, `observed[0].confidence`, `state` |
+| `word_progress {surah, ayah, word_index}` | `position.observed[0].word`, plus `expected` in memorization sessions |
+| `final_sequence` | `ayahsRecited(events)` |
+| `correction` / `correction_note` | `checker` event `{id, state, errorClass, location, expected, observed}`; `session.mistakes()` for the confirmed ones |
+| `possible_omission` / `possible_substitution` / `possible_skipped_ayah` | `omitted_word` / `wrong_word` / `skipped_passage` |
+| `possible_vowel`, `possible_repetition`, `unclear_ayah` | Not supported in 1.0 (`capabilities.unsupported`); low-clarity checks end `uncertain` |
+| `correct(action)` retry/dismiss state machine | App-owned UI |
+| `setSlipHead`, `setStructural`, `StreamingConfig` presets | `SessionPolicy`: `confirm`, `minConfidence`, `countSelfCorrections` |
+| `raw_transcript`, `debug` | `createTilawa({ recordEvidence: true })`, then `session.evidence()` |
+| Microphone plumbing | `await tilawa.listen(session)` (web); VAD is off unless `{ vad: true }` |
+
 ## 0.4.0
 
 A better default model, and correction mode now catches skipped ayahs and look-alike-verse slips.

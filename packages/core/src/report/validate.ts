@@ -8,12 +8,12 @@ import { WAV_HEADER_BYTES, wavProblems } from "./wav.js";
  * both together.
  */
 
-export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const ISO_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
 const SCHEMA_RE = /^tilawa\.report\/(\d+)(\.\d+)?$/;
 const SHA_RE = /^[0-9a-f]{64}$/;
 const CONTRIBUTOR_RE = /^[A-Za-z0-9_-]{1,64}$/;
-const MAX_SOURCE_CHARS = 200;
+const MAX_SOURCE_CHARS = 128;
 const INCIDENT_KINDS = new Set(["false_warning", "missed_mistake", "wrong_position", "stumble", "unflagged_sample", "other"]);
 const ANSWERS = new Set(["yes", "no", "unsure", "skipped"]);
 

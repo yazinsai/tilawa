@@ -12,12 +12,12 @@ import re
 import struct
 import sys
 
-UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
+UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 ISO = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$")
 SCHEMA = re.compile(r"^tilawa\.report/(\d+)(\.\d+)?$")
 SHA = re.compile(r"^[0-9a-f]{64}$")
 CONTRIBUTOR = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
-MAX_SOURCE_CHARS = 200
+MAX_SOURCE_CHARS = 128
 MAX_INCIDENTS = 100
 MAX_NOTE_CHARS = 2000
 MAX_JSON_BYTES = 4 * 1024 * 1024

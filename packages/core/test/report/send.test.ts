@@ -56,9 +56,15 @@ describe("sendReport", () => {
     }
   });
 
-  it("treats 409 as a duplicate success", async () => {
-    const receipt = await sendReport(report, { endpoint: ENDPOINT, fetch: vi.fn().mockResolvedValue(reply(409)) });
-    expect(receipt).toMatchObject({ reportId: report.reportId, duplicate: true, deleteToken: null, status: 409 });
+  it("treats 409 (different payload or deleted id) as an error, without retrying", async () => {
+    const fetch = vi.fn().mockResolvedValue(reply(409));
+    await expect(sendReport(report, { endpoint: ENDPOINT, fetch })).rejects.toMatchObject({ status: 409 });
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("treats a 200 retry reply as a duplicate success", async () => {
+    const receipt = await sendReport(report, { endpoint: ENDPOINT, fetch: vi.fn().mockResolvedValue(reply(200)) });
+    expect(receipt).toMatchObject({ reportId: report.reportId, duplicate: true, status: 200 });
   });
 
   it("fails fast on other 4xx and gives up after the retries", async () => {
