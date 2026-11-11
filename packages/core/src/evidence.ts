@@ -1,4 +1,5 @@
 import type { WordRef } from "./events.js";
+import type { SequenceEvidenceCandidate } from "./checker.js";
 
 /** Auxiliary listener judgment over a complete seam, tied to one proposed spelling. */
 export interface SeamInsertionEvidence {
@@ -7,6 +8,14 @@ export interface SeamInsertionEvidence {
   fromFrame: number;
   toFrame: number;
   marginal: number;
+}
+
+export interface SessionReadoutPhoneEvidence extends SequenceEvidenceCandidate {
+  supportFrames: {fromFrame: number; toFrame: number; availableFrame: number}[];
+  unadaptedWritten: number;
+  unadaptedRival: number;
+  adaptedWritten: number;
+  adaptedRival: number;
 }
 
 export interface DecodedPhoneme {
@@ -18,6 +27,8 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  /** Complete written-versus-rival session-readout reversal, valid only on the exact certified rows. */
+  sessionReadoutVetoes?: SessionReadoutPhoneEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */
