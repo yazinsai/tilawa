@@ -36,8 +36,11 @@ image = (
     .run_commands(f"git clone https://github.com/k2-fsa/icefall /icefall && cd /icefall && git checkout {ICEFALL}")
     .env({"PYTHONPATH": "/icefall:/icefall/egs/librispeech/ASR/zipformer:/root/tools", "HF_HOME": "/cache/hf"})
     .pip_install("rapidfuzz==3.14.1")
+    .pip_install("quran-muaalem==0.2.2", "transformers==4.55.2")
     .add_local_file("tools/student.py", "/root/tools/student.py")
     .add_local_file("tools/per_breakdown.py", "/root/tools/per_breakdown.py")
+    .add_local_file("modal/student_tangent.py", "/root/tools/student_tangent.py")
+    .add_local_file("packages/core/assets/ref-v2.json", "/root/ref-v2.json")
     .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
 app = modal.App("tilawa-student-train", image=image)
@@ -89,6 +92,13 @@ DEFAULTS = dict(
     ckpt_every=1000,
     workers=12,
     seed=0,
+    acoustic_response_mode="",
+    acoustic_response_recipe="",
+    acoustic_response_weight=0.0,
+    acoustic_preservation_weight=0.0,
+    acoustic_anchor_run="",
+    acoustic_help_root="",
+    acoustic_reference_index="/root/ref-v2.json",
 )
 
 
@@ -148,7 +158,8 @@ def build_model(size: str):
     return Student()
 
 
-def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, seed: int, max_clips: int = 0):
+def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, seed: int, max_clips: int = 0,
+               allowed_keys: set | None = None):
     """Selected s1 clips held in memory: FLAC bytes and teacher top-5 in flat buffers with offsets."""
     import glob
 
@@ -163,7 +174,8 @@ def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, se
     for fi, f in enumerate(files):
         t = pq.read_table(f, columns=["shard", "row", "bucket", "split", "n_samples"]).to_pydict()
         for r, (sh, row, bk, sp, n) in enumerate(zip(t["shard"], t["row"], t["bucket"], t["split"], t["n_samples"])):
-            if bk in want and sp == split and n <= max_clip_s * SR and not held_out(gold, sh, row, sp):
+            if (bk in want and sp == split and n <= max_clip_s * SR and not held_out(gold, sh, row, sp)
+                    and (allowed_keys is None or f"{sh}:{row}" in allowed_keys)):
                 meta.append((fi, r, n))
     order = np.random.default_rng(seed).permutation(len(meta))
     if max_hours:
@@ -199,6 +211,7 @@ def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, se
 class ClipDataset:
     def __init__(self, clips: dict, cfg: dict, train: bool, aug: dict | None):
         self.c, self.cfg, self.train, self.aug = clips, cfg, train, aug
+        self.augmentation_epoch = 0
 
     def __len__(self):
         return len(self.c["ref"])
@@ -211,7 +224,9 @@ class ClipDataset:
         from student import mix_noise, phoneme_ids
 
         c, cfg = self.c, self.cfg
-        rng = np.random.default_rng()
+        paired = bool(cfg.get("acoustic_response_mode"))
+        # Matched arms consume identical audio, independently of worker order.
+        rng = np.random.default_rng([cfg["seed"], self.augmentation_epoch, i]) if paired else np.random.default_rng()
         wave, _ = sf.read(io.BytesIO(c["flac"][c["flac_off"][i] : c["flac_off"][i + 1]].tobytes()), dtype="float32")
         if self.train and self.aug:
             if rng.random() < cfg["rir_p"]:
@@ -226,13 +241,18 @@ class ClipDataset:
         if self.train and cfg["spec_aug"]:
             feats = spec_augment(feats, rng)
         lo, hi = c["top_off"][i], c["top_off"][i + 1]
-        return dict(
+        item = dict(
             i=i,
             feats=feats,
             target=torch.tensor(phoneme_ids(c.get("target", c["hyp"])[i]), dtype=torch.long),
             top_ids=torch.from_numpy(c["ids"][lo:hi].reshape(-1, 5).astype(np.int64)),
             top_p=torch.from_numpy(c["probs"][lo:hi].reshape(-1, 5).astype(np.float32)),
         )
+        if paired:
+            # The response passes have their own front ends, without SpecAugment.
+            # Transcript CTC and static KD still use the shipped feature chain.
+            item.update(wave=torch.from_numpy(np.ascontiguousarray(wave)), key=c["key"][i])
+        return item
 
 
 def pick(bank, rng):
@@ -267,7 +287,7 @@ def collate(items):
     import torch
     from torch.nn.utils.rnn import pad_sequence
 
-    return dict(
+    batch = dict(
         i=torch.tensor([x["i"] for x in items]),
         feats=pad_sequence([x["feats"] for x in items], batch_first=True, padding_value=-23.0259),
         feat_lens=torch.tensor([x["feats"].shape[0] for x in items]),
@@ -277,6 +297,9 @@ def collate(items):
         top_p=pad_sequence([x["top_p"] for x in items], batch_first=True),
         n_teacher=torch.tensor([x["top_ids"].shape[0] for x in items]),
     )
+    if "wave" in items[0]:
+        batch.update(waves=[x["wave"] for x in items], keys=[x["key"] for x in items])
+    return batch
 
 
 def batches(n_samples, max_batch_s: float, seed: int, shuffle: bool = True):
@@ -303,7 +326,7 @@ def batches(n_samples, max_batch_s: float, seed: int, shuffle: bool = True):
     return out
 
 
-def losses(model, b, cfg, device):
+def losses(model, b, cfg, device, response_provider=None, preservation_model=None, step=0):
     import torch
     import torch.nn.functional as F
     from student import soft_target_loss
@@ -327,8 +350,49 @@ def losses(model, b, cfg, device):
         kd = soft_target_loss(log_probs, top_ids, top_p, valid)
         out["kd"] = kd
         out["loss"] = out["loss"] + cfg["kd_weight"] * kd
+    mode = cfg.get("acoustic_response_mode", "")
+    if mode:
+        from student_tangent import deterministic_student, preservation_objective
+
+        if mode not in ("tangent", "ordinary") or cfg["target"] != "reference":
+            raise ValueError("Acoustic response training requires transcript CTC and a matched response mode")
+        if response_provider is None or preservation_model is None:
+            raise ValueError("Acoustic response training needs fresh teacher responses and the frozen ordinary-reading anchor")
+        valid = torch.arange(log_probs.shape[1], device=device)[None] < out_lens[:, None]
+        # Same input and stochastic-layer policy for the trainable and frozen
+        # preservation passes; otherwise dropout noise is itself a target.
+        with deterministic_student(model), torch.autocast(device.type, enabled=False):
+            ordinary, ordinary_lens = model(feats, feat_lens)
+        with torch.no_grad(), deterministic_student(preservation_model), torch.autocast(device.type, enabled=False):
+            anchored, anchored_lens = preservation_model(feats, feat_lens)
+        if not torch.equal(ordinary_lens, out_lens) or not torch.equal(anchored_lens, out_lens):
+            raise ValueError("Preservation changed the output clock")
+        out["preservation"] = preservation_objective(ordinary.float(), anchored.float(), valid)
+        out["response"] = response_provider.loss(model, b["waves"], b["keys"], step, mode, device)
+        out["loss"] = (out["loss"] + cfg["acoustic_preservation_weight"] * out["preservation"]
+                       + cfg["acoustic_response_weight"] * out["response"])
     out["frames"] = frames
     return out
+
+
+def evaluate_acoustic_objective(model, anchor, provider, clips, cfg, device):
+    """Select within the audited training-speaker validation partition only."""
+    import torch
+    from student_tangent import deterministic_student
+
+    ds = ClipDataset(clips, cfg, train=False, aug=None)
+    loader = torch.utils.data.DataLoader(ds, batch_sampler=batches(clips["n_samples"], cfg["max_batch_s"], 0, False),
+                                         collate_fn=collate, num_workers=cfg["workers"])
+    numerator, frames = 0.0, 0
+    with torch.no_grad(), deterministic_student(model):
+        for batch in loader:
+            result = losses(model, batch, cfg, device, provider, anchor, step=0)
+            n = int(result["frames"])
+            numerator += float(result["loss"]) * n
+            frames += n
+    if frames == 0:
+        raise ValueError("Empty training-speaker validation partition")
+    return numerator / frames
 
 
 def evaluate(model, clips, cfg, device, chunk=16, left=128):
@@ -397,6 +461,21 @@ def train(args: dict) -> dict:
 
     cfg = {**DEFAULTS, **args}
     assert cfg["name"], "name is required"
+    response_record = None
+    if cfg["acoustic_response_mode"]:
+        import math
+        from student_tangent import training_recipe
+
+        response_record = json.load(open(cfg["acoustic_response_recipe"]))
+        training_recipe(response_record)
+        if (cfg["acoustic_response_mode"] not in ("tangent", "ordinary") or cfg["target"] != "reference"
+                or not cfg["acoustic_anchor_run"] or cfg["acoustic_response_weight"] <= 0
+                or cfg["acoustic_preservation_weight"] <= 0 or cfg["ctc_weight"] <= 0
+                or cfg["kd_weight"] <= 0 or cfg["buckets"] != "clean-match"
+                or not cfg["acoustic_help_root"] or cfg["init"]
+                or not all(math.isfinite(cfg[k]) for k in ("acoustic_response_weight", "acoustic_preservation_weight",
+                                                          "ctc_weight", "kd_weight"))):
+            raise ValueError("Specify transcript CTC, static KD, positive response/preservation weights, help corpus and a shipped anchor")
     run = f"/student/runs/{cfg['name']}"
     os.makedirs(run, exist_ok=True)
     log = open(f"{run}/log.jsonl", "a")
@@ -411,18 +490,49 @@ def train(args: dict) -> dict:
     random.seed(cfg["seed"])
     device = torch.device("cuda")
     t0 = time.time()
-    train_clips = load_clips(cfg["buckets"], "train", cfg["max_hours"], cfg["max_clip_s"], cfg["seed"])
+    train_clips = load_clips(cfg["buckets"], "train", cfg["max_hours"], cfg["max_clip_s"], cfg["seed"],
+                             allowed_keys=set(response_record["training_keys"]) if response_record else None)
     if cfg["target"] == "spliced":
         from student import spliced_target
 
         train_clips["target"] = [spliced_target(r, h) for r, h in zip(train_clips["ref"], train_clips["hyp"])]
-    eval_clips = load_clips("clean-match", "test", 0, 60.0, 1, cfg["eval_max"])
+    eval_clips = load_clips("clean-match", "train" if response_record else "test", 0, 60.0, 1, cfg["eval_max"],
+                            allowed_keys=set(response_record["validation_keys"]) if response_record else None)
+    if cfg["target"] == "reference":
+        train_clips["target"], eval_clips["target"] = train_clips["ref"], eval_clips["ref"]
+    model = build_model(cfg["size"]).to(device)
+    response_provider, preservation_model = None, None
+    if response_record:
+        import hashlib
+        from student_tangent import append_help_none, corpus_sha256, muaalem_provider
+
+        anchor_path = f"/student/runs/{cfg['acoustic_anchor_run']}/ckpt.pt"
+        with open(anchor_path, "rb") as artifact:
+            if hashlib.file_digest(artifact, "sha256").hexdigest() != response_record["student_sha256"]:
+                raise ValueError("Ordinary-reading anchor differs from the audited checkpoint")
+        preservation_model, anchor_checkpoint = load_student(cfg["acoustic_anchor_run"])
+        if anchor_checkpoint["cfg"].get("acoustic_response_mode"):
+            raise ValueError("Matched continuations must start from the ordinary shipped checkpoint")
+        preservation_model = preservation_model.to(device).eval().requires_grad_(False)
+        model.load_state_dict(preservation_model.state_dict())
+        response_provider = muaalem_provider(response_record, device, cfg["seed"])
+        reference = json.load(open(cfg["acoustic_reference_index"]))
+        train_clips = append_help_none(train_clips, cfg["acoustic_help_root"], reference, response_record,
+                                      "training", response_provider.teacher)
+        eval_clips = append_help_none(eval_clips, cfg["acoustic_help_root"], reference, response_record,
+                                     "validation", response_provider.teacher)
+        for clips, partition in ((train_clips, "training"), (eval_clips, "validation")):
+            if set(clips["key"]) != set(response_record[f"{partition}_keys"]):
+                raise ValueError("Loader limits or source exclusions changed the frozen corpus")
+            clips["target"] = clips["ref"]
+        if corpus_sha256(train_clips, eval_clips) != response_record["training_data_sha256"]:
+            raise ValueError("Selected audio or transcript differs from the audited corpus")
     aug = {k: dict(np.load(f"/student/aug/{k}.npz")) for k in ("noise", "rir")} if os.path.exists("/student/aug/rir.npz") else None
+    if response_record and aug is None:
+        raise ValueError("Matched response training must retain the supplied augmentation banks")
     hours = train_clips["n_samples"].sum() / SR / 3600
     emit(event="data", train_clips=len(train_clips["ref"]), train_hours=float(hours), eval_clips=len(eval_clips["ref"]),
          aug=aug is not None, load_s=time.time() - t0, cfg=cfg)
-
-    model = build_model(cfg["size"]).to(device)
     n_params = sum(p.numel() for p in model.parameters())
     opt = ScaledAdam(get_parameter_groups_with_lrs(model, lr=cfg["base_lr"], include_names=True),
                      lr=cfg["base_lr"], clipping_scale=2.0)
@@ -430,6 +540,9 @@ def train(args: dict) -> dict:
     state = {"epoch": 0, "batch": 0, "step": 0}
     if os.path.exists(f"{run}/ckpt.pt"):
         ck = torch.load(f"{run}/ckpt.pt", map_location="cpu", weights_only=False)
+        if (response_record or ck["cfg"].get("acoustic_response_mode")) and (
+                ck.get("response_recipe") != response_record or ck["cfg"] != cfg):
+            raise ValueError("Response continuation cannot change its frozen recipe or matched-arm configuration")
         model.load_state_dict(ck["model"])
         opt.load_state_dict(ck["opt"])
         sched.load_state_dict(ck["sched"])
@@ -441,23 +554,37 @@ def train(args: dict) -> dict:
 
     def save():
         torch.save({"model": model.state_dict(), "opt": opt.state_dict(), "sched": sched.state_dict(), "state": state,
-                    "cfg": cfg}, f"{run}/ckpt.pt.tmp")
+                    "cfg": cfg, **({"response_recipe": response_record} if response_record else {})}, f"{run}/ckpt.pt.tmp")
         os.replace(f"{run}/ckpt.pt.tmp", f"{run}/ckpt.pt")
         vol.commit()
+
+    def select_acoustic_checkpoint():
+        if response_provider is None:
+            return
+        score = evaluate_acoustic_objective(model, preservation_model, response_provider, eval_clips, cfg, device)
+        emit(event="training-speaker-validation", step=state["step"], objective=score,
+             response_edge_rows=response_provider.edge_rows)
+        if score < state.get("best_acoustic_objective", float("inf")):
+            state["best_acoustic_objective"] = score
+            torch.save({"model": model.state_dict(), "state": dict(state), "cfg": cfg,
+                        "response_recipe": response_record}, f"{run}/selected.pt.tmp")
+            os.replace(f"{run}/selected.pt.tmp", f"{run}/selected.pt")
 
     ds = ClipDataset(train_clips, cfg, train=True, aug=aug)
     model.train()
     seen_s, tick = 0.0, time.time()
     while state["epoch"] < cfg["epochs"]:
+        ds.augmentation_epoch = state["epoch"]
         plan = batches(train_clips["n_samples"], cfg["max_batch_s"], cfg["seed"] + state["epoch"])
         loader = torch.utils.data.DataLoader(ds, batch_sampler=plan[state["batch"]:], collate_fn=collate,
-                                             num_workers=cfg["workers"], prefetch_factor=4, persistent_workers=False)
+                                             num_workers=cfg["workers"], persistent_workers=False,
+                                             **({"prefetch_factor": 4} if cfg["workers"] else {}))
         sched.step_epoch(state["epoch"])
         for b in loader:
             if state["step"] % 10 == 0:
                 for m in model.modules():
                     m.batch_count = state["step"] * cfg["max_batch_s"] / 600.0
-            out = losses(model, b, cfg, device)
+            out = losses(model, b, cfg, device, response_provider, preservation_model, state["step"])
             opt.zero_grad(set_to_none=True)
             if not torch.isfinite(out["loss"]):
                 state["skipped"] = state.get("skipped", 0) + 1
@@ -480,15 +607,22 @@ def train(args: dict) -> dict:
             if state["step"] % cfg["ckpt_every"] == 0:
                 save()
             if state["step"] % cfg["eval_every"] == 0:
-                emit(event="eval", set="clean-match-test", step=state["step"],
+                select_acoustic_checkpoint()
+                emit(event="eval", set="training-speaker-validation" if response_record else "clean-match-test", step=state["step"],
                      **{k: v for k, v in evaluate(model, eval_clips, cfg, device).items() if k != "samples"})
         state["epoch"] += 1
         state["batch"] = 0
+        select_acoustic_checkpoint()
         save()
 
+    if response_record:
+        selected = torch.load(f"{run}/selected.pt", map_location="cpu", weights_only=False)
+        model.load_state_dict(selected["model"])
     final = evaluate(model, eval_clips, cfg, device)
-    final.update(name=cfg["name"], size=cfg["size"], params=n_params, step=state["step"], train_hours=float(hours), cfg=cfg)
-    json.dump(final, open(f"{run}/eval-clean-match-test.json", "w"), ensure_ascii=False, indent=1)
+    final.update(name=cfg["name"], size=cfg["size"], params=n_params,
+                 step=selected["state"]["step"] if response_record else state["step"], train_hours=float(hours), cfg=cfg)
+    final_set = "training-speaker-validation" if response_record else "clean-match-test"
+    json.dump(final, open(f"{run}/eval-{final_set}.json", "w"), ensure_ascii=False, indent=1)
     vol.commit()
     emit(event="final", **{k: v for k, v in final.items() if k not in ("samples", "cfg")})
     return {k: v for k, v in final.items() if k != "samples"}
@@ -498,6 +632,11 @@ def load_student(run: str):
     import torch
 
     ck = torch.load(f"/student/runs/{run}/ckpt.pt", map_location="cpu", weights_only=False)
+    if ck["cfg"].get("acoustic_response_mode"):
+        selected = torch.load(f"/student/runs/{run}/selected.pt", map_location="cpu", weights_only=False)
+        if selected["cfg"] != ck["cfg"] or selected.get("response_recipe") != ck.get("response_recipe"):
+            raise ValueError("Selected response checkpoint differs from its frozen continuation")
+        ck = selected
     model = build_model(ck["cfg"]["size"])
     model.load_state_dict(ck["model"])
     return model, ck
