@@ -14,7 +14,10 @@ const manifest = { file: "primary.onnx", tokens: "بت", inventory: "muaalem-v3_
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.readFile.mockResolvedValue(JSON.stringify(manifest));
+  mocks.readFile.mockImplementation(async (path: string) => {
+    if (path.endsWith("/manifest.json")) return JSON.stringify(manifest);
+    throw Object.assign(new Error("absent"), { code: "ENOENT" });
+  });
 });
 
 describe("Node insertion teacher loading", () => {
@@ -30,6 +33,7 @@ describe("Node insertion teacher loading", () => {
     const model = await loadNodeModel("/models/caller", { threads: 2 });
     expect(model.backend).toBe(primary);
     expect(model.manifest).toEqual(manifest);
+    expect(model.preactivationResidual).toBeUndefined();
     expect(mocks.ortBackend).toHaveBeenCalledTimes(1);
     const wave = Float32Array.from({ length: 1600 }, (_, i) => Math.sin(i * .1));
     await model.insertionTeacher!.decode(wave, 3);
@@ -49,6 +53,7 @@ describe("Node insertion teacher loading", () => {
     const model = await loadNodeModel("/models/caller");
     expect(model.backend).toBe(primary);
     expect(model.insertionTeacher).toBeUndefined();
+    expect(model.preactivationResidual).toBeUndefined();
     expect(mocks.ortBackend).toHaveBeenCalledTimes(1);
   });
 
