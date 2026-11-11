@@ -3,11 +3,5 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ],
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@tilawa/core": ["../../packages/core/src/index.ts"]
-    }
-  }
+  ]
 }

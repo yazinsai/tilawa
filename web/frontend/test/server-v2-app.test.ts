@@ -127,8 +127,11 @@ test("/v1 assets: immutable, CORS *, CORP cross-origin, MIME, Range", async () =
   const pre = await app.request("/v1/models/m.onnx", { method: "OPTIONS", headers: { origin: "https://x.example" } });
   expect(pre.headers.get("access-control-allow-origin")).toBe("*");
 
-  // "/v1/%2e%2e/..." is normalized by URL parsing to a non-/v1 path; it must still not leak data.
-  expect((await app.request("/v1/%2e%2e/help/submissions.jsonl")).status).toBe(404);
+  // "/v1/%2e%2e/..." is normalized by URL parsing to a non-/v1 path; it must still not leak data. (With a built
+  // dist/ the SPA fallback answers it with index.html, so check the body rather than the status.)
+  const dotdot = await app.request("/v1/%2e%2e/help/submissions.jsonl");
+  expect(dotdot.status === 404 || dotdot.headers.get("content-type")?.startsWith("text/html")).toBe(true);
+  expect(await dotdot.text()).not.toContain("spk_legacy");
   for (const miss of ["/v1/nope.onnx", "/v1/models/", "/v1/..%2Fhelp%2Fsubmissions.jsonl", "/v1/models%2F..%2F..%2Fhelp%2Fsubmissions.jsonl"]) {
     const m = await app.request(miss);
     expect(m.status, miss).toBe(404);

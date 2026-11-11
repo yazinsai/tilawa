@@ -5,32 +5,30 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && node scripts/version-help-assets.mjs",
+    "build": "tsc -p tsconfig.app.json && vite build && node scripts/version-help-assets.mjs",
     "build:server": "npx esbuild server/index.ts --bundle --platform=node --format=esm --outfile=dist-server/index.mjs --packages=external",
     "start": "node dist-server/index.mjs",
     "preview": "vite preview",
     "help:dashboard": "node scripts/help-dashboard.mjs",
-    "test:correction": "tsx test/correction-audio.ts",
-    "test:streaming": "tsx test/stability-report.ts --repeats=1",
-    "test:streaming:matrix": "tsx test/stability-report.ts --repeats=3",
-    "test": "vitest run"
+    "test": "vitest run",
+    "assets:v1": "node scripts/prepare-v1-assets.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@fontsource/amiri": "^5.2.8",
     "@fontsource/ibm-plex-sans": "^5.3.0",
     "@fontsource/newsreader": "^5.3.0",
     "@hono/node-server": "^1.19.9",
+    "@tilawa/core": "file:../../packages/core",
     "hono": "^4.12.3",
-    "iconify-icon": "^3.0.2",
-    "onnxruntime-web": "^1.24.2"
+    "onnxruntime-web": "1.30.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "esbuild": "^0.27.3",
-    "onnxruntime-node": "1.21.0",
-    "tsx": "^4.19.0",
+    "fake-indexeddb": "^6.2.4",
     "typescript": "~5.9.3",
     "vite": "^7.3.1",
-    "vite-plugin-pwa": "^1.2.0",
     "vitest": "^3.2.7"
   }
 }
