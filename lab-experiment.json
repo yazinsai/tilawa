@@ -1,0 +1,13 @@
+{
+ "id": "listener-conflicting-audio-labels",
+ "component": "listener",
+ "hypothesis": "Identical training audio may receive incompatible phone transcripts, teaching stable consonant confusions; exclude contradictory supervision in a bounded head refit, predicting 1 fewer listener and overall wrong call.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T09:55:48+00:00",
+ "author": "autolab"
+}
