@@ -444,7 +444,9 @@ function announceAyah() {
 function onPosition(p: LivePosition) {
   state.posState = p.state;
   const prev = state.shown;
-  if (p.word) {
+  // Follow only a locked position: acquiring/ambiguous candidates jump between similar ayahs and would make the
+  // display and the screen reader flick (same rule as the main demo).
+  if (p.word && p.state === "locked") {
     state.shown = p.word;
     if (!prev || prev.surah !== p.word.surah || prev.ayah !== p.word.ayah) announceAyah();
   }
