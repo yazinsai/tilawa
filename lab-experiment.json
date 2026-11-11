@@ -1,0 +1,13 @@
+{
+ "id": "listener-accumulation-before-clipping",
+ "component": "listener",
+ "hypothesis": "Clipping training gradients separately for each microbatch may suppress rare weak-consonant updates; accumulate the full weighted gradient before clipping, predicting 1 recovered addition, no losses, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T20:08:19+00:00",
+ "author": "autolab"
+}
