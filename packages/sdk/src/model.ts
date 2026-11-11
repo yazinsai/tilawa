@@ -47,6 +47,8 @@ export interface LoadedModel {
   backend: InferenceBackend;
   /** Error classes this model's evidence supports; the rest are reported `unsupported`. */
   supported: ErrorClass[];
+  /** Independently encoded frequency bands and the matched broadband control. */
+  subbandEar?: { model: import("./subband-ear.js").SubbandModel; fused: InferenceBackend; control: InferenceBackend };
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
 }

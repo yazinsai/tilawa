@@ -1,9 +1,11 @@
 /** Node entry: onnxruntime-node, models from a directory, WAV input. */
+import { createHash } from "node:crypto";
+import { validateSubbandModel } from "./subband-ear.js";
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import * as ort from "onnxruntime-node";
 import { MEMORIZATION_CLASSES } from "./capabilities.js";
-import type { LoadedModel, ModelManifest } from "./model.js";
+import type { InferenceBackend, LoadedModel, ModelManifest } from "./model.js";
 import { fetchModel } from "./models.js";
 import type { FetchModelOptions, ModelRegistry, ModelStorage } from "./models.js";
 import { MODEL_REGISTRY } from "./registry.js";
@@ -22,7 +24,52 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachSubbandModel(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads), dir, options.threads);
+}
+
+/** A declared side bundle must be complete, hashed and tied to this exact primary graph. */
+async function attachSubbandModel(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
+  try {
+    const descriptor = await readFile(join(dir, "subband-ear-asset.json"), "utf8").catch(e => {
+      if (e.code === "ENOENT") return null;
+      throw e;
+    });
+    if (descriptor === null) return model;
+    const asset = JSON.parse(descriptor);
+    if (asset.schema !== 1 || !Array.isArray(asset.files) || asset.files.length !== 3 ||
+      asset.files[0].file !== "subband-ear-config.json" || asset.files[1].file !== "subband-fused.onnx" || asset.files[2].file !== "subband-control.onnx")
+      throw new Error("Invalid subband ear asset descriptor");
+    const files: Buffer[] = [];
+    for (const entry of asset.files) {
+      if (!Number.isSafeInteger(entry.bytes) || entry.bytes <= 0 || !/^[0-9a-f]{64}$/.test(entry.sha256))
+        throw new Error("Invalid subband ear file declaration");
+      const bytes = await readFile(join(dir, entry.file));
+      if (bytes.length !== entry.bytes || createHash("sha256").update(bytes).digest("hex") !== entry.sha256)
+        throw new Error("Subband ear asset checksum mismatch");
+      files.push(bytes);
+    }
+    if (model.manifest.sampleRate !== 16000 || model.manifest.frameMs !== 40)
+      throw new Error("Subband ear requires 16 kHz / 40 ms geometry");
+    const primaryBytes = await readFile(join(dir, model.manifest.file));
+    if (createHash("sha256").update(primaryBytes).digest("hex") !== model.manifest.sha256)
+      throw new Error("Subband ear primary model checksum mismatch");
+    const fitted = validateSubbandModel(JSON.parse(files[0].toString("utf8")), model.manifest);
+    const fused = await ortBackend(ort as unknown as OrtModule, join(dir, "subband-fused.onnx"), "onnxruntime-node", {
+      executionProviders: ["cpu"], intraOpNumThreads: threads,
+    });
+    let control: InferenceBackend;
+    try {
+      control = await ortBackend(ort as unknown as OrtModule, join(dir, "subband-control.onnx"), "onnxruntime-node", {
+        executionProviders: ["cpu"], intraOpNumThreads: threads,
+      });
+    } catch (e) { await fused.release(); throw e; }
+    const release = model.backend.release.bind(model.backend);
+    model.backend.release = async () => {
+      try { await fused.release(); } finally { try { await control.release(); } finally { await release(); } }
+    };
+    model.subbandEar = { model: fitted, fused, control };
+    return model;
+  } catch (e) { await model.backend.release(); throw e; }
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +134,6 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  return attachSubbandModel(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
+    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads), join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
 }
