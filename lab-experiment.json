@@ -1,0 +1,13 @@
+{
+ "id": "listener-progressive-block-distill",
+ "component": "listener",
+ "hypothesis": "Simultaneous teacher-to-student compression may discard weak consonant distinctions that stronger surrounding layers could preserve during training; progressive block replacement predicts 2 recovered additions and 1 collateral wrong call: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T08:50:01+00:00",
+ "author": "autolab"
+}
