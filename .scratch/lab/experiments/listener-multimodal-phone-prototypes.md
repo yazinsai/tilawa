@@ -69,10 +69,12 @@ Supervised requests failed with `NotFoundError: No such file or directory`:
 - Run 1: L4 training-image input/checkpoint/storage audit, five-minute reservation.
 - Run 2: CPU training-image prototype unit tests, five-minute reservation.
 - Run 4: prescribed six-shard core/SDK build and test harness, fifteen-minute reservation.
+- Run 5: minimal `python3 -c 'print("container reached")'` execution,
+  two-minute reservation, also failed with the same missing-resource error.
 
-Run 3 retries the Python tests in the L4 training image. Run 5 checks minimal
-container execution without training dependencies. Their results will be added
-when available. The failed audit returned no checkpoint inventory, training
+Run 3 retries the Python tests in the L4 training image; its result is pending.
+The minimal run 5 failure establishes that the blocker does not depend on
+training imports, dataset paths or the unit-test command. The failed audit returned no checkpoint inventory, training
 schema, speaker counts or container storage measurements. The supervisor
 reported $0.24 spent after run 1; no training was performed.
 
