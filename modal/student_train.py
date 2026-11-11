@@ -37,6 +37,7 @@ image = (
     .env({"PYTHONPATH": "/icefall:/icefall/egs/librispeech/ASR/zipformer:/root/tools", "HF_HOME": "/cache/hf"})
     .pip_install("rapidfuzz==3.14.1")
     .add_local_file("tools/student.py", "/root/tools/student.py")
+    .add_local_file("modal/student_scale_bypass.py", "/root/tools/student_scale_bypass.py")
     .add_local_file("tools/per_breakdown.py", "/root/tools/per_breakdown.py")
     .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
@@ -96,7 +97,7 @@ def ints(s: str) -> tuple:
     return tuple(int(x) for x in str(s).split(","))
 
 
-def build_model(size: str):
+def build_model(size: str, normalization_scale_bypass: str = ""):
     import torch.nn as nn
     from scaling import ScheduledFloat
     from student import VOCAB
@@ -145,7 +146,12 @@ def build_model(size: str):
             self.encoder.chunk_size = ints(p["chunk_size"])
             self.encoder.left_context_frames = ints(p["left_context_frames"])
 
-    return Student()
+    model = Student()
+    if normalization_scale_bypass:
+        from student_scale_bypass import install_scale_bypass
+
+        install_scale_bypass(model, normalization_scale_bypass)
+    return model
 
 
 def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, seed: int, max_clips: int = 0):
@@ -498,7 +504,7 @@ def load_student(run: str):
     import torch
 
     ck = torch.load(f"/student/runs/{run}/ckpt.pt", map_location="cpu", weights_only=False)
-    model = build_model(ck["cfg"]["size"])
+    model = build_model(ck["cfg"]["size"], ck["cfg"].get("normalization_scale_bypass", ""))
     model.load_state_dict(ck["model"])
     return model, ck
 
