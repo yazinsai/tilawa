@@ -1,37 +1,49 @@
 # Coupled shared-phone assignments at a local restart
 
-Status: blocked on Modal infrastructure; premise and target outcome are unmeasured. No engine change is retained and the experiment has not been killed.
+Status: engine implementation retained; target premise, target wins and full validation are blocked by the supervisor's Modal launcher. Not killed and not scored.
 
 ## Prediction
 
-Tracker -1 wrong call, overall +0 on lab-v1.5u practice. Correcting the binding may expose the documented nearby listener false warning. Target: `lab-v1.5-p46/phone/warning:skipped_passage/54:36:1/121.84`. The card remains unchanged.
+Tracker -1 wrong call, overall +0 on lab-v1.5u practice. Correcting the binding may expose the documented nearby listener false warning. Target: `lab-v1.5-p46/phone/warning:skipped_passage/54:36:1/121.84`. `lab-experiment.json` is unchanged.
 
-## Proposed mechanism
+## Implemented mechanism
 
-Represent a competing continuation and restart as a paired edit graph. Corresponding shared pronunciation subsequences must consume the same observed-token intervals. Differing subsequences keep separate edit paths. Marginalize ambiguous reference correspondences with normalized weights, symmetrically, while keeping edit prices, movement penalties, comparison horizon and commitment margin. Comparisons already using identical shared-phone assignments should stay unchanged.
+`tracker.ts` now supplies a paired comparison to `createLocalSearch`. `local.ts` retains immutable predecessors carrying the original reference cursor, observed frontier, directed edit, movement entry price and cumulative cost. Save/restore and reference recentering retain those predecessors. When the ordinary optimum proposes a new run origin, the best two distinct run origins compete through the paired comparison. Adjacent endpoints of the same origin do not compete with each other.
 
-The first decision is a premise audit: reconstruct both minimum-cost paths at the target restart and compare their shared-phone assignments. If those assignments are already identical, kill on the premise. Otherwise build the paired graph and check whether coupling changes the preference. No target recovery or practice delta is claimed without a successful replay.
+The tracker reconstructs both suffixes at their common predecessor, verifies that they consume the same complete observed string, and preserves the shared prefix cost. `coupled.ts` builds the common pronunciation correspondence from every distinct maximum common subsequence of reference-phone indices. It enumerates index-pair sequences rather than deletion routes, so equivalent correspondence routes do not receive duplicate weight.
 
-## Source inspection and prepared audit
+For each correspondence, the paired edit graph requires corresponding shared phones to consume the same observation, or be deleted at the same observation frontier. Each intervening differing span keeps its own exact edit path on that observed interval. Edit prices use the original reference context, retaining duration-run prices. Entry prices remain attached to their original phone, and a jump's first phone still has to consume an observation. The joint minimum uses the sum of the two costs, symmetrically. Equal joint-cost bindings get equal normalized weight; distinct reference correspondences get equal normalized weight. Candidate scores are the negative log of their mean edit likelihood, converted using the existing `UNIT`.
 
-The local recurrence lives in `packages/core/src/local.ts`, called by `tracker.ts`. It uses an immutable previous cost row for consuming transitions, a current-row reference deletion closure, and jumps from the previous best state to word starts. It compares raw weighted costs and recentres across a two-ayah window on either side. The inspection alone does not establish the target's token assignments.
+Already identical shared assignments and pronunciations with no shared phones return their original costs exactly. The paired scores change cursor selection at a restart, while the original edit recurrence and recent-cost accounting remain intact. Movement constants, the two-ayah reference window, the retained observed comparison interval and the tracker's commitment rules remain unchanged. Checker and listener code are untouched.
 
-The target's near pronunciation is `بِننننُذُر`; the rhyme restart is `وَنُذُر`. Their shared `نُذُر` has four possible reference-noon correspondences because of the expanded noon run. This is a reference fact, not evidence that their observed-token assignments differ. Those alternatives must be accounted for before interpreting a binding difference.
+## Validation
 
-A temporary diagnostic copy of the unchanged tracker/local recurrence was prepared. It records predecessor, operation, reference offset, observed-token index and charged price at each finite cell, carries predecessor identities through recentering and save/restore, and exports the competing paths around 121.84 seconds. The probe also compares every emitted event with a parallel run of the original tracker and fails if instrumentation changes an event. The diagnostic copies were not added to engine source. They could not execute successfully, so neither event equivalence nor the target tracebacks were validated.
+Eight small synthetic fixture checks passed using Node's type stripping and an assertion harness over temporary source copies, without installing dependencies or running heavy work on the Mac:
 
-## Validation infrastructure
+- Identical shared assignments return exact original costs, including an entry price.
+- Differing spans retain their separate edit costs and swapping operands swaps scores.
+- An expanded four-noon run has all four correspondences, with no free match credit from their multiplicity.
+- Unrelated pronunciations remain unchanged.
+- Incompatible shared-token assignments charge both candidates symmetrically.
+- Binding alone can reverse a synthetic preference under existing short-vowel versus consonant edit prices, while preserving a private entry charge.
+- A neutral comparison with provenance preserves the original recurrence over a synthetic repeated word.
+- Rewinding paired histories reproduces subsequent positions and costs.
 
-All execution requests used the authorized supervisor command, never direct Modal access:
+These are fixture checks, not a claim that Vitest, the builds or the complete core/SDK suites passed. Temporary source copies and diagnostics were removed from the final diff.
 
-- Modal run 1: target traceback audit. Returned `NotFoundError: No such file or directory`, with no shard log or audit output.
-- Modal run 2: `bash tools/autolab_tests.sh`, six shards, covering the core/SDK builds and tests. Returned the same supervisor error, with no test output.
-- Modal run 3: minimal `pwd` launch check, to distinguish a runner launch failure from a probe failure. Result pending when this record was prepared.
+All external execution used the authorized supervisor command:
 
-The returned errors do not identify a missing path. They do not establish a code error, a premise failure, or a target win/loss. No practice scoring request was made: all three allowed practice scores remain unused.
+- Run 4, minimal `pwd`: supervisor `NotFoundError: No such file or directory`, no command log.
+- Run 5, six-shard `bash tools/autolab_tests.sh`: same launcher failure, no build or test output.
+- Run 6, target paired traceback and product replay: same launcher failure, no evidence or result. The prepared audit compared a neutral instrumented tracker against the original tracker event by event and was intended to record the shared reference/observation assignments around the target plus the changed product's checker events. It never executed.
+- Run 7, six-shard validation of the later implementation and seven initial unit tests: the same supervisor launcher failure, with no build or test output. The eighth synthetic preference test and final arithmetic/selection cleanup were added afterward; they passed the same local fixture harness.
 
-## Limits and resumption
+No practice scoring request was made. All three allowed practice scores remain unused.
 
-Implementation remains unfinished because the required target premise audit cannot run. Restore the supervisor's Modal runner, reconstruct the two paths over the same heard interval, examine all normalized shared-phone correspondences, and then apply the card's premise test. If coupling is warranted, implement it in engine code with synthetic unit tests, run the core and SDK checks, and replay the target before any score or kill decision.
+## Limits and next decision
 
-No scorer, lab tooling, manifests, test data or evidence was edited. No `killed` outcome is written: an infrastructure failure is not a measured falsification of this hypothesis.
+The target's shared-phone assignments remain unknown. The reference's expanded noon creates correspondence ambiguity, but that alone does not prove that independently repositioned shared sounds cause the target restart. Neither a target win nor zero target wins is established, so an infrastructure error cannot justify a killed outcome.
+
+The graph re-aligns the two retained trajectories' reference and movement sequences; it does not introduce new movement routes. Full-suite compatibility, real-session latency and memory are unverified. Exact correspondence enumeration can be expensive for long, repetitive divergent histories, and predecessor retention adds memory; those costs require Modal validation before any claim of practical streaming performance.
+
+Once the supervisor can launch jobs, reconstruct the baseline target pair, check whether its shared assignments differ, run the built paired product and inspect the target warning. Kill if the premise is absent or the built change wins fewer than three targets, reverting engine/test changes and recording the measured reason. Otherwise run practice scoring under the user's three-score limit and let the supervisor's fold gate decide. No scorer, lab tooling, manifests, test data or evidence was edited, and no fold or discard was performed.

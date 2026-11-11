@@ -6,11 +6,41 @@ import type { EngineEvent, PositionCandidate, PositionEvent, TraceCandidate, Tra
 import { EvidenceError } from "./evidence.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { createLocalSearch } from "./local.js";
-import type { LocalPosition, LocalSearch } from "./local.js";
+import type { LocalPathStep, LocalPosition, LocalSearch } from "./local.js";
+import { coupledPhoneCosts } from "./coupled.js";
+import type { CoupledPath } from "./coupled.js";
 import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
 import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-spans.js";
 import type { SlotSpan } from "./slot-spans.js";
+
+/** Reconstruct competing suffixes at their common predecessor; neither can drop a difficult observed prefix. */
+export function coupledLocalCosts(ref: string, left: LocalPathStep, right: LocalPathStep): { left: number; right: number } {
+  let a: LocalPathStep | null = left, b: LocalPathStep | null = right;
+  while (a && b && a.depth > b.depth) a = a.parent;
+  while (a && b && b.depth > a.depth) b = b.parent;
+  while (a && b && a !== b) { a = a.parent; b = b.parent; }
+  if (!a || !b) return { left: left.cost, right: right.cost };
+  const common = b;
+  const suffix = (end: LocalPathStep) => {
+    const steps: LocalPathStep[] = [];
+    for (let p = end; p !== common; p = p.parent!) steps.push(p);
+    return steps.reverse();
+  };
+  const ls = suffix(left), rs = suffix(right);
+  const heard = (steps: LocalPathStep[]) => steps.flatMap(p => p.observed === null ? [] : [p.observed]).join("");
+  const observed = heard(ls);
+  if (observed !== heard(rs)) throw new Error("Local comparison paths consume different observations");
+  const path = (steps: LocalPathStep[], end: LocalPathStep): CoupledPath => ({ start: common.offset,
+    cost: end.cost - common.cost, phones: steps.filter(p => p.reference !== null).map(p => ({
+      at: p.reference!, entry: p.entry, consumes: p.jump,
+      observed: p.observed === null ? null : p.parent!.consumed - common.consumed,
+      frontier: p.parent!.consumed - common.consumed,
+    })) });
+  const scores = coupledPhoneCosts(ref, observed, path(ls, left), path(rs, right));
+  if (!scores.disputed) return { left: left.cost, right: right.cost };
+  return { left: common.cost + scores.left, right: common.cost + scores.right };
+}
 
 export interface TrackerOptions {
   mode?: "free" | "memorization";
@@ -869,7 +899,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
-    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) },
+      (left, right) => coupledLocalCosts(index.phonemes, left, right));
     weak = false;
     pending = null;
     reacquiring = false;

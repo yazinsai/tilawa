@@ -41,11 +41,28 @@ export interface LocalSearch {
   restore(state: unknown): void;
 }
 
+/** Immutable predecessor, including the observed frontier and the original directed edit charge. */
+export interface LocalPathStep {
+  parent: LocalPathStep | null;
+  depth: number;
+  offset: number;
+  consumed: number;
+  cost: number;
+  reference: number | null;
+  observed: string | null;
+  entry: number;
+  jump: boolean;
+}
+
+export type LocalComparison = (left: LocalPathStep, right: LocalPathStep) => { left: number; right: number };
+
 /**
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
- * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
+ * a time, with jump arcs from the best state to any word start in the window. The edit recurrence is bounded by the
+ * reference window; an optional paired comparison reconstructs competing suffixes before selecting a restart.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">,
+  compare?: LocalComparison): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -68,6 +85,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let cost = new Float64Array(0);
   let origin = new Int32Array(0);
   let edits = new Int32Array(0);
+  let paths: (LocalPathStep | null)[] = [];
   let best = start.offset;
   let ayah = -1;
   const recent: number[] = [];
@@ -81,24 +99,29 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     const c = new Float64Array(newHi - newLo + 1).fill(Infinity);
     const o = new Int32Array(c.length);
     const e = new Int32Array(c.length);
+    const t: (LocalPathStep | null)[] = Array(c.length).fill(null);
     for (let i = 0; i < c.length; i++) {
       const old = newLo + i - lo;
       if (old >= 0 && old < cost.length) {
         c[i] = cost[old];
         o[i] = origin[old];
         e[i] = edits[old];
+        t[i] = paths[old];
       }
     }
     lo = newLo;
     cost = c;
     origin = o;
     edits = e;
+    paths = t;
   };
 
   recentre(start.offset);
   cost[start.offset - lo] = 0;
   origin[start.offset - lo] = start.origin;
   edits[start.offset - lo] = start.edits;
+  if (compare) paths[start.offset - lo] = { parent: null, depth: 0, offset: start.offset, consumed: 0, cost: 0,
+    reference: null, observed: null, entry: 0, jump: false };
 
 
   return {
@@ -108,11 +131,15 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       const c = new Float64Array(n);
       const o = new Int32Array(n);
       const e = new Int32Array(n);
+      const t: (LocalPathStep | null)[] = Array(n).fill(null);
       for (let i = 0; i < n; i++) {
         const at = lo + i;
-        let bc = cost[i] + insertionCost(ref, at, p);
+        const ins = insertionCost(ref, at, p);
+        let bc = cost[i] + ins;
         let bo = origin[i];
         let be = edits[i] + 1;
+        let parent = paths[i], price = ins, reference: number | null = null, observed: string | null = p;
+        let extra = 0, jump = false;
         if (i > 0) {
           const s = subCost(ref[at - 1], p) + entry(at - 1);
           const edit = ref[at - 1] === p ? 0 : 1;
@@ -121,6 +148,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
             bc = cost[i - 1] + s;
             bo = origin[i - 1];
             be = edits[i - 1] + edit;
+            parent = paths[i - 1]; price = s; reference = at - 1; extra = entry(at - 1);
           }
           const from = at - 1;
           if (from !== best && wordStarts.has(from)) {
@@ -129,6 +157,8 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
               bc = j;
               bo = from;
               be = edit;
+              parent = paths[best - lo]; price = j - base; reference = from;
+              extra = price - subCost(ref[from], p); jump = true;
             }
           }
           const d = c[i - 1] + deletionCost(ref, at - 1) + entry(at - 1);
@@ -136,17 +166,42 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
             bc = d;
             bo = o[i - 1];
             be = e[i - 1] + 1;
+            parent = t[i - 1]; price = deletionCost(ref, at - 1) + entry(at - 1);
+            reference = at - 1; observed = null; extra = entry(at - 1); jump = false;
           }
         }
         c[i] = bc;
         o[i] = bo;
         e[i] = be;
+        if (compare && parent && Number.isFinite(bc)) t[i] = { parent, depth: parent.depth + 1, offset: at,
+          consumed: parent.consumed + (observed === null ? 0 : 1), cost: parent.cost + price,
+          reference, observed, entry: extra, jump };
       }
 
       // Lowest cost wins; ties go to the state nearest plain forward progress.
       let k = -1;
       for (let i = 0; i < n; i++) {
         if (k === -1 || c[i] < c[k] || (c[i] === c[k] && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1))) k = i;
+      }
+      if (compare && o[k] !== origin[best - lo]) {
+        // Compare distinct trajectories, rather than treating adjacent endpoints of the same run as competitors.
+        const byOrigin = new Map<number, number>();
+        for (let i = 0; i < n; i++) if (Number.isFinite(c[i])) {
+          const old = byOrigin.get(o[i]);
+          if (old === undefined || c[i] < c[old] || (c[i] === c[old] &&
+            Math.abs(lo + i - best - 1) < Math.abs(lo + old - best - 1))) byOrigin.set(o[i], i);
+        }
+        const candidates = [...byOrigin.values()].sort((a, b) => c[a] - c[b] ||
+          Math.abs(lo + a - best - 1) - Math.abs(lo + b - best - 1));
+        if (candidates.length > 1) {
+          const a = candidates[0], b = candidates[1];
+          const scores = compare(t[a]!, t[b]!);
+          // Pair scores are only a selection objective. The original edit rows, movement prices and recent-cost
+          // accounting remain intact, and the next observation extends the selected reference cursor as before.
+          const ranked = (i: number) => i === a ? c[a] + (scores.left - t[a]!.cost) :
+            i === b ? c[b] + (scores.right - t[b]!.cost) : c[i];
+          k = ranked(b) < ranked(a) ? b : a;
+        }
       }
       const min = c[k];
       for (let i = 0; i < n; i++) c[i] -= min;
@@ -155,6 +210,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       cost = c;
       origin = o;
       edits = e;
+      paths = t;
       best = lo + k;
       recentre(best);
     },
@@ -164,10 +220,11 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    save: () => ({ lo, cost, origin, edits, paths, best, ayah, recent: [...recent] }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
-      ({ lo, cost, origin, edits, best, ayah } = s);
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; paths: typeof paths;
+        best: number; ayah: number; recent: number[] };
+      ({ lo, cost, origin, edits, paths, best, ayah } = s);
       recent.splice(0, recent.length, ...s.recent);
     },
   };
