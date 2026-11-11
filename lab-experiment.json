@@ -1,0 +1,13 @@
+{
+ "id": "listener-phone-order-contrast",
+ "component": "listener",
+ "hypothesis": "Weak added words may lose their ordered consonant evidence even when individual sounds retain acoustic mass; order-contrastive phone-head training predicts 1 recovered addition and no losses, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T20:17:00+00:00",
+ "author": "autolab"
+}
