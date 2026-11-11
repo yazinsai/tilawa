@@ -1,0 +1,13 @@
+{
+ "id": "listener-masked-training-convolutions",
+ "component": "listener",
+ "hypothesis": "Batch-padding activations may contaminate valid training frames through temporal convolutions despite correctly masked losses; validity-masked hidden computation should recover 1 missed addition with no losses predicted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T07:12:28+00:00",
+ "author": "autolab"
+}
