@@ -260,7 +260,7 @@ try {
     check(report.consent.version === CONSENT && report.consent.send === true && report.source === "tilawa.dev/help", `${id} consent + source`);
     check(report.audio.durationMs > 15_000 && wav.length === 44 + report.audio.durationMs * 32, `${id} whole take (${report.audio.durationMs} ms)`);
     const kinds = report.incidents.map((x) => x.kind);
-    check(kinds.includes("stumble") && kinds.includes("false_warning") && kinds.includes("missed_mistake") && kinds.includes("wrong_position"), `${id} incidents ${kinds.join(",")}`);
+    check(kinds.includes("stumble") && kinds.includes("warning") && kinds.includes("missed_mistake") && kinds.includes("wrong_position"), `${id} incidents ${kinds.join(",")}`);
     check(report.incidents.every((x) => x.claim.answer === null || ["yes", "no", "unsure", "skipped"].includes(x.claim.answer)), `${id} claims are answers only`);
     check(report.incidents.some((x) => x.claim.text === "بسم الله"), `${id} advanced text kept`);
     check(report.observations.events.some((e) => e.type === "checker"), `${id} carries the engine's observations`);

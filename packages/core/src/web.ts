@@ -2,20 +2,20 @@
 import * as ort from "onnxruntime-web/all";
 import { fetchModel, memoryStorage } from "./runtime/models.js";
 import type { ModelStorage, TierName } from "./runtime/models.js";
-import { cacheStorage, loadWebModel, startMicrophone as startResearchMicrophone } from "./runtime/web.js";
+import { cacheStorage, loadWebModel } from "./runtime/web.js";
+import { Resampler, Vad } from "./runtime/audio.js";
 import type { WebProvider } from "./runtime/web.js";
-import type { Session as ResearchSession } from "./runtime/session.js";
 import { MicrophoneError, SessionEndedError } from "./errors.js";
 import { createTilawaWith, fetchReference, holding, tierKey } from "./tilawa.js";
-import type { Microphone, MicrophoneOptions, Platform, Tilawa, TilawaOptions } from "./tilawa.js";
+import type { Microphone, MicrophoneOptions, Platform, PreparedMicrophone, Tilawa, TilawaOptions } from "./tilawa.js";
 import { internals } from "./session.js";
-import type { TilawaSession } from "./session.js";
+import type { EngineEvent, TilawaSession } from "./session.js";
 import { DEFAULTS } from "./defaults.js";
 
 export { cacheStorage, loadWebModel };
 export type { WebModelOptions, WebProvider } from "./runtime/web.js";
 export { decodeWav } from "./runtime/wav.js";
-export type { Microphone, MicrophoneOptions, Tilawa, TilawaOptions, LoadProgress, TilawaModelInfo } from "./tilawa.js";
+export type { Microphone, MicrophoneOptions, PreparedMicrophone, Tilawa, TilawaOptions, LoadProgress, TilawaModelInfo } from "./tilawa.js";
 
 export interface WebTilawaOptions extends TilawaOptions {
   providers?: WebProvider[];
@@ -67,39 +67,126 @@ const web: Platform<WebTilawaOptions> = {
   listen: startMicrophone,
 };
 
-/**
- * Microphone → session: native rate, resampled to 16 kHz, optionally VAD-gated (off by default). Rejects with
- * `MicrophoneError` (`denied`, `unavailable`, `insecure-context`), or `SessionEndedError` for a session that has ended.
- */
-export async function startMicrophone(session: TilawaSession, o: MicrophoneOptions = {}): Promise<Microphone> {
-  if (session.state !== "active") throw new SessionEndedError("listen() on a session that has ended");
+const CONSTRAINTS: MediaStreamConstraints = {
+  audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+};
+
+// Same tap as the research capture loop (runtime/web.ts): copies each 128-frame input block to the main thread.
+const WORKLET = `registerProcessor("tilawa-tap", class extends AudioWorkletProcessor {
+  process(inputs) { const c = inputs[0] && inputs[0][0]; if (c) this.port.postMessage(c.slice(0)); return true; }
+});`;
+
+function micApi() {
   const nav = globalThis.navigator;
   if (!nav?.mediaDevices?.getUserMedia) {
     if (globalThis.isSecureContext === false)
       throw new MicrophoneError("insecure-context", "The microphone needs a secure context (https or localhost)");
     throw new MicrophoneError("unavailable", "No microphone API in this environment");
   }
-  const vad = o.vad === true ? {} : o.vad ?? DEFAULTS.vad;
-  // The research capture loop only calls pushAudio and end.
-  const target = {
-    pushAudio: (samples: Float32Array, rate: number) => session.pushAudio(samples, rate),
-    end: () => (session.state === "disposed" ? Promise.resolve([]) : session.end()),
-  } as unknown as ResearchSession;
-  let mic;
+  return nav.mediaDevices;
+}
+
+/**
+ * Call synchronously inside a click/tap handler: creates and resumes the AudioContext and asks for the microphone
+ * while the gesture is still fresh (needed on iOS Safari), so `listen(session, { prepared })` works after awaits.
+ */
+export function prepareMicrophone(): PreparedMicrophone {
+  const devices = micApi();
+  const context = new AudioContext();
+  void context.resume().catch(() => {});
+  const stream = devices.getUserMedia(CONSTRAINTS);
+  stream.catch(() => {});
+  let released = false;
+  return {
+    context,
+    stream,
+    release() {
+      if (released) return;
+      released = true;
+      void stream.then((s) => s.getTracks().forEach((t) => t.stop()), () => {});
+      void context.close().catch(() => {});
+    },
+  };
+}
+
+/**
+ * Microphone → session: native rate, resampled to 16 kHz, optionally VAD-gated (off by default). Rejects with
+ * `MicrophoneError` (`denied`, `unavailable`, `insecure-context`), or `SessionEndedError` for a session that has ended.
+ * The loop mirrors the research `startMicrophone`; only the context and stream may be supplied by the caller.
+ */
+export async function startMicrophone(session: TilawaSession, o: MicrophoneOptions = {}): Promise<Microphone> {
+  if (session.state !== "active") {
+    o.prepared?.release();
+    throw new SessionEndedError("listen() on a session that has ended");
+  }
+  const vadOptions = o.vad === true ? {} : o.vad ?? DEFAULTS.vad;
+  const onError = o.onError ?? ((e: unknown) => {
+    if (!(e instanceof SessionEndedError)) console.error("@tilawa/core: audio push failed", e);
+  });
+  let stream: MediaStream;
+  let ctx: AudioContext;
   try {
-    mic = await startResearchMicrophone(target, {
-      vad,
-      onLevel: o.onLevel,
-      onEvents: o.onEvents,
-      onError: o.onError ?? ((e) => {
-        if (!(e instanceof SessionEndedError)) console.error("@tilawa/core: audio push failed", e);
-      }),
-    });
+    if (o.prepared) {
+      ctx = o.prepared.context;
+      stream = await o.prepared.stream;
+    } else {
+      const devices = micApi();
+      stream = await devices.getUserMedia(CONSTRAINTS);
+      ctx = new AudioContext();
+    }
+    if (ctx.state === "suspended") await ctx.resume().catch(() => {});
+    const url = URL.createObjectURL(new Blob([WORKLET], { type: "application/javascript" }));
+    await ctx.audioWorklet.addModule(url);
+    URL.revokeObjectURL(url);
   } catch (e) {
+    o.prepared?.release();
+    if (e instanceof MicrophoneError) throw e;
     throw microphoneError(e);
   }
-  internals.get(session)?.setVad(vad !== false);
-  return mic;
+  const source = ctx.createMediaStreamSource(stream);
+  const tap = new AudioWorkletNode(ctx, "tilawa-tap");
+  const resampler = new Resampler(ctx.sampleRate, 16000);
+  const vad = vadOptions === false ? null : new Vad(vadOptions);
+  let pending: Promise<unknown> = Promise.resolve();
+  let levelAcc = 0, levelN = 0;
+  tap.port.onmessage = (ev: MessageEvent<Float32Array>) => {
+    const raw = ev.data;
+    for (let i = 0; i < raw.length; i++) levelAcc += raw[i] * raw[i];
+    levelN += raw.length;
+    if (levelN >= ctx.sampleRate / 50) {
+      o.onLevel?.(10 * Math.log10(levelAcc / levelN + 1e-12));
+      levelAcc = levelN = 0;
+    }
+    const pcm = resampler.push(raw);
+    const gated = vad ? vad.push(pcm) : pcm;
+    if (!gated.length) return;
+    pending = session.pushAudio(gated, 16000).then((events) => events.length && o.onEvents?.(events), onError);
+  };
+  source.connect(tap);
+  // Some browsers only pull a worklet that reaches the destination; a muted gain keeps it silent.
+  const mute = ctx.createGain();
+  mute.gain.value = 0;
+  tap.connect(mute).connect(ctx.destination);
+  internals.get(session)?.setVad(vad !== null);
+  let stopping: Promise<EngineEvent[]> | null = null;
+  return {
+    sampleRate: ctx.sampleRate,
+    get speaking() {
+      return vad?.active ?? true;
+    },
+    stop() {
+      stopping ??= (async () => {
+        tap.port.onmessage = null;
+        stream.getTracks().forEach((t) => t.stop());
+        await ctx.close().catch(() => {});
+        await pending;
+        const events = session.state === "disposed" ? [] : await session.end();
+        if (events.length) o.onEvents?.(events);
+        return events;
+      })();
+      return stopping;
+    },
+  };
 }
 
 function microphoneError(e: unknown): MicrophoneError {

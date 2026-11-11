@@ -3,7 +3,7 @@ import "./style.css";
 import { decodeReport, encodeReport, ReportSendError, sendReport, type ReportConsent, type ReportReceipt, type TilawaReport } from "@tilawa/core/report";
 import { buildIncidents, type Answer, type MomentAnswer } from "./claims";
 import { sliceWav, wavUrl } from "./clip";
-import { HelpEngineError, loadEngine, TAKE_MAX_MS, type HelpEngine, type LivePosition, type LiveWarning, type Take, type TakeRecording } from "./engine";
+import { HelpEngineError, loadEngine, prepareMic, TAKE_MAX_MS, type HelpEngine, type LivePosition, type LiveWarning, type Take, type TakeRecording } from "./engine";
 import { initialLang, numberFormat, STRINGS, type Key, type Lang } from "./i18n";
 import { dropTake, keepTake, keptTakes, type KeptTake } from "./keep";
 import { markedMoment, selectMoments, type Moment } from "./moments";
@@ -320,6 +320,8 @@ function setLoading(on: boolean, fraction: number | null = null) {
 async function start() {
   if (state.starting || !state.consent) return;
   state.starting = true;
+  // Before any await: keeps iOS Safari's audio unlocked by this tap through the first download.
+  const prepared = prepareMic();
   state.readyProblem = null;
   renderReady();
   setLoading(true);
@@ -331,12 +333,14 @@ async function start() {
     state.engineLoading = null;
     console.error(e);
     state.readyProblem = { kind: "load" };
+    prepared?.release();
     finishStart();
     return;
   }
   try {
     resetTakeView();
     state.take = await state.engine.startTake({
+      prepared,
       consent: state.consent,
       contributor: contributorId(),
       maxMs: TAKE_MAX_MS,

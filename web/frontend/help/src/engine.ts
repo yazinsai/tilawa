@@ -39,7 +39,41 @@ export interface LiveWarning {
   location: WordRef;
 }
 
+/** Structural twin of `PreparedMicrophone` from `@tilawa/core/web`, made here so the tap needs no dynamic import. */
+export interface PreparedMic {
+  readonly context: AudioContext;
+  readonly stream: Promise<MediaStream>;
+  release(): void;
+}
+
+/**
+ * Call synchronously in the Start tap, before any await: iOS Safari only runs audio that was created or resumed
+ * inside the gesture, and the first engine download can take long enough to lose it. Same constraints as the SDK.
+ */
+export function prepareMic(): PreparedMic | null {
+  if (isMockMode() || typeof AudioContext === "undefined" || !navigator.mediaDevices?.getUserMedia) return null;
+  const context = new AudioContext();
+  void context.resume().catch(() => {});
+  const stream = navigator.mediaDevices.getUserMedia({
+    audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+  });
+  stream.catch(() => {});
+  let released = false;
+  return {
+    context,
+    stream,
+    release() {
+      if (released) return;
+      released = true;
+      void stream.then((s) => s.getTracks().forEach((t) => t.stop()), () => {});
+      void context.close().catch(() => {});
+    },
+  };
+}
+
 export interface TakeOptions {
+  /** From `prepareMic()` in the Start tap; `listen()` takes ownership. */
+  prepared?: PreparedMic | null;
   consent: ReportConsent;
   contributor?: string;
   maxMs?: number;
@@ -84,7 +118,7 @@ export interface HostSession extends RecordableSession {
 }
 export interface EngineHost {
   startFreeRecitation(): HostSession;
-  listen(session: HostSession, options?: { vad?: false }): Promise<{ stop(): Promise<unknown> }>;
+  listen(session: HostSession, options?: { vad?: false; prepared?: PreparedMic }): Promise<{ stop(): Promise<unknown> }>;
   dispose(): void | Promise<void>;
 }
 
@@ -183,7 +217,7 @@ async function startTake(tilawa: EngineHost, o: TakeOptions): Promise<Take> {
 
   let mic: { stop(): Promise<unknown> };
   try {
-    mic = await tilawa.listen(session);
+    mic = await tilawa.listen(session, o.prepared ? { prepared: o.prepared } : undefined);
   } catch (e) {
     off();
     recorder.dispose();
