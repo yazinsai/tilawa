@@ -1,0 +1,13 @@
+{
+ "id": "listener-conditional-identity-distill",
+ "component": "listener",
+ "hypothesis": "Blank-dominated distillation may neglect distinctions between consonants; separately distilling conditional phone identity while freezing speech occupancy predicts 1 false warning removed, no losses counted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T05:11:05+00:00",
+ "author": "autolab"
+}
