@@ -38,6 +38,7 @@ image = (
     .pip_install("rapidfuzz==3.14.1")
     .add_local_file("tools/student.py", "/root/tools/student.py")
     .add_local_file("tools/per_breakdown.py", "/root/tools/per_breakdown.py")
+    .add_local_file("modal/student_alignment_entropy.py", "/root/tools/student_alignment_entropy.py")
     .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
 app = modal.App("tilawa-student-train", image=image)
@@ -80,6 +81,7 @@ DEFAULTS = dict(
     ctc_weight=1.0,
     kd_weight=0.0,
     kd_delay=0,
+    alignment_entropy_weight=0.0,
     noise_p=0.5,
     snr_db=(5.0, 25.0),
     rir_p=0.2,
@@ -316,6 +318,12 @@ def losses(model, b, cfg, device):
     ctc = F.ctc_loss(log_probs.transpose(0, 1), b["targets"].to(device), out_lens, b["target_lens"].to(device),
                      blank=0, reduction="sum", zero_infinity=True) / frames
     out = {"ctc": ctc, "loss": cfg["ctc_weight"] * ctc}
+    if cfg.get("alignment_entropy_weight", 0.0):
+        from student_alignment_entropy import entropy_deficit
+
+        deficit = entropy_deficit(log_probs, b["targets"], out_lens, b["target_lens"])
+        out["alignment_entropy_deficit"] = deficit
+        out["loss"] = out["loss"] + cfg["alignment_entropy_weight"] * deficit
     if cfg["kd_weight"]:
         B, T, _ = log_probs.shape
         n_t = b["n_teacher"].to(device)
