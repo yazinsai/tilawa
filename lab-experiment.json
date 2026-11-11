@@ -1,0 +1,13 @@
+{
+ "id": "listener-rate-linked-target-dynamics",
+ "component": "listener",
+ "hypothesis": "Rapid articulation may stop sounds short of their usual spectral targets, producing false lexical rivals; rate-linked acoustic dynamics predict 2 warnings removed and 1 caught substitution lost: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T01:21:08+00:00",
+ "author": "autolab"
+}
