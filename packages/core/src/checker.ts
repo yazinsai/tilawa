@@ -1,7 +1,7 @@
 import { align as editPath } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
-import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
+import type { DecodedPhoneme, PhonemeEvidence, SeamInsertionEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import { channelFromCounts, spanLogP, type Channel, type ChannelCounts } from "./noisy-channel.js";
@@ -18,6 +18,7 @@ import { PHRASE_PEAK, PHRASE_SWITCH, letterSkeleton, parallelPaths } from "./par
 import { isMaddLetter, maddSites, stemConsonant } from "./madd-drops.js";
 import { formulaSlots } from "./formula-slots.js";
 import { spanId, slotSpans } from "./slot-spans.js";
+import { PHRASE_MAX_COST, recitationFormulas, recitationFormulaBoundaries } from "./recitation-formulas.js";
 
 export interface CheckerPolicy {
   /** When a suspected wrong or added word is confirmed: after `ms` (2–3 s), or once the next word has begun. Default 2500 ms. */
@@ -53,6 +54,10 @@ export interface SeamInsertionCandidate {
 export interface CheckerOptions {
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
+  /** Listener-only discovery of a complete residual word in an existing utterance.
+   * Returned half-open token offsets still require neighbour certification and
+   * seamInsertion verification. The predicate includes all existing exclusions. */
+  seamUtterance?: (raw: string, isWord: (observed: string) => boolean) => readonly { from: number; to: number }[];
   policy?: CheckerPolicy;
   /** Non-Quran phrases: an inserted block that is one of these (or a basmala) is not an added word. */
   phrases?: PhraseAsset;
@@ -113,7 +118,6 @@ const MAX_WINDOW = 240;
 const KEEP = 120;
 /** The window spans one ayah before the anchor and this many after the furthest recited word. */
 const AHEAD_AYAHS = 2;
-const PHRASE_MAX_COST = 0.3;
 /** Consecutive words a lock off the declared passage spans before it counts as a deliberate jump. */
 const JUMP_WORDS = 4;
 /**
@@ -255,7 +259,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const ref = index.phonemes;
   const words = index.words;
   const lexical = lexicalWords(index);
-  const insertionEvidence = new Map<string, number>();
+  const insertionEvidence = new Map<string, SeamInsertionEvidence>();
   const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
     JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
   // A completed seam remains in the streaming window over many pushes. Its
@@ -311,8 +315,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     ayahOf.push(ayahFirst.length - 1);
     ayahLast[ayahFirst.length - 1] = i;
   });
-  const fatiha = words.filter((w) => w.surah === 1 && w.ayah === 1);
-  const phrases = [...(options.phrases?.phrases.map((p) => p.p) ?? []), ref.slice(fatiha[0].start, fatiha.at(-1)!.end)];
+  const phrases = recitationFormulas(index, options.phrases);
   const nextWord = (wi: number) => {
     let k = wi + 1;
     while (k < words.length && words[k].end === words[k].start) k++;
@@ -1943,16 +1946,53 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         const forms = [prev, w1, w2].map(wi => [...new Set([
           ref.slice(words[wi].start, words[wi].end), index.isolatedWordForms?.[wi] ?? "",
         ].filter(Boolean))]);
+        const wordText = (raw: string) => stripEdge(surplusNasal(raw));
+        const isWord = (raw: string) => {
+          const said = wordText(raw);
+          return !!said && !!lexical.surplusWord(w1, said) && !phraseSpan(said) && !lexical.fragmentOfSeam(w1, said);
+        };
+        // Keep all original whole-utterance candidates ahead of compositional
+        // discovery. A verified residual travels through the existing interval
+        // certificate route, so replay need not depend on an SDK callback.
+        function* spans() {
+          for (const span of seamUtterances) if (span.from >= from && span.to <= end.obsFrom &&
+            seamJunk[span.to] === seamJunk[span.from]) yield span;
+          for (const span of seamUtterances) {
+            if (span.from < from || span.to > end.obsFrom) continue;
+            const raw = obs.slice(span.from, span.to).map(p => p.p).join("");
+            const residues = options.seamUtterance?.(raw, isWord) ?? [];
+            const seen = new Set<string>();
+            for (const r of residues) {
+              if (!Number.isInteger(r.from) || !Number.isInteger(r.to) || r.from < 0 || r.to > raw.length ||
+                r.to <= r.from || (r.from === 0 && r.to === raw.length)) continue;
+              seen.add(`${r.from}:${r.to}`);
+              yield { from: span.from + r.from, to: span.from + r.to };
+            }
+            let boundaries: ReturnType<typeof recitationFormulaBoundaries> | undefined;
+            for (const m of insertionEvidence.values()) {
+              if (m.marginal <= 0.5 || m.word.surah !== words[w1].surah || m.word.ayah !== words[w1].ayah ||
+                m.word.word !== words[w1].word) continue;
+              const a = obs.findIndex((p, i) => i >= span.from && i < span.to && p.start === m.fromFrame);
+              const last = obs.findIndex((p, i) => i >= span.from && i < span.to && p.end + 1 === m.toFrame);
+              const b = last + 1;
+              if (a < 0 || last < a || (a === span.from && b === span.to) ||
+                wordText(obs.slice(a, b).map(p => p.p).join("")) !== m.observed ||
+                seen.has(`${a - span.from}:${b - span.from}`)) continue;
+              boundaries ??= recitationFormulaBoundaries(raw, phrases);
+              if (boundaries.before[raw.length] || !boundaries.before[a - span.from] ||
+                !boundaries.after[b - span.from]) continue;
+              yield { from: a, to: b };
+            }
+          }
+        }
         // Longer spans first: a whole word takes precedence over its lexical tail.
-        for (const { from: a, to: b } of seamUtterances) {
+        for (const { from: a, to: b } of spans()) {
           if (found) break;
-          if (a < from || b > end.obsFrom) continue;
-          if (seamJunk[b] !== seamJunk[a]) continue;
-          // Excision must take an entire pause-bounded utterance, not a fragment
-          // of a word or a held run that the remaining frames can still explain.
-          const said = stripEdge(surplusNasal(obs.slice(a, b).map(p => p.p).join("")));
-          if (!said || !lexical.surplusWord(w1, said) || phraseSpan(said)) continue;
-          if (lexical.fragmentOfSeam(w1, said)) continue;
+          // A partial interval is supplied only by complete formula accounting
+          // or its completed teacher certificate. Formula labels stay intact.
+          const raw = obs.slice(a, b).map(p => p.p).join("");
+          if (!isWord(raw)) continue;
+          const said = wordText(raw);
           const margins = excisedNeighbourMargins(frames, p => tokenId.get(p) ?? 0, forms, f0, f1,
             [obs[a].start, obs[b - 1].end + 1]);
           if (!margins || margins.some(m => m < PHRASE_SWITCH)) continue;
@@ -1963,7 +2003,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
             fromFrame: obs[a].start, toFrame: obs[b - 1].end + 1, seamFromFrame: f0, seamToFrame: f1,
             prefixFrame: prefix && obs[prefix.obsFrom].start };
           const permitted = options.seamInsertion ? options.seamInsertion(candidate) :
-            (insertionEvidence.get(insertionKey(words[w1], said, candidate.fromFrame, candidate.toFrame)) ?? 0) > 0.5;
+            (insertionEvidence.get(insertionKey(words[w1], said, candidate.fromFrame, candidate.toFrame))?.marginal ?? 0) > 0.5;
           if (!permitted) continue;
           found = { cls: "added_word", word: w1, last: w1, obsFrom: a, obsTo: b, observed: said, lexicon: true };
           break;
@@ -2461,7 +2501,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {
           const key = insertionKey(m.word, m.observed, m.fromFrame, m.toFrame);
-          insertionEvidence.set(key, Math.max(insertionEvidence.get(key) ?? 0, m.marginal));
+          if (m.marginal > (insertionEvidence.get(key)?.marginal ?? -1)) insertionEvidence.set(key, m);
         }
       }
       const out: CheckerEvent[] = [];

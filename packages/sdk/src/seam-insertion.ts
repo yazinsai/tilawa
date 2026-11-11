@@ -1,6 +1,7 @@
-import { createChecker, createTracker, trackerInput, PosteriorFrames, PHRASE_SWITCH, seamInsertionMarginal, collapseHeld, lexicalWords } from "@tilawa/core";
+import { createChecker, createTracker, trackerInput, PosteriorFrames, PHRASE_SWITCH, seamInsertionMarginal, collapseHeld, lexicalWords, recitationFormulas } from "@tilawa/core";
 import type { PhonemeEvidence, PhraseAsset, ReferenceIndex, SeamInsertionCandidate, SeamInsertionEvidence } from "@tilawa/core";
 import type { LoadedModel } from "./model.js";
+import { formulaResidues } from "./formula-residue.js";
 
 /** One native frame at a time, extending a cell through a token's entire run.
  * This is an engine evidence clock; no scoring code or labels participate. */
@@ -39,7 +40,9 @@ export async function addInsertionEvidence(model: LoadedModel, audio: Float32Arr
   const candidates: SeamInsertionCandidate[] = [];
   const seen = new Set<string>();
   const tracker = createTracker(index, { mode: "free", phrases });
-  const checker = createChecker(index, { phrases, seamInsertion(c) {
+  const formulas = recitationFormulas(index, phrases);
+  const checker = createChecker(index, { phrases,
+    seamUtterance: (raw, isWord) => formulaResidues(raw, formulas, isWord), seamInsertion(c) {
     const key = JSON.stringify(c);
     if (!seen.has(key)) { seen.add(key); candidates.push(c); }
     // Discovery runs the unchanged generator, including its issue state.
