@@ -11,6 +11,7 @@ import type { OrtModule } from "./ort.js";
 import { ortBackend } from "./ort.js";
 import { decodeWav } from "./wav.js";
 import { createInsertionTeacher } from "./insertion-teacher.js";
+import { createHeldBandScorer, HELD_BAND_FILE, type HeldBandModel } from "./held-band.js";
 
 export * from "./index.js";
 export { decodeWav };
@@ -27,6 +28,16 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
 async function attachInsertionTeacher(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
+  const heldBand = await readFile(join(dir, HELD_BAND_FILE), "utf8").catch(e => {
+    if (e.code === "ENOENT") return null;
+    throw e;
+  });
+  if (heldBand !== null) {
+    const data = JSON.parse(heldBand) as HeldBandModel;
+    model.heldBand = createHeldBandScorer(data);
+    if (model.heldBand.inventory !== model.manifest.inventory || data.tokens !== model.manifest.tokens)
+      throw new Error("Held-band inventory differs from the primary model");
+  }
   const asset = MODEL_REGISTRY.auxiliary?.find(a => a.purpose === "seam-insertion");
   if (!asset) return model;
   const installed = await access(join(dir, asset.file)).then(() => true,

@@ -116,3 +116,39 @@ export class Fbank {
     return out;
   }
 }
+
+/** Disjoint FFT-power bands for auxiliary conditional prediction. No target band enters another band's feature. */
+export class SpectralBands {
+  private pending = new Float32Array(0);
+  constructor(private readonly edges: readonly number[]) {
+    if (edges.length < 3 || edges[0] < 1 || edges.at(-1)! > NFFT / 2 ||
+      edges.some((e, i) => !Number.isInteger(e) || (i > 0 && e <= edges[i - 1])))
+      throw new Error("Spectral band edges must increase within the positive FFT bins");
+  }
+  push(samples: Float32Array): Float64Array[] {
+    const buf = new Float32Array(this.pending.length + samples.length);
+    buf.set(this.pending); buf.set(samples, this.pending.length);
+    const out: Float64Array[] = [], re = new Float64Array(NFFT), im = new Float64Array(NFFT);
+    let off = 0;
+    for (; off + WIN <= buf.length; off += HOP) {
+      re.fill(0); im.fill(0);
+      let mean = 0;
+      for (let i = 0; i < WIN; i++) mean += buf[off + i];
+      mean /= WIN;
+      for (let i = 0; i < WIN; i++) {
+        const x = buf[off + i] - mean, prev = i ? buf[off + i - 1] - mean : x;
+        re[i] = (x - .97 * prev) * povey[i];
+      }
+      fft(re, im);
+      const frame = new Float64Array(this.edges.length - 1);
+      for (let b = 0; b < frame.length; b++) {
+        let power = 0;
+        for (let k = this.edges[b]; k < this.edges[b + 1]; k++) power += re[k] ** 2 + im[k] ** 2;
+        frame[b] = Math.log(Math.max(EPS, power / (this.edges[b + 1] - this.edges[b])));
+      }
+      out.push(frame);
+    }
+    this.pending = buf.slice(off);
+    return out;
+  }
+}

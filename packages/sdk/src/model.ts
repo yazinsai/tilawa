@@ -49,4 +49,5 @@ export interface LoadedModel {
   supported: ErrorClass[];
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
+  heldBand?: ReturnType<typeof import("./held-band.js").createHeldBandScorer>;
 }

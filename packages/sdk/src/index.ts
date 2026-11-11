@@ -1,6 +1,7 @@
 export * from "./audio.js";
 export * from "./capabilities.js";
 export * from "./fbank.js";
+export * from "./held-band.js";
 export * from "./listener.js";
 export * from "./model.js";
 export * from "./ort.js";

@@ -5,12 +5,15 @@ import type {
   CheckerPolicy,
   DecodedPhoneme,
   EngineEvent,
+  HeldBandEvidence,
   PhonemeEvidence,
   PhraseAsset,
   ReferenceIndex,
   WordRef,
 } from "@tilawa/core";
 import { Resampler } from "./audio.js";
+import { SpectralBands } from "./fbank.js";
+import { carryHeldBandEvidence } from "./held-band.js";
 import { capabilities } from "./capabilities.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
@@ -94,9 +97,19 @@ export function createEngine(options: EngineOptions): Engine {
   }
 
   function start(mode: Session["mode"], passage: Session["passage"], policy: SessionPolicy = {}): Session {
+    const bandFrames: Float64Array[] = [];
+    const bands = model.heldBand ? new SpectralBands(model.heldBand.edges) : null;
+    const bandCertificates = new Map<string, HeldBandEvidence>();
+    const wordEvidence = model.heldBand ? (candidate: import("@tilawa/core").WordEvidenceRequest) => {
+      const margins = model.heldBand!.compare(bandFrames, candidate, model.manifest.frameMs);
+      if (!margins || !margins.every(m => m > 0)) return true;
+      bandCertificates.set(JSON.stringify(candidate), { ...candidate, margins });
+      return false;
+    } : undefined;
     const tracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
     const checkerOptions = {
       phrases,
+      wordEvidence,
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
       ...(passage && { passage }),
     };
@@ -115,13 +128,14 @@ export function createEngine(options: EngineOptions): Engine {
     const pcmParts: Float32Array[] = [];
     let pcmResampler: Resampler | null = null;
     const keepAudio = (samples: Float32Array, sampleRate: number) => {
-      if (!options.recordEvidence && !model.insertionTeacher) return;
+      if (!options.recordEvidence && !model.insertionTeacher && !bands) return;
       let pcm = samples;
       if (sampleRate !== rate) {
         if (!pcmResampler || pcmResampler.from !== sampleRate) pcmResampler = new Resampler(sampleRate, rate);
         pcm = pcmResampler.push(samples);
       }
-      if (pcm.length) pcmParts.push(Float32Array.from(pcm));
+      if (bands) bandFrames.push(...bands.push(pcm));
+      if (pcm.length && (options.recordEvidence || model.insertionTeacher)) pcmParts.push(Float32Array.from(pcm));
     };
     const subscribers = new Set<(e: EngineEvent) => void>();
     let queue = Promise.resolve();
@@ -171,6 +185,7 @@ export function createEngine(options: EngineOptions): Engine {
         serial(async () => {
           if (pcmResampler) {
             const tail = pcmResampler.flush();
+            if (bands) bandFrames.push(...bands.push(tail));
             if (tail.length) pcmParts.push(Float32Array.from(tail));
           }
           const e = await listener.end();
@@ -186,7 +201,16 @@ export function createEngine(options: EngineOptions): Engine {
             }
             const spliced = options.recordEvidence && locks.length > 1
               ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            let enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            if (wordEvidence) {
+              // Record the exact rechecks of the final evidence as well as those seen live.
+              // These independent replay states never feed the primary tracker or insertion decisions.
+              const t = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
+              const c = createChecker(index, checkerOptions);
+              for (const e of insertionCells(enriched)) c.push(e, t.push(trackerInput(e)));
+              c.end(t.end());
+              enriched = carryHeldBandEvidence(enriched, [...bandCertificates.values()]);
+            }
             recorded.splice(0, recorded.length, ...enriched);
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.

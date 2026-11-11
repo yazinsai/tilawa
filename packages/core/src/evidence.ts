@@ -1,5 +1,19 @@
 import type { WordRef } from "./events.js";
 
+/** Complete hypotheses on the exact acoustic window used by the ordinary string-path check. */
+export interface WordEvidenceRequest {
+  word: WordRef;
+  written: string;
+  observed: string;
+  fromFrame: number;
+  toFrame: number;
+}
+
+/** Positive written-word evidence in both complementary held-band predictions. */
+export interface HeldBandEvidence extends WordEvidenceRequest {
+  margins: [number, number];
+}
+
 /** Auxiliary listener judgment over a complete seam, tied to one proposed spelling. */
 export interface SeamInsertionEvidence {
   word: WordRef;
@@ -18,6 +32,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  heldBands?: HeldBandEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

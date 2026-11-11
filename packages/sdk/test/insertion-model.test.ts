@@ -14,7 +14,10 @@ const manifest = { file: "primary.onnx", tokens: "بت", inventory: "muaalem-v3_
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.readFile.mockResolvedValue(JSON.stringify(manifest));
+  mocks.readFile.mockImplementation(async (path: string) => {
+    if (path.endsWith("held-band.json")) throw Object.assign(new Error("absent"), { code: "ENOENT" });
+    return JSON.stringify(manifest);
+  });
 });
 
 describe("Node insertion teacher loading", () => {
@@ -49,7 +52,28 @@ describe("Node insertion teacher loading", () => {
     const model = await loadNodeModel("/models/caller");
     expect(model.backend).toBe(primary);
     expect(model.insertionTeacher).toBeUndefined();
+    expect(model.heldBand).toBeUndefined();
     expect(mocks.ortBackend).toHaveBeenCalledTimes(1);
+  });
+
+  it("loads a complete conditional bundle without replacing the primary graph or manifest", async () => {
+    const predictor = { weights: [[0], [0]], variance: [1] };
+    const partition = (visible: number[], held: number[]) => ({ visible, held, background: predictor,
+      phones: [predictor, predictor, predictor] });
+    const asset = { schema: 1, inventory: manifest.inventory, tokens: manifest.tokens, edges: [1, 3, 5],
+      mean: [0, 0], scale: [1, 1], phoneMean: [[0, 0], [0, 0], [0, 0]], phoneVariance: [[1, 1], [1, 1], [1, 1]],
+      phoneCount: [1, 1, 1], stay: .8, partitions: [partition([0], [1]), partition([1], [0])] };
+    mocks.readFile.mockImplementation(async (path: string) => JSON.stringify(path.endsWith("held-band.json") ? asset : manifest));
+    mocks.access.mockRejectedValue(Object.assign(new Error("absent"), { code: "ENOENT" }));
+    const primary = { name: "primary" };
+    mocks.ortBackend.mockResolvedValue(primary);
+    const model = await loadNodeModel("/models/caller");
+    expect(model.heldBand?.inventory).toBe(manifest.inventory);
+    expect(model.backend).toBe(primary);
+    expect(model.manifest).toEqual(manifest);
+    expect(mocks.ortBackend).toHaveBeenCalledTimes(1);
+    asset.tokens = "تن";
+    await expect(loadNodeModel("/models/caller")).rejects.toThrow("inventory differs");
   });
 
   it("reports an inaccessible installed teacher instead of silently dropping its evidence", async () => {

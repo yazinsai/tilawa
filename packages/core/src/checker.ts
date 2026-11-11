@@ -1,7 +1,7 @@
 import { align as editPath } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
-import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
+import type { DecodedPhoneme, PhonemeEvidence, WordEvidenceRequest } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import { channelFromCounts, spanLogP, type Channel, type ChannelCounts } from "./noisy-channel.js";
@@ -51,6 +51,8 @@ export interface SeamInsertionCandidate {
 }
 
 export interface CheckerOptions {
+  /** Listener-only recheck of an otherwise supported complete string-path substitution; false can only veto. */
+  wordEvidence?: (candidate: WordEvidenceRequest) => boolean;
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
   policy?: CheckerPolicy;
@@ -441,6 +443,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   /** Words whose error was confirmed or ended uncertain; never reopened. */
   const decided = new Set<number>();
   const emitted: CheckerEvent[] = [];
+  const heldBandIssues = new WeakMap<Issue, boolean>();
+  const vetoedEvents = new Set<CheckerEvent>();
   let seq = 0;
 
   const event = (o: Open, state: CheckerState): CheckerEvent => {
@@ -459,6 +463,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       confidence: conf,
     };
     emitted.push(e);
+    if (state === "confirmed" && heldBandIssues.get(issue)) {
+      // Keep internal confirmation/ownership identical: a listener certificate must not change
+      // how subsequent insertions, graph confirmations or tail merges are decided.
+      vetoedEvents.add(e);
+      return { ...e, state: "uncertain" };
+    }
     return e;
   };
 
@@ -475,6 +485,20 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     decided.add(o.issue.word);
     const sure = ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false;
     out.push(event(o, state ?? (sure ? "confirmed" : "uncertain")));
+  };
+
+  const wordEvidenceKey = (c: WordEvidenceRequest) => JSON.stringify([
+    c.word.surah, c.word.ayah, c.word.word, c.written, c.observed, c.fromFrame, c.toFrame,
+  ]);
+  const heldBandVetoes = new Set<string>();
+  const wordSupported = (issue: Issue, written: string, observed: string, fromFrame: number, toFrame: number,
+    margin: number, need: number): boolean => {
+    if (!(margin >= need)) return false;
+    // Parallel-phrase graph confirmations and every other error class retain their own evidence.
+    if (issue.cls !== "wrong_word" || issue.phrase) return true;
+    const request = { word: toRef(issue.word), written, observed, fromFrame, toFrame };
+    heldBandIssues.set(issue, heldBandVetoes.has(wordEvidenceKey(request)) || options.wordEvidence?.(request) === false);
+    return true;
   };
 
   /** The steps of the window's latest alignment. */
@@ -509,7 +533,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const need = supportNeed(issue);
       const expectedNll = frames.nll(ids(word), a0, b0), observedNll = frames.nll(ids(issue.observed ?? ""), a0, b0);
       if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-      return expectedNll - observedNll >= need;
+      return wordSupported(issue, word, issue.observed ?? "", a0, b0, expectedNll - observedNll, need);
     }
     // Same joint span as the edit comparison. A wide window that leaves the next word out lets its onset consonant
     // explain the ending a second time.
@@ -521,7 +545,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const need = supportNeed(issue);
       const expectedNll = frames.nll(ids(writtenPair), a0, b0), observedNll = frames.nll(ids(issue.pair), a0, b0);
       if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-      return expectedNll - observedNll >= need;
+      return wordSupported(issue, writtenPair, issue.pair, a0, b0, expectedNll - observedNll, need);
     }
     if (!at.length) return null;
     const f0 = obs[Math.min(...at)].start;
@@ -544,7 +568,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const need = supportNeed(issue);
     const expectedNll = frames.nll(ids(written), f0, f1), observedNll = frames.nll(ids(decoded), f0, f1);
     if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-    return expectedNll - observedNll >= need;
+    return wordSupported(issue, written, decoded, f0, f1, expectedNll - observedNll, need);
   };
 
   /** Waqf and pause marks at the edges of a heard span. They are not part of the word. */
@@ -2457,6 +2481,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const c of p.heldBands ?? []) {
+        if (Number.isInteger(c.fromFrame) && Number.isInteger(c.toFrame) && c.fromFrame >= 0 && c.toFrame > c.fromFrame &&
+          c.margins.length === 2 && c.margins.every(m => Number.isFinite(m) && m > 0)) {
+          heldBandVetoes.add(wordEvidenceKey(c));
+        }
+      }
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {
@@ -2491,7 +2521,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       return out;
     },
     mistakes() {
-      return emitted.filter((e) => e.state === "confirmed" || (policy.countResolved && e.state === "resolved"));
+      return emitted.filter((e) => !vetoedEvents.has(e) && (e.state === "confirmed" || (policy.countResolved && e.state === "resolved")));
     },
   };
 }
