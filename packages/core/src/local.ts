@@ -1,5 +1,7 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import type { AcousticTokenIdentity, DiscontinuityIdentity } from "./events.js";
+import { acousticIdentity, discontinuityIdentity } from "./transition-events.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -20,6 +22,8 @@ const SURAH_ENTRY = 3 * UNIT;
 const RECENT = 16;
 
 export interface LocalPosition {
+  /** Jump ancestry of this selected path; copied alongside costs, never consulted for ranking. */
+  transition: DiscontinuityIdentity | null;
   /** Reference phonemes consumed up to here (exclusive end of the last matched phoneme). */
   offset: number;
   /** Where the current contiguous run began; resets on a jump. */
@@ -34,7 +38,7 @@ export interface LocalPosition {
 
 export interface LocalSearch {
   /** Consume one observed phoneme. */
-  step(p: string): void;
+  step(p: string, token?: AcousticTokenIdentity): void;
   position(): LocalPosition;
   /** The search state, to rewind to with `restore`. */
   save(): unknown;
@@ -45,7 +49,8 @@ export interface LocalSearch {
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost" | "transition">,
+  provenance?: { generation: number; source: AcousticTokenIdentity | null; nextId: () => number }): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -68,6 +73,8 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let cost = new Float64Array(0);
   let origin = new Int32Array(0);
   let edits = new Int32Array(0);
+  let lineage: (DiscontinuityIdentity | null)[] = [];
+  let lastToken = provenance?.source ?? null;
   let best = start.offset;
   let ayah = -1;
   const recent: number[] = [];
@@ -81,18 +88,21 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     const c = new Float64Array(newHi - newLo + 1).fill(Infinity);
     const o = new Int32Array(c.length);
     const e = new Int32Array(c.length);
+    const l: (DiscontinuityIdentity | null)[] = new Array(c.length).fill(null);
     for (let i = 0; i < c.length; i++) {
       const old = newLo + i - lo;
       if (old >= 0 && old < cost.length) {
         c[i] = cost[old];
         o[i] = origin[old];
         e[i] = edits[old];
+        l[i] = lineage[old];
       }
     }
     lo = newLo;
     cost = c;
     origin = o;
     edits = e;
+    lineage = l;
   };
 
   recentre(start.offset);
@@ -102,17 +112,19 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
 
 
   return {
-    step(p) {
+    step(p, token) {
       const n = cost.length;
       const base = cost[best - lo];
       const c = new Float64Array(n);
       const o = new Int32Array(n);
       const e = new Int32Array(n);
+      const l: (DiscontinuityIdentity | null)[] = new Array(n).fill(null);
       for (let i = 0; i < n; i++) {
         const at = lo + i;
         let bc = cost[i] + insertionCost(ref, at, p);
         let bo = origin[i];
         let be = edits[i] + 1;
+        let bl = lineage[i];
         if (i > 0) {
           const s = subCost(ref[at - 1], p) + entry(at - 1);
           const edit = ref[at - 1] === p ? 0 : 1;
@@ -121,6 +133,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
             bc = cost[i - 1] + s;
             bo = origin[i - 1];
             be = edits[i - 1] + edit;
+            bl = lineage[i - 1];
           }
           const from = at - 1;
           if (from !== best && wordStarts.has(from)) {
@@ -129,6 +142,8 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
               bc = j;
               bo = from;
               be = edit;
+              bl = token && provenance ? discontinuityIdentity(provenance.generation, provenance.nextId(), lastToken,
+                token, best, from, lineage[best - lo]) : null;
             }
           }
           const d = c[i - 1] + deletionCost(ref, at - 1) + entry(at - 1);
@@ -136,11 +151,13 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
             bc = d;
             bo = o[i - 1];
             be = e[i - 1] + 1;
+            bl = l[i - 1];
           }
         }
         c[i] = bc;
         o[i] = bo;
         e[i] = be;
+        l[i] = bl;
       }
 
       // Lowest cost wins; ties go to the state nearest plain forward progress.
@@ -155,19 +172,22 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       cost = c;
       origin = o;
       edits = e;
+      lineage = l;
+      lastToken = token ? acousticIdentity(token) : null;
       best = lo + k;
       recentre(best);
     },
     position() {
       const i = best - lo;
       const recentCost = recent.length ? recent.reduce((a, b) => a + b, 0) / UNIT / recent.length : 0;
-      return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
+      return { transition: lineage[i], offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    save: () => ({ lo, cost, origin, edits, lineage, lastToken, best, ayah, recent: [...recent] }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
-      ({ lo, cost, origin, edits, best, ayah } = s);
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; lineage: typeof lineage;
+        lastToken: typeof lastToken; best: number; ayah: number; recent: number[] };
+      ({ lo, cost, origin, edits, lineage, lastToken, best, ayah } = s);
       recent.splice(0, recent.length, ...s.recent);
     },
   };

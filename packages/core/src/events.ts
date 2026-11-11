@@ -13,6 +13,30 @@ export interface WordSpan {
   end: WordRef;
 }
 
+/** One emitted acoustic token, identified independently of a checker's moving window. */
+export interface AcousticTokenIdentity {
+  readonly p: string;
+  readonly start: number;
+  readonly end: number;
+}
+
+/** An immutable local jump and the accepted jumps it descends from. Reference offsets are half-open. */
+export interface DiscontinuityIdentity {
+  readonly generation: number;
+  readonly id: number;
+  readonly source: AcousticTokenIdentity | null;
+  readonly resume: AcousticTokenIdentity;
+  readonly from: number;
+  readonly to: number;
+  readonly parent: DiscontinuityIdentity | null;
+}
+
+/** A new global bind starts a generation: its unaligned seam cannot certify a local event identity. */
+export interface TransitionHistory {
+  readonly generation: number;
+  readonly head: DiscontinuityIdentity | null;
+}
+
 export interface PositionCandidate {
   /** The most recently recited word. */
   word: WordRef;
@@ -74,6 +98,8 @@ export interface PositionEvent {
    * for the continuation. Absent once that word arrives, and on every later lock.
    */
   spanHold?: true;
+  /** Accepted local jump ancestry. Absent when the tracker cannot establish exact acoustic boundaries. */
+  readonly transitionHistory?: TransitionHistory;
   /** Present only when the tracker was created with `trace: true`. */
   trace?: TrackerTrace;
 }

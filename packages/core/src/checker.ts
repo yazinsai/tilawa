@@ -1,6 +1,6 @@
 import { align as editPath } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
-import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
+import type { CheckerEvent, CheckerState, DiscontinuityIdentity, EngineEvent, MemorizationErrorClass, PositionEvent, TransitionHistory, WordRef } from "./events.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
@@ -13,6 +13,7 @@ import { swapTailUnion } from "./checker-swap-tail.js";
 import { minGapFrames } from "./gap-decode.js";
 import { procliticOnset, waqfMarked } from "./mushaf-marks.js";
 import { absenceMargin } from "./ayah-ledger.js";
+import { createTransitionExclusivity, transitionForEdit, transitionsBetween } from "./transition-events.js";
 import { excisedNeighbourMargins, surplusNasal } from "./seam-excision.js";
 import { PHRASE_PEAK, PHRASE_SWITCH, letterSkeleton, parallelPaths } from "./parallel-phrases.js";
 import { isMaddLetter, maddSites, stemConsonant } from "./madd-drops.js";
@@ -190,6 +191,10 @@ interface Issue {
   last: number;
   obsFrom: number;
   obsTo: number;
+  /** Exact acoustic gap and accepted ancestry, captured before the observation window is trimmed. */
+  discontinuity?: DiscontinuityIdentity;
+  /** Complete accepted support for an absence-ledger proposal; null is unestablished ancestry. */
+  ledgerSupport?: readonly DiscontinuityIdentity[] | null;
   observed?: string;
   /** Absorbed speech reported as one word. The original span still owns this accusation's confirmation gates. */
   heardUnion?: { obsFrom: number; obsTo: number; observed: string };
@@ -275,6 +280,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const watching = new Set<string>();
   /** Latest locked word. A span that the cursor has left falls back to the copy it is on. */
   let cursor = -1;
+  let cursorHistory: TransitionHistory | undefined;
+  let settledHistory: TransitionHistory | undefined;
+  const transitionExclusivity = createTransitionExclusivity();
   /**
    * Ayahs the alignment has actually read, and ayahs the tracker has locked, so a never-read ayah between
    * two committed locks can be judged by the closed read-versus-skip forward sum. Cleared when the lock drops.
@@ -285,7 +293,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   /** Last ayah the lock finished, or the alignment read through. A flash of the next ayah does not move it. */
   let settled = -1;
   let lockSurah = -1;
-  let pendingGap: { left: number; right: number } | null = null;
+  interface LedgerGap { left: number; right: number; leftHistory?: TransitionHistory; rightHistory?: TransitionHistory }
+  let pendingGap: LedgerGap | null = null;
   const ledgerDone = new Set<number>();
   /** Skips the fit already accepted. Re-asserted each window so a later alignment does not resolve them. */
   const ledgerIssues = new Map<number, Issue>();
@@ -445,6 +454,16 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   const event = (o: Open, state: CheckerState): CheckerEvent => {
     const { issue } = o;
+    if (state === "confirmed") {
+      if (issue.ledgerSupport && transitionExclusivity.alternative(issue.word, issue.last, issue.ledgerSupport)) {
+        state = "resolved";
+        ledgerSpans.delete(issue.word);
+        ledgerIssues.delete(issue.word);
+      } else {
+        const identity = issue.discontinuity ?? transitionForEdit(cursorHistory, obs[issue.obsFrom - 1], obs[issue.obsTo]);
+        transitionExclusivity.record(state, issue.cls, issue.word, issue.last, identity);
+      }
+    }
     const conf = clarity(issue);
     const e: CheckerEvent = {
       type: "checker",
@@ -794,6 +813,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     readAyah.clear();
     lockedAyah.clear();
     settled = -1;
+    settledHistory = undefined;
     lockSurah = -1;
     pendingGap = null;
     ledgerIssues.clear();
@@ -858,7 +878,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   };
 
   /** The tracker locked on `right` having come from `left`. Score once the right ayah is in, or the passage moves on. */
-  const closeGap = (out: CheckerEvent[], issues: Map<number, Issue>, left: number, right: number, force: boolean) => {
+  const closeGap = (out: CheckerEvent[], issues: Map<number, Issue>, gap: LedgerGap, force: boolean) => {
+    const { left, right } = gap;
     if (!frames || frames.startFrame < 0 || words[ayahFirst[left]].surah !== words[ayahFirst[right]].surah) return;
     const rightLock = lockedAyah.get(right);
     const rightRead = readAyah.get(right);
@@ -885,6 +906,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       ledgerDone.add(a);
       if (margin === null || margin < PHRASE_SWITCH) continue;
       const wi = ayahFirst[a];
+      const support = transitionsBetween(gap.leftHistory, gap.rightHistory);
+      // Only a complete singleton ancestry can make the whole-ayah report another description of a word edit.
+      if (transitionExclusivity.alternative(wi, ayahLast[a], support)) continue;
       if (decided.has(wi) || heldSlot(wi)) continue;
       const openIssue = open.get(wi);
       if (openIssue && openIssue.issue.cls !== "wrong_word" && openIssue.issue.cls !== "omitted_word") {
@@ -901,7 +925,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         open.delete(wi);
         out.push(event(openIssue, "resolved"));
       }
-      const issue: Issue = { cls: "skipped_passage", word: wi, last: ayahLast[a], obsFrom: at, obsTo: at };
+      const issue: Issue = { cls: "skipped_passage", word: wi, last: ayahLast[a], obsFrom: at, obsTo: at,
+        ledgerSupport: support ? Object.freeze(support) : null };
       ledgerIssues.set(wi, issue);
       ledgerSpans.set(wi, issue.last);
       issues.set(wi, issue);
@@ -934,18 +959,20 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     growSpan(lockedAyah, ayah, cursor, from.start, to.end + 1);
     if (surah !== lockSurah) {
       settled = -1;
+      settledHistory = undefined;
       lockSurah = surah;
       pendingGap = null;
     }
     if (settled < 0) {
-      if (ayahFinished(ayah)) settled = ayah;
+      if (ayahFinished(ayah)) { settled = ayah; settledHistory = cursorHistory; }
       return;
     }
+    if (pendingGap && ayah >= pendingGap.right) pendingGap.rightHistory = cursorHistory;
     if (ayah > settled + 1 && pendingGap?.right !== ayah && words[ayahFirst[settled]].surah === surah
       && ayah - settled <= AHEAD_AYAHS + 1) {
-      pendingGap = { left: settled, right: ayah };
+      pendingGap = { left: settled, right: ayah, leftHistory: settledHistory, rightHistory: cursorHistory };
     }
-    if (ayahFinished(ayah) && ayah > settled) settled = ayah;
+    if (ayahFinished(ayah) && ayah >= settled) { settled = ayah; settledHistory = cursorHistory; }
   };
 
   const setWindow = () => {
@@ -2217,9 +2244,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     noteLock();
     const issues = judged?.issues ?? new Map<number, Issue>();
     if (beforeGap && (!pendingGap || beforeGap.left !== pendingGap.left || beforeGap.right !== pendingGap.right)) {
-      closeGap(out, issues, beforeGap.left, beforeGap.right, true);
+      closeGap(out, issues, beforeGap, true);
     }
-    if (pendingGap) closeGap(out, issues, pendingGap.left, pendingGap.right, final);
+    if (pendingGap) closeGap(out, issues, pendingGap, final);
     keepLedger(issues);
     // One unread run, two emitters. The seam starts after the ledger ayah and the words between them are bound
     // refrain or shared duplicate-span text (or there are none). The ledger key is the earlier one, so the seam
@@ -2277,6 +2304,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (confirmed) confirmed.observed = union.observed;
     }
     furthest = Math.max(furthest, reached);
+    for (const issue of issues.values()) if (issue.cls !== "skipped_passage") {
+      issue.discontinuity = transitionForEdit(cursorHistory, obs[issue.obsFrom - 1], obs[issue.obsTo]);
+    }
     for (const [wi, o] of [...open]) {
       const now = issues.get(wi);
       if (!now) {
@@ -2368,6 +2398,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const p = e as PositionEvent;
       // The continuation picked a copy. Held slots are judged against that member, not sealed here.
       if (p.relocated) {
+        cursorHistory = undefined;
         trackerLocked = true;
         const from = wordIndex(p.relocated.from);
         const to = wordIndex(p.relocated.to);
@@ -2377,6 +2408,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         continue;
       }
       if (p.state === "locked" && p.observed[0]) {
+        cursorHistory = p.transitionHistory;
         cursor = wordIndex(p.observed[0].word);
         // Only the first lock, before it has heard a location-unique word, holds differing slots.
         if (p.spanHold) {

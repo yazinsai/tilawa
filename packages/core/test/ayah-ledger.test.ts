@@ -6,7 +6,8 @@ import { PosteriorFrames } from "../src/ctc.js";
 import { withPosteriors } from "../src/fixtures/index.js";
 import { PHRASE_SWITCH } from "../src/parallel-phrases.js";
 import { loadReferenceIndex } from "../src/reference.js";
-import type { PositionEvent, WordRef } from "../src/events.js";
+import type { DiscontinuityIdentity, PositionEvent, WordRef } from "../src/events.js";
+import { discontinuityIdentity } from "../src/transition-events.js";
 
 const index = loadReferenceIndex(JSON.parse(readFileSync(new URL("../assets/ref-v2.json", import.meta.url), "utf8")));
 const w = (surah: number, ayah: number, word: number): WordRef => ({ surah, ayah, word });
@@ -74,7 +75,7 @@ describe("closed read-versus-skip fit", () => {
 
 describe("ayah absence between committed locks", () => {
   /** Recite `ayahs` in order, locking each word, with posteriors on the phones actually said. */
-  const recite = (ayahs: number[]) => {
+  const recite = (ayahs: number[], provenance = false) => {
     const phonemes = [];
     const locks: WordRef[] = [];
     let frame = 0;
@@ -92,6 +93,8 @@ describe("ayah absence between committed locks", () => {
     const checker = createChecker(index, { passage: { from: w(55, ayahs[0], 1), to: w(55, ayahs.at(-1)!, 1) } });
     const events = [];
     let at = 0;
+    let history: DiscontinuityIdentity | null = null;
+    let previousAyah = ayahs[0];
     for (const lock of locks) {
       const word = words(55, lock.ayah).find((x) => x.word === lock.word)!;
       const n = word.end - word.start;
@@ -100,9 +103,16 @@ describe("ayah absence between committed locks", () => {
       const rows = evidence.posteriors!;
       const f0 = slice[0].start;
       const f1 = slice.at(-1)!.end + 1;
+      if (lock.ayah > previousAyah + 1) {
+        const source = evidence.phonemes[at - n - 1];
+        history = discontinuityIdentity(1, lock.ayah, source, slice[0],
+          words(55, previousAyah).at(-1)!.end, word.start, history);
+      }
+      previousAyah = lock.ayah;
       const pos: PositionEvent = {
         type: "position", v: 1, timeMs: f1 * 20, referenceVersion: index.version, expected: lock, state: "locked",
         observed: [{ word: lock, span: { start: w(55, lock.ayah, 1), end: lock }, confidence: 1, cost: 0, per: 0 }],
+        ...(provenance ? { transitionHistory: { generation: 1, head: history } } : {}),
       };
       events.push(...checker.push({
         inventory: evidence.inventory, frameMs: 20, phonemes: slice,
@@ -119,6 +129,11 @@ describe("ayah absence between committed locks", () => {
 
   it("stays quiet when the lock reads that ayah", () => {
     expect(recite([28, 29, 30])).not.toContain("skipped_passage 55:29:1");
+  });
+
+  it("keeps a real ledger skip with exact transition provenance and no confirmed word alternative", () => {
+    expect(recite([28, 30, 31], true)).toContain("skipped_passage 55:29:1");
+    expect(recite([28, 29, 30], true)).not.toContain("skipped_passage 55:29:1");
   });
 });
 

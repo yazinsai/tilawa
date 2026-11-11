@@ -2,7 +2,7 @@ import type { AlignmentOp } from "./align.js";
 import { PosteriorFrames } from "./ctc.js";
 import { MID_WORD_START, UNIT, alignSubstring, collapseHeld, insertionCost, isHeld } from "./fuzzy.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
-import type { EngineEvent, PositionCandidate, PositionEvent, TraceCandidate, TrackerState, TrackerTrace, WordRef } from "./events.js";
+import type { AcousticTokenIdentity, EngineEvent, PositionCandidate, PositionEvent, TraceCandidate, TrackerState, TrackerTrace, WordRef } from "./events.js";
 import { EvidenceError } from "./evidence.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { createLocalSearch } from "./local.js";
@@ -11,6 +11,7 @@ import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
 import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-spans.js";
 import type { SlotSpan } from "./slot-spans.js";
+import { acousticIdentity } from "./transition-events.js";
 
 export interface TrackerOptions {
   mode?: "free" | "memorization";
@@ -309,6 +310,9 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   let last: PositionEvent | null = null;
   /** Set once locked: from then on the tracker follows the reciter locally, phoneme by phoneme. */
   let local: LocalSearch | null = null;
+  let transitionGeneration = 0;
+  let transitionId = 0;
+  let lastAcousticToken: AcousticTokenIdentity | null = null;
   let lockedOn: Match | null = null;
   /** The event that reported the lock, kept with its trace until a local event replaces it. */
   let lockEvent: PositionEvent | null = null;
@@ -726,12 +730,15 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const marked = (event: PositionEvent): PositionEvent => (arm ? { ...event, spanHold: true } : event);
   const emit = (event: PositionEvent, trace: (from: TrackerState | null) => TrackerTrace): PositionEvent => {
     const from = last?.state ?? null;
-    const out = marked(event);
+    const history = event.state === "locked" && !event.relocated
+      ? Object.freeze({ generation: local ? transitionGeneration : transitionGeneration + 1, head: local?.position().transition ?? null })
+      : undefined;
+    const out = marked(history ? { ...event, transitionHistory: event.transitionHistory ?? history } : event);
     last = out;
     return options.trace ? { ...out, trace: trace(from) } : out;
   };
   const bare = (event: PositionEvent) => {
-    const { spanHold: _, timeMs: __, trace: ___, ...rest } = event;
+    const { spanHold: _, timeMs: __, trace: ___, transitionHistory: ____, ...rest } = event;
     return JSON.stringify(rest);
   };
   const unchanged = (event: PositionEvent) => !!last && bare(last) === bare(event);
@@ -753,6 +760,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   });
 
   const observe = (ph: DecodedPhoneme) => {
+    lastAcousticToken = acousticIdentity(ph);
     observedFrames.push({ start: ph.start, end: ph.end });
     observed += ph.p;
     observedConf.push(ph.conf);
@@ -869,7 +877,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
-    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) },
+      { generation: ++transitionGeneration, source: lastAcousticToken, nextId: () => ++transitionId });
     weak = false;
     pending = null;
     reacquiring = false;
@@ -1280,7 +1289,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         continue;
       }
       const before = local.save();
-      local.step(ph.p);
+      local.step(ph.p, ph);
       stepCosts.push(local.position().stepCost);
       if (stepCosts.length > CONFIRM) stepCosts.shift();
       const heardPhrase = hear(ph.p, before, local.position().stepCost);
