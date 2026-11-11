@@ -1,0 +1,13 @@
+{
+ "id": "tracker-transition-event-exclusivity",
+ "component": "tracker",
+ "hypothesis": "The remaining false passage skip may duplicate an already-reported word edit at the same acoustic discontinuity; mutually exclusive transition-event identities predict tracker -1 and overall -1, with substantial zero-gain risk.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T09:22:35+00:00",
+ "author": "autolab"
+}
