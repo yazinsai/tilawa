@@ -1,0 +1,13 @@
+{
+ "id": "tracker-reference-acceptance-volume",
+ "component": "tracker",
+ "hypothesis": "Raw edit scores may favour rhyme fragments that fit many unrelated sound sequences; normalize each reference's acoustic acceptance volume, predicting 1 tracker recovery offset by 1 exposed listener warning: tracker -1, overall 0.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T01:49:33+00:00",
+ "author": "autolab"
+}
