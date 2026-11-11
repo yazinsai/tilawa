@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createHash } from "node:crypto";
 
 const mocks = vi.hoisted(() => ({ access: vi.fn(), readFile: vi.fn(), ortBackend: vi.fn() }));
 vi.mock("node:fs/promises", async importOriginal => ({
@@ -10,11 +11,58 @@ vi.mock("../src/ort.js", () => ({ ortBackend: mocks.ortBackend }));
 
 import { loadNodeModel } from "../src/node.js";
 
-const manifest = { file: "primary.onnx", tokens: "بت", inventory: "muaalem-v3_2-phonemes", supported: ["added_word"] };
+const manifest = { file: "primary.onnx", tokens: "بت", inventory: "muaalem-v3_2-phonemes", sampleRate: 16000, frameMs: 40, supported: ["added_word"] };
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.readFile.mockResolvedValue(JSON.stringify(manifest));
+  mocks.readFile.mockImplementation(async path => {
+    if (String(path).endsWith("/manifest.json")) return JSON.stringify(manifest);
+    throw Object.assign(new Error("absent"), {code:"ENOENT"});
+  });
+});
+
+describe("Node gesture scorer bundle loading", () => {
+  const parameters = {counts:Array(9).fill(1),stay:Array(9).fill(.8),weights:[.25,.25],
+    spectra:Array.from({length:9},()=>Array(20).fill(.05)),variances:Array.from({length:9},()=>Array(20).fill(1))};
+  const scorer = {schema:1,inventory:manifest.inventory,tokens:manifest.tokens,frameMs:40,observationMs:10,
+    dimensions:20,maxFrames:8192,overlap:parameters,control:parameters};
+  function install(asset: Buffer | null, descriptorBytes?: Buffer) {
+    const bytes=Buffer.from(JSON.stringify(scorer));
+    const descriptor={schema:1,file:"gesture-emissions.json",bytes:bytes.length,
+      sha256:createHash("sha256").update(bytes).digest("hex")};
+    mocks.access.mockRejectedValue(Object.assign(new Error("absent"),{code:"ENOENT"}));
+    mocks.readFile.mockImplementation(async path => {
+      if (String(path).endsWith("/manifest.json")) return JSON.stringify(manifest);
+      if (String(path).endsWith("/gesture-asset.json")) return (descriptorBytes ?? Buffer.from(JSON.stringify(descriptor))).toString("utf8");
+      if (String(path).endsWith("/gesture-emissions.json") && asset) return asset;
+      throw Object.assign(new Error("absent"),{code:"ENOENT"});
+    });
+  }
+  it("loads a verified scorer while preserving the primary model", async () => {
+    install(Buffer.from(JSON.stringify(scorer)));
+    const primary={name:"primary",run:vi.fn(),release:vi.fn()};
+    mocks.ortBackend.mockResolvedValue(primary);
+    const loaded=await loadNodeModel("/models/caller");
+    expect(loaded.backend).toBe(primary);
+    expect(loaded.gesture).toEqual(scorer);
+    expect(primary.run).not.toHaveBeenCalled();
+  });
+  it("fails and releases the primary backend when a declared scorer is missing", async () => {
+    install(null);
+    const primary={name:"primary",release:vi.fn()};
+    mocks.ortBackend.mockResolvedValue(primary);
+    await expect(loadNodeModel("/models/caller")).rejects.toMatchObject({code:"ENOENT"});
+    expect(primary.release).toHaveBeenCalledOnce();
+  });
+  it("rejects corrupted assets and invalid descriptors", async () => {
+    const primary={name:"primary",release:vi.fn()};
+    mocks.ortBackend.mockResolvedValue(primary);
+    install(Buffer.from("{}"));
+    await expect(loadNodeModel("/models/caller")).rejects.toThrow("checksum mismatch");
+    install(Buffer.from(JSON.stringify(scorer)),Buffer.from("{}"));
+    await expect(loadNodeModel("/models/caller")).rejects.toThrow("Invalid gesture asset descriptor");
+    expect(primary.release).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("Node insertion teacher loading", () => {

@@ -14,6 +14,7 @@ import { Resampler } from "./audio.js";
 import { capabilities } from "./capabilities.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
+import { addGestureEvidence, GestureObservations, gestureComparison, gestureReversal } from "./gesture-emission.js";
 import { createListener } from "./listener.js";
 import type { ListenerOptions } from "./listener.js";
 import type { LoadedModel } from "./model.js";
@@ -95,10 +96,24 @@ export function createEngine(options: EngineOptions): Engine {
 
   function start(mode: Session["mode"], passage: Session["passage"], policy: SessionPolicy = {}): Session {
     const tracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
+    if (model.gesture && (model.manifest.sampleRate !== 16000 || model.manifest.frameMs !== 40))
+      throw new Error("Gesture scorer requires 16 kHz audio and a 40 ms evidence clock");
+    const gestureObservations = model.gesture ? new GestureObservations() : null;
+    const gestureDecisions = new Map<string,boolean>();
     const checkerOptions = {
       phrases,
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
       ...(passage && { passage }),
+      ...(model.gesture && { sequenceEvidence(c: import("@tilawa/core").SequenceEvidenceCandidate) {
+        const key=JSON.stringify(c), cached=gestureDecisions.get(key);
+        if (cached !== undefined) return cached;
+        const frames=gestureObservations!.frames;
+        if (c.fromFrame<0 || c.toFrame*4>frames.length) return true;
+        const comparison=gestureComparison(model.gesture!,frames.slice(c.fromFrame*4,c.toFrame*4),c);
+        const permitted=!(comparison && gestureReversal(comparison));
+        gestureDecisions.set(key,permitted);
+        return permitted;
+      } }),
     };
     const checker = createChecker(index, checkerOptions);
     const listener = createListener(model, { posteriors: true, ...options.listener });
@@ -115,13 +130,14 @@ export function createEngine(options: EngineOptions): Engine {
     const pcmParts: Float32Array[] = [];
     let pcmResampler: Resampler | null = null;
     const keepAudio = (samples: Float32Array, sampleRate: number) => {
-      if (!options.recordEvidence && !model.insertionTeacher) return;
+      if (!options.recordEvidence && !model.insertionTeacher && !model.gesture) return;
       let pcm = samples;
       if (sampleRate !== rate) {
         if (!pcmResampler || pcmResampler.from !== sampleRate) pcmResampler = new Resampler(sampleRate, rate);
         pcm = pcmResampler.push(samples);
       }
       if (pcm.length) pcmParts.push(Float32Array.from(pcm));
+      gestureObservations?.push(pcm);
     };
     const subscribers = new Set<(e: EngineEvent) => void>();
     let queue = Promise.resolve();
@@ -134,7 +150,7 @@ export function createEngine(options: EngineOptions): Engine {
     const cells = evidenceGrid(policy.evidenceMs ?? model.manifest.frameMs);
     const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
-      if (options.recordEvidence || model.insertionTeacher) recorded.push(e);
+      if (options.recordEvidence || model.insertionTeacher || model.gesture) recorded.push(e);
       // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
       const out = tracker.push(trackerInput(e));
       noteLocks(out);
@@ -172,11 +188,12 @@ export function createEngine(options: EngineOptions): Engine {
           if (pcmResampler) {
             const tail = pcmResampler.flush();
             if (tail.length) pcmParts.push(Float32Array.from(tail));
+            gestureObservations?.push(tail);
           }
           const e = await listener.end();
           if (e) cells.add(e);
           const events = [...feed(cells.rest()), ...finish()];
-          if ((options.recordEvidence || model.insertionTeacher) && pcmParts.length) {
+          if ((options.recordEvidence || model.insertionTeacher || model.gesture) && pcmParts.length) {
             const n = pcmParts.reduce((s, p) => s + p.length, 0);
             const audio = new Float32Array(n);
             let o = 0;
@@ -186,7 +203,8 @@ export function createEngine(options: EngineOptions): Engine {
             }
             const spliced = options.recordEvidence && locks.length > 1
               ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const insertions = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const enriched = addGestureEvidence(model.gesture, audio, insertions, index, phrases, checkerOptions, mode);
             recorded.splice(0, recorded.length, ...enriched);
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.
