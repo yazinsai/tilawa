@@ -2,6 +2,7 @@ import type { DecodedPhoneme, PhonemeEvidence } from "@tilawa/core";
 import { Resampler } from "./audio.js";
 import { Fbank } from "./fbank.js";
 import type { LoadedModel, Tensor } from "./model.js";
+import { conditionalPhoneRows } from "./phone-identity.js";
 
 export interface ListenerOptions {
   /** Attach per-frame top-k posteriors to each chunk: the checker's local-window check reads them. Default false; sessions turn it on. */
@@ -58,7 +59,10 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
     window.forEach((f, i) => x.set(f, i * m.fbank.mels));
     const out = await model.backend.run({ x: { type: "float32", data: x, dims: [1, m.window, m.fbank.mels] }, ...states });
     states = Object.fromEntries(m.states.map((s) => [s.name, out[`new_${s.name}`]]));
-    const lp = out.log_probs.data as Float32Array;
+    const base = out.log_probs.data as Float32Array;
+    const lp = out.phone_identity_logits
+      ? conditionalPhoneRows(base, out.phone_identity_logits.data as Float32Array, vocab)
+      : base;
     const n = Math.min(keep, lp.length / vocab);
     for (let t = 0; t < n; t++) {
       const row = lp.subarray(t * vocab, (t + 1) * vocab);
