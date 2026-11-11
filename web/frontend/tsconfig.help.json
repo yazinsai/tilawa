@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.help.tsbuildinfo",
+    "paths": {}
+  },
+  "include": [
+    "help/src"
+  ]
+}
