@@ -1,0 +1,13 @@
+{
+ "id": "listener-normalization-scale-bypass",
+ "component": "listener",
+ "hypothesis": "Instantaneous acoustic normalization may discard activation magnitude needed to distinguish weak consonants from background; retaining its scale information predicts 2 recovered additions and 1 collateral wrong call: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T01:20:42+00:00",
+ "author": "autolab"
+}
