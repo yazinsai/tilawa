@@ -1,0 +1,13 @@
+{
+ "id": "tracker-compositional-word-metric",
+ "component": "tracker",
+ "hypothesis": "Additive phone costs may miss whole-word identity in a blurred rhyme fragment; a learned compositional word metric should recover 1 tracker call, offset by 1 exposed listener warning: tracker -1, overall 0.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-11T00:50:23+00:00",
+ "author": "autolab"
+}
