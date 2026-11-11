@@ -157,14 +157,15 @@ def main():
         print('aligned', l['id'], 'phones', len(ph), 'boundary mass', float(marginal.sum()), flush=True)
     x, y = np.array(xs), np.array(ys)
     unique = sorted(set(speakers), key=lambda s: hashlib.sha256(s.encode()).hexdigest())
-    if len(unique) < 4:
-        raise ValueError('At least four authorized none-labelled speakers required')
-    fold = {s: i % 3 for i, s in enumerate(unique)}
+    if len(unique) < 2:
+        raise ValueError('At least two authorized none-labelled speakers required for grouped validation')
+    fold_count = min(3, len(unique))
+    fold = {s: i % fold_count for i, s in enumerate(unique)}
     groups = np.array([fold[s] for s in speakers])
     losses = []
     for strength in (0.001, 0.01, 0.1, 1.0):
         oof = np.zeros(len(y))
-        for f in range(3):
+        for f in range(fold_count):
             train, valid = groups != f, groups == f
             mean, scale = x[train].mean(axis=0), np.maximum(1e-6, x[train].std(axis=0))
             w = fit(np.c_[np.ones(train.sum()), (x[train]-mean)/scale], y[train], strength)
