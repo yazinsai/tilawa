@@ -1,0 +1,13 @@
+{
+ "id": "tracker-smoothed-belief-distill",
+ "component": "tracker",
+ "hypothesis": "Local tracking forgets useful history when a word edit triggers a restart comparison; distilling full-sequence location beliefs into a small recurrent belief state predicts tracker -1 and overall 0, allowing one exposed listener warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T14:34:40+00:00",
+ "author": "autolab"
+}
