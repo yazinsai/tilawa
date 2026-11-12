@@ -1,5 +1,7 @@
 import { EVENT_SCHEMA_VERSION, createChecker, createTracker, trackerInput } from "@tilawa/core";
 import type {
+  BoostedResidualEvidence,
+  SequenceEvidenceCandidate,
   CapabilityEvent,
   CheckerEvent,
   CheckerPolicy,
@@ -14,6 +16,7 @@ import { Resampler } from "./audio.js";
 import { capabilities } from "./capabilities.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
+import { addResidualEvidence, carryResidualEvidence, residualVerdictRemovals, residualPreference } from "./boosted-residuals.js";
 import { createListener } from "./listener.js";
 import type { ListenerOptions } from "./listener.js";
 import type { LoadedModel } from "./model.js";
@@ -100,8 +103,16 @@ export function createEngine(options: EngineOptions): Engine {
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
       ...(passage && { passage }),
     };
-    const checker = createChecker(index, checkerOptions);
     const listener = createListener(model, { posteriors: true, ...options.listener });
+    const streamingCertificates: BoostedResidualEvidence[] = [];
+    const checker = createChecker(index, { ...checkerOptions, ...(listener.residualComparison && {
+      sequenceEvidence(candidate: SequenceEvidenceCandidate) {
+        const certificate = listener.residualComparison!(candidate);
+        if (!certificate || !residualPreference(certificate)) return true;
+        streamingCertificates.push(certificate);
+        return false;
+      },
+    }) });
     const wordIndex = new Map(index.words.map((w, i) => [`${w.surah}:${w.ayah}:${w.word}`, i]));
     const locks: { wi: number; timeMs: number }[] = [];
     const noteLocks = (events: EngineEvent[]) => {
@@ -115,7 +126,7 @@ export function createEngine(options: EngineOptions): Engine {
     const pcmParts: Float32Array[] = [];
     let pcmResampler: Resampler | null = null;
     const keepAudio = (samples: Float32Array, sampleRate: number) => {
-      if (!options.recordEvidence && !model.insertionTeacher) return;
+      if (!options.recordEvidence && !model.insertionTeacher && !model.boostedResiduals) return;
       let pcm = samples;
       if (sampleRate !== rate) {
         if (!pcmResampler || pcmResampler.from !== sampleRate) pcmResampler = new Resampler(sampleRate, rate);
@@ -131,10 +142,11 @@ export function createEngine(options: EngineOptions): Engine {
     };
     const recorded: PhonemeEvidence[] = [];
     const auxiliaryMistakes: CheckerEvent[] = [];
+    let reviewedMistakes: CheckerEvent[] | undefined;
     const cells = evidenceGrid(policy.evidenceMs ?? model.manifest.frameMs);
     const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
-      if (options.recordEvidence || model.insertionTeacher) recorded.push(e);
+      if (options.recordEvidence || model.insertionTeacher || model.boostedResiduals) recorded.push(e);
       // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
       const out = tracker.push(trackerInput(e));
       noteLocks(out);
@@ -176,7 +188,7 @@ export function createEngine(options: EngineOptions): Engine {
           const e = await listener.end();
           if (e) cells.add(e);
           const events = [...feed(cells.rest()), ...finish()];
-          if ((options.recordEvidence || model.insertionTeacher) && pcmParts.length) {
+          if ((options.recordEvidence || model.insertionTeacher || model.boostedResiduals) && pcmParts.length) {
             const n = pcmParts.reduce((s, p) => s + p.length, 0);
             const audio = new Float32Array(n);
             let o = 0;
@@ -184,10 +196,31 @@ export function createEngine(options: EngineOptions): Engine {
               audio.set(part, o);
               o += part.length;
             }
+            const primary = carryResidualEvidence(recorded.slice(), streamingCertificates);
             const spliced = options.recordEvidence && locks.length > 1
-              ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+              ? await spliceContextFreeGaps(model, audio, rate, primary, locks, index) : primary;
+            const insertions = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const enriched = await addResidualEvidence(model.boostedResiduals, model.manifest, audio, insertions, index, phrases, checkerOptions, mode, undefined, listener.residualComparison);
             recorded.splice(0, recorded.length, ...enriched);
+            if (model.boostedResiduals) {
+              const replay = (evidence: PhonemeEvidence[]) => {
+                const replayTracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
+                const replayChecker = createChecker(index, checkerOptions);
+                for (const cell of insertionCells(evidence)) replayChecker.push(cell, replayTracker.push(trackerInput(cell)));
+                replayChecker.end(replayTracker.end());
+                return replayChecker.mistakes();
+              };
+              // Review the original live evidence, before gap splicing or auxiliary insertions.
+              // Its graph confirmations must remain exempt even if a stored replay aligns differently.
+              const certificates = enriched.flatMap(cell => cell.phonemes.flatMap(p => p.boostedResidualVetoes ?? []));
+              const plain = primary.map(cell => ({ ...cell, phonemes: cell.phonemes.map(p => {
+                const { boostedResidualVetoes: ignored, ...primary } = p;
+                return primary;
+              }) }));
+              const removed = residualVerdictRemovals(checker.mistakes(), replay(plain), replay(carryResidualEvidence(plain, certificates)));
+              reviewedMistakes = checker.mistakes().filter(e => !removed.includes(e));
+              events.push(...emit(removed.map(e => ({ ...e, state: "uncertain" as const }))));
+            }
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.
               // Only newly certified seam additions are published at end().
@@ -215,7 +248,7 @@ export function createEngine(options: EngineOptions): Engine {
         return feed(cells.ready(e.posteriors && e.posteriors.startFrame + e.posteriors.nFrames));
       },
       endEvidence: () => [...feed(cells.rest()), ...finish()],
-      mistakes: () => [...checker.mistakes(), ...auxiliaryMistakes],
+      mistakes: () => [...(reviewedMistakes ?? checker.mistakes()), ...auxiliaryMistakes],
       evidence: () => options.recordEvidence ? recorded : [],
     };
   }

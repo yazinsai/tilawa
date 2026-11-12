@@ -1,5 +1,6 @@
-import type { DecodedPhoneme, PhonemeEvidence } from "@tilawa/core";
+import type { BoostedResidualEvidence, DecodedPhoneme, PhonemeEvidence, SequenceEvidenceCandidate } from "@tilawa/core";
 import { Resampler } from "./audio.js";
+import { residualComparison } from "./boosted-residuals.js";
 import { Fbank } from "./fbank.js";
 import type { LoadedModel, Tensor } from "./model.js";
 
@@ -18,6 +19,8 @@ export interface Listener {
   readonly frames: number;
   /** Output frames before this one are final: every phoneme starting earlier has been returned. */
   readonly decoded: number;
+  /** Frozen observations are available before the corresponding evidence reaches the checker. */
+  residualComparison?(candidate: SequenceEvidenceCandidate): BoostedResidualEvidence | null;
 }
 
 const round4 = (x: number) => Math.round(x * 1e4) / 1e4;
@@ -52,14 +55,33 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   let done: DecodedPhoneme[] = [];
   let ids: number[] = [];
   let probs: number[] = [];
+  const residualFeatures: number[][] = [], residualLogits: number[][] = [];
 
   async function step(window: Float32Array[], keep: number) {
     const x = new Float32Array(m.window * m.fbank.mels);
     window.forEach((f, i) => x.set(f, i * m.fbank.mels));
-    const out = await model.backend.run({ x: { type: "float32", data: x, dims: [1, m.window, m.fbank.mels] }, ...states });
+    const feeds: Record<string, Tensor> = { x: { type: "float32", data: x, dims: [1, m.window, m.fbank.mels] }, ...states };
+    const out = await model.backend.run(feeds);
     states = Object.fromEntries(m.states.map((s) => [s.name, out[`new_${s.name}`]]));
     const lp = out.log_probs.data as Float32Array;
     const n = Math.min(keep, lp.length / vocab);
+    if (model.boostedResiduals) {
+      // Replay the identical input and pre-step caches through the diagnostic copy. Its returned
+      // caches never replace primary state, and only requested comparison windows evaluate trees.
+      const diagnosticFeeds = Object.fromEntries(Object.entries(feeds).map(([name, t]) => [name, { ...t, data: t.data.slice() }]));
+      const auxiliary = await model.boostedResiduals.backend.run(diagnosticFeeds);
+      const diagnosticLp = auxiliary.log_probs;
+      if (!diagnosticLp || diagnosticLp.type !== "float32" || diagnosticLp.data.length !== lp.length ||
+          lp.some((v, i) => v !== diagnosticLp.data[i])) throw new Error("Residual extractor changed frozen phone outputs");
+      const meta = model.boostedResiduals.model, h = auxiliary[meta.featureOutput], z = auxiliary[meta.logitOutput];
+      const native = lp.length / vocab;
+      if (!Number.isSafeInteger(native) || native < 1 || !h || !z || h.type !== "float32" || z.type !== "float32" ||
+          h.data.length !== native * meta.width || z.data.length !== native * vocab) throw new Error("Invalid residual streaming geometry");
+      for (let t = 0; t < n; t++) {
+        residualFeatures.push(Array.from(h.data.slice(t * meta.width, (t + 1) * meta.width), Number));
+        residualLogits.push(Array.from(z.data.slice(t * vocab, (t + 1) * vocab), Number));
+      }
+    }
     for (let t = 0; t < n; t++) {
       const row = lp.subarray(t * vocab, (t + 1) * vocab);
       const top = topK(row, k);
@@ -119,6 +141,11 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   }
 
   return {
+    ...(model.boostedResiduals && { residualComparison(candidate: SequenceEvidenceCandidate) {
+      if (candidate.fromFrame < 0 || candidate.toFrame > residualFeatures.length) return null;
+      return residualComparison(model.boostedResiduals!.model,
+        residualFeatures.slice(candidate.fromFrame, candidate.toFrame), residualLogits.slice(candidate.fromFrame, candidate.toFrame), candidate);
+    } }),
     get frames() {
       return fbankFrames;
     },
