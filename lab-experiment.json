@@ -1,0 +1,13 @@
+{
+ "id": "listener-crossfit-alignment-refit",
+ "component": "listener",
+ "hypothesis": "Weak consonants may remain suppressed because a readout supplies its own self-confirming training placements; speaker-cross-fitted placement supervision predicts 1 recovered addition and 0 losses, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T20:36:16+00:00",
+ "author": "autolab"
+}
