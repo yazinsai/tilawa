@@ -1,0 +1,13 @@
+{
+ "id": "listener-local-noise-contrast-training",
+ "component": "listener",
+ "hypothesis": "The phone head may learn background-specific consonant associations because speech and recording noise are never contrasted separately; background-swapped feature training predicts 1 false warning removed with no losses counted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T11:57:52+00:00",
+ "author": "autolab"
+}
