@@ -1,0 +1,13 @@
+{
+ "id": "listener-repeat-view-privileged-teacher",
+ "component": "listener",
+ "hypothesis": "Weak consonants receive unreliable supervision from isolated readings; a training-only teacher that also hears an acoustically verified repetition should improve a single-view phone head, predicting 1 recovered addition, 0 losses, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T21:09:42+00:00",
+ "author": "autolab"
+}
