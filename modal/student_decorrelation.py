@@ -50,6 +50,8 @@ class Pronunciations:
         return "".join(c for word in words for i, c in enumerate(word) if i == 0 or c != word[i - 1])
 
     def span(self, text):
+        if not text:
+            return None
         layouts, start = set(), 0
         while (start := self.text.find(text, start)) >= 0:
             lo = bisect.bisect_right(self.boundaries, start)
@@ -287,6 +289,7 @@ def export_bundle(args):
     model.eval()
     chunk, left = original["chunk"], original["leftContext"]
     destination.mkdir(parents=True, exist_ok=True)
+    (destination / "manifest.json").unlink(missing_ok=True)
     fp32 = destination / "model-fp32.onnx"
     states = export_onnx(model, str(fp32), chunk, left)
     generated = manifest(destination.name, states, chunk, left, str(fp32), ck)

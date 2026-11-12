@@ -40,6 +40,7 @@ class AlignmentTests(unittest.TestCase):
         self.assertEqual(reference.span("aabbba"), "abba")
         self.assertEqual(reference.passage(["1:1"]), "abba")
         self.assertIsNone(reference.span("untranscribed"))
+        self.assertIsNone(reference.span(""))
 
     def test_ambiguous_occurrence_layout_is_excluded(self):
         reference = Pronunciations({"ayahs": [
