@@ -1,0 +1,13 @@
+{
+ "id": "listener-attention-dispersion-readout",
+ "component": "listener",
+ "hypothesis": "Attention averaging may hide distinguishing consonant cues through cancellation between acoustic value vectors; retaining their dispersion should remove 1 false wrong-word warning with no losses predicted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T15:38:11+00:00",
+ "author": "autolab"
+}
