@@ -1,0 +1,13 @@
+{
+ "id": "listener-contrast-preserving-compression",
+ "component": "listener",
+ "hypothesis": "Weak consonant distinctions may lie in low-variance encoder directions that ordinary readout regularization suppresses; discriminatively preserving those directions should recover 1 missed addition, predicting listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T23:11:14+00:00",
+ "author": "autolab"
+}
