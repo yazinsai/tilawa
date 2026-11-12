@@ -1,5 +1,7 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import { appendEdit, editSequence, emptyEditScript, EDIT_SCRIPTS, marginalOrderLogRatio, validateEditOrderModel } from "./edit-order.js";
+import type { EditScript, LocalEditOrderOptions } from "./edit-order.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -45,7 +47,9 @@ export interface LocalSearch {
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">, editOrder?: LocalEditOrderOptions): LocalSearch {
+  if (editOrder) validateEditOrderModel(editOrder.model);
+  const order = editOrder && { ...editOrder, model: { ...editOrder.model, ordered: [...editOrder.model.ordered], shuffled: [...editOrder.model.shuffled] } };
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -68,6 +72,8 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let cost = new Float64Array(0);
   let origin = new Int32Array(0);
   let edits = new Int32Array(0);
+  let scripts: EditScript[][] = [];
+  let observations = 0;
   let best = start.offset;
   let ayah = -1;
   const recent: number[] = [];
@@ -81,24 +87,28 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     const c = new Float64Array(newHi - newLo + 1).fill(Infinity);
     const o = new Int32Array(c.length);
     const e = new Int32Array(c.length);
+    const paths: EditScript[][] = Array.from({ length: order ? c.length : 0 }, () => []);
     for (let i = 0; i < c.length; i++) {
       const old = newLo + i - lo;
       if (old >= 0 && old < cost.length) {
         c[i] = cost[old];
         o[i] = origin[old];
         e[i] = edits[old];
+        if (order) paths[i] = scripts[old];
       }
     }
     lo = newLo;
     cost = c;
     origin = o;
     edits = e;
+    scripts = paths;
   };
 
   recentre(start.offset);
   cost[start.offset - lo] = 0;
   origin[start.offset - lo] = start.origin;
   edits[start.offset - lo] = start.edits;
+  if (order) scripts[start.offset - lo] = [emptyEditScript()];
 
 
   return {
@@ -108,6 +118,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       const c = new Float64Array(n);
       const o = new Int32Array(n);
       const e = new Int32Array(n);
+      const paths: EditScript[][] = Array.from({ length: order ? n : 0 }, () => []);
       for (let i = 0; i < n; i++) {
         const at = lo + i;
         let bc = cost[i] + insertionCost(ref, at, p);
@@ -141,12 +152,56 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
         c[i] = bc;
         o[i] = bo;
         e[i] = be;
+        if (order && Number.isFinite(bc)) {
+          // Keep ambiguous minimum-cost scripts on the unchanged directed recurrence. A jump emits a boundary,
+          // not deletions of every bypassed phone: its existing movement charge stays entirely separate.
+          const alternatives: EditScript[] = [];
+          if (cost[i] + insertionCost(ref, at, p) === bc)
+            alternatives.push(...scripts[i].map(path => appendEdit(path, "ins")));
+          if (i > 0) {
+            const op = ref[at - 1] === p ? "match" : "sub";
+            const consume = (path: EditScript) => appendEdit(wordStarts.has(at - 1) ? appendEdit(path, "boundary") : path, op);
+            const s = subCost(ref[at - 1], p) + entry(at - 1);
+            if (cost[i - 1] + s === bc) alternatives.push(...scripts[i - 1].map(consume));
+            const from = at - 1;
+            const j = base + JUMP_COST + Math.abs(from - best) * JUMP_DISTANCE + s + (entry(at - 1) ? 0 : crossing(from));
+            if (from !== best && wordStarts.has(from) && j === bc)
+              alternatives.push(...scripts[best - lo].map(consume));
+            if (c[i - 1] + deletionCost(ref, at - 1) + entry(at - 1) === bc)
+              alternatives.push(...paths[i - 1].map(path => appendEdit(wordStarts.has(at - 1) ? appendEdit(path, "boundary") : path, "del")));
+          }
+          // Identical operation strings have the same recurrent score. Do not count duplicate scripts twice.
+          const seen = new Map<string, EditScript[]>();
+          paths[i] = alternatives.filter(path => {
+            const key = `${path.last}/${path.counts}/${path.transitions}`;
+            const have = seen.get(key) ?? [];
+            if (have.some(p => editSequence(p).join(",") === editSequence(path).join(","))) return false;
+            have.push(path); seen.set(key, have); return true;
+          }).slice(0, EDIT_SCRIPTS);
+        }
       }
 
       // Lowest cost wins; ties go to the state nearest plain forward progress.
       let k = -1;
       for (let i = 0; i < n; i++) {
         if (k === -1 || c[i] < c[k] || (c[i] === c[k] && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1))) k = i;
+      }
+      observations++;
+      if (order && o[k] !== origin[best - lo]) {
+        const candidates = [];
+        let selected = k, selectedScore = Infinity;
+        for (let i = 0; i < n; i++) {
+          if (!Number.isFinite(c[i]) || !paths[i].length) continue;
+          const marginal = (mode: "ordered" | "shuffled") => marginalOrderLogRatio(paths[i].map(script => ({ script, cost: c[i] })), order.model, mode);
+          const ordered = marginal("ordered"), shuffled = marginal("shuffled");
+          const score = c[i] - UNIT / 3 * (order.mode === "shuffled" ? shuffled : ordered);
+          if (score < selectedScore || (score === selectedScore && Math.abs(lo + i - best - 1) < Math.abs(lo + selected - best - 1))) {
+            selected = i; selectedScore = score;
+          }
+          candidates.push({ offset: lo + i, origin: o[i], cost: c[i] / UNIT, ordered, shuffled, scripts: paths[i].length, counts: [...paths[i][0].counts] });
+        }
+        order.onComparison?.({ previous: best, weightedSelected: lo + k, selected: lo + (order.mode === "audit" ? k : selected), observations, candidates });
+        if (order.mode !== "audit") k = selected;
       }
       const min = c[k];
       for (let i = 0; i < n; i++) c[i] -= min;
@@ -155,6 +210,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       cost = c;
       origin = o;
       edits = e;
+      scripts = paths;
       best = lo + k;
       recentre(best);
     },
@@ -164,10 +220,10 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    save: () => ({ lo, cost, origin, edits, scripts, observations, best, ayah, recent: [...recent] }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
-      ({ lo, cost, origin, edits, best, ayah } = s);
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; scripts: typeof scripts; observations: number; best: number; ayah: number; recent: number[] };
+      ({ lo, cost, origin, edits, scripts, observations, best, ayah } = s);
       recent.splice(0, recent.length, ...s.recent);
     },
   };
