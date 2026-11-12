@@ -1,6 +1,6 @@
 # Sequence-gradient pronunciation evidence
 
-Status: needs-info. The supplied supervisor cannot execute the model/data audit. Implementation and acoustic validation are pending; this is not a premise-based kill. The experiment card is unchanged.
+Status: needs-info. The supplied supervisor still cannot execute the model/data audit after the implementation retry. Implementation and acoustic validation are pending; this is not a premise-based kill. The experiment card is unchanged.
 
 ## Prediction
 
@@ -26,9 +26,19 @@ Supervisor request 1 was a read-only dependency and asset inventory under the au
 
 The prescribed six-shard test harness (request 2) and a minimal `pwd` execution retry (request 3) also returned the same `NotFoundError`, zero compute cost and no shard output. No build or test assertions ran. Even the minimal retry failed before execution, so changing the training command cannot resolve the current blocker. The user has been asked to restore the supervisor.
 
+On the renewed implementation attempt on 2026-11-13 (Bahrain time), request 4 repeated the read-only inventory through the prescribed supervisor, with a ten-minute timeout. It checked dependency availability and listed model/checkpoint and help-train metadata files only under `LAB_DATA` and `/scratch/listener-sequence-gradient-evidence`. Request 5 independently ran the exact prescribed six-shard harness, `bash tools/autolab_tests.sh`, also with a ten-minute timeout. Both returned `NotFoundError: No such file or directory`. Their result JSON files record `usd: 0.0`; neither produced a shard directory or command log. No inventory or test output was returned.
+
+The renewed source review established that existing branches can capture actual checker comparison requests and carry occurrence-bound veto certificates without modifying primary tokens. It also confirmed that the logit-nullspace/depth extractors expose hidden activations and the Fisher-score scorer differentiates a fitted background Gaussian mixture. None supplies gradients with respect to the acoustic encoder's parameters. Reusing their scorer would implement a different mechanism. The only model file present locally is the tiny SDK test fixture; there is no local trained checkpoint, deployment model or labelled training corpus with which to establish the required gradient extraction or fit the controls.
+
+### Why this retry cannot implement the engine change
+
+The previous feedback asks for engine code or an explanation of why implementation cannot be done. The concrete blocker is execution of the sole authorized compute/data route, rather than an observed failure of the proposed acoustic signal. Five supervisor requests, including a minimal command and independent inventory/test commands, now have the same error before returning any command output. The supplied model and training recordings exist only behind that route. Whether a matching differentiable model is available remains unknown; the inventory never ran, so this report does not infer its absence.
+
+Implementing and handing back an operational recheck requires accessing those assets, verifying the projected uppermost-block derivatives, fitting and freezing all three scorers on eligible speaker partitions, and verifying the complete primary/teacher/side-asset bundle. The user explicitly requires that complete bundle before handoff and prohibits alternate Modal/data access. Local certificate plumbing or a mock gradient extractor could not satisfy those prerequisites or evaluate this experiment. Therefore this retry leaves the engine unchanged and records the execution blocker instead of declaring an untrained or incomplete side asset.
+
 Target recoveries, listener/overall deltas, gradient parity and training-control performance are unmeasured. Practice scores used: zero of three. There is no trained side asset or `.autolab/model.json`; decoding with the main model would not evaluate this mechanism. There is no killed outcome because infrastructure failure supplies no evidence for the acoustic kill condition.
 
-No engine code, scorer, lab tooling, supplied manifest, test data, evidence or experiment card has been edited. The only tracked change is this required experiment report. `git diff --check` passes; no behavioral tests are applicable to the report-only change.
+No engine code, scorer, lab tooling, supplied manifest, test data, evidence or experiment card has been edited. The only tracked change is this required experiment report. `git diff --check` passes. The requested behavioral tests were attempted twice through the prescribed harness and could not execute.
 
 ## Resume
 
