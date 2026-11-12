@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "The supplied Modal supervisor returned NotFoundError before every attempted validation, leaving training calibration, required build/tests and target replay unmeasured.",
+  "measured": {}
+}
