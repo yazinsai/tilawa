@@ -1,0 +1,17 @@
+{
+  // Typechecks the docs snippets against the built package (packages/core/dist), the way an app sees it:
+  // through its package.json "exports". Run `node docs/examples/typecheck.mjs` from the repo root.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "typeRoots": ["../../packages/core/node_modules/@types"],
+    "strict": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true
+  },
+  "include": ["*.ts"]
+}

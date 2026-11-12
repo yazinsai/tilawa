@@ -1,0 +1,167 @@
+[
+  {
+    "run": "en-iphone",
+    "screen": "consent",
+    "violations": []
+  },
+  {
+    "run": "en-iphone",
+    "screen": "ready",
+    "violations": []
+  },
+  {
+    "run": "en-iphone",
+    "screen": "reading",
+    "violations": []
+  },
+  {
+    "run": "en-iphone",
+    "screen": "review",
+    "violations": []
+  },
+  {
+    "run": "en-iphone",
+    "screen": "send",
+    "violations": []
+  },
+  {
+    "run": "en-iphone",
+    "screen": "discard-confirm",
+    "violations": []
+  },
+  {
+    "run": "en-iphone",
+    "screen": "send-failed",
+    "violations": []
+  },
+  {
+    "run": "en-iphone",
+    "screen": "kept-after-refresh",
+    "violations": []
+  },
+  {
+    "run": "en-iphone",
+    "screen": "done",
+    "violations": []
+  },
+  {
+    "run": "ar-pixel",
+    "screen": "consent",
+    "violations": []
+  },
+  {
+    "run": "ar-pixel",
+    "screen": "ready",
+    "violations": []
+  },
+  {
+    "run": "ar-pixel",
+    "screen": "reading",
+    "violations": []
+  },
+  {
+    "run": "ar-pixel",
+    "screen": "review",
+    "violations": []
+  },
+  {
+    "run": "ar-pixel",
+    "screen": "send",
+    "violations": []
+  },
+  {
+    "run": "ar-pixel",
+    "screen": "discard-confirm",
+    "violations": []
+  },
+  {
+    "run": "ar-pixel",
+    "screen": "send-failed",
+    "violations": []
+  },
+  {
+    "run": "ar-pixel",
+    "screen": "done",
+    "violations": []
+  },
+  {
+    "run": "ar-iphone",
+    "screen": "consent",
+    "violations": []
+  },
+  {
+    "run": "ar-iphone",
+    "screen": "ready",
+    "violations": []
+  },
+  {
+    "run": "ar-iphone",
+    "screen": "reading",
+    "violations": []
+  },
+  {
+    "run": "ar-iphone",
+    "screen": "review",
+    "violations": []
+  },
+  {
+    "run": "ar-iphone",
+    "screen": "send",
+    "violations": []
+  },
+  {
+    "run": "ar-iphone",
+    "screen": "discard-confirm",
+    "violations": []
+  },
+  {
+    "run": "ar-iphone",
+    "screen": "done",
+    "violations": []
+  },
+  {
+    "run": "en-pixel",
+    "screen": "consent",
+    "violations": []
+  },
+  {
+    "run": "en-pixel",
+    "screen": "ready",
+    "violations": []
+  },
+  {
+    "run": "en-pixel",
+    "screen": "reading",
+    "violations": []
+  },
+  {
+    "run": "en-pixel",
+    "screen": "review",
+    "violations": []
+  },
+  {
+    "run": "en-pixel",
+    "screen": "send",
+    "violations": []
+  },
+  {
+    "run": "en-pixel",
+    "screen": "discard-confirm",
+    "violations": []
+  },
+  {
+    "run": "en-pixel",
+    "screen": "done",
+    "violations": []
+  },
+  {
+    "run": "en-iphone",
+    "screen": "mic-denied",
+    "violations": []
+  },
+  {
+    "run": "ar-pixel",
+    "screen": "mic-denied",
+    "violations": []
+  }
+]

@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch: # also runs the opt-in demo-e2e job
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -22,56 +23,66 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: packages/core/package-lock.json
-      - uses: actions/cache@v4
-        id: zipformer
-        with:
-          key: zipformer-assets-a0w-ep1-a0.5-v1
-          path: |
-            web/frontend/public/models/zipformer_a0w_ep1_a05.int8.onnx
-            web/frontend/public/models/zipformer_interp_gentle_a05.int8.onnx
-            web/frontend/public/zipformer_quran.json
-      - if: steps.zipformer.outputs.cache-hit != 'true'
-        run: ../../web/frontend/scripts/fetch-zipformer-assets.sh
-      - run: npm ci # `prepare` runs tsc -> dist
-      - run: npx vitest run
-
-  browser:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: packages/core/package-lock.json
-      - uses: actions/cache@v4
-        id: zipformer
-        with:
-          key: zipformer-assets-a0w-ep1-a0.5-v1
-          path: |
-            web/frontend/public/models/zipformer_a0w_ep1_a05.int8.onnx
-            web/frontend/public/models/zipformer_interp_gentle_a05.int8.onnx
-            web/frontend/public/zipformer_quran.json
-      - if: steps.zipformer.outputs.cache-hit != 'true'
-        run: web/frontend/scripts/fetch-zipformer-assets.sh
       - run: npm ci
-        working-directory: packages/core
-      - run: npx playwright install --with-deps chromium
-        working-directory: packages/core
-      - run: npm run test:browser
-        working-directory: packages/core
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npx vitest run
+      - run: npm run test:pack
 
   demo:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web/frontend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: web/frontend/package-lock.json
+          cache-dependency-path: |
+            packages/core/package-lock.json
+            web/frontend/package-lock.json
+      # The demo depends on the built package (file:../../packages/core).
+      - run: npm ci && npm run build
+        working-directory: packages/core
       - run: npm ci
+        working-directory: web/frontend
       - run: npm run build
+        working-directory: web/frontend
+      - run: npm run build:server
+        working-directory: web/frontend
+      - run: npm run typecheck:help
+        working-directory: web/frontend
+      - run: npx vitest run
+        working-directory: web/frontend
+
+  # Opt-in: builds the demo, prepares /v1 from the real models, and recites a recording into headless Chromium
+  # (web/frontend/e2e). Runs on manual dispatch when the repository variable TILAWA_MODELS_URL is set (a /v1 mirror
+  # or a {id}/{version} template, see web/frontend/scripts/prepare-v1-assets.mjs). The models are cached.
+  demo-e2e:
+    if: github.event_name == 'workflow_dispatch' && vars.TILAWA_MODELS_URL != ''
+    needs: demo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            packages/core/package-lock.json
+            web/frontend/package-lock.json
+      - run: npm ci && npm run build
+        working-directory: packages/core
+      - run: npm ci && npx playwright install --with-deps chromium
+        working-directory: web/frontend
+      - uses: actions/cache@v4
+        id: models
+        with:
+          path: ${{ runner.temp }}/tilawa-v1
+          key: tilawa-v1-${{ hashFiles('packages/core/src/runtime/models-v1.json', 'web/frontend/package-lock.json') }}
+      - if: steps.models.outputs.cache-hit != 'true'
+        run: node scripts/prepare-v1-assets.mjs --models-url "${{ vars.TILAWA_MODELS_URL }}" --out ${{ runner.temp }}/tilawa-v1
+        working-directory: web/frontend
+      - run: npx playwright test
+        working-directory: web/frontend
+        env:
+          TILAWA_MODELS_DIR: ${{ runner.temp }}/tilawa-v1/models

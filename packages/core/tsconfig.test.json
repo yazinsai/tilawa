@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "noEmit": true, "rootDir": "." },
+  "include": ["src/**/*", "src/**/*.json", "types/*.d.ts", "test/*.ts", "test/fixtures/**/*.ts"],
+  // Ported research tests (test/engine, test/runtime) are kept as research wrote them; it never type-checked them.
+  "exclude": ["test/engine", "test/runtime"]
+}

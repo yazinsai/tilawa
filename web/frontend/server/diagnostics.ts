@@ -1,4 +1,6 @@
 import { Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
+import { isStoredId, requireAdmin } from "./auth.js";
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile, readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -10,7 +12,7 @@ const STORAGE_DIR = process.env.STORAGE_DIR
 export const diagnosticsApp = new Hono();
 
 // POST /api/diagnostics — accept auto-captured diagnostic data
-diagnosticsApp.post("/", async (c) => {
+diagnosticsApp.post("/", bodyLimit({ maxSize: 25 * 1024 * 1024 }), async (c) => {
   const form = await c.req.formData();
   const audio = form.get("audio") as File | null;
   const eventsRaw = form.get("events") as string | null;
@@ -52,7 +54,7 @@ diagnosticsApp.post("/", async (c) => {
 });
 
 // GET /api/diagnostics — list all diagnostics
-diagnosticsApp.get("/", async (c) => {
+diagnosticsApp.get("/", requireAdmin, async (c) => {
   try {
     const entries = await readdir(STORAGE_DIR);
     const items = [];
@@ -80,8 +82,9 @@ diagnosticsApp.get("/", async (c) => {
 });
 
 // GET /api/diagnostics/:id/audio — stream audio
-diagnosticsApp.get("/:id/audio", async (c) => {
+diagnosticsApp.get("/:id/audio", requireAdmin, async (c) => {
   const id = c.req.param("id");
+  if (!isStoredId(id)) return c.json({ error: "Not found" }, 404);
   const filePath = join(STORAGE_DIR, id, "audio.wav");
   try {
     const data = await readFile(filePath);

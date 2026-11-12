@@ -1,7 +1,7 @@
 // tilawa.dev/help — volunteers record correct recitations. Only v4 (correct
 // recitation) prompts are issued or accepted: deliberately altering the Quran
 // is not permissible, so mistake prompts from older versions are retired.
-import { createHash, randomBytes, randomInt } from "node:crypto";
+import { randomBytes, randomInt } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
@@ -10,11 +10,11 @@ import { bodyLimit } from "hono/body-limit";
 import { loadQuran } from "./prompts.mjs";
 import { generatePrompt } from "./prompts-v4.mjs";
 import { signPrompt, verifyPrompt } from "./prompt-token.mjs";
+import { ipHash } from "./ip.js";
 
 const DATA_DIR = resolve(process.env.HELP_DATA_DIR ?? "./storage/help");
 const QURAN_JSON = resolve(process.env.QURAN_JSON ?? "./dist/quran.json");
 const ADMIN_TOKEN = process.env.HELP_ADMIN_TOKEN ?? "";
-const IP_SALT = process.env.IP_SALT ?? randomBytes(16).toString("hex");
 // Configure a stable key to let pending prompts survive server restarts.
 const PROMPT_SECRET = process.env.HELP_PROMPT_SECRET ?? randomBytes(32).toString("hex");
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -50,12 +50,6 @@ const readJsonl = (path: string) =>
 const used = new Set<string>(readJsonl(SUBMISSIONS).map((r) => `${r.speaker}:${r.seed}`));
 const subscribed = new Set<string>(readJsonl(SUBSCRIBERS).map((r) => r.email));
 const ready = mkdir(join(DATA_DIR, "audio"), { recursive: true });
-
-// Behind Cloudflare -> Dokku nginx, X-Forwarded-For carries Cloudflare's edge IP.
-function ipHash(c: Context) {
-  const ip = c.req.header("cf-connecting-ip") ?? c.req.header("x-forwarded-for")?.split(",")[0] ?? "";
-  return createHash("sha256").update(IP_SALT + ip.trim()).digest("hex").slice(0, 16);
-}
 
 const hits = new Map<string, number[]>();
 function rateLimited(key: string) {
