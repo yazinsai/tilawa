@@ -1,0 +1,13 @@
+{
+ "id": "listener-run-confidence-moments",
+ "component": "listener",
+ "hypothesis": "Chunkwise confidence aggregation may overweight a short, confident portion of a longer ambiguous consonant run; frame-weighted run statistics should remove 1 false warning with no losses predicted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T11:36:15+00:00",
+ "author": "autolab"
+}
