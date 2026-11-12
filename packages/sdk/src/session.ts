@@ -13,6 +13,7 @@ import type {
 import { Resampler } from "./audio.js";
 import { capabilities } from "./capabilities.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
+import { addTranscriptEvidence } from "./shared-transcript.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
 import { createListener } from "./listener.js";
 import type { ListenerOptions } from "./listener.js";
@@ -186,7 +187,8 @@ export function createEngine(options: EngineOptions): Engine {
             }
             const spliced = options.recordEvidence && locks.length > 1
               ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const inserted = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const enriched = await addTranscriptEvidence(model, audio, inserted, index, checkerOptions);
             recorded.splice(0, recorded.length, ...enriched);
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.

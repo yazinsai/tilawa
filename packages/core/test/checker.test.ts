@@ -364,6 +364,25 @@ describe("local-window confirmation", () => {
     expect(summary(check(heard(edits, () => undefined), true))).toEqual(["confirmed wrong_word 2:255:23"]);
   });
 
+  it("uses shared-view vetoes only for the exact supported complete string-path comparison", () => {
+    const f = heard(edits, () => undefined);
+    const candidates: import("../src/evidence.js").SharedTranscriptEvidence[] = [];
+    const baseline = replayChecked(index, f, {}, { sharedTranscript(c) {
+      candidates.push({ ...c, cropMargin: -c.primaryMargin - 2 });
+    } });
+    expect(summary(confirmed(baseline))).toEqual(["confirmed wrong_word 2:255:23"]);
+    expect(candidates.length).toBeGreaterThan(0);
+    const replay = (metadata: typeof candidates) => {
+      const copy = structuredClone(f);
+      copy.evidence[0].phonemes[0].sharedTranscripts = metadata;
+      return confirmed(replayChecked(index, copy));
+    };
+    expect(replay(candidates)).toEqual([]);
+    expect(summary(replay(candidates.map(c => ({ ...c, rival: c.rival + "ب" }))))).toEqual(summary(confirmed(baseline)));
+    expect(summary(replay(candidates.map(c => ({ ...c, fromFrame: c.fromFrame + 1 }))))).toEqual(summary(confirmed(baseline)));
+    expect(summary(replay(candidates.map(c => ({ ...c, cropMargin: -c.primaryMargin + 2 }))))).toEqual(summary(confirmed(baseline)));
+  });
+
   it("confirms an added word said after a word ending in the same held sound, as said", () => {
     // كريم alone after وبنين (26:133 ends ۦۦن): aligned inside وبنين, it took that word's ۦۦن and left its own ۦۦم behind.
     const start = w(26, 130, 1);

@@ -46,7 +46,7 @@ function flatten(chunks: PhonemeEvidence[]): FlatEvidence | null {
   return { inventory: chunks[0].inventory, frameMs, phonemes, k, ids, probs, nFrames };
 }
 
-async function decodeIsolated(model: LoadedModel, samples: Float32Array, sampleRate: number, k: number) {
+export async function decodeIsolated(model: LoadedModel, samples: Float32Array, sampleRate: number, k: number) {
   const listener = createListener(model, { posteriors: true, topK: k });
   const out: PhonemeEvidence[] = [];
   const step = Math.max(1, Math.round(sampleRate * 0.02));
@@ -60,6 +60,8 @@ async function decodeIsolated(model: LoadedModel, samples: Float32Array, sampleR
   return {
     phonemes: out.flatMap((c) => c.phonemes),
     k: posts[0]?.k ?? k,
+    startFrame: posts[0]?.startFrame ?? 0,
+    nFrames: posts.reduce((n, p) => n + p.nFrames, 0),
     ids: posts.flatMap((p) => Array.from(p.ids)),
     probs: posts.flatMap((p) => Array.from(p.probs)),
   };

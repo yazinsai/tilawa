@@ -9,6 +9,18 @@ export interface SeamInsertionEvidence {
   marginal: number;
 }
 
+/** A listener-only veto tied to the exact complete CTC comparison. */
+export interface SharedTranscriptEvidence {
+  word: WordRef;
+  written: string;
+  rival: string;
+  fromFrame: number;
+  toFrame: number;
+  /** Written NLL minus rival NLL, independently marginalized in each view. */
+  primaryMargin: number;
+  cropMargin: number;
+}
+
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
@@ -18,6 +30,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  sharedTranscripts?: SharedTranscriptEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */
