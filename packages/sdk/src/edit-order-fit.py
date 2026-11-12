@@ -53,9 +53,11 @@ def batch(examples, shuffled):
     return features, acoustic, balanced
 
 
-def differences(weights, tensors):
+def differences(weights, tensors, scale=1.0):
     features, acoustic, _ = tensors
-    logits = torch.logsumexp(features @ weights + acoustic, dim=2)
+    # Runtime scales each script's log ratio before marginalizing ambiguous scripts.
+    # Scaling their already-marginalized difference is a different observation model.
+    logits = torch.logsumexp(features @ (scale * weights) + acoustic, dim=2)
     return logits[:, 0] - logits[:, 1]
 
 
@@ -86,7 +88,7 @@ def run(source, destination):
         raise ValueError("At least three training speakers with matched contrasts required")
     selection = []
     for penalty in (0.01, 0.1, 1.0):
-        predictions = []
+        predictions = {scale: [] for scale in (0.0, 0.25, 0.5, 1.0, 2.0)}
         for fold in sorted(set(folds.values())):
             train = [e for e in examples if folds[e[0]] != fold]
             validation = [e for e in examples if folds[e[0]] == fold]
@@ -94,18 +96,23 @@ def run(source, destination):
                 raise ValueError("Empty speaker-separated training partition")
             ordered = fit(train, penalty, False)
             shuffled = fit(train, penalty, True)
-            order_predictions = differences(ordered, batch(validation, False)).tolist()
-            shuffled_predictions = differences(shuffled, batch(validation, True)).tolist()
-            for e, order_prediction, control_prediction in zip(validation, order_predictions, shuffled_predictions):
-                predictions.append((e[0], order_prediction, control_prediction))
-        by_speaker = {}
-        for speaker, ordered, shuffled in predictions:
-            by_speaker.setdefault(speaker, []).append((ordered, shuffled))
-        for scale in (0.0, 0.25, 0.5, 1.0, 2.0):
-            loss = sum(sum(float(torch.nn.functional.softplus(torch.tensor(-scale * d))) for d, _ in rows) / len(rows)
+            ordered_validation = batch(validation, False)
+            shuffled_validation = batch(validation, True)
+            for scale in predictions:
+                order_predictions = differences(ordered, ordered_validation, scale).tolist()
+                shuffled_predictions = differences(shuffled, shuffled_validation, scale).tolist()
+                for e, order_prediction, control_prediction in zip(validation, order_predictions, shuffled_predictions):
+                    predictions[scale].append((e[0], order_prediction, control_prediction))
+        for scale, rows in predictions.items():
+            by_speaker = {}
+            for speaker, ordered, shuffled in rows:
+                by_speaker.setdefault(speaker, []).append((ordered, shuffled))
+            loss = sum(sum(float(torch.nn.functional.softplus(torch.tensor(-d))) for d, _ in rows) / len(rows)
                        for rows in by_speaker.values()) / len(by_speaker)
+            control_loss = sum(sum(float(torch.nn.functional.softplus(torch.tensor(-d))) for _, d in rows) / len(rows)
+                               for rows in by_speaker.values()) / len(by_speaker)
             selection.append({"penalty": penalty, "scale": scale, "speakerLogLoss": loss,
-                              "shuffledLogLoss": float(torch.log(torch.tensor(2.0))),
+                              "shuffledLogLoss": control_loss,
                               "validationSpeakers": len(by_speaker)})
     selected = min(selection, key=lambda x: (x["speakerLogLoss"], -x["penalty"], x["scale"]))
     ordered = fit(examples, selected["penalty"], False)

@@ -1,7 +1,8 @@
 # Contrast ordered edit scripts with count-matched shuffled scripts
 
 Status: needs-human. Prototype implemented; blocked before training calibration and target validation.
-All four supplied supervisor requests failed before executing commands.
+All six supplied supervisor requests failed before executing commands, including
+the two review retries.
 No fitted model or measured practice result is available.
 
 ## Prediction
@@ -74,6 +75,14 @@ partitions. Selection precedes a single final refit on authorized training speak
 The output contains the frozen model and a provenance/selection report. No training
 examples, fitted parameters or report have been returned by Modal in this attempt.
 
+The review follow-up corrected the calibration calculation: validation now applies
+each proposed scale to every script before the normalized marginal, exactly as
+runtime does. Scaling an already-marginalized pair difference gives a different
+likelihood when scripts disagree. The shuffled control's validation loss is now
+computed from its predictions rather than filled with an analytic baseline.
+Two Python regression tests check this calculation and the zero-gradient shuffled
+contrast. They require PyTorch on the authorized Modal runner.
+
 ## Validation
 
 Nine focused test bodies passed with Node 22 TypeScript stripping and an assertion
@@ -83,6 +92,13 @@ contrasts, shuffled invariance, exact permutation centering, normalized ambiguou
 scripts, directed consumption, boundaries, malformed calibration, audit/zero-model
 equivalence, common observation counts, model ownership, rewind and speaker exclusion.
 The Python estimator passes syntax parsing. `git diff --check` passes.
+The new Python regression file also passes syntax parsing. Attempting its two
+tests locally stops at import with `ModuleNotFoundError: No module named 'torch'`;
+neither test body ran. No local dependencies were installed.
+
+The previous review rejected the added `.autolab/outcome.json` workflow metadata.
+That file is removed from this experiment's diff. The status and validation limits
+are recorded here; no card, scorer, manifest or lab-tooling file is changed.
 
 Supervisor requests:
 
@@ -92,6 +108,13 @@ Supervisor requests:
 | 2 | Full core/SDK tests on six shards | Same pre-execution failure |
 | 3 | Core/SDK build, training examples and frozen fit | Same pre-execution failure |
 | 4 | Final full core/SDK tests on six shards | Same pre-execution failure |
+| 5 | Review retry: full core/SDK tests on six shards | Same pre-execution failure |
+| 6 | Review retry: core/SDK build, training examples and frozen fit | Same pre-execution failure |
+
+Requests 5 and 6 were submitted before the calibration follow-up edit. No command
+executed and neither result contains training artifacts or test results. Each
+returned zero billed compute. The corrected estimator and its two regression tests
+still need the recovery command below after the runner is restored.
 
 No practice score was requested (0 of 3). Target preference reversal, target warnings,
 target wins, component/overall changes, studio behavior and clean-session warnings
@@ -110,8 +133,8 @@ of the matched training pool and runtime/memory on real long sessions are unmeas
 Restore the supplied runner, then run the training workflow without opening practice:
 
 ```sh
-python3 /Users/rock/ai/projects/tilawa/tools/autolab.py modal-run --timeout 30 -- \
-  'pnpm --filter @tilawa/core... --filter @tilawa/sdk... build && EDIT_ORDER_CACHE=/scratch/tracker-edit-order-contrast/clean-decodes pnpm --filter @tilawa/sdk exec tsx src/edit-order-examples.ts && python3 packages/sdk/src/edit-order-fit.py --examples "$LAB_OUT/edit-order-examples.json" --out "$LAB_OUT"'
+python3 /Users/rock/ai/projects/tilawa/tools/autolab.py modal-run --timeout 60 -- \
+  'pnpm --filter @tilawa/core... --filter @tilawa/sdk... build && python3 packages/sdk/test/edit-order-fit.test.py && EDIT_ORDER_CACHE=/scratch/tracker-edit-order-contrast/clean-decodes pnpm --filter @tilawa/sdk exec tsx src/edit-order-examples.ts && python3 packages/sdk/src/edit-order-fit.py --examples "$LAB_OUT/edit-order-examples.json" --out "$LAB_OUT"'
 python3 /Users/rock/ai/projects/tilawa/tools/autolab.py modal-run --shards 6 -- \
   'bash tools/autolab_tests.sh'
 ```
