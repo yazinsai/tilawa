@@ -14,6 +14,7 @@ import { Resampler } from "./audio.js";
 import { capabilities } from "./capabilities.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
+import { addDurationNegativeEvidence } from "./duration-negatives.js";
 import { createListener } from "./listener.js";
 import type { ListenerOptions } from "./listener.js";
 import type { LoadedModel } from "./model.js";
@@ -95,8 +96,13 @@ export function createEngine(options: EngineOptions): Engine {
 
   function start(mode: Session["mode"], passage: Session["passage"], policy: SessionPolicy = {}): Session {
     const tracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
+    const liveSequenceCandidates = new Set<string>();
     const checkerOptions = {
       phrases,
+      ...(model.durationNegatives && { sequenceEvidence(c: import("@tilawa/core").SequenceEvidenceCandidate) {
+        liveSequenceCandidates.add(JSON.stringify(c));
+        return true;
+      } }),
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
       ...(passage && { passage }),
     };
@@ -115,7 +121,7 @@ export function createEngine(options: EngineOptions): Engine {
     const pcmParts: Float32Array[] = [];
     let pcmResampler: Resampler | null = null;
     const keepAudio = (samples: Float32Array, sampleRate: number) => {
-      if (!options.recordEvidence && !model.insertionTeacher) return;
+      if (!options.recordEvidence && !model.insertionTeacher && !model.durationNegatives) return;
       let pcm = samples;
       if (sampleRate !== rate) {
         if (!pcmResampler || pcmResampler.from !== sampleRate) pcmResampler = new Resampler(sampleRate, rate);
@@ -130,11 +136,12 @@ export function createEngine(options: EngineOptions): Engine {
       return events;
     };
     const recorded: PhonemeEvidence[] = [];
+    const durationNegativeVetoed = new Set<string>();
     const auxiliaryMistakes: CheckerEvent[] = [];
     const cells = evidenceGrid(policy.evidenceMs ?? model.manifest.frameMs);
     const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
-      if (options.recordEvidence || model.insertionTeacher) recorded.push(e);
+      if (options.recordEvidence || model.insertionTeacher || model.durationNegatives) recorded.push(e);
       // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
       const out = tracker.push(trackerInput(e));
       noteLocks(out);
@@ -176,7 +183,7 @@ export function createEngine(options: EngineOptions): Engine {
           const e = await listener.end();
           if (e) cells.add(e);
           const events = [...feed(cells.rest()), ...finish()];
-          if ((options.recordEvidence || model.insertionTeacher) && pcmParts.length) {
+          if ((options.recordEvidence || model.insertionTeacher || model.durationNegatives) && pcmParts.length) {
             const n = pcmParts.reduce((s, p) => s + p.length, 0);
             const audio = new Float32Array(n);
             let o = 0;
@@ -186,13 +193,40 @@ export function createEngine(options: EngineOptions): Engine {
             }
             const spliced = options.recordEvidence && locks.length > 1
               ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const insertions = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const reviewOptions = { ...checkerOptions, sequenceEvidence: undefined };
+            const enriched = await addDurationNegativeEvidence(model.durationNegatives, model.manifest, audio, insertions, index, phrases, reviewOptions, mode);
             recorded.splice(0, recorded.length, ...enriched);
+            if (model.durationNegatives) {
+              const certificates = enriched.flatMap(e => e.phonemes.flatMap(p => p.durationNegativeVetoes ?? []))
+                .filter(c => liveSequenceCandidates.has(JSON.stringify({ word: c.word, written: c.written, rival: c.rival,
+                  fromFrame: c.fromFrame, toFrame: c.toFrame })));
+              // Capture the exact request the replay downgrades; unrelated uncertainty
+              // at the same word is not a certificate for a live confirmation.
+              const applied = new Set<string>();
+              const verifier = createChecker(index, { ...reviewOptions, sequenceEvidence(c) {
+                const found = certificates.some(v => v.written === c.written && v.rival === c.rival &&
+                  v.fromFrame === c.fromFrame && v.toFrame === c.toFrame && v.word.surah === c.word.surah &&
+                  v.word.ayah === c.word.ayah && v.word.word === c.word.word);
+                if (found) applied.add(JSON.stringify(c.word));
+                return !found;
+              } });
+              const witnessTracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
+              const revised = [];
+              for (const chunk of insertionCells(enriched)) revised.push(...verifier.push(chunk, witnessTracker.push(trackerInput(chunk))));
+              revised.push(...verifier.end(witnessTracker.end()));
+              const vetoed = new Set(revised.filter(e => e.state === "uncertain" && e.errorClass === "wrong_word" &&
+                applied.has(JSON.stringify(e.location))).map(e => e.id));
+              for (const event of checker.mistakes()) if (vetoed.has(event.id)) {
+                durationNegativeVetoed.add(event.id);
+                events.push(...emit([{ ...event, state: "uncertain" as const }]));
+              }
+            }
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.
               // Only newly certified seam additions are published at end().
               const reviewTracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
-              const review = createChecker(index, checkerOptions);
+              const review = createChecker(index, reviewOptions);
               for (const e of insertionCells(enriched)) review.push(e, reviewTracker.push(trackerInput(e)));
               review.end(reviewTracker.end());
               const known = new Set(checker.mistakes().filter(e => e.errorClass === "added_word")
@@ -215,7 +249,7 @@ export function createEngine(options: EngineOptions): Engine {
         return feed(cells.ready(e.posteriors && e.posteriors.startFrame + e.posteriors.nFrames));
       },
       endEvidence: () => [...feed(cells.rest()), ...finish()],
-      mistakes: () => [...checker.mistakes(), ...auxiliaryMistakes],
+      mistakes: () => [...checker.mistakes().filter(e => !durationNegativeVetoed.has(e.id)), ...auxiliaryMistakes],
       evidence: () => options.recordEvidence ? recorded : [],
     };
   }

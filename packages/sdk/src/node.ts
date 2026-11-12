@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import { validateCompatibilityHead, validateDurationNegativeModel } from "./duration-negatives.js";
 /** Node entry: onnxruntime-node, models from a directory, WAV input. */
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
@@ -22,7 +24,7 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachDurationNegative(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads), dir, options.threads);
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +89,40 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  const dir = join(o.cacheDir, `${tier.id}@${tier.version}`);
+  return attachDurationNegative(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported }, dir, o.threads), dir, o.threads);
+}
+
+/** A declared duration-negative bundle is validated before any primary decode. */
+async function attachDurationNegative(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
+  let backend: import("./model.js").InferenceBackend | undefined;
+  try {
+    const descriptor = await readFile(join(dir, "duration-negatives-assets.json"), "utf8").catch(e => {
+      if (e.code === "ENOENT") return null;
+      throw e;
+    });
+    if (descriptor === null) return model;
+    const declared = JSON.parse(descriptor);
+    for (const file of ["duration-negatives.json", "duration-negatives-features.onnx", "duration-negatives-matched.json", "duration-negatives-random.json"]) {
+      const entry = declared[file];
+      if (!entry || !Number.isSafeInteger(entry.bytes) || entry.bytes <= 0 || !/^[0-9a-f]{64}$/.test(entry.sha256))
+        throw new Error("Invalid duration-negative asset descriptor");
+      const data = await readFile(join(dir, file));
+      if (data.length !== entry.bytes || createHash("sha256").update(data).digest("hex") !== entry.sha256)
+        throw new Error("Duration-negative asset checksum mismatch");
+    }
+    if (model.manifest.sampleRate !== 16000 || model.manifest.frameMs !== 40)
+      throw new Error("Duration-negative scorer requires the primary 16 kHz, 40 ms clock");
+    const parameters = validateDurationNegativeModel(JSON.parse(await readFile(join(dir, "duration-negatives.json"), "utf8")), model.manifest);
+    backend = await ortBackend(ort as unknown as OrtModule, join(dir, "duration-negatives-features.onnx"), "onnxruntime-node", {
+      executionProviders: ["cpu"], intraOpNumThreads: threads, graphOptimizationLevel: "disabled",
+    });
+    const matched = validateCompatibilityHead(JSON.parse(await readFile(join(dir, "duration-negatives-matched.json"), "utf8")), parameters.tokens.length + 1);
+    const random = validateCompatibilityHead(JSON.parse(await readFile(join(dir, "duration-negatives-random.json"), "utf8")), parameters.tokens.length + 1);
+    const featureBackend = backend;
+    const release = model.backend.release.bind(model.backend);
+    model.backend.release = async () => { await featureBackend.release(); await release(); };
+    model.durationNegatives = { model: parameters, backend, matched, random };
+    return model;
+  } catch (e) { await backend?.release(); await model.backend.release(); throw e; }
 }

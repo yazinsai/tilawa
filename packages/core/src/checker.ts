@@ -1,7 +1,8 @@
 import { align as editPath } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
-import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
+import { durationNegativeVeto } from "./evidence.js";
+import type { DecodedPhoneme, PhonemeEvidence, DurationNegativeEvidence, SequenceEvidenceCandidate } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import { channelFromCounts, spanLogP, type Channel, type ChannelCounts } from "./noisy-channel.js";
@@ -51,6 +52,8 @@ export interface SeamInsertionCandidate {
 }
 
 export interface CheckerOptions {
+  /** Inspect only existing confirmed string-path wrong words; false vetoes the public warning. */
+  sequenceEvidence?: (candidate: SequenceEvidenceCandidate) => boolean;
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
   policy?: CheckerPolicy;
@@ -441,6 +444,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   /** Words whose error was confirmed or ended uncertain; never reopened. */
   const decided = new Set<number>();
   const emitted: CheckerEvent[] = [];
+  const sequenceVetoes: DurationNegativeEvidence[] = [];
+  const sequenceVetoedIds = new Set<string>();
   let seq = 0;
 
   const event = (o: Open, state: CheckerState): CheckerEvent => {
@@ -458,8 +463,24 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       ...(issue.heardUnion ? { observed: issue.heardUnion.observed } : issue.observed !== undefined ? { observed: issue.observed } : {}),
       confidence: conf,
     };
+    // Retain baseline ownership and confirmation state for later insertion merges.
+    // The listener certificate changes only the public verdict of this accusation.
+    let reported = e;
+    if (state === "confirmed") sequenceVetoedIds.delete(o.id);
+    if (state === "confirmed" && issue.cls === "wrong_word" && issue.stringPath && !issue.phrase &&
+      issue.obsFrom >= 0 && issue.obsTo > issue.obsFrom && issue.obsTo <= obs.length && issue.observed) {
+      const c: SequenceEvidenceCandidate = {
+        word: toRef(issue.word), written: ref.slice(words[issue.word].start, words[issue.last].end),
+        rival: issue.observed, fromFrame: obs[issue.obsFrom].start, toFrame: obs[issue.obsTo - 1].end + 1,
+      };
+      const callback = options.sequenceEvidence?.(c);
+      const veto = sequenceVetoes.some(v => v.written === c.written && v.rival === c.rival &&
+        v.fromFrame === c.fromFrame && v.toFrame === c.toFrame && v.word.surah === c.word.surah &&
+        v.word.ayah === c.word.ayah && v.word.word === c.word.word) || callback === false;
+      if (veto) { sequenceVetoedIds.add(o.id); reported = { ...e, state: "uncertain" }; }
+    }
     emitted.push(e);
-    return e;
+    return reported;
   };
 
   /** Mean decoder confidence over an error's phonemes; for an omission, the phonemes either side of the gap. */
@@ -2462,6 +2483,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const c of p.durationNegativeVetoes ?? []) {
+        if (durationNegativeVeto(c) && Number.isSafeInteger(c.fromFrame) && c.fromFrame >= 0 &&
+          Number.isSafeInteger(c.toFrame) && c.toFrame > c.fromFrame && c.written && c.rival &&
+          c.word && [c.word.surah, c.word.ayah, c.word.word].every(v => Number.isSafeInteger(v) && v > 0))
+          sequenceVetoes.push(c);
+      }
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {
@@ -2496,7 +2523,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       return out;
     },
     mistakes() {
-      return emitted.filter((e) => e.state === "confirmed" || (policy.countResolved && e.state === "resolved"));
+      return emitted.filter((e) => !sequenceVetoedIds.has(e.id) && (e.state === "confirmed" || (policy.countResolved && e.state === "resolved")));
     },
   };
 }

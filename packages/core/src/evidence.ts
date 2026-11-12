@@ -1,5 +1,25 @@
 import type { WordRef } from "./events.js";
 
+/** Complete pronunciations and exact native-frame window of a string-path accusation. */
+export interface SequenceEvidenceCandidate {
+  word: WordRef;
+  written: string;
+  rival: string;
+  fromFrame: number;
+  toFrame: number;
+}
+
+/** Matched audio negatives reverse a preference retained by the random-negative control. */
+export interface DurationNegativeEvidence extends SequenceEvidenceCandidate {
+  matchedMargin: number;
+  randomMargin: number;
+}
+
+export function durationNegativeVeto(c: Pick<DurationNegativeEvidence, "matchedMargin" | "randomMargin">): boolean {
+  return Number.isFinite(c.matchedMargin) && Number.isFinite(c.randomMargin) &&
+    c.matchedMargin > 0 && c.randomMargin < 0;
+}
+
 /** Auxiliary listener judgment over a complete seam, tied to one proposed spelling. */
 export interface SeamInsertionEvidence {
   word: WordRef;
@@ -18,6 +38,7 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  durationNegativeVetoes?: DurationNegativeEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */

@@ -47,6 +47,8 @@ export interface LoadedModel {
   backend: InferenceBackend;
   /** Error classes this model's evidence supports; the rest are reported `unsupported`. */
   supported: ErrorClass[];
+  /** Frozen pronunciation compatibility heads; primary streaming outputs are preserved. */
+  durationNegatives?: { model: import("./duration-negatives.js").DurationNegativeModel; backend: InferenceBackend; matched: import("./duration-negatives.js").CompatibilityHead; random: import("./duration-negatives.js").CompatibilityHead };
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
 }
