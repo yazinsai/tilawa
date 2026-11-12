@@ -7,12 +7,16 @@ import { EvidenceError } from "./evidence.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { createLocalSearch } from "./local.js";
 import type { LocalPosition, LocalSearch } from "./local.js";
+import type { CopyChannelModel } from "./copy-channel.js";
+import { FROZEN_COPY_CHANNEL } from "./copy-channel-model.js";
 import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
 import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-spans.js";
 import type { SlotSpan } from "./slot-spans.js";
 
 export interface TrackerOptions {
+  /** Training-frozen recognition-copy model; null retains ordinary local insertion costs. */
+  copyChannel?: CopyChannelModel | null;
   mode?: "free" | "memorization";
   /** Grams occurring more often than this carry too little location information to vote. */
   maxGramOccurrences?: number;
@@ -869,7 +873,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
-    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) },
+      options.copyChannel === undefined ? FROZEN_COPY_CHANNEL : options.copyChannel);
     weak = false;
     pending = null;
     reacquiring = false;
@@ -1280,7 +1285,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         continue;
       }
       const before = local.save();
-      local.step(ph.p);
+      local.step(ph.p, ph);
       stepCosts.push(local.position().stepCost);
       if (stepCosts.length > CONFIRM) stepCosts.shift();
       const heardPhrase = hear(ph.p, before, local.position().stepCost);

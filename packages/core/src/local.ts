@@ -1,5 +1,8 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import type { DecodedPhoneme } from "./evidence.js";
+import { COPY_HISTORY, copyInsertionCost } from "./copy-channel.js";
+import type { CopyChannelModel } from "./copy-channel.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -34,7 +37,7 @@ export interface LocalPosition {
 
 export interface LocalSearch {
   /** Consume one observed phoneme. */
-  step(p: string): void;
+  step(p: string, observation?: DecodedPhoneme): void;
   position(): LocalPosition;
   /** The search state, to rewind to with `restore`. */
   save(): unknown;
@@ -45,7 +48,8 @@ export interface LocalSearch {
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">,
+  copyChannel?: CopyChannelModel | null): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -71,6 +75,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let best = start.offset;
   let ayah = -1;
   const recent: number[] = [];
+  let observations: DecodedPhoneme[] = [];
 
   const recentre = (offset: number) => {
     const a = ayahOf(offset);
@@ -102,7 +107,13 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
 
 
   return {
-    step(p) {
+    step(p, observation) {
+      const observed = observation ?? { p, start: (observations.at(-1)?.end ?? -2) + 2,
+        end: (observations.at(-1)?.end ?? -2) + 2, conf: 1 };
+      if (observed.p !== p) throw new Error("Local observation identity differs from its phone");
+      // The copy distribution depends on consumed observations, not the destination. Compute it once for all cells.
+      const ordinaryBase = insertionCost("", 0, p);
+      const copyCost = copyChannel ? copyInsertionCost(copyChannel, "", 0, observations, observed) : ordinaryBase;
       const n = cost.length;
       const base = cost[best - lo];
       const c = new Float64Array(n);
@@ -110,7 +121,8 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       const e = new Int32Array(n);
       for (let i = 0; i < n; i++) {
         const at = lo + i;
-        let bc = cost[i] + insertionCost(ref, at, p);
+        const ins = insertionCost(ref, at, p);
+        let bc = cost[i] + (copyChannel && ins >= ordinaryBase ? copyCost : ins);
         let bo = origin[i];
         let be = edits[i] + 1;
         if (i > 0) {
@@ -157,6 +169,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       edits = e;
       best = lo + k;
       recentre(best);
+      if (copyChannel) observations = [...observations.slice(-(COPY_HISTORY - 1)), { ...observed }];
     },
     position() {
       const i = best - lo;
@@ -164,10 +177,11 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent], observations }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[]; observations: DecodedPhoneme[] };
       ({ lo, cost, origin, edits, best, ayah } = s);
+      observations = s.observations;
       recent.splice(0, recent.length, ...s.recent);
     },
   };
