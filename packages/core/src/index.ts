@@ -1,4 +1,5 @@
 export * from "./checker.js";
+export * from "./consonant-events.js";
 export * from "./events.js";
 export * from "./evidence.js";
 export { PosteriorFrames } from "./ctc.js";

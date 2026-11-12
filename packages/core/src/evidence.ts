@@ -1,4 +1,12 @@
 import type { WordRef } from "./events.js";
+import type { SequenceEvidenceCandidate } from "./checker.js";
+
+export interface ConsonantEventEvidence extends SequenceEvidenceCandidate {
+  consonantWritten: number;
+  consonantRival: number;
+  controlWritten: number;
+  controlRival: number;
+}
 
 /** Auxiliary listener judgment over a complete seam, tied to one proposed spelling. */
 export interface SeamInsertionEvidence {
@@ -18,6 +26,8 @@ export interface DecodedPhoneme {
   conf: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
+  /** Frozen paired CTC readouts over the exact supported string-path comparison. */
+  consonantEventVetoes?: ConsonantEventEvidence[];
 }
 
 /** Per-frame top-k phoneme posteriors. See docs/evidence-contract.md. */
