@@ -3,6 +3,7 @@ import { createLocalSearch } from "../src/local.js";
 import { rhythmClasses, rhythmCopula, rhythmRatios } from "../src/rhythm.js";
 import type { RhythmModel, RhythmRow } from "../src/rhythm.js";
 import type { ReferenceIndex } from "../src/reference.js";
+import { UNIT } from "../src/fuzzy.js";
 
 const model = (rho = 0): RhythmModel => ({
   mean: Array(8).fill(0), sd: Array(8).fill(1),
@@ -33,6 +34,21 @@ describe("relative rhythm", () => {
 
   it("adds exactly zero for the matched independent model, including jumps and deletions", () => {
     expect([...score(model())]).toEqual(Array(rows[0].cost.length).fill(0));
+  });
+
+  it("does not change the rhythm contribution when only alignment ambiguity or movement prices change", () => {
+    // With tied class distributions every path has the same copula factor. Summing many edit/jump paths must
+    // cancel that same path mass in the independent denominator, even across a recentered reference window.
+    const m = model(.4);
+    const tempo = rows.reduce((a, r) => a + Math.log(r.duration), 0) / rows.length;
+    const z = rows.map(r => Math.log(r.duration) - tempo);
+    const expected = -UNIT * (rhythmCopula(z[0], z[1], .4) + rhythmCopula(z[1], z[2], .4));
+    const shifted = rows.map((r, t) => t === 0 ? r : { ...r, lo: 3, cost: r.cost.slice(3) });
+    for (const retained of [rows, shifted]) for (const movement of [0, 100]) {
+      const got = rhythmRatios(ref, rhythmClasses(ref), retained, m, starts, () => 0, () => 0,
+        movement, .001);
+      for (const v of got) expect(v).toBeCloseTo(expected, 10);
+    }
   });
 
   it("uses adjacent coordination and stays invariant to a common speaking-rate change", () => {

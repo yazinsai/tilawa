@@ -164,14 +164,24 @@ def likelihood(r, mean, sd, rho):
     return total
 
 
+def training_labels(labels):
+    """Use only explicitly training, clean scripts, excluding an entire held-out speaker.
+
+    `scored=False` marks extra/unresolved mistakes in help-train; `excluded` is the importer’s audit exclusion.
+    Missing split/kind is never inferred from a filename or supplied passage.
+    """
+    held_out = {r['speaker'] for r in labels if r.get('split') in ('eval', 'test', 'heldout')}
+    return [r for r in labels if r.get('split') == 'train' and r.get('kind') == 'none'
+            and r['speaker'] not in held_out and not r.get('events')
+            and not r.get('non_errors') and not r.get('unsupported')
+            and not r.get('excluded') and not r.get('exclude') and r.get('scored') is not False]
+
+
 def train(data, out, ts_out=None):
     asset = json.loads((Path(__file__).parent.parent/'assets/ref-v2.json').read_text())
     refs = {f"{a['s']}:{a['a']}": a['p'] for a in asset['ayahs']}
     labels = [json.loads(l) for l in (data/'labels.jsonl').read_text().splitlines() if l]
-    held_out = {r['speaker'] for r in labels if r.get('split') in ('eval', 'test', 'heldout')}
-    eligible = [r for r in labels if r.get('split') == 'train' and r.get('kind') == 'none'
-                and r['speaker'] not in held_out and not r.get('events')
-                and not r.get('non_errors') and not r.get('exclude')]
+    eligible = training_labels(labels)
     if not eligible:
         raise ValueError('No explicitly training-speaker none-labelled recordings; refusing any fallback split')
     rows = []
