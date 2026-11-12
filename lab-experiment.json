@@ -1,0 +1,13 @@
+{
+ "id": "listener-response-fingerprint-recheck",
+ "component": "listener",
+ "hypothesis": "False substitutions may share a rival's static phone scores but not its response to local acoustic changes; response-fingerprint scoring predicts 2 false warnings removed and 1 caught substitution lost: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T14:37:00+00:00",
+ "author": "autolab"
+}
