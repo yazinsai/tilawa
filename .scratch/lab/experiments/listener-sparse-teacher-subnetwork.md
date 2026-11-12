@@ -1,8 +1,8 @@
 # Sparse teacher subnetwork
 
-Status: blocked before training or implementation. The acoustic hypothesis remains
-untested; this is not a killed experiment or a measured zero gain. The experiment
-card is unchanged.
+Status: blocked before training or implementation; confirmed again on retry.
+The acoustic hypothesis remains untested; this is not a killed experiment or a
+measured zero gain. The experiment card is unchanged.
 
 ## Prediction and mechanism
 
@@ -68,8 +68,8 @@ Pinned attention/convolution implementation:
 
 ## Execution and validation limits
 
-On 2026-11-12, the supplied supervisor failed both initial read-only requests,
-a shell-only retry, and the required test harness:
+On 2026-11-12, the supplied supervisor failed the initial read-only requests,
+shell-only and train-image retries, and the required test harness:
 
 | Run | Request | Result |
 | --- | --- | --- |
@@ -77,12 +77,45 @@ a shell-only retry, and the required test harness:
 | 2 | Train-image package availability and supplied training/model directory listing; 1 shard, 10 min limit | `NotFoundError: No such file or directory` |
 | 3 | Shell-only `pwd`; 1 shard, 2 min limit | `NotFoundError: No such file or directory` |
 | 4 | Required `bash tools/autolab_tests.sh`; 6 shards, 30 min limit | `NotFoundError: No such file or directory` |
+| 5 | Fresh shell-only `pwd` retry; 1 shard, 2 min limit | `NotFoundError: No such file or directory` |
+| 6 | Fresh train-image Python package and training-directory probe; 1 shard, 3 min limit | `NotFoundError: No such file or directory` |
+| 7 | Fresh required `bash tools/autolab_tests.sh` retry; 6 shards, 30 min limit | `NotFoundError: No such file or directory` |
 
-All four runs returned no command output or shard log. Their result files report
+All seven runs returned no command output or shard log. Their result files report
 $0 charged, with the full $240 GPU budget remaining. The returned error does not
 identify the missing path, so its cause cannot be attributed to a particular
 volume or staging step. Supervisor restoration or a fuller error log is needed
 before the data, model, training and runtime checks can proceed.
+
+## Why the requested implementation cannot be completed here
+
+The previous attempt's feedback requested engine code or an explanation of why
+the implementation cannot be done. The fresh shell-only and train-image failures
+confirm that the supplied execution route is still unavailable. This prevents
+completion of the requested engine change, not just its practice score:
+
+- Occurrence-likelihood pruning requires differentiating transcript-conditioned
+  probabilities through the original teacher on authorized training recordings.
+  The teacher weights and recordings are remote, and the probes cannot reach
+  them. The training-speaker metadata needed to validate exclusions and select
+  none-labelled help-train takes is also unavailable locally.
+- The equal-storage dense control requires the actual packed sparse bundle's
+  byte count, both arms trained on the same examples, and recorded compute and
+  training-only checkpoint selection. Neither arm can be built and fitted
+  without those inputs and the authorized training runtime.
+- A primary sparse teacher requires a causal streaming adapter and a different
+  feature frontend. Its packed operators, chunk state, output lengths and
+  40 ms timestamps need numerical parity checks in the SDK's ONNX runtime.
+  The existing teacher export does not supply that contract. No sparse graph
+  or streaming adapter has been executed.
+
+The local worktree has no model bundle or training recordings, no node_modules,
+and no installed torch, transformers or onnx. Heavy local training is prohibited
+by the repository instructions. Consequently a complete, verified model bundle
+cannot be delivered through the allowed execution path. No engine code is
+claimed as implemented, and no accuracy result can be inferred from these
+infrastructure errors. This report records an execution blocker rather than
+applying the acoustic kill criterion.
 
 No engine behavior has been changed. No pruning, fitting, export, target decode
 or practice score has run; all three practice-score opportunities remain. Core
