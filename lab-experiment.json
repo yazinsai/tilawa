@@ -1,0 +1,13 @@
+{
+ "id": "listener-dormant-channel-reallocation",
+ "component": "listener",
+ "hypothesis": "Redundant upper-layer acoustic channels may leave insufficient usable capacity for weak consonants; function-preserving channel recycling should recover 1 missed addition, predicting listener -1 and overall -1, with substantial zero-gain risk.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T20:04:19+00:00",
+ "author": "autolab"
+}
