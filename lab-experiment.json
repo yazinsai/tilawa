@@ -1,0 +1,13 @@
+{
+ "id": "listener-pareto-phone-head",
+ "component": "listener",
+ "hypothesis": "Simultaneous vowel and blank learning may cancel weak-consonant updates; common-descent phone-head training should recover 1 missed addition with no losses counted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T08:59:10+00:00",
+ "author": "autolab"
+}
