@@ -95,8 +95,10 @@ directory`. This implementation attempt requested default-image inventory
 (run 5), training-image inventory (6), the required six-shard core/SDK harness
 (7), Torch behavior tests (8), and the executable training workflow (9).
 All five also failed with the same error before command output or shard logs;
-the result files report zero charged compute. A final updated Torch test
-request is run 10. The error does not identify the missing supervisor resource.
+the result files report zero charged compute. The final updated Torch test
+request (run 10) also failed with that error before executing any test and
+reported zero charged compute. The error does not identify the missing
+supervisor resource.
 
 The training request used the documented prior-checkpoint location:
 
