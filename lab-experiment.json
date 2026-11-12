@@ -1,0 +1,13 @@
+{
+ "id": "listener-norm-neutral-attention",
+ "component": "listener",
+ "hypothesis": "High-norm sustained-sound attention keys may overwhelm weak inserted-word consonants; a norm-neutral acoustic recheck predicts 1 recovered addition and 0 losses, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T06:41:26+00:00",
+ "author": "autolab"
+}
