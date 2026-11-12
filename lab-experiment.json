@@ -1,0 +1,13 @@
+{
+ "id": "listener-dynamic-compression-recheck",
+ "component": "listener",
+ "hypothesis": "History-dependent amplitude compression may distort consonant attacks despite intact samples; an attack-and-release-aware acoustic recheck predicts 1 false warning removed, no losses counted: listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T23:41:30+00:00",
+ "author": "autolab"
+}
