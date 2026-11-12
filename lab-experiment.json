@@ -1,0 +1,13 @@
+{
+ "id": "tracker-relative-rhythm-channel",
+ "component": "tracker",
+ "hypothesis": "Independent sound-duration costs may miss coordinated rhythm that distinguishes the near continuation from the rhyme restart; a relative-duration sequence model predicts tracker -1 and overall 0, allowing one exposed listener false warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T10:30:30+00:00",
+ "author": "autolab"
+}
