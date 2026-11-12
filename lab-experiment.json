@@ -1,0 +1,13 @@
+{
+ "id": "listener-negative-curvature-head",
+ "component": "listener",
+ "hypothesis": "Weak consonants may remain suppressed at nonconvex CTC saddle points despite small training gradients; negative-curvature head updates predict 1 recovered addition and no losses: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T13:29:37+00:00",
+ "author": "autolab"
+}
