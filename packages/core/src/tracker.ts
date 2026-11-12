@@ -6,13 +6,16 @@ import type { EngineEvent, PositionCandidate, PositionEvent, TraceCandidate, Tra
 import { EvidenceError } from "./evidence.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { createLocalSearch } from "./local.js";
-import type { LocalPosition, LocalSearch } from "./local.js";
+import { PATH_UNCERTAINTY } from "./path-uncertainty.js";
+import type { LocalRegretOptions, LocalPosition, LocalSearch } from "./local.js";
 import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
 import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-spans.js";
 import type { SlotSpan } from "./slot-spans.js";
 
 export interface TrackerOptions {
+  /** Training-frozen minimax regret for existing local trajectories; audit preserves movement decisions. */
+  localPathRegret?: LocalRegretOptions;
   mode?: "free" | "memorization";
   /** Grams occurring more often than this carry too little location information to vote. */
   maxGramOccurrences?: number;
@@ -869,7 +872,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
-    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) },
+      options.localPathRegret ?? (PATH_UNCERTAINTY ? { uncertainty: PATH_UNCERTAINTY } : undefined));
     weak = false;
     pending = null;
     reacquiring = false;
