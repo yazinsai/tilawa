@@ -6,6 +6,9 @@ import type { EngineEvent, PositionCandidate, PositionEvent, TraceCandidate, Tra
 import { EvidenceError } from "./evidence.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { createLocalSearch } from "./local.js";
+import { posteriorObservation } from "./emphasis-channel.js";
+import type { EmphasisModel } from "./emphasis-channel.js";
+import { EMPHASIS_MODEL } from "./emphasis-model.js";
 import type { LocalPosition, LocalSearch } from "./local.js";
 import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
@@ -13,6 +16,8 @@ import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-s
 import type { SlotSpan } from "./slot-spans.js";
 
 export interface TrackerOptions {
+  /** Training-frozen model; injectable for the matched no-persistence control. */
+  emphasisModel?: EmphasisModel;
   mode?: "free" | "memorization";
   /** Grams occurring more often than this carry too little location information to vote. */
   maxGramOccurrences?: number;
@@ -270,12 +275,18 @@ export function relocationSupport(
   return best;
 }
 
-/** What the tracker is fed from one chunk of listener evidence, in the product and in every bench alike: phonemes only. */
-export function trackerInput(evidence: PhonemeEvidence): PhonemeEvidence {
-  return { ...evidence, posteriors: undefined };
+/** Compact observations travel with tokens; acquisition still receives decoded-only input. */
+export function trackerInput(evidence: PhonemeEvidence, model = EMPHASIS_MODEL): PhonemeEvidence {
+  const phonemes = model?.inventory === evidence.inventory && evidence.posteriors ? evidence.phonemes.map(ph => ({
+    ...ph, phonePosterior: posteriorObservation(evidence.posteriors!, model.phones, ph),
+  })) : evidence.phonemes;
+  return { ...evidence, phonemes, posteriors: undefined };
 }
 
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
+  const proposed = options.emphasisModel ?? EMPHASIS_MODEL;
+  const emphasisModel = proposed && (!proposed.inventory || proposed.inventory === index.inventoryId)
+    && [...index.tokens].join("") === proposed.phones.join("") ? proposed : undefined;
   const maxGramOccurrences = options.maxGramOccurrences ?? 5000;
   const maxCandidates = options.maxCandidates ?? 64;
   const maxPer = options.maxPer ?? 0.35;
@@ -869,7 +880,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
-    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) }, emphasisModel);
     weak = false;
     pending = null;
     reacquiring = false;
@@ -1280,7 +1291,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         continue;
       }
       const before = local.save();
-      local.step(ph.p);
+      const q = emphasisModel && (ph.phonePosterior ?? (evidence.posteriors && posteriorObservation(evidence.posteriors, emphasisModel.phones, ph)));
+      local.step(ph.p, q || undefined);
       stepCosts.push(local.position().stepCost);
       if (stepCosts.length > CONFIRM) stepCosts.shift();
       const heardPhrase = hear(ph.p, before, local.position().stepCost);

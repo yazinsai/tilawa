@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "All three authorized supervisor Modal requests failed before execution with NotFoundError, preventing emphasis-model training, build/tests and target validation; the model remains inactive.",
+  "measured": {}
+}

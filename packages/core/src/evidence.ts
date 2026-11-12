@@ -16,6 +16,8 @@ export interface DecodedPhoneme {
   start: number;
   end: number;
   conf: number;
+  /** Compact nonblank posterior observation retained for local pronunciation-state matching. */
+  phonePosterior?: readonly number[];
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
 }
