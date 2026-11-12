@@ -1,0 +1,1 @@
+{"status":"killed","reason":"Completing an uninterrupted CTC sound observation leaves its single consumed phone and both local candidate costs unchanged, so it cannot reverse the target restart under unchanged costs.","measured":{"targets won":0}}
