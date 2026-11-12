@@ -2,7 +2,7 @@
 
 Status: infrastructure-blocked, unmeasured.
 
-The authorized execution service has not been restored. A minimal health request
+The authorized execution service has not been restored. Both minimal health requests
 returned `NotFoundError: No such file or directory` before producing any container
 output. The card requires service restoration before resuming the archived draft;
 that prerequisite remains unmet. This explains why this branch contains no engine
@@ -32,7 +32,8 @@ The archived source and tests are recoverable from commits `e2006685` and
 confirmed the frozen-feature export, matched training utility, SDK readout,
 certificate transport, checker integration and unit tests. The archive's final
 write-up records seven earlier executor failures and rollback of the draft.
-No archived engine source was restored on this resume branch.
+No archived engine source was restored on this resume branch, including during
+the follow-up prompted by the previous attempt's no-engine-code feedback.
 
 ## Validation and limits
 
@@ -44,12 +45,28 @@ result was observed at 16:34:22 UTC. The result contains no successful container
 execution, health marker or storage measurement. Request and result are retained
 in untracked `.autolab/modal-request-1.json` and `modal-result-1.json`.
 
-After that failure, no training, data census, test-harness request or practice
-score was attempted. Repeating the archive's training or tests against the same
+Supervisor request 2, submitted at 2026-11-12 16:38:24 UTC in the follow-up,
+asked only for the execution environment, writable persistent scratch storage,
+available disk space and the authorized data directory's top-level listing.
+It used the same authorized route, one shard and a five-minute container timeout.
+The command returned `NotFoundError: No such file or directory` at approximately
+16:41:29 UTC, exit code 1. The supervisor result again reports cost zero and
+contains no container output, storage measurement or data listing. The requested
+scratch marker therefore has not been verified. The request and returned failure
+are retained in untracked `.autolab/modal-request-2.json` and
+`modal-result-2.json`; the command completed before this report was written.
+
+After these failures, no training, test-harness request or practice score was
+attempted. Repeating the archive's training or tests against the same
 failed service would not test the premise. No alternative execution route was
 used. Core, SDK and Modal engine files remain identical to this worktree's
 starting state; the experiment card is unchanged. No new model bundle or
 `.autolab/model.json` is declared, because none could be trained and verified.
+The missing execution service prevents access to the authorized acoustic training
+inputs and the shipped graph needed for export parity checks. Restoring source
+alone would leave the actual runtime without trained diphone and control assets,
+and scoring the main listener would not evaluate the proposed experiment. That
+is the concrete reason this follow-up still cannot ship an engine change.
 
 Zero target windows were tested. Target wins, preference reversals and practice
 change are unknown, not measured zeroes. Neither the card's fewer-than-two
