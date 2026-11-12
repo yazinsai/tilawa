@@ -1,0 +1,7 @@
+{
+  "status": "killed",
+  "reason": "Local tracking has no coordinate-based edit traceback: it propagates cost, origin and edit count together through replacement arrays, and the checker does not consume tracker edit paths.",
+  "measured": {
+    "targets won": 0
+  }
+}
