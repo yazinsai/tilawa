@@ -1,0 +1,1 @@
+{"status":"killed","reason":"Local matching already preserves its continuous acoustic recurrence across ordinary word boundaries, so the proposed composition cannot change the target continuation-versus-restart costs.","measured":{"targets won":0}}
