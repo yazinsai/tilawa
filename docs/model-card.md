@@ -12,7 +12,7 @@ The listener models behind `@tilawa/core` 1.x. They turn recitation audio into a
 | sha256 | `714e98addee73b1b8781ad7d99b6d3c745acd9116638baf4e12891f53a15af1b` | `4974de78d3c35d2542e7a24d99b747e1160d6e31e366fb68492b74a789890f1b` |
 | Quantized from (fp32 sha256) | `a8552d517fa1393b91c9fe00145fafe0c80166e2aa408aeda08b2685930c71a8` | `3af366b9ae5c2587293748b2a09ea664c531206112829bfcd88ca84edcb544ab` |
 | Default for | browsers and Node | low-memory devices, mobile browsers without WebGPU, React Native |
-| Licence | {{PENDING: decision 7}} | {{PENDING: decision 7}} |
+| Licence | CC BY 4.0 | CC BY 4.0 |
 
 The hashes and manifests are in `packages/core/src/runtime/models-v1.json`, which the SDK bundles and checks every download against.
 
@@ -34,7 +34,7 @@ The models don't output text, and they aren't a general Arabic speech recogniser
 - **Audio.** The sources approved for training in the research plan: recitation from tlog (`tarteel-ai/tlog`, Tarteel, CC-BY) and Quranic Universal Ayahs (`QUD-Technologies/quranic-universal-ayahs`, QUD Technologies, CC-BY, Hafs only), with other openly licensed Quran recitation sets, including `zaibihassan/Quranic-Recitation-Data` (Apache-2.0), EveryAyah-derived sets, `obadx/muaalem-annotated-v3` (MIT) and `obadx/qdat` (MIT).
 - **Augmentation.** Room impulse responses and noise from the same plan: OpenSLR-28 (Apache-2.0), the MIT IR survey (CC-BY), the MUSAN noise subset, and `obadx/freesound-commercial-50k-noise-only`.
 - **Excluded.** All Quran-Lab / Muno459 models and data (NPL-1.2) and data tagged non-commercial. These models are not derived from the 0.x Quran-Lab model.
-- **Licensing of the training data.** Some sources carry no licence tag. They were used for training at the project's own risk. {{PENDING: decision 7}}
+- **Licensing of the training data.** Some sources carry no licence tag. They were used for training at the project's own risk.
 - **Leakage controls.** Splits are by reciter, never by clip. Quran-Lab benchmark clips (including `tlog_holdout`) were removed before training. Evaluation uses held-out reciters and held-out help-page speakers (see Evaluation).
 - **Reference text.** The Quran reference (`ref-v2`) is the Hafs riwayah, Uthmani text from Tanzil, phonemized with quran-transcript 0.6.4 (MIT).
 
@@ -44,7 +44,7 @@ tlog (Tarteel, CC-BY) and Quranic Universal Ayahs / the QUD alignment benchmark 
 
 ## Licence
 
-{{PENDING: decision 7}} The proposal is to publish the weights under CC BY 4.0, with attribution to the sources above.
+The model weights are released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Credit "Tilawa (tilawa.dev)" and the sources above when you redistribute them.
 
 The SDK code is MIT.
 

@@ -10,7 +10,7 @@ The 0.4 snippets are abridged from the 0.4.0 README. The 1.0 snippets are typech
 
 - **Gained:** word-level positions, a mistake checker with clear states, zero-config loading, a session lifecycle, and opt-in problem reports.
 - **Gone:** display text from the engine, the FastConformer engine, the `correct()` retry/dismiss state machine, harakah (vowel) and repetition flags, and every tuning knob.
-- **Licence:** the 1.x model and assets are not derived from Quran-Lab, so the 0.x NPL-1.2 restrictions don't apply to them. The model weight licence is {{PENDING: decision 7}}. See [NOTICE.md](../NOTICE.md) and the [model card](model-card.md).
+- **Licence:** the 1.x model and assets are not derived from Quran-Lab, so the 0.x NPL-1.2 restrictions don't apply to them. The model weights are CC BY 4.0. See [NOTICE.md](../NOTICE.md) and the [model card](model-card.md).
 
 ## Steps
 

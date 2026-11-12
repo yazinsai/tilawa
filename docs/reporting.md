@@ -265,7 +265,7 @@ If you would like your readers' reports to help improve the Tilawa model, there 
 1. **Share from your own endpoint.** Collect with your own server as above, then share reports with the Tilawa team when your readers' consent allows it.
 2. **A scoped ingestion key.** The Tilawa team can issue a per-app key for `https://tilawa.dev/help/api/v2/reports`. It can only upload: it can't list, read or delete. Use it **only from your server**, never in browser code or a shipped app binary, where anyone could extract it. Send it as `headers: { Authorization: "Bearer <key>" }`. Ask at help@tilawa.dev.
 
-The tilawa.dev endpoint only accepts consent versions on its allowlist. Which policy and version third-party apps must show their readers: {{PENDING: decision 4}}. Reports sent there are handled under the [Tilawa privacy policy](privacy.md).
+The tilawa.dev endpoint only accepts consent versions on its allowlist. Apps sending there must show their readers the wording of policy `tilawa-help-report`, version `2026-11-report-1` (see [privacy](privacy.md#what-you-agree-to)), and send that version in `consent`. Reports sent there are handled under the [Tilawa privacy policy](privacy.md).
 
 ## Consent
 

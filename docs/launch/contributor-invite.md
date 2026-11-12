@@ -2,7 +2,7 @@
 
 **Draft.** For a short message, email or post inviting people to recite at tilawa.dev/help. Not for posting without approval.
 
-Before sending: the new /help consent wording must be approved and live ({{PENDING: decision 4}}).
+Before sending: check that tilawa.dev/help is live with consent version `2026-11-report-1`.
 
 ## English
 

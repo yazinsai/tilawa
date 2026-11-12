@@ -1,6 +1,6 @@
 # Privacy: recordings sent from tilawa.dev/help
 
-{{PENDING: decision 4}} This is the proposed policy for consent version `2026-11-report-1`. It is not in force until that consent version is approved.
+This policy applies to recordings sent with consent version `2026-11-report-1` (in force from 12 November 2026).
 
 This page explains what happens to a recording you send from [tilawa.dev/help](https://tilawa.dev/help/). It is written to be read in a couple of minutes. If anything is unclear, email help@tilawa.dev.
 
@@ -26,8 +26,6 @@ Before you start, the page asks:
 | Training | "Also use it to train and test future Tilawa models." | Optional, unticked |
 | Public dataset | "Also include it in a public research dataset (CC BY 4.0)." | Optional, unticked |
 
-{{PENDING: decision 4}}
-
 Your choices are saved with the recording, together with the version of this wording you saw.
 
 ## What we store
@@ -49,14 +47,13 @@ If you sign up for email updates, your email goes on a separate list. It is neve
 
 - Your recording is private. It is not published and there is no public link to it.
 - Members of the Tilawa team can listen to it and read what was sent, to find and fix the engine's mistakes. Access needs an admin login.
-- Automated review tools that we run may process the recording to sort and prioritise reports. Whether any outside service is used for this: {{PENDING: decision 4}}.
+- Automated review tools that we run may process the recording to sort and prioritise reports. No outside service receives your recording for this; if that changes, this policy and its version change first.
 - If you ticked **Training**, the recording may be used to train and test future Tilawa models.
 - If you ticked **Public dataset**, the recording and your answers may be published in a research dataset under the [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) licence, which lets anyone reuse it with attribution.
 
 ## How long we keep it
 
-{{PENDING: decision 4}}
-
+- You can delete your recording at any time with the delete code shown after sending. It is removed from review and from future dataset exports at once.
 - Private recordings that haven't been reviewed are deleted after 24 months.
 - Recordings you delete are removed straight away from everything the team can see. Their audio is then purged from storage within 30 days.
 - Backups of the server may hold a deleted recording until they are rotated out within the same window.

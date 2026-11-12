@@ -74,7 +74,7 @@ Preview quality. In our tests on long recitations recorded through a simulated p
 
 ## Licences
 
-The code is MIT. The 1.x model and assets are not derived from Quran-Lab, so the 0.x NPL-1.2 terms don't apply to them. The model weights' licence: {{PENDING: decision 7}}. Credits: tlog (Tarteel, CC-BY), Quranic Universal Ayahs and the QUD alignment benchmark (QUD Technologies, CC-BY), muaalem and quran-transcript (MIT), k2-fsa icefall (Apache-2.0), and Tanzil for the Quran text. See [NOTICE.md](https://github.com/yazinsai/tilawa/blob/main/NOTICE.md).
+The code is MIT. The 1.x model and assets are not derived from Quran-Lab, so the 0.x NPL-1.2 terms don't apply to them. The model weights are CC BY 4.0. Credits: tlog (Tarteel, CC-BY), Quranic Universal Ayahs and the QUD alignment benchmark (QUD Technologies, CC-BY), muaalem and quran-transcript (MIT), k2-fsa icefall (Apache-2.0), and Tanzil for the Quran text. See [NOTICE.md](https://github.com/yazinsai/tilawa/blob/main/NOTICE.md).
 
 ## Artifacts
 

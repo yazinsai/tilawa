@@ -4,7 +4,7 @@ This repository's code is MIT-licensed (`LICENSE`). The notices below cover the 
 
 ## `@tilawa/core` 1.x
 
-The engine (`packages/core/src/engine/`, `packages/core/src/runtime/`) is vendored from the (private) Tilawa research engine, unmodified apart from import paths, and released here under this repository's MIT licence. `packages/core/src/engine/SOURCE.json` records the source commit and file hashes. The listener model it downloads (`spliced-clean`, `spliced-clean-lite`) and its reference data are built from the works below. Their attribution terms apply to redistributions of the models and assets.
+The engine (`packages/core/src/engine/`, `packages/core/src/runtime/`) is vendored from the (private) Tilawa research engine, unmodified apart from import paths, and released here under this repository's MIT licence. `packages/core/src/engine/SOURCE.json` records the source commit and file hashes. The listener model it downloads (`spliced-clean`, `spliced-clean-lite`) and its reference data are built from the works below. Their attribution terms apply to redistributions of the models and assets. The `spliced-clean` and `spliced-clean-lite` weights themselves are released under **CC BY 4.0** (see `docs/model-card.md`).
 
 - **tlog** (`tarteel-ai/tlog`), by Tarteel, licensed **CC-BY**: training and evaluation audio. The test clip `packages/core/test/fixtures/tlog-clean-00010-630.wav` (not shipped in the package) comes from tlog.
 - **Quranic Universal Ayahs** and the **QUD alignment benchmark** (`QUD-Technologies/quranic-universal-ayahs`), by QUD Technologies, licensed **CC-BY**: training and evaluation audio and alignments.
