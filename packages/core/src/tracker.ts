@@ -72,6 +72,21 @@ interface CommitEvidence {
   strong: boolean;
 }
 
+interface CommitSnapshot {
+  emittedRef: [number, number] | null;
+  emittedText: string;
+  prevEmittedRef: [number, number] | null;
+  prevEmittedText: string;
+  commitEvidence: CommitEvidence | null;
+}
+
+interface PendingAdvance {
+  message: VerseMatchMessage;
+  margin: number;
+  samplesAtAdvance: number;
+  snapshot: CommitSnapshot;
+}
+
 interface RankedCandidate {
   candidate: QuranCandidate;
   acousticScore: number;
@@ -513,21 +528,9 @@ export class RecitationTracker {
   // Decode-stability gate state
   private lastRawPhonemes: string | null = null;
 
-  // Deferred emission state
-  private trackingPendingEmission = false;
-  private pendingEmissionMessage: VerseMatchMessage | null = null;
-  // prefixScore - suffixScore at advance time; smaller/more-negative means
-  // stronger evidence that next verse is already in the tail audio.
-  private pendingEmissionMargin = Number.POSITIVE_INFINITY;
-  private preAdvanceSnapshot: {
-    emittedRef: [number, number] | null;
-    emittedText: string;
-    prevEmittedRef: [number, number] | null;
-    prevEmittedText: string;
-    commitEvidence: CommitEvidence | null;
-  } | null = null;
+  // One value owns the pending match, its evidence, and its rollback state.
+  private pendingAdvance: PendingAdvance | null = null;
   private totalSamplesFed = 0;
-  private samplesAtAdvance = 0;
   private hypothesis = new StreamingHypothesis();
   private config: StreamingConfig;
 
@@ -634,32 +637,7 @@ export class RecitationTracker {
       return messages;
     }
 
-    if (
-      finalFlush &&
-      this.trackingPendingEmission &&
-      this.pendingEmissionMessage !== null &&
-      this.pendingEmissionMargin < this.config.advanceFlushStrictMargin
-    ) {
-      messages.push(this.pendingEmissionMessage);
-      this._emitDiagnostic({
-        type: "commit",
-        ref: `${this.pendingEmissionMessage.surah}:${this.pendingEmissionMessage.ayah}`,
-        reason: "final_flush_pending_emit",
-        confidence: this.pendingEmissionMessage.confidence,
-      });
-      this._emitDiagnostic({
-        type: "pending_emission",
-        action: "final_flush_emit",
-        ref: `${this.pendingEmissionMessage.surah}:${this.pendingEmissionMessage.ayah}`,
-        margin: Number.isFinite(this.pendingEmissionMargin)
-          ? Math.round(this.pendingEmissionMargin * 1000) / 1000
-          : null,
-        fresh_samples: this.totalSamplesFed - this.samplesAtAdvance,
-      });
-      this._clearPendingEmission();
-      this._exitTracking("final silence flush (pending emitted)");
-      return messages;
-    }
+    if (finalFlush && this._emitPendingOnFinalFlush(messages)) return messages;
 
     const recognizedWords = text.split(" ").filter(Boolean);
     const resumeFrom = Math.max(this.trackingLastWordIdx, 0);
@@ -672,9 +650,12 @@ export class RecitationTracker {
     );
     const primaryMatchedIndices = matchedIndices.slice();
 
-    const freshSamplesSinceAdvance = this.totalSamplesFed - this.samplesAtAdvance;
+    const pendingAdvance = this.pendingAdvance;
+    const freshSamplesSinceAdvance = pendingAdvance
+      ? this.totalSamplesFed - pendingAdvance.samplesAtAdvance
+      : 0;
     const pendingHasEnoughDwell =
-      !this.trackingPendingEmission ||
+      !pendingAdvance ||
       this.trackingVerseWords.length > SHORT_PENDING_CONFIRM_MAX_WORDS ||
       freshSamplesSinceAdvance >= SHORT_PENDING_CONFIRM_MIN_SAMPLES;
 
@@ -682,24 +663,12 @@ export class RecitationTracker {
     // Short verses need a small dwell so back-to-back final-word decodes do not
     // visibly skip over the verse the user just reached.
     if (
-      this.trackingPendingEmission &&
+      pendingAdvance &&
       pendingHasEnoughDwell &&
       hasStrongPendingPrefixEvidence(matchedIndices, this.trackingVerseWords.length) &&
-      this.totalSamplesFed > this.samplesAtAdvance
+      freshSamplesSinceAdvance > 0
     ) {
-      const pending = this.pendingEmissionMessage!;
-      messages.push(pending);
-      this._emitDiagnostic({
-        type: "pending_emission",
-        action: "confirmed",
-        ref: `${pending.surah}:${pending.ayah}`,
-        margin: Number.isFinite(this.pendingEmissionMargin)
-          ? Math.round(this.pendingEmissionMargin * 1000) / 1000
-          : null,
-        fresh_samples: this.totalSamplesFed - this.samplesAtAdvance,
-        matched_indices: matchedIndices,
-      });
-      this._clearPendingEmission();
+      this._confirmPending(messages, matchedIndices);
       confirmedPendingEmission = true;
     }
 
@@ -747,7 +716,7 @@ export class RecitationTracker {
           ? matchedIndices[matchedIndices.length - 1] + 1
           : this.trackingLastWordIdx + 1) / this.trackingVerseWords.length) * 1000,
       ) / 1000,
-      pending: this.trackingPendingEmission,
+      pending: this.pendingAdvance !== null,
     });
 
     if (!advanced) {
@@ -758,39 +727,9 @@ export class RecitationTracker {
           ref: `${this.trackingVerse.surah}:${this.trackingVerse.ayah}`,
           stale_cycles: this.staleCycles,
         });
-        // Final-flush emit: if an advance was queued with strong acoustic
-        // evidence (stricter than normal ADVANCE_RELATIVE_MARGIN), emit the
-        // pending next-verse match before rolling back. Addresses the
-        // multi_114 / user_ikhlas_2_3 "last verse dropped on silence" pattern.
-        if (
-          finalFlush &&
-          this.trackingPendingEmission &&
-          this.pendingEmissionMessage !== null &&
-          this.pendingEmissionMargin < this.config.advanceFlushStrictMargin
-        ) {
-          messages.push(this.pendingEmissionMessage);
-          this._emitDiagnostic({
-            type: "commit",
-            ref: `${this.pendingEmissionMessage.surah}:${this.pendingEmissionMessage.ayah}`,
-            reason: "final_flush_pending_emit",
-            confidence: this.pendingEmissionMessage.confidence,
-          });
-          this._emitDiagnostic({
-            type: "pending_emission",
-            action: "final_flush_emit",
-            ref: `${this.pendingEmissionMessage.surah}:${this.pendingEmissionMessage.ayah}`,
-            margin: Number.isFinite(this.pendingEmissionMargin)
-              ? Math.round(this.pendingEmissionMargin * 1000) / 1000
-              : null,
-            fresh_samples: this.totalSamplesFed - this.samplesAtAdvance,
-          });
-          this._clearPendingEmission();
-          // Do NOT rollback — the pending emission has been confirmed.
-          this._exitTracking("final silence flush (pending emitted)");
-        } else {
-          this._rollbackWeakCommit(finalFlush ? "final silence flush" : "stale tracking");
-          this._exitTracking(finalFlush ? "final silence flush" : "stale tracking");
-        }
+        // The final-flush pending path was handled before alignment.
+        this._rollbackWeakCommit(finalFlush ? "final silence flush" : "stale tracking");
+        this._exitTracking(finalFlush ? "final silence flush" : "stale tracking");
       }
       return messages;
     }
@@ -805,8 +744,7 @@ export class RecitationTracker {
     const observedFinalWordReached = observedWordIdx >= totalWords - 1;
 
     if (
-      this.trackingPendingEmission &&
-      this.pendingEmissionMessage !== null &&
+      this.pendingAdvance &&
       !pendingHasEnoughDwell
     ) {
       this._emitDiagnostic({
@@ -841,27 +779,14 @@ export class RecitationTracker {
 
     if (
       completedEnough &&
-      this.trackingPendingEmission &&
-      this.pendingEmissionMessage !== null &&
+      this.pendingAdvance &&
       pendingHasEnoughDwell
     ) {
-      const pending = this.pendingEmissionMessage;
-      messages.push(pending);
-      this._emitDiagnostic({
-        type: "pending_emission",
-        action: "confirmed",
-        ref: `${pending.surah}:${pending.ayah}`,
-        margin: Number.isFinite(this.pendingEmissionMargin)
-          ? Math.round(this.pendingEmissionMargin * 1000) / 1000
-          : null,
-        fresh_samples: this.totalSamplesFed - this.samplesAtAdvance,
-        matched_indices: matchedIndices,
-      });
-      this._clearPendingEmission();
+      this._confirmPending(messages, matchedIndices);
       confirmedPendingEmission = true;
     }
 
-    if (!this.trackingPendingEmission) {
+    if (!this.pendingAdvance) {
       messages.push({
         type: "word_progress",
         surah: this.trackingVerse.surah,
@@ -878,7 +803,7 @@ export class RecitationTracker {
         action: "cascade_blocked",
         ref: `${this.trackingVerse.surah}:${this.trackingVerse.ayah}`,
         margin: null,
-        fresh_samples: this.totalSamplesFed - this.samplesAtAdvance,
+        fresh_samples: freshSamplesSinceAdvance,
         matched_indices: matchedIndices,
       });
       this._emitDiagnostic({
@@ -900,28 +825,6 @@ export class RecitationTracker {
       });
     }
     if (completedEnough && (!confirmedPendingEmission || finalWordReached)) {
-      if (!(this.lastCommitEvidence?.strong) && !this.trackingProgressEstablished) {
-        this._emitDiagnostic({
-          type: "advance_decision",
-          from_ref: `${this.trackingVerse.surah}:${this.trackingVerse.ayah}`,
-          to_ref: null,
-          action: "blocked",
-          reason: "weak commit evidence",
-          word_position: wordPos,
-          total_words: totalWords,
-          coverage,
-          completion_target: completionWordCount,
-          final_word: finalWordReached,
-          advance_ok: false,
-          early_advance_ok: false,
-          margin: null,
-          normal_margin: this.config.advanceRelativeMargin,
-          strict_margin: this.config.advanceFlushStrictMargin,
-        });
-        this._exitTracking("weak completion");
-        return messages;
-      }
-
       const currentRef: [number, number] = [
         this.trackingVerse.surah,
         this.trackingVerse.ayah,
@@ -929,7 +832,6 @@ export class RecitationTracker {
       const currentIds = this.trackingVerse.phoneme_token_ids ?? [];
       const nextVerse = this.db.getNextVerse(currentRef[0], currentRef[1]);
       let advanceOk = true; // default: advance (preserves behavior when no acoustic data)
-      let earlyAdvanceOk = completedEnough;
       // Evidence strength captured for optional final-flush emit. Defaults to
       // +Inf so the default-advance (no acoustic) path never passes the
       // stricter flush gate and still requires fresh-audio confirmation.
@@ -954,32 +856,7 @@ export class RecitationTracker {
         } else {
           advanceMargin = prefixScore - suffixScore;
           advanceOk = advanceMargin < this.config.advanceRelativeMargin;
-          earlyAdvanceOk = earlyAdvanceOk ||
-            advanceMargin < this.config.advanceFlushStrictMargin;
         }
-      }
-
-      if (!finalWordReached && !earlyAdvanceOk) {
-        this._emitDiagnostic({
-          type: "advance_decision",
-          from_ref: `${this.trackingVerse.surah}:${this.trackingVerse.ayah}`,
-          to_ref: nextVerse ? `${nextVerse.surah}:${nextVerse.ayah}` : null,
-          action: "wait",
-          reason: "coverage reached without final word or next-prefix evidence",
-          word_position: wordPos,
-          total_words: totalWords,
-          coverage,
-          completion_target: completionWordCount,
-          final_word: finalWordReached,
-          advance_ok: advanceOk,
-          early_advance_ok: earlyAdvanceOk,
-          margin: Number.isFinite(advanceMargin)
-            ? Math.round(advanceMargin * 1000) / 1000
-            : null,
-          normal_margin: this.config.advanceRelativeMargin,
-          strict_margin: this.config.advanceFlushStrictMargin,
-        });
-        return messages;
       }
 
       this.lastEmittedRef = currentRef;
@@ -989,7 +866,7 @@ export class RecitationTracker {
       if (nextVerse) {
         if (advanceOk) {
           // Snapshot state before advance for rollback on drop
-          this.preAdvanceSnapshot = {
+          const snapshot: CommitSnapshot = {
             emittedRef: this.lastEmittedRef ? [...this.lastEmittedRef] as [number, number] : null,
             emittedText: this.lastEmittedText,
             prevEmittedRef: this.prevEmittedRef ? [...this.prevEmittedRef] as [number, number] : null,
@@ -998,7 +875,7 @@ export class RecitationTracker {
           };
 
           // Build verse_match but defer emission until fresh audio confirms
-          this.pendingEmissionMessage = {
+          const message: VerseMatchMessage = {
             type: "verse_match",
             surah: nextVerse.surah,
             ayah: nextVerse.ayah,
@@ -1011,9 +888,12 @@ export class RecitationTracker {
               nextVerse.ayah,
             ),
           };
-          this.trackingPendingEmission = true;
-          this.samplesAtAdvance = this.totalSamplesFed;
-          this.pendingEmissionMargin = advanceMargin;
+          this.pendingAdvance = {
+            message,
+            margin: advanceMargin,
+            samplesAtAdvance: this.totalSamplesFed,
+            snapshot,
+          };
           this._emitDiagnostic({
             type: "advance_decision",
             from_ref: `${currentRef[0]}:${currentRef[1]}`,
@@ -1021,14 +901,14 @@ export class RecitationTracker {
             action: "armed",
             reason: finalWordReached
               ? "final word reached"
-              : earlyAdvanceOk ? "completion coverage reached" : "next-prefix evidence",
+              : "completion coverage reached",
             word_position: wordPos,
             total_words: totalWords,
             coverage,
             completion_target: completionWordCount,
             final_word: finalWordReached,
             advance_ok: advanceOk,
-            early_advance_ok: earlyAdvanceOk,
+            early_advance_ok: true,
             margin: Number.isFinite(advanceMargin)
               ? Math.round(advanceMargin * 1000) / 1000
               : null,
@@ -1072,8 +952,8 @@ export class RecitationTracker {
               final_flush: false,
             });
           } else if (this.config.nextVerseEmitMode === "immediate_on_completion") {
-            messages.push(this.pendingEmissionMessage);
-            this._clearPendingEmission();
+            messages.push(message);
+            this.pendingAdvance = null;
           }
           // After sustained auto-advances, degrade to weak so stale-exit
           // triggers rediscovery instead of persisting
@@ -1097,7 +977,7 @@ export class RecitationTracker {
             completion_target: completionWordCount,
             final_word: finalWordReached,
             advance_ok: advanceOk,
-            early_advance_ok: earlyAdvanceOk,
+            early_advance_ok: true,
             margin: Number.isFinite(advanceMargin)
               ? Math.round(advanceMargin * 1000) / 1000
               : null,
@@ -1926,15 +1806,16 @@ export class RecitationTracker {
 
   private _exitTracking(_reason: string): void {
     // Full state rollback if pending emission was never confirmed
-    if (this.trackingPendingEmission && this.preAdvanceSnapshot) {
-      this.lastEmittedRef = this.preAdvanceSnapshot.emittedRef;
-      this.lastEmittedText = this.preAdvanceSnapshot.emittedText;
-      this.prevEmittedRef = this.preAdvanceSnapshot.prevEmittedRef;
-      this.prevEmittedText = this.preAdvanceSnapshot.prevEmittedText;
-      this.lastCommitEvidence = this.preAdvanceSnapshot.commitEvidence;
+    if (this.pendingAdvance) {
+      const { snapshot } = this.pendingAdvance;
+      this.lastEmittedRef = snapshot.emittedRef;
+      this.lastEmittedText = snapshot.emittedText;
+      this.prevEmittedRef = snapshot.prevEmittedRef;
+      this.prevEmittedText = snapshot.prevEmittedText;
+      this.lastCommitEvidence = snapshot.commitEvidence;
       this.consecutiveAutoAdvances = 0;
     }
-    this._clearPendingEmission();
+    this.pendingAdvance = null;
 
     this.trackingVerse = null;
     this.trackingVerseWords = [];
@@ -1964,7 +1845,7 @@ export class RecitationTracker {
 
   private _retainTailAfterCommit(): void {
     if (this.lastCommitEvidence?.strong) {
-      const keepSeconds = this.trackingPendingEmission
+      const keepSeconds = this.pendingAdvance
         ? this.config.tailAfterPendingAdvanceSec
         : this.config.tailAfterCommitSec;
       const keepAmount = this.samplesForSeconds(keepSeconds);
@@ -1997,11 +1878,45 @@ export class RecitationTracker {
     );
   }
 
-  private _clearPendingEmission(): void {
-    this.trackingPendingEmission = false;
-    this.pendingEmissionMessage = null;
-    this.pendingEmissionMargin = Number.POSITIVE_INFINITY;
-    this.preAdvanceSnapshot = null;
+  private _confirmPending(messages: WorkerOutbound[], matchedIndices: number[]): void {
+    const pending = this.pendingAdvance;
+    if (!pending) return;
+    messages.push(pending.message);
+    this._emitDiagnostic({
+      type: "pending_emission",
+      action: "confirmed",
+      ref: `${pending.message.surah}:${pending.message.ayah}`,
+      margin: Number.isFinite(pending.margin)
+        ? Math.round(pending.margin * 1000) / 1000
+        : null,
+      fresh_samples: this.totalSamplesFed - pending.samplesAtAdvance,
+      matched_indices: matchedIndices,
+    });
+    this.pendingAdvance = null;
+  }
+
+  private _emitPendingOnFinalFlush(messages: WorkerOutbound[]): boolean {
+    const pending = this.pendingAdvance;
+    if (!pending || !(pending.margin < this.config.advanceFlushStrictMargin)) return false;
+    messages.push(pending.message);
+    this._emitDiagnostic({
+      type: "commit",
+      ref: `${pending.message.surah}:${pending.message.ayah}`,
+      reason: "final_flush_pending_emit",
+      confidence: pending.message.confidence,
+    });
+    this._emitDiagnostic({
+      type: "pending_emission",
+      action: "final_flush_emit",
+      ref: `${pending.message.surah}:${pending.message.ayah}`,
+      margin: Number.isFinite(pending.margin)
+        ? Math.round(pending.margin * 1000) / 1000
+        : null,
+      fresh_samples: this.totalSamplesFed - pending.samplesAtAdvance,
+    });
+    this.pendingAdvance = null;
+    this._exitTracking("final silence flush (pending emitted)");
+    return true;
   }
 
   private _emitDiagnostic(event: TrackerDiagnosticEvent): void {
