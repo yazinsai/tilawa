@@ -1,41 +1,56 @@
 # Assistant bridge distillation
 
-Status: blocked before implementation; unmeasured. This is not an acoustic kill.
+Status: training implementation present; compute environment blocked; unmeasured. This is not an acoustic kill.
 
 ## Prediction and mechanism
 
-The card predicts two recovered additions and one collateral wrong call: listener −1, overall −1. Its premise is that the capacity gap between the original Muaalem teacher and the shipped student loses weak consonant distinctions. An intermediate-width assistant would learn from that teacher, then be frozen to supervise the final shipped-size student.
+The card predicts two recovered additions and one collateral wrong call: listener −1, overall −1. The premise is that direct compression from the roughly 600M-parameter Muaalem teacher to the shipped roughly 70M `full` student loses weak consonant distinctions. An intermediate-capacity assistant could provide a distribution the compact student can learn more faithfully.
 
-Both student arms must use the same architecture, starting checkpoint, training recordings, transcript loss, shipped augmentation and ordinary-reading preservation. The direct-distillation control must receive the same total training compute, including the bridge arm's assistant training and target generation. Only authorized transcribed Quran recordings and help-train training speakers' none-labelled takes may provide transcript supervision. Release-held-out speakers must be excluded, and checkpoint selection must use speaker-grouped partitions within training speakers. The final compact exports must retain the existing inventory, streaming clock and insertion-verification assets.
+`modal/student_bridge_train.py` implements separate preparation, assistant training, frozen-target generation, bridge-student training, direct-control training and export stages. The assistant has three times the shipped feed-forward widths, while retaining encoder dimensions, layers, causal geometry and phone-head dimensions. It starts from compatible shipped weights with widened projections initialized afresh, then learns from the original teacher. The code checks that its actual parameter count lies between the student and original teacher. Both final student arms start from exactly the same shipped checkpoint and retain its complete architecture.
 
-## Source audit
+The original teacher's S1 top-five targets are shared by both arms; help-none targets are generated once with the unchanged exported Muaalem teacher and its SDK frontend. The frozen assistant generates corresponding top-five targets on the same unaugmented recordings. Student training keeps the shipped RIR, noise, gain and SpecAugment recipe, with recording/visit seeds that reproduce draws independently of supervisory arm. This retains the shipped denoising-distillation convention: supervisory targets come from original recordings rather than independently augmented observations.
 
-Read AGENTS.md and the audio-review procedure before work. Inspected the existing student training, preparation and export code and SDK insertion-teacher frontend.
+All three training stages retain transcript CTC, supervisory cross-entropy and an ordinary-reading KL preservation term against the frozen shipped student. Transcript runs use the shipped spliced-target collapse convention. No synthetic speech, practice audio or planted mistakes enter training.
 
-- The shipped `spliced-clean` primary is the `full` roughly 70M student, not the roughly 22M `lite` model. The original teacher is `obadx/muaalem-model-v3_2`, roughly 600M parameters.
-- The existing trainer selects checkpoints on `clean-match test`. Reusing that selection path would violate this card. The experiment needs separate training-speaker selection without changing the existing defaults.
-- S1 preparation retains the speaker `cluster`, but the current training loader discards it. The experiment must retain those groups, reject unknown speaker identities and exclude groups represented outside the authorized training split.
-- The shipped augmentation uses RIR, noise, gain and SpecAugment. Its dataset creates an unseeded generator per item; paired experiment arms need reproducible draws while retaining that augmentation recipe.
-- An SDK bundle must preserve the existing insertion teacher as well as the newly exported primary student. A primary-only bundle would change insertion verification and would not test the card as specified.
+The direct control receives the bridge arm's total measured CUDA-event budget, including assistant training, checkpoint selection, frozen-target generation and bridge training/selection. It can make additional passes over the identical corpus and deterministic augmentation stream; update counts therefore need not match. Both student arms share optimizer, schedule, loss weights and data recipe. Export refuses a control that underspends or exceeds that budget by more than its last indivisible optimizer update. This matches measured device time rather than exact FLOPs; hardware changes between resumed stages would undermine the comparison and must be avoided. Original-teacher target preparation is shared work, incurred once for both arms.
 
-These are source findings and implementation requirements, not evidence that assistant distillation recovers the targeted consonants. A possible assistant initialization is to widen the feed-forward layers while preserving the existing projection through zero-initialized extra output columns; this has not been built or validated.
+## Training exclusions and selection
 
-## Execution blocker
+The loader retains S1 speaker clusters and derives exclusions before filtering recordings by bucket, duration or material limit. Any group represented in a non-training split or by a gold-excluded recording is denied entirely. The existing release manifest supplies additional speaker denials even when its particular recording is absent from S1; its labels and audio never enter training or selection. Unknown speaker identities cause an error.
 
-Used only the authorized supervisor interface. Three CPU requests failed before producing a shard directory or command log:
+Only authorized S1 `clean-match` transcripts and help-train scored `none` takes with no mistake, repeat, unsupported or exclusion annotations provide supervision. A planted script is not a performed transcript. Remaining training speaker groups are divided deterministically into fit and selection partitions. Selection uses only those training speakers, without calling the existing trainer's test-set evaluation. S1 identities are the repository's inferred speaker clusters, not verified identities across sources.
 
-| Request | Environment | Purpose | Supervisor result |
-| --- | --- | --- | --- |
-| 1 | train, 10-minute timeout | Inspect available checkpoints, teacher assets, S1 schema and help-train labels | `NotFoundError: No such file or directory` |
-| 2 | standard, 5-minute timeout | Minimal Python path/model-directory probe | `NotFoundError: No such file or directory` |
-| 3 | train, 5-minute timeout | Minimal Python `/student` directory probe | `NotFoundError: No such file or directory` |
+Recipe, starting checkpoint, corpus and augmentation banks are checksummed. Optimizer, schedule, sampler position and random states are saved for resumption. Frozen targets carry the selected assistant checkpoint hash and must be complete before bridge training. Nonfinite updates stop with an error rather than silently skipping a recording.
 
-The first request was submitted at 2026-11-12 06:38:16 UTC. Both retries were submitted at 06:41:59 UTC; their failures were observed by 06:47:37 UTC. All three result records report $0 spent and the full $150 GPU allowance remaining. The errors do not identify the missing file or volume. There is no command output establishing that Python started.
+## Compact bundle
 
-## Validation and limits
+Export uses the existing streaming graph and MatMul-only dynamic int8 quantization. It checks inventory, blank, feature settings, window, shift, 40 ms clock and recurrent-state interface against the shipped bundle. Training-only selection clips validate fp32 ONNX against real recurrent PyTorch replay, then compare int8 greedy decodes with fp32. Both compact bundles copy and verify every insertion-teacher file declared by the SDK, including external tensors. Completed exports are checksummed and verified on retry; partial exports are never declared as the scored model.
 
-No engine, test, card, scorer, test-data, supplied-manifest or evidence changes were made. No assistant or matched control was trained, no student bundle was exported, and no model override was declared. The local worktree has no PyTorch or node_modules; heavy work and the required core/SDK tests remain dependent on the unavailable supervisor environment.
+There is no tracker, checker, SDK warning-rule, insertion-verification, scorer, lab-tooling, card, test-data, supplied-manifest or evidence change. `student_train.build_model` and `load_student` accept checkpoint-specific architecture configuration without changing existing presets or defaults.
 
-Practice scores used: 0 of 3. Target recoveries and warning wins are unknown, not zero. No clean-session, studio or overall changes were measured. Neither the card's ordered-consonant criterion nor the user's three-target stop rule has been evaluated. There is no basis for a killed outcome or a fold decision.
+## Validation and execution blocker
 
-Resume by restoring the supervisor's missing resource and rerunning the preflight. Then implement and validate the paired training path, freeze both training-selected checkpoints, verify complete compact exports, and compare full-session exported decodes on the six card targets. Apply the acoustic/target stop rules only to those measurements; if at least three targets are won, run the authorized practice score before deciding.
+Local validation: 13 standard-library policy tests pass; four tensor/model tests are skipped because PyTorch is absent locally. Tests cover complete-speaker exclusion, training-only disjoint selection, release groups whose held-out recordings are absent, unknown identities, script/repeat rejection, reproducible augmentation seeds, complete compute accounting, padding gradients, frozen-supervisor gradients and unchanged model geometry. Python compilation and whitespace checks pass. CLI help runs without loading training dependencies.
+
+Used only the authorized supervisor interface. Requests 1–6 failed before producing a shard directory or command log, with `NotFoundError: No such file or directory`:
+
+| Request | Environment | Purpose |
+| --- | --- | --- |
+| 1 | train, CPU | Checkpoints, teacher assets, S1 schema and help labels |
+| 2 | standard, CPU | Minimal path/model-directory probe |
+| 3 | train, CPU | Minimal `/student` probe |
+| 4 | standard, CPU | Directory preflight retry |
+| 5 | train, CPU | List authorized checkpoints and data directories |
+| 6 | standard, six CPU shards | Required core/SDK tests via `tools/autolab_tests.sh` |
+
+The first request was submitted at 2026-11-12 06:38:16 UTC. Requests 4–6 were submitted after resuming the prior attempt. Their errors do not identify the missing resource, and no output establishes that a command started. All six records report $0 spent and the full $150 GPU allowance remaining.
+
+Requests 7 and 8, submitted at 07:07:37 UTC, also failed with the same `NotFoundError` and returned no shard directory or command log. Request 7 attempted the implemented preparation command on H100; request 8 attempted the new Python suite in the train image. Their request files contain the exact commands. The H100 request incurred $0.2205 despite returning no usable execution output; its final record reports $149.78 remaining. The CPU test request incurred $0. Its earlier budget snapshot still included the H100 reservation and is not the final available balance.
+
+No assistant or control has been trained. No compact bundle exists, and no `.autolab/model.json` override is declared. Running the default main listener would not evaluate this training change. Practice scores used: 0 of 3. Ordered-consonant recoveries, target warning wins, clean-session behavior, studio behavior and overall changes are unknown, not zero. Neither the card's fewer-than-two ordered-consonant criterion nor the user's fewer-than-three warning-win rule has been evaluated. There is no basis for a killed outcome or fold decision.
+
+## Resume
+
+Restore the supervisor's missing resource and rerun train-image tests and preparation preflight. Confirm the available shipped checkpoint path rather than inferring it from a directory name. Use the stage commands in the module's docstring on the same GPU type, resuming each until complete; then export and verify both bundles through the SDK. Only after the complete bridge bundle exists should `.autolab/model.json` point at its directory relative to experiment scratch.
+
+Freeze both training-selected checkpoints before inspecting practice targets. Compare the six card targets against the matched direct control's full-session exported decode, checking previously missing planted consonants in correct order, then compare warning wins through the unchanged SDK pipeline. Apply the acoustic/target stop rules to those measurements. If at least three targets are won, run the authorized practice score before deciding. Infrastructure failure is not zero recoveries or an acoustic kill.

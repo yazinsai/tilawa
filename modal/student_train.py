@@ -96,14 +96,15 @@ def ints(s: str) -> tuple:
     return tuple(int(x) for x in str(s).split(","))
 
 
-def build_model(size: str):
+def build_model(size: str, model_config: dict | None = None):
     import torch.nn as nn
     from scaling import ScheduledFloat
     from student import VOCAB
     from subsampling import Conv2dSubsampling
     from zipformer import Zipformer2
 
-    p = {**COMMON, **SIZES[size]}
+    # Experiments can train a larger supervisor without changing either shipped preset.
+    p = {**COMMON, **SIZES[size], **(model_config or {})}
     dims = ints(p["encoder_dim"])
 
     class Student(nn.Module):
@@ -498,7 +499,7 @@ def load_student(run: str):
     import torch
 
     ck = torch.load(f"/student/runs/{run}/ckpt.pt", map_location="cpu", weights_only=False)
-    model = build_model(ck["cfg"]["size"])
+    model = build_model(ck["cfg"]["size"], ck["cfg"].get("model_config"))
     model.load_state_dict(ck["model"])
     return model, ck
 
