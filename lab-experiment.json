@@ -1,0 +1,13 @@
+{
+ "id": "listener-separated-optimizer-memory",
+ "component": "listener",
+ "hypothesis": "Shared optimizer momentum may suppress intermittent consonant-learning updates after long blank and vowel stretches; separating optimizer memory by acoustic supervision regime predicts 1 recovered addition and no losses, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T07:51:39+00:00",
+ "author": "autolab"
+}
