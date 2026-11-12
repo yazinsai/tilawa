@@ -2,105 +2,110 @@
 
 Status: ready-for-human
 
-The experiment is blocked by the authorized Modal executor. No engine change
-has been made, no target audio has been inspected, and no practice score has
-been requested. This is not a premise kill or a measured zero gain.
-The experiment card is unchanged.
+**Implementation cannot be completed in this environment:** every authorized
+Modal request failed with `NotFoundError: No such file or directory` before
+returning container output. This includes a minimal Python print command that
+uses neither audio files nor repository code. No target audio or help-train
+recording was inspected. This is an executor blocker, not a premise kill or a
+measured zero gain. The experiment card is unchanged.
 
 ## Prediction and mechanism
 
-The card predicts listener −1 and overall −1: one omission false warning
-removed without losses, with substantial risk of no gain. Its premise is a
-demonstrable digital erasure overlapping a disputed spoken word, rather than
-ordinary silence or acoustic misrecognition.
+The card predicts listener −1 and overall −1: one omission false warning removed
+without losses, with substantial zero-gain risk. The premise is a demonstrable
+digital erasure overlapping the disputed spoken word. Low energy, a long CTC
+blank run, or a natural pause is insufficient evidence of unavailable samples.
 
-The proposed SDK detector requires constant-sample intervals with abrupt entry
-and exit inside otherwise active speech. Detection and abstention must be
-calibrated on authorized help-train training recordings with injected digital
-dropouts and genuine pause controls. At an existing single-candidate omission,
-complete-read and omit calculations would marginalize the same unavailable
-frames under both hypotheses. An uncertainty certificate would be supplied
-only when missing-observation treatment reverses the ordinary omission
-preference. Primary tokens, tracker events, placement, and ordinary warning
-requirements would be preserved. No replacement waveform would be generated.
+The proposed SDK detector requires exact constant-sample intervals with abrupt
+entry and exit inside otherwise active speech. Its detection and abstention
+criteria must be calibrated using authorized help-train training recordings
+with injected dropouts and genuine pause controls. Release-held-out speakers
+must remain excluded. At an existing single-candidate omission, complete-read
+and omit hypotheses would marginalize the same unavailable observations. Only
+an omission whose ordinary preference reverses under that calculation would
+receive an uncertainty certificate. Primary tokens, tracker events, placement,
+and ordinary warning requirements would be preserved, with no replacement
+waveform.
 
-The card's kill criterion is fewer than one target containing a qualifying
-erasure that reverses the preference. The implementation brief also requires
-at least three target wins before practice scoring. Neither condition can be
-evaluated without actual audio and sequence evidence; failure to launch a
-container establishes neither condition.
+The card's kill criterion requires an actual target erasure and a preference
+reversal. The implementation brief additionally requires at least three target
+wins before scoring. Neither can be measured when the executor cannot run even
+a print command. Target wins remain unknown; they are not zero.
 
-## Premise audit prepared
+## Executable prototype and why it was removed
 
-Read AGENTS.md, the card, the lab spec, and the audio-review instructions first.
-Inspected the SDK's WAV decoder, streaming listener, frontend, and session
-evidence path. The frontend uses a 400-sample window and a 160-sample hop at
-16 kHz. Low energy and CTC blank are insufficient evidence of unavailable
-samples.
+The retry implemented SDK source and unit tests in commit `13417583`:
 
-A read-only diagnostic was prepared under the ignored
-`.autolab/dropout_probe.py`. It scans exact sample equality without a
-practice-selected duration threshold, reports constant-run lengths and boundary
-jumps, and counts runs covering complete SDK frontend windows. File hashes and
-WAV format metadata accompany the reports. Target references are diagnostic
-arguments only. Supplied labels select every spoken occurrence of each target
-word, its surrounding five seconds, and its whole ayah; both complete phone and
-studio recordings are also scanned. Warning timestamps do not determine the
-word's audio interval.
+- `constantAudioIntervals` enumerated maximal exact PCM plateaus, recording
+  half-open sample bounds, the held value, and entry/exit jumps. It explicitly
+  did not certify equality alone as a dropout.
+- `CensoredPosteriorFrames` supplied unit emission likelihood for every class,
+  including blank, at certified unavailable frames. It reused the ordinary CTC
+  recurrence, retaining elapsed time and its transitions instead of deleting
+  frames or substituting observed silence. Stored posterior rows were unchanged.
+- `omissionDependsOnMissingAudio` required finite scores and a strict change
+  from omit preference to read preference, with both hypotheses using the same
+  unavailable-frame mask. Intact audio with no mask received no exception.
+- Unit tests covered exact and nonzero plateaus, stream edges, low-energy
+  changing samples, exhaustive small CTC path sums, retained frame timing,
+  unchanged source evidence, strict reversal and invalid masks.
 
-The requested targets were:
+Small local checks of that source passed using Node's TypeScript transform on
+copies whose imports alone were redirected. They checked exact intervals,
+exhaustive CTC path sums, unchanged evidence, retained frame timing, and
+reversal. They did not run Vitest, the SDK/core suites, acoustic inference,
+training calibration, target replay, or scoring.
 
-- `lab-v1.5-p50/37:113:10`
-- `lab-v1.5-p65/4:12:40`
-- `lab-v1.5-p65/4:15:6`
+This was an executable calculation prototype, not a completed warning-path
+implementation. No calibrated detector or uncertainty certificate was connected
+to the listener/session/checker path. Choosing dropout thresholds without the
+required training controls could mistake genuine pauses for missing audio;
+connecting that unvalidated mask to warnings would not implement the card's
+specified mechanism. The authorized data and runtime are only on Modal, local
+`node_modules` are absent, and alternate compute/data access is prohibited.
+These constraints prevent completing and verifying the change here.
 
-The audit deliberately precedes implementation. If no candidate constant
-interval exists, there is no basis for missing-frame marginalization. If
-candidates exist, training-only calibration must distinguish erasures from
-natural pauses and establish the missing-frame mask before target preference
-comparisons. Complete frontend-window coverage is a diagnostic, not a
-calibrated detector or an uncertainty decision.
+Commit `2cecf250` removed the prototype from the final engine diff. Its source
+and tests remain recoverable from `13417583` for a continuation after executor
+recovery. The rollback does not claim the mechanism failed.
 
-## Validation attempted and limits
+## Validation attempts and limits
 
-All requests used the supervisor's documented `tools/autolab.py modal-run`
-interface. No alternate Modal access or external data path was attempted.
+All requests used the documented supervisor `modal-run` interface. The original
+attempt's requests 1–4 also returned the same executor error without logs.
+This retry made four further requests:
 
 | Request | Purpose | Result |
 | --- | --- | --- |
-| 1 | Inspect practice audio/label layout and help-train availability | `NotFoundError: No such file or directory` |
-| 2 | Run the file-backed sample audit | Same executor error |
-| 3 | Run the audit embedded directly in the shell command | Same executor error |
-| 4 | Supplied six-shard `bash tools/autolab_tests.sh` harness | Same executor error; no tests executed |
+| 5 | Embedded exact-sample target audit | `NotFoundError`, no shard logs |
+| 6 | Six-shard core/SDK build and test harness | Same error; no tests executed |
+| 7 | Six-shard harness with the SDK prototype and unit tests present | Same error; no tests executed |
+| 8 | Minimal `python3 -c "print(12345, flush=True)"` | Same error; no output |
 
-Requests 1–4 produced no shard logs or returned audio diagnostics. The error
-alone does not identify which remote file or resource is missing. It must not
-be interpreted as a missing target recording. Request 2 additionally used an
-ignored diagnostic path excluded by the source snapshot; request 3 corrected
-that packaging mistake by embedding the complete source in a quoted heredoc,
-and still failed before container output. The full corrected command remains
-in `.autolab/modal-request-3.json` for a retry after executor recovery.
+Each returned result reports zero dollars spent. The results do not identify
+which external resource is missing. Request 8 demonstrates that the failure
+does not require opening a target recording or importing the prototype. It is
+not evidence that any recording contains, or lacks, a dropout.
 
-Small local diagnostic self-checks passed: changing samples, constant samples,
-exact frontend-window grid coverage, boundary jumps, PCM16 WAV decoding, and
-float32 WAV decoding. These checks validate the audit itself; they are not
-engine tests, acoustic calibration, independent listening, or target evidence.
-The core/SDK build and test suites remain unverified because request 4 failed
-before executing the harness.
+The ignored read-only audit was corrected to resolve supplied session/audio
+paths through the supplied manifest, rather than guessing audio filenames in
+the sessions directory. No supplied manifest was edited. Its embedded retry
+command is saved in `.autolab/corrected-dropout-request.json`, and its source
+SHA-256 is `a28e84125961758babd40f67d1201acbad4da6584e16edd3c2e6f5d2798b73f6`.
+That corrected audit has not executed remotely. It reports every labelled
+spoken occurrence of the target words, nearby and whole-ayah windows, exact
+run lengths and boundary jumps, WAV metadata/hashes, and complete frontend
+window coverage. Labels select diagnostic windows only, never engine rules.
 
-Targets evaluated: zero. Target wins: unknown. Training calibration: not run.
-Practice scores used: zero of three. Overall and component deltas: unmeasured.
-No model bundle or `.autolab/model.json` is declared. There are no engine or
-unit-test behavior changes to retain or revert. No scorer, lab tooling,
-supplied manifest, label, evidence, or card was modified, and no fold was
-performed.
+Targets evaluated: zero. Target wins: unknown. Calibration: not run. Practice
+scores used: zero of three. Component and overall deltas: unmeasured. The full
+core/SDK suites remain unverified. No model bundle or `.autolab/model.json` is
+declared. No scorer, lab tooling, supplied data, manifest, evidence, or card was
+modified. No fold was performed. `.autolab/outcome.json` records `blocked`.
 
-`.autolab/outcome.json` records `blocked`, not `killed`, with zero targets
-evaluated and no claimed target-win count or practice delta. The diagnostic
-source SHA-256 is
-`bec0e241a1f811c21af2a5c0ddf3ed819242d7f2bfa848dd0a8b902bb39aba5b`.
-
-Resume by restoring the authorized executor and rerunning the embedded audit,
-then perform the training calibration and read-versus-omit comparison if its
-premise survives. A blocked outcome must remain distinct from `killed` until
-the requested premise or target-win measurements can actually be made.
+Resume by restoring the authorized executor, running the corrected audit, and
+calibrating the detector on authorized training recordings if the premise
+survives. Then integrate certificate transport and the omission-only uncertainty
+rule, validate target reversals and the complete SDK/core path, and apply the
+brief's kill/scoring requirements. A blocked result must not be converted to a
+premise kill without those measurements.
