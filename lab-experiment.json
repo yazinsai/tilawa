@@ -1,0 +1,13 @@
+{
+ "id": "tracker-reference-edit-equivariance",
+ "component": "tracker",
+ "hypothesis": "Local tracking may confuse a lexical mismatch with movement because training never requires location stability under controlled reference edits; paired-reference structured training predicts tracker -1 and overall 0, allowing one exposed listener warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T11:31:25+00:00",
+ "author": "autolab"
+}
