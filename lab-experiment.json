@@ -1,0 +1,13 @@
+{
+ "id": "listener-source-rate-training-contract",
+ "component": "listener",
+ "hypothesis": "Speculatively, training audio decoded at its native sample rate is sometimes interpreted at the model rate, corrupting short-consonant supervision; correcting the training timebase predicts 1 recovered addition, no losses counted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T21:39:21+00:00",
+ "author": "autolab"
+}
