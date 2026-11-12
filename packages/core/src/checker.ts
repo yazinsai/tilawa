@@ -50,7 +50,18 @@ export interface SeamInsertionCandidate {
   prefixFrame?: number;
 }
 
+/** Exact complete pronunciations and acoustic window used for a string accusation. */
+export interface SequenceEvidenceCandidate {
+  word: WordRef;
+  written: string;
+  rival: string;
+  fromFrame: number;
+  toFrame: number;
+}
+
 export interface CheckerOptions {
+  /** A listener recheck may veto an existing string-path wrong word only. */
+  sequenceEvidence?: (candidate: SequenceEvidenceCandidate) => boolean;
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
   policy?: CheckerPolicy;
@@ -441,6 +452,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   /** Words whose error was confirmed or ended uncertain; never reopened. */
   const decided = new Set<number>();
   const emitted: CheckerEvent[] = [];
+  const reconstructionVetoes = new Set<string>();
   let seq = 0;
 
   const event = (o: Open, state: CheckerState): CheckerEvent => {
@@ -458,8 +470,20 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       ...(issue.heardUnion ? { observed: issue.heardUnion.observed } : issue.observed !== undefined ? { observed: issue.observed } : {}),
       confidence: conf,
     };
+    // Keep internal confirmations for ownership/merge decisions. Only the
+    // reported string accusation changes; graph and insertion paths retain
+    // their original state and evidence.
+    let reported = e;
+    if (state === "confirmed" && issue.cls === "wrong_word" && issue.stringPath && !issue.phrase && options.sequenceEvidence) {
+      supported(issue, false, candidate => {
+        if (options.sequenceEvidence!(candidate) === false) {
+          reconstructionVetoes.add(o.id);
+          reported = { ...e, state: "uncertain" };
+        }
+      });
+    }
     emitted.push(e);
-    return e;
+    return reported;
   };
 
   /** Mean decoder confidence over an error's phonemes; for an omission, the phonemes either side of the gap. */
@@ -483,7 +507,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
    * Whether the posteriors over the error's word and a recited word either side favour what was decoded over the
    * written words by `SUPPORT`; null when there's no telling (no posteriors there, or a skipped passage).
    */
-  const supported = (issue: Issue, requireFinite = false): boolean | null => {
+  const supported = (issue: Issue, requireFinite = false, inspect?: (candidate: SequenceEvidenceCandidate) => void): boolean | null => {
     // Spelled surplus is structural. A likelihood contest over the neighbours is what loses the word.
     if (issue.lexicon) return null;
     // The madd's length was already compared with this reciter's own. One vowel does not move the forward sum.
@@ -500,6 +524,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       [...left, ...right, ...(issue.obsTo > issue.obsFrom ? [issue.obsFrom, issue.obsTo - 1] : [])]).filter((k) => k >= 0 && k < obs.length);
     if (!at.length && !issue.wordLocal) return null;
     const ids = (s: string) => [...s].map((p) => tokenId.get(p) ?? 0);
+    const recheck = (written: string, rival: string, fromFrame: number, toFrame: number, result: boolean) => {
+      if (result && inspect && issue.cls === "wrong_word" && !issue.phrase) {
+        inspect({ word: toRef(issue.word), written, rival, fromFrame, toFrame });
+      }
+      return result;
+    };
     // The ending is a few phones. Over the word plus its neighbours the next word's labels take those frames and
     // the written word looks almost as likely; on the word's own frames the consonant has to be accounted for.
     if (issue.wordLocal && issue.obsTo > issue.obsFrom) {
@@ -509,7 +539,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const need = supportNeed(issue);
       const expectedNll = frames.nll(ids(word), a0, b0), observedNll = frames.nll(ids(issue.observed ?? ""), a0, b0);
       if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-      return expectedNll - observedNll >= need;
+      return recheck(word, issue.observed ?? "", a0, b0, expectedNll - observedNll >= need);
     }
     // Same joint span as the edit comparison. A wide window that leaves the next word out lets its onset consonant
     // explain the ending a second time.
@@ -521,7 +551,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const need = supportNeed(issue);
       const expectedNll = frames.nll(ids(writtenPair), a0, b0), observedNll = frames.nll(ids(issue.pair), a0, b0);
       if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-      return expectedNll - observedNll >= need;
+      return recheck(writtenPair, issue.pair, a0, b0, expectedNll - observedNll >= need);
     }
     if (!at.length) return null;
     const f0 = obs[Math.min(...at)].start;
@@ -544,7 +574,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const need = supportNeed(issue);
     const expectedNll = frames.nll(ids(written), f0, f1), observedNll = frames.nll(ids(decoded), f0, f1);
     if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-    return expectedNll - observedNll >= need;
+    return recheck(written, decoded, f0, f1, expectedNll - observedNll >= need);
   };
 
   /** Waqf and pause marks at the edges of a heard span. They are not part of the word. */
@@ -2496,7 +2526,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       return out;
     },
     mistakes() {
-      return emitted.filter((e) => e.state === "confirmed" || (policy.countResolved && e.state === "resolved"));
+      return emitted.filter((e) => !reconstructionVetoes.has(e.id) && (e.state === "confirmed" || (policy.countResolved && e.state === "resolved")));
     },
   };
 }
