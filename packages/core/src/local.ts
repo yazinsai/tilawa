@@ -1,5 +1,7 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import { localPhoneCosts } from "./spoken-phone-channel.js";
+import type { PhoneChannel } from "./spoken-phone-channel.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -39,14 +41,17 @@ export interface LocalSearch {
   /** The search state, to rewind to with `restore`. */
   save(): unknown;
   restore(state: unknown): void;
+  /** Read-only relative scores on the common consumed observation history, for model audits. */
+  candidates(): { offset: number; origin: number; cost: number }[];
 }
 
 /**
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">, channel?: PhoneChannel): LocalSearch {
   const ref = index.phonemes;
+  const acoustic = channel ? localPhoneCosts(channel) : null;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
   const ayahEnd: number[] = [];
@@ -110,11 +115,11 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       const e = new Int32Array(n);
       for (let i = 0; i < n; i++) {
         const at = lo + i;
-        let bc = cost[i] + insertionCost(ref, at, p);
+        let bc = cost[i] + (acoustic?.ins(ref, at, p) ?? insertionCost(ref, at, p));
         let bo = origin[i];
         let be = edits[i] + 1;
         if (i > 0) {
-          const s = subCost(ref[at - 1], p) + entry(at - 1);
+          const s = (acoustic?.sub(ref, at - 1, p) ?? subCost(ref[at - 1], p)) + entry(at - 1);
           const edit = ref[at - 1] === p ? 0 : 1;
           // On a tie, consuming the reference beats an insertion, so a correct recitation keeps advancing.
           if (cost[i - 1] + s <= bc) {
@@ -131,7 +136,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
               be = edit;
             }
           }
-          const d = c[i - 1] + deletionCost(ref, at - 1) + entry(at - 1);
+          const d = c[i - 1] + (acoustic?.del(ref, at - 1) ?? deletionCost(ref, at - 1)) + entry(at - 1);
           if (d < bc) {
             bc = d;
             bo = o[i - 1];
@@ -165,6 +170,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
     save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    candidates: () => Array.from(cost, (c, i) => ({ offset: lo + i, origin: origin[i], cost: c })),
     restore(state) {
       const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
       ({ lo, cost, origin, edits, best, ayah } = s);
