@@ -1,6 +1,14 @@
 # Overlapping diphone acoustic readout
 
-Status: infrastructure-blocked, unmeasured. The draft implementation is preserved
+Status: infrastructure-blocked, unmeasured. This experiment cannot be completed
+in the provided environment: every authorized supervisor execution failed with
+`NotFoundError: No such file or directory`, including minimal commands on both
+supported images and the required test harness. Training data and the primary
+model are available only through that execution route, so no trained, verified
+side-model bundle can be produced here. This explains why the final diff contains
+no engine change; it does not establish a failed acoustic premise.
+
+The draft implementation is preserved
 in commits `e2006685` and `29714bfe`; the final working tree restores the engine
 to its starting state. The experiment card is unchanged. No target gain or
 practice result is established, and the acoustic premise has not been killed.
@@ -75,11 +83,23 @@ and failed with the same `NotFoundError`, again without test output. Run 3
 requested a minimal working-directory, `/lab/data` and numpy check and failed
 with the same error and zero reported cost. Run 4 repeats the census through
 the supervisor's supported training image and also failed with the same
-`NotFoundError`, no container output, and zero reported cost. Both supported
-images therefore failed before any data census, feature extraction, training,
+`NotFoundError`, no container output, and zero reported cost.
+
+On continuation, the full source and unit-test draft was restored from
+`29714bfe` while retrying the authorized execution route. Run 5 requested
+`pwd`, `/lab/data` listing and a numpy import on the Node image at
+2026-11-12 16:14:24 UTC. Run 6 requested `bash tools/autolab_tests.sh` with
+six shards at 16:15:59 UTC. Run 7 explicitly selected the training image and
+requested only the current directory and existence of the help-train labels
+at 16:19:01 UTC. All three returned the same `NotFoundError`, no container
+output and zero reported cost. Both supported images therefore failed again
+before any data census, feature extraction, training,
 Node SDK bundle verification or TypeScript test result could be obtained.
 No alternative Modal route was attempted, no official practice score was
-requested, and no model bundle has been declared.
+requested, and no model bundle has been declared. The restored draft was
+rolled back again after all pending jobs returned, retaining its existing
+source commits for recovery. All seven requests and returned errors remain
+in the untracked `.autolab/modal-request-*.json` and `modal-result-*.json` files.
 
 None of the four registered windows was evaluated. Target wins and the practice
 change are unknown, not zero. Neither the card's two-reversal criterion nor the
