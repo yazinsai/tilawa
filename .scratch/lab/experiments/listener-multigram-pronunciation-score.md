@@ -68,7 +68,7 @@ transport. The differentiable training implementation has exhaustive-path,
 ordinary-CTC equivalence and finite-gradient tests ready to run on Modal.
 
 Supervisor runs 1 (data/dependency discovery), 2 (six-shard build and full core/SDK
-tests), and 3 (discovery retry) all returned `NotFoundError: No such file or
+tests), 3 and 4 (discovery retries) all returned `NotFoundError: No such file or
 directory` before any command log or output was delivered. No training recordings,
 features, fitted heads, ONNX exports or target comparisons have been obtained.
 Consequently, target wins, missed mistakes, clean-session safety and overall change
