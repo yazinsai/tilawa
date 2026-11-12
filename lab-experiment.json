@@ -1,0 +1,13 @@
+{
+ "id": "listener-shared-transcript-view-score",
+ "component": "listener",
+ "hypothesis": "Acoustic views may disagree mainly on emission timing, making frame fusion and verdict voting discard complementary evidence; shared-transcript scoring predicts 1 fewer listener and overall wrong call, with substantial zero-gain risk.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T20:36:48+00:00",
+ "author": "autolab"
+}
