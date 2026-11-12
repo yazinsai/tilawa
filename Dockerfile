@@ -4,7 +4,7 @@
 #   docker run -p 5000:5000 -v tilawa-storage:/app/storage tilawa-web
 #
 # TILAWA_ASSETS_URL is where web/frontend/scripts/prepare-v1-assets.mjs downloads the models (see that script):
-#   - The immutable source is a GitHub release asset set, to be published with V1, e.g.
+#   - Default: the immutable GitHub release models-v1, i.e.
 #       https://github.com/yazinsai/tilawa/releases/download/models-v1/{id}-{version}.onnx
 #     ({id}/{version} are filled in per registry tier: spliced-clean 1-int8, spliced-clean-lite 1-int8).
 #   - Or any mirror of the /v1/ layout, e.g. the live https://tilawa.dev/v1/ or a local
@@ -35,7 +35,7 @@ RUN npm run build && npm run build:server
 
 # 3. The immutable /v1/ tree (models, reference, onnxruntime-web runtime for the locked version, manifest.json).
 #    After `vite build`, which empties dist/.
-ARG TILAWA_ASSETS_URL
+ARG TILAWA_ASSETS_URL=https://github.com/yazinsai/tilawa/releases/download/models-v1/{id}-{version}.onnx
 RUN if [ -z "$TILAWA_ASSETS_URL" ]; then \
       echo "Set --build-arg TILAWA_ASSETS_URL=<url> (or =none to mount the assets at runtime)" >&2; exit 1; \
     elif [ "$TILAWA_ASSETS_URL" = "none" ]; then \
