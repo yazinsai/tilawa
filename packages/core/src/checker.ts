@@ -1,7 +1,7 @@
 import { align as editPath } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
-import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
+import type { DecodedPhoneme, PhonemeEvidence, GlottalSourceEvidence } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import { channelFromCounts, spanLogP, type Channel, type ChannelCounts } from "./noisy-channel.js";
@@ -51,6 +51,8 @@ export interface SeamInsertionCandidate {
 }
 
 export interface CheckerOptions {
+  /** Listener recheck of an already supported complete string-path substitution; false can only veto. */
+  sequenceEvidence?: (candidate: SequenceEvidenceCandidate) => boolean;
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
   policy?: CheckerPolicy;
@@ -67,6 +69,14 @@ export interface CheckerOptions {
    * build uses {@link LISTENER_CHANNEL}. An empty phone list leaves the channel decisions off.
    */
   channel?: ChannelCounts;
+}
+
+export interface SequenceEvidenceCandidate {
+  word: WordRef;
+  written: string;
+  rival: string;
+  fromFrame: number;
+  toFrame: number;
 }
 
 export interface Checker {
@@ -256,6 +266,8 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const words = index.words;
   const lexical = lexicalWords(index);
   const insertionEvidence = new Map<string, number>();
+  const sequenceVetoes: GlottalSourceEvidence[] = [];
+  const glottalVetoedEvents = new Set<CheckerEvent>();
   const insertionKey = (word: WordRef, observed: string, from: number, to: number) =>
     JSON.stringify([word.surah, word.ayah, word.word, observed, from, to]);
   // A completed seam remains in the streaming window over many pushes. Its
@@ -458,8 +470,21 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       ...(issue.heardUnion ? { observed: issue.heardUnion.observed } : issue.observed !== undefined ? { observed: issue.observed } : {}),
       confidence: conf,
     };
+    // Keep the internal confirmation and ownership ledger unchanged. Only the public wrong-word
+    // verdict can be vetoed, so insertion merges and subsequent candidate generation retain baseline state.
+    let reported = e;
+    if (state === "confirmed" && issue.cls === "wrong_word" && issue.stringPath && !issue.phrase &&
+      (options.sequenceEvidence || sequenceVetoes.length)) {
+      let vetoed = false;
+      supported(issue, false, c => {
+        vetoed = sequenceVetoes.some(v => v.written === c.written && v.rival === c.rival &&
+          v.fromFrame === c.fromFrame && v.toFrame === c.toFrame && v.word.surah === c.word.surah &&
+          v.word.ayah === c.word.ayah && v.word.word === c.word.word) || options.sequenceEvidence?.(c) === false;
+      });
+      if (vetoed) { glottalVetoedEvents.add(e); reported = { ...e, state: "uncertain" }; }
+    }
     emitted.push(e);
-    return e;
+    return reported;
   };
 
   /** Mean decoder confidence over an error's phonemes; for an omission, the phonemes either side of the gap. */
@@ -483,7 +508,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
    * Whether the posteriors over the error's word and a recited word either side favour what was decoded over the
    * written words by `SUPPORT`; null when there's no telling (no posteriors there, or a skipped passage).
    */
-  const supported = (issue: Issue, requireFinite = false): boolean | null => {
+  const supported = (issue: Issue, requireFinite = false, inspect?: (c: SequenceEvidenceCandidate) => void): boolean | null => {
     // Spelled surplus is structural. A likelihood contest over the neighbours is what loses the word.
     if (issue.lexicon) return null;
     // The madd's length was already compared with this reciter's own. One vowel does not move the forward sum.
@@ -500,6 +525,13 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       [...left, ...right, ...(issue.obsTo > issue.obsFrom ? [issue.obsFrom, issue.obsTo - 1] : [])]).filter((k) => k >= 0 && k < obs.length);
     if (!at.length && !issue.wordLocal) return null;
     const ids = (s: string) => [...s].map((p) => tokenId.get(p) ?? 0);
+    const recheck = (written: string, rival: string, fromFrame: number, toFrame: number, supported: boolean) => {
+      if (!inspect || !supported || issue.cls !== "wrong_word" || !issue.stringPath || issue.phrase) return supported;
+      const w = words[issue.word];
+      const candidate = { word: { surah: w.surah, ayah: w.ayah, word: w.word }, written, rival, fromFrame, toFrame };
+      inspect?.(candidate);
+      return supported;
+    };
     // The ending is a few phones. Over the word plus its neighbours the next word's labels take those frames and
     // the written word looks almost as likely; on the word's own frames the consonant has to be accounted for.
     if (issue.wordLocal && issue.obsTo > issue.obsFrom) {
@@ -509,7 +541,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const need = supportNeed(issue);
       const expectedNll = frames.nll(ids(word), a0, b0), observedNll = frames.nll(ids(issue.observed ?? ""), a0, b0);
       if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-      return expectedNll - observedNll >= need;
+      return recheck(word, issue.observed ?? "", a0, b0, expectedNll - observedNll >= need);
     }
     // Same joint span as the edit comparison. A wide window that leaves the next word out lets its onset consonant
     // explain the ending a second time.
@@ -521,7 +553,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const need = supportNeed(issue);
       const expectedNll = frames.nll(ids(writtenPair), a0, b0), observedNll = frames.nll(ids(issue.pair), a0, b0);
       if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-      return expectedNll - observedNll >= need;
+      return recheck(writtenPair, issue.pair, a0, b0, expectedNll - observedNll >= need);
     }
     if (!at.length) return null;
     const f0 = obs[Math.min(...at)].start;
@@ -544,7 +576,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     const need = supportNeed(issue);
     const expectedNll = frames.nll(ids(written), f0, f1), observedNll = frames.nll(ids(decoded), f0, f1);
     if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
-    return expectedNll - observedNll >= need;
+    return recheck(written, decoded, f0, f1, expectedNll - observedNll >= need);
   };
 
   /** Waqf and pause marks at the edges of a heard span. They are not part of the word. */
@@ -2462,6 +2494,12 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const c of p.glottalSourceVetoes ?? []) {
+        if (Number.isInteger(c.fromFrame) && c.fromFrame >= 0 && Number.isInteger(c.toFrame) && c.toFrame > c.fromFrame &&
+          c.written.length && c.rival.length &&
+          [c.controlWritten,c.controlRival,c.invariantWritten,c.invariantRival].every(Number.isFinite) &&
+          c.controlWritten < c.controlRival && c.invariantWritten > c.invariantRival) sequenceVetoes.push(c);
+      }
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {
@@ -2496,7 +2534,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       return out;
     },
     mistakes() {
-      return emitted.filter((e) => e.state === "confirmed" || (policy.countResolved && e.state === "resolved"));
+      return emitted.filter((e) => !glottalVetoedEvents.has(e) && (e.state === "confirmed" || (policy.countResolved && e.state === "resolved")));
     },
   };
 }

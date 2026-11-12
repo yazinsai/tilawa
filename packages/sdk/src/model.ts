@@ -47,6 +47,8 @@ export interface LoadedModel {
   backend: InferenceBackend;
   /** Error classes this model's evidence supports; the rest are reported `unsupported`. */
   supported: ErrorClass[];
+  /** Frozen encoder extractor and training-selected paired CTC readouts. */
+  glottalSource?: { model: import("./glottal-source.js").GlottalSourceModel; backend: InferenceBackend };
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
 }
