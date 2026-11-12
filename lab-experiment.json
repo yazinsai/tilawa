@@ -1,0 +1,13 @@
+{
+ "id": "tracker-morpheme-edit-channel",
+ "component": "tracker",
+ "hypothesis": "Flat phone edits may misprice corruption across attached-prefix and stem boundaries, favouring the rhyme restart; a morphology-structured observation channel predicts tracker -1 and overall 0 after one exposed listener warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T15:43:04+00:00",
+ "author": "autolab"
+}
