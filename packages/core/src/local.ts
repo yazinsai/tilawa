@@ -1,4 +1,6 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
+import { wordRhythmStructure, wordRhythmRatios } from "./word-rhythm.js";
+import type { WordRhythmModel, WordRhythmRow } from "./word-rhythm.js";
 import type { ReferenceIndex } from "./reference.js";
 
 /**
@@ -34,7 +36,7 @@ export interface LocalPosition {
 
 export interface LocalSearch {
   /** Consume one observed phoneme. */
-  step(p: string): void;
+  step(p: string, duration?: number): void;
   position(): LocalPosition;
   /** The search state, to rewind to with `restore`. */
   save(): unknown;
@@ -45,7 +47,7 @@ export interface LocalSearch {
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">, rhythm: WordRhythmModel | null = null): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -71,6 +73,8 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let best = start.offset;
   let ayah = -1;
   const recent: number[] = [];
+  const structure = rhythm ? wordRhythmStructure(ref, index.words) : null;
+  let rhythmRows: WordRhythmRow[] = [];
 
   const recentre = (offset: number) => {
     const a = ayahOf(offset);
@@ -102,7 +106,8 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
 
 
   return {
-    step(p) {
+    step(p, duration) {
+      if (rhythm) rhythmRows = [...rhythmRows, { lo, cost, best, p, duration: duration ?? NaN }].slice(-RECENT);
       const n = cost.length;
       const base = cost[best - lo];
       const c = new Float64Array(n);
@@ -148,6 +153,16 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       for (let i = 0; i < n; i++) {
         if (k === -1 || c[i] < c[k] || (c[i] === c[k] && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1))) k = i;
       }
+      // Apply the same timing likelihood contribution to every endpoint on the original common graph.
+      if (rhythm && rhythmRows.length === RECENT && o[k] !== origin[best - lo]) {
+        const ratio = wordRhythmRatios(ref, structure!, rhythmRows, rhythm, wordStarts, entry,
+          (from, source) => surahOf(from) === surahOf(Math.max(0, source - 1)) ? 0 : SURAH_ENTRY,
+          JUMP_COST, JUMP_DISTANCE);
+        for (let i = 0; i < n; i++) {
+          if (c[i] + ratio[i] < c[k] + ratio[k] || (c[i] + ratio[i] === c[k] + ratio[k]
+            && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1))) k = i;
+        }
+      }
       const min = c[k];
       for (let i = 0; i < n; i++) c[i] -= min;
       recent.push(min - base);
@@ -164,11 +179,12 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent], rhythmRows: [...rhythmRows] }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[]; rhythmRows: WordRhythmRow[] };
       ({ lo, cost, origin, edits, best, ayah } = s);
       recent.splice(0, recent.length, ...s.recent);
+      rhythmRows = [...s.rhythmRows];
     },
   };
 }

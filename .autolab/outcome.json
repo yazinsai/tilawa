@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "Modal inspection, test and training requests all failed with NotFoundError before returning command output; the model remains disabled and the premise is unmeasured.",
+  "measured": {}
+}

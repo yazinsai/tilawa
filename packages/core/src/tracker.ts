@@ -5,6 +5,7 @@ import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { EngineEvent, PositionCandidate, PositionEvent, TraceCandidate, TrackerState, TrackerTrace, WordRef } from "./events.js";
 import { EvidenceError } from "./evidence.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
+import { WORD_RHYTHM_MODEL } from "./word-rhythm-model.js";
 import { createLocalSearch } from "./local.js";
 import type { LocalPosition, LocalSearch } from "./local.js";
 import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
@@ -869,7 +870,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
-    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) }, WORD_RHYTHM_MODEL);
     weak = false;
     pending = null;
     reacquiring = false;
@@ -1280,7 +1281,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         continue;
       }
       const before = local.save();
-      local.step(ph.p);
+      local.step(ph.p, ph.end - ph.start + 1);
       stepCosts.push(local.position().stepCost);
       if (stepCosts.length > CONFIRM) stepCosts.shift();
       const heardPhrase = hear(ph.p, before, local.position().stepCost);
