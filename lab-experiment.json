@@ -1,0 +1,13 @@
+{
+ "id": "listener-differential-acoustic-attention",
+ "component": "listener",
+ "hypothesis": "Positive-only attention may bury brief consonants beneath shared vowel and nasal context; learned differential attention predicts 2 recovered additions and no losses counted: listener -2, overall -2, with substantial zero-gain risk.",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T23:10:21+00:00",
+ "author": "autolab"
+}
