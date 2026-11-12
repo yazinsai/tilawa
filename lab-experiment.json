@@ -1,0 +1,13 @@
+{
+ "id": "listener-temporal-rank-distillation",
+ "component": "listener",
+ "hypothesis": "Probability-matching distillation may lose where weak consonant evidence occurs; teaching within-phone temporal rankings alongside CTC should recover 1 missed addition, predicting listener -1 and overall -1, with substantial zero-gain risk.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T17:32:54+00:00",
+ "author": "autolab"
+}
