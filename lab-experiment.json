@@ -1,0 +1,13 @@
+{
+ "id": "tracker-edit-order-contrast",
+ "component": "tracker",
+ "hypothesis": "Local scoring may distinguish paths by edit totals while missing the ordering of their errors; an order-sensitive edit-path model predicts tracker -1 and overall 0 after one exposed listener false warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T19:34:05+00:00",
+ "author": "autolab"
+}
