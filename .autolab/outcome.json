@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "All five supplied supervisor requests failed before execution with NotFoundError, preventing training, frozen calibration, full core/SDK tests and target validation; the causal-memory premise remains unmeasured.",
+  "measured": {}
+}

@@ -7,12 +7,16 @@ import { EvidenceError } from "./evidence.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { createLocalSearch } from "./local.js";
 import type { LocalPosition, LocalSearch } from "./local.js";
+import { LOCATION_BELIEF_MODEL } from "./location-belief-model.js";
+import type { LocationBeliefModel } from "./location-belief.js";
 import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
 import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-spans.js";
 import type { SlotSpan } from "./slot-spans.js";
 
 export interface TrackerOptions {
+  /** Training-frozen, causal candidate memory. Null keeps the original local scoring. */
+  locationBelief?: LocationBeliefModel | null;
   mode?: "free" | "memorization";
   /** Grams occurring more often than this carry too little location information to vote. */
   maxGramOccurrences?: number;
@@ -869,7 +873,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
-    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) },
+      { belief: options.locationBelief === undefined ? LOCATION_BELIEF_MODEL : options.locationBelief });
     weak = false;
     pending = null;
     reacquiring = false;

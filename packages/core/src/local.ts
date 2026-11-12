@@ -1,5 +1,7 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import { beliefFeatures, LocationBelief } from "./location-belief.js";
+import type { BeliefFrame, BeliefSnapshot, LocationBeliefModel } from "./location-belief.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -45,7 +47,8 @@ export interface LocalSearch {
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">,
+  options: { belief?: LocationBeliefModel | null; observe?: (frame: BeliefFrame) => void; resetBelief?: boolean } = {}): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -71,6 +74,9 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let best = start.offset;
   let ayah = -1;
   const recent: number[] = [];
+  const belief = options.belief ? new LocationBelief(options.belief) : null;
+  let frame: BeliefFrame | null = null;
+  let ranking: Float64Array = new Float64Array(0);
 
   const recentre = (offset: number) => {
     const a = ayahOf(offset);
@@ -108,19 +114,26 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       const c = new Float64Array(n);
       const o = new Int32Array(n);
       const e = new Int32Array(n);
+      const predecessor = new Int32Array(n);
+      const kinds = new Int32Array(n);
+      const ins = new Float64Array(n), sub = new Float64Array(n), del = new Float64Array(n);
       for (let i = 0; i < n; i++) {
         const at = lo + i;
-        let bc = cost[i] + insertionCost(ref, at, p);
+        ins[i] = insertionCost(ref, at, p);
+        let bc = cost[i] + ins[i];
         let bo = origin[i];
         let be = edits[i] + 1;
+        let bp = at, bk = 0;
         if (i > 0) {
           const s = subCost(ref[at - 1], p) + entry(at - 1);
+          sub[i] = s;
           const edit = ref[at - 1] === p ? 0 : 1;
           // On a tie, consuming the reference beats an insertion, so a correct recitation keeps advancing.
           if (cost[i - 1] + s <= bc) {
             bc = cost[i - 1] + s;
             bo = origin[i - 1];
             be = edits[i - 1] + edit;
+            bp = at - 1; bk = 1;
           }
           const from = at - 1;
           if (from !== best && wordStarts.has(from)) {
@@ -129,24 +142,38 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
               bc = j;
               bo = from;
               be = edit;
+              bp = best; bk = 2;
             }
           }
-          const d = c[i - 1] + deletionCost(ref, at - 1) + entry(at - 1);
+          del[i] = deletionCost(ref, at - 1) + entry(at - 1);
+          const d = c[i - 1] + del[i];
           if (d < bc) {
             bc = d;
             bo = o[i - 1];
             be = e[i - 1] + 1;
+            bp = predecessor[i - 1]; bk = 3;
           }
         }
         c[i] = bc;
         o[i] = bo;
         e[i] = be;
+        predecessor[i] = bp;
+        kinds[i] = bk;
       }
 
+      ranking = c;
+      if (belief || options.observe) {
+        const features = beliefFeatures(index, lo, best, c, predecessor, kinds, ins, sub, del);
+        if (options.resetBelief) belief?.reset();
+        const logits = belief?.advance(lo, features, predecessor) ?? new Float64Array(n);
+        frame = { lo, features, predecessor, logits, costs: Float64Array.from(c, v => v / UNIT) };
+        options.observe?.(frame);
+        if (belief) ranking = Float64Array.from(c, (v, i) => v - belief.model.scale * UNIT * logits[i]);
+      }
       // Lowest cost wins; ties go to the state nearest plain forward progress.
       let k = -1;
       for (let i = 0; i < n; i++) {
-        if (k === -1 || c[i] < c[k] || (c[i] === c[k] && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1))) k = i;
+        if (k === -1 || ranking[i] < ranking[k] || (ranking[i] === ranking[k] && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1))) k = i;
       }
       const min = c[k];
       for (let i = 0; i < n; i++) c[i] -= min;
@@ -164,10 +191,12 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent], belief: belief?.save(), frame, ranking }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[]; belief?: BeliefSnapshot; frame: BeliefFrame | null; ranking: Float64Array };
       ({ lo, cost, origin, edits, best, ayah } = s);
+      ({ frame, ranking } = s);
+      if (belief && s.belief) belief.restore(s.belief);
       recent.splice(0, recent.length, ...s.recent);
     },
   };
