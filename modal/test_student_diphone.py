@@ -1,4 +1,5 @@
 import unittest
+from itertools import product
 import numpy as np
 from student_diphone_phone import occupancies, pair_targets, pair_ids, phone_rows
 
@@ -25,6 +26,21 @@ class DiphoneTargets(unittest.TestCase):
     def test_grouped_control_preserves_mass(self):
         got=np.exp(phone_rows(np.log([[.1,.2,.3,.15,.25]]),2))
         np.testing.assert_allclose(got,[[.1,.5,.4]])
+
+    def test_soft_occupancies_match_exhaustive_acoustic_paths(self):
+        probability=np.array([[.2,.7,.1],[.5,.3,.2],[.3,.1,.6],[.6,.15,.25]])
+        for ids in ([1,2],[1,1]):
+            expected=np.zeros_like(probability)
+            mass=0.
+            for path in product(range(3),repeat=4):
+                collapsed=[p for t,p in enumerate(path) if p and (t==0 or p!=path[t-1])]
+                if collapsed!=ids:
+                    continue
+                weight=float(np.prod(probability[np.arange(4),path]))
+                mass+=weight
+                expected[np.arange(4),path]+=weight
+            actual,_=occupancies(np.log(probability),ids)
+            np.testing.assert_allclose(actual,expected/mass,atol=1e-6)
 
 
 if __name__=='__main__':

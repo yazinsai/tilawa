@@ -51,8 +51,13 @@ paths, uniform-emission length neutrality, the control's probability grouping,
 exact-window certificate binding, JSON transport, graph exemption, neighboring
 insertion preservation, declared-asset failure, and session completion behavior.
 Python tests additionally cover non-greedy latent boundaries and the shared middle
-articulation's targets. Local Python syntax compilation and whitespace checks pass;
-these are not build, acoustic or behavioral validation.
+articulation's targets. An exhaustive enumeration of all four-frame acoustic
+paths independently verifies phone occupancy marginals, including doubled phones
+that require a separating blank. All four tests passed locally using
+`arch -x86_64 python3 modal/test_student_diphone.py`; Intel mode matches the installed
+numpy binary. Native ARM Python failed to import that binary. Python syntax
+compilation and whitespace checks also pass. These checks establish only the
+small alignment/target mathematics, not TypeScript behavior or acoustic gains.
 
 The auxiliary SDK path buffers session audio and reviews warnings at `end()`.
 It preserves primary listener and tracker computation but does not prevent an
@@ -63,7 +68,10 @@ it can be selected for supervisor scoring.
 
 Supervisor run 1 requested a read-only data/model/package census and returned
 `NotFoundError: No such file or directory`, with no container output and reported
-cost zero. Run 2 requests the required six-shard core/SDK build/test harness.
-Run 3 requests a minimal working-directory, `/lab/data` and numpy check. Those
-results are pending. No alternative Modal route was attempted, no official
+cost zero. Run 2 requested the required six-shard core/SDK build/test harness
+and failed with the same `NotFoundError`, again without test output. Run 3
+requested a minimal working-directory, `/lab/data` and numpy check and failed
+with the same error and zero reported cost. Run 4 repeats the census through
+the supervisor's supported training image; its result is pending.
+No alternative Modal route was attempted, no official
 practice score was requested, and no model bundle has been declared.
