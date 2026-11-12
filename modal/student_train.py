@@ -37,6 +37,7 @@ image = (
     .env({"PYTHONPATH": "/icefall:/icefall/egs/librispeech/ASR/zipformer:/root/tools", "HF_HOME": "/cache/hf"})
     .pip_install("rapidfuzz==3.14.1")
     .add_local_file("tools/student.py", "/root/tools/student.py")
+    .add_local_file("modal/student_null_attention.py", "/root/tools/student_null_attention.py")
     .add_local_file("tools/per_breakdown.py", "/root/tools/per_breakdown.py")
     .add_local_file("docs/benchmarks/gold-per-v1-exclude.txt", "/root/gold-per-v1-exclude.txt")
 )
@@ -499,6 +500,10 @@ def load_student(run: str):
 
     ck = torch.load(f"/student/runs/{run}/ckpt.pt", map_location="cpu", weights_only=False)
     model = build_model(ck["cfg"]["size"])
+    if ck["cfg"].get("query_attention"):
+        from student_null_attention import install_query_attention
+
+        install_query_attention(model, ck["cfg"]["query_attention"])
     model.load_state_dict(ck["model"])
     return model, ck
 
