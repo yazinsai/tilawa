@@ -25,6 +25,7 @@ def recipe():
                 speakers_by_key={"train-shard:0": "reader-a", "help:clean-train": "learner-a",
                                  "valid-shard:0": "reader-b", "help:clean-valid": "learner-b"},
                 excluded_speakers=["release-reader"], checkpoint_sha256="a" * 64,
+                checkpoint="/student/prior-runs/initial/ckpt.pt", base_bundle="/lab/data/models/initial",
                 corpus_sha256="b" * 64, teacher_sha256="c" * 64,
                 pairs=[dict(student="encoder.attention", teacher="encoder.layers.0.self_attn", downsample=1)],
                 calibration_updates=2, updates=3, validate_every=1, seed=0, base_lr=.01,
@@ -44,7 +45,7 @@ class RecipeTests(unittest.TestCase):
                 validate_recipe(r)
 
     def test_incomplete_or_changed_contract_is_rejected(self):
-        for key, value in (("teacher_sha256", ""), ("split", "eval"), ("chunk", 32),
+        for key, value in (("teacher_sha256", ""), ("checkpoint", ""), ("base_bundle", ""), ("split", "eval"), ("chunk", 32),
                            ("real_pause_examples", 0), ("aux_weight", float('nan')),
                            ("selection", "best-practice-score"), ("calibration_updates", 0)):
             r = recipe()

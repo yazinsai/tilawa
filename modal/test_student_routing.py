@@ -158,10 +158,14 @@ class CaptureTests(unittest.TestCase):
 
     def test_capture_restores_methods_after_exceptions_and_nested_scopes(self):
         module = FakeStudentAttention()
-        with capture_streaming_attention({module: 1}, 0):
+        with capture_streaming_attention({module: 1}, 0) as outer_capture:
             outer = module.streaming_forward
             with self.assertRaises(RuntimeError):
-                with capture_streaming_attention({module: 1}, 0):
+                with capture_streaming_attention({module: 1}, 0) as inner_capture:
+                    result = module.streaming_forward(torch.ones(2, 1, 8), None, torch.ones(1, 1, 8),
+                                                      1, torch.tensor([[True, False, False]]))
+                    self.assertIs(inner_capture[module].probabilities, result[0])
+                    self.assertIs(outer_capture[module].probabilities, result[0])
                     raise RuntimeError('forward failed')
             self.assertIs(module.streaming_forward, outer)
         self.assertNotIn('streaming_forward', module.__dict__)

@@ -8,6 +8,7 @@ student or used by the listener at inference.
 
 from contextlib import contextmanager
 from dataclasses import dataclass
+from functools import wraps
 import inspect
 
 import torch
@@ -168,6 +169,7 @@ nn.Module hooks do not observe these direct method calls in pinned icefall.
             originals.append((module, existed, module.__dict__.get("streaming_forward")))
             signature = inspect.signature(original)
 
+            @wraps(original)
             def observe(*args, _module=module, _factor=factor, _fn=original,
                         _signature=signature, **kwargs):
                 bound = _signature.bind(*args, **kwargs)

@@ -73,6 +73,9 @@ def validate_recipe(recipe):
         value = recipe.get(field, "")
         if len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
             raise ValueError(f"Missing frozen identity: {field}")
+    for field in ("checkpoint", "base_bundle"):
+        if not isinstance(recipe.get(field), str) or not recipe[field]:
+            raise ValueError(f"Missing audited artifact path: {field}")
     if not recipe.get("pairs") or len({p["student"] for p in recipe["pairs"]}) != len(recipe["pairs"]):
         raise ValueError("Need unique audited student/teacher attention operator pairs")
     for field in ("calibration_updates", "updates", "validate_every", "seed"):
