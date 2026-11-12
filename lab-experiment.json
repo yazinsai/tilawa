@@ -1,0 +1,13 @@
+{
+ "id": "tracker-delayed-phone-copy-channel",
+ "component": "tracker",
+ "hypothesis": "Delayed copies of earlier sounds may be priced as new speech, unfairly penalizing the near continuation; a source-linked recognition-echo model predicts tracker -1 and overall 0 after one exposed listener warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T06:55:23+00:00",
+ "author": "autolab"
+}
