@@ -1,0 +1,13 @@
+{
+ "id": "listener-subprecision-update-retention",
+ "component": "listener",
+ "hypothesis": "Speculatively, reduced-precision parameter writes discard small corrective consonant updates; retaining full-precision master parameters during a bounded head refit predicts 1 recovered addition, no losses counted: listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T11:57:14+00:00",
+ "author": "autolab"
+}
