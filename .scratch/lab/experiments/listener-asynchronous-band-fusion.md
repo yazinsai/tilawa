@@ -1,6 +1,6 @@
 # Asynchronous frequency-band fusion
 
-Status: implementation awaiting remote validation and matched training.
+Status: ready-for-human; remote execution blocked, implementation unvalidated.
 
 ## Prediction and premise
 
@@ -113,3 +113,27 @@ or marker. Their result files record zero spend for those requests. These
 failures do not identify whether the problem is startup, execution or artifact
 retrieval. The GPU inventory (run 1) and GPU sampler test (run 5) are still
 pending. No alternate Modal access has been attempted.
+
+At handoff, neither GPU request has returned a result. The read-only inventory
+has waited about half an hour despite requesting a ten-minute command limit;
+that limit does not include all supervisor/startup/retrieval waiting. No GPU
+training has been launched. An optional question about the supervisor failure
+received no answer during the work. This is an infrastructure block, not an
+acoustic kill, and the implementation remains on the experiment branch.
+
+The ignored `.autolab/outcome.json` records `blocked` without invented target
+or score measurements. The ignored `.autolab/model.json` reserves
+`paired/asynchronous`, relative to this experiment's remote scratch directory.
+That directory has not been produced or verified. Its missing bundle is an
+explicit validation block: decoding with the main model would not evaluate
+this experiment. No candidate is ready for scoring or fold-in.
+
+To resume, restore the supplied execution service; run the Python sampler tests
+and the current core/SDK suites (the submitted suite request predates the new
+SDK test); verify the shipped starting checkpoint and authorized speaker pool;
+train both matched arms; export and verify both complete bundles including
+the unchanged insertion teacher; then compare full-session SDK decoding and
+confirmed target warnings. If fewer than three targets are won, apply the
+brief's premise kill and revert engine changes. If at least three are won,
+run the authorized practice score before deciding. No practice-score allowance
+has been consumed and neither kill threshold has been measured.
