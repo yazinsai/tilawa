@@ -1,0 +1,13 @@
+{
+ "id": "tracker-order-independent-commit",
+ "component": "tracker",
+ "hypothesis": "Restart commitment may depend on candidate enumeration through incumbent-relative margin tests; setwise commitment should recover 1 tracker call while exposing 1 listener warning, predicting tracker -1 and overall 0.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T09:55:09+00:00",
+ "author": "autolab"
+}
