@@ -1,0 +1,13 @@
+{
+ "id": "tracker-censored-duration-observations",
+ "component": "tracker",
+ "hypothesis": "Token-run lengths may be treated as complete sound durations although blank frames hide their boundaries; censor-aware duration scoring predicts tracker -1 and overall 0 after one exposed listener warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T08:23:55+00:00",
+ "author": "autolab"
+}
