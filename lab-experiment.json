@@ -1,0 +1,13 @@
+{
+ "id": "listener-asynchronous-band-fusion",
+ "component": "listener",
+ "hypothesis": "Weak added-word consonants may be lost when frequency bands are fused at identical timestamps despite different acoustic delays; learned band-specific temporal sampling predicts 2 recovered additions and 1 collateral wrong call: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T09:23:47+00:00",
+ "author": "autolab"
+}
