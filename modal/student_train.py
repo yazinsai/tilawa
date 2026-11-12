@@ -199,6 +199,7 @@ def load_clips(buckets: str, split: str, max_hours: float, max_clip_s: float, se
 class ClipDataset:
     def __init__(self, clips: dict, cfg: dict, train: bool, aug: dict | None):
         self.c, self.cfg, self.train, self.aug = clips, cfg, train, aug
+        self.augmentation_epoch = 0
 
     def __len__(self):
         return len(self.c["ref"])
@@ -211,7 +212,8 @@ class ClipDataset:
         from student import mix_noise, phoneme_ids
 
         c, cfg = self.c, self.cfg
-        rng = np.random.default_rng()
+        paired = cfg.get("routing_paired", False)
+        rng = np.random.default_rng([cfg["seed"], self.augmentation_epoch, i]) if paired else np.random.default_rng()
         wave, _ = sf.read(io.BytesIO(c["flac"][c["flac_off"][i] : c["flac_off"][i + 1]].tobytes()), dtype="float32")
         if self.train and self.aug:
             if rng.random() < cfg["rir_p"]:
@@ -223,16 +225,22 @@ class ClipDataset:
             torch.from_numpy(np.ascontiguousarray(wave)).unsqueeze(0), num_mel_bins=80, sample_frequency=SR, dither=0.0,
             energy_floor=1e-10, high_freq=-400,
         )
+        routing_feats = feats
         if self.train and cfg["spec_aug"]:
             feats = spec_augment(feats, rng)
         lo, hi = c["top_off"][i], c["top_off"][i + 1]
-        return dict(
+        item = dict(
             i=i,
             feats=feats,
             target=torch.tensor(phoneme_ids(c.get("target", c["hyp"])[i]), dtype=torch.long),
             top_ids=torch.from_numpy(c["ids"][lo:hi].reshape(-1, 5).astype(np.int64)),
             top_p=torch.from_numpy(c["probs"][lo:hi].reshape(-1, 5).astype(np.float32)),
         )
+        if paired:
+            # Teacher and recurrent student consume the same channel-augmented
+            # PCM. Only the existing transcript pass applies SpecAugment.
+            item.update(wave=torch.from_numpy(np.ascontiguousarray(wave)), routing_feats=routing_feats)
+        return item
 
 
 def pick(bank, rng):
