@@ -1,0 +1,13 @@
+{
+ "id": "listener-sparse-factor-acoustic-readout",
+ "component": "listener",
+ "hypothesis": "Shared hidden-feature directions may mix consonant evidence with stronger vowel or nasal activity; sparse factorization before acoustic readout predicts 2 false warnings removed and 1 caught substitution lost: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T14:33:30+00:00",
+ "author": "autolab"
+}
