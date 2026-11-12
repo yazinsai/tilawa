@@ -1,5 +1,7 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import { createRestartEvidence } from "./sequential-restart.js";
+import type { RestartCalibration, RestartEvidence } from "./sequential-restart.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -32,6 +34,13 @@ export interface LocalPosition {
   stepCost: number;
 }
 
+export interface LocalRestartOptions {
+  calibration: RestartCalibration;
+  /** Read-only diagnostic mode preserves the original decisions. */
+  audit?: boolean;
+  onComparison?: (e: RestartEvidence & { fromOrigin: number; toOrigin: number }) => void;
+}
+
 export interface LocalSearch {
   /** Consume one observed phoneme. */
   step(p: string): void;
@@ -45,7 +54,7 @@ export interface LocalSearch {
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">, restartOptions?: LocalRestartOptions): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -71,6 +80,19 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let best = start.offset;
   let ayah = -1;
   const recent: number[] = [];
+  let sequential: ReturnType<typeof createRestartEvidence> | null = null;
+  let sequentialHi = -1;
+  const beginEvidence = () => {
+    if (!restartOptions) return;
+    sequentialHi = lo + cost.length - 1;
+    sequential = createRestartEvidence(restartOptions.calibration, {
+      reference: ref, lo, hi: sequentialHi,
+      starts: [...wordStarts].filter(at => at >= lo && at < sequentialHi),
+      movement: (from, to) => JUMP_COST + Math.abs(to - from) * JUMP_DISTANCE
+        + (surahOf(from) === surahOf(to) || surahFirst.has(to) ? 0 : SURAH_ENTRY),
+      entry,
+    }, best, JUMP_COST);
+  };
 
   const recentre = (offset: number) => {
     const a = ayahOf(offset);
@@ -99,10 +121,14 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   cost[start.offset - lo] = 0;
   origin[start.offset - lo] = start.origin;
   edits[start.offset - lo] = start.edits;
+  beginEvidence();
 
 
   return {
     step(p) {
+      // The epoch is retained through window recentering; only exhausting it or accepting movement starts another.
+      if (restartOptions && best >= sequentialHi && lo + cost.length - 1 > sequentialHi) beginEvidence();
+      sequential?.step(p, best);
       const n = cost.length;
       const base = cost[best - lo];
       const c = new Float64Array(n);
@@ -148,6 +174,21 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       for (let i = 0; i < n; i++) {
         if (k === -1 || c[i] < c[k] || (c[i] === c[k] && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1))) k = i;
       }
+      let acceptedRestart = false;
+      const previousOrigin = origin[best - lo];
+      if (sequential && o[k] !== previousOrigin) {
+        const comparison = sequential.comparison(o[k]);
+        restartOptions!.onComparison?.({ ...comparison, fromOrigin: previousOrigin, toOrigin: o[k] });
+        if (!restartOptions!.audit && comparison.supported && !comparison.admitted) {
+          let near = -1;
+          for (let i = 0; i < n; i++) if (o[i] === previousOrigin && Number.isFinite(c[i])
+            && (near < 0 || c[i] < c[near] || (c[i] === c[near]
+              && Math.abs(lo + i - best - 1) < Math.abs(lo + near - best - 1)))) near = i;
+          // The existing continuation must remain available; the evidence process creates no movement edge.
+          if (near >= 0) k = near;
+        }
+        acceptedRestart = o[k] !== previousOrigin;
+      }
       const min = c[k];
       for (let i = 0; i < n; i++) c[i] -= min;
       recent.push(min - base);
@@ -157,6 +198,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       edits = e;
       best = lo + k;
       recentre(best);
+      if (acceptedRestart) beginEvidence();
     },
     position() {
       const i = best - lo;
@@ -164,10 +206,11 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent], sequential, sequentialHi, sequentialState: sequential?.save() }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
-      ({ lo, cost, origin, edits, best, ayah } = s);
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[]; sequential: typeof sequential; sequentialHi: number; sequentialState: unknown };
+      ({ lo, cost, origin, edits, best, ayah, sequential, sequentialHi } = s);
+      sequential?.restore(s.sequentialState);
       recent.splice(0, recent.length, ...s.recent);
     },
   };
