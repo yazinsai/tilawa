@@ -52,7 +52,7 @@ streaming integration or any claim of production behavior.
 Supervisor Modal requests 1 (data-layout check), 2 (the six-shard test harness)
 and 3 (four-shard target probe) all failed before their commands started with
 `NotFoundError: No such file or directory`. Each result reports zero spend and
-contains no command output. A minimal startup check was requested as run 4.
+contains no command output. Run 4, a minimal `pwd` startup check, failed with the same error.
 Consequently, the tests have not run, no target audio has been processed, and no
 practice score has been requested. No measured target or aggregate gain is
 established. This infrastructure error is not evidence for the acoustic kill
