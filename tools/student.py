@@ -85,6 +85,97 @@ def soft_target_loss(log_probs, top_ids, top_p, valid):
     return (ce * valid).sum() / valid.sum().clamp_min(1)
 
 
+def censored_target_projection(log_probs, top_ids, top_p):
+    """Minimum-relative-entropy completion of a conditional top-k observation.
+
+    A completion has retained probabilities alpha*q and omitted probabilities
+    <= alpha*min(q), where q is the recorded conditional distribution. Thus
+    alpha >= 1/(1 + (V-K)*min(q)); neither alpha nor the tail identities are
+    treated as known. Unconstrained tail classes keep their student ratios.
+    This is set-valued supervision, not reconstruction of the teacher's tail.
+
+    The KL projection is convex. Sort omitted classes, cap the largest ones,
+    and solve the remaining pooled mass analytically for each active-set size.
+    This helper is detached: the loss uses the envelope theorem, so gradients
+    never flow through a chosen nuisance completion. Inputs are valid rows only.
+    """
+    import torch
+
+    with torch.no_grad():
+        if log_probs.ndim != 2 or top_ids.shape != top_p.shape or top_ids.ndim != 2:
+            raise ValueError('Censored targets require (frames, classes) arrays')
+        N, V = log_probs.shape
+        K = top_ids.shape[1]
+        if top_ids.shape[0] != N or not 0 < K <= V:
+            raise ValueError('Invalid retained-set geometry')
+        ids = top_ids.long()
+        p = top_p.to(log_probs.dtype)
+        if (not torch.isfinite(log_probs).all() or not torch.isfinite(p).all() or
+                (p < 0).any() or (p.sum(-1) <= 0).any() or (ids < 0).any() or (ids >= V).any()):
+            raise ValueError('Invalid censored observation')
+        if K > 1 and ((ids.sort(-1).values[:, 1:] == ids.sort(-1).values[:, :-1]).any() or
+                      (p[:, 1:] > p[:, :-1]).any()):
+            raise ValueError('Retained classes must be unique and top-k ordered')
+        q = p / p.sum(-1, keepdim=True)
+        retained = log_probs.gather(-1, ids)
+        # Zero recorded entries constrain every omitted class to zero. Avoid
+        # log(0) in both the geometric mean and the active-set calculation.
+        tiny = torch.finfo(log_probs.dtype).tiny
+        log_q = q.clamp_min(tiny).log()
+        log_g = (q * (retained - log_q)).sum(-1)
+        target = torch.zeros_like(log_probs)
+        if K == V:
+            return target.scatter(-1, ids, q)
+        omitted = torch.ones_like(log_probs, dtype=torch.bool).scatter(-1, ids, False)
+        tail = log_probs[omitted].reshape(N, V-K)
+        values, order = tail.sort(-1, descending=True)
+        m = q[:, -1]
+        log_m = m.clamp_min(tiny).log()
+        rank = torch.arange(V-K+1, device=log_probs.device, dtype=log_probs.dtype)
+        cumulative = torch.cat([torch.zeros_like(log_g[:, None]),
+                                (values - log_m[:, None]).cumsum(-1)], -1)
+        log_g_all = (log_g[:, None] + m[:, None]*cumulative) / (1 + m[:, None]*rank)
+        next_value = torch.cat([values, torch.full_like(log_g[:, None], -torch.inf)], -1)
+        # The first consistent set caps precisely the tail classes whose
+        # unconstrained solution would outrank the smallest retained class.
+        feasible = next_value <= log_g_all + log_m[:, None]
+        active = feasible.to(torch.int64).argmax(-1)
+        log_g = log_g_all.gather(-1, active[:, None]).squeeze(-1)
+        capped = rank[:-1][None] < active[:, None]
+        free_log_mass = values.masked_fill(capped, -torch.inf).logsumexp(-1)
+        log_normalizer = torch.logaddexp(log_g + (1 + active*m).log(), free_log_mass)
+        alpha = (log_g - log_normalizer).exp()
+        tail_target = torch.where(capped, (alpha*m)[:, None], (values-log_normalizer[:, None]).exp())
+        # A zero smallest entry implies no admissible omitted mass, even when
+        # the student gives excluded classes positive probability.
+        zero_tail = m == 0
+        alpha = torch.where(zero_tail, torch.ones_like(alpha), alpha)
+        tail_target = tail_target.masked_fill(zero_tail[:, None], 0)
+        target.scatter_(-1, ids, alpha[:, None]*q)
+        target[omitted] = torch.zeros_like(tail).scatter(-1, order, tail_target).reshape(-1)
+        return target
+
+
+def censored_soft_target_loss(log_probs, top_ids, top_p, valid):
+    """Mean KL to the admissible censored target set, ignoring padding.
+
+    Minimize over unknown retained mass and marginalize unrestricted tail
+    classes into their pooled student mass. Unlike renormalized cross-entropy,
+    a student consistent with the observation has zero loss and gradient even
+    when it assigns positive probability to omitted phones. Ordering violations
+    remain penalized. Full-support targets have the ordinary KD gradient.
+    """
+    import torch
+
+    if valid.shape != log_probs.shape[:-1] or top_ids.shape[:-1] != valid.shape:
+        raise ValueError('Censored target mask does not match frame geometry')
+    lp = log_probs[valid]
+    if not len(lp):
+        return lp.sum()
+    target = censored_target_projection(lp, top_ids[valid], top_p[valid])
+    return (torch.xlogy(target, target) - target*lp).sum(-1).mean()
+
+
 def spliced_target(ref: str, teacher: str) -> str:
     """CTC target that lets the student outgrow the teacher: `per_breakdown.spliced` (teacher at the clip edges,
     reference between the first and last 3-phoneme exact match) with runs collapsed, leaving length to soft KD."""

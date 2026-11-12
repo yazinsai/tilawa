@@ -2,7 +2,9 @@
 
 The CTC target is the teacher's greedy path from the tlog pass, or with `--target spliced` the reference inside the
 teacher-anchored span and the teacher at the clip edges, runs collapsed (`student.spliced_target`). `--kd-weight` adds cross-entropy to the teacher's
-renormalised top-5 posteriors per frame (E5). `--init librispeech-m` starts `full` from icefall's streaming
+renormalised top-5 posteriors per frame (E5); `--kd-target censored` instead
+preserves conditional top-k ratios and permits ordering-consistent tail mass.
+`--init librispeech-m` starts `full` from icefall's streaming
 Zipformer-M (E2). Student and teacher both emit at 25 Hz.
 
     modal run modal/student_train.py --name smoke --size lite --max-hours 5 --epochs 1 --eval-max 200
@@ -78,6 +80,7 @@ DEFAULTS = dict(
     lr_batches=7500,
     lr_epochs=3.5,
     ctc_weight=1.0,
+    kd_target="renormalized",
     kd_weight=0.0,
     kd_delay=0,
     noise_p=0.5,
@@ -306,7 +309,7 @@ def batches(n_samples, max_batch_s: float, seed: int, shuffle: bool = True):
 def losses(model, b, cfg, device):
     import torch
     import torch.nn.functional as F
-    from student import soft_target_loss
+    from student import censored_soft_target_loss, soft_target_loss
 
     feats, feat_lens = b["feats"].to(device), b["feat_lens"].to(device)
     with torch.autocast("cuda", dtype=torch.bfloat16):
@@ -324,7 +327,11 @@ def losses(model, b, cfg, device):
         top_ids = b["top_ids"].to(device).gather(1, idx[..., None].expand(B, T, 5))
         top_p = b["top_p"].to(device).gather(1, idx[..., None].expand(B, T, 5))
         valid = torch.arange(T, device=device)[None] < out_lens[:, None]
-        kd = soft_target_loss(log_probs, top_ids, top_p, valid)
+        semantics = cfg.get("kd_target", "renormalized")
+        if semantics not in ("renormalized", "censored"):
+            raise ValueError("kd_target must be renormalized or censored")
+        kd_loss = censored_soft_target_loss if semantics == "censored" else soft_target_loss
+        kd = kd_loss(log_probs, top_ids, top_p, valid)
         out["kd"] = kd
         out["loss"] = out["loss"] + cfg["kd_weight"] * kd
     out["frames"] = frames
@@ -551,7 +558,7 @@ def transcribe(run: str, src: str, dest: str, chunk: int = 16, left: int = 128) 
 @app.local_entrypoint()
 def main(name: str, size: str = "lite", init: str = "", max_hours: float = 0.0, epochs: int = 6,
          kd_weight: float = 0.0, eval_max: int = 3000, eval_every: int = 2000, max_batch_s: float = 800.0,
-         base_lr: float = 0.045, target: str = "teacher"):
+         base_lr: float = 0.045, target: str = "teacher", kd_target: str = "renormalized"):
     print(train.remote(dict(name=name, size=size, init=init, max_hours=max_hours, epochs=epochs, kd_weight=kd_weight,
                             eval_max=eval_max, eval_every=eval_every, max_batch_s=max_batch_s, base_lr=base_lr,
-                            target=target)))
+                            target=target, kd_target=kd_target)))
