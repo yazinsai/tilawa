@@ -1,5 +1,0 @@
-{
-  "status": "needs-human",
-  "reason": "All four supplied supervisor requests failed before execution with NotFoundError, preventing authorized training, frozen model selection, full core/SDK suites and target validation; the conditional trajectory premise remains unmeasured and the default model is disabled.",
-  "measured": {}
-}

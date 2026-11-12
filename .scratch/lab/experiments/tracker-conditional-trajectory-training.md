@@ -1,6 +1,6 @@
 # Conditional trajectory training
 
-Status: needs-human. The conditional trajectory prototype is implemented and disabled by default. All four supplied supervisor requests failed before execution, including the final-source Modal suites. No authorized recording, fitted model, target trace or practice result has been returned.
+Status: needs-human. The conditional trajectory prototype is implemented and disabled by default. All six supplied supervisor requests failed before execution, including the retried final-source Modal suites and authorized training export. No authorized recording, fitted model, target trace or practice result has been returned.
 
 ## Prediction
 
@@ -46,6 +46,7 @@ Forward/backward deletion closure uses cumulative log-sums in linear time. Exact
 - Existing local-tracking tests (12) and issue-drop-fit tests (14) passed locally. Three hold/excursion tests initially hit Vitest's five-second timeout; rerunning those two files with a 20-second timeout passed all six tests. No assertions were relaxed or test files changed for that rerun.
 - A six-stream, three-speaker synthetic fit completed cross-validation, control checks, final refit and serialization. This checks optimizer plumbing only; its numbers and weights are not an experiment result or deployment model.
 - `git diff --check` passed. No scorer, lab tooling, data, evidence, manifest or card was edited.
+- After the diff-review feedback, the eight trajectory tests, five Python numerical tests and strict TypeScript checks for the engine and pure training-data module passed again. The rejected `.autolab/outcome.json` status artifact was removed from the branch diff. Validation status is recorded only in this write-up; no supervisor-facing outcome is shipped.
 
 The default local Python imported incompatible NumPy binaries; the small numerical tests passed under the installed x86_64 interpreter via `arch -x86_64`. Heavy training was requested only through the supplied Modal supervisor. Full core/SDK suites did not complete there.
 
@@ -55,6 +56,8 @@ The default local Python imported incompatible NumPy binaries; the small numeric
 2. Six-shard core/SDK build and tests: same failure, before execution.
 3. Build, numerical tests, authorized decode/export and speaker-fold fit: same failure, before execution.
 4. Final-source six-shard core/SDK suites: same failure, before execution.
+5. Retried final-source six-shard core/SDK suites: same failure, before execution.
+6. Retried storage/help-train probe, build and authorized training export: same failure, before execution.
 
 Practice scores requested: **0 of 3**. Target wins, component/overall changes, clean-session warnings and studio changes are **unmeasured**. Infrastructure failure is not a premise kill or a measured zero-win result.
 
