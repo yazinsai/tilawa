@@ -1,0 +1,13 @@
+{
+ "id": "listener-waveform-crossband-encoder",
+ "component": "listener",
+ "hypothesis": "Magnitude pooling may discard cross-band timing needed to hear weak added-word consonants; learning acoustic interactions directly from waveform samples predicts 2 recovered additions and no losses counted: listener -2, overall -2.",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T22:07:08+00:00",
+ "author": "autolab"
+}
