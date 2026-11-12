@@ -14,6 +14,7 @@ import { Resampler } from "./audio.js";
 import { capabilities } from "./capabilities.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
+import { addFixedEffectEvidence, carryFixedEffectEvidence, createFixedEffectStream, fixedEffectVerdictRemovals } from "./fixed-effect-phone.js";
 import { createListener } from "./listener.js";
 import type { ListenerOptions } from "./listener.js";
 import type { LoadedModel } from "./model.js";
@@ -100,8 +101,9 @@ export function createEngine(options: EngineOptions): Engine {
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
       ...(passage && { passage }),
     };
-    const checker = createChecker(index, checkerOptions);
-    const listener = createListener(model, { posteriors: true, ...options.listener });
+    const stream = model.fixedEffectPhone && createFixedEffectStream(model.backend, model.fixedEffectPhone, model.manifest);
+    const checker = createChecker(index, {...checkerOptions, sequenceEvidence:stream?.compare});
+    const listener = createListener(stream ? {...model,backend:stream.backend} : model, { posteriors: true, ...options.listener });
     const wordIndex = new Map(index.words.map((w, i) => [`${w.surah}:${w.ayah}:${w.word}`, i]));
     const locks: { wi: number; timeMs: number }[] = [];
     const noteLocks = (events: EngineEvent[]) => {
@@ -131,6 +133,7 @@ export function createEngine(options: EngineOptions): Engine {
     };
     const recorded: PhonemeEvidence[] = [];
     const auxiliaryMistakes: CheckerEvent[] = [];
+    let reviewedMistakes: CheckerEvent[] | undefined;
     const cells = evidenceGrid(policy.evidenceMs ?? model.manifest.frameMs);
     const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
@@ -184,10 +187,35 @@ export function createEngine(options: EngineOptions): Engine {
               audio.set(part, o);
               o += part.length;
             }
+            const primary = recorded.slice();
             const spliced = options.recordEvidence && locks.length > 1
-              ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+              ? await spliceContextFreeGaps(model, audio, rate, primary, locks, index) : primary;
+            const insertions = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const compared = await addFixedEffectEvidence(model.fixedEffectPhone, model.manifest, audio, insertions, index, phrases,
+              checkerOptions, mode, undefined, stream?.observations);
+            const enriched = carryFixedEffectEvidence(compared, [
+              ...compared.flatMap(cell=>cell.phonemes.flatMap(p=>p.fixedEffectPhoneVetoes??[])), ...(stream?.certificates??[]),
+            ]);
             recorded.splice(0, recorded.length, ...enriched);
+            if (model.fixedEffectPhone) {
+              const replay = (evidence: PhonemeEvidence[]) => {
+                const replayTracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
+                const replayChecker = createChecker(index, checkerOptions);
+                for (const cell of insertionCells(evidence)) replayChecker.push(cell, replayTracker.push(trackerInput(cell)));
+                replayChecker.end(replayTracker.end());
+                return replayChecker.mistakes();
+              };
+              // Review the original live evidence, before gap splicing or auxiliary insertions.
+              // Its graph confirmations must remain exempt even if a stored replay aligns differently.
+              const certificates = enriched.flatMap(cell => cell.phonemes.flatMap(p => p.fixedEffectPhoneVetoes ?? []));
+              const plain = primary.map(cell => ({ ...cell, phonemes: cell.phonemes.map(p => {
+                const { fixedEffectPhoneVetoes: ignored, ...primary } = p;
+                return primary;
+              }) }));
+              const removed = fixedEffectVerdictRemovals(checker.mistakes(), replay(plain), replay(carryFixedEffectEvidence(plain, certificates)));
+              reviewedMistakes = checker.mistakes().filter(e => !removed.includes(e));
+              events.push(...emit(removed.map(e => ({ ...e, state: "uncertain" as const }))));
+            }
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.
               // Only newly certified seam additions are published at end().
@@ -215,7 +243,7 @@ export function createEngine(options: EngineOptions): Engine {
         return feed(cells.ready(e.posteriors && e.posteriors.startFrame + e.posteriors.nFrames));
       },
       endEvidence: () => [...feed(cells.rest()), ...finish()],
-      mistakes: () => [...checker.mistakes(), ...auxiliaryMistakes],
+      mistakes: () => [...(reviewedMistakes ?? checker.mistakes()), ...auxiliaryMistakes],
       evidence: () => options.recordEvidence ? recorded : [],
     };
   }

@@ -14,7 +14,11 @@ const manifest = { file: "primary.onnx", tokens: "بت", inventory: "muaalem-v3_
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.readFile.mockResolvedValue(JSON.stringify(manifest));
+  mocks.readFile.mockImplementation(async path => {
+    if (String(path).endsWith("fixed-effect-phone-asset.json"))
+      throw Object.assign(new Error("absent"), { code: "ENOENT" });
+    return JSON.stringify(manifest);
+  });
 });
 
 describe("Node insertion teacher loading", () => {
@@ -49,6 +53,7 @@ describe("Node insertion teacher loading", () => {
     const model = await loadNodeModel("/models/caller");
     expect(model.backend).toBe(primary);
     expect(model.insertionTeacher).toBeUndefined();
+    expect(model.fixedEffectPhone).toBeUndefined();
     expect(mocks.ortBackend).toHaveBeenCalledTimes(1);
   });
 
