@@ -14,6 +14,7 @@ import torch
 import student_export as E
 import student_train as T
 from student_integrate import attach_heads, decode_events
+from student_integrate_assets import copy_auxiliaries
 
 
 def verify(model, path, specs, chunk, left):
@@ -61,6 +62,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--checkpoint", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--base-bundle", required=True, help="Shipped model bundle whose installed auxiliaries must be preserved")
     ap.add_argument("--chunk", type=int, default=16)
     ap.add_argument("--left", type=int, default=128)
     args = ap.parse_args()
@@ -77,10 +79,13 @@ def main():
     else:
         raise ValueError(arm)
     out = Path(args.out)
+    if out.exists() and any(out.iterdir()):
+        raise ValueError("Export requires a fresh bundle directory")
     out.mkdir(parents=True, exist_ok=True)
     path = out / "model.onnx"
     states = E.export_onnx(model, str(path), args.chunk, args.left)
     parity = verify(model, path, states, args.chunk, args.left)
+    parity["preserved_auxiliaries"] = copy_auxiliaries(args.base_bundle, out)
     manifest = E.manifest(out.name, states, args.chunk, args.left, str(path), None)
     if arm == "cif":
         manifest["decoder"] = dict(kind="cif", mass="phone_mass", scores="phone_scores")

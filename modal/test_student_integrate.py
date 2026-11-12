@@ -1,8 +1,12 @@
 import unittest
+import json
+import tempfile
+from pathlib import Path
 
 import torch
 
 from student_integrate import attach_heads, decode_events, objective, pool
+from student_integrate_assets import copy_auxiliaries, digest
 
 
 class IntegrationTest(unittest.TestCase):
@@ -71,6 +75,27 @@ class IntegrationTest(unittest.TestCase):
         self.assertTrue(torch.isfinite(losses["loss"]))
         losses["loss"].backward()
         self.assertGreater(float(model.phone_mass.bias.grad), 0)
+
+    def test_primary_replacement_preserves_complete_auxiliary_bundle(self):
+        temporary_root = Path(__file__).resolve().parents[1] / ".autolab"
+        temporary_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=temporary_root) as temporary:
+            root = Path(temporary)
+            base, out = root / "base", root / "out"
+            base.mkdir()
+            out.mkdir()
+            (base / "manifest.json").write_text(json.dumps(dict(file="model.onnx")))
+            (base / "model.onnx").write_bytes(b"old-primary")
+            (out / "model.onnx").write_bytes(b"new-primary")
+            (base / "teacher.onnx").write_bytes(b"installed-teacher-graph")
+            with self.assertRaises(ValueError):
+                copy_auxiliaries(base, out)
+            (base / "teacher.onnx.data").write_bytes(b"installed-teacher-weights")
+            assets = copy_auxiliaries(base, out)
+            self.assertEqual((out / "model.onnx").read_bytes(), b"new-primary")
+            self.assertEqual(set(assets), {"teacher.onnx", "teacher.onnx.data"})
+            self.assertEqual(assets["teacher.onnx.data"]["sha256"], digest(base / "teacher.onnx.data"))
+            self.assertEqual((out / "teacher.onnx.data").read_bytes(), b"installed-teacher-weights")
 
 
 if __name__ == "__main__":
