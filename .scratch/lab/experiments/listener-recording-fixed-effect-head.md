@@ -80,11 +80,11 @@ matching, graph/insertion preservation, independent streaming caches, unchanged
 primary tensors, live suppression and session downgrade/serialization.
 Their execution is requested through the authorized supervisor.
 
-Remote requests 1–4 (data census, minimal `pwd`, six-shard core/SDK validation,
-and persistent bundle export) all failed with `NotFoundError: No such file or
-directory`, without command output. The result files report zero spend. Request
-5 retries the required tests after the streaming integration changes and is
-pending. These errors establish no result about the acoustic premise.
+Remote requests 1–5 (data census, minimal `pwd`, six-shard core/SDK validation,
+persistent bundle export, and a test retry after the streaming integration)
+all failed with `NotFoundError: No such file or directory`, without command
+output. The result files report zero spend. No remote request remains pending.
+These errors establish no result about the acoustic premise.
 
 The persistent build request was:
 
