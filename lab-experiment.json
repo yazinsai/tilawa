@@ -1,0 +1,13 @@
+{
+ "id": "listener-bucket-residual-coverage",
+ "component": "listener",
+ "hypothesis": "Deterministic length-bucket remainders may repeatedly exclude pause-heavy training recordings, undertraining resumed consonants; lossless sampler carryover predicts 1 recovered addition, 0 losses, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T23:41:09+00:00",
+ "author": "autolab"
+}
