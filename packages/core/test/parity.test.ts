@@ -14,7 +14,21 @@ const golden = JSON.parse(readFileSync(new URL("./fixtures/parity/golden.json", 
 };
 const source = JSON.parse(readFileSync(new URL("../src/engine/SOURCE.json", import.meta.url), "utf8")) as { commit: string };
 const plain = <T>(x: T): T => JSON.parse(JSON.stringify(x));
-const V1_ONLY = ["sdkVersion", "modelSha256", "tier", "backend"];
+const V1_ONLY = ["sdkVersion", "modelSha256", "modelRelease", "tier", "backend"];
+// Posterior probabilities are rounded to 4 decimals; ONNX float math differs slightly across CPUs (the golden is made
+// on macOS, CI runs Linux), so a value can round either side. Everything else (events, mistakes, phonemes, ids) must
+// match exactly; probabilities and phoneme confidences within PROB_TOL.
+const PROB_TOL = 2e-4;
+type Ev = { phonemes: { conf: number }[]; posteriors?: { probs: number[] } };
+function sameEvidence(got: Ev[], want: Ev[], name: string) {
+  const strip = (e: Ev[]) => e.map((x) => ({ ...x, phonemes: x.phonemes.map((p) => ({ ...p, conf: 0 })),
+    ...(x.posteriors && { posteriors: { ...x.posteriors, probs: [] } }) }));
+  expect(strip(got), name).toEqual(strip(want));
+  got.forEach((g, i) => {
+    g.phonemes.forEach((p, j) => expect(Math.abs(p.conf - want[i].phonemes[j].conf), `${name} conf`).toBeLessThanOrEqual(PROB_TOL));
+    g.posteriors?.probs.forEach((v, j) => expect(Math.abs(v - want[i].posteriors!.probs[j]), `${name} probs`).toBeLessThanOrEqual(PROB_TOL));
+  });
+}
 const researchView = (e: unknown) =>
   (e as { type: string }).type === "capabilities"
     ? Object.fromEntries(Object.entries(e as object).filter(([k]) => !V1_ONLY.includes(k)))
@@ -40,7 +54,7 @@ describe("parity with the research session", () => {
       expect(got.returned, name).toEqual(want.returned);
       expect(got.subscribed.map(researchView), name).toEqual(want.subscribed);
       expect(got.mistakes, name).toEqual(want.mistakes);
-      expect(got.evidence, name).toEqual(want.evidence);
+      sameEvidence(got.evidence as never, want.evidence as never, name);
     }
     // The scenarios exercise the checker, not just the tracker.
     expect(golden.results["evidence-wrong-word-free"].mistakes).toHaveLength(1);
