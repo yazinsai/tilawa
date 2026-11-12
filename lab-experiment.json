@@ -1,0 +1,13 @@
+{
+ "id": "tracker-sequential-restart-evidence",
+ "component": "tracker",
+ "hypothesis": "Repeated overlapping restart comparisons may select a transient rhyme-match advantage; sequential predictive evidence should recover 1 tracker call while exposing 1 listener warning: tracker -1, overall 0.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T13:01:42+00:00",
+ "author": "autolab"
+}
