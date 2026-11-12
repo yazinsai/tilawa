@@ -1,0 +1,13 @@
+{
+ "id": "listener-resume-state-coherence",
+ "component": "listener",
+ "hypothesis": "Resumed acoustic training may restore optimizer moments without their matching update counters and schedule state, suppressing corrective consonant updates; coherent restoration plus a bounded head refit predicts 1 recovered addition, no losses counted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T13:00:14+00:00",
+ "author": "autolab"
+}
