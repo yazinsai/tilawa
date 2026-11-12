@@ -1,6 +1,4 @@
 /** Node entry: onnxruntime-node, models from a directory, WAV input. */
-import { createHash } from "node:crypto";
-import { validateSharedAcousticsModel } from "./shared-acoustics.js";
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import * as ort from "onnxruntime-node";
@@ -24,44 +22,7 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachSharedAcousticsModel(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads), dir, options.threads);
-}
-
-/** A declared side bundle must be complete, hashed and tied to this exact primary graph. */
-async function attachSharedAcousticsModel(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
-  try {
-    const descriptor = await readFile(join(dir, "shared-acoustics-asset.json"), "utf8").catch(e => {
-      if (e.code === "ENOENT") return null;
-      throw e;
-    });
-    if (descriptor === null) return model;
-    const asset = JSON.parse(descriptor);
-    if (asset.schema !== 1 || !Array.isArray(asset.files) || asset.files.length !== 2 ||
-      asset.files[0].file !== "shared-acoustics-emissions.json" || asset.files[1].file !== "shared-acoustics.onnx")
-      throw new Error("Invalid shared acoustics asset descriptor");
-    const files: Buffer[] = [];
-    for (const entry of asset.files) {
-      if (!Number.isSafeInteger(entry.bytes) || entry.bytes <= 0 || !/^[0-9a-f]{64}$/.test(entry.sha256))
-        throw new Error("Invalid shared acoustics file declaration");
-      const bytes = await readFile(join(dir, entry.file));
-      if (bytes.length !== entry.bytes || createHash("sha256").update(bytes).digest("hex") !== entry.sha256)
-        throw new Error("Shared acoustics asset checksum mismatch");
-      files.push(bytes);
-    }
-    if (model.manifest.sampleRate !== 16000 || model.manifest.frameMs !== 40)
-      throw new Error("Shared acoustics requires 16 kHz / 40 ms geometry");
-    const primaryBytes = await readFile(join(dir, model.manifest.file));
-    if (createHash("sha256").update(primaryBytes).digest("hex") !== model.manifest.sha256)
-      throw new Error("Shared acoustics primary model checksum mismatch");
-    const fitted = validateSharedAcousticsModel(JSON.parse(files[0].toString("utf8")), model.manifest);
-    const extractor = await ortBackend(ort as unknown as OrtModule, join(dir, "shared-acoustics.onnx"), "onnxruntime-node", {
-      executionProviders: ["cpu"], intraOpNumThreads: threads,
-    });
-    const release = model.backend.release.bind(model.backend);
-    model.backend.release = async () => { await extractor.release(); await release(); };
-    model.sharedAcoustics = { model: fitted, backend: extractor };
-    return model;
-  } catch (e) { await model.backend.release(); throw e; }
+  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -126,6 +87,6 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachSharedAcousticsModel(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads), join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
+    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
 }
