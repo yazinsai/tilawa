@@ -1,0 +1,13 @@
+{
+ "id": "tracker-word-internal-rhythm",
+ "component": "tracker",
+ "hypothesis": "The rhyme restart may fit individual sounds while assigning their timing to the wrong syllabic grouping; a word-internal rhythm model predicts tracker -1 and overall 0, allowing one exposed listener warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T16:28:24+00:00",
+ "author": "autolab"
+}
