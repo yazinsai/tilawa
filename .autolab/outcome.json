@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "All three authorized Modal supervisor requests, including full tests and a minimal pwd diagnostic, failed with NotFoundError before returning worker output; training and target validation remain untested.",
+  "measured": {}
+}
