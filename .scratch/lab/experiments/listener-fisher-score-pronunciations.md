@@ -1,0 +1,47 @@
+# Fisher-score pronunciation evidence
+
+Status: needs-info. Implementation drafted; acoustic validation is blocked by the supplied supervisor. No trained bundle exists and target recoveries are unmeasured. This is not a premise-based kill or a fold result. The experiment card is unchanged.
+
+## Prediction
+
+Remove one false wrong-word warning with no predicted losses: listener −1 and overall −1. The proposed explanation is that misleading pronunciations match pooled acoustic statistics but differ in their signed departures from learned acoustic patterns. The card names four target windows and a zero-reversal kill criterion; the user's execution rule requires at least three actual target recoveries to continue, then a practice score before any decision.
+
+## Implemented mechanism
+
+`modal/student_fisher_export.py` exposes frozen final encoder features in a separate copy of the deployed ONNX graph. A dynamically quantized head uses dequantized activation codes, including its activation scale and zero point. The exporter verifies eight consecutive streaming windows, requiring array equality for every original output and recurrent cache, and checks the effective affine projection. These checks are implemented but have not run on the supplied graph.
+
+The preparation CLI uses only usable help-train training-speaker `none` recordings without labelled edits or repeats. It rejects excluded recordings and explicitly excluded speakers, and excludes any speaker occurring in a nontraining label. The isolated supplied help-train copy excludes release-held-out speakers by construction. The trainer independently validates source, kind, split, speaker exclusion, feature shape and acoustic clock. No practice audio, labels or target references enter fitting or selection.
+
+The trainer fits six PCA-whitened acoustic coordinates and a pronunciation-independent diagonal Gaussian mixture. Each candidate segment is represented by the average normalized likelihood gradients for the mixture's means and variances, using acoustic responsibilities. The pooling control retains the segment's mean and full covariance, including off-diagonal terms. Fixed seeded projections give each arm 24 coordinates followed by signed square-root and length normalization. Both pronunciation readouts have exactly the same number of learned parameters: a mean and diagonal variance per coordinate and phone. The background mixture supplies an unsupervised feature map; equality of readout capacity does not assert equality of total feature-map parameters.
+
+Phone readouts start from transcript-constrained parent CTC alignments. Phone centers initialize contiguous segments; subsequent updates use posterior weights over latent semi-Markov boundaries and shrinkage moment re-estimation. These updates are not claimed to be exact maximizers of the normalized conditional scoring objective. Speaker-grouped validation selects their checkpoint empirically. Every complete candidate phone consumes a nonempty interval, and background intervals between phones can be empty. Both arms use the same maximum interval of 64 frames and duration prior, conditioned on full completion. Segment identity log-probabilities contribute for their consumed duration. No candidate phone can be skipped, including repeated consecutive phones.
+
+Mixture size (2 or 4), readout shrinkage (1 or 16), and checkpoint (initial, one or two latent updates) are selected jointly by three speaker-grouped partitions inside the training set. The validation objective compares each recorded complete pronunciation against up to three deterministic single-phone lexical alternatives, averaging equally over speakers and both arms. PCA, mixture and readouts are refitted inside each partition; the selected configuration is then refitted on all eligible training recordings. A hard Linux process CPU-day limit bounds fitting. The report records the partitions, selected configuration, input hash, CPU use, parameter counts and asset hashes. Counterfactual alternatives on none-labelled recordings do not establish preservation of actual scripted substitutions.
+
+The SDK collects only the checker's otherwise supported string-path wrong-word comparisons, including their full written/rival pronunciations and exact existing frame bounds. It extracts features on a separate full-session streaming state and scores both candidates on identical rows. Segment sufficient statistics are cached as prefix sums. A certificate requires finite scores, Fisher preference for the written pronunciation, and opposing pooling-control preference for the accused rival. Unseen phones, missing frames and impossible complete pronunciations abstain.
+
+Core binds a certificate to both complete strings, the word occurrence and exact frame bounds. Graph confirmations remain exempt. The internal confirmation and ownership ledger retain baseline state; only the public wrong-word verdict changes, preserving insertion merges and later candidate generation. Recorded evidence carries certificates without replacing primary tokens or posterior rows. The Node loader verifies both declared side-file hashes, their geometry and the primary graph hash. Missing or corrupt declared files fail rather than silently running the main listener.
+
+Audio sessions retain PCM for an end-of-session review and publish explicit downgrades only for the exact live occurrences removed by otherwise identical replay. This route does not establish timely streaming intervention, device latency, bounded session memory or mobile integration. It must preserve the existing insertion teacher when a complete bundle is assembled.
+
+## Validation and limits
+
+Thirteen dependency-free checks ran against the new core/SDK test sources using Node's TypeScript transform and a small assertion adapter. They cover complete comparison discovery, strict finite reversals, changed-window rejection, unchanged issue creation, graph preservation, signed gradients, distinctions beyond mean/covariance, complete boundary paths, primary-model binding, unchanged token transport, occurrence-specific retractions, training exclusions, native acoustic clock and independent caches, and full-pronunciation scoring/abstention. This adapter is not the required full Vitest suites. All twelve changed TypeScript files parse, Python sources compile, and `git diff --check` passes.
+
+Additional unverified tests cover the session-end review, missing/corrupt asset rejection, quantized head scales and zero points, finite-difference Fisher gradients, and exhaustive boundary/posterior sums. The insertion-loader mock was adjusted to return ENOENT for absent optional assets. Local Python numerical tests could not import NumPy because the installed binary has a different architecture from the interpreter; no Python numerical assertions ran.
+
+Supervisor request 1 (data/dependency/storage probe), request 2 (minimal `pwd` retry), and request 3 (the prescribed six-shard full build/core/SDK test harness) all returned `NotFoundError: No such file or directory`, zero compute cost, and no shard output. The failure occurs before command execution. The user was asked to restore the supplied service. There is no authorized alternative execution route for training or target audio.
+
+No actual encoder graph, eligible training recording or target acoustic window was inspected. No mixture or readout was fitted, and no bundle was verified. Target wins and overall/component changes are unmeasured. Practice scores used: zero of three. There is no `.autolab/model.json`; scoring with the main model would not evaluate this experiment. Infrastructure failure supplies no evidence for the requested acoustic kill criterion.
+
+No scorer, lab tooling, supplied manifests, test data, evidence or experiment card was edited.
+
+## Resume after the supervisor is restored
+
+Run the data/dependency probe and the required six-shard tests. Run `python3 -m unittest discover -s modal -p test_student_fisher.py` on the CPU executor. Export with `python3 modal/student_fisher_export.py --model <primary-dir> --out <bundle-dir>`.
+
+Prepare observations with `pnpm --filter @tilawa/sdk exec tsx src/bench/fisher-pronunciation-cli.ts --model <primary-dir> --extractor <bundle-dir> --labels <help-train-labels> --excluded-speakers <exclusions.json> --out <observations.jsonl>`. Fit with `python3 modal/student_fisher.py --input <observations.jsonl> --metadata <bundle-dir>/fisher-pronunciation-metadata.json --excluded-speakers <exclusions.json> --out <bundle-dir>`. Use CPU thread limits and persistent experiment scratch storage.
+
+Complete and verify the bundle with the unchanged primary model, manifest and existing teacher files, plus `fisher-pronunciation.onnx`, `fisher-pronunciation-emissions.json`, and `fisher-pronunciation-asset.json`. Retain metadata and training report. Declare `.autolab/model.json` only after complete-bundle loading and primary parity pass.
+
+Inspect the actual engine comparisons with the same CLI using `--model <complete-bundle> --audio <wav> --evidence <evidence.json> --out <comparisons.json>`. The diagnostic chooses no inference candidates from labels and asserts tracker/insertion equality. Count removed target warnings after replay rather than favourable comparisons alone. Fewer than three target wins requires reverting engine changes and recording the measured kill. At least three requires the authorized practice score; subsequent safety decisions belong to the fold gate.
