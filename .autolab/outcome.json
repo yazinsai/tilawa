@@ -1,0 +1,7 @@
+{
+  "status": "killed",
+  "reason": "Local restarts already score a complete row against one pre-update state without an incumbent-relative margin, and the existing global margin already compares against the strongest eligible competitor, so the proposed commitment defect is absent.",
+  "measured": {
+    "targets won": 0
+  }
+}
