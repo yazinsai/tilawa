@@ -1,8 +1,8 @@
 # Decorrelated phonetic memory
 
-Status: implementation and local mathematical tests complete; remote training,
-model packaging and the acoustic premise remain unvalidated. The experiment
-card is unchanged.
+Status: blocked on supervisor execution. Implementation and local mathematical
+tests are complete; remote training, model packaging and the acoustic premise
+remain unvalidated. The experiment card is unchanged.
 
 ## Prediction and mechanism
 
@@ -78,8 +78,17 @@ Supervisor run 1 (read-only inventory) and run 3 (the required six-shard
 core/SDK test harness) returned `NotFoundError: No such file or directory`
 before returning command output. Run 2 requests a training-image inventory;
 run 4 requests the new unit tests and strict training-data audit. Their results
-were pending when this initial record was written. These infrastructure errors
-do not establish a scientific kill or a zero-gain result.
+remain pending after a prolonged wait, without command logs. These
+infrastructure errors do not establish a scientific kill or a zero-gain result.
+The supervisor availability question was sent to the user while independent
+implementation and local validation continued. No reply has arrived yet.
+
+Implementation is committed as `8809e9d1`; `2038c575` adds immediate rejection of
+empty transcripts and invalidates an old completion manifest before re-export.
+The final local suite still passes all twelve tests. Remote run results are
+stored under `.autolab/modal-result-<n>.json`; retrieve runs 2 and 4 before
+resuming the training and asset-verification steps. No killed outcome is
+written because there is no acoustic measurement supporting one.
 
 No training-selected checkpoint or complete replacement bundle exists yet.
 No `.autolab/model.json` is declared, and no practice score has been requested.
