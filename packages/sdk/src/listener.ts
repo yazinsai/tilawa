@@ -2,6 +2,7 @@ import type { DecodedPhoneme, PhonemeEvidence } from "@tilawa/core";
 import { Resampler } from "./audio.js";
 import { Fbank } from "./fbank.js";
 import type { LoadedModel, Tensor } from "./model.js";
+import { decodeEdits, editSource } from "./edit-transducer.js";
 
 export interface ListenerOptions {
   /** Attach per-frame top-k posteriors to each chunk: the checker's local-window check reads them. Default false; sessions turn it on. */
@@ -52,18 +53,50 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   let done: DecodedPhoneme[] = [];
   let ids: number[] = [];
   let probs: number[] = [];
+  let sourcePrevious = 0;
 
   async function step(window: Float32Array[], keep: number) {
     const x = new Float32Array(m.window * m.fbank.mels);
     window.forEach((f, i) => x.set(f, i * m.fbank.mels));
-    const out = await model.backend.run({ x: { type: "float32", data: x, dims: [1, m.window, m.fbank.mels] }, ...states });
+    const count: Record<string, Tensor> = m.editFrameCountInput ? {
+      [m.editFrameCountInput]: { type: "int64", data: new BigInt64Array([BigInt(Math.min(keep, m.shift / 4))]), dims: [1] },
+    } : {};
+    const out = await model.backend.run({ x: { type: "float32", data: x, dims: [1, m.window, m.fbank.mels] }, ...states, ...count });
     states = Object.fromEntries(m.states.map((s) => [s.name, out[`new_${s.name}`]]));
     const lp = out.log_probs.data as Float32Array;
+    const support = m.supportOutput ? out[m.supportOutput] : out.log_probs;
+    if (!support || support.data.length !== lp.length) throw new Error("Support output has a different acoustic clock");
+    const supportLp = support.data as Float32Array;
     const n = Math.min(keep, lp.length / vocab);
+    if (m.editDecoder) {
+      const spec = m.editDecoder;
+      const raw = out[spec.source], actions = out[spec.actions], phones = out[spec.phones];
+      const fullFrames = lp.length / vocab;
+      if (spec.kind !== "acoustic-edit" || !raw || !actions || !phones ||
+          raw.type !== "float32" || actions.type !== "float32" || phones.type !== "float32" ||
+          raw.data.length !== lp.length || raw.dims.join() !== out.log_probs.dims.join() ||
+          actions.dims.join() !== [1, fullFrames, fullFrames + 1, 5].join() ||
+          phones.dims.join() !== [1, fullFrames, fullFrames + 1, vocab - 1].join())
+        throw new Error("Declared acoustic edit outputs are missing or have a different clock");
+      const sourceIds = Array.from({ length: fullFrames }, (_, t) =>
+        topK((raw.data as Float32Array).subarray(t * vocab, (t + 1) * vocab), 1)[0][0]);
+      const source = editSource(sourceIds.slice(0, n), sourcePrevious);
+      const edited = decodeEdits(actions.data as Float32Array, phones.data as Float32Array,
+        source, fullFrames, m.tokens, outFrames, n);
+      done.push(...edited);
+      sourcePrevious = sourceIds[n - 1] ?? sourcePrevious;
+      if (options.posteriors) for (let t = 0; t < n; t++) {
+        for (const [id, p] of topK(supportLp.subarray(t * vocab, (t + 1) * vocab), k))
+          ids.push(id), probs.push(round4(p));
+      }
+      outFrames += n;
+      return;
+    }
     for (let t = 0; t < n; t++) {
       const row = lp.subarray(t * vocab, (t + 1) * vocab);
       const top = topK(row, k);
-      if (options.posteriors) for (const [id, p] of top) ids.push(id), probs.push(round4(p));
+      if (options.posteriors) for (const [id, p] of (supportLp === lp ? top : topK(supportLp.subarray(t * vocab, (t + 1) * vocab), k)))
+        ids.push(id), probs.push(round4(p));
       const [id, p] = top[0];
       const frame = outFrames + t;
       if (id !== 0 && id === prev && open) {

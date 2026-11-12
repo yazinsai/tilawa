@@ -27,6 +27,12 @@ export interface ModelManifest {
   file: string;
   bytes: number;
   sha256: string;
+  /** Primary monotone phone edits; `log_probs` remains the independent CTC support head. */
+  editDecoder?: { kind: "acoustic-edit"; actions: string; phones: string; source: string };
+  /** Optional independent support CTC output for a direct decoder control. */
+  supportOutput?: string;
+  /** Valid acoustic rows in this call; prevents final padding conditioning edits. */
+  editFrameCountInput?: string;
 }
 
 export interface Tensor {
