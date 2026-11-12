@@ -1,5 +1,7 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import { validateTokenRestart } from "./heldout-token.js";
+import type { TokenEditModel, TokenValidation } from "./heldout-token.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -18,6 +20,13 @@ const AHEAD_AYAHS = 2;
 const SURAH_ENTRY = 3 * UNIT;
 /** Recent cost is averaged over this many observed phonemes. */
 const RECENT = 16;
+
+export interface LocalTokenValidationOptions {
+  model: TokenEditModel;
+  /** Observe comparisons without changing the weighted winner. */
+  audit?: boolean;
+  onComparison?: (comparison: TokenValidation & { heard: string; previousOffset: number; proposedOffset: number }) => void;
+}
 
 export interface LocalPosition {
   /** Reference phonemes consumed up to here (exclusive end of the last matched phoneme). */
@@ -45,7 +54,8 @@ export interface LocalSearch {
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">,
+  validation?: LocalTokenValidationOptions): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -71,6 +81,11 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let best = start.offset;
   let ayah = -1;
   const recent: number[] = [];
+  type History = { lo: number; cost: Float64Array; origin: Int32Array; heard: string };
+  let history: History[] = [];
+  // A caller cannot alter a live search's calibration by mutating its options.
+  const model = validation ? { ...validation.model, phones: [...validation.model.phones],
+    rows: validation.model.rows.map(r => [...r]), inserted: [...validation.model.inserted] } : null;
 
   const recentre = (offset: number) => {
     const a = ayahOf(offset);
@@ -104,6 +119,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   return {
     step(p) {
       const n = cost.length;
+      if (model) history = [...history.slice(-(RECENT - 1)), { lo, cost, origin, heard: p }];
       const base = cost[best - lo];
       const c = new Float64Array(n);
       const o = new Int32Array(n);
@@ -148,6 +164,24 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       for (let i = 0; i < n; i++) {
         if (k === -1 || c[i] < c[k] || (c[i] === c[k] && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1))) k = i;
       }
+      if (model && o[k] !== origin[best - lo]) {
+        const seed = history[0];
+        const result = validateTokenRestart(model, {
+          reference: ref, starts: wordStarts, entry,
+          movement: (from, to) => JUMP_COST + Math.abs(from - to) * JUMP_DISTANCE
+            + (surahOf(to) === surahOf(Math.max(0, from - 1)) || entry(to) ? 0 : SURAH_ENTRY),
+        }, { lo: seed.lo, cost: seed.cost, origin: seed.origin,
+          layers: history.map(h => ({ lo: h.lo, size: h.cost.length, heard: h.heard })),
+          nearOrigin: origin[best - lo], proposedOrigin: o[k] });
+        const proposedOffset = lo + k;
+        if (!result.retain && !validation!.audit) {
+          let near = -1;
+          for (let i = 0; i < n; i++) if (o[i] === origin[best - lo] && Number.isFinite(c[i])
+            && (near < 0 || c[i] < c[near] || (c[i] === c[near] && Math.abs(lo + i - best - 1) < Math.abs(lo + near - best - 1)))) near = i;
+          if (near >= 0) k = near;
+        }
+        validation!.onComparison?.({ ...result, heard: history.map(h => h.heard).join(""), previousOffset: best, proposedOffset });
+      }
       const min = c[k];
       for (let i = 0; i < n; i++) c[i] -= min;
       recent.push(min - base);
@@ -164,10 +198,10 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    save: () => ({ lo, cost, origin, edits, best, ayah, history, recent: [...recent] }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
-      ({ lo, cost, origin, edits, best, ayah } = s);
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; history: History[]; recent: number[] };
+      ({ lo, cost, origin, edits, best, ayah, history } = s);
       recent.splice(0, recent.length, ...s.recent);
     },
   };

@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "The supplied supervisor runner fails before execution with NotFoundError, preventing training-only calibration, required tests and target replay; the optional prototype has no calibrated default.",
+  "measured": {}
+}
