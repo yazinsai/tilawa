@@ -1,0 +1,13 @@
+{
+ "id": "listener-lowrank-teacher-inheritance",
+ "component": "listener",
+ "hypothesis": "Dense student distillation may discard teacher consonant features; directly inheriting an activation-aware low-rank factorization of the teacher should recover 2 missed additions while risking 1 collateral wrong call: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T19:08:44+00:00",
+ "author": "autolab"
+}
