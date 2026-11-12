@@ -1,0 +1,7 @@
+{
+  "status": "killed",
+  "reason": "The primary CTC stream emits each uninterrupted sound run once, leaving no additional contiguous observation for the proposed substitution-to-duration correspondence to consume.",
+  "measured": {
+    "targets won": 0
+  }
+}
