@@ -1,0 +1,1 @@
+{"status":"killed","reason":"Local continuation and restart ranking retains accumulated prefix costs and has no fixed acoustic-history cutoff for the proposed origin marginalization to correct.","measured":{"targets won":0}}
