@@ -205,5 +205,260 @@ class ListenReviewTest(unittest.TestCase):
             server.server_close()
 
 
+def _wipe(root: Path) -> None:
+    if root.exists():
+        for path in sorted(root.rglob("*"), reverse=True):
+            if path.is_file():
+                path.unlink()
+            elif path.is_dir():
+                path.rmdir()
+
+
+class ListenModesTest(unittest.TestCase):
+    def test_tlog_mined_keeps_tags_json_and_hides_the_clip(self) -> None:
+        root = Path("/tmp/tilawa-listen-mined")
+        _wipe(root)
+        cache = lr.Cache(root)
+        self.assertEqual(cache.tags_path.name, "tags.json")
+        self.assertEqual(cache.queue_path.name, "queue.json")
+        self.assertEqual(cache.mined_queue_path.name, "queue_mined.json")
+        kept = {
+            "verdict": "real",
+            "kind": "skipped",
+            "notes": "mid-listen",
+            "updated": "2020-01-01T00:00:00Z",
+        }
+        cache.save_tags({"tlog_mined|already|1|1|0": kept})
+        clip = "secret_tlog_clip"
+        item = {
+            "queue": "tlog_mined",
+            "tag_id": "tlog_mined|secret_tlog_clip|1|1|2",
+            "id": clip,
+            "surah": 1,
+            "ayah": 1,
+            "word_index": 2,
+            "highlight": [2, 3],
+            "span": [0.2, 0.5],
+            "role": "control",
+            "mined_kind": "vowel",
+            "stratum": "sister_ayah",
+            "qc_pass": True,
+            "audio": {"source": "tlog", "name": "secret_tlog_clip.flac"},
+        }
+        (cache.meta / "tlog_mined_queue.json").write_text(
+            json.dumps({"items": [item, dict(item, tag_id="tlog_mined|secret_tlog_clip|1|1|3", word_index=3)]}) + "\n",
+            encoding="utf-8",
+        )
+        corpus = Path("/tmp/tilawa-self-repair/zipformer_quran.json")
+        if corpus.is_file():
+            (cache.meta / "zipformer_quran.json").write_bytes(corpus.read_bytes())
+        saved = lr.build_mined(cache, seed=0, rebuild=False)
+        ids = [row["tag_id"] for row in saved["queues"]["tlog_mined"]]
+        self.assertEqual(ids, [item["tag_id"], "tlog_mined|secret_tlog_clip|1|1|3"])
+        self.assertEqual(saved["focus"], "tlog_mined")
+        disk = json.loads(cache.mined_queue_path.read_text(encoding="utf-8"))
+        self.assertEqual(disk["focus"], "tlog_mined")
+        self.assertEqual([row["tag_id"] for row in disk["queues"]["tlog_mined"]], ids)
+        again = lr.build_mined(cache, seed=0, rebuild=False)
+        self.assertEqual([row["tag_id"] for row in again["queues"]["tlog_mined"]], ids)
+        audio = cache.audio_path(saved["queues"]["tlog_mined"][0])
+        audio.parent.mkdir(parents=True, exist_ok=True)
+        audio.write_bytes(b"fLaC" + b"\x00" * 64)
+
+        app = lr.App(cache, saved, lr.mined_mode())
+        view = app.item("tlog_mined", 0)
+        blob = json.dumps(view)
+        for banned in (clip, "control", "vowel", "sister_ayah", "mined_kind", '"id"', "locator"):
+            self.assertNotIn(banned, blob)
+        app.set_tag("tlog_mined", 0, "not_slip", None, "")
+        tags = json.loads(cache.tags_path.read_text(encoding="utf-8"))
+        self.assertEqual(tags["tlog_mined|already|1|1|0"], kept)
+        self.assertEqual(tags[item["tag_id"]]["verdict"], "not_slip")
+        self.assertFalse((root / "self_repair_tags.json").exists())
+        self.assertFalse((root / "clean_guard_tags.json").exists())
+
+        label = lr.verified_slip_label(
+            item, {"verdict": "real", "kind": "wrong_word"}
+        )
+        self.assertEqual(label["label_kind"], "vowel")
+        self.assertTrue(label["control"])
+        self.assertFalse(label["in_scoreboard"])
+        self.assertTrue(label["provisional"])
+        self.assertFalse(label["train_ready"])
+        report = lr.summarize_queues(saved["queues"], cache.load_tags())
+        text = lr.format_report(report)
+        self.assertIn("control slips", text)
+        self.assertNotIn(clip, text)
+
+        page = lr._page_for(lr.mined_mode())
+        self.assertIn('tlog_mined: "M"', page)
+        self.assertIn('const ORDER = ["tlog_mined"]', page)
+        self.assertIn("const label = LABEL[name] || name", page)
+
+    def test_clean_guard_tags_stay_off_the_shared_file(self) -> None:
+        root = Path("/tmp/tilawa-listen-guard")
+        _wipe(root)
+        cache = lr.Cache(root, tags_name="clean_guard_tags.json", queue_name="clean_guard_queue.json")
+        (root / "tags.json").write_text("{}\n", encoding="utf-8")
+        item = {
+            "queue": "clean_guard",
+            "tag_id": "clean_guard|hideme|2|3|1",
+            "id": "hideme",
+            "surah": 2,
+            "ayah": 3,
+            "word_index": 1,
+            "highlight": [1, 2],
+            "span": [0.1, 0.2],
+            "role": "edit",
+            "pool": "help",
+            "split": "dev",
+            "edit_class": "vowel",
+            "audio": {"source": "help", "name": "hideme.wav"},
+        }
+        saved = {
+            "queues": {"clean_guard": [item]},
+            "words": {"2:3": ["word"]},
+            "surah_names": {},
+        }
+        audio = cache.audio_path(item)
+        audio.parent.mkdir(parents=True, exist_ok=True)
+        audio.write_bytes(b"RIFFxxxxWAVEfmt ")
+        app = lr.App(cache, saved, lr.guard_mode())
+        view = app.item("clean_guard", 0)
+        blob = json.dumps(view)
+        self.assertNotIn("hideme", blob)
+        self.assertNotIn("edit_class", blob)
+        self.assertNotIn('"id"', blob)
+        app.set_tag("clean_guard", 0, "real_lapse", None, "")
+        self.assertEqual((root / "tags.json").read_text(encoding="utf-8"), "{}\n")
+        tags = json.loads((root / "clean_guard_tags.json").read_text(encoding="utf-8"))
+        self.assertEqual(tags[item["tag_id"]]["verdict"], "real_lapse")
+        self.assertIsNone(tags[item["tag_id"]]["kind"])
+        report = lr.summarize_clean_guard(saved["queues"]["clean_guard"], tags)
+        self.assertEqual(report["decision"], "mislabelled_guard")
+        self.assertEqual(lr.help_lapse_decision({"n": 0, "p": None}), "incomplete")
+        self.assertEqual(lr.help_lapse_decision({"n": 4, "p": 0.2}), "model_habits")
+        self.assertEqual(lr.help_lapse_decision({"n": 4, "p": 0.4}), "inconclusive")
+        page = lr.guard_mode().page
+        self.assertIn("real_lapse", page)
+        self.assertIn('const ORDER = ["clean_guard"]', page)
+        self.assertNotIn('const ORDER = ["A"', page)
+        self.assertNotIn("tajweed-only", page)
+
+    def test_self_repair_queue_is_blind_and_uses_its_own_tags(self) -> None:
+        root = Path("/tmp/tilawa-listen-repair")
+        _wipe(root)
+        root.mkdir(parents=True, exist_ok=True)
+        shared = {
+            "tlog_mined|kept|1|1|0": {
+                "verdict": "real", "kind": "skipped", "notes": "yazin", "updated": "2020-01-01T00:00:00Z",
+            }
+        }
+        (root / "tags.json").write_text(json.dumps(shared) + "\n", encoding="utf-8")
+        (root / "queue_mined.json").write_text("{}\n", encoding="utf-8")
+        candidates = []
+        for i in range(3):
+            candidates.append({
+                "id": f"help_{i}",
+                "surah": 1,
+                "ayah": 1,
+                "word_index": i,
+                "kind": "letter",
+                "span_s": [0.1, 0.4],
+                "edit_tokens": 1,
+                "unseen": True,
+                "source_set": "help-clean",
+                "audio": {"source": "help", "name": f"help_{i}.wav"},
+            })
+        # Same clip, higher edit cost, replaces the first help_0 row.
+        candidates.append({
+            **candidates[0], "word_index": 4, "edit_tokens": 9, "kind": "skip",
+        })
+        candidates.append({
+            "id": "tlog_late",
+            "surah": 1,
+            "ayah": 2,
+            "word_index": 1,
+            "kind": "substitution",
+            "span_s": [0.2, 0.3],
+            "edit_tokens": 8,
+            "unseen": True,
+            "source_set": "tlog",
+            "audio": {"source": "tlog", "name": "tlog_late.flac"},
+        })
+        candidates.append({
+            "id": "acted_seen",
+            "surah": 1,
+            "ayah": 3,
+            "word_index": 0,
+            "kind": "vowel",
+            "unseen": False,
+            "source_set": "help-clean",
+            "audio": {"source": "help", "name": "acted.wav"},
+        })
+        controls = [
+            {
+                "id": f"ctrl_{i}",
+                "surah": 2,
+                "ayah": 1,
+                "word_index": 0,
+                "kind": "vowel",
+                "span_s": [0.0, 0.2],
+                "source_set": "help-clean",
+                "audio": {"source": "help", "name": f"ctrl_{i}.wav"},
+            }
+            for i in range(4)
+        ]
+        controls.append({**controls[0], "id": "help_0"})
+        # 3 help clips fill the candidate slots, so the later tlog row stays out.
+        items = lr.select_self_repair_queue(candidates, controls, n=5, n_controls=2, seed=0)
+        self.assertLessEqual(len(items), 5)
+        roles = [row["role"] for row in items]
+        self.assertLessEqual(roles.count("control"), roles.count("candidate"))
+        self.assertEqual(roles.count("candidate"), 3)
+        self.assertEqual(roles.count("control"), 2)
+        ids = [row["id"] for row in items]
+        self.assertEqual(len(ids), len(set(ids)))
+        self.assertNotIn("acted_seen", ids)
+        self.assertNotIn("tlog_late", ids)
+        self.assertIn("help_0", ids)
+        chosen = next(row for row in items if row["id"] == "help_0")
+        self.assertEqual(chosen["word_index"], 4)
+        self.assertEqual(chosen["mined_kind"], "skip")
+
+        cache = lr.Cache(root, tags_name="self_repair_tags.json", queue_name="queue_self_repair.json")
+        saved = {
+            "queues": {"self_repair": items},
+            "words": {"1:1": ["ا", "ب", "ت", "ث", "ج"], "1:2": ["ا"], "2:1": ["ا"]},
+            "surah_names": {},
+        }
+        audio = cache.audio_path(chosen)
+        audio.parent.mkdir(parents=True, exist_ok=True)
+        audio.write_bytes(b"RIFFxxxxWAVEfmt ")
+        app = lr.App(cache, saved, lr.repair_mode())
+        view = app.item("self_repair", items.index(chosen))
+        blob = json.dumps(view)
+        for banned in ("help_0", "candidate", "control", "skip", "mined_kind", '"id"', "locator", "letter"):
+            self.assertNotIn(banned, blob)
+        app.set_tag("self_repair", items.index(chosen), "real", "skipped", "")
+        self.assertEqual(json.loads((root / "tags.json").read_text(encoding="utf-8")), shared)
+        self.assertEqual((root / "queue_mined.json").read_text(encoding="utf-8"), "{}\n")
+        tags = json.loads((root / "self_repair_tags.json").read_text(encoding="utf-8"))
+        self.assertEqual(tags[chosen["tag_id"]]["kind"], "skipped")
+        label = lr.natural_label(chosen, tags[chosen["tag_id"]])
+        self.assertEqual(label["kind"], "skip_word")
+        self.assertEqual(label["word"], 5)
+        self.assertEqual(label["elicitation"], "natural")
+        self.assertNotIn("id", label)
+        report = lr.summarize_self_repair(items, tags)
+        text = lr.format_self_repair(report)
+        self.assertNotIn("help_0", text)
+        self.assertIn("natural labels 1", text)
+        page = lr.repair_mode().page
+        self.assertIn('const ORDER = ["self_repair"]', page)
+        self.assertIn("tajweed-only", page)
+        self.assertNotIn("help_0", page)
+
+
 if __name__ == "__main__":
     unittest.main()
