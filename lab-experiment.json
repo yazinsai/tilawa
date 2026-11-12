@@ -1,0 +1,13 @@
+{
+ "id": "listener-variance-reduced-phone-refit",
+ "component": "listener",
+ "hypothesis": "Stochastic training updates may repeatedly undo weak-consonant improvements; variance-reduced phone-head refitting predicts 1 recovered added-word mistake, no losses counted, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T12:27:44+00:00",
+ "author": "autolab"
+}
