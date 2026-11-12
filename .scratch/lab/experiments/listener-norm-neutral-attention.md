@@ -45,12 +45,14 @@ Pinned upstream attention separates content Q/K selection from positional
 selection and value retrieval; normalizing immediately before content MatMul
 therefore permits the intended intervention without normalizing the key cache.
 
-Behavior tests have been drafted for query/key norm invariance, raw cache
+Six synthetic behavior tests pass for query/key norm invariance, raw cache
 preservation, retained value magnitude, finite zero-norm vectors, unchanged
 padding masks, a temperature-one identity control, and spread/entropy calibration.
-Python syntax compilation passes. Synthetic ONNX Runtime checks are pending in
-a worktree-local isolated environment; they require no real audio or model
-inference. Discovery has not been verified on the actual shipped graph.
+Python syntax compilation also passes. The synthetic tests ran in a
+worktree-local isolated environment with ONNX 1.19.0 and ONNX Runtime 1.22.1;
+they require no real audio or model inference. They also check that graph input
+and output contracts and original initializers remain intact. Discovery has not
+been verified on the actual shipped graph.
 
 Supervisor Modal runs 1 (model/data inventory) and 2 (the required six-shard
 baseline build/test harness) both returned `NotFoundError: No such file or
