@@ -1,0 +1,13 @@
+{
+ "id": "listener-lagged-bilinear-encoder",
+ "component": "listener",
+ "hypothesis": "Weak added-word consonants may survive as relationships between brief transitions and subsequent vowel features, but not as individually strong features; a lagged bilinear acoustic layer should recover 2 additions with no losses forecast, predicting listener -2 and overall -2, with substantial zero-gain risk.",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T23:40:42+00:00",
+ "author": "autolab"
+}
