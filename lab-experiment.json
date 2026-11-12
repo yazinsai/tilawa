@@ -1,0 +1,13 @@
+{
+ "id": "listener-paired-view-latent-paths",
+ "component": "listener",
+ "hypothesis": "Weak consonants may learn incorrect temporal assignments on degraded audio; jointly inferring their training paths from paired original and degraded recordings predicts 1 recovered addition, 0 losses, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T18:34:09+00:00",
+ "author": "autolab"
+}
