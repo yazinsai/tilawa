@@ -1,8 +1,8 @@
 # Activation-aware low-rank teacher inheritance
 
 Status: blocked before implementation by the supplied remote execution route;
-confirmed by minimal retries. No trained model, engine implementation or
-accuracy result is claimed. The experiment card is unchanged.
+confirmed again after the implementation feedback. No trained model, engine
+implementation or accuracy result is claimed. The experiment card is unchanged.
 
 ## Prediction and mechanism
 
@@ -73,7 +73,7 @@ speakers still need to be inspected before using these records.
 
 ## Execution and validation limits
 
-On 2026-11-12, all four requests through the supplied supervisor failed
+On 2026-11-12, all seven requests through the supplied supervisor failed
 with `NotFoundError: No such file or directory`:
 
 | Run | Request | Result |
@@ -82,8 +82,11 @@ with `NotFoundError: No such file or directory`:
 | 2 | Required `bash tools/autolab_tests.sh`; six CPU shards | NotFoundError; no command output or shard log |
 | 3 | Shell-only `pwd`; one CPU shard, two-minute limit | NotFoundError; no command output or shard log |
 | 4 | Train-image Torch import; one CPU shard, three-minute limit | NotFoundError; no command output or shard log |
+| 5 | Fresh train-image Torch import after implementation feedback; one CPU shard, three-minute limit | NotFoundError; no command output or shard log |
+| 6 | Fresh required `bash tools/autolab_tests.sh` retry; six CPU shards, five-minute limit | NotFoundError; no command output or shard log |
+| 7 | Fresh shell-only `pwd` retry; one CPU shard, two-minute limit | NotFoundError; no command output or shard log |
 
-All four result files report $0 charged and the full $180 GPU budget
+All seven result files report $0 charged and the full $180 GPU budget
 remaining. The returned error does not identify the missing path; it does
 not establish which volume, image or staging step failed. No GPU job has
 been requested.
@@ -96,13 +99,39 @@ local training and alternative remote access are outside the authorized
 execution arrangement.
 
 No engine behavior changed, so no new behavior tests were added. Core and SDK
-tests remain unverified: run 2 failed before the harness produced any log.
+tests remain unverified: runs 2 and 6 failed before the harness produced any log.
 No calibration, rank selection, factor fitting, matched control, export,
 SDK parity check or target diagnosis has run. No practice score has been
 requested; all three opportunities remain. The acoustic premise is untested,
 so infrastructure trouble does not justify a killed outcome or a measured
 zero gain. No `.autolab/outcome.json`, model bundle or `.autolab/model.json`
 is declared. Scoring the main model would not evaluate low-rank inheritance.
+
+## Why the engine change cannot be completed
+
+The previous attempt's feedback asks to implement an engine change or explain
+why it cannot be done. Fresh train-image, test-harness and shell-only failures
+confirm that the supplied execution route still cannot run even a Torch import
+or `pwd`. The error does not identify the missing path; no root cause is claimed.
+The requested change is
+a trained, exported primary model, rather than a factorization utility alone:
+
+- Calibration needs the actual teacher weights and layer inputs on authorized
+  audio to compute each operator's activation second moment. The only model
+  and audio found in this worktree are the tiny random SDK ONNX fixture and one
+  test WAV. They cannot stand in for the teacher or training recordings.
+- Both fitting arms need the remote recordings and their speaker metadata.
+  Without those records, training-speaker partitions, release-speaker exclusion,
+  help-train none-only selection, rank selection and the matched-compute
+  comparison cannot be validated. Cached top-five targets alone cannot initialize
+  the teacher's internal low-rank operators.
+- The SDK needs a primary streaming adapter for the inherited architecture.
+  Its feature normalization, finite attention context, factorized ONNX products,
+  frame counts and output timestamps need numerical checks against the loaded
+  model. The existing auxiliary teacher decoder is not that adapter.
+- The user explicitly requires a complete verified model bundle before handoff.
+  Without calibration, fitting and export, declaring a model path would select
+  missing assets; omitting it would evaluate the main listener instead.
 
 Activation-aware inheritance depends on actual teacher activations and
 operator weights, not just the published layer dimensions. The unavailable
