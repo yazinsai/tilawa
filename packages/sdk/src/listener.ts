@@ -2,6 +2,7 @@ import type { DecodedPhoneme, PhonemeEvidence } from "@tilawa/core";
 import { Resampler } from "./audio.js";
 import { Fbank } from "./fbank.js";
 import type { LoadedModel, Tensor } from "./model.js";
+import { occurrenceConfidence } from "./run-confidence.js";
 
 export interface ListenerOptions {
   /** Attach per-frame top-k posteriors to each chunk: the checker's local-window check reads them. Default false; sessions turn it on. */
@@ -47,11 +48,20 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   let emitted = 0;
   let prev = 0;
   let open: DecodedPhoneme | null = null;
+  let runProbabilities: number[] = [];
   /** The run at the end of the previous window was emitted; its continuation is the same phoneme. */
   let carried = false;
   let done: DecodedPhoneme[] = [];
   let ids: number[] = [];
   let probs: number[] = [];
+
+  function finishRun() {
+    if (!open) return;
+    if (model.runConfidence) open.conf = round4(occurrenceConfidence(runProbabilities, model.runConfidence));
+    done.push(open);
+    open = null;
+    runProbabilities = [];
+  }
 
   async function step(window: Float32Array[], keep: number) {
     const x = new Float32Array(m.window * m.fbank.mels);
@@ -69,9 +79,11 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
       if (id !== 0 && id === prev && open) {
         open.end = frame;
         open.conf = Math.max(open.conf, round4(p));
+        if (model.runConfidence) runProbabilities.push(round4(p));
       } else if (!(id !== 0 && id === prev && carried)) {
-        if (open) done.push(open);
+        finishRun();
         open = id !== 0 ? { p: m.tokens[id - 1], start: frame, end: frame, conf: round4(p) } : null;
+        runProbabilities = id !== 0 && model.runConfidence ? [round4(p)] : [];
         carried = false;
       }
       if (id !== prev) carried = false;
@@ -80,16 +92,14 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
     outFrames += n;
     // A run still open at the window's end goes out with it: continuing it in the next window can't change the token.
     if (open) {
-      done.push(open);
-      open = null;
+      finishRun();
       carried = true;
     }
   }
 
   function flush(final: boolean): PhonemeEvidence | null {
     if (final && open) {
-      done.push(open);
-      open = null;
+      finishRun();
     }
     const until = open ? open.start : outFrames;
     if (until <= emitted && !done.length) return null;

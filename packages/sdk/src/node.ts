@@ -11,6 +11,7 @@ import type { OrtModule } from "./ort.js";
 import { ortBackend } from "./ort.js";
 import { decodeWav } from "./wav.js";
 import { createInsertionTeacher } from "./insertion-teacher.js";
+import { validateRunConfidence } from "./run-confidence.js";
 
 export * from "./index.js";
 export { decodeWav };
@@ -22,7 +23,19 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  const model: LoadedModel = { manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES };
+  return attachConfidence(model, dir).then(m => attachInsertionTeacher(m, dir, options.threads));
+}
+
+/** An adjacent frozen fit reinterprets confidence, never the acoustic outputs. */
+async function attachConfidence(model: LoadedModel, dir: string): Promise<LoadedModel> {
+  try {
+    const value = JSON.parse(await readFile(join(dir, "run-confidence.json"), "utf8"));
+    model.runConfidence = validateRunConfidence(value, model.manifest.sha256, model.manifest.inventory);
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== "ENOENT") { await model.backend.release(); throw e; }
+  }
+  return model;
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +100,7 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  const dir = join(o.cacheDir, `${tier.id}@${tier.version}`);
+  const model = await attachConfidence({ manifest: tier.manifest, backend, supported: tier.supported }, dir);
+  return attachInsertionTeacher(model, dir, o.threads);
 }
