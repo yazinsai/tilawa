@@ -1,0 +1,13 @@
+{
+ "id": "tracker-window-origin-marginal",
+ "component": "tracker",
+ "hypothesis": "An arbitrary recent-history cutoff may favour the rhyme restart by truncating distinguishing context; marginalizing that cutoff predicts tracker -1 and overall 0 after one exposed listener warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T19:11:23+00:00",
+ "author": "autolab"
+}
