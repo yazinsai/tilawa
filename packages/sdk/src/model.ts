@@ -49,4 +49,9 @@ export interface LoadedModel {
   supported: ErrorClass[];
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
+  /** Frozen primary-model response scorer, with a matched static-feature control. */
+  responseFingerprint?: {
+    model: import("./response-fingerprint.js").FingerprintModel;
+    backend: InferenceBackend;
+  };
 }

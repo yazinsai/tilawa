@@ -1,4 +1,6 @@
 /** Node entry: onnxruntime-node, models from a directory, WAV input. */
+import { createHash } from "node:crypto";
+import { validateFingerprintModel } from "./response-fingerprint.js";
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import * as ort from "onnxruntime-node";
@@ -22,7 +24,50 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachFingerprintModel(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads), dir, options.threads);
+}
+
+/** A declared scorer must be complete and bound to the unchanged primary graph. */
+async function attachFingerprintModel(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
+  const emissionsFile = "response-fingerprint-emissions.json";
+  try {
+    const optional = (file: string) => readFile(join(dir, file), "utf8").catch(e => {
+      if (e.code === "ENOENT") return null;
+      throw e;
+    });
+    const descriptor = await optional("response-fingerprint-asset.json");
+    if (descriptor === null) {
+      if (await optional(emissionsFile) !== null) throw new Error("Fingerprint emissions lack their asset declaration");
+      return model;
+    }
+    const asset = JSON.parse(descriptor);
+    if (asset.schema !== 1 || !Array.isArray(asset.files) || asset.files.length !== 1 || asset.files[0].file !== emissionsFile)
+      throw new Error("Invalid fingerprint asset descriptor");
+    const entry = asset.files[0];
+    if (!Number.isSafeInteger(entry.bytes) || entry.bytes <= 0 || !/^[0-9a-f]{64}$/.test(entry.sha256))
+      throw new Error("Invalid fingerprint file declaration");
+    const bytes = await readFile(join(dir, emissionsFile));
+    if (bytes.length !== entry.bytes || createHash("sha256").update(bytes).digest("hex") !== entry.sha256)
+      throw new Error("Fingerprint asset checksum mismatch");
+    if (model.manifest.sampleRate !== 16000 || model.manifest.frameMs !== 40 || model.manifest.fbank.mels !== 80)
+      throw new Error("Fingerprint requires 16 kHz / 40 ms / 80 mel geometry");
+    const primaryBytes = await readFile(join(dir, model.manifest.file));
+    if (createHash("sha256").update(primaryBytes).digest("hex") !== model.manifest.sha256)
+      throw new Error("Fingerprint primary model checksum mismatch");
+    const fitted = validateFingerprintModel(JSON.parse(bytes.toString("utf8")), model.manifest);
+    const teacher = MODEL_REGISTRY.auxiliary?.find(a => a.purpose === "seam-insertion");
+    if (teacher?.inventory === model.manifest.inventory && !model.insertionTeacher)
+      throw new Error("Fingerprint bundle lacks the existing insertion teacher");
+    // The identical graph has independent runtime and recurrent state. Perturbed calls
+    // cannot touch the session used for primary decoding or its insertion teacher.
+    const extractor = await ortBackend(ort as unknown as OrtModule, join(dir, model.manifest.file), "onnxruntime-node", {
+      executionProviders: ["cpu"], intraOpNumThreads: threads,
+    });
+    const release = model.backend.release.bind(model.backend);
+    model.backend.release = async () => { try { await extractor.release(); } finally { await release(); } };
+    model.responseFingerprint = { model: fitted, backend: extractor };
+    return model;
+  } catch (e) { await model.backend.release(); throw e; }
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +132,7 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  const dir = join(o.cacheDir, `${tier.id}@${tier.version}`);
+  return attachFingerprintModel(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
+    dir, o.threads), dir, o.threads);
 }
