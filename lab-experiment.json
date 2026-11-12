@@ -1,0 +1,13 @@
+{
+ "id": "tracker-boundary-invariant-edit-state",
+ "component": "tracker",
+ "hypothesis": "Word-boundary resets may change acoustic edit costs independently of the spoken phones, favouring the rhyme restart; continuous edit-state composition predicts tracker -1 and overall 0 after one exposed listener warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T20:34:15+00:00",
+ "author": "autolab"
+}
