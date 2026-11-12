@@ -34,7 +34,7 @@ export interface LocalPosition {
 
 export interface LocalSearch {
   /** Consume one observed phoneme. */
-  step(p: string): void;
+  step(p: string, acoustic?: ReadonlyMap<string | null, number>): void;
   position(): LocalPosition;
   /** The search state, to rewind to with `restore`. */
   save(): unknown;
@@ -102,7 +102,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
 
 
   return {
-    step(p) {
+    step(p, acoustic) {
       const n = cost.length;
       const base = cost[best - lo];
       const c = new Float64Array(n);
@@ -110,11 +110,11 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       const e = new Int32Array(n);
       for (let i = 0; i < n; i++) {
         const at = lo + i;
-        let bc = cost[i] + insertionCost(ref, at, p);
+        let bc = cost[i] + insertionCost(ref, at, p) + (acoustic?.get(null) ?? 0);
         let bo = origin[i];
         let be = edits[i] + 1;
         if (i > 0) {
-          const s = subCost(ref[at - 1], p) + entry(at - 1);
+          const s = subCost(ref[at - 1], p) + entry(at - 1) + (acoustic?.get(ref[at - 1]) ?? 0);
           const edit = ref[at - 1] === p ? 0 : 1;
           // On a tie, consuming the reference beats an insertion, so a correct recitation keeps advancing.
           if (cost[i - 1] + s <= bc) {

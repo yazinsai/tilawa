@@ -16,6 +16,8 @@ export interface DecodedPhoneme {
   start: number;
   end: number;
   conf: number;
+  /** Nonblank posterior mass in inventory order, retained for local articulation matching only. */
+  phonePosterior?: readonly number[];
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
 }

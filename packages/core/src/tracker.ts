@@ -6,6 +6,9 @@ import type { EngineEvent, PositionCandidate, PositionEvent, TraceCandidate, Tra
 import { EvidenceError } from "./evidence.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { createLocalSearch } from "./local.js";
+import { articulatoryCosts, posteriorObservation } from "./articulatory-channel.js";
+import type { ArticulatoryModel } from "./articulatory-channel.js";
+import { ARTICULATORY_MODEL } from "./articulatory-model.js";
 import type { LocalPosition, LocalSearch } from "./local.js";
 import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
@@ -13,6 +16,8 @@ import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-s
 import type { SlotSpan } from "./slot-spans.js";
 
 export interface TrackerOptions {
+  /** Frozen training model; injectable for identical-data identity controls. */
+  articulatoryModel?: ArticulatoryModel;
   mode?: "free" | "memorization";
   /** Grams occurring more often than this carry too little location information to vote. */
   maxGramOccurrences?: number;
@@ -270,12 +275,18 @@ export function relocationSupport(
   return best;
 }
 
-/** What the tracker is fed from one chunk of listener evidence, in the product and in every bench alike: phonemes only. */
-export function trackerInput(evidence: PhonemeEvidence): PhonemeEvidence {
-  return { ...evidence, posteriors: undefined };
+/** Local acoustic metadata travels with tokens; acquisition keeps its existing decoded-only input. */
+export function trackerInput(evidence: PhonemeEvidence, model = ARTICULATORY_MODEL): PhonemeEvidence {
+  const phonemes = model?.inventory === evidence.inventory && evidence.posteriors ? evidence.phonemes.map(ph => ({
+    ...ph, phonePosterior: posteriorObservation(evidence.posteriors!, model.phones, ph),
+  })) : evidence.phonemes;
+  return { ...evidence, phonemes, posteriors: undefined };
 }
 
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
+  const proposedModel = options.articulatoryModel ?? ARTICULATORY_MODEL;
+  const articulatoryModel = proposedModel && (!proposedModel.inventory || proposedModel.inventory === index.inventoryId)
+    && [...index.tokens].join("") === proposedModel.phones.join("") ? proposedModel : undefined;
   const maxGramOccurrences = options.maxGramOccurrences ?? 5000;
   const maxCandidates = options.maxCandidates ?? 64;
   const maxPer = options.maxPer ?? 0.35;
@@ -1280,7 +1291,9 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         continue;
       }
       const before = local.save();
-      local.step(ph.p);
+      const model = articulatoryModel;
+      const q = model && (ph.phonePosterior ?? (evidence.posteriors && posteriorObservation(evidence.posteriors, model.phones, ph)));
+      local.step(ph.p, model && q ? articulatoryCosts(model, q) : undefined);
       stepCosts.push(local.position().stepCost);
       if (stepCosts.length > CONFIRM) stepCosts.shift();
       const heardPhrase = hear(ph.p, before, local.position().stepCost);
