@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "All four authorized Modal requests failed before execution with NotFoundError, preventing a training-frozen fit, required full tests and the target comparison.",
+  "measured": {}
+}
