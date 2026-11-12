@@ -1,0 +1,13 @@
+{
+ "id": "listener-angular-identity-readout",
+ "component": "listener",
+ "hypothesis": "Recording-dependent feature magnitudes may distort consonant identity despite useful feature directions; an angular acoustic readout should remove 1 false warning with no losses counted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T22:42:21+00:00",
+ "author": "autolab"
+}
