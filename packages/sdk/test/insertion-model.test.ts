@@ -14,10 +14,7 @@ const manifest = { file: "primary.onnx", tokens: "بت", inventory: "muaalem-v3_
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.readFile.mockImplementation(async (path: string) => {
-    if (path.endsWith("diphone-asset.json")) throw Object.assign(new Error("absent"), {code:"ENOENT"});
-    return JSON.stringify(manifest);
-  });
+  mocks.readFile.mockResolvedValue(JSON.stringify(manifest));
 });
 
 describe("Node insertion teacher loading", () => {

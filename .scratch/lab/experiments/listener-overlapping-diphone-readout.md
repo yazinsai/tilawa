@@ -1,7 +1,9 @@
 # Overlapping diphone acoustic readout
 
-Status: implementation drafted; remote training and validation pending. The
-experiment card is unchanged. No target gain or practice result is established.
+Status: infrastructure-blocked, unmeasured. The draft implementation is preserved
+in commits `e2006685` and `29714bfe`; the final working tree restores the engine
+to its starting state. The experiment card is unchanged. No target gain or
+practice result is established, and the acoustic premise has not been killed.
 
 ## Prediction and mechanism
 
@@ -72,6 +74,18 @@ cost zero. Run 2 requested the required six-shard core/SDK build/test harness
 and failed with the same `NotFoundError`, again without test output. Run 3
 requested a minimal working-directory, `/lab/data` and numpy check and failed
 with the same error and zero reported cost. Run 4 repeats the census through
-the supervisor's supported training image; its result is pending.
-No alternative Modal route was attempted, no official
-practice score was requested, and no model bundle has been declared.
+the supervisor's supported training image and also failed with the same
+`NotFoundError`, no container output, and zero reported cost. Both supported
+images therefore failed before any data census, feature extraction, training,
+Node SDK bundle verification or TypeScript test result could be obtained.
+No alternative Modal route was attempted, no official practice score was
+requested, and no model bundle has been declared.
+
+None of the four registered windows was evaluated. Target wins and the practice
+change are unknown, not zero. Neither the card's two-reversal criterion nor the
+task's three-target rule can be assessed. The engine and new source/test files
+were rolled back because an untrained, unverified auxiliary model cannot be
+submitted as a completed listener experiment. The draft remains recoverable
+from git history once the supervisor's Modal execution is restored; this report
+records an infrastructure failure rather than evidence against overlapping
+diphone acoustics. There is no fold or premise-killed outcome.
