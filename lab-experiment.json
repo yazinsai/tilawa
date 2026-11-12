@@ -1,0 +1,13 @@
+{
+ "id": "listener-live-parameter-update",
+ "component": "listener",
+ "hypothesis": "Some corrective refits may compute gradients on live acoustic parameters while the optimizer updates superseded tensors; repairing parameter ownership could recover 1 missed addition with 0 losses, listener -1 and overall -1, with substantial zero-gain risk.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T18:03:27+00:00",
+ "author": "autolab"
+}
