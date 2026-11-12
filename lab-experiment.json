@@ -1,0 +1,13 @@
+{
+ "id": "listener-peak-selection-confidence",
+ "component": "listener",
+ "hypothesis": "Run confidence reports a selected frame maximum rather than the probability that the emitted sound is correct; selection-adjusted run confidence should remove 2 false warnings while losing 1 caught mistake, predicting listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T12:59:07+00:00",
+ "author": "autolab"
+}
