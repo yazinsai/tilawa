@@ -1,0 +1,13 @@
+{
+ "id": "listener-contrast-space-head-training",
+ "component": "listener",
+ "hypothesis": "Irrelevant common-logit weight components may distort adaptive optimization of weak consonant contrasts; train the phone head in identifiable contrast coordinates, predicting 1 recovered addition and 0 losses: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T12:58:36+00:00",
+ "author": "autolab"
+}
