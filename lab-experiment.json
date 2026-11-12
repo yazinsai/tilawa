@@ -1,0 +1,13 @@
+{
+ "id": "listener-lossless-distillation-targets",
+ "component": "listener",
+ "hypothesis": "Stored distillation targets may discard the teacher's secondary consonant probabilities, teaching blank where weak added words need those alternatives; lossless targets and a bounded head refit predict 1 recovered addition, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T00:46:53+00:00",
+ "author": "autolab"
+}
