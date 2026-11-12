@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "The supplied supervisor runner repeatedly fails before execution with NotFoundError, blocking real-data fitting, the training-frozen target/control comparison and required core/SDK builds/tests; the opt-in two-stage prototype is retained with default activation pending.",
+  "measured": {}
+}
