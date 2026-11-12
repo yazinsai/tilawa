@@ -1,0 +1,13 @@
+{
+ "id": "listener-contaminated-label-mixture",
+ "component": "listener",
+ "hypothesis": "Unscripted deviations in supposedly correct training recordings may teach false consonant associations; contamination-aware transcript training predicts 2 false warnings removed and 1 collateral wrong call, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T06:47:49+00:00",
+ "author": "autolab"
+}
