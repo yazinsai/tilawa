@@ -14,6 +14,8 @@ import { Resampler } from "./audio.js";
 import { capabilities } from "./capabilities.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
+import { addTransportEvidence, carryTransportEvidence, createFeatureStream, featureComparison, featureReversal } from "./transport-phone.js";
+import type { ConditionalTransportEvidence, SequenceEvidenceCandidate } from "@tilawa/core";
 import { createListener } from "./listener.js";
 import type { ListenerOptions } from "./listener.js";
 import type { LoadedModel } from "./model.js";
@@ -95,10 +97,21 @@ export function createEngine(options: EngineOptions): Engine {
 
   function start(mode: Session["mode"], passage: Session["passage"], policy: SessionPolicy = {}): Session {
     const tracker = createTracker(index, { mode, phrases, acquireMs: ACQUIRE_MS });
+    const side = model.conditionalTransport;
+    const featureStream = side && createFeatureStream(side.backend, model.manifest, side.model);
+    const transportCertificates = new Map<string, ConditionalTransportEvidence>();
+    const sequenceEvidence = (candidate: SequenceEvidenceCandidate): boolean => {
+      if (!side || !featureStream || candidate.fromFrame < 0 || candidate.toFrame > featureStream.observations.length) return true;
+      const result = featureComparison(side.model, featureStream.observations.slice(candidate.fromFrame, candidate.toFrame), candidate);
+      if (!result || !featureReversal(result)) return true;
+      transportCertificates.set(JSON.stringify(candidate), result);
+      return false;
+    };
     const checkerOptions = {
       phrases,
       policy: { countResolved: policy.countSelfCorrections ?? false, confirm: policy.confirm, minConfidence: policy.minConfidence },
       ...(passage && { passage }),
+      ...(side && { sequenceEvidence }),
     };
     const checker = createChecker(index, checkerOptions);
     const listener = createListener(model, { posteriors: true, ...options.listener });
@@ -115,7 +128,7 @@ export function createEngine(options: EngineOptions): Engine {
     const pcmParts: Float32Array[] = [];
     let pcmResampler: Resampler | null = null;
     const keepAudio = (samples: Float32Array, sampleRate: number) => {
-      if (!options.recordEvidence && !model.insertionTeacher) return;
+      if (!options.recordEvidence && !model.insertionTeacher && !model.conditionalTransport) return;
       let pcm = samples;
       if (sampleRate !== rate) {
         if (!pcmResampler || pcmResampler.from !== sampleRate) pcmResampler = new Resampler(sampleRate, rate);
@@ -134,7 +147,7 @@ export function createEngine(options: EngineOptions): Engine {
     const cells = evidenceGrid(policy.evidenceMs ?? model.manifest.frameMs);
     const feed = (ready: PhonemeEvidence[]) => ready.flatMap(step);
     const step = (e: PhonemeEvidence) => {
-      if (options.recordEvidence || model.insertionTeacher) recorded.push(e);
+      if (options.recordEvidence || model.insertionTeacher || model.conditionalTransport) recorded.push(e);
       // Posteriors feed the checker's local-window check only; the tracker runs on the decode.
       const out = tracker.push(trackerInput(e));
       noteLocks(out);
@@ -163,6 +176,7 @@ export function createEngine(options: EngineOptions): Engine {
       pushAudio: (samples, sampleRate) =>
         serial(async () => {
           keepAudio(samples, sampleRate);
+          await featureStream?.push(samples, sampleRate);
           const e = await listener.push(samples, sampleRate);
           if (e) cells.add(e);
           return feed(cells.ready(listener.decoded));
@@ -173,10 +187,11 @@ export function createEngine(options: EngineOptions): Engine {
             const tail = pcmResampler.flush();
             if (tail.length) pcmParts.push(Float32Array.from(tail));
           }
+          await featureStream?.end();
           const e = await listener.end();
           if (e) cells.add(e);
           const events = [...feed(cells.rest()), ...finish()];
-          if ((options.recordEvidence || model.insertionTeacher) && pcmParts.length) {
+          if ((options.recordEvidence || model.insertionTeacher || model.conditionalTransport) && pcmParts.length) {
             const n = pcmParts.reduce((s, p) => s + p.length, 0);
             const audio = new Float32Array(n);
             let o = 0;
@@ -184,9 +199,13 @@ export function createEngine(options: EngineOptions): Engine {
               audio.set(part, o);
               o += part.length;
             }
+            const primary = recorded.slice();
             const spliced = options.recordEvidence && locks.length > 1
-              ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
-            const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
+              ? await spliceContextFreeGaps(model, audio, rate, primary, locks, index) : primary;
+            const insertions = await addInsertionEvidence(model, audio, spliced, index, phrases);
+            const rescored = await addTransportEvidence(model.conditionalTransport, model.manifest, audio, insertions, index, phrases, checkerOptions, mode);
+            const enriched = carryTransportEvidence(rescored, [...transportCertificates.values(),
+              ...rescored.flatMap(cell => cell.phonemes.flatMap(p => p.conditionalTransportVetoes ?? []))]);
             recorded.splice(0, recorded.length, ...enriched);
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.
