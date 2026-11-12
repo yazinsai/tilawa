@@ -1,0 +1,13 @@
+{
+ "id": "listener-boosted-acoustic-residuals",
+ "component": "listener",
+ "hypothesis": "Global acoustic-head refits disturb working distinctions when correcting localized confusions; sparse, boosted residual corrections should remove 2 false warnings while losing 1 caught substitution: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T17:03:07+00:00",
+ "author": "autolab"
+}
