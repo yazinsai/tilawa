@@ -1,0 +1,5 @@
+{
+  "status": "needs-human",
+  "reason": "All four supervisor Modal requests failed before execution with NotFoundError, preventing calibration, required suites and target validation.",
+  "measured": {}
+}
