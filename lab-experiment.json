@@ -1,0 +1,13 @@
+{
+ "id": "listener-chunk-phase-consistent-head",
+ "component": "listener",
+ "hypothesis": "Weak consonant identity may vary with streaming chunk phase in ways the phone head never learned to reconcile; phase-consistent head training predicts 1 recovered addition, no losses counted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T08:23:19+00:00",
+ "author": "autolab"
+}
