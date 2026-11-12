@@ -1,0 +1,13 @@
+{
+ "id": "listener-minimal-information-readout",
+ "component": "listener",
+ "hypothesis": "Persistent false substitutions may depend on incidental encoder detail rather than transferable phonetic evidence; an information-bottleneck acoustic readout should remove 1 false warning with no losses forecast, predicting listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T22:38:45+00:00",
+ "author": "autolab"
+}
