@@ -9,6 +9,7 @@ import {
 import type { GapPhoneme, PhonemeEvidence, ReferenceIndex, WordGap } from "@tilawa/core";
 import { createListener } from "./listener.js";
 import type { LoadedModel } from "./model.js";
+import { shiftPhoneEvent } from "./phone-integrator.js";
 
 export interface LockPoint {
   wi: number;
@@ -146,7 +147,7 @@ export async function spliceContextFreeGaps(
     const crop = await decodeIsolated(model, audio.subarray(i0, i1), sampleRate, flat.k);
     if (crop.k !== flat.k) continue;
     const shift = Math.round(t0 / frameS);
-    const shifted = crop.phonemes.map((p) => ({ ...p, start: p.start + shift, end: p.end + shift }));
+    const shifted = crop.phonemes.map((p) => shiftPhoneEvent(p, shift, i0, sampleRate));
     const kept = recoverGapPhonemes(shifted, gap.fromFrame, gap.toFrame, gap.left, gap.right);
     if (!gapCarriesAddition(kept)) continue;
     phonemes = placeGap(phonemes, gap, kept);

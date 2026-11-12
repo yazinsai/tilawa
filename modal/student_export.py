@@ -52,6 +52,9 @@ def wrap(model, chunk: int, left: int):
         def __init__(self):
             super().__init__()
             self.encoder, self.encoder_embed, self.ctc_output = model.encoder, model.encoder_embed, model.ctc_output
+            self.event_heads = hasattr(model, "phone_mass") and getattr(model, "export_events", False)
+            if self.event_heads:
+                self.phone_mass, self.phone_output = model.phone_mass, model.phone_output
 
         def forward(self, x, states):
             T = chunk * 2 + PAD
@@ -62,7 +65,12 @@ def wrap(model, chunk: int, left: int):
             mask = torch.cat([mask, torch.zeros(x.size(0), chunk, dtype=torch.int32)], dim=1)
             out, _, new_states = self.encoder.streaming_forward(x=x.permute(1, 0, 2), x_lens=x_lens, states=states[:-2],
                                                                 src_key_padding_mask=mask)
-            return self.ctc_output(out.permute(1, 0, 2)).log_softmax(-1), new_states + [new_pad, processed + x_lens]
+            features = out.permute(1, 0, 2)
+            lp = self.ctc_output(features).log_softmax(-1)
+            states_out = new_states + [new_pad, processed + x_lens]
+            if self.event_heads:
+                return lp, self.phone_mass(features).squeeze(-1).clamp(0, 1), self.phone_output(features), states_out
+            return lp, states_out
 
         def init_states(self):
             return self.encoder.get_init_states(1, torch.device("cpu")) + [self.encoder_embed.get_init_states(1, torch.device("cpu")),
@@ -82,10 +90,13 @@ def export_onnx(model, path: str, chunk: int, left: int) -> list[dict]:
     kinds = ["cached_key", "cached_nonlin_attn", "cached_val1", "cached_val2", "cached_conv1", "cached_conv2"]
     names = [f"{kinds[i % 6]}_{i // 6}" for i in range(len(init) - 2)] + ["embed_states", "processed_lens"]
     x = torch.rand(1, chunk * 2 + PAD, 80)
-    with torch.no_grad():
-        torch.onnx.export(s, (x, init), path, opset_version=17, input_names=["x", *names],
-                          output_names=["log_probs", *[f"new_{n}" for n in names]], **get_onnx_export_kwargs())
-    cls.forward = plain
+    try:
+        with torch.no_grad():
+            torch.onnx.export(s, (x, init), path, opset_version=17, input_names=["x", *names],
+                              output_names=["log_probs", *(["phone_mass", "phone_scores"] if s.event_heads else []),
+                                            *[f"new_{n}" for n in names]], **get_onnx_export_kwargs())
+    finally:
+        cls.forward = plain
     return [{"name": n, "shape": list(t.shape), "dtype": "int64" if t.dtype == torch.int64 else "float32"} for n, t in zip(names, init)]
 
 
@@ -105,9 +116,9 @@ def stream_onnx(path: str, feats, states: list[dict], chunk: int):
     f = np.concatenate([f, np.full((max(0, total - n), 80), LOG_EPS, dtype=np.float32)])
     outs = []
     for a in range(0, total - T + 1, shift):
-        res = sess.run(None, {"x": f[None, a : a + T], **st})
-        outs.append(res[0][0])
-        st = {s["name"]: r for s, r in zip(states, res[1:])}
+        res = dict(zip([o.name for o in sess.get_outputs()], sess.run(None, {"x": f[None, a : a + T], **st})))
+        outs.append(res["log_probs"][0])
+        st = {s["name"]: res["new_" + s["name"]] for s in states}
     return np.concatenate(outs)
 
 

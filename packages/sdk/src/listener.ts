@@ -2,6 +2,7 @@ import type { DecodedPhoneme, PhonemeEvidence } from "@tilawa/core";
 import { Resampler } from "./audio.js";
 import { Fbank } from "./fbank.js";
 import type { LoadedModel, Tensor } from "./model.js";
+import { PhoneIntegrator } from "./phone-integrator.js";
 
 export interface ListenerOptions {
   /** Attach per-frame top-k posteriors to each chunk: the checker's local-window check reads them. Default false; sessions turn it on. */
@@ -29,9 +30,12 @@ const round4 = (x: number) => Math.round(x * 1e4) / 1e4;
  */
 export function createListener(model: LoadedModel, options: ListenerOptions = {}): Listener {
   const m = model.manifest;
-  const k = options.topK ?? 5;
   const fbank = new Fbank();
   const vocab = m.tokens.length + 1;
+  // CIF identities need not occur in CTC's top five. Retain its actual complete distribution,
+  // so existing evidence validation and acoustic support see independent, unmodified CTC scores.
+  const k = m.decoder ? vocab : options.topK ?? 5;
+  const integrator = m.decoder ? new PhoneIntegrator(m.tokens, m.sampleRate, m.frameMs) : null;
   let resampler: Resampler | null = null;
   let states: Record<string, Tensor> = Object.fromEntries(
     m.states.map((s) => {
@@ -60,12 +64,20 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
     states = Object.fromEntries(m.states.map((s) => [s.name, out[`new_${s.name}`]]));
     const lp = out.log_probs.data as Float32Array;
     const n = Math.min(keep, lp.length / vocab);
+    const masses = m.decoder ? out[m.decoder.mass]?.data as Float32Array | undefined : undefined;
+    const scores = m.decoder ? out[m.decoder.scores]?.data as Float32Array | undefined : undefined;
+    if (integrator && (!masses || !scores || masses.length < n || scores.length < n * vocab))
+      throw new Error("Missing CIF acoustic outputs");
     for (let t = 0; t < n; t++) {
       const row = lp.subarray(t * vocab, (t + 1) * vocab);
       const top = topK(row, k);
       if (options.posteriors) for (const [id, p] of top) ids.push(id), probs.push(round4(p));
       const [id, p] = top[0];
       const frame = outFrames + t;
+      if (integrator) {
+        done.push(...integrator.push(masses![t], scores!.subarray(t * vocab, (t + 1) * vocab), frame));
+        continue;
+      }
       if (id !== 0 && id === prev && open) {
         open.end = frame;
         open.conf = Math.max(open.conf, round4(p));
@@ -87,20 +99,23 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   }
 
   function flush(final: boolean): PhonemeEvidence | null {
+    if (final && integrator) done.push(...integrator.endStream(outFrames - 1));
     if (final && open) {
       done.push(open);
       open = null;
     }
-    const until = open ? open.start : outFrames;
-    if (until <= emitted && !done.length) return null;
-    const e: PhonemeEvidence = { inventory: m.inventory, frameMs: m.frameMs, phonemes: done };
+    const until = integrator ? integrator.finalizedFrame(outFrames) : open ? open.start : outFrames;
+    const ready = done.filter((p) => p.start < until);
+    if (until <= emitted && !ready.length) return null;
+    const e: PhonemeEvidence = { inventory: m.inventory, frameMs: m.frameMs, phonemes: ready,
+      ...(integrator ? { decodedTo: until } : {}) };
     if (options.posteriors) {
       const n = until - emitted;
       e.posteriors = { k, startFrame: emitted, nFrames: n, ids: ids.slice(0, n * k), probs: probs.slice(0, n * k) };
       ids = ids.slice(n * k);
       probs = probs.slice(n * k);
     }
-    done = [];
+    done = done.filter((p) => p.start >= until);
     emitted = until;
     return e;
   }

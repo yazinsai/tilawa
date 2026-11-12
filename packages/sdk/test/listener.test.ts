@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { PhonemeEvidence } from "@tilawa/core";
 import { createListener } from "../src/listener.js";
-import type { InferenceBackend, Tensor } from "../src/model.js";
+import type { InferenceBackend, LoadedModel, ModelManifest, Tensor } from "../src/model.js";
 import { loadNodeModel } from "../src/node.js";
 import { decodeWav } from "../src/wav.js";
 
@@ -101,5 +101,82 @@ describe("streaming listener on onnxruntime-node", () => {
     count(await listener.end());
     expect(frames).toBeGreaterThan(0);
     expect(frames).toBeLessThanOrEqual(reference.frames);
+  });
+});
+
+describe("primary integrate-and-fire listener", () => {
+  function model(silenceAfter?: number): LoadedModel {
+    const manifest = JSON.parse(readFileSync(fixture("tiny/manifest.json"), "utf8")) as ModelManifest;
+    manifest.decoder = { kind: "cif", mass: "phone_mass", scores: "phone_scores" };
+    const vocab = manifest.tokens.length + 1;
+    const n = manifest.shift / 4;
+    let frame = 0;
+    return {
+      manifest, supported: [], backend: {
+        name: "cif-stub",
+        async release() {},
+        async run(feeds) {
+          const out: Record<string, Tensor> = Object.fromEntries(manifest.states.map((s) => [`new_${s.name}`, feeds[s.name]]));
+          const lp = new Float32Array(n * vocab).fill(-10);
+          const scores = new Float32Array(n * vocab).fill(-2);
+          for (let t = 0; t < n; t++) lp[t * vocab] = 0, scores[t * vocab + 1] = 2;
+          out.log_probs = { type: "float32", data: lp, dims: [1, n, vocab] };
+          const masses = Float32Array.from({ length: n }, () => silenceAfter === undefined ? 0.3 : frame++ < silenceAfter ? 0.7 : 0);
+          out.phone_mass = { type: "float32", data: masses, dims: [1, n] };
+          out.phone_scores = { type: "float32", data: scores, dims: [1, n, vocab] };
+          return out;
+        },
+      },
+    };
+  }
+
+  async function collect(step: number, input = model()) {
+    const listener = createListener(input, { posteriors: true });
+    const chunks: PhonemeEvidence[] = [];
+    for (let a = 0; a < wav.samples.length; a += step) {
+      const chunk = await listener.push(wav.samples.subarray(a, a + step), wav.sampleRate);
+      if (chunk) {
+        expect(chunk.decodedTo).toBe(listener.decoded);
+        expect(chunk.phonemes.every((p) => p.start < listener.decoded)).toBe(true);
+        chunks.push(chunk);
+      }
+    }
+    const tail = await listener.end();
+    if (tail) chunks.push(tail);
+    return chunks;
+  }
+
+  it("uses pooled event identities and keeps independent CTC rows, invariant to push size", async () => {
+    const a = await collect(1600);
+    const b = await collect(wav.samples.length);
+    const events = a.flatMap((c) => c.phonemes);
+    expect(events).toEqual(b.flatMap((c) => c.phonemes));
+    expect(events.length).toBe(Math.round(reference.frames * Math.fround(0.3)));
+    let next = 0;
+    for (const chunk of a) {
+      const post = chunk.posteriors!;
+      expect(post.startFrame).toBe(next);
+      for (let t = 0; t < post.nFrames; t++) {
+        expect(post.ids[t * post.k]).toBe(0);
+        expect(post.probs[t * post.k]).toBe(1);
+      }
+      next += post.nFrames;
+    }
+    expect(next).toBe(reference.frames);
+    expect(events.at(-1)!.integration!.contributions.at(-1)!.toSample).toBeLessThanOrEqual(next * 640);
+    for (const chunk of a) for (const event of chunk.phonemes) {
+      expect(event.start).toBeGreaterThanOrEqual(chunk.posteriors!.startFrame);
+      expect(event.end).toBeLessThan(chunk.posteriors!.startFrame + chunk.posteriors!.nFrames);
+    }
+  });
+
+  it("delivers a terminal partial event inside its posterior chunk even after trailing silence", async () => {
+    const chunks = await collect(1600, model(4));
+    const events = chunks.flatMap((c) => c.phonemes);
+    expect(events).toHaveLength(3);
+    const tail = chunks.at(-1)!;
+    expect(tail.phonemes.at(-1)!.start).toBe(reference.frames - 1);
+    expect(tail.phonemes.at(-1)!.integration!.contributions.at(-1)!.toSample).toBe(4 * 640);
+    expect(tail.phonemes.at(-1)!.start).toBeGreaterThanOrEqual(tail.posteriors!.startFrame);
   });
 });

@@ -12,10 +12,16 @@ export interface SeamInsertionEvidence {
 export interface DecodedPhoneme {
   /** One token from the evidence inventory. */
   p: string;
-  /** First and last frame (inclusive) of the token's CTC spike run. */
+  /** First and last frame (inclusive) of the acoustic token interval. */
   start: number;
   end: number;
   conf: number;
+  /** Integrate-and-fire contributions on the original audio clock at sampleRate, before any cropping. */
+  integration?: {
+    sampleRate: number;
+    mass: number;
+    contributions: { fromSample: number; toSample: number; mass: number }[];
+  };
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
 }

@@ -12,6 +12,8 @@ export interface ModelManifest {
   id: string;
   format: string;
   arch: "zipformer2-streaming-ctc";
+  /** Optional primary phone-event decoder. Scores are affine acoustic logits, never frame posteriors. */
+  decoder?: { kind: "cif"; mass: "phone_mass"; scores: "phone_scores" };
   /** Must equal the reference index inventory id. */
   inventory: string;
   /** Token `i + 1` is `tokens[i]`; 0 is the CTC blank. */
