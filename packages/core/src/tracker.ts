@@ -11,8 +11,12 @@ import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
 import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-spans.js";
 import type { SlotSpan } from "./slot-spans.js";
+import { CONDITIONAL_TRAJECTORY_MODEL } from "./trajectory-model.js";
+import type { TrajectoryModel } from "./trajectory.js";
 
 export interface TrackerOptions {
+  /** Training-frozen conditional potentials for existing local trajectories. Null preserves the original search. */
+  trajectoryModel?: TrajectoryModel | null;
   mode?: "free" | "memorization";
   /** Grams occurring more often than this carry too little location information to vote. */
   maxGramOccurrences?: number;
@@ -869,7 +873,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
-    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) },
+      { model: options.trajectoryModel === undefined ? CONDITIONAL_TRAJECTORY_MODEL : options.trajectoryModel });
     weak = false;
     pending = null;
     reacquiring = false;

@@ -1,5 +1,7 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import { trajectoryFeatures, trajectoryPotential, validateTrajectoryModel } from "./trajectory.js";
+import type { TrajectoryFrame, TrajectoryOptions } from "./trajectory.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -45,7 +47,11 @@ export interface LocalSearch {
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">,
+  options: TrajectoryOptions = {}): LocalSearch {
+  const model = options.model ? { ...options.model, weights: [...options.model.weights] } : null;
+  if (model) validateTrajectoryModel(model);
+  const learned = !!model?.weights.some(w => w !== 0);
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -66,6 +72,8 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
 
   let lo = 0;
   let cost = new Float64Array(0);
+  // Acoustic fit follows the selected trajectory without its learned potential; existing fit rules keep their units.
+  let acoustic = new Float64Array(0);
   let origin = new Int32Array(0);
   let edits = new Int32Array(0);
   let best = start.offset;
@@ -81,22 +89,26 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     const c = new Float64Array(newHi - newLo + 1).fill(Infinity);
     const o = new Int32Array(c.length);
     const e = new Int32Array(c.length);
+    const raw = learned ? new Float64Array(c.length).fill(Infinity) : c;
     for (let i = 0; i < c.length; i++) {
       const old = newLo + i - lo;
       if (old >= 0 && old < cost.length) {
         c[i] = cost[old];
         o[i] = origin[old];
         e[i] = edits[old];
+        if (learned) raw[i] = acoustic[old];
       }
     }
     lo = newLo;
     cost = c;
+    acoustic = raw;
     origin = o;
     edits = e;
   };
 
   recentre(start.offset);
   cost[start.offset - lo] = 0;
+  acoustic[start.offset - lo] = 0;
   origin[start.offset - lo] = start.origin;
   edits[start.offset - lo] = start.edits;
 
@@ -105,40 +117,63 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     step(p) {
       const n = cost.length;
       const base = cost[best - lo];
+      const rawBase = acoustic[best - lo];
       const c = new Float64Array(n);
+      const raw = learned ? new Float64Array(n) : c;
       const o = new Int32Array(n);
       const e = new Int32Array(n);
+      const frame: TrajectoryFrame | null = options.observe ? {
+        lo, previousLo: lo, previousSize: n, source: best,
+        arcs: Array.from({ length: n }, () => new Array(4).fill(null)),
+      } : null;
+      const potential = (kind: number, from: number, to: number, price: number, acousticPrice: number) => {
+        if (!model && !frame) return 0;
+        const x = trajectoryFeatures(index, kind, from, to, p, acousticPrice);
+        if (frame) frame.arcs[to - lo][kind] = { cost: price / UNIT, x };
+        return trajectoryPotential(model, x);
+      };
       for (let i = 0; i < n; i++) {
         const at = lo + i;
-        let bc = cost[i] + insertionCost(ref, at, p);
+        const ins = insertionCost(ref, at, p);
+        let bc = cost[i] + ins + potential(0, at, at, ins, ins);
+        let br = acoustic[i] + ins;
         let bo = origin[i];
         let be = edits[i] + 1;
         if (i > 0) {
-          const s = subCost(ref[at - 1], p) + entry(at - 1);
+          const acousticSub = subCost(ref[at - 1], p);
+          const s = acousticSub + entry(at - 1);
           const edit = ref[at - 1] === p ? 0 : 1;
           // On a tie, consuming the reference beats an insertion, so a correct recitation keeps advancing.
-          if (cost[i - 1] + s <= bc) {
-            bc = cost[i - 1] + s;
+          const match = cost[i - 1] + s + potential(1, at - 1, at, s, acousticSub);
+          if (match <= bc) {
+            bc = match;
+            br = acoustic[i - 1] + s;
             bo = origin[i - 1];
             be = edits[i - 1] + edit;
           }
           const from = at - 1;
           if (from !== best && wordStarts.has(from)) {
-            const j = base + JUMP_COST + Math.abs(from - best) * JUMP_DISTANCE + s + (entry(at - 1) ? 0 : crossing(from));
+            const price = JUMP_COST + Math.abs(from - best) * JUMP_DISTANCE + s + (entry(at - 1) ? 0 : crossing(from));
+            const j = base + price + potential(2, best, at, price, acousticSub);
             if (j < bc) {
               bc = j;
+              br = rawBase + price;
               bo = from;
               be = edit;
             }
           }
-          const d = c[i - 1] + deletionCost(ref, at - 1) + entry(at - 1);
+          const acousticDel = deletionCost(ref, at - 1);
+          const del = acousticDel + entry(at - 1);
+          const d = c[i - 1] + del + potential(3, at - 1, at, del, acousticDel);
           if (d < bc) {
             bc = d;
+            br = raw[i - 1] + del;
             bo = o[i - 1];
             be = e[i - 1] + 1;
           }
         }
         c[i] = bc;
+        if (learned) raw[i] = br;
         o[i] = bo;
         e[i] = be;
       }
@@ -149,13 +184,16 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
         if (k === -1 || c[i] < c[k] || (c[i] === c[k] && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1))) k = i;
       }
       const min = c[k];
-      for (let i = 0; i < n; i++) c[i] -= min;
-      recent.push(min - base);
+      const rawMin = raw[k];
+      for (let i = 0; i < n; i++) { c[i] -= min; if (learned) raw[i] -= rawMin; }
+      recent.push(rawMin - rawBase);
       if (recent.length > RECENT) recent.shift();
       cost = c;
+      acoustic = raw;
       origin = o;
       edits = e;
       best = lo + k;
+      if (frame) options.observe!(frame);
       recentre(best);
     },
     position() {
@@ -164,10 +202,10 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    save: () => ({ lo, cost, acoustic, origin, edits, best, ayah, recent: [...recent] }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
-      ({ lo, cost, origin, edits, best, ayah } = s);
+      const s = state as { lo: number; cost: typeof cost; acoustic: typeof acoustic; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
+      ({ lo, cost, acoustic, origin, edits, best, ayah } = s);
       recent.splice(0, recent.length, ...s.recent);
     },
   };
