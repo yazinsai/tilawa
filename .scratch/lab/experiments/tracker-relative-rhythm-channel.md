@@ -1,6 +1,6 @@
 # Relative-duration rhythm channel
 
-Status: needs-human. Prototype implemented, but training and validation are blocked by Modal infrastructure. The runtime model remains explicitly `null`, so the prototype has no scoring effect until a training-only fit is frozen. This is not a killed hypothesis or a completed experiment.
+Prototype implemented, but training and validation remain blocked by Modal infrastructure, including two retries after review. The runtime model remains explicitly `null`, so the prototype has no scoring effect until a training-only fit is frozen. This is not a killed hypothesis or a completed experiment. The unsupported `.autolab/outcome.json` status artifact from the previous attempt has been removed as requested by diff review.
 
 ## Prediction
 
@@ -14,16 +14,18 @@ The card describes a retained near continuation losing to the rhyme restart by 0
 
 The duration vector is log transformed and centered on its common geometric mean, so a common change of speaking rate cannot change the contribution. Structural classes distinguish short vowels, held vowels, ordinary and lengthened nasals, sonorants, fricatives and stops/other sounds; insertions have a separate background class. No word, verse, reader or session identity enters runtime parameters.
 
-`rhythm-fit.py` is a training-only estimator. It requires explicit training-speaker, none-labelled help-train recordings, excludes labelled mistakes and repeats, and excludes any speaker marked held out anywhere in the supplied labels. It refuses absent decodes or an unavailable training split. Transcript-conditioned edit forward/backward supplies soft token-to-phone correspondence, including deletions between adjacent emissions. Three speaker-grouped folds select class-pair correlation pooling from the predeclared strengths 10, 100 and 1000. The matched independent control shares all duration parameters. The final report hashes the reference, selected labels and decoded observations; runtime output contains only fitted numeric parameters.
+`rhythm-fit.py` is a training-only estimator. It requires explicit training-speaker, none-labelled help-train recordings, excludes labelled mistakes and repeats, and excludes any speaker marked held out anywhere in the supplied labels. It also rejects the importer's `excluded` audit marker, `scored=False` unresolved/extra mistakes and unsupported labels. The previous prototype checked only `exclude`, which did not match the importer's audit field; this was corrected from inspection of `tools/help_import.py`, without accessing recordings or changing labels. It refuses absent decodes or an unavailable training split. Transcript-conditioned edit forward/backward supplies soft token-to-phone correspondence, including deletions between adjacent emissions. Three speaker-grouped folds select class-pair correlation pooling from the predeclared strengths 10, 100 and 1000. The matched independent control shares all duration parameters. The final report hashes the reference, selected labels and decoded observations; runtime output contains only fitted numeric parameters.
 
 ## Validation attempted
 
 - Supervisor Modal run 1: read-only data-layout probe. Failed before execution with `NotFoundError: No such file or directory`; no log or data returned.
 - Supervisor Modal run 2: six shards of `bash tools/autolab_tests.sh`, the required core/SDK build and tests. Failed before execution with the same error. No tests ran.
 - Supervisor Modal run 3: estimator math checks and a repeat data-layout probe. Failed before execution with the same `NotFoundError`. No estimator checks or data access ran.
+- Supervisor Modal run 4: retry of the read-only help-train layout and label-schema probe. Failed before execution with the same `NotFoundError`; no data or logs returned.
+- Supervisor Modal run 5: retry of the six-shard required core/SDK build and tests. Failed before execution with the same `NotFoundError`; no tests ran.
 - Local Python syntax compilation passed for the estimator and its math-check script. `git diff --check` passed. These do not establish runtime correctness.
 
-Added TypeScript unit tests cover the copula's preserved marginals by numerical integration, zero contribution for the independent model, common-tempo invariance, sensitivity to adjacency, missing timing, pronunciation run structure and local rewind behavior. A small estimator check verifies normalization and consistency of soft one-token and adjacent-pair correspondence marginals. These checks are unexecuted on Modal.
+Added TypeScript unit tests cover the copula's preserved marginals by numerical integration, zero contribution for the independent model, common-tempo invariance, sensitivity to adjacency, missing timing, pronunciation run structure and local rewind behavior. A further test checks that tied structural distributions give the same rhythm contribution regardless of summed alignment ambiguity, window recentering and movement prices. A small estimator check verifies normalization and consistency of soft one-token and adjacent-pair correspondence marginals, and rejects excluded/unresolved scripts and held-out speakers. These checks are unexecuted on Modal; the latest tests and filter fix were added while run 5 was pending and are not claimed to have been included in that request's snapshot.
 
 ## Remaining work and limits
 

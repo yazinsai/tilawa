@@ -1,5 +1,0 @@
-{
-  "status": "needs-human",
-  "reason": "All three provided Modal supervisor requests failed before execution with NotFoundError; training, target validation and build/tests remain unmeasured, and the runtime model is disabled.",
-  "measured": {}
-}
