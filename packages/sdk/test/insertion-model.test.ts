@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createHash } from "node:crypto";
 
 const mocks = vi.hoisted(() => ({ access: vi.fn(), readFile: vi.fn(), ortBackend: vi.fn() }));
 vi.mock("node:fs/promises", async importOriginal => ({
@@ -14,7 +15,10 @@ const manifest = { file: "primary.onnx", tokens: "بت", inventory: "muaalem-v3_
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.readFile.mockResolvedValue(JSON.stringify(manifest));
+  mocks.readFile.mockImplementation(async (path: string) => {
+    if (path.endsWith("attention-dispersion-asset.json")) throw Object.assign(new Error("absent"), { code: "ENOENT" });
+    return JSON.stringify(manifest);
+  });
 });
 
 describe("Node insertion teacher loading", () => {
@@ -57,5 +61,67 @@ describe("Node insertion teacher loading", () => {
     mocks.access.mockRejectedValue(denied);
     mocks.ortBackend.mockResolvedValue({ name: "primary" });
     await expect(loadNodeModel("/models/caller")).rejects.toBe(denied);
+  });
+});
+
+describe("declared attention scorer integrity", () => {
+  it("loads a complete matched bundle and releases both graph instances", async () => {
+    const primaryRelease=vi.fn();
+    const primary={name:"primary",release:primaryRelease}, extractor={name:"extractor",release:vi.fn()};
+    const hash=(bytes:Buffer)=>createHash("sha256").update(bytes).digest("hex");
+    const graph=Buffer.from("primary graph"), sideGraph=Buffer.from("frozen graph");
+    const declared={...manifest,sampleRate:16000,frameMs:40,sha256:hash(graph)};
+    const eye=Array.from({length:16},(_,i)=>Array.from({length:16},(_,j)=>i===j?1:0));
+    const arm={center:Array(16).fill(0),scale:Array(16).fill(1),phones:Array.from({length:3},()=>({
+      mean:Array(16).fill(0),precision:eye,logDet:0,count:1}))};
+    const fitted={schema:1,dimensions:16,tokens:manifest.tokens,inventory:manifest.inventory,primarySha256:declared.sha256,
+      heads:[{meanOutput:"mean",varianceOutput:"variance",head:0,heads:1,width:16}],selected:0,
+      dispersionProjection:eye.map(r=>[...r,...r]),controlProjection:eye,
+      dispersion:arm,control:arm};
+    const emissions=Buffer.from(JSON.stringify(fitted));
+    const descriptor={schema:1,files:[{file:"attention-dispersion-emissions.json",bytes:emissions.length,sha256:hash(emissions)},
+      {file:"attention-dispersion.onnx",bytes:sideGraph.length,sha256:hash(sideGraph)}]};
+    mocks.access.mockRejectedValue(Object.assign(new Error("absent"),{code:"ENOENT"}));
+    mocks.ortBackend.mockResolvedValueOnce(primary).mockResolvedValueOnce(extractor);
+    mocks.readFile.mockImplementation(async (path:string)=> {
+      if (path.endsWith("manifest.json")) return JSON.stringify(declared);
+      if (path.endsWith("attention-dispersion-asset.json")) return JSON.stringify(descriptor);
+      if (path.endsWith("attention-dispersion-emissions.json")) return emissions;
+      return path.endsWith("attention-dispersion.onnx")?sideGraph:graph;
+    });
+    const model=await loadNodeModel("/models/caller");
+    expect(model.attentionDispersion).toEqual({model:fitted,backend:extractor});
+    await model.backend.release();
+    expect(primaryRelease).toHaveBeenCalledOnce();
+    expect(extractor.release).toHaveBeenCalledOnce();
+  });
+  it("fails and releases the primary backend when a declared side file is missing", async () => {
+    const primary={name:"primary",release:vi.fn()};
+    const entry={bytes:1,sha256:"0".repeat(64)};
+    mocks.access.mockRejectedValue(Object.assign(new Error("absent"),{code:"ENOENT"}));
+    mocks.ortBackend.mockResolvedValue(primary);
+    mocks.readFile.mockImplementation(async (path:string)=> {
+      if (path.endsWith("manifest.json")) return JSON.stringify(manifest);
+      if (path.endsWith("attention-dispersion-asset.json")) return JSON.stringify({schema:1,files:[
+        {...entry,file:"attention-dispersion-emissions.json"},{...entry,file:"attention-dispersion.onnx"}]});
+      throw Object.assign(new Error("missing side asset"),{code:"ENOENT"});
+    });
+    await expect(loadNodeModel("/models/caller")).rejects.toThrow("missing side asset");
+    expect(primary.release).toHaveBeenCalledOnce();
+  });
+  it("rejects corrupt side emissions before starting the extractor", async () => {
+    const primary={name:"primary",release:vi.fn()};
+    mocks.access.mockRejectedValue(Object.assign(new Error("absent"),{code:"ENOENT"}));
+    mocks.ortBackend.mockResolvedValue(primary);
+    mocks.readFile.mockImplementation(async (path:string)=> {
+      if (path.endsWith("manifest.json")) return JSON.stringify(manifest);
+      if (path.endsWith("attention-dispersion-asset.json")) return JSON.stringify({schema:1,files:[
+        {file:"attention-dispersion-emissions.json",bytes:1,sha256:"0".repeat(64)},
+        {file:"attention-dispersion.onnx",bytes:1,sha256:"0".repeat(64)}]});
+      return Buffer.from("x");
+    });
+    await expect(loadNodeModel("/models/caller")).rejects.toThrow("checksum mismatch");
+    expect(mocks.ortBackend).toHaveBeenCalledTimes(1);
+    expect(primary.release).toHaveBeenCalledOnce();
   });
 });
