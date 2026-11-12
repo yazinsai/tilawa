@@ -44,6 +44,9 @@ RUN if [ -z "$TILAWA_ASSETS_URL" ]; then \
       node scripts/prepare-v1-assets.mjs --models-url "$TILAWA_ASSETS_URL"; \
     fi
 
+# 4. Production dependencies only, for the runtime stage.
+RUN npm prune --omit=dev && rm -rf node_modules/.cache
+
 # The 0.x demo's model files (zipformer_*.onnx, zipformer_quran.json) used to be curled into dist/ here. The V1
 # demo doesn't use them, so they're gone. Old @tilawa/core 0.x installs download them from GitHub releases
 # directly, and those releases stay up.
@@ -52,9 +55,10 @@ RUN if [ -z "$TILAWA_ASSETS_URL" ]; then \
 FROM node:22-slim
 WORKDIR /app
 
-# The server bundle's only runtime dependencies (hono, @hono/node-server); everything else is bundled.
-COPY web/frontend/package.json web/frontend/package-lock.json ./
-RUN npm ci --omit=dev
+# The server bundle's only runtime dependencies (hono, @hono/node-server); everything else is bundled. They are
+# pruned in the builder: `npm ci` here would fail on the lockfile's file:../../packages/core link (a dev dependency).
+COPY web/frontend/package.json ./
+COPY --from=builder /app/web/frontend/node_modules ./node_modules
 
 COPY --from=builder /app/web/frontend/dist ./dist
 COPY --from=builder /app/web/frontend/dist-server ./dist-server
