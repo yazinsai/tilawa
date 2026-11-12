@@ -1,4 +1,5 @@
 /** Node entry: onnxruntime-node, models from a directory, WAV input. */
+import { createHash } from "node:crypto";
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import * as ort from "onnxruntime-node";
@@ -11,6 +12,7 @@ import type { OrtModule } from "./ort.js";
 import { ortBackend } from "./ort.js";
 import { decodeWav } from "./wav.js";
 import { createInsertionTeacher } from "./insertion-teacher.js";
+import { validateBlankCauseModel } from "./blank-cause.js";
 
 export * from "./index.js";
 export { decodeWav };
@@ -22,7 +24,25 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachBlankCauseModel(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads), dir);
+}
+
+/** A declared auxiliary bundle fails on missing files, bad hashes or incompatible geometry. */
+async function attachBlankCauseModel(model: LoadedModel, dir: string): Promise<LoadedModel> {
+  try {
+    const descriptor=await readFile(join(dir,"blank-cause-asset.json"),"utf8").catch(e=> {
+      if (e.code==="ENOENT") return null;throw e;
+    });
+    if (descriptor===null) return model;
+    const a=JSON.parse(descriptor);
+    if (a.schema!==1||a.file!=="blank-cause-model.json"||!Number.isSafeInteger(a.bytes)||a.bytes<=0||
+      !/^[0-9a-f]{64}$/.test(a.sha256)) throw new Error("Invalid blank-cause asset descriptor");
+    const bytes=await readFile(join(dir,a.file));
+    if (bytes.length!==a.bytes||createHash("sha256").update(bytes).digest("hex")!==a.sha256) throw new Error("Blank-cause asset checksum mismatch");
+    if (model.manifest.sampleRate!==16000||model.manifest.frameMs!==40) throw new Error("Blank-cause scorer requires 16 kHz audio and a 40 ms clock");
+    model.blankCause=validateBlankCauseModel(JSON.parse(bytes.toString("utf8")),model.manifest.inventory,model.manifest.tokens);
+    return model;
+  } catch (e) {await model.backend.release();throw e;}
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +107,6 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  return attachBlankCauseModel(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
+    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads), join(o.cacheDir, `${tier.id}@${tier.version}`));
 }
