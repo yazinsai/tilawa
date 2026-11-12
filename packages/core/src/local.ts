@@ -1,5 +1,7 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import { phaseObservation } from "./phase-channel.js";
+import type { PhaseChannel } from "./phase-channel.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -34,7 +36,7 @@ export interface LocalPosition {
 
 export interface LocalSearch {
   /** Consume one observed phoneme. */
-  step(p: string): void;
+  step(p: string, phase?: number): void;
   position(): LocalPosition;
   /** The search state, to rewind to with `restore`. */
   save(): unknown;
@@ -45,7 +47,7 @@ export interface LocalSearch {
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">, channel?: PhaseChannel): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -102,7 +104,8 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
 
 
   return {
-    step(p) {
+    step(p, phase) {
+      const observation = channel ? phaseObservation(channel, p, phase) : null;
       const n = cost.length;
       const base = cost[best - lo];
       const c = new Float64Array(n);
@@ -110,11 +113,11 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       const e = new Int32Array(n);
       for (let i = 0; i < n; i++) {
         const at = lo + i;
-        let bc = cost[i] + insertionCost(ref, at, p);
+        let bc = cost[i] + insertionCost(ref, at, p) + (observation?.insertion ?? 0);
         let bo = origin[i];
         let be = edits[i] + 1;
         if (i > 0) {
-          const s = subCost(ref[at - 1], p) + entry(at - 1);
+          const s = subCost(ref[at - 1], p) + entry(at - 1) + (observation?.substitution(ref[at - 1]) ?? 0);
           const edit = ref[at - 1] === p ? 0 : 1;
           // On a tie, consuming the reference beats an insertion, so a correct recitation keeps advancing.
           if (cost[i - 1] + s <= bc) {

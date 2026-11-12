@@ -16,6 +16,10 @@ export interface DecodedPhoneme {
   start: number;
   end: number;
   conf: number;
+  /** Native acoustic coordinates, retained even when evidence is cropped or rechunked. */
+  inference?: { frame: number; chunkStart: number; chunkFrames: number; model: string };
+  /** Computed by trackerInput from inference coordinates, never evidence-push boundaries. */
+  chunkPhase?: number;
   /** Retained by token-preserving evidence serialization and rechunking. */
   seamInsertions?: SeamInsertionEvidence[];
 }

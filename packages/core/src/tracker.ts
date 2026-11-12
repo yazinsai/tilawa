@@ -6,6 +6,8 @@ import type { EngineEvent, PositionCandidate, PositionEvent, TraceCandidate, Tra
 import { EvidenceError } from "./evidence.js";
 import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
 import { createLocalSearch } from "./local.js";
+import { channelPhase, inferencePhase } from "./phase-channel.js";
+import type { PhaseChannel } from "./phase-channel.js";
 import type { LocalPosition, LocalSearch } from "./local.js";
 import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
@@ -13,6 +15,8 @@ import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-s
 import type { SlotSpan } from "./slot-spans.js";
 
 export interface TrackerOptions {
+  /** Training-frozen observation channel for native inference phase. */
+  phaseChannel?: PhaseChannel;
   mode?: "free" | "memorization";
   /** Grams occurring more often than this carry too little location information to vote. */
   maxGramOccurrences?: number;
@@ -272,7 +276,8 @@ export function relocationSupport(
 
 /** What the tracker is fed from one chunk of listener evidence, in the product and in every bench alike: phonemes only. */
 export function trackerInput(evidence: PhonemeEvidence): PhonemeEvidence {
-  return { ...evidence, posteriors: undefined };
+  return { ...evidence, posteriors: undefined,
+    phonemes: evidence.phonemes.map(ph => ({ ...ph, chunkPhase: inferencePhase(ph) })) };
 }
 
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
@@ -869,7 +874,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
-    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) }, options.phaseChannel);
     weak = false;
     pending = null;
     reacquiring = false;
@@ -1280,7 +1285,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         continue;
       }
       const before = local.save();
-      local.step(ph.p);
+      local.step(ph.p, channelPhase(options.phaseChannel, ph));
       stepCosts.push(local.position().stepCost);
       if (stepCosts.length > CONFIRM) stepCosts.shift();
       const heardPhrase = hear(ph.p, before, local.position().stepCost);

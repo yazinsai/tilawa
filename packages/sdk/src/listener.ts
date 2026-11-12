@@ -71,7 +71,8 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
         open.conf = Math.max(open.conf, round4(p));
       } else if (!(id !== 0 && id === prev && carried)) {
         if (open) done.push(open);
-        open = id !== 0 ? { p: m.tokens[id - 1], start: frame, end: frame, conf: round4(p) } : null;
+        open = id !== 0 ? { p: m.tokens[id - 1], start: frame, end: frame, conf: round4(p),
+          inference: { frame, chunkStart: outFrames, chunkFrames: lp.length / vocab, model: m.sha256 } } : null;
         carried = false;
       }
       if (id !== prev) carried = false;

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { PhonemeEvidence } from "@tilawa/core";
+import { inferencePhase, trackerInput } from "@tilawa/core";
 import { createListener } from "../src/listener.js";
 import type { InferenceBackend, Tensor } from "../src/model.js";
 import { loadNodeModel } from "../src/node.js";
@@ -45,6 +46,14 @@ describe("streaming listener on onnxruntime-node", () => {
     const b = await run(16000 * 3);
     const flat = (cs: PhonemeEvidence[]) => cs.flatMap((c) => c.phonemes);
     expect(flat(a)).toEqual(flat(b));
+    for (const p of flat(a)) {
+      expect(p.inference?.frame).toBe(p.start);
+      expect(p.inference?.chunkFrames).toBe(8);
+      expect(inferencePhase(p)).toBe((p.start % 8) / 8);
+    }
+    // A caller may merge evidence from several inference calls. Its push length supplies no phase information.
+    expect(trackerInput({ ...a[0], phonemes: flat(a) }).phonemes.map(p => p.chunkPhase))
+      .toEqual(a.flatMap(e => trackerInput(e).phonemes).map(p => p.chunkPhase));
     let next = 0;
     for (const c of a) {
       expect(c.posteriors!.startFrame).toBe(next);
