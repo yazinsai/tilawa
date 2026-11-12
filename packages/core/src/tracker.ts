@@ -11,8 +11,14 @@ import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
 import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-spans.js";
 import type { SlotSpan } from "./slot-spans.js";
+import type { TeacherObservationComparison, TeacherObservationModel } from "./teacher-observation.js";
+import { TEACHER_OBSERVATION_MODEL } from "./teacher-observation-model.js";
 
 export interface TrackerOptions {
+  /** Training-frozen observation residual against an identical-capacity direct channel; no runtime teacher. */
+  teacherObservation?: { mediated: TeacherObservationModel; direct: TeacherObservationModel } | null;
+  /** Read-only local comparison diagnostics; receives the identical observed interval and both channel scores. */
+  onTeacherObservationComparison?: (fit: TeacherObservationComparison) => void;
   mode?: "free" | "memorization";
   /** Grams occurring more often than this carry too little location information to vote. */
   maxGramOccurrences?: number;
@@ -869,7 +875,9 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
-    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) },
+      options.teacherObservation === undefined ? TEACHER_OBSERVATION_MODEL : options.teacherObservation,
+      options.onTeacherObservationComparison);
     weak = false;
     pending = null;
     reacquiring = false;

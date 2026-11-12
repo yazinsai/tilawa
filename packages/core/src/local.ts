@@ -1,5 +1,7 @@
 import { UNIT, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import type { ReferenceIndex } from "./reference.js";
+import { createTeacherObservationComparison } from "./teacher-observation.js";
+import type { TeacherObservationComparison, TeacherObservationModel } from "./teacher-observation.js";
 
 /**
  * Jumping to another word start: back for a repeat or self-correction, ahead for a skip. Both cost the same, so where
@@ -43,9 +45,12 @@ export interface LocalSearch {
 
 /**
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
- * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
+ * a time, with jump arcs from the best state to any word start in the window. The ordinary row is bounded by the window;
+ * an installed observation model additionally retains likelihood rows for the traversed reference prefixes.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">,
+  observation?: { mediated: TeacherObservationModel; direct: TeacherObservationModel } | null,
+  observe?: (fit: TeacherObservationComparison) => void): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -71,6 +76,11 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let best = start.offset;
   let ayah = -1;
   const recent: number[] = [];
+  // Each witness retains the reference phones actually traversed, excluding jump intervals. All candidates
+  // consume the same heard prefix; pronunciation length symbols and their original charges remain intact.
+  let paths: string[] = [];
+  let heard = "";
+  const comparison = observation ? createTeacherObservationComparison(observation) : null;
 
   const recentre = (offset: number) => {
     const a = ayahOf(offset);
@@ -81,18 +91,21 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     const c = new Float64Array(newHi - newLo + 1).fill(Infinity);
     const o = new Int32Array(c.length);
     const e = new Int32Array(c.length);
+    const ps = comparison ? Array(c.length).fill("") as string[] : [];
     for (let i = 0; i < c.length; i++) {
       const old = newLo + i - lo;
       if (old >= 0 && old < cost.length) {
         c[i] = cost[old];
         o[i] = origin[old];
         e[i] = edits[old];
+        if (comparison) ps[i] = paths[old] ?? "";
       }
     }
     lo = newLo;
     cost = c;
     origin = o;
     edits = e;
+    paths = ps;
   };
 
   recentre(start.offset);
@@ -105,14 +118,18 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     step(p) {
       const n = cost.length;
       const base = cost[best - lo];
+      const previousOrigin = origin[best - lo];
+      if (comparison) heard += p;
       const c = new Float64Array(n);
       const o = new Int32Array(n);
       const e = new Int32Array(n);
+      const ps = comparison ? Array(n).fill("") as string[] : [];
       for (let i = 0; i < n; i++) {
         const at = lo + i;
         let bc = cost[i] + insertionCost(ref, at, p);
         let bo = origin[i];
         let be = edits[i] + 1;
+        let bp = comparison ? paths[i] : "";
         if (i > 0) {
           const s = subCost(ref[at - 1], p) + entry(at - 1);
           const edit = ref[at - 1] === p ? 0 : 1;
@@ -121,6 +138,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
             bc = cost[i - 1] + s;
             bo = origin[i - 1];
             be = edits[i - 1] + edit;
+            if (comparison) bp = paths[i - 1] + ref[at - 1];
           }
           const from = at - 1;
           if (from !== best && wordStarts.has(from)) {
@@ -129,6 +147,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
               bc = j;
               bo = from;
               be = edit;
+              if (comparison) bp = paths[best - lo] + ref[at - 1];
             }
           }
           const d = c[i - 1] + deletionCost(ref, at - 1) + entry(at - 1);
@@ -136,17 +155,38 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
             bc = d;
             bo = o[i - 1];
             be = e[i - 1] + 1;
+            if (comparison) bp = ps[i - 1] + ref[at - 1];
           }
         }
         c[i] = bc;
         o[i] = bo;
         e[i] = be;
+        if (comparison) ps[i] = bp;
       }
 
       // Lowest cost wins; ties go to the state nearest plain forward progress.
+      const better = (i: number, k: number) => k === -1 || c[i] < c[k]
+        || (c[i] === c[k] && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1));
       let k = -1;
       for (let i = 0; i < n; i++) {
-        if (k === -1 || c[i] < c[k] || (c[i] === c[k] && Math.abs(lo + i - best - 1) < Math.abs(lo + k - best - 1))) k = i;
+        if (better(i, k)) k = i;
+      }
+      if (comparison) {
+        // Compare only the existing best continuation and restart. A likelihood ratio against the matched
+        // direct channel tests the teacher-mediated residual without changing any movement or duration price.
+        let continuation = -1, restart = -1;
+        for (let i = 0; i < n; i++) if (Number.isFinite(c[i])) {
+          if (o[i] === previousOrigin) {
+            if (better(i, continuation)) continuation = i;
+          } else if (better(i, restart)) restart = i;
+        }
+        if (continuation >= 0 && restart >= 0) {
+          // Unsupported intervals give neither candidate extra evidence.
+          const fit = comparison({ written: ps[continuation], cost: c[continuation] }, { written: ps[restart], cost: c[restart] }, heard);
+          if (fit) observe?.(fit);
+          if (fit?.winner) k = fit.winner === "continuation" ? continuation : restart;
+        }
+        paths = ps;
       }
       const min = c[k];
       for (let i = 0; i < n; i++) c[i] -= min;
@@ -164,10 +204,10 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    save: () => ({ lo, cost, origin, edits, best, ayah, paths, heard, recent: [...recent] }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
-      ({ lo, cost, origin, edits, best, ayah } = s);
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; paths: string[]; heard: string; recent: number[] };
+      ({ lo, cost, origin, edits, best, ayah, paths, heard } = s);
       recent.splice(0, recent.length, ...s.recent);
     },
   };
