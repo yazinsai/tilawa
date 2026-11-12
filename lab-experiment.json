@@ -1,0 +1,13 @@
+{
+ "id": "listener-export-effective-head-updates",
+ "component": "listener",
+ "hypothesis": "Small corrective phone-head updates may disappear during deployment quantization; export-aware discrete head optimization should recover 1 missed addition with 0 losses predicted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T18:35:17+00:00",
+ "author": "autolab"
+}
