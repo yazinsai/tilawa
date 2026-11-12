@@ -1,0 +1,13 @@
+{
+ "id": "listener-forward-only-regularization",
+ "component": "listener",
+ "hypothesis": "Speculatively, backward-only activation regularizers suppress rare consonant features despite correct acoustic-loss gradients; removing those injected gradients in a bounded refit predicts 1 recovered addition, no losses counted: listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-12T21:10:11+00:00",
+ "author": "autolab"
+}
