@@ -11,8 +11,13 @@ import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
 import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-spans.js";
 import type { SlotSpan } from "./slot-spans.js";
+import { interruptionFeatures, interruptionProbability, restartAfterAttempt, wordAttemptState } from "./acoustic-interruption.js";
+import type { InterruptionModel } from "./acoustic-interruption.js";
+import { minGapFrames } from "./gap-decode.js";
 
 export interface TrackerOptions {
+  /** Training-frozen interruption model. Unconfigured until training and the premise check succeed. */
+  interruptionModel?: InterruptionModel;
   mode?: "free" | "memorization";
   /** Grams occurring more often than this carry too little location information to vote. */
   maxGramOccurrences?: number;
@@ -270,9 +275,9 @@ export function relocationSupport(
   return best;
 }
 
-/** What the tracker is fed from one chunk of listener evidence, in the product and in every bench alike: phonemes only. */
+/** Product and benches share decoded acquisition and a separate interruption posterior channel. */
 export function trackerInput(evidence: PhonemeEvidence): PhonemeEvidence {
-  return { ...evidence, posteriors: undefined };
+  return { ...evidence, posteriors: undefined, interruptionPosteriors: evidence.posteriors ?? evidence.interruptionPosteriors };
 }
 
 export function createTracker(index: ReferenceIndex, options: TrackerOptions = {}): Tracker {
@@ -305,6 +310,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   let decodedOnly = false;
   let withPosteriors = false;
   let frameMs: number | null = null;
+  let interruptionFrames = new PosteriorFrames(index.tokens.size);
+  let previousPhone: DecodedPhoneme | null = null;
   let lastFrame = 0;
   let last: PositionEvent | null = null;
   /** Set once locked: from then on the tracker follows the reciter locally, phoneme by phoneme. */
@@ -1268,6 +1275,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     for (const ph of evidence.phonemes) {
       observe(ph);
       if (!local) {
+        previousPhone = ph;
         const heardPhrase = hear(ph.p, null, NaN);
         if (heardPhrase) {
           forget();
@@ -1280,7 +1288,43 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         continue;
       }
       const before = local.save();
-      local.step(ph.p);
+      const source = local.position();
+      let canRestart: ((destination: number) => boolean) | undefined;
+      if (options.interruptionModel) {
+        const previous = previousPhone;
+        const features = previous ? interruptionFeatures(interruptionFrames, previous, ph, frameMs!) : null;
+        const probability = features ? interruptionProbability(features, options.interruptionModel) : null;
+        const wi = index.wordAt(Math.max(0, source.offset - 1));
+        const sw = index.words[wi];
+        const state = wordAttemptState(source.offset - sw.start, sw.end - sw.start, probability, options.interruptionModel);
+        let gapStart = previous ? previous.end + 1 : ph.start;
+        const gapEnd = ph.start;
+        const retained = gapStart >= interruptionFrames.startFrame && gapEnd <= interruptionFrames.endFrame && interruptionFrames.startFrame >= 0;
+        if (retained && previous) {
+          const id = tokenIds.get(previous.p);
+          while (gapStart < gapEnd && id) {
+            const row = interruptionFrames.row(gapStart);
+            let best = 0;
+            for (let i = 1; i < row.length; i++) if (row[i] > row[best]) best = i;
+            if (best !== id) break;
+            gapStart++;
+          }
+        }
+        let pause = gapEnd - gapStart >= minGapFrames(frameMs!);
+        if (pause && retained) for (let f = gapStart; f < gapEnd; f++) {
+          if (interruptionFrames.row(f)[0] < Math.log(0.5)) { pause = false; break; }
+        }
+        pause ||= !!previous && (previous.p === "ۜ" || previous.p === "ؙ");
+        const eligible = restartAfterAttempt(state, pause);
+        const next = spoken(wi + 1), deletion = spoken(next + 1);
+        canRestart = (destination) => {
+          const dest = index.wordAt(destination);
+          return index.words[dest].word === 1 || dest === next || dest === deletion || eligible;
+        };
+      }
+      local.step(ph.p, canRestart);
+      previousPhone = ph;
+      interruptionFrames.dropBefore(ph.end - 256);
       stepCosts.push(local.position().stepCost);
       if (stepCosts.length > CONFIRM) stepCosts.shift();
       const heardPhrase = hear(ph.p, before, local.position().stepCost);
@@ -1397,6 +1441,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   const acquire = (phonemes: DecodedPhoneme[]): EngineEvent[] => {
     trimHistory();
     for (const ph of phonemes) {
+      previousPhone = ph;
       observe(ph);
       const heardPhrase = hear(ph.p, null, NaN);
       if (heardPhrase) {
@@ -1441,6 +1486,14 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     push(evidence) {
       validate(evidence);
       frameMs = evidence.frameMs;
+      const rows = evidence.interruptionPosteriors ?? evidence.posteriors;
+      if (options.interruptionModel && rows) {
+        // Evidence can disappear and resume; never bridge an unavailable interval with fabricated rows.
+        if (interruptionFrames.startFrame >= 0 && rows.startFrame !== interruptionFrames.endFrame) interruptionFrames = new PosteriorFrames(index.tokens.size);
+        interruptionFrames.append(rows);
+        const first = evidence.phonemes[0]?.start ?? interruptionFrames.endFrame;
+        interruptionFrames.dropBefore(first - 256);
+      }
       if (evidence.posteriors) withPosteriors = true;
       else decodedOnly = true;
       if (local || reacquiring) return follow(evidence);

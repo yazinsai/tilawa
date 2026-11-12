@@ -9,3 +9,5 @@ export * from "./reference.js";
 export * from "./tracker.js";
 export { collapseHeld } from "./fuzzy.js";
 export { lexicalWords } from "./checker-lexical.js";
+export * from "./acoustic-interruption.js";
+export { align } from "./align.js";

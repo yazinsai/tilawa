@@ -33,8 +33,8 @@ export interface LocalPosition {
 }
 
 export interface LocalSearch {
-  /** Consume one observed phoneme. */
-  step(p: string): void;
+  /** Consume one observed phoneme. Optional acoustic eligibility applies only to new jump arcs. */
+  step(p: string, canRestart?: (destination: number) => boolean): void;
   position(): LocalPosition;
   /** The search state, to rewind to with `restore`. */
   save(): unknown;
@@ -102,7 +102,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
 
 
   return {
-    step(p) {
+    step(p, canRestart) {
       const n = cost.length;
       const base = cost[best - lo];
       const c = new Float64Array(n);
@@ -123,7 +123,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
             be = edits[i - 1] + edit;
           }
           const from = at - 1;
-          if (from !== best && wordStarts.has(from)) {
+          if (from !== best && wordStarts.has(from) && (!canRestart || canRestart(from))) {
             const j = base + JUMP_COST + Math.abs(from - best) * JUMP_DISTANCE + s + (entry(at - 1) ? 0 : crossing(from));
             if (j < bc) {
               bc = j;

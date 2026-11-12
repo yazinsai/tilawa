@@ -38,6 +38,8 @@ export interface PhonemeEvidence {
   frameMs: number;
   phonemes: DecodedPhoneme[];
   posteriors?: TopKPosteriors;
+  /** Tracker interruption evidence, isolated from acquisition's acoustic ranking. */
+  interruptionPosteriors?: TopKPosteriors;
   /** Frames before this one are final: no later evidence has a phoneme starting earlier. Optional; streams set it. */
   decodedTo?: number;
 }
