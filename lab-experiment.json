@@ -1,0 +1,13 @@
+{
+ "id": "listener-marginal-feature-mask-readout",
+ "component": "listener",
+ "hypothesis": "Training against every feature-dropout realization may suppress consonants supported by only a few acoustic channels; marginalizing mask uncertainty should recover 2 additions while risking 1 collateral wrong call: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-13T02:46:49+00:00",
+ "author": "autolab"
+}
