@@ -11,6 +11,8 @@ import type { OrtModule } from "./ort.js";
 import { ortBackend } from "./ort.js";
 import { decodeWav } from "./wav.js";
 import { createInsertionTeacher } from "./insertion-teacher.js";
+import { createHash } from "node:crypto";
+import { validateWordScrubModel } from "./word-scrub.js";
 
 export * from "./index.js";
 export { decodeWav };
@@ -22,7 +24,7 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachWordScrub(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads), dir, options.threads);
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +89,37 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  const dir = join(o.cacheDir, `${tier.id}@${tier.version}`);
+  return attachWordScrub(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported }, dir, o.threads), dir, o.threads);
+}
+
+/** Declaration is optional; every file of a declared scorer is mandatory. */
+async function attachWordScrub(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
+  let auxiliary: import("./model.js").InferenceBackend | undefined;
+  try {
+    const raw = await readFile(join(dir, "word-scrub-assets.json"), "utf8").catch(e => {
+      if (e.code === "ENOENT") return null;
+      throw e;
+    });
+    if (raw === null) return model;
+    const descriptor = JSON.parse(raw), files = ["word-scrub.json", "word-scrub-features.onnx"];
+    for (const file of files) {
+      const entry = descriptor[file];
+      if (!entry || !Number.isSafeInteger(entry.bytes) || entry.bytes <= 0 || !/^[0-9a-f]{64}$/.test(entry.sha256))
+        throw new Error("Invalid word-scrub asset descriptor");
+      const data = await readFile(join(dir, file));
+      if (data.length !== entry.bytes || createHash("sha256").update(data).digest("hex") !== entry.sha256)
+        throw new Error("Vowel-residual asset checksum mismatch");
+    }
+    if (model.manifest.sampleRate !== 16000 || model.manifest.frameMs !== 40 || model.manifest.fbank.mels !== 80)
+      throw new Error("Vowel-residual scorer requires the primary 16 kHz, 40 ms clock");
+    const parameters = validateWordScrubModel(JSON.parse(await readFile(join(dir, "word-scrub.json"), "utf8")), model.manifest);
+    auxiliary = await ortBackend(ort as unknown as OrtModule, join(dir, "word-scrub-features.onnx"), "onnxruntime-node", {
+      executionProviders: ["cpu"], intraOpNumThreads: threads, graphOptimizationLevel: "disabled",
+    });
+    const featureBackend = auxiliary, release = model.backend.release.bind(model.backend);
+    model.backend.release = async () => { await featureBackend.release(); await release(); };
+    model.wordScrub = { model: parameters, backend: auxiliary };
+    return model;
+  } catch (e) { await auxiliary?.release(); await model.backend.release(); throw e; }
 }
