@@ -1,0 +1,13 @@
+{
+ "id": "tracker-prefix-completion-survival",
+ "component": "tracker",
+ "hypothesis": "Local restart scoring may mistake a recoverable partial-word match for an abandoned word; learning completion probabilities from censored tracking prefixes predicts tracker -1 and overall 0 after one exposed listener warning.",
+ "expected": {
+  "component": -1,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-13T04:16:50+00:00",
+ "author": "autolab"
+}
