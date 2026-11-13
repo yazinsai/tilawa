@@ -1,0 +1,13 @@
+{
+ "id": "listener-discrete-acoustic-bottleneck",
+ "component": "listener",
+ "hypothesis": "Weak inserted-word consonants may drift into blank-associated continuous representations under phone noise; a jointly trained discrete acoustic bottleneck should recover 2 additions with no losses forecast: listener -2, overall -2, with substantial zero-gain risk.",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-13T02:11:38+00:00",
+ "author": "autolab"
+}
