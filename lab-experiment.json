@@ -1,0 +1,13 @@
+{
+ "id": "listener-outlier-split-export",
+ "component": "listener",
+ "hypothesis": "Shared int8 activation ranges may erase weak consonant features beside dominant vowel channels; function-preserving outlier-channel splitting before export predicts 1 recovered addition, no losses counted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-13T01:45:18+00:00",
+ "author": "autolab"
+}
