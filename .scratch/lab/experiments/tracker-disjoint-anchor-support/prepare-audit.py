@@ -1,46 +1,46 @@
-"""Create read-only diagnostic copies; never change the shipped matching recurrence."""
+"""Prepare diagnostic copies; optionally archive an unchanged git revision before uploading to Modal."""
 from pathlib import Path
+import argparse
 import re
+import subprocess
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--baseline', help='Archive this unchanged engine revision locally; Modal needs no git checkout')
+args = parser.parse_args()
 root = Path.cwd()
 out = root / '.scratch/lab/experiments/tracker-disjoint-anchor-support'
 src = root / 'packages/core/src'
 
-def copied(name):
-    text = (src / f'{name}.ts').read_text()
+def imports(text):
     return re.sub(r'from "\./([^"/]+)\.js"', lambda m: f'from "../../../../packages/core/src/{m[1]}.js"', text)
 
-local = copied('local')
-local = local.replace('step(p) {', 'step(p, auditIndex = observations) {')
-local = local.replace('let origin = new Int32Array(0);', 'let origin = new Int32Array(0);\n  let support = new Int32Array(0);\n  let supportEnd = new Int32Array(0);\n  let observations = 0;')
-local = local.replace('const o = new Int32Array(c.length);', 'const o = new Int32Array(c.length);\n    const sf = new Int32Array(c.length).fill(-1);\n    const st = new Int32Array(c.length);')
-local = local.replace('o[i] = origin[old];', 'o[i] = origin[old];\n        sf[i] = support[old];\n        st[i] = supportEnd[old];')
-local = local.replace('origin = o;', 'origin = o;\n    support = sf;\n    supportEnd = st;', 1)
-local = local.replace('const o = new Int32Array(n);', 'const o = new Int32Array(n);\n      const sf = new Int32Array(n);\n      const st = new Int32Array(n);')
-local = local.replace('let bo = origin[i];', 'let bo = origin[i];\n        let bs = support[i];\n        let bt = supportEnd[i];')
-local = local.replace('bo = origin[i - 1];', 'bo = origin[i - 1];\n            bs = support[i - 1] < 0 ? auditIndex : support[i - 1];\n            bt = auditIndex + 1;')
-local = local.replace('bo = from;', 'bo = from;\n              bs = auditIndex;\n              bt = auditIndex + 1;')
-local = local.replace('bo = o[i - 1];', 'bo = o[i - 1];\n            bs = sf[i - 1];\n            bt = st[i - 1];')
-local = local.replace('o[i] = bo;', 'o[i] = bo;\n        sf[i] = bs;\n        st[i] = bt;')
-local = local.replace('origin = o;\n      edits = e;', 'origin = o;\n      support = sf;\n      supportEnd = st;\n      observations++;\n      edits = e;')
-local = local.replace('return { offset: best,', 'return { supportFrom: support[i], supportTo: supportEnd[i], observations, offset: best,')
-local = local.replace('save: () => ({ lo, cost, origin,', 'save: () => ({ support, supportEnd, observations, lo, cost, origin,')
-local = local.replace('({ lo, cost, origin, edits, best, ayah } = s);', '({ lo, cost, origin, edits, best, ayah } = s);\n      ({ support, supportEnd, observations } = state as any);')
-(out / 'local.audit.ts').write_text(local)
+if args.baseline:
+    for name in ('local', 'tracker', 'checker'):
+        text = subprocess.check_output(['git', 'show', f'{args.baseline}:packages/core/src/{name}.ts'], text=True)
+        text = imports(text)
+        if name == 'tracker':
+            text = text.replace('"../../../../packages/core/src/local.js"', '"./local.baseline.js"')
+        (out / f'{name}.baseline.ts').write_text(text)
 
-tracker = copied('tracker').replace('"../../../../packages/core/src/local.js"', '"./local.audit.js"')
-tracker = tracker.replace('let observed = "";', 'let auditTokens: DecodedPhoneme[] = [];\n  let auditBase = 0;\n  let observed = "";', 1)
+tracker = imports((src / 'tracker.ts').read_text())
+tracker = tracker.replace('let observed = "";', 'let auditTokens: DecodedPhoneme[] = [];\n  let observed = "";', 1)
 tracker = tracker.replace('const observe = (ph: DecodedPhoneme) => {', 'const observe = (ph: DecodedPhoneme) => {\n    auditTokens.push(ph);')
-tracker = tracker.replace('local.step(ph.p);', 'local.step(ph.p, auditTokens.length - 1);')
-tracker = tracker.replace('const startLocal = (m: Match) => {', '''const startLocal = (m: Match) => {
-    auditBase = auditTokens.length;
-    console.log(JSON.stringify({ audit: "global-anchor", timeMs: lastFrame * (frameMs ?? 0), offset: m.offset, length: m.length, from: observedFrames[0]?.start, to: observedFrames.at(-1)?.end, base: auditBase }));''')
-tracker = tracker.replace('return emit(event, (from) => quietTrace(from, "locked", shortlist));', '''const a = pos as any;
-    if (lastFrame * (frameMs ?? 0) >= Number(process.env.AUDIT_FROM_MS) && lastFrame * (frameMs ?? 0) <= Number(process.env.AUDIT_TO_MS)) console.log(JSON.stringify({ audit: "local-anchor", timeMs: event.timeMs, word, run: candidate.span.start, newRun, tokens: [a.supportFrom, a.supportTo], frames: [auditTokens[a.supportFrom]?.start, auditTokens[a.supportTo - 1]?.end], previous: prev, pos: a }));
-    return emit(event, (from) => quietTrace(from, "locked", shortlist));''')
+tracker = tracker.replace('return emit(event, (from) => quietTrace(from, "locked", shortlist));', """
+    if (event.timeMs >= Number(process.env.AUDIT_FROM_MS) && event.timeMs <= Number(process.env.AUDIT_TO_MS)) {
+      const independent = event.skipSupport ? auditTokens.slice(event.skipSupport.destination.from, event.skipSupport.destination.to).map(p => p.p).join("") : "";
+      const reference = index.phonemes.slice(pos.origin, pos.offset);
+      console.log(JSON.stringify({ audit: "local-anchor", timeMs: event.timeMs, word, run: candidate.span.start,
+        newRun, support: event.anchorSupport, witness: event.skipSupport, previous: last!.anchorSupport,
+        independent, reference, cost: independent ? anchorFitCost(reference, independent) : null, pos }));
+    }
+    return emit(event, (from) => quietTrace(from, "locked", shortlist));""")
 (out / 'tracker.audit.ts').write_text(tracker)
 
-checker = copied('checker')
-checker = checker.replace('ledgerDone.add(a);', '''if (obs.at(-1)!.end * frameMs >= Number(process.env.AUDIT_FROM_MS) && obs.at(-1)!.end * frameMs <= Number(process.env.AUDIT_TO_MS)) console.log(JSON.stringify({ audit: "ledger", candidate: words[ayahFirst[a]], left: words[ayahFirst[left]], right: words[ayahFirst[right]], leftSpan, rightLock, rightRead, margin, rightTo, timeMs: obs.at(-1)!.end * frameMs }));
-      ledgerDone.add(a);''')
+checker = imports((src / 'checker.ts').read_text())
+checker = checker.replace('if (skipSupport.get(right) === false) return;', """if (skipSupport.get(right) === false) {
+      console.log(JSON.stringify({ audit: "withheld-gap", left: words[ayahFirst[left]], right: words[ayahFirst[right]], timeMs: nowMs }));
+      return;
+    }""")
+checker = checker.replace('ledgerDone.add(a);', """if (nowMs >= Number(process.env.AUDIT_FROM_MS) && nowMs <= Number(process.env.AUDIT_TO_MS)) console.log(JSON.stringify({ audit: "ledger", candidate: words[ayahFirst[a]], left: words[ayahFirst[left]], right: words[ayahFirst[right]], leftSpan, rightLock, rightRead, margin, rightTo, timeMs: nowMs }));
+      ledgerDone.add(a);""")
 (out / 'checker.audit.ts').write_text(checker)

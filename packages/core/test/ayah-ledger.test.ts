@@ -74,7 +74,7 @@ describe("closed read-versus-skip fit", () => {
 
 describe("ayah absence between committed locks", () => {
   /** Recite `ayahs` in order, locking each word, with posteriors on the phones actually said. */
-  const recite = (ayahs: number[]) => {
+  const recite = (ayahs: number[], support?: "shared" | "independent" | "later" | "early") => {
     const phonemes = [];
     const locks: WordRef[] = [];
     let frame = 0;
@@ -103,6 +103,13 @@ describe("ayah absence between committed locks", () => {
       const pos: PositionEvent = {
         type: "position", v: 1, timeMs: f1 * 20, referenceVersion: index.version, expected: lock, state: "locked",
         observed: [{ word: lock, span: { start: w(55, lock.ayah, 1), end: lock }, confidence: 1, cost: 0, per: 0 }],
+        ...(support ? {
+          anchorSupport: { from: at - n, to: at },
+          skipSupport: {
+            source: { from: 0, to: left.length }, destination: { from: at - n, to: at },
+            eligible: support === "independent" || (support === "later" && lock.word > 1) || (support === "early" && lock.word === 1),
+          },
+        } : {}),
       };
       events.push(...checker.push({
         inventory: evidence.inventory, frameMs: 20, phonemes: slice,
@@ -119,6 +126,16 @@ describe("ayah absence between committed locks", () => {
 
   it("stays quiet when the lock reads that ayah", () => {
     expect(recite([28, 29, 30])).not.toContain("skipped_passage 55:29:1");
+  });
+
+  it("withholds a ledger skip while its destination has no independent support", () => {
+    expect(recite([28, 30, 31], "shared")).not.toContain("skipped_passage 55:29:1");
+  });
+
+  it("keeps skips with independent support, including support from later destination speech", () => {
+    expect(recite([28, 30, 31], "independent")).toContain("skipped_passage 55:29:1");
+    expect(recite([28, 30, 31], "later")).toContain("skipped_passage 55:29:1");
+    expect(recite([28, 30, 31], "early")).toContain("skipped_passage 55:29:1");
   });
 });
 

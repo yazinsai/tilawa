@@ -57,6 +57,17 @@ export interface PositionEvent {
   /** Ranked best first; deduplicated so each entry is a distinct location. */
   observed: PositionCandidate[];
   state: TrackerState;
+  /** Session-local, half-open observed-token interval establishing the accepted anchor. */
+  anchorSupport?: { from: number; to: number };
+  /**
+   * A new run's destination support, conditioned on the last established source frontier. Positions and
+   * windows still follow this run; passage skips require its independent acoustic support to suffice.
+   */
+  skipSupport?: {
+    source: { from: number; to: number };
+    destination: { from: number; to: number };
+    eligible: boolean;
+  };
   /**
    * Set on the locked event that starts a misfit hold. An open issue stays open only when its own edit makes the
    * heard words after it fit the anchor again; every other open issue ends `uncertain`, as on a lock drop. The

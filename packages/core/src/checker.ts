@@ -282,6 +282,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   interface AyahSpan { wordFrom: number; wordTo: number; frameFrom: number; frameTo: number }
   const readAyah = new Map<number, AyahSpan>();
   const lockedAyah = new Map<number, AyahSpan>();
+  const skipSupport = new Map<number, boolean>();
   /** Last ayah the lock finished, or the alignment read through. A flash of the next ayah does not move it. */
   let settled = -1;
   let lockSurah = -1;
@@ -793,6 +794,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const clearLedger = () => {
     readAyah.clear();
     lockedAyah.clear();
+    skipSupport.clear();
     settled = -1;
     lockSurah = -1;
     pendingGap = null;
@@ -860,6 +862,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   /** The tracker locked on `right` having come from `left`. Score once the right ayah is in, or the passage moves on. */
   const closeGap = (out: CheckerEvent[], issues: Map<number, Issue>, left: number, right: number, force: boolean) => {
     if (!frames || frames.startFrame < 0 || words[ayahFirst[left]].surah !== words[ayahFirst[right]].surah) return;
+    // The location and its window stay accepted. Only passage absence requires a destination witness that
+    // does not reuse the observations establishing its source. A later supported lock can retry this gap.
+    if (skipSupport.get(right) === false) return;
     const rightLock = lockedAyah.get(right);
     const rightRead = readAyah.get(right);
     const wordTo = Math.max(rightLock?.wordTo ?? -1, rightRead?.wordTo ?? -1);
@@ -2383,6 +2388,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       }
       if (p.state === "locked" && p.observed[0]) {
         cursor = wordIndex(p.observed[0].word);
+        if (cursor >= 0 && p.anchorSupport) {
+          const ayah = ayahOf[cursor];
+          // Later weak entries cannot erase independent support already accepted in this ledger history.
+          skipSupport.set(ayah, skipSupport.get(ayah) === true || (p.skipSupport?.eligible ?? true));
+        }
         // Only the first lock, before it has heard a location-unique word, holds differing slots.
         if (p.spanHold) {
           noteSpan(cursor);

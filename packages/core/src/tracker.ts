@@ -106,6 +106,15 @@ const WEAK_LAG = 8;
 /** A new local run shows once its last this many phonemes cost at most `CONFIRM_COST` plain edits each on average. */
 const CONFIRM = 3;
 const CONFIRM_COST = 0.34;
+
+/** Re-establish a destination without the observations already used by its accepted source anchor. */
+export function independentAnchorSupport(reference: string, heard: string): boolean {
+  if (heard.length < CONFIRM) return false;
+  const cost = anchorFitCost(reference, heard);
+  // Retain the whole independent prefix in the fit, then apply the existing trailing confirmation horizon.
+  const before = heard.length === CONFIRM ? 0 : anchorFitCost(reference, heard.slice(0, -CONFIRM));
+  return cost !== null && before !== null && (cost - before) / UNIT / CONFIRM <= CONFIRM_COST;
+}
 /**
  * After a skipped takbir, al-Fatiha's opening gets this bonus: in prayer each rak'ah restarts with it, and its al-hamd
  * opening is shared with five other passages, so the half-edit `prior` bonus couldn't separate it.
@@ -298,7 +307,12 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
 
   let observed = "";
   let observedConf: number[] = [];
-  const observedFrames: { start: number; end: number }[] = [];
+  const observedFrames: { start: number; end: number; token: number }[] = [];
+  let nextToken = 0;
+  /** Bounded observations for recomputing overlapping anchor support, separate from the global search window. */
+  const supportPhones: { token: number; p: string }[] = [];
+  let runSource: PositionEvent["anchorSupport"];
+  let runEligible = false;
   const tokenIds = new Map([...index.tokens].map((t, i) => [t, i + 1]));
   /** Only the first acquisition reranks with posteriors; dropped at lock, so later global searches are decoded-only. */
   let posteriors: PosteriorFrames | null = null;
@@ -685,6 +699,9 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         expected: state === "locked" ? candidates[0].word : null,
         observed: candidates,
         state,
+        ...(state === "locked" && observedFrames.length ? {
+          anchorSupport: { from: observedFrames[0].token, to: observedFrames.at(-1)!.token + 1 },
+        } : {}),
       };
       const trace = (from: TrackerState | null): TrackerTrace => ({
         shortlist: scored.map(({ m }) => ({
@@ -731,7 +748,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
     return options.trace ? { ...out, trace: trace(from) } : out;
   };
   const bare = (event: PositionEvent) => {
-    const { spanHold: _, timeMs: __, trace: ___, ...rest } = event;
+    const { spanHold: _, timeMs: __, trace: ___, anchorSupport: ____, skipSupport: _____, ...rest } = event;
     return JSON.stringify(rest);
   };
   const unchanged = (event: PositionEvent) => !!last && bare(last) === bare(event);
@@ -753,7 +770,10 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   });
 
   const observe = (ph: DecodedPhoneme) => {
-    observedFrames.push({ start: ph.start, end: ph.end });
+    const token = nextToken++;
+    observedFrames.push({ start: ph.start, end: ph.end, token });
+    supportPhones.push({ token, p: ph.p });
+    if (supportPhones.length > MAX_HISTORY) supportPhones.shift();
     observed += ph.p;
     observedConf.push(ph.conf);
     if (!everLocked) {
@@ -869,7 +889,12 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
-    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+    local = createLocalSearch(index, {
+      offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length),
+      supportFrom: observedFrames[0]?.token ?? nextToken, supportTo: nextToken,
+    });
+    runSource = undefined;
+    runEligible = false;
     weak = false;
     pending = null;
     reacquiring = false;
@@ -1202,7 +1227,25 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
       expected: expectedFor(word),
       observed: [candidate],
       state: "locked",
+      anchorSupport: { from: pos.supportFrom, to: pos.supportTo },
     };
+    if (newRun) {
+      // Freeze the published source, rather than the previous DP row: an unselected destination can have
+      // started before that source frontier was published. Subsequent destination speech may qualify it.
+      runSource = last!.anchorSupport;
+      runEligible = false;
+    }
+    if (runSource) {
+      const from = Math.max(runSource.to, pos.supportFrom);
+      if (!runEligible) {
+        if (pos.supportFrom >= runSource.to) runEligible = true;
+        else if (supportPhones[0]?.token <= from) {
+          const independent = supportPhones.filter((p) => p.token >= from && p.token < pos.supportTo).map((p) => p.p).join("");
+          runEligible = independentAnchorSupport(index.phonemes.slice(pos.origin, pos.offset), independent);
+        }
+      }
+      event.skipSupport = { source: { ...runSource }, destination: { from, to: pos.supportTo }, eligible: runEligible };
+    }
     emittedSinceLock = true;
     return emit(event, (from) => quietTrace(from, "locked", shortlist));
   };
@@ -1280,7 +1323,7 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
         continue;
       }
       const before = local.save();
-      local.step(ph.p);
+      local.step(ph.p, nextToken - 1);
       stepCosts.push(local.position().stepCost);
       if (stepCosts.length > CONFIRM) stepCosts.shift();
       const heardPhrase = hear(ph.p, before, local.position().stepCost);

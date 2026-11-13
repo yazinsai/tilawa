@@ -20,6 +20,9 @@ const SURAH_ENTRY = 3 * UNIT;
 const RECENT = 16;
 
 export interface LocalPosition {
+  /** Half-open interval of observed tokens consumed by this run, independent of reference coordinates. */
+  supportFrom: number;
+  supportTo: number;
   /** Reference phonemes consumed up to here (exclusive end of the last matched phoneme). */
   offset: number;
   /** Where the current contiguous run began; resets on a jump. */
@@ -34,7 +37,7 @@ export interface LocalPosition {
 
 export interface LocalSearch {
   /** Consume one observed phoneme. */
-  step(p: string): void;
+  step(p: string, token?: number): void;
   position(): LocalPosition;
   /** The search state, to rewind to with `restore`. */
   save(): unknown;
@@ -45,7 +48,7 @@ export interface LocalSearch {
  * Streaming alignment around a bookmark: one DP column over a window of nearby ayahs, advanced one observed phoneme at
  * a time, with jump arcs from the best state to any word start in the window. Work per phoneme is bounded by the window.
  */
-export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPosition, "recentCost" | "stepCost">): LocalSearch {
+export function createLocalSearch(index: ReferenceIndex, start: Pick<LocalPosition, "offset" | "origin" | "edits"> & Partial<Pick<LocalPosition, "supportFrom" | "supportTo">>): LocalSearch {
   const ref = index.phonemes;
   const ayahOfWord: number[] = [];
   const ayahStart: number[] = [];
@@ -67,6 +70,9 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
   let lo = 0;
   let cost = new Float64Array(0);
   let origin = new Int32Array(0);
+  let supportFrom = new Float64Array(0);
+  let supportTo = new Float64Array(0);
+  let nextToken = start.supportTo ?? 0;
   let edits = new Int32Array(0);
   let best = start.offset;
   let ayah = -1;
@@ -80,38 +86,50 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     const newHi = ayahEnd[Math.min(ayahEnd.length - 1, a + AHEAD_AYAHS)];
     const c = new Float64Array(newHi - newLo + 1).fill(Infinity);
     const o = new Int32Array(c.length);
+    const sf = new Float64Array(c.length).fill(-1);
+    const st = new Float64Array(c.length);
     const e = new Int32Array(c.length);
     for (let i = 0; i < c.length; i++) {
       const old = newLo + i - lo;
       if (old >= 0 && old < cost.length) {
         c[i] = cost[old];
         o[i] = origin[old];
+        sf[i] = supportFrom[old];
+        st[i] = supportTo[old];
         e[i] = edits[old];
       }
     }
     lo = newLo;
     cost = c;
     origin = o;
+    supportFrom = sf;
+    supportTo = st;
     edits = e;
   };
 
   recentre(start.offset);
   cost[start.offset - lo] = 0;
   origin[start.offset - lo] = start.origin;
+  supportFrom[start.offset - lo] = start.supportFrom ?? -1;
+  supportTo[start.offset - lo] = start.supportTo ?? 0;
   edits[start.offset - lo] = start.edits;
 
 
   return {
-    step(p) {
+    step(p, token = nextToken) {
+      nextToken = token + 1;
       const n = cost.length;
       const base = cost[best - lo];
       const c = new Float64Array(n);
       const o = new Int32Array(n);
+      const sf = new Float64Array(n);
+      const st = new Float64Array(n);
       const e = new Int32Array(n);
       for (let i = 0; i < n; i++) {
         const at = lo + i;
         let bc = cost[i] + insertionCost(ref, at, p);
         let bo = origin[i];
+        let bf = supportFrom[i] < 0 ? token : supportFrom[i];
         let be = edits[i] + 1;
         if (i > 0) {
           const s = subCost(ref[at - 1], p) + entry(at - 1);
@@ -120,6 +138,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
           if (cost[i - 1] + s <= bc) {
             bc = cost[i - 1] + s;
             bo = origin[i - 1];
+            bf = supportFrom[i - 1] < 0 ? token : supportFrom[i - 1];
             be = edits[i - 1] + edit;
           }
           const from = at - 1;
@@ -128,6 +147,7 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
             if (j < bc) {
               bc = j;
               bo = from;
+              bf = token;
               be = edit;
             }
           }
@@ -135,11 +155,14 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
           if (d < bc) {
             bc = d;
             bo = o[i - 1];
+            bf = sf[i - 1];
             be = e[i - 1] + 1;
           }
         }
         c[i] = bc;
         o[i] = bo;
+        sf[i] = bf;
+        st[i] = token + 1;
         e[i] = be;
       }
 
@@ -154,6 +177,8 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
       if (recent.length > RECENT) recent.shift();
       cost = c;
       origin = o;
+      supportFrom = sf;
+      supportTo = st;
       edits = e;
       best = lo + k;
       recentre(best);
@@ -161,13 +186,13 @@ export function createLocalSearch(index: ReferenceIndex, start: Omit<LocalPositi
     position() {
       const i = best - lo;
       const recentCost = recent.length ? recent.reduce((a, b) => a + b, 0) / UNIT / recent.length : 0;
-      return { offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
+      return { supportFrom: supportFrom[i], supportTo: supportTo[i], offset: best, origin: origin[i], edits: edits[i], recentCost, stepCost: (recent.at(-1) ?? 0) / UNIT };
     },
     // Steps replace the arrays rather than writing into them, so a saved state can share them.
-    save: () => ({ lo, cost, origin, edits, best, ayah, recent: [...recent] }),
+    save: () => ({ lo, cost, origin, supportFrom, supportTo, nextToken, edits, best, ayah, recent: [...recent] }),
     restore(state) {
-      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; edits: typeof edits; best: number; ayah: number; recent: number[] };
-      ({ lo, cost, origin, edits, best, ayah } = s);
+      const s = state as { lo: number; cost: typeof cost; origin: typeof origin; supportFrom: typeof supportFrom; supportTo: typeof supportTo; nextToken: number; edits: typeof edits; best: number; ayah: number; recent: number[] };
+      ({ lo, cost, origin, supportFrom, supportTo, nextToken, edits, best, ayah } = s);
       recent.splice(0, recent.length, ...s.recent);
     },
   };
