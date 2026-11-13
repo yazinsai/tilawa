@@ -42,13 +42,23 @@ history features. It selects between two regularized tree estimators exclusively
 within hashed training-speaker partitions, reserving separate speakers for
 control calibration. No practice identifiers or reference text are inputs.
 
-Four small synthetic unit checks passed locally in an isolated workspace
-environment: preceding energy changes release gain, state continues causally
-across windows, the known dynamic inverse recovers an attack/release signal and
-beats identity and memoryless inverses, and feature values are stable under
-global amplitude changes. These checks establish the draft's elementary signal
-mechanics only. They do not establish training specificity, blind parameter
-accuracy, written-word recovery or mistake preservation.
+On the implementation retry, the draft was restored temporarily beside the
+student scripts. Its iterative inverse was replaced with an exact solution
+for each one-ms block, avoiding undercorrection of the high-ratio memoryless
+control. Amplification remains capped at 18 dB; invalid parameters, nonfinite
+audio and an out-of-bounds initial state are rejected.
+
+Seven small synthetic unit checks passed locally in an isolated environment
+under this worktree: preceding energy changes release gain; forward and inverse
+state continue causally across windows; the known dynamic inverse recovers an
+attack/release signal and beats identity and memoryless inverses; feature values
+are stable under global amplitude changes; a high-ratio memoryless inverse is
+exact; and the inverse enforces its gain bound and input checks. These establish
+the draft's elementary signal mechanics only. They do not establish training
+specificity, blind parameter accuracy, written-word recovery or mistake
+preservation. The local command was
+`.autolab/dynamic-compression-venv/bin/python -m unittest discover -s modal/tests -p test_student_dynamic_compression.py -v`;
+all seven passed in 3.516 seconds.
 
 ## Execution limitation
 
@@ -60,6 +70,28 @@ identified from these responses. Request 3 submitted the synthetic checks and
 training utility through the same authorized supervisor route and returned the
 same error, again without shard output or training results. Remote execution
 therefore remains unavailable; no alternative Modal route was attempted.
+
+The retry submitted request 4 for a fresh `LAB_DATA`/help-train inventory. It
+returned the identical `NotFoundError: No such file or directory`, again with
+zero reported compute cost and no shard output. Request 5 submitted the seven
+synthetic unit checks through the supervisor, and request 6 submitted the
+required six-shard `bash tools/autolab_tests.sh` build/core/SDK checks. Their
+results both returned the same `NotFoundError`, zero reported compute cost and
+no shard output. Neither remote test request ran usable checks. Requests 4–6
+are recorded in ignored `.autolab/modal-request-{4,5,6}.json` and their matching
+`modal-result-{4,5,6}.json` files. All retry requests used the prescribed
+`python3 /Users/rock/ai/projects/tilawa/tools/autolab.py modal-run` route; no
+practice score was used.
+
+This blocks a complete implementation for concrete reasons: the training
+utility cannot read the authorized recordings or verify their speaker/split
+schema, fit the estimator, freeze training-speaker selection and calibration,
+or export and verify its runtime assets. The target waveforms and traces cannot
+be read to identify the actual preceding and disputed intervals or compare the
+dynamic model with its controls. Installing a veto without those steps would
+substitute an untrained hypothesis for the card's required acoustic evidence.
+An optional hook that never loads a fitted estimator would instead leave the
+scored listener unchanged and would not implement this experiment.
 
 The untrained utility and its checks were removed from engine sources and saved
 under ignored `.autolab/dynamic-compression-draft/` for resumption. The final
