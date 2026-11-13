@@ -1,0 +1,13 @@
+{
+ "id": "listener-occurrence-tied-allophones",
+ "component": "listener",
+ "hypothesis": "False substitutions may stitch together incompatible acoustic realizations within one sound; tying each sound to one latent realization predicts 1 false warning removed, no losses counted: listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-13T00:42:07+00:00",
+ "author": "autolab"
+}
