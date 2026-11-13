@@ -47,6 +47,8 @@ export interface LoadedModel {
   backend: InferenceBackend;
   /** Error classes this model's evidence supports; the rest are reported `unsupported`. */
   supported: ErrorClass[];
+  /** Optional independently trained local moving spectral zero scorer. */
+  movingZero?: import("./moving-spectral-zero.js").MovingZeroModel;
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
 }

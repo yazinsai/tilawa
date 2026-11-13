@@ -14,7 +14,8 @@ const manifest = { file: "primary.onnx", tokens: "بت", inventory: "muaalem-v3_
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.readFile.mockResolvedValue(JSON.stringify(manifest));
+  mocks.readFile.mockImplementation((path:string)=>path.endsWith("moving-zero-asset.json")
+    ? Promise.reject(Object.assign(new Error("absent"), {code:"ENOENT"})) : Promise.resolve(JSON.stringify(manifest)));
 });
 
 describe("Node insertion teacher loading", () => {

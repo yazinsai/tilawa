@@ -43,7 +43,7 @@ const reversed = Uint16Array.from({ length: NFFT }, (_, i) => {
   return r;
 });
 
-function fft(re: Float64Array, im: Float64Array) {
+export function fft512(re: Float64Array, im: Float64Array) {
   for (let i = 0; i < NFFT; i++) {
     const j = reversed[i];
     if (i < j) {
@@ -73,8 +73,10 @@ function fft(re: Float64Array, im: Float64Array) {
 
 export class Fbank {
   private readonly bank: typeof melBank;
-  constructor(options: { highFrequency?: number } = {}) {
+  private readonly onSpectrum?: (power: Float64Array) => void;
+  constructor(options: { highFrequency?: number; onSpectrum?: (power: Float64Array) => void } = {}) {
     this.bank = options.highFrequency === undefined ? melBank : makeMelBank(options.highFrequency);
+    this.onSpectrum = options.onSpectrum;
   }
   private pending = new Float32Array(0);
   private readonly re = new Float64Array(NFFT);
@@ -99,7 +101,9 @@ export class Fbank {
         const prev = i > 0 ? buf[off + i - 1] - mean : x;
         re[i] = (x - 0.97 * prev) * povey[i];
       }
-      fft(re, im);
+      fft512(re, im);
+      // A separate copy keeps side scorers from mutating the primary frontend.
+      this.onSpectrum?.(Float64Array.from(re, (r, k) => r*r+im[k]*im[k]));
       const frame = new Float32Array(MELS);
       for (let m = 0; m < MELS; m++) {
         const { start, weights } = this.bank[m];
