@@ -1,0 +1,13 @@
+{
+ "id": "listener-training-frame-origin",
+ "component": "listener",
+ "hypothesis": "Distillation may pair teacher and student rows by index despite different acoustic frame origins; timestamp-correct supervision should recover 1 missed addition with no losses forecast: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-13T01:44:13+00:00",
+ "author": "autolab"
+}
