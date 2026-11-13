@@ -11,8 +11,12 @@ import type { AyahRef, PhraseAsset, ReferenceIndex } from "./reference.js";
 import { letterSkeleton } from "./parallel-phrases.js";
 import { continuationDecision, longestSpanAt, spanId, slotSpans } from "./slot-spans.js";
 import type { SlotSpan } from "./slot-spans.js";
+import { ADVERSARIAL_LOCATION_MODEL } from "./location-model.js";
+import type { TrajectoryModel } from "./trajectory.js";
 
 export interface TrackerOptions {
+  /** Training-frozen local score correction. Null retains the original comparison. */
+  locationModel?: TrajectoryModel | null;
   mode?: "free" | "memorization";
   /** Grams occurring more often than this carry too little location information to vote. */
   maxGramOccurrences?: number;
@@ -869,7 +873,8 @@ export function createTracker(index: ReferenceIndex, options: TrackerOptions = {
   };
 
   const startLocal = (m: Match) => {
-    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) });
+    local = createLocalSearch(index, { offset: m.offset + m.length, origin: m.offset, edits: Math.round(m.per * m.length) },
+      { model: options.locationModel === undefined ? ADVERSARIAL_LOCATION_MODEL : options.locationModel });
     weak = false;
     pending = null;
     reacquiring = false;
