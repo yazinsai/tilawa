@@ -1,0 +1,13 @@
+{
+ "id": "listener-crossed-context-readout",
+ "component": "listener",
+ "hypothesis": "Acoustic readouts may identify consonants from correlated surrounding sounds rather than their own evidence; crossed-context training predicts 1 false warning removed and 0 losses, listener -1 and overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-13T00:43:26+00:00",
+ "author": "autolab"
+}
