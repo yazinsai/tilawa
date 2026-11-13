@@ -1,0 +1,42 @@
+import { readFileSync, writeFileSync } from "node:fs";
+import { createTracker, trackerInput } from "./tracker.audit.js";
+import { createChecker } from "./checker.audit.js";
+import { createTracker as plainTracker } from "../../../../packages/core/src/tracker.js";
+import { createChecker as plainChecker } from "../../../../packages/core/src/checker.js";
+import { loadReferenceIndex } from "../../../../packages/core/src/reference.js";
+import { chunks } from "../../../../packages/core/src/bench/lab.js";
+
+const card = JSON.parse(readFileSync(new URL("../../../../lab-experiment.json", import.meta.url), "utf8"));
+const dir = `${process.env.LAB_DATA}/${card.testSet}/sessions`;
+const id = process.argv[2];
+const at = Number(process.argv[3]);
+if (!id || !Number.isFinite(at)) throw new Error("Usage: replay.ts <session> <seconds>");
+process.env.AUDIT_FROM_MS = String((at - 20) * 1000);
+process.env.AUDIT_TO_MS = String((at + 35) * 1000);
+const listener = card.listener;
+const evidence = JSON.parse(readFileSync(`${dir}/${id}.${listener}.phone.evidence.json`, "utf8"));
+const index = loadReferenceIndex(JSON.parse(readFileSync(new URL("../../../../packages/core/assets/ref-v2.json", import.meta.url), "utf8")));
+const phrases = JSON.parse(readFileSync(new URL("../../../../packages/core/assets/phrases-v1.json", import.meta.url), "utf8"));
+const audit = createTracker(index, { phrases, trace: true });
+const baseline = plainTracker(index, { phrases, trace: true });
+const ac = createChecker(index, { phrases });
+const bc = plainChecker(index, { phrases });
+const actual: unknown[] = [], expected: unknown[] = [];
+let events = 0;
+for (const e of chunks(evidence)) {
+  const a = audit.push(trackerInput(e));
+  const b = baseline.push(trackerInput(e));
+  if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error("Instrumented tracker changed events");
+  events += a.length;
+  actual.push(...ac.push(e, a));
+  expected.push(...bc.push(e, b));
+}
+const a = audit.end(), b = baseline.end();
+if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error("Instrumented end changed events");
+actual.push(...ac.end(a)); expected.push(...bc.end(b));
+if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error("Instrumented checker changed events");
+const warnings = actual.filter((e: any) => e.type === "checker" && Math.abs(e.timeMs / 1000 - at) <= 35);
+const result = { identical: true, trackerEvents: events + a.length, checkerEvents: actual.length, warnings };
+console.log(JSON.stringify({ audit: "result", ...result }));
+writeFileSync(`${process.env.LAB_OUT}/result.json`, JSON.stringify(result, null, 2));
+writeFileSync(`${process.env.LAB_OUT}/tokens.json`, JSON.stringify(evidence.phonemes.map((p: any, i: number) => ({ token: i, ...p })).filter((p: any) => Math.abs(p.start * evidence.frameMs / 1000 - at) <= 20), null, 2));
