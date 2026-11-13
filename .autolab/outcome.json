@@ -1,0 +1,1 @@
+{"status":"killed","reason":"Same-position notifications cannot restore missing acoustic evidence through the existing interface because the checker already consumes every evidence push and derives word visits independently.","measured":{"targets won":0}}
