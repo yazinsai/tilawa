@@ -47,6 +47,8 @@ export interface LoadedModel {
   backend: InferenceBackend;
   /** Error classes this model's evidence supports; the rest are reported `unsupported`. */
   supported: ErrorClass[];
+  /** Frozen pronunciation compatibility heads; primary streaming outputs are preserved. */
+  acousticSpans?: { model: import("./acoustic-span.js").AcousticSpanModel; backend: InferenceBackend; contrast: import("./acoustic-span.js").CompatibilityHead; control: import("./acoustic-span.js").CompatibilityHead };
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
 }
