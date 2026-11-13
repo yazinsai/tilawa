@@ -1,0 +1,13 @@
+{
+ "id": "listener-phone-conditional-word-scrub",
+ "component": "listener",
+ "hypothesis": "The acoustic readout may use word-specific context shortcuts instead of transferable consonant evidence; removing lexical context conditional on phone identity predicts 1 fewer listener and overall wrong call, with no losses forecast.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-13T03:50:34+00:00",
+ "author": "autolab"
+}
