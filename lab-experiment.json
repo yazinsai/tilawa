@@ -1,0 +1,13 @@
+{
+ "id": "listener-channel-transition-readout",
+ "component": "listener",
+ "hypothesis": "Acoustic readouts may mistake changes in recording coloration for consonant changes; training explicitly across within-recording channel transitions predicts 1 false warning removed and no losses counted: listener -1, overall -1.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-13T01:15:32+00:00",
+ "author": "autolab"
+}
