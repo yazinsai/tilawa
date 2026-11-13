@@ -19,12 +19,30 @@ criterion does not replace that instruction.
 
 ## Implementation
 
-A separate copy of the shipped int8 streaming graph exposes its frozen pre-CTC
+A separate copy of the card's inherited listener graph exposes its frozen pre-CTC
 features. The export utility checks the primary file checksum and requires
 bit-for-bit equality of every original output and cache over eight successive
 windows with graph optimization disabled. A fixed 32-dimensional projection
 limits the head's cached-feature budget; the primary graph and manifest are
 copied unchanged when assembling a bundle.
+
+The previous implementation incorrectly extracted from and copied
+`spliced-clean-int8`, replacing the card's inherited
+`exp-listener-teacher-insert-marginal-gate-ad6eb8c0` bundle. The revised pipeline
+reads the listener name from the untouched card and resolves only
+`$LAB_DATA/models/<listener>`. If that inherited bundle is unavailable or its
+primary checksum is wrong, preparation stops without a fallback. The same
+resolved directory supplies feature export, training extraction and final
+assembly; the fitted head and extractor metadata must both identify its primary
+checksum, alphabet and inventory.
+
+Assembly validates all fitted asset checksums before copying to a fresh empty
+scratch directory. It rejects stale outputs and collisions with inherited files,
+then verifies the complete inherited file tree and additions byte-for-byte.
+Nested auxiliary assets and ONNX external data are carried forward alongside the
+original manifest and primary graph. `bundle-inheritance.json` records those
+checksums and the resulting bundle path in LAB_OUT; exported-head parity must
+also pass before that path can be declared for scoring.
 
 The preparer accepts only help-train training speakers' none-labelled,
 non-excluded takes without planted events or repeats. The supplied help-train
@@ -77,26 +95,34 @@ The SDK preserves primary tokens, posteriors and tracker input. Audio sessions
 retain an auxiliary audio copy and publish applicable uncertainty revisions at
 completion. The Node loader validates all four declared auxiliary assets by
 byte size, checksum, geometry and primary-model identity; missing or corrupt
-control assets reject a declared bundle. The assembly script copies all existing
-primary assets, including insertion assets, unchanged.
+control assets reject a declared bundle. The assembly utility verifies that all
+inherited primary and auxiliary assets, including insertion assets, survive
+unchanged.
 
 ## Validation and limits
 
 Local checks passed:
 
-- Four pairing tests: actual audio swaps, duration/vowel/capture constraints,
+- Ten Python tests: four pairing tests covering actual audio swaps,
+  duration/vowel/capture constraints,
   exclusion of identical pronunciations, deterministic speaker assignment and
-  identical positive recording multisets in the random control.
-- Python compilation, shell syntax, TypeScript syntax checks on eleven changed
+  identical positive recording multisets in the random control, plus six bundle
+  tests covering card-directed resolution, missing inheritance without fallback,
+  preservation of primary/teacher/external/nested assets, wrong-primary metadata,
+  missing/corrupt control assets and refusal to overwrite stale or inherited files.
+- Python compilation, shell syntax, TypeScript syntax checks on twelve changed
   or new files, and `git diff --check`.
 
 Core/SDK unit tests were added for forward-sum boundary marginalization,
 complete-phone consumption, strict control preference, certificate serialization
 and exact identity, graph preservation, end-of-session revisions, insertion
-preservation and missing/corrupt bundle rejection. They have not run successfully;
+preservation and missing/corrupt bundle rejection. Additional SDK regressions
+check that a valid-checksum head fitted on another primary is rejected and that
+an inherited insertion teacher coexists with the new head, retaining the original
+primary backend and releasing all three backends. They have not run successfully;
 syntax checks are not TypeScript typechecking or passing unit tests.
 
-Four authorized supervisor submissions failed with
+Seven authorized supervisor submissions failed with
 `NotFoundError: No such file or directory`, no container log and zero compute
 charge:
 
@@ -105,12 +131,26 @@ charge:
 3. The required six-shard `bash tools/autolab_tests.sh` harness.
 4. `bash modal/student_duration_negatives_run.sh`, the complete preparation,
    fitting, assembly and export-parity pipeline.
+5. Read-only inherited-model inventory probe after the review feedback.
+6. The required six-shard tests on the inheritance correction.
+7. The corrected training and complete-bundle pipeline (60-minute allowance).
+
+Runs 5–7 were retried through the same authorized supervisor after implementing
+the review correction. All returned the same error, with no LAB_OUT or container
+log and zero compute charge. The inherited bundle's availability therefore also
+remains unverified; the resolver's temporary-directory tests do not establish
+that it is mounted remotely.
 
 This is an infrastructure blocker, not a measured acoustic kill. No real
 training recording was inspected, no head was fitted, and no auxiliary bundle
 was generated or declared in `.autolab/model.json`. The changes are an
 unvalidated implementation checkpoint, not a score-ready experiment. Evaluating
 the primary model alone would not evaluate these changes.
+
+No `.autolab/outcome.json` kill verdict was written: infrastructure failure does
+not establish the acoustic premise or a number of target wins. The untracked
+`.autolab/blocker.json` records the failed supervisor requests and zero practice
+scores. The engine implementation remains for validation once compute works.
 
 Unknowns include whether enough matched pairs exist in all speaker partitions,
 whether the head discriminates consonants in unseen speakers, whether any of the
