@@ -1,7 +1,8 @@
 import { align as editPath } from "./align.js";
 import { EVENT_SCHEMA_VERSION } from "./events.js";
 import type { CheckerEvent, CheckerState, EngineEvent, MemorizationErrorClass, PositionEvent, WordRef } from "./events.js";
-import type { DecodedPhoneme, PhonemeEvidence } from "./evidence.js";
+import { sequenceEvidenceKey, vowelResidualVeto } from "./evidence.js";
+import type { DecodedPhoneme, PhonemeEvidence, SequenceEvidenceCandidate } from "./evidence.js";
 import { PosteriorFrames } from "./ctc.js";
 import { UNIT, alignSubstring, collapseHeld, deletionCost, insertionCost, subCost } from "./fuzzy.js";
 import { channelFromCounts, spanLogP, type Channel, type ChannelCounts } from "./noisy-channel.js";
@@ -51,6 +52,8 @@ export interface SeamInsertionCandidate {
 }
 
 export interface CheckerOptions {
+  /** Called only for an otherwise confirmed string-path wrong word; false vetoes its public verdict. */
+  sequenceEvidence?: (candidate: SequenceEvidenceCandidate, eventId: string) => boolean;
   /** Auxiliary listener evidence may veto only posterior-certified seam spellings. */
   seamInsertion?: (candidate: SeamInsertionCandidate) => boolean;
   policy?: CheckerPolicy;
@@ -441,6 +444,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   /** Words whose error was confirmed or ended uncertain; never reopened. */
   const decided = new Set<number>();
   const emitted: CheckerEvent[] = [];
+  const sequenceWindows = new WeakMap<Issue, SequenceEvidenceCandidate>();
+  const sequenceCertificates = new Set<string>();
+  const sequenceVetoedIds = new Set<string>();
   let seq = 0;
 
   const event = (o: Open, state: CheckerState): CheckerEvent => {
@@ -458,8 +464,20 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       ...(issue.heardUnion ? { observed: issue.heardUnion.observed } : issue.observed !== undefined ? { observed: issue.observed } : {}),
       confidence: conf,
     };
+    // Keep primary ownership/confirmation history for insertion merges and other
+    // structural decisions. Only this accusation's public verdict can change.
+    let reported = e;
+    if (state === "confirmed") sequenceVetoedIds.delete(o.id);
+    const c = sequenceWindows.get(issue);
+    if (state === "confirmed" && issue.cls === "wrong_word" && issue.stringPath && !issue.phrase && c) {
+      const allowed = options.sequenceEvidence?.(c, o.id);
+      if (allowed === false || sequenceCertificates.has(sequenceEvidenceKey(c))) {
+        sequenceVetoedIds.add(o.id);
+        reported = { ...e, state: "uncertain" };
+      }
+    }
     emitted.push(e);
-    return e;
+    return reported;
   };
 
   /** Mean decoder confidence over an error's phonemes; for an omission, the phonemes either side of the gap. */
@@ -484,6 +502,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
    * written words by `SUPPORT`; null when there's no telling (no posteriors there, or a skipped passage).
    */
   const supported = (issue: Issue, requireFinite = false): boolean | null => {
+    sequenceWindows.delete(issue);
+    const remember = (written: string, rival: string, fromFrame: number, toFrame: number) => {
+      if (issue.cls === "wrong_word" && issue.stringPath && !issue.phrase && written && rival)
+        sequenceWindows.set(issue, { word: toRef(issue.word), written, rival, fromFrame, toFrame });
+    };
     // Spelled surplus is structural. A likelihood contest over the neighbours is what loses the word.
     if (issue.lexicon) return null;
     // The madd's length was already compared with this reciter's own. One vowel does not move the forward sum.
@@ -508,6 +531,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const word = ref.slice(words[issue.word].start, words[issue.last].end);
       const need = supportNeed(issue);
       const expectedNll = frames.nll(ids(word), a0, b0), observedNll = frames.nll(ids(issue.observed ?? ""), a0, b0);
+      remember(word, issue.observed ?? "", a0, b0);
       if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
       return expectedNll - observedNll >= need;
     }
@@ -520,6 +544,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       const writtenPair = ref.slice(words[issue.word].start, words[through].end);
       const need = supportNeed(issue);
       const expectedNll = frames.nll(ids(writtenPair), a0, b0), observedNll = frames.nll(ids(issue.pair), a0, b0);
+      remember(writtenPair, issue.pair, a0, b0);
       if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
       return expectedNll - observedNll >= need;
     }
@@ -543,6 +568,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
         : span(from, issue.word) + (issue.cls === "wrong_word" ? observed : "") + span(issue.last + 1, to + 1);
     const need = supportNeed(issue);
     const expectedNll = frames.nll(ids(written), f0, f1), observedNll = frames.nll(ids(decoded), f0, f1);
+    remember(written, decoded, f0, f1);
     if (requireFinite && (!Number.isFinite(expectedNll) || !Number.isFinite(observedNll))) return null;
     return expectedNll - observedNll >= need;
   };
@@ -2462,6 +2488,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
 
   return {
     push(evidence, events) {
+      for (const p of evidence.phonemes) for (const c of p.vowelResidualVetoes ?? []) {
+        if (c && c.word && [c.word.surah, c.word.ayah, c.word.word].every(v => Number.isSafeInteger(v) && v > 0) &&
+          Number.isSafeInteger(c.fromFrame) && c.fromFrame >= 0 && Number.isSafeInteger(c.toFrame) &&
+          c.toFrame > c.fromFrame && vowelResidualVeto(c)) sequenceCertificates.add(sequenceEvidenceKey(c));
+      }
       for (const p of evidence.phonemes) for (const m of p.seamInsertions ?? []) {
         if (Number.isFinite(m.marginal) && m.marginal >= 0 && m.marginal <= 1 &&
           Number.isInteger(m.fromFrame) && m.toFrame > m.fromFrame) {
@@ -2496,7 +2527,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       return out;
     },
     mistakes() {
-      return emitted.filter((e) => e.state === "confirmed" || (policy.countResolved && e.state === "resolved"));
+      return emitted.filter((e) => !sequenceVetoedIds.has(e.id) && (e.state === "confirmed" || (policy.countResolved && e.state === "resolved")));
     },
   };
 }
