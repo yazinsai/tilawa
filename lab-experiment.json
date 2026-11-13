@@ -1,0 +1,13 @@
+{
+ "id": "listener-frequency-equivariant-ear",
+ "component": "listener",
+ "hypothesis": "Weak added-word consonants may fall outside learned spectral templates; a frequency-scale-equivariant acoustic encoder should recover 2 of 9 additions with no losses forecast: listener -2, overall -2, with substantial zero-gain risk.",
+ "expected": {
+  "component": -2,
+  "overall": -2
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-13T00:41:18+00:00",
+ "author": "autolab"
+}
