@@ -1,4 +1,4 @@
-import { EVENT_SCHEMA_VERSION, createChecker, createTracker, trackerInput } from "@tilawa/core";
+import { EVENT_SCHEMA_VERSION, acousticTransitionEnabled, createChecker, createTracker, trackerInput } from "@tilawa/core";
 import type {
   CapabilityEvent,
   CheckerEvent,
@@ -14,6 +14,7 @@ import { Resampler } from "./audio.js";
 import { capabilities } from "./capabilities.js";
 import { addInsertionEvidence, insertionCells } from "./seam-insertion.js";
 import { spliceContextFreeGaps } from "./gap-decode.js";
+import { carryAcousticTransitions } from "./acoustic-transition-features.js";
 import { createListener } from "./listener.js";
 import type { ListenerOptions } from "./listener.js";
 import type { LoadedModel } from "./model.js";
@@ -101,7 +102,7 @@ export function createEngine(options: EngineOptions): Engine {
       ...(passage && { passage }),
     };
     const checker = createChecker(index, checkerOptions);
-    const listener = createListener(model, { posteriors: true, ...options.listener });
+    const listener = createListener(model, { acousticTransitions: acousticTransitionEnabled, posteriors: true, ...options.listener });
     const wordIndex = new Map(index.words.map((w, i) => [`${w.surah}:${w.ayah}:${w.word}`, i]));
     const locks: { wi: number; timeMs: number }[] = [];
     const noteLocks = (events: EngineEvent[]) => {
@@ -184,10 +185,11 @@ export function createEngine(options: EngineOptions): Engine {
               audio.set(part, o);
               o += part.length;
             }
+            const acousticFeatures = recorded.flatMap(c => c.acousticTransitions ? [c.acousticTransitions] : []);
             const spliced = options.recordEvidence && locks.length > 1
               ? await spliceContextFreeGaps(model, audio, rate, recorded, locks, index) : recorded;
             const enriched = await addInsertionEvidence(model, audio, spliced, index, phrases);
-            recorded.splice(0, recorded.length, ...enriched);
+            recorded.splice(0, recorded.length, ...carryAcousticTransitions(enriched, acousticFeatures));
             if (model.insertionTeacher) {
               // Auxiliary replay cannot replace primary events or change the live tracker.
               // Only newly certified seam additions are published at end().
@@ -238,6 +240,7 @@ function evidenceGrid(ms: number) {
   let frameMs = 0;
   let inventory = "";
   let post: { k: number; startFrame: number; ids: number[]; probs: number[] } | null = null;
+  let features: { width: number; startFrame: number; values: number[] } | null = null;
   const cellOf = (frame: number) => Math.floor((frame * frameMs) / ms);
   const cut = (n: number, until: number, decodedTo?: number): PhonemeEvidence => {
     const e: PhonemeEvidence = { inventory, frameMs, phonemes: held.slice(0, n), ...(decodedTo !== undefined && { decodedTo }) };
@@ -247,6 +250,12 @@ function evidenceGrid(ms: number) {
       e.posteriors = { k: post.k, startFrame: post.startFrame, nFrames: take, ids: post.ids.splice(0, take * post.k), probs: post.probs.splice(0, take * post.k) };
       post.startFrame += take;
     }
+    if (features) {
+      const take = Math.max(0, Math.min(until, features.startFrame + features.values.length / features.width) - features.startFrame);
+      e.acousticTransitions = { version: 1, width: features.width, startFrame: features.startFrame, nFrames: take,
+        values: features.values.splice(0, take * features.width) };
+      features.startFrame += take;
+    }
     return e;
   };
   return {
@@ -254,6 +263,13 @@ function evidenceGrid(ms: number) {
       frameMs = e.frameMs;
       inventory = e.inventory;
       held.push(...e.phonemes);
+      if (e.acousticTransitions) {
+        const f = e.acousticTransitions;
+        features ??= { width: f.width, startFrame: f.startFrame, values: [] };
+        if (f.width !== features.width || f.startFrame !== features.startFrame + features.values.length / features.width)
+          throw new Error("Discontinuous acoustic transition features");
+        for (const v of Array.from(f.values)) features.values.push(v);
+      }
       if (e.posteriors) {
         post ??= { k: e.posteriors.k, startFrame: e.posteriors.startFrame, ids: [], probs: [] };
         post.ids.push(...Array.from(e.posteriors.ids));

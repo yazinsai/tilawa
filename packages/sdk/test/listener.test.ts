@@ -12,7 +12,7 @@ const wav = decodeWav(readFileSync(fixture("tlog-clean-00010-630.wav")));
 const VOCAB = reference.logProbs.length / reference.frames;
 
 async function run(step: number) {
-  const listener = createListener(await loadNodeModel(fixture("tiny").pathname), { posteriors: true });
+  const listener = createListener(await loadNodeModel(fixture("tiny").pathname), { acousticTransitions: true, posteriors: true });
   const out: PhonemeEvidence[] = [];
   for (let a = 0; a < wav.samples.length; a += step) {
     const e = await listener.push(wav.samples.subarray(a, a + step), wav.sampleRate);
@@ -45,6 +45,12 @@ describe("streaming listener on onnxruntime-node", () => {
     const b = await run(16000 * 3);
     const flat = (cs: PhonemeEvidence[]) => cs.flatMap((c) => c.phonemes);
     expect(flat(a)).toEqual(flat(b));
+    expect(a.flatMap(c => Array.from(c.acousticTransitions!.values))).toEqual(b.flatMap(c => Array.from(c.acousticTransitions!.values)));
+    for (const c of a) {
+      expect(c.acousticTransitions!.startFrame).toBe(c.posteriors!.startFrame);
+      expect(c.acousticTransitions!.nFrames).toBe(c.posteriors!.nFrames);
+      expect(c.acousticTransitions!.values.length).toBe(c.acousticTransitions!.width * c.posteriors!.nFrames);
+    }
     let next = 0;
     for (const c of a) {
       expect(c.posteriors!.startFrame).toBe(next);

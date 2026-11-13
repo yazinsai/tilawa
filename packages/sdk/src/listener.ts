@@ -1,4 +1,5 @@
 import type { DecodedPhoneme, PhonemeEvidence } from "@tilawa/core";
+import { summarizeTransition } from "./acoustic-transition-features.js";
 import { Resampler } from "./audio.js";
 import { Fbank } from "./fbank.js";
 import type { LoadedModel, Tensor } from "./model.js";
@@ -7,6 +8,8 @@ export interface ListenerOptions {
   /** Attach per-frame top-k posteriors to each chunk: the checker's local-window check reads them. Default false; sessions turn it on. */
   posteriors?: boolean;
   topK?: number;
+  /** Retain original spectral transition evidence for local tracking. */
+  acousticTransitions?: boolean;
 }
 
 export interface Listener {
@@ -52,6 +55,7 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
   let done: DecodedPhoneme[] = [];
   let ids: number[] = [];
   let probs: number[] = [];
+  let transitions: number[] = [];
 
   async function step(window: Float32Array[], keep: number) {
     const x = new Float32Array(m.window * m.fbank.mels);
@@ -62,6 +66,7 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
     const n = Math.min(keep, lp.length / vocab);
     for (let t = 0; t < n; t++) {
       const row = lp.subarray(t * vocab, (t + 1) * vocab);
+      if (options.acousticTransitions) transitions.push(...summarizeTransition(window.slice(t * m.frameMs / 10, (t + 1) * m.frameMs / 10), vocab * 2));
       const top = topK(row, k);
       if (options.posteriors) for (const [id, p] of top) ids.push(id), probs.push(round4(p));
       const [id, p] = top[0];
@@ -99,6 +104,10 @@ export function createListener(model: LoadedModel, options: ListenerOptions = {}
       e.posteriors = { k, startFrame: emitted, nFrames: n, ids: ids.slice(0, n * k), probs: probs.slice(0, n * k) };
       ids = ids.slice(n * k);
       probs = probs.slice(n * k);
+    }
+    if (options.acousticTransitions) {
+      const n = until - emitted, width = vocab * 2;
+      e.acousticTransitions = { version: 1, startFrame: emitted, nFrames: n, width, values: transitions.splice(0, n * width) };
     }
     done = [];
     emitted = until;
