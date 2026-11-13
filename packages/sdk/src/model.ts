@@ -49,4 +49,6 @@ export interface LoadedModel {
   supported: ErrorClass[];
   /** Declared fp32 KD teacher; primary streaming outputs are preserved. */
   insertionTeacher?: { decode(samples: Float32Array, k: number): Promise<PhonemeEvidence> };
+  /** Frozen-encoder nonlinear side readout; never used by primary decoding. */
+  connectedBasin?: import("./connected-basin.js").BasinScorer;
 }

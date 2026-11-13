@@ -1,6 +1,7 @@
 /** Node entry: onnxruntime-node, models from a directory, WAV input. */
 import { access, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
+import { createHash } from "node:crypto";
 import * as ort from "onnxruntime-node";
 import { MEMORIZATION_CLASSES } from "./capabilities.js";
 import type { LoadedModel, ModelManifest } from "./model.js";
@@ -11,6 +12,7 @@ import type { OrtModule } from "./ort.js";
 import { ortBackend } from "./ort.js";
 import { decodeWav } from "./wav.js";
 import { createInsertionTeacher } from "./insertion-teacher.js";
+import { validateBasinReadouts } from "./connected-basin.js";
 
 export * from "./index.js";
 export { decodeWav };
@@ -22,7 +24,38 @@ export async function loadNodeModel(dir: string, options: { threads?: number } =
     executionProviders: ["cpu"],
     intraOpNumThreads: options.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads);
+  return attachBasinReadout(await attachInsertionTeacher({ manifest, backend, supported: manifest.supported ?? MEMORIZATION_CLASSES }, dir, options.threads), dir, options.threads);
+}
+
+/** An installed descriptor is a declaration: missing or corrupt side files fail loading. */
+async function attachBasinReadout(model: LoadedModel, dir: string, threads = 1): Promise<LoadedModel> {
+  const raw = await readFile(join(dir, "connected-basin-asset.json"), "utf8").catch(e => {
+    if (e.code === "ENOENT") return null;
+    throw e;
+  });
+  if (raw === null) return model;
+  const asset = JSON.parse(raw) as {schema: number; primarySha256: string; files: Record<string, {bytes: number; sha256: string}>};
+  if (asset.schema !== 1 || asset.primarySha256 !== model.manifest.sha256 || !asset.files ||
+      Object.keys(asset.files).sort().join(",") !== "encoder-features.onnx,readouts.json")
+    throw new Error("Invalid connected-basin asset declaration");
+  const sha = (b: Uint8Array) => createHash("sha256").update(b).digest("hex");
+  if (sha(await readFile(join(dir, model.manifest.file))) !== model.manifest.sha256)
+    throw new Error("Connected-basin primary checksum mismatch");
+  let readouts: unknown;
+  for (const file of ["encoder-features.onnx", "readouts.json"]) {
+    const spec = asset.files[file], bytes = await readFile(join(dir, file));
+    if (!Number.isSafeInteger(spec.bytes) || spec.bytes <= 0 || bytes.length !== spec.bytes || sha(bytes) !== spec.sha256)
+      throw new Error("Connected-basin asset checksum mismatch: "+file);
+    if (file === "readouts.json") readouts = JSON.parse(bytes.toString("utf8"));
+  }
+  const readout = validateBasinReadouts(readouts, model.manifest);
+  const backend = await ortBackend(ort as unknown as OrtModule, join(dir, "encoder-features.onnx"), "onnxruntime-node", {
+    executionProviders: ["cpu"], intraOpNumThreads: threads,
+  });
+  model.connectedBasin = {model: readout, backend};
+  const release = model.backend.release.bind(model.backend);
+  model.backend.release = async () => { await backend.release(); await release(); };
+  return model;
 }
 
 /** The student's normal directory loader resolves declared auxiliary assets from the same bundle. */
@@ -87,6 +120,6 @@ export async function loadNodeTier(o: Omit<FetchModelOptions, "storage" | "regis
     executionProviders: ["cpu"],
     intraOpNumThreads: o.threads ?? 1,
   });
-  return attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported },
-    join(o.cacheDir, `${tier.id}@${tier.version}`), o.threads);
+  const dir = join(o.cacheDir, `${tier.id}@${tier.version}`);
+  return attachBasinReadout(await attachInsertionTeacher({ manifest: tier.manifest, backend, supported: tier.supported }, dir, o.threads), dir, o.threads);
 }
