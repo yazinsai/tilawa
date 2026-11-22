@@ -82,7 +82,7 @@ Untagged-license data: training accepted at our risk. NC-tagged and Quran-Lab da
 
 ## Ground truth (no labelling budget)
 
-- **Scripted-error recordings:** 5–15 volunteers reading generated scripts with planted errors, so labels are known by construction. Mixed gender, mostly non-Arab, several phones. Held out by speaker. Consent covers commercial training as well as evaluation; the audio is stored privately, never in git.
+- **Scripted-error recordings:** no new ones. Asking people to make deliberate mistakes while reciting the Quran is not permissible, so we never prompt for them again (the /help page has only stored correct-recitation prompts since prompt v4). The planted-mistake help recordings collected before that decision are the scripted-error set: their eval split (30 held-out speakers) is the gate set, and their train split stays with autolab. Held out by speaker; stored privately, never in git. New mistake evidence comes only from natural mistakes: reviewed /help reports, mined tlog `deviant` clips and reviewed RetaSy clips. Third-party sets with elicited mistakes (e.g. QuranMB.v2, CC-BY-NC) may inform internal decisions, never public claims.
 - **RetaSy clips:** flagged by the pipeline, then reviewed word by word.
 - **Mined tlog `deviant` clips:** become natural errors once reviewed.
 - **After launch:** an opt-in "report wrong feedback" button.
