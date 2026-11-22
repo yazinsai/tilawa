@@ -1,2 +1,4 @@
 packages:
   - packages/*
+  # The published SDK: npm with its own lockfile, and it shares the name @tilawa/core with packages/core.
+  - "!packages/tilawa-core"

@@ -2,7 +2,7 @@
 # requires-python = ">=3.12"
 # dependencies = ["rapidfuzz==3.14.1"]
 # ///
-"""Human spot-check of the offline-tarteel help-page clips before they become eval labels.
+"""Human spot-check of the tilawa.dev help-page clips before they become eval labels.
 
     uv run tools/help_audit.py pull      # rsync submissions + audio, convert to 16 kHz WAV
     modal run modal/help_pass.py         # optional: teacher decode -> .scratch/help/teacher.json
@@ -28,7 +28,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DIR = ROOT / ".scratch/help"
 RAW, WAV = DIR / "raw", DIR / "wav"
 REMOTE = "root@dokku-server:/var/lib/dokku/data/storage/offline-tarteel/help/"
-QURAN = Path.home() / "ai/projects/offline-tarteel/web/frontend/public/quran.json"
+QURAN = ROOT / "web/frontend/public/quran.json"
 REPORT = ROOT / "docs/benchmarks/help-audit-v1.md"
 INDEX = ROOT / "packages/core/assets/ref-v2.json"
 # Flag a clip when another passage beats the expected one by this much phoneme error rate.

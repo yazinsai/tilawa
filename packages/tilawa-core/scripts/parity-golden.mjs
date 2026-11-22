@@ -3,7 +3,7 @@
  * Writes test/fixtures/parity/golden.json: the research session's events, at the pinned commit, for the parity
  * scenarios (test/fixtures/parity/scenarios.ts).
  *
- *   node scripts/parity-golden.mjs --repo <research checkout> [--commit <sha>]
+ *   node scripts/parity-golden.mjs [--repo <checkout>] [--commit <sha>]
  *
  * The research tree is `git archive`d into a temp dir; its workspace isn't installed. Its sources are bundled with
  * esbuild (`@tilawa/core` aliased to the archived core) and run on this package's onnxruntime-node, so the only
@@ -20,12 +20,9 @@ import { COMMIT } from "./pin.mjs";
 const pkg = join(dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
 const opt = (n) => (args.includes(n) ? args[args.indexOf(n) + 1] : undefined);
-const repo = opt("--repo") ?? process.env.TILAWA_RESEARCH_REPO;
+// The engine lives in this repo (packages/core, packages/sdk); --repo points at another checkout of it.
+const repo = opt("--repo") ?? process.env.TILAWA_RESEARCH_REPO ?? join(pkg, "../..");
 const commit = opt("--commit") ?? COMMIT;
-if (!repo) {
-  console.error("usage: node scripts/parity-golden.mjs --repo <research checkout> [--commit <sha>]");
-  process.exit(2);
-}
 
 const tmp = mkdtempSync(join(tmpdir(), "tilawa-parity-"));
 try {

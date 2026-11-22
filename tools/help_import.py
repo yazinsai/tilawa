@@ -21,7 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DIR = Path(os.environ.get("HELP_DIR", ROOT / ".scratch/help"))
 RAW, WAV = DIR / "raw", DIR / "wav"
-QURAN = Path.home() / "ai/projects/offline-tarteel/web/frontend/public/quran.json"
+QURAN = ROOT / "web/frontend/public/quran.json"
 INDEX = ROOT / "packages/core/assets/ref-v2.json"
 VOLUME = "tilawa-help"
 # Clips whose planted mistake has no ref-v2 word. Anything else that fails to map stops the build.

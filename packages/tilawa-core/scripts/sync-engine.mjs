@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * Vendors the research engine into this package from one pinned commit.
+ * Copies the engine (packages/core, packages/sdk in this repo) into this package from one pinned commit.
  *
- *   node scripts/sync-engine.mjs --repo <path to research checkout> [--commit <sha>] [--check]
+ *   node scripts/sync-engine.mjs [--repo <checkout>] [--commit <sha>] [--check]
  *
  * Research `packages/core/src/*.ts` -> `src/engine/`, research `packages/sdk/src/*.ts` (+ models-v1.json) ->
  * `src/runtime/`. Research-only dirs (bench, relabel, review, e2e, buckets, fixtures, sdk/bench) are not copied.
  * The only edit is import specifiers: `@tilawa/core` in the runtime becomes `../engine/index.js`, and the synthetic
  * evidence fixture (copied to `test/fixtures/synthetic.ts`) points at `src/engine/`. Everything is read with
- * `git show <commit>:<path>`, so the research checkout's working tree and branch don't matter.
+ * `git show <commit>:<path>`, so the working tree and branch don't matter.
  *
  * `src/engine/SOURCE.json` records {repo, commit, files: {path: sha256}}: every file this script writes, keyed by
  * its path in this package, hashed as written. `--check` rewrites nothing and exits 1 if any file differs.
@@ -27,13 +27,10 @@ const opt = (name) => {
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1] : undefined;
 };
-const repo = opt("--repo") ?? process.env.TILAWA_RESEARCH_REPO;
+// The engine lives in this repo (packages/core, packages/sdk); --repo points at another checkout of it.
+const repo = opt("--repo") ?? process.env.TILAWA_RESEARCH_REPO ?? join(pkg, "../..");
 const commit = opt("--commit") ?? COMMIT;
 const check = args.includes("--check");
-if (!repo) {
-  console.error("usage: node scripts/sync-engine.mjs --repo <research checkout> [--commit <sha>] [--check]");
-  process.exit(2);
-}
 
 const git = (...a) => execFileSync("git", ["-C", repo, ...a], { maxBuffer: 64 << 20 });
 const ls = (dir) =>

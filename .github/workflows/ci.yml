@@ -18,6 +18,8 @@ jobs:
         working-directory: packages/tilawa-core
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # sync-engine --check reads the pinned engine commit
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -28,6 +30,7 @@ jobs:
       - run: npm run build
       - run: npx vitest run
       - run: npm run test:pack
+      - run: npm run sync-engine -- --check
 
   demo:
     runs-on: ubuntu-latest
