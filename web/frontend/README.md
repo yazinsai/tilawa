@@ -30,7 +30,7 @@ npx vitest run                # deterministic: server, /help, demo helpers, asse
 TILAWA_MODELS_DIR=<exports> npx playwright test   # opt-in end to end (see playwright.config.ts)
 ```
 
-The Playwright test builds everything, prepares `dist/v1`, starts the built server and recites `lab/benchmark/test_corpus/multi_036_001_005.wav` (Yā-Sīn 36:1–5) into Chromium's fake microphone. Screenshots go to `test/demo-screens/`.
+The Playwright test builds everything, prepares `dist/v1`, starts the built server and recites `e2e/fixtures/multi_036_001_005.wav` (Yā-Sīn 36:1–5) into Chromium's fake microphone. Screenshots go to `test/demo-screens/`.
 
 ## Old clients
 

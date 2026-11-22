@@ -1,10 +1,10 @@
 # Notices
 
-This repository's code is MIT-licensed (`LICENSE`). The notices below cover the data, models and libraries `@tilawa/core` is built from or ships, plus the older assets still in `lab/`.
+This repository's code is MIT-licensed (`LICENSE`). The notices below cover the data, models and libraries `@tilawa/core` is built from or ships, plus the 0.x assets. The old Python harness `lab/` was removed from the tree; it is in the history at [`2a29b3b`](https://github.com/yazinsai/tilawa/tree/2a29b3b/lab).
 
 ## `@tilawa/core` 1.x
 
-The engine (`packages/tilawa-core/src/engine/`, `packages/tilawa-core/src/runtime/`) is vendored from the (private) Tilawa research engine, unmodified apart from import paths, and released here under this repository's MIT licence. `packages/tilawa-core/src/engine/SOURCE.json` records the source commit and file hashes. The listener model it downloads (`spliced-clean`, `spliced-clean-lite`) and its reference data are built from the works below. Their attribution terms apply to redistributions of the models and assets. The `spliced-clean` and `spliced-clean-lite` weights themselves are released under **CC BY 4.0** (see `docs/model-card.md`).
+The engine (`packages/tilawa-core/src/engine/`, `packages/tilawa-core/src/runtime/`) is copied from the research engine in this repository (`packages/core/`, `packages/sdk/`) at a pinned commit, unmodified apart from import paths, and released here under this repository's MIT licence. `packages/tilawa-core/src/engine/SOURCE.json` records the source commit and file hashes. The listener model it downloads (`spliced-clean`, `spliced-clean-lite`) and its reference data are built from the works below. Their attribution terms apply to redistributions of the models and assets. The `spliced-clean` and `spliced-clean-lite` weights themselves are released under **CC BY 4.0** (see `docs/model-card.md`).
 
 - **tlog** (`tarteel-ai/tlog`), by Tarteel, licensed **CC-BY**: training and evaluation audio. The test clip `packages/tilawa-core/test/fixtures/tlog-clean-00010-630.wav` (not shipped in the package) comes from tlog.
 - **Quranic Universal Ayahs** and the **QUD alignment benchmark** (`QUD-Technologies/quranic-universal-ayahs`), by QUD Technologies, licensed **CC-BY**: training and evaluation audio and alignments.
@@ -14,9 +14,9 @@ The engine (`packages/tilawa-core/src/engine/`, `packages/tilawa-core/src/runtim
 - **Tanzil** (tanzil.net): the Uthmani Quran text the reference is derived from. Tanzil's terms ask that the text be reproduced verbatim, with Tanzil credited as its source and a link to tanzil.net.
 - **ONNX Runtime** (`microsoft/onnxruntime`, MIT): inference. It is a peer dependency, installed by the app.
 
-## 0.x engine and `lab/` (not part of `@tilawa/core` 1.x)
+## 0.x engine and the old `lab/` harness (not part of `@tilawa/core` 1.x)
 
-The 0.x package and the Python harness in `lab/` used the models and data below. Nothing from them ships in `@tilawa/core` 1.x.
+The 0.x package and the Python harness in `lab/` (removed; see [`2a29b3b`](https://github.com/yazinsai/tilawa/tree/2a29b3b/lab)) used the models and data below. Nothing from them ships in `@tilawa/core` 1.x.
 
 ### Acknowledgements
 
