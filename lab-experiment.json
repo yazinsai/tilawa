@@ -1,0 +1,13 @@
+{
+ "id": "checker-skip-span-dedupe",
+ "component": "checker",
+ "hypothesis": "When a skipped_passage issue [word, last] is confirmed (e.g. e72f9fb1 22:3:9..22:4:9 on a 22:3->22:8 mutashabihat slip), decide() records only its start word in decided. When later speech realigns the jump across a broader overlapping span (22:3:1..22:7:last), decided.has(wi) is false and the checker confirms a second skipped_passage for the same slip. Recording confirmed skipped_passage spans and suppressing any new skipped_passage that overlaps an already-confirmed skip span removes the duplicate skip warning without regressing lab practice or help eval.",
+ "expected": {
+  "component": 0,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-22T04:59:57+00:00",
+ "author": "Yazin"
+}
