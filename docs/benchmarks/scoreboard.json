@@ -48429,11 +48429,6 @@
    "id": "checker.selfCorrection",
    "label": "Self-correction and long-session false warnings",
    "area": "Checker"
-  },
-  {
-   "id": "tracker.scripted",
-   "label": "Scripted-error recordings",
-   "area": "Tracker"
   }
  ]
 }

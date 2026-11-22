@@ -57,13 +57,15 @@ export const GATES: Gate[] = [
   { id: "tracker.clean.falseJumps", label: "Tracker: false jumps", area: "Tracker" },
   { id: "e2e.perfRtf", label: "Real-time factor", area: "Product", flipOnly: true },
 ];
-/** Release requirements with no data yet; they block release until measured. */
+/**
+ * Release requirements with no data yet; they block release until measured. No new scripted-error recordings are
+ * made (PLAN, Ground truth): the help eval split is that set, so the gates above already measure it.
+ */
 export const BLOCKED: Gate[] = [
   { id: "e2e.pron.short_vowel", label: "Pronunciation: short vowels", area: "Listener" },
   { id: "e2e.pron.phase2", label: "Pronunciation: confusable pairs, shadda", area: "Listener" },
   { id: "e2e.latency", label: "Word highlight / warning latency on device", area: "Product" },
   { id: "checker.selfCorrection", label: "Self-correction and long-session false warnings", area: "Checker" },
-  { id: "tracker.scripted", label: "Scripted-error recordings", area: "Tracker" },
 ];
 export const DEFAULT_CANDIDATE = "spliced-clean-int8";
 

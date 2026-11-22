@@ -14,7 +14,7 @@ The release cockpit for the engine. One row per commit × listener, recomputed f
 
 ## Release readiness: spliced-clean-int8 @ 441dddc3 (2026-11-11)
 
-**Not ready**: 7/13 gates pass, 6 fail, 0 not measured on this listener, 5 requirements not measurable yet. Worst shortfall first.
+**Not ready**: 7/13 gates pass, 6 fail, 0 not measured on this listener, 4 requirements not measurable yet. Worst shortfall first.
 
 | Gate | Now | Bar | Shortfall | Δ previous run |
 |---|---:|---|---:|---:|
@@ -32,7 +32,7 @@ The release cockpit for the engine. One row per commit × listener, recomputed f
 | Tracker: false jumps | 0.0% (0/225) | ≤ 2.0% | pass |  |
 | Real-time factor | 0.002 | ≤ 0.05 | pass | +0 |
 
-Not measurable yet (blocks release): Pronunciation: short vowels; Pronunciation: confusable pairs, shadda; Word highlight / warning latency on device; Self-correction and long-session false warnings; Scripted-error recordings.
+Not measurable yet (blocks release): Pronunciation: short vowels; Pronunciation: confusable pairs, shadda; Word highlight / warning latency on device; Self-correction and long-session false warnings.
 
 **Biggest lever on recall: tracker**, which loses 26 of the 34 planted mistakes missed in free recitation (E0 attribution).
 

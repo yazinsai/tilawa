@@ -352,7 +352,6 @@ if (shipped) {
 } else add({ id: "e2e.stitched.falseWords", group: E2E, name: "Stitched sessions: false wrong/added words per 5 min (free)", value: null, status: "pending", note: teacher ? "run `pnpm jumps`" : "teacher evidence only" });
 source = "acceptance-v1.md";
 add({ id: "tracker.tlog", group: TRACKER, name: "Ambiguous tlog clips (PLAN gate set)", value: null, status: "unmeasurable", note: "no passage truth: the sampled ambiguous clips are wrong-passage or no-recitation (ticket 06)" });
-add({ id: "tracker.scripted", group: TRACKER, name: "Scripted-error recordings (PLAN gate set)", value: null, status: "unmeasurable", note: "no recordings yet (ticket 05)" });
 
 // ---- Checker isolated.
 const CHECKER = "Checker";
