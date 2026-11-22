@@ -1,51 +1,12 @@
 import { Hono } from "hono";
-import { bodyLimit } from "hono/body-limit";
 import { isStoredId, requireAdmin } from "./auth.js";
-import { randomUUID } from "node:crypto";
-import { mkdir, writeFile, readdir, readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 const STORAGE_DIR = process.env.STORAGE_DIR || "./storage/reports";
 
+// 0.x upload routes are retired: V1 sends reports to /help/api/v2. Stored 0.x data stays readable by admins.
 export const reportsApp = new Hono();
-
-// POST /api/reports — accept audio + metadata
-reportsApp.post("/", bodyLimit({ maxSize: 25 * 1024 * 1024 }), async (c) => {
-  const form = await c.req.formData();
-  const audio = form.get("audio") as File | null;
-  const metaRaw = form.get("metadata") as string | null;
-
-  if (!audio || !metaRaw) {
-    return c.json({ error: "Missing audio or metadata" }, 400);
-  }
-
-  let meta: Record<string, unknown>;
-  try {
-    meta = JSON.parse(metaRaw);
-  } catch {
-    return c.json({ error: "Invalid metadata JSON" }, 400);
-  }
-
-  const id = randomUUID();
-  const dir = join(STORAGE_DIR, id);
-  await mkdir(dir, { recursive: true });
-
-  // Save audio
-  const audioBuffer = Buffer.from(await audio.arrayBuffer());
-  await writeFile(join(dir, "audio.wav"), audioBuffer);
-
-  // Save metadata
-  const fullMeta = {
-    ...meta,
-    id,
-    timestamp: new Date().toISOString(),
-    userAgent: c.req.header("user-agent") || "",
-    audioSizeBytes: audioBuffer.length,
-  };
-  await writeFile(join(dir, "meta.json"), JSON.stringify(fullMeta, null, 2));
-
-  return c.json({ id, status: "saved" }, 201);
-});
 
 // GET /api/reports — list all reports
 reportsApp.get("/", requireAdmin, async (c) => {

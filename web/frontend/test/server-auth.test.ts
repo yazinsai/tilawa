@@ -66,11 +66,11 @@ test("forged legacy cookie is rejected; password login yields a working signed s
   expect((await app.request("/api/reports", { headers: { cookie: tampered } })).status).toBe(401);
 });
 
-test("submissions stay open and cannot choose their stored id", async () => {
-  const form = new FormData();
-  form.set("audio", new Blob([new Uint8Array(32)], { type: "audio/wav" }), "a.wav");
-  form.set("metadata", JSON.stringify({ id: "../../evil", surah: 1, ayah: 1 }));
-  const res = await app.request("/api/reports", { method: "POST", body: form });
-  expect(res.status).toBe(201);
-  expect((await res.json()).id).toMatch(/^[0-9a-f-]{36}$/);
+test("retired 0.x upload routes accept nothing", async () => {
+  for (const base of ["/api/reports", "/api/diagnostics"]) {
+    const form = new FormData();
+    form.set("audio", new Blob([new Uint8Array(32)], { type: "audio/wav" }), "a.wav");
+    form.set("metadata", "{}"); form.set("events", "[]"); form.set("trigger", "x");
+    expect((await app.request(base, { method: "POST", body: form })).status).toBe(404);
+  }
 });

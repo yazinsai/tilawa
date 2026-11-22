@@ -34,4 +34,4 @@ The Playwright test builds everything, prepares `dist/v1`, starts the built serv
 
 ## Old clients
 
-Browsers that ran the 0.x demo have a ~66 MB model in the IndexedDB database `tarteel-models`, and possibly a service worker. `src/migrate.ts` deletes that database, unregisters service workers and drops every Cache API cache except the SDK's `tilawa-models`. `public/sw.js` is the old service worker's kill switch. The 0.x `/api/reports` and `/api/diagnostics` POST routes stay on the server for old clients.
+Browsers that ran the 0.x demo have a ~66 MB model in the IndexedDB database `tarteel-models`, and possibly a service worker. `src/migrate.ts` deletes that database, unregisters service workers and drops every Cache API cache except the SDK's `tilawa-models`. `public/sw.js` is the old service worker's kill switch. The 0.x `/api/reports` and `/api/diagnostics` upload routes are retired (they took anonymous uploads); their stored data stays readable by admins.

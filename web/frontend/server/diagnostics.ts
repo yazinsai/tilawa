@@ -1,57 +1,14 @@
 import { Hono } from "hono";
-import { bodyLimit } from "hono/body-limit";
 import { isStoredId, requireAdmin } from "./auth.js";
-import { randomUUID } from "node:crypto";
-import { mkdir, writeFile, readdir, readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 const STORAGE_DIR = process.env.STORAGE_DIR
   ? join(process.env.STORAGE_DIR, "../diagnostics")
   : "./storage/diagnostics";
 
+// 0.x upload route is retired: V1 sends reports to /help/api/v2. Stored 0.x data stays readable by admins.
 export const diagnosticsApp = new Hono();
-
-// POST /api/diagnostics — accept auto-captured diagnostic data
-diagnosticsApp.post("/", bodyLimit({ maxSize: 25 * 1024 * 1024 }), async (c) => {
-  const form = await c.req.formData();
-  const audio = form.get("audio") as File | null;
-  const eventsRaw = form.get("events") as string | null;
-  const trigger = form.get("trigger") as string | null;
-
-  if (!eventsRaw || !trigger) {
-    return c.json({ error: "Missing events or trigger" }, 400);
-  }
-
-  let events: unknown[];
-  try {
-    events = JSON.parse(eventsRaw);
-  } catch {
-    return c.json({ error: "Invalid events JSON" }, 400);
-  }
-
-  const id = randomUUID();
-  const dir = join(STORAGE_DIR, id);
-  await mkdir(dir, { recursive: true });
-
-  // Save audio if provided
-  if (audio) {
-    const audioBuffer = Buffer.from(await audio.arrayBuffer());
-    await writeFile(join(dir, "audio.wav"), audioBuffer);
-  }
-
-  // Save metadata
-  const meta = {
-    id,
-    trigger,
-    events,
-    timestamp: new Date().toISOString(),
-    userAgent: c.req.header("user-agent") || "",
-    hasAudio: !!audio,
-  };
-  await writeFile(join(dir, "meta.json"), JSON.stringify(meta, null, 2));
-
-  return c.json({ id, status: "saved" }, 201);
-});
 
 // GET /api/diagnostics — list all diagnostics
 diagnosticsApp.get("/", requireAdmin, async (c) => {
