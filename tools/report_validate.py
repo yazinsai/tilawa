@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Validate a Tilawa report artifact (report.json + audio.wav), schema tilawa.report/1.
 
-Mirrors packages/core/src/report/validate.ts rule for rule (contract section 6, "Validation"); change both together.
+Mirrors packages/tilawa-core/src/report/validate.ts rule for rule (contract section 6, "Validation"); change both together.
 
     python3 tools/report_validate.py report.json audio.wav   # exit 0 when valid, 1 with one error per line
 """

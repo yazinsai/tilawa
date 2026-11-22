@@ -139,6 +139,6 @@ The code is MIT. The listener model is trained and evaluated on tlog (Tarteel, C
 
 ## This repository
 
-- `packages/core/`: the SDK. `src/engine/` and `src/runtime/` are vendored from the research engine by `scripts/sync-engine.mjs`. Don't edit them by hand.
+- `packages/tilawa-core/`: the SDK. `src/engine/` and `src/runtime/` are vendored from the research engine by `scripts/sync-engine.mjs`. Don't edit them by hand.
 - `web/`: the demo at tilawa.dev.
 - `lab/`: the earlier Python research harness.

@@ -39,8 +39,8 @@ function v1Assets(): Plugin {
 export default defineConfig({
   plugins: [v1Assets()],
   resolve: {
-    // No alias: @tilawa/core and its subpaths resolve to the built package (file:../../packages/core → dist).
-    // packages/core has its own dev copy of onnxruntime-web: use this app's.
+    // No alias: @tilawa/core and its subpaths resolve to the built package (file:../../packages/tilawa-core → dist).
+    // packages/tilawa-core has its own dev copy of onnxruntime-web: use this app's.
     dedupe: ["onnxruntime-web"],
     // onnxruntime-web's non-bundled build: its .mjs/.wasm load from /v1/runtime/ort/<version>/ (the SDK's
     // wasmPaths) instead of being inlined into our bundle and copied into dist/assets.

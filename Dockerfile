@@ -13,17 +13,17 @@
 #     with --build-arg TILAWA_ASSETS_URL=http://host.docker.internal:8000/
 #   - Or "none": the image then has no models. Mount a prepared tree and point ASSETS_V1_DIR at it, e.g.
 #       docker run -v $PWD/web/frontend/dist/v1:/srv/v1:ro -e ASSETS_V1_DIR=/srv/v1 ...
-# Every model is checked against the sha256 in packages/core's registry; a mismatch fails the build.
+# Every model is checked against the sha256 in packages/tilawa-core's registry; a mismatch fails the build.
 
 # Stage 1: build
 FROM node:22-slim AS builder
 
-# 1. @tilawa/core first: the frontend depends on its built dist (file:../../packages/core), so the repo layout
+# 1. @tilawa/core first: the frontend depends on its built dist (file:../../packages/tilawa-core), so the repo layout
 #    is mirrored under /app.
-WORKDIR /app/packages/core
-COPY packages/core/package.json packages/core/package-lock.json ./
+WORKDIR /app/packages/tilawa-core
+COPY packages/tilawa-core/package.json packages/tilawa-core/package-lock.json ./
 RUN npm ci
-COPY packages/core/ ./
+COPY packages/tilawa-core/ ./
 RUN npm run build
 
 # 2. The frontend (demo + /help) against it, then the server bundle.
@@ -56,7 +56,7 @@ FROM node:22-slim
 WORKDIR /app
 
 # The server bundle's only runtime dependencies (hono, @hono/node-server); everything else is bundled. They are
-# pruned in the builder: `npm ci` here would fail on the lockfile's file:../../packages/core link (a dev dependency).
+# pruned in the builder: `npm ci` here would fail on the lockfile's file:../../packages/tilawa-core link (a dev dependency).
 COPY web/frontend/package.json ./
 COPY --from=builder /app/web/frontend/node_modules ./node_modules
 

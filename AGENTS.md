@@ -4,7 +4,7 @@ Offline, streaming Quran recitation engine: word-level position tracking and mem
 
 This repo ships two things:
 
-- **`@tilawa/core`** (`packages/core/`), the SDK. Its engine is vendored from the private research repo (`yazinsai/tilawa-reborn`) at the commit in `packages/core/src/engine/SOURCE.json`. ONNX Runtime is an optional peer dependency, one per platform subpath.
+- **`@tilawa/core`** (`packages/tilawa-core/`), the SDK. Its engine is vendored from the private research repo (`yazinsai/tilawa-reborn`) at the commit in `packages/tilawa-core/src/engine/SOURCE.json`. ONNX Runtime is an optional peer dependency, one per platform subpath.
 - **Web demo** (`web/`), the browser demo at tilawa.dev.
 
 The older Python research/training harness lives under `lab/` and has its own `lab/AGENTS.md`.
@@ -12,7 +12,7 @@ The older Python research/training harness lives under `lab/` and has its own `l
 ## Layout
 
 ```
-packages/core/            # @tilawa/core SDK (the shipped product)
+packages/tilawa-core/            # @tilawa/core SDK (the shipped product)
   src/engine/             #   VENDORED research core (tracker, checker, events, reference). Never hand-edit.
   src/runtime/            #   VENDORED research sdk (listener, fbank, models, ort, web/node/RN loaders). Never hand-edit.
   src/index.ts            #   curated root barrel (named exports only)
@@ -28,7 +28,7 @@ web/                      # demo (Vite)
 lab/                      # Python research harness, see lab/AGENTS.md
 ```
 
-`README.md` at the root is the SDK's published README. `packages/core/README.md`, `LICENSE` and `NOTICE.md` are gitignored copies made by `npm run sync-docs` at pack time; edit the root files.
+`README.md` at the root is the SDK's published README. `packages/tilawa-core/README.md`, `LICENSE` and `NOTICE.md` are gitignored copies made by `npm run sync-docs` at pack time; edit the root files.
 
 ## SDK rules
 
@@ -39,7 +39,7 @@ lab/                      # Python research harness, see lab/AGENTS.md
 ## Build & test the SDK
 
 ```bash
-cd packages/core
+cd packages/tilawa-core
 npm ci
 npm run typecheck
 npm run build
@@ -51,7 +51,7 @@ All of these must be green before merge. CI (`.github/workflows/ci.yml`) runs th
 
 ## Run the web demo
 
-The demo is the SDK's regression guard: if it still recognizes recitation against `@tilawa/core`, the SDK is correct. It uses the built package (`file:../../packages/core`), so build core first.
+The demo is the SDK's regression guard: if it still recognizes recitation against `@tilawa/core`, the SDK is correct. It uses the built package (`file:../../packages/tilawa-core`), so build core first.
 
 ```bash
 cd web/frontend
@@ -67,7 +67,7 @@ TILAWA_MODELS_DIR=<exports> npx playwright test # opt-in: recites a real clip in
 
 ## Making changes
 
-- **SDK engine change** → make it in the research repo, then re-vendor (see SDK rules). **Wrapper/API change** → edit `packages/core/src/` outside the vendored dirs, add a deterministic test, keep `vitest` and `test:pack` green.
+- **SDK engine change** → make it in the research repo, then re-vendor (see SDK rules). **Wrapper/API change** → edit `packages/tilawa-core/src/` outside the vendored dirs, add a deterministic test, keep `vitest` and `test:pack` green.
 - **Demo change** → edit `web/frontend/src/`. Verify `npm run build` typechecks and the demo still recognizes recitation.
 - **New model / matching strategy / training** → that's lab work. See `lab/AGENTS.md`. Nothing in `lab/` may import from `packages/` or `web/`, and vice versa.
 

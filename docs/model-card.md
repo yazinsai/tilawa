@@ -14,7 +14,7 @@ The listener models behind `@tilawa/core` 1.x. They turn recitation audio into a
 | Default for | browsers and Node | low-memory devices, mobile browsers without WebGPU, React Native |
 | Licence | CC BY 4.0 | CC BY 4.0 |
 
-The hashes and manifests are in `packages/core/src/runtime/models-v1.json`, which the SDK bundles and checks every download against.
+The hashes and manifests are in `packages/tilawa-core/src/runtime/models-v1.json`, which the SDK bundles and checks every download against.
 
 ## Architecture
 

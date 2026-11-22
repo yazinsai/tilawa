@@ -1,5 +1,5 @@
 {
-  // Typechecks the docs snippets against the built package (packages/core/dist), the way an app sees it:
+  // Typechecks the docs snippets against the built package (packages/tilawa-core/dist), the way an app sees it:
   // through its package.json "exports". Run `node docs/examples/typecheck.mjs` from the repo root.
   "compilerOptions": {
     "target": "ES2022",
@@ -7,7 +7,7 @@
     "moduleResolution": "NodeNext",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["node"],
-    "typeRoots": ["../../packages/core/node_modules/@types"],
+    "typeRoots": ["../../packages/tilawa-core/node_modules/@types"],
     "strict": true,
     "noEmit": true,
     "resolveJsonModule": true,

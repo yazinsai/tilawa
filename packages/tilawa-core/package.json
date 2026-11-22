@@ -44,7 +44,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yazinsai/tilawa.git",
-    "directory": "packages/core"
+    "directory": "packages/tilawa-core"
   },
   "homepage": "https://github.com/yazinsai/tilawa#readme",
   "bugs": {
