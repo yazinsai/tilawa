@@ -139,6 +139,6 @@ The code is MIT. The listener model is trained and evaluated on tlog (Tarteel, C
 
 ## This repository
 
-- `packages/tilawa-core/`: the SDK. `src/engine/` and `src/runtime/` are vendored from the research engine by `scripts/sync-engine.mjs`. Don't edit them by hand.
+- `packages/tilawa-core/`: the SDK. `src/engine/` and `src/runtime/` are copied from the research engine at a pinned commit by `scripts/sync-engine.mjs`. Don't edit them by hand.
+- `packages/core/`, `packages/sdk/`: the research engine and runtime, with the lab (`tools/lab.py`, `modal/`) that measures every change. [Lab history](https://github.com/yazinsai/tilawa/blob/main/docs/benchmarks/lab-history.md) shows every experiment and the improvements over time.
 - `web/`: the demo at tilawa.dev.
-- `lab/`: the earlier Python research harness.
