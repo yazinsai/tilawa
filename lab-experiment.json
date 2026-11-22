@@ -1,0 +1,13 @@
+{
+ "id": "tracker-istiadha-lock",
+ "component": "tracker",
+ "hypothesis": "Streaming isti'adha locks onto 2:67:16 mid-phrase (PHRASE_PREFIX_SHARE=0.4 on length-39 isti'adha requires 16 phones, missing 14-15 phone 'a'udhu billahi') and onto 16:98:8 at phrase end (acquire() runs evaluate() with the finished phrase still in observed after forget() clears heard). Holding at PHRASE_PREFIX (12) without exceeding it via share, stepping k by 1, and holding off lock when phraseCut leaves fewer than minPhonemes after a finished phrase eliminates all 5/5 field isti'adha mis-locks (and 2 false skipped_passage warnings on 87:18) with 0 regression on lab practice and help eval.",
+ "expected": {
+  "component": 0,
+  "overall": 0
+ },
+ "listener": "exp-listener-teacher-insert-marginal-gate-ad6eb8c0",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-22T04:54:42+00:00",
+ "author": "Yazin"
+}
