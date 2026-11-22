@@ -1,0 +1,13 @@
+{
+ "id": "checker-tajweed-nasal-ending",
+ "component": "checker",
+ "hypothesis": "In checker-lexical.ts ending(), tajweed nasal allophones (ikhfaa ں and iqlab/ikhfaa-shafawi ۾) are not in CONSONANTS, so pronouncing tanween/noon sakinah as plain ن (or meem sakinah as plain م) looks like adding a consonant suffix and triggers wrong_word (5 of 11 declared FPs and 5 of 13 free+leadin FPs on help eval). Treating ں->ن and ۾->ن/م as tajweed variants of the word's own forms eliminates those false warnings without losing recall.",
+ "expected": {
+  "component": -1,
+  "overall": -1
+ },
+ "listener": "spliced-clean-int8",
+ "testSet": "lab-v1.5u",
+ "created": "2026-11-22T09:07:12+00:00",
+ "author": "Yazin"
+}
