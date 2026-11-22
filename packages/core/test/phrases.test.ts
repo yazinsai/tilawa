@@ -53,6 +53,37 @@ describe("isti'adha and basmala", () => {
     expect(events.at(-1)!.state).toBe("locked");
     expect(events.at(-1)!.observed[0].word).toEqual(w(2, 2, lastWord(2, 2)));
   });
+
+  it("short-madd a'udhu billahi and chunk-end isti'adha never lock onto 2:67 or 16:98", () => {
+    const shortIstiadha = "ءَعُذُبِللَااهِمِنَششَيطَاانِررَجِۦۦم";
+    const f = syntheticFixture(index, { id: "a87_18", from: w(87, 18, 1), to: w(87, 18, lastWord(87, 18)) });
+    const phonemes: DecodedPhoneme[] = [];
+    // Stream at 1s boundaries so "a'udhu billahi" (15 phones) lands on a cell boundary, and full isti'adha ends on a cell boundary.
+    let frame = 20;
+    for (const ch of shortIstiadha) {
+      phonemes.push({ p: ch, start: frame, end: frame + 1, conf: 0.99 });
+      frame += 3;
+    }
+    frame += 30;
+    for (const ph of f.evidence[0].phonemes) {
+      phonemes.push({ p: ph.p, start: frame, end: frame + 1, conf: 0.99 });
+      frame += 3;
+    }
+    const t = createTracker(index, { phrases, acquireMs: 1000 });
+    const events: PositionEvent[] = [];
+    for (const ph of phonemes) {
+      for (const e of t.push({ inventory: index.inventoryId, frameMs: 40, phonemes: [ph], decodedTo: ph.end + 1 })) {
+        if (e.type === "position") events.push(e);
+      }
+    }
+    for (const e of t.end()) if (e.type === "position") events.push(e);
+    for (const e of locked(events)) {
+      const at = `${e.observed[0].word.surah}:${e.observed[0].word.ayah}`;
+      expect(["2:67", "16:98"]).not.toContain(at);
+    }
+    expect(locked(events)[0]?.observed[0].word.surah).toBe(87);
+    expect(events.at(-1)!.observed[0].word).toEqual(w(87, 18, lastWord(87, 18)));
+  });
 });
 
 describe("takbir", () => {
