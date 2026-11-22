@@ -1,0 +1,670 @@
+{
+  "version": 1,
+  "gating": false,
+  "listener": "teacher",
+  "reference": "ref-v2",
+  "note": "Reported only; recorded-session agreement and coverage are not established. QUD is the professional easy end. No release gates replaced.",
+  "rows": [
+    {
+      "id": "jaber-inshiqaq",
+      "track": "recitation",
+      "source": "qud",
+      "speaker": "Ali Jaber",
+      "context": {
+        "kind": "none"
+      },
+      "supportedContext": true,
+      "effectiveContext": "none",
+      "gating": false,
+      "errors": 0,
+      "hits": 0,
+      "misses": 0,
+      "warnings": 0,
+      "falseWarnings": 0,
+      "precision": null,
+      "recall": null,
+      "cleanSeconds": 111.69999999999793,
+      "cleanWarnings": 0,
+      "cleanWarningsPer5Min": 0,
+      "nonErrorWarnings": 0,
+      "uncertainWarnings": 0,
+      "suspectedOnlyWarnings": 0,
+      "uncertainErrors": 0,
+      "ambiguousErrors": 0,
+      "wrongPositionEvents": 0,
+      "positionSamples": 1224,
+      "locatedSamples": 1188,
+      "locatedShare": 0.9705882352941176,
+      "firstCorrectLockDelayS": 3.62,
+      "within5S": true,
+      "suspectedDelayS": [],
+      "confirmedDelayS": [],
+      "assignments": []
+    },
+    {
+      "id": "jaber-nisa",
+      "track": "recitation",
+      "source": "qud",
+      "speaker": "Ali Jaber",
+      "context": {
+        "kind": "none"
+      },
+      "supportedContext": true,
+      "effectiveContext": "none",
+      "gating": false,
+      "errors": 0,
+      "hits": 0,
+      "misses": 0,
+      "warnings": 6,
+      "falseWarnings": 6,
+      "precision": 0,
+      "recall": null,
+      "cleanSeconds": 57.67500000000055,
+      "cleanWarnings": 6,
+      "cleanWarningsPer5Min": 31.209362808842354,
+      "nonErrorWarnings": 0,
+      "uncertainWarnings": 0,
+      "suspectedOnlyWarnings": 0,
+      "uncertainErrors": 0,
+      "ambiguousErrors": 0,
+      "wrongPositionEvents": 0,
+      "positionSamples": 579,
+      "locatedSamples": 566,
+      "locatedShare": 0.9775474956822107,
+      "firstCorrectLockDelayS": 1.3800000000000001,
+      "within5S": true,
+      "suspectedDelayS": [],
+      "confirmedDelayS": [],
+      "assignments": [
+        {
+          "warningId": "4:101:14#1",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "4:102:19#2",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "4:102:32#3",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "4:102:46#4",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "4:102:52#5",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "4:102:59#6",
+          "eventIndex": null,
+          "confirmed": true
+        }
+      ]
+    },
+    {
+      "id": "diban-sad",
+      "track": "recitation",
+      "source": "qud",
+      "speaker": "Ahmed Diban",
+      "context": {
+        "kind": "none"
+      },
+      "supportedContext": true,
+      "effectiveContext": "none",
+      "gating": false,
+      "errors": 0,
+      "hits": 0,
+      "misses": 0,
+      "warnings": 15,
+      "falseWarnings": 15,
+      "precision": 0,
+      "recall": null,
+      "cleanSeconds": 260.5079999999907,
+      "cleanWarnings": 15,
+      "cleanWarningsPer5Min": 17.273941683173494,
+      "nonErrorWarnings": 0,
+      "uncertainWarnings": 48,
+      "suspectedOnlyWarnings": 41,
+      "uncertainErrors": 0,
+      "ambiguousErrors": 0,
+      "wrongPositionEvents": 3,
+      "positionSamples": 2606,
+      "locatedSamples": 2135,
+      "locatedShare": 0.8192632386799693,
+      "firstCorrectLockDelayS": 1.42,
+      "within5S": true,
+      "suspectedDelayS": [],
+      "confirmedDelayS": [],
+      "assignments": [
+        {
+          "warningId": "38:1:3#1",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:5:2#2",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:5:3#3",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "38:5:7#4",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "38:6:4#5",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:7:5#6",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:7:5#7",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:7:6#8",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:10:5#9",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:10:4#10",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:10:4#11",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:12:2#12",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:12:2#13",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:12:5#14",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:12:6#15",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:13:4#16",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "38:13:5#17",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:16:7#18",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:17:3#19",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:19:4#20",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:19:5#21",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:21:2#22",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:22:9#23",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:21:2#24",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:22:9#25",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:22:10#26",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:21:7#27",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:22:6#28",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:23:4#29",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:23:6#30",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:23:5#31",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:23:6#32",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:24:16#33",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:24:18#34",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:24:30#35",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:24:31#36",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:25:6#37",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:25:7#38",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:25:8#39",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:26:5#40",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:26:6#41",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "38:26:23#42",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:28:1#43",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:28:2#44",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:28:2#45",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:30:4#46",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:32:3#47",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:32:3#48",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:34:4#49",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:36:2#50",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:36:3#51",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:36:5#52",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:38:2#53",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:41:6#54",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:41:3#55",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:41:7#56",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:37:3#57",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:37:3#58",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:41:3#59",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:41:7#60",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:41:10#61",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "38:43:2#62",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "38:43:5#63",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "38:45:1#64",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:47:3#65",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:47:3#66",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:47:4#67",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:47:3#68",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:48:1#69",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:48:8#70",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:51:1#71",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:51:2#72",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:51:2#73",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:51:4#74",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:52:1#75",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "38:53:4#76",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:53:4#77",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "38:56:3#78",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "38:57:3#79",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "38:58:3#80",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "38:59:8#81",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "38:60:7#82",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "18:109:9#83",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "18:109:11#84",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "18:109:10#85",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "18:109:11#86",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "18:109:10#87",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "18:109:11#88",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:65:2#89",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:70:3#90",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:71:1#91",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "38:72:2#92",
+          "eventIndex": null,
+          "confirmed": true
+        },
+        {
+          "warningId": "38:72:5#93",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:73:3#94",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:75:13#95",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:76:2#96",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:76:3#97",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:78:5#98",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:85:5#99",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:85:6#100",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:85:7#101",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:86:5#102",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:86:6#103",
+          "eventIndex": null,
+          "confirmed": false
+        },
+        {
+          "warningId": "38:86:6#104",
+          "eventIndex": null,
+          "confirmed": false
+        }
+      ]
+    }
+  ],
+  "failures": []
+}

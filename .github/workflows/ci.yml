@@ -15,19 +15,22 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: packages/core
+        working-directory: packages/tilawa-core
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # sync-engine --check reads the pinned engine commit
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: packages/core/package-lock.json
+          cache-dependency-path: packages/tilawa-core/package-lock.json
       - run: npm ci
       - run: npm run typecheck
       - run: npm run build
       - run: npx vitest run
       - run: npm run test:pack
+      - run: npm run sync-engine -- --check
 
   demo:
     runs-on: ubuntu-latest
@@ -38,11 +41,11 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: |
-            packages/core/package-lock.json
+            packages/tilawa-core/package-lock.json
             web/frontend/package-lock.json
-      # The demo depends on the built package (file:../../packages/core).
+      # The demo depends on the built package (file:../../packages/tilawa-core).
       - run: npm ci && npm run build
-        working-directory: packages/core
+        working-directory: packages/tilawa-core
       - run: npm ci
         working-directory: web/frontend
       - run: npm run build
@@ -68,17 +71,17 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: |
-            packages/core/package-lock.json
+            packages/tilawa-core/package-lock.json
             web/frontend/package-lock.json
       - run: npm ci && npm run build
-        working-directory: packages/core
+        working-directory: packages/tilawa-core
       - run: npm ci && npx playwright install --with-deps chromium
         working-directory: web/frontend
       - uses: actions/cache@v4
         id: models
         with:
           path: ${{ runner.temp }}/tilawa-v1
-          key: tilawa-v1-${{ hashFiles('packages/core/src/runtime/models-v1.json', 'web/frontend/package-lock.json') }}
+          key: tilawa-v1-${{ hashFiles('packages/tilawa-core/src/runtime/models-v1.json', 'web/frontend/package-lock.json') }}
       - if: steps.models.outputs.cache-hit != 'true'
         run: node scripts/prepare-v1-assets.mjs --models-url "${{ vars.TILAWA_MODELS_URL }}" --out ${{ runner.temp }}/tilawa-v1
         working-directory: web/frontend

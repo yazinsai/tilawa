@@ -18,8 +18,8 @@ const source = process.env.TILAWA_MODELS_DIR
     ? `--models-url "${process.env.TILAWA_MODELS_URL}"`
     : null;
 
-/** Yā-Sīn 36:1–5, one reciter, 28.6 s (lab/benchmark/test_corpus), as 16 kHz mono PCM for the fake microphone. */
-export const CLIP = resolve(process.env.E2E_CLIP ?? "../../lab/benchmark/test_corpus/multi_036_001_005.wav");
+/** Yā-Sīn 36:1–5, one reciter, 28.6 s (e2e/fixtures), as 16 kHz mono PCM for the fake microphone. */
+export const CLIP = resolve(process.env.E2E_CLIP ?? "e2e/fixtures/multi_036_001_005.wav");
 const work = mkdtempSync(join(tmpdir(), "tilawa-e2e-"));
 const wav = join(work, "clip-16k.wav");
 if (source && existsSync(CLIP))

@@ -1,0 +1,166 @@
+{
+  "version": 1,
+  "reference": "ref-v2",
+  "audit": [
+    {
+      "id": "abdulbasit-raad",
+      "status": "converted",
+      "reason": null,
+      "spans": 100,
+      "repeats": 3,
+      "restarts": 0,
+      "nonQuran": 0,
+      "surahJumps": 0
+    },
+    {
+      "id": "afasy-baqarah",
+      "status": "converted",
+      "reason": null,
+      "spans": 323,
+      "repeats": 28,
+      "restarts": 0,
+      "nonQuran": 9,
+      "surahJumps": 0
+    },
+    {
+      "id": "ayyub-juz-amma",
+      "status": "converted",
+      "reason": null,
+      "spans": 726,
+      "repeats": 12,
+      "restarts": 1,
+      "nonQuran": 148,
+      "surahJumps": 36
+    },
+    {
+      "id": "badri-juz-tabarak",
+      "status": "converted",
+      "reason": null,
+      "spans": 475,
+      "repeats": 0,
+      "restarts": 0,
+      "nonQuran": 44,
+      "surahJumps": 10
+    },
+    {
+      "id": "diban-sad",
+      "status": "converted",
+      "reason": null,
+      "spans": 89,
+      "repeats": 1,
+      "restarts": 0,
+      "nonQuran": 0,
+      "surahJumps": 0
+    },
+    {
+      "id": "husary-fath",
+      "status": "converted",
+      "reason": null,
+      "spans": 66,
+      "repeats": 7,
+      "restarts": 0,
+      "nonQuran": 0,
+      "surahJumps": 0
+    },
+    {
+      "id": "jaber-inshiqaq",
+      "status": "converted",
+      "reason": null,
+      "spans": 29,
+      "repeats": 0,
+      "restarts": 0,
+      "nonQuran": 4,
+      "surahJumps": 0
+    },
+    {
+      "id": "jaber-nisa",
+      "status": "converted",
+      "reason": null,
+      "spans": 3,
+      "repeats": 0,
+      "restarts": 0,
+      "nonQuran": 0,
+      "surahJumps": 0
+    },
+    {
+      "id": "luhaidan-fatir",
+      "status": "converted",
+      "reason": null,
+      "spans": 72,
+      "repeats": 27,
+      "restarts": 0,
+      "nonQuran": 0,
+      "surahJumps": 0
+    },
+    {
+      "id": "luhaidan-haqqah",
+      "status": "converted",
+      "reason": null,
+      "spans": 27,
+      "repeats": 12,
+      "restarts": 1,
+      "nonQuran": 0,
+      "surahJumps": 0
+    },
+    {
+      "id": "luhaidan-qiyamah",
+      "status": "converted",
+      "reason": null,
+      "spans": 46,
+      "repeats": 0,
+      "restarts": 0,
+      "nonQuran": 0,
+      "surahJumps": 1
+    },
+    {
+      "id": "mandour-taha",
+      "status": "converted",
+      "reason": null,
+      "spans": 129,
+      "repeats": 31,
+      "restarts": 0,
+      "nonQuran": 0,
+      "surahJumps": 0
+    },
+    {
+      "id": "minshawi-luqman",
+      "status": "converted",
+      "reason": null,
+      "spans": 106,
+      "repeats": 72,
+      "restarts": 0,
+      "nonQuran": 0,
+      "surahJumps": 0
+    },
+    {
+      "id": "prayer-baqarah-yasin",
+      "status": "converted",
+      "reason": null,
+      "spans": 76,
+      "repeats": 4,
+      "restarts": 1,
+      "nonQuran": 51,
+      "surahJumps": 3
+    },
+    {
+      "id": "taraweeh-maryam",
+      "status": "converted",
+      "reason": null,
+      "spans": 259,
+      "repeats": 14,
+      "restarts": 6,
+      "nonQuran": 79,
+      "surahJumps": 13
+    },
+    {
+      "id": "witr-muawwidhat",
+      "status": "converted",
+      "reason": null,
+      "spans": 110,
+      "repeats": 0,
+      "restarts": 2,
+      "nonQuran": 77,
+      "surahJumps": 5
+    }
+  ]
+}

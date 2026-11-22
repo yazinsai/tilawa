@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "recordings": [
+    {
+      "id": "jaber-inshiqaq",
+      "reciter": "Ali Jaber",
+      "repo": "QUD-Technologies/quran-alignment-benchmark",
+      "revision": "76c3d804d082c3cc189601faf13a41996e17b6dc",
+      "file": "v1/test-00000-of-00001.parquet",
+      "originalSha256": "cc84ce866748a0e13d47d2aeb68fb2099fc246555ebcfe2795eb84134f4a6cc1",
+      "wavSha256": "c6ef49b3885feaae21c960ad9b5f7a66d0b67283bea239bf2fdf9d98cbf1eba9",
+      "sourceSplit": "test",
+      "sourceDurationS": 128.197,
+      "continuousOriginal": true,
+      "limitation": "Existing evaluation recording. Training reciter/source overlap is not independently ruled out; diagnostic only.",
+      "studentEvidenceSha256": "e934a648cc724dc5e3f842e7067870fdcbe1b273132ca85f3fc3e848b042db5d"
+    },
+    {
+      "id": "jaber-nisa",
+      "reciter": "Ali Jaber",
+      "repo": "QUD-Technologies/quran-alignment-benchmark",
+      "revision": "76c3d804d082c3cc189601faf13a41996e17b6dc",
+      "file": "v1/test-00000-of-00001.parquet",
+      "originalSha256": "a9e52776439cc932992adac7790c75f21bd6c4ce220c424522cba6bd9a4f8ceb",
+      "wavSha256": "ba9a8bbecad257aac013ff96524a84e074093a7e87b083c86bdab333fc3335c9",
+      "sourceSplit": "test",
+      "sourceDurationS": 58.375,
+      "continuousOriginal": true,
+      "limitation": "Existing evaluation recording. Training reciter/source overlap is not independently ruled out; diagnostic only.",
+      "studentEvidenceSha256": "243c850b697e64a88eed8ed9e463e83e9909455d4eaeabae34fb42e079c4463d"
+    },
+    {
+      "id": "diban-sad",
+      "reciter": "Ahmed Diban",
+      "repo": "QUD-Technologies/quran-alignment-benchmark",
+      "revision": "76c3d804d082c3cc189601faf13a41996e17b6dc",
+      "file": "v1/test-00000-of-00001.parquet",
+      "originalSha256": "063349717a6cfa3c9b068dc38f1ec81fb1aa516a2783e4d3beea1e962ed8732b",
+      "wavSha256": "4c6a592fa26a02ecbd9b2c6b5de93780df910a53757ebbf99c6706e24587b155",
+      "sourceSplit": "test",
+      "sourceDurationS": 262.608,
+      "continuousOriginal": true,
+      "limitation": "Existing evaluation recording. Training reciter/source overlap is not independently ruled out; diagnostic only.",
+      "studentEvidenceSha256": "b7d80b113a8c208727673006935e35e4b2b0e113405c0c1abbd7f90cf39ea737"
+    }
+  ],
+  "datasetConfig": "v1",
+  "riwayah": "hafs_an_asim",
+  "annotationLicense": "CC-BY-4.0",
+  "audioLicense": "Excluded from dataset license; original rights not independently cleared",
+  "listener": "spliced-clean-int8",
+  "listenerModelSha256": "714e98addee73b1b8781ad7d99b6d3c745acd9116638baf4e12891f53a15af1b",
+  "decode": "Original continuous WAV, one fresh SDK streaming session per recording, 20 ms audio pushes; model frameMs 40; CPU ONNX Runtime, not device latency"
+}

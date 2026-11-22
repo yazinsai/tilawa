@@ -1,0 +1,56 @@
+{
+  "source": "https://everyayah.com/data/<reciter>/<SSSAAA>.mp3",
+  "sessions": [
+    {
+      "id": "alafasy-yasin-opening",
+      "about": "isti'adha and basmala before a surah, then steady tracking",
+      "reciter": "Alafasy_128kbps",
+      "mode": "free",
+      "parts": [{ "say": "audhubillah" }, { "say": "bismillah" }, { "ayahs": [36, 1, 15] }]
+    },
+    {
+      "id": "husary-distant-jump",
+      "about": "a pause, then a jump to another surah, in free mode",
+      "reciter": "Husary_128kbps",
+      "mode": "free",
+      "parts": [{ "ayahs": [2, 255, 257] }, { "silence": 3 }, { "ayahs": [67, 1, 6] }]
+    },
+    {
+      "id": "husary-distant-jump-memorization",
+      "about": "the same jump in memorization mode: the expected bookmark stays put",
+      "reciter": "Husary_128kbps",
+      "mode": "memorization",
+      "parts": [{ "ayahs": [2, 255, 257] }, { "silence": 3 }, { "ayahs": [67, 1, 6] }]
+    },
+    {
+      "id": "basit-surah-transitions",
+      "about": "al-Fatiha, then the last three surahs each after a basmala",
+      "reciter": "Abdul_Basit_Murattal_192kbps",
+      "mode": "free",
+      "parts": [
+        { "ayahs": [1, 1, 7] },
+        { "silence": 2 },
+        { "say": "bismillah" },
+        { "ayahs": [112, 1, 4] },
+        { "say": "bismillah" },
+        { "ayahs": [113, 1, 5] },
+        { "say": "bismillah" },
+        { "ayahs": [114, 1, 6] }
+      ]
+    },
+    {
+      "id": "minshawi-noise-then-elsewhere",
+      "about": "background noise interrupts, then recitation resumes in another surah",
+      "reciter": "Minshawy_Murattal_128kbps",
+      "mode": "free",
+      "parts": [{ "ayahs": [18, 1, 5] }, { "noise": 8 }, { "ayahs": [55, 1, 13] }]
+    },
+    {
+      "id": "ghamadi-mid-surah-start",
+      "about": "starting cold in the middle of a surah",
+      "reciter": "Ghamadi_40kbps",
+      "mode": "free",
+      "parts": [{ "ayahs": [59, 22, 24] }]
+    }
+  ]
+}

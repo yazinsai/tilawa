@@ -1,7 +1,7 @@
 // Server twin of `validateReport(json, wav)` (contract §6 "Validation").
 // Self-contained on purpose: the SDK (`@tilawa/core/report`) and Python
 // (`tools/report_validate.py`) carry rule-for-rule copies. Keep the rule list
-// and the error codes in step with them; never import from packages/core here.
+// and the error codes in step with them; never import from packages/tilawa-core here.
 //
 // Rules (error code: rule):
 //   size.json        report.json ≤ 4 MiB (UTF-8 bytes)

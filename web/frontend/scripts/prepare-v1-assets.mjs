@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // Builds the immutable /v1/ asset tree that server/assets.ts serves (ASSETS_V1_DIR, default dist/v1):
 //
-//   models/<id>/<version>/model.onnx      every tier in packages/core/src/runtime/models-v1.json
+//   models/<id>/<version>/model.onnx      every tier in packages/tilawa-core/src/runtime/models-v1.json
 //   models/<id>/<version>/manifest.json   that tier's manifest, from the registry
-//   reference/ref-v2.json                 packages/core/assets/ref-v2.json
+//   reference/ref-v2.json                 packages/tilawa-core/assets/ref-v2.json
 //   runtime/ort/<version>/ort-wasm-*      the onnxruntime-web files @tilawa/core/web loads, for the
 //                                         onnxruntime-web version in this package's lock file
 //   manifest.json                         every file above: path, bytes, sha256
@@ -30,7 +30,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const frontend = resolve(here, "..");
-const core = resolve(frontend, "../../packages/core");
+const core = resolve(frontend, "../../packages/tilawa-core");
 
 export class AssetError extends Error {}
 
@@ -131,11 +131,11 @@ async function verify(path, want, what) {
 
 export async function defaults() {
   const registry = JSON.parse(await readFile(join(core, "src/runtime/models-v1.json"), "utf8"));
-  // The reference's expected size and digest, from the built package (packages/core/src/defaults.ts).
+  // The reference's expected size and digest, from the built package (packages/tilawa-core/src/defaults.ts).
   const { REFERENCE, MODEL_REGISTRY } = await import("@tilawa/core");
   for (const t of registry.tiers) {
     const built = MODEL_REGISTRY.tiers.find((x) => x.tier === t.tier);
-    if (built?.sha256 !== t.sha256) throw new AssetError(`packages/core/dist is stale: rebuild it (tier ${t.tier})`);
+    if (built?.sha256 !== t.sha256) throw new AssetError(`packages/tilawa-core/dist is stale: rebuild it (tier ${t.tier})`);
   }
   return {
     registry,

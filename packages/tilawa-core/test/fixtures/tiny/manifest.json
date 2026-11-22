@@ -1,0 +1,382 @@
+{
+ "schema": 1,
+ "id": "tiny-random",
+ "format": "onnx-fp32",
+ "arch": "zipformer2-streaming-ctc",
+ "inventory": "muaalem-v3_2-phonemes",
+ "tokens": "ءبتثجحخدذرزسشصضطظعغفقكلمنهوياۦۥَُِ۪ـٲڇں۾ؙۜ",
+ "blank": 0,
+ "sampleRate": 16000,
+ "frameMs": 40,
+ "fbank": {
+  "mels": 80,
+  "frameShiftMs": 10,
+  "frameLengthMs": 25,
+  "highFreq": -400,
+  "snipEdges": true,
+  "padValue": -23.0259
+ },
+ "window": 45,
+ "shift": 32,
+ "chunk": 16,
+ "leftContext": 64,
+ "states": [
+  {
+   "name": "cached_key_0",
+   "shape": [
+    64,
+    1,
+    16
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_nonlin_attn_0",
+   "shape": [
+    1,
+    1,
+    64,
+    12
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_val1_0",
+   "shape": [
+    64,
+    1,
+    8
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_val2_0",
+   "shape": [
+    64,
+    1,
+    8
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_conv1_0",
+   "shape": [
+    1,
+    16,
+    1
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_conv2_0",
+   "shape": [
+    1,
+    16,
+    1
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_key_1",
+   "shape": [
+    32,
+    1,
+    16
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_nonlin_attn_1",
+   "shape": [
+    1,
+    1,
+    32,
+    12
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_val1_1",
+   "shape": [
+    32,
+    1,
+    8
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_val2_1",
+   "shape": [
+    32,
+    1,
+    8
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_conv1_1",
+   "shape": [
+    1,
+    16,
+    1
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_conv2_1",
+   "shape": [
+    1,
+    16,
+    1
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_key_2",
+   "shape": [
+    16,
+    1,
+    16
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_nonlin_attn_2",
+   "shape": [
+    1,
+    1,
+    16,
+    12
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_val1_2",
+   "shape": [
+    16,
+    1,
+    8
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_val2_2",
+   "shape": [
+    16,
+    1,
+    8
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_conv1_2",
+   "shape": [
+    1,
+    16,
+    1
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_conv2_2",
+   "shape": [
+    1,
+    16,
+    1
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_key_3",
+   "shape": [
+    8,
+    1,
+    16
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_nonlin_attn_3",
+   "shape": [
+    1,
+    1,
+    8,
+    12
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_val1_3",
+   "shape": [
+    8,
+    1,
+    8
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_val2_3",
+   "shape": [
+    8,
+    1,
+    8
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_conv1_3",
+   "shape": [
+    1,
+    16,
+    1
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_conv2_3",
+   "shape": [
+    1,
+    16,
+    1
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_key_4",
+   "shape": [
+    16,
+    1,
+    16
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_nonlin_attn_4",
+   "shape": [
+    1,
+    1,
+    16,
+    12
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_val1_4",
+   "shape": [
+    16,
+    1,
+    8
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_val2_4",
+   "shape": [
+    16,
+    1,
+    8
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_conv1_4",
+   "shape": [
+    1,
+    16,
+    1
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_conv2_4",
+   "shape": [
+    1,
+    16,
+    1
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_key_5",
+   "shape": [
+    32,
+    1,
+    16
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_nonlin_attn_5",
+   "shape": [
+    1,
+    1,
+    32,
+    12
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_val1_5",
+   "shape": [
+    32,
+    1,
+    8
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_val2_5",
+   "shape": [
+    32,
+    1,
+    8
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_conv1_5",
+   "shape": [
+    1,
+    16,
+    1
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "cached_conv2_5",
+   "shape": [
+    1,
+    16,
+    1
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "embed_states",
+   "shape": [
+    1,
+    128,
+    3,
+    19
+   ],
+   "dtype": "float32"
+  },
+  {
+   "name": "processed_lens",
+   "shape": [
+    1
+   ],
+   "dtype": "int64"
+  }
+ ],
+ "file": "model.onnx",
+ "bytes": 1193553,
+ "sha256": "e28354258202150bd4447470e3a8d9ff5a7a70dadf3113941794ed52bad4c628",
+ "trainStep": null,
+ "supported": [
+  "wrong_word",
+  "omitted_word",
+  "added_word",
+  "skipped_passage"
+ ]
+}

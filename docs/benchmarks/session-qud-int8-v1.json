@@ -1,0 +1,791 @@
+{
+  "version": 1,
+  "gating": false,
+  "listener": "spliced-clean-int8",
+  "reference": "ref-v2",
+  "note": "Reported only; recorded-session agreement and coverage are not established. QUD is the professional easy end. No release gates replaced. Delays cover matched warnings only; censoredByMiss counts errors without that state.",
+  "summary": [
+    {
+      "key": "recitation.assignment.qud",
+      "track": "recitation",
+      "context": "assignment",
+      "source": "qud",
+      "sessions": 1,
+      "speakers": 1,
+      "unsupportedContexts": 0,
+      "errors": 0,
+      "hits": 0,
+      "warnings": 0,
+      "precision": null,
+      "recall": null,
+      "byClass": {
+        "wrong_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "omitted_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "added_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "skipped_passage": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        }
+      },
+      "mutashabihat": {
+        "errors": 0,
+        "hits": 0,
+        "recall": null
+      },
+      "cleanPer5": 0,
+      "located": 0.9705882352941176,
+      "within5s": 1,
+      "wrongPositions": 0,
+      "nonErrorWarnings": 0,
+      "suspectedDelay": {
+        "n": 0,
+        "p50": null,
+        "p90": null,
+        "censoredByMiss": 0
+      },
+      "confirmedDelay": {
+        "n": 0,
+        "p50": null,
+        "p90": null,
+        "censoredByMiss": 0
+      },
+      "abstentionShare": {
+        "uncertain": null,
+        "twinAmbiguous": null,
+        "ambiguous": null
+      },
+      "cleanSessions": 1,
+      "perCleanSession": {
+        "uncertain": 0,
+        "twinAmbiguous": 0,
+        "ambiguous": 1
+      }
+    },
+    {
+      "key": "recitation.page.qud",
+      "track": "recitation",
+      "context": "page",
+      "source": "qud",
+      "sessions": 1,
+      "speakers": 1,
+      "unsupportedContexts": 0,
+      "errors": 0,
+      "hits": 0,
+      "warnings": 0,
+      "precision": null,
+      "recall": null,
+      "byClass": {
+        "wrong_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "omitted_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "added_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "skipped_passage": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        }
+      },
+      "mutashabihat": {
+        "errors": 0,
+        "hits": 0,
+        "recall": null
+      },
+      "cleanPer5": 0,
+      "located": 0.9705882352941176,
+      "within5s": 1,
+      "wrongPositions": 0,
+      "nonErrorWarnings": 0,
+      "suspectedDelay": {
+        "n": 0,
+        "p50": null,
+        "p90": null,
+        "censoredByMiss": 0
+      },
+      "confirmedDelay": {
+        "n": 0,
+        "p50": null,
+        "p90": null,
+        "censoredByMiss": 0
+      },
+      "abstentionShare": {
+        "uncertain": null,
+        "twinAmbiguous": null,
+        "ambiguous": null
+      },
+      "cleanSessions": 1,
+      "perCleanSession": {
+        "uncertain": 0,
+        "twinAmbiguous": 0,
+        "ambiguous": 1
+      }
+    },
+    {
+      "key": "recitation.surah.qud",
+      "track": "recitation",
+      "context": "surah",
+      "source": "qud",
+      "sessions": 1,
+      "speakers": 1,
+      "unsupportedContexts": 0,
+      "errors": 0,
+      "hits": 0,
+      "warnings": 0,
+      "precision": null,
+      "recall": null,
+      "byClass": {
+        "wrong_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "omitted_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "added_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "skipped_passage": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        }
+      },
+      "mutashabihat": {
+        "errors": 0,
+        "hits": 0,
+        "recall": null
+      },
+      "cleanPer5": 0,
+      "located": 0.9705882352941176,
+      "within5s": 1,
+      "wrongPositions": 0,
+      "nonErrorWarnings": 0,
+      "suspectedDelay": {
+        "n": 0,
+        "p50": null,
+        "p90": null,
+        "censoredByMiss": 0
+      },
+      "confirmedDelay": {
+        "n": 0,
+        "p50": null,
+        "p90": null,
+        "censoredByMiss": 0
+      },
+      "abstentionShare": {
+        "uncertain": null,
+        "twinAmbiguous": null,
+        "ambiguous": null
+      },
+      "cleanSessions": 1,
+      "perCleanSession": {
+        "uncertain": 0,
+        "twinAmbiguous": 0,
+        "ambiguous": 1
+      }
+    },
+    {
+      "key": "recitation.none.qud",
+      "track": "recitation",
+      "context": "none",
+      "source": "qud",
+      "sessions": 1,
+      "speakers": 1,
+      "unsupportedContexts": 0,
+      "errors": 0,
+      "hits": 0,
+      "warnings": 0,
+      "precision": null,
+      "recall": null,
+      "byClass": {
+        "wrong_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "omitted_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "added_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "skipped_passage": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        }
+      },
+      "mutashabihat": {
+        "errors": 0,
+        "hits": 0,
+        "recall": null
+      },
+      "cleanPer5": 0,
+      "located": 0.9705882352941176,
+      "within5s": 1,
+      "wrongPositions": 0,
+      "nonErrorWarnings": 0,
+      "suspectedDelay": {
+        "n": 0,
+        "p50": null,
+        "p90": null,
+        "censoredByMiss": 0
+      },
+      "confirmedDelay": {
+        "n": 0,
+        "p50": null,
+        "p90": null,
+        "censoredByMiss": 0
+      },
+      "abstentionShare": {
+        "uncertain": null,
+        "twinAmbiguous": null,
+        "ambiguous": null
+      },
+      "cleanSessions": 1,
+      "perCleanSession": {
+        "uncertain": 0,
+        "twinAmbiguous": 0,
+        "ambiguous": 1
+      }
+    }
+  ],
+  "rows": [
+    {
+      "id": "jaber-inshiqaq",
+      "track": "recitation",
+      "source": "qud",
+      "speaker": "Ali Jaber",
+      "context": {
+        "kind": "assignment",
+        "from": {
+          "surah": 84,
+          "ayah": 1,
+          "word": 1
+        },
+        "to": {
+          "surah": 84,
+          "ayah": 25,
+          "word": 9
+        }
+      },
+      "supportedContext": true,
+      "effectiveContext": "assignment",
+      "gating": false,
+      "errors": 0,
+      "hits": 0,
+      "misses": 0,
+      "warnings": 0,
+      "falseWarnings": 0,
+      "precision": null,
+      "recall": null,
+      "cleanSeconds": 111.69999999999793,
+      "cleanWarnings": 0,
+      "cleanWarningsPer5Min": 0,
+      "nonErrorWarnings": 0,
+      "uncertainWarnings": 0,
+      "suspectedOnlyWarnings": 1,
+      "uncertainErrors": 0,
+      "ambiguousErrors": 0,
+      "wrongPositionEvents": 0,
+      "positionSamples": 1224,
+      "locatedSamples": 1188,
+      "locatedShare": 0.9705882352941176,
+      "firstCorrectLockDelayS": 3.62,
+      "within5S": true,
+      "suspectedDelayS": [],
+      "confirmedDelayS": [],
+      "byClass": {
+        "wrong_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "omitted_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "added_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "skipped_passage": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        }
+      },
+      "mutashabihat": {
+        "errors": 0,
+        "hits": 0,
+        "recall": null
+      },
+      "abstentions": {
+        "uncertain": 0,
+        "twinAmbiguous": 0,
+        "ambiguous": 0
+      },
+      "ambiguousEpisodes": {
+        "twin": 0,
+        "general": 1
+      },
+      "assignments": [
+        {
+          "warningId": "84:1:3#1",
+          "eventIndex": null,
+          "confirmed": false
+        }
+      ]
+    },
+    {
+      "id": "jaber-inshiqaq",
+      "track": "recitation",
+      "source": "qud",
+      "speaker": "Ali Jaber",
+      "context": {
+        "kind": "page",
+        "page": 589
+      },
+      "supportedContext": true,
+      "effectiveContext": "page",
+      "gating": false,
+      "errors": 0,
+      "hits": 0,
+      "misses": 0,
+      "warnings": 0,
+      "falseWarnings": 0,
+      "precision": null,
+      "recall": null,
+      "cleanSeconds": 111.69999999999793,
+      "cleanWarnings": 0,
+      "cleanWarningsPer5Min": 0,
+      "nonErrorWarnings": 0,
+      "uncertainWarnings": 0,
+      "suspectedOnlyWarnings": 0,
+      "uncertainErrors": 0,
+      "ambiguousErrors": 0,
+      "wrongPositionEvents": 0,
+      "positionSamples": 1224,
+      "locatedSamples": 1188,
+      "locatedShare": 0.9705882352941176,
+      "firstCorrectLockDelayS": 3.62,
+      "within5S": true,
+      "suspectedDelayS": [],
+      "confirmedDelayS": [],
+      "byClass": {
+        "wrong_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "omitted_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "added_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "skipped_passage": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        }
+      },
+      "mutashabihat": {
+        "errors": 0,
+        "hits": 0,
+        "recall": null
+      },
+      "abstentions": {
+        "uncertain": 0,
+        "twinAmbiguous": 0,
+        "ambiguous": 0
+      },
+      "ambiguousEpisodes": {
+        "twin": 0,
+        "general": 1
+      },
+      "assignments": []
+    },
+    {
+      "id": "jaber-inshiqaq",
+      "track": "recitation",
+      "source": "qud",
+      "speaker": "Ali Jaber",
+      "context": {
+        "kind": "surah",
+        "surah": 84
+      },
+      "supportedContext": true,
+      "effectiveContext": "surah",
+      "gating": false,
+      "errors": 0,
+      "hits": 0,
+      "misses": 0,
+      "warnings": 0,
+      "falseWarnings": 0,
+      "precision": null,
+      "recall": null,
+      "cleanSeconds": 111.69999999999793,
+      "cleanWarnings": 0,
+      "cleanWarningsPer5Min": 0,
+      "nonErrorWarnings": 0,
+      "uncertainWarnings": 0,
+      "suspectedOnlyWarnings": 0,
+      "uncertainErrors": 0,
+      "ambiguousErrors": 0,
+      "wrongPositionEvents": 0,
+      "positionSamples": 1224,
+      "locatedSamples": 1188,
+      "locatedShare": 0.9705882352941176,
+      "firstCorrectLockDelayS": 3.62,
+      "within5S": true,
+      "suspectedDelayS": [],
+      "confirmedDelayS": [],
+      "byClass": {
+        "wrong_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "omitted_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "added_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "skipped_passage": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        }
+      },
+      "mutashabihat": {
+        "errors": 0,
+        "hits": 0,
+        "recall": null
+      },
+      "abstentions": {
+        "uncertain": 0,
+        "twinAmbiguous": 0,
+        "ambiguous": 0
+      },
+      "ambiguousEpisodes": {
+        "twin": 0,
+        "general": 1
+      },
+      "assignments": []
+    },
+    {
+      "id": "jaber-inshiqaq",
+      "track": "recitation",
+      "source": "qud",
+      "speaker": "Ali Jaber",
+      "context": {
+        "kind": "none"
+      },
+      "supportedContext": true,
+      "effectiveContext": "none",
+      "gating": false,
+      "errors": 0,
+      "hits": 0,
+      "misses": 0,
+      "warnings": 0,
+      "falseWarnings": 0,
+      "precision": null,
+      "recall": null,
+      "cleanSeconds": 111.69999999999793,
+      "cleanWarnings": 0,
+      "cleanWarningsPer5Min": 0,
+      "nonErrorWarnings": 0,
+      "uncertainWarnings": 0,
+      "suspectedOnlyWarnings": 0,
+      "uncertainErrors": 0,
+      "ambiguousErrors": 0,
+      "wrongPositionEvents": 0,
+      "positionSamples": 1224,
+      "locatedSamples": 1188,
+      "locatedShare": 0.9705882352941176,
+      "firstCorrectLockDelayS": 3.62,
+      "within5S": true,
+      "suspectedDelayS": [],
+      "confirmedDelayS": [],
+      "byClass": {
+        "wrong_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "omitted_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "added_word": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        },
+        "skipped_passage": {
+          "errors": 0,
+          "hits": 0,
+          "recall": null
+        }
+      },
+      "mutashabihat": {
+        "errors": 0,
+        "hits": 0,
+        "recall": null
+      },
+      "abstentions": {
+        "uncertain": 0,
+        "twinAmbiguous": 0,
+        "ambiguous": 0
+      },
+      "ambiguousEpisodes": {
+        "twin": 0,
+        "general": 1
+      },
+      "assignments": []
+    }
+  ],
+  "failures": [],
+  "missingEvidence": [
+    "abdulbasit-raad",
+    "ayyub-juz-amma",
+    "husary-fath",
+    "luhaidan-fatir",
+    "luhaidan-haqqah",
+    "luhaidan-qiyamah",
+    "mandour-taha",
+    "minshawi-luqman",
+    "prayer-baqarah-yasin",
+    "taraweeh-maryam",
+    "witr-muawwidhat"
+  ],
+  "audit": [
+    {
+      "id": "abdulbasit-raad",
+      "status": "converted",
+      "reason": null,
+      "spans": 100,
+      "repeats": 3,
+      "restarts": 0,
+      "nonQuran": 0,
+      "surahJumps": 0
+    },
+    {
+      "id": "afasy-baqarah",
+      "status": "converted",
+      "reason": null,
+      "spans": 323,
+      "repeats": 28,
+      "restarts": 0,
+      "nonQuran": 9,
+      "surahJumps": 0
+    },
+    {
+      "id": "ayyub-juz-amma",
+      "status": "converted",
+      "reason": null,
+      "spans": 726,
+      "repeats": 12,
+      "restarts": 1,
+      "nonQuran": 148,
+      "surahJumps": 36
+    },
+    {
+      "id": "badri-juz-tabarak",
+      "status": "converted",
+      "reason": null,
+      "spans": 475,
+      "repeats": 0,
+      "restarts": 0,
+      "nonQuran": 44,
+      "surahJumps": 10
+    },
+    {
+      "id": "diban-sad",
+      "status": "converted",
+      "reason": null,
+      "spans": 89,
+      "repeats": 1,
+      "restarts": 0,
+      "nonQuran": 0,
+      "surahJumps": 0
+    },
+    {
+      "id": "husary-fath",
+      "status": "converted",
+      "reason": null,
+      "spans": 66,
+      "repeats": 7,
+      "restarts": 0,
+      "nonQuran": 0,
+      "surahJumps": 0
+    },
+    {
+      "id": "jaber-inshiqaq",
+      "status": "converted",
+      "reason": null,
+      "spans": 29,
+      "repeats": 0,
+      "restarts": 0,
+      "nonQuran": 4,
+      "surahJumps": 0
+    },
+    {
+      "id": "jaber-nisa",
+      "status": "converted",
+      "reason": null,
+      "spans": 3,
+      "repeats": 0,
+      "restarts": 0,
+      "nonQuran": 0,
+      "surahJumps": 0
+    },
+    {
+      "id": "luhaidan-fatir",
+      "status": "converted",
+      "reason": null,
+      "spans": 72,
+      "repeats": 27,
+      "restarts": 0,
+      "nonQuran": 0,
+      "surahJumps": 0
+    },
+    {
+      "id": "luhaidan-haqqah",
+      "status": "converted",
+      "reason": null,
+      "spans": 27,
+      "repeats": 12,
+      "restarts": 1,
+      "nonQuran": 0,
+      "surahJumps": 0
+    },
+    {
+      "id": "luhaidan-qiyamah",
+      "status": "converted",
+      "reason": null,
+      "spans": 46,
+      "repeats": 0,
+      "restarts": 0,
+      "nonQuran": 0,
+      "surahJumps": 1
+    },
+    {
+      "id": "mandour-taha",
+      "status": "converted",
+      "reason": null,
+      "spans": 129,
+      "repeats": 31,
+      "restarts": 0,
+      "nonQuran": 0,
+      "surahJumps": 0
+    },
+    {
+      "id": "minshawi-luqman",
+      "status": "converted",
+      "reason": null,
+      "spans": 106,
+      "repeats": 72,
+      "restarts": 0,
+      "nonQuran": 0,
+      "surahJumps": 0
+    },
+    {
+      "id": "prayer-baqarah-yasin",
+      "status": "converted",
+      "reason": null,
+      "spans": 76,
+      "repeats": 4,
+      "restarts": 1,
+      "nonQuran": 51,
+      "surahJumps": 3
+    },
+    {
+      "id": "taraweeh-maryam",
+      "status": "converted",
+      "reason": null,
+      "spans": 259,
+      "repeats": 14,
+      "restarts": 6,
+      "nonQuran": 79,
+      "surahJumps": 13
+    },
+    {
+      "id": "witr-muawwidhat",
+      "status": "converted",
+      "reason": null,
+      "spans": 110,
+      "repeats": 0,
+      "restarts": 2,
+      "nonQuran": 77,
+      "surahJumps": 5
+    }
+  ],
+  "unsupported": [
+    {
+      "id": "diban-sad",
+      "style": "hadr",
+      "reason": "fast recitation unsupported pending fast-speech sample collection and listener fine-tuning"
+    },
+    {
+      "id": "jaber-nisa",
+      "style": "hadr",
+      "reason": "fast recitation unsupported pending fast-speech sample collection and listener fine-tuning"
+    },
+    {
+      "id": "afasy-baqarah",
+      "style": "hadr",
+      "reason": "fast recitation unsupported pending fast-speech sample collection and listener fine-tuning"
+    },
+    {
+      "id": "badri-juz-tabarak",
+      "style": "hadr",
+      "reason": "fast recitation unsupported pending fast-speech sample collection and listener fine-tuning"
+    }
+  ]
+}

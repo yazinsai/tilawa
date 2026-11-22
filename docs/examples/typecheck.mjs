@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Typechecks docs/examples/*.ts against the built @tilawa/core (packages/core/dist), resolved through the package's
+// Typechecks docs/examples/*.ts against the built @tilawa/core (packages/tilawa-core/dist), resolved through the package's
 // "exports" map exactly as an app would. Build the package first:
-//   (cd packages/core && npm ci && npm run build)
+//   (cd packages/tilawa-core && npm ci && npm run build)
 //   node docs/examples/typecheck.mjs
 import { spawnSync } from "node:child_process";
 import { existsSync, lstatSync, mkdirSync, rmSync, symlinkSync } from "node:fs";
@@ -9,18 +9,18 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const core = resolve(here, "../../packages/core");
+const core = resolve(here, "../../packages/tilawa-core");
 if (!existsSync(join(core, "dist/index.d.ts"))) {
-  console.error("packages/core/dist is missing: run `npm ci && npm run build` in packages/core first.");
+  console.error("packages/tilawa-core/dist is missing: run `npm ci && npm run build` in packages/tilawa-core first.");
   process.exit(1);
 }
 const tsc = join(core, "node_modules/.bin/tsc");
 if (!existsSync(tsc)) {
-  console.error("TypeScript is missing: run `npm ci` in packages/core first.");
+  console.error("TypeScript is missing: run `npm ci` in packages/tilawa-core first.");
   process.exit(1);
 }
 
-// node_modules/@tilawa/core -> packages/core, so imports go through its package.json "exports".
+// node_modules/@tilawa/core -> packages/tilawa-core, so imports go through its package.json "exports".
 const link = join(here, "node_modules/@tilawa/core");
 mkdirSync(dirname(link), { recursive: true });
 try {

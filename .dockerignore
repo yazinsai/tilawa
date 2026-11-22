@@ -6,4 +6,14 @@
 **/test-results
 **/playwright-report
 web/frontend/storage
-lab
+# Research tree: the image builds only packages/tilawa-core and web/frontend.
+.scratch
+.autolab
+modal
+tools
+output
+docs
+packages/core
+packages/sdk
+packages/sample
+packages/probe

@@ -1,0 +1,43 @@
+# 08 Lab scorer: overall, components, attribution
+
+Status: resolved
+Type: task
+Blocked by: 03
+
+Spec: `../spec.md` goal and decisions 3, 7, 12. Build on `packages/core/src/bench/sessions.ts`.
+
+## Acceptance
+
+- Overall score: wrong calls per 5 min on the phone-degraded audio, plus the missed and false-warning counts, per practice and exam set.
+- Listener: PER against what was said (the labels with planted edits applied).
+- Tracker: share of recitation time on the right place counted from the disambiguation point; false jumps (confident wrong locks, including before the disambiguation point).
+- Checker: wrong calls per 5 min with oracle evidence and the true position.
+- Attribution: each overall wrong call assigned to exactly one of listener, tracker or checker; the parts add up to the total. Unit tests cover the additivity.
+- Slices: strict, mutashabihat, studio, per mistake class.
+- Per-case outcomes written for the drill-down (same keys the review UI uses).
+
+## Comments
+
+- Disambiguation points are ready: `packages/core/src/disambiguation.ts` (`disambiguationWords(index)`), table at `/lab/data/reference/disambiguation-v1.json` on the `tilawa-lab` volume (`words[i]` = further words needed from reference word i, -1 never; regenerate with `src/bench/disambiguation-cli.ts`). 85% of start words are unique within 2 further words, about 5% need more than 5; the longest runs are 23:5 = 70:29 (27 words), 4:43 = 5:6, 27:80 = 30:52, 2:47 = 2:122. Exact phonemes: a mid-ayah case ending can make a point one word early for a reciter who pauses there (2:255 vs 3:2).
+- Scorer landed: `packages/core/src/bench/lab.ts` (pure scoring), `lab-cli.ts` (runner contract, `pnpm --filter @tilawa/core lab`), `lab-fixture.ts` + `lab-fixture-cli.ts` (synthetic manifest). Tests: `test/lab.test.ts` (12) and `test/lab-engine.test.ts` (4); full core suite 528 passed on Modal, core and sdk typecheck clean.
+- Runner: reads `LAB_MANIFEST` or `$LAB_DATA/lab-v1/manifest-v1.json`, scores entries where `index % LAB_SHARDS == LAB_SHARD`, writes `$LAB_OUT/score.json`. `lab --merge /lab/runs/<run>` reads `<run>/<n>/score.json`, checks every shard is present, meta agrees and no session repeats, writes `<run>/score.json`. Flags: `--listener` (default spliced-clean-int8), `--teacher <name|none>`, `--variants phone,studio`, `--only <id>`, `--sha`, `--exam-cases`, `--no-tracker-oracle`.
+- Manifest contract (tickets 03 and 05 must match): `{entries: [{id, split: practice|exam, session: <path or inline BenchSession>, tags?, strict?, audio?: {phone, studio}, evidence?: {listener: {phone, studio}}}]}`. Evidence defaults to `evidence/<listener>/<id>.<variant>.json` next to the manifest, teacher to `evidence/teacher/<id>.<variant>.json`. Planted `wrong_word` and `added_word` events must carry `said` (the phonemes recited, reference inventory); omitted and skipped words must be absent from truth `words`; an `added_word` location is the word after the insertion. Sessions with missing evidence are listed in `sessions.excluded` and skipped.
+- Recited minutes (denominator): union of truth word intervals and event intervals, gaps of 2 s or less bridged, minus `non_quran` spans. Pauses, silence, and talk are not counted.
+- Wrong call: a planted mistake not caught (missed) plus a confirmed warning not matched to a mistake (false warning), including warnings on repeats, restarts and other `nonErrors`. Rate = wrong calls / recited minutes * 5. Engine arm = real listener evidence, real tracker, free mode, context none.
+- Listener: PER = edit distance of the greedy decode against what was said (truth words with `said` applied, omissions dropped), one global alignment per session, decoded phonemes inside `non_quran` spans dropped.
+- Tracker: entries are the first word and every word more than one ayah from the previous one. Point = end of the `disambiguationWords` further word (null if the entry ends first or never disambiguates, counted in `unscoredS`). Scoring starts one word after the point (tolerance for 2:255 vs 3:2). Sampled every 0.1 s: on place = locked within one word of the truth word. False jump = a new run of locks on the wrong place, counted before and after the point (`falseJumpsBeforePoint` separately). Lock delay = first on-place sample at or after the point, censored if never (buckets 0-1, 1-3, 3-5, 5-10, >10 s, never). Uses real listener evidence; the perfect-upstream number is `tracker.oracleEvidence`.
+- Checker: wrong calls per 5 min with oracle evidence (one spike per said phoneme on the session clock) and true-position events (oracle PositionEvents locked on the truth word, free-mode checker, same code path as the engine).
+- Attribution rule (refined from the proposal, additive by construction): three arms that each change one input. A wrong call goes to **checker** if the oracle arm (oracle evidence + true position) makes it, else **listener** if the true-position arm (real evidence + true position) makes it, else **tracker** (only the real tracker changed). Misses match by mistake; false warnings match across arms by the same word within 6 s, one to one, nearest first. `listener + tracker + checker == total` per session, split and slice; a random-arms property test proves it. Each case also carries `trackerOnPlace` (share of ±1 s on place) and `allFail` (the teacher misses it too) for review.
+- Output `score.json`: `{version, kind: "lab-score", testSet, listener, teacher, sha, run, reference, manifest, recordedAt, definitions, headline: {split: "exam", variant: "phone"}, shard, sessions: {scored, practice, exam, excluded[]}, splits: {practice, exam, all}, overall, components, attribution, slices: {studio: {practice, exam, all}, strict: {practice, exam, all}}, cases[], results[]}`. Each split/slice is `Totals = {sessions, recitedMinutes, overall: {wrongCalls, missed, falseWarnings, per5Min, mistakes, caught, falseWarningsOnNonErrors}, components: {listener: {per, edits, phonemes}, tracker: {onPlaceShare, onPlaceS, scoredS, unscoredS, falseJumps, falseJumpsBeforePoint, entries, reentries, lockDelayS: {n, p50, p90, max, censored, buckets}, oracleEvidence}, checker: {wrongCalls, missed, falseWarnings, per5Min, falseWarningsOnNonErrors}}, attribution: {listener, tracker, checker, total, missed, falseWarnings}, byClass, mutashabihat, falseWarningsByClass, teacher}`. Top-level `overall/components/attribution` are the headline (exam, phone; falls back to all). Mutashabihat and per-class slices are inside every Totals.
+- Cases: key `<session>/<variant>/<mistake:class|warning:class>/<s:a:w>/<time>`, with `{kind, session, variant, split, strict, errorClass, word, component, trackerOnPlace, allFail, review: {path, startS, endS}}` plus `outcome/confirmedS/mutashabihat` (mistakes) or `timeS/confirmedS/nonError` (false warnings) and the per-arm outcomes. Practice only unless `--exam-cases`.
+- Strict: manifest `strict`/`tags: ["strict"]`, else start needs more than 5 words or never disambiguates. Al-Rahman refrain starts need only 4, so the set builder must tag them.
+- Smoke on Modal: `lab-scorer-fixture` (5 synthetic sessions, 3 practice / 2 exam, deaf-to-wrong-word phone evidence, perfect studio and teacher), run `lab08-smoke-fed17a2-dirty-20261028T112014Z`, 3 shards merged. Exam phone: 5.26 wrong calls per 5 min (2 missed, 0 false warnings) over 1.9 min, all to listener; PER 0.0098; tracker on place 1.0, 0 false jumps, lock delay p50 0.01 s. Practice: 5.24 (3 + 0) over 2.86 min. Studio: 3 (2 + 1). fx-sharh's wrong and added word are missed even by the oracle arm and teacher (checker, `allFail`), a real checker weakness on short sessions.
+- Cost: about 58 s per 80 s session for all arms (8 checker passes). lab-v1 at 40 sessions of 3-8 min wants about 40 shards; `--no-tracker-oracle` saves about an eighth.
+- No scoreboard row: no existing metric moves until lab-v1 exists.
+- Rule change (user decision, 2026-10-28): a confirmed warning on a labelled mistake's word and occurrence with another error class catches it. It is not a miss and not a false warning (0 wrong calls), and it is counted as `misclassified`:
+  - in `overall` and `components.checker` per split and slice;
+  - in `byClass` and `mutashabihat`;
+  - as case `outcome: "misclassified"`.
+
+  Matching tries the same class first, then location only (`scoreSessionEvents(..., { anyClass: true })`, lab only; the older session benches are unchanged). The short-donor engine test now expects misclassified. Additivity holds (tests in `lab.test.ts`).
+- The teacher arm is named "teacher reference" in definitions and docs, not a ceiling. On lab-v1 it scored worse than the student through the engine.

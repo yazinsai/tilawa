@@ -1,0 +1,2608 @@
+{
+ "version": 1,
+ "testSet": "lab-v1.1",
+ "queue": "lab-v1.1/review/v1-check.json",
+ "reviewer": "me",
+ "createdAt": "2026-10-29T04:00:48+00:00",
+ "model": {
+  "id": "nvidia/NVIDIA-Nemotron-3.5-Transcribe-30B-A4B",
+  "revision": "9d8cd6b79bfdd427b6558a5fdbf76fcaf8c75341",
+  "implementation": "transformers",
+  "packageVersion": "5.22.0.dev0",
+  "torch": "2.15.0+cu132",
+  "device": "NVIDIA H100 80GB HBM3",
+  "config": {
+   "engine": "transformers",
+   "transformersRevision": "144ecf007b8b4f2910da104c84a79801db6985a6",
+   "dtype": "bfloat16",
+   "decoding": "greedy",
+   "enableThinking": false,
+   "systemPrompt": null,
+   "maxNewTokens": 512,
+   "loopGuardrail": "model card cleanup_generation_loops"
+  },
+  "promptKey": "verbatim",
+  "prompt": "Audio transcription. Language: Arabic. Wording: verbatim, including fillers and repetitions. Formatting: punctuation and capitalization. Output: transcript only.",
+  "loadSeconds": 29.5
+ },
+ "margin": 2.0,
+ "exposed": "per window: the labelled text, its one-edit control and its shifted control, respelled without diacritics (words shared with the model's own transcript take its spelling), plus the model's own transcript; never the label type",
+ "rule": {
+  "pairwise": "claimed - alternative >= margin -> match, <= -margin -> mismatch, else unsure; the alternative of the labelled text is its one-edit control and vice versa; shifted is compared with the labelled text",
+  "nearBest": "claimed >= best - margin -> match, else mismatch; best = the model's own transcript (llm) or greedy CTC path (ctc)",
+  "spellings": "max over spellings",
+  "source": "tools/review_asr_core.py prefer / near_best / plain_candidates"
+ },
+ "humanVerdicts": 40,
+ "items": 40,
+ "edited": 26,
+ "stats": {
+  "llm-pairwise": {
+   "agreement": {
+    "k": 39,
+    "n": 40,
+    "rate": 0.975,
+    "ci95": [
+     0.8712,
+     0.9956
+    ]
+   },
+   "positives": {
+    "match": 39,
+    "mismatch": 1,
+    "unsure": 0
+   },
+   "agreementEdited": {
+    "k": 25,
+    "n": 26,
+    "rate": 0.9615,
+    "ci95": [
+     0.8111,
+     0.9932
+    ]
+   },
+   "oneEdit": {
+    "sensitivity": {
+     "k": 39,
+     "n": 40,
+     "rate": 0.975,
+     "ci95": [
+      0.8712,
+      0.9956
+     ]
+    },
+    "flagged": {
+     "k": 39,
+     "n": 40,
+     "rate": 0.975,
+     "ci95": [
+      0.8712,
+      0.9956
+     ]
+    },
+    "counts": {
+     "match": 1,
+     "mismatch": 39,
+     "unsure": 0
+    }
+   },
+   "oneEditEdited": {
+    "k": 25,
+    "n": 26,
+    "rate": 0.9615,
+    "ci95": [
+     0.8111,
+     0.9932
+    ]
+   },
+   "oneWord": {
+    "sensitivity": {
+     "k": 30,
+     "n": 31,
+     "rate": 0.9677,
+     "ci95": [
+      0.8381,
+      0.9943
+     ]
+    },
+    "flagged": {
+     "k": 30,
+     "n": 31,
+     "rate": 0.9677,
+     "ci95": [
+      0.8381,
+      0.9943
+     ]
+    },
+    "counts": {
+     "match": 1,
+     "mismatch": 30,
+     "unsure": 0
+    }
+   },
+   "shifted": {
+    "sensitivity": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 40,
+     "unsure": 0
+    }
+   },
+   "repeatMisses": []
+  },
+  "llm-nearBest": {
+   "agreement": {
+    "k": 30,
+    "n": 40,
+    "rate": 0.75,
+    "ci95": [
+     0.5981,
+     0.8581
+    ]
+   },
+   "positives": {
+    "match": 30,
+    "mismatch": 10,
+    "unsure": 0
+   },
+   "agreementEdited": {
+    "k": 21,
+    "n": 26,
+    "rate": 0.8077,
+    "ci95": [
+     0.6212,
+     0.9149
+    ]
+   },
+   "oneEdit": {
+    "sensitivity": {
+     "k": 33,
+     "n": 40,
+     "rate": 0.825,
+     "ci95": [
+      0.6805,
+      0.9125
+     ]
+    },
+    "flagged": {
+     "k": 33,
+     "n": 40,
+     "rate": 0.825,
+     "ci95": [
+      0.6805,
+      0.9125
+     ]
+    },
+    "counts": {
+     "match": 7,
+     "mismatch": 33,
+     "unsure": 0
+    }
+   },
+   "oneEditEdited": {
+    "k": 20,
+    "n": 26,
+    "rate": 0.7692,
+    "ci95": [
+     0.5795,
+     0.8897
+    ]
+   },
+   "oneWord": {
+    "sensitivity": {
+     "k": 25,
+     "n": 31,
+     "rate": 0.8065,
+     "ci95": [
+      0.6372,
+      0.9081
+     ]
+    },
+    "flagged": {
+     "k": 25,
+     "n": 31,
+     "rate": 0.8065,
+     "ci95": [
+      0.6372,
+      0.9081
+     ]
+    },
+    "counts": {
+     "match": 6,
+     "mismatch": 25,
+     "unsure": 0
+    }
+   },
+   "shifted": {
+    "sensitivity": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 40,
+     "unsure": 0
+    }
+   },
+   "repeatMisses": [
+    "lab-v1.1-p05-x6"
+   ]
+  },
+  "ctc-pairwise": {
+   "agreement": {
+    "k": 36,
+    "n": 40,
+    "rate": 0.9,
+    "ci95": [
+     0.7695,
+     0.9604
+    ]
+   },
+   "positives": {
+    "match": 36,
+    "mismatch": 3,
+    "unsure": 1
+   },
+   "agreementEdited": {
+    "k": 23,
+    "n": 26,
+    "rate": 0.8846,
+    "ci95": [
+     0.7102,
+     0.96
+    ]
+   },
+   "oneEdit": {
+    "sensitivity": {
+     "k": 36,
+     "n": 40,
+     "rate": 0.9,
+     "ci95": [
+      0.7695,
+      0.9604
+     ]
+    },
+    "flagged": {
+     "k": 37,
+     "n": 40,
+     "rate": 0.925,
+     "ci95": [
+      0.8014,
+      0.9742
+     ]
+    },
+    "counts": {
+     "match": 3,
+     "mismatch": 36,
+     "unsure": 1
+    }
+   },
+   "oneEditEdited": {
+    "k": 23,
+    "n": 26,
+    "rate": 0.8846,
+    "ci95": [
+     0.7102,
+     0.96
+    ]
+   },
+   "oneWord": {
+    "sensitivity": {
+     "k": 29,
+     "n": 31,
+     "rate": 0.9355,
+     "ci95": [
+      0.7928,
+      0.9821
+     ]
+    },
+    "flagged": {
+     "k": 30,
+     "n": 31,
+     "rate": 0.9677,
+     "ci95": [
+      0.8381,
+      0.9943
+     ]
+    },
+    "counts": {
+     "match": 1,
+     "mismatch": 29,
+     "unsure": 1
+    }
+   },
+   "shifted": {
+    "sensitivity": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 40,
+     "unsure": 0
+    }
+   },
+   "repeatMisses": [
+    "lab-v1.1-e08-x1",
+    "lab-v1.1-e12-x3"
+   ]
+  },
+  "ctc-nearBest": {
+   "agreement": {
+    "k": 0,
+    "n": 40,
+    "rate": 0.0,
+    "ci95": [
+     0.0,
+     0.0876
+    ]
+   },
+   "positives": {
+    "match": 0,
+    "mismatch": 40,
+    "unsure": 0
+   },
+   "agreementEdited": {
+    "k": 0,
+    "n": 26,
+    "rate": 0.0,
+    "ci95": [
+     0.0,
+     0.1287
+    ]
+   },
+   "oneEdit": {
+    "sensitivity": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 40,
+     "unsure": 0
+    }
+   },
+   "oneEditEdited": {
+    "k": 26,
+    "n": 26,
+    "rate": 1.0,
+    "ci95": [
+     0.8713,
+     1.0
+    ]
+   },
+   "oneWord": {
+    "sensitivity": {
+     "k": 31,
+     "n": 31,
+     "rate": 1.0,
+     "ci95": [
+      0.8897,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 31,
+     "n": 31,
+     "rate": 1.0,
+     "ci95": [
+      0.8897,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 31,
+     "unsure": 0
+    }
+   },
+   "shifted": {
+    "sensitivity": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "flagged": {
+     "k": 40,
+     "n": 40,
+     "rate": 1.0,
+     "ci95": [
+      0.9124,
+      1.0
+     ]
+    },
+    "counts": {
+     "match": 0,
+     "mismatch": 40,
+     "unsure": 0
+    }
+   },
+   "repeatMisses": []
+  }
+ },
+ "table": {
+  "lab-v1.1-e20-x6": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -48.59013366699219,
+     "alternative": -99.3091049194336,
+     "best": -42.66987609863281
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -99.3091049194336,
+     "alternative": -48.59013366699219,
+     "best": -42.66987609863281
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -150.3678436279297,
+     "alternative": -48.59013366699219,
+     "best": -42.66987609863281
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -68.45990753173828,
+     "alternative": -89.73522186279297,
+     "best": -27.667837142944336
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -89.73522186279297,
+     "alternative": -68.45990753173828,
+     "best": -27.667837142944336
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -148.6823272705078,
+     "alternative": -68.45990753173828,
+     "best": -27.667837142944336
+    }
+   }
+  },
+  "lab-v1.1-e20-x10": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -33.72067642211914,
+     "alternative": -67.3504638671875,
+     "best": -44.30949401855469
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -67.3504638671875,
+     "alternative": -33.72067642211914,
+     "best": -44.30949401855469
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -111.2944564819336,
+     "alternative": -33.72067642211914,
+     "best": -44.30949401855469
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -76.44721221923828,
+     "alternative": -85.4762954711914,
+     "best": -28.190174102783203
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -85.4762954711914,
+     "alternative": -76.44721221923828,
+     "best": -28.190174102783203
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -108.09428405761719,
+     "alternative": -76.44721221923828,
+     "best": -28.190174102783203
+    }
+   }
+  },
+  "lab-v1.1-p09-x8": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -40.980560302734375,
+     "alternative": -43.553016662597656,
+     "best": -18.036041259765625
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -43.553016662597656,
+     "alternative": -40.980560302734375,
+     "best": -18.036041259765625
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -123.33654022216797,
+     "alternative": -40.980560302734375,
+     "best": -18.036041259765625
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -45.70421600341797,
+     "alternative": -49.35650634765625,
+     "best": -21.028169631958008
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -49.35650634765625,
+     "alternative": -45.70421600341797,
+     "best": -21.028169631958008
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -117.66368865966797,
+     "alternative": -45.70421600341797,
+     "best": -21.028169631958008
+    }
+   }
+  },
+  "lab-v1.1-e13-x4": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -17.011959075927734,
+     "alternative": -39.168338775634766,
+     "best": -53.48728942871094
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "match",
+     "claimed": -39.168338775634766,
+     "alternative": -17.011959075927734,
+     "best": -53.48728942871094
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -152.40003967285156,
+     "alternative": -17.011959075927734,
+     "best": -53.48728942871094
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -62.86125564575195,
+     "alternative": -65.86885070800781,
+     "best": -27.23168182373047
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -65.86885070800781,
+     "alternative": -62.86125564575195,
+     "best": -27.23168182373047
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -125.51346588134766,
+     "alternative": -62.86125564575195,
+     "best": -27.23168182373047
+    }
+   }
+  },
+  "lab-v1.1-e15-x8": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -59.95728302001953,
+     "alternative": -107.97492980957031,
+     "best": -112.82952880859375
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "match",
+     "claimed": -107.97492980957031,
+     "alternative": -59.95728302001953,
+     "best": -112.82952880859375
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -134.8179931640625,
+     "alternative": -59.95728302001953,
+     "best": -112.82952880859375
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -72.88195037841797,
+     "alternative": -98.0070571899414,
+     "best": -24.101062774658203
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -98.0070571899414,
+     "alternative": -72.88195037841797,
+     "best": -24.101062774658203
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -122.29328155517578,
+     "alternative": -72.88195037841797,
+     "best": -24.101062774658203
+    }
+   }
+  },
+  "lab-v1.1-e16-x7": {
+   "kind": "splice",
+   "label": "omitted_word",
+   "human": "ok",
+   "oneEditEdit": "omitted_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -18.462717056274414,
+     "alternative": -59.380462646484375,
+     "best": -18.462717056274414
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -59.380462646484375,
+     "alternative": -18.462717056274414,
+     "best": -18.462717056274414
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -156.3506317138672,
+     "alternative": -18.462717056274414,
+     "best": -18.462717056274414
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -63.2025032043457,
+     "alternative": -112.39320373535156,
+     "best": -21.122112274169922
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -112.39320373535156,
+     "alternative": -63.2025032043457,
+     "best": -21.122112274169922
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -148.49020385742188,
+     "alternative": -63.2025032043457,
+     "best": -21.122112274169922
+    }
+   }
+  },
+  "lab-v1.1-e14-x4": {
+   "kind": "splice",
+   "label": "omitted_word",
+   "human": "ok",
+   "oneEditEdit": "omitted_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -31.914981842041016,
+     "alternative": -56.569637298583984,
+     "best": -31.914981842041016
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -56.569637298583984,
+     "alternative": -31.914981842041016,
+     "best": -31.914981842041016
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -110.22502136230469,
+     "alternative": -31.914981842041016,
+     "best": -31.914981842041016
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -50.52190017700195,
+     "alternative": -88.21170043945312,
+     "best": -24.5438175201416
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -88.21170043945312,
+     "alternative": -50.52190017700195,
+     "best": -24.5438175201416
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -118.90088653564453,
+     "alternative": -50.52190017700195,
+     "best": -24.5438175201416
+    }
+   }
+  },
+  "lab-v1.1-p06-x1": {
+   "kind": "splice",
+   "label": "omitted_word",
+   "human": "ok",
+   "oneEditEdit": "omitted_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -29.390613555908203,
+     "alternative": -47.60222625732422,
+     "best": -29.390613555908203
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -47.60222625732422,
+     "alternative": -29.390613555908203,
+     "best": -29.390613555908203
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -103.83946990966797,
+     "alternative": -29.390613555908203,
+     "best": -29.390613555908203
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -50.942989349365234,
+     "alternative": -88.94065856933594,
+     "best": -26.190317153930664
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -88.94065856933594,
+     "alternative": -50.942989349365234,
+     "best": -26.190317153930664
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -69.39932250976562,
+     "alternative": -50.942989349365234,
+     "best": -26.190317153930664
+    }
+   }
+  },
+  "lab-v1.1-e11-x11": {
+   "kind": "splice",
+   "label": "omitted_word",
+   "human": "ok",
+   "oneEditEdit": "omitted_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -18.013647079467773,
+     "alternative": -22.75394058227539,
+     "best": -18.013647079467773
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -22.75394058227539,
+     "alternative": -18.013647079467773,
+     "best": -18.013647079467773
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -143.21372985839844,
+     "alternative": -18.013647079467773,
+     "best": -18.013647079467773
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -20.759687423706055,
+     "alternative": -29.75389289855957,
+     "best": -11.886077880859375
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -29.75389289855957,
+     "alternative": -20.759687423706055,
+     "best": -11.886077880859375
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -92.11064147949219,
+     "alternative": -20.759687423706055,
+     "best": -11.886077880859375
+    }
+   }
+  },
+  "lab-v1.1-p15-x8": {
+   "kind": "splice",
+   "label": "added_word",
+   "human": "ok",
+   "oneEditEdit": "added_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -37.60843276977539,
+     "alternative": -48.1084098815918,
+     "best": -48.1084098815918
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "match",
+     "claimed": -48.1084098815918,
+     "alternative": -37.60843276977539,
+     "best": -48.1084098815918
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -179.51885986328125,
+     "alternative": -37.60843276977539,
+     "best": -48.1084098815918
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -50.60129165649414,
+     "alternative": -60.28102111816406,
+     "best": -21.288480758666992
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -60.28102111816406,
+     "alternative": -50.60129165649414,
+     "best": -21.288480758666992
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -146.67124938964844,
+     "alternative": -50.60129165649414,
+     "best": -21.288480758666992
+    }
+   }
+  },
+  "lab-v1.1-p10-x6": {
+   "kind": "splice",
+   "label": "added_word",
+   "human": "ok",
+   "oneEditEdit": "added_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -18.664505004882812,
+     "alternative": -48.89080810546875,
+     "best": -18.664505004882812
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -48.89080810546875,
+     "alternative": -18.664505004882812,
+     "best": -18.664505004882812
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -127.92990112304688,
+     "alternative": -18.664505004882812,
+     "best": -18.664505004882812
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -33.916893005371094,
+     "alternative": -66.53166198730469,
+     "best": -23.247753143310547
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -66.53166198730469,
+     "alternative": -33.916893005371094,
+     "best": -23.247753143310547
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -159.9125213623047,
+     "alternative": -33.916893005371094,
+     "best": -23.247753143310547
+    }
+   }
+  },
+  "lab-v1.1-p01-x25": {
+   "kind": "splice",
+   "label": "added_word",
+   "human": "ok",
+   "oneEditEdit": "added_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -31.272445678710938,
+     "alternative": -44.18096160888672,
+     "best": -31.272445678710938
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -44.18096160888672,
+     "alternative": -31.272445678710938,
+     "best": -31.272445678710938
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -178.05755615234375,
+     "alternative": -31.272445678710938,
+     "best": -31.272445678710938
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -94.99044036865234,
+     "alternative": -103.93994903564453,
+     "best": -29.705379486083984
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -103.93994903564453,
+     "alternative": -94.99044036865234,
+     "best": -29.705379486083984
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -145.43222045898438,
+     "alternative": -94.99044036865234,
+     "best": -29.705379486083984
+    }
+   }
+  },
+  "lab-v1.1-e19-x12": {
+   "kind": "splice",
+   "label": "added_word",
+   "human": "ok",
+   "oneEditEdit": "added_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -19.069793701171875,
+     "alternative": -34.167030334472656,
+     "best": -39.279510498046875
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "match",
+     "claimed": -34.167030334472656,
+     "alternative": -19.069793701171875,
+     "best": -39.279510498046875
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -161.427490234375,
+     "alternative": -19.069793701171875,
+     "best": -39.279510498046875
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -58.22052764892578,
+     "alternative": -63.41081619262695,
+     "best": -20.52728843688965
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -63.41081619262695,
+     "alternative": -58.22052764892578,
+     "best": -20.52728843688965
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -163.77566528320312,
+     "alternative": -58.22052764892578,
+     "best": -20.52728843688965
+    }
+   }
+  },
+  "lab-v1.1-p13-x12": {
+   "kind": "splice",
+   "label": "skipped_passage",
+   "human": "ok",
+   "oneEditEdit": "skipped_passage",
+   "oneEditWords": 11,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -24.578216552734375,
+     "alternative": -160.2033233642578,
+     "best": -24.578216552734375
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -160.2033233642578,
+     "alternative": -24.578216552734375,
+     "best": -24.578216552734375
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -137.05221557617188,
+     "alternative": -24.578216552734375,
+     "best": -24.578216552734375
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -52.0518684387207,
+     "alternative": -363.78204345703125,
+     "best": -23.560407638549805
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -363.78204345703125,
+     "alternative": -52.0518684387207,
+     "best": -23.560407638549805
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -116.5621566772461,
+     "alternative": -52.0518684387207,
+     "best": -23.560407638549805
+    }
+   }
+  },
+  "lab-v1.1-e10-x9": {
+   "kind": "splice",
+   "label": "skipped_passage",
+   "human": "ok",
+   "oneEditEdit": "skipped_passage",
+   "oneEditWords": 4,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -15.175193786621094,
+     "alternative": -87.0423812866211,
+     "best": -9.670515060424805
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -87.0423812866211,
+     "alternative": -15.175193786621094,
+     "best": -9.670515060424805
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -109.3203125,
+     "alternative": -15.175193786621094,
+     "best": -9.670515060424805
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -47.6209831237793,
+     "alternative": -161.3356170654297,
+     "best": -22.1149959564209
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -161.3356170654297,
+     "alternative": -47.6209831237793,
+     "best": -22.1149959564209
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -96.02561950683594,
+     "alternative": -47.6209831237793,
+     "best": -22.1149959564209
+    }
+   }
+  },
+  "lab-v1.1-p14-x2": {
+   "kind": "splice",
+   "label": "skipped_passage",
+   "human": "ok",
+   "oneEditEdit": "skipped_passage",
+   "oneEditWords": 7,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -40.375064849853516,
+     "alternative": -161.17510986328125,
+     "best": -40.375064849853516
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -161.17510986328125,
+     "alternative": -40.375064849853516,
+     "best": -40.375064849853516
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -148.63168334960938,
+     "alternative": -40.375064849853516,
+     "best": -40.375064849853516
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -31.436098098754883,
+     "alternative": -291.92333984375,
+     "best": -18.00253677368164
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -291.92333984375,
+     "alternative": -31.436098098754883,
+     "best": -18.00253677368164
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -133.4168243408203,
+     "alternative": -31.436098098754883,
+     "best": -18.00253677368164
+    }
+   }
+  },
+  "lab-v1.1-p17-x9": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -12.132092475891113,
+     "alternative": -66.44820404052734,
+     "best": -12.132092475891113
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -66.44820404052734,
+     "alternative": -12.132092475891113,
+     "best": -12.132092475891113
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -119.0313491821289,
+     "alternative": -12.132092475891113,
+     "best": -12.132092475891113
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -59.032344818115234,
+     "alternative": -72.26825714111328,
+     "best": -21.110097885131836
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -72.26825714111328,
+     "alternative": -59.032344818115234,
+     "best": -21.110097885131836
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -119.31452941894531,
+     "alternative": -59.032344818115234,
+     "best": -21.110097885131836
+    }
+   }
+  },
+  "lab-v1.1-p12-x7": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "mismatch",
+     "nearBest": "match",
+     "claimed": -25.729999542236328,
+     "alternative": -22.41730308532715,
+     "best": -44.108253479003906
+    },
+    "oneEdit": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -22.41730308532715,
+     "alternative": -25.729999542236328,
+     "best": -44.108253479003906
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -132.9929656982422,
+     "alternative": -25.729999542236328,
+     "best": -44.108253479003906
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -66.38008880615234,
+     "alternative": -81.00970458984375,
+     "best": -19.292930603027344
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -81.00970458984375,
+     "alternative": -66.38008880615234,
+     "best": -19.292930603027344
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -135.60153198242188,
+     "alternative": -66.38008880615234,
+     "best": -19.292930603027344
+    }
+   }
+  },
+  "lab-v1.1-p17-x2": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -15.709494590759277,
+     "alternative": -34.85697937011719,
+     "best": -15.709494590759277
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -34.85697937011719,
+     "alternative": -15.709494590759277,
+     "best": -15.709494590759277
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -203.50531005859375,
+     "alternative": -15.709494590759277,
+     "best": -15.709494590759277
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -65.64911651611328,
+     "alternative": -69.48712158203125,
+     "best": -24.86347770690918
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -69.48712158203125,
+     "alternative": -65.64911651611328,
+     "best": -24.86347770690918
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -199.60275268554688,
+     "alternative": -65.64911651611328,
+     "best": -24.86347770690918
+    }
+   }
+  },
+  "lab-v1.1-e19-x9": {
+   "kind": "splice",
+   "label": "wrong_word",
+   "human": "ok",
+   "oneEditEdit": "wrong_word",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -36.601287841796875,
+     "alternative": -68.83228302001953,
+     "best": -20.07578468322754
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -68.83228302001953,
+     "alternative": -36.601287841796875,
+     "best": -20.07578468322754
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -144.2934112548828,
+     "alternative": -36.601287841796875,
+     "best": -20.07578468322754
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -90.88346099853516,
+     "alternative": -74.09953308105469,
+     "best": -37.93388366699219
+    },
+    "oneEdit": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -74.09953308105469,
+     "alternative": -90.88346099853516,
+     "best": -37.93388366699219
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -199.04983520507812,
+     "alternative": -90.88346099853516,
+     "best": -37.93388366699219
+    }
+   }
+  },
+  "lab-v1.1-e08-x1": {
+   "kind": "case",
+   "label": "repeat",
+   "human": "ok",
+   "oneEditEdit": "repeat",
+   "oneEditWords": 3,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -25.380733489990234,
+     "alternative": -28.89120101928711,
+     "best": -25.43874168395996
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -28.89120101928711,
+     "alternative": -25.380733489990234,
+     "best": -25.43874168395996
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -176.06057739257812,
+     "alternative": -25.380733489990234,
+     "best": -25.43874168395996
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -102.51181030273438,
+     "alternative": -98.77356719970703,
+     "best": -47.833194732666016
+    },
+    "oneEdit": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -98.77356719970703,
+     "alternative": -102.51181030273438,
+     "best": -47.833194732666016
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -245.95120239257812,
+     "alternative": -102.51181030273438,
+     "best": -47.833194732666016
+    }
+   }
+  },
+  "lab-v1.1-e01-x4": {
+   "kind": "case",
+   "label": "restart",
+   "human": "ok",
+   "oneEditEdit": "restart",
+   "oneEditWords": 7,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -33.68450164794922,
+     "alternative": -57.96125793457031,
+     "best": -12.532430648803711
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -57.96125793457031,
+     "alternative": -33.68450164794922,
+     "best": -12.532430648803711
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -159.03836059570312,
+     "alternative": -33.68450164794922,
+     "best": -12.532430648803711
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -82.70793151855469,
+     "alternative": -172.79124450683594,
+     "best": -48.733734130859375
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -172.79124450683594,
+     "alternative": -82.70793151855469,
+     "best": -48.733734130859375
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -232.76866149902344,
+     "alternative": -82.70793151855469,
+     "best": -48.733734130859375
+    }
+   }
+  },
+  "lab-v1.1-p05-x6": {
+   "kind": "case",
+   "label": "repeat",
+   "human": "ok",
+   "oneEditEdit": "repeat",
+   "oneEditWords": 3,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -35.03076171875,
+     "alternative": -46.531578063964844,
+     "best": -64.58525085449219
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "match",
+     "claimed": -46.531578063964844,
+     "alternative": -35.03076171875,
+     "best": -64.58525085449219
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -152.47283935546875,
+     "alternative": -35.03076171875,
+     "best": -64.58525085449219
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -100.93274688720703,
+     "alternative": -115.16961669921875,
+     "best": -49.68899154663086
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -115.16961669921875,
+     "alternative": -100.93274688720703,
+     "best": -49.68899154663086
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -230.1890869140625,
+     "alternative": -100.93274688720703,
+     "best": -49.68899154663086
+    }
+   }
+  },
+  "lab-v1.1-e05-x7": {
+   "kind": "case",
+   "label": "restart",
+   "human": "ok",
+   "oneEditEdit": "restart",
+   "oneEditWords": 9,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -23.55211639404297,
+     "alternative": -41.399925231933594,
+     "best": -32.8553466796875
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -41.399925231933594,
+     "alternative": -23.55211639404297,
+     "best": -32.8553466796875
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -112.531982421875,
+     "alternative": -23.55211639404297,
+     "best": -32.8553466796875
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -104.40071105957031,
+     "alternative": -194.72056579589844,
+     "best": -35.46784210205078
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -194.72056579589844,
+     "alternative": -104.40071105957031,
+     "best": -35.46784210205078
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -181.7674560546875,
+     "alternative": -104.40071105957031,
+     "best": -35.46784210205078
+    }
+   }
+  },
+  "lab-v1.1-p15-x5": {
+   "kind": "case",
+   "label": "repeat",
+   "human": "ok",
+   "oneEditEdit": "repeat",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -21.641199111938477,
+     "alternative": -26.49365997314453,
+     "best": -21.641199111938477
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -26.49365997314453,
+     "alternative": -21.641199111938477,
+     "best": -21.641199111938477
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -163.54742431640625,
+     "alternative": -21.641199111938477,
+     "best": -21.641199111938477
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -32.45535659790039,
+     "alternative": -38.07558822631836,
+     "best": -19.05113410949707
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -38.07558822631836,
+     "alternative": -32.45535659790039,
+     "best": -19.05113410949707
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -246.11441040039062,
+     "alternative": -32.45535659790039,
+     "best": -19.05113410949707
+    }
+   }
+  },
+  "lab-v1.1-e12-x3": {
+   "kind": "case",
+   "label": "repeat",
+   "human": "ok",
+   "oneEditEdit": "repeat",
+   "oneEditWords": 3,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -8.093831062316895,
+     "alternative": -37.604061126708984,
+     "best": -8.093831062316895
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -37.604061126708984,
+     "alternative": -8.093831062316895,
+     "best": -8.093831062316895
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -141.56610107421875,
+     "alternative": -8.093831062316895,
+     "best": -8.093831062316895
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -121.06937408447266,
+     "alternative": -102.41539764404297,
+     "best": -43.97203063964844
+    },
+    "oneEdit": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -102.41539764404297,
+     "alternative": -121.06937408447266,
+     "best": -43.97203063964844
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -158.68235778808594,
+     "alternative": -121.06937408447266,
+     "best": -43.97203063964844
+    }
+   }
+  },
+  "lab-v1.1-p09-studio-317": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEditEdit": "sub",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -33.91279983520508,
+     "alternative": -77.04694366455078,
+     "best": -20.062393188476562
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -77.04694366455078,
+     "alternative": -33.91279983520508,
+     "best": -20.062393188476562
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -147.43716430664062,
+     "alternative": -33.91279983520508,
+     "best": -20.062393188476562
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -64.43284606933594,
+     "alternative": -81.40933227539062,
+     "best": -27.149808883666992
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -81.40933227539062,
+     "alternative": -64.43284606933594,
+     "best": -27.149808883666992
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -138.4237060546875,
+     "alternative": -64.43284606933594,
+     "best": -27.149808883666992
+    }
+   }
+  },
+  "lab-v1.1-e11-studio-125": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEditEdit": "ins",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -36.950721740722656,
+     "alternative": -86.80244445800781,
+     "best": -36.950721740722656
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -86.80244445800781,
+     "alternative": -36.950721740722656,
+     "best": -36.950721740722656
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -163.03045654296875,
+     "alternative": -36.950721740722656,
+     "best": -36.950721740722656
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -51.73353576660156,
+     "alternative": -79.48381042480469,
+     "best": -20.253414154052734
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -79.48381042480469,
+     "alternative": -51.73353576660156,
+     "best": -20.253414154052734
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -203.03762817382812,
+     "alternative": -51.73353576660156,
+     "best": -20.253414154052734
+    }
+   }
+  },
+  "lab-v1.1-e02-studio-85": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEditEdit": "del",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -28.660409927368164,
+     "alternative": -67.65530395507812,
+     "best": -36.42352294921875
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -67.65530395507812,
+     "alternative": -28.660409927368164,
+     "best": -36.42352294921875
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -180.2071533203125,
+     "alternative": -28.660409927368164,
+     "best": -36.42352294921875
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -79.7330322265625,
+     "alternative": -91.93446350097656,
+     "best": -41.17815399169922
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -91.93446350097656,
+     "alternative": -79.7330322265625,
+     "best": -41.17815399169922
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -190.388427734375,
+     "alternative": -79.7330322265625,
+     "best": -41.17815399169922
+    }
+   }
+  },
+  "lab-v1.1-p10-studio-13": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEditEdit": "sub",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -18.245567321777344,
+     "alternative": -99.19141387939453,
+     "best": -18.245567321777344
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -99.19141387939453,
+     "alternative": -18.245567321777344,
+     "best": -18.245567321777344
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -150.56004333496094,
+     "alternative": -18.245567321777344,
+     "best": -18.245567321777344
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -65.84904479980469,
+     "alternative": -91.00552368164062,
+     "best": -31.624372482299805
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -91.00552368164062,
+     "alternative": -65.84904479980469,
+     "best": -31.624372482299805
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -188.5306854248047,
+     "alternative": -65.84904479980469,
+     "best": -31.624372482299805
+    }
+   }
+  },
+  "lab-v1.1-e14-studio-309": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEditEdit": "ins",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -14.350103378295898,
+     "alternative": -75.01107788085938,
+     "best": -14.350103378295898
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -75.01107788085938,
+     "alternative": -14.350103378295898,
+     "best": -14.350103378295898
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -161.24905395507812,
+     "alternative": -14.350103378295898,
+     "best": -14.350103378295898
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -52.964210510253906,
+     "alternative": -81.98348999023438,
+     "best": -27.023731231689453
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -81.98348999023438,
+     "alternative": -52.964210510253906,
+     "best": -27.023731231689453
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -209.19522094726562,
+     "alternative": -52.964210510253906,
+     "best": -27.023731231689453
+    }
+   }
+  },
+  "lab-v1.1-p03-studio-5": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEditEdit": "del",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -37.06725311279297,
+     "alternative": -81.4900131225586,
+     "best": -60.889251708984375
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -81.4900131225586,
+     "alternative": -37.06725311279297,
+     "best": -60.889251708984375
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -211.64744567871094,
+     "alternative": -37.06725311279297,
+     "best": -60.889251708984375
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -87.0390396118164,
+     "alternative": -110.9278335571289,
+     "best": -33.60338592529297
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -110.9278335571289,
+     "alternative": -87.0390396118164,
+     "best": -33.60338592529297
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -190.03253173828125,
+     "alternative": -87.0390396118164,
+     "best": -33.60338592529297
+    }
+   }
+  },
+  "lab-v1.1-e10-studio-5": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEditEdit": "sub",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -11.254548072814941,
+     "alternative": -99.05023193359375,
+     "best": -7.8575944900512695
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -99.05023193359375,
+     "alternative": -11.254548072814941,
+     "best": -7.8575944900512695
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -133.75823974609375,
+     "alternative": -11.254548072814941,
+     "best": -7.8575944900512695
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -87.30257415771484,
+     "alternative": -105.74878692626953,
+     "best": -30.370101928710938
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -105.74878692626953,
+     "alternative": -87.30257415771484,
+     "best": -30.370101928710938
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -157.67965698242188,
+     "alternative": -87.30257415771484,
+     "best": -30.370101928710938
+    }
+   }
+  },
+  "lab-v1.1-p20-phone-61": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEditEdit": "ins",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -23.500747680664062,
+     "alternative": -54.106510162353516,
+     "best": -23.500747680664062
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -54.106510162353516,
+     "alternative": -23.500747680664062,
+     "best": -23.500747680664062
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -238.366943359375,
+     "alternative": -23.500747680664062,
+     "best": -23.500747680664062
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -57.63824462890625,
+     "alternative": -76.60588073730469,
+     "best": -31.085268020629883
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -76.60588073730469,
+     "alternative": -57.63824462890625,
+     "best": -31.085268020629883
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -208.3717803955078,
+     "alternative": -57.63824462890625,
+     "best": -31.085268020629883
+    }
+   }
+  },
+  "lab-v1.1-p19-phone-5": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEditEdit": "del",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -8.071711540222168,
+     "alternative": -33.685096740722656,
+     "best": -8.071711540222168
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -33.685096740722656,
+     "alternative": -8.071711540222168,
+     "best": -8.071711540222168
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -196.6460723876953,
+     "alternative": -8.071711540222168,
+     "best": -8.071711540222168
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "unsure",
+     "nearBest": "mismatch",
+     "claimed": -96.23375701904297,
+     "alternative": -96.88267517089844,
+     "best": -35.012474060058594
+    },
+    "oneEdit": {
+     "pairwise": "unsure",
+     "nearBest": "mismatch",
+     "claimed": -96.88267517089844,
+     "alternative": -96.23375701904297,
+     "best": -35.012474060058594
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -247.01341247558594,
+     "alternative": -96.23375701904297,
+     "best": -35.012474060058594
+    }
+   }
+  },
+  "lab-v1.1-e07-phone-293": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEditEdit": "sub",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -43.491790771484375,
+     "alternative": -105.38750457763672,
+     "best": -20.978477478027344
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -105.38750457763672,
+     "alternative": -43.491790771484375,
+     "best": -20.978477478027344
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -133.63681030273438,
+     "alternative": -43.491790771484375,
+     "best": -20.978477478027344
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -118.23741912841797,
+     "alternative": -134.11404418945312,
+     "best": -47.3039665222168
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -134.11404418945312,
+     "alternative": -118.23741912841797,
+     "best": -47.3039665222168
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -172.94949340820312,
+     "alternative": -118.23741912841797,
+     "best": -47.3039665222168
+    }
+   }
+  },
+  "lab-v1.1-p06-phone-173": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEditEdit": "ins",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -31.268152236938477,
+     "alternative": -54.910980224609375,
+     "best": -22.671497344970703
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -54.910980224609375,
+     "alternative": -31.268152236938477,
+     "best": -22.671497344970703
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -137.934814453125,
+     "alternative": -31.268152236938477,
+     "best": -22.671497344970703
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -70.15746307373047,
+     "alternative": -83.10615539550781,
+     "best": -26.53108024597168
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -83.10615539550781,
+     "alternative": -70.15746307373047,
+     "best": -26.53108024597168
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -157.33067321777344,
+     "alternative": -70.15746307373047,
+     "best": -26.53108024597168
+    }
+   }
+  },
+  "lab-v1.1-e15-phone-229": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEditEdit": "del",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -55.08354187011719,
+     "alternative": -77.17180633544922,
+     "best": -81.95055389404297
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "match",
+     "claimed": -77.17180633544922,
+     "alternative": -55.08354187011719,
+     "best": -81.95055389404297
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -117.32901763916016,
+     "alternative": -55.08354187011719,
+     "best": -81.95055389404297
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -85.83538818359375,
+     "alternative": -102.79531860351562,
+     "best": -27.252201080322266
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -102.79531860351562,
+     "alternative": -85.83538818359375,
+     "best": -27.252201080322266
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -145.8808135986328,
+     "alternative": -85.83538818359375,
+     "best": -27.252201080322266
+    }
+   }
+  },
+  "lab-v1.1-e03-phone-213": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEditEdit": "sub",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -45.4525032043457,
+     "alternative": -97.39450073242188,
+     "best": -20.032146453857422
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -97.39450073242188,
+     "alternative": -45.4525032043457,
+     "best": -20.032146453857422
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -93.95054626464844,
+     "alternative": -45.4525032043457,
+     "best": -20.032146453857422
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -83.05054473876953,
+     "alternative": -90.78282165527344,
+     "best": -34.317230224609375
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -90.78282165527344,
+     "alternative": -83.05054473876953,
+     "best": -34.317230224609375
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -199.39962768554688,
+     "alternative": -83.05054473876953,
+     "best": -34.317230224609375
+    }
+   }
+  },
+  "lab-v1.1-p04-phone-245": {
+   "kind": "case",
+   "label": "clean",
+   "human": "ok",
+   "oneEditEdit": "ins",
+   "oneEditWords": 1,
+   "llm": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "match",
+     "claimed": -42.49543380737305,
+     "alternative": -93.48187255859375,
+     "best": -42.49543380737305
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -93.48187255859375,
+     "alternative": -42.49543380737305,
+     "best": -42.49543380737305
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -209.24942016601562,
+     "alternative": -42.49543380737305,
+     "best": -42.49543380737305
+    }
+   },
+   "ctc": {
+    "labelled": {
+     "pairwise": "match",
+     "nearBest": "mismatch",
+     "claimed": -104.70787048339844,
+     "alternative": -130.00938415527344,
+     "best": -41.45077896118164
+    },
+    "oneEdit": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -130.00938415527344,
+     "alternative": -104.70787048339844,
+     "best": -41.45077896118164
+    },
+    "shifted": {
+     "pairwise": "mismatch",
+     "nearBest": "mismatch",
+     "claimed": -180.46205139160156,
+     "alternative": -104.70787048339844,
+     "best": -41.45077896118164
+    }
+   }
+  }
+ }
+}

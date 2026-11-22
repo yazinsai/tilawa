@@ -1,0 +1,43 @@
+html, body { overflow-x: clip; }
+.live { max-width: 1200px; margin: auto; padding: 48px 24px; }
+.intro, .panel-head, .capture-line, .dialog-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.intro { margin-bottom: 32px; }
+h1 { font-size: 36px; } h2 { font-size: 20px; }
+.intro p, .output > p, .small, #version, #save-status { color: var(--g-600); }
+#version, .small { font-size: 12px; }
+.capture { padding: 24px; background: var(--green-50); border: 1px solid var(--g-200); border-radius: 8px; margin-bottom: 24px; }
+.capture-line { justify-content: flex-start; margin-bottom: 12px; }
+button, select, textarea { font: inherit; }
+button { cursor: pointer; padding: 8px 16px; border: 1px solid var(--g-500); border-radius: 8px; background: var(--g-50); color: var(--g-900); }
+button.primary { background: var(--green-600); border-color: var(--green-600); color: var(--g-50); }
+button:disabled { opacity: .5; cursor: default; }
+meter { width: 128px; } #clock { font-variant-numeric: tabular-nums; }
+.outputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.output { border-top: 3px solid var(--listener); padding: 16px 0; min-width: 0; }
+.output:nth-child(2) { border-color: var(--tracker); }.output:nth-child(3) { border-color: var(--checker); }
+.panel-head { margin-bottom: 12px; align-items: baseline; }
+.panel-head button { font-size: 12px; padding: 4px 8px; white-space: nowrap; }
+.arabic { font-family: var(--ar); font-size: 30px; line-height: 2; padding: 24px 0; min-height: 144px; overflow-wrap: anywhere; }
+.arabic mark { background: var(--gold-100); color: var(--g-900); border-radius: 4px; }
+#warnings { padding-left: 20px; max-height: 256px; overflow-y: auto; }
+#warnings li { margin: 12px 0; font-size: 14px; }
+#warnings .confirmed { color: var(--worse); } #warnings .resolved { color: var(--better); }
+.flags { border-top: 1px solid var(--g-300); margin: 32px 0; padding-top: 24px; }
+#flags li { margin: 12px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+details { border-top: 1px solid var(--g-300); padding-top: 16px; }
+pre { font-size: 12px; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 256px; overflow: auto; }
+audio { display: block; margin-top: 16px; width: 100%; }audio[hidden] { display: none; }
+dialog { max-width: 480px; width: calc(100% - 32px); border: 1px solid var(--g-300); border-radius: 8px; padding: 24px; color: var(--g-900); background: var(--g-50); }
+dialog::backdrop { background: hsl(165 25% 11% / .4); }
+label { display: block; margin: 16px 0; }select, textarea { display: block; width: 100%; margin-top: 8px; padding: 8px; border: 1px solid var(--g-500); border-radius: 4px; background: var(--g-50); color: var(--g-900); }textarea { resize: vertical; }
+#status { margin-bottom: 8px; } #model-info { margin: 16px 0; }
+@media(max-width: 800px) { .outputs { grid-template-columns: minmax(0, 1fr); }.live { padding: 24px 16px; }.intro { align-items: flex-start; flex-direction: column; }.arabic { min-height: 64px; }.capture-line { flex-wrap: wrap; } }
+.top nav { display: flex; flex-wrap: wrap; gap: 24px; }
+.top nav a { font-size: 14px; text-decoration: none; }
+.top nav a[aria-current] { color: var(--g-900); font-weight: 600; }
+
+/* A compact RTL sound trail; recent phonemes settle back into the history. */
+#sounds { font-size: 24px; line-height: 1.8; min-height: 0; white-space: nowrap; overflow-wrap: normal; overflow-x: auto; overflow-y: hidden; padding: 12px 0; color: var(--g-600); }
+#sounds span { border-radius: 4px; transition: background-color 400ms ease, color 400ms ease; }
+#sounds .is-fresh { background-color: var(--gold-100); color: var(--g-900); }
+@media (prefers-reduced-motion: reduce) { #sounds span { transition: none; } }

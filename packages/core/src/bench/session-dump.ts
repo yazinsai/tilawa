@@ -1,0 +1,56 @@
+import type { CheckerEvent, EngineEvent, PositionEvent, WordRef } from "../events.js";
+import type { ReferenceAsset, ReferenceIndex } from "../reference.js";
+import { ayahOrdinal, correctPosition, inNonErrorWindow, onQuran, recentWords } from "./sessions.js";
+import type { BenchSession, SessionContext, SessionScore } from "./sessions.js";
+
+/** Review-only session evidence for the scoreboard page. Never read by the scorer. */
+export const SESSION_DUMP_VERSION = 3;
+export interface SessionDumpWarning {
+  id: string; errorClass: CheckerEvent["errorClass"]; at: string;
+  states: { state: CheckerEvent["state"]; timeMs: number; confidence: number }[];
+  eventIndex: number | null; confirmed: boolean; nonError: boolean;
+}
+export interface SessionDumpContext {
+  context: SessionContext; effectiveContext: string; score: SessionScore;
+  warnings: SessionDumpWarning[]; wrongPositions: { timeMs: number; observed: string; recited: string[] }[];
+}
+export interface SessionDumpRecord {
+  id: string; track: BenchSession["track"]; source: BenchSession["source"]; speaker: string; audio: string; durationS: number;
+  spans: BenchSession["spans"]; words: { span: string; at: string; text: string; startS: number; endS: number }[];
+  events: (BenchSession["events"][number] & { at: string })[]; nonErrors: (BenchSession["nonErrors"][number] & { atKey: string })[];
+  contexts: Record<string, SessionDumpContext>;
+}
+
+const key = (r: WordRef) => `${r.surah}:${r.ayah}:${r.word}`;
+export const contextKey = (c: SessionContext) => c.kind === "surah" ? `surah ${c.surah}` : c.kind === "page" ? `page ${c.page}`
+  : c.kind === "assignment" ? `assignment ${key(c.from)}-${key(c.to)}` : c.kind === "resume" ? `resume ${key(c.at)}` : "none";
+
+export const quranText = (asset: ReferenceAsset) => new Map(asset.ayahs.flatMap(a => a.w.map((w, i) => [`${a.s}:${a.a}:${i + 1}`, w] as const)));
+
+export function sessionDumpRecord(s: BenchSession, audio: string, text: ReadonlyMap<string, string>): SessionDumpRecord {
+  return { id: s.id, track: s.track, source: s.source, speaker: s.speaker, audio, durationS: s.durationS, spans: s.spans,
+    words: s.words.map(w => ({ span: w.span, at: key(w.at), text: text.get(key(w.at)) ?? "", startS: w.startS, endS: w.endS })),
+    events: s.events.map(e => ({ ...e, at: key(e.location) })), nonErrors: s.nonErrors.map(n => ({ ...n, atKey: key(n.at) })), contexts: {} };
+}
+
+/** Per-warning detail behind `score`, using the scorer's own non-error and wrong-position predicates. */
+export function sessionDumpContext(s: BenchSession, events: EngineEvent[], score: SessionScore, index: ReferenceIndex): SessionDumpContext {
+  const ay = ayahOrdinal(index);
+  const states = new Map<string, CheckerEvent[]>();
+  for (const e of events) if (e.type === "checker") states.set(e.id, [...(states.get(e.id) ?? []), e]);
+  const assigned = new Map(score.assignments.map(a => [a.warningId, a]));
+  const warnings = [...states.values()].map(list => {
+    list.sort((a, b) => a.timeMs - b.timeMs);
+    const first = list[0], t = first.timeMs / 1000, a = assigned.get(first.id);
+    const confirmed = list.some(e => e.state === "confirmed");
+    const nonError = confirmed && (a?.eventIndex ?? null) === null && inNonErrorWindow(s, first.location, t);
+    return { id: first.id, errorClass: first.errorClass, at: key(first.location), states: list.map(e => ({ state: e.state, timeMs: e.timeMs, confidence: e.confidence })),
+      eventIndex: a?.eventIndex ?? null, confirmed, nonError };
+  }).sort((a, b) => a.states[0].timeMs - b.states[0].timeMs);
+  const wrongPositions = events.filter((e): e is PositionEvent => e.type === "position").flatMap(p => {
+    const t = p.timeMs / 1000;
+    if (!onQuran(s, t) || p.state !== "locked" || correctPosition(s, p, t, ay)) return [];
+    return [{ timeMs: p.timeMs, observed: p.observed[0] ? key(p.observed[0].word) : "", recited: [...new Set(recentWords(s, t).map(w => key(w.at)))] }];
+  });
+  return { context: score.context, effectiveContext: score.effectiveContext, score, warnings, wrongPositions };
+}

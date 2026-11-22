@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tilawa recitation test</title>
+  </head>
+  <body>
+    <h1>Test your recitation</h1>
+    <p>Start recording and recite anywhere in the Quran. Tilawa will find your place and check for mistakes.</p>
+    <button id="mic">Start recording</button>
+    <meter id="meter" min="-70" max="0" value="-70" aria-label="Microphone level"></meter>
+    <p id="status" role="status">Ready to start. The first recording takes a moment to prepare.</p>
+    <p id="position">Your place in the Quran will appear here.</p>
+    <div id="passage" lang="ar" dir="rtl"></div>
+    <audio id="playback" controls hidden></audio>
+    <h2>Corrections</h2>
+    <p id="mistake-count" class="note">Start reciting to see feedback.</p>
+    <ul id="mistakes"></ul>
+
+    <details>
+      <summary>Test an existing recording</summary>
+      <label>Choose a WAV recording <input id="file" type="file" accept="audio/wav,.wav" /></label>
+      <button id="replay" disabled>Play and check</button>
+      <label><input id="realtime" type="checkbox" checked /> Follow the recording at normal speed</label>
+    </details>
+    <details>
+      <summary>Tuning settings</summary>
+      <fieldset id="session-settings">
+        <legend>For the next recording</legend>
+        <label><input type="radio" name="mode" value="free" checked /> Find my place automatically</label>
+        <label><input type="radio" name="mode" value="memorization" /> Check a specific passage</label>
+        <div id="declared-passage" hidden>
+          <label>Surah <input id="surah" type="number" min="1" max="114" value="1" /></label>
+          <label>First ayah <input id="from" type="number" min="1" value="1" /></label>
+          <label>Last ayah <input id="to" type="number" min="1" value="7" /></label>
+        </div>
+        <label><input id="hide" type="checkbox" /> Hide words until I recite them</label>
+        <label><input id="selfcorr" type="checkbox" /> Count mistakes even when I correct myself</label>
+        <label>When to confirm a mistake <select id="confirm"><option value="delay">After a short wait</option><option value="next">After the next word</option></select></label>
+        <label>Wait time (milliseconds) <input id="delay" type="number" min="0" step="100" value="2500" required /></label>
+        <label>Required confidence (0–1) <input id="confidence" type="number" min="0" max="1" step="0.05" value="0.6" required /></label>
+        <label>Audio evidence interval (milliseconds) <input id="evidence" type="number" min="40" step="40" value="40" required /></label>
+        <label><input id="vad" type="checkbox" /> Remove silence before checking</label>
+        <p class="note">The defaults match the live correction page. Leave these as they are to start.</p>
+      </fieldset>
+    </details>
+    <details>
+      <summary>Downloads and technical details</summary>
+      <button id="audio-download" disabled>Download recording</button>
+      <button id="download" disabled>Download test report</button>
+      <button id="copy" disabled>Copy test report</button>
+      <p id="version"></p>
+      <p id="model-note"></p>
+      <p id="stats"></p>
+      <p id="candidates" class="note"></p>
+      <details><summary>Heard phonemes</summary><div id="sounds" lang="ar" dir="rtl"></div></details>
+      <details><summary>Event log</summary><div id="log"></div></details>
+      <p><a href="device.html">Device measurements</a></p>
+    </details>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

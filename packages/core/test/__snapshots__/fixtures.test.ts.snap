@@ -1,0 +1,21 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`fixture harness > tlog-clean-00000-of-00411-948 (unverified, decoded only) matches its regression snapshot 1`] = `
+{
+  "spans": [
+    {
+      "end": {
+        "ayah": 3,
+        "surah": 2,
+        "word": 4,
+      },
+      "start": {
+        "ayah": 1,
+        "surah": 2,
+        "word": 1,
+      },
+    },
+  ],
+  "state": "locked",
+}
+`;

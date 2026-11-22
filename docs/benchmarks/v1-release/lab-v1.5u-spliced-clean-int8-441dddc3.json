@@ -1,0 +1,2414 @@
+{
+ "version": 1,
+ "kind": "lab-score",
+ "testSet": "lab-v1.5u",
+ "listener": "spliced-clean-int8",
+ "teacher": "teacher",
+ "sha": "441dddc3",
+ "run": "laneg-v1-int8-441dddc3-20261111T131243Z",
+ "reference": "ref-v2",
+ "manifest": "/lab/data/lab-v1.5u/manifest-v1.json",
+ "recordedAt": "2026-11-11T13:34:08.679Z",
+ "definitions": {
+  "recitedMinutes": "Recited time: the union of truth word and labelled-mistake intervals, bridging pauses up to 2 s, minus non-Quran spans. One denominator for misses, false warnings, the checker score and tracker sampling.",
+  "wrongCall": "A labelled mistake not confirmed by a matching warning (miss), or a confirmed warning matching no labelled mistake (false warning, including warnings on repeats and restarts). A warning on the mistake's word and occurrence with another error class still catches it, and is counted as misclassified. Free recitation, no context.",
+  "listener": "PER of the greedy decode against what was said (truth words with planted wrong and added words applied; non-Quran audio left out), one global alignment per session.",
+  "tracker": "Engine run on the listener's evidence. Share of recited time with a locked top candidate within one ayah of a word recited in the last 2 s, counted per entry (session start and every jump of more than one ayah) from 1 word after its disambiguation point. False jump: a run of locks on a wrong place, before or after the point. Lock delay: first on-place sample at or after the point.",
+  "checker": "Wrong calls per 5 min of the checker on oracle evidence with oracle tracker events (locked on the true word).",
+  "teacher": "Teacher reference: the engine run on the teacher's evidence instead of the listener's, same scoring. A reference for listener quality through the engine, not a bound: the engine is tuned on the listener.",
+  "attribution": "Each engine wrong call goes to checker if the oracle arm makes it too, else to listener if the true-position arm (listener evidence, oracle tracker events) makes it, else to tracker. False warnings match across arms by word and time."
+ },
+ "headline": {
+  "split": "exam",
+  "variant": "phone"
+ },
+ "shard": null,
+ "splits": {
+  "practice": {
+   "sessions": 100,
+   "recitedMinutes": 429.475,
+   "overall": {
+    "wrongCalls": 35,
+    "missed": 24,
+    "falseWarnings": 11,
+    "per5Min": 0.407,
+    "mistakes": 617,
+    "caught": 593,
+    "misclassified": 41,
+    "falseWarningsOnNonErrors": 0
+   },
+   "components": {
+    "listener": {
+     "per": 0.0488,
+     "edits": 9039,
+     "phonemes": 185204
+    },
+    "tracker": {
+     "onPlaceShare": 0.9929,
+     "onPlaceS": 24412,
+     "scoredS": 24587,
+     "unscoredS": 1180.8,
+     "falseJumps": 32,
+     "falseJumpsBeforePoint": 3,
+     "entries": 222,
+     "reentries": 122,
+     "lockDelayS": {
+      "n": 221,
+      "p50": 0.065,
+      "p90": 0.25,
+      "max": 30.395,
+      "censored": 0,
+      "buckets": {
+       "0-1s": 211,
+       "1-3s": 8,
+       "3-5s": 1,
+       "5-10s": 0,
+       ">10s": 1,
+       "never": 0
+      }
+     },
+     "oracleEvidence": {
+      "onPlaceShare": 0.9953,
+      "onPlaceS": 24472.1,
+      "scoredS": 24587,
+      "unscoredS": 1180.8,
+      "falseJumps": 28,
+      "falseJumpsBeforePoint": 2,
+      "entries": 222,
+      "reentries": 122,
+      "lockDelayS": {
+       "n": 221,
+       "p50": 0.065,
+       "p90": 0.15,
+       "max": 2.365,
+       "censored": 0,
+       "buckets": {
+        "0-1s": 219,
+        "1-3s": 2,
+        "3-5s": 0,
+        "5-10s": 0,
+        ">10s": 0,
+        "never": 0
+       }
+      }
+     }
+    },
+    "checker": {
+     "wrongCalls": 7,
+     "missed": 7,
+     "misclassified": 26,
+     "falseWarnings": 0,
+     "per5Min": 0.081,
+     "falseWarningsOnNonErrors": 0
+    }
+   },
+   "attribution": {
+    "listener": 34,
+    "tracker": 1,
+    "checker": 0,
+    "total": 35,
+    "missed": {
+     "listener": 24,
+     "tracker": 0,
+     "checker": 0
+    },
+    "falseWarnings": {
+     "listener": 10,
+     "tracker": 1,
+     "checker": 0
+    }
+   },
+   "byClass": {
+    "wrong_word": {
+     "mistakes": 79,
+     "missed": 2,
+     "misclassified": 7,
+     "listener": 2,
+     "tracker": 0,
+     "checker": 0
+    },
+    "omitted_word": {
+     "mistakes": 298,
+     "missed": 2,
+     "misclassified": 14,
+     "listener": 2,
+     "tracker": 0,
+     "checker": 0
+    },
+    "added_word": {
+     "mistakes": 118,
+     "missed": 19,
+     "misclassified": 18,
+     "listener": 19,
+     "tracker": 0,
+     "checker": 0
+    },
+    "skipped_passage": {
+     "mistakes": 122,
+     "missed": 1,
+     "misclassified": 2,
+     "listener": 1,
+     "tracker": 0,
+     "checker": 0
+    }
+   },
+   "mutashabihat": {
+    "mistakes": 97,
+    "missed": 0,
+    "misclassified": 2,
+    "listener": 0,
+    "tracker": 0,
+    "checker": 0
+   },
+   "falseWarningsByClass": {
+    "wrong_word": 3,
+    "skipped_passage": 3,
+    "added_word": 2,
+    "omitted_word": 3
+   },
+   "teacher": {
+    "wrongCalls": 57,
+    "missed": 19,
+    "falseWarnings": 38,
+    "per5Min": 0.664,
+    "per": 0.0409
+   }
+  },
+  "exam": {
+   "sessions": 100,
+   "recitedMinutes": 427.121,
+   "overall": {
+    "wrongCalls": 108,
+    "missed": 47,
+    "falseWarnings": 61,
+    "per5Min": 1.264,
+    "mistakes": 532,
+    "caught": 485,
+    "misclassified": 30,
+    "falseWarningsOnNonErrors": 0
+   },
+   "components": {
+    "listener": {
+     "per": 0.0625,
+     "edits": 11025,
+     "phonemes": 176338
+    },
+    "tracker": {
+     "onPlaceShare": 0.9917,
+     "onPlaceS": 24116.3,
+     "scoredS": 24318.3,
+     "unscoredS": 1309.2,
+     "falseJumps": 38,
+     "falseJumpsBeforePoint": 4,
+     "entries": 226,
+     "reentries": 126,
+     "lockDelayS": {
+      "n": 225,
+      "p50": 0.06,
+      "p90": 0.285,
+      "max": 19.455,
+      "censored": 0,
+      "buckets": {
+       "0-1s": 217,
+       "1-3s": 3,
+       "3-5s": 2,
+       "5-10s": 2,
+       ">10s": 1,
+       "never": 0
+      }
+     },
+     "oracleEvidence": {
+      "onPlaceShare": 0.994,
+      "onPlaceS": 24171.3,
+      "scoredS": 24318.3,
+      "unscoredS": 1309.2,
+      "falseJumps": 31,
+      "falseJumpsBeforePoint": 3,
+      "entries": 226,
+      "reentries": 126,
+      "lockDelayS": {
+       "n": 225,
+       "p50": 0.055,
+       "p90": 0.175,
+       "max": 6.925,
+       "censored": 0,
+       "buckets": {
+        "0-1s": 221,
+        "1-3s": 1,
+        "3-5s": 1,
+        "5-10s": 2,
+        ">10s": 0,
+        "never": 0
+       }
+      }
+     }
+    },
+    "checker": {
+     "wrongCalls": 13,
+     "missed": 9,
+     "misclassified": 26,
+     "falseWarnings": 4,
+     "per5Min": 0.152,
+     "falseWarningsOnNonErrors": 0
+    }
+   },
+   "attribution": {
+    "listener": 99,
+    "tracker": 4,
+    "checker": 5,
+    "total": 108,
+    "missed": {
+     "listener": 41,
+     "tracker": 2,
+     "checker": 4
+    },
+    "falseWarnings": {
+     "listener": 58,
+     "tracker": 2,
+     "checker": 1
+    }
+   },
+   "byClass": {
+    "wrong_word": {
+     "mistakes": 86,
+     "missed": 17,
+     "misclassified": 6,
+     "listener": 13,
+     "tracker": 1,
+     "checker": 3
+    },
+    "omitted_word": {
+     "mistakes": 219,
+     "missed": 8,
+     "misclassified": 9,
+     "listener": 8,
+     "tracker": 0,
+     "checker": 0
+    },
+    "added_word": {
+     "mistakes": 101,
+     "missed": 20,
+     "misclassified": 10,
+     "listener": 19,
+     "tracker": 0,
+     "checker": 1
+    },
+    "skipped_passage": {
+     "mistakes": 126,
+     "missed": 2,
+     "misclassified": 5,
+     "listener": 1,
+     "tracker": 1,
+     "checker": 0
+    }
+   },
+   "mutashabihat": {
+    "mistakes": 94,
+    "missed": 11,
+    "misclassified": 0,
+    "listener": 8,
+    "tracker": 2,
+    "checker": 1
+   },
+   "falseWarningsByClass": {
+    "omitted_word": 14,
+    "wrong_word": 36,
+    "skipped_passage": 7,
+    "added_word": 4
+   },
+   "teacher": {
+    "wrongCalls": 124,
+    "missed": 32,
+    "falseWarnings": 92,
+    "per5Min": 1.452,
+    "per": 0.056
+   }
+  },
+  "all": {
+   "sessions": 200,
+   "recitedMinutes": 856.596,
+   "overall": {
+    "wrongCalls": 143,
+    "missed": 71,
+    "falseWarnings": 72,
+    "per5Min": 0.835,
+    "mistakes": 1149,
+    "caught": 1078,
+    "misclassified": 71,
+    "falseWarningsOnNonErrors": 0
+   },
+   "components": {
+    "listener": {
+     "per": 0.0555,
+     "edits": 20064,
+     "phonemes": 361542
+    },
+    "tracker": {
+     "onPlaceShare": 0.9923,
+     "onPlaceS": 48528.3,
+     "scoredS": 48905.3,
+     "unscoredS": 2490,
+     "falseJumps": 70,
+     "falseJumpsBeforePoint": 7,
+     "entries": 448,
+     "reentries": 248,
+     "lockDelayS": {
+      "n": 446,
+      "p50": 0.065,
+      "p90": 0.275,
+      "max": 30.395,
+      "censored": 0,
+      "buckets": {
+       "0-1s": 428,
+       "1-3s": 11,
+       "3-5s": 3,
+       "5-10s": 2,
+       ">10s": 2,
+       "never": 0
+      }
+     },
+     "oracleEvidence": {
+      "onPlaceShare": 0.9946,
+      "onPlaceS": 48643.4,
+      "scoredS": 48905.3,
+      "unscoredS": 2490,
+      "falseJumps": 59,
+      "falseJumpsBeforePoint": 5,
+      "entries": 448,
+      "reentries": 248,
+      "lockDelayS": {
+       "n": 446,
+       "p50": 0.06,
+       "p90": 0.165,
+       "max": 6.925,
+       "censored": 0,
+       "buckets": {
+        "0-1s": 440,
+        "1-3s": 3,
+        "3-5s": 1,
+        "5-10s": 2,
+        ">10s": 0,
+        "never": 0
+       }
+      }
+     }
+    },
+    "checker": {
+     "wrongCalls": 20,
+     "missed": 16,
+     "misclassified": 52,
+     "falseWarnings": 4,
+     "per5Min": 0.117,
+     "falseWarningsOnNonErrors": 0
+    }
+   },
+   "attribution": {
+    "listener": 133,
+    "tracker": 5,
+    "checker": 5,
+    "total": 143,
+    "missed": {
+     "listener": 65,
+     "tracker": 2,
+     "checker": 4
+    },
+    "falseWarnings": {
+     "listener": 68,
+     "tracker": 3,
+     "checker": 1
+    }
+   },
+   "byClass": {
+    "wrong_word": {
+     "mistakes": 165,
+     "missed": 19,
+     "misclassified": 13,
+     "listener": 15,
+     "tracker": 1,
+     "checker": 3
+    },
+    "omitted_word": {
+     "mistakes": 517,
+     "missed": 10,
+     "misclassified": 23,
+     "listener": 10,
+     "tracker": 0,
+     "checker": 0
+    },
+    "added_word": {
+     "mistakes": 219,
+     "missed": 39,
+     "misclassified": 28,
+     "listener": 38,
+     "tracker": 0,
+     "checker": 1
+    },
+    "skipped_passage": {
+     "mistakes": 248,
+     "missed": 3,
+     "misclassified": 7,
+     "listener": 2,
+     "tracker": 1,
+     "checker": 0
+    }
+   },
+   "mutashabihat": {
+    "mistakes": 191,
+    "missed": 11,
+    "misclassified": 2,
+    "listener": 8,
+    "tracker": 2,
+    "checker": 1
+   },
+   "falseWarningsByClass": {
+    "omitted_word": 17,
+    "wrong_word": 39,
+    "skipped_passage": 10,
+    "added_word": 6
+   },
+   "teacher": {
+    "wrongCalls": 181,
+    "missed": 51,
+    "falseWarnings": 130,
+    "per5Min": 1.057,
+    "per": 0.0483
+   }
+  }
+ },
+ "overall": {
+  "wrongCalls": 108,
+  "missed": 47,
+  "falseWarnings": 61,
+  "per5Min": 1.264,
+  "mistakes": 532,
+  "caught": 485,
+  "misclassified": 30,
+  "falseWarningsOnNonErrors": 0
+ },
+ "components": {
+  "listener": {
+   "per": 0.0625,
+   "edits": 11025,
+   "phonemes": 176338
+  },
+  "tracker": {
+   "onPlaceShare": 0.9917,
+   "onPlaceS": 24116.3,
+   "scoredS": 24318.3,
+   "unscoredS": 1309.2,
+   "falseJumps": 38,
+   "falseJumpsBeforePoint": 4,
+   "entries": 226,
+   "reentries": 126,
+   "lockDelayS": {
+    "n": 225,
+    "p50": 0.06,
+    "p90": 0.285,
+    "max": 19.455,
+    "censored": 0,
+    "buckets": {
+     "0-1s": 217,
+     "1-3s": 3,
+     "3-5s": 2,
+     "5-10s": 2,
+     ">10s": 1,
+     "never": 0
+    }
+   },
+   "oracleEvidence": {
+    "onPlaceShare": 0.994,
+    "onPlaceS": 24171.3,
+    "scoredS": 24318.3,
+    "unscoredS": 1309.2,
+    "falseJumps": 31,
+    "falseJumpsBeforePoint": 3,
+    "entries": 226,
+    "reentries": 126,
+    "lockDelayS": {
+     "n": 225,
+     "p50": 0.055,
+     "p90": 0.175,
+     "max": 6.925,
+     "censored": 0,
+     "buckets": {
+      "0-1s": 221,
+      "1-3s": 1,
+      "3-5s": 1,
+      "5-10s": 2,
+      ">10s": 0,
+      "never": 0
+     }
+    }
+   }
+  },
+  "checker": {
+   "wrongCalls": 13,
+   "missed": 9,
+   "misclassified": 26,
+   "falseWarnings": 4,
+   "per5Min": 0.152,
+   "falseWarningsOnNonErrors": 0
+  }
+ },
+ "attribution": {
+  "listener": 99,
+  "tracker": 4,
+  "checker": 5,
+  "total": 108,
+  "missed": {
+   "listener": 41,
+   "tracker": 2,
+   "checker": 4
+  },
+  "falseWarnings": {
+   "listener": 58,
+   "tracker": 2,
+   "checker": 1
+  }
+ },
+ "slices": {
+  "studio": {
+   "practice": {
+    "sessions": 100,
+    "recitedMinutes": 429.475,
+    "overall": {
+     "wrongCalls": 17,
+     "missed": 13,
+     "falseWarnings": 4,
+     "per5Min": 0.198,
+     "mistakes": 617,
+     "caught": 604,
+     "misclassified": 28,
+     "falseWarningsOnNonErrors": 0
+    },
+    "components": {
+     "listener": {
+      "per": 0.0313,
+      "edits": 5800,
+      "phonemes": 185204
+     },
+     "tracker": {
+      "onPlaceShare": 0.9949,
+      "onPlaceS": 24460.9,
+      "scoredS": 24587,
+      "unscoredS": 1180.8,
+      "falseJumps": 32,
+      "falseJumpsBeforePoint": 2,
+      "entries": 222,
+      "reentries": 122,
+      "lockDelayS": {
+       "n": 221,
+       "p50": 0.065,
+       "p90": 0.185,
+       "max": 3.695,
+       "censored": 0,
+       "buckets": {
+        "0-1s": 216,
+        "1-3s": 4,
+        "3-5s": 1,
+        "5-10s": 0,
+        ">10s": 0,
+        "never": 0
+       }
+      },
+      "oracleEvidence": {
+       "onPlaceShare": 0.9953,
+       "onPlaceS": 24472.1,
+       "scoredS": 24587,
+       "unscoredS": 1180.8,
+       "falseJumps": 28,
+       "falseJumpsBeforePoint": 2,
+       "entries": 222,
+       "reentries": 122,
+       "lockDelayS": {
+        "n": 221,
+        "p50": 0.065,
+        "p90": 0.15,
+        "max": 2.365,
+        "censored": 0,
+        "buckets": {
+         "0-1s": 219,
+         "1-3s": 2,
+         "3-5s": 0,
+         "5-10s": 0,
+         ">10s": 0,
+         "never": 0
+        }
+       }
+      }
+     },
+     "checker": {
+      "wrongCalls": 7,
+      "missed": 7,
+      "misclassified": 26,
+      "falseWarnings": 0,
+      "per5Min": 0.081,
+      "falseWarningsOnNonErrors": 0
+     }
+    },
+    "attribution": {
+     "listener": 16,
+     "tracker": 0,
+     "checker": 1,
+     "total": 17,
+     "missed": {
+      "listener": 12,
+      "tracker": 0,
+      "checker": 1
+     },
+     "falseWarnings": {
+      "listener": 4,
+      "tracker": 0,
+      "checker": 0
+     }
+    },
+    "byClass": {
+     "wrong_word": {
+      "mistakes": 79,
+      "missed": 4,
+      "misclassified": 4,
+      "listener": 4,
+      "tracker": 0,
+      "checker": 0
+     },
+     "omitted_word": {
+      "mistakes": 298,
+      "missed": 1,
+      "misclassified": 6,
+      "listener": 1,
+      "tracker": 0,
+      "checker": 0
+     },
+     "added_word": {
+      "mistakes": 118,
+      "missed": 8,
+      "misclassified": 17,
+      "listener": 7,
+      "tracker": 0,
+      "checker": 1
+     },
+     "skipped_passage": {
+      "mistakes": 122,
+      "missed": 0,
+      "misclassified": 1,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     }
+    },
+    "mutashabihat": {
+     "mistakes": 97,
+     "missed": 0,
+     "misclassified": 1,
+     "listener": 0,
+     "tracker": 0,
+     "checker": 0
+    },
+    "falseWarningsByClass": {
+     "wrong_word": 2,
+     "skipped_passage": 1,
+     "added_word": 1
+    },
+    "teacher": {
+     "wrongCalls": 29,
+     "missed": 11,
+     "falseWarnings": 18,
+     "per5Min": 0.338,
+     "per": 0.0308
+    }
+   },
+   "exam": {
+    "sessions": 100,
+    "recitedMinutes": 427.121,
+    "overall": {
+     "wrongCalls": 31,
+     "missed": 20,
+     "falseWarnings": 11,
+     "per5Min": 0.363,
+     "mistakes": 532,
+     "caught": 512,
+     "misclassified": 27,
+     "falseWarningsOnNonErrors": 0
+    },
+    "components": {
+     "listener": {
+      "per": 0.0374,
+      "edits": 6602,
+      "phonemes": 176338
+     },
+     "tracker": {
+      "onPlaceShare": 0.9922,
+      "onPlaceS": 24128.5,
+      "scoredS": 24318.3,
+      "unscoredS": 1309.2,
+      "falseJumps": 40,
+      "falseJumpsBeforePoint": 3,
+      "entries": 226,
+      "reentries": 126,
+      "lockDelayS": {
+       "n": 225,
+       "p50": 0.06,
+       "p90": 0.255,
+       "max": 7.025,
+       "censored": 0,
+       "buckets": {
+        "0-1s": 220,
+        "1-3s": 2,
+        "3-5s": 1,
+        "5-10s": 2,
+        ">10s": 0,
+        "never": 0
+       }
+      },
+      "oracleEvidence": {
+       "onPlaceShare": 0.994,
+       "onPlaceS": 24171.3,
+       "scoredS": 24318.3,
+       "unscoredS": 1309.2,
+       "falseJumps": 31,
+       "falseJumpsBeforePoint": 3,
+       "entries": 226,
+       "reentries": 126,
+       "lockDelayS": {
+        "n": 225,
+        "p50": 0.055,
+        "p90": 0.175,
+        "max": 6.925,
+        "censored": 0,
+        "buckets": {
+         "0-1s": 221,
+         "1-3s": 1,
+         "3-5s": 1,
+         "5-10s": 2,
+         ">10s": 0,
+         "never": 0
+        }
+       }
+      }
+     },
+     "checker": {
+      "wrongCalls": 13,
+      "missed": 9,
+      "misclassified": 26,
+      "falseWarnings": 4,
+      "per5Min": 0.152,
+      "falseWarningsOnNonErrors": 0
+     }
+    },
+    "attribution": {
+     "listener": 24,
+     "tracker": 2,
+     "checker": 5,
+     "total": 31,
+     "missed": {
+      "listener": 15,
+      "tracker": 1,
+      "checker": 4
+     },
+     "falseWarnings": {
+      "listener": 9,
+      "tracker": 1,
+      "checker": 1
+     }
+    },
+    "byClass": {
+     "wrong_word": {
+      "mistakes": 86,
+      "missed": 8,
+      "misclassified": 4,
+      "listener": 4,
+      "tracker": 1,
+      "checker": 3
+     },
+     "omitted_word": {
+      "mistakes": 219,
+      "missed": 2,
+      "misclassified": 5,
+      "listener": 2,
+      "tracker": 0,
+      "checker": 0
+     },
+     "added_word": {
+      "mistakes": 101,
+      "missed": 10,
+      "misclassified": 16,
+      "listener": 9,
+      "tracker": 0,
+      "checker": 1
+     },
+     "skipped_passage": {
+      "mistakes": 126,
+      "missed": 0,
+      "misclassified": 2,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     }
+    },
+    "mutashabihat": {
+     "mistakes": 94,
+     "missed": 3,
+     "misclassified": 0,
+     "listener": 1,
+     "tracker": 1,
+     "checker": 1
+    },
+    "falseWarningsByClass": {
+     "added_word": 2,
+     "omitted_word": 1,
+     "wrong_word": 8
+    },
+    "teacher": {
+     "wrongCalls": 52,
+     "missed": 18,
+     "falseWarnings": 34,
+     "per5Min": 0.609,
+     "per": 0.0364
+    }
+   },
+   "all": {
+    "sessions": 200,
+    "recitedMinutes": 856.596,
+    "overall": {
+     "wrongCalls": 48,
+     "missed": 33,
+     "falseWarnings": 15,
+     "per5Min": 0.28,
+     "mistakes": 1149,
+     "caught": 1116,
+     "misclassified": 55,
+     "falseWarningsOnNonErrors": 0
+    },
+    "components": {
+     "listener": {
+      "per": 0.0343,
+      "edits": 12402,
+      "phonemes": 361542
+     },
+     "tracker": {
+      "onPlaceShare": 0.9935,
+      "onPlaceS": 48589.4,
+      "scoredS": 48905.3,
+      "unscoredS": 2490,
+      "falseJumps": 72,
+      "falseJumpsBeforePoint": 5,
+      "entries": 448,
+      "reentries": 248,
+      "lockDelayS": {
+       "n": 446,
+       "p50": 0.06,
+       "p90": 0.225,
+       "max": 7.025,
+       "censored": 0,
+       "buckets": {
+        "0-1s": 436,
+        "1-3s": 6,
+        "3-5s": 2,
+        "5-10s": 2,
+        ">10s": 0,
+        "never": 0
+       }
+      },
+      "oracleEvidence": {
+       "onPlaceShare": 0.9946,
+       "onPlaceS": 48643.4,
+       "scoredS": 48905.3,
+       "unscoredS": 2490,
+       "falseJumps": 59,
+       "falseJumpsBeforePoint": 5,
+       "entries": 448,
+       "reentries": 248,
+       "lockDelayS": {
+        "n": 446,
+        "p50": 0.06,
+        "p90": 0.165,
+        "max": 6.925,
+        "censored": 0,
+        "buckets": {
+         "0-1s": 440,
+         "1-3s": 3,
+         "3-5s": 1,
+         "5-10s": 2,
+         ">10s": 0,
+         "never": 0
+        }
+       }
+      }
+     },
+     "checker": {
+      "wrongCalls": 20,
+      "missed": 16,
+      "misclassified": 52,
+      "falseWarnings": 4,
+      "per5Min": 0.117,
+      "falseWarningsOnNonErrors": 0
+     }
+    },
+    "attribution": {
+     "listener": 40,
+     "tracker": 2,
+     "checker": 6,
+     "total": 48,
+     "missed": {
+      "listener": 27,
+      "tracker": 1,
+      "checker": 5
+     },
+     "falseWarnings": {
+      "listener": 13,
+      "tracker": 1,
+      "checker": 1
+     }
+    },
+    "byClass": {
+     "wrong_word": {
+      "mistakes": 165,
+      "missed": 12,
+      "misclassified": 8,
+      "listener": 8,
+      "tracker": 1,
+      "checker": 3
+     },
+     "omitted_word": {
+      "mistakes": 517,
+      "missed": 3,
+      "misclassified": 11,
+      "listener": 3,
+      "tracker": 0,
+      "checker": 0
+     },
+     "added_word": {
+      "mistakes": 219,
+      "missed": 18,
+      "misclassified": 33,
+      "listener": 16,
+      "tracker": 0,
+      "checker": 2
+     },
+     "skipped_passage": {
+      "mistakes": 248,
+      "missed": 0,
+      "misclassified": 3,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     }
+    },
+    "mutashabihat": {
+     "mistakes": 191,
+     "missed": 3,
+     "misclassified": 1,
+     "listener": 1,
+     "tracker": 1,
+     "checker": 1
+    },
+    "falseWarningsByClass": {
+     "added_word": 3,
+     "omitted_word": 1,
+     "wrong_word": 10,
+     "skipped_passage": 1
+    },
+    "teacher": {
+     "wrongCalls": 81,
+     "missed": 29,
+     "falseWarnings": 52,
+     "per5Min": 0.473,
+     "per": 0.0335
+    }
+   }
+  },
+  "strict": {
+   "practice": {
+    "sessions": 15,
+    "recitedMinutes": 66.39,
+    "overall": {
+     "wrongCalls": 4,
+     "missed": 3,
+     "falseWarnings": 1,
+     "per5Min": 0.301,
+     "mistakes": 108,
+     "caught": 105,
+     "misclassified": 6,
+     "falseWarningsOnNonErrors": 0
+    },
+    "components": {
+     "listener": {
+      "per": 0.0457,
+      "edits": 1298,
+      "phonemes": 28372
+     },
+     "tracker": {
+      "onPlaceShare": 0.9947,
+      "onPlaceS": 3616,
+      "scoredS": 3635.4,
+      "unscoredS": 348.2,
+      "falseJumps": 4,
+      "falseJumpsBeforePoint": 1,
+      "entries": 39,
+      "reentries": 24,
+      "lockDelayS": {
+       "n": 39,
+       "p50": 0.055,
+       "p90": 0.195,
+       "max": 2.465,
+       "censored": 0,
+       "buckets": {
+        "0-1s": 37,
+        "1-3s": 2,
+        "3-5s": 0,
+        "5-10s": 0,
+        ">10s": 0,
+        "never": 0
+       }
+      },
+      "oracleEvidence": {
+       "onPlaceShare": 0.9952,
+       "onPlaceS": 3618.1,
+       "scoredS": 3635.4,
+       "unscoredS": 348.2,
+       "falseJumps": 3,
+       "falseJumpsBeforePoint": 1,
+       "entries": 39,
+       "reentries": 24,
+       "lockDelayS": {
+        "n": 39,
+        "p50": 0.055,
+        "p90": 0.185,
+        "max": 2.365,
+        "censored": 0,
+        "buckets": {
+         "0-1s": 37,
+         "1-3s": 2,
+         "3-5s": 0,
+         "5-10s": 0,
+         ">10s": 0,
+         "never": 0
+        }
+       }
+      }
+     },
+     "checker": {
+      "wrongCalls": 0,
+      "missed": 0,
+      "misclassified": 4,
+      "falseWarnings": 0,
+      "per5Min": 0,
+      "falseWarningsOnNonErrors": 0
+     }
+    },
+    "attribution": {
+     "listener": 3,
+     "tracker": 1,
+     "checker": 0,
+     "total": 4,
+     "missed": {
+      "listener": 3,
+      "tracker": 0,
+      "checker": 0
+     },
+     "falseWarnings": {
+      "listener": 0,
+      "tracker": 1,
+      "checker": 0
+     }
+    },
+    "byClass": {
+     "wrong_word": {
+      "mistakes": 11,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "omitted_word": {
+      "mistakes": 55,
+      "missed": 1,
+      "misclassified": 3,
+      "listener": 1,
+      "tracker": 0,
+      "checker": 0
+     },
+     "added_word": {
+      "mistakes": 18,
+      "missed": 1,
+      "misclassified": 3,
+      "listener": 1,
+      "tracker": 0,
+      "checker": 0
+     },
+     "skipped_passage": {
+      "mistakes": 24,
+      "missed": 1,
+      "misclassified": 0,
+      "listener": 1,
+      "tracker": 0,
+      "checker": 0
+     }
+    },
+    "mutashabihat": {
+     "mistakes": 25,
+     "missed": 0,
+     "misclassified": 0,
+     "listener": 0,
+     "tracker": 0,
+     "checker": 0
+    },
+    "falseWarningsByClass": {
+     "skipped_passage": 1
+    },
+    "teacher": {
+     "wrongCalls": 6,
+     "missed": 0,
+     "falseWarnings": 6,
+     "per5Min": 0.452,
+     "per": 0.0405
+    }
+   },
+   "exam": {
+    "sessions": 15,
+    "recitedMinutes": 59.482,
+    "overall": {
+     "wrongCalls": 15,
+     "missed": 6,
+     "falseWarnings": 9,
+     "per5Min": 1.261,
+     "mistakes": 72,
+     "caught": 66,
+     "misclassified": 2,
+     "falseWarningsOnNonErrors": 0
+    },
+    "components": {
+     "listener": {
+      "per": 0.0724,
+      "edits": 1728,
+      "phonemes": 23883
+     },
+     "tracker": {
+      "onPlaceShare": 0.9888,
+      "onPlaceS": 3096.2,
+      "scoredS": 3131.3,
+      "unscoredS": 437.8,
+      "falseJumps": 7,
+      "falseJumpsBeforePoint": 2,
+      "entries": 36,
+      "reentries": 21,
+      "lockDelayS": {
+       "n": 35,
+       "p50": 0.075,
+       "p90": 0.775,
+       "max": 7.025,
+       "censored": 0,
+       "buckets": {
+        "0-1s": 32,
+        "1-3s": 0,
+        "3-5s": 1,
+        "5-10s": 2,
+        ">10s": 0,
+        "never": 0
+       }
+      },
+      "oracleEvidence": {
+       "onPlaceShare": 0.9885,
+       "onPlaceS": 3095.3,
+       "scoredS": 3131.3,
+       "unscoredS": 437.8,
+       "falseJumps": 5,
+       "falseJumpsBeforePoint": 2,
+       "entries": 36,
+       "reentries": 21,
+       "lockDelayS": {
+        "n": 35,
+        "p50": 0.075,
+        "p90": 0.615,
+        "max": 6.925,
+        "censored": 0,
+        "buckets": {
+         "0-1s": 32,
+         "1-3s": 0,
+         "3-5s": 1,
+         "5-10s": 2,
+         ">10s": 0,
+         "never": 0
+        }
+       }
+      }
+     },
+     "checker": {
+      "wrongCalls": 1,
+      "missed": 1,
+      "misclassified": 2,
+      "falseWarnings": 0,
+      "per5Min": 0.084,
+      "falseWarningsOnNonErrors": 0
+     }
+    },
+    "attribution": {
+     "listener": 14,
+     "tracker": 1,
+     "checker": 0,
+     "total": 15,
+     "missed": {
+      "listener": 5,
+      "tracker": 1,
+      "checker": 0
+     },
+     "falseWarnings": {
+      "listener": 9,
+      "tracker": 0,
+      "checker": 0
+     }
+    },
+    "byClass": {
+     "wrong_word": {
+      "mistakes": 13,
+      "missed": 3,
+      "misclassified": 0,
+      "listener": 3,
+      "tracker": 0,
+      "checker": 0
+     },
+     "omitted_word": {
+      "mistakes": 25,
+      "missed": 1,
+      "misclassified": 1,
+      "listener": 1,
+      "tracker": 0,
+      "checker": 0
+     },
+     "added_word": {
+      "mistakes": 13,
+      "missed": 1,
+      "misclassified": 1,
+      "listener": 1,
+      "tracker": 0,
+      "checker": 0
+     },
+     "skipped_passage": {
+      "mistakes": 21,
+      "missed": 1,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 1,
+      "checker": 0
+     }
+    },
+    "mutashabihat": {
+     "mistakes": 21,
+     "missed": 4,
+     "misclassified": 0,
+     "listener": 3,
+     "tracker": 1,
+     "checker": 0
+    },
+    "falseWarningsByClass": {
+     "skipped_passage": 1,
+     "added_word": 2,
+     "omitted_word": 3,
+     "wrong_word": 3
+    },
+    "teacher": {
+     "wrongCalls": 32,
+     "missed": 9,
+     "falseWarnings": 23,
+     "per5Min": 2.69,
+     "per": 0.0638
+    }
+   },
+   "all": {
+    "sessions": 30,
+    "recitedMinutes": 125.872,
+    "overall": {
+     "wrongCalls": 19,
+     "missed": 9,
+     "falseWarnings": 10,
+     "per5Min": 0.755,
+     "mistakes": 180,
+     "caught": 171,
+     "misclassified": 8,
+     "falseWarningsOnNonErrors": 0
+    },
+    "components": {
+     "listener": {
+      "per": 0.0579,
+      "edits": 3026,
+      "phonemes": 52255
+     },
+     "tracker": {
+      "onPlaceShare": 0.9919,
+      "onPlaceS": 6712.2,
+      "scoredS": 6766.7,
+      "unscoredS": 786,
+      "falseJumps": 11,
+      "falseJumpsBeforePoint": 3,
+      "entries": 75,
+      "reentries": 45,
+      "lockDelayS": {
+       "n": 74,
+       "p50": 0.055,
+       "p90": 0.325,
+       "max": 7.025,
+       "censored": 0,
+       "buckets": {
+        "0-1s": 69,
+        "1-3s": 2,
+        "3-5s": 1,
+        "5-10s": 2,
+        ">10s": 0,
+        "never": 0
+       }
+      },
+      "oracleEvidence": {
+       "onPlaceShare": 0.9921,
+       "onPlaceS": 6713.4,
+       "scoredS": 6766.7,
+       "unscoredS": 786,
+       "falseJumps": 8,
+       "falseJumpsBeforePoint": 3,
+       "entries": 75,
+       "reentries": 45,
+       "lockDelayS": {
+        "n": 74,
+        "p50": 0.055,
+        "p90": 0.265,
+        "max": 6.925,
+        "censored": 0,
+        "buckets": {
+         "0-1s": 69,
+         "1-3s": 2,
+         "3-5s": 1,
+         "5-10s": 2,
+         ">10s": 0,
+         "never": 0
+        }
+       }
+      }
+     },
+     "checker": {
+      "wrongCalls": 1,
+      "missed": 1,
+      "misclassified": 6,
+      "falseWarnings": 0,
+      "per5Min": 0.04,
+      "falseWarningsOnNonErrors": 0
+     }
+    },
+    "attribution": {
+     "listener": 17,
+     "tracker": 2,
+     "checker": 0,
+     "total": 19,
+     "missed": {
+      "listener": 8,
+      "tracker": 1,
+      "checker": 0
+     },
+     "falseWarnings": {
+      "listener": 9,
+      "tracker": 1,
+      "checker": 0
+     }
+    },
+    "byClass": {
+     "wrong_word": {
+      "mistakes": 24,
+      "missed": 3,
+      "misclassified": 0,
+      "listener": 3,
+      "tracker": 0,
+      "checker": 0
+     },
+     "omitted_word": {
+      "mistakes": 80,
+      "missed": 2,
+      "misclassified": 4,
+      "listener": 2,
+      "tracker": 0,
+      "checker": 0
+     },
+     "added_word": {
+      "mistakes": 31,
+      "missed": 2,
+      "misclassified": 4,
+      "listener": 2,
+      "tracker": 0,
+      "checker": 0
+     },
+     "skipped_passage": {
+      "mistakes": 45,
+      "missed": 2,
+      "misclassified": 0,
+      "listener": 1,
+      "tracker": 1,
+      "checker": 0
+     }
+    },
+    "mutashabihat": {
+     "mistakes": 46,
+     "missed": 4,
+     "misclassified": 0,
+     "listener": 3,
+     "tracker": 1,
+     "checker": 0
+    },
+    "falseWarningsByClass": {
+     "skipped_passage": 2,
+     "added_word": 2,
+     "omitted_word": 3,
+     "wrong_word": 3
+    },
+    "teacher": {
+     "wrongCalls": 38,
+     "missed": 9,
+     "falseWarnings": 29,
+     "per5Min": 1.509,
+     "per": 0.0512
+    }
+   }
+  },
+  "recorded": {
+   "practice": {
+    "sessions": 0,
+    "recitedMinutes": 0,
+    "overall": {
+     "wrongCalls": 0,
+     "missed": 0,
+     "falseWarnings": 0,
+     "per5Min": null,
+     "mistakes": 0,
+     "caught": 0,
+     "misclassified": 0,
+     "falseWarningsOnNonErrors": 0
+    },
+    "components": {
+     "listener": {
+      "per": null,
+      "edits": 0,
+      "phonemes": 0
+     },
+     "tracker": {
+      "onPlaceShare": null,
+      "onPlaceS": 0,
+      "scoredS": 0,
+      "unscoredS": 0,
+      "falseJumps": 0,
+      "falseJumpsBeforePoint": 0,
+      "entries": 0,
+      "reentries": 0,
+      "lockDelayS": {
+       "n": 0,
+       "p50": null,
+       "p90": null,
+       "max": null,
+       "censored": 0,
+       "buckets": {
+        "0-1s": 0,
+        "1-3s": 0,
+        "3-5s": 0,
+        "5-10s": 0,
+        ">10s": 0,
+        "never": 0
+       }
+      },
+      "oracleEvidence": null
+     },
+     "checker": {
+      "wrongCalls": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "falseWarnings": 0,
+      "per5Min": null,
+      "falseWarningsOnNonErrors": 0
+     }
+    },
+    "attribution": {
+     "listener": 0,
+     "tracker": 0,
+     "checker": 0,
+     "total": 0,
+     "missed": {
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "falseWarnings": {
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     }
+    },
+    "byClass": {
+     "wrong_word": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "omitted_word": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "added_word": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "skipped_passage": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     }
+    },
+    "mutashabihat": {
+     "mistakes": 0,
+     "missed": 0,
+     "misclassified": 0,
+     "listener": 0,
+     "tracker": 0,
+     "checker": 0
+    },
+    "falseWarningsByClass": {},
+    "teacher": null
+   },
+   "exam": {
+    "sessions": 0,
+    "recitedMinutes": 0,
+    "overall": {
+     "wrongCalls": 0,
+     "missed": 0,
+     "falseWarnings": 0,
+     "per5Min": null,
+     "mistakes": 0,
+     "caught": 0,
+     "misclassified": 0,
+     "falseWarningsOnNonErrors": 0
+    },
+    "components": {
+     "listener": {
+      "per": null,
+      "edits": 0,
+      "phonemes": 0
+     },
+     "tracker": {
+      "onPlaceShare": null,
+      "onPlaceS": 0,
+      "scoredS": 0,
+      "unscoredS": 0,
+      "falseJumps": 0,
+      "falseJumpsBeforePoint": 0,
+      "entries": 0,
+      "reentries": 0,
+      "lockDelayS": {
+       "n": 0,
+       "p50": null,
+       "p90": null,
+       "max": null,
+       "censored": 0,
+       "buckets": {
+        "0-1s": 0,
+        "1-3s": 0,
+        "3-5s": 0,
+        "5-10s": 0,
+        ">10s": 0,
+        "never": 0
+       }
+      },
+      "oracleEvidence": null
+     },
+     "checker": {
+      "wrongCalls": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "falseWarnings": 0,
+      "per5Min": null,
+      "falseWarningsOnNonErrors": 0
+     }
+    },
+    "attribution": {
+     "listener": 0,
+     "tracker": 0,
+     "checker": 0,
+     "total": 0,
+     "missed": {
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "falseWarnings": {
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     }
+    },
+    "byClass": {
+     "wrong_word": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "omitted_word": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "added_word": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "skipped_passage": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     }
+    },
+    "mutashabihat": {
+     "mistakes": 0,
+     "missed": 0,
+     "misclassified": 0,
+     "listener": 0,
+     "tracker": 0,
+     "checker": 0
+    },
+    "falseWarningsByClass": {},
+    "teacher": null
+   },
+   "all": {
+    "sessions": 0,
+    "recitedMinutes": 0,
+    "overall": {
+     "wrongCalls": 0,
+     "missed": 0,
+     "falseWarnings": 0,
+     "per5Min": null,
+     "mistakes": 0,
+     "caught": 0,
+     "misclassified": 0,
+     "falseWarningsOnNonErrors": 0
+    },
+    "components": {
+     "listener": {
+      "per": null,
+      "edits": 0,
+      "phonemes": 0
+     },
+     "tracker": {
+      "onPlaceShare": null,
+      "onPlaceS": 0,
+      "scoredS": 0,
+      "unscoredS": 0,
+      "falseJumps": 0,
+      "falseJumpsBeforePoint": 0,
+      "entries": 0,
+      "reentries": 0,
+      "lockDelayS": {
+       "n": 0,
+       "p50": null,
+       "p90": null,
+       "max": null,
+       "censored": 0,
+       "buckets": {
+        "0-1s": 0,
+        "1-3s": 0,
+        "3-5s": 0,
+        "5-10s": 0,
+        ">10s": 0,
+        "never": 0
+       }
+      },
+      "oracleEvidence": null
+     },
+     "checker": {
+      "wrongCalls": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "falseWarnings": 0,
+      "per5Min": null,
+      "falseWarningsOnNonErrors": 0
+     }
+    },
+    "attribution": {
+     "listener": 0,
+     "tracker": 0,
+     "checker": 0,
+     "total": 0,
+     "missed": {
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "falseWarnings": {
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     }
+    },
+    "byClass": {
+     "wrong_word": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "omitted_word": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "added_word": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "skipped_passage": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     }
+    },
+    "mutashabihat": {
+     "mistakes": 0,
+     "missed": 0,
+     "misclassified": 0,
+     "listener": 0,
+     "tracker": 0,
+     "checker": 0
+    },
+    "falseWarningsByClass": {},
+    "teacher": null
+   }
+  },
+  "realuser": {
+   "practice": {
+    "sessions": 297,
+    "recitedMinutes": 63.327,
+    "overall": {
+     "wrongCalls": 4,
+     "missed": 0,
+     "falseWarnings": 4,
+     "per5Min": 0.316,
+     "mistakes": 2,
+     "caught": 2,
+     "misclassified": 1,
+     "falseWarningsOnNonErrors": 0
+    },
+    "components": {
+     "listener": {
+      "per": 0.0744,
+      "edits": 2312,
+      "phonemes": 31058
+     },
+     "tracker": {
+      "onPlaceShare": 0.9873,
+      "onPlaceS": 2668.3,
+      "scoredS": 2702.5,
+      "unscoredS": 1098.6,
+      "falseJumps": 6,
+      "falseJumpsBeforePoint": 3,
+      "entries": 316,
+      "reentries": 19,
+      "lockDelayS": {
+       "n": 291,
+       "p50": 0.08,
+       "p90": 1.08,
+       "max": 8.86,
+       "censored": 20,
+       "buckets": {
+        "0-1s": 260,
+        "1-3s": 25,
+        "3-5s": 4,
+        "5-10s": 2,
+        ">10s": 0,
+        "never": 20
+       }
+      },
+      "oracleEvidence": {
+       "onPlaceShare": 0.9964,
+       "onPlaceS": 2692.7,
+       "scoredS": 2702.5,
+       "unscoredS": 1098.6,
+       "falseJumps": 4,
+       "falseJumpsBeforePoint": 3,
+       "entries": 316,
+       "reentries": 19,
+       "lockDelayS": {
+        "n": 298,
+        "p50": 0.08,
+        "p90": 0.88,
+        "max": 8.86,
+        "censored": 13,
+        "buckets": {
+         "0-1s": 273,
+         "1-3s": 22,
+         "3-5s": 2,
+         "5-10s": 1,
+         ">10s": 0,
+         "never": 13
+        }
+       }
+      }
+     },
+     "checker": {
+      "wrongCalls": 3,
+      "missed": 0,
+      "misclassified": 0,
+      "falseWarnings": 3,
+      "per5Min": 0.237,
+      "falseWarningsOnNonErrors": 0
+     }
+    },
+    "attribution": {
+     "listener": 2,
+     "tracker": 0,
+     "checker": 2,
+     "total": 4,
+     "missed": {
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "falseWarnings": {
+      "listener": 2,
+      "tracker": 0,
+      "checker": 2
+     }
+    },
+    "byClass": {
+     "wrong_word": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "omitted_word": {
+      "mistakes": 2,
+      "missed": 0,
+      "misclassified": 1,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "added_word": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "skipped_passage": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     }
+    },
+    "mutashabihat": {
+     "mistakes": 0,
+     "missed": 0,
+     "misclassified": 0,
+     "listener": 0,
+     "tracker": 0,
+     "checker": 0
+    },
+    "falseWarningsByClass": {
+     "skipped_passage": 3,
+     "wrong_word": 1
+    },
+    "teacher": {
+     "wrongCalls": 18,
+     "missed": 1,
+     "falseWarnings": 17,
+     "per5Min": 1.421,
+     "per": 0.068
+    }
+   },
+   "exam": {
+    "sessions": 283,
+    "recitedMinutes": 62.513,
+    "overall": {
+     "wrongCalls": 5,
+     "missed": 0,
+     "falseWarnings": 5,
+     "per5Min": 0.4,
+     "mistakes": 0,
+     "caught": 0,
+     "misclassified": 0,
+     "falseWarningsOnNonErrors": 0
+    },
+    "components": {
+     "listener": {
+      "per": 0.0786,
+      "edits": 2370,
+      "phonemes": 30146
+     },
+     "tracker": {
+      "onPlaceShare": 0.9825,
+      "onPlaceS": 2672.9,
+      "scoredS": 2720.5,
+      "unscoredS": 1029.5,
+      "falseJumps": 8,
+      "falseJumpsBeforePoint": 3,
+      "entries": 302,
+      "reentries": 19,
+      "lockDelayS": {
+       "n": 269,
+       "p50": 0.08,
+       "p90": 1.28,
+       "max": 12.46,
+       "censored": 22,
+       "buckets": {
+        "0-1s": 234,
+        "1-3s": 25,
+        "3-5s": 7,
+        "5-10s": 2,
+        ">10s": 1,
+        "never": 22
+       }
+      },
+      "oracleEvidence": {
+       "onPlaceShare": 0.9965,
+       "onPlaceS": 2710.9,
+       "scoredS": 2720.5,
+       "unscoredS": 1029.5,
+       "falseJumps": 5,
+       "falseJumpsBeforePoint": 3,
+       "entries": 302,
+       "reentries": 19,
+       "lockDelayS": {
+        "n": 273,
+        "p50": 0.08,
+        "p90": 1,
+        "max": 6.82,
+        "censored": 18,
+        "buckets": {
+         "0-1s": 247,
+         "1-3s": 20,
+         "3-5s": 3,
+         "5-10s": 3,
+         ">10s": 0,
+         "never": 18
+        }
+       }
+      }
+     },
+     "checker": {
+      "wrongCalls": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "falseWarnings": 0,
+      "per5Min": 0,
+      "falseWarningsOnNonErrors": 0
+     }
+    },
+    "attribution": {
+     "listener": 3,
+     "tracker": 2,
+     "checker": 0,
+     "total": 5,
+     "missed": {
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "falseWarnings": {
+      "listener": 3,
+      "tracker": 2,
+      "checker": 0
+     }
+    },
+    "byClass": {
+     "wrong_word": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "omitted_word": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "added_word": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "skipped_passage": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     }
+    },
+    "mutashabihat": {
+     "mistakes": 0,
+     "missed": 0,
+     "misclassified": 0,
+     "listener": 0,
+     "tracker": 0,
+     "checker": 0
+    },
+    "falseWarningsByClass": {
+     "added_word": 1,
+     "wrong_word": 1,
+     "omitted_word": 3
+    },
+    "teacher": {
+     "wrongCalls": 20,
+     "missed": 0,
+     "falseWarnings": 20,
+     "per5Min": 1.6,
+     "per": 0.0748
+    }
+   },
+   "all": {
+    "sessions": 580,
+    "recitedMinutes": 125.84,
+    "overall": {
+     "wrongCalls": 9,
+     "missed": 0,
+     "falseWarnings": 9,
+     "per5Min": 0.358,
+     "mistakes": 2,
+     "caught": 2,
+     "misclassified": 1,
+     "falseWarningsOnNonErrors": 0
+    },
+    "components": {
+     "listener": {
+      "per": 0.0765,
+      "edits": 4682,
+      "phonemes": 61204
+     },
+     "tracker": {
+      "onPlaceShare": 0.9849,
+      "onPlaceS": 5341.2,
+      "scoredS": 5423,
+      "unscoredS": 2128.1,
+      "falseJumps": 14,
+      "falseJumpsBeforePoint": 6,
+      "entries": 618,
+      "reentries": 38,
+      "lockDelayS": {
+       "n": 560,
+       "p50": 0.08,
+       "p90": 1.2,
+       "max": 12.46,
+       "censored": 42,
+       "buckets": {
+        "0-1s": 494,
+        "1-3s": 50,
+        "3-5s": 11,
+        "5-10s": 4,
+        ">10s": 1,
+        "never": 42
+       }
+      },
+      "oracleEvidence": {
+       "onPlaceShare": 0.9964,
+       "onPlaceS": 5403.6,
+       "scoredS": 5423,
+       "unscoredS": 2128.1,
+       "falseJumps": 9,
+       "falseJumpsBeforePoint": 6,
+       "entries": 618,
+       "reentries": 38,
+       "lockDelayS": {
+        "n": 571,
+        "p50": 0.08,
+        "p90": 0.88,
+        "max": 8.86,
+        "censored": 31,
+        "buckets": {
+         "0-1s": 520,
+         "1-3s": 42,
+         "3-5s": 5,
+         "5-10s": 4,
+         ">10s": 0,
+         "never": 31
+        }
+       }
+      }
+     },
+     "checker": {
+      "wrongCalls": 3,
+      "missed": 0,
+      "misclassified": 0,
+      "falseWarnings": 3,
+      "per5Min": 0.119,
+      "falseWarningsOnNonErrors": 0
+     }
+    },
+    "attribution": {
+     "listener": 5,
+     "tracker": 2,
+     "checker": 2,
+     "total": 9,
+     "missed": {
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "falseWarnings": {
+      "listener": 5,
+      "tracker": 2,
+      "checker": 2
+     }
+    },
+    "byClass": {
+     "wrong_word": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "omitted_word": {
+      "mistakes": 2,
+      "missed": 0,
+      "misclassified": 1,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "added_word": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     },
+     "skipped_passage": {
+      "mistakes": 0,
+      "missed": 0,
+      "misclassified": 0,
+      "listener": 0,
+      "tracker": 0,
+      "checker": 0
+     }
+    },
+    "mutashabihat": {
+     "mistakes": 0,
+     "missed": 0,
+     "misclassified": 0,
+     "listener": 0,
+     "tracker": 0,
+     "checker": 0
+    },
+    "falseWarningsByClass": {
+     "added_word": 1,
+     "wrong_word": 2,
+     "skipped_passage": 3,
+     "omitted_word": 3
+    },
+    "teacher": {
+     "wrongCalls": 38,
+     "missed": 1,
+     "falseWarnings": 37,
+     "per5Min": 1.51,
+     "per": 0.0714
+    }
+   }
+  }
+ },
+ "realuser": {
+  "practice": {
+   "sessions": 297,
+   "recitedMinutes": 63.327,
+   "falseWarnings": 4,
+   "perRecitedMinute": 0.0632,
+   "perSession": 0.0135,
+   "firstSeconds": {
+    "seconds": 10,
+    "falseWarnings": 0,
+    "recitedMinutes": 32.284,
+    "perRecitedMinute": 0
+   },
+   "rest": {
+    "falseWarnings": 4,
+    "recitedMinutes": 31.043,
+    "perRecitedMinute": 0.1289
+   },
+   "falseWarningsOnNonErrors": 0,
+   "byClass": {
+    "skipped_passage": 3,
+    "wrong_word": 1
+   },
+   "byOrigin": {
+    "retasy": {
+     "sessions": 31,
+     "recitedMinutes": 4.897,
+     "falseWarnings": 1,
+     "perRecitedMinute": 0.2042,
+     "perSession": 0.0323
+    },
+    "sobolev": {
+     "sessions": 27,
+     "recitedMinutes": 22.455,
+     "falseWarnings": 3,
+     "perRecitedMinute": 0.1336,
+     "perSession": 0.1111
+    },
+    "tlog": {
+     "sessions": 239,
+     "recitedMinutes": 35.975,
+     "falseWarnings": 0,
+     "perRecitedMinute": 0,
+     "perSession": 0
+    }
+   }
+  },
+  "exam": {
+   "sessions": 283,
+   "recitedMinutes": 62.513,
+   "falseWarnings": 5,
+   "perRecitedMinute": 0.08,
+   "perSession": 0.0177,
+   "firstSeconds": {
+    "seconds": 10,
+    "falseWarnings": 1,
+    "recitedMinutes": 30.652,
+    "perRecitedMinute": 0.0326
+   },
+   "rest": {
+    "falseWarnings": 4,
+    "recitedMinutes": 31.861,
+    "perRecitedMinute": 0.1255
+   },
+   "falseWarningsOnNonErrors": 0,
+   "byClass": {
+    "added_word": 1,
+    "wrong_word": 1,
+    "omitted_word": 3
+   },
+   "byOrigin": {
+    "retasy": {
+     "sessions": 39,
+     "recitedMinutes": 6.006,
+     "falseWarnings": 2,
+     "perRecitedMinute": 0.333,
+     "perSession": 0.0513
+    },
+    "sobolev": {
+     "sessions": 28,
+     "recitedMinutes": 26.334,
+     "falseWarnings": 1,
+     "perRecitedMinute": 0.038,
+     "perSession": 0.0357
+    },
+    "tlog": {
+     "sessions": 216,
+     "recitedMinutes": 30.173,
+     "falseWarnings": 2,
+     "perRecitedMinute": 0.0663,
+     "perSession": 0.0093
+    }
+   }
+  },
+  "all": {
+   "sessions": 580,
+   "recitedMinutes": 125.84,
+   "falseWarnings": 9,
+   "perRecitedMinute": 0.0715,
+   "perSession": 0.0155,
+   "firstSeconds": {
+    "seconds": 10,
+    "falseWarnings": 1,
+    "recitedMinutes": 62.936,
+    "perRecitedMinute": 0.0159
+   },
+   "rest": {
+    "falseWarnings": 8,
+    "recitedMinutes": 62.904,
+    "perRecitedMinute": 0.1272
+   },
+   "falseWarningsOnNonErrors": 0,
+   "byClass": {
+    "added_word": 1,
+    "wrong_word": 2,
+    "skipped_passage": 3,
+    "omitted_word": 3
+   },
+   "byOrigin": {
+    "retasy": {
+     "sessions": 70,
+     "recitedMinutes": 10.903,
+     "falseWarnings": 3,
+     "perRecitedMinute": 0.2751,
+     "perSession": 0.0429
+    },
+    "sobolev": {
+     "sessions": 55,
+     "recitedMinutes": 48.789,
+     "falseWarnings": 4,
+     "perRecitedMinute": 0.082,
+     "perSession": 0.0727
+    },
+    "tlog": {
+     "sessions": 455,
+     "recitedMinutes": 66.147,
+     "falseWarnings": 2,
+     "perRecitedMinute": 0.0302,
+     "perSession": 0.0044
+    }
+   }
+  }
+ },
+ "note": "Lane G (V1 release readiness): lab-v1.5u scored at the frozen engine 441dddc3 on the plain streaming spliced-clean-int8 evidence (model sha256 714e98ad...; no fp32 insertion teacher, no post-hoc gap re-decode), i.e. what the shipped SDK session's live events see. Per-session results and cases stay on the tilawa-lab volume at /runs/laneg-v1-int8-441dddc3-20261111T131243Z/score.json.",
+ "sessionCounts": {
+  "practice": 397,
+  "exam": 383
+ }
+}

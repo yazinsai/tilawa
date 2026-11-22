@@ -1,0 +1,867 @@
+{
+ "version": "v1",
+ "evalSet": "tlog-v2 clean-match test, 3000 clips, cluster-held-out",
+ "student": {
+  "edits": 16510,
+  "refPhonemes": 167210,
+  "per": 0.09873811374917768,
+  "byOp": {
+   "del": {
+    "edits": 9967,
+    "perPoints": 0.05960767896656898
+   },
+   "sub": {
+    "edits": 3995,
+    "perPoints": 0.02389211171580647
+   },
+   "ins": {
+    "edits": 2548,
+    "perPoints": 0.015238323066802225
+   }
+  },
+  "byZone": {
+   "interior": {
+    "edits": 8475,
+    "perPoints": 0.050684767657436756
+   },
+   "end": {
+    "edits": 4484,
+    "perPoints": 0.026816577955863882
+   },
+   "start": {
+    "edits": 3551,
+    "perPoints": 0.021236768135877042
+   }
+  },
+  "byKind": {
+   "edge": {
+    "edits": 8035,
+    "perPoints": 0.048053346091740924
+   },
+   "madd_length": {
+    "edits": 2046,
+    "perPoints": 0.012236110280485617
+   },
+   "ghunna_length": {
+    "edits": 1355,
+    "perPoints": 0.008103582321631482
+   },
+   "assimilation": {
+    "edits": 329,
+    "perPoints": 0.001967585670713474
+   },
+   "qalqala": {
+    "edits": 113,
+    "perPoints": 0.0006757969020991568
+   },
+   "gemination": {
+    "edits": 189,
+    "perPoints": 0.0011303151725375277
+   },
+   "vowel_insdel": {
+    "edits": 930,
+    "perPoints": 0.005561868309311644
+   },
+   "madd_insdel": {
+    "edits": 25,
+    "perPoints": 0.00014951258895999042
+   },
+   "madd_vowel_sub": {
+    "edits": 191,
+    "perPoints": 0.0011422761796543268
+   },
+   "vowel_sub": {
+    "edits": 332,
+    "perPoints": 0.001985527181388673
+   },
+   "confusable_sub": {
+    "edits": 388,
+    "perPoints": 0.0023204353806590516
+   },
+   "consonant_sub": {
+    "edits": 1901,
+    "perPoints": 0.011368937264517672
+   },
+   "consonant_insdel": {
+    "edits": 676,
+    "perPoints": 0.0040428204054781414
+   }
+  },
+  "groups": {
+   "representation": 0.07103642126667066,
+   "ambiguous": 0.007983972250463489,
+   "mishearing": 0.019717720232043538
+  },
+  "edge": {
+   "end:ref_longer": {
+    "edits": 3519,
+    "perPoints": 0.021045392022008252
+   },
+   "start:ref_longer": {
+    "edits": 2363,
+    "perPoints": 0.014131929908498295
+   },
+   "start:hyp_longer": {
+    "edits": 749,
+    "perPoints": 0.004479397165241313
+   },
+   "end:hyp_longer": {
+    "edits": 475,
+    "perPoints": 0.0028407391902398184
+   },
+   "end:waqf": {
+    "edits": 384,
+    "perPoints": 0.002296513366425453
+   },
+   "start:same_length": {
+    "edits": 189,
+    "perPoints": 0.0011303151725375277
+   },
+   "start:hamzat_wasl": {
+    "edits": 127,
+    "perPoints": 0.0007595239519167514
+   },
+   "start:basmala": {
+    "edits": 123,
+    "perPoints": 0.0007356019376831529
+   },
+   "end:same_length": {
+    "edits": 106,
+    "perPoints": 0.0006339333771903594
+   }
+  },
+  "topInteriorPairs": [
+   {
+    "op": "del",
+    "ref": "ا",
+    "hyp": "",
+    "kind": "madd_length",
+    "edits": 910
+   },
+   {
+    "op": "del",
+    "ref": "ن",
+    "hyp": "",
+    "kind": "ghunna_length",
+    "edits": 411
+   },
+   {
+    "op": "del",
+    "ref": "ں",
+    "hyp": "",
+    "kind": "ghunna_length",
+    "edits": 341
+   },
+   {
+    "op": "del",
+    "ref": "م",
+    "hyp": "",
+    "kind": "ghunna_length",
+    "edits": 317
+   },
+   {
+    "op": "del",
+    "ref": "َ",
+    "hyp": "",
+    "kind": "vowel_insdel",
+    "edits": 288
+   },
+   {
+    "op": "del",
+    "ref": "ۦ",
+    "hyp": "",
+    "kind": "madd_length",
+    "edits": 282
+   },
+   {
+    "op": "ins",
+    "ref": "",
+    "hyp": "ۦ",
+    "kind": "madd_length",
+    "edits": 253
+   },
+   {
+    "op": "del",
+    "ref": "ِ",
+    "hyp": "",
+    "kind": "vowel_insdel",
+    "edits": 243
+   },
+   {
+    "op": "ins",
+    "ref": "",
+    "hyp": "ا",
+    "kind": "madd_length",
+    "edits": 219
+   },
+   {
+    "op": "del",
+    "ref": "ُ",
+    "hyp": "",
+    "kind": "vowel_insdel",
+    "edits": 209
+   },
+   {
+    "op": "del",
+    "ref": "ۥ",
+    "hyp": "",
+    "kind": "madd_length",
+    "edits": 207
+   },
+   {
+    "op": "ins",
+    "ref": "",
+    "hyp": "ۥ",
+    "kind": "madd_length",
+    "edits": 200
+   },
+   {
+    "op": "del",
+    "ref": "و",
+    "hyp": "",
+    "kind": "ghunna_length",
+    "edits": 145
+   },
+   {
+    "op": "sub",
+    "ref": "۾",
+    "hyp": "م",
+    "kind": "assimilation",
+    "edits": 134
+   },
+   {
+    "op": "ins",
+    "ref": "",
+    "hyp": "َ",
+    "kind": "vowel_insdel",
+    "edits": 116
+   },
+   {
+    "op": "sub",
+    "ref": "ل",
+    "hyp": "ن",
+    "kind": "consonant_sub",
+    "edits": 112
+   },
+   {
+    "op": "del",
+    "ref": "ي",
+    "hyp": "",
+    "kind": "ghunna_length",
+    "edits": 109
+   },
+   {
+    "op": "del",
+    "ref": "ڇ",
+    "hyp": "",
+    "kind": "qalqala",
+    "edits": 106
+   },
+   {
+    "op": "sub",
+    "ref": "َ",
+    "hyp": "ُ",
+    "kind": "vowel_sub",
+    "edits": 101
+   },
+   {
+    "op": "sub",
+    "ref": "ُ",
+    "hyp": "َ",
+    "kind": "vowel_sub",
+    "edits": 86
+   },
+   {
+    "op": "del",
+    "ref": "ء",
+    "hyp": "",
+    "kind": "consonant_insdel",
+    "edits": 85
+   },
+   {
+    "op": "del",
+    "ref": "ه",
+    "hyp": "",
+    "kind": "consonant_insdel",
+    "edits": 76
+   },
+   {
+    "op": "sub",
+    "ref": "و",
+    "hyp": "ا",
+    "kind": "madd_vowel_sub",
+    "edits": 70
+   },
+   {
+    "op": "sub",
+    "ref": "ن",
+    "hyp": "ل",
+    "kind": "assimilation",
+    "edits": 65
+   },
+   {
+    "op": "sub",
+    "ref": "ط",
+    "hyp": "ت",
+    "kind": "confusable_sub",
+    "edits": 62
+   },
+   {
+    "op": "sub",
+    "ref": "ع",
+    "hyp": "ء",
+    "kind": "confusable_sub",
+    "edits": 61
+   },
+   {
+    "op": "sub",
+    "ref": "ِ",
+    "hyp": "َ",
+    "kind": "vowel_sub",
+    "edits": 57
+   },
+   {
+    "op": "del",
+    "ref": "ل",
+    "hyp": "",
+    "kind": "gemination",
+    "edits": 57
+   },
+   {
+    "op": "sub",
+    "ref": "ں",
+    "hyp": "ن",
+    "kind": "assimilation",
+    "edits": 57
+   },
+   {
+    "op": "ins",
+    "ref": "",
+    "hyp": "ن",
+    "kind": "ghunna_length",
+    "edits": 54
+   }
+  ],
+  "examples": {
+   "ghunna_length": [
+    "clean-00000-of-00411:936",
+    "clean-00002-of-00411:8",
+    "clean-00003-of-00411:255"
+   ],
+   "consonant_sub": [
+    "clean-00000-of-00411:936",
+    "clean-00001-of-00411:246",
+    "clean-00002-of-00411:82"
+   ],
+   "consonant_insdel": [
+    "clean-00000-of-00411:936",
+    "clean-00009-of-00411:890",
+    "clean-00011-of-00411:503"
+   ],
+   "vowel_insdel": [
+    "clean-00000-of-00411:936",
+    "clean-00009-of-00411:72",
+    "clean-00009-of-00411:890"
+   ],
+   "madd_length": [
+    "clean-00001-of-00411:246",
+    "clean-00003-of-00411:131",
+    "clean-00003-of-00411:131"
+   ],
+   "vowel_sub": [
+    "clean-00002-of-00411:82",
+    "clean-00005-of-00411:371",
+    "clean-00014-of-00411:240"
+   ],
+   "assimilation": [
+    "clean-00005-of-00411:734",
+    "clean-00012-of-00411:89",
+    "clean-00012-of-00411:89"
+   ],
+   "gemination": [
+    "clean-00006-of-00411:931",
+    "clean-00007-of-00411:636",
+    "clean-00012-of-00411:233"
+   ],
+   "confusable_sub": [
+    "clean-00009-of-00411:571",
+    "clean-00012-of-00411:89",
+    "clean-00013-of-00411:936"
+   ],
+   "madd_vowel_sub": [
+    "clean-00011-of-00411:503",
+    "clean-00013-of-00411:936",
+    "clean-00014-of-00411:58"
+   ],
+   "qalqala": [
+    "clean-00013-of-00411:936",
+    "clean-00013-of-00411:936",
+    "clean-00014-of-00411:681"
+   ],
+   "madd_insdel": [
+    "clean-00033-of-00411:217",
+    "clean-00052-of-00411:129",
+    "clean-00063-of-00411:14"
+   ]
+  }
+ },
+ "normalisations": {
+  "collapse": "merge runs of the same phoneme into one",
+  "canon": "ں→ن, ۾→م, drop ڇ (qalqala), then collapse",
+  "interior": "count only edits between the first and last exact match of >= 3 phonemes",
+  "spliced": "reference = teacher phonemes outside the teacher-anchored span + reference inside it"
+ },
+ "per": {
+  "teacherVsRef": {
+   "raw": 0.08513246815381856,
+   "collapse": 0.06378988225411676,
+   "canon": 0.06176769040961885,
+   "raw_interior": 0.042605107350038876,
+   "canon_interior": 0.023258700111694324
+  },
+  "studentVsRef": {
+   "raw": 0.09873811374917768,
+   "collapse": 0.08009761466826944,
+   "canon": 0.07814952438659375,
+   "raw_interior": 0.050684767657436756,
+   "canon_interior": 0.03337689168570824
+  },
+  "studentVsTeacher": {
+   "raw": 0.05553849913221095,
+   "collapse": 0.05013435528177184,
+   "canon": 0.04907822808671065,
+   "raw_interior": 0.0354947650703943,
+   "canon_interior": 0.02936852026390198
+  },
+  "teacherVsSpliced": {
+   "raw": 0.04384485666104553,
+   "collapse": 0.026059164560725434,
+   "canon": 0.0244183782002307,
+   "raw_interior": 0.04364791176868822,
+   "canon_interior": 0.023826644495378486
+  },
+  "studentVsSpliced": {
+   "raw": 0.07223569379992861,
+   "collapse": 0.05574550319607552,
+   "canon": 0.05395263134241158,
+   "raw_interior": 0.05205499686119078,
+   "canon_interior": 0.03417074888020014
+  }
+ },
+ "clipExact": {
+  "teacher": {
+   "raw": 0.14333333333333334,
+   "canon": 0.238
+  },
+  "student": {
+   "raw": 0.13766666666666666,
+   "canon": 0.216
+  }
+ },
+ "teacherStartsOnVowel": 214,
+ "teacherCanonInteriorExact": 1660,
+ "teacher": {
+  "edits": 14235,
+  "refPhonemes": 167210,
+  "per": 0.08513246815381856,
+  "byOp": {
+   "del": {
+    "edits": 9653,
+    "perPoints": 0.0577298008492315
+   },
+   "sub": {
+    "edits": 2538,
+    "perPoints": 0.015178518031218228
+   },
+   "ins": {
+    "edits": 2044,
+    "perPoints": 0.012224149273368817
+   }
+  },
+  "byZone": {
+   "interior": {
+    "edits": 7124,
+    "perPoints": 0.042605107350038876
+   },
+   "end": {
+    "edits": 4250,
+    "perPoints": 0.025417140123198373
+   },
+   "start": {
+    "edits": 2861,
+    "perPoints": 0.017110220680581305
+   }
+  },
+  "byKind": {
+   "edge": {
+    "edits": 7111,
+    "perPoints": 0.042527360803779675
+   },
+   "madd_length": {
+    "edits": 2222,
+    "perPoints": 0.01328867890676395
+   },
+   "ghunna_length": {
+    "edits": 1368,
+    "perPoints": 0.008181328867890676
+   },
+   "assimilation": {
+    "edits": 217,
+    "perPoints": 0.001297769272172717
+   },
+   "qalqala": {
+    "edits": 125,
+    "perPoints": 0.0007475629447999522
+   },
+   "gemination": {
+    "edits": 133,
+    "perPoints": 0.0007954069732671491
+   },
+   "vowel_insdel": {
+    "edits": 907,
+    "perPoints": 0.005424316727468453
+   },
+   "madd_insdel": {
+    "edits": 18,
+    "perPoints": 0.00010764906405119311
+   },
+   "madd_vowel_sub": {
+    "edits": 136,
+    "perPoints": 0.000813348483942348
+   },
+   "vowel_sub": {
+    "edits": 182,
+    "perPoints": 0.0010884516476287304
+   },
+   "confusable_sub": {
+    "edits": 371,
+    "perPoints": 0.002218766820166258
+   },
+   "consonant_sub": {
+    "edits": 997,
+    "perPoints": 0.005962562047724418
+   },
+   "consonant_insdel": {
+    "edits": 448,
+    "perPoints": 0.0026792655941630284
+   }
+  },
+  "groups": {
+   "representation": 0.06604270079540697,
+   "ambiguous": 0.007140721248729143,
+   "mishearing": 0.011949046109682435
+  },
+  "edge": {
+   "end:ref_longer": {
+    "edits": 3405,
+    "perPoints": 0.0203636146163507
+   },
+   "start:ref_longer": {
+    "edits": 2066,
+    "perPoints": 0.01235572035165361
+   },
+   "start:hyp_longer": {
+    "edits": 498,
+    "perPoints": 0.0029782907720830093
+   },
+   "end:waqf": {
+    "edits": 409,
+    "perPoints": 0.0024460259553854436
+   },
+   "end:hyp_longer": {
+    "edits": 317,
+    "perPoints": 0.0018958196280126787
+   },
+   "end:same_length": {
+    "edits": 119,
+    "perPoints": 0.0007116799234495545
+   },
+   "start:hamzat_wasl": {
+    "edits": 103,
+    "perPoints": 0.0006159918665151606
+   },
+   "start:same_length": {
+    "edits": 99,
+    "perPoints": 0.0005920698522815621
+   },
+   "start:basmala": {
+    "edits": 95,
+    "perPoints": 0.0005681478380479637
+   }
+  },
+  "topInteriorPairs": [
+   {
+    "op": "del",
+    "ref": "ا",
+    "hyp": "",
+    "kind": "madd_length",
+    "edits": 913
+   },
+   {
+    "op": "del",
+    "ref": "ن",
+    "hyp": "",
+    "kind": "ghunna_length",
+    "edits": 443
+   },
+   {
+    "op": "del",
+    "ref": "َ",
+    "hyp": "",
+    "kind": "vowel_insdel",
+    "edits": 382
+   },
+   {
+    "op": "del",
+    "ref": "ں",
+    "hyp": "",
+    "kind": "ghunna_length",
+    "edits": 368
+   },
+   {
+    "op": "ins",
+    "ref": "",
+    "hyp": "ۦ",
+    "kind": "madd_length",
+    "edits": 330
+   },
+   {
+    "op": "del",
+    "ref": "م",
+    "hyp": "",
+    "kind": "ghunna_length",
+    "edits": 311
+   },
+   {
+    "op": "del",
+    "ref": "ۦ",
+    "hyp": "",
+    "kind": "madd_length",
+    "edits": 299
+   },
+   {
+    "op": "ins",
+    "ref": "",
+    "hyp": "ا",
+    "kind": "madd_insdel",
+    "edits": 252
+   },
+   {
+    "op": "del",
+    "ref": "ۥ",
+    "hyp": "",
+    "kind": "madd_length",
+    "edits": 230
+   },
+   {
+    "op": "del",
+    "ref": "ِ",
+    "hyp": "",
+    "kind": "vowel_insdel",
+    "edits": 219
+   },
+   {
+    "op": "ins",
+    "ref": "",
+    "hyp": "ۥ",
+    "kind": "madd_length",
+    "edits": 216
+   },
+   {
+    "op": "del",
+    "ref": "ُ",
+    "hyp": "",
+    "kind": "vowel_insdel",
+    "edits": 192
+   },
+   {
+    "op": "del",
+    "ref": "و",
+    "hyp": "",
+    "kind": "ghunna_length",
+    "edits": 130
+   },
+   {
+    "op": "del",
+    "ref": "ڇ",
+    "hyp": "",
+    "kind": "qalqala",
+    "edits": 116
+   },
+   {
+    "op": "del",
+    "ref": "ي",
+    "hyp": "",
+    "kind": "ghunna_length",
+    "edits": 100
+   },
+   {
+    "op": "sub",
+    "ref": "۾",
+    "hyp": "م",
+    "kind": "assimilation",
+    "edits": 99
+   },
+   {
+    "op": "del",
+    "ref": "ء",
+    "hyp": "",
+    "kind": "consonant_insdel",
+    "edits": 83
+   },
+   {
+    "op": "ins",
+    "ref": "",
+    "hyp": "َ",
+    "kind": "vowel_insdel",
+    "edits": 73
+   },
+   {
+    "op": "sub",
+    "ref": "ں",
+    "hyp": "ن",
+    "kind": "assimilation",
+    "edits": 66
+   },
+   {
+    "op": "sub",
+    "ref": "ل",
+    "hyp": "ن",
+    "kind": "consonant_sub",
+    "edits": 66
+   },
+   {
+    "op": "sub",
+    "ref": "و",
+    "hyp": "ا",
+    "kind": "madd_vowel_sub",
+    "edits": 64
+   },
+   {
+    "op": "sub",
+    "ref": "ط",
+    "hyp": "ت",
+    "kind": "confusable_sub",
+    "edits": 61
+   },
+   {
+    "op": "sub",
+    "ref": "ع",
+    "hyp": "ء",
+    "kind": "confusable_sub",
+    "edits": 55
+   },
+   {
+    "op": "del",
+    "ref": "ه",
+    "hyp": "",
+    "kind": "consonant_insdel",
+    "edits": 54
+   },
+   {
+    "op": "sub",
+    "ref": "َ",
+    "hyp": "ُ",
+    "kind": "vowel_sub",
+    "edits": 53
+   },
+   {
+    "op": "sub",
+    "ref": "ص",
+    "hyp": "س",
+    "kind": "confusable_sub",
+    "edits": 51
+   },
+   {
+    "op": "del",
+    "ref": "۾",
+    "hyp": "",
+    "kind": "ghunna_length",
+    "edits": 48
+   },
+   {
+    "op": "sub",
+    "ref": "ء",
+    "hyp": "ع",
+    "kind": "confusable_sub",
+    "edits": 43
+   },
+   {
+    "op": "sub",
+    "ref": "ُ",
+    "hyp": "َ",
+    "kind": "vowel_sub",
+    "edits": 42
+   },
+   {
+    "op": "del",
+    "ref": "ل",
+    "hyp": "",
+    "kind": "gemination",
+    "edits": 39
+   }
+  ],
+  "examples": {
+   "ghunna_length": [
+    "clean-00000-of-00411:936",
+    "clean-00002-of-00411:8",
+    "clean-00003-of-00411:255"
+   ],
+   "madd_length": [
+    "clean-00000-of-00411:936",
+    "clean-00000-of-00411:936",
+    "clean-00001-of-00411:246"
+   ],
+   "consonant_sub": [
+    "clean-00001-of-00411:246",
+    "clean-00004-of-00411:428",
+    "clean-00005-of-00411:734"
+   ],
+   "consonant_insdel": [
+    "clean-00002-of-00411:8",
+    "clean-00005-of-00411:191",
+    "clean-00011-of-00411:214"
+   ],
+   "vowel_insdel": [
+    "clean-00003-of-00411:131",
+    "clean-00009-of-00411:156",
+    "clean-00009-of-00411:156"
+   ],
+   "assimilation": [
+    "clean-00005-of-00411:734",
+    "clean-00012-of-00411:89",
+    "clean-00012-of-00411:89"
+   ],
+   "confusable_sub": [
+    "clean-00006-of-00411:754",
+    "clean-00009-of-00411:571",
+    "clean-00013-of-00411:936"
+   ],
+   "gemination": [
+    "clean-00006-of-00411:931",
+    "clean-00007-of-00411:636",
+    "clean-00031-of-00411:310"
+   ],
+   "vowel_sub": [
+    "clean-00012-of-00411:89",
+    "clean-00014-of-00411:58",
+    "clean-00014-of-00411:418"
+   ],
+   "qalqala": [
+    "clean-00013-of-00411:936",
+    "clean-00014-of-00411:681",
+    "clean-00021-of-00411:578"
+   ],
+   "madd_vowel_sub": [
+    "clean-00013-of-00411:936",
+    "clean-00013-of-00411:936",
+    "clean-00037-of-00411:236"
+   ],
+   "madd_insdel": [
+    "clean-00049-of-00411:182",
+    "clean-00152-of-00411:874",
+    "clean-00163-of-00411:522"
+   ]
+  }
+ }
+}

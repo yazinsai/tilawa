@@ -1,0 +1,8400 @@
+{
+ "version": "leadin-v2",
+ "gapMs": 600,
+ "gapFill": "silence",
+ "sources": {
+  "help-same-speaker": "the speaker's own clean help eval clip",
+  "help-other-speaker": "another help eval speaker's clean clip (teacher decode)",
+  "tlog-heldout": "tlog-v2 clean-match test/val (held out from student training)",
+  "tlog-train": "tlog-v2 clean-match train"
+ },
+ "counts": {
+  "first ayah of the surah": 18,
+  "help-other-speaker": 17,
+  "help-same-speaker": 4,
+  "no clean recitation of the preceding ayah": 24,
+  "tlog-heldout": 255,
+  "tlog-train": 70
+ },
+ "followCounts": {
+  "help-other-speaker": 31,
+  "help-same-speaker": 2,
+  "last ayah of the surah": 20,
+  "no clean recitation of the following ayah": 14,
+  "tlog-heldout": 251,
+  "tlog-train": 70
+ },
+ "clips": [
+  {
+   "clip": "munxrow9_d812be38",
+   "ayahs": [
+    "18:65"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00057-of-00411:160",
+    "ayahs": [
+     "18:64"
+    ],
+    "speaker": "tlog/val/33"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00128-of-00411:310",
+    "ayahs": [
+     "18:66",
+     "18:67"
+    ],
+    "speaker": "tlog/train/89"
+   }
+  },
+  {
+   "clip": "munxs4ax_d1d4b671",
+   "ayahs": [
+    "2:183"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00147-of-00411:796",
+    "ayahs": [
+     "2:182"
+    ],
+    "speaker": "tlog/test/97"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00148-of-00411:21",
+    "ayahs": [
+     "2:184"
+    ],
+    "speaker": "tlog/val/8"
+   }
+  },
+  {
+   "clip": "munxsgj7_fe81f7d1",
+   "ayahs": [
+    "56:69"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "murceqhl_e0e33a46",
+    "ayahs": [
+     "56:67",
+     "56:68"
+    ],
+    "speaker": "d6169e2695f44bef8bcc"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00266-of-00411:823",
+    "ayahs": [
+     "56:70"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "munxspmm_efdf3dcf",
+   "ayahs": [
+    "80:25"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00349-of-00411:653",
+    "ayahs": [
+     "80:23",
+     "80:24"
+    ],
+    "speaker": "tlog/val/33"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "muo7g71e_5521d938",
+    "ayahs": [
+     "80:26"
+    ],
+    "speaker": "cd552e1f7c624c1f9eff"
+   }
+  },
+  {
+   "clip": "munxt1gn_c30a2942",
+   "ayahs": [
+    "80:26"
+   ],
+   "lead": {
+    "kind": "help-same-speaker",
+    "id": "munxspmm_efdf3dcf",
+    "ayahs": [
+     "80:25"
+    ],
+    "speaker": "ac1bc3cfcd924a4bb083"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00349-of-00411:966",
+    "ayahs": [
+     "80:27"
+    ],
+    "speaker": "tlog/val/56"
+   }
+  },
+  {
+   "clip": "munxteom_d1673d05",
+   "ayahs": [
+    "55:30"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00171-of-00332:430",
+    "ayahs": [
+     "55:29"
+    ],
+    "speaker": "tlog/test/4"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00256-of-00411:408",
+    "ayahs": [
+     "55:31"
+    ],
+    "speaker": "tlog/val/43"
+   }
+  },
+  {
+   "clip": "muo282l6_1be4297f",
+   "ayahs": [
+    "29:58"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00014-of-00332:643",
+    "ayahs": [
+     "29:57"
+    ],
+    "speaker": "tlog/test/92"
+   },
+   "follow": null,
+   "followReason": "no clean recitation of the following ayah"
+  },
+  {
+   "clip": "muo28m6x_5a1520c1",
+   "ayahs": [
+    "37:12",
+    "37:13",
+    "37:14"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00194-of-00411:355",
+    "ayahs": [
+     "37:11"
+    ],
+    "speaker": "tlog/test/66"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00196-of-00411:324",
+    "ayahs": [
+     "37:15"
+    ],
+    "speaker": "tlog/test/61"
+   }
+  },
+  {
+   "clip": "muo46yfz_d137d625",
+   "ayahs": [
+    "114:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00027-of-00411:714",
+    "ayahs": [
+     "114:3"
+    ],
+    "speaker": "tlog/val/108"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:776",
+    "ayahs": [
+     "114:5",
+     "114:6"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muo47fcf_030ce12e",
+   "ayahs": [
+    "93:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00006-of-00411:245",
+    "ayahs": [
+     "93:1",
+     "93:2"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mupfeb03_1e268ab2",
+    "ayahs": [
+     "93:4"
+    ],
+    "speaker": "77726db75fc64c09bc62"
+   }
+  },
+  {
+   "clip": "muo480l8_2ed890a6",
+   "ayahs": [
+    "114:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00027-of-00411:714",
+    "ayahs": [
+     "114:3"
+    ],
+    "speaker": "tlog/val/108"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:776",
+    "ayahs": [
+     "114:5",
+     "114:6"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muo48ayu_a6f4c14c",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo48hui_5c8ccdae",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo49div_b1a39359",
+   "ayahs": [
+    "109:2",
+    "109:3",
+    "109:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00008-of-00411:690",
+    "ayahs": [
+     "109:1"
+    ],
+    "speaker": "tlog/val/33"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00199-of-00332:823",
+    "ayahs": [
+     "109:5",
+     "109:6"
+    ],
+    "speaker": "tlog/train/58"
+   }
+  },
+  {
+   "clip": "muo4ahc0_ea208497",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo4chw2_4742009e",
+   "ayahs": [
+    "109:2",
+    "109:3",
+    "109:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00008-of-00411:690",
+    "ayahs": [
+     "109:1"
+    ],
+    "speaker": "tlog/val/33"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00199-of-00332:823",
+    "ayahs": [
+     "109:5",
+     "109:6"
+    ],
+    "speaker": "tlog/train/58"
+   }
+  },
+  {
+   "clip": "muo4dkge_1ccc6fb5",
+   "ayahs": [
+    "79:24"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00337-of-00411:371",
+    "ayahs": [
+     "79:23"
+    ],
+    "speaker": "tlog/val/9"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00337-of-00411:608",
+    "ayahs": [
+     "79:25"
+    ],
+    "speaker": "tlog/val/101"
+   }
+  },
+  {
+   "clip": "muo4e4ap_09510177",
+   "ayahs": [
+    "80:7"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00351-of-00411:427",
+    "ayahs": [
+     "80:5",
+     "80:6"
+    ],
+    "speaker": "tlog/val/43"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00352-of-00411:791",
+    "ayahs": [
+     "80:8"
+    ],
+    "speaker": "tlog/val/113"
+   }
+  },
+  {
+   "clip": "muo4ejmf_56023834",
+   "ayahs": [
+    "56:21"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00261-of-00411:928",
+    "ayahs": [
+     "56:20"
+    ],
+    "speaker": "tlog/val/131"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00263-of-00332:391",
+    "ayahs": [
+     "56:22",
+     "56:23"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo4f0da_fc40d634",
+   "ayahs": [
+    "88:17"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00094-of-00332:121",
+    "ayahs": [
+     "88:16"
+    ],
+    "speaker": "tlog/val/120"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00375-of-00411:213",
+    "ayahs": [
+     "88:18"
+    ],
+    "speaker": "tlog/val/9"
+   }
+  },
+  {
+   "clip": "muo4g2nu_50931052",
+   "ayahs": [
+    "18:106"
+   ],
+   "lead": {
+    "kind": "help-same-speaker",
+    "id": "mupjvw4z_823e4f46",
+    "ayahs": [
+     "18:104",
+     "18:105"
+    ],
+    "speaker": "3424c996d5d14c9a8418"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00049-of-00411:261",
+    "ayahs": [
+     "18:107"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muo4ge33_116ddb94",
+   "ayahs": [
+    "88:23"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00375-of-00411:906",
+    "ayahs": [
+     "88:22"
+    ],
+    "speaker": "tlog/test/6"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00376-of-00411:106",
+    "ayahs": [
+     "88:24"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muo4gtu7_517dcd1f",
+   "ayahs": [
+    "55:76"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": null,
+   "followReason": "no clean recitation of the following ayah"
+  },
+  {
+   "clip": "muo4j4ap_3ca8e2c3",
+   "ayahs": [
+    "18:9"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00059-of-00411:345",
+    "ayahs": [
+     "18:8"
+    ],
+    "speaker": "tlog/test/5"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00049-of-00411:626",
+    "ayahs": [
+     "18:10"
+    ],
+    "speaker": "tlog/test/7"
+   }
+  },
+  {
+   "clip": "muo4ka6f_1e21cd28",
+   "ayahs": [
+    "36:53"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00188-of-00411:136",
+    "ayahs": [
+     "36:52"
+    ],
+    "speaker": "tlog/val/43"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "muph6o98_113f4045",
+    "ayahs": [
+     "36:54"
+    ],
+    "speaker": "d7f96630406b44389639"
+   }
+  },
+  {
+   "clip": "muo4lwdh_130e6e60",
+   "ayahs": [
+    "18:36"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00053-of-00411:824",
+    "ayahs": [
+     "18:35"
+    ],
+    "speaker": "tlog/val/43"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00053-of-00411:965",
+    "ayahs": [
+     "18:37"
+    ],
+    "speaker": "tlog/train/230"
+   }
+  },
+  {
+   "clip": "muo5fsh3_25312639",
+   "ayahs": [
+    "67:19"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00281-of-00411:158",
+    "ayahs": [
+     "67:18"
+    ],
+    "speaker": "tlog/test/232"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00282-of-00411:107",
+    "ayahs": [
+     "67:20"
+    ],
+    "speaker": "tlog/val/102"
+   }
+  },
+  {
+   "clip": "muo5gkq2_857a61f4",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo5h904_a3fa3414",
+   "ayahs": [
+    "18:79"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00058-of-00411:353",
+    "ayahs": [
+     "18:78"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00058-of-00411:723",
+    "ayahs": [
+     "18:80"
+    ],
+    "speaker": "tlog/test/4"
+   }
+  },
+  {
+   "clip": "muo5i6cw_57022cc8",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo5ilmf_54d86a86",
+   "ayahs": [
+    "2:6"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00114-of-00411:305",
+    "ayahs": [
+     "2:4",
+     "2:5"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00167-of-00411:912",
+    "ayahs": [
+     "2:7"
+    ],
+    "speaker": "tlog/val/127"
+   }
+  },
+  {
+   "clip": "muo5jdgd_33106513",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo5jom4_b5e4df26",
+   "ayahs": [
+    "114:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00027-of-00411:714",
+    "ayahs": [
+     "114:3"
+    ],
+    "speaker": "tlog/val/108"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:776",
+    "ayahs": [
+     "114:5",
+     "114:6"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muo5jwb1_335aaaab",
+   "ayahs": [
+    "92:15"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00389-of-00411:283",
+    "ayahs": [
+     "92:13",
+     "92:14"
+    ],
+    "speaker": "tlog/train/230"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00389-of-00411:714",
+    "ayahs": [
+     "92:16"
+    ],
+    "speaker": "tlog/test/4"
+   }
+  },
+  {
+   "clip": "muo5kdsc_5be1953f",
+   "ayahs": [
+    "2:6"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00114-of-00411:305",
+    "ayahs": [
+     "2:4",
+     "2:5"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00167-of-00411:912",
+    "ayahs": [
+     "2:7"
+    ],
+    "speaker": "tlog/val/127"
+   }
+  },
+  {
+   "clip": "muo5kohh_9e351eb3",
+   "ayahs": [
+    "114:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00027-of-00411:714",
+    "ayahs": [
+     "114:3"
+    ],
+    "speaker": "tlog/val/108"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:776",
+    "ayahs": [
+     "114:5",
+     "114:6"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muo5l3xx_45159333",
+   "ayahs": [
+    "26:36"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00128-of-00411:906",
+    "ayahs": [
+     "26:35"
+    ],
+    "speaker": "tlog/train/55"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00128-of-00411:966",
+    "ayahs": [
+     "26:37"
+    ],
+    "speaker": "tlog/test/96"
+   }
+  },
+  {
+   "clip": "muo5lqrb_9d97c0e9",
+   "ayahs": [
+    "1:7"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00092-of-00411:295",
+    "ayahs": [
+     "1:5",
+     "1:6"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "muo6a63w_64d14787",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo6b0gm_60b27a93",
+   "ayahs": [
+    "18:55"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00056-of-00411:42",
+    "ayahs": [
+     "18:54"
+    ],
+    "speaker": "tlog/test/4"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00056-of-00411:149",
+    "ayahs": [
+     "18:56"
+    ],
+    "speaker": "tlog/val/131"
+   }
+  },
+  {
+   "clip": "muo6bhsq_29ac999f",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo6btze_87a7bc30",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo6cbqr_0031f70f",
+   "ayahs": [
+    "103:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00003-of-00411:442",
+    "ayahs": [
+     "103:1",
+     "103:2"
+    ],
+    "speaker": "tlog/val/101"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "muo6d9p9_ab2334ec",
+   "ayahs": [
+    "7:111"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00297-of-00332:195",
+    "ayahs": [
+     "7:110"
+    ],
+    "speaker": "tlog/test/256"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00179-of-00332:142",
+    "ayahs": [
+     "7:112",
+     "7:113"
+    ],
+    "speaker": "tlog/train/83"
+   }
+  },
+  {
+   "clip": "muo6dlzd_bf54e514",
+   "ayahs": [
+    "18:83"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00058-of-00411:834",
+    "ayahs": [
+     "18:82"
+    ],
+    "speaker": "tlog/train/58"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00059-of-00411:27",
+    "ayahs": [
+     "18:84"
+    ],
+    "speaker": "tlog/val/43"
+   }
+  },
+  {
+   "clip": "muo6dzbf_422d19b4",
+   "ayahs": [
+    "56:19"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "mur9bnll_1f2b9ba9",
+    "ayahs": [
+     "56:18"
+    ],
+    "speaker": "230525bb526940198038"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00261-of-00411:928",
+    "ayahs": [
+     "56:20"
+    ],
+    "speaker": "tlog/val/131"
+   }
+  },
+  {
+   "clip": "muo6eqvu_0860e84a",
+   "ayahs": [
+    "1:7"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00092-of-00411:295",
+    "ayahs": [
+     "1:5",
+     "1:6"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "muo6pjnl_5c65f263",
+   "ayahs": [
+    "101:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00001-of-00411:367",
+    "ayahs": [
+     "101:1",
+     "101:2"
+    ],
+    "speaker": "tlog/val/128"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00001-of-00411:648",
+    "ayahs": [
+     "101:4",
+     "101:5"
+    ],
+    "speaker": "tlog/train/89"
+   }
+  },
+  {
+   "clip": "muo6pwte_e1be2849",
+   "ayahs": [
+    "2:6"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00114-of-00411:305",
+    "ayahs": [
+     "2:4",
+     "2:5"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00167-of-00411:912",
+    "ayahs": [
+     "2:7"
+    ],
+    "speaker": "tlog/val/127"
+   }
+  },
+  {
+   "clip": "muo6qf9z_28c59120",
+   "ayahs": [
+    "83:33"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00361-of-00411:293",
+    "ayahs": [
+     "83:32"
+    ],
+    "speaker": "tlog/val/148"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00361-of-00411:528",
+    "ayahs": [
+     "83:34"
+    ],
+    "speaker": "tlog/test/61"
+   }
+  },
+  {
+   "clip": "muo6r1sz_85b70478",
+   "ayahs": [
+    "2:6"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00114-of-00411:305",
+    "ayahs": [
+     "2:4",
+     "2:5"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00167-of-00411:912",
+    "ayahs": [
+     "2:7"
+    ],
+    "speaker": "tlog/val/127"
+   }
+  },
+  {
+   "clip": "muo6rvlr_999c3755",
+   "ayahs": [
+    "18:55"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00056-of-00411:42",
+    "ayahs": [
+     "18:54"
+    ],
+    "speaker": "tlog/test/4"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00056-of-00411:149",
+    "ayahs": [
+     "18:56"
+    ],
+    "speaker": "tlog/val/131"
+   }
+  },
+  {
+   "clip": "muo6s0j7_7d8a99dc",
+   "ayahs": [
+    "109:3",
+    "109:4",
+    "109:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00009-of-00411:110",
+    "ayahs": [
+     "109:1",
+     "109:2"
+    ],
+    "speaker": "tlog/test/4"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00010-of-00411:343",
+    "ayahs": [
+     "109:6"
+    ],
+    "speaker": "tlog/val/43"
+   }
+  },
+  {
+   "clip": "muo6sckn_9f100b3d",
+   "ayahs": [
+    "90:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00385-of-00411:792",
+    "ayahs": [
+     "90:3"
+    ],
+    "speaker": "tlog/val/147"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00386-of-00411:329",
+    "ayahs": [
+     "90:5"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo6sywr_d7ad96c0",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo6te6o_feff3f75",
+   "ayahs": [
+    "83:18"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00359-of-00411:264",
+    "ayahs": [
+     "83:17"
+    ],
+    "speaker": "tlog/val/33"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00359-of-00411:932",
+    "ayahs": [
+     "83:19"
+    ],
+    "speaker": "tlog/test/235"
+   }
+  },
+  {
+   "clip": "muo6tlds_31fa2775",
+   "ayahs": [
+    "114:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00027-of-00411:714",
+    "ayahs": [
+     "114:3"
+    ],
+    "speaker": "tlog/val/108"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:776",
+    "ayahs": [
+     "114:5",
+     "114:6"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muo6u6sd_77bc514a",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo6ue7n_4d6a640f",
+   "ayahs": [
+    "18:11"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00049-of-00411:626",
+    "ayahs": [
+     "18:10"
+    ],
+    "speaker": "tlog/test/7"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00050-of-00411:204",
+    "ayahs": [
+     "18:12"
+    ],
+    "speaker": "tlog/test/96"
+   }
+  },
+  {
+   "clip": "muo6ul0j_36802562",
+   "ayahs": [
+    "56:68"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00266-of-00411:643",
+    "ayahs": [
+     "56:69"
+    ],
+    "speaker": "tlog/val/1"
+   }
+  },
+  {
+   "clip": "muo6vmjx_eb1a9e53",
+   "ayahs": [
+    "2:2"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00161-of-00411:162",
+    "ayahs": [
+     "2:3"
+    ],
+    "speaker": "tlog/test/5"
+   }
+  },
+  {
+   "clip": "muo6w1iw_8de19af9",
+   "ayahs": [
+    "18:52"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00055-of-00411:754",
+    "ayahs": [
+     "18:51"
+    ],
+    "speaker": "tlog/train/55"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00055-of-00411:900",
+    "ayahs": [
+     "18:53"
+    ],
+    "speaker": "tlog/train/164"
+   }
+  },
+  {
+   "clip": "muo6x5yx_d63e3f28",
+   "ayahs": [
+    "18:41"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00054-of-00411:500",
+    "ayahs": [
+     "18:40"
+    ],
+    "speaker": "tlog/test/4"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00054-of-00411:607",
+    "ayahs": [
+     "18:42"
+    ],
+    "speaker": "tlog/train/230"
+   }
+  },
+  {
+   "clip": "muo6ybmi_4034d593",
+   "ayahs": [
+    "55:36"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00256-of-00411:639",
+    "ayahs": [
+     "55:35"
+    ],
+    "speaker": "tlog/train/55"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00256-of-00411:742",
+    "ayahs": [
+     "55:37"
+    ],
+    "speaker": "tlog/val/101"
+   }
+  },
+  {
+   "clip": "muo6yril_9f2b13e2",
+   "ayahs": [
+    "113:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00025-of-00411:172",
+    "ayahs": [
+     "113:4"
+    ],
+    "speaker": "tlog/val/43"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "muo6zojx_d721fe57",
+   "ayahs": [
+    "78:15"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00323-of-00411:220",
+    "ayahs": [
+     "78:14"
+    ],
+    "speaker": "tlog/test/7"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00325-of-00411:75",
+    "ayahs": [
+     "78:16",
+     "78:17"
+    ],
+    "speaker": "tlog/val/148"
+   }
+  },
+  {
+   "clip": "muo732x1_3242fdf5",
+   "ayahs": [
+    "103:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00003-of-00411:442",
+    "ayahs": [
+     "103:1",
+     "103:2"
+    ],
+    "speaker": "tlog/val/101"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "muo75eke_dc9bf279",
+   "ayahs": [
+    "81:25"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00354-of-00411:884",
+    "ayahs": [
+     "81:24"
+    ],
+    "speaker": "tlog/val/25"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00354-of-00411:292",
+    "ayahs": [
+     "81:26",
+     "81:27"
+    ],
+    "speaker": "tlog/val/33"
+   }
+  },
+  {
+   "clip": "muo76v9h_ac96243c",
+   "ayahs": [
+    "99:6"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00403-of-00411:455",
+    "ayahs": [
+     "99:5"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00403-of-00411:921",
+    "ayahs": [
+     "99:7"
+    ],
+    "speaker": "tlog/val/129"
+   }
+  },
+  {
+   "clip": "muo778x9_0d7d20c6",
+   "ayahs": [
+    "83:6"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00362-of-00411:262",
+    "ayahs": [
+     "83:5"
+    ],
+    "speaker": "tlog/val/131"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00362-of-00411:673",
+    "ayahs": [
+     "83:7"
+    ],
+    "speaker": "tlog/test/5"
+   }
+  },
+  {
+   "clip": "muo782ep_5ab47851",
+   "ayahs": [
+    "26:106"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00124-of-00411:630",
+    "ayahs": [
+     "26:105"
+    ],
+    "speaker": "tlog/train/230"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "muphd23f_475abd74",
+    "ayahs": [
+     "26:107"
+    ],
+    "speaker": "d7f96630406b44389639"
+   }
+  },
+  {
+   "clip": "muo78bgo_00308ac4",
+   "ayahs": [
+    "89:25"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00266-of-00332:431",
+    "ayahs": [
+     "89:24"
+    ],
+    "speaker": "tlog/test/7"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "muokopa9_cf21b8de",
+    "ayahs": [
+     "89:26"
+    ],
+    "speaker": "9601da606d3243c399a8"
+   }
+  },
+  {
+   "clip": "muo78sfc_094e76a4",
+   "ayahs": [
+    "2:6"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00114-of-00411:305",
+    "ayahs": [
+     "2:4",
+     "2:5"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00167-of-00411:912",
+    "ayahs": [
+     "2:7"
+    ],
+    "speaker": "tlog/val/127"
+   }
+  },
+  {
+   "clip": "muo792gn_797face7",
+   "ayahs": [
+    "101:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00001-of-00411:367",
+    "ayahs": [
+     "101:1",
+     "101:2"
+    ],
+    "speaker": "tlog/val/128"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00001-of-00411:648",
+    "ayahs": [
+     "101:4",
+     "101:5"
+    ],
+    "speaker": "tlog/train/89"
+   }
+  },
+  {
+   "clip": "muo792p3_095014f7",
+   "ayahs": [
+    "55:23"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00255-of-00411:32",
+    "ayahs": [
+     "55:22"
+    ],
+    "speaker": "tlog/test/96"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00250-of-00411:98",
+    "ayahs": [
+     "55:24"
+    ],
+    "speaker": "tlog/train/55"
+   }
+  },
+  {
+   "clip": "muo79ln8_6ecc9e74",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo7ahel_4cc29975",
+   "ayahs": [
+    "26:124"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00125-of-00411:177",
+    "ayahs": [
+     "26:123"
+    ],
+    "speaker": "tlog/train/58"
+   },
+   "follow": null,
+   "followReason": "no clean recitation of the following ayah"
+  },
+  {
+   "clip": "muo7bc0t_b7965429",
+   "ayahs": [
+    "114:1",
+    "114:2",
+    "114:3"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:134",
+    "ayahs": [
+     "114:4"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo7bjrc_eda68f67",
+   "ayahs": [
+    "26:124"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00125-of-00411:177",
+    "ayahs": [
+     "26:123"
+    ],
+    "speaker": "tlog/train/58"
+   },
+   "follow": null,
+   "followReason": "no clean recitation of the following ayah"
+  },
+  {
+   "clip": "muo7c2dl_91b5a145",
+   "ayahs": [
+    "43:3"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00224-of-00411:664",
+    "ayahs": [
+     "43:4"
+    ],
+    "speaker": "tlog/train/230"
+   }
+  },
+  {
+   "clip": "muo7c4rs_2bdfa321",
+   "ayahs": [
+    "18:34"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00053-of-00411:705",
+    "ayahs": [
+     "18:33"
+    ],
+    "speaker": "tlog/test/12"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00053-of-00411:824",
+    "ayahs": [
+     "18:35"
+    ],
+    "speaker": "tlog/val/43"
+   }
+  },
+  {
+   "clip": "muo7g71e_5521d938",
+   "ayahs": [
+    "80:26"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "munxspmm_efdf3dcf",
+    "ayahs": [
+     "80:25"
+    ],
+    "speaker": "ac1bc3cfcd924a4bb083"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00349-of-00411:966",
+    "ayahs": [
+     "80:27"
+    ],
+    "speaker": "tlog/val/56"
+   }
+  },
+  {
+   "clip": "muo7hbas_d588e7b5",
+   "ayahs": [
+    "104:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00085-of-00332:891",
+    "ayahs": [
+     "104:1",
+     "104:2"
+    ],
+    "speaker": "tlog/val/43"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00004-of-00411:650",
+    "ayahs": [
+     "104:4"
+    ],
+    "speaker": "tlog/train/58"
+   }
+  },
+  {
+   "clip": "muo7ie2p_cfc171e4",
+   "ayahs": [
+    "113:2"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00020-of-00411:526",
+    "ayahs": [
+     "113:1"
+    ],
+    "speaker": "tlog/test/250"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00025-of-00411:160",
+    "ayahs": [
+     "113:3"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muo7jkqu_0fa50ebb",
+   "ayahs": [
+    "83:12"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00358-of-00411:524",
+    "ayahs": [
+     "83:11"
+    ],
+    "speaker": "tlog/val/43"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00277-of-00332:766",
+    "ayahs": [
+     "83:13",
+     "83:14"
+    ],
+    "speaker": "tlog/train/230"
+   }
+  },
+  {
+   "clip": "muo7nwih_37a15110",
+   "ayahs": [
+    "89:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00381-of-00411:138",
+    "ayahs": [
+     "89:4"
+    ],
+    "speaker": "tlog/test/61"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00381-of-00411:669",
+    "ayahs": [
+     "89:6"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muo89fck_6ad70d34",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo89z9t_466d8e33",
+   "ayahs": [
+    "85:21"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00365-of-00411:924",
+    "ayahs": [
+     "85:20"
+    ],
+    "speaker": "tlog/val/9"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00366-of-00411:138",
+    "ayahs": [
+     "85:22"
+    ],
+    "speaker": "tlog/val/56"
+   }
+  },
+  {
+   "clip": "muo8adou_71ea6092",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo8ansx_44b0f9d0",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo8bduo_4424b950",
+   "ayahs": [
+    "36:73"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00191-of-00411:109",
+    "ayahs": [
+     "36:72"
+    ],
+    "speaker": "tlog/val/101"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00191-of-00411:239",
+    "ayahs": [
+     "36:74"
+    ],
+    "speaker": "tlog/test/233"
+   }
+  },
+  {
+   "clip": "muo8bzgh_5e67f4d3",
+   "ayahs": [
+    "26:124"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00125-of-00411:177",
+    "ayahs": [
+     "26:123"
+    ],
+    "speaker": "tlog/train/58"
+   },
+   "follow": null,
+   "followReason": "no clean recitation of the following ayah"
+  },
+  {
+   "clip": "muo8cycq_2f53d92c",
+   "ayahs": [
+    "2:6"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00114-of-00411:305",
+    "ayahs": [
+     "2:4",
+     "2:5"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00167-of-00411:912",
+    "ayahs": [
+     "2:7"
+    ],
+    "speaker": "tlog/val/127"
+   }
+  },
+  {
+   "clip": "muo9fz1r_cd8c377f",
+   "ayahs": [
+    "18:6"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00056-of-00411:675",
+    "ayahs": [
+     "18:5"
+    ],
+    "speaker": "tlog/test/4"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00058-of-00411:445",
+    "ayahs": [
+     "18:7"
+    ],
+    "speaker": "tlog/test/7"
+   }
+  },
+  {
+   "clip": "muo9gaho_dc97262e",
+   "ayahs": [
+    "55:78"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "unclean-00302-of-00332:940",
+    "ayahs": [
+     "55:76",
+     "55:77"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "muo9gxjf_46ebeb9b",
+   "ayahs": [
+    "114:1",
+    "114:2",
+    "114:3"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:134",
+    "ayahs": [
+     "114:4"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo9h97r_bfad32ee",
+   "ayahs": [
+    "109:2",
+    "109:3",
+    "109:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00008-of-00411:690",
+    "ayahs": [
+     "109:1"
+    ],
+    "speaker": "tlog/val/33"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00199-of-00332:823",
+    "ayahs": [
+     "109:5",
+     "109:6"
+    ],
+    "speaker": "tlog/train/58"
+   }
+  },
+  {
+   "clip": "muo9hm9i_3aec686c",
+   "ayahs": [
+    "114:1",
+    "114:2",
+    "114:3"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:134",
+    "ayahs": [
+     "114:4"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo9i4ho_e347d6bc",
+   "ayahs": [
+    "2:2"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00161-of-00411:162",
+    "ayahs": [
+     "2:3"
+    ],
+    "speaker": "tlog/test/5"
+   }
+  },
+  {
+   "clip": "muo9iefm_d2cc8089",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muo9izwh_2ead2464",
+   "ayahs": [
+    "93:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00006-of-00411:245",
+    "ayahs": [
+     "93:1",
+     "93:2"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mupfeb03_1e268ab2",
+    "ayahs": [
+     "93:4"
+    ],
+    "speaker": "77726db75fc64c09bc62"
+   }
+  },
+  {
+   "clip": "muoadu69_79c5f3d9",
+   "ayahs": [
+    "114:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00027-of-00411:714",
+    "ayahs": [
+     "114:3"
+    ],
+    "speaker": "tlog/val/108"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:776",
+    "ayahs": [
+     "114:5",
+     "114:6"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muod058l_7ef99298",
+   "ayahs": [
+    "114:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00027-of-00411:714",
+    "ayahs": [
+     "114:3"
+    ],
+    "speaker": "tlog/val/108"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:776",
+    "ayahs": [
+     "114:5",
+     "114:6"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muod0uhi_adeb70ae",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muod1z9i_36eeb67b",
+   "ayahs": [
+    "7:111"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00297-of-00332:195",
+    "ayahs": [
+     "7:110"
+    ],
+    "speaker": "tlog/test/256"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00179-of-00332:142",
+    "ayahs": [
+     "7:112",
+     "7:113"
+    ],
+    "speaker": "tlog/train/83"
+   }
+  },
+  {
+   "clip": "muod2mwc_dfcbd675",
+   "ayahs": [
+    "114:1",
+    "114:2",
+    "114:3"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:134",
+    "ayahs": [
+     "114:4"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muod31ra_1bfd61c6",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muod3hqb_0e76282d",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muod3u1j_93df44f5",
+   "ayahs": [
+    "36:1"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00186-of-00411:269",
+    "ayahs": [
+     "36:2",
+     "36:3"
+    ],
+    "speaker": "tlog/val/101"
+   }
+  },
+  {
+   "clip": "muod4cxa_fa8f2ad8",
+   "ayahs": [
+    "114:1",
+    "114:2",
+    "114:3"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:134",
+    "ayahs": [
+     "114:4"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muod529w_2666cdfc",
+   "ayahs": [
+    "26:124"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00125-of-00411:177",
+    "ayahs": [
+     "26:123"
+    ],
+    "speaker": "tlog/train/58"
+   },
+   "follow": null,
+   "followReason": "no clean recitation of the following ayah"
+  },
+  {
+   "clip": "muod5j8t_af1fd7f3",
+   "ayahs": [
+    "98:1"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00401-of-00411:393",
+    "ayahs": [
+     "98:2"
+    ],
+    "speaker": "tlog/test/233"
+   }
+  },
+  {
+   "clip": "muod5swd_167fc9b1",
+   "ayahs": [
+    "93:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00006-of-00411:245",
+    "ayahs": [
+     "93:1",
+     "93:2"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mupfeb03_1e268ab2",
+    "ayahs": [
+     "93:4"
+    ],
+    "speaker": "77726db75fc64c09bc62"
+   }
+  },
+  {
+   "clip": "muod64fi_531031c3",
+   "ayahs": [
+    "94:4",
+    "94:5",
+    "94:6"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:464",
+    "ayahs": [
+     "94:3"
+    ],
+    "speaker": "tlog/val/143"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00395-of-00411:122",
+    "ayahs": [
+     "94:7"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muod6i1f_6f28abca",
+   "ayahs": [
+    "2:6"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00114-of-00411:305",
+    "ayahs": [
+     "2:4",
+     "2:5"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00167-of-00411:912",
+    "ayahs": [
+     "2:7"
+    ],
+    "speaker": "tlog/val/127"
+   }
+  },
+  {
+   "clip": "muod8n3o_6326dac8",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muod985n_fef3410e",
+   "ayahs": [
+    "88:21"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00375-of-00411:668",
+    "ayahs": [
+     "88:20"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00375-of-00411:906",
+    "ayahs": [
+     "88:22"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muoda13f_c2a76ae6",
+   "ayahs": [
+    "114:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00027-of-00411:714",
+    "ayahs": [
+     "114:3"
+    ],
+    "speaker": "tlog/val/108"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:776",
+    "ayahs": [
+     "114:5",
+     "114:6"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muodaq0k_afa9865f",
+   "ayahs": [
+    "1:7"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00092-of-00411:295",
+    "ayahs": [
+     "1:5",
+     "1:6"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "muodb8rn_a2b58120",
+   "ayahs": [
+    "114:1",
+    "114:2",
+    "114:3"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:134",
+    "ayahs": [
+     "114:4"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muodbl5d_0bf372b1",
+   "ayahs": [
+    "101:1"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": null,
+   "followReason": "no clean recitation of the following ayah"
+  },
+  {
+   "clip": "muodc2y6_f360b845",
+   "ayahs": [
+    "113:2"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00020-of-00411:526",
+    "ayahs": [
+     "113:1"
+    ],
+    "speaker": "tlog/test/250"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00025-of-00411:160",
+    "ayahs": [
+     "113:3"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muodc46n_28a11a25",
+   "ayahs": [
+    "83:18"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00359-of-00411:264",
+    "ayahs": [
+     "83:17"
+    ],
+    "speaker": "tlog/val/33"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00359-of-00411:932",
+    "ayahs": [
+     "83:19"
+    ],
+    "speaker": "tlog/test/235"
+   }
+  },
+  {
+   "clip": "muodci2y_26cb3d21",
+   "ayahs": [
+    "109:2",
+    "109:3",
+    "109:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00008-of-00411:690",
+    "ayahs": [
+     "109:1"
+    ],
+    "speaker": "tlog/val/33"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00199-of-00332:823",
+    "ayahs": [
+     "109:5",
+     "109:6"
+    ],
+    "speaker": "tlog/train/58"
+   }
+  },
+  {
+   "clip": "muodd1ff_0bd5a7d2",
+   "ayahs": [
+    "109:3",
+    "109:4",
+    "109:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00009-of-00411:110",
+    "ayahs": [
+     "109:1",
+     "109:2"
+    ],
+    "speaker": "tlog/test/4"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00010-of-00411:343",
+    "ayahs": [
+     "109:6"
+    ],
+    "speaker": "tlog/val/43"
+   }
+  },
+  {
+   "clip": "muoddzju_77cfc3a1",
+   "ayahs": [
+    "18:20"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00051-of-00411:202",
+    "ayahs": [
+     "18:19"
+    ],
+    "speaker": "tlog/test/4"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00052-of-00411:113",
+    "ayahs": [
+     "18:21"
+    ],
+    "speaker": "tlog/val/103"
+   }
+  },
+  {
+   "clip": "muodeaix_f99858b4",
+   "ayahs": [
+    "36:17"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00181-of-00411:947",
+    "ayahs": [
+     "36:16"
+    ],
+    "speaker": "tlog/train/230"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00182-of-00411:216",
+    "ayahs": [
+     "36:18"
+    ],
+    "speaker": "tlog/train/230"
+   }
+  },
+  {
+   "clip": "muodegin_00939bd6",
+   "ayahs": [
+    "109:3",
+    "109:4",
+    "109:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00009-of-00411:110",
+    "ayahs": [
+     "109:1",
+     "109:2"
+    ],
+    "speaker": "tlog/test/4"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00010-of-00411:343",
+    "ayahs": [
+     "109:6"
+    ],
+    "speaker": "tlog/val/43"
+   }
+  },
+  {
+   "clip": "muodeo44_9f660454",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muodf58z_2a8ae669",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muodfc84_77ecdd58",
+   "ayahs": [
+    "1:7"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00092-of-00411:295",
+    "ayahs": [
+     "1:5",
+     "1:6"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "muodfjiw_c16401bc",
+   "ayahs": [
+    "26:106"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00124-of-00411:630",
+    "ayahs": [
+     "26:105"
+    ],
+    "speaker": "tlog/train/230"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "muphd23f_475abd74",
+    "ayahs": [
+     "26:107"
+    ],
+    "speaker": "d7f96630406b44389639"
+   }
+  },
+  {
+   "clip": "muodfkxb_68ad5b9d",
+   "ayahs": [
+    "113:2"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00020-of-00411:526",
+    "ayahs": [
+     "113:1"
+    ],
+    "speaker": "tlog/test/250"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00025-of-00411:160",
+    "ayahs": [
+     "113:3"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muodfvdu_a37cb347",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muodg7fg_98914e8f",
+   "ayahs": [
+    "2:2"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00161-of-00411:162",
+    "ayahs": [
+     "2:3"
+    ],
+    "speaker": "tlog/test/5"
+   }
+  },
+  {
+   "clip": "muodgijh_013865f9",
+   "ayahs": [
+    "103:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00003-of-00411:442",
+    "ayahs": [
+     "103:1",
+     "103:2"
+    ],
+    "speaker": "tlog/val/101"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "muodgr2n_8a82e344",
+   "ayahs": [
+    "79:31"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00338-of-00411:426",
+    "ayahs": [
+     "79:30"
+    ],
+    "speaker": "tlog/val/9"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00338-of-00411:676",
+    "ayahs": [
+     "79:32",
+     "79:33"
+    ],
+    "speaker": "tlog/val/108"
+   }
+  },
+  {
+   "clip": "muodh2uo_532e6644",
+   "ayahs": [
+    "2:6"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00114-of-00411:305",
+    "ayahs": [
+     "2:4",
+     "2:5"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00167-of-00411:912",
+    "ayahs": [
+     "2:7"
+    ],
+    "speaker": "tlog/val/127"
+   }
+  },
+  {
+   "clip": "muodh9yd_a6f15c02",
+   "ayahs": [
+    "67:8"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00279-of-00411:294",
+    "ayahs": [
+     "67:7"
+    ],
+    "speaker": "tlog/val/128"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00286-of-00411:713",
+    "ayahs": [
+     "67:9"
+    ],
+    "speaker": "tlog/test/5"
+   }
+  },
+  {
+   "clip": "muodhbzp_781ebb1b",
+   "ayahs": [
+    "109:2",
+    "109:3",
+    "109:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00008-of-00411:690",
+    "ayahs": [
+     "109:1"
+    ],
+    "speaker": "tlog/val/33"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00199-of-00332:823",
+    "ayahs": [
+     "109:5",
+     "109:6"
+    ],
+    "speaker": "tlog/train/58"
+   }
+  },
+  {
+   "clip": "muodhmzj_0639dae3",
+   "ayahs": [
+    "79:39"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00116-of-00332:529",
+    "ayahs": [
+     "79:37",
+     "79:38"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00339-of-00411:721",
+    "ayahs": [
+     "79:40"
+    ],
+    "speaker": "tlog/val/111"
+   }
+  },
+  {
+   "clip": "muodhud9_9d491147",
+   "ayahs": [
+    "2:2"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00161-of-00411:162",
+    "ayahs": [
+     "2:3"
+    ],
+    "speaker": "tlog/test/5"
+   }
+  },
+  {
+   "clip": "muodhv1p_5ca9f8c4",
+   "ayahs": [
+    "114:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00027-of-00411:714",
+    "ayahs": [
+     "114:3"
+    ],
+    "speaker": "tlog/val/108"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:776",
+    "ayahs": [
+     "114:5",
+     "114:6"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muodix3p_8047be01",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muodjfuo_ff037740",
+   "ayahs": [
+    "94:4",
+    "94:5",
+    "94:6"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:464",
+    "ayahs": [
+     "94:3"
+    ],
+    "speaker": "tlog/val/143"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00395-of-00411:122",
+    "ayahs": [
+     "94:7"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muodk5n7_565de9ca",
+   "ayahs": [
+    "2:6"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00114-of-00411:305",
+    "ayahs": [
+     "2:4",
+     "2:5"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00167-of-00411:912",
+    "ayahs": [
+     "2:7"
+    ],
+    "speaker": "tlog/val/127"
+   }
+  },
+  {
+   "clip": "muodkqyr_711bd18d",
+   "ayahs": [
+    "7:111"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00297-of-00332:195",
+    "ayahs": [
+     "7:110"
+    ],
+    "speaker": "tlog/test/256"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00179-of-00332:142",
+    "ayahs": [
+     "7:112",
+     "7:113"
+    ],
+    "speaker": "tlog/train/83"
+   }
+  },
+  {
+   "clip": "muoexhbx_542cfcee",
+   "ayahs": [
+    "55:69"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00258-of-00411:929",
+    "ayahs": [
+     "55:68"
+    ],
+    "speaker": "tlog/train/162"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00259-of-00411:383",
+    "ayahs": [
+     "55:70"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muoeza4q_647d3a70",
+   "ayahs": [
+    "12:2"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00033-of-00411:687",
+    "ayahs": [
+     "12:1"
+    ],
+    "speaker": "tlog/val/128"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00034-of-00411:526",
+    "ayahs": [
+     "12:3"
+    ],
+    "speaker": "tlog/val/102"
+   }
+  },
+  {
+   "clip": "muoezt88_32df1e1f",
+   "ayahs": [
+    "113:2"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00020-of-00411:526",
+    "ayahs": [
+     "113:1"
+    ],
+    "speaker": "tlog/test/250"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00025-of-00411:160",
+    "ayahs": [
+     "113:3"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muoezzhp_e9a9465e",
+   "ayahs": [
+    "113:2"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00020-of-00411:526",
+    "ayahs": [
+     "113:1"
+    ],
+    "speaker": "tlog/test/250"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00025-of-00411:160",
+    "ayahs": [
+     "113:3"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muof08oi_f53f349f",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muof0e4c_d8580057",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muof3vn3_f29b3087",
+   "ayahs": [
+    "112:2"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00016-of-00411:344",
+    "ayahs": [
+     "112:1"
+    ],
+    "speaker": "tlog/val/25"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00020-of-00411:259",
+    "ayahs": [
+     "112:3"
+    ],
+    "speaker": "tlog/val/8"
+   }
+  },
+  {
+   "clip": "muof41hy_ee1c2ae2",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muof4jkh_a7363f2b",
+   "ayahs": [
+    "2:6"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00114-of-00411:305",
+    "ayahs": [
+     "2:4",
+     "2:5"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00167-of-00411:912",
+    "ayahs": [
+     "2:7"
+    ],
+    "speaker": "tlog/val/127"
+   }
+  },
+  {
+   "clip": "muof4w2h_64d8e478",
+   "ayahs": [
+    "26:106"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00124-of-00411:630",
+    "ayahs": [
+     "26:105"
+    ],
+    "speaker": "tlog/train/230"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "muphd23f_475abd74",
+    "ayahs": [
+     "26:107"
+    ],
+    "speaker": "d7f96630406b44389639"
+   }
+  },
+  {
+   "clip": "muof5cll_680b74fd",
+   "ayahs": [
+    "1:7"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00092-of-00411:295",
+    "ayahs": [
+     "1:5",
+     "1:6"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "muof5ht1_97360983",
+   "ayahs": [
+    "112:2"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00016-of-00411:344",
+    "ayahs": [
+     "112:1"
+    ],
+    "speaker": "tlog/val/25"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00020-of-00411:259",
+    "ayahs": [
+     "112:3"
+    ],
+    "speaker": "tlog/val/8"
+   }
+  },
+  {
+   "clip": "muof5q4h_a99d2c5d",
+   "ayahs": [
+    "79:39"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00116-of-00332:529",
+    "ayahs": [
+     "79:37",
+     "79:38"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00339-of-00411:721",
+    "ayahs": [
+     "79:40"
+    ],
+    "speaker": "tlog/val/111"
+   }
+  },
+  {
+   "clip": "muof77nq_92716396",
+   "ayahs": [
+    "2:6"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00114-of-00411:305",
+    "ayahs": [
+     "2:4",
+     "2:5"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00167-of-00411:912",
+    "ayahs": [
+     "2:7"
+    ],
+    "speaker": "tlog/val/127"
+   }
+  },
+  {
+   "clip": "muof8ik2_5becb732",
+   "ayahs": [
+    "26:36"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00128-of-00411:906",
+    "ayahs": [
+     "26:35"
+    ],
+    "speaker": "tlog/train/55"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00128-of-00411:966",
+    "ayahs": [
+     "26:37"
+    ],
+    "speaker": "tlog/test/96"
+   }
+  },
+  {
+   "clip": "muof8w0z_c6c06aff",
+   "ayahs": [
+    "114:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00027-of-00411:714",
+    "ayahs": [
+     "114:3"
+    ],
+    "speaker": "tlog/val/108"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:776",
+    "ayahs": [
+     "114:5",
+     "114:6"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muofyekv_3138ddbf",
+   "ayahs": [
+    "2:2"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00161-of-00411:162",
+    "ayahs": [
+     "2:3"
+    ],
+    "speaker": "tlog/test/5"
+   }
+  },
+  {
+   "clip": "muofz3ye_ee22cf44",
+   "ayahs": [
+    "80:40"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00351-of-00411:406",
+    "ayahs": [
+     "80:39"
+    ],
+    "speaker": "tlog/val/131"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00351-of-00411:809",
+    "ayahs": [
+     "80:41"
+    ],
+    "speaker": "tlog/test/4"
+   }
+  },
+  {
+   "clip": "muofzssf_e5b8a80e",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muog0a36_cdd99d2f",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muog0tem_5153b709",
+   "ayahs": [
+    "94:4",
+    "94:5",
+    "94:6"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:464",
+    "ayahs": [
+     "94:3"
+    ],
+    "speaker": "tlog/val/143"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00395-of-00411:122",
+    "ayahs": [
+     "94:7"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muog21hl_5aeb0f2b",
+   "ayahs": [
+    "12:2"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00033-of-00411:687",
+    "ayahs": [
+     "12:1"
+    ],
+    "speaker": "tlog/val/128"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00034-of-00411:526",
+    "ayahs": [
+     "12:3"
+    ],
+    "speaker": "tlog/val/102"
+   }
+  },
+  {
+   "clip": "muog3b1m_b6936ccd",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muog3ysl_96ea2eb2",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muog42hv_6fb62817",
+   "ayahs": [
+    "112:2"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00016-of-00411:344",
+    "ayahs": [
+     "112:1"
+    ],
+    "speaker": "tlog/val/25"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00020-of-00411:259",
+    "ayahs": [
+     "112:3"
+    ],
+    "speaker": "tlog/val/8"
+   }
+  },
+  {
+   "clip": "muog4nzy_a8df16fb",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muog573g_f3a8e917",
+   "ayahs": [
+    "2:2"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00161-of-00411:162",
+    "ayahs": [
+     "2:3"
+    ],
+    "speaker": "tlog/test/5"
+   }
+  },
+  {
+   "clip": "muog58ci_67e99296",
+   "ayahs": [
+    "109:2",
+    "109:3",
+    "109:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00008-of-00411:690",
+    "ayahs": [
+     "109:1"
+    ],
+    "speaker": "tlog/val/33"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00199-of-00332:823",
+    "ayahs": [
+     "109:5",
+     "109:6"
+    ],
+    "speaker": "tlog/train/58"
+   }
+  },
+  {
+   "clip": "muog5nbm_866b163d",
+   "ayahs": [
+    "114:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00027-of-00411:714",
+    "ayahs": [
+     "114:3"
+    ],
+    "speaker": "tlog/val/108"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:776",
+    "ayahs": [
+     "114:5",
+     "114:6"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muog5ny0_461ac4fe",
+   "ayahs": [
+    "2:2"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00161-of-00411:162",
+    "ayahs": [
+     "2:3"
+    ],
+    "speaker": "tlog/test/5"
+   }
+  },
+  {
+   "clip": "muog5xww_655c4922",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muog5zq2_bc97de6e",
+   "ayahs": [
+    "55:9"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00260-of-00411:170",
+    "ayahs": [
+     "55:8"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00253-of-00411:373",
+    "ayahs": [
+     "55:10"
+    ],
+    "speaker": "tlog/test/7"
+   }
+  },
+  {
+   "clip": "muoj4ci1_b3f95786",
+   "ayahs": [
+    "43:3"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00224-of-00411:664",
+    "ayahs": [
+     "43:4"
+    ],
+    "speaker": "tlog/train/230"
+   }
+  },
+  {
+   "clip": "muoj4vi0_e027d49b",
+   "ayahs": [
+    "43:3"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00224-of-00411:664",
+    "ayahs": [
+     "43:4"
+    ],
+    "speaker": "tlog/train/230"
+   }
+  },
+  {
+   "clip": "muoj5fg8_9c75136c",
+   "ayahs": [
+    "114:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00027-of-00411:714",
+    "ayahs": [
+     "114:3"
+    ],
+    "speaker": "tlog/val/108"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:776",
+    "ayahs": [
+     "114:5",
+     "114:6"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muoj5yk2_8bc9aa23",
+   "ayahs": [
+    "98:1"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00401-of-00411:393",
+    "ayahs": [
+     "98:2"
+    ],
+    "speaker": "tlog/test/233"
+   }
+  },
+  {
+   "clip": "muoj6d21_9c597761",
+   "ayahs": [
+    "103:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00003-of-00411:442",
+    "ayahs": [
+     "103:1",
+     "103:2"
+    ],
+    "speaker": "tlog/val/101"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "muoj6r7z_2558437f",
+   "ayahs": [
+    "114:1",
+    "114:2",
+    "114:3"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:134",
+    "ayahs": [
+     "114:4"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muoj70gh_73d41666",
+   "ayahs": [
+    "93:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00006-of-00411:245",
+    "ayahs": [
+     "93:1",
+     "93:2"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mupfeb03_1e268ab2",
+    "ayahs": [
+     "93:4"
+    ],
+    "speaker": "77726db75fc64c09bc62"
+   }
+  },
+  {
+   "clip": "muoj7duz_76afba75",
+   "ayahs": [
+    "26:106"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00124-of-00411:630",
+    "ayahs": [
+     "26:105"
+    ],
+    "speaker": "tlog/train/230"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "muphd23f_475abd74",
+    "ayahs": [
+     "26:107"
+    ],
+    "speaker": "d7f96630406b44389639"
+   }
+  },
+  {
+   "clip": "muoj7moy_52594b11",
+   "ayahs": [
+    "95:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00396-of-00411:161",
+    "ayahs": [
+     "95:4"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00396-of-00411:565",
+    "ayahs": [
+     "95:6"
+    ],
+    "speaker": "tlog/test/7"
+   }
+  },
+  {
+   "clip": "muoj7w9t_67f61125",
+   "ayahs": [
+    "94:4",
+    "94:5",
+    "94:6"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:464",
+    "ayahs": [
+     "94:3"
+    ],
+    "speaker": "tlog/val/143"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00395-of-00411:122",
+    "ayahs": [
+     "94:7"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muoki1dq_52eb26e4",
+   "ayahs": [
+    "36:42"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00186-of-00411:567",
+    "ayahs": [
+     "36:41"
+    ],
+    "speaker": "tlog/train/89"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00186-of-00411:754",
+    "ayahs": [
+     "36:43"
+    ],
+    "speaker": "tlog/train/55"
+   }
+  },
+  {
+   "clip": "muokjqtz_b883dac1",
+   "ayahs": [
+    "114:1",
+    "114:2",
+    "114:3"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:134",
+    "ayahs": [
+     "114:4"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muokkcer_bf53751b",
+   "ayahs": [
+    "113:2"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00020-of-00411:526",
+    "ayahs": [
+     "113:1"
+    ],
+    "speaker": "tlog/test/250"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00025-of-00411:160",
+    "ayahs": [
+     "113:3"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muokktog_fb5ff05a",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muokl1q4_130c7bb1",
+   "ayahs": [
+    "93:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00006-of-00411:245",
+    "ayahs": [
+     "93:1",
+     "93:2"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mupfeb03_1e268ab2",
+    "ayahs": [
+     "93:4"
+    ],
+    "speaker": "77726db75fc64c09bc62"
+   }
+  },
+  {
+   "clip": "muoklekh_0ea19321",
+   "ayahs": [
+    "18:47"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "muoove9d_80d2ce72",
+    "ayahs": [
+     "18:46"
+    ],
+    "speaker": "1719770145644b608389"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00055-of-00411:157",
+    "ayahs": [
+     "18:48"
+    ],
+    "speaker": "tlog/val/127"
+   }
+  },
+  {
+   "clip": "muokludg_246b6bc8",
+   "ayahs": [
+    "7:111"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00297-of-00332:195",
+    "ayahs": [
+     "7:110"
+    ],
+    "speaker": "tlog/test/256"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00179-of-00332:142",
+    "ayahs": [
+     "7:112",
+     "7:113"
+    ],
+    "speaker": "tlog/train/83"
+   }
+  },
+  {
+   "clip": "muokmdhr_3da5ccd5",
+   "ayahs": [
+    "1:7"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00092-of-00411:295",
+    "ayahs": [
+     "1:5",
+     "1:6"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "muokmtjc_e6bb84e6",
+   "ayahs": [
+    "2:2"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00161-of-00411:162",
+    "ayahs": [
+     "2:3"
+    ],
+    "speaker": "tlog/test/5"
+   }
+  },
+  {
+   "clip": "muoknfli_8920a07a",
+   "ayahs": [
+    "55:71"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00259-of-00411:383",
+    "ayahs": [
+     "55:70"
+    ],
+    "speaker": "tlog/test/6"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mur9glh7_2a9a3021",
+    "ayahs": [
+     "55:72"
+    ],
+    "speaker": "230525bb526940198038"
+   }
+  },
+  {
+   "clip": "muokopa9_cf21b8de",
+   "ayahs": [
+    "89:26"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "muo78bgo_00308ac4",
+    "ayahs": [
+     "89:25"
+    ],
+    "speaker": "cd552e1f7c624c1f9eff"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00120-of-00332:158",
+    "ayahs": [
+     "89:27",
+     "89:28"
+    ],
+    "speaker": "tlog/test/61"
+   }
+  },
+  {
+   "clip": "muokp970_4861be99",
+   "ayahs": [
+    "78:1"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00328-of-00411:388",
+    "ayahs": [
+     "78:2"
+    ],
+    "speaker": "tlog/test/243"
+   }
+  },
+  {
+   "clip": "muokpwla_c9acdc46",
+   "ayahs": [
+    "103:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00003-of-00411:442",
+    "ayahs": [
+     "103:1",
+     "103:2"
+    ],
+    "speaker": "tlog/val/101"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "muokqj9e_95f78f3d",
+   "ayahs": [
+    "79:39"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00116-of-00332:529",
+    "ayahs": [
+     "79:37",
+     "79:38"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00339-of-00411:721",
+    "ayahs": [
+     "79:40"
+    ],
+    "speaker": "tlog/val/111"
+   }
+  },
+  {
+   "clip": "muokqwhm_088dedb2",
+   "ayahs": [
+    "18:101"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00048-of-00411:717",
+    "ayahs": [
+     "18:100"
+    ],
+    "speaker": "tlog/val/33"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00048-of-00411:889",
+    "ayahs": [
+     "18:102"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muokr4cg_b4a22106",
+   "ayahs": [
+    "82:9"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "mupk7rz7_8ff7c0ad",
+    "ayahs": [
+     "82:8"
+    ],
+    "speaker": "3424c996d5d14c9a8418"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00314-of-00332:893",
+    "ayahs": [
+     "82:10",
+     "82:11"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muokrh35_71cbebef",
+   "ayahs": [
+    "36:24"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00183-of-00411:116",
+    "ayahs": [
+     "36:23"
+    ],
+    "speaker": "tlog/val/43"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mur9fju9_34f4dfd5",
+    "ayahs": [
+     "36:25"
+    ],
+    "speaker": "230525bb526940198038"
+   }
+  },
+  {
+   "clip": "muoks1u5_d085a0b0",
+   "ayahs": [
+    "84:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00364-of-00411:332",
+    "ayahs": [
+     "84:3"
+    ],
+    "speaker": "tlog/val/8"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00364-of-00411:586",
+    "ayahs": [
+     "84:5",
+     "84:6"
+    ],
+    "speaker": "tlog/train/83"
+   }
+  },
+  {
+   "clip": "muooq287_e725aea0",
+   "ayahs": [
+    "109:2",
+    "109:3",
+    "109:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00008-of-00411:690",
+    "ayahs": [
+     "109:1"
+    ],
+    "speaker": "tlog/val/33"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00199-of-00332:823",
+    "ayahs": [
+     "109:5",
+     "109:6"
+    ],
+    "speaker": "tlog/train/58"
+   }
+  },
+  {
+   "clip": "muoor7kc_a76626f4",
+   "ayahs": [
+    "114:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00027-of-00411:714",
+    "ayahs": [
+     "114:3"
+    ],
+    "speaker": "tlog/val/108"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:776",
+    "ayahs": [
+     "114:5",
+     "114:6"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muoorz0r_5d638d92",
+   "ayahs": [
+    "26:106"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00124-of-00411:630",
+    "ayahs": [
+     "26:105"
+    ],
+    "speaker": "tlog/train/230"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "muphd23f_475abd74",
+    "ayahs": [
+     "26:107"
+    ],
+    "speaker": "d7f96630406b44389639"
+   }
+  },
+  {
+   "clip": "muooshc6_d2f9fbdc",
+   "ayahs": [
+    "114:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00027-of-00411:714",
+    "ayahs": [
+     "114:3"
+    ],
+    "speaker": "tlog/val/108"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:776",
+    "ayahs": [
+     "114:5",
+     "114:6"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muoostq1_646a9f82",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muootda8_9088c293",
+   "ayahs": [
+    "2:2"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00161-of-00411:162",
+    "ayahs": [
+     "2:3"
+    ],
+    "speaker": "tlog/test/5"
+   }
+  },
+  {
+   "clip": "muootnkh_8f30616a",
+   "ayahs": [
+    "113:2"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00020-of-00411:526",
+    "ayahs": [
+     "113:1"
+    ],
+    "speaker": "tlog/test/250"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00025-of-00411:160",
+    "ayahs": [
+     "113:3"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muootzr9_c2949e84",
+   "ayahs": [
+    "114:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:134",
+    "ayahs": [
+     "114:4"
+    ],
+    "speaker": "tlog/test/232"
+   },
+   "follow": null,
+   "followReason": "no clean recitation of the following ayah"
+  },
+  {
+   "clip": "muoouj31_48c5a4cc",
+   "ayahs": [
+    "2:6"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00114-of-00411:305",
+    "ayahs": [
+     "2:4",
+     "2:5"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00167-of-00411:912",
+    "ayahs": [
+     "2:7"
+    ],
+    "speaker": "tlog/val/127"
+   }
+  },
+  {
+   "clip": "muooux8p_73ec57b9",
+   "ayahs": [
+    "12:2"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00033-of-00411:687",
+    "ayahs": [
+     "12:1"
+    ],
+    "speaker": "tlog/val/128"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00034-of-00411:526",
+    "ayahs": [
+     "12:3"
+    ],
+    "speaker": "tlog/val/102"
+   }
+  },
+  {
+   "clip": "muoove9d_80d2ce72",
+   "ayahs": [
+    "18:46"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00054-of-00411:822",
+    "ayahs": [
+     "18:45"
+    ],
+    "speaker": "tlog/train/58"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "muoklekh_0ea19321",
+    "ayahs": [
+     "18:47"
+    ],
+    "speaker": "9601da606d3243c399a8"
+   }
+  },
+  {
+   "clip": "muoovuqu_8674d86f",
+   "ayahs": [
+    "2:6"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00114-of-00411:305",
+    "ayahs": [
+     "2:4",
+     "2:5"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00167-of-00411:912",
+    "ayahs": [
+     "2:7"
+    ],
+    "speaker": "tlog/val/127"
+   }
+  },
+  {
+   "clip": "muoowrhw_7ec06337",
+   "ayahs": [
+    "18:27"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00052-of-00411:621",
+    "ayahs": [
+     "18:26"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00052-of-00411:744",
+    "ayahs": [
+     "18:28"
+    ],
+    "speaker": "tlog/test/96"
+   }
+  },
+  {
+   "clip": "muopi90b_cd833229",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muopivmv_0af5ef87",
+   "ayahs": [
+    "109:3",
+    "109:4",
+    "109:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00009-of-00411:110",
+    "ayahs": [
+     "109:1",
+     "109:2"
+    ],
+    "speaker": "tlog/test/4"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00010-of-00411:343",
+    "ayahs": [
+     "109:6"
+    ],
+    "speaker": "tlog/val/43"
+   }
+  },
+  {
+   "clip": "muopkoqw_17653a3d",
+   "ayahs": [
+    "1:7"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00092-of-00411:295",
+    "ayahs": [
+     "1:5",
+     "1:6"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "muopljhl_d35a1e67",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muoplzj2_9497a1b6",
+   "ayahs": [
+    "2:2"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00161-of-00411:162",
+    "ayahs": [
+     "2:3"
+    ],
+    "speaker": "tlog/test/5"
+   }
+  },
+  {
+   "clip": "muopoose_62d47563",
+   "ayahs": [
+    "103:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00003-of-00411:442",
+    "ayahs": [
+     "103:1",
+     "103:2"
+    ],
+    "speaker": "tlog/val/101"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "muoue3je_e431b39c",
+   "ayahs": [
+    "93:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00006-of-00411:245",
+    "ayahs": [
+     "93:1",
+     "93:2"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mupfeb03_1e268ab2",
+    "ayahs": [
+     "93:4"
+    ],
+    "speaker": "77726db75fc64c09bc62"
+   }
+  },
+  {
+   "clip": "muoueele_289407fa",
+   "ayahs": [
+    "87:15"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00369-of-00411:879",
+    "ayahs": [
+     "87:14"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00370-of-00411:246",
+    "ayahs": [
+     "87:16"
+    ],
+    "speaker": "tlog/test/96"
+   }
+  },
+  {
+   "clip": "muoueux6_50555486",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muoufe51_0463a17e",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muoufuvl_9e197353",
+   "ayahs": [
+    "114:1",
+    "114:2",
+    "114:3"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00028-of-00411:134",
+    "ayahs": [
+     "114:4"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muougfg6_1651a6ec",
+   "ayahs": [
+    "109:3",
+    "109:4",
+    "109:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00009-of-00411:110",
+    "ayahs": [
+     "109:1",
+     "109:2"
+    ],
+    "speaker": "tlog/test/4"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00010-of-00411:343",
+    "ayahs": [
+     "109:6"
+    ],
+    "speaker": "tlog/val/43"
+   }
+  },
+  {
+   "clip": "muouhsaa_378a3a22",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "muoui1rs_24360fba",
+   "ayahs": [
+    "55:38"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00256-of-00411:742",
+    "ayahs": [
+     "55:37"
+    ],
+    "speaker": "tlog/val/101"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00256-of-00411:849",
+    "ayahs": [
+     "55:39"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muouih3u_4d1737e2",
+   "ayahs": [
+    "79:39"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00116-of-00332:529",
+    "ayahs": [
+     "79:37",
+     "79:38"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00339-of-00411:721",
+    "ayahs": [
+     "79:40"
+    ],
+    "speaker": "tlog/val/111"
+   }
+  },
+  {
+   "clip": "muoujiqd_1456ab78",
+   "ayahs": [
+    "2:6"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00114-of-00411:305",
+    "ayahs": [
+     "2:4",
+     "2:5"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00167-of-00411:912",
+    "ayahs": [
+     "2:7"
+    ],
+    "speaker": "tlog/val/127"
+   }
+  },
+  {
+   "clip": "muoujupy_536ca64c",
+   "ayahs": [
+    "26:36"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00128-of-00411:906",
+    "ayahs": [
+     "26:35"
+    ],
+    "speaker": "tlog/train/55"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00128-of-00411:966",
+    "ayahs": [
+     "26:37"
+    ],
+    "speaker": "tlog/test/96"
+   }
+  },
+  {
+   "clip": "muouk9wv_d1b5e452",
+   "ayahs": [
+    "67:10"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00286-of-00411:713",
+    "ayahs": [
+     "67:9"
+    ],
+    "speaker": "tlog/test/5"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00279-of-00411:533",
+    "ayahs": [
+     "67:11"
+    ],
+    "speaker": "tlog/val/131"
+   }
+  },
+  {
+   "clip": "muoukt2n_909b54ce",
+   "ayahs": [
+    "103:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00003-of-00411:442",
+    "ayahs": [
+     "103:1",
+     "103:2"
+    ],
+    "speaker": "tlog/val/101"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "mup1lj0g_8a9ac646",
+   "ayahs": [
+    "83:34",
+    "83:35",
+    "83:36"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "muo6qf9z_28c59120",
+    "ayahs": [
+     "83:33"
+    ],
+    "speaker": "275b3205198147fa8bf6"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "mup1lyt4_8b34f39b",
+   "ayahs": [
+    "56:92"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00268-of-00411:466",
+    "ayahs": [
+     "56:91"
+    ],
+    "speaker": "tlog/test/7"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00268-of-00411:595",
+    "ayahs": [
+     "56:93",
+     "56:94"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "mup1meae_dde3fa9f",
+   "ayahs": [
+    "7:36"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00344-of-00411:482",
+    "ayahs": [
+     "7:35"
+    ],
+    "speaker": "tlog/val/8"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00344-of-00411:507",
+    "ayahs": [
+     "7:37"
+    ],
+    "speaker": "tlog/train/230"
+   }
+  },
+  {
+   "clip": "mup1moei_6420a022",
+   "ayahs": [
+    "79:35"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00338-of-00411:806",
+    "ayahs": [
+     "79:34"
+    ],
+    "speaker": "tlog/val/33"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mupffgb5_04942762",
+    "ayahs": [
+     "79:36",
+     "79:37"
+    ],
+    "speaker": "77726db75fc64c09bc62"
+   }
+  },
+  {
+   "clip": "mupf7hpg_a330a97f",
+   "ayahs": [
+    "55:16"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00254-of-00411:166",
+    "ayahs": [
+     "55:15"
+    ],
+    "speaker": "tlog/val/43"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00254-of-00411:295",
+    "ayahs": [
+     "55:17"
+    ],
+    "speaker": "tlog/val/129"
+   }
+  },
+  {
+   "clip": "mupf8fr1_a1c73004",
+   "ayahs": [
+    "25:73"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00036-of-00332:939",
+    "ayahs": [
+     "25:72"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00124-of-00411:226",
+    "ayahs": [
+     "25:74"
+    ],
+    "speaker": "tlog/train/194"
+   }
+  },
+  {
+   "clip": "mupfbkdp_a46eb729",
+   "ayahs": [
+    "67:30"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00328-of-00332:364",
+    "ayahs": [
+     "67:29"
+    ],
+    "speaker": "tlog/val/8"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "mupfbtuq_50d40785",
+   "ayahs": [
+    "89:22"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00379-of-00411:656",
+    "ayahs": [
+     "89:21"
+    ],
+    "speaker": "tlog/test/4"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00379-of-00411:908",
+    "ayahs": [
+     "89:23"
+    ],
+    "speaker": "tlog/val/111"
+   }
+  },
+  {
+   "clip": "mupfcemm_361840a6",
+   "ayahs": [
+    "98:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00401-of-00411:841",
+    "ayahs": [
+     "98:4"
+    ],
+    "speaker": "tlog/test/95"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00402-of-00411:169",
+    "ayahs": [
+     "98:6"
+    ],
+    "speaker": "tlog/test/5"
+   }
+  },
+  {
+   "clip": "mupfcuoi_4597c235",
+   "ayahs": [
+    "83:12"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00358-of-00411:524",
+    "ayahs": [
+     "83:11"
+    ],
+    "speaker": "tlog/val/43"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00277-of-00332:766",
+    "ayahs": [
+     "83:13",
+     "83:14"
+    ],
+    "speaker": "tlog/train/230"
+   }
+  },
+  {
+   "clip": "mupfd6e1_7268c749",
+   "ayahs": [
+    "86:2",
+    "86:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00061-of-00411:610",
+    "ayahs": [
+     "86:1"
+    ],
+    "speaker": "tlog/val/102"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00368-of-00411:276",
+    "ayahs": [
+     "86:4"
+    ],
+    "speaker": "tlog/val/113"
+   }
+  },
+  {
+   "clip": "mupfdhbt_553161f0",
+   "ayahs": [
+    "90:12"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00384-of-00411:631",
+    "ayahs": [
+     "90:11"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00384-of-00411:777",
+    "ayahs": [
+     "90:13"
+    ],
+    "speaker": "tlog/val/25"
+   }
+  },
+  {
+   "clip": "mupfdppb_ef71cb60",
+   "ayahs": [
+    "55:55"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00258-of-00411:8",
+    "ayahs": [
+     "55:54"
+    ],
+    "speaker": "tlog/val/43"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00258-of-00411:100",
+    "ayahs": [
+     "55:56"
+    ],
+    "speaker": "tlog/train/55"
+   }
+  },
+  {
+   "clip": "mupfeb03_1e268ab2",
+   "ayahs": [
+    "93:4"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "muokl1q4_130c7bb1",
+    "ayahs": [
+     "93:3"
+    ],
+    "speaker": "9601da606d3243c399a8"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00392-of-00411:890",
+    "ayahs": [
+     "93:5"
+    ],
+    "speaker": "tlog/val/43"
+   }
+  },
+  {
+   "clip": "mupfek96_17ff19e3",
+   "ayahs": [
+    "88:11"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00374-of-00411:608",
+    "ayahs": [
+     "88:12"
+    ],
+    "speaker": "tlog/val/106"
+   }
+  },
+  {
+   "clip": "mupfeufl_701b1f79",
+   "ayahs": [
+    "67:24"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "muqt16tm_4e20ea61",
+    "ayahs": [
+     "67:23"
+    ],
+    "speaker": "e619dc22903b4477acdd"
+   },
+   "follow": null,
+   "followReason": "no clean recitation of the following ayah"
+  },
+  {
+   "clip": "mupffgb5_04942762",
+   "ayahs": [
+    "79:36",
+    "79:37"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "mup1moei_6420a022",
+    "ayahs": [
+     "79:35"
+    ],
+    "speaker": "ac1bc3cfcd924a4bb083"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00339-of-00411:302",
+    "ayahs": [
+     "79:38"
+    ],
+    "speaker": "tlog/val/124"
+   }
+  },
+  {
+   "clip": "mupffoda_6c9a077b",
+   "ayahs": [
+    "86:6"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00368-of-00411:457",
+    "ayahs": [
+     "86:5"
+    ],
+    "speaker": "tlog/val/148"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00368-of-00411:698",
+    "ayahs": [
+     "86:7"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "mupfg1yg_f339f2e2",
+   "ayahs": [
+    "39:35"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00204-of-00411:547",
+    "ayahs": [
+     "39:34"
+    ],
+    "speaker": "tlog/val/33"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00204-of-00411:596",
+    "ayahs": [
+     "39:36"
+    ],
+    "speaker": "tlog/test/98"
+   }
+  },
+  {
+   "clip": "mupfgbiw_9003e41a",
+   "ayahs": [
+    "1:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00075-of-00411:905",
+    "ayahs": [
+     "1:3",
+     "1:4"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00094-of-00411:759",
+    "ayahs": [
+     "1:6",
+     "1:7"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "mupfgsgf_4e4592c7",
+   "ayahs": [
+    "85:7",
+    "85:8"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00366-of-00411:667",
+    "ayahs": [
+     "85:6"
+    ],
+    "speaker": "tlog/test/7"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00367-of-00411:42",
+    "ayahs": [
+     "85:9"
+    ],
+    "speaker": "tlog/val/129"
+   }
+  },
+  {
+   "clip": "mupfhw0p_9fc101fd",
+   "ayahs": [
+    "22:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00065-of-00332:591",
+    "ayahs": [
+     "22:1",
+     "22:2"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00115-of-00411:224",
+    "ayahs": [
+     "22:4"
+    ],
+    "speaker": "tlog/train/55"
+   }
+  },
+  {
+   "clip": "muph6o98_113f4045",
+   "ayahs": [
+    "36:54"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "muo4ka6f_1e21cd28",
+    "ayahs": [
+     "36:53"
+    ],
+    "speaker": "3424c996d5d14c9a8418"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00188-of-00411:407",
+    "ayahs": [
+     "36:55"
+    ],
+    "speaker": "tlog/val/124"
+   }
+  },
+  {
+   "clip": "muph7opr_c6fe9c1d",
+   "ayahs": [
+    "36:53",
+    "36:54",
+    "36:55"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00188-of-00411:136",
+    "ayahs": [
+     "36:52"
+    ],
+    "speaker": "tlog/val/43"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00187-of-00411:99",
+    "ayahs": [
+     "36:56"
+    ],
+    "speaker": "tlog/train/89"
+   }
+  },
+  {
+   "clip": "muph90z2_1f44ed11",
+   "ayahs": [
+    "89:22",
+    "89:23",
+    "89:24"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00379-of-00411:656",
+    "ayahs": [
+     "89:21"
+    ],
+    "speaker": "tlog/test/4"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "muo78bgo_00308ac4",
+    "ayahs": [
+     "89:25"
+    ],
+    "speaker": "cd552e1f7c624c1f9eff"
+   }
+  },
+  {
+   "clip": "muph9o5s_a5d989f4",
+   "ayahs": [
+    "21:86"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00113-of-00411:680",
+    "ayahs": [
+     "21:85"
+    ],
+    "speaker": "tlog/val/128"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00209-of-00332:937",
+    "ayahs": [
+     "21:87"
+    ],
+    "speaker": "tlog/train/199"
+   }
+  },
+  {
+   "clip": "mupha4bi_5c00df99",
+   "ayahs": [
+    "86:10"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00368-of-00411:885",
+    "ayahs": [
+     "86:9"
+    ],
+    "speaker": "tlog/val/43"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00260-of-00332:865",
+    "ayahs": [
+     "86:11"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muphag55_1c455910",
+   "ayahs": [
+    "74:20"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00307-of-00411:493",
+    "ayahs": [
+     "74:19"
+    ],
+    "speaker": "tlog/train/55"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00307-of-00411:869",
+    "ayahs": [
+     "74:21",
+     "74:22"
+    ],
+    "speaker": "tlog/val/43"
+   }
+  },
+  {
+   "clip": "muphb95r_ac9d9a27",
+   "ayahs": [
+    "18:88"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00059-of-00411:183",
+    "ayahs": [
+     "18:87"
+    ],
+    "speaker": "tlog/train/230"
+   },
+   "follow": null,
+   "followReason": "no clean recitation of the following ayah"
+  },
+  {
+   "clip": "muphbu7j_d6e6e780",
+   "ayahs": [
+    "25:26"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00122-of-00411:240",
+    "ayahs": [
+     "25:25"
+    ],
+    "speaker": "tlog/val/124"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00122-of-00411:287",
+    "ayahs": [
+     "25:27"
+    ],
+    "speaker": "tlog/train/55"
+   }
+  },
+  {
+   "clip": "muphd23f_475abd74",
+   "ayahs": [
+    "26:107"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00124-of-00411:661",
+    "ayahs": [
+     "26:106"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": null,
+   "followReason": "no clean recitation of the following ayah"
+  },
+  {
+   "clip": "muphdzhi_0426bb55",
+   "ayahs": [
+    "7:190",
+    "7:191",
+    "7:192"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00343-of-00411:570",
+    "ayahs": [
+     "7:189"
+    ],
+    "speaker": "tlog/val/43"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00343-of-00411:631",
+    "ayahs": [
+     "7:193"
+    ],
+    "speaker": "tlog/train/162"
+   }
+  },
+  {
+   "clip": "muphg92o_9841cd0a",
+   "ayahs": [
+    "17:60",
+    "17:61"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00045-of-00411:419",
+    "ayahs": [
+     "17:59"
+    ],
+    "speaker": "tlog/train/89"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00047-of-00411:659",
+    "ayahs": [
+     "17:62"
+    ],
+    "speaker": "tlog/train/89"
+   }
+  },
+  {
+   "clip": "mupjumfa_f8ecdfcc",
+   "ayahs": [
+    "36:9"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "muqt8l9w_1858dfd2",
+    "ayahs": [
+     "36:7",
+     "36:8"
+    ],
+    "speaker": "e619dc22903b4477acdd"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00180-of-00411:613",
+    "ayahs": [
+     "36:10"
+    ],
+    "speaker": "tlog/test/18"
+   }
+  },
+  {
+   "clip": "mupjvw4z_823e4f46",
+   "ayahs": [
+    "18:104",
+    "18:105"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00049-of-00411:2",
+    "ayahs": [
+     "18:103"
+    ],
+    "speaker": "tlog/test/235"
+   },
+   "follow": {
+    "kind": "help-same-speaker",
+    "id": "muo4g2nu_50931052",
+    "ayahs": [
+     "18:106"
+    ],
+    "speaker": "3424c996d5d14c9a8418"
+   }
+  },
+  {
+   "clip": "mupjxrcj_bb1be78b",
+   "ayahs": [
+    "11:80",
+    "11:81"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00032-of-00411:224",
+    "ayahs": [
+     "11:79"
+    ],
+    "speaker": "tlog/train/234"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00032-of-00411:327",
+    "ayahs": [
+     "11:82"
+    ],
+    "speaker": "tlog/train/55"
+   }
+  },
+  {
+   "clip": "mupjy7fh_723724b9",
+   "ayahs": [
+    "55:59"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00258-of-00411:223",
+    "ayahs": [
+     "55:58"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00258-of-00411:610",
+    "ayahs": [
+     "55:60"
+    ],
+    "speaker": "tlog/test/5"
+   }
+  },
+  {
+   "clip": "mupjzg0x_3fa74861",
+   "ayahs": [
+    "44:15"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00226-of-00411:441",
+    "ayahs": [
+     "44:14"
+    ],
+    "speaker": "tlog/val/33"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00226-of-00411:478",
+    "ayahs": [
+     "44:16"
+    ],
+    "speaker": "tlog/train/58"
+   }
+  },
+  {
+   "clip": "mupk0zu1_99975799",
+   "ayahs": [
+    "4:125",
+    "4:126"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00233-of-00411:951",
+    "ayahs": [
+     "4:124"
+    ],
+    "speaker": "tlog/train/58"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00234-of-00411:111",
+    "ayahs": [
+     "4:127"
+    ],
+    "speaker": "tlog/train/89"
+   }
+  },
+  {
+   "clip": "mupk2bst_925e7c73",
+   "ayahs": [
+    "50:28",
+    "50:29"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00240-of-00411:305",
+    "ayahs": [
+     "50:27"
+    ],
+    "speaker": "tlog/val/117"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mur9g9mp_b5ad75d3",
+    "ayahs": [
+     "50:30"
+    ],
+    "speaker": "230525bb526940198038"
+   }
+  },
+  {
+   "clip": "mupk2y0w_f4570b80",
+   "ayahs": [
+    "20:110"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00101-of-00411:210",
+    "ayahs": [
+     "20:109"
+    ],
+    "speaker": "tlog/train/13"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00202-of-00332:514",
+    "ayahs": [
+     "20:111",
+     "20:112"
+    ],
+    "speaker": "tlog/train/234"
+   }
+  },
+  {
+   "clip": "mupk3o43_96881537",
+   "ayahs": [
+    "78:27",
+    "78:28",
+    "78:29"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00327-of-00411:878",
+    "ayahs": [
+     "78:25",
+     "78:26"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00329-of-00411:164",
+    "ayahs": [
+     "78:30"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "mupk49c7_1c638139",
+   "ayahs": [
+    "21:48"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00106-of-00411:876",
+    "ayahs": [
+     "21:47"
+    ],
+    "speaker": "tlog/train/58"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00106-of-00411:902",
+    "ayahs": [
+     "21:49"
+    ],
+    "speaker": "tlog/train/55"
+   }
+  },
+  {
+   "clip": "mupk4o2m_6f490a2f",
+   "ayahs": [
+    "6:15"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00295-of-00411:460",
+    "ayahs": [
+     "6:14"
+    ],
+    "speaker": "tlog/train/55"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00295-of-00411:884",
+    "ayahs": [
+     "6:16"
+    ],
+    "speaker": "tlog/train/100"
+   }
+  },
+  {
+   "clip": "mupk5ewi_7e9005d8",
+   "ayahs": [
+    "40:26"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00217-of-00411:686",
+    "ayahs": [
+     "40:25"
+    ],
+    "speaker": "tlog/train/89"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00217-of-00411:730",
+    "ayahs": [
+     "40:27"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "mupk5qz6_f62a02f7",
+   "ayahs": [
+    "100:8"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00000-of-00411:743",
+    "ayahs": [
+     "100:7"
+    ],
+    "speaker": "tlog/test/6"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mur96i02_26177036",
+    "ayahs": [
+     "100:9"
+    ],
+    "speaker": "230525bb526940198038"
+   }
+  },
+  {
+   "clip": "mupk6qxm_3d1585bf",
+   "ayahs": [
+    "76:17",
+    "76:18",
+    "76:19"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00314-of-00411:486",
+    "ayahs": [
+     "76:16"
+    ],
+    "speaker": "tlog/val/148"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00314-of-00411:897",
+    "ayahs": [
+     "76:20"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "mupk7d4h_0c2f4c1b",
+   "ayahs": [
+    "18:106"
+   ],
+   "lead": {
+    "kind": "help-same-speaker",
+    "id": "mupjvw4z_823e4f46",
+    "ayahs": [
+     "18:104",
+     "18:105"
+    ],
+    "speaker": "3424c996d5d14c9a8418"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00049-of-00411:261",
+    "ayahs": [
+     "18:107"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "mupk7rz7_8ff7c0ad",
+   "ayahs": [
+    "82:8"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00358-of-00411:106",
+    "ayahs": [
+     "82:7"
+    ],
+    "speaker": "tlog/test/61"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "muokr4cg_b4a22106",
+    "ayahs": [
+     "82:9"
+    ],
+    "speaker": "9601da606d3243c399a8"
+   }
+  },
+  {
+   "clip": "mupk81ox_3ca3bca2",
+   "ayahs": [
+    "91:10"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00388-of-00411:872",
+    "ayahs": [
+     "91:8",
+     "91:9"
+    ],
+    "speaker": "tlog/val/131"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00387-of-00411:357",
+    "ayahs": [
+     "91:11",
+     "91:12"
+    ],
+    "speaker": "tlog/val/148"
+   }
+  },
+  {
+   "clip": "mupk8vfg_eaa4ea9c",
+   "ayahs": [
+    "105:2",
+    "105:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00005-of-00411:687",
+    "ayahs": [
+     "105:1"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00258-of-00332:184",
+    "ayahs": [
+     "105:4",
+     "105:5"
+    ],
+    "speaker": "tlog/val/33"
+   }
+  },
+  {
+   "clip": "mupk9n1t_35716378",
+   "ayahs": [
+    "71:9",
+    "71:10"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00302-of-00411:516",
+    "ayahs": [
+     "71:8"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00301-of-00411:163",
+    "ayahs": [
+     "71:11"
+    ],
+    "speaker": "tlog/val/102"
+   }
+  },
+  {
+   "clip": "mupka3rj_ef35b262",
+   "ayahs": [
+    "83:16"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "unclean-00041-of-00332:291",
+    "ayahs": [
+     "83:14",
+     "83:15"
+    ],
+    "speaker": "tlog/train/230"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00359-of-00411:264",
+    "ayahs": [
+     "83:17"
+    ],
+    "speaker": "tlog/val/33"
+   }
+  },
+  {
+   "clip": "mupkatc0_25dd27a9",
+   "ayahs": [
+    "96:2",
+    "96:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00398-of-00411:327",
+    "ayahs": [
+     "96:1"
+    ],
+    "speaker": "tlog/test/15"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00399-of-00411:104",
+    "ayahs": [
+     "96:4"
+    ],
+    "speaker": "tlog/val/128"
+   }
+  },
+  {
+   "clip": "mupkb5lv_1a4ff19e",
+   "ayahs": [
+    "56:75"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00267-of-00411:205",
+    "ayahs": [
+     "56:76"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "mupkc3kd_e403d9b8",
+   "ayahs": [
+    "39:27",
+    "39:28"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00204-of-00411:233",
+    "ayahs": [
+     "39:26"
+    ],
+    "speaker": "tlog/train/234"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00204-of-00411:308",
+    "ayahs": [
+     "39:29"
+    ],
+    "speaker": "tlog/train/162"
+   }
+  },
+  {
+   "clip": "mupkcgw9_a233a563",
+   "ayahs": [
+    "81:23"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00354-of-00411:646",
+    "ayahs": [
+     "81:22"
+    ],
+    "speaker": "tlog/test/61"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00167-of-00332:754",
+    "ayahs": [
+     "81:24",
+     "81:25"
+    ],
+    "speaker": "tlog/val/131"
+   }
+  },
+  {
+   "clip": "mupkdfbo_89459191",
+   "ayahs": [
+    "72:9"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00304-of-00411:19",
+    "ayahs": [
+     "72:8"
+    ],
+    "speaker": "tlog/val/102"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00302-of-00411:618",
+    "ayahs": [
+     "72:10"
+    ],
+    "speaker": "tlog/val/101"
+   }
+  },
+  {
+   "clip": "mupkegpa_7ff70daa",
+   "ayahs": [
+    "106:1",
+    "106:2"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00006-of-00411:422",
+    "ayahs": [
+     "106:3"
+    ],
+    "speaker": "tlog/test/96"
+   }
+  },
+  {
+   "clip": "mupkf8lp_dda6c3cd",
+   "ayahs": [
+    "9:56"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00406-of-00411:248",
+    "ayahs": [
+     "9:55"
+    ],
+    "speaker": "tlog/train/55"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00406-of-00411:279",
+    "ayahs": [
+     "9:57"
+    ],
+    "speaker": "tlog/train/234"
+   }
+  },
+  {
+   "clip": "muqsursd_f20eeca8",
+   "ayahs": [
+    "108:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00008-of-00411:236",
+    "ayahs": [
+     "108:2"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "muqsvnmq_d71ba9b7",
+   "ayahs": [
+    "22:70"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00115-of-00411:739",
+    "ayahs": [
+     "22:69"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00115-of-00411:807",
+    "ayahs": [
+     "22:71"
+    ],
+    "speaker": "tlog/train/58"
+   }
+  },
+  {
+   "clip": "muqsw2b3_454c0c17",
+   "ayahs": [
+    "3:58"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00214-of-00411:280",
+    "ayahs": [
+     "3:57"
+    ],
+    "speaker": "tlog/test/7"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00214-of-00411:429",
+    "ayahs": [
+     "3:59",
+     "3:60"
+    ],
+    "speaker": "tlog/train/100"
+   }
+  },
+  {
+   "clip": "muqswmrg_027cb753",
+   "ayahs": [
+    "36:38"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00185-of-00411:591",
+    "ayahs": [
+     "36:37"
+    ],
+    "speaker": "tlog/val/43"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00185-of-00411:834",
+    "ayahs": [
+     "36:39"
+    ],
+    "speaker": "tlog/test/233"
+   }
+  },
+  {
+   "clip": "muqsx22i_eeadd8d8",
+   "ayahs": [
+    "51:24"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "unclean-00029-of-00332:73",
+    "ayahs": [
+     "51:22",
+     "51:23"
+    ],
+    "speaker": "tlog/train/230"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00242-of-00411:454",
+    "ayahs": [
+     "51:25"
+    ],
+    "speaker": "tlog/val/128"
+   }
+  },
+  {
+   "clip": "muqsyh6y_db02b8ac",
+   "ayahs": [
+    "36:63",
+    "36:64",
+    "36:65"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00189-of-00411:614",
+    "ayahs": [
+     "36:62"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00189-of-00411:965",
+    "ayahs": [
+     "36:66"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "muqszwl7_a8fa9e92",
+   "ayahs": [
+    "27:9",
+    "27:10"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00134-of-00411:626",
+    "ayahs": [
+     "27:8"
+    ],
+    "speaker": "tlog/val/128"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00131-of-00411:443",
+    "ayahs": [
+     "27:11"
+    ],
+    "speaker": "tlog/val/128"
+   }
+  },
+  {
+   "clip": "muqt0gjh_907ba8cb",
+   "ayahs": [
+    "79:20",
+    "79:21",
+    "79:22"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00336-of-00411:689",
+    "ayahs": [
+     "79:19"
+    ],
+    "speaker": "tlog/test/61"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00337-of-00411:609",
+    "ayahs": [
+     "79:23",
+     "79:24"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muqt16tm_4e20ea61",
+   "ayahs": [
+    "67:23"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00282-of-00411:396",
+    "ayahs": [
+     "67:22"
+    ],
+    "speaker": "tlog/val/9"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mupfeufl_701b1f79",
+    "ayahs": [
+     "67:24"
+    ],
+    "speaker": "77726db75fc64c09bc62"
+   }
+  },
+  {
+   "clip": "muqt1isy_7a4d6123",
+   "ayahs": [
+    "100:8"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00000-of-00411:743",
+    "ayahs": [
+     "100:7"
+    ],
+    "speaker": "tlog/test/6"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mur96i02_26177036",
+    "ayahs": [
+     "100:9"
+    ],
+    "speaker": "230525bb526940198038"
+   }
+  },
+  {
+   "clip": "muqt2s0j_582be6b8",
+   "ayahs": [
+    "87:15",
+    "87:16",
+    "87:17"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00369-of-00411:879",
+    "ayahs": [
+     "87:14"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00370-of-00411:693",
+    "ayahs": [
+     "87:18",
+     "87:19"
+    ],
+    "speaker": "tlog/val/121"
+   }
+  },
+  {
+   "clip": "muqt5yun_22b5887d",
+   "ayahs": [
+    "33:20",
+    "33:21"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00175-of-00411:585",
+    "ayahs": [
+     "33:19"
+    ],
+    "speaker": "tlog/train/55"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00175-of-00411:703",
+    "ayahs": [
+     "33:22"
+    ],
+    "speaker": "tlog/val/9"
+   }
+  },
+  {
+   "clip": "muqt6vfj_97e79f57",
+   "ayahs": [
+    "25:40"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00122-of-00411:790",
+    "ayahs": [
+     "25:39"
+    ],
+    "speaker": "tlog/train/55"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00122-of-00411:893",
+    "ayahs": [
+     "25:41"
+    ],
+    "speaker": "tlog/train/55"
+   }
+  },
+  {
+   "clip": "muqt79mq_26d81536",
+   "ayahs": [
+    "102:4",
+    "102:5",
+    "102:6"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00116-of-00332:760",
+    "ayahs": [
+     "102:7",
+     "102:8"
+    ],
+    "speaker": "tlog/val/122"
+   }
+  },
+  {
+   "clip": "muqt7sci_3f8b7d02",
+   "ayahs": [
+    "79:13",
+    "79:14"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00335-of-00411:458",
+    "ayahs": [
+     "79:12"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00336-of-00411:85",
+    "ayahs": [
+     "79:15"
+    ],
+    "speaker": "tlog/val/54"
+   }
+  },
+  {
+   "clip": "muqt8l9w_1858dfd2",
+   "ayahs": [
+    "36:7",
+    "36:8"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00190-of-00411:390",
+    "ayahs": [
+     "36:6"
+    ],
+    "speaker": "tlog/test/61"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mupjumfa_f8ecdfcc",
+    "ayahs": [
+     "36:9"
+    ],
+    "speaker": "3424c996d5d14c9a8418"
+   }
+  },
+  {
+   "clip": "muqtawg0_4b215cb4",
+   "ayahs": [
+    "32:14",
+    "32:15",
+    "32:16"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00174-of-00411:193",
+    "ayahs": [
+     "32:13"
+    ],
+    "speaker": "tlog/train/58"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00174-of-00411:381",
+    "ayahs": [
+     "32:17"
+    ],
+    "speaker": "tlog/test/97"
+   }
+  },
+  {
+   "clip": "muqtbxzx_3ed4334e",
+   "ayahs": [
+    "55:29",
+    "55:30",
+    "55:31"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": null,
+   "followReason": "no clean recitation of the following ayah"
+  },
+  {
+   "clip": "muqtcefl_c89e03b3",
+   "ayahs": [
+    "15:25"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00040-of-00411:227",
+    "ayahs": [
+     "15:24"
+    ],
+    "speaker": "tlog/val/9"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00040-of-00411:338",
+    "ayahs": [
+     "15:26"
+    ],
+    "speaker": "tlog/test/7"
+   }
+  },
+  {
+   "clip": "muqtcrmf_9511d184",
+   "ayahs": [
+    "81:10",
+    "81:11"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00356-of-00411:300",
+    "ayahs": [
+     "81:8",
+     "81:9"
+    ],
+    "speaker": "tlog/train/162"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00353-of-00411:279",
+    "ayahs": [
+     "81:12"
+    ],
+    "speaker": "tlog/val/9"
+   }
+  },
+  {
+   "clip": "muqtemin_d59dad75",
+   "ayahs": [
+    "35:33",
+    "35:34",
+    "35:35"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00179-of-00411:926",
+    "ayahs": [
+     "35:32"
+    ],
+    "speaker": "tlog/train/58"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00180-of-00411:102",
+    "ayahs": [
+     "35:36"
+    ],
+    "speaker": "tlog/train/55"
+   }
+  },
+  {
+   "clip": "muqtfmzk_4341a220",
+   "ayahs": [
+    "55:1"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00194-of-00411:757",
+    "ayahs": [
+     "55:2"
+    ],
+    "speaker": "tlog/val/131"
+   }
+  },
+  {
+   "clip": "muqtg0gp_e5d336eb",
+   "ayahs": [
+    "96:6"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00399-of-00411:258",
+    "ayahs": [
+     "96:5"
+    ],
+    "speaker": "tlog/test/233"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00399-of-00411:583",
+    "ayahs": [
+     "96:7"
+    ],
+    "speaker": "tlog/test/7"
+   }
+  },
+  {
+   "clip": "muqtgdxi_33da881e",
+   "ayahs": [
+    "37:112"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00194-of-00411:104",
+    "ayahs": [
+     "37:113"
+    ],
+    "speaker": "tlog/train/52"
+   }
+  },
+  {
+   "clip": "mur8qtbn_09b08e1f",
+   "ayahs": [
+    "75:23",
+    "75:24"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00057-of-00332:213",
+    "ayahs": [
+     "75:22"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00312-of-00411:133",
+    "ayahs": [
+     "75:25"
+    ],
+    "speaker": "tlog/train/230"
+   }
+  },
+  {
+   "clip": "mur8s8wb_b8e96272",
+   "ayahs": [
+    "15:60"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00041-of-00411:509",
+    "ayahs": [
+     "15:59"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00041-of-00411:600",
+    "ayahs": [
+     "15:61"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "mur8u2nk_509a6edb",
+   "ayahs": [
+    "41:34",
+    "41:35",
+    "41:36"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00220-of-00411:420",
+    "ayahs": [
+     "41:33"
+    ],
+    "speaker": "tlog/train/55"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00220-of-00411:632",
+    "ayahs": [
+     "41:37"
+    ],
+    "speaker": "tlog/val/102"
+   }
+  },
+  {
+   "clip": "mur8uf0h_1ae200c5",
+   "ayahs": [
+    "26:94"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00131-of-00411:138",
+    "ayahs": [
+     "26:93"
+    ],
+    "speaker": "tlog/train/52"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00131-of-00411:175",
+    "ayahs": [
+     "26:95"
+    ],
+    "speaker": "tlog/train/59"
+   }
+  },
+  {
+   "clip": "mur8uodk_1179411d",
+   "ayahs": [
+    "55:7"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00259-of-00411:190",
+    "ayahs": [
+     "55:6"
+    ],
+    "speaker": "tlog/test/4"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00260-of-00411:170",
+    "ayahs": [
+     "55:8"
+    ],
+    "speaker": "tlog/val/129"
+   }
+  },
+  {
+   "clip": "mur8uxt7_9748f769",
+   "ayahs": [
+    "100:10"
+   ],
+   "lead": {
+    "kind": "help-same-speaker",
+    "id": "mur96i02_26177036",
+    "ayahs": [
+     "100:9"
+    ],
+    "speaker": "230525bb526940198038"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00000-of-00411:110",
+    "ayahs": [
+     "100:11"
+    ],
+    "speaker": "tlog/val/9"
+   }
+  },
+  {
+   "clip": "mur8wsy9_4cee7c68",
+   "ayahs": [
+    "6:153"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00295-of-00411:522",
+    "ayahs": [
+     "6:152"
+    ],
+    "speaker": "tlog/train/230"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00295-of-00411:555",
+    "ayahs": [
+     "6:154"
+    ],
+    "speaker": "tlog/train/89"
+   }
+  },
+  {
+   "clip": "mur8xl5q_a23ee62a",
+   "ayahs": [
+    "10:95",
+    "10:96",
+    "10:97"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00013-of-00411:915",
+    "ayahs": [
+     "10:94"
+    ],
+    "speaker": "tlog/train/99"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00014-of-00411:58",
+    "ayahs": [
+     "10:98"
+    ],
+    "speaker": "tlog/test/5"
+   }
+  },
+  {
+   "clip": "mur8ya74_a4c766d5",
+   "ayahs": [
+    "3:16",
+    "3:17"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00209-of-00411:280",
+    "ayahs": [
+     "3:15"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00250-of-00332:257",
+    "ayahs": [
+     "3:18",
+     "3:19"
+    ],
+    "speaker": "tlog/train/89"
+   }
+  },
+  {
+   "clip": "mur8ys6j_c97101b5",
+   "ayahs": [
+    "78:12",
+    "78:13",
+    "78:14"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00321-of-00411:436",
+    "ayahs": [
+     "78:11"
+    ],
+    "speaker": "tlog/test/238"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "muo6zojx_d721fe57",
+    "ayahs": [
+     "78:15"
+    ],
+    "speaker": "cd552e1f7c624c1f9eff"
+   }
+  },
+  {
+   "clip": "mur8z2br_518c0edb",
+   "ayahs": [
+    "96:19"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00398-of-00411:107",
+    "ayahs": [
+     "96:18"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": null,
+   "followReason": "last ayah of the surah"
+  },
+  {
+   "clip": "mur8z95l_d5b6fe60",
+   "ayahs": [
+    "94:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:653",
+    "ayahs": [
+     "94:4"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00394-of-00411:888",
+    "ayahs": [
+     "94:6"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "mur90d41_e75e8815",
+   "ayahs": [
+    "16:31"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00044-of-00411:260",
+    "ayahs": [
+     "16:30"
+    ],
+    "speaker": "tlog/val/108"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00044-of-00411:292",
+    "ayahs": [
+     "16:32"
+    ],
+    "speaker": "tlog/train/58"
+   }
+  },
+  {
+   "clip": "mur92bi5_f1a31e7d",
+   "ayahs": [
+    "12:69"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00035-of-00411:745",
+    "ayahs": [
+     "12:68"
+    ],
+    "speaker": "tlog/test/6"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00035-of-00411:838",
+    "ayahs": [
+     "12:70"
+    ],
+    "speaker": "tlog/train/89"
+   }
+  },
+  {
+   "clip": "mur93yrt_e044a7bc",
+   "ayahs": [
+    "2:64"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00162-of-00411:355",
+    "ayahs": [
+     "2:63"
+    ],
+    "speaker": "tlog/train/206"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00165-of-00411:762",
+    "ayahs": [
+     "2:65"
+    ],
+    "speaker": "tlog/train/100"
+   }
+  },
+  {
+   "clip": "mur96i02_26177036",
+   "ayahs": [
+    "100:9"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "mupk5qz6_f62a02f7",
+    "ayahs": [
+     "100:8"
+    ],
+    "speaker": "3424c996d5d14c9a8418"
+   },
+   "follow": {
+    "kind": "help-same-speaker",
+    "id": "mur8uxt7_9748f769",
+    "ayahs": [
+     "100:10"
+    ],
+    "speaker": "230525bb526940198038"
+   }
+  },
+  {
+   "clip": "mur97786_18637f6e",
+   "ayahs": [
+    "61:4"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00276-of-00411:292",
+    "ayahs": [
+     "61:3"
+    ],
+    "speaker": "tlog/val/33"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00276-of-00411:115",
+    "ayahs": [
+     "61:5"
+    ],
+    "speaker": "tlog/val/128"
+   }
+  },
+  {
+   "clip": "mur97kw0_d1d5799d",
+   "ayahs": [
+    "20:22"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "murcp9qs_1ec2be08",
+    "ayahs": [
+     "20:21"
+    ],
+    "speaker": "d6169e2695f44bef8bcc"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00103-of-00411:270",
+    "ayahs": [
+     "20:23"
+    ],
+    "speaker": "tlog/test/96"
+   }
+  },
+  {
+   "clip": "mur986v1_4b907ab0",
+   "ayahs": [
+    "79:1"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00338-of-00411:202",
+    "ayahs": [
+     "79:2"
+    ],
+    "speaker": "tlog/test/4"
+   }
+  },
+  {
+   "clip": "mur99hkv_4f3316d8",
+   "ayahs": [
+    "7:26"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00344-of-00411:125",
+    "ayahs": [
+     "7:25"
+    ],
+    "speaker": "tlog/train/99"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00344-of-00411:176",
+    "ayahs": [
+     "7:27"
+    ],
+    "speaker": "tlog/train/100"
+   }
+  },
+  {
+   "clip": "mur9aetj_a75cc218",
+   "ayahs": [
+    "3:58",
+    "3:59",
+    "3:60"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00214-of-00411:280",
+    "ayahs": [
+     "3:57"
+    ],
+    "speaker": "tlog/test/7"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00214-of-00411:642",
+    "ayahs": [
+     "3:61"
+    ],
+    "speaker": "tlog/val/108"
+   }
+  },
+  {
+   "clip": "mur9aqc3_4d67f1eb",
+   "ayahs": [
+    "44:42"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00227-of-00411:417",
+    "ayahs": [
+     "44:41"
+    ],
+    "speaker": "tlog/val/101"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00105-of-00332:522",
+    "ayahs": [
+     "44:43"
+    ],
+    "speaker": "tlog/test/4"
+   }
+  },
+  {
+   "clip": "mur9bbmy_8932870d",
+   "ayahs": [
+    "67:16",
+    "67:17"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00280-of-00411:457",
+    "ayahs": [
+     "67:15"
+    ],
+    "speaker": "tlog/val/117"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00281-of-00411:158",
+    "ayahs": [
+     "67:18"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "mur9bnll_1f2b9ba9",
+   "ayahs": [
+    "56:18"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00261-of-00411:331",
+    "ayahs": [
+     "56:17"
+    ],
+    "speaker": "tlog/test/4"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "muo6dzbf_422d19b4",
+    "ayahs": [
+     "56:19"
+    ],
+    "speaker": "aac9b35110914e029312"
+   }
+  },
+  {
+   "clip": "mur9drel_4ce8daea",
+   "ayahs": [
+    "13:41",
+    "13:42"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00037-of-00411:706",
+    "ayahs": [
+     "13:40"
+    ],
+    "speaker": "tlog/train/230"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00037-of-00411:786",
+    "ayahs": [
+     "13:43"
+    ],
+    "speaker": "tlog/test/232"
+   }
+  },
+  {
+   "clip": "mur9e5m2_d9f14ddd",
+   "ayahs": [
+    "85:11"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00365-of-00411:28",
+    "ayahs": [
+     "85:10"
+    ],
+    "speaker": "tlog/val/56"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00365-of-00411:228",
+    "ayahs": [
+     "85:12"
+    ],
+    "speaker": "tlog/val/1"
+   }
+  },
+  {
+   "clip": "mur9edq9_920399db",
+   "ayahs": [
+    "89:11"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00377-of-00411:639",
+    "ayahs": [
+     "89:10"
+    ],
+    "speaker": "tlog/val/129"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00034-of-00411:810",
+    "ayahs": [
+     "89:12"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "mur9eqt8_e91e6295",
+   "ayahs": [
+    "29:2"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00137-of-00411:693",
+    "ayahs": [
+     "29:3"
+    ],
+    "speaker": "tlog/train/100"
+   }
+  },
+  {
+   "clip": "mur9f9wf_90f44e1c",
+   "ayahs": [
+    "11:70"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00031-of-00411:941",
+    "ayahs": [
+     "11:69"
+    ],
+    "speaker": "tlog/train/55"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00032-of-00411:44",
+    "ayahs": [
+     "11:71"
+    ],
+    "speaker": "tlog/train/230"
+   }
+  },
+  {
+   "clip": "mur9fju9_34f4dfd5",
+   "ayahs": [
+    "36:25"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "muokrh35_71cbebef",
+    "ayahs": [
+     "36:24"
+    ],
+    "speaker": "9601da606d3243c399a8"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00183-of-00411:442",
+    "ayahs": [
+     "36:26"
+    ],
+    "speaker": "tlog/val/43"
+   }
+  },
+  {
+   "clip": "mur9fzld_ab4803b5",
+   "ayahs": [
+    "80:16",
+    "80:17"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00348-of-00411:296",
+    "ayahs": [
+     "80:15"
+    ],
+    "speaker": "tlog/val/101"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00348-of-00411:693",
+    "ayahs": [
+     "80:18"
+    ],
+    "speaker": "tlog/test/96"
+   }
+  },
+  {
+   "clip": "mur9g9mp_b5ad75d3",
+   "ayahs": [
+    "50:30"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "mupk2bst_925e7c73",
+    "ayahs": [
+     "50:28",
+     "50:29"
+    ],
+    "speaker": "3424c996d5d14c9a8418"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00131-of-00411:47",
+    "ayahs": [
+     "50:31"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "mur9glh7_2a9a3021",
+   "ayahs": [
+    "55:72"
+   ],
+   "lead": {
+    "kind": "help-other-speaker",
+    "id": "muoknfli_8920a07a",
+    "ayahs": [
+     "55:71"
+    ],
+    "speaker": "9601da606d3243c399a8"
+   },
+   "follow": null,
+   "followReason": "no clean recitation of the following ayah"
+  },
+  {
+   "clip": "mur9h6ot_67903443",
+   "ayahs": [
+    "10:108"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00010-of-00411:705",
+    "ayahs": [
+     "10:107"
+    ],
+    "speaker": "tlog/train/58"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00010-of-00411:751",
+    "ayahs": [
+     "10:109"
+    ],
+    "speaker": "tlog/train/100"
+   }
+  },
+  {
+   "clip": "mur9ixfx_fff2fb34",
+   "ayahs": [
+    "30:2",
+    "30:3",
+    "30:4"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00172-of-00411:658",
+    "ayahs": [
+     "30:5"
+    ],
+    "speaker": "tlog/test/5"
+   }
+  },
+  {
+   "clip": "mur9jv00_a2cd1d96",
+   "ayahs": [
+    "54:41",
+    "54:42"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00252-of-00411:280",
+    "ayahs": [
+     "54:43"
+    ],
+    "speaker": "tlog/train/55"
+   }
+  },
+  {
+   "clip": "murcaff9_a7f596ce",
+   "ayahs": [
+    "19:8"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00060-of-00411:475",
+    "ayahs": [
+     "19:7"
+    ],
+    "speaker": "tlog/val/148"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00060-of-00411:460",
+    "ayahs": [
+     "19:9"
+    ],
+    "speaker": "tlog/train/55"
+   }
+  },
+  {
+   "clip": "murcb6xo_0019e218",
+   "ayahs": [
+    "56:8",
+    "56:9",
+    "56:10"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00266-of-00411:699",
+    "ayahs": [
+     "56:6",
+     "56:7"
+    ],
+    "speaker": "tlog/train/230"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00260-of-00411:732",
+    "ayahs": [
+     "56:11"
+    ],
+    "speaker": "tlog/val/33"
+   }
+  },
+  {
+   "clip": "murccfej_6dfa065e",
+   "ayahs": [
+    "83:26"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00360-of-00411:286",
+    "ayahs": [
+     "83:25"
+    ],
+    "speaker": "tlog/val/148"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00360-of-00411:465",
+    "ayahs": [
+     "83:27"
+    ],
+    "speaker": "tlog/val/148"
+   }
+  },
+  {
+   "clip": "murccznw_4d307b42",
+   "ayahs": [
+    "67:23"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00282-of-00411:396",
+    "ayahs": [
+     "67:22"
+    ],
+    "speaker": "tlog/val/9"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mupfeufl_701b1f79",
+    "ayahs": [
+     "67:24"
+    ],
+    "speaker": "77726db75fc64c09bc62"
+   }
+  },
+  {
+   "clip": "murcdrtb_bdbe5e52",
+   "ayahs": [
+    "78:28",
+    "78:29",
+    "78:30"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00327-of-00411:721",
+    "ayahs": [
+     "78:26",
+     "78:27"
+    ],
+    "speaker": "tlog/test/12"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00157-of-00332:631",
+    "ayahs": [
+     "78:31",
+     "78:32"
+    ],
+    "speaker": "tlog/test/14"
+   }
+  },
+  {
+   "clip": "murceqhl_e0e33a46",
+   "ayahs": [
+    "56:67",
+    "56:68"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00266-of-00411:284",
+    "ayahs": [
+     "56:66"
+    ],
+    "speaker": "tlog/test/96"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00266-of-00411:643",
+    "ayahs": [
+     "56:69"
+    ],
+    "speaker": "tlog/val/1"
+   }
+  },
+  {
+   "clip": "murcfv32_092fa1e6",
+   "ayahs": [
+    "86:2"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00061-of-00411:610",
+    "ayahs": [
+     "86:1"
+    ],
+    "speaker": "tlog/val/102"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00368-of-00411:163",
+    "ayahs": [
+     "86:3"
+    ],
+    "speaker": "tlog/val/43"
+   }
+  },
+  {
+   "clip": "murcgeca_f4b599cc",
+   "ayahs": [
+    "100:5",
+    "100:6"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00000-of-00411:567",
+    "ayahs": [
+     "100:4"
+    ],
+    "speaker": "tlog/val/108"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00000-of-00411:743",
+    "ayahs": [
+     "100:7"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "murch3tr_d6fe92e1",
+   "ayahs": [
+    "44:1"
+   ],
+   "lead": null,
+   "reason": "first ayah of the surah",
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00227-of-00411:294",
+    "ayahs": [
+     "44:2",
+     "44:3"
+    ],
+    "speaker": "tlog/train/100"
+   }
+  },
+  {
+   "clip": "murcjk0r_be3d95ea",
+   "ayahs": [
+    "1:2",
+    "1:3",
+    "1:4"
+   ],
+   "lead": null,
+   "reason": "no clean recitation of the preceding ayah",
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mupfgbiw_9003e41a",
+    "ayahs": [
+     "1:5"
+    ],
+    "speaker": "77726db75fc64c09bc62"
+   }
+  },
+  {
+   "clip": "murckcon_81866804",
+   "ayahs": [
+    "90:7",
+    "90:8",
+    "90:9"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00386-of-00411:519",
+    "ayahs": [
+     "90:6"
+    ],
+    "speaker": "tlog/val/148"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00384-of-00411:535",
+    "ayahs": [
+     "90:10"
+    ],
+    "speaker": "tlog/val/43"
+   }
+  },
+  {
+   "clip": "murcmo6j_f4893587",
+   "ayahs": [
+    "56:42",
+    "56:43"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00264-of-00411:13",
+    "ayahs": [
+     "56:41"
+    ],
+    "speaker": "tlog/val/147"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00264-of-00411:167",
+    "ayahs": [
+     "56:44"
+    ],
+    "speaker": "tlog/test/7"
+   }
+  },
+  {
+   "clip": "murcn38s_6de70896",
+   "ayahs": [
+    "55:61"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00258-of-00411:610",
+    "ayahs": [
+     "55:60"
+    ],
+    "speaker": "tlog/test/5"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00258-of-00411:711",
+    "ayahs": [
+     "55:62"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "murcnxmx_cf5cac70",
+   "ayahs": [
+    "92:13"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00389-of-00411:372",
+    "ayahs": [
+     "92:12"
+    ],
+    "speaker": "tlog/test/6"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00389-of-00411:562",
+    "ayahs": [
+     "92:14",
+     "92:15"
+    ],
+    "speaker": "tlog/train/34"
+   }
+  },
+  {
+   "clip": "murcovji_63b85c87",
+   "ayahs": [
+    "10:84",
+    "10:85",
+    "10:86"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00013-of-00411:618",
+    "ayahs": [
+     "10:83"
+    ],
+    "speaker": "tlog/val/54"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00013-of-00411:697",
+    "ayahs": [
+     "10:87"
+    ],
+    "speaker": "tlog/train/13"
+   }
+  },
+  {
+   "clip": "murcp9qs_1ec2be08",
+   "ayahs": [
+    "20:21"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00007-of-00332:299",
+    "ayahs": [
+     "20:20"
+    ],
+    "speaker": "tlog/test/97"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mur97kw0_d1d5799d",
+    "ayahs": [
+     "20:22"
+    ],
+    "speaker": "230525bb526940198038"
+   }
+  },
+  {
+   "clip": "murcplgr_28f05569",
+   "ayahs": [
+    "37:37"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00198-of-00411:718",
+    "ayahs": [
+     "37:36"
+    ],
+    "speaker": "tlog/train/55"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00198-of-00411:828",
+    "ayahs": [
+     "37:38"
+    ],
+    "speaker": "tlog/val/56"
+   }
+  },
+  {
+   "clip": "murcqgrl_332bcc2c",
+   "ayahs": [
+    "29:58",
+    "29:59"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00014-of-00332:643",
+    "ayahs": [
+     "29:57"
+    ],
+    "speaker": "tlog/test/92"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00138-of-00411:588",
+    "ayahs": [
+     "29:60"
+    ],
+    "speaker": "tlog/train/230"
+   }
+  },
+  {
+   "clip": "murcr5wc_a4b2f048",
+   "ayahs": [
+    "31:21"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00173-of-00411:329",
+    "ayahs": [
+     "31:20"
+    ],
+    "speaker": "tlog/val/131"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00173-of-00411:376",
+    "ayahs": [
+     "31:22"
+    ],
+    "speaker": "tlog/train/58"
+   }
+  },
+  {
+   "clip": "muu2b8wo_6b0791d9",
+   "ayahs": [
+    "4:72"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00238-of-00411:374",
+    "ayahs": [
+     "4:71"
+    ],
+    "speaker": "tlog/train/55"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00238-of-00411:426",
+    "ayahs": [
+     "4:73"
+    ],
+    "speaker": "tlog/train/230"
+   }
+  },
+  {
+   "clip": "muu2brve_8b27c8a0",
+   "ayahs": [
+    "90:19"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00385-of-00411:219",
+    "ayahs": [
+     "90:18"
+    ],
+    "speaker": "tlog/val/106"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00385-of-00411:587",
+    "ayahs": [
+     "90:20"
+    ],
+    "speaker": "tlog/test/96"
+   }
+  },
+  {
+   "clip": "muu2ch1c_055b1974",
+   "ayahs": [
+    "3:192"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00210-of-00411:812",
+    "ayahs": [
+     "3:190",
+     "3:191"
+    ],
+    "speaker": "tlog/train/58"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00211-of-00411:24",
+    "ayahs": [
+     "3:193"
+    ],
+    "speaker": "tlog/test/98"
+   }
+  },
+  {
+   "clip": "muu2ehk2_b517cf53",
+   "ayahs": [
+    "14:12",
+    "14:13"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00038-of-00411:60",
+    "ayahs": [
+     "14:11"
+    ],
+    "speaker": "tlog/test/6"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "clean-00038-of-00411:141",
+    "ayahs": [
+     "14:14",
+     "14:15"
+    ],
+    "speaker": "tlog/train/55"
+   }
+  },
+  {
+   "clip": "muu2f6hj_c95f4413",
+   "ayahs": [
+    "88:3",
+    "88:4",
+    "88:5"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00159-of-00332:326",
+    "ayahs": [
+     "88:2"
+    ],
+    "speaker": "tlog/test/92"
+   },
+   "follow": {
+    "kind": "tlog-train",
+    "id": "unclean-00307-of-00332:752",
+    "ayahs": [
+     "88:6",
+     "88:7"
+    ],
+    "speaker": "tlog/train/230"
+   }
+  },
+  {
+   "clip": "muu2g9ph_47aef0df",
+   "ayahs": [
+    "2:279",
+    "2:280"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00156-of-00411:873",
+    "ayahs": [
+     "2:278"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00270-of-00332:857",
+    "ayahs": [
+     "2:281"
+    ],
+    "speaker": "tlog/test/6"
+   }
+  },
+  {
+   "clip": "muu2h303_b047bdcb",
+   "ayahs": [
+    "67:28"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00283-of-00411:250",
+    "ayahs": [
+     "67:27"
+    ],
+    "speaker": "tlog/val/124"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "unclean-00328-of-00332:364",
+    "ayahs": [
+     "67:29"
+    ],
+    "speaker": "tlog/val/8"
+   }
+  },
+  {
+   "clip": "muu2hife_8611529f",
+   "ayahs": [
+    "6:3"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00296-of-00411:475",
+    "ayahs": [
+     "6:2"
+    ],
+    "speaker": "tlog/test/14"
+   },
+   "follow": null,
+   "followReason": "no clean recitation of the following ayah"
+  },
+  {
+   "clip": "muu2hrp4_ef0107a5",
+   "ayahs": [
+    "100:8"
+   ],
+   "lead": {
+    "kind": "tlog-heldout",
+    "id": "clean-00000-of-00411:743",
+    "ayahs": [
+     "100:7"
+    ],
+    "speaker": "tlog/test/6"
+   },
+   "follow": {
+    "kind": "help-other-speaker",
+    "id": "mur96i02_26177036",
+    "ayahs": [
+     "100:9"
+    ],
+    "speaker": "230525bb526940198038"
+   }
+  },
+  {
+   "clip": "muu2i5vy_b1847401",
+   "ayahs": [
+    "23:115"
+   ],
+   "lead": {
+    "kind": "tlog-train",
+    "id": "clean-00116-of-00411:534",
+    "ayahs": [
+     "23:114"
+    ],
+    "speaker": "tlog/train/100"
+   },
+   "follow": {
+    "kind": "tlog-heldout",
+    "id": "clean-00116-of-00411:639",
+    "ayahs": [
+     "23:116"
+    ],
+    "speaker": "tlog/test/95"
+   }
+  }
+ ]
+}

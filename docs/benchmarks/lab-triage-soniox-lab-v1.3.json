@@ -1,0 +1,613 @@
+{
+ "testSet": "lab-v1.3",
+ "models": {
+  "nemotron": {
+   "id": "nvidia/NVIDIA-Nemotron-3.5-Transcribe-30B-A4B",
+   "revision": "a99e33f698257b8b69ca7834f19c73582eb1fa7e",
+   "device": "NVIDIA H100 80GB HBM3",
+   "prompt": "Audio transcription. Language: Arabic. Wording: verbatim, including fillers and repetitions. Formatting: punctuation and capitalization. Output: transcript only.",
+   "margin": 2.0,
+   "reading": "LM log-likelihood of the text as the reply to the transcription request, plain spellings (core.plain_candidates against its own label-blind transcript), best spelling per text",
+   "transcriptsReused": 0,
+   "transcriptsNew": 1714,
+   "reused": "decisions from triage-v1.json (same cases, windows and texts)"
+  },
+  "soniox": {
+   "vendor": "soniox",
+   "endpoint": "https://api.soniox.com",
+   "model": "stt-async-v5",
+   "modelInfo": {
+    "id": "stt-async-v5",
+    "aliased_model_id": null,
+    "name": "Speech-to-Text Async v5",
+    "context_version": 2,
+    "transcription_mode": "async",
+    "languages": [
+     {
+      "code": "af",
+      "name": "Afrikaans"
+     },
+     {
+      "code": "sq",
+      "name": "Albanian"
+     },
+     {
+      "code": "ar",
+      "name": "Arabic"
+     },
+     {
+      "code": "az",
+      "name": "Azerbaijani"
+     },
+     {
+      "code": "eu",
+      "name": "Basque"
+     },
+     {
+      "code": "be",
+      "name": "Belarusian"
+     },
+     {
+      "code": "bn",
+      "name": "Bengali"
+     },
+     {
+      "code": "bs",
+      "name": "Bosnian"
+     },
+     {
+      "code": "bg",
+      "name": "Bulgarian"
+     },
+     {
+      "code": "ca",
+      "name": "Catalan"
+     },
+     {
+      "code": "zh",
+      "name": "Chinese"
+     },
+     {
+      "code": "hr",
+      "name": "Croatian"
+     },
+     {
+      "code": "cs",
+      "name": "Czech"
+     },
+     {
+      "code": "da",
+      "name": "Danish"
+     },
+     {
+      "code": "nl",
+      "name": "Dutch"
+     },
+     {
+      "code": "en",
+      "name": "English"
+     },
+     {
+      "code": "et",
+      "name": "Estonian"
+     },
+     {
+      "code": "fi",
+      "name": "Finnish"
+     },
+     {
+      "code": "fr",
+      "name": "French"
+     },
+     {
+      "code": "gl",
+      "name": "Galician"
+     },
+     {
+      "code": "de",
+      "name": "German"
+     },
+     {
+      "code": "el",
+      "name": "Greek"
+     },
+     {
+      "code": "gu",
+      "name": "Gujarati"
+     },
+     {
+      "code": "he",
+      "name": "Hebrew"
+     },
+     {
+      "code": "hi",
+      "name": "Hindi"
+     },
+     {
+      "code": "hu",
+      "name": "Hungarian"
+     },
+     {
+      "code": "id",
+      "name": "Indonesian"
+     },
+     {
+      "code": "it",
+      "name": "Italian"
+     },
+     {
+      "code": "ja",
+      "name": "Japanese"
+     },
+     {
+      "code": "kn",
+      "name": "Kannada"
+     },
+     {
+      "code": "kk",
+      "name": "Kazakh"
+     },
+     {
+      "code": "ko",
+      "name": "Korean"
+     },
+     {
+      "code": "lv",
+      "name": "Latvian"
+     },
+     {
+      "code": "lt",
+      "name": "Lithuanian"
+     },
+     {
+      "code": "mk",
+      "name": "Macedonian"
+     },
+     {
+      "code": "ms",
+      "name": "Malay"
+     },
+     {
+      "code": "ml",
+      "name": "Malayalam"
+     },
+     {
+      "code": "mr",
+      "name": "Marathi"
+     },
+     {
+      "code": "no",
+      "name": "Norwegian"
+     },
+     {
+      "code": "fa",
+      "name": "Persian"
+     },
+     {
+      "code": "pl",
+      "name": "Polish"
+     },
+     {
+      "code": "pt",
+      "name": "Portuguese"
+     },
+     {
+      "code": "pa",
+      "name": "Punjabi"
+     },
+     {
+      "code": "ro",
+      "name": "Romanian"
+     },
+     {
+      "code": "ru",
+      "name": "Russian"
+     },
+     {
+      "code": "sr",
+      "name": "Serbian"
+     },
+     {
+      "code": "sk",
+      "name": "Slovak"
+     },
+     {
+      "code": "sl",
+      "name": "Slovenian"
+     },
+     {
+      "code": "es",
+      "name": "Spanish"
+     },
+     {
+      "code": "sw",
+      "name": "Swahili"
+     },
+     {
+      "code": "sv",
+      "name": "Swedish"
+     },
+     {
+      "code": "tl",
+      "name": "Tagalog"
+     },
+     {
+      "code": "ta",
+      "name": "Tamil"
+     },
+     {
+      "code": "te",
+      "name": "Telugu"
+     },
+     {
+      "code": "th",
+      "name": "Thai"
+     },
+     {
+      "code": "tr",
+      "name": "Turkish"
+     },
+     {
+      "code": "uk",
+      "name": "Ukrainian"
+     },
+     {
+      "code": "ur",
+      "name": "Urdu"
+     },
+     {
+      "code": "vi",
+      "name": "Vietnamese"
+     },
+     {
+      "code": "cy",
+      "name": "Welsh"
+     }
+    ],
+    "supports_language_hints_strict": true,
+    "supports_max_endpoint_delay": false,
+    "supports_endpoint_sensitivity": false,
+    "supports_endpoint_latency_adjustment": false,
+    "endpoint_latency_adjustment_max_level": 0,
+    "supports_agent_text_input": false,
+    "translation_targets": [],
+    "two_way_translation_pairs": [],
+    "one_way_translation": "all_languages",
+    "two_way_translation": "all_languages"
+   },
+   "config": {
+    "model": "stt-async-v5",
+    "language_hints": [
+     "ar"
+    ],
+    "language_hints_strict": true
+   },
+   "pricePerHour": 0.1,
+   "reading": "review_api_core.judge on its label-blind transcript",
+   "rule": {
+    "min": 2,
+    "share": 0.5,
+    "maxDist": 0.5
+   }
+  }
+ },
+ "counts": {
+  "cases": 1700,
+  "outcomes": {
+   "auto-accepted": 1559,
+   "unsure": 122,
+   "disagree": 19
+  },
+  "byClass": {
+   "added_word": {
+    "n": 94,
+    "auto-accepted": 81,
+    "both-mismatch": 0,
+    "disagree": 12,
+    "unsure": 1
+   },
+   "clean": {
+    "n": 1325,
+    "auto-accepted": 1281,
+    "both-mismatch": 0,
+    "disagree": 0,
+    "unsure": 44
+   },
+   "mutashabihat": {
+    "n": 21,
+    "auto-accepted": 16,
+    "both-mismatch": 0,
+    "disagree": 0,
+    "unsure": 5
+   },
+   "omitted_word": {
+    "n": 62,
+    "auto-accepted": 57,
+    "both-mismatch": 0,
+    "disagree": 1,
+    "unsure": 4
+   },
+   "repeat": {
+    "n": 29,
+    "auto-accepted": 27,
+    "both-mismatch": 0,
+    "disagree": 1,
+    "unsure": 1
+   },
+   "restart": {
+    "n": 11,
+    "auto-accepted": 10,
+    "both-mismatch": 0,
+    "disagree": 1,
+    "unsure": 0
+   },
+   "skipped_passage": {
+    "n": 60,
+    "auto-accepted": 4,
+    "both-mismatch": 0,
+    "disagree": 0,
+    "unsure": 56
+   },
+   "wrong_word": {
+    "n": 98,
+    "auto-accepted": 83,
+    "both-mismatch": 0,
+    "disagree": 4,
+    "unsure": 11
+   }
+  },
+  "byGroup": {
+   "repeat": {
+    "n": 40,
+    "auto-accepted": 37,
+    "both-mismatch": 0,
+    "disagree": 2,
+    "unsure": 1
+   },
+   "clean": {
+    "n": 1325,
+    "auto-accepted": 1281,
+    "both-mismatch": 0,
+    "disagree": 0,
+    "unsure": 44
+   },
+   "edit": {
+    "n": 335,
+    "auto-accepted": 241,
+    "both-mismatch": 0,
+    "disagree": 17,
+    "unsure": 77
+   }
+  },
+  "perModel": {
+   "nemotron": {
+    "match": 1674,
+    "mismatch": 19,
+    "unsure": 7
+   },
+   "soniox": {
+    "match": 1585,
+    "unsure": 115
+   }
+  },
+  "queue": {
+   "items": 184,
+   "byFirstReason": {
+    "both-mismatch": 0,
+    "disagree": 19,
+    "unsure": 122,
+    "seam": 14,
+    "spot": 29
+   },
+   "byAnyReason": {
+    "both-mismatch": 0,
+    "disagree": 19,
+    "unsure": 122,
+    "seam": 20,
+    "spot": 30
+   },
+   "carriedOver": 7,
+   "maxBad": 4
+  }
+ },
+ "reviewed": {
+  "n": 8,
+  "ok": 8,
+  "outcomesOnOk": {
+   "disagree": 6,
+   "auto-accepted": 1,
+   "unsure": 1
+  },
+  "falseAlarms": [],
+  "items": {
+   "lab-v1.3-e03-x1": {
+    "verdict": "ok",
+    "outcome": "disagree",
+    "class": "added_word",
+    "nemotron": "mismatch",
+    "soniox": "match",
+    "nemotronDiff": -2.2,
+    "sonioxDiff": 3,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.3-e09-x7": {
+    "verdict": "ok",
+    "outcome": "disagree",
+    "class": "added_word",
+    "nemotron": "mismatch",
+    "soniox": "match",
+    "nemotronDiff": -19.93,
+    "sonioxDiff": 3,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.3-e10-x11": {
+    "verdict": "ok",
+    "outcome": "disagree",
+    "class": "added_word",
+    "nemotron": "mismatch",
+    "soniox": "match",
+    "nemotronDiff": -2.5,
+    "sonioxDiff": 3,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.3-e13-x9": {
+    "verdict": "ok",
+    "outcome": "disagree",
+    "class": "added_word",
+    "nemotron": "mismatch",
+    "soniox": "match",
+    "nemotronDiff": -11.17,
+    "sonioxDiff": 3,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.3-e16-x9": {
+    "verdict": "ok",
+    "outcome": "disagree",
+    "class": "added_word",
+    "nemotron": "mismatch",
+    "soniox": "match",
+    "nemotronDiff": -21.87,
+    "sonioxDiff": 2,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.3-p11-x4": {
+    "verdict": "ok",
+    "outcome": "disagree",
+    "class": "wrong_word",
+    "nemotron": "mismatch",
+    "soniox": "match",
+    "nemotronDiff": -11.22,
+    "sonioxDiff": 3,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.3-e15-x10": {
+    "verdict": "ok",
+    "outcome": "auto-accepted",
+    "class": "added_word",
+    "nemotron": "match",
+    "soniox": "match",
+    "nemotronDiff": 33.19,
+    "sonioxDiff": 5,
+    "reviewedOnly": false,
+    "sameWindow": true
+   },
+   "lab-v1.3-e19-x12": {
+    "verdict": "ok",
+    "outcome": "unsure",
+    "class": "mutashabihat",
+    "nemotron": "match",
+    "soniox": "unsure",
+    "nemotronDiff": 6.57,
+    "sonioxDiff": 1,
+    "reviewedOnly": false,
+    "sameWindow": true
+   }
+  }
+ },
+ "comparison": {
+  "oldQueue": 117,
+  "newQueue": 184,
+  "both": 55,
+  "onlyOld": 62,
+  "onlyNew": 129,
+  "oldOutcomesOfNewItems": {
+   "disagree": 23,
+   "both-mismatch": 6,
+   "auto-accepted": 146,
+   "unsure": 9
+  },
+  "newOutcomesOfOldModelQueued": {
+   "disagree": 19,
+   "auto-accepted": 45,
+   "unsure": 12
+  },
+  "oldConfirm": {
+   "lab-v1.3-e03-x1": {
+    "newOutcome": "disagree",
+    "nemotron": -2.2,
+    "soniox": {
+     "decision": "match",
+     "diff": 3,
+     "reason": null
+    },
+    "transcript": "فلما دخلوا عليه. ربك قالوا: يا أيها العزيز.",
+    "verdict": "ok",
+    "inNewQueue": true
+   },
+   "lab-v1.3-e09-x7": {
+    "newOutcome": "disagree",
+    "nemotron": -19.93,
+    "soniox": {
+     "decision": "match",
+     "diff": 3,
+     "reason": null
+    },
+    "transcript": "لا يذوقون. كنت فيها بردًا ولا.",
+    "verdict": "ok",
+    "inNewQueue": true
+   },
+   "lab-v1.3-e10-x11": {
+    "newOutcome": "disagree",
+    "nemotron": -2.5,
+    "soniox": {
+     "decision": "match",
+     "diff": 3,
+     "reason": null
+    },
+    "transcript": "خلقناهما إلا بكل. بالحق، ولكن.",
+    "verdict": "ok",
+    "inNewQueue": true
+   },
+   "lab-v1.3-e13-x9": {
+    "newOutcome": "disagree",
+    "nemotron": -11.17,
+    "soniox": {
+     "decision": "match",
+     "diff": 3,
+     "reason": null
+    },
+    "transcript": "حبل الوريد، إذ قبل. يتلقى المتلقيان.",
+    "verdict": "ok",
+    "inNewQueue": true
+   },
+   "lab-v1.3-e16-x9": {
+    "newOutcome": "disagree",
+    "nemotron": -21.87,
+    "soniox": {
+     "decision": "match",
+     "diff": 2,
+     "reason": null
+    },
+    "transcript": "مبين. قالوا: لئن لم. في. تنتهي يا نوح لتكونن.",
+    "verdict": "ok",
+    "inNewQueue": true
+   },
+   "lab-v1.3-p11-x4": {
+    "newOutcome": "disagree",
+    "nemotron": -11.22,
+    "soniox": {
+     "decision": "match",
+     "diff": 3,
+     "reason": null
+    },
+    "transcript": "والعذاب إن في. كانوا. لآية وما كان أكثرهم.",
+    "verdict": "ok",
+    "inNewQueue": true
+   }
+  }
+ },
+ "cost": {
+  "audioS": 13566.9,
+  "costUsd": 0.3769,
+  "errors": [],
+  "wallS": 1613.2
+ },
+ "queue": "lab-v1.3/review/triage-soniox.json",
+ "confirm": "lab-v1.3/review/triage-soniox-confirm.json"
+}

@@ -1,0 +1,544 @@
+{
+  "counts": {
+    "confirmation_delay_short_clip": 2,
+    "caught": 1,
+    "alternate_passage_acquisition": 24,
+    "canonical_output_label_unverified": 2
+  },
+  "clips": [
+    {
+      "id": "munxrow9_d812be38",
+      "audit": "verified",
+      "expectedAyah": "18:65",
+      "expectedWord": "وعلمنه",
+      "plantedWord": "لكنا",
+      "donorAyah": "18:38",
+      "missed": true,
+      "cause": "confirmation_delay_short_clip",
+      "canonicalDistance": 11,
+      "plantedDistance": 8,
+      "identicalOtherAyahs": [],
+      "lockedAyahs": [
+        "18:65",
+        "18:64"
+      ],
+      "hyp": "فَوَجَدَعَبڇدَممممِنعِبَاادِنَااااءَااتَينَااهُرَحمَتَممممِنعِںںںدِنَاانَكُننننَاامِللَدُننننَااعِلمَاا"
+    },
+    {
+      "id": "munxsgj7_fe81f7d1",
+      "audit": "verified",
+      "expectedAyah": "56:69",
+      "expectedWord": "المزن",
+      "plantedWord": "ممنوعه",
+      "donorAyah": "56:33",
+      "missed": false,
+      "cause": "caught",
+      "canonicalDistance": 12,
+      "plantedDistance": 6,
+      "identicalOtherAyahs": [],
+      "lockedAyahs": [
+        "56:69"
+      ],
+      "hyp": "ءَءَںںںتُمءَںںںزَلتُمُۥۥهُمِممممَمنُۥۥعَتِنءَمنَحنُلمُںںںزِلُۥۥن"
+    },
+    {
+      "id": "munxt1gn_c30a2942",
+      "audit": "verified",
+      "expectedAyah": "80:26",
+      "expectedWord": "شققنا",
+      "plantedWord": "يزكي",
+      "donorAyah": "80:3",
+      "missed": true,
+      "cause": "confirmation_delay_short_clip",
+      "canonicalDistance": 6,
+      "plantedDistance": 2,
+      "identicalOtherAyahs": [],
+      "lockedAyahs": [
+        "80:26"
+      ],
+      "hyp": "ثُممممَيَززَككَلءَرضَشَققَاا"
+    },
+    {
+      "id": "muo5l3xx_45159333",
+      "audit": "provisional",
+      "expectedAyah": "26:36",
+      "expectedWord": "وابعث",
+      "plantedWord": "وارسل",
+      "donorAyah": "7:111",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 6,
+      "plantedDistance": 0,
+      "identicalOtherAyahs": [
+        "7:111"
+      ],
+      "lockedAyahs": [
+        "7:111"
+      ],
+      "hyp": "قَاالُۥۥۥۥءَرجِهوَءَخَااهُوَءَرسِلفِلمَدَااااءِنِحَااشِرِۦۦن"
+    },
+    {
+      "id": "muo6d9p9_ab2334ec",
+      "audit": "provisional",
+      "expectedAyah": "7:111",
+      "expectedWord": "وارسل",
+      "plantedWord": "وابعث",
+      "donorAyah": "26:36",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 8,
+      "plantedDistance": 2,
+      "identicalOtherAyahs": [
+        "26:36"
+      ],
+      "lockedAyahs": [
+        "26:36"
+      ],
+      "hyp": "قَاالُۥۥۥۥءَرجِحوَءَخَااهُوَبڇعَثفِلمَدَااااءِنِحَااشِرِۦۦ"
+    },
+    {
+      "id": "muo782ep_5ab47851",
+      "audit": "provisional",
+      "expectedAyah": "26:106",
+      "expectedWord": "نوح",
+      "plantedWord": "هود",
+      "donorAyah": "26:124",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 4,
+      "plantedDistance": 2,
+      "identicalOtherAyahs": [
+        "26:124"
+      ],
+      "lockedAyahs": [
+        "26:124"
+      ],
+      "hyp": "ءِذقَاالَلَهُمءَخُۥۥهُمهُۥۥدُنءَلَااتَتتَقُۥۥۥۥن"
+    },
+    {
+      "id": "muo7ahel_4cc29975",
+      "audit": "provisional",
+      "expectedAyah": "26:124",
+      "expectedWord": "هود",
+      "plantedWord": "صلح",
+      "donorAyah": "26:142",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 7,
+      "plantedDistance": 0,
+      "identicalOtherAyahs": [
+        "26:142"
+      ],
+      "lockedAyahs": [
+        "26:142"
+      ],
+      "hyp": "ءِذقَاالَلَهُمءَخُۥۥهُمصَاالِحُنءَلَااتَتتَقُۥۥن"
+    },
+    {
+      "id": "muo7bjrc_eda68f67",
+      "audit": "provisional",
+      "expectedAyah": "26:124",
+      "expectedWord": "هود",
+      "plantedWord": "صلح",
+      "donorAyah": "26:142",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 7,
+      "plantedDistance": 0,
+      "identicalOtherAyahs": [
+        "26:142"
+      ],
+      "lockedAyahs": [
+        "26:142"
+      ],
+      "hyp": "ءِذقَاالَلَهُمءَخُۥۥهُمصَاالِحُنءَلَااتَتتَقُۥۥن"
+    },
+    {
+      "id": "muo7c2dl_91b5a145",
+      "audit": "provisional",
+      "expectedAyah": "43:3",
+      "expectedWord": "جعلنه",
+      "plantedWord": "انزلنه",
+      "donorAyah": "12:2",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 5,
+      "plantedDistance": 0,
+      "identicalOtherAyahs": [],
+      "lockedAyahs": [
+        "12:2"
+      ],
+      "hyp": "ءِننننَااءَںںںزَلنَااهُقُرءَاانَنعَرَبِييَللَعَللَكُمتَعقِلُۥۥن"
+    },
+    {
+      "id": "muo8bzgh_5e67f4d3",
+      "audit": "provisional",
+      "expectedAyah": "26:124",
+      "expectedWord": "هود",
+      "plantedWord": "صلح",
+      "donorAyah": "26:142",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 9,
+      "plantedDistance": 2,
+      "identicalOtherAyahs": [
+        "26:142"
+      ],
+      "lockedAyahs": [
+        "26:142"
+      ],
+      "hyp": "ءِذقَاالَلَهُمءَخُۥۥهُمصَاالِحُنءَلَااتَتتَقُۥۥۥۥن"
+    },
+    {
+      "id": "muod1z9i_36eeb67b",
+      "audit": "provisional",
+      "expectedAyah": "7:111",
+      "expectedWord": "وارسل",
+      "plantedWord": "وابعث",
+      "donorAyah": "26:36",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 9,
+      "plantedDistance": 5,
+      "identicalOtherAyahs": [
+        "26:36"
+      ],
+      "lockedAyahs": [
+        "26:36"
+      ],
+      "hyp": "قَاالُۥۥءَرجِههُءَخَااهُوَبَعَثفِلمَدَااااءِنِحَااشِرِۦۦن"
+    },
+    {
+      "id": "muod529w_2666cdfc",
+      "audit": "provisional",
+      "expectedAyah": "26:124",
+      "expectedWord": "هود",
+      "plantedWord": "صلح",
+      "donorAyah": "26:142",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 7,
+      "plantedDistance": 0,
+      "identicalOtherAyahs": [
+        "26:142"
+      ],
+      "lockedAyahs": [
+        "26:142"
+      ],
+      "hyp": "ءِذقَاالَلَهُمءَخُۥۥهُمصَاالِحُنءَلَااتَتتَقُۥۥن"
+    },
+    {
+      "id": "muodfjiw_c16401bc",
+      "audit": "provisional",
+      "expectedAyah": "26:106",
+      "expectedWord": "نوح",
+      "plantedWord": "هود",
+      "donorAyah": "26:124",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 10,
+      "plantedDistance": 9,
+      "identicalOtherAyahs": [
+        "26:124"
+      ],
+      "lockedAyahs": [
+        "26:177"
+      ],
+      "hyp": "ءِذقَاالَلَهُمهُۥۥدُنءَلَااتَتتَقُۥۥن"
+    },
+    {
+      "id": "muodhmzj_0639dae3",
+      "audit": "provisional",
+      "expectedAyah": "79:39",
+      "expectedWord": "الجحيم",
+      "plantedWord": "الجنه",
+      "donorAyah": "79:41",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 6,
+      "plantedDistance": 0,
+      "identicalOtherAyahs": [
+        "79:41"
+      ],
+      "lockedAyahs": [
+        "79:41"
+      ],
+      "hyp": "فَءِننننَلجَننننَتَهِيَلمَءوَاا"
+    },
+    {
+      "id": "muodkqyr_711bd18d",
+      "audit": "provisional",
+      "expectedAyah": "7:111",
+      "expectedWord": "وارسل",
+      "plantedWord": "وابعث",
+      "donorAyah": "26:36",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 13,
+      "plantedDistance": 9,
+      "identicalOtherAyahs": [
+        "26:36"
+      ],
+      "lockedAyahs": [
+        "26:36"
+      ],
+      "hyp": "قَاالُۥۥۥۥءَرجِهُءَخَااهُُبڇعِثفِلمَدَااااءِنِحَاشِدِۦۦۦۦ"
+    },
+    {
+      "id": "muoeza4q_647d3a70",
+      "audit": "provisional",
+      "expectedAyah": "12:2",
+      "expectedWord": "انزلنه",
+      "plantedWord": "جعلنه",
+      "donorAyah": "43:3",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 7,
+      "plantedDistance": 2,
+      "identicalOtherAyahs": [],
+      "lockedAyahs": [
+        "43:3"
+      ],
+      "hyp": "ءِننننَااجَعَلنَااهُقُرءَاانَنعَرَبِييَللَعَللَكُمتَعقِلُۥۥن"
+    },
+    {
+      "id": "muof4w2h_64d8e478",
+      "audit": "provisional",
+      "expectedAyah": "26:106",
+      "expectedWord": "نوح",
+      "plantedWord": "هود",
+      "donorAyah": "26:124",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 3,
+      "plantedDistance": 1,
+      "identicalOtherAyahs": [
+        "26:124"
+      ],
+      "lockedAyahs": [
+        "26:124"
+      ],
+      "hyp": "ءِذقَاالَلَهُمءَخُۥۥهُمهُۥۥدُنءَلَااتَتتَقُۥۥ"
+    },
+    {
+      "id": "muof5q4h_a99d2c5d",
+      "audit": "provisional",
+      "expectedAyah": "79:39",
+      "expectedWord": "الجحيم",
+      "plantedWord": "الجنه",
+      "donorAyah": "79:41",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 6,
+      "plantedDistance": 0,
+      "identicalOtherAyahs": [
+        "79:41"
+      ],
+      "lockedAyahs": [
+        "79:41"
+      ],
+      "hyp": "فَءِننننَلجَننننَتَهِيَلمَءوَاا"
+    },
+    {
+      "id": "muof8ik2_5becb732",
+      "audit": "provisional",
+      "expectedAyah": "26:36",
+      "expectedWord": "وابعث",
+      "plantedWord": "وارسل",
+      "donorAyah": "7:111",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 7,
+      "plantedDistance": 1,
+      "identicalOtherAyahs": [
+        "7:111"
+      ],
+      "lockedAyahs": [
+        "7:111"
+      ],
+      "hyp": "قَاالُۥۥۥۥءَرجِهوَءَخَااهُوَءَرسِلفِلمَدَااااءِنِححَااشِرِۦۦن"
+    },
+    {
+      "id": "muog21hl_5aeb0f2b",
+      "audit": "provisional",
+      "expectedAyah": "12:2",
+      "expectedWord": "انزلنه",
+      "plantedWord": "جعلنه",
+      "donorAyah": "43:3",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 8,
+      "plantedDistance": 3,
+      "identicalOtherAyahs": [],
+      "lockedAyahs": [
+        "43:3"
+      ],
+      "hyp": "ءِننننَااجَعَلنَااهُقُرءَاانَنعَرَبِييَللَعَللَكُمتَعقِلُۥۥت"
+    },
+    {
+      "id": "muoj4ci1_b3f95786",
+      "audit": "provisional",
+      "expectedAyah": "43:3",
+      "expectedWord": "جعلنه",
+      "plantedWord": "انزلنه",
+      "donorAyah": "12:2",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 6,
+      "plantedDistance": 1,
+      "identicalOtherAyahs": [],
+      "lockedAyahs": [
+        "12:2"
+      ],
+      "hyp": "ءِننننَااءَںںںزَلنااهُقُرءَاانَنعَرَبِييَللَعَللَكُمتَعقِلُۥۥن"
+    },
+    {
+      "id": "muoj4vi0_e027d49b",
+      "audit": "provisional",
+      "expectedAyah": "43:3",
+      "expectedWord": "جعلنه",
+      "plantedWord": "انزلنه",
+      "donorAyah": "12:2",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 7,
+      "plantedDistance": 4,
+      "identicalOtherAyahs": [],
+      "lockedAyahs": [
+        "12:2"
+      ],
+      "hyp": "ءِننننَااءَںںزَلنَاهُقُرءَاانَنعَرَبِييَللَعَللَكُمتَعقِلُۥۥۥۥن"
+    },
+    {
+      "id": "muoj7duz_76afba75",
+      "audit": "provisional",
+      "expectedAyah": "26:106",
+      "expectedWord": "نوح",
+      "plantedWord": "هود",
+      "donorAyah": "26:124",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 5,
+      "plantedDistance": 3,
+      "identicalOtherAyahs": [
+        "26:124"
+      ],
+      "lockedAyahs": [
+        "26:124"
+      ],
+      "hyp": "ءِذقَاالَلَهُمءَهُۥۥهُمهُۥۥدُنءَلَااتَتتَقُۥۥۥۥن"
+    },
+    {
+      "id": "muokludg_246b6bc8",
+      "audit": "provisional",
+      "expectedAyah": "7:111",
+      "expectedWord": "وارسل",
+      "plantedWord": "وابعث",
+      "donorAyah": "26:36",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 10,
+      "plantedDistance": 4,
+      "identicalOtherAyahs": [
+        "26:36"
+      ],
+      "lockedAyahs": [
+        "26:36"
+      ],
+      "hyp": "قَاالُۥۥءَرجِهوَءَخَااهُوَبڇعَثفِلمَدَااءِنِحَااشِرِۦۦن"
+    },
+    {
+      "id": "muokqj9e_95f78f3d",
+      "audit": "provisional",
+      "expectedAyah": "79:39",
+      "expectedWord": "الجحيم",
+      "plantedWord": "الجنه",
+      "donorAyah": "79:41",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 6,
+      "plantedDistance": 0,
+      "identicalOtherAyahs": [
+        "79:41"
+      ],
+      "lockedAyahs": [
+        "79:41"
+      ],
+      "hyp": "فَءِننننَلجَننننَتَهِيَلمَءوَاا"
+    },
+    {
+      "id": "muoorz0r_5d638d92",
+      "audit": "provisional",
+      "expectedAyah": "26:106",
+      "expectedWord": "نوح",
+      "plantedWord": "هود",
+      "donorAyah": "26:124",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 2,
+      "plantedDistance": 0,
+      "identicalOtherAyahs": [
+        "26:124"
+      ],
+      "lockedAyahs": [
+        "26:124"
+      ],
+      "hyp": "ءِذقَاالَلَهُمءَخُۥۥهُمهُۥۥدُنءَلَااتَتتَقُۥۥن"
+    },
+    {
+      "id": "muooux8p_73ec57b9",
+      "audit": "provisional",
+      "expectedAyah": "12:2",
+      "expectedWord": "انزلنه",
+      "plantedWord": "جعلنه",
+      "donorAyah": "43:3",
+      "missed": true,
+      "cause": "alternate_passage_acquisition",
+      "canonicalDistance": 7,
+      "plantedDistance": 2,
+      "identicalOtherAyahs": [],
+      "lockedAyahs": [
+        "43:3"
+      ],
+      "hyp": "ءِننننَااجَعَلنَااهُقُرءَاانَنعَرَبِييَللَعَللَكُمتَعقِلُۥۥن"
+    },
+    {
+      "id": "muouih3u_4d1737e2",
+      "audit": "provisional",
+      "expectedAyah": "79:39",
+      "expectedWord": "الجحيم",
+      "plantedWord": "الجنه",
+      "donorAyah": "79:41",
+      "missed": true,
+      "cause": "canonical_output_label_unverified",
+      "canonicalDistance": 0,
+      "plantedDistance": 6,
+      "identicalOtherAyahs": [
+        "79:41"
+      ],
+      "lockedAyahs": [
+        "79:39"
+      ],
+      "hyp": "فَءِننننَلجَحِۦۦمَهِيَلمَءوَاا"
+    },
+    {
+      "id": "muoujupy_536ca64c",
+      "audit": "provisional",
+      "expectedAyah": "26:36",
+      "expectedWord": "وابعث",
+      "plantedWord": "وارسل",
+      "donorAyah": "7:111",
+      "missed": true,
+      "cause": "canonical_output_label_unverified",
+      "canonicalDistance": 2,
+      "plantedDistance": 8,
+      "identicalOtherAyahs": [
+        "7:111"
+      ],
+      "lockedAyahs": [
+        "26:36"
+      ],
+      "hyp": "قَاالُۥۥۥۥءَرجِهوَءَخَااهُوَبڇعَثفِلمَدَااااءِنِحَااشِرِۦۦۦۦن"
+    }
+  ]
+}

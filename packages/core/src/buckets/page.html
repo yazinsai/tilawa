@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Bucket cutoff review</title>
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+  .bar { display: flex; gap: 1rem; align-items: center; color: #666; }
+  .where { font-family: ui-monospace, monospace; color: #555; margin-top: 1rem; }
+  .text { font: 28px/1.9 "Amiri Quran", "Amiri", "Scheherazade New", serif; direction: rtl; margin: 1rem 0; padding: 1rem; background: #faf8f2; border-radius: 6px; min-height: 3rem; }
+  .none { color: #666; font: 15px system-ui; direction: ltr; }
+  .keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: .5rem; margin: 1rem 0; }
+  .keys button { padding: .6rem; border: 1px solid #ccc; border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px; }
+  .keys button.on { background: #222; color: #fff; border-color: #222; }
+  kbd { font: 12px ui-monospace, monospace; padding: 0 .3rem; border: 1px solid #bbb; border-radius: 3px; }
+  .help { color: #555; font-size: 13px; }
+  audio { width: 100%; }
+</style>
+</head>
+<body>
+<div class="bar"><b id="pos"></b><span id="done"></span><span id="saved"></span></div>
+<div class="where" id="where"></div>
+<div class="text" id="text"></div>
+<audio id="audio" controls autoplay></audio>
+<div class="bar">speed <select id="speed"></select></div>
+<div class="keys">
+  <button data-v="exact"><kbd>1</kbd> exact</button>
+  <button data-v="mistakes"><kbd>2</kbd> right passage, mistakes</button>
+  <button data-v="wrong_passage"><kbd>3</kbd> wrong passage</button>
+  <button data-v="no_recitation"><kbd>4</kbd> no usable recitation</button>
+  <button data-v="unsure"><kbd>u</kbd> unsure</button>
+</div>
+<p class="help">
+  Judge the audio against the text shown. <b>exact</b>: every word recited as written, nothing extra (a dropped half-word at a clip edge is fine).
+  <b>mistakes</b>: it's this passage, but with wrong, skipped or repeated words, or clear pronunciation errors.
+  <b>wrong passage</b>: Quran, but not this text (or no text shown and you can hear Quran). <b>no usable recitation</b>: silence, noise, speech, cut to nothing.
+  <br /><kbd>space</kbd> play/pause · <kbd>r</kbd> replay · <kbd>←</kbd>/<kbd>→</kbd> previous/next · <kbd>n</kbd> note · <kbd>j</kbd> next unanswered · <kbd>[</kbd>/<kbd>]</kbd> slower/faster
+</p>
+<script>
+let clips = [], answers = {}, i = 0, started = 0, note = "";
+const $ = (id) => document.getElementById(id);
+const SPEEDS = [1, 1.25, 1.5, 1.75, 2, 2.5, 3];
+let speed = Number(localStorage.getItem("speed")) || 1;
+$("speed").innerHTML = SPEEDS.map((s) => `<option value="${s}">${s}×</option>`).join("");
+// A new src resets playbackRate to defaultPlaybackRate, so set both.
+function setSpeed(s) {
+  speed = s;
+  localStorage.setItem("speed", s);
+  $("speed").value = s;
+  applySpeed();
+}
+// Unlocated clips stay at 1×: there's no text to follow, so you have to recognise the passage by ear.
+function applySpeed() {
+  $("audio").defaultPlaybackRate = $("audio").playbackRate = clips[i] && !clips[i].label ? 1 : speed;
+}
+$("speed").onchange = (e) => (setSpeed(Number(e.target.value)), e.target.blur());
+setSpeed(speed);
+// Loudness normalization: 90th-percentile 20 ms frame RMS (ignores silence) to TARGET, then a limiter.
+const TARGET = 0.1, MAX_GAIN = 40;
+let ctx, gain;
+function graph() {
+  if (ctx) return ctx.resume();
+  ctx = new AudioContext();
+  gain = ctx.createGain();
+  const lim = new DynamicsCompressorNode(ctx, { threshold: -3, knee: 0, ratio: 20, attack: 0.002, release: 0.1 });
+  ctx.createMediaElementSource($("audio")).connect(gain).connect(lim).connect(ctx.destination);
+}
+async function normalize(url) {
+  graph();
+  const buf = await ctx.decodeAudioData(await (await fetch(url)).arrayBuffer());
+  const x = buf.getChannelData(0), n = Math.round(buf.sampleRate * 0.02), rms = [];
+  for (let k = 0; k + n <= x.length; k += n) {
+    let s = 0;
+    for (let j = k; j < k + n; j++) s += x[j] * x[j];
+    rms.push(Math.sqrt(s / n));
+  }
+  rms.sort((a, b) => a - b);
+  const loud = rms[Math.floor(rms.length * 0.9)] || 0;
+  if ($("audio").src.endsWith(url)) gain.gain.value = loud > 1e-4 ? Math.min(MAX_GAIN, TARGET / loud) : 1;
+}
+addEventListener("keydown", graph, { capture: true, once: true });
+addEventListener("pointerdown", graph, { capture: true, once: true });
+const key = (c) => `${c.shard}:${c.row}`;
+async function load() {
+  const s = await (await fetch("/api/state")).json();
+  clips = s.clips;
+  answers = s.answers;
+  i = Math.max(0, clips.findIndex((c) => !answers[key(c)]));
+  show();
+}
+function show() {
+  const c = clips[i];
+  note = answers[key(c)]?.note ?? "";
+  $("pos").textContent = `${i + 1} / ${clips.length}`;
+  $("done").textContent = `${Object.keys(answers).length} answered`;
+  $("saved").textContent = note ? `note: ${note}` : "";
+  $("where").textContent = c.label ? c.label.heading : "no located passage";
+  $("text").innerHTML = c.label ? c.label.text : '<span class="none">The tracker found no passage. Use 3 if you hear Quran, 4 if not.</span>';
+  const url = `/audio/${encodeURIComponent(`${c.shard}-${c.row}`)}`;
+  $("audio").src = url;
+  applySpeed();
+  normalize(url).catch(() => {});
+  for (const b of document.querySelectorAll(".keys button")) b.classList.toggle("on", answers[key(c)]?.verdict === b.dataset.v);
+  started = performance.now();
+}
+async function answer(verdict) {
+  const c = clips[i];
+  const a = { shard: c.shard, row: c.row, verdict, ...(note ? { note } : {}), ms: Math.round(performance.now() - started) };
+  await fetch("/api/answer", { method: "POST", body: JSON.stringify(a) });
+  answers[key(c)] = a;
+  if (i < clips.length - 1) i++;
+  show();
+}
+document.querySelectorAll(".keys button").forEach((b) => (b.onclick = () => answer(b.dataset.v)));
+document.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT") return;
+  const au = $("audio");
+  const map = { 1: "exact", 2: "mistakes", 3: "wrong_passage", 4: "no_recitation", u: "unsure" };
+  if (map[e.key]) answer(map[e.key]);
+  else if (e.key === " ") (e.preventDefault(), au.paused ? au.play() : au.pause());
+  else if (e.key === "r") ((au.currentTime = 0), au.play());
+  else if (e.key === "ArrowRight" && i < clips.length - 1) (i++, show());
+  else if (e.key === "ArrowLeft" && i > 0) (i--, show());
+  else if (e.key === "[" || e.key === "]") {
+    const k = SPEEDS.indexOf(speed) + (e.key === "]" ? 1 : -1);
+    setSpeed(SPEEDS[Math.max(0, Math.min(SPEEDS.length - 1, k))]);
+  } else if (e.key === "j") ((i = Math.max(0, clips.findIndex((c) => !answers[key(c)]))), show());
+  else if (e.key === "n") {
+    note = prompt("Note for this clip (saved with the next answer):", note) ?? note;
+    $("saved").textContent = note ? `note: ${note}` : "";
+  }
+});
+load();
+</script>
+</body>
+</html>

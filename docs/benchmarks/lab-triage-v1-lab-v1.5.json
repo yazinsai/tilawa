@@ -1,0 +1,298 @@
+{
+ "testSet": "lab-v1.5",
+ "models": {
+  "nemotron": {
+   "id": "nvidia/NVIDIA-Nemotron-3.5-Transcribe-30B-A4B",
+   "revision": "c17667641642c4265ff2b7037dd101b7d4567634",
+   "device": "NVIDIA H100 80GB HBM3",
+   "prompt": "Audio transcription. Language: Arabic. Wording: verbatim, including fillers and repetitions. Formatting: punctuation and capitalization. Output: transcript only.",
+   "margin": 2.0,
+   "reading": "LM log-likelihood of the text as the reply to the transcription request, plain spellings (core.plain_candidates against its own label-blind transcript), best spelling per text",
+   "transcriptsReused": 0,
+   "transcriptsNew": 7594
+  },
+  "fastconformer": {
+   "id": "nvidia/stt_ar_fastconformer_hybrid_large_pcd_v1.0",
+   "revision": "7f32349d952f42a28dce979ba73270aa2bbdfa89",
+   "device": "Tesla T4",
+   "margin": 2.0,
+   "reading": "CTC forced-alignment log-likelihood, diacritised spellings (core.diacritised_candidates against its own label-blind CTC greedy text and RNNT transcript), best spelling per text"
+  }
+ },
+ "counts": {
+  "cases": 7580,
+  "outcomes": {
+   "auto-accepted": 7385,
+   "disagree": 142,
+   "unsure": 49,
+   "both-mismatch": 4
+  },
+  "byClass": {
+   "added_word": {
+    "n": 219,
+    "auto-accepted": 129,
+    "both-mismatch": 1,
+    "disagree": 72,
+    "unsure": 17
+   },
+   "clean": {
+    "n": 6230,
+    "auto-accepted": 6197,
+    "both-mismatch": 1,
+    "disagree": 23,
+    "unsure": 9
+   },
+   "mutashabihat": {
+    "n": 97,
+    "auto-accepted": 90,
+    "both-mismatch": 0,
+    "disagree": 5,
+    "unsure": 2
+   },
+   "omitted_word": {
+    "n": 518,
+    "auto-accepted": 488,
+    "both-mismatch": 1,
+    "disagree": 10,
+    "unsure": 19
+   },
+   "repeat": {
+    "n": 129,
+    "auto-accepted": 113,
+    "both-mismatch": 0,
+    "disagree": 16,
+    "unsure": 0
+   },
+   "restart": {
+    "n": 71,
+    "auto-accepted": 56,
+    "both-mismatch": 1,
+    "disagree": 13,
+    "unsure": 1
+   },
+   "skipped_passage": {
+    "n": 248,
+    "auto-accepted": 248,
+    "both-mismatch": 0,
+    "disagree": 0,
+    "unsure": 0
+   },
+   "wrong_word": {
+    "n": 68,
+    "auto-accepted": 64,
+    "both-mismatch": 0,
+    "disagree": 3,
+    "unsure": 1
+   }
+  },
+  "byGroup": {
+   "repeat": {
+    "n": 200,
+    "auto-accepted": 169,
+    "both-mismatch": 1,
+    "disagree": 29,
+    "unsure": 1
+   },
+   "clean": {
+    "n": 6230,
+    "auto-accepted": 6197,
+    "both-mismatch": 1,
+    "disagree": 23,
+    "unsure": 9
+   },
+   "edit": {
+    "n": 1150,
+    "auto-accepted": 1019,
+    "both-mismatch": 2,
+    "disagree": 90,
+    "unsure": 39
+   }
+  },
+  "perModel": {
+   "nemotron": {
+    "match": 7542,
+    "mismatch": 23,
+    "unsure": 15
+   },
+   "fastconformer": {
+    "match": 7416,
+    "mismatch": 130,
+    "unsure": 34
+   }
+  },
+  "queue": {
+   "items": 243,
+   "byFirstReason": {
+    "both-mismatch": 4,
+    "disagree": 142,
+    "unsure": 49,
+    "seam": 19,
+    "spot": 29
+   },
+   "byAnyReason": {
+    "both-mismatch": 4,
+    "disagree": 142,
+    "unsure": 49,
+    "seam": 20,
+    "spot": 30
+   },
+   "seamByPool": {
+    "inserted": 7,
+    "other": 13
+   },
+   "carriedOver": 21,
+   "maxBad": 6
+  }
+ },
+ "reviewed": {
+  "n": 0,
+  "ok": 0,
+  "outcomesOnOk": {},
+  "falseAlarms": [],
+  "items": {}
+ },
+ "carriedFromPrior": {
+  "lab-v1.4-e02-x3": "carried over from lab-v1.4 lab-v1.4-e02-x3 (same audio bytes and text)",
+  "lab-v1.4-e02-x4": "carried over from lab-v1.4 lab-v1.4-e02-x4 (same audio bytes and text)",
+  "lab-v1.4-e02-clean-3-5": "carried over from lab-v1.4 lab-v1.4-e02-clean-3-5 (same audio bytes and text)",
+  "lab-v1.4-e03-clean-0-5": "carried over from lab-v1.4 lab-v1.4-e03-clean-0-5 (same audio bytes and text)",
+  "lab-v1.4-e03-clean-1-2": "carried over from lab-v1.4 lab-v1.4-e03-clean-1-2 (same audio bytes and text)",
+  "lab-v1.4-e04-clean-1-8": "carried over from lab-v1.4 lab-v1.4-e04-clean-1-8 (same audio bytes and text)",
+  "lab-v1.4-e05-x3": "carried over from lab-v1.4 lab-v1.4-e05-x3 (same audio bytes and text)",
+  "lab-v1.4-e05-clean-0-5": "carried over from lab-v1.4 lab-v1.4-e05-clean-0-5 (same audio bytes and text)",
+  "lab-v1.4-e08-x3": "carried over from lab-v1.4 lab-v1.4-e08-x3 (same audio bytes and text)",
+  "lab-v1.4-e09-x5": "carried over from lab-v1.4 lab-v1.4-e09-x5 (same audio bytes and text)",
+  "lab-v1.4-e10-x6": "carried over from lab-v1.4 lab-v1.4-e10-x6 (same audio bytes and text)",
+  "lab-v1.4-e10-clean-0-3": "carried over from lab-v1.4 lab-v1.4-e10-clean-0-3 (same audio bytes and text)",
+  "lab-v1.4-e10-clean-7-1": "carried over from lab-v1.4 lab-v1.4-e10-clean-7-1 (same audio bytes and text)",
+  "lab-v1.4-e11-x4": "carried over from lab-v1.4 lab-v1.4-e11-x4 (same audio bytes and text)",
+  "lab-v1.4-e11-x6": "carried over from lab-v1.4 lab-v1.4-e11-x6 (same audio bytes and text)",
+  "lab-v1.4-e11-x7": "carried over from lab-v1.4 lab-v1.4-e11-x7 (same audio bytes and text)",
+  "lab-v1.4-e11-x8": "carried over from lab-v1.4 lab-v1.4-e11-x8 (same audio bytes and text)",
+  "lab-v1.4-e12-x5": "carried over from lab-v1.4 lab-v1.4-e12-x5 (same audio bytes and text)",
+  "lab-v1.4-e12-x8": "carried over from lab-v1.4 lab-v1.4-e12-x8 (same audio bytes and text)",
+  "lab-v1.4-e12-x9": "carried over from lab-v1.4 lab-v1.4-e12-x9 (same audio bytes and text)",
+  "lab-v1.4-e12-clean-0-0": "carried over from lab-v1.4 lab-v1.4-e12-clean-0-0 (same audio bytes and text)",
+  "lab-v1.4-e13-x2": "carried over from lab-v1.4 lab-v1.4-e13-x2 (same audio bytes and text)",
+  "lab-v1.4-e13-x4": "carried over from lab-v1.4 lab-v1.4-e13-x4 (same audio bytes and text)",
+  "lab-v1.4-e13-x5": "carried over from lab-v1.4 lab-v1.4-e13-x5 (same audio bytes and text)",
+  "lab-v1.4-e13-clean-0-6": "carried over from lab-v1.4 lab-v1.4-e13-clean-0-6 (same audio bytes and text)",
+  "lab-v1.4-e13-clean-0-7": "carried over from lab-v1.4 lab-v1.4-e13-clean-0-7 (same audio bytes and text)",
+  "lab-v1.4-e13-clean-1-2": "carried over from lab-v1.4 lab-v1.4-e13-clean-1-2 (same audio bytes and text)",
+  "lab-v1.4-e14-x3": "carried over from lab-v1.4 lab-v1.4-e14-x3 (same audio bytes and text)",
+  "lab-v1.4-e14-x7": "carried over from lab-v1.4 lab-v1.4-e14-x7 (same audio bytes and text)",
+  "lab-v1.4-e14-x9": "carried over from lab-v1.4 lab-v1.4-e14-x9 (same audio bytes and text)",
+  "lab-v1.4-e14-x19": "carried over from lab-v1.4 lab-v1.4-e14-x19 (same audio bytes and text)",
+  "lab-v1.4-e14-clean-10-1": "carried over from lab-v1.4 lab-v1.4-e14-clean-10-1 (same audio bytes and text)",
+  "lab-v1.4-e15-x1": "carried over from lab-v1.4 lab-v1.4-e15-x1 (same audio bytes and text): carried over from lab-v1.3 lab-v1.3-e15-x2 (same audio bytes and text)",
+  "lab-v1.4-e15-x5": "carried over from lab-v1.4 lab-v1.4-e15-x5 (same audio bytes and text)",
+  "lab-v1.4-e15-x11": "carried over from lab-v1.4 lab-v1.4-e15-x11 (same audio bytes and text)",
+  "lab-v1.4-e15-clean-3-0": "carried over from lab-v1.4 lab-v1.4-e15-clean-3-0 (same audio bytes and text)",
+  "lab-v1.4-e15-clean-5-3": "carried over from lab-v1.4 lab-v1.4-e15-clean-5-3 (same audio bytes and text)",
+  "lab-v1.4-e15-clean-13-0": "carried over from lab-v1.4 lab-v1.4-e15-clean-13-0 (same audio bytes and text)",
+  "lab-v1.4-e15-clean-15-3": "carried over from lab-v1.4 lab-v1.4-e15-clean-15-3 (same audio bytes and text)",
+  "lab-v1.4-e16-x6": "carried over from lab-v1.4 lab-v1.4-e16-x6 (same audio bytes and text)",
+  "lab-v1.4-e16-x10": "carried over from lab-v1.4 lab-v1.4-e16-x10 (same audio bytes and text)",
+  "lab-v1.4-e16-clean-6-0": "carried over from lab-v1.4 lab-v1.4-e16-clean-6-0 (same audio bytes and text)",
+  "lab-v1.4-e16-clean-14-0": "carried over from lab-v1.4 lab-v1.4-e16-clean-14-0 (same audio bytes and text)",
+  "lab-v1.4-e16-clean-18-0": "carried over from lab-v1.4 lab-v1.4-e16-clean-18-0 (same audio bytes and text)",
+  "lab-v1.4-e16-clean-19-0": "carried over from lab-v1.4 lab-v1.4-e16-clean-19-0 (same audio bytes and text)",
+  "lab-v1.4-e17-x1": "carried over from lab-v1.4 lab-v1.4-e17-x1 (same audio bytes and text)",
+  "lab-v1.4-e19-x1": "carried over from lab-v1.4 lab-v1.4-e19-x1 (same audio bytes and text)",
+  "lab-v1.4-e19-x4": "carried over from lab-v1.4 lab-v1.4-e19-x4 (same audio bytes and text)",
+  "lab-v1.4-e19-x5": "carried over from lab-v1.4 lab-v1.4-e19-x5 (same audio bytes and text)",
+  "lab-v1.4-e19-x9": "carried over from lab-v1.4 lab-v1.4-e19-x9 (same audio bytes and text): carried over from lab-v1.3 lab-v1.3-e19-x11 (same audio bytes and text)",
+  "lab-v1.4-e19-x10": "carried over from lab-v1.4 lab-v1.4-e19-x10 (same audio bytes and text)",
+  "lab-v1.4-e19-x11": "carried over from lab-v1.4 lab-v1.4-e19-x11 (same audio bytes and text)",
+  "lab-v1.4-e19-x12": "carried over from lab-v1.4 lab-v1.4-e19-x12 (same audio bytes and text)",
+  "lab-v1.4-e19-x13": "carried over from lab-v1.4 lab-v1.4-e19-x13 (same audio bytes and text)",
+  "lab-v1.4-e19-x15": "carried over from lab-v1.4 lab-v1.4-e19-x15 (same audio bytes and text)",
+  "lab-v1.4-e19-x17": "carried over from lab-v1.4 lab-v1.4-e19-x17 (same audio bytes and text)",
+  "lab-v1.4-e19-clean-1-0": "carried over from lab-v1.4 lab-v1.4-e19-clean-1-0 (same audio bytes and text)",
+  "lab-v1.4-e19-clean-5-0": "carried over from lab-v1.4 lab-v1.4-e19-clean-5-0 (same audio bytes and text)",
+  "lab-v1.4-e19-clean-16-0": "carried over from lab-v1.4 lab-v1.4-e19-clean-16-0 (same audio bytes and text): carried over from lab-v1.3 lab-v1.3-e19-clean-19-0 (same audio bytes and text)",
+  "lab-v1.4-e19-clean-24-0": "carried over from lab-v1.4 lab-v1.4-e19-clean-24-0 (same audio bytes and text)",
+  "lab-v1.4-e20-x1": "carried over from lab-v1.4 lab-v1.4-e20-x1 (same audio bytes and text)",
+  "lab-v1.4-e20-clean-3-2": "carried over from lab-v1.4 lab-v1.4-e20-clean-3-2 (same audio bytes and text)",
+  "lab-v1.4-p01-x1": "carried over from lab-v1.4 lab-v1.4-p01-x1 (same audio bytes and text)",
+  "lab-v1.4-p01-x4": "carried over from lab-v1.4 lab-v1.4-p01-x4 (same audio bytes and text)",
+  "lab-v1.4-p01-clean-6-0": "carried over from lab-v1.4 lab-v1.4-p01-clean-6-0 (same audio bytes and text)",
+  "lab-v1.4-p01-clean-12-1": "carried over from lab-v1.4 lab-v1.4-p01-clean-12-1 (same audio bytes and text)",
+  "lab-v1.4-p02-x1": "carried over from lab-v1.4 lab-v1.4-p02-x1 (same audio bytes and text)",
+  "lab-v1.4-p03-x7": "carried over from lab-v1.4 lab-v1.4-p03-x7 (same audio bytes and text)",
+  "lab-v1.4-p03-clean-2-3": "carried over from lab-v1.4 lab-v1.4-p03-clean-2-3 (same audio bytes and text)",
+  "lab-v1.4-p03-clean-2-4": "carried over from lab-v1.4 lab-v1.4-p03-clean-2-4 (same audio bytes and text)",
+  "lab-v1.4-p04-clean-1-7": "carried over from lab-v1.4 lab-v1.4-p04-clean-1-7 (same audio bytes and text)",
+  "lab-v1.4-p05-x4": "carried over from lab-v1.4 lab-v1.4-p05-x4 (same audio bytes and text)",
+  "lab-v1.4-p05-clean-0-1": "carried over from lab-v1.4 lab-v1.4-p05-clean-0-1 (same audio bytes and text)",
+  "lab-v1.4-p05-clean-0-5": "carried over from lab-v1.4 lab-v1.4-p05-clean-0-5 (same audio bytes and text)",
+  "lab-v1.4-p05-clean-2-1": "carried over from lab-v1.4 lab-v1.4-p05-clean-2-1 (same audio bytes and text)",
+  "lab-v1.4-p06-clean-7-1": "carried over from lab-v1.4 lab-v1.4-p06-clean-7-1 (same audio bytes and text)",
+  "lab-v1.4-p06-clean-7-6": "carried over from lab-v1.4 lab-v1.4-p06-clean-7-6 (same audio bytes and text)",
+  "lab-v1.4-p08-x2": "carried over from lab-v1.4 lab-v1.4-p08-x2 (same audio bytes and text)",
+  "lab-v1.4-p08-clean-0-8": "carried over from lab-v1.4 lab-v1.4-p08-clean-0-8 (same audio bytes and text)",
+  "lab-v1.4-p09-x3": "carried over from lab-v1.4 lab-v1.4-p09-x3 (same audio bytes and text)",
+  "lab-v1.4-p09-clean-0-2": "carried over from lab-v1.4 lab-v1.4-p09-clean-0-2 (same audio bytes and text)",
+  "lab-v1.4-p10-x2": "carried over from lab-v1.4 lab-v1.4-p10-x2 (same audio bytes and text)",
+  "lab-v1.4-p10-x4": "carried over from lab-v1.4 lab-v1.4-p10-x4 (same audio bytes and text)",
+  "lab-v1.4-p10-x6": "carried over from lab-v1.4 lab-v1.4-p10-x6 (same audio bytes and text)",
+  "lab-v1.4-p10-x8": "carried over from lab-v1.4 lab-v1.4-p10-x8 (same audio bytes and text)",
+  "lab-v1.4-p10-x9": "carried over from lab-v1.4 lab-v1.4-p10-x9 (same audio bytes and text)",
+  "lab-v1.4-p10-x13": "carried over from lab-v1.4 lab-v1.4-p10-x13 (same audio bytes and text)",
+  "lab-v1.4-p10-x16": "carried over from lab-v1.4 lab-v1.4-p10-x16 (same audio bytes and text)",
+  "lab-v1.4-p10-x17": "carried over from lab-v1.4 lab-v1.4-p10-x17 (same audio bytes and text)",
+  "lab-v1.4-p10-x18": "carried over from lab-v1.4 lab-v1.4-p10-x18 (same audio bytes and text)",
+  "lab-v1.4-p10-x24": "carried over from lab-v1.4 lab-v1.4-p10-x24 (same audio bytes and text)",
+  "lab-v1.4-p10-clean-1-0": "carried over from lab-v1.4 lab-v1.4-p10-clean-1-0 (same audio bytes and text)",
+  "lab-v1.4-p10-clean-9-0": "carried over from lab-v1.4 lab-v1.4-p10-clean-9-0 (same audio bytes and text)",
+  "lab-v1.4-p10-clean-17-0": "carried over from lab-v1.4 lab-v1.4-p10-clean-17-0 (same audio bytes and text)",
+  "lab-v1.4-p10-clean-25-0": "carried over from lab-v1.4 lab-v1.4-p10-clean-25-0 (same audio bytes and text)",
+  "lab-v1.4-p10-clean-27-3": "carried over from lab-v1.4 lab-v1.4-p10-clean-27-3 (same audio bytes and text)",
+  "lab-v1.4-p11-clean-0-0": "carried over from lab-v1.4 lab-v1.4-p11-clean-0-0 (same audio bytes and text)",
+  "lab-v1.4-p11-clean-1-5": "carried over from lab-v1.4 lab-v1.4-p11-clean-1-5 (same audio bytes and text): مِنَ ٱلَّذِينَ قَالُوٓا۟ was repeated",
+  "lab-v1.4-p11-clean-1-21": "carried over from lab-v1.4 lab-v1.4-p11-clean-1-21 (same audio bytes and text)",
+  "lab-v1.4-p12-x2": "carried over from lab-v1.4 lab-v1.4-p12-x2 (same audio bytes and text)",
+  "lab-v1.4-p12-x3": "carried over from lab-v1.4 lab-v1.4-p12-x3 (same audio bytes and text)",
+  "lab-v1.4-p12-x4": "carried over from lab-v1.4 lab-v1.4-p12-x4 (same audio bytes and text)",
+  "lab-v1.4-p12-x10": "carried over from lab-v1.4 lab-v1.4-p12-x10 (same audio bytes and text): carried over from lab-v1.3 lab-v1.3-p12-x9 (same audio bytes and text)",
+  "lab-v1.4-p13-x3": "carried over from lab-v1.4 lab-v1.4-p13-x3 (same audio bytes and text)",
+  "lab-v1.4-p13-x5": "carried over from lab-v1.4 lab-v1.4-p13-x5 (same audio bytes and text)",
+  "lab-v1.4-p13-x6": "carried over from lab-v1.4 lab-v1.4-p13-x6 (same audio bytes and text)",
+  "lab-v1.4-p13-x8": "carried over from lab-v1.4 lab-v1.4-p13-x8 (same audio bytes and text)",
+  "lab-v1.4-p13-clean-5-1": "carried over from lab-v1.4 lab-v1.4-p13-clean-5-1 (same audio bytes and text)",
+  "lab-v1.4-p14-x4": "carried over from lab-v1.4 lab-v1.4-p14-x4 (same audio bytes and text)",
+  "lab-v1.4-p14-x10": "carried over from lab-v1.4 lab-v1.4-p14-x10 (same audio bytes and text)",
+  "lab-v1.4-p15-x1": "carried over from lab-v1.4 lab-v1.4-p15-x1 (same audio bytes and text)",
+  "lab-v1.4-p15-x3": "carried over from lab-v1.4 lab-v1.4-p15-x3 (same audio bytes and text)",
+  "lab-v1.4-p15-x5": "carried over from lab-v1.4 lab-v1.4-p15-x5 (same audio bytes and text)",
+  "lab-v1.4-p16-x3": "carried over from lab-v1.4 lab-v1.4-p16-x3 (same audio bytes and text)",
+  "lab-v1.4-p16-x4": "carried over from lab-v1.4 lab-v1.4-p16-x4 (same audio bytes and text)",
+  "lab-v1.4-p16-clean-2-3": "carried over from lab-v1.4 lab-v1.4-p16-clean-2-3 (same audio bytes and text): مَّنِ was pronounced min (not 'man')",
+  "lab-v1.4-p17-clean-0-13": "carried over from lab-v1.4 lab-v1.4-p17-clean-0-13 (same audio bytes and text)",
+  "lab-v1.4-p18-clean-0-7": "carried over from lab-v1.4 lab-v1.4-p18-clean-0-7 (same audio bytes and text)",
+  "lab-v1.4-p19-x10": "carried over from lab-v1.4 lab-v1.4-p19-x10 (same audio bytes and text)",
+  "lab-v1.4-p20-x10": "carried over from lab-v1.4 lab-v1.4-p20-x10 (same audio bytes and text)",
+  "lab-v1.4-p20-x12": "carried over from lab-v1.4 lab-v1.4-p20-x12 (same audio bytes and text)",
+  "lab-v1.4-p20-x17": "carried over from lab-v1.4 lab-v1.4-p20-x17 (same audio bytes and text)",
+  "lab-v1.4-p20-x18": "carried over from lab-v1.4 lab-v1.4-p20-x18 (same audio bytes and text)",
+  "lab-v1.4-p20-clean-3-2": "carried over from lab-v1.4 lab-v1.4-p20-clean-3-2 (same audio bytes and text)",
+  "lab-v1.4-p20-clean-4-0": "carried over from lab-v1.4 lab-v1.4-p20-clean-4-0 (same audio bytes and text)",
+  "lab-v1.4-p20-clean-14-0": "carried over from lab-v1.4 lab-v1.4-p20-clean-14-0 (same audio bytes and text)"
+ },
+ "gpu": {
+  "nemotronTranscribeS": 6535.2,
+  "nemotronScoreS": 1813.6,
+  "fastconformerS": 531.1,
+  "containers": {
+   "nemotron": 4,
+   "fastconformer": 1
+  },
+  "loadS": {
+   "nemotron": 127.8,
+   "fastconformer": 8.7
+  },
+  "wallS": 3544.2
+ },
+ "queue": "lab-v1.5/review/triage.json",
+ "confirm": "lab-v1.5/review/triage-confirm.json"
+}

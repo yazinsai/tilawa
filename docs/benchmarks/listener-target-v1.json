@@ -1,0 +1,72 @@
+{
+ "version": "v1",
+ "drop": 0.02,
+ "teacherGoldPer": 0.03389957344907581,
+ "points": {
+  "teacher": {
+   "goldPer": 0.03389957344907581,
+   "scoreboardSha": "bfc52cb",
+   "declared.recall": 0.890625,
+   "declared.precision": 0.7702702702702703,
+   "short_vowel.recall": 0.6333333333333333,
+   "short_vowel.n": 30
+  },
+  "e5-top1-lite": {
+   "goldPer": 0.07213948963556088,
+   "scoreboardSha": "bfc52cb",
+   "declared.recall": 0.84375,
+   "declared.precision": 0.5094339622641509,
+   "short_vowel.recall": 0.6,
+   "short_vowel.n": 30
+  },
+  "e5-soft5-lite": {
+   "goldPer": 0.05941779540522338,
+   "scoreboardSha": "bfc52cb",
+   "declared.recall": 0.84375,
+   "declared.precision": 0.627906976744186,
+   "short_vowel.recall": 0.4,
+   "short_vowel.n": 30
+  },
+  "e2-scratch-full": {
+   "goldPer": 0.07303749158123175,
+   "scoreboardSha": "bfc52cb",
+   "declared.recall": 0.859375,
+   "declared.precision": 0.44715447154471544,
+   "short_vowel.recall": 0.6,
+   "short_vowel.n": 30
+  },
+  "e2-libri-full": {
+   "goldPer": 0.059791962882586244,
+   "scoreboardSha": "bfc52cb",
+   "declared.recall": 0.828125,
+   "declared.precision": 0.6708860759493671,
+   "short_vowel.recall": 0.5666666666666667,
+   "short_vowel.n": 30
+  }
+ },
+ "fits": {
+  "declared.recall": {
+   "name": "Declared-arm memorization recall",
+   "slopePerPerPoint": -0.01002063095836409,
+   "intercept": 0.9129053412407981,
+   "r": -0.668077754781625,
+   "bar": 0.05385839648437206
+  },
+  "declared.precision": {
+   "name": "Declared-arm memorization precision",
+   "slopePerPerPoint": -0.07570813335987582,
+   "intercept": 1.0567843505649923,
+   "r": -0.9295392470485604,
+   "bar": 0.03654129754296288
+  },
+  "short_vowel.recall": {
+   "name": "E1 help clips: short vowel greedy recall",
+   "slopePerPerPoint": -0.008165166768753958,
+   "intercept": 0.6087111498020703,
+   "r": -0.13946230489662964,
+   "bar": 0.05839386801331542
+  }
+ },
+ "bar": 0.03654129754296288,
+ "bindingMetric": "declared.precision"
+}

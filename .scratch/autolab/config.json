@@ -1,0 +1,123 @@
+{
+ "slots": 6,
+ "planEveryMinutes": 30,
+ "tickSeconds": 120,
+ "caps": {
+  "agentRuns": 200,
+  "agentHours": 200,
+  "modalUsd": 3000
+ },
+ "models": {
+  "planner": {
+   "id": "claude-opus-5-5",
+   "params": [
+    {
+     "id": "context",
+     "value": "1m"
+    },
+    {
+     "id": "effort",
+     "value": "medium"
+    },
+    {
+     "id": "fast",
+     "value": "false"
+    }
+   ]
+  },
+  "reviewer": {
+   "id": "claude-opus-5-5",
+   "params": [
+    {
+     "id": "context",
+     "value": "1m"
+    },
+    {
+     "id": "effort",
+     "value": "medium"
+    },
+    {
+     "id": "fast",
+     "value": "false"
+    }
+   ]
+  },
+  "strategist": {
+   "id": "claude-opus-5-5",
+   "params": [
+    {
+     "id": "context",
+     "value": "1m"
+    },
+    {
+     "id": "effort",
+     "value": "medium"
+    },
+    {
+     "id": "fast",
+     "value": "false"
+    }
+   ]
+  },
+  "judge": {
+   "id": "gpt-6.1-sol",
+   "params": [
+    {
+     "id": "effort",
+     "value": "high"
+    }
+   ]
+  },
+  "diffReviewer": {
+   "id": "gpt-6.1-sol",
+   "params": [
+    {
+     "id": "effort",
+     "value": "high"
+    }
+   ]
+  }
+ },
+ "executor": {
+  "env": {},
+  "runtimes": [
+   {
+    "name": "sol",
+    "runtime": "codex-azure",
+    "azure": {
+     "endpoint": "https://amalinvest-ai-yazin.openai.azure.com",
+     "deployment": "gpt-6.1-sol",
+     "apiVersion": "2025-04-01-preview"
+    },
+    "effort": "high",
+    "maxConcurrent": 10
+   }
+  ],
+  "split": {
+   "sol": 1
+  }
+ },
+ "listenerModel": "models/spliced-clean-int8",
+ "tests": "bash tools/autolab_tests.sh",
+ "notify": {
+  "topic": "tilawa-autolab-d9285cb5894c",
+  "dashboard": ""
+ },
+ "testShards": 6,
+ "betApprovalUsd": 100,
+ "execModels": [
+  "models/phone-channel-int8",
+  "models/channel-adapt-int8",
+  "models/channel-blend25-int8",
+  "models/paired-consonants-int8",
+  "models/paired-control-int8",
+  "models/targeted-consonants-int8",
+  "models/sparse-consonants-int8",
+  "models/sparse-random-int8",
+  "models/sparse-consonants-v2-int8",
+  "models/sparse-random-v2-int8",
+  "models/continuation-clean-int8",
+  "models/continuation-phone-int8"
+ ],
+ "examEvery": 5
+}
