@@ -1,12 +1,12 @@
 {
   "repo": "github.com/yazinsai/tilawa-reborn",
-  "commit": "5629a4e326bbce053bf0a2682ac7066fb4c71763",
+  "commit": "8cb52cb4af3a6697d600a6f0292c86e17956a246",
   "files": {
     "assets/phrases-v1.json": "0277d8dd78d6042795c1332b5a322d08eb71e262a79ce8887b6d66b08c53f688",
     "assets/ref-v2.json": "f236384ea91e81ad554ba2777bc4073c3ff41e34120343a8a474571c577b7727",
     "src/engine/align.ts": "13cf40937ea0107fb83de130dbde259f0f16a05aa35580ce9c57aaefafe60f12",
     "src/engine/ayah-ledger.ts": "d66cd866e519a0b20e43d3493d10d2259b810a968f8094248acee8ac5662a62b",
-    "src/engine/checker-lexical.ts": "7865f008bb7eec273d48c7b92419321109a1692b3aa91e821b729705ceafb58d",
+    "src/engine/checker-lexical.ts": "ededdbaef7faa7211495b0203fb69fa8989003414363e2f8767663d97127f0f4",
     "src/engine/checker-swap-tail.ts": "af5be23ceb7f09db75817939183d189842b99387d1d8d7a9077cd24d899d9b98",
     "src/engine/checker.ts": "6b48854d64b054f3beb25ecc1d5f6b3bea00328b22c7e40883c80db298c1ad9d",
     "src/engine/ctc.ts": "8c31bfe6c6156c27e0b000d10ec4365c874ff36d248544b940c63b97f172e5b2",

@@ -2,11 +2,12 @@
 
 ## 1.0.0-rc.1
 
-Preview bugfix release (engine re-vendored at research `5629a4e3`).
+Preview bugfix release (engine re-vendored at research `8cb52cb4`).
 
 - **Isti'adha acquisition fix (`tracker-istiadha-lock`).** Holding off locking through the short-madd *a'udhu billah* prefix and right after a finished phrase prevents mis-locks onto `2:67` and `16:98` in both free and declared modes (5/5 field isti'adha clips fixed).
 - **Fast-speech parallel-phrase false-warning fix (`checker-parallel-phrase-collapse`).** Collapsing held madd/ghunna runs in parallel-phrase CTC scoring and guarding zero-match clarity fixes the `22:1:3` false wrong-word alert and reduces stitched-session false warnings (`1.35 → 1.25 / 5 min`, -14 FWs) and lead-out false warnings (`1.69 → 1.50 / 5 min`, -2 FWs) with no loss in recall.
 - **Duplicate skip-alert deduplication (`checker-skip-span-dedupe`).** Confirmed `skipped_passage` spans are tracked so a broader later realignment over the same slip does not emit a second skip warning.
+- **Plain-nasal tajweed false-warning fix (`checker-tajweed-nasal-ending`).** Pronouncing *ikhfaa* (`ں`) or *iqlab*/*ikhfaa shafawi* (`۾`) as plain `ن`/`م` is treated as the same word rather than an added consonant ending — lifting declared precision to **90.3%** (passing the ≥ 90% gate), free+lead-in precision to **87.5%**, and cutting stitched false warnings to **1.14 / 5 min** (200 → 170 vs rc.0) and short-clip false warnings by 71% (`0.76 → 0.22 / 5 min`) with no loss in recall.
 - **Browser/WASM parity verified.** All 388 held-out help clips scored through `onnxruntime-web/wasm` 1.30.0 with 0/388 warning flips against `onnxruntime-node`.
 
 ## 1.0.0-rc.0

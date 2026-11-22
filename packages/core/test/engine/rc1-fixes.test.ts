@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createChecker } from "../../src/engine/checker.js";
+import { lexicalWords } from "../../src/engine/checker-lexical.js";
 import { createTracker } from "../../src/engine/tracker.js";
 import { loadReferenceIndex } from "../../src/engine/reference.js";
 import { syntheticFixture, withPosteriors } from "../fixtures/synthetic.js";
@@ -69,5 +70,13 @@ describe("rc.1 field-bug regression tests", () => {
     out.push(...checker.end(tracker.end()));
     const skips = out.filter((e) => e.state === "confirmed" && e.errorClass === "skipped_passage");
     expect(skips.length).toBeLessThanOrEqual(1);
+  });
+
+  it("plain-nasal izhar for ikhfaa (ں->ن) and iqlab (۾->ن/م) is not flagged as a lexical ending", () => {
+    const words = lexicalWords(index);
+    const wIdx = (s: number, a: number, wd: number) => index.words.findIndex((x) => x.surah === s && x.ayah === a && x.word === wd);
+    expect(words.ending(wIdx(78, 14, 4), "مَاءَن")).toBeNull();
+    expect(words.ending(wIdx(2, 64, 3), "ممِن")).toBeNull();
+    expect(words.ending(wIdx(7, 26, 13), "خَيرُن")).toBeNull();
   });
 });
