@@ -63,6 +63,24 @@ describe("attested endings", () => {
     expect(words.ending(atWord(long), text(short))).toEqual({ observedConsonant: false });
   });
 
+  it("treats plain-nasal izhar for ikhfaa (ں->ن) and iqlab (۾->ن/م) as the same word, not an added ending", () => {
+    const nasalAsset: ReferenceAsset = {
+      version: "nasal-ending-test",
+      text: "synthetic",
+      profile: {},
+      inventory: { id: "nasal-ending-test", tokens: "خَيرُں۾نمِ" },
+      ayahs: [
+        { s: 1, a: 1, w: ["ikhfa", "izhar"], p: "خَيرُںںںخَيرُن", o: [0, 8], iso: ["خَير", "خَير"] },
+        { s: 1, a: 2, w: ["iqlab", "plain"], p: "مِ۾۾۾مِن", o: [0, 5], iso: ["مِن", "مِن"] },
+      ],
+    };
+    const nIdx = loadReferenceIndex(nasalAsset);
+    const nWords = lexicalWords(nIdx);
+    expect(nWords.ending(0, "خَيرُن")).toBeNull();
+    expect(nWords.ending(2, "مِن")).toBeNull();
+    expect(nWords.ending(2, "مِم")).toBeNull();
+  });
+
   it("rejects its own forms, held vowels, and consonant-free endings", () => {
     expect(words.ending(atWord(short), text(short))).toBeNull();
     expect(words.ending(atWord(short), iso(short))).toBeNull();

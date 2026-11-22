@@ -150,12 +150,25 @@ function build(index: ReferenceIndex) {
    * ending carries a consonant. Waqf and a held vowel change only vowels, tanween or a pause mark, which is one of
    * this word's own forms or has no consonant to anchor.
    */
+  /** Plain-nasal realizations of tajweed ikhfaa (`ں` -> `ن`) and iqlab/ikhfaa-shafawi (`۾` -> `ن`/`م`) are the same word. */
+  const tajweedVariants = (own: string[]): string[] => {
+    const out = new Set(own);
+    for (const f of own) {
+      if (f.includes("ں") || f.includes("۾")) {
+        out.add(f.replace(/[ں۾]/g, "ن"));
+        if (f.includes("۾")) out.add(f.replace(/ں/g, "ن").replace(/۾/g, "م"));
+      }
+    }
+    return [...out];
+  };
   const ending = (wi: number, heardRaw: string): { observedConsonant: boolean } | null => {
     const heard = form(heardRaw);
     const own = forms[wi];
-    if (!heard || !own.length || own.includes(heard)) return null;
-    // A vowel-only or pause-mark tail of any own pronunciation is this word, not a different one.
-    if (own.some(f => {
+    if (!heard || !own.length) return null;
+    const ownAll = tajweedVariants(own);
+    if (ownAll.includes(heard)) return null;
+    // A vowel-only or pause-mark tail of any own pronunciation (or its plain-nasal realization) is this word, not a different one.
+    if (ownAll.some(f => {
       const r = residual(f, heard);
       return !!r && !endSegment(r.sa, r.sb);
     })) return null;
