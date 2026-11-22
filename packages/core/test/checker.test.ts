@@ -566,6 +566,20 @@ describe("free recitation", () => {
   it("follows on across a surah boundary", () => {
     expect(free({ from: w(113, 4, 1), to: w(114, 3, 2) })).toEqual([]);
   });
+
+  it("does not raise a second skipped_passage when a later realignment overlaps an already-confirmed skip", () => {
+    // Recite 22:1-22:3:8, then slip into mutashabih 22:8:9-13 (rhyming with 22:4:10-11) and continue with 22:9.
+    const a = index.phonemes.slice(find(w(22, 1, 1)).start, find(w(22, 3, 8)).end);
+    const b = index.phonemes.slice(find(w(22, 8, 9)).start, find(w(22, 9, 10)).end);
+    const phones = [...(a + b)].map((ch, i) => ({ p: ch, start: i * 3, end: i * 3 + 1, conf: 0.96 }));
+    const chunks = [];
+    for (let i = 0; i < phones.length; i += 8) {
+      chunks.push({ inventory: index.inventoryId, frameMs: 40, phonemes: phones.slice(i, i + 8) });
+    }
+    const events = confirmed(replayChecked(index, { id: "h22-skip", evidence: chunks } as any, { phrases }, { phrases }));
+    const skips = events.filter((e) => e.errorClass === "skipped_passage");
+    expect(skips.length).toBeLessThanOrEqual(1);
+  });
 });
 
 describe("a lock the tracker reaches only at the end of the session", () => {
