@@ -440,6 +440,9 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
   const open = new Map<number, Open>();
   /** Words whose error was confirmed or ended uncertain; never reopened. */
   const decided = new Set<number>();
+  /** Word spans of already-confirmed skipped_passage warnings, so a broader later realignment does not duplicate them. */
+  const confirmedSkips: { word: number; last: number }[] = [];
+  const overlapsConfirmedSkip = (word: number, last: number) => confirmedSkips.some((s) => word <= s.last && s.word <= last);
   const emitted: CheckerEvent[] = [];
   let seq = 0;
 
@@ -474,7 +477,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     open.delete(o.issue.word);
     decided.add(o.issue.word);
     const sure = ((declared && !latched) || trackerLocked) && heardSure(o.issue) && supported(o.issue) !== false;
-    out.push(event(o, state ?? (sure ? "confirmed" : "uncertain")));
+    const finalState = state ?? (sure ? "confirmed" : "uncertain");
+    if (o.issue.cls === "skipped_passage" && finalState === "confirmed") {
+      confirmedSkips.push({ word: o.issue.word, last: o.issue.last });
+    }
+    out.push(event(o, finalState));
   };
 
   /** The steps of the window's latest alignment. */
@@ -757,6 +764,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       // A whole ayah sits inside the span, so the end slides with the start. A slot was the other copy.
       if (!slotAt.has(w)) ledgerSpans.set(w + delta, last + delta);
     }
+    for (const sk of [...confirmedSkips]) {
+      if (sk.word >= from && sk.word < end && !slotAt.has(sk.word)) {
+        confirmedSkips.push({ word: sk.word + delta, last: sk.last + delta });
+      }
+    }
     if (anchor >= from && anchor <= end) anchor += delta;
     else if (anchor < from) anchor = to;
     if (furthest >= from && furthest < end) furthest += delta;
@@ -781,7 +793,11 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       if (!o) continue;
       open.delete(wi);
       decided.add(wi);
-      out.push(event(o, sureOf(o) ? "confirmed" : "uncertain"));
+      const finalState = sureOf(o) ? "confirmed" : "uncertain";
+      if (o.issue.cls === "skipped_passage" && finalState === "confirmed") {
+        confirmedSkips.push({ word: o.issue.word, last: o.issue.last });
+      }
+      out.push(event(o, finalState));
     }
     sealAll(out);
     anchor = null;
@@ -885,7 +901,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
       ledgerDone.add(a);
       if (margin === null || margin < PHRASE_SWITCH) continue;
       const wi = ayahFirst[a];
-      if (decided.has(wi) || heldSlot(wi)) continue;
+      if (decided.has(wi) || heldSlot(wi) || overlapsConfirmedSkip(wi, ayahLast[a])) continue;
       const openIssue = open.get(wi);
       if (openIssue && openIssue.issue.cls !== "wrong_word" && openIssue.issue.cls !== "omitted_word") {
         // The seam already keyed this ayah. Remember the ayah so a later seam on the same run can be dropped.
@@ -2301,6 +2317,7 @@ export function createChecker(index: ReferenceIndex, options: CheckerOptions = {
     }
     for (const [wi, issue] of issues) {
       if (open.has(wi) || decided.has(wi)) continue;
+      if (issue.cls === "skipped_passage" && overlapsConfirmedSkip(issue.word, issue.last)) continue;
       const o: Open = { id: `${words[wi].surah}:${words[wi].ayah}:${words[wi].word}#${++seq}`, issue, sinceMs: nowMs };
       open.set(wi, o);
       out.push(event(o, "suspected"));
